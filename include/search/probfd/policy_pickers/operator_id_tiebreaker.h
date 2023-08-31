@@ -3,7 +3,7 @@
 
 #include "probfd/policy_pickers/stable_policy_picker.h"
 
-#include "probfd/engine_interfaces/types.h"
+#include "probfd/fdr_types.h"
 
 #include "downward/operator_id.h"
 
@@ -15,7 +15,7 @@ namespace probfd {
 namespace policy_pickers {
 
 class OperatorIdTiebreaker
-    : public TaskStablePolicyPicker<OperatorIdTiebreaker> {
+    : public StablePolicyPicker<State, OperatorID, OperatorIdTiebreaker> {
     const int ascending_;
 
 public:
@@ -23,12 +23,11 @@ public:
     explicit OperatorIdTiebreaker(bool stable_policy, int ascending);
 
     int pick_index(
-        TaskStateSpace& state_space,
+        FDRMDP& mdp,
         StateID state,
         std::optional<OperatorID> prev_policy,
-        const std::vector<OperatorID>& action_choices,
-        const std::vector<Distribution<StateID>>& successors,
-        engine_interfaces::StateProperties& properties);
+        const std::vector<Transition<OperatorID>>& greedy_transitions,
+        algorithms::StateProperties& properties);
 };
 
 } // namespace policy_pickers

@@ -2,9 +2,9 @@
 
 #include "probfd/heuristics/cartesian/abstract_state.h"
 #include "probfd/heuristics/cartesian/abstraction.h"
-#include "probfd/heuristics/cartesian/engine_interfaces.h"
+#include "probfd/heuristics/cartesian/algorithm_interfaces.h"
 
-#include "probfd/engines/ta_topological_value_iteration.h"
+#include "probfd/algorithms/ta_topological_value_iteration.h"
 
 #include "probfd/preprocessing/qualitative_reachability_analysis.h"
 
@@ -14,24 +14,20 @@ namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
-vector<value_t> compute_distances(
-    Abstraction& abstraction,
-    CartesianHeuristic& heuristic,
-    const vector<value_t>& costs)
+vector<value_t>
+compute_distances(Abstraction& abstraction, CartesianHeuristic& heuristic)
 {
     vector<value_t> values(abstraction.get_num_states(), INFINITE_VALUE);
 
-    CartesianCostFunction cost_function(abstraction, costs);
-
-    preprocessing::QualitativeReachabilityAnalysis<
-        const AbstractState*,
-        const ProbabilisticTransition*>
-        qr_analysis(true);
+    preprocessing::
+        QualitativeReachabilityAnalysis<int, const ProbabilisticTransition*>
+            qr_analysis(true);
 
     std::vector<StateID> pruned_states;
     qr_analysis.run_analysis(
-        {abstraction, cost_function},
-        &abstraction.get_initial_state(),
+        abstraction,
+        nullptr,
+        abstraction.get_initial_state().get_id(),
         iterators::discarding_output_iterator{},
         std::back_inserter(pruned_states),
         iterators::discarding_output_iterator{});
@@ -40,12 +36,15 @@ vector<value_t> compute_distances(
         heuristic.set_h_value(pruned_id, INFINITE_VALUE);
     }
 
-    engines::ta_topological_vi::TATopologicalValueIteration<
-        const AbstractState*,
-        const ProbabilisticTransition*>
-        tvi(&abstraction, &cost_function, &heuristic);
+    algorithms::ta_topological_vi::
+        TATopologicalValueIteration<int, const ProbabilisticTransition*>
+            tvi;
 
-    tvi.solve(abstraction.get_initial_state().get_id(), values);
+    tvi.solve(
+        abstraction,
+        heuristic,
+        abstraction.get_initial_state().get_id(),
+        values);
 
     return values;
 }

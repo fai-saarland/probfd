@@ -38,28 +38,5 @@ value_t CostAdaptedTask::get_operator_cost(int index) const
         parent_is_unit_cost);
 }
 
-class CostAdaptedTaskFeature
-    : public plugins::TypedFeature<ProbabilisticTask, CostAdaptedTask> {
-public:
-    CostAdaptedTaskFeature()
-        : TypedFeature("probabilistic_adapt_costs")
-    {
-        document_title("Cost-adapted task");
-        document_synopsis("A cost-adapting transformation of the root task.");
-
-        add_cost_type_option_to_feature(*this);
-    }
-
-    std::shared_ptr<CostAdaptedTask>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        OperatorCost cost_type = opts.get<OperatorCost>("cost_type");
-        return make_shared<CostAdaptedTask>(g_root_task, cost_type);
-    }
-};
-
-static plugins::FeaturePlugin<CostAdaptedTaskFeature> _plugin;
-
 } // namespace tasks
 } // namespace probfd

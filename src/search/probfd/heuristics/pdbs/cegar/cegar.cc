@@ -39,7 +39,6 @@ CEGARResult::~CEGARResult() = default;
  */
 class CEGAR::PDBInfo {
     std::unique_ptr<ProjectionStateSpace> state_space;
-    InducedProjectionCostFunction cost_function;
     StateRank initial_state;
     std::unique_ptr<ProbabilityAwarePatternDatabase> pdb;
     std::unique_ptr<ProjectionMultiPolicy> policy;
@@ -49,7 +48,7 @@ public:
     PDBInfo(
         const ProbabilisticTaskProxy& task_proxy,
         StateRankingFunction ranking_function,
-        TaskCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         bool wildcard,
         utils::CountdownTimer& timer);
@@ -57,7 +56,7 @@ public:
     PDBInfo(
         const ProbabilisticTaskProxy& task_proxy,
         StateRankingFunction ranking_function,
-        TaskCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         const ProbabilityAwarePatternDatabase& previous,
         int add_var,
@@ -67,7 +66,7 @@ public:
     PDBInfo(
         const ProbabilisticTaskProxy& task_proxy,
         StateRankingFunction ranking_function,
-        TaskCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         const ProbabilityAwarePatternDatabase& merge_left,
         const ProbabilityAwarePatternDatabase& merge_right,
@@ -75,6 +74,8 @@ public:
         utils::CountdownTimer& timer);
 
     const Pattern& get_pattern() const;
+
+    const ProjectionStateSpace& get_mdp() const;
 
     const ProbabilityAwarePatternDatabase& get_pdb() const;
 
@@ -89,7 +90,7 @@ public:
 
     void mark_as_solved();
 
-    bool solution_exists() const;
+    bool solution_exists(value_t termination_cost) const;
 
     bool is_goal(StateRank rank) const;
 };
@@ -97,7 +98,7 @@ public:
 CEGAR::PDBInfo::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
-    TaskCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     bool wildcard,
     utils::CountdownTimer& timer)
@@ -107,19 +108,16 @@ CEGAR::PDBInfo::PDBInfo(
           task_cost_function,
           false,
           timer.get_remaining_time()))
-    , cost_function(task_proxy, ranking_function, &task_cost_function)
     , initial_state(
           ranking_function.get_abstract_rank(task_proxy.get_initial_state()))
     , pdb(new ProbabilityAwarePatternDatabase(
           *state_space,
           std::move(ranking_function),
-          cost_function,
           initial_state,
           heuristics::ConstantEvaluator<StateRank>(0_vt),
           timer.get_remaining_time()))
     , policy(pdb->compute_optimal_projection_policy(
           *state_space,
-          cost_function,
           initial_state,
           *rng,
           wildcard))
@@ -129,7 +127,7 @@ CEGAR::PDBInfo::PDBInfo(
 CEGAR::PDBInfo::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
-    TaskCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     const ProbabilityAwarePatternDatabase& previous,
     int add_var,
@@ -141,20 +139,17 @@ CEGAR::PDBInfo::PDBInfo(
           task_cost_function,
           false,
           timer.get_remaining_time()))
-    , cost_function(task_proxy, ranking_function, &task_cost_function)
     , initial_state(
           ranking_function.get_abstract_rank(task_proxy.get_initial_state()))
     , pdb(new ProbabilityAwarePatternDatabase(
           *state_space,
           std::move(ranking_function),
-          cost_function,
           initial_state,
           previous,
           add_var,
           timer.get_remaining_time()))
     , policy(pdb->compute_optimal_projection_policy(
           *state_space,
-          cost_function,
           initial_state,
           *rng,
           wildcard))
@@ -164,7 +159,7 @@ CEGAR::PDBInfo::PDBInfo(
 CEGAR::PDBInfo::PDBInfo(
     const ProbabilisticTaskProxy& task_proxy,
     StateRankingFunction ranking_function,
-    TaskCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     const ProbabilityAwarePatternDatabase& left,
     const ProbabilityAwarePatternDatabase& right,
@@ -176,20 +171,17 @@ CEGAR::PDBInfo::PDBInfo(
           task_cost_function,
           false,
           timer.get_remaining_time()))
-    , cost_function(task_proxy, ranking_function, &task_cost_function)
     , initial_state(
           ranking_function.get_abstract_rank(task_proxy.get_initial_state()))
     , pdb(new ProbabilityAwarePatternDatabase(
           *state_space,
           std::move(ranking_function),
-          cost_function,
           initial_state,
           left,
           right,
           timer.get_remaining_time()))
     , policy(pdb->compute_optimal_projection_policy(
           *state_space,
-          cost_function,
           initial_state,
           *rng,
           wildcard))
@@ -199,6 +191,12 @@ CEGAR::PDBInfo::PDBInfo(
 const Pattern& CEGAR::PDBInfo::get_pattern() const
 {
     return pdb->get_pattern();
+}
+
+const ProjectionStateSpace& CEGAR::PDBInfo::get_mdp() const
+{
+    assert(state_space);
+    return *state_space;
 }
 
 const ProbabilityAwarePatternDatabase& CEGAR::PDBInfo::get_pdb() const
@@ -237,14 +235,14 @@ void CEGAR::PDBInfo::mark_as_solved()
     solved = true;
 }
 
-bool CEGAR::PDBInfo::solution_exists() const
+bool CEGAR::PDBInfo::solution_exists(value_t termination_cost) const
 {
-    return !pdb->is_dead_end(initial_state);
+    return pdb->lookup_estimate(initial_state) != termination_cost;
 }
 
 bool CEGAR::PDBInfo::is_goal(StateRank rank) const
 {
-    return cost_function.is_goal(rank);
+    return state_space->is_goal(rank);
 }
 
 CEGAR::CEGAR(
@@ -290,7 +288,7 @@ void CEGAR::print_collection() const
 
 void CEGAR::generate_trivial_solution_collection(
     const ProbabilisticTaskProxy& task_proxy,
-    TaskCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     utils::CountdownTimer& timer)
 {
     assert(!goals.empty());
@@ -313,6 +311,7 @@ int CEGAR::get_flaws(
     const ProbabilisticTaskProxy& task_proxy,
     std::vector<Flaw>& flaws,
     std::vector<int>& flaw_offsets,
+    value_t termination_cost,
     utils::CountdownTimer& timer)
 {
     const int num_pdb_infos = static_cast<int>(pdb_infos.size());
@@ -325,7 +324,7 @@ int CEGAR::get_flaws(
         }
 
         // abort here if no abstract solution could be found
-        if (!info->solution_exists()) {
+        if (!info->solution_exists(termination_cost)) {
             log << "CEGAR: Problem unsolvable" << endl;
             utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
         }
@@ -336,6 +335,7 @@ int CEGAR::get_flaws(
         const size_t num_flaws_before = flaws.size();
         const bool executable = flaw_strategy->apply_policy(
             task_proxy,
+            info->get_mdp(),
             info->get_pdb(),
             info->get_policy(),
             blacklisted_variables,
@@ -407,7 +407,7 @@ bool CEGAR::can_merge_patterns(int index1, int index2) const
 
 void CEGAR::add_pattern_for_var(
     const ProbabilisticTaskProxy& task_proxy,
-    TaskCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     int var,
     utils::CountdownTimer& timer)
 {
@@ -424,7 +424,7 @@ void CEGAR::add_pattern_for_var(
 
 void CEGAR::add_variable_to_pattern(
     const ProbabilisticTaskProxy& task_proxy,
-    TaskCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     int index,
     int var,
     utils::CountdownTimer& timer)
@@ -457,7 +457,7 @@ void CEGAR::add_variable_to_pattern(
 
 void CEGAR::merge_patterns(
     const ProbabilisticTaskProxy& task_proxy,
-    TaskCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     int index1,
     int index2,
     utils::CountdownTimer& timer)
@@ -503,7 +503,7 @@ void CEGAR::merge_patterns(
 
 void CEGAR::refine(
     const ProbabilisticTaskProxy& task_proxy,
-    TaskCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     const VariablesProxy& variables,
     const std::vector<Flaw>& flaws,
     const std::vector<int>& flaw_offsets,
@@ -596,7 +596,7 @@ void CEGAR::refine(
 
 CEGARResult CEGAR::generate_pdbs(
     const ProbabilisticTaskProxy& task_proxy,
-    TaskCostFunction& task_cost_function)
+    FDRSimpleCostFunction& task_cost_function)
 {
     if (log.is_at_least_normal()) {
         log << "CEGAR options: \n"
@@ -630,13 +630,21 @@ CEGARResult CEGAR::generate_pdbs(
     // main loop of the algorithm
     int refinement_counter = 1;
 
+    const value_t termination_cost =
+        task_cost_function.get_non_goal_termination_cost();
+
     try {
         for (;;) {
             if (log.is_at_least_verbose()) {
                 log << "iteration #" << refinement_counter << endl;
             }
 
-            solution_index = get_flaws(task_proxy, flaws, flaw_offsets, timer);
+            solution_index = get_flaws(
+                task_proxy,
+                flaws,
+                flaw_offsets,
+                termination_cost,
+                timer);
 
             if (flaws.empty()) {
                 if (solution_index != -1) {

@@ -200,4 +200,5 @@ void GeneratorLeafSingle::generate_applicable_ops(
 {
     applicable_ops.push_back(applicable_operator);
 }
+
 } // namespace successor_generator

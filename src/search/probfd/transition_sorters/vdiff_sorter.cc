@@ -1,6 +1,6 @@
 #include "probfd/transition_sorters/vdiff_sorter.h"
 
-#include "probfd/engine_interfaces/state_properties.h"
+#include "probfd/algorithms/state_properties.h"
 
 #include "probfd/distribution.h"
 
@@ -16,10 +16,10 @@ VDiffSorter::VDiffSorter(value_t favor_large_gaps)
 }
 
 void VDiffSorter::sort(
-    StateID,
+    const State&,
     const std::vector<OperatorID>&,
     std::vector<Distribution<StateID>>& all_successors,
-    engine_interfaces::StateProperties& properties)
+    algorithms::StateProperties& properties)
 {
     std::vector<double> k0;
     k0.reserve(all_successors.size());

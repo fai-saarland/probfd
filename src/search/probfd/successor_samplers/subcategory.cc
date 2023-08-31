@@ -1,9 +1,20 @@
-#include "probfd/successor_samplers/arbitrary_selector_factory.h"
-#include "probfd/successor_samplers/most_likely_selector_factory.h"
-#include "probfd/successor_samplers/random_successor_sampler_factory.h"
-#include "probfd/successor_samplers/uniform_successor_sampler_factory.h"
-#include "probfd/successor_samplers/vbiased_successor_sampler_factory.h"
-#include "probfd/successor_samplers/vdiff_successor_sampler_factory.h"
+#include "probfd/successor_samplers/arbitrary_sampler.h"
+#include "probfd/successor_samplers/most_likely_sampler.h"
+#include "probfd/successor_samplers/random_successor_sampler.h"
+#include "probfd/successor_samplers/uniform_successor_sampler.h"
+#include "probfd/successor_samplers/vbiased_successor_sampler.h"
+#include "probfd/successor_samplers/vdiff_successor_sampler.h"
+
+#include "probfd/bisimulation/types.h"
+
+#include "probfd/quotients/quotient_system.h"
+
+#include "probfd/plugins/multi_feature_plugin.h"
+#include "probfd/plugins/naming_conventions.h"
+
+#include "probfd/fdr_types.h"
+
+#include "downward/task_proxy.h"
 
 #include "downward/plugins/plugin.h"
 
@@ -11,118 +22,151 @@
 
 namespace probfd {
 namespace successor_samplers {
+namespace {
 
-static class TaskSuccessorSamplerFactoryCategoryPlugin
-    : public plugins::TypedCategoryPlugin<TaskSuccessorSamplerFactory> {
+using namespace plugins;
+
+template <template <typename> typename S, bool Bisimulation, bool Fret>
+using Wrapper = std::conditional_t<
+    Bisimulation,
+    std::conditional_t<
+        Fret,
+        S<quotients::QuotientAction<bisimulation::QuotientAction>>,
+        S<bisimulation::QuotientAction>>,
+    std::conditional_t<
+        Fret,
+        S<quotients::QuotientAction<OperatorID>>,
+        S<OperatorID>>>;
+
+template <bool Bisimulation, bool Fret>
+using SuccessorSampler =
+    Wrapper<algorithms::SuccessorSampler, Bisimulation, Fret>;
+
+template <bool Bisimulation, bool Fret>
+class SuccessorSamplerCategoryPlugin
+    : public TypedCategoryPlugin<SuccessorSampler<Bisimulation, Fret>> {
 public:
-    TaskSuccessorSamplerFactoryCategoryPlugin()
-        : TypedCategoryPlugin("TaskSuccessorSamplerFactory")
+    SuccessorSamplerCategoryPlugin()
+        : TypedCategoryPlugin<SuccessorSampler<Bisimulation, Fret>>(
+              add_mdp_type_to_category<Bisimulation, Fret>("SuccessorSampler"))
     {
-    }
-} _category_plugin_collection;
-
-class ArbitrarySuccessorSelectorFactoryFeature
-    : public plugins::TypedFeature<
-          TaskSuccessorSamplerFactory,
-          ArbitrarySuccessorSelectorFactory> {
-public:
-    ArbitrarySuccessorSelectorFactoryFeature()
-        : TypedFeature("arbitrary_successor_selector_factory")
-    {
-    }
-
-    std::shared_ptr<ArbitrarySuccessorSelectorFactory>
-    create_component(const plugins::Options&, const utils::Context&)
-        const override
-    {
-        return std::make_shared<ArbitrarySuccessorSelectorFactory>();
     }
 };
 
-class MostLikelySuccessorSelectorFactoryFeature
-    : public plugins::TypedFeature<
-          TaskSuccessorSamplerFactory,
-          MostLikelySuccessorSelectorFactory> {
+template <bool Bisimulation, bool Fret>
+class ArbitrarySuccessorSamplerFeature
+    : public TypedFeature<
+          SuccessorSampler<Bisimulation, Fret>,
+          Wrapper<ArbitrarySuccessorSampler, Bisimulation, Fret>> {
 public:
-    MostLikelySuccessorSelectorFactoryFeature()
-        : TypedFeature("most_likely_successor_selector_factory")
+    ArbitrarySuccessorSamplerFeature()
+        : ArbitrarySuccessorSamplerFeature::TypedFeature(
+              add_mdp_type_to_option<Bisimulation, Fret>(
+                  "arbitrary_successor_sampler"))
     {
     }
 
-    std::shared_ptr<MostLikelySuccessorSelectorFactory>
-    create_component(const plugins::Options&, const utils::Context&)
-        const override
+    std::shared_ptr<Wrapper<ArbitrarySuccessorSampler, Bisimulation, Fret>>
+    create_component(const Options&, const utils::Context&) const override
     {
-        return std::make_shared<MostLikelySuccessorSelectorFactory>();
+        return std::make_shared<
+            Wrapper<ArbitrarySuccessorSampler, Bisimulation, Fret>>();
     }
 };
 
-class RandomSuccessorSelectorFactoryFeature
-    : public plugins::TypedFeature<
-          TaskSuccessorSamplerFactory,
-          RandomSuccessorSamplerFactory> {
+template <bool Bisimulation, bool Fret>
+class MostLikelySuccessorSamplerFeature
+    : public TypedFeature<
+          SuccessorSampler<Bisimulation, Fret>,
+          Wrapper<MostLikelySuccessorSampler, Bisimulation, Fret>> {
 public:
-    RandomSuccessorSelectorFactoryFeature()
-        : TypedFeature("random_successor_sampler_factory")
+    MostLikelySuccessorSamplerFeature()
+        : MostLikelySuccessorSamplerFeature::TypedFeature(
+              add_mdp_type_to_option<Bisimulation, Fret>(
+                  "most_likely_successor_Sampler"))
+    {
+    }
+
+    std::shared_ptr<Wrapper<MostLikelySuccessorSampler, Bisimulation, Fret>>
+    create_component(const Options&, const utils::Context&) const override
+    {
+        return std::make_shared<
+            Wrapper<MostLikelySuccessorSampler, Bisimulation, Fret>>();
+    }
+};
+
+template <bool Bisimulation, bool Fret>
+class UniformSuccessorSamplerFeature
+    : public TypedFeature<
+          SuccessorSampler<Bisimulation, Fret>,
+          Wrapper<UniformSuccessorSampler, Bisimulation, Fret>> {
+public:
+    UniformSuccessorSamplerFeature()
+        : UniformSuccessorSamplerFeature::TypedFeature(
+              add_mdp_type_to_option<Bisimulation, Fret>(
+                  "uniform_random_successor_sampler"))
     {
         utils::add_rng_options(*this);
     }
 };
 
-class UniformSuccessorSelectorFactoryFeature
-    : public plugins::TypedFeature<
-          TaskSuccessorSamplerFactory,
-          UniformSuccessorSamplerFactory> {
+template <bool Bisimulation, bool Fret>
+class RandomSuccessorSamplerFeature
+    : public TypedFeature<
+          SuccessorSampler<Bisimulation, Fret>,
+          Wrapper<RandomSuccessorSampler, Bisimulation, Fret>> {
 public:
-    UniformSuccessorSelectorFactoryFeature()
-        : TypedFeature("uniform_random_successor_sampler_factory")
+    RandomSuccessorSamplerFeature()
+        : RandomSuccessorSamplerFeature::TypedFeature(
+              add_mdp_type_to_option<Bisimulation, Fret>(
+                  "random_successor_sampler"))
     {
         utils::add_rng_options(*this);
     }
 };
 
-class VBiasedSuccessorSamplerFactoryFeature
-    : public plugins::TypedFeature<
-          TaskSuccessorSamplerFactory,
-          VBiasedSuccessorSamplerFactory> {
+template <bool Bisimulation, bool Fret>
+class VBiasedSuccessorSamplerFeature
+    : public TypedFeature<
+          SuccessorSampler<Bisimulation, Fret>,
+          Wrapper<VBiasedSuccessorSampler, Bisimulation, Fret>> {
 public:
-    VBiasedSuccessorSamplerFactoryFeature()
-        : TypedFeature("vbiased_successor_sampler_factory")
+    VBiasedSuccessorSamplerFeature()
+        : VBiasedSuccessorSamplerFeature::TypedFeature(
+              add_mdp_type_to_option<Bisimulation, Fret>(
+                  "vbiased_successor_sampler"))
     {
         utils::add_rng_options(*this);
     }
 };
 
-class VDiffSuccessorSamplerFactoryFeature
-    : public plugins::TypedFeature<
-          TaskSuccessorSamplerFactory,
-          VDiffSuccessorSamplerFactory> {
+template <bool Bisimulation, bool Fret>
+class VDiffSuccessorSamplerFeature
+    : public TypedFeature<
+          SuccessorSampler<Bisimulation, Fret>,
+          Wrapper<VDiffSuccessorSampler, Bisimulation, Fret>> {
 public:
-    VDiffSuccessorSamplerFactoryFeature()
-        : TypedFeature("value_gap_successor_sampler_factory")
+    VDiffSuccessorSamplerFeature()
+        : VDiffSuccessorSamplerFeature::TypedFeature(
+              add_mdp_type_to_option<Bisimulation, Fret>(
+                  "value_gap_successor_sampler"))
     {
         utils::add_rng_options(*this);
-        add_option<bool>("prefer_large_gaps", "", "true");
+        this->template add_option<bool>("prefer_large_gaps", "", "true");
     }
 };
 
-static plugins::FeaturePlugin<ArbitrarySuccessorSelectorFactoryFeature>
-    _plugin_arbitary;
+static MultiCategoryPlugin<SuccessorSamplerCategoryPlugin> _category_plugin;
 
-static plugins::FeaturePlugin<MostLikelySuccessorSelectorFactoryFeature>
+static MultiFeaturePlugin<ArbitrarySuccessorSamplerFeature> _plugin_arbitary;
+static MultiFeaturePlugin<MostLikelySuccessorSamplerFeature>
     _plugin_most_likely;
-
-static plugins::FeaturePlugin<RandomSuccessorSelectorFactoryFeature>
-    _plugin_random;
-
-static plugins::FeaturePlugin<UniformSuccessorSelectorFactoryFeature>
+static MultiFeaturePlugin<RandomSuccessorSamplerFeature> _plugin_random;
+static MultiFeaturePlugin<UniformSuccessorSamplerFeature>
     _plugin_uniform_random;
+static MultiFeaturePlugin<VBiasedSuccessorSamplerFeature> _plugin_vbiased;
+static MultiFeaturePlugin<VDiffSuccessorSamplerFeature> _plugin_value_gap;
 
-static plugins::FeaturePlugin<VBiasedSuccessorSamplerFactoryFeature>
-    _plugin_vbiased;
-
-static plugins::FeaturePlugin<VDiffSuccessorSamplerFactoryFeature>
-    _plugin_value_gap;
-
+} // namespace
 } // namespace successor_samplers
 } // namespace probfd

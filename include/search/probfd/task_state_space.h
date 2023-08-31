@@ -1,19 +1,20 @@
 #ifndef PROBFD_TASK_STATE_SPACE_H
 #define PROBFD_TASK_STATE_SPACE_H
 
-#include "probfd/engine_interfaces/state_space.h"
-#include "probfd/engine_interfaces/types.h"
-
 #include "probfd/storage/per_state_storage.h"
 #include "probfd/storage/segmented_memory_pool.h"
 
+#include "probfd/task_utils/probabilistic_successor_generator.h"
+
+#include "probfd/fdr_types.h"
+#include "probfd/mdp.h"
 #include "probfd/task_proxy.h"
 
 #include "downward/algorithms/segmented_vector.h"
 
-#include "downward/task_utils/successor_generator.h"
-
 #include "downward/state_registry.h"
+
+#include "downward/utils/logging.h"
 
 #include <cassert>
 #include <iostream>
@@ -27,7 +28,7 @@ class Evaluator;
 namespace probfd {
 class ProbabilisticTask;
 
-class InducedTaskStateSpace : public TaskStateSpace {
+class TaskStateSpace : public FDRSimpleMDP {
 protected:
     struct Statistics {
         unsigned long long single_transition_generator_calls = 0;
@@ -43,64 +44,69 @@ protected:
         unsigned long long transition_computations = 0;
         unsigned long long computed_successors = 0;
 
-        void print(std::ostream& out) const;
+        void print(utils::LogProxy log) const;
     };
 
 protected:
     ProbabilisticTaskProxy task_proxy;
+    mutable utils::LogProxy log;
 
-    successor_generator::SuccessorGenerator gen_;
+    successor_generator::ProbabilisticSuccessorGenerator gen_;
     StateRegistry state_registry_;
 
+    const std::shared_ptr<FDRSimpleCostFunction> cost_function_;
     const std::vector<std::shared_ptr<::Evaluator>> notify_;
-
-    std::vector<OperatorID> aops_;
-    std::vector<StateID> successors_;
 
     Statistics statistics_;
 
 public:
-    InducedTaskStateSpace(
+    TaskStateSpace(
         std::shared_ptr<ProbabilisticTask> task,
+        utils::LogProxy log,
+        std::shared_ptr<FDRSimpleCostFunction> cost_function,
         const std::vector<std::shared_ptr<::Evaluator>>&
             path_dependent_evaluators = {});
 
-    StateID get_state_id(const State& state) override;
-    State get_state(StateID state_id) override;
+    StateID get_state_id(const State& state) override final;
+    State get_state(StateID state_id) override final;
 
     void generate_applicable_actions(
-        StateID state_id,
+        const State& state,
         std::vector<OperatorID>& result) override;
 
     void generate_action_transitions(
-        StateID state,
+        const State& state,
         OperatorID operator_id,
         Distribution<StateID>& result) override;
 
     void generate_all_transitions(
-        StateID state,
+        const State& state,
         std::vector<OperatorID>& aops,
         std::vector<Distribution<StateID>>& successors) override;
+
+    void generate_all_transitions(
+        const State& state,
+        std::vector<Transition>& transitions) override;
+
+    value_t get_action_cost(OperatorID op) override;
+
+    bool is_goal(const State& state) const override final;
+    value_t get_non_goal_termination_cost() const override final;
 
     const State& get_initial_state();
 
     size_t get_num_registered_states() const;
 
-    virtual void print_statistics(std::ostream& out) const;
+    void print_statistics() const override;
+
+    void compute_successor_dist(
+        const State& s,
+        OperatorID op_id,
+        Distribution<StateID>& successors);
 
 protected:
     void
     compute_applicable_operators(const State& s, std::vector<OperatorID>& ops);
-
-    void compute_successor_states(
-        const State& s,
-        OperatorID op_id,
-        std::vector<StateID>& successors);
-
-    size_t compute_successor_dist(
-        const State& s,
-        OperatorID op_id,
-        Distribution<StateID>& successors);
 };
 
 } // namespace probfd

@@ -3,7 +3,7 @@
 #include "probfd/heuristics/pdbs/cegar/cegar.h"
 #include "probfd/heuristics/pdbs/projection_state_space.h"
 
-#include "probfd/engine_interfaces/cost_function.h"
+#include "probfd/cost_function.h"
 
 #include "downward/utils/logging.h"
 
@@ -34,7 +34,7 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
     double max_time,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     const ProbabilisticTaskProxy& task_proxy,
-    TaskCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     const FactPair& goal,
     unordered_set<int>&& blacklisted_variables)
 {

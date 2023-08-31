@@ -1,7 +1,10 @@
 #include "probfd/heuristics/pdbs/match_tree.h"
 
 #include "probfd/heuristics/pdbs/projection_operator.h"
+#include "probfd/heuristics/pdbs/projection_state_space.h"
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
+
+#include "probfd/transition.h"
 
 #include <cassert>
 #include <iostream>
@@ -179,6 +182,51 @@ void MatchTree::get_applicable_operators_recursive(
     }
 }
 
+void MatchTree::generate_all_transitions_recursive(
+    Node* node,
+    StateRank abstract_state,
+    std::vector<Transition<const ProjectionOperator*>>& transitions,
+    ProjectionStateSpace& state_space) const
+{
+    /*
+      Note: different from the code that builds the match tree, we do
+      the test if node == 0 *before* calling traverse rather than *at
+      the start* of traverse since this turned out to be faster in
+      some informal experiments.
+     */
+
+    for (size_t op_index : node->applicable_operator_ids) {
+        auto* op = projection_operators.data() + op_index;
+        auto& t = transitions.emplace_back(op);
+        state_space.generate_action_transitions(
+            abstract_state,
+            op,
+            t.successor_dist);
+    }
+
+    if (node->is_leaf_node()) return;
+
+    int temp = abstract_state.id / node->var_multiplier;
+    int val = temp % node->var_domain_size;
+
+    if (node->successors[val]) {
+        // Follow the correct successor edge, if it exists.
+        generate_all_transitions_recursive(
+            node->successors[val].get(),
+            abstract_state,
+            transitions,
+            state_space);
+    }
+    if (node->star_successor) {
+        // Always follow the star edge, if it exists.
+        generate_all_transitions_recursive(
+            node->star_successor.get(),
+            abstract_state,
+            transitions,
+            state_space);
+    }
+}
+
 void MatchTree::get_applicable_operators(
     StateRank abstract_state,
     vector<const ProjectionOperator*>& operator_ids) const
@@ -188,6 +236,19 @@ void MatchTree::get_applicable_operators(
             root.get(),
             abstract_state,
             operator_ids);
+}
+
+void MatchTree::generate_all_transitions(
+    StateRank abstract_state,
+    std::vector<Transition<const ProjectionOperator*>>& transitions,
+    ProjectionStateSpace& state_space) const
+{
+    if (root)
+        generate_all_transitions_recursive(
+            root.get(),
+            abstract_state,
+            transitions,
+            state_space);
 }
 
 const ProjectionOperator& MatchTree::get_index_operator(int index) const

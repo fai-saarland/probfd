@@ -1,15 +1,15 @@
 #ifndef PROBFD_TRANSITION_SORTERS_VDIFF_SORTER_H
 #define PROBFD_TRANSITION_SORTERS_VDIFF_SORTER_H
 
-#include "probfd/engine_interfaces/transition_sorter.h"
-#include "probfd/engine_interfaces/types.h"
+#include "probfd/algorithms/fdr_types.h"
+#include "probfd/algorithms/transition_sorter.h"
 
 #include "probfd/value_type.h"
 
 namespace probfd {
 namespace transition_sorters {
 
-class VDiffSorter : public TaskTransitionSorter {
+class VDiffSorter : public FDRTransitionSorter {
     const value_t favor_large_gaps_;
 
 public:
@@ -17,10 +17,10 @@ public:
 
 protected:
     virtual void sort(
-        StateID state,
+        const State& state,
         const std::vector<OperatorID>& action_choices,
         std::vector<Distribution<StateID>>& successors,
-        engine_interfaces::StateProperties& properties) override;
+        algorithms::StateProperties& properties) override;
 };
 
 } // namespace transition_sorters

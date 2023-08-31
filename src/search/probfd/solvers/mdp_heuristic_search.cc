@@ -1,66 +1,123 @@
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "probfd/engine_interfaces/policy_picker.h"
+#include "probfd/algorithms/policy_picker.h"
+
+#include "probfd/plugins/naming_conventions.h"
 
 #include <sstream>
 
 namespace probfd {
 namespace solvers {
 
-using namespace engine_interfaces;
+using namespace algorithms;
+using namespace plugins;
 
-MDPHeuristicSearchBase::MDPHeuristicSearchBase(const plugins::Options& opts)
+template <bool Bisimulation, bool Fret>
+MDPHeuristicSearchBase<Bisimulation, Fret>::MDPHeuristicSearchBase(
+    const Options& opts)
     : MDPSolver(opts)
-    , heuristic_(opts.get<std::shared_ptr<TaskEvaluator>>("eval"))
-    , policy_tiebreaker_(opts.get<std::shared_ptr<TaskPolicyPicker>>("policy"))
-    , new_state_handler_(new TaskNewStateObserverList(
-          opts.get_list<std::shared_ptr<TaskNewStateObserver>>("on_new_state")))
-    , dual_bounds_(
-          opts.contains("dual_bounds") && opts.get<bool>("dual_bounds"))
-    , interval_comparison_(
-          opts.contains("interval_comparison") &&
-          opts.get<bool>("interval_comparison"))
+    , dual_bounds_(opts.get<bool>("dual_bounds"))
+    , interval_comparison_(opts.get<bool>("interval_comparison"))
+    , tiebreaker_(
+          opts.get<
+              std::shared_ptr<WrappedType2<PolicyPicker, Bisimulation, Fret>>>(
+              "policy"))
 {
 }
 
-void MDPHeuristicSearchBase::print_additional_statistics() const
+template <bool Bisimulation, bool Fret>
+void MDPHeuristicSearchBase<Bisimulation, Fret>::print_additional_statistics()
+    const
 {
-    heuristic_->print_statistics();
-
-    if (policy_tiebreaker_) {
-        policy_tiebreaker_->print_statistics(std::cout);
-    }
+    tiebreaker_->print_statistics(std::cout);
 }
 
-void MDPHeuristicSearchBase::add_options_to_feature(plugins::Feature& feature)
+template <bool Bisimulation, bool Fret>
+void MDPHeuristicSearchBase<Bisimulation, Fret>::add_options_to_feature(
+    Feature& feature)
 {
     MDPSolver::add_options_to_feature(feature);
 
-    feature.add_option<std::shared_ptr<TaskEvaluator>>(
-        "eval",
-        "",
-        "blind_eval");
-    feature.add_list_option<std::shared_ptr<TaskNewStateObserver>>(
-        "on_new_state",
-        "",
-        "[]");
-    feature.add_option<std::shared_ptr<TaskPolicyPicker>>(
-        "policy",
-        "",
-        "arbitrary_policy_tiebreaker(false)");
     feature.add_option<bool>("interval_comparison", "", "false");
     feature.add_option<bool>("dual_bounds", "", "false");
+    feature.add_option<
+        std::shared_ptr<WrappedType2<PolicyPicker, Bisimulation, Fret>>>(
+        "policy",
+        "",
+        add_mdp_type_to_option<Bisimulation, Fret>(
+            "arbitrary_policy_tiebreaker()"));
 }
 
-std::string MDPHeuristicSearchBase::get_engine_name() const
+std::string MDPHeuristicSearch<false, false>::get_algorithm_name() const
 {
     return this->get_heuristic_search_name();
 }
 
-static plugins::TypedEnumPlugin<FretMode> _fret_enum_plugin(
-    {{"disabled", "FRET is disabled"},
-     {"policy", "FRET-pi is used"},
-     {"value", "FRET-V is used"}});
+std::string MDPHeuristicSearch<false, true>::get_algorithm_name() const
+{
+    std::ostringstream out;
+    out << "fret" << (fret_on_policy_ ? "_pi" : "_v") << "("
+        << this->get_heuristic_search_name() << ")";
+    return out.str();
+}
+
+std::string MDPHeuristicSearch<true, false>::get_algorithm_name() const
+{
+    return get_heuristic_search_name() + "(bisimulation)";
+}
+
+std::string MDPHeuristicSearch<true, true>::get_algorithm_name() const
+{
+    std::ostringstream out;
+    out << "fret" << (fret_on_policy_ ? "_pi" : "_v") << "("
+        << this->get_heuristic_search_name() << "(bisimulation)"
+        << ")";
+    return out.str();
+}
+
+MDPHeuristicSearch<false, false>::MDPHeuristicSearch(const Options& opts)
+    : MDPHeuristicSearchBase(opts)
+{
+}
+
+MDPHeuristicSearch<false, true>::MDPHeuristicSearch(const Options& opts)
+    : MDPHeuristicSearchBase(opts)
+    , fret_on_policy_(opts.get<bool>("fret_on_policy", false))
+{
+}
+
+MDPHeuristicSearch<true, false>::MDPHeuristicSearch(const Options& opts)
+    : MDPHeuristicSearchBase(opts)
+{
+}
+
+MDPHeuristicSearch<true, true>::MDPHeuristicSearch(const Options& opts)
+    : MDPHeuristicSearchBase(opts)
+    , fret_on_policy_(opts.get<bool>("fret_on_policy"))
+{
+}
+
+void MDPHeuristicSearch<false, false>::add_options_to_feature(Feature& feature)
+{
+    MDPHeuristicSearchBase::add_options_to_feature(feature);
+}
+
+void MDPHeuristicSearch<false, true>::add_options_to_feature(Feature& feature)
+{
+    MDPHeuristicSearchBase::add_options_to_feature(feature);
+    feature.add_option<bool>("fret_on_policy", "", "true");
+}
+
+void MDPHeuristicSearch<true, false>::add_options_to_feature(Feature& feature)
+{
+    MDPHeuristicSearchBase::add_options_to_feature(feature);
+}
+
+void MDPHeuristicSearch<true, true>::add_options_to_feature(Feature& feature)
+{
+    MDPHeuristicSearchBase::add_options_to_feature(feature);
+    feature.add_option<bool>("fret_on_policy", "", "true");
+}
 
 } // namespace solvers
 } // namespace probfd

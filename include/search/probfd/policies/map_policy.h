@@ -2,6 +2,7 @@
 #define PROBFD_POLICIES_MAP_POLICY_H
 
 #include "probfd/policy.h"
+#include "probfd/state_space.h"
 #include "probfd/types.h"
 
 #include <unordered_map>
@@ -10,13 +11,12 @@ namespace probfd {
 namespace policies {
 
 template <typename State, typename Action>
-class MapPolicy : public PartialPolicy<State, Action> {
-    engine_interfaces::StateSpace<State, Action>* state_space;
+class MapPolicy : public Policy<State, Action> {
+    StateSpace<State, Action>* state_space;
     std::unordered_map<StateID, PolicyDecision<Action>> mapping;
 
 public:
-    explicit MapPolicy(
-        engine_interfaces::StateSpace<State, Action>* state_space)
+    explicit MapPolicy(StateSpace<State, Action>* state_space)
         : state_space(state_space)
     {
     }

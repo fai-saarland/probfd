@@ -33,7 +33,7 @@ TEST(CartesianTests, test_probabilistic_transition_system)
     const ProbabilisticTaskProxy task_proxy(*task);
 
     cartesian::RefinementHierarchy refinement_hierarchy(task);
-    cartesian::Abstraction abs(task_proxy, utils::g_log);
+    cartesian::Abstraction abs(task_proxy, {}, utils::g_log);
 
     ASSERT_EQ(
         get_num_transitions(abs.get_transition_system()),
@@ -65,7 +65,7 @@ TEST(CartesianTests, test_probabilistic_transition_system2)
     const ProbabilisticTaskProxy task_proxy(*task);
 
     cartesian::RefinementHierarchy refinement_hierarchy(task);
-    cartesian::Abstraction abs(task_proxy, utils::g_log);
+    cartesian::Abstraction abs(task_proxy, {}, utils::g_log);
 
     ASSERT_EQ(abs.get_num_states(), 1);
     ASSERT_EQ(

@@ -3,8 +3,7 @@
 
 #include "probfd/heuristics/pdbs/types.h"
 
-#include "probfd/engine_interfaces/types.h"
-
+#include "probfd/fdr_types.h"
 #include "probfd/task_proxy.h"
 
 #include <memory>
@@ -20,7 +19,7 @@ namespace pdbs {
 class PatternInformation {
     ProbabilisticTaskProxy task_proxy;
     Pattern pattern;
-    TaskCostFunction* task_cost_function;
+    FDRSimpleCostFunction* task_cost_function;
     std::shared_ptr<ProbabilityAwarePatternDatabase> pdb;
 
     void create_pdb_if_missing();
@@ -30,7 +29,7 @@ class PatternInformation {
 public:
     PatternInformation(
         const ProbabilisticTaskProxy& task_proxy,
-        TaskCostFunction* task_cost_function,
+        FDRSimpleCostFunction* task_cost_function,
         Pattern pattern);
 
     void set_pdb(const std::shared_ptr<ProbabilityAwarePatternDatabase>& pdb);

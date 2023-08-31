@@ -5,8 +5,6 @@
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/trivial_finder.h"
 
-#include "probfd/cost_model.h"
-
 #include "downward/task_utils/task_properties.h"
 
 #include "downward/utils/countdown_timer.h"
@@ -56,18 +54,17 @@ vector<int> get_non_goal_variables(const ProbabilisticTaskProxy& task_proxy)
     return non_goal_variables;
 }
 
-class ExplicitTaskCostFunction : public TaskCostFunction {
+class ExplicitTaskCostFunction : public FDRSimpleCostFunction {
     const ProbabilisticTaskProxy& task_proxy;
     std::vector<value_t> costs;
+    const value_t non_goal_termination;
 
 public:
     ExplicitTaskCostFunction(
         const ProbabilisticTaskProxy& task_proxy,
-        TaskCostFunction& cost_function)
-        : TaskCostFunction(
-              cost_function.get_goal_termination_cost(),
-              cost_function.get_non_goal_termination_cost())
-        , task_proxy(task_proxy)
+        FDRSimpleCostFunction& cost_function)
+        : task_proxy(task_proxy)
+        , non_goal_termination(cost_function.get_non_goal_termination_cost())
     {
         const auto operators = task_proxy.get_operators();
         costs.reserve(operators.size());
@@ -86,6 +83,11 @@ public:
     bool is_goal(const State& state) const override
     {
         return ::task_properties::is_goal_state(task_proxy, state);
+    }
+
+    value_t get_non_goal_termination_cost() const override
+    {
+        return non_goal_termination;
     }
 
     void update_costs(const std::vector<value_t>& saturated_costs)
@@ -157,7 +159,8 @@ bool PatternCollectionGeneratorMultiple::time_limit_reached(
 }
 
 PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
-    const shared_ptr<ProbabilisticTask>& task)
+    const shared_ptr<ProbabilisticTask>& task,
+    const std::shared_ptr<FDRCostFunction>& task_cost_function)
 {
     if (log.is_at_least_normal()) {
         log << "max pdb size: " << max_pdb_size << endl;
@@ -171,9 +174,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
     }
 
     ProbabilisticTaskProxy task_proxy(*task);
-    ExplicitTaskCostFunction task_cost_function(
-        task_proxy,
-        *g_cost_model->get_cost_function());
+    ExplicitTaskCostFunction cost_function(task_proxy, *task_cost_function);
 
     utils::CountdownTimer timer(total_max_time);
 
@@ -256,7 +257,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
             remaining_time,
             pattern_computation_rng,
             task_proxy,
-            task_cost_function,
+            cost_function,
             goals[goal_index],
             std::move(blacklisted_variables));
 
@@ -268,7 +269,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
         if (generated_patterns.insert(pattern).second) {
             if (use_saturated_costs) {
                 pdb->compute_saturated_costs(*state_space, saturated_costs);
-                task_cost_function.update_costs(saturated_costs);
+                cost_function.update_costs(saturated_costs);
             }
 
             /*
@@ -333,7 +334,12 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
         finder = std::make_shared<TrivialFinder>();
     }
 
-    PatternCollectionInformation result(task_proxy, nullptr, patterns, finder);
+    PatternCollectionInformation result(
+        task_proxy,
+        task_cost_function,
+        patterns,
+        finder);
+
     result.set_pdbs(generated_pdbs);
 
     if (log.is_at_least_normal()) {

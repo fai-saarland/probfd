@@ -1,12 +1,10 @@
-#include "probfd/cost_model.h"
-
 #include "probfd/solver_interface.h"
 
+#include "probfd/bisimulation/algorithm_interfaces.h"
 #include "probfd/bisimulation/bisimilar_state_space.h"
-#include "probfd/bisimulation/engine_interfaces.h"
 
-#include "probfd/engines/interval_iteration.h"
-#include "probfd/engines/topological_value_iteration.h"
+#include "probfd/algorithms/interval_iteration.h"
+#include "probfd/algorithms/topological_value_iteration.h"
 
 #include "probfd/heuristics/constant_evaluator.h"
 
@@ -24,7 +22,7 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engine_interfaces;
+using namespace plugins;
 
 struct BisimulationTimer {
     utils::Timer timer;
@@ -50,7 +48,7 @@ public:
     {
     }
 
-    std::string get_engine_name() const
+    std::string get_algorithm_name() const
     {
         return (
             interval_iteration_ ? "bisimulation interval iteration"
@@ -61,16 +59,17 @@ public:
 
     void solve() override
     {
+        using namespace algorithms::interval_iteration;
+        using namespace algorithms::topological_vi;
+
         utils::Timer total_timer;
 
         std::cout << "Building bisimulation..." << std::endl;
 
         BisimulationTimer stats;
-        bisimulation::BisimilarStateSpace state_space(tasks::g_root_task.get());
-        bisimulation::DefaultQuotientCostFunction cost(
-            &state_space,
-            g_cost_model->optimal_value_bound(),
-            g_cost_model->optimal_value_bound().upper);
+        bisimulation::BisimilarStateSpace state_space(
+            tasks::g_root_task.get(),
+            1_vt);
 
         stats.timer.stop();
         stats.states = state_space.num_bisimilar_states();
@@ -79,27 +78,27 @@ public:
         std::cout << "Bisimulation built after " << stats.timer << std::endl;
         std::cout << "Bisimilar state space contains "
                   << state_space.num_bisimilar_states() << " states and "
-                  << state_space.num_transitions() << " transitions."
+                  << state_space.num_transitions() << " transitions.\n"
                   << std::endl;
-        std::cout << std::endl;
-        std::cout << "Running " << get_engine_name()
+
+        std::cout << "Running " << get_algorithm_name()
                   << " on the bisimulation..." << std::endl;
 
         utils::Timer vi_timer;
-        std::unique_ptr<engines::MDPEngine<QState, QAction>> solver;
-        Interval val;
+
+        std::unique_ptr<MDPAlgorithm<QState, QAction>> solver;
+
         if (interval_iteration_) {
-            solver.reset(new engines::interval_iteration::IntervalIteration<
-                         QState,
-                         QAction>(&state_space, &cost, nullptr, false, false));
-            val = solver->solve(state_space.get_initial_state());
+            solver.reset(new IntervalIteration<QState, QAction>(false, false));
         } else {
-            heuristics::ConstantEvaluator<QState> initializer(0_vt);
-            solver.reset(new engines::topological_vi::TopologicalValueIteration<
-                         QState,
-                         QAction>(&state_space, &cost, &initializer, false));
-            val = solver->solve(state_space.get_initial_state());
+            solver.reset(new TopologicalValueIteration<QState, QAction>(false));
         }
+
+        heuristics::BlindEvaluator<QState> blind;
+
+        const Interval val =
+            solver->solve(state_space, blind, state_space.get_initial_state());
+
         std::cout << "analysis done! [t=" << total_timer << "]" << std::endl;
         std::cout << std::endl;
 
@@ -110,7 +109,7 @@ public:
         stats.print(std::cout);
 
         std::cout << std::endl;
-        std::cout << "Engine " << get_engine_name()
+        std::cout << "Algorithm " << get_algorithm_name()
                   << " statistics:" << std::endl;
         std::cout << "  Actual solver time: " << vi_timer << std::endl;
         solver->print_statistics(std::cout);
@@ -119,7 +118,7 @@ public:
 
 class BisimulationValueIteration : public BisimulationIteration {
 public:
-    explicit BisimulationValueIteration(const plugins::Options&)
+    explicit BisimulationValueIteration(const Options&)
         : BisimulationIteration(false)
     {
     }
@@ -127,18 +126,17 @@ public:
 
 class BisimulationIntervalIteration : public BisimulationIteration {
 public:
-    explicit BisimulationIntervalIteration(const plugins::Options&)
+    explicit BisimulationIntervalIteration(const Options&)
         : BisimulationIteration(true)
     {
     }
 };
 
 class BisimulationVISolverFeature
-    : public plugins::
-          TypedFeature<SolverInterface, BisimulationValueIteration> {
+    : public TypedFeature<SolverInterface, BisimulationValueIteration> {
 public:
     BisimulationVISolverFeature()
-        : plugins::TypedFeature<SolverInterface, BisimulationValueIteration>(
+        : TypedFeature<SolverInterface, BisimulationValueIteration>(
               "bisimulation_vi")
     {
         document_title("Bisimulation Value Iteration.");
@@ -146,19 +144,18 @@ public:
 };
 
 class BisimulationIISolverFeature
-    : public plugins::
-          TypedFeature<SolverInterface, BisimulationIntervalIteration> {
+    : public TypedFeature<SolverInterface, BisimulationIntervalIteration> {
 public:
     BisimulationIISolverFeature()
-        : plugins::TypedFeature<SolverInterface, BisimulationIntervalIteration>(
+        : TypedFeature<SolverInterface, BisimulationIntervalIteration>(
               "bisimulation_ii")
     {
         document_title("Bisimulation Interval Iteration.");
     }
 };
 
-static plugins::FeaturePlugin<BisimulationVISolverFeature> _plugin_bvi;
-static plugins::FeaturePlugin<BisimulationIISolverFeature> _plugin_bii;
+static FeaturePlugin<BisimulationVISolverFeature> _plugin_bvi;
+static FeaturePlugin<BisimulationIISolverFeature> _plugin_bii;
 
 } // namespace
 } // namespace solvers

@@ -2,12 +2,10 @@
 
 #include "probfd/heuristics/cartesian/abstract_state.h"
 #include "probfd/heuristics/cartesian/abstraction.h"
-#include "probfd/heuristics/cartesian/engine_interfaces.h"
+#include "probfd/heuristics/cartesian/algorithm_interfaces.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
 #include "probfd/heuristics/cartesian/split_selector.h"
 #include "probfd/heuristics/cartesian/utils.h"
-
-#include "probfd/quotients/engine_interfaces.h"
 
 #include "probfd/storage/per_state_storage.h"
 
@@ -69,7 +67,7 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
 
         State state = registry.lookup_state(state_id);
 
-        auto decision = policy.get_decision(abstract_state);
+        auto decision = policy.get_decision(abstract_state->get_id());
 
         // Check for goal state
         if (!decision) {

@@ -1,7 +1,7 @@
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/utils.h"
 
-#include "probfd/engines/ta_topological_value_iteration.h"
+#include "probfd/algorithms/ta_topological_value_iteration.h"
 #include "probfd/policies/vector_multi_policy.h"
 
 #include "probfd/preprocessing/qualitative_reachability_analysis.h"
@@ -47,10 +47,10 @@ public:
     {
     }
 
-    EvaluationResult evaluate(StateRank state) const override
+    value_t evaluate(StateRank state) const override
     {
         if (utils::contains(pruned_states, StateID(state.id))) {
-            return EvaluationResult{true, pruned_value};
+            return pruned_value;
         }
 
         return parent.evaluate(state);
@@ -59,14 +59,13 @@ public:
 } // namespace
 
 void ProbabilityAwarePatternDatabase::compute_value_table(
-    ProjectionStateSpace& state_space,
-    ProjectionCostFunction& cost_function,
+    ProjectionStateSpace& mdp,
     StateRank initial_state,
     const StateRankEvaluator& heuristic,
     double max_time)
 {
     using namespace preprocessing;
-    using namespace engines::ta_topological_vi;
+    using namespace algorithms::ta_topological_vi;
 
     utils::CountdownTimer timer(max_time);
 
@@ -75,9 +74,10 @@ void ProbabilityAwarePatternDatabase::compute_value_table(
 
     std::vector<StateID> pruned_states;
 
-    if (dead_end_cost == INFINITE_VALUE) {
+    if (mdp.get_non_goal_termination_cost() == INFINITE_VALUE) {
         analysis.run_analysis(
-            {state_space, cost_function},
+            mdp,
+            nullptr,
             initial_state,
             iterators::discarding_output_iterator{},
             std::back_inserter(pruned_states),
@@ -85,7 +85,8 @@ void ProbabilityAwarePatternDatabase::compute_value_table(
             timer.get_remaining_time());
     } else {
         analysis.run_analysis(
-            {state_space, cost_function},
+            mdp,
+            nullptr,
             initial_state,
             std::back_inserter(pruned_states),
             iterators::discarding_output_iterator{},
@@ -93,14 +94,13 @@ void ProbabilityAwarePatternDatabase::compute_value_table(
             timer.get_remaining_time());
     }
 
-    WrapperHeuristic h(pruned_states, heuristic, dead_end_cost);
+    WrapperHeuristic h(
+        pruned_states,
+        heuristic,
+        mdp.get_non_goal_termination_cost());
 
-    TATopologicalValueIteration<StateRank, const ProjectionOperator*> vi(
-        &state_space,
-        &cost_function,
-        &h);
-
-    vi.solve(initial_state.id, value_table, timer.get_remaining_time());
+    TATopologicalValueIteration<StateRank, const ProjectionOperator*> vi;
+    vi.solve(mdp, h, initial_state.id, value_table, timer.get_remaining_time());
 
 #if !defined(NDEBUG)
     std::cout << "(II) Pattern [";
@@ -111,7 +111,7 @@ void ProbabilityAwarePatternDatabase::compute_value_table(
     std::cout << "]: value=" << value_table[initial_state.id] << std::endl;
 
 #if defined(USE_LP)
-    verify(state_space, cost_function, initial_state, pruned_states);
+    verify(mdp, initial_state, pruned_states);
 #endif
 #endif
 }
@@ -122,7 +122,6 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     value_t dead_end_cost)
     : ranking_function_(task_proxy.get_variables(), std::move(pattern))
     , value_table(ranking_function_.num_states(), dead_end_cost)
-    , dead_end_cost(dead_end_cost)
 {
 }
 
@@ -131,14 +130,13 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     value_t dead_end_cost)
     : ranking_function_(std::move(ranking_function))
     , value_table(ranking_function_.num_states(), dead_end_cost)
-    , dead_end_cost(dead_end_cost)
 {
 }
 
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     Pattern pattern,
-    TaskCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     const State& initial_state,
     bool operator_pruning,
     const StateRankEvaluator& heuristic,
@@ -149,47 +147,36 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
           task_cost_function.get_non_goal_termination_cost())
 {
     utils::CountdownTimer timer(max_time);
-    ProjectionStateSpace state_space(
+    ProjectionStateSpace mdp(
         task_proxy,
         ranking_function_,
         task_cost_function,
         operator_pruning,
         timer.get_remaining_time());
-    InducedProjectionCostFunction cost_function(
-        task_proxy,
-        ranking_function_,
-        &task_cost_function);
     compute_value_table(
-        state_space,
-        cost_function,
+        mdp,
         ranking_function_.get_abstract_rank(initial_state),
         heuristic,
         timer.get_remaining_time());
 }
 
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
-    ProjectionStateSpace& state_space,
+    ProjectionStateSpace& mdp,
     StateRankingFunction ranking_function,
-    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const StateRankEvaluator& heuristic,
     double max_time)
     : ProbabilityAwarePatternDatabase(
           std::move(ranking_function),
-          cost_function.get_non_goal_termination_cost())
+          mdp.get_non_goal_termination_cost())
 {
-    compute_value_table(
-        state_space,
-        cost_function,
-        initial_state,
-        heuristic,
-        max_time);
+    compute_value_table(mdp, initial_state, heuristic, max_time);
 }
 
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     const ::pdbs::PatternDatabase& pdb,
-    TaskCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     const State& initial_state,
     bool operator_pruning,
     double max_time)
@@ -199,24 +186,28 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
           task_cost_function,
           initial_state,
           operator_pruning,
-          PDBEvaluator(pdb),
+          task_cost_function.get_non_goal_termination_cost() == INFINITE_VALUE
+              ? static_cast<const StateRankEvaluator&>(PDBEvaluator(pdb))
+              : static_cast<const StateRankEvaluator&>(
+                    DeadendPDBEvaluator(pdb)),
           max_time)
 {
 }
 
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
-    ProjectionStateSpace& state_space,
+    ProjectionStateSpace& mdp,
     StateRankingFunction ranking_function,
-    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const ::pdbs::PatternDatabase& pdb,
     double max_time)
     : ProbabilityAwarePatternDatabase(
-          state_space,
+          mdp,
           std::move(ranking_function),
-          cost_function,
           initial_state,
-          PDBEvaluator(pdb),
+          mdp.get_non_goal_termination_cost() == INFINITE_VALUE
+              ? static_cast<const StateRankEvaluator&>(PDBEvaluator(pdb))
+              : static_cast<const StateRankEvaluator&>(
+                    DeadendPDBEvaluator(pdb)),
           max_time)
 {
 }
@@ -225,7 +216,7 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     const ProbabilityAwarePatternDatabase& pdb,
     int add_var,
-    TaskCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     const State& initial_state,
     bool operator_pruning,
     double max_time)
@@ -236,39 +227,32 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
 {
     utils::CountdownTimer timer(max_time);
 
-    ProjectionStateSpace state_space(
+    ProjectionStateSpace mdp(
         task_proxy,
         ranking_function_,
         task_cost_function,
         operator_pruning,
         timer.get_remaining_time());
-    InducedProjectionCostFunction cost_function(
-        task_proxy,
-        ranking_function_,
-        &task_cost_function);
     compute_value_table(
-        state_space,
-        cost_function,
+        mdp,
         ranking_function_.get_abstract_rank(initial_state),
         IncrementalPPDBEvaluator(pdb, &ranking_function_, add_var),
         timer.get_remaining_time());
 }
 
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
-    ProjectionStateSpace& state_space,
+    ProjectionStateSpace& mdp,
     StateRankingFunction ranking_function,
-    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const ProbabilityAwarePatternDatabase& pdb,
     int add_var,
     double max_time)
     : ProbabilityAwarePatternDatabase(
           std::move(ranking_function),
-          cost_function.get_non_goal_termination_cost())
+          mdp.get_non_goal_termination_cost())
 {
     compute_value_table(
-        state_space,
-        cost_function,
+        mdp,
         initial_state,
         IncrementalPPDBEvaluator(pdb, &ranking_function_, add_var),
         max_time);
@@ -278,7 +262,7 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     const ProbabilisticTaskProxy& task_proxy,
     const ProbabilityAwarePatternDatabase& left,
     const ProbabilityAwarePatternDatabase& right,
-    TaskCostFunction& task_cost_function,
+    FDRSimpleCostFunction& task_cost_function,
     const State& initial_state,
     bool operator_pruning,
     double max_time)
@@ -289,41 +273,42 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
 {
     utils::CountdownTimer timer(max_time);
 
-    ProjectionStateSpace state_space(
+    ProjectionStateSpace mdp(
         task_proxy,
         ranking_function_,
         task_cost_function,
         operator_pruning,
         timer.get_remaining_time());
-    InducedProjectionCostFunction cost_function(
-        task_proxy,
-        ranking_function_,
-        &task_cost_function);
     compute_value_table(
-        state_space,
-        cost_function,
+        mdp,
         ranking_function_.get_abstract_rank(initial_state),
-        MergeEvaluator(ranking_function_, left, right),
+        MergeEvaluator(
+            ranking_function_,
+            left,
+            right,
+            task_cost_function.get_non_goal_termination_cost()),
         timer.get_remaining_time());
 }
 
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
-    ProjectionStateSpace& state_space,
+    ProjectionStateSpace& mdp,
     StateRankingFunction ranking_function,
-    ProjectionCostFunction& cost_function,
     StateRank initial_state,
     const ProbabilityAwarePatternDatabase& left,
     const ProbabilityAwarePatternDatabase& right,
     double max_time)
     : ProbabilityAwarePatternDatabase(
           std::move(ranking_function),
-          cost_function.get_non_goal_termination_cost())
+          mdp.get_non_goal_termination_cost())
 {
     compute_value_table(
-        state_space,
-        cost_function,
+        mdp,
         initial_state,
-        MergeEvaluator(ranking_function_, left, right),
+        MergeEvaluator(
+            ranking_function_,
+            left,
+            right,
+            mdp.get_non_goal_termination_cost()),
         max_time);
 }
 
@@ -343,16 +328,6 @@ unsigned int ProbabilityAwarePatternDatabase::num_states() const
     return ranking_function_.num_states();
 }
 
-bool ProbabilityAwarePatternDatabase::is_dead_end(const State& s) const
-{
-    return is_dead_end(get_abstract_state(s));
-}
-
-bool ProbabilityAwarePatternDatabase::is_dead_end(StateRank s) const
-{
-    return lookup_estimate(s) == dead_end_cost;
-}
-
 value_t ProbabilityAwarePatternDatabase::lookup_estimate(const State& s) const
 {
     return lookup_estimate(get_abstract_state(s));
@@ -363,17 +338,6 @@ value_t ProbabilityAwarePatternDatabase::lookup_estimate(StateRank s) const
     return value_table[s.id];
 }
 
-EvaluationResult ProbabilityAwarePatternDatabase::evaluate(const State& s) const
-{
-    return evaluate(get_abstract_state(s));
-}
-
-EvaluationResult ProbabilityAwarePatternDatabase::evaluate(StateRank s) const
-{
-    const value_t value = this->lookup_estimate(s);
-    return {value == dead_end_cost, value};
-}
-
 StateRank
 ProbabilityAwarePatternDatabase::get_abstract_state(const State& s) const
 {
@@ -382,8 +346,7 @@ ProbabilityAwarePatternDatabase::get_abstract_state(const State& s) const
 
 std::unique_ptr<ProjectionMultiPolicy>
 ProbabilityAwarePatternDatabase::compute_optimal_projection_policy(
-    ProjectionStateSpace& state_space,
-    ProjectionCostFunction& cost_function,
+    ProjectionStateSpace& mdp,
     StateRank initial_state,
     utils::RandomNumberGenerator& rng,
     bool wildcard) const
@@ -391,15 +354,17 @@ ProbabilityAwarePatternDatabase::compute_optimal_projection_policy(
     using PredecessorList =
         std::vector<std::pair<StateRank, const ProjectionOperator*>>;
 
-    assert(!is_dead_end(initial_state));
+    const value_t term_cost = mdp.get_non_goal_termination_cost();
+
+    assert(lookup_estimate(initial_state) != term_cost);
 
     std::unique_ptr policy = std::make_unique<
         policies::VectorMultiPolicy<StateRank, const ProjectionOperator*>>(
-        &state_space,
+        &mdp,
         ranking_function_.num_states());
 
     // return empty policy indicating unsolvable
-    if (cost_function.is_goal(initial_state)) {
+    if (mdp.is_goal(initial_state)) {
         return policy;
     }
 
@@ -417,25 +382,25 @@ ProbabilityAwarePatternDatabase::compute_optimal_projection_policy(
         StateRank s = open.front();
         open.pop_front();
 
+        const value_t value = value_table[s.id];
+
         // Skip dead-ends, the operator is irrelevant
-        if (is_dead_end(s)) {
+        if (value == term_cost) {
             continue;
         }
 
-        const value_t value = value_table[s.id];
-
         // Generate operators...
         std::vector<const ProjectionOperator*> aops;
-        state_space.generate_applicable_actions(s.id, aops);
+        mdp.generate_applicable_actions(s, aops);
 
         // Select the greedy operators and add their successors
         for (const ProjectionOperator* op : aops) {
-            value_t op_value = cost_function.get_action_cost(op);
+            value_t op_value = mdp.get_action_cost(op);
 
             std::vector<StateRank> successors;
 
             Distribution<StateID> successor_dist;
-            state_space.generate_action_transitions(s.id, op, successor_dist);
+            mdp.generate_action_transitions(s, op, successor_dist);
 
             for (const auto& [t, prob] : successor_dist) {
                 op_value += prob * value_table[t.id];
@@ -444,7 +409,7 @@ ProbabilityAwarePatternDatabase::compute_optimal_projection_policy(
 
             if (is_approx_equal(value, op_value)) {
                 for (const StateRank succ : successors) {
-                    if (cost_function.is_goal(succ)) {
+                    if (mdp.is_goal(succ)) {
                         goals.push_back(succ);
                     } else if (closed.insert(succ).second) {
                         open.push_back(succ);
@@ -483,14 +448,14 @@ ProbabilityAwarePatternDatabase::compute_optimal_projection_policy(
 
             // Collect all equivalent greedy operators
             std::vector<const ProjectionOperator*> aops;
-            state_space.generate_applicable_actions(pstate.id, aops);
+            mdp.generate_applicable_actions(pstate, aops);
 
-            const value_t cost_sel_op = cost_function.get_action_cost(sel_op);
+            const value_t cost_sel_op = mdp.get_action_cost(sel_op);
 
             std::vector<PolicyDecision<const ProjectionOperator*>> decisions;
 
             for (const ProjectionOperator* op : aops) {
-                const value_t cost_op = cost_function.get_action_cost(op);
+                const value_t cost_op = mdp.get_action_cost(op);
                 if (are_equivalent(*op, *sel_op) && cost_op == cost_sel_op) {
                     decisions.emplace_back(op, Interval(parent_cost));
                 }
@@ -508,18 +473,19 @@ ProbabilityAwarePatternDatabase::compute_optimal_projection_policy(
 
 std::unique_ptr<ProjectionMultiPolicy>
 ProbabilityAwarePatternDatabase::compute_greedy_projection_policy(
-    ProjectionStateSpace& state_space,
-    ProjectionCostFunction& cost_function,
+    ProjectionStateSpace& mdp,
     StateRank initial_state,
     utils::RandomNumberGenerator& rng,
     bool wildcard) const
 {
+    const value_t term_cost = mdp.get_non_goal_termination_cost();
+
     std::unique_ptr policy = std::make_unique<
         policies::VectorMultiPolicy<StateRank, const ProjectionOperator*>>(
-        &state_space,
+        &mdp,
         ranking_function_.num_states());
 
-    if (cost_function.is_goal(initial_state)) {
+    if (mdp.is_goal(initial_state)) {
         return policy;
     }
 
@@ -533,16 +499,16 @@ ProbabilityAwarePatternDatabase::compute_greedy_projection_policy(
         StateRank s = open.front();
         open.pop_front();
 
+        const value_t value = value_table[s.id];
+
         // Skip dead-ends, the operator is irrelevant
-        if (is_dead_end(s)) {
+        if (value == term_cost) {
             continue;
         }
 
-        const value_t value = value_table[s.id];
-
         // Generate operators...
         std::vector<const ProjectionOperator*> aops;
-        state_space.generate_applicable_actions(s.id, aops);
+        mdp.generate_applicable_actions(s, aops);
 
         if (aops.empty()) {
             continue;
@@ -556,12 +522,12 @@ ProbabilityAwarePatternDatabase::compute_greedy_projection_policy(
 
         // Select first greedy operator
         for (const ProjectionOperator* op : aops) {
-            value_t op_value = cost_function.get_action_cost(op);
+            value_t op_value = mdp.get_action_cost(op);
 
             std::vector<StateRank> successors;
 
             Distribution<StateID> successor_dist;
-            state_space.generate_action_transitions(s.id, op, successor_dist);
+            mdp.generate_action_transitions(s, op, successor_dist);
 
             for (const auto& [t, prob] : successor_dist) {
                 op_value += prob * value_table[t.id];
@@ -578,11 +544,11 @@ ProbabilityAwarePatternDatabase::compute_greedy_projection_policy(
         abort();
 
     found:;
-        const value_t cost_greedy = cost_function.get_action_cost(greedy);
+        const value_t cost_greedy = mdp.get_action_cost(greedy);
 
         // Generate successors
         for (const StateRank& succ : greedy_successors) {
-            if (!cost_function.is_goal(succ) && !closed.contains(succ)) {
+            if (!mdp.is_goal(succ) && !closed.contains(succ)) {
                 closed.insert(succ);
                 open.push_back(succ);
             }
@@ -592,7 +558,7 @@ ProbabilityAwarePatternDatabase::compute_greedy_projection_policy(
         std::vector<PolicyDecision<const ProjectionOperator*>> decisions;
 
         for (const ProjectionOperator* op : aops) {
-            const value_t cost_op = cost_function.get_action_cost(op);
+            const value_t cost_op = mdp.get_action_cost(op);
 
             if (are_equivalent(*op, *greedy) && cost_op == cost_greedy) {
                 decisions.emplace_back(op, Interval(value));
@@ -625,13 +591,13 @@ void ProbabilityAwarePatternDatabase::compute_saturated_costs(
 
         // Generate operators...
         std::vector<const ProjectionOperator*> aops;
-        state_space.generate_applicable_actions(s.id, aops);
+        state_space.generate_applicable_actions(s, aops);
 
         for (const ProjectionOperator* op : aops) {
             int oid = op->operator_id.get_index();
 
             Distribution<StateID> successor_dist;
-            state_space.generate_action_transitions(s.id, op, successor_dist);
+            state_space.generate_action_transitions(s, op, successor_dist);
 
             value_t h_succ = 0;
 
@@ -656,17 +622,14 @@ void ProbabilityAwarePatternDatabase::compute_saturated_costs(
 
 void ProbabilityAwarePatternDatabase::dump_graphviz(
     const ProbabilisticTaskProxy& task_proxy,
-    ProjectionStateSpace& state_space,
-    ProjectionCostFunction& cost_function,
+    ProjectionStateSpace& mdp,
     StateRank initial_state,
     std::ostream& out,
     bool transition_labels) const
 {
-    using namespace engine_interfaces;
-
     ProjectionOperatorToString op_names(task_proxy);
 
-    auto sts = [this](StateRank x) {
+    auto sts = [this, &mdp](StateRank x) {
         std::ostringstream out;
         out.precision(3);
 
@@ -677,7 +640,7 @@ void ProbabilityAwarePatternDatabase::dump_graphviz(
         out << x.id << "\\n"
             << "h = " << value_text;
 
-        if (is_dead_end(x)) {
+        if (lookup_estimate(x) == mdp.get_non_goal_termination_cost()) {
             out << "(dead)";
         }
 
@@ -693,8 +656,7 @@ void ProbabilityAwarePatternDatabase::dump_graphviz(
     graphviz::dump_state_space_dot_graph<StateRank, const ProjectionOperator*>(
         out,
         initial_state,
-        &state_space,
-        &cost_function,
+        &mdp,
         nullptr,
         sts,
         ats,
@@ -703,8 +665,7 @@ void ProbabilityAwarePatternDatabase::dump_graphviz(
 
 #if !defined(NDEBUG) && defined(USE_LP)
 void ProbabilityAwarePatternDatabase::verify(
-    ProjectionStateSpace& state_space,
-    ProjectionCostFunction& cost_function,
+    ProjectionStateSpace& mdp,
     StateRank initial_state,
     const std::vector<StateID>& pruned_states)
 {
@@ -727,45 +688,46 @@ void ProbabilityAwarePatternDatabase::verify(
 
     lp::LPSolver solver(type);
     const double inf = solver.get_infinity();
+    const value_t term_cost = mdp.get_non_goal_termination_cost();
 
     named_vector::NamedVector<lp::LPVariable> variables;
 
     const size_t num_states = ranking_function_.num_states();
 
     for (size_t i = 0; i != num_states; ++i) {
-        variables.emplace_back(0_vt, std::min(dead_end_cost, inf), 0_vt);
+        variables.emplace_back(0_vt, std::min(term_cost, inf), 0_vt);
     }
 
     named_vector::NamedVector<lp::LPConstraint> constraints;
 
-    std::deque<StateID> queue({state_space.get_state_id(initial_state)});
-    std::set<StateID> seen({state_space.get_state_id(initial_state)});
+    std::deque<StateRank> queue({initial_state});
+    std::set<StateRank> seen({initial_state});
 
     while (!queue.empty()) {
-        StateID s = queue.front();
+        StateRank s = queue.front();
         queue.pop_front();
 
-        if (utils::contains(pruned_states, s)) {
+        if (utils::contains(pruned_states, s.id)) {
             continue;
         }
 
         variables[s.id].objective_coefficient = 1_vt;
 
-        if (cost_function.is_goal(state_space.get_state(s))) {
+        if (mdp.is_goal(s)) {
             auto& g = constraints.emplace_back(0_vt, 0_vt);
             g.insert(s.id, 1_vt);
         }
 
         // Generate operators...
         std::vector<const ProjectionOperator*> aops;
-        state_space.generate_applicable_actions(s.id, aops);
+        mdp.generate_applicable_actions(s, aops);
 
         // Push successors
         for (const ProjectionOperator* op : aops) {
-            const value_t cost = cost_function.get_action_cost(op);
+            const value_t cost = mdp.get_action_cost(op);
 
             Distribution<StateID> successor_dist;
-            state_space.generate_action_transitions(s.id, op, successor_dist);
+            mdp.generate_action_transitions(s, op, successor_dist);
 
             if (successor_dist.is_dirac(s.id)) {
                 continue;
@@ -775,17 +737,17 @@ void ProbabilityAwarePatternDatabase::verify(
 
             value_t non_loop_prob = 0_vt;
             for (const auto& [succ, prob] : successor_dist) {
-                if (succ != s) {
+                if (succ != s.id) {
                     non_loop_prob += prob;
-                    constr.insert(succ, -prob);
+                    constr.insert(succ.id, -prob);
                 }
 
-                if (seen.insert(succ).second) {
-                    queue.push_back(succ);
+                if (seen.insert(mdp.get_state(succ)).second) {
+                    queue.push_back(mdp.get_state(succ));
                 }
             }
 
-            constr.insert(s, non_loop_prob);
+            constr.insert(s.id, non_loop_prob);
         }
     }
 
@@ -811,9 +773,9 @@ void ProbabilityAwarePatternDatabase::verify(
 
     std::vector<double> solution = solver.extract_solution();
 
-    for (StateID s = 0; s != num_states; ++s.id) {
-        if (utils::contains(pruned_states, s) || !seen.contains(s)) {
-            assert(value_table[s.id] == dead_end_cost);
+    for (StateRank s{0}; s.id != num_states; ++s.id) {
+        if (utils::contains(pruned_states, s.id) || !seen.contains(s)) {
+            assert(value_table[s.id] == term_cost);
         } else {
             assert(is_approx_equal(solution[s.id], value_table[s.id], 0.001));
         }

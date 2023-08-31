@@ -5,6 +5,7 @@
 
 #include "probfd/task_utils/task_properties.h"
 
+#include "probfd/task_evaluator_factory.h"
 #include "probfd/value_type.h"
 
 #include "downward/plugins/plugin.h"
@@ -14,7 +15,7 @@ namespace heuristics {
 namespace pdbs {
 
 namespace {
-class UniformTaskCostFunction : public TaskCostFunction {
+class UniformTaskCostFunction : public FDRSimpleCostFunction {
     ProbabilisticTaskProxy task_proxy;
     std::vector<value_t> costs;
 
@@ -22,8 +23,7 @@ public:
     UniformTaskCostFunction(
         const ProbabilisticTaskProxy& task_proxy,
         size_t num_abstractions)
-        : TaskCostFunction(0_vt, INFINITE_VALUE)
-        , task_proxy(task_proxy)
+        : task_proxy(task_proxy)
     {
         const auto operators = task_proxy.get_operators();
         costs.reserve(operators.size());
@@ -34,30 +34,33 @@ public:
         }
     }
 
-    value_t get_action_cost(OperatorID op) { return costs[op.get_index()]; }
+    value_t get_action_cost(OperatorID op) override
+    {
+        return costs[op.get_index()];
+    }
 
-    bool is_goal(const State& state) const
+    bool is_goal(const State& state) const override
     {
         return ::task_properties::is_goal_state(task_proxy, state);
+    }
+
+    value_t get_non_goal_termination_cost() const override
+    {
+        return INFINITE_VALUE;
     }
 };
 } // namespace
 
-UCPHeuristic::UCPHeuristic(const plugins::Options& opts)
-    : UCPHeuristic(
-          opts.get<std::shared_ptr<ProbabilisticTask>>("transform"),
-          utils::get_log_from_options(opts),
-          opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"))
-{
-}
-
 UCPHeuristic::UCPHeuristic(
     std::shared_ptr<ProbabilisticTask> task,
+    std::shared_ptr<FDRCostFunction> task_cost_function,
     utils::LogProxy log,
     std::shared_ptr<PatternCollectionGenerator> generator)
     : TaskDependentHeuristic(task, log)
+    , termination_cost(task_cost_function->get_non_goal_termination_cost())
 {
-    auto pattern_collection_info = generator->generate(task);
+    auto pattern_collection_info =
+        generator->generate(task, task_cost_function);
 
     auto patterns = pattern_collection_info.get_patterns();
 
@@ -76,33 +79,65 @@ UCPHeuristic::UCPHeuristic(
             rankingf,
             task_costs,
             true);
-        InducedProjectionCostFunction costs(task_proxy, rankingf, &task_costs);
         StateRank init_rank = rankingf.get_abstract_rank(initial_state);
-        pdbs.emplace_back(state_space, std::move(rankingf), costs, init_rank);
+        pdbs.emplace_back(state_space, std::move(rankingf), init_rank);
     }
 }
 
-EvaluationResult UCPHeuristic::evaluate(const State& state) const
+value_t UCPHeuristic::evaluate(const State& state) const
 {
     value_t value = 0.0_vt;
 
     for (const auto& pdb : pdbs) {
-        auto eval_result = pdb.evaluate(state);
+        const value_t estimate = pdb.lookup_estimate(state);
 
-        if (eval_result.is_unsolvable()) {
-            return eval_result;
+        if (estimate == termination_cost) {
+            return estimate;
         }
 
-        value += eval_result.get_estimate();
+        value += estimate;
     }
 
-    return EvaluationResult{false, value};
+    return value;
 }
 
-class UCPHeuristicFeature
-    : public plugins::TypedFeature<TaskEvaluator, UCPHeuristic> {
+namespace {
+
+class UCPHeuristicFactory : public TaskEvaluatorFactory {
+    const utils::LogProxy log_;
+    const std::shared_ptr<PatternCollectionGenerator>
+        pattern_collection_generator_;
+
 public:
-    UCPHeuristicFeature()
+    explicit UCPHeuristicFactory(const plugins::Options& opts);
+
+    std::unique_ptr<FDREvaluator> create_evaluator(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<FDRCostFunction> task_cost_function) override;
+};
+
+UCPHeuristicFactory::UCPHeuristicFactory(const plugins::Options& opts)
+    : log_(utils::get_log_from_options(opts))
+    , pattern_collection_generator_(
+          opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"))
+{
+}
+
+std::unique_ptr<FDREvaluator> UCPHeuristicFactory::create_evaluator(
+    std::shared_ptr<ProbabilisticTask> task,
+    std::shared_ptr<FDRCostFunction> task_cost_function)
+{
+    return std::make_unique<UCPHeuristic>(
+        task,
+        task_cost_function,
+        log_,
+        pattern_collection_generator_);
+}
+
+class UCPHeuristicFactoryFeature
+    : public plugins::TypedFeature<TaskEvaluatorFactory, UCPHeuristicFactory> {
+public:
+    UCPHeuristicFactoryFeature()
         : TypedFeature("ucp_heuristic")
     {
         TaskDependentHeuristic::add_options_to_feature(*this);
@@ -113,8 +148,9 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<UCPHeuristicFeature> _plugin;
+static plugins::FeaturePlugin<UCPHeuristicFactoryFeature> _plugin;
 
+} // namespace
 } // namespace pdbs
 } // namespace heuristics
 } // namespace probfd

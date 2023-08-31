@@ -4,14 +4,14 @@
 
 #include "probfd/task_utils/task_properties.h"
 
+#include "probfd/cost_function.h"
+
 #include "downward/lp/lp_solver.h"
 
 #include "downward/utils/system.h"
 #include "downward/utils/timer.h"
 
 #include "downward/plugins/plugin.h"
-
-#include "probfd/cost_models/maxprob_cost_model.h"
 
 #include <algorithm>
 #include <cassert>
@@ -57,20 +57,9 @@ std::vector<std::vector<value_t>> get_transition_probs_explicit(
 }
 } // namespace
 
-HPOMGenerator::HPOMGenerator()
-    : HPOMGenerator(
-          std::dynamic_pointer_cast<cost_models::MaxProbCostModel>(
-              g_cost_model) != nullptr)
-{
-}
-
-HPOMGenerator::HPOMGenerator(bool maxprob)
-    : is_maxprob_(maxprob)
-{
-}
-
 void HPOMGenerator::initialize_constraints(
     const std::shared_ptr<ProbabilisticTask>& task,
+    const std::shared_ptr<FDRCostFunction>& task_cost_function,
     lp::LinearProgram& lp)
 {
     std::cout << "Initializing HPOM LP constraints..." << std::endl;
@@ -79,7 +68,7 @@ void HPOMGenerator::initialize_constraints(
 
     ProbabilisticTaskProxy task_proxy(*task);
 
-    generate_hpom_lp(task_proxy, lp, offset_, is_maxprob_);
+    generate_hpom_lp(task_proxy, *task_cost_function, lp, offset_);
 
     std::cout << "Finished HPOM LP setup after " << timer << std::endl;
 }
@@ -103,10 +92,21 @@ void HPOMGenerator::reset_constraints(const State& state, lp::LPSolver& solver)
 
 void HPOMGenerator::generate_hpom_lp(
     const ProbabilisticTaskProxy& task_proxy,
+    const FDRCostFunction& task_cost_function,
     lp::LinearProgram& lp,
-    std::vector<int>& offset_,
-    bool maxprob)
+    std::vector<int>& offset_)
 {
+    const value_t term_cost =
+        task_cost_function.get_non_goal_termination_cost();
+
+    if (term_cost != INFINITE_VALUE && term_cost != 1_vt) {
+        std::cerr << "Termination costs beyond 1 (MaxProb) and +infinity (SSP) "
+                     "currently unsupported in hpom implementation.";
+        utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
+    }
+
+    const bool maxprob = task_cost_function.get_non_goal_termination_cost();
+
     ::task_properties::verify_no_axioms(task_proxy);
     task_properties::verify_no_conditional_effects(task_proxy);
 

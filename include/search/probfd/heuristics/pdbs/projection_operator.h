@@ -23,6 +23,12 @@ class ProjectionStateSpace;
 class ProjectionOperator {
     friend class ProjectionStateSpace;
 
+    // Implementation detail. Like in the classical implementation, each
+    // operator is applicable in exactly one state. The successor states are
+    // computed by adding a "shift value" to this state (t = s + shift).
+    // The distribution contains these shift values.
+    Distribution<StateRank> outcomes;
+
 public:
     explicit ProjectionOperator(OperatorID id);
 
@@ -35,13 +41,6 @@ public:
     {
         return left.outcomes == right.outcomes;
     }
-
-private:
-    // Implementation detail. Like in the classical implementation, each
-    // operator is applicable in exactly one state. The successor states are
-    // computed by adding a "shift value" to this state (t = s + shift).
-    // The distribution contains these shift values.
-    Distribution<StateRank> outcomes;
 };
 
 /**

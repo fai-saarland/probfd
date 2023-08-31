@@ -132,6 +132,13 @@ public:
 
     iterator erase(iterator it) { return store_.erase(it); }
 
+    template <class Pred>
+    typename std::unordered_map<StateID, T, Hash, Equal, Alloc>::size_type
+    erase_if(Pred pred)
+    {
+        return std::erase_if(store_, pred);
+    }
+
 private:
     std::unordered_map<StateID, T, Hash, Equal, Alloc> store_;
     const T default_value_;

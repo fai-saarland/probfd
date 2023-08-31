@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_PDBS_PROBABILISTIC_PATTERN_DATABASE_H
 #define PROBFD_HEURISTICS_PDBS_PROBABILISTIC_PATTERN_DATABASE_H
 
-#include "probfd/heuristics/pdbs/engine_interfaces.h"
+#include "probfd/heuristics/pdbs/algorithm_interfaces.h"
 #include "probfd/heuristics/pdbs/match_tree.h"
 #include "probfd/heuristics/pdbs/projection_operator.h"
 #include "probfd/heuristics/pdbs/projection_state_space.h"
@@ -44,7 +44,6 @@ namespace pdbs {
 class ProbabilityAwarePatternDatabase {
     StateRankingFunction ranking_function_;
     std::vector<value_t> value_table;
-    const value_t dead_end_cost;
 
     ProbabilityAwarePatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
@@ -57,7 +56,6 @@ class ProbabilityAwarePatternDatabase {
 
     void compute_value_table(
         ProjectionStateSpace& state_space,
-        ProjectionCostFunction& cost_function,
         StateRank initial_state,
         const StateRankEvaluator& heuristic,
         double max_time);
@@ -85,7 +83,7 @@ public:
     ProbabilityAwarePatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
         Pattern pattern,
-        TaskCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         const State& initial_state,
         bool operator_pruning = true,
         const StateRankEvaluator& heuristic = BlindEvaluator<StateRank>(),
@@ -97,7 +95,6 @@ public:
      *
      * @param projection The projection state space.
      * @param ranking_function The state ranking function for the projection.
-     * @param projection_cost_function The cost function of the projection.
      * @param initial_state The abstract initial state of the projection. States
      * unreachable from the initial state are treated as dead ends.
      * @param heuristic An admissible heuristic for the projection, used to
@@ -110,7 +107,6 @@ public:
     ProbabilityAwarePatternDatabase(
         ProjectionStateSpace& projection,
         StateRankingFunction ranking_function,
-        ProjectionCostFunction& projection_cost_function,
         StateRank initial_state,
         const StateRankEvaluator& heuristic = BlindEvaluator<StateRank>(),
         double max_time = std::numeric_limits<double>::infinity());
@@ -136,7 +132,7 @@ public:
     ProbabilityAwarePatternDatabase(
         const ProbabilisticTaskProxy& task_proxy,
         const ::pdbs::PatternDatabase& pdb,
-        TaskCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         const State& initial_state,
         bool operator_pruning = true,
         double max_time = std::numeric_limits<double>::infinity());
@@ -148,7 +144,6 @@ public:
      *
      * @param projection The projection state space.
      * @param ranking_function The state ranking function for the projection.
-     * @param projection_cost_function The cost function of the projection.
      * @param initial_state The abstract initial state of the projection. States
      * unreachable from the initial state are treated as dead ends.
      * @param pdb The determinization-based pattern database. This PDB must be
@@ -161,7 +156,6 @@ public:
     ProbabilityAwarePatternDatabase(
         ProjectionStateSpace& projection,
         StateRankingFunction ranking_function,
-        ProjectionCostFunction& projection_cost_function,
         StateRank initial_state,
         const ::pdbs::PatternDatabase& pdb,
         double max_time = std::numeric_limits<double>::infinity());
@@ -192,7 +186,7 @@ public:
         const ProbabilisticTaskProxy& task_proxy,
         const ProbabilityAwarePatternDatabase& pdb,
         int add_var,
-        TaskCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         const State& initial_state,
         bool operator_pruning = true,
         double max_time = std::numeric_limits<double>::infinity());
@@ -207,7 +201,6 @@ public:
      *
      * @param state_space The preconstructed state space of the projection.
      * @param ranking_function The preconstructed ranking function for the PDB.
-     * @param projection_cost_function The cost function of the projection.
      * @param initial_state The rank of the initial state for the exhaustive
      * solver. States unreachable from this state are treated as dead ends.
      * @param pdb A previous probability-aware pattern database.
@@ -221,7 +214,6 @@ public:
     ProbabilityAwarePatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
-        ProjectionCostFunction& projection_cost_function,
         StateRank initial_state,
         const ProbabilityAwarePatternDatabase& pdb,
         int add_var,
@@ -255,7 +247,7 @@ public:
         const ProbabilisticTaskProxy& task_proxy,
         const ProbabilityAwarePatternDatabase& left,
         const ProbabilityAwarePatternDatabase& right,
-        TaskCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         const State& initial_state,
         bool operator_pruning = true,
         double max_time = std::numeric_limits<double>::infinity());
@@ -270,7 +262,6 @@ public:
      *
      * @param state_space The preconstructed state space of the projection.
      * @param ranking_function The preconstructed ranking function for the PDB.
-     * @param projection_cost_function The cost function of the projection.
      * @param initial_state The rank of the initial state for the exhaustive
      * solver. States unreachable from this state are treated as dead ends.
      * @param left A previous pattern database for the given task.
@@ -283,7 +274,6 @@ public:
     ProbabilityAwarePatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
-        ProjectionCostFunction& projection_cost_function,
         StateRank initial_state,
         const ProbabilityAwarePatternDatabase& left,
         const ProbabilityAwarePatternDatabase& right,
@@ -299,14 +289,6 @@ public:
     /// Get the number of states in this PDB's projection.
     [[nodiscard]] unsigned int num_states() const;
 
-    /// Check if the corresponding abstract state in the PDB's projection of an
-    /// input state is a dead end.
-    [[nodiscard]] bool is_dead_end(const State& s) const;
-
-    /// Check if the abstract state in the PDB's projection corresponging to an
-    /// input state rank is a dead end.
-    [[nodiscard]] bool is_dead_end(StateRank rank) const;
-
     /// Compute the state rank of the abstract state of an input state.
     [[nodiscard]] StateRank get_abstract_state(const State& state) const;
 
@@ -317,12 +299,6 @@ public:
     /// Look up the estimate of an abstract state specified by state rank in
     /// the lookup table.
     [[nodiscard]] value_t lookup_estimate(StateRank s) const;
-
-    /// Query a heuristic evaluation for an input state.
-    [[nodiscard]] EvaluationResult evaluate(const State& s) const;
-
-    /// Query a heuristic evaluation for an abstract state.
-    [[nodiscard]] EvaluationResult evaluate(StateRank s) const;
 
     /**
      * @brief Extract an abstract optimal policy for the PDB's projection from
@@ -335,7 +311,6 @@ public:
     [[nodiscard]] std::unique_ptr<ProjectionMultiPolicy>
     compute_optimal_projection_policy(
         ProjectionStateSpace& state_space,
-        ProjectionCostFunction& cost_function,
         StateRank initial_state,
         utils::RandomNumberGenerator& rng,
         bool wildcard) const;
@@ -351,7 +326,6 @@ public:
     [[nodiscard]] std::unique_ptr<ProjectionMultiPolicy>
     compute_greedy_projection_policy(
         ProjectionStateSpace& state_space,
-        ProjectionCostFunction& cost_function,
         StateRank initial_state,
         utils::RandomNumberGenerator& rng,
         bool wildcard) const;
@@ -367,7 +341,6 @@ public:
     void dump_graphviz(
         const ProbabilisticTaskProxy& task_proxy,
         ProjectionStateSpace& state_space,
-        ProjectionCostFunction& cost_function,
         StateRank initial_state,
         std::ostream& out,
         bool transition_labels) const;
@@ -376,7 +349,6 @@ public:
 private:
     void verify(
         ProjectionStateSpace& state_space,
-        ProjectionCostFunction& cost_function,
         StateRank initial_state,
         const std::vector<StateID>& proper_states);
 #endif

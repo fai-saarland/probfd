@@ -29,14 +29,6 @@ protected:
     mutable lp::LPSolver lp_solver_;
 
 public:
-    explicit LPHeuristic(const plugins::Options& opts)
-        : LPHeuristic(
-              opts.get<std::shared_ptr<ProbabilisticTask>>("transform"),
-              utils::get_log_from_options(opts),
-              opts.get<lp::LPSolverType>("lpsolver"))
-    {
-    }
-
     LPHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
         utils::LogProxy log,
@@ -46,7 +38,7 @@ public:
     {
     }
 
-    EvaluationResult evaluate(const State& state) const override final
+    value_t evaluate(const State& state) const override final
     {
         assert(!lp_solver_.has_temporary_constraints());
 
@@ -54,13 +46,9 @@ public:
 
         lp_solver_.solve();
 
-        EvaluationResult result;
-
-        if (lp_solver_.has_optimal_solution()) {
-            result = EvaluationResult(false, lp_solver_.get_objective_value());
-        } else {
-            result = EvaluationResult(true, INFINITE_VALUE);
-        }
+        value_t result = lp_solver_.has_optimal_solution()
+                             ? lp_solver_.get_objective_value()
+                             : INFINITE_VALUE;
 
         lp_solver_.clear_temporary_constraints();
         static_cast<const Derived*>(this)->reset_constraints(state);

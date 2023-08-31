@@ -1,12 +1,10 @@
 #ifndef PROBFD_TESTS_VERIFICATION_POLICY_VERIFICATION
 #define PROBFD_TESTS_VERIFICATION_POLICY_VERIFICATION
 
-#include "probfd/engine_interfaces/cost_function.h"
-#include "probfd/engine_interfaces/state_space.h"
-
-#include "probfd/policy.h"
-
 #include "probfd/storage/per_state_storage.h"
+
+#include "probfd/mdp.h"
+#include "probfd/policy.h"
 
 #include <ranges>
 #include <stack>
@@ -21,9 +19,8 @@ namespace tests {
  */
 template <typename State, typename Action>
 extern bool verify_policy(
-    engine_interfaces::StateSpace<State, Action>& state_space,
-    engine_interfaces::CostFunction<State, Action>& cost_function,
-    PartialPolicy<State, Action>& policy,
+    MDP<State, Action>& mdp,
+    Policy<State, Action>& policy,
     StateID init_id)
 {
     struct StateInfo {
@@ -56,7 +53,7 @@ extern bool verify_policy(
         ExplorationInfo* info = &open.top();
 
         StateID state_id = info->state_id;
-        State state = state_space.get_state(state_id);
+        State state = mdp.get_state(state_id);
         StateInfo* state_info = &state_infos[state_id];
 
         state_info->explored = true;
@@ -66,7 +63,7 @@ extern bool verify_policy(
         std::optional decision = policy.get_decision(state);
 
         // Check if goal. No decision in this case.
-        if (cost_function.get_termination_info(state).is_goal_state()) {
+        if (mdp.get_termination_info(state).is_goal_state()) {
             if (decision) return false;
             state_info->is_dead = false;
             goto backtracking;
@@ -76,18 +73,17 @@ extern bool verify_policy(
         if (!decision) return false;
 
         // Generate successors.
-        state_space.generate_action_transitions(
-            state_id,
+        mdp.generate_action_transitions(
+            state,
             decision->action,
             info->successors);
 
         // Check Bellman equation
         {
-            value_t expected_cost =
-                cost_function.get_action_cost(state_id, decision->action);
+            value_t expected_cost = mdp.get_action_cost(decision->action);
 
             for (const auto [successor_id, probability] : info->successors) {
-                const State successor = state_space.get_state(successor_id);
+                const State successor = mdp.get_state(successor_id);
                 std::optional succ_decision = policy.get_decision(successor);
 
                 const value_t succ_val =
@@ -153,7 +149,7 @@ extern bool verify_policy(
 
                 info = &open.top();
                 state_id = info->state_id;
-                state = state_space.get_state(state_id);
+                state = mdp.get_state(state_id);
                 state_info = &state_infos[state_id];
 
                 // The successor we backtracked from.

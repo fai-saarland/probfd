@@ -17,7 +17,7 @@ class RefinementHierarchy;
 
 namespace probfd {
 template <typename, typename>
-class PartialPolicy;
+class Policy;
 
 namespace heuristics {
 namespace cartesian {
@@ -43,8 +43,7 @@ using ProbabilisticTransitions = std::vector<ProbabilisticTransition>;
 
 using Trace = std::deque<TransitionOutcome>;
 
-using Solution =
-    PartialPolicy<const AbstractState*, const ProbabilisticTransition*>;
+using Solution = Policy<int, const ProbabilisticTransition*>;
 
 static constexpr int UNDEFINED = -1;
 

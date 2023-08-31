@@ -5,6 +5,9 @@ fast_downward_plugin(
         # Main
         probfd/command_line
 
+        # Evaluators
+        probfd/evaluator
+
         # Tasks
         probfd/probabilistic_task
 
@@ -15,7 +18,7 @@ fast_downward_plugin(
         probfd/interval
         probfd/value_type
         
-        # Engine interfaces
+        # MDP interfaces
         probfd/state_evaluator
         probfd/cost_function
         probfd/caching_task_state_space
@@ -23,13 +26,18 @@ fast_downward_plugin(
         probfd/progress_report
         probfd/quotient_system
 
-        # Engines
-        probfd/engines/utils
+        # Algorithms
+        probfd/algorithms/utils
 
-        # Cost Models
-        probfd/cost_model
-        probfd/cost_models/maxprob_cost_model
-        probfd/cost_models/ssp_cost_model
+        # Cost Functions
+        probfd/maxprob_cost_function
+        probfd/ssp_cost_function
+
+        # Task Cost Function Factories
+        probfd/task_cost_function_factory
+
+        # Task Evaluator Factories
+        probfd/task_evaluator_factory
 
         # Constant evaluator (default)
         probfd/heuristics/constant_evaluator
@@ -40,8 +48,19 @@ fast_downward_plugin(
         probfd/solver_interface
         
         probfd/solvers/mdp_solver
-    DEPENDS SUCCESSOR_GENERATOR
+    DEPENDS PROBABILISTIC_SUCCESSOR_GENERATOR
     CORE_PLUGIN
+)
+
+fast_downward_plugin(
+    NAME PROBABILISTIC_SUCCESSOR_GENERATOR
+    HELP "Probabilistic Successor generator"
+    SOURCES
+        probfd/task_utils/probabilistic_successor_generator
+        probfd/task_utils/probabilistic_successor_generator_factory
+        probfd/task_utils/probabilistic_successor_generator_internals
+    DEPENDS TASK_PROPERTIES
+    DEPENDENCY_ONLY
 )
 
 fast_downward_plugin(
@@ -71,7 +90,7 @@ fast_downward_plugin(
     HELP "bisimulation_core"
     SOURCES
         probfd/bisimulation/bisimilar_state_space
-        probfd/bisimulation/engine_interfaces
+        probfd/bisimulation/algorithm_interfaces
     DEPENDS MDP
     DEPENDENCY_ONLY
 )
@@ -102,9 +121,17 @@ fast_downward_plugin(
 
 fast_downward_plugin(
     NAME IDUAL_SOLVER
-    HELP "idual & i2dual solvers"
+    HELP "idual solver"
     SOURCES
         probfd/solvers/idual
+    DEPENDS MDP LP_SOLVER
+)
+
+fast_downward_plugin(
+    NAME I2DUAL_SOLVER
+    HELP "i2dual solvers"
+    SOURCES
+        probfd/algorithms/i2dual
         probfd/solvers/i2dual
     DEPENDS MDP LP_SOLVER OCCUPATION_MEASURE_HEURISTICS
 )
@@ -121,42 +148,15 @@ fast_downward_plugin(
     NAME MDP_HEURISTIC_SEARCH_BASE
     HELP "mdp heuristic search core"
     SOURCES
-        # Engine interface subcategories
-        probfd/engine_interfaces/subcategory
-
         # Open Lists
-        probfd/open_lists/fifo_open_list_factory
-        probfd/open_lists/lifo_open_list_factory
-
         probfd/open_lists/subcategory
 
         # Transition Samplers
         probfd/successor_sampler
-        probfd/successor_samplers/arbitrary_selector
-        probfd/successor_samplers/most_likely_selector
-        probfd/successor_samplers/uniform_successor_sampler
-        probfd/successor_samplers/vbiased_successor_sampler
-        probfd/successor_samplers/vdiff_successor_sampler
-
-        probfd/successor_samplers/arbitrary_selector_factory
-        probfd/successor_samplers/most_likely_selector_factory
-        probfd/successor_samplers/uniform_successor_sampler_factory
-        probfd/successor_samplers/random_successor_sampler_factory
-        probfd/successor_samplers/vbiased_successor_sampler_factory
-        probfd/successor_samplers/vdiff_successor_sampler_factory
-
         probfd/successor_samplers/subcategory
 
         # Policy Tiebreakers
         probfd/policy_pickers/operator_id_tiebreaker
-        probfd/policy_pickers/random_tiebreaker
-        probfd/policy_pickers/vdiff_tiebreaker
-
-        probfd/policy_pickers/arbitrary_tiebreaker_factory
-        probfd/policy_pickers/operator_id_tiebreaker_factory
-        probfd/policy_pickers/random_tiebreaker_factory
-        probfd/policy_pickers/vdiff_tiebreaker_factory
-
         probfd/policy_pickers/subcategory
 
         # Successor Sorters
@@ -277,7 +277,7 @@ fast_downward_plugin(
     NAME PROBABILITY_AWARE_PDBS
     HELP "Probability-aware PDBs base classes"
     SOURCES
-        probfd/heuristics/pdbs/engine_interfaces
+        probfd/heuristics/pdbs/algorithm_interfaces
         probfd/heuristics/pdbs/match_tree
         probfd/heuristics/pdbs/probability_aware_pattern_database
         probfd/heuristics/pdbs/projection_operator
@@ -407,7 +407,7 @@ fast_downward_plugin(
         probfd/heuristics/cartesian/cost_saturation
         probfd/heuristics/cartesian/complete_policy_flaw_finder
         probfd/heuristics/cartesian/distances
-        probfd/heuristics/cartesian/engine_interfaces
+        probfd/heuristics/cartesian/algorithm_interfaces
         probfd/heuristics/cartesian/flaw
         probfd/heuristics/cartesian/flaw_generator
         probfd/heuristics/cartesian/ilao_policy_generator

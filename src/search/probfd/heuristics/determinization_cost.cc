@@ -10,13 +10,6 @@ namespace probfd {
 namespace heuristics {
 
 DeterminizationCostHeuristic::DeterminizationCostHeuristic(
-    const plugins::Options& opts)
-    : DeterminizationCostHeuristic(
-          opts.get<std::shared_ptr<::Evaluator>>("evaluator"))
-{
-}
-
-DeterminizationCostHeuristic::DeterminizationCostHeuristic(
     std::shared_ptr<::Evaluator> evaluator)
     : evaluator_(std::move(evaluator))
 {
@@ -24,16 +17,13 @@ DeterminizationCostHeuristic::DeterminizationCostHeuristic(
 
 DeterminizationCostHeuristic::~DeterminizationCostHeuristic() = default;
 
-EvaluationResult
-DeterminizationCostHeuristic::evaluate(const State& state) const
+value_t DeterminizationCostHeuristic::evaluate(const State& state) const
 {
     EvaluationContext context(state);
     ::EvaluationResult result = evaluator_->compute_result(context);
-
-    const bool infinite = result.is_infinite();
-    return EvaluationResult(
-        infinite,
-        infinite ? INFINITE_VALUE : result.get_evaluator_value());
+    return result.is_infinite()
+               ? INFINITE_VALUE
+               : static_cast<value_t>(result.get_evaluator_value());
 }
 
 void DeterminizationCostHeuristic::print_statistics() const
@@ -41,18 +31,52 @@ void DeterminizationCostHeuristic::print_statistics() const
     // evaluator_->print_statistics();
 }
 
-class DeterminizationHeuristicFeature
-    : public plugins::
-          TypedFeature<TaskEvaluator, DeterminizationCostHeuristic> {
+namespace {
+class DeterminizationCostHeuristicFactory : public TaskEvaluatorFactory {
+    const std::shared_ptr<::Evaluator> evaluator_;
+
 public:
-    DeterminizationHeuristicFeature()
+    /**
+     * @brief Construct from options.
+     *
+     * @param opts - Only one option is available:
+     * + heuristic - Specifies the underlying classical heuristic.
+     */
+    explicit DeterminizationCostHeuristicFactory(const plugins::Options& opts);
+
+    std::unique_ptr<FDREvaluator> create_evaluator(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<FDRCostFunction> task_cost_function) override;
+};
+
+DeterminizationCostHeuristicFactory::DeterminizationCostHeuristicFactory(
+    const plugins::Options& opts)
+    : evaluator_(opts.get<std::shared_ptr<::Evaluator>>("evaluator"))
+{
+}
+
+std::unique_ptr<FDREvaluator>
+DeterminizationCostHeuristicFactory::create_evaluator(
+    std::shared_ptr<ProbabilisticTask>,
+    std::shared_ptr<FDRCostFunction>)
+{
+    return std::make_unique<DeterminizationCostHeuristic>(evaluator_);
+}
+
+class DeterminizationHeuristicFactoryFeature
+    : public plugins::TypedFeature<
+          TaskEvaluatorFactory,
+          DeterminizationCostHeuristicFactory> {
+public:
+    DeterminizationHeuristicFactoryFeature()
         : TypedFeature("det")
     {
         add_option<std::shared_ptr<::Evaluator>>("evaluator");
     }
 };
 
-static plugins::FeaturePlugin<DeterminizationHeuristicFeature> _plugin;
+static plugins::FeaturePlugin<DeterminizationHeuristicFactoryFeature> _plugin;
+} // namespace
 
 } // namespace heuristics
 } // namespace probfd

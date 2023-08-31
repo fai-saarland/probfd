@@ -1,6 +1,6 @@
 #include "probfd/heuristics/dead_end_pruning.h"
 
-#include "probfd/cost_model.h"
+#include "probfd/cost_function.h"
 
 #include "downward/utils/system.h"
 
@@ -14,14 +14,12 @@ namespace probfd {
 namespace heuristics {
 
 DeadEndPruningHeuristic::DeadEndPruningHeuristic(
-    value_t default_value,
-    value_t dead_end_value,
-    std::shared_ptr<::Evaluator> pruning_function)
-    : default_value_(default_value)
+    std::shared_ptr<::Evaluator> pruning_function,
+    value_t dead_end_value)
+    : pruning_function_(std::move(pruning_function))
     , dead_end_value_(dead_end_value)
-    , pruning_function_(pruning_function)
 {
-    if (pruning_function_->dead_ends_are_reliable()) {
+    if (!pruning_function_->dead_ends_are_reliable()) {
         utils::g_log << "Dead end pruning heuristic was constructed with an "
                         "evaluator that has unreliable dead ends!"
                      << std::endl;
@@ -29,25 +27,11 @@ DeadEndPruningHeuristic::DeadEndPruningHeuristic(
     }
 }
 
-DeadEndPruningHeuristic::DeadEndPruningHeuristic(const plugins::Options& opts)
-    : DeadEndPruningHeuristic(
-          opts.get<bool>("pessimistic")
-              ? g_cost_model->optimal_value_bound().upper
-              : g_cost_model->optimal_value_bound().lower,
-          g_cost_model->optimal_value_bound().upper,
-          opts.get<std::shared_ptr<::Evaluator>>("heuristic"))
-{
-}
-
-EvaluationResult DeadEndPruningHeuristic::evaluate(const State& state) const
+value_t DeadEndPruningHeuristic::evaluate(const State& state) const
 {
     EvaluationContext context(state);
     ::EvaluationResult result = pruning_function_->compute_result(context);
-
-    if (result.is_infinite()) {
-        return EvaluationResult(true, dead_end_value_);
-    }
-    return EvaluationResult(false, default_value_);
+    return result.is_infinite() ? dead_end_value_ : 0_vt;
 }
 
 void DeadEndPruningHeuristic::print_statistics() const
@@ -55,18 +39,52 @@ void DeadEndPruningHeuristic::print_statistics() const
     // pruning_function_->print_statistics();
 }
 
-class DeadEndPruningHeuristicFeature
-    : public plugins::TypedFeature<TaskEvaluator, DeadEndPruningHeuristic> {
+namespace {
+class DeadEndPruningHeuristicFactory : public TaskEvaluatorFactory {
+    const std::shared_ptr<::Evaluator> evaluator_;
+
 public:
-    DeadEndPruningHeuristicFeature()
+    /**
+     * @brief Construct from options.
+     *
+     * @param opts - Only one option is available:
+     * + heuristic - Specifies the underlying classical heuristic.
+     */
+    explicit DeadEndPruningHeuristicFactory(const plugins::Options& opts);
+
+    std::unique_ptr<FDREvaluator> create_evaluator(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<FDRCostFunction> task_cost_function) override;
+};
+
+DeadEndPruningHeuristicFactory::DeadEndPruningHeuristicFactory(
+    const plugins::Options& opts)
+    : evaluator_(opts.get<std::shared_ptr<::Evaluator>>("evaluator"))
+{
+}
+
+std::unique_ptr<FDREvaluator> DeadEndPruningHeuristicFactory::create_evaluator(
+    std::shared_ptr<ProbabilisticTask>,
+    std::shared_ptr<FDRCostFunction> task_cost_function)
+{
+    return std::make_unique<DeadEndPruningHeuristic>(
+        evaluator_,
+        task_cost_function->get_non_goal_termination_cost());
+}
+
+class DeadEndPruningHeuristicFactoryFeature
+    : public plugins::
+          TypedFeature<TaskEvaluatorFactory, DeadEndPruningHeuristicFactory> {
+public:
+    DeadEndPruningHeuristicFactoryFeature()
         : TypedFeature("prune_dead_ends")
     {
         add_option<std::shared_ptr<::Evaluator>>("evaluator");
-        add_option<bool>("pessimistic", "", "false");
     }
 };
 
-static plugins::FeaturePlugin<DeadEndPruningHeuristicFeature> _plugin;
+static plugins::FeaturePlugin<DeadEndPruningHeuristicFactoryFeature> _plugin;
+} // namespace
 
 } // namespace heuristics
 } // namespace probfd

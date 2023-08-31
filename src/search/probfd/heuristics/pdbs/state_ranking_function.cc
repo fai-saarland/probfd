@@ -153,22 +153,30 @@ int StateRankingFunction::get_domain_size(int var) const
 }
 
 StateRankToString::StateRankToString(
-    std::shared_ptr<StateRankingFunction> state_mapper)
-    : state_mapper_(std::move(state_mapper))
+    VariablesProxy variables,
+    const StateRankingFunction& state_mapper)
+    : variables_(variables)
+    , state_mapper_(state_mapper)
 {
 }
 
-std::string StateRankToString::operator()(StateID, StateRank state) const
+std::string StateRankToString::operator()(StateRank state) const
 {
-    const ProbabilisticTask& task = *tasks::g_root_task;
+    using namespace std::views;
 
     std::ostringstream out;
-    std::vector<int> values = state_mapper_->unrank(state);
-    for (unsigned i = 0; i < values.size(); i++) {
-        const int var = state_mapper_->get_pattern()[i];
-        out << (i > 0 ? ", " : "")
-            << task.get_fact_name(FactPair(var, values[i]));
+
+    const Pattern& pattern = state_mapper_.get_pattern();
+    std::vector<int> values = state_mapper_.unrank(state);
+
+    if (pattern.empty()) return "";
+
+    out << variables_[pattern.front()].get_fact(values.front()).get_name();
+
+    for (const auto [var, val] : zip(pattern, values) | drop(1)) {
+        out << ", " << variables_[var].get_fact(val).get_name();
     }
+
     return out.str();
 }
 

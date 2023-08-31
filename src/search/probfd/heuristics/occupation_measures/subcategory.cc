@@ -1,10 +1,11 @@
-#include "probfd/engine_interfaces/evaluator.h"
-
 #include "probfd/heuristics/occupation_measures/higher_order_hpom_constraints.h"
 #include "probfd/heuristics/occupation_measures/hpom_constraints.h"
 #include "probfd/heuristics/occupation_measures/hroc_constraints.h"
 #include "probfd/heuristics/occupation_measures/occupation_measure_heuristic.h"
 #include "probfd/heuristics/occupation_measures/pho_constraints.h"
+
+#include "probfd/evaluator.h"
+#include "probfd/task_evaluator_factory.h"
 
 #include "downward/utils/markup.h"
 
@@ -16,10 +17,49 @@ namespace probfd {
 namespace heuristics {
 namespace occupation_measures {
 
-class HROCFeature
-    : public plugins::TypedFeature<TaskEvaluator, OccupationMeasureHeuristic> {
+namespace {
+
+class OccupationMeasureHeuristicFactory : public TaskEvaluatorFactory {
+    const utils::LogProxy log_;
+    const lp::LPSolverType lp_solver_type_;
+    const std::shared_ptr<ConstraintGenerator> constraints_;
+
 public:
-    HROCFeature()
+    explicit OccupationMeasureHeuristicFactory(const plugins::Options& opts);
+
+    std::unique_ptr<FDREvaluator> create_evaluator(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<FDRCostFunction> task_cost_function) override;
+};
+
+OccupationMeasureHeuristicFactory::OccupationMeasureHeuristicFactory(
+    const plugins::Options& opts)
+    : log_(utils::get_log_from_options(opts))
+    , lp_solver_type_(opts.get<lp::LPSolverType>("lpsolver"))
+    , constraints_(opts.get<std::shared_ptr<ConstraintGenerator>>(
+          "constraint_generator"))
+{
+}
+
+std::unique_ptr<FDREvaluator>
+OccupationMeasureHeuristicFactory::create_evaluator(
+    std::shared_ptr<ProbabilisticTask> task,
+    std::shared_ptr<FDRCostFunction> task_cost_function)
+{
+    return std::make_unique<OccupationMeasureHeuristic>(
+        task,
+        task_cost_function,
+        log_,
+        lp_solver_type_,
+        constraints_);
+}
+
+class HROCFactoryFeature
+    : public plugins::TypedFeature<
+          TaskEvaluatorFactory,
+          OccupationMeasureHeuristicFactory> {
+public:
+    HROCFactoryFeature()
         : TypedFeature("hroc")
     {
         document_title("Regrouped operator-counting heuristic");
@@ -44,7 +84,7 @@ public:
         OccupationMeasureHeuristic::add_options_to_feature(*this);
     }
 
-    std::shared_ptr<OccupationMeasureHeuristic>
+    std::shared_ptr<OccupationMeasureHeuristicFactory>
     create_component(const plugins::Options& options, const utils::Context&)
         const override
     {
@@ -52,14 +92,17 @@ public:
         options_copy.set<std::shared_ptr<ConstraintGenerator>>(
             "constraint_generator",
             std::make_shared<HROCGenerator>());
-        return std::make_shared<OccupationMeasureHeuristic>(options_copy);
+        return std::make_shared<OccupationMeasureHeuristicFactory>(
+            options_copy);
     }
 };
 
-class HPOMFeature
-    : public plugins::TypedFeature<TaskEvaluator, OccupationMeasureHeuristic> {
+class HPOMFactoryFeature
+    : public plugins::TypedFeature<
+          TaskEvaluatorFactory,
+          OccupationMeasureHeuristicFactory> {
 public:
-    HPOMFeature()
+    HPOMFactoryFeature()
         : TypedFeature("hpom")
     {
         document_title("Projection Occupation Measure Heuristic");
@@ -86,7 +129,7 @@ public:
         OccupationMeasureHeuristic::add_options_to_feature(*this);
     }
 
-    std::shared_ptr<OccupationMeasureHeuristic>
+    std::shared_ptr<OccupationMeasureHeuristicFactory>
     create_component(const plugins::Options& options, const utils::Context&)
         const override
     {
@@ -94,14 +137,17 @@ public:
         options_copy.set<std::shared_ptr<ConstraintGenerator>>(
             "constraint_generator",
             std::make_shared<HPOMGenerator>());
-        return std::make_shared<OccupationMeasureHeuristic>(options_copy);
+        return std::make_shared<OccupationMeasureHeuristicFactory>(
+            options_copy);
     }
 };
 
-class HOHPOMFeature
-    : public plugins::TypedFeature<TaskEvaluator, OccupationMeasureHeuristic> {
+class HOHPOMFactoryFeature
+    : public plugins::TypedFeature<
+          TaskEvaluatorFactory,
+          OccupationMeasureHeuristicFactory> {
 public:
-    HOHPOMFeature()
+    HOHPOMFactoryFeature()
         : TypedFeature("ho_hpom")
     {
         document_title("Higher-Order Projection Occupation Measure Heuristic");
@@ -131,7 +177,7 @@ public:
         add_option<int>("projection_size", "The size of the projections", "1");
     }
 
-    std::shared_ptr<OccupationMeasureHeuristic>
+    std::shared_ptr<OccupationMeasureHeuristicFactory>
     create_component(const plugins::Options& options, const utils::Context&)
         const override
     {
@@ -139,14 +185,17 @@ public:
         options_copy.set<std::shared_ptr<ConstraintGenerator>>(
             "constraint_generator",
             std::make_shared<HigherOrderHPOMGenerator>(options));
-        return std::make_shared<OccupationMeasureHeuristic>(options_copy);
+        return std::make_shared<OccupationMeasureHeuristicFactory>(
+            options_copy);
     }
 };
 
-class HPHOFeature
-    : public plugins::TypedFeature<TaskEvaluator, OccupationMeasureHeuristic> {
+class HPHOFactoryFeature
+    : public plugins::TypedFeature<
+          TaskEvaluatorFactory,
+          OccupationMeasureHeuristicFactory> {
 public:
-    HPHOFeature()
+    HPHOFactoryFeature()
         : TypedFeature("pho")
     {
         document_title("Post-hoc Optimization Heuristic");
@@ -166,7 +215,7 @@ public:
             "det_adapter(generator=systematic(pattern_max_size=2))");
     }
 
-    std::shared_ptr<OccupationMeasureHeuristic>
+    std::shared_ptr<OccupationMeasureHeuristicFactory>
     create_component(const plugins::Options& options, const utils::Context&)
         const override
     {
@@ -174,15 +223,17 @@ public:
         options_copy.set<std::shared_ptr<ConstraintGenerator>>(
             "constraint_generator",
             std::make_shared<PHOGenerator>(options));
-        return std::make_shared<OccupationMeasureHeuristic>(options_copy);
+        return std::make_shared<OccupationMeasureHeuristicFactory>(
+            options_copy);
     }
 };
 
-static plugins::FeaturePlugin<HROCFeature> _plugin_hroc;
-static plugins::FeaturePlugin<HPOMFeature> _plugin_hpom;
-static plugins::FeaturePlugin<HOHPOMFeature> _plugin_hohpom;
-static plugins::FeaturePlugin<HPHOFeature> _plugin_hpho;
+static plugins::FeaturePlugin<HROCFactoryFeature> _plugin_hroc;
+static plugins::FeaturePlugin<HPOMFactoryFeature> _plugin_hpom;
+static plugins::FeaturePlugin<HOHPOMFactoryFeature> _plugin_hohpom;
+static plugins::FeaturePlugin<HPHOFactoryFeature> _plugin_hpho;
 
+} // namespace
 } // namespace occupation_measures
 } // namespace heuristics
 } // namespace probfd

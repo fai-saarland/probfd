@@ -1,8 +1,10 @@
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "probfd/engines/exhaustive_ao.h"
+#include "probfd/algorithms/exhaustive_ao.h"
+#include "probfd/algorithms/open_list.h"
 
-#include "probfd/open_lists/task_open_list_factory.h"
+#include "probfd/plugins/multi_feature_plugin.h"
+#include "probfd/plugins/naming_conventions.h"
 
 #include "downward/plugins/plugin.h"
 
@@ -10,23 +12,19 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engine_interfaces;
+using namespace algorithms;
+using namespace plugins;
 
 template <bool Bisimulation>
 class ExhaustiveAOSolver : public MDPHeuristicSearch<Bisimulation, false> {
-    template <typename T>
-    using WrappedType =
-        typename MDPHeuristicSearch<Bisimulation, false>::template WrappedType<
-            T>;
+    using OpenList = WrappedType<OpenList, Bisimulation, false>;
 
-    WrappedType<std::shared_ptr<TaskOpenList>> open_list_;
+    const std::shared_ptr<OpenList> open_list_;
 
 public:
-    explicit ExhaustiveAOSolver(const plugins::Options& opts)
+    explicit ExhaustiveAOSolver(const Options& opts)
         : MDPHeuristicSearch<Bisimulation, false>(opts)
-        , open_list_(this->wrap(
-              opts.get<std::shared_ptr<TaskOpenListFactory>>("open_list")
-                  ->create_open_list(this->state_space_.get())))
+        , open_list_(opts.get<std::shared_ptr<OpenList>>("open_list"))
     {
     }
 
@@ -35,27 +33,31 @@ public:
         return "exhaustive_ao";
     }
 
-    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        return this->template create_heuristic_search_engine<
-            engines::exhaustive_ao::ExhaustiveAOSearch>(open_list_.get());
+        return this->template create_heuristic_search_algorithm<
+            algorithms::exhaustive_ao::ExhaustiveAOSearch>(open_list_);
     }
 };
 
+template <bool Bisimulation>
 class ExhaustiveAOSolverFeature
-    : public MDPHeuristicSearchSolverFeature<ExhaustiveAOSolver> {
+    : public TypedFeature<SolverInterface, ExhaustiveAOSolver<Bisimulation>> {
 public:
     ExhaustiveAOSolverFeature()
-        : MDPHeuristicSearchSolverFeature<ExhaustiveAOSolver>("exhaustive_ao")
+        : ExhaustiveAOSolverFeature::TypedFeature(
+              add_wrapper_algo_suffix<Bisimulation, false>("exhaustive_ao"))
     {
-        add_option<std::shared_ptr<TaskOpenListFactory>>(
+        MDPHeuristicSearch<Bisimulation, false>::add_options_to_feature(*this);
+        this->template add_option<
+            std::shared_ptr<WrappedType<OpenList, Bisimulation, false>>>(
             "open_list",
             "",
-            "lifo_open_list_factory");
+            add_mdp_type_to_option<Bisimulation, false>("lifo_open_list()"));
     }
 };
 
-static plugins::FeaturePlugin<ExhaustiveAOSolverFeature> _plugin;
+static BinaryFeaturePlugin<ExhaustiveAOSolverFeature> _plugin;
 
 } // namespace
 } // namespace solvers

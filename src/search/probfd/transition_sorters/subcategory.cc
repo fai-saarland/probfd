@@ -5,18 +5,18 @@
 namespace probfd {
 namespace transition_sorters {
 
-static class TaskTransitionSorterFactoryCategoryPlugin
-    : public plugins::TypedCategoryPlugin<TaskTransitionSorterFactory> {
+static class FDRTransitionSorterFactoryCategoryPlugin
+    : public plugins::TypedCategoryPlugin<FDRTransitionSorterFactory> {
 public:
-    TaskTransitionSorterFactoryCategoryPlugin()
-        : TypedCategoryPlugin("TaskTransitionSorterFactory")
+    FDRTransitionSorterFactoryCategoryPlugin()
+        : TypedCategoryPlugin("FDRTransitionSorterFactory")
     {
     }
 } _category_plugin_collection;
 
 class VDiffSorterFactoryFeature
     : public plugins::
-          TypedFeature<TaskTransitionSorterFactory, VDiffSorterFactory> {
+          TypedFeature<FDRTransitionSorterFactory, VDiffSorterFactory> {
 public:
     VDiffSorterFactoryFeature()
         : TypedFeature("value_gap_sort_factory")

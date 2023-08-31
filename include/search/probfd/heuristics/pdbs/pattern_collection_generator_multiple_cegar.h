@@ -26,7 +26,7 @@ class PatternCollectionGeneratorMultipleCegar
         double max_time,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         const ProbabilisticTaskProxy& task_proxy,
-        TaskCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         const FactPair& goal,
         std::unordered_set<int>&& blacklisted_variables) override;
 

@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_PDBS_CEGAR_CEGAR_H
 #define PROBFD_HEURISTICS_PDBS_CEGAR_CEGAR_H
 
-#include "probfd/heuristics/pdbs/engine_interfaces.h"
+#include "probfd/heuristics/pdbs/algorithm_interfaces.h"
 #include "probfd/heuristics/pdbs/types.h"
 
 #include "probfd/heuristics/pdbs/cegar/flaw.h"
@@ -85,18 +85,19 @@ public:
 
     CEGARResult generate_pdbs(
         const ProbabilisticTaskProxy& task_proxy,
-        TaskCostFunction& task_cost_function);
+        FDRSimpleCostFunction& task_cost_function);
 
 private:
     void generate_trivial_solution_collection(
         const ProbabilisticTaskProxy& task_proxy,
-        TaskCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         utils::CountdownTimer& timer);
 
     int get_flaws(
         const ProbabilisticTaskProxy& task_proxy,
         std::vector<Flaw>& flaws,
         std::vector<int>& flaw_offsets,
+        value_t termination_cost,
         utils::CountdownTimer& timer);
 
     bool
@@ -109,25 +110,25 @@ private:
 
     void add_pattern_for_var(
         const ProbabilisticTaskProxy& task_proxy,
-        TaskCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         int var,
         utils::CountdownTimer& timer);
     void add_variable_to_pattern(
         const ProbabilisticTaskProxy& task_proxy,
-        TaskCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         int index,
         int var,
         utils::CountdownTimer& timer);
     void merge_patterns(
         const ProbabilisticTaskProxy& task_proxy,
-        TaskCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         int index1,
         int index2,
         utils::CountdownTimer& timer);
 
     void refine(
         const ProbabilisticTaskProxy& task_proxy,
-        TaskCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         const VariablesProxy& variables,
         const std::vector<Flaw>& flaws,
         const std::vector<int>& flaw_offsets,

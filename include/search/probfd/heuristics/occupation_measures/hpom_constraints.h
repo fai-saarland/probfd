@@ -21,17 +21,13 @@ namespace occupation_measures {
  * \cite trevizan:etal:icaps-17 .
  */
 class HPOMGenerator : public ConstraintGenerator {
-    const bool is_maxprob_;
     std::vector<int> offset_;
     mutable std::vector<int> reset_indices_;
 
 public:
-    HPOMGenerator();
-
-    explicit HPOMGenerator(bool maxprob);
-
-    virtual void initialize_constraints(
+    void initialize_constraints(
         const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<FDRCostFunction>& task_cost_function,
         lp::LinearProgram& lp) override final;
 
     void
@@ -42,9 +38,9 @@ public:
 
     static void generate_hpom_lp(
         const ProbabilisticTaskProxy& task_proxy,
+        const FDRCostFunction& task_cost_function,
         lp::LinearProgram& lp,
-        std::vector<int>& offsets,
-        bool maxprob);
+        std::vector<int>& offsets);
 };
 
 } // namespace occupation_measures

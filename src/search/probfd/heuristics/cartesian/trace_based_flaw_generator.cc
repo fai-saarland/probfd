@@ -2,12 +2,13 @@
 
 #include "probfd/heuristics/cartesian/abstract_state.h"
 #include "probfd/heuristics/cartesian/abstraction.h"
+#include "probfd/heuristics/cartesian/algorithm_interfaces.h"
 #include "probfd/heuristics/cartesian/astar_trace_generator.h"
-#include "probfd/heuristics/cartesian/engine_interfaces.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
 #include "probfd/heuristics/cartesian/split_selector.h"
 #include "probfd/heuristics/cartesian/trace_generator.h"
 #include "probfd/heuristics/cartesian/utils.h"
+
 
 #include "probfd/task_utils/task_properties.h"
 
@@ -37,32 +38,25 @@ TraceBasedFlawGenerator::~TraceBasedFlawGenerator() = default;
 
 std::unique_ptr<Trace> TraceBasedFlawGenerator::find_trace(
     Abstraction& abstraction,
-    CartesianCostFunction& cost_function,
     int init_id,
     CartesianHeuristic& heuristic,
     utils::CountdownTimer& timer)
 {
     TimerScope scope(find_trace_timer);
-    return trace_generator
-        ->find_trace(abstraction, cost_function, init_id, heuristic, timer);
+    return trace_generator->find_trace(abstraction, init_id, heuristic, timer);
 }
 
 optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
     const ProbabilisticTaskProxy& task_proxy,
     const std::vector<int>& domain_sizes,
     Abstraction& abstraction,
-    CartesianCostFunction& cost_function,
     const AbstractState* init,
     CartesianHeuristic& heuristic,
     utils::LogProxy& log,
     utils::CountdownTimer& timer)
 {
-    std::unique_ptr<Trace> solution = find_trace(
-        abstraction,
-        cost_function,
-        init->get_id(),
-        heuristic,
-        timer);
+    std::unique_ptr<Trace> solution =
+        find_trace(abstraction, init->get_id(), heuristic, timer);
 
     if (!solution) {
         if (log.is_at_least_normal()) {

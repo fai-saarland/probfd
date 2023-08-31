@@ -47,6 +47,34 @@ bool is_approx_less(value_t v1, value_t v2, value_t epsilon = g_epsilon);
 /// Equivalent to \f$v_1 - v_2 > \epsilon\f$
 bool is_approx_greater(value_t v1, value_t v2, value_t epsilon = g_epsilon);
 
+/// Unary function object for approximate equality comparison.
+struct approx_eq_to {
+    const value_t value;
+    const value_t epsilon;
+
+    approx_eq_to(value_t value, value_t epsilon = g_epsilon)
+        : value(value)
+        , epsilon(epsilon)
+    {
+    }
+
+    bool operator()(value_t other) { return is_approx_equal(value, other); }
+};
+
+/// Unary function object for approximate inequality comparison.
+struct approx_neq_to {
+    const value_t value;
+    const value_t epsilon;
+
+    approx_neq_to(value_t value, value_t epsilon = g_epsilon)
+        : value(value)
+        , epsilon(epsilon)
+    {
+    }
+
+    bool operator()(value_t other) { return !is_approx_equal(value, other); }
+};
+
 } // namespace probfd
 
 #endif // __VALUE_TYPE_H__

@@ -31,27 +31,22 @@ class SubCollectionFinder;
  * algorithms (see options).
  */
 class ProbabilityAwarePDBHeuristic : public TaskDependentHeuristic {
+    const value_t termination_cost;
+
     std::shared_ptr<std::vector<Pattern>> patterns;
     std::shared_ptr<PPDBCollection> pdbs;
     std::shared_ptr<std::vector<PatternSubCollection>> subcollections;
     std::shared_ptr<SubCollectionFinder> subcollection_finder;
 
 public:
-    /**
-     * @brief Construct from options.
-     */
-    explicit ProbabilityAwarePDBHeuristic(const plugins::Options& opts);
-
     ProbabilityAwarePDBHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<FDRCostFunction> task_cost_function,
         std::shared_ptr<PatternCollectionGenerator> generator,
         double max_time_dominance_pruning,
         utils::LogProxy log);
 
-    EvaluationResult evaluate(const State& state) const override;
-
-public:
-    static void add_options_to_feature(plugins::Feature& feature);
+    value_t evaluate(const State& state) const override;
 };
 
 } // namespace pdbs

@@ -33,12 +33,14 @@ PHOGenerator::PHOGenerator(
 
 void PHOGenerator::initialize_constraints(
     const std::shared_ptr<ProbabilisticTask>& task,
+    const std::shared_ptr<FDRCostFunction>& task_cost_function,
     lp::LinearProgram& lp)
 {
     ProbabilisticTaskProxy task_proxy(*task);
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
 
-    auto pattern_collection_info = generator_->generate(task);
+    auto pattern_collection_info =
+        generator_->generate(task, task_cost_function);
     this->pdbs_ = pattern_collection_info.get_pdbs();
 
     const double lp_infinity = lp.get_infinity();

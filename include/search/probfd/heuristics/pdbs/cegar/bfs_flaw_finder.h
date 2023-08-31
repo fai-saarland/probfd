@@ -8,7 +8,6 @@
 #include <deque>
 #include <unordered_set>
 
-class StateID;
 class State;
 class StateRegistry;
 
@@ -35,6 +34,7 @@ public:
 
     bool apply_policy(
         const ProbabilisticTaskProxy& task_proxy,
+        const ProjectionStateSpace& mdp,
         const ProbabilityAwarePatternDatabase& pdb,
         const ProjectionMultiPolicy& policy,
         const std::unordered_set<int>& blacklisted_variables,

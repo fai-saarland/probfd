@@ -1,10 +1,10 @@
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/engines/interval_iteration.h"
+#include "probfd/algorithms/interval_iteration.h"
 
-#include "probfd/engine_interfaces/evaluator.h"
+#include "probfd/quotients/quotient_system.h"
 
-#include "probfd/quotient_system.h"
+#include "probfd/evaluator.h"
 
 #include "downward/plugins/plugin.h"
 
@@ -12,50 +12,40 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engine_interfaces;
+using namespace algorithms::interval_iteration;
+using namespace plugins;
 
 class IntervalIterationSolver : public MDPSolver {
-    std::shared_ptr<TaskEvaluator> prune_;
-
 public:
-    explicit IntervalIterationSolver(const plugins::Options& opts)
-        : MDPSolver(opts)
-        , prune_(opts.get<std::shared_ptr<TaskEvaluator>>("eval", nullptr))
-    {
-    }
+    using MDPSolver::MDPSolver;
 
-    std::string get_engine_name() const override
+    std::string get_algorithm_name() const override
     {
         return "interval_iteration";
     }
 
-    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        using IIEngine =
-            engines::interval_iteration::IntervalIteration<State, OperatorID>;
-        return engine_factory<IIEngine>(prune_.get(), false, false);
+        return std::make_unique<IntervalIteration<State, OperatorID>>(
+            false,
+            false);
     }
 };
 
 class IntervalIterationSolverFeature
-    : public plugins::TypedFeature<SolverInterface, IntervalIterationSolver> {
+    : public TypedFeature<SolverInterface, IntervalIterationSolver> {
 public:
     IntervalIterationSolverFeature()
-        : plugins::TypedFeature<SolverInterface, IntervalIterationSolver>(
+        : TypedFeature<SolverInterface, IntervalIterationSolver>(
               "interval_iteration")
     {
         document_title("Interval Iteration");
 
         MDPSolver::add_options_to_feature(*this);
-
-        add_option<std::shared_ptr<TaskEvaluator>>(
-            "eval",
-            "",
-            plugins::ArgumentInfo::NO_DEFAULT);
     }
 };
 
-static plugins::FeaturePlugin<IntervalIterationSolverFeature> _plugin;
+static FeaturePlugin<IntervalIterationSolverFeature> _plugin;
 
 } // namespace
 } // namespace solvers

@@ -5,6 +5,7 @@
 
 #include "probfd/task_utils/task_properties.h"
 
+#include "probfd/task_evaluator_factory.h"
 #include "probfd/value_type.h"
 
 #include "downward/utils/rng_options.h"
@@ -16,14 +17,13 @@ namespace heuristics {
 namespace pdbs {
 
 namespace {
-class ExplicitTaskCostFunction : public TaskCostFunction {
+class ExplicitTaskCostFunction : public FDRSimpleCostFunction {
     ProbabilisticTaskProxy task_proxy;
     std::vector<value_t> costs;
 
 public:
     ExplicitTaskCostFunction(const ProbabilisticTaskProxy& task_proxy)
-        : TaskCostFunction(0_vt, INFINITE_VALUE)
-        , task_proxy(task_proxy)
+        : task_proxy(task_proxy)
     {
         const auto operators = task_proxy.get_operators();
         costs.reserve(operators.size());
@@ -33,11 +33,19 @@ public:
         }
     }
 
-    value_t get_action_cost(OperatorID op) { return costs[op.get_index()]; }
+    value_t get_action_cost(OperatorID op) override
+    {
+        return costs[op.get_index()];
+    }
 
-    bool is_goal(const State& state) const
+    bool is_goal(const State& state) const override
     {
         return ::task_properties::is_goal_state(task_proxy, state);
+    }
+
+    value_t get_non_goal_termination_cost() const override
+    {
+        return INFINITE_VALUE;
     }
 
     value_t& operator[](size_t i) { return costs[i]; }
@@ -45,27 +53,20 @@ public:
 };
 } // namespace
 
-SCPHeuristic::SCPHeuristic(const plugins::Options& opts)
-    : SCPHeuristic(
-          opts.get<std::shared_ptr<ProbabilisticTask>>("transform"),
-          utils::get_log_from_options(opts),
-          opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"),
-          opts.get<OrderingStrategy>("order"),
-          utils::parse_rng_from_options(opts))
-{
-}
-
 SCPHeuristic::SCPHeuristic(
     std::shared_ptr<ProbabilisticTask> task,
+    std::shared_ptr<FDRCostFunction> task_cost_function,
     utils::LogProxy log,
     std::shared_ptr<PatternCollectionGenerator> generator,
     OrderingStrategy order,
     std::shared_ptr<utils::RandomNumberGenerator> rng)
     : TaskDependentHeuristic(task, log)
+    , termination_cost(task_cost_function->get_non_goal_termination_cost())
     , ordering(order)
     , rng(rng)
 {
-    auto pattern_collection_info = generator->generate(task);
+    auto pattern_collection_info =
+        generator->generate(task, task_cost_function);
 
     auto patterns = pattern_collection_info.get_patterns();
 
@@ -111,14 +112,12 @@ SCPHeuristic::SCPHeuristic(
             rankingf,
             task_costs,
             false);
-        InducedProjectionCostFunction costs(task_proxy, rankingf, &task_costs);
         const StateRank initial_state_rank =
             rankingf.get_abstract_rank(initial_state);
 
         auto& pdb = pdbs.emplace_back(
             state_space,
             std::move(rankingf),
-            costs,
             initial_state_rank);
 
         pdb.compute_saturated_costs(state_space, saturated_costs);
@@ -136,27 +135,66 @@ SCPHeuristic::SCPHeuristic(
     }
 }
 
-EvaluationResult SCPHeuristic::evaluate(const State& state) const
+value_t SCPHeuristic::evaluate(const State& state) const
 {
     value_t value = 0.0_vt;
 
     for (const auto& pdb : pdbs) {
-        auto eval_result = pdb.evaluate(state);
+        const value_t estimate = pdb.lookup_estimate(state);
 
-        if (eval_result.is_unsolvable()) {
-            return eval_result;
+        if (estimate == termination_cost) {
+            return estimate;
         }
 
-        value += eval_result.get_estimate();
+        value += estimate;
     }
 
-    return EvaluationResult{false, value};
+    return value;
 }
 
-class SCPHeuristicFeature
-    : public plugins::TypedFeature<TaskEvaluator, SCPHeuristic> {
+namespace {
+
+class SCPHeuristicFactory : public TaskEvaluatorFactory {
+    const utils::LogProxy log_;
+    const std::shared_ptr<PatternCollectionGenerator>
+        pattern_collection_generator_;
+    const SCPHeuristic::OrderingStrategy ordering_;
+    const std::shared_ptr<utils::RandomNumberGenerator> rng_;
+
 public:
-    SCPHeuristicFeature()
+    explicit SCPHeuristicFactory(const plugins::Options& opts);
+
+    std::unique_ptr<FDREvaluator> create_evaluator(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<FDRCostFunction> task_cost_function) override;
+};
+
+SCPHeuristicFactory::SCPHeuristicFactory(const plugins::Options& opts)
+    : log_(utils::get_log_from_options(opts))
+    , pattern_collection_generator_(
+          opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"))
+    , ordering_(opts.get<SCPHeuristic::OrderingStrategy>("order"))
+    , rng_(utils::parse_rng_from_options(opts))
+{
+}
+
+std::unique_ptr<FDREvaluator> SCPHeuristicFactory::create_evaluator(
+    std::shared_ptr<ProbabilisticTask> task,
+    std::shared_ptr<FDRCostFunction> task_cost_function)
+{
+    return std::make_unique<SCPHeuristic>(
+        task,
+        task_cost_function,
+        log_,
+        pattern_collection_generator_,
+        ordering_,
+        rng_);
+}
+
+class SCPHeuristicFactoryFeature
+    : public plugins::TypedFeature<TaskEvaluatorFactory, SCPHeuristicFactory> {
+public:
+    SCPHeuristicFactoryFeature()
         : TypedFeature("scp_heuristic")
     {
         TaskDependentHeuristic::add_options_to_feature(*this);
@@ -173,7 +211,7 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<SCPHeuristicFeature> _plugin;
+static plugins::FeaturePlugin<SCPHeuristicFactoryFeature> _plugin;
 
 static plugins::TypedEnumPlugin<SCPHeuristic::OrderingStrategy> _enum_plugin(
     {{"random", "the order is random"},
@@ -182,6 +220,7 @@ static plugins::TypedEnumPlugin<SCPHeuristic::OrderingStrategy> _enum_plugin(
      {"inherit",
       "inherits the order from the underlying pattern generation algorithm"}});
 
+} // namespace
 } // namespace pdbs
 } // namespace heuristics
 } // namespace probfd

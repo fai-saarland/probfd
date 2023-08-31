@@ -4,7 +4,7 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator.h"
 #include "probfd/heuristics/pdbs/types.h"
 
-#include "probfd/engine_interfaces/types.h"
+#include "probfd/fdr_types.h"
 
 #include "downward/utils/logging.h"
 
@@ -79,7 +79,7 @@ class PatternCollectionGeneratorHillclimbing
     */
     unsigned int generate_candidate_pdbs(
         const ProbabilisticTaskProxy& task_proxy,
-        TaskCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         utils::CountdownTimer& hill_climbing_timer,
         const std::vector<std::vector<int>>& relevant_neighbours,
         const ProbabilityAwarePatternDatabase& pdb,
@@ -101,6 +101,7 @@ class PatternCollectionGeneratorHillclimbing
         IncrementalPPDBs& current_pdbs,
         const sampling::RandomWalkSampler& sampler,
         value_t init_h,
+        value_t termination_cost,
         std::vector<Sample>& samples);
 
     /*
@@ -112,20 +113,8 @@ class PatternCollectionGeneratorHillclimbing
         utils::CountdownTimer& hill_climbing_timer,
         IncrementalPPDBs& current_pdbs,
         const std::vector<Sample>& samples,
-        PPDBCollection& candidate_pdbs);
-
-    /*
-      Returns true iff the h-value of the new pattern (from pdb) plus the
-      h-value of all pattern cliques from the current pattern
-      collection heuristic if the new pattern was added to it is greater than
-      the h-value of the current pattern collection.
-    */
-    bool is_heuristic_improved(
-        const ProbabilityAwarePatternDatabase& pdb,
-        const Sample& sample,
-        const PPDBCollection& pdbs,
-        const std::vector<PatternSubCollection>& pattern_subcollections,
-        const IncrementalPPDBs& current_pdbs);
+        PPDBCollection& candidate_pdbs,
+        value_t termination_cost);
 
     /*
       This is the core algorithm of this class. The initial PDB collection
@@ -152,7 +141,7 @@ class PatternCollectionGeneratorHillclimbing
     void hill_climbing(
         const ProbabilisticTask* task,
         const ProbabilisticTaskProxy& task_proxy,
-        TaskCostFunction& task_cost_function,
+        FDRSimpleCostFunction& task_cost_function,
         IncrementalPPDBs& current_pdbs);
 
 public:
@@ -166,8 +155,9 @@ public:
       variable) may break the maximum collection size limit, if the latter is
       set too small or if there are many goal variables with a large domain.
     */
-    PatternCollectionInformation
-    generate(const std::shared_ptr<ProbabilisticTask>& task) override;
+    PatternCollectionInformation generate(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
 };
 
 } // namespace pdbs

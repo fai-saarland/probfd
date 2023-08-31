@@ -27,7 +27,6 @@ class AStarTraceGenerator : public TraceGenerator {
 
     void update_heuristic(
         Abstraction& abstraction,
-        CartesianCostFunction& cost_function,
         CartesianHeuristic& heuristic,
         const Trace& solution) const;
 
@@ -36,7 +35,6 @@ public:
 
     std::unique_ptr<Trace> find_trace(
         Abstraction& abstraction,
-        CartesianCostFunction& cost_function,
         int init_id,
         CartesianHeuristic& heuristic,
         utils::CountdownTimer& timer) override;

@@ -1,6 +1,6 @@
 #include "probfd/heuristics/cartesian/adaptive_flaw_generator.h"
 
-#include "probfd/heuristics/cartesian/engine_interfaces.h"
+#include "probfd/heuristics/cartesian/algorithm_interfaces.h"
 
 #include "downward/utils/logging.h"
 
@@ -22,7 +22,6 @@ std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
     const ProbabilisticTaskProxy& task_proxy,
     const std::vector<int>& domain_sizes,
     Abstraction& abstraction,
-    CartesianCostFunction& cost_function,
     const AbstractState* init_id,
     CartesianHeuristic& heuristic,
     utils::LogProxy& log,
@@ -34,7 +33,6 @@ std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
             task_proxy,
             domain_sizes,
             abstraction,
-            cost_function,
             init_id,
             heuristic,
             log,

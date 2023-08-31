@@ -235,10 +235,8 @@ void CostSaturation::build_abstractions(
             abstraction->get_transition_system().get_num_non_loops();
         assert(num_states <= max_states);
 
-        vector<value_t> costs = task_properties::get_operator_costs(
-            ProbabilisticTaskProxy(*subtask));
         vector<value_t> goal_distances =
-            compute_distances(*abstraction, *heuristic, costs);
+            compute_distances(*abstraction, *heuristic);
         vector<value_t> saturated_costs = compute_saturated_costs(
             abstraction->get_transition_system(),
             goal_distances,

@@ -7,6 +7,7 @@
 #include "probfd/task_utils/task_properties.h"
 
 #include "probfd/distribution.h"
+#include "probfd/transition.h"
 
 #include "downward/cartesian_abstractions/refinement_hierarchy.h"
 
@@ -37,11 +38,13 @@ vector<int> get_domain_sizes(const TaskBaseProxy& task)
 
 Abstraction::Abstraction(
     const ProbabilisticTaskProxy& task_proxy,
+    std::vector<value_t> operator_costs,
     utils::LogProxy log)
     : transition_system(std::make_unique<ProbabilisticTransitionSystem>(
           task_proxy.get_operators()))
     , concrete_initial_state(task_proxy.get_initial_state())
     , goal_facts(::task_properties::get_fact_pairs(task_proxy.get_goals()))
+    , operator_costs(std::move(operator_costs))
     , log(std::move(log))
 {
     initialize_trivial_abstraction(get_domain_sizes(task_proxy));
@@ -49,31 +52,28 @@ Abstraction::Abstraction(
 
 Abstraction::~Abstraction() = default;
 
-StateID
-Abstraction::get_state_id(const heuristics::cartesian::AbstractState* state)
+StateID Abstraction::get_state_id(int state)
 {
-    return state->get_id();
+    return static_cast<StateID>(state);
 }
 
-const heuristics::cartesian::AbstractState*
-Abstraction::get_state(StateID state_id)
+int Abstraction::get_state(StateID state_id)
 {
-    return &get_abstract_state(state_id.id);
+    return static_cast<int>(state_id);
 }
 
 void Abstraction::generate_applicable_actions(
-    StateID state,
-    std::vector<const heuristics::cartesian::ProbabilisticTransition*>& result)
+    int state,
+    std::vector<const ProbabilisticTransition*>& result)
 {
-    for (const auto* t :
-         transition_system->get_outgoing_transitions()[state.id]) {
+    for (const auto* t : transition_system->get_outgoing_transitions()[state]) {
         result.push_back(t);
     }
 }
 
 void Abstraction::generate_action_transitions(
-    StateID,
-    const heuristics::cartesian::ProbabilisticTransition* action,
+    int,
+    const ProbabilisticTransition* action,
     Distribution<StateID>& result)
 {
     for (size_t i = 0; i != action->target_ids.size(); ++i) {
@@ -84,15 +84,44 @@ void Abstraction::generate_action_transitions(
 }
 
 void Abstraction::generate_all_transitions(
-    StateID state,
-    std::vector<const heuristics::cartesian::ProbabilisticTransition*>& aops,
+    int state,
+    std::vector<const ProbabilisticTransition*>& aops,
     std::vector<Distribution<StateID>>& successors)
 {
-    for (const auto* t :
-         transition_system->get_outgoing_transitions()[state.id]) {
+    for (const auto* t : transition_system->get_outgoing_transitions()[state]) {
         aops.push_back(t);
         generate_action_transitions(state, t, successors.emplace_back());
     }
+}
+
+void Abstraction::generate_all_transitions(
+    int state,
+    std::vector<Transition>& transitions)
+{
+    for (const auto* t : transition_system->get_outgoing_transitions()[state]) {
+        Transition& transition = transitions.emplace_back(t);
+        generate_action_transitions(state, t, transition.successor_dist);
+    }
+}
+
+bool Abstraction::is_goal(int state) const
+{
+    return goals.contains(state);
+}
+
+value_t Abstraction::get_non_goal_termination_cost() const
+{
+    return INFINITE_VALUE;
+}
+
+value_t Abstraction::get_action_cost(const ProbabilisticTransition* t)
+{
+    return operator_costs[t->op_id];
+}
+
+value_t Abstraction::get_cost(int op_index) const
+{
+    return operator_costs[op_index];
 }
 
 const AbstractState& Abstraction::get_initial_state() const

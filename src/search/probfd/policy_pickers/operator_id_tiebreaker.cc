@@ -1,5 +1,7 @@
 #include "probfd/policy_pickers/operator_id_tiebreaker.h"
 
+#include "probfd/transition.h"
+
 #include "downward/operator_id.h"
 
 #include "downward/plugins/options.h"
@@ -17,23 +19,22 @@ OperatorIdTiebreaker::OperatorIdTiebreaker(const plugins::Options& opts)
 }
 
 OperatorIdTiebreaker::OperatorIdTiebreaker(bool stable_policy, int ascending)
-    : TaskStablePolicyPicker<OperatorIdTiebreaker>(stable_policy)
+    : OperatorIdTiebreaker::StablePolicyPicker(stable_policy)
     , ascending_(ascending)
 {
 }
 
 int OperatorIdTiebreaker::pick_index(
-    TaskStateSpace&,
+    FDRMDP&,
     StateID,
     std::optional<OperatorID>,
-    const std::vector<OperatorID>& choices,
-    const std::vector<Distribution<StateID>>&,
-    engine_interfaces::StateProperties&)
+    const std::vector<Transition<OperatorID>>& greedy_transitions,
+    algorithms::StateProperties&)
 {
     int min_id = std::numeric_limits<int>::max();
     unsigned min_idx = -1;
-    for (int i = choices.size() - 1; i >= 0; i--) {
-        int id = choices[i].get_index() * ascending_;
+    for (int i = greedy_transitions.size() - 1; i >= 0; i--) {
+        int id = greedy_transitions[i].action.get_index() * ascending_;
         if (id < min_id) {
             min_id = id;
             min_idx = i;

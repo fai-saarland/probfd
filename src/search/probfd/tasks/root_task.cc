@@ -860,9 +860,11 @@ std::unique_ptr<ProbabilisticTask> read_sas_task(std::istream& in)
     return std::make_unique<RootTask>(in);
 }
 
-void read_root_tasks(std::istream& in)
+std::shared_ptr<ProbabilisticTask> read_root_tasks(std::istream& in)
 {
-    set_root_task(read_sas_task(in));
+    std::shared_ptr<ProbabilisticTask> input_task = read_sas_task(in);
+    set_root_task(input_task);
+    return input_task;
 }
 
 void set_root_task(std::shared_ptr<ProbabilisticTask> task)

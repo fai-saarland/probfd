@@ -1,9 +1,11 @@
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "probfd/engines/lrtdp.h"
+#include "probfd/algorithms/lrtdp.h"
 
-#include "probfd/engine_interfaces/successor_sampler.h"
-#include "probfd/successor_samplers/task_successor_sampler_factory.h"
+#include "probfd/algorithms/successor_sampler.h"
+
+#include "probfd/plugins/multi_feature_plugin.h"
+#include "probfd/plugins/naming_conventions.h"
 
 #include "downward/plugins/plugin.h"
 
@@ -11,82 +13,86 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engine_interfaces;
-using namespace engines::lrtdp;
+using namespace algorithms;
+using namespace algorithms::lrtdp;
+
+using namespace plugins;
 
 template <bool Bisimulation, bool Fret>
 class LRTDPSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
-    template <typename T>
-    using WrappedType =
-        typename MDPHeuristicSearch<Bisimulation, Fret>::template WrappedType<
-            T>;
-
     template <typename State, typename Action, bool Interval>
     using LRTDP = LRTDP<State, Action, Interval, Fret>;
 
+    using Sampler = WrappedType<SuccessorSampler, Bisimulation, Fret>;
+
     const TrialTerminationCondition stop_consistent_;
-    WrappedType<std::shared_ptr<TaskSuccessorSampler>> successor_sampler_;
+    const std::shared_ptr<Sampler> successor_sampler_;
 
 public:
-    explicit LRTDPSolver(const plugins::Options& opts)
+    explicit LRTDPSolver(const Options& opts)
         : MDPHeuristicSearch<Bisimulation, Fret>(opts)
         , stop_consistent_(
               opts.get<TrialTerminationCondition>("terminate_trial"))
         , successor_sampler_(
-              this->wrap(opts.get<std::shared_ptr<TaskSuccessorSamplerFactory>>(
-                                 "successor_sampler")
-                             ->create_sampler(this->state_space_.get())))
+              opts.get<std::shared_ptr<Sampler>>("successor_sampler"))
     {
+        using enum TrialTerminationCondition;
         if constexpr (Fret) {
-            if (stop_consistent_ != TrialTerminationCondition::CONSISTENT) {
+            if (stop_consistent_ != CONSISTENT &&
+                stop_consistent_ != REVISITED) {
                 std::cout << std::endl;
-                std::cout
-                    << "Warning: LRTDP is run within FRET without "
-                       "stop_consistent being enabled! LRTDP's trials may "
-                       "get stuck in cycles."
-                    << std::endl;
+                std::cout << "Warning: LRTDP is run within FRET with an unsafe "
+                             "trial termination condition! LRTDP's trials may "
+                             "get stuck in cycles."
+                          << std::endl;
             }
         }
     }
 
     std::string get_heuristic_search_name() const override { return "lrtdp"; }
 
-    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        return this->template create_heuristic_search_engine<LRTDP>(
+        return this->template create_heuristic_search_algorithm<LRTDP>(
             stop_consistent_,
-            successor_sampler_.get());
+            successor_sampler_);
     }
 
 protected:
     void print_additional_statistics() const override
     {
-        successor_sampler_->print_statistics(std::cout);
         MDPHeuristicSearch<Bisimulation, Fret>::print_additional_statistics();
+        successor_sampler_->print_statistics(std::cout);
     }
 };
 
+template <bool Bisimulation, bool Fret>
 class LRTDPSolverFeature
-    : public MDPFRETHeuristicSearchSolverFeature<LRTDPSolver> {
+    : public TypedFeature<SolverInterface, LRTDPSolver<Bisimulation, Fret>> {
 public:
     LRTDPSolverFeature()
-        : MDPFRETHeuristicSearchSolverFeature<LRTDPSolver>("lrtdp")
+        : TypedFeature<SolverInterface, LRTDPSolver<Bisimulation, Fret>>(
+              add_wrapper_algo_suffix<Bisimulation, Fret>("lrtdp"))
     {
-        add_option<std::shared_ptr<TaskSuccessorSamplerFactory>>(
+        MDPHeuristicSearch<Bisimulation, Fret>::add_options_to_feature(*this);
+
+        this->template add_option<
+            std::shared_ptr<WrappedType<SuccessorSampler, Bisimulation, Fret>>>(
             "successor_sampler",
             "",
-            "random_successor_sampler_factory");
+            add_mdp_type_to_option<Bisimulation, Fret>(
+                "random_successor_sampler()"));
 
-        add_option<TrialTerminationCondition>(
+        this->template add_option<TrialTerminationCondition>(
             "terminate_trial",
             "",
             "terminal");
     }
 };
 
-static plugins::FeaturePlugin<LRTDPSolverFeature> _plugin;
+static MultiFeaturePlugin<LRTDPSolverFeature> _plugins;
 
-static plugins::TypedEnumPlugin<TrialTerminationCondition> _enum_plugin(
+static TypedEnumPlugin<TrialTerminationCondition> _enum_plugin(
     {{"terminal", "Stop trials at terminal states"},
      {"consistent", "Stop trials at epsilon consistent states"},
      {"inconsistent", "Stop trials at epsilon inconsistent states"},

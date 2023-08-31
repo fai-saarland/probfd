@@ -20,9 +20,9 @@ namespace probfd {
  * @tparam Action - The action type of the underlying state space.
  */
 template <typename State, typename Action>
-class PartialPolicy : public MultiPolicy<State, Action> {
+class Policy : public MultiPolicy<State, Action> {
 public:
-    virtual ~PartialPolicy() = default;
+    virtual ~Policy() = default;
 
     /// Retrives the action and optimal state value interval specified by the
     /// policy for a given state.

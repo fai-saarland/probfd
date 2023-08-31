@@ -1,16 +1,16 @@
 #ifndef PROBFD_BISIMULATION_BISIMILAR_STATE_SPACE_H
 #define PROBFD_BISIMULATION_BISIMILAR_STATE_SPACE_H
 
-#include "downward/algorithms/segmented_vector.h"
-
 #include "probfd/bisimulation/types.h"
 
+#include "probfd/mdp.h"
+
 #include "probfd/distribution.h"
+#include "probfd/interval.h"
+#include "probfd/task_proxy.h"
 #include "probfd/types.h"
 
-#include "probfd/task_proxy.h"
-
-#include "probfd/engine_interfaces/state_space.h"
+#include "downward/algorithms/segmented_vector.h"
 
 #include <cassert>
 #include <memory>
@@ -38,14 +38,14 @@ namespace bisimulation {
  * space (although usually not the coarsest). The quotient is constructed with
  * respect to this probabilistic bisimulation.
  */
-class BisimilarStateSpace
-    : public engine_interfaces::StateSpace<QuotientState, QuotientAction> {
+class BisimilarStateSpace : public MDP<QuotientState, QuotientAction> {
     struct CachedTransition {
         unsigned op;
         int* successors;
     };
 
     ProbabilisticTaskProxy task_proxy;
+    const value_t upper_bound_;
 
     std::unique_ptr<merge_and_shrink::FactoredTransitionSystem> fts_;
     const merge_and_shrink::TransitionSystem* abstraction_;
@@ -64,7 +64,8 @@ public:
      * @brief Constructs the quotient of the induced state space of the task
      * with respect to a bisimulation of the all outcomes determinization.
      */
-    explicit BisimilarStateSpace(const ProbabilisticTask* task);
+    BisimilarStateSpace(const ProbabilisticTask* task, value_t upper_bound);
+
     ~BisimilarStateSpace();
 
     StateID get_state_id(QuotientState state) override;
@@ -72,27 +73,35 @@ public:
     QuotientState get_state(StateID state_id) override;
 
     void generate_applicable_actions(
-        StateID state,
+        QuotientState state,
         std::vector<QuotientAction>& result) override;
 
     void generate_action_transitions(
-        StateID state,
+        QuotientState state,
         QuotientAction action,
         Distribution<StateID>& result) override;
 
     void generate_all_transitions(
-        StateID state,
+        QuotientState state,
         std::vector<QuotientAction>& aops,
         std::vector<Distribution<StateID>>& result) override;
+
+    void generate_all_transitions(
+        QuotientState state,
+        std::vector<Transition>& transitions) override;
+
+    TerminationInfo get_termination_info(QuotientState state) override;
+
+    value_t get_action_cost(QuotientAction action) override;
 
     /// Get the initial state of the probabilistic bisimulation quotient.
     QuotientState get_initial_state() const;
 
     /// Checks whether the given quotient state is a goal state.
-    bool is_goal_state(const QuotientState& s) const;
+    bool is_goal_state(QuotientState s) const;
 
     /// Checks whether the given quotient state is a dead end.
-    bool is_dead_end(const QuotientState& s) const;
+    bool is_dead_end(QuotientState s) const;
 
     /// Gets the number of states in the probabilistic bisimulation.
     unsigned num_bisimilar_states() const;

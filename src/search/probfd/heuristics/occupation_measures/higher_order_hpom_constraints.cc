@@ -1,16 +1,15 @@
 #include "probfd/heuristics/occupation_measures/higher_order_hpom_constraints.h"
 
+#include "probfd/task_utils/task_properties.h"
+
+#include "probfd/cost_function.h"
+
 #include "downward/utils/system.h"
 #include "downward/utils/timer.h"
 
 #include "downward/lp/lp_solver.h"
 
 #include "downward/plugins/plugin.h"
-
-#include "probfd/cost_models/maxprob_cost_model.h"
-#include "probfd/cost_models/ssp_cost_model.h"
-
-#include "probfd/task_utils/task_properties.h"
 
 #include <algorithm>
 #include <cassert>
@@ -148,25 +147,32 @@ int HigherOrderHPOMGenerator::PatternInfo::to_id(
 }
 
 HigherOrderHPOMGenerator::HigherOrderHPOMGenerator(const plugins::Options& opts)
-    : HigherOrderHPOMGenerator(
-          std::dynamic_pointer_cast<cost_models::MaxProbCostModel>(
-              g_cost_model) != nullptr,
-          opts.get<int>("projection_size"))
+    : HigherOrderHPOMGenerator(opts.get<int>("projection_size"))
 {
 }
 
-HigherOrderHPOMGenerator::HigherOrderHPOMGenerator(
-    bool maxprob,
-    int projection_size)
-    : is_maxprob_(maxprob)
-    , projection_size_(projection_size)
+HigherOrderHPOMGenerator::HigherOrderHPOMGenerator(int projection_size)
+    : projection_size_(projection_size)
 {
 }
 
 void HigherOrderHPOMGenerator::initialize_constraints(
     const std::shared_ptr<ProbabilisticTask>& task,
+    const std::shared_ptr<FDRCostFunction>& task_cost_function,
     lp::LinearProgram& lp)
 {
+    const value_t term_cost =
+        task_cost_function->get_non_goal_termination_cost();
+
+    if (term_cost != INFINITE_VALUE && term_cost != 1_vt) {
+        std::cerr
+            << "Termination costs beyond 1 (MaxProb) and +infinity (SSP) "
+               "currently unsupported in higher-order hpom implementation.";
+        utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
+    }
+
+    const bool maxprob = task_cost_function->get_non_goal_termination_cost();
+
     ProbabilisticTaskProxy task_proxy(*task);
     const VariablesProxy variables = task_proxy.get_variables();
     const std::size_t num_variables = variables.size();
@@ -209,7 +215,7 @@ void HigherOrderHPOMGenerator::initialize_constraints(
 
     // Variable representing total inflow to artificial goal
     // Maximized in MaxProb, must be constant 1 for SSPs
-    lp_variables.emplace_back(is_maxprob_ ? 0 : 1, 1, is_maxprob_ ? -1 : 0);
+    lp_variables.emplace_back(maxprob ? 0 : 1, 1, maxprob ? -1 : 0);
 
     std::vector<int> the_goal(num_variables, -1);
 
@@ -248,7 +254,7 @@ void HigherOrderHPOMGenerator::initialize_constraints(
 
     // Now ordinary actions
     for (const ProbabilisticOperatorProxy op : operators) {
-        const auto cost = is_maxprob_ ? 0 : op.get_cost();
+        const auto cost = maxprob ? 0 : op.get_cost();
 
         // Get dense precondition
         std::vector<int> pre(num_variables, -1);

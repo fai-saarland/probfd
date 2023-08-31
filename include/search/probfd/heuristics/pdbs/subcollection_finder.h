@@ -3,8 +3,7 @@
 
 #include "probfd/heuristics/pdbs/types.h"
 
-#include "probfd/engine_interfaces/evaluator.h"
-
+#include "probfd/evaluator.h"
 #include "probfd/value_type.h"
 
 #include <memory>
@@ -37,10 +36,11 @@ public:
 
     virtual value_t combine(value_t left, value_t right) const = 0;
 
-    EvaluationResult evaluate(
+    value_t evaluate(
         const PPDBCollection& database,
         const std::vector<PatternSubCollection>& subcollections,
-        const State& state);
+        const State& state,
+        value_t termination_cost);
 };
 
 } // namespace pdbs

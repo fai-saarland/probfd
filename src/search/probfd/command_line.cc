@@ -1,8 +1,5 @@
 #include "probfd/command_line.h"
 
-#include "probfd/cost_models/maxprob_cost_model.h"
-#include "probfd/cost_models/ssp_cost_model.h"
-
 #include "probfd/solver_interface.h"
 
 #include "downward/parser/lexical_analyzer.h"
@@ -89,30 +86,14 @@ static std::shared_ptr<SolverInterface>
 parse_cmd_line_aux(const vector<string>& args)
 {
     using SearchPtr = shared_ptr<SolverInterface>;
-    SearchPtr engine = nullptr;
+    SearchPtr algorithm = nullptr;
 
     // TODO: Remove code duplication.
     for (size_t i = 0; i < args.size(); ++i) {
         string arg = args[i];
         bool is_last = (i == args.size() - 1);
-        if (arg == "--maxprob") {
-            if (g_cost_model) input_error("multiple cost models defined");
-            if (engine) input_error("cost model options must precede --search");
-            g_cost_model.reset(new cost_models::MaxProbCostModel());
-            std::cout << "Using MaxProb cost model." << std::endl;
-        } else if (arg == "--ssp") {
-            if (g_cost_model) input_error("multiple cost models defined");
-            if (engine) input_error("cost model options must precede --search");
-            g_cost_model.reset(new cost_models::SSPCostModel());
-            std::cout << "Using SSP cost model." << std::endl;
-        } else if (arg == "--search") {
-            // The default cost model is the SSP cost model.
-            if (!g_cost_model) {
-                g_cost_model.reset(new cost_models::SSPCostModel());
-                std::cout << "Using SSP cost model." << std::endl;
-            }
-
-            if (engine) input_error("multiple --search arguments defined");
+        if (arg == "--search") {
+            if (algorithm) input_error("multiple --search arguments defined");
             if (is_last) input_error("missing argument after --search");
             string search_arg = args[++i];
             try {
@@ -120,7 +101,7 @@ parse_cmd_line_aux(const vector<string>& args)
                 parser::ASTNodePtr parsed = parser::parse(tokens);
                 parser::DecoratedASTNodePtr decorated = parsed->decorate();
                 std::any constructed = decorated->construct();
-                engine = std::any_cast<SearchPtr>(constructed);
+                algorithm = std::any_cast<SearchPtr>(constructed);
             } catch (const utils::ContextError& e) {
                 input_error(e.get_message());
             }
@@ -192,7 +173,7 @@ parse_cmd_line_aux(const vector<string>& args)
         }
     }
 
-    return engine;
+    return algorithm;
 }
 
 std::shared_ptr<SolverInterface>
@@ -223,7 +204,7 @@ string usage(const string& progname)
 {
     return "usage: \n" + progname +
            " [OPTIONS] --search SEARCH < OUTPUT\n\n"
-           "* SEARCH (SearchEngine): configuration of the search algorithm\n"
+           "* SEARCH (SearchAlgorithm): configuration of the search algorithm\n"
            "* OUTPUT (filename): translator output\n\n"
            "Options:\n"
            "--maxprob\n"

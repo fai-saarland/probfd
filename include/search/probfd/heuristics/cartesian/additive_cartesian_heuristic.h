@@ -10,6 +10,9 @@ namespace heuristics {
 namespace cartesian {
 
 class CartesianHeuristicFunction;
+class FlawGeneratorFactory;
+class SplitSelectorFactory;
+class SubtaskGenerator;
 
 /*
   Store CartesianHeuristicFunctions and compute overall heuristic by
@@ -18,11 +21,20 @@ class CartesianHeuristicFunction;
 class AdditiveCartesianHeuristic : public TaskDependentHeuristic {
     const std::vector<CartesianHeuristicFunction> heuristic_functions;
 
-protected:
-    EvaluationResult evaluate(const State& ancestor_state) const override;
-
 public:
-    explicit AdditiveCartesianHeuristic(const plugins::Options& opts);
+    AdditiveCartesianHeuristic(
+        std::shared_ptr<ProbabilisticTask> task,
+        utils::LogProxy log,
+        std::vector<std::shared_ptr<SubtaskGenerator>> subtask_generators,
+        std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory,
+        std::shared_ptr<SplitSelectorFactory> split_selector_factory,
+        int max_states,
+        int max_transitions,
+        double max_time,
+        bool use_general_costs);
+
+protected:
+    value_t evaluate(const State& ancestor_state) const override;
 };
 
 } // namespace cartesian

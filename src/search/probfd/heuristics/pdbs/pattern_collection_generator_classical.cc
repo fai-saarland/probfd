@@ -3,12 +3,11 @@
 #include "probfd/heuristics/pdbs/pattern_collection_information.h"
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 
-#include "probfd/cost_model.h"
+#include "probfd/tasks/all_outcomes_determinization.h"
 
 #include "downward/pdbs/pattern_database.h"
 
 #include "downward/tasks/root_task.h"
-#include "probfd/tasks/all_outcomes_determinization.h"
 
 #include "downward/plugins/plugin.h"
 
@@ -38,10 +37,10 @@ PatternCollectionGeneratorClassical::PatternCollectionGeneratorClassical(
 }
 
 PatternCollectionInformation PatternCollectionGeneratorClassical::generate(
-    const std::shared_ptr<ProbabilisticTask>& task)
+    const std::shared_ptr<ProbabilisticTask>& task,
+    const std::shared_ptr<FDRCostFunction>& task_cost_function)
 {
     ProbabilisticTaskProxy task_proxy(*task);
-    TaskCostFunction* task_cost_function = g_cost_model->get_cost_function();
 
     std::shared_ptr<tasks::AODDeterminizationTask> determinization(
         new tasks::AODDeterminizationTask(task.get()));
@@ -49,7 +48,7 @@ PatternCollectionInformation PatternCollectionGeneratorClassical::generate(
     std::shared_ptr<SubCollectionFinder> finder =
         finder_factory->create_subcollection_finder(task_proxy);
     return PatternCollectionInformation(
-        ProbabilisticTaskProxy(*task),
+        task_proxy,
         task_cost_function,
         gen->generate(determinization),
         finder);

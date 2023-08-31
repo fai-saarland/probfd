@@ -1,6 +1,9 @@
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "probfd/engines/heuristic_depth_first_search.h"
+#include "probfd/algorithms/heuristic_depth_first_search.h"
+
+#include "probfd/plugins/multi_feature_plugin.h"
+#include "probfd/plugins/naming_conventions.h"
 
 #include "downward/utils/system.h"
 
@@ -12,18 +15,15 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engine_interfaces;
-using namespace engines::heuristic_depth_first_search;
+using namespace algorithms;
+using namespace algorithms::heuristic_depth_first_search;
+
+using namespace plugins;
 
 template <bool Bisimulation, bool Fret>
 class DFHSSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
-    template <typename T>
-    using WrappedType =
-        typename MDPHeuristicSearch<Bisimulation, Fret>::template WrappedType<
-            T>;
-
     template <typename State, typename Action, bool Interval>
-    using Engine = HeuristicDepthFirstSearch<State, Action, Interval, Fret>;
+    using Algorithm = HeuristicDepthFirstSearch<State, Action, Interval, Fret>;
 
     const std::string name_;
 
@@ -36,7 +36,7 @@ class DFHSSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
     const bool expand_tip_states_;
 
 public:
-    explicit DFHSSolver(const plugins::Options& opts)
+    explicit DFHSSolver(const Options& opts)
         : MDPHeuristicSearch<Bisimulation, Fret>(opts)
         , name_(opts.get<std::string>("name", "dfhs"))
         , labeling_(opts.get<bool>("labeling"))
@@ -52,9 +52,9 @@ public:
 
     std::string get_heuristic_search_name() const override { return name_; }
 
-    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        return this->template create_heuristic_search_engine<Engine>(
+        return this->template create_heuristic_search_algorithm<Algorithm>(
             labeling_,
             forward_updates_,
             backward_updates_,
@@ -113,44 +113,49 @@ public:
     }
 };
 
+template <bool Bisimulation, bool Fret>
 class DFHSSolverFeature
-    : public MDPFRETHeuristicSearchSolverFeature<DFHSSolver> {
+    : public TypedFeature<SolverInterface, DFHSSolver<Bisimulation, Fret>> {
 public:
     DFHSSolverFeature()
-        : MDPFRETHeuristicSearchSolverFeature<DFHSSolver>("dfhs")
+        : DFHSSolverFeature::TypedFeature(
+              add_wrapper_algo_suffix<Bisimulation, Fret>("dfhs"))
     {
-        document_title("Depth-first heuristic search family.");
+        this->document_title("Depth-first heuristic search family.");
 
-        add_option<bool>("labeling", "", "true");
-        add_option<bool>("fwup", "", "true");
-        add_option<BacktrackingUpdateType>("bwup", "", "ondemand");
-        add_option<bool>("cutoff_inconsistent", "", "true");
-        add_option<bool>("partial_exploration", "", "false");
-        add_option<bool>("vi", "", "false");
-        add_option<bool>("expand_tip", "", "true");
+        MDPHeuristicSearch<Bisimulation, Fret>::add_options_to_feature(*this);
+
+        this->template add_option<bool>("labeling", "", "true");
+        this->template add_option<bool>("fwup", "", "true");
+        this->template add_option<BacktrackingUpdateType>(
+            "bwup",
+            "",
+            "ondemand");
+        this->template add_option<bool>("cutoff_inconsistent", "", "true");
+        this->template add_option<bool>("partial_exploration", "", "false");
+        this->template add_option<bool>("vi", "", "false");
+        this->template add_option<bool>("expand_tip", "", "true");
     }
 };
 
+template <bool Bisimulation, bool Fret>
 class LAOSolverFeature
-    : public MDPFRETHeuristicSearchSolverFeature<DFHSSolver> {
+    : public TypedFeature<SolverInterface, DFHSSolver<Bisimulation, Fret>> {
 public:
     LAOSolverFeature()
-        : MDPFRETHeuristicSearchSolverFeature<DFHSSolver>("lao")
+        : LAOSolverFeature::TypedFeature(
+              add_wrapper_algo_suffix<Bisimulation, Fret>("lao"))
     {
-        document_title("LAO* variant of depth-first heuristic search.");
+        this->document_title("LAO* variant of depth-first heuristic search.");
 
-        add_option<std::shared_ptr<TaskOpenList>>(
-            "open_list",
-            "Ordering in which successors are considered during policy "
-            "exploration.",
-            plugins::ArgumentInfo::NO_DEFAULT);
+        MDPHeuristicSearch<Bisimulation, Fret>::add_options_to_feature(*this);
     }
 
-    std::shared_ptr<SolverInterface> create_component(
-        const plugins::Options& options,
-        const utils::Context& context) const override
+    std::shared_ptr<DFHSSolver<Bisimulation, Fret>>
+    create_component(const Options& options, const utils::Context&)
+        const override
     {
-        plugins::Options opts_copy(options);
+        Options opts_copy(options);
         opts_copy.set<std::string>("name", "ilao");
         opts_copy.set<bool>("labeling", false);
         opts_copy.set<bool>("fwup", false);
@@ -161,31 +166,28 @@ public:
         opts_copy.set<bool>("partial_exploration", false);
         opts_copy.set<bool>("expand_tip", true);
         opts_copy.set<bool>("vi", false);
-        return MDPFRETHeuristicSearchSolverFeature<
-            DFHSSolver>::create_component(opts_copy, context);
+        return std::make_shared<DFHSSolver<Bisimulation, Fret>>(opts_copy);
     }
 };
 
+template <bool Bisimulation, bool Fret>
 class ILAOSolverFeature
-    : public MDPFRETHeuristicSearchSolverFeature<DFHSSolver> {
+    : public TypedFeature<SolverInterface, DFHSSolver<Bisimulation, Fret>> {
 public:
     ILAOSolverFeature()
-        : MDPFRETHeuristicSearchSolverFeature<DFHSSolver>("ilao")
+        : ILAOSolverFeature::TypedFeature(
+              add_wrapper_algo_suffix<Bisimulation, Fret>("ilao"))
     {
-        document_title("iLAO* variant of depth-first heuristic search.");
+        this->document_title("iLAO* variant of depth-first heuristic search.");
 
-        add_option<std::shared_ptr<TaskOpenList>>(
-            "open_list",
-            "Ordering in which successors are considered during policy "
-            "exploration.",
-            plugins::ArgumentInfo::NO_DEFAULT);
+        MDPHeuristicSearch<Bisimulation, Fret>::add_options_to_feature(*this);
     }
 
-    std::shared_ptr<SolverInterface> create_component(
-        const plugins::Options& options,
-        const utils::Context& context) const override
+    std::shared_ptr<DFHSSolver<Bisimulation, Fret>>
+    create_component(const Options& options, const utils::Context&)
+        const override
     {
-        plugins::Options opts_copy(options);
+        Options opts_copy(options);
         opts_copy.set<std::string>("name", "ilao");
         opts_copy.set<bool>("labeling", false);
         opts_copy.set<bool>("fwup", false);
@@ -196,34 +198,29 @@ public:
         opts_copy.set<bool>("partial_exploration", false);
         opts_copy.set<bool>("expand_tip", false);
         opts_copy.set<bool>("vi", true);
-        return MDPFRETHeuristicSearchSolverFeature<
-            DFHSSolver>::create_component(opts_copy, context);
+        return std::make_shared<DFHSSolver<Bisimulation, Fret>>(opts_copy);
     }
 };
 
+template <bool Bisimulation, bool Fret>
 class HDPSolverFeature
-    : public MDPFRETHeuristicSearchSolverFeature<DFHSSolver> {
+    : public TypedFeature<SolverInterface, DFHSSolver<Bisimulation, Fret>> {
 public:
     HDPSolverFeature()
-        : MDPFRETHeuristicSearchSolverFeature<DFHSSolver>("hdp")
+        : HDPSolverFeature::TypedFeature(
+              add_wrapper_algo_suffix<Bisimulation, Fret>("hdp"))
     {
-        document_title(
+        this->document_title(
             "HDP variant of trap-aware depth-first heuristic search.");
 
-        MDPHeuristicSearchBase::add_options_to_feature(*this);
-
-        add_option<std::shared_ptr<TaskOpenList>>(
-            "open_list",
-            "Ordering in which successors are considered during policy "
-            "exploration.",
-            plugins::ArgumentInfo::NO_DEFAULT);
+        MDPHeuristicSearch<Bisimulation, Fret>::add_options_to_feature(*this);
     }
 
-    std::shared_ptr<SolverInterface> create_component(
-        const plugins::Options& options,
-        const utils::Context& context) const override
+    std::shared_ptr<DFHSSolver<Bisimulation, Fret>>
+    create_component(const Options& options, const utils::Context&)
+        const override
     {
-        plugins::Options opts_copy(options);
+        Options opts_copy(options);
         opts_copy.set<std::string>("name", "hdp");
         opts_copy.set<bool>("labeling", true);
         opts_copy.set<bool>("fwup", true);
@@ -234,17 +231,16 @@ public:
         opts_copy.set<bool>("partial_exploration", false);
         opts_copy.set<bool>("vi", false);
         opts_copy.set<bool>("expand_tip", true);
-        return MDPFRETHeuristicSearchSolverFeature<
-            DFHSSolver>::create_component(opts_copy, context);
+        return std::make_shared<DFHSSolver<Bisimulation, Fret>>(opts_copy);
     }
 };
 
-static plugins::FeaturePlugin<DFHSSolverFeature> _plugin_dfhs;
-static plugins::FeaturePlugin<LAOSolverFeature> _plugin_lao;
-static plugins::FeaturePlugin<ILAOSolverFeature> _plugin_ilao;
-static plugins::FeaturePlugin<HDPSolverFeature> _plugin_hdp;
+static MultiFeaturePlugin<DFHSSolverFeature> _plugins_dfhs1;
+static MultiFeaturePlugin<LAOSolverFeature> _plugins_lao;
+static MultiFeaturePlugin<ILAOSolverFeature> _plugins_ilao;
+static MultiFeaturePlugin<HDPSolverFeature> _plugins_hdp;
 
-static plugins::TypedEnumPlugin<BacktrackingUpdateType> _fret_enum_plugin(
+static TypedEnumPlugin<BacktrackingUpdateType> _fret_enum_plugin(
     {{"disabled", ""}, {"ondemand", ""}, {"single", ""}, {"convergence", ""}});
 }
 } // namespace solvers

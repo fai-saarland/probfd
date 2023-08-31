@@ -33,6 +33,7 @@ public:
     // remaining goals are added to the list for goal violations.
     virtual bool apply_policy(
         const ProbabilisticTaskProxy& task_proxy,
+        const ProjectionStateSpace& mdp,
         const ProbabilityAwarePatternDatabase& pdb,
         const ProjectionMultiPolicy& policy,
         const std::unordered_set<int>& blacklisted_variables,

@@ -1,9 +1,10 @@
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "probfd/engines/ao_star.h"
+#include "probfd/algorithms/ao_star.h"
 
-#include "probfd/engine_interfaces/successor_sampler.h"
-#include "probfd/successor_samplers/task_successor_sampler_factory.h"
+#include "probfd/algorithms/successor_sampler.h"
+
+#include "probfd/plugins/naming_conventions.h"
 
 #include "downward/plugins/plugin.h"
 
@@ -11,57 +12,62 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engine_interfaces;
+using namespace algorithms;
+using namespace algorithms::ao_search::ao_star;
+
+using namespace plugins;
 
 template <bool Bisimulation>
 class AOStarSolver : public MDPHeuristicSearch<Bisimulation, false> {
-    template <typename T>
-    using WrappedType =
-        typename MDPHeuristicSearch<Bisimulation, false>::template WrappedType<
-            T>;
+    using Sampler = WrappedType<SuccessorSampler, Bisimulation, false>;
 
-    WrappedType<std::shared_ptr<TaskSuccessorSampler>> successor_sampler_;
+    const std::shared_ptr<Sampler> successor_sampler_;
 
 public:
-    explicit AOStarSolver(const plugins::Options& opts)
+    explicit AOStarSolver(const Options& opts)
         : MDPHeuristicSearch<Bisimulation, false>(opts)
-        , successor_sampler_(this->template wrap<>(
-              opts.get<std::shared_ptr<TaskSuccessorSamplerFactory>>(
-                      "successor_sampler")
-                  ->create_sampler(this->state_space_.get())))
+        , successor_sampler_(
+              opts.get<std::shared_ptr<Sampler>>("successor_sampler"))
     {
     }
 
     std::string get_heuristic_search_name() const override { return "aostar"; }
 
-    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        return this->template create_heuristic_search_engine<
-            engines::ao_search::ao_star::AOStar>(successor_sampler_.get());
+        return this->template create_heuristic_search_algorithm<AOStar>(
+            successor_sampler_);
     }
 
 protected:
     void print_additional_statistics() const override
     {
-        successor_sampler_->print_statistics(std::cout);
         MDPHeuristicSearch<Bisimulation, false>::print_additional_statistics();
+        successor_sampler_->print_statistics(std::cout);
     }
 };
 
+template <bool Bisimulation>
 class AOStarSolverFeature
-    : public MDPHeuristicSearchSolverFeature<AOStarSolver> {
+    : public TypedFeature<SolverInterface, AOStarSolver<Bisimulation>> {
 public:
     AOStarSolverFeature()
-        : MDPHeuristicSearchSolverFeature<AOStarSolver>("aostar")
+        : TypedFeature<SolverInterface, AOStarSolver<Bisimulation>>(
+              add_wrapper_algo_suffix<Bisimulation, false>("aostar"))
     {
-        add_option<std::shared_ptr<TaskSuccessorSamplerFactory>>(
+        MDPHeuristicSearch<Bisimulation, false>::add_options_to_feature(*this);
+
+        this->template add_option<std::shared_ptr<
+            WrappedType<SuccessorSampler, Bisimulation, false>>>(
             "successor_sampler",
             "",
-            "arbitrary_successor_selector_factory");
+            add_mdp_type_to_option<Bisimulation, false>(
+                "arbitrary_successor_sampler"));
     }
 };
 
-static plugins::FeaturePlugin<AOStarSolverFeature> _plugin;
+static FeaturePlugin<AOStarSolverFeature<false>> _plugin;
+static FeaturePlugin<AOStarSolverFeature<true>> _plugin2;
 
 } // namespace
 } // namespace solvers

@@ -1,11 +1,13 @@
 #include "probfd/bisimulation/bisimilar_state_space.h"
 
-#include "probfd/bisimulation/engine_interfaces.h"
+#include "probfd/bisimulation/algorithm_interfaces.h"
 
 #include "probfd/tasks/all_outcomes_determinization.h"
 #include "probfd/tasks/root_task.h"
 
 #include "probfd/task_utils/task_properties.h"
+
+#include "probfd/transition.h"
 
 #include "downward/algorithms/segmented_vector.h"
 
@@ -29,6 +31,7 @@
 #include <cassert>
 #include <map>
 #include <memory>
+#include <ranges>
 #include <unordered_set>
 #include <vector>
 
@@ -39,8 +42,11 @@ namespace bisimulation {
 
 static constexpr const int BUCKET_SIZE = 1024 * 64;
 
-BisimilarStateSpace::BisimilarStateSpace(const ProbabilisticTask* task)
+BisimilarStateSpace::BisimilarStateSpace(
+    const ProbabilisticTask* task,
+    value_t upper_bound)
     : task_proxy(*task)
+    , upper_bound_(upper_bound)
     , abstraction_(nullptr)
 {
     utils::Timer timer_total;
@@ -55,9 +61,9 @@ BisimilarStateSpace::BisimilarStateSpace(const ProbabilisticTask* task)
     merge_tree_options.set<utils::Verbosity>(
         "verbosity",
         utils::Verbosity::SILENT);
-    merge_tree_options.set<merge_and_shrink::UpdateOption>(
+    merge_tree_options.set<UpdateOption>(
         "update_option",
-        merge_and_shrink::UpdateOption::USE_FIRST);
+        UpdateOption::USE_FIRST);
     merge_tree_options.set<variable_order_finder::VariableOrderType>(
         "variable_order",
         variable_order_finder::VariableOrderType::LEVEL);
@@ -193,7 +199,7 @@ BisimilarStateSpace::BisimilarStateSpace(const ProbabilisticTask* task)
 
         for (LocalLabelInfo local_info : *abstraction_) {
             for (const int g_op_id : local_info.get_label_group()) {
-                for (const Transition& trans : local_info.get_transitions()) {
+                for (const auto& trans : local_info.get_transitions()) {
                     std::vector<CachedTransition>& ts = transitions_[trans.src];
                     assert(trans.target != PRUNED_STATE);
                     // if (trans.target == PRUNED_STATE ||
@@ -247,57 +253,61 @@ BisimilarStateSpace::BisimilarStateSpace(const ProbabilisticTask* task)
 
 BisimilarStateSpace::~BisimilarStateSpace() = default;
 
-StateID BisimilarStateSpace::get_state_id(bisimulation::QuotientState s)
+StateID BisimilarStateSpace::get_state_id(QuotientState s)
 {
-    return s.id;
+    return std::to_underlying(s);
 }
 
-bisimulation::QuotientState BisimilarStateSpace::get_state(StateID s)
+QuotientState BisimilarStateSpace::get_state(StateID s)
 {
-    return bisimulation::QuotientState(s);
+    return static_cast<QuotientState>(s.id);
 }
 
 void BisimilarStateSpace::generate_applicable_actions(
-    StateID s,
-    std::vector<bisimulation::QuotientAction>& result)
+    QuotientState state,
+    std::vector<QuotientAction>& result)
 {
-    if (s == dead_end_state_.id) {
+    if (state == dead_end_state_) {
         return;
     }
 
-    const std::vector<CachedTransition>& cache = transitions_[s];
+    const std::vector<CachedTransition>& cache =
+        transitions_[std::to_underlying(state)];
     result.reserve(cache.size());
     for (unsigned i = 0; i < cache.size(); ++i) {
-        result.emplace_back(i);
+        result.emplace_back(static_cast<QuotientAction>(i));
     }
 }
 
 void BisimilarStateSpace::generate_action_transitions(
-    StateID s,
-    bisimulation::QuotientAction a,
+    QuotientState state,
+    QuotientAction a,
     Distribution<StateID>& result)
 {
-    assert(s != dead_end_state_.id);
-    assert(a.idx < transitions_[s].size());
+    assert(state != dead_end_state_);
+    assert(
+        std::to_underlying(a) < transitions_[std::to_underlying(state)].size());
 
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
 
-    const CachedTransition& t = transitions_[s][a.idx];
+    const CachedTransition& t =
+        transitions_[std::to_underlying(state)][std::to_underlying(a)];
     const ProbabilisticOperatorProxy& op = operators[t.op];
     const ProbabilisticOutcomesProxy& outcomes = op.get_outcomes();
 
     for (unsigned i = 0; i < outcomes.size(); ++i) {
         const ProbabilisticOutcomeProxy outcome = outcomes[i];
         const value_t probability = outcome.get_probability();
-        const StateID id = t.successors[i] == PRUNED_STATE ? dead_end_state_.id
-                                                           : t.successors[i];
+        const StateID id = t.successors[i] == PRUNED_STATE
+                               ? std::to_underlying(dead_end_state_)
+                               : t.successors[i];
         result.add_probability(id, probability);
     }
 }
 
 void BisimilarStateSpace::generate_all_transitions(
-    StateID state,
-    std::vector<bisimulation::QuotientAction>& aops,
+    QuotientState state,
+    std::vector<QuotientAction>& aops,
     std::vector<Distribution<StateID>>& result)
 {
     generate_applicable_actions(state, aops);
@@ -307,17 +317,47 @@ void BisimilarStateSpace::generate_all_transitions(
     }
 }
 
+void BisimilarStateSpace::generate_all_transitions(
+    QuotientState state,
+    std::vector<Transition>& transitions)
+{
+    if (state == dead_end_state_) {
+        return;
+    }
+
+    const std::vector<CachedTransition>& cache =
+        transitions_[std::to_underlying(state)];
+    transitions.reserve(cache.size());
+    for (unsigned i : std::views::iota(0U, cache.size())) {
+        QuotientAction a = static_cast<QuotientAction>(i);
+        Transition& t = transitions.emplace_back(a);
+        generate_action_transitions(state, a, t.successor_dist);
+    }
+}
+
+TerminationInfo BisimilarStateSpace::get_termination_info(QuotientState s)
+{
+    return is_goal_state(s) ? TerminationInfo::from_goal()
+                            : TerminationInfo::from_non_goal(upper_bound_);
+}
+
+value_t BisimilarStateSpace::get_action_cost(QuotientAction)
+{
+    return 0;
+}
+
 QuotientState BisimilarStateSpace::get_initial_state() const
 {
     return initial_state_;
 }
 
-bool BisimilarStateSpace::is_goal_state(const QuotientState& s) const
+bool BisimilarStateSpace::is_goal_state(QuotientState s) const
 {
-    return s != dead_end_state_ && abstraction_->is_goal_state(s.id);
+    return s != dead_end_state_ &&
+           abstraction_->is_goal_state(std::to_underlying(s));
 }
 
-bool BisimilarStateSpace::is_dead_end(const QuotientState& s) const
+bool BisimilarStateSpace::is_dead_end(QuotientState s) const
 {
     return s == dead_end_state_;
 }
@@ -366,7 +406,7 @@ void BisimilarStateSpace::dump(std::ostream& out) const
     }
 
     out << "\n";
-    out << "\"\" -> n" << initial_state_.id << "\n";
+    out << "\"\" -> n" << std::to_underlying(initial_state_) << "\n";
 
     t = 0;
     for (unsigned node = 0; node < transitions_.size(); ++node) {

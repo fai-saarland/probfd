@@ -3,9 +3,11 @@
 
 #include "probfd/task_state_space.h"
 
+#include "downward/per_state_information.h"
+
 namespace probfd {
 
-class CachingTaskStateSpace : public InducedTaskStateSpace {
+class CachingTaskStateSpace : public TaskStateSpace {
     struct CacheEntry {
         bool is_initialized() const
         {
@@ -17,39 +19,49 @@ class CachingTaskStateSpace : public InducedTaskStateSpace {
         StateID* succs = nullptr;
     };
 
-    storage::PerStateStorage<CacheEntry> cache_;
+    PerStateInformation<CacheEntry> cache_;
     storage::SegmentedMemoryPool<> cache_data_;
+
+    std::vector<OperatorID> aops_;
+    std::vector<StateID> successors_;
 
 public:
     CachingTaskStateSpace(
         std::shared_ptr<ProbabilisticTask> task,
+        utils::LogProxy log,
+        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         const std::vector<std::shared_ptr<::Evaluator>>&
             path_dependent_evaluators);
 
-    StateID get_state_id(const State& state) override;
-    State get_state(StateID state_id) override;
-
     void generate_applicable_actions(
-        StateID state_id,
-        std::vector<OperatorID>& result) override;
+        const State& state,
+        std::vector<OperatorID>& result) override final;
 
     void generate_action_transitions(
-        StateID state,
+        const State& state,
         OperatorID operator_id,
-        Distribution<StateID>& result) override;
+        Distribution<StateID>& result) override final;
 
     void generate_all_transitions(
-        StateID state,
+        const State& state,
         std::vector<OperatorID>& aops,
-        std::vector<Distribution<StateID>>& successors) override;
+        std::vector<Distribution<StateID>>& successors) override final;
 
-    void print_statistics(std::ostream& out) const override;
+    void generate_all_transitions(
+        const State& state,
+        std::vector<Transition>& transitions) override final;
 
-protected:
-    bool setup_cache(StateID state_id, CacheEntry& entry);
+    void print_statistics() const override final;
 
-    CacheEntry& lookup(StateID state_id);
-    CacheEntry& lookup(StateID state_id, bool& initialized);
+private:
+    void compute_successor_states(
+        const State& s,
+        OperatorID op_id,
+        std::vector<StateID>& successors);
+
+    void setup_cache(const State& state, CacheEntry& entry);
+
+    CacheEntry& lookup(const State& state);
 };
 
 } // namespace probfd

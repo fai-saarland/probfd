@@ -10,6 +10,14 @@
 #include <memory>
 
 namespace probfd {
+
+namespace quotients {
+template <typename, typename>
+class QuotientState;
+template <typename>
+class QuotientAction;
+} // namespace quotients
+
 namespace heuristics {
 namespace cartesian {
 
@@ -20,9 +28,9 @@ struct ProbabilisticTransition;
  */
 class ILAOPolicyGenerator : public PolicyGenerator {
     std::shared_ptr<policy_pickers::ArbitraryTiebreaker<
-        const AbstractState*,
-        const ProbabilisticTransition*>>
-        ptb;
+        quotients::QuotientState<int, const ProbabilisticTransition*>,
+        quotients::QuotientAction<const ProbabilisticTransition*>>>
+        picker;
 
     ProgressReport report;
 
@@ -31,7 +39,6 @@ public:
 
     std::unique_ptr<Solution> find_solution(
         Abstraction& abstraction,
-        CartesianCostFunction& cost_function,
         const AbstractState* init_id,
         CartesianHeuristic& heuristic,
         utils::CountdownTimer& time_limit) override;

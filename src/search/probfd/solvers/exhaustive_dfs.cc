@@ -1,15 +1,12 @@
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/cost_model.h"
+#include "probfd/algorithms/exhaustive_dfs.h"
 
-#include "probfd/engines/exhaustive_dfs.h"
-
-#include "probfd/engine_interfaces/evaluator.h"
-#include "probfd/engine_interfaces/new_state_observer.h"
-#include "probfd/engine_interfaces/transition_sorter.h"
+#include "probfd/algorithms/transition_sorter.h"
 
 #include "probfd/transition_sorters/task_transition_sorter_factory.h"
 
+#include "probfd/evaluator.h"
 #include "probfd/progress_report.h"
 
 #include "downward/plugins/plugin.h"
@@ -18,16 +15,14 @@ namespace probfd {
 namespace solvers {
 namespace {
 
-using namespace engine_interfaces;
-
-using namespace engines::exhaustive_dfs;
+using namespace algorithms;
+using namespace algorithms::exhaustive_dfs;
+using namespace plugins;
 
 class ExhaustiveDFSSolver : public MDPSolver {
     const Interval cost_bound_;
 
-    std::shared_ptr<TaskEvaluator> heuristic_;
-    std::shared_ptr<TaskNewStateObserverList> new_state_handler_;
-    std::shared_ptr<TaskTransitionSorter> transition_sort_;
+    std::shared_ptr<FDRTransitionSorter> transition_sort_;
 
     const bool dual_bounds_;
     const bool interval_comparison_;
@@ -37,24 +32,17 @@ class ExhaustiveDFSSolver : public MDPSolver {
     const bool only_propagate_when_changed_;
 
 public:
-    explicit ExhaustiveDFSSolver(const plugins::Options& opts)
+    explicit ExhaustiveDFSSolver(const Options& opts)
         : MDPSolver(opts)
-        , cost_bound_(g_cost_model->optimal_value_bound())
-        , heuristic_(opts.get<std::shared_ptr<TaskEvaluator>>("eval"))
-        , new_state_handler_(new TaskNewStateObserverList(
-              opts.get_list<std::shared_ptr<TaskNewStateObserver>>(
-                  "on_new_state")))
+        , cost_bound_(0_vt, task_cost_function->get_non_goal_termination_cost())
         , transition_sort_(
               opts.contains("order")
-                  ? opts.get<std::shared_ptr<TaskTransitionSorterFactory>>(
+                  ? opts.get<std::shared_ptr<FDRTransitionSorterFactory>>(
                             "order")
-                        ->create_transition_sorter(this->state_space_.get())
+                        ->create_transition_sorter(this->task_mdp.get())
                   : nullptr)
-        , dual_bounds_(
-              opts.contains("dual_bounds") && opts.get<bool>("dual_bounds"))
-        , interval_comparison_(
-              opts.contains("interval_comparison") &&
-              opts.get<bool>("interval_comparison"))
+        , dual_bounds_(opts.get<bool>("dual_bounds"))
+        , interval_comparison_(opts.get<bool>("interval_comparison"))
         , reevaluate_(opts.get<bool>("reevaluate"))
         , notify_s0_(opts.get<bool>("initial_state_notification"))
         , path_updates_(opts.get<bool>("reverse_path_updates"))
@@ -63,18 +51,16 @@ public:
     {
     }
 
-    std::string get_engine_name() const override { return "exhaustive_dfs"; }
+    std::string get_algorithm_name() const override { return "exhaustive_dfs"; }
 
-    std::unique_ptr<TaskMDPEngineInterface> create_engine() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
-        using Engine = ExhaustiveDepthFirstSearch<State, OperatorID, false>;
-        using Engine2 = ExhaustiveDepthFirstSearch<State, OperatorID, true>;
+        using Algorithm = ExhaustiveDepthFirstSearch<State, OperatorID, false>;
+        using Algorithm2 = ExhaustiveDepthFirstSearch<State, OperatorID, true>;
 
         if (dual_bounds_) {
-            return this->template engine_factory<Engine2>(
-                heuristic_.get(),
-                new_state_handler_.get(),
-                transition_sort_.get(),
+            return std::make_unique<Algorithm2>(
+                transition_sort_,
                 cost_bound_,
                 reevaluate_,
                 notify_s0_,
@@ -82,10 +68,8 @@ public:
                 only_propagate_when_changed_,
                 &progress_);
         } else {
-            return this->template engine_factory<Engine>(
-                heuristic_.get(),
-                new_state_handler_.get(),
-                transition_sort_.get(),
+            return std::make_unique<Algorithm>(
+                transition_sort_,
                 cost_bound_,
                 reevaluate_,
                 notify_s0_,
@@ -97,25 +81,19 @@ public:
 };
 
 class ExhaustiveDFSSolverFeature
-    : public plugins::TypedFeature<SolverInterface, ExhaustiveDFSSolver> {
+    : public TypedFeature<SolverInterface, ExhaustiveDFSSolver> {
 public:
     ExhaustiveDFSSolverFeature()
-        : plugins::TypedFeature<SolverInterface, ExhaustiveDFSSolver>(
-              "exhaustive_dfs")
+        : TypedFeature<SolverInterface, ExhaustiveDFSSolver>("exhaustive_dfs")
     {
         document_title("Exhaustive Depth-First Search");
 
         MDPSolver::add_options_to_feature(*this);
 
-        add_option<std::shared_ptr<TaskEvaluator>>("eval", "", "blind_eval");
-        add_list_option<std::shared_ptr<TaskNewStateObserver>>(
-            "on_new_state",
-            "",
-            "[]");
-        add_option<std::shared_ptr<TaskTransitionSorterFactory>>(
+        add_option<std::shared_ptr<FDRTransitionSorterFactory>>(
             "order",
             "",
-            plugins::ArgumentInfo::NO_DEFAULT);
+            ArgumentInfo::NO_DEFAULT);
 
         add_option<bool>("interval_comparison", "", "false");
         add_option<bool>("dual_bounds", "", "false");
@@ -126,7 +104,7 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<ExhaustiveDFSSolverFeature> _plugin;
+static FeaturePlugin<ExhaustiveDFSSolverFeature> _plugin;
 
 } // namespace
 } // namespace solvers
