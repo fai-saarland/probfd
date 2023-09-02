@@ -111,10 +111,10 @@ unique_ptr<Trace> AStarTraceGenerator::find_trace(
             return solution;
         }
 
-        for (const ProbabilisticTransition* transition : out[state_id]) {
-            for (size_t i = 0; i != transition->target_ids.size(); ++i) {
-                int op_id = transition->op_id;
-                int succ_id = transition->target_ids[i];
+        for (const ProbabilisticTransition& transition : out[state_id]) {
+            for (size_t i = 0; i != transition.target_ids.size(); ++i) {
+                int op_id = transition.op_id;
+                int succ_id = transition.target_ids[i];
 
                 const value_t op_cost = abstraction.get_cost(op_id);
                 assert(op_cost >= 0);

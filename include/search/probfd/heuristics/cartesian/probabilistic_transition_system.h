@@ -29,15 +29,31 @@ class ProbabilisticTransitionSystem {
     const std::vector<std::vector<value_t>>
         probabilities_by_operator_and_outcome;
 
-    // References to incoming and outgoing transitions
-    std::vector<std::vector<ProbabilisticTransition*>> outgoing;
-    std::vector<std::vector<ProbabilisticTransition*>> incoming;
+    struct TransitionProxy {
+        ProbabilisticTransition* transition;
+        int source_id;
+    };
 
-    // The transition list. Using deque here to avoid invalidating references.
-    std::deque<ProbabilisticTransition> transitions;
+    // The outgoing transitions for every abstract state. Using deque here to
+    // avoid invalidating references stored in the proxy nodes.
+    // Note: Cannot use vector of deque because deque's move constructor is not
+    // noexcept, which means vector copies when it grows. That's not only slow,
+    // it also invalidates the references to the transitions.
+    std::deque<std::deque<ProbabilisticTransition>> outgoing_by_id;
+
+    // List of proxy nodes pointing to the transitions. Using deque here to
+    // avoid invalidating references to the proxy nodes (incoming_by_id and
+    // proxies_by_id).
+    std::deque<TransitionProxy> proxy_nodes;
+
+    // References to the proxy nodes for every abstract state.
+    std::vector<std::vector<TransitionProxy*>> proxies_by_id;
+
+    // References to incoming transitions for every abstract state.
+    std::vector<std::vector<TransitionProxy*>> incoming_by_id;
 
     // The list of uniform self-loops, to be pruned during search.
-    std::deque<std::vector<int>> loops;
+    std::vector<std::vector<int>> loops_by_id;
 
     size_t num_loops = 0;
 
@@ -81,13 +97,11 @@ public:
 
     value_t get_probability(int op_index, int eff_index) const;
 
-    const std::vector<std::vector<ProbabilisticTransition*>>&
+    const std::vector<std::vector<TransitionProxy*>>&
     get_incoming_transitions() const;
-    const std::vector<std::vector<ProbabilisticTransition*>>&
+    const std::deque<std::deque<ProbabilisticTransition>>&
     get_outgoing_transitions() const;
-    const std::deque<std::vector<int>>& get_loops() const;
-
-    const std::deque<ProbabilisticTransition>& get_transitions() const;
+    const std::vector<std::vector<int>>& get_loops() const;
 
     int get_num_states() const;
     int get_num_operators() const;

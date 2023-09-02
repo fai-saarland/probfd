@@ -63,13 +63,13 @@ static vector<value_t> compute_saturated_costs(
         */
         if (h == INFINITE_VALUE) continue;
 
-        for (const auto* transition : out_transitions[state_id]) {
-            const int op_id = transition->op_id;
+        for (const auto& transition : out_transitions[state_id]) {
+            const int op_id = transition.op_id;
 
             value_t expectation = 0_vt;
 
-            for (size_t i = 0; i != transition->target_ids.size(); ++i) {
-                const int succ_id = transition->target_ids[i];
+            for (size_t i = 0; i != transition.target_ids.size(); ++i) {
+                const int succ_id = transition.target_ids[i];
                 const value_t succ_h = h_values[succ_id];
                 if (succ_h == INFINITE_VALUE) goto next_transition;
                 const value_t probability =

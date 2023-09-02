@@ -11,16 +11,11 @@ namespace heuristics {
 namespace cartesian {
 
 struct ProbabilisticTransition {
-    int source_id;
     int op_id;
     std::vector<int> target_ids; // One target for each operator effect
 
-    ProbabilisticTransition(
-        int source_id,
-        int op_id,
-        std::vector<int> target_ids)
-        : source_id(source_id)
-        , op_id(op_id)
+    ProbabilisticTransition(int op_id, std::vector<int> target_ids)
+        : op_id(op_id)
         , target_ids(std::move(target_ids))
     {
         assert(!this->target_ids.empty());
@@ -29,8 +24,7 @@ struct ProbabilisticTransition {
     friend std::ostream&
     operator<<(std::ostream& os, const ProbabilisticTransition& t)
     {
-        os << "[" << t.source_id << "," << t.op_id << ",["
-           << t.target_ids.front();
+        os << "[" << t.op_id << ",[" << t.target_ids.front();
 
         for (size_t i = 1; i != t.target_ids.size(); ++i) {
             os << "," << t.target_ids[i];

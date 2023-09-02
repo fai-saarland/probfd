@@ -66,8 +66,8 @@ void Abstraction::generate_applicable_actions(
     int state,
     std::vector<const ProbabilisticTransition*>& result)
 {
-    for (const auto* t : transition_system->get_outgoing_transitions()[state]) {
-        result.push_back(t);
+    for (const auto& t : transition_system->get_outgoing_transitions()[state]) {
+        result.push_back(&t);
     }
 }
 
@@ -88,9 +88,9 @@ void Abstraction::generate_all_transitions(
     std::vector<const ProbabilisticTransition*>& aops,
     std::vector<Distribution<StateID>>& successors)
 {
-    for (const auto* t : transition_system->get_outgoing_transitions()[state]) {
-        aops.push_back(t);
-        generate_action_transitions(state, t, successors.emplace_back());
+    for (const auto& t : transition_system->get_outgoing_transitions()[state]) {
+        aops.push_back(&t);
+        generate_action_transitions(state, &t, successors.emplace_back());
     }
 }
 
@@ -98,9 +98,9 @@ void Abstraction::generate_all_transitions(
     int state,
     std::vector<Transition>& transitions)
 {
-    for (const auto* t : transition_system->get_outgoing_transitions()[state]) {
-        Transition& transition = transitions.emplace_back(t);
-        generate_action_transitions(state, t, transition.successor_dist);
+    for (const auto& t : transition_system->get_outgoing_transitions()[state]) {
+        Transition& transition = transitions.emplace_back(&t);
+        generate_action_transitions(state, &t, transition.successor_dist);
     }
 }
 
