@@ -32,6 +32,7 @@ class ProbabilisticTransitionSystem {
     struct TransitionProxy {
         ProbabilisticTransition* transition;
         int source_id;
+        bool partial_loop;
     };
 
     // The outgoing transitions for every abstract state. Using deque here to
@@ -40,14 +41,15 @@ class ProbabilisticTransitionSystem {
     // noexcept, which means vector copies when it grows. That's not only slow,
     // it also invalidates the references to the transitions.
     std::deque<std::deque<ProbabilisticTransition>> outgoing_by_id;
+    std::deque<std::deque<ProbabilisticTransition>> partial_loops_by_id;
 
     // List of proxy nodes pointing to the transitions. Using deque here to
-    // avoid invalidating references to the proxy nodes (incoming_by_id and
-    // proxies_by_id).
+    // avoid invalidating references to the proxy nodes.
     std::deque<TransitionProxy> proxy_nodes;
 
-    // References to the proxy nodes for every abstract state.
-    std::vector<std::vector<TransitionProxy*>> proxies_by_id;
+    // References to the proxy nodes.
+    std::vector<std::vector<TransitionProxy*>> outgoing_proxies;
+    std::vector<std::vector<TransitionProxy*>> partial_loop_proxies;
 
     // References to incoming transitions for every abstract state.
     std::vector<std::vector<TransitionProxy*>> incoming_by_id;
@@ -68,14 +70,24 @@ class ProbabilisticTransitionSystem {
     size_t get_num_operator_outcomes(int op_id) const;
 
     void add_transition(int src_id, int op_id, std::vector<int> target_ids);
+    void add_partial_loop(int src_id, int op_id, std::vector<int> target_ids);
     void add_loop(int src_id, int op_id);
+
+    auto zip_post(auto& targets, int op_id, int var) const;
 
     void rewire_incoming_transitions(
         const AbstractStates& states,
         const AbstractState& v1,
         const AbstractState& v2,
         int var);
+
     void rewire_outgoing_transitions(
+        const AbstractStates& states,
+        const AbstractState& v1,
+        const AbstractState& v2,
+        int var);
+
+    void rewire_partial_loops(
         const AbstractStates& states,
         const AbstractState& v1,
         const AbstractState& v2,
@@ -88,6 +100,19 @@ public:
     explicit ProbabilisticTransitionSystem(
         const ProbabilisticOperatorsProxy& ops);
 
+    // Counts the number of new transitions that a given split would introduce
+    // without actually rewiring the transitions.
+    int check_num_non_loop_transitions_after_rewire(
+        const AbstractStates& states,
+        const CartesianSet& v1,
+        const CartesianSet& v2,
+        int split_id,
+        int var) const;
+
+    // Gives an upper bound for the number of new transitions that a given split
+    // would introduce without actually rewiring the transitions.
+    int estimate_num_non_loop_transitions_after_rewire(int split_id) const;
+
     // Update transition system after v has been split for var into v1 and v2.
     void rewire(
         const AbstractStates& states,
@@ -97,10 +122,10 @@ public:
 
     value_t get_probability(int op_index, int eff_index) const;
 
-    const std::vector<std::vector<TransitionProxy*>>&
-    get_incoming_transitions() const;
     const std::deque<std::deque<ProbabilisticTransition>>&
     get_outgoing_transitions() const;
+    const std::deque<std::deque<ProbabilisticTransition>>&
+    get_partial_loops() const;
     const std::vector<std::vector<int>>& get_loops() const;
 
     int get_num_states() const;

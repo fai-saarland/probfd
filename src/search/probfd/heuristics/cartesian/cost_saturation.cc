@@ -52,6 +52,7 @@ static vector<value_t> compute_saturated_costs(
     const int num_states = h_values.size();
 
     const auto& out_transitions = transition_system.get_outgoing_transitions();
+    const auto& partial_loops = transition_system.get_partial_loops();
     const auto& loops = transition_system.get_loops();
 
     for (int state_id = 0; state_id < num_states; ++state_id) {
@@ -81,6 +82,26 @@ static vector<value_t> compute_saturated_costs(
                 max(saturated_costs[op_id], h - expectation);
 
         next_transition:;
+        }
+
+        for (const auto& transition : partial_loops[state_id]) {
+            const int op_id = transition.op_id;
+
+            value_t expectation = 0_vt;
+
+            for (size_t i = 0; i != transition.target_ids.size(); ++i) {
+                const int succ_id = transition.target_ids[i];
+                const value_t succ_h = h_values[succ_id];
+                if (succ_h == INFINITE_VALUE) goto next_transition2;
+                const value_t probability =
+                    transition_system.get_probability(op_id, i);
+                expectation += probability * succ_h;
+            }
+
+            saturated_costs[op_id] =
+                max(saturated_costs[op_id], h - expectation);
+
+        next_transition2:;
         }
 
         if (use_general_costs) {

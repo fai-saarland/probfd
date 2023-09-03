@@ -81,7 +81,7 @@ private:
         for other subtasks with a single goal fact doesn't hurt and
         simplifies the implementation.
     */
-    void separate_facts_unreachable_before_goal(
+    bool separate_facts_unreachable_before_goal(
         ProbabilisticTaskProxy task_proxy,
         FlawGenerator& flaw_generator,
         RefinementHierarchy& refinement_hierarchy,
@@ -89,7 +89,7 @@ private:
         CartesianHeuristic& heuristic,
         utils::Timer& timer);
 
-    void refine_abstraction(
+    bool refine_abstraction(
         FlawGenerator& flaw_generator,
         SplitSelector& split_selector,
         RefinementHierarchy& refinement_hierarchy,
@@ -98,7 +98,7 @@ private:
         const Flaw& flaw,
         utils::Timer& timer);
 
-    void refine_abstraction(
+    bool refine_abstraction(
         FlawGenerator& flaw_generator,
         RefinementHierarchy& refinement_hierarchy,
         Abstraction& abstraction,

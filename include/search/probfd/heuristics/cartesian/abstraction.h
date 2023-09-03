@@ -9,6 +9,7 @@
 #include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
 
+#include <limits>
 #include <memory>
 #include <vector>
 
@@ -94,11 +95,12 @@ public:
     void mark_all_states_as_goals();
 
     // Split state into two child states.
-    std::pair<int, int> refine(
+    bool refine(
         RefinementHierarchy& refinement_hierarchy,
         const AbstractState& abstract_state,
         int split_var,
-        const std::vector<int>& wanted);
+        const std::vector<int>& wanted,
+        int transitions_limit = std::numeric_limits<int>::max());
 
     void print_statistics() const override;
 };

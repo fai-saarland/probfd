@@ -134,7 +134,9 @@ size_t ProbabilisticTransitionSystem::get_num_operator_outcomes(int op_id) const
 void ProbabilisticTransitionSystem::enlarge_vectors_by_one()
 {
     outgoing_by_id.emplace_back();
-    proxies_by_id.emplace_back();
+    partial_loops_by_id.emplace_back();
+    outgoing_proxies.emplace_back();
+    partial_loop_proxies.emplace_back();
     incoming_by_id.emplace_back();
     loops_by_id.emplace_back();
 }
@@ -158,14 +160,37 @@ void ProbabilisticTransitionSystem::add_transition(
     int op_id,
     std::vector<int> target_ids)
 {
+    assert(!utils::contains(target_ids, src_id));
+
     auto& t = outgoing_by_id[src_id].emplace_back(op_id, std::move(target_ids));
 
-    TransitionProxy& proxy = proxy_nodes.emplace_back(&t, src_id);
-    proxies_by_id[src_id].emplace_back(&proxy);
+    TransitionProxy& proxy = proxy_nodes.emplace_back(&t, src_id, false);
+    outgoing_proxies[src_id].emplace_back(&proxy);
 
     std::unordered_set<int> seen;
     for (int target_id : t.target_ids) {
         if (seen.insert(target_id).second) {
+            incoming_by_id[target_id].push_back(&proxy);
+        }
+    }
+}
+
+void ProbabilisticTransitionSystem::add_partial_loop(
+    int src_id,
+    int op_id,
+    std::vector<int> target_ids)
+{
+    assert(utils::contains(target_ids, src_id));
+
+    auto& t =
+        partial_loops_by_id[src_id].emplace_back(op_id, std::move(target_ids));
+
+    TransitionProxy& proxy = proxy_nodes.emplace_back(&t, src_id, true);
+    partial_loop_proxies[src_id].emplace_back(&proxy);
+
+    std::unordered_set<int> seen;
+    for (int target_id : t.target_ids) {
+        if (target_id != src_id && seen.insert(target_id).second) {
             incoming_by_id[target_id].push_back(&proxy);
         }
     }
@@ -176,6 +201,101 @@ void ProbabilisticTransitionSystem::add_loop(int src_id, int op_id)
     loops_by_id[src_id].emplace_back(op_id);
     ++num_loops;
 }
+
+auto ProbabilisticTransitionSystem::zip_post(auto& targets, int op_id, int var)
+    const
+{
+    return std::views::iota(0U, targets.size()) |
+           std::views::transform([&, op_id, var](size_t i) {
+               return std::make_pair(
+                   std::ref(targets[i]),
+                   get_postcondition_value(op_id, i, var));
+           });
+}
+
+namespace {
+auto undefined_precondition_rewire(
+    auto&& target_post,
+    int var,
+    const AbstractStates& states,
+    const AbstractState& v1,
+    const AbstractState& v2,
+    int v1_id,
+    int v2_id,
+    bool v1_prevail_init,
+    bool v2_prevail_init)
+{
+    bool has_prevail = false;
+    bool v1_prevail = v1_prevail_init;
+    bool v2_prevail = v2_prevail_init;
+    bool v1_target = false;
+    bool v2_target = false;
+
+    for (auto [target, post] : target_post) {
+        if (target != v1_id) {
+            if (post != UNDEFINED) continue;
+            const AbstractState& v = *states[target];
+            v1_prevail = v1_prevail && v.intersects(v1, var);
+            v2_prevail = v2_prevail && v.intersects(v2, var);
+        } else if (post == UNDEFINED) {
+            has_prevail = true;
+            target = UNDEFINED;
+        } else if (v1.contains(var, post)) {
+            v1_target = true;
+            target = v1_id;
+        } else {
+            assert(v2.contains(var, post));
+            v2_target = true;
+            target = v2_id;
+        }
+    }
+
+    return std::make_tuple(
+        has_prevail,
+        v1_prevail,
+        v2_prevail,
+        v1_target,
+        v2_target);
+}
+
+auto defined_precondition_rewire(
+    auto&& target_post,
+    int var,
+    const AbstractState& v1,
+    [[maybe_unused]] const AbstractState& v2,
+    int v1_id,
+    int v2_id)
+{
+    bool v1_target = false;
+    bool v2_target = false;
+
+    for (auto [target, post] : target_post) {
+        if (target != v1_id) continue;
+
+        if (v1.contains(var, post)) {
+            v1_target = true;
+            target = v1_id;
+        } else {
+            assert(v2.contains(var, post));
+            v2_target = true;
+            target = v2_id;
+        }
+    }
+
+    return std::make_pair(v1_target, v2_target);
+}
+
+void rewire_prevail_targets(std::vector<int>& targets, int rewire_to)
+{
+    std::ranges::replace(targets, UNDEFINED, rewire_to);
+}
+
+auto get_rewired_prevail_copy(std::vector<int> targets, int rewire_to)
+{
+    rewire_prevail_targets(targets, rewire_to);
+    return targets;
+}
+} // namespace
 
 void ProbabilisticTransitionSystem::rewire_incoming_transitions(
     const AbstractStates& states,
@@ -190,11 +310,6 @@ void ProbabilisticTransitionSystem::rewire_incoming_transitions(
 
     for (TransitionProxy* proxy : old_incoming) {
         ProbabilisticTransition& transition = *proxy->transition;
-
-        assert(utils::contains(transition.target_ids, v1_id));
-
-        const int u_id = proxy->source_id;
-        const AbstractState& u = *states[u_id];
         int op_id = transition.op_id;
 
         // Note: Targets are updated in-place. If rewiring produces two
@@ -202,98 +317,76 @@ void ProbabilisticTransitionSystem::rewire_incoming_transitions(
         // the first one is an in-place update.
         std::vector<int>& target_ids = transition.target_ids;
 
+        const int u_id = proxy->source_id;
+        const AbstractState& u = *states[u_id];
+
+        assert(u_id != v1_id);
+        assert(utils::contains(target_ids, v1_id));
+        assert(proxy->partial_loop == utils::contains(target_ids, u_id));
+
         int pre = get_precondition_value(op_id, var);
         if (pre == UNDEFINED) {
-            bool possibly_both = false;
+            auto [has_prevail, v1_prevail, v2_prevail, v1_target, v2_target] =
+                undefined_precondition_rewire(
+                    zip_post(target_ids, op_id, var),
+                    var,
+                    states,
+                    v1,
+                    v2,
+                    v1_id,
+                    v2_id,
+                    u.intersects(v1, var),
+                    u.intersects(v2, var));
 
-            bool v1_possible = u.domain_subsets_intersect(v1, var);
-            bool v2_possible = u.domain_subsets_intersect(v2, var);
+            if (has_prevail) {
+                if (v1_prevail) {
+                    v1_target = true;
 
-            bool v1_incoming = false;
-            bool v2_incoming = false;
-
-            for (size_t i = 0; i != target_ids.size(); ++i) {
-                const int v_id = target_ids[i];
-                const int post = get_postcondition_value(op_id, i, var);
-
-                if (v_id != v1_id) {
-                    const AbstractState& v = *states[v_id];
-                    if (post == UNDEFINED) {
-                        v1_possible =
-                            v1_possible && v.domain_subsets_intersect(v1, var);
-                        v2_possible =
-                            v2_possible && v.domain_subsets_intersect(v2, var);
-                    }
-                } else if (post == UNDEFINED) {
-                    possibly_both = true;
-                    target_ids[i] = UNDEFINED;
-                } else if (v1.contains(var, post)) {
-                    v1_incoming = true;
-                    target_ids[i] = v1_id;
-                } else {
-                    assert(v2.contains(var, post));
-                    v2_incoming = true;
-                    target_ids[i] = v2_id;
-                }
-            }
-
-            if (possibly_both) {
-                if (v1_possible) {
-                    v1_incoming = true;
-
-                    if (v2_possible) {
+                    if (v2_prevail) {
                         // Add the new second transition to the transition list.
-                        auto targets_copy = target_ids;
-                        std::ranges::replace(targets_copy, UNDEFINED, v2_id);
-                        add_transition(u_id, op_id, std::move(targets_copy));
+                        if (proxy->partial_loop) {
+                            add_partial_loop(
+                                u_id,
+                                op_id,
+                                get_rewired_prevail_copy(target_ids, v2_id));
+                        } else {
+                            add_transition(
+                                u_id,
+                                op_id,
+                                get_rewired_prevail_copy(target_ids, v2_id));
+                        }
                     }
-                    std::ranges::replace(target_ids, UNDEFINED, v1_id);
+                    rewire_prevail_targets(target_ids, v1_id);
                 } else {
-                    v2_incoming = true;
-                    std::ranges::replace(target_ids, UNDEFINED, v2_id);
+                    v2_target = true;
+                    rewire_prevail_targets(target_ids, v2_id);
                 }
             }
 
-            if (v1_incoming) {
+            if (v1_target) {
                 // Transition is incoming for v1.
                 incoming_by_id[v1_id].push_back(proxy);
                 assert(utils::contains(transition.target_ids, v1_id));
             }
 
-            if (v2_incoming) {
+            if (v2_target) {
                 // Transition is incoming for v2.
                 incoming_by_id[v2_id].push_back(proxy);
                 assert(utils::contains(transition.target_ids, v2_id));
             }
         } else {
-            bool v1_possible = false;
-            bool v2_possible = false;
+            const auto [v1_target, v2_target] = defined_precondition_rewire(
+                zip_post(target_ids, op_id, var),
+                var,
+                v1,
+                v2,
+                v1_id,
+                v2_id);
 
-            for (size_t i = 0; i != target_ids.size(); ++i) {
-                const int v_id = target_ids[i];
-                const int post = get_postcondition_value(op_id, i, var);
+            assert(v1_target || v2_target);
 
-                if (v_id == v1_id) {
-                    if (v1.contains(var, post)) {
-                        v1_possible = true;
-                        target_ids[i] = v1_id;
-                    } else {
-                        assert(v2.contains(var, post));
-                        v2_possible = true;
-                        target_ids[i] = v2_id;
-                    }
-                }
-            }
-
-            assert(v1_possible || v2_possible);
-
-            if (v1_possible) {
-                incoming_by_id[v1_id].push_back(proxy);
-            }
-
-            if (v2_possible) {
-                incoming_by_id[v2_id].push_back(proxy);
-            }
+            if (v1_target) incoming_by_id[v1_id].push_back(proxy);
+            if (v2_target) incoming_by_id[v2_id].push_back(proxy);
         }
     }
 }
@@ -308,73 +401,210 @@ void ProbabilisticTransitionSystem::rewire_outgoing_transitions(
     int v2_id = v2.get_id();
 
     auto old_outgoing = std::move(outgoing_by_id[v1_id]);
-    auto old_outgoing_refs = std::move(proxies_by_id[v1_id]);
+    auto old_outgoing_refs = std::move(outgoing_proxies[v1_id]);
+
+    auto push = [&](auto& transition, auto* proxy, int source_id) {
+        auto& t = outgoing_by_id[source_id].emplace_back(std::move(transition));
+        proxy->transition = &t;
+        outgoing_proxies[source_id].emplace_back(proxy);
+    };
 
     auto z = std::views::zip(old_outgoing, old_outgoing_refs);
-    for (const auto& [transition, intermediate] : z) {
+    for (const auto& [transition, proxy] : z) {
         int op_id = transition.op_id;
-
         std::vector<int>& target_ids = transition.target_ids;
+
+        assert(!utils::contains(target_ids, v1_id));
+        assert(proxy->source_id == v1_id);
 
         int pre = get_precondition_value(op_id, var);
 
         if (pre == UNDEFINED) {
-            bool v1_possible = true;
-            bool v2_possible = true;
+            bool v1_prevail = true;
+            bool v2_prevail = true;
 
-            for (size_t i = 0; i != target_ids.size(); ++i) {
-                const int v_id = target_ids[i];
-                const int post = get_postcondition_value(op_id, i, var);
-
-                if (post == UNDEFINED) {
-                    if (v_id == v1_id) {
-                        v2_possible = false;
-                        break;
-                    } else if (v_id == v2_id) {
-                        v1_possible = false;
-                        break;
-                    } else {
-                        const AbstractState& v = *states[v_id];
-                        v1_possible =
-                            v1_possible && v.domain_subsets_intersect(v1, var);
-                        v2_possible =
-                            v2_possible && v.domain_subsets_intersect(v2, var);
-                    }
-                }
+            for (auto [target, post] : zip_post(target_ids, op_id, var)) {
+                if (post != UNDEFINED) continue;
+                const AbstractState& v = *states[target];
+                v1_prevail = v1_prevail && v.intersects(v1, var);
+                v2_prevail = v2_prevail && v.intersects(v2, var);
             }
 
-            if (v1_possible) {
-                if (v2_possible) {
+            if (v1_prevail) {
+                if (v2_prevail) {
                     // Copy transition to v2.
                     add_transition(v2_id, op_id, target_ids);
                 }
 
-                // Transition is still outgoing for v1. Re-add it.
-                auto& t =
-                    outgoing_by_id[v1_id].emplace_back(std::move(transition));
-                intermediate->transition = &t;
-                proxies_by_id[v1_id].emplace_back(intermediate);
+                // Transition is still outgoing for v1.
+                push(transition, proxy, v1_id);
             } else {
                 // Transition is now outgoing for v2.
-                auto& t =
-                    outgoing_by_id[v2_id].emplace_back(std::move(transition));
-                intermediate->transition = &t;
-                intermediate->source_id = v2_id;
-                proxies_by_id[v2_id].emplace_back(intermediate);
+                proxy->source_id = v2_id;
+                push(transition, proxy, v2_id);
             }
         } else if (v1.contains(var, pre)) {
-            // Transition is still outgoing for v1. Re-add it.
-            auto& t = outgoing_by_id[v1_id].emplace_back(std::move(transition));
-            intermediate->transition = &t;
-            proxies_by_id[v1_id].emplace_back(intermediate);
+            // Transition is still outgoing for v1.
+            push(transition, proxy, v1_id);
         } else {
             assert(v2.contains(var, pre));
 
             // Transition is now outgoing for v2.
-            auto& t = outgoing_by_id[v2_id].emplace_back(std::move(transition));
-            intermediate->transition = &t;
-            intermediate->source_id = v2_id;
-            proxies_by_id[v2_id].emplace_back(intermediate);
+            proxy->source_id = v2_id;
+            push(transition, proxy, v2_id);
+        }
+    }
+}
+
+void ProbabilisticTransitionSystem::rewire_partial_loops(
+    const AbstractStates& states,
+    const AbstractState& v1,
+    const AbstractState& v2,
+    int var)
+{
+    int v1_id = v1.get_id();
+    int v2_id = v2.get_id();
+
+    auto old_outgoing = std::move(partial_loops_by_id[v1_id]);
+    auto old_outgoing_refs = std::move(partial_loop_proxies[v1_id]);
+
+    auto push_partial_loop = [&](auto& transition, auto* proxy, int source_id) {
+        assert(utils::contains(transition.target_ids, source_id));
+
+        auto& t =
+            partial_loops_by_id[source_id].emplace_back(std::move(transition));
+        proxy->transition = &t;
+        partial_loop_proxies[source_id].push_back(proxy);
+    };
+
+    auto push_outgoing = [&](auto& transition, auto* proxy, int source_id) {
+        assert(!utils::contains(transition.target_ids, source_id));
+
+        auto& t = outgoing_by_id[source_id].emplace_back(std::move(transition));
+        proxy->transition = &t;
+        proxy->partial_loop = false;
+        outgoing_proxies[source_id].push_back(proxy);
+    };
+
+    auto z = std::views::zip(old_outgoing, old_outgoing_refs);
+    for (const auto& [transition, proxy] : z) {
+        int op_id = transition.op_id;
+        std::vector<int>& target_ids = transition.target_ids;
+
+        int& u_id = proxy->source_id;
+
+        assert(u_id == v1_id);
+        assert(utils::contains(target_ids, v1_id));
+
+        int pre = get_precondition_value(op_id, var);
+        if (pre == UNDEFINED) {
+            auto [has_prevail, v1_prevail, v2_prevail, v1_target, v2_target] =
+                undefined_precondition_rewire(
+                    zip_post(target_ids, op_id, var),
+                    var,
+                    states,
+                    v1,
+                    v2,
+                    v1_id,
+                    v2_id,
+                    true,
+                    true);
+
+            if (has_prevail) {
+                if (v1_prevail) {
+                    v1_target = true;
+
+                    if (v2_prevail) {
+                        // Add the new second transition to the transition list.
+                        add_partial_loop(
+                            v2_id,
+                            op_id,
+                            get_rewired_prevail_copy(target_ids, v2_id));
+                    }
+                    rewire_prevail_targets(target_ids, v1_id);
+                } else {
+                    v2_target = true;
+                    rewire_prevail_targets(target_ids, v2_id);
+                }
+            }
+
+            assert(v1_target || v2_target);
+
+            if (v1_prevail) {
+                if (v1_target) {
+                    // Transition is still partial loop for v1.
+                    push_partial_loop(transition, proxy, v1_id);
+
+                    if (v2_target) {
+                        // Transition is now incoming for v2.
+                        incoming_by_id[v2_id].push_back(proxy);
+                    }
+                } else {
+                    // Transition is now outgoing for v1, incoming for v2.
+                    push_outgoing(transition, proxy, v1_id);
+                    incoming_by_id[v2_id].push_back(proxy);
+                }
+            } else {
+                // Rewire source state
+                u_id = v2_id;
+
+                if (v2_target) {
+                    // Transition is now partial loop for v2.
+                    push_partial_loop(transition, proxy, v2_id);
+
+                    if (v1_target) {
+                        // Transition is now incoming for v1.
+                        incoming_by_id[v1_id].push_back(proxy);
+                    }
+                } else {
+                    // Transition is now outgoing for v2, incoming for v1.
+                    push_outgoing(transition, proxy, v2_id);
+                    incoming_by_id[v1_id].push_back(proxy);
+                }
+            }
+        } else {
+            const auto [v1_target, v2_target] = defined_precondition_rewire(
+                zip_post(target_ids, op_id, var),
+                var,
+                v1,
+                v2,
+                v1_id,
+                v2_id);
+
+            assert(v1_target || v2_target);
+
+            const int pre = get_precondition_value(op_id, var);
+
+            if (v2.contains(var, pre)) {
+                // Rewire source state
+                u_id = v2_id;
+
+                if (v2_target) {
+                    // Transition is now partial loop for v2.
+                    push_partial_loop(transition, proxy, v2_id);
+
+                    if (v1_target) {
+                        // Transition is now incoming for v1.
+                        incoming_by_id[v1_id].push_back(proxy);
+                    }
+                } else {
+                    // Transition is now outgoing for v2, incoming for v1.
+                    push_outgoing(transition, proxy, v2_id);
+                    incoming_by_id[v1_id].push_back(proxy);
+                }
+            } else if (v1_target) {
+                // Transition is still partial loop for v1.
+                push_partial_loop(transition, proxy, v1_id);
+
+                if (v2_target) {
+                    // Transition is now incoming for v2.
+                    incoming_by_id[v2_id].push_back(proxy);
+                }
+            } else {
+                // Transition is now outgoing for v1, incoming for v2.
+                push_outgoing(transition, proxy, v1_id);
+                incoming_by_id[v2_id].push_back(proxy);
+            }
         }
     }
 }
@@ -400,6 +630,7 @@ void ProbabilisticTransitionSystem::rewire_loops(
             // op starts in v1
             bool v1_set = false;
             bool v2_set = false;
+            bool has_prevail = false;
 
             std::vector<int> target_ids_v1;
             std::vector<int> target_ids_v2;
@@ -412,6 +643,7 @@ void ProbabilisticTransitionSystem::rewire_loops(
                 if (post == UNDEFINED) {
                     target_ids_v1.push_back(v1_id);
                     target_ids_v2.push_back(v2_id);
+                    has_prevail = true;
                 } else if (v1.contains(var, post)) {
                     // effect must end in v1.
                     target_ids_v1.push_back(v1_id);
@@ -425,52 +657,61 @@ void ProbabilisticTransitionSystem::rewire_loops(
                 }
             }
 
-            if (!v2_set) {
-                // uniform v1 self-loop.
-                add_loop(v1_id, op_id);
+            if (has_prevail) {
+                if (v1_set) {
+                    if (v2_set) {
+                        // some effects go to v1, some to v2.
+                        add_partial_loop(
+                            v1_id,
+                            op_id,
+                            std::move(target_ids_v1));
+                        add_partial_loop(
+                            v2_id,
+                            op_id,
+                            std::move(target_ids_v2));
+                    } else {
+                        // all non-prevail effects go to v1
+                        add_loop(v1_id, op_id);
+                        add_partial_loop(
+                            v2_id,
+                            op_id,
+                            std::move(target_ids_v2));
+                    }
+                } else {
+                    if (v2_set) {
+                        // all non-prevail effects go to v2
+                        add_partial_loop(
+                            v1_id,
+                            op_id,
+                            std::move(target_ids_v1));
+                        add_loop(v2_id, op_id);
+                    } else {
+                        // all effects prevail
+                        add_loop(v1_id, op_id);
+                        add_loop(v2_id, op_id);
+                    }
+                }
             } else {
-                // some effects go to v2.
-                add_transition(v1_id, op_id, std::move(target_ids_v1));
-            }
+                assert(v1_set || v2_set);
 
-            if (!v1_set) {
-                // uniform v2 self-loop.
-                add_loop(v2_id, op_id);
-            } else {
-                // some effects go to v1.
-                add_transition(v2_id, op_id, std::move(target_ids_v2));
+                if (!v2_set) {
+                    // all effects go to v1.
+                    add_loop(v1_id, op_id);
+                    add_transition(v2_id, op_id, std::move(target_ids_v2));
+                } else if (!v1_set) {
+                    // all effects go to v2.
+                    add_transition(v1_id, op_id, std::move(target_ids_v1));
+                    add_loop(v2_id, op_id);
+                } else {
+                    // some effects go to v1, some to v2.
+                    add_partial_loop(v1_id, op_id, std::move(target_ids_v1));
+                    add_partial_loop(v2_id, op_id, std::move(target_ids_v2));
+                }
             }
         } else if (v1.contains(var, pre)) {
             // op starts in v1
-            bool v2_set = false;
-
-            std::vector<int> target_ids;
-            target_ids.reserve(num_outcomes);
-
-            for (size_t i = 0; i != num_outcomes; ++i) {
-                int post = get_postcondition_value(op_id, i, var);
-                assert(post != UNDEFINED);
-
-                if (v1.contains(var, post)) {
-                    // effect must end in v1.
-                    target_ids.push_back(v1_id);
-                } else {
-                    // effect must end in v2.
-                    target_ids.push_back(v2_id);
-                    v2_set = true;
-                }
-            }
-
-            if (!v2_set) {
-                // uniform v1 self-loop.
-                add_loop(v1_id, op_id);
-            } else {
-                // some effects go to v2.
-                add_transition(v1_id, op_id, std::move(target_ids));
-            }
-        } else {
-            // op starts in v2
             bool v1_set = false;
+            bool v2_set = false;
 
             std::vector<int> target_ids;
             target_ids.reserve(num_outcomes);
@@ -486,20 +727,163 @@ void ProbabilisticTransitionSystem::rewire_loops(
                 } else {
                     // effect must end in v2.
                     target_ids.push_back(v2_id);
+                    v2_set = true;
+                }
+            }
+
+            if (!v2_set) {
+                // uniform v1 self-loop.
+                add_loop(v1_id, op_id);
+            } else if (!v1_set) {
+                // all effects go to v2.
+                add_transition(v1_id, op_id, std::move(target_ids));
+            } else {
+                // some effects go to v1, some to v2.
+                add_partial_loop(v1_id, op_id, std::move(target_ids));
+            }
+        } else {
+            // op starts in v2
+            bool v1_set = false;
+            bool v2_set = false;
+
+            std::vector<int> target_ids;
+            target_ids.reserve(num_outcomes);
+
+            for (size_t i = 0; i != num_outcomes; ++i) {
+                int post = get_postcondition_value(op_id, i, var);
+                assert(post != UNDEFINED);
+
+                if (v1.contains(var, post)) {
+                    // effect must end in v1.
+                    target_ids.push_back(v1_id);
+                    v1_set = true;
+                } else {
+                    // effect must end in v2.
+                    target_ids.push_back(v2_id);
+                    v2_set = true;
                 }
             }
 
             if (!v1_set) {
                 // uniform v2 self-loop.
                 add_loop(v2_id, op_id);
-            } else {
-                // some effects go to v1.
+            } else if (!v2_set) {
+                // all effects go to v1.
                 add_transition(v2_id, op_id, std::move(target_ids));
+            } else {
+                // some effects go to v1, some to v2.
+                add_partial_loop(v2_id, op_id, std::move(target_ids));
             }
         }
     }
 
     num_loops -= old_loops.size();
+}
+
+int ProbabilisticTransitionSystem::check_num_non_loop_transitions_after_rewire(
+    const AbstractStates& states,
+    const CartesianSet& v1,
+    const CartesianSet& v2,
+    int split_id,
+    int var) const
+{
+    int n = 0;
+
+    for (TransitionProxy* proxy : incoming_by_id[split_id]) {
+        const ProbabilisticTransition& transition = *proxy->transition;
+
+        int op_id = transition.op_id;
+        const std::vector<int>& target_ids = transition.target_ids;
+
+        const int u_id = proxy->source_id;
+        const AbstractState& u = *states[u_id];
+
+        if (get_precondition_value(op_id, var) == UNDEFINED) {
+            if (!u.intersects(v1, var)) continue;
+            if (!u.intersects(v2, var)) continue;
+
+            bool has_prevail = false;
+
+            for (auto [target, post] : zip_post(target_ids, op_id, var)) {
+                if (target != split_id) {
+                    if (post != UNDEFINED) continue;
+                    const AbstractState& v = *states[target];
+                    if (!v.intersects(v1, var) || !v.intersects(v2, var))
+                        goto skip;
+                } else if (post == UNDEFINED) {
+                    has_prevail = true;
+                }
+            }
+
+            if (has_prevail) {
+                ++n;
+            }
+        }
+
+    skip:;
+    }
+
+    for (const auto& transition : outgoing_by_id[split_id]) {
+        int op_id = transition.op_id;
+        const std::vector<int>& target_ids = transition.target_ids;
+
+        if (get_precondition_value(op_id, var) == UNDEFINED) {
+            for (auto [target, post] : zip_post(target_ids, op_id, var)) {
+                if (post != UNDEFINED) continue;
+                const AbstractState& v = *states[target];
+                if (!v.intersects(v1, var) || !v.intersects(v2, var))
+                    goto skip2;
+            }
+
+            ++n;
+        }
+
+    skip2:;
+    }
+
+    for (const auto& transition : partial_loops_by_id[split_id]) {
+        int op_id = transition.op_id;
+        const std::vector<int>& target_ids = transition.target_ids;
+
+        if (get_precondition_value(op_id, var) == UNDEFINED) {
+            bool has_prevail = false;
+
+            for (auto [target, post] : zip_post(target_ids, op_id, var)) {
+                if (target != split_id) {
+                    if (post != UNDEFINED) continue;
+                    const AbstractState& v = *states[target];
+                    if (!v.intersects(v1, var) || !v.intersects(v2, var))
+                        goto skip3;
+                } else if (post == UNDEFINED) {
+                    has_prevail = true;
+                }
+            }
+
+            if (has_prevail) {
+                ++n;
+            }
+        }
+
+    skip3:;
+    }
+
+    for (int op_id : loops_by_id[split_id]) {
+        if (get_precondition_value(op_id, var) == UNDEFINED) {
+            ++n;
+        }
+    }
+
+    return n + get_num_non_loops();
+}
+
+int ProbabilisticTransitionSystem::
+    estimate_num_non_loop_transitions_after_rewire(int split_id) const
+{
+    // A simple upper bound can be calculated by assuming every transition
+    // results in two rewired transitions.
+    return get_num_non_loops() + loops_by_id[split_id].size() +
+           partial_loops_by_id[split_id].size() +
+           outgoing_by_id[split_id].size() + incoming_by_id[split_id].size();
 }
 
 void ProbabilisticTransitionSystem::rewire(
@@ -514,6 +898,7 @@ void ProbabilisticTransitionSystem::rewire(
     // Remove old transitions and add new transitions.
     rewire_incoming_transitions(states, v1, v2, var);
     rewire_outgoing_transitions(states, v1, v2, var);
+    rewire_partial_loops(states, v1, v2, var);
     rewire_loops(v1, v2, var);
 }
 
@@ -524,16 +909,16 @@ ProbabilisticTransitionSystem::get_probability(int op_index, int eff_index)
     return probabilities_by_operator_and_outcome[op_index][eff_index];
 }
 
-auto ProbabilisticTransitionSystem::get_incoming_transitions() const
-    -> const std::vector<std::vector<TransitionProxy*>>&
-{
-    return incoming_by_id;
-}
-
 const std::deque<std::deque<ProbabilisticTransition>>&
 ProbabilisticTransitionSystem::get_outgoing_transitions() const
 {
     return outgoing_by_id;
+}
+
+const std::deque<std::deque<ProbabilisticTransition>>&
+ProbabilisticTransitionSystem::get_partial_loops() const
+{
+    return partial_loops_by_id;
 }
 
 const std::vector<std::vector<int>>&

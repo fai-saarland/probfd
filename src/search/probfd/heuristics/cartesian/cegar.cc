@@ -98,13 +98,39 @@ CEGARResult CEGAR::run_refinement_loop(
       with one goal doesn't hurt and simplifies the implementation.
     */
     if (task_proxy.get_goals().size() == 1) {
-        separate_facts_unreachable_before_goal(
+        const bool successful = separate_facts_unreachable_before_goal(
             task_proxy,
             *flaw_generator,
             *refinement_hierarchy,
             *abstraction,
             *heuristic,
             refine_timer);
+
+        if (!successful) {
+            if (log.is_at_least_normal()) {
+                log << "Flaw rejected during separation of facts unreachable "
+                       "before goal. Cannot start refinement loop."
+                    << refine_timer << endl;
+            }
+
+            flaw_generator->print_statistics(log);
+
+            if (log.is_at_least_normal()) {
+                log << "Time for splitting states: " << refine_timer << endl;
+            }
+
+            if (log.is_at_least_normal()) {
+                log << "Done building abstraction." << endl;
+                log << "Time for building abstraction: "
+                    << timer.get_elapsed_time() << endl;
+                abstraction->print_statistics();
+            }
+
+            return CEGARResult{
+                std::move(refinement_hierarchy),
+                std::move(abstraction),
+                std::move(heuristic)};
+        }
     }
 
     try {
@@ -136,7 +162,7 @@ CEGARResult CEGAR::run_refinement_loop(
                 break;
             }
 
-            refine_abstraction(
+            bool refined = refine_abstraction(
                 *flaw_generator,
                 *split_selector,
                 *refinement_hierarchy,
@@ -144,6 +170,15 @@ CEGARResult CEGAR::run_refinement_loop(
                 *heuristic,
                 *flaw,
                 refine_timer);
+
+            if (!refined) {
+                if (log.is_at_least_normal()) {
+                    log << "Flaw rejected by the refinement procedure. "
+                           "Stopping refinement loop."
+                        << endl;
+                }
+                break;
+            }
 
             if (log.is_at_least_verbose() &&
                 abstraction->get_num_states() % 1000 == 0) {
@@ -205,7 +240,7 @@ bool CEGAR::may_keep_refining(const Abstraction& abstraction) const
     return true;
 }
 
-void CEGAR::separate_facts_unreachable_before_goal(
+bool CEGAR::separate_facts_unreachable_before_goal(
     ProbabilisticTaskProxy task_proxy,
     FlawGenerator& flaw_generator,
     RefinementHierarchy& refinement_hierarchy,
@@ -231,20 +266,23 @@ void CEGAR::separate_facts_unreachable_before_goal(
         }
         if (!unreachable_values.empty()) {
             TimerScope scope(timer);
-            refine_abstraction(
-                flaw_generator,
-                refinement_hierarchy,
-                abstraction,
-                heuristic,
-                abstraction.get_initial_state(),
-                var_id,
-                unreachable_values);
+            if (!refine_abstraction(
+                    flaw_generator,
+                    refinement_hierarchy,
+                    abstraction,
+                    heuristic,
+                    abstraction.get_initial_state(),
+                    var_id,
+                    unreachable_values))
+                return false;
         }
     }
     abstraction.mark_all_states_as_goals();
+
+    return true;
 }
 
-void CEGAR::refine_abstraction(
+bool CEGAR::refine_abstraction(
     FlawGenerator& flaw_generator,
     SplitSelector& split_selector,
     RefinementHierarchy& refinement_hierarchy,
@@ -258,7 +296,7 @@ void CEGAR::refine_abstraction(
     vector<Split> splits = flaw.get_possible_splits();
     const auto& [var, wanted] =
         split_selector.pick_split(abstract_state, splits);
-    refine_abstraction(
+    return refine_abstraction(
         flaw_generator,
         refinement_hierarchy,
         abstraction,
@@ -268,7 +306,7 @@ void CEGAR::refine_abstraction(
         wanted);
 }
 
-void CEGAR::refine_abstraction(
+bool CEGAR::refine_abstraction(
     FlawGenerator& flaw_generator,
     RefinementHierarchy& refinement_hierarchy,
     Abstraction& abstraction,
@@ -278,9 +316,19 @@ void CEGAR::refine_abstraction(
     const std::vector<int>& wanted)
 {
     int id = abstract_state.get_id();
-    abstraction.refine(refinement_hierarchy, abstract_state, split_var, wanted);
-    heuristic.on_split(id);
-    flaw_generator.notify_split();
+    const bool refined = abstraction.refine(
+        refinement_hierarchy,
+        abstract_state,
+        split_var,
+        wanted,
+        max_non_looping_transitions);
+
+    if (refined) {
+        heuristic.on_split(id);
+        flaw_generator.notify_split();
+    }
+
+    return refined;
 }
 
 } // namespace cartesian

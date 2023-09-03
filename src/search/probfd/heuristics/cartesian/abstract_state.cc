@@ -80,11 +80,14 @@ CartesianSet AbstractState::regress(
     return regression;
 }
 
-bool AbstractState::domain_subsets_intersect(
-    const AbstractState& other,
-    int var) const
+bool AbstractState::intersects(const AbstractState& other, int var) const
 {
-    return cartesian_set.intersects(other.cartesian_set, var);
+    return intersects(other.cartesian_set, var);
+}
+
+bool AbstractState::intersects(const CartesianSet& other, int var) const
+{
+    return cartesian_set.intersects(other, var);
 }
 
 bool AbstractState::includes(const State& concrete_state) const

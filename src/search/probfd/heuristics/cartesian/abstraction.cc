@@ -69,6 +69,9 @@ void Abstraction::generate_applicable_actions(
     for (const auto& t : transition_system->get_outgoing_transitions()[state]) {
         result.push_back(&t);
     }
+    for (const auto& t : transition_system->get_partial_loops()[state]) {
+        result.push_back(&t);
+    }
 }
 
 void Abstraction::generate_action_transitions(
@@ -92,6 +95,10 @@ void Abstraction::generate_all_transitions(
         aops.push_back(&t);
         generate_action_transitions(state, &t, successors.emplace_back());
     }
+    for (const auto& t : transition_system->get_partial_loops()[state]) {
+        aops.push_back(&t);
+        generate_action_transitions(state, &t, successors.emplace_back());
+    }
 }
 
 void Abstraction::generate_all_transitions(
@@ -99,6 +106,10 @@ void Abstraction::generate_all_transitions(
     std::vector<Transition>& transitions)
 {
     for (const auto& t : transition_system->get_outgoing_transitions()[state]) {
+        Transition& transition = transitions.emplace_back(&t);
+        generate_action_transitions(state, &t, transition.successor_dist);
+    }
+    for (const auto& t : transition_system->get_partial_loops()[state]) {
         Transition& transition = transitions.emplace_back(&t);
         generate_action_transitions(state, &t, transition.successor_dist);
     }
@@ -167,11 +178,12 @@ void Abstraction::initialize_trivial_abstraction(
     states.push_back(std::move(init_state));
 }
 
-pair<int, int> Abstraction::refine(
+bool Abstraction::refine(
     RefinementHierarchy& refinement_hierarchy,
     const AbstractState& abstract_state,
     int split_var,
-    const std::vector<int>& wanted)
+    const std::vector<int>& wanted,
+    int transitions_limit)
 {
     if (log.is_at_least_debug())
         log << "Refine " << abstract_state << " for " << split_var << "="
@@ -182,27 +194,34 @@ pair<int, int> Abstraction::refine(
     int v1_id = v_id;
     int v2_id = get_num_states();
 
+    auto [left_set, right_set] = abstract_state.split_domain(split_var, wanted);
+
+    if (transition_system->estimate_num_non_loop_transitions_after_rewire(
+            v_id) > transitions_limit &&
+        transition_system->check_num_non_loop_transitions_after_rewire(
+            states,
+            left_set,
+            right_set,
+            v_id,
+            split_var) > transitions_limit)
+        return false;
+
     // Update refinement hierarchy.
-    pair<NodeID, NodeID> node_ids = refinement_hierarchy.split(
+    auto [left_node_id, right_node_id] = refinement_hierarchy.split(
         abstract_state.get_node_id(),
         split_var,
         wanted,
         v1_id,
         v2_id);
 
-    pair<
-        cartesian_abstractions::CartesianSet,
-        cartesian_abstractions::CartesianSet>
-        cartesian_sets = abstract_state.split_domain(split_var, wanted);
-
     unique_ptr v1 = std::make_unique<AbstractState>(
         v1_id,
-        node_ids.first,
-        std::move(cartesian_sets.first));
+        left_node_id,
+        std::move(left_set));
     unique_ptr v2 = std::make_unique<AbstractState>(
         v2_id,
-        node_ids.second,
-        std::move(cartesian_sets.second));
+        right_node_id,
+        std::move(right_set));
 
     assert(abstract_state.includes(*v1));
     assert(abstract_state.includes(*v2));
@@ -243,7 +262,7 @@ pair<int, int> Abstraction::refine(
     assert(static_cast<int>(states.size()) == v2_id);
     states.push_back(std::move(v2));
 
-    return {v1_id, v2_id};
+    return true;
 }
 
 void Abstraction::print_statistics() const

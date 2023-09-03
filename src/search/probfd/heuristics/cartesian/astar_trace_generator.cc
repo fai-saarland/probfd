@@ -85,6 +85,8 @@ unique_ptr<Trace> AStarTraceGenerator::find_trace(
 
     const auto& out =
         abstraction.get_transition_system().get_outgoing_transitions();
+    const auto& partial =
+        abstraction.get_transition_system().get_partial_loops();
 
     search_info[init_id].decrease_g_value_to(0);
     open_queue.push(heuristic.get_h_value(init_id), init_id);
@@ -112,6 +114,30 @@ unique_ptr<Trace> AStarTraceGenerator::find_trace(
         }
 
         for (const ProbabilisticTransition& transition : out[state_id]) {
+            for (size_t i = 0; i != transition.target_ids.size(); ++i) {
+                int op_id = transition.op_id;
+                int succ_id = transition.target_ids[i];
+
+                const value_t op_cost = abstraction.get_cost(op_id);
+                assert(op_cost >= 0);
+                const value_t succ_g = g + op_cost;
+                assert(succ_g >= 0);
+
+                if (succ_g < search_info[succ_id].get_g_value()) {
+                    search_info[succ_id].decrease_g_value_to(succ_g);
+                    auto h = heuristic.get_h_value(succ_id);
+                    if (h == INFINITE_VALUE) continue;
+                    const value_t f = succ_g + h;
+                    assert(f >= 0);
+                    assert(f != INFINITE_VALUE);
+                    open_queue.push(f, succ_id);
+                    search_info[succ_id].set_incoming_transition(
+                        TransitionOutcome(op_id, i, state_id));
+                }
+            }
+        }
+
+        for (const ProbabilisticTransition& transition : partial[state_id]) {
             for (size_t i = 0; i != transition.target_ids.size(); ++i) {
                 int op_id = transition.op_id;
                 int succ_id = transition.target_ids[i];
