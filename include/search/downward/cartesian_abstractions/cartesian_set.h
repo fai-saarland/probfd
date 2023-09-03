@@ -1,6 +1,8 @@
 #ifndef CEGAR_CARTESIAN_SET_H
 #define CEGAR_CARTESIAN_SET_H
 
+#include "downward/task_proxy.h"
+
 #include "downward/algorithms/dynamic_bitset.h"
 
 #include <ostream>
@@ -18,6 +20,7 @@ class CartesianSet {
     std::vector<Bitset> domain_subsets;
 
 public:
+    explicit CartesianSet(VariablesProxy variables);
     explicit CartesianSet(const std::vector<int>& domain_sizes);
 
     void add(int var, int value);

@@ -46,12 +46,11 @@ std::unique_ptr<Trace> TraceBasedFlawGenerator::find_trace(
 }
 
 optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
-    const ProbabilisticTaskProxy& task_proxy,
-    const std::vector<int>& domain_sizes,
+    ProbabilisticTaskProxy task_proxy,
     Abstraction& abstraction,
     const AbstractState* init,
     CartesianHeuristic& heuristic,
-    utils::LogProxy& log,
+    utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
     std::unique_ptr<Trace> solution =
@@ -66,7 +65,7 @@ optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
     }
 
     optional<Flaw> flaw =
-        find_flaw(task_proxy, domain_sizes, *solution, abstraction, log, timer);
+        find_flaw(task_proxy, *solution, abstraction, log, timer);
 
     if (!flaw && log.is_at_least_normal()) {
         log << "Found a plan without a flaw in the determinized problem."
@@ -77,11 +76,10 @@ optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
 }
 
 optional<Flaw> TraceBasedFlawGenerator::find_flaw(
-    const ProbabilisticTaskProxy& task_proxy,
-    const std::vector<int>& domain_sizes,
+    ProbabilisticTaskProxy task_proxy,
     const Trace& solution,
     Abstraction& abstraction,
-    utils::LogProxy& log,
+    utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
     TimerScope scope(find_flaw_timer);
@@ -123,7 +121,9 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
             return Flaw(
                 std::move(concrete_state),
                 *abstract_state,
-                get_cartesian_set(domain_sizes, op.get_preconditions()));
+                get_cartesian_set(
+                    task_proxy.get_variables(),
+                    op.get_preconditions()));
         }
     }
 
@@ -137,7 +137,7 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
     return Flaw(
         std::move(concrete_state),
         *abstract_state,
-        get_cartesian_set(domain_sizes, task_proxy.get_goals()));
+        get_cartesian_set(task_proxy.get_variables(), task_proxy.get_goals()));
 }
 
 void TraceBasedFlawGenerator::notify_split()
@@ -145,7 +145,7 @@ void TraceBasedFlawGenerator::notify_split()
     trace_generator->notify_split();
 }
 
-void TraceBasedFlawGenerator::print_statistics(utils::LogProxy& log)
+void TraceBasedFlawGenerator::print_statistics(utils::LogProxy log)
 {
     if (log.is_at_least_normal()) {
         log << "Time for finding abstract traces: " << find_trace_timer << endl;

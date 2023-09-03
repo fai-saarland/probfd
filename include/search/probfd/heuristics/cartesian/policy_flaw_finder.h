@@ -28,11 +28,10 @@ public:
     virtual ~PolicyFlawFinder() = default;
 
     virtual std::optional<Flaw> find_flaw(
-        const ProbabilisticTaskProxy& task_proxy,
-        const std::vector<int>& domain_sizes,
+        ProbabilisticTaskProxy task_proxy,
         Abstraction& abstraction,
         Solution& policy,
-        utils::LogProxy& log,
+        utils::LogProxy log,
         utils::CountdownTimer& timer) = 0;
 };
 

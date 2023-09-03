@@ -25,11 +25,10 @@ namespace cartesian {
 // Create the Cartesian set that corresponds to the given preconditions or
 // goals.
 template <typename ConditionsProxy>
-cartesian_abstractions::CartesianSet get_cartesian_set(
-    const std::vector<int>& domain_sizes,
-    const ConditionsProxy& conditions)
+cartesian_abstractions::CartesianSet
+get_cartesian_set(VariablesProxy variables, const ConditionsProxy& conditions)
 {
-    cartesian_abstractions::CartesianSet cartesian_set(domain_sizes);
+    cartesian_abstractions::CartesianSet cartesian_set(variables);
     for (FactProxy condition : conditions) {
         cartesian_set.set_single_value(
             condition.get_variable().get_id(),

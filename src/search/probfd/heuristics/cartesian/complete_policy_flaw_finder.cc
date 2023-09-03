@@ -36,11 +36,10 @@ CompletePolicyFlawFinder::CompletePolicyFlawFinder(int max_search_states)
 }
 
 optional<Flaw> CompletePolicyFlawFinder::find_flaw(
-    const ProbabilisticTaskProxy& task_proxy,
-    const std::vector<int>& domain_sizes,
+    ProbabilisticTaskProxy task_proxy,
     Abstraction& abstraction,
     Solution& policy,
-    utils::LogProxy& log,
+    utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
     const auto operators = task_proxy.get_operators();
@@ -79,7 +78,9 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
                 return Flaw(
                     std::move(state),
                     *abstract_state,
-                    get_cartesian_set(domain_sizes, task_proxy.get_goals()));
+                    get_cartesian_set(
+                        task_proxy.get_variables(),
+                        task_proxy.get_goals()));
             }
             continue;
         }
@@ -95,7 +96,9 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
             return Flaw(
                 std::move(state),
                 *abstract_state,
-                get_cartesian_set(domain_sizes, op.get_preconditions()));
+                get_cartesian_set(
+                    task_proxy.get_variables(),
+                    op.get_preconditions()));
         }
 
         const auto& targets = transition->target_ids;

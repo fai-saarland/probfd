@@ -27,17 +27,16 @@ public:
         std::vector<std::unique_ptr<FlawGenerator>> generators);
 
     std::optional<Flaw> generate_flaw(
-        const ProbabilisticTaskProxy& task_proxy,
-        const std::vector<int>& domain_sizes,
+        ProbabilisticTaskProxy task_proxy,
         Abstraction& abstraction,
         const AbstractState* init_id,
         CartesianHeuristic& heuristic,
-        utils::LogProxy& log,
+        utils::LogProxy log,
         utils::CountdownTimer& timer) override;
 
     void notify_split() override;
 
-    void print_statistics(utils::LogProxy& log) override;
+    void print_statistics(utils::LogProxy log) override;
 };
 
 class AdaptiveFlawGeneratorFactory : public FlawGeneratorFactory {
