@@ -22,18 +22,28 @@ namespace heuristics {
 namespace cartesian {
 
 class ProbabilisticTransitionSystem {
-    // Operator information
-    const std::vector<std::vector<FactPair>> preconditions_by_operator;
-    const std::vector<std::vector<std::vector<FactPair>>>
-        postconditions_by_operator_and_outcome;
-    const std::vector<std::vector<value_t>>
-        probabilities_by_operator_and_outcome;
+    struct TaskInformation {
+        // Operator information
+        std::vector<std::vector<FactPair>> preconditions_by_operator;
+        std::vector<std::vector<std::vector<FactPair>>>
+            postconditions_by_operator_and_outcome;
+        std::vector<std::vector<value_t>> probabilities_by_operator_and_outcome;
+
+        explicit TaskInformation(ProbabilisticOperatorsProxy ops);
+
+        int get_precondition_value(int op_id, int var) const;
+        auto get_postconditions(int op_id, int var) const;
+        size_t get_num_operator_outcomes(int op_id) const;
+    };
 
     struct TransitionProxy {
         ProbabilisticTransition* transition;
         int source_id;
         bool partial_loop;
     };
+
+    // Precalculated task information
+    const TaskInformation task_info;
 
     // The outgoing transitions for every abstract state. Using deque here to
     // avoid invalidating references stored in the proxy nodes.
@@ -62,18 +72,9 @@ class ProbabilisticTransitionSystem {
     // Increases size of incoming and outgoing transition lists by one.
     void enlarge_vectors_by_one();
 
-    // Construct the trivial abstraction.
-    void construct_trivial_abstraction(const ProbabilisticOperatorsProxy& ops);
-
-    int get_precondition_value(int op_id, int var) const;
-    int get_postcondition_value(int op_id, int eff_id, int var) const;
-    size_t get_num_operator_outcomes(int op_id) const;
-
     void add_transition(int src_id, int op_id, std::vector<int> target_ids);
     void add_partial_loop(int src_id, int op_id, std::vector<int> target_ids);
     void add_loop(int src_id, int op_id);
-
-    auto zip_post(auto& targets, int op_id, int var) const;
 
     void rewire_incoming_transitions(
         const AbstractStates& states,
@@ -97,8 +98,7 @@ class ProbabilisticTransitionSystem {
     rewire_loops(const AbstractState& v1, const AbstractState& v2, int var);
 
 public:
-    explicit ProbabilisticTransitionSystem(
-        const ProbabilisticOperatorsProxy& ops);
+    explicit ProbabilisticTransitionSystem(ProbabilisticOperatorsProxy ops);
 
     // Counts the number of new transitions that a given split would introduce
     // without actually rewiring the transitions.

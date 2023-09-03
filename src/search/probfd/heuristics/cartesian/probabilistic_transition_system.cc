@@ -11,12 +11,15 @@
 #include <map>
 
 using namespace std;
+using namespace std::views;
 
 namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
-static vector<vector<FactPair>>
+namespace {
+
+vector<vector<FactPair>>
 get_preconditions_by_operator(const ProbabilisticOperatorsProxy& ops)
 {
     vector<vector<FactPair>> preconditions_by_operator;
@@ -30,7 +33,7 @@ get_preconditions_by_operator(const ProbabilisticOperatorsProxy& ops)
     return preconditions_by_operator;
 }
 
-static vector<vector<FactPair>>
+vector<vector<FactPair>>
 get_postconditions_per_outcome(const ProbabilisticOperatorProxy& op)
 {
     vector<vector<FactPair>> postconditions;
@@ -58,8 +61,7 @@ get_postconditions_per_outcome(const ProbabilisticOperatorProxy& op)
     return postconditions;
 }
 
-static vector<vector<vector<FactPair>>>
-get_postconditions_by_operator_and_outcome(
+vector<vector<vector<FactPair>>> get_postconditions_by_operator_and_outcome(
     const ProbabilisticOperatorsProxy& ops)
 {
     vector<vector<vector<FactPair>>> postconditions;
@@ -70,7 +72,7 @@ get_postconditions_by_operator_and_outcome(
     return postconditions;
 }
 
-static vector<vector<value_t>> get_probabilities_by_operator_and_outcome(
+vector<vector<value_t>> get_probabilities_by_operator_and_outcome(
     const ProbabilisticOperatorsProxy& ops)
 {
     vector<vector<value_t>> probabilities;
@@ -86,7 +88,7 @@ static vector<vector<value_t>> get_probabilities_by_operator_and_outcome(
     return probabilities;
 }
 
-static int lookup_value(const vector<FactPair>& facts, int var)
+int lookup_value(const vector<FactPair>& facts, int var)
 {
     assert(is_sorted(facts.begin(), facts.end()));
     for (const FactPair& fact : facts) {
@@ -99,36 +101,139 @@ static int lookup_value(const vector<FactPair>& facts, int var)
     return UNDEFINED;
 }
 
-ProbabilisticTransitionSystem::ProbabilisticTransitionSystem(
-    const ProbabilisticOperatorsProxy& ops)
+auto undefined_precondition_rewire(
+    std::vector<int>& target_ids,
+    auto&& postconditions,
+    int var,
+    const AbstractStates& states,
+    const AbstractState& v1,
+    const AbstractState& v2,
+    int v1_id,
+    int v2_id,
+    bool v1_prevail_init,
+    bool v2_prevail_init)
+{
+    bool has_prevail = false;
+    bool v1_prevail = v1_prevail_init;
+    bool v2_prevail = v2_prevail_init;
+    bool v1_target = false;
+    bool v2_target = false;
+
+    for (auto [target, post] : zip(target_ids, postconditions)) {
+        if (target != v1_id) {
+            if (post != UNDEFINED) continue;
+            const AbstractState& v = *states[target];
+            v1_prevail = v1_prevail && v.intersects(v1, var);
+            v2_prevail = v2_prevail && v.intersects(v2, var);
+        } else if (post == UNDEFINED) {
+            has_prevail = true;
+            target = UNDEFINED;
+        } else if (v1.contains(var, post)) {
+            v1_target = true;
+            target = v1_id;
+        } else {
+            assert(v2.contains(var, post));
+            v2_target = true;
+            target = v2_id;
+        }
+    }
+
+    return std::make_tuple(
+        has_prevail,
+        v1_prevail,
+        v2_prevail,
+        v1_target,
+        v2_target);
+}
+
+auto defined_precondition_rewire(
+    std::vector<int>& target_ids,
+    auto&& postconditions,
+    int var,
+    const AbstractState& v1,
+    [[maybe_unused]] const AbstractState& v2,
+    int v1_id,
+    int v2_id)
+{
+    bool v1_target = false;
+    bool v2_target = false;
+
+    for (auto [target, post] : zip(target_ids, postconditions)) {
+        if (target != v1_id) continue;
+
+        if (v1.contains(var, post)) {
+            v1_target = true;
+            target = v1_id;
+        } else {
+            assert(v2.contains(var, post));
+            v2_target = true;
+            target = v2_id;
+        }
+    }
+
+    return std::make_pair(v1_target, v2_target);
+}
+
+void rewire_prevail_targets(std::vector<int>& targets, int rewire_to)
+{
+    std::ranges::replace(targets, UNDEFINED, rewire_to);
+}
+
+auto get_rewired_prevail_copy(std::vector<int> targets, int rewire_to)
+{
+    rewire_prevail_targets(targets, rewire_to);
+    return targets;
+}
+
+} // namespace
+
+int ProbabilisticTransitionSystem::TaskInformation::get_precondition_value(
+    int op_id,
+    int var) const
+{
+    return lookup_value(preconditions_by_operator[op_id], var);
+}
+
+auto ProbabilisticTransitionSystem::TaskInformation::get_postconditions(
+    int op_id,
+    int var) const
+{
+    return postconditions_by_operator_and_outcome[op_id] |
+           views::transform([var](auto& postcondition) {
+               return lookup_value(postcondition, var);
+           });
+}
+
+size_t
+ProbabilisticTransitionSystem::TaskInformation::get_num_operator_outcomes(
+    int op_id) const
+{
+    return postconditions_by_operator_and_outcome[op_id].size();
+}
+
+ProbabilisticTransitionSystem::TaskInformation::TaskInformation(
+    ProbabilisticOperatorsProxy ops)
     : preconditions_by_operator(get_preconditions_by_operator(ops))
     , postconditions_by_operator_and_outcome(
           get_postconditions_by_operator_and_outcome(ops))
     , probabilities_by_operator_and_outcome(
           get_probabilities_by_operator_and_outcome(ops))
 {
-    construct_trivial_abstraction(ops);
 }
 
-int ProbabilisticTransitionSystem::get_precondition_value(int op_id, int var)
-    const
+ProbabilisticTransitionSystem::ProbabilisticTransitionSystem(
+    ProbabilisticOperatorsProxy ops)
+    : task_info(ops)
 {
-    return lookup_value(preconditions_by_operator[op_id], var);
-}
+    // Construct the trivial abstraction.
+    enlarge_vectors_by_one();
+    assert(get_num_states() == 1);
 
-int ProbabilisticTransitionSystem::get_postcondition_value(
-    int op_id,
-    int eff_id,
-    int var) const
-{
-    return lookup_value(
-        postconditions_by_operator_and_outcome[op_id][eff_id],
-        var);
-}
+    for (const auto& op : ops) {
+        loops_by_id.front().emplace_back(op.get_id());
+    }
 
-size_t ProbabilisticTransitionSystem::get_num_operator_outcomes(int op_id) const
-{
-    return postconditions_by_operator_and_outcome[op_id].size();
+    num_loops += ops.size();
 }
 
 void ProbabilisticTransitionSystem::enlarge_vectors_by_one()
@@ -139,20 +244,6 @@ void ProbabilisticTransitionSystem::enlarge_vectors_by_one()
     partial_loop_proxies.emplace_back();
     incoming_by_id.emplace_back();
     loops_by_id.emplace_back();
-}
-
-void ProbabilisticTransitionSystem::construct_trivial_abstraction(
-    const ProbabilisticOperatorsProxy& ops)
-{
-    assert(get_num_states() == 0);
-    enlarge_vectors_by_one();
-    assert(get_num_states() == 1);
-
-    for (const auto& op : ops) {
-        loops_by_id[0].emplace_back(op.get_id());
-    }
-
-    num_loops += ops.size();
 }
 
 void ProbabilisticTransitionSystem::add_transition(
@@ -202,101 +293,6 @@ void ProbabilisticTransitionSystem::add_loop(int src_id, int op_id)
     ++num_loops;
 }
 
-auto ProbabilisticTransitionSystem::zip_post(auto& targets, int op_id, int var)
-    const
-{
-    return std::views::iota(0U, targets.size()) |
-           std::views::transform([&, op_id, var](size_t i) {
-               return std::make_pair(
-                   std::ref(targets[i]),
-                   get_postcondition_value(op_id, i, var));
-           });
-}
-
-namespace {
-auto undefined_precondition_rewire(
-    auto&& target_post,
-    int var,
-    const AbstractStates& states,
-    const AbstractState& v1,
-    const AbstractState& v2,
-    int v1_id,
-    int v2_id,
-    bool v1_prevail_init,
-    bool v2_prevail_init)
-{
-    bool has_prevail = false;
-    bool v1_prevail = v1_prevail_init;
-    bool v2_prevail = v2_prevail_init;
-    bool v1_target = false;
-    bool v2_target = false;
-
-    for (auto [target, post] : target_post) {
-        if (target != v1_id) {
-            if (post != UNDEFINED) continue;
-            const AbstractState& v = *states[target];
-            v1_prevail = v1_prevail && v.intersects(v1, var);
-            v2_prevail = v2_prevail && v.intersects(v2, var);
-        } else if (post == UNDEFINED) {
-            has_prevail = true;
-            target = UNDEFINED;
-        } else if (v1.contains(var, post)) {
-            v1_target = true;
-            target = v1_id;
-        } else {
-            assert(v2.contains(var, post));
-            v2_target = true;
-            target = v2_id;
-        }
-    }
-
-    return std::make_tuple(
-        has_prevail,
-        v1_prevail,
-        v2_prevail,
-        v1_target,
-        v2_target);
-}
-
-auto defined_precondition_rewire(
-    auto&& target_post,
-    int var,
-    const AbstractState& v1,
-    [[maybe_unused]] const AbstractState& v2,
-    int v1_id,
-    int v2_id)
-{
-    bool v1_target = false;
-    bool v2_target = false;
-
-    for (auto [target, post] : target_post) {
-        if (target != v1_id) continue;
-
-        if (v1.contains(var, post)) {
-            v1_target = true;
-            target = v1_id;
-        } else {
-            assert(v2.contains(var, post));
-            v2_target = true;
-            target = v2_id;
-        }
-    }
-
-    return std::make_pair(v1_target, v2_target);
-}
-
-void rewire_prevail_targets(std::vector<int>& targets, int rewire_to)
-{
-    std::ranges::replace(targets, UNDEFINED, rewire_to);
-}
-
-auto get_rewired_prevail_copy(std::vector<int> targets, int rewire_to)
-{
-    rewire_prevail_targets(targets, rewire_to);
-    return targets;
-}
-} // namespace
-
 void ProbabilisticTransitionSystem::rewire_incoming_transitions(
     const AbstractStates& states,
     const AbstractState& v1,
@@ -324,11 +320,12 @@ void ProbabilisticTransitionSystem::rewire_incoming_transitions(
         assert(utils::contains(target_ids, v1_id));
         assert(proxy->partial_loop == utils::contains(target_ids, u_id));
 
-        int pre = get_precondition_value(op_id, var);
+        int pre = task_info.get_precondition_value(op_id, var);
         if (pre == UNDEFINED) {
             auto [has_prevail, v1_prevail, v2_prevail, v1_target, v2_target] =
                 undefined_precondition_rewire(
-                    zip_post(target_ids, op_id, var),
+                    target_ids,
+                    task_info.get_postconditions(op_id, var),
                     var,
                     states,
                     v1,
@@ -376,7 +373,8 @@ void ProbabilisticTransitionSystem::rewire_incoming_transitions(
             }
         } else {
             const auto [v1_target, v2_target] = defined_precondition_rewire(
-                zip_post(target_ids, op_id, var),
+                target_ids,
+                task_info.get_postconditions(op_id, var),
                 var,
                 v1,
                 v2,
@@ -409,7 +407,7 @@ void ProbabilisticTransitionSystem::rewire_outgoing_transitions(
         outgoing_proxies[source_id].emplace_back(proxy);
     };
 
-    auto z = std::views::zip(old_outgoing, old_outgoing_refs);
+    auto z = zip(old_outgoing, old_outgoing_refs);
     for (const auto& [transition, proxy] : z) {
         int op_id = transition.op_id;
         std::vector<int>& target_ids = transition.target_ids;
@@ -417,13 +415,15 @@ void ProbabilisticTransitionSystem::rewire_outgoing_transitions(
         assert(!utils::contains(target_ids, v1_id));
         assert(proxy->source_id == v1_id);
 
-        int pre = get_precondition_value(op_id, var);
+        int pre = task_info.get_precondition_value(op_id, var);
 
         if (pre == UNDEFINED) {
             bool v1_prevail = true;
             bool v2_prevail = true;
 
-            for (auto [target, post] : zip_post(target_ids, op_id, var)) {
+            auto postconditions = task_info.get_postconditions(op_id, var);
+
+            for (auto [target, post] : zip(target_ids, postconditions)) {
                 if (post != UNDEFINED) continue;
                 const AbstractState& v = *states[target];
                 v1_prevail = v1_prevail && v.intersects(v1, var);
@@ -486,7 +486,7 @@ void ProbabilisticTransitionSystem::rewire_partial_loops(
         outgoing_proxies[source_id].push_back(proxy);
     };
 
-    auto z = std::views::zip(old_outgoing, old_outgoing_refs);
+    auto z = zip(old_outgoing, old_outgoing_refs);
     for (const auto& [transition, proxy] : z) {
         int op_id = transition.op_id;
         std::vector<int>& target_ids = transition.target_ids;
@@ -496,11 +496,12 @@ void ProbabilisticTransitionSystem::rewire_partial_loops(
         assert(u_id == v1_id);
         assert(utils::contains(target_ids, v1_id));
 
-        int pre = get_precondition_value(op_id, var);
+        int pre = task_info.get_precondition_value(op_id, var);
         if (pre == UNDEFINED) {
             auto [has_prevail, v1_prevail, v2_prevail, v1_target, v2_target] =
                 undefined_precondition_rewire(
-                    zip_post(target_ids, op_id, var),
+                    target_ids,
+                    task_info.get_postconditions(op_id, var),
                     var,
                     states,
                     v1,
@@ -564,7 +565,8 @@ void ProbabilisticTransitionSystem::rewire_partial_loops(
             }
         } else {
             const auto [v1_target, v2_target] = defined_precondition_rewire(
-                zip_post(target_ids, op_id, var),
+                target_ids,
+                task_info.get_postconditions(op_id, var),
                 var,
                 v1,
                 v2,
@@ -573,7 +575,7 @@ void ProbabilisticTransitionSystem::rewire_partial_loops(
 
             assert(v1_target || v2_target);
 
-            const int pre = get_precondition_value(op_id, var);
+            const int pre = task_info.get_precondition_value(op_id, var);
 
             if (v2.contains(var, pre)) {
                 // Rewire source state
@@ -623,8 +625,8 @@ void ProbabilisticTransitionSystem::rewire_loops(
     auto old_loops = std::move(loops_by_id[v1_id]);
 
     for (int op_id : old_loops) {
-        const int pre = get_precondition_value(op_id, var);
-        const size_t num_outcomes = get_num_operator_outcomes(op_id);
+        const int pre = task_info.get_precondition_value(op_id, var);
+        const size_t num_outcomes = task_info.get_num_operator_outcomes(op_id);
 
         if (pre == UNDEFINED) {
             // op starts in v1
@@ -637,9 +639,7 @@ void ProbabilisticTransitionSystem::rewire_loops(
             target_ids_v1.reserve(num_outcomes);
             target_ids_v2.reserve(num_outcomes);
 
-            for (size_t i = 0; i != num_outcomes; ++i) {
-                int post = get_postcondition_value(op_id, i, var);
-
+            for (int post : task_info.get_postconditions(op_id, var)) {
                 if (post == UNDEFINED) {
                     target_ids_v1.push_back(v1_id);
                     target_ids_v2.push_back(v2_id);
@@ -716,8 +716,7 @@ void ProbabilisticTransitionSystem::rewire_loops(
             std::vector<int> target_ids;
             target_ids.reserve(num_outcomes);
 
-            for (size_t i = 0; i != num_outcomes; ++i) {
-                int post = get_postcondition_value(op_id, i, var);
+            for (int post : task_info.get_postconditions(op_id, var)) {
                 assert(post != UNDEFINED);
 
                 if (v1.contains(var, post)) {
@@ -749,8 +748,7 @@ void ProbabilisticTransitionSystem::rewire_loops(
             std::vector<int> target_ids;
             target_ids.reserve(num_outcomes);
 
-            for (size_t i = 0; i != num_outcomes; ++i) {
-                int post = get_postcondition_value(op_id, i, var);
+            for (int post : task_info.get_postconditions(op_id, var)) {
                 assert(post != UNDEFINED);
 
                 if (v1.contains(var, post)) {
@@ -798,13 +796,15 @@ int ProbabilisticTransitionSystem::check_num_non_loop_transitions_after_rewire(
         const int u_id = proxy->source_id;
         const AbstractState& u = *states[u_id];
 
-        if (get_precondition_value(op_id, var) == UNDEFINED) {
+        if (task_info.get_precondition_value(op_id, var) == UNDEFINED) {
             if (!u.intersects(v1, var)) continue;
             if (!u.intersects(v2, var)) continue;
 
             bool has_prevail = false;
 
-            for (auto [target, post] : zip_post(target_ids, op_id, var)) {
+            auto postconditions = task_info.get_postconditions(op_id, var);
+
+            for (auto [target, post] : zip(target_ids, postconditions)) {
                 if (target != split_id) {
                     if (post != UNDEFINED) continue;
                     const AbstractState& v = *states[target];
@@ -827,8 +827,10 @@ int ProbabilisticTransitionSystem::check_num_non_loop_transitions_after_rewire(
         int op_id = transition.op_id;
         const std::vector<int>& target_ids = transition.target_ids;
 
-        if (get_precondition_value(op_id, var) == UNDEFINED) {
-            for (auto [target, post] : zip_post(target_ids, op_id, var)) {
+        if (task_info.get_precondition_value(op_id, var) == UNDEFINED) {
+            auto postconditions = task_info.get_postconditions(op_id, var);
+
+            for (auto [target, post] : zip(target_ids, postconditions)) {
                 if (post != UNDEFINED) continue;
                 const AbstractState& v = *states[target];
                 if (!v.intersects(v1, var) || !v.intersects(v2, var))
@@ -845,10 +847,12 @@ int ProbabilisticTransitionSystem::check_num_non_loop_transitions_after_rewire(
         int op_id = transition.op_id;
         const std::vector<int>& target_ids = transition.target_ids;
 
-        if (get_precondition_value(op_id, var) == UNDEFINED) {
+        if (task_info.get_precondition_value(op_id, var) == UNDEFINED) {
             bool has_prevail = false;
 
-            for (auto [target, post] : zip_post(target_ids, op_id, var)) {
+            auto postconditions = task_info.get_postconditions(op_id, var);
+
+            for (auto [target, post] : zip(target_ids, postconditions)) {
                 if (target != split_id) {
                     if (post != UNDEFINED) continue;
                     const AbstractState& v = *states[target];
@@ -868,7 +872,7 @@ int ProbabilisticTransitionSystem::check_num_non_loop_transitions_after_rewire(
     }
 
     for (int op_id : loops_by_id[split_id]) {
-        if (get_precondition_value(op_id, var) == UNDEFINED) {
+        if (task_info.get_precondition_value(op_id, var) == UNDEFINED) {
             ++n;
         }
     }
@@ -906,7 +910,7 @@ value_t
 ProbabilisticTransitionSystem::get_probability(int op_index, int eff_index)
     const
 {
-    return probabilities_by_operator_and_outcome[op_index][eff_index];
+    return task_info.probabilities_by_operator_and_outcome[op_index][eff_index];
 }
 
 const std::deque<std::deque<ProbabilisticTransition>>&
@@ -935,7 +939,7 @@ int ProbabilisticTransitionSystem::get_num_states() const
 
 int ProbabilisticTransitionSystem::get_num_operators() const
 {
-    return preconditions_by_operator.size();
+    return task_info.preconditions_by_operator.size();
 }
 
 int ProbabilisticTransitionSystem::get_num_non_loops() const
