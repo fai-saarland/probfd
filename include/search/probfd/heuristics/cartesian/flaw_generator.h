@@ -14,8 +14,6 @@
 
 namespace utils {
 class CountdownTimer;
-class LogProxy;
-class Timer;
 } // namespace utils
 
 namespace probfd {
