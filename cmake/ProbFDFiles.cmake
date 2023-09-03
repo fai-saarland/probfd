@@ -406,6 +406,7 @@ fast_downward_plugin(
         probfd/heuristics/cartesian/adaptive_flaw_generator
         probfd/heuristics/cartesian/additive_cartesian_heuristic
         probfd/heuristics/cartesian/astar_trace_generator
+        probfd/heuristics/cartesian/cartesian_abstraction_info
         probfd/heuristics/cartesian/cartesian_heuristic_function
         probfd/heuristics/cartesian/cegar
         probfd/heuristics/cartesian/cost_saturation

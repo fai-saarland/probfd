@@ -20,25 +20,13 @@ namespace cartesian {
 
 class AbstractState;
 class Abstraction;
+class CartesianAbstractionInfo;
 class CartesianHeuristic;
 struct Flaw;
 class FlawGenerator;
 class FlawGeneratorFactory;
 class SplitSelector;
 class SplitSelectorFactory;
-
-/**
- * Contains the final abstraction mapping (RefinementHierarchy), the final
- * Cartesian abstraction, and the final heuristic for the abstract state
- * distances.
- */
-struct CEGARResult {
-    std::unique_ptr<RefinementHierarchy> refinement_hierarchy;
-    std::unique_ptr<Abstraction> abstraction;
-    std::unique_ptr<CartesianHeuristic> heuristic;
-
-    ~CEGARResult();
-};
 
 /*
   Iteratively refine a Cartesian abstraction with counterexample-guided
@@ -66,7 +54,7 @@ public:
     ~CEGAR();
 
     // Build abstraction.
-    CEGARResult run_refinement_loop(
+    CartesianAbstractionInfo run_refinement_loop(
         const std::shared_ptr<ProbabilisticTask>& task,
         double max_time);
 

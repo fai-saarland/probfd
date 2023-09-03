@@ -2,6 +2,7 @@
 
 #include "probfd/heuristics/cartesian/abstract_state.h"
 #include "probfd/heuristics/cartesian/abstraction.h"
+#include "probfd/heuristics/cartesian/cartesian_abstraction_info.h"
 #include "probfd/heuristics/cartesian/evaluators.h"
 #include "probfd/heuristics/cartesian/flaw.h"
 #include "probfd/heuristics/cartesian/flaw_generator.h"
@@ -36,8 +37,6 @@ namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
-CEGARResult::~CEGARResult() = default;
-
 CEGAR::CEGAR(
     int max_states,
     int max_non_looping_transitions,
@@ -55,7 +54,7 @@ CEGAR::CEGAR(
 
 CEGAR::~CEGAR() = default;
 
-CEGARResult CEGAR::run_refinement_loop(
+CartesianAbstractionInfo CEGAR::run_refinement_loop(
     const shared_ptr<ProbabilisticTask>& task,
     double max_time)
 {
@@ -126,7 +125,7 @@ CEGARResult CEGAR::run_refinement_loop(
                 abstraction->print_statistics();
             }
 
-            return CEGARResult{
+            return CartesianAbstractionInfo{
                 std::move(refinement_hierarchy),
                 std::move(abstraction),
                 std::move(heuristic)};
@@ -211,7 +210,7 @@ CEGARResult CEGAR::run_refinement_loop(
         abstraction->print_statistics();
     }
 
-    return CEGARResult{
+    return CartesianAbstractionInfo{
         std::move(refinement_hierarchy),
         std::move(abstraction),
         std::move(heuristic)};

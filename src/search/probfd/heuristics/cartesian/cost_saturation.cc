@@ -1,6 +1,7 @@
 #include "probfd/heuristics/cartesian/cost_saturation.h"
 
 #include "probfd/heuristics/cartesian/abstraction.h"
+#include "probfd/heuristics/cartesian/cartesian_abstraction_info.h"
 #include "probfd/heuristics/cartesian/cartesian_heuristic_function.h"
 #include "probfd/heuristics/cartesian/cegar.h"
 #include "probfd/heuristics/cartesian/distances.h"
