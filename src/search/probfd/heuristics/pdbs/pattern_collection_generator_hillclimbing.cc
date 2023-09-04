@@ -254,8 +254,8 @@ void PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
     auto& pdb =
         pattern_databases->emplace_back(new ProbabilityAwarePatternDatabase(
             task_proxy,
-            pattern,
             *task_cost_function,
+            pattern,
             initial_state));
     size += pdb->num_states();
 }
@@ -503,9 +503,9 @@ unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
             auto& new_pdb =
                 candidate_pdbs.emplace_back(new ProbabilityAwarePatternDatabase(
                     task_proxy,
+                    task_cost_function,
                     pdb,
                     rel_var_id,
-                    task_cost_function,
                     task_proxy.get_initial_state(),
                     true,
                     hill_climbing_timer.get_remaining_time()));

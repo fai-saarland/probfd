@@ -7,13 +7,12 @@
 
 #include "probfd/fdr_types.h"
 #include "probfd/mdp.h"
+#include "probfd/task_proxy.h"
 
 #include <limits>
 #include <vector>
 
 namespace probfd {
-class ProbabilisticTaskProxy;
-
 namespace heuristics {
 namespace pdbs {
 
@@ -30,9 +29,9 @@ class ProjectionStateSpace
 
 public:
     ProjectionStateSpace(
-        const ProbabilisticTaskProxy& task_proxy,
-        const StateRankingFunction& ranking_function,
+        ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
+        const StateRankingFunction& ranking_function,
         bool operator_pruning = true,
         double max_time = std::numeric_limits<double>::infinity());
 

@@ -76,8 +76,8 @@ UCPHeuristic::UCPHeuristic(
         StateRankingFunction rankingf(task_proxy.get_variables(), pattern);
         ProjectionStateSpace state_space(
             task_proxy,
-            rankingf,
             task_costs,
+            rankingf,
             true);
         StateRank init_rank = rankingf.get_abstract_rank(initial_state);
         pdbs.emplace_back(state_space, std::move(rankingf), init_rank);

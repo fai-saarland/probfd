@@ -127,8 +127,8 @@ GZOCPHeuristic::GZOCPHeuristic(
         StateRankingFunction rankingf(task_proxy.get_variables(), pattern);
         ProjectionStateSpace state_space(
             task_proxy,
-            rankingf,
             task_costs,
+            rankingf,
             false);
         StateRank init_rank = rankingf.get_abstract_rank(initial_state);
         auto& pdb =

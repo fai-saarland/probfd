@@ -268,7 +268,10 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
 
         if (generated_patterns.insert(pattern).second) {
             if (use_saturated_costs) {
-                pdb->compute_saturated_costs(*state_space, saturated_costs);
+                compute_saturated_costs(
+                    *state_space,
+                    pdb->get_value_table(),
+                    saturated_costs);
                 cost_function.update_costs(saturated_costs);
             }
 

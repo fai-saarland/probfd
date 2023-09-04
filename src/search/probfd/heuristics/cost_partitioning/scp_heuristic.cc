@@ -109,8 +109,8 @@ SCPHeuristic::SCPHeuristic(
         StateRankingFunction rankingf(task_proxy.get_variables(), pattern);
         ProjectionStateSpace state_space(
             task_proxy,
-            rankingf,
             task_costs,
+            rankingf,
             false);
         const StateRank initial_state_rank =
             rankingf.get_abstract_rank(initial_state);
@@ -120,7 +120,10 @@ SCPHeuristic::SCPHeuristic(
             std::move(rankingf),
             initial_state_rank);
 
-        pdb.compute_saturated_costs(state_space, saturated_costs);
+        compute_saturated_costs(
+            state_space,
+            pdb.get_value_table(),
+            saturated_costs);
 
         for (size_t i = 0; i != num_operators; ++i) {
             task_costs[i] -= saturated_costs[i];

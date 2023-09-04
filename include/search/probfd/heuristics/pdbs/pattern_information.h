@@ -18,8 +18,8 @@ namespace pdbs {
 
 class PatternInformation {
     ProbabilisticTaskProxy task_proxy;
-    Pattern pattern;
     FDRSimpleCostFunction* task_cost_function;
+    Pattern pattern;
     std::shared_ptr<ProbabilityAwarePatternDatabase> pdb;
 
     void create_pdb_if_missing();
@@ -28,7 +28,7 @@ class PatternInformation {
 
 public:
     PatternInformation(
-        const ProbabilisticTaskProxy& task_proxy,
+        ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction* task_cost_function,
         Pattern pattern);
 

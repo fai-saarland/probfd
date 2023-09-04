@@ -13,12 +13,12 @@ namespace heuristics {
 namespace pdbs {
 
 PatternInformation::PatternInformation(
-    const ProbabilisticTaskProxy& task_proxy,
+    ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction* task_cost_function,
     Pattern pattern)
     : task_proxy(task_proxy)
-    , pattern(std::move(pattern))
     , task_cost_function(task_cost_function)
+    , pattern(std::move(pattern))
 {
 }
 
@@ -32,8 +32,8 @@ void PatternInformation::create_pdb_if_missing()
     if (!pdb) {
         pdb = make_shared<ProbabilityAwarePatternDatabase>(
             task_proxy,
-            pattern,
             *task_cost_function,
+            pattern,
             task_proxy.get_initial_state());
     }
 }
