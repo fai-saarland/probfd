@@ -27,7 +27,7 @@ using ProjectionCollection = std::vector<std::unique_ptr<ProjectionStateSpace>>;
 using PPDBCollection =
     std::vector<std::shared_ptr<ProbabilityAwarePatternDatabase>>;
 
-struct StateRank;
+using StateRank = int;
 class ProjectionOperator;
 
 using ProjectionMultiPolicy = MultiPolicy<StateRank, const ProjectionOperator*>;

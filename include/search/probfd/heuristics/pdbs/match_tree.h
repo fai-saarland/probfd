@@ -1,7 +1,6 @@
 #ifndef PROBFD_PDBS_MATCH_TREE_H
 #define PROBFD_PDBS_MATCH_TREE_H
 
-#include "probfd/heuristics/pdbs/state_rank.h"
 #include "probfd/heuristics/pdbs/types.h"
 
 #include "probfd/task_proxy.h"

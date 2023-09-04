@@ -77,9 +77,9 @@ const Pattern& StateRankingFunction::get_pattern() const
 
 StateRank StateRankingFunction::get_abstract_rank(const State& state) const
 {
-    StateRank res(0);
+    StateRank res = 0;
     for (size_t i = 0; i != pattern_.size(); ++i) {
-        res.id += rank_fact(i, state[pattern_[i]].get_value());
+        res += rank_fact(i, state[pattern_[i]].get_value());
     }
     return res;
 }
@@ -101,7 +101,7 @@ std::vector<int> StateRankingFunction::unrank(StateRank state_rank) const
 int StateRankingFunction::value_of(StateRank state_rank, int idx) const
 {
     const VariableInfo& info = var_infos_[idx];
-    return (state_rank.id / info.multiplier) % info.domain;
+    return (state_rank / info.multiplier) % info.domain;
 }
 
 bool StateRankingFunction::next_partial_assignment(
@@ -123,20 +123,20 @@ bool StateRankingFunction::next_partial_assignment(
 }
 
 bool StateRankingFunction::next_rank(
-    StateRank& abstract_state,
+    StateRank& abstract_state_rank,
     std::span<int> mutable_variables) const
 {
     for (int var : mutable_variables) {
         const int domain = var_infos_[var].domain;
         const int multiplier = var_infos_[var].multiplier;
-        const int value = (abstract_state.id / multiplier) % domain;
+        const int value = (abstract_state_rank / multiplier) % domain;
 
         if (value + 1 < domain) {
-            abstract_state.id += multiplier;
+            abstract_state_rank += multiplier;
             return true;
         }
 
-        abstract_state.id -= value * multiplier;
+        abstract_state_rank -= value * multiplier;
     }
 
     return false;

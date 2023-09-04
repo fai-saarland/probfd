@@ -3,7 +3,7 @@
 
 #include "probfd/heuristics/pdbs/match_tree.h"
 #include "probfd/heuristics/pdbs/projection_operator.h"
-#include "probfd/heuristics/pdbs/state_rank.h"
+#include "probfd/heuristics/pdbs/types.h"
 
 #include "probfd/fdr_types.h"
 #include "probfd/mdp.h"

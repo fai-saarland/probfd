@@ -1,7 +1,6 @@
 #ifndef PROBFD_HEURISTICS_PDBS_STATE_RANKING_FUNCTION_H
 #define PROBFD_HEURISTICS_PDBS_STATE_RANKING_FUNCTION_H
 
-#include "probfd/heuristics/pdbs/state_rank.h"
 #include "probfd/heuristics/pdbs/types.h"
 
 #include "probfd/task_proxy.h"

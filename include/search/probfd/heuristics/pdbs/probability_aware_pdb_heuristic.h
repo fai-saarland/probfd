@@ -3,7 +3,6 @@
 
 #include "probfd/heuristics/pdbs/pattern_collection_generator.h"
 
-#include "probfd/heuristics/pdbs/state_rank.h"
 #include "probfd/heuristics/pdbs/types.h"
 
 #include "probfd/heuristics/task_dependent_heuristic.h"
