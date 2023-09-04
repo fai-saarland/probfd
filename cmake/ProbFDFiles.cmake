@@ -282,7 +282,6 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/probability_aware_pattern_database
         probfd/heuristics/pdbs/projection_operator
         probfd/heuristics/pdbs/projection_state_space
-        probfd/heuristics/pdbs/state_rank
         probfd/heuristics/pdbs/state_ranking_function
     DEPENDS PDBS MDP SUCCESSOR_GENERATOR TASK_DEPENDENT_HEURISTIC
     DEPENDENCY_ONLY

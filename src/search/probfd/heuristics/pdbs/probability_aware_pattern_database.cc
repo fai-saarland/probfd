@@ -49,7 +49,7 @@ public:
 
     value_t evaluate(StateRank state) const override
     {
-        if (utils::contains(pruned_states, StateID(state.id))) {
+        if (utils::contains(pruned_states, state)) {
             return pruned_value;
         }
 
@@ -100,7 +100,7 @@ void ProbabilityAwarePatternDatabase::compute_value_table(
         mdp.get_non_goal_termination_cost());
 
     TATopologicalValueIteration<StateRank, const ProjectionOperator*> vi;
-    vi.solve(mdp, h, initial_state.id, value_table, timer.get_remaining_time());
+    vi.solve(mdp, h, initial_state, value_table, timer.get_remaining_time());
 
 #if !defined(NDEBUG)
     std::cout << "(II) Pattern [";
@@ -108,7 +108,7 @@ void ProbabilityAwarePatternDatabase::compute_value_table(
         std::cout << (i > 0 ? ", " : "") << ranking_function_.get_pattern()[i];
     }
 
-    std::cout << "]: value=" << value_table[initial_state.id] << std::endl;
+    std::cout << "]: value=" << value_table[initial_state] << std::endl;
 
 #if defined(USE_LP)
     verify(mdp, initial_state, pruned_states);
@@ -335,7 +335,7 @@ value_t ProbabilityAwarePatternDatabase::lookup_estimate(const State& s) const
 
 value_t ProbabilityAwarePatternDatabase::lookup_estimate(StateRank s) const
 {
-    return value_table[s.id];
+    return value_table[s];
 }
 
 StateRank
@@ -382,7 +382,7 @@ ProbabilityAwarePatternDatabase::compute_optimal_projection_policy(
         StateRank s = open.front();
         open.pop_front();
 
-        const value_t value = value_table[s.id];
+        const value_t value = value_table[s];
 
         // Skip dead-ends, the operator is irrelevant
         if (value == term_cost) {
@@ -444,7 +444,7 @@ ProbabilityAwarePatternDatabase::compute_optimal_projection_policy(
             if (!closed.insert(pstate).second) continue;
             open.push_back(pstate);
 
-            const value_t parent_cost = value_table[pstate.id];
+            const value_t parent_cost = value_table[pstate];
 
             // Collect all equivalent greedy operators
             std::vector<const ProjectionOperator*> aops;
@@ -464,7 +464,7 @@ ProbabilityAwarePatternDatabase::compute_optimal_projection_policy(
             // If not wildcard, randomly pick one
             if (!wildcard) decisions = {*rng.choose(decisions)};
 
-            (*policy)[pstate.id] = std::move(decisions);
+            (*policy)[pstate] = std::move(decisions);
         }
     }
 
@@ -499,7 +499,7 @@ ProbabilityAwarePatternDatabase::compute_greedy_projection_policy(
         StateRank s = open.front();
         open.pop_front();
 
-        const value_t value = value_table[s.id];
+        const value_t value = value_table[s];
 
         // Skip dead-ends, the operator is irrelevant
         if (value == term_cost) {
@@ -567,9 +567,9 @@ ProbabilityAwarePatternDatabase::compute_greedy_projection_policy(
 
         // If not wildcard, randomly pick one
         if (!wildcard) decisions = {*rng.choose(decisions)};
-        (*policy)[s.id] = std::move(decisions);
+        (*policy)[s] = std::move(decisions);
 
-        assert(!(*policy)[s.id].empty());
+        assert(!(*policy)[s].empty());
     }
 
     return policy;
@@ -581,8 +581,9 @@ void ProbabilityAwarePatternDatabase::compute_saturated_costs(
 {
     std::fill(saturated_costs.begin(), saturated_costs.end(), -INFINITE_VALUE);
 
-    for (StateRank s{0}; s.id < ranking_function_.num_states(); ++s.id) {
-        const value_t value = value_table[s.id];
+    const int num_states = ranking_function_.num_states();
+    for (StateRank s = 0; s < num_states; ++s) {
+        const value_t value = value_table[s];
 
         if (value == INFINITE_VALUE) {
             // Skip dead ends and unreachable states
@@ -633,11 +634,11 @@ void ProbabilityAwarePatternDatabase::dump_graphviz(
         std::ostringstream out;
         out.precision(3);
 
-        const value_t value = value_table[x.id];
+        const value_t value = value_table[x];
         std::string value_text =
             value != INFINITE_VALUE ? std::to_string(value) : "&infin";
 
-        out << x.id << "\\n"
+        out << x << "\\n"
             << "h = " << value_text;
 
         if (lookup_estimate(x) == mdp.get_non_goal_termination_cost()) {
@@ -707,15 +708,15 @@ void ProbabilityAwarePatternDatabase::verify(
         StateRank s = queue.front();
         queue.pop_front();
 
-        if (utils::contains(pruned_states, s.id)) {
+        if (utils::contains(pruned_states, s)) {
             continue;
         }
 
-        variables[s.id].objective_coefficient = 1_vt;
+        variables[s].objective_coefficient = 1_vt;
 
         if (mdp.is_goal(s)) {
             auto& g = constraints.emplace_back(0_vt, 0_vt);
-            g.insert(s.id, 1_vt);
+            g.insert(s, 1_vt);
         }
 
         // Generate operators...
@@ -729,7 +730,7 @@ void ProbabilityAwarePatternDatabase::verify(
             Distribution<StateID> successor_dist;
             mdp.generate_action_transitions(s, op, successor_dist);
 
-            if (successor_dist.is_dirac(s.id)) {
+            if (successor_dist.is_dirac(s)) {
                 continue;
             }
 
@@ -737,7 +738,7 @@ void ProbabilityAwarePatternDatabase::verify(
 
             value_t non_loop_prob = 0_vt;
             for (const auto& [succ, prob] : successor_dist) {
-                if (succ != s.id) {
+                if (succ != s) {
                     non_loop_prob += prob;
                     constr.insert(succ.id, -prob);
                 }
@@ -747,7 +748,7 @@ void ProbabilityAwarePatternDatabase::verify(
                 }
             }
 
-            constr.insert(s.id, non_loop_prob);
+            constr.insert(s, non_loop_prob);
         }
     }
 
@@ -773,11 +774,11 @@ void ProbabilityAwarePatternDatabase::verify(
 
     std::vector<double> solution = solver.extract_solution();
 
-    for (StateRank s{0}; s.id != num_states; ++s.id) {
-        if (utils::contains(pruned_states, s.id) || !seen.contains(s)) {
-            assert(value_table[s.id] == term_cost);
+    for (StateRank s = 0; s != num_states; ++s) {
+        if (utils::contains(pruned_states, s) || !seen.contains(s)) {
+            assert(value_table[s] == term_cost);
         } else {
-            assert(is_approx_equal(solution[s.id], value_table[s.id], 0.001));
+            assert(is_approx_equal(solution[s], value_table[s], 0.001));
         }
     }
 }

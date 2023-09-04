@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_PDBS_ABSTRACT_OPERATOR_H
 #define PROBFD_HEURISTICS_PDBS_ABSTRACT_OPERATOR_H
 
-#include "probfd/heuristics/pdbs/state_rank.h"
+#include "probfd/heuristics/pdbs/types.h"
 
 #include "probfd/distribution.h"
 #include "probfd/task_proxy.h"
@@ -25,9 +25,9 @@ class ProjectionOperator {
 
     // Implementation detail. Like in the classical implementation, each
     // operator is applicable in exactly one state. The successor states are
-    // computed by adding a "shift value" to this state (t = s + shift).
-    // The distribution contains these shift values.
-    Distribution<StateRank> outcomes;
+    // computed by adding an offset to the source state rank (t = s + offset).
+    // The distribution contains these offsets.
+    Distribution<int> outcome_offsets;
 
 public:
     explicit ProjectionOperator(OperatorID id);
@@ -39,7 +39,7 @@ public:
         const ProjectionOperator& left,
         const ProjectionOperator& right)
     {
-        return left.outcomes == right.outcomes;
+        return left.outcome_offsets == right.outcome_offsets;
     }
 };
 

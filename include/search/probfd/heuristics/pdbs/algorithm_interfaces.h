@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_PDBS_ALGORITHM_INTERFACES_H
 #define PROBFD_HEURISTICS_PDBS_ALGORITHM_INTERFACES_H
 
-#include "probfd/heuristics/pdbs/state_rank.h"
+#include "probfd/heuristics/pdbs/types.h"
 
 #include "probfd/evaluator.h"
 #include "probfd/fdr_types.h"

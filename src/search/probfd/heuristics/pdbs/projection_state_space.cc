@@ -64,7 +64,7 @@ ProjectionStateSpace::ProjectionStateSpace(
     const VariablesProxy variables = task_proxy.get_variables();
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
 
-    std::set<ProgressionOperatorFootprint> duplicate_set;
+    std::set<ProgressionOperatorFootprint> duplicates;
 
     std::vector<int> pdb_indices(variables.size(), -1);
 
@@ -134,8 +134,7 @@ ProjectionStateSpace::ProjectionStateSpace(
                     val_change -= pre_it->value;
                 }
 
-                info.base_effect.id +=
-                    ranking_function.rank_fact(var, val_change);
+                info.base_effect += ranking_function.rank_fact(var, val_change);
             }
 
             outcomes.add_probability(std::move(info), out.get_probability());
@@ -157,7 +156,7 @@ ProjectionStateSpace::ProjectionStateSpace(
             for (const auto& [info, prob] : outcomes) {
                 const auto& [base_effect, missing_pres] = info;
 
-                StateRank res = base_effect;
+                StateRank offset = base_effect;
 
                 auto it = values.begin();
                 auto end = values.end();
@@ -167,10 +166,10 @@ ProjectionStateSpace::ProjectionStateSpace(
                         return a.var == idx;
                     });
                     assert(it != end);
-                    res.id -= ranking_function.rank_fact(idx, it++->value);
+                    offset -= ranking_function.rank_fact(idx, it++->value);
                 }
 
-                new_op.outcomes.add_probability(res, prob);
+                new_op.outcome_offsets.add_probability(offset, prob);
             }
 
             // Construct the precondition by merging the original
@@ -197,7 +196,7 @@ ProjectionStateSpace::ProjectionStateSpace(
                 const value_t cost =
                     task_cost_function.get_action_cost(operator_id);
 
-                if (!duplicate_set.emplace(cost, pre_rank, new_op.outcomes)
+                if (!duplicates.emplace(cost, pre_rank, new_op.outcome_offsets)
                          .second) {
                     continue;
                 }
@@ -231,8 +230,7 @@ ProjectionStateSpace::ProjectionStateSpace(
             non_goal_vars.push_back(v++);
         } else {
             if (p_var == g_var) {
-                const int g_val = goal_fact.get_value();
-                base.id += ranking_function.rank_fact(v++, g_val);
+                base += ranking_function.rank_fact(v++, goal_fact.get_value());
             }
 
             if (++w == num_goal_facts) {
@@ -247,13 +245,13 @@ ProjectionStateSpace::ProjectionStateSpace(
     assert(non_goal_vars.size() != pattern.size()); // No goal no fun.
 
     do {
-        goal_state_flags_[base.id] = true;
+        goal_state_flags_[base] = true;
     } while (ranking_function.next_rank(base, non_goal_vars));
 }
 
 StateID ProjectionStateSpace::get_state_id(StateRank state)
 {
-    return state.id;
+    return state;
 }
 
 StateRank ProjectionStateSpace::get_state(StateID id)
@@ -273,8 +271,8 @@ void ProjectionStateSpace::generate_action_transitions(
     const ProjectionOperator* op,
     Distribution<StateID>& result)
 {
-    for (const auto& [item, probability] : op->outcomes) {
-        result.add_probability(state.id + item.id, probability);
+    for (const auto& [offset, probability] : op->outcome_offsets) {
+        result.add_probability(state + offset, probability);
     }
 }
 
@@ -299,7 +297,7 @@ void ProjectionStateSpace::generate_all_transitions(
 
 bool ProjectionStateSpace::is_goal(StateRank state) const
 {
-    return goal_state_flags_[state.id];
+    return goal_state_flags_[state];
 }
 
 value_t ProjectionStateSpace::get_non_goal_termination_cost() const

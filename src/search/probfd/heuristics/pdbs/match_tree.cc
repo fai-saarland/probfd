@@ -147,7 +147,7 @@ void MatchTree::insert(
 
 void MatchTree::get_applicable_operators_recursive(
     Node* node,
-    const StateRank abstract_state,
+    const StateRank abstract_state_rank,
     vector<const ProjectionOperator*>& operator_ids) const
 {
     /*
@@ -163,28 +163,28 @@ void MatchTree::get_applicable_operators_recursive(
 
     if (node->is_leaf_node()) return;
 
-    int temp = abstract_state.id / node->var_multiplier;
+    int temp = abstract_state_rank / node->var_multiplier;
     int val = temp % node->var_domain_size;
 
     if (node->successors[val]) {
         // Follow the correct successor edge, if it exists.
         get_applicable_operators_recursive(
             node->successors[val].get(),
-            abstract_state,
+            abstract_state_rank,
             operator_ids);
     }
     if (node->star_successor) {
         // Always follow the star edge, if it exists.
         get_applicable_operators_recursive(
             node->star_successor.get(),
-            abstract_state,
+            abstract_state_rank,
             operator_ids);
     }
 }
 
 void MatchTree::generate_all_transitions_recursive(
     Node* node,
-    StateRank abstract_state,
+    StateRank abstract_state_rank,
     std::vector<Transition<const ProjectionOperator*>>& transitions,
     ProjectionStateSpace& state_space) const
 {
@@ -199,21 +199,21 @@ void MatchTree::generate_all_transitions_recursive(
         auto* op = projection_operators.data() + op_index;
         auto& t = transitions.emplace_back(op);
         state_space.generate_action_transitions(
-            abstract_state,
+            abstract_state_rank,
             op,
             t.successor_dist);
     }
 
     if (node->is_leaf_node()) return;
 
-    int temp = abstract_state.id / node->var_multiplier;
+    int temp = abstract_state_rank / node->var_multiplier;
     int val = temp % node->var_domain_size;
 
     if (node->successors[val]) {
         // Follow the correct successor edge, if it exists.
         generate_all_transitions_recursive(
             node->successors[val].get(),
-            abstract_state,
+            abstract_state_rank,
             transitions,
             state_space);
     }
@@ -221,32 +221,32 @@ void MatchTree::generate_all_transitions_recursive(
         // Always follow the star edge, if it exists.
         generate_all_transitions_recursive(
             node->star_successor.get(),
-            abstract_state,
+            abstract_state_rank,
             transitions,
             state_space);
     }
 }
 
 void MatchTree::get_applicable_operators(
-    StateRank abstract_state,
+    StateRank abstract_state_rank,
     vector<const ProjectionOperator*>& operator_ids) const
 {
     if (root)
         get_applicable_operators_recursive(
             root.get(),
-            abstract_state,
+            abstract_state_rank,
             operator_ids);
 }
 
 void MatchTree::generate_all_transitions(
-    StateRank abstract_state,
+    StateRank abstract_state_rank,
     std::vector<Transition<const ProjectionOperator*>>& transitions,
     ProjectionStateSpace& state_space) const
 {
     if (root)
         generate_all_transitions_recursive(
             root.get(),
-            abstract_state,
+            abstract_state_rank,
             transitions,
             state_space);
 }

@@ -22,9 +22,9 @@ PDBEvaluator::PDBEvaluator(const ::pdbs::PatternDatabase& pdb)
 {
 }
 
-value_t PDBEvaluator::evaluate(StateRank state) const
+value_t PDBEvaluator::evaluate(StateRank state_rank) const
 {
-    int deterministic_val = pdb.get_value_for_index(state.id);
+    int deterministic_val = pdb.get_value_for_index(state_rank);
 
     if (deterministic_val == std::numeric_limits<int>::max()) {
         return INFINITE_VALUE;
@@ -40,7 +40,7 @@ DeadendPDBEvaluator::DeadendPDBEvaluator(const ::pdbs::PatternDatabase& pdb)
 
 value_t DeadendPDBEvaluator::evaluate(StateRank state) const
 {
-    int deterministic_val = pdb.get_value_for_index(state.id);
+    int deterministic_val = pdb.get_value_for_index(state);
 
     if (deterministic_val == std::numeric_limits<int>::max()) {
         return 1_vt;
@@ -73,10 +73,10 @@ value_t IncrementalPPDBEvaluator::evaluate(StateRank state) const
     return pdb.lookup_estimate(to_parent_state(state));
 }
 
-StateRank IncrementalPPDBEvaluator::to_parent_state(StateRank state) const
+StateRank IncrementalPPDBEvaluator::to_parent_state(StateRank rank) const
 {
-    int left = state.id % left_multiplier;
-    int right = state.id - (state.id % right_multiplier);
+    int left = rank % left_multiplier;
+    int right = rank - (rank % right_multiplier);
     return StateRank(left + right / domain_size);
 }
 
@@ -129,7 +129,7 @@ StateRank MergeEvaluator::convert(
 
     for (size_t i = 0, j = 0; j != smaller_pattern.size(); ++i, ++j) {
         while (larger_pattern[i] != smaller_pattern[j]) ++i;
-        rank.id += coarser_mapping.rank_fact(
+        rank += coarser_mapping.rank_fact(
             j,
             refined_mapping.value_of(state_rank, i));
     }

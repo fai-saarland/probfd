@@ -286,7 +286,8 @@ void BisimilarStateSpace::generate_action_transitions(
 {
     assert(state != dead_end_state_);
     assert(
-        std::to_underlying(a) < transitions_[std::to_underlying(state)].size());
+        std::to_underlying(a) <
+        static_cast<int>(transitions_[std::to_underlying(state)].size()));
 
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
 
