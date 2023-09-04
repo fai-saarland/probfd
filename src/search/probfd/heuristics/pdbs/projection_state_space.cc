@@ -48,9 +48,9 @@ struct OutcomeInfo {
 } // namespace
 
 ProjectionStateSpace::ProjectionStateSpace(
-    const ProbabilisticTaskProxy& task_proxy,
-    const StateRankingFunction& ranking_function,
+    ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
+    const StateRankingFunction& ranking_function,
     bool operator_pruning,
     double max_time)
     : match_tree_(task_proxy.get_operators().size())

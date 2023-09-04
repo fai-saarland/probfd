@@ -46,19 +46,13 @@ class ProbabilityAwarePatternDatabase {
     std::vector<value_t> value_table;
 
     ProbabilityAwarePatternDatabase(
-        const ProbabilisticTaskProxy& task_proxy,
+        ProbabilisticTaskProxy task_proxy,
         Pattern pattern,
         value_t dead_end_cost);
 
     ProbabilityAwarePatternDatabase(
         StateRankingFunction ranking_function,
         value_t dead_end_cost);
-
-    void compute_value_table(
-        ProjectionStateSpace& state_space,
-        StateRank initial_state,
-        const StateRankEvaluator& heuristic,
-        double max_time);
 
 public:
     /**
@@ -67,7 +61,6 @@ public:
      *
      * @param task_proxy The input task.
      * @param pattern The pattern inducing the projection.
-     * @param task_cost_function The task's cost function.
      * @param initial_state The initial state. States unreachable from the
      * initial state are treated as dead ends.
      * @param operator_pruning Specifies whether operators with the same
@@ -81,9 +74,9 @@ public:
      * @throws utils::TimeoutException if the given \p max_time is exceeded.
      */
     ProbabilityAwarePatternDatabase(
-        const ProbabilisticTaskProxy& task_proxy,
-        Pattern pattern,
+        ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
+        Pattern pattern,
         const State& initial_state,
         bool operator_pruning = true,
         const StateRankEvaluator& heuristic = BlindEvaluator<StateRank>(),
@@ -116,9 +109,9 @@ public:
      * from a determinization-based pattern database, used as a heuristic.
      *
      * @param task_proxy The input task.
+     * @param task_cost_function The task's cost function.
      * @param pdb The determinization-based pattern database. This PDB must be
      * constructed for the same pattern.
-     * @param task_cost_function The task's cost function.
      * @param initial_state The initial state. States unreachable from the
      * initial state are treated as dead ends.
      * @param operator_pruning Specifies whether operators with the same
@@ -130,9 +123,9 @@ public:
      * @throws utils::TimeoutException if the given \p max_time is exceeded.
      */
     ProbabilityAwarePatternDatabase(
-        const ProbabilisticTaskProxy& task_proxy,
-        const ::pdbs::PatternDatabase& pdb,
+        ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
+        const ::pdbs::PatternDatabase& pdb,
         const State& initial_state,
         bool operator_pruning = true,
         double max_time = std::numeric_limits<double>::infinity());
@@ -169,10 +162,10 @@ public:
      *
      * @param task_proxy The input task with respect to which the projection is
      * constructed.
+     * @param task_cost_function The task's cost function.
      * @param pdb A previous probability-aware pattern database.
      * @param add_var A task variable with with the previous PDB shall be
      * extended.
-     * @param task_cost_function The task's cost function.
      * @param initial_state The initial state for the exhaustive solver.
      * States unreachable from this state are treated as dead ends.
      * @param operator_pruning Whether equivalent operators shall be pruned
@@ -183,10 +176,10 @@ public:
      * @throws utils::TimeoutException if the given \p max_time is exceeded.
      */
     ProbabilityAwarePatternDatabase(
-        const ProbabilisticTaskProxy& task_proxy,
+        ProbabilisticTaskProxy task_proxy,
+        FDRSimpleCostFunction& task_cost_function,
         const ProbabilityAwarePatternDatabase& pdb,
         int add_var,
-        FDRSimpleCostFunction& task_cost_function,
         const State& initial_state,
         bool operator_pruning = true,
         double max_time = std::numeric_limits<double>::infinity());
@@ -229,11 +222,11 @@ public:
      *
      * @param task_proxy The input task with respect to which the projection is
      * constructed.
+     * @param task_cost_function The task's cost function.
      * @param left A previous probability-aware pattern database for the given
      * task.
      * @param right A previous probability-aware pattern database for the given
      * task.
-     * @param task_cost_function The task's cost function.
      * @param initial_state The initial state for the exhaustive solver. States
      * unreachable from this state are treated as dead ends.
      * @param operator_pruning Whether equivalent operators shall be pruned
@@ -244,10 +237,10 @@ public:
      * @throws utils::TimeoutException if the given \p max_time is exceeded.
      */
     ProbabilityAwarePatternDatabase(
-        const ProbabilisticTaskProxy& task_proxy,
+        ProbabilisticTaskProxy task_proxy,
+        FDRSimpleCostFunction& task_cost_function,
         const ProbabilityAwarePatternDatabase& left,
         const ProbabilityAwarePatternDatabase& right,
-        FDRSimpleCostFunction& task_cost_function,
         const State& initial_state,
         bool operator_pruning = true,
         double max_time = std::numeric_limits<double>::infinity());
@@ -286,6 +279,9 @@ public:
     [[nodiscard]] const StateRankingFunction&
     get_state_ranking_function() const;
 
+    /// Get the abstraction mapping of the pattern database.
+    [[nodiscard]] const std::vector<value_t>& get_value_table() const;
+
     /// Get the number of states in this PDB's projection.
     [[nodiscard]] unsigned int num_states() const;
 
@@ -301,58 +297,74 @@ public:
     [[nodiscard]] value_t lookup_estimate(StateRank s) const;
 
     /**
-     * @brief Extract an abstract optimal policy for the PDB's projection from
-     * the PDB value table.
-     *
-     * Tie-breaking is performed randomly using the input RNG. If the \p
-     * wildcard option is specified, a wildcard policy will be returned, i.e., a
-     * policy that assigns multiple equivalent operators to a abstract state.
-     */
-    [[nodiscard]] std::unique_ptr<ProjectionMultiPolicy>
-    compute_optimal_projection_policy(
-        ProjectionStateSpace& state_space,
-        StateRank initial_state,
-        utils::RandomNumberGenerator& rng,
-        bool wildcard) const;
-
-    /**
-     * @brief Extracts a greedy policy for the PDB's projection from the PDB
-     * value table, which may not be optimal if traps are existent.
-     *
-     * Tie-breaking is performed randomly using the input RNG. If the \p
-     * wildcard option is specified, a wildcard policy will be returned, i.e., a
-     * policy that assigns multiple equivalent operators to a abstract state.
-     */
-    [[nodiscard]] std::unique_ptr<ProjectionMultiPolicy>
-    compute_greedy_projection_policy(
-        ProjectionStateSpace& state_space,
-        StateRank initial_state,
-        utils::RandomNumberGenerator& rng,
-        bool wildcard) const;
-
-    void compute_saturated_costs(
-        ProjectionStateSpace& state_space,
-        std::vector<value_t>& saturated_costs) const;
-
-    /**
      * @brief Dump the PDB's projection as a dot graph to a specified path with
      * or without transition labels shown.
      */
     void dump_graphviz(
-        const ProbabilisticTaskProxy& task_proxy,
+        ProbabilisticTaskProxy task_proxy,
         ProjectionStateSpace& state_space,
         StateRank initial_state,
         std::ostream& out,
         bool transition_labels) const;
+};
+
+/**
+ * @brief Computes the optimal value function of the abstraction, complete up to
+ * forward reachability from the initial state.
+ */
+void compute_value_table(
+    ProjectionStateSpace& state_space,
+    StateRank initial_state,
+    const StateRankEvaluator& heuristic,
+    std::vector<value_t>& value_table,
+    double max_time);
+
+/**
+ * @brief Extract an abstract optimal policy from the value table.
+ *
+ * Tie-breaking is performed randomly using the input RNG. If the \p
+ * wildcard option is specified, a wildcard policy will be returned, i.e., a
+ * policy that assigns multiple equivalent operators to a abstract state.
+ */
+[[nodiscard]] std::unique_ptr<ProjectionMultiPolicy>
+compute_optimal_projection_policy(
+    ProjectionStateSpace& state_space,
+    const std::vector<value_t>& value_table,
+    StateRank initial_state,
+    utils::RandomNumberGenerator& rng,
+    bool wildcard);
+
+/**
+ * @brief Extracts an abstract greedy policy from the value table, which may not
+ * be optimal if traps are existent.
+ *
+ * Tie-breaking is performed randomly using the input RNG. If the \p
+ * wildcard option is specified, a wildcard policy will be returned, i.e., a
+ * policy that assigns multiple equivalent operators to a abstract state.
+ */
+[[nodiscard]] std::unique_ptr<ProjectionMultiPolicy>
+compute_greedy_projection_policy(
+    ProjectionStateSpace& state_space,
+    const std::vector<value_t>& value_table,
+    StateRank initial_state,
+    utils::RandomNumberGenerator& rng,
+    bool wildcard);
+
+/**
+ * @brief Computes the saturated costs of the abstraction.
+ */
+void compute_saturated_costs(
+    ProjectionStateSpace& state_space,
+    const std::vector<value_t>& value_table,
+    std::vector<value_t>& saturated_costs);
 
 #if !defined(NDEBUG) && defined(USE_LP)
-private:
-    void verify(
-        ProjectionStateSpace& state_space,
-        StateRank initial_state,
-        const std::vector<StateID>& proper_states);
+void verify(
+    ProjectionStateSpace& state_space,
+    const std::vector<value_t>& value_table,
+    StateRank initial_state,
+    const std::vector<StateID>& proper_states);
 #endif
-};
 
 } // namespace pdbs
 } // namespace heuristics
