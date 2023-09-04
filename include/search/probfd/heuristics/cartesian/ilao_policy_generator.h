@@ -13,9 +13,9 @@ namespace probfd {
 
 namespace quotients {
 template <typename, typename>
-class QuotientState;
+struct QuotientState;
 template <typename>
-class QuotientAction;
+struct QuotientAction;
 } // namespace quotients
 
 namespace heuristics {
