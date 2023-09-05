@@ -13,7 +13,7 @@ namespace probfd::heuristics::pdbs {
 
 std::unique_ptr<ProjectionMultiPolicy> compute_optimal_projection_policy(
     ProjectionStateSpace& mdp,
-    const std::vector<value_t>& value_table,
+    std::span<const value_t> value_table,
     StateRank initial_state,
     utils::RandomNumberGenerator& rng,
     bool wildcard)
@@ -140,7 +140,7 @@ std::unique_ptr<ProjectionMultiPolicy> compute_optimal_projection_policy(
 
 std::unique_ptr<ProjectionMultiPolicy> compute_greedy_projection_policy(
     ProjectionStateSpace& mdp,
-    const std::vector<value_t>& value_table,
+    std::span<const value_t> value_table,
     StateRank initial_state,
     utils::RandomNumberGenerator& rng,
     bool wildcard)

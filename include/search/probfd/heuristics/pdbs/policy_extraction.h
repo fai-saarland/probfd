@@ -6,7 +6,7 @@
 #include "probfd/value_type.h"
 
 #include <memory>
-#include <vector>
+#include <span>
 
 namespace utils {
 class RandomNumberGenerator;
@@ -26,7 +26,7 @@ class ProjectionStateSpace;
 [[nodiscard]] std::unique_ptr<ProjectionMultiPolicy>
 compute_optimal_projection_policy(
     ProjectionStateSpace& state_space,
-    const std::vector<value_t>& value_table,
+    std::span<const value_t> value_table,
     StateRank initial_state,
     utils::RandomNumberGenerator& rng,
     bool wildcard);
@@ -42,7 +42,7 @@ compute_optimal_projection_policy(
 [[nodiscard]] std::unique_ptr<ProjectionMultiPolicy>
 compute_greedy_projection_policy(
     ProjectionStateSpace& state_space,
-    const std::vector<value_t>& value_table,
+    std::span<const value_t> value_table,
     StateRank initial_state,
     utils::RandomNumberGenerator& rng,
     bool wildcard);

@@ -139,7 +139,7 @@ void compute_value_table(
     ProjectionStateSpace& mdp,
     StateRank initial_state,
     const Evaluator<StateRank>& heuristic,
-    std::vector<value_t>& value_table,
+    std::span<value_t> value_table,
     double max_time)
 {
     using namespace preprocessing;
