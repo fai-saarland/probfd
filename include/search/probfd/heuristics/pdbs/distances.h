@@ -5,7 +5,7 @@
 
 #include "probfd/value_type.h"
 
-#include <vector>
+#include <span>
 
 namespace probfd {
 template <typename>
@@ -23,7 +23,7 @@ void compute_value_table(
     ProjectionStateSpace& state_space,
     StateRank initial_state,
     const Evaluator<StateRank>& heuristic,
-    std::vector<value_t>& value_table,
+    std::span<value_t> value_table,
     double max_time);
 
 } // namespace heuristics::pdbs

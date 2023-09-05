@@ -6,8 +6,8 @@ namespace probfd::heuristics::pdbs {
 
 void compute_saturated_costs(
     ProjectionStateSpace& state_space,
-    const std::vector<value_t>& value_table,
-    std::vector<value_t>& saturated_costs)
+    std::span<const value_t> value_table,
+    std::span<value_t> saturated_costs)
 {
     std::fill(saturated_costs.begin(), saturated_costs.end(), -INFINITE_VALUE);
 
