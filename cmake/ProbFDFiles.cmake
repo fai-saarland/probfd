@@ -278,10 +278,13 @@ fast_downward_plugin(
     HELP "Probability-aware PDBs base classes"
     SOURCES
         probfd/heuristics/pdbs/algorithm_interfaces
+        probfd/heuristics/pdbs/distances
         probfd/heuristics/pdbs/match_tree
+        probfd/heuristics/pdbs/policy_extraction
         probfd/heuristics/pdbs/probability_aware_pattern_database
         probfd/heuristics/pdbs/projection_operator
         probfd/heuristics/pdbs/projection_state_space
+        probfd/heuristics/pdbs/saturation
         probfd/heuristics/pdbs/state_ranking_function
     DEPENDS PDBS MDP SUCCESSOR_GENERATOR TASK_DEPENDENT_HEURISTIC
     DEPENDENCY_ONLY

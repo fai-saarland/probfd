@@ -1,6 +1,11 @@
 #include "probfd/heuristics/pdbs/utils.h"
 
+#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
+#include "probfd/heuristics/pdbs/projection_state_space.h"
+
 #include "probfd/task_utils/task_properties.h"
+
+#include "probfd/utils/graph_visualization.h"
 
 #include "downward/utils/rng.h"
 
@@ -26,7 +31,7 @@ Pattern extended_pattern(const Pattern& pattern, int add_var)
 }
 
 std::vector<int> get_goals_in_random_order(
-    const ProbabilisticTaskProxy& task_proxy,
+    ProbabilisticTaskProxy task_proxy,
     utils::RandomNumberGenerator& rng)
 {
     std::vector<int> goals;
@@ -38,6 +43,50 @@ std::vector<int> get_goals_in_random_order(
     rng.shuffle(goals);
 
     return goals;
+}
+
+void dump_graphviz(
+    ProbabilisticTaskProxy task_proxy,
+    ProjectionStateSpace& mdp,
+    const ProbabilityAwarePatternDatabase& pdb,
+    StateRank initial_state,
+    std::ostream& out,
+    bool transition_labels)
+{
+    ProjectionOperatorToString op_names(task_proxy);
+
+    auto sts = [&pdb, &mdp](StateRank x) {
+        std::ostringstream out;
+        out.precision(3);
+
+        const value_t value = pdb.lookup_estimate(x);
+        std::string value_text =
+            value != INFINITE_VALUE ? std::to_string(value) : "&infin";
+
+        out << x << "\\n"
+            << "h = " << value_text;
+
+        if (value == mdp.get_non_goal_termination_cost()) {
+            out << "(dead)";
+        }
+
+        out << std::endl;
+
+        return out.str();
+    };
+
+    auto ats = [=](const ProjectionOperator* const& op) {
+        return transition_labels ? op_names(op) : "";
+    };
+
+    graphviz::dump_state_space_dot_graph<StateRank, const ProjectionOperator*>(
+        out,
+        initial_state,
+        &mdp,
+        nullptr,
+        sts,
+        ats,
+        true);
 }
 
 } // namespace pdbs

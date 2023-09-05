@@ -3,6 +3,7 @@
 #include "probfd/heuristics/pdbs/pattern_collection_information.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 
+#include "probfd/cost_function.h"
 #include "probfd/task_evaluator_factory.h"
 
 #include "downward/pdbs/dominance_pruning.h"

@@ -2,6 +2,7 @@
 
 #include "probfd/heuristics/pdbs/pattern_collection_information.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
+#include "probfd/heuristics/pdbs/projection_state_space.h"
 
 #include "probfd/task_utils/task_properties.h"
 
