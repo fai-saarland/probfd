@@ -2,7 +2,7 @@
 
 #include "probfd/heuristics/cartesian/abstract_state.h"
 #include "probfd/heuristics/cartesian/abstraction.h"
-#include "probfd/heuristics/cartesian/algorithm_interfaces.h"
+#include "probfd/heuristics/cartesian/evaluators.h"
 
 #include "probfd/algorithms/ta_topological_value_iteration.h"
 

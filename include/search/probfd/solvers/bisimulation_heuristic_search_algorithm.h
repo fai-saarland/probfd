@@ -8,8 +8,8 @@
 
 #include "probfd/policy_pickers/arbitrary_tiebreaker.h"
 
-#include "probfd/bisimulation/algorithm_interfaces.h"
 #include "probfd/bisimulation/bisimilar_state_space.h"
+#include "probfd/bisimulation/evaluators.h"
 
 #include "probfd/tasks/root_task.h"
 

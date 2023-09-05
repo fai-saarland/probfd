@@ -1,5 +1,5 @@
-#ifndef PROBFD_HEURISTICS_CARTESIAN_ALGORITHM_INTERFACES_H
-#define PROBFD_HEURISTICS_CARTESIAN_ALGORITHM_INTERFACES_H
+#ifndef PROBFD_HEURISTICS_CARTESIAN_EVALUATORS_H
+#define PROBFD_HEURISTICS_CARTESIAN_EVALUATORS_H
 
 #include "probfd/evaluator.h"
 #include "probfd/value_type.h"
@@ -27,4 +27,4 @@ public:
 } // namespace heuristics
 } // namespace probfd
 
-#endif
+#endif // PROBFD_HEURISTICS_CARTESIAN_EVALUATORS_H

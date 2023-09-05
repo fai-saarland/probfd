@@ -2,13 +2,12 @@
 
 #include "probfd/heuristics/cartesian/abstract_state.h"
 #include "probfd/heuristics/cartesian/abstraction.h"
-#include "probfd/heuristics/cartesian/algorithm_interfaces.h"
 #include "probfd/heuristics/cartesian/astar_trace_generator.h"
+#include "probfd/heuristics/cartesian/evaluators.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
 #include "probfd/heuristics/cartesian/split_selector.h"
 #include "probfd/heuristics/cartesian/trace_generator.h"
 #include "probfd/heuristics/cartesian/utils.h"
-
 
 #include "probfd/task_utils/task_properties.h"
 

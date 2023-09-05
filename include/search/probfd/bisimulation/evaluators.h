@@ -1,5 +1,5 @@
-#ifndef PROBFD_BISIMULATION_ALGORITHM_INTERFACES_H
-#define PROBFD_BISIMULATION_ALGORITHM_INTERFACES_H
+#ifndef PROBFD_BISIMULATION_EVALUATORS_H
+#define PROBFD_BISIMULATION_EVALUATORS_H
 
 #include "probfd/bisimulation/bisimilar_state_space.h"
 
@@ -26,4 +26,4 @@ struct InducedQuotientEvaluator : public QuotientEvaluator {
 } // namespace bisimulation
 } // namespace probfd
 
-#endif // __ALGORITHM_INTERFACES_H__
+#endif // PROBFD_BISIMULATION_EVALUATORS_H

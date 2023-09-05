@@ -1,6 +1,6 @@
 #include "probfd/heuristics/cartesian/adaptive_flaw_generator.h"
 
-#include "probfd/heuristics/cartesian/algorithm_interfaces.h"
+#include "probfd/heuristics/cartesian/evaluators.h"
 
 #include "downward/utils/logging.h"
 
