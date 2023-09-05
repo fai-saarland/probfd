@@ -13,8 +13,6 @@ class PatternDatabase;
 }
 
 namespace probfd {
-class ProbabilisticTaskProxy;
-
 namespace heuristics {
 namespace pdbs {
 
