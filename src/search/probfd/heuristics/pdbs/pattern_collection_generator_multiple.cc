@@ -3,7 +3,11 @@
 #include "probfd/heuristics/pdbs/fully_additive_finder.h"
 #include "probfd/heuristics/pdbs/pattern_collection_information.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
+#include "probfd/heuristics/pdbs/saturation.h"
 #include "probfd/heuristics/pdbs/trivial_finder.h"
+
+#include "probfd/cost_function.h"
+#include "probfd/fdr_types.h"
 
 #include "downward/task_utils/task_properties.h"
 

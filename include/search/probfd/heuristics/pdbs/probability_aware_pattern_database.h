@@ -2,32 +2,21 @@
 #define PROBFD_HEURISTICS_PDBS_PROBABILISTIC_PATTERN_DATABASE_H
 
 #include "probfd/heuristics/pdbs/algorithm_interfaces.h"
-#include "probfd/heuristics/pdbs/match_tree.h"
-#include "probfd/heuristics/pdbs/projection_operator.h"
-#include "probfd/heuristics/pdbs/projection_state_space.h"
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
 #include "probfd/heuristics/pdbs/types.h"
 
 #include "probfd/heuristics/constant_evaluator.h"
 
-#include "probfd/utils/graph_visualization.h"
-
-#include "probfd/tasks/root_task.h"
-
 #include "probfd/task_proxy.h"
 
-#include <fstream>
-#include <iostream>
 #include <limits>
-#include <ostream>
-#include <set>
 #include <vector>
-
-class State;
 
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
+
+class ProjectionStateSpace;
 
 /**
  * @brief Implementation of a probability-aware pattern database.
@@ -295,76 +284,7 @@ public:
     /// Look up the estimate of an abstract state specified by state rank in
     /// the lookup table.
     [[nodiscard]] value_t lookup_estimate(StateRank s) const;
-
-    /**
-     * @brief Dump the PDB's projection as a dot graph to a specified path with
-     * or without transition labels shown.
-     */
-    void dump_graphviz(
-        ProbabilisticTaskProxy task_proxy,
-        ProjectionStateSpace& state_space,
-        StateRank initial_state,
-        std::ostream& out,
-        bool transition_labels) const;
 };
-
-/**
- * @brief Computes the optimal value function of the abstraction, complete up to
- * forward reachability from the initial state.
- */
-void compute_value_table(
-    ProjectionStateSpace& state_space,
-    StateRank initial_state,
-    const StateRankEvaluator& heuristic,
-    std::vector<value_t>& value_table,
-    double max_time);
-
-/**
- * @brief Extract an abstract optimal policy from the value table.
- *
- * Tie-breaking is performed randomly using the input RNG. If the \p
- * wildcard option is specified, a wildcard policy will be returned, i.e., a
- * policy that assigns multiple equivalent operators to a abstract state.
- */
-[[nodiscard]] std::unique_ptr<ProjectionMultiPolicy>
-compute_optimal_projection_policy(
-    ProjectionStateSpace& state_space,
-    const std::vector<value_t>& value_table,
-    StateRank initial_state,
-    utils::RandomNumberGenerator& rng,
-    bool wildcard);
-
-/**
- * @brief Extracts an abstract greedy policy from the value table, which may not
- * be optimal if traps are existent.
- *
- * Tie-breaking is performed randomly using the input RNG. If the \p
- * wildcard option is specified, a wildcard policy will be returned, i.e., a
- * policy that assigns multiple equivalent operators to a abstract state.
- */
-[[nodiscard]] std::unique_ptr<ProjectionMultiPolicy>
-compute_greedy_projection_policy(
-    ProjectionStateSpace& state_space,
-    const std::vector<value_t>& value_table,
-    StateRank initial_state,
-    utils::RandomNumberGenerator& rng,
-    bool wildcard);
-
-/**
- * @brief Computes the saturated costs of the abstraction.
- */
-void compute_saturated_costs(
-    ProjectionStateSpace& state_space,
-    const std::vector<value_t>& value_table,
-    std::vector<value_t>& saturated_costs);
-
-#if !defined(NDEBUG) && defined(USE_LP)
-void verify(
-    ProjectionStateSpace& state_space,
-    const std::vector<value_t>& value_table,
-    StateRank initial_state,
-    const std::vector<StateID>& proper_states);
-#endif
 
 } // namespace pdbs
 } // namespace heuristics
