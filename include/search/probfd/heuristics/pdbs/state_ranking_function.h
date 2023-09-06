@@ -16,6 +16,8 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
+class ProbabilityAwarePatternDatabase;
+
 /**
  * @brief Implements the state ranking function for abstract states of
  * projections.
@@ -154,6 +156,10 @@ public:
      * rank is returned.
      */
     bool next_rank(StateRank& s, std::span<int> mutable_variables) const;
+
+    void convert_value_table(
+        const ProbabilityAwarePatternDatabase& pdb,
+        std::vector<value_t>& value_table) const;
 };
 
 class StateRankToString {

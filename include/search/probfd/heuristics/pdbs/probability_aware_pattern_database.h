@@ -175,8 +175,7 @@ public:
 
     /**
      * @brief Construct a pattern database for the given projection state space
-     * and the pattern of a previous pattern database with one additional
-     * variable.
+     * and the pattern of a previous pattern database.
      *
      * This constructor makes use of the supplied PDB by using its
      * induced heuristic to accelerate the value table computation.
@@ -186,8 +185,6 @@ public:
      * @param initial_state The rank of the initial state for the exhaustive
      * solver. States unreachable from this state are treated as dead ends.
      * @param pdb A previous probability-aware pattern database.
-     * @param add_var A task variable with with the previous PDB shall be
-     * extended.
      * @param max_time The time limit for contruction. If exceeded, a
      * utils::TimeoutException will be thrown.
      *
@@ -198,7 +195,6 @@ public:
         StateRankingFunction ranking_function,
         StateRank initial_state,
         const ProbabilityAwarePatternDatabase& pdb,
-        int add_var,
         double max_time = std::numeric_limits<double>::infinity());
 
     /**

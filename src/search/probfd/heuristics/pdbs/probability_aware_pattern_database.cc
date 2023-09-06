@@ -137,7 +137,7 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     compute_value_table(
         mdp,
         ranking_function_.get_abstract_rank(initial_state),
-        IncrementalPPDBEvaluator(pdb, &ranking_function_, add_var),
+        IncrementalPPDBEvaluator(ranking_function_, pdb),
         value_table,
         timer.get_remaining_time());
 }
@@ -147,7 +147,6 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     StateRankingFunction ranking_function,
     StateRank initial_state,
     const ProbabilityAwarePatternDatabase& pdb,
-    int add_var,
     double max_time)
     : ProbabilityAwarePatternDatabase(
           std::move(ranking_function),
@@ -156,7 +155,7 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     compute_value_table(
         mdp,
         initial_state,
-        IncrementalPPDBEvaluator(pdb, &ranking_function_, add_var),
+        IncrementalPPDBEvaluator(ranking_function_, pdb),
         value_table,
         max_time);
 }
@@ -185,11 +184,7 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     compute_value_table(
         mdp,
         ranking_function_.get_abstract_rank(initial_state),
-        MergeEvaluator(
-            ranking_function_,
-            left,
-            right,
-            task_cost_function.get_non_goal_termination_cost()),
+        IncrementalPPDBEvaluator(ranking_function_, left, right),
         value_table,
         timer.get_remaining_time());
 }
@@ -208,11 +203,7 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     compute_value_table(
         mdp,
         initial_state,
-        MergeEvaluator(
-            ranking_function_,
-            left,
-            right,
-            mdp.get_non_goal_termination_cost()),
+        IncrementalPPDBEvaluator(ranking_function_, left, right),
         value_table,
         max_time);
 }

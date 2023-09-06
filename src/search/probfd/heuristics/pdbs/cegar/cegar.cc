@@ -61,7 +61,6 @@ public:
         FDRSimpleCostFunction& task_cost_function,
         utils::RandomNumberGenerator& rng,
         const ProbabilityAwarePatternDatabase& previous,
-        int add_var,
         bool wildcard,
         utils::CountdownTimer& timer);
 
@@ -133,7 +132,6 @@ CEGAR::PDBInfo::PDBInfo(
     FDRSimpleCostFunction& task_cost_function,
     utils::RandomNumberGenerator& rng,
     const ProbabilityAwarePatternDatabase& previous,
-    int add_var,
     bool wildcard,
     utils::CountdownTimer& timer)
     : state_space(new ProjectionStateSpace(
@@ -149,7 +147,6 @@ CEGAR::PDBInfo::PDBInfo(
           std::move(ranking_function),
           initial_state,
           previous,
-          add_var,
           timer.get_remaining_time()))
     , policy(compute_optimal_projection_policy(
           *state_space,
@@ -447,7 +444,6 @@ void CEGAR::add_variable_to_pattern(
         task_cost_function,
         *rng,
         pdb,
-        var,
         wildcard,
         timer));
 

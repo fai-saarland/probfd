@@ -6,6 +6,7 @@
 #include "probfd/evaluator.h"
 #include "probfd/fdr_types.h"
 
+#include <concepts>
 #include <vector>
 
 namespace pdbs {
@@ -41,44 +42,23 @@ public:
 };
 
 class IncrementalPPDBEvaluator : public StateRankEvaluator {
-    const ProbabilityAwarePatternDatabase& pdb;
-
-    int left_multiplier;
-    int right_multiplier;
-    int domain_size;
+    std::vector<value_t> estimates;
 
 public:
     explicit IncrementalPPDBEvaluator(
-        const ProbabilityAwarePatternDatabase& pdb,
-        const StateRankingFunction* mapper,
-        int add_var);
-
-    value_t evaluate(StateRank state) const override;
-
-private:
-    StateRank to_parent_state(StateRank state) const;
-};
-
-class MergeEvaluator : public StateRankEvaluator {
-    const StateRankingFunction& mapper;
-    const ProbabilityAwarePatternDatabase& left;
-    const ProbabilityAwarePatternDatabase& right;
-    const value_t termination_cost;
-
-public:
-    MergeEvaluator(
         const StateRankingFunction& mapper,
-        const ProbabilityAwarePatternDatabase& left,
-        const ProbabilityAwarePatternDatabase& right,
-        value_t termination_cost);
+        const std::vector<
+            std::reference_wrapper<const ProbabilityAwarePatternDatabase>>&
+            pdbs);
+
+    explicit IncrementalPPDBEvaluator(
+        const StateRankingFunction& mapper,
+        const std::same_as<ProbabilityAwarePatternDatabase> auto&... pdbs)
+        : IncrementalPPDBEvaluator(mapper, {std::ref(pdbs)...})
+    {
+    }
 
     value_t evaluate(StateRank state) const override;
-
-private:
-    StateRank convert(
-        StateRank state_rank,
-        const StateRankingFunction& refined_mapping,
-        const StateRankingFunction& coarser_mapping) const;
 };
 
 } // namespace pdbs

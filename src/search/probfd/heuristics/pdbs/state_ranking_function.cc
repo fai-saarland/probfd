@@ -1,4 +1,5 @@
 #include "probfd/heuristics/pdbs/state_ranking_function.h"
+#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 
 #include "probfd/tasks/root_task.h"
 
@@ -10,6 +11,7 @@
 #include <algorithm>
 #include <cassert>
 #include <limits>
+#include <ranges>
 #include <sstream>
 
 namespace probfd {
@@ -140,6 +142,59 @@ bool StateRankingFunction::next_rank(
     }
 
     return false;
+}
+
+void StateRankingFunction::convert_value_table(
+    const ProbabilityAwarePatternDatabase& pdb,
+    std::vector<value_t>& value_table) const
+{
+    const std::vector<value_t>& other_value_table = pdb.get_value_table();
+    const Pattern& other_pattern = pdb.get_pattern();
+
+    assert(value_table.size() == num_states_);
+    std::ranges::copy(other_value_table, value_table.begin());
+
+    auto convert_single_var =
+        [](value_t* table, int size, int length, int repetitions) {
+            auto src_ptr = table + size;
+            auto dest_ptr = table + size * repetitions;
+            for (; dest_ptr != table; src_ptr -= length) {
+                for (int r = 0; r != repetitions; ++r, dest_ptr -= length) {
+                    std::memmove(
+                        dest_ptr - length,
+                        src_ptr - length,
+                        sizeof(value_t) * length);
+                }
+            }
+            assert(dest_ptr == table && src_ptr == table);
+        };
+
+    auto other_pattern_it = other_pattern.begin();
+    auto pattern_it = pattern_.begin();
+    auto var_info_it = var_infos_.begin();
+
+    int size = other_value_table.size();
+
+    for (; other_pattern_it != other_pattern.end();
+         ++pattern_it, ++other_pattern_it, ++var_info_it) {
+        while (*pattern_it != *other_pattern_it) {
+            int reps = var_info_it->domain;
+            int length = var_info_it->multiplier;
+            convert_single_var(value_table.data(), size, length, reps);
+            size *= reps;
+            ++pattern_it;
+            ++var_info_it;
+        }
+    }
+
+    while (pattern_it != pattern_.end()) {
+        int reps = var_info_it->domain;
+        int length = var_info_it->multiplier;
+        convert_single_var(value_table.data(), size, length, reps);
+        size *= reps;
+        ++pattern_it;
+        ++var_info_it;
+    }
 }
 
 long long int StateRankingFunction::get_multiplier(int var) const
