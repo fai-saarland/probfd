@@ -144,30 +144,64 @@ bool StateRankingFunction::next_rank(
     return false;
 }
 
+void expand_table(
+    value_t* to,
+    const value_t* from,
+    int size,
+    int length,
+    int repetitions)
+{
+    auto src_ptr = from + size;
+    auto dest_ptr = to + size * repetitions;
+    for (; dest_ptr != to + length * repetitions; src_ptr -= length) {
+        auto src = src_ptr - length;
+        for (int r = 0; r != repetitions; ++r, dest_ptr -= length) {
+            std::memcpy(dest_ptr - length, src, sizeof(value_t) * length);
+        }
+    }
+
+    for (int r = 0; r != repetitions - 1; ++r, dest_ptr -= length) {
+        std::memcpy(dest_ptr - length, from, sizeof(value_t) * length);
+    }
+}
+
+void expand_table(value_t* data, int size, int length, int repetitions)
+{
+    expand_table(data, data, size, length, repetitions);
+}
+
 void StateRankingFunction::convert_value_table(
     const ProbabilityAwarePatternDatabase& pdb,
     std::vector<value_t>& value_table) const
 {
+    assert(std::ranges::includes(pattern_, pdb.get_pattern()));
+    assert(value_table.size() == num_states_);
+
     const std::vector<value_t>& other_value_table = pdb.get_value_table();
     const Pattern& other_pattern = pdb.get_pattern();
 
-    assert(value_table.size() == num_states_);
-    std::ranges::copy(other_value_table, value_table.begin());
+    auto transfer_inplace = [&value_table](const auto& var_info, int& size) {
+        const int reps = var_info.domain;
+        expand_table(value_table.data(), size, var_info.multiplier, reps);
+        size *= reps;
+    };
 
-    auto convert_single_var =
-        [](value_t* table, int size, int length, int repetitions) {
-            auto src_ptr = table + size;
-            auto dest_ptr = table + size * repetitions;
-            for (; dest_ptr != table; src_ptr -= length) {
-                for (int r = 0; r != repetitions; ++r, dest_ptr -= length) {
-                    std::memmove(
-                        dest_ptr - length,
-                        src_ptr - length,
-                        sizeof(value_t) * length);
-                }
-            }
-            assert(dest_ptr == table && src_ptr == table);
-        };
+    auto transfer_from_old = [&](const auto& var_info, int& size) {
+        const int reps = var_info.domain;
+        int length = var_info.multiplier;
+        // Copy first segment explicitly
+        std::memcpy(
+            value_table.data(),
+            other_value_table.data(),
+            sizeof(value_t) * length);
+        expand_table(
+            value_table.data(),
+            other_value_table.data(),
+            size,
+            length,
+            reps);
+        size *= reps;
+    };
 
     auto other_pattern_it = other_pattern.begin();
     auto pattern_it = pattern_.begin();
@@ -175,25 +209,40 @@ void StateRankingFunction::convert_value_table(
 
     int size = other_value_table.size();
 
+    // Until the first variable is handled, transfer from the old value table
     for (; other_pattern_it != other_pattern.end();
          ++pattern_it, ++other_pattern_it, ++var_info_it) {
-        while (*pattern_it != *other_pattern_it) {
-            int reps = var_info_it->domain;
-            int length = var_info_it->multiplier;
-            convert_single_var(value_table.data(), size, length, reps);
-            size *= reps;
-            ++pattern_it;
-            ++var_info_it;
+        if (*pattern_it != *other_pattern_it) {
+            transfer_from_old(*var_info_it, size);
+
+            // Now transfer in-place
+            for (++pattern_it, ++var_info_it; *pattern_it != *other_pattern_it;
+                 ++pattern_it, ++var_info_it) {
+                transfer_inplace(*var_info_it, size);
+            }
+
+            for (; other_pattern_it != other_pattern.end();
+                 ++pattern_it, ++other_pattern_it, ++var_info_it) {
+                for (; *pattern_it != *other_pattern_it;
+                     ++pattern_it, ++var_info_it) {
+                    transfer_inplace(*var_info_it, size);
+                }
+            }
+
+            for (; pattern_it != pattern_.end(); ++pattern_it, ++var_info_it) {
+                transfer_inplace(*var_info_it, size);
+            }
+
+            return;
         }
     }
 
-    while (pattern_it != pattern_.end()) {
-        int reps = var_info_it->domain;
-        int length = var_info_it->multiplier;
-        convert_single_var(value_table.data(), size, length, reps);
-        size *= reps;
-        ++pattern_it;
-        ++var_info_it;
+    transfer_from_old(*var_info_it, size);
+
+    // Now transfer in-place
+    for (++pattern_it, ++var_info_it; pattern_it != pattern_.end();
+         ++pattern_it, ++var_info_it) {
+        transfer_inplace(*var_info_it, size);
     }
 }
 
