@@ -70,10 +70,9 @@ class CEGAR {
 
 public:
     CEGAR(
-        const utils::LogProxy& log,
+        utils::LogProxy log,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        std::shared_ptr<cegar::FlawFindingStrategy>
-            flaw_strategy,
+        std::shared_ptr<FlawFindingStrategy> flaw_strategy,
         bool wildcard,
         int max_pdb_size,
         int max_collection_size,

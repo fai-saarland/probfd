@@ -235,7 +235,7 @@ bool CEGAR::PDBInfo::is_goal(StateRank rank) const
 }
 
 CEGAR::CEGAR(
-    const utils::LogProxy& log,
+    utils::LogProxy log,
     const shared_ptr<utils::RandomNumberGenerator>& arg_rng,
     std::shared_ptr<FlawFindingStrategy> flaw_strategy,
     bool wildcard,
@@ -244,7 +244,7 @@ CEGAR::CEGAR(
     double max_time,
     std::vector<int> goals,
     std::unordered_set<int> blacklisted_variables)
-    : log(log)
+    : log(std::move(log))
     , rng(arg_rng)
     , flaw_strategy(flaw_strategy)
     , wildcard(wildcard)
