@@ -3,6 +3,7 @@
 #include "probfd/heuristics/pdbs/pattern_collection_information.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
+#include "probfd/heuristics/pdbs/utils.h"
 
 #include "probfd/cost_function.h"
 #include "probfd/task_proxy.h"
@@ -504,9 +505,9 @@ unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
                 candidate_pdbs.emplace_back(new ProbabilityAwarePatternDatabase(
                     task_proxy,
                     task_cost_function,
-                    pdb,
-                    rel_var_id,
+                    extended_pattern(pdb.get_pattern(), rel_var_id),
                     task_proxy.get_initial_state(),
+                    pdb,
                     true,
                     hill_climbing_timer.get_remaining_time()));
             const unsigned int num_states = new_pdb->num_states();

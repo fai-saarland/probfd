@@ -52,11 +52,11 @@ public:
      * @param pattern The pattern inducing the projection.
      * @param initial_state The initial state. States unreachable from the
      * initial state are treated as dead ends.
-     * @param operator_pruning Specifies whether operators with the same
-     * precondition, cost, effect and effect probabilities shall be pruned
-     * during construction of the projection.
      * @param heuristic An admissible heuristic for the projection, used to
      * accelerate the computation of the lookup table.
+     * @param prune_eqv_operators Specifies whether equivalent operators shall
+     * be pruned during construction of the projection. This may take additional
+     * time.
      * @param max_time The time limit for construction. If exceeded, a
      * utils::TimeoutException will be thrown.
      *
@@ -67,30 +67,36 @@ public:
         FDRSimpleCostFunction& task_cost_function,
         Pattern pattern,
         const State& initial_state,
-        bool operator_pruning = true,
         const StateRankEvaluator& heuristic = BlindEvaluator<StateRank>(),
+        bool prune_eqv_operators = true,
         double max_time = std::numeric_limits<double>::infinity());
 
     /**
-     * @brief Construct the probability-aware pattern database for the given
-     * projection state space.
+     * @brief Construct a probability-aware pattern database for a given task
+     * and pattern.
      *
-     * @param projection The projection state space.
-     * @param ranking_function The state ranking function for the projection.
-     * @param initial_state The abstract initial state of the projection. States
-     * unreachable from the initial state are treated as dead ends.
+     * @param task_proxy The input task.
+     * @param pattern The pattern inducing the projection.
+     * @param initial_state The initial state. States unreachable from the
+     * initial state are treated as dead ends.
      * @param heuristic An admissible heuristic for the projection, used to
      * accelerate the computation of the lookup table.
+     * @param prune_eqv_operators Specifies whether equivalent operators shall
+     * be pruned during construction of the projection. This may take additional
+     * time.
      * @param max_time The time limit for construction. If exceeded, a
      * utils::TimeoutException will be thrown.
      *
      * @throws utils::TimeoutException if the given \p max_time is exceeded.
      */
     ProbabilityAwarePatternDatabase(
-        ProjectionStateSpace& projection,
-        StateRankingFunction ranking_function,
-        StateRank initial_state,
-        const StateRankEvaluator& heuristic = BlindEvaluator<StateRank>(),
+        ProbabilisticTaskProxy task_proxy,
+        FDRSimpleCostFunction& task_cost_function,
+        Pattern pattern,
+        const State& initial_state,
+        const StateRankEvaluator& heuristic,
+        std::unique_ptr<ProjectionStateSpace>& mdp,
+        bool prune_eqv_operators = true,
         double max_time = std::numeric_limits<double>::infinity());
 
     /**
@@ -99,13 +105,13 @@ public:
      *
      * @param task_proxy The input task.
      * @param task_cost_function The task's cost function.
-     * @param pdb The determinization-based pattern database. This PDB must be
+     * @param pdb The determinization-based pattern database. This PDB is
      * constructed for the same pattern.
      * @param initial_state The initial state. States unreachable from the
      * initial state are treated as dead ends.
-     * @param operator_pruning Specifies whether operators with the same
-     * precondition, cost, effect and effect probabilities shall be pruned
-     * during construction of the projection.
+     * @param prune_eqv_operators Specifies whether equivalent operators shall
+     * be pruned during construction of the projection. This may take additional
+     * time.
      * @param max_time The time limit for construction. If exceeded, a
      * utils::TimeoutException will be thrown.
      *
@@ -116,26 +122,23 @@ public:
         FDRSimpleCostFunction& task_cost_function,
         const ::pdbs::PatternDatabase& pdb,
         const State& initial_state,
-        bool operator_pruning = true,
+        bool prune_eqv_operators = true,
         double max_time = std::numeric_limits<double>::infinity());
 
     /**
      * @brief Construct a probability-aware pattern database for a given task,
-     * by extending a previous probability-aware pattern by one variable.
-     *
-     * This constructor makes use of the probability-aware PDB which it extends
-     * by using it as a heuristic to accelerate the lookup computation.
+     * using a coarser probability-aware pattern database as a heuristic.
      *
      * @param task_proxy The input task with respect to which the projection is
      * constructed.
      * @param task_cost_function The task's cost function.
-     * @param pdb A previous probability-aware pattern database.
-     * @param add_var A task variable with with the previous PDB shall be
-     * extended.
+     * @param pattern The pattern inducing the projection.
      * @param initial_state The initial state for the exhaustive solver.
      * States unreachable from this state are treated as dead ends.
-     * @param operator_pruning Whether equivalent operators shall be pruned
-     * during construction of the projection.
+     * @param pdb A coarser probability-aware pattern database.
+     * @param prune_eqv_operators Specifies whether equivalent operators shall
+     * be pruned during construction of the projection. This may take additional
+     * time.
      * @param max_time The time limit for contruction. If exceeded, a
      * utils::TimeoutException will be thrown.
      *
@@ -144,55 +147,62 @@ public:
     ProbabilityAwarePatternDatabase(
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
-        const ProbabilityAwarePatternDatabase& pdb,
-        int add_var,
+        Pattern pattern,
         const State& initial_state,
-        bool operator_pruning = true,
+        const ProbabilityAwarePatternDatabase& pdb,
+        bool prune_eqv_operators = true,
         double max_time = std::numeric_limits<double>::infinity());
 
     /**
-     * @brief Construct a pattern database for the given projection state space
-     * and the pattern of a previous pattern database.
+     * @brief Construct a probability-aware pattern database for a given task,
+     * using a coarser probability-aware pattern database as a heuristic.
+     * Additionally returns the constructed projection MDP.
      *
-     * This constructor makes use of the supplied PDB by using its
-     * induced heuristic to accelerate the value table computation.
-     *
-     * @param state_space The preconstructed state space of the projection.
-     * @param ranking_function The preconstructed ranking function for the PDB.
-     * @param initial_state The rank of the initial state for the exhaustive
-     * solver. States unreachable from this state are treated as dead ends.
-     * @param pdb A previous probability-aware pattern database.
+     * @param task_proxy The input task with respect to which the projection is
+     * constructed.
+     * @param task_cost_function The task's cost function.
+     * @param pattern The pattern inducing the projection.
+     * @param initial_state The initial state for the exhaustive solver.
+     * States unreachable from this state are treated as dead ends.
+     * @param pdb A coarser probability-aware pattern database.
+     * @param mdp A unique_ptr holding the constructed projection MDP after
+     * construction.
+     * @param prune_eqv_operators Specifies whether equivalent operators shall
+     * be pruned during construction of the projection. This may take additional
+     * time.
      * @param max_time The time limit for contruction. If exceeded, a
      * utils::TimeoutException will be thrown.
      *
      * @throws utils::TimeoutException if the given \p max_time is exceeded.
      */
     ProbabilityAwarePatternDatabase(
-        ProjectionStateSpace& state_space,
-        StateRankingFunction ranking_function,
-        StateRank initial_state,
+        ProbabilisticTaskProxy task_proxy,
+        FDRSimpleCostFunction& task_cost_function,
+        Pattern pattern,
+        const State& initial_state,
         const ProbabilityAwarePatternDatabase& pdb,
+        std::unique_ptr<ProjectionStateSpace>& mdp,
+        bool prune_eqv_operators = true,
         double max_time = std::numeric_limits<double>::infinity());
 
     /**
-     * @brief Construct a probability-aware pattern database for a given task
-     * and the union of the patterns of two
-     * probability-aware PDBs.
-     *
-     * This constructor makes use of the supplied PDBs by using the maximum
-     * over their heuristics to accelerate the value table computation.
+     * @brief Construct a probability-aware pattern database for a given task,
+     * using the maximum over two coarser probability-aware pattern databases
+     * as a heuristic.
      *
      * @param task_proxy The input task with respect to which the projection is
      * constructed.
      * @param task_cost_function The task's cost function.
+     * @param pattern The pattern inducing the projection.
+     * @param initial_state The initial state for the exhaustive solver. States
+     * unreachable from this state are treated as dead ends.
      * @param left A previous probability-aware pattern database for the given
      * task.
      * @param right A previous probability-aware pattern database for the given
      * task.
-     * @param initial_state The initial state for the exhaustive solver. States
-     * unreachable from this state are treated as dead ends.
-     * @param operator_pruning Whether equivalent operators shall be pruned
-     * during construction of the projection.
+     * @param prune_eqv_operators Specifies whether equivalent operators shall
+     * be pruned during construction of the projection. This may take additional
+     * time.
      * @param max_time The time limit for contruction. If exceeded, a
      * utils::TimeoutException will be thrown.
      *
@@ -201,37 +211,47 @@ public:
     ProbabilityAwarePatternDatabase(
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
+        Pattern pattern,
+        const State& initial_state,
         const ProbabilityAwarePatternDatabase& left,
         const ProbabilityAwarePatternDatabase& right,
-        const State& initial_state,
-        bool operator_pruning = true,
+        bool prune_eqv_operators = true,
         double max_time = std::numeric_limits<double>::infinity());
 
     /**
-     * @brief Construct a probability-aware pattern database the given
-     * projection state space and the union of the patterns of two
-     * probability-aware PDBs.
+     * @brief Construct a probability-aware pattern database for a given task,
+     * using the maximum over two coarser probability-aware pattern databases
+     * as a heuristic. Additionally returns the constructed projection MDP.
      *
-     * This constructor makes use of the supplied PDBs by using the maximum
-     * over their heuristics to accelerate the value table computation.
-     *
-     * @param state_space The preconstructed state space of the projection.
-     * @param ranking_function The preconstructed ranking function for the PDB.
-     * @param initial_state The rank of the initial state for the exhaustive
-     * solver. States unreachable from this state are treated as dead ends.
-     * @param left A previous pattern database for the given task.
-     * @param right A previous pattern database for the given task.
+     * @param task_proxy The input task with respect to which the projection is
+     * constructed.
+     * @param task_cost_function The task's cost function.
+     * @param pattern The pattern inducing the projection.
+     * @param initial_state The initial state for the exhaustive solver. States
+     * unreachable from this state are treated as dead ends.
+     * @param left A coarser probability-aware pattern database for the given
+     * task.
+     * @param right A coarser probability-aware pattern database for the given
+     * task.
+     * @param mdp A unique_ptr holding the constructed projection MDP after
+     * construction.
+     * @param prune_eqv_operators Specifies whether equivalent operators shall
+     * be pruned during construction of the projection. This may take additional
+     * time.
      * @param max_time The time limit for contruction. If exceeded, a
      * utils::TimeoutException will be thrown.
      *
      * @throws utils::TimeoutException if the given \p max_time is exceeded.
      */
     ProbabilityAwarePatternDatabase(
-        ProjectionStateSpace& state_space,
-        StateRankingFunction ranking_function,
-        StateRank initial_state,
+        ProbabilisticTaskProxy task_proxy,
+        FDRSimpleCostFunction& task_cost_function,
+        Pattern pattern,
+        const State& initial_state,
         const ProbabilityAwarePatternDatabase& left,
         const ProbabilityAwarePatternDatabase& right,
+        std::unique_ptr<ProjectionStateSpace>& mdp,
+        bool prune_eqv_operators = true,
         double max_time = std::numeric_limits<double>::infinity());
 
     /// Get the pattern of the pattern database.

@@ -41,36 +41,36 @@ CEGARResult::~CEGARResult() = default;
  */
 class CEGAR::PDBInfo {
     std::unique_ptr<ProjectionStateSpace> state_space;
-    StateRank initial_state;
     std::unique_ptr<ProbabilityAwarePatternDatabase> pdb;
+
+    StateRank initial_state;
     std::unique_ptr<ProjectionMultiPolicy> policy;
     bool solved = false;
 
 public:
     PDBInfo(
         ProbabilisticTaskProxy task_proxy,
-        StateRankingFunction ranking_function,
         FDRSimpleCostFunction& task_cost_function,
+        Pattern pattern,
         utils::RandomNumberGenerator& rng,
         bool wildcard,
         utils::CountdownTimer& timer);
 
     PDBInfo(
         ProbabilisticTaskProxy task_proxy,
-        StateRankingFunction ranking_function,
         FDRSimpleCostFunction& task_cost_function,
-        utils::RandomNumberGenerator& rng,
         const ProbabilityAwarePatternDatabase& previous,
+        int add_var,
+        utils::RandomNumberGenerator& rng,
         bool wildcard,
         utils::CountdownTimer& timer);
 
     PDBInfo(
         ProbabilisticTaskProxy task_proxy,
-        StateRankingFunction ranking_function,
         FDRSimpleCostFunction& task_cost_function,
-        utils::RandomNumberGenerator& rng,
         const ProbabilityAwarePatternDatabase& merge_left,
         const ProbabilityAwarePatternDatabase& merge_right,
+        utils::RandomNumberGenerator& rng,
         bool wildcard,
         utils::CountdownTimer& timer);
 
@@ -98,25 +98,21 @@ public:
 
 CEGAR::PDBInfo::PDBInfo(
     ProbabilisticTaskProxy task_proxy,
-    StateRankingFunction ranking_function,
     FDRSimpleCostFunction& task_cost_function,
+    Pattern pattern,
     utils::RandomNumberGenerator& rng,
     bool wildcard,
     utils::CountdownTimer& timer)
-    : state_space(new ProjectionStateSpace(
+    : pdb(new ProbabilityAwarePatternDatabase(
           task_proxy,
           task_cost_function,
-          ranking_function,
+          std::move(pattern),
+          task_proxy.get_initial_state(),
+          heuristics::BlindEvaluator<StateRank>(),
+          state_space,
           false,
           timer.get_remaining_time()))
-    , initial_state(
-          ranking_function.get_abstract_rank(task_proxy.get_initial_state()))
-    , pdb(new ProbabilityAwarePatternDatabase(
-          *state_space,
-          std::move(ranking_function),
-          initial_state,
-          heuristics::ConstantEvaluator<StateRank>(0_vt),
-          timer.get_remaining_time()))
+    , initial_state(pdb->get_abstract_state(task_proxy.get_initial_state()))
     , policy(compute_optimal_projection_policy(
           *state_space,
           pdb->get_value_table(),
@@ -128,26 +124,22 @@ CEGAR::PDBInfo::PDBInfo(
 
 CEGAR::PDBInfo::PDBInfo(
     ProbabilisticTaskProxy task_proxy,
-    StateRankingFunction ranking_function,
     FDRSimpleCostFunction& task_cost_function,
-    utils::RandomNumberGenerator& rng,
     const ProbabilityAwarePatternDatabase& previous,
+    int add_var,
+    utils::RandomNumberGenerator& rng,
     bool wildcard,
     utils::CountdownTimer& timer)
-    : state_space(new ProjectionStateSpace(
+    : pdb(new ProbabilityAwarePatternDatabase(
           task_proxy,
           task_cost_function,
-          ranking_function,
+          extended_pattern(previous.get_pattern(), add_var),
+          task_proxy.get_initial_state(),
+          previous,
+          state_space,
           false,
           timer.get_remaining_time()))
-    , initial_state(
-          ranking_function.get_abstract_rank(task_proxy.get_initial_state()))
-    , pdb(new ProbabilityAwarePatternDatabase(
-          *state_space,
-          std::move(ranking_function),
-          initial_state,
-          previous,
-          timer.get_remaining_time()))
+    , initial_state(pdb->get_abstract_state(task_proxy.get_initial_state()))
     , policy(compute_optimal_projection_policy(
           *state_space,
           pdb->get_value_table(),
@@ -159,28 +151,23 @@ CEGAR::PDBInfo::PDBInfo(
 
 CEGAR::PDBInfo::PDBInfo(
     ProbabilisticTaskProxy task_proxy,
-    StateRankingFunction ranking_function,
     FDRSimpleCostFunction& task_cost_function,
-    utils::RandomNumberGenerator& rng,
     const ProbabilityAwarePatternDatabase& left,
     const ProbabilityAwarePatternDatabase& right,
+    utils::RandomNumberGenerator& rng,
     bool wildcard,
     utils::CountdownTimer& timer)
-    : state_space(new ProjectionStateSpace(
+    : pdb(new ProbabilityAwarePatternDatabase(
           task_proxy,
           task_cost_function,
-          ranking_function,
-          false,
-          timer.get_remaining_time()))
-    , initial_state(
-          ranking_function.get_abstract_rank(task_proxy.get_initial_state()))
-    , pdb(new ProbabilityAwarePatternDatabase(
-          *state_space,
-          std::move(ranking_function),
-          initial_state,
+          utils::merge_sorted(left.get_pattern(), right.get_pattern()),
+          task_proxy.get_initial_state(),
           left,
           right,
+          state_space,
+          false,
           timer.get_remaining_time()))
+    , initial_state(pdb->get_abstract_state(task_proxy.get_initial_state()))
     , policy(compute_optimal_projection_policy(
           *state_space,
           pdb->get_value_table(),
@@ -415,8 +402,8 @@ void CEGAR::add_pattern_for_var(
 {
     auto& info = pdb_infos.emplace_back(new PDBInfo(
         task_proxy,
-        StateRankingFunction(task_proxy.get_variables(), {var}),
         task_cost_function,
+        {var},
         *rng,
         wildcard,
         timer));
@@ -438,12 +425,10 @@ void CEGAR::add_variable_to_pattern(
     // compute new solution
     std::unique_ptr<PDBInfo> new_info(new PDBInfo(
         task_proxy,
-        StateRankingFunction(
-            task_proxy.get_variables(),
-            extended_pattern(pdb.get_pattern(), var)),
         task_cost_function,
-        *rng,
         pdb,
+        var,
+        *rng,
         wildcard,
         timer));
 
@@ -482,13 +467,10 @@ void CEGAR::merge_patterns(
     // compute merge solution
     unique_ptr<PDBInfo> merged(new PDBInfo(
         task_proxy,
-        StateRankingFunction(
-            task_proxy.get_variables(),
-            utils::merge_sorted(pdb1.get_pattern(), pdb2.get_pattern())),
         task_cost_function,
-        *rng,
         pdb1,
         pdb2,
+        *rng,
         wildcard,
         timer));
 

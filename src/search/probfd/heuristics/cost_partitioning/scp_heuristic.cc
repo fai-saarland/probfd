@@ -108,22 +108,19 @@ SCPHeuristic::SCPHeuristic(
     const State& initial_state = task_proxy.get_initial_state();
 
     for (const Pattern& pattern : *patterns) {
-        StateRankingFunction rankingf(task_proxy.get_variables(), pattern);
-        ProjectionStateSpace state_space(
-            task_proxy,
-            task_costs,
-            rankingf,
-            false);
-        const StateRank initial_state_rank =
-            rankingf.get_abstract_rank(initial_state);
+        std::unique_ptr<ProjectionStateSpace> state_space;
 
         auto& pdb = pdbs.emplace_back(
+            task_proxy,
+            task_costs,
+            pattern,
+            initial_state,
+            BlindEvaluator<StateRank>(),
             state_space,
-            std::move(rankingf),
-            initial_state_rank);
+            false);
 
         compute_saturated_costs(
-            state_space,
+            *state_space,
             pdb.get_value_table(),
             saturated_costs);
 
