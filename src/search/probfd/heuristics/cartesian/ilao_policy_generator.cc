@@ -22,7 +22,9 @@ namespace cartesian {
 
 ILAOPolicyGenerator::ILAOPolicyGenerator()
     : picker(new policy_pickers::ArbitraryTiebreaker<
-             quotients::QuotientState<int, const ProbabilisticTransition*>,
+             quotients::QuotientState<
+                 AbstractStateIndex,
+                 const ProbabilisticTransition*>,
              quotients::QuotientAction<const ProbabilisticTransition*>>(true))
     , report(0.0_vt)
 {
@@ -38,21 +40,23 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
     // TODO: ideally, this object should not be recreated each time, in
     // particular the storage for the search state. Needs some way to clear
     // the search state.
-    algorithms::trap_aware_dfhs::
-        TADepthFirstHeuristicSearch<int, const ProbabilisticTransition*, false>
-            hdfs(
-                picker,
-                &report,
-                false,
-                false,
-                algorithms::trap_aware_dfhs::BacktrackingUpdateType::SINGLE,
-                false,
-                false,
-                false,
-                true,
-                false,
-                true,
-                nullptr);
+    algorithms::trap_aware_dfhs::TADepthFirstHeuristicSearch<
+        AbstractStateIndex,
+        const ProbabilisticTransition*,
+        false>
+        hdfs(
+            picker,
+            &report,
+            false,
+            false,
+            algorithms::trap_aware_dfhs::BacktrackingUpdateType::SINGLE,
+            false,
+            false,
+            false,
+            true,
+            false,
+            true,
+            nullptr);
 
     auto policy = hdfs.compute_policy(
         abstraction,
@@ -60,9 +64,9 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
         state->get_id(),
         timer.get_remaining_time());
 
-    for (int i = 0; i != abstraction.get_num_states(); ++i) {
+    for (AbstractStateIndex i = 0; i != abstraction.get_num_states(); ++i) {
         if (hdfs.was_visited(i)) {
-            heuristic.set_h_value(i, hdfs.lookup_value(i));
+            heuristic[i] = hdfs.lookup_value(i);
         }
     }
 

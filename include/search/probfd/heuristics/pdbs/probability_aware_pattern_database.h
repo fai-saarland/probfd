@@ -62,7 +62,8 @@ public:
         FDRSimpleCostFunction& task_cost_function,
         Pattern pattern,
         const State& initial_state,
-        const StateRankEvaluator& heuristic = BlindEvaluator<StateRank>(),
+        const AbstractionEvaluator& heuristic =
+            BlindEvaluator<AbstractStateIndex>(),
         bool prune_eqv_operators = true,
         double max_time = std::numeric_limits<double>::infinity());
 
@@ -89,7 +90,7 @@ public:
         FDRSimpleCostFunction& task_cost_function,
         Pattern pattern,
         const State& initial_state,
-        const StateRankEvaluator& heuristic,
+        const AbstractionEvaluator& heuristic,
         std::unique_ptr<ProjectionStateSpace>& mdp,
         bool prune_eqv_operators = true,
         double max_time = std::numeric_limits<double>::infinity());
@@ -263,7 +264,8 @@ public:
     [[nodiscard]] unsigned int num_states() const;
 
     /// Compute the state rank of the abstract state of an input state.
-    [[nodiscard]] StateRank get_abstract_state(const State& state) const;
+    [[nodiscard]] AbstractStateIndex
+    get_abstract_state(const State& state) const;
 
     /// Get the optimal state value of the abstract state corresponding to the
     /// input state.
@@ -271,7 +273,7 @@ public:
 
     /// Look up the estimate of an abstract state specified by state rank in
     /// the lookup table.
-    [[nodiscard]] value_t lookup_estimate(StateRank s) const;
+    [[nodiscard]] value_t lookup_estimate(AbstractStateIndex s) const;
 };
 
 } // namespace pdbs

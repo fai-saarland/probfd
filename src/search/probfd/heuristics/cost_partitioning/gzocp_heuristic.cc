@@ -130,7 +130,7 @@ GZOCPHeuristic::GZOCPHeuristic(
             task_costs,
             pattern,
             initial_state,
-            BlindEvaluator<StateRank>(),
+            BlindEvaluator<AbstractStateIndex>(),
             false);
         task_costs.decrease_costs(pdb);
     }

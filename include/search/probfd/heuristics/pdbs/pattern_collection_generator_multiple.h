@@ -23,6 +23,8 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
+class ProjectionStateSpace;
+
 class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
     const std::string implementation_name;
     const int max_pdb_size;

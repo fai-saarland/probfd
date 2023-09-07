@@ -1,6 +1,8 @@
 #ifndef PROBFD_HEURISTICS_CARTESIAN_TYPES_H
 #define PROBFD_HEURISTICS_CARTESIAN_TYPES_H
 
+#include "probfd/heuristics/abstractions/types.h"
+
 #include "downward/cartesian_abstractions/types.h"
 
 #include <deque>
@@ -21,6 +23,9 @@ class Policy;
 
 namespace heuristics {
 namespace cartesian {
+
+using abstractions::AbstractStateIndex;
+using abstractions::AbstractionEvaluator;
 
 struct TransitionOutcome;
 

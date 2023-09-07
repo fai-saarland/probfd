@@ -1,26 +1,30 @@
 #ifndef PROBFD_HEURISTICS_CARTESIAN_DISTANCES_H
 #define PROBFD_HEURISTICS_CARTESIAN_DISTANCES_H
 
-#include "probfd/value_type.h"
+#include "probfd/heuristics/abstractions/distances.h"
 
-#include <vector>
+#include <limits>
+#include <span>
 
 namespace probfd {
 namespace heuristics {
+
 namespace cartesian {
+class ProbabilisticTransition;
+}
 
-class Abstraction;
-class CartesianHeuristic;
+namespace abstractions {
 
-/**
- * @brief Calls topological value iteration to compute the complete optimal
- * value function (for states reachable from the initial state).
- */
-std::vector<value_t>
-compute_distances(Abstraction& abstraction, CartesianHeuristic& heuristic);
+extern template void
+compute_value_table<const cartesian::ProbabilisticTransition*>(
+    AbstractMDP<const cartesian::ProbabilisticTransition*>& mdp,
+    AbstractStateIndex initial_state,
+    const AbstractionEvaluator& heuristic,
+    std::span<value_t> value_table,
+    double max_time);
 
-} // namespace cartesian
+} // namespace abstractions
 } // namespace heuristics
 } // namespace probfd
 
-#endif
+#endif // PROBFD_HEURISTICS_CARTESIAN_DISTANCES_H

@@ -70,7 +70,7 @@ bool SamplingFlawFinder::apply_policy(
 
     for (;;) {
         const State* current = &stk.back();
-        const StateRank abs = pdb.get_abstract_state(*current);
+        const AbstractStateIndex abs = pdb.get_abstract_state(*current);
 
         ExplorationInfo* einfo = &einfos[StateID(current->get_id())];
 

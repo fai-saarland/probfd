@@ -43,7 +43,7 @@ class CEGAR::PDBInfo {
     std::unique_ptr<ProjectionStateSpace> state_space;
     std::unique_ptr<ProbabilityAwarePatternDatabase> pdb;
 
-    StateRank initial_state;
+    AbstractStateIndex initial_state;
     std::unique_ptr<ProjectionMultiPolicy> policy;
     bool solved = false;
 
@@ -93,7 +93,7 @@ public:
 
     bool solution_exists(value_t termination_cost) const;
 
-    bool is_goal(StateRank rank) const;
+    bool is_goal(AbstractStateIndex rank) const;
 };
 
 CEGAR::PDBInfo::PDBInfo(
@@ -108,7 +108,7 @@ CEGAR::PDBInfo::PDBInfo(
           task_cost_function,
           std::move(pattern),
           task_proxy.get_initial_state(),
-          heuristics::BlindEvaluator<StateRank>(),
+          heuristics::BlindEvaluator<AbstractStateIndex>(),
           state_space,
           false,
           timer.get_remaining_time()))
@@ -229,7 +229,7 @@ bool CEGAR::PDBInfo::solution_exists(value_t termination_cost) const
     return pdb->lookup_estimate(initial_state) != termination_cost;
 }
 
-bool CEGAR::PDBInfo::is_goal(StateRank rank) const
+bool CEGAR::PDBInfo::is_goal(AbstractStateIndex rank) const
 {
     return state_space->is_goal(rank);
 }

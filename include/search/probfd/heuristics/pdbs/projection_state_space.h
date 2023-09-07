@@ -21,7 +21,7 @@ class StateRankingFunction;
 
 /// Represents the state space of a projection of a probabilistic planning task.
 class ProjectionStateSpace
-    : public SimpleMDP<StateRank, const ProjectionOperator*> {
+    : public SimpleMDP<AbstractStateIndex, const ProjectionOperator*> {
 
     MatchTree match_tree_;
     FDRSimpleCostFunction* parent_cost_function;
@@ -35,29 +35,29 @@ public:
         bool operator_pruning = true,
         double max_time = std::numeric_limits<double>::infinity());
 
-    StateID get_state_id(StateRank state) override;
+    StateID get_state_id(AbstractStateIndex state) override;
 
-    StateRank get_state(StateID id) override;
+    AbstractStateIndex get_state(StateID id) override;
 
     void generate_applicable_actions(
-        StateRank state,
+        AbstractStateIndex state,
         std::vector<const ProjectionOperator*>& aops) override;
 
     void generate_action_transitions(
-        StateRank state,
+        AbstractStateIndex state,
         const ProjectionOperator* op,
         Distribution<StateID>& result) override;
 
     void generate_all_transitions(
-        StateRank state,
+        AbstractStateIndex state,
         std::vector<const ProjectionOperator*>& aops,
         std::vector<Distribution<StateID>>& result) override;
 
     void generate_all_transitions(
-        StateRank state,
+        AbstractStateIndex state,
         std::vector<Transition>& transitions) override;
 
-    bool is_goal(StateRank state) const override;
+    bool is_goal(AbstractStateIndex state) const override;
 
     value_t get_non_goal_termination_cost() const override;
 

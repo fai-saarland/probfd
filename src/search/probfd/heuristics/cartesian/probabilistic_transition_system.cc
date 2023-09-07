@@ -153,23 +153,25 @@ void ProbabilisticTransitionSystem::construct_trivial_abstraction(
 }
 
 void ProbabilisticTransitionSystem::add_transition(
-    int src_id,
+    AbstractStateIndex src_id,
     int op_id,
-    std::vector<int> target_ids)
+    std::vector<AbstractStateIndex> target_ids)
 {
     auto& transition =
         transitions.emplace_back(src_id, op_id, std::move(target_ids));
     outgoing[src_id].push_back(&transition);
 
-    std::unordered_set<int> seen;
-    for (int target_id : transition.target_ids) {
+    std::unordered_set<AbstractStateIndex> seen;
+    for (AbstractStateIndex target_id : transition.target_ids) {
         if (seen.insert(target_id).second) {
             incoming[target_id].push_back(&transition);
         }
     }
 }
 
-void ProbabilisticTransitionSystem::add_loop(int src_id, int op_id)
+void ProbabilisticTransitionSystem::add_loop(
+    AbstractStateIndex src_id,
+    int op_id)
 {
     loops[src_id].emplace_back(op_id);
     ++num_loops;
@@ -181,15 +183,15 @@ void ProbabilisticTransitionSystem::rewire_incoming_transitions(
     const AbstractState& v2,
     int var)
 {
-    int v1_id = v1.get_id();
-    int v2_id = v2.get_id();
+    AbstractStateIndex v1_id = v1.get_id();
+    AbstractStateIndex v2_id = v2.get_id();
 
     auto old_incoming = std::move(incoming[v1_id]);
 
     for (ProbabilisticTransition* transition : old_incoming) {
         assert(utils::contains(transition->target_ids, v1_id));
 
-        const int u_id = transition->source_id;
+        const AbstractStateIndex u_id = transition->source_id;
         const AbstractState& u = *states[u_id];
         int op_id = transition->op_id;
 
@@ -200,7 +202,7 @@ void ProbabilisticTransitionSystem::rewire_incoming_transitions(
         // transitions lists.
         // If rewiring produces two transitions, then the second one is added as
         // a new transition, while the first one is an in-place update.
-        std::vector<int>& target_ids = transition->target_ids;
+        std::vector<AbstractStateIndex>& target_ids = transition->target_ids;
 
         int pre = get_precondition_value(op_id, var);
         if (pre == UNDEFINED) {
@@ -213,7 +215,7 @@ void ProbabilisticTransitionSystem::rewire_incoming_transitions(
             bool v2_incoming = false;
 
             for (size_t i = 0; i != target_ids.size(); ++i) {
-                const int v_id = target_ids[i];
+                const AbstractStateIndex v_id = target_ids[i];
                 const int post = get_postcondition_value(op_id, i, var);
 
                 if (v_id != v1_id) {
@@ -270,7 +272,7 @@ void ProbabilisticTransitionSystem::rewire_incoming_transitions(
             bool v2_possible = false;
 
             for (size_t i = 0; i != target_ids.size(); ++i) {
-                const int v_id = target_ids[i];
+                const AbstractStateIndex v_id = target_ids[i];
                 const int post = get_postcondition_value(op_id, i, var);
 
                 if (v_id == v1_id) {
@@ -304,15 +306,15 @@ void ProbabilisticTransitionSystem::rewire_outgoing_transitions(
     const AbstractState& v2,
     int var)
 {
-    int v1_id = v1.get_id();
-    int v2_id = v2.get_id();
+    AbstractStateIndex v1_id = v1.get_id();
+    AbstractStateIndex v2_id = v2.get_id();
 
     auto old_outgoing = std::move(outgoing[v1_id]);
 
     for (ProbabilisticTransition* transition : old_outgoing) {
         int op_id = transition->op_id;
 
-        std::vector<int>& target_ids = transition->target_ids;
+        std::vector<AbstractStateIndex>& target_ids = transition->target_ids;
 
         int pre = get_precondition_value(op_id, var);
 
@@ -321,7 +323,7 @@ void ProbabilisticTransitionSystem::rewire_outgoing_transitions(
             bool v2_possible = true;
 
             for (size_t i = 0; i != target_ids.size(); ++i) {
-                const int v_id = target_ids[i];
+                const AbstractStateIndex v_id = target_ids[i];
                 const int post = get_postcondition_value(op_id, i, var);
 
                 if (post == UNDEFINED) {
@@ -374,8 +376,8 @@ void ProbabilisticTransitionSystem::rewire_loops(
     /* State v has been split into v1 and v2. Now for all self-loops
        v->v we need to add one or two of the transitions v1->v1, v1->v2,
        v2->v1 and v2->v2. */
-    int v1_id = v1.get_id();
-    int v2_id = v2.get_id();
+    AbstractStateIndex v1_id = v1.get_id();
+    AbstractStateIndex v2_id = v2.get_id();
 
     auto old_loops = std::move(loops[v1_id]);
 
@@ -388,8 +390,8 @@ void ProbabilisticTransitionSystem::rewire_loops(
             bool v1_set = false;
             bool v2_set = false;
 
-            std::vector<int> target_ids_v1;
-            std::vector<int> target_ids_v2;
+            std::vector<AbstractStateIndex> target_ids_v1;
+            std::vector<AbstractStateIndex> target_ids_v2;
             target_ids_v1.reserve(num_outcomes);
             target_ids_v2.reserve(num_outcomes);
 
@@ -431,7 +433,7 @@ void ProbabilisticTransitionSystem::rewire_loops(
             // op starts in v1
             bool v2_set = false;
 
-            std::vector<int> target_ids;
+            std::vector<AbstractStateIndex> target_ids;
             target_ids.reserve(num_outcomes);
 
             for (size_t i = 0; i != num_outcomes; ++i) {
@@ -459,7 +461,7 @@ void ProbabilisticTransitionSystem::rewire_loops(
             // op starts in v2
             bool v1_set = false;
 
-            std::vector<int> target_ids;
+            std::vector<AbstractStateIndex> target_ids;
             target_ids.reserve(num_outcomes);
 
             for (size_t i = 0; i != num_outcomes; ++i) {

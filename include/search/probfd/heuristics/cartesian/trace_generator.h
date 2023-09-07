@@ -24,7 +24,7 @@ class CartesianHeuristic;
 struct TransitionOutcome {
     int op_id;
     int eff_id;
-    int target_id;
+    AbstractStateIndex target_id;
 
     friend auto
     operator<=>(const TransitionOutcome&, const TransitionOutcome&) = default;
@@ -39,7 +39,7 @@ public:
 
     virtual std::unique_ptr<Trace> find_trace(
         Abstraction& abstraction,
-        int init_id,
+        AbstractStateIndex init_id,
         CartesianHeuristic& heuristic,
         utils::CountdownTimer& timer) = 0;
 

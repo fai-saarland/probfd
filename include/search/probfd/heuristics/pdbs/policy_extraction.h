@@ -27,7 +27,7 @@ class ProjectionStateSpace;
 compute_optimal_projection_policy(
     ProjectionStateSpace& state_space,
     std::span<const value_t> value_table,
-    StateRank initial_state,
+    AbstractStateIndex initial_state,
     utils::RandomNumberGenerator& rng,
     bool wildcard);
 
@@ -43,7 +43,7 @@ compute_optimal_projection_policy(
 compute_greedy_projection_policy(
     ProjectionStateSpace& state_space,
     std::span<const value_t> value_table,
-    StateRank initial_state,
+    AbstractStateIndex initial_state,
     utils::RandomNumberGenerator& rng,
     bool wildcard);
 

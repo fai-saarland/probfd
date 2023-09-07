@@ -17,7 +17,7 @@ namespace {
 struct ProgressionOperatorFootprint {
     value_t cost;
     long long int precondition_hash;
-    Distribution<StateRank> successors;
+    Distribution<AbstractStateIndex> successors;
 
     friend bool operator<(
         const ProgressionOperatorFootprint& a,
@@ -29,7 +29,7 @@ struct ProgressionOperatorFootprint {
 };
 
 struct OutcomeInfo {
-    StateRank base_effect = StateRank(0);
+    AbstractStateIndex base_effect = AbstractStateIndex(0);
     std::vector<int> missing_pres;
 
     friend bool operator<(const OutcomeInfo& a, const OutcomeInfo& b)
@@ -156,7 +156,7 @@ ProjectionStateSpace::ProjectionStateSpace(
             for (const auto& [info, prob] : outcomes) {
                 const auto& [base_effect, missing_pres] = info;
 
-                StateRank offset = base_effect;
+                AbstractStateIndex offset = base_effect;
 
                 auto it = values.begin();
                 auto end = values.end();
@@ -214,7 +214,7 @@ ProjectionStateSpace::ProjectionStateSpace(
     const GoalsProxy task_goals = task_proxy.get_goals();
 
     std::vector<int> non_goal_vars;
-    StateRank base(0);
+    AbstractStateIndex base(0);
 
     // Translate sparse goal into pdb index space
     // and collect non-goal variables aswell.
@@ -249,25 +249,25 @@ ProjectionStateSpace::ProjectionStateSpace(
     } while (ranking_function.next_rank(base, non_goal_vars));
 }
 
-StateID ProjectionStateSpace::get_state_id(StateRank state)
+StateID ProjectionStateSpace::get_state_id(AbstractStateIndex state)
 {
     return state;
 }
 
-StateRank ProjectionStateSpace::get_state(StateID id)
+AbstractStateIndex ProjectionStateSpace::get_state(StateID id)
 {
-    return StateRank(id);
+    return AbstractStateIndex(id);
 }
 
 void ProjectionStateSpace::generate_applicable_actions(
-    StateRank state,
+    AbstractStateIndex state,
     std::vector<const ProjectionOperator*>& aops)
 {
     match_tree_.get_applicable_operators(state, aops);
 }
 
 void ProjectionStateSpace::generate_action_transitions(
-    StateRank state,
+    AbstractStateIndex state,
     const ProjectionOperator* op,
     Distribution<StateID>& result)
 {
@@ -277,7 +277,7 @@ void ProjectionStateSpace::generate_action_transitions(
 }
 
 void ProjectionStateSpace::generate_all_transitions(
-    StateRank state,
+    AbstractStateIndex state,
     std::vector<const ProjectionOperator*>& aops,
     std::vector<Distribution<StateID>>& result)
 {
@@ -289,13 +289,13 @@ void ProjectionStateSpace::generate_all_transitions(
 }
 
 void ProjectionStateSpace::generate_all_transitions(
-    StateRank state,
+    AbstractStateIndex state,
     std::vector<Transition>& transitions)
 {
     match_tree_.generate_all_transitions(state, transitions, *this);
 }
 
-bool ProjectionStateSpace::is_goal(StateRank state) const
+bool ProjectionStateSpace::is_goal(AbstractStateIndex state) const
 {
     return goal_state_flags_[state];
 }

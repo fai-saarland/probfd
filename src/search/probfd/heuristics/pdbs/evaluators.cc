@@ -23,7 +23,7 @@ PDBEvaluator::PDBEvaluator(const ::pdbs::PatternDatabase& pdb)
 {
 }
 
-value_t PDBEvaluator::evaluate(StateRank state_rank) const
+value_t PDBEvaluator::evaluate(AbstractStateIndex state_rank) const
 {
     int deterministic_val = pdb.get_value_for_index(state_rank);
 
@@ -39,7 +39,7 @@ DeadendPDBEvaluator::DeadendPDBEvaluator(const ::pdbs::PatternDatabase& pdb)
 {
 }
 
-value_t DeadendPDBEvaluator::evaluate(StateRank state) const
+value_t DeadendPDBEvaluator::evaluate(AbstractStateIndex state) const
 {
     int deterministic_val = pdb.get_value_for_index(state);
 
@@ -72,7 +72,7 @@ IncrementalPPDBEvaluator::IncrementalPPDBEvaluator(
     }
 }
 
-value_t IncrementalPPDBEvaluator::evaluate(StateRank state) const
+value_t IncrementalPPDBEvaluator::evaluate(AbstractStateIndex state) const
 {
     return estimates[state];
 }

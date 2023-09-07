@@ -115,11 +115,11 @@ SCPHeuristic::SCPHeuristic(
             task_costs,
             pattern,
             initial_state,
-            BlindEvaluator<StateRank>(),
+            BlindEvaluator<AbstractStateIndex>(),
             state_space,
             false);
 
-        compute_saturated_costs(
+        abstractions::compute_saturated_costs(
             *state_space,
             pdb.get_value_table(),
             saturated_costs);

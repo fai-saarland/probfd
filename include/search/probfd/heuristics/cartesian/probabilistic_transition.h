@@ -1,6 +1,8 @@
 #ifndef PROBFD_HEURISTICS_CARTESIAN_PROBABILISTIC_TRANSITION_H
 #define PROBFD_HEURISTICS_CARTESIAN_PROBABILISTIC_TRANSITION_H
 
+#include "probfd/heuristics/cartesian/types.h"
+
 #include <cassert>
 #include <compare>
 #include <iostream>
@@ -11,14 +13,16 @@ namespace heuristics {
 namespace cartesian {
 
 struct ProbabilisticTransition {
-    int source_id;
+    AbstractStateIndex source_id;
     int op_id;
-    std::vector<int> target_ids; // One target for each operator effect
+
+    // One target for each operator effect
+    std::vector<AbstractStateIndex> target_ids; 
 
     ProbabilisticTransition(
-        int source_id,
+        AbstractStateIndex source_id,
         int op_id,
-        std::vector<int> target_ids)
+        std::vector<AbstractStateIndex> target_ids)
         : source_id(source_id)
         , op_id(op_id)
         , target_ids(std::move(target_ids))
@@ -44,4 +48,4 @@ struct ProbabilisticTransition {
 } // namespace heuristics
 } // namespace probfd
 
-#endif
+#endif // PROBFD_HEURISTICS_CARTESIAN_PROBABILISTIC_TRANSITION_H

@@ -1,6 +1,8 @@
 #ifndef PROBFD_HEURISTICS_PDBS_TYPES_H
 #define PROBFD_HEURISTICS_PDBS_TYPES_H
 
+#include "probfd/heuristics/abstractions/types.h"
+
 #include "downward/pdbs/types.h"
 
 namespace pdbs {
@@ -9,28 +11,30 @@ class PatternCollectionInformation;
 } // namespace pdbs
 
 namespace probfd {
-
-template <typename, typename>
-class MultiPolicy;
 namespace heuristics {
 namespace pdbs {
-
-class ProjectionStateSpace;
-class ProbabilityAwarePatternDatabase;
 
 using PatternCollection = ::pdbs::PatternCollection;
 using Pattern = ::pdbs::Pattern;
 using PatternID = ::pdbs::PatternID;
 using PatternSubCollection = std::vector<PatternID>;
 
-using ProjectionCollection = std::vector<std::unique_ptr<ProjectionStateSpace>>;
+class ProbabilityAwarePatternDatabase;
+class ProjectionStateSpace;
+class ProjectionOperator;
+
 using PPDBCollection =
     std::vector<std::shared_ptr<ProbabilityAwarePatternDatabase>>;
 
-using StateRank = int;
-class ProjectionOperator;
+using abstractions::AbstractionEvaluator;
+using abstractions::AbstractStateIndex;
 
-using ProjectionMultiPolicy = MultiPolicy<StateRank, const ProjectionOperator*>;
+// using ProjectionCollection =
+//     abstractions::AbstractionCollection<const ProjectionOperator*>;
+using ProjectionCollection = std::vector<std::unique_ptr<ProjectionStateSpace>>;
+
+using ProjectionMultiPolicy =
+    abstractions::AbstractMultiPolicy<const ProjectionOperator*>;
 
 } // namespace pdbs
 } // namespace heuristics

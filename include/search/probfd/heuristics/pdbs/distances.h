@@ -1,32 +1,21 @@
 #ifndef PROBFD_HEURISTICS_PDBS_DISTANCES_H
 #define PROBFD_HEURISTICS_PDBS_DISTANCES_H
 
-#include "probfd/heuristics/pdbs/types.h"
+#include "probfd/heuristics/abstractions/distances.h"
 
-#include "probfd/value_type.h"
+namespace probfd::heuristics::pdbs {
+class ProjectionOperator;
+}
 
-#include <span>
+namespace probfd::heuristics::abstraction {
 
-namespace probfd {
-template <typename>
-class Evaluator;
-
-namespace heuristics::pdbs {
-
-class ProjectionStateSpace;
-
-/**
- * @brief Computes the optimal value function of the abstraction, complete up to
- * forward reachability from the initial state.
- */
-void compute_value_table(
+extern template void compute_value_table<const pdbs::ProjectionOperator*>(
     ProjectionStateSpace& state_space,
     StateRank initial_state,
     const Evaluator<StateRank>& heuristic,
     std::span<value_t> value_table,
     double max_time);
 
-} // namespace heuristics::pdbs
-} // namespace probfd
+} // namespace probfd::heuristics::abstraction
 
 #endif // PROBFD_HEURISTICS_PDBS_DISTANCES_H

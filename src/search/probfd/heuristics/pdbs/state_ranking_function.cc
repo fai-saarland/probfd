@@ -77,9 +77,10 @@ const Pattern& StateRankingFunction::get_pattern() const
     return pattern_;
 }
 
-StateRank StateRankingFunction::get_abstract_rank(const State& state) const
+AbstractStateIndex
+StateRankingFunction::get_abstract_rank(const State& state) const
 {
-    StateRank res = 0;
+    AbstractStateIndex res = 0;
     for (size_t i = 0; i != pattern_.size(); ++i) {
         res += rank_fact(i, state[pattern_[i]].get_value());
     }
@@ -91,7 +92,8 @@ int StateRankingFunction::rank_fact(int idx, int val) const
     return var_infos_[idx].multiplier * val;
 }
 
-std::vector<int> StateRankingFunction::unrank(StateRank state_rank) const
+std::vector<int>
+StateRankingFunction::unrank(AbstractStateIndex state_rank) const
 {
     std::vector<int> values(var_infos_.size());
     for (size_t i = 0; i != var_infos_.size(); ++i) {
@@ -100,7 +102,7 @@ std::vector<int> StateRankingFunction::unrank(StateRank state_rank) const
     return values;
 }
 
-int StateRankingFunction::value_of(StateRank state_rank, int idx) const
+int StateRankingFunction::value_of(AbstractStateIndex state_rank, int idx) const
 {
     const VariableInfo& info = var_infos_[idx];
     return (state_rank / info.multiplier) % info.domain;
@@ -125,7 +127,7 @@ bool StateRankingFunction::next_partial_assignment(
 }
 
 bool StateRankingFunction::next_rank(
-    StateRank& abstract_state_rank,
+    AbstractStateIndex& abstract_state_rank,
     std::span<int> mutable_variables) const
 {
     for (int var : mutable_variables) {
@@ -264,7 +266,7 @@ StateRankToString::StateRankToString(
 {
 }
 
-std::string StateRankToString::operator()(StateRank state) const
+std::string StateRankToString::operator()(AbstractStateIndex state) const
 {
     using namespace std::views;
 

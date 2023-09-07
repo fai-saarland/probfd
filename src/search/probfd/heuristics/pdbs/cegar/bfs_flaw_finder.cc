@@ -70,7 +70,7 @@ bool BFSFlawFinder::apply_policy(
         timer.throw_if_expired();
 
         const State& current = open.front();
-        const StateRank abs = pdb.get_abstract_state(current);
+        const AbstractStateIndex abs = pdb.get_abstract_state(current);
 
         {
             const std::vector abs_decisions = policy.get_decisions(abs);

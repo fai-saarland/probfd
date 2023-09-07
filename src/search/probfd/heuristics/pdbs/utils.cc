@@ -49,13 +49,13 @@ void dump_graphviz(
     ProbabilisticTaskProxy task_proxy,
     ProjectionStateSpace& mdp,
     const ProbabilityAwarePatternDatabase& pdb,
-    StateRank initial_state,
+    AbstractStateIndex initial_state,
     std::ostream& out,
     bool transition_labels)
 {
     ProjectionOperatorToString op_names(task_proxy);
 
-    auto sts = [&pdb, &mdp](StateRank x) {
+    auto sts = [&pdb, &mdp](AbstractStateIndex x) {
         std::ostringstream out;
         out.precision(3);
 
@@ -79,7 +79,9 @@ void dump_graphviz(
         return transition_labels ? op_names(op) : "";
     };
 
-    graphviz::dump_state_space_dot_graph<StateRank, const ProjectionOperator*>(
+    graphviz::dump_state_space_dot_graph<
+        AbstractStateIndex,
+        const ProjectionOperator*>(
         out,
         initial_state,
         &mdp,

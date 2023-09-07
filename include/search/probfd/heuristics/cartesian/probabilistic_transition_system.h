@@ -51,8 +51,11 @@ class ProbabilisticTransitionSystem {
     int get_postcondition_value(int op_id, int eff_id, int var) const;
     size_t get_num_operator_outcomes(int op_id) const;
 
-    void add_transition(int src_id, int op_id, std::vector<int> target_ids);
-    void add_loop(int src_id, int op_id);
+    void add_transition(
+        AbstractStateIndex src_id,
+        int op_id,
+        std::vector<AbstractStateIndex> target_ids);
+    void add_loop(AbstractStateIndex src_id, int op_id);
 
     void rewire_incoming_transitions(
         const AbstractStates& states,

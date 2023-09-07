@@ -21,7 +21,7 @@ namespace cartesian {
   for an abstract state.
 */
 class AbstractState {
-    int state_id;
+    AbstractStateIndex state_id;
 
     // This state's node in the refinement hierarchy.
     NodeID node_id;
@@ -29,7 +29,10 @@ class AbstractState {
     CartesianSet cartesian_set;
 
 public:
-    AbstractState(int state_id, NodeID node_id, CartesianSet&& cartesian_set);
+    AbstractState(
+        AbstractStateIndex state_id,
+        NodeID node_id,
+        CartesianSet&& cartesian_set);
 
     AbstractState(const AbstractState&) = delete;
     AbstractState& operator=(const AbstractState&) = delete;
@@ -59,7 +62,7 @@ public:
     bool includes(const std::vector<FactPair>& facts) const;
 
     // IDs are consecutive, so they can be used to index states in vectors.
-    int get_id() const;
+    AbstractStateIndex get_id() const;
 
     NodeID get_node_id() const;
 
@@ -75,4 +78,4 @@ public:
 } // namespace heuristics
 } // namespace probfd
 
-#endif
+#endif // PROBFD_HEURISTICS_CARTESIAN_ABSTRACT_STATE_H

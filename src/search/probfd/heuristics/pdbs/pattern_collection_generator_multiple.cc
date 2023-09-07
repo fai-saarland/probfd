@@ -3,6 +3,7 @@
 #include "probfd/heuristics/pdbs/fully_additive_finder.h"
 #include "probfd/heuristics/pdbs/pattern_collection_information.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
+#include "probfd/heuristics/pdbs/projection_state_space.h"
 #include "probfd/heuristics/pdbs/saturation.h"
 #include "probfd/heuristics/pdbs/trivial_finder.h"
 
@@ -26,6 +27,8 @@ using namespace std;
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
+
+using namespace abstractions;
 
 namespace {
 

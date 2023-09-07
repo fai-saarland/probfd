@@ -81,7 +81,7 @@ public:
      * is the ranking coefficient of projection variable
      * \f$i \in \{1, \dots, k\}\f$.
      */
-    StateRank get_abstract_rank(const State& state) const;
+    AbstractStateIndex get_abstract_rank(const State& state) const;
 
     /**
      * @brief Ranks a projection fact by multiplying the ranking coefficient
@@ -109,7 +109,7 @@ public:
      * is the ranking coefficient of projection variable
      * \f$i \in \{1, \dots, k\}\f$.
      */
-    std::vector<int> unrank(StateRank abstract_state) const;
+    std::vector<int> unrank(AbstractStateIndex abstract_state) const;
 
     /**
      * @brief Compute the value of a projection variable for the abstract state
@@ -121,7 +121,7 @@ public:
      * \mathcal{D}_i.
      * \f]
      */
-    int value_of(StateRank rank, int idx) const;
+    int value_of(AbstractStateIndex rank, int idx) const;
 
     /**
      * @brief Compute the lexicographically next partial assignment.
@@ -155,7 +155,8 @@ public:
      * @returns false iff the rank is already maximal, in which case the lowest
      * rank is returned.
      */
-    bool next_rank(StateRank& s, std::span<int> mutable_variables) const;
+    bool
+    next_rank(AbstractStateIndex& s, std::span<int> mutable_variables) const;
 
     void convert_value_table(
         const ProbabilityAwarePatternDatabase& pdb,
@@ -171,7 +172,7 @@ public:
         VariablesProxy variables,
         const StateRankingFunction& state_mapper);
 
-    std::string operator()(StateRank state) const;
+    std::string operator()(AbstractStateIndex state) const;
 };
 
 } // namespace pdbs

@@ -1,7 +1,8 @@
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
-#include "probfd/heuristics/pdbs/distances.h"
 #include "probfd/heuristics/pdbs/projection_state_space.h"
 #include "probfd/heuristics/pdbs/utils.h"
+
+#include "probfd/heuristics/abstractions/distances.h"
 
 #include "probfd/task_utils/task_properties.h"
 
@@ -15,6 +16,8 @@
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
+
+using namespace abstractions;
 
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     ProbabilisticTaskProxy task_proxy,
@@ -38,7 +41,7 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     FDRSimpleCostFunction& task_cost_function,
     Pattern pattern,
     const State& initial_state,
-    const StateRankEvaluator& heuristic,
+    const AbstractionEvaluator& heuristic,
     bool operator_pruning,
     double max_time)
     : ProbabilityAwarePatternDatabase(
@@ -66,7 +69,7 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     FDRSimpleCostFunction& task_cost_function,
     Pattern pattern,
     const State& initial_state,
-    const StateRankEvaluator& heuristic,
+    const AbstractionEvaluator& heuristic,
     std::unique_ptr<ProjectionStateSpace>& mdp,
     bool operator_pruning,
     double max_time)
@@ -103,8 +106,8 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
           pdb.get_pattern(),
           initial_state,
           task_cost_function.get_non_goal_termination_cost() == INFINITE_VALUE
-              ? static_cast<const StateRankEvaluator&>(PDBEvaluator(pdb))
-              : static_cast<const StateRankEvaluator&>(
+              ? static_cast<const AbstractionEvaluator&>(PDBEvaluator(pdb))
+              : static_cast<const AbstractionEvaluator&>(
                     DeadendPDBEvaluator(pdb)),
           operator_pruning,
           max_time)
@@ -258,12 +261,13 @@ value_t ProbabilityAwarePatternDatabase::lookup_estimate(const State& s) const
     return lookup_estimate(get_abstract_state(s));
 }
 
-value_t ProbabilityAwarePatternDatabase::lookup_estimate(StateRank s) const
+value_t
+ProbabilityAwarePatternDatabase::lookup_estimate(AbstractStateIndex s) const
 {
     return value_table[s];
 }
 
-StateRank
+AbstractStateIndex
 ProbabilityAwarePatternDatabase::get_abstract_state(const State& s) const
 {
     return ranking_function_.get_abstract_rank(s);

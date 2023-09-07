@@ -37,7 +37,7 @@ TraceBasedFlawGenerator::~TraceBasedFlawGenerator() = default;
 
 std::unique_ptr<Trace> TraceBasedFlawGenerator::find_trace(
     Abstraction& abstraction,
-    int init_id,
+    AbstractStateIndex init_id,
     CartesianHeuristic& heuristic,
     utils::CountdownTimer& timer)
 {

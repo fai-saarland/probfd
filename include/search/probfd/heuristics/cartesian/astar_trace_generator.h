@@ -18,12 +18,13 @@ class AStarTraceGenerator : public TraceGenerator {
     class AbstractSearchInfo;
 
     // Keep data structures around to avoid reallocating them.
-    priority_queues::HeapQueue<value_t, int> open_queue;
+    priority_queues::HeapQueue<value_t, AbstractStateIndex> open_queue;
     std::vector<AbstractSearchInfo> search_info;
 
-    std::unique_ptr<Trace>
-    extract_solution(int init_id, int goal_id, utils::CountdownTimer& timer)
-        const;
+    std::unique_ptr<Trace> extract_solution(
+        AbstractStateIndex init_id,
+        AbstractStateIndex goal_id,
+        utils::CountdownTimer& timer) const;
 
     void update_heuristic(
         Abstraction& abstraction,
@@ -35,7 +36,7 @@ public:
 
     std::unique_ptr<Trace> find_trace(
         Abstraction& abstraction,
-        int init_id,
+        AbstractStateIndex init_id,
         CartesianHeuristic& heuristic,
         utils::CountdownTimer& timer) override;
 

@@ -14,39 +14,38 @@ namespace probfd::heuristics::pdbs {
 std::unique_ptr<ProjectionMultiPolicy> compute_optimal_projection_policy(
     ProjectionStateSpace& mdp,
     std::span<const value_t> value_table,
-    StateRank initial_state,
+    AbstractStateIndex initial_state,
     utils::RandomNumberGenerator& rng,
     bool wildcard)
 {
     using PredecessorList =
-        std::vector<std::pair<StateRank, const ProjectionOperator*>>;
+        std::vector<std::pair<AbstractStateIndex, const ProjectionOperator*>>;
 
     const value_t term_cost = mdp.get_non_goal_termination_cost();
 
     assert(value_table[initial_state] != term_cost);
 
-    std::unique_ptr policy = std::make_unique<
-        policies::VectorMultiPolicy<StateRank, const ProjectionOperator*>>(
-        &mdp,
-        value_table.size());
+    std::unique_ptr policy = std::make_unique<policies::VectorMultiPolicy<
+        AbstractStateIndex,
+        const ProjectionOperator*>>(&mdp, value_table.size());
 
     // return empty policy indicating unsolvable
     if (mdp.is_goal(initial_state)) {
         return policy;
     }
 
-    std::map<StateRank, PredecessorList> predecessors;
+    std::map<AbstractStateIndex, PredecessorList> predecessors;
 
-    std::deque<StateRank> open;
-    std::unordered_set<StateRank> closed;
+    std::deque<AbstractStateIndex> open;
+    std::unordered_set<AbstractStateIndex> closed;
     open.push_back(initial_state);
     closed.insert(initial_state);
 
-    std::vector<StateRank> goals;
+    std::vector<AbstractStateIndex> goals;
 
     // Build the greedy policy graph
     while (!open.empty()) {
-        StateRank s = open.front();
+        AbstractStateIndex s = open.front();
         open.pop_front();
 
         const value_t value = value_table[s];
@@ -64,18 +63,18 @@ std::unique_ptr<ProjectionMultiPolicy> compute_optimal_projection_policy(
         for (const ProjectionOperator* op : aops) {
             value_t op_value = mdp.get_action_cost(op);
 
-            std::vector<StateRank> successors;
+            std::vector<AbstractStateIndex> successors;
 
             Distribution<StateID> successor_dist;
             mdp.generate_action_transitions(s, op, successor_dist);
 
             for (const auto& [t, prob] : successor_dist) {
                 op_value += prob * value_table[t.id];
-                successors.push_back(StateRank(t));
+                successors.push_back(AbstractStateIndex(t));
             }
 
             if (is_approx_equal(value, op_value)) {
-                for (const StateRank succ : successors) {
+                for (const AbstractStateIndex succ : successors) {
                     if (mdp.is_goal(succ)) {
                         goals.push_back(succ);
                     } else if (closed.insert(succ).second) {
@@ -99,7 +98,7 @@ std::unique_ptr<ProjectionMultiPolicy> compute_optimal_projection_policy(
     while (!open.empty()) {
         // Choose a random successor
         auto it = rng.choose(open);
-        StateRank s = *it;
+        AbstractStateIndex s = *it;
 
         std::swap(*it, open.back());
         open.pop_back();
@@ -141,29 +140,28 @@ std::unique_ptr<ProjectionMultiPolicy> compute_optimal_projection_policy(
 std::unique_ptr<ProjectionMultiPolicy> compute_greedy_projection_policy(
     ProjectionStateSpace& mdp,
     std::span<const value_t> value_table,
-    StateRank initial_state,
+    AbstractStateIndex initial_state,
     utils::RandomNumberGenerator& rng,
     bool wildcard)
 {
     const value_t term_cost = mdp.get_non_goal_termination_cost();
 
-    std::unique_ptr policy = std::make_unique<
-        policies::VectorMultiPolicy<StateRank, const ProjectionOperator*>>(
-        &mdp,
-        value_table.size());
+    std::unique_ptr policy = std::make_unique<policies::VectorMultiPolicy<
+        AbstractStateIndex,
+        const ProjectionOperator*>>(&mdp, value_table.size());
 
     if (mdp.is_goal(initial_state)) {
         return policy;
     }
 
-    std::deque<StateRank> open;
-    std::unordered_set<StateRank> closed;
+    std::deque<AbstractStateIndex> open;
+    std::unordered_set<AbstractStateIndex> closed;
     open.push_back(initial_state);
     closed.insert(initial_state);
 
     // Build the greedy policy graph
     while (!open.empty()) {
-        StateRank s = open.front();
+        AbstractStateIndex s = open.front();
         open.pop_front();
 
         const value_t value = value_table[s];
@@ -185,20 +183,20 @@ std::unique_ptr<ProjectionMultiPolicy> compute_greedy_projection_policy(
         rng.shuffle(aops);
 
         const ProjectionOperator* greedy;
-        std::vector<StateRank> greedy_successors;
+        std::vector<AbstractStateIndex> greedy_successors;
 
         // Select first greedy operator
         for (const ProjectionOperator* op : aops) {
             value_t op_value = mdp.get_action_cost(op);
 
-            std::vector<StateRank> successors;
+            std::vector<AbstractStateIndex> successors;
 
             Distribution<StateID> successor_dist;
             mdp.generate_action_transitions(s, op, successor_dist);
 
             for (const auto& [t, prob] : successor_dist) {
                 op_value += prob * value_table[t.id];
-                successors.push_back(StateRank(t));
+                successors.push_back(AbstractStateIndex(t));
             }
 
             if (is_approx_equal(value, op_value)) {
@@ -214,7 +212,7 @@ std::unique_ptr<ProjectionMultiPolicy> compute_greedy_projection_policy(
         const value_t cost_greedy = mdp.get_action_cost(greedy);
 
         // Generate successors
-        for (const StateRank& succ : greedy_successors) {
+        for (const AbstractStateIndex& succ : greedy_successors) {
             if (!mdp.is_goal(succ) && !closed.contains(succ)) {
                 closed.insert(succ);
                 open.push_back(succ);

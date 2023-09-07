@@ -147,7 +147,7 @@ void MatchTree::insert(
 
 void MatchTree::get_applicable_operators_recursive(
     Node* node,
-    const StateRank abstract_state_rank,
+    const AbstractStateIndex abstract_state_rank,
     vector<const ProjectionOperator*>& operator_ids) const
 {
     /*
@@ -184,7 +184,7 @@ void MatchTree::get_applicable_operators_recursive(
 
 void MatchTree::generate_all_transitions_recursive(
     Node* node,
-    StateRank abstract_state_rank,
+    AbstractStateIndex abstract_state_rank,
     std::vector<Transition<const ProjectionOperator*>>& transitions,
     ProjectionStateSpace& state_space) const
 {
@@ -228,7 +228,7 @@ void MatchTree::generate_all_transitions_recursive(
 }
 
 void MatchTree::get_applicable_operators(
-    StateRank abstract_state_rank,
+    AbstractStateIndex abstract_state_rank,
     vector<const ProjectionOperator*>& operator_ids) const
 {
     if (root)
@@ -239,7 +239,7 @@ void MatchTree::get_applicable_operators(
 }
 
 void MatchTree::generate_all_transitions(
-    StateRank abstract_state_rank,
+    AbstractStateIndex abstract_state_rank,
     std::vector<Transition<const ProjectionOperator*>>& transitions,
     ProjectionStateSpace& state_space) const
 {

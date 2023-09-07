@@ -30,7 +30,7 @@ void dump_graphviz(
     ProbabilisticTaskProxy task_proxy,
     ProjectionStateSpace& state_space,
     const ProbabilityAwarePatternDatabase& pdb,
-    StateRank initial_state,
+    AbstractStateIndex initial_state,
     std::ostream& out,
     bool transition_labels);
 

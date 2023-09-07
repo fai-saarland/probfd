@@ -1,18 +1,19 @@
 #ifndef PROBFD_HEURISTICS_PDBS_SATURATION_H
 #define PROBFD_HEURISTICS_PDBS_SATURATION_H
 
-#include "probfd/value_type.h"
-
-#include <span>
+#include "probfd/heuristics/abstractions/saturation.h"
 
 namespace probfd::heuristics::pdbs {
+class ProjectionOperator;
+}
 
-class ProjectionStateSpace;
+namespace probfd::heuristics::abstractions {
 
-void compute_saturated_costs(
-    ProjectionStateSpace& state_space,
+extern template void compute_saturated_costs<const pdbs::ProjectionOperator*>(
+    AbstractMDP<const pdbs::ProjectionOperator*>& mdp,
     std::span<const value_t> value_table,
     std::span<value_t> saturated_costs);
-} // namespace probfd::heuristics::pdbs
+
+} // namespace probfd::heuristics::abstractions
 
 #endif // PROBFD_HEURISTICS_PDBS_SATURATION_H

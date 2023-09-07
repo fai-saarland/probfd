@@ -1,5 +1,5 @@
-#ifndef PROBFD_HEURISTICS_PDBS_CEGAR_FLAW_FINDER_H
-#define PROBFD_HEURISTICS_PDBS_CEGAR_FLAW_FINDER_H
+#ifndef PROBFD_HEURISTICS_PDBS_CEGAR_FLAW_FINDING_STRATEGY_H
+#define PROBFD_HEURISTICS_PDBS_CEGAR_FLAW_FINDING_STRATEGY_H
 
 #include "probfd/heuristics/pdbs/types.h"
 
@@ -19,6 +19,7 @@ namespace heuristics {
 namespace pdbs {
 
 class ProbabilityAwarePatternDatabase;
+class ProjectionStateSpace;
 
 namespace cegar {
 
@@ -60,4 +61,4 @@ bool collect_flaws(
 } // namespace heuristics
 } // namespace probfd
 
-#endif
+#endif // PROBFD_HEURISTICS_PDBS_CEGAR_FLAW_FINDING_STRATEGY_H

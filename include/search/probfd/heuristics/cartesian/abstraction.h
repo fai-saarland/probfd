@@ -28,7 +28,8 @@ class ProbabilisticTransitionSystem;
   use SplitSelector to select splits in case of ambiguities, break spurious
   solutions and maintain the RefinementHierarchy.
 */
-class Abstraction : public SimpleMDP<int, const ProbabilisticTransition*> {
+class Abstraction
+    : public SimpleMDP<AbstractStateIndex, const ProbabilisticTransition*> {
     const std::unique_ptr<ProbabilisticTransitionSystem> transition_system;
     const State concrete_initial_state;
     const std::vector<FactPair> goal_facts;
@@ -36,7 +37,7 @@ class Abstraction : public SimpleMDP<int, const ProbabilisticTransition*> {
     // All (as of yet unsplit) abstract states.
     AbstractStates states;
     // State ID of abstract initial state.
-    int init_id;
+    AbstractStateIndex init_id;
     // Abstract goal states.
     Goals goals;
 
@@ -55,29 +56,29 @@ public:
 
     Abstraction(const Abstraction&) = delete;
 
-    StateID get_state_id(int state) override;
+    StateID get_state_id(AbstractStateIndex state) override;
 
-    int get_state(StateID state_id) override;
+    AbstractStateIndex get_state(StateID state_id) override;
 
     void generate_applicable_actions(
-        int state,
+        AbstractStateIndex state,
         std::vector<const ProbabilisticTransition*>& result) override;
 
     void generate_action_transitions(
-        int state,
+        AbstractStateIndex state,
         const ProbabilisticTransition* action,
         Distribution<StateID>& result) override;
 
     void generate_all_transitions(
-        int state,
+        AbstractStateIndex state,
         std::vector<const ProbabilisticTransition*>& aops,
         std::vector<Distribution<StateID>>& successors) override;
 
-    void
-    generate_all_transitions(int state, std::vector<Transition>& transitions)
-        override;
+    void generate_all_transitions(
+        AbstractStateIndex state,
+        std::vector<Transition>& transitions) override;
 
-    bool is_goal(int state) const override;
+    bool is_goal(AbstractStateIndex state) const override;
     value_t get_non_goal_termination_cost() const override;
 
     value_t get_action_cost(const ProbabilisticTransition* t) override;
@@ -87,14 +88,14 @@ public:
     int get_num_states() const;
     const AbstractState& get_initial_state() const;
     const Goals& get_goals() const;
-    const AbstractState& get_abstract_state(int state_id) const;
+    const AbstractState& get_abstract_state(AbstractStateIndex state_id) const;
     const ProbabilisticTransitionSystem& get_transition_system() const;
 
     /* Needed for CEGAR::separate_facts_unreachable_before_goal(). */
     void mark_all_states_as_goals();
 
     // Split state into two child states.
-    std::pair<int, int> refine(
+    std::pair<AbstractStateIndex, AbstractStateIndex> refine(
         RefinementHierarchy& refinement_hierarchy,
         const AbstractState& abstract_state,
         int split_var,
@@ -107,4 +108,4 @@ public:
 } // namespace heuristics
 } // namespace probfd
 
-#endif
+#endif // PROBFD_HEURISTICS_CARTESIAN_ABSTRACTION_H

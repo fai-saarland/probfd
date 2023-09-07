@@ -20,28 +20,25 @@ namespace pdbs {
 class StateRankingFunction;
 class ProbabilityAwarePatternDatabase;
 
-/// Type alias for heuristics for projection states.
-using StateRankEvaluator = Evaluator<StateRank>;
-
-class PDBEvaluator : public StateRankEvaluator {
+class PDBEvaluator : public AbstractionEvaluator {
     const ::pdbs::PatternDatabase& pdb;
 
 public:
     explicit PDBEvaluator(const ::pdbs::PatternDatabase& pdb);
 
-    value_t evaluate(StateRank state) const override;
+    value_t evaluate(AbstractStateIndex state) const override;
 };
 
-class DeadendPDBEvaluator : public StateRankEvaluator {
+class DeadendPDBEvaluator : public AbstractionEvaluator {
     const ::pdbs::PatternDatabase& pdb;
 
 public:
     explicit DeadendPDBEvaluator(const ::pdbs::PatternDatabase& pdb);
 
-    value_t evaluate(StateRank state) const override;
+    value_t evaluate(AbstractStateIndex state) const override;
 };
 
-class IncrementalPPDBEvaluator : public StateRankEvaluator {
+class IncrementalPPDBEvaluator : public AbstractionEvaluator {
     std::vector<value_t> estimates;
 
 public:
@@ -58,7 +55,7 @@ public:
     {
     }
 
-    value_t evaluate(StateRank state) const override;
+    value_t evaluate(AbstractStateIndex state) const override;
 };
 
 } // namespace pdbs

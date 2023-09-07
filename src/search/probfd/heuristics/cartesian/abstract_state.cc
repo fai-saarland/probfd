@@ -16,7 +16,7 @@ namespace heuristics {
 namespace cartesian {
 
 AbstractState::AbstractState(
-    int state_id,
+    AbstractStateIndex state_id,
     NodeID node_id,
     CartesianSet&& cartesian_set)
     : state_id(state_id)
@@ -109,7 +109,7 @@ bool AbstractState::includes(const AbstractState& other) const
     return cartesian_set.is_superset_of(other.cartesian_set);
 }
 
-int AbstractState::get_id() const
+AbstractStateIndex AbstractState::get_id() const
 {
     return state_id;
 }

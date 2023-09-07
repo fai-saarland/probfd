@@ -70,7 +70,7 @@ AStarTraceGenerator::AStarTraceGenerator()
 
 unique_ptr<Trace> AStarTraceGenerator::find_trace(
     Abstraction& abstraction,
-    int init_id,
+    AbstractStateIndex init_id,
     CartesianHeuristic& heuristic,
     utils::CountdownTimer& timer)
 {
@@ -87,7 +87,7 @@ unique_ptr<Trace> AStarTraceGenerator::find_trace(
         abstraction.get_transition_system().get_outgoing_transitions();
 
     search_info[init_id].decrease_g_value_to(0);
-    open_queue.push(heuristic.get_h_value(init_id), init_id);
+    open_queue.push(heuristic[init_id], init_id);
 
     while (!open_queue.empty()) {
         timer.throw_if_expired();
@@ -97,7 +97,7 @@ unique_ptr<Trace> AStarTraceGenerator::find_trace(
 
         assert(0 <= g && g < INFINITE_VALUE);
 
-        value_t new_f = g + heuristic.get_h_value(state_id);
+        value_t new_f = g + heuristic[init_id];
 
         assert(new_f <= old_f);
 
@@ -114,7 +114,7 @@ unique_ptr<Trace> AStarTraceGenerator::find_trace(
         for (const ProbabilisticTransition* transition : out[state_id]) {
             for (size_t i = 0; i != transition->target_ids.size(); ++i) {
                 int op_id = transition->op_id;
-                int succ_id = transition->target_ids[i];
+                AbstractStateIndex succ_id = transition->target_ids[i];
 
                 const value_t op_cost = abstraction.get_cost(op_id);
                 assert(op_cost >= 0);
@@ -123,7 +123,7 @@ unique_ptr<Trace> AStarTraceGenerator::find_trace(
 
                 if (succ_g < search_info[succ_id].get_g_value()) {
                     search_info[succ_id].decrease_g_value_to(succ_g);
-                    auto h = heuristic.get_h_value(succ_id);
+                    auto h = heuristic[succ_id];
                     if (h == INFINITE_VALUE) continue;
                     const value_t f = succ_g + h;
                     assert(f >= 0);
@@ -136,18 +136,18 @@ unique_ptr<Trace> AStarTraceGenerator::find_trace(
         }
     }
 
-    heuristic.set_h_value(init_id, INFINITE_VALUE);
+    heuristic[init_id] = INFINITE_VALUE;
 
     return nullptr;
 }
 
 unique_ptr<Trace> AStarTraceGenerator::extract_solution(
-    int init_id,
-    int goal_id,
+    AbstractStateIndex init_id,
+    AbstractStateIndex goal_id,
     utils::CountdownTimer& timer) const
 {
     unique_ptr<Trace> solution = std::make_unique<Trace>();
-    int current_id = goal_id;
+    AbstractStateIndex current_id = goal_id;
     while (current_id != init_id) {
         timer.throw_if_expired();
         const TransitionOutcome& prev =
@@ -171,13 +171,11 @@ void AStarTraceGenerator::update_heuristic(
         solution_cost += abstraction.get_cost(transition.op_id);
     }
 
-    for (int i = 0; i != abstraction.get_num_states(); ++i) {
+    for (AbstractStateIndex i = 0; i != abstraction.get_num_states(); ++i) {
         auto& info = search_info[i];
         if (info.get_g_value() < INFINITE_VALUE) {
-            const value_t new_h = std::max(
-                heuristic.get_h_value(i),
-                solution_cost - info.get_g_value());
-            heuristic.set_h_value(i, new_h);
+            heuristic[i] =
+                std::max(heuristic[i], solution_cost - info.get_g_value());
         }
     }
 }

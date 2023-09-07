@@ -41,12 +41,12 @@ class MatchTree {
 
     void get_applicable_operators_recursive(
         Node* node,
-        StateRank abstract_state,
+        AbstractStateIndex abstract_state,
         std::vector<const ProjectionOperator*>& operators) const;
 
     void generate_all_transitions_recursive(
         Node* node,
-        StateRank abstract_state,
+        AbstractStateIndex abstract_state,
         std::vector<Transition<const ProjectionOperator*>>& transitions,
         ProjectionStateSpace& state_space) const;
 
@@ -72,7 +72,7 @@ public:
      * state.
      */
     void get_applicable_operators(
-        StateRank abstract_state,
+        AbstractStateIndex abstract_state,
         std::vector<const ProjectionOperator*>& operators) const;
 
     /**
@@ -80,7 +80,7 @@ public:
      * abstract state.
      */
     void generate_all_transitions(
-        StateRank abstract_state,
+        AbstractStateIndex abstract_state,
         std::vector<Transition<const ProjectionOperator*>>& transitions,
         ProjectionStateSpace& state_space) const;
     /**

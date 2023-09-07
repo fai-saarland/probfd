@@ -1,9 +1,11 @@
 #include "probfd/heuristics/cartesian/cost_saturation.h"
 
+#include "probfd/heuristics/cartesian/abstract_state.h"
 #include "probfd/heuristics/cartesian/abstraction.h"
 #include "probfd/heuristics/cartesian/cartesian_heuristic_function.h"
 #include "probfd/heuristics/cartesian/cegar.h"
 #include "probfd/heuristics/cartesian/distances.h"
+#include "probfd/heuristics/cartesian/evaluators.h"
 #include "probfd/heuristics/cartesian/flaw_generator.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
 #include "probfd/heuristics/cartesian/split_selector.h"
@@ -54,7 +56,7 @@ static vector<value_t> compute_saturated_costs(
     const auto& out_transitions = transition_system.get_outgoing_transitions();
     const auto& loops = transition_system.get_loops();
 
-    for (int state_id = 0; state_id < num_states; ++state_id) {
+    for (AbstractStateIndex state_id = 0; state_id < num_states; ++state_id) {
         value_t h = h_values[state_id];
 
         /*
@@ -69,7 +71,7 @@ static vector<value_t> compute_saturated_costs(
             value_t expectation = 0_vt;
 
             for (size_t i = 0; i != transition->target_ids.size(); ++i) {
-                const int succ_id = transition->target_ids[i];
+                const AbstractStateIndex succ_id = transition->target_ids[i];
                 const value_t succ_h = h_values[succ_id];
                 if (succ_h == INFINITE_VALUE) goto next_transition;
                 const value_t probability =
@@ -235,8 +237,15 @@ void CostSaturation::build_abstractions(
             abstraction->get_transition_system().get_num_non_loops();
         assert(num_states <= max_states);
 
-        vector<value_t> goal_distances =
-            compute_distances(*abstraction, *heuristic);
+        std::vector<value_t> goal_distances(
+            abstraction->get_num_states(),
+            INFINITE_VALUE);
+        abstractions::compute_value_table(
+            *abstraction,
+            abstraction->get_initial_state().get_id(),
+            *heuristic,
+            goal_distances);
+
         vector<value_t> saturated_costs = compute_saturated_costs(
             abstraction->get_transition_system(),
             goal_distances,

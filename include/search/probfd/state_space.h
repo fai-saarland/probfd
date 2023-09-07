@@ -31,8 +31,8 @@ struct Transition;
  * states. This would make it possible to specify Fast Downward's StateID type
  * as well, and the hacked conversion to our StateID type could be removed.
  * It would also enable optimizations if conversion is not needed because the
- * State type is already cheap to copy, e.g. the StateRank type in the PDB
- * implementation. In that case, the state ID conversion functions could be
+ * State type is already cheap to copy, e.g. the AbstractStateIndex type in the
+ * PDB implementation. In that case, the state ID conversion functions could be
  * declared inline as the identity function and compilers could optimize out
  * the call while the programming abstraction remains. The major downside of
  * this approach is that the StateID type is used frequently in the code base,

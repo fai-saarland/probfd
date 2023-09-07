@@ -278,7 +278,7 @@ void CEGAR::refine_abstraction(
     int split_var,
     const std::vector<int>& wanted)
 {
-    int id = abstract_state.get_id();
+    AbstractStateIndex id = abstract_state.get_id();
     abstraction.refine(refinement_hierarchy, abstract_state, split_var, wanted);
     heuristic.on_split(id);
     flaw_generator.notify_split();

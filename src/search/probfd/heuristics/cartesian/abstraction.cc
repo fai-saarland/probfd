@@ -167,7 +167,7 @@ void Abstraction::initialize_trivial_abstraction(
     states.push_back(std::move(init_state));
 }
 
-pair<int, int> Abstraction::refine(
+pair<AbstractStateIndex, AbstractStateIndex> Abstraction::refine(
     RefinementHierarchy& refinement_hierarchy,
     const AbstractState& abstract_state,
     int split_var,
@@ -177,10 +177,10 @@ pair<int, int> Abstraction::refine(
         log << "Refine " << abstract_state << " for " << split_var << "="
             << wanted << endl;
 
-    int v_id = abstract_state.get_id();
+    AbstractStateIndex v_id = abstract_state.get_id();
     // Reuse state ID from obsolete parent to obtain consecutive IDs.
-    int v1_id = v_id;
-    int v2_id = get_num_states();
+    AbstractStateIndex v1_id = v_id;
+    AbstractStateIndex v2_id = get_num_states();
 
     // Update refinement hierarchy.
     pair<NodeID, NodeID> node_ids = refinement_hierarchy.split(
@@ -240,7 +240,7 @@ pair<int, int> Abstraction::refine(
     transition_system->rewire(states, *v1, *v2, split_var);
 
     states[v1_id] = std::move(v1);
-    assert(static_cast<int>(states.size()) == v2_id);
+    assert(static_cast<AbstractStateIndex>(states.size()) == v2_id);
     states.push_back(std::move(v2));
 
     return {v1_id, v2_id};

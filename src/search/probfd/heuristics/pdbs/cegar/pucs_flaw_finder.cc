@@ -82,7 +82,7 @@ bool PUCSFlawFinder::apply_policy(
         assert(path_probability != 0_vt);
 
         // Check flaws, generate successors
-        const StateRank abs = pdb.get_abstract_state(current);
+        const AbstractStateIndex abs = pdb.get_abstract_state(current);
 
         const std::vector abs_decisions = policy.get_decisions(abs);
 
