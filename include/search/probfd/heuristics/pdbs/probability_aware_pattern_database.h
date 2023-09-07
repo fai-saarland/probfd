@@ -21,14 +21,9 @@ class ProjectionStateSpace;
 /**
  * @brief Implementation of a probability-aware pattern database.
  *
- * This class bundles two objects:
- * - A state ranking function, which implements the abstraction mapping of the
- * projection. The ranking function also includes the pattern of the projection.
- * - A lookup table containing the optimal state values of all abstract states.
- *
- * A PDB does not store information about the projection state space for which
- * it was constructed. The state space should be pre-computed and stored
- * seperately if it is needed.
+ * Bundles two objects: The abstraction function (StateRankingFunction),
+ * including the pattern of the projection, as well as the lookup table
+ * containing the optimal state values of all abstract states.
  */
 class ProbabilityAwarePatternDatabase {
     StateRankingFunction ranking_function_;
