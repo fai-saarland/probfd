@@ -63,11 +63,12 @@ IncrementalPPDBEvaluator::IncrementalPPDBEvaluator(
     if (pdbs.size() == 1) return;
 
     std::vector<value_t> temp(abstraction_function.num_states());
-    for (const ProbabilityAwarePatternDatabase& pdb : pdbs | drop(1))
+    for (const ProbabilityAwarePatternDatabase& pdb : pdbs | drop(1)) {
         abstraction_function.convert_value_table(pdb, temp);
 
-    for (auto [left, right] : std::views::zip(estimates, temp)) {
-        left = std::max(left, right);
+        for (auto [left, right] : std::views::zip(estimates, temp)) {
+            left = std::max(left, right);
+        }
     }
 }
 
