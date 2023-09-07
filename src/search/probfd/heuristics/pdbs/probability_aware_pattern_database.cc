@@ -96,24 +96,6 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
 }
 
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
-    ProjectionStateSpace& mdp,
-    StateRankingFunction ranking_function,
-    StateRank initial_state,
-    const ::pdbs::PatternDatabase& pdb,
-    double max_time)
-    : ProbabilityAwarePatternDatabase(
-          mdp,
-          std::move(ranking_function),
-          initial_state,
-          mdp.get_non_goal_termination_cost() == INFINITE_VALUE
-              ? static_cast<const StateRankEvaluator&>(PDBEvaluator(pdb))
-              : static_cast<const StateRankEvaluator&>(
-                    DeadendPDBEvaluator(pdb)),
-          max_time)
-{
-}
-
-ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
     const ProbabilityAwarePatternDatabase& pdb,

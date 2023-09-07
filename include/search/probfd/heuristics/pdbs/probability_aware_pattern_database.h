@@ -120,29 +120,6 @@ public:
         double max_time = std::numeric_limits<double>::infinity());
 
     /**
-     * @brief Construct the probability-aware pattern database for the given
-     * projection state space from a determinization-based pattern database,
-     * used as a heuristic.
-     *
-     * @param projection The projection state space.
-     * @param ranking_function The state ranking function for the projection.
-     * @param initial_state The abstract initial state of the projection. States
-     * unreachable from the initial state are treated as dead ends.
-     * @param pdb The determinization-based pattern database. This PDB must be
-     * constructed for the same pattern.
-     * @param max_time The time limit for construction. If exceeded, a
-     * utils::TimeoutException will be thrown.
-     *
-     * @throws utils::TimeoutException if the given \p max_time is exceeded.
-     */
-    ProbabilityAwarePatternDatabase(
-        ProjectionStateSpace& projection,
-        StateRankingFunction ranking_function,
-        StateRank initial_state,
-        const ::pdbs::PatternDatabase& pdb,
-        double max_time = std::numeric_limits<double>::infinity());
-
-    /**
      * @brief Construct a probability-aware pattern database for a given task,
      * by extending a previous probability-aware pattern by one variable.
      *
