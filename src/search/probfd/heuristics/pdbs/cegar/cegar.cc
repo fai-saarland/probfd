@@ -4,6 +4,7 @@
 
 #include "probfd/heuristics/pdbs/policy_extraction.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
+#include "probfd/heuristics/pdbs/projection_info.h"
 #include "probfd/heuristics/pdbs/projection_state_space.h"
 #include "probfd/heuristics/pdbs/utils.h"
 
@@ -40,8 +41,7 @@ CEGARResult::~CEGARResult() = default;
  * costs of the PDB.
  */
 class CEGAR::PDBInfo {
-    std::unique_ptr<ProjectionStateSpace> state_space;
-    std::unique_ptr<ProbabilityAwarePatternDatabase> pdb;
+    ProjectionInfo projection;
 
     AbstractStateIndex initial_state;
     std::unique_ptr<ProjectionMultiPolicy> policy;
@@ -76,13 +76,15 @@ public:
 
     const Pattern& get_pattern() const;
 
-    const ProjectionStateSpace& get_mdp() const;
+    const ProjectionInfo& get_projection() const;
 
     const ProbabilityAwarePatternDatabase& get_pdb() const;
 
     const ProjectionMultiPolicy& get_policy() const;
 
     value_t get_policy_cost(const State& state) const;
+
+    unsigned int num_states() const;
 
     std::unique_ptr<ProjectionStateSpace> extract_state_space();
     std::unique_ptr<ProbabilityAwarePatternDatabase> extract_pdb();
@@ -103,19 +105,18 @@ CEGAR::PDBInfo::PDBInfo(
     utils::RandomNumberGenerator& rng,
     bool wildcard,
     utils::CountdownTimer& timer)
-    : pdb(new ProbabilityAwarePatternDatabase(
+    : projection(
           task_proxy,
           task_cost_function,
           std::move(pattern),
           task_proxy.get_initial_state(),
           heuristics::BlindEvaluator<AbstractStateIndex>(),
-          state_space,
           false,
-          timer.get_remaining_time()))
-    , initial_state(pdb->get_abstract_state(task_proxy.get_initial_state()))
+          timer.get_remaining_time())
+    , initial_state(
+          projection.get_abstract_state(task_proxy.get_initial_state()))
     , policy(compute_optimal_projection_policy(
-          *state_space,
-          pdb->get_value_table(),
+          projection,
           initial_state,
           rng,
           wildcard))
@@ -130,19 +131,18 @@ CEGAR::PDBInfo::PDBInfo(
     utils::RandomNumberGenerator& rng,
     bool wildcard,
     utils::CountdownTimer& timer)
-    : pdb(new ProbabilityAwarePatternDatabase(
+    : projection(
           task_proxy,
           task_cost_function,
           extended_pattern(previous.get_pattern(), add_var),
           task_proxy.get_initial_state(),
           previous,
-          state_space,
           false,
-          timer.get_remaining_time()))
-    , initial_state(pdb->get_abstract_state(task_proxy.get_initial_state()))
+          timer.get_remaining_time())
+    , initial_state(
+          projection.get_abstract_state(task_proxy.get_initial_state()))
     , policy(compute_optimal_projection_policy(
-          *state_space,
-          pdb->get_value_table(),
+          projection,
           initial_state,
           rng,
           wildcard))
@@ -157,20 +157,19 @@ CEGAR::PDBInfo::PDBInfo(
     utils::RandomNumberGenerator& rng,
     bool wildcard,
     utils::CountdownTimer& timer)
-    : pdb(new ProbabilityAwarePatternDatabase(
+    : projection(
           task_proxy,
           task_cost_function,
           utils::merge_sorted(left.get_pattern(), right.get_pattern()),
           task_proxy.get_initial_state(),
           left,
           right,
-          state_space,
           false,
-          timer.get_remaining_time()))
-    , initial_state(pdb->get_abstract_state(task_proxy.get_initial_state()))
+          timer.get_remaining_time())
+    , initial_state(
+          projection.get_abstract_state(task_proxy.get_initial_state()))
     , policy(compute_optimal_projection_policy(
-          *state_space,
-          pdb->get_value_table(),
+          projection,
           initial_state,
           rng,
           wildcard))
@@ -179,19 +178,18 @@ CEGAR::PDBInfo::PDBInfo(
 
 const Pattern& CEGAR::PDBInfo::get_pattern() const
 {
-    return pdb->get_pattern();
+    return projection.get_pattern();
 }
 
-const ProjectionStateSpace& CEGAR::PDBInfo::get_mdp() const
+const ProjectionInfo& CEGAR::PDBInfo::get_projection() const
 {
-    assert(state_space);
-    return *state_space;
+    return projection;
 }
 
 const ProbabilityAwarePatternDatabase& CEGAR::PDBInfo::get_pdb() const
 {
-    assert(pdb);
-    return *pdb;
+    assert(projection.pdb);
+    return *projection.pdb;
 }
 
 const ProjectionMultiPolicy& CEGAR::PDBInfo::get_policy() const
@@ -201,17 +199,22 @@ const ProjectionMultiPolicy& CEGAR::PDBInfo::get_policy() const
 
 value_t CEGAR::PDBInfo::get_policy_cost(const State& state) const
 {
-    return pdb->lookup_estimate(state);
+    return projection.lookup_estimate(state);
+}
+
+unsigned int CEGAR::PDBInfo::num_states() const
+{
+    return projection.num_states();
 }
 
 std::unique_ptr<ProjectionStateSpace> CEGAR::PDBInfo::extract_state_space()
 {
-    return std::move(state_space);
+    return std::move(projection.mdp);
 }
 
 std::unique_ptr<ProbabilityAwarePatternDatabase> CEGAR::PDBInfo::extract_pdb()
 {
-    return std::move(pdb);
+    return std::move(projection.pdb);
 }
 
 bool CEGAR::PDBInfo::is_solved() const
@@ -226,12 +229,12 @@ void CEGAR::PDBInfo::mark_as_solved()
 
 bool CEGAR::PDBInfo::solution_exists(value_t termination_cost) const
 {
-    return pdb->lookup_estimate(initial_state) != termination_cost;
+    return projection.lookup_estimate(initial_state) != termination_cost;
 }
 
 bool CEGAR::PDBInfo::is_goal(AbstractStateIndex rank) const
 {
-    return state_space->is_goal(rank);
+    return projection.mdp->is_goal(rank);
 }
 
 CEGAR::CEGAR(
@@ -290,7 +293,7 @@ void CEGAR::generate_trivial_solution_collection(
             timer);
         assert(!variable_to_info.contains(var));
         variable_to_info.emplace(var, std::ref(info));
-        collection_size += info.get_pdb().num_states();
+        collection_size += info.num_states();
     }
 
     if (log.is_at_least_normal()) {
@@ -328,8 +331,7 @@ CEGAR::PDBInfo* CEGAR::get_flaws(
         const size_t num_flaws_before = flaws.size();
         const bool executable = flaw_strategy->apply_policy(
             task_proxy,
-            info.get_mdp(),
-            info.get_pdb(),
+            info.get_projection(),
             info.get_policy(),
             blacklisted_variables,
             flaws,
@@ -366,7 +368,7 @@ bool CEGAR::can_add_variable(
     const PDBInfo& info,
     int collection_size) const
 {
-    int pdb_size = info.get_pdb().num_states();
+    int pdb_size = info.num_states();
     int domain_size = variable.get_domain_size();
 
     if (!utils::is_product_within_limit(pdb_size, domain_size, max_pdb_size)) {
@@ -382,8 +384,8 @@ bool CEGAR::can_merge_patterns(
     const PDBInfo& right,
     int collection_size) const
 {
-    int pdb_size1 = left.get_pdb().num_states();
-    int pdb_size2 = right.get_pdb().num_states();
+    int pdb_size1 = left.num_states();
+    int pdb_size2 = right.num_states();
 
     if (!utils::is_product_within_limit(pdb_size1, pdb_size2, max_pdb_size)) {
         return false;
@@ -402,7 +404,7 @@ void CEGAR::add_variable_to_pattern(
     utils::CountdownTimer& timer)
 {
     // update collection size (remove old abstraction)
-    collection_size -= info.get_pdb().num_states();
+    collection_size -= info.num_states();
 
     // compute new solution
     info = PDBInfo(
@@ -415,7 +417,7 @@ void CEGAR::add_variable_to_pattern(
         timer);
 
     // update collection size (add new abstraction)
-    collection_size += info.get_pdb().num_states();
+    collection_size += info.num_states();
 
     // update look-up table
     assert(!variable_to_info.contains(var));
@@ -453,7 +455,7 @@ void CEGAR::merge_patterns(
         timer);
 
     // update collection size (add merged abstraction)
-    collection_size += left.get_pdb().num_states();
+    collection_size += left.num_states();
 
     // Now remove the right abstraction. If this produces a hole, fill it by
     // moving the last stored abstraction into this hole, updating the variable

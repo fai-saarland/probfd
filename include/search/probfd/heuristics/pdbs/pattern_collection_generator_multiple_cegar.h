@@ -18,10 +18,7 @@ class PatternCollectionGeneratorMultipleCegar
     const bool use_wildcard_policies;
     std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy;
 
-    std::pair<
-        std::shared_ptr<ProjectionStateSpace>,
-        std::shared_ptr<ProbabilityAwarePatternDatabase>>
-    compute_pattern(
+    ProjectionInfo compute_pattern(
         int max_pdb_size,
         double max_time,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
@@ -39,4 +36,4 @@ public:
 } // namespace heuristics
 } // namespace probfd
 
-#endif
+#endif // PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_CEGAR_H

@@ -154,6 +154,9 @@ public:
      * using a coarser probability-aware pattern database as a heuristic.
      * Additionally returns the constructed projection MDP.
      *
+     * @remark If the constructor throws an exception, the output parameter
+     * for the projection MDP remains unchanged.
+     *
      * @param task_proxy The input task with respect to which the projection is
      * constructed.
      * @param task_cost_function The task's cost function.
@@ -218,6 +221,9 @@ public:
      * @brief Construct a probability-aware pattern database for a given task,
      * using the maximum over two coarser probability-aware pattern databases
      * as a heuristic. Additionally returns the constructed projection MDP.
+     *
+     * @remark If the constructor throws an exception, the output parameter
+     * for the projection MDP remains unchanged.
      *
      * @param task_proxy The input task with respect to which the projection is
      * constructed.

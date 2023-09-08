@@ -1,10 +1,16 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator_multiple_cegar.h"
 
-#include "probfd/heuristics/pdbs/cegar/cegar.h"
+#include "probfd/heuristics/pdbs/cegar/single_cegar.h"
+
+#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
+#include "probfd/heuristics/pdbs/projection_info.h"
 #include "probfd/heuristics/pdbs/projection_state_space.h"
+
+#include "probfd/heuristics/constant_evaluator.h"
 
 #include "probfd/cost_function.h"
 
+#include "downward/utils/countdown_timer.h"
 #include "downward/utils/logging.h"
 
 #include "downward/plugins/plugin.h"
@@ -26,10 +32,7 @@ PatternCollectionGeneratorMultipleCegar::
 {
 }
 
-std::pair<
-    std::shared_ptr<ProjectionStateSpace>,
-    std::shared_ptr<ProbabilityAwarePatternDatabase>>
-PatternCollectionGeneratorMultipleCegar::compute_pattern(
+ProjectionInfo PatternCollectionGeneratorMultipleCegar::compute_pattern(
     int max_pdb_size,
     double max_time,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
@@ -38,26 +41,34 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
     const FactPair& goal,
     unordered_set<int>&& blacklisted_variables)
 {
-    CEGAR cegar(
+    SingleCEGAR cegar(
         log,
         rng,
         flaw_strategy,
         use_wildcard_policies,
         max_pdb_size,
-        max_pdb_size,
         max_time,
-        {goal.var},
+        goal.var,
         std::move(blacklisted_variables));
-    auto [state_spaces, pdbs] =
-        cegar.generate_pdbs(task_proxy, task_cost_function);
-    assert(state_spaces->size() == pdbs->size());
-    if (pdbs->size() > 1) {
-        cerr << "CEGAR limited to one goal computed more than one pattern"
-             << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
-    }
 
-    return {std::move(state_spaces->front()), pdbs->front()};
+    utils::CountdownTimer timer(max_time);
+
+    // Start with the single goal var projection
+    ProjectionInfo projection_info(
+        task_proxy,
+        task_cost_function,
+        Pattern{goal.var},
+        task_proxy.get_initial_state(),
+        BlindEvaluator<AbstractStateIndex>(),
+        false,
+        timer.get_remaining_time());
+
+    cegar.run_refinement_loop(
+        task_proxy,
+        task_cost_function,
+        projection_info,
+        timer);
+    return projection_info;
 }
 
 class PatternCollectionGeneratorMultipleCegarFeature

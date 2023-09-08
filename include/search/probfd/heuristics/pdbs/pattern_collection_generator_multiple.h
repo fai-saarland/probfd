@@ -24,6 +24,7 @@ namespace heuristics {
 namespace pdbs {
 
 class ProjectionStateSpace;
+struct ProjectionInfo;
 
 class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
     const std::string implementation_name;
@@ -41,10 +42,7 @@ class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
     bool collection_size_limit_reached(int remaining_collection_size) const;
     bool time_limit_reached(const utils::CountdownTimer& timer) const;
 
-    virtual std::pair<
-        std::shared_ptr<ProjectionStateSpace>,
-        std::shared_ptr<ProbabilityAwarePatternDatabase>>
-    compute_pattern(
+    virtual ProjectionInfo compute_pattern(
         int max_pdb_size,
         double max_time,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,

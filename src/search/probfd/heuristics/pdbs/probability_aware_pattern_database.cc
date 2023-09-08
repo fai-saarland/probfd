@@ -79,18 +79,19 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
           task_cost_function.get_non_goal_termination_cost())
 {
     utils::CountdownTimer timer(max_time);
-    mdp.reset(new ProjectionStateSpace(
+    auto temp = std::make_unique<ProjectionStateSpace>(
         task_proxy,
         task_cost_function,
         ranking_function_,
         operator_pruning,
-        timer.get_remaining_time()));
+        timer.get_remaining_time());
     compute_value_table(
-        *mdp,
+        *temp,
         ranking_function_.get_abstract_rank(initial_state),
         heuristic,
         value_table,
         timer.get_remaining_time());
+    mdp = std::move(temp);
 }
 
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
@@ -159,18 +160,19 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
 {
     utils::CountdownTimer timer(max_time);
 
-    mdp.reset(new ProjectionStateSpace(
+    auto temp = std::make_unique<ProjectionStateSpace>(
         task_proxy,
         task_cost_function,
         ranking_function_,
         operator_pruning,
-        timer.get_remaining_time()));
+        timer.get_remaining_time());
     compute_value_table(
-        *mdp,
+        *temp,
         ranking_function_.get_abstract_rank(initial_state),
         IncrementalPPDBEvaluator(ranking_function_, pdb),
         value_table,
         timer.get_remaining_time());
+    mdp = std::move(temp);
 }
 
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
@@ -190,18 +192,19 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
 {
     utils::CountdownTimer timer(max_time);
 
-    mdp.reset(new ProjectionStateSpace(
+    auto temp = std::make_unique<ProjectionStateSpace>(
         task_proxy,
         task_cost_function,
         ranking_function_,
         operator_pruning,
-        timer.get_remaining_time()));
+        timer.get_remaining_time());
     compute_value_table(
-        *mdp,
+        *temp,
         ranking_function_.get_abstract_rank(initial_state),
         IncrementalPPDBEvaluator(ranking_function_, left, right),
         value_table,
         timer.get_remaining_time());
+    mdp = std::move(temp);
 }
 
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(

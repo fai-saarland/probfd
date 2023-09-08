@@ -1,5 +1,6 @@
 #include "probfd/heuristics/pdbs/policy_extraction.h"
 
+#include "probfd/heuristics/pdbs/projection_info.h"
 #include "probfd/heuristics/pdbs/projection_state_space.h"
 
 #include "probfd/policies/vector_multi_policy.h"
@@ -137,6 +138,20 @@ std::unique_ptr<ProjectionMultiPolicy> compute_optimal_projection_policy(
     return policy;
 }
 
+std::unique_ptr<ProjectionMultiPolicy> compute_optimal_projection_policy(
+    ProjectionInfo& info,
+    AbstractStateIndex initial_state,
+    utils::RandomNumberGenerator& rng,
+    bool wildcard)
+{
+    return compute_optimal_projection_policy(
+        *info.mdp,
+        info.get_value_table(),
+        initial_state,
+        rng,
+        wildcard);
+}
+
 std::unique_ptr<ProjectionMultiPolicy> compute_greedy_projection_policy(
     ProjectionStateSpace& mdp,
     std::span<const value_t> value_table,
@@ -238,6 +253,20 @@ std::unique_ptr<ProjectionMultiPolicy> compute_greedy_projection_policy(
     }
 
     return policy;
+}
+
+std::unique_ptr<ProjectionMultiPolicy> compute_greedy_projection_policy(
+    ProjectionInfo& info,
+    AbstractStateIndex initial_state,
+    utils::RandomNumberGenerator& rng,
+    bool wildcard)
+{
+    return compute_greedy_projection_policy(
+        *info.mdp,
+        info.get_value_table(),
+        initial_state,
+        rng,
+        wildcard);
 }
 
 } // namespace probfd::heuristics::pdbs

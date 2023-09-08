@@ -294,6 +294,7 @@ fast_downward_plugin(
     NAME PPDBS_PATTERN_GENERATORS
     HELP "Base classes for pattern collection generation for PPDBs"
     SOURCES
+        probfd/heuristics/pdbs/projection_info
         probfd/heuristics/pdbs/pattern_information
         probfd/heuristics/pdbs/pattern_generator
         probfd/heuristics/pdbs/pattern_collection_information
@@ -336,6 +337,7 @@ fast_downward_plugin(
     NAME PPDBS_CEGAR
     HELP "Disjoint CEGAR pattern collection generator for PPDBs"
     SOURCES
+        probfd/heuristics/pdbs/cegar/single_cegar
         probfd/heuristics/pdbs/cegar/cegar
         probfd/heuristics/pdbs/cegar/bfs_flaw_finder
         probfd/heuristics/pdbs/cegar/pucs_flaw_finder

@@ -20,6 +20,7 @@ namespace pdbs {
 
 class ProbabilityAwarePatternDatabase;
 class ProjectionStateSpace;
+struct ProjectionInfo;
 
 namespace cegar {
 
@@ -40,6 +41,14 @@ public:
         const std::unordered_set<int>& blacklisted_variables,
         std::vector<Flaw>& flaws,
         utils::CountdownTimer& timer) = 0;
+
+    bool apply_policy(
+        const ProbabilisticTaskProxy& task_proxy,
+        const ProjectionInfo& info,
+        const ProjectionMultiPolicy& policy,
+        const std::unordered_set<int>& blacklisted_variables,
+        std::vector<Flaw>& flaws,
+        utils::CountdownTimer& timer);
 
     virtual std::string get_name() = 0;
 };

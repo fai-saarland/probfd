@@ -2,6 +2,8 @@
 
 #include "probfd/heuristics/pdbs/cegar/cegar.h"
 
+#include "probfd/heuristics/pdbs/projection_info.h"
+
 #include "downward/plugins/plugin.h"
 
 namespace probfd {
@@ -32,6 +34,24 @@ bool collect_flaws(
     return flaws_found;
 }
 } // namespace
+
+bool FlawFindingStrategy::apply_policy(
+    const ProbabilisticTaskProxy& task_proxy,
+    const ProjectionInfo& info,
+    const ProjectionMultiPolicy& policy,
+    const std::unordered_set<int>& blacklisted_variables,
+    std::vector<Flaw>& flaws,
+    utils::CountdownTimer& timer)
+{
+    return this->apply_policy(
+        task_proxy,
+        *info.mdp,
+        *info.pdb,
+        policy,
+        blacklisted_variables,
+        flaws,
+        timer);
+}
 
 bool collect_flaws(
     PreconditionsProxy facts,
