@@ -8,6 +8,7 @@
 
 #include "probfd/task_proxy.h"
 
+#include "downward/utils/countdown_timer.h"
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
 
@@ -59,11 +60,12 @@ PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
         use_wildcard_policies,
         max_pdb_size,
         max_collection_size,
-        max_time,
         std::move(goals));
 
+    utils::CountdownTimer timer(max_time);
+
     std::shared_ptr pdbs =
-        cegar.generate_pdbs(task_proxy, *task_cost_function).pdbs;
+        cegar.generate_pdbs(task_proxy, *task_cost_function, timer).pdbs;
 
     auto patterns = std::make_shared<PatternCollection>();
 

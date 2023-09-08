@@ -244,7 +244,6 @@ CEGAR::CEGAR(
     bool wildcard,
     int arg_max_pdb_size,
     int arg_max_collection_size,
-    double max_time,
     std::vector<int> goals,
     std::unordered_set<int> blacklisted_variables)
     : log(std::move(log))
@@ -253,7 +252,6 @@ CEGAR::CEGAR(
     , wildcard(wildcard)
     , max_pdb_size(arg_max_pdb_size)
     , max_collection_size(arg_max_collection_size)
-    , max_time(max_time)
     , goals(std::move(goals))
     , blacklisted_variables(std::move(blacklisted_variables))
 {
@@ -571,14 +569,15 @@ void CEGAR::refine(
 
 CEGARResult CEGAR::generate_pdbs(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function)
+    FDRSimpleCostFunction& task_cost_function,
+    utils::CountdownTimer& timer)
 {
     if (log.is_at_least_normal()) {
         log << "CEGAR options: \n"
             << "  flaw strategy: " << flaw_strategy->get_name() << "\n"
             << "  max pdb size: " << max_pdb_size << "\n"
             << "  max collection size: " << max_collection_size << "\n"
-            << "  max time: " << max_time << "\n"
+            << "  max time: " << timer.get_remaining_time() << "\n"
             << "  wildcard plans: " << std::boolalpha << wildcard << "\n"
             << "  goal variables: " << goals << "\n"
             << "  blacklisted variables: " << blacklisted_variables << endl;
@@ -587,8 +586,6 @@ CEGARResult CEGAR::generate_pdbs(
     if (log.is_at_least_normal()) {
         log << endl;
     }
-
-    utils::CountdownTimer timer(max_time);
 
     int collection_size = 0;
 
