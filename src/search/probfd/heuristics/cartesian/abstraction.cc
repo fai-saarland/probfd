@@ -27,16 +27,6 @@ namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
-namespace {
-vector<int> get_domain_sizes(const TaskBaseProxy& task)
-{
-    vector<int> domain_sizes;
-    for (VariableProxy var : task.get_variables())
-        domain_sizes.push_back(var.get_domain_size());
-    return domain_sizes;
-}
-} // namespace
-
 Abstraction::Abstraction(
     const ProbabilisticTaskProxy& task_proxy,
     std::vector<value_t> operator_costs,
