@@ -42,6 +42,7 @@ TEST(CartesianTests, test_probabilistic_transition_system)
         task->get_num_operators());
 
     abs.refine(
+        task_proxy,
         refinement_hierarchy,
         abs.get_abstract_state(0),
         VarDomainSplit{1, {1}});
@@ -49,6 +50,7 @@ TEST(CartesianTests, test_probabilistic_transition_system)
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 8);
 
     abs.refine(
+        task_proxy,
         refinement_hierarchy,
         abs.get_abstract_state(0),
         VarDomainSplit{0, {1}});
@@ -56,6 +58,7 @@ TEST(CartesianTests, test_probabilistic_transition_system)
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 8);
 
     abs.refine(
+        task_proxy,
         refinement_hierarchy,
         abs.get_abstract_state(2),
         VarDomainSplit{1, {0}});
@@ -63,6 +66,7 @@ TEST(CartesianTests, test_probabilistic_transition_system)
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 10);
 
     abs.refine(
+        task_proxy,
         refinement_hierarchy,
         abs.get_abstract_state(0),
         VarDomainSplit{1, {2}});
@@ -87,6 +91,7 @@ TEST(CartesianTests, test_probabilistic_transition_system2)
         task->get_num_operators());
 
     abs.refine(
+        task_proxy,
         refinement_hierarchy,
         abs.get_abstract_state(0),
         VarDomainSplit{4, {1}});
@@ -94,6 +99,7 @@ TEST(CartesianTests, test_probabilistic_transition_system2)
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 28);
 
     abs.refine(
+        task_proxy,
         refinement_hierarchy,
         abs.get_abstract_state(1),
         VarDomainSplit{2, {1, 2, 3}});

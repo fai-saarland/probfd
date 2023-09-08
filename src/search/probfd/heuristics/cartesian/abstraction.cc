@@ -31,9 +31,7 @@ Abstraction::Abstraction(
     ProbabilisticTaskProxy task_proxy,
     std::vector<value_t> operator_costs,
     utils::LogProxy log)
-    : concrete_initial_state(task_proxy.get_initial_state())
-    , goal_facts(::task_properties::get_fact_pairs(task_proxy.get_goals()))
-    , transition_system(std::make_unique<ProbabilisticTransitionSystem>(
+    : transition_system(std::make_unique<ProbabilisticTransitionSystem>(
           task_proxy.get_operators()))
     , init_id(0)
     , goals({0})
@@ -152,6 +150,7 @@ void Abstraction::mark_all_states_as_goals()
 }
 
 AbstractStateSplit Abstraction::refine(
+    ProbabilisticTaskProxy task_proxy,
     RefinementHierarchy& refinement_hierarchy,
     const AbstractState& abstract_state,
     const VarDomainSplit& split)
@@ -197,11 +196,11 @@ AbstractStateSplit Abstraction::refine(
       initial state and v1 is never a goal state.
     */
     if (abstract_state.get_id() == init_id) {
-        if (v1->includes(concrete_initial_state)) {
-            assert(!v2->includes(concrete_initial_state));
+        if (v1->includes(task_proxy.get_initial_state())) {
+            assert(!v2->includes(task_proxy.get_initial_state()));
             init_id = v1_id;
         } else {
-            assert(v2->includes(concrete_initial_state));
+            assert(v2->includes(task_proxy.get_initial_state()));
             init_id = v2_id;
         }
         if (log.is_at_least_debug()) {
@@ -211,6 +210,7 @@ AbstractStateSplit Abstraction::refine(
     }
     if (goals.count(v1_id)) {
         goals.erase(v1_id);
+        auto goal_facts = task_proxy.get_goals();
         if (v1->includes(goal_facts)) {
             goals.insert(v1_id);
         }

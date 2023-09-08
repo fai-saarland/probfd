@@ -139,6 +139,7 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
             }
 
             refine_abstraction(
+                task_proxy,
                 *flaw_generator,
                 *split_selector,
                 *refinement_hierarchy,
@@ -234,6 +235,7 @@ void CEGAR::separate_facts_unreachable_before_goal(
         if (!unreachable_values.empty()) {
             TimerScope scope(timer);
             refine_abstraction(
+                task_proxy,
                 flaw_generator,
                 refinement_hierarchy,
                 abstraction,
@@ -246,6 +248,7 @@ void CEGAR::separate_facts_unreachable_before_goal(
 }
 
 void CEGAR::refine_abstraction(
+    ProbabilisticTaskProxy task_proxy,
     FlawGenerator& flaw_generator,
     SplitSelector& split_selector,
     RefinementHierarchy& refinement_hierarchy,
@@ -257,6 +260,7 @@ void CEGAR::refine_abstraction(
     TimerScope scope(timer);
     const AbstractState& abstract_state = flaw.current_abstract_state;
     refine_abstraction(
+        task_proxy,
         flaw_generator,
         refinement_hierarchy,
         abstraction,
@@ -266,6 +270,7 @@ void CEGAR::refine_abstraction(
 }
 
 void CEGAR::refine_abstraction(
+    ProbabilisticTaskProxy task_proxy,
     FlawGenerator& flaw_generator,
     RefinementHierarchy& refinement_hierarchy,
     Abstraction& abstraction,
@@ -274,7 +279,7 @@ void CEGAR::refine_abstraction(
     const VarDomainSplit& split)
 {
     AbstractStateIndex id = abstract_state.get_id();
-    abstraction.refine(refinement_hierarchy, abstract_state, split);
+    abstraction.refine(task_proxy, refinement_hierarchy, abstract_state, split);
     heuristic.on_split(id);
     flaw_generator.notify_split();
 }

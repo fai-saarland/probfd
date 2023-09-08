@@ -62,6 +62,7 @@ public:
 
     bool includes(const AbstractState& other) const;
     bool includes(const State& concrete_state) const;
+    bool includes(GoalsProxy facts) const;
     bool includes(const std::vector<FactPair>& facts) const;
 
     // IDs are consecutive, so they can be used to index states in vectors.

@@ -96,6 +96,15 @@ bool AbstractState::includes(const State& concrete_state) const
     return true;
 }
 
+bool AbstractState::includes(GoalsProxy facts) const
+{
+    for (const auto& fact : facts) {
+        if (!cartesian_set.test(fact.get_variable().get_id(), fact.get_value()))
+            return false;
+    }
+    return true;
+}
+
 bool AbstractState::includes(const vector<FactPair>& facts) const
 {
     for (const FactPair& fact : facts) {

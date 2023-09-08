@@ -36,10 +36,6 @@ struct AbstractStateSplit {
 */
 class Abstraction
     : public SimpleMDP<AbstractStateIndex, const ProbabilisticTransition*> {
-    // Used to split abstract goal and abstract initial state
-    const State concrete_initial_state;
-    const std::vector<FactPair> goal_facts;
-
     // All (as of yet unsplit) abstract states.
     AbstractStates states;
 
@@ -106,6 +102,7 @@ public:
 
     // Split state into two child states.
     AbstractStateSplit refine(
+        ProbabilisticTaskProxy task_proxy,
         RefinementHierarchy& refinement_hierarchy,
         const AbstractState& abstract_state,
         const VarDomainSplit& split);

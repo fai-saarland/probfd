@@ -92,6 +92,7 @@ private:
         utils::Timer& timer);
 
     void refine_abstraction(
+        ProbabilisticTaskProxy task_proxy,
         FlawGenerator& flaw_generator,
         SplitSelector& split_selector,
         RefinementHierarchy& refinement_hierarchy,
@@ -101,6 +102,7 @@ private:
         utils::Timer& timer);
 
     void refine_abstraction(
+        ProbabilisticTaskProxy task_proxy,
         FlawGenerator& flaw_generator,
         RefinementHierarchy& refinement_hierarchy,
         Abstraction& abstraction,
