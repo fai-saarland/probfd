@@ -37,7 +37,7 @@ public:
     reset_constraints(const State& state, lp::LPSolver& solver) override final;
 
     static void generate_hpom_lp(
-        const ProbabilisticTaskProxy& task_proxy,
+        ProbabilisticTaskProxy task_proxy,
         const FDRCostFunction& task_cost_function,
         lp::LinearProgram& lp,
         std::vector<int>& offsets);

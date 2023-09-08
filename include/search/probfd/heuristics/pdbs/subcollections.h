@@ -14,11 +14,11 @@ namespace heuristics {
 namespace pdbs {
 
 std::vector<std::vector<bool>> compute_prob_orthogonal_vars(
-    const ProbabilisticTaskProxy& task_proxy,
+    ProbabilisticTaskProxy task_proxy,
     bool ignore_deterministic = false);
 
 std::vector<std::vector<int>> build_compatibility_graph_orthogonality(
-    const ProbabilisticTaskProxy& task_proxy,
+    ProbabilisticTaskProxy task_proxy,
     const PatternCollection& patterns,
     bool ignore_deterministic = false);
 

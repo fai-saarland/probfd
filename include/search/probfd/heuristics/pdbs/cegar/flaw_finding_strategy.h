@@ -34,7 +34,7 @@ public:
     // Note that the output flaw list might be empty regardless since only
     // remaining goals are added to the list for goal violations.
     virtual bool apply_policy(
-        const ProbabilisticTaskProxy& task_proxy,
+        ProbabilisticTaskProxy task_proxy,
         const ProjectionStateSpace& mdp,
         const ProbabilityAwarePatternDatabase& pdb,
         const ProjectionMultiPolicy& policy,
@@ -43,7 +43,7 @@ public:
         utils::CountdownTimer& timer) = 0;
 
     bool apply_policy(
-        const ProbabilisticTaskProxy& task_proxy,
+        ProbabilisticTaskProxy task_proxy,
         const ProjectionInfo& info,
         const ProjectionMultiPolicy& policy,
         const std::unordered_set<int>& blacklisted_variables,

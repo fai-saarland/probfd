@@ -10,15 +10,15 @@ namespace pdbs {
 class AdditiveMaxOrthogonalityFinderFactory
     : public SubCollectionFinderFactory {
 public:
-    std::unique_ptr<SubCollectionFinder> create_subcollection_finder(
-        const ProbabilisticTaskProxy& task_proxy) override;
+    std::unique_ptr<SubCollectionFinder>
+    create_subcollection_finder(ProbabilisticTaskProxy task_proxy) override;
 };
 
 class MultiplicativeMaxOrthogonalityFinderFactory
     : public SubCollectionFinderFactory {
 public:
-    std::unique_ptr<SubCollectionFinder> create_subcollection_finder(
-        const ProbabilisticTaskProxy& task_proxy) override;
+    std::unique_ptr<SubCollectionFinder>
+    create_subcollection_finder(ProbabilisticTaskProxy task_proxy) override;
 };
 
 } // namespace pdbs

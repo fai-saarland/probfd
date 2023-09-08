@@ -171,13 +171,13 @@ class PatternCollectionGeneratorHillclimbing::IncrementalPPDBs {
 
 public:
     IncrementalPPDBs(
-        const ProbabilisticTaskProxy& task_proxy,
+        ProbabilisticTaskProxy task_proxy,
         std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         const PatternCollection& initial_patterns,
         std::shared_ptr<SubCollectionFinder> subcollection_finder);
 
     IncrementalPPDBs(
-        const ProbabilisticTaskProxy& task_proxy,
+        ProbabilisticTaskProxy task_proxy,
         std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         PatternCollectionInformation& initial_patterns,
         std::shared_ptr<SubCollectionFinder> subcollection_finder);
@@ -216,7 +216,7 @@ private:
 };
 
 PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::IncrementalPPDBs(
-    const ProbabilisticTaskProxy& task_proxy,
+    ProbabilisticTaskProxy task_proxy,
     std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     const PatternCollection& initial_patterns,
     std::shared_ptr<SubCollectionFinder> subcollection_finder)
@@ -235,7 +235,7 @@ PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::IncrementalPPDBs(
 }
 
 PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::IncrementalPPDBs(
-    const ProbabilisticTaskProxy& task_proxy,
+    ProbabilisticTaskProxy task_proxy,
     std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     PatternCollectionInformation& initial_patterns,
     std::shared_ptr<SubCollectionFinder> subcollection_finder)
@@ -422,7 +422,7 @@ PatternCollectionGeneratorHillclimbing::
     ~PatternCollectionGeneratorHillclimbing() = default;
 
 unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
-    const ProbabilisticTaskProxy& task_proxy,
+    ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
     utils::CountdownTimer& hill_climbing_timer,
     const std::vector<std::vector<int>>& relevant_neighbours,
@@ -613,7 +613,7 @@ PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
 
 void PatternCollectionGeneratorHillclimbing::hill_climbing(
     const ProbabilisticTask* task,
-    const ProbabilisticTaskProxy& task_proxy,
+    ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
     IncrementalPPDBs& current_pdbs)
 {

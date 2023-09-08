@@ -12,7 +12,7 @@ class SSPCostFunction : public FDRCostFunction {
     ProbabilisticTaskProxy task_proxy;
 
 public:
-    explicit SSPCostFunction(const ProbabilisticTaskProxy& task_proxy);
+    explicit SSPCostFunction(ProbabilisticTaskProxy task_proxy);
 
     bool is_goal(param_type<State> state) const override;
     value_t get_non_goal_termination_cost() const override final;

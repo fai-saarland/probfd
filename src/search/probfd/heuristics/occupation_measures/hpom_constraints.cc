@@ -91,7 +91,7 @@ void HPOMGenerator::reset_constraints(const State& state, lp::LPSolver& solver)
 }
 
 void HPOMGenerator::generate_hpom_lp(
-    const ProbabilisticTaskProxy& task_proxy,
+    ProbabilisticTaskProxy task_proxy,
     const FDRCostFunction& task_cost_function,
     lp::LinearProgram& lp,
     std::vector<int>& offset_)

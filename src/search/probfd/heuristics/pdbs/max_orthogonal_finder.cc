@@ -13,7 +13,7 @@ namespace heuristics {
 namespace pdbs {
 
 MaxOrthogonalityFinderBase::MaxOrthogonalityFinderBase(
-    const ProbabilisticTaskProxy& task_proxy)
+    ProbabilisticTaskProxy task_proxy)
     : var_orthogonality(compute_prob_orthogonal_vars(task_proxy, false))
 {
 }

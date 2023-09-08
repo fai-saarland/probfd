@@ -34,7 +34,7 @@ using namespace abstractions;
 namespace {
 
 vector<FactPair> get_goals_in_random_order(
-    const ProbabilisticTaskProxy& task_proxy,
+    ProbabilisticTaskProxy task_proxy,
     utils::RandomNumberGenerator& rng)
 {
     vector<FactPair> goals =
@@ -43,7 +43,7 @@ vector<FactPair> get_goals_in_random_order(
     return goals;
 }
 
-vector<int> get_non_goal_variables(const ProbabilisticTaskProxy& task_proxy)
+vector<int> get_non_goal_variables(ProbabilisticTaskProxy task_proxy)
 {
     size_t num_vars = task_proxy.get_variables().size();
     GoalsProxy goals = task_proxy.get_goals();
@@ -63,13 +63,13 @@ vector<int> get_non_goal_variables(const ProbabilisticTaskProxy& task_proxy)
 }
 
 class ExplicitTaskCostFunction : public FDRSimpleCostFunction {
-    const ProbabilisticTaskProxy& task_proxy;
+    ProbabilisticTaskProxy task_proxy;
     std::vector<value_t> costs;
     const value_t non_goal_termination;
 
 public:
     ExplicitTaskCostFunction(
-        const ProbabilisticTaskProxy& task_proxy,
+        ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& cost_function)
         : task_proxy(task_proxy)
         , non_goal_termination(cost_function.get_non_goal_termination_cost())

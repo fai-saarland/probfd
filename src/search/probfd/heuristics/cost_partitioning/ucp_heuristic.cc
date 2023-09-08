@@ -22,7 +22,7 @@ class UniformTaskCostFunction : public FDRSimpleCostFunction {
 
 public:
     UniformTaskCostFunction(
-        const ProbabilisticTaskProxy& task_proxy,
+        ProbabilisticTaskProxy task_proxy,
         size_t num_abstractions)
         : task_proxy(task_proxy)
     {

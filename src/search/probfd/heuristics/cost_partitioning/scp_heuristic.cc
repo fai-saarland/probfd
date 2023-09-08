@@ -24,7 +24,7 @@ class ExplicitTaskCostFunction : public FDRSimpleCostFunction {
     std::vector<value_t> costs;
 
 public:
-    ExplicitTaskCostFunction(const ProbabilisticTaskProxy& task_proxy)
+    ExplicitTaskCostFunction(ProbabilisticTaskProxy task_proxy)
         : task_proxy(task_proxy)
     {
         const auto operators = task_proxy.get_operators();

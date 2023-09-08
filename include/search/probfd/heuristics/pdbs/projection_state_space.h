@@ -68,4 +68,4 @@ public:
 } // namespace heuristics
 } // namespace probfd
 
-#endif
+#endif // PROBFD_HEURISTICS_PDBS_PROJECTION_STATE_SPACE_H

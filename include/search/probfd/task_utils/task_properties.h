@@ -40,20 +40,19 @@ void get_affected_vars(const ProbabilisticOperatorProxy& op, OutputIterator it)
 
   Runtime: O(n), where n is the number of probabilistic operators.
 */
-extern bool is_unit_cost(const ProbabilisticTaskProxy& task);
+extern bool is_unit_cost(ProbabilisticTaskProxy task);
 
 // Runtime: O(n), where n is the number of effects.
-extern bool has_conditional_effects(const ProbabilisticTaskProxy& task);
+extern bool has_conditional_effects(ProbabilisticTaskProxy task);
 
 /*
   Report an error and exit with ExitCode::UNSUPPORTED if the task has
   conditional effects.
   Runtime: O(n), where n is the number of operators.
 */
-extern void verify_no_conditional_effects(const ProbabilisticTaskProxy& task);
+extern void verify_no_conditional_effects(ProbabilisticTaskProxy task);
 
-std::vector<value_t>
-get_operator_costs(const ProbabilisticTaskProxy& task_proxy);
+std::vector<value_t> get_operator_costs(ProbabilisticTaskProxy task_proxy);
 
 /*
   Return the total number of effects of the task, including the
@@ -61,9 +60,9 @@ get_operator_costs(const ProbabilisticTaskProxy& task_proxy);
   Runtime: O(m + n), where m is the number of axioms and n is the total
   number of operator effects.
 */
-extern int get_num_total_effects(const ProbabilisticTaskProxy& task_proxy);
+extern int get_num_total_effects(ProbabilisticTaskProxy task_proxy);
 
-extern void dump_probabilistic_task(const ProbabilisticTaskProxy& task_proxy);
+extern void dump_probabilistic_task(ProbabilisticTaskProxy task_proxy);
 
 /*
    Create or retrieve a determinization from cache. If determinizations are

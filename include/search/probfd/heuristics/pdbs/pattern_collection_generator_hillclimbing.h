@@ -78,7 +78,7 @@ class PatternCollectionGeneratorHillclimbing
       The method returns the size of the largest PDB added to candidate_pdbs.
     */
     unsigned int generate_candidate_pdbs(
-        const ProbabilisticTaskProxy& task_proxy,
+        ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
         utils::CountdownTimer& hill_climbing_timer,
         const std::vector<std::vector<int>>& relevant_neighbours,
@@ -140,7 +140,7 @@ class PatternCollectionGeneratorHillclimbing
     */
     void hill_climbing(
         const ProbabilisticTask* task,
-        const ProbabilisticTaskProxy& task_proxy,
+        ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
         IncrementalPPDBs& current_pdbs);
 

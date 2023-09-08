@@ -46,7 +46,7 @@ class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
         int max_pdb_size,
         double max_time,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        const ProbabilisticTaskProxy& task_proxy,
+        ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
         const FactPair& goal,
         std::unordered_set<int>&& blacklisted_variables) = 0;

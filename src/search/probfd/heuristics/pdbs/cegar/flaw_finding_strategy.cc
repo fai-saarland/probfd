@@ -36,7 +36,7 @@ bool collect_flaws(
 } // namespace
 
 bool FlawFindingStrategy::apply_policy(
-    const ProbabilisticTaskProxy& task_proxy,
+    ProbabilisticTaskProxy task_proxy,
     const ProjectionInfo& info,
     const ProjectionMultiPolicy& policy,
     const std::unordered_set<int>& blacklisted_variables,

@@ -12,8 +12,6 @@
 class State;
 
 namespace probfd {
-class ProbabilisticTaskProxy;
-
 namespace heuristics {
 namespace pdbs {
 

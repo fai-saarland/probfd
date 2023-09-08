@@ -4,7 +4,7 @@
 
 namespace probfd {
 
-SSPCostFunction::SSPCostFunction(const ProbabilisticTaskProxy& task_proxy)
+SSPCostFunction::SSPCostFunction(ProbabilisticTaskProxy task_proxy)
     : task_proxy(task_proxy)
 {
 }

@@ -33,7 +33,7 @@ public:
     ~BFSFlawFinder() override = default;
 
     bool apply_policy(
-        const ProbabilisticTaskProxy& task_proxy,
+        ProbabilisticTaskProxy task_proxy,
         const ProjectionStateSpace& mdp,
         const ProbabilityAwarePatternDatabase& pdb,
         const ProjectionMultiPolicy& policy,

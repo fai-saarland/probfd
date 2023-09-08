@@ -16,7 +16,7 @@ using utils::ExitCode;
 namespace probfd {
 namespace task_properties {
 
-bool is_unit_cost(const ProbabilisticTaskProxy& task)
+bool is_unit_cost(ProbabilisticTaskProxy task)
 {
     for (ProbabilisticOperatorProxy op : task.get_operators()) {
         if (op.get_cost() != 1_vt) return false;
@@ -41,8 +41,7 @@ value_t get_adjusted_action_cost(
     }
 }
 
-static int
-get_first_conditional_effects_op_id(const ProbabilisticTaskProxy& task)
+static int get_first_conditional_effects_op_id(ProbabilisticTaskProxy task)
 {
     for (ProbabilisticOperatorProxy op : task.get_operators()) {
         for (ProbabilisticOutcomeProxy outcome : op.get_outcomes()) {
@@ -54,12 +53,12 @@ get_first_conditional_effects_op_id(const ProbabilisticTaskProxy& task)
     return -1;
 }
 
-bool has_conditional_effects(const ProbabilisticTaskProxy& task)
+bool has_conditional_effects(ProbabilisticTaskProxy task)
 {
     return get_first_conditional_effects_op_id(task) != -1;
 }
 
-void verify_no_conditional_effects(const ProbabilisticTaskProxy& task)
+void verify_no_conditional_effects(ProbabilisticTaskProxy task)
 {
     int op_id = get_first_conditional_effects_op_id(task);
     if (op_id != -1) {
@@ -71,7 +70,7 @@ void verify_no_conditional_effects(const ProbabilisticTaskProxy& task)
     }
 }
 
-vector<value_t> get_operator_costs(const ProbabilisticTaskProxy& task_proxy)
+vector<value_t> get_operator_costs(ProbabilisticTaskProxy task_proxy)
 {
     vector<value_t> costs;
     ProbabilisticOperatorsProxy operators = task_proxy.get_operators();

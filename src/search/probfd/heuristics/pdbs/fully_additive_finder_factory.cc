@@ -8,8 +8,7 @@ namespace heuristics {
 namespace pdbs {
 
 std::unique_ptr<SubCollectionFinder>
-FullyAdditiveFinderFactory::create_subcollection_finder(
-    const ProbabilisticTaskProxy&)
+FullyAdditiveFinderFactory::create_subcollection_finder(ProbabilisticTaskProxy)
 {
     return std::make_unique<FullyAdditiveFinder>();
 }

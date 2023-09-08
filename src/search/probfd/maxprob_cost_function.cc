@@ -4,8 +4,7 @@
 
 namespace probfd {
 
-MaxProbCostFunction::MaxProbCostFunction(
-    const ProbabilisticTaskProxy& task_proxy)
+MaxProbCostFunction::MaxProbCostFunction(ProbabilisticTaskProxy task_proxy)
     : task_proxy(task_proxy)
 {
 }

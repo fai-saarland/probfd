@@ -38,7 +38,7 @@ PUCSFlawFinder::PUCSFlawFinder(int max_search_states)
 }
 
 bool PUCSFlawFinder::apply_policy(
-    const ProbabilisticTaskProxy& task_proxy,
+    ProbabilisticTaskProxy task_proxy,
     const ProjectionStateSpace& mdp,
     const ProbabilityAwarePatternDatabase& pdb,
     const ProjectionMultiPolicy& policy,
