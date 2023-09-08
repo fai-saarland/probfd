@@ -47,7 +47,6 @@ ProjectionInfo PatternCollectionGeneratorMultipleCegar::compute_pattern(
         flaw_strategy,
         use_wildcard_policies,
         max_pdb_size,
-        max_time,
         std::move(blacklisted_variables));
 
     utils::CountdownTimer timer(max_time);
@@ -59,8 +58,7 @@ ProjectionInfo PatternCollectionGeneratorMultipleCegar::compute_pattern(
         Pattern{goal.var},
         task_proxy.get_initial_state(),
         BlindEvaluator<AbstractStateIndex>(),
-        false,
-        timer.get_remaining_time());
+        false);
 
     cegar.run_refinement_loop(
         task_proxy,

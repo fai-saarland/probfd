@@ -42,7 +42,6 @@ class SingleCEGAR {
     // behavior defining parameters
     const bool wildcard;
     const int max_pdb_size;
-    const double max_time;
 
     std::unordered_set<int> blacklisted_variables;
 
@@ -53,7 +52,6 @@ public:
         std::shared_ptr<FlawFindingStrategy> flaw_strategy,
         bool wildcard,
         int max_pdb_size,
-        double max_time,
         std::unordered_set<int> blacklisted_variables = {});
 
     ~SingleCEGAR();

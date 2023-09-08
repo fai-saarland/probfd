@@ -30,14 +30,12 @@ SingleCEGAR::SingleCEGAR(
     std::shared_ptr<FlawFindingStrategy> flaw_strategy,
     bool wildcard,
     int arg_max_pdb_size,
-    double max_time,
     std::unordered_set<int> blacklisted_variables)
     : log(std::move(log))
     , rng(arg_rng)
     , flaw_strategy(flaw_strategy)
     , wildcard(wildcard)
     , max_pdb_size(arg_max_pdb_size)
-    , max_time(max_time)
     , blacklisted_variables(std::move(blacklisted_variables))
 {
 }
@@ -54,7 +52,7 @@ void SingleCEGAR::run_refinement_loop(
         log << "SingleCEGAR options: \n"
             << "  flaw strategy: " << flaw_strategy->get_name() << "\n"
             << "  max pdb size: " << max_pdb_size << "\n"
-            << "  max time: " << max_time << "\n"
+            << "  max time: " << timer.get_remaining_time() << "\n"
             << "  wildcard plans: " << std::boolalpha << wildcard << "\n"
             << "  blacklisted variables: " << blacklisted_variables << "\n"
             << endl;
