@@ -44,7 +44,6 @@ class SingleCEGAR {
     const int max_pdb_size;
     const double max_time;
 
-    const int goal;
     std::unordered_set<int> blacklisted_variables;
 
 public:
@@ -55,7 +54,6 @@ public:
         bool wildcard,
         int max_pdb_size,
         double max_time,
-        int goal,
         std::unordered_set<int> blacklisted_variables = {});
 
     ~SingleCEGAR();

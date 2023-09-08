@@ -31,7 +31,6 @@ SingleCEGAR::SingleCEGAR(
     bool wildcard,
     int arg_max_pdb_size,
     double max_time,
-    int goal,
     std::unordered_set<int> blacklisted_variables)
     : log(std::move(log))
     , rng(arg_rng)
@@ -39,7 +38,6 @@ SingleCEGAR::SingleCEGAR(
     , wildcard(wildcard)
     , max_pdb_size(arg_max_pdb_size)
     , max_time(max_time)
-    , goal(goal)
     , blacklisted_variables(std::move(blacklisted_variables))
 {
 }
@@ -58,7 +56,6 @@ void SingleCEGAR::run_refinement_loop(
             << "  max pdb size: " << max_pdb_size << "\n"
             << "  max time: " << max_time << "\n"
             << "  wildcard plans: " << std::boolalpha << wildcard << "\n"
-            << "  goal variable: " << goal << "\n"
             << "  blacklisted variables: " << blacklisted_variables << "\n"
             << endl;
     }

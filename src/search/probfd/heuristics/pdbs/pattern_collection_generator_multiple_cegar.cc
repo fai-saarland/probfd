@@ -48,7 +48,6 @@ ProjectionInfo PatternCollectionGeneratorMultipleCegar::compute_pattern(
         use_wildcard_policies,
         max_pdb_size,
         max_time,
-        goal.var,
         std::move(blacklisted_variables));
 
     utils::CountdownTimer timer(max_time);
