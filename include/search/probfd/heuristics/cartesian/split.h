@@ -7,7 +7,7 @@ namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
-struct Split {
+struct VarDomainSplit {
     int var_id;
     std::vector<int> values;
 };

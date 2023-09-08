@@ -22,9 +22,9 @@ Flaw::Flaw(
     assert(current_abstract_state.includes(this->concrete_state));
 }
 
-vector<Split> Flaw::get_possible_splits() const
+vector<VarDomainSplit> Flaw::get_possible_splits() const
 {
-    vector<Split> splits;
+    vector<VarDomainSplit> splits;
     /*
       For each fact in the concrete state that is not contained in the
       desired abstract state, loop over all values in the domain of the

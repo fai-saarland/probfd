@@ -33,9 +33,9 @@ class SplitSelector {
 public:
     virtual ~SplitSelector() = default;
 
-    virtual const Split& pick_split(
+    virtual const VarDomainSplit& pick_split(
         const AbstractState& state,
-        const std::vector<Split>& splits) = 0;
+        const std::vector<VarDomainSplit>& splits) = 0;
 };
 
 class SplitSelectorRandom : public SplitSelector {
@@ -45,17 +45,17 @@ public:
     explicit SplitSelectorRandom(
         std::shared_ptr<utils::RandomNumberGenerator> rng);
 
-    const Split&
-    pick_split(const AbstractState& state, const std::vector<Split>& splits)
-        override;
+    const VarDomainSplit& pick_split(
+        const AbstractState& state,
+        const std::vector<VarDomainSplit>& splits) override;
 };
 
 template <class Derived>
 class RateBasedSplitSelector : public SplitSelector {
 public:
-    const Split&
-    pick_split(const AbstractState& state, const std::vector<Split>& splits)
-        override
+    const VarDomainSplit& pick_split(
+        const AbstractState& state,
+        const std::vector<VarDomainSplit>& splits) override
     {
 
         assert(!splits.empty());
@@ -65,8 +65,8 @@ public:
         }
 
         double max_rating = std::numeric_limits<double>::lowest();
-        const Split* selected_split = nullptr;
-        for (const Split& split : splits) {
+        const VarDomainSplit* selected_split = nullptr;
+        for (const VarDomainSplit& split : splits) {
             double rating =
                 static_cast<const Derived*>(this)->rate_split(state, split);
             if (rating > max_rating) {
@@ -88,7 +88,8 @@ class SplitSelectorUnwanted
 public:
     explicit SplitSelectorUnwanted(int factor);
 
-    double rate_split(const AbstractState& state, const Split& split) const;
+    double
+    rate_split(const AbstractState& state, const VarDomainSplit& split) const;
 };
 
 // Refinement: - (remaining_values / original_domain_size)
@@ -102,7 +103,8 @@ public:
         const std::shared_ptr<ProbabilisticTask>& task,
         double factor);
 
-    double rate_split(const AbstractState& state, const Split& split) const;
+    double
+    rate_split(const AbstractState& state, const VarDomainSplit& split) const;
 };
 
 // Compare the h^add(s_0) values of the facts.
@@ -126,7 +128,8 @@ public:
     explicit SplitSelectorMinHAdd(
         const std::shared_ptr<ProbabilisticTask>& task);
 
-    double rate_split(const AbstractState& state, const Split& split) const;
+    double
+    rate_split(const AbstractState& state, const VarDomainSplit& split) const;
 
 private:
     int get_min_hadd_value(int var_id, const std::vector<int>& values) const;
@@ -139,7 +142,8 @@ public:
     explicit SplitSelectorMaxHAdd(
         const std::shared_ptr<ProbabilisticTask>& task);
 
-    double rate_split(const AbstractState& state, const Split& split) const;
+    double
+    rate_split(const AbstractState& state, const VarDomainSplit& split) const;
 
 private:
     int get_max_hadd_value(int var_id, const std::vector<int>& values) const;

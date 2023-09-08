@@ -239,7 +239,7 @@ void CEGAR::separate_facts_unreachable_before_goal(
                 abstraction,
                 heuristic,
                 abstraction.get_initial_state(),
-                Split{var_id, std::move(unreachable_values)});
+                VarDomainSplit{var_id, std::move(unreachable_values)});
         }
     }
     abstraction.mark_all_states_as_goals();
@@ -256,15 +256,13 @@ void CEGAR::refine_abstraction(
 {
     TimerScope scope(timer);
     const AbstractState& abstract_state = flaw.current_abstract_state;
-    const vector<Split> splits = flaw.get_possible_splits();
-    Split split = split_selector.pick_split(abstract_state, splits);
     refine_abstraction(
         flaw_generator,
         refinement_hierarchy,
         abstraction,
         heuristic,
         abstract_state,
-        split);
+        split_selector.pick_split(abstract_state, flaw.get_possible_splits()));
 }
 
 void CEGAR::refine_abstraction(
@@ -273,7 +271,7 @@ void CEGAR::refine_abstraction(
     Abstraction& abstraction,
     CartesianHeuristic& heuristic,
     const AbstractState& abstract_state,
-    const Split& split)
+    const VarDomainSplit& split)
 {
     AbstractStateIndex id = abstract_state.get_id();
     abstraction.refine(refinement_hierarchy, abstract_state, split);

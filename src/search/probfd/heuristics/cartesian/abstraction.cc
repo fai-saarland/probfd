@@ -168,10 +168,10 @@ void Abstraction::initialize_trivial_abstraction(
     states.push_back(std::move(init_state));
 }
 
-pair<AbstractStateIndex, AbstractStateIndex> Abstraction::refine(
+AbstractStateSplit Abstraction::refine(
     RefinementHierarchy& refinement_hierarchy,
     const AbstractState& abstract_state,
-    const Split& split)
+    const VarDomainSplit& split)
 {
     const auto [split_var, wanted] = split;
 

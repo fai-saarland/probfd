@@ -21,8 +21,13 @@ namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
-struct Split;
+struct VarDomainSplit;
 class ProbabilisticTransitionSystem;
+
+struct AbstractStateSplit {
+    AbstractStateIndex left;
+    AbstractStateIndex right;
+};
 
 /*
   Store the set of AbstractStates, use FlawGenerator to find flaws,
@@ -97,10 +102,10 @@ public:
     void mark_all_states_as_goals();
 
     // Split state into two child states.
-    std::pair<AbstractStateIndex, AbstractStateIndex> refine(
+    AbstractStateSplit refine(
         RefinementHierarchy& refinement_hierarchy,
         const AbstractState& abstract_state,
-        const Split& split);
+        const VarDomainSplit& split);
 
     void print_statistics() const override;
 };

@@ -64,9 +64,9 @@ SplitSelectorMaxHAdd::SplitSelectorMaxHAdd(
 {
 }
 
-const Split& SplitSelectorRandom::pick_split(
+const VarDomainSplit& SplitSelectorRandom::pick_split(
     const AbstractState&,
-    const std::vector<Split>& splits)
+    const std::vector<VarDomainSplit>& splits)
 {
     assert(!splits.empty());
 
@@ -79,7 +79,7 @@ const Split& SplitSelectorRandom::pick_split(
 
 double SplitSelectorUnwanted::rate_split(
     const AbstractState& state,
-    const Split& split) const
+    const VarDomainSplit& split) const
 {
     int num_unwanted_values = state.count(split.var_id) - split.values.size();
     assert(num_unwanted_values >= 1);
@@ -88,7 +88,7 @@ double SplitSelectorUnwanted::rate_split(
 
 double SplitSelectorRefinedness::rate_split(
     const AbstractState& state,
-    const Split& split) const
+    const VarDomainSplit& split) const
 {
     const int var_id = split.var_id;
     double all_values = task_proxy.get_variables()[var_id].get_domain_size();
@@ -136,14 +136,16 @@ int SplitSelectorMaxHAdd::get_max_hadd_value(
     return max_hadd;
 }
 
-double
-SplitSelectorMinHAdd::rate_split(const AbstractState&, const Split& split) const
+double SplitSelectorMinHAdd::rate_split(
+    const AbstractState&,
+    const VarDomainSplit& split) const
 {
     return -get_min_hadd_value(split.var_id, split.values);
 }
 
-double
-SplitSelectorMaxHAdd::rate_split(const AbstractState&, const Split& split) const
+double SplitSelectorMaxHAdd::rate_split(
+    const AbstractState&,
+    const VarDomainSplit& split) const
 {
     return get_max_hadd_value(split.var_id, split.values);
 }

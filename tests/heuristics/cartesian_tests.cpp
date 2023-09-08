@@ -41,19 +41,31 @@ TEST(CartesianTests, test_probabilistic_transition_system)
         get_num_transitions(abs.get_transition_system()),
         task->get_num_operators());
 
-    abs.refine(refinement_hierarchy, abs.get_abstract_state(0), Split{1, {1}});
+    abs.refine(
+        refinement_hierarchy,
+        abs.get_abstract_state(0),
+        VarDomainSplit{1, {1}});
     ASSERT_EQ(abs.get_num_states(), 2);
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 8);
 
-    abs.refine(refinement_hierarchy, abs.get_abstract_state(0), Split{0, {1}});
+    abs.refine(
+        refinement_hierarchy,
+        abs.get_abstract_state(0),
+        VarDomainSplit{0, {1}});
     ASSERT_EQ(abs.get_num_states(), 3);
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 8);
 
-    abs.refine(refinement_hierarchy, abs.get_abstract_state(2), Split{1, {0}});
+    abs.refine(
+        refinement_hierarchy,
+        abs.get_abstract_state(2),
+        VarDomainSplit{1, {0}});
     ASSERT_EQ(abs.get_num_states(), 4);
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 10);
 
-    abs.refine(refinement_hierarchy, abs.get_abstract_state(0), Split{1, {2}});
+    abs.refine(
+        refinement_hierarchy,
+        abs.get_abstract_state(0),
+        VarDomainSplit{1, {2}});
     ASSERT_EQ(abs.get_num_states(), 5);
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 10);
 }
@@ -74,14 +86,17 @@ TEST(CartesianTests, test_probabilistic_transition_system2)
         get_num_transitions(abs.get_transition_system()),
         task->get_num_operators());
 
-    abs.refine(refinement_hierarchy, abs.get_abstract_state(0), Split{4, {1}});
+    abs.refine(
+        refinement_hierarchy,
+        abs.get_abstract_state(0),
+        VarDomainSplit{4, {1}});
     ASSERT_EQ(abs.get_num_states(), 2);
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 28);
 
     abs.refine(
         refinement_hierarchy,
         abs.get_abstract_state(1),
-        Split{2, {1, 2, 3}});
+        VarDomainSplit{2, {1, 2, 3}});
     ASSERT_EQ(abs.get_num_states(), 3);
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 34);
 }

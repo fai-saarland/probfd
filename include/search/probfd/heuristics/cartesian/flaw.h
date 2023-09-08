@@ -13,7 +13,7 @@ namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
-struct Split;
+struct VarDomainSplit;
 
 struct Flaw {
     // Last concrete and abstract state reached while tracing solution.
@@ -27,7 +27,7 @@ struct Flaw {
         const AbstractState& current_abstract_state,
         CartesianSet&& desired_cartesian_set);
 
-    std::vector<Split> get_possible_splits() const;
+    std::vector<VarDomainSplit> get_possible_splits() const;
 };
 
 } // namespace cartesian
