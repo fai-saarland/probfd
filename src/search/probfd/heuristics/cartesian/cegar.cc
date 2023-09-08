@@ -6,6 +6,7 @@
 #include "probfd/heuristics/cartesian/flaw.h"
 #include "probfd/heuristics/cartesian/flaw_generator.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
+#include "probfd/heuristics/cartesian/split.h"
 #include "probfd/heuristics/cartesian/split_selector.h"
 #include "probfd/heuristics/cartesian/utils.h"
 
@@ -238,8 +239,7 @@ void CEGAR::separate_facts_unreachable_before_goal(
                 abstraction,
                 heuristic,
                 abstraction.get_initial_state(),
-                var_id,
-                unreachable_values);
+                Split{var_id, std::move(unreachable_values)});
         }
     }
     abstraction.mark_all_states_as_goals();
@@ -256,17 +256,15 @@ void CEGAR::refine_abstraction(
 {
     TimerScope scope(timer);
     const AbstractState& abstract_state = flaw.current_abstract_state;
-    vector<Split> splits = flaw.get_possible_splits();
-    const auto& [var, wanted] =
-        split_selector.pick_split(abstract_state, splits);
+    const vector<Split> splits = flaw.get_possible_splits();
+    Split split = split_selector.pick_split(abstract_state, splits);
     refine_abstraction(
         flaw_generator,
         refinement_hierarchy,
         abstraction,
         heuristic,
         abstract_state,
-        var,
-        wanted);
+        split);
 }
 
 void CEGAR::refine_abstraction(
@@ -275,11 +273,10 @@ void CEGAR::refine_abstraction(
     Abstraction& abstraction,
     CartesianHeuristic& heuristic,
     const AbstractState& abstract_state,
-    int split_var,
-    const std::vector<int>& wanted)
+    const Split& split)
 {
     AbstractStateIndex id = abstract_state.get_id();
-    abstraction.refine(refinement_hierarchy, abstract_state, split_var, wanted);
+    abstraction.refine(refinement_hierarchy, abstract_state, split);
     heuristic.on_split(id);
     flaw_generator.notify_split();
 }

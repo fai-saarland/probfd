@@ -3,6 +3,7 @@
 #include "probfd/heuristics/cartesian/abstract_state.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition.h"
 #include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
+#include "probfd/heuristics/cartesian/split.h"
 
 #include "probfd/task_utils/task_properties.h"
 
@@ -170,9 +171,10 @@ void Abstraction::initialize_trivial_abstraction(
 pair<AbstractStateIndex, AbstractStateIndex> Abstraction::refine(
     RefinementHierarchy& refinement_hierarchy,
     const AbstractState& abstract_state,
-    int split_var,
-    const std::vector<int>& wanted)
+    const Split& split)
 {
+    const auto [split_var, wanted] = split;
+
     if (log.is_at_least_debug())
         log << "Refine " << abstract_state << " for " << split_var << "="
             << wanted << endl;

@@ -3,6 +3,7 @@
 
 #include "probfd/task_proxy.h"
 
+#include "probfd/heuristics/cartesian/split.h"
 #include "probfd/heuristics/cartesian/types.h"
 
 #include <limits>
@@ -24,11 +25,6 @@ class RandomNumberGenerator;
 namespace probfd {
 namespace heuristics {
 namespace cartesian {
-
-struct Split {
-    int var_id;
-    std::vector<int> values;
-};
 
 /*
   Select split in case there are multiple possible splits.

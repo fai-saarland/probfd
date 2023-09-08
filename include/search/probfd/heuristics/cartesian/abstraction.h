@@ -21,6 +21,7 @@ namespace probfd {
 namespace heuristics {
 namespace cartesian {
 
+struct Split;
 class ProbabilisticTransitionSystem;
 
 /*
@@ -30,9 +31,10 @@ class ProbabilisticTransitionSystem;
 */
 class Abstraction
     : public SimpleMDP<AbstractStateIndex, const ProbabilisticTransition*> {
-    const std::unique_ptr<ProbabilisticTransitionSystem> transition_system;
     const State concrete_initial_state;
     const std::vector<FactPair> goal_facts;
+
+    const std::unique_ptr<ProbabilisticTransitionSystem> transition_system;
 
     // All (as of yet unsplit) abstract states.
     AbstractStates states;
@@ -98,8 +100,7 @@ public:
     std::pair<AbstractStateIndex, AbstractStateIndex> refine(
         RefinementHierarchy& refinement_hierarchy,
         const AbstractState& abstract_state,
-        int split_var,
-        const std::vector<int>& wanted);
+        const Split& split);
 
     void print_statistics() const override;
 };

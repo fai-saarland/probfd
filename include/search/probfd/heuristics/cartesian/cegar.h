@@ -24,6 +24,7 @@ class CartesianHeuristic;
 struct Flaw;
 class FlawGenerator;
 class FlawGeneratorFactory;
+struct Split;
 class SplitSelector;
 class SplitSelectorFactory;
 
@@ -105,8 +106,7 @@ private:
         Abstraction& abstraction,
         CartesianHeuristic& heuristic,
         const AbstractState& abstract_state,
-        int split_var,
-        const std::vector<int>& wanted);
+        const Split& split);
 };
 
 } // namespace cartesian
