@@ -38,6 +38,21 @@ cartesian_abstractions::CartesianSet get_cartesian_set(
     return cartesian_set;
 }
 
+// Create the Cartesian set that corresponds to the given preconditions or
+// goals.
+template <typename ConditionsProxy>
+cartesian_abstractions::CartesianSet
+get_cartesian_set(VariablesProxy variables, const ConditionsProxy& conditions)
+{
+    cartesian_abstractions::CartesianSet cartesian_set(variables);
+    for (FactProxy condition : conditions) {
+        cartesian_set.set_single_value(
+            condition.get_variable().get_id(),
+            condition.get_value());
+    }
+    return cartesian_set;
+}
+
 extern std::unique_ptr<additive_heuristic::AdditiveHeuristic>
 create_additive_heuristic(const std::shared_ptr<ProbabilisticTask>& task);
 

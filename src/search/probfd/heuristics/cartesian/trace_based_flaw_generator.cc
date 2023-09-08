@@ -47,7 +47,6 @@ std::unique_ptr<Trace> TraceBasedFlawGenerator::find_trace(
 
 optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
     const ProbabilisticTaskProxy& task_proxy,
-    const std::vector<int>& domain_sizes,
     Abstraction& abstraction,
     const AbstractState* init,
     CartesianHeuristic& heuristic,
@@ -66,7 +65,7 @@ optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
     }
 
     optional<Flaw> flaw =
-        find_flaw(task_proxy, domain_sizes, *solution, abstraction, log, timer);
+        find_flaw(task_proxy, *solution, abstraction, log, timer);
 
     if (!flaw && log.is_at_least_normal()) {
         log << "Found a plan without a flaw in the determinized problem."
@@ -78,7 +77,6 @@ optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
 
 optional<Flaw> TraceBasedFlawGenerator::find_flaw(
     const ProbabilisticTaskProxy& task_proxy,
-    const std::vector<int>& domain_sizes,
     const Trace& solution,
     Abstraction& abstraction,
     utils::LogProxy& log,
@@ -123,7 +121,9 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
             return Flaw(
                 std::move(concrete_state),
                 *abstract_state,
-                get_cartesian_set(domain_sizes, op.get_preconditions()));
+                get_cartesian_set(
+                    task_proxy.get_variables(),
+                    op.get_preconditions()));
         }
     }
 
@@ -137,7 +137,7 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
     return Flaw(
         std::move(concrete_state),
         *abstract_state,
-        get_cartesian_set(domain_sizes, task_proxy.get_goals()));
+        get_cartesian_set(task_proxy.get_variables(), task_proxy.get_goals()));
 }
 
 void TraceBasedFlawGenerator::notify_split()

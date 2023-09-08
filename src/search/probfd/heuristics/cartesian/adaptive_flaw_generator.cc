@@ -20,7 +20,6 @@ AdaptiveFlawGenerator::AdaptiveFlawGenerator(
 
 std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
     const ProbabilisticTaskProxy& task_proxy,
-    const std::vector<int>& domain_sizes,
     Abstraction& abstraction,
     const AbstractState* init_id,
     CartesianHeuristic& heuristic,
@@ -31,7 +30,6 @@ std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
         auto& generator = generators[current_generator];
         std::optional<Flaw> flaw = generator->generate_flaw(
             task_proxy,
-            domain_sizes,
             abstraction,
             init_id,
             heuristic,

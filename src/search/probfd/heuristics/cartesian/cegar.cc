@@ -69,8 +69,6 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
     }
 
     const ProbabilisticTaskProxy task_proxy(*task);
-    const std::vector<int> domain_sizes(
-        cartesian_abstractions::get_domain_sizes(task_proxy));
 
     std::unique_ptr<FlawGenerator> flaw_generator =
         flaw_generator_factory->create_flaw_generator();
@@ -115,7 +113,6 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
 
             std::optional flaw = flaw_generator->generate_flaw(
                 task_proxy,
-                domain_sizes,
                 *abstraction,
                 &abstraction->get_initial_state(),
                 *heuristic,

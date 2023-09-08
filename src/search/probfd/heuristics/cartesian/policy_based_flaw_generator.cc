@@ -54,25 +54,18 @@ unique_ptr<Solution> PolicyBasedFlawGenerator::find_solution(
 
 optional<Flaw> PolicyBasedFlawGenerator::find_flaw(
     const ProbabilisticTaskProxy& task_proxy,
-    const std::vector<int>& domain_sizes,
     Abstraction& abstraction,
     Solution& solution,
     utils::LogProxy& log,
     utils::CountdownTimer& timer)
 {
     TimerScope scope(find_flaw_timer);
-    return policy_flaw_finder->find_flaw(
-        task_proxy,
-        domain_sizes,
-        abstraction,
-        solution,
-        log,
-        timer);
+    return policy_flaw_finder
+        ->find_flaw(task_proxy, abstraction, solution, log, timer);
 }
 
 std::optional<Flaw> PolicyBasedFlawGenerator::generate_flaw(
     const ProbabilisticTaskProxy& task_proxy,
-    const std::vector<int>& domain_sizes,
     Abstraction& abstraction,
     const AbstractState* init,
     CartesianHeuristic& heuristic,
@@ -91,7 +84,7 @@ std::optional<Flaw> PolicyBasedFlawGenerator::generate_flaw(
     }
 
     optional<Flaw> flaw =
-        find_flaw(task_proxy, domain_sizes, abstraction, *solution, log, timer);
+        find_flaw(task_proxy, abstraction, *solution, log, timer);
 
     if (!flaw && log.is_at_least_normal()) {
         log << "Found a policy without a flaw." << endl;

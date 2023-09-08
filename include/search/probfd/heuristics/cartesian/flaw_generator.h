@@ -32,7 +32,6 @@ public:
 
     virtual std::optional<Flaw> generate_flaw(
         const ProbabilisticTaskProxy& task_proxy,
-        const std::vector<int>& domain_sizes,
         Abstraction& abstraction,
         const AbstractState* init_id,
         CartesianHeuristic& heuristic,
