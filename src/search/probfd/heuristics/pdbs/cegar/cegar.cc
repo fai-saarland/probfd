@@ -260,16 +260,11 @@ CEGAR::~CEGAR() = default;
 
 void CEGAR::print_collection() const
 {
-    log << "[";
+    assert(!pdb_infos.empty());
+    log << "[" << pdb_infos.front().get_pattern();
 
-    for (size_t i = 0; i < pdb_infos.size(); ++i) {
-        const auto& info = pdb_infos[i];
-        if (info) {
-            log << info->get_pattern();
-            if (i != pdb_infos.size() - 1) {
-                log << ", ";
-            }
-        }
+    for (const auto& info : pdb_infos | std::views::drop(1)) {
+        log << ", " << info.get_pattern();
     }
 
     log << "]" << endl;
@@ -278,12 +273,24 @@ void CEGAR::print_collection() const
 void CEGAR::generate_trivial_solution_collection(
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
+    int& collection_size,
     utils::CountdownTimer& timer)
 {
     assert(!goals.empty());
 
+    pdb_infos.reserve(goals.size());
+
     for (int var : goals) {
-        add_pattern_for_var(task_proxy, task_cost_function, var, timer);
+        auto& info = pdb_infos.emplace_back(
+            task_proxy,
+            task_cost_function,
+            Pattern{var},
+            *rng,
+            wildcard,
+            timer);
+        assert(!variable_to_info.contains(var));
+        variable_to_info.emplace(var, std::ref(info));
+        collection_size += info.get_pdb().num_states();
     }
 
     if (log.is_at_least_normal()) {
@@ -296,24 +303,21 @@ void CEGAR::generate_trivial_solution_collection(
     }
 }
 
-int CEGAR::get_flaws(
+CEGAR::PDBInfo* CEGAR::get_flaws(
     ProbabilisticTaskProxy task_proxy,
     std::vector<Flaw>& flaws,
     std::vector<int>& flaw_offsets,
     value_t termination_cost,
     utils::CountdownTimer& timer)
 {
-    const int num_pdb_infos = static_cast<int>(pdb_infos.size());
-    for (int idx = 0; idx < num_pdb_infos; ++idx) {
-        auto& info = pdb_infos[idx];
-
-        if (!info || info->is_solved()) {
-            flaw_offsets[idx] = static_cast<int>(flaws.size());
+    for (PDBInfo& info : pdb_infos) {
+        if (info.is_solved()) {
+            flaw_offsets.emplace_back(static_cast<int>(flaws.size()));
             continue;
         }
 
         // abort here if no abstract solution could be found
-        if (!info->solution_exists(termination_cost)) {
+        if (!info.solution_exists(termination_cost)) {
             log << "CEGAR: Problem unsolvable" << endl;
             utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
         }
@@ -324,15 +328,15 @@ int CEGAR::get_flaws(
         const size_t num_flaws_before = flaws.size();
         const bool executable = flaw_strategy->apply_policy(
             task_proxy,
-            info->get_mdp(),
-            info->get_pdb(),
-            info->get_policy(),
+            info.get_mdp(),
+            info.get_pdb(),
+            info.get_policy(),
             blacklisted_variables,
             flaws,
             timer);
 
         const size_t new_num_flaws = flaws.size();
-        flaw_offsets[idx] = static_cast<int>(new_num_flaws);
+        flaw_offsets.emplace_back(static_cast<int>(new_num_flaws));
 
         // Check for new flaws
         if (new_num_flaws == num_flaws_before) {
@@ -347,31 +351,23 @@ int CEGAR::get_flaws(
                  * tests for empty blacklists.
                  */
                 flaws.clear();
-                return idx;
+                return &info;
             }
 
-            info->mark_as_solved();
+            info.mark_as_solved();
         }
     }
 
-    return -1;
+    return nullptr;
 }
 
-bool CEGAR::can_add_singleton_pattern(const VariablesProxy& variables, int var)
-    const
+bool CEGAR::can_add_variable(
+    VariableProxy variable,
+    const PDBInfo& info,
+    int collection_size) const
 {
-    const int pdb_size = variables[var].get_domain_size();
-    return pdb_size <= max_pdb_size &&
-           collection_size <= max_collection_size - pdb_size;
-}
-
-bool CEGAR::can_add_variable_to_pattern(
-    const VariablesProxy& variables,
-    int index,
-    int var) const
-{
-    int pdb_size = pdb_infos[index]->get_pdb().num_states();
-    int domain_size = variables[var].get_domain_size();
+    int pdb_size = info.get_pdb().num_states();
+    int domain_size = variable.get_domain_size();
 
     if (!utils::is_product_within_limit(pdb_size, domain_size, max_pdb_size)) {
         return false;
@@ -381,10 +377,13 @@ bool CEGAR::can_add_variable_to_pattern(
     return collection_size + added_size <= max_collection_size;
 }
 
-bool CEGAR::can_merge_patterns(int index1, int index2) const
+bool CEGAR::can_merge_patterns(
+    const PDBInfo& left,
+    const PDBInfo& right,
+    int collection_size) const
 {
-    int pdb_size1 = pdb_infos[index1]->get_pdb().num_states();
-    int pdb_size2 = pdb_infos[index2]->get_pdb().num_states();
+    int pdb_size1 = left.get_pdb().num_states();
+    int pdb_size2 = right.get_pdb().num_states();
 
     if (!utils::is_product_within_limit(pdb_size1, pdb_size2, max_pdb_size)) {
         return false;
@@ -394,102 +393,88 @@ bool CEGAR::can_merge_patterns(int index1, int index2) const
     return collection_size + added_size <= max_collection_size;
 }
 
-void CEGAR::add_pattern_for_var(
-    ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
-    int var,
-    utils::CountdownTimer& timer)
-{
-    auto& info = pdb_infos.emplace_back(new PDBInfo(
-        task_proxy,
-        task_cost_function,
-        {var},
-        *rng,
-        wildcard,
-        timer));
-    variable_to_collection_index[var] = pdb_infos.size() - 1;
-    collection_size += info->get_pdb().num_states();
-}
-
 void CEGAR::add_variable_to_pattern(
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
-    int index,
+    PDBInfo& info,
     int var,
+    int& collection_size,
     utils::CountdownTimer& timer)
 {
-    PDBInfo& info = *pdb_infos[index];
-
-    auto pdb = info.get_pdb();
+    // update collection size (remove old abstraction)
+    collection_size -= info.get_pdb().num_states();
 
     // compute new solution
-    std::unique_ptr<PDBInfo> new_info(new PDBInfo(
+    info = PDBInfo(
         task_proxy,
         task_cost_function,
-        pdb,
+        info.get_pdb(),
         var,
         *rng,
         wildcard,
-        timer));
+        timer);
 
-    // update collection size
-    collection_size -= pdb.num_states();
-    collection_size += new_info->get_pdb().num_states();
+    // update collection size (add new abstraction)
+    collection_size += info.get_pdb().num_states();
 
     // update look-up table
-    variable_to_collection_index[var] = index;
-    pdb_infos[index] = std::move(new_info);
+    assert(!variable_to_info.contains(var));
+    variable_to_info.emplace(var, std::ref(info));
 }
 
 void CEGAR::merge_patterns(
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
-    int index1,
-    int index2,
+    PDBInfo& left,
+    PDBInfo& right,
+    int& collection_size,
     utils::CountdownTimer& timer)
 {
-    // Merge pattern at index2 into pattern at index2
-    PDBInfo& solution1 = *pdb_infos[index1];
-    PDBInfo& solution2 = *pdb_infos[index2];
+    const ProbabilityAwarePatternDatabase& pdb1 = left.get_pdb();
+    const ProbabilityAwarePatternDatabase& pdb2 = right.get_pdb();
 
-    const ProbabilityAwarePatternDatabase& pdb1 = solution1.get_pdb();
-    const ProbabilityAwarePatternDatabase& pdb2 = solution2.get_pdb();
-
-    // update look-up table
-    for (int var : solution2.get_pattern()) {
-        variable_to_collection_index[var] = index1;
+    // update look-up table, abstractions will be merged into left storage
+    for (int var : right.get_pattern()) {
+        assert(variable_to_info.contains(var));
+        variable_to_info.find(var)->second = std::ref(left);
     }
 
-    // store old pdb sizes
-    int pdb_size1 = pdb1.num_states();
-    int pdb_size2 = pdb2.num_states();
+    // update collection size (remove previous abstractions)
+    collection_size -= pdb1.num_states() + pdb2.num_states();
 
-    // compute merge solution
-    unique_ptr<PDBInfo> merged(new PDBInfo(
+    // construct merged abstractions into left storage
+    left = PDBInfo(
         task_proxy,
         task_cost_function,
         pdb1,
         pdb2,
         *rng,
         wildcard,
-        timer));
+        timer);
 
-    // update collection size
-    collection_size -= pdb_size1;
-    collection_size -= pdb_size2;
-    collection_size += merged->get_pdb().num_states();
+    // update collection size (add merged abstraction)
+    collection_size += left.get_pdb().num_states();
 
-    // clean-up
-    pdb_infos[index1] = std::move(merged);
-    pdb_infos[index2] = nullptr;
+    // Now remove the right abstraction. If this produces a hole, fill it by
+    // moving the last stored abstraction into this hole, updating the variable
+    // to info mapping accordingly.
+    if (&right != &pdb_infos.back()) {
+        for (int var : pdb_infos.back().get_pattern()) {
+            assert(variable_to_info.contains(var));
+            variable_to_info.find(var)->second = std::ref(right);
+        }
+        right = std::move(pdb_infos.back());
+    }
+
+    pdb_infos.pop_back();
 }
 
 void CEGAR::refine(
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
-    const VariablesProxy& variables,
     const std::vector<Flaw>& flaws,
     const std::vector<int>& flaw_offsets,
+    int& collection_size,
     utils::CountdownTimer& timer)
 {
     assert(!flaws.empty());
@@ -498,14 +483,15 @@ void CEGAR::refine(
     int random_flaw_index = rng->random(flaws.size());
     const Flaw& flaw = flaws[random_flaw_index];
 
-    int solution_index = std::distance(
+    int flaw_index = std::distance(
         flaw_offsets.begin(),
         std::ranges::upper_bound(flaw_offsets, random_flaw_index));
     int var = flaw.variable;
 
+    PDBInfo& flaw_info = pdb_infos[flaw_index];
+
     if (log.is_at_least_verbose()) {
-        log << "CEGAR: chosen flaw: pattern "
-            << pdb_infos[solution_index]->get_pattern();
+        log << "CEGAR: chosen flaw: pattern " << flaw_info.get_pattern();
     }
 
     if (log.is_at_least_verbose()) {
@@ -518,20 +504,20 @@ void CEGAR::refine(
         log << "on " << var << endl;
     }
 
-    const auto it = variable_to_collection_index.find(var);
+    const auto it = variable_to_info.find(var);
 
-    if (it != variable_to_collection_index.end()) {
+    if (it != variable_to_info.end()) {
         // var is already in another pattern of the collection
-        int other_index = it->second;
-        assert(other_index != solution_index);
-        assert(pdb_infos[other_index] != nullptr);
+        PDBInfo& other = it->second;
+        assert(utils::contains(other.get_pattern(), var));
+        assert(&other != &flaw_info);
 
         if (log.is_at_least_verbose()) {
             log << "CEGAR: var" << var << " is already in pattern "
-                << pdb_infos[other_index]->get_pattern() << endl;
+                << other.get_pattern() << endl;
         }
 
-        if (can_merge_patterns(solution_index, other_index)) {
+        if (can_merge_patterns(flaw_info, other, collection_size)) {
             if (log.is_at_least_verbose()) {
                 log << "CEGAR: merge the two patterns" << endl;
             }
@@ -539,8 +525,9 @@ void CEGAR::refine(
             merge_patterns(
                 task_proxy,
                 task_cost_function,
-                solution_index,
-                other_index,
+                flaw_info,
+                other,
+                collection_size,
                 timer);
             return;
         }
@@ -554,7 +541,9 @@ void CEGAR::refine(
                 << endl;
         }
 
-        if (can_add_variable_to_pattern(variables, solution_index, var)) {
+        const VariableProxy variable = task_proxy.get_variables()[var];
+
+        if (can_add_variable(variable, flaw_info, collection_size)) {
             if (log.is_at_least_verbose()) {
                 log << "CEGAR: add it to the pattern" << endl;
             }
@@ -562,8 +551,9 @@ void CEGAR::refine(
             add_variable_to_pattern(
                 task_proxy,
                 task_cost_function,
-                solution_index,
+                flaw_info,
                 var,
+                collection_size,
                 timer);
             return;
         }
@@ -598,17 +588,23 @@ CEGARResult CEGAR::generate_pdbs(
 
     utils::CountdownTimer timer(max_time);
 
-    const VariablesProxy variables = task_proxy.get_variables();
+    int collection_size = 0;
 
     // Start with a solution of the trivial abstraction
-    generate_trivial_solution_collection(task_proxy, task_cost_function, timer);
+    generate_trivial_solution_collection(
+        task_proxy,
+        task_cost_function,
+        collection_size,
+        timer);
 
     const State initial_state = task_proxy.get_initial_state();
     initial_state.unpack();
 
     std::vector<Flaw> flaws;
-    std::vector<int> flaw_offsets(pdb_infos.size(), 0);
-    int solution_index = -1;
+    std::vector<int> flaw_offsets;
+    flaw_offsets.reserve(pdb_infos.size());
+
+    PDBInfo* solution = nullptr;
 
     // main loop of the algorithm
     int refinement_counter = 1;
@@ -622,7 +618,7 @@ CEGARResult CEGAR::generate_pdbs(
                 log << "iteration #" << refinement_counter << endl;
             }
 
-            solution_index = get_flaws(
+            solution = get_flaws(
                 task_proxy,
                 flaws,
                 flaw_offsets,
@@ -630,9 +626,7 @@ CEGARResult CEGAR::generate_pdbs(
                 timer);
 
             if (flaws.empty()) {
-                if (solution_index != -1) {
-                    const auto& info = pdb_infos[solution_index];
-
+                if (solution != nullptr) {
                     assert(blacklisted_variables.empty());
 
                     if (log.is_at_least_verbose()) {
@@ -640,11 +634,11 @@ CEGARResult CEGAR::generate_pdbs(
                                "abstract"
                             << "policies." << endl;
                         log << "CEGAR: Cost of policy: "
-                            << info->get_policy_cost(initial_state) << endl;
+                            << solution->get_policy_cost(initial_state) << endl;
                     }
                 } else {
                     if (log.is_at_least_verbose()) {
-                        log << "CEGAR: Flaw list empty."
+                        log << "CEGAR: Flaw list empty. "
                             << "No further refinements possible." << endl;
                     }
                 }
@@ -659,13 +653,14 @@ CEGARResult CEGAR::generate_pdbs(
             refine(
                 task_proxy,
                 task_cost_function,
-                variables,
                 flaws,
                 flaw_offsets,
+                collection_size,
                 timer);
 
             ++refinement_counter;
             flaws.clear();
+            flaw_offsets.clear();
 
             if (log.is_at_least_verbose()) {
                 log << "CEGAR: current collection size: " << collection_size
@@ -692,16 +687,13 @@ CEGARResult CEGAR::generate_pdbs(
         std::make_unique<std::vector<std::unique_ptr<ProjectionStateSpace>>>();
     auto pdbs = std::make_unique<PPDBCollection>();
 
-    if (solution_index != -1) {
-        auto& info = pdb_infos[solution_index];
-        state_spaces->emplace_back(info->extract_state_space());
-        pdbs->emplace_back(info->extract_pdb());
+    if (solution != nullptr) {
+        state_spaces->emplace_back(solution->extract_state_space());
+        pdbs->emplace_back(solution->extract_pdb());
     } else {
-        for (const auto& info : pdb_infos) {
-            if (info) {
-                state_spaces->emplace_back(info->extract_state_space());
-                pdbs->emplace_back(info->extract_pdb());
-            }
+        for (auto& info : pdb_infos) {
+            state_spaces->emplace_back(info.extract_state_space());
+            pdbs->emplace_back(info.extract_pdb());
         }
     }
 

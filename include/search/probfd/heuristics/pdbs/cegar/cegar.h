@@ -58,15 +58,13 @@ class CEGAR {
     std::unordered_set<int> blacklisted_variables;
 
     // the pattern collection in form of their pdbs plus stored plans.
-    std::vector<std::unique_ptr<PDBInfo>> pdb_infos;
+    std::vector<PDBInfo> pdb_infos;
 
-    // Takes a variable as key and returns the index of the solutions-entry
-    // whose pattern contains said variable. Used for checking if a variable
-    // is already included in some pattern as well as for quickly finding
-    // the other partner for merging.
-    std::unordered_map<int, int> variable_to_collection_index;
-
-    int collection_size = 0;
+    // Takes a variable as key and returns the solutions-entry whose pattern
+    // contains said variable. Used for checking if a variable is already
+    // included in some pattern as well as for quickly finding the other partner
+    // for merging.
+    std::unordered_map<int, std::reference_wrapper<PDBInfo>> variable_to_info;
 
 public:
     CEGAR(
@@ -90,47 +88,48 @@ private:
     void generate_trivial_solution_collection(
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
+        int& collection_size,
         utils::CountdownTimer& timer);
 
-    int get_flaws(
+    // If a concrete solution was found, returns a pointer to the corresponding
+    // info struct, otherwise nullptr.
+    PDBInfo* get_flaws(
         ProbabilisticTaskProxy task_proxy,
         std::vector<Flaw>& flaws,
         std::vector<int>& flaw_offsets,
         value_t termination_cost,
         utils::CountdownTimer& timer);
 
-    bool
-    can_add_singleton_pattern(const VariablesProxy& variables, int var) const;
-    bool can_add_variable_to_pattern(
-        const VariablesProxy& variables,
-        int index,
-        int var) const;
-    bool can_merge_patterns(int index1, int index2) const;
+    bool can_add_variable(
+        VariableProxy variable,
+        const PDBInfo& info,
+        int collection_size) const;
+    bool can_merge_patterns(
+        const PDBInfo& left,
+        const PDBInfo& right,
+        int collection_size) const;
 
-    void add_pattern_for_var(
-        ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
-        int var,
-        utils::CountdownTimer& timer);
     void add_variable_to_pattern(
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
-        int index,
+        PDBInfo& info,
         int var,
+        int& collection_size,
         utils::CountdownTimer& timer);
     void merge_patterns(
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
-        int index1,
-        int index2,
+        PDBInfo& left,
+        PDBInfo& right,
+        int& collection_size,
         utils::CountdownTimer& timer);
 
     void refine(
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
-        const VariablesProxy& variables,
         const std::vector<Flaw>& flaws,
         const std::vector<int>& flaw_offsets,
+        int& collection_size,
         utils::CountdownTimer& timer);
 
     void print_collection() const;
