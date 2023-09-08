@@ -82,7 +82,7 @@ public:
 
     const ProjectionMultiPolicy& get_policy() const;
 
-    value_t get_policy_cost(const State& state) const;
+    value_t get_policy_cost() const;
 
     unsigned int num_states() const;
 
@@ -197,9 +197,9 @@ const ProjectionMultiPolicy& CEGAR::PDBInfo::get_policy() const
     return *policy;
 }
 
-value_t CEGAR::PDBInfo::get_policy_cost(const State& state) const
+value_t CEGAR::PDBInfo::get_policy_cost() const
 {
-    return projection.lookup_estimate(state);
+    return projection.lookup_estimate(initial_state);
 }
 
 unsigned int CEGAR::PDBInfo::num_states() const
@@ -636,7 +636,7 @@ CEGARResult CEGAR::generate_pdbs(
                                "abstract"
                             << "policies." << endl;
                         log << "CEGAR: Cost of policy: "
-                            << solution->get_policy_cost(initial_state) << endl;
+                            << solution->get_policy_cost() << endl;
                     }
                 } else {
                     if (log.is_at_least_verbose()) {
