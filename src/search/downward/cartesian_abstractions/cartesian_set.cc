@@ -5,6 +5,16 @@
 using namespace std;
 
 namespace cartesian_abstractions {
+CartesianSet::CartesianSet(VariablesProxy variables)
+{
+    domain_subsets.reserve(variables.size());
+    for (const auto variable_proxy : variables) {
+        Bitset domain(variable_proxy.get_domain_size());
+        domain.set();
+        domain_subsets.push_back(std::move(domain));
+    }
+}
+
 CartesianSet::CartesianSet(const vector<int>& domain_sizes)
 {
     domain_subsets.reserve(domain_sizes.size());

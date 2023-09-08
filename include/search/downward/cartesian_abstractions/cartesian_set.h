@@ -3,6 +3,8 @@
 
 #include "downward/algorithms/dynamic_bitset.h"
 
+#include "downward/task_proxy.h"
+
 #include <ostream>
 #include <vector>
 
@@ -18,6 +20,7 @@ class CartesianSet {
     std::vector<Bitset> domain_subsets;
 
 public:
+    explicit CartesianSet(VariablesProxy variables);
     explicit CartesianSet(const std::vector<int>& domain_sizes);
 
     void add(int var, int value);

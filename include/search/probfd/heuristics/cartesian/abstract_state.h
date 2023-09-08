@@ -1,8 +1,11 @@
 #ifndef PROBFD_HEURISTICS_CARTESIAN_ABSTRACT_STATE_H
 #define PROBFD_HEURISTICS_CARTESIAN_ABSTRACT_STATE_H
 
-#include "downward/cartesian_abstractions/cartesian_set.h"
 #include "probfd/heuristics/cartesian/types.h"
+
+#include "downward/cartesian_abstractions/cartesian_set.h"
+
+#include "downward/task_proxy.h"
 
 #include <vector>
 
@@ -70,6 +73,9 @@ public:
     operator<<(std::ostream& os, const AbstractState& state);
 
     // Create the initial, unrefined abstract state.
+    static std::unique_ptr<AbstractState>
+    get_trivial_abstract_state(VariablesProxy variables);
+
     static std::unique_ptr<AbstractState>
     get_trivial_abstract_state(const std::vector<int>& domain_sizes);
 };

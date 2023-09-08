@@ -41,14 +41,17 @@ Abstraction::Abstraction(
     const ProbabilisticTaskProxy& task_proxy,
     std::vector<value_t> operator_costs,
     utils::LogProxy log)
-    : transition_system(std::make_unique<ProbabilisticTransitionSystem>(
-          task_proxy.get_operators()))
-    , concrete_initial_state(task_proxy.get_initial_state())
+    : concrete_initial_state(task_proxy.get_initial_state())
     , goal_facts(::task_properties::get_fact_pairs(task_proxy.get_goals()))
+    , transition_system(std::make_unique<ProbabilisticTransitionSystem>(
+          task_proxy.get_operators()))
+    , init_id(0)
+    , goals({0})
     , operator_costs(std::move(operator_costs))
     , log(std::move(log))
 {
-    initialize_trivial_abstraction(get_domain_sizes(task_proxy));
+    states.push_back(
+        AbstractState::get_trivial_abstract_state(task_proxy.get_variables()));
 }
 
 Abstraction::~Abstraction() = default;
@@ -156,16 +159,6 @@ void Abstraction::mark_all_states_as_goals()
     for (auto& state : states) {
         goals.insert(state->get_id());
     }
-}
-
-void Abstraction::initialize_trivial_abstraction(
-    const vector<int>& domain_sizes)
-{
-    unique_ptr<AbstractState> init_state =
-        AbstractState::get_trivial_abstract_state(domain_sizes);
-    init_id = init_state->get_id();
-    goals.insert(init_state->get_id());
-    states.push_back(std::move(init_state));
 }
 
 AbstractStateSplit Abstraction::refine(

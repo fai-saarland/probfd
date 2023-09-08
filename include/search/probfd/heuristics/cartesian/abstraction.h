@@ -36,23 +36,26 @@ struct AbstractStateSplit {
 */
 class Abstraction
     : public SimpleMDP<AbstractStateIndex, const ProbabilisticTransition*> {
+    // Used to split abstract goal and abstract initial state
     const State concrete_initial_state;
     const std::vector<FactPair> goal_facts;
 
-    const std::unique_ptr<ProbabilisticTransitionSystem> transition_system;
-
     // All (as of yet unsplit) abstract states.
     AbstractStates states;
-    // State ID of abstract initial state.
+
+    // The transitions of the abstractions.
+    const std::unique_ptr<ProbabilisticTransitionSystem> transition_system;
+
+    // Index of the abstract initial state.
     AbstractStateIndex init_id;
+
     // Abstract goal states.
     Goals goals;
 
+    // Operator cost function
     std::vector<value_t> operator_costs;
 
     mutable utils::LogProxy log;
-
-    void initialize_trivial_abstraction(const std::vector<int>& domain_sizes);
 
 public:
     Abstraction(

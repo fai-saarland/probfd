@@ -56,4 +56,4 @@ static constexpr int UNDEFINED = -1;
 } // namespace heuristics
 } // namespace probfd
 
-#endif
+#endif // PROBFD_HEURISTICS_CARTESIAN_TYPES_H
