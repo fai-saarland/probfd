@@ -53,10 +53,10 @@ unique_ptr<Solution> PolicyBasedFlawGenerator::find_solution(
 }
 
 optional<Flaw> PolicyBasedFlawGenerator::find_flaw(
-    const ProbabilisticTaskProxy& task_proxy,
+    ProbabilisticTaskProxy task_proxy,
     Abstraction& abstraction,
     Solution& solution,
-    utils::LogProxy& log,
+    utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
     TimerScope scope(find_flaw_timer);
@@ -65,11 +65,11 @@ optional<Flaw> PolicyBasedFlawGenerator::find_flaw(
 }
 
 std::optional<Flaw> PolicyBasedFlawGenerator::generate_flaw(
-    const ProbabilisticTaskProxy& task_proxy,
+    ProbabilisticTaskProxy task_proxy,
     Abstraction& abstraction,
     const AbstractState* init,
     CartesianHeuristic& heuristic,
-    utils::LogProxy& log,
+    utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
     unique_ptr<Solution> solution =
@@ -97,7 +97,7 @@ void PolicyBasedFlawGenerator::notify_split()
 {
 }
 
-void PolicyBasedFlawGenerator::print_statistics(utils::LogProxy& log)
+void PolicyBasedFlawGenerator::print_statistics(utils::LogProxy log)
 {
     if (log.is_at_least_normal()) {
         log << "Time for finding abstract policies: " << find_policy_timer

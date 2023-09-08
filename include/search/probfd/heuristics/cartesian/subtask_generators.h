@@ -37,7 +37,7 @@ class SubtaskGenerator {
 public:
     virtual SharedTasks get_subtasks(
         const std::shared_ptr<ProbabilisticTask>& task,
-        utils::LogProxy& log) const = 0;
+        utils::LogProxy log) const = 0;
     virtual ~SubtaskGenerator() = default;
 };
 
@@ -52,7 +52,7 @@ public:
 
     SharedTasks get_subtasks(
         const std::shared_ptr<ProbabilisticTask>& task,
-        utils::LogProxy& log) const override;
+        utils::LogProxy log) const override;
 };
 
 /*
@@ -67,7 +67,7 @@ public:
 
     SharedTasks get_subtasks(
         const std::shared_ptr<ProbabilisticTask>& task,
-        utils::LogProxy& log) const override;
+        utils::LogProxy log) const override;
 };
 
 /*
@@ -91,7 +91,7 @@ public:
 
     SharedTasks get_subtasks(
         const std::shared_ptr<ProbabilisticTask>& task,
-        utils::LogProxy& log) const override;
+        utils::LogProxy log) const override;
 };
 
 } // namespace cartesian

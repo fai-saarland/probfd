@@ -558,7 +558,7 @@ int ProbabilisticTransitionSystem::get_num_loops() const
     return num_loops;
 }
 
-void ProbabilisticTransitionSystem::print_statistics(utils::LogProxy& log) const
+void ProbabilisticTransitionSystem::print_statistics(utils::LogProxy log) const
 {
     if (log.is_at_least_normal()) {
         log << "Looping transitions: " << get_num_loops() << endl;

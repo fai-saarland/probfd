@@ -71,7 +71,7 @@ static void order_facts(
     FactOrder fact_order,
     vector<FactPair>& facts,
     utils::RandomNumberGenerator& rng,
-    utils::LogProxy& log)
+    utils::LogProxy log)
 {
     if (log.is_at_least_verbose()) {
         log << "Sort " << facts.size() << " facts" << endl;
@@ -98,7 +98,7 @@ static Facts filter_and_order_facts(
     FactOrder fact_order,
     Facts& facts,
     utils::RandomNumberGenerator& rng,
-    utils::LogProxy& log)
+    utils::LogProxy log)
 {
     ProbabilisticTaskProxy task_proxy(*task);
     remove_initial_state_facts(task_proxy, facts);
@@ -113,7 +113,7 @@ TaskDuplicator::TaskDuplicator(const plugins::Options& opts)
 
 SharedTasks TaskDuplicator::get_subtasks(
     const shared_ptr<ProbabilisticTask>& task,
-    utils::LogProxy&) const
+    utils::LogProxy) const
 {
     SharedTasks subtasks;
     subtasks.reserve(num_copies);
@@ -131,7 +131,7 @@ GoalDecomposition::GoalDecomposition(const plugins::Options& opts)
 
 SharedTasks GoalDecomposition::get_subtasks(
     const shared_ptr<ProbabilisticTask>& task,
-    utils::LogProxy& log) const
+    utils::LogProxy log) const
 {
     SharedTasks subtasks;
     ProbabilisticTaskProxy task_proxy(*task);
@@ -172,7 +172,7 @@ LandmarkDecomposition::build_domain_abstracted_task(
 
 SharedTasks LandmarkDecomposition::get_subtasks(
     const shared_ptr<ProbabilisticTask>& task,
-    utils::LogProxy& log) const
+    utils::LogProxy log) const
 {
     auto determinzation_task =
         std::make_shared<tasks::AODDeterminizationTask>(task.get());

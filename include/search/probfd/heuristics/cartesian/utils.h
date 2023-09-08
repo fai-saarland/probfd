@@ -61,9 +61,8 @@ create_additive_heuristic(const std::shared_ptr<ProbabilisticTask>& task);
   can be reached in the delete-relaxation before 'fact' is reached the first
   time, plus 'fact' itself.
 */
-extern utils::HashSet<FactProxy> get_relaxed_possible_before(
-    const ProbabilisticTaskProxy& task,
-    const FactProxy& fact);
+extern utils::HashSet<FactProxy>
+get_relaxed_possible_before(ProbabilisticTaskProxy task, const FactProxy& fact);
 
 } // namespace cartesian
 } // namespace heuristics

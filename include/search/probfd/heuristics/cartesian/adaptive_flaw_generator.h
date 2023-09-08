@@ -27,16 +27,16 @@ public:
         std::vector<std::unique_ptr<FlawGenerator>> generators);
 
     std::optional<Flaw> generate_flaw(
-        const ProbabilisticTaskProxy& task_proxy,
+        ProbabilisticTaskProxy task_proxy,
         Abstraction& abstraction,
         const AbstractState* init_id,
         CartesianHeuristic& heuristic,
-        utils::LogProxy& log,
+        utils::LogProxy log,
         utils::CountdownTimer& timer) override;
 
     void notify_split() override;
 
-    void print_statistics(utils::LogProxy& log) override;
+    void print_statistics(utils::LogProxy log) override;
 };
 
 class AdaptiveFlawGeneratorFactory : public FlawGeneratorFactory {
@@ -52,4 +52,4 @@ public:
 } // namespace heuristics
 } // namespace probfd
 
-#endif
+#endif // PROBFD_HEURISTICS_CARTESIAN_ADAPTIVE_FLAW_GENERATOR_H

@@ -161,7 +161,7 @@ vector<CartesianHeuristicFunction> CostSaturation::generate_heuristic_functions(
     return functions;
 }
 
-void CostSaturation::reset(const ProbabilisticTaskProxy& task_proxy)
+void CostSaturation::reset(ProbabilisticTaskProxy task_proxy)
 {
     remaining_costs = task_properties::get_operator_costs(task_proxy);
     num_abstractions = 0;

@@ -36,10 +36,10 @@ CompletePolicyFlawFinder::CompletePolicyFlawFinder(int max_search_states)
 }
 
 optional<Flaw> CompletePolicyFlawFinder::find_flaw(
-    const ProbabilisticTaskProxy& task_proxy,
+    ProbabilisticTaskProxy task_proxy,
     Abstraction& abstraction,
     Solution& policy,
-    utils::LogProxy& log,
+    utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
     const auto operators = task_proxy.get_operators();

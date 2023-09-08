@@ -53,7 +53,7 @@ static bool outcome_can_achieve_fact(
 }
 
 static utils::HashSet<FactProxy> compute_possibly_before_facts(
-    const ProbabilisticTaskProxy& task,
+    ProbabilisticTaskProxy task,
     const FactProxy& last_fact)
 {
     utils::HashSet<FactProxy> pb_facts;
@@ -90,9 +90,8 @@ static utils::HashSet<FactProxy> compute_possibly_before_facts(
     return pb_facts;
 }
 
-utils::HashSet<FactProxy> get_relaxed_possible_before(
-    const ProbabilisticTaskProxy& task,
-    const FactProxy& fact)
+utils::HashSet<FactProxy>
+get_relaxed_possible_before(ProbabilisticTaskProxy task, const FactProxy& fact)
 {
     utils::HashSet<FactProxy> reachable_facts =
         compute_possibly_before_facts(task, fact);

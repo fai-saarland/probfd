@@ -19,11 +19,11 @@ AdaptiveFlawGenerator::AdaptiveFlawGenerator(
 }
 
 std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
-    const ProbabilisticTaskProxy& task_proxy,
+    ProbabilisticTaskProxy task_proxy,
     Abstraction& abstraction,
     const AbstractState* init_id,
     CartesianHeuristic& heuristic,
-    utils::LogProxy& log,
+    utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
     while (current_generator != generators.size()) {
@@ -51,7 +51,7 @@ void AdaptiveFlawGenerator::notify_split()
     }
 }
 
-void AdaptiveFlawGenerator::print_statistics(utils::LogProxy& log)
+void AdaptiveFlawGenerator::print_statistics(utils::LogProxy log)
 {
     for (auto& gen : generators) {
         gen->print_statistics(log);

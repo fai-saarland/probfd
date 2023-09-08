@@ -53,7 +53,7 @@ class CostSaturation {
     int num_states;
     int num_non_looping_transitions;
 
-    void reset(const ProbabilisticTaskProxy& task_proxy);
+    void reset(ProbabilisticTaskProxy task_proxy);
     void reduce_remaining_costs(const std::vector<value_t>& saturated_costs);
     std::shared_ptr<ProbabilisticTask>
     get_remaining_costs_task(std::shared_ptr<ProbabilisticTask>& parent) const;

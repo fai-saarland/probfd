@@ -46,11 +46,11 @@ std::unique_ptr<Trace> TraceBasedFlawGenerator::find_trace(
 }
 
 optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
-    const ProbabilisticTaskProxy& task_proxy,
+    ProbabilisticTaskProxy task_proxy,
     Abstraction& abstraction,
     const AbstractState* init,
     CartesianHeuristic& heuristic,
-    utils::LogProxy& log,
+    utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
     std::unique_ptr<Trace> solution =
@@ -76,10 +76,10 @@ optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
 }
 
 optional<Flaw> TraceBasedFlawGenerator::find_flaw(
-    const ProbabilisticTaskProxy& task_proxy,
+    ProbabilisticTaskProxy task_proxy,
     const Trace& solution,
     Abstraction& abstraction,
-    utils::LogProxy& log,
+    utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
     TimerScope scope(find_flaw_timer);
@@ -145,7 +145,7 @@ void TraceBasedFlawGenerator::notify_split()
     trace_generator->notify_split();
 }
 
-void TraceBasedFlawGenerator::print_statistics(utils::LogProxy& log)
+void TraceBasedFlawGenerator::print_statistics(utils::LogProxy log)
 {
     if (log.is_at_least_normal()) {
         log << "Time for finding abstract traces: " << find_trace_timer << endl;
