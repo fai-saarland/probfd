@@ -28,7 +28,7 @@ namespace heuristics {
 namespace cartesian {
 
 Abstraction::Abstraction(
-    const ProbabilisticTaskProxy& task_proxy,
+    ProbabilisticTaskProxy task_proxy,
     std::vector<value_t> operator_costs,
     utils::LogProxy log)
     : concrete_initial_state(task_proxy.get_initial_state())

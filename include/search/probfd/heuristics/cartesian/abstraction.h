@@ -59,7 +59,7 @@ class Abstraction
 
 public:
     Abstraction(
-        const ProbabilisticTaskProxy& task,
+        ProbabilisticTaskProxy task,
         std::vector<value_t> operator_costs,
         utils::LogProxy log);
     ~Abstraction();
