@@ -1,4 +1,4 @@
-#include "probfd/heuristics/pdbs/pattern_collection_generator_multiple_cegar.h"
+#include "probfd/heuristics/pdbs/pdb_collection_generator_multiple_cegar.h"
 
 #include "probfd/heuristics/pdbs/cegar/single_cegar.h"
 
@@ -23,16 +23,16 @@ namespace pdbs {
 
 using namespace cegar;
 
-PatternCollectionGeneratorMultipleCegar::
-    PatternCollectionGeneratorMultipleCegar(const plugins::Options& opts)
-    : PatternCollectionGeneratorMultiple(opts, "CEGAR")
+PDBCollectionGeneratorMultipleCegar::PDBCollectionGeneratorMultipleCegar(
+    const plugins::Options& opts)
+    : PDBCollectionGeneratorMultiple(opts, "CEGAR")
     , use_wildcard_policies(opts.get<bool>("use_wildcard_policies"))
     , flaw_strategy(
           opts.get<std::shared_ptr<FlawFindingStrategy>>("flaw_strategy"))
 {
 }
 
-ProjectionInfo PatternCollectionGeneratorMultipleCegar::compute_pattern(
+ProjectionInfo PDBCollectionGeneratorMultipleCegar::compute_pattern(
     int max_pdb_size,
     double max_time,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
@@ -68,12 +68,12 @@ ProjectionInfo PatternCollectionGeneratorMultipleCegar::compute_pattern(
     return projection_info;
 }
 
-class PatternCollectionGeneratorMultipleCegarFeature
+class PDBCollectionGeneratorMultipleCegarFeature
     : public plugins::TypedFeature<
-          PatternCollectionGenerator,
-          PatternCollectionGeneratorMultipleCegar> {
+          PDBCollectionGenerator,
+          PDBCollectionGeneratorMultipleCegar> {
 public:
-    PatternCollectionGeneratorMultipleCegarFeature()
+    PDBCollectionGeneratorMultipleCegarFeature()
         : TypedFeature("ppdbs_multiple_cegar")
     {
         add_multiple_options_to_feature(*this);
@@ -86,7 +86,7 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<PatternCollectionGeneratorMultipleCegarFeature>
+static plugins::FeaturePlugin<PDBCollectionGeneratorMultipleCegarFeature>
     _plugin;
 
 } // namespace pdbs

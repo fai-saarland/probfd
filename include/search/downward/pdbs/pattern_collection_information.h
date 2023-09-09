@@ -52,6 +52,8 @@ public:
     std::shared_ptr<PatternCollection> get_patterns() const;
     std::shared_ptr<PDBCollection> get_pdbs();
     std::shared_ptr<std::vector<PatternClique>> get_pattern_cliques();
+
+    bool has_pdbs() const { return pdbs != nullptr; }
 };
 } // namespace pdbs
 

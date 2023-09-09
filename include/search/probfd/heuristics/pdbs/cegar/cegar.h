@@ -31,8 +31,8 @@ namespace cegar {
 class FlawFindingStrategy;
 
 struct CEGARResult {
-    std::unique_ptr<ProjectionCollection> projections;
-    std::unique_ptr<PPDBCollection> pdbs;
+    ProjectionCollection projections;
+    PPDBCollection pdbs;
 
     ~CEGARResult();
 };
@@ -141,4 +141,4 @@ extern void add_cegar_wildcard_option_to_feature(plugins::Feature& feature);
 } // namespace heuristics
 } // namespace probfd
 
-#endif // PDBS_PATTERN_COLLECTION_GENERATOR_CEGAR_H
+#endif

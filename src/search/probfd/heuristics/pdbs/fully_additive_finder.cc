@@ -14,21 +14,20 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-std::shared_ptr<std::vector<PatternSubCollection>>
-FullyAdditiveFinder::compute_subcollections(const PatternCollection& patterns)
+std::vector<PatternSubCollection>
+FullyAdditiveFinder::compute_subcollections(const PPDBCollection& pdbs)
 {
-    auto single_subcollection =
-        std::make_shared<std::vector<PatternSubCollection>>();
-    auto& all_patterns = single_subcollection->emplace_back(patterns.size());
+    std::vector<PatternSubCollection> single_subcollection;
+    auto& all_patterns = single_subcollection.emplace_back(pdbs.size());
     std::iota(all_patterns.begin(), all_patterns.end(), 0);
     return single_subcollection;
 }
 
 std::vector<PatternSubCollection>
-FullyAdditiveFinder::compute_subcollections_with_pattern(
-    const PatternCollection&,
+FullyAdditiveFinder::compute_subcollections_with_pdbs(
+    const PPDBCollection&,
     const std::vector<PatternSubCollection>&,
-    const Pattern&)
+    const ProbabilityAwarePatternDatabase&)
 {
     // This should never be needed
     abort();

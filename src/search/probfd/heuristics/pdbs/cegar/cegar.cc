@@ -682,17 +682,16 @@ CEGARResult CEGAR::generate_pdbs(
         log << endl;
     }
 
-    auto state_spaces =
-        std::make_unique<std::vector<std::unique_ptr<ProjectionStateSpace>>>();
-    auto pdbs = std::make_unique<PPDBCollection>();
+    ProjectionCollection state_spaces;
+    PPDBCollection pdbs;
 
     if (solution != nullptr) {
-        state_spaces->emplace_back(solution->extract_state_space());
-        pdbs->emplace_back(solution->extract_pdb());
+        state_spaces.emplace_back(solution->extract_state_space());
+        pdbs.emplace_back(solution->extract_pdb());
     } else {
         for (auto& info : pdb_infos) {
-            state_spaces->emplace_back(info.extract_state_space());
-            pdbs->emplace_back(info.extract_pdb());
+            state_spaces.emplace_back(info.extract_state_space());
+            pdbs.emplace_back(info.extract_pdb());
         }
     }
 
@@ -702,7 +701,7 @@ CEGARResult CEGAR::generate_pdbs(
             << "  number of iterations: " << refinement_counter
             << "\n"
             // << "  final collection: " << *patterns << "\n"
-            << "  final collection number of PDBs: " << pdbs->size() << "\n"
+            << "  final collection number of PDBs: " << pdbs.size() << "\n"
             << "  final collection summed PDB sizes: " << collection_size
             << endl;
     }

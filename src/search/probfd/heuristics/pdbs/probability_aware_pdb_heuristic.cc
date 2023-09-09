@@ -1,12 +1,11 @@
 #include "probfd/heuristics/pdbs/probability_aware_pdb_heuristic.h"
 
-#include "probfd/heuristics/pdbs/pattern_collection_information.h"
+#include "probfd/heuristics/pdbs/dominance_pruning.h"
+#include "probfd/heuristics/pdbs/pdb_collection_information.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 
 #include "probfd/cost_function.h"
 #include "probfd/task_evaluator_factory.h"
-
-#include "downward/pdbs/dominance_pruning.h"
 
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/logging.h"
@@ -25,7 +24,7 @@ namespace pdbs {
 ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
     std::shared_ptr<ProbabilisticTask> task,
     std::shared_ptr<FDRCostFunction> task_cost_function,
-    std::shared_ptr<PatternCollectionGenerator> generator,
+    std::shared_ptr<PDBCollectionGenerator> generator,
     double max_time_dominance_pruning,
     utils::LogProxy log)
     : TaskDependentHeuristic(task, log)
@@ -34,28 +33,24 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
     utils::Timer construction_timer;
 
     utils::Timer generator_timer;
-    auto pattern_collection_info =
-        generator->generate(task, task_cost_function);
+    auto pdb_collection_info = generator->generate(task, task_cost_function);
     const double generator_time = generator_timer();
 
-    this->patterns = pattern_collection_info.get_patterns();
-    this->pdbs = pattern_collection_info.get_pdbs();
-    this->subcollections = pattern_collection_info.get_subcollections();
-    this->subcollection_finder =
-        pattern_collection_info.get_subcollection_finder();
+    this->pdbs = std::move(pdb_collection_info.get_pdbs());
+    this->subcollections = std::move(pdb_collection_info.get_subcollections());
+    this->subcollection_finder = pdb_collection_info.get_subcollection_finder();
 
     double dominance_pruning_time = 0.0;
 
     if (max_time_dominance_pruning > 0.0) {
         utils::Timer timer;
 
-        ::pdbs::prune_dominated_cliques(
-            *patterns,
-            *pdbs,
-            *subcollections,
+        prune_dominated_cliques(
+            pdbs,
+            subcollections,
             task_proxy.get_variables().size(),
             max_time_dominance_pruning,
-            utils::g_log);
+            log);
 
         dominance_pruning_time = timer();
     }
@@ -68,7 +63,7 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
         size_t variables = 0;
         size_t abstract_states = 0;
 
-        for (auto pdb : *pdbs) {
+        for (const auto& pdb : pdbs) {
             size_t vars = pdb->get_pattern().size();
             largest_pattern = std::max(largest_pattern, vars);
             variables += vars;
@@ -77,20 +72,20 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
 
         size_t total_subcollections_size = 0;
 
-        for (auto subcollection : *subcollections) {
+        for (auto subcollection : subcollections) {
             total_subcollections_size += subcollection.size();
         }
 
-        const double avg_variables = (double)variables / pdbs->size();
+        const double avg_variables = (double)variables / pdbs.size();
         const double avg_abstract_states =
-            (double)abstract_states / pdbs->size();
+            (double)abstract_states / pdbs.size();
 
         const double avg_subcollection_size =
-            (double)total_subcollections_size / subcollections->size();
+            (double)total_subcollections_size / subcollections.size();
 
         log << "\n"
             << "Pattern Databases Statistics:\n"
-            << "  Total number of PDBs: " << pdbs->size() << "\n"
+            << "  Total number of PDBs: " << pdbs.size() << "\n"
             << "  Total number of variables: " << variables << "\n"
             << "  Total number of abstract states: " << abstract_states << "\n"
             << "  Average number of variables per PDB: " << avg_variables
@@ -100,7 +95,7 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
 
             << "  Largest pattern size: " << largest_pattern << "\n"
 
-            << "  Total number of subcollections: " << subcollections->size()
+            << "  Total number of subcollections: " << subcollections.size()
             << "\n"
             << "  Total number of subcollection PDBs: "
             << total_subcollections_size << "\n"
@@ -116,13 +111,13 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
 value_t ProbabilityAwarePDBHeuristic::evaluate(const State& state) const
 {
     return subcollection_finder
-        ->evaluate(*pdbs, *subcollections, state, termination_cost);
+        ->evaluate(pdbs, subcollections, state, termination_cost);
 }
 
 namespace {
 
 class ProbabilityAwarePDBHeuristicFactory : public TaskEvaluatorFactory {
-    const std::shared_ptr<PatternCollectionGenerator> patterns_;
+    const std::shared_ptr<PDBCollectionGenerator> generator_;
     const double time_dominance_pruning_;
     const utils::LogProxy log_;
 
@@ -136,8 +131,7 @@ public:
 
 ProbabilityAwarePDBHeuristicFactory::ProbabilityAwarePDBHeuristicFactory(
     const plugins::Options& opts)
-    : patterns_(
-          opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"))
+    : generator_(opts.get<std::shared_ptr<PDBCollectionGenerator>>("patterns"))
     , time_dominance_pruning_(opts.get<double>("max_time_dominance_pruning"))
     , log_(utils::get_log_from_options(opts))
 {
@@ -151,7 +145,7 @@ ProbabilityAwarePDBHeuristicFactory::create_evaluator(
     return std::make_unique<ProbabilityAwarePDBHeuristic>(
         task,
         task_cost_function,
-        patterns_,
+        generator_,
         time_dominance_pruning_,
         log_);
 }
@@ -178,7 +172,7 @@ public:
         document_property("safe", "yes");
 
         TaskDependentHeuristic::add_options_to_feature(*this);
-        add_option<std::shared_ptr<PatternCollectionGenerator>>(
+        add_option<std::shared_ptr<PDBCollectionGenerator>>(
             "patterns",
             "",
             "classical_generator(generator=systematic(pattern_max_size=2))");

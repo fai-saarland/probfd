@@ -1,7 +1,7 @@
-#ifndef PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_CEGAR_H
-#define PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_CEGAR_H
+#ifndef PROBFD_HEURISTICS_PDBS_PDB_COLLECTION_GENERATOR_MULTIPLE_CEGAR_H
+#define PROBFD_HEURISTICS_PDBS_PDB_COLLECTION_GENERATOR_MULTIPLE_CEGAR_H
 
-#include "probfd/heuristics/pdbs/pattern_collection_generator_multiple.h"
+#include "probfd/heuristics/pdbs/pdb_collection_generator_multiple.h"
 
 namespace probfd {
 namespace heuristics {
@@ -13,8 +13,8 @@ namespace cegar {
 class FlawFindingStrategy;
 }
 
-class PatternCollectionGeneratorMultipleCegar
-    : public PatternCollectionGeneratorMultiple {
+class PDBCollectionGeneratorMultipleCegar
+    : public PDBCollectionGeneratorMultiple {
     const bool use_wildcard_policies;
     std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy;
 
@@ -28,12 +28,11 @@ class PatternCollectionGeneratorMultipleCegar
         std::unordered_set<int>&& blacklisted_variables) override;
 
 public:
-    explicit PatternCollectionGeneratorMultipleCegar(
-        const plugins::Options& opts);
+    explicit PDBCollectionGeneratorMultipleCegar(const plugins::Options& opts);
 };
 
 } // namespace pdbs
 } // namespace heuristics
 } // namespace probfd
 
-#endif // PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_CEGAR_H
+#endif // PROBFD_HEURISTICS_PDBS_PDB_COLLECTION_GENERATOR_MULTIPLE_CEGAR_H

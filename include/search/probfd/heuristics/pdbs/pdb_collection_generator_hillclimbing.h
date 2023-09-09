@@ -1,7 +1,7 @@
-#ifndef PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_HILLCLIMBING_H
-#define PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_HILLCLIMBING_H
+#ifndef PROBFD_HEURISTICS_PDBS_PDB_COLLECTION_GENERATOR_HILLCLIMBING_H
+#define PROBFD_HEURISTICS_PDBS_PDB_COLLECTION_GENERATOR_HILLCLIMBING_H
 
-#include "probfd/heuristics/pdbs/pattern_collection_generator.h"
+#include "probfd/heuristics/pdbs/pdb_collection_generator.h"
 #include "probfd/heuristics/pdbs/types.h"
 
 #include "probfd/fdr_types.h"
@@ -42,14 +42,13 @@ namespace pdbs {
 class SubCollectionFinderFactory;
 
 // Implementation of the pattern generation algorithm by Haslum et al.
-class PatternCollectionGeneratorHillclimbing
-    : public PatternCollectionGenerator {
+class PDBCollectionGeneratorHillclimbing : public PDBCollectionGenerator {
     using DynamicBitset = dynamic_bitset::DynamicBitset<uint64_t>;
 
     struct Sample;
     class IncrementalPPDBs;
 
-    std::shared_ptr<PatternCollectionGenerator> initial_generator;
+    std::shared_ptr<PDBCollectionGenerator> initial_generator;
     std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory;
 
     // maximum number of states for each pdb
@@ -145,9 +144,8 @@ class PatternCollectionGeneratorHillclimbing
         IncrementalPPDBs& current_pdbs);
 
 public:
-    explicit PatternCollectionGeneratorHillclimbing(
-        const plugins::Options& opts);
-    ~PatternCollectionGeneratorHillclimbing();
+    explicit PDBCollectionGeneratorHillclimbing(const plugins::Options& opts);
+    ~PDBCollectionGeneratorHillclimbing();
 
     /*
       Runs the hill climbing algorithm. Note that the
@@ -155,7 +153,7 @@ public:
       variable) may break the maximum collection size limit, if the latter is
       set too small or if there are many goal variables with a large domain.
     */
-    PatternCollectionInformation generate(
+    PDBCollectionInformation generate(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
 };
@@ -164,4 +162,4 @@ public:
 } // namespace heuristics
 } // namespace probfd
 
-#endif // __PATTERN_COLLECTION_GENERATOR_HILLCLIMBING_H__
+#endif // PROBFD_HEURISTICS_PDBS_PDB_COLLECTION_GENERATOR_HILLCLIMBING_H

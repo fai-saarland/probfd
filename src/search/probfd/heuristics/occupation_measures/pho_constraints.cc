@@ -1,6 +1,6 @@
 #include "probfd/heuristics/occupation_measures/pho_constraints.h"
 
-#include "probfd/heuristics/pdbs/pattern_collection_information.h"
+#include "probfd/heuristics/pdbs/pdb_collection_information.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 
 #include "probfd/task_utils/task_properties.h"
@@ -21,12 +21,11 @@ using namespace pdbs;
 
 PHOGenerator::PHOGenerator(const plugins::Options& opts)
     : PHOGenerator(
-          opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"))
+          opts.get<std::shared_ptr<PDBCollectionGenerator>>("patterns"))
 {
 }
 
-PHOGenerator::PHOGenerator(
-    std::shared_ptr<PatternCollectionGenerator> generator)
+PHOGenerator::PHOGenerator(std::shared_ptr<PDBCollectionGenerator> generator)
     : generator_(generator)
 {
 }
@@ -39,9 +38,8 @@ void PHOGenerator::initialize_constraints(
     ProbabilisticTaskProxy task_proxy(*task);
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
 
-    auto pattern_collection_info =
-        generator_->generate(task, task_cost_function);
-    this->pdbs_ = pattern_collection_info.get_pdbs();
+    auto pdb_collection_info = generator_->generate(task, task_cost_function);
+    this->pdbs_ = std::move(pdb_collection_info.get_pdbs());
 
     const double lp_infinity = lp.get_infinity();
 
@@ -59,8 +57,7 @@ void PHOGenerator::initialize_constraints(
         lp_variables.emplace_back(0.0, lp_infinity, 1.0);
     }
 
-    for (std::size_t i = 0; i != pdbs_->size(); ++i) {
-        auto& pdb = pdbs_->operator[](i);
+    for (const auto& pdb : pdbs_) {
         auto& pdb_constraint = lp_constraints.emplace_back(0.0, lp_infinity);
 
         for (const ProbabilisticOperatorProxy op : operators) {
@@ -76,8 +73,8 @@ void PHOGenerator::initialize_constraints(
 
 void PHOGenerator::update_constraints(const State& state, lp::LPSolver& solver)
 {
-    for (std::size_t i = 0; i != pdbs_->size(); ++i) {
-        auto& pdb = pdbs_->operator[](i);
+    for (std::size_t i = 0; i != pdbs_.size(); ++i) {
+        auto& pdb = pdbs_[i];
         solver.set_constraint_lower_bound(i, pdb->lookup_estimate(state));
     }
 }

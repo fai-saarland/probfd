@@ -5,26 +5,24 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-std::shared_ptr<std::vector<PatternSubCollection>>
-TrivialFinder::compute_subcollections(const PatternCollection& patterns)
+std::vector<PatternSubCollection>
+TrivialFinder::compute_subcollections(const PPDBCollection& pdbs)
 {
-    std::shared_ptr<std::vector<PatternSubCollection>> additive_subcollections(
-        new std::vector<PatternSubCollection>());
-    additive_subcollections->reserve(patterns.size());
+    std::vector<PatternSubCollection> additive_subcollections;
+    additive_subcollections.reserve(pdbs.size());
 
-    int size = static_cast<int>(patterns.size());
-    for (int i = 0; i < size; ++i) {
-        additive_subcollections->push_back({i});
+    for (size_t i = 0; i < pdbs.size(); ++i) {
+        additive_subcollections.push_back({static_cast<int>(i)});
     }
 
     return additive_subcollections;
 }
 
 std::vector<PatternSubCollection>
-TrivialFinder::compute_subcollections_with_pattern(
-    const PatternCollection&,
+TrivialFinder::compute_subcollections_with_pdbs(
+    const PPDBCollection&,
     const std::vector<PatternSubCollection>&,
-    const Pattern&)
+    const ProbabilityAwarePatternDatabase&)
 {
     return {};
 }

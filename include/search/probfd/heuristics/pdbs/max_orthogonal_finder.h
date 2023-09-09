@@ -15,13 +15,13 @@ class MaxOrthogonalityFinderBase : public SubCollectionFinder {
 public:
     explicit MaxOrthogonalityFinderBase(ProbabilisticTaskProxy task_proxy);
 
-    std::shared_ptr<std::vector<PatternSubCollection>>
-    compute_subcollections(const PatternCollection&) override;
+    std::vector<PatternSubCollection>
+    compute_subcollections(const PPDBCollection&) override;
 
-    std::vector<PatternSubCollection> compute_subcollections_with_pattern(
-        const PatternCollection& patterns,
+    std::vector<PatternSubCollection> compute_subcollections_with_pdbs(
+        const PPDBCollection& pdbs,
         const std::vector<PatternSubCollection>& known_pattern_cliques,
-        const Pattern& new_pattern) override;
+        const ProbabilityAwarePatternDatabase& new_pdb) override;
 };
 
 class AdditiveMaxOrthogonalityFinder : public MaxOrthogonalityFinderBase {

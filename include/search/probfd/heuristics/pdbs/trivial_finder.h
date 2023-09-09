@@ -9,13 +9,13 @@ namespace pdbs {
 
 class TrivialFinder : public SubCollectionFinder {
 public:
-    std::shared_ptr<std::vector<PatternSubCollection>>
-    compute_subcollections(const PatternCollection&) override;
+    std::vector<PatternSubCollection>
+    compute_subcollections(const PPDBCollection&) override;
 
-    std::vector<PatternSubCollection> compute_subcollections_with_pattern(
-        const PatternCollection& patterns,
+    std::vector<PatternSubCollection> compute_subcollections_with_pdbs(
+        const PPDBCollection& pdbs,
         const std::vector<PatternSubCollection>& known_pattern_cliques,
-        const Pattern& new_pattern) override;
+        const ProbabilityAwarePatternDatabase& new_pdb) override;
 
     value_t evaluate_subcollection(
         const std::vector<value_t>& pdb_estimates,

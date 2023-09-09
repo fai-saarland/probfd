@@ -1,7 +1,7 @@
-#include "probfd/heuristics/pdbs/pattern_collection_generator_disjoint_cegar.h"
+#include "probfd/heuristics/pdbs/pdb_collection_generator_disjoint_cegar.h"
 
 #include "probfd/heuristics/pdbs/cegar/cegar.h"
-#include "probfd/heuristics/pdbs/pattern_collection_information.h"
+#include "probfd/heuristics/pdbs/pdb_collection_information.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 #include "probfd/heuristics/pdbs/utils.h"
@@ -24,9 +24,9 @@ namespace pdbs {
 
 using namespace cegar;
 
-PatternCollectionGeneratorDisjointCegar::
-    PatternCollectionGeneratorDisjointCegar(const plugins::Options& opts)
-    : PatternCollectionGenerator(opts)
+PDBCollectionGeneratorDisjointCegar::PDBCollectionGeneratorDisjointCegar(
+    const plugins::Options& opts)
+    : PDBCollectionGenerator(opts)
     , use_wildcard_policies(opts.get<bool>("use_wildcard_policies"))
     , single_goal(opts.get<bool>("single_goal"))
     , max_pdb_size(opts.get<int>("max_pdb_size"))
@@ -41,7 +41,7 @@ PatternCollectionGeneratorDisjointCegar::
 {
 }
 
-PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
+PDBCollectionInformation PDBCollectionGeneratorDisjointCegar::generate(
     const std::shared_ptr<ProbabilisticTask>& task,
     const std::shared_ptr<FDRCostFunction>& task_cost_function)
 {
@@ -64,28 +64,18 @@ PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
 
     utils::CountdownTimer timer(max_time);
 
-    std::shared_ptr pdbs =
+    PPDBCollection pdbs =
         cegar.generate_pdbs(task_proxy, *task_cost_function, timer).pdbs;
-
-    auto patterns = std::make_shared<PatternCollection>();
-
-    for (const auto& pdb : *pdbs) {
-        patterns->push_back(pdb->get_pattern());
-    }
 
     std::shared_ptr<SubCollectionFinder> subcollection_finder =
         subcollection_finder_factory->create_subcollection_finder(task_proxy);
 
-    PatternCollectionInformation pattern_collection_information(
-        task_proxy,
-        task_cost_function,
-        patterns,
-        subcollection_finder);
-    pattern_collection_information.set_pdbs(pdbs);
-    return pattern_collection_information;
+    return PDBCollectionInformation(
+        std::move(pdbs),
+        std::move(subcollection_finder));
 }
 
-void add_pattern_collection_generator_cegar_options_to_feature(
+void add_pdb_collection_generator_cegar_options_to_feature(
     plugins::Feature& feature)
 {
     feature.add_option<bool>(
@@ -120,24 +110,24 @@ void add_pattern_collection_generator_cegar_options_to_feature(
         "strategy used to find flaws in a policy",
         "pucs_flaw_finder()");
 
-    add_pattern_collection_generator_options_to_feature(feature);
+    add_pdb_collection_generator_options_to_feature(feature);
     add_cegar_wildcard_option_to_feature(feature);
 }
 
-class PatternCollectionGeneratorDisjointCEGARFeature
+class PDBCollectionGeneratorDisjointCEGARFeature
     : public plugins::TypedFeature<
-          PatternCollectionGenerator,
-          PatternCollectionGeneratorDisjointCegar> {
+          PDBCollectionGenerator,
+          PDBCollectionGeneratorDisjointCegar> {
 public:
-    PatternCollectionGeneratorDisjointCEGARFeature()
+    PDBCollectionGeneratorDisjointCEGARFeature()
         : TypedFeature("ppdbs_disjoint_cegar")
     {
-        add_pattern_collection_generator_cegar_options_to_feature(*this);
+        add_pdb_collection_generator_cegar_options_to_feature(*this);
         utils::add_rng_options(*this);
     }
 };
 
-static plugins::FeaturePlugin<PatternCollectionGeneratorDisjointCEGARFeature>
+static plugins::FeaturePlugin<PDBCollectionGeneratorDisjointCEGARFeature>
     _plugin;
 
 } // namespace pdbs

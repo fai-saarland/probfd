@@ -1,6 +1,7 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator.h"
 
-#include "probfd/heuristics/pdbs/pattern_collection_information.h"
+#include "probfd/heuristics/pdbs/pdb_collection_information.h"
+#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 
 #include "downward/plugins/plugin.h"
 
@@ -14,9 +15,8 @@ PatternCollectionGenerator::PatternCollectionGenerator(
 {
 }
 
-PatternCollectionGenerator::PatternCollectionGenerator(
-    const utils::LogProxy& log)
-    : log(log)
+PatternCollectionGenerator::PatternCollectionGenerator(utils::LogProxy log)
+    : log(std::move(log))
 {
 }
 
@@ -26,17 +26,17 @@ void add_pattern_collection_generator_options_to_feature(
     utils::add_log_options_to_feature(feature);
 }
 
+namespace {
 static class PatternCollectionGeneratorCategoryPlugin
     : public plugins::TypedCategoryPlugin<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorCategoryPlugin()
-        : TypedCategoryPlugin("PPDBPatternCollectionGenerator")
+        : TypedCategoryPlugin("ProbFDPatternCollectionGenerator")
     {
-        document_synopsis("Factory for pattern collections and/or "
-                          "corresponding probability-aware "
-                          "PDBs");
+        document_synopsis("Factory for patterns");
     }
 } _category_plugin;
+} // namespace
 
 } // namespace pdbs
 } // namespace heuristics

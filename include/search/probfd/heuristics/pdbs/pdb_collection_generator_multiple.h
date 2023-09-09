@@ -1,7 +1,7 @@
-#ifndef PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_H
-#define PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_H
+#ifndef PROBFD_HEURISTICS_PDBS_PDB_COLLECTION_GENERATOR_MULTIPLE_H
+#define PROBFD_HEURISTICS_PDBS_PDB_COLLECTION_GENERATOR_MULTIPLE_H
 
-#include "probfd/heuristics/pdbs/pattern_collection_generator.h"
+#include "probfd/heuristics/pdbs/pdb_collection_generator.h"
 
 #include "probfd/fdr_types.h"
 
@@ -26,7 +26,7 @@ namespace pdbs {
 class ProjectionStateSpace;
 struct ProjectionInfo;
 
-class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
+class PDBCollectionGeneratorMultiple : public PDBCollectionGenerator {
     const std::string implementation_name;
     const int max_pdb_size;
     const int max_collection_size;
@@ -51,12 +51,12 @@ class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
         const FactPair& goal,
         std::unordered_set<int>&& blacklisted_variables) = 0;
 
-    virtual PatternCollectionInformation generate(
+    virtual PDBCollectionInformation generate(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
 
 public:
-    explicit PatternCollectionGeneratorMultiple(
+    explicit PDBCollectionGeneratorMultiple(
         const plugins::Options& opts,
         std::string implementation_name);
 };
@@ -67,4 +67,4 @@ extern void add_multiple_options_to_feature(plugins::Feature& feature);
 } // namespace heuristics
 } // namespace probfd
 
-#endif
+#endif // PROBFD_HEURISTICS_PDBS_PDB_COLLECTION_GENERATOR_MULTIPLE_H

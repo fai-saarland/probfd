@@ -6,8 +6,8 @@
 #include "downward/pdbs/types.h"
 
 namespace pdbs {
-class PatternCollectionGenerator;
-class PatternCollectionInformation;
+class PDBCollectionGenerator;
+class PDBCollectionInformation;
 } // namespace pdbs
 
 namespace probfd {

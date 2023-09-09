@@ -1,7 +1,7 @@
-#include "probfd/heuristics/pdbs/pattern_collection_generator_multiple.h"
+#include "probfd/heuristics/pdbs/pdb_collection_generator_multiple.h"
 
 #include "probfd/heuristics/pdbs/fully_additive_finder.h"
-#include "probfd/heuristics/pdbs/pattern_collection_information.h"
+#include "probfd/heuristics/pdbs/pdb_collection_information.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/projection_info.h"
 #include "probfd/heuristics/pdbs/projection_state_space.h"
@@ -115,10 +115,10 @@ public:
 
 } // namespace
 
-PatternCollectionGeneratorMultiple::PatternCollectionGeneratorMultiple(
+PDBCollectionGeneratorMultiple::PDBCollectionGeneratorMultiple(
     const plugins::Options& opts,
     std::string implementation_name)
-    : PatternCollectionGenerator(opts)
+    : PDBCollectionGenerator(opts)
     , implementation_name(std::move(implementation_name))
     , max_pdb_size(opts.get<int>("max_pdb_size"))
     , max_collection_size(opts.get<int>("max_collection_size"))
@@ -136,7 +136,7 @@ PatternCollectionGeneratorMultiple::PatternCollectionGeneratorMultiple(
 {
 }
 
-bool PatternCollectionGeneratorMultiple::collection_size_limit_reached(
+bool PDBCollectionGeneratorMultiple::collection_size_limit_reached(
     int remaining_collection_size) const
 {
     if (remaining_collection_size <= 0) {
@@ -154,7 +154,7 @@ bool PatternCollectionGeneratorMultiple::collection_size_limit_reached(
     return false;
 }
 
-bool PatternCollectionGeneratorMultiple::time_limit_reached(
+bool PDBCollectionGeneratorMultiple::time_limit_reached(
     const utils::CountdownTimer& timer) const
 {
     if (timer.is_expired()) {
@@ -166,7 +166,7 @@ bool PatternCollectionGeneratorMultiple::time_limit_reached(
     return false;
 }
 
-PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
+PDBCollectionInformation PDBCollectionGeneratorMultiple::generate(
     const shared_ptr<ProbabilisticTask>& task,
     const std::shared_ptr<FDRCostFunction>& task_cost_function)
 {
@@ -203,7 +203,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
 
     // Collect all unique patterns and their PDBs.
     set<Pattern> generated_patterns;
-    shared_ptr<PPDBCollection> generated_pdbs = make_shared<PPDBCollection>();
+    PPDBCollection generated_pdbs;
 
     shared_ptr<utils::RandomNumberGenerator> pattern_computation_rng =
         make_shared<utils::RandomNumberGenerator>(random_seed);
@@ -290,7 +290,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
             */
             time_point_of_last_new_pattern = timer.get_elapsed_time();
             remaining_collection_size -= pdb->num_states();
-            generated_pdbs->push_back(std::move(pdb));
+            generated_pdbs.push_back(std::move(pdb));
         }
 
         if (collection_size_limit_reached(remaining_collection_size) ||
@@ -332,8 +332,8 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
     }
 
     shared_ptr<PatternCollection> patterns = make_shared<PatternCollection>();
-    patterns->reserve(generated_pdbs->size());
-    for (const auto& gen_pdb : *generated_pdbs) {
+    patterns->reserve(generated_pdbs.size());
+    for (const auto& gen_pdb : generated_pdbs) {
         patterns->push_back(gen_pdb->get_pattern());
     }
 
@@ -345,14 +345,6 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
         finder = std::make_shared<TrivialFinder>();
     }
 
-    PatternCollectionInformation result(
-        task_proxy,
-        task_cost_function,
-        patterns,
-        finder);
-
-    result.set_pdbs(generated_pdbs);
-
     if (log.is_at_least_normal()) {
         log << implementation_name
             << " number of iterations: " << num_iterations << endl;
@@ -360,7 +352,9 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
             << timer.get_elapsed_time() / num_iterations << endl;
     }
 
-    return result;
+    return PDBCollectionInformation(
+        std::move(generated_pdbs),
+        std::move(finder));
 }
 
 void add_multiple_algorithm_implementation_notes_to_feature(
@@ -458,7 +452,7 @@ void add_multiple_options_to_feature(plugins::Feature& feature)
         "algorithm continues with the remaining costs. If false, the maximum "
         "PDB estimate is used.",
         "true");
-    add_pattern_collection_generator_options_to_feature(feature);
+    add_pdb_collection_generator_options_to_feature(feature);
     utils::add_rng_options(feature);
 }
 

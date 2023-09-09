@@ -4,6 +4,7 @@
 #include "downward/pdbs/types.h"
 
 #include <memory>
+#include <ranges>
 #include <vector>
 
 class TaskProxy;
@@ -72,11 +73,37 @@ extern std::shared_ptr<std::vector<PatternClique>> compute_pattern_cliques(
   (old_max_cliques \setminus G_N_cliques) and all
   "new" cliques including P.
   */
-extern std::vector<PatternClique> compute_pattern_cliques_with_pattern(
-    const PatternCollection& patterns,
+std::vector<PatternClique> compute_pattern_cliques_with_pattern(
+    const std::ranges::input_range auto& patterns,
     const std::vector<PatternClique>& known_pattern_cliques,
     const Pattern& new_pattern,
-    const VariableAdditivity& are_additive);
+    const VariableAdditivity& are_additive)
+{
+    std::vector<PatternClique> cliques_additive_with_pattern;
+    for (const PatternClique& known_clique : known_pattern_cliques) {
+        // Take all patterns which are additive to new_pattern.
+        PatternClique new_clique;
+        new_clique.reserve(known_clique.size());
+        for (PatternID pattern_id : known_clique) {
+            if (are_patterns_additive(
+                    new_pattern,
+                    patterns[pattern_id],
+                    are_additive)) {
+                new_clique.push_back(pattern_id);
+            }
+        }
+        if (!new_clique.empty()) {
+            cliques_additive_with_pattern.push_back(new_clique);
+        }
+    }
+    if (cliques_additive_with_pattern.empty()) {
+        // If nothing was additive with the new variable, then
+        // the only clique is the empty set.
+        cliques_additive_with_pattern.emplace_back();
+    }
+    return cliques_additive_with_pattern;
+}
+
 } // namespace pdbs
 
 #endif

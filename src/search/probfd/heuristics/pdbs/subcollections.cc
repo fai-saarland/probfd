@@ -1,7 +1,5 @@
 #include "probfd/heuristics/pdbs/subcollections.h"
 
-#include "downward/pdbs/pattern_cliques.h"
-
 #include "probfd/task_proxy.h"
 #include "probfd/value_type.h"
 
@@ -88,39 +86,6 @@ bool are_disjoint(const std::vector<T>& A, const std::vector<T>& B)
     return intersection.empty();
 }
 
-// Helper class to iterate over permutations of values
-template <typename T>
-struct Permutation {
-    const std::vector<std::pair<T, T>> ranges;
-    std::vector<T> values;
-
-    Permutation(std::vector<std::pair<T, T>> ranges, std::vector<T> values)
-        : ranges(std::move(ranges))
-        , values(std::move(values))
-    {
-    }
-
-    bool get_next()
-    {
-        for (std::size_t i = 0; i != values.size(); ++i) {
-            if (values[i] != ranges[i].second) {
-                // If this dimension can handle another increment... then done.
-                ++values[i];
-                return true;
-            }
-
-            // Otherwise, reset this dimension and bubble up to the next
-            // dimension to take a look
-            values[i] = ranges[i].first;
-        }
-
-        return false;
-    }
-
-    T& operator[](int i) { return values[i]; }
-    const T& operator[](int i) const { return values[i]; }
-};
-
 } // namespace
 
 std::vector<std::vector<bool>> compute_prob_orthogonal_vars(
@@ -158,39 +123,6 @@ std::vector<std::vector<bool>> compute_prob_orthogonal_vars(
     }
 
     return are_orthogonal;
-}
-
-std::vector<std::vector<int>> build_compatibility_graph_orthogonality(
-    ProbabilisticTaskProxy task_proxy,
-    const PatternCollection& patterns,
-    bool ignore_deterministic)
-{
-    return build_compatibility_graph_orthogonality(
-        patterns,
-        compute_prob_orthogonal_vars(task_proxy, ignore_deterministic));
-}
-
-std::vector<std::vector<int>> build_compatibility_graph_orthogonality(
-    const PatternCollection& patterns,
-    const std::vector<std::vector<bool>>& on_vars)
-{
-    using ::pdbs::are_patterns_additive;
-
-    std::vector<std::vector<int>> cgraph;
-    cgraph.resize(patterns.size());
-
-    for (size_t i = 0; i < patterns.size(); ++i) {
-        for (size_t j = i + 1; j < patterns.size(); ++j) {
-            if (are_patterns_additive(patterns[i], patterns[j], on_vars)) {
-                /* If the two patterns are additive, there is an edge in the
-                   compatibility graph. */
-                cgraph[i].push_back(j);
-                cgraph[j].push_back(i);
-            }
-        }
-    }
-
-    return cgraph;
 }
 
 std::vector<std::vector<int>> build_compatibility_graph_weak_orthogonality(
@@ -240,93 +172,6 @@ std::vector<std::vector<int>> build_compatibility_graph_weak_orthogonality(
     }
 
     return cgraph;
-}
-
-bool is_independent_collection(
-    ProbabilisticTaskProxy task_proxy,
-    const PatternCollection& patterns)
-{
-    using ProjectionOutcomeIterator =
-        SyntacticProjectionOperator::const_iterator;
-
-    // Construct union pattern here
-    Pattern union_pattern;
-
-    for (const Pattern& pattern : patterns) {
-        for (int var : pattern) {
-            auto it = std::lower_bound(
-                union_pattern.begin(),
-                union_pattern.end(),
-                var);
-
-            // Duplicate variable -> not disjoint
-            if (*it == var) {
-                return false;
-            }
-
-            union_pattern.insert(it, var);
-        }
-    }
-
-    const std::size_t num_patterns = patterns.size();
-
-    std::vector<SyntacticProjectionOperator> abs_op_individual;
-    std::vector<ProjectionOutcomeIterator> proj_outcomes_values;
-    std::vector<std::pair<ProjectionOutcomeIterator, ProjectionOutcomeIterator>>
-        proj_outcomes_ranges;
-
-    std::vector<FactPair> union_effects;
-
-    abs_op_individual.reserve(num_patterns);
-    proj_outcomes_values.reserve(num_patterns);
-    proj_outcomes_ranges.reserve(num_patterns);
-
-    for (const ProbabilisticOperatorProxy& op : task_proxy.get_operators()) {
-        // Build the operator of the task projection wrt the pattern union
-        SyntacticProjectionOperator abs_op_union(union_pattern, op);
-
-        // Build the operators of the individual task projections
-        for (const Pattern& pattern : patterns) {
-            const auto& abs_op = abs_op_individual.emplace_back(pattern, op);
-            proj_outcomes_values.emplace_back(abs_op.begin());
-            proj_outcomes_ranges.emplace_back(abs_op.begin(), abs_op.end());
-        }
-
-        // Check if every permutation of outcomes has the same probability
-        // in the union.
-        Permutation<ProjectionOutcomeIterator> proj_outcomes_permutation(
-            proj_outcomes_ranges,
-            proj_outcomes_values);
-
-        do {
-            value_t indep_prob = 1_vt;
-
-            for (std::size_t i = 0; i != num_patterns; ++i) {
-                const auto& [effects, prob] = *proj_outcomes_permutation[i];
-
-                // NOTE: This assumes patterns are disjoint!
-                union_effects.insert(
-                    union_effects.end(),
-                    effects.begin(),
-                    effects.end());
-                indep_prob *= prob;
-            }
-
-            value_t union_prob = abs_op_union.get_probability(union_effects);
-
-            union_effects.clear();
-
-            if (!is_approx_equal(indep_prob, union_prob)) {
-                return false;
-            }
-        } while (proj_outcomes_permutation.get_next());
-
-        abs_op_individual.clear();
-        proj_outcomes_values.clear();
-        proj_outcomes_ranges.clear();
-    }
-
-    return true;
 }
 
 } // namespace pdbs

@@ -208,11 +208,11 @@ public:
 
         OccupationMeasureHeuristic::add_options_to_feature(*this);
 
-        add_option<std::shared_ptr<pdbs::PatternCollectionGenerator>>(
+        add_option<std::shared_ptr<pdbs::PDBCollectionGenerator>>(
             "patterns",
             "The pattern generator used to construct the PDB collection which "
             "is subject to post-hoc optimization.",
-            "det_adapter(generator=systematic(pattern_max_size=2))");
+            "classical_generator(generator=systematic(pattern_max_size=2))");
     }
 
     std::shared_ptr<OccupationMeasureHeuristicFactory>

@@ -295,11 +295,13 @@ fast_downward_plugin(
     HELP "Base classes for pattern collection generation for PPDBs"
     SOURCES
         probfd/heuristics/pdbs/projection_info
-        probfd/heuristics/pdbs/pattern_information
-        probfd/heuristics/pdbs/pattern_generator
-        probfd/heuristics/pdbs/pattern_collection_information
         probfd/heuristics/pdbs/pattern_collection_generator
-        probfd/heuristics/pdbs/pattern_collection_generator_multiple
+        probfd/heuristics/pdbs/pattern_collection_generator_classical
+        probfd/heuristics/pdbs/pattern_collection_from_pdbs_generator
+        probfd/heuristics/pdbs/pdb_generator
+        probfd/heuristics/pdbs/pdb_collection_information
+        probfd/heuristics/pdbs/pdb_collection_generator
+        probfd/heuristics/pdbs/pdb_collection_generator_multiple
 
         probfd/heuristics/pdbs/subcollection_finder_factory
         probfd/heuristics/pdbs/subcollection_finder
@@ -311,6 +313,7 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/fully_additive_finder
         probfd/heuristics/pdbs/trivial_finder
         probfd/heuristics/pdbs/subcollections
+        probfd/heuristics/pdbs/dominance_pruning
 
         probfd/heuristics/pdbs/utils
     DEPENDS PROBABILITY_AWARE_PDBS CAUSAL_GRAPH MAX_CLIQUES
@@ -321,7 +324,7 @@ fast_downward_plugin(
     NAME PPDBS_CLASSICAL_GENERATOR
     HELP "Classical pattern collection generator adapter"
     SOURCES
-        probfd/heuristics/pdbs/pattern_collection_generator_classical
+        probfd/heuristics/pdbs/pdb_collection_generator_classical
     DEPENDS PPDBS_PATTERN_GENERATORS
 )
 
@@ -329,7 +332,7 @@ fast_downward_plugin(
     NAME PPDBS_HILLCLIMBING_GENERATOR
     HELP "Hillclimbing pattern collection generator for PPDBs"
     SOURCES
-        probfd/heuristics/pdbs/pattern_collection_generator_hillclimbing
+        probfd/heuristics/pdbs/pdb_collection_generator_hillclimbing
     DEPENDS PPDBS_PATTERN_GENERATORS
 )
 
@@ -350,7 +353,7 @@ fast_downward_plugin(
     NAME PPDBS_DISJOINT_CEGAR_GENERATOR
     HELP "Disjoint CEGAR pattern collection generator for PPDBs"
     SOURCES
-        probfd/heuristics/pdbs/pattern_collection_generator_disjoint_cegar
+        probfd/heuristics/pdbs/pdb_collection_generator_disjoint_cegar
     DEPENDS PPDBS_CEGAR
 )
 
@@ -358,7 +361,7 @@ fast_downward_plugin(
     NAME PPDBS_MULTIPLE_CEGAR_GENERATOR
     HELP "Multiple CEGAR pattern collection generator for PPDBs"
     SOURCES
-        probfd/heuristics/pdbs/pattern_collection_generator_multiple_cegar
+        probfd/heuristics/pdbs/pdb_collection_generator_multiple_cegar
     DEPENDS PPDBS_CEGAR
 )
 

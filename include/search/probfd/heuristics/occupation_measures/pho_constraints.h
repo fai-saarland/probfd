@@ -3,7 +3,7 @@
 
 #include "probfd/heuristics/occupation_measures/constraint_generator.h"
 
-#include "probfd/heuristics/pdbs/pattern_collection_generator.h"
+#include "probfd/heuristics/pdbs/pdb_collection_generator.h"
 #include "probfd/heuristics/pdbs/types.h"
 
 #include <memory>
@@ -26,13 +26,13 @@ namespace heuristics {
 namespace occupation_measures {
 
 class PHOGenerator : public ConstraintGenerator {
-    std::shared_ptr<pdbs::PatternCollectionGenerator> generator_;
-    std::shared_ptr<pdbs::PPDBCollection> pdbs_;
+    std::shared_ptr<pdbs::PDBCollectionGenerator> generator_;
+    pdbs::PPDBCollection pdbs_;
 
 public:
     explicit PHOGenerator(const plugins::Options& opts);
     explicit PHOGenerator(
-        std::shared_ptr<pdbs::PatternCollectionGenerator> generator);
+        std::shared_ptr<pdbs::PDBCollectionGenerator> generator);
 
     void initialize_constraints(
         const std::shared_ptr<ProbabilisticTask>& task,

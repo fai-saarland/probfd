@@ -1,13 +1,6 @@
 #include "probfd/heuristics/pdbs/pattern_collection_generator_classical.h"
 
-#include "probfd/heuristics/pdbs/pattern_collection_information.h"
-#include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
-
 #include "probfd/tasks/all_outcomes_determinization.h"
-
-#include "downward/pdbs/pattern_database.h"
-
-#include "downward/tasks/root_task.h"
 
 #include "downward/plugins/plugin.h"
 
@@ -16,43 +9,34 @@ namespace heuristics {
 namespace pdbs {
 
 PatternCollectionGeneratorClassical::PatternCollectionGeneratorClassical(
-    const utils::LogProxy& log,
-    std::shared_ptr<::pdbs::PatternCollectionGenerator> gen,
-    std::shared_ptr<SubCollectionFinderFactory> finder_factory)
-    : PatternCollectionGenerator(log)
-    , gen(gen)
-    , finder_factory(finder_factory)
-{
-}
-
-PatternCollectionGeneratorClassical::PatternCollectionGeneratorClassical(
     const plugins::Options& opts)
     : PatternCollectionGeneratorClassical(
           utils::get_log_from_options(opts),
           opts.get<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
-              "generator"),
-          opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
-              "subcollection_finder_factory"))
+              "generator"))
 {
 }
 
-PatternCollectionInformation PatternCollectionGeneratorClassical::generate(
+PatternCollectionGeneratorClassical::PatternCollectionGeneratorClassical(
+    utils::LogProxy log,
+    std::shared_ptr<::pdbs::PatternCollectionGenerator> gen)
+    : PatternCollectionGenerator(std::move(log))
+    , gen(std::move(gen))
+{
+}
+
+std::shared_ptr<PatternCollection>
+PatternCollectionGeneratorClassical::generate_pattern_collection(
     const std::shared_ptr<ProbabilisticTask>& task,
     const std::shared_ptr<FDRCostFunction>& task_cost_function)
 {
-    ProbabilisticTaskProxy task_proxy(*task);
+    auto determinization =
+        std::make_shared<tasks::AODDeterminizationTask>(task.get());
 
-    std::shared_ptr<tasks::AODDeterminizationTask> determinization(
-        new tasks::AODDeterminizationTask(task.get()));
-
-    std::shared_ptr<SubCollectionFinder> finder =
-        finder_factory->create_subcollection_finder(task_proxy);
-    return PatternCollectionInformation(
-        task_proxy,
-        task_cost_function,
-        gen->generate(determinization),
-        finder);
+    return gen->generate(determinization).get_patterns();
 }
+
+namespace {
 
 class PatternCollectionGeneratorClassicalFeature
     : public plugins::TypedFeature<
@@ -60,7 +44,7 @@ class PatternCollectionGeneratorClassicalFeature
           PatternCollectionGeneratorClassical> {
 public:
     PatternCollectionGeneratorClassicalFeature()
-        : TypedFeature("classical_generator")
+        : TypedFeature("classical_pattern_generator")
     {
         document_title("Classical Pattern Generation Adapter");
         document_synopsis(
@@ -75,16 +59,12 @@ public:
             "generator",
             "The classical pattern collection generator.",
             "systematic()");
-
-        add_option<std::shared_ptr<SubCollectionFinderFactory>>(
-            "subcollection_finder_factory",
-            "The subcollection finder factory.",
-            "finder_trivial_factory()");
     }
 };
 
-static plugins::FeaturePlugin<PatternCollectionGeneratorClassicalFeature>
-    _plugin;
+static plugins::FeaturePlugin<PatternCollectionGeneratorClassicalFeature> _;
+
+} // namespace
 
 } // namespace pdbs
 } // namespace heuristics

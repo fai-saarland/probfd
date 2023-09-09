@@ -1,6 +1,6 @@
 #include "probfd/heuristics/cost_partitioning/gzocp_heuristic.h"
 
-#include "probfd/heuristics/pdbs/pattern_collection_information.h"
+#include "probfd/heuristics/pdbs/pdb_collection_information.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/projection_state_space.h"
 
@@ -14,6 +14,8 @@
 #include "downward/plugins/plugin.h"
 
 #include "downward/utils/rng_options.h"
+
+#include <ranges>
 
 namespace probfd {
 namespace heuristics {
@@ -88,10 +90,8 @@ GZOCPHeuristic::GZOCPHeuristic(
     , ordering(order)
     , rng(rng)
 {
-    auto pattern_collection_info =
-        generator->generate(task, task_cost_function);
-
-    auto patterns = pattern_collection_info.get_patterns();
+    auto patterns =
+        generator->generate_pattern_collection(task, task_cost_function);
 
     pdbs.reserve(patterns->size());
 
@@ -99,18 +99,16 @@ GZOCPHeuristic::GZOCPHeuristic(
     case RANDOM: rng->shuffle(*patterns); break;
 
     case SIZE_ASC:
-        std::stable_sort(
-            patterns->begin(),
-            patterns->end(),
+        std::ranges::stable_sort(
+            *patterns,
             [](const auto& left, const auto& right) {
                 return left.size() < right.size();
             });
         break;
 
     case SIZE_DESC:
-        std::stable_sort(
-            patterns->begin(),
-            patterns->end(),
+        std::ranges::stable_sort(
+            *patterns,
             [](const auto& left, const auto& right) {
                 return left.size() > right.size();
             });
@@ -124,7 +122,7 @@ GZOCPHeuristic::GZOCPHeuristic(
 
     const State& initial_state = task_proxy.get_initial_state();
 
-    for (const Pattern& pattern : *patterns) {
+    for (const auto& pattern : *patterns) {
         auto& pdb = pdbs.emplace_back(
             task_proxy,
             task_costs,
@@ -205,7 +203,8 @@ public:
         add_option<std::shared_ptr<PatternCollectionGenerator>>(
             "patterns",
             "The pattern generation algorithm.",
-            "det_adapter_ec(generator=systematic(pattern_max_size=2))");
+            "classical_pattern_generator(generator=systematic(pattern_max_size="
+            "2))");
         add_option<GZOCPHeuristic::OrderingStrategy>(
             "order",
             "The order in which patterns are considered",

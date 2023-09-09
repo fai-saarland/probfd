@@ -9,14 +9,11 @@
 
 namespace plugins {
 class Options;
-class Feature;
 } // namespace plugins
 
 namespace probfd {
 namespace heuristics {
 namespace pdbs {
-
-class SubCollectionFinderFactory;
 
 /**
  * @brief The classical pattern generator adapter.
@@ -28,24 +25,20 @@ class SubCollectionFinderFactory;
  */
 class PatternCollectionGeneratorClassical : public PatternCollectionGenerator {
     std::shared_ptr<::pdbs::PatternCollectionGenerator> gen;
-    std::shared_ptr<SubCollectionFinderFactory> finder_factory;
-
-    PatternCollectionGeneratorClassical(
-        const utils::LogProxy& log,
-        std::shared_ptr<::pdbs::PatternCollectionGenerator> gen,
-        std::shared_ptr<SubCollectionFinderFactory> finder);
 
 public:
-    PatternCollectionGeneratorClassical(const plugins::Options& opts);
-    ~PatternCollectionGeneratorClassical() override = default;
+    explicit PatternCollectionGeneratorClassical(const plugins::Options& opts);
+    PatternCollectionGeneratorClassical(
+        utils::LogProxy log,
+        std::shared_ptr<::pdbs::PatternCollectionGenerator> gen);
 
-    PatternCollectionInformation generate(
+    std::shared_ptr<PatternCollection> generate_pattern_collection(
         const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
+        const std::shared_ptr<FDRCostFunction>& task_cost_function);
 };
 
 } // namespace pdbs
 } // namespace heuristics
 } // namespace probfd
 
-#endif // PATTERN_COLLECTION_GENERATOR_DETERMINISTIC_H_
+#endif // PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_CLASSICAL_H

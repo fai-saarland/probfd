@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_PDBS_PROBAIBLITY_AWARE_PDB_HEURISTIC_H
 #define PROBFD_HEURISTICS_PDBS_PROBAIBLITY_AWARE_PDB_HEURISTIC_H
 
-#include "probfd/heuristics/pdbs/pattern_collection_generator.h"
+#include "probfd/heuristics/pdbs/pdb_collection_generator.h"
 
 #include "probfd/heuristics/pdbs/types.h"
 
@@ -32,16 +32,15 @@ class SubCollectionFinder;
 class ProbabilityAwarePDBHeuristic : public TaskDependentHeuristic {
     const value_t termination_cost;
 
-    std::shared_ptr<std::vector<Pattern>> patterns;
-    std::shared_ptr<PPDBCollection> pdbs;
-    std::shared_ptr<std::vector<PatternSubCollection>> subcollections;
+    PPDBCollection pdbs;
+    std::vector<PatternSubCollection> subcollections;
     std::shared_ptr<SubCollectionFinder> subcollection_finder;
 
 public:
     ProbabilityAwarePDBHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
         std::shared_ptr<FDRCostFunction> task_cost_function,
-        std::shared_ptr<PatternCollectionGenerator> generator,
+        std::shared_ptr<PDBCollectionGenerator> generator,
         double max_time_dominance_pruning,
         utils::LogProxy log);
 

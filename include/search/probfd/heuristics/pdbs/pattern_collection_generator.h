@@ -15,18 +15,16 @@ class ProbabilisticTask;
 namespace heuristics {
 namespace pdbs {
 
-class PatternCollectionInformation;
-
 class PatternCollectionGenerator {
 protected:
     mutable utils::LogProxy log;
 
 public:
     explicit PatternCollectionGenerator(const plugins::Options& opts);
-    explicit PatternCollectionGenerator(const utils::LogProxy& log);
+    explicit PatternCollectionGenerator(utils::LogProxy log);
     virtual ~PatternCollectionGenerator() = default;
 
-    virtual PatternCollectionInformation generate(
+    virtual std::shared_ptr<PatternCollection> generate_pattern_collection(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function) = 0;
 };
@@ -37,4 +35,5 @@ add_pattern_collection_generator_options_to_feature(plugins::Feature& feature);
 } // namespace pdbs
 } // namespace heuristics
 } // namespace probfd
-#endif // __PATTERN_GENERATOR_H__
+
+#endif // PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_H

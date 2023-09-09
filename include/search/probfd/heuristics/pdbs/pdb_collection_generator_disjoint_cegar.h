@@ -1,7 +1,7 @@
-#ifndef PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_DISJOINT_CEGAR_H
-#define PROBFD_HEURISTICS_PDBS_PATTERN_COLLECTION_GENERATOR_DISJOINT_CEGAR_H
+#ifndef PROBFD_HEURISTICS_PDBS_PDB_COLLECTION_GENERATOR_DISJOINT_CEGAR_H
+#define PROBFD_HEURISTICS_PDBS_PDB_COLLECTION_GENERATOR_DISJOINT_CEGAR_H
 
-#include "probfd/heuristics/pdbs/pattern_collection_generator.h"
+#include "probfd/heuristics/pdbs/pdb_collection_generator.h"
 #include "probfd/heuristics/pdbs/types.h"
 
 #include "downward/plugins/options.h"
@@ -23,8 +23,7 @@ namespace cegar {
 class FlawFindingStrategy;
 } // namespace cegar
 
-class PatternCollectionGeneratorDisjointCegar
-    : public PatternCollectionGenerator {
+class PDBCollectionGeneratorDisjointCegar : public PDBCollectionGenerator {
     const bool use_wildcard_policies;
     const bool single_goal;
     const int max_pdb_size;
@@ -35,21 +34,20 @@ class PatternCollectionGeneratorDisjointCegar
     std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy;
 
 public:
-    explicit PatternCollectionGeneratorDisjointCegar(
-        const plugins::Options& opts);
+    explicit PDBCollectionGeneratorDisjointCegar(const plugins::Options& opts);
 
-    virtual ~PatternCollectionGeneratorDisjointCegar() = default;
+    virtual ~PDBCollectionGeneratorDisjointCegar() = default;
 
-    PatternCollectionInformation generate(
+    PDBCollectionInformation generate(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
 };
 
-void add_pattern_collection_generator_cegar_options_to_feature(
+void add_pdb_collection_generator_cegar_options_to_feature(
     plugins::Feature& feature);
 
 } // namespace pdbs
 } // namespace heuristics
 } // namespace probfd
 
-#endif // PDBS_PATTERN_COLLECTION_GENERATOR_CEGAR_H
+#endif // PROBFD_HEURISTICS_PDBS_PDB_COLLECTION_GENERATOR_DISJOINT_CEGAR_H
