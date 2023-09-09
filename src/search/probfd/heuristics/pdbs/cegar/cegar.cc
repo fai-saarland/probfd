@@ -43,7 +43,6 @@ CEGARResult::~CEGARResult() = default;
 class CEGAR::PDBInfo {
     ProjectionInfo projection;
 
-    AbstractStateIndex initial_state;
     std::unique_ptr<ProjectionMultiPolicy> policy;
     bool solved = false;
 
@@ -82,8 +81,6 @@ public:
 
     const ProjectionMultiPolicy& get_policy() const;
 
-    value_t get_policy_cost() const;
-
     unsigned int num_states() const;
 
     std::unique_ptr<ProjectionStateSpace> extract_state_space();
@@ -92,8 +89,6 @@ public:
     bool is_solved() const;
 
     void mark_as_solved();
-
-    bool solution_exists(value_t termination_cost) const;
 
     bool is_goal(AbstractStateIndex rank) const;
 };
@@ -113,11 +108,9 @@ CEGAR::PDBInfo::PDBInfo(
           heuristics::BlindEvaluator<AbstractStateIndex>(),
           false,
           timer.get_remaining_time())
-    , initial_state(
-          projection.get_abstract_state(task_proxy.get_initial_state()))
     , policy(compute_optimal_projection_policy(
           projection,
-          initial_state,
+          projection.get_abstract_state(task_proxy.get_initial_state()),
           rng,
           wildcard))
 {
@@ -139,11 +132,9 @@ CEGAR::PDBInfo::PDBInfo(
           previous,
           false,
           timer.get_remaining_time())
-    , initial_state(
-          projection.get_abstract_state(task_proxy.get_initial_state()))
     , policy(compute_optimal_projection_policy(
           projection,
-          initial_state,
+          projection.get_abstract_state(task_proxy.get_initial_state()),
           rng,
           wildcard))
 {
@@ -166,11 +157,9 @@ CEGAR::PDBInfo::PDBInfo(
           right,
           false,
           timer.get_remaining_time())
-    , initial_state(
-          projection.get_abstract_state(task_proxy.get_initial_state()))
     , policy(compute_optimal_projection_policy(
           projection,
-          initial_state,
+          projection.get_abstract_state(task_proxy.get_initial_state()),
           rng,
           wildcard))
 {
@@ -197,11 +186,6 @@ const ProjectionMultiPolicy& CEGAR::PDBInfo::get_policy() const
     return *policy;
 }
 
-value_t CEGAR::PDBInfo::get_policy_cost() const
-{
-    return projection.lookup_estimate(initial_state);
-}
-
 unsigned int CEGAR::PDBInfo::num_states() const
 {
     return projection.num_states();
@@ -225,11 +209,6 @@ bool CEGAR::PDBInfo::is_solved() const
 void CEGAR::PDBInfo::mark_as_solved()
 {
     solved = true;
-}
-
-bool CEGAR::PDBInfo::solution_exists(value_t termination_cost) const
-{
-    return projection.lookup_estimate(initial_state) != termination_cost;
 }
 
 bool CEGAR::PDBInfo::is_goal(AbstractStateIndex rank) const
@@ -317,17 +296,11 @@ CEGAR::PDBInfo* CEGAR::get_flaws(
             continue;
         }
 
-        // abort here if no abstract solution could be found
-        if (!info.solution_exists(termination_cost)) {
-            log << "CEGAR: Problem unsolvable" << endl;
-            utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
-        }
-
         // find out if and why the abstract solution
         // would not work for the concrete task.
         // We always start with the initial state.
         const size_t num_flaws_before = flaws.size();
-        const bool executable = flaw_strategy->apply_policy(
+        const bool guaranteed_flawless = flaw_strategy->apply_policy(
             task_proxy,
             info.get_projection(),
             info.get_policy(),
@@ -338,22 +311,18 @@ CEGAR::PDBInfo* CEGAR::get_flaws(
         const size_t new_num_flaws = flaws.size();
         flaw_offsets.emplace_back(static_cast<int>(new_num_flaws));
 
+        // Check if the projection was reported to be flawless.
+        if (guaranteed_flawless) {
+            assert(new_num_flaws == num_flaws_before);
+            flaws.clear();
+            return &info;
+        }
+
         // Check for new flaws
         if (new_num_flaws == num_flaws_before) {
-            // Check if policy is executable modulo blacklisting.
-            // Even if there are no flaws, there might be goal violations
-            // that did not make it into the flaw list.
-            if (executable && blacklisted_variables.empty()) {
-                /*
-                 * If there are no flaws, this does not guarantee that the
-                 * plan is valid in the concrete state space because we might
-                 * have ignored variables that have been blacklisted. Hence the
-                 * tests for empty blacklists.
-                 */
-                flaws.clear();
-                return &info;
-            }
-
+            // If there are no flaws, this does not guarantee that the policy is
+            // valid in the concrete state space because we might have ignored
+            // variables that have been blacklisted.
             info.mark_as_solved();
         }
     }
@@ -633,7 +602,9 @@ CEGARResult CEGAR::generate_pdbs(
                                "abstract"
                             << "policies." << endl;
                         log << "CEGAR: Cost of policy: "
-                            << solution->get_policy_cost() << endl;
+                            << solution->get_pdb().lookup_estimate(
+                                   initial_state)
+                            << endl;
                     }
                 } else {
                     if (log.is_at_least_verbose()) {

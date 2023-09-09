@@ -141,4 +141,4 @@ extern void add_cegar_wildcard_option_to_feature(plugins::Feature& feature);
 } // namespace heuristics
 } // namespace probfd
 
-#endif
+#endif // PROBFD_HEURISTICS_PDBS_CEGAR_CEGAR_H

@@ -30,9 +30,9 @@ class FlawFindingStrategy {
 public:
     virtual ~FlawFindingStrategy() = default;
 
-    // Returns whether policy is executable (modulo blacklisting)
-    // Note that the output flaw list might be empty regardless since only
-    // remaining goals are added to the list for goal violations.
+    // Returns whether the policy is executable. Note that even if the policy is
+    // not executable, the output flaw list might be empty regardless, since
+    // blacklisted variables are never added.
     virtual bool apply_policy(
         ProbabilisticTaskProxy task_proxy,
         const ProjectionStateSpace& mdp,

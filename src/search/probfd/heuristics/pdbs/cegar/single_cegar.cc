@@ -115,23 +115,13 @@ bool SingleCEGAR::get_flaws(
     AbstractStateIndex initial_state =
         pdb_info.get_abstract_state(task_proxy.get_initial_state());
 
-    // abort here if no abstract solution could be found
-    if (pdb_info.lookup_estimate(initial_state) ==
-        task_cost_function.get_non_goal_termination_cost()) {
-        log << "SingleCEGAR: Problem unsolvable" << endl;
-        return false;
-    }
-
     auto policy = compute_optimal_projection_policy(
         pdb_info,
         initial_state,
         *rng,
         wildcard);
 
-    // find out if and why the abstract solution
-    // would not work for the concrete task.
-    // We always start with the initial state.
-    const bool executable = flaw_strategy->apply_policy(
+    const bool guaranteed_flawless = flaw_strategy->apply_policy(
         task_proxy,
         pdb_info,
         *policy,
@@ -139,25 +129,19 @@ bool SingleCEGAR::get_flaws(
         flaws,
         timer);
 
-    // Check if policy is executable modulo blacklisting.
-    // Even if there are no flaws, there might be goal violations
-    // that did not make it into the flaw list.
-    // If there are no flaws, this does not guarantee that the
-    // plan is valid in the concrete state space because we might
-    // have ignored variables that have been blacklisted. Hence the
-    // tests for empty blacklists.
-    if (flaws.empty()) {
-        if (executable && blacklisted_variables.empty()) {
-            if (log.is_at_least_verbose()) {
-                log << "SingleCEGAR: Found flawless concrete policy with cost: "
-                    << pdb_info.lookup_estimate(initial_state) << endl;
-            }
+    // Check if the projection was reported to be flawless.
+    if (guaranteed_flawless) {
+        if (log.is_at_least_verbose()) {
+            log << "SingleCEGAR: Found flawless concrete policy with cost: "
+                << pdb_info.lookup_estimate(initial_state) << endl;
         }
-
         return false;
     }
 
-    return true;
+    // If there are no flaws, this does not guarantee that the
+    // policy is valid in the concrete state space because we might
+    // have ignored variables that have been blacklisted.
+    return !flaws.empty();
 }
 
 bool SingleCEGAR::can_add_variable(

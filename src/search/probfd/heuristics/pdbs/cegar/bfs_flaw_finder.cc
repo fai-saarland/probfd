@@ -66,6 +66,8 @@ bool BFSFlawFinder::apply_policy(
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
     const GoalsProxy goals = task_proxy.get_goals();
 
+    bool flaws_found = false;
+
     do {
         timer.throw_if_expired();
 
@@ -77,12 +79,19 @@ bool BFSFlawFinder::apply_policy(
 
             // We reached a terminal state, check if it is a goal or dead-end
             if (abs_decisions.empty()) {
-                if (mdp.is_goal(abs) && collect_flaws(
-                                            goals,
-                                            current,
-                                            blacklisted_variables,
-                                            flaw_list))
-                    return false;
+                if (mdp.is_goal(abs)) {
+                    const size_t flaws_before = flaw_list.size();
+                    flaws_found = collect_flaws(
+                                      goals,
+                                      current,
+                                      blacklisted_variables,
+                                      flaw_list) ||
+                                  flaws_found;
+
+                    if (flaws_before != flaw_list.size()) {
+                        return false;
+                    }
+                }
 
                 goto continue_exploration;
             }
@@ -93,14 +102,19 @@ bool BFSFlawFinder::apply_policy(
                 const auto* abs_op = decision.action;
                 const auto op = operators[abs_op->operator_id];
 
+                const size_t flaws_before = local_flaws.size();
+                const bool local_flaws_found = collect_flaws(
+                    op.get_preconditions(),
+                    current,
+                    blacklisted_variables,
+                    local_flaws);
+
                 // Flaws occured.
-                if (collect_flaws(
-                        op.get_preconditions(),
-                        current,
-                        blacklisted_variables,
-                        local_flaws)) {
+                if (flaws_before != local_flaws.size()) {
                     continue; // Try next operator
                 }
+
+                flaws_found = flaws_found || local_flaws_found;
 
                 // Generate the successors and add them to the open list
                 for (const auto outcome : op.get_outcomes()) {
@@ -136,7 +150,7 @@ bool BFSFlawFinder::apply_policy(
 
     } while (!open.empty());
 
-    return true;
+    return !flaws_found;
 }
 
 std::string BFSFlawFinder::get_name()

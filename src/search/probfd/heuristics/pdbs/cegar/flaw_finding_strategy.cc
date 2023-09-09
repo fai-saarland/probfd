@@ -25,9 +25,11 @@ bool collect_flaws(
     for (const FactProxy fact : facts) {
         const auto& [var, val] = fact.get_pair();
 
-        if (state[var].get_value() != val && !blacklist.contains(var)) {
+        if (state[var].get_value() != val) {
             flaws_found = true;
-            flaw_list.emplace_back(var, is_precondition);
+            if (!blacklist.contains(var)) {
+                flaw_list.emplace_back(var, is_precondition);
+            }
         }
     }
 
