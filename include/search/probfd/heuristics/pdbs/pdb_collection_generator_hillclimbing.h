@@ -108,7 +108,8 @@ class PDBCollectionGeneratorHillclimbing : public PDBCollectionGenerator {
       counting approximation and the given samples. Returns the improvement and
       the index of the best pdb in candidate_pdbs.
     */
-    std::pair<int, int> find_best_improving_pdb(
+    std::pair<int, std::shared_ptr<ProbabilityAwarePatternDatabase>*>
+    find_best_improving_pdb(
         utils::CountdownTimer& hill_climbing_timer,
         IncrementalPPDBs& current_pdbs,
         const std::vector<Sample>& samples,

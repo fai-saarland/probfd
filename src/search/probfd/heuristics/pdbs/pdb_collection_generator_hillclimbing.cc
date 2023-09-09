@@ -36,8 +36,10 @@
 
 #include <algorithm>
 #include <cassert>
+#include <concepts>
 #include <iostream>
 #include <limits>
+#include <ranges>
 
 using namespace utils;
 
@@ -535,7 +537,41 @@ void PDBCollectionGeneratorHillclimbing::sample_states(
     }
 }
 
-std::pair<int, int> PDBCollectionGeneratorHillclimbing::find_best_improving_pdb(
+using namespace std::ranges;
+
+template <class InputIt, class UnaryPredicate, class UnaryPredicate2>
+constexpr InputIt find_if_else_do(
+    InputIt first,
+    InputIt last,
+    UnaryPredicate p,
+    UnaryPredicate2 p2)
+{
+    for (; first != last; ++first)
+        if (p(*first))
+            return first;
+        else
+            p2(*first);
+
+    return last;
+}
+
+template <input_range Range>
+auto remove_if_else_do(
+    Range&& R,
+    std::predicate<range_reference_t<std::remove_reference_t<Range>>> auto p,
+    std::invocable<range_reference_t<std::remove_reference_t<Range>>> auto p2)
+{
+    auto first = std::begin(R);
+    auto last = std::end(R);
+    first = find_if_else_do(first, last, p, p2);
+    if (first != last)
+        for (auto i = first; ++i != last;)
+            if (!p(*i)) p2(*first++ = std::move(*i));
+    return first;
+}
+
+std::pair<int, std::shared_ptr<ProbabilityAwarePatternDatabase>*>
+PDBCollectionGeneratorHillclimbing::find_best_improving_pdb(
     utils::CountdownTimer& hill_climbing_timer,
     IncrementalPPDBs& current_pdbs,
     const std::vector<Sample>& samples,
@@ -550,53 +586,49 @@ std::pair<int, int> PDBCollectionGeneratorHillclimbing::find_best_improving_pdb(
       order to be taken into account.
     */
     int improvement = 0;
-    int best_pdb_index = -1;
+    std::shared_ptr<ProbabilityAwarePatternDatabase>* best_pdb = nullptr;
 
     // Iterate over all candidates and search for the best improving pattern/pdb
-    for (size_t i = 0; i < candidate_pdbs.size(); ++i) {
-        hill_climbing_timer.throw_if_expired();
+    // Remove pdbs that exceed the size limit on the fly
+    auto it = remove_if_else_do(
+        candidate_pdbs,
+        [&](auto& pdb) {
+            assert(pdb);
+            /*
+              If a candidate's size added to the current collection's size
+              exceeds the maximum collection size, then forget the pdb.
+            */
+            return current_pdbs.get_size() + pdb->num_states() >
+                   collection_max_size;
+        },
+        [&](auto& pdb) {
+            hill_climbing_timer.throw_if_expired();
 
-        const auto& pdb = candidate_pdbs[i];
-        if (!pdb) {
-            /* candidate pattern is too large or has already been added to
-               the canonical heuristic. */
-            continue;
-        }
-        /*
-          If a candidate's size added to the current collection's size exceeds
-          the maximum collection size, then forget the pdb.
-        */
-        int combined_size = current_pdbs.get_size() + pdb->num_states();
-        if (combined_size > collection_max_size) {
-            candidate_pdbs[i] = nullptr;
-            continue;
-        }
+            /*
+              Calculate the "counting approximation" for all sample states:
+              count the number of samples for which the current pattern
+              collection heuristic would be improved if the new pattern was
+              included into it.
+            */
+            const int count = current_pdbs.count_improvements(
+                *pdb,
+                samples,
+                termination_cost);
 
-        /*
-          Calculate the "counting approximation" for all sample states: count
-          the number of samples for which the current pattern collection
-          heuristic would be improved if the new pattern was included into it.
-        */
-        /*
-          TODO: The original implementation by Haslum et al. uses m/t as a
-          statistical confidence interval to stop the A*-search (which they use,
-          see above) earlier.
-        */
-        const int count =
-            current_pdbs.count_improvements(*pdb, samples, termination_cost);
+            if (count > improvement) {
+                improvement = count;
+                best_pdb = &pdb;
+            }
 
-        if (count > improvement) {
-            improvement = count;
-            best_pdb_index = i;
-        }
+            if (log.is_at_least_verbose() && count > 0) {
+                std::cout << "pattern: " << pdb->get_pattern()
+                          << " - improvement: " << count << std::endl;
+            }
+        });
 
-        if (log.is_at_least_verbose() && count > 0) {
-            std::cout << "pattern: " << candidate_pdbs[i]->get_pattern()
-                      << " - improvement: " << count << std::endl;
-        }
-    }
+    candidate_pdbs.erase(it, candidate_pdbs.end());
 
-    return std::make_pair(improvement, best_pdb_index);
+    return std::make_pair(improvement, best_pdb);
 }
 
 void PDBCollectionGeneratorHillclimbing::hill_climbing(
@@ -686,7 +718,7 @@ void PDBCollectionGeneratorHillclimbing::hill_climbing(
                 termination_cost,
                 samples);
 
-            const auto [improvement, best_pdb_index] = find_best_improving_pdb(
+            const auto [improvement, best_pdb] = find_best_improving_pdb(
                 hill_climbing_timer,
                 current_pdbs,
                 samples,
@@ -706,9 +738,8 @@ void PDBCollectionGeneratorHillclimbing::hill_climbing(
             }
 
             // Add the best PDB to the CanonicalPDBsHeuristic.
-            assert(best_pdb_index != -1);
-            const auto best_pdb = candidate_pdbs[best_pdb_index];
-            const Pattern& best_pattern = best_pdb->get_pattern();
+            assert(best_pdb);
+            const Pattern& best_pattern = (*best_pdb)->get_pattern();
 
             if (log.is_at_least_verbose()) {
                 std::cout << "found a better pattern with improvement "
@@ -716,7 +747,7 @@ void PDBCollectionGeneratorHillclimbing::hill_climbing(
                 std::cout << "pattern: " << best_pattern << std::endl;
             }
 
-            current_pdbs.add_pdb(best_pdb);
+            current_pdbs.add_pdb(*best_pdb);
 
             // Generate candidate patterns and PDBs for next iteration.
             unsigned int new_max_pdb_size = generate_candidate_pdbs(
@@ -724,14 +755,18 @@ void PDBCollectionGeneratorHillclimbing::hill_climbing(
                 task_cost_function,
                 hill_climbing_timer,
                 relevant_neighbours,
-                *best_pdb,
+                **best_pdb,
                 generated_patterns,
                 candidate_pdbs);
 
             max_pdb_size = std::max(max_pdb_size, new_max_pdb_size);
 
             // Remove the added PDB from candidate_pdbs.
-            candidate_pdbs[best_pdb_index] = nullptr;
+            if (best_pdb != &candidate_pdbs.back()) {
+                *best_pdb = std::move(candidate_pdbs.back());
+            }
+
+            candidate_pdbs.pop_back();
 
             if (log.is_at_least_verbose()) {
                 std::cout << "Hill climbing time so far: "
@@ -747,8 +782,7 @@ void PDBCollectionGeneratorHillclimbing::hill_climbing(
     }
 
     if (log.is_at_least_normal()) {
-        log << "\n"
-            << "Hill Climbing Generator Statistics:"
+        log << "\nHill Climbing Generator Statistics:"
             << "\n  Iterations: " << num_iterations
             << "\n  Generated patterns: " << generated_patterns.size()
             << "\n  Rejected patterns: " << num_rejected
