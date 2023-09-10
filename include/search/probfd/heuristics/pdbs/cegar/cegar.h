@@ -58,6 +58,7 @@ class CEGAR {
 
     // the pattern collection in form of their pdbs plus stored plans.
     std::vector<PDBInfo> pdb_infos;
+    PDBInfo* unsolved_end;
 
     // Takes a variable as key and returns the solutions-entry whose pattern
     // contains said variable. Used for checking if a variable is already

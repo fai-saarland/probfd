@@ -42,9 +42,7 @@ CEGARResult::~CEGARResult() = default;
  */
 class CEGAR::PDBInfo {
     ProjectionInfo projection;
-
     std::unique_ptr<ProjectionMultiPolicy> policy;
-    bool solved = false;
 
 public:
     PDBInfo(
@@ -85,12 +83,6 @@ public:
 
     std::unique_ptr<ProjectionStateSpace> extract_state_space();
     std::unique_ptr<ProbabilityAwarePatternDatabase> extract_pdb();
-
-    bool is_solved() const;
-
-    void mark_as_solved();
-
-    bool is_goal(AbstractStateIndex rank) const;
 };
 
 CEGAR::PDBInfo::PDBInfo(
@@ -201,21 +193,6 @@ std::unique_ptr<ProbabilityAwarePatternDatabase> CEGAR::PDBInfo::extract_pdb()
     return std::move(projection.pdb);
 }
 
-bool CEGAR::PDBInfo::is_solved() const
-{
-    return solved;
-}
-
-void CEGAR::PDBInfo::mark_as_solved()
-{
-    solved = true;
-}
-
-bool CEGAR::PDBInfo::is_goal(AbstractStateIndex rank) const
-{
-    return projection.mdp->is_goal(rank);
-}
-
 CEGAR::CEGAR(
     utils::LogProxy log,
     const shared_ptr<utils::RandomNumberGenerator>& arg_rng,
@@ -241,13 +218,14 @@ CEGAR::~CEGAR() = default;
 void CEGAR::print_collection() const
 {
     assert(!pdb_infos.empty());
-    log << "[" << pdb_infos.front().get_pattern();
-
-    for (const auto& info : pdb_infos | std::views::drop(1)) {
-        log << ", " << info.get_pattern();
-    }
-
-    log << "]" << endl;
+    log << "Marked unsolved: "
+        << (std::ranges::subrange(pdb_infos.data(), unsolved_end) |
+            std::views::transform(&CEGAR::PDBInfo::get_pattern))
+        << ", Marked solved: "
+        << (std::ranges::subrange(
+                unsolved_end,
+                pdb_infos.data() + pdb_infos.size()) |
+            std::views::transform(&CEGAR::PDBInfo::get_pattern));
 }
 
 void CEGAR::generate_trivial_solution_collection(
@@ -273,6 +251,8 @@ void CEGAR::generate_trivial_solution_collection(
         collection_size += info.num_states();
     }
 
+    unsolved_end = pdb_infos.data() + pdb_infos.size();
+
     if (log.is_at_least_normal()) {
         log << "CEGAR initial collection: ";
         print_collection();
@@ -290,11 +270,13 @@ CEGAR::PDBInfo* CEGAR::get_flaws(
     value_t termination_cost,
     utils::CountdownTimer& timer)
 {
-    for (PDBInfo& info : pdb_infos) {
-        if (info.is_solved()) {
-            flaw_offsets.emplace_back(static_cast<int>(flaws.size()));
-            continue;
-        }
+    auto* it = pdb_infos.data();
+    auto* new_unsolved_end = it;
+
+    // The following copies std::partition to enable a contiguous array of
+    // unsolved, followed by a contiguous array of solved projections.
+    while (it != unsolved_end) {
+        PDBInfo& info = *it;
 
         // find out if and why the abstract solution
         // would not work for the concrete task.
@@ -309,23 +291,43 @@ CEGAR::PDBInfo* CEGAR::get_flaws(
             timer);
 
         const size_t new_num_flaws = flaws.size();
-        flaw_offsets.emplace_back(static_cast<int>(new_num_flaws));
 
-        // Check if the projection was reported to be flawless.
+        // Check if the projection was reported to be flawless, in which case we
+        // report it and end the refinement loop early. If there are no flaws,
+        // this does not guarantee that the policy is valid in the concrete
+        // state space because we might have ignored variables that have been
+        // blacklisted.
         if (guaranteed_flawless) {
             assert(new_num_flaws == num_flaws_before);
             flaws.clear();
             return &info;
         }
 
-        // Check for new flaws
-        if (new_num_flaws == num_flaws_before) {
-            // If there are no flaws, this does not guarantee that the policy is
-            // valid in the concrete state space because we might have ignored
-            // variables that have been blacklisted.
-            info.mark_as_solved();
+        // Check if any flaws were generated.
+        if (new_num_flaws != num_flaws_before) {
+            if (new_unsolved_end != it) {
+                for (int var : new_unsolved_end->get_pattern()) {
+                    assert(variable_to_info.contains(var));
+                    variable_to_info.find(var)->second = std::ref(*it);
+                }
+                for (int var : it->get_pattern()) {
+                    assert(variable_to_info.contains(var));
+                    variable_to_info.find(var)->second =
+                        std::ref(*new_unsolved_end);
+                }
+                std::iter_swap(it, new_unsolved_end);
+            }
+            ++it;
+            ++new_unsolved_end;
+            flaw_offsets.emplace_back(static_cast<int>(new_num_flaws));
+        } else {
+            log << "Marking pattern " << info.get_pattern() << " as solved..."
+                << endl;
+            ++it;
         }
     }
+
+    unsolved_end = new_unsolved_end;
 
     return nullptr;
 }
@@ -424,15 +426,36 @@ void CEGAR::merge_patterns(
     // update collection size (add merged abstraction)
     collection_size += left.num_states();
 
-    // Now remove the right abstraction. If this produces a hole, fill it by
-    // moving the last stored abstraction into this hole, updating the variable
-    // to info mapping accordingly.
-    if (&right != &pdb_infos.back()) {
-        for (int var : pdb_infos.back().get_pattern()) {
-            assert(variable_to_info.contains(var));
-            variable_to_info.find(var)->second = std::ref(right);
+    // Now remove the right abstraction. If this produces a hole, fill it.
+    if (&right < unsolved_end) {
+        // An unsolved projection was merged. Move the last unsolved projection
+        // into its place. Then move the last projection into the place of the
+        // former last unsolved projection.
+        auto& last_unsolved = *--unsolved_end;
+        if (&right != &last_unsolved) {
+            for (int var : last_unsolved.get_pattern()) {
+                assert(variable_to_info.contains(var));
+                variable_to_info.find(var)->second = std::ref(right);
+            }
+            right = std::move(last_unsolved);
         }
-        right = std::move(pdb_infos.back());
+        if (&last_unsolved != &pdb_infos.back()) {
+            for (int var : pdb_infos.back().get_pattern()) {
+                assert(variable_to_info.contains(var));
+                variable_to_info.find(var)->second = std::ref(last_unsolved);
+            }
+            last_unsolved = std::move(pdb_infos.back());
+        }
+    } else {
+        // A solved projection was merged. Move the last projection
+        // into its place.
+        if (&right != &pdb_infos.back()) {
+            for (int var : pdb_infos.back().get_pattern()) {
+                assert(variable_to_info.contains(var));
+                variable_to_info.find(var)->second = std::ref(right);
+            }
+            right = std::move(pdb_infos.back());
+        }
     }
 
     pdb_infos.pop_back();
@@ -460,11 +483,8 @@ void CEGAR::refine(
     PDBInfo& flaw_info = pdb_infos[flaw_index];
 
     if (log.is_at_least_verbose()) {
-        log << "CEGAR: chosen flaw: pattern " << flaw_info.get_pattern();
-    }
-
-    if (log.is_at_least_verbose()) {
-        log << " with a violated";
+        log << "CEGAR: chosen flaw: pattern " << flaw_info.get_pattern()
+            << " with a violated";
         if (flaw.is_precondition) {
             log << " precondition ";
         } else {
@@ -530,7 +550,7 @@ void CEGAR::refine(
 
     if (log.is_at_least_verbose()) {
         log << "could not add var/merge pattern containing var "
-            << "due to size limits, blacklisting var" << endl;
+            << "due to size limits, blacklisting var " << var << endl;
     }
 
     blacklisted_variables.insert(var);
@@ -584,6 +604,11 @@ CEGARResult CEGAR::generate_pdbs(
         for (;;) {
             if (log.is_at_least_verbose()) {
                 log << "iteration #" << refinement_counter << endl;
+                log << "CEGAR: current collection size: " << collection_size
+                    << endl;
+                log << "CEGAR: current collection: ";
+                print_collection();
+                log << endl;
             }
 
             solution = get_flaws(
@@ -599,9 +624,7 @@ CEGARResult CEGAR::generate_pdbs(
 
                     if (log.is_at_least_verbose()) {
                         log << "CEGAR: Task solved during computation of "
-                               "abstract"
-                            << "policies." << endl;
-                        log << "CEGAR: Cost of policy: "
+                               "abstract policies. Cost of policy: "
                             << solution->get_pdb().lookup_estimate(
                                    initial_state)
                             << endl;
@@ -631,17 +654,6 @@ CEGARResult CEGAR::generate_pdbs(
             ++refinement_counter;
             flaws.clear();
             flaw_offsets.clear();
-
-            if (log.is_at_least_verbose()) {
-                log << "CEGAR: current collection size: " << collection_size
-                    << endl;
-                log << "CEGAR: current collection: ";
-                print_collection();
-            }
-
-            if (log.is_at_least_verbose()) {
-                log << endl;
-            }
         }
     } catch (utils::TimeoutException&) {
         if (log.is_at_least_normal()) {
