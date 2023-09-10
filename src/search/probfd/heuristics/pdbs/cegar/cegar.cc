@@ -225,7 +225,8 @@ void CEGAR::print_collection() const
         << (std::ranges::subrange(
                 unsolved_end,
                 pdb_infos.data() + pdb_infos.size()) |
-            std::views::transform(&CEGAR::PDBInfo::get_pattern));
+            std::views::transform(&CEGAR::PDBInfo::get_pattern))
+        << endl;
 }
 
 void CEGAR::generate_trivial_solution_collection(
@@ -256,10 +257,6 @@ void CEGAR::generate_trivial_solution_collection(
     if (log.is_at_least_normal()) {
         log << "CEGAR initial collection: ";
         print_collection();
-
-        if (log.is_at_least_verbose()) {
-            log << endl;
-        }
     }
 }
 
@@ -313,8 +310,10 @@ CEGAR::PDBInfo* CEGAR::get_flaws(
             ++new_unsolved_end;
             flaw_offsets.emplace_back(static_cast<int>(new_num_flaws));
         } else {
-            log << "Marking pattern " << info.get_pattern() << " as solved..."
-                << endl;
+            if (log.is_at_least_verbose()) {
+                log << "Marking pattern " << info.get_pattern()
+                    << " as solved..." << endl;
+            }
             ++it;
         }
     }
