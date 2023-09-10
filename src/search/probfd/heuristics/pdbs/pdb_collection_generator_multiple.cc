@@ -1,12 +1,12 @@
 #include "probfd/heuristics/pdbs/pdb_collection_generator_multiple.h"
 
-#include "probfd/heuristics/pdbs/fully_additive_finder.h"
+#include "probfd/heuristics/pdbs/additive_combinator.h"
+#include "probfd/heuristics/pdbs/maximum_combinator.h"
 #include "probfd/heuristics/pdbs/pdb_collection_information.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/projection_info.h"
 #include "probfd/heuristics/pdbs/projection_state_space.h"
 #include "probfd/heuristics/pdbs/saturation.h"
-#include "probfd/heuristics/pdbs/trivial_finder.h"
 
 #include "probfd/cost_function.h"
 #include "probfd/fdr_types.h"
@@ -337,12 +337,12 @@ PDBCollectionInformation PDBCollectionGeneratorMultiple::generate(
         patterns->push_back(gen_pdb->get_pattern());
     }
 
-    std::shared_ptr<SubCollectionFinder> finder;
+    std::shared_ptr<PDBCombinator> combinator;
 
     if (use_saturated_costs) {
-        finder = std::make_shared<FullyAdditiveFinder>();
+        combinator = std::make_shared<AdditiveCombinator>();
     } else {
-        finder = std::make_shared<TrivialFinder>();
+        combinator = std::make_shared<MaximumCombinator>();
     }
 
     if (log.is_at_least_normal()) {
@@ -354,7 +354,7 @@ PDBCollectionInformation PDBCollectionGeneratorMultiple::generate(
 
     return PDBCollectionInformation(
         std::move(generated_pdbs),
-        std::move(finder));
+        std::move(combinator));
 }
 
 void add_multiple_algorithm_implementation_notes_to_feature(

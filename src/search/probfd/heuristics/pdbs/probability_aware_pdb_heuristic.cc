@@ -32,28 +32,10 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
 {
     utils::Timer construction_timer;
 
-    utils::Timer generator_timer;
     auto pdb_collection_info = generator->generate(task, task_cost_function);
-    const double generator_time = generator_timer();
 
-    this->pdbs = std::move(pdb_collection_info.get_pdbs());
-    this->subcollections = std::move(pdb_collection_info.get_subcollections());
-    this->subcollection_finder = pdb_collection_info.get_subcollection_finder();
-
-    double dominance_pruning_time = 0.0;
-
-    if (max_time_dominance_pruning > 0.0) {
-        utils::Timer timer;
-
-        prune_dominated_cliques(
-            pdbs,
-            subcollections,
-            task_proxy.get_variables().size(),
-            max_time_dominance_pruning,
-            log);
-
-        dominance_pruning_time = timer();
-    }
+    pdbs = std::move(pdb_collection_info.get_pdbs());
+    pdb_combinator = std::move(pdb_collection_info.get_pdb_combinator());
 
     if (log.is_at_least_normal()) {
         // Gather statistics.
@@ -70,48 +52,28 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
             abstract_states += pdb->num_states();
         }
 
-        size_t total_subcollections_size = 0;
-
-        for (auto subcollection : subcollections) {
-            total_subcollections_size += subcollection.size();
-        }
-
         const double avg_variables = (double)variables / pdbs.size();
         const double avg_abstract_states =
             (double)abstract_states / pdbs.size();
 
-        const double avg_subcollection_size =
-            (double)total_subcollections_size / subcollections.size();
-
         log << "\n"
-            << "Pattern Databases Statistics:\n"
-            << "  Total number of PDBs: " << pdbs.size() << "\n"
-            << "  Total number of variables: " << variables << "\n"
-            << "  Total number of abstract states: " << abstract_states << "\n"
-            << "  Average number of variables per PDB: " << avg_variables
-            << "\n"
-            << "  Average number of abstract states per PDB: "
+            << "Probability-aware Pattern Databases Heuristic Statistics:\n"
+            << "Construction time: " << construction_time << "s\n"
+            << "Total number of PDBs: " << pdbs.size() << "\n"
+            << "Total number of variables: " << variables << "\n"
+            << "Total number of abstract states: " << abstract_states << "\n"
+            << "Average number of variables per PDB: " << avg_variables << "\n"
+            << "Average number of abstract states per PDB: "
             << avg_abstract_states << "\n"
-
-            << "  Largest pattern size: " << largest_pattern << "\n"
-
-            << "  Total number of subcollections: " << subcollections.size()
-            << "\n"
-            << "  Total number of subcollection PDBs: "
-            << total_subcollections_size << "\n"
-            << "  Average size of subcollection PDBs: "
-            << avg_subcollection_size << "\n"
-
-            << "  Generator time: " << generator_time << "s\n"
-            << "  Dominance pruning time: " << dominance_pruning_time << "s\n"
-            << "  Total construction time: " << construction_time << "s\n";
+            << "Largest pattern size: " << largest_pattern << "\n";
+        pdb_combinator->print_statistics(log);
+        log << std::endl;
     }
 }
 
 value_t ProbabilityAwarePDBHeuristic::evaluate(const State& state) const
 {
-    return subcollection_finder
-        ->evaluate(pdbs, subcollections, state, termination_cost);
+    return pdb_combinator->evaluate(pdbs, state, termination_cost);
 }
 
 namespace {

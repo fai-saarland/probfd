@@ -39,17 +39,16 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-class SubCollectionFinderFactory;
+class IncrementalPDBCombinatorFactory;
 
 // Implementation of the pattern generation algorithm by Haslum et al.
 class PDBCollectionGeneratorHillclimbing : public PDBCollectionGenerator {
     using DynamicBitset = dynamic_bitset::DynamicBitset<uint64_t>;
 
-    struct Sample;
     class IncrementalPPDBs;
 
     std::shared_ptr<PDBCollectionGenerator> initial_generator;
-    std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory;
+    std::shared_ptr<IncrementalPDBCombinatorFactory> pdb_combinator_factory;
 
     // maximum number of states for each pdb
     const int pdb_max_size;
@@ -101,7 +100,7 @@ class PDBCollectionGeneratorHillclimbing : public PDBCollectionGenerator {
         const sampling::RandomWalkSampler& sampler,
         value_t init_h,
         value_t termination_cost,
-        std::vector<Sample>& samples);
+        std::vector<State>& samples);
 
     /*
       Searches for the best improving pdb in candidate_pdbs according to the
@@ -112,7 +111,7 @@ class PDBCollectionGeneratorHillclimbing : public PDBCollectionGenerator {
     find_best_improving_pdb(
         utils::CountdownTimer& hill_climbing_timer,
         IncrementalPPDBs& current_pdbs,
-        const std::vector<Sample>& samples,
+        const std::vector<State>& samples,
         PPDBCollection& candidate_pdbs,
         value_t termination_cost);
 

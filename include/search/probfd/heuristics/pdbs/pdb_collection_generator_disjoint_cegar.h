@@ -17,7 +17,7 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-class SubCollectionFinderFactory;
+class PDBCombinatorFactory;
 
 namespace cegar {
 class PolicyExplorationStrategy;
@@ -30,7 +30,7 @@ class PDBCollectionGeneratorDisjointCegar : public PDBCollectionGenerator {
     const int max_collection_size;
     const double max_time;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
-    std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory;
+    std::shared_ptr<PDBCombinatorFactory> pdb_combinator_factory;
     std::shared_ptr<cegar::PolicyExplorationStrategy> exploration_strategy;
 
 public:

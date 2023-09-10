@@ -7,8 +7,6 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-class SubCollectionFinderFactory;
-
 namespace cegar {
 class PolicyExplorationStrategy;
 }

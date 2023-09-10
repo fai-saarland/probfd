@@ -24,7 +24,6 @@ namespace heuristics {
 namespace pdbs {
 
 class ProbabilityAwarePatternDatabase;
-class SubCollectionFinderFactory;
 
 namespace cegar {
 

@@ -20,7 +20,7 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-class SubCollectionFinder;
+class PDBCombinator;
 
 /**
  * @brief The probability-aware PDB heuristic.
@@ -33,8 +33,7 @@ class ProbabilityAwarePDBHeuristic : public TaskDependentHeuristic {
     const value_t termination_cost;
 
     PPDBCollection pdbs;
-    std::vector<PatternSubCollection> subcollections;
-    std::shared_ptr<SubCollectionFinder> subcollection_finder;
+    std::shared_ptr<PDBCombinator> pdb_combinator;
 
 public:
     ProbabilityAwarePDBHeuristic(

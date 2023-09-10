@@ -303,15 +303,16 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/pdb_collection_generator
         probfd/heuristics/pdbs/pdb_collection_generator_multiple
 
-        probfd/heuristics/pdbs/subcollection_finder_factory
-        probfd/heuristics/pdbs/subcollection_finder
-        probfd/heuristics/pdbs/max_orthogonal_finder_factory
-        probfd/heuristics/pdbs/max_orthogonal_finder
-        probfd/heuristics/pdbs/trivial_finder_factory
-        probfd/heuristics/pdbs/trivial_finder
-        probfd/heuristics/pdbs/fully_additive_finder_factory
-        probfd/heuristics/pdbs/fully_additive_finder
-        probfd/heuristics/pdbs/trivial_finder
+        probfd/heuristics/pdbs/incremental_pdb_combinator_factory
+        probfd/heuristics/pdbs/subcollection_combinator
+        probfd/heuristics/pdbs/pdb_combinator_factory
+        probfd/heuristics/pdbs/pdb_combinator
+        probfd/heuristics/pdbs/max_orthogonality_combinator_factory
+        probfd/heuristics/pdbs/max_orthogonality_combinator
+        probfd/heuristics/pdbs/maximum_combinator_factory
+        probfd/heuristics/pdbs/maximum_combinator
+        probfd/heuristics/pdbs/additive_combinator_factory
+        probfd/heuristics/pdbs/additive_combinator
         probfd/heuristics/pdbs/subcollections
         probfd/heuristics/pdbs/dominance_pruning
 

@@ -2,8 +2,8 @@
 
 #include "probfd/heuristics/pdbs/cegar/cegar.h"
 #include "probfd/heuristics/pdbs/pdb_collection_information.h"
+#include "probfd/heuristics/pdbs/pdb_combinator_factory.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
-#include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 #include "probfd/heuristics/pdbs/utils.h"
 
 #include "probfd/task_proxy.h"
@@ -33,9 +33,8 @@ PDBCollectionGeneratorDisjointCegar::PDBCollectionGeneratorDisjointCegar(
     , max_collection_size(opts.get<int>("max_collection_size"))
     , max_time(opts.get<double>("max_time"))
     , rng(utils::parse_rng_from_options(opts))
-    , subcollection_finder_factory(
-          opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
-              "subcollection_finder_factory"))
+    , pdb_combinator_factory(opts.get<std::shared_ptr<PDBCombinatorFactory>>(
+          "pdb_combinator_factory"))
     , exploration_strategy(opts.get<std::shared_ptr<PolicyExplorationStrategy>>(
           "exploration_strategy"))
 {
@@ -67,12 +66,10 @@ PDBCollectionInformation PDBCollectionGeneratorDisjointCegar::generate(
     PPDBCollection pdbs =
         cegar.generate_pdbs(task_proxy, *task_cost_function, timer).pdbs;
 
-    std::shared_ptr<SubCollectionFinder> subcollection_finder =
-        subcollection_finder_factory->create_subcollection_finder(task_proxy);
+    std::shared_ptr<PDBCombinator> pdb_combinator =
+        pdb_combinator_factory->create_pdb_combinator(task_proxy, pdbs);
 
-    return PDBCollectionInformation(
-        std::move(pdbs),
-        std::move(subcollection_finder));
+    return PDBCollectionInformation(std::move(pdbs), std::move(pdb_combinator));
 }
 
 void add_pdb_collection_generator_cegar_options_to_feature(
@@ -101,10 +98,10 @@ void add_pdb_collection_generator_cegar_options_to_feature(
         " as well as the creation of the correlation matrix.",
         "infinity",
         plugins::Bounds("0.0", "infinity"));
-    feature.add_option<std::shared_ptr<SubCollectionFinderFactory>>(
-        "subcollection_finder_factory",
-        "The subcollection finder factory.",
-        "finder_trivial_factory()");
+    feature.add_option<std::shared_ptr<PDBCombinatorFactory>>(
+        "pdb_combinator_factory",
+        "The pdb combinator factory.",
+        "maximum_combinator_factory()");
     feature.add_option<std::shared_ptr<PolicyExplorationStrategy>>(
         "exploration_strategy",
         "strategy used to explore abstract policies",

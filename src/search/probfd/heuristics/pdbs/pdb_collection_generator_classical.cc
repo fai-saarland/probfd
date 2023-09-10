@@ -1,8 +1,8 @@
 #include "probfd/heuristics/pdbs/pdb_collection_generator_classical.h"
 
 #include "probfd/heuristics/pdbs/pdb_collection_information.h"
+#include "probfd/heuristics/pdbs/pdb_combinator_factory.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
-#include "probfd/heuristics/pdbs/subcollection_finder_factory.h"
 
 #include "probfd/tasks/all_outcomes_determinization.h"
 
@@ -19,10 +19,10 @@ namespace pdbs {
 PDBCollectionGeneratorClassical::PDBCollectionGeneratorClassical(
     const utils::LogProxy& log,
     std::shared_ptr<::pdbs::PatternCollectionGenerator> gen,
-    std::shared_ptr<SubCollectionFinderFactory> finder_factory)
+    std::shared_ptr<PDBCombinatorFactory> pdb_combinator_factory)
     : PDBCollectionGenerator(log)
     , gen(gen)
-    , finder_factory(finder_factory)
+    , pdb_combinator_factory(pdb_combinator_factory)
 {
 }
 
@@ -32,8 +32,8 @@ PDBCollectionGeneratorClassical::PDBCollectionGeneratorClassical(
           utils::get_log_from_options(opts),
           opts.get<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
               "generator"),
-          opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
-              "subcollection_finder_factory"))
+          opts.get<std::shared_ptr<PDBCombinatorFactory>>(
+              "pdb_combinator_factory"))
 {
 }
 
@@ -73,9 +73,10 @@ PDBCollectionInformation PDBCollectionGeneratorClassical::generate(
     std::cout << "Done computing PDBs for pattern collection: " << timer
               << std::endl;
 
-    return PDBCollectionInformation(
-        std::move(pdbs),
-        finder_factory->create_subcollection_finder(task_proxy));
+    auto combinator =
+        pdb_combinator_factory->create_pdb_combinator(task_proxy, pdbs);
+
+    return PDBCollectionInformation(std::move(pdbs), std::move(combinator));
 }
 
 class PDBCollectionGeneratorClassicalFeature
@@ -100,10 +101,10 @@ public:
             "The classical pattern collection generator.",
             "systematic()");
 
-        add_option<std::shared_ptr<SubCollectionFinderFactory>>(
-            "subcollection_finder_factory",
-            "The subcollection finder factory.",
-            "finder_trivial_factory()");
+        add_option<std::shared_ptr<PDBCombinatorFactory>>(
+            "pdb_combinator_factory",
+            "The pdb combinator factory.",
+            "maximum_combinator_factory()");
     }
 };
 

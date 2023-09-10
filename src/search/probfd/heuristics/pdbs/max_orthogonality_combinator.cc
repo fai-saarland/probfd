@@ -1,4 +1,4 @@
-#include "probfd/heuristics/pdbs/max_orthogonal_finder.h"
+#include "probfd/heuristics/pdbs/max_orthogonality_combinator.h"
 
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/subcollections.h"
@@ -15,14 +15,13 @@ namespace pdbs {
 
 using namespace std::views;
 
-MaxOrthogonalityFinderBase::MaxOrthogonalityFinderBase(
+MaxOrthogonalityCombinatorBase::MaxOrthogonalityCombinatorBase(
     ProbabilisticTaskProxy task_proxy)
     : var_orthogonality(compute_prob_orthogonal_vars(task_proxy, false))
 {
 }
 
-std::vector<PatternSubCollection>
-MaxOrthogonalityFinderBase::compute_subcollections(const PPDBCollection& pdbs)
+void MaxOrthogonalityCombinatorBase::update(const PPDBCollection& pdbs)
 {
     std::vector<std::vector<int>> c_graph =
         build_compatibility_graph_orthogonality(
@@ -30,26 +29,22 @@ MaxOrthogonalityFinderBase::compute_subcollections(const PPDBCollection& pdbs)
                 transform([](const auto& pdb) { return pdb->get_pattern(); }),
             var_orthogonality);
 
-    std::vector<PatternSubCollection> additive_subcollections;
-    max_cliques::compute_max_cliques(c_graph, additive_subcollections);
-
-    return additive_subcollections;
+    max_cliques::compute_max_cliques(c_graph, subcollections_);
 }
 
 std::vector<PatternSubCollection>
-MaxOrthogonalityFinderBase::compute_subcollections_with_pdbs(
+MaxOrthogonalityCombinatorBase::update_with_pdbs(
     const PPDBCollection& pdbs,
-    const std::vector<PatternSubCollection>& known_pattern_cliques,
     const ProbabilityAwarePatternDatabase& new_pdb)
 {
     return ::pdbs::compute_pattern_cliques_with_pattern(
         pdbs | transform([](const auto& pdb) { return pdb->get_pattern(); }),
-        known_pattern_cliques,
+        subcollections_,
         new_pdb.get_pattern(),
         var_orthogonality);
 }
 
-value_t AdditiveMaxOrthogonalityFinder::evaluate_subcollection(
+value_t AdditiveMaxOrthogonalityCombinator::evaluate_subcollection(
     const std::vector<value_t>& pdb_estimates,
     const std::vector<int>& subcollection) const
 {
@@ -63,12 +58,12 @@ value_t AdditiveMaxOrthogonalityFinder::evaluate_subcollection(
 }
 
 value_t
-AdditiveMaxOrthogonalityFinder::combine(value_t left, value_t right) const
+AdditiveMaxOrthogonalityCombinator::combine(value_t left, value_t right) const
 {
     return left + right;
 }
 
-value_t MultiplicativeMaxOrthogonalityFinder::evaluate_subcollection(
+value_t MultiplicativeMaxOrthogonalityCombinator::evaluate_subcollection(
     const std::vector<value_t>& pdb_estimates,
     const std::vector<int>& subcollection) const
 {
@@ -82,7 +77,8 @@ value_t MultiplicativeMaxOrthogonalityFinder::evaluate_subcollection(
 }
 
 value_t
-MultiplicativeMaxOrthogonalityFinder::combine(value_t left, value_t right) const
+MultiplicativeMaxOrthogonalityCombinator::combine(value_t left, value_t right)
+    const
 {
     return 1_vt - (1_vt - left) * (1_vt - right);
 }

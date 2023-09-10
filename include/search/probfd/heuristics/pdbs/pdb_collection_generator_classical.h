@@ -16,7 +16,7 @@ namespace probfd {
 namespace heuristics {
 namespace pdbs {
 
-class SubCollectionFinderFactory;
+class PDBCombinatorFactory;
 
 /**
  * @brief The classical pattern generator adapter.
@@ -28,12 +28,12 @@ class SubCollectionFinderFactory;
  */
 class PDBCollectionGeneratorClassical : public PDBCollectionGenerator {
     std::shared_ptr<::pdbs::PatternCollectionGenerator> gen;
-    std::shared_ptr<SubCollectionFinderFactory> finder_factory;
+    std::shared_ptr<PDBCombinatorFactory> pdb_combinator_factory;
 
     PDBCollectionGeneratorClassical(
         const utils::LogProxy& log,
         std::shared_ptr<::pdbs::PatternCollectionGenerator> gen,
-        std::shared_ptr<SubCollectionFinderFactory> finder);
+        std::shared_ptr<PDBCombinatorFactory> pdb_combinator_factory);
 
 public:
     PDBCollectionGeneratorClassical(const plugins::Options& opts);
