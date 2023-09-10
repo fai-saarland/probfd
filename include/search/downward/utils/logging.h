@@ -68,20 +68,19 @@ public:
 };
 
 template <typename T>
-concept Dumpable = requires(T t, std::ostream& out) { out << t; };
+concept Dumpable = requires(std::ostream& out, const T& t) { out << t; };
 
 template <typename T>
 struct RecursivelyDumpableHelper : std::false_type {};
 
-template <std::ranges::input_range T>
+template <Dumpable T>
+struct RecursivelyDumpableHelper<T> : std::true_type {};
+
+template <typename T>
+    requires(std::ranges::input_range<T> && !Dumpable<T>)
 struct RecursivelyDumpableHelper<T>
-    : std::conditional_t<
-          !Dumpable<T>,
-          std::conditional_t<
-              !Dumpable<std::ranges::range_reference_t<T>>,
-              RecursivelyDumpableHelper<std::ranges::range_reference_t<T>>,
-              std::true_type>,
-          std::false_type> {};
+    : std::bool_constant<RecursivelyDumpableHelper<
+          std::remove_cv_t<std::ranges::range_value_t<T>>>::value> {};
 
 template <typename T>
 concept RecursivelyDumpable = RecursivelyDumpableHelper<T>::value;
@@ -143,20 +142,18 @@ public:
 
     template <typename T>
     friend LogProxy& operator<<(LogProxy& stream, const T& range)
-        requires(RecursivelyDumpable<T>)
+        requires(!Dumpable<T> && RecursivelyDumpable<T>)
     {
         stream << "[";
         auto it = std::ranges::begin(range);
         auto end = std::ranges::end(range);
         if (it != end) {
-            for (;;) {
-                stream << *it;
-                if (++it == end) break;
-                stream << ", ";
+            stream << *it;
+            while (++it != end) {
+                stream << ", " << *it;
             }
         }
-        stream << "]";
-        return stream;
+        return stream << "]";
     }
 };
 
