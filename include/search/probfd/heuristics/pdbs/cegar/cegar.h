@@ -133,6 +133,10 @@ private:
         utils::CountdownTimer& timer);
 
     void print_collection() const;
+
+    void reindex_variables(PDBInfo& from, PDBInfo& to);
+    void move_info(PDBInfo& from, PDBInfo& to);
+    void swap_infos(PDBInfo& from, PDBInfo& to);
 };
 
 extern void add_cegar_wildcard_option_to_feature(plugins::Feature& feature);

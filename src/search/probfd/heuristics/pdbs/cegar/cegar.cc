@@ -307,16 +307,7 @@ CEGAR::PDBInfo* CEGAR::get_flaws(
         // Check if any flaws were generated.
         if (new_num_flaws != num_flaws_before) {
             if (new_unsolved_end != it) {
-                for (int var : new_unsolved_end->get_pattern()) {
-                    assert(variable_to_info.contains(var));
-                    variable_to_info.find(var)->second = std::ref(*it);
-                }
-                for (int var : it->get_pattern()) {
-                    assert(variable_to_info.contains(var));
-                    variable_to_info.find(var)->second =
-                        std::ref(*new_unsolved_end);
-                }
-                std::iter_swap(it, new_unsolved_end);
+                swap_infos(*new_unsolved_end, *it);
             }
             ++it;
             ++new_unsolved_end;
@@ -406,10 +397,7 @@ void CEGAR::merge_patterns(
     const ProbabilityAwarePatternDatabase& pdb2 = right.get_pdb();
 
     // update look-up table, abstractions will be merged into left storage
-    for (int var : right.get_pattern()) {
-        assert(variable_to_info.contains(var));
-        variable_to_info.find(var)->second = std::ref(left);
-    }
+    reindex_variables(right, left);
 
     // update collection size (remove previous abstractions)
     collection_size -= pdb1.num_states() + pdb2.num_states();
@@ -427,6 +415,8 @@ void CEGAR::merge_patterns(
     // update collection size (add merged abstraction)
     collection_size += left.num_states();
 
+    auto& last_projection = pdb_infos.back();
+
     // Now remove the right abstraction. If this produces a hole, fill it.
     if (&right < unsolved_end) {
         // An unsolved projection was merged. Move the last unsolved projection
@@ -434,29 +424,15 @@ void CEGAR::merge_patterns(
         // former last unsolved projection.
         auto& last_unsolved = *--unsolved_end;
         if (&right != &last_unsolved) {
-            for (int var : last_unsolved.get_pattern()) {
-                assert(variable_to_info.contains(var));
-                variable_to_info.find(var)->second = std::ref(right);
-            }
-            right = std::move(last_unsolved);
+            move_info(last_unsolved, right);
         }
-        if (&last_unsolved != &pdb_infos.back()) {
-            for (int var : pdb_infos.back().get_pattern()) {
-                assert(variable_to_info.contains(var));
-                variable_to_info.find(var)->second = std::ref(last_unsolved);
-            }
-            last_unsolved = std::move(pdb_infos.back());
+        if (&last_unsolved != &last_projection) {
+            move_info(last_projection, last_unsolved);
         }
-    } else {
-        // A solved projection was merged. Move the last projection
-        // into its place.
-        if (&right != &pdb_infos.back()) {
-            for (int var : pdb_infos.back().get_pattern()) {
-                assert(variable_to_info.contains(var));
-                variable_to_info.find(var)->second = std::ref(right);
-            }
-            right = std::move(pdb_infos.back());
-        }
+    } else if (&right != &last_projection) {
+        // A solved projection was merged. Move the last projection into its
+        // place.
+        move_info(last_projection, right);
     }
 
     pdb_infos.pop_back();
@@ -691,6 +667,27 @@ CEGARResult CEGAR::generate_pdbs(
     }
 
     return CEGARResult{std::move(state_spaces), std::move(pdbs)};
+}
+
+void CEGAR::reindex_variables(PDBInfo& from, PDBInfo& to)
+{
+    for (int var : from.get_pattern()) {
+        assert(variable_to_info.contains(var));
+        variable_to_info.find(var)->second = std::ref(to);
+    }
+}
+
+void CEGAR::move_info(PDBInfo& from, PDBInfo& to)
+{
+    reindex_variables(from, to);
+    to = std::move(from);
+}
+
+void CEGAR::swap_infos(PDBInfo& from, PDBInfo& to)
+{
+    reindex_variables(from, to);
+    reindex_variables(to, from);
+    std::swap(from, to);
 }
 
 void add_cegar_wildcard_option_to_feature(plugins::Feature& feature)
