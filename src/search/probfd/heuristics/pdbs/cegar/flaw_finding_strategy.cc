@@ -16,7 +16,7 @@ bool collect_flaws(
     auto facts,
     const State& state,
     bool is_precondition,
-    const std::unordered_set<int>& blacklist,
+    FlawFilter& flaw_filter,
     std::vector<Flaw>& flaw_list)
 {
     bool flaws_found = false;
@@ -27,7 +27,7 @@ bool collect_flaws(
 
         if (state[var].get_value() != val) {
             flaws_found = true;
-            if (!blacklist.contains(var)) {
+            if (!flaw_filter(var)) {
                 flaw_list.emplace_back(var, is_precondition);
             }
         }
@@ -41,7 +41,7 @@ bool FlawFindingStrategy::apply_policy(
     ProbabilisticTaskProxy task_proxy,
     const ProjectionInfo& info,
     const ProjectionMultiPolicy& policy,
-    const std::unordered_set<int>& blacklisted_variables,
+    FlawFilter& flaw_filter,
     std::vector<Flaw>& flaws,
     utils::CountdownTimer& timer)
 {
@@ -50,7 +50,7 @@ bool FlawFindingStrategy::apply_policy(
         *info.mdp,
         *info.pdb,
         policy,
-        blacklisted_variables,
+        flaw_filter,
         flaws,
         timer);
 }
@@ -58,19 +58,19 @@ bool FlawFindingStrategy::apply_policy(
 bool collect_flaws(
     PreconditionsProxy facts,
     const State& state,
-    const std::unordered_set<int>& blacklist,
+    FlawFilter& flaw_filter,
     std::vector<Flaw>& flaw_list)
 {
-    return collect_flaws(facts, state, true, blacklist, flaw_list);
+    return collect_flaws(facts, state, true, flaw_filter, flaw_list);
 }
 
 bool collect_flaws(
     GoalsProxy facts,
     const State& state,
-    const std::unordered_set<int>& blacklist,
+    FlawFilter& flaw_filter,
     std::vector<Flaw>& flaw_list)
 {
-    return collect_flaws(facts, state, false, blacklist, flaw_list);
+    return collect_flaws(facts, state, false, flaw_filter, flaw_list);
 }
 
 static class FlawFindingStrategyCategoryPlugin

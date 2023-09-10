@@ -273,20 +273,21 @@ CEGAR::PDBInfo* CEGAR::get_flaws(
     auto* it = pdb_infos.data();
     auto* new_unsolved_end = it;
 
+    FlawFilter flaw_filter = [&](int var) {
+        return blacklisted_variables.contains(var);
+    };
+
     // The following copies std::partition to enable a contiguous array of
     // unsolved, followed by a contiguous array of solved projections.
     while (it != unsolved_end) {
         PDBInfo& info = *it;
 
-        // find out if and why the abstract solution
-        // would not work for the concrete task.
-        // We always start with the initial state.
         const size_t num_flaws_before = flaws.size();
         const bool guaranteed_flawless = flaw_strategy->apply_policy(
             task_proxy,
             info.get_projection(),
             info.get_policy(),
-            blacklisted_variables,
+            flaw_filter,
             flaws,
             timer);
 

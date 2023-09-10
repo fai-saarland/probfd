@@ -26,6 +26,8 @@ namespace cegar {
 
 struct Flaw;
 
+using FlawFilter = std::function<bool(int)>;
+
 class FlawFindingStrategy {
 public:
     virtual ~FlawFindingStrategy() = default;
@@ -38,7 +40,7 @@ public:
         const ProjectionStateSpace& mdp,
         const ProbabilityAwarePatternDatabase& pdb,
         const ProjectionMultiPolicy& policy,
-        const std::unordered_set<int>& blacklisted_variables,
+        FlawFilter& flaw_filter,
         std::vector<Flaw>& flaws,
         utils::CountdownTimer& timer) = 0;
 
@@ -46,7 +48,7 @@ public:
         ProbabilisticTaskProxy task_proxy,
         const ProjectionInfo& info,
         const ProjectionMultiPolicy& policy,
-        const std::unordered_set<int>& blacklisted_variables,
+        FlawFilter& flaw_filter,
         std::vector<Flaw>& flaws,
         utils::CountdownTimer& timer);
 
@@ -56,13 +58,13 @@ public:
 bool collect_flaws(
     PreconditionsProxy facts,
     const State& state,
-    const std::unordered_set<int>& blacklist,
+    FlawFilter& flaw_filter,
     std::vector<Flaw>& flaw_list);
 
 bool collect_flaws(
     GoalsProxy facts,
     const State& state,
-    const std::unordered_set<int>& blacklist,
+    FlawFilter& flaw_filter,
     std::vector<Flaw>& flaw_list);
 
 } // namespace cegar

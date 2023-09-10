@@ -42,7 +42,7 @@ bool PUCSFlawFinder::apply_policy(
     const ProjectionStateSpace& mdp,
     const ProbabilityAwarePatternDatabase& pdb,
     const ProjectionMultiPolicy& policy,
-    const std::unordered_set<int>& blacklisted_variables,
+    FlawFilter& flaw_filter,
     std::vector<Flaw>& flaw_list,
     utils::CountdownTimer& timer)
 {
@@ -92,12 +92,9 @@ bool PUCSFlawFinder::apply_policy(
         if (abs_decisions.empty()) {
             if (mdp.is_goal(abs)) {
                 const size_t flaws_before = flaw_list.size();
-                flaws_found = collect_flaws(
-                                  goals,
-                                  current,
-                                  blacklisted_variables,
-                                  flaw_list) ||
-                              flaws_found;
+                flaws_found =
+                    collect_flaws(goals, current, flaw_filter, flaw_list) ||
+                    flaws_found;
 
                 if (flaws_before != flaw_list.size()) {
                     return false;
@@ -117,7 +114,7 @@ bool PUCSFlawFinder::apply_policy(
             const bool local_flaws_found = collect_flaws(
                 op.get_preconditions(),
                 current,
-                blacklisted_variables,
+                flaw_filter,
                 local_flaws);
 
             if (flaws_before != local_flaws.size()) {

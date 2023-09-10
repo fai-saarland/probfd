@@ -121,13 +121,28 @@ bool SingleCEGAR::get_flaws(
         *rng,
         wildcard);
 
-    const bool guaranteed_flawless = flaw_strategy->apply_policy(
-        task_proxy,
-        pdb_info,
-        *policy,
-        blacklisted_variables,
-        flaws,
-        timer);
+    FlawFilter filter =
+        [&, log = log, max = max_pdb_size, vars = task_proxy.get_variables()](
+            int var_id) mutable {
+            if (blacklisted_variables.contains(var_id)) return true;
+            if (!utils::is_product_within_limit(
+                    pdb_info.pdb->num_states(),
+                    vars[var_id].get_domain_size(),
+                    max)) {
+                if (log.is_at_least_verbose()) {
+                    log << "blacklisting flaw var " << var_id
+                        << " due to size limits." << endl;
+                }
+
+                blacklisted_variables.insert(var_id);
+                return true;
+            }
+            return false;
+        };
+
+    const bool guaranteed_flawless =
+        flaw_strategy
+            ->apply_policy(task_proxy, pdb_info, *policy, filter, flaws, timer);
 
     // Check if the projection was reported to be flawless.
     if (guaranteed_flawless) {
@@ -144,15 +159,6 @@ bool SingleCEGAR::get_flaws(
     return !flaws.empty();
 }
 
-bool SingleCEGAR::can_add_variable(
-    ProjectionInfo& pdb_info,
-    VariableProxy variable) const
-{
-    const int pdb_size = pdb_info.pdb->num_states();
-    const int domain_size = variable.get_domain_size();
-    return utils::is_product_within_limit(pdb_size, domain_size, max_pdb_size);
-}
-
 void SingleCEGAR::refine(
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
@@ -167,33 +173,20 @@ void SingleCEGAR::refine(
     int var = flaw.variable;
 
     if (log.is_at_least_verbose()) {
-        log << "SingleCEGAR: found violated";
-        if (flaw.is_precondition) {
-            log << " precondition ";
-        } else {
-            log << " goal ";
-        }
-        log << "on " << var << endl;
+        log << "SingleCEGAR: found violated "
+            << (flaw.is_precondition ? "precondition" : "goal") << " on " << var
+            << endl;
     }
 
-    if (can_add_variable(pdb_info, task_proxy.get_variables()[var])) {
-        // compute new solution
-        pdb_info = ProjectionInfo(
-            task_proxy,
-            task_cost_function,
-            extended_pattern(pdb_info.get_pattern(), var),
-            task_proxy.get_initial_state(),
-            *pdb_info.pdb,
-            wildcard,
-            timer.get_remaining_time());
-    } else {
-        if (log.is_at_least_verbose()) {
-            log << "could not add var " << var
-                << " due to size limits, blacklisting..." << endl;
-        }
-
-        blacklisted_variables.insert(var);
-    }
+    // compute new solution
+    pdb_info = ProjectionInfo(
+        task_proxy,
+        task_cost_function,
+        extended_pattern(pdb_info.get_pattern(), var),
+        task_proxy.get_initial_state(),
+        *pdb_info.pdb,
+        wildcard,
+        timer.get_remaining_time());
 }
 
 } // namespace cegar

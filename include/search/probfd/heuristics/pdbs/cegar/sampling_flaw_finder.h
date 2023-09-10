@@ -51,7 +51,7 @@ public:
         const ProjectionStateSpace& mdp,
         const ProbabilityAwarePatternDatabase& pdb,
         const ProjectionMultiPolicy& policy,
-        const std::unordered_set<int>& blacklisted_variables,
+        FlawFilter& flaw_filter,
         std::vector<Flaw>& flaw_list,
         utils::CountdownTimer& timer) override;
 

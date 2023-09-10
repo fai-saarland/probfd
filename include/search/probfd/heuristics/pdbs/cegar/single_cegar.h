@@ -72,9 +72,6 @@ private:
         std::vector<Flaw>& flaws,
         utils::CountdownTimer& timer);
 
-    bool
-    can_add_variable(ProjectionInfo& pdb_info, VariableProxy variable) const;
-
     void refine(
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
