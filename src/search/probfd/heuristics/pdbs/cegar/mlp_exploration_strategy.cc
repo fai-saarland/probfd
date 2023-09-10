@@ -163,7 +163,7 @@ bool MLPExplorationStrategy::apply_policy(
 
 std::string MLPExplorationStrategy::get_name()
 {
-    return "PUCS Flaw Finder";
+    return "Most-Likely Path";
 }
 
 class MLPExplorationStrategyFeature

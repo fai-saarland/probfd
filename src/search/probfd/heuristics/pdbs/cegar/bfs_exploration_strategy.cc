@@ -152,7 +152,7 @@ bool BFSExplorationStrategy::apply_policy(
 
 std::string BFSExplorationStrategy::get_name()
 {
-    return "BFS Flaw Finder";
+    return "Breadth-First Search";
 }
 
 class BFSExplorationStrategyFeature

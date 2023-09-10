@@ -190,7 +190,7 @@ bool SamplingExplorationStrategy::apply_policy(
 
 std::string SamplingExplorationStrategy::get_name()
 {
-    return "Sampling Flaw Finder";
+    return "Sampling";
 }
 
 class SamplingExplorationStrategyFeature
