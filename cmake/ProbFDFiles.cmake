@@ -342,10 +342,10 @@ fast_downward_plugin(
     SOURCES
         probfd/heuristics/pdbs/cegar/single_cegar
         probfd/heuristics/pdbs/cegar/cegar
-        probfd/heuristics/pdbs/cegar/bfs_flaw_finder
-        probfd/heuristics/pdbs/cegar/pucs_flaw_finder
-        probfd/heuristics/pdbs/cegar/sampling_flaw_finder
-        probfd/heuristics/pdbs/cegar/flaw_finding_strategy
+        probfd/heuristics/pdbs/cegar/bfs_exploration_strategy
+        probfd/heuristics/pdbs/cegar/mlp_exploration_strategy
+        probfd/heuristics/pdbs/cegar/sampling_exploration_strategy
+        probfd/heuristics/pdbs/cegar/policy_exploration_strategy
     DEPENDS PPDBS_PATTERN_GENERATORS
 )
 

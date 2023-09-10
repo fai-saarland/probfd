@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_PDBS_CEGAR_BFS_FLAW_FINDER_H
 #define PROBFD_HEURISTICS_PDBS_CEGAR_BFS_FLAW_FINDER_H
 
-#include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
+#include "probfd/heuristics/pdbs/cegar/policy_exploration_strategy.h"
 
 #include "probfd/storage/per_state_storage.h"
 
@@ -20,17 +20,17 @@ namespace heuristics {
 namespace pdbs {
 namespace cegar {
 
-class BFSFlawFinder : public FlawFindingStrategy {
+class BFSExplorationStrategy : public PolicyExplorationStrategy {
     std::deque<State> open;
     storage::PerStateStorage<bool> closed;
 
     const int max_search_states;
 
 public:
-    explicit BFSFlawFinder(const plugins::Options& opts);
-    explicit BFSFlawFinder(int max_search_states);
+    explicit BFSExplorationStrategy(const plugins::Options& opts);
+    explicit BFSExplorationStrategy(int max_search_states);
 
-    ~BFSFlawFinder() override = default;
+    ~BFSExplorationStrategy() override = default;
 
     bool apply_policy(
         ProbabilisticTaskProxy task_proxy,
@@ -49,4 +49,4 @@ public:
 } // namespace heuristics
 } // namespace probfd
 
-#endif
+#endif // PROBFD_HEURISTICS_PDBS_CEGAR_BFS_FLAW_FINDER_H

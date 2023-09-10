@@ -27,8 +27,8 @@ PDBCollectionGeneratorMultipleCegar::PDBCollectionGeneratorMultipleCegar(
     const plugins::Options& opts)
     : PDBCollectionGeneratorMultiple(opts, "CEGAR")
     , use_wildcard_policies(opts.get<bool>("use_wildcard_policies"))
-    , flaw_strategy(
-          opts.get<std::shared_ptr<FlawFindingStrategy>>("flaw_strategy"))
+    , exploration_strategy(opts.get<std::shared_ptr<PolicyExplorationStrategy>>(
+          "exploration_strategy"))
 {
 }
 
@@ -44,7 +44,7 @@ ProjectionInfo PDBCollectionGeneratorMultipleCegar::compute_pattern(
     SingleCEGAR cegar(
         log,
         rng,
-        flaw_strategy,
+        exploration_strategy,
         use_wildcard_policies,
         max_pdb_size,
         std::move(blacklisted_variables));
@@ -79,10 +79,10 @@ public:
         add_multiple_options_to_feature(*this);
         add_cegar_wildcard_option_to_feature(*this);
 
-        add_option<std::shared_ptr<cegar::FlawFindingStrategy>>(
-            "flaw_strategy",
-            "strategy used to find flaws in a policy",
-            "pucs_flaw_finder()");
+        add_option<std::shared_ptr<cegar::PolicyExplorationStrategy>>(
+            "exploration_strategy",
+            "strategy used to explore abstract policies",
+            "mlp()");
     }
 };
 

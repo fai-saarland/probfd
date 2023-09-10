@@ -1,4 +1,4 @@
-#include "probfd/heuristics/pdbs/cegar/sampling_flaw_finder.h"
+#include "probfd/heuristics/pdbs/cegar/sampling_exploration_strategy.h"
 
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/projection_state_space.h"
@@ -30,14 +30,15 @@ namespace heuristics {
 namespace pdbs {
 namespace cegar {
 
-SamplingFlawFinder::SamplingFlawFinder(const plugins::Options& opts)
-    : SamplingFlawFinder(
+SamplingExplorationStrategy::SamplingExplorationStrategy(
+    const plugins::Options& opts)
+    : SamplingExplorationStrategy(
           utils::parse_rng_from_options(opts),
           opts.get<int>("max_search_states"))
 {
 }
 
-SamplingFlawFinder::SamplingFlawFinder(
+SamplingExplorationStrategy::SamplingExplorationStrategy(
     std::shared_ptr<utils::RandomNumberGenerator> rng,
     int max_search_states)
     : rng(std::move(rng))
@@ -45,7 +46,7 @@ SamplingFlawFinder::SamplingFlawFinder(
 {
 }
 
-bool SamplingFlawFinder::apply_policy(
+bool SamplingExplorationStrategy::apply_policy(
     ProbabilisticTaskProxy task_proxy,
     const ProjectionStateSpace& mdp,
     const ProbabilityAwarePatternDatabase& pdb,
@@ -187,16 +188,17 @@ bool SamplingFlawFinder::apply_policy(
     abort();
 }
 
-std::string SamplingFlawFinder::get_name()
+std::string SamplingExplorationStrategy::get_name()
 {
     return "Sampling Flaw Finder";
 }
 
-class SamplingFlawFinderFeature
-    : public plugins::TypedFeature<FlawFindingStrategy, SamplingFlawFinder> {
+class SamplingExplorationStrategyFeature
+    : public plugins::
+          TypedFeature<PolicyExplorationStrategy, SamplingExplorationStrategy> {
 public:
-    SamplingFlawFinderFeature()
-        : TypedFeature("sampling_flaw_finder")
+    SamplingExplorationStrategyFeature()
+        : TypedFeature("sampling")
     {
         utils::add_rng_options(*this);
         add_option<int>(
@@ -208,7 +210,7 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<SamplingFlawFinderFeature> _plugin;
+static plugins::FeaturePlugin<SamplingExplorationStrategyFeature> _plugin;
 
 } // namespace cegar
 } // namespace pdbs

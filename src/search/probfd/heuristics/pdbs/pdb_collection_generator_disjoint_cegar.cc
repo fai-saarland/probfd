@@ -36,8 +36,8 @@ PDBCollectionGeneratorDisjointCegar::PDBCollectionGeneratorDisjointCegar(
     , subcollection_finder_factory(
           opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
               "subcollection_finder_factory"))
-    , flaw_strategy(
-          opts.get<std::shared_ptr<FlawFindingStrategy>>("flaw_strategy"))
+    , exploration_strategy(opts.get<std::shared_ptr<PolicyExplorationStrategy>>(
+          "exploration_strategy"))
 {
 }
 
@@ -56,7 +56,7 @@ PDBCollectionInformation PDBCollectionGeneratorDisjointCegar::generate(
     CEGAR cegar(
         log,
         rng,
-        flaw_strategy,
+        exploration_strategy,
         use_wildcard_policies,
         max_pdb_size,
         max_collection_size,
@@ -105,10 +105,10 @@ void add_pdb_collection_generator_cegar_options_to_feature(
         "subcollection_finder_factory",
         "The subcollection finder factory.",
         "finder_trivial_factory()");
-    feature.add_option<std::shared_ptr<FlawFindingStrategy>>(
-        "flaw_strategy",
-        "strategy used to find flaws in a policy",
-        "pucs_flaw_finder()");
+    feature.add_option<std::shared_ptr<PolicyExplorationStrategy>>(
+        "exploration_strategy",
+        "strategy used to explore abstract policies",
+        "mlp()");
 
     add_pdb_collection_generator_options_to_feature(feature);
     add_cegar_wildcard_option_to_feature(feature);

@@ -1,4 +1,4 @@
-#include "probfd/heuristics/pdbs/cegar/pucs_flaw_finder.h"
+#include "probfd/heuristics/pdbs/cegar/mlp_exploration_strategy.h"
 
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/projection_state_space.h"
@@ -27,17 +27,17 @@ namespace heuristics {
 namespace pdbs {
 namespace cegar {
 
-PUCSFlawFinder::PUCSFlawFinder(const plugins::Options& opts)
-    : PUCSFlawFinder(opts.get<int>("max_search_states"))
+MLPExplorationStrategy::MLPExplorationStrategy(const plugins::Options& opts)
+    : MLPExplorationStrategy(opts.get<int>("max_search_states"))
 {
 }
 
-PUCSFlawFinder::PUCSFlawFinder(int max_search_states)
+MLPExplorationStrategy::MLPExplorationStrategy(int max_search_states)
     : max_search_states(max_search_states)
 {
 }
 
-bool PUCSFlawFinder::apply_policy(
+bool MLPExplorationStrategy::apply_policy(
     ProbabilisticTaskProxy task_proxy,
     const ProjectionStateSpace& mdp,
     const ProbabilityAwarePatternDatabase& pdb,
@@ -161,16 +161,17 @@ bool PUCSFlawFinder::apply_policy(
     return !flaws_found;
 }
 
-std::string PUCSFlawFinder::get_name()
+std::string MLPExplorationStrategy::get_name()
 {
     return "PUCS Flaw Finder";
 }
 
-class PUCSFlawFinderFeature
-    : public plugins::TypedFeature<FlawFindingStrategy, PUCSFlawFinder> {
+class MLPExplorationStrategyFeature
+    : public plugins::
+          TypedFeature<PolicyExplorationStrategy, MLPExplorationStrategy> {
 public:
-    PUCSFlawFinderFeature()
-        : TypedFeature("pucs_flaw_finder")
+    MLPExplorationStrategyFeature()
+        : TypedFeature("mlp")
     {
         add_option<int>(
             "max_search_states",
@@ -181,7 +182,7 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<PUCSFlawFinderFeature> _plugin;
+static plugins::FeaturePlugin<MLPExplorationStrategyFeature> _plugin;
 
 } // namespace cegar
 } // namespace pdbs

@@ -10,13 +10,13 @@ namespace pdbs {
 class SubCollectionFinderFactory;
 
 namespace cegar {
-class FlawFindingStrategy;
+class PolicyExplorationStrategy;
 }
 
 class PDBCollectionGeneratorMultipleCegar
     : public PDBCollectionGeneratorMultiple {
     const bool use_wildcard_policies;
-    std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy;
+    std::shared_ptr<cegar::PolicyExplorationStrategy> exploration_strategy;
 
     ProjectionInfo compute_pattern(
         int max_pdb_size,

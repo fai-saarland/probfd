@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_PDBS_CEGAR_PUCS_FLAW_FINDER_H
 #define PROBFD_HEURISTICS_PDBS_CEGAR_PUCS_FLAW_FINDER_H
 
-#include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
+#include "probfd/heuristics/pdbs/cegar/policy_exploration_strategy.h"
 
 #include "probfd/storage/per_state_storage.h"
 
@@ -23,7 +23,7 @@ namespace heuristics {
 namespace pdbs {
 namespace cegar {
 
-class PUCSFlawFinder : public FlawFindingStrategy {
+class MLPExplorationStrategy : public PolicyExplorationStrategy {
     struct ExpansionInfo {
         bool expanded = false;
         value_t path_probability = 0_vt;
@@ -35,10 +35,10 @@ class PUCSFlawFinder : public FlawFindingStrategy {
     const int max_search_states;
 
 public:
-    explicit PUCSFlawFinder(const plugins::Options& opts);
-    explicit PUCSFlawFinder(int max_search_states);
+    explicit MLPExplorationStrategy(const plugins::Options& opts);
+    explicit MLPExplorationStrategy(int max_search_states);
 
-    ~PUCSFlawFinder() override = default;
+    ~MLPExplorationStrategy() override = default;
 
     bool apply_policy(
         ProbabilisticTaskProxy task_proxy,

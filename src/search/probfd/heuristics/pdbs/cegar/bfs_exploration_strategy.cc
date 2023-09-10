@@ -1,4 +1,4 @@
-#include "probfd/heuristics/pdbs/cegar/bfs_flaw_finder.h"
+#include "probfd/heuristics/pdbs/cegar/bfs_exploration_strategy.h"
 
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/projection_state_space.h"
@@ -27,18 +27,18 @@ namespace heuristics {
 namespace pdbs {
 namespace cegar {
 
-BFSFlawFinder::BFSFlawFinder(const plugins::Options& opts)
-    : BFSFlawFinder(opts.get<int>("max_search_states"))
+BFSExplorationStrategy::BFSExplorationStrategy(const plugins::Options& opts)
+    : BFSExplorationStrategy(opts.get<int>("max_search_states"))
 {
 }
 
-BFSFlawFinder::BFSFlawFinder(int max_search_states)
+BFSExplorationStrategy::BFSExplorationStrategy(int max_search_states)
     : closed(false)
     , max_search_states(max_search_states)
 {
 }
 
-bool BFSFlawFinder::apply_policy(
+bool BFSExplorationStrategy::apply_policy(
     ProbabilisticTaskProxy task_proxy,
     const ProjectionStateSpace& mdp,
     const ProbabilityAwarePatternDatabase& pdb,
@@ -150,16 +150,17 @@ bool BFSFlawFinder::apply_policy(
     return !flaws_found;
 }
 
-std::string BFSFlawFinder::get_name()
+std::string BFSExplorationStrategy::get_name()
 {
     return "BFS Flaw Finder";
 }
 
-class BFSFlawFinderFeature
-    : public plugins::TypedFeature<FlawFindingStrategy, BFSFlawFinder> {
+class BFSExplorationStrategyFeature
+    : public plugins::
+          TypedFeature<PolicyExplorationStrategy, BFSExplorationStrategy> {
 public:
-    BFSFlawFinderFeature()
-        : TypedFeature("bfs_flaw_finder")
+    BFSExplorationStrategyFeature()
+        : TypedFeature("bfs")
     {
         add_option<int>(
             "max_search_states",
@@ -170,7 +171,7 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<BFSFlawFinderFeature> _plugin;
+static plugins::FeaturePlugin<BFSExplorationStrategyFeature> _plugin;
 
 } // namespace cegar
 } // namespace pdbs

@@ -28,7 +28,7 @@ struct ProjectionInfo;
 
 namespace cegar {
 
-class FlawFindingStrategy;
+class PolicyExplorationStrategy;
 
 class SingleCEGAR {
     mutable utils::LogProxy log;
@@ -37,7 +37,7 @@ class SingleCEGAR {
     const std::shared_ptr<utils::RandomNumberGenerator> rng;
 
     // Flaw finding strategy
-    const std::shared_ptr<FlawFindingStrategy> flaw_strategy;
+    const std::shared_ptr<PolicyExplorationStrategy> flaw_strategy;
 
     // behavior defining parameters
     const bool wildcard;
@@ -49,7 +49,7 @@ public:
     SingleCEGAR(
         utils::LogProxy log,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        std::shared_ptr<FlawFindingStrategy> flaw_strategy,
+        std::shared_ptr<PolicyExplorationStrategy> flaw_strategy,
         bool wildcard,
         int max_pdb_size,
         std::unordered_set<int> blacklisted_variables = {});

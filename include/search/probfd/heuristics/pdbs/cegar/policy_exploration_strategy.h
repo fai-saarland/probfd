@@ -1,5 +1,5 @@
-#ifndef PROBFD_HEURISTICS_PDBS_CEGAR_FLAW_FINDING_STRATEGY_H
-#define PROBFD_HEURISTICS_PDBS_CEGAR_FLAW_FINDING_STRATEGY_H
+#ifndef PROBFD_HEURISTICS_PDBS_CEGAR_POLICY_EXPLORATION_STRATEGY_H
+#define PROBFD_HEURISTICS_PDBS_CEGAR_POLICY_EXPLORATION_STRATEGY_H
 
 #include "probfd/heuristics/pdbs/types.h"
 
@@ -28,9 +28,9 @@ struct Flaw;
 
 using FlawFilter = std::function<bool(int)>;
 
-class FlawFindingStrategy {
+class PolicyExplorationStrategy {
 public:
-    virtual ~FlawFindingStrategy() = default;
+    virtual ~PolicyExplorationStrategy() = default;
 
     // Returns whether the policy is executable. Note that even if the policy is
     // not executable, the output flaw list might be empty regardless, since
@@ -72,4 +72,4 @@ bool collect_flaws(
 } // namespace heuristics
 } // namespace probfd
 
-#endif // PROBFD_HEURISTICS_PDBS_CEGAR_FLAW_FINDING_STRATEGY_H
+#endif // PROBFD_HEURISTICS_PDBS_CEGAR_POLICY_EXPLORATION_STRATEGY_H

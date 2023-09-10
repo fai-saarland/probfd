@@ -1,6 +1,6 @@
 #include "probfd/heuristics/pdbs/cegar/single_cegar.h"
 
-#include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
+#include "probfd/heuristics/pdbs/cegar/policy_exploration_strategy.h"
 
 #include "probfd/heuristics/pdbs/policy_extraction.h"
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
@@ -27,7 +27,7 @@ namespace cegar {
 SingleCEGAR::SingleCEGAR(
     utils::LogProxy log,
     const shared_ptr<utils::RandomNumberGenerator>& arg_rng,
-    std::shared_ptr<FlawFindingStrategy> flaw_strategy,
+    std::shared_ptr<PolicyExplorationStrategy> flaw_strategy,
     bool wildcard,
     int arg_max_pdb_size,
     std::unordered_set<int> blacklisted_variables)

@@ -28,7 +28,7 @@ class SubCollectionFinderFactory;
 
 namespace cegar {
 
-class FlawFindingStrategy;
+class PolicyExplorationStrategy;
 
 struct CEGARResult {
     ProjectionCollection projections;
@@ -46,7 +46,7 @@ class CEGAR {
     const std::shared_ptr<utils::RandomNumberGenerator> rng;
 
     // Flaw finding strategy
-    const std::shared_ptr<FlawFindingStrategy> flaw_strategy;
+    const std::shared_ptr<PolicyExplorationStrategy> flaw_strategy;
 
     // behavior defining parameters
     const bool wildcard;
@@ -70,7 +70,7 @@ public:
     CEGAR(
         utils::LogProxy log,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        std::shared_ptr<FlawFindingStrategy> flaw_strategy,
+        std::shared_ptr<PolicyExplorationStrategy> flaw_strategy,
         bool wildcard,
         int max_pdb_size,
         int max_collection_size,

@@ -1,7 +1,7 @@
 #ifndef PROBFD_HEURISTICS_PDBS_CEGAR_SAMPLING_FLAW_FINDER_H
 #define PROBFD_HEURISTICS_PDBS_CEGAR_SAMPLING_FLAW_FINDER_H
 
-#include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
+#include "probfd/heuristics/pdbs/cegar/policy_exploration_strategy.h"
 
 #include "probfd/storage/per_state_storage.h"
 
@@ -26,7 +26,7 @@ namespace heuristics {
 namespace pdbs {
 namespace cegar {
 
-class SamplingFlawFinder : public FlawFindingStrategy {
+class SamplingExplorationStrategy : public PolicyExplorationStrategy {
     struct ExplorationInfo {
         bool explored = false;
         Distribution<StateID> successors;
@@ -39,12 +39,12 @@ class SamplingFlawFinder : public FlawFindingStrategy {
     const int max_search_states;
 
 public:
-    explicit SamplingFlawFinder(const plugins::Options& opts);
-    explicit SamplingFlawFinder(
+    explicit SamplingExplorationStrategy(const plugins::Options& opts);
+    explicit SamplingExplorationStrategy(
         std::shared_ptr<utils::RandomNumberGenerator> rng,
         int max_search_states);
 
-    ~SamplingFlawFinder() override = default;
+    ~SamplingExplorationStrategy() override = default;
 
     bool apply_policy(
         ProbabilisticTaskProxy task_proxy,

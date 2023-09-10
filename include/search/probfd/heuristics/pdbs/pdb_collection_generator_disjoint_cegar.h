@@ -20,7 +20,7 @@ namespace pdbs {
 class SubCollectionFinderFactory;
 
 namespace cegar {
-class FlawFindingStrategy;
+class PolicyExplorationStrategy;
 } // namespace cegar
 
 class PDBCollectionGeneratorDisjointCegar : public PDBCollectionGenerator {
@@ -31,7 +31,7 @@ class PDBCollectionGeneratorDisjointCegar : public PDBCollectionGenerator {
     const double max_time;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
     std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory;
-    std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy;
+    std::shared_ptr<cegar::PolicyExplorationStrategy> exploration_strategy;
 
 public:
     explicit PDBCollectionGeneratorDisjointCegar(const plugins::Options& opts);

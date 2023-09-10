@@ -1,4 +1,4 @@
-#include "probfd/heuristics/pdbs/cegar/flaw_finding_strategy.h"
+#include "probfd/heuristics/pdbs/cegar/policy_exploration_strategy.h"
 
 #include "probfd/heuristics/pdbs/cegar/cegar.h"
 
@@ -37,7 +37,7 @@ bool collect_flaws(
 }
 } // namespace
 
-bool FlawFindingStrategy::apply_policy(
+bool PolicyExplorationStrategy::apply_policy(
     ProbabilisticTaskProxy task_proxy,
     const ProjectionInfo& info,
     const ProjectionMultiPolicy& policy,
@@ -73,16 +73,17 @@ bool collect_flaws(
     return collect_flaws(facts, state, false, flaw_filter, flaw_list);
 }
 
-static class FlawFindingStrategyCategoryPlugin
-    : public plugins::TypedCategoryPlugin<FlawFindingStrategy> {
+static class PolicyExplorationStrategyCategoryPlugin
+    : public plugins::TypedCategoryPlugin<PolicyExplorationStrategy> {
 public:
-    FlawFindingStrategyCategoryPlugin()
-        : TypedCategoryPlugin("FlawFindingStrategy")
+    PolicyExplorationStrategyCategoryPlugin()
+        : TypedCategoryPlugin("PolicyExplorationStrategy")
     {
-        document_synopsis("Policy CEGAR flaw finding strategy.");
+        document_synopsis(
+            "Policy exploration strategy for the CEGAR algorithm.");
     }
 } _category_plugin;
-}
+} // namespace cegar
 } // namespace pdbs
 } // namespace heuristics
 } // namespace probfd
