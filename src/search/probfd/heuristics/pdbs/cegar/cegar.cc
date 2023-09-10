@@ -245,7 +245,7 @@ void CEGAR::generate_trivial_solution_collection(
             task_cost_function,
             Pattern{var},
             *rng,
-            wildcard,
+            false,
             timer);
         assert(!variable_to_info.contains(var));
         variable_to_info.emplace(var, std::ref(info));
@@ -373,7 +373,7 @@ void CEGAR::add_variable_to_pattern(
         info.get_pdb(),
         var,
         *rng,
-        wildcard,
+        false,
         timer);
 
     // update collection size (add new abstraction)
@@ -402,14 +402,8 @@ void CEGAR::merge_patterns(
     collection_size -= pdb1.num_states() + pdb2.num_states();
 
     // construct merged abstractions into left storage
-    left = PDBInfo(
-        task_proxy,
-        task_cost_function,
-        pdb1,
-        pdb2,
-        *rng,
-        wildcard,
-        timer);
+    left =
+        PDBInfo(task_proxy, task_cost_function, pdb1, pdb2, *rng, false, timer);
 
     // update collection size (add merged abstraction)
     collection_size += left.num_states();

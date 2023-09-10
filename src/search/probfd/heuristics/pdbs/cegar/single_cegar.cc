@@ -185,7 +185,7 @@ void SingleCEGAR::refine(
         extended_pattern(pdb_info.get_pattern(), var),
         task_proxy.get_initial_state(),
         *pdb_info.pdb,
-        wildcard,
+        false,
         timer.get_remaining_time());
 }
 
