@@ -33,7 +33,7 @@ void MaxOrthogonalityCombinatorBase::update(const PPDBCollection& pdbs)
 }
 
 std::vector<PatternSubCollection>
-MaxOrthogonalityCombinatorBase::update_with_pdbs(
+MaxOrthogonalityCombinatorBase::compute_subcollections_with_pdbs(
     const PPDBCollection& pdbs,
     const ProbabilityAwarePatternDatabase& new_pdb)
 {

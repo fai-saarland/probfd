@@ -17,7 +17,7 @@ public:
 
     void update(const PPDBCollection&) override;
 
-    std::vector<PatternSubCollection> update_with_pdbs(
+    std::vector<PatternSubCollection> compute_subcollections_with_pdbs(
         const PPDBCollection& pdbs,
         const ProbabilityAwarePatternDatabase& new_pdb) override;
 };

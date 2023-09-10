@@ -16,7 +16,7 @@ int SubCollectionCombinator::count_improvements_if_added(
     value_t termination_cost)
 {
     const std::vector<PatternSubCollection> subcollections =
-        this->update_with_pdbs(pdbs, new_pdb);
+        this->compute_subcollections_with_pdbs(pdbs, new_pdb);
 
     int count = 0;
 
