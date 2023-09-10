@@ -184,7 +184,8 @@ public:
         std::shared_ptr<SubCollectionFinder> subcollection_finder);
 
     // Adds a new PDB to the collection and recomputes pattern_subcollections.
-    void add_pdb(const std::shared_ptr<ProbabilityAwarePatternDatabase>& pdb);
+    ProbabilityAwarePatternDatabase&
+    add_pdb(std::shared_ptr<ProbabilityAwarePatternDatabase> pdb);
 
     int count_improvements(
         const ProbabilityAwarePatternDatabase& pdb,
@@ -258,12 +259,14 @@ void PDBCollectionGeneratorHillclimbing::IncrementalPPDBs::add_pdb_for_pattern(
     size += pdb->num_states();
 }
 
-void PDBCollectionGeneratorHillclimbing::IncrementalPPDBs::add_pdb(
-    const std::shared_ptr<ProbabilityAwarePatternDatabase>& pdb)
+ProbabilityAwarePatternDatabase&
+PDBCollectionGeneratorHillclimbing::IncrementalPPDBs::add_pdb(
+    std::shared_ptr<ProbabilityAwarePatternDatabase> pdb)
 {
-    auto& new_pdb = pattern_databases.emplace_back(pdb);
+    auto& new_pdb = pattern_databases.emplace_back(std::move(pdb));
     size += new_pdb->num_states();
     recompute_pattern_subcollections();
+    return *new_pdb;
 }
 
 void PDBCollectionGeneratorHillclimbing::IncrementalPPDBs::
@@ -718,7 +721,7 @@ void PDBCollectionGeneratorHillclimbing::hill_climbing(
                 termination_cost,
                 samples);
 
-            const auto [improvement, best_pdb] = find_best_improving_pdb(
+            const auto [improvement, best_pdb_addr] = find_best_improving_pdb(
                 hill_climbing_timer,
                 current_pdbs,
                 samples,
@@ -738,8 +741,8 @@ void PDBCollectionGeneratorHillclimbing::hill_climbing(
             }
 
             // Add the best PDB to the CanonicalPDBsHeuristic.
-            assert(best_pdb);
-            const Pattern& best_pattern = (*best_pdb)->get_pattern();
+            assert(best_pdb_addr);
+            const Pattern& best_pattern = (*best_pdb_addr)->get_pattern();
 
             if (log.is_at_least_verbose()) {
                 std::cout << "found a better pattern with improvement "
@@ -747,7 +750,14 @@ void PDBCollectionGeneratorHillclimbing::hill_climbing(
                 std::cout << "pattern: " << best_pattern << std::endl;
             }
 
-            current_pdbs.add_pdb(*best_pdb);
+            auto& best_pdb = current_pdbs.add_pdb(std::move(*best_pdb_addr));
+
+            // Remove the added PDB from candidate_pdbs.
+            if (best_pdb_addr != &candidate_pdbs.back()) {
+                *best_pdb_addr = std::move(candidate_pdbs.back());
+            }
+
+            candidate_pdbs.pop_back();
 
             // Generate candidate patterns and PDBs for next iteration.
             unsigned int new_max_pdb_size = generate_candidate_pdbs(
@@ -755,18 +765,11 @@ void PDBCollectionGeneratorHillclimbing::hill_climbing(
                 task_cost_function,
                 hill_climbing_timer,
                 relevant_neighbours,
-                **best_pdb,
+                best_pdb,
                 generated_patterns,
                 candidate_pdbs);
 
             max_pdb_size = std::max(max_pdb_size, new_max_pdb_size);
-
-            // Remove the added PDB from candidate_pdbs.
-            if (best_pdb != &candidate_pdbs.back()) {
-                *best_pdb = std::move(candidate_pdbs.back());
-            }
-
-            candidate_pdbs.pop_back();
 
             if (log.is_at_least_verbose()) {
                 std::cout << "Hill climbing time so far: "
