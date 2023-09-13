@@ -53,7 +53,6 @@ PDBCollectionInformation PDBCollectionGeneratorDisjointCegar::generate(
     }
 
     CEGAR cegar(
-        log,
         rng,
         exploration_strategy,
         use_wildcard_policies,
@@ -64,7 +63,7 @@ PDBCollectionInformation PDBCollectionGeneratorDisjointCegar::generate(
     utils::CountdownTimer timer(max_time);
 
     PPDBCollection pdbs =
-        cegar.generate_pdbs(task_proxy, *task_cost_function, timer).pdbs;
+        cegar.generate_pdbs(task_proxy, *task_cost_function, log, timer).pdbs;
 
     std::shared_ptr<PDBCombinator> pdb_combinator =
         pdb_combinator_factory->create_pdb_combinator(task_proxy, pdbs);

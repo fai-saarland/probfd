@@ -194,16 +194,14 @@ std::unique_ptr<ProbabilityAwarePatternDatabase> CEGAR::PDBInfo::extract_pdb()
 }
 
 CEGAR::CEGAR(
-    utils::LogProxy log,
-    const shared_ptr<utils::RandomNumberGenerator>& arg_rng,
+    std::shared_ptr<utils::RandomNumberGenerator> rng,
     std::shared_ptr<PolicyExplorationStrategy> flaw_strategy,
     bool wildcard,
     int arg_max_pdb_size,
     int arg_max_collection_size,
     std::vector<int> goals,
     std::unordered_set<int> blacklisted_variables)
-    : log(std::move(log))
-    , rng(arg_rng)
+    : rng(std::move(rng))
     , flaw_strategy(flaw_strategy)
     , wildcard(wildcard)
     , max_pdb_size(arg_max_pdb_size)
@@ -215,7 +213,7 @@ CEGAR::CEGAR(
 
 CEGAR::~CEGAR() = default;
 
-void CEGAR::print_collection() const
+void CEGAR::print_collection(utils::LogProxy log) const
 {
     assert(!pdb_infos.empty());
     log << "Marked unsolved: "
@@ -233,6 +231,7 @@ void CEGAR::generate_trivial_solution_collection(
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
     int& collection_size,
+    utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
     assert(!goals.empty());
@@ -256,7 +255,7 @@ void CEGAR::generate_trivial_solution_collection(
 
     if (log.is_at_least_normal()) {
         log << "CEGAR initial collection: ";
-        print_collection();
+        print_collection(log);
     }
 }
 
@@ -265,6 +264,7 @@ CEGAR::PDBInfo* CEGAR::get_flaws(
     std::vector<Flaw>& flaws,
     std::vector<int>& flaw_offsets,
     value_t termination_cost,
+    utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
     auto* it = pdb_infos.data();
@@ -437,6 +437,7 @@ void CEGAR::refine(
     const std::vector<Flaw>& flaws,
     const std::vector<int>& flaw_offsets,
     int& collection_size,
+    utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
     assert(!flaws.empty());
@@ -529,6 +530,7 @@ void CEGAR::refine(
 CEGARResult CEGAR::generate_pdbs(
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
+    utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
     if (log.is_at_least_normal()) {
@@ -553,6 +555,7 @@ CEGARResult CEGAR::generate_pdbs(
         task_proxy,
         task_cost_function,
         collection_size,
+        log,
         timer);
 
     const State initial_state = task_proxy.get_initial_state();
@@ -577,7 +580,7 @@ CEGARResult CEGAR::generate_pdbs(
                 log << "CEGAR: current collection size: " << collection_size
                     << endl;
                 log << "CEGAR: current collection: ";
-                print_collection();
+                print_collection(log);
                 log << endl;
             }
 
@@ -586,6 +589,7 @@ CEGARResult CEGAR::generate_pdbs(
                 flaws,
                 flaw_offsets,
                 termination_cost,
+                log,
                 timer);
 
             if (flaws.empty()) {
@@ -619,6 +623,7 @@ CEGARResult CEGAR::generate_pdbs(
                 flaws,
                 flaw_offsets,
                 collection_size,
+                log,
                 timer);
 
             ++refinement_counter;

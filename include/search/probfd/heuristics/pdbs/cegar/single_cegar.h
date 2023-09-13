@@ -31,8 +31,6 @@ namespace cegar {
 class PolicyExplorationStrategy;
 
 class SingleCEGAR {
-    mutable utils::LogProxy log;
-
     // Random number generator
     const std::shared_ptr<utils::RandomNumberGenerator> rng;
 
@@ -47,8 +45,7 @@ class SingleCEGAR {
 
 public:
     SingleCEGAR(
-        utils::LogProxy log,
-        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
         std::shared_ptr<PolicyExplorationStrategy> flaw_strategy,
         bool wildcard,
         int max_pdb_size,
@@ -60,6 +57,7 @@ public:
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
         ProjectionInfo& pdb_info,
+        utils::LogProxy log,
         utils::CountdownTimer& timer);
 
 private:
@@ -70,6 +68,7 @@ private:
         FDRSimpleCostFunction& task_cost_function,
         ProjectionInfo& pdb_info,
         std::vector<Flaw>& flaws,
+        utils::LogProxy log,
         utils::CountdownTimer& timer);
 
     void refine(
@@ -77,6 +76,7 @@ private:
         FDRSimpleCostFunction& task_cost_function,
         ProjectionInfo& pdb_info,
         const std::vector<Flaw>& flaws,
+        utils::LogProxy log,
         utils::CountdownTimer& timer);
 };
 

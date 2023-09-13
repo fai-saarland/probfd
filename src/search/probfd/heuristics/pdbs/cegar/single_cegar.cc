@@ -25,14 +25,12 @@ namespace pdbs {
 namespace cegar {
 
 SingleCEGAR::SingleCEGAR(
-    utils::LogProxy log,
-    const shared_ptr<utils::RandomNumberGenerator>& arg_rng,
+    std::shared_ptr<utils::RandomNumberGenerator> rng,
     std::shared_ptr<PolicyExplorationStrategy> flaw_strategy,
     bool wildcard,
     int arg_max_pdb_size,
     std::unordered_set<int> blacklisted_variables)
-    : log(std::move(log))
-    , rng(arg_rng)
+    : rng(std::move(rng))
     , flaw_strategy(flaw_strategy)
     , wildcard(wildcard)
     , max_pdb_size(arg_max_pdb_size)
@@ -46,6 +44,7 @@ void SingleCEGAR::run_refinement_loop(
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
     ProjectionInfo& pdb_info,
+    utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
     if (log.is_at_least_normal()) {
@@ -74,6 +73,7 @@ void SingleCEGAR::run_refinement_loop(
                     task_cost_function,
                     pdb_info,
                     flaws,
+                    log,
                     timer)) {
                 if (log.is_at_least_verbose()) {
                     log << "SingleCEGAR: Flaw list empty. "
@@ -86,7 +86,7 @@ void SingleCEGAR::run_refinement_loop(
 
             // if there was a flaw, then refine the abstraction
             // such that said flaw does not occur again
-            refine(task_proxy, task_cost_function, pdb_info, flaws, timer);
+            refine(task_proxy, task_cost_function, pdb_info, flaws, log, timer);
 
             ++refinement_counter;
             flaws.clear();
@@ -110,6 +110,7 @@ bool SingleCEGAR::get_flaws(
     FDRSimpleCostFunction& task_cost_function,
     ProjectionInfo& pdb_info,
     std::vector<Flaw>& flaws,
+    utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
     AbstractStateIndex initial_state =
@@ -164,6 +165,7 @@ void SingleCEGAR::refine(
     FDRSimpleCostFunction& task_cost_function,
     ProjectionInfo& pdb_info,
     const std::vector<Flaw>& flaws,
+    utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
     assert(!flaws.empty());

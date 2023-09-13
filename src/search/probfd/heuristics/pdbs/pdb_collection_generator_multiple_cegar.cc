@@ -42,7 +42,6 @@ ProjectionInfo PDBCollectionGeneratorMultipleCegar::compute_pattern(
     unordered_set<int>&& blacklisted_variables)
 {
     SingleCEGAR cegar(
-        log,
         rng,
         exploration_strategy,
         use_wildcard_policies,
@@ -64,6 +63,7 @@ ProjectionInfo PDBCollectionGeneratorMultipleCegar::compute_pattern(
         task_proxy,
         task_cost_function,
         projection_info,
+        log,
         timer);
     return projection_info;
 }

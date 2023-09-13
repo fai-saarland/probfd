@@ -39,8 +39,6 @@ struct CEGARResult {
 class CEGAR {
     class PDBInfo;
 
-    mutable utils::LogProxy log;
-
     // Random number generator
     const std::shared_ptr<utils::RandomNumberGenerator> rng;
 
@@ -67,8 +65,7 @@ class CEGAR {
 
 public:
     CEGAR(
-        utils::LogProxy log,
-        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
         std::shared_ptr<PolicyExplorationStrategy> flaw_strategy,
         bool wildcard,
         int max_pdb_size,
@@ -81,6 +78,7 @@ public:
     CEGARResult generate_pdbs(
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
+        utils::LogProxy log,
         utils::CountdownTimer& timer);
 
 private:
@@ -88,6 +86,7 @@ private:
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
         int& collection_size,
+        utils::LogProxy log,
         utils::CountdownTimer& timer);
 
     // If a concrete solution was found, returns a pointer to the corresponding
@@ -97,6 +96,7 @@ private:
         std::vector<Flaw>& flaws,
         std::vector<int>& flaw_offsets,
         value_t termination_cost,
+        utils::LogProxy log,
         utils::CountdownTimer& timer);
 
     bool can_add_variable(
@@ -129,9 +129,10 @@ private:
         const std::vector<Flaw>& flaws,
         const std::vector<int>& flaw_offsets,
         int& collection_size,
+        utils::LogProxy log,
         utils::CountdownTimer& timer);
 
-    void print_collection() const;
+    void print_collection(utils::LogProxy log) const;
 
     void reindex_variables(PDBInfo& from, PDBInfo& to);
     void move_info(PDBInfo& from, PDBInfo& to);
