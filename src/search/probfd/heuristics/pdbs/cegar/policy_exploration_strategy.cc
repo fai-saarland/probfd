@@ -37,24 +37,6 @@ bool collect_flaws(
 }
 } // namespace
 
-bool PolicyExplorationStrategy::apply_policy(
-    ProbabilisticTaskProxy task_proxy,
-    const ProjectionInfo& info,
-    const ProjectionMultiPolicy& policy,
-    FlawFilter& flaw_filter,
-    std::vector<Flaw>& flaws,
-    utils::CountdownTimer& timer)
-{
-    return this->apply_policy(
-        task_proxy,
-        *info.mdp,
-        *info.pdb,
-        policy,
-        flaw_filter,
-        flaws,
-        timer);
-}
-
 bool collect_flaws(
     PreconditionsProxy facts,
     const State& state,

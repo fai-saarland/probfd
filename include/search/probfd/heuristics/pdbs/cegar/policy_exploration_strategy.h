@@ -37,20 +37,11 @@ public:
     // blacklisted variables are never added.
     virtual bool apply_policy(
         ProbabilisticTaskProxy task_proxy,
-        const ProjectionStateSpace& mdp,
-        const ProbabilityAwarePatternDatabase& pdb,
-        const ProjectionMultiPolicy& policy,
-        FlawFilter& flaw_filter,
-        std::vector<Flaw>& flaws,
-        utils::CountdownTimer& timer) = 0;
-
-    bool apply_policy(
-        ProbabilisticTaskProxy task_proxy,
         const ProjectionInfo& info,
         const ProjectionMultiPolicy& policy,
         FlawFilter& flaw_filter,
         std::vector<Flaw>& flaws,
-        utils::CountdownTimer& timer);
+        utils::CountdownTimer& timer) = 0;
 
     virtual std::string get_name() = 0;
 };

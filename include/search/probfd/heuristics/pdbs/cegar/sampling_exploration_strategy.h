@@ -48,8 +48,7 @@ public:
 
     bool apply_policy(
         ProbabilisticTaskProxy task_proxy,
-        const ProjectionStateSpace& mdp,
-        const ProbabilityAwarePatternDatabase& pdb,
+        const ProjectionInfo& projection,
         const ProjectionMultiPolicy& policy,
         FlawFilter& flaw_filter,
         std::vector<Flaw>& flaw_list,

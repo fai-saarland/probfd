@@ -84,6 +84,9 @@ struct ProjectionInfo {
     /// Look up the estimate of an abstract state specified by index in
     /// the lookup table.
     [[nodiscard]] value_t lookup_estimate(AbstractStateIndex s) const;
+
+    /// Check if the abstract state with given index is an abstract goal.
+    [[nodiscard]] bool is_goal(AbstractStateIndex s) const;
 };
 
 } // namespace pdbs

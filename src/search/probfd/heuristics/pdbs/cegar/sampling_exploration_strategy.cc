@@ -1,6 +1,7 @@
 #include "probfd/heuristics/pdbs/cegar/sampling_exploration_strategy.h"
 
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
+#include "probfd/heuristics/pdbs/projection_info.h"
 #include "probfd/heuristics/pdbs/projection_state_space.h"
 #include "probfd/heuristics/pdbs/types.h"
 
@@ -48,8 +49,7 @@ SamplingExplorationStrategy::SamplingExplorationStrategy(
 
 bool SamplingExplorationStrategy::apply_policy(
     ProbabilisticTaskProxy task_proxy,
-    const ProjectionStateSpace& mdp,
-    const ProbabilityAwarePatternDatabase& pdb,
+    const ProjectionInfo& projection,
     const ProjectionMultiPolicy& policy,
     FlawFilter& flaw_filter,
     std::vector<Flaw>& flaw_list,
@@ -73,7 +73,7 @@ bool SamplingExplorationStrategy::apply_policy(
 
     for (;;) {
         const State* current = &stk.back();
-        const AbstractStateIndex abs = pdb.get_abstract_state(*current);
+        const AbstractStateIndex abs = projection.get_abstract_state(*current);
 
         ExplorationInfo* einfo = &einfos[StateID(current->get_id())];
 
@@ -85,7 +85,7 @@ bool SamplingExplorationStrategy::apply_policy(
 
             // Goal flaw check
             if (abs_decisions.empty()) {
-                if (mdp.is_goal(abs)) {
+                if (projection.is_goal(abs)) {
                     const size_t flaws_before = flaw_list.size();
                     flaws_found = collect_flaws(
                                       goals,

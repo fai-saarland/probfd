@@ -119,6 +119,11 @@ value_t ProjectionInfo::lookup_estimate(AbstractStateIndex index) const
     return pdb->lookup_estimate(index);
 }
 
+bool ProjectionInfo::is_goal(AbstractStateIndex s) const
+{
+    return mdp->is_goal(s);
+}
+
 } // namespace pdbs
 } // namespace heuristics
 } // namespace probfd

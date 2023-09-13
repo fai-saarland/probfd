@@ -1,6 +1,7 @@
 #include "probfd/heuristics/pdbs/cegar/bfs_exploration_strategy.h"
 
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
+#include "probfd/heuristics/pdbs/projection_info.h"
 #include "probfd/heuristics/pdbs/projection_state_space.h"
 
 #include "probfd/task_utils/task_properties.h"
@@ -40,8 +41,7 @@ BFSExplorationStrategy::BFSExplorationStrategy(int max_search_states)
 
 bool BFSExplorationStrategy::apply_policy(
     ProbabilisticTaskProxy task_proxy,
-    const ProjectionStateSpace& mdp,
-    const ProbabilityAwarePatternDatabase& pdb,
+    const ProjectionInfo& projection,
     const ProjectionMultiPolicy& policy,
     FlawFilter& flaw_filter,
     std::vector<Flaw>& flaw_list,
@@ -72,14 +72,14 @@ bool BFSExplorationStrategy::apply_policy(
         timer.throw_if_expired();
 
         const State& current = open.front();
-        const AbstractStateIndex abs = pdb.get_abstract_state(current);
+        const AbstractStateIndex abs = projection.get_abstract_state(current);
 
         {
             const std::vector abs_decisions = policy.get_decisions(abs);
 
             // We reached a terminal state, check if it is a goal or dead-end
             if (abs_decisions.empty()) {
-                if (mdp.is_goal(abs)) {
+                if (projection.is_goal(abs)) {
                     const size_t flaws_before = flaw_list.size();
                     flaws_found =
                         collect_flaws(goals, current, flaw_filter, flaw_list) ||
