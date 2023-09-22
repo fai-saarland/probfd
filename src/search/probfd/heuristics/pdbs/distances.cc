@@ -46,7 +46,7 @@ static void verify(
 
     const int num_states = static_cast<int>(value_table.size());
 
-    for (size_t i = 0; i != num_states; ++i) {
+    for (int i = 0; i != num_states; ++i) {
         variables.emplace_back(0_vt, std::min(term_cost, inf), 0_vt);
     }
 
@@ -89,7 +89,7 @@ static void verify(
 
             value_t non_loop_prob = 0_vt;
             for (const auto& [succ, prob] : successor_dist) {
-                if (succ != s) {
+                if (succ != static_cast<size_t>(s)) {
                     non_loop_prob += prob;
                     constr.insert(succ.id, -prob);
                 }
