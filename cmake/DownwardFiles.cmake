@@ -439,35 +439,35 @@ create_fast_downward_library(
     NAME lp_solver
     HELP "Interface to an LP solver"
     SOURCES
-        downward/lp/lp_internals
         downward/lp/lp_solver
+        downward/lp/solver_interface
     DEPENDS named_vector
     DEPENDENCY_ONLY
 )
 
 if(USE_LP)
-    find_package(OSI OPTIONAL_COMPONENTS Cpx Clp Grb Spx)
-    if(OSI_FOUND AND (OSI_Cpx_FOUND OR OSI_Clp_FOUND OR OSI_Grb_FOUND OR OSI_Spx_FOUND))
-        foreach(SOLVER Cpx Clp Grb Spx)
-            if(OSI_${SOLVER}_FOUND)
-                string(TOUPPER ${SOLVER} TMP_SOLVER_UPPER_CASE)
-                mark_as_advanced(TMP_SOLVER_UPPER_CASE)
-                add_definitions("-D COIN_HAS_${TMP_SOLVER_UPPER_CASE}")
-                include_directories(${OSI_${SOLVER}_INCLUDE_DIRS})
-                target_link_libraries(lp_solver INTERFACE ${OSI_${SOLVER}_LIBRARIES})
-            endif()
-        endforeach()
+    find_package(Cplex 12)
+    if(CPLEX_FOUND)
+        target_compile_definitions(lp_solver INTERFACE HAS_CPLEX)
+        target_link_libraries(lp_solver INTERFACE cplex::cplex)
+        target_sources(
+            lp_solver
+            INTERFACE
+            ${PROJECT_SOURCE_DIR}/include/search/downward/lp/cplex_solver_interface.h
+            ${PROJECT_SOURCE_DIR}/src/search/downward/lp/cplex_solver_interface.cc)
+    endif()
 
-        # Note that basic OSI libs must be added after (!) all OSI solver libs.
-        add_definitions("-D USE_LP")
-        include_directories(${OSI_INCLUDE_DIRS})
-        target_link_libraries(lp_solver INTERFACE ${OSI_LIBRARIES})
-
-        find_package(ZLIB REQUIRED)
-        if(ZLIB_FOUND)
-            include_directories(${ZLIB_INCLUDE_DIRS})
-            target_link_libraries(lp_solver INTERFACE ${ZLIB_LIBRARIES})
-        endif()
+    # TODO: we actually require a version greater than 6.0.3 but it is not released yet.
+    find_package(soplex 6.0.3 QUIET)
+    if (SOPLEX_FOUND)
+        message(STATUS "Found SoPlex: ${SOPLEX_INCLUDE_DIRS}")
+        target_compile_definitions(lp_solver INTERFACE HAS_SOPLEX)
+        target_link_libraries(lp_solver INTERFACE libsoplex)
+        target_sources(
+            lp_solver
+            INTERFACE
+            ${PROJECT_SOURCE_DIR}/include/search/downward/lp/soplex_solver_interface.h
+            ${PROJECT_SOURCE_DIR}/src/search/downward/lp/soplex_solver_interface.cc)
     endif()
 endif()
 

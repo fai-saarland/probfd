@@ -5,7 +5,7 @@
 
 #include "probfd/heuristics/pdbs/projection_state_space.h"
 
-#if !defined(NDEBUG) && defined(USE_LP)
+#if !defined(NDEBUG) && (defined(HAS_CPLEX) || defined(HAS_SOPLEX))
 #include "downward/lp/lp_solver.h"
 
 #include <deque>
@@ -14,7 +14,7 @@
 
 namespace probfd::heuristics::pdbs {
 
-#if !defined(NDEBUG) && defined(USE_LP)
+#if !defined(NDEBUG) && (defined(HAS_CPLEX) || defined(HAS_SOPLEX))
 static void verify(
     ProjectionStateSpace& mdp,
     std::span<const value_t> value_table,
@@ -23,19 +23,10 @@ static void verify(
 {
     lp::LPSolverType type;
 
-#ifdef COIN_HAS_CLP
-    type = lp::LPSolverType::CLP;
-#elif defined(COIN_HAS_CPX)
+#ifdef HAS_CPLEX
     type = lp::LPSolverType::CPLEX;
-#elif defined(COIN_HAS_GRB)
-    type = lp::LPSolverType::GUROBI;
-#elif defined(COIN_HAS_SPX)
-    type = lp::LPSolverType::SOPLEX;
 #else
-    std::cerr << "Warning: Could not verify PDB value table since no LP solver"
-                 "is available !"
-              << std::endl;
-    return;
+    type = lp::LPSolverType::SOPLEX;
 #endif
 
     lp::LPSolver solver(type);
@@ -206,7 +197,7 @@ void compute_value_table(
     TATopologicalValueIteration<StateRank, const ProjectionOperator*> vi;
     vi.solve(mdp, h, initial_state, value_table, timer.get_remaining_time());
 
-#if !defined(NDEBUG) && defined(USE_LP)
+#if !defined(NDEBUG) && (defined(HAS_CPLEX) || defined(HAS_SOPLEX))
     verify(mdp, value_table, initial_state, pruned_states);
 #endif
 }
