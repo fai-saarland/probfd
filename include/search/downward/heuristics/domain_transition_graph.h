@@ -130,8 +130,8 @@ struct ValueNode {
     ValueNode(DomainTransitionGraph* parent, int val)
         : parent_graph(parent)
         , value(val)
-        , reached_from(0)
-        , reached_by(0)
+        , reached_from(nullptr)
+        , reached_by(nullptr)
     {
     }
 };

@@ -130,7 +130,7 @@ PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
     , max_time(opts.get<double>("max_time"))
     , rng(utils::parse_rng_from_options(opts))
     , num_rejected(0)
-    , hill_climbing_timer(0)
+    , hill_climbing_timer(nullptr)
 {
 }
 

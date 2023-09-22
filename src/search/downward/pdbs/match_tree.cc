@@ -89,7 +89,7 @@ void MatchTree::insert_recursive(
     int pre_index,
     Node** edge_from_parent)
 {
-    if (*edge_from_parent == 0) {
+    if (*edge_from_parent == nullptr) {
         // We don't exist yet: create a new node.
         *edge_from_parent = new Node();
     }
@@ -122,7 +122,7 @@ void MatchTree::insert_recursive(
 
         /* Set up edge to the correct child (for which we want to call
            this function recursively). */
-        Node** edge_to_child = 0;
+        Node** edge_to_child = nullptr;
         if (node->var_id == fact.var) {
             // Operator has a precondition on the variable tested by node.
             edge_to_child = &node->successors[fact.value];
