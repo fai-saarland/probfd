@@ -1,49 +1,5 @@
-# See http://www.fast-downward.org/ForDevelopers/AddingSourceFiles
-# for general information on adding source files and CMake plugins.
-#
-# All plugins are enabled by default and users can disable them by specifying
-#    -DPLUGIN_FOO_ENABLED=FALSE
-# The default behavior can be changed so all non-essential plugins are
-# disabled by default by specifying
-#    -DDISABLE_PLUGINS_BY_DEFAULT=TRUE
-# In that case, individual plugins can be enabled with
-#    -DPLUGIN_FOO_ENABLED=TRUE
-#
-# Defining a new plugin:
-#    fast_downward_plugin(
-#        NAME <NAME>
-#        [ DISPLAY_NAME <DISPLAY_NAME> ]
-#        [ HELP <HELP> ]
-#        SOURCES
-#            <FILE_1> [ <FILE_2> ... ]
-#        [ DEPENDS <PLUGIN_NAME_1> [ <PLUGIN_NAME_2> ... ] ]
-#        [ DEPENDENCY_ONLY ]
-#        [ CORE_PLUGIN ]
-#    )
-#
-# <DISPLAY_NAME> defaults to lower case <NAME> and is used to group files
-#   in IDEs and for messages.
-# <HELP> defaults to <DISPLAY_NAME> and is used to describe the cmake option.
-# SOURCES lists the source files that are part of the plugin. Entries are
-#   listed without extension. For an entry <file>, both <file>.h and <file>.cc
-#   are added if the files exist.
-# DEPENDS lists plugins that will be automatically enabled if this plugin is
-#   enabled. If the dependency was not enabled before, this will be logged.
-# DEPENDENCY_ONLY disables the plugin unless it is needed as a dependency and
-#   hides the option to enable the plugin in cmake GUIs like ccmake.
-# CORE_PLUGIN always enables the plugin (even if DISABLE_PLUGINS_BY_DEFAULT
-#   is used) and hides the option to disable it in CMake GUIs like ccmake.
-
-option(
-    DISABLE_PLUGINS_BY_DEFAULT
-    "If set to YES only plugins that are specifically enabled will be compiled"
-    NO)
-# This option should not show up in CMake GUIs like ccmake where all
-# plugins are enabled or disabled manually.
-mark_as_advanced(DISABLE_PLUGINS_BY_DEFAULT)
-
-fast_downward_plugin(
-    NAME CORE_SOURCES
+create_fast_downward_library(
+    NAME core_sources
     HELP "Core source files"
     SOURCES
         downward/abstract_task
@@ -73,12 +29,12 @@ fast_downward_plugin(
         downward/state_registry
         downward/task_id
         downward/task_proxy
-    DEPENDS CAUSAL_GRAPH INT_HASH_SET INT_PACKER ORDERED_SET SEGMENTED_VECTOR SUBSCRIBER SUCCESSOR_GENERATOR TASK_PROPERTIES
-    CORE_PLUGIN
+    DEPENDS causal_graph int_hash_set int_packer ordered_set segmented_vector subscriber successor_generator task_properties
+    CORE_LIBRARY
 )
 
-fast_downward_plugin(
-    NAME PLUGINS
+create_fast_downward_library(
+    NAME plugins
     HELP "Plugin definition"
     SOURCES
         downward/plugins/any
@@ -91,11 +47,11 @@ fast_downward_plugin(
         downward/plugins/registry
         downward/plugins/registry_types
         downward/plugins/types
-    CORE_PLUGIN
+    CORE_LIBRARY
 )
 
-fast_downward_plugin(
-    NAME PARSER
+create_fast_downward_library(
+    NAME parser
     HELP "Option parsing"
     SOURCES
         downward/parser/abstract_syntax_tree
@@ -103,11 +59,11 @@ fast_downward_plugin(
         downward/parser/lexical_analyzer
         downward/parser/syntax_analyzer
         downward/parser/token_stream
-    CORE_PLUGIN
+    CORE_LIBRARY
 )
 
-fast_downward_plugin(
-    NAME UTILS
+create_fast_downward_library(
+    NAME utils
     HELP "System utilities"
     SOURCES
         downward/utils/collections
@@ -125,362 +81,398 @@ fast_downward_plugin(
         downward/utils/system_unix
         downward/utils/system_windows
         downward/utils/timer
-    CORE_PLUGIN
+    CORE_LIBRARY
 )
 
-fast_downward_plugin(
-    NAME ALTERNATION_OPEN_LIST
+# On Linux, find the rt library for clock_gettime().
+if(UNIX AND NOT APPLE)
+    target_link_libraries(utils INTERFACE rt)
+endif()
+
+# On Windows, find the psapi library for determining peak memory.
+if(WIN32)
+    cmake_policy(SET CMP0074 NEW)
+    target_link_libraries(utils INTERFACE psapi)
+endif()
+
+create_fast_downward_library(
+    NAME alternation_open_list
     HELP "Open list that alternates between underlying open lists in a round-robin manner"
     SOURCES
         downward/open_lists/alternation_open_list
 )
 
-fast_downward_plugin(
-    NAME BEST_FIRST_OPEN_LIST
+create_fast_downward_library(
+    NAME best_first_open_list
     HELP "Open list that selects the best element according to a single evaluation function"
     SOURCES
         downward/open_lists/best_first_open_list
 )
 
-fast_downward_plugin(
-    NAME EPSILON_GREEDY_OPEN_LIST
+create_fast_downward_library(
+    NAME epsilon_greedy_open_list
     HELP "Open list that chooses an entry randomly with probability epsilon"
     SOURCES
         downward/open_lists/epsilon_greedy_open_list
 )
 
-fast_downward_plugin(
-    NAME PARETO_OPEN_LIST
+create_fast_downward_library(
+    NAME pareto_open_list
     HELP "Pareto open list"
     SOURCES
         downward/open_lists/pareto_open_list
 )
 
-fast_downward_plugin(
-    NAME TIEBREAKING_OPEN_LIST
+create_fast_downward_library(
+    NAME tiebreaking_open_list
     HELP "Tiebreaking open list"
     SOURCES
         downward/open_lists/tiebreaking_open_list
 )
 
-fast_downward_plugin(
-    NAME TYPE_BASED_OPEN_LIST
+create_fast_downward_library(
+    NAME type_based_open_list
     HELP "Type-based open list"
     SOURCES
         downward/open_lists/type_based_open_list
 )
 
-fast_downward_plugin(
-    NAME DYNAMIC_BITSET
+create_fast_downward_library(
+    NAME dynamic_bitset
     HELP "Poor man's version of boost::dynamic_bitset"
     SOURCES
         downward/algorithms/dynamic_bitset
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME NAMED_VECTOR
+create_fast_downward_library(
+    NAME named_vector
     HELP "Generic vector with associated name for each element"
     SOURCES
         downward/algorithms/named_vector
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME EQUIVALENCE_RELATION
+create_fast_downward_library(
+    NAME equivalence_relation
     HELP "Equivalence relation over [1, ..., n] that can be iteratively refined"
     SOURCES
         downward/algorithms/equivalence_relation
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME INT_HASH_SET
+create_fast_downward_library(
+    NAME int_hash_set
     HELP "Hash set storing non-negative integers"
     SOURCES
         downward/algorithms/int_hash_set
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME INT_PACKER
+create_fast_downward_library(
+    NAME int_packer
     HELP "Greedy bin packing algorithm to pack integer variables with small domains tightly into memory"
     SOURCES
         downward/algorithms/int_packer
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME MAX_CLIQUES
+create_fast_downward_library(
+    NAME max_cliques
     HELP "Implementation of the Max Cliques algorithm by Tomita et al."
     SOURCES
         downward/algorithms/max_cliques
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME PRIORITY_QUEUES
+create_fast_downward_library(
+    NAME priority_queues
     HELP "Three implementations of priority queue: HeapQueue, BucketQueue and AdaptiveQueue"
     SOURCES
         downward/algorithms/priority_queues
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME ORDERED_SET
+create_fast_downward_library(
+    NAME ordered_set
     HELP "Set of elements ordered by insertion time"
     SOURCES
         downward/algorithms/ordered_set
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME SEGMENTED_VECTOR
+create_fast_downward_library(
+    NAME segmented_vector
     HELP "Memory-friendly and vector-like data structure"
     SOURCES
         downward/algorithms/segmented_vector
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME SUBSCRIBER
+create_fast_downward_library(
+    NAME subscriber
     HELP "Allows object to subscribe to the destructor of other objects"
     SOURCES
         downward/algorithms/subscriber
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME EVALUATORS_SUBCATEGORY
+create_fast_downward_library(
+    NAME evaluators_subcategory
     HELP "Subcategory plugin for basic evaluators"
     SOURCES
         downward/evaluators/subcategory
 )
 
-
-fast_downward_plugin(
-    NAME CONST_EVALUATOR
+create_fast_downward_library(
+    NAME const_evaluator
     HELP "The constant evaluator"
     SOURCES
         downward/evaluators/const_evaluator
-    DEPENDS EVALUATORS_SUBCATEGORY
+    DEPENDS evaluators_subcategory
 )
 
-fast_downward_plugin(
-    NAME G_EVALUATOR
+create_fast_downward_library(
+    NAME g_evaluator
     HELP "The g-evaluator"
     SOURCES
         downward/evaluators/g_evaluator
-    DEPENDS EVALUATORS_SUBCATEGORY
+    DEPENDS evaluators_subcategory
 )
 
-fast_downward_plugin(
-    NAME COMBINING_EVALUATOR
+create_fast_downward_library(
+    NAME combining_evaluator
     HELP "The combining evaluator"
     SOURCES
         downward/evaluators/combining_evaluator
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME MAX_EVALUATOR
+create_fast_downward_library(
+    NAME max_evaluator
     HELP "The max evaluator"
     SOURCES
         downward/evaluators/max_evaluator
-    DEPENDS COMBINING_EVALUATOR EVALUATORS_SUBCATEGORY
+    DEPENDS combining_evaluator evaluators_subcategory
 )
 
-fast_downward_plugin(
-    NAME PREF_EVALUATOR
+create_fast_downward_library(
+    NAME pref_evaluator
     HELP "The pref evaluator"
     SOURCES
         downward/evaluators/pref_evaluator
-    DEPENDS EVALUATORS_SUBCATEGORY
+    DEPENDS evaluators_subcategory
 )
 
-fast_downward_plugin(
-    NAME WEIGHTED_EVALUATOR
+create_fast_downward_library(
+    NAME weighted_evaluator
     HELP "The weighted evaluator"
     SOURCES
         downward/evaluators/weighted_evaluator
-    DEPENDS EVALUATORS_SUBCATEGORY
+    DEPENDS evaluators_subcategory
 )
 
-fast_downward_plugin(
-    NAME SUM_EVALUATOR
+create_fast_downward_library(
+    NAME sum_evaluator
     HELP "The sum evaluator"
     SOURCES
         downward/evaluators/sum_evaluator
-    DEPENDS COMBINING_EVALUATOR EVALUATORS_SUBCATEGORY
+    DEPENDS combining_evaluator evaluators_subcategory
 )
 
-fast_downward_plugin(
-    NAME NULL_PRUNING_METHOD
+create_fast_downward_library(
+    NAME null_pruning_method
     HELP "Pruning method that does nothing"
     SOURCES
         downward/pruning/null_pruning_method
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME LIMITED_PRUNING
+create_fast_downward_library(
+    NAME limited_pruning
     HELP "Method for limiting another pruning method"
     SOURCES
         downward/pruning/limited_pruning
 )
 
-fast_downward_plugin(
-    NAME STUBBORN_SETS
+create_fast_downward_library(
+    NAME stubborn_sets
     HELP "Base class for all stubborn set partial order reduction methods"
     SOURCES
         downward/pruning/stubborn_sets
-    DEPENDS TASK_PROPERTIES
+    DEPENDS task_properties
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME STUBBORN_SETS_ACTION_CENTRIC
+create_fast_downward_library(
+    NAME stubborn_sets_action_centric
     HELP "Base class for all action-centric stubborn set partial order reduction methods"
     SOURCES
         downward/pruning/stubborn_sets_action_centric
-    DEPENDS STUBBORN_SETS
+    DEPENDS stubborn_sets
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME STUBBORN_SETS_ATOM_CENTRIC
+create_fast_downward_library(
+    NAME stubborn_sets_atom_centric
     HELP "Atom-centric stubborn sets"
     SOURCES
         downward/pruning/stubborn_sets_atom_centric
-    DEPENDS STUBBORN_SETS
+    DEPENDS stubborn_sets
 )
 
-fast_downward_plugin(
-    NAME STUBBORN_SETS_SIMPLE
+create_fast_downward_library(
+    NAME stubborn_sets_simple
     HELP "Stubborn sets simple"
     SOURCES
         downward/pruning/stubborn_sets_simple
-    DEPENDS STUBBORN_SETS_ACTION_CENTRIC
+    DEPENDS stubborn_sets_action_centric
 )
 
-fast_downward_plugin(
-    NAME STUBBORN_SETS_EC
+create_fast_downward_library(
+    NAME stubborn_sets_ec
     HELP "Stubborn set method that dominates expansion core"
     SOURCES
         downward/pruning/stubborn_sets_ec
-    DEPENDS STUBBORN_SETS_ACTION_CENTRIC TASK_PROPERTIES
+    DEPENDS stubborn_sets_action_centric task_properties
 )
 
-fast_downward_plugin(
-    NAME SEARCH_COMMON
+create_fast_downward_library(
+    NAME search_common
     HELP "Basic classes used for all search engines"
     SOURCES
         downward/search_algorithms/search_common
-    DEPENDS ALTERNATION_OPEN_LIST G_EVALUATOR BEST_FIRST_OPEN_LIST SUM_EVALUATOR TIEBREAKING_OPEN_LIST WEIGHTED_EVALUATOR
+    DEPENDS alternation_open_list g_evaluator best_first_open_list sum_evaluator tiebreaking_open_list weighted_evaluator
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME EAGER_SEARCH
+create_fast_downward_library(
+    NAME eager_search
     HELP "Eager search algorithm"
     SOURCES
         downward/search_algorithms/eager_search
-    DEPENDS NULL_PRUNING_METHOD ORDERED_SET SUCCESSOR_GENERATOR
+    DEPENDS null_pruning_method ordered_set successor_generator
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME PLUGIN_ASTAR
+create_fast_downward_library(
+    NAME plugin_astar
     HELP "A* search"
     SOURCES
         downward/search_algorithms/plugin_astar
-    DEPENDS EAGER_SEARCH SEARCH_COMMON
+    DEPENDS eager_search search_common
 )
 
-fast_downward_plugin(
-    NAME PLUGIN_EAGER
+create_fast_downward_library(
+    NAME plugin_eager
     HELP "Eager (i.e., normal) best-first search"
     SOURCES
         downward/search_algorithms/plugin_eager
-    DEPENDS EAGER_SEARCH SEARCH_COMMON
+    DEPENDS eager_search search_common
 )
 
-fast_downward_plugin(
-    NAME PLUGIN_EAGER_GREEDY
+create_fast_downward_library(
+    NAME plugin_eager_greedy
     HELP "Eager greedy best-first search"
     SOURCES
         downward/search_algorithms/plugin_eager_greedy
-    DEPENDS EAGER_SEARCH SEARCH_COMMON
+    DEPENDS eager_search search_common
 )
 
-fast_downward_plugin(
-    NAME PLUGIN_EAGER_WASTAR
+create_fast_downward_library(
+    NAME plugin_eager_wastar
     HELP "Weighted eager A* search"
     SOURCES
         downward/search_algorithms/plugin_eager_wastar
-    DEPENDS EAGER_SEARCH SEARCH_COMMON
+    DEPENDS eager_search search_common
 )
 
-fast_downward_plugin(
-    NAME PLUGIN_LAZY
+create_fast_downward_library(
+    NAME plugin_lazy
     HELP "Best-first search with deferred evaluation (lazy)"
     SOURCES
         downward/search_algorithms/plugin_lazy
-    DEPENDS LAZY_SEARCH SEARCH_COMMON
+    DEPENDS lazy_search search_common
 )
 
-fast_downward_plugin(
-    NAME PLUGIN_LAZY_GREEDY
+create_fast_downward_library(
+    NAME plugin_lazy_greedy
     HELP "Greedy best-first search with deferred evaluation (lazy)"
     SOURCES
         downward/search_algorithms/plugin_lazy_greedy
-    DEPENDS LAZY_SEARCH SEARCH_COMMON
+    DEPENDS lazy_search search_common
 )
 
-fast_downward_plugin(
-    NAME PLUGIN_LAZY_WASTAR
+create_fast_downward_library(
+    NAME plugin_lazy_wastar
     HELP "Weighted A* search with deferred evaluation (lazy)"
     SOURCES
         downward/search_algorithms/plugin_lazy_wastar
-    DEPENDS LAZY_SEARCH SEARCH_COMMON
+    DEPENDS lazy_search search_common
 )
 
-fast_downward_plugin(
-    NAME ENFORCED_HILL_CLIMBING_SEARCH
+create_fast_downward_library(
+    NAME enforced_hill_climbing_search
     HELP "Lazy enforced hill-climbing search algorithm"
     SOURCES
         downward/search_algorithms/enforced_hill_climbing_search
-    DEPENDS G_EVALUATOR ORDERED_SET PREF_EVALUATOR SEARCH_COMMON SUCCESSOR_GENERATOR
+    DEPENDS g_evaluator ordered_set pref_evaluator search_common successor_generator
 )
 
-fast_downward_plugin(
-    NAME ITERATED_SEARCH
+create_fast_downward_library(
+    NAME iterated_search
     HELP "Iterated search algorithm"
     SOURCES
         downward/search_algorithms/iterated_search
 )
 
-fast_downward_plugin(
-    NAME LAZY_SEARCH
+create_fast_downward_library(
+    NAME lazy_search
     HELP "Lazy search algorithm"
     SOURCES
         downward/search_algorithms/lazy_search
-    DEPENDS ORDERED_SET SUCCESSOR_GENERATOR
+    DEPENDS ordered_set successor_generator
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME LP_SOLVER
+create_fast_downward_library(
+    NAME lp_solver
     HELP "Interface to an LP solver"
     SOURCES
         downward/lp/lp_internals
         downward/lp/lp_solver
-    DEPENDS NAMED_VECTOR
+    DEPENDS named_vector
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME RELAXATION_HEURISTIC
+if(USE_LP)
+    find_package(OSI OPTIONAL_COMPONENTS Cpx Clp Grb Spx)
+    if(OSI_FOUND AND (OSI_Cpx_FOUND OR OSI_Clp_FOUND OR OSI_Grb_FOUND OR OSI_Spx_FOUND))
+        foreach(SOLVER Cpx Clp Grb Spx)
+            if(OSI_${SOLVER}_FOUND)
+                string(TOUPPER ${SOLVER} TMP_SOLVER_UPPER_CASE)
+                mark_as_advanced(TMP_SOLVER_UPPER_CASE)
+                add_definitions("-D COIN_HAS_${TMP_SOLVER_UPPER_CASE}")
+                include_directories(${OSI_${SOLVER}_INCLUDE_DIRS})
+                target_link_libraries(lp_solver INTERFACE ${OSI_${SOLVER}_LIBRARIES})
+            endif()
+        endforeach()
+
+        # Note that basic OSI libs must be added after (!) all OSI solver libs.
+        add_definitions("-D USE_LP")
+        include_directories(${OSI_INCLUDE_DIRS})
+        target_link_libraries(lp_solver INTERFACE ${OSI_LIBRARIES})
+
+        find_package(ZLIB REQUIRED)
+        if(ZLIB_FOUND)
+            include_directories(${ZLIB_INCLUDE_DIRS})
+            target_link_libraries(lp_solver INTERFACE ${ZLIB_LIBRARIES})
+        endif()
+    endif()
+endif()
+
+create_fast_downward_library(
+    NAME relaxation_heuristic
     HELP "The base class for relaxation heuristics"
     SOURCES
         downward/heuristics/array_pool
@@ -488,155 +480,155 @@ fast_downward_plugin(
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME ADDITIVE_HEURISTIC
+create_fast_downward_library(
+    NAME additive_heuristic
     HELP "The additive heuristic"
     SOURCES
         downward/heuristics/additive_heuristic
-    DEPENDS PRIORITY_QUEUES RELAXATION_HEURISTIC TASK_PROPERTIES
+    DEPENDS priority_queues relaxation_heuristic task_properties
 )
 
-fast_downward_plugin(
-    NAME BLIND_SEARCH_HEURISTIC
+create_fast_downward_library(
+    NAME blind_search_heuristic
     HELP "The 'blind search' heuristic"
     SOURCES
         downward/heuristics/blind_search_heuristic
-    DEPENDS TASK_PROPERTIES
+    DEPENDS task_properties
 )
 
-fast_downward_plugin(
-    NAME CONTEXT_ENHANCED_ADDITIVE_HEURISTIC
+create_fast_downward_library(
+    NAME context_enhanced_additive_heuristic
     HELP "The context-enhanced additive heuristic"
     SOURCES
         downward/heuristics/cea_heuristic
-    DEPENDS DOMAIN_TRANSITION_GRAPH PRIORITY_QUEUES TASK_PROPERTIES
+    DEPENDS domain_transition_graph priority_queues task_properties
 )
 
-fast_downward_plugin(
-    NAME CG_HEURISTIC
+create_fast_downward_library(
+    NAME cg_heuristic
     HELP "The causal graph heuristic"
     SOURCES
         downward/heuristics/cg_heuristic
         downward/heuristics/cg_cache
-    DEPENDS DOMAIN_TRANSITION_GRAPH PRIORITY_QUEUES TASK_PROPERTIES
+    DEPENDS domain_transition_graph priority_queues task_properties
 )
 
-fast_downward_plugin(
-    NAME DOMAIN_TRANSITION_GRAPH
+create_fast_downward_library(
+    NAME domain_transition_graph
     HELP "DTGs used by cg and cea heuristic"
     SOURCES
         downward/heuristics/domain_transition_graph
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME FF_HEURISTIC
+create_fast_downward_library(
+    NAME ff_heuristic
     HELP "The FF heuristic (an implementation of the RPG heuristic)"
     SOURCES
         downward/heuristics/ff_heuristic
-    DEPENDS ADDITIVE_HEURISTIC TASK_PROPERTIES
+    DEPENDS additive_heuristic task_properties
 )
 
-fast_downward_plugin(
-    NAME GOAL_COUNT_HEURISTIC
+create_fast_downward_library(
+    NAME goal_count_heuristic
     HELP "The goal-counting heuristic"
     SOURCES
         downward/heuristics/goal_count_heuristic
 )
 
-fast_downward_plugin(
-    NAME HM_HEURISTIC
+create_fast_downward_library(
+    NAME hm_heuristic
     HELP "The h^m heuristic"
     SOURCES
         downward/heuristics/hm_heuristic
-    DEPENDS TASK_PROPERTIES
+    DEPENDS task_properties
 )
 
-fast_downward_plugin(
-    NAME LANDMARK_CUT_HEURISTIC
+create_fast_downward_library(
+    NAME landmark_cut_heuristic
     HELP "The LM-cut heuristic"
     SOURCES
         downward/heuristics/lm_cut_heuristic
         downward/heuristics/lm_cut_landmarks
-    DEPENDS PRIORITY_QUEUES TASK_PROPERTIES
+    DEPENDS priority_queues task_properties
 )
 
-fast_downward_plugin(
-    NAME MAX_HEURISTIC
+create_fast_downward_library(
+    NAME max_heuristic
     HELP "The Max heuristic"
     SOURCES
         downward/heuristics/max_heuristic
-    DEPENDS PRIORITY_QUEUES RELAXATION_HEURISTIC
+    DEPENDS priority_queues relaxation_heuristic
 )
 
-fast_downward_plugin(
-    NAME CORE_TASKS
+create_fast_downward_library(
+    NAME core_tasks
     HELP "Core task transformations"
     SOURCES
         downward/tasks/cost_adapted_task
         downward/tasks/delegating_task
         downward/tasks/root_task
-    CORE_PLUGIN
+    CORE_LIBRARY
 )
 
-fast_downward_plugin(
-    NAME EXTRA_TASKS
+create_fast_downward_library(
+    NAME extra_tasks
     HELP "Non-core task transformations"
     SOURCES
         downward/tasks/domain_abstracted_task
         downward/tasks/domain_abstracted_task_factory
         downward/tasks/modified_goals_task
         downward/tasks/modified_operator_costs_task
-    DEPENDS TASK_PROPERTIES
+    DEPENDS task_properties
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME CAUSAL_GRAPH
+create_fast_downward_library(
+    NAME causal_graph
     HELP "Causal Graph"
     SOURCES
         downward/task_utils/causal_graph
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME SAMPLING
+create_fast_downward_library(
+    NAME sampling
     HELP "Sampling"
     SOURCES
         downward/task_utils/sampling
-    DEPENDS SUCCESSOR_GENERATOR TASK_PROPERTIES
+    DEPENDS successor_generator task_properties
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME SUCCESSOR_GENERATOR
+create_fast_downward_library(
+    NAME successor_generator
     HELP "Successor generator"
     SOURCES
         downward/task_utils/successor_generator
         downward/task_utils/successor_generator_factory
         downward/task_utils/successor_generator_internals
-    DEPENDS TASK_PROPERTIES
+    DEPENDS task_properties
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME TASK_PROPERTIES
+create_fast_downward_library(
+    NAME task_properties
     HELP "Task properties"
     SOURCES
         downward/task_utils/task_properties
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME VARIABLE_ORDER_FINDER
+create_fast_downward_library(
+    NAME variable_order_finder
     HELP "Variable order finder"
     SOURCES
         downward/task_utils/variable_order_finder
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME CARTESIAN_ABSTRACTIONS
+create_fast_downward_library(
+    NAME cartesian_abstractions
     HELP "Plugin containing the code for Cartesian CEGAR heuristics"
     SOURCES
         downward/cartesian_abstractions/abstraction
@@ -655,11 +647,11 @@ fast_downward_plugin(
         downward/cartesian_abstractions/types
         downward/cartesian_abstractions/utils
         downward/cartesian_abstractions/utils_landmarks
-    DEPENDS ADDITIVE_HEURISTIC DYNAMIC_BITSET EXTRA_TASKS LANDMARKS PRIORITY_QUEUES TASK_PROPERTIES
+    DEPENDS additive_heuristic dynamic_bitset extra_tasks landmarks priority_queues task_properties
 )
 
-fast_downward_plugin(
-    NAME MAS_HEURISTIC
+create_fast_downward_library(
+    NAME mas_heuristic
     HELP "The Merge-and-Shrink heuristic"
     SOURCES
         downward/merge_and_shrink/distances
@@ -698,11 +690,11 @@ fast_downward_plugin(
         downward/merge_and_shrink/transition_system
         downward/merge_and_shrink/types
         downward/merge_and_shrink/utils
-    DEPENDS PRIORITY_QUEUES EQUIVALENCE_RELATION SCCS TASK_PROPERTIES VARIABLE_ORDER_FINDER
+    DEPENDS priority_queues equivalence_relation sccs task_properties variable_order_finder
 )
 
-fast_downward_plugin(
-    NAME LANDMARKS
+create_fast_downward_library(
+    NAME landmarks
     HELP "Plugin containing the code to reason with landmarks"
     SOURCES
         downward/landmarks/exploration
@@ -722,11 +714,11 @@ fast_downward_plugin(
         downward/landmarks/landmark_status_manager
         downward/landmarks/landmark_sum_heuristic
         downward/landmarks/util
-    DEPENDS LP_SOLVER PRIORITY_QUEUES SUCCESSOR_GENERATOR TASK_PROPERTIES
+    DEPENDS lp_solver priority_queues successor_generator task_properties
 )
 
-fast_downward_plugin(
-    NAME OPERATOR_COUNTING
+create_fast_downward_library(
+    NAME operator_counting
     HELP "Plugin containing the code for operator-counting heuristics"
     SOURCES
         downward/operator_counting/constraint_generator
@@ -735,11 +727,11 @@ fast_downward_plugin(
         downward/operator_counting/operator_counting_heuristic
         downward/operator_counting/pho_constraints
         downward/operator_counting/state_equation_constraints
-    DEPENDS LP_SOLVER LANDMARK_CUT_HEURISTIC PDBS TASK_PROPERTIES
+    DEPENDS lp_solver landmark_cut_heuristic pdbs task_properties
 )
 
-fast_downward_plugin(
-    NAME PDBS
+create_fast_downward_library(
+    NAME pdbs
     HELP "Plugin containing the code for PDBs"
     SOURCES
         downward/pdbs/canonical_pdbs
@@ -775,11 +767,11 @@ fast_downward_plugin(
         downward/pdbs/validation
         downward/pdbs/zero_one_pdbs
         downward/pdbs/zero_one_pdbs_heuristic
-    DEPENDS CAUSAL_GRAPH MAX_CLIQUES PRIORITY_QUEUES SAMPLING SUCCESSOR_GENERATOR TASK_PROPERTIES VARIABLE_ORDER_FINDER
+    DEPENDS causal_graph max_cliques priority_queues sampling successor_generator task_properties variable_order_finder
 )
 
-fast_downward_plugin(
-    NAME POTENTIALS
+create_fast_downward_library(
+    NAME potentials
     HELP "Plugin containing the code for potential heuristics"
     SOURCES
         downward/potentials/diverse_potential_heuristics
@@ -791,25 +783,14 @@ fast_downward_plugin(
         downward/potentials/single_potential_heuristics
         downward/potentials/subcategory
         downward/potentials/util
-    DEPENDS LP_SOLVER SAMPLING SUCCESSOR_GENERATOR TASK_PROPERTIES
+    DEPENDS lp_solver sampling successor_generator task_properties
 )
 
-fast_downward_plugin(
-    NAME SCCS
+create_fast_downward_library(
+    NAME sccs
     HELP "Algorithm to compute the strongly connected components (SCCs) of a "
          "directed graph."
     SOURCES
         downward/algorithms/sccs
     DEPENDENCY_ONLY
 )
-
-fast_downward_add_plugin_sources(PLANNER_SOURCES)
-
-# The order in PLANNER_SOURCES influences the order in which object
-# files are given to the linker, which can have a significant influence
-# on performance (see issue67). The general recommendation seems to be
-# to list files that define functions after files that use them.
-# We approximate this by reversing the list, which will put the plugins
-# first, followed by the core files, followed by the main file.
-# This is certainly not optimal, but works well enough in practice.
-list(REVERSE PLANNER_SOURCES)

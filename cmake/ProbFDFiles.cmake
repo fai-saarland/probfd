@@ -1,5 +1,5 @@
-fast_downward_plugin(
-    NAME MDP
+create_fast_downward_library(
+    NAME mdp
     HELP "Core source files for supporting MDPs"
     SOURCES
         # Main
@@ -48,104 +48,104 @@ fast_downward_plugin(
         probfd/solver_interface
         
         probfd/solvers/mdp_solver
-    DEPENDS PROBABILISTIC_SUCCESSOR_GENERATOR
-    CORE_PLUGIN
+    DEPENDS probabilistic_successor_generator
+    CORE_LIBRARY
 )
 
-fast_downward_plugin(
-    NAME PROBABILISTIC_SUCCESSOR_GENERATOR
+create_fast_downward_library(
+    NAME probabilistic_successor_generator
     HELP "Probabilistic Successor generator"
     SOURCES
         probfd/task_utils/probabilistic_successor_generator
         probfd/task_utils/probabilistic_successor_generator_factory
         probfd/task_utils/probabilistic_successor_generator_internals
-    DEPENDS TASK_PROPERTIES
+    DEPENDS task_properties
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME CORE_PROBABILISTIC_TASKS
+create_fast_downward_library(
+    NAME core_probabilistic_tasks
     HELP "Core probabilistic task transformations"
     SOURCES
         probfd/tasks/cost_adapted_task
         probfd/tasks/delegating_task
         probfd/tasks/root_task
         probfd/tasks/all_outcomes_determinization
-    CORE_PLUGIN
+    CORE_LIBRARY
 )
 
-fast_downward_plugin(
-    NAME EXTRA_PROBABILISTIC_TASKS
+create_fast_downward_library(
+    NAME extra_probabilistic_tasks
     HELP "Additional probabilistic task transformations"
     SOURCES
         probfd/tasks/domain_abstracted_task
         probfd/tasks/domain_abstracted_task_factory
         probfd/tasks/modified_goals_task
         probfd/tasks/modified_operator_costs_task
-    CORE_PLUGIN
+    CORE_LIBRARY
 )
 
-fast_downward_plugin(
-    NAME BISIMULATION_CORE
+create_fast_downward_library(
+    NAME bisimulation_core
     HELP "bisimulation_core"
     SOURCES
         probfd/bisimulation/bisimilar_state_space
         probfd/bisimulation/evaluators
-    DEPENDS MDP
+    DEPENDS mdp
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME ACYCLIC_VALUE_ITERATION_SOLVER
+create_fast_downward_library(
+    NAME acyclic_value_iteration_solver
     HELP "acyclic_vi"
     SOURCES
         probfd/solvers/acyclic_vi
-    DEPENDS MDP
+    DEPENDS mdp
 )
 
-fast_downward_plugin(
-    NAME TOPOLOGICAL_VALUE_ITERATION_SOLVER
+create_fast_downward_library(
+    NAME topological_value_iteration_solver
     HELP "topological_vi"
     SOURCES
         probfd/solvers/topological_vi
-    DEPENDS MDP
+    DEPENDS mdp
 )
 
-fast_downward_plugin(
-    NAME INTERVAL_ITERATION_SOLVER
+create_fast_downward_library(
+    NAME interval_iteration_solver
     HELP "interval_iteration"
     SOURCES
         probfd/solvers/interval_iteration
-    DEPENDS MDP
+    DEPENDS mdp
 )
 
-fast_downward_plugin(
-    NAME IDUAL_SOLVER
+create_fast_downward_library(
+    NAME idual_solver
     HELP "idual solver"
     SOURCES
         probfd/solvers/idual
-    DEPENDS MDP LP_SOLVER
+    DEPENDS mdp lp_solver
 )
 
-fast_downward_plugin(
-    NAME I2DUAL_SOLVER
+create_fast_downward_library(
+    NAME i2dual_solver
     HELP "i2dual solvers"
     SOURCES
         probfd/algorithms/i2dual
         probfd/solvers/i2dual
-    DEPENDS MDP LP_SOLVER OCCUPATION_MEASURE_HEURISTICS
+    DEPENDS mdp lp_solver occupation_measure_heuristics
 )
 
-fast_downward_plugin(
-    NAME BISIMULATION_BASED_SOLVER
+create_fast_downward_library(
+    NAME bisimulation_based_solver
     HELP "bisimulation_vi"
     SOURCES
         probfd/solvers/bisimulation_vi
-    DEPENDS BISIMULATION_CORE
+    DEPENDS bisimulation_core
 )
 
-fast_downward_plugin(
-    NAME MDP_HEURISTIC_SEARCH_BASE
+create_fast_downward_library(
+    NAME mdp_heuristic_search_base
     HELP "mdp heuristic search core"
     SOURCES
         # Open Lists
@@ -167,100 +167,100 @@ fast_downward_plugin(
         # Base heuristic search solver
         probfd/solvers/mdp_heuristic_search
     DEPENDENCY_ONLY
-    DEPENDS MDP
+    DEPENDS mdp
 )
 
-fast_downward_plugin(
-    NAME AO_SEARCH
+create_fast_downward_library(
+    NAME ao_search
     HELP "aostar implementations"
     SOURCES
         probfd/solvers/aostar
         probfd/solvers/exhaustive_ao
-    DEPENDS MDP_HEURISTIC_SEARCH_BASE BISIMULATION_CORE
+    DEPENDS mdp_heuristic_search_base bisimulation_core
 )
 
-fast_downward_plugin(
-    NAME EXHDFS
-    HELP "exhaustive heuristic depth-first search"
+create_fast_downward_library(
+    NAME exhaustive_dfhs
+    HELP "exhaustive depth-first heuristic search"
     SOURCES
         probfd/solvers/exhaustive_dfs
-    DEPENDS MDP_HEURISTIC_SEARCH_BASE
+    DEPENDS mdp_heuristic_search_base
 )
 
-fast_downward_plugin(
-    NAME LRTDP_SOLVER
+create_fast_downward_library(
+    NAME lrtdp_solver
     HELP "lrtdp"
     SOURCES
         probfd/solvers/lrtdp
-    DEPENDS MDP_HEURISTIC_SEARCH_BASE BISIMULATION_CORE
+    DEPENDS mdp_heuristic_search_base bisimulation_core
 )
 
-fast_downward_plugin(
-    NAME TRAP_AWARE_LRTDP_SOLVER
+create_fast_downward_library(
+    NAME trap_aware_lrtdp_solver
     HELP "Trap-Aware LRTDP (TALRTDP)"
     SOURCES
         probfd/solvers/talrtdp
-    DEPENDS MDP_HEURISTIC_SEARCH_BASE
+    DEPENDS mdp_heuristic_search_base
 )
 
-fast_downward_plugin(
-    NAME TRAP_AWARE_DFHS_SOLVER
+create_fast_downward_library(
+    NAME trap_aware_dfhs_solver
     HELP "Trap-Aware DFHS (TADFHS)"
     SOURCES
         probfd/solvers/tadfhs
-    DEPENDS MDP_HEURISTIC_SEARCH_BASE
+    DEPENDS mdp_heuristic_search_base
 )
 
-fast_downward_plugin(
-    NAME TRAP_AWARE_TOPOLOGICAL_VALUE_ITERATION_SOLVER
+create_fast_downward_library(
+    NAME trap_aware_topological_value_iteration_solver
     HELP "Trap-Aware Topological Value Iteration"
     SOURCES
         probfd/solvers/ta_topological_vi
-    DEPENDS MDP
+    DEPENDS mdp
 )
 
-fast_downward_plugin(
-    NAME HDFS_SOLVERS
-    HELP "heuristic depth-first search"
+create_fast_downward_library(
+    NAME dfhs_solver
+    HELP "depth-first heuristic search"
     SOURCES
         probfd/solvers/hdfs
-    DEPENDS MDP_HEURISTIC_SEARCH_BASE BISIMULATION_CORE
+    DEPENDS mdp_heuristic_search_base bisimulation_core
 )
 
-fast_downward_plugin(
-    NAME TASK_DEPENDENT_HEURISTIC
+create_fast_downward_library(
+    NAME task_dependent_heuristic
     HELP "Heuristics depending on the input task"
     SOURCES
         probfd/heuristics/task_dependent_heuristic
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME DEADEND_PRUNING_HEURISTIC
+create_fast_downward_library(
+    NAME deadend_pruning_heuristic
     HELP "Dead-end pruning heuristic"
     SOURCES
         probfd/heuristics/dead_end_pruning
-    DEPENDS SUCCESSOR_GENERATOR TASK_DEPENDENT_HEURISTIC
+    DEPENDS successor_generator task_dependent_heuristic
 )
 
-fast_downward_plugin(
-    NAME DETERMINIZATION_HEURISTIC
+create_fast_downward_library(
+    NAME determinization_heuristic
     HELP "All-outcomes determinization heuristic"
     SOURCES
         probfd/heuristics/determinization_cost
-    DEPENDS SUCCESSOR_GENERATOR TASK_DEPENDENT_HEURISTIC
+    DEPENDS successor_generator task_dependent_heuristic
 )
 
-fast_downward_plugin(
-    NAME LP_BASED_HEURISTICS
-    HELP "Lp-based heuristic"
+create_fast_downward_library(
+    NAME lp_based_heuristic
+    HELP "LP-based heuristic"
     SOURCES
         probfd/heuristics/lp_heuristic
-    DEPENDS MDP LP_SOLVER TASK_DEPENDENT_HEURISTIC
+    DEPENDS mdp lp_solver task_dependent_heuristic
 )
 
-fast_downward_plugin(
-    NAME OCCUPATION_MEASURE_HEURISTICS
+create_fast_downward_library(
+    NAME occupation_measure_heuristics
     HELP "Occupation measure heuristics"
     SOURCES
         probfd/heuristics/occupation_measures/constraint_generator
@@ -270,11 +270,11 @@ fast_downward_plugin(
         probfd/heuristics/occupation_measures/occupation_measure_heuristic
         probfd/heuristics/occupation_measures/pho_constraints
         probfd/heuristics/occupation_measures/subcategory
-    DEPENDS MDP LP_BASED_HEURISTICS
+    DEPENDS mdp lp_based_heuristic
 )
 
-fast_downward_plugin(
-    NAME PROBABILITY_AWARE_PDBS
+create_fast_downward_library(
+    NAME probability_aware_pdbs
     HELP "Probability-aware PDBs base classes"
     SOURCES
         probfd/heuristics/pdbs/distances
@@ -286,12 +286,12 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/projection_state_space
         probfd/heuristics/pdbs/saturation
         probfd/heuristics/pdbs/state_ranking_function
-    DEPENDS PDBS MDP SUCCESSOR_GENERATOR TASK_DEPENDENT_HEURISTIC
+    DEPENDS pdbs mdp task_dependent_heuristic
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME PPDBS_PATTERN_GENERATORS
+create_fast_downward_library(
+    NAME padbs_pattern_generators
     HELP "Base classes for pattern collection generation for PPDBs"
     SOURCES
         probfd/heuristics/pdbs/pattern_information
@@ -312,28 +312,28 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/subcollections
 
         probfd/heuristics/pdbs/utils
-    DEPENDS PROBABILITY_AWARE_PDBS CAUSAL_GRAPH MAX_CLIQUES
+    DEPENDS probability_aware_pdbs max_cliques
     DEPENDENCY_ONLY
 )
 
-fast_downward_plugin(
-    NAME PPDBS_CLASSICAL_GENERATOR
+create_fast_downward_library(
+    NAME papdbs_classical_generator
     HELP "Classical pattern collection generator adapter"
     SOURCES
         probfd/heuristics/pdbs/pattern_collection_generator_classical
-    DEPENDS PPDBS_PATTERN_GENERATORS
+    DEPENDS padbs_pattern_generators
 )
 
-fast_downward_plugin(
-    NAME PPDBS_HILLCLIMBING_GENERATOR
+create_fast_downward_library(
+    NAME papdbs_hillclimbing_generator
     HELP "Hillclimbing pattern collection generator for PPDBs"
     SOURCES
         probfd/heuristics/pdbs/pattern_collection_generator_hillclimbing
-    DEPENDS PPDBS_PATTERN_GENERATORS
+    DEPENDS padbs_pattern_generators
 )
 
-fast_downward_plugin(
-    NAME PPDBS_CEGAR
+create_fast_downward_library(
+    NAME papdbs_cegar
     HELP "Disjoint CEGAR pattern collection generator for PPDBs"
     SOURCES
         probfd/heuristics/pdbs/cegar/cegar
@@ -341,63 +341,63 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/cegar/pucs_flaw_finder
         probfd/heuristics/pdbs/cegar/sampling_flaw_finder
         probfd/heuristics/pdbs/cegar/flaw_finding_strategy
-    DEPENDS PPDBS_PATTERN_GENERATORS
+    DEPENDS padbs_pattern_generators
 )
 
-fast_downward_plugin(
-    NAME PPDBS_DISJOINT_CEGAR_GENERATOR
+create_fast_downward_library(
+    NAME papdbs_disjoint_cegar_generator
     HELP "Disjoint CEGAR pattern collection generator for PPDBs"
     SOURCES
         probfd/heuristics/pdbs/pattern_collection_generator_disjoint_cegar
-    DEPENDS PPDBS_CEGAR
+    DEPENDS papdbs_cegar
 )
 
-fast_downward_plugin(
-    NAME PPDBS_MULTIPLE_CEGAR_GENERATOR
+create_fast_downward_library(
+    NAME papdbs_multiple_cegar_generator
     HELP "Multiple CEGAR pattern collection generator for PPDBs"
     SOURCES
         probfd/heuristics/pdbs/pattern_collection_generator_multiple_cegar
-    DEPENDS PPDBS_CEGAR
+    DEPENDS papdbs_cegar
 )
 
-fast_downward_plugin(
-    NAME PROBABILITY_AWARE_PDB_HEURISTIC
+create_fast_downward_library(
+    NAME probability_aware_pdb_heuristic
     HELP "Probability-aware PDB heuristic"
     SOURCES
         probfd/heuristics/pdbs/probability_aware_pdb_heuristic
-    DEPENDS PROBABILITY_AWARE_PDBS PPDBS_PATTERN_GENERATORS
+    DEPENDS probability_aware_pdbs padbs_pattern_generators
 )
 
-fast_downward_plugin(
-    NAME SCP_PDB_HEURISTIC
+create_fast_downward_library(
+    NAME scp_pdb_heuristic
     HELP "Saturated Cost-Partitioning heuristic for probability-aware PDBs"
     SOURCES
         probfd/heuristics/cost_partitioning/scp_heuristic
 
-    DEPENDS PROBABILITY_AWARE_PDBS PPDBS_PATTERN_GENERATORS
+    DEPENDS probability_aware_pdbs padbs_pattern_generators
 )
 
-fast_downward_plugin(
-    NAME UCP_PDB_HEURISTIC
+create_fast_downward_library(
+    NAME ucp_pdb_heuristic
     HELP "Uniform Cost-Partitioning heuristic for probability-aware PDBs"
     SOURCES
         probfd/heuristics/cost_partitioning/ucp_heuristic
 
-    DEPENDS PROBABILITY_AWARE_PDBS PPDBS_PATTERN_GENERATORS
+    DEPENDS probability_aware_pdbs padbs_pattern_generators
 )
 
-fast_downward_plugin(
-    NAME GZOCP_PDB_HEURISTIC
+create_fast_downward_library(
+    NAME gzocp_pdb_heuristic
     HELP "Greedy Zero-One Cost-Partitioning heuristic for probability-aware PDBs"
     SOURCES
         probfd/heuristics/cost_partitioning/gzocp_heuristic
 
-    DEPENDS PROBABILITY_AWARE_PDBS PPDBS_PATTERN_GENERATORS
+    DEPENDS probability_aware_pdbs padbs_pattern_generators
 )
 
-fast_downward_plugin(
-    NAME PROBABILISTIC_CARTESIAN
-    HELP "Plugin containing the code for CEGAR heuristics"
+create_fast_downward_library(
+    NAME pa_cartesian_abstractions
+    HELP "The code for probability-aware cartesian abstractions"
     SOURCES
         probfd/heuristics/cartesian/abstract_state
         probfd/heuristics/cartesian/abstraction
@@ -419,9 +419,5 @@ fast_downward_plugin(
         probfd/heuristics/cartesian/subtask_generators
         probfd/heuristics/cartesian/trace_based_flaw_generator
         probfd/heuristics/cartesian/utils
-    DEPENDS CEGAR ADDITIVE_HEURISTIC EXTRA_PROBABILISTIC_TASKS
+    DEPENDS cartesian_abstractions additive_heuristic extra_probabilistic_tasks
 )
-
-fast_downward_add_plugin_sources(PROBFD_SOURCES)
-
-list(REVERSE PROBFD_SOURCES)

@@ -124,6 +124,9 @@ public:
 #ifdef __GNUG__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#else if __MSVC__
+#pragma warning(push)
+#pragma warning(disable : 4100)
 #endif
 class LPSolver {
     bool is_initialized;
@@ -233,6 +236,8 @@ public:
 };
 #ifdef __GNUG__
 #pragma GCC diagnostic pop
+#else if __MSVC__
+#pragma warning(pop)
 #endif
 } // namespace lp
 
