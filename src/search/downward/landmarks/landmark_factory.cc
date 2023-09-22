@@ -113,8 +113,7 @@ void LandmarkFactory::edge_add(
     */
     assert(&from != &to);
 
-    if (type == EdgeType::REASONABLE ||
-        type == EdgeType::OBEDIENT_REASONABLE) { // simple cycle test
+    if (type == EdgeType::REASONABLE) { // simple cycle test
         if (from.parents.find(&to) !=
             from.parents.end()) { // Edge in opposite direction exists
             if (log.is_at_least_debug()) {
@@ -176,8 +175,7 @@ void LandmarkFactory::mk_acyclic_graph()
     // the old method for this is no longer available.
     // assert(acyclic_node_set.size() == number_of_landmarks());
     if (log.is_at_least_normal()) {
-        log << "Removed " << removed_edges
-            << " reasonable or obedient reasonable orders" << endl;
+        log << "Removed " << removed_edges << " reasonable orders" << endl;
     }
 }
 
@@ -197,7 +195,7 @@ void LandmarkFactory::remove_first_weakest_cycle_edge(
             to = next(it2)->first;
             weakest_edge = edge;
         }
-        if (weakest_edge == EdgeType::OBEDIENT_REASONABLE) {
+        if (weakest_edge == EdgeType::REASONABLE) {
             break;
         }
     }
