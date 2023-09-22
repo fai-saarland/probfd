@@ -492,7 +492,7 @@ PatternCollectionGeneratorHillclimbing::compute_patterns(
     return current_pdbs->get_pattern_collection_information(log);
 }
 
-void add_hillclimbing_options(plugins::Feature& feature)
+static void add_hillclimbing_options(plugins::Feature& feature)
 {
     feature.document_note(
         "Note",
@@ -590,7 +590,7 @@ void add_hillclimbing_options(plugins::Feature& feature)
     add_generator_options_to_feature(feature);
 }
 
-void check_hillclimbing_options(
+static void check_hillclimbing_options(
     const plugins::Options& opts,
     const utils::Context& context)
 {

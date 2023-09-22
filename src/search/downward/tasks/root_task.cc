@@ -154,7 +154,7 @@ static void check_facts(
     }
 }
 
-void check_magic(istream& in, const string& magic)
+static void check_magic(istream& in, const string& magic)
 {
     string word;
     in >> word;
@@ -170,7 +170,7 @@ void check_magic(istream& in, const string& magic)
     }
 }
 
-vector<FactPair> read_facts(istream& in)
+static vector<FactPair> read_facts(istream& in)
 {
     int count;
     in >> count;
@@ -248,7 +248,7 @@ ExplicitOperator::ExplicitOperator(
     assert(cost >= 0);
 }
 
-void read_and_verify_version(istream& in)
+static void read_and_verify_version(istream& in)
 {
     std::string version;
     check_magic(in, "begin_version");
@@ -262,7 +262,7 @@ void read_and_verify_version(istream& in)
     }
 }
 
-bool read_metric(istream& in)
+static bool read_metric(istream& in)
 {
     bool use_metric;
     check_magic(in, "begin_metric");
@@ -271,7 +271,7 @@ bool read_metric(istream& in)
     return use_metric;
 }
 
-vector<ExplicitVariable> read_variables(istream& in)
+static vector<ExplicitVariable> read_variables(istream& in)
 {
     int count;
     in >> count;
@@ -283,7 +283,7 @@ vector<ExplicitVariable> read_variables(istream& in)
     return variables;
 }
 
-vector<vector<set<FactPair>>>
+static vector<vector<set<FactPair>>>
 read_mutexes(istream& in, const vector<ExplicitVariable>& variables)
 {
     vector<vector<set<FactPair>>> inconsistent_facts(variables.size());
@@ -334,7 +334,7 @@ read_mutexes(istream& in, const vector<ExplicitVariable>& variables)
     return inconsistent_facts;
 }
 
-vector<FactPair> read_goal(istream& in)
+static vector<FactPair> read_goal(istream& in)
 {
     check_magic(in, "begin_goal");
     vector<FactPair> goals = read_facts(in);
@@ -346,7 +346,7 @@ vector<FactPair> read_goal(istream& in)
     return goals;
 }
 
-vector<ExplicitOperator> read_actions(
+static vector<ExplicitOperator> read_actions(
     istream& in,
     bool is_axiom,
     bool use_metric,

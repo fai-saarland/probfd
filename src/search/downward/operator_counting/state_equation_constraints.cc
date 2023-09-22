@@ -14,7 +14,7 @@ StateEquationConstraints::StateEquationConstraints(const plugins::Options& opts)
 {
 }
 
-void add_indices_to_constraint(
+static void add_indices_to_constraint(
     lp::LPConstraint& constraint,
     const set<int>& indices,
     double coefficient)

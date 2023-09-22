@@ -5,8 +5,8 @@
 using namespace std;
 
 namespace sccs {
-void dfs(
-    const vector<vector<int>>& graph,
+static void
+dfs(const vector<vector<int>>& graph,
     int vertex,
     vector<int>& dfs_numbers,
     vector<int>& dfs_minima,

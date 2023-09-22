@@ -15,7 +15,7 @@
 using namespace std;
 
 namespace pdbs {
-CanonicalPDBs get_canonical_pdbs_from_options(
+static CanonicalPDBs get_canonical_pdbs_from_options(
     const shared_ptr<AbstractTask>& task,
     const plugins::Options& opts,
     utils::LogProxy& log)

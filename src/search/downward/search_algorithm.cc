@@ -22,7 +22,7 @@ using utils::ExitCode;
 
 class PruningMethod;
 
-successor_generator::SuccessorGenerator&
+static successor_generator::SuccessorGenerator&
 get_successor_generator(const TaskProxy& task_proxy, utils::LogProxy& log)
 {
     log << "Building successor generator..." << flush;

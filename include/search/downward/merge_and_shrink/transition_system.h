@@ -8,6 +8,7 @@
 #include <compare>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -32,6 +33,8 @@ struct Transition {
 
     friend auto operator<=>(const Transition&, const Transition&) = default;
 };
+
+std::ostream& operator<<(std::ostream& os, const Transition& trans);
 
 using LabelGroup = std::vector<int>;
 
