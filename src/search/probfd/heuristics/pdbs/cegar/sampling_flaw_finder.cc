@@ -170,8 +170,6 @@ bool SamplingFlawFinder::apply_policy(
 
     continue_exploration:;
     }
-
-    abort();
 }
 
 std::string SamplingFlawFinder::get_name()
