@@ -29,7 +29,6 @@ void LandmarkFactoryRelaxation::postprocess(
 {
     lm_graph->set_landmark_ids();
     calc_achievers(task_proxy, exploration);
-    mk_acyclic_graph();
 }
 
 void LandmarkFactoryRelaxation::discard_noncausal_landmarks(

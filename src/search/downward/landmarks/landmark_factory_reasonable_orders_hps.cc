@@ -37,8 +37,6 @@ void LandmarkFactoryReasonableOrdersHPS::generate_landmarks(
         log << "approx. obedient reasonable orders" << endl;
     }
     approximate_reasonable_orders(task_proxy);
-
-    mk_acyclic_graph();
 }
 
 void LandmarkFactoryReasonableOrdersHPS::approximate_reasonable_orders(
