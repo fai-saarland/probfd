@@ -3,6 +3,7 @@
 
 #include "probfd/storage/per_state_storage.h"
 
+#include "probfd/distribution.h"
 #include "probfd/mdp_algorithm.h"
 
 #include <stack>

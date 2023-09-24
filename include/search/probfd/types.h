@@ -2,6 +2,7 @@
 #define PROBFD_TYPES_H
 
 #include "downward/operator_id.h"
+#include "downward/state_id.h"
 
 #include <cstdint>
 #include <functional>
@@ -25,6 +26,13 @@ struct StateID {
         : id(id)
     {
     }
+
+    StateID(::StateID id)
+        : id(id.get_value())
+    {
+    }
+
+    operator ::StateID() const { return ::StateID(id); }
 
     operator size_type() const { return id; }
 

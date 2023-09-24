@@ -1,5 +1,5 @@
-#ifndef STATE_REGISTRY_H
-#define STATE_REGISTRY_H
+#ifndef DOWNWARD_STATE_REGISTRY_H
+#define DOWNWARD_STATE_REGISTRY_H
 
 #include "downward/abstract_task.h"
 #include "downward/axioms.h"
@@ -9,9 +9,8 @@
 #include "downward/algorithms/int_packer.h"
 #include "downward/algorithms/segmented_vector.h"
 #include "downward/algorithms/subscriber.h"
+#include "downward/task_utils/task_properties.h"
 #include "downward/utils/hash.h"
-
-#include "probfd/distribution.h"
 
 #include <set>
 
@@ -112,10 +111,6 @@ class IntPacker;
 }
 
 using PackedStateBin = int_packer::IntPacker::Bin;
-
-namespace probfd {
-class ProbabilisticOutcomeProxy;
-}
 
 class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
     struct StateIDSemanticHash {
@@ -218,9 +213,43 @@ public:
     State
     get_successor_state(const State& predecessor, const OperatorProxy& op);
 
-    State get_successor_state(
-        const State& predecessor,
-        const probfd::ProbabilisticOutcomeProxy& op);
+    template <typename Effects>
+    State get_successor_state(const State& predecessor, const Effects& effects)
+    {
+        state_data_pool.push_back(predecessor.get_buffer());
+        PackedStateBin* buffer = state_data_pool[state_data_pool.size() - 1];
+        /* Experiments for issue348 showed that for tasks with axioms it's
+           faster to compute successor states using unpacked data. */
+        if (task_properties::has_axioms(task_proxy)) {
+            predecessor.unpack();
+            std::vector<int> new_values = predecessor.get_unpacked_values();
+            for (auto effect : effects) {
+                if (does_fire(effect, predecessor)) {
+                    FactPair effect_pair = effect.get_fact().get_pair();
+                    new_values[effect_pair.var] = effect_pair.value;
+                }
+            }
+            axiom_evaluator.evaluate(new_values);
+            for (size_t i = 0; i < new_values.size(); ++i) {
+                state_packer.set(buffer, i, new_values[i]);
+            }
+            ::StateID id = insert_id_or_pop_state();
+            return task_proxy
+                .create_state(*this, id, buffer, std::move(new_values));
+        } else {
+            for (auto effect : effects) {
+                if (does_fire(effect, predecessor)) {
+                    FactPair effect_pair = effect.get_fact().get_pair();
+                    state_packer.set(
+                        buffer,
+                        effect_pair.var,
+                        effect_pair.value);
+                }
+            }
+            ::StateID id = insert_id_or_pop_state();
+            return task_proxy.create_state(*this, id, buffer);
+        }
+    }
 
     /*
       Returns the number of states registered so far.
@@ -288,4 +317,4 @@ public:
     const_iterator end() const { return const_iterator(*this, size()); }
 };
 
-#endif
+#endif // DOWNWARD_STATE_REGISTRY_H

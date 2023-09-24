@@ -6,9 +6,6 @@
 #include "downward/task_utils/causal_graph.h"
 #include "downward/task_utils/task_properties.h"
 
-#include "probfd/task_proxy.h"
-#include "probfd/task_utils/task_properties.h"
-
 #include <iostream>
 
 using namespace std;
@@ -58,43 +55,16 @@ State::State(const AbstractTaskBase& task, vector<int>&& values)
 State State::get_unregistered_successor(const OperatorProxy& op) const
 {
     assert(task_properties::is_applicable(op, *this));
-    assert(values);
-    vector<int> new_values = get_unpacked_values();
-
-    for (EffectProxy effect : op.get_effects()) {
-        if (does_fire(effect, *this)) {
-            FactPair effect_fact = effect.get_fact().get_pair();
-            new_values[effect_fact.var] = effect_fact.value;
-        }
-    }
-
-    if (task->get_num_axioms() > 0) {
-        AxiomEvaluator& axiom_evaluator =
-            g_axiom_evaluators[TaskBaseProxy(*task)];
-        axiom_evaluator.evaluate(new_values);
-    }
-    return State(*task, std::move(new_values));
+    return get_unregistered_successor(op.get_effects());
 }
 
-State State::get_unregistered_successor(
-    const probfd::ProbabilisticOutcomeProxy& outcome) const
+void State::apply_axioms(std::vector<int>& values) const
 {
-    assert(values);
-    vector<int> new_values = get_unpacked_values();
-
-    for (const auto effect : outcome.get_effects()) {
-        if (does_fire(effect, *this)) {
-            FactPair effect_fact = effect.get_fact().get_pair();
-            new_values[effect_fact.var] = effect_fact.value;
-        }
-    }
-
     if (task->get_num_axioms() > 0) {
         AxiomEvaluator& axiom_evaluator =
             g_axiom_evaluators[TaskBaseProxy(*task)];
-        axiom_evaluator.evaluate(new_values);
+        axiom_evaluator.evaluate(values);
     }
-    return State(*task, std::move(new_values));
 }
 
 const causal_graph::CausalGraph& TaskProxy::get_causal_graph() const

@@ -102,7 +102,8 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
 
         // Generate successors and check for matching abstract states
         for (const auto [outcome, abs_t] : zip(op.get_outcomes(), targets)) {
-            State next_concrete = registry.get_successor_state(state, outcome);
+            State next_concrete =
+                registry.get_successor_state(state, outcome.get_effects());
 
             if (static_cast<int>(registry.size()) > max_search_states) {
                 if (log.is_at_least_normal()) {

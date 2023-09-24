@@ -140,7 +140,8 @@ void TaskStateSpace::compute_successor_dist(
 
     for (const ProbabilisticOutcomeProxy outcome : outcomes) {
         value_t probability = outcome.get_probability();
-        State succ = state_registry_.get_successor_state(state, outcome);
+        State succ =
+            state_registry_.get_successor_state(state, outcome.get_effects());
 
         for (const auto& h : notify_) {
             OperatorID det_op_id(outcome.get_determinization_id());

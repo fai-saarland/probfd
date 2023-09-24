@@ -3,8 +3,6 @@
 
 #include <iostream>
 
-#include "probfd/types.h"
-
 // For documentation on classes relevant to storing and working with registered
 // states see the file state_registry.h.
 
@@ -18,20 +16,17 @@ class StateID {
     friend class PerStateBitset;
 
     int value;
-    explicit StateID(int value_)
-        : value(value_) {
-    }
 
     // No implementation to prevent default construction
     StateID();
-public:
-    StateID(probfd::StateID id)
-        : value(id.id)
-    {
-    }
-    operator probfd::StateID() { return probfd::StateID(value); }
 
-    ~StateID() {
+public:
+    ~StateID() {}
+
+    // HACK
+    explicit StateID(int value_)
+        : value(value_)
+    {
     }
 
     static const StateID no_state;
@@ -43,6 +38,9 @@ public:
     bool operator!=(const StateID &other) const {
         return !(*this == other);
     }
+
+    // HACK
+    int get_value() const { return value; }
 };
 
 

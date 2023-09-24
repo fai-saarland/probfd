@@ -104,8 +104,9 @@ bool BFSFlawFinder::apply_policy(
 
                 // Generate the successors and add them to the open list
                 for (const auto outcome : op.get_outcomes()) {
-                    State successor =
-                        registry.get_successor_state(current, outcome);
+                    State successor = registry.get_successor_state(
+                        current,
+                        outcome.get_effects());
 
                     if (static_cast<int>(registry.size()) > max_search_states) {
                         return false;

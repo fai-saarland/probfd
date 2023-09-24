@@ -144,7 +144,8 @@ void CachingTaskStateSpace::compute_successor_states(
     succs.reserve(num_outcomes);
 
     for (const ProbabilisticOutcomeProxy outcome : outcomes) {
-        State succ = state_registry_.get_successor_state(state, outcome);
+        State succ =
+            state_registry_.get_successor_state(state, outcome.get_effects());
 
         for (const auto& h : notify_) {
             OperatorID det_op_id(outcome.get_determinization_id());

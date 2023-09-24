@@ -1,5 +1,5 @@
-#ifndef TASK_PROXY_H
-#define TASK_PROXY_H
+#ifndef DOWNWARD_TASK_PROXY_H
+#define DOWNWARD_TASK_PROXY_H
 
 #include "downward/abstract_task.h"
 #include "downward/operator_id.h"
@@ -43,10 +43,6 @@ class TaskBaseProxy;
 class TaskProxy;
 class VariableProxy;
 class VariablesProxy;
-
-namespace probfd {
-class ProbabilisticOutcomeProxy;
-} // namespace probfd
 
 namespace causal_graph {
 class CausalGraph;
@@ -998,6 +994,7 @@ public:
     }
 };
 
+template <typename Effect>
 bool does_fire(const EffectProxy& effect, const State& state);
 
 class State : public ProxyCollection<State> {
@@ -1085,8 +1082,25 @@ public:
     */
     State get_unregistered_successor(const OperatorProxy& op) const;
 
-    State get_unregistered_successor(
-        const probfd::ProbabilisticOutcomeProxy& outcome) const;
+    template <typename Effects>
+    State get_unregistered_successor(const Effects& effects) const
+    {
+        assert(values);
+        std::vector<int> new_values = get_unpacked_values();
+
+        for (const auto effect : effects) {
+            if (does_fire(effect, *this)) {
+                FactPair effect_fact = effect.get_fact().get_pair();
+                new_values[effect_fact.var] = effect_fact.value;
+            }
+        }
+
+        this->apply_axioms(new_values);
+        return State(*task, std::move(new_values));
+    }
+
+private:
+    void apply_axioms(std::vector<int>& values) const;
 };
 
 namespace utils {
@@ -1229,7 +1243,8 @@ inline VariableProxy FactProxy::get_variable() const
     return VariableProxy(*task, fact.var);
 }
 
-inline bool does_fire(const EffectProxy& effect, const State& state)
+template <typename Effect>
+inline bool does_fire(const Effect& effect, const State& state)
 {
     for (FactProxy condition : effect.get_conditions()) {
         if (state[condition.get_variable()] != condition) return false;
@@ -1347,4 +1362,4 @@ inline const std::vector<int>& State::get_unpacked_values() const
     }
     return *values;
 }
-#endif
+#endif // DOWNWARD_TASK_PROXY_H
