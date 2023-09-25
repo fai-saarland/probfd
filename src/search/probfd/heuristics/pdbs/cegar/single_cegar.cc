@@ -25,7 +25,7 @@ namespace heuristics {
 namespace pdbs {
 namespace cegar {
 
-void refine(
+static void refine(
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
     ProjectionInfo& pdb_info,
