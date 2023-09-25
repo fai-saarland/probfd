@@ -205,8 +205,7 @@ PDBCollectionInformation PDBCollectionGeneratorMultiple::generate(
     set<Pattern> generated_patterns;
     PPDBCollection generated_pdbs;
 
-    shared_ptr<utils::RandomNumberGenerator> pattern_computation_rng =
-        make_shared<utils::RandomNumberGenerator>(random_seed);
+    utils::RandomNumberGenerator pattern_computation_rng(random_seed);
 
     int num_iterations = 0;
     int goal_index = 0;

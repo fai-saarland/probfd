@@ -346,6 +346,7 @@ fast_downward_plugin(
         probfd/heuristics/pdbs/cegar/bfs_exploration_strategy
         probfd/heuristics/pdbs/cegar/mlp_exploration_strategy
         probfd/heuristics/pdbs/cegar/sampling_exploration_strategy
+        probfd/heuristics/pdbs/cegar/flaw_generator
         probfd/heuristics/pdbs/cegar/policy_exploration_strategy
     DEPENDS PPDBS_PATTERN_GENERATORS
 )

@@ -19,7 +19,7 @@ class PDBCollectionGeneratorMultipleCegar
     ProjectionInfo compute_pattern(
         int max_pdb_size,
         double max_time,
-        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+        utils::RandomNumberGenerator& rng,
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
         const FactPair& goal,

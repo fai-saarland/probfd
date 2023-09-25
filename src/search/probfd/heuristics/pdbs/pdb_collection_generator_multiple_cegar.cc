@@ -1,5 +1,6 @@
 #include "probfd/heuristics/pdbs/pdb_collection_generator_multiple_cegar.h"
 
+#include "probfd/heuristics/pdbs/cegar/flaw_generator.h"
 #include "probfd/heuristics/pdbs/cegar/single_cegar.h"
 
 #include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
@@ -35,14 +36,13 @@ PDBCollectionGeneratorMultipleCegar::PDBCollectionGeneratorMultipleCegar(
 ProjectionInfo PDBCollectionGeneratorMultipleCegar::compute_pattern(
     int max_pdb_size,
     double max_time,
-    const shared_ptr<utils::RandomNumberGenerator>& rng,
+    utils::RandomNumberGenerator& rng,
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
     const FactPair& goal,
     unordered_set<int>&& blacklisted_variables)
 {
-    SingleCEGAR cegar(
-        rng,
+    FlawGenerator flaw_generator(
         exploration_strategy,
         use_wildcard_policies,
         max_pdb_size,
@@ -59,10 +59,12 @@ ProjectionInfo PDBCollectionGeneratorMultipleCegar::compute_pattern(
         BlindEvaluator<AbstractStateIndex>(),
         false);
 
-    cegar.run_refinement_loop(
+    run_cegar_refinement_loop(
         task_proxy,
         task_cost_function,
         projection_info,
+        flaw_generator,
+        rng,
         log,
         timer);
     return projection_info;
