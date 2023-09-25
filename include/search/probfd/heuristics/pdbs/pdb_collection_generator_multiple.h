@@ -36,7 +36,6 @@ class PDBCollectionGeneratorMultiple : public PDBCollectionGenerator {
     const double blacklisting_start_time;
     const bool enable_blacklist_on_stagnation;
     const std::shared_ptr<utils::RandomNumberGenerator> rng;
-    const int random_seed;
     const bool use_saturated_costs;
 
     bool collection_size_limit_reached(int remaining_collection_size) const;
@@ -45,7 +44,6 @@ class PDBCollectionGeneratorMultiple : public PDBCollectionGenerator {
     virtual ProjectionInfo compute_pattern(
         int max_pdb_size,
         double max_time,
-        utils::RandomNumberGenerator& rng,
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
         const FactPair& goal,

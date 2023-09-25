@@ -22,15 +22,10 @@ static void refine(
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
     ProjectionInfo& pdb_info,
-    const std::vector<Flaw>& flaws,
-    utils::RandomNumberGenerator& rng,
+    const Flaw& flaw,
     utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
-    assert(!flaws.empty());
-
-    // pick a random flaw
-    const Flaw& flaw = *rng.choose(flaws);
     int var = flaw.variable;
 
     if (log.is_at_least_verbose()) {
@@ -55,7 +50,6 @@ void run_cegar_refinement_loop(
     FDRSimpleCostFunction& task_cost_function,
     ProjectionInfo& pdb_info,
     FlawGenerator& flaw_generator,
-    utils::RandomNumberGenerator& rng,
     utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
@@ -67,23 +61,18 @@ void run_cegar_refinement_loop(
     int refinement_counter = 1;
 
     try {
-        std::vector<Flaw> flaws;
-
         for (;;) {
             if (log.is_at_least_verbose()) {
                 log << "SingleCEGAR: iteration #" << refinement_counter
                     << ", current pattern: " << pdb_info.get_pattern() << endl;
             }
 
-            if (!flaw_generator.generate_flaws(
-                    task_proxy,
-                    pdb_info,
-                    rng,
-                    flaws,
-                    log,
-                    timer)) {
+            auto flaw_if_found =
+                flaw_generator.generate_flaws(task_proxy, pdb_info, log, timer);
+
+            if (!flaw_if_found) {
                 if (log.is_at_least_verbose()) {
-                    log << "SingleCEGAR: Flaw list empty. "
+                    log << "SingleCEGAR: NO flaw could be produced. "
                         << "No further refinements possible." << endl;
                 }
                 break;
@@ -97,13 +86,11 @@ void run_cegar_refinement_loop(
                 task_proxy,
                 task_cost_function,
                 pdb_info,
-                flaws,
-                rng,
+                *flaw_if_found,
                 log,
                 timer);
 
             ++refinement_counter;
-            flaws.clear();
         }
     } catch (utils::TimeoutException&) {
         if (log.is_at_least_normal()) {

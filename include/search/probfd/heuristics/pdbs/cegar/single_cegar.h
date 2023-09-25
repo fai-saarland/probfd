@@ -28,7 +28,6 @@ void run_cegar_refinement_loop(
     FDRSimpleCostFunction& task_cost_function,
     ProjectionInfo& pdb_info,
     FlawGenerator& flaw_generator,
-    utils::RandomNumberGenerator& rng,
     utils::LogProxy log,
     utils::CountdownTimer& timer);
 

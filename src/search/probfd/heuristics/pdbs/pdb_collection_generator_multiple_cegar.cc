@@ -14,6 +14,8 @@
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/logging.h"
 
+#include "downward/utils/rng_options.h"
+
 #include "downward/plugins/plugin.h"
 
 using namespace std;
@@ -30,13 +32,13 @@ PDBCollectionGeneratorMultipleCegar::PDBCollectionGeneratorMultipleCegar(
     , use_wildcard_policies(opts.get<bool>("use_wildcard_policies"))
     , exploration_strategy(opts.get<std::shared_ptr<PolicyExplorationStrategy>>(
           "exploration_strategy"))
+    , rng(utils::parse_rng_from_options(opts))
 {
 }
 
 ProjectionInfo PDBCollectionGeneratorMultipleCegar::compute_pattern(
     int max_pdb_size,
     double max_time,
-    utils::RandomNumberGenerator& rng,
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
     const FactPair& goal,
@@ -44,6 +46,7 @@ ProjectionInfo PDBCollectionGeneratorMultipleCegar::compute_pattern(
 {
     FlawGenerator flaw_generator(
         exploration_strategy,
+        rng,
         use_wildcard_policies,
         max_pdb_size,
         std::move(blacklisted_variables));
@@ -64,7 +67,6 @@ ProjectionInfo PDBCollectionGeneratorMultipleCegar::compute_pattern(
         task_cost_function,
         projection_info,
         flaw_generator,
-        rng,
         log,
         timer);
     return projection_info;
@@ -80,6 +82,7 @@ public:
     {
         add_multiple_options_to_feature(*this);
         add_cegar_wildcard_option_to_feature(*this);
+        utils::add_rng_options(*this);
 
         add_option<std::shared_ptr<cegar::PolicyExplorationStrategy>>(
             "exploration_strategy",

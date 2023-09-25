@@ -20,10 +20,12 @@ namespace cegar {
 
 FlawGenerator::FlawGenerator(
     std::shared_ptr<PolicyExplorationStrategy> exploration_strategy,
+    std::shared_ptr<utils::RandomNumberGenerator> rng,
     bool wildcard,
     int max_pdb_size,
     std::unordered_set<int> blacklisted_variables)
     : exploration_strategy(std::move(exploration_strategy))
+    , rng(std::move(rng))
     , wildcard(wildcard)
     , max_pdb_size(max_pdb_size)
     , blacklisted_variables(std::move(blacklisted_variables))
@@ -33,21 +35,21 @@ FlawGenerator::FlawGenerator(
 // Returns whether the policy is executable. Note that even if the policy is
 // not executable, the output flaw list might be empty regardless, since
 // blacklisted variables are never added.
-bool FlawGenerator::generate_flaws(
+std::optional<Flaw> FlawGenerator::generate_flaws(
     ProbabilisticTaskProxy task_proxy,
     ProjectionInfo& pdb_info,
-    utils::RandomNumberGenerator& rng,
-    std::vector<Flaw>& flaws,
     utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
+    flaws.clear();
+
     AbstractStateIndex initial_state =
         pdb_info.get_abstract_state(task_proxy.get_initial_state());
 
     auto policy = compute_optimal_projection_policy(
         pdb_info,
         initial_state,
-        rng,
+        *rng,
         wildcard);
 
     FlawFilter filter =
@@ -79,13 +81,17 @@ bool FlawGenerator::generate_flaws(
             log << "SingleCEGAR: Found flawless concrete policy with cost: "
                 << pdb_info.lookup_estimate(initial_state) << std::endl;
         }
-        return false;
+        return std::nullopt;
     }
 
     // If there are no flaws, this does not guarantee that the
     // policy is valid in the concrete state space because we might
     // have ignored variables that have been blacklisted.
-    return !flaws.empty();
+    if (!flaws.empty()) {
+        return *rng->choose(flaws);
+    }
+
+    return std::nullopt;
 }
 
 } // namespace cegar

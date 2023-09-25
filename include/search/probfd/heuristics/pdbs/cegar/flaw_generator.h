@@ -1,9 +1,13 @@
 #ifndef PROBFD_HEURISTICS_PDBS_CEGAR_FLAW_GENERATOR_H
 #define PROBFD_HEURISTICS_PDBS_CEGAR_FLAW_GENERATOR_H
 
+#include "probfd/heuristics/pdbs/cegar/flaw.h"
+
 #include "probfd/task_proxy.h"
 
 #include "downward/utils/logging.h"
+
+#include <optional>
 
 namespace utils {
 class CountdownTimer;
@@ -18,30 +22,30 @@ class ProjectionInfo;
 
 namespace cegar {
 
-struct Flaw;
 class PolicyExplorationStrategy;
 
 class FlawGenerator {
-    // behavior defining parameters
     const std::shared_ptr<PolicyExplorationStrategy> exploration_strategy;
+    const std::shared_ptr<utils::RandomNumberGenerator> rng;
     const bool wildcard;
     const int max_pdb_size;
 
     std::unordered_set<int> blacklisted_variables;
 
+    std::vector<Flaw> flaws;
+
 public:
     FlawGenerator(
         std::shared_ptr<PolicyExplorationStrategy> exploration_strategy,
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
         bool wildcard,
         int max_pdb_size,
         std::unordered_set<int> blacklisted_variables);
 
     // Returns whether the flaw check was exhaustive.
-    bool generate_flaws(
+    std::optional<Flaw> generate_flaws(
         ProbabilisticTaskProxy task_proxy,
         ProjectionInfo& info,
-        utils::RandomNumberGenerator& rng,
-        std::vector<Flaw>& flaws,
         utils::LogProxy log,
         utils::CountdownTimer& timer);
 };

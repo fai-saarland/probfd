@@ -131,7 +131,6 @@ PDBCollectionGeneratorMultiple::PDBCollectionGeneratorMultiple(
     , enable_blacklist_on_stagnation(
           opts.get<bool>("enable_blacklist_on_stagnation"))
     , rng(utils::parse_rng_from_options(opts))
-    , random_seed(opts.get<int>("random_seed"))
     , use_saturated_costs(opts.get<bool>("use_saturated_costs"))
 {
 }
@@ -205,8 +204,6 @@ PDBCollectionInformation PDBCollectionGeneratorMultiple::generate(
     set<Pattern> generated_patterns;
     PPDBCollection generated_pdbs;
 
-    utils::RandomNumberGenerator pattern_computation_rng(random_seed);
-
     int num_iterations = 0;
     int goal_index = 0;
     bool blacklisting = false;
@@ -262,7 +259,6 @@ PDBCollectionInformation PDBCollectionGeneratorMultiple::generate(
         auto [state_space, pdb] = compute_pattern(
             remaining_pdb_size,
             remaining_time,
-            pattern_computation_rng,
             task_proxy,
             cost_function,
             goals[goal_index],
