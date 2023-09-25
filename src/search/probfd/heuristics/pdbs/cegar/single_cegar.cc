@@ -3,17 +3,10 @@
 #include "probfd/heuristics/pdbs/cegar/flaw.h"
 #include "probfd/heuristics/pdbs/cegar/flaw_generator.h"
 
-#include "probfd/heuristics/pdbs/policy_extraction.h"
-#include "probfd/heuristics/pdbs/probability_aware_pattern_database.h"
 #include "probfd/heuristics/pdbs/projection_info.h"
-#include "probfd/heuristics/pdbs/projection_state_space.h"
 #include "probfd/heuristics/pdbs/utils.h"
 
-#include "probfd/multi_policy.h"
-
-#include "downward/utils/collections.h"
 #include "downward/utils/countdown_timer.h"
-#include "downward/utils/math.h"
 #include "downward/utils/rng.h"
 
 #include <cassert>
