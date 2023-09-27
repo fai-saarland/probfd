@@ -42,8 +42,8 @@ public:
         int max_pdb_size,
         std::unordered_set<int> blacklisted_variables);
 
-    // Returns whether the flaw check was exhaustive.
-    std::optional<Flaw> generate_flaws(
+    // If no flaw could be found, returns std::nullopt.
+    std::optional<Flaw> next_flaw(
         ProbabilisticTaskProxy task_proxy,
         ProjectionInfo& info,
         utils::LogProxy log,

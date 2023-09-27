@@ -32,10 +32,7 @@ FlawGenerator::FlawGenerator(
 {
 }
 
-// Returns whether the policy is executable. Note that even if the policy is
-// not executable, the output flaw list might be empty regardless, since
-// blacklisted variables are never added.
-std::optional<Flaw> FlawGenerator::generate_flaws(
+std::optional<Flaw> FlawGenerator::next_flaw(
     ProbabilisticTaskProxy task_proxy,
     ProjectionInfo& pdb_info,
     utils::LogProxy log,

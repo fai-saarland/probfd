@@ -19,9 +19,9 @@ namespace pdbs {
 namespace cegar {
 
 static void refine(
-    ProbabilisticTaskProxy task_proxy,
+    ProbabilisticTaskProxy proxy,
     FDRSimpleCostFunction& task_cost_function,
-    ProjectionInfo& pdb_info,
+    ProjectionInfo& proj,
     const Flaw& flaw,
     utils::LogProxy log,
     utils::CountdownTimer& timer)
@@ -35,20 +35,20 @@ static void refine(
     }
 
     // compute new solution
-    pdb_info = ProjectionInfo(
-        task_proxy,
+    proj = ProjectionInfo(
+        proxy,
         task_cost_function,
-        extended_pattern(pdb_info.get_pattern(), var),
-        task_proxy.get_initial_state(),
-        *pdb_info.pdb,
+        extended_pattern(proj.get_pattern(), var),
+        proxy.get_initial_state(),
+        *proj.pdb,
         false,
         timer.get_remaining_time());
 }
 
 void run_cegar_refinement_loop(
-    ProbabilisticTaskProxy task_proxy,
+    ProbabilisticTaskProxy proxy,
     FDRSimpleCostFunction& task_cost_function,
-    ProjectionInfo& pdb_info,
+    ProjectionInfo& proj,
     FlawGenerator& flaw_generator,
     utils::LogProxy log,
     utils::CountdownTimer& timer)
@@ -61,36 +61,25 @@ void run_cegar_refinement_loop(
     int refinement_counter = 1;
 
     try {
-        for (;;) {
+        auto check_timer = [&](utils::LogProxy log) {
             if (log.is_at_least_verbose()) {
                 log << "SingleCEGAR: iteration #" << refinement_counter
-                    << ", current pattern: " << pdb_info.get_pattern() << endl;
-            }
-
-            auto flaw_if_found =
-                flaw_generator.generate_flaws(task_proxy, pdb_info, log, timer);
-
-            if (!flaw_if_found) {
-                if (log.is_at_least_verbose()) {
-                    log << "SingleCEGAR: NO flaw could be produced. "
-                        << "No further refinements possible." << endl;
-                }
-                break;
+                    << ", current pattern: " << proj.get_pattern() << endl;
             }
 
             timer.throw_if_expired();
+        };
 
-            // if there was a flaw, then refine the abstraction
-            // such that said flaw does not occur again
-            refine(
-                task_proxy,
-                task_cost_function,
-                pdb_info,
-                *flaw_if_found,
-                log,
-                timer);
-
+        while (auto flaw =
+                   (check_timer(log),
+                    flaw_generator.next_flaw(proxy, proj, log, timer))) {
+            refine(proxy, task_cost_function, proj, *flaw, log, timer);
             ++refinement_counter;
+        }
+
+        if (log.is_at_least_normal()) {
+            log << "SingleCEGAR: No flaw could be produced. "
+                << "No further refinements possible." << endl;
         }
     } catch (utils::TimeoutException&) {
         if (log.is_at_least_normal()) {
@@ -102,7 +91,7 @@ void run_cegar_refinement_loop(
         log << "\nSingleCEGAR statistics:\n"
             << "  computation time: " << timer.get_elapsed_time() << "\n"
             << "  number of iterations: " << refinement_counter << "\n"
-            << "  final pattern: " << pdb_info.get_pattern() << endl;
+            << "  final pattern: " << proj.get_pattern() << endl;
     }
 }
 
