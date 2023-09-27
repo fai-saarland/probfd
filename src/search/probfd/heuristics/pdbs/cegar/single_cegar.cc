@@ -45,11 +45,29 @@ static void refine(
         timer.get_remaining_time());
 }
 
+static auto next_flaw(
+    ProbabilisticTaskProxy proxy,
+    ProjectionInfo& proj,
+    FlawGenerator& generator,
+    utils::LogProxy log,
+    utils::CountdownTimer& timer,
+    int iteration)
+{
+    if (log.is_at_least_verbose()) {
+        log << "SingleCEGAR: iteration #" << iteration
+            << ", current pattern: " << proj.get_pattern() << endl;
+    }
+
+    timer.throw_if_expired();
+
+    return generator.next_flaw(proxy, proj, log, timer);
+}
+
 void run_cegar_refinement_loop(
     ProbabilisticTaskProxy proxy,
     FDRSimpleCostFunction& task_cost_function,
     ProjectionInfo& proj,
-    FlawGenerator& flaw_generator,
+    FlawGenerator& gen,
     utils::LogProxy log,
     utils::CountdownTimer& timer)
 {
@@ -58,23 +76,12 @@ void run_cegar_refinement_loop(
             << endl;
     }
 
-    int refinement_counter = 1;
+    int iteration = 1;
 
     try {
-        auto check_timer = [&](utils::LogProxy log) {
-            if (log.is_at_least_verbose()) {
-                log << "SingleCEGAR: iteration #" << refinement_counter
-                    << ", current pattern: " << proj.get_pattern() << endl;
-            }
-
-            timer.throw_if_expired();
-        };
-
-        while (auto flaw =
-                   (check_timer(log),
-                    flaw_generator.next_flaw(proxy, proj, log, timer))) {
+        while (auto flaw = next_flaw(proxy, proj, gen, log, timer, iteration)) {
             refine(proxy, task_cost_function, proj, *flaw, log, timer);
-            ++refinement_counter;
+            ++iteration;
         }
 
         if (log.is_at_least_normal()) {
@@ -90,7 +97,7 @@ void run_cegar_refinement_loop(
     if (log.is_at_least_normal()) {
         log << "\nSingleCEGAR statistics:\n"
             << "  computation time: " << timer.get_elapsed_time() << "\n"
-            << "  number of iterations: " << refinement_counter << "\n"
+            << "  number of iterations: " << iteration << "\n"
             << "  final pattern: " << proj.get_pattern() << endl;
     }
 }
