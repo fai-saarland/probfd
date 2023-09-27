@@ -24,7 +24,8 @@ void VDiffSorter::sort(
     std::vector<double> k0;
     k0.reserve(all_successors.size());
     for (const auto& successor_dist : all_successors) {
-        k0.emplace_back(successor_dist.expectation([=, &properties](StateID succ) {
+        k0.emplace_back(successor_dist.expectation([this,
+                                                    &properties](StateID succ) {
             return favor_large_gaps_ * properties.lookup_bounds(succ).length();
         }));
     }
