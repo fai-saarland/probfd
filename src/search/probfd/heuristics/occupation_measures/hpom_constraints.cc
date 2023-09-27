@@ -105,7 +105,8 @@ void HPOMGenerator::generate_hpom_lp(
         utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
     }
 
-    const bool maxprob = task_cost_function.get_non_goal_termination_cost();
+    const bool maxprob =
+        task_cost_function.get_non_goal_termination_cost() == 1_vt;
 
     ::task_properties::verify_no_axioms(task_proxy);
     task_properties::verify_no_conditional_effects(task_proxy);

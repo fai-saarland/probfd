@@ -171,7 +171,8 @@ void HigherOrderHPOMGenerator::initialize_constraints(
         utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
     }
 
-    const bool maxprob = task_cost_function->get_non_goal_termination_cost();
+    const bool maxprob =
+        task_cost_function->get_non_goal_termination_cost() == 1_vt;
 
     ProbabilisticTaskProxy task_proxy(*task);
     const VariablesProxy variables = task_proxy.get_variables();
