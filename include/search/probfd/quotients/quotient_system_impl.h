@@ -457,8 +457,8 @@ template <typename State, typename Action>
 template <typename Range>
 void QuotientSystem<State, Action>::build_quotient(Range& states)
 {
-    std::vector<std::vector<QAction>> dummy(states.size());
-    auto range = std::views::zip(states, dummy);
+    auto range =
+        std::views::zip(states, std::views::repeat(std::vector<QAction>()));
     this->build_quotient(range, *range.begin());
 }
 
