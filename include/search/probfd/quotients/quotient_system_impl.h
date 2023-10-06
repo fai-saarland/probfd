@@ -611,6 +611,11 @@ void QuotientSystem<State, Action>::build_new_quotient(
     // appears first in the data structure.
     assert(qinfo.state_infos.empty());
 
+    // Merged goal state status and termination cost
+    value_t min_termination;
+    bool is_goal;
+
+    {
     // Add this state to the quotient
     auto& b = qinfo.state_infos.emplace_back(rid);
     set_masked_state_id(rid, rid);
@@ -619,14 +624,13 @@ void QuotientSystem<State, Action>::build_new_quotient(
 
     // Merge goal state status and termination cost
     const auto repr_term = mdp_.get_termination_info(repr);
-    value_t min_termination = repr_term.get_cost();
-    bool is_goal = repr_term.is_goal_state();
+        min_termination = repr_term.get_cost();
+        is_goal = repr_term.is_goal_state();
 
     // Generate the applicable actions
     mdp_.generate_applicable_actions(repr, qinfo.aops);
 
     // Partition actions
-    {
         auto [pivot, last] = partition_actions(qinfo.aops, raops);
 
         b.num_outer_acts = std::distance(qinfo.aops.begin(), pivot);
@@ -650,7 +654,7 @@ void QuotientSystem<State, Action>::build_new_quotient(
         auto& b = qinfo.state_infos.emplace_back(state_id);
         set_masked_state_id(state_id, rid);
 
-        const State mem = mdp_.get_state(rid);
+        const State mem = mdp_.get_state(state_id);
 
         // Merge goal state status and termination cost
         const auto mem_term = mdp_.get_termination_info(mem);
