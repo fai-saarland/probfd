@@ -86,7 +86,8 @@ class FRET : public MDPAlgorithm<State, Action> {
     using StackIterator = std::deque<StateID>::iterator;
 
     struct TarjanStateInformation {
-        static constexpr unsigned UNDEF = -1;
+        static constexpr unsigned UNDEF =
+            std::numeric_limits<unsigned int>::max();
 
         unsigned stack_index = UNDEF;
         unsigned lowlink = UNDEF;

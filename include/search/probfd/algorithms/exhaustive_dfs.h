@@ -12,6 +12,7 @@
 #include "probfd/progress_report.h"
 
 #include <deque>
+#include <limits>
 
 namespace probfd {
 namespace algorithms {
@@ -74,7 +75,7 @@ class ExhaustiveDepthFirstSearch : public MDPAlgorithm<State, Action> {
 
         // TODO store lowlink in hash map -> only required for states still on
         // stack
-        unsigned lowlink = -1;
+        unsigned lowlink = std::numeric_limits<unsigned int>::max();
         uint8_t status = NEW;
         AlgorithmValueType value;
         value_t term_cost;

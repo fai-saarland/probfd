@@ -37,13 +37,12 @@ target_compile_options(common_cxx_warnings INTERFACE
 # For MSVC, use warning level 4 (/W4) because /Wall currently detects too
 # many warnings outside of our code to be useful.
 target_compile_options(common_cxx_warnings INTERFACE
-    "$<${using_msvc}:/W4;/wd4456;/wd4457;/wd4458;/wd4459;/wd4244;/wd4245;/wd4267>")
+    "$<${using_msvc}:/W4;/wd4456;/wd4457;/wd4458;/wd4459;/wd4244;/wd4267>")
     # Disable warnings that currently trigger in the code until we fix them.
     #   /wd4456: declaration hides previous local declaration
     #   /wd4457: declaration hides function parameter
     #   /wd4458: declaration hides class member
     #   /wd4459: declaration hides global declaration
     #   /wd4244: conversion with possible loss of data
-    #   /wd4245: initializing unsigned with signed integer
     #   /wd4267: conversion from size_t to int with possible loss of data
 target_link_libraries(common_cxx_flags INTERFACE common_cxx_warnings)

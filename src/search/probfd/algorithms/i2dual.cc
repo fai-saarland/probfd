@@ -17,6 +17,8 @@
 
 #include "downward/utils/countdown_timer.h"
 
+#include <limits>
+
 namespace probfd {
 namespace algorithms {
 namespace i2dual {
@@ -40,8 +42,8 @@ struct I2Dual::IDualData {
     enum { NEW, FRONTIER, TERMINAL, CLOSED };
 
     std::vector<std::pair<double, unsigned>> incoming;
-    double estimate = -1;
-    unsigned constraint = -1;
+    double estimate = -1.0;
+    unsigned constraint = std::numeric_limits<unsigned>::max();
     uint8_t status = NEW;
 
     bool is_new() const { return status == NEW; }

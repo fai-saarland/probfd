@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <limits>
 #include <type_traits>
 
 namespace probfd {
@@ -20,7 +21,8 @@ namespace probfd {
 
 struct StateID {
     using size_type = unsigned long long;
-    static constexpr size_type undefined = -1;
+    static constexpr size_type undefined =
+        std::numeric_limits<size_type>::max();
 
     StateID(size_type id = StateID::undefined)
         : id(id)
