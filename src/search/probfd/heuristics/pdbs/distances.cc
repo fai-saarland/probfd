@@ -15,9 +15,9 @@
 namespace probfd::heuristics::pdbs {
 
 #if !defined(NDEBUG) && defined(USE_LP)
-static void ProbabilityAwarePatternDatabase::verify(
+static void verify(
     ProjectionStateSpace& mdp,
-    const std::vector<value_t>& value_table,
+    std::span<const value_t> value_table,
     StateRank initial_state,
     const std::vector<StateID>& pruned_states)
 {
@@ -44,7 +44,7 @@ static void ProbabilityAwarePatternDatabase::verify(
 
     named_vector::NamedVector<lp::LPVariable> variables;
 
-    const size_t num_states = ranking_function_.num_states();
+    const int num_states = static_cast<int>(value_table.size());
 
     for (size_t i = 0; i != num_states; ++i) {
         variables.emplace_back(0_vt, std::min(term_cost, inf), 0_vt);
@@ -207,7 +207,7 @@ void compute_value_table(
     vi.solve(mdp, h, initial_state, value_table, timer.get_remaining_time());
 
 #if !defined(NDEBUG) && defined(USE_LP)
-    verify(mdp, initial_state, value_table, pruned_states);
+    verify(mdp, value_table, initial_state, pruned_states);
 #endif
 }
 
