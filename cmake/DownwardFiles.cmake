@@ -4,7 +4,7 @@ create_fast_downward_library(
     SOURCES
         downward/abstract_task
         downward/axioms
-        #downward/command_line
+        downward/command_line
         downward/evaluation_context
         downward/evaluation_result
         downward/evaluator
@@ -448,11 +448,11 @@ create_fast_downward_library(
 if(USE_LP)
     find_package(Cplex 12)
     if(CPLEX_FOUND)
-        target_compile_definitions(lp_solver INTERFACE HAS_CPLEX)
-        target_link_libraries(lp_solver INTERFACE cplex::cplex)
+        target_compile_definitions(lp_solver PUBLIC HAS_CPLEX)
+        target_link_libraries(lp_solver PUBLIC cplex::cplex)
         target_sources(
             lp_solver
-            INTERFACE
+            PRIVATE
             ${PROJECT_SOURCE_DIR}/include/search/downward/lp/cplex_solver_interface.h
             ${PROJECT_SOURCE_DIR}/src/search/downward/lp/cplex_solver_interface.cc)
     endif()
@@ -461,11 +461,11 @@ if(USE_LP)
     find_package(soplex 6.0.3 QUIET)
     if (SOPLEX_FOUND)
         message(STATUS "Found SoPlex: ${SOPLEX_INCLUDE_DIRS}")
-        target_compile_definitions(lp_solver INTERFACE HAS_SOPLEX)
-        target_link_libraries(lp_solver INTERFACE libsoplex)
+        target_compile_definitions(lp_solver PUBLIC HAS_SOPLEX)
+        target_link_libraries(lp_solver PUBLIC libsoplex)
         target_sources(
             lp_solver
-            INTERFACE
+            PRIVATE
             ${PROJECT_SOURCE_DIR}/include/search/downward/lp/soplex_solver_interface.h
             ${PROJECT_SOURCE_DIR}/src/search/downward/lp/soplex_solver_interface.cc)
     endif()

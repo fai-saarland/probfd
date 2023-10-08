@@ -41,9 +41,14 @@ report_bitwidth()
 set_up_build_types("Debug;Release")
 set_up_options()
 
-#project(downward LANGUAGES CXX)
-add_library(downward_lib INTERFACE)
-add_executable(downward ${CMAKE_CURRENT_SOURCE_DIR}/probfd/planner.cc)
+target_include_directories(
+    common_cxx_flags
+    INTERFACE
+    ${PROJECT_SOURCE_DIR}/include/search
+    ${PROJECT_SOURCE_DIR}/include/search/ext)
+    
+add_executable(downward ${CMAKE_CURRENT_SOURCE_DIR}/downward/planner.cc)
+add_executable(probfd ${CMAKE_CURRENT_SOURCE_DIR}/probfd/planner.cc)
 
 # On Windows we have to copy all DLLs next to the generated binary.
 if (WIN32)
@@ -53,6 +58,3 @@ endif()
 # Collect source files needed for the active plugins.
 include(DownwardFiles)
 include(ProbFDFiles)
-
-target_include_directories(downward_lib INTERFACE ${PROJECT_SOURCE_DIR}/include/search)
-target_include_directories(downward PRIVATE ${PROJECT_SOURCE_DIR}/include/search)

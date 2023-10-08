@@ -1,4 +1,4 @@
-create_fast_downward_library(
+create_probfd_library(
     NAME mdp
     HELP "Core source files for supporting MDPs"
     SOURCES
@@ -43,16 +43,22 @@ create_fast_downward_library(
         probfd/heuristics/constant_evaluator
 
         # Utility
-        probfd/utils/guards.cc
+        probfd/utils/guards
 
         probfd/solver_interface
         
         probfd/solvers/mdp_solver
-    DEPENDS probabilistic_successor_generator
+    DEPENDS
+        core_sources
+        core_tasks
+        plugins
+        utils
+        parser
+        probabilistic_successor_generator
     CORE_LIBRARY
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME probabilistic_successor_generator
     HELP "Probabilistic Successor generator"
     SOURCES
@@ -63,7 +69,7 @@ create_fast_downward_library(
     DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME core_probabilistic_tasks
     HELP "Core probabilistic task transformations"
     SOURCES
@@ -74,7 +80,7 @@ create_fast_downward_library(
     CORE_LIBRARY
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME extra_probabilistic_tasks
     HELP "Additional probabilistic task transformations"
     SOURCES
@@ -85,17 +91,19 @@ create_fast_downward_library(
     CORE_LIBRARY
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME bisimulation_core
     HELP "bisimulation_core"
     SOURCES
         probfd/bisimulation/bisimilar_state_space
         probfd/bisimulation/evaluators
-    DEPENDS mdp
+    DEPENDS
+        mdp
+        mas_heuristic
     DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME acyclic_value_iteration_solver
     HELP "acyclic_vi"
     SOURCES
@@ -103,7 +111,7 @@ create_fast_downward_library(
     DEPENDS mdp
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME topological_value_iteration_solver
     HELP "topological_vi"
     SOURCES
@@ -111,7 +119,7 @@ create_fast_downward_library(
     DEPENDS mdp
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME interval_iteration_solver
     HELP "interval_iteration"
     SOURCES
@@ -119,7 +127,7 @@ create_fast_downward_library(
     DEPENDS mdp
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME idual_solver
     HELP "idual solver"
     SOURCES
@@ -127,7 +135,7 @@ create_fast_downward_library(
     DEPENDS mdp lp_solver
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME i2dual_solver
     HELP "i2dual solvers"
     SOURCES
@@ -136,7 +144,7 @@ create_fast_downward_library(
     DEPENDS mdp lp_solver occupation_measure_heuristics
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME bisimulation_based_solver
     HELP "bisimulation_vi"
     SOURCES
@@ -144,7 +152,7 @@ create_fast_downward_library(
     DEPENDS bisimulation_core
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME mdp_heuristic_search_base
     HELP "mdp heuristic search core"
     SOURCES
@@ -170,7 +178,7 @@ create_fast_downward_library(
     DEPENDS mdp
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME ao_search
     HELP "aostar implementations"
     SOURCES
@@ -179,7 +187,7 @@ create_fast_downward_library(
     DEPENDS mdp_heuristic_search_base bisimulation_core
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME exhaustive_dfhs
     HELP "exhaustive depth-first heuristic search"
     SOURCES
@@ -187,7 +195,7 @@ create_fast_downward_library(
     DEPENDS mdp_heuristic_search_base
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME lrtdp_solver
     HELP "lrtdp"
     SOURCES
@@ -195,7 +203,7 @@ create_fast_downward_library(
     DEPENDS mdp_heuristic_search_base bisimulation_core
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME trap_aware_lrtdp_solver
     HELP "Trap-Aware LRTDP (TALRTDP)"
     SOURCES
@@ -203,7 +211,7 @@ create_fast_downward_library(
     DEPENDS mdp_heuristic_search_base
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME trap_aware_dfhs_solver
     HELP "Trap-Aware DFHS (TADFHS)"
     SOURCES
@@ -211,7 +219,7 @@ create_fast_downward_library(
     DEPENDS mdp_heuristic_search_base
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME trap_aware_topological_value_iteration_solver
     HELP "Trap-Aware Topological Value Iteration"
     SOURCES
@@ -219,7 +227,7 @@ create_fast_downward_library(
     DEPENDS mdp
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME dfhs_solver
     HELP "depth-first heuristic search"
     SOURCES
@@ -227,7 +235,7 @@ create_fast_downward_library(
     DEPENDS mdp_heuristic_search_base bisimulation_core
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME task_dependent_heuristic
     HELP "Heuristics depending on the input task"
     SOURCES
@@ -235,7 +243,7 @@ create_fast_downward_library(
     DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME deadend_pruning_heuristic
     HELP "Dead-end pruning heuristic"
     SOURCES
@@ -243,7 +251,7 @@ create_fast_downward_library(
     DEPENDS successor_generator task_dependent_heuristic
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME determinization_heuristic
     HELP "All-outcomes determinization heuristic"
     SOURCES
@@ -251,7 +259,7 @@ create_fast_downward_library(
     DEPENDS successor_generator task_dependent_heuristic
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME lp_based_heuristic
     HELP "LP-based heuristic"
     SOURCES
@@ -259,7 +267,7 @@ create_fast_downward_library(
     DEPENDS mdp lp_solver task_dependent_heuristic
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME occupation_measure_heuristics
     HELP "Occupation measure heuristics"
     SOURCES
@@ -273,7 +281,7 @@ create_fast_downward_library(
     DEPENDS mdp lp_based_heuristic
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME probability_aware_pdbs
     HELP "Probability-aware PDBs base classes"
     SOURCES
@@ -290,7 +298,7 @@ create_fast_downward_library(
     DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME padbs_pattern_generators
     HELP "Base classes for pattern collection generation for PPDBs"
     SOURCES
@@ -316,7 +324,7 @@ create_fast_downward_library(
     DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME papdbs_classical_generator
     HELP "Classical pattern collection generator adapter"
     SOURCES
@@ -324,7 +332,7 @@ create_fast_downward_library(
     DEPENDS padbs_pattern_generators
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME papdbs_hillclimbing_generator
     HELP "Hillclimbing pattern collection generator for PPDBs"
     SOURCES
@@ -332,7 +340,7 @@ create_fast_downward_library(
     DEPENDS padbs_pattern_generators
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME papdbs_cegar
     HELP "Disjoint CEGAR pattern collection generator for PPDBs"
     SOURCES
@@ -344,7 +352,7 @@ create_fast_downward_library(
     DEPENDS padbs_pattern_generators
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME papdbs_disjoint_cegar_generator
     HELP "Disjoint CEGAR pattern collection generator for PPDBs"
     SOURCES
@@ -352,7 +360,7 @@ create_fast_downward_library(
     DEPENDS papdbs_cegar
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME papdbs_multiple_cegar_generator
     HELP "Multiple CEGAR pattern collection generator for PPDBs"
     SOURCES
@@ -360,7 +368,7 @@ create_fast_downward_library(
     DEPENDS papdbs_cegar
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME probability_aware_pdb_heuristic
     HELP "Probability-aware PDB heuristic"
     SOURCES
@@ -368,7 +376,7 @@ create_fast_downward_library(
     DEPENDS probability_aware_pdbs padbs_pattern_generators
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME scp_pdb_heuristic
     HELP "Saturated Cost-Partitioning heuristic for probability-aware PDBs"
     SOURCES
@@ -377,7 +385,7 @@ create_fast_downward_library(
     DEPENDS probability_aware_pdbs padbs_pattern_generators
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME ucp_pdb_heuristic
     HELP "Uniform Cost-Partitioning heuristic for probability-aware PDBs"
     SOURCES
@@ -386,7 +394,7 @@ create_fast_downward_library(
     DEPENDS probability_aware_pdbs padbs_pattern_generators
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME gzocp_pdb_heuristic
     HELP "Greedy Zero-One Cost-Partitioning heuristic for probability-aware PDBs"
     SOURCES
@@ -395,7 +403,7 @@ create_fast_downward_library(
     DEPENDS probability_aware_pdbs padbs_pattern_generators
 )
 
-create_fast_downward_library(
+create_probfd_library(
     NAME pa_cartesian_abstractions
     HELP "The code for probability-aware cartesian abstractions"
     SOURCES

@@ -1,6 +1,9 @@
-include(common_cxx_flags)
 
 include(FetchContent)
+include(GoogleTest)
+
+Set(FETCHCONTENT_QUIET FALSE)
+
 FetchContent_Declare(
   googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
@@ -9,31 +12,13 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(googletest)
 
-add_executable(
-    probfd_tests
-    test_main.cpp
-    fp_tests.cpp
-    interval_tests.cpp
-    engine_tests.cpp
-    heuristics/cartesian_tests.cpp
-    task_tests.cpp
-    test_main.cpp
-    tasks/blocksworld.cpp
-    verification/policy_verification.h)
+add_library(test_cxx_flags INTERFACE)
+target_include_directories(test_cxx_flags INTERFACE ${PROJECT_SOURCE_DIR}/tests)
+target_link_libraries(test_cxx_flags INTERFACE common_cxx_flags gtest)
 
-target_link_libraries(probfd_tests downward_lib gtest_main)
+add_executable(run_tests test_main.cc)
+target_link_libraries(run_tests PRIVATE gtest)
 
-# Get probfd include directory
-get_target_property(
-    DOWNWARD_INCLUDES
-    downward_lib
-    INTERFACE_INCLUDE_DIRECTORIES)
-    
-target_include_directories(
-    probfd_tests
-    PUBLIC
-    ${DOWNWARD_INCLUDES}
-    ${PROJECT_SOURCE_DIR}/tests)
+include(TestFiles)
 
-include(GoogleTest)
-gtest_discover_tests(probfd_tests)
+gtest_discover_tests(run_tests)

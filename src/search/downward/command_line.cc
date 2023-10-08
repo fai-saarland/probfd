@@ -5,7 +5,6 @@
 
 #include "downward/parser/lexical_analyzer.h"
 #include "downward/parser/syntax_analyzer.h"
-#include "downward/plugins/any.h"
 #include "downward/plugins/doc_printer.h"
 #include "downward/plugins/plugin.h"
 #include "downward/utils/logging.h"
@@ -105,17 +104,17 @@ parse_cmd_line_aux(const vector<string>& args)
                 parser::TokenStream tokens = parser::split_tokens(search_arg);
                 parser::ASTNodePtr parsed = parser::parse(tokens);
                 parser::DecoratedASTNodePtr decorated = parsed->decorate();
-                plugins::Any constructed = decorated->construct();
-                algorithm = plugins::any_cast<SearchPtr>(constructed);
+                std::any constructed = decorated->construct();
+                algorithm = std::any_cast<SearchPtr>(constructed);
             } catch (const utils::ContextError& e) {
                 input_error(e.get_message());
             }
-        } else if (arg == "--help" && dry_run) {
+        } else if (arg == "--help") {
             cout << "Help:" << endl;
             bool txt2tags = false;
             vector<string> plugin_names;
             for (size_t j = i + 1; j < args.size(); ++j) {
-                string help_arg = sanitize_arg_string(args[j]);
+                string help_arg = args[j];
                 if (help_arg == "--txt2tags") {
                     txt2tags = true;
                 } else {
@@ -135,7 +134,7 @@ parse_cmd_line_aux(const vector<string>& args)
                 doc_printer->print_all();
             } else {
                 for (const string& name : plugin_names) {
-                    doc_printer->print_plugin(name);
+                    doc_printer->print_feature(name);
                 }
             }
             cout << "Help output finished." << endl;
@@ -161,7 +160,7 @@ parse_cmd_line_aux(const vector<string>& args)
         }
     }
 
-    if (algorithmthmthm) {
+    if (algorithm) {
         PlanManager& plan_manager = algorithm->get_plan_manager();
         plan_manager.set_plan_filename(plan_filename);
         plan_manager.set_num_previously_generated_plans(
@@ -193,7 +192,7 @@ parse_cmd_line(int argc, const char** argv, bool is_unit_cost)
         }
     }
     args = replace_old_style_predefinitions(args);
-    return parse_cmd_line_aux(args, registry, dry_run);
+    return parse_cmd_line_aux(args);
 }
 
 string usage(const string& progname)
