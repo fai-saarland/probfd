@@ -136,10 +136,18 @@ function(create_library)
 endfunction()
 
 function(copy_dlls_to_binary_dir_after_build _TARGET_NAME)
-    if(NOT "$<TARGET_RUNTIME_DLLS:${_TARGET_NAME}>" STREQUAL "")
-        add_custom_command(TARGET ${_TARGET_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:${_TARGET_NAME}> $<TARGET_FILE_DIR:${_TARGET_NAME}>
-            COMMAND_EXPAND_LISTS
-        )
-    endif()
+    set(have_runtime_dlls
+        $<BOOL:$<TARGET_RUNTIME_DLLS:${_TARGET_NAME}>>
+    )
+
+    set(command
+        ${CMAKE_COMMAND} -E copy
+        $<TARGET_RUNTIME_DLLS:${_TARGET_NAME}>
+        $<TARGET_FILE_DIR:${_TARGET_NAME}>
+    )
+
+    add_custom_command(TARGET ${_TARGET_NAME} POST_BUILD
+        COMMAND "$<${have_runtime_dlls}:${command}>"
+        COMMAND_EXPAND_LISTS
+    )
 endfunction()
