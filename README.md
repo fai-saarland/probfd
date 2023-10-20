@@ -98,7 +98,7 @@ and on macOS we do not test LP solvers (yet).
 ## Contributors
 
 The following list includes all people that actively contributed to
-Fast Downward, i.e. all people that appear in some commits in Fast
+Fast Downward, i.e., all people that appear in some commits in Fast
 Downward's history (see below for a history on how Fast Downward
 emerged) or people that influenced the development of such commits.
 Currently, this list is sorted by the last year the person has been

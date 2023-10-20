@@ -699,7 +699,7 @@ create_fast_downward_library(
     SOURCES
         downward/landmarks/exploration
         downward/landmarks/landmark
-        downward/landmarks/landmark_cost_assignment
+        downward/landmarks/landmark_cost_partitioning_algorithms
         downward/landmarks/landmark_cost_partitioning_heuristic
         downward/landmarks/landmark_factory
         downward/landmarks/landmark_factory_h_m

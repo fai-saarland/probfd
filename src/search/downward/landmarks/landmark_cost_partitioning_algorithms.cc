@@ -1,4 +1,4 @@
-#include "downward/landmarks/landmark_cost_assignment.h"
+#include "downward/landmarks/landmark_cost_partitioning_algorithms.h"
 
 #include "downward/landmarks/landmark.h"
 #include "downward/landmarks/landmark_graph.h"
@@ -16,7 +16,7 @@
 using namespace std;
 
 namespace landmarks {
-LandmarkCostAssignment::LandmarkCostAssignment(
+CostPartitioningAlgorithm::CostPartitioningAlgorithm(
     const vector<int>& operator_costs,
     const LandmarkGraph& graph)
     : lm_graph(graph)
@@ -24,8 +24,9 @@ LandmarkCostAssignment::LandmarkCostAssignment(
 {
 }
 
-const set<int>&
-LandmarkCostAssignment::get_achievers(const Landmark& landmark, bool past) const
+const unordered_set<int>&
+CostPartitioningAlgorithm::get_achievers(const Landmark& landmark, bool past)
+    const
 {
     // Return relevant achievers of the landmark according to its status.
     if (past) {
@@ -35,17 +36,16 @@ LandmarkCostAssignment::get_achievers(const Landmark& landmark, bool past) const
     }
 }
 
-// Uniform cost partioning
-LandmarkUniformSharedCostAssignment::LandmarkUniformSharedCostAssignment(
+UniformCostPartitioningAlgorithm::UniformCostPartitioningAlgorithm(
     const vector<int>& operator_costs,
     const LandmarkGraph& graph,
     bool use_action_landmarks)
-    : LandmarkCostAssignment(operator_costs, graph)
+    : CostPartitioningAlgorithm(operator_costs, graph)
     , use_action_landmarks(use_action_landmarks)
 {
 }
 
-double LandmarkUniformSharedCostAssignment::cost_sharing_h_value(
+double UniformCostPartitioningAlgorithm::get_cost_partitioned_heuristic_value(
     const LandmarkStatusManager& lm_status_manager,
     const State& ancestor_state)
 {
@@ -65,7 +65,7 @@ double LandmarkUniformSharedCostAssignment::cost_sharing_h_value(
     for (auto& node : nodes) {
         int id = node->get_id();
         if (future.test(id)) {
-            const set<int>& achievers =
+            const unordered_set<int>& achievers =
                 get_achievers(node->get_landmark(), past.test(id));
             if (achievers.empty()) return numeric_limits<double>::max();
             if (use_action_landmarks && achievers.size() == 1) {
@@ -97,7 +97,7 @@ double LandmarkUniformSharedCostAssignment::cost_sharing_h_value(
     for (auto& node : nodes) {
         int id = node->get_id();
         if (future.test(id)) {
-            const set<int>& achievers =
+            const unordered_set<int>& achievers =
                 get_achievers(node->get_landmark(), past.test(id));
             bool covered_by_action_lm = false;
             for (int op_id : achievers) {
@@ -124,7 +124,7 @@ double LandmarkUniformSharedCostAssignment::cost_sharing_h_value(
         // TODO: Iterate over Landmarks instead of LandmarkNodes
         int id = node->get_id();
         assert(future.test(id));
-        const set<int>& achievers =
+        const unordered_set<int>& achievers =
             get_achievers(node->get_landmark(), past.test(id));
         double min_cost = numeric_limits<double>::max();
         for (int op_id : achievers) {
@@ -132,9 +132,9 @@ double LandmarkUniformSharedCostAssignment::cost_sharing_h_value(
             int num_achieved = achieved_lms_by_op[op_id];
             assert(num_achieved >= 1);
             assert(utils::in_bounds(op_id, operator_costs));
-            double shared_cost =
+            double partitioned_cost =
                 static_cast<double>(operator_costs[op_id]) / num_achieved;
-            min_cost = min(min_cost, shared_cost);
+            min_cost = min(min_cost, partitioned_cost);
         }
         h += min_cost;
     }
@@ -142,19 +142,17 @@ double LandmarkUniformSharedCostAssignment::cost_sharing_h_value(
     return h;
 }
 
-LandmarkEfficientOptimalSharedCostAssignment::
-    LandmarkEfficientOptimalSharedCostAssignment(
-        const vector<int>& operator_costs,
-        const LandmarkGraph& graph,
-        lp::LPSolverType solver_type)
-    : LandmarkCostAssignment(operator_costs, graph)
+OptimalCostPartitioningAlgorithm::OptimalCostPartitioningAlgorithm(
+    const vector<int>& operator_costs,
+    const LandmarkGraph& graph,
+    lp::LPSolverType solver_type)
+    : CostPartitioningAlgorithm(operator_costs, graph)
     , lp_solver(solver_type)
     , lp(build_initial_lp())
 {
 }
 
-lp::LinearProgram
-LandmarkEfficientOptimalSharedCostAssignment::build_initial_lp()
+lp::LinearProgram OptimalCostPartitioningAlgorithm::build_initial_lp()
 {
     /* The LP has one variable (column) per landmark and one
        inequality (row) per operator. */
@@ -186,7 +184,7 @@ LandmarkEfficientOptimalSharedCostAssignment::build_initial_lp()
         lp_solver.get_infinity());
 }
 
-double LandmarkEfficientOptimalSharedCostAssignment::cost_sharing_h_value(
+double OptimalCostPartitioningAlgorithm::get_cost_partitioned_heuristic_value(
     const LandmarkStatusManager& lm_status_manager,
     const State& ancestor_state)
 {
@@ -226,7 +224,7 @@ double LandmarkEfficientOptimalSharedCostAssignment::cost_sharing_h_value(
     for (int lm_id = 0; lm_id < num_cols; ++lm_id) {
         const Landmark& landmark = lm_graph.get_node(lm_id)->get_landmark();
         if (future.test(lm_id)) {
-            const set<int>& achievers =
+            const unordered_set<int>& achievers =
                 get_achievers(landmark, past.test(lm_id));
             if (achievers.empty()) return numeric_limits<double>::max();
             for (int op_id : achievers) {

@@ -1,11 +1,11 @@
-#ifndef LANDMARKS_LANDMARK_COST_ASSIGNMENT_H
-#define LANDMARKS_LANDMARK_COST_ASSIGNMENT_H
-
-#include "downward/lp/lp_solver.h"
+#ifndef LANDMARKS_LANDMARK_COST_PARTITIONING_ALGORITHMS_H
+#define LANDMARKS_LANDMARK_COST_PARTITIONING_ALGORITHMS_H
 
 #include "downward/task_proxy.h"
 
-#include <set>
+#include "downward/lp/lp_solver.h"
+
+#include <unordered_set>
 #include <vector>
 
 class OperatorsProxy;
@@ -16,44 +16,43 @@ class LandmarkGraph;
 class LandmarkNode;
 class LandmarkStatusManager;
 
-class LandmarkCostAssignment {
+class CostPartitioningAlgorithm {
 protected:
     const LandmarkGraph& lm_graph;
     const std::vector<int> operator_costs;
 
-    const std::set<int>&
+    const std::unordered_set<int>&
     get_achievers(const Landmark& landmark, bool past) const;
 
 public:
-    LandmarkCostAssignment(
+    CostPartitioningAlgorithm(
         const std::vector<int>& operator_costs,
         const LandmarkGraph& graph);
-    virtual ~LandmarkCostAssignment() = default;
+    virtual ~CostPartitioningAlgorithm() = default;
 
-    virtual double cost_sharing_h_value(
+    virtual double get_cost_partitioned_heuristic_value(
         const LandmarkStatusManager& lm_status_manager,
         const State& ancestor_state) = 0;
 };
 
-class LandmarkUniformSharedCostAssignment : public LandmarkCostAssignment {
+class UniformCostPartitioningAlgorithm : public CostPartitioningAlgorithm {
     bool use_action_landmarks;
 
 public:
-    LandmarkUniformSharedCostAssignment(
+    UniformCostPartitioningAlgorithm(
         const std::vector<int>& operator_costs,
         const LandmarkGraph& graph,
         bool use_action_landmarks);
 
-    virtual double cost_sharing_h_value(
+    virtual double get_cost_partitioned_heuristic_value(
         const LandmarkStatusManager& lm_status_manager,
         const State& ancestor_state) override;
 };
 
-class LandmarkEfficientOptimalSharedCostAssignment
-    : public LandmarkCostAssignment {
+class OptimalCostPartitioningAlgorithm : public CostPartitioningAlgorithm {
     lp::LPSolver lp_solver;
-    // We keep an additional copy of the constraints around to avoid some effort
-    // with recreating the vector (see issue443).
+    /* We keep an additional copy of the constraints around to avoid
+       some effort with recreating the vector (see issue443). */
     std::vector<lp::LPConstraint> lp_constraints;
     /*
       We keep the vectors for LP variables and constraints around instead of
@@ -66,12 +65,12 @@ class LandmarkEfficientOptimalSharedCostAssignment
     lp::LinearProgram build_initial_lp();
 
 public:
-    LandmarkEfficientOptimalSharedCostAssignment(
+    OptimalCostPartitioningAlgorithm(
         const std::vector<int>& operator_costs,
         const LandmarkGraph& graph,
         lp::LPSolverType solver_type);
 
-    virtual double cost_sharing_h_value(
+    virtual double get_cost_partitioned_heuristic_value(
         const LandmarkStatusManager& lm_status_manager,
         const State& ancestor_state) override;
 };
