@@ -15,20 +15,19 @@
 #include "probfd/task_proxy.h"
 #include "probfd/task_state_space.h"
 
-#include "tasks/blocksworld.h"
+#include "tests/tasks/blocksworld.h"
 
-#include "verification/policy_verification.h"
+#include "tests/verification/policy_verification.h"
 
 using namespace probfd;
-using namespace probfd::algorithms;
-using namespace probfd::tests;
+using namespace tests;
 
 TEST(EngineTests, test_interval_set_min)
 {
     Interval interval(8.0_vt, 40.0_vt);
     Interval interval2(-45.0_vt, 30.0_vt);
 
-    probfd::algorithms::set_min(interval, interval2);
+    algorithms::set_min(interval, interval2);
 
     ASSERT_EQ(interval.lower, -45.0_vt);
     ASSERT_EQ(interval.upper, 30.0_vt);
@@ -39,7 +38,7 @@ TEST(EngineTests, test_interval_set_min2)
     Interval interval(8.0_vt, INFINITE_VALUE);
     Interval interval2(INFINITE_VALUE, 30.0_vt);
 
-    probfd::algorithms::set_min(interval, interval2);
+    algorithms::set_min(interval, interval2);
 
     ASSERT_EQ(interval.lower, 8.0_vt);
     ASSERT_EQ(interval.upper, 30.0_vt);
@@ -50,7 +49,7 @@ TEST(EngineTests, test_interval_set_min3)
     Interval interval(INFINITE_VALUE, INFINITE_VALUE);
     Interval interval2(-INFINITE_VALUE, INFINITE_VALUE);
 
-    probfd::algorithms::set_min(interval, interval2);
+    algorithms::set_min(interval, interval2);
 
     ASSERT_EQ(interval.lower, -INFINITE_VALUE);
     ASSERT_EQ(interval.upper, INFINITE_VALUE);
@@ -61,7 +60,7 @@ TEST(EngineTests, test_interval_update1)
     Interval interval(8.0_vt, 40.0_vt);
     Interval interval2(-45.0_vt, 30.0_vt);
 
-    bool result = probfd::algorithms::update(interval, interval2);
+    bool result = algorithms::update(interval, interval2);
 
     ASSERT_TRUE(result);
     ASSERT_EQ(interval.lower, std::max(8.0_vt, -45.0_vt));
@@ -73,7 +72,7 @@ TEST(EngineTests, test_interval_update2)
     Interval interval(8.0_vt, 40.0_vt);
     Interval interval2(7.0_vt, 41.0_vt);
 
-    bool result = probfd::algorithms::update(interval, interval2);
+    bool result = algorithms::update(interval, interval2);
 
     ASSERT_FALSE(result);
     ASSERT_EQ(interval.lower, std::max(8.0_vt, 7.0_vt));
@@ -85,7 +84,7 @@ TEST(EngineTests, test_interval_update3)
     Interval interval(8.0_vt, 40.0_vt);
     Interval interval2(25.0_vt, 30.0_vt);
 
-    bool result = probfd::algorithms::update(interval, interval2, false);
+    bool result = algorithms::update(interval, interval2, false);
 
     ASSERT_TRUE(result);
     ASSERT_EQ(interval.lower, std::max(8.0_vt, 25.0_vt));
@@ -97,7 +96,7 @@ TEST(EngineTests, test_interval_update4)
     Interval interval(8.0_vt, 40.0_vt);
     Interval interval2(7.0_vt, 39.0_vt);
 
-    bool result = probfd::algorithms::update(interval, interval2, false);
+    bool result = algorithms::update(interval, interval2, false);
 
     ASSERT_FALSE(result);
     ASSERT_EQ(interval.lower, std::max(8.0_vt, 7.0_vt));
@@ -106,12 +105,14 @@ TEST(EngineTests, test_interval_update4)
 
 TEST(EngineTests, test_ilao_blocksworld_6_blocks)
 {
+    using namespace algorithms::heuristic_depth_first_search;
+
     std::shared_ptr<ProbabilisticTask> task(new BlocksworldTask(
         6,
         {{1, 0}, {2}, {5, 4, 3}},
         {{1, 4}, {5, 3, 2, 0}}));
 
-    probfd::tasks::set_root_task(task);
+    tasks::set_root_task(task);
 
     ProbabilisticTaskProxy task_proxy(*task);
 
@@ -123,19 +124,17 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
     auto policy_chooser = std::make_shared<
         policy_pickers::ArbitraryTiebreaker<State, OperatorID>>(true);
 
-    heuristic_depth_first_search::
-        HeuristicDepthFirstSearch<State, OperatorID, false, true>
-            hdfs(
-                policy_chooser,
-                &report,
-                false,
-                false,
-                false,
-                heuristic_depth_first_search::BacktrackingUpdateType::SINGLE,
-                false,
-                false,
-                true,
-                false);
+    HeuristicDepthFirstSearch<State, OperatorID, false, true> hdfs(
+        policy_chooser,
+        &report,
+        false,
+        false,
+        false,
+        BacktrackingUpdateType::SINGLE,
+        false,
+        false,
+        true,
+        false);
 
     auto policy = hdfs.compute_policy(mdp, heuristic, mdp.get_initial_state());
 
@@ -151,12 +150,15 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
 
 TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
 {
+    using namespace algorithms::heuristic_depth_first_search;
+    using namespace algorithms::fret;
+
     std::shared_ptr<ProbabilisticTask> task(new BlocksworldTask(
         6,
         {{1, 0}, {2}, {5, 4, 3}},
         {{1, 4}, {5, 3, 2, 0}}));
 
-    probfd::tasks::set_root_task(task);
+    tasks::set_root_task(task);
 
     ProbabilisticTaskProxy task_proxy(*task);
 
@@ -169,24 +171,23 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
         quotients::QuotientState<State, OperatorID>,
         quotients::QuotientAction<OperatorID>>>(true);
 
-    auto hdfs = std::make_shared<
-        heuristic_depth_first_search::HeuristicDepthFirstSearch<
-            quotients::QuotientState<State, OperatorID>,
-            quotients::QuotientAction<OperatorID>,
-            false,
-            true>>(
+    auto hdfs = std::make_shared<HeuristicDepthFirstSearch<
+        quotients::QuotientState<State, OperatorID>,
+        quotients::QuotientAction<OperatorID>,
+        false,
+        true>>(
         policy_chooser,
         &report,
         false,
         false,
         false,
-        heuristic_depth_first_search::BacktrackingUpdateType::SINGLE,
+        BacktrackingUpdateType::SINGLE,
         false,
         false,
         true,
         false);
 
-    fret::FRETPi<State, OperatorID, false> fret(&report, hdfs);
+    FRETPi<State, OperatorID, false> fret(&report, hdfs);
 
     auto policy = fret.compute_policy(mdp, heuristic, mdp.get_initial_state());
 

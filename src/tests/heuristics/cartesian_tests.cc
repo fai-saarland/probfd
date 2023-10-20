@@ -26,9 +26,7 @@ size_t get_num_transitions(const cartesian::ProbabilisticTransitionSystem& ts)
 
 TEST(CartesianTests, test_probabilistic_transition_system)
 {
-    std::filesystem::path file_path = __FILE__;
-    std::fstream file(
-        file_path.remove_filename() / "../sas_files/gripper_example.sas");
+    std::fstream file("resources/gripper_example.sas");
     std::shared_ptr<ProbabilisticTask> task = tasks::read_sas_task(file);
     const ProbabilisticTaskProxy task_proxy(*task);
 
@@ -58,9 +56,7 @@ TEST(CartesianTests, test_probabilistic_transition_system)
 
 TEST(CartesianTests, test_probabilistic_transition_system2)
 {
-    std::filesystem::path file_path = __FILE__;
-    std::fstream file(
-        file_path.remove_filename() / "../sas_files/pblocksworld_example.sas");
+    std::fstream file("resources/pblocksworld_example.sas");
     std::shared_ptr<ProbabilisticTask> task = tasks::read_sas_task(file);
     const ProbabilisticTaskProxy task_proxy(*task);
 

@@ -427,5 +427,9 @@ create_probfd_library(
         probfd/heuristics/cartesian/subtask_generators
         probfd/heuristics/cartesian/trace_based_flaw_generator
         probfd/heuristics/cartesian/utils
-    DEPENDS cartesian_abstractions additive_heuristic extra_probabilistic_tasks
+    DEPENDS 
+        cartesian_abstractions
+        additive_heuristic
+        extra_probabilistic_tasks
+        task_dependent_heuristic
 )

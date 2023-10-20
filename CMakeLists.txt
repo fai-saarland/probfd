@@ -58,4 +58,4 @@ add_custom_command(TARGET translate POST_BUILD
 add_subdirectory(src/search)
 
 # Add tests as a subproject.
-add_subdirectory(tests)
+add_subdirectory(src/tests)

@@ -8,8 +8,7 @@
 
 TEST(TaskTests, test_read_sas_task)
 {
-    std::filesystem::path file_path = __FILE__;
-    std::fstream file(file_path.remove_filename() / "sas_files/test1.sas");
+    std::fstream file("resources/test1.sas");
     auto task = probfd::tasks::read_sas_task(file);
 
     ASSERT_EQ(task->get_num_axioms(), 0);

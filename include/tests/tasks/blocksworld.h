@@ -5,10 +5,9 @@
 
 #include <vector>
 
-namespace probfd {
 namespace tests {
 
-class BlocksworldTask : public ProbabilisticTask {
+class BlocksworldTask : public probfd::ProbabilisticTask {
     int blocks;
     std::vector<int> initial_state;
     std::vector<FactPair> goal_state;
@@ -87,11 +86,12 @@ public:
 
     int convert_operator_index(int, const AbstractTaskBase*) const override;
 
-    value_t get_operator_cost(int index) const override;
+    probfd::value_t get_operator_cost(int index) const override;
 
     int get_num_operator_outcomes(int index) const override;
 
-    value_t get_operator_outcome_probability(int index, int outcome_index)
+    probfd::value_t
+    get_operator_outcome_probability(int index, int outcome_index)
         const override;
 
     int get_operator_outcome_id(int index, int outcome_index) const override;
@@ -116,6 +116,5 @@ public:
 };
 
 } // namespace tests
-} // namespace probfd
 
 #endif

@@ -13,11 +13,10 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 add_library(test_cxx_flags INTERFACE)
-target_include_directories(test_cxx_flags INTERFACE ${PROJECT_SOURCE_DIR}/tests)
 target_link_libraries(test_cxx_flags INTERFACE common_cxx_flags gtest)
 
 add_executable(run_tests test_main.cc)
-target_link_libraries(run_tests PRIVATE gtest)
+target_link_libraries(run_tests PRIVATE test_cxx_flags)
 
 include(TestFiles)
 

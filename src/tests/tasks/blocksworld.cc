@@ -1,8 +1,9 @@
-#include "tasks/blocksworld.h"
+#include "tests/tasks/blocksworld.h"
 
 #include <set>
 
-namespace probfd {
+using namespace probfd;
+
 namespace tests {
 
 int BlocksworldTask::get_clear_var(int block) const
@@ -638,4 +639,3 @@ BlocksworldTask::get_operator_outcome_effect_condition(int, int, int, int) const
 }
 
 } // namespace tests
-} // namespace probfd
