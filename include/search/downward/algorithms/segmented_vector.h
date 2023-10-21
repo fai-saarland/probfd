@@ -305,7 +305,7 @@ public:
         the_size = 0;
     }
 
-    iterator begin() { return iterator(segments.begin(), *segments.front()); }
+    iterator begin() { return iterator(segments.begin(), segments.front()); }
 
     iterator end()
     {
