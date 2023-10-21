@@ -24,9 +24,7 @@ namespace algorithms {
 /// Namespace dedicated to the Find, Revise, Eliminate Traps (FRET) framework.
 namespace fret {
 
-template <typename State, typename Action, typename StateInfoT>
-using HeuristicSearchAlgorithm =
-    heuristic_search::HeuristicSearchAlgorithm<State, Action, StateInfoT>;
+namespace internal {
 
 struct Statistics {
     unsigned long long iterations = 0;
@@ -40,6 +38,58 @@ struct Statistics {
 
     void print(std::ostream& out) const;
 };
+
+struct TarjanStateInformation {
+    static constexpr unsigned UNDEF = std::numeric_limits<unsigned int>::max();
+
+    unsigned stack_index = UNDEF;
+    unsigned lowlink = UNDEF;
+
+    bool is_explored() const { return lowlink != UNDEF; }
+    bool is_on_stack() const { return stack_index != UNDEF; }
+
+    void open(const unsigned x)
+    {
+        stack_index = x;
+        lowlink = x;
+    }
+
+    void close() { stack_index = UNDEF; }
+};
+
+struct ExplorationInfo {
+    ExplorationInfo(StateID state_id, std::vector<StateID> successors)
+        : state_id(state_id)
+        , successors(std::move(successors))
+    {
+    }
+
+    StateID state_id;
+    std::vector<StateID> successors;
+    bool is_leaf = true;
+};
+
+template <typename QAction>
+struct StackInfo {
+    StateID state_id;
+    std::vector<QAction> aops;
+
+    template <size_t i>
+    friend auto& get(StackInfo& info)
+    {
+        if constexpr (i == 0) return info.state_id;
+        if constexpr (i == 1) return info.aops;
+    }
+
+    template <size_t i>
+    friend const auto& get(const StackInfo& info)
+    {
+        if constexpr (i == 0) return info.state_id;
+        if constexpr (i == 1) return info.aops;
+    }
+};
+
+} // namespace internal
 
 /**
  * @brief Implemetation of the Find-Revise-Eliminate-Traps (FRET) framework
@@ -80,64 +130,15 @@ class FRET : public MDPAlgorithm<State, Action> {
     using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
     using QHeuristicSearchAlgorithm =
-        HeuristicSearchAlgorithm<QState, QAction, StateInfoT>;
+        heuristic_search::HeuristicSearchAlgorithm<QState, QAction, StateInfoT>;
     using QEvaluator = probfd::Evaluator<QState>;
 
     using StackIterator = std::deque<StateID>::iterator;
-
-    struct TarjanStateInformation {
-        static constexpr unsigned UNDEF =
-            std::numeric_limits<unsigned int>::max();
-
-        unsigned stack_index = UNDEF;
-        unsigned lowlink = UNDEF;
-
-        bool is_explored() const { return lowlink != UNDEF; }
-        bool is_on_stack() const { return stack_index != UNDEF; }
-
-        void open(const unsigned x)
-        {
-            stack_index = x;
-            lowlink = x;
-        }
-
-        void close() { stack_index = UNDEF; }
-    };
-
-    struct ExplorationInfo {
-        ExplorationInfo(StateID state_id, std::vector<StateID> successors)
-            : state_id(state_id)
-            , successors(std::move(successors))
-        {
-        }
-
-        StateID state_id;
-        std::vector<StateID> successors;
-        bool is_leaf = true;
-    };
-
-    struct StackInfo {
-        StateID state_id;
-        std::vector<QAction> aops;
-
-        template <size_t i>
-        friend auto& get(StackInfo& info)
-        {
-            if constexpr (i == 0) return info.state_id;
-            if constexpr (i == 1) return info.aops;
-        }
-
-        template <size_t i>
-        friend const auto& get(const StackInfo& info)
-        {
-            if constexpr (i == 0) return info.state_id;
-            if constexpr (i == 1) return info.aops;
-        }
-    };
+    using StackInfo = internal::StackInfo<QAction>;
 
     std::shared_ptr<QHeuristicSearchAlgorithm> base_algorithm_;
 
-    Statistics statistics_;
+    internal::Statistics statistics_;
 
 public:
     explicit FRET(std::shared_ptr<QHeuristicSearchAlgorithm> algorithm);
@@ -185,9 +186,9 @@ private:
     bool push(
         QuotientSystem& quotient,
         QEvaluator& heuristic,
-        std::deque<ExplorationInfo>& queue,
+        std::deque<internal::ExplorationInfo>& queue,
         std::deque<StackInfo>& stack,
-        TarjanStateInformation& info,
+        internal::TarjanStateInformation& info,
         StateID state_id,
         unsigned int& unexpanded);
 };
@@ -198,7 +199,7 @@ class ValueGraph {
     using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
     using QHeuristicSearchAlgorithm =
-        HeuristicSearchAlgorithm<QState, QAction, StateInfoT>;
+        heuristic_search::HeuristicSearchAlgorithm<QState, QAction, StateInfoT>;
 
     using QEvaluator = Evaluator<QState>;
 
@@ -221,7 +222,7 @@ class PolicyGraph {
     using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
     using QHeuristicSearchAlgorithm =
-        HeuristicSearchAlgorithm<QState, QAction, StateInfoT>;
+        heuristic_search::HeuristicSearchAlgorithm<QState, QAction, StateInfoT>;
 
     using QEvaluator = Evaluator<QState>;
 
@@ -269,4 +270,4 @@ using FRETPi =
 #include "probfd/algorithms/fret_impl.h"
 #undef GUARD_INCLUDE_PROBFD_ALGORITHMS_FRET_H
 
-#endif
+#endif // PROBFD_ALGORITHMS_FRET_H

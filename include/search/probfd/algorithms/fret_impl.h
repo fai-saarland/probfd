@@ -12,6 +12,8 @@ namespace probfd {
 namespace algorithms {
 namespace fret {
 
+namespace internal {
+
 inline void Statistics::print(std::ostream& out) const
 {
     out << "  FRET iterations: " << iterations << std::endl;
@@ -22,6 +24,8 @@ inline void Statistics::print(std::ostream& out) const
     out << "  Trap removal: " << trap_removal << std::endl;
 #endif
 }
+
+} // namespace internal
 
 template <
     typename State,
@@ -263,6 +267,8 @@ bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::
         param_type<QState> state,
         utils::CountdownTimer& timer)
 {
+    using namespace internal;
+
 #if defined(EXPENSIVE_STATISTICS)
     TimerScope scoped(statistics_.trap_identification);
 #endif
@@ -396,9 +402,9 @@ template <
 bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::push(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
-    std::deque<ExplorationInfo>& queue,
+    std::deque<internal::ExplorationInfo>& queue,
     std::deque<StackInfo>& stack,
-    TarjanStateInformation& info,
+    internal::TarjanStateInformation& info,
     StateID state_id,
     unsigned int& unexpanded)
 {
