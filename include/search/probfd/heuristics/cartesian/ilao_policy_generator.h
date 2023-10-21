@@ -5,8 +5,6 @@
 
 #include "probfd/policy_pickers/arbitrary_tiebreaker.h"
 
-#include "probfd/progress_report.h"
-
 #include <memory>
 
 namespace probfd {
@@ -31,8 +29,6 @@ class ILAOPolicyGenerator : public PolicyGenerator {
         quotients::QuotientState<int, const ProbabilisticTransition*>,
         quotients::QuotientAction<const ProbabilisticTransition*>>>
         picker;
-
-    ProgressReport report;
 
 public:
     ILAOPolicyGenerator();

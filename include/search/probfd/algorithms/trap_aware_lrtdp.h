@@ -164,7 +164,6 @@ public:
      */
     TALRTDPImpl(
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-        ProgressReport* report,
         bool interval_comparison,
         TrialTerminationCondition stop_consistent,
         bool reexpand_traps,
@@ -174,6 +173,7 @@ public:
         QuotientSystem& quotient,
         QEvaluator& heuristic,
         param_type<QState> state,
+        ProgressReport& progress,
         double max_time);
 
     void print_statistics(std::ostream& out) const;
@@ -220,15 +220,17 @@ public:
      */
     TALRTDP(
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-        ProgressReport* report,
         bool interval_comparison,
         TrialTerminationCondition stop_consistent,
         bool reexpand_traps,
         std::shared_ptr<QuotientSuccessorSampler> succ_sampler);
 
-    Interval
-    solve(MDP& mdp, Evaluator& heuristic, param_type<State> s, double max_time)
-        override final;
+    Interval solve(
+        MDP& mdp,
+        Evaluator& heuristic,
+        param_type<State> s,
+        ProgressReport progress,
+        double max_time) override final;
 
     void print_statistics(std::ostream& out) const override final;
 };

@@ -169,7 +169,6 @@ class HeuristicDepthFirstSearch
 public:
     HeuristicDepthFirstSearch(
         std::shared_ptr<PolicyPicker> policy_chooser,
-        ProgressReport* report,
         bool interval_comparison,
         bool LabelSolved,
         bool ForwardUpdates,
@@ -186,6 +185,7 @@ protected:
         MDP& mdp,
         Evaluator& heuristic,
         param_type<State> state,
+        ProgressReport& progress,
         double max_time) override;
 
     void print_additional_statistics(std::ostream& out) const override;
@@ -197,12 +197,14 @@ private:
         MDP& mdp,
         Evaluator& heuristic,
         StateID stateid,
+        ProgressReport& progress,
         utils::CountdownTimer& timer);
 
     void solve_without_vi_termination(
         MDP& mdp,
         Evaluator& heuristic,
         StateID stateid,
+        ProgressReport& progress,
         utils::CountdownTimer& timer);
 
     template <bool GetVisited>

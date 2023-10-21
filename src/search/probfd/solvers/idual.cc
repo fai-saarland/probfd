@@ -3,7 +3,6 @@
 #include "probfd/algorithms/idual.h"
 
 #include "probfd/evaluator.h"
-#include "probfd/progress_report.h"
 
 #include "downward/lp/lp_solver.h"
 
@@ -32,7 +31,7 @@ public:
     {
         using IDualAlgorithm = algorithms::idual::IDual<State, OperatorID>;
 
-        return std::make_unique<IDualAlgorithm>(&progress_, solver_type_);
+        return std::make_unique<IDualAlgorithm>(solver_type_);
     }
 };
 

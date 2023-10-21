@@ -73,13 +73,11 @@ struct I2Dual::IDualData {
 I2Dual::I2Dual(
     std::shared_ptr<ProbabilisticTask> task,
     std::shared_ptr<FDRCostFunction> task_cost_function,
-    ProgressReport* progress,
     bool hpom_enabled,
     bool incremental_updates,
     lp::LPSolverType solver_type)
     : task_proxy(*task)
     , task_cost_function(std::move(task_cost_function))
-    , progress_(progress)
     , hpom_enabled_(hpom_enabled)
     , incremental_hpom_updates_(incremental_updates)
     , lp_solver_(solver_type)
@@ -95,6 +93,7 @@ Interval I2Dual::solve(
     FDRMDP& mdp,
     FDREvaluator& heuristic,
     const State& state,
+    ProgressReport progress,
     double max_time)
 {
     utils::CountdownTimer timer(max_time);
@@ -117,7 +116,7 @@ Interval I2Dual::solve(
 
     prepare_lp();
 
-    progress_->register_bound("v", [this]() {
+    progress.register_bound("v", [this]() {
         return Interval(objective_, INFINITE_VALUE);
     });
 
@@ -144,7 +143,7 @@ Interval I2Dual::solve(
     }
 
     while (!frontier.empty()) {
-        progress_->print();
+        progress.print();
         timer.throw_if_expired();
 
         update_hpom_constraints_expanded(mdp, idual_data, frontier);

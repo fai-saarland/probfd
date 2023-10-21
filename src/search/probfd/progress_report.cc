@@ -60,9 +60,13 @@ void ProgressReport::print_progress()
         assert(info.last_printed.has_value());
         out_ << (i > 0 ? ", " : "") << info.name << "=" << *info.last_printed;
     }
-    for (unsigned i = 0; i < additional_informations_.size(); i++) {
-        out_ << ", ";
-        additional_informations_[i](out_);
+    if (!additional_informations_.empty()) {
+        if (!bound_infos_.empty()) out_ << ", ";
+        additional_informations_.front()(out_);
+        for (unsigned i = 1; i < additional_informations_.size(); i++) {
+            out_ << ", ";
+            additional_informations_[i](out_);
+        }
     }
     out_ << ", t=" << utils::g_timer
          << ", memory=" << utils::get_peak_memory_in_kb() << " KB]"
@@ -71,7 +75,7 @@ void ProgressReport::print_progress()
 
 bool ProgressReport::advance_values(bool force)
 {
-    bool print = force;
+    bool print = force || bound_infos_.empty();
 
     std::vector<Interval> next_values;
     next_values.reserve(bound_infos_.size());

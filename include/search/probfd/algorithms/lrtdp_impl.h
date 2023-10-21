@@ -29,11 +29,10 @@ inline void Statistics::print(std::ostream& out) const
 template <typename State, typename Action, bool UseInterval, bool Fret>
 LRTDP<State, Action, UseInterval, Fret>::LRTDP(
     std::shared_ptr<PolicyPicker> policy_chooser,
-    ProgressReport* report,
     bool interval_comparison,
     TrialTerminationCondition stop_consistent,
     std::shared_ptr<SuccessorSampler> succ_sampler)
-    : Base(policy_chooser, report, interval_comparison)
+    : Base(policy_chooser, interval_comparison)
     , StopConsistent(stop_consistent)
     , sample_(succ_sampler)
 {
@@ -53,6 +52,7 @@ Interval LRTDP<State, Action, UseInterval, Fret>::do_solve(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> state,
+    ProgressReport& progress,
     double max_time)
 {
     utils::CountdownTimer timer(max_time);
@@ -68,7 +68,7 @@ Interval LRTDP<State, Action, UseInterval, Fret>::do_solve(
 
         trial(mdp, heuristic, state_id, timer);
         this->statistics_.trials++;
-        this->print_progress();
+        progress.print();
     }
 
     return this->lookup_bounds(state_id);
@@ -83,9 +83,10 @@ void LRTDP<State, Action, UseInterval, Fret>::print_additional_statistics(
 
 template <typename State, typename Action, bool UseInterval, bool Fret>
 void LRTDP<State, Action, UseInterval, Fret>::setup_custom_reports(
-    param_type<State>)
+    param_type<State>,
+    ProgressReport& progress)
 {
-    this->report_->register_print(
+    progress.register_print(
         [&](std::ostream& out) { out << "trials=" << statistics_.trials; });
 }
 

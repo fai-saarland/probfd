@@ -112,12 +112,14 @@ public:
         MDP& mdp,
         Evaluator& heuristic,
         param_type<State> initial_state,
+        ProgressReport progress,
         double max_time) override;
 
     Interval solve(
         MDP& mdp,
         Evaluator& heuristic,
         param_type<State> initial_state,
+        ProgressReport progress,
         double max_time) override;
 
     Interval solve(

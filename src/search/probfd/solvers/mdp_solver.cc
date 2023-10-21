@@ -77,9 +77,12 @@ void MDPSolver::solve()
 
         const State& initial_state = task_mdp->get_initial_state();
 
-        Interval val =
-            algorithm->solve(*task_mdp, *heuristic, initial_state, max_time);
-        progress_.force_print();
+        Interval val = algorithm->solve(
+            *task_mdp,
+            *heuristic,
+            initial_state,
+            progress_,
+            max_time);
         total_timer.stop();
 
         std::cout << "analysis done. [t=" << utils::g_timer << "]" << std::endl;

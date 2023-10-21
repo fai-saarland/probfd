@@ -94,7 +94,6 @@ public:
         std::shared_ptr<ProbabilisticTask> task,
         std::shared_ptr<FDRCostFunction> task_cost_function,
         std::string algorithm_name,
-        ProgressReport& progress,
         bool interval,
         std::shared_ptr<algorithms::PolicyPicker<QState, QAction>> tiebreaker,
         Args&&... args)
@@ -105,7 +104,6 @@ public:
             std::move(algorithm_name),
             std::make_shared<HS<QState, QAction, Interval>>(
                 tiebreaker,
-                &progress,
                 interval,
                 std::forward<Args>(args)...));
     }
@@ -121,7 +119,6 @@ public:
         std::shared_ptr<ProbabilisticTask> task,
         std::shared_ptr<FDRCostFunction> task_cost_function,
         std::string algorithm_name,
-        ProgressReport& progress,
         bool interval,
         std::shared_ptr<algorithms::PolicyPicker<QQState, QQAction>> tiebreaker,
         Args&&... args)
@@ -131,16 +128,18 @@ public:
             std::move(task_cost_function),
             std::move(algorithm_name),
             std::make_shared<Fret<QState, QAction, Interval>>(
-                &progress,
                 std::make_shared<HS<QQState, QQAction, Interval>>(
                     tiebreaker,
-                    &progress,
                     interval,
                     std::forward<Args>(args)...)));
     }
 
-    virtual Interval
-    solve(FDRMDP&, FDREvaluator&, const State&, double max_time) override
+    virtual Interval solve(
+        FDRMDP&,
+        FDREvaluator&,
+        const State&,
+        ProgressReport progress,
+        double max_time) override
     {
         bisimulation::InducedQuotientEvaluator heuristic(
             &state_space_,
@@ -151,6 +150,7 @@ public:
             state_space_,
             heuristic,
             state_space_.get_initial_state(),
+            progress,
             max_time);
     }
 

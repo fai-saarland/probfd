@@ -40,12 +40,11 @@ inline void Statistics::register_report(ProgressReport& report) const
 template <typename State, typename Action, bool UseInterval>
 TALRTDPImpl<State, Action, UseInterval>::TALRTDPImpl(
     std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-    ProgressReport* report,
     bool interval_comparison,
     TrialTerminationCondition stop_consistent,
     bool reexpand_traps,
     std::shared_ptr<QuotientSuccessorSampler> succ_sampler)
-    : Base(policy_chooser, report, interval_comparison)
+    : Base(policy_chooser, interval_comparison)
     , stop_at_consistent_(stop_consistent)
     , reexpand_traps_(reexpand_traps)
     , sample_(succ_sampler)
@@ -58,10 +57,11 @@ Interval TALRTDPImpl<State, Action, UseInterval>::solve_quotient(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
     param_type<QState> state,
+    ProgressReport& progress,
     double max_time)
 {
-    Base::initialize_report(quotient, heuristic, state);
-    this->statistics_.register_report(*this->report_);
+    Base::initialize_report(quotient, heuristic, state, progress);
+    this->statistics_.register_report(progress);
 
     utils::CountdownTimer timer(max_time);
 
@@ -71,7 +71,7 @@ Interval TALRTDPImpl<State, Action, UseInterval>::solve_quotient(
         terminate = trial(quotient, heuristic, state_id, timer);
         statistics_.trials++;
         assert(state_id == quotient.translate_state_id(state_id));
-        this->print_progress();
+        progress.print();
     } while (!terminate);
 
     return this->lookup_bounds(state_id);
@@ -348,14 +348,12 @@ bool TALRTDPImpl<State, Action, UseInterval>::push_to_queue(
 template <typename State, typename Action, bool UseInterval>
 TALRTDP<State, Action, UseInterval>::TALRTDP(
     std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-    ProgressReport* report,
     bool interval_comparison,
     TrialTerminationCondition stop_consistent,
     bool reexpand_traps,
     std::shared_ptr<QuotientSuccessorSampler> succ_sampler)
     : algorithm_(
           policy_chooser,
-          report,
           interval_comparison,
           stop_consistent,
           reexpand_traps,
@@ -368,6 +366,7 @@ Interval TALRTDP<State, Action, UseInterval>::solve(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> s,
+    ProgressReport progress,
     double max_time)
 {
     QuotientSystem quotient(mdp);
@@ -376,6 +375,7 @@ Interval TALRTDP<State, Action, UseInterval>::solve(
         quotient,
         qheuristic,
         quotient.translate_state(s),
+        progress,
         max_time);
 }
 

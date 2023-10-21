@@ -32,9 +32,9 @@ inline void Statistics::print(std::ostream& out) const
     out << "  Trap removal time: " << trap_timer << std::endl;
 }
 
-inline void Statistics::register_report(ProgressReport* report) const
+inline void Statistics::register_report(ProgressReport& report) const
 {
-    report->register_print([this](std::ostream& out) {
+    report.register_print([this](std::ostream& out) {
         out << "iteration=" << iterations << ", traps=" << traps;
     });
 }
@@ -43,7 +43,6 @@ inline void Statistics::register_report(ProgressReport* report) const
 template <typename State, typename Action, bool UseInterval>
 TADFHSImpl<State, Action, UseInterval>::TADFHSImpl(
     std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-    ProgressReport* report,
     bool interval_comparison,
     bool forward_updates,
     BacktrackingUpdateType backtrack_update_type,
@@ -54,7 +53,7 @@ TADFHSImpl<State, Action, UseInterval>::TADFHSImpl(
     bool mark_solved,
     bool reexpand_removed_traps,
     std::shared_ptr<QuotientOpenList> open_list)
-    : Base(policy_chooser, report, interval_comparison)
+    : Base(policy_chooser, interval_comparison)
     , forward_updates_(forward_updates)
     , backtrack_update_type_(backtrack_update_type)
     , expand_tip_states_(expand_tip_states)
@@ -73,18 +72,19 @@ Interval TADFHSImpl<State, Action, UseInterval>::solve_quotient(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
     param_type<QState> qstate,
+    ProgressReport& progress,
     double max_time)
 {
-    Base::initialize_report(quotient, heuristic, qstate);
-    statistics_.register_report(this->report_);
+    Base::initialize_report(quotient, heuristic, qstate, progress);
+    statistics_.register_report(progress);
 
     utils::CountdownTimer timer(max_time);
 
     StateID state_id = quotient.get_state_id(qstate);
     if (value_iteration_) {
-        dfhs_vi_driver(quotient, heuristic, state_id, timer);
+        dfhs_vi_driver(quotient, heuristic, state_id, progress, timer);
     } else {
-        dfhs_label_driver(quotient, heuristic, state_id, timer);
+        dfhs_label_driver(quotient, heuristic, state_id, progress, timer);
     }
     return this->lookup_bounds(state_id);
 }
@@ -102,6 +102,7 @@ void TADFHSImpl<State, Action, UseInterval>::dfhs_vi_driver(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
     const StateID state,
+    ProgressReport& progress,
     utils::CountdownTimer& timer)
 {
     UpdateResult vi_res{true, true};
@@ -117,7 +118,7 @@ void TADFHSImpl<State, Action, UseInterval>::dfhs_vi_driver(
         }
         visited_states_.clear();
         ++statistics_.iterations;
-        this->print_progress();
+        progress.print();
     } while (vi_res.value_changed || vi_res.policy_changed);
 }
 
@@ -126,6 +127,7 @@ void TADFHSImpl<State, Action, UseInterval>::dfhs_label_driver(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
     const StateID state,
+    ProgressReport& progress,
     utils::CountdownTimer& timer)
 {
     bool is_complete = false;
@@ -134,7 +136,7 @@ void TADFHSImpl<State, Action, UseInterval>::dfhs_label_driver(
                       this->get_state_info(state).is_solved();
         visited_states_.clear();
         ++statistics_.iterations;
-        this->print_progress();
+        progress.print();
     } while (!is_complete);
 }
 
@@ -563,7 +565,6 @@ template <typename State, typename Action, bool UseInterval>
 TADepthFirstHeuristicSearch<State, Action, UseInterval>::
     TADepthFirstHeuristicSearch(
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-        ProgressReport* report,
         bool interval_comparison,
         bool forward_updates,
         BacktrackingUpdateType backtrack_update_type,
@@ -576,7 +577,6 @@ TADepthFirstHeuristicSearch<State, Action, UseInterval>::
         std::shared_ptr<QuotientOpenList> open_list)
     : algorithm_(
           policy_chooser,
-          report,
           interval_comparison,
           forward_updates,
           backtrack_update_type,
@@ -595,6 +595,7 @@ Interval TADepthFirstHeuristicSearch<State, Action, UseInterval>::solve(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> state,
+    ProgressReport progress,
     double max_time)
 {
     QuotientSystem quotient(mdp);
@@ -603,6 +604,7 @@ Interval TADepthFirstHeuristicSearch<State, Action, UseInterval>::solve(
         quotient,
         qheuristic,
         quotient.translate_state(state),
+        progress,
         max_time);
 }
 
@@ -611,13 +613,14 @@ auto TADepthFirstHeuristicSearch<State, Action, UseInterval>::compute_policy(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> state,
+    ProgressReport progress,
     double max_time) -> std::unique_ptr<Policy>
 {
     QuotientSystem quotient(mdp);
     quotients::QuotientMaxHeuristic<State, Action> qheuristic(heuristic);
 
     QState qinit = quotient.translate_state(state);
-    algorithm_.solve_quotient(quotient, qheuristic, qinit, max_time);
+    algorithm_.solve_quotient(quotient, qheuristic, qinit, progress, max_time);
 
     /*
      * The quotient policy only specifies the optimal actions between

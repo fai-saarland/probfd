@@ -34,11 +34,8 @@ inline unsigned ValueGroup::get_id(value_t val)
 }
 
 template <typename State, typename Action>
-IDual<State, Action>::IDual(
-    ProgressReport* report,
-    lp::LPSolverType solver_type)
-    : report_(report)
-    , lp_solver_(solver_type)
+IDual<State, Action>::IDual(lp::LPSolverType solver_type)
+    : lp_solver_(solver_type)
 {
 }
 
@@ -47,6 +44,7 @@ Interval IDual<State, Action>::solve(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> initial_state,
+    ProgressReport progress,
     double max_time)
 {
     using namespace std::views;
@@ -103,10 +101,10 @@ Interval IDual<State, Action>::solve(
 
     value_t objective = 0_vt;
 
-    report_->register_bound("v", [&] {
+    progress.register_bound("v", [&] {
         return Interval(objective, INFINITE_VALUE);
     });
-    report_->register_print([&](std::ostream& out) {
+    progress.register_print([&](std::ostream& out) {
         out << "iteration=" << statistics_.iterations;
     });
 
@@ -234,7 +232,7 @@ Interval IDual<State, Action>::solve(
             return false;
         });
 
-        report_->print();
+        progress.print();
     } while (!frontier.empty());
 
     assert(lp_sol.size() > 0);

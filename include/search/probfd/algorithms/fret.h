@@ -140,20 +140,20 @@ class FRET : public MDPAlgorithm<State, Action> {
     Statistics statistics_;
 
 public:
-    FRET(
-        ProgressReport* report,
-        std::shared_ptr<QHeuristicSearchAlgorithm> algorithm);
+    explicit FRET(std::shared_ptr<QHeuristicSearchAlgorithm> algorithm);
 
     std::unique_ptr<Policy> compute_policy(
         MDP& mdp,
         Evaluator& heuristic,
         param_type<State> state,
+        ProgressReport progress,
         double max_time = std::numeric_limits<double>::infinity()) override;
 
     Interval solve(
         MDP& mdp,
         Evaluator& heuristic,
         param_type<State> state,
+        ProgressReport progress,
         double max_time = std::numeric_limits<double>::infinity()) override;
 
 protected:
@@ -164,12 +164,14 @@ private:
         QuotientSystem& quotient,
         QEvaluator& heuristic,
         param_type<QState> state,
+        ProgressReport& progress,
         double max_time);
 
     Interval heuristic_search(
         QuotientSystem& quotient,
         QEvaluator& heuristic,
         param_type<QState> state,
+        ProgressReport& progress,
         utils::CountdownTimer& timer);
 
     bool find_and_remove_traps(

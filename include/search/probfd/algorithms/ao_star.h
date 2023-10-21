@@ -54,7 +54,6 @@ class AOStar
 public:
     AOStar(
         std::shared_ptr<PolicyPicker> policy_chooser,
-        ProgressReport* report,
         bool interval_comparison,
         std::shared_ptr<SuccessorSampler> outcome_selection);
 
@@ -63,6 +62,7 @@ protected:
         MDP& mdp,
         Evaluator& heuristic,
         param_type<State> state,
+        ProgressReport& progress,
         double max_time) override;
 };
 

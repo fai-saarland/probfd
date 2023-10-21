@@ -43,7 +43,7 @@ struct Statistics {
     unsigned long long bw_updates = 0;
 
     void print(std::ostream& out) const;
-    void register_report(ProgressReport* report) const;
+    void register_report(ProgressReport& report) const;
 };
 
 template <typename BaseInfo>
@@ -182,7 +182,6 @@ public:
      */
     TADFHSImpl(
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-        ProgressReport* report,
         bool interval_comparison,
         bool forward_updates,
         BacktrackingUpdateType backtrack_update_type,
@@ -198,6 +197,7 @@ public:
         QuotientSystem& quotient,
         QEvaluator& heuristic,
         param_type<QState> qstate,
+        ProgressReport& progress,
         double max_time);
 
     void print_statistics(std::ostream& out) const;
@@ -207,12 +207,14 @@ private:
         QuotientSystem& quotient,
         QEvaluator& heuristic,
         const StateID state,
+        ProgressReport& progress,
         utils::CountdownTimer& timer);
 
     void dfhs_label_driver(
         QuotientSystem& quotient,
         QEvaluator& heuristic,
         const StateID state,
+        ProgressReport& progress,
         utils::CountdownTimer& timer);
 
     void enqueue(
@@ -297,7 +299,6 @@ public:
      */
     TADepthFirstHeuristicSearch(
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-        ProgressReport* report,
         bool interval_comparison,
         bool forward_updates,
         BacktrackingUpdateType backtrack_update_type,
@@ -313,12 +314,14 @@ public:
         MDP& mdp,
         Evaluator& heuristic,
         param_type<State> state,
+        ProgressReport progress,
         double max_time) override;
 
     std::unique_ptr<Policy> compute_policy(
         MDP& mdp,
         Evaluator& heuristic,
         param_type<State> state,
+        ProgressReport progress,
         double max_time) override;
 
     void print_statistics(std::ostream& out) const override;

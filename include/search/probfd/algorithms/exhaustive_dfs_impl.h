@@ -61,10 +61,8 @@ ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
         bool reevaluate,
         bool notify_initial,
         bool path_updates,
-        bool only_propagate_when_changed,
-        ProgressReport* progress)
+        bool only_propagate_when_changed)
     : transition_sort_(transition_sorting)
-    , report_(progress)
     , cost_bound_(cost_bound)
     , trivial_bound_([=] {
         if constexpr (UseInterval) {
@@ -85,6 +83,7 @@ Interval ExhaustiveDepthFirstSearch<State, Action, UseInterval>::solve(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> state,
+    ProgressReport progress,
     double)
 {
     StateID stateid = mdp.get_state_id(state);
@@ -98,8 +97,8 @@ Interval ExhaustiveDepthFirstSearch<State, Action, UseInterval>::solve(
         return search_space_.lookup_bounds(stateid);
     }
 
-    register_value_reports(info);
-    run_exploration(mdp, heuristic);
+    register_value_reports(info, progress);
+    run_exploration(mdp, heuristic, progress);
 
     return search_space_.lookup_bounds(stateid);
 }
@@ -113,9 +112,11 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::print_statistics(
 
 template <typename State, typename Action, bool UseInterval>
 void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
-    register_value_reports(const SearchNodeInformation& info)
+    register_value_reports(
+        const SearchNodeInformation& info,
+        ProgressReport& progress)
 {
-    this->report_->register_bound("v", [info]() {
+    progress.register_bound("v", [info]() {
         if constexpr (UseInterval) {
             return info.value;
         } else {
@@ -305,7 +306,8 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
 template <typename State, typename Action, bool UseInterval>
 void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
     MDP& mdp,
-    Evaluator& heuristic)
+    Evaluator& heuristic,
+    ProgressReport& progress)
 {
     while (!expansion_infos_.empty()) {
         ExpansionInformation& expanding = expansion_infos_.back();
@@ -488,14 +490,18 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
             value_propagation_) {
             propagate_value_along_trace(
                 completely_explored,
-                node_info.get_value());
+                node_info.get_value(),
+                progress);
         }
     }
 }
 
 template <typename State, typename Action, bool UseInterval>
 void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
-    propagate_value_along_trace(bool was_poped, value_t val)
+    propagate_value_along_trace(
+        bool was_poped,
+        value_t val,
+        ProgressReport& progress)
 {
     auto it = expansion_infos_.rbegin();
     if (!was_poped) {
@@ -515,7 +521,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
     }
 
     if (it == expansion_infos_.rend()) {
-        report_->print();
+        progress.print();
     }
 }
 

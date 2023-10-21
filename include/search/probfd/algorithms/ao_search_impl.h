@@ -29,9 +29,9 @@ template <
     template <typename>
     class StateInfoExtension>
 void AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
-    setup_custom_reports(param_type<State>)
+    setup_custom_reports(param_type<State>, ProgressReport& progress)
 {
-    this->report_->register_print(
+    progress.register_print(
         [&](std::ostream& out) { out << "i=" << statistics_.iterations; });
 }
 

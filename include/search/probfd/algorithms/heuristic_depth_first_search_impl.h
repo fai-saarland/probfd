@@ -32,7 +32,6 @@ template <typename State, typename Action, bool UseInterval, bool Fret>
 HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
     HeuristicDepthFirstSearch(
         std::shared_ptr<PolicyPicker> policy_chooser,
-        ProgressReport* report,
         bool interval_comparison,
         bool LabelSolved,
         bool ForwardUpdates,
@@ -41,7 +40,7 @@ HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
         bool GreedyExploration,
         bool PerformValueIteration,
         bool ExpandTipStates)
-    : Base(policy_chooser, report, interval_comparison)
+    : Base(policy_chooser, interval_comparison)
     , LabelSolved(LabelSolved)
     , ForwardUpdates(ForwardUpdates)
     , BackwardUpdates(BackwardUpdates)
@@ -64,15 +63,16 @@ Interval HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::do_solve(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> state,
-    double max_time) 
+    ProgressReport& progress,
+    double max_time)
 {
     utils::CountdownTimer timer(max_time);
 
     const StateID stateid = mdp.get_state_id(state);
     if (PerformValueIteration) {
-        solve_with_vi_termination(mdp, heuristic, stateid, timer);
+        solve_with_vi_termination(mdp, heuristic, stateid, progress, timer);
     } else {
-        solve_without_vi_termination(mdp, heuristic, stateid, timer);
+        solve_without_vi_termination(mdp, heuristic, stateid, progress, timer);
     }
 
     return this->get_state_info(stateid).get_bounds();
@@ -102,6 +102,7 @@ void HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
         MDP& mdp,
         Evaluator& heuristic,
         StateID stateid,
+        ProgressReport& progress,
         utils::CountdownTimer& timer)
 {
     bool terminate = false;
@@ -118,7 +119,7 @@ void HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
 
         visited_.clear();
         statistics_.iterations++;
-        this->print_progress();
+        progress.print();
     } while (!terminate);
 }
 
@@ -128,13 +129,14 @@ void HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
         MDP& mdp,
         Evaluator& heuristic,
         StateID stateid,
+        ProgressReport& progress,
         utils::CountdownTimer& timer)
 {
     bool terminate = false;
     do {
         terminate = !policy_exploration<false>(mdp, heuristic, stateid, timer);
         statistics_.iterations++;
-        this->print_progress();
+        progress.print();
         assert(visited_.empty());
     } while (!terminate);
 }

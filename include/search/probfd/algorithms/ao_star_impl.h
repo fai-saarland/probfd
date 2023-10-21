@@ -6,6 +6,8 @@
 
 #include "probfd/algorithms/successor_sampler.h"
 
+#include "probfd/progress_report.h"
+
 #include "downward/utils/countdown_timer.h"
 
 #include <ranges>
@@ -19,10 +21,9 @@ namespace ao_star {
 template <typename State, typename Action, bool UseInterval>
 AOStar<State, Action, UseInterval>::AOStar(
     std::shared_ptr<PolicyPicker> policy_chooser,
-    ProgressReport* report,
     bool interval_comparison,
     std::shared_ptr<SuccessorSampler> outcome_selection)
-    : Base(policy_chooser, report, interval_comparison)
+    : Base(policy_chooser, interval_comparison)
     , outcome_selection_(outcome_selection)
 {
 }
@@ -32,6 +33,7 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> state,
+    ProgressReport& progress,
     double max_time)
 {
     using namespace std::views;
@@ -150,7 +152,7 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
         }
 
         ++this->statistics_.iterations;
-        this->print_progress();
+        progress.print();
     }
 
     return iinfo.get_bounds();

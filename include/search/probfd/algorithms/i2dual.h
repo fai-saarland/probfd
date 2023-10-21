@@ -47,8 +47,6 @@ class I2Dual : public MDPAlgorithm<State, OperatorID> {
     ProbabilisticTaskProxy task_proxy;
     std::shared_ptr<FDRCostFunction> task_cost_function;
 
-    ProgressReport* progress_;
-
     const bool hpom_enabled_;
     const bool incremental_hpom_updates_;
 
@@ -72,7 +70,6 @@ public:
     I2Dual(
         std::shared_ptr<ProbabilisticTask> task,
         std::shared_ptr<FDRCostFunction> task_cost_function,
-        ProgressReport* progress,
         bool hpom_enabled,
         bool incremental_updates,
         lp::LPSolverType solver_type);
@@ -83,6 +80,7 @@ public:
         FDRMDP& mdp,
         FDREvaluator& heuristic,
         const State& state,
+        ProgressReport progress,
         double max_time) override;
 
 private:

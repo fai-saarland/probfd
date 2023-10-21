@@ -10,6 +10,8 @@
 
 #include "probfd/tasks/root_task.h"
 
+#include "probfd/progress_report.h"
+
 #include "downward/utils/timer.h"
 
 #include "downward/state_registry.h"
@@ -96,8 +98,13 @@ public:
 
         heuristics::BlindEvaluator<QState> blind;
 
-        const Interval val =
-            solver->solve(state_space, blind, state_space.get_initial_state());
+        ProgressReport progress;
+
+        const Interval val = solver->solve(
+            state_space,
+            blind,
+            state_space.get_initial_state(),
+            progress);
 
         std::cout << "analysis done! [t=" << total_timer << "]" << std::endl;
         std::cout << std::endl;

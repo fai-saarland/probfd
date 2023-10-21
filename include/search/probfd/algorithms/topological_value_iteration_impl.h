@@ -177,6 +177,7 @@ auto TopologicalValueIteration<State, Action, UseInterval>::compute_policy(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> state,
+    ProgressReport,
     double max_time) -> std::unique_ptr<Policy>
 {
     storage::PerStateStorage<AlgorithmValueType> value_store;
@@ -196,6 +197,7 @@ Interval TopologicalValueIteration<State, Action, UseInterval>::solve(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> state,
+    ProgressReport,
     double max_time)
 {
     storage::PerStateStorage<AlgorithmValueType> value_store;

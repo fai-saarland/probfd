@@ -96,14 +96,12 @@ public:
             using HeuristicSearchType = HS<State, OperatorID, true>;
             return std::make_unique<HeuristicSearchType>(
                 tiebreaker_,
-                &progress_,
                 interval_comparison_,
                 std::forward<Args>(args)...);
         } else {
             using HeuristicSearchType = HS<State, OperatorID, false>;
             return std::make_unique<HeuristicSearchType>(
                 tiebreaker_,
-                &progress_,
                 interval_comparison_,
                 std::forward<Args>(args)...);
         }
@@ -163,13 +161,11 @@ public:
         if (dual_bounds_) {
             return std::make_unique<HS<State, OperatorID, true>>(
                 tiebreaker_,
-                &progress_,
                 interval_comparison_,
                 std::forward<Args>(args)...);
         } else {
             return std::make_unique<HS<State, OperatorID, false>>(
                 tiebreaker_,
-                &progress_,
                 interval_comparison_,
                 std::forward<Args>(args)...);
         }
@@ -187,10 +183,8 @@ private:
     create_heuristic_search_algorithm_wrapper(Args&&... args)
     {
         return std::make_unique<Fret<State, OperatorID, Interval>>(
-            &progress_,
             std::make_shared<HS<QState, QAction, Interval>>(
                 tiebreaker_,
-                &progress_,
                 interval_comparison_,
                 std::forward<Args>(args)...));
     }
@@ -215,7 +209,6 @@ public:
                 this->task,
                 this->task_cost_function,
                 this->get_heuristic_search_name(),
-                this->progress_,
                 this->interval_comparison_,
                 this->tiebreaker_,
                 std::forward<Args>(args)...);
@@ -224,7 +217,6 @@ public:
                 this->task,
                 this->task_cost_function,
                 this->get_heuristic_search_name(),
-                this->progress_,
                 this->interval_comparison_,
                 this->tiebreaker_,
                 std::forward<Args>(args)...);
@@ -291,7 +283,6 @@ public:
                 this->task,
                 this->task_cost_function,
                 this->get_heuristic_search_name(),
-                this->progress_,
                 this->interval_comparison_,
                 this->tiebreaker_,
                 std::forward<Args>(args)...);
@@ -300,7 +291,6 @@ public:
                 this->task,
                 this->task_cost_function,
                 this->get_heuristic_search_name(),
-                this->progress_,
                 this->interval_comparison_,
                 this->tiebreaker_,
                 std::forward<Args>(args)...);
@@ -323,7 +313,6 @@ private:
                 this->task,
                 this->task_cost_function,
                 this->get_heuristic_search_name(),
-                this->progress_,
                 this->interval_comparison_,
                 this->tiebreaker_,
                 std::forward<Args>(args)...);

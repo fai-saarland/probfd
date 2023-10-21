@@ -235,6 +235,7 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> state,
+    ProgressReport,
     double max_time)
 {
     storage::PerStateStorage<AlgorithmValueType> value_store;

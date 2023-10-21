@@ -79,8 +79,6 @@ class IDual : public MDPAlgorithm<State, Action> {
     using MDP = typename Base::MDP;
     using Evaluator = typename Base::Evaluator;
 
-    ProgressReport* report_;
-
     lp::LPSolver lp_solver_;
     storage::PerStateStorage<PerStateInfo> state_infos_;
     ValueGroup terminals_;
@@ -88,12 +86,13 @@ class IDual : public MDPAlgorithm<State, Action> {
     Statistics statistics_;
 
 public:
-    explicit IDual(ProgressReport* report, lp::LPSolverType solver_type);
+    explicit IDual(lp::LPSolverType solver_type);
 
     Interval solve(
         MDP& mdp,
         Evaluator& heuristic,
         param_type<State> initial_state,
+        ProgressReport progress,
         double max_time) override;
 };
 

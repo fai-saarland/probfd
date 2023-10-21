@@ -72,10 +72,8 @@ inline void Statistics::print(std::ostream& out) const
 template <typename State, typename Action, typename StateInfoT>
 HeuristicSearchBase<State, Action, StateInfoT>::HeuristicSearchBase(
     std::shared_ptr<PolicyPicker> policy_chooser,
-    ProgressReport* report,
     bool interval_comparison)
     : policy_chooser_(policy_chooser)
-    , report_(report)
     , interval_comparison_(interval_comparison)
 {
     statistics_.state_info_bytes = sizeof(StateInfo);
@@ -244,7 +242,8 @@ template <typename State, typename Action, typename StateInfoT>
 void HeuristicSearchBase<State, Action, StateInfoT>::initialize_report(
     MDP& mdp,
     Evaluator& h,
-    param_type<State> state)
+    param_type<State> state,
+    ProgressReport& progress)
 {
     const StateID initial_id = mdp.get_state_id(state);
     StateInfo& info = get_state_info(initial_id);
@@ -255,9 +254,9 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize_report(
     }
 
     if constexpr (UseInterval) {
-        report_->register_bound("v", [&info]() { return info.value; });
+        progress.register_bound("v", [&info]() { return info.value; });
     } else {
-        report_->register_bound("v", [&info]() {
+        progress.register_bound("v", [&info]() {
             return Interval(info.value, INFINITE_VALUE);
         });
     }
@@ -273,12 +272,6 @@ void HeuristicSearchBase<State, Action, StateInfoT>::print_statistics(
     std::ostream& out) const
 {
     statistics_.print(out);
-}
-
-template <typename State, typename Action, typename StateInfoT>
-void HeuristicSearchBase<State, Action, StateInfoT>::print_progress()
-{
-    this->report_->print();
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -571,11 +564,12 @@ Interval HeuristicSearchAlgorithm<State, Action, StateInfoT>::solve(
     MDP& mdp,
     Evaluator& h,
     param_type<State> state,
+    ProgressReport progress,
     double max_time)
 {
-    HSBase::initialize_report(mdp, h, state);
-    this->setup_custom_reports(state);
-    return this->do_solve(mdp, h, state, max_time);
+    HSBase::initialize_report(mdp, h, state, progress);
+    this->setup_custom_reports(state, progress);
+    return this->do_solve(mdp, h, state, progress, max_time);
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -583,9 +577,10 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
     MDP& mdp,
     Evaluator& h,
     param_type<State> state,
+    ProgressReport progress,
     double max_time) -> std::unique_ptr<Policy>
 {
-    this->solve(mdp, h, state, max_time);
+    this->solve(mdp, h, state, progress, max_time);
 
     /*
      * Expand some greedy policy graph, starting from the initial state.

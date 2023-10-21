@@ -90,6 +90,7 @@ public:
         MDP& mdp,
         Evaluator& heuristic,
         param_type<State> state,
+        ProgressReport,
         double max_time) override;
 
     void print_statistics(std::ostream& out) const override;

@@ -7,7 +7,6 @@
 #include "probfd/transition_sorters/task_transition_sorter_factory.h"
 
 #include "probfd/evaluator.h"
-#include "probfd/progress_report.h"
 
 #include "downward/plugins/plugin.h"
 
@@ -65,8 +64,7 @@ public:
                 reevaluate_,
                 notify_s0_,
                 path_updates_,
-                only_propagate_when_changed_,
-                &progress_);
+                only_propagate_when_changed_);
         } else {
             return std::make_unique<Algorithm>(
                 transition_sort_,
@@ -74,8 +72,7 @@ public:
                 reevaluate_,
                 notify_s0_,
                 path_updates_,
-                only_propagate_when_changed_,
-                &progress_);
+                only_propagate_when_changed_);
         }
     }
 };

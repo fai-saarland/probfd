@@ -133,7 +133,6 @@ private:
 
 protected:
     Statistics statistics_;
-    ProgressReport* report_;
     const bool interval_comparison_;
 
     struct UpdateResult {
@@ -145,7 +144,6 @@ protected:
 public:
     HeuristicSearchBase(
         std::shared_ptr<PolicyPicker> policy_chooser,
-        ProgressReport* report,
         bool interval_comparison);
 
     /**
@@ -213,14 +211,13 @@ public:
         requires(StorePolicy);
 
 protected:
-    void initialize_report(MDP& mdp, Evaluator& h, param_type<State> state);
+    void initialize_report(
+        MDP& mdp,
+        Evaluator& h,
+        param_type<State> state,
+        ProgressReport& progress);
 
     void print_statistics(std::ostream& out) const;
-
-    /**
-     * @brief Advances the progress report.
-     */
-    void print_progress();
 
     bool check_interval_comparison() const;
 
@@ -338,6 +335,7 @@ public:
         MDP& mdp,
         Evaluator& h,
         param_type<State> state,
+        ProgressReport progress,
         double max_time =
             std::numeric_limits<double>::infinity()) final override;
 
@@ -345,6 +343,7 @@ public:
         MDP& mdp,
         Evaluator& h,
         param_type<State> state,
+        ProgressReport progress,
         double max_time = std::numeric_limits<double>::infinity()) override;
 
     void print_statistics(std::ostream& out) const final override;
@@ -352,7 +351,8 @@ public:
     /**
      * @brief Sets up internal custom reports of a state in an implementation.
      */
-    virtual void setup_custom_reports(param_type<State>) {}
+    virtual void setup_custom_reports(param_type<State>, ProgressReport&) {}
+
     /**
      * @brief Resets the h search algorithm object to a clean state.
      *
@@ -370,6 +370,7 @@ public:
         MDP& mdp,
         Evaluator& h,
         param_type<State> state,
+        ProgressReport& progress,
         double max_time) = 0;
 
     /**

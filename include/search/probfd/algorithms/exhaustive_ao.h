@@ -59,7 +59,6 @@ class ExhaustiveAOSearch
 public:
     ExhaustiveAOSearch(
         std::shared_ptr<PolicyPicker> policy_chooser,
-        ProgressReport* report,
         bool interval_comparison,
         std::shared_ptr<OpenList> open_list);
 
@@ -68,6 +67,7 @@ protected:
         MDP& mdp,
         Evaluator& heuristic,
         param_type<State> state,
+        ProgressReport& progress,
         double max_time) override;
 };
 

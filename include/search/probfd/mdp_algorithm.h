@@ -3,6 +3,7 @@
 
 #include "probfd/policies/empty_policy.h"
 
+#include "probfd/progress_report.h"
 #include "probfd/type_traits.h"
 
 #include <limits>
@@ -40,8 +41,12 @@ public:
      *
      * The default implementation of this method returns an empty policy.
      */
-    virtual std::unique_ptr<Policy>
-    compute_policy(MDP&, Evaluator&, param_type<State>, double = INF_TIME)
+    virtual std::unique_ptr<Policy> compute_policy(
+        MDP&,
+        Evaluator&,
+        param_type<State>,
+        ProgressReport,
+        double = INF_TIME)
     {
         return std::make_unique<policies::EmptyPolicy<State, Action>>();
     }
@@ -54,6 +59,7 @@ public:
         MDP& mdp,
         Evaluator& heuristic,
         param_type<State> state,
+        ProgressReport progress,
         double max_time = INF_TIME) = 0;
 
     /**

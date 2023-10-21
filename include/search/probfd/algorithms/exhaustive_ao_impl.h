@@ -13,10 +13,9 @@ namespace exhaustive_ao {
 template <typename State, typename Action, bool UseInterval>
 ExhaustiveAOSearch<State, Action, UseInterval>::ExhaustiveAOSearch(
     std::shared_ptr<PolicyPicker> policy_chooser,
-    ProgressReport* report,
     bool interval_comparison,
     std::shared_ptr<OpenList> open_list)
-    : Base(policy_chooser, report, interval_comparison)
+    : Base(policy_chooser, interval_comparison)
     , open_list_(open_list)
 {
 }
@@ -26,6 +25,7 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> state,
+    ProgressReport& progress,
     double max_time)
 {
     utils::CountdownTimer timer(max_time);
@@ -36,7 +36,7 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
 
     do {
         timer.throw_if_expired();
-        this->print_progress();
+        progress.print();
 
         assert(!this->open_list_->empty());
         StateID stateid = open_list_->pop();

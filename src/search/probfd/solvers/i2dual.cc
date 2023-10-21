@@ -33,7 +33,6 @@ public:
         return std::make_unique<algorithms::i2dual::I2Dual>(
             this->task,
             this->task_cost_function,
-            &progress_,
             hpom_enabled_,
             incremental_hpom_updates_,
             solver_type_);

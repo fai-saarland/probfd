@@ -126,7 +126,6 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
 
     HeuristicDepthFirstSearch<State, OperatorID, false, true> hdfs(
         policy_chooser,
-        &report,
         false,
         false,
         false,
@@ -136,7 +135,8 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
         true,
         false);
 
-    auto policy = hdfs.compute_policy(mdp, heuristic, mdp.get_initial_state());
+    auto policy =
+        hdfs.compute_policy(mdp, heuristic, mdp.get_initial_state(), report);
 
     std::optional<PolicyDecision<OperatorID>> decision =
         policy->get_decision(mdp.get_initial_state());
@@ -177,7 +177,6 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
         false,
         true>>(
         policy_chooser,
-        &report,
         false,
         false,
         false,
@@ -187,9 +186,10 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
         true,
         false);
 
-    FRETPi<State, OperatorID, false> fret(&report, hdfs);
+    FRETPi<State, OperatorID, false> fret(hdfs);
 
-    auto policy = fret.compute_policy(mdp, heuristic, mdp.get_initial_state());
+    auto policy =
+        fret.compute_policy(mdp, heuristic, mdp.get_initial_state(), report);
 
     std::optional<PolicyDecision<OperatorID>> decision =
         policy->get_decision(mdp.get_initial_state());

@@ -181,7 +181,6 @@ public:
      */
     LRTDP(
         std::shared_ptr<PolicyPicker> policy_chooser,
-        ProgressReport* report,
         bool interval_comparison,
         TrialTerminationCondition stop_consistent,
         std::shared_ptr<SuccessorSampler> succ_sampler);
@@ -193,11 +192,13 @@ protected:
         MDP& mdp,
         Evaluator& heuristic,
         param_type<State> state,
+        ProgressReport& progress,
         double max_time) override;
 
     void print_additional_statistics(std::ostream& out) const override;
 
-    void setup_custom_reports(param_type<State>) override;
+    void
+    setup_custom_reports(param_type<State>, ProgressReport& progress) override;
 
 private:
     void trial(

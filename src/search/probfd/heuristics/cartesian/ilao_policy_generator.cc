@@ -10,6 +10,8 @@
 
 #include "probfd/task_utils/task_properties.h"
 
+#include "probfd/progress_report.h"
+
 #include "downward/cartesian_abstractions/abstract_state.h"
 
 #include <cassert>
@@ -24,9 +26,7 @@ ILAOPolicyGenerator::ILAOPolicyGenerator()
     : picker(new policy_pickers::ArbitraryTiebreaker<
              quotients::QuotientState<int, const ProbabilisticTransition*>,
              quotients::QuotientAction<const ProbabilisticTransition*>>(true))
-    , report(0.0_vt)
 {
-    report.disable();
 }
 
 unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
@@ -42,7 +42,6 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
         TADepthFirstHeuristicSearch<int, const ProbabilisticTransition*, false>
             hdfs(
                 picker,
-                &report,
                 false,
                 false,
                 algorithms::trap_aware_dfhs::BacktrackingUpdateType::SINGLE,
@@ -54,10 +53,14 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
                 true,
                 nullptr);
 
+    ProgressReport report(0.0_vt);
+    report.disable();
+
     auto policy = hdfs.compute_policy(
         abstraction,
         heuristic,
         state->get_id(),
+        report,
         timer.get_remaining_time());
 
     for (int i = 0; i != abstraction.get_num_states(); ++i) {

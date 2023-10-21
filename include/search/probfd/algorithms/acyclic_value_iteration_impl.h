@@ -69,6 +69,7 @@ auto AcyclicValueIteration<State, Action>::compute_policy(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> initial_state,
+    ProgressReport,
     double max_time) -> std::unique_ptr<Policy>
 {
     std::unique_ptr<MapPolicy> policy(new MapPolicy(&mdp));
@@ -81,6 +82,7 @@ Interval AcyclicValueIteration<State, Action>::solve(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> initial_state,
+    ProgressReport,
     double max_time)
 {
     return solve(mdp, heuristic, initial_state, max_time, nullptr);

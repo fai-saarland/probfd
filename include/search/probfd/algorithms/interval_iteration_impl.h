@@ -26,6 +26,7 @@ Interval IntervalIteration<State, Action>::solve(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> state,
+    ProgressReport,
     double max_time)
 {
     utils::CountdownTimer timer(max_time);

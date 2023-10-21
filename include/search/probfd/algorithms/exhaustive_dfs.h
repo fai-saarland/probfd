@@ -196,7 +196,6 @@ class ExhaustiveDepthFirstSearch : public MDPAlgorithm<State, Action> {
 
     std::shared_ptr<TransitionSorter> transition_sort_;
 
-    ProgressReport* report_;
     const Interval cost_bound_;
     const AlgorithmValueType trivial_bound_;
 
@@ -223,17 +222,21 @@ public:
         bool reevaluate,
         bool notify_initial,
         bool path_updates,
-        bool only_propagate_when_changed,
-        ProgressReport* progress);
+        bool only_propagate_when_changed);
 
-    Interval
-    solve(MDP& mdp, Evaluator& heuristic, param_type<State> state, double)
-        override;
+    Interval solve(
+        MDP& mdp,
+        Evaluator& heuristic,
+        param_type<State> state,
+        ProgressReport progress,
+        double) override;
 
     void print_statistics(std::ostream& out) const override;
 
 private:
-    void register_value_reports(const SearchNodeInformation& info);
+    void register_value_reports(
+        const SearchNodeInformation& info,
+        ProgressReport& progress);
 
     bool initialize_search_node(
         MDP& mdp,
@@ -253,9 +256,13 @@ private:
         StateID state_id,
         SearchNodeInformation& info);
 
-    void run_exploration(MDP& mdp, Evaluator& heuristic);
+    void
+    run_exploration(MDP& mdp, Evaluator& heuristic, ProgressReport& progress);
 
-    void propagate_value_along_trace(bool was_poped, value_t val);
+    void propagate_value_along_trace(
+        bool was_poped,
+        value_t val,
+        ProgressReport& progress);
 
     void mark_current_component_dead();
 

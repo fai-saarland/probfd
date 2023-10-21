@@ -29,14 +29,9 @@ template <
     bool UseInterval,
     typename GreedyGraphGenerator>
 FRET<State, Action, UseInterval, GreedyGraphGenerator>::FRET(
-    ProgressReport* report,
     std::shared_ptr<QHeuristicSearchAlgorithm> algorithm)
     : base_algorithm_(std::move(algorithm))
 {
-    report->register_print([&](std::ostream& out) {
-        out << "fret=" << statistics_.iterations
-            << ", traps=" << statistics_.traps;
-    });
 }
 
 template <
@@ -48,6 +43,7 @@ auto FRET<State, Action, UseInterval, GreedyGraphGenerator>::compute_policy(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> state,
+    ProgressReport progress,
     double max_time) -> std::unique_ptr<Policy>
 {
     QuotientSystem quotient(mdp);
@@ -56,6 +52,7 @@ auto FRET<State, Action, UseInterval, GreedyGraphGenerator>::compute_policy(
         quotient,
         qheuristic,
         quotient.translate_state(state),
+        progress,
         max_time);
 
     /*
@@ -173,6 +170,7 @@ Interval FRET<State, Action, UseInterval, GreedyGraphGenerator>::solve(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> state,
+    ProgressReport progress,
     double max_time)
 {
     QuotientSystem quotient(mdp);
@@ -181,6 +179,7 @@ Interval FRET<State, Action, UseInterval, GreedyGraphGenerator>::solve(
         quotient,
         qheuristic,
         quotient.translate_state(state),
+        progress,
         max_time);
 }
 
@@ -205,13 +204,14 @@ Interval FRET<State, Action, UseInterval, GreedyGraphGenerator>::solve(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
     param_type<QState> state,
+    ProgressReport& progress,
     double max_time)
 {
     utils::CountdownTimer timer(max_time);
 
     for (;;) {
         const Interval value =
-            heuristic_search(quotient, heuristic, state, timer);
+            heuristic_search(quotient, heuristic, state, progress, timer);
 
         if (find_and_remove_traps(quotient, heuristic, state, timer)) {
             return value;
@@ -231,13 +231,24 @@ FRET<State, Action, UseInterval, GreedyGraphGenerator>::heuristic_search(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
     param_type<QState> state,
+    ProgressReport& progress,
     utils::CountdownTimer& timer)
 {
 #if defined(EXPENSIVE_STATISTICS)
     TimerScope scoped(statistics_.heuristic_search);
 #endif
-    return base_algorithm_
-        ->solve(quotient, heuristic, state, timer.get_remaining_time());
+
+    progress.register_print([&](std::ostream& out) {
+        out << "fret=" << statistics_.iterations
+            << ", traps=" << statistics_.traps;
+    });
+
+    return base_algorithm_->solve(
+        quotient,
+        heuristic,
+        state,
+        progress,
+        timer.get_remaining_time());
 }
 
 template <
