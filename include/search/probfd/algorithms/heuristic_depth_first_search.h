@@ -38,11 +38,6 @@ struct Statistics {
     void print(std::ostream& out) const;
 };
 
-struct PerStateInformationBase {
-    static constexpr uint8_t BITS = 0;
-    uint8_t info = 0;
-};
-
 template <typename StateInfo>
 struct PerStateInformation : public StateInfo {
     static constexpr uint8_t INITIALIZED = 1 << StateInfo::BITS;
@@ -57,28 +52,50 @@ struct PerStateInformation : public StateInfo {
         this->info = (this->info & ~MASK) | INITIALIZED;
     }
     void set_solved() { this->info = (this->info & ~MASK) | SOLVED; }
+
+    void clear() { this->info &= MASK; }
 };
 
-using StandalonePerStateInformation =
-    PerStateInformation<PerStateInformationBase>;
+enum StateStatus {
+    NEW = 0,
+    ONSTACK = 1,
+    CLOSED = 2,
+    CLOSED_DEAD = 3,
+    UNSOLVED = 4,
+    UNDEF = ((unsigned)-1) >> 1
+};
 
-// Store HDFS-specific state information seperately when FRET is enabled to
-// make resetting the solver state easier.
-template <typename State, typename Action, bool UseInterval, bool Fret>
-using HDFSBase = std::conditional_t<
-    Fret,
-    heuristic_search::HeuristicSearchAlgorithm<
-        State,
-        Action,
-        UseInterval,
-        true,
-        heuristic_search::NoAdditionalStateData>,
-    heuristic_search::HeuristicSearchAlgorithm<
-        State,
-        Action,
-        UseInterval,
-        true,
-        internal::PerStateInformation>>;
+struct LocalStateInfo {
+    uint8_t status = StateStatus::NEW;
+    unsigned index = StateStatus::UNDEF;
+    unsigned lowlink = StateStatus::UNDEF;
+
+    void open(const unsigned& index)
+    {
+        status = ONSTACK;
+        this->index = index;
+        this->lowlink = index;
+    }
+};
+
+struct ExpansionInfo {
+    ExpansionInfo(StateID state, const Distribution<StateID>& t)
+        : stateid(state)
+    {
+        for (const StateID s : t.support()) {
+            successors.push_back(s);
+        }
+    }
+
+    const StateID stateid;
+
+    std::vector<StateID> successors;
+
+    bool dead = true;
+    bool unsolved_succs = false;
+    bool value_changed = false;
+    bool leaf = true;
+};
 
 } // namespace internal
 
@@ -91,63 +108,26 @@ using HDFSBase = std::conditional_t<
  * @tparam UseInterval - Whether value intervals are used.
  * @tparam Fret - Whether the algorithm is wrapped with the FRET framework.
  */
-template <typename State, typename Action, bool UseInterval, bool Fret>
+template <typename State, typename Action, bool UseInterval>
 class HeuristicDepthFirstSearch
-    : public internal::HDFSBase<State, Action, UseInterval, Fret> {
+    : public heuristic_search::HeuristicSearchAlgorithmExt<
+          State,
+          Action,
+          UseInterval,
+          true,
+          internal::PerStateInformation> {
     using Base = typename HeuristicDepthFirstSearch::HeuristicSearchAlgorithm;
 
+public:
+    using StateInfo = typename Base::StateInfo;
+
+private:
     using MDP = typename Base::MDP;
     using Evaluator = typename Base::Evaluator;
 
     using PolicyPicker = typename Base::PolicyPicker;
 
-    using StateInfo = typename Base::StateInfo;
-
     using Statistics = internal::Statistics;
-
-    using AdditionalStateInfo = std::
-        conditional_t<Fret, internal::StandalonePerStateInformation, StateInfo>;
-
-    enum StateStatus {
-        NEW = 0,
-        ONSTACK = 1,
-        CLOSED = 2,
-        CLOSED_DEAD = 3,
-        UNSOLVED = 4,
-        UNDEF = ((unsigned)-1) >> 1
-    };
-
-    struct LocalStateInfo {
-        uint8_t status = StateStatus::NEW;
-        unsigned index = StateStatus::UNDEF;
-        unsigned lowlink = StateStatus::UNDEF;
-
-        void open(const unsigned& index)
-        {
-            status = ONSTACK;
-            this->index = index;
-            this->lowlink = index;
-        }
-    };
-
-    struct ExpansionInfo {
-        ExpansionInfo(StateID state, const Distribution<StateID>& t)
-            : stateid(state)
-        {
-            for (const StateID s : t.support()) {
-                successors.push_back(s);
-            }
-        }
-
-        const StateID stateid;
-
-        std::vector<StateID> successors;
-
-        bool dead = true;
-        bool unsolved_succs = false;
-        bool value_changed = false;
-        bool leaf = true;
-    };
 
     const bool LabelSolved;
     const bool ForwardUpdates;
@@ -157,11 +137,9 @@ class HeuristicDepthFirstSearch
     const bool PerformValueIteration;
     const bool ExpandTipStates;
 
-    storage::PerStateStorage<AdditionalStateInfo> state_flags_;
-
-    storage::StateHashMap<LocalStateInfo> state_infos_;
+    storage::StateHashMap<internal::LocalStateInfo> state_infos_;
     std::vector<StateID> visited_;
-    std::deque<ExpansionInfo> expansion_queue_;
+    std::deque<internal::ExpansionInfo> expansion_queue_;
     std::deque<StateID> stack_;
 
     Statistics statistics_;
@@ -191,8 +169,6 @@ protected:
     void print_additional_statistics(std::ostream& out) const override;
 
 private:
-    AdditionalStateInfo& get_pers_info(StateID state_id);
-
     void solve_with_vi_termination(
         MDP& mdp,
         Evaluator& heuristic,
@@ -218,7 +194,7 @@ private:
         MDP& mdp,
         Evaluator& heuristic,
         StateID stateid,
-        AdditionalStateInfo& sinfo,
+        StateInfo& sinfo,
         bool& parent_value_changed,
         bool& parent_unsolved_successors);
 

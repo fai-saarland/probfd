@@ -49,14 +49,8 @@ struct Statistics {
     unsigned long long trials = 0;
     unsigned long long trial_bellman_backups = 0;
     unsigned long long check_and_solve_bellman_backups = 0;
-    unsigned long long state_info_bytes = 0;
 
     void print(std::ostream& out) const;
-};
-
-struct EmptyStateInfo {
-    static constexpr const uint8_t BITS = 0;
-    uint8_t info = 0;
 };
 
 template <typename StateInfo>
@@ -98,22 +92,9 @@ struct PerStateInformation : public StateInfo {
         assert(!is_solved());
         this->info = this->info & ~MASK;
     }
-};
 
-// When FRET is enabled, store the LRTDP-specific state information seperately
-// so it can be easily reset between FRET iterations. Otherwise, store the
-// LRTDP-specific state information with the basic state information.
-template <typename State, typename Action, bool UseInterval, bool Fret>
-using LRTDPBase = std::conditional_t<
-    Fret,
-    heuristic_search::
-        HeuristicSearchAlgorithm<State, Action, UseInterval, true>,
-    heuristic_search::HeuristicSearchAlgorithm<
-        State,
-        Action,
-        UseInterval,
-        true,
-        internal::PerStateInformation>>;
+    void clear() { this->info &= ~MASK; }
+};
 
 } // namespace internal
 
@@ -145,29 +126,31 @@ using LRTDPBase = std::conditional_t<
  * @tparam Action - The action type of the MDP model.
  * @tparam UseInterval - Whether intervals or real values are used as state
  * values.
- * @tparam Fret - Specifies whether the algorithm should be usable within FRET.
  */
-template <typename State, typename Action, bool UseInterval, bool Fret>
-class LRTDP : public internal::LRTDPBase<State, Action, UseInterval, Fret> {
+template <typename State, typename Action, bool UseInterval>
+class LRTDP
+    : public heuristic_search::HeuristicSearchAlgorithmExt<
+          State,
+          Action,
+          UseInterval,
+          true,
+          internal::PerStateInformation> {
     using Base = typename LRTDP::HeuristicSearchAlgorithm;
 
+public:
+    using StateInfo = typename Base::StateInfo;
+
+private:
     using MDP = typename Base::MDP;
     using Evaluator = typename Base::Evaluator;
     using PolicyPicker = typename Base::PolicyPicker;
 
     using SuccessorSampler = SuccessorSampler<Action>;
 
-    using StateInfo = std::conditional_t<
-        Fret,
-        internal::PerStateInformation<internal::EmptyStateInfo>,
-        typename Base::StateInfo>;
-
     using Statistics = internal::Statistics;
 
     const TrialTerminationCondition StopConsistent;
     std::shared_ptr<SuccessorSampler> sample_;
-
-    storage::PerStateStorage<StateInfo> state_infos_;
 
     std::vector<StateID> current_trial_;
     std::vector<StateID> policy_queue_;
@@ -212,8 +195,6 @@ private:
         Evaluator& heuristic,
         StateID init_state_id,
         utils::CountdownTimer& timer);
-
-    StateInfo& get_lrtdp_state_info(StateID sid);
 
     /*
     bool check_and_solve_original(

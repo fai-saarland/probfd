@@ -124,7 +124,7 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
     auto policy_chooser = std::make_shared<
         policy_pickers::ArbitraryTiebreaker<State, OperatorID>>(true);
 
-    HeuristicDepthFirstSearch<State, OperatorID, false, true> hdfs(
+    HeuristicDepthFirstSearch<State, OperatorID, false> hdfs(
         policy_chooser,
         false,
         false,
@@ -171,11 +171,12 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
         quotients::QuotientState<State, OperatorID>,
         quotients::QuotientAction<OperatorID>>>(true);
 
-    auto hdfs = std::make_shared<HeuristicDepthFirstSearch<
+    using HDFS = HeuristicDepthFirstSearch<
         quotients::QuotientState<State, OperatorID>,
         quotients::QuotientAction<OperatorID>,
-        false,
-        true>>(
+        false>;
+
+    auto hdfs = std::make_shared<HDFS>(
         policy_chooser,
         false,
         false,
@@ -186,7 +187,7 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
         true,
         false);
 
-    FRETPi<State, OperatorID, false> fret(hdfs);
+    FRETPi<State, OperatorID, typename HDFS::StateInfo> fret(hdfs);
 
     auto policy =
         fret.compute_policy(mdp, heuristic, mdp.get_initial_state(), report);

@@ -28,8 +28,8 @@ inline void Statistics::print(std::ostream& out) const
 
 } // namespace internal
 
-template <typename State, typename Action, bool UseInterval, bool Fret>
-HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
+template <typename State, typename Action, bool UseInterval>
+HeuristicDepthFirstSearch<State, Action, UseInterval>::
     HeuristicDepthFirstSearch(
         std::shared_ptr<PolicyPicker> policy_chooser,
         bool interval_comparison,
@@ -51,15 +51,16 @@ HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
 {
 }
 
-template <typename State, typename Action, bool UseInterval, bool Fret>
-void HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
-    reset_search_state() 
+template <typename State, typename Action, bool UseInterval>
+void HeuristicDepthFirstSearch<State, Action, UseInterval>::reset_search_state()
 {
-    state_flags_.clear();
+    for (StateInfo& state_info : this->get_state_infos()) {
+        state_info.clear();
+    }
 }
 
-template <typename State, typename Action, bool UseInterval, bool Fret>
-Interval HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::do_solve(
+template <typename State, typename Action, bool UseInterval>
+Interval HeuristicDepthFirstSearch<State, Action, UseInterval>::do_solve(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> state,
@@ -78,26 +79,15 @@ Interval HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::do_solve(
     return this->get_state_info(stateid).get_bounds();
 }
 
-template <typename State, typename Action, bool UseInterval, bool Fret>
-void HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
-    print_additional_statistics(std::ostream& out) const 
+template <typename State, typename Action, bool UseInterval>
+void HeuristicDepthFirstSearch<State, Action, UseInterval>::
+    print_additional_statistics(std::ostream& out) const
 {
     statistics_.print(out);
 }
 
-template <typename State, typename Action, bool UseInterval, bool Fret>
-auto HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::get_pers_info(
-    StateID state_id) -> AdditionalStateInfo&
-{
-    if constexpr (Fret) {
-        return state_flags_[state_id];
-    } else {
-        return this->get_state_info(state_id);
-    }
-}
-
-template <typename State, typename Action, bool UseInterval, bool Fret>
-void HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
+template <typename State, typename Action, bool UseInterval>
+void HeuristicDepthFirstSearch<State, Action, UseInterval>::
     solve_with_vi_termination(
         MDP& mdp,
         Evaluator& heuristic,
@@ -123,8 +113,8 @@ void HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
     } while (!terminate);
 }
 
-template <typename State, typename Action, bool UseInterval, bool Fret>
-void HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
+template <typename State, typename Action, bool UseInterval>
+void HeuristicDepthFirstSearch<State, Action, UseInterval>::
     solve_without_vi_termination(
         MDP& mdp,
         Evaluator& heuristic,
@@ -141,21 +131,21 @@ void HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
     } while (!terminate);
 }
 
-template <typename State, typename Action, bool UseInterval, bool Fret>
+template <typename State, typename Action, bool UseInterval>
 template <bool GetVisited>
-bool HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
-    policy_exploration(
-        MDP& mdp,
-        Evaluator& heuristic,
-        StateID state,
-        utils::CountdownTimer& timer)
+bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
+    MDP& mdp,
+    Evaluator& heuristic,
+    StateID state,
+    utils::CountdownTimer& timer)
 {
+    using namespace internal;
     using enum BacktrackingUpdateType;
 
     ClearGuard _guard(state_infos_);
 
     {
-        AdditionalStateInfo& pers_info = get_pers_info(state);
+        StateInfo& pers_info = this->get_state_info(state);
         bool value_changed = false;
         bool pruned = false;
         const uint8_t pstatus =
@@ -186,7 +176,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
             StateID succid = einfo->successors.back();
             einfo->successors.pop_back();
 
-            AdditionalStateInfo& pers_succ_info = get_pers_info(succid);
+            StateInfo& pers_succ_info = this->get_state_info(succid);
 
             if (pers_succ_info.is_solved()) {
                 if (!this->is_marked_dead_end(succid)) {
@@ -287,7 +277,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
                         state_infos_[state_id].status = closed;
 
                         if (LabelSolved) {
-                            get_pers_info(state_id).set_solved();
+                            this->get_state_info(state_id).set_solved();
                         }
                     }
                 }
@@ -313,15 +303,17 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::
     }
 }
 
-template <typename State, typename Action, bool UseInterval, bool Fret>
-uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::push(
+template <typename State, typename Action, bool UseInterval>
+uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval>::push(
     MDP& mdp,
     Evaluator& heuristic,
     StateID stateid,
-    AdditionalStateInfo& sinfo,
+    StateInfo& sinfo,
     bool& parent_value_changed,
     bool& parent_unsolved_succss)
 {
+    using namespace internal;
+
     assert(!sinfo.is_solved());
 
     const bool is_tip_state = !sinfo.is_policy_initialized();
@@ -379,9 +371,9 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::push(
     return ONSTACK;
 }
 
-template <typename State, typename Action, bool UseInterval, bool Fret>
+template <typename State, typename Action, bool UseInterval>
 std::pair<bool, bool>
-HeuristicDepthFirstSearch<State, Action, UseInterval, Fret>::value_iteration(
+HeuristicDepthFirstSearch<State, Action, UseInterval>::value_iteration(
     MDP& mdp,
     Evaluator& heuristic,
     const std::ranges::input_range auto& range,

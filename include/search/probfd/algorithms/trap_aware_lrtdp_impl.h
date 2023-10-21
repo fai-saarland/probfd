@@ -81,7 +81,6 @@ template <typename State, typename Action, bool UseInterval>
 void TALRTDPImpl<State, Action, UseInterval>::print_statistics(
     std::ostream& out) const
 {
-    Base::print_statistics(out);
     this->statistics_.print(out);
 }
 

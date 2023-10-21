@@ -26,9 +26,9 @@ inline void Statistics::print(std::ostream& out) const
 template <
     typename State,
     typename Action,
-    bool UseInterval,
+    typename StateInfoT,
     typename GreedyGraphGenerator>
-FRET<State, Action, UseInterval, GreedyGraphGenerator>::FRET(
+FRET<State, Action, StateInfoT, GreedyGraphGenerator>::FRET(
     std::shared_ptr<QHeuristicSearchAlgorithm> algorithm)
     : base_algorithm_(std::move(algorithm))
 {
@@ -37,9 +37,9 @@ FRET<State, Action, UseInterval, GreedyGraphGenerator>::FRET(
 template <
     typename State,
     typename Action,
-    bool UseInterval,
+    typename StateInfoT,
     typename GreedyGraphGenerator>
-auto FRET<State, Action, UseInterval, GreedyGraphGenerator>::compute_policy(
+auto FRET<State, Action, StateInfoT, GreedyGraphGenerator>::compute_policy(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> state,
@@ -164,9 +164,9 @@ auto FRET<State, Action, UseInterval, GreedyGraphGenerator>::compute_policy(
 template <
     typename State,
     typename Action,
-    bool UseInterval,
+    typename StateInfoT,
     typename GreedyGraphGenerator>
-Interval FRET<State, Action, UseInterval, GreedyGraphGenerator>::solve(
+Interval FRET<State, Action, StateInfoT, GreedyGraphGenerator>::solve(
     MDP& mdp,
     Evaluator& heuristic,
     param_type<State> state,
@@ -186,9 +186,9 @@ Interval FRET<State, Action, UseInterval, GreedyGraphGenerator>::solve(
 template <
     typename State,
     typename Action,
-    bool UseInterval,
+    typename StateInfoT,
     typename GreedyGraphGenerator>
-void FRET<State, Action, UseInterval, GreedyGraphGenerator>::print_statistics(
+void FRET<State, Action, StateInfoT, GreedyGraphGenerator>::print_statistics(
     std::ostream& out) const
 {
     this->base_algorithm_->print_statistics(out);
@@ -198,9 +198,9 @@ void FRET<State, Action, UseInterval, GreedyGraphGenerator>::print_statistics(
 template <
     typename State,
     typename Action,
-    bool UseInterval,
+    typename StateInfoT,
     typename GreedyGraphGenerator>
-Interval FRET<State, Action, UseInterval, GreedyGraphGenerator>::solve(
+Interval FRET<State, Action, StateInfoT, GreedyGraphGenerator>::solve(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
     param_type<QState> state,
@@ -224,10 +224,10 @@ Interval FRET<State, Action, UseInterval, GreedyGraphGenerator>::solve(
 template <
     typename State,
     typename Action,
-    bool UseInterval,
+    typename StateInfoT,
     typename GreedyGraphGenerator>
 Interval
-FRET<State, Action, UseInterval, GreedyGraphGenerator>::heuristic_search(
+FRET<State, Action, StateInfoT, GreedyGraphGenerator>::heuristic_search(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
     param_type<QState> state,
@@ -254,9 +254,9 @@ FRET<State, Action, UseInterval, GreedyGraphGenerator>::heuristic_search(
 template <
     typename State,
     typename Action,
-    bool UseInterval,
+    typename StateInfoT,
     typename GreedyGraphGenerator>
-bool FRET<State, Action, UseInterval, GreedyGraphGenerator>::
+bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::
     find_and_remove_traps(
         QuotientSystem& quotient,
         QEvaluator& heuristic,
@@ -371,9 +371,9 @@ bool FRET<State, Action, UseInterval, GreedyGraphGenerator>::
 template <
     typename State,
     typename Action,
-    bool UseInterval,
+    typename StateInfoT,
     typename GreedyGraphGenerator>
-void FRET<State, Action, UseInterval, GreedyGraphGenerator>::collapse_trap(
+void FRET<State, Action, StateInfoT, GreedyGraphGenerator>::collapse_trap(
     QuotientSystem& quotient,
     auto scc)
 {
@@ -391,9 +391,9 @@ void FRET<State, Action, UseInterval, GreedyGraphGenerator>::collapse_trap(
 template <
     typename State,
     typename Action,
-    bool UseInterval,
+    typename StateInfoT,
     typename GreedyGraphGenerator>
-bool FRET<State, Action, UseInterval, GreedyGraphGenerator>::push(
+bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::push(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
     std::deque<ExplorationInfo>& queue,
@@ -429,8 +429,8 @@ bool FRET<State, Action, UseInterval, GreedyGraphGenerator>::push(
     return true;
 }
 
-template <typename State, typename Action, bool UseInterval>
-bool ValueGraph<State, Action, UseInterval>::get_successors(
+template <typename State, typename Action, typename StateInfoT>
+bool ValueGraph<State, Action, StateInfoT>::get_successors(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
     QHeuristicSearchAlgorithm& base_algorithm,
@@ -461,8 +461,8 @@ bool ValueGraph<State, Action, UseInterval>::get_successors(
     return value_changed;
 }
 
-template <typename State, typename Action, bool UseInterval>
-bool PolicyGraph<State, Action, UseInterval>::get_successors(
+template <typename State, typename Action, typename StateInfoT>
+bool PolicyGraph<State, Action, StateInfoT>::get_successors(
     QuotientSystem& quotient,
     QEvaluator&,
     QHeuristicSearchAlgorithm& base_algorithm,

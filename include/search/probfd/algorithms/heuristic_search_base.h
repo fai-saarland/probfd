@@ -76,6 +76,29 @@ struct Statistics : public CoreStatistics {
     void jump() { before_last_update = *this; }
 };
 
+template <typename StateInfo>
+class StateInfos : public StateProperties {
+    storage::PerStateStorage<StateInfo> state_infos_;
+
+public:
+    StateInfo& operator[](StateID sid) { return state_infos_[sid]; }
+    const StateInfo& operator[](StateID sid) const { return state_infos_[sid]; }
+
+    value_t lookup_value(StateID state_id) override
+    {
+        return state_infos_[state_id].get_value();
+    }
+
+    Interval lookup_bounds(StateID state_id) override
+    {
+        return state_infos_[state_id].get_bounds();
+    }
+
+    auto get_infos() { return std::views::all(state_infos_); }
+};
+
+} // namespace internal
+
 /**
  * @brief The common base class for MDP h search algorithms.
  *
@@ -101,30 +124,9 @@ public:
     using AlgorithmValueType = AlgorithmValueType<UseInterval>;
 
 private:
-    class StateInfos : public StateProperties {
-        storage::PerStateStorage<StateInfo> state_infos_;
-
-    public:
-        StateInfo& operator[](StateID sid) { return state_infos_[sid]; }
-        const StateInfo& operator[](StateID sid) const
-        {
-            return state_infos_[sid];
-        }
-
-        value_t lookup_value(StateID state_id) override
-        {
-            return state_infos_[state_id].get_value();
-        }
-
-        Interval lookup_bounds(StateID state_id) override
-        {
-            return state_infos_[state_id].get_bounds();
-        }
-    };
-
     std::shared_ptr<PolicyPicker> policy_chooser_;
 
-    StateInfos state_infos_;
+    internal::StateInfos<StateInfo> state_infos_;
 
     StateInfo* initial_state_info = nullptr;
 
@@ -132,7 +134,7 @@ private:
     std::vector<Transition> transitions_;
 
 protected:
-    Statistics statistics_;
+    internal::Statistics statistics_;
     const bool interval_comparison_;
 
     struct UpdateResult {
@@ -211,6 +213,8 @@ public:
         requires(StorePolicy);
 
 protected:
+    auto get_state_infos() { return state_infos_.get_infos(); }
+
     void initialize_report(
         MDP& mdp,
         Evaluator& h,
@@ -381,8 +385,6 @@ public:
     virtual void print_additional_statistics(std::ostream& out) const = 0;
 };
 
-} // namespace internal
-
 template <typename T>
 struct NoAdditionalStateData : public T {};
 
@@ -391,22 +393,24 @@ template <
     typename Action,
     bool UseInterval = false,
     bool StorePolicy = false,
-    template <typename> class StateInfo = NoAdditionalStateData>
-using HeuristicSearchBase = internal::HeuristicSearchBase<
+    template <typename> class StateInfoExtension = NoAdditionalStateData>
+using HeuristicSearchBaseExt = HeuristicSearchBase<
     State,
     Action,
-    StateInfo<PerStateBaseInformation<Action, StorePolicy, UseInterval>>>;
+    StateInfoExtension<
+        PerStateBaseInformation<Action, StorePolicy, UseInterval>>>;
 
 template <
     typename State,
     typename Action,
     bool UseInterval = false,
     bool StorePolicy = false,
-    template <typename> class StateInfo = NoAdditionalStateData>
-using HeuristicSearchAlgorithm = internal::HeuristicSearchAlgorithm<
+    template <typename> class StateInfoExtension = NoAdditionalStateData>
+using HeuristicSearchAlgorithmExt = HeuristicSearchAlgorithm<
     State,
     Action,
-    StateInfo<PerStateBaseInformation<Action, StorePolicy, UseInterval>>>;
+    StateInfoExtension<
+        PerStateBaseInformation<Action, StorePolicy, UseInterval>>>;
 
 } // namespace heuristic_search
 } // namespace algorithms

@@ -60,7 +60,7 @@ struct PerStateInformation : public StateInfo {
 
 template <typename State, typename Action, bool UseInterval>
 class TALRTDPImpl
-    : public heuristic_search::HeuristicSearchBase<
+    : public heuristic_search::HeuristicSearchBaseExt<
           quotients::QuotientState<State, Action>,
           quotients::QuotientAction<Action>,
           UseInterval,

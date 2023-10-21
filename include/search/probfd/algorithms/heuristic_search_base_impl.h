@@ -69,6 +69,8 @@ inline void Statistics::print(std::ostream& out) const
 #endif
 }
 
+} // namespace internal
+
 template <typename State, typename Action, typename StateInfoT>
 HeuristicSearchBase<State, Action, StateInfoT>::HeuristicSearchBase(
     std::shared_ptr<PolicyPicker> policy_chooser,
@@ -640,8 +642,6 @@ void HeuristicSearchAlgorithm<State, Action, StateInfoT>::print_statistics(
     HSBase::print_statistics(out);
     this->print_additional_statistics(out);
 }
-
-} // namespace internal
 
 } // namespace heuristic_search
 } // namespace algorithms

@@ -24,9 +24,9 @@ namespace algorithms {
 /// Namespace dedicated to the Find, Revise, Eliminate Traps (FRET) framework.
 namespace fret {
 
-template <typename State, typename Action, bool UseInterval>
-using HeuristicSearchAlgorithm = heuristic_search::
-    HeuristicSearchAlgorithm<State, Action, UseInterval, true>;
+template <typename State, typename Action, typename StateInfoT>
+using HeuristicSearchAlgorithm =
+    heuristic_search::HeuristicSearchAlgorithm<State, Action, StateInfoT>;
 
 struct Statistics {
     unsigned long long iterations = 0;
@@ -59,7 +59,7 @@ struct Statistics {
  *
  * @tparam State - The state type of the underlying MDP.
  * @tparam Action - The action type of the underlying MDP.
- * @tparam UseInterval - Whether value intervals are used.
+ * @tparam StateInfoT - The state info type of the heuristic search algorithm.
  * @tparam GreedyGraphGenerator - The type of the generator used to construct
  * the search graph in which traps are found and eliminated between heuristic
  * searches.
@@ -67,7 +67,7 @@ struct Statistics {
 template <
     typename State,
     typename Action,
-    bool UseInterval,
+    typename StateInfoT,
     typename GreedyGraphGenerator>
 class FRET : public MDPAlgorithm<State, Action> {
     using Base = typename FRET::MDPAlgorithm;
@@ -80,7 +80,7 @@ class FRET : public MDPAlgorithm<State, Action> {
     using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
     using QHeuristicSearchAlgorithm =
-        HeuristicSearchAlgorithm<QState, QAction, UseInterval>;
+        HeuristicSearchAlgorithm<QState, QAction, StateInfoT>;
     using QEvaluator = probfd::Evaluator<QState>;
 
     using StackIterator = std::deque<StateID>::iterator;
@@ -192,13 +192,13 @@ private:
         unsigned int& unexpanded);
 };
 
-template <typename State, typename Action, bool UseInterval>
+template <typename State, typename Action, typename StateInfoT>
 class ValueGraph {
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
     using QHeuristicSearchAlgorithm =
-        HeuristicSearchAlgorithm<QState, QAction, UseInterval>;
+        HeuristicSearchAlgorithm<QState, QAction, StateInfoT>;
 
     using QEvaluator = Evaluator<QState>;
 
@@ -215,13 +215,13 @@ public:
         std::vector<StateID>& successors);
 };
 
-template <typename State, typename Action, bool UseInterval>
+template <typename State, typename Action, typename StateInfoT>
 class PolicyGraph {
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
     using QHeuristicSearchAlgorithm =
-        HeuristicSearchAlgorithm<QState, QAction, UseInterval>;
+        HeuristicSearchAlgorithm<QState, QAction, StateInfoT>;
 
     using QEvaluator = Evaluator<QState>;
 
@@ -243,11 +243,11 @@ public:
  *
  * @tparam State - The state type of the underlying MDP.
  * @tparam Action - The action type of the underlying MDP.
- * @tparam UseInterval - Whether interval state values are used.
+ * @tparam StateInfoT - The state info type of the heuristic search algorithm.
  */
-template <typename State, typename Action, bool UseInterval>
+template <typename State, typename Action, typename StateInfoT>
 using FRETV =
-    FRET<State, Action, UseInterval, ValueGraph<State, Action, UseInterval>>;
+    FRET<State, Action, StateInfoT, ValueGraph<State, Action, StateInfoT>>;
 
 /**
  * @brief Implementation of FRET with trap elimination in the greedy policy
@@ -255,11 +255,11 @@ using FRETV =
  *
  * @tparam State - The state type of the underlying MDP.
  * @tparam Action - The action type of the underlying MDP.
- * @tparam UseInterval - Whether interval state values are used.
+ * @tparam StateInfoT - The state info type of the heuristic search algorithm.
  */
-template <typename State, typename Action, bool UseInterval>
+template <typename State, typename Action, typename StateInfoT>
 using FRETPi =
-    FRET<State, Action, UseInterval, PolicyGraph<State, Action, UseInterval>>;
+    FRET<State, Action, StateInfoT, PolicyGraph<State, Action, StateInfoT>>;
 
 } // namespace fret
 } // namespace algorithms

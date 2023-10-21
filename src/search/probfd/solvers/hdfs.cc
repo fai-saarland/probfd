@@ -23,7 +23,7 @@ using namespace plugins;
 template <bool Bisimulation, bool Fret>
 class DFHSSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
     template <typename State, typename Action, bool Interval>
-    using Algorithm = HeuristicDepthFirstSearch<State, Action, Interval, Fret>;
+    using Algorithm = HeuristicDepthFirstSearch<State, Action, Interval>;
 
     const std::string name_;
 

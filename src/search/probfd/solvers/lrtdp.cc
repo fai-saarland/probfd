@@ -21,7 +21,7 @@ using namespace plugins;
 template <bool Bisimulation, bool Fret>
 class LRTDPSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
     template <typename State, typename Action, bool Interval>
-    using LRTDP = LRTDP<State, Action, Interval, Fret>;
+    using LRTDP = LRTDP<State, Action, Interval>;
 
     using Sampler = WrappedType<SuccessorSampler, Bisimulation, Fret>;
 

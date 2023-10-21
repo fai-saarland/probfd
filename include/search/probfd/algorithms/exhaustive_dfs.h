@@ -43,6 +43,134 @@ struct Statistics {
     void print(std::ostream& out) const;
 };
 
+struct ExpansionInformation {
+    ExpansionInformation(unsigned stack_index, unsigned neighbors_size)
+        : stack_index(stack_index)
+        , neighbors_size(neighbors_size)
+    {
+    }
+
+    std::vector<Distribution<StateID>> successors;
+    Distribution<StateID>::const_iterator succ;
+    unsigned stack_index;
+    unsigned neighbors_size;
+
+    bool all_successors_are_dead = true;
+    bool all_successors_marked_dead = true;
+
+    void update_successors_dead(bool successors_dead)
+    {
+        all_successors_are_dead = all_successors_are_dead && successors_dead;
+    }
+};
+
+struct SCCTransition {
+    Distribution<StateID> successors;
+    value_t base = 0_vt;
+    value_t self_loop = 0_vt;
+};
+
+struct StackInformation {
+    explicit StackInformation(StateID state_ref)
+        : state_ref(state_ref)
+    {
+    }
+
+    StateID state_ref;
+    std::vector<SCCTransition> successors;
+    int i = -1;
+};
+
+template <bool UseInterval>
+struct SearchNodeInformation {
+    static constexpr uint8_t NEW = 0;
+    static constexpr uint8_t CLOSED = 1;
+    static constexpr uint8_t OPEN = 2;
+    static constexpr uint8_t ONSTACK = 4;
+    static constexpr uint8_t DEAD = 3;
+    static constexpr uint8_t MARKED = 7;
+
+    // TODO store lowlink in hash map -> only required for states still on
+    // stack
+    unsigned lowlink = std::numeric_limits<unsigned int>::max();
+    uint8_t status = NEW;
+    AlgorithmValueType<UseInterval> value;
+    value_t term_cost;
+
+    bool is_new() const { return status == NEW; }
+    bool is_open() const { return status == OPEN; }
+    bool is_onstack() const { return status == ONSTACK; }
+    bool is_closed() const { return status & CLOSED; }
+    bool is_dead_end() const { return status == DEAD || status == MARKED; }
+    bool is_marked_dead_end() const { return status == MARKED; }
+
+    void open()
+    {
+        assert(is_new());
+        status = OPEN;
+    }
+
+    void set_onstack(const unsigned idx)
+    {
+        assert(is_open());
+        status = ONSTACK;
+        lowlink = idx;
+    }
+
+    void close() { status = CLOSED; }
+
+    void set_dead_end()
+    {
+        assert(!is_marked_dead_end());
+        status = DEAD;
+    }
+
+    void mark_dead_end() { status = MARKED; }
+
+    value_t get_value() const
+    {
+        if constexpr (UseInterval) {
+            return value.lower;
+        } else {
+            return value;
+        }
+    }
+
+    Interval get_bounds() const
+    {
+        if constexpr (!UseInterval) {
+            return Interval(value, INFINITE_VALUE);
+        } else {
+            return value;
+        }
+    }
+};
+
+template <bool UseInterval>
+struct SearchNodeInfos : public StateProperties {
+    storage::PerStateStorage<SearchNodeInformation<UseInterval>> infos;
+
+    SearchNodeInformation<UseInterval>& operator[](StateID state_id)
+    {
+        return infos[state_id];
+    }
+
+    const SearchNodeInformation<UseInterval>& operator[](StateID state_id) const
+    {
+        return infos[state_id];
+    }
+
+    value_t lookup_value(StateID state_id) override
+    {
+        return infos[state_id].get_value();
+    }
+
+    Interval lookup_bounds(StateID state_id) override
+    {
+        return infos[state_id].get_bounds();
+    }
+};
+
 /**
  * @brief Implementation of an anytime topological value iteration
  * variant.
@@ -64,135 +192,7 @@ class ExhaustiveDepthFirstSearch : public MDPAlgorithm<State, Action> {
     using TransitionSorter = TransitionSorter<State, Action>;
 
     using AlgorithmValueType = AlgorithmValueType<UseInterval>;
-
-    struct SearchNodeInformation {
-        static constexpr uint8_t NEW = 0;
-        static constexpr uint8_t CLOSED = 1;
-        static constexpr uint8_t OPEN = 2;
-        static constexpr uint8_t ONSTACK = 4;
-        static constexpr uint8_t DEAD = 3;
-        static constexpr uint8_t MARKED = 7;
-
-        // TODO store lowlink in hash map -> only required for states still on
-        // stack
-        unsigned lowlink = std::numeric_limits<unsigned int>::max();
-        uint8_t status = NEW;
-        AlgorithmValueType value;
-        value_t term_cost;
-
-        bool is_new() const { return status == NEW; }
-        bool is_open() const { return status == OPEN; }
-        bool is_onstack() const { return status == ONSTACK; }
-        bool is_closed() const { return status & CLOSED; }
-        bool is_dead_end() const { return status == DEAD || status == MARKED; }
-        bool is_marked_dead_end() const { return status == MARKED; }
-
-        void open()
-        {
-            assert(is_new());
-            status = OPEN;
-        }
-
-        void set_onstack(const unsigned idx)
-        {
-            assert(is_open());
-            status = ONSTACK;
-            lowlink = idx;
-        }
-
-        void close() { status = CLOSED; }
-
-        void set_dead_end()
-        {
-            assert(!is_marked_dead_end());
-            status = DEAD;
-        }
-
-        void mark_dead_end() { status = MARKED; }
-
-        value_t get_value() const
-        {
-            if constexpr (UseInterval) {
-                return value.lower;
-            } else {
-                return value;
-            }
-        }
-
-        Interval get_bounds() const
-        {
-            if constexpr (!UseInterval) {
-                return Interval(value, INFINITE_VALUE);
-            } else {
-                return value;
-            }
-        }
-    };
-
-    struct ExpansionInformation {
-        explicit ExpansionInformation(
-            unsigned stack_index,
-            unsigned neighbors_size)
-            : stack_index(stack_index)
-            , neighbors_size(neighbors_size)
-        {
-        }
-
-        std::vector<Distribution<StateID>> successors;
-        Distribution<StateID>::const_iterator succ;
-        unsigned stack_index;
-        unsigned neighbors_size;
-
-        bool all_successors_are_dead = true;
-        bool all_successors_marked_dead = true;
-
-        void update_successors_dead(bool successors_dead)
-        {
-            all_successors_are_dead =
-                all_successors_are_dead && successors_dead;
-        }
-    };
-
-    struct SCCTransition {
-        Distribution<StateID> successors;
-        value_t base = 0_vt;
-        value_t self_loop = 0_vt;
-    };
-
-    struct StackInformation {
-        explicit StackInformation(StateID state_ref)
-            : state_ref(state_ref)
-        {
-        }
-
-        StateID state_ref;
-        std::vector<SCCTransition> successors;
-        int i = -1;
-    };
-
-    struct SearchNodeInfos : public StateProperties {
-        storage::PerStateStorage<SearchNodeInformation> infos;
-
-        SearchNodeInformation& operator[](StateID state_id)
-        {
-            return infos[state_id];
-        }
-
-        const SearchNodeInformation& operator[](StateID state_id) const
-        {
-            return infos[state_id];
-        }
-
-        value_t lookup_value(StateID state_id) override
-        {
-            return infos[state_id].get_value();
-        }
-
-        Interval lookup_bounds(StateID state_id) override
-        {
-            return infos[state_id].get_bounds();
-        }
-    };
+    using SearchNodeInformation = SearchNodeInformation<UseInterval>;
 
     std::shared_ptr<TransitionSorter> transition_sort_;
 
@@ -205,7 +205,7 @@ class ExhaustiveDepthFirstSearch : public MDPAlgorithm<State, Action> {
     const bool notify_initial_state_;
 
     Statistics statistics_;
-    SearchNodeInfos search_space_;
+    SearchNodeInfos<UseInterval> search_space_;
 
     std::deque<ExpansionInformation> expansion_infos_;
     std::deque<StackInformation> stack_infos_;

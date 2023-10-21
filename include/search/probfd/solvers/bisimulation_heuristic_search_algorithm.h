@@ -109,7 +109,7 @@ public:
     }
 
     template <
-        template <typename, typename, bool>
+        template <typename, typename, typename>
         class Fret,
         template <typename, typename, bool>
         class HS,
@@ -123,11 +123,12 @@ public:
         std::shared_ptr<algorithms::PolicyPicker<QQState, QQAction>> tiebreaker,
         Args&&... args)
     {
+        using StateInfoT = typename HS<QQState, QQAction, Interval>::StateInfo;
         return std::make_unique<BisimulationBasedHeuristicSearchAlgorithm>(
             std::move(task),
             std::move(task_cost_function),
             std::move(algorithm_name),
-            std::make_shared<Fret<QState, QAction, Interval>>(
+            std::make_shared<Fret<QState, QAction, StateInfoT>>(
                 std::make_shared<HS<QQState, QQAction, Interval>>(
                     tiebreaker,
                     interval,

@@ -70,7 +70,7 @@ template <
     template <typename>
     class StateInfoExtension>
 class AOBase
-    : public heuristic_search::HeuristicSearchAlgorithm<
+    : public heuristic_search::HeuristicSearchAlgorithmExt<
           State,
           Action,
           Interval,

@@ -173,7 +173,7 @@ public:
 
 private:
     template <
-        template <typename, typename, bool>
+        template <typename, typename, typename>
         class Fret,
         template <typename, typename, bool>
         class HS,
@@ -182,7 +182,8 @@ private:
     std::unique_ptr<FDRMDPAlgorithm>
     create_heuristic_search_algorithm_wrapper(Args&&... args)
     {
-        return std::make_unique<Fret<State, OperatorID, Interval>>(
+        using StateInfoT = typename HS<QState, QAction, Interval>::StateInfo;
+        return std::make_unique<Fret<State, OperatorID, StateInfoT>>(
             std::make_shared<HS<QState, QAction, Interval>>(
                 tiebreaker_,
                 interval_comparison_,
@@ -299,7 +300,7 @@ public:
 
 private:
     template <
-        template <typename, typename, bool>
+        template <typename, typename, typename>
         class Fret,
         bool Interval,
         template <typename, typename, bool>
