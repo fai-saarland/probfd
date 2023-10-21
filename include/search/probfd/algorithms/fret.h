@@ -157,7 +157,6 @@ public:
         ProgressReport progress,
         double max_time = std::numeric_limits<double>::infinity()) override;
 
-protected:
     void print_statistics(std::ostream& out) const override;
 
 private:
