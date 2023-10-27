@@ -94,7 +94,6 @@ struct ExpansionInfo {
     bool dead = true;
     bool unsolved_succs = false;
     bool value_changed = false;
-    bool leaf = true;
 };
 
 } // namespace internal

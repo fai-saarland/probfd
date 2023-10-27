@@ -183,7 +183,6 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
                     einfo->dead = false;
                 }
 
-                einfo->leaf = false;
                 continue;
             }
 
@@ -205,7 +204,6 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
                     continue;
                 }
 
-                einfo->leaf = false;
                 succ_info.status = status;
 
                 if (status == UNSOLVED) {
@@ -223,7 +221,6 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
             } else {
                 einfo->unsolved_succs =
                     einfo->unsolved_succs || succ_info.status == UNSOLVED;
-                einfo->leaf = false;
                 einfo->dead = einfo->dead && succ_info.status == CLOSED_DEAD;
             }
         } while (!einfo->successors.empty());
@@ -233,7 +230,6 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
             bool last_unsolved_succs = einfo->unsolved_succs;
             bool last_dead = einfo->dead;
             bool last_value_changed = einfo->value_changed;
-            bool last_leaf = einfo->leaf;
 
             if (BackwardUpdates == SINGLE ||
                 (last_value_changed && BackwardUpdates == ON_DEMAND)) {
@@ -246,8 +242,6 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
             }
 
             if (sinfo->index == sinfo->lowlink) {
-                last_leaf = false;
-
                 auto scc = stack_ | std::views::drop(sinfo->index);
 
                 for (const StateID state_id : scc) {
@@ -298,7 +292,6 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
                 einfo->unsolved_succs || last_unsolved_succs;
             einfo->value_changed = einfo->value_changed || last_value_changed;
             einfo->dead = einfo->dead && last_dead;
-            einfo->leaf = einfo->leaf && last_leaf;
         } while (!keep_expanding || einfo->successors.empty());
     }
 }
