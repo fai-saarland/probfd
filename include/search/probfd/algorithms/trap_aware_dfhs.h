@@ -124,6 +124,9 @@ class TADFHSImpl
             , lowlink(stack_index)
         {
         }
+
+        bool next_successor();
+        StateID get_successor() const;
     };
 
     struct StackInfo {
@@ -222,6 +225,12 @@ private:
         StateID state,
         QAction action,
         const Distribution<StateID>& successor_dist);
+
+    bool push_successor(
+        QuotientSystem& quotient,
+        QEvaluator& heuristic,
+        ExplorationInformation einfo,
+        utils::CountdownTimer& timer);
 
     bool push_state(
         QuotientSystem& quotient,

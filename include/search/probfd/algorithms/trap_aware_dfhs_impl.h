@@ -40,6 +40,23 @@ inline void Statistics::register_report(ProgressReport& report) const
 }
 
 } // namespace internal
+
+template <typename State, typename Action, bool UseInterval>
+bool TADFHSImpl<State, Action, UseInterval>::ExplorationInformation::
+    next_successor()
+{
+    successors.pop_back();
+    return !successors.empty();
+}
+
+template <typename State, typename Action, bool UseInterval>
+StateID
+TADFHSImpl<State, Action, UseInterval>::ExplorationInformation::get_successor()
+    const
+{
+    return successors.back();
+}
+
 template <typename State, typename Action, bool UseInterval>
 TADFHSImpl<State, Action, UseInterval>::TADFHSImpl(
     std::shared_ptr<QuotientPolicyPicker> policy_chooser,
@@ -181,6 +198,53 @@ void TADFHSImpl<State, Action, UseInterval>::enqueue(
 }
 
 template <typename State, typename Action, bool UseInterval>
+bool TADFHSImpl<State, Action, UseInterval>::push_successor(
+    QuotientSystem& quotient,
+    QEvaluator& heuristic,
+    ExplorationInformation einfo,
+    utils::CountdownTimer& timer)
+{
+    do {
+        timer.throw_if_expired();
+
+        const StateID succ = quotient.translate_state_id(einfo.get_successor());
+
+        int& succ_status = stack_index_[succ];
+        if (succ_status == STATE_UNSEEN) {
+            // expand state (either not expanded before, or last
+            // value change was before pushing einfo.state)
+            StateInfo& succ_info = this->get_state_info(succ);
+            if (succ_info.is_terminal() || succ_info.is_solved()) {
+                succ_info.set_solved();
+                einfo.flags.update(succ_info);
+            } else if (push_state(
+                           quotient,
+                           heuristic,
+                           succ,
+                           succ_info,
+                           einfo.flags)) {
+                return true;
+            } else if (mark_solved_) {
+                einfo.flags.all_solved = false;
+            }
+            succ_status = STATE_CLOSED;
+        } else if (succ_status == STATE_CLOSED) {
+            const StateInfo& succ_info = this->get_state_info(succ);
+            einfo.flags.update(succ_info);
+            if (mark_solved_) {
+                einfo.flags.all_solved =
+                    einfo.flags.all_solved && succ_info.is_solved();
+            }
+        } else {
+            // is on stack
+            einfo.lowlink = std::min(einfo.lowlink, succ_status);
+        }
+    } while (einfo.next_successor() && !terminated_);
+
+    return false;
+}
+
+template <typename State, typename Action, bool UseInterval>
 bool TADFHSImpl<State, Action, UseInterval>::push_state(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
@@ -301,47 +365,10 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
     StateID state = einfo->state;
 
     for (;;) {
-        do {
-            timer.throw_if_expired();
-
-            const StateID succ =
-                quotient.translate_state_id(einfo->successors.back());
-
-            int& succ_status = stack_index_[succ];
-            if (succ_status == STATE_UNSEEN) {
-                // expand state (either not expanded before, or last
-                // value change was before pushing einfo->state)
-                StateInfo& succ_info = this->get_state_info(succ);
-                if (succ_info.is_terminal() || succ_info.is_solved()) {
-                    succ_info.set_solved();
-                    einfo->flags.update(succ_info);
-                } else if (push_state(
-                               quotient,
-                               heuristic,
-                               succ,
-                               succ_info,
-                               einfo->flags)) {
-                    einfo = &queue_.back();
-                    state = einfo->state;
-                    continue;
-                } else if (mark_solved_) {
-                    einfo->flags.all_solved = false;
-                }
-                succ_status = STATE_CLOSED;
-            } else if (succ_status == STATE_CLOSED) {
-                const StateInfo& succ_info = this->get_state_info(succ);
-                einfo->flags.update(succ_info);
-                if (mark_solved_) {
-                    einfo->flags.all_solved =
-                        einfo->flags.all_solved && succ_info.is_solved();
-                }
-            } else {
-                // is on stack
-                einfo->lowlink = std::min(einfo->lowlink, succ_status);
-            }
-
-            einfo->successors.pop_back();
-        } while (!terminated_ && !einfo->successors.empty());
+        while (this->push_successor(quotient, heuristic, *einfo, timer)) {
+            einfo = &queue_.back();
+            state = einfo->state;
+        }
 
         do {
             Flags flags = einfo->flags;
@@ -419,9 +446,7 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
 
             einfo->lowlink = std::min(last_lowlink, einfo->lowlink);
             einfo->flags.update(flags);
-
-            einfo->successors.pop_back();
-        } while (terminated_ || einfo->successors.empty());
+        } while (!einfo->next_successor() || terminated_);
     }
 }
 
