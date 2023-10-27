@@ -94,6 +94,9 @@ struct ExpansionInfo {
     bool dead = true;
     bool unsolved_succs = false;
     bool value_changed = false;
+
+    bool next_successor();
+    StateID get_current_successor() const;
 };
 
 } // namespace internal
@@ -127,6 +130,8 @@ private:
     using PolicyPicker = typename Base::PolicyPicker;
 
     using Statistics = internal::Statistics;
+    using ExpansionInfo = internal::ExpansionInfo;
+    using LocalStateInfo = internal::LocalStateInfo;
 
     const bool LabelSolved;
     const bool ForwardUpdates;
@@ -136,9 +141,9 @@ private:
     const bool PerformValueIteration;
     const bool ExpandTipStates;
 
-    storage::StateHashMap<internal::LocalStateInfo> state_infos_;
+    storage::StateHashMap<LocalStateInfo> state_infos_;
     std::vector<StateID> visited_;
-    std::deque<internal::ExpansionInfo> expansion_queue_;
+    std::deque<ExpansionInfo> expansion_queue_;
     std::deque<StateID> stack_;
 
     Statistics statistics_;
@@ -187,6 +192,14 @@ private:
         MDP& mdp,
         Evaluator& heuristic,
         StateID state,
+        utils::CountdownTimer& timer);
+
+    bool push_successor(
+        MDP& mdp,
+        Evaluator& heuristic,
+        ExpansionInfo& einfo,
+        LocalStateInfo& sinfo,
+        bool& keep_expanding,
         utils::CountdownTimer& timer);
 
     uint8_t push(

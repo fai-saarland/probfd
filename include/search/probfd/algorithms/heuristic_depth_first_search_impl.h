@@ -26,6 +26,17 @@ inline void Statistics::print(std::ostream& out) const
         << std::endl;
 }
 
+bool ExpansionInfo::next_successor()
+{
+    successors.pop_back();
+    return !successors.empty();
+}
+
+StateID ExpansionInfo::get_current_successor() const
+{
+    return successors.back();
+}
+
 } // namespace internal
 
 template <typename State, typename Action, bool UseInterval>
@@ -170,61 +181,19 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
     LocalStateInfo* sinfo = &state_infos_[einfo->stateid];
 
     for (;;) {
-        do {
-            timer.throw_if_expired();
+        // DFS recursion
+        while (this->push_successor(
+            mdp,
+            heuristic,
+            *einfo,
+            *sinfo,
+            keep_expanding,
+            timer)) {
+            einfo = &expansion_queue_.back();
+            sinfo = &state_infos_[einfo->stateid];
+        }
 
-            StateID succid = einfo->successors.back();
-            einfo->successors.pop_back();
-
-            StateInfo& pers_succ_info = this->get_state_info(succid);
-
-            if (pers_succ_info.is_solved()) {
-                if (!this->is_marked_dead_end(succid)) {
-                    einfo->dead = false;
-                }
-
-                continue;
-            }
-
-            LocalStateInfo& succ_info = state_infos_[succid];
-            if (succ_info.status == NEW) {
-                const uint8_t status = push(
-                    mdp,
-                    heuristic,
-                    succid,
-                    pers_succ_info,
-                    einfo->value_changed,
-                    einfo->unsolved_succs);
-
-                if (status == ONSTACK) {
-                    succ_info.open(stack_.size());
-                    stack_.push_back(succid);
-                    einfo = &expansion_queue_.back();
-                    sinfo = &state_infos_[einfo->stateid];
-                    continue;
-                }
-
-                succ_info.status = status;
-
-                if (status == UNSOLVED) {
-                    einfo->unsolved_succs = true;
-                    einfo->dead = false;
-                } else if (status == CLOSED) {
-                    einfo->dead = false;
-                }
-
-                if (GreedyExploration && einfo->unsolved_succs) {
-                    keep_expanding = false;
-                }
-            } else if (succ_info.status == ONSTACK) {
-                sinfo->lowlink = std::min(sinfo->lowlink, succ_info.index);
-            } else {
-                einfo->unsolved_succs =
-                    einfo->unsolved_succs || succ_info.status == UNSOLVED;
-                einfo->dead = einfo->dead && succ_info.status == CLOSED_DEAD;
-            }
-        } while (!einfo->successors.empty());
-
+        // Iterative backtracking
         do {
             unsigned last_lowlink = sinfo->lowlink;
             bool last_unsolved_succs = einfo->unsolved_succs;
@@ -292,8 +261,74 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
                 einfo->unsolved_succs || last_unsolved_succs;
             einfo->value_changed = einfo->value_changed || last_value_changed;
             einfo->dead = einfo->dead && last_dead;
-        } while (!keep_expanding || einfo->successors.empty());
+        } while (!einfo->next_successor() || !keep_expanding);
     }
+}
+
+template <typename State, typename Action, bool UseInterval>
+bool HeuristicDepthFirstSearch<State, Action, UseInterval>::push_successor(
+    MDP& mdp,
+    Evaluator& heuristic,
+    ExpansionInfo& einfo,
+    LocalStateInfo& sinfo,
+    bool& keep_expanding,
+    utils::CountdownTimer& timer)
+{
+    using namespace internal;
+
+    do {
+        timer.throw_if_expired();
+
+        StateID succid = einfo.successors.back();
+
+        StateInfo& pers_succ_info = this->get_state_info(succid);
+
+        if (pers_succ_info.is_solved()) {
+            if (!this->is_marked_dead_end(succid)) {
+                einfo.dead = false;
+            }
+
+            continue;
+        }
+
+        LocalStateInfo& succ_info = state_infos_[succid];
+        if (succ_info.status == NEW) {
+            const uint8_t status = push(
+                mdp,
+                heuristic,
+                succid,
+                pers_succ_info,
+                einfo.value_changed,
+                einfo.unsolved_succs);
+
+            if (status == ONSTACK) {
+                succ_info.open(stack_.size());
+                stack_.push_back(succid);
+                return true;
+            }
+
+            succ_info.status = status;
+
+            if (status == UNSOLVED) {
+                einfo.unsolved_succs = true;
+                einfo.dead = false;
+            } else if (status == CLOSED) {
+                einfo.dead = false;
+            }
+
+            if (GreedyExploration && einfo.unsolved_succs) {
+                keep_expanding = false;
+            }
+        } else if (succ_info.status == ONSTACK) {
+            sinfo.lowlink = std::min(sinfo.lowlink, succ_info.index);
+        } else {
+            einfo.unsolved_succs =
+                einfo.unsolved_succs || succ_info.status == UNSOLVED;
+            einfo.dead = einfo.dead && succ_info.status == CLOSED_DEAD;
+        }
+    } while (einfo.next_successor());
+
+    return false;
 }
 
 template <typename State, typename Action, bool UseInterval>
