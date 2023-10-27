@@ -90,6 +90,8 @@ class EndComponentDecomposition {
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
 
     struct StateInfo {
+        enum { NEW, ONSTACK, CLOSED };
+
         static constexpr uint32_t UNDEF =
             std::numeric_limits<uint32_t>::max() >> 2;
 
@@ -98,6 +100,7 @@ class EndComponentDecomposition {
         unsigned stackid_ : 30 = UNDEF;
 
         bool onstack() const;
+        auto get_status() const;
     };
 
     struct ExpansionInfo {
@@ -130,7 +133,7 @@ class EndComponentDecomposition {
             MDP& mdp);
 
         // Used in decomposition recursion
-        bool next_action();
+        bool next_action(std::nullptr_t);
 
         // Used in root iteration
         bool next_action(MDP& mdp);

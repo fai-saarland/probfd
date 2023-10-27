@@ -29,6 +29,16 @@ decltype(auto) select(auto&&... args)
     return std::get<i>(std::tie(args...));
 }
 
+template <size_t i>
+decltype(auto) select_opt(auto&&... args)
+{
+    if constexpr (i < sizeof...(args)) {
+        return std::get<i>(std::tie(args...));
+    } else {
+        return nullptr;
+    }
+}
+
 template <typename Derived>
 class add_postfix_inc_dec {
 public:

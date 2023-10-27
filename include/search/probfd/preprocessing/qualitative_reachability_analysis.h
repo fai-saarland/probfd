@@ -44,6 +44,7 @@ struct QRStatistics {
 namespace internal {
 
 struct StateInfo {
+    enum { NEW, ONSTACK, CLOSED };
     static constexpr uint32_t UNDEF = std::numeric_limits<uint32_t>::max() >> 4;
 
     unsigned explored : 1 = 0;
@@ -53,6 +54,7 @@ struct StateInfo {
     unsigned stackid_ : 28 = UNDEF;
 
     bool onstack() const;
+    auto get_status() const;
 };
 
 struct StackInfo {

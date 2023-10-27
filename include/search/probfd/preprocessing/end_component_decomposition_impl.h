@@ -35,6 +35,12 @@ bool EndComponentDecomposition<State, Action>::StateInfo::onstack() const
 }
 
 template <typename State, typename Action>
+auto EndComponentDecomposition<State, Action>::StateInfo::get_status() const
+{
+    return explored ? (onstack() ? ONSTACK : CLOSED) : NEW;
+}
+
+template <typename State, typename Action>
 EndComponentDecomposition<State, Action>::ExpansionInfo::ExpansionInfo(
     unsigned stck,
     std::vector<Action> aops,
@@ -62,7 +68,8 @@ EndComponentDecomposition<State, Action>::ExpansionInfo::ExpansionInfo(
 }
 
 template <typename State, typename Action>
-bool EndComponentDecomposition<State, Action>::ExpansionInfo::next_action()
+bool EndComponentDecomposition<State, Action>::ExpansionInfo::next_action(
+    std::nullptr_t)
 {
     assert(aops.size() == successors.size());
     aops.pop_back();
@@ -329,7 +336,10 @@ void EndComponentDecomposition<State, Action>::find_and_decompose_sccs(
         }
 
         // Iterative backtracking
-        for (;;) {
+        do {
+            assert(s->successors.back().empty());
+            s->successors.pop_back();
+
             assert(e->successors.empty() && e->aops.empty());
 
             const bool recurse = e->recurse;
@@ -338,9 +348,9 @@ void EndComponentDecomposition<State, Action>::find_and_decompose_sccs(
 
             assert(stck >= lstck);
 
-            const bool is_onstack = stck != lstck;
+            const bool scc_root = stck == lstck;
 
-            if (!is_onstack) {
+            if (scc_root) {
                 scc_found<sizeof...(mdp_and_h) != 0>(sys, *e, *s, timer);
             }
 
@@ -357,20 +367,23 @@ void EndComponentDecomposition<State, Action>::find_and_decompose_sccs(
 
             auto& stk_successors = s->successors.back();
 
-            if (is_onstack) {
-                e->lstck = std::min(e->lstck, lstck);
-
-                stk_successors.emplace_back(e->get_current_successor());
-                e->recurse = e->recurse || recurse || e->nz_or_leaves_scc;
-            } else {
+            // Backtracked from successor.
+            if (scc_root) { // Child SCC
                 e->recurse = e->recurse || !stk_successors.empty();
                 e->nz_or_leaves_scc = true;
+            } else { // Same SCC
+                e->lstck = std::min(e->lstck, lstck);
+
+                e->recurse = e->recurse || recurse || e->nz_or_leaves_scc;
+                stk_successors.emplace_back(e->get_current_successor());
             }
 
+            // If a successor exists stop backtracking
             if (e->next_successor()) {
                 break;
             }
 
+            // Finalize fully explored transition.
             if (!e->nz_or_leaves_scc) {
                 assert(!stk_successors.empty());
                 s->aops.push_back(e->get_current_action());
@@ -378,22 +391,7 @@ void EndComponentDecomposition<State, Action>::find_and_decompose_sccs(
             } else {
                 stk_successors.clear();
             }
-
-            bool next_action;
-
-            if constexpr (sizeof...(mdp_and_h) != 0) {
-                next_action = e->next_action(select<0>(mdp_and_h...));
-            } else {
-                next_action = e->next_action();
-            }
-
-            if (next_action) {
-                break;
-            }
-
-            assert(s->successors.back().empty());
-            s->successors.pop_back();
-        }
+        } while (!e->next_action(select_opt<0>(mdp_and_h...)));
     }
 }
 
@@ -404,7 +402,7 @@ bool EndComponentDecomposition<State, Action>::push_successor(
     utils::CountdownTimer& timer,
     auto&... mdp_and_h)
 {
-    for (;;) {
+    do {
         std::vector<StateID>& s_succs = s.successors.back();
 
         do {
@@ -413,28 +411,28 @@ bool EndComponentDecomposition<State, Action>::push_successor(
             const StateID succ_id = e.get_current_successor();
             StateInfo& succ_info = state_infos_[succ_id];
 
-            // NOTE: Exploration status must be checked first.
-            // During recursive decomposition, the exploration status is
-            // reset but the stack index is maintained for the time being.
-            // The node is however not logically on the stack.
-            // Therefore the onstack check cannot be moved up, we have to
-            // resort to goto to avoid code duplication.
-            if (!succ_info.explored) {
-                if (push(succ_id, succ_info, mdp_and_h...)) return true;
+            switch (succ_info.get_status()) {
+            case StateInfo::NEW:
+                if (push(succ_id, succ_info, mdp_and_h...)) {
+                    return true;
+                }
 
-                goto backtrack_child_scc;
-            } else if (succ_info.onstack()) {
-                e.lstck = std::min(e.lstck, succ_info.stackid_);
+                [[fallthrough]];
 
-                s_succs.emplace_back(succ_id);
-                e.recurse = e.recurse || e.nz_or_leaves_scc;
-            } else {
-            backtrack_child_scc:
+            case StateInfo::CLOSED: // Child SCC
                 e.recurse = e.recurse || !s_succs.empty();
                 e.nz_or_leaves_scc = true;
+                break;
+
+            case StateInfo::ONSTACK: // Same SCC
+                e.lstck = std::min(e.lstck, succ_info.stackid_);
+
+                e.recurse = e.recurse || e.nz_or_leaves_scc;
+                s_succs.emplace_back(succ_id);
             }
         } while (e.next_successor());
 
+        // Finalize fully explored transition.
         if (!e.nz_or_leaves_scc) {
             assert(!s_succs.empty());
             s.successors.emplace_back();
@@ -442,22 +440,7 @@ bool EndComponentDecomposition<State, Action>::push_successor(
         } else {
             s_succs.clear();
         }
-
-        bool next_action;
-
-        if constexpr (sizeof...(mdp_and_h) != 0) {
-            next_action = e.next_action(select<0>(mdp_and_h...));
-        } else {
-            next_action = e.next_action();
-        }
-
-        if (!next_action) {
-            break;
-        }
-    }
-
-    assert(s.successors.back().empty());
-    s.successors.pop_back();
+    } while (e.next_action(select_opt<0>(mdp_and_h...)));
 
     return false;
 }

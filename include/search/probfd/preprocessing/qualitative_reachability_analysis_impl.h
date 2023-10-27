@@ -48,6 +48,11 @@ inline bool StateInfo::onstack() const
     return stackid_ < UNDEF;
 }
 
+inline auto StateInfo::get_status() const
+{
+    return explored ? (onstack() ? ONSTACK : CLOSED) : NEW;
+}
+
 inline StackInfo::StackInfo(StateID sid)
     : stateid(sid)
 {
@@ -167,9 +172,9 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
         do {
             const unsigned stck = e->stck;
             const unsigned lstck = e->lstck;
-            const bool onstack = stck != lstck;
+            const bool scc_root = stck == lstck;
 
-            if (!onstack) {
+            if (scc_root) {
                 scc_found(
                     stack_ | std::views::drop(stck),
                     dead_out,
@@ -181,7 +186,7 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
             expansion_queue_.pop_back();
 
             if (expansion_queue_.empty()) {
-                goto break_exploration;
+                return;
             }
 
             timer.throw_if_expired();
@@ -193,8 +198,11 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
             s = &stack_[e->stck];
             st = &state_infos_[s->stateid];
 
-            // Finalize explored transition.
-            if (onstack) {
+            // Backtracked from successor.
+            if (scc_root) { // Child SCC
+                e->exits_only_proper = e->exits_only_proper && bt_info.one;
+                e->exits_scc = true;
+            } else { // Same SCC
                 e->lstck = std::min(e->lstck, lstck);
                 e->transitions_in_scc = true;
 
@@ -202,9 +210,6 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
                     auto& parents = backtracked_from->parents;
                     parents.emplace_back(e->stck, s->active.size());
                 }
-            } else {
-                e->exits_only_proper = e->exits_only_proper && bt_info.one;
-                e->exits_scc = true;
             }
 
             st->dead = st->dead && bt_info.dead;
@@ -214,7 +219,7 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
                 break;
             }
 
-            // Finalize fully explored action successors.
+            // Finalize fully explored transition.
             if (e->transitions_in_scc) {
                 if (e->exits_only_proper) {
                     if (e->exits_scc) {
@@ -229,8 +234,6 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
             }
         } while (!e->next_action(mdp, s->stateid));
     }
-
-break_exploration:;
 }
 
 template <typename State, typename Action>
@@ -345,10 +348,30 @@ bool QualitativeReachabilityAnalysis<State, Action>::push_successor(
         do {
             timer.throw_if_expired();
 
-            StateID succ_id = e.get_current_successor();
+            const StateID succ_id = e.get_current_successor();
             StateInfo& succ_info = state_infos_[succ_id];
 
-            if (succ_info.onstack()) {
+            switch (succ_info.get_status()) {
+            case StateInfo::NEW:
+                if (push(
+                        mdp,
+                        pruning_function,
+                        succ_id,
+                        succ_info,
+                        dead_out,
+                        non_proper_out,
+                        proper_out)) {
+                    return true;
+                }
+
+                [[fallthrough]];
+
+            case StateInfo::CLOSED: // Child SCC
+                e.exits_only_proper = e.exits_only_proper && succ_info.one;
+                e.exits_scc = true;
+                break;
+
+            case StateInfo::ONSTACK: // Same SCC
                 unsigned succ_stack_id = succ_info.stackid_;
                 e.lstck = std::min(e.lstck, succ_stack_id);
 
@@ -358,24 +381,12 @@ bool QualitativeReachabilityAnalysis<State, Action>::push_successor(
                     auto& parents = stack_[succ_stack_id].parents;
                     parents.emplace_back(e.stck, s.active.size());
                 }
-            } else if (
-                !succ_info.explored && push(
-                                           mdp,
-                                           pruning_function,
-                                           succ_id,
-                                           succ_info,
-                                           dead_out,
-                                           non_proper_out,
-                                           proper_out)) {
-                return true;
-            } else {
-                e.exits_only_proper = e.exits_only_proper && succ_info.one;
-                e.exits_scc = true;
             }
 
             st.dead = st.dead && succ_info.dead;
         } while (e.next_successor());
 
+        // Finalize fully explored transition.
         if (e.transitions_in_scc) {
             if (e.exits_only_proper) {
                 if (e.exits_scc) {
