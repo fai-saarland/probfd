@@ -50,7 +50,7 @@ void TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 
 template <typename State, typename Action, bool UseInterval>
 bool TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
-    next_transition(MDP& mdp, StateID state_id)
+    next_transition(MDP& mdp, StackInfo& stack_info, StateID state_id)
 {
     for (aops.pop_back(); !aops.empty(); aops.pop_back()) {
         transition.clear();
@@ -59,6 +59,9 @@ bool TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 
         if (!transition.is_dirac(state_id)) {
             successor = transition.begin();
+            stack_info.nconv_qs.emplace_back(
+                aops.back(),
+                mdp.get_action_cost(aops.back()));
             return true;
         }
     }
@@ -260,7 +263,7 @@ Interval TopologicalValueIteration<State, Action, UseInterval>::solve(
             stack_info = &stack_[explore->stackidx];
         }
 
-        for (;;) {
+        do {
             // Check if an SCC was found.
             const unsigned stack_id = explore->stackidx;
             const unsigned lowlink = explore->lowlink;
@@ -275,7 +278,11 @@ Interval TopologicalValueIteration<State, Action, UseInterval>::solve(
             exploration_stack_.pop_back();
 
             if (exploration_stack_.empty()) {
-                goto break_exploration;
+                if constexpr (UseInterval) {
+                    return init_value;
+                } else {
+                    return Interval(init_value, INFINITE_VALUE);
+                }
             }
 
             timer.throw_if_expired();
@@ -303,24 +310,7 @@ Interval TopologicalValueIteration<State, Action, UseInterval>::solve(
                 set_min(stack_info->conv_part, tinfo.conv_part);
                 stack_info->nconv_qs.pop_back();
             }
-
-            if (explore->next_transition(mdp, state_id)) {
-                Action& action = explore->get_current_action();
-                stack_info->nconv_qs.emplace_back(
-                    action,
-                    mdp.get_action_cost(action));
-
-                break;
-            }
-        }
-    }
-
-break_exploration:;
-
-    if constexpr (UseInterval) {
-        return init_value;
-    } else {
-        return Interval(init_value, INFINITE_VALUE);
+        } while (!explore->next_transition(mdp, *stack_info, state_id));
     }
 }
 
@@ -438,7 +428,7 @@ bool TopologicalValueIteration<State, Action, UseInterval>::successor_loop(
     ValueStore& value_store,
     utils::CountdownTimer& timer)
 {
-    for (;;) {
+    do {
         assert(!stack_info.nconv_qs.empty());
 
         QValueInfo& tinfo = stack_info.nconv_qs.back();
@@ -477,15 +467,9 @@ bool TopologicalValueIteration<State, Action, UseInterval>::successor_loop(
             }
             stack_info.nconv_qs.pop_back();
         }
+    } while (explore.next_transition(mdp, stack_info, state_id));
 
-        if (!explore.next_transition(mdp, state_id)) {
-            return false;
-        }
-
-        const Action& action = explore.get_current_action();
-
-        stack_info.nconv_qs.emplace_back(action, mdp.get_action_cost(action));
-    }
+    return false;
 }
 
 template <typename State, typename Action, bool UseInterval>

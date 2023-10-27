@@ -86,34 +86,6 @@ class TopologicalValueIteration : public MDPAlgorithm<State, Action> {
         uint8_t status = NEW;
     };
 
-    struct ExplorationInfo {
-        // Exploration State
-        std::vector<Action> aops;         // Remaining unexpanded operators
-        Distribution<StateID> transition; // Currently expanded transition
-        Distribution<StateID>::const_iterator successor; // Current successor
-
-    public:
-        // Immutable info
-        StateID state_id;  // State this information belongs to
-        unsigned stackidx; // Index on the stack of the associated state
-
-        unsigned lowlink;
-
-        ExplorationInfo(
-            std::vector<Action> aops,
-            Distribution<StateID> transition,
-            StateID state_id,
-            unsigned stackidx);
-
-        void update_lowlink(unsigned upd);
-
-        bool next_transition(MDP& mdp, StateID state_id);
-        bool next_successor();
-
-        Action& get_current_action();
-        ItemProbabilityPair<StateID> get_current_successor();
-    };
-
     struct QValueInfo {
         // The action id this Q value belongs to.
         Action action;
@@ -168,6 +140,34 @@ class TopologicalValueIteration : public MDPAlgorithm<State, Action> {
             unsigned num_aops);
 
         bool update_value();
+    };
+
+    struct ExplorationInfo {
+        // Exploration State
+        std::vector<Action> aops;         // Remaining unexpanded operators
+        Distribution<StateID> transition; // Currently expanded transition
+        Distribution<StateID>::const_iterator successor; // Current successor
+
+    public:
+        // Immutable info
+        StateID state_id;  // State this information belongs to
+        unsigned stackidx; // Index on the stack of the associated state
+
+        unsigned lowlink;
+
+        ExplorationInfo(
+            std::vector<Action> aops,
+            Distribution<StateID> transition,
+            StateID state_id,
+            unsigned stackidx);
+
+        void update_lowlink(unsigned upd);
+
+        bool next_transition(MDP& mdp, StackInfo& stack_info, StateID state_id);
+        bool next_successor();
+
+        Action& get_current_action();
+        ItemProbabilityPair<StateID> get_current_successor();
     };
 
     using StackIterator = typename std::vector<StackInfo>::iterator;
