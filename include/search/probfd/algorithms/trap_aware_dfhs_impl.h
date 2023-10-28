@@ -293,23 +293,6 @@ bool TADFHSImpl<State, Action, UseInterval>::push_state(
 }
 
 template <typename State, typename Action, bool UseInterval>
-bool TADFHSImpl<State, Action, UseInterval>::push_state(
-    QuotientSystem& quotient,
-    QEvaluator& heuristic,
-    StateID state,
-    Flags& flags)
-{
-    StateInfo& state_info = this->get_state_info(state);
-    if (state_info.is_terminal() || state_info.is_solved()) {
-        state_info.set_solved();
-        flags.update(state_info);
-        return false;
-    }
-
-    return push_state(quotient, heuristic, state, state_info, flags);
-}
-
-template <typename State, typename Action, bool UseInterval>
 bool TADFHSImpl<State, Action, UseInterval>::repush_trap(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
@@ -357,8 +340,19 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
 
     assert(visited_states_.empty());
     terminated_ = false;
-    if (Flags flags; !push_state(quotient, heuristic, start_state, flags)) {
-        return flags.complete;
+
+    {
+        Flags flags;
+        StateInfo& state_info = this->get_state_info(start_state);
+        if (state_info.is_terminal() || state_info.is_solved()) {
+            state_info.set_solved();
+            flags.update(state_info);
+            return flags.complete;
+        }
+
+        if (!push_state(quotient, heuristic, start_state, state_info, flags)) {
+            return flags.complete;
+        }
     }
 
     ExplorationInformation* einfo = &queue_.back();

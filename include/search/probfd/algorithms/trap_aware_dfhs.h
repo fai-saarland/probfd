@@ -239,12 +239,6 @@ private:
         StateInfo& state_info,
         Flags& flags);
 
-    bool push_state(
-        QuotientSystem& quotient,
-        QEvaluator& heuristic,
-        StateID state,
-        Flags& flags);
-
     bool repush_trap(
         QuotientSystem& quotient,
         QEvaluator& heuristic,
