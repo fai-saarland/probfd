@@ -38,6 +38,22 @@ inline void Statistics::register_report(ProgressReport& report) const
 } // namespace internal
 
 template <typename State, typename Action, bool UseInterval>
+bool TALRTDPImpl<State, Action, UseInterval>::ExplorationInformation::
+    next_successor()
+{
+    successors.pop_back();
+    return !successors.empty();
+}
+
+template <typename State, typename Action, bool UseInterval>
+StateID
+TALRTDPImpl<State, Action, UseInterval>::ExplorationInformation::get_successor()
+    const
+{
+    return successors.back();
+}
+
+template <typename State, typename Action, bool UseInterval>
 TALRTDPImpl<State, Action, UseInterval>::TALRTDPImpl(
     std::shared_ptr<QuotientPolicyPicker> policy_chooser,
     bool interval_comparison,
@@ -169,7 +185,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
         return true;
     }
 
-    if (Flags flags; !push_to_queue(quotient, heuristic, s, flags)) {
+    if (Flags flags; !push(quotient, heuristic, s, flags)) {
         stack_index_.clear();
         return flags.rv;
     }
@@ -177,41 +193,9 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
     ExplorationInformation* einfo = &queue_.back();
 
     for (;;) {
-        do {
-            timer.throw_if_expired();
-
-            const StateID succ =
-                quotient.translate_state_id(einfo->successors.back());
-            StateInfo& succ_info = this->get_state_info(succ);
-            int& sidx = stack_index_[succ];
-            if (sidx == STATE_UNSEEN) {
-                if (succ_info.is_terminal()) {
-                    succ_info.set_solved();
-                }
-                if (succ_info.is_solved()) {
-                    einfo->flags.update(succ_info);
-                } else if (push_to_queue(
-                               quotient,
-                               heuristic,
-                               succ,
-                               einfo->flags)) {
-                    einfo = &queue_.back();
-                    continue;
-                }
-                // don't notify_state this state again within this
-                // check_and_solve iteration
-                sidx = STATE_CLOSED;
-            } else if (sidx >= 0) {
-                int& sidx2 = stack_index_[einfo->state];
-                if (sidx < sidx2) {
-                    sidx2 = sidx;
-                    einfo->is_root = false;
-                }
-            } else {
-                einfo->flags.update(succ_info);
-            }
-            einfo->successors.pop_back();
-        } while (!einfo->successors.empty());
+        while (this->push_successor(quotient, heuristic, *einfo, timer)) {
+            einfo = &queue_.back();
+        }
 
         do {
             Flags flags = einfo->flags;
@@ -244,11 +228,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                         stack_.erase(scc.begin(), scc.end());
                         if (reexpand_traps_) {
                             queue_.pop_back();
-                            if (push_to_queue(
-                                    quotient,
-                                    heuristic,
-                                    state,
-                                    flags)) {
+                            if (push(quotient, heuristic, state, flags)) {
                                 break;
                             } else {
                                 goto skip_pop;
@@ -296,13 +276,51 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
             einfo = &queue_.back();
 
             einfo->flags.update(flags);
-            einfo->successors.pop_back();
-        } while (einfo->successors.empty());
+        } while (!einfo->next_successor());
     }
 }
 
 template <typename State, typename Action, bool UseInterval>
-bool TALRTDPImpl<State, Action, UseInterval>::push_to_queue(
+bool TALRTDPImpl<State, Action, UseInterval>::push_successor(
+    QuotientSystem& quotient,
+    QEvaluator& heuristic,
+    ExplorationInformation& einfo,
+    utils::CountdownTimer& timer)
+{
+    do {
+        timer.throw_if_expired();
+
+        const StateID succ = quotient.translate_state_id(einfo.get_successor());
+        StateInfo& succ_info = this->get_state_info(succ);
+        int& sidx = stack_index_[succ];
+        if (sidx == STATE_UNSEEN) {
+            if (succ_info.is_terminal()) {
+                succ_info.set_solved();
+            }
+            if (succ_info.is_solved()) {
+                einfo.flags.update(succ_info);
+            } else if (push(quotient, heuristic, succ, einfo.flags)) {
+                return true;
+            }
+            // don't notify_state this state again within this
+            // check_and_solve iteration
+            sidx = STATE_CLOSED;
+        } else if (sidx >= 0) {
+            int& sidx2 = stack_index_[einfo.state];
+            if (sidx < sidx2) {
+                sidx2 = sidx;
+                einfo.is_root = false;
+            }
+        } else {
+            einfo.flags.update(succ_info);
+        }
+    } while (einfo.next_successor());
+
+    return false;
+}
+
+template <typename State, typename Action, bool UseInterval>
+bool TALRTDPImpl<State, Action, UseInterval>::push(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
     const StateID state,

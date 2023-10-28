@@ -115,6 +115,9 @@ class TALRTDPImpl
         std::vector<StateID> successors;
         bool is_root = true;
         Flags flags;
+
+        bool next_successor();
+        StateID get_successor() const;
     };
 
     struct StackInfo {
@@ -190,7 +193,13 @@ private:
         QEvaluator& heuristic,
         utils::CountdownTimer& timer);
 
-    bool push_to_queue(
+    bool push_successor(
+        QuotientSystem& quotient,
+        QEvaluator& heuristic,
+        ExplorationInformation& einfo,
+        utils::CountdownTimer& timer);
+
+    bool push(
         QuotientSystem& quotient,
         QEvaluator& heuristic,
         const StateID state,
