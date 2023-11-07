@@ -66,9 +66,9 @@ ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
     , cost_bound_(cost_bound)
     , trivial_bound_([=] {
         if constexpr (UseInterval) {
-            return cost_bound_;
+            return cost_bound;
         } else {
-            return cost_bound_.upper;
+            return cost_bound.upper;
         }
     }())
     , value_propagation_(path_updates)

@@ -78,6 +78,7 @@ static void write_reentrant_int(int filedescr, int value)
     write_reentrant(filedescr, buffer, len);
 }
 
+#if OPERATING_SYSTEM != OSX
 static bool read_char_reentrant(int filedescr, char* c)
 {
     int result;
@@ -92,6 +93,7 @@ static bool read_char_reentrant(int filedescr, char* c)
     if (result == -1) abort();
     return result == 1;
 }
+#endif
 
 static void print_peak_memory_reentrant()
 {
