@@ -148,10 +148,6 @@ public:
         std::unique_ptr<Distances>>
     extract_factor(int index);
 
-    void statistics(int index, utils::LogProxy& log) const;
-    void dump(int index, utils::LogProxy& log) const;
-    void dump(utils::LogProxy& log) const;
-
     const TransitionSystem& get_transition_system(int index) const
     {
         return *transition_systems[index];
@@ -161,6 +157,13 @@ public:
     {
         return *distances[index];
     }
+
+    int get_num_active_entries() const { return num_active_entries; }
+
+    // Used by LabelReduction and MergeScoringFunctionDFP
+    const Labels& get_labels() const { return *labels; }
+
+    int get_size() const { return transition_systems.size(); }
 
     /*
       A factor is solvable iff the distance of the initial state to some goal
@@ -189,19 +192,15 @@ public:
     */
     bool is_factor_trivial(int index) const;
 
-    int get_num_active_entries() const { return num_active_entries; }
-
-    // Used by LabelReduction and MergeScoringFunctionDFP
-    const Labels& get_labels() const { return *labels; }
+    bool is_active(int index) const;
 
     // The following methods are used for iterating over the FTS
     FTSConstIterator begin() const { return FTSConstIterator(*this, false); }
-
     FTSConstIterator end() const { return FTSConstIterator(*this, true); }
 
-    int get_size() const { return transition_systems.size(); }
-
-    bool is_active(int index) const;
+    void statistics(int index, utils::LogProxy& log) const;
+    void dump(int index, utils::LogProxy& log) const;
+    void dump(utils::LogProxy& log) const;
 };
 
 } // namespace probfd::merge_and_shrink
