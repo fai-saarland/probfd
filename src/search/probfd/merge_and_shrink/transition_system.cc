@@ -346,28 +346,25 @@ void TransitionSystem::compute_equivalent_local_labels()
       system.
     */
     int num_local_labels = local_label_infos.size();
-    for (int local_label1 = 0; local_label1 < num_local_labels;
-         ++local_label1) {
-        if (local_label_infos[local_label1].is_active()) {
-            const vector<Transition>& transitions1 =
-                local_label_infos[local_label1].get_transitions();
-            for (int local_label2 = local_label1 + 1;
-                 local_label2 < num_local_labels;
-                 ++local_label2) {
-                if (local_label_infos[local_label2].is_active()) {
-                    const vector<Transition>& transitions2 =
-                        local_label_infos[local_label2].get_transitions();
-                    // Comparing transitions directly works because they are
-                    // sorted and unique.
-                    if (transitions1 == transitions2) {
-                        for (int label : local_label_infos[local_label2]
-                                             .get_label_group()) {
-                            label_to_local_label[label] = local_label1;
-                        }
-                        local_label_infos[local_label1].merge_local_label_info(
-                            local_label_infos[local_label2]);
-                    }
+    for (int llabel1 = 0; llabel1 < num_local_labels; ++llabel1) {
+        auto& local_label_info1 = local_label_infos[llabel1];
+        if (!local_label_info1.is_active()) continue;
+
+        const auto& transitions1 = local_label_info1.get_transitions();
+
+        for (int llabel2 = llabel1 + 1; llabel2 < num_local_labels; ++llabel2) {
+            auto& local_label_info2 = local_label_infos[llabel2];
+            if (!local_label_info2.is_active()) continue;
+
+            const auto& transitions2 = local_label_info2.get_transitions();
+
+            // Comparing transitions directly works because they are
+            // sorted and unique.
+            if (transitions1 == transitions2) {
+                for (int label : local_label_info2.get_label_group()) {
+                    label_to_local_label[label] = llabel1;
                 }
+                local_label_info1.merge_local_label_info(local_label_info2);
             }
         }
     }
