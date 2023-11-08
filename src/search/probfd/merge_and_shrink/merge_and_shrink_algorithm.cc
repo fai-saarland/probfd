@@ -219,12 +219,12 @@ void MergeAndShrinkAlgorithm::main_loop(
     };
     while (fts.get_num_active_entries() > 1) {
         // Choose next transition systems to merge
-        pair<int, int> merge_indices = merge_strategy->get_next();
+        const auto [merge_index1, merge_index2] = merge_strategy->get_next();
+
         if (ran_out_of_time(timer)) {
             break;
         }
-        int merge_index1 = merge_indices.first;
-        int merge_index2 = merge_indices.second;
+
         assert(merge_index1 != merge_index2);
         if (log.is_at_least_normal()) {
             log << "Next pair of indices: (" << merge_index1 << ", "
@@ -238,7 +238,8 @@ void MergeAndShrinkAlgorithm::main_loop(
 
         // Label reduction (before shrinking)
         if (label_reduction && label_reduction->reduce_before_shrinking()) {
-            bool reduced = label_reduction->reduce(merge_indices, fts, log);
+            bool reduced =
+                label_reduction->reduce(merge_index1, merge_index2, fts, log);
             if (log.is_at_least_normal() && reduced) {
                 log_main_loop_progress("after label reduction");
             }
@@ -268,7 +269,8 @@ void MergeAndShrinkAlgorithm::main_loop(
 
         // Label reduction (before merging)
         if (label_reduction && label_reduction->reduce_before_merging()) {
-            bool reduced = label_reduction->reduce(merge_indices, fts, log);
+            bool reduced =
+                label_reduction->reduce(merge_index1, merge_index2, fts, log);
             if (log.is_at_least_normal() && reduced) {
                 log_main_loop_progress("after label reduction");
             }
