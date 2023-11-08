@@ -198,31 +198,31 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
 
     int num_variables = ts1.num_variables;
     vector<int> incorporated_variables;
-    ::set_union(
-        ts1.incorporated_variables.begin(),
-        ts1.incorporated_variables.end(),
-        ts2.incorporated_variables.begin(),
-        ts2.incorporated_variables.end(),
-        back_inserter(incorporated_variables));
+    std::ranges::set_union(
+        ts1.incorporated_variables,
+        ts2.incorporated_variables,
+        std::back_inserter(incorporated_variables));
     vector<int> label_to_local_label(labels.get_max_num_labels(), -1);
     vector<LocalLabelInfo> local_label_infos;
 
     int ts1_size = ts1.get_size();
     int ts2_size = ts2.get_size();
     int num_states = ts1_size * ts2_size;
-    vector<bool> goal_states(num_states, false);
-    int init_state = -1;
 
+    // Compute merged initial state
+    int init_state = ts1.init_state * ts2_size + ts2.init_state;
+
+    // Compute merged goal states
+    vector<bool> goal_states(num_states, false);
     for (int s1 = 0; s1 < ts1_size; ++s1) {
+        if (!ts1.goal_states[s1]) continue;
         for (int s2 = 0; s2 < ts2_size; ++s2) {
-            int state = s1 * ts2_size + s2;
-            if (ts1.goal_states[s1] && ts2.goal_states[s2])
+            if (ts1.goal_states[s2]) {
+                const int state = s1 * ts2_size + s2;
                 goal_states[state] = true;
-            if (s1 == ts1.init_state && s2 == ts2.init_state)
-                init_state = state;
+            }
         }
     }
-    assert(init_state != -1);
 
     /*
       We can compute the local equivalence relation of a composite T
@@ -251,24 +251,27 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
         // refinements of group1.
 
         // Now create the new groups together with their transitions.
-        for (auto& bucket : buckets) {
-            const vector<Transition>& transitions2 =
-                ts2.local_label_infos[bucket.first].get_transitions();
+        for (auto& [local_label2, new_labels] : buckets) {
+            const auto& transitions2 =
+                ts2.local_label_infos[local_label2].get_transitions();
+
+            if (transitions1.empty() || transitions2.empty()) {
+                dead_labels.insert(
+                    dead_labels.end(),
+                    new_labels.begin(),
+                    new_labels.end());
+                continue;
+            }
 
             // Create the new transitions for this bucket
             vector<Transition> new_transitions;
-            if (!transitions1.empty() && !transitions2.empty() &&
-                transitions1.size() >
-                    new_transitions.max_size() / transitions2.size())
+            if (transitions1.size() >
+                new_transitions.max_size() / transitions2.size())
                 utils::exit_with(ExitCode::SEARCH_OUT_OF_MEMORY);
-            new_transitions.reserve(transitions1.size() * transitions2.size());
-            for (const Transition& transition1 : transitions1) {
-                int src1 = transition1.src;
-                const auto& targets1 = transition1.targets;
-                for (const Transition& transition2 : transitions2) {
-                    int src2 = transition2.src;
-                    const auto& targets2 = transition2.targets;
 
+            new_transitions.reserve(transitions1.size() * transitions2.size());
+            for (const auto& [src1, targets1] : transitions1) {
+                for (const auto& [src2, targets2] : transitions2) {
                     assert(targets1.size() == targets2.size());
 
                     const int src = src1 * multiplier + src2;
@@ -276,34 +279,25 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
                     for (const auto [t1, t2] : views::zip(targets1, targets2)) {
                         targets.push_back(t1 * multiplier + t2);
                     }
-                    new_transitions.push_back(
-                        Transition(src, std::move(targets)));
+                    new_transitions.emplace_back(src, std::move(targets));
                 }
             }
 
-            // Create a new group if the transitions are not empty
-            vector<int>& new_labels = bucket.second;
-            if (new_transitions.empty()) {
-                dead_labels.insert(
-                    dead_labels.end(),
-                    new_labels.begin(),
-                    new_labels.end());
-            } else {
-                sort(new_transitions.begin(), new_transitions.end());
-                sort(new_labels.begin(), new_labels.end());
+            // Create a new group
+            sort(new_transitions.begin(), new_transitions.end());
+            sort(new_labels.begin(), new_labels.end());
 
-                int new_local_label = local_label_infos.size();
-                value_t cost = INFINITE_VALUE;
-                for (int label : new_labels) {
-                    cost = min(ts1.labels.get_label_cost(label), cost);
-                    label_to_local_label[label] = new_local_label;
-                }
-
-                local_label_infos.emplace_back(
-                    std::move(new_labels),
-                    std::move(new_transitions),
-                    cost);
+            int new_local_label = local_label_infos.size();
+            value_t cost = INFINITE_VALUE;
+            for (int label : new_labels) {
+                cost = min(ts1.labels.get_label_cost(label), cost);
+                label_to_local_label[label] = new_local_label;
             }
+
+            local_label_infos.emplace_back(
+                std::move(new_labels),
+                std::move(new_transitions),
+                cost);
         }
     }
 
