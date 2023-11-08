@@ -167,32 +167,36 @@ int FactoredTransitionSystem::merge(
 {
     assert(is_component_valid(index1));
     assert(is_component_valid(index2));
-    transition_systems.push_back(TransitionSystem::merge(
-        *labels,
-        *transition_systems[index1],
-        *transition_systems[index2],
-        log));
-    distances[index1] = nullptr;
-    distances[index2] = nullptr;
+    const TransitionSystem& new_ts =
+        *transition_systems.emplace_back(TransitionSystem::merge(
+            *labels,
+            *transition_systems[index1],
+            *transition_systems[index2],
+            log));
     transition_systems[index1] = nullptr;
     transition_systems[index2] = nullptr;
+
+    distances[index1] = nullptr;
+    distances[index2] = nullptr;
+
     mas_representations.push_back(
         std::make_unique<MergeAndShrinkRepresentationMerge>(
             std::move(mas_representations[index1]),
             std::move(mas_representations[index2])));
     mas_representations[index1] = nullptr;
     mas_representations[index2] = nullptr;
-    const TransitionSystem& new_ts = *transition_systems.back();
-    distances.push_back(std::make_unique<Distances>(new_ts));
-    int new_index = transition_systems.size() - 1;
+
+    auto& dist = *distances.emplace_back(std::make_unique<Distances>(new_ts));
     // Restore the invariant that distances are computed.
     if (compute_init_distances || compute_goal_distances) {
-        distances[new_index]->compute_distances(
+        dist.compute_distances(
             compute_init_distances,
             compute_goal_distances,
             log);
     }
     --num_active_entries;
+
+    int new_index = transition_systems.size() - 1;
     assert(is_component_valid(new_index));
     return new_index;
 }
