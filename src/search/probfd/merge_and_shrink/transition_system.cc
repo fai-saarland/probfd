@@ -469,9 +469,7 @@ void TransitionSystem::apply_label_reduction(
 
     if (only_equivalent_labels) {
         // Update both label mappings.
-        for (const pair<int, vector<int>>& mapping : label_mapping) {
-            int new_label = mapping.first;
-            const vector<int>& old_labels = mapping.second;
+        for (const auto& [new_label, old_labels] : label_mapping) {
             assert(old_labels.size() >= 2);
             int local_label = label_to_local_label[old_labels.front()];
             local_label_infos[local_label].apply_same_cost_label_mapping(
@@ -494,8 +492,7 @@ void TransitionSystem::apply_label_reduction(
           as a new local label and update the label_to_local_label mapping.
         */
         unordered_map<int, vector<int>> local_label_to_old_labels;
-        for (const pair<int, vector<int>>& mapping : label_mapping) {
-            const vector<int>& old_labels = mapping.second;
+        for (const auto& [new_label, old_labels] : label_mapping) {
             assert(old_labels.size() >= 2);
             unordered_set<int> seen_local_labels;
             vector<Transition> new_label_transitions;
@@ -515,7 +512,6 @@ void TransitionSystem::apply_label_reduction(
             }
             utils::sort_unique(new_label_transitions);
 
-            int new_label = mapping.first;
             int new_local_label = local_label_infos.size();
             label_to_local_label[new_label] = new_local_label;
             value_t new_cost = labels.get_label_cost(new_label);
@@ -531,10 +527,10 @@ void TransitionSystem::apply_label_reduction(
           Remove all labels of all affected local labels and recompute the
           cost of these affected local labels.
         */
-        for (auto& entry : local_label_to_old_labels) {
-            sort(entry.second.begin(), entry.second.end());
-            local_label_infos[entry.first].remove_labels(entry.second);
-            local_label_infos[entry.first].recompute_cost(labels);
+        for (auto& [local_label, old_labels] : local_label_to_old_labels) {
+            ranges::sort(old_labels);
+            local_label_infos[local_label].remove_labels(old_labels);
+            local_label_infos[local_label].recompute_cost(labels);
         }
 
         compute_equivalent_local_labels();
