@@ -38,9 +38,10 @@ public:
 
     int operator*() const { return static_cast<int>(current_pos); }
 
-    bool operator==(const LabelsConstIterator& rhs) const
+    friend bool
+    operator==(const LabelsConstIterator& lhs, const LabelsConstIterator& rhs)
     {
-        return it == rhs.it;
+        return lhs.it == rhs.it;
     }
 };
 
@@ -60,7 +61,6 @@ class Labels {
 public:
     Labels(std::vector<value_t>&& label_costs, int max_num_labels);
 
-    void reduce_labels(const std::vector<int>& old_labels);
     value_t get_label_cost(int label) const;
     void dump_labels(utils::LogProxy log) const;
 
@@ -70,6 +70,8 @@ public:
     int get_max_num_labels() const { return max_num_labels; }
 
     int get_num_active_labels() const { return num_active_labels; }
+
+    void reduce_labels(const std::vector<int>& old_labels);
 
     LabelsConstIterator begin() const
     {
