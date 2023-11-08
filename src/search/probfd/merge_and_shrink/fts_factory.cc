@@ -6,6 +6,8 @@
 #include "probfd/merge_and_shrink/merge_and_shrink_representation.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
+#include "probfd/task_utils/task_properties.h"
+
 #include "probfd/task_proxy.h"
 #include "probfd/value_type.h"
 
@@ -56,12 +58,10 @@ class FTSFactory {
     };
 
     vector<TransitionSystemData> transition_system_data_by_var;
-    // see TODO in build_transitions()
-    int task_has_conditional_effects;
+    vector<int> num_outcomes_by_label;
 
 private:
     unique_ptr<Labels> create_labels();
-    void build_state_data(VariableProxy var);
     void initialize_transition_system_data(const Labels& labels);
     bool is_relevant(int var_no, int label_no) const;
     void mark_as_relevant(int var_no, int label_no);
@@ -105,8 +105,8 @@ public:
 
 FTSFactory::FTSFactory(const ProbabilisticTaskProxy& task_proxy)
     : task_proxy(task_proxy)
-    , task_has_conditional_effects(false)
 {
+    assert(!task_properties::has_conditional_effects(task_proxy));
 }
 
 unique_ptr<Labels> FTSFactory::create_labels()
@@ -125,45 +125,39 @@ unique_ptr<Labels> FTSFactory::create_labels()
     return std::make_unique<Labels>(std::move(label_costs), max_num_labels);
 }
 
-void FTSFactory::build_state_data(VariableProxy var)
-{
-    int var_id = var.get_id();
-    TransitionSystemData& ts_data = transition_system_data_by_var[var_id];
-    ts_data.init_state = task_proxy.get_initial_state()[var_id].get_value();
-
-    int range = task_proxy.get_variables()[var_id].get_domain_size();
-    ts_data.num_states = range;
-
-    int goal_value = -1;
-    GoalsProxy goals = task_proxy.get_goals();
-    for (FactProxy goal : goals) {
-        if (goal.get_variable().get_id() == var_id) {
-            assert(goal_value == -1);
-            goal_value = goal.get_value();
-            break;
-        }
-    }
-
-    ts_data.goal_states.resize(range, false);
-    for (int value = 0; value < range; ++value) {
-        if (value == goal_value || goal_value == -1) {
-            ts_data.goal_states[value] = true;
-        }
-    }
-}
-
 void FTSFactory::initialize_transition_system_data(const Labels& labels)
 {
     VariablesProxy variables = task_proxy.get_variables();
     transition_system_data_by_var.resize(variables.size());
+
+    State initial_state = task_proxy.get_initial_state();
+
     for (VariableProxy var : variables) {
-        TransitionSystemData& ts_data =
-            transition_system_data_by_var[var.get_id()];
+        int var_id = var.get_id();
+
+        TransitionSystemData& ts_data = transition_system_data_by_var[var_id];
         ts_data.num_variables = variables.size();
-        ts_data.incorporated_variables.push_back(var.get_id());
+        ts_data.incorporated_variables.push_back(var_id);
         ts_data.label_to_local_label.resize(labels.get_max_num_labels(), -1);
         ts_data.relevant_labels.resize(labels.get_num_total_labels(), false);
-        build_state_data(var);
+
+        // build state data
+        int range = var.get_domain_size();
+        ts_data.num_states = range;
+
+        ts_data.init_state = initial_state[var_id].get_value();
+        ts_data.goal_states.resize(range, false);
+
+        for (FactProxy goal : task_proxy.get_goals()) {
+            if (goal.get_variable().get_id() == var_id) {
+                ts_data.goal_states[goal.get_value()] = true;
+                return;
+            }
+        }
+
+        for (int value = 0; value < range; ++value) {
+            ts_data.goal_states[value] = true;
+        }
     }
 }
 
@@ -194,6 +188,8 @@ void FTSFactory::build_transitions_for_operator(ProbabilisticOperatorProxy op)
 
     const auto outcomes = op.get_outcomes();
     const auto num_outcomes = outcomes.size();
+
+    this->num_outcomes_by_label.push_back(num_outcomes);
 
     for (size_t e = 0; e != num_outcomes; ++e) {
         const auto outcome = outcomes[e];
@@ -252,13 +248,12 @@ void FTSFactory::build_transitions_for_operator(ProbabilisticOperatorProxy op)
     */
     for (FactProxy precondition : op.get_preconditions()) {
         int var_no = precondition.get_variable().get_id();
-        if (!has_effect_on_var[var_no]) {
-            int value = precondition.get_value();
-            transitions_by_var[var_no].emplace_back(
-                value,
-                std::vector<int>(num_outcomes, value));
-            mark_as_relevant(var_no, label);
-        }
+        if (has_effect_on_var[var_no]) continue;
+        int value = precondition.get_value();
+        transitions_by_var[var_no].emplace_back(
+            value,
+            std::vector<int>(num_outcomes, value));
+        mark_as_relevant(var_no, label);
     }
 
     for (int var_no = 0; var_no < num_variables; ++var_no) {
@@ -272,16 +267,7 @@ void FTSFactory::build_transitions_for_operator(ProbabilisticOperatorProxy op)
 
         vector<Transition>& transitions = transitions_by_var[var_no];
 
-        /*
-          TODO: Our method for generating transitions is only guarantueed
-          to generate sorted and unique transitions if the task has no
-          conditional effects.
-        */
-        if (task_has_conditional_effects) {
-            utils::sort_unique(transitions);
-        } else {
-            assert(utils::is_sorted_unique(transitions));
-        }
+        assert(utils::is_sorted_unique(transitions));
 
         auto& data = transition_system_data_by_var[var_no];
         vector<int> label_to_local_label = data.label_to_local_label;
@@ -322,32 +308,35 @@ void FTSFactory::build_transitions_for_irrelevant_ops(
     int var_id = variable.get_id();
     int num_states = variable.get_domain_size();
 
-    // Collect all irrelevant labels for this variable.
-    LabelGroup irrelevant_labels;
+    // Collect all irrelevant labels for this variable, grouped into buckets
+    // according to the number of effects of the label.
+    std::unordered_map<int, LabelGroup> irrelevant_labels;
     value_t cost = INFINITE_VALUE;
 
     for (int label : labels) {
         if (!is_relevant(var_id, label)) {
-            irrelevant_labels.push_back(label);
+            int num_outcomes = num_outcomes_by_label[label];
+            irrelevant_labels[num_outcomes].push_back(label);
             cost = min(cost, labels.get_label_cost(label));
         }
     }
 
     TransitionSystemData& ts_data = transition_system_data_by_var[var_id];
-    if (!irrelevant_labels.empty()) {
+    for (auto& [num_outcomes, labels] : irrelevant_labels) {
         vector<Transition> transitions;
         transitions.reserve(num_states);
         for (int state = 0; state < num_states; ++state) {
-            // FIXME wrong arity
-            transitions.emplace_back(state, std::vector<int>(1, state));
+            transitions.emplace_back(
+                state,
+                std::vector<int>(num_outcomes, state));
         }
         int new_local_label = ts_data.local_label_infos.size();
-        for (int label : irrelevant_labels) {
+        for (int label : labels) {
             assert(ts_data.label_to_local_label[label] == -1);
             ts_data.label_to_local_label[label] = new_local_label;
         }
         ts_data.local_label_infos.emplace_back(
-            std::move(irrelevant_labels),
+            std::move(labels),
             std::move(transitions),
             cost);
     }
@@ -365,7 +354,8 @@ void FTSFactory::build_transitions(const Labels& labels)
 
     /*
       Compute transitions of irrelevant operators for each variable only
-      once and put the labels into a single label group.
+      once and put the labels with the same number of outcomes into a single
+      label group.
     */
     for (VariableProxy variable : task_proxy.get_variables())
         build_transitions_for_irrelevant_ops(variable, labels);
@@ -382,8 +372,7 @@ FTSFactory::create_transition_systems(const Labels& labels)
     assert(num_variables >= 1);
     result.reserve(num_variables * 2 - 1);
 
-    for (int var_id = 0; var_id < num_variables; ++var_id) {
-        TransitionSystemData& ts_data = transition_system_data_by_var[var_id];
+    for (TransitionSystemData& ts_data : transition_system_data_by_var) {
         result.push_back(std::make_unique<TransitionSystem>(
             ts_data.num_variables,
             std::move(ts_data.incorporated_variables),
@@ -394,6 +383,7 @@ FTSFactory::create_transition_systems(const Labels& labels)
             std::move(ts_data.goal_states),
             ts_data.init_state));
     }
+
     return result;
 }
 
@@ -413,6 +403,7 @@ FTSFactory::create_mas_representations() const
         result.push_back(
             std::make_unique<MergeAndShrinkRepresentationLeaf>(var_id, range));
     }
+
     return result;
 }
 
@@ -431,6 +422,7 @@ vector<unique_ptr<Distances>> FTSFactory::create_distances(
         result.push_back(
             std::make_unique<Distances>(*transition_systems[var_no]));
     }
+
     return result;
 }
 
@@ -447,6 +439,7 @@ FactoredTransitionSystem FTSFactory::create(
 
     initialize_transition_system_data(*labels);
     build_transitions(*labels);
+
     vector<unique_ptr<TransitionSystem>> transition_systems =
         create_transition_systems(*labels);
     vector<unique_ptr<MergeAndShrinkRepresentation>> mas_representations =
