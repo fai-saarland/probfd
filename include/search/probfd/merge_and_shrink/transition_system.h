@@ -94,6 +94,8 @@ public:
 
     const LabelGroup& get_label_group() const { return label_group; }
 
+    std::vector<Transition>& get_transitions() { return transitions; }
+
     const std::vector<Transition>& get_transitions() const
     {
         return transitions;

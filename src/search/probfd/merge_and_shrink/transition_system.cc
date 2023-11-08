@@ -386,66 +386,54 @@ void TransitionSystem::apply_abstraction(
             << new_num_states << " states)" << endl;
     }
 
-    vector<bool> new_goal_states(new_num_states, false);
-    for (int new_state = 0; new_state < new_num_states; ++new_state) {
-        const StateEquivalenceClass& state_equivalence_class =
-            state_equivalence_relation[new_state];
-        assert(!state_equivalence_class.empty());
-
-        for (int old_state : state_equivalence_class) {
-            if (goal_states[old_state]) {
-                new_goal_states[new_state] = true;
-                break;
-            }
-        }
+    // Compute abstract initial state
+    init_state = abstraction_mapping[init_state];
+    if (log.is_at_least_verbose() && init_state == PRUNED_STATE) {
+        log << tag() << "initial state pruned; task unsolvable" << endl;
     }
-    goal_states = std::move(new_goal_states);
+
+    // Compute abstract goal states
+    goal_states.erase(goal_states.begin() + new_num_states, goal_states.end());
+
+    for (int new_state = 0; new_state < new_num_states; ++new_state) {
+        const auto& state_eqv_class = state_equivalence_relation[new_state];
+        assert(!state_eqv_class.empty());
+
+        auto is_goal = [&](int old_state) { return goal_states[old_state]; };
+        goal_states[new_state] = std::ranges::any_of(state_eqv_class, is_goal);
+    }
 
     // Update all transitions.
     for (LocalLabelInfo& local_label_info : local_label_infos) {
-        const vector<Transition>& transitions =
-            local_label_info.get_transitions();
-        if (!transitions.empty()) {
-            vector<Transition> new_transitions;
-            /*
-              We reserve more memory than necessary here, but this is better
-              than potentially resizing the vector several times when inserting
-              transitions one after the other. See issue604-v6.
+        auto& transitions = local_label_info.get_transitions();
 
-              An alternative could be to not use a new vector, but to modify
-              the existing transitions inplace, and to remove all empty
-              positions in the end. This would be more ugly, though.
-            */
-            new_transitions.reserve(transitions.size());
-            for (const Transition& transition : transitions) {
-                int src = abstraction_mapping[transition.src];
+        /*
+          Modify the existing transitions inplace, removing those for which
+          a state is pruned.
+        */
+        std::erase_if(transitions, [&abstraction_mapping](Transition& t) {
+            auto& [src, targets] = t;
 
-                if (src == PRUNED_STATE) continue;
+            // Modify source state
+            src = abstraction_mapping[src];
+            if (src == PRUNED_STATE) return true;
 
-                std::vector<int> targets;
-
-                for (int old_target : transition.targets) {
-                    int target = abstraction_mapping[old_target];
-                    if (target == PRUNED_STATE) goto continue_outer;
-                    targets.push_back(target);
-                }
-
-                new_transitions.push_back(Transition(src, std::move(targets)));
-
-            continue_outer:;
+            // Modify target states
+            for (int& target : targets) {
+                target = abstraction_mapping[target];
+                if (target == PRUNED_STATE) return true;
             }
-            utils::sort_unique(new_transitions);
-            local_label_info.replace_transitions(std::move(new_transitions));
-        }
+
+            return false;
+        });
+
+        utils::sort_unique(transitions);
+        assert(local_label_info.is_consistent());
     }
 
     compute_equivalent_local_labels();
 
     num_states = new_num_states;
-    init_state = abstraction_mapping[init_state];
-    if (log.is_at_least_verbose() && init_state == PRUNED_STATE) {
-        log << tag() << "initial state pruned; task unsolvable" << endl;
-    }
 
     assert(is_valid());
 }
