@@ -63,7 +63,6 @@ public:
     Labels(std::vector<value_t>&& label_costs, int max_num_labels);
 
     value_t get_label_cost(int label) const;
-    void dump_labels(utils::LogProxy log) const;
 
     // The summed number of both inactive and active labels.
     int get_num_total_labels() const { return label_costs.size(); }
@@ -83,6 +82,8 @@ public:
     {
         return LabelsConstIterator(label_costs, label_costs.end());
     }
+
+    void dump_labels(utils::LogProxy log) const;
 };
 
 } // namespace probfd::merge_and_shrink
