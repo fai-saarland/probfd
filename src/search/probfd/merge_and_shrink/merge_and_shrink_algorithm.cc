@@ -420,8 +420,7 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     if (!unsolvable && main_loop_max_time > 0) {
         main_loop(fts, task_proxy);
     }
-    const bool final = true;
-    report_peak_memory_delta(final);
+    report_peak_memory_delta(true);
     log << "Merge-and-shrink algorithm runtime: " << timer << endl;
     log << endl;
     return fts;
