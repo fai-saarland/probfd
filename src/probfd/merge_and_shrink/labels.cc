@@ -45,6 +45,22 @@ Labels::Labels(vector<value_t>&& label_costs, int max_num_labels)
 {
 }
 
+value_t Labels::get_label_cost(int label) const
+{
+    assert(label_costs[label] != -1);
+    return label_costs[label];
+}
+
+void Labels::dump_labels(utils::LogProxy log) const
+{
+    log << "active labels:" << endl;
+    for (size_t label = 0; label < label_costs.size(); ++label) {
+        if (label_costs[label] != -1) {
+            log << "label " << label << ", cost " << label_costs[label] << endl;
+        }
+    }
+}
+
 void Labels::reduce_labels(const vector<int>& old_labels)
 {
     /*
@@ -64,22 +80,6 @@ void Labels::reduce_labels(const vector<int>& old_labels)
     label_costs.push_back(new_label_cost);
     num_active_labels -= old_labels.size();
     ++num_active_labels;
-}
-
-value_t Labels::get_label_cost(int label) const
-{
-    assert(label_costs[label] != -1);
-    return label_costs[label];
-}
-
-void Labels::dump_labels(utils::LogProxy log) const
-{
-    log << "active labels:" << endl;
-    for (size_t label = 0; label < label_costs.size(); ++label) {
-        if (label_costs[label] != -1) {
-            log << "label " << label << ", cost " << label_costs[label] << endl;
-        }
-    }
 }
 
 } // namespace probfd::merge_and_shrink
