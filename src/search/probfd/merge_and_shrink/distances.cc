@@ -16,19 +16,6 @@ Distances::Distances(const TransitionSystem& transition_system)
 {
 }
 
-void Distances::clear_distances()
-{
-    init_distances.clear();
-    goal_distances.clear();
-    init_distances_computed = false;
-    goal_distances_computed = false;
-}
-
-int Distances::get_num_states() const
-{
-    return transition_system.get_size();
-}
-
 void Distances::compute_init_distances()
 {
     // TODO
@@ -83,7 +70,7 @@ void Distances::compute_distances(
         log << transition_system.tag();
     }
 
-    const int num_states = get_num_states();
+    const int num_states = transition_system.get_size();
 
     if (num_states == 0) {
         if (log.is_at_least_verbose()) {
@@ -142,14 +129,12 @@ void Distances::apply_abstraction(
         new_goal_distances.resize(new_num_states, DISTANCE_UNKNOWN);
     }
 
-    bool must_recompute = false;
     for (int new_state = 0; new_state < new_num_states; ++new_state) {
-        const StateEquivalenceClass& state_equivalence_class =
+        const StateEquivalenceClass& state_eqv_class =
             state_equivalence_relation[new_state];
-        assert(!state_equivalence_class.empty());
+        assert(!state_eqv_class.empty());
 
-        StateEquivalenceClass::const_iterator pos =
-            state_equivalence_class.begin();
+        auto pos = state_eqv_class.begin();
         value_t new_init_dist = -1;
         value_t new_goal_dist = -1;
         if (compute_init_distances) {
@@ -159,21 +144,29 @@ void Distances::apply_abstraction(
             new_goal_dist = goal_distances[*pos];
         }
 
-        ++pos;
-        for (; pos != state_equivalence_class.end(); ++pos) {
-            if (compute_init_distances &&
-                init_distances[*pos] != new_init_dist) {
-                must_recompute = true;
-                break;
-            }
-            if (compute_goal_distances &&
-                goal_distances[*pos] != new_goal_dist) {
-                must_recompute = true;
-                break;
-            }
-        }
+        auto distance_different = [=, this](int state) {
+            return (compute_init_distances &&
+                    init_distances[state] != new_init_dist) ||
+                   (compute_goal_distances &&
+                    goal_distances[state] != new_goal_dist);
+        };
 
-        if (must_recompute) break;
+        if (std::any_of(++pos, state_eqv_class.end(), distance_different)) {
+            // Not J*-preserving -> recompute
+            if (log.is_at_least_verbose()) {
+                log << transition_system.tag()
+                    << "simplification was not f-preserving!" << endl;
+            }
+            init_distances.clear();
+            goal_distances.clear();
+            init_distances_computed = false;
+            goal_distances_computed = false;
+            compute_distances(
+                compute_init_distances,
+                compute_goal_distances,
+                log);
+            return;
+        }
 
         if (compute_init_distances) {
             new_init_distances[new_state] = new_init_dist;
@@ -183,17 +176,8 @@ void Distances::apply_abstraction(
         }
     }
 
-    if (must_recompute) {
-        if (log.is_at_least_verbose()) {
-            log << transition_system.tag()
-                << "simplification was not f-preserving!" << endl;
-        }
-        clear_distances();
-        compute_distances(compute_init_distances, compute_goal_distances, log);
-    } else {
-        init_distances = std::move(new_init_distances);
-        goal_distances = std::move(new_goal_distances);
-    }
+    init_distances = std::move(new_init_distances);
+    goal_distances = std::move(new_goal_distances);
 }
 
 void Distances::dump(utils::LogProxy& log) const
