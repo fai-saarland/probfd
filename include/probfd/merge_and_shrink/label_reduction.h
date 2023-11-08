@@ -88,7 +88,8 @@ public:
     void initialize(const ProbabilisticTaskProxy& task_proxy);
 
     bool reduce(
-        const std::pair<int, int>& next_merge,
+        int merge_index_left,
+        int merge_index_right,
         FactoredTransitionSystem& fts,
         utils::LogProxy& log) const;
 
