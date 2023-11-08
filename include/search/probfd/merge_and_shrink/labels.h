@@ -39,14 +39,10 @@ public:
 
     int operator*() const { return static_cast<int>(current_pos); }
 
-    bool operator==(const LabelsConstIterator& rhs) const
+    friend bool
+    operator==(const LabelsConstIterator& lhs, const LabelsConstIterator& rhs)
     {
-        return it == rhs.it;
-    }
-
-    bool operator!=(const LabelsConstIterator& rhs) const
-    {
-        return it != rhs.it;
+        return lhs.it == rhs.it;
     }
 };
 
@@ -62,9 +58,10 @@ class Labels {
     std::vector<value_t> label_costs;
     int max_num_labels;    // The maximum number of labels that can be created.
     int num_active_labels; // The current number of active (non-reduced) labels.
+
 public:
     Labels(std::vector<value_t>&& label_costs, int max_num_labels);
-    void reduce_labels(const std::vector<int>& old_labels);
+
     value_t get_label_cost(int label) const;
     void dump_labels(utils::LogProxy log) const;
 
@@ -74,6 +71,8 @@ public:
     int get_max_num_labels() const { return max_num_labels; }
 
     int get_num_active_labels() const { return num_active_labels; }
+
+    void reduce_labels(const std::vector<int>& old_labels);
 
     LabelsConstIterator begin() const
     {
@@ -88,4 +87,4 @@ public:
 
 } // namespace probfd::merge_and_shrink
 
-#endif
+#endif // PROBFD_HEURISTICS_MERGE_AND_SHRINK_LABELS_H
