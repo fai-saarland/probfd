@@ -30,6 +30,8 @@ compute_preconditions(ProbabilisticOperatorProxy op)
     return pre_val;
 }
 
+namespace {
+
 class FTSFactory {
     const ProbabilisticTaskProxy& task_proxy;
 
@@ -98,6 +100,8 @@ public:
         bool compute_goal_distances,
         utils::LogProxy& log);
 };
+
+} // namespace
 
 FTSFactory::FTSFactory(const ProbabilisticTaskProxy& task_proxy)
     : task_proxy(task_proxy)
