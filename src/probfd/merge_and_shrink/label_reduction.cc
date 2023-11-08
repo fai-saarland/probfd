@@ -161,7 +161,8 @@ LabelReduction::compute_combinable_equivalence_relation(
 }
 
 bool LabelReduction::reduce(
-    const pair<int, int>& next_merge,
+    int merge_index_left,
+    int merge_index_right,
     FactoredTransitionSystem& fts,
     utils::LogProxy& log) const
 {
@@ -179,25 +180,25 @@ bool LabelReduction::reduce(
            transitions system (in terms of variables) or with the smaller
            transition system and found no significant differences.
          */
-        assert(fts.is_active(next_merge.first));
-        assert(fts.is_active(next_merge.second));
+        assert(fts.is_active(merge_index_left));
+        assert(fts.is_active(merge_index_right));
 
         bool reduced = false;
         equivalence_relation::EquivalenceRelation relation =
-            compute_combinable_equivalence_relation(next_merge.first, fts);
+            compute_combinable_equivalence_relation(merge_index_left, fts);
         vector<pair<int, vector<int>>> label_mapping;
         compute_label_mapping(relation, fts, label_mapping, log);
         if (!label_mapping.empty()) {
-            fts.apply_label_mapping(label_mapping, next_merge.first);
+            fts.apply_label_mapping(label_mapping, merge_index_left);
             reduced = true;
         }
         utils::release_vector_memory(label_mapping);
 
         relation =
-            compute_combinable_equivalence_relation(next_merge.second, fts);
+            compute_combinable_equivalence_relation(merge_index_right, fts);
         compute_label_mapping(relation, fts, label_mapping, log);
         if (!label_mapping.empty()) {
-            fts.apply_label_mapping(label_mapping, next_merge.second);
+            fts.apply_label_mapping(label_mapping, merge_index_right);
             reduced = true;
         }
         return reduced;
