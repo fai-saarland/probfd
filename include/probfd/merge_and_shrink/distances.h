@@ -35,9 +35,6 @@ class Distances {
     bool init_distances_computed = false;
     bool goal_distances_computed = false;
 
-    void clear_distances();
-    int get_num_states() const;
-
     void compute_init_distances();
     void compute_goal_distances();
 
@@ -45,8 +42,19 @@ public:
     explicit Distances(const TransitionSystem& transition_system);
 
     bool are_init_distances_computed() const { return init_distances_computed; }
-
     bool are_goal_distances_computed() const { return goal_distances_computed; }
+
+    value_t get_init_distance(int state) const
+    {
+        assert(are_init_distances_computed());
+        return init_distances[state];
+    }
+
+    value_t get_goal_distance(int state) const
+    {
+        assert(are_goal_distances_computed());
+        return goal_distances[state];
+    }
 
     void compute_distances(
         bool compute_init_distances,
@@ -67,18 +75,6 @@ public:
         bool compute_init_distances,
         bool compute_goal_distances,
         utils::LogProxy& log);
-
-    value_t get_init_distance(int state) const
-    {
-        assert(are_init_distances_computed());
-        return init_distances[state];
-    }
-
-    value_t get_goal_distance(int state) const
-    {
-        assert(are_goal_distances_computed());
-        return goal_distances[state];
-    }
 
     void dump(utils::LogProxy& log) const;
     void statistics(utils::LogProxy& log) const;
