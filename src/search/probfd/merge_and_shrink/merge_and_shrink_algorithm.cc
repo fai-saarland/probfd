@@ -8,6 +8,7 @@
 #include "probfd/merge_and_shrink/merge_and_shrink_representation.h"
 #include "probfd/merge_and_shrink/merge_strategy.h"
 #include "probfd/merge_and_shrink/merge_strategy_factory.h"
+#include "probfd/merge_and_shrink/pruning_strategy.h"
 #include "probfd/merge_and_shrink/shrink_strategy.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 #include "probfd/merge_and_shrink/utils.h"
@@ -44,13 +45,13 @@ MergeAndShrinkAlgorithm::MergeAndShrinkAlgorithm(const plugins::Options& opts)
     : merge_strategy_factory(
           opts.get<shared_ptr<MergeStrategyFactory>>("merge_strategy"))
     , shrink_strategy(opts.get<shared_ptr<ShrinkStrategy>>("shrink_strategy"))
+    , pruning_strategy(
+          opts.get<shared_ptr<PruningStrategy>>("pruning_strategy", nullptr))
     , label_reduction(
           opts.get<shared_ptr<LabelReduction>>("label_reduction", nullptr))
     , max_states(opts.get<int>("max_states"))
     , max_states_before_merge(opts.get<int>("max_states_before_merge"))
     , shrink_threshold_before_merge(opts.get<int>("threshold_before_merge"))
-    , prune_unreachable_states(opts.get<bool>("prune_unreachable_states"))
-    , prune_irrelevant_states(opts.get<bool>("prune_irrelevant_states"))
     , log(utils::get_log_from_options(opts))
     , main_loop_max_time(opts.get<double>("main_loop_max_time"))
     , starting_peak_memory(0)
@@ -87,10 +88,11 @@ void MergeAndShrinkAlgorithm::dump_options() const
             << shrink_threshold_before_merge << endl;
         log << endl;
 
-        log << "Pruning unreachable states: "
-            << (prune_unreachable_states ? "yes" : "no") << endl;
-        log << "Pruning irrelevant states: "
-            << (prune_irrelevant_states ? "yes" : "no") << endl;
+        if (pruning_strategy) {
+            pruning_strategy->dump_options(log);
+        } else {
+            log << "Pruning disabled" << endl;
+        }
         log << endl;
 
         if (label_reduction) {
@@ -159,10 +161,10 @@ void MergeAndShrinkAlgorithm::warn_on_unusual_options() const
         }
     }
 
-    if (!prune_unreachable_states || !prune_irrelevant_states) {
+    if (!pruning_strategy) {
         if (log.is_warning()) {
             log << dashes << endl
-                << "WARNING! Pruning is (partially) turned off!" << endl
+                << "WARNING! Pruning is turned off!" << endl
                 << "This may drastically reduce the performance of "
                    "merge-and-shrink!"
                 << endl
@@ -299,13 +301,14 @@ void MergeAndShrinkAlgorithm::main_loop(
         }
 
         // Pruning
-        if (prune_unreachable_states || prune_irrelevant_states) {
-            bool pruned = prune_step(
-                fts,
-                merged_index,
-                prune_unreachable_states,
-                prune_irrelevant_states,
-                log);
+        if (pruning_strategy) {
+            auto pruning_relation =
+                pruning_strategy->compute_pruning_abstraction(
+                    fts.get_transition_system(merged_index),
+                    fts.get_distances(merged_index),
+                    log);
+            bool pruned =
+                fts.apply_abstraction(merged_index, pruning_relation, log);
             if (log.is_at_least_normal() && pruned) {
                 if (log.is_at_least_verbose()) {
                     fts.statistics(merged_index, log);
@@ -373,11 +376,11 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     const bool compute_init_distances =
         shrink_strategy->requires_init_distances() ||
         merge_strategy_factory->requires_init_distances() ||
-        prune_unreachable_states;
+        pruning_strategy->requires_init_distances();
     const bool compute_goal_distances =
         shrink_strategy->requires_goal_distances() ||
         merge_strategy_factory->requires_goal_distances() ||
-        prune_irrelevant_states;
+        pruning_strategy->requires_goal_distances();
     FactoredTransitionSystem fts = create_factored_transition_system(
         task_proxy,
         compute_init_distances,
@@ -397,13 +400,14 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     bool unsolvable = false;
     for (int index = 0; index < fts.get_size(); ++index) {
         assert(fts.is_active(index));
-        if (prune_unreachable_states || prune_irrelevant_states) {
-            bool pruned_factor = prune_step(
-                fts,
-                index,
-                prune_unreachable_states,
-                prune_irrelevant_states,
-                log);
+        if (pruning_strategy) {
+            auto pruning_relation =
+                pruning_strategy->compute_pruning_abstraction(
+                    fts.get_transition_system(index),
+                    fts.get_distances(index),
+                    log);
+            bool pruned_factor =
+                fts.apply_abstraction(index, pruning_relation, log);
             pruned = pruned || pruned_factor;
         }
         if (!fts.is_factor_solvable(index)) {
@@ -449,6 +453,12 @@ void add_merge_and_shrink_algorithm_options_to_feature(
         "achieved using "
         "{{{shrink_strategy=shrink_bisimulation(greedy=false)}}}");
 
+    // Pruning strategy option.
+    feature.add_option<shared_ptr<PruningStrategy>>(
+        "pruning_strategy",
+        "See detailed documentation for pruning strategies.",
+        plugins::ArgumentInfo::NO_DEFAULT);
+
     // Label reduction option.
     feature.add_option<shared_ptr<LabelReduction>>(
         "label_reduction",
@@ -457,17 +467,6 @@ void add_merge_and_shrink_algorithm_options_to_feature(
         "{{{label_reduction=exact}}} "
         "Also note the interaction with shrink strategies.",
         plugins::ArgumentInfo::NO_DEFAULT);
-
-    // Pruning options.
-    feature.add_option<bool>(
-        "prune_unreachable_states",
-        "If true, prune abstract states unreachable from the initial state.",
-        "true");
-    feature.add_option<bool>(
-        "prune_irrelevant_states",
-        "If true, prune abstract states from which no goal state can be "
-        "reached.",
-        "true");
 
     add_transition_system_size_limit_options_to_feature(feature);
 

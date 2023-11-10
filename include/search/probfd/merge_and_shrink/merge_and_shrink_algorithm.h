@@ -23,6 +23,7 @@ class FactoredTransitionSystem;
 class LabelReduction;
 class MergeStrategyFactory;
 class ShrinkStrategy;
+class PruningStrategy;
 } // namespace probfd::merge_and_shrink
 
 namespace probfd::merge_and_shrink {
@@ -32,6 +33,7 @@ class MergeAndShrinkAlgorithm {
     // unique pointers.
     std::shared_ptr<MergeStrategyFactory> merge_strategy_factory;
     std::shared_ptr<ShrinkStrategy> shrink_strategy;
+    std::shared_ptr<PruningStrategy> pruning_strategy;
     std::shared_ptr<LabelReduction> label_reduction;
 
     // Options for shrinking
@@ -42,10 +44,6 @@ class MergeAndShrinkAlgorithm {
     /* A soft limit for triggering shrinking even if the hard limits
        max_states and max_states_before_merge are not violated. */
     const int shrink_threshold_before_merge;
-
-    // Options for pruning
-    const bool prune_unreachable_states;
-    const bool prune_irrelevant_states;
 
     mutable utils::LogProxy log;
     const double main_loop_max_time;
@@ -77,4 +75,4 @@ extern void handle_shrink_limit_options_defaults(
 
 } // namespace probfd::merge_and_shrink
 
-#endif
+#endif // PROBFD_HEURISTICS_MERGE_AND_SHRINK_MERGE_AND_SHRINK_ALGORITHM_H

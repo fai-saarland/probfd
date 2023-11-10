@@ -54,4 +54,4 @@ public:
 
 } // namespace probfd::merge_and_shrink
 
-#endif
+#endif // PROBFD_HEURISTICS_MERGE_AND_SHRINK_SHRINK_STRATEGY_H
