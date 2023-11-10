@@ -59,20 +59,6 @@ extern bool shrink_before_merge_step(
     utils::LogProxy& log);
 
 /*
-  Prune unreachable and/or irrelevant states of the factor at index. This
-  requires that init and/or goal distances have been computed accordingly.
-  Return true iff any states have been pruned.
-
-  TODO: maybe this functionality belongs to a new class PruneStrategy.
-*/
-extern bool prune_step(
-    FactoredTransitionSystem& fts,
-    int index,
-    bool prune_unreachable_states,
-    bool prune_irrelevant_states,
-    utils::LogProxy& log);
-
-/*
   Compute the abstraction mapping based on the given state equivalence
   relation.
 */

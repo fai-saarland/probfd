@@ -7,6 +7,7 @@
 #include "probfd/merge_and_shrink/labels.h"
 #include "probfd/merge_and_shrink/merge_strategy.h"
 #include "probfd/merge_and_shrink/merge_strategy_factory.h"
+#include "probfd/merge_and_shrink/prune_strategy.h"
 #include "probfd/merge_and_shrink/shrink_strategy.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 #include "probfd/merge_and_shrink/utils.h"
@@ -38,7 +39,7 @@ using namespace downward::cli::plugins;
 namespace probfd::merge_and_shrink {
 
 static void
-log_progress(const utils::Timer& timer, string msg, utils::LogProxy& log)
+log_progress(const utils::Timer& timer, const string& msg, utils::LogProxy& log)
 {
     log << "M&S algorithm timer: " << timer << " (" << msg << ")" << endl;
 }
@@ -98,10 +99,12 @@ void MergeAndShrinkAlgorithm::dump_options(utils::LogProxy log) const
             << shrink_threshold_before_merge << endl;
         log << endl;
 
-        log << "Pruning unreachable states: "
-            << (prune_unreachable_states ? "yes" : "no") << endl;
-        log << "Pruning irrelevant states: "
-            << (prune_irrelevant_states ? "yes" : "no") << endl;
+        if (pruning_strategy) {
+            pruning_strategy->dump_options(log);
+        } else {
+            log << "Pruning disabled" << endl;
+        }
+
         log << endl;
 
         if (label_reduction) {
@@ -118,7 +121,7 @@ void MergeAndShrinkAlgorithm::dump_options(utils::LogProxy log) const
 
 void MergeAndShrinkAlgorithm::warn_on_unusual_options(utils::LogProxy log) const
 {
-    string dashes(79, '=');
+    const string dashes(79, '=');
     if (!label_reduction) {
         if (log.is_warning()) {
             log << dashes << endl
@@ -170,10 +173,10 @@ void MergeAndShrinkAlgorithm::warn_on_unusual_options(utils::LogProxy log) const
         }
     }
 
-    if (!prune_unreachable_states || !prune_irrelevant_states) {
+    if (!pruning_strategy) {
         if (log.is_warning()) {
             log << dashes << endl
-                << "WARNING! Pruning is (partially) turned off!" << endl
+                << "WARNING! Pruning is turned off!" << endl
                 << "This may drastically reduce the performance of "
                    "merge-and-shrink!"
                 << endl
@@ -193,6 +196,7 @@ bool MergeAndShrinkAlgorithm::ran_out_of_time(
         }
         return true;
     }
+
     return false;
 }
 
@@ -201,7 +205,7 @@ void MergeAndShrinkAlgorithm::main_loop(
     const ProbabilisticTaskProxy& task_proxy,
     utils::LogProxy log)
 {
-    utils::CountdownTimer timer(main_loop_max_time);
+    const utils::CountdownTimer timer(main_loop_max_time);
     if (log.is_at_least_normal()) {
         log << "Starting main loop ";
         if (main_loop_max_time == numeric_limits<double>::infinity()) {
@@ -213,8 +217,8 @@ void MergeAndShrinkAlgorithm::main_loop(
     }
     int maximum_intermediate_size = 0;
     for (int i = 0; i < fts.get_size(); ++i) {
-        int size = fts.get_transition_system(i).get_size();
-        if (size > maximum_intermediate_size) {
+        if (const int size = fts.get_transition_system(i).get_size();
+            size > maximum_intermediate_size) {
             maximum_intermediate_size = size;
         }
     }
@@ -222,7 +226,7 @@ void MergeAndShrinkAlgorithm::main_loop(
     if (label_reduction) {
         label_reduction->initialize(task_proxy);
     }
-    unique_ptr<MergeStrategy> merge_strategy =
+    const unique_ptr<MergeStrategy> merge_strategy =
         merge_strategy_factory->compute_merge_strategy(task_proxy, fts);
     merge_strategy_factory = nullptr;
 
@@ -251,7 +255,7 @@ void MergeAndShrinkAlgorithm::main_loop(
 
         // Label reduction (before shrinking)
         if (label_reduction && label_reduction->reduce_before_shrinking()) {
-            bool reduced =
+            const bool reduced =
                 label_reduction->reduce(merge_index1, merge_index2, fts, log);
             if (log.is_at_least_normal() && reduced) {
                 log_main_loop_progress("after label reduction");
@@ -263,7 +267,7 @@ void MergeAndShrinkAlgorithm::main_loop(
         }
 
         // Shrinking
-        bool shrunk = shrink_before_merge_step(
+        const bool shrunk = shrink_before_merge_step(
             fts,
             merge_index1,
             merge_index2,
@@ -282,7 +286,7 @@ void MergeAndShrinkAlgorithm::main_loop(
 
         // Label reduction (before merging)
         if (label_reduction && label_reduction->reduce_before_merging()) {
-            bool reduced =
+            const bool reduced =
                 label_reduction->reduce(merge_index1, merge_index2, fts, log);
             if (log.is_at_least_normal() && reduced) {
                 log_main_loop_progress("after label reduction");
@@ -294,9 +298,10 @@ void MergeAndShrinkAlgorithm::main_loop(
         }
 
         // Merging
-        int merged_index = fts.merge(merge_index1, merge_index2, log);
-        int abs_size = fts.get_transition_system(merged_index).get_size();
-        if (abs_size > maximum_intermediate_size) {
+        const int merged_index = fts.merge(merge_index1, merge_index2, log);
+        if (const int abs_size =
+                fts.get_transition_system(merged_index).get_size();
+            abs_size > maximum_intermediate_size) {
             maximum_intermediate_size = abs_size;
         }
 
@@ -312,13 +317,15 @@ void MergeAndShrinkAlgorithm::main_loop(
         }
 
         // Pruning
-        if (prune_unreachable_states || prune_irrelevant_states) {
-            bool pruned = prune_step(
-                fts,
-                merged_index,
-                prune_unreachable_states,
-                prune_irrelevant_states,
-                log);
+        if (pruning_strategy) {
+            auto pruning_relation =
+                pruning_strategy->compute_pruning_abstraction(
+                    fts.get_transition_system(merged_index),
+                    fts.get_distances(merged_index),
+                    log);
+
+            const bool pruned =
+                fts.apply_abstraction(merged_index, pruning_relation, log);
             if (log.is_at_least_normal() && pruned) {
                 if (log.is_at_least_verbose()) {
                     fts.statistics(merged_index, log);
@@ -372,11 +379,11 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     if (starting_peak_memory) {
         cerr << "Calling build_factored_transition_system twice is not "
              << "supported!" << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+        exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
     starting_peak_memory = utils::get_peak_memory_in_kb();
 
-    utils::Timer timer;
+    const utils::Timer timer;
     log << "Running merge-and-shrink algorithm..." << endl;
     ::task_properties::verify_no_axioms(task_proxy);
     task_properties::verify_no_conditional_effects(task_proxy);
@@ -387,11 +394,11 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     const bool compute_init_distances =
         shrink_strategy->requires_init_distances() ||
         merge_strategy_factory->requires_init_distances() ||
-        prune_unreachable_states;
+        pruning_strategy->requires_init_distances();
     const bool compute_goal_distances =
         shrink_strategy->requires_goal_distances() ||
         merge_strategy_factory->requires_goal_distances() ||
-        prune_irrelevant_states;
+        pruning_strategy->requires_goal_distances();
     FactoredTransitionSystem fts = create_factored_transition_system(
         task_proxy,
         compute_init_distances,
@@ -411,13 +418,14 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     bool unsolvable = false;
     for (int index = 0; index < fts.get_size(); ++index) {
         assert(fts.is_active(index));
-        if (prune_unreachable_states || prune_irrelevant_states) {
-            bool pruned_factor = prune_step(
-                fts,
-                index,
-                prune_unreachable_states,
-                prune_irrelevant_states,
-                log);
+        if (pruning_strategy) {
+            auto pruning_relation =
+                pruning_strategy->compute_pruning_abstraction(
+                    fts.get_transition_system(index),
+                    fts.get_distances(index),
+                    log);
+            const bool pruned_factor =
+                fts.apply_abstraction(index, pruning_relation, log);
             pruned = pruned || pruned_factor;
         }
         if (!fts.is_factor_solvable(index)) {
@@ -463,6 +471,12 @@ void add_merge_and_shrink_algorithm_options_to_feature(Feature& feature)
         "achieved using "
         "{{{shrink_strategy=shrink_bisimulation(greedy=false)}}}");
 
+    // Pruning strategy option.
+    feature.add_option<shared_ptr<PruneStrategy>>(
+        "pruning_strategy",
+        "See detailed documentation for pruning strategies.",
+        ArgumentInfo::NO_DEFAULT);
+
     // Label reduction option.
     feature.add_option<shared_ptr<LabelReduction>>(
         "label_reduction",
@@ -471,17 +485,6 @@ void add_merge_and_shrink_algorithm_options_to_feature(Feature& feature)
         "{{{label_reduction=exact}}} "
         "Also note the interaction with shrink strategies.",
         ArgumentInfo::NO_DEFAULT);
-
-    // Pruning options.
-    feature.add_option<bool>(
-        "prune_unreachable_states",
-        "If true, prune abstract states unreachable from the initial state.",
-        "true");
-    feature.add_option<bool>(
-        "prune_irrelevant_states",
-        "If true, prune abstract states from which no goal state can be "
-        "reached.",
-        "true");
 
     add_transition_system_size_limit_options_to_feature(feature);
 
@@ -537,12 +540,11 @@ void handle_shrink_limit_options_defaults(
     if (max_states_before_merge == -1) {
         max_states_before_merge = max_states;
     } else if (max_states == -1) {
-        int n = max_states_before_merge;
         if (utils::is_product_within_limit(
-                n,
-                n,
+                max_states_before_merge,
+                max_states_before_merge,
                 std::numeric_limits<int>::max())) {
-            max_states = n * n;
+            max_states = max_states_before_merge * max_states_before_merge;
         } else {
             max_states = std::numeric_limits<int>::max();
         }
