@@ -23,6 +23,7 @@ class FactoredTransitionSystem;
 class LabelReduction;
 class MergeStrategyFactory;
 class ShrinkStrategy;
+class PruneStrategy;
 } // namespace probfd::merge_and_shrink
 
 namespace probfd::merge_and_shrink {
@@ -31,6 +32,7 @@ class MergeAndShrinkAlgorithm {
     std::shared_ptr<MergeStrategyFactory> merge_strategy_factory;
     std::shared_ptr<ShrinkStrategy> shrink_strategy;
     std::shared_ptr<LabelReduction> label_reduction;
+    std::shared_ptr<PruneStrategy> pruning_strategy;
 
     // Options for shrinking
     // Hard limit: the maximum size of a transition system at any point.
@@ -53,7 +55,7 @@ class MergeAndShrinkAlgorithm {
     report_peak_memory_delta(utils::LogProxy log, bool final = false) const;
 
     void dump_options(utils::LogProxy log) const;
-    
+
     void warn_on_unusual_options(utils::LogProxy log) const;
 
     bool
