@@ -52,9 +52,9 @@ MergeAndShrinkAlgorithm::MergeAndShrinkAlgorithm(const plugins::Options& opts)
     , max_states(opts.get<int>("max_states"))
     , max_states_before_merge(opts.get<int>("max_states_before_merge"))
     , shrink_threshold_before_merge(opts.get<int>("threshold_before_merge"))
-    , log(utils::get_log_from_options(opts))
     , main_loop_max_time(opts.get<double>("main_loop_max_time"))
     , starting_peak_memory(0)
+    , log(utils::get_log_from_options(opts))
 {
     assert(max_states_before_merge > 0);
     assert(max_states >= max_states_before_merge);

@@ -46,10 +46,11 @@ class MergeAndShrinkAlgorithm {
        max_states and max_states_before_merge are not violated. */
     const int shrink_threshold_before_merge;
 
-    mutable utils::LogProxy log;
     const double main_loop_max_time;
 
     long starting_peak_memory;
+
+    mutable utils::LogProxy log;
 
     void report_peak_memory_delta(bool final = false) const;
     void dump_options() const;
