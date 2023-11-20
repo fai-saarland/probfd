@@ -368,6 +368,7 @@ create_library(
         #probfd/merge_and_shrink/shrink_fh
         #probfd/merge_and_shrink/shrink_random
         probfd/merge_and_shrink/shrink_strategy
+        probfd/merge_and_shrink/shrink_strategy_bucket_based
         probfd/merge_and_shrink/prune_strategy_identity
         probfd/merge_and_shrink/transition_system
         probfd/merge_and_shrink/types
