@@ -188,18 +188,9 @@ bool MergeAndShrinkAlgorithm::ran_out_of_time(
 
 void MergeAndShrinkAlgorithm::main_loop(
     FactoredTransitionSystem& fts,
-    const ProbabilisticTaskProxy& task_proxy)
+    MergeStrategy& merge_strategy,
+    utils::CountdownTimer& timer)
 {
-    utils::CountdownTimer timer(main_loop_max_time);
-    if (log.is_at_least_normal()) {
-        log << "Starting main loop ";
-        if (main_loop_max_time == numeric_limits<double>::infinity()) {
-            log << "without a time limit." << endl;
-        } else {
-            log << "with a time limit of " << main_loop_max_time << "s."
-                << endl;
-        }
-    }
     int maximum_intermediate_size = 0;
     for (int i = 0; i < fts.get_size(); ++i) {
         int size = fts.get_transition_system(i).get_size();
@@ -208,20 +199,13 @@ void MergeAndShrinkAlgorithm::main_loop(
         }
     }
 
-    if (label_reduction) {
-        label_reduction->initialize(task_proxy);
-    }
-    unique_ptr<MergeStrategy> merge_strategy =
-        merge_strategy_factory->compute_merge_strategy(task_proxy, fts);
-    merge_strategy_factory = nullptr;
-
     auto log_main_loop_progress = [&timer, this](const string& msg) {
         log << "M&S algorithm main loop timer: " << timer.get_elapsed_time()
             << " (" << msg << ")" << endl;
     };
     while (fts.get_num_active_entries() > 1) {
         // Choose next transition systems to merge
-        const auto [merge_index1, merge_index2] = merge_strategy->get_next();
+        const auto [merge_index1, merge_index2] = merge_strategy.get_next();
 
         if (ran_out_of_time(timer)) {
             break;
@@ -350,8 +334,6 @@ void MergeAndShrinkAlgorithm::main_loop(
     log << "Main loop runtime: " << timer.get_elapsed_time() << endl;
     log << "Maximum intermediate abstraction size: "
         << maximum_intermediate_size << endl;
-    shrink_strategy = nullptr;
-    label_reduction = nullptr;
 }
 
 FactoredTransitionSystem
@@ -424,7 +406,28 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     }
 
     if (!unsolvable && main_loop_max_time > 0) {
-        main_loop(fts, task_proxy);
+        utils::CountdownTimer timer(main_loop_max_time);
+        if (log.is_at_least_normal()) {
+            log << "Starting main loop ";
+            if (main_loop_max_time == numeric_limits<double>::infinity()) {
+                log << "without a time limit." << endl;
+            } else {
+                log << "with a time limit of " << main_loop_max_time << "s."
+                    << endl;
+            }
+        }
+
+        if (label_reduction) {
+            label_reduction->initialize(task_proxy);
+        }
+        unique_ptr<MergeStrategy> merge_strategy =
+            merge_strategy_factory->compute_merge_strategy(task_proxy, fts);
+        merge_strategy_factory = nullptr;
+
+        main_loop(fts, *merge_strategy, timer);
+
+        shrink_strategy = nullptr;
+        label_reduction = nullptr;
     }
     report_peak_memory_delta(true);
     log << "Merge-and-shrink algorithm runtime: " << timer << endl;
