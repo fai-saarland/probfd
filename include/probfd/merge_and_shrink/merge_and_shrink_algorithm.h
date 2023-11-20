@@ -22,6 +22,7 @@ namespace probfd::merge_and_shrink {
 class FactoredTransitionSystem;
 class LabelReduction;
 class MergeStrategyFactory;
+class MergeStrategy;
 class ShrinkStrategy;
 class PruneStrategy;
 } // namespace probfd::merge_and_shrink
@@ -66,7 +67,8 @@ class MergeAndShrinkAlgorithm {
 
     void main_loop(
         FactoredTransitionSystem& fts,
-        const ProbabilisticTaskProxy& task_proxy,
+        MergeStrategy& merge_strategy,
+        const utils::CountdownTimer& timer,
         utils::LogProxy log);
 
 public:
