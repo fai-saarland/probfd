@@ -341,17 +341,20 @@ FactoredTransitionSystem
 MergeAndShrinkAlgorithm::build_factored_transition_system(
     const ProbabilisticTaskProxy& task_proxy)
 {
+    ::task_properties::verify_no_axioms(task_proxy);
+    task_properties::verify_no_conditional_effects(task_proxy);
+
     if (starting_peak_memory) {
         cerr << "Calling build_factored_transition_system twice is not "
              << "supported!" << endl;
         utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
+
     starting_peak_memory = utils::get_peak_memory_in_kb();
 
     utils::Timer timer;
     log << "Running merge-and-shrink algorithm..." << endl;
-    ::task_properties::verify_no_axioms(task_proxy);
-    task_properties::verify_no_conditional_effects(task_proxy);
+
     dump_options();
     warn_on_unusual_options();
     log << endl;
