@@ -487,6 +487,7 @@ create_probfd_library(
         #probfd/merge_and_shrink/shrink_random
         probfd/merge_and_shrink/shrink_strategy
         probfd/merge_and_shrink/shrink_bucket_based
+        probfd/merge_and_shrink/shrink_h
         probfd/merge_and_shrink/null_pruning_strategy
         probfd/merge_and_shrink/transition_system
         probfd/merge_and_shrink/types
