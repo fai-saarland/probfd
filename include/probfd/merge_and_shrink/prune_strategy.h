@@ -25,7 +25,7 @@ public:
     virtual ~PruneStrategy() = default;
 
     virtual StateEquivalenceRelation compute_pruning_abstraction(
-        const TransitionSystem& fts,
+        const TransitionSystem& ts,
         const Distances& distances,
         utils::LogProxy& log) = 0;
 
