@@ -15,6 +15,8 @@
 
 #include "probfd/task_utils/task_properties.h"
 
+#include "probfd/utils/guards.h"
+
 #include "downward/task_utils/task_properties.h"
 
 #include "downward/plugins/plugin.h"
@@ -371,66 +373,76 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
         log_progress(timer, "after computation of atomic factors", log);
     }
 
+    scope_exit scope([&] {
+        report_peak_memory_delta(true);
+        log << "Merge-and-shrink algorithm runtime: " << timer << endl;
+        log << endl;
+    });
+
     /*
       Prune all atomic factors according to the chosen options. Stop early if
       one factor is unsolvable.
 
       TODO: think about if we can prune already while creating the atomic FTS.
     */
-    bool pruned = false;
-    bool unsolvable = false;
-    for (int index = 0; index < fts.get_size(); ++index) {
-        assert(fts.is_active(index));
-        if (pruning_strategy) {
-            auto pruning_relation =
-                pruning_strategy->compute_pruning_abstraction(
-                    fts.get_transition_system(index),
-                    fts.get_distances(index),
-                    log);
-            bool pruned_factor =
-                fts.apply_abstraction(index, pruning_relation, log);
-            pruned = pruned || pruned_factor;
-        }
-        if (!fts.is_factor_solvable(index)) {
-            log << "Atomic FTS is unsolvable, stopping computation." << endl;
-            unsolvable = true;
-            break;
-        }
-    }
-    if (log.is_at_least_normal()) {
-        if (pruned) {
-            log_progress(timer, "after pruning atomic factors", log);
-        }
-        log << endl;
-    }
+    {
+        bool pruned = false;
 
-    if (!unsolvable && main_loop_max_time > 0) {
-        utils::CountdownTimer timer(main_loop_max_time);
-        if (log.is_at_least_normal()) {
-            log << "Starting main loop ";
-            if (main_loop_max_time == numeric_limits<double>::infinity()) {
-                log << "without a time limit." << endl;
-            } else {
-                log << "with a time limit of " << main_loop_max_time << "s."
+        scope_exit _([&] {
+            if (log.is_at_least_normal()) {
+                if (pruned) {
+                    log_progress(timer, "after pruning atomic factors", log);
+                }
+                log << endl;
+            }
+        });
+
+        for (int index = 0; index < fts.get_size(); ++index) {
+            assert(fts.is_active(index));
+            if (pruning_strategy) {
+                auto pruning_relation =
+                    pruning_strategy->compute_pruning_abstraction(
+                        fts.get_transition_system(index),
+                        fts.get_distances(index),
+                        log);
+                bool pruned_factor =
+                    fts.apply_abstraction(index, pruning_relation, log);
+                pruned = pruned || pruned_factor;
+            }
+            if (!fts.is_factor_solvable(index)) {
+                log << "Atomic FTS is unsolvable, stopping computation."
                     << endl;
+                return fts;
             }
         }
-
-        if (label_reduction) {
-            label_reduction->initialize(task_proxy);
-        }
-        unique_ptr<MergeStrategy> merge_strategy =
-            merge_strategy_factory->compute_merge_strategy(task_proxy, fts);
-        merge_strategy_factory = nullptr;
-
-        main_loop(fts, *merge_strategy, timer);
-
-        shrink_strategy = nullptr;
-        label_reduction = nullptr;
     }
-    report_peak_memory_delta(true);
-    log << "Merge-and-shrink algorithm runtime: " << timer << endl;
-    log << endl;
+
+    if (main_loop_max_time <= 0) return fts;
+
+    utils::CountdownTimer loop_timer(main_loop_max_time);
+    if (log.is_at_least_normal()) {
+        log << "Starting main loop ";
+        if (main_loop_max_time == numeric_limits<double>::infinity()) {
+            log << "without a time limit." << endl;
+        } else {
+            log << "with a time limit of " << main_loop_max_time << "s."
+                << endl;
+        }
+    }
+
+    if (label_reduction) {
+        label_reduction->initialize(task_proxy);
+    }
+
+    unique_ptr<MergeStrategy> merge_strategy =
+        merge_strategy_factory->compute_merge_strategy(task_proxy, fts);
+    merge_strategy_factory = nullptr;
+
+    main_loop(fts, *merge_strategy, loop_timer);
+
+    shrink_strategy = nullptr;
+    label_reduction = nullptr;
+
     return fts;
 }
 
