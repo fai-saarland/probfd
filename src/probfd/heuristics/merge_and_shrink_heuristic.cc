@@ -36,6 +36,8 @@ MergeAndShrinkHeuristic::MergeAndShrinkHeuristic(
     log_ << "Done initializing merge-and-shrink heuristic." << endl << endl;
 }
 
+MergeAndShrinkHeuristic::~MergeAndShrinkHeuristic() = default;
+
 void MergeAndShrinkHeuristic::extract_factor(
     FactoredTransitionSystem& fts,
     int index)

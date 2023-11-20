@@ -1,23 +1,16 @@
 #include "probfd/heuristics/merge_and_shrink_heuristic.h"
 
-#include "probfd/merge_and_shrink/distances.h"
 #include "probfd/merge_and_shrink/factored_transition_system.h"
 #include "probfd/merge_and_shrink/merge_and_shrink_algorithm.h"
-#include "probfd/merge_and_shrink/merge_and_shrink_representation.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
 #include "probfd/task_utils/task_properties.h"
 
 #include "probfd/task_heuristic_factory.h"
 
-#include "downward/utils/system.h"
-
 #include "probfd/cli/heuristics/task_dependent_heuristic_options.h"
 
 #include "downward/cli/plugins/plugin.h"
-
-#include <cassert>
-#include <iostream>
 
 using namespace std;
 using namespace probfd;
@@ -38,6 +31,7 @@ public:
         std::shared_ptr<MergeStrategyFactory> merge_strategy,
         std::shared_ptr<ShrinkStrategy> shrink_strategy,
         std::shared_ptr<LabelReduction> label_reduction,
+        std::shared_ptr<PruneStrategy> prune_strategy,
         int max_states,
         int max_states_before_merge,
         int threshold_before_merge,
@@ -55,6 +49,7 @@ MergeAndShrinkHeuristicFactory::MergeAndShrinkHeuristicFactory(
     std::shared_ptr<MergeStrategyFactory> merge_strategy,
     std::shared_ptr<ShrinkStrategy> shrink_strategy,
     std::shared_ptr<LabelReduction> label_reduction,
+    std::shared_ptr<PruneStrategy> prune_strategy,
     int max_states,
     int max_states_before_merge,
     int threshold_before_merge,
@@ -66,6 +61,7 @@ MergeAndShrinkHeuristicFactory::MergeAndShrinkHeuristicFactory(
           std::move(merge_strategy),
           std::move(shrink_strategy),
           std::move(label_reduction),
+          std::move(prune_strategy),
           max_states,
           max_states_before_merge,
           threshold_before_merge,
@@ -94,7 +90,7 @@ public:
         document_title("Merge-and-shrink heuristic");
         document_synopsis("TODO add a description");
 
-        cli::heuristics::add_task_dependent_heuristic_options_to_feature(*this);
+        add_task_dependent_heuristic_options_to_feature(*this);
         add_merge_and_shrink_algorithm_options_to_feature(*this);
     }
 
@@ -111,13 +107,14 @@ public:
             options_copy.get<shared_ptr<LabelReduction>>(
                 "label_reduction",
                 nullptr),
+            options_copy.get<shared_ptr<PruneStrategy>>("prune_strategy"),
             options_copy.get<int>("max_states"),
             options_copy.get<int>("max_states_before_merge"),
             options_copy.get<int>("threshold_before_merge"),
             options_copy.get<bool>("prune_unreachable_states"),
             options_copy.get<bool>("prune_irrelevant_states"),
             options_copy.get<double>("main_loop_max_time"),
-  get_task_dependent_heuristic_arguments_from_options(options_copy));
+            get_task_dependent_heuristic_arguments_from_options(options_copy));
     }
 };
 
