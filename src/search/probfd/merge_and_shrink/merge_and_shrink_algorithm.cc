@@ -173,19 +173,6 @@ void MergeAndShrinkAlgorithm::warn_on_unusual_options() const
     }
 }
 
-bool MergeAndShrinkAlgorithm::ran_out_of_time(
-    const utils::CountdownTimer& timer) const
-{
-    if (timer.is_expired()) {
-        if (log.is_at_least_normal()) {
-            log << "Ran out of time, stopping computation." << endl;
-            log << endl;
-        }
-        return true;
-    }
-    return false;
-}
-
 void MergeAndShrinkAlgorithm::main_loop(
     FactoredTransitionSystem& fts,
     MergeStrategy& merge_strategy,
@@ -203,6 +190,18 @@ void MergeAndShrinkAlgorithm::main_loop(
         log << "M&S algorithm main loop timer: " << timer.get_elapsed_time()
             << " (" << msg << ")" << endl;
     };
+
+    auto ran_out_of_time = [&log = this->log](const auto& timer) {
+        if (timer.is_expired()) {
+            if (log.is_at_least_normal()) {
+                log << "Ran out of time, stopping computation." << endl;
+                log << endl;
+            }
+            return true;
+        }
+        return false;
+    };
+
     while (fts.get_num_active_entries() > 1) {
         // Choose next transition systems to merge
         const auto [merge_index1, merge_index2] = merge_strategy.get_next();

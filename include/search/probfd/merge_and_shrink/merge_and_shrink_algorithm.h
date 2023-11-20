@@ -55,7 +55,6 @@ class MergeAndShrinkAlgorithm {
     void report_peak_memory_delta(bool final = false) const;
     void dump_options() const;
     void warn_on_unusual_options() const;
-    bool ran_out_of_time(const utils::CountdownTimer& timer) const;
     void statistics(int maximum_intermediate_size) const;
     void main_loop(
         FactoredTransitionSystem& fts,
