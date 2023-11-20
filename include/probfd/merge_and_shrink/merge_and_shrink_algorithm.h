@@ -33,7 +33,7 @@ class MergeAndShrinkAlgorithm {
     std::shared_ptr<MergeStrategyFactory> merge_strategy_factory;
     std::shared_ptr<ShrinkStrategy> shrink_strategy;
     std::shared_ptr<LabelReduction> label_reduction;
-    std::shared_ptr<PruneStrategy> pruning_strategy;
+    std::shared_ptr<PruneStrategy> prune_strategy;
 
     // Options for shrinking
     // Hard limit: the maximum size of a transition system at any point.
@@ -76,6 +76,7 @@ public:
         std::shared_ptr<MergeStrategyFactory> merge_strategy,
         std::shared_ptr<ShrinkStrategy> shrink_strategy,
         std::shared_ptr<LabelReduction> label_reduction,
+        std::shared_ptr<PruneStrategy> prune_strategy,
         int max_states,
         int max_states_before_merge,
         int threshold_before_merge,

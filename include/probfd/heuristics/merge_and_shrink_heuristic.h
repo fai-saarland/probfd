@@ -31,6 +31,8 @@ public:
         std::shared_ptr<ProbabilisticTask> task,
         utils::LogProxy log);
 
+    ~MergeAndShrinkHeuristic();
+
     value_t evaluate(const State& state) const override;
 };
 

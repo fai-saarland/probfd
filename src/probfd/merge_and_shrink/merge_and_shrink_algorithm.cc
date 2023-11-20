@@ -48,6 +48,7 @@ MergeAndShrinkAlgorithm::MergeAndShrinkAlgorithm(
     std::shared_ptr<MergeStrategyFactory> merge_strategy,
     std::shared_ptr<ShrinkStrategy> shrink_strategy,
     std::shared_ptr<LabelReduction> label_reduction,
+    std::shared_ptr<PruneStrategy> prune_strategy,
     int max_states,
     int max_states_before_merge,
     int threshold_before_merge,
@@ -57,6 +58,7 @@ MergeAndShrinkAlgorithm::MergeAndShrinkAlgorithm(
     : merge_strategy_factory(std::move(merge_strategy))
     , shrink_strategy(std::move(shrink_strategy))
     , label_reduction(std::move(label_reduction))
+    , prune_strategy(std::move(prune_strategy))
     , max_states(max_states)
     , max_states_before_merge(max_states_before_merge)
     , shrink_threshold_before_merge(threshold_before_merge)
@@ -99,8 +101,8 @@ void MergeAndShrinkAlgorithm::dump_options(utils::LogProxy log) const
             << shrink_threshold_before_merge << endl;
         log << endl;
 
-        if (pruning_strategy) {
-            pruning_strategy->dump_options(log);
+        if (prune_strategy) {
+            prune_strategy->dump_options(log);
         } else {
             log << "Pruning disabled" << endl;
         }
@@ -173,7 +175,7 @@ void MergeAndShrinkAlgorithm::warn_on_unusual_options(utils::LogProxy log) const
         }
     }
 
-    if (!pruning_strategy) {
+    if (!prune_strategy) {
         if (log.is_warning()) {
             log << dashes << endl
                 << "WARNING! Pruning is turned off!" << endl
@@ -183,21 +185,6 @@ void MergeAndShrinkAlgorithm::warn_on_unusual_options(utils::LogProxy log) const
                 << dashes << endl;
         }
     }
-}
-
-bool MergeAndShrinkAlgorithm::ran_out_of_time(
-    const utils::CountdownTimer& timer,
-    utils::LogProxy log) const
-{
-    if (timer.is_expired()) {
-        if (log.is_at_least_normal()) {
-            log << "Ran out of time, stopping computation." << endl;
-            log << endl;
-        }
-        return true;
-    }
-
-    return false;
 }
 
 void MergeAndShrinkAlgorithm::main_loop(
@@ -229,11 +216,22 @@ void MergeAndShrinkAlgorithm::main_loop(
             << " (" << msg << ")" << endl;
     };
 
+    auto ran_out_of_time = [&](const auto& t) {
+        if (t.is_expired()) {
+            if (log.is_at_least_normal()) {
+                log << "Ran out of time, stopping computation." << endl;
+                log << endl;
+            }
+            return true;
+        }
+        return false;
+    };
+
     while (fts.get_num_active_entries() > 1) {
         // Choose next transition systems to merge
         const auto [merge_index1, merge_index2] = merge_strategy.get_next();
 
-        if (ran_out_of_time(timer, log)) {
+        if (ran_out_of_time(timer)) {
             break;
         }
 
@@ -257,7 +255,7 @@ void MergeAndShrinkAlgorithm::main_loop(
             }
         }
 
-        if (ran_out_of_time(timer, log)) {
+        if (ran_out_of_time(timer)) {
             break;
         }
 
@@ -275,7 +273,7 @@ void MergeAndShrinkAlgorithm::main_loop(
             log_main_loop_progress("after shrinking");
         }
 
-        if (ran_out_of_time(timer, log)) {
+        if (ran_out_of_time(timer)) {
             break;
         }
 
@@ -288,7 +286,7 @@ void MergeAndShrinkAlgorithm::main_loop(
             }
         }
 
-        if (ran_out_of_time(timer, log)) {
+        if (ran_out_of_time(timer)) {
             break;
         }
 
@@ -307,17 +305,16 @@ void MergeAndShrinkAlgorithm::main_loop(
             log_main_loop_progress("after merging");
         }
 
-        if (ran_out_of_time(timer, log)) {
+        if (ran_out_of_time(timer)) {
             break;
         }
 
         // Pruning
-        if (pruning_strategy) {
-            auto pruning_relation =
-                pruning_strategy->compute_pruning_abstraction(
-                    fts.get_transition_system(merged_index),
-                    fts.get_distances(merged_index),
-                    log);
+        if (prune_strategy) {
+            auto pruning_relation = prune_strategy->compute_pruning_abstraction(
+                fts.get_transition_system(merged_index),
+                fts.get_distances(merged_index),
+                log);
 
             const bool pruned =
                 fts.apply_abstraction(merged_index, pruning_relation, log);
@@ -345,7 +342,7 @@ void MergeAndShrinkAlgorithm::main_loop(
             break;
         }
 
-        if (ran_out_of_time(timer, log)) {
+        if (ran_out_of_time(timer)) {
             break;
         }
 
@@ -387,11 +384,11 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     const bool compute_init_distances =
         shrink_strategy->requires_init_distances() ||
         merge_strategy_factory->requires_init_distances() ||
-        pruning_strategy->requires_init_distances();
+        prune_strategy->requires_init_distances();
     const bool compute_goal_distances =
         shrink_strategy->requires_goal_distances() ||
         merge_strategy_factory->requires_goal_distances() ||
-        pruning_strategy->requires_goal_distances();
+        prune_strategy->requires_goal_distances();
     FactoredTransitionSystem fts = create_factored_transition_system(
         task_proxy,
         compute_init_distances,
@@ -411,12 +408,11 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     bool unsolvable = false;
     for (int index = 0; index < fts.get_size(); ++index) {
         assert(fts.is_active(index));
-        if (pruning_strategy) {
-            auto pruning_relation =
-                pruning_strategy->compute_pruning_abstraction(
-                    fts.get_transition_system(index),
-                    fts.get_distances(index),
-                    log);
+        if (prune_strategy) {
+            auto pruning_relation = prune_strategy->compute_pruning_abstraction(
+                fts.get_transition_system(index),
+                fts.get_distances(index),
+                log);
             const bool pruned_factor =
                 fts.apply_abstraction(index, pruning_relation, log);
             pruned = pruned || pruned_factor;
