@@ -116,4 +116,9 @@ void add_bucket_based_shrink_options_to_feature(Feature& feature)
     downward::cli::utils::add_rng_options_to_feature(feature);
 }
 
+tuple<int> get_bucket_based_shrink_args_from_options(const Options& options)
+{
+    return downward::cli::utils::get_rng_arguments_from_options(options);
+}
+
 } // namespace probfd::merge_and_shrink
