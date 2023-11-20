@@ -17,7 +17,7 @@ create_probfd_library(
         probfd/evaluation_result
         probfd/interval
         probfd/value_type
-        
+
         # MDP interfaces
         probfd/state_evaluator
         probfd/cost_function
@@ -46,7 +46,7 @@ create_probfd_library(
         probfd/utils/guards
 
         probfd/solver_interface
-        
+
         probfd/solvers/mdp_solver
     DEPENDS
         core_sources
@@ -434,7 +434,7 @@ create_probfd_library(
         probfd/cartesian_abstractions/subtask_generators
         probfd/cartesian_abstractions/trace_based_flaw_generator
         probfd/cartesian_abstractions/utils
-    DEPENDS 
+    DEPENDS
         cartesian_abstractions
         additive_heuristic
         extra_probabilistic_tasks
@@ -486,6 +486,7 @@ create_probfd_library(
         #probfd/merge_and_shrink/shrink_fh
         #probfd/merge_and_shrink/shrink_random
         probfd/merge_and_shrink/shrink_strategy
+        probfd/merge_and_shrink/null_pruning_strategy
         probfd/merge_and_shrink/transition_system
         probfd/merge_and_shrink/types
         probfd/merge_and_shrink/utils
@@ -504,6 +505,5 @@ create_probfd_library(
     HELP "Probability-aware Merge-and-Shrink Heuristic"
     SOURCES
         probfd/heuristics/merge_and_shrink_heuristic
-    DEPENDS
-        pa_mas
+    DEPENDS pa_mas
 )
