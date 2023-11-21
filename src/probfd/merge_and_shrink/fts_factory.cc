@@ -15,6 +15,7 @@
 #include "downward/utils/logging.h"
 
 #include <cassert>
+#include <map>
 #include <unordered_map>
 #include <vector>
 
@@ -58,7 +59,6 @@ class FTSFactory {
     };
 
     vector<TransitionSystemData> transition_system_data_by_var;
-    vector<int> num_outcomes_by_label;
 
     unique_ptr<Labels> create_labels();
     void initialize_transition_system_data(const Labels& labels);
@@ -79,7 +79,9 @@ class FTSFactory {
         const vector<bool>& has_effect_on_var,
         vector<vector<Transition>>& transitions_by_var);
 
-    void build_transitions_for_operator(ProbabilisticOperatorProxy op);
+    void build_transitions_for_operator(
+        ProbabilisticOperatorProxy op,
+        const Labels& labels);
 
     void build_transitions_for_irrelevant_ops(
         VariableProxy variable,
@@ -119,20 +121,23 @@ FTSFactory::FTSFactory(const ProbabilisticTaskProxy& task_proxy)
 
 unique_ptr<Labels> FTSFactory::create_labels()
 {
-    vector<value_t> label_costs;
-    const ProbabilisticOperatorsProxy ops = task_proxy.get_operators();
+    vector<LabelInfo> label_infos;
+    ProbabilisticOperatorsProxy ops = task_proxy.get_operators();
     const int num_ops = ops.size();
     int max_num_labels = 0;
 
     if (num_ops > 0) {
         max_num_labels = 2 * num_ops - 1;
-        label_costs.reserve(max_num_labels);
+        label_infos.reserve(max_num_labels);
         for (ProbabilisticOperatorProxy op : ops) {
-            label_costs.push_back(op.get_cost());
+            LabelInfo& info = label_infos.emplace_back(op.get_cost());
+            for (ProbabilisticOutcomeProxy outcome : op.get_outcomes()) {
+                info.probabilities.push_back(outcome.get_probability());
+            }
         }
     }
 
-    return std::make_unique<Labels>(std::move(label_costs), max_num_labels);
+    return std::make_unique<Labels>(std::move(label_infos), max_num_labels);
 }
 
 void FTSFactory::initialize_transition_system_data(const Labels& labels)
@@ -181,7 +186,9 @@ void FTSFactory::mark_as_relevant(int var_no, int label_no)
     transition_system_data_by_var[var_no].relevant_labels[label_no] = true;
 }
 
-void FTSFactory::build_transitions_for_operator(ProbabilisticOperatorProxy op)
+void FTSFactory::build_transitions_for_operator(
+    ProbabilisticOperatorProxy op,
+    const Labels& labels)
 {
     /*
       - Mark op as relevant in the transition systems corresponding
@@ -190,6 +197,7 @@ void FTSFactory::build_transitions_for_operator(ProbabilisticOperatorProxy op)
     */
     const int label = op.get_id();
     const value_t label_cost = op.get_cost();
+    const auto& probabilities = labels.get_label_probabilities(label);
 
     unordered_map<int, int> pre_val = compute_preconditions(op);
     const int num_variables = task_proxy.get_variables().size();
@@ -198,8 +206,6 @@ void FTSFactory::build_transitions_for_operator(ProbabilisticOperatorProxy op)
 
     const auto outcomes = op.get_outcomes();
     const auto num_outcomes = outcomes.size();
-
-    this->num_outcomes_by_label.push_back(num_outcomes);
 
     for (size_t e = 0; e != num_outcomes; ++e) {
         for (const auto outcome = outcomes[e];
@@ -258,7 +264,7 @@ void FTSFactory::build_transitions_for_operator(ProbabilisticOperatorProxy op)
       the effects sets has_effect_on_var.
     */
     for (FactProxy precondition : op.get_preconditions()) {
-        int var_no = precondition.get_variable().get_id();
+        const int var_no = precondition.get_variable().get_id();
         if (has_effect_on_var[var_no]) continue;
         int value = precondition.get_value();
         transitions_by_var[var_no].emplace_back(
@@ -287,9 +293,8 @@ void FTSFactory::build_transitions_for_operator(ProbabilisticOperatorProxy op)
         for (size_t local_label = 0; local_label < local_label_infos.size();
              ++local_label) {
             LocalLabelInfo& local_label_info = local_label_infos[local_label];
-            const vector<Transition>& local_label_transitions =
-                local_label_info.get_transitions();
-            if (transitions == local_label_transitions) {
+            if (probabilities == local_label_info.get_probabilities() &&
+                transitions == local_label_info.get_transitions()) {
                 assert(label_to_local_label[label] == -1);
                 label_to_local_label[label] = local_label;
                 local_label_info.add_label(label, label_cost);
@@ -299,10 +304,10 @@ void FTSFactory::build_transitions_for_operator(ProbabilisticOperatorProxy op)
 
         {
             const int new_local_label = local_label_infos.size();
-            LabelGroup label_group = {label};
             local_label_infos.emplace_back(
-                std::move(label_group),
+                LabelGroup{label},
                 std::move(transitions),
+                probabilities,
                 label_cost);
             assert(label_to_local_label[label] == -1);
             label_to_local_label[label] = new_local_label;
@@ -320,29 +325,30 @@ void FTSFactory::build_transitions_for_irrelevant_ops(
     const int num_states = variable.get_domain_size();
 
     // Collect all irrelevant labels for this variable, grouped into buckets
-    // according to the number of effects of the label.
-    std::unordered_map<int, LabelGroup> irrelevant_labels;
+    // according to the probabilities of the label.
+    std::map<std::vector<value_t>, LabelGroup> irrelevant_labels;
     value_t cost = INFINITE_VALUE;
 
     for (int label : labels) {
         if (!is_relevant(var_id, label)) {
-            int num_outcomes = num_outcomes_by_label[label];
-            irrelevant_labels[num_outcomes].push_back(label);
-            cost = min(cost, labels.get_label_cost(label));
+            const LabelInfo& info = labels.get_label_info(label);
+            irrelevant_labels[info.probabilities].push_back(label);
+            cost = min(cost, info.cost);
         }
     }
 
     TransitionSystemData& ts_data = transition_system_data_by_var[var_id];
-    for (auto& [num_outcomes, labels] : irrelevant_labels) {
+    for (auto& [probabilities, labels] : irrelevant_labels) {
         vector<Transition> transitions;
         transitions.reserve(num_states);
         for (int state = 0; state < num_states; ++state) {
             transitions.emplace_back(
                 state,
-                std::vector<int>(num_outcomes, state));
+                std::vector(probabilities.size(), state));
         }
-        int new_local_label = ts_data.local_label_infos.size();
-        for (int label : labels) {
+
+        const int new_local_label = ts_data.local_label_infos.size();
+        for (const int label : labels) {
             assert(ts_data.label_to_local_label[label] == -1);
             ts_data.label_to_local_label[label] = new_local_label;
         }
@@ -350,6 +356,7 @@ void FTSFactory::build_transitions_for_irrelevant_ops(
         ts_data.local_label_infos.emplace_back(
             std::move(labels),
             std::move(transitions),
+            std::move(probabilities),
             cost);
     }
 }
@@ -362,7 +369,7 @@ void FTSFactory::build_transitions(const Labels& labels)
       - Computes relevant operator information as a side effect.
     */
     for (const ProbabilisticOperatorProxy op : task_proxy.get_operators())
-        build_transitions_for_operator(op);
+        build_transitions_for_operator(op, labels);
 
     /*
       Compute transitions of irrelevant operators for each variable only
