@@ -47,17 +47,24 @@ class LocalLabelInfo {
     // The sorted set of labels with identical transitions in a transition
     // system.
     LabelGroup label_group;
+
     std::vector<Transition> transitions;
+
+    // The probabilities of each individual effect
+    std::vector<value_t> probabilities;
+
     // The cost is the minimum cost over all labels in label_group.
     value_t cost;
 
 public:
     LocalLabelInfo(
-        LabelGroup&& label_group,
-        std::vector<Transition>&& transitions,
+        LabelGroup label_group,
+        std::vector<Transition> transitions,
+        std::vector<value_t> probabilities,
         value_t cost)
         : label_group(std::move(label_group))
         , transitions(std::move(transitions))
+        , probabilities(std::move(probabilities))
         , cost(cost)
     {
         assert(is_consistent());
@@ -99,6 +106,13 @@ public:
     const std::vector<Transition>& get_transitions() const
     {
         return transitions;
+    }
+
+    std::vector<value_t>& get_probabilities() { return probabilities; }
+
+    const std::vector<value_t>& get_probabilities() const
+    {
+        return probabilities;
     }
 
     value_t get_cost() const { return cost; }
@@ -279,4 +293,4 @@ public:
 
 } // namespace probfd::merge_and_shrink
 
-#endif
+#endif // PROBFD_HEURISTICS_MERGE_AND_SHRINK_TRANSITION_SYSTEM_H

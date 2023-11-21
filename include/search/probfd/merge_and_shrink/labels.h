@@ -14,6 +14,11 @@ class LogProxy;
 
 namespace probfd::merge_and_shrink {
 
+struct LabelInfo {
+    value_t cost;
+    std::vector<value_t> probabilities;
+};
+
 /*
   Iterator class for Labels.
 
@@ -25,16 +30,16 @@ namespace probfd::merge_and_shrink {
   are always incremented in parallel.
 */
 class LabelsConstIterator {
-    const std::vector<value_t>::const_iterator end_it;
-    std::vector<value_t>::const_iterator it;
+    const std::vector<LabelInfo>::const_iterator end_it;
+    std::vector<LabelInfo>::const_iterator it;
     std::size_t current_pos;
 
     void advance_to_next_valid_index();
 
 public:
     LabelsConstIterator(
-        const std::vector<value_t>& label_costs,
-        std::vector<value_t>::const_iterator it);
+        const std::vector<LabelInfo>& label_infos,
+        std::vector<LabelInfo>::const_iterator it);
     LabelsConstIterator& operator++();
 
     int operator*() const { return static_cast<int>(current_pos); }
@@ -55,17 +60,22 @@ public:
   -1 in label_costs.
 */
 class Labels {
-    std::vector<value_t> label_costs;
+    std::vector<LabelInfo> label_infos;
+
     int max_num_labels;    // The maximum number of labels that can be created.
     int num_active_labels; // The current number of active (non-reduced) labels.
 
 public:
-    Labels(std::vector<value_t>&& label_costs, int max_num_labels);
+    Labels(std::vector<LabelInfo>&& label_infos, int max_num_labels);
 
     value_t get_label_cost(int label) const;
 
+    const std::vector<value_t>& get_label_probabilities(int label) const;
+
+    const LabelInfo& get_label_info(int label) const;
+
     // The summed number of both inactive and active labels.
-    int get_num_total_labels() const { return label_costs.size(); }
+    int get_num_total_labels() const { return label_infos.size(); }
 
     int get_max_num_labels() const { return max_num_labels; }
 
@@ -75,12 +85,12 @@ public:
 
     LabelsConstIterator begin() const
     {
-        return LabelsConstIterator(label_costs, label_costs.begin());
+        return LabelsConstIterator(label_infos, label_infos.begin());
     }
 
     LabelsConstIterator end() const
     {
-        return LabelsConstIterator(label_costs, label_costs.end());
+        return LabelsConstIterator(label_infos, label_infos.end());
     }
 
     void dump_labels(utils::LogProxy log) const;
