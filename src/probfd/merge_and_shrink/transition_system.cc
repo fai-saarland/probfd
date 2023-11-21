@@ -1,16 +1,15 @@
-#include "../../../include/probfd/merge_and_shrink/transition_system.h"
+#include "probfd/merge_and_shrink/transition_system.h"
 
-#include "../../../include/probfd/merge_and_shrink/distances.h"
-#include "../../../include/probfd/merge_and_shrink/labels.h"
+#include "probfd/merge_and_shrink/distances.h"
+#include "probfd/merge_and_shrink/labels.h"
 
-#include "../../../include/downward/utils/collections.h"
-#include "../../../include/downward/utils/logging.h"
-#include "../../../include/downward/utils/system.h"
+#include "downward/utils/collections.h"
+#include "downward/utils/logging.h"
+#include "downward/utils/system.h"
 
 #include <algorithm>
 #include <cassert>
 #include <iostream>
-#include <iterator>
 #include <ranges>
 #include <sstream>
 #include <string>
@@ -202,11 +201,11 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
         ts1.incorporated_variables,
         ts2.incorporated_variables,
         std::back_inserter(incorporated_variables));
-    vector<int> label_to_local_label(labels.get_max_num_labels(), -1);
+    vector label_to_local_label(labels.get_max_num_labels(), -1);
     vector<LocalLabelInfo> local_label_infos;
 
-    int ts1_size = ts1.get_size();
-    int ts2_size = ts2.get_size();
+    const int ts1_size = ts1.get_size();
+    const int ts2_size = ts2.get_size();
     int num_states = ts1_size * ts2_size;
 
     // Compute merged initial state
@@ -233,12 +232,14 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
           l is dead in T1 only and l' is dead in T2 only, so they are not
           locally equivalent in either of the components).
     */
-    int multiplier = ts2_size;
+    const int multiplier = ts2_size;
     vector<int> dead_labels;
     for (const LocalLabelInfo& local_label_info : ts1) {
         const LabelGroup& group1 = local_label_info.get_label_group();
         const vector<Transition>& transitions1 =
             local_label_info.get_transitions();
+        const vector<value_t>& probabilities1 =
+            local_label_info.get_probabilities();
 
         // Distribute the labels of this group among the "buckets"
         // corresponding to the groups of ts2.
@@ -254,6 +255,10 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
         for (auto& [local_label2, new_labels] : buckets) {
             const auto& transitions2 =
                 ts2.local_label_infos[local_label2].get_transitions();
+
+            assert(
+                probabilities1 ==
+                ts2.local_label_infos[local_label2].get_probabilities());
 
             if (transitions1.empty() || transitions2.empty()) {
                 dead_labels.insert(
@@ -297,6 +302,7 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
             local_label_infos.emplace_back(
                 std::move(new_labels),
                 std::move(new_transitions),
+                probabilities1,
                 cost);
         }
     }
@@ -321,6 +327,7 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
         local_label_infos.emplace_back(
             std::move(dead_labels),
             vector<Transition>(),
+            vector<value_t>(),
             cost);
     }
 
@@ -494,13 +501,26 @@ void TransitionSystem::apply_label_reduction(
         unordered_map<int, vector<int>> local_label_to_old_labels;
         for (const auto& [new_label, old_labels] : label_mapping) {
             assert(old_labels.size() >= 2);
+
+            int first_local = label_to_local_label[old_labels.front()];
+            const auto& first_local_info = local_label_infos[first_local];
+
+            auto new_label_transitions = first_local_info.get_transitions();
+            auto probabilities = first_local_info.get_probabilities();
+
             unordered_set<int> seen_local_labels;
-            vector<Transition> new_label_transitions;
-            for (int old_label : old_labels) {
+
+            for (int old_label : views::all(old_labels) | views::drop(1)) {
                 int old_local_label = label_to_local_label[old_label];
+                assert(
+                    probabilities ==
+                    local_label_infos[old_local_label].get_probabilities());
+
                 if (seen_local_labels.insert(old_local_label).second) {
-                    const vector<Transition>& transitions =
-                        local_label_infos[old_local_label].get_transitions();
+                    auto& local_info = local_label_infos[old_local_label];
+                    const auto& transitions = local_info.get_transitions();
+                    assert(probabilities == local_info.get_probabilities());
+
                     new_label_transitions.insert(
                         new_label_transitions.end(),
                         transitions.begin(),
@@ -510,6 +530,7 @@ void TransitionSystem::apply_label_reduction(
                 // Reset (for consistency only, old labels are never accessed).
                 label_to_local_label[old_label] = -1;
             }
+
             utils::sort_unique(new_label_transitions);
 
             int new_local_label = local_label_infos.size();
@@ -520,6 +541,7 @@ void TransitionSystem::apply_label_reduction(
             local_label_infos.emplace_back(
                 std::move(new_label_group),
                 std::move(new_label_transitions),
+                std::move(probabilities),
                 new_cost);
         }
 
