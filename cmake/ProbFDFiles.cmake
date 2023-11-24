@@ -141,7 +141,7 @@ create_probfd_library(
     SOURCES
         probfd/algorithms/i2dual
         probfd/solvers/i2dual
-    DEPENDS mdp lp_solver occupation_measure_heuristics
+    DEPENDS mdp lp_solver occupation_measures
 )
 
 create_probfd_library(
@@ -268,32 +268,39 @@ create_probfd_library(
 )
 
 create_probfd_library(
-    NAME occupation_measure_heuristics
-    HELP "Occupation measure heuristics"
+    NAME occupation_measures
+    HELP "Occupation measures"
     SOURCES
-        probfd/heuristics/occupation_measures/constraint_generator
-        probfd/heuristics/occupation_measures/hpom_constraints
-        probfd/heuristics/occupation_measures/hroc_constraints
-        probfd/heuristics/occupation_measures/higher_order_hpom_constraints
-        probfd/heuristics/occupation_measures/occupation_measure_heuristic
-        probfd/heuristics/occupation_measures/pho_constraints
-        probfd/heuristics/occupation_measures/subcategory
+        probfd/occupation_measures/constraint_generator
+        probfd/occupation_measures/hpom_constraints
+        probfd/occupation_measures/hroc_constraints
+        probfd/occupation_measures/higher_order_hpom_constraints
+        probfd/occupation_measures/pho_constraints
+        probfd/occupation_measures/subcategory
     DEPENDS mdp lp_based_heuristic
+)
+
+create_probfd_library(
+    NAME occupation_measure_heuristic
+    HELP "Occupation measure heuristic"
+    SOURCES
+        probfd/heuristics/occupation_measure_heuristic
+    DEPENDS occupation_measures
 )
 
 create_probfd_library(
     NAME probability_aware_pdbs
     HELP "Probability-aware PDBs base classes"
     SOURCES
-        probfd/heuristics/pdbs/distances
-        probfd/heuristics/pdbs/evaluators
-        probfd/heuristics/pdbs/match_tree
-        probfd/heuristics/pdbs/policy_extraction
-        probfd/heuristics/pdbs/probability_aware_pattern_database
-        probfd/heuristics/pdbs/projection_operator
-        probfd/heuristics/pdbs/projection_state_space
-        probfd/heuristics/pdbs/saturation
-        probfd/heuristics/pdbs/state_ranking_function
+        probfd/pdbs/distances
+        probfd/pdbs/evaluators
+        probfd/pdbs/match_tree
+        probfd/pdbs/policy_extraction
+        probfd/pdbs/probability_aware_pattern_database
+        probfd/pdbs/projection_operator
+        probfd/pdbs/projection_state_space
+        probfd/pdbs/saturation
+        probfd/pdbs/state_ranking_function
     DEPENDS pdbs mdp task_dependent_heuristic
     DEPENDENCY_ONLY
 )
@@ -302,24 +309,24 @@ create_probfd_library(
     NAME padbs_pattern_generators
     HELP "Base classes for pattern collection generation for PPDBs"
     SOURCES
-        probfd/heuristics/pdbs/pattern_information
-        probfd/heuristics/pdbs/pattern_generator
-        probfd/heuristics/pdbs/pattern_collection_information
-        probfd/heuristics/pdbs/pattern_collection_generator
-        probfd/heuristics/pdbs/pattern_collection_generator_multiple
+        probfd/pdbs/pattern_information
+        probfd/pdbs/pattern_generator
+        probfd/pdbs/pattern_collection_information
+        probfd/pdbs/pattern_collection_generator
+        probfd/pdbs/pattern_collection_generator_multiple
 
-        probfd/heuristics/pdbs/subcollection_finder_factory
-        probfd/heuristics/pdbs/subcollection_finder
-        probfd/heuristics/pdbs/max_orthogonal_finder_factory
-        probfd/heuristics/pdbs/max_orthogonal_finder
-        probfd/heuristics/pdbs/trivial_finder_factory
-        probfd/heuristics/pdbs/trivial_finder
-        probfd/heuristics/pdbs/fully_additive_finder_factory
-        probfd/heuristics/pdbs/fully_additive_finder
-        probfd/heuristics/pdbs/trivial_finder
-        probfd/heuristics/pdbs/subcollections
+        probfd/pdbs/subcollection_finder_factory
+        probfd/pdbs/subcollection_finder
+        probfd/pdbs/max_orthogonal_finder_factory
+        probfd/pdbs/max_orthogonal_finder
+        probfd/pdbs/trivial_finder_factory
+        probfd/pdbs/trivial_finder
+        probfd/pdbs/fully_additive_finder_factory
+        probfd/pdbs/fully_additive_finder
+        probfd/pdbs/trivial_finder
+        probfd/pdbs/subcollections
 
-        probfd/heuristics/pdbs/utils
+        probfd/pdbs/utils
     DEPENDS probability_aware_pdbs max_cliques
     DEPENDENCY_ONLY
 )
@@ -328,7 +335,7 @@ create_probfd_library(
     NAME papdbs_classical_generator
     HELP "Classical pattern collection generator adapter"
     SOURCES
-        probfd/heuristics/pdbs/pattern_collection_generator_classical
+        probfd/pdbs/pattern_collection_generator_classical
     DEPENDS padbs_pattern_generators
 )
 
@@ -336,7 +343,7 @@ create_probfd_library(
     NAME papdbs_hillclimbing_generator
     HELP "Hillclimbing pattern collection generator for PPDBs"
     SOURCES
-        probfd/heuristics/pdbs/pattern_collection_generator_hillclimbing
+        probfd/pdbs/pattern_collection_generator_hillclimbing
     DEPENDS padbs_pattern_generators
 )
 
@@ -344,11 +351,11 @@ create_probfd_library(
     NAME papdbs_cegar
     HELP "Disjoint CEGAR pattern collection generator for PPDBs"
     SOURCES
-        probfd/heuristics/pdbs/cegar/cegar
-        probfd/heuristics/pdbs/cegar/bfs_flaw_finder
-        probfd/heuristics/pdbs/cegar/pucs_flaw_finder
-        probfd/heuristics/pdbs/cegar/sampling_flaw_finder
-        probfd/heuristics/pdbs/cegar/flaw_finding_strategy
+        probfd/pdbs/cegar/cegar
+        probfd/pdbs/cegar/bfs_flaw_finder
+        probfd/pdbs/cegar/pucs_flaw_finder
+        probfd/pdbs/cegar/sampling_flaw_finder
+        probfd/pdbs/cegar/flaw_finding_strategy
     DEPENDS padbs_pattern_generators
 )
 
@@ -356,7 +363,7 @@ create_probfd_library(
     NAME papdbs_disjoint_cegar_generator
     HELP "Disjoint CEGAR pattern collection generator for PPDBs"
     SOURCES
-        probfd/heuristics/pdbs/pattern_collection_generator_disjoint_cegar
+        probfd/pdbs/pattern_collection_generator_disjoint_cegar
     DEPENDS papdbs_cegar
 )
 
@@ -364,7 +371,7 @@ create_probfd_library(
     NAME papdbs_multiple_cegar_generator
     HELP "Multiple CEGAR pattern collection generator for PPDBs"
     SOURCES
-        probfd/heuristics/pdbs/pattern_collection_generator_multiple_cegar
+        probfd/pdbs/pattern_collection_generator_multiple_cegar
     DEPENDS papdbs_cegar
 )
 
@@ -372,7 +379,7 @@ create_probfd_library(
     NAME probability_aware_pdb_heuristic
     HELP "Probability-aware PDB heuristic"
     SOURCES
-        probfd/heuristics/pdbs/probability_aware_pdb_heuristic
+        probfd/heuristics/probability_aware_pdb_heuristic
     DEPENDS probability_aware_pdbs padbs_pattern_generators
 )
 
@@ -380,7 +387,7 @@ create_probfd_library(
     NAME scp_pdb_heuristic
     HELP "Saturated Cost-Partitioning heuristic for probability-aware PDBs"
     SOURCES
-        probfd/heuristics/cost_partitioning/scp_heuristic
+        probfd/heuristics/scp_heuristic
 
     DEPENDS probability_aware_pdbs padbs_pattern_generators
 )
@@ -389,7 +396,7 @@ create_probfd_library(
     NAME ucp_pdb_heuristic
     HELP "Uniform Cost-Partitioning heuristic for probability-aware PDBs"
     SOURCES
-        probfd/heuristics/cost_partitioning/ucp_heuristic
+        probfd/heuristics/ucp_heuristic
 
     DEPENDS probability_aware_pdbs padbs_pattern_generators
 )
@@ -398,7 +405,7 @@ create_probfd_library(
     NAME gzocp_pdb_heuristic
     HELP "Greedy Zero-One Cost-Partitioning heuristic for probability-aware PDBs"
     SOURCES
-        probfd/heuristics/cost_partitioning/gzocp_heuristic
+        probfd/heuristics/gzocp_heuristic
 
     DEPENDS probability_aware_pdbs padbs_pattern_generators
 )
@@ -407,29 +414,36 @@ create_probfd_library(
     NAME pa_cartesian_abstractions
     HELP "The code for probability-aware cartesian abstractions"
     SOURCES
-        probfd/heuristics/cartesian/abstract_state
-        probfd/heuristics/cartesian/abstraction
-        probfd/heuristics/cartesian/adaptive_flaw_generator
-        probfd/heuristics/cartesian/additive_cartesian_heuristic
-        probfd/heuristics/cartesian/astar_trace_generator
-        probfd/heuristics/cartesian/cartesian_heuristic_function
-        probfd/heuristics/cartesian/cegar
-        probfd/heuristics/cartesian/cost_saturation
-        probfd/heuristics/cartesian/complete_policy_flaw_finder
-        probfd/heuristics/cartesian/distances
-        probfd/heuristics/cartesian/evaluators
-        probfd/heuristics/cartesian/flaw
-        probfd/heuristics/cartesian/flaw_generator
-        probfd/heuristics/cartesian/ilao_policy_generator
-        probfd/heuristics/cartesian/policy_based_flaw_generator
-        probfd/heuristics/cartesian/probabilistic_transition_system
-        probfd/heuristics/cartesian/split_selector
-        probfd/heuristics/cartesian/subtask_generators
-        probfd/heuristics/cartesian/trace_based_flaw_generator
-        probfd/heuristics/cartesian/utils
+        probfd/cartesian/abstract_state
+        probfd/cartesian/abstraction
+        probfd/cartesian/adaptive_flaw_generator
+        probfd/cartesian/astar_trace_generator
+        probfd/cartesian/cartesian_heuristic_function
+        probfd/cartesian/cegar
+        probfd/cartesian/cost_saturation
+        probfd/cartesian/complete_policy_flaw_finder
+        probfd/cartesian/distances
+        probfd/cartesian/evaluators
+        probfd/cartesian/flaw
+        probfd/cartesian/flaw_generator
+        probfd/cartesian/ilao_policy_generator
+        probfd/cartesian/policy_based_flaw_generator
+        probfd/cartesian/probabilistic_transition_system
+        probfd/cartesian/split_selector
+        probfd/cartesian/subtask_generators
+        probfd/cartesian/trace_based_flaw_generator
+        probfd/cartesian/utils
     DEPENDS 
         cartesian_abstractions
         additive_heuristic
         extra_probabilistic_tasks
         task_dependent_heuristic
+)
+
+create_probfd_library(
+    NAME probability_aware_cartesian_abstraction_heuristic
+    HELP "Probability-aware Cartesian Abstraction heuristic"
+    SOURCES
+        probfd/heuristics/additive_cartesian_heuristic
+    DEPENDS pa_cartesian_abstractions
 )

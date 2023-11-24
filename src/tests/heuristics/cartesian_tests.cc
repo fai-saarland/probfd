@@ -4,9 +4,9 @@
 
 #include "probfd/task_proxy.h"
 
-#include "probfd/heuristics/cartesian/abstraction.h"
-#include "probfd/heuristics/cartesian/probabilistic_transition_system.h"
-#include "probfd/heuristics/cartesian/types.h"
+#include "probfd/cartesian/abstraction.h"
+#include "probfd/cartesian/probabilistic_transition_system.h"
+#include "probfd/cartesian/types.h"
 
 #include "downward/cartesian_abstractions/refinement_hierarchy.h"
 
@@ -17,7 +17,6 @@
 #include <iostream>
 
 using namespace probfd;
-using namespace probfd::heuristics;
 
 size_t get_num_transitions(const cartesian::ProbabilisticTransitionSystem& ts)
 {

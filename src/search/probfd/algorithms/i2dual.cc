@@ -2,7 +2,7 @@
 
 #include "probfd/algorithms/utils.h"
 
-#include "probfd/heuristics/occupation_measures/hpom_constraints.h"
+#include "probfd/occupation_measures/hpom_constraints.h"
 
 #include "probfd/tasks/root_task.h"
 
@@ -330,7 +330,7 @@ void I2Dual::prepare_hpom(lp::LinearProgram& lp)
     }
 
     TimerScope scope(statistics_.hpom_timer_);
-    heuristics::occupation_measures::HPOMGenerator::generate_hpom_lp(
+    occupation_measures::HPOMGenerator::generate_hpom_lp(
         task_proxy,
         *task_cost_function,
         lp,

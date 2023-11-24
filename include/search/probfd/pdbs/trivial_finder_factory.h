@@ -1,0 +1,18 @@
+#ifndef PROBFD_PDBS_TRIVIAL_FINDER_FACTORY_H
+#define PROBFD_PDBS_TRIVIAL_FINDER_FACTORY_H
+
+#include "probfd/pdbs/subcollection_finder_factory.h"
+
+namespace probfd {
+namespace pdbs {
+
+class TrivialFinderFactory : public SubCollectionFinderFactory {
+public:
+    std::unique_ptr<SubCollectionFinder>
+    create_subcollection_finder(const ProbabilisticTaskProxy&) override;
+};
+
+} // namespace pdbs
+} // namespace probfd
+
+#endif // PROBFD_PDBS_TRIVIAL_FINDER_FACTORY_H
