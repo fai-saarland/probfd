@@ -56,11 +56,10 @@ TALRTDPImpl<State, Action, UseInterval>::ExplorationInformation::get_successor()
 template <typename State, typename Action, bool UseInterval>
 TALRTDPImpl<State, Action, UseInterval>::TALRTDPImpl(
     std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-    bool interval_comparison,
     TrialTerminationCondition stop_consistent,
     bool reexpand_traps,
     std::shared_ptr<QuotientSuccessorSampler> succ_sampler)
-    : Base(policy_chooser, interval_comparison)
+    : Base(policy_chooser)
     , stop_at_consistent_(stop_consistent)
     , reexpand_traps_(reexpand_traps)
     , sample_(succ_sampler)
@@ -365,13 +364,11 @@ bool TALRTDPImpl<State, Action, UseInterval>::push(
 template <typename State, typename Action, bool UseInterval>
 TALRTDP<State, Action, UseInterval>::TALRTDP(
     std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-    bool interval_comparison,
     TrialTerminationCondition stop_consistent,
     bool reexpand_traps,
     std::shared_ptr<QuotientSuccessorSampler> succ_sampler)
     : algorithm_(
           policy_chooser,
-          interval_comparison,
           stop_consistent,
           reexpand_traps,
           succ_sampler)

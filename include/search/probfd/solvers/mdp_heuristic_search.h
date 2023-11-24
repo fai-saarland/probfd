@@ -60,7 +60,6 @@ template <bool Bisimulation, bool Fret>
 class MDPHeuristicSearchBase : public MDPSolver {
 protected:
     const bool dual_bounds_;
-    const bool interval_comparison_;
     const std::shared_ptr<
         WrappedType2<algorithms::PolicyPicker, Bisimulation, Fret>>
         tiebreaker_;
@@ -96,13 +95,11 @@ public:
             using HeuristicSearchType = HS<State, OperatorID, true>;
             return std::make_unique<HeuristicSearchType>(
                 tiebreaker_,
-                interval_comparison_,
                 std::forward<Args>(args)...);
         } else {
             using HeuristicSearchType = HS<State, OperatorID, false>;
             return std::make_unique<HeuristicSearchType>(
                 tiebreaker_,
-                interval_comparison_,
                 std::forward<Args>(args)...);
         }
     }
@@ -161,12 +158,10 @@ public:
         if (dual_bounds_) {
             return std::make_unique<HS<State, OperatorID, true>>(
                 tiebreaker_,
-                interval_comparison_,
                 std::forward<Args>(args)...);
         } else {
             return std::make_unique<HS<State, OperatorID, false>>(
                 tiebreaker_,
-                interval_comparison_,
                 std::forward<Args>(args)...);
         }
     }
@@ -186,7 +181,6 @@ private:
         return std::make_unique<Fret<State, OperatorID, StateInfoT>>(
             std::make_shared<HS<QState, QAction, Interval>>(
                 tiebreaker_,
-                interval_comparison_,
                 std::forward<Args>(args)...));
     }
 };
@@ -210,7 +204,6 @@ public:
                 this->task,
                 this->task_cost_function,
                 this->get_heuristic_search_name(),
-                this->interval_comparison_,
                 this->tiebreaker_,
                 std::forward<Args>(args)...);
         } else {
@@ -218,7 +211,6 @@ public:
                 this->task,
                 this->task_cost_function,
                 this->get_heuristic_search_name(),
-                this->interval_comparison_,
                 this->tiebreaker_,
                 std::forward<Args>(args)...);
         }
@@ -284,7 +276,6 @@ public:
                 this->task,
                 this->task_cost_function,
                 this->get_heuristic_search_name(),
-                this->interval_comparison_,
                 this->tiebreaker_,
                 std::forward<Args>(args)...);
         } else {
@@ -292,7 +283,6 @@ public:
                 this->task,
                 this->task_cost_function,
                 this->get_heuristic_search_name(),
-                this->interval_comparison_,
                 this->tiebreaker_,
                 std::forward<Args>(args)...);
         }
@@ -314,7 +304,6 @@ private:
                 this->task,
                 this->task_cost_function,
                 this->get_heuristic_search_name(),
-                this->interval_comparison_,
                 this->tiebreaker_,
                 std::forward<Args>(args)...);
     }

@@ -43,7 +43,6 @@ template <typename State, typename Action, bool UseInterval>
 HeuristicDepthFirstSearch<State, Action, UseInterval>::
     HeuristicDepthFirstSearch(
         std::shared_ptr<PolicyPicker> policy_chooser,
-        bool interval_comparison,
         bool LabelSolved,
         bool ForwardUpdates,
         BacktrackingUpdateType BackwardUpdates,
@@ -51,7 +50,7 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::
         bool GreedyExploration,
         bool PerformValueIteration,
         bool ExpandTipStates)
-    : Base(policy_chooser, interval_comparison)
+    : Base(std::move(policy_chooser))
     , LabelSolved(LabelSolved)
     , ForwardUpdates(ForwardUpdates)
     , BackwardUpdates(BackwardUpdates)
@@ -358,8 +357,7 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval>::push(
 
         if constexpr (UseInterval) {
             parent_value_changed = parent_value_changed ||
-                                   (this->interval_comparison_ &&
-                                    !this->get_state_info(stateid, sinfo)
+                                   (!this->get_state_info(stateid, sinfo)
                                          .value.bounds_approximately_equal());
         }
 
@@ -429,8 +427,7 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::value_iteration(
 
             if constexpr (UseInterval) {
                 values_not_conv = values_not_conv ||
-                                  (this->interval_comparison_ &&
-                                   !this->get_state_info(id)
+                                  (!this->get_state_info(id)
                                         .value.bounds_approximately_equal());
             }
         }

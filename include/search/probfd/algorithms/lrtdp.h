@@ -164,7 +164,6 @@ public:
      */
     LRTDP(
         std::shared_ptr<PolicyPicker> policy_chooser,
-        bool interval_comparison,
         TrialTerminationCondition stop_consistent,
         std::shared_ptr<SuccessorSampler> succ_sampler);
 

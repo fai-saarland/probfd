@@ -73,10 +73,8 @@ inline void Statistics::print(std::ostream& out) const
 
 template <typename State, typename Action, typename StateInfoT>
 HeuristicSearchBase<State, Action, StateInfoT>::HeuristicSearchBase(
-    std::shared_ptr<PolicyPicker> policy_chooser,
-    bool interval_comparison)
+    std::shared_ptr<PolicyPicker> policy_chooser)
     : policy_chooser_(policy_chooser)
-    , interval_comparison_(interval_comparison)
 {
     statistics_.state_info_bytes = sizeof(StateInfo);
 }
@@ -277,13 +275,6 @@ void HeuristicSearchBase<State, Action, StateInfoT>::print_statistics(
 }
 
 template <typename State, typename Action, typename StateInfoT>
-bool HeuristicSearchBase<State, Action, StateInfoT>::check_interval_comparison()
-    const
-{
-    return interval_comparison_;
-}
-
-template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::get_state_info(StateID id)
     -> StateInfo&
 {
@@ -341,12 +332,7 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::update(
     StateInfo& state_info,
     AlgorithmValueType other)
 {
-    bool b;
-    if constexpr (UseInterval) {
-        b = algorithms::update(state_info.value, other, interval_comparison_);
-    } else {
-        b = algorithms::update(state_info.value, other);
-    }
+    bool b = algorithms::update(state_info.value, other);
     if (b) state_value_changed(state_info);
     return b;
 }

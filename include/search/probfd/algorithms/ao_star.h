@@ -54,7 +54,6 @@ class AOStar
 public:
     AOStar(
         std::shared_ptr<PolicyPicker> policy_chooser,
-        bool interval_comparison,
         std::shared_ptr<SuccessorSampler> outcome_selection);
 
 protected:

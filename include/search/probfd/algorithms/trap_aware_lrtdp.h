@@ -167,7 +167,6 @@ public:
      */
     TALRTDPImpl(
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-        bool interval_comparison,
         TrialTerminationCondition stop_consistent,
         bool reexpand_traps,
         std::shared_ptr<QuotientSuccessorSampler> succ_sampler);
@@ -229,7 +228,6 @@ public:
      */
     TALRTDP(
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-        bool interval_comparison,
         TrialTerminationCondition stop_consistent,
         bool reexpand_traps,
         std::shared_ptr<QuotientSuccessorSampler> succ_sampler);

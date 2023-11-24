@@ -135,7 +135,6 @@ private:
 
 protected:
     internal::Statistics statistics_;
-    const bool interval_comparison_;
 
     struct UpdateResult {
         bool value_changed;
@@ -144,9 +143,7 @@ protected:
     };
 
 public:
-    HeuristicSearchBase(
-        std::shared_ptr<PolicyPicker> policy_chooser,
-        bool interval_comparison);
+    explicit HeuristicSearchBase(std::shared_ptr<PolicyPicker> policy_chooser);
 
     /**
      * @brief Looks up the current lower bound for the cost of \p state_id.
@@ -222,8 +219,6 @@ protected:
         ProgressReport& progress);
 
     void print_statistics(std::ostream& out) const;
-
-    bool check_interval_comparison() const;
 
     /**
      * @brief Get the state info object of a state.

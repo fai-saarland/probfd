@@ -185,7 +185,6 @@ public:
      */
     TADFHSImpl(
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-        bool interval_comparison,
         bool forward_updates,
         BacktrackingUpdateType backtrack_update_type,
         bool expand_tip_states,
@@ -302,7 +301,6 @@ public:
      */
     TADepthFirstHeuristicSearch(
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-        bool interval_comparison,
         bool forward_updates,
         BacktrackingUpdateType backtrack_update_type,
         bool expand_tip_states,

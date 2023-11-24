@@ -17,7 +17,6 @@ MDPHeuristicSearchBase<Bisimulation, Fret>::MDPHeuristicSearchBase(
     const Options& opts)
     : MDPSolver(opts)
     , dual_bounds_(opts.get<bool>("dual_bounds"))
-    , interval_comparison_(opts.get<bool>("interval_comparison"))
     , tiebreaker_(
           opts.get<
               std::shared_ptr<WrappedType2<PolicyPicker, Bisimulation, Fret>>>(
@@ -38,7 +37,6 @@ void MDPHeuristicSearchBase<Bisimulation, Fret>::add_options_to_feature(
 {
     MDPSolver::add_options_to_feature(feature);
 
-    feature.add_option<bool>("interval_comparison", "", "false");
     feature.add_option<bool>("dual_bounds", "", "false");
     feature.add_option<
         std::shared_ptr<WrappedType2<PolicyPicker, Bisimulation, Fret>>>(

@@ -151,7 +151,6 @@ private:
 public:
     HeuristicDepthFirstSearch(
         std::shared_ptr<PolicyPicker> policy_chooser,
-        bool interval_comparison,
         bool LabelSolved,
         bool ForwardUpdates,
         BacktrackingUpdateType BackwardUpdates,

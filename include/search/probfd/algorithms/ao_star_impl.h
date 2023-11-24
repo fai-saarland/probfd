@@ -21,9 +21,8 @@ namespace ao_star {
 template <typename State, typename Action, bool UseInterval>
 AOStar<State, Action, UseInterval>::AOStar(
     std::shared_ptr<PolicyPicker> policy_chooser,
-    bool interval_comparison,
     std::shared_ptr<SuccessorSampler> outcome_selection)
-    : Base(policy_chooser, interval_comparison)
+    : Base(policy_chooser)
     , outcome_selection_(outcome_selection)
 {
 }

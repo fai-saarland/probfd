@@ -27,10 +27,9 @@ inline void Statistics::print(std::ostream& out) const
 template <typename State, typename Action, bool UseInterval>
 LRTDP<State, Action, UseInterval>::LRTDP(
     std::shared_ptr<PolicyPicker> policy_chooser,
-    bool interval_comparison,
     TrialTerminationCondition stop_consistent,
     std::shared_ptr<SuccessorSampler> succ_sampler)
-    : Base(policy_chooser, interval_comparison)
+    : Base(policy_chooser)
     , StopConsistent(stop_consistent)
     , sample_(succ_sampler)
 {
@@ -214,7 +213,7 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
         visited_.push_front(state_id);
 
         if constexpr (UseInterval) {
-            if (this->check_interval_comparison() && !info.bounds_agree()) {
+            if (!info.bounds_agree()) {
                 mark_solved = false;
             }
         }

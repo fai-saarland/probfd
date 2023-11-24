@@ -59,7 +59,6 @@ class ExhaustiveAOSearch
 public:
     ExhaustiveAOSearch(
         std::shared_ptr<PolicyPicker> policy_chooser,
-        bool interval_comparison,
         std::shared_ptr<OpenList> open_list);
 
 protected:

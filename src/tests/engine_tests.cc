@@ -128,7 +128,6 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
         policy_chooser,
         false,
         false,
-        false,
         BacktrackingUpdateType::SINGLE,
         false,
         false,
@@ -178,7 +177,6 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
 
     auto hdfs = std::make_shared<HDFS>(
         policy_chooser,
-        false,
         false,
         false,
         BacktrackingUpdateType::SINGLE,

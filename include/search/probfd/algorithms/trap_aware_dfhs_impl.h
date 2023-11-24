@@ -60,7 +60,6 @@ TADFHSImpl<State, Action, UseInterval>::ExplorationInformation::get_successor()
 template <typename State, typename Action, bool UseInterval>
 TADFHSImpl<State, Action, UseInterval>::TADFHSImpl(
     std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-    bool interval_comparison,
     bool forward_updates,
     BacktrackingUpdateType backtrack_update_type,
     bool expand_tip_states,
@@ -70,7 +69,7 @@ TADFHSImpl<State, Action, UseInterval>::TADFHSImpl(
     bool mark_solved,
     bool reexpand_removed_traps,
     std::shared_ptr<QuotientOpenList> open_list)
-    : Base(policy_chooser, interval_comparison)
+    : Base(policy_chooser)
     , forward_updates_(forward_updates)
     , backtrack_update_type_(backtrack_update_type)
     , expand_tip_states_(expand_tip_states)
@@ -584,7 +583,6 @@ template <typename State, typename Action, bool UseInterval>
 TADepthFirstHeuristicSearch<State, Action, UseInterval>::
     TADepthFirstHeuristicSearch(
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
-        bool interval_comparison,
         bool forward_updates,
         BacktrackingUpdateType backtrack_update_type,
         bool expand_tip_states,
@@ -596,7 +594,6 @@ TADepthFirstHeuristicSearch<State, Action, UseInterval>::
         std::shared_ptr<QuotientOpenList> open_list)
     : algorithm_(
           policy_chooser,
-          interval_comparison,
           forward_updates,
           backtrack_update_type,
           expand_tip_states,

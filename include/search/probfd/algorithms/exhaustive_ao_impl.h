@@ -13,9 +13,8 @@ namespace exhaustive_ao {
 template <typename State, typename Action, bool UseInterval>
 ExhaustiveAOSearch<State, Action, UseInterval>::ExhaustiveAOSearch(
     std::shared_ptr<PolicyPicker> policy_chooser,
-    bool interval_comparison,
     std::shared_ptr<OpenList> open_list)
-    : Base(policy_chooser, interval_comparison)
+    : Base(policy_chooser)
     , open_list_(open_list)
 {
 }

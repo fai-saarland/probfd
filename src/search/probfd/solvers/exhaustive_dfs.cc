@@ -24,7 +24,6 @@ class ExhaustiveDFSSolver : public MDPSolver {
     std::shared_ptr<FDRTransitionSorter> transition_sort_;
 
     const bool dual_bounds_;
-    const bool interval_comparison_;
     const bool reevaluate_;
     const bool notify_s0_;
     const bool path_updates_;
@@ -41,7 +40,6 @@ public:
                         ->create_transition_sorter(this->task_mdp.get())
                   : nullptr)
         , dual_bounds_(opts.get<bool>("dual_bounds"))
-        , interval_comparison_(opts.get<bool>("interval_comparison"))
         , reevaluate_(opts.get<bool>("reevaluate"))
         , notify_s0_(opts.get<bool>("initial_state_notification"))
         , path_updates_(opts.get<bool>("reverse_path_updates"))
@@ -92,7 +90,6 @@ public:
             "",
             ArgumentInfo::NO_DEFAULT);
 
-        add_option<bool>("interval_comparison", "", "false");
         add_option<bool>("dual_bounds", "", "false");
         add_option<bool>("reevaluate", "", "true");
         add_option<bool>("initial_state_notification", "", "false");
