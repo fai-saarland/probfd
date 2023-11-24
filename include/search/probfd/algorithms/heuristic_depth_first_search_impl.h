@@ -317,6 +317,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::push_successor(
 
             if (GreedyExploration && einfo.unsolved_succs) {
                 keep_expanding = false;
+                break;
             }
         } else if (succ_info.status == ONSTACK) {
             sinfo.lowlink = std::min(sinfo.lowlink, succ_info.index);
