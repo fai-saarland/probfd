@@ -487,6 +487,8 @@ DecoratedASTNodePtr LiteralNode::decorate(DecorateContext& context) const
     switch (value.type) {
     case TokenType::BOOLEAN:
         return std::make_unique<BoolLiteralNode>(value.content);
+    case TokenType::STRING:
+        return std::make_unique<StringLiteralNode>(value.content);
     case TokenType::INTEGER:
         return std::make_unique<IntLiteralNode>(value.content);
     case TokenType::FLOAT:
@@ -511,6 +513,8 @@ const plugins::Type& LiteralNode::get_type(DecorateContext& context) const
     switch (value.type) {
     case TokenType::BOOLEAN:
         return plugins::TypeRegistry::instance()->get_type<bool>();
+    case TokenType::STRING:
+        return plugins::TypeRegistry::instance()->get_type<string>();
     case TokenType::INTEGER:
         return plugins::TypeRegistry::instance()->get_type<int>();
     case TokenType::FLOAT:
