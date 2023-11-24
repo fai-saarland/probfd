@@ -7,12 +7,12 @@
 
 namespace probfd {
 
-namespace cartesian {
+namespace cartesian_abstractions {
 class CartesianHeuristicFunction;
 class FlawGeneratorFactory;
 class SplitSelectorFactory;
 class SubtaskGenerator;
-} // namespace cartesian
+} // namespace cartesian_abstractions
 
 namespace heuristics {
 
@@ -21,16 +21,16 @@ namespace heuristics {
   summing all of their values.
 */
 class AdditiveCartesianHeuristic : public TaskDependentHeuristic {
-    const std::vector<cartesian::CartesianHeuristicFunction> heuristic_functions;
+    const std::vector<cartesian_abstractions::CartesianHeuristicFunction> heuristic_functions;
 
 public:
     AdditiveCartesianHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
         utils::LogProxy log,
-        std::vector<std::shared_ptr<cartesian::SubtaskGenerator>>
+        std::vector<std::shared_ptr<cartesian_abstractions::SubtaskGenerator>>
             subtask_generators,
-        std::shared_ptr<cartesian::FlawGeneratorFactory> flaw_generator_factory,
-        std::shared_ptr<cartesian::SplitSelectorFactory> split_selector_factory,
+        std::shared_ptr<cartesian_abstractions::FlawGeneratorFactory> flaw_generator_factory,
+        std::shared_ptr<cartesian_abstractions::SplitSelectorFactory> split_selector_factory,
         int max_states,
         int max_transitions,
         double max_time,

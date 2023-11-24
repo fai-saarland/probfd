@@ -414,25 +414,25 @@ create_probfd_library(
     NAME pa_cartesian_abstractions
     HELP "The code for probability-aware cartesian abstractions"
     SOURCES
-        probfd/cartesian/abstract_state
-        probfd/cartesian/abstraction
-        probfd/cartesian/adaptive_flaw_generator
-        probfd/cartesian/astar_trace_generator
-        probfd/cartesian/cartesian_heuristic_function
-        probfd/cartesian/cegar
-        probfd/cartesian/cost_saturation
-        probfd/cartesian/complete_policy_flaw_finder
-        probfd/cartesian/distances
-        probfd/cartesian/evaluators
-        probfd/cartesian/flaw
-        probfd/cartesian/flaw_generator
-        probfd/cartesian/ilao_policy_generator
-        probfd/cartesian/policy_based_flaw_generator
-        probfd/cartesian/probabilistic_transition_system
-        probfd/cartesian/split_selector
-        probfd/cartesian/subtask_generators
-        probfd/cartesian/trace_based_flaw_generator
-        probfd/cartesian/utils
+        probfd/cartesian_abstractions/abstract_state
+        probfd/cartesian_abstractions/abstraction
+        probfd/cartesian_abstractions/adaptive_flaw_generator
+        probfd/cartesian_abstractions/astar_trace_generator
+        probfd/cartesian_abstractions/cartesian_heuristic_function
+        probfd/cartesian_abstractions/cegar
+        probfd/cartesian_abstractions/cost_saturation
+        probfd/cartesian_abstractions/complete_policy_flaw_finder
+        probfd/cartesian_abstractions/distances
+        probfd/cartesian_abstractions/evaluators
+        probfd/cartesian_abstractions/flaw
+        probfd/cartesian_abstractions/flaw_generator
+        probfd/cartesian_abstractions/ilao_policy_generator
+        probfd/cartesian_abstractions/policy_based_flaw_generator
+        probfd/cartesian_abstractions/probabilistic_transition_system
+        probfd/cartesian_abstractions/split_selector
+        probfd/cartesian_abstractions/subtask_generators
+        probfd/cartesian_abstractions/trace_based_flaw_generator
+        probfd/cartesian_abstractions/utils
     DEPENDS 
         cartesian_abstractions
         additive_heuristic

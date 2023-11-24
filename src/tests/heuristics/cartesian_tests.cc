@@ -4,9 +4,9 @@
 
 #include "probfd/task_proxy.h"
 
-#include "probfd/cartesian/abstraction.h"
-#include "probfd/cartesian/probabilistic_transition_system.h"
-#include "probfd/cartesian/types.h"
+#include "probfd/cartesian_abstractions/abstraction.h"
+#include "probfd/cartesian_abstractions/probabilistic_transition_system.h"
+#include "probfd/cartesian_abstractions/types.h"
 
 #include "downward/cartesian_abstractions/refinement_hierarchy.h"
 
@@ -17,8 +17,9 @@
 #include <iostream>
 
 using namespace probfd;
+using namespace probfd::cartesian_abstractions;
 
-size_t get_num_transitions(const cartesian::ProbabilisticTransitionSystem& ts)
+size_t get_num_transitions(const ProbabilisticTransitionSystem& ts)
 {
     return ts.get_num_loops() + ts.get_num_non_loops();
 }
@@ -29,8 +30,8 @@ TEST(CartesianTests, test_probabilistic_transition_system)
     std::shared_ptr<ProbabilisticTask> task = tasks::read_sas_task(file);
     const ProbabilisticTaskProxy task_proxy(*task);
 
-    cartesian::RefinementHierarchy refinement_hierarchy(task);
-    cartesian::Abstraction abs(task_proxy, {}, utils::g_log);
+    RefinementHierarchy refinement_hierarchy(task);
+    Abstraction abs(task_proxy, {}, utils::g_log);
 
     ASSERT_EQ(
         get_num_transitions(abs.get_transition_system()),
@@ -59,8 +60,8 @@ TEST(CartesianTests, test_probabilistic_transition_system2)
     std::shared_ptr<ProbabilisticTask> task = tasks::read_sas_task(file);
     const ProbabilisticTaskProxy task_proxy(*task);
 
-    cartesian::RefinementHierarchy refinement_hierarchy(task);
-    cartesian::Abstraction abs(task_proxy, {}, utils::g_log);
+    RefinementHierarchy refinement_hierarchy(task);
+    Abstraction abs(task_proxy, {}, utils::g_log);
 
     ASSERT_EQ(abs.get_num_states(), 1);
     ASSERT_EQ(

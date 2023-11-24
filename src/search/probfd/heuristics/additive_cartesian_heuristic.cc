@@ -1,10 +1,10 @@
 #include "probfd/heuristics/additive_cartesian_heuristic.h"
 
-#include "probfd/cartesian/cartesian_heuristic_function.h"
-#include "probfd/cartesian/cost_saturation.h"
-#include "probfd/cartesian/flaw_generator.h"
-#include "probfd/cartesian/types.h"
-#include "probfd/cartesian/utils.h"
+#include "probfd/cartesian_abstractions/cartesian_heuristic_function.h"
+#include "probfd/cartesian_abstractions/cost_saturation.h"
+#include "probfd/cartesian_abstractions/flaw_generator.h"
+#include "probfd/cartesian_abstractions/types.h"
+#include "probfd/cartesian_abstractions/utils.h"
 
 #include "probfd/task_evaluator_factory.h"
 
@@ -18,7 +18,7 @@
 #include <cassert>
 
 using namespace std;
-using namespace probfd::cartesian;
+using namespace probfd::cartesian_abstractions;
 
 namespace probfd {
 namespace heuristics {
