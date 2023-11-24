@@ -358,8 +358,7 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval>::push(
 
         if constexpr (UseInterval) {
             parent_value_changed = parent_value_changed ||
-                                   (!this->get_state_info(stateid, sinfo)
-                                         .value.bounds_approximately_equal());
+                                   !sinfo.value.bounds_approximately_equal();
         }
 
         if (!transition) {
@@ -383,7 +382,7 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval>::push(
             expansion_queue_.emplace_back(stateid, transition->successor_dist);
         einfo.value_changed = value_changed;
     } else {
-        if (this->get_state_info(stateid, sinfo).is_dead_end()) {
+        if (sinfo.is_dead_end()) {
             sinfo.set_solved();
             return CLOSED_DEAD;
         }
@@ -427,9 +426,9 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::value_iteration(
             policy_not_conv = policy_not_conv || result.policy_changed;
 
             if constexpr (UseInterval) {
-                values_not_conv = values_not_conv ||
-                                  (!this->get_state_info(id)
-                                        .value.bounds_approximately_equal());
+                const StateInfo& info = this->get_state_info(id);
+                values_not_conv =
+                    values_not_conv || !info.value.bounds_approximately_equal();
             }
         }
 

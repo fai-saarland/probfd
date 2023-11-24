@@ -230,36 +230,6 @@ protected:
      */
     const StateInfo& get_state_info(StateID id) const;
 
-    /**
-     * @brief Get the state info object of a state, if needed.
-     *
-     * This method is used as a selection mechanism to obtain the correct
-     * state information object for a state. Algorithms like LRTDP may or
-     * may not store their algorithm specific state information separately
-     * from the base state information stored in this class. This method
-     * checks if the provided state info object is the required base state
-     * information object by checking for type equality and returns it if that
-     * is the case. Otherwise, the base state information object for this state
-     * is retrieved and returned.
-     */
-    template <typename AlgStateInfo>
-    StateInfo& get_state_info(StateID id, AlgStateInfo& info);
-
-    /**
-     * @brief Get the state info object of a state, if needed.
-     *
-     * This method is used as a selection mechanism to obtain the correct
-     * state information object for a state. Algorithms like LRTDP may or
-     * may not store their algorithm specific state information separately
-     * from the base state information stored in this class. This method
-     * checks if the provided state info object is the required base state
-     * information object by checking for type equality and returns it if that
-     * is the case. Otherwise, the base state information object for this state
-     * is retrieved and returned.
-     */
-    template <typename AlgStateInfo>
-    const StateInfo& get_state_info(StateID id, const AlgStateInfo& info) const;
-
     StateID sample_state(
         SuccessorSampler<Action>& sampler,
         StateID source,

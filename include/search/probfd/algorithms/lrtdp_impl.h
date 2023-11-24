@@ -118,14 +118,14 @@ void LRTDP<State, Action, UseInterval>::trial(
 
         if (!transition) {
             // terminal
-            assert(this->get_state_info(state_id, state_info).is_terminal());
+            assert(state_info.is_terminal());
             state_info.mark_solved();
             current_trial_.pop_back();
             break;
         }
 
         // state_info.mark_trial();
-        assert(!this->get_state_info(state_id, state_info).is_terminal());
+        assert(!state_info.is_terminal());
 
         if ((StopConsistent == CONSISTENT && !value_changed) ||
             (StopConsistent == INCONSISTENT && value_changed) ||
@@ -205,7 +205,7 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
         }
 
         if (!transition) {
-            assert(this->get_state_info(state_id, info).is_terminal());
+            assert(info.is_terminal());
             info.mark_solved();
             continue;
         }

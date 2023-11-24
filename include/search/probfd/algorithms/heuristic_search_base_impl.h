@@ -289,32 +289,6 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::get_state_info(
 }
 
 template <typename State, typename Action, typename StateInfoT>
-template <typename AlgStateInfo>
-auto HeuristicSearchBase<State, Action, StateInfoT>::get_state_info(
-    StateID id,
-    AlgStateInfo& info) -> StateInfo&
-{
-    if constexpr (std::is_same_v<AlgStateInfo, StateInfo>) {
-        return info;
-    } else {
-        return get_state_info(id);
-    }
-}
-
-template <typename State, typename Action, typename StateInfoT>
-template <typename AlgStateInfo>
-auto HeuristicSearchBase<State, Action, StateInfoT>::get_state_info(
-    StateID id,
-    const AlgStateInfo& info) const -> const StateInfo&
-{
-    if constexpr (std::is_same_v<AlgStateInfo, StateInfo>) {
-        return info;
-    } else {
-        return get_state_info(id);
-    }
-}
-
-template <typename State, typename Action, typename StateInfoT>
 StateID HeuristicSearchBase<State, Action, StateInfoT>::sample_state(
     SuccessorSampler<Action>& sampler,
     StateID source,
