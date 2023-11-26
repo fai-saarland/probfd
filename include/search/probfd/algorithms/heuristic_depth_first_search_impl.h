@@ -107,18 +107,11 @@ void HeuristicDepthFirstSearch<State, Action, UseInterval>::
 {
     bool terminate = false;
     do {
-        if (!policy_exploration<true>(mdp, heuristic, stateid, timer)) {
-            unsigned ups = statistics_.backtracking_updates;
-            statistics_.convergence_value_iterations++;
-            auto x = value_iteration(mdp, heuristic, visited_, false, timer);
-            terminate = !x.first && !x.second;
-            statistics_.convergence_updates +=
-                (statistics_.backtracking_updates - ups);
-            statistics_.backtracking_updates = ups;
-        }
+        terminate = policy_exploration<true>(mdp, heuristic, stateid, timer) &&
+                    value_iteration(mdp, heuristic, visited_, timer);
 
         visited_.clear();
-        statistics_.iterations++;
+        ++statistics_.iterations;
         progress.print();
     } while (!terminate);
 }
@@ -134,8 +127,8 @@ void HeuristicDepthFirstSearch<State, Action, UseInterval>::
 {
     bool terminate = false;
     do {
-        terminate = !policy_exploration<false>(mdp, heuristic, stateid, timer);
-        statistics_.iterations++;
+        terminate = policy_exploration<false>(mdp, heuristic, stateid, timer);
+        ++statistics_.iterations;
         progress.print();
         assert(visited_.empty());
     } while (!terminate);
@@ -163,11 +156,11 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
 
         if (pers_info.is_solved()) {
             // is terminal
-            return false;
+            return true;
         }
 
         if (pstatus != ONSTACK) {
-            return value_changed || pruned;
+            return !value_changed && !pruned;
         }
 
         stack_.push_back(state);
@@ -223,8 +216,11 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
                 }
 
                 if (BackwardUpdates == CONVERGENCE && last_unsolved_succs) {
-                    auto result =
-                        value_iteration(mdp, heuristic, scc, true, timer);
+                    auto result = backtracking_value_iteration(
+                        mdp,
+                        heuristic,
+                        scc,
+                        timer);
                     last_value_changed = result.first;
                     last_unsolved_succs = result.second || last_unsolved_succs;
                 }
@@ -250,7 +246,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
             expansion_queue_.pop_back();
 
             if (expansion_queue_.empty())
-                return last_unsolved_succs || last_value_changed;
+                return !last_unsolved_succs && !last_value_changed;
 
             einfo = &expansion_queue_.back();
             sinfo = &state_infos_[einfo->stateid];
@@ -398,45 +394,86 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval>::push(
 }
 
 template <typename State, typename Action, bool UseInterval>
-std::pair<bool, bool>
-HeuristicDepthFirstSearch<State, Action, UseInterval>::value_iteration(
-    MDP& mdp,
-    Evaluator& heuristic,
-    const std::ranges::input_range auto& range,
-    bool until_convergence,
-    utils::CountdownTimer& timer)
+std::pair<bool, bool> HeuristicDepthFirstSearch<State, Action, UseInterval>::
+    backtracking_value_iteration(
+        MDP& mdp,
+        Evaluator& heuristic,
+        const std::ranges::input_range auto& range,
+        utils::CountdownTimer& timer)
 {
     bool ever_values_not_conv = false;
     bool ever_policy_not_conv = false;
 
-    bool values_not_conv;
-    bool policy_not_conv;
+    for (;;) {
+        auto [value_changed, policy_changed] = vi_step(
+            mdp,
+            heuristic,
+            range,
+            timer,
+            statistics_.backtracking_updates);
 
-    do {
-        values_not_conv = false;
-        policy_not_conv = false;
+        ever_values_not_conv = ever_values_not_conv || value_changed;
+        ever_policy_not_conv = ever_values_not_conv || policy_changed;
 
-        for (const StateID id : range) {
-            timer.throw_if_expired();
-
-            statistics_.backtracking_updates++;
-
-            const auto result = this->bellman_policy_update(mdp, heuristic, id);
-            values_not_conv = values_not_conv || result.value_changed;
-            policy_not_conv = policy_not_conv || result.policy_changed;
-
-            if constexpr (UseInterval) {
-                const StateInfo& info = this->get_state_info(id);
-                values_not_conv =
-                    values_not_conv || !info.value.bounds_approximately_equal();
-            }
-        }
-
-        ever_values_not_conv = ever_values_not_conv || values_not_conv;
-        ever_policy_not_conv = ever_policy_not_conv || policy_not_conv;
-    } while (values_not_conv && (until_convergence || !policy_not_conv));
+        if (!value_changed) break;
+    }
 
     return std::make_pair(ever_values_not_conv, ever_policy_not_conv);
+}
+
+template <typename State, typename Action, bool UseInterval>
+bool HeuristicDepthFirstSearch<State, Action, UseInterval>::value_iteration(
+    MDP& mdp,
+    Evaluator& heuristic,
+    const std::ranges::input_range auto& range,
+    utils::CountdownTimer& timer)
+{
+    ++statistics_.convergence_value_iterations;
+
+    for (;;) {
+        auto [value_changed, policy_changed] = vi_step(
+            mdp,
+            heuristic,
+            range,
+            timer,
+            statistics_.convergence_updates);
+
+        if (policy_changed) return false;
+        if (!value_changed) break;
+    }
+
+    return true;
+}
+
+template <typename State, typename Action, bool UseInterval>
+std::pair<bool, bool>
+HeuristicDepthFirstSearch<State, Action, UseInterval>::vi_step(
+    MDP& mdp,
+    Evaluator& heuristic,
+    const std::ranges::input_range auto& range,
+    utils::CountdownTimer& timer,
+    unsigned long long& stat_counter)
+{
+    bool values_not_conv = false;
+    bool policy_not_conv = false;
+
+    for (const StateID id : range) {
+        timer.throw_if_expired();
+
+        ++stat_counter;
+
+        const auto result = this->bellman_policy_update(mdp, heuristic, id);
+        values_not_conv = values_not_conv || result.value_changed;
+        policy_not_conv = policy_not_conv || result.policy_changed;
+
+        if constexpr (UseInterval) {
+            const StateInfo& info = this->get_state_info(id);
+            values_not_conv =
+                values_not_conv || !info.value.bounds_approximately_equal();
+        }
+    }
+
+    return std::make_pair(values_not_conv, policy_not_conv);
 }
 
 } // namespace heuristic_depth_first_search

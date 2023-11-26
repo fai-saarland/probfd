@@ -209,12 +209,24 @@ private:
         bool& parent_value_changed,
         bool& parent_unsolved_successors);
 
-    std::pair<bool, bool> value_iteration(
+    bool value_iteration(
         MDP& mdp,
         Evaluator& heuristic,
         const std::ranges::input_range auto& range,
-        bool until_convergence,
         utils::CountdownTimer& timer);
+
+    std::pair<bool, bool> backtracking_value_iteration(
+        MDP& mdp,
+        Evaluator& heuristic,
+        const std::ranges::input_range auto& range,
+        utils::CountdownTimer& timer);
+
+    std::pair<bool, bool> vi_step(
+        MDP& mdp,
+        Evaluator& heuristic,
+        const std::ranges::input_range auto& range,
+        utils::CountdownTimer& timer,
+        unsigned long long& stat_counter);
 };
 
 } // namespace heuristic_depth_first_search
