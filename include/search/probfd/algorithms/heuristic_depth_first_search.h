@@ -60,9 +60,8 @@ enum StateStatus {
     NEW = 0,
     ONSTACK = 1,
     CLOSED = 2,
-    CLOSED_DEAD = 3,
-    UNSOLVED = 4,
-    UNDEF = ((unsigned)-1) >> 1
+    UNSOLVED = 3,
+    UNDEF = std::numeric_limits<unsigned>::max() >> 1
 };
 
 struct LocalStateInfo {
@@ -91,7 +90,6 @@ struct ExpansionInfo {
 
     std::vector<StateID> successors;
 
-    bool dead = true;
     bool unsolved_succs = false;
     bool value_changed = false;
 
@@ -206,8 +204,7 @@ private:
         Evaluator& heuristic,
         StateID stateid,
         StateInfo& sinfo,
-        bool& parent_value_changed,
-        bool& parent_unsolved_successors);
+        bool& parent_value_changed);
 
     bool value_iteration(
         MDP& mdp,

@@ -150,9 +150,8 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
     {
         StateInfo& pers_info = this->get_state_info(state);
         bool value_changed = false;
-        bool pruned = false;
         const uint8_t pstatus =
-            push(mdp, heuristic, state, pers_info, value_changed, pruned);
+            push(mdp, heuristic, state, pers_info, value_changed);
 
         if (pers_info.is_solved()) {
             // is terminal
@@ -160,7 +159,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
         }
 
         if (pstatus != ONSTACK) {
-            return !value_changed && !pruned;
+            return !value_changed && pstatus != UNSOLVED;
         }
 
         stack_.push_back(state);
@@ -189,7 +188,6 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
         do {
             unsigned last_lowlink = sinfo->lowlink;
             bool last_unsolved_succs = einfo->unsolved_succs;
-            bool last_dead = einfo->dead;
             bool last_value_changed = einfo->value_changed;
 
             if (BackwardUpdates == SINGLE ||
@@ -225,14 +223,11 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
                     last_unsolved_succs = result.second || last_unsolved_succs;
                 }
 
-                last_dead = false;
-
                 last_unsolved_succs = last_unsolved_succs || last_value_changed;
 
                 if (!last_unsolved_succs) {
-                    const uint8_t closed = last_dead ? CLOSED_DEAD : CLOSED;
                     for (const StateID state_id : scc) {
-                        state_infos_[state_id].status = closed;
+                        state_infos_[state_id].status = CLOSED;
 
                         if (LabelSolved) {
                             this->get_state_info(state_id).set_solved();
@@ -255,7 +250,6 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
             einfo->unsolved_succs =
                 einfo->unsolved_succs || last_unsolved_succs;
             einfo->value_changed = einfo->value_changed || last_value_changed;
-            einfo->dead = einfo->dead && last_dead;
         } while (!einfo->next_successor() || !keep_expanding);
     }
 }
@@ -279,10 +273,6 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::push_successor(
         StateInfo& pers_succ_info = this->get_state_info(succid);
 
         if (pers_succ_info.is_solved()) {
-            if (!this->is_marked_dead_end(succid)) {
-                einfo.dead = false;
-            }
-
             continue;
         }
 
@@ -293,8 +283,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::push_successor(
                 heuristic,
                 succid,
                 pers_succ_info,
-                einfo.value_changed,
-                einfo.unsolved_succs);
+                einfo.value_changed);
 
             if (status == ONSTACK) {
                 succ_info.open(stack_.size());
@@ -306,9 +295,6 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::push_successor(
 
             if (status == UNSOLVED) {
                 einfo.unsolved_succs = true;
-                einfo.dead = false;
-            } else if (status == CLOSED) {
-                einfo.dead = false;
             }
 
             if (GreedyExploration && einfo.unsolved_succs) {
@@ -320,7 +306,6 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::push_successor(
         } else {
             einfo.unsolved_succs =
                 einfo.unsolved_succs || succ_info.status == UNSOLVED;
-            einfo.dead = einfo.dead && succ_info.status == CLOSED_DEAD;
         }
     } while (einfo.next_successor());
 
@@ -333,12 +318,16 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval>::push(
     Evaluator& heuristic,
     StateID stateid,
     StateInfo& sinfo,
-    bool& parent_value_changed,
-    bool& parent_unsolved_succss)
+    bool& parent_value_changed)
 {
     using namespace internal;
 
     assert(!sinfo.is_solved());
+
+    if (sinfo.is_dead_end()) {
+        sinfo.set_solved();
+        return CLOSED;
+    }
 
     const bool is_tip_state = !sinfo.is_policy_initialized();
 
@@ -359,18 +348,11 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval>::push(
 
         if (!transition) {
             sinfo.set_solved();
-            uint8_t closed = CLOSED;
-            if (this->is_marked_dead_end(stateid)) {
-                closed = CLOSED_DEAD;
-            }
-
-            return value_changed ? UNSOLVED : closed;
+            return CLOSED;
         }
 
         if ((!ExpandTipStates && is_tip_state) ||
             (CutoffInconsistent && value_changed)) {
-            parent_unsolved_succss = true;
-
             return UNSOLVED;
         }
 
@@ -378,11 +360,6 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval>::push(
             expansion_queue_.emplace_back(stateid, transition->successor_dist);
         einfo.value_changed = value_changed;
     } else {
-        if (sinfo.is_dead_end()) {
-            sinfo.set_solved();
-            return CLOSED_DEAD;
-        }
-
         const auto transition =
             this->bellman_policy_update(mdp, heuristic, stateid)
                 .greedy_transition;
