@@ -162,7 +162,8 @@ bool TopologicalValueIteration<State, Action, UseInterval>::StackInfo::
     }
 
     if constexpr (UseInterval) {
-        return update(*value, v) || !value->bounds_approximately_equal();
+        update(*value, v);
+        return !value->bounds_approximately_equal();
     } else {
         return update(*value, v);
     }
@@ -507,19 +508,19 @@ void TopologicalValueIteration<State, Action, UseInterval>::scc_found(
         }
 
         // Now run VI on the SCC until convergence
-        bool changed;
+        bool converged;
 
         do {
             timer.throw_if_expired();
 
-            changed = false;
+            converged = true;
             auto it = begin;
 
             do {
-                changed |= it->update_value();
+                if (it->update_value()) converged = false;
                 ++statistics_.bellman_backups;
             } while (++it != end);
-        } while (changed);
+        } while (!converged);
 
         // Extract a policy from this SCC
         if (policy) {

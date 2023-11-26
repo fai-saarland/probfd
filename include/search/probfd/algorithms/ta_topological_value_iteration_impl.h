@@ -149,7 +149,8 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::StackInfo::
     }
 
     if constexpr (UseInterval) {
-        return update(*value, v) || !value->bounds_equal();
+        update(*value, v);
+        return !value->bounds_equal();
     } else {
         return update(*value, v);
     }
@@ -627,19 +628,19 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
     }
 
     // Now run VI on the SCC until convergence
-    bool changed;
+    bool converged;
 
     do {
         timer.throw_if_expired();
 
-        changed = false;
+        converged = true;
         auto it = begin;
 
         do {
-            changed |= it->update_value(value_store);
+            if (it->update_value(value_store)) converged = false;
             ++statistics_.bellman_backups;
         } while (++it != end);
-    } while (changed);
+    } while (!converged);
 
     stack_.erase(begin, end);
 }
