@@ -31,10 +31,10 @@ bool set_min(value_t& lhs, value_t rhs)
     return false;
 }
 
-bool update(Interval& lhs, Interval rhs, bool check_upper)
+bool update(Interval& lhs, Interval rhs)
 {
     const bool result = is_approx_greater(rhs.lower, lhs.lower) ||
-                        (check_upper && is_approx_less(rhs.upper, lhs.upper));
+                        is_approx_less(rhs.upper, lhs.upper);
     lhs.lower = std::max(lhs.lower, rhs.lower);
     lhs.upper = std::min(lhs.upper, rhs.upper);
     assert(!is_approx_less(lhs.upper, lhs.lower));

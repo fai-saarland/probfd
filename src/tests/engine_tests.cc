@@ -84,7 +84,7 @@ TEST(EngineTests, test_interval_update3)
     Interval interval(8.0_vt, 40.0_vt);
     Interval interval2(25.0_vt, 30.0_vt);
 
-    bool result = algorithms::update(interval, interval2, false);
+    bool result = algorithms::update(interval, interval2);
 
     ASSERT_TRUE(result);
     ASSERT_EQ(interval.lower, std::max(8.0_vt, 25.0_vt));
@@ -96,7 +96,7 @@ TEST(EngineTests, test_interval_update4)
     Interval interval(8.0_vt, 40.0_vt);
     Interval interval2(7.0_vt, 39.0_vt);
 
-    bool result = algorithms::update(interval, interval2, false);
+    bool result = algorithms::update(interval, interval2);
 
     ASSERT_FALSE(result);
     ASSERT_EQ(interval.lower, std::max(8.0_vt, 7.0_vt));

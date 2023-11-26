@@ -72,15 +72,13 @@ bool set_min(value_t& lhs, value_t rhs);
  * @brief Intersects two intervals and assigns the result to the left
  * operand.
  *
- * @returns \b true if the lower bound of the left operand changed by more
- * than g_epsilon or if check_upper is true and the greater
- * bound of the left operand changed by more than g_epsilon.
- * \b false otherwise.
+ * @returns \b true if the lower or upper bound of the left operand changed by
+ * more than g_epsilon, \b false otherwise.
  *
  * @warning It is undefined behaviour to call this function with two
  * non-intersecting intervals.
  */
-bool update(Interval& lhs, Interval rhs, bool check_upper = true);
+bool update(Interval& lhs, Interval rhs);
 
 // Value update
 bool update(value_t& lhs, value_t rhs);
