@@ -1,36 +1,28 @@
 #!/usr/bin/env python3
 
 import errno
-import glob
 import os
 import subprocess
 import sys
 
-CONFIGS = {}
-script_dir = os.path.dirname(__file__)
-for config_file in sorted(
-        glob.glob(os.path.join(script_dir, "*build_configs.py"))):
-    with open(config_file) as f:
-        config_file_content = f.read()
-        exec(config_file_content, globals(), CONFIGS)
+import build_configs
 
+CONFIGS = {config: params for config, params in build_configs.__dict__.items()
+           if not config.startswith("_")}
 DEFAULT_CONFIG_NAME = CONFIGS.pop("DEFAULT")
 DEBUG_CONFIG_NAME = CONFIGS.pop("DEBUG")
-
 CMAKE = "cmake"
-CMAKE_GENERATORS = None
+CMAKE_GENERATOR = None
 if os.name == "posix":
     CMAKE_GENERATOR = "Unix Makefiles"
 elif os.name == "nt":
-    CMAKE_GENERATOR = "Ninja"
-
+    CMAKE_GENERATOR = "Visual Studio 17 2022"
 try:
     # Number of usable CPUs (Unix only)
     NUM_CPUS = len(os.sched_getaffinity(0))
 except AttributeError:
     # Number of available CPUs as a fall-back (may be None)
     NUM_CPUS = os.cpu_count()
-
 
 def print_usage():
     script_name = os.path.basename(__file__)
@@ -46,8 +38,7 @@ def print_usage():
     generator_name = CMAKE_GENERATOR.lower()
     default_config_name = DEFAULT_CONFIG_NAME
     debug_config_name = DEBUG_CONFIG_NAME
-    print(
-        f"""Usage: {script_name} [BUILD [BUILD ...]] [--all] [--debug] [MAKE_OPTIONS]
+    print(f"""Usage: {script_name} [BUILD [BUILD ...]] [--all] [--debug] [MAKE_OPTIONS]
 
 Build one or more predefined build configurations of Fast Downward. Each build
 uses {cmake_name} to compile the code using {generator_name}. Build configurations
@@ -91,24 +82,21 @@ def get_src_path():
 def get_build_path(config_name):
     return os.path.join(get_builds_path(), config_name)
 
-
 def try_run(cmd):
     print(f'Executing command "{" ".join(cmd)}"')
     try:
         subprocess.check_call(cmd)
     except OSError as exc:
         if exc.errno == errno.ENOENT:
-            print(
-                f"Could not find '{cmd[0]}' on your PATH. For installation instructions, "
-                "see https://www.fast-downward.org/ObtainingAndRunningFastDownward."
-            )
+            print(f"Could not find '{cmd[0]}' on your PATH. For installation instructions, "
+                "see BUILD.md in the project root directory.")
             sys.exit(1)
         else:
             raise
 
-
 def build(config_name, configure_parameters, build_parameters):
     print(f"Building configuration {config_name}.")
+    
     build_path = get_build_path(config_name)
     generator_cmd = [CMAKE, "-S", get_project_root_path(), "-B", build_path]
     if CMAKE_GENERATOR:
