@@ -2,6 +2,8 @@
 
 #include "probfd/merge_and_shrink/transition_system.h"
 
+#include "downward/algorithms/priority_queues.h"
+
 #include "downward/utils/logging.h"
 
 #include <cassert>
@@ -11,6 +13,29 @@ using namespace std;
 
 namespace probfd::merge_and_shrink {
 
+static void dijkstra_search(
+    const vector<vector<pair<int, value_t>>>& graph,
+    priority_queues::HeapQueue<value_t, int>& queue,
+    vector<value_t>& distances)
+{
+    while (!queue.empty()) {
+        pair<int, int> top_pair = queue.pop();
+        int distance = top_pair.first;
+        int state = top_pair.second;
+        value_t state_distance = distances[state];
+        assert(state_distance <= distance);
+        if (state_distance < distance) continue;
+        for (size_t i = 0; i < graph[state].size(); ++i) {
+            const auto [successor, cost] = graph[state][i];
+            value_t successor_cost = state_distance + cost;
+            if (distances[successor] > successor_cost) {
+                distances[successor] = successor_cost;
+                queue.push(successor_cost, successor);
+            }
+        }
+    }
+}
+
 Distances::Distances(const TransitionSystem& transition_system)
     : transition_system(transition_system)
 {
@@ -18,7 +43,24 @@ Distances::Distances(const TransitionSystem& transition_system)
 
 void Distances::compute_init_distances()
 {
-    // TODO
+    vector<vector<pair<int, value_t>>> forward_graph(
+        transition_system.get_size());
+    for (const LocalLabelInfo& local_label_info : transition_system) {
+        const vector<Transition>& transitions =
+            local_label_info.get_transitions();
+        value_t cost = local_label_info.get_cost();
+        for (const auto& [src, targets] : transitions) {
+            for (int target : targets) {
+                forward_graph[src].emplace_back(target, cost);
+            }
+        }
+    }
+
+    // TODO: Reuse the same queue for multiple computations to save speed?
+    priority_queues::HeapQueue<value_t, int> queue;
+    init_distances[transition_system.get_init_state()] = 0;
+    queue.push(0, transition_system.get_init_state());
+    dijkstra_search(forward_graph, queue, init_distances);
 
     init_distances_computed = true;
 }
