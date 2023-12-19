@@ -1,8 +1,10 @@
-#include "../../../include/probfd/merge_and_shrink/distances.h"
+#include "probfd/merge_and_shrink/distances.h"
 
-#include "../../../include/probfd/merge_and_shrink/transition_system.h"
+#include "probfd/merge_and_shrink/transition_system.h"
 
-#include "../../../include/downward/utils/logging.h"
+#include "downward/algorithms/priority_queues.h"
+
+#include "downward/utils/logging.h"
 
 #include <cassert>
 #include <deque>
@@ -11,6 +13,31 @@ using namespace std;
 
 namespace probfd::merge_and_shrink {
 
+static void dijkstra_search(
+    const vector<vector<pair<int, value_t>>>& graph,
+    priority_queues::HeapQueue<value_t, int>& queue,
+    vector<value_t>& distances)
+{
+    while (!queue.empty()) {
+        const auto [distance, state] = queue.pop();
+
+        const value_t state_distance = distances[state];
+
+        assert(state_distance <= distance);
+
+        if (state_distance < distance) continue;
+
+        for (size_t i = 0; i < graph[state].size(); ++i) {
+            const auto [successor, cost] = graph[state][i];
+            if (const value_t successor_cost = state_distance + cost;
+                distances[successor] > successor_cost) {
+                distances[successor] = successor_cost;
+                queue.push(successor_cost, successor);
+            }
+        }
+    }
+}
+
 Distances::Distances(const TransitionSystem& transition_system)
     : transition_system(transition_system)
 {
@@ -18,7 +45,24 @@ Distances::Distances(const TransitionSystem& transition_system)
 
 void Distances::compute_init_distances()
 {
-    // TODO
+    vector<vector<pair<int, value_t>>> forward_graph(
+        transition_system.get_size());
+    for (const LocalLabelInfo& local_label_info : transition_system) {
+        const vector<Transition>& transitions =
+            local_label_info.get_transitions();
+        value_t cost = local_label_info.get_cost();
+        for (const auto& [src, targets] : transitions) {
+            for (int target : targets) {
+                forward_graph[src].emplace_back(target, cost);
+            }
+        }
+    }
+
+    // TODO: Reuse the same queue for multiple computations to save speed?
+    priority_queues::HeapQueue<value_t, int> queue;
+    init_distances[transition_system.get_init_state()] = 0;
+    queue.push(0, transition_system.get_init_state());
+    dijkstra_search(forward_graph, queue, init_distances);
 
     init_distances_computed = true;
 }
@@ -114,17 +158,19 @@ void Distances::apply_abstraction(
         assert(are_init_distances_computed());
         assert(state_equivalence_relation.size() < init_distances.size());
     }
+
     if (compute_goal_distances) {
         assert(are_goal_distances_computed());
         assert(state_equivalence_relation.size() < goal_distances.size());
     }
 
-    int new_num_states = state_equivalence_relation.size();
+    const int new_num_states = state_equivalence_relation.size();
     vector<value_t> new_init_distances;
     vector<value_t> new_goal_distances;
     if (compute_init_distances) {
         new_init_distances.resize(new_num_states, DISTANCE_UNKNOWN);
     }
+
     if (compute_goal_distances) {
         new_goal_distances.resize(new_num_states, DISTANCE_UNKNOWN);
     }
@@ -140,6 +186,7 @@ void Distances::apply_abstraction(
         if (compute_init_distances) {
             new_init_dist = init_distances[*pos];
         }
+
         if (compute_goal_distances) {
             new_goal_dist = goal_distances[*pos];
         }
@@ -157,6 +204,7 @@ void Distances::apply_abstraction(
                 log << transition_system.tag()
                     << "simplification was not f-preserving!" << endl;
             }
+
             init_distances.clear();
             goal_distances.clear();
             init_distances_computed = false;
