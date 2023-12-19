@@ -339,8 +339,10 @@ void MergeAndShrinkAlgorithm::main_loop(
 
 FactoredTransitionSystem
 MergeAndShrinkAlgorithm::build_factored_transition_system(
-    const ProbabilisticTaskProxy& task_proxy)
+    std::shared_ptr<ProbabilisticTask>& task)
 {
+    ProbabilisticTaskProxy task_proxy(*task);
+
     ::task_properties::verify_no_axioms(task_proxy);
     task_properties::verify_no_conditional_effects(task_proxy);
 
@@ -438,7 +440,7 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     }
 
     unique_ptr<MergeStrategy> merge_strategy =
-        merge_strategy_factory->compute_merge_strategy(task_proxy, fts);
+        merge_strategy_factory->compute_merge_strategy(task, fts);
     merge_strategy_factory = nullptr;
 
     main_loop(fts, *merge_strategy, loop_timer);

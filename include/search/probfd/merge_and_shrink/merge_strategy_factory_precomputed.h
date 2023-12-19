@@ -20,7 +20,7 @@ public:
     explicit MergeStrategyFactoryPrecomputed(const plugins::Options& options);
 
     std::unique_ptr<MergeStrategy> compute_merge_strategy(
-        const ProbabilisticTaskProxy& task_proxy,
+        std::shared_ptr<ProbabilisticTask>& task,
         const FactoredTransitionSystem& fts) override;
 
     bool requires_init_distances() const override;

@@ -16,7 +16,8 @@ class CountdownTimer;
 
 namespace probfd {
 class ProbabilisticTaskProxy;
-}
+class ProbabilisticTask;
+} // namespace probfd
 
 namespace probfd::merge_and_shrink {
 class FactoredTransitionSystem;
@@ -64,7 +65,7 @@ class MergeAndShrinkAlgorithm {
 public:
     explicit MergeAndShrinkAlgorithm(const plugins::Options& opts);
     FactoredTransitionSystem
-    build_factored_transition_system(const ProbabilisticTaskProxy& task_proxy);
+    build_factored_transition_system(std::shared_ptr<ProbabilisticTask>& task);
 };
 
 extern void
