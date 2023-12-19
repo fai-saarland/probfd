@@ -12,7 +12,8 @@ class Feature;
 
 namespace probfd {
 class ProbabilisticTaskProxy;
-}
+class ProbabilisticTask;
+} // namespace probfd
 
 namespace probfd::merge_and_shrink {
 class FactoredTransitionSystem;
@@ -33,7 +34,7 @@ public:
     void dump_options() const;
 
     virtual std::unique_ptr<MergeStrategy> compute_merge_strategy(
-        const ProbabilisticTaskProxy& task_proxy,
+        std::shared_ptr<ProbabilisticTask>& task,
         const FactoredTransitionSystem& fts) = 0;
 
     virtual bool requires_init_distances() const = 0;

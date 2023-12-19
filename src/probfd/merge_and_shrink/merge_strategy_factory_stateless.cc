@@ -3,7 +3,11 @@
 #include "probfd/merge_and_shrink/merge_selector.h"
 #include "probfd/merge_and_shrink/merge_strategy_stateless.h"
 
+#include "probfd/task_proxy.h"
+
 #include "downward/cli/plugins/plugin.h"
+
+#include "downward/utils/memory.h"
 
 using namespace std;
 using namespace downward::cli::plugins;
@@ -19,9 +23,10 @@ MergeStrategyFactoryStateless::MergeStrategyFactoryStateless(
 }
 
 unique_ptr<MergeStrategy> MergeStrategyFactoryStateless::compute_merge_strategy(
-    const ProbabilisticTaskProxy& task_proxy,
+    std::shared_ptr<ProbabilisticTask>& task,
     const FactoredTransitionSystem& fts)
 {
+    const ProbabilisticTaskProxy task_proxy(*task);
     merge_selector->initialize(task_proxy);
     return std::make_unique<MergeStrategyStateless>(fts, merge_selector);
 }
