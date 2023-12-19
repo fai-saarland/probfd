@@ -46,10 +46,8 @@ void Distances::compute_init_distances()
     vector<vector<pair<int, value_t>>> forward_graph(
         transition_system.get_size());
     for (const LocalLabelInfo& local_label_info : transition_system) {
-        const vector<Transition>& transitions =
-            local_label_info.get_transitions();
-        value_t cost = local_label_info.get_cost();
-        for (const auto& [src, targets] : transitions) {
+        const value_t cost = local_label_info.get_cost();
+        for (const auto& [src, targets] : local_label_info.get_transitions()) {
             for (int target : targets) {
                 forward_graph[src].emplace_back(target, cost);
             }
