@@ -25,9 +25,6 @@ class MergeStrategyFactory {
 protected:
     mutable utils::LogProxy log;
 
-    virtual std::string name() const = 0;
-    virtual void dump_strategy_specific_options() const = 0;
-
 public:
     explicit MergeStrategyFactory(utils::Verbosity verbosity);
 
@@ -41,10 +38,18 @@ public:
 
     virtual bool requires_init_distances() const = 0;
     virtual bool requires_goal_distances() const = 0;
+
+protected:
+    virtual std::string name() const = 0;
+    virtual void dump_strategy_specific_options() const = 0;
 };
 
 extern void
 add_merge_strategy_options_to_feature(downward::cli::plugins::Feature& feature);
+
+extern std::tuple<::utils::Verbosity>
+get_merge_strategy_args_from_options(
+    const downward::cli::plugins::Options& options);
 
 } // namespace probfd::merge_and_shrink
 

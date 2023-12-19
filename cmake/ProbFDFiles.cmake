@@ -343,30 +343,26 @@ create_library(
         probfd/merge_and_shrink/labels
         probfd/merge_and_shrink/merge_and_shrink_algorithm
         probfd/merge_and_shrink/merge_and_shrink_representation
-        #probfd/merge_and_shrink/merge_scoring_function
-        #probfd/merge_and_shrink/merge_scoring_function_dfp
-        #probfd/merge_and_shrink/merge_scoring_function_goal_relevance
-        #probfd/merge_and_shrink/merge_scoring_function_miasm
-        #probfd/merge_and_shrink/merge_scoring_function_miasm_utils
-        #probfd/merge_and_shrink/merge_scoring_function_single_random
-        #probfd/merge_and_shrink/merge_scoring_function_total_order
-        #probfd/merge_and_shrink/merge_selector
-        #probfd/merge_and_shrink/merge_selector_score_based_filtering
+        probfd/merge_and_shrink/merge_scoring_function
+        probfd/merge_and_shrink/merge_scoring_function_dfp
+        probfd/merge_and_shrink/merge_scoring_function_goal_relevance
+        probfd/merge_and_shrink/merge_scoring_function_miasm
+        probfd/merge_and_shrink/merge_scoring_function_miasm_utils
+        probfd/merge_and_shrink/merge_scoring_function_single_random
+        probfd/merge_and_shrink/merge_scoring_function_total_order
+        probfd/merge_and_shrink/merge_selector
+        probfd/merge_and_shrink/merge_selector_score_based_filtering
         probfd/merge_and_shrink/merge_strategy
         probfd/merge_and_shrink/merge_strategy_factory
         #probfd/merge_and_shrink/merge_strategy_factory_precomputed
         #probfd/merge_and_shrink/merge_strategy_factory_sccs
-        #probfd/merge_and_shrink/merge_strategy_factory_stateless
+        probfd/merge_and_shrink/merge_strategy_factory_stateless
         #probfd/merge_and_shrink/merge_strategy_precomputed
         #probfd/merge_and_shrink/merge_strategy_sccs
-        #probfd/merge_and_shrink/merge_strategy_stateless
+        probfd/merge_and_shrink/merge_strategy_stateless
         #probfd/merge_and_shrink/merge_tree
         #probfd/merge_and_shrink/merge_tree_factory
         #probfd/merge_and_shrink/merge_tree_factory_linear
-        #probfd/merge_and_shrink/shrink_bisimulation
-        #probfd/merge_and_shrink/shrink_bucket_based
-        #probfd/merge_and_shrink/shrink_fh
-        #probfd/merge_and_shrink/shrink_random
         probfd/merge_and_shrink/shrink_strategy
         probfd/merge_and_shrink/shrink_strategy_bucket_based
         probfd/merge_and_shrink/shrink_strategy_equal_distance
