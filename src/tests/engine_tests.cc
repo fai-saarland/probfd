@@ -98,7 +98,7 @@ TEST(EngineTests, test_interval_update4)
 
     bool result = algorithms::update(interval, interval2);
 
-    ASSERT_FALSE(result);
+    ASSERT_TRUE(result);
     ASSERT_EQ(interval.lower, std::max(8.0_vt, 7.0_vt));
     ASSERT_EQ(interval.upper, std::min(40.0_vt, 39.0_vt));
 }
