@@ -1,0 +1,103 @@
+\newcommand{\xcup}{\dot\cup}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+\newcommand{\norm}[1]{\lVert#1\rVert}
+\newcommand{\argmax}{\operatornamewithlimits{argmax}}
+\newcommand{\reals}{\mathbb R}
+\newcommand{\naturalnumbers}{\mathbb N}
+\newcommand{\poly}{{\bf P}}
+\newcommand{\np}{{\bf NP}}
+\newcommand{\conp}{{\bf co-NP}}
+\newcommand{\pspace}{{\bf PSPACE}}
+\newcommand{\npspace}{{\bf NPSPACE}}
+\newcommand{\astar}{\textrm{A}^*}
+\newcommand{\hplus}{h^+}
+\newcommand{\hmax}{h^{\text{\textup{max}}}}
+\newcommand{\hadd}{h^{\text{\textup{add}}}}
+\newcommand{\hff}{h^{\text{\textup{FF}}}}
+\newcommand{\hone}{h^1}
+\newcommand{\hm}{h^m}
+\newcommand{\hC}{h^C}
+\newcommand{\hblind}{h^0}
+\newcommand{\hstar}{h^*}
+\newcommand{\task}{\Pi}
+\newcommand{\plan}{\vec{a}}
+\newcommand{\vars}{V}
+\newcommand{\domain}{D}
+\newcommand{\ini}{I}
+\newcommand{\goal}{G}
+\newcommand{\ops}{A}
+\newcommand{\pre}{\mathit{pre}}
+\newcommand{\prevail}{\mathit{prev}}
+\newcommand{\eff}{\mathit{eff}}
+\newcommand{\add}{\mathit{add}}
+\newcommand{\del}{\mathit{del}}
+\newcommand{\cost}{c}
+\newcommand{\regress}{\mathit{regr}}
+\newcommand{\bestsupport}{\mathit{bs}}
+\newcommand{\bestsupporthmax}{\bestsupport^{\text{\textup{max}}}}
+\newcommand{\bestsupporthadd}{\bestsupport^{\text{\textup{add}}}}
+\newcommand{\app}[1]{A(#1)}
+\newcommand{\apply}[2]{#1\llbracket #2 \rrbracket}
+\newcommand{\variables}[1]{V[#1]}
+\newcommand{\hc}{h^C}
+\newcommand{\cliques}{\textrm{cliques}}
+\newcommand{\pfn}{\rightharpoonup}
+\newcommand{\dom}{\mathit{dom}}
+\newcommand{\img}{\mathit{img}}
+\newcommand{\probdistri}[1]{{\mathcal D(#1)}}
+\newcommand{\effs}{\mathit{Eff}}
+
+\newcommand{\vtrue}{\text{true}}
+\newcommand{\vfalse}{\text{false}}
+
+\newcommand{\handempty}{\textsf{HandEmpty}}
+\newcommand{\location}[1]{\textsf{Location}(#1)}
+\newcommand{\clear}[1]{\textsf{Clear}(#1)}
+\newcommand{\table}{\text{table}}
+\newcommand{\hand}{\text{hand}}
+
+\newcommand{\pickblock}[2]{\textsf{pick-block}(#1, #2)}
+\newcommand{\picktable}[1]{\textsf{pick-table}(#1)}
+\newcommand{\putblock}[2]{\textsf{put-block}(#1, #2)}
+\newcommand{\puttable}[1]{\textsf{put-table}(#1)}
+
+\newcommand{\robotat}{\textsf{RobotAt}}
+\newcommand{\visited}[2]{\textsf{Visited}(#1, #2)}
+
+\newcommand{\moveleft}[2]{\textsf{move-left}(#1, #2)}
+\newcommand{\moveright}[2]{\textsf{move-right}(#1, #2)}
+\newcommand{\moveup}[2]{\textsf{move-up}(#1, #2)}
+\newcommand{\movedown}[2]{\textsf{move-down}(#1, #2)}
+
+\newcommand{\carryleft}{\textsf{CarryLeft}}
+\newcommand{\carryright}{\textsf{CarryRight}}
+\newcommand{\ballat}[1]{\textsf{BallAt}(#1)}
+
+\newcommand{\nothing}{\text{nothing}}
+\newcommand{\gripper}{\text{gripper}}
+
+\newcommand{\move}[2]{\textsf{move}(#1, #2)}
+\newcommand{\pickleft}[2]{\textsf{pick-left}(#1, #2)}
+\newcommand{\pickright}[2]{\textsf{pick-right}(#1, #2)}
+\newcommand{\dropleft}[2]{\textsf{drop-left}(#1, #2)}
+\newcommand{\dropright}[2]{\textsf{drop-right}(#1, #2)}
+
+\newcommand{\truckat}{\textsf{TruckAt}}
+\newcommand{\load}{\textsf{Load}}
+\newcommand{\packageat}[1]{\textsf{PackageAt}(#1)}
+
+\newcommand{\truck}{\text{truck}}
+
+\newcommand{\drive}[2]{\textsf{drive}(#1, #2)}
+\newcommand{\loadpackage}[3]{\textsf{load-package}(#1, #2, #3)}
+\newcommand{\unloadpackage}[3]{\textsf{unload-package}(#1, #2, #3)}
+
+\newcommand{\playerat}{\textsf{PlayerAt}}
+\newcommand{\crateat}[1]{\textsf{CrateAt}(#1)}
+\newcommand{\crateatgoal}[1]{\textsf{CrateAtGoal}(#1)}
+\newcommand{\squareclear}[2]{\textsf{SquareClear}(#1, #2)}
+
+\newcommand{\pushleft}[3]{\textsf{push-left}(#1, #2, #3)}
+\newcommand{\pushup}[3]{\textsf{push-up}(#1, #2, #3)}
+\newcommand{\pushright}[3]{\textsf{push-right}(#1, #2, #3)}
+\newcommand{\pushdown}[3]{\textsf{push-down}(#1, #2, #3)}

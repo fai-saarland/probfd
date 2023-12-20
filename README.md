@@ -1,29 +1,9 @@
 # Probabilistic Fast Downward
-<b>Probabilistic Fast Downward</b> (probFD) is an extension of the Fast Downward
-planning system (release 22.12) for fully observable probabilistic planning
-domains.
+**Probabilistic Fast Downward** (probFD) is an extension of the
+[Fast Downward planning system](https://www.fast-downward.org/) (release 23.06)
+for fully observable probabilistic planning domains.
 
-For more information about Fast Downward, see the bottom of this README.
-
-## Building the Planner
-In contrast to Fast Downward, you need at least C++ 17 to build the planner.
-On Windows, the build script generates build files for Ninja instead of NMake,
-since nmake does not support build parallelism. If you want to use another build
-system, you need to invoke cmake manually (note that the CMakeLists.txt is in 
-the root directory and not the src/ directory as in Fast Downward):
-```
-mkdir -p builds/mycustombuild
-cd builds/mycustombuild
-cmake ../.. CMAKE_OPTIONS
-```
-
-The build instructions are otherwise equivalent to those of Fast Downward. For
-more information, see
-<https://www.fast-downward.org/ObtainingAndRunningFastDownward>.
-
-## Building the Documentation
-To build the documentation, you need to have Doxygen installed. In the `docs/`
-directory, execute doxygen to generate the documentation.
+[TOC]
 
 ## Features
 The problem description language assumed by probFD is PPDDL.
@@ -55,6 +35,9 @@ all-outcomes determinization, as well as adaptations of the CEGAR and
 hillclimbing pattern generation algorithms for probabilistic planning tasks.
 Notably also supports unavoidable dead-ends and zero-reward cycles.
 
+## Building the Planner
+See [build instructions](BUILD.md) for details.
+
 ## Contributors
 The following list includes all people that actively contributed to
 Probabilistic Fast Downward.
@@ -63,10 +46,7 @@ Probabilistic Fast Downward.
 - 2019-2022 Thorsten Klößner
 - 2022 Thomas Keller
 
-
-# Fast Downward
-<img src="misc/images/fast-downward.svg" width="800" alt="Fast Downward">
-
+## Fast Downward
 Fast Downward is a domain-independent classical planning system.
 
 Copyright 2003-2023 Fast Downward contributors (see below).
@@ -78,7 +58,7 @@ For further information:
 - Fast Downward main repository: <https://github.com/aibasel/downward>
 
 
-## Tested software versions
+### Tested software versions
 
 This version of Fast Downward has been tested with the following software versions:
 
@@ -95,7 +75,7 @@ test both CPLEX and SoPlex. On Windows we currently only test CPLEX,
 and on macOS we do not test LP solvers (yet).
 
 
-## Contributors
+### Contributors
 
 The following list includes all people that actively contributed to
 Fast Downward, i.e., all people that appear in some commits in Fast
@@ -144,7 +124,7 @@ contributing, and finally by last name.
 - 2009 Christian Muise
 
 
-## History
+### History
 
 The current version of Fast Downward is the merger of three different
 projects:
@@ -162,7 +142,7 @@ developed for various research papers. The main contributors to these
 branches are Malte Helmert, Gabi Röger and Silvia Richter.
 
 
-## License
+### License
 
 ```
 Fast Downward is free software: you can redistribute it and/or modify

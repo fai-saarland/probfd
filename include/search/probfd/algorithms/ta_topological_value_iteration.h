@@ -205,9 +205,6 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
     Statistics statistics_;
 
 public:
-    /**
-     * \copydoc MDPAlgorithm::solve(param_type<State>, double)
-     */
     Interval solve(
         MDP& mdp,
         Evaluator& heuristic,
@@ -215,9 +212,6 @@ public:
         ProgressReport,
         double max_time) override;
 
-    /**
-     * \copydoc MDPAlgorithm::print_statistics(std::ostream&) const
-     */
     void print_statistics(std::ostream& out) const override;
 
     /**

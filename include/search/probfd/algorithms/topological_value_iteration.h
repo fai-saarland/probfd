@@ -183,9 +183,6 @@ class TopologicalValueIteration : public MDPAlgorithm<State, Action> {
 public:
     explicit TopologicalValueIteration(bool expand_goals);
 
-    /**
-     * \copydoc MDPAlgorithm::compute_policy(param_type<State>, double)
-     */
     std::unique_ptr<Policy> compute_policy(
         MDP& mdp,
         Evaluator& heuristic,
@@ -193,9 +190,6 @@ public:
         ProgressReport,
         double max_time) override;
 
-    /**
-     * \copydoc MDPAlgorithm::solve(param_type<State>, double)
-     */
     Interval solve(
         MDP& mdp,
         Evaluator& heuristic,
@@ -203,9 +197,6 @@ public:
         ProgressReport,
         double max_time) override;
 
-    /**
-     * \copydoc MDPAlgorithm::print_statistics(std::ostream&) const
-     */
     void print_statistics(std::ostream& out) const override;
 
     /**

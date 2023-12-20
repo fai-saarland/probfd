@@ -1,3 +1,7 @@
+# Build Instructions
+
+[TOC]
+
 ## Dependencies
 ### Mandatory Dependencies
 
