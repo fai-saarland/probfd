@@ -5,7 +5,8 @@ target_compile_features(common_cxx_flags INTERFACE cxx_std_23)
 target_include_directories(
     common_cxx_flags
     INTERFACE
-    ${PROJECT_SOURCE_DIR}/include)
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/include/search)
 
 set(using_gcc_like "$<CXX_COMPILER_ID:ARMClang,AppleClang,Clang,GNU,LCC>")
 set(using_clang_like "$<CXX_COMPILER_ID:ARMClang,AppleClang,Clang>")

@@ -20,4 +20,7 @@ target_link_libraries(run_tests PRIVATE test_cxx_flags)
 
 include(TestFiles)
 
-gtest_discover_tests(run_tests)
+gtest_discover_tests(
+    run_tests
+    DISCOVERY_MODE PRE_TEST
+)

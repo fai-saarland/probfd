@@ -40,12 +40,6 @@ include(options)
 report_bitwidth()
 set_up_build_types("Debug;Release")
 set_up_options()
-
-target_include_directories(
-    common_cxx_flags
-    INTERFACE
-    ${PROJECT_SOURCE_DIR}/include/search
-    ${PROJECT_SOURCE_DIR}/include/search/ext)
     
 add_executable(downward ${CMAKE_CURRENT_SOURCE_DIR}/downward/planner.cc)
 add_executable(probfd ${CMAKE_CURRENT_SOURCE_DIR}/probfd/planner.cc)
