@@ -85,15 +85,18 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         // End component decomposition state
 
         // recursive decomposition flag
-        // Recursively decompose the SCC if there is a zero-cost transition
-        // in it that can leave and remain in the scc, or a non-zero-cost
-        // transition that can remain in the MDP. Both cannot be part of an
-        // end component and removing them affects connectivity of the SCCs,
+        // Recursively decompose the SCC if there is a transition in it that
+        // can leave and remain in the scc. Such a transition cannot be part of
+        // an end component and removing it affects connectivity of the SCCs,
         // so recursion is necessary after removal.
         bool recurse = false;
 
-        // whether the transition has non-zero cost or can leave the scc
-        bool nz_or_leaves_scc;
+        // whether a non-zero cost transition exists in the SCC that remains
+        // universally in the SCC.
+        bool non_zero_ec = false;
+
+        // whether the transition has can leave the scc
+        bool leaves_scc;
 
         ExplorationInfo(
             std::vector<Action> aops,
@@ -181,6 +184,10 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         // ECD recursion flag. Recurse if there is a transition that can leave
         // and remain in the current scc.
         bool recurse = false;
+
+        // whether a non-zero cost transition exists in the SCC that remains
+        // universally in the SCC.
+        bool non_zero_ec = false;
 
         // Whether the current transition remains in or leaves the current scc.
         bool leaves_scc = false;

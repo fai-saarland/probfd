@@ -178,6 +178,10 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::
     assert(action < end);
 
     if (!leaves_scc) {
+        if (action->conv_part != AlgorithmValueType(0_vt)) {
+            non_zero_ec = true;
+        }
+
         if (++action != end) {
             successor = action->scc_successors.begin();
             assert(!action->scc_successors.empty());
@@ -314,6 +318,7 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
             }
 
             const bool recurse = explore->recurse;
+            const bool non_zero_ec = explore->non_zero_ec;
 
             exploration_stack_.pop_back();
 
@@ -334,14 +339,15 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
             if (onstack) {
                 explore->lowlink = std::min(explore->lowlink, lowlink);
                 explore->recurse =
-                    explore->recurse || recurse || explore->nz_or_leaves_scc;
+                    explore->recurse || recurse || explore->leaves_scc;
+                explore->non_zero_ec = explore->non_zero_ec || non_zero_ec;
 
                 tinfo.scc_successors.emplace_back(succ_id, prob);
             } else {
                 const AlgorithmValueType& s_value = value_store[succ_id];
                 explore->recurse =
                     explore->recurse || !tinfo.scc_successors.empty();
-                explore->nz_or_leaves_scc = true;
+                explore->leaves_scc = true;
 
                 tinfo.conv_part += prob * s_value;
             }
@@ -359,19 +365,21 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
                 // transition
                 set_min(stack_info->conv_part, tinfo.conv_part);
                 stack_info->ec_transitions.pop_back();
-            } else if (explore->nz_or_leaves_scc) {
-                // Only some exiting or cost is non-zero ->
+            } else if (explore->leaves_scc) {
+                // Only some exiting ->
                 // Not part of an end component
                 // Move the transition to the set of non-EC transitions
                 stack_info->non_ec_transitions.push_back(std::move(tinfo));
                 stack_info->ec_transitions.pop_back();
+            } else if (tinfo.conv_part != AlgorithmValueType(0_vt)) {
+                explore->non_zero_ec = true;
             }
 
             // Has next action -> stop backtracking
             if (explore->next_transition(mdp, state_id)) {
                 const auto cost =
                     mdp.get_action_cost(explore->get_current_action());
-                explore->nz_or_leaves_scc = cost != 0.0_vt;
+                explore->leaves_scc = false;
                 stack_info->ec_transitions.emplace_back(cost);
 
                 break;
@@ -426,7 +434,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
 
                 [[fallthrough]];
             case StateInfo::CLOSED:
-                explore.nz_or_leaves_scc = true;
+                explore.leaves_scc = true;
                 explore.recurse =
                     explore.recurse || !tinfo.scc_successors.empty();
 
@@ -435,7 +443,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
 
             case StateInfo::ONSTACK:
                 explore.lowlink = std::min(explore.lowlink, succ_info.stack_id);
-                explore.recurse = explore.recurse || explore.nz_or_leaves_scc;
+                explore.recurse = explore.recurse || explore.leaves_scc;
 
                 tinfo.scc_successors.emplace_back(succ_id, prob);
             }
@@ -444,9 +452,11 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
         if (tinfo.finalize_transition()) {
             set_min(stack_info.conv_part, tinfo.conv_part);
             stack_info.ec_transitions.pop_back();
-        } else if (explore.nz_or_leaves_scc) {
+        } else if (explore.leaves_scc) {
             stack_info.non_ec_transitions.push_back(std::move(tinfo));
             stack_info.ec_transitions.pop_back();
+        } else if (tinfo.conv_part != AlgorithmValueType(0_vt)) {
+            explore.non_zero_ec = true;
         }
 
         if (!explore.next_transition(mdp, state_id)) {
@@ -455,7 +465,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
 
         const auto cost = mdp.get_action_cost(explore.get_current_action());
 
-        explore.nz_or_leaves_scc = cost != 0.0_vt;
+        explore.leaves_scc = false;
         stack_info.ec_transitions.emplace_back(cost);
     }
 }
@@ -520,7 +530,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::push_state(
                 std::move(transition),
                 stack_size);
 
-            explore.nz_or_leaves_scc = cost != 0.0_vt;
+            explore.leaves_scc = false;
 
             auto& s_info =
                 stack_.emplace_back(state_id, state_value, t_cost, aops.size());
@@ -574,6 +584,8 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
     }
 
     if (exp_info.recurse) {
+        // SCC, but not an end component
+
         // Run recursive EC Decomposition
         for (auto it = begin; it != end; ++it) {
             state_information_[it->state_id].status = StateInfo::NEW;
@@ -592,7 +604,43 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
         }
 
         assert(exploration_stack_ecd_.empty());
+    } else if (exp_info.non_zero_ec) {
+        // End component, but not 0-EC.
+
+        // First, build inverse graph of spider construction for the solvable
+        // states computation.
+
+        // Then, move non-zero cost EC transitions to non-EC transitions
+        // and run recursive EC decomposition to flatten 0-ECs
+        for (auto it = begin; it != end; ++it) {
+            StackInfo& stk_info = *it;
+
+            std::erase_if(stk_info.ec_transitions, [&](QValueInfo& q_info) {
+                if (q_info.conv_part != AlgorithmValueType(0_vt)) {
+                    stk_info.non_ec_transitions.push_back(std::move(q_info));
+                    return true;
+                }
+                return false;
+            });
+        }
+
+        // Finally, run recursive EC Decomposition to flatten 0-ECs.
+        for (auto it = begin; it != end; ++it) {
+            const StateID id = it->state_id;
+            StateInfo& s_info = state_information_[id];
+
+            if (s_info.status == StateInfo::NEW && push_ecd(id, s_info)) {
+                // Run decomposition
+                find_and_decompose_sccs(0, timer);
+            }
+
+            assert(s_info.status == StateInfo::CLOSED);
+        }
+
+        assert(exploration_stack_ecd_.empty());
     } else {
+        // We have a 0-EC.
+
         // We found an end component, patch it
         const StateID scc_repr_id = begin->state_id;
         StateInfo& repr_state_info = state_information_[scc_repr_id];
@@ -602,8 +650,8 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
 
         // Spider construction
         for (auto it = begin + 1; it != end; ++it) {
+            StackInfo& succ_stk = *it;
             StateInfo& state_info = state_information_[it->state_id];
-            StackInfo& succ_stk = stack_[state_info.stack_id];
 
             state_info.status = StateInfo::CLOSED;
 
@@ -663,6 +711,7 @@ void TATopologicalValueIteration<State, Action, UseInterval>::
         // Iterative backtracking
         do {
             const bool recurse = e->recurse;
+            const bool non_zero_ec = e->non_zero_ec;
             const unsigned int stck = e->stackidx;
             const unsigned int lowlink = e->lowlink;
 
@@ -687,6 +736,7 @@ void TATopologicalValueIteration<State, Action, UseInterval>::
             if (is_onstack) {
                 e->lowlink = std::min(e->lowlink, lowlink);
                 e->recurse = e->recurse || recurse || e->leaves_scc;
+                e->non_zero_ec = e->non_zero_ec || non_zero_ec;
                 e->remains_scc = true;
             } else {
                 e->recurse = e->recurse || e->remains_scc;
@@ -765,6 +815,46 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found_ecd(
         const StateID scc_repr_id = *scc_begin;
         state_information_[scc_repr_id].status = StateInfo::CLOSED;
     } else if (e.recurse) {
+        for (auto it = scc_begin; it != scc_end; ++it) {
+            state_information_[*it].status = StateInfo::NEW;
+        }
+
+        const unsigned limit = exploration_stack_ecd_.size();
+
+        for (unsigned i = e.stackidx; i < stack_ecd_.size(); ++i) {
+            const StateID id = stack_ecd_[i];
+            StateInfo& state_info = state_information_[id];
+
+            if (state_info.status == StateInfo::NEW &&
+                push_ecd(id, state_info)) {
+                // Recursively run decomposition
+                find_and_decompose_sccs(limit, timer);
+            }
+        }
+
+        assert(exploration_stack_ecd_.size() == limit);
+    } else if (e.non_zero_ec) {
+        // End component, but not 0-EC.
+
+        // First, build inverse graph of spider construction for the solvable
+        // states computation.
+
+        // Then, move non-zero cost EC transitions to non-EC transitions
+        // and run recursive EC decomposition to flatten 0-ECs
+        for (auto it = scc_begin; it != scc_end; ++it) {
+            const StateID state_id = *it;
+            StateInfo& state_info = state_information_[state_id];
+            StackInfo& stk_info = stack_[state_info.stack_id];
+
+            std::erase_if(stk_info.ec_transitions, [&](QValueInfo& q_info) {
+                if (q_info.conv_part != AlgorithmValueType(0_vt)) {
+                    stk_info.non_ec_transitions.push_back(std::move(q_info));
+                    return true;
+                }
+                return false;
+            });
+        }
+
         for (auto it = scc_begin; it != scc_end; ++it) {
             state_information_[*it].status = StateInfo::NEW;
         }
