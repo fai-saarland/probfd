@@ -87,7 +87,7 @@ bool QualitativeReachabilityAnalysis<State, Action>::ExpansionInfo::next_action(
             successor = transition.begin();
 
             // Reset transition flags
-            exits_only_proper = true;
+            exits_only_solvable = true;
             transitions_in_scc = false;
             exits_scc = false;
 
@@ -125,8 +125,8 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
     const Evaluator* pruning_function,
     param_type<State> source_state,
     std::output_iterator<StateID> auto dead_out,
-    std::output_iterator<StateID> auto non_proper_out,
-    std::output_iterator<StateID> auto proper_out,
+    std::output_iterator<StateID> auto unsolvable_out,
+    std::output_iterator<StateID> auto solvable_out,
     double max_time)
 {
     assert(expansion_queue_.empty());
@@ -140,8 +140,8 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
             init_id,
             state_infos_[init_id],
             dead_out,
-            non_proper_out,
-            proper_out)) {
+            unsolvable_out,
+            solvable_out)) {
         return;
     }
 
@@ -160,8 +160,8 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
             *s,
             *st,
             dead_out,
-            non_proper_out,
-            proper_out,
+            unsolvable_out,
+            solvable_out,
             timer)) {
             e = &expansion_queue_.back();
             s = &stack_[e->stck];
@@ -178,8 +178,8 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
                 scc_found(
                     stack_ | std::views::drop(stck),
                     dead_out,
-                    non_proper_out,
-                    proper_out,
+                    unsolvable_out,
+                    solvable_out,
                     timer);
             }
 
@@ -200,7 +200,8 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
 
             // Backtracked from successor.
             if (scc_root) { // Child SCC
-                e->exits_only_proper = e->exits_only_proper && bt_info.one;
+                e->exits_only_solvable =
+                    e->exits_only_solvable && bt_info.solvable;
                 e->exits_scc = true;
             } else { // Same SCC
                 e->lstck = std::min(e->lstck, lstck);
@@ -208,7 +209,7 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
 
                 if (!st->expandable_goal) {
                     auto& parents = backtracked_from->parents;
-                    parents.emplace_back(e->stck, s->active.size());
+                    parents.emplace_back(e->stck, s->transition_flags.size());
                 }
             }
 
@@ -221,16 +222,17 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
 
             // Finalize fully explored transition.
             if (e->transitions_in_scc) {
-                if (e->exits_only_proper) {
+                if (e->exits_only_solvable) {
                     if (e->exits_scc) {
-                        ++s->exit_transitions;
+                        ++s->active_exit_transitions;
                     }
-                    ++s->proper_transitions;
+                    ++s->active_transitions;
                 }
-                s->active.push_back(e->exits_only_proper);
-                s->exiting.push_back(e->exits_only_proper && e->exits_scc);
-            } else if (e->exits_only_proper) {
-                st->one = true;
+                s->transition_flags.emplace_back(
+                    e->exits_only_solvable && e->exits_scc,
+                    e->exits_only_solvable);
+            } else if (e->exits_only_solvable) {
+                st->solvable = true;
             }
         } while (!e->next_action(mdp, s->stateid));
     }
@@ -243,11 +245,11 @@ bool QualitativeReachabilityAnalysis<State, Action>::push(
     StateID state_id,
     StateInfo& state_info,
     std::output_iterator<StateID> auto dead_out,
-    std::output_iterator<StateID> auto non_proper_out,
-    std::output_iterator<StateID> auto proper_out)
+    std::output_iterator<StateID> auto unsolvable_out,
+    std::output_iterator<StateID> auto solvable_out)
 {
     assert(!state_info.explored);
-    assert(!state_info.one && state_info.dead);
+    assert(!state_info.solvable && state_info.dead);
 
     state_info.explored = 1;
 
@@ -259,11 +261,11 @@ bool QualitativeReachabilityAnalysis<State, Action>::push(
         ++stats_.goals;
 
         state_info.dead = 0;
-        state_info.one = 1;
+        state_info.solvable = 1;
 
         if (!expand_goals_) {
             ++stats_.terminals;
-            *proper_out = state_id;
+            *solvable_out = state_id;
             return false;
         }
 
@@ -273,7 +275,7 @@ bool QualitativeReachabilityAnalysis<State, Action>::push(
         pruning_function->evaluate(state) == term.get_cost()) {
         ++stats_.terminals;
         *dead_out = state_id;
-        *non_proper_out = state_id;
+        *unsolvable_out = state_id;
         return false;
     }
 
@@ -287,7 +289,7 @@ bool QualitativeReachabilityAnalysis<State, Action>::push(
             state_info.expandable_goal = 0;
         } else {
             *dead_out = state_id;
-            *non_proper_out = state_id;
+            *unsolvable_out = state_id;
         }
 
         return false;
@@ -326,7 +328,7 @@ bool QualitativeReachabilityAnalysis<State, Action>::push(
         state_info.expandable_goal = 0;
     } else {
         *dead_out = state_id;
-        *non_proper_out = state_id;
+        *unsolvable_out = state_id;
     }
 
     return false;
@@ -340,8 +342,8 @@ bool QualitativeReachabilityAnalysis<State, Action>::push_successor(
     StackInfo& s,
     StateInfo& st,
     std::output_iterator<StateID> auto dead_out,
-    std::output_iterator<StateID> auto non_proper_out,
-    std::output_iterator<StateID> auto proper_out,
+    std::output_iterator<StateID> auto unsolvable_out,
+    std::output_iterator<StateID> auto solvable_out,
     utils::CountdownTimer& timer)
 {
     do {
@@ -359,15 +361,16 @@ bool QualitativeReachabilityAnalysis<State, Action>::push_successor(
                         succ_id,
                         succ_info,
                         dead_out,
-                        non_proper_out,
-                        proper_out)) {
+                        unsolvable_out,
+                        solvable_out)) {
                     return true;
                 }
 
                 [[fallthrough]];
 
             case StateInfo::CLOSED: // Child SCC
-                e.exits_only_proper = e.exits_only_proper && succ_info.one;
+                e.exits_only_solvable =
+                    e.exits_only_solvable && succ_info.solvable;
                 e.exits_scc = true;
                 break;
 
@@ -379,7 +382,7 @@ bool QualitativeReachabilityAnalysis<State, Action>::push_successor(
 
                 if (!st.expandable_goal) {
                     auto& parents = stack_[succ_stack_id].parents;
-                    parents.emplace_back(e.stck, s.active.size());
+                    parents.emplace_back(e.stck, s.transition_flags.size());
                 }
             }
 
@@ -388,16 +391,17 @@ bool QualitativeReachabilityAnalysis<State, Action>::push_successor(
 
         // Finalize fully explored transition.
         if (e.transitions_in_scc) {
-            if (e.exits_only_proper) {
+            if (e.exits_only_solvable) {
                 if (e.exits_scc) {
-                    ++s.exit_transitions;
+                    ++s.active_exit_transitions;
                 }
-                ++s.proper_transitions;
+                ++s.active_transitions;
             }
-            s.active.push_back(e.exits_only_proper);
-            s.exiting.push_back(e.exits_only_proper && e.exits_scc);
-        } else if (e.exits_only_proper) {
-            st.one = true;
+            s.transition_flags.emplace_back(
+                e.exits_only_solvable && e.exits_scc,
+                e.exits_only_solvable);
+        } else if (e.exits_only_solvable) {
+            st.solvable = true;
         }
     } while (e.next_action(mdp, s.stateid));
 
@@ -408,8 +412,8 @@ template <typename State, typename Action>
 void QualitativeReachabilityAnalysis<State, Action>::scc_found(
     std::ranges::forward_range auto&& scc,
     std::output_iterator<StateID> auto dead_out,
-    std::output_iterator<StateID> auto non_proper_out,
-    std::output_iterator<StateID> auto proper_out,
+    std::output_iterator<StateID> auto unsolvable_out,
+    std::output_iterator<StateID> auto solvable_out,
     utils::CountdownTimer& timer)
 {
     using namespace std::views;
@@ -422,81 +426,82 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
             info.stackid_ = StateInfo::UNDEF;
             assert(info.dead);
             *dead_out = state_id;
-            *non_proper_out = state_id;
+            *unsolvable_out = state_id;
         }
 
         stack_.erase(scc.begin(), scc.end());
         return;
     }
 
-    std::set<StackInfo*> proper_states;
-    std::set<StackInfo*> exits;
+    // Compute the set of solvable states of this SCC.
+    // Start by assuming all states are solvable.
+    // Also collect the set of "trusted" states. A trusted state is a goal
+    // state or a state that has a transition that only goes to states labelled
+    // solvable and can leave the SCC.
+
+    std::set<StackInfo*> solvable_states;
+    std::set<StackInfo*> trusted;
 
     for (StackInfo& info : scc) {
-        proper_states.insert(&info);
+        solvable_states.insert(&info);
 
         StateInfo& state_info = state_infos_[info.stateid];
         state_info.stackid_ = StateInfo::UNDEF;
         state_info.dead = false;
 
         if (state_info.expandable_goal) {
-            assert(state_info.one);
-            *proper_out = info.stateid;
+            assert(state_info.solvable);
+            *solvable_out = info.stateid;
             ++stats_.ones;
         }
 
-        if (info.exit_transitions > 0 || state_info.one) {
-            exits.insert(&info);
+        if (info.active_exit_transitions > 0 || state_info.solvable) {
+            trusted.insert(&info);
         }
     }
 
     std::size_t prev_size;
-    std::size_t current_size = proper_states.size();
+    std::size_t current_size = solvable_states.size();
 
-    // Compute the set of proper states by iterative pruning of certain
-    // states and transitions from a sub-SSP of the SCC. Initially,
-    // this sub-SSP consists of all states and transitions except those
-    // transitions which can lead to a non-proper state in a child SCC.
+    // Compute the set of solvable states of this SCC.
     do {
         timer.throw_if_expired();
 
-        // Collect states that can currently reach a proper scc exit
-        // or a goal state within the sub-SSP.
-        std::set<StackInfo*> can_reach_exits = exits;
+        // Collect states that can currently reach a trusted state.
+        std::set<StackInfo*> can_reach_trusted = trusted;
 
         {
-            std::vector<StackInfo*> queue(exits.begin(), exits.end());
+            std::vector<StackInfo*> queue(trusted.begin(), trusted.end());
 
             while (!queue.empty()) {
                 StackInfo* scc_elem = queue.back();
                 queue.pop_back();
 
-                for (const auto& [first, second] : scc_elem->parents) {
-                    StackInfo& pinfo = stack_[first];
+                for (const auto& [parent_idx, tr_idx] : scc_elem->parents) {
+                    StackInfo& pinfo = stack_[parent_idx];
 
-                    if (pinfo.active[second] &&
-                        can_reach_exits.insert(&pinfo).second) {
+                    if (pinfo.transition_flags[tr_idx].is_active &&
+                        can_reach_trusted.insert(&pinfo).second) {
                         queue.push_back(&pinfo);
                     }
                 }
             }
         }
 
-        // The complement is improper.
-        std::set<StackInfo*> proven_improper;
+        // The complement is unsolvable.
+        std::set<StackInfo*> proven_unsolvable;
         std::ranges::set_difference(
-            proper_states,
-            can_reach_exits,
-            std::inserter(proven_improper, proven_improper.end()));
+            solvable_states,
+            can_reach_trusted,
+            std::inserter(proven_unsolvable, proven_unsolvable.end()));
 
-        // Iteratively prune improper states and transitions which
-        // have these states as a target. If no transition remains for
-        // a former parent in the process, the state becomes improper
-        // as well and is added to the queue. Do this until nothing
-        // changes anymore.
+        // Iteratively prune unsolvable states and transitions which
+        // have these states as a target until a fixpoint is reached.
+        // If a state has no active transitions left, it is labelled as
+        // unsolvable as well and is added to the queue.
         std::vector<StackInfo*> queue(
-            proven_improper.begin(),
-            proven_improper.end());
+            proven_unsolvable.begin(),
+            proven_unsolvable.end());
 
         while (!queue.empty()) {
             timer.throw_if_expired();
@@ -504,56 +509,52 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
             StackInfo* scc_elem = queue.back();
             queue.pop_back();
 
-            // The state is not proper
-            assert(proper_states.find(scc_elem) != proper_states.end());
-            proper_states.erase(scc_elem);
+            // The state is unsolvable.
+            assert(solvable_states.find(scc_elem) != solvable_states.end());
+            solvable_states.erase(scc_elem);
 
-            *non_proper_out = scc_elem->stateid;
+            *unsolvable_out = scc_elem->stateid;
 
-            for (const auto& [first, second] : scc_elem->parents) {
-                StackInfo& pinfo = stack_[first];
+            for (const auto& [parent_idx, tr_idx] : scc_elem->parents) {
+                StackInfo& pinfo = stack_[parent_idx];
+                auto& transition_flags = pinfo.transition_flags[tr_idx];
                 const StateInfo& sinfo = state_infos_[pinfo.stateid];
 
-                if (sinfo.one || proven_improper.contains(&pinfo)) {
+                if (sinfo.solvable || proven_unsolvable.contains(&pinfo)) {
                     continue;
                 }
 
-                if (pinfo.exiting[second]) {
-                    assert(pinfo.active[second]);
-                    pinfo.active[second] = false;
-                    pinfo.exiting[second] = false;
+                if (transition_flags.is_active_exiting) {
+                    transition_flags.is_active_exiting = false;
 
-                    if (--pinfo.proper_transitions == 0) {
-                        assert(!proven_improper.contains(&pinfo));
-                        queue.push_back(&pinfo);
+                    if (--pinfo.active_exit_transitions == 0) {
+                        trusted.erase(&pinfo);
                     }
+                } else if (!transition_flags.is_active) {
+                    continue;
+                }
 
-                    if (--pinfo.exit_transitions == 0) {
-                        exits.erase(&pinfo);
-                    }
-                } else if (pinfo.active[second]) {
-                    pinfo.active[second] = false;
+                assert(transition_flags.is_active);
+                transition_flags.is_active = false;
 
-                    if (--pinfo.proper_transitions == 0) {
-                        assert(!proven_improper.contains(&pinfo));
-                        queue.push_back(&pinfo);
-                    }
+                if (--pinfo.active_transitions == 0) {
+                    queue.push_back(&pinfo);
                 }
             }
         }
 
         prev_size = current_size;
-        current_size = proper_states.size();
+        current_size = solvable_states.size();
     } while (prev_size != current_size);
 
-    // Report the proper states
-    for (StackInfo* stkinfo : proper_states) {
+    // Report the solvable states
+    for (StackInfo* stkinfo : solvable_states) {
         auto sid = stkinfo->stateid;
         auto& sinfo = state_infos_[sid];
 
         if (!sinfo.expandable_goal) {
-            sinfo.one = true;
-            *proper_out = sid;
+            sinfo.solvable = true;
+            *solvable_out = sid;
             ++stats_.ones;
         }
     }

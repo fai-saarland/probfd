@@ -50,7 +50,7 @@ struct StateInfo {
     unsigned explored : 1 = 0;
     unsigned expandable_goal : 1 = 0; // non-terminal goal?
     unsigned dead : 1 = 1;            // dead end flag
-    unsigned one : 1 = 0;             // proper state flag
+    unsigned solvable : 1 = 0;        // solvable state flag
     unsigned stackid_ : 28 = UNDEF;
 
     bool onstack() const;
@@ -58,14 +58,27 @@ struct StateInfo {
 };
 
 struct StackInfo {
+    struct ParentTransition {
+        unsigned parent_idx;
+        unsigned parent_transition_idx;
+    };
+
+    // A transition is active if it is not going to a state with goal
+    // probability less than one. This information is iteratively refined in a
+    // fixpoint iteration as more states with this property are found.
+
+    struct TransitionFlags {
+        bool is_active_exiting : 1; // Is the transition active and an SCC exit?
+        bool is_active : 1;         // Is the transition active?
+    };
+
     StateID stateid;
 
-    unsigned proper_transitions = 0;
-    unsigned exit_transitions = 0;
+    unsigned active_exit_transitions = 0; // Number of active exit transitions.
+    unsigned active_transitions = 0;      // Number of active transitions.
 
-    std::vector<bool> active;
-    std::vector<bool> exiting;
-    std::vector<std::pair<unsigned, unsigned>> parents;
+    std::vector<TransitionFlags> transition_flags;
+    std::vector<ParentTransition> parents;
 
     explicit StackInfo(StateID sid);
 };
@@ -92,7 +105,7 @@ class QualitativeReachabilityAnalysis {
         const unsigned stck;
         unsigned lstck;
 
-        bool exits_only_proper = true;
+        bool exits_only_solvable = true;
         bool transitions_in_scc = false;
         bool exits_scc = false;
 
@@ -133,8 +146,8 @@ public:
         const Evaluator* pruning_function,
         param_type<State> source_state,
         std::output_iterator<StateID> auto dead_out,
-        std::output_iterator<StateID> auto non_proper_out,
-        std::output_iterator<StateID> auto proper_out,
+        std::output_iterator<StateID> auto unsolvable_out,
+        std::output_iterator<StateID> auto solvable_out,
         double max_time = std::numeric_limits<double>::infinity());
 
 private:
@@ -144,8 +157,8 @@ private:
         StateID state_id,
         StateInfo& state_info,
         std::output_iterator<StateID> auto dead_out,
-        std::output_iterator<StateID> auto non_proper_out,
-        std::output_iterator<StateID> auto proper_out);
+        std::output_iterator<StateID> auto unsolvable_out,
+        std::output_iterator<StateID> auto solvable_out);
 
     bool push_successor(
         MDP& mdp,
@@ -154,15 +167,15 @@ private:
         StackInfo& s,
         StateInfo& st,
         std::output_iterator<StateID> auto dead_out,
-        std::output_iterator<StateID> auto non_proper_out,
-        std::output_iterator<StateID> auto proper_out,
+        std::output_iterator<StateID> auto unsolvable_out,
+        std::output_iterator<StateID> auto solvable_out,
         utils::CountdownTimer& timer);
 
     void scc_found(
         std::ranges::forward_range auto&& scc,
         std::output_iterator<StateID> auto dead_out,
-        std::output_iterator<StateID> auto non_proper_out,
-        std::output_iterator<StateID> auto proper_out,
+        std::output_iterator<StateID> auto unsolvable_out,
+        std::output_iterator<StateID> auto solvable_out,
         utils::CountdownTimer& timer);
 };
 
