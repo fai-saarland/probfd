@@ -83,7 +83,7 @@ function(create_probfd_library)
 endfunction()
 
 function(create_test_library)
-    create_library(TARGET run_tests FLAGS test_cxx_flags FIND_SOURCES add_existing_test_sources_to_list ${ARGV})
+    create_library(TARGET probfd_tests FLAGS test_cxx_flags FIND_SOURCES add_existing_test_sources_to_list ${ARGV})
 endfunction()
 
 function(create_library)
