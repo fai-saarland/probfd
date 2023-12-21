@@ -191,6 +191,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::
             return true;
         }
     } else {
+        if (remains_scc) recurse = true;
         stack_info.non_ec_transitions.push_back(std::move(*action));
 
         if (action != --end) {
@@ -338,18 +339,12 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
 
             if (onstack) {
                 explore->lowlink = std::min(explore->lowlink, lowlink);
-                explore->recurse =
-                    explore->recurse || recurse || explore->leaves_scc;
-                explore->non_zero_ec = explore->non_zero_ec || non_zero_ec;
-
+                if (recurse) explore->recurse = true;
+                if (non_zero_ec) explore->non_zero_ec = true;
                 tinfo.scc_successors.emplace_back(succ_id, prob);
             } else {
-                const AlgorithmValueType& s_value = value_store[succ_id];
-                explore->recurse =
-                    explore->recurse || !tinfo.scc_successors.empty();
                 explore->leaves_scc = true;
-
-                tinfo.conv_part += prob * s_value;
+                tinfo.conv_part += prob * value_store[succ_id];
             }
 
             // Has next successor -> stop backtracking
@@ -435,16 +430,11 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
                 [[fallthrough]];
             case StateInfo::CLOSED:
                 explore.leaves_scc = true;
-                explore.recurse =
-                    explore.recurse || !tinfo.scc_successors.empty();
-
                 tinfo.conv_part += prob * s_value;
                 break;
 
             case StateInfo::ONSTACK:
                 explore.lowlink = std::min(explore.lowlink, succ_info.stack_id);
-                explore.recurse = explore.recurse || explore.leaves_scc;
-
                 tinfo.scc_successors.emplace_back(succ_id, prob);
             }
         } while (explore.next_successor());
@@ -455,6 +445,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
         } else if (explore.leaves_scc) {
             stack_info.non_ec_transitions.push_back(std::move(tinfo));
             stack_info.ec_transitions.pop_back();
+            explore.recurse = true;
         } else if (tinfo.conv_part != AlgorithmValueType(0_vt)) {
             explore.non_zero_ec = true;
         }
@@ -710,8 +701,6 @@ void TATopologicalValueIteration<State, Action, UseInterval>::
 
         // Iterative backtracking
         do {
-            const bool recurse = e->recurse;
-            const bool non_zero_ec = e->non_zero_ec;
             const unsigned int stck = e->stackidx;
             const unsigned int lowlink = e->lowlink;
 
@@ -722,6 +711,9 @@ void TATopologicalValueIteration<State, Action, UseInterval>::
             if (!is_onstack) {
                 scc_found_ecd(*e, timer);
             }
+
+            const bool recurse = e->recurse;
+            const bool non_zero_ec = e->non_zero_ec;
 
             exploration_stack_ecd_.pop_back();
 
@@ -735,11 +727,10 @@ void TATopologicalValueIteration<State, Action, UseInterval>::
 
             if (is_onstack) {
                 e->lowlink = std::min(e->lowlink, lowlink);
-                e->recurse = e->recurse || recurse || e->leaves_scc;
-                e->non_zero_ec = e->non_zero_ec || non_zero_ec;
+                if (recurse) e->recurse = true;
+                if (non_zero_ec) e->non_zero_ec = true;
                 e->remains_scc = true;
             } else {
-                e->recurse = e->recurse || e->remains_scc;
                 e->leaves_scc = true;
             }
         } while (!e->next_successor() && !e->next_transition());
@@ -763,15 +754,11 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::
             }
 
             [[fallthrough]];
-        case StateInfo::CLOSED:
-            e.recurse = e.recurse || e.remains_scc;
-            e.leaves_scc = true;
-            break;
+        case StateInfo::CLOSED: e.leaves_scc = true; break;
 
         case StateInfo::ONSTACK:
             e.lowlink = std::min(e.lowlink, succ_info.ecd_stack_id);
 
-            e.recurse = e.recurse || e.leaves_scc;
             e.remains_scc = true;
         }
     } while (e.next_successor() || e.next_transition());
