@@ -576,6 +576,7 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
 
     if (exp_info.recurse) {
         // SCC, but not an end component
+    recurse:;
 
         // Run recursive EC Decomposition
         for (auto it = begin; it != end; ++it) {
@@ -615,20 +616,7 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
             });
         }
 
-        // Finally, run recursive EC Decomposition to flatten 0-ECs.
-        for (auto it = begin; it != end; ++it) {
-            const StateID id = it->state_id;
-            StateInfo& s_info = state_information_[id];
-
-            if (s_info.status == StateInfo::NEW && push_ecd(id, s_info)) {
-                // Run decomposition
-                find_and_decompose_sccs(0, timer);
-            }
-
-            assert(s_info.status == StateInfo::CLOSED);
-        }
-
-        assert(exploration_stack_ecd_.empty());
+        goto recurse;
     } else {
         // We have a 0-EC.
 
@@ -802,6 +790,7 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found_ecd(
         const StateID scc_repr_id = *scc_begin;
         state_information_[scc_repr_id].status = StateInfo::CLOSED;
     } else if (e.recurse) {
+    recurse:
         for (auto it = scc_begin; it != scc_end; ++it) {
             state_information_[*it].status = StateInfo::NEW;
         }
@@ -842,24 +831,7 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found_ecd(
             });
         }
 
-        for (auto it = scc_begin; it != scc_end; ++it) {
-            state_information_[*it].status = StateInfo::NEW;
-        }
-
-        const unsigned limit = exploration_stack_ecd_.size();
-
-        for (unsigned i = e.stackidx; i < stack_ecd_.size(); ++i) {
-            const StateID id = stack_ecd_[i];
-            StateInfo& state_info = state_information_[id];
-
-            if (state_info.status == StateInfo::NEW &&
-                push_ecd(id, state_info)) {
-                // Recursively run decomposition
-                find_and_decompose_sccs(limit, timer);
-            }
-        }
-
-        assert(exploration_stack_ecd_.size() == limit);
+        goto recurse;
     } else {
         // We found an end component, patch it
         const StateID scc_repr_id = *scc_begin;
