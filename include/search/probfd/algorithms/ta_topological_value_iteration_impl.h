@@ -561,23 +561,9 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
 
     ++statistics_.sccs;
 
-    if (std::distance(end, begin) == 1) {
-        // For singleton SCCs, we only have transitions which are
-        // self-loops or go to a state that is topologically greater.
-        // The state value is therefore the base value.
-        StateInfo& state_info = state_information_[begin->state_id];
-        assert(state_info.status == StateInfo::ONSTACK);
-        update(*begin->value, begin->conv_part);
-        state_info.status = StateInfo::CLOSED;
-        ++statistics_.singleton_sccs;
-        stack_.pop_back();
-        return;
-    }
-
     if (exp_info.recurse) {
         // SCC, but not an end component
     recurse:;
-
         // Run recursive EC Decomposition
         for (auto it = begin; it != end; ++it) {
             state_information_[it->state_id].status = StateInfo::NEW;
@@ -597,13 +583,9 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
 
         assert(exploration_stack_ecd_.empty());
     } else if (exp_info.non_zero_ec) {
-        // End component, but not 0-EC.
-
-        // First, build inverse graph of spider construction for the solvable
-        // states computation.
-
-        // Then, move non-zero cost EC transitions to non-EC transitions
-        // and run recursive EC decomposition to flatten 0-ECs
+        // End component, but not 0-EC. Move non-zero cost EC transitions to
+        // non-EC transitions and run recursive EC decomposition to flatten
+        // 0-ECs.
         for (auto it = begin; it != end; ++it) {
             StackInfo& stk_info = *it;
 
@@ -618,20 +600,19 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
 
         goto recurse;
     } else {
-        // We have a 0-EC.
-
-        // We found an end component, patch it
+        // Apply spider construction on this 0-EC.
         const StateID scc_repr_id = begin->state_id;
         StateInfo& repr_state_info = state_information_[scc_repr_id];
         StackInfo& repr_stk = stack_[repr_state_info.stack_id];
 
+        assert(repr_state_info.status == StateInfo::ONSTACK);
         repr_state_info.status = StateInfo::CLOSED;
 
-        // Spider construction
         for (auto it = begin + 1; it != end; ++it) {
             StackInfo& succ_stk = *it;
             StateInfo& state_info = state_information_[it->state_id];
 
+            assert(state_info.status == StateInfo::ONSTACK);
             state_info.status = StateInfo::CLOSED;
 
             // Move all non-EC transitions to representative state
@@ -653,20 +634,28 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
         }
     }
 
-    // Now run VI on the SCC until convergence
-    bool changed;
-
-    do {
-        timer.throw_if_expired();
-
-        changed = false;
-        auto it = begin;
+    // Value Iteration
+    if (std::distance(begin, end) == 1) {
+        // For singleton SCCs, we only have transitions which are
+        // self-loops or go to a state that is topologically greater.
+        // The state value is therefore the base value.
+        ++statistics_.singleton_sccs;
+        update(*begin->value, begin->conv_part);
+    } else {
+        bool changed;
 
         do {
-            changed |= it->update_value(value_store);
-            ++statistics_.bellman_backups;
-        } while (++it != end);
-    } while (changed);
+            timer.throw_if_expired();
+
+            changed = false;
+            auto it = begin;
+
+            do {
+                changed |= it->update_value(value_store);
+                ++statistics_.bellman_backups;
+            } while (++it != end);
+        } while (changed);
+    }
 
     stack_.erase(begin, end);
 }
@@ -786,10 +775,7 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found_ecd(
     auto scc_begin = stack_ecd_.begin() + e.stackidx;
     auto scc_end = stack_ecd_.end();
 
-    if (std::distance(scc_begin, scc_end) == 1) {
-        const StateID scc_repr_id = *scc_begin;
-        state_information_[scc_repr_id].status = StateInfo::CLOSED;
-    } else if (e.recurse) {
+    if (e.recurse) {
     recurse:
         for (auto it = scc_begin; it != scc_end; ++it) {
             state_information_[*it].status = StateInfo::NEW;
