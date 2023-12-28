@@ -152,7 +152,7 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         bool update_value(ValueStore& value_store);
     };
 
-    class ECDExplorationInfo {
+    struct ECDExplorationInfo {
         // Exploration state - Action
         typename std::vector<QValueInfo>::iterator action;
         typename std::vector<QValueInfo>::iterator end;
@@ -160,7 +160,6 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         // Exploration state - Transition successor
         typename std::vector<ItemProbabilityPair<StateID>>::iterator successor;
 
-    public:
         // Tarjan's algorithm state
         unsigned stackidx;
         unsigned lowlink;
@@ -268,13 +267,15 @@ private:
         StackIterator end,
         utils::CountdownTimer& timer);
 
-    void
-    find_and_decompose_sccs(const unsigned limit, utils::CountdownTimer& timer);
+    void find_and_decompose_sccs(
+        StateID state_id,
+        StateInfo& state_info,
+        utils::CountdownTimer& timer);
 
     bool
     push_successor_ecd(ECDExplorationInfo& e, utils::CountdownTimer& timer);
 
-    bool push_ecd(StateID state_id, StateInfo& info);
+    bool initialize_ecd(ECDExplorationInfo& exp_info);
 
     void scc_found_ecd(ECDExplorationInfo& e, utils::CountdownTimer& timer);
 };

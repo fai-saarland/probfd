@@ -148,16 +148,10 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::StackInfo::
 template <typename State, typename Action, bool UseInterval>
 TATopologicalValueIteration<State, Action, UseInterval>::ECDExplorationInfo::
     ECDExplorationInfo(StackInfo& stack_info, unsigned stackidx)
-    : action(stack_info.ec_transitions.begin())
-    , end(stack_info.ec_transitions.end())
-    , successor(action->scc_successors.begin())
-    , stackidx(stackidx)
+    : stackidx(stackidx)
     , lowlink(stackidx)
     , stack_info(stack_info)
 {
-    assert(!stack_info.ec_transitions.empty());
-    assert(!action->scc_successors.empty());
-    assert(action < end);
 }
 
 template <typename State, typename Action, bool UseInterval>
@@ -566,14 +560,14 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
 
         for (auto it = begin; it != end; ++it) {
             const StateID id = it->state_id;
-            StateInfo& s_info = state_information_[id];
+            StateInfo& state_info = state_information_[id];
 
-            if (s_info.status == StateInfo::NEW && push_ecd(id, s_info)) {
+            if (state_info.status == StateInfo::NEW) {
                 // Run decomposition
-                find_and_decompose_sccs(0, timer);
+                find_and_decompose_sccs(id, state_info, timer);
             }
 
-            assert(s_info.status == StateInfo::CLOSED);
+            assert(state_info.status == StateInfo::CLOSED);
         }
 
         assert(exploration_stack_ecd_.empty());
@@ -631,18 +625,31 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
 
 template <typename State, typename Action, bool UseInterval>
 void TATopologicalValueIteration<State, Action, UseInterval>::
-    find_and_decompose_sccs(const unsigned limit, utils::CountdownTimer& timer)
+    find_and_decompose_sccs(
+        StateID state_id,
+        StateInfo& state_info,
+        utils::CountdownTimer& timer)
 {
-    if (exploration_stack_ecd_.size() <= limit) {
-        return;
-    }
+    const unsigned limit = exploration_stack_ecd_.size();
+
+    const auto stack_size = stack_ecd_.size();
+    state_info.ecd_stack_id = stack_size;
+    state_info.status = StateInfo::ONSTACK;
+    exploration_stack_ecd_.emplace_back(
+        stack_[state_info.stack_id],
+        stack_size);
+    stack_ecd_.emplace_back(state_id);
 
     ECDExplorationInfo* e = &exploration_stack_ecd_.back();
+
+    goto start;
 
     for (;;) {
         // DFS recursion
         while (push_successor_ecd(*e, timer)) {
             e = &exploration_stack_ecd_.back();
+        start:
+            if (!initialize_ecd(*e)) break;
         }
 
         // Iterative backtracking
@@ -661,7 +668,7 @@ void TATopologicalValueIteration<State, Action, UseInterval>::
 
             exploration_stack_ecd_.pop_back();
 
-            if (exploration_stack_ecd_.size() <= limit) {
+            if (exploration_stack_ecd_.size() == limit) {
                 return;
             }
 
@@ -692,12 +699,17 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::
         StateInfo& succ_info = state_information_[succ_id];
 
         switch (succ_info.status) {
-        case StateInfo::NEW:
-            if (push_ecd(succ_id, succ_info)) {
-                return true;
-            }
+        case StateInfo::NEW: {
+            const auto stack_size = stack_ecd_.size();
+            succ_info.ecd_stack_id = stack_size;
+            succ_info.status = StateInfo::ONSTACK;
+            exploration_stack_ecd_.emplace_back(
+                stack_[succ_info.stack_id],
+                stack_size);
+            stack_ecd_.emplace_back(succ_id);
+            return true;
+        }
 
-            [[fallthrough]];
         case StateInfo::CLOSED:
             e.recurse = e.recurse || e.remains_scc;
             e.leaves_scc = true;
@@ -715,25 +727,18 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::
 }
 
 template <typename State, typename Action, bool UseInterval>
-bool TATopologicalValueIteration<State, Action, UseInterval>::push_ecd(
-    StateID state_id,
-    StateInfo& info)
+bool TATopologicalValueIteration<State, Action, UseInterval>::initialize_ecd(
+    ECDExplorationInfo& exp_info)
 {
-    assert(info.status == StateInfo::NEW);
+    StackInfo& stack_info = exp_info.stack_info;
 
-    info.status = StateInfo::ONSTACK;
-    StackInfo& scc_info = stack_[info.stack_id];
-
-    if (scc_info.ec_transitions.empty()) {
-        info.status = StateInfo::CLOSED;
+    if (stack_info.ec_transitions.empty()) {
         return false;
     }
 
-    const auto stack_size = stack_ecd_.size();
-    info.ecd_stack_id = stack_size;
-
-    exploration_stack_ecd_.emplace_back(scc_info, stack_size);
-    stack_ecd_.emplace_back(state_id);
+    exp_info.action = stack_info.ec_transitions.begin();
+    exp_info.end = stack_info.ec_transitions.end();
+    exp_info.successor = exp_info.action->scc_successors.begin();
 
     return true;
 }
@@ -754,20 +759,17 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found_ecd(
             state_information_[*it].status = StateInfo::NEW;
         }
 
-        const unsigned limit = exploration_stack_ecd_.size();
-
         for (unsigned i = e.stackidx; i < stack_ecd_.size(); ++i) {
             const StateID id = stack_ecd_[i];
             StateInfo& state_info = state_information_[id];
 
-            if (state_info.status == StateInfo::NEW &&
-                push_ecd(id, state_info)) {
+            if (state_info.status == StateInfo::NEW) {
                 // Recursively run decomposition
-                find_and_decompose_sccs(limit, timer);
+                find_and_decompose_sccs(id, state_info, timer);
             }
-        }
 
-        assert(exploration_stack_ecd_.size() == limit);
+            assert(state_info.status == StateInfo::CLOSED);
+        }
     } else {
         // We found an end component, patch it
         const StateID scc_repr_id = *scc_begin;
