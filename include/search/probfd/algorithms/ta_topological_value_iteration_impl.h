@@ -37,27 +37,69 @@ TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 
 template <typename State, typename Action, bool UseInterval>
 bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
-    next_transition(MDP& mdp, StateID state_id)
+    next_transition(MDP& mdp, StackInfo& stack_info, StateID state_id)
 {
-    for (aops.pop_back(); !aops.empty(); aops.pop_back()) {
-        transition.clear();
-        const State state = mdp.get_state(state_id);
+    aops.pop_back();
+    transition.clear();
+
+    return !aops.empty() && forward_non_loop_transition(
+                                mdp,
+                                stack_info,
+                                mdp.get_state(state_id),
+                                state_id);
+}
+
+template <typename State, typename Action, bool UseInterval>
+bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
+    forward_non_loop_transition(
+        MDP& mdp,
+        StackInfo& stack_info,
+        const State& state,
+        StateID state_id)
+{
+    do {
         mdp.generate_action_transitions(state, aops.back(), transition);
 
         if (!transition.is_dirac(state_id)) {
             successor = transition.begin();
+            const auto cost = mdp.get_action_cost(aops.back());
+            nz_or_leaves_scc = cost != 0.0_vt;
+            stack_info.ec_transitions.emplace_back(cost);
             return true;
         }
-    }
+
+        aops.pop_back();
+        transition.clear();
+    } while (!aops.empty());
 
     return false;
 }
 
 template <typename State, typename Action, bool UseInterval>
 bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
-    next_successor()
+    next_successor(StackInfo& stack_info)
 {
-    return ++successor != transition.end();
+    if (++successor != transition.end()) {
+        return true;
+    }
+
+    auto& tinfo = stack_info.ec_transitions.back();
+
+    if (tinfo.finalize_transition()) {
+        // Universally exiting -> Not part of scc
+        // Update converged portion of q value and ignore this
+        // transition
+        set_min(stack_info.conv_part, tinfo.conv_part);
+        stack_info.ec_transitions.pop_back();
+    } else if (nz_or_leaves_scc) {
+        // Only some exiting or cost is non-zero ->
+        // Not part of an end component
+        // Move the transition to the set of non-EC transitions
+        stack_info.non_ec_transitions.push_back(std::move(tinfo));
+        stack_info.ec_transitions.pop_back();
+    }
+
+    return false;
 }
 
 template <typename State, typename Action, bool UseInterval>
@@ -287,7 +329,7 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
         }
 
         // Iterative backtracking
-        for (;;) {
+        do {
             const unsigned stack_id = explore->stackidx;
             const unsigned lowlink = explore->lowlink;
             const bool onstack = stack_id != lowlink;
@@ -338,38 +380,8 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
 
                 tinfo.conv_part += prob * s_value;
             }
-
-            // Has next successor -> stop backtracking
-            if (explore->next_successor()) {
-                break;
-            }
-
-            // Check whether the transition is part of the scc or an end
-            // component within the scc
-            if (tinfo.finalize_transition()) {
-                // Universally exiting -> Not part of scc
-                // Update converged portion of q value and ignore this
-                // transition
-                set_min(stack_info->conv_part, tinfo.conv_part);
-                stack_info->ec_transitions.pop_back();
-            } else if (explore->nz_or_leaves_scc) {
-                // Only some exiting or cost is non-zero ->
-                // Not part of an end component
-                // Move the transition to the set of non-EC transitions
-                stack_info->non_ec_transitions.push_back(std::move(tinfo));
-                stack_info->ec_transitions.pop_back();
-            }
-
-            // Has next action -> stop backtracking
-            if (explore->next_transition(mdp, state_id)) {
-                const auto cost =
-                    mdp.get_action_cost(explore->get_current_action());
-                explore->nz_or_leaves_scc = cost != 0.0_vt;
-                stack_info->ec_transitions.emplace_back(cost);
-
-                break;
-            }
-        }
+        } while (!explore->next_successor(*stack_info) &&
+                 !explore->next_transition(mdp, *stack_info, state_id));
     }
 }
 
@@ -383,68 +395,50 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
     ValueStore& value_store,
     utils::CountdownTimer& timer)
 {
-    for (;;) {
+    do {
         assert(!stack_info.ec_transitions.empty());
 
         QValueInfo& tinfo = stack_info.ec_transitions.back();
+        timer.throw_if_expired();
 
-        do {
-            timer.throw_if_expired();
+        const auto [succ_id, prob] = explore.get_current_successor();
 
-            const auto [succ_id, prob] = explore.get_current_successor();
-
-            if (succ_id == state_id) {
-                tinfo.self_loop_prob += prob;
-                continue;
-            }
-
-            StateInfo& succ_info = state_information_[succ_id];
-            AlgorithmValueType& s_value = value_store[succ_id];
-            int status = succ_info.status;
-
-            switch (status) {
-            case StateInfo::NEW: {
-                const std::size_t stack_size = stack_.size();
-                exploration_stack_.emplace_back(stack_size);
-                stack_.emplace_back(succ_id, s_value);
-                succ_info.stack_id = stack_size;
-                succ_info.status = StateInfo::ONSTACK;
-                return true; // recursion on new state
-            }
-
-            case StateInfo::CLOSED:
-                explore.nz_or_leaves_scc = true;
-                explore.recurse =
-                    explore.recurse || !tinfo.scc_successors.empty();
-
-                tinfo.conv_part += prob * s_value;
-                break;
-
-            case StateInfo::ONSTACK:
-                explore.lowlink = std::min(explore.lowlink, succ_info.stack_id);
-                explore.recurse = explore.recurse || explore.nz_or_leaves_scc;
-
-                tinfo.scc_successors.emplace_back(succ_id, prob);
-            }
-        } while (explore.next_successor());
-
-        if (tinfo.finalize_transition()) {
-            set_min(stack_info.conv_part, tinfo.conv_part);
-            stack_info.ec_transitions.pop_back();
-        } else if (explore.nz_or_leaves_scc) {
-            stack_info.non_ec_transitions.push_back(std::move(tinfo));
-            stack_info.ec_transitions.pop_back();
+        if (succ_id == state_id) {
+            tinfo.self_loop_prob += prob;
+            continue;
         }
 
-        if (!explore.next_transition(mdp, state_id)) {
-            return false;
+        StateInfo& succ_info = state_information_[succ_id];
+        AlgorithmValueType& s_value = value_store[succ_id];
+        int status = succ_info.status;
+
+        switch (status) {
+        case StateInfo::NEW: {
+            const std::size_t stack_size = stack_.size();
+            exploration_stack_.emplace_back(stack_size);
+            stack_.emplace_back(succ_id, s_value);
+            succ_info.stack_id = stack_size;
+            succ_info.status = StateInfo::ONSTACK;
+            return true; // recursion on new state
         }
 
-        const auto cost = mdp.get_action_cost(explore.get_current_action());
+        case StateInfo::CLOSED:
+            explore.nz_or_leaves_scc = true;
+            explore.recurse = explore.recurse || !tinfo.scc_successors.empty();
 
-        explore.nz_or_leaves_scc = cost != 0.0_vt;
-        stack_info.ec_transitions.emplace_back(cost);
-    }
+            tinfo.conv_part += prob * s_value;
+            break;
+
+        case StateInfo::ONSTACK:
+            explore.lowlink = std::min(explore.lowlink, succ_info.stack_id);
+            explore.recurse = explore.recurse || explore.nz_or_leaves_scc;
+
+            tinfo.scc_successors.emplace_back(succ_id, prob);
+        }
+    } while (explore.next_successor(stack_info) ||
+             explore.next_transition(mdp, stack_info, state_id));
+
+    return false;
 }
 
 template <typename State, typename Action, bool UseInterval>
@@ -468,58 +462,38 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::initialize_state(
 
     stack_info.conv_part = t_cost;
 
+    if constexpr (UseInterval) {
+        state_value.lower = estimate;
+        state_value.upper = t_cost;
+    } else {
+        state_value = estimate;
+    }
+
     if (state_term.is_goal_state()) {
         ++statistics_.goal_states;
     } else if (estimate == t_cost) {
         ++statistics_.pruned;
-        state_value = AlgorithmValueType(estimate);
         return false;
     }
 
     mdp.generate_applicable_actions(state, exp_info.aops);
+
+    const size_t num_aops = exp_info.aops.size();
+
+    stack_info.non_ec_transitions.reserve(num_aops);
+    stack_info.ec_transitions.reserve(num_aops);
+
     ++statistics_.expanded_states;
 
     if (exp_info.aops.empty()) {
         ++statistics_.terminal_states;
-    } else {
-        /************** Forward to first non self loop ****************/
-        do {
-            mdp.generate_action_transitions(
-                state,
-                exp_info.aops.back(),
-                exp_info.transition);
-
-            assert(!exp_info.transition.empty());
-
-            // Check for self loop
-            if (!exp_info.transition.is_dirac(state_id)) {
-                // Found non self loop action, push and return success.
-                const auto cost = mdp.get_action_cost(exp_info.aops.back());
-                exp_info.nz_or_leaves_scc = cost != 0.0_vt;
-                exp_info.successor = exp_info.transition.begin();
-
-                const size_t num_aops = exp_info.aops.size();
-
-                stack_info.non_ec_transitions.reserve(num_aops);
-                stack_info.ec_transitions.reserve(num_aops);
-                stack_info.ec_transitions.emplace_back(cost);
-
-                if constexpr (UseInterval) {
-                    state_value.lower = estimate;
-                    state_value.upper = t_cost;
-                } else {
-                    state_value = estimate;
-                }
-
-                return true;
-            }
-
-            exp_info.aops.pop_back();
-            exp_info.transition.clear();
-        } while (!exp_info.aops.empty());
+    } else if (exp_info.forward_non_loop_transition(
+                   mdp,
+                   stack_info,
+                   state,
+                   state_id)) {
+        return true;
     }
-
-    state_value = AlgorithmValueType(t_cost);
 
     return false;
 }

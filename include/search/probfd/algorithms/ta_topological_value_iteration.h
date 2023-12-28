@@ -69,6 +69,8 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         unsigned ecd_stack_id = std::numeric_limits<unsigned>::max();
     };
 
+    struct StackInfo;
+
     struct ExplorationInfo {
         // Exploration State -- Remaining operators
         std::vector<Action> aops;
@@ -96,8 +98,13 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
 
         explicit ExplorationInfo(unsigned int stackidx);
 
-        bool next_transition(MDP& mdp, StateID state_id);
-        bool next_successor();
+        bool next_transition(MDP& mdp, StackInfo& stack_info, StateID state_id);
+        bool forward_non_loop_transition(
+            MDP& mdp,
+            StackInfo& stack_info,
+            const State& state,
+            StateID state_id);
+        bool next_successor(StackInfo& stack_info);
 
         Action& get_current_action();
         ItemProbabilityPair<StateID> get_current_successor();
