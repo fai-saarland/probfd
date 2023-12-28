@@ -62,14 +62,9 @@ inline StackInfo::StackInfo(StateID sid)
 
 template <typename State, typename Action>
 QualitativeReachabilityAnalysis<State, Action>::ExpansionInfo::ExpansionInfo(
-    unsigned stck,
-    std::vector<Action> aops,
-    Distribution<StateID> transition)
+    unsigned int stck)
     : stck(stck)
     , lstck(stck)
-    , aops(std::move(aops))
-    , transition(std::move(transition))
-    , successor(this->transition.begin())
 {
 }
 
@@ -133,39 +128,34 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
 
     utils::CountdownTimer timer(max_time);
 
-    auto init_id = mdp.get_state_id(source_state);
-    if (!push(
-            mdp,
-            pruning_function,
-            init_id,
-            state_infos_[init_id],
-            dead_out,
-            unsolvable_out,
-            solvable_out)) {
-        return;
-    }
-
-    assert(!expansion_queue_.empty());
+    const StateID init_id = mdp.get_state_id(source_state);
+    state_infos_[init_id].stackid_ = 0;
+    stack_.emplace_back(init_id);
+    expansion_queue_.emplace_back(0);
 
     ExpansionInfo* e = &expansion_queue_.back();
     StackInfo* s = &stack_[e->stck];
     StateInfo* st = &state_infos_[s->stateid];
 
+    goto start;
+
     for (;;) {
         // DFS recursion
-        while (push_successor(
-            mdp,
-            pruning_function,
-            *e,
-            *s,
-            *st,
-            dead_out,
-            unsolvable_out,
-            solvable_out,
-            timer)) {
+        while (push_successor(mdp, *e, *s, *st, timer)) {
             e = &expansion_queue_.back();
             s = &stack_[e->stck];
             st = &state_infos_[s->stateid];
+        start:
+            if (!initialize(
+                    mdp,
+                    pruning_function,
+                    *e,
+                    *s,
+                    *st,
+                    dead_out,
+                    unsolvable_out,
+                    solvable_out))
+                break;
         }
 
         // Repeated backtracking
@@ -207,10 +197,8 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
                 e->lstck = std::min(e->lstck, lstck);
                 e->transitions_in_scc = true;
 
-                if (!st->expandable_goal) {
-                    auto& parents = backtracked_from->parents;
-                    parents.emplace_back(e->stck, s->transition_flags.size());
-                }
+                auto& parents = backtracked_from->parents;
+                parents.emplace_back(e->stck, s->transition_flags.size());
             }
 
             st->dead = st->dead && bt_info.dead;
@@ -232,17 +220,19 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
                     e->exits_only_solvable && e->exits_scc,
                     e->exits_only_solvable);
             } else if (e->exits_only_solvable) {
-                st->solvable = true;
+                ++s->active_exit_transitions;
+                ++s->active_transitions;
             }
         } while (!e->next_action(mdp, s->stateid));
     }
 }
 
 template <typename State, typename Action>
-bool QualitativeReachabilityAnalysis<State, Action>::push(
+bool QualitativeReachabilityAnalysis<State, Action>::initialize(
     MDP& mdp,
     const Evaluator* pruning_function,
-    StateID state_id,
+    ExpansionInfo& exp_info,
+    StackInfo& stack_info,
     StateInfo& state_info,
     std::output_iterator<StateID> auto dead_out,
     std::output_iterator<StateID> auto unsolvable_out,
@@ -253,6 +243,7 @@ bool QualitativeReachabilityAnalysis<State, Action>::push(
 
     state_info.explored = 1;
 
+    const StateID state_id = stack_info.stateid;
     State state = mdp.get_state(state_id);
 
     const TerminationInfo term = mdp.get_termination_info(state);
@@ -261,15 +252,14 @@ bool QualitativeReachabilityAnalysis<State, Action>::push(
         ++stats_.goals;
 
         state_info.dead = 0;
-        state_info.solvable = 1;
+        ++stack_info.active_exit_transitions;
+        ++stack_info.active_transitions;
 
         if (!expand_goals_) {
             ++stats_.terminals;
             *solvable_out = state_id;
             return false;
         }
-
-        state_info.expandable_goal = 1;
     } else if (
         pruning_function != nullptr &&
         pruning_function->evaluate(state) == term.get_cost()) {
@@ -279,54 +269,33 @@ bool QualitativeReachabilityAnalysis<State, Action>::push(
         return false;
     }
 
-    std::vector<Action> aops;
-    mdp.generate_applicable_actions(state, aops);
+    mdp.generate_applicable_actions(state, exp_info.aops);
 
-    if (aops.empty()) {
+    if (exp_info.aops.empty()) {
         ++stats_.terminals;
+    } else {
+        /************** Forward to first non self loop ****************/
+        do {
+            mdp.generate_action_transitions(
+                state,
+                exp_info.aops.back(),
+                exp_info.transition);
 
-        if (state_info.expandable_goal) {
-            state_info.expandable_goal = 0;
-        } else {
-            *dead_out = state_id;
-            *unsolvable_out = state_id;
-        }
+            assert(!exp_info.transition.empty());
 
-        return false;
+            // Check for self loop
+            if (!exp_info.transition.is_dirac(state_id)) {
+                exp_info.successor = exp_info.transition.begin();
+                return true;
+            }
+
+            exp_info.transition.clear();
+            exp_info.aops.pop_back();
+        } while (!exp_info.aops.empty());
+        /*****************************************************************/
     }
 
-    /************** Forward to first non self loop ****************/
-    Distribution<StateID> transition;
-
-    do {
-        mdp.generate_action_transitions(state, aops.back(), transition);
-
-        assert(!transition.empty());
-
-        // Check for self loop
-        if (!transition.is_dirac(state_id)) {
-            const std::size_t stack_size = stack_.size();
-
-            state_info.stackid_ = stack_size;
-
-            stack_.emplace_back(state_id);
-
-            expansion_queue_.emplace_back(
-                stack_size,
-                std::move(aops),
-                std::move(transition));
-
-            return true;
-        }
-
-        transition.clear();
-        aops.pop_back();
-    } while (!aops.empty());
-    /*****************************************************************/
-
-    if (state_info.expandable_goal) {
-        state_info.expandable_goal = 0;
-    } else {
+    if (!term.is_goal_state()) {
         *dead_out = state_id;
         *unsolvable_out = state_id;
     }
@@ -337,13 +306,9 @@ bool QualitativeReachabilityAnalysis<State, Action>::push(
 template <typename State, typename Action>
 bool QualitativeReachabilityAnalysis<State, Action>::push_successor(
     MDP& mdp,
-    const Evaluator* pruning_function,
     ExpansionInfo& e,
     StackInfo& s,
     StateInfo& st,
-    std::output_iterator<StateID> auto dead_out,
-    std::output_iterator<StateID> auto unsolvable_out,
-    std::output_iterator<StateID> auto solvable_out,
     utils::CountdownTimer& timer)
 {
     do {
@@ -354,19 +319,14 @@ bool QualitativeReachabilityAnalysis<State, Action>::push_successor(
             StateInfo& succ_info = state_infos_[succ_id];
 
             switch (succ_info.get_status()) {
-            case StateInfo::NEW:
-                if (push(
-                        mdp,
-                        pruning_function,
-                        succ_id,
-                        succ_info,
-                        dead_out,
-                        unsolvable_out,
-                        solvable_out)) {
-                    return true;
-                }
+            case StateInfo::NEW: {
+                const std::size_t stack_size = stack_.size();
+                succ_info.stackid_ = stack_size;
+                stack_.emplace_back(succ_id);
+                expansion_queue_.emplace_back(stack_size);
 
-                [[fallthrough]];
+                return true;
+            }
 
             case StateInfo::CLOSED: // Child SCC
                 e.exits_only_solvable =
@@ -380,10 +340,8 @@ bool QualitativeReachabilityAnalysis<State, Action>::push_successor(
 
                 e.transitions_in_scc = true;
 
-                if (!st.expandable_goal) {
-                    auto& parents = stack_[succ_stack_id].parents;
-                    parents.emplace_back(e.stck, s.transition_flags.size());
-                }
+                auto& parents = stack_[succ_stack_id].parents;
+                parents.emplace_back(e.stck, s.transition_flags.size());
             }
 
             st.dead = st.dead && succ_info.dead;
@@ -401,7 +359,8 @@ bool QualitativeReachabilityAnalysis<State, Action>::push_successor(
                 e.exits_only_solvable && e.exits_scc,
                 e.exits_only_solvable);
         } else if (e.exits_only_solvable) {
-            st.solvable = true;
+            ++s.active_exit_transitions;
+            ++s.active_transitions;
         }
     } while (e.next_action(mdp, s.stateid));
 
@@ -449,13 +408,7 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
         state_info.stackid_ = StateInfo::UNDEF;
         state_info.dead = false;
 
-        if (state_info.expandable_goal) {
-            assert(state_info.solvable);
-            *solvable_out = info.stateid;
-            ++stats_.ones;
-        }
-
-        if (info.active_exit_transitions > 0 || state_info.solvable) {
+        if (info.active_exit_transitions > 0) {
             trusted.insert(&info);
         }
     }
@@ -518,9 +471,8 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
             for (const auto& [parent_idx, tr_idx] : scc_elem->parents) {
                 StackInfo& pinfo = stack_[parent_idx];
                 auto& transition_flags = pinfo.transition_flags[tr_idx];
-                const StateInfo& sinfo = state_infos_[pinfo.stateid];
 
-                if (sinfo.solvable || proven_unsolvable.contains(&pinfo)) {
+                if (proven_unsolvable.contains(&pinfo)) {
                     continue;
                 }
 
@@ -547,16 +499,13 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
         current_size = solvable_states.size();
     } while (prev_size != current_size);
 
+    stats_.ones += solvable_states.size();
+
     // Report the solvable states
     for (StackInfo* stkinfo : solvable_states) {
-        auto sid = stkinfo->stateid;
-        auto& sinfo = state_infos_[sid];
-
-        if (!sinfo.expandable_goal) {
-            sinfo.solvable = true;
-            *solvable_out = sid;
-            ++stats_.ones;
-        }
+        const StateID sid = stkinfo->stateid;
+        state_infos_[sid].solvable = true;
+        *solvable_out = sid;
     }
 
     stack_.erase(scc.begin(), scc.end());

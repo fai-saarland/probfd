@@ -48,10 +48,9 @@ struct StateInfo {
     static constexpr uint32_t UNDEF = std::numeric_limits<uint32_t>::max() >> 4;
 
     unsigned explored : 1 = 0;
-    unsigned expandable_goal : 1 = 0; // non-terminal goal?
     unsigned dead : 1 = 1;            // dead end flag
     unsigned solvable : 1 = 0;        // solvable state flag
-    unsigned stackid_ : 28 = UNDEF;
+    unsigned stackid_ : 29 = UNDEF;
 
     bool onstack() const;
     auto get_status() const;
@@ -115,10 +114,7 @@ class QualitativeReachabilityAnalysis {
         // Next state to expand
         typename Distribution<StateID>::const_iterator successor;
 
-        explicit ExpansionInfo(
-            unsigned stck,
-            std::vector<Action> aops,
-            Distribution<StateID> transition);
+        explicit ExpansionInfo(unsigned int stck);
 
         /**
          * Advances to the next non-loop action. Returns nullptr if such an
@@ -151,10 +147,11 @@ public:
         double max_time = std::numeric_limits<double>::infinity());
 
 private:
-    bool push(
+    bool initialize(
         MDP& mdp,
         const Evaluator* pruning_function,
-        StateID state_id,
+        ExpansionInfo& exp_info,
+        StackInfo& stack_info,
         StateInfo& state_info,
         std::output_iterator<StateID> auto dead_out,
         std::output_iterator<StateID> auto unsolvable_out,
@@ -162,13 +159,9 @@ private:
 
     bool push_successor(
         MDP& mdp,
-        const Evaluator* pruning_function,
         ExpansionInfo& e,
         StackInfo& s,
         StateInfo& st,
-        std::output_iterator<StateID> auto dead_out,
-        std::output_iterator<StateID> auto unsolvable_out,
-        std::output_iterator<StateID> auto solvable_out,
         utils::CountdownTimer& timer);
 
     void scc_found(
