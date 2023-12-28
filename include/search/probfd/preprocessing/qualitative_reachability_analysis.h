@@ -121,7 +121,9 @@ class QualitativeReachabilityAnalysis {
          * action does not exist.
          */
         bool next_action(MDP& mdp, StateID state_id);
-        bool next_successor();
+        bool
+        forward_non_self_loop(MDP& mdp, const State& state, StateID state_id);
+        bool next_successor(StackInfo& s);
 
         StateID get_current_successor();
     };

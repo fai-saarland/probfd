@@ -73,31 +73,61 @@ bool QualitativeReachabilityAnalysis<State, Action>::ExpansionInfo::next_action(
     MDP& mdp,
     StateID state_id)
 {
-    for (aops.pop_back(); !aops.empty(); aops.pop_back()) {
-        transition.clear();
-        const State state = mdp.get_state(state_id);
+    // Reset transition flags
+    exits_only_solvable = true;
+    transitions_in_scc = false;
+    exits_scc = false;
+
+    aops.pop_back();
+    transition.clear();
+
+    return !aops.empty() &&
+           forward_non_self_loop(mdp, mdp.get_state(state_id), state_id);
+}
+
+template <typename State, typename Action>
+bool QualitativeReachabilityAnalysis<State, Action>::ExpansionInfo::
+    forward_non_self_loop(MDP& mdp, const State& state, StateID state_id)
+{
+    do {
         mdp.generate_action_transitions(state, aops.back(), transition);
 
         if (!transition.is_dirac(state_id)) {
             successor = transition.begin();
-
-            // Reset transition flags
-            exits_only_solvable = true;
-            transitions_in_scc = false;
-            exits_scc = false;
-
             return true;
         }
-    }
+
+        aops.pop_back();
+        transition.clear();
+    } while (!aops.empty());
 
     return false;
 }
 
 template <typename State, typename Action>
 bool QualitativeReachabilityAnalysis<State, Action>::ExpansionInfo::
-    next_successor()
+    next_successor(StackInfo& s)
 {
-    return ++successor != transition.end();
+    if (++successor != transition.end()) {
+        return true;
+    }
+
+    if (transitions_in_scc) {
+        if (exits_only_solvable) {
+            if (exits_scc) {
+                ++s.active_exit_transitions;
+            }
+            ++s.active_transitions;
+        }
+        s.transition_flags.emplace_back(
+            exits_only_solvable && exits_scc,
+            exits_only_solvable);
+    } else if (exits_only_solvable) {
+        ++s.active_exit_transitions;
+        ++s.active_transitions;
+    }
+
+    return false;
 }
 
 template <typename State, typename Action>
@@ -202,28 +232,7 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
             }
 
             st->dead = st->dead && bt_info.dead;
-
-            // If a successor exists stop backtracking
-            if (e->next_successor()) {
-                break;
-            }
-
-            // Finalize fully explored transition.
-            if (e->transitions_in_scc) {
-                if (e->exits_only_solvable) {
-                    if (e->exits_scc) {
-                        ++s->active_exit_transitions;
-                    }
-                    ++s->active_transitions;
-                }
-                s->transition_flags.emplace_back(
-                    e->exits_only_solvable && e->exits_scc,
-                    e->exits_only_solvable);
-            } else if (e->exits_only_solvable) {
-                ++s->active_exit_transitions;
-                ++s->active_transitions;
-            }
-        } while (!e->next_action(mdp, s->stateid));
+        } while (!e->next_successor(*s) && !e->next_action(mdp, s->stateid));
     }
 }
 
@@ -273,26 +282,8 @@ bool QualitativeReachabilityAnalysis<State, Action>::initialize(
 
     if (exp_info.aops.empty()) {
         ++stats_.terminals;
-    } else {
-        /************** Forward to first non self loop ****************/
-        do {
-            mdp.generate_action_transitions(
-                state,
-                exp_info.aops.back(),
-                exp_info.transition);
-
-            assert(!exp_info.transition.empty());
-
-            // Check for self loop
-            if (!exp_info.transition.is_dirac(state_id)) {
-                exp_info.successor = exp_info.transition.begin();
-                return true;
-            }
-
-            exp_info.transition.clear();
-            exp_info.aops.pop_back();
-        } while (!exp_info.aops.empty());
-        /*****************************************************************/
+    } else if (exp_info.forward_non_self_loop(mdp, state, state_id)) {
+        return true;
     }
 
     if (!term.is_goal_state()) {
@@ -312,57 +303,38 @@ bool QualitativeReachabilityAnalysis<State, Action>::push_successor(
     utils::CountdownTimer& timer)
 {
     do {
-        do {
-            timer.throw_if_expired();
+        timer.throw_if_expired();
 
-            const StateID succ_id = e.get_current_successor();
-            StateInfo& succ_info = state_infos_[succ_id];
+        const StateID succ_id = e.get_current_successor();
+        StateInfo& succ_info = state_infos_[succ_id];
 
-            switch (succ_info.get_status()) {
-            case StateInfo::NEW: {
-                const std::size_t stack_size = stack_.size();
-                succ_info.stackid_ = stack_size;
-                stack_.emplace_back(succ_id);
-                expansion_queue_.emplace_back(stack_size);
+        switch (succ_info.get_status()) {
+        case StateInfo::NEW: {
+            const std::size_t stack_size = stack_.size();
+            succ_info.stackid_ = stack_size;
+            stack_.emplace_back(succ_id);
+            expansion_queue_.emplace_back(stack_size);
 
-                return true;
-            }
-
-            case StateInfo::CLOSED: // Child SCC
-                e.exits_only_solvable =
-                    e.exits_only_solvable && succ_info.solvable;
-                e.exits_scc = true;
-                break;
-
-            case StateInfo::ONSTACK: // Same SCC
-                unsigned succ_stack_id = succ_info.stackid_;
-                e.lstck = std::min(e.lstck, succ_stack_id);
-
-                e.transitions_in_scc = true;
-
-                auto& parents = stack_[succ_stack_id].parents;
-                parents.emplace_back(e.stck, s.transition_flags.size());
-            }
-
-            st.dead = st.dead && succ_info.dead;
-        } while (e.next_successor());
-
-        // Finalize fully explored transition.
-        if (e.transitions_in_scc) {
-            if (e.exits_only_solvable) {
-                if (e.exits_scc) {
-                    ++s.active_exit_transitions;
-                }
-                ++s.active_transitions;
-            }
-            s.transition_flags.emplace_back(
-                e.exits_only_solvable && e.exits_scc,
-                e.exits_only_solvable);
-        } else if (e.exits_only_solvable) {
-            ++s.active_exit_transitions;
-            ++s.active_transitions;
+            return true;
         }
-    } while (e.next_action(mdp, s.stateid));
+
+        case StateInfo::CLOSED: // Child SCC
+            e.exits_only_solvable = e.exits_only_solvable && succ_info.solvable;
+            e.exits_scc = true;
+            break;
+
+        case StateInfo::ONSTACK: // Same SCC
+            unsigned succ_stack_id = succ_info.stackid_;
+            e.lstck = std::min(e.lstck, succ_stack_id);
+
+            e.transitions_in_scc = true;
+
+            auto& parents = stack_[succ_stack_id].parents;
+            parents.emplace_back(e.stck, s.transition_flags.size());
+        }
+
+        st.dead = st.dead && succ_info.dead;
+    } while (e.next_successor(s) || e.next_action(mdp, s.stateid));
 
     return false;
 }
