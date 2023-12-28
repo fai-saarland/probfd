@@ -69,7 +69,7 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         unsigned ecd_stack_id = std::numeric_limits<unsigned>::max();
     };
 
-    class ExplorationInfo {
+    struct ExplorationInfo {
         // Exploration State -- Remaining operators
         std::vector<Action> aops;
 
@@ -77,7 +77,6 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         Distribution<StateID> transition;
         typename Distribution<StateID>::const_iterator successor;
 
-    public:
         // Tarjans's algorithm state
         unsigned stackidx;
         unsigned lowlink;
@@ -95,10 +94,7 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         // whether the transition has non-zero cost or can leave the scc
         bool nz_or_leaves_scc;
 
-        ExplorationInfo(
-            std::vector<Action> aops,
-            Distribution<StateID> first_transition,
-            unsigned stackidx);
+        explicit ExplorationInfo(unsigned int stackidx);
 
         bool next_transition(MDP& mdp, StateID state_id);
         bool next_successor();
@@ -150,11 +146,7 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         // Iteratively refined during end component decomposition.
         std::vector<QValueInfo> ec_transitions;
 
-        StackInfo(
-            StateID state_id,
-            AlgorithmValueType& value_ref,
-            value_t state_cost,
-            unsigned num_aops);
+        StackInfo(StateID state_id, AlgorithmValueType& value_ref);
 
         template <typename ValueStore>
         bool update_value(ValueStore& value_store);
@@ -246,7 +238,6 @@ private:
     template <typename ValueStore>
     bool successor_loop(
         MDP& mdp,
-        Evaluator& heuristic,
         ExplorationInfo& explore,
         StackInfo& stack_info,
         StateID state_id,
@@ -258,11 +249,12 @@ private:
      * onto the queue unless it is terminal modulo self-loops. Returns
      * true if the state was pushed.
      */
-    bool push_state(
+    bool initialize_state(
         MDP& mdp,
         Evaluator& heuristic,
+        ExplorationInfo& exp_info,
+        StackInfo& stack_info,
         StateID state_id,
-        StateInfo& state_info,
         AlgorithmValueType& state_value);
 
     /**
