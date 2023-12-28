@@ -154,10 +154,7 @@ private:
         const Evaluator* pruning_function,
         ExpansionInfo& exp_info,
         StackInfo& stack_info,
-        StateInfo& state_info,
-        std::output_iterator<StateID> auto dead_out,
-        std::output_iterator<StateID> auto unsolvable_out,
-        std::output_iterator<StateID> auto solvable_out);
+        StateInfo& state_info);
 
     bool push_successor(
         MDP& mdp,

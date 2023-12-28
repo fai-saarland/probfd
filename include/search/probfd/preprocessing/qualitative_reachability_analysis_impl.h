@@ -176,16 +176,7 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
             s = &stack_[e->stck];
             st = &state_infos_[s->stateid];
         start:
-            if (!initialize(
-                    mdp,
-                    pruning_function,
-                    *e,
-                    *s,
-                    *st,
-                    dead_out,
-                    unsolvable_out,
-                    solvable_out))
-                break;
+            if (!initialize(mdp, pruning_function, *e, *s, *st)) break;
         }
 
         // Repeated backtracking
@@ -242,10 +233,7 @@ bool QualitativeReachabilityAnalysis<State, Action>::initialize(
     const Evaluator* pruning_function,
     ExpansionInfo& exp_info,
     StackInfo& stack_info,
-    StateInfo& state_info,
-    std::output_iterator<StateID> auto dead_out,
-    std::output_iterator<StateID> auto unsolvable_out,
-    std::output_iterator<StateID> auto solvable_out)
+    StateInfo& state_info)
 {
     assert(!state_info.explored);
     assert(!state_info.solvable && state_info.dead);
@@ -266,15 +254,12 @@ bool QualitativeReachabilityAnalysis<State, Action>::initialize(
 
         if (!expand_goals_) {
             ++stats_.terminals;
-            *solvable_out = state_id;
             return false;
         }
     } else if (
         pruning_function != nullptr &&
         pruning_function->evaluate(state) == term.get_cost()) {
         ++stats_.terminals;
-        *dead_out = state_id;
-        *unsolvable_out = state_id;
         return false;
     }
 
@@ -282,16 +267,10 @@ bool QualitativeReachabilityAnalysis<State, Action>::initialize(
 
     if (exp_info.aops.empty()) {
         ++stats_.terminals;
-    } else if (exp_info.forward_non_self_loop(mdp, state, state_id)) {
-        return true;
+        return false;
     }
 
-    if (!term.is_goal_state()) {
-        *dead_out = state_id;
-        *unsolvable_out = state_id;
-    }
-
-    return false;
+    return exp_info.forward_non_self_loop(mdp, state, state_id);
 }
 
 template <typename State, typename Action>
