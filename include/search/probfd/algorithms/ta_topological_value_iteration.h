@@ -224,31 +224,21 @@ public:
      * reachable from \p initial_state. Stores the state values in the
      * output parameter \p value_store. Returns the value of the initial state.
      */
-    template <typename ValueStore>
     Interval solve(
         MDP& mdp,
         Evaluator& heuristic,
         StateID init_state_id,
-        ValueStore& value_store,
+        auto& value_store,
         double max_time = std::numeric_limits<double>::infinity());
 
 private:
     /**
-     * Iterates over all possible successors and tries to find a new
-     * non-terminal state. If such a state is found, pushes it and
-     * return true, otherwise returns false.
-     *
-     * Initializes the data structures of all newly encountered successor
-     * states, and updates the data structures of the source state.
+     * Pushes a state onto the exploration queue and stack.
      */
-    template <typename ValueStore>
-    bool successor_loop(
-        MDP& mdp,
-        ExplorationInfo& explore,
-        StackInfo& stack_info,
+    void push_state(
         StateID state_id,
-        ValueStore& value_store,
-        utils::CountdownTimer& timer);
+        StateInfo& state_info,
+        AlgorithmValueType& value);
 
     /**
      * Initializes the data structures for this new state and pushes it
@@ -264,14 +254,29 @@ private:
         AlgorithmValueType& state_value);
 
     /**
+     * Iterates over all possible successors and tries to find a new
+     * non-terminal state. If such a state is found, pushes it and
+     * return true, otherwise returns false.
+     *
+     * Initializes the data structures of all newly encountered successor
+     * states, and updates the data structures of the source state.
+     */
+    bool successor_loop(
+        MDP& mdp,
+        ExplorationInfo& explore,
+        StackInfo& stack_info,
+        StateID state_id,
+        auto& value_store,
+        utils::CountdownTimer& timer);
+
+    /**
      * Handle the new SCC and perform value iteration on it.
      */
-    template <typename ValueStore, typename StackIterator>
     void scc_found(
-        ValueStore& value_store,
+        auto& value_store,
         ExplorationInfo& exp_info,
-        StackIterator begin,
-        StackIterator end,
+        auto begin,
+        auto end,
         utils::CountdownTimer& timer);
 
     void find_and_decompose_sccs(
@@ -279,10 +284,10 @@ private:
         StateInfo& state_info,
         utils::CountdownTimer& timer);
 
+    bool initialize_ecd(ECDExplorationInfo& exp_info);
+
     bool
     push_successor_ecd(ECDExplorationInfo& e, utils::CountdownTimer& timer);
-
-    bool initialize_ecd(ECDExplorationInfo& exp_info);
 
     void scc_found_ecd(ECDExplorationInfo& e, utils::CountdownTimer& timer);
 };

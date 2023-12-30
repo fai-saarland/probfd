@@ -284,21 +284,19 @@ TATopologicalValueIteration<State, Action, UseInterval>::get_statistics() const
 }
 
 template <typename State, typename Action, bool UseInterval>
-template <typename ValueStore>
 Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
     MDP& mdp,
     Evaluator& heuristic,
     StateID init_state_id,
-    ValueStore& value_store,
+    auto& value_store,
     double max_time)
 {
     utils::CountdownTimer timer(max_time);
 
-    StateInfo& init_info = state_information_[init_state_id];
-    exploration_stack_.emplace_back(0);
-    stack_.emplace_back(init_state_id, value_store[init_state_id]);
-    init_info.stack_id = 0;
-    init_info.status = StateInfo::ONSTACK;
+    push_state(
+        init_state_id,
+        state_information_[init_state_id],
+        value_store[init_state_id]);
 
     for (;;) {
         ExplorationInfo* explore;
@@ -389,13 +387,25 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
 }
 
 template <typename State, typename Action, bool UseInterval>
-template <typename ValueStore>
+void TATopologicalValueIteration<State, Action, UseInterval>::push_state(
+    StateID state_id,
+    StateInfo& state_info,
+    AlgorithmValueType& value)
+{
+    const std::size_t stack_size = stack_.size();
+    exploration_stack_.emplace_back(stack_size);
+    stack_.emplace_back(state_id, value);
+    state_info.stack_id = stack_size;
+    state_info.status = StateInfo::ONSTACK;
+}
+
+template <typename State, typename Action, bool UseInterval>
 bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
     MDP& mdp,
     ExplorationInfo& explore,
     StackInfo& stack_info,
     StateID state_id,
-    ValueStore& value_store,
+    auto& value_store,
     utils::CountdownTimer& timer)
 {
     do {
@@ -417,11 +427,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
 
         switch (status) {
         case StateInfo::NEW: {
-            const std::size_t stack_size = stack_.size();
-            exploration_stack_.emplace_back(stack_size);
-            stack_.emplace_back(succ_id, s_value);
-            succ_info.stack_id = stack_size;
-            succ_info.status = StateInfo::ONSTACK;
+            push_state(succ_id, succ_info, s_value);
             return true; // recursion on new state
         }
 
@@ -502,12 +508,11 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::initialize_state(
 }
 
 template <typename State, typename Action, bool UseInterval>
-template <typename ValueStore, typename StackIterator>
 void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
-    ValueStore& value_store,
+    auto& value_store,
     ExplorationInfo& exp_info,
-    StackIterator begin,
-    StackIterator end,
+    auto begin,
+    auto end,
     utils::CountdownTimer& timer)
 {
     assert(begin != end);
