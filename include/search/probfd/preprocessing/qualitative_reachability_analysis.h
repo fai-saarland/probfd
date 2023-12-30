@@ -149,6 +149,8 @@ public:
         double max_time = std::numeric_limits<double>::infinity());
 
 private:
+    void push_state(StateID state_id, StateInfo& state_info);
+
     bool initialize(
         MDP& mdp,
         const Evaluator* pruning_function,

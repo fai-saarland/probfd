@@ -159,9 +159,7 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
     utils::CountdownTimer timer(max_time);
 
     const StateID init_id = mdp.get_state_id(source_state);
-    state_infos_[init_id].stackid_ = 0;
-    stack_.emplace_back(init_id);
-    expansion_queue_.emplace_back(0);
+    push_state(init_id, state_infos_[init_id]);
 
     for (;;) {
         ExpansionInfo* e;
@@ -272,6 +270,17 @@ bool QualitativeReachabilityAnalysis<State, Action>::initialize(
 }
 
 template <typename State, typename Action>
+void QualitativeReachabilityAnalysis<State, Action>::push_state(
+    StateID state_id,
+    StateInfo& state_info)
+{
+    const std::size_t stack_size = stack_.size();
+    state_info.stackid_ = stack_size;
+    stack_.emplace_back(state_id);
+    expansion_queue_.emplace_back(stack_size);
+}
+
+template <typename State, typename Action>
 bool QualitativeReachabilityAnalysis<State, Action>::push_successor(
     MDP& mdp,
     ExpansionInfo& e,
@@ -287,11 +296,7 @@ bool QualitativeReachabilityAnalysis<State, Action>::push_successor(
 
         switch (succ_info.get_status()) {
         case StateInfo::NEW: {
-            const std::size_t stack_size = stack_.size();
-            succ_info.stackid_ = stack_size;
-            stack_.emplace_back(succ_id);
-            expansion_queue_.emplace_back(stack_size);
-
+            push_state(succ_id, succ_info);
             return true;
         }
 
