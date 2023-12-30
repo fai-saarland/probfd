@@ -300,33 +300,29 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
     init_info.stack_id = 0;
     init_info.status = StateInfo::ONSTACK;
 
-    ExplorationInfo* explore = &exploration_stack_.back();
-    StackInfo* stack_info = &stack_[explore->stackidx];
-    StateID state_id = stack_info->state_id;
-
-    goto start;
-
     for (;;) {
-        while (successor_loop(
-            mdp,
-            *explore,
-            *stack_info,
-            state_id,
-            value_store,
-            timer)) {
+        ExplorationInfo* explore;
+        StackInfo* stack_info;
+        StateID state_id;
+
+        do {
             explore = &exploration_stack_.back();
             stack_info = &stack_[explore->stackidx];
             state_id = stack_info->state_id;
-        start:
-            if (!initialize_state(
-                    mdp,
-                    heuristic,
-                    *explore,
-                    *stack_info,
-                    state_id,
-                    value_store[state_id]))
-                break;
-        }
+        } while (initialize_state(
+                     mdp,
+                     heuristic,
+                     *explore,
+                     *stack_info,
+                     state_id,
+                     value_store[state_id]) &&
+                 successor_loop(
+                     mdp,
+                     *explore,
+                     *stack_info,
+                     state_id,
+                     value_store,
+                     timer));
 
         // Iterative backtracking
         do {
@@ -380,8 +376,15 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
 
                 tinfo.conv_part += prob * s_value;
             }
-        } while (!explore->next_successor(*stack_info) &&
-                 !explore->next_transition(mdp, *stack_info, state_id));
+        } while ((!explore->next_successor(*stack_info) &&
+                  !explore->next_transition(mdp, *stack_info, state_id)) ||
+                 !successor_loop(
+                     mdp,
+                     *explore,
+                     *stack_info,
+                     state_id,
+                     value_store,
+                     timer));
     }
 }
 
@@ -614,17 +617,13 @@ void TATopologicalValueIteration<State, Action, UseInterval>::
         stack_size);
     stack_ecd_.emplace_back(state_id);
 
-    ECDExplorationInfo* e = &exploration_stack_ecd_.back();
-
-    goto start;
-
     for (;;) {
+        ECDExplorationInfo* e;
+
         // DFS recursion
-        while (push_successor_ecd(*e, timer)) {
+        do {
             e = &exploration_stack_ecd_.back();
-        start:
-            if (!initialize_ecd(*e)) break;
-        }
+        } while (initialize_ecd(*e) && push_successor_ecd(*e, timer));
 
         // Iterative backtracking
         do {
@@ -658,7 +657,8 @@ void TATopologicalValueIteration<State, Action, UseInterval>::
                 e->recurse = e->recurse || e->remains_scc;
                 e->leaves_scc = true;
             }
-        } while (!e->next_successor() && !e->next_transition());
+        } while ((!e->next_successor() && !e->next_transition()) ||
+                 !push_successor_ecd(*e, timer));
     }
 }
 
