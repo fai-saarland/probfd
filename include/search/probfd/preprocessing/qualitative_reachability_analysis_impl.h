@@ -163,21 +163,18 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
     stack_.emplace_back(init_id);
     expansion_queue_.emplace_back(0);
 
-    ExpansionInfo* e = &expansion_queue_.back();
-    StackInfo* s = &stack_[e->stck];
-    StateInfo* st = &state_infos_[s->stateid];
-
-    goto start;
-
     for (;;) {
+        ExpansionInfo* e;
+        StackInfo* s;
+        StateInfo* st;
+
         // DFS recursion
-        while (push_successor(mdp, *e, *s, *st, timer)) {
+        do {
             e = &expansion_queue_.back();
             s = &stack_[e->stck];
             st = &state_infos_[s->stateid];
-        start:
-            if (!initialize(mdp, pruning_function, *e, *s, *st)) break;
-        }
+        } while (initialize(mdp, pruning_function, *e, *s, *st) &&
+                 push_successor(mdp, *e, *s, *st, timer));
 
         // Repeated backtracking
         do {
@@ -223,7 +220,8 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
             }
 
             st->dead = st->dead && bt_info.dead;
-        } while (!e->next_successor(*s) && !e->next_action(mdp, s->stateid));
+        } while ((!e->next_successor(*s) && !e->next_action(mdp, s->stateid)) ||
+                 !push_successor(mdp, *e, *s, *st, timer));
     }
 }
 
