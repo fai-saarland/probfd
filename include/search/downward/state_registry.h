@@ -13,6 +13,7 @@
 #include "downward/utils/hash.h"
 
 #include <set>
+#include <vector>
 
 /*
   Overview of classes relevant to storing and working with registered states.
@@ -197,6 +198,13 @@ public:
       registries.
     */
     State lookup_state(StateID id) const;
+
+    /*
+      Like lookup_state above, but creates a state with unpacked data,
+      moved in via state_values. It is the caller's responsibility that
+      the unpacked data matches the state's data.
+    */
+    State lookup_state(StateID id, std::vector<int>&& state_values) const;
 
     /*
       Returns a reference to the initial state and registers it if this was not

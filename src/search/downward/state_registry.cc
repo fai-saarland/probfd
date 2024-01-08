@@ -44,6 +44,12 @@ State StateRegistry::lookup_state(StateID id) const
     return task_proxy.create_state(*this, id, buffer);
 }
 
+State StateRegistry::lookup_state(StateID id, vector<int>&& state_values) const
+{
+    const PackedStateBin* buffer = state_data_pool[id.value];
+    return task_proxy.create_state(*this, id, buffer, std::move(state_values));
+}
+
 const State& StateRegistry::get_initial_state()
 {
     if (!cached_initial_state) {
@@ -72,6 +78,12 @@ State StateRegistry::get_successor_state(
     const OperatorProxy& op)
 {
     state_data_pool.push_back(predecessor.get_buffer());
+    /*
+      TODO: ideally, we would not modify state_data_pool here and in
+      insert_id_or_pop_state, but only at one place, to avoid errors like
+      buffer becoming a dangling pointer. This used to be a bug before being
+      fixed in https://issues.fast-downward.org/issue1115.
+    */
     PackedStateBin* buffer = state_data_pool[state_data_pool.size() - 1];
     /* Experiments for issue348 showed that for tasks with axioms it's faster
        to compute successor states using unpacked data. */
@@ -88,9 +100,13 @@ State StateRegistry::get_successor_state(
         for (size_t i = 0; i < new_values.size(); ++i) {
             state_packer.set(buffer, i, new_values[i]);
         }
+
+        /*
+          NOTE: insert_id_or_pop_state possibly invalidates buffer, hence
+          we use lookup_state to retrieve the state using the correct buffer.
+        */
         StateID id = insert_id_or_pop_state();
-        return task_proxy
-            .create_state(*this, id, buffer, std::move(new_values));
+        return lookup_state(id, move(new_values));
     } else {
         for (EffectProxy effect : op.get_effects()) {
             if (does_fire(effect, predecessor)) {
@@ -98,8 +114,13 @@ State StateRegistry::get_successor_state(
                 state_packer.set(buffer, effect_pair.var, effect_pair.value);
             }
         }
+
+        /*
+          NOTE: insert_id_or_pop_state possibly invalidates buffer, hence
+          we use lookup_state to retrieve the state using the correct buffer.
+        */
         StateID id = insert_id_or_pop_state();
-        return task_proxy.create_state(*this, id, buffer);
+        return lookup_state(id);
     }
 }
 
