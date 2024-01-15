@@ -5,19 +5,26 @@
 #include "probfd/task_utils/task_properties.h"
 
 #include "probfd/cost_function.h"
+#include "probfd/task_proxy.h"
+#include "probfd/value_type.h"
 
 #include "downward/lp/lp_solver.h"
+
+#include "downward/algorithms/named_vector.h"
+
+#include "downward/task_utils/task_properties.h"
 
 #include "downward/utils/system.h"
 #include "downward/utils/timer.h"
 
-#include "downward/plugins/plugin.h"
+#include "downward/abstract_task.h"
+#include "downward/task_proxy.h"
 
-#include <algorithm>
-#include <cassert>
+#include <cstddef>
 #include <iostream>
 #include <memory>
-#include <ranges>
+#include <set>
+#include <utility>
 
 namespace probfd {
 namespace occupation_measures {

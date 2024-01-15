@@ -2,11 +2,14 @@
 
 #include "probfd/algorithms/interval_iteration.h"
 
-#include "probfd/quotients/quotient_system.h"
-
-#include "probfd/evaluator.h"
-
 #include "downward/plugins/plugin.h"
+
+#include "downward/operator_id.h"
+#include "downward/task_proxy.h"
+
+#include <memory>
+#include <ranges>
+#include <string>
 
 namespace probfd {
 namespace solvers {

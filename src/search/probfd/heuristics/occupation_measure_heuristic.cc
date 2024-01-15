@@ -2,11 +2,7 @@
 
 #include "probfd/occupation_measures/constraint_generator.h"
 
-#include "downward/utils/markup.h"
-
-#include "downward/plugins/plugin.h"
-
-#include <cmath>
+#include "downward/utils/logging.h"
 
 using namespace std;
 using namespace probfd::occupation_measures;

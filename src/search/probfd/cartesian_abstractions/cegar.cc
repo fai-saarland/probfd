@@ -11,24 +11,26 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "probfd/policy.h"
 #include "probfd/utils/guards.h"
 
-#include "downward/cartesian_abstractions/cartesian_set.h"
+#include "probfd/probabilistic_task.h"
+#include "probfd/task_proxy.h"
+
 #include "downward/cartesian_abstractions/refinement_hierarchy.h"
 #include "downward/cartesian_abstractions/utils.h"
 
 #include "downward/utils/countdown_timer.h"
-#include "downward/utils/math.h"
+#include "downward/utils/exceptions.h"
+#include "downward/utils/hash.h"
 #include "downward/utils/memory.h"
+#include "downward/utils/timer.h"
 
-#include "downward/state_registry.h"
-#include "probfd/storage/per_state_storage.h"
+#include "downward/task_proxy.h"
 
-#include <algorithm>
 #include <cassert>
 #include <iostream>
-#include <unordered_map>
+#include <optional>
+#include <utility>
 
 using namespace std;
 
@@ -217,16 +219,16 @@ void CEGAR::separate_facts_unreachable_before_goal(
     assert(abstraction.get_num_states() == 1);
     assert(task_proxy.get_goals().size() == 1);
 
-    FactProxy goal = task_proxy.get_goals()[0];
-    utils::HashSet<FactProxy> reachable_facts =
+    FactPair goal = task_proxy.get_goals()[0].get_pair();
+    utils::HashSet<FactPair> reachable_facts =
         get_relaxed_possible_before(task_proxy, goal);
     for (VariableProxy var : task_proxy.get_variables()) {
         if (!may_keep_refining(abstraction)) break;
         int var_id = var.get_id();
         vector<int> unreachable_values;
         for (int value = 0; value < var.get_domain_size(); ++value) {
-            FactProxy fact = var.get_fact(value);
-            if (reachable_facts.count(fact) == 0)
+            FactPair fact = var.get_fact(value).get_pair();
+            if (!reachable_facts.contains(fact))
                 unreachable_values.push_back(value);
         }
         if (!unreachable_values.empty()) {

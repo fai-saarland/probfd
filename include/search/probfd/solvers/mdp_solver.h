@@ -1,21 +1,14 @@
 #ifndef PROBFD_SOLVERS_MDP_SOLVER_H
 #define PROBFD_SOLVERS_MDP_SOLVER_H
 
-#include "probfd/solver_interface.h"
+#include "probfd/solver_interface.h" // IWYU pragma: export
 
-#include "probfd/algorithms/fdr_types.h"
-
-#include "probfd/cost_function.h"
-#include "probfd/evaluator.h"
 #include "probfd/fdr_types.h"
-#include "probfd/mdp_algorithm.h"
 #include "probfd/progress_report.h"
 #include "probfd/task_proxy.h"
 #include "probfd/task_state_space.h"
 
 #include "downward/utils/logging.h"
-
-#include "downward/state_registry.h"
 
 #include <memory>
 #include <string>
@@ -26,7 +19,7 @@ class Feature;
 } // namespace plugins
 
 namespace probfd {
-class TaskStateSpace;
+class ProbabilisticTask;
 
 /// This namespace contains the solver plugins for various search algorithms.
 namespace solvers {

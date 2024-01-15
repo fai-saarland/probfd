@@ -7,8 +7,9 @@
 
 #include "downward/utils/logging.h"
 
+#include <memory>
+
 namespace plugins {
-class Options;
 class Feature;
 } // namespace plugins
 
@@ -28,8 +29,6 @@ public:
     TaskDependentHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
         utils::LogProxy log);
-
-    virtual ~TaskDependentHeuristic() override = default;
 
     static void add_options_to_feature(plugins::Feature& feature);
 };

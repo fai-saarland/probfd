@@ -2,26 +2,33 @@
 
 #include "probfd/cartesian_abstractions/abstract_state.h"
 #include "probfd/cartesian_abstractions/abstraction.h"
-#include "probfd/cartesian_abstractions/evaluators.h"
-#include "probfd/cartesian_abstractions/probabilistic_transition_system.h"
-#include "probfd/cartesian_abstractions/split_selector.h"
+#include "probfd/cartesian_abstractions/probabilistic_transition.h"
 #include "probfd/cartesian_abstractions/utils.h"
 
 #include "probfd/storage/per_state_storage.h"
 
-#include "probfd/task_utils/task_properties.h"
-
+#include "probfd/multi_policy.h"
 #include "probfd/policy.h"
+#include "probfd/task_proxy.h"
 
 #include "downward/state_registry.h"
 
-#include "downward/cartesian_abstractions/abstract_state.h"
+#include "downward/cartesian_abstractions/cartesian_set.h"
+
+#include "downward/task_utils/task_properties.h"
 
 #include "downward/utils/countdown_timer.h"
+#include "downward/utils/logging.h"
 #include "downward/utils/memory.h"
+
+#include "downward/state_id.h"
+#include "downward/task_proxy.h"
 
 #include <cassert>
 #include <deque>
+#include <ostream>
+#include <ranges>
+#include <utility>
 
 using namespace std;
 using namespace std::views;

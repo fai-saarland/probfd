@@ -7,12 +7,14 @@
 
 #include "probfd/heuristics/constant_evaluator.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/fdr_types.h"
 
 #include <limits>
 #include <vector>
 
 namespace probfd {
+class ProbabilisticTaskProxy;
+
 namespace pdbs {
 
 class ProjectionStateSpace;

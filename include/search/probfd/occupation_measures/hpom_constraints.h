@@ -3,16 +3,23 @@
 
 #include "probfd/occupation_measures/constraint_generator.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 
+#include "probfd/fdr_types.h"
+
+#include <memory>
 #include <vector>
 
-namespace plugins {
-class Options;
-class Feature;
-} // namespace plugins
+class State;
+
+namespace lp {
+class LPSolver;
+class LinearProgram;
+} // namespace lp
 
 namespace probfd {
+class ProbabilisticTaskProxy;
+
 namespace occupation_measures {
 
 /**

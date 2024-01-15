@@ -1,8 +1,9 @@
 #ifndef PROBFD_TASKS_MODIFIED_GOALS_TASK_H
 #define PROBFD_TASKS_MODIFIED_GOALS_TASK_H
 
-#include "probfd/tasks/delegating_task.h"
+#include "probfd/tasks/delegating_task.h" // IWYU pragma: export
 
+#include <memory>
 #include <vector>
 
 namespace probfd {

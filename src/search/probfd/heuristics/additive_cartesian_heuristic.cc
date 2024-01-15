@@ -2,7 +2,6 @@
 
 #include "probfd/cartesian_abstractions/cartesian_heuristic_function.h"
 #include "probfd/cartesian_abstractions/cost_saturation.h"
-#include "probfd/cartesian_abstractions/flaw_generator.h"
 #include "probfd/cartesian_abstractions/types.h"
 #include "probfd/cartesian_abstractions/utils.h"
 
@@ -11,11 +10,10 @@
 #include "downward/plugins/plugin.h"
 
 #include "downward/utils/logging.h"
-#include "downward/utils/markup.h"
-#include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 
 #include <cassert>
+#include <ostream>
+#include <utility>
 
 using namespace std;
 using namespace probfd::cartesian_abstractions;

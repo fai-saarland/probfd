@@ -5,6 +5,11 @@
 #include "probfd/task_proxy.h"
 #include "probfd/value_type.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <map>
+#include <unordered_set>
 #include <utility>
 
 namespace probfd {

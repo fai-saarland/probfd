@@ -6,6 +6,8 @@
 
 #include "probfd/algorithms/transition_sorter.h"
 
+#include "probfd/evaluator.h"
+
 #include <cassert>
 
 namespace probfd {

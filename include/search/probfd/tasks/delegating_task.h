@@ -1,11 +1,12 @@
 #ifndef PROBFD_TASKS_DELEGATING_TASK_H
 #define PROBFD_TASKS_DELEGATING_TASK_H
 
-#include "probfd/probabilistic_task.h"
+#include "probfd/probabilistic_task.h" // IWYU pragma: export
+
+#include "probfd/value_type.h"
 
 #include <memory>
 #include <string>
-#include <utility>
 #include <vector>
 
 namespace probfd {
@@ -97,4 +98,4 @@ public:
 } // namespace tasks
 } // namespace probfd
 
-#endif
+#endif // PROBFD_TASKS_DELEGATING_TASK_H

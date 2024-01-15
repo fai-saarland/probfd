@@ -8,12 +8,10 @@
 
 #include <memory>
 
-namespace utils {
-class LogProxy;
-}
-
 namespace probfd {
 namespace pdbs {
+
+class ProbabilityAwarePatternDatabase;
 
 class PatternInformation {
     ProbabilisticTaskProxy task_proxy;

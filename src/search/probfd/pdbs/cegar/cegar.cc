@@ -1,13 +1,12 @@
 #include "probfd/pdbs/cegar/cegar.h"
 
+#include "probfd/pdbs/cegar/flaw.h"
 #include "probfd/pdbs/cegar/flaw_finding_strategy.h"
 
 #include "probfd/pdbs/policy_extraction.h"
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 #include "probfd/pdbs/projection_state_space.h"
 #include "probfd/pdbs/utils.h"
-
-#include "probfd/task_utils/task_properties.h"
 
 #include "probfd/multi_policy.h"
 #include "probfd/task_proxy.h"
@@ -17,11 +16,18 @@
 #include "downward/utils/logging.h"
 #include "downward/utils/math.h"
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 
 #include "downward/plugins/plugin.h"
 
+#include <algorithm>
 #include <cassert>
+#include <cstddef>
+#include <functional>
+#include <iterator>
+#include <ostream>
+#include <ranges>
+#include <span>
+#include <utility>
 
 using namespace std;
 

@@ -1,26 +1,32 @@
 #ifndef PROBFD_CARTESIAN_ABSTRACTION_H
 #define PROBFD_CARTESIAN_ABSTRACTION_H
 
+#include "probfd/cartesian_abstractions/abstract_state.h"
 #include "probfd/cartesian_abstractions/types.h"
 
 #include "probfd/mdp.h"
-#include "probfd/task_proxy.h"
+#include "probfd/type_traits.h"
+#include "probfd/types.h"
+#include "probfd/value_type.h"
 
-#include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
 
+#include "downward/abstract_task.h"
+#include "downward/task_proxy.h"
+
 #include <memory>
+#include <utility>
 #include <vector>
 
-namespace utils {
-class CountdownTimer;
-class LogProxy;
-} // namespace utils
-
 namespace probfd {
+class ProbabilisticTaskProxy;
+template <typename>
+class Distribution;
+
 namespace cartesian_abstractions {
 
 class ProbabilisticTransitionSystem;
+struct ProbabilisticTransition;
 
 /*
   Store the set of AbstractStates, use FlawGenerator to find flaws,

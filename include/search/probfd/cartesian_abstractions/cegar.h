@@ -1,9 +1,7 @@
-#ifndef PROBFD_CARTESIAN_CEGAR_H
-#define PROBFD_CARTESIAN_CEGAR_H
+#ifndef PROBFD_CARTESIAN_ABSTRACTIONS_CEGAR_H
+#define PROBFD_CARTESIAN_ABSTRACTIONS_CEGAR_H
 
 #include "probfd/cartesian_abstractions/types.h"
-
-#include "probfd/task_proxy.h"
 
 #include "downward/utils/logging.h"
 
@@ -15,6 +13,9 @@ class Timer;
 } // namespace utils
 
 namespace probfd {
+class ProbabilisticTask;
+class ProbabilisticTaskProxy;
+
 namespace cartesian_abstractions {
 
 class AbstractState;
@@ -111,4 +112,4 @@ private:
 } // namespace cartesian_abstractions
 } // namespace probfd
 
-#endif // PROBFD_CARTESIAN_CEGAR_H
+#endif // PROBFD_CARTESIAN_ABSTRACTIONS_CEGAR_H

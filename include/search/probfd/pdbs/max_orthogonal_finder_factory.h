@@ -3,6 +3,8 @@
 
 #include "probfd/pdbs/subcollection_finder_factory.h"
 
+#include <memory>
+
 namespace probfd {
 namespace pdbs {
 

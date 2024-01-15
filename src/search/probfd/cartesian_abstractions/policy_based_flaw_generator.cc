@@ -6,30 +6,31 @@
 #include "probfd/cartesian_abstractions/complete_policy_flaw_finder.h"
 #include "probfd/cartesian_abstractions/ilao_policy_generator.h"
 
-#include "probfd/cartesian_abstractions/evaluators.h"
-#include "probfd/cartesian_abstractions/probabilistic_transition_system.h"
-#include "probfd/cartesian_abstractions/split_selector.h"
-#include "probfd/cartesian_abstractions/utils.h"
-
-#include "probfd/task_utils/task_properties.h"
-
 #include "probfd/utils/guards.h"
 
 #include "probfd/policy.h"
 
-#include "downward/cartesian_abstractions/abstract_state.h"
+#include "downward/utils/logging.h"
 
-#include "downward/utils/countdown_timer.h"
-#include "downward/utils/memory.h"
-
+#include "downward/plugins/bounds.h"
+#include "downward/plugins/options.h"
 #include "downward/plugins/plugin.h"
 
-#include <cassert>
+#include <ostream>
 
 using namespace std;
+namespace utils {
+class CountdownTimer;
+}
 
 namespace probfd {
+class ProbabilisticTaskProxy;
+
 namespace cartesian_abstractions {
+
+class AbstractState;
+class Abstraction;
+class CartesianHeuristic;
 
 PolicyBasedFlawGenerator::PolicyBasedFlawGenerator(
     PolicyGenerator* policy_generator,

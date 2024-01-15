@@ -7,36 +7,28 @@
 #include "probfd/cost_function.h"
 #include "probfd/task_proxy.h"
 
-#include "probfd/tasks/all_outcomes_determinization.h"
-#include "probfd/tasks/root_task.h"
-
 #include "probfd/task_utils/task_properties.h"
 
 #include "downward/algorithms/dynamic_bitset.h"
 
-#include "downward/pdbs/utils.h"
-
 #include "downward/utils/collections.h"
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/logging.h"
-#include "downward/utils/markup.h"
 #include "downward/utils/math.h"
-#include "downward/utils/memory.h"
-#include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
 #include "downward/utils/timer.h"
 
 #include "downward/task_utils/causal_graph.h"
 #include "downward/task_utils/sampling.h"
 
-#include "downward/state_registry.h"
-
 #include "downward/plugins/plugin.h"
 
 #include <algorithm>
 #include <cassert>
+#include <cstdlib>
+#include <functional>
 #include <iostream>
-#include <limits>
+#include <iterator>
 
 using namespace utils;
 

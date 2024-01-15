@@ -7,7 +7,6 @@
 
 namespace probfd {
 
-class ProbabilisticOperator;
 class ProbabilisticTaskProxy;
 
 namespace pdbs {

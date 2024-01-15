@@ -4,21 +4,22 @@
 #include "probfd/cartesian_abstractions/probabilistic_transition.h"
 #include "probfd/cartesian_abstractions/types.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/value_type.h"
 
+#include "downward/abstract_task.h"
+
+#include <cstddef>
 #include <deque>
-#include <set>
 #include <vector>
-
-struct FactPair;
-class ProbabilisticOperatorsProxy;
 
 namespace utils {
 class LogProxy;
 }
 
 namespace probfd {
+class ProbabilisticOperatorsProxy;
 namespace cartesian_abstractions {
+class AbstractState;
 
 class ProbabilisticTransitionSystem {
     // Operator information
@@ -70,6 +71,8 @@ class ProbabilisticTransitionSystem {
 public:
     explicit ProbabilisticTransitionSystem(
         const ProbabilisticOperatorsProxy& ops);
+
+    ~ProbabilisticTransitionSystem();
 
     // Update transition system after v has been split for var into v1 and v2.
     void rewire(

@@ -1,12 +1,13 @@
 #include "probfd/cartesian_abstractions/subtask_generators.h"
 
-#include "probfd/task_utils/task_properties.h"
-
 #include "probfd/tasks/all_outcomes_determinization.h"
 #include "probfd/tasks/domain_abstracted_task_factory.h"
 #include "probfd/tasks/modified_goals_task.h"
 
 #include "probfd/cartesian_abstractions/utils.h"
+
+#include "probfd/probabilistic_task.h"
+#include "probfd/task_proxy.h"
 
 #include "downward/cartesian_abstractions/utils_landmarks.h"
 
@@ -15,14 +16,19 @@
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
+#include "downward/utils/system.h"
 
+#include "downward/plugins/bounds.h"
+#include "downward/plugins/options.h"
 #include "downward/plugins/plugin.h"
+
+#include "downward/task_utils/task_properties.h"
+
+#include "downward/task_proxy.h"
 
 #include <algorithm>
 #include <cassert>
 #include <iostream>
-#include <string>
-#include <unordered_set>
 #include <vector>
 
 using namespace std;

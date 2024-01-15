@@ -5,16 +5,14 @@
 
 #include "probfd/mdp.h"
 
-#include "probfd/distribution.h"
-#include "probfd/interval.h"
 #include "probfd/task_proxy.h"
 #include "probfd/types.h"
+#include "probfd/value_type.h"
 
 #include "downward/algorithms/segmented_vector.h"
 
-#include <cassert>
+#include <iosfwd>
 #include <memory>
-#include <unordered_set>
 #include <vector>
 
 namespace merge_and_shrink {
@@ -24,6 +22,11 @@ class TransitionSystem;
 } // namespace merge_and_shrink
 
 namespace probfd {
+template <typename>
+class Distribution;
+
+class ProbabilisticTask;
+
 namespace bisimulation {
 
 /**

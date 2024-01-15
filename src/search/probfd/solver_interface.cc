@@ -1,8 +1,12 @@
 #include "probfd/solver_interface.h"
 
+#include "probfd/interval.h"
+
 #include "downward/plugins/plugin.h"
 
 #include <iomanip>
+#include <iostream>
+#include <limits>
 
 namespace probfd {
 

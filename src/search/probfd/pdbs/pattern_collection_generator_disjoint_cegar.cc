@@ -8,12 +8,12 @@
 
 #include "probfd/task_proxy.h"
 
-#include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
 
 #include "downward/plugins/plugin.h"
 
-#include <stack>
+#include <utility>
+#include <vector>
 
 using namespace std;
 

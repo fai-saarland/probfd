@@ -1,10 +1,5 @@
 #include "probfd/bisimulation/bisimilar_state_space.h"
 
-#include "probfd/bisimulation/evaluators.h"
-
-#include "probfd/tasks/all_outcomes_determinization.h"
-#include "probfd/tasks/root_task.h"
-
 #include "probfd/task_utils/task_properties.h"
 
 #include "probfd/transition.h"
@@ -13,7 +8,6 @@
 
 #include "downward/merge_and_shrink/distances.h"
 #include "downward/merge_and_shrink/factored_transition_system.h"
-#include "downward/merge_and_shrink/label_reduction.h"
 #include "downward/merge_and_shrink/merge_and_shrink_algorithm.h"
 #include "downward/merge_and_shrink/merge_and_shrink_representation.h"
 #include "downward/merge_and_shrink/merge_strategy_factory_precomputed.h"
@@ -22,22 +16,37 @@
 #include "downward/merge_and_shrink/shrink_bisimulation.h"
 #include "downward/merge_and_shrink/transition_system.h"
 
-#include "downward/utils/hash.h"
-#include "downward/utils/system.h"
 #include "downward/utils/timer.h"
 
 #include "downward/plugins/options.h"
 
 #include <cassert>
-#include <map>
+#include <cstddef>
+#include <iostream>
+#include <limits>
 #include <memory>
 #include <ranges>
-#include <unordered_set>
+#include <utility>
 #include <vector>
+
+#include "downward/merge_and_shrink/types.h"
+#include "downward/task_proxy.h"
+#include "downward/task_utils/variable_order_finder.h"
+#include "downward/utils/logging.h"
+#include "probfd/distribution.h"
+
+class AbstractTask;
+namespace merge_and_shrink {
+class MergeStrategyFactory;
+class MergeTreeFactory;
+class ShrinkStrategy;
+} // namespace merge_and_shrink
 
 using namespace merge_and_shrink;
 
 namespace probfd {
+class ProbabilisticTask;
+
 namespace bisimulation {
 
 static constexpr const int BUCKET_SIZE = 1024 * 64;

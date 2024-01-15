@@ -1,5 +1,7 @@
 #include "probfd/tasks/modified_goals_task.h"
 
+#include <utility>
+
 using namespace std;
 
 namespace probfd {

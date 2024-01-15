@@ -4,6 +4,9 @@
 
 #include "downward/utils/collections.h"
 
+#include <cassert>
+#include <utility>
+
 using namespace std;
 
 namespace probfd {

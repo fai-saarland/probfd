@@ -6,14 +6,21 @@
 #include "probfd/pdbs/projection_state_space.h"
 #include "probfd/pdbs/saturation.h"
 
-#include "probfd/task_utils/task_properties.h"
-
 #include "probfd/task_evaluator_factory.h"
 #include "probfd/value_type.h"
 
+#include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
 
 #include "downward/plugins/plugin.h"
+
+#include "downward/task_utils/task_properties.h"
+
+#include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <span>
+#include <utility>
 
 using namespace probfd::pdbs;
 

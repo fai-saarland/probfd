@@ -1,10 +1,23 @@
 #ifndef PROBFD_CARTESIAN_COMPLETE_POLICY_FLAW_FINDER_H
 #define PROBFD_CARTESIAN_COMPLETE_POLICY_FLAW_FINDER_H
 
+#include "probfd/cartesian_abstractions/flaw.h"
 #include "probfd/cartesian_abstractions/policy_flaw_finder.h"
+#include "probfd/cartesian_abstractions/types.h"
+
+#include <optional>
+#include <vector>
+
+namespace utils {
+class CountdownTimer;
+class LogProxy;
+} // namespace utils
 
 namespace probfd {
+class ProbabilisticTaskProxy;
+
 namespace cartesian_abstractions {
+class Abstraction;
 
 class CompletePolicyFlawFinder : public PolicyFlawFinder {
     int max_search_states;

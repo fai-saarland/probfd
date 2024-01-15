@@ -4,17 +4,16 @@
 #include "probfd/solvers/mdp_solver.h"
 
 #include "probfd/algorithms/policy_picker.h"
-#include "probfd/algorithms/successor_sampler.h"
-
 #include "probfd/algorithms/fret.h"
 
 #include "probfd/quotients/quotient_system.h"
 
 #include "probfd/solvers/bisimulation_heuristic_search_algorithm.h"
 
-#include "downward/plugins/plugin.h"
-
 #include <memory>
+#include <string>
+#include <type_traits>
+#include <utility>
 
 namespace plugins {
 class Options;

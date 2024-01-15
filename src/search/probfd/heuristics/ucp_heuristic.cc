@@ -5,12 +5,15 @@
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 #include "probfd/pdbs/projection_state_space.h"
 
-#include "probfd/task_utils/task_properties.h"
-
 #include "probfd/task_evaluator_factory.h"
 #include "probfd/value_type.h"
 
 #include "downward/plugins/plugin.h"
+
+#include "downward/task_utils/task_properties.h"
+
+#include <cstddef>
+#include <utility>
 
 using namespace probfd::pdbs;
 
@@ -86,6 +89,8 @@ UCPHeuristic::UCPHeuristic(
         pdbs.emplace_back(state_space, std::move(rankingf), init_rank);
     }
 }
+
+UCPHeuristic::~UCPHeuristic() = default;
 
 value_t UCPHeuristic::evaluate(const State& state) const
 {

@@ -10,8 +10,10 @@
 #include "downward/lp/lp_solver.h"
 #include "downward/plugins/options.h"
 
-#include <limits>
-#include <unordered_set>
+#include <cstddef>
+#include <iterator>
+#include <set>
+#include <vector>
 
 using namespace probfd::pdbs;
 

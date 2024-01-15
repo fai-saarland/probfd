@@ -1,20 +1,17 @@
 #ifndef PROBFD_PDBS_PROJECTION_OPERATOR_H
 #define PROBFD_PDBS_PROJECTION_OPERATOR_H
 
-#include "probfd/pdbs/types.h"
-
 #include "probfd/distribution.h"
 #include "probfd/task_proxy.h"
 
+#include "downward/operator_id.h"
+
 #include <string>
-#include <vector>
 
 namespace probfd {
 
 /// Namespace dedicated to probabilistic pattern databases.
 namespace pdbs {
-
-class ProjectionStateSpace;
 
 /**
  * @brief Represents an operator of a projection state space.

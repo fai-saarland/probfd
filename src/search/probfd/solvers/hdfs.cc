@@ -9,7 +9,9 @@
 
 #include "downward/plugins/plugin.h"
 
-#include <sstream>
+#include <iostream>
+#include <memory>
+#include <string>
 
 namespace probfd {
 namespace solvers {

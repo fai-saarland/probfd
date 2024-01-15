@@ -10,6 +10,9 @@
 
 #include "downward/plugins/plugin.h"
 
+#include <memory>
+#include <type_traits>
+
 namespace probfd {
 namespace open_lists {
 namespace {

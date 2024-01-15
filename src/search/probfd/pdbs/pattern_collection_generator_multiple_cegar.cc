@@ -3,11 +3,15 @@
 #include "probfd/pdbs/cegar/cegar.h"
 #include "probfd/pdbs/projection_state_space.h"
 
-#include "probfd/cost_function.h"
-
-#include "downward/utils/logging.h"
+#include "probfd/task_proxy.h"
 
 #include "downward/plugins/plugin.h"
+
+#include "downward/abstract_task.h"
+
+#include <cassert>
+#include <iostream>
+#include <vector>
 
 using namespace std;
 

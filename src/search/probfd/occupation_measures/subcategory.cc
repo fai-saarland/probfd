@@ -13,6 +13,8 @@
 #include "downward/plugins/plugin.h"
 
 #include <memory>
+#include <string>
+#include <vector>
 
 using namespace probfd;
 using namespace probfd::heuristics;

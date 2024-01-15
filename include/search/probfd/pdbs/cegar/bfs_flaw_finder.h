@@ -3,13 +3,16 @@
 
 #include "probfd/pdbs/cegar/flaw_finding_strategy.h"
 
+#include "probfd/pdbs/types.h"
+
 #include "probfd/storage/per_state_storage.h"
 
-#include <deque>
-#include <unordered_set>
+#include "downward/task_proxy.h"
 
-class State;
-class StateRegistry;
+#include <deque>
+#include <string>
+#include <unordered_set>
+#include <vector>
 
 namespace plugins {
 class Options;

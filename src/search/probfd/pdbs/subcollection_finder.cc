@@ -2,6 +2,8 @@
 
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 
+#include <algorithm>
+#include <cstddef>
 #include <numeric>
 
 namespace probfd {

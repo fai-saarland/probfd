@@ -3,16 +3,12 @@
 
 #include "probfd/evaluator.h"
 #include "probfd/fdr_types.h"
-#include "probfd/task_evaluator_factory.h"
+#include "probfd/value_type.h"
 
 #include <memory>
 
+class State;
 class Evaluator;
-
-namespace plugins {
-class Options;
-class Feature;
-} // namespace plugins
 
 namespace probfd {
 namespace heuristics {

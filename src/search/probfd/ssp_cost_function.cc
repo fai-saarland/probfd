@@ -1,6 +1,10 @@
 #include "probfd/ssp_cost_function.h"
 
-#include "probfd/task_utils/task_properties.h"
+#include "downward/operator_id.h"
+
+#include "downward/task_utils/task_properties.h"
+
+class State;
 
 namespace probfd {
 

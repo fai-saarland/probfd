@@ -1,18 +1,19 @@
 #ifndef PROBFD_PDBS_CEGAR_CEGAR_H
 #define PROBFD_PDBS_CEGAR_CEGAR_H
 
-#include "probfd/pdbs/cegar/flaw.h"
-
-#include "probfd/pdbs/evaluators.h"
 #include "probfd/pdbs/types.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/fdr_types.h"
+#include "probfd/value_type.h"
 
 #include "downward/utils/logging.h"
 
+#include <memory>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+class VariablesProxy;
 
 namespace utils {
 class CountdownTimer;
@@ -20,13 +21,12 @@ class RandomNumberGenerator;
 } // namespace utils
 
 namespace probfd {
+class ProbabilisticTaskProxy;
+
 namespace pdbs {
-
-class ProbabilityAwarePatternDatabase;
-class SubCollectionFinderFactory;
-
 namespace cegar {
 
+struct Flaw;
 class FlawFindingStrategy;
 
 struct CEGARResult {

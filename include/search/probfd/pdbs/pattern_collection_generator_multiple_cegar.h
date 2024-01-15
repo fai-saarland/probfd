@@ -3,11 +3,12 @@
 
 #include "probfd/pdbs/pattern_collection_generator_multiple.h"
 
+#include <memory>
+#include <unordered_set>
+#include <utility>
+
 namespace probfd {
 namespace pdbs {
-
-class SubCollectionFinderFactory;
-
 namespace cegar {
 class FlawFindingStrategy;
 }

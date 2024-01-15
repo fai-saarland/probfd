@@ -2,13 +2,15 @@
 
 #include "probfd/task_utils/probabilistic_successor_generator_internals.h"
 
+#include "downward/operator_id.h"
 #include "downward/task_proxy.h"
 
 #include "downward/utils/collections.h"
-#include "downward/utils/memory.h"
 
 #include <algorithm>
 #include <cassert>
+#include <compare>
+#include <unordered_map>
 
 using namespace std;
 

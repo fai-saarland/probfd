@@ -5,14 +5,11 @@
 #include "probfd/pdbs/types.h"
 
 #include "probfd/fdr_types.h"
-
-#include "downward/utils/logging.h"
+#include "probfd/value_type.h"
 
 #include <cstdint>
-#include <cstdlib>
 #include <memory>
 #include <set>
-#include <unordered_set>
 #include <vector>
 
 namespace plugins {
@@ -24,8 +21,6 @@ class CountdownTimer;
 class RandomNumberGenerator;
 } // namespace utils
 
-class State;
-
 namespace sampling {
 class RandomWalkSampler;
 }
@@ -36,6 +31,8 @@ class DynamicBitset;
 };
 
 namespace probfd {
+class ProbabilisticTaskProxy;
+
 namespace pdbs {
 
 class SubCollectionFinderFactory;

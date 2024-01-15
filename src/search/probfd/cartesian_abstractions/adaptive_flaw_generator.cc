@@ -1,12 +1,26 @@
 #include "probfd/cartesian_abstractions/adaptive_flaw_generator.h"
 
-#include "probfd/cartesian_abstractions/evaluators.h"
-
 #include "downward/utils/logging.h"
 
+#include "downward/plugins/options.h"
 #include "downward/plugins/plugin.h"
 
-#include <algorithm>
+#include <ostream>
+#include <utility>
+
+namespace probfd {
+class ProbabilisticTaskProxy;
+
+namespace cartesian_abstractions {
+class AbstractState;
+class Abstraction;
+class CartesianHeuristic;
+} // namespace cartesian_abstractions
+} // namespace probfd
+
+namespace utils {
+class CountdownTimer;
+}
 
 namespace probfd {
 namespace cartesian_abstractions {

@@ -20,6 +20,9 @@
 
 #include "downward/utils/rng_options.h"
 
+#include <memory>
+#include <type_traits>
+
 namespace probfd {
 namespace successor_samplers {
 namespace {

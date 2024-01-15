@@ -1,16 +1,16 @@
 #include "probfd/pdbs/state_ranking_function.h"
 
-#include "probfd/tasks/root_task.h"
-
-#include "probfd/task_proxy.h"
-
-#include "downward/utils/collections.h"
-#include "downward/utils/exceptions.h"
+#include "downward/abstract_task.h"
 
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
+#include <iosfwd>
 #include <limits>
+#include <ranges>
 #include <sstream>
+#include <stdexcept>
+#include <utility>
 
 namespace probfd {
 namespace pdbs {

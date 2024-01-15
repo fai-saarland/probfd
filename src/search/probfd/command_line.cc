@@ -1,16 +1,27 @@
 #include "probfd/command_line.h"
 
 #include "probfd/solver_interface.h"
+#include "probfd/value_type.h"
 
+#include "downward/parser/abstract_syntax_tree.h"
+#include "downward/parser/decorated_abstract_syntax_tree.h"
 #include "downward/parser/lexical_analyzer.h"
 #include "downward/parser/syntax_analyzer.h"
+#include "downward/parser/token_stream.h"
+
 #include "downward/plugins/doc_printer.h"
-#include "downward/plugins/plugin.h"
+#include "downward/plugins/raw_registry.h"
+#include "downward/plugins/registry.h"
+
 #include "downward/utils/logging.h"
 #include "downward/utils/strings.h"
+#include "downward/utils/system.h"
 
-#include <algorithm>
-#include <limits>
+#include <any>
+#include <cstddef>
+#include <cstdlib>
+#include <iostream>
+#include <stdexcept>
 #include <vector>
 
 using namespace std;

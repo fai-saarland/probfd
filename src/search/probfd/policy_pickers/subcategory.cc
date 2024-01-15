@@ -4,6 +4,7 @@
 #include "probfd/policy_pickers/vdiff_tiebreaker.h"
 
 #include "probfd/algorithms/fdr_types.h"
+#include "probfd/algorithms/policy_picker.h"
 
 #include "probfd/bisimulation/types.h"
 
@@ -19,6 +20,8 @@
 #include "downward/plugins/plugin.h"
 
 #include "downward/utils/rng_options.h"
+
+#include <type_traits>
 
 namespace probfd {
 namespace policy_pickers {

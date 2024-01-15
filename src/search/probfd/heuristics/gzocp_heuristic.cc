@@ -14,7 +14,16 @@
 
 #include "downward/plugins/plugin.h"
 
+#include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
+
+#include "downward/task_utils/task_properties.h"
+
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <set>
+#include <utility>
 
 using namespace probfd::pdbs;
 

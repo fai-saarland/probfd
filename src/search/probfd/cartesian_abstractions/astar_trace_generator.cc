@@ -1,21 +1,20 @@
 #include "probfd/cartesian_abstractions/astar_trace_generator.h"
 
-#include "probfd/cartesian_abstractions/abstract_state.h"
 #include "probfd/cartesian_abstractions/abstraction.h"
 #include "probfd/cartesian_abstractions/evaluators.h"
+#include "probfd/cartesian_abstractions/probabilistic_transition.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition_system.h"
 #include "probfd/cartesian_abstractions/trace_generator.h"
-#include "probfd/cartesian_abstractions/utils.h"
-
-#include "probfd/task_utils/task_properties.h"
 
 #include "probfd/utils/guards.h"
 
 #include "downward/utils/countdown_timer.h"
-#include "downward/utils/memory.h"
-#include "downward/utils/timer.h"
 
+#include <algorithm>
 #include <cassert>
+#include <cstddef>
+#include <deque>
+#include <ostream>
 
 using namespace std;
 

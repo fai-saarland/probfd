@@ -4,9 +4,20 @@
 
 #include "probfd/task_utils/task_properties.h"
 
+#include "probfd/task_proxy.h"
+
+#include "downward/task_utils/task_properties.h"
+
+#include "downward/utils/collections.h"
+#include "downward/utils/system.h"
+
+#include <cassert>
+#include <cstddef>
+#include <iosfwd>
 #include <sstream>
 #include <string>
 #include <unordered_set>
+#include <utility>
 
 using namespace std;
 

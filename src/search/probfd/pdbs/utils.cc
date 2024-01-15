@@ -1,6 +1,7 @@
 #include "probfd/pdbs/utils.h"
 
 #include "probfd/pdbs/probability_aware_pattern_database.h"
+#include "probfd/pdbs/projection_operator.h"
 #include "probfd/pdbs/projection_state_space.h"
 
 #include "probfd/task_utils/task_properties.h"
@@ -9,8 +10,12 @@
 
 #include "downward/utils/rng.h"
 
+#include <algorithm>
 #include <cassert>
-#include <limits>
+#include <functional>
+#include <iosfwd>
+#include <sstream>
+#include <string>
 
 namespace probfd {
 namespace pdbs {

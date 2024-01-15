@@ -3,14 +3,13 @@
 
 #include "probfd/pdbs/types.h"
 
-#include "probfd/task_proxy.h"
-#include "probfd/types.h"
+#include "downward/task_proxy.h"
 
-#include <memory>
-#include <ranges>
+#include <span>
 #include <string>
-#include <utility>
 #include <vector>
+
+struct FactPair;
 
 namespace probfd {
 namespace pdbs {

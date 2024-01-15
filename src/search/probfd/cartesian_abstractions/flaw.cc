@@ -3,7 +3,10 @@
 #include "probfd/cartesian_abstractions/abstract_state.h"
 #include "probfd/cartesian_abstractions/split_selector.h"
 
+#include "downward/abstract_task.h"
+
 #include <cassert>
+#include <utility>
 
 using namespace std;
 

@@ -1,8 +1,8 @@
 #include "probfd/cartesian_abstractions/evaluators.h"
 
-#include "probfd/cartesian_abstractions/abstract_state.h"
-
 #include "downward/utils/collections.h"
+
+#include <cassert>
 
 namespace probfd {
 namespace cartesian_abstractions {

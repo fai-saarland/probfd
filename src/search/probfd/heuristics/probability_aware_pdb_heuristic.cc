@@ -8,15 +8,12 @@
 
 #include "downward/pdbs/dominance_pruning.h"
 
-#include "downward/utils/countdown_timer.h"
 #include "downward/utils/logging.h"
 
 #include "downward/plugins/plugin.h"
 
-#include <cassert>
-#include <iomanip>
-#include <numeric>
-#include <string>
+#include <algorithm>
+#include <cstddef>
 
 using namespace probfd::pdbs;
 

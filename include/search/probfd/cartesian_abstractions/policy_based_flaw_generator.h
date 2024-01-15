@@ -1,15 +1,28 @@
 #ifndef PROBFD_CARTESIAN_POLICY_BASED_FLAW_GENERATOR_H
 #define PROBFD_CARTESIAN_POLICY_BASED_FLAW_GENERATOR_H
 
+#include "probfd/cartesian_abstractions/flaw.h"
 #include "probfd/cartesian_abstractions/flaw_generator.h"
+#include "probfd/cartesian_abstractions/types.h"
 
 #include "downward/utils/timer.h"
 
 #include <memory>
+#include <optional>
+#include <vector>
+
+namespace utils {
+class CountdownTimer;
+class LogProxy;
+} // namespace utils
 
 namespace probfd {
-namespace cartesian_abstractions {
+class ProbabilisticTaskProxy;
 
+namespace cartesian_abstractions {
+class AbstractState;
+class Abstraction;
+class CartesianHeuristic;
 class PolicyGenerator;
 class PolicyFlawFinder;
 

@@ -2,9 +2,23 @@
 
 #include "probfd/task_evaluator_factory.h"
 
+#include "probfd/fdr_types.h"
+
 #include "downward/plugins/plugin.h"
 
 #include <memory>
+
+class State;
+
+namespace plugins {
+class Options;
+}
+namespace probfd {
+class ProbabilisticTask;
+}
+namespace utils {
+class Context;
+}
 
 namespace probfd {
 namespace heuristics {

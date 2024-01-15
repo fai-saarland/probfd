@@ -1,6 +1,7 @@
 #include "probfd/tasks/modified_operator_costs_task.h"
 
 #include <cassert>
+#include <utility>
 
 using namespace std;
 

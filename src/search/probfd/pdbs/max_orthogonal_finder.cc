@@ -6,8 +6,6 @@
 
 #include "downward/pdbs/pattern_cliques.h"
 
-#include "downward/plugins/plugin.h"
-
 namespace probfd {
 namespace pdbs {
 

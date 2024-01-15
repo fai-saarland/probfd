@@ -3,18 +3,12 @@
 
 #include "probfd/heuristics/task_dependent_heuristic.h"
 
-#include "probfd/evaluator.h"
-#include "probfd/types.h"
-
 #include <memory>
-
-namespace plugins {
-class Options;
-class Feature;
-} // namespace plugins
+#include <vector>
 
 namespace utils {
 class RandomNumberGenerator;
+class LogProxy;
 }
 
 namespace probfd {

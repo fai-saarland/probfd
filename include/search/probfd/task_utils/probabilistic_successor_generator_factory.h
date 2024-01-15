@@ -2,6 +2,7 @@
 #define PROBFD_TASK_UTILS_PROBABILISTIC_SUCCESSOR_GENERATOR_FACTORY_H
 
 #include <memory>
+#include <utility>
 #include <vector>
 
 class TaskBaseProxy;

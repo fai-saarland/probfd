@@ -4,6 +4,9 @@
 
 #include "downward/plugins/plugin.h"
 
+#include <memory>
+#include <string>
+
 namespace probfd {
 namespace solvers {
 namespace i2dual {

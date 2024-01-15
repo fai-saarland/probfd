@@ -1,5 +1,6 @@
 #include "probfd/bisimulation/evaluators.h"
 
+#include "probfd/bisimulation/bisimilar_state_space.h"
 namespace probfd {
 namespace bisimulation {
 

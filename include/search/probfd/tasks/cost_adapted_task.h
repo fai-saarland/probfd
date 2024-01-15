@@ -1,13 +1,13 @@
 #ifndef PROBFD_TASKS_COST_ADAPTED_TASK_H
 #define PROBFD_TASKS_COST_ADAPTED_TASK_H
 
-#include "probfd/tasks/delegating_task.h"
+#include "probfd/tasks/delegating_task.h" // IWYU pragma: export
+
+#include "probfd/value_type.h"
 
 #include "downward/operator_cost.h"
 
-namespace plugins {
-class Options;
-}
+#include <memory>
 
 namespace probfd {
 namespace tasks {

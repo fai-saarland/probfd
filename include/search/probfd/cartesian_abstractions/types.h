@@ -1,5 +1,5 @@
-#ifndef PROBFD_CARTESIAN_TYPES_H
-#define PROBFD_CARTESIAN_TYPES_H
+#ifndef PROBFD_CARTESIAN_ABSTRACTIONS_TYPES_H
+#define PROBFD_CARTESIAN_ABSTRACTIONS_TYPES_H
 
 #include "downward/cartesian_abstractions/types.h"
 
@@ -49,4 +49,4 @@ static constexpr int UNDEFINED = -1;
 } // namespace cartesian_abstractions
 } // namespace probfd
 
-#endif // PROBFD_CARTESIAN_TYPES_H
+#endif // PROBFD_CARTESIAN_ABSTRACTIONS_TYPES_H

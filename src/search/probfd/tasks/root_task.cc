@@ -1,24 +1,22 @@
 #include "probfd/tasks/root_task.h"
 #include "probfd/tasks/all_outcomes_determinization.h"
 
+#include "probfd/probabilistic_task.h"
 #include "probfd/value_type.h"
 
 #include "downward/tasks/root_task.h"
 
-#include "downward/state_registry.h"
-
 #include "downward/utils/collections.h"
-#include "downward/utils/timer.h"
+
+#include "downward/axioms.h"
 
 #include "downward/plugins/plugin.h"
 
 #include <algorithm>
 #include <cassert>
 #include <compare>
-#include <istream>
 #include <memory>
 #include <set>
-#include <unordered_set>
 #include <vector>
 
 using namespace std;

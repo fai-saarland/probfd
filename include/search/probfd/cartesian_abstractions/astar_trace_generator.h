@@ -2,13 +2,23 @@
 #define PROBFD_CARTESIAN_ASTAR_TRACE_GENERATOR_H
 
 #include "probfd/cartesian_abstractions/trace_generator.h"
+#include "probfd/cartesian_abstractions/types.h"
 
 #include "probfd/value_type.h"
 
 #include "downward/algorithms/priority_queues.h"
 
+#include <memory>
+#include <vector>
+
+namespace utils {
+class CountdownTimer;
+}
+
 namespace probfd {
 namespace cartesian_abstractions {
+class Abstraction;
+class CartesianHeuristic;
 
 /*
   Find an optimal trace in the determinization using A*.

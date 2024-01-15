@@ -3,7 +3,6 @@
 
 #include "probfd/pdbs/types.h"
 
-#include "probfd/evaluator.h"
 #include "probfd/value_type.h"
 
 #include <memory>
@@ -12,8 +11,6 @@
 class State;
 
 namespace probfd {
-class ProbabilisticTaskProxy;
-
 namespace pdbs {
 
 class SubCollectionFinder {

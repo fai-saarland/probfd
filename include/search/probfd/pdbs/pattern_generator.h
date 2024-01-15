@@ -1,13 +1,14 @@
 #ifndef PROBFD_PDBS_PATTERN_GENERATOR_H
 #define PROBFD_PDBS_PATTERN_GENERATOR_H
 
-#include "probfd/pdbs/types.h"
-
-#include "probfd/task_proxy.h"
-
 #include "downward/utils/logging.h"
 
 #include <memory>
+
+namespace plugins {
+class Feature;
+class Options;
+} // namespace plugins
 
 namespace probfd {
 class ProbabilisticTask;

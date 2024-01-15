@@ -1,12 +1,12 @@
 #ifndef PROBFD_SOLVERS_SOLVER_INTERFACE_H
 #define PROBFD_SOLVERS_SOLVER_INTERFACE_H
 
-#include "probfd/interval.h"
+#include "probfd/value_type.h"
 
-#include <optional>
-#include <ostream>
+#include <iosfwd>
 
 namespace probfd {
+struct Interval;
 
 /// An interface that describes an MDP solver.
 class SolverInterface {

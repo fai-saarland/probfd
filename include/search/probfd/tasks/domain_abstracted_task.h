@@ -1,12 +1,10 @@
 #ifndef PROBFD_TASKS_DOMAIN_ABSTRACTED_TASK_H
 #define PROBFD_TASKS_DOMAIN_ABSTRACTED_TASK_H
 
-#include "probfd/tasks/delegating_task.h"
+#include "probfd/tasks/delegating_task.h" // IWYU pragma: export
 
-#include "downward/utils/collections.h"
-
+#include <memory>
 #include <string>
-#include <utility>
 #include <vector>
 
 namespace probfd {

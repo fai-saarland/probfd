@@ -2,6 +2,8 @@
 
 #include "probfd/tasks/root_task.h"
 
+#include "probfd/probabilistic_task.h"
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>

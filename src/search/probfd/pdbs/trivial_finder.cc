@@ -1,6 +1,8 @@
 #include "probfd/pdbs/trivial_finder.h"
 
-#include "downward/plugins/plugin.h"
+#include <cassert>
+#include <cstdlib>
+
 namespace probfd {
 namespace pdbs {
 

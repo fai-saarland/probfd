@@ -6,6 +6,7 @@
 #include "probfd/transition.h"
 
 #include <cassert>
+#include <utility>
 
 using namespace std;
 

@@ -3,14 +3,17 @@
 #include "probfd/pdbs/projection_state_space.h"
 #include "probfd/pdbs/utils.h"
 
-#include "probfd/task_utils/task_properties.h"
+#include "probfd/cost_function.h"
+#include "probfd/task_proxy.h"
 
 #include "downward/pdbs/pattern_database.h"
 
 #include "downward/utils/collections.h"
 #include "downward/utils/countdown_timer.h"
+#include "downward/utils/timer.h"
 
-#include <algorithm>
+#include <span>
+#include <utility>
 
 namespace probfd {
 namespace pdbs {

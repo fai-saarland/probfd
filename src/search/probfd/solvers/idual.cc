@@ -2,11 +2,16 @@
 
 #include "probfd/algorithms/idual.h"
 
-#include "probfd/evaluator.h"
-
 #include "downward/lp/lp_solver.h"
 
 #include "downward/plugins/plugin.h"
+
+#include "downward/operator_id.h"
+#include "downward/task_proxy.h"
+
+#include <memory>
+#include <ranges>
+#include <string>
 
 namespace probfd {
 namespace solvers {

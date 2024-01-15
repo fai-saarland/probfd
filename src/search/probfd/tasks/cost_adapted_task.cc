@@ -2,19 +2,13 @@
 
 #include "probfd/task_utils/task_properties.h"
 
+#include "probfd/task_proxy.h"
+
 #include "downward/operator_cost.h"
 
-#include "downward/plugins/plugin.h"
-
-#include "probfd/tasks/root_task.h"
-
-#include "downward/utils/system.h"
-
-#include <iostream>
 #include <memory>
 
 using namespace std;
-using utils::ExitCode;
 
 namespace probfd {
 namespace tasks {

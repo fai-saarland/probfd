@@ -2,23 +2,27 @@
 #define PROBFD_PDBS_PROJECTION_STATE_SPACE_H
 
 #include "probfd/pdbs/match_tree.h"
-#include "probfd/pdbs/projection_operator.h"
 #include "probfd/pdbs/types.h"
 
 #include "probfd/fdr_types.h"
 #include "probfd/mdp.h"
-#include "probfd/task_proxy.h"
 
 #include <limits>
 #include <vector>
 
 namespace probfd {
+template <typename>
+class Distribution;
+
+class ProbabilisticTaskProxy;
+
 namespace pdbs {
 
 class ProjectionOperator;
 class StateRankingFunction;
 
-/// Represents the state space of a projection of a probabilistic planning task.
+/// Represents the state space of a projection of a probabilistic planning
+/// task.
 class ProjectionStateSpace
     : public SimpleMDP<StateRank, const ProjectionOperator*> {
 

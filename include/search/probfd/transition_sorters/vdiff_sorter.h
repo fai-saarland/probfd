@@ -6,6 +6,8 @@
 
 #include "probfd/value_type.h"
 
+#include <vector>
+
 namespace probfd {
 namespace transition_sorters {
 

@@ -1,5 +1,8 @@
 #include "probfd/algorithms/utils.h"
 
+#include "probfd/interval.h"
+
+#include <algorithm>
 #include <cassert>
 
 namespace probfd {

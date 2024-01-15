@@ -1,9 +1,19 @@
 #include "probfd/task_cost_function_factory.h"
 
+#include "probfd/cost_function.h"
 #include "probfd/maxprob_cost_function.h"
 #include "probfd/ssp_cost_function.h"
+#include "probfd/task_proxy.h"
 
 #include "downward/plugins/plugin.h"
+
+namespace plugins {
+class Options;
+}
+
+namespace utils {
+class Context;
+}
 
 namespace probfd {
 

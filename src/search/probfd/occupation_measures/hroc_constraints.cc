@@ -7,15 +7,20 @@
 #include "probfd/cost_function.h"
 #include "probfd/task_proxy.h"
 
+#include "downward/algorithms/named_vector.h"
+
 #include "downward/lp/lp_solver.h"
 
-#include "downward/plugins/plugin.h"
+#include "downward/task_utils/task_properties.h"
 
 #include "downward/utils/system.h"
 #include "downward/utils/timer.h"
 
-#include <algorithm>
+#include "downward/task_proxy.h"
+#include "probfd/value_type.h"
+
 #include <cassert>
+#include <iostream>
 #include <memory>
 
 namespace probfd {

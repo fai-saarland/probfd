@@ -7,9 +7,8 @@
 #include "probfd/fdr_types.h"
 #include "probfd/task_proxy.h"
 
-#include "downward/operator_cost.h"
-
 #include <memory>
+#include <vector>
 
 namespace pdbs {
 class PatternCollectionInformation;

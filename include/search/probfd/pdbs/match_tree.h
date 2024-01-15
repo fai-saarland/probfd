@@ -3,12 +3,13 @@
 
 #include "probfd/pdbs/types.h"
 
-#include "probfd/task_proxy.h"
-
 #include <cstddef>
+#include <iosfwd>
 #include <memory>
-#include <ostream>
 #include <vector>
+
+class VariablesProxy;
+struct FactPair;
 
 namespace probfd {
 

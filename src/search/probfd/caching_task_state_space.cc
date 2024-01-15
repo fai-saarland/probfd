@@ -2,19 +2,29 @@
 
 #include "probfd/transition.h"
 
-#include "downward/algorithms/int_packer.h"
+#include "probfd/distribution.h"
+#include "probfd/task_proxy.h"
+
+#include "downward/utils/logging.h"
 
 #include "downward/evaluator.h"
-
-#include "downward/tasks/root_task.h"
+#include "downward/state_registry.h"
+#include "downward/task_proxy.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cstring>
-#include <map>
+#include <functional>
+#include <ostream>
 #include <ranges>
+#include <span>
+#include <type_traits>
+#include <utility>
 
 using namespace std::ranges;
 using namespace std::views;
+
+class Evaluator;
 
 namespace probfd {
 

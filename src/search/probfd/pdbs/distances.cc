@@ -3,7 +3,22 @@
 #include "probfd/algorithms/ta_topological_value_iteration.h"
 #include "probfd/preprocessing/qualitative_reachability_analysis.h"
 
+#include "probfd/pdbs/projection_operator.h"
 #include "probfd/pdbs/projection_state_space.h"
+
+#include "probfd/utils/iterators.h"
+
+#include "probfd/evaluator.h"
+#include "probfd/type_traits.h"
+#include "probfd/types.h"
+
+#include "downward/utils/collections.h"
+#include "downward/utils/countdown_timer.h"
+#include "downward/utils/timer.h"
+
+#include <iterator>
+#include <ranges>
+#include <vector>
 
 #if !defined(NDEBUG) && (defined(HAS_CPLEX) || defined(HAS_SOPLEX))
 #include "downward/lp/lp_solver.h"

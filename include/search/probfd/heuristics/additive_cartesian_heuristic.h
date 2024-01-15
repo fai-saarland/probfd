@@ -3,6 +3,7 @@
 
 #include "probfd/heuristics/task_dependent_heuristic.h"
 
+#include <memory>
 #include <vector>
 
 namespace probfd {

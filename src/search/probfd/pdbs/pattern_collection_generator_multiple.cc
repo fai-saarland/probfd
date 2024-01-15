@@ -3,6 +3,7 @@
 #include "probfd/pdbs/fully_additive_finder.h"
 #include "probfd/pdbs/pattern_collection_information.h"
 #include "probfd/pdbs/probability_aware_pattern_database.h"
+
 #include "probfd/pdbs/saturation.h"
 #include "probfd/pdbs/trivial_finder.h"
 
@@ -13,12 +14,17 @@
 
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/logging.h"
-#include "downward/utils/markup.h"
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
 
 #include "downward/plugins/plugin.h"
 
+#include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <ostream>
+#include <set>
+#include <span>
 #include <vector>
 
 using namespace std;

@@ -1,14 +1,12 @@
 #include "probfd/cartesian_abstractions/abstract_state.h"
 
-#include "probfd/cartesian_abstractions/utils.h"
+#include "probfd/task_proxy.h"
 
-#include "downward/cartesian_abstractions/refinement_hierarchy.h"
+#include "downward/abstract_task.h"
+#include "downward/task_proxy.h"
 
-#include "downward/utils/memory.h"
-
-#include <algorithm>
 #include <cassert>
-#include <unordered_set>
+#include <ostream>
 
 using namespace std;
 

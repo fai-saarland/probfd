@@ -2,6 +2,8 @@
 #define PROBFD_HEURISTICS_CONSTANT_EVALUATOR_H
 
 #include "probfd/evaluator.h"
+#include "probfd/type_traits.h"
+#include "probfd/value_type.h"
 
 namespace probfd {
 namespace heuristics {
@@ -28,22 +30,22 @@ public:
     }
 };
 
-/**
- * @brief Returns an estimate of zero for each state.
- */
-template <typename State>
-class BlindEvaluator : public ConstantEvaluator<State> {
-public:
     /**
-     * @brief Construct with constant estimate \p value .
+     * @brief Returns an estimate of zero for each state.
      */
-    BlindEvaluator()
-        : ConstantEvaluator<State>(0_vt)
-    {
-    }
-};
+    template <typename State>
+    class BlindEvaluator : public ConstantEvaluator<State> {
+    public:
+        /**
+         * @brief Construct with constant estimate \p value .
+         */
+        BlindEvaluator()
+            : ConstantEvaluator<State>(0_vt)
+        {
+        }
+    };
 
-} // namespace heuristics
-} // namespace probfd
+    } // namespace heuristics
+    } // namespace probfd
 
 #endif // __CONSTANT_EVALUATOR_H__

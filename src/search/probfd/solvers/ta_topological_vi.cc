@@ -2,11 +2,10 @@
 
 #include "probfd/algorithms/ta_topological_value_iteration.h"
 
-#include "probfd/heuristics/constant_evaluator.h"
-
-#include "probfd/evaluator.h"
-
 #include "downward/plugins/plugin.h"
+
+#include <memory>
+#include <string>
 
 namespace probfd {
 namespace solvers {

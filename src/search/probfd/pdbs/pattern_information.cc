@@ -2,9 +2,9 @@
 
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 
-#include "probfd/cost_function.h"
-
 #include <cassert>
+#include <utility>
+#include <vector>
 
 using namespace std;
 

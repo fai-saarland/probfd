@@ -1,10 +1,12 @@
 #include "downward/abstract_task.h"
 
-#include "probfd/probabilistic_task.h"
-
-#include "probfd/task_proxy.h"
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace probfd {
+class ProbabilisticTask;
+
 namespace tasks {
 
 /**

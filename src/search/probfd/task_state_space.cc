@@ -1,17 +1,16 @@
 #include "probfd/task_state_space.h"
 
+#include "probfd/distribution.h"
 #include "probfd/task_proxy.h"
 #include "probfd/transition.h"
-
-#include "downward/algorithms/int_packer.h"
-
-#include "downward/tasks/root_task.h"
+#include "probfd/type_traits.h"
 
 #include "downward/evaluator.h"
+#include "downward/operator_id.h"
+#include "downward/state_id.h"
 
-#include <algorithm>
-#include <cstring>
-#include <map>
+#include <iostream>
+#include <utility>
 
 namespace probfd {
 

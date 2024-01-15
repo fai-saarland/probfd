@@ -4,21 +4,19 @@
 #include "probfd/cartesian_abstractions/probabilistic_transition.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition_system.h"
 
-#include "probfd/task_utils/task_properties.h"
-
 #include "probfd/distribution.h"
+#include "probfd/task_proxy.h"
 #include "probfd/transition.h"
 
 #include "downward/cartesian_abstractions/refinement_hierarchy.h"
 
-#include "downward/utils/countdown_timer.h"
-#include "downward/utils/math.h"
-#include "downward/utils/memory.h"
+#include "downward/cartesian_abstractions/cartesian_set.h"
 
-#include <algorithm>
+#include "downward/task_utils/task_properties.h"
+
 #include <cassert>
+#include <cstddef>
 #include <iostream>
-#include <unordered_map>
 
 using namespace std;
 

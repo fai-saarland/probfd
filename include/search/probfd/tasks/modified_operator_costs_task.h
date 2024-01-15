@@ -1,8 +1,11 @@
 #ifndef PROBFD_TASKS_MODIFIED_OPERATOR_COSTS_TASK_H
 #define PROBFD_TASKS_MODIFIED_OPERATOR_COSTS_TASK_H
 
-#include "probfd/tasks/delegating_task.h"
+#include "probfd/tasks/delegating_task.h" // IWYU pragma: export
 
+#include "probfd/value_type.h"
+
+#include <memory>
 #include <vector>
 
 namespace probfd {

@@ -1,18 +1,17 @@
 #include "probfd/cartesian_abstractions/utils.h"
-#include "probfd/task_utils/task_properties.h"
 
 #include "probfd/tasks/all_outcomes_determinization.h"
 
+#include "probfd/task_proxy.h"
+
 #include "downward/heuristics/additive_heuristic.h"
 
+#include "downward/plugins/options.h"
 #include "downward/utils/logging.h"
-#include "downward/utils/memory.h"
 
-#include "downward/plugins/plugin.h"
+#include <cstddef>
 
-#include <algorithm>
-#include <cassert>
-#include <unordered_map>
+class AbstractTask;
 
 using namespace std;
 
@@ -33,32 +32,33 @@ create_additive_heuristic(const shared_ptr<ProbabilisticTask>& task)
 
 static bool operator_applicable(
     const ProbabilisticOperatorProxy& op,
-    const utils::HashSet<FactProxy>& facts)
+    const utils::HashSet<FactPair>& facts)
 {
     for (FactProxy precondition : op.get_preconditions()) {
-        if (facts.count(precondition) == 0) return false;
+        if (!facts.contains(precondition.get_pair())) return false;
     }
     return true;
 }
 
 static bool outcome_can_achieve_fact(
     const ProbabilisticOutcomeProxy& outcome,
-    const FactProxy& fact)
+    const FactPair& fact)
 {
     for (ProbabilisticEffectProxy effect : outcome.get_effects()) {
-        if (effect.get_fact() == fact) return true;
+        if (effect.get_fact().get_pair() == fact) return true;
     }
     return false;
 }
 
-static utils::HashSet<FactProxy> compute_possibly_before_facts(
+static utils::HashSet<FactPair> compute_possibly_before_facts(
     const ProbabilisticTaskProxy& task,
-    const FactProxy& last_fact)
+    const FactPair& last_fact)
 {
-    utils::HashSet<FactProxy> pb_facts;
+    utils::HashSet<FactPair> pb_facts;
 
     // Add facts from initial state.
-    for (FactProxy fact : task.get_initial_state()) pb_facts.insert(fact);
+    for (FactProxy fact : task.get_initial_state())
+        pb_facts.insert(fact.get_pair());
 
     // Until no more facts can be added:
     size_t last_num_reached = 0;
@@ -80,7 +80,7 @@ static utils::HashSet<FactProxy> compute_possibly_before_facts(
                 // Add all facts that are achieved by an applicable
                 // operator.
                 for (ProbabilisticEffectProxy effect : outcome.get_effects()) {
-                    pb_facts.insert(effect.get_fact());
+                    pb_facts.insert(effect.get_fact().get_pair());
                 }
             }
         }
@@ -88,11 +88,11 @@ static utils::HashSet<FactProxy> compute_possibly_before_facts(
     return pb_facts;
 }
 
-utils::HashSet<FactProxy> get_relaxed_possible_before(
+utils::HashSet<FactPair> get_relaxed_possible_before(
     const ProbabilisticTaskProxy& task,
-    const FactProxy& fact)
+    const FactPair& fact)
 {
-    utils::HashSet<FactProxy> reachable_facts =
+    utils::HashSet<FactPair> reachable_facts =
         compute_possibly_before_facts(task, fact);
     reachable_facts.insert(fact);
     return reachable_facts;

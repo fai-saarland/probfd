@@ -5,7 +5,9 @@
 #include "probfd/distribution.h"
 
 #include <algorithm>
+#include <functional>
 #include <ranges>
+#include <utility>
 
 namespace probfd {
 namespace transition_sorters {

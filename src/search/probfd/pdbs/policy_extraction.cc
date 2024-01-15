@@ -1,13 +1,21 @@
 #include "probfd/pdbs/policy_extraction.h"
 
+#include "probfd/pdbs/projection_operator.h"
 #include "probfd/pdbs/projection_state_space.h"
 
 #include "probfd/policies/vector_multi_policy.h"
 
+#include "probfd/distribution.h"
+
 #include "downward/utils/rng.h"
 
+#include <cassert>
+#include <cstdlib>
 #include <deque>
+#include <map>
 #include <unordered_set>
+#include <utility>
+#include <vector>
 
 namespace probfd::pdbs {
 

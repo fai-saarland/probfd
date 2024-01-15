@@ -4,8 +4,6 @@
 
 #include "probfd/occupation_measures/hpom_constraints.h"
 
-#include "probfd/tasks/root_task.h"
-
 #include "probfd/task_utils/task_properties.h"
 
 #include "probfd/utils/guards.h"
@@ -15,9 +13,17 @@
 #include "probfd/evaluator.h"
 #include "probfd/mdp.h"
 
+#include "downward/task_utils/task_properties.h"
+
 #include "downward/utils/countdown_timer.h"
 
+#include <cassert>
+#include <cmath>
+#include <cstdint>
+#include <cstdlib>
+#include <iostream>
 #include <limits>
+#include <utility>
 
 namespace probfd {
 namespace algorithms {

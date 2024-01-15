@@ -12,6 +12,7 @@
 namespace probfd {
 namespace cartesian_abstractions {
 
+class AbstractState;
 struct Split;
 
 struct Flaw {

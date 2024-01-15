@@ -3,8 +3,8 @@
 
 #include "probfd/fdr_types.h"
 
+#include <iosfwd>
 #include <memory>
-#include <vector>
 
 class State;
 

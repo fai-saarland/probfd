@@ -2,11 +2,12 @@
 #define PROBFD_PDBS_PATTERN_COLLECTION_GENERATOR_DISJOINT_CEGAR_H
 
 #include "probfd/pdbs/pattern_collection_generator.h"
-#include "probfd/pdbs/types.h"
 
-#include "downward/plugins/options.h"
+#include <memory>
 
-#include "downward/utils/rng.h"
+namespace utils {
+class RandomNumberGenerator;
+}
 
 namespace plugins {
 class Feature;

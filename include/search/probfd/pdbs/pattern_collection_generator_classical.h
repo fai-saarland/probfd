@@ -9,7 +9,6 @@
 
 namespace plugins {
 class Options;
-class Feature;
 } // namespace plugins
 
 namespace probfd {

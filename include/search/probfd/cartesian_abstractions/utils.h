@@ -1,16 +1,15 @@
-#ifndef PROBFD_CARTESIAN_UTILS_H
-#define PROBFD_CARTESIAN_UTILS_H
-
-#include "probfd/task_proxy.h"
+#ifndef PROBFD_CARTESIAN_ABSTRACTIONS_UTILS_H
+#define PROBFD_CARTESIAN_ABSTRACTIONS_UTILS_H
 
 #include "probfd/cartesian_abstractions/types.h"
 
 #include "downward/cartesian_abstractions/cartesian_set.h"
-#include "downward/cartesian_abstractions/utils.h"
+
+#include "downward/utils/hash.h"
+
+#include "downward/task_proxy.h"
 
 #include <memory>
-#include <unordered_set>
-#include <utility>
 #include <vector>
 
 namespace additive_heuristic {
@@ -18,6 +17,7 @@ class AdditiveHeuristic;
 }
 
 namespace probfd {
+class ProbabilisticTaskProxy;
 class ProbabilisticTask;
 
 namespace cartesian_abstractions {
@@ -46,11 +46,11 @@ create_additive_heuristic(const std::shared_ptr<ProbabilisticTask>& task);
   can be reached in the delete-relaxation before 'fact' is reached the first
   time, plus 'fact' itself.
 */
-extern utils::HashSet<FactProxy> get_relaxed_possible_before(
+extern utils::HashSet<FactPair> get_relaxed_possible_before(
     const ProbabilisticTaskProxy& task,
-    const FactProxy& fact);
+    const FactPair& fact);
 
 } // namespace cartesian_abstractions
 } // namespace probfd
 
-#endif // PROBFD_CARTESIAN_UTILS_H
+#endif // PROBFD_CARTESIAN_ABSTRACTIONS_UTILS_H

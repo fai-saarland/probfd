@@ -1,13 +1,14 @@
-#ifndef PROBFD_CARTESIAN_SPLIT_SELECTOR_H
-#define PROBFD_CARTESIAN_SPLIT_SELECTOR_H
+#ifndef PROBFD_CARTESIAN_ABSTRACTIONS_SPLIT_SELECTOR_H
+#define PROBFD_CARTESIAN_ABSTRACTIONS_SPLIT_SELECTOR_H
 
 #include "probfd/task_proxy.h"
 
-#include "probfd/cartesian_abstractions/types.h"
-
+#include <cassert>
 #include <limits>
 #include <memory>
 #include <vector>
+
+class AbstractTaskBase;
 
 namespace additive_heuristic {
 class AdditiveHeuristic;
@@ -23,6 +24,8 @@ class RandomNumberGenerator;
 
 namespace probfd {
 namespace cartesian_abstractions {
+
+class AbstractState;
 
 struct Split {
     int var_id;
@@ -229,4 +232,4 @@ public:
 } // namespace cartesian_abstractions
 } // namespace probfd
 
-#endif // PROBFD_CARTESIAN_SPLIT_SELECTOR_H
+#endif // PROBFD_CARTESIAN_ABSTRACTIONS_SPLIT_SELECTOR_H

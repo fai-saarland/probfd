@@ -4,7 +4,9 @@
 
 #include "probfd/plugins/naming_conventions.h"
 
-#include <sstream>
+#include "downward/plugins/plugin.h"
+
+#include <iostream>
 
 namespace probfd {
 namespace solvers {

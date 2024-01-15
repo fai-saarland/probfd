@@ -4,24 +4,30 @@
 #include "probfd/cartesian_abstractions/cartesian_heuristic_function.h"
 #include "probfd/cartesian_abstractions/cegar.h"
 #include "probfd/cartesian_abstractions/distances.h"
-#include "probfd/cartesian_abstractions/flaw_generator.h"
+#include "probfd/cartesian_abstractions/probabilistic_transition.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition_system.h"
-#include "probfd/cartesian_abstractions/split_selector.h"
 #include "probfd/cartesian_abstractions/subtask_generators.h"
-#include "probfd/cartesian_abstractions/utils.h"
 
 #include "probfd/task_utils/task_properties.h"
+
 #include "probfd/tasks/modified_operator_costs_task.h"
 
-#include "downward/cartesian_abstractions/abstract_state.h"
-#include "downward/cartesian_abstractions/cartesian_heuristic_function.h"
-#include "downward/cartesian_abstractions/refinement_hierarchy.h"
+#include "probfd/task_proxy.h"
+
+#include "downward/task_utils/task_properties.h"
 
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/memory.h"
+#include "downward/utils/timer.h"
+
+#include "downward/task_proxy.h"
 
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
+#include <deque>
+#include <ostream>
+#include <utility>
 
 using namespace std;
 
@@ -115,6 +121,8 @@ CostSaturation::CostSaturation(
     , num_non_looping_transitions(0)
 {
 }
+
+CostSaturation::~CostSaturation() = default;
 
 vector<CartesianHeuristicFunction> CostSaturation::generate_heuristic_functions(
     const shared_ptr<ProbabilisticTask>& task)

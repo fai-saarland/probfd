@@ -3,13 +3,16 @@
 
 #include "probfd/pdbs/types.h"
 
-#include "probfd/task_proxy.h"
+#include <iosfwd>
+#include <vector>
 
 namespace utils {
 class RandomNumberGenerator;
 }
 
 namespace probfd {
+class ProbabilisticTaskProxy;
+
 namespace pdbs {
 
 class ProjectionStateSpace;

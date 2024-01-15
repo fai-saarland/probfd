@@ -3,15 +3,8 @@
 
 #include "probfd/heuristics/task_dependent_heuristic.h"
 
-#include "probfd/evaluator.h"
-#include "probfd/types.h"
-
 #include <memory>
-
-namespace plugins {
-class Options;
-class Feature;
-} // namespace plugins
+#include <vector>
 
 namespace probfd {
 
@@ -32,6 +25,8 @@ public:
         std::shared_ptr<FDRCostFunction> task_cost_function,
         utils::LogProxy log,
         std::shared_ptr<pdbs::PatternCollectionGenerator> generator);
+
+    ~UCPHeuristic();
 
     void print_statistics() const override
     {

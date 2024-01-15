@@ -3,15 +3,17 @@
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 #include "probfd/pdbs/state_ranking_function.h"
 
-#include "probfd/task_proxy.h"
 #include "probfd/value_type.h"
 
 #include "downward/pdbs/pattern_database.h"
 
-#include "downward/utils/collections.h"
-
+#include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <functional>
+#include <iterator>
 #include <limits>
-#include <memory>
+#include <ranges>
 
 namespace probfd {
 namespace pdbs {

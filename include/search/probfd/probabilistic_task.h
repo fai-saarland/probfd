@@ -1,23 +1,9 @@
 #ifndef PROBFD_PROBABILISTIC_TASK_H
 #define PROBFD_PROBABILISTIC_TASK_H
 
-#include "downward/operator_id.h"
-
-#include "downward/algorithms/subscriber.h"
-#include "downward/utils/hash.h"
-
-#include "downward/abstract_task.h"
+#include "downward/abstract_task.h" // IWYU pragma: export
 
 #include "probfd/value_type.h"
-
-#include <memory>
-#include <string>
-#include <utility>
-#include <vector>
-
-namespace plugins {
-class Options;
-}
 
 namespace probfd {
 

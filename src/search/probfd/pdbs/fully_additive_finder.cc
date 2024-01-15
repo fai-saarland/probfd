@@ -1,13 +1,6 @@
 #include "probfd/pdbs/fully_additive_finder.h"
 
-#include "probfd/pdbs/subcollections.h"
-
-#include "downward/algorithms/max_cliques.h"
-
-#include "downward/pdbs/pattern_cliques.h"
-
-#include "downward/plugins/plugin.h"
-
+#include <cstdlib>
 #include <numeric>
 
 namespace probfd {

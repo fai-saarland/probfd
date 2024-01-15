@@ -1,7 +1,7 @@
 #ifndef PROBFD_POLICY_PICKER_ARBITRARY_TIEBREAKER_H
 #define PROBFD_POLICY_PICKER_ARBITRARY_TIEBREAKER_H
 
-#include "probfd/policy_pickers/stable_policy_picker.h"
+#include "probfd/policy_pickers/stable_policy_picker.h" // IWYU pragma: export
 
 namespace plugins {
 class Options;

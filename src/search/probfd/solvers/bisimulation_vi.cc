@@ -1,7 +1,6 @@
 #include "probfd/solver_interface.h"
 
 #include "probfd/bisimulation/bisimilar_state_space.h"
-#include "probfd/bisimulation/evaluators.h"
 
 #include "probfd/algorithms/interval_iteration.h"
 #include "probfd/algorithms/topological_value_iteration.h"
@@ -14,11 +13,12 @@
 
 #include "downward/utils/timer.h"
 
-#include "downward/state_registry.h"
-
 #include "downward/plugins/plugin.h"
 
-#include <iomanip>
+#include <iostream>
+#include <memory>
+#include <ranges>
+#include <string>
 
 namespace probfd {
 namespace solvers {

@@ -2,9 +2,13 @@
 
 #include "probfd/algorithms/acyclic_value_iteration.h"
 
-#include "probfd/evaluator.h"
-
 #include "downward/plugins/plugin.h"
+
+#include "downward/operator_id.h"
+#include "downward/task_proxy.h"
+
+#include <memory>
+#include <string>
 
 namespace probfd {
 namespace solvers {

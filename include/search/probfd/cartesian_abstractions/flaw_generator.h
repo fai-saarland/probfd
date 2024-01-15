@@ -2,7 +2,6 @@
 #define PROBFD_CARTESIAN_FLAW_GENERATOR_H
 
 #include "probfd/cartesian_abstractions/flaw.h"
-#include "probfd/cartesian_abstractions/types.h"
 
 #include <memory>
 #include <optional>
@@ -11,15 +10,14 @@
 namespace utils {
 class CountdownTimer;
 class LogProxy;
-class Timer;
 } // namespace utils
 
 namespace probfd {
 class ProbabilisticTaskProxy;
 
 namespace cartesian_abstractions {
+class AbstractState;
 class Abstraction;
-class CartesianCostFunction;
 class CartesianHeuristic;
 
 /**

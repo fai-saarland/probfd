@@ -14,8 +14,6 @@ class State;
 namespace utils {
 class CountdownTimer;
 class Duration;
-class RandomNumberGenerator;
-class LogProxy;
 } // namespace utils
 
 namespace probfd {
@@ -74,6 +72,8 @@ public:
         double max_time,
         bool use_general_costs,
         utils::LogProxy log);
+
+    ~CostSaturation();
 
     std::vector<CartesianHeuristicFunction> generate_heuristic_functions(
         const std::shared_ptr<ProbabilisticTask>& task);

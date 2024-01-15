@@ -1,7 +1,5 @@
 #include "probfd/pdbs/pattern_collection_generator.h"
 
-#include "probfd/pdbs/pattern_collection_information.h"
-
 #include "downward/plugins/plugin.h"
 
 namespace probfd {

@@ -1,8 +1,6 @@
 #ifndef PROBFD_TASKS_ROOT_TASK_H
 #define PROBFD_TASKS_ROOT_TASK_H
 
-#include "probfd/probabilistic_task.h"
-
 #include <memory>
 #include <ostream>
 

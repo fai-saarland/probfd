@@ -3,9 +3,30 @@
 
 #include "probfd/task_state_space.h"
 
+#include "probfd/storage/segmented_memory_pool.h"
+
+#include "probfd/fdr_types.h"
+#include "probfd/probabilistic_task.h"
+#include "probfd/types.h"
+
 #include "downward/per_state_information.h"
 
+#include "downward/operator_id.h"
+
+#include <limits>
+#include <memory>
+#include <vector>
+
+class Evaluator;
+class State;
+
+namespace utils {
+class LogProxy;
+}
+
 namespace probfd {
+template <typename>
+class Distribution;
 
 class CachingTaskStateSpace : public TaskStateSpace {
     struct CacheEntry {

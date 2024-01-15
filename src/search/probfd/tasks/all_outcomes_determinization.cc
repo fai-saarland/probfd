@@ -1,5 +1,13 @@
 #include "probfd/tasks/all_outcomes_determinization.h"
 
+#include "probfd/probabilistic_task.h"
+
+#include "probfd/task_proxy.h"
+
+#include "downward/task_proxy.h"
+
+#include <cassert>
+
 namespace probfd {
 namespace tasks {
 

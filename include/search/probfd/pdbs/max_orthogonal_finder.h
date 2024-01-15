@@ -3,7 +3,12 @@
 
 #include "probfd/pdbs/subcollection_finder.h"
 
+#include <memory>
+#include <vector>
+
 namespace probfd {
+class ProbabilisticTaskProxy;
+
 namespace pdbs {
 
 class MaxOrthogonalityFinderBase : public SubCollectionFinder {

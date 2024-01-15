@@ -2,6 +2,7 @@
 #define PROBFD_PROGRESS_REPORT_H
 
 #include "probfd/interval.h"
+#include "probfd/value_type.h"
 
 #include <functional>
 #include <iostream>

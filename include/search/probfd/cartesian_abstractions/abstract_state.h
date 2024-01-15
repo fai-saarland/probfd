@@ -5,6 +5,9 @@
 
 #include "downward/cartesian_abstractions/cartesian_set.h"
 
+#include <iosfwd>
+#include <memory>
+#include <utility>
 #include <vector>
 
 struct FactPair;

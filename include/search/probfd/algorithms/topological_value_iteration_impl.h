@@ -6,6 +6,8 @@
 
 #include "probfd/policies/map_policy.h"
 
+#include "probfd/evaluator.h"
+
 #include "downward/utils/countdown_timer.h"
 
 #include <type_traits>

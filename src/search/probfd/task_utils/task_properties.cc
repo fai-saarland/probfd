@@ -2,13 +2,21 @@
 
 #include "probfd/tasks/all_outcomes_determinization.h"
 
+#include "probfd/probabilistic_task.h"
+
+#include "downward/task_utils/task_properties.h"
+
 #include "downward/utils/logging.h"
-#include "downward/utils/memory.h"
 #include "downward/utils/system.h"
+
+#include "downward/abstract_task.h"
 
 #include <algorithm>
 #include <iostream>
 #include <limits>
+#include <memory>
+#include <unordered_map>
+#include <utility>
 
 using namespace std;
 using utils::ExitCode;

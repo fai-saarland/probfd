@@ -1,8 +1,11 @@
 #include "probfd/pdbs/cegar/flaw_finding_strategy.h"
 
-#include "probfd/pdbs/cegar/cegar.h"
+#include "probfd/pdbs/cegar/flaw.h"
 
 #include "downward/plugins/plugin.h"
+
+#include "downward/abstract_task.h"
+#include "downward/task_proxy.h"
 
 namespace probfd {
 namespace pdbs {

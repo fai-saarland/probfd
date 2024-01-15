@@ -1,6 +1,9 @@
 #include "probfd/heuristics/dead_end_pruning.h"
 
+#include "probfd/task_evaluator_factory.h"
+
 #include "probfd/cost_function.h"
+#include "probfd/evaluator.h"
 
 #include "downward/utils/system.h"
 
@@ -8,7 +11,11 @@
 #include "downward/evaluation_result.h"
 #include "downward/evaluator.h"
 
+#include "downward/plugins/options.h"
 #include "downward/plugins/plugin.h"
+
+#include <iostream>
+#include <utility>
 
 namespace probfd {
 namespace heuristics {
@@ -20,9 +27,9 @@ DeadEndPruningHeuristic::DeadEndPruningHeuristic(
     , dead_end_value_(dead_end_value)
 {
     if (!pruning_function_->dead_ends_are_reliable()) {
-        utils::g_log << "Dead end pruning heuristic was constructed with an "
-                        "evaluator that has unreliable dead ends!"
-                     << std::endl;
+        std::cerr << "Dead end pruning heuristic was constructed with an "
+                     "evaluator that has unreliable dead ends!"
+                  << std::endl;
         utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
     }
 }

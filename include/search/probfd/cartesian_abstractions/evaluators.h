@@ -9,8 +9,6 @@
 namespace probfd {
 namespace cartesian_abstractions {
 
-class AbstractState;
-
 class CartesianHeuristic : public Evaluator<int> {
     std::vector<value_t> h_values = {0.0_vt};
 

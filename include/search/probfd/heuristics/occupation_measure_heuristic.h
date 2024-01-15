@@ -4,7 +4,6 @@
 #include "probfd/heuristics/lp_heuristic.h"
 
 #include <memory>
-#include <vector>
 
 namespace plugins {
 class Options;

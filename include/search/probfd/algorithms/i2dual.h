@@ -13,11 +13,10 @@
 
 #include "downward/utils/timer.h"
 
+#include <iosfwd>
+#include <memory>
+#include <stddef.h>
 #include <vector>
-
-namespace lp {
-class LinearProgram;
-}
 
 namespace probfd {
 class ProgressReport;

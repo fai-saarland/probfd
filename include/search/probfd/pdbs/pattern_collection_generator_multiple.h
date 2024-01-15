@@ -6,9 +6,11 @@
 #include "probfd/fdr_types.h"
 
 #include <memory>
-#include <set>
+#include <string>
 #include <unordered_set>
 #include <utility>
+
+struct FactPair;
 
 namespace plugins {
 class Feature;
@@ -20,7 +22,12 @@ class RandomNumberGenerator;
 } // namespace utils
 
 namespace probfd {
+class ProbabilisticTaskProxy;
+
 namespace pdbs {
+
+class ProjectionStateSpace;
+class ProbabilityAwarePatternDatabase;
 
 class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
     const std::string implementation_name;
@@ -60,9 +67,9 @@ public:
         std::string implementation_name);
 };
 
-extern void add_multiple_options_to_feature(plugins::Feature& feature);
+    extern void add_multiple_options_to_feature(plugins::Feature& feature);
 
-} // namespace pdbs
+    } // namespace pdbs
 } // namespace probfd
 
 #endif // PROBFD_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_H

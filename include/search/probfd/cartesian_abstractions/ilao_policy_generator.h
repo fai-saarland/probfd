@@ -1,11 +1,14 @@
-#ifndef PROBFD_CARTESIAN_ILAO_POLICY_GENERATOR_H
-#define PROBFD_CARTESIAN_ILAO_POLICY_GENERATOR_H
+#ifndef PROBFD_CARTESIAN_ABSTRACTIONS_ILAO_POLICY_GENERATOR_H
+#define PROBFD_CARTESIAN_ABSTRACTIONS_ILAO_POLICY_GENERATOR_H
 
 #include "probfd/cartesian_abstractions/policy_generator.h"
-
-#include "probfd/policy_pickers/arbitrary_tiebreaker.h"
+#include "probfd/cartesian_abstractions/types.h"
 
 #include <memory>
+
+namespace utils {
+class CountdownTimer;
+}
 
 namespace probfd {
 
@@ -16,7 +19,16 @@ template <typename>
 struct QuotientAction;
 } // namespace quotients
 
+namespace policy_pickers {
+template <typename State, typename Action>
+class ArbitraryTiebreaker;
+}
+
 namespace cartesian_abstractions {
+
+class AbstractState;
+class Abstraction;
+class CartesianHeuristic;
 
 struct ProbabilisticTransition;
 
@@ -42,4 +54,4 @@ public:
 } // namespace cartesian_abstractions
 } // namespace probfd
 
-#endif // PROBFD_CARTESIAN_ILAO_POLICY_GENERATOR_H
+#endif // PROBFD_CARTESIAN_ABSTRACTIONS_ILAO_POLICY_GENERATOR_H

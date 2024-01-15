@@ -3,15 +3,14 @@
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 #include "probfd/pdbs/trivial_finder.h"
 
-#include "downward/pdbs/pattern_cliques.h"
 #include "downward/pdbs/pattern_collection_information.h"
 
 #include "downward/utils/collections.h"
 #include "downward/utils/timer.h"
 
-#include <algorithm>
 #include <cassert>
-#include <unordered_set>
+#include <cstddef>
+#include <iostream>
 #include <utility>
 
 using namespace std;

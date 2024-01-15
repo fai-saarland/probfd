@@ -1,10 +1,29 @@
 #ifndef PROBFD_CARTESIAN_ADAPTIVE_FLAW_GENERATOR_H
 #define PROBFD_CARTESIAN_ADAPTIVE_FLAW_GENERATOR_H
 
+#include "probfd/cartesian_abstractions/flaw.h"
 #include "probfd/cartesian_abstractions/flaw_generator.h"
 
+#include <cstddef>
 #include <memory>
+#include <optional>
 #include <vector>
+
+namespace probfd {
+class ProbabilisticTaskProxy;
+}
+namespace probfd {
+namespace cartesian_abstractions {
+class AbstractState;
+class Abstraction;
+class CartesianHeuristic;
+} // namespace cartesian_abstractions
+} // namespace probfd
+
+namespace utils {
+class CountdownTimer;
+class LogProxy;
+} // namespace utils
 
 namespace plugins {
 class Options;

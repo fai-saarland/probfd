@@ -1,12 +1,25 @@
 #include "probfd/pdbs/projection_state_space.h"
 
+#include "probfd/pdbs/projection_operator.h"
 #include "probfd/pdbs/state_ranking_function.h"
 #include "probfd/pdbs/types.h"
 
 #include "probfd/cost_function.h"
+#include "probfd/distribution.h"
 #include "probfd/task_proxy.h"
 
 #include "downward/utils/countdown_timer.h"
+
+#include <algorithm>
+#include <cassert>
+#include <compare>
+#include <cstddef>
+#include <functional>
+#include <iterator>
+#include <set>
+#include <span>
+#include <tuple>
+#include <utility>
 
 namespace probfd {
 namespace pdbs {

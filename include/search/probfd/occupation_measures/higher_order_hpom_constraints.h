@@ -3,14 +3,14 @@
 
 #include "probfd/occupation_measures/constraint_generator.h"
 
-#include "probfd/task_proxy.h"
-
+#include <cstddef>
 #include <memory>
 #include <vector>
 
+class VariablesProxy;
+
 namespace plugins {
 class Options;
-class Feature;
 } // namespace plugins
 
 namespace probfd {

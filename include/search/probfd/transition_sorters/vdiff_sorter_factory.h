@@ -5,6 +5,8 @@
 
 #include "probfd/value_type.h"
 
+#include <memory>
+
 namespace plugins {
 class Options;
 } // namespace plugins

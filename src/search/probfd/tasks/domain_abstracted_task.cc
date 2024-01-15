@@ -2,9 +2,13 @@
 
 #include "probfd/task_utils/task_properties.h"
 
+#include "probfd/task_proxy.h"
+
+#include "downward/utils/collections.h"
 #include "downward/utils/system.h"
 
 #include <cassert>
+#include <utility>
 
 using namespace std;
 

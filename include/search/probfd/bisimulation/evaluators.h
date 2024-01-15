@@ -1,13 +1,14 @@
 #ifndef PROBFD_BISIMULATION_EVALUATORS_H
 #define PROBFD_BISIMULATION_EVALUATORS_H
 
-#include "probfd/bisimulation/bisimilar_state_space.h"
+#include "probfd/bisimulation/types.h"
 
 #include "probfd/evaluator.h"
-#include "probfd/interval.h"
+#include "probfd/value_type.h"
 
 namespace probfd {
 namespace bisimulation {
+class BisimilarStateSpace;
 
 /// Type alias for evaluators for probabilistic bisimulation quotients.
 using QuotientEvaluator = Evaluator<QuotientState>;

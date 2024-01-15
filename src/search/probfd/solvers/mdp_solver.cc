@@ -3,20 +3,37 @@
 #include "probfd/tasks/root_task.h"
 
 #include "probfd/caching_task_state_space.h"
+
+#include "probfd/cost_function.h"
+#include "probfd/evaluator.h"
+#include "probfd/interval.h"
+#include "probfd/mdp_algorithm.h"
 #include "probfd/task_cost_function_factory.h"
 #include "probfd/task_evaluator_factory.h"
+#include "probfd/value_type.h"
 
 #include "downward/utils/timer.h"
 
-#include "downward/heuristic.h"
-#include "downward/operator_cost.h"
-
 #include "downward/utils/exceptions.h"
 
+#include "downward/plugins/options.h"
 #include "downward/plugins/plugin.h"
 
-#include <iomanip>
-#include <vector>
+#include "downward/operator_id.h"
+
+#include <iostream>
+#include <limits>
+#include <optional>
+
+class Evaluator;
+class State;
+
+namespace probfd {
+class TaskCostFunctionFactory;
+}
+namespace probfd {
+class TaskEvaluatorFactory;
+}
 
 namespace probfd {
 namespace solvers {

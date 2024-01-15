@@ -2,13 +2,25 @@
 #include "probfd/cartesian_abstractions/abstract_state.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition.h"
 
-#include "probfd/task_utils/task_properties.h"
+#include "probfd/task_proxy.h"
 
+#include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
+
+#include "downward/task_utils/task_properties.h"
+
+#include "downward/task_proxy.h"
 
 #include <algorithm>
 #include <cassert>
 #include <map>
+
+#include <functional>
+#include <memory>
+#include <ostream>
+#include <type_traits>
+#include <unordered_set>
+#include <utility>
 
 using namespace std;
 
@@ -108,6 +120,8 @@ ProbabilisticTransitionSystem::ProbabilisticTransitionSystem(
 {
     construct_trivial_abstraction(ops);
 }
+
+ProbabilisticTransitionSystem::~ProbabilisticTransitionSystem() = default;
 
 int ProbabilisticTransitionSystem::get_precondition_value(int op_id, int var)
     const

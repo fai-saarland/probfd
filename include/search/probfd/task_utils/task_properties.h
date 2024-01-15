@@ -5,11 +5,16 @@
 
 #include "probfd/value_type.h"
 
-#include "downward/task_utils/task_properties.h"
-
 #include "downward/operator_cost.h"
+#include "downward/task_proxy.h"
+
+#include <vector>
+
+class AbstractTask;
 
 namespace probfd {
+class ProbabilisticTask;
+
 namespace task_properties {
 
 value_t get_adjusted_action_cost(

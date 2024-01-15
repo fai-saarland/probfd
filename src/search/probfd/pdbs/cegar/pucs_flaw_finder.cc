@@ -1,23 +1,25 @@
 #include "probfd/pdbs/cegar/pucs_flaw_finder.h"
 
+#include "probfd/pdbs/cegar/flaw.h"
+
 #include "probfd/pdbs/probability_aware_pattern_database.h"
+#include "probfd/pdbs/projection_operator.h"
 #include "probfd/pdbs/projection_state_space.h"
 #include "probfd/pdbs/types.h"
-
-#include "probfd/task_utils/task_properties.h"
 
 #include "probfd/utils/guards.h"
 
 #include "probfd/multi_policy.h"
+#include "probfd/task_proxy.h"
 
-#include "downward/utils/collections.h"
 #include "downward/utils/countdown_timer.h"
 
 #include "downward/state_registry.h"
 
 #include "downward/plugins/plugin.h"
 
-#include <ranges>
+#include <cassert>
+#include <utility>
 
 using namespace std;
 using namespace utils;

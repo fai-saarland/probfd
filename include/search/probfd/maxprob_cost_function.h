@@ -4,7 +4,11 @@
 #include "probfd/cost_function.h"
 #include "probfd/fdr_types.h"
 #include "probfd/task_proxy.h"
+#include "probfd/type_traits.h"
 #include "probfd/value_type.h"
+
+class OperatorID;
+class State;
 
 namespace probfd {
 

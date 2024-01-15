@@ -4,9 +4,7 @@
 #include "probfd/pdbs/types.h"
 
 #include "probfd/evaluator.h"
-#include "probfd/fdr_types.h"
-
-#include <vector>
+#include "probfd/value_type.h"
 
 namespace pdbs {
 class PatternDatabase;

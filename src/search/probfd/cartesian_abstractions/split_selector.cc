@@ -5,17 +5,22 @@
 
 #include "downward/heuristics/additive_heuristic.h"
 
-#include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
 
 #include "downward/plugins/plugin.h"
 
+#include "downward/task_proxy.h"
+
 #include <cassert>
-#include <iostream>
 #include <limits>
+#include <utility>
 
 using namespace std;
+
+namespace utils {
+class Context;
+}
 
 namespace probfd {
 namespace cartesian_abstractions {

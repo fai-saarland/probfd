@@ -6,6 +6,7 @@
 #include "probfd/algorithms/utils.h"
 
 #include "probfd/distribution.h"
+#include "probfd/evaluator.h"
 
 #include "downward/utils/countdown_timer.h"
 

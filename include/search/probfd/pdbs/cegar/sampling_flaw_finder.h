@@ -7,11 +7,13 @@
 
 #include "probfd/distribution.h"
 
+#include <memory>
+#include <string>
+#include <unordered_set>
 #include <vector>
 
 class StateID;
 class State;
-class StateRegistry;
 
 namespace plugins {
 class Options;
@@ -22,6 +24,8 @@ class RandomNumberGenerator;
 }
 
 namespace probfd {
+class ProbabilisticTaskProxy;
+
 namespace pdbs {
 namespace cegar {
 

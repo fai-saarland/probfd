@@ -1,12 +1,16 @@
 #ifndef PROBFD_ALGORITHMS_UTILS_H
 #define PROBFD_ALGORITHMS_UTILS_H
 
-#include "probfd/interval.h"
+#include "probfd/value_type.h"
 
 #include <cassert>
+#include <cstddef>
 #include <tuple>
+#include <utility>
 
 namespace probfd {
+struct Interval;
+
 namespace algorithms {
 
 /**

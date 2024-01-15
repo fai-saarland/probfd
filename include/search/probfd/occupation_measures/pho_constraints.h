@@ -7,7 +7,6 @@
 #include "probfd/pdbs/types.h"
 
 #include <memory>
-#include <vector>
 
 class State;
 

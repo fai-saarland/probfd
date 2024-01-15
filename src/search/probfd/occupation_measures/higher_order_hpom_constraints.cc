@@ -9,13 +9,15 @@
 
 #include "downward/lp/lp_solver.h"
 
-#include "downward/plugins/plugin.h"
+#include "downward/task_utils/task_properties.h"
 
-#include <algorithm>
+#include "downward/plugins/options.h"
+
 #include <cassert>
 #include <iostream>
+#include <map>
 #include <memory>
-#include <numeric>
+#include <utility>
 
 namespace probfd {
 namespace occupation_measures {

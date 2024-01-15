@@ -7,6 +7,9 @@
 
 #include "downward/operator_id.h"
 
+#include <optional>
+#include <vector>
+
 namespace plugins {
 class Options;
 } // namespace plugins

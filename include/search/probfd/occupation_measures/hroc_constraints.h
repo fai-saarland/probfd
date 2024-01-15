@@ -3,7 +3,19 @@
 
 #include "probfd/occupation_measures/constraint_generator.h"
 
+#include "probfd/fdr_types.h"
+#include "probfd/probabilistic_task.h"
+
+#include <cstddef>
+#include <memory>
 #include <vector>
+
+class State;
+
+namespace lp {
+class LPSolver;
+class LinearProgram;
+} // namespace lp
 
 namespace probfd {
 namespace occupation_measures {

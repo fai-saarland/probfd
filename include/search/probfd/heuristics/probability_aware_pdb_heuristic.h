@@ -7,13 +7,11 @@
 #include "probfd/heuristics/task_dependent_heuristic.h"
 
 #include <memory>
-#include <ostream>
 #include <vector>
 
-namespace plugins {
-class Options;
-class Feature;
-} // namespace plugins
+namespace utils {
+class LogProxy;
+}
 
 namespace probfd {
 

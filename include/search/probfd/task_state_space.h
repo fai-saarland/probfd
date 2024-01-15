@@ -1,31 +1,30 @@
 #ifndef PROBFD_TASK_STATE_SPACE_H
 #define PROBFD_TASK_STATE_SPACE_H
 
-#include "probfd/storage/per_state_storage.h"
-#include "probfd/storage/segmented_memory_pool.h"
-
 #include "probfd/task_utils/probabilistic_successor_generator.h"
 
 #include "probfd/fdr_types.h"
 #include "probfd/mdp.h"
 #include "probfd/task_proxy.h"
-
-#include "downward/algorithms/segmented_vector.h"
-
-#include "downward/state_registry.h"
+#include "probfd/types.h"
+#include "probfd/value_type.h"
 
 #include "downward/utils/logging.h"
 
-#include <cassert>
-#include <iostream>
+#include "downward/state_registry.h"
+#include "downward/task_proxy.h"
+
+#include <cstddef>
 #include <memory>
 #include <vector>
 
-class State;
-class StateRegistry;
+class OperatorID;
 class Evaluator;
 
 namespace probfd {
+template <typename>
+class Distribution;
+
 class ProbabilisticTask;
 
 class TaskStateSpace : public FDRSimpleMDP {

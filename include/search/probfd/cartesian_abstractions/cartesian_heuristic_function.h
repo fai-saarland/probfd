@@ -1,9 +1,11 @@
-#ifndef PROBFD_CARTESIAN_CARTESIAN_HEURISTIC_FUNCTION_H
-#define PROBFD_CARTESIAN_CARTESIAN_HEURISTIC_FUNCTION_H
+#ifndef PROBFD_CARTESIAN_ABSTRACTIONS_CARTESIAN_HEURISTIC_FUNCTION_H
+#define PROBFD_CARTESIAN_ABSTRACTIONS_CARTESIAN_HEURISTIC_FUNCTION_H
 
 #include "probfd/cartesian_abstractions/types.h"
 
 #include "probfd/value_type.h"
+
+#include "downward/cartesian_abstractions/refinement_hierarchy.h"
 
 #include <memory>
 #include <vector>
@@ -38,4 +40,4 @@ public:
 } // namespace cartesian_abstractions
 } // namespace probfd
 
-#endif // PROBFD_CARTESIAN_CARTESIAN_HEURISTIC_FUNCTION_H
+#endif // PROBFD_CARTESIAN_ABSTRACTIONS_CARTESIAN_HEURISTIC_FUNCTION_H

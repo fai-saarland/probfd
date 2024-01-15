@@ -1,20 +1,23 @@
 #ifndef PROBFD_PDBS_CEGAR_FLAW_FINDING_STRATEGY_H
 #define PROBFD_PDBS_CEGAR_FLAW_FINDING_STRATEGY_H
 
-#include "probfd/pdbs/cegar/flaw.h"
-
 #include "probfd/pdbs/types.h"
-
-#include "probfd/task_proxy.h"
 
 #include <string>
 #include <unordered_set>
+#include <vector>
+
+class State;
+class PreconditionsProxy;
+class GoalsProxy;
 
 namespace utils {
 class CountdownTimer;
 }
 
 namespace probfd {
+class ProbabilisticTaskProxy;
+
 namespace pdbs {
 
 class ProbabilityAwarePatternDatabase;

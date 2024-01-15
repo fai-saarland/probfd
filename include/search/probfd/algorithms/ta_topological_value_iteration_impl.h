@@ -7,6 +7,7 @@
 #include "probfd/utils/iterators.h"
 
 #include "probfd/cost_function.h"
+#include "probfd/evaluator.h"
 
 #include "downward/utils/countdown_timer.h"
 

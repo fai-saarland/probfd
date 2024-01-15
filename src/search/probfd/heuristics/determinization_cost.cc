@@ -1,10 +1,16 @@
 #include "probfd/heuristics/determinization_cost.h"
 
+#include "probfd/evaluator.h"
+#include "probfd/task_evaluator_factory.h"
+
 #include "downward/evaluation_context.h"
 #include "downward/evaluation_result.h"
 #include "downward/evaluator.h"
 
+#include "downward/plugins/options.h"
 #include "downward/plugins/plugin.h"
+
+#include <utility>
 
 namespace probfd {
 namespace heuristics {
