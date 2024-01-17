@@ -231,8 +231,8 @@ bool QualitativeReachabilityAnalysis<State, Action>::initialize(
     StackInfo& stack_info,
     StateInfo& state_info)
 {
-    assert(!state_info.explored);
-    assert(!state_info.solvable && state_info.dead);
+    // assert(!state_info.explored);
+    // assert(!state_info.solvable && state_info.dead);
 
     state_info.explored = 1;
 
@@ -323,7 +323,7 @@ bool QualitativeReachabilityAnalysis<State, Action>::push_successor(
 
 template <typename State, typename Action>
 void QualitativeReachabilityAnalysis<State, Action>::scc_found(
-    std::ranges::forward_range auto&& scc,
+    std::ranges::random_access_range auto&& scc,
     std::output_iterator<StateID> auto dead_out,
     std::output_iterator<StateID> auto unsolvable_out,
     std::output_iterator<StateID> auto solvable_out,
@@ -346,123 +346,223 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
         return;
     }
 
+    compute_solvable(scc, unsolvable_out, solvable_out, timer);
+
+    stack_.erase(scc.begin(), scc.end());
+}
+
+template <typename State, typename Action>
+void QualitativeReachabilityAnalysis<State, Action>::compute_solvable(
+    std::ranges::random_access_range auto&& scc,
+    std::output_iterator<StateID> auto unsolvable_out,
+    std::output_iterator<StateID> auto solvable_out,
+    utils::CountdownTimer& timer)
+{
+    class Partition {
+        std::vector<std::vector<int>::iterator> scc_index_to_local;
+        std::vector<int> partition;
+        std::vector<int>::iterator solvable_beg;
+        std::vector<int>::iterator solvable_exits_beg;
+
+    public:
+        explicit Partition(std::size_t size)
+            : scc_index_to_local(size)
+            , partition(size, 0)
+        {
+            for (unsigned int i = 0; i != size; ++i) {
+                scc_index_to_local[i] = partition.begin() + i;
+                partition[i] = static_cast<int>(i);
+            }
+
+            solvable_beg = partition.begin();
+            solvable_exits_beg = partition.begin();
+        }
+
+        auto solvable_begin() { return solvable_beg; }
+        auto solvable_end() { return partition.end(); }
+
+        auto solvable()
+        {
+            return std::ranges::subrange(solvable_begin(), solvable_end());
+        }
+
+        [[nodiscard]] bool has_solvable() const
+        {
+            return solvable_beg != partition.end();
+        }
+
+        void demote_unsolvable(int s)
+        {
+            auto local = scc_index_to_local[s];
+            std::swap(scc_index_to_local[*solvable_beg], scc_index_to_local[s]);
+            std::swap(*solvable_beg, *local);
+
+            ++solvable_beg;
+        }
+
+        void demote_exit_unsolvable(int s)
+        {
+            auto local = scc_index_to_local[s];
+            std::swap(
+                scc_index_to_local[*solvable_exits_beg],
+                scc_index_to_local[s]);
+            std::swap(
+                scc_index_to_local[*solvable_beg],
+                scc_index_to_local[*solvable_exits_beg]);
+
+            std::swap(*solvable_exits_beg, *local);
+            std::swap(*solvable_beg, *solvable_exits_beg);
+
+            ++solvable_beg;
+            ++solvable_exits_beg;
+        }
+
+        void demote_exit_solvable(int s)
+        {
+            auto local = scc_index_to_local[s];
+            std::swap(
+                scc_index_to_local[*solvable_exits_beg],
+                scc_index_to_local[s]);
+            std::swap(*solvable_exits_beg, *local);
+
+            ++solvable_exits_beg;
+        }
+
+        bool promote_solvable(int s)
+        {
+            if (!is_unsolvable(s)) {
+                return false;
+            }
+
+            --solvable_beg;
+
+            auto local = scc_index_to_local[s];
+            std::swap(scc_index_to_local[*solvable_beg], scc_index_to_local[s]);
+            std::swap(*solvable_beg, *local);
+
+            return true;
+        }
+
+        void mark_non_exit_states_unsolvable()
+        {
+            solvable_beg = solvable_exits_beg;
+        }
+
+        bool is_unsolvable(int s)
+        {
+            return scc_index_to_local[s] < solvable_beg;
+        }
+    };
+
     // Compute the set of solvable states of this SCC.
-    // Start by assuming all states are solvable.
-    // Also collect the set of "trusted" states. A trusted state is a goal
-    // state or a state that has a transition that only goes to states labelled
-    // solvable and can leave the SCC.
+    // Start by partitioning states into inactive states, active exits and
+    // active non-exists.
+    // The partition is initialized optimistically, i.e., all states start out
+    // as active exits.
+    Partition partition(scc.size());
 
-    std::set<StackInfo*> solvable_states;
-    std::set<StackInfo*> trusted;
-
-    for (StackInfo& info : scc) {
-        solvable_states.insert(&info);
-
+    for (std::size_t i = 0; i != scc.size(); ++i) {
+        StackInfo& info = scc[i];
         StateInfo& state_info = state_infos_[info.stateid];
         state_info.stackid_ = StateInfo::UNDEF;
         state_info.dead = false;
 
-        if (info.active_exit_transitions > 0) {
-            trusted.insert(&info);
+        assert(
+            info.active_transitions != 0 || info.active_exit_transitions == 0);
+
+        if (info.active_exit_transitions == 0) {
+            if (info.active_transitions > 0) {
+                partition.demote_exit_solvable(i);
+            } else {
+                partition.demote_exit_unsolvable(i);
+            }
         }
     }
 
-    std::size_t prev_size;
-    std::size_t current_size = solvable_states.size();
-
-    // Compute the set of solvable states of this SCC.
-    do {
-        timer.throw_if_expired();
-
-        // Collect states that can currently reach a trusted state.
-        std::set<StackInfo*> can_reach_trusted = trusted;
-
-        {
-            std::vector<StackInfo*> queue(trusted.begin(), trusted.end());
-
-            while (!queue.empty()) {
-                StackInfo* scc_elem = queue.back();
-                queue.pop_back();
-
-                for (const auto& [parent_idx, tr_idx] : scc_elem->parents) {
-                    StackInfo& pinfo = stack_[parent_idx];
-
-                    if (pinfo.transition_flags[tr_idx].is_active &&
-                        can_reach_trusted.insert(&pinfo).second) {
-                        queue.push_back(&pinfo);
-                    }
-                }
-            }
-        }
-
-        // The complement is unsolvable.
-        std::set<StackInfo*> proven_unsolvable;
-        std::ranges::set_difference(
-            solvable_states,
-            can_reach_trusted,
-            std::inserter(proven_unsolvable, proven_unsolvable.end()));
-
-        // Iteratively prune unsolvable states and transitions which
-        // have these states as a target until a fixpoint is reached.
-        // If a state has no active transitions left, it is labelled as
-        // unsolvable as well and is added to the queue.
-        std::vector<StackInfo*> queue(
-            proven_unsolvable.begin(),
-            proven_unsolvable.end());
-
-        while (!queue.empty()) {
+    if (partition.has_solvable()) {
+        // Compute the set of solvable states of this SCC.
+        for (;;) {
             timer.throw_if_expired();
 
-            StackInfo* scc_elem = queue.back();
-            queue.pop_back();
+            // Collect states that can currently reach an exit and mark other
+            // states unsolvable.
+            auto unsolv_it = partition.solvable_begin();
 
-            // The state is unsolvable.
-            assert(solvable_states.find(scc_elem) != solvable_states.end());
-            solvable_states.erase(scc_elem);
+            partition.mark_non_exit_states_unsolvable();
 
-            *unsolvable_out = scc_elem->stateid;
+            for (auto it = partition.solvable_end();
+                 it != partition.solvable_begin();) {
+                for (const auto& [parent_idx, tr_idx] : scc[*--it].parents) {
+                    StackInfo& pinfo = stack_[parent_idx];
 
-            for (const auto& [parent_idx, tr_idx] : scc_elem->parents) {
-                StackInfo& pinfo = stack_[parent_idx];
-                auto& transition_flags = pinfo.transition_flags[tr_idx];
-
-                if (proven_unsolvable.contains(&pinfo)) {
-                    continue;
-                }
-
-                if (transition_flags.is_active_exiting) {
-                    transition_flags.is_active_exiting = false;
-
-                    if (--pinfo.active_exit_transitions == 0) {
-                        trusted.erase(&pinfo);
+                    if (pinfo.transition_flags[tr_idx].is_active) {
+                        partition.promote_solvable(&pinfo - &scc.front());
                     }
-                } else if (!transition_flags.is_active) {
-                    continue;
-                }
-
-                assert(transition_flags.is_active);
-                transition_flags.is_active = false;
-
-                if (--pinfo.active_transitions == 0) {
-                    queue.push_back(&pinfo);
                 }
             }
+
+            // No new unsolvable states -> stop.
+            if (unsolv_it == partition.solvable_begin()) break;
+
+            // Run fixpoint iteration starting with the new unsolvable states
+            // that could not reach an exit anymore.
+            do {
+                timer.throw_if_expired();
+
+                StackInfo& scc_elem = scc[*unsolv_it];
+
+                // The state was marked unsolvable.
+                assert(partition.is_unsolvable(&scc_elem - &scc.front()));
+
+                *unsolvable_out = scc_elem.stateid;
+
+                for (const auto& [parent_idx, tr_idx] : scc_elem.parents) {
+                    StackInfo& pinfo = stack_[parent_idx];
+                    int scc_idx = &pinfo - &scc.front();
+                    auto& transition_flags = pinfo.transition_flags[tr_idx];
+
+                    assert(
+                        !transition_flags.is_active_exiting ||
+                        transition_flags.is_active);
+
+                    if (partition.is_unsolvable(scc_idx)) continue;
+
+                    if (transition_flags.is_active_exiting) {
+                        transition_flags.is_active_exiting = false;
+                        transition_flags.is_active = false;
+
+                        --pinfo.active_transitions;
+                        --pinfo.active_exit_transitions;
+
+                        if (pinfo.active_transitions == 0) {
+                            partition.demote_exit_unsolvable(scc_idx);
+                        } else if (pinfo.active_exit_transitions == 0) {
+                            partition.demote_exit_solvable(scc_idx);
+                        }
+                    } else if (transition_flags.is_active) {
+                        transition_flags.is_active = false;
+
+                        --pinfo.active_transitions;
+
+                        if (pinfo.active_transitions == 0) {
+                            partition.demote_unsolvable(scc_idx);
+                        }
+                    }
+                }
+            } while (++unsolv_it != partition.solvable_begin());
         }
+    }
 
-        prev_size = current_size;
-        current_size = solvable_states.size();
-    } while (prev_size != current_size);
-
-    stats_.ones += solvable_states.size();
+    auto solvable = partition.solvable();
+    stats_.ones += solvable.size();
 
     // Report the solvable states
-    for (StackInfo* stkinfo : solvable_states) {
-        const StateID sid = stkinfo->stateid;
+    for (int scc_idx : solvable) {
+        StackInfo& stkinfo = scc[scc_idx];
+        const StateID sid = stkinfo.stateid;
         state_infos_[sid].solvable = true;
         *solvable_out = sid;
     }
-
-    stack_.erase(scc.begin(), scc.end());
 }
 
 } // namespace preprocessing

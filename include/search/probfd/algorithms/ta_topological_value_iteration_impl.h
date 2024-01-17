@@ -520,6 +520,21 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
 
     ++statistics_.sccs;
 
+    /* Takes care of dead ends
+    if (exp_info.exit_interval.lower == INFINITE_VALUE ||
+        (exp_info.exit_interval.lower == exp_info.exit_interval.upper &&
+         exp_info.all_zero)) {
+        for (auto it = begin; it != end; ++it) {
+            StateInfo& state_info = state_information_[begin->state_id];
+            assert(state_info.status == StateInfo::ONSTACK);
+            update(*begin->value, exp_info.exit_interval.lower);
+            state_info.status = StateInfo::CLOSED;
+        }
+
+        stack_.erase(begin, end);
+        return;
+    }*/
+
     if (std::distance(begin, end) == 1) {
         // For singleton SCCs, we only have transitions which are
         // self-loops or go to a state that is topologically greater.

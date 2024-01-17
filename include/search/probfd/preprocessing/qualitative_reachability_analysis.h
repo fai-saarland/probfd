@@ -48,8 +48,8 @@ struct StateInfo {
     static constexpr uint32_t UNDEF = std::numeric_limits<uint32_t>::max() >> 4;
 
     unsigned explored : 1 = 0;
-    unsigned dead : 1 = 1;            // dead end flag
-    unsigned solvable : 1 = 0;        // solvable state flag
+    unsigned dead : 1 = 1;     // dead end flag
+    unsigned solvable : 1 = 0; // solvable state flag
     unsigned stackid_ : 29 = UNDEF;
 
     bool onstack() const;
@@ -166,8 +166,14 @@ private:
         utils::CountdownTimer& timer);
 
     void scc_found(
-        std::ranges::forward_range auto&& scc,
+        std::ranges::random_access_range auto&& scc,
         std::output_iterator<StateID> auto dead_out,
+        std::output_iterator<StateID> auto unsolvable_out,
+        std::output_iterator<StateID> auto solvable_out,
+        utils::CountdownTimer& timer);
+
+    void compute_solvable(
+        std::ranges::random_access_range auto&& scc,
         std::output_iterator<StateID> auto unsolvable_out,
         std::output_iterator<StateID> auto solvable_out,
         utils::CountdownTimer& timer);

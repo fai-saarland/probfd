@@ -96,6 +96,9 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         // whether the transition has non-zero cost or can leave the scc
         bool nz_or_leaves_scc;
 
+        // bool all_zero = true;
+        // Interval exit_interval = Interval(INFINITE_VALUE, -INFINITE_VALUE);
+
         explicit ExplorationInfo(unsigned int stackidx);
 
         bool next_transition(MDP& mdp, StackInfo& stack_info, StateID state_id);
