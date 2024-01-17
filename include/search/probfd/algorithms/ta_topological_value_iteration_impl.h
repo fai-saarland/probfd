@@ -460,9 +460,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::initialize_state(
     StateID state_id,
     AlgorithmValueType& state_value)
 {
-    StateInfo& state_info = state_information_[state_id];
-
-    assert(state_info.status == StateInfo::ONSTACK);
+    assert(state_information_[state_id].status == StateInfo::ONSTACK);
 
     const State state = mdp.get_state(state_id);
 
