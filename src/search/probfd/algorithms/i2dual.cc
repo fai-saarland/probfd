@@ -18,30 +18,26 @@
 #include "downward/utils/countdown_timer.h"
 
 #include <cassert>
-#include <cmath>
-#include <cstdint>
 #include <cstdlib>
 #include <iostream>
 #include <limits>
 #include <utility>
 
-namespace probfd {
-namespace algorithms {
-namespace i2dual {
+namespace probfd::algorithms::i2dual {
 
 void I2Dual::Statistics::print(std::ostream& out) const
 {
     out << "Algorithm I2-Dual statistics:" << std::endl;
-    out << "  Actual solver time: " << idual_timer_() << std::endl;
-    out << "  Iterations: " << iterations_ << std::endl;
-    out << "  Expansions: " << expansions_ << std::endl;
-    out << "  Open states: " << open_states_ << std::endl;
-    out << "  LP Variables: " << num_lp_vars_ << std::endl;
-    out << "  LP Constraints: " << num_lp_constraints_ << std::endl;
-    out << "  LP Timer: " << lp_solver_timer_() << std::endl;
-    out << "  hPom LP Variables: " << hpom_num_vars_ << std::endl;
-    out << "  hPom LP Constraints: " << hpom_num_constraints_ << std::endl;
-    out << "  hPom Overhead: " << hpom_timer_() << std::endl;
+    out << "  Actual solver time: " << idual_timer() << std::endl;
+    out << "  Iterations: " << iterations << std::endl;
+    out << "  Expansions: " << expansions << std::endl;
+    out << "  Open states: " << open_states << std::endl;
+    out << "  LP Variables: " << num_lp_vars << std::endl;
+    out << "  LP Constraints: " << num_lp_constraints << std::endl;
+    out << "  LP Timer: " << lp_solver_timer() << std::endl;
+    out << "  hPom LP Variables: " << hpom_num_vars << std::endl;
+    out << "  hPom LP Constraints: " << hpom_num_constraints << std::endl;
+    out << "  hPom Overhead: " << hpom_timer() << std::endl;
 }
 
 struct I2Dual::IDualData {
@@ -52,9 +48,21 @@ struct I2Dual::IDualData {
     unsigned constraint = std::numeric_limits<unsigned>::max();
     uint8_t status = NEW;
 
-    bool is_new() const { return status == NEW; }
-    bool is_terminal() const { return status == TERMINAL; }
-    bool is_frontier() const { return status == FRONTIER; }
+    [[nodiscard]]
+    bool is_new() const
+    {
+        return status == NEW;
+    }
+    [[nodiscard]]
+    bool is_terminal() const
+    {
+        return status == TERMINAL;
+    }
+    [[nodiscard]]
+    bool is_frontier() const
+    {
+        return status == FRONTIER;
+    }
 
     void open(unsigned c, double est)
     {
@@ -82,8 +90,8 @@ I2Dual::I2Dual(
     bool hpom_enabled,
     bool incremental_updates,
     lp::LPSolverType solver_type)
-    : task_proxy(*task)
-    , task_cost_function(std::move(task_cost_function))
+    : task_proxy_(*task)
+    , task_cost_function_(std::move(task_cost_function))
     , hpom_enabled_(hpom_enabled)
     , incremental_hpom_updates_(incremental_updates)
     , lp_solver_(solver_type)
@@ -98,7 +106,7 @@ void I2Dual::print_statistics(std::ostream& out) const
 Interval I2Dual::solve(
     FDRMDP& mdp,
     FDREvaluator& heuristic,
-    const State& state,
+    const State& initial_state,
     ProgressReport progress,
     double max_time)
 {
@@ -109,8 +117,8 @@ Interval I2Dual::solve(
     std::cout << "Initializing I2-Dual..." << std::endl;
 
     if (hpom_enabled_) {
-        ::task_properties::verify_no_axioms(task_proxy);
-        probfd::task_properties::verify_no_conditional_effects(task_proxy);
+        ::task_properties::verify_no_axioms(task_proxy_);
+        probfd::task_properties::verify_no_conditional_effects(task_proxy_);
     }
 
     storage::PerStateStorage<IDualData> idual_data;
@@ -118,7 +126,7 @@ Interval I2Dual::solve(
     next_lp_var_ = 0;
     next_lp_constr_id_ = 0;
 
-    TimerScope scope(statistics_.idual_timer_);
+    TimerScope scope(statistics_.idual_timer);
 
     prepare_lp();
 
@@ -142,8 +150,12 @@ Interval I2Dual::solve(
     objective_ = -1_vt;
 
     {
-        const StateID init_id = mdp.get_state_id(state);
-        if (!evaluate_state(mdp, heuristic, state, idual_data[init_id])) {
+        const StateID init_id = mdp.get_state_id(initial_state);
+        if (!evaluate_state(
+                mdp,
+                heuristic,
+                initial_state,
+                idual_data[init_id])) {
             frontier.push_back(init_id);
         }
     }
@@ -154,8 +166,8 @@ Interval I2Dual::solve(
 
         update_hpom_constraints_expanded(mdp, idual_data, frontier);
 
-        // Expand each state in frontier
-        statistics_.expansions_ += frontier.size();
+        // Expand each initial_state in frontier
+        statistics_.expansions += frontier.size();
         unsigned start_new_states = frontier_candidates.size();
 
         for (StateID state_id : frontier) {
@@ -252,7 +264,7 @@ Interval I2Dual::solve(
             start_new_states);
 
         {
-            TimerScope lp_scope(statistics_.lp_solver_timer_);
+            TimerScope lp_scope(statistics_.lp_solver_timer);
             lp_solver_.solve();
             timer.throw_if_expired();
         }
@@ -275,12 +287,12 @@ Interval I2Dual::solve(
 
         lp_solver_.clear_temporary_constraints();
 
-        statistics_.iterations_++;
-        statistics_.open_states_ = frontier_candidates.size() + frontier.size();
+        statistics_.iterations++;
+        statistics_.open_states = frontier_candidates.size() + frontier.size();
     }
 
-    statistics_.num_lp_vars_ = next_lp_var_;
-    statistics_.num_lp_constraints_ = next_lp_constr_id_;
+    statistics_.num_lp_vars = next_lp_var_;
+    statistics_.num_lp_constraints = next_lp_constr_id_;
 
     return Interval(objective_, INFINITE_VALUE);
 }
@@ -335,17 +347,17 @@ void I2Dual::prepare_hpom(lp::LinearProgram& lp)
         return;
     }
 
-    TimerScope scope(statistics_.hpom_timer_);
+    TimerScope scope(statistics_.hpom_timer);
     occupation_measures::HPOMGenerator::generate_hpom_lp(
-        task_proxy,
-        *task_cost_function,
+        task_proxy_,
+        *task_cost_function_,
         lp,
         offset_);
 
     hpom_constraints_ = std::move(lp.get_constraints());
 
-    statistics_.hpom_num_vars_ = lp.get_variables().size();
-    statistics_.hpom_num_constraints_ = hpom_constraints_.size();
+    statistics_.hpom_num_vars = lp.get_variables().size();
+    statistics_.hpom_num_constraints = hpom_constraints_.size();
 }
 
 void I2Dual::update_hpom_constraints_expanded(
@@ -358,7 +370,7 @@ void I2Dual::update_hpom_constraints_expanded(
     }
 
     if (hpom_initialized_) {
-        TimerScope scope(statistics_.hpom_timer_);
+        TimerScope scope(statistics_.hpom_timer);
         for (const StateID state_id : expanded) {
             remove_fringe_state_from_hpom(
                 mdp.get_state(state_id),
@@ -380,7 +392,7 @@ void I2Dual::update_hpom_constraints_frontier(
         return;
     }
 
-    TimerScope scope(statistics_.hpom_timer_);
+    TimerScope scope(statistics_.hpom_timer);
 
     size_t i = incremental_hpom_updates_ ? start : 0;
 
@@ -398,7 +410,7 @@ void I2Dual::remove_fringe_state_from_hpom(
     const IDualData& data,
     named_vector::NamedVector<lp::LPConstraint>& constraints) const
 {
-    for (VariableProxy var : task_proxy.get_variables()) {
+    for (VariableProxy var : task_proxy_.get_variables()) {
         const int val = state[var].get_value();
         lp::LPConstraint& c = constraints[offset_[var.get_id()] + val];
         for (const auto& om : data.incoming) {
@@ -412,7 +424,7 @@ void I2Dual::add_fringe_state_to_hpom(
     const IDualData& data,
     named_vector::NamedVector<lp::LPConstraint>& constraints) const
 {
-    for (VariableProxy var : task_proxy.get_variables()) {
+    for (VariableProxy var : task_proxy_.get_variables()) {
         const int val = state[var].get_value();
         lp::LPConstraint& c = constraints[offset_[var.get_id()] + val];
         for (const auto& om : data.incoming) {
@@ -421,6 +433,4 @@ void I2Dual::add_fringe_state_to_hpom(
     }
 }
 
-} // namespace i2dual
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::i2dual

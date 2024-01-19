@@ -9,8 +9,7 @@
 #include <memory>
 #include <string>
 
-namespace probfd {
-namespace solvers {
+namespace probfd::solvers {
 namespace {
 
 using namespace algorithms;
@@ -136,7 +135,7 @@ public:
             add_mdp_type_to_option<false, true>("lifo_open_list()"));
     }
 
-    std::shared_ptr<TrapAwareDFHSSolver>
+    [[nodiscard]] std::shared_ptr<TrapAwareDFHSSolver>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -173,7 +172,7 @@ public:
             add_mdp_type_to_option<false, true>("lifo_open_list()"));
     }
 
-    std::shared_ptr<TrapAwareDFHSSolver>
+    [[nodiscard]] std::shared_ptr<TrapAwareDFHSSolver>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -210,7 +209,7 @@ public:
             add_mdp_type_to_option<false, true>("lifo_open_list()"));
     }
 
-    std::shared_ptr<TrapAwareDFHSSolver>
+    [[nodiscard]] std::shared_ptr<TrapAwareDFHSSolver>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -229,6 +228,8 @@ public:
     }
 };
 
+} // namespace
+
 static FeaturePlugin<TrapAwareDFHSSolverFeature> _plugin;
 static FeaturePlugin<TrapAwareILAOSolverFeature> _plugin_ilao;
 static FeaturePlugin<TrapAwareLILAOSolverFeature> _plugin_lilao;
@@ -239,6 +240,5 @@ static TypedEnumPlugin<BacktrackingUpdateType> _fret_enum_plugin(
      {"ondemand", "update if some value changed during forward updates"},
      {"single", "single update"},
      {"convergence", "run value iteration until convergence"}});
-}
-} // namespace solvers
-} // namespace probfd
+
+} // namespace probfd::solvers

@@ -3,13 +3,12 @@
 
 #include "probfd/occupation_measures/constraint_generator.h"
 
-#include "probfd/probabilistic_task.h"
-
 #include "probfd/fdr_types.h"
 
 #include <memory>
 #include <vector>
 
+// Forward Declarations
 class State;
 
 namespace lp {
@@ -18,9 +17,11 @@ class LinearProgram;
 } // namespace lp
 
 namespace probfd {
+class ProbabilisticTask;
 class ProbabilisticTaskProxy;
+} // namespace probfd
 
-namespace occupation_measures {
+namespace probfd::occupation_measures {
 
 /**
  * @brief Implements the projection occupation measure heuristic constraints
@@ -34,13 +35,10 @@ public:
     void initialize_constraints(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function,
-        lp::LinearProgram& lp) override final;
+        lp::LinearProgram& lp) final;
 
-    void
-    update_constraints(const State& state, lp::LPSolver& solver) override final;
-
-    void
-    reset_constraints(const State& state, lp::LPSolver& solver) override final;
+    void update_constraints(const State& state, lp::LPSolver& solver) final;
+    void reset_constraints(const State& state, lp::LPSolver& solver) final;
 
     static void generate_hpom_lp(
         const ProbabilisticTaskProxy& task_proxy,
@@ -49,7 +47,6 @@ public:
         std::vector<int>& offsets);
 };
 
-} // namespace occupation_measures
-} // namespace probfd
+} // namespace probfd::occupation_measures
 
 #endif // PROBFD_OCCUPATION_MEASURES_HPOM_CONSTRAINTS_H

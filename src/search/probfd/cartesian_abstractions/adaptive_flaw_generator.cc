@@ -22,12 +22,11 @@ namespace utils {
 class CountdownTimer;
 }
 
-namespace probfd {
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 
 AdaptiveFlawGenerator::AdaptiveFlawGenerator(
     std::vector<std::unique_ptr<FlawGenerator>> generators)
-    : generators(std::move(generators))
+    : generators_(std::move(generators))
 {
 }
 
@@ -40,8 +39,8 @@ std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
     utils::LogProxy& log,
     utils::CountdownTimer& timer)
 {
-    while (current_generator != generators.size()) {
-        auto& generator = generators[current_generator];
+    while (current_generator_ != generators_.size()) {
+        auto& generator = generators_[current_generator_];
         std::optional<Flaw> flaw = generator->generate_flaw(
             task_proxy,
             domain_sizes,
@@ -61,21 +60,21 @@ std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
 
 void AdaptiveFlawGenerator::notify_split()
 {
-    for (size_t i = current_generator; i != generators.size(); ++i) {
-        generators[i]->notify_split();
+    for (size_t i = current_generator_; i != generators_.size(); ++i) {
+        generators_[i]->notify_split();
     }
 }
 
 void AdaptiveFlawGenerator::print_statistics(utils::LogProxy& log)
 {
-    for (auto& gen : generators) {
+    for (auto& gen : generators_) {
         gen->print_statistics(log);
     }
 }
 
 AdaptiveFlawGeneratorFactory::AdaptiveFlawGeneratorFactory(
     const plugins::Options& opts)
-    : generator_factories(
+    : generator_factories_(
           opts.get_list<std::shared_ptr<FlawGeneratorFactory>>("generators"))
 {
 }
@@ -85,7 +84,7 @@ AdaptiveFlawGeneratorFactory::create_flaw_generator()
 {
     std::vector<std::unique_ptr<FlawGenerator>> generators;
 
-    for (const auto& generator_factory : generator_factories) {
+    for (const auto& generator_factory : generator_factories_) {
         generators.emplace_back(generator_factory->create_flaw_generator());
     }
 
@@ -108,5 +107,4 @@ public:
 
 static plugins::FeaturePlugin<AdaptiveFlawGeneratorFactoryFeature> _plugin;
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions

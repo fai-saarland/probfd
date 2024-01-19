@@ -8,11 +8,10 @@
 #include <memory>
 #include <vector>
 
-namespace probfd {
-namespace extra_tasks {
+namespace probfd::extra_tasks {
 
 class ModifiedOperatorCostsTask : public tasks::DelegatingTask {
-    std::vector<value_t> operator_costs;
+    std::vector<value_t> operator_costs_;
 
 public:
     ModifiedOperatorCostsTask(
@@ -24,7 +23,6 @@ public:
     void set_operator_cost(int index, value_t cost);
 };
 
-} // namespace extra_tasks
-} // namespace probfd
+} // namespace probfd::extra_tasks
 
 #endif

@@ -12,8 +12,7 @@
 
 #include <utility>
 
-namespace probfd {
-namespace heuristics {
+namespace probfd::heuristics {
 
 DeterminizationCostHeuristic::DeterminizationCostHeuristic(
     std::shared_ptr<::Evaluator> evaluator)
@@ -81,8 +80,8 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<DeterminizationHeuristicFactoryFeature> _plugin;
 } // namespace
 
-} // namespace heuristics
-} // namespace probfd
+static plugins::FeaturePlugin<DeterminizationHeuristicFactoryFeature> _plugin;
+
+} // namespace probfd::heuristics

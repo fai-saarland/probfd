@@ -6,11 +6,10 @@
 #include <memory>
 #include <vector>
 
-namespace probfd {
-namespace extra_tasks {
+namespace probfd::extra_tasks {
 
 class ModifiedGoalsTask : public tasks::DelegatingTask {
-    const std::vector<FactPair> goals;
+    const std::vector<FactPair> goals_;
 
 public:
     ModifiedGoalsTask(
@@ -22,7 +21,6 @@ public:
     FactPair get_goal_fact(int index) const override;
 };
 
-} // namespace extra_tasks
-} // namespace probfd
+} // namespace probfd::extra_tasks
 
 #endif

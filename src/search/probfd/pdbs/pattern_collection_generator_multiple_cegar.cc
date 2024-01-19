@@ -15,16 +15,15 @@
 
 using namespace std;
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 using namespace cegar;
 
 PatternCollectionGeneratorMultipleCegar::
     PatternCollectionGeneratorMultipleCegar(const plugins::Options& opts)
     : PatternCollectionGeneratorMultiple(opts, "CEGAR")
-    , use_wildcard_policies(opts.get<bool>("use_wildcard_policies"))
-    , flaw_strategy(
+    , use_wildcard_policies_(opts.get<bool>("use_wildcard_policies"))
+    , flaw_strategy_(
           opts.get<std::shared_ptr<FlawFindingStrategy>>("flaw_strategy"))
 {
 }
@@ -42,10 +41,10 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
     unordered_set<int>&& blacklisted_variables)
 {
     CEGAR cegar(
-        log,
+        log_,
         rng,
-        flaw_strategy,
-        use_wildcard_policies,
+        flaw_strategy_,
+        use_wildcard_policies_,
         max_pdb_size,
         max_pdb_size,
         max_time,
@@ -84,5 +83,4 @@ public:
 static plugins::FeaturePlugin<PatternCollectionGeneratorMultipleCegarFeature>
     _plugin;
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs

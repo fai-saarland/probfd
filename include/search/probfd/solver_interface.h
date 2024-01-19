@@ -5,8 +5,12 @@
 
 #include <iosfwd>
 
+// Forward Declarations
 namespace probfd {
 struct Interval;
+}
+
+namespace probfd {
 
 /// An interface that describes an MDP solver.
 class SolverInterface {
@@ -15,7 +19,9 @@ public:
 
     virtual void print_statistics() const {}
 
+    [[nodiscard]]
     virtual bool found_solution() const = 0;
+
     virtual void solve() = 0;
 
 protected:
@@ -25,6 +31,7 @@ protected:
 
     static void print_initial_state_value(Interval value, int spaces = 0);
 };
+
 } // namespace probfd
 
 #endif

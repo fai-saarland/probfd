@@ -54,10 +54,10 @@ public:
      * @param out - The output stream to direct the output to.
      * @param enabled - Whether printing is enabled or not.
      */
-    ProgressReport(
+    explicit ProgressReport(
         std::optional<value_t> tolerance = std::nullopt,
         std::ostream& out = std::cout,
-        const bool enabled = true);
+        bool enabled = true);
 
     ~ProgressReport() = default;
 
@@ -104,4 +104,4 @@ private:
 
 } // namespace probfd
 
-#endif // __PROGRESS_REPORT_H__
+#endif // PROBFD_PROGRESS_REPORT_H

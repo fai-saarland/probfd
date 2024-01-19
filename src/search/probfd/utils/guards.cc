@@ -5,14 +5,14 @@
 namespace probfd {
 
 TimerScope::TimerScope(utils::Timer& timer)
-    : timer(timer)
+    : timer_(timer)
 {
     timer.resume();
 }
 
 TimerScope::~TimerScope()
 {
-    timer.stop();
+    timer_.stop();
 }
 
 } // namespace probfd

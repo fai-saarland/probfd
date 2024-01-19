@@ -9,11 +9,13 @@
 
 #include <vector>
 
-namespace probfd {
-namespace cartesian_abstractions {
-
+// Forward Declarations
+namespace probfd::cartesian_abstractions {
 class AbstractState;
 struct Split;
+} // namespace probfd::cartesian_abstractions
+
+namespace probfd::cartesian_abstractions {
 
 struct Flaw {
     // Last concrete and abstract state reached while tracing solution.
@@ -30,7 +32,6 @@ struct Flaw {
     std::vector<Split> get_possible_splits() const;
 };
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions
 
 #endif // PROBFD_CARTESIAN_FLAW_H

@@ -12,10 +12,8 @@
 #include <unordered_set>
 #include <vector>
 
-namespace probfd {
-
 /// This namespace contains commonly used storage and container types.
-namespace storage {
+namespace probfd::storage {
 
 template <typename T, typename Alloc>
 struct resizing_vector : public std::vector<T, Alloc> {
@@ -54,7 +52,7 @@ class PerStateStorage
     Element default_value_;
 
 public:
-    PerStateStorage(
+    explicit PerStateStorage(
         const Element& default_value = Element(),
         const Allocator& alloc = Allocator())
         : segmented_vector::SegmentedVector<Element>(alloc)
@@ -80,7 +78,11 @@ public:
         operator[](index);
     }
 
-    bool empty() const { return this->size() == 0; }
+    [[nodiscard]]
+    bool empty() const
+    {
+        return this->size() == 0;
+    }
 };
 
 template <
@@ -93,12 +95,12 @@ public:
     using iterator =
         typename std::unordered_map<StateID, T, Hash, Equal, Alloc>::iterator;
 
-    StateHashMap(
+    explicit StateHashMap(
         const T& default_value = T(),
-        const Hash& H = Hash(),
-        const Equal& E = Equal(),
-        const Alloc& A = Alloc())
-        : store_(1024, H, E, A)
+        const Hash& h = Hash(),
+        const Equal& e = Equal(),
+        const Alloc& a = Alloc())
+        : store_(1024, h, e, a)
         , default_value_(default_value)
     {
     }
@@ -115,14 +117,23 @@ public:
         return it != store_.end() ? it->second : default_value_;
     }
 
+    [[nodiscard]]
     bool contains(StateID idx) const
     {
         return store_.find(idx) != store_.end();
     }
 
-    StateID size() const { return store_.size(); }
+    [[nodiscard]]
+    StateID size() const
+    {
+        return store_.size();
+    }
 
-    bool empty() const { return store_.empty(); }
+    [[nodiscard]]
+    bool empty() const
+    {
+        return store_.empty();
+    }
 
     void clear() { store_.clear(); }
 
@@ -155,7 +166,6 @@ using StateHashSet = std::unordered_set<State>;
 
 using StateIDHashSet = std::unordered_set<StateID>;
 
-} // namespace storage
-} // namespace probfd
+} // namespace probfd::storage
 
 #endif

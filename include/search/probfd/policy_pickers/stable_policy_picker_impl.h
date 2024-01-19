@@ -1,8 +1,7 @@
 #include "probfd/distribution.h"
 #include "probfd/transition.h"
 
-namespace probfd {
-namespace policy_pickers {
+namespace probfd::policy_pickers {
 
 template <typename State, typename Action, class Derived>
 StablePolicyPicker<State, Action, Derived>::StablePolicyPicker(
@@ -35,5 +34,4 @@ int StablePolicyPicker<State, Action, Derived>::pick_index(
         properties);
 }
 
-} // namespace policy_pickers
-} // namespace probfd
+} // namespace probfd::policy_pickers

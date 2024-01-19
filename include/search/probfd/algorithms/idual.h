@@ -12,15 +12,13 @@
 #include <set>
 #include <vector>
 
+// Forward Declarations
 namespace utils {
 class CountdownTimer;
 }
 
-namespace probfd {
-namespace algorithms {
-
 /// Namespace dedicated to the i-dual MDP algorithm.
-namespace idual {
+namespace probfd::algorithms::idual {
 
 /**
  * @brief I-Dual algorithm statistics.
@@ -47,7 +45,7 @@ struct FrontierStateInfo {
 
 class ValueGroup {
 public:
-    value_t operator[](unsigned i) const { return values[i]; }
+    value_t operator[](unsigned i) const { return values_[i]; }
 
     unsigned get_id(value_t val);
 
@@ -61,9 +59,9 @@ private:
         }
     };
 
-    std::vector<value_t> values;
-    std::set<unsigned, Comparator> indices =
-        std::set<unsigned, Comparator>(Comparator{values});
+    std::vector<value_t> values_;
+    std::set<unsigned, Comparator> indices_ =
+        std::set<unsigned, Comparator>(Comparator{values_});
 };
 
 /**
@@ -96,12 +94,10 @@ public:
         double max_time) override;
 };
 
-} // namespace idual
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::idual
 
 #define GUARD_INCLUDE_PROBFD_ALGORITHMS_IDUAL_H
 #include "probfd/algorithms/idual_impl.h"
 #undef GUARD_INCLUDE_PROBFD_ALGORITHMS_IDUAL_H
 
-#endif // __IDUAL_H__
+#endif // PROBFD_ALGORITHMS_IDUAL_H

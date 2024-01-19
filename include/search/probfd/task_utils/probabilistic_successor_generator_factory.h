@@ -5,40 +5,46 @@
 #include <utility>
 #include <vector>
 
+// Forward Declarations
 class TaskBaseProxy;
 
-namespace probfd {
-namespace successor_generator {
-
+namespace probfd::successor_generator {
 class ProbabilisticGeneratorBase;
-
-using GeneratorPtr = std::unique_ptr<ProbabilisticGeneratorBase>;
-
 struct OperatorRange;
 class OperatorInfo;
+} // namespace probfd::successor_generator
+
+namespace probfd::successor_generator {
+
+using GeneratorPtr = std::unique_ptr<ProbabilisticGeneratorBase>;
 
 class ProbabilisticSuccessorGeneratorFactory {
     using ValuesAndGenerators = std::vector<std::pair<int, GeneratorPtr>>;
 
-    const TaskBaseProxy& task_proxy;
-    std::vector<OperatorInfo> operator_infos;
+    const TaskBaseProxy& task_proxy_;
+    std::vector<OperatorInfo> operator_infos_;
 
-    GeneratorPtr construct_fork(std::vector<GeneratorPtr> nodes) const;
+    [[nodiscard]]
     GeneratorPtr construct_leaf(OperatorRange range) const;
+
+    [[nodiscard]]
     GeneratorPtr construct_switch(
         int switch_var_id,
         ValuesAndGenerators values_and_generators) const;
+
+    [[nodiscard]]
     GeneratorPtr construct_recursive(int depth, OperatorRange range) const;
 
 public:
     explicit ProbabilisticSuccessorGeneratorFactory(
         const TaskBaseProxy& task_proxy);
+
     // Destructor cannot be implicit because OperatorInfo is forward-declared.
     ~ProbabilisticSuccessorGeneratorFactory();
+
     GeneratorPtr create();
 };
 
-} // namespace successor_generator
-} // namespace probfd
+} // namespace probfd::successor_generator
 
 #endif

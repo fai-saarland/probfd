@@ -8,11 +8,9 @@
 #include "downward/task_proxy.h"
 
 #include <memory>
-#include <ranges>
 #include <string>
 
-namespace probfd {
-namespace solvers {
+namespace probfd::solvers {
 namespace {
 
 using namespace algorithms::interval_iteration;
@@ -48,8 +46,8 @@ public:
     }
 };
 
+} // namespace
+
 static FeaturePlugin<IntervalIterationSolverFeature> _plugin;
 
-} // namespace
-} // namespace solvers
-} // namespace probfd
+} // namespace probfd::solvers

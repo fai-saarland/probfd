@@ -2,12 +2,9 @@
 
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 
-#include <algorithm>
-#include <cstddef>
 #include <numeric>
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 value_t SubCollectionFinder::evaluate(
     const PPDBCollection& database,
@@ -43,5 +40,4 @@ value_t SubCollectionFinder::evaluate(
         transformer);
 }
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs

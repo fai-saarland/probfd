@@ -1,5 +1,6 @@
 #include "probfd/heuristics/probability_aware_pdb_heuristic.h"
 
+#include "probfd/pdbs/pattern_collection_generator.h"
 #include "probfd/pdbs/pattern_collection_information.h"
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 
@@ -13,12 +14,10 @@
 #include "downward/plugins/plugin.h"
 
 #include <algorithm>
-#include <cstddef>
 
 using namespace probfd::pdbs;
 
-namespace probfd {
-namespace heuristics {
+namespace probfd::heuristics {
 
 ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
     std::shared_ptr<ProbabilisticTask> task,
@@ -27,7 +26,7 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
     double max_time_dominance_pruning,
     utils::LogProxy log)
     : TaskDependentHeuristic(task, log)
-    , termination_cost(task_cost_function->get_non_goal_termination_cost())
+    , termination_cost_(task_cost_function->get_non_goal_termination_cost())
 {
     utils::Timer construction_timer;
 
@@ -36,10 +35,10 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
         generator->generate(task, task_cost_function);
     const double generator_time = generator_timer();
 
-    this->patterns = pattern_collection_info.get_patterns();
-    this->pdbs = pattern_collection_info.get_pdbs();
-    this->subcollections = pattern_collection_info.get_subcollections();
-    this->subcollection_finder =
+    this->patterns_ = pattern_collection_info.get_patterns();
+    this->pdbs_ = pattern_collection_info.get_pdbs();
+    this->subcollections_ = pattern_collection_info.get_subcollections();
+    this->subcollection_finder_ =
         pattern_collection_info.get_subcollection_finder();
 
     double dominance_pruning_time = 0.0;
@@ -48,10 +47,10 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
         utils::Timer timer;
 
         ::pdbs::prune_dominated_cliques(
-            *patterns,
-            *pdbs,
-            *subcollections,
-            task_proxy.get_variables().size(),
+            *patterns_,
+            *pdbs_,
+            *subcollections_,
+            static_cast<int>(task_proxy_.get_variables().size()),
             max_time_dominance_pruning,
             utils::g_log);
 
@@ -66,7 +65,7 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
         size_t variables = 0;
         size_t abstract_states = 0;
 
-        for (auto pdb : *pdbs) {
+        for (auto pdb : *pdbs_) {
             size_t vars = pdb->get_pattern().size();
             largest_pattern = std::max(largest_pattern, vars);
             variables += vars;
@@ -75,20 +74,23 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
 
         size_t total_subcollections_size = 0;
 
-        for (auto subcollection : *subcollections) {
+        for (auto subcollection : *subcollections_) {
             total_subcollections_size += subcollection.size();
         }
 
-        const double avg_variables = (double)variables / pdbs->size();
+        const double avg_variables =
+            static_cast<double>(variables) / static_cast<double>(pdbs_->size());
         const double avg_abstract_states =
-            (double)abstract_states / pdbs->size();
+            static_cast<double>(abstract_states) /
+            static_cast<double>(pdbs_->size());
 
         const double avg_subcollection_size =
-            (double)total_subcollections_size / subcollections->size();
+            static_cast<double>(total_subcollections_size) /
+            static_cast<double>(subcollections_->size());
 
         log << "\n"
             << "Pattern Databases Statistics:\n"
-            << "  Total number of PDBs: " << pdbs->size() << "\n"
+            << "  Total number of PDBs: " << pdbs_->size() << "\n"
             << "  Total number of variables: " << variables << "\n"
             << "  Total number of abstract states: " << abstract_states << "\n"
             << "  Average number of variables per PDB: " << avg_variables
@@ -98,7 +100,7 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
 
             << "  Largest pattern size: " << largest_pattern << "\n"
 
-            << "  Total number of subcollections: " << subcollections->size()
+            << "  Total number of subcollections: " << subcollections_->size()
             << "\n"
             << "  Total number of subcollection PDBs: "
             << total_subcollections_size << "\n"
@@ -113,8 +115,8 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
 
 value_t ProbabilityAwarePDBHeuristic::evaluate(const State& state) const
 {
-    return subcollection_finder
-        ->evaluate(*pdbs, *subcollections, state, termination_cost);
+    return subcollection_finder_
+        ->evaluate(*pdbs_, *subcollections_, state, termination_cost_);
 }
 
 namespace {
@@ -184,9 +186,9 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<ProbabilityAwarePDBHeuristicFactoryFeature>
-    _plugin;
 } // namespace
 
-} // namespace heuristics
-} // namespace probfd
+static plugins::FeaturePlugin<ProbabilityAwarePDBHeuristicFactoryFeature>
+    _plugin;
+
+} // namespace probfd::heuristics

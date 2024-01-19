@@ -4,10 +4,8 @@
 #include <iterator>
 #include <utility>
 
-namespace probfd {
-
 /// Namespace dedicated to custom iterators.
-namespace iterators {
+namespace probfd::iterators {
 
 struct discarding_output_iterator {
     using difference_type = std::ptrdiff_t;
@@ -18,8 +16,9 @@ struct discarding_output_iterator {
 
     /* no-op assignment */
     template <typename T>
-    void operator=(T const&)
+    discarding_output_iterator& operator=(T const&)
     {
+        return *this;
     }
 
     discarding_output_iterator& operator++() { return *this; }
@@ -29,7 +28,6 @@ struct discarding_output_iterator {
     discarding_output_iterator& operator*() { return *this; }
 };
 
-} // namespace iterators
-} // namespace probfd
+} // namespace probfd::iterators
 
-#endif // __ITERATORS_H__
+#endif // PROBFD_ITERATORS_H

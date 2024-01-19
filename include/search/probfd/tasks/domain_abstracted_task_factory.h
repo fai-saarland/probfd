@@ -5,10 +5,11 @@
 #include <unordered_map>
 #include <vector>
 
+// Forward Declarations
 class ProbabilisticTask;
 
-namespace probfd {
-namespace extra_tasks {
+namespace probfd::extra_tasks {
+
 using ValueGroup = std::vector<int>;
 using ValueGroups = std::vector<ValueGroup>;
 using VarToGroups = std::unordered_map<int, ValueGroups>;
@@ -19,7 +20,7 @@ using VarToGroups = std::unordered_map<int, ValueGroups>;
 std::shared_ptr<ProbabilisticTask> build_domain_abstracted_task(
     const std::shared_ptr<ProbabilisticTask>& parent,
     const VarToGroups& value_groups);
-} // namespace extra_tasks
-} // namespace probfd
+
+} // namespace probfd::extra_tasks
 
 #endif

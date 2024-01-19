@@ -10,8 +10,7 @@
 #include <memory>
 #include <string>
 
-namespace probfd {
-namespace solvers {
+namespace probfd::solvers {
 namespace {
 
 using namespace algorithms;
@@ -84,6 +83,8 @@ public:
     }
 };
 
+} // namespace
+
 static FeaturePlugin<TrapAwareLRTDPSolverFeature> _plugin;
 
 static TypedEnumPlugin<TrialTerminationCondition> _enum_plugin(
@@ -92,6 +93,4 @@ static TypedEnumPlugin<TrialTerminationCondition> _enum_plugin(
      {"inconsistent", "Stop trials at epsilon inconsistent states"},
      {"revisited", "Stop trials upon revisiting a state"}});
 
-} // namespace
-} // namespace solvers
-} // namespace probfd
+} // namespace probfd::solvers

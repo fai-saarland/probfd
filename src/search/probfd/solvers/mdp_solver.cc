@@ -4,13 +4,11 @@
 
 #include "probfd/caching_task_state_space.h"
 
-#include "probfd/cost_function.h"
 #include "probfd/evaluator.h"
 #include "probfd/interval.h"
 #include "probfd/mdp_algorithm.h"
 #include "probfd/task_cost_function_factory.h"
 #include "probfd/task_evaluator_factory.h"
-#include "probfd/value_type.h"
 
 #include "downward/utils/timer.h"
 
@@ -18,8 +16,6 @@
 
 #include "downward/plugins/options.h"
 #include "downward/plugins/plugin.h"
-
-#include "downward/operator_id.h"
 
 #include <iostream>
 #include <limits>
@@ -30,48 +26,45 @@ class State;
 
 namespace probfd {
 class TaskCostFunctionFactory;
-}
-namespace probfd {
 class TaskEvaluatorFactory;
-}
+} // namespace probfd
 
-namespace probfd {
-namespace solvers {
+namespace probfd::solvers {
 
 using namespace plugins;
 
 MDPSolver::MDPSolver(const Options& opts)
-    : task(tasks::g_root_task)
-    , task_proxy(*task)
-    , task_cost_function(
+    : task_(tasks::g_root_task)
+    , task_proxy_(*task_)
+    , task_cost_function_(
           opts.get<std::shared_ptr<TaskCostFunctionFactory>>("costs")
-              ->create_cost_function(task))
-    , log(utils::get_log_from_options(opts))
-    , task_mdp(
+              ->create_cost_function(task_))
+    , log_(utils::get_log_from_options(opts))
+    , task_mdp_(
           opts.get<bool>("cache")
               ? new CachingTaskStateSpace(
-                    task,
-                    log,
-                    task_cost_function,
+                    task_,
+                    log_,
+                    task_cost_function_,
                     opts.get_list<std::shared_ptr<::Evaluator>>(
                         "path_dependent_evaluators"))
               : new TaskStateSpace(
-                    task,
-                    log,
-                    task_cost_function,
+                    task_,
+                    log_,
+                    task_cost_function_,
                     opts.get_list<std::shared_ptr<::Evaluator>>(
                         "path_dependent_evaluators")))
-    , heuristic(opts.get<std::shared_ptr<TaskEvaluatorFactory>>("eval")
-                    ->create_evaluator(task, task_cost_function))
+    , heuristic_(opts.get<std::shared_ptr<TaskEvaluatorFactory>>("eval")
+                     ->create_evaluator(task_, task_cost_function_))
     , progress_(
           opts.contains("report_epsilon")
               ? std::optional<value_t>(opts.get<value_t>("report_epsilon"))
               : std::nullopt,
           std::cout,
           opts.get<bool>("report_enabled"))
-    , max_time(opts.get<double>("max_time"))
+    , max_time_(opts.get<double>("max_time"))
 {
-    progress_.register_print([&ss = *this->task_mdp](std::ostream& out) {
+    progress_.register_print([&ss = *this->task_mdp_](std::ostream& out) {
         out << "registered=" << ss.get_num_registered_states();
     });
 }
@@ -82,8 +75,8 @@ void MDPSolver::solve()
 {
     std::cout << "Running MDP algorithm " << get_algorithm_name();
 
-    if (max_time != std::numeric_limits<double>::infinity()) {
-        std::cout << " with a time limit of " << max_time << " seconds";
+    if (max_time_ != std::numeric_limits<double>::infinity()) {
+        std::cout << " with a time limit of " << max_time_ << " seconds";
     }
 
     std::cout << "..." << std::endl;
@@ -92,14 +85,14 @@ void MDPSolver::solve()
         utils::Timer total_timer;
         std::unique_ptr<FDRMDPAlgorithm> algorithm = create_algorithm();
 
-        const State& initial_state = task_mdp->get_initial_state();
+        const State& initial_state = task_mdp_->get_initial_state();
 
         Interval val = algorithm->solve(
-            *task_mdp,
-            *heuristic,
+            *task_mdp_,
+            *heuristic_,
             initial_state,
             progress_,
-            max_time);
+            max_time_);
         total_timer.stop();
 
         std::cout << "analysis done. [t=" << utils::g_timer << "]" << std::endl;
@@ -111,8 +104,8 @@ void MDPSolver::solve()
         std::cout << std::endl;
         std::cout << "State space interface:" << std::endl;
         std::cout << "  Registered state(s): "
-                  << task_mdp->get_num_registered_states() << std::endl;
-        task_mdp->print_statistics();
+                  << task_mdp_->get_num_registered_states() << std::endl;
+        task_mdp_->print_statistics();
 
         std::cout << std::endl;
         std::cout << "Algorithm " << get_algorithm_name()
@@ -120,12 +113,12 @@ void MDPSolver::solve()
         std::cout << "  Actual solver time: " << total_timer << std::endl;
         algorithm->print_statistics(std::cout);
 
-        heuristic->print_statistics();
+        heuristic_->print_statistics();
 
         print_additional_statistics();
     } catch (utils::TimeoutException&) {
         std::cout << "Time limit reached. Analysis was aborted." << std::endl;
-        solution_found = false;
+        solution_found_ = false;
     }
 }
 
@@ -150,5 +143,4 @@ void MDPSolver::add_options_to_feature(Feature& feature)
     utils::add_log_options_to_feature(feature);
 }
 
-} // namespace solvers
-} // namespace probfd
+} // namespace probfd::solvers

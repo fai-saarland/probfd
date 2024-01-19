@@ -1,5 +1,6 @@
 #include "probfd/occupation_measures/pho_constraints.h"
 
+#include "probfd/pdbs/pattern_collection_generator.h"
 #include "probfd/pdbs/pattern_collection_information.h"
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 
@@ -10,15 +11,14 @@
 #include "downward/lp/lp_solver.h"
 #include "downward/plugins/options.h"
 
-#include <cstddef>
 #include <iterator>
 #include <set>
+#include <utility>
 #include <vector>
 
 using namespace probfd::pdbs;
 
-namespace probfd {
-namespace occupation_measures {
+namespace probfd::occupation_measures {
 
 using namespace pdbs;
 
@@ -30,7 +30,7 @@ PHOGenerator::PHOGenerator(const plugins::Options& opts)
 
 PHOGenerator::PHOGenerator(
     std::shared_ptr<PatternCollectionGenerator> generator)
-    : generator_(generator)
+    : generator_(std::move(generator))
 {
 }
 
@@ -90,5 +90,4 @@ void PHOGenerator::reset_constraints(const State&, lp::LPSolver&)
     // No need to reset, constraints are overwritten in the next iteration
 }
 
-} // namespace occupation_measures
-} // namespace probfd
+} // namespace probfd::occupation_measures

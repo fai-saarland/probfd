@@ -2,8 +2,6 @@
 
 #include "probfd/algorithms/ao_star.h"
 
-#include "probfd/algorithms/successor_sampler.h"
-
 #include "probfd/plugins/naming_conventions.h"
 
 #include "downward/plugins/plugin.h"
@@ -12,8 +10,7 @@
 #include <memory>
 #include <string>
 
-namespace probfd {
-namespace solvers {
+namespace probfd::solvers {
 namespace {
 
 using namespace algorithms;
@@ -35,7 +32,10 @@ public:
     {
     }
 
-    std::string get_heuristic_search_name() const override { return "aostar"; }
+    [[nodiscard]] std::string get_heuristic_search_name() const override
+    {
+        return "aostar";
+    }
 
     std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
@@ -70,9 +70,9 @@ public:
     }
 };
 
+} // namespace
+
 static FeaturePlugin<AOStarSolverFeature<false>> _plugin;
 static FeaturePlugin<AOStarSolverFeature<true>> _plugin2;
 
-} // namespace
-} // namespace solvers
-} // namespace probfd
+} // namespace probfd::solvers

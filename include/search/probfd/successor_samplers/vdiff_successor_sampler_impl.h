@@ -2,13 +2,14 @@
 
 #include "probfd/algorithms/state_properties.h"
 
+#include "probfd/interval.h"
+
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
 
 #include "downward/plugins/plugin.h"
 
-namespace probfd {
-namespace successor_samplers {
+namespace probfd::successor_samplers {
 
 template <typename Action>
 VDiffSuccessorSampler<Action>::VDiffSuccessorSampler(
@@ -22,7 +23,7 @@ template <typename Action>
 VDiffSuccessorSampler<Action>::VDiffSuccessorSampler(
     std::shared_ptr<utils::RandomNumberGenerator> rng,
     bool prefer_large_gaps)
-    : rng_(rng)
+    : rng_(std::move(rng))
     , prefer_large_gaps_(prefer_large_gaps)
 {
 }
@@ -53,5 +54,4 @@ StateID VDiffSuccessorSampler<Action>::sample(
     return biased_.sample(*rng_)->item;
 }
 
-} // namespace successor_samplers
-} // namespace probfd
+} // namespace probfd::successor_samplers

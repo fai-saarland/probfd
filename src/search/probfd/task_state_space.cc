@@ -10,7 +10,6 @@
 #include "downward/state_id.h"
 
 #include <iostream>
-#include <utility>
 
 namespace probfd {
 
@@ -31,10 +30,10 @@ TaskStateSpace::TaskStateSpace(
     utils::LogProxy log,
     std::shared_ptr<FDRSimpleCostFunction> cost_function,
     const std::vector<std::shared_ptr<::Evaluator>>& path_dependent_evaluators)
-    : task_proxy(*task)
-    , log(std::move(log))
-    , gen_(task_proxy)
-    , state_registry_(task_proxy)
+    : task_proxy_(*task)
+    , log_(std::move(log))
+    , gen_(task_proxy_)
+    , state_registry_(task_proxy_)
     , cost_function_(std::move(cost_function))
     , notify_(path_dependent_evaluators)
 {
@@ -92,7 +91,7 @@ void TaskStateSpace::generate_all_transitions(
     gen_.generate_transitions(state, transitions, *this);
 
     ++statistics_.aops_computations;
-    ++statistics_.all_transitions_generator_calls;    
+    ++statistics_.all_transitions_generator_calls;
     statistics_.computed_operators += transitions.size();
     statistics_.generated_operators += transitions.size();
 }
@@ -102,7 +101,7 @@ value_t TaskStateSpace::get_action_cost(OperatorID op)
     return cost_function_->get_action_cost(op);
 }
 
-bool TaskStateSpace::is_goal(param_type<State> state) const
+bool TaskStateSpace::is_goal(const State& state) const
 {
     return cost_function_->is_goal(state);
 }
@@ -124,7 +123,7 @@ size_t TaskStateSpace::get_num_registered_states() const
 
 void TaskStateSpace::print_statistics() const
 {
-    statistics_.print(log);
+    statistics_.print(log_);
 }
 
 void TaskStateSpace::compute_successor_dist(
@@ -132,7 +131,7 @@ void TaskStateSpace::compute_successor_dist(
     OperatorID op_id,
     Distribution<StateID>& successor_dist)
 {
-    const ProbabilisticOperatorProxy op = task_proxy.get_operators()[op_id];
+    const ProbabilisticOperatorProxy op = task_proxy_.get_operators()[op_id];
     const auto outcomes = op.get_outcomes();
     const size_t num_outcomes = outcomes.size();
     successor_dist.reserve(num_outcomes);

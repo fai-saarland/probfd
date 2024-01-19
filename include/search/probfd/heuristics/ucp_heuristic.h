@@ -6,18 +6,16 @@
 #include <memory>
 #include <vector>
 
-namespace probfd {
-
-namespace pdbs {
+namespace probfd::pdbs {
 class ProbabilityAwarePatternDatabase;
 class PatternCollectionGenerator;
-} // namespace pdbs
+} // namespace probfd::pdbs
 
-namespace heuristics {
+namespace probfd::heuristics {
 
 class UCPHeuristic : public TaskDependentHeuristic {
-    const value_t termination_cost;
-    std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs;
+    const value_t termination_cost_;
+    std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs_;
 
 public:
     explicit UCPHeuristic(
@@ -26,7 +24,7 @@ public:
         utils::LogProxy log,
         std::shared_ptr<pdbs::PatternCollectionGenerator> generator);
 
-    ~UCPHeuristic();
+    ~UCPHeuristic() override;
 
     void print_statistics() const override
     {
@@ -37,7 +35,6 @@ protected:
     value_t evaluate(const State& state) const override;
 };
 
-} // namespace heuristics
-} // namespace probfd
+} // namespace probfd::heuristics
 
 #endif // PROBFD_HEURISTICS_UCP_HEURISTIC_H

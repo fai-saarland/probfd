@@ -3,8 +3,7 @@
 
 #include "downward/plugins/plugin.h"
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 std::unique_ptr<SubCollectionFinder>
 AdditiveMaxOrthogonalityFinderFactory::create_subcollection_finder(
@@ -30,7 +29,7 @@ public:
     {
     }
 
-    std::shared_ptr<AdditiveMaxOrthogonalityFinderFactory>
+    [[nodiscard]] std::shared_ptr<AdditiveMaxOrthogonalityFinderFactory>
     create_component(const plugins::Options&, const utils::Context&)
         const override
     {
@@ -48,7 +47,7 @@ public:
     {
     }
 
-    std::shared_ptr<MultiplicativeMaxOrthogonalityFinderFactory>
+    [[nodiscard]] std::shared_ptr<MultiplicativeMaxOrthogonalityFinderFactory>
     create_component(const plugins::Options&, const utils::Context&)
         const override
     {
@@ -62,5 +61,4 @@ static plugins::FeaturePlugin<
     MultiplicativeMaxOrthogonalityFinderFactoryFeature>
     _plugin2;
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs

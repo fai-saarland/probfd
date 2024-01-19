@@ -62,7 +62,7 @@ public:
     {
     }
 
-    std::shared_ptr<MaxProbCostFunctionFactory>
+    [[nodiscard]] std::shared_ptr<MaxProbCostFunctionFactory>
     create_component(const plugins::Options&, const utils::Context&)
         const override
     {
@@ -79,7 +79,7 @@ public:
     {
     }
 
-    std::shared_ptr<SSPCostFunctionFactory>
+    [[nodiscard]] std::shared_ptr<SSPCostFunctionFactory>
     create_component(const plugins::Options&, const utils::Context&)
         const override
     {
@@ -87,9 +87,9 @@ public:
     }
 };
 
+} // namespace
+
 static plugins::FeaturePlugin<MaxProbCostFunctionFactoryFeature> _plugin;
 static plugins::FeaturePlugin<SSPCostFunctionFactoryFeature> _plugin2;
-
-} // namespace
 
 } // namespace probfd

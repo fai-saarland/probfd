@@ -7,6 +7,7 @@
 #include <unordered_set>
 #include <vector>
 
+// Forward Declarations
 class State;
 class PreconditionsProxy;
 class GoalsProxy;
@@ -17,14 +18,17 @@ class CountdownTimer;
 
 namespace probfd {
 class ProbabilisticTaskProxy;
+}
 
-namespace pdbs {
-
+namespace probfd::pdbs {
 class ProbabilityAwarePatternDatabase;
+}
 
-namespace cegar {
-
+namespace probfd::pdbs::cegar {
 struct Flaw;
+}
+
+namespace probfd::pdbs::cegar {
 
 class FlawFindingStrategy {
 public:
@@ -57,8 +61,6 @@ bool collect_flaws(
     const std::unordered_set<int>& blacklist,
     std::vector<Flaw>& flaw_list);
 
-} // namespace cegar
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs::cegar
 
 #endif // PROBFD_PDBS_CEGAR_FLAW_FINDING_STRATEGY_H

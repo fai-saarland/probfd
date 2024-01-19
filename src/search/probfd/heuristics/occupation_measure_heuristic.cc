@@ -7,8 +7,7 @@
 using namespace std;
 using namespace probfd::occupation_measures;
 
-namespace probfd {
-namespace heuristics {
+namespace probfd::heuristics {
 
 OccupationMeasureHeuristic::OccupationMeasureHeuristic(
     std::shared_ptr<ProbabilisticTask> task,
@@ -16,8 +15,8 @@ OccupationMeasureHeuristic::OccupationMeasureHeuristic(
     utils::LogProxy log,
     lp::LPSolverType solver_type,
     std::shared_ptr<ConstraintGenerator> constraint_generator)
-    : LPHeuristic(task, log, solver_type)
-    , constraint_generator_(constraint_generator)
+    : LPHeuristic(task, std::move(log), solver_type)
+    , constraint_generator_(std::move(constraint_generator))
 {
     lp::LinearProgram lp(
         lp::LPObjectiveSense::MINIMIZE,
@@ -40,5 +39,4 @@ void OccupationMeasureHeuristic::reset_constraints(const State& state) const
     constraint_generator_->reset_constraints(state, lp_solver_);
 }
 
-} // namespace heuristics
-} // namespace probfd
+} // namespace probfd::heuristics

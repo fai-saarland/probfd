@@ -8,15 +8,13 @@
 #include <type_traits>
 #include <vector>
 
+// Forward Declarations
 namespace utils {
 class CountdownTimer;
 }
 
-namespace probfd {
-namespace algorithms {
-
 /// Namespace dedicated to Depth-First Heuristic Search.
-namespace heuristic_depth_first_search {
+namespace probfd::algorithms::heuristic_depth_first_search {
 
 enum class BacktrackingUpdateType {
     DISABLED,
@@ -45,12 +43,23 @@ struct PerStateInformation : public StateInfo {
     static constexpr uint8_t MASK = 3 << StateInfo::BITS;
     static constexpr uint8_t BITS = StateInfo::BITS + 2;
 
-    bool is_policy_initialized() const { return (this->info & MASK) != 0; }
-    bool is_solved() const { return this->info & SOLVED; }
+    [[nodiscard]]
+    bool is_policy_initialized() const
+    {
+        return (this->info & MASK) != 0;
+    }
+
+    [[nodiscard]]
+    bool is_solved() const
+    {
+        return this->info & SOLVED;
+    }
+
     void set_policy_initialized()
     {
         this->info = (this->info & ~MASK) | INITIALIZED;
     }
+
     void set_solved() { this->info = (this->info & ~MASK) | SOLVED; }
 
     void clear() { this->info &= MASK; }
@@ -69,11 +78,11 @@ struct LocalStateInfo {
     unsigned index = StateStatus::UNDEF;
     unsigned lowlink = StateStatus::UNDEF;
 
-    void open(const unsigned& index)
+    void open(unsigned stack_index)
     {
         status = ONSTACK;
-        this->index = index;
-        this->lowlink = index;
+        index = stack_index;
+        lowlink = stack_index;
     }
 };
 
@@ -94,6 +103,7 @@ struct ExpansionInfo {
     bool value_changed = false;
 
     bool next_successor();
+    [[nodiscard]]
     StateID get_current_successor() const;
 };
 
@@ -131,13 +141,13 @@ private:
     using ExpansionInfo = internal::ExpansionInfo;
     using LocalStateInfo = internal::LocalStateInfo;
 
-    const bool LabelSolved;
-    const bool ForwardUpdates;
-    const BacktrackingUpdateType BackwardUpdates;
-    const bool CutoffInconsistent;
-    const bool GreedyExploration;
-    const bool PerformValueIteration;
-    const bool ExpandTipStates;
+    const bool label_solved_;
+    const bool forward_updates_;
+    const BacktrackingUpdateType backward_updates_;
+    const bool cutoff_inconsistent_;
+    const bool greedy_exploration_;
+    const bool perform_value_iteration_;
+    const bool expand_tip_states_;
 
     storage::StateHashMap<LocalStateInfo> state_infos_;
     std::vector<StateID> visited_;
@@ -149,13 +159,13 @@ private:
 public:
     HeuristicDepthFirstSearch(
         std::shared_ptr<PolicyPicker> policy_chooser,
-        bool LabelSolved,
-        bool ForwardUpdates,
-        BacktrackingUpdateType BackwardUpdates,
-        bool CutoffInconsistent,
-        bool GreedyExploration,
-        bool PerformValueIteration,
-        bool ExpandTipStates);
+        bool label_solved,
+        bool forward_updates,
+        BacktrackingUpdateType backward_updates,
+        bool cutoff_inconsistent,
+        bool greedy_exploration,
+        bool perform_value_iteration,
+        bool expand_tip_states);
 
     void reset_search_state() override;
 
@@ -226,12 +236,10 @@ private:
         unsigned long long& stat_counter);
 };
 
-} // namespace heuristic_depth_first_search
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::heuristic_depth_first_search
 
 #define GUARD_INCLUDE_PROBFD_ALGORITHMS_HEURISTIC_DEPTH_FIRST_SEARCH_H
 #include "probfd/algorithms/heuristic_depth_first_search_impl.h"
 #undef GUARD_INCLUDE_PROBFD_ALGORITHMS_HEURISTIC_DEPTH_FIRST_SEARCH_H
 
-#endif // __HEURISTIC_DEPTH_FIRST_SEARCH_H__
+#endif // PROBFD_ALGORITHMS_HEURISTIC_DEPTH_FIRST_SEARCH_H

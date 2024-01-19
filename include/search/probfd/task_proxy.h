@@ -19,8 +19,8 @@
 #include <string>
 #include <vector>
 
+// Forward Declarations
 namespace probfd {
-
 class ProbabilisticEffectProxy;
 class ProbabilisticEffectConditionsProxy;
 class ProbabilisticEffectsProxy;
@@ -29,17 +29,20 @@ class ProbabilisticOperatorsProxy;
 class ProbabilisticOutcomeProxy;
 class ProbabilisticOutcomesProxy;
 class ProbabilisticTaskProxy;
+} // namespace probfd
+
+namespace probfd {
 
 /// Proxy class used to inspect the list of effect conditions of a conditional
 /// effect of a probabilistic operator. Can be used as a range of FactProxies,
 /// one for each effect condition.
 class ProbabilisticEffectConditionsProxy
     : public ProxyCollection<ProbabilisticEffectConditionsProxy> {
-    const ProbabilisticTask* task;
+    const ProbabilisticTask* task_;
 
-    int op_index;
-    int outcome_index;
-    int eff_index;
+    int op_index_;
+    int outcome_index_;
+    int eff_index_;
 
 public:
     ProbabilisticEffectConditionsProxy(
@@ -47,20 +50,21 @@ public:
         int op_index,
         int outcome_index,
         int eff_index)
-        : task(&task)
-        , op_index(op_index)
-        , outcome_index(outcome_index)
-        , eff_index(eff_index)
+        : task_(&task)
+        , op_index_(op_index)
+        , outcome_index_(outcome_index)
+        , eff_index_(eff_index)
     {
     }
 
     /// Returns the number of effect conditions.
+    [[nodiscard]]
     std::size_t size() const
     {
-        return task->get_num_operator_outcome_effect_conditions(
-            op_index,
-            outcome_index,
-            eff_index);
+        return task_->get_num_operator_outcome_effect_conditions(
+            op_index_,
+            outcome_index_,
+            eff_index_);
     }
 
     /// Accesses a specific effect condition by its list index.
@@ -68,22 +72,22 @@ public:
     {
         assert(index < size());
         return FactProxy(
-            *task,
-            task->get_operator_outcome_effect_condition(
-                op_index,
-                outcome_index,
-                eff_index,
-                index));
+            *task_,
+            task_->get_operator_outcome_effect_condition(
+                op_index_,
+                outcome_index_,
+                eff_index_,
+                static_cast<int>(index)));
     }
 };
 
 /// Proxy class used to inspect a probabilistic effect of a probabilistic
 /// operator.
 class ProbabilisticEffectProxy {
-    const ProbabilisticTask* task;
-    int op_index;
-    int outcome_index;
-    int eff_index;
+    const ProbabilisticTask* task_;
+    int op_index_;
+    int outcome_index_;
+    int eff_index_;
 
 public:
     ProbabilisticEffectProxy(
@@ -91,34 +95,36 @@ public:
         int op_index,
         int outcome_index,
         int eff_index)
-        : task(&task)
-        , op_index(op_index)
-        , outcome_index(outcome_index)
-        , eff_index(eff_index)
+        : task_(&task)
+        , op_index_(op_index)
+        , outcome_index_(outcome_index)
+        , eff_index_(eff_index)
     {
     }
 
     ~ProbabilisticEffectProxy() = default;
 
     /// Get a proxy for the conditions of the probabilistic effect.
+    [[nodiscard]]
     ProbabilisticEffectConditionsProxy get_conditions() const
     {
         return ProbabilisticEffectConditionsProxy(
-            *task,
-            op_index,
-            outcome_index,
-            eff_index);
+            *task_,
+            op_index_,
+            outcome_index_,
+            eff_index_);
     }
 
     /// Get a proxy for the established fact of the probabilistic effect.
+    [[nodiscard]]
     FactProxy get_fact() const
     {
         return FactProxy(
-            *task,
-            task->get_operator_outcome_effect(
-                op_index,
-                outcome_index,
-                eff_index));
+            *task_,
+            task_->get_operator_outcome_effect(
+                op_index_,
+                outcome_index_,
+                eff_index_));
     }
 };
 
@@ -127,25 +133,28 @@ public:
 /// ProbabilisticEffectProxies, one for each probabilistic effect.
 class ProbabilisticEffectsProxy
     : public ProxyCollection<ProbabilisticEffectsProxy> {
-    const ProbabilisticTask* task;
-    int op_index;
-    int outcome_index;
+    const ProbabilisticTask* task_;
+    int op_index_;
+    int outcome_index_;
 
 public:
     ProbabilisticEffectsProxy(
         const ProbabilisticTask& task,
         int op_index,
         int outcome_index)
-        : task(&task)
-        , op_index(op_index)
-        , outcome_index(outcome_index)
+        : task_(&task)
+        , op_index_(op_index)
+        , outcome_index_(outcome_index)
     {
     }
 
     /// Returns the number of probabilistic effects.
+    [[nodiscard]]
     std::size_t size() const
     {
-        return task->get_num_operator_outcome_effects(op_index, outcome_index);
+        return task_->get_num_operator_outcome_effects(
+            op_index_,
+            outcome_index_);
     }
 
     /// Accesses a specific probabilistic effect by its list index.
@@ -153,9 +162,9 @@ public:
     {
         assert(eff_index < size());
         return ProbabilisticEffectProxy(
-            *task,
-            op_index,
-            outcome_index,
+            *task_,
+            op_index_,
+            outcome_index_,
             eff_index);
     }
 };
@@ -163,40 +172,46 @@ public:
 /// Proxy class used to inspect a single probabilistic outcome of a
 /// probabilistic operator.
 class ProbabilisticOutcomeProxy {
-    const ProbabilisticTask* task;
-    int op_index;
-    int outcome_index;
+    const ProbabilisticTask* task_;
+    int op_index_;
+    int outcome_index_;
 
 public:
     ProbabilisticOutcomeProxy(
         const ProbabilisticTask& task,
         int op_index,
         int outcome_index)
-        : task(&task)
-        , op_index(op_index)
-        , outcome_index(outcome_index)
+        : task_(&task)
+        , op_index_(op_index)
+        , outcome_index_(outcome_index)
     {
     }
 
     /// Get the ID of this outcome's operator in the determinization.
+    [[nodiscard]]
     int get_determinization_id() const
     {
-        return task->get_operator_outcome_id(op_index, outcome_index);
+        return task_->get_operator_outcome_id(op_index_, outcome_index_);
     }
 
     /// Get this outcome's operator.
+    [[nodiscard]]
     ProbabilisticOperatorProxy get_operator() const;
 
     /// Get a proxy to the probabilistic effects of this outcome.
+    [[nodiscard]]
     ProbabilisticEffectsProxy get_effects() const
     {
-        return ProbabilisticEffectsProxy(*task, op_index, outcome_index);
+        return ProbabilisticEffectsProxy(*task_, op_index_, outcome_index_);
     }
 
     /// Get the probability of this outcome.
+    [[nodiscard]]
     value_t get_probability() const
     {
-        return task->get_operator_outcome_probability(op_index, outcome_index);
+        return task_->get_operator_outcome_probability(
+            op_index_,
+            outcome_index_);
     }
 };
 
@@ -205,30 +220,32 @@ public:
 /// ProbabilisticOutcomeProxies, one for each probabilistic outcome.
 class ProbabilisticOutcomesProxy
     : public ProxyCollection<ProbabilisticOutcomesProxy> {
-    const ProbabilisticTask* task;
-    int op_index;
+    const ProbabilisticTask* task_;
+    int op_index_;
 
 public:
     ProbabilisticOutcomesProxy(const ProbabilisticTask& task, int op_index)
-        : task(&task)
-        , op_index(op_index)
+        : task_(&task)
+        , op_index_(op_index)
     {
     }
 
     /// Returns the number of outcomes of the probabilistic operator.
+    [[nodiscard]]
     std::size_t size() const
     {
-        return task->get_num_operator_outcomes(op_index);
+        return task_->get_num_operator_outcomes(op_index_);
     }
 
     /// Get the operator of the outcomes.
+    [[nodiscard]]
     ProbabilisticOperatorProxy get_operator() const;
 
     /// Get a proxy to a specific outcome by its list index.
     ProbabilisticOutcomeProxy operator[](std::size_t eff_index) const
     {
         assert(eff_index < size());
-        return ProbabilisticOutcomeProxy(*task, op_index, eff_index);
+        return ProbabilisticOutcomeProxy(*task_, op_index_, eff_index);
     }
 };
 
@@ -241,6 +258,7 @@ public:
     }
 
     /// Get a proxy to the outcomes of the operator.
+    [[nodiscard]]
     ProbabilisticOutcomesProxy get_outcomes() const
     {
         return ProbabilisticOutcomesProxy(
@@ -249,6 +267,7 @@ public:
     }
 
     /// Get the cost of the operator.
+    [[nodiscard]]
     value_t get_cost() const
     {
         return static_cast<const ProbabilisticTask*>(task)->get_operator_cost(
@@ -259,13 +278,13 @@ public:
 inline ProbabilisticOperatorProxy
 ProbabilisticOutcomeProxy::get_operator() const
 {
-    return ProbabilisticOperatorProxy(*task, op_index);
+    return ProbabilisticOperatorProxy(*task_, op_index_);
 }
 
 inline ProbabilisticOperatorProxy
 ProbabilisticOutcomesProxy::get_operator() const
 {
-    return ProbabilisticOperatorProxy(*task, op_index);
+    return ProbabilisticOperatorProxy(*task_, op_index_);
 }
 
 /// Proxy class used to inspect a list of probabilistic operators of a
@@ -273,22 +292,26 @@ ProbabilisticOutcomesProxy::get_operator() const
 /// one for each probabilistic operator.
 class ProbabilisticOperatorsProxy
     : public ProxyCollection<ProbabilisticOperatorsProxy> {
-    const ProbabilisticTask* task;
+    const ProbabilisticTask* task_;
 
 public:
     explicit ProbabilisticOperatorsProxy(const ProbabilisticTask& task)
-        : task(&task)
+        : task_(&task)
     {
     }
 
     /// Returns the number of probabilistic operators in the list.
-    std::size_t size() const { return task->get_num_operators(); }
+    [[nodiscard]]
+    std::size_t size() const
+    {
+        return task_->get_num_operators();
+    }
 
     /// Get a proxy for a specific probabilistic operator by list index.
     ProbabilisticOperatorProxy operator[](std::size_t index) const
     {
         assert(index < size());
-        return ProbabilisticOperatorProxy(*task, index);
+        return ProbabilisticOperatorProxy(*task_, index);
     }
 
     /// Get a proxy for a specific probabilistic operator by operator id.
@@ -307,6 +330,7 @@ public:
     }
 
     /// Returns a proxy for the list of probabilistic operators.
+    [[nodiscard]]
     ProbabilisticOperatorsProxy get_operators() const
     {
         return ProbabilisticOperatorsProxy(
@@ -318,10 +342,11 @@ public:
 inline bool
 does_fire(const ProbabilisticEffectProxy& effect, const State& state)
 {
-    for (FactProxy condition : effect.get_conditions()) {
-        if (state[condition.get_variable()] != condition) return false;
-    }
-    return true;
+    return std::ranges::all_of(
+        effect.get_conditions(),
+        [&](FactProxy condition) {
+            return state[condition.get_variable()] == condition;
+        });
 }
 
 } // namespace probfd

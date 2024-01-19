@@ -13,9 +13,7 @@
 #include <cstdint>
 #include <optional>
 
-namespace probfd {
-namespace algorithms {
-namespace heuristic_search {
+namespace probfd::algorithms::heuristic_search {
 
 template <typename, bool StorePolicy = false>
 struct StatesPolicy {};
@@ -48,11 +46,35 @@ struct StateFlags {
 
     uint8_t info = 0;
 
-    bool is_value_initialized() const { return (info & MASK) != 0; }
-    bool is_dead_end() const { return (info & MASK) == DEAD; }
-    bool is_goal_state() const { return (info & MASK) == GOAL; }
-    bool is_terminal() const { return is_dead_end() || is_goal_state(); }
-    bool is_on_fringe() const { return (info & MASK) == FRINGE; }
+    [[nodiscard]]
+    bool is_value_initialized() const
+    {
+        return (info & MASK) != 0;
+    }
+
+    [[nodiscard]]
+    bool is_dead_end() const
+    {
+        return (info & MASK) == DEAD;
+    }
+
+    [[nodiscard]]
+    bool is_goal_state() const
+    {
+        return (info & MASK) == GOAL;
+    }
+
+    [[nodiscard]]
+    bool is_terminal() const
+    {
+        return is_dead_end() || is_goal_state();
+    }
+
+    [[nodiscard]]
+    bool is_on_fringe() const
+    {
+        return (info & MASK) == FRINGE;
+    }
 
     void set_goal()
     {
@@ -89,12 +111,14 @@ struct PerStateBaseInformation
     AlgorithmValueType<UseInterval> value;
 
     /// Checks if the value bounds are epsilon-close.
+    [[nodiscard]]
     bool bounds_agree() const
     {
         static_assert(UseInterval, "No interval available!");
         return value.bounds_approximately_equal();
     }
 
+    [[nodiscard]]
     value_t get_value() const
     {
         if constexpr (UseInterval) {
@@ -104,6 +128,7 @@ struct PerStateBaseInformation
         }
     }
 
+    [[nodiscard]]
     Interval get_bounds() const
     {
         if constexpr (UseInterval) {
@@ -114,8 +139,6 @@ struct PerStateBaseInformation
     }
 };
 
-} // namespace heuristic_search
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::heuristic_search
 
-#endif // __HEURISTIC_SEARCH_STATE_INFORMATION_H__
+#endif // PROBFD_ALGORITHMS_HEURISTIC_SEARCH_STATE_INFORMATION_H

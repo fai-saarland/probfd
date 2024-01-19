@@ -32,4 +32,4 @@ public:
 
 } // namespace probfd
 
-#endif // __STATE_EVALUATOR_H__
+#endif // PROBFD_EVALUATOR_H

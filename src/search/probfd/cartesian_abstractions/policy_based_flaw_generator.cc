@@ -35,8 +35,8 @@ class CartesianHeuristic;
 PolicyBasedFlawGenerator::PolicyBasedFlawGenerator(
     PolicyGenerator* policy_generator,
     PolicyFlawFinder* policy_flaw_finder)
-    : policy_generator(policy_generator)
-    , policy_flaw_finder(policy_flaw_finder)
+    : policy_generator_(policy_generator)
+    , policy_flaw_finder_(policy_flaw_finder)
 {
 }
 
@@ -48,8 +48,9 @@ unique_ptr<Solution> PolicyBasedFlawGenerator::find_solution(
     CartesianHeuristic& heuristic,
     utils::CountdownTimer& timer)
 {
-    TimerScope scope(find_policy_timer);
-    return policy_generator->find_solution(abstraction, init, heuristic, timer);
+    TimerScope scope(find_policy_timer_);
+    return policy_generator_
+        ->find_solution(abstraction, init, heuristic, timer);
 }
 
 optional<Flaw> PolicyBasedFlawGenerator::find_flaw(
@@ -60,8 +61,8 @@ optional<Flaw> PolicyBasedFlawGenerator::find_flaw(
     utils::LogProxy& log,
     utils::CountdownTimer& timer)
 {
-    TimerScope scope(find_flaw_timer);
-    return policy_flaw_finder->find_flaw(
+    TimerScope scope(find_flaw_timer_);
+    return policy_flaw_finder_->find_flaw(
         task_proxy,
         domain_sizes,
         abstraction,
@@ -107,14 +108,14 @@ void PolicyBasedFlawGenerator::notify_split()
 void PolicyBasedFlawGenerator::print_statistics(utils::LogProxy& log)
 {
     if (log.is_at_least_normal()) {
-        log << "Time for finding abstract policies: " << find_policy_timer
+        log << "Time for finding abstract policies: " << find_policy_timer_
             << endl;
-        log << "Time for finding policy flaws: " << find_flaw_timer << endl;
+        log << "Time for finding policy flaws: " << find_flaw_timer_ << endl;
     }
 }
 
 ILAOFlawGeneratorFactory::ILAOFlawGeneratorFactory(int max_search_states)
-    : max_search_states(max_search_states)
+    : max_search_states_(max_search_states)
 {
 }
 
@@ -122,7 +123,7 @@ std::unique_ptr<FlawGenerator> ILAOFlawGeneratorFactory::create_flaw_generator()
 {
     return std::make_unique<PolicyBasedFlawGenerator>(
         new ILAOPolicyGenerator(),
-        new CompletePolicyFlawFinder(max_search_states));
+        new CompletePolicyFlawFinder(max_search_states_));
 }
 
 class ILAOFlawGeneratorFactoryFeature
@@ -141,7 +142,8 @@ public:
             plugins::Bounds("1", "infinity"));
     }
 
-    virtual shared_ptr<ILAOFlawGeneratorFactory>
+    [[nodiscard]]
+    shared_ptr<ILAOFlawGeneratorFactory>
     create_component(const plugins::Options& opts, const utils::Context&)
         const override
     {

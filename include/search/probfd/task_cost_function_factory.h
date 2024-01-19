@@ -5,9 +5,12 @@
 
 #include <memory>
 
+// Forward Declarations
 namespace probfd {
-
 class ProbabilisticTask;
+}
+
+namespace probfd {
 
 class TaskCostFunctionFactory {
 public:
@@ -19,4 +22,4 @@ public:
 
 } // namespace probfd
 
-#endif // HEURISTIC_FACTORY_H
+#endif // PROBFD_TASK_COST_FUNCTION_FACTORY_H

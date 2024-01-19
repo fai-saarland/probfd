@@ -6,23 +6,23 @@
 #include <memory>
 #include <vector>
 
-namespace probfd {
-
-namespace cartesian_abstractions {
+// Forward Declarations
+namespace probfd::cartesian_abstractions {
 class CartesianHeuristicFunction;
 class FlawGeneratorFactory;
 class SplitSelectorFactory;
 class SubtaskGenerator;
-} // namespace cartesian_abstractions
+} // namespace probfd::cartesian_abstractions
 
-namespace heuristics {
+namespace probfd::heuristics {
 
 /*
   Store CartesianHeuristicFunctions and compute overall heuristic by
   summing all of their values.
 */
 class AdditiveCartesianHeuristic : public TaskDependentHeuristic {
-    const std::vector<cartesian_abstractions::CartesianHeuristicFunction> heuristic_functions;
+    const std::vector<cartesian_abstractions::CartesianHeuristicFunction>
+        heuristic_functions_;
 
 public:
     AdditiveCartesianHeuristic(
@@ -30,8 +30,10 @@ public:
         utils::LogProxy log,
         std::vector<std::shared_ptr<cartesian_abstractions::SubtaskGenerator>>
             subtask_generators,
-        std::shared_ptr<cartesian_abstractions::FlawGeneratorFactory> flaw_generator_factory,
-        std::shared_ptr<cartesian_abstractions::SplitSelectorFactory> split_selector_factory,
+        std::shared_ptr<cartesian_abstractions::FlawGeneratorFactory>
+            flaw_generator_factory,
+        std::shared_ptr<cartesian_abstractions::SplitSelectorFactory>
+            split_selector_factory,
         int max_states,
         int max_transitions,
         double max_time,
@@ -41,7 +43,6 @@ protected:
     value_t evaluate(const State& ancestor_state) const override;
 };
 
-} // namespace heuristics
-} // namespace probfd
+} // namespace probfd::heuristics
 
 #endif // PROBFD_HEURISTICS_ADDITIVE_CARTESIAN_HEURISTIC_H

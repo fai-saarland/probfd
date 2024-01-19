@@ -5,18 +5,18 @@
 
 #include <deque>
 
+// Forward Declarations
 namespace utils {
 class CountdownTimer;
 }
 
-namespace probfd {
-namespace algorithms {
-
+namespace probfd::algorithms {
 template <typename>
 class SuccessorSampler;
+}
 
 /// Namespace dedicated to labelled real-time dynamic programming (LRTDP).
-namespace lrtdp {
+namespace probfd::algorithms::lrtdp {
 
 /**
  * @brief Enumeration type specifying the termination condition for trials
@@ -61,11 +61,23 @@ struct PerStateInformation : public StateInfo {
     static constexpr uint8_t BITS = StateInfo::BITS + 3;
     static constexpr uint8_t MASK = (7 << StateInfo::BITS);
 
-    bool is_marked_open() const { return this->info & MARKED_OPEN; }
+    [[nodiscard]]
+    bool is_marked_open() const
+    {
+        return this->info & MARKED_OPEN;
+    }
 
-    bool is_marked_trial() const { return this->info & MARKED_TRIAL; }
+    [[nodiscard]]
+    bool is_marked_trial() const
+    {
+        return this->info & MARKED_TRIAL;
+    }
 
-    bool is_solved() const { return this->info & SOLVED; }
+    [[nodiscard]]
+    bool is_solved() const
+    {
+        return this->info & SOLVED;
+    }
 
     void mark_open()
     {
@@ -149,7 +161,7 @@ private:
 
     using Statistics = internal::Statistics;
 
-    const TrialTerminationCondition StopConsistent;
+    const TrialTerminationCondition stop_consistent_;
     std::shared_ptr<SuccessorSampler> sample_;
 
     std::vector<StateID> current_trial_;
@@ -203,12 +215,10 @@ private:
     */
 };
 
-} // namespace lrtdp
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::lrtdp
 
 #define GUARD_INCLUDE_PROBFD_ALGORITHMS_LRTDP_H
 #include "probfd/algorithms/lrtdp_impl.h"
 #undef GUARD_INCLUDE_PROBFD_ALGORITHMS_LRTDP_H
 
-#endif // __LRTDP_H__
+#endif // PROBFD_ALGORITHMS_LRTDP_H

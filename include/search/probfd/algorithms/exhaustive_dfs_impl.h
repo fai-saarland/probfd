@@ -9,10 +9,9 @@
 #include "probfd/evaluator.h"
 
 #include <cassert>
+#include <ranges>
 
-namespace probfd {
-namespace algorithms {
-namespace exhaustive_dfs {
+namespace probfd::algorithms::exhaustive_dfs {
 
 inline bool update_lower_bound(value_t& x, value_t v)
 {
@@ -311,6 +310,8 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
     Evaluator& heuristic,
     ProgressReport& progress)
 {
+    using namespace std;
+
     while (!expansion_infos_.empty()) {
         ExpansionInformation& expanding = expansion_infos_.back();
         assert(expanding.stack_index < stack_infos_.size());
@@ -443,7 +444,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
 
                 if (scc_size > 1) {
                     unsigned iterations = 0;
-                    bool changed = true;
+                    bool changed;
                     do {
                         changed = false;
                         for (auto it = stack_infos_.rbegin(); it != rend;
@@ -451,8 +452,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
                             StackInformation& s = *it;
                             assert(!s.successors.empty());
                             value_t best = s.successors.back().base;
-                            for (int i = s.successors.size() - 1; i >= 0; --i) {
-                                const auto& t = s.successors[i];
+                            for (const auto& t : views::reverse(s.successors)) {
                                 value_t t_first = t.base;
                                 for (auto [succ_id, prob] : t.successors) {
                                     t_first +=
@@ -587,6 +587,4 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
     }
 }
 
-} // namespace exhaustive_dfs
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::exhaustive_dfs

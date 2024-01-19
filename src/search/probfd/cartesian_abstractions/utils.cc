@@ -9,14 +9,11 @@
 #include "downward/plugins/options.h"
 #include "downward/utils/logging.h"
 
-#include <cstddef>
-
 class AbstractTask;
 
 using namespace std;
 
-namespace probfd {
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 
 unique_ptr<additive_heuristic::AdditiveHeuristic>
 create_additive_heuristic(const shared_ptr<ProbabilisticTask>& task)
@@ -34,20 +31,21 @@ static bool operator_applicable(
     const ProbabilisticOperatorProxy& op,
     const utils::HashSet<FactPair>& facts)
 {
-    for (FactProxy precondition : op.get_preconditions()) {
-        if (!facts.contains(precondition.get_pair())) return false;
-    }
-    return true;
+    return std::ranges::all_of(
+        op.get_preconditions() | views::transform(&FactProxy::get_pair),
+        [&](const FactPair& precondition) {
+            return facts.contains(precondition);
+        });
 }
 
 static bool outcome_can_achieve_fact(
     const ProbabilisticOutcomeProxy& outcome,
     const FactPair& fact)
 {
-    for (ProbabilisticEffectProxy effect : outcome.get_effects()) {
-        if (effect.get_fact().get_pair() == fact) return true;
-    }
-    return false;
+    return std::ranges::any_of(
+        outcome.get_effects() |
+            views::transform(&ProbabilisticEffectProxy::get_fact),
+        [&](FactProxy effect) { return effect.get_pair() == fact; });
 }
 
 static utils::HashSet<FactPair> compute_possibly_before_facts(
@@ -98,5 +96,4 @@ utils::HashSet<FactPair> get_relaxed_possible_before(
     return reachable_facts;
 }
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions

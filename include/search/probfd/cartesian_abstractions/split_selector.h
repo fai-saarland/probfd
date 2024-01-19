@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 
+// Forward Declarations
 class AbstractTaskBase;
 
 namespace additive_heuristic {
@@ -22,10 +23,11 @@ namespace utils {
 class RandomNumberGenerator;
 }
 
-namespace probfd {
-namespace cartesian_abstractions {
-
+namespace probfd::cartesian_abstractions {
 class AbstractState;
+} // namespace probfd::cartesian_abstractions
+
+namespace probfd::cartesian_abstractions {
 
 struct Split {
     int var_id;
@@ -45,7 +47,7 @@ public:
 };
 
 class SplitSelectorRandom : public SplitSelector {
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
+    std::shared_ptr<utils::RandomNumberGenerator> rng_;
 
 public:
     explicit SplitSelectorRandom(
@@ -89,39 +91,42 @@ public:
 // Number of values that land in the state whose h-value is probably raised.
 class SplitSelectorUnwanted
     : public RateBasedSplitSelector<SplitSelectorUnwanted> {
-    const int factor;
+    const int factor_;
 
 public:
     explicit SplitSelectorUnwanted(int factor);
 
+    [[nodiscard]]
     double rate_split(const AbstractState& state, const Split& split) const;
 };
 
 // Refinement: - (remaining_values / original_domain_size)
 class SplitSelectorRefinedness
     : public RateBasedSplitSelector<SplitSelectorRefinedness> {
-    const ProbabilisticTaskProxy task_proxy;
-    const double factor;
+    const ProbabilisticTaskProxy task_proxy_;
+    const double factor_;
 
 public:
     SplitSelectorRefinedness(
         const std::shared_ptr<ProbabilisticTask>& task,
         double factor);
 
+    [[nodiscard]]
     double rate_split(const AbstractState& state, const Split& split) const;
 };
 
 // Compare the h^add(s_0) values of the facts.
 class SplitSelectorHAdd {
-    const std::shared_ptr<AbstractTaskBase> task;
-    const ProbabilisticTaskProxy task_proxy;
-    std::unique_ptr<additive_heuristic::AdditiveHeuristic> additive_heuristic;
+    const std::shared_ptr<AbstractTaskBase> task_;
+    const ProbabilisticTaskProxy task_proxy_;
+    std::unique_ptr<additive_heuristic::AdditiveHeuristic> additive_heuristic_;
 
 public:
     explicit SplitSelectorHAdd(const std::shared_ptr<ProbabilisticTask>& task);
     ~SplitSelectorHAdd();
 
 protected:
+    [[nodiscard]]
     int get_hadd_value(int var_id, int value) const;
 };
 
@@ -132,9 +137,11 @@ public:
     explicit SplitSelectorMinHAdd(
         const std::shared_ptr<ProbabilisticTask>& task);
 
+    [[nodiscard]]
     double rate_split(const AbstractState& state, const Split& split) const;
 
 private:
+    [[nodiscard]]
     int get_min_hadd_value(int var_id, const std::vector<int>& values) const;
 };
 
@@ -145,9 +152,11 @@ public:
     explicit SplitSelectorMaxHAdd(
         const std::shared_ptr<ProbabilisticTask>& task);
 
+    [[nodiscard]]
     double rate_split(const AbstractState& state, const Split& split) const;
 
 private:
+    [[nodiscard]]
     int get_max_hadd_value(int var_id, const std::vector<int>& values) const;
 };
 
@@ -166,10 +175,10 @@ public:
   Select split in case there are multiple possible splits.
 */
 class SplitSelectorRandomFactory : public SplitSelectorFactory {
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
+    std::shared_ptr<utils::RandomNumberGenerator> rng_;
 
 public:
-    SplitSelectorRandomFactory(const plugins::Options& opts);
+    explicit SplitSelectorRandomFactory(const plugins::Options& opts);
 
     std::unique_ptr<SplitSelector> create_split_selector(
         const std::shared_ptr<ProbabilisticTask>& task) override;
@@ -229,7 +238,6 @@ public:
         const std::shared_ptr<ProbabilisticTask>& task) override;
 };
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions
 
 #endif // PROBFD_CARTESIAN_ABSTRACTIONS_SPLIT_SELECTOR_H

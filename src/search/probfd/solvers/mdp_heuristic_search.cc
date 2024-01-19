@@ -1,15 +1,12 @@
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "probfd/algorithms/policy_picker.h"
-
 #include "probfd/plugins/naming_conventions.h"
 
 #include "downward/plugins/plugin.h"
 
 #include <iostream>
 
-namespace probfd {
-namespace solvers {
+namespace probfd::solvers {
 
 using namespace algorithms;
 using namespace plugins;
@@ -119,5 +116,4 @@ void MDPHeuristicSearch<true, true>::add_options_to_feature(Feature& feature)
     feature.add_option<bool>("fret_on_policy", "", "true");
 }
 
-} // namespace solvers
-} // namespace probfd
+} // namespace probfd::solvers

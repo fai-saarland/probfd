@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 
+// Forward Declarations
 class State;
 
 namespace utils {
@@ -19,13 +20,16 @@ class Duration;
 namespace probfd {
 class ProbabilisticTaskProxy;
 class ProbabilisticTask;
+} // namespace probfd
 
-namespace cartesian_abstractions {
-
+namespace probfd::cartesian_abstractions {
 class CartesianHeuristicFunction;
 class FlawGeneratorFactory;
 class SplitSelectorFactory;
 class SubtaskGenerator;
+} // namespace probfd::cartesian_abstractions
+
+namespace probfd::cartesian_abstractions {
 
 /*
   Get subtasks from SubtaskGenerators, reduce their costs by wrapping
@@ -35,20 +39,20 @@ class SubtaskGenerator;
   CartesianHeuristicFunctions into AdditiveCartesianHeuristic.
 */
 class CostSaturation {
-    const std::vector<std::shared_ptr<SubtaskGenerator>> subtask_generators;
-    const std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory;
-    const std::shared_ptr<SplitSelectorFactory> split_selector_factory;
-    const int max_states;
-    const int max_non_looping_transitions;
-    const double max_time;
-    const bool use_general_costs;
-    mutable utils::LogProxy log;
+    const std::vector<std::shared_ptr<SubtaskGenerator>> subtask_generators_;
+    const std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory_;
+    const std::shared_ptr<SplitSelectorFactory> split_selector_factory_;
+    const int max_states_;
+    const int max_non_looping_transitions_;
+    const double max_time_;
+    const bool use_general_costs_;
+    mutable utils::LogProxy log_;
 
-    std::vector<CartesianHeuristicFunction> heuristic_functions;
-    std::vector<value_t> remaining_costs;
-    int num_abstractions;
-    int num_states;
-    int num_non_looping_transitions;
+    std::vector<CartesianHeuristicFunction> heuristic_functions_;
+    std::vector<value_t> remaining_costs_;
+    int num_abstractions_;
+    int num_states_;
+    int num_non_looping_transitions_;
 
     void reset(const ProbabilisticTaskProxy& task_proxy);
     void reduce_remaining_costs(const std::vector<value_t>& saturated_costs);
@@ -79,7 +83,6 @@ public:
         const std::shared_ptr<ProbabilisticTask>& task);
 };
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions
 
 #endif // PROBFD_CARTESIAN_COST_SATURATION_H

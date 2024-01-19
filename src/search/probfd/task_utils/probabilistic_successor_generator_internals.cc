@@ -71,27 +71,27 @@ using namespace std;
     zero-terminated heap-allocated array.
 */
 
-namespace probfd {
-namespace successor_generator {
+namespace probfd::successor_generator {
+
 ProbabilisticGeneratorForkBinary::ProbabilisticGeneratorForkBinary(
     unique_ptr<ProbabilisticGeneratorBase> generator1,
     unique_ptr<ProbabilisticGeneratorBase> generator2)
-    : generator1(std::move(generator1))
-    , generator2(std::move(generator2))
+    : generator_1_(std::move(generator1))
+    , generator_2_(std::move(generator2))
 {
     /* There is no reason to use a fork if only one of the generators exists.
        Use the existing generator directly if one of them exists or a nullptr
        otherwise. */
-    assert(this->generator1);
-    assert(this->generator2);
+    assert(this->generator_1_);
+    assert(this->generator_2_);
 }
 
 void ProbabilisticGeneratorForkBinary::generate_applicable_ops(
     const vector<int>& state,
     vector<OperatorID>& applicable_ops) const
 {
-    generator1->generate_applicable_ops(state, applicable_ops);
-    generator2->generate_applicable_ops(state, applicable_ops);
+    generator_1_->generate_applicable_ops(state, applicable_ops);
+    generator_2_->generate_applicable_ops(state, applicable_ops);
 }
 
 void ProbabilisticGeneratorForkBinary::generate_transitions(
@@ -99,26 +99,26 @@ void ProbabilisticGeneratorForkBinary::generate_transitions(
     std::vector<Transition<OperatorID>>& transitions,
     TaskStateSpace& task_state_space) const
 {
-    generator1->generate_transitions(state, transitions, task_state_space);
-    generator2->generate_transitions(state, transitions, task_state_space);
+    generator_1_->generate_transitions(state, transitions, task_state_space);
+    generator_2_->generate_transitions(state, transitions, task_state_space);
 }
 
 ProbabilisticGeneratorForkMulti::ProbabilisticGeneratorForkMulti(
     vector<unique_ptr<ProbabilisticGeneratorBase>> children)
-    : children(std::move(children))
+    : children_(std::move(children))
 {
     /* Note that we permit 0-ary forks as a way to define empty
        successor generators (for tasks with no operators). It is
        the responsibility of the factory code to make sure they
        are not generated in other circumstances. */
-    assert(this->children.empty() || this->children.size() >= 2);
+    assert(this->children_.empty() || this->children_.size() >= 2);
 }
 
 void ProbabilisticGeneratorForkMulti::generate_applicable_ops(
     const vector<int>& state,
     vector<OperatorID>& applicable_ops) const
 {
-    for (const auto& generator : children)
+    for (const auto& generator : children_)
         generator->generate_applicable_ops(state, applicable_ops);
 }
 
@@ -127,15 +127,15 @@ void ProbabilisticGeneratorForkMulti::generate_transitions(
     std::vector<Transition<OperatorID>>& transitions,
     TaskStateSpace& task_state_space) const
 {
-    for (const auto& generator : children)
+    for (const auto& generator : children_)
         generator->generate_transitions(state, transitions, task_state_space);
 }
 
 ProbabilisticGeneratorSwitchVector::ProbabilisticGeneratorSwitchVector(
     int switch_var_id,
     vector<unique_ptr<ProbabilisticGeneratorBase>>&& generator_for_value)
-    : switch_var_id(switch_var_id)
-    , generator_for_value(std::move(generator_for_value))
+    : switch_var_id_(switch_var_id)
+    , generator_for_value_(std::move(generator_for_value))
 {
 }
 
@@ -143,9 +143,9 @@ void ProbabilisticGeneratorSwitchVector::generate_applicable_ops(
     const vector<int>& state,
     vector<OperatorID>& applicable_ops) const
 {
-    int val = state[switch_var_id];
+    int val = state[switch_var_id_];
     const unique_ptr<ProbabilisticGeneratorBase>& generator_for_val =
-        generator_for_value[val];
+        generator_for_value_[val];
     if (generator_for_val) {
         generator_for_val->generate_applicable_ops(state, applicable_ops);
     }
@@ -156,9 +156,9 @@ void ProbabilisticGeneratorSwitchVector::generate_transitions(
     std::vector<Transition<OperatorID>>& transitions,
     TaskStateSpace& task_state_space) const
 {
-    int val = state.get_unpacked_values()[switch_var_id];
+    int val = state.get_unpacked_values()[switch_var_id_];
     const unique_ptr<ProbabilisticGeneratorBase>& generator_for_val =
-        generator_for_value[val];
+        generator_for_value_[val];
     if (generator_for_val) {
         generator_for_val->generate_transitions(
             state,
@@ -171,8 +171,8 @@ ProbabilisticGeneratorSwitchHash::ProbabilisticGeneratorSwitchHash(
     int switch_var_id,
     unordered_map<int, unique_ptr<ProbabilisticGeneratorBase>>&&
         generator_for_value)
-    : switch_var_id(switch_var_id)
-    , generator_for_value(std::move(generator_for_value))
+    : switch_var_id_(switch_var_id)
+    , generator_for_value_(std::move(generator_for_value))
 {
 }
 
@@ -180,9 +180,9 @@ void ProbabilisticGeneratorSwitchHash::generate_applicable_ops(
     const vector<int>& state,
     vector<OperatorID>& applicable_ops) const
 {
-    int val = state[switch_var_id];
-    const auto& child = generator_for_value.find(val);
-    if (child != generator_for_value.end()) {
+    int val = state[switch_var_id_];
+    const auto& child = generator_for_value_.find(val);
+    if (child != generator_for_value_.end()) {
         const unique_ptr<ProbabilisticGeneratorBase>& generator_for_val =
             child->second;
         generator_for_val->generate_applicable_ops(state, applicable_ops);
@@ -194,9 +194,9 @@ void ProbabilisticGeneratorSwitchHash::generate_transitions(
     std::vector<Transition<OperatorID>>& transitions,
     TaskStateSpace& task_state_space) const
 {
-    int val = state.get_unpacked_values()[switch_var_id];
-    const auto& child = generator_for_value.find(val);
-    if (child != generator_for_value.end()) {
+    int val = state.get_unpacked_values()[switch_var_id_];
+    const auto& child = generator_for_value_.find(val);
+    if (child != generator_for_value_.end()) {
         const unique_ptr<ProbabilisticGeneratorBase>& generator_for_val =
             child->second;
         generator_for_val->generate_transitions(
@@ -210,9 +210,9 @@ ProbabilisticGeneratorSwitchSingle::ProbabilisticGeneratorSwitchSingle(
     int switch_var_id,
     int value,
     unique_ptr<ProbabilisticGeneratorBase> generator_for_value)
-    : switch_var_id(switch_var_id)
-    , value(value)
-    , generator_for_value(std::move(generator_for_value))
+    : switch_var_id_(switch_var_id)
+    , value_(value)
+    , generator_for_value_(std::move(generator_for_value))
 {
 }
 
@@ -220,8 +220,8 @@ void ProbabilisticGeneratorSwitchSingle::generate_applicable_ops(
     const vector<int>& state,
     vector<OperatorID>& applicable_ops) const
 {
-    if (value == state[switch_var_id]) {
-        generator_for_value->generate_applicable_ops(state, applicable_ops);
+    if (value_ == state[switch_var_id_]) {
+        generator_for_value_->generate_applicable_ops(state, applicable_ops);
     }
 }
 
@@ -230,8 +230,8 @@ void ProbabilisticGeneratorSwitchSingle::generate_transitions(
     std::vector<Transition<OperatorID>>& transitions,
     TaskStateSpace& task_state_space) const
 {
-    if (value == state.get_unpacked_values()[switch_var_id]) {
-        generator_for_value->generate_transitions(
+    if (value_ == state.get_unpacked_values()[switch_var_id_]) {
+        generator_for_value_->generate_transitions(
             state,
             transitions,
             task_state_space);
@@ -240,7 +240,7 @@ void ProbabilisticGeneratorSwitchSingle::generate_transitions(
 
 ProbabilisticGeneratorLeafVector::ProbabilisticGeneratorLeafVector(
     vector<OperatorID>&& applicable_operators)
-    : applicable_operators(std::move(applicable_operators))
+    : applicable_operators_(std::move(applicable_operators))
 {
 }
 
@@ -255,7 +255,7 @@ void ProbabilisticGeneratorLeafVector::generate_applicable_ops(
       the container type from list to vector since then, so this might
       no longer apply.
     */
-    for (OperatorID id : applicable_operators) {
+    for (OperatorID id : applicable_operators_) {
         applicable_ops.push_back(id);
     }
 }
@@ -265,7 +265,7 @@ void ProbabilisticGeneratorLeafVector::generate_transitions(
     std::vector<Transition<OperatorID>>& transitions,
     TaskStateSpace& task_state_space) const
 {
-    for (OperatorID id : applicable_operators) {
+    for (OperatorID id : applicable_operators_) {
         auto& t = transitions.emplace_back(id);
         task_state_space.compute_successor_dist(state, id, t.successor_dist);
     }
@@ -273,7 +273,7 @@ void ProbabilisticGeneratorLeafVector::generate_transitions(
 
 ProbabilisticGeneratorLeafSingle::ProbabilisticGeneratorLeafSingle(
     OperatorID applicable_operator)
-    : applicable_operator(applicable_operator)
+    : applicable_operator_(applicable_operator)
 {
 }
 
@@ -281,7 +281,7 @@ void ProbabilisticGeneratorLeafSingle::generate_applicable_ops(
     const vector<int>&,
     vector<OperatorID>& applicable_ops) const
 {
-    applicable_ops.push_back(applicable_operator);
+    applicable_ops.push_back(applicable_operator_);
 }
 
 void ProbabilisticGeneratorLeafSingle::generate_transitions(
@@ -289,12 +289,11 @@ void ProbabilisticGeneratorLeafSingle::generate_transitions(
     std::vector<Transition<OperatorID>>& transitions,
     TaskStateSpace& task_state_space) const
 {
-    auto& t = transitions.emplace_back(applicable_operator);
+    auto& t = transitions.emplace_back(applicable_operator_);
     task_state_space.compute_successor_dist(
         state,
-        applicable_operator,
+        applicable_operator_,
         t.successor_dist);
 }
 
-} // namespace successor_generator
-} // namespace probfd
+} // namespace probfd::successor_generator

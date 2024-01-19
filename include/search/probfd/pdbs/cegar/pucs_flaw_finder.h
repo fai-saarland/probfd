@@ -17,15 +17,14 @@
 #include <unordered_set>
 #include <vector>
 
+// Forward Declarations
 class State;
 
 namespace plugins {
 class Options;
 } // namespace plugins
 
-namespace probfd {
-namespace pdbs {
-namespace cegar {
+namespace probfd::pdbs::cegar {
 
 class PUCSFlawFinder : public FlawFindingStrategy {
     struct ExpansionInfo {
@@ -33,16 +32,14 @@ class PUCSFlawFinder : public FlawFindingStrategy {
         value_t path_probability = 0_vt;
     };
 
-    priority_queues::HeapQueue<value_t, State> pq;
-    storage::PerStateStorage<ExpansionInfo> probabilities;
+    priority_queues::HeapQueue<value_t, State> pq_;
+    storage::PerStateStorage<ExpansionInfo> probabilities_;
 
-    const int max_search_states;
+    const int max_search_states_;
 
 public:
     explicit PUCSFlawFinder(const plugins::Options& opts);
     explicit PUCSFlawFinder(int max_search_states);
-
-    ~PUCSFlawFinder() override = default;
 
     bool apply_policy(
         const ProbabilisticTaskProxy& task_proxy,
@@ -56,8 +53,6 @@ public:
     std::string get_name() override;
 };
 
-} // namespace cegar
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs::cegar
 
 #endif // PROBFD_PDBS_CEGAR_PUCS_FLAW_FINDER_H

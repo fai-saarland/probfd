@@ -10,9 +10,7 @@
 
 #include "probfd/evaluator.h"
 
-namespace probfd {
-
-namespace quotients {
+namespace probfd::quotients {
 
 template <typename State, typename Action>
 class QuotientMaxHeuristic : public Evaluator<QuotientState<State, Action>> {
@@ -21,7 +19,7 @@ class QuotientMaxHeuristic : public Evaluator<QuotientState<State, Action>> {
     const Evaluator<State>& original_;
 
 public:
-    QuotientMaxHeuristic(const Evaluator<State>& original)
+    explicit QuotientMaxHeuristic(const Evaluator<State>& original)
         : original_(original)
     {
     }
@@ -32,13 +30,9 @@ public:
             std::bind_front(&Evaluator<State>::evaluate, std::ref(original_)));
     }
 
-    void print_statistics() const final override
-    {
-        original_.print_statistics();
-    }
+    void print_statistics() const final { original_.print_statistics(); }
 };
 
-} // namespace quotients
-} // namespace probfd
+} // namespace probfd::quotients
 
-#endif // __state_properties.h_H__
+#endif // PROBFD_QUOTIENT_SYSTEM_HEURISTIC_SEARCH_INTERFACE_H

@@ -18,14 +18,11 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cstddef>
-#include <span>
 #include <utility>
 
 using namespace probfd::pdbs;
 
-namespace probfd {
-namespace heuristics {
+namespace probfd::heuristics {
 
 namespace {
 class ExplicitTaskCostFunction : public FDRSimpleCostFunction {
@@ -33,7 +30,7 @@ class ExplicitTaskCostFunction : public FDRSimpleCostFunction {
     std::vector<value_t> costs;
 
 public:
-    ExplicitTaskCostFunction(const ProbabilisticTaskProxy& task_proxy)
+    explicit ExplicitTaskCostFunction(const ProbabilisticTaskProxy& task_proxy)
         : task_proxy(task_proxy)
     {
         const auto operators = task_proxy.get_operators();
@@ -49,11 +46,13 @@ public:
         return costs[op.get_index()];
     }
 
+    [[nodiscard]]
     bool is_goal(const State& state) const override
     {
         return ::task_properties::is_goal_state(task_proxy, state);
     }
 
+    [[nodiscard]]
     value_t get_non_goal_termination_cost() const override
     {
         return INFINITE_VALUE;
@@ -71,19 +70,19 @@ SCPHeuristic::SCPHeuristic(
     std::shared_ptr<PatternCollectionGenerator> generator,
     OrderingStrategy order,
     std::shared_ptr<utils::RandomNumberGenerator> rng)
-    : TaskDependentHeuristic(task, log)
-    , termination_cost(task_cost_function->get_non_goal_termination_cost())
-    , ordering(order)
-    , rng(rng)
+    : TaskDependentHeuristic(task, std::move(log))
+    , termination_cost_(task_cost_function->get_non_goal_termination_cost())
+    , ordering_(order)
+    , rng_(rng)
 {
     auto pattern_collection_info =
         generator->generate(task, task_cost_function);
 
     auto patterns = pattern_collection_info.get_patterns();
 
-    pdbs.reserve(patterns->size());
+    pdbs_.reserve(patterns->size());
 
-    switch (ordering) {
+    switch (ordering_) {
     case RANDOM: rng->shuffle(*patterns); break;
 
     case SIZE_ASC:
@@ -108,25 +107,25 @@ SCPHeuristic::SCPHeuristic(
     default: break;
     }
 
-    const size_t num_operators = task_proxy.get_operators().size();
+    const size_t num_operators = task_proxy_.get_operators().size();
 
-    ExplicitTaskCostFunction task_costs(task_proxy);
+    ExplicitTaskCostFunction task_costs(task_proxy_);
 
     std::vector<value_t> saturated_costs(num_operators);
 
-    const State& initial_state = task_proxy.get_initial_state();
+    const State& initial_state = task_proxy_.get_initial_state();
 
     for (const Pattern& pattern : *patterns) {
-        StateRankingFunction rankingf(task_proxy.get_variables(), pattern);
+        StateRankingFunction rankingf(task_proxy_.get_variables(), pattern);
         ProjectionStateSpace state_space(
-            task_proxy,
+            task_proxy_,
             task_costs,
             rankingf,
             false);
         const StateRank initial_state_rank =
             rankingf.get_abstract_rank(initial_state);
 
-        auto& pdb = pdbs.emplace_back(
+        auto& pdb = pdbs_.emplace_back(
             state_space,
             std::move(rankingf),
             initial_state_rank);
@@ -153,10 +152,10 @@ value_t SCPHeuristic::evaluate(const State& state) const
 {
     value_t value = 0.0_vt;
 
-    for (const auto& pdb : pdbs) {
+    for (const auto& pdb : pdbs_) {
         const value_t estimate = pdb.lookup_estimate(state);
 
-        if (estimate == termination_cost) {
+        if (estimate == termination_cost_) {
             return estimate;
         }
 
@@ -225,6 +224,8 @@ public:
     }
 };
 
+} // namespace
+
 static plugins::FeaturePlugin<SCPHeuristicFactoryFeature> _plugin;
 
 static plugins::TypedEnumPlugin<SCPHeuristic::OrderingStrategy> _enum_plugin(
@@ -234,7 +235,4 @@ static plugins::TypedEnumPlugin<SCPHeuristic::OrderingStrategy> _enum_plugin(
      {"inherit",
       "inherits the order from the underlying pattern generation algorithm"}});
 
-} // namespace
-
-} // namespace heuristics
-} // namespace probfd
+} // namespace probfd::heuristics

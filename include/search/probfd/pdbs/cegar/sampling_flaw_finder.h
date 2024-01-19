@@ -12,6 +12,7 @@
 #include <unordered_set>
 #include <vector>
 
+// Forward Declarations
 class StateID;
 class State;
 
@@ -25,9 +26,9 @@ class RandomNumberGenerator;
 
 namespace probfd {
 class ProbabilisticTaskProxy;
+}
 
-namespace pdbs {
-namespace cegar {
+namespace probfd::pdbs::cegar {
 
 class SamplingFlawFinder : public FlawFindingStrategy {
     struct ExplorationInfo {
@@ -35,11 +36,11 @@ class SamplingFlawFinder : public FlawFindingStrategy {
         Distribution<StateID> successors;
     };
 
-    std::vector<State> stk;
-    storage::PerStateStorage<ExplorationInfo> einfos;
+    std::vector<State> stk_;
+    storage::PerStateStorage<ExplorationInfo> einfos_;
 
-    const std::shared_ptr<utils::RandomNumberGenerator> rng;
-    const int max_search_states;
+    const std::shared_ptr<utils::RandomNumberGenerator> rng_;
+    const int max_search_states_;
 
 public:
     explicit SamplingFlawFinder(const plugins::Options& opts);
@@ -61,8 +62,6 @@ public:
     std::string get_name() override;
 };
 
-} // namespace cegar
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs::cegar
 
 #endif // PROBFD_PDBS_CEGAR_SAMPLING_FLAW_FINDER_H

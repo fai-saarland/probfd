@@ -8,14 +8,13 @@
 
 #include "probfd/cost_function.h"
 #include "probfd/evaluator.h"
+#include "probfd/progress_report.h"
 
 #include "downward/utils/countdown_timer.h"
 
 #include <type_traits>
 
-namespace probfd {
-namespace algorithms {
-namespace ta_topological_vi {
+namespace probfd::algorithms::ta_topological_vi {
 
 inline void Statistics::print(std::ostream& out) const
 {
@@ -427,6 +426,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
         int status = succ_info.status;
 
         switch (status) {
+        default: abort();
         case StateInfo::NEW: {
             push_state(succ_id, succ_info, s_value);
             return true; // recursion on new state
@@ -802,6 +802,4 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found_ecd(
     assert(stack_ecd_.size() == e.stackidx);
 }
 
-} // namespace ta_topological_vi
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::ta_topological_vi

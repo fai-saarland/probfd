@@ -13,12 +13,10 @@
 #include <algorithm>
 #include <cassert>
 #include <functional>
-#include <iosfwd>
 #include <sstream>
 #include <string>
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 Pattern extended_pattern(const Pattern& pattern, int add_var)
 {
@@ -93,5 +91,4 @@ void dump_graphviz(
         true);
 }
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs

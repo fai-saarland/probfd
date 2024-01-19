@@ -13,8 +13,7 @@
 #include <memory>
 #include <string>
 
-namespace probfd {
-namespace solvers {
+namespace probfd::solvers {
 namespace {
 
 using namespace algorithms;
@@ -52,7 +51,10 @@ public:
         parameter_validity_check();
     }
 
-    std::string get_heuristic_search_name() const override { return name_; }
+    [[nodiscard]] std::string get_heuristic_search_name() const override
+    {
+        return name_;
+    }
 
     std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
@@ -153,7 +155,7 @@ public:
         MDPHeuristicSearch<Bisimulation, Fret>::add_options_to_feature(*this);
     }
 
-    std::shared_ptr<DFHSSolver<Bisimulation, Fret>>
+    [[nodiscard]] std::shared_ptr<DFHSSolver<Bisimulation, Fret>>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -185,7 +187,7 @@ public:
         MDPHeuristicSearch<Bisimulation, Fret>::add_options_to_feature(*this);
     }
 
-    std::shared_ptr<DFHSSolver<Bisimulation, Fret>>
+    [[nodiscard]] std::shared_ptr<DFHSSolver<Bisimulation, Fret>>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -218,7 +220,7 @@ public:
         MDPHeuristicSearch<Bisimulation, Fret>::add_options_to_feature(*this);
     }
 
-    std::shared_ptr<DFHSSolver<Bisimulation, Fret>>
+    [[nodiscard]] std::shared_ptr<DFHSSolver<Bisimulation, Fret>>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -237,6 +239,8 @@ public:
     }
 };
 
+} // namespace
+
 static MultiFeaturePlugin<DFHSSolverFeature> _plugins_dfhs1;
 static MultiFeaturePlugin<LAOSolverFeature> _plugins_lao;
 static MultiFeaturePlugin<ILAOSolverFeature> _plugins_ilao;
@@ -244,6 +248,5 @@ static MultiFeaturePlugin<HDPSolverFeature> _plugins_hdp;
 
 static TypedEnumPlugin<BacktrackingUpdateType> _fret_enum_plugin(
     {{"disabled", ""}, {"ondemand", ""}, {"single", ""}, {"convergence", ""}});
-}
-} // namespace solvers
-} // namespace probfd
+
+} // namespace probfd::solvers

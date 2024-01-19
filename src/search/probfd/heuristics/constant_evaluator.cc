@@ -2,8 +2,6 @@
 
 #include "probfd/task_evaluator_factory.h"
 
-#include "probfd/fdr_types.h"
-
 #include "downward/plugins/plugin.h"
 
 #include <memory>
@@ -20,8 +18,7 @@ namespace utils {
 class Context;
 }
 
-namespace probfd {
-namespace heuristics {
+namespace probfd::heuristics {
 
 namespace {
 class BlindEvaluatorFactory : public TaskEvaluatorFactory {
@@ -47,7 +44,7 @@ public:
     {
     }
 
-    std::shared_ptr<BlindEvaluatorFactory>
+    [[nodiscard]] std::shared_ptr<BlindEvaluatorFactory>
     create_component(const plugins::Options&, const utils::Context&)
         const override
     {
@@ -55,9 +52,8 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<BlindEvaluatorFactoryFeature> _plugin;
-
 } // namespace
 
-} // namespace heuristics
-} // namespace probfd
+static plugins::FeaturePlugin<BlindEvaluatorFactoryFeature> _plugin;
+
+} // namespace probfd::heuristics

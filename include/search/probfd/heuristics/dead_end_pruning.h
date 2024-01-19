@@ -7,11 +7,11 @@
 
 #include <memory>
 
+// Forward Declarations
 class State;
 class Evaluator;
 
-namespace probfd {
-namespace heuristics {
+namespace probfd::heuristics {
 
 /**
  * @brief Uses a classical heuristic on the all-outcomes-determinization to
@@ -36,12 +36,12 @@ public:
         std::shared_ptr<::Evaluator> pruning_function,
         value_t dead_end_value);
 
+    [[nodiscard]]
     value_t evaluate(const State& state) const override;
 
     void print_statistics() const override;
 };
 
-} // namespace heuristics
-} // namespace probfd
+} // namespace probfd::heuristics
 
-#endif // __DEAD_END_PRUNING_H__
+#endif // PROBFD_HEURISTICS_DEAD_END_PRUNING_H

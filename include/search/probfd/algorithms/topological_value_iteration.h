@@ -13,21 +13,18 @@
 #include <ostream>
 #include <vector>
 
+// Forward Declarations
 namespace utils {
 class CountdownTimer;
 }
 
-namespace probfd {
-
-namespace policies {
+namespace probfd::policies {
 template <typename, typename>
 class MapPolicy;
 }
 
-namespace algorithms {
-
 /// Namespace dedicated to Topological Value Iteration (TVI).
-namespace topological_vi {
+namespace probfd::algorithms::topological_vi {
 
 /**
  * @brief Topological value iteration statistics.
@@ -91,7 +88,7 @@ class TopologicalValueIteration : public MDPAlgorithm<State, Action> {
         Action action;
 
         // Probability to remain in the same state.
-        // Casted to the self-loop normalization factor after
+        // Cast to the self-loop normalization factor after
         // finalize_transition().
         value_t self_loop_prob = 0_vt;
 
@@ -163,7 +160,7 @@ class TopologicalValueIteration : public MDPAlgorithm<State, Action> {
 
         void update_lowlink(unsigned upd);
 
-        bool next_transition(MDP& mdp, StackInfo& stack_info, StateID state_id);
+        bool next_transition(MDP& mdp, StackInfo& stack_info);
         bool next_successor();
 
         Action& get_current_action();
@@ -202,6 +199,7 @@ public:
     /**
      * @brief Retreive the algorithm statistics.
      */
+    [[nodiscard]]
     Statistics get_statistics() const;
 
     /**
@@ -261,12 +259,10 @@ private:
         utils::CountdownTimer& timer);
 };
 
-} // namespace topological_vi
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::topological_vi
 
 #define GUARD_INCLUDE_PROBFD_ALGORITHMS_TOPOLOGICAL_VALUE_ITERATION_H
 #include "probfd/algorithms/topological_value_iteration_impl.h"
 #undef GUARD_INCLUDE_PROBFD_ALGORITHMS_TOPOLOGICAL_VALUE_ITERATION_H
 
-#endif // __TOPOLOGICAL_VALUE_ITERATION_H__
+#endif // PROBFD_ALGORITHMS_TOPOLOGICAL_VALUE_ITERATION_H

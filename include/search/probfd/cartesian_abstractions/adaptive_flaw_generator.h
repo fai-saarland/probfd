@@ -9,17 +9,7 @@
 #include <optional>
 #include <vector>
 
-namespace probfd {
-class ProbabilisticTaskProxy;
-}
-namespace probfd {
-namespace cartesian_abstractions {
-class AbstractState;
-class Abstraction;
-class CartesianHeuristic;
-} // namespace cartesian_abstractions
-} // namespace probfd
-
+// Forward Declarations
 namespace utils {
 class CountdownTimer;
 class LogProxy;
@@ -30,15 +20,24 @@ class Options;
 }
 
 namespace probfd {
-namespace cartesian_abstractions {
+class ProbabilisticTaskProxy;
+}
+
+namespace probfd::cartesian_abstractions {
+class AbstractState;
+class Abstraction;
+class CartesianHeuristic;
+} // namespace probfd::cartesian_abstractions
+
+namespace probfd::cartesian_abstractions {
 
 /**
  * @brief A flaw generator that uses an incomplete flaw generator, with a
  * complete flaw generator as a backup.
  */
 class AdaptiveFlawGenerator : public FlawGenerator {
-    std::vector<std::unique_ptr<FlawGenerator>> generators;
-    size_t current_generator = 0;
+    std::vector<std::unique_ptr<FlawGenerator>> generators_;
+    size_t current_generator_ = 0;
 
 public:
     explicit AdaptiveFlawGenerator(
@@ -59,7 +58,7 @@ public:
 };
 
 class AdaptiveFlawGeneratorFactory : public FlawGeneratorFactory {
-    std::vector<std::shared_ptr<FlawGeneratorFactory>> generator_factories;
+    std::vector<std::shared_ptr<FlawGeneratorFactory>> generator_factories_;
 
 public:
     explicit AdaptiveFlawGeneratorFactory(const plugins::Options& opts);
@@ -67,7 +66,6 @@ public:
     std::unique_ptr<FlawGenerator> create_flaw_generator() override;
 };
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions
 
 #endif // PROBFD_CARTESIAN_ADAPTIVE_FLAW_GENERATOR_H

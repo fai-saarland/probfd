@@ -6,8 +6,7 @@
 
 #include <unordered_map>
 
-namespace probfd {
-namespace policies {
+namespace probfd::policies {
 
 template <typename State, typename Action>
 class MapMultiPolicy : public MultiPolicy<State, Action> {
@@ -57,7 +56,6 @@ public:
     }
 };
 
-} // namespace policies
-} // namespace probfd
+} // namespace probfd::policies
 
 #endif

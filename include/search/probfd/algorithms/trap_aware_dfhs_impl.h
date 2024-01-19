@@ -16,9 +16,7 @@
 #include <iterator>
 #include <ranges>
 
-namespace probfd {
-namespace algorithms {
-namespace trap_aware_dfhs {
+namespace probfd::algorithms::trap_aware_dfhs {
 
 namespace internal {
 
@@ -184,7 +182,7 @@ void TADFHSImpl<State, Action, UseInterval>::enqueue(
                 open_list_->push(state, action, probability, item);
             }
         }
-        info.successors.resize(open_list_->size(), StateID::undefined);
+        info.successors.resize(open_list_->size(), StateID::UNDEFINED);
         int i = open_list_->size() - 1;
         while (!open_list_->empty()) {
             info.successors[i] = open_list_->pop();
@@ -761,6 +759,4 @@ bool TADepthFirstHeuristicSearch<State, Action, UseInterval>::was_visited(
     return algorithm_.was_visited(state_id);
 }
 
-} // namespace trap_aware_dfhs
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::trap_aware_dfhs

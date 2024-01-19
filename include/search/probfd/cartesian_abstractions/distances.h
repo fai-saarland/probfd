@@ -5,11 +5,13 @@
 
 #include <vector>
 
-namespace probfd {
-namespace cartesian_abstractions {
-
+// Forward Declarations
+namespace probfd::cartesian_abstractions {
 class Abstraction;
 class CartesianHeuristic;
+} // namespace probfd::cartesian_abstractions
+
+namespace probfd::cartesian_abstractions {
 
 /**
  * @brief Calls topological value iteration to compute the complete optimal
@@ -18,7 +20,6 @@ class CartesianHeuristic;
 std::vector<value_t>
 compute_distances(Abstraction& abstraction, CartesianHeuristic& heuristic);
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions
 
 #endif // PROBFD_CARTESIAN_DISTANCES_H

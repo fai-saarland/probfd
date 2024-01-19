@@ -1,10 +1,8 @@
 #include "probfd/pdbs/trivial_finder.h"
 
 #include <cassert>
-#include <cstdlib>
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 std::shared_ptr<std::vector<PatternSubCollection>>
 TrivialFinder::compute_subcollections(const PatternCollection& patterns)
@@ -44,5 +42,4 @@ value_t TrivialFinder::combine(value_t, value_t) const
     abort();
 }
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs

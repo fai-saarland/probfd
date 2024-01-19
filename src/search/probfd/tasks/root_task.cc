@@ -22,8 +22,7 @@
 using namespace std;
 using utils::ExitCode;
 
-namespace probfd {
-namespace tasks {
+namespace probfd::tasks {
 
 static const auto PRE_FILE_PROB_VERSION = "3P";
 shared_ptr<ProbabilisticTask> g_root_task = nullptr;
@@ -299,8 +298,7 @@ ExplicitVariable::ExplicitVariable(std::istream& in)
     in >> domain_size;
     in >> ws;
     fact_names.resize(domain_size);
-    for (int i = 0; i < domain_size; ++i)
-        getline(in, fact_names[i]);
+    for (int i = 0; i < domain_size; ++i) getline(in, fact_names[i]);
     check_magic(in, "end_variable");
 }
 
@@ -869,7 +867,7 @@ void set_root_task(std::shared_ptr<ProbabilisticTask> task)
 {
     // FIXME crashes in tests since it persists in between tests.
     // assert(!g_root_task);
-    ::tasks::g_root_task.reset(new AODDeterminizationTask(task.get()));
+    ::tasks::g_root_task = std::make_shared<AODDeterminizationTask>(task.get());
     g_root_task = std::move(task);
 }
 
@@ -882,6 +880,7 @@ public:
     {
     }
 
+    [[nodiscard]]
     shared_ptr<ProbabilisticTask>
     create_component(const plugins::Options&, const utils::Context&)
         const override
@@ -890,8 +889,8 @@ public:
     }
 };
 
+} // namespace
+
 static plugins::FeaturePlugin<RootTaskFeature> _plugin;
 
-} // namespace
-} // namespace tasks
-} // namespace probfd
+} // namespace probfd::tasks

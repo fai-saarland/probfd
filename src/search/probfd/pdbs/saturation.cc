@@ -3,7 +3,6 @@
 #include "probfd/pdbs/projection_operator.h"
 #include "probfd/pdbs/projection_state_space.h"
 
-#include <algorithm>
 #include <vector>
 
 namespace probfd::pdbs {

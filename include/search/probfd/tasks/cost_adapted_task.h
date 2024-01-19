@@ -9,8 +9,7 @@
 
 #include <memory>
 
-namespace probfd {
-namespace tasks {
+namespace probfd::tasks {
 
 /*
   Task transformation that changes operator costs. If the parent task assigns
@@ -25,19 +24,17 @@ namespace tasks {
   cost, which is 0 by default.
 */
 class CostAdaptedTask : public DelegatingTask {
-    const OperatorCost cost_type;
-    const bool parent_is_unit_cost;
+    const OperatorCost cost_type_;
+    const bool parent_is_unit_cost_;
 
 public:
     CostAdaptedTask(
         const std::shared_ptr<ProbabilisticTask>& parent,
         OperatorCost cost_type);
-    ~CostAdaptedTask() override = default;
 
     value_t get_operator_cost(int index) const override;
 };
 
-} // namespace tasks
-} // namespace probfd
+} // namespace probfd::tasks
 
 #endif

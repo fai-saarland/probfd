@@ -5,6 +5,7 @@
 
 #include <memory>
 
+// Forward Declarations
 namespace plugins {
 class Feature;
 class Options;
@@ -12,17 +13,22 @@ class Options;
 
 namespace probfd {
 class ProbabilisticTask;
-namespace pdbs {
+}
 
+namespace probfd::pdbs {
 class PatternInformation;
+}
+
+namespace probfd::pdbs {
 
 class PatternGenerator {
 protected:
-    mutable utils::LogProxy log;
+    mutable utils::LogProxy log_;
 
 public:
     explicit PatternGenerator(const plugins::Options& opts);
-    explicit PatternGenerator(const utils::LogProxy& log);
+    explicit PatternGenerator(utils::LogProxy log);
+
     virtual ~PatternGenerator() = default;
 
     virtual PatternInformation
@@ -31,7 +37,6 @@ public:
 
 extern void add_pattern_generator_options_to_feature(plugins::Feature& feature);
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif // PROBFD_PDBS_PATTERN_GENERATOR_H

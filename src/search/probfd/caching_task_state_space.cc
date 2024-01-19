@@ -3,23 +3,21 @@
 #include "probfd/transition.h"
 
 #include "probfd/distribution.h"
+#include "probfd/probabilistic_task.h"
 #include "probfd/task_proxy.h"
 
 #include "downward/utils/logging.h"
 
 #include "downward/evaluator.h"
-#include "downward/state_registry.h"
+#include "downward/operator_id.h"
 #include "downward/task_proxy.h"
 
-#include <algorithm>
 #include <cassert>
-#include <cstring>
 #include <functional>
 #include <ostream>
 #include <ranges>
 #include <span>
 #include <type_traits>
-#include <utility>
 
 using namespace std::ranges;
 using namespace std::views;
@@ -34,7 +32,7 @@ CachingTaskStateSpace::CachingTaskStateSpace(
     std::shared_ptr<FDRSimpleCostFunction> cost_function,
     const std::vector<std::shared_ptr<::Evaluator>>& path_dependent_evaluators)
     : TaskStateSpace(
-          task,
+          std::move(task),
           std::move(log),
           std::move(cost_function),
           path_dependent_evaluators)
@@ -60,7 +58,7 @@ void CachingTaskStateSpace::generate_action_transitions(
     OperatorID op_id,
     Distribution<StateID>& result)
 {
-    const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
+    const ProbabilisticOperatorsProxy operators = task_proxy_.get_operators();
 
     const CacheEntry& entry = lookup(state);
     assert(entry.is_initialized());
@@ -84,7 +82,7 @@ void CachingTaskStateSpace::generate_all_transitions(
     std::vector<OperatorID>& aops,
     std::vector<Distribution<StateID>>& successors)
 {
-    const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
+    const ProbabilisticOperatorsProxy operators = task_proxy_.get_operators();
 
     CacheEntry& entry = lookup(state);
     const StateID* succs = entry.succs;
@@ -111,7 +109,7 @@ void CachingTaskStateSpace::generate_all_transitions(
     const State& state,
     std::vector<Transition>& transitions)
 {
-    const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
+    const ProbabilisticOperatorsProxy operators = task_proxy_.get_operators();
 
     CacheEntry& entry = lookup(state);
     const StateID* succs = entry.succs;
@@ -139,8 +137,8 @@ void CachingTaskStateSpace::generate_all_transitions(
 void CachingTaskStateSpace::print_statistics() const
 {
     TaskStateSpace::print_statistics();
-    log << "  Stored arrays in bytes: " << cache_data_.size_in_bytes()
-        << std::endl;
+    log_ << "  Stored arrays in bytes: " << cache_data_.size_in_bytes()
+         << std::endl;
 }
 
 void CachingTaskStateSpace::compute_successor_states(
@@ -148,7 +146,7 @@ void CachingTaskStateSpace::compute_successor_states(
     OperatorID op_id,
     std::vector<StateID>& succs)
 {
-    const ProbabilisticOperatorProxy op = task_proxy.get_operators()[op_id];
+    const ProbabilisticOperatorProxy op = task_proxy_.get_operators()[op_id];
     const auto outcomes = op.get_outcomes();
     const size_t num_outcomes = outcomes.size();
     succs.reserve(num_outcomes);

@@ -10,12 +10,14 @@
 
 #include <vector>
 
+// Forward Declarations
 class AbstractTask;
 
 namespace probfd {
 class ProbabilisticTask;
+}
 
-namespace task_properties {
+namespace probfd::task_properties {
 
 value_t get_adjusted_action_cost(
     const ProbabilisticOperatorProxy& op,
@@ -77,7 +79,6 @@ extern void dump_probabilistic_task(const ProbabilisticTaskProxy& task_proxy);
 */
 extern const AbstractTask& get_determinization(const ProbabilisticTask* task);
 
-} // namespace task_properties
-} // namespace probfd
+} // namespace probfd::task_properties
 
 #endif

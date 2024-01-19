@@ -2,8 +2,7 @@
 
 #include "downward/plugins/plugin.h"
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 static class SubCollectionFinderFactoryCategoryPlugin
     : public plugins::TypedCategoryPlugin<SubCollectionFinderFactory> {
@@ -14,5 +13,4 @@ public:
     }
 } _category_plugin_collection;
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs

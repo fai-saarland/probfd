@@ -9,22 +9,20 @@
 #include "downward/utils/timer.h"
 
 #include <cassert>
-#include <cstddef>
 #include <iostream>
 #include <utility>
 
 using namespace std;
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 PatternCollectionInformation::PatternCollectionInformation(
     const ProbabilisticTaskProxy& arg_task_proxy,
     std::shared_ptr<FDRCostFunction> arg_task_cost_function,
     ::pdbs::PatternCollectionInformation det_info,
     shared_ptr<SubCollectionFinder> arg_subcollection_finder)
-    : task_proxy(arg_task_proxy)
-    , task_cost_function(std::move(arg_task_cost_function))
+    : task_proxy_(arg_task_proxy)
+    , task_cost_function_(std::move(arg_task_cost_function))
     , patterns_(det_info.get_patterns())
     , subcollection_finder_(std::move(arg_subcollection_finder))
 {
@@ -38,10 +36,10 @@ PatternCollectionInformation::PatternCollectionInformation(
 
     for (size_t i = 0; i != pdbs->size(); ++i) {
         pdbs_->emplace_back(new ProbabilityAwarePatternDatabase(
-            task_proxy,
-            *task_cost_function,
+            task_proxy_,
+            *task_cost_function_,
             *pdbs->operator[](i),
-            task_proxy.get_initial_state()));
+            task_proxy_.get_initial_state()));
     }
 }
 
@@ -62,8 +60,8 @@ PatternCollectionInformation::PatternCollectionInformation(
     std::shared_ptr<FDRCostFunction> task_cost_function,
     shared_ptr<PatternCollection> patterns,
     shared_ptr<SubCollectionFinder> subcollection_finder)
-    : task_proxy(task_proxy)
-    , task_cost_function(std::move(task_cost_function))
+    : task_proxy_(task_proxy)
+    , task_cost_function_(std::move(task_cost_function))
     , patterns_(std::move(patterns))
     , subcollection_finder_(std::move(subcollection_finder))
 {
@@ -109,10 +107,10 @@ void PatternCollectionInformation::create_pdbs_if_missing()
         pdbs_ = make_shared<PPDBCollection>();
         for (const Pattern& pattern : *patterns_) {
             pdbs_->emplace_back(new ProbabilityAwarePatternDatabase(
-                task_proxy,
-                *task_cost_function,
+                task_proxy_,
+                *task_cost_function_,
                 pattern,
-                task_proxy.get_initial_state()));
+                task_proxy_.get_initial_state()));
         }
         cout << "Done computing PDBs for pattern collection: " << timer << endl;
     }
@@ -169,5 +167,4 @@ PatternCollectionInformation::get_subcollection_finder()
     return subcollection_finder_;
 }
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs

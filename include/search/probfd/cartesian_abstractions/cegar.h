@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 
+// Forward Declarations
 namespace utils {
 class Timer;
 } // namespace utils
@@ -15,9 +16,9 @@ class Timer;
 namespace probfd {
 class ProbabilisticTask;
 class ProbabilisticTaskProxy;
+} // namespace probfd
 
-namespace cartesian_abstractions {
-
+namespace probfd::cartesian_abstractions {
 class AbstractState;
 class Abstraction;
 class CartesianHeuristic;
@@ -26,6 +27,9 @@ class FlawGenerator;
 class FlawGeneratorFactory;
 class SplitSelector;
 class SplitSelectorFactory;
+} // namespace probfd::cartesian_abstractions
+
+namespace probfd::cartesian_abstractions {
 
 /**
  * Contains the final abstraction mapping (RefinementHierarchy), the final
@@ -48,13 +52,13 @@ struct CEGARResult {
   to select splits in case of ambiguities and break spurious solutions.
 */
 class CEGAR {
-    const int max_states;
-    const int max_non_looping_transitions;
-    const double max_time;
-    const std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory;
-    const std::shared_ptr<SplitSelectorFactory> split_selector_factory;
+    const int max_states_;
+    const int max_non_looping_transitions_;
+    const double max_time_;
+    const std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory_;
+    const std::shared_ptr<SplitSelectorFactory> split_selector_factory_;
 
-    mutable utils::LogProxy log;
+    mutable utils::LogProxy log_;
 
 public:
     CEGAR(
@@ -109,7 +113,6 @@ private:
         const std::vector<int>& wanted);
 };
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions
 
 #endif // PROBFD_CARTESIAN_ABSTRACTIONS_CEGAR_H

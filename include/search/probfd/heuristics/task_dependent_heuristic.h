@@ -9,21 +9,20 @@
 
 #include <memory>
 
+// Forward Declarations
 namespace plugins {
 class Feature;
 } // namespace plugins
 
-namespace probfd {
-
 /// This namespace contains heuristic implementations.
-namespace heuristics {
+namespace probfd::heuristics {
 
 class TaskDependentHeuristic : public FDREvaluator {
 protected:
-    std::shared_ptr<ProbabilisticTask> task;
-    ProbabilisticTaskProxy task_proxy;
+    std::shared_ptr<ProbabilisticTask> task_;
+    ProbabilisticTaskProxy task_proxy_;
 
-    mutable utils::LogProxy log;
+    mutable utils::LogProxy log_;
 
 public:
     TaskDependentHeuristic(
@@ -33,7 +32,6 @@ public:
     static void add_options_to_feature(plugins::Feature& feature);
 };
 
-} // namespace heuristics
-} // namespace probfd
+} // namespace probfd::heuristics
 
 #endif

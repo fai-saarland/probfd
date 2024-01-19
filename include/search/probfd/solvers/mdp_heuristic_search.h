@@ -3,8 +3,8 @@
 
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/algorithms/policy_picker.h"
 #include "probfd/algorithms/fret.h"
+#include "probfd/algorithms/policy_picker.h"
 
 #include "probfd/quotients/quotient_system.h"
 
@@ -15,13 +15,13 @@
 #include <type_traits>
 #include <utility>
 
+// Forward Declarations
 namespace plugins {
 class Options;
 class Feature;
 } // namespace plugins
 
-namespace probfd {
-namespace solvers {
+namespace probfd::solvers {
 
 template <template <typename> typename S, bool Bisimulation, bool Fret>
 using WrappedType = std::conditional_t<
@@ -200,15 +200,15 @@ public:
     {
         if (dual_bounds_) {
             return BisimulationBasedHeuristicSearchAlgorithm::create<HS, true>(
-                this->task,
-                this->task_cost_function,
+                this->task_,
+                this->task_cost_function_,
                 this->get_heuristic_search_name(),
                 this->tiebreaker_,
                 std::forward<Args>(args)...);
         } else {
             return BisimulationBasedHeuristicSearchAlgorithm::create<HS, false>(
-                this->task,
-                this->task_cost_function,
+                this->task_,
+                this->task_cost_function_,
                 this->get_heuristic_search_name(),
                 this->tiebreaker_,
                 std::forward<Args>(args)...);
@@ -272,15 +272,15 @@ public:
     {
         if (dual_bounds_) {
             return BisimulationBasedHeuristicSearchAlgorithm::create<HS, true>(
-                this->task,
-                this->task_cost_function,
+                this->task_,
+                this->task_cost_function_,
                 this->get_heuristic_search_name(),
                 this->tiebreaker_,
                 std::forward<Args>(args)...);
         } else {
             return BisimulationBasedHeuristicSearchAlgorithm::create<HS, false>(
-                this->task,
-                this->task_cost_function,
+                this->task_,
+                this->task_cost_function_,
                 this->get_heuristic_search_name(),
                 this->tiebreaker_,
                 std::forward<Args>(args)...);
@@ -300,15 +300,14 @@ private:
     {
         return BisimulationBasedHeuristicSearchAlgorithm::
             create<Fret, HS, Interval>(
-                this->task,
-                this->task_cost_function,
+                this->task_,
+                this->task_cost_function_,
                 this->get_heuristic_search_name(),
                 this->tiebreaker_,
                 std::forward<Args>(args)...);
     }
 };
 
-} // namespace solvers
-} // namespace probfd
+} // namespace probfd::solvers
 
-#endif // __MDP_HEURISTIC_SEARCH_H__
+#endif // PROBFD_SOLVERS_MDP_HEURISTIC_SEARCH_H

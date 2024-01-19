@@ -96,12 +96,12 @@ public:
     /**
      * @brief Checks if the distribution is in an empty state.
      */
-    bool empty() const { return distribution_.empty(); }
+    [[nodiscard]] bool empty() const { return distribution_.empty(); }
 
     /**
      * @brief Returns the size of the support.
      */
-    size_t size() const { return distribution_.size(); }
+    [[nodiscard]] size_t size() const { return distribution_.size(); }
 
     void clear() { distribution_.clear(); }
 
@@ -165,7 +165,7 @@ public:
     /**
      * @brief Checks if the distribution is a Dirac distribution.
      */
-    bool is_dirac() const { return size() == 1; }
+    [[nodiscard]] bool is_dirac() const { return size() == 1; }
 
     /**
      * @brief Computes the expectation over a real random variable according to
@@ -316,4 +316,4 @@ public:
 
 } // namespace probfd
 
-#endif // __DISTRIBUTION_H__
+#endif // PROBFD_DISTRIBUTION_H

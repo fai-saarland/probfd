@@ -7,14 +7,13 @@
 #include "probfd/policies/map_policy.h"
 
 #include "probfd/evaluator.h"
+#include "probfd/progress_report.h"
 
 #include "downward/utils/countdown_timer.h"
 
 #include <type_traits>
 
-namespace probfd {
-namespace algorithms {
-namespace topological_vi {
+namespace probfd::algorithms::topological_vi {
 
 inline void Statistics::print(std::ostream& out) const
 {
@@ -52,7 +51,7 @@ void TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 
 template <typename State, typename Action, bool UseInterval>
 bool TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
-    next_transition(MDP& mdp, StackInfo& stack_info, StateID state_id)
+    next_transition(MDP& mdp, StackInfo& stack_info)
 {
     for (aops.pop_back(); !aops.empty(); aops.pop_back()) {
         transition.clear();
@@ -313,7 +312,7 @@ Interval TopologicalValueIteration<State, Action, UseInterval>::solve(
                 set_min(stack_info->conv_part, tinfo.conv_part);
                 stack_info->nconv_qs.pop_back();
             }
-        } while (!explore->next_transition(mdp, *stack_info, state_id));
+        } while (!explore->next_transition(mdp, *stack_info));
     }
 }
 
@@ -392,7 +391,7 @@ bool TopologicalValueIteration<State, Action, UseInterval>::push_state(
 
             state_info.stack_id = stack_size;
 
-            // Found non self loop action, push and return success.
+            // Found non-self loop action, push and return success.
             auto& s_info =
                 stack_.emplace_back(state_id, state_value, t_cost, aops.size());
 
@@ -470,7 +469,7 @@ bool TopologicalValueIteration<State, Action, UseInterval>::successor_loop(
             }
             stack_info.nconv_qs.pop_back();
         }
-    } while (explore.next_transition(mdp, stack_info, state_id));
+    } while (explore.next_transition(mdp, stack_info));
 
     return false;
 }
@@ -547,6 +546,4 @@ void TopologicalValueIteration<State, Action, UseInterval>::scc_found(
     stack_.erase(begin, end);
 }
 
-} // namespace topological_vi
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::topological_vi

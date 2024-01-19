@@ -17,11 +17,9 @@
 
 #include <iostream>
 #include <memory>
-#include <ranges>
 #include <string>
 
-namespace probfd {
-namespace solvers {
+namespace probfd::solvers {
 namespace {
 
 using namespace plugins;
@@ -50,14 +48,14 @@ public:
     {
     }
 
-    std::string get_algorithm_name() const
+    [[nodiscard]] std::string get_algorithm_name() const
     {
         return (
             interval_iteration_ ? "bisimulation interval iteration"
                                 : "bisimulation value iteration");
     }
 
-    bool found_solution() const override { return true; }
+    [[nodiscard]] bool found_solution() const override { return true; }
 
     void solve() override
     {
@@ -91,9 +89,13 @@ public:
         std::unique_ptr<MDPAlgorithm<QState, QAction>> solver;
 
         if (interval_iteration_) {
-            solver.reset(new IntervalIteration<QState, QAction>(false, false));
+            solver = std::make_unique<IntervalIteration<QState, QAction>>(
+                false,
+                false);
         } else {
-            solver.reset(new TopologicalValueIteration<QState, QAction>(false));
+            solver =
+                std::make_unique<TopologicalValueIteration<QState, QAction>>(
+                    false);
         }
 
         heuristics::BlindEvaluator<QState> blind;
@@ -161,9 +163,9 @@ public:
     }
 };
 
+} // namespace
+
 static FeaturePlugin<BisimulationVISolverFeature> _plugin_bvi;
 static FeaturePlugin<BisimulationIISolverFeature> _plugin_bii;
 
-} // namespace
-} // namespace solvers
-} // namespace probfd
+} // namespace probfd::solvers

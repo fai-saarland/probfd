@@ -8,10 +8,12 @@
 #include <tuple>
 #include <utility>
 
+// Forward Declarations
 namespace probfd {
 struct Interval;
+}
 
-namespace algorithms {
+namespace probfd::algorithms {
 
 /**
  * @brief Helper RAII class that ensures that containers are cleared when going
@@ -22,7 +24,7 @@ class ClearGuard {
     std::tuple<T&...> containers_;
 
 public:
-    ClearGuard(T&... containers)
+    explicit ClearGuard(T&... containers)
         : containers_(containers...)
     {
         assert((containers.empty() && ...));
@@ -87,7 +89,6 @@ bool update(Interval& lhs, Interval rhs);
 // Value update
 bool update(value_t& lhs, value_t rhs);
 
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms
 
 #endif

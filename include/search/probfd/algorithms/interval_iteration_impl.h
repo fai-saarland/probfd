@@ -4,20 +4,22 @@
 
 #include "probfd/quotients/quotient_max_heuristic.h"
 
+#include "probfd/progress_report.h"
+
+#include "downward/utils/collections.h"
+
 #include <iterator>
 
-namespace probfd {
-namespace algorithms {
-namespace interval_iteration {
+namespace probfd::algorithms::interval_iteration {
 
 template <typename State, typename Action>
 IntervalIteration<State, Action>::IntervalIteration(
     bool extract_probability_one_states,
     bool expand_goals)
     : extract_probability_one_states_(extract_probability_one_states)
-    , qr_analysis(expand_goals)
-    , ec_decomposer(expand_goals)
-    , vi(expand_goals)
+    , qr_analysis_(expand_goals)
+    , ec_decomposer_(expand_goals)
+    , vi_(expand_goals)
 {
 }
 
@@ -91,13 +93,13 @@ auto IntervalIteration<State, Action>::create_quotient(
     param_type<State> state,
     utils::CountdownTimer& timer) -> std::unique_ptr<QuotientSystem>
 {
-    auto sys = ec_decomposer.build_quotient_system(
+    auto sys = ec_decomposer_.build_quotient_system(
         mdp,
         &heuristic,
         state,
         timer.get_remaining_time());
 
-    ecd_statistics_ = ec_decomposer.get_statistics();
+    ecd_statistics_ = ec_decomposer_.get_statistics();
 
     return sys;
 }
@@ -112,12 +114,12 @@ Interval IntervalIteration<State, Action>::mysolve(
     SetLike& dead_ends,
     SetLike2& one_states,
     QuotientSystem& sys,
-    utils::CountdownTimer timer)
+    utils::CountdownTimer& timer)
 {
     QState qstate = sys.translate_state(state);
 
     if (extract_probability_one_states_) {
-        qr_analysis.run_analysis(
+        qr_analysis_.run_analysis(
             sys,
             nullptr,
             qstate,
@@ -128,7 +130,7 @@ Interval IntervalIteration<State, Action>::mysolve(
         assert(mdp.get_termination_info(mdp.get_state(one_states.front()))
                    .is_goal_state());
     } else {
-        qr_analysis.run_analysis(
+        qr_analysis_.run_analysis(
             sys,
             nullptr,
             qstate,
@@ -147,16 +149,14 @@ Interval IntervalIteration<State, Action>::mysolve(
 
     quotients::QuotientMaxHeuristic<State, Action> qheuristic(heuristic);
 
-    const Interval result = vi.solve(
+    const Interval result = vi_.solve(
         sys,
         qheuristic,
         new_init_id,
         value_store,
         timer.get_remaining_time());
-    tvi_statistics_ = vi.get_statistics();
+    tvi_statistics_ = vi_.get_statistics();
     return result;
 }
 
-} // namespace interval_iteration
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::interval_iteration

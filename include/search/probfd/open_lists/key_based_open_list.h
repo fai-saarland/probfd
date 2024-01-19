@@ -3,12 +3,13 @@
 
 #include "probfd/algorithms/open_list.h"
 
+#include "probfd/fdr_types.h"
+
 #include <deque>
 #include <map>
 #include <vector>
 
-namespace probfd {
-namespace open_lists {
+namespace probfd::open_lists {
 
 struct LifoPop {
     template <typename C>
@@ -128,7 +129,6 @@ private:
     BucketMap bucket_map_;
 };
 
-} // namespace open_lists
-} // namespace probfd
+} // namespace probfd::open_lists
 
-#endif // __KEY_BASED_OPEN_LIST_H__
+#endif // PROBFD_OPEN_LISTS_KEY_BASED_OPEN_LIST_H

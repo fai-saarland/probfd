@@ -6,8 +6,7 @@
 #include <iostream>
 #include <vector>
 
-namespace probfd {
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 
 struct ProbabilisticTransition {
     int source_id;
@@ -39,7 +38,6 @@ struct ProbabilisticTransition {
     }
 };
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions
 
 #endif // PROBFD_CARTESIAN_PROBABILISTIC_TRANSITION_H

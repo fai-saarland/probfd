@@ -7,8 +7,7 @@
 
 #include "downward/utils/collections.h"
 
-namespace probfd {
-namespace quotients {
+namespace probfd::quotients {
 
 template <typename Action>
 struct QuotientInformation<Action>::StateInfo {
@@ -20,19 +19,19 @@ struct QuotientInformation<Action>::StateInfo {
 template <typename Action>
 size_t QuotientInformation<Action>::num_members() const
 {
-    return state_infos.size();
+    return state_infos_.size();
 }
 
 template <typename Action>
 auto QuotientInformation<Action>::member_ids()
 {
-    return std::views::transform(state_infos, &StateInfo::state_id);
+    return std::views::transform(state_infos_, &StateInfo::state_id);
 }
 
 template <typename Action>
 auto QuotientInformation<Action>::member_ids() const
 {
-    return std::views::transform(state_infos, &StateInfo::state_id);
+    return std::views::transform(state_infos_, &StateInfo::state_id);
 }
 
 template <typename Action>
@@ -43,11 +42,11 @@ void QuotientInformation<Action>::filter_actions(
         return;
     }
 
-    total_num_outer_acts = 0;
+    total_num_outer_acts_ = 0;
 
-    auto act_it = aops.begin();
+    auto act_it = aops_.begin();
 
-    for (auto& info : state_infos) {
+    for (auto& info : state_infos_) {
         auto outer_end = std::stable_partition(
             act_it,
             act_it + info.num_outer_acts,
@@ -62,12 +61,12 @@ void QuotientInformation<Action>::filter_actions(
         info.num_outer_acts = std::distance(act_it, outer_end);
         info.num_inner_acts = num_total_acts - info.num_outer_acts;
 
-        total_num_outer_acts += info.num_outer_acts;
+        total_num_outer_acts_ += info.num_outer_acts;
 
         act_it += num_total_acts;
     }
 
-    assert(act_it == aops.end());
+    assert(act_it == aops_.end());
 }
 
 template <typename State, typename Action>
@@ -147,11 +146,11 @@ void QuotientState<State, Action>::get_collapsed_actions(
     std::visit(
         overloaded{
             [&](const QuotientInformation* info) {
-                aops.reserve(info->aops.size() - info->total_num_outer_acts);
+                aops.reserve(info->aops_.size() - info->total_num_outer_acts_);
 
-                auto aid = info->aops.begin();
+                auto aid = info->aops_.begin();
 
-                for (const auto& sinfo : info->state_infos) {
+                for (const auto& sinfo : info->state_infos_) {
                     aid += sinfo.num_outer_acts; // Start with inner actions
                     const auto inners_end = aid + sinfo.num_inner_acts;
                     for (; aid != inners_end; ++aid) {
@@ -161,7 +160,7 @@ void QuotientState<State, Action>::get_collapsed_actions(
 
                 assert(
                     aops.size() ==
-                    info->aops.size() - info->total_num_outer_acts);
+                    info->aops_.size() - info->total_num_outer_acts_);
             },
             [](param_type<State>) { return; }},
         single_or_quotient);
@@ -172,7 +171,7 @@ QuotientSystem<State, Action>::const_iterator::const_iterator(
     const QuotientSystem* qs,
     StateID x)
     : qs_(qs)
-    , i(x)
+    , i_(x)
 
 {
 }
@@ -181,9 +180,9 @@ template <typename State, typename Action>
 auto QuotientSystem<State, Action>::const_iterator::operator++()
     -> const_iterator&
 {
-    while (++i.id < qs_->quotient_ids_.size()) {
-        const StateID ref = qs_->quotient_ids_[i];
-        if (i == (ref & QuotientSystem::MASK)) {
+    while (++i_.id < qs_->quotient_ids_.size()) {
+        const StateID ref = qs_->quotient_ids_[i_];
+        if (i_ == (ref & QuotientSystem::MASK)) {
             break;
         }
     }
@@ -196,13 +195,13 @@ bool operator==(
     const typename QuotientSystem<State, Action>::const_iterator& left,
     const typename QuotientSystem<State, Action>::const_iterator& right)
 {
-    return left.i == right.i;
+    return left.i_ == right.i_;
 }
 
 template <typename State, typename Action>
 StateID QuotientSystem<State, Action>::const_iterator::operator*() const
 {
-    return i;
+    return i_;
 }
 
 template <typename State, typename Action>
@@ -217,7 +216,7 @@ StateID QuotientSystem<State, Action>::get_state_id(param_type<QState> state)
     return std::visit(
         overloaded{
             [&](const QuotientInformation* info) {
-                return info->state_infos.front().state_id;
+                return info->state_infos_.front().state_id;
             },
             [&](param_type<State> s) { return mdp_.get_state_id(s); }},
         state.single_or_quotient);
@@ -243,11 +242,11 @@ void QuotientSystem<State, Action>::generate_applicable_actions(
     std::visit(
         overloaded{
             [&](const QuotientInformation* info) {
-                aops.reserve(info->total_num_outer_acts);
+                aops.reserve(info->total_num_outer_acts_);
 
-                auto aid = info->aops.begin();
+                auto aid = info->aops_.begin();
 
-                for (const auto& sinfo : info->state_infos) {
+                for (const auto& sinfo : info->state_infos_) {
                     const auto outers_end = aid + sinfo.num_outer_acts;
                     for (; aid != outers_end; ++aid) {
                         aops.emplace_back(sinfo.state_id, *aid);
@@ -255,7 +254,7 @@ void QuotientSystem<State, Action>::generate_applicable_actions(
                     aid += sinfo.num_inner_acts; // Skip inner actions
                 }
 
-                assert(aops.size() == info->total_num_outer_acts);
+                assert(aops.size() == info->total_num_outer_acts_);
             },
             [&](param_type<State> state) {
                 std::vector<Action> orig;
@@ -297,12 +296,12 @@ void QuotientSystem<State, Action>::generate_all_transitions(
     std::visit(
         overloaded{
             [&](const QuotientInformation* info) {
-                aops.reserve(info->total_num_outer_acts);
-                successors.reserve(info->total_num_outer_acts);
+                aops.reserve(info->total_num_outer_acts_);
+                successors.reserve(info->total_num_outer_acts_);
 
-                auto aop = info->aops.begin();
+                auto aop = info->aops_.begin();
 
-                for (const auto& info : info->state_infos) {
+                for (const auto& info : info->state_infos_) {
                     const auto outers_end = aop + info.num_outer_acts;
                     for (; aop != outers_end; ++aop) {
                         const QAction& a =
@@ -315,8 +314,8 @@ void QuotientSystem<State, Action>::generate_all_transitions(
                     aop += info.num_inner_acts; // Skip inner actions
                 }
 
-                assert(aops.size() == info->total_num_outer_acts);
-                assert(successors.size() == info->total_num_outer_acts);
+                assert(aops.size() == info->total_num_outer_acts_);
+                assert(successors.size() == info->total_num_outer_acts_);
             },
             [&](param_type<State> state) {
                 std::vector<Action> orig_a;
@@ -351,11 +350,11 @@ void QuotientSystem<State, Action>::generate_all_transitions(
     std::visit(
         overloaded{
             [&](const QuotientInformation* info) {
-                transitions.reserve(info->total_num_outer_acts);
+                transitions.reserve(info->total_num_outer_acts_);
 
-                auto aop = info->aops.begin();
+                auto aop = info->aops_.begin();
 
-                for (const auto& info : info->state_infos) {
+                for (const auto& info : info->state_infos_) {
                     const auto outers_end = aop + info.num_outer_acts;
                     for (; aop != outers_end; ++aop) {
                         QAction qa(info.state_id, *aop);
@@ -368,7 +367,7 @@ void QuotientSystem<State, Action>::generate_all_transitions(
                     aop += info.num_inner_acts; // Skip inner actions
                 }
 
-                assert(transitions.size() == info->total_num_outer_acts);
+                assert(transitions.size() == info->total_num_outer_acts_);
             },
             [&](param_type<State> state) {
                 std::vector<Action> orig_a;
@@ -401,7 +400,7 @@ QuotientSystem<State, Action>::get_termination_info(param_type<QState> s)
     return std::visit(
         overloaded{
             [&](const QuotientInformation* info) {
-                return info->termination_info;
+                return info->termination_info_;
             },
             [&](param_type<State> state) {
                 return mdp_.get_termination_info(state);
@@ -481,9 +480,9 @@ void QuotientSystem<State, Action>::build_quotient(
 
     // We handle the representative state first so that it
     // appears first in the data structure.
-    if (qinfo.state_infos.empty()) {
+    if (qinfo.state_infos_.empty()) {
         // Add this state to the quotient
-        auto& b = qinfo.state_infos.emplace_back(rid);
+        auto& b = qinfo.state_infos_.emplace_back(rid);
         set_masked_state_id(rid, rid);
 
         const State repr = mdp_.get_state(rid);
@@ -495,11 +494,11 @@ void QuotientSystem<State, Action>::build_quotient(
 
         // Generate the applicable actions and add them to the new
         // quotient
-        const size_t prev_size = qinfo.aops.size();
-        mdp_.generate_applicable_actions(repr, qinfo.aops);
+        const size_t prev_size = qinfo.aops_.size();
+        mdp_.generate_applicable_actions(repr, qinfo.aops_);
 
         // Partition new actions
-        auto new_aops = qinfo.aops | drop(prev_size);
+        auto new_aops = qinfo.aops_ | drop(prev_size);
 
         {
             auto [pivot, last] = partition_actions(
@@ -510,13 +509,13 @@ void QuotientSystem<State, Action>::build_quotient(
             b.num_inner_acts = std::distance(pivot, last);
         }
 
-        qinfo.total_num_outer_acts += b.num_outer_acts;
+        qinfo.total_num_outer_acts_ += b.num_outer_acts;
     } else {
         // Filter actions
         qinfo.filter_actions(raops);
 
         // Merge goal state status and termination cost
-        const auto repr_term = qinfo.termination_info;
+        const auto repr_term = qinfo.termination_info_;
         min_termination = std::min(min_termination, repr_term.get_cost());
         is_goal = is_goal || repr_term.is_goal_state();
     }
@@ -543,25 +542,25 @@ void QuotientSystem<State, Action>::build_quotient(
             q.filter_actions(aops);
 
             // Merge goal state status and termination cost
-            const auto mem_term = q.termination_info;
+            const auto mem_term = q.termination_info_;
             min_termination = std::min(min_termination, mem_term.get_cost());
             is_goal = is_goal || mem_term.is_goal_state();
 
             // Insert all states belonging to it to the new quotient
-            for (const auto& p : q.state_infos) {
-                qinfo.state_infos.push_back(p);
+            for (const auto& p : q.state_infos_) {
+                qinfo.state_infos_.push_back(p);
                 set_masked_state_id(p.state_id, rid);
             }
 
             // Move the actions to the new quotient
-            std::ranges::move(q.aops, std::back_inserter(qinfo.aops));
-            qinfo.total_num_outer_acts += q.total_num_outer_acts;
+            std::ranges::move(q.aops_, std::back_inserter(qinfo.aops_));
+            qinfo.total_num_outer_acts_ += q.total_num_outer_acts_;
 
             // Erase the old quotient
             quotients_.erase(qit);
         } else {
             // Add this state to the quotient
-            auto& b = qinfo.state_infos.emplace_back(state_id);
+            auto& b = qinfo.state_infos_.emplace_back(state_id);
             set_masked_state_id(state_id, rid);
 
             const State mem = mdp_.get_state(state_id);
@@ -573,11 +572,11 @@ void QuotientSystem<State, Action>::build_quotient(
 
             // Generate the applicable actions and add them to the new
             // quotient
-            const size_t prev_size = qinfo.aops.size();
-            mdp_.generate_applicable_actions(mem, qinfo.aops);
+            const size_t prev_size = qinfo.aops_.size();
+            mdp_.generate_applicable_actions(mem, qinfo.aops_);
 
             // Partition new actions
-            auto new_aops = qinfo.aops | drop(prev_size);
+            auto new_aops = qinfo.aops_ | drop(prev_size);
 
             auto [pivot, last] = partition_actions(
                 new_aops,
@@ -586,11 +585,11 @@ void QuotientSystem<State, Action>::build_quotient(
             b.num_outer_acts = std::distance(new_aops.begin(), pivot);
             b.num_inner_acts = std::distance(pivot, last);
 
-            qinfo.total_num_outer_acts += b.num_outer_acts;
+            qinfo.total_num_outer_acts_ += b.num_outer_acts;
         }
     }
 
-    qinfo.termination_info =
+    qinfo.termination_info_ =
         is_goal ? TerminationInfo::from_goal()
                 : TerminationInfo::from_non_goal(min_termination);
 }
@@ -609,34 +608,34 @@ void QuotientSystem<State, Action>::build_new_quotient(
 
     // We handle the representative state first so that it
     // appears first in the data structure.
-    assert(qinfo.state_infos.empty());
+    assert(qinfo.state_infos_.empty());
 
     // Merged goal state status and termination cost
     value_t min_termination;
     bool is_goal;
 
     {
-    // Add this state to the quotient
-    auto& b = qinfo.state_infos.emplace_back(rid);
-    set_masked_state_id(rid, rid);
+        // Add this state to the quotient
+        auto& b = qinfo.state_infos_.emplace_back(rid);
+        set_masked_state_id(rid, rid);
 
-    const State repr = mdp_.get_state(rid);
+        const State repr = mdp_.get_state(rid);
 
-    // Merge goal state status and termination cost
-    const auto repr_term = mdp_.get_termination_info(repr);
+        // Merge goal state status and termination cost
+        const auto repr_term = mdp_.get_termination_info(repr);
         min_termination = repr_term.get_cost();
         is_goal = repr_term.is_goal_state();
 
-    // Generate the applicable actions
-    mdp_.generate_applicable_actions(repr, qinfo.aops);
+        // Generate the applicable actions
+        mdp_.generate_applicable_actions(repr, qinfo.aops_);
 
-    // Partition actions
-        auto [pivot, last] = partition_actions(qinfo.aops, raops);
+        // Partition actions
+        auto [pivot, last] = partition_actions(qinfo.aops_, raops);
 
-        b.num_outer_acts = std::distance(qinfo.aops.begin(), pivot);
+        b.num_outer_acts = std::distance(qinfo.aops_.begin(), pivot);
         b.num_inner_acts = std::distance(pivot, last);
 
-        qinfo.total_num_outer_acts += b.num_outer_acts;
+        qinfo.total_num_outer_acts_ += b.num_outer_acts;
     }
 
     for (const auto& entry : submdp) {
@@ -651,7 +650,7 @@ void QuotientSystem<State, Action>::build_new_quotient(
         assert(!(get_masked_state_id(state_id) & FLAG));
 
         // Add this state to the quotient
-        auto& b = qinfo.state_infos.emplace_back(state_id);
+        auto& b = qinfo.state_infos_.emplace_back(state_id);
         set_masked_state_id(state_id, rid);
 
         const State mem = mdp_.get_state(state_id);
@@ -662,18 +661,18 @@ void QuotientSystem<State, Action>::build_new_quotient(
         is_goal = is_goal || mem_term.is_goal_state();
 
         // Generate the applicable actions
-        mdp_.generate_applicable_actions(mem, qinfo.aops);
+        mdp_.generate_applicable_actions(mem, qinfo.aops_);
 
         // Partition actions
-        auto [pivot, last] = partition_actions(qinfo.aops, aops);
+        auto [pivot, last] = partition_actions(qinfo.aops_, aops);
 
-        b.num_outer_acts = std::distance(qinfo.aops.begin(), pivot);
+        b.num_outer_acts = std::distance(qinfo.aops_.begin(), pivot);
         b.num_inner_acts = std::distance(pivot, last);
 
-        qinfo.total_num_outer_acts += b.num_outer_acts;
+        qinfo.total_num_outer_acts_ += b.num_outer_acts;
     }
 
-    qinfo.termination_info =
+    qinfo.termination_info_ =
         is_goal ? TerminationInfo::from_goal()
                 : TerminationInfo::from_non_goal(min_termination);
 }
@@ -729,5 +728,4 @@ void QuotientSystem<State, Action>::set_masked_state_id(
     quotient_ids_[sid] = qsid | FLAG;
 }
 
-} // namespace quotients
-} // namespace probfd
+} // namespace probfd::quotients

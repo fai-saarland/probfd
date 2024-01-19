@@ -13,10 +13,7 @@
 #include <ranges>
 #include <type_traits>
 
-namespace probfd {
-namespace algorithms {
-namespace ao_search {
-namespace ao_star {
+namespace probfd::algorithms::ao_search::ao_star {
 
 template <typename State, typename Action, bool UseInterval>
 AOStar<State, Action, UseInterval>::AOStar(
@@ -31,7 +28,7 @@ template <typename State, typename Action, bool UseInterval>
 Interval AOStar<State, Action, UseInterval>::do_solve(
     MDP& mdp,
     Evaluator& heuristic,
-    param_type<State> state,
+    param_type<State> initial_state,
     ProgressReport& progress,
     double max_time)
 {
@@ -39,7 +36,7 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
 
     utils::CountdownTimer timer(max_time);
 
-    const StateID initstateid = mdp.get_state_id(state);
+    const StateID initstateid = mdp.get_state_id(initial_state);
     auto& iinfo = this->get_state_info(initstateid);
     iinfo.update_order = 0;
 
@@ -157,7 +154,4 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
     return iinfo.get_bounds();
 }
 
-} // namespace ao_star
-} // namespace ao_search
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::ao_search::ao_star

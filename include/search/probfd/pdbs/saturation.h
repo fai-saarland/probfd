@@ -5,9 +5,12 @@
 
 #include <span>
 
+// Forward Declarations
 namespace probfd::pdbs {
-
 class ProjectionStateSpace;
+}
+
+namespace probfd::pdbs {
 
 void compute_saturated_costs(
     ProjectionStateSpace& state_space,

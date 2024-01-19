@@ -2,9 +2,8 @@
 
 #include "probfd/task_utils/task_properties.h"
 
+#include "probfd/distribution.h"
 #include "probfd/transition.h"
-
-#include "downward/algorithms/segmented_vector.h"
 
 #include "downward/merge_and_shrink/distances.h"
 #include "downward/merge_and_shrink/factored_transition_system.h"
@@ -15,25 +14,24 @@
 #include "downward/merge_and_shrink/merge_tree_factory_linear.h"
 #include "downward/merge_and_shrink/shrink_bisimulation.h"
 #include "downward/merge_and_shrink/transition_system.h"
+#include "downward/merge_and_shrink/types.h"
 
+#include "downward/task_utils/variable_order_finder.h"
+
+#include "downward/utils/logging.h"
 #include "downward/utils/timer.h"
 
 #include "downward/plugins/options.h"
 
+#include "downward/task_proxy.h"
+
 #include <cassert>
-#include <cstddef>
 #include <iostream>
 #include <limits>
 #include <memory>
 #include <ranges>
 #include <utility>
 #include <vector>
-
-#include "downward/merge_and_shrink/types.h"
-#include "downward/task_proxy.h"
-#include "downward/task_utils/variable_order_finder.h"
-#include "downward/utils/logging.h"
-#include "probfd/distribution.h"
 
 class AbstractTask;
 namespace merge_and_shrink {
@@ -54,7 +52,7 @@ static constexpr const int BUCKET_SIZE = 1024 * 64;
 BisimilarStateSpace::BisimilarStateSpace(
     const ProbabilisticTask* task,
     value_t upper_bound)
-    : task_proxy(*task)
+    : task_proxy_(*task)
     , upper_bound_(upper_bound)
     , abstraction_(nullptr)
 {
@@ -158,15 +156,15 @@ BisimilarStateSpace::BisimilarStateSpace(
     TaskProxy det_task_proxy(determinization);
 
     MergeAndShrinkAlgorithm mns_algorithm(opts_algorithm);
-    this->fts_.reset(new FactoredTransitionSystem(
-        mns_algorithm.build_factored_transition_system(det_task_proxy)));
+    this->fts_ = std::make_unique<FactoredTransitionSystem>(
+        mns_algorithm.build_factored_transition_system(det_task_proxy));
 
     std::cout << "AOD-bisimulation was constructed in " << timer << std::endl;
     timer.reset();
 
     assert(fts_->get_num_active_entries() == 1);
 
-    const size_t last_index = fts_->get_size() - 1;
+    const int last_index = static_cast<int>(fts_->get_size() - 1);
 
     if (fts_->is_factor_solvable(last_index)) {
         abstraction_ = &fts_->get_transition_system(last_index);
@@ -176,7 +174,8 @@ BisimilarStateSpace::BisimilarStateSpace(
             std::vector<CachedTransition>());
 
         OperatorsProxy det_operators = det_task_proxy.get_operators();
-        ProbabilisticOperatorsProxy prob_operators = task_proxy.get_operators();
+        ProbabilisticOperatorsProxy prob_operators =
+            task_proxy_.get_operators();
 
         std::vector<std::pair<unsigned, unsigned>> g_to_p(det_operators.size());
         for (unsigned p_op_id = 0; p_op_id < prob_operators.size(); ++p_op_id) {
@@ -206,7 +205,7 @@ BisimilarStateSpace::BisimilarStateSpace(
             return result;
         };
 
-        for (LocalLabelInfo local_info : *abstraction_) {
+        for (const LocalLabelInfo& local_info : *abstraction_) {
             for (const int g_op_id : local_info.get_label_group()) {
                 for (const auto& trans : local_info.get_transitions()) {
                     std::vector<CachedTransition>& ts = transitions_[trans.src];
@@ -216,16 +215,17 @@ BisimilarStateSpace::BisimilarStateSpace(
                     const auto& op = g_to_p[g_op_id];
 
                     CachedTransition* t = nullptr;
-                    for (size_t j = 0; j != ts.size(); ++j) {
-                        if (ts[j].op == op.first) {
-                            t = &ts[j];
+                    for (auto& j : ts) {
+                        if (j.op == op.first) {
+                            t = &j;
                             break;
                         }
                     }
 
                     if (t == nullptr) {
+                        const OperatorID id = OperatorID(op.first);
                         const int size =
-                            prob_operators[op.first].get_outcomes().size();
+                            prob_operators[id].get_outcomes().size();
                         t = &ts.emplace_back();
                         t->op = op.first;
                         t->successors = allocate(size);
@@ -245,7 +245,7 @@ BisimilarStateSpace::BisimilarStateSpace(
             std::move(factor_info.first);
         distances_ = std::move(factor_info.second);
 
-        State initial = task_proxy.get_initial_state();
+        State initial = task_proxy_.get_initial_state();
         initial.unpack();
 
         initial_state_ = QuotientState(state_mapping->get_value(initial));
@@ -298,7 +298,7 @@ void BisimilarStateSpace::generate_action_transitions(
         std::to_underlying(a) <
         static_cast<int>(transitions_[std::to_underlying(state)].size()));
 
-    const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
+    const ProbabilisticOperatorsProxy operators = task_proxy_.get_operators();
 
     const CachedTransition& t =
         transitions_[std::to_underlying(state)][std::to_underlying(a)];
@@ -322,8 +322,8 @@ void BisimilarStateSpace::generate_all_transitions(
 {
     generate_applicable_actions(state, aops);
     result.resize(aops.size());
-    for (int i = aops.size() - 1; i >= 0; --i) {
-        generate_action_transitions(state, aops[i], result[i]);
+    for (auto [s_aops, s_transitions] : std::views::zip(aops, result)) {
+        generate_action_transitions(state, s_aops, s_transitions);
     }
 }
 
@@ -339,7 +339,7 @@ void BisimilarStateSpace::generate_all_transitions(
         transitions_[std::to_underlying(state)];
     transitions.reserve(cache.size());
     for (unsigned i : std::views::iota(0U, cache.size())) {
-        QuotientAction a = static_cast<QuotientAction>(i);
+        auto a = static_cast<QuotientAction>(i);
         Transition& t = transitions.emplace_back(a);
         generate_action_transitions(state, a, t.successor_dist);
     }
@@ -384,7 +384,7 @@ unsigned BisimilarStateSpace::num_transitions() const
 
 void BisimilarStateSpace::dump(std::ostream& out) const
 {
-    const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
+    const ProbabilisticOperatorsProxy operators = task_proxy_.get_operators();
 
     out << "digraph {"
         << "\n";
@@ -408,9 +408,9 @@ void BisimilarStateSpace::dump(std::ostream& out) const
     unsigned t = 0;
     for (unsigned node = 0; node < transitions_.size(); ++node) {
         const std::vector<CachedTransition>& ts = transitions_[node];
-        for (unsigned i = 0; i < ts.size(); ++i) {
+        for (auto i : ts) {
             out << "t" << t << " [shape=rectangle, label=\""
-                << operators[ts[i].op].get_name() << "\"];\n";
+                << operators[i.op].get_name() << "\"];\n";
             ++t;
         }
     }

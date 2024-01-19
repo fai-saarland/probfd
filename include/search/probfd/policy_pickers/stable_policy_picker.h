@@ -3,8 +3,7 @@
 
 #include "probfd/algorithms/policy_picker.h"
 
-namespace probfd {
-namespace policy_pickers {
+namespace probfd::policy_pickers {
 
 /**
  * @brief CRTP base class for stable policy picker implementations.
@@ -24,8 +23,7 @@ public:
         algorithms::StateProperties& properties) override;
 };
 
-} // namespace policy_pickers
-} // namespace probfd
+} // namespace probfd::policy_pickers
 
 #include "probfd/policy_pickers/stable_policy_picker_impl.h"
 

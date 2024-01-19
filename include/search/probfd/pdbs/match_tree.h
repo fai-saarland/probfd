@@ -8,19 +8,22 @@
 #include <memory>
 #include <vector>
 
+// Forward Declarations
 class VariablesProxy;
 struct FactPair;
 
 namespace probfd {
-
 template <typename>
 struct Transition;
+}
 
-namespace pdbs {
-
+namespace probfd::pdbs {
 class ProjectionOperator;
 class ProjectionStateSpace;
 class StateRankingFunction;
+} // namespace probfd::pdbs
+
+namespace probfd::pdbs {
 
 /**
  * @brief Applicable actions generator for projections.
@@ -28,8 +31,8 @@ class StateRankingFunction;
 class MatchTree {
     struct Node;
 
-    std::unique_ptr<Node> root;
-    std::vector<ProjectionOperator> projection_operators;
+    std::unique_ptr<Node> root_;
+    std::vector<ProjectionOperator> projection_operators_;
 
     void insert_recursive(
         const VariablesProxy& task_variables,
@@ -53,7 +56,7 @@ class MatchTree {
     void dump_recursive(std::ostream& out, Node* node) const;
 
 public:
-    MatchTree(size_t hint_num_operators = 0);
+    explicit MatchTree(size_t hint_num_operators = 0);
 
     ~MatchTree();
 
@@ -86,6 +89,7 @@ public:
     /**
      * @brief Obtain the projection operator at a specific index.
      */
+    [[nodiscard]]
     const ProjectionOperator& get_index_operator(int index) const;
 
     /**
@@ -94,7 +98,6 @@ public:
     void dump(std::ostream& out) const;
 };
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif

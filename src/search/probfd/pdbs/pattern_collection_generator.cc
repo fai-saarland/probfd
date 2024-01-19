@@ -1,19 +1,19 @@
+#include <utility>
+
 #include "probfd/pdbs/pattern_collection_generator.h"
 
 #include "downward/plugins/plugin.h"
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 PatternCollectionGenerator::PatternCollectionGenerator(
     const plugins::Options& opts)
-    : log(utils::get_log_from_options(opts))
+    : log_(utils::get_log_from_options(opts))
 {
 }
 
-PatternCollectionGenerator::PatternCollectionGenerator(
-    const utils::LogProxy& log)
-    : log(log)
+PatternCollectionGenerator::PatternCollectionGenerator(utils::LogProxy log)
+    : log_(std::move(log))
 {
 }
 
@@ -35,5 +35,4 @@ public:
     }
 } _category_plugin;
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs

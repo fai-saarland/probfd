@@ -8,6 +8,7 @@
 #include <optional>
 #include <vector>
 
+// Forward Declarations
 namespace utils {
 class CountdownTimer;
 class LogProxy;
@@ -15,12 +16,14 @@ class LogProxy;
 
 namespace probfd {
 class ProbabilisticTaskProxy;
+}
 
-namespace cartesian_abstractions {
-
+namespace probfd::cartesian_abstractions {
 class Abstraction;
-class CartesianCostFunction;
 class CartesianHeuristic;
+} // namespace probfd::cartesian_abstractions
+
+namespace probfd::cartesian_abstractions {
 
 class PolicyFlawFinder {
 public:
@@ -35,7 +38,6 @@ public:
         utils::CountdownTimer& timer) = 0;
 };
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions
 
 #endif // PROBFD_CARTESIAN_POLICY_FLAW_FINDER_H

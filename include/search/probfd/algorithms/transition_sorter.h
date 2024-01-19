@@ -6,14 +6,17 @@
 
 #include <vector>
 
+// Forward Declarations
 namespace probfd {
-
 template <typename>
 class Distribution;
+}
 
-namespace algorithms {
-
+namespace probfd::algorithms {
 class StateProperties;
+}
+
+namespace probfd::algorithms {
 
 /**
  * @brief An interface used to reorder a list of transitions.
@@ -43,7 +46,6 @@ public:
         StateProperties& properties) = 0;
 };
 
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms
 
-#endif // __SUCCESSOR_SORTING_H__
+#endif // PROBFD_ALGORITHMS_TRANSITION_SORTER_H

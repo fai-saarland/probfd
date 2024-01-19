@@ -9,16 +9,17 @@
 #include <memory>
 #include <ostream>
 
+// Forward Declarations
 namespace utils {
 class CountdownTimer;
 }
 
-namespace probfd {
-namespace cartesian_abstractions {
-
+namespace probfd::cartesian_abstractions {
 class Abstraction;
-class CartesianCostFunction;
 class CartesianHeuristic;
+} // namespace probfd::cartesian_abstractions
+
+namespace probfd::cartesian_abstractions {
 
 struct TransitionOutcome {
     int op_id;
@@ -45,7 +46,6 @@ public:
     virtual void notify_split() = 0;
 };
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions
 
 #endif // PROBFD_CARTESIAN_TRACE_GENERATOR_H

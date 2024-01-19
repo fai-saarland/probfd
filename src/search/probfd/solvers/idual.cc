@@ -10,11 +10,9 @@
 #include "downward/task_proxy.h"
 
 #include <memory>
-#include <ranges>
 #include <string>
 
-namespace probfd {
-namespace solvers {
+namespace probfd::solvers {
 namespace {
 
 using namespace algorithms;
@@ -40,8 +38,7 @@ public:
     }
 };
 
-class IDualSolverFeature
-    : public TypedFeature<SolverInterface, IDualSolver> {
+class IDualSolverFeature : public TypedFeature<SolverInterface, IDualSolver> {
 public:
     IDualSolverFeature()
         : TypedFeature<SolverInterface, IDualSolver>("idual")
@@ -54,8 +51,8 @@ public:
     }
 };
 
+} // namespace
+
 static FeaturePlugin<IDualSolverFeature> _plugin;
 
-} // namespace
-} // namespace solvers
-} // namespace probfd
+} // namespace probfd::solvers

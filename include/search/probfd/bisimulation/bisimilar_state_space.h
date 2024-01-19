@@ -15,6 +15,7 @@
 #include <memory>
 #include <vector>
 
+// Forward Declarations
 namespace merge_and_shrink {
 class Distances;
 class FactoredTransitionSystem;
@@ -24,10 +25,10 @@ class TransitionSystem;
 namespace probfd {
 template <typename>
 class Distribution;
-
 class ProbabilisticTask;
+} // namespace probfd
 
-namespace bisimulation {
+namespace probfd::bisimulation {
 
 /**
  * @brief Implements a probabilistic bisimulation of the task's state space
@@ -47,7 +48,7 @@ class BisimilarStateSpace : public MDP<QuotientState, QuotientAction> {
         int* successors;
     };
 
-    ProbabilisticTaskProxy task_proxy;
+    ProbabilisticTaskProxy task_proxy_;
     const value_t upper_bound_;
 
     std::unique_ptr<merge_and_shrink::FactoredTransitionSystem> fts_;
@@ -69,7 +70,7 @@ public:
      */
     BisimilarStateSpace(const ProbabilisticTask* task, value_t upper_bound);
 
-    ~BisimilarStateSpace();
+    ~BisimilarStateSpace() override;
 
     StateID get_state_id(QuotientState state) override;
 
@@ -98,25 +99,29 @@ public:
     value_t get_action_cost(QuotientAction action) override;
 
     /// Get the initial state of the probabilistic bisimulation quotient.
+    [[nodiscard]]
     QuotientState get_initial_state() const;
 
     /// Checks whether the given quotient state is a goal state.
+    [[nodiscard]]
     bool is_goal_state(QuotientState s) const;
 
     /// Checks whether the given quotient state is a dead end.
+    [[nodiscard]]
     bool is_dead_end(QuotientState s) const;
 
     /// Gets the number of states in the probabilistic bisimulation.
+    [[nodiscard]]
     unsigned num_bisimilar_states() const;
 
     /// Gets the number of transitions in the probabilistic bisimulation.
+    [[nodiscard]]
     unsigned num_transitions() const;
 
     /// Dumps the quotient state space to an output stream as a dot graph.
     void dump(std::ostream& out) const;
 };
 
-} // namespace bisimulation
-} // namespace probfd
+} // namespace probfd::bisimulation
 
-#endif // __BISIMILAR_STATE_SPACE_H__
+#endif // PROBFD_BISIMULATION_BISIMILAR_STATE_SPACE_H

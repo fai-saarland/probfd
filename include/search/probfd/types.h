@@ -21,10 +21,10 @@ namespace probfd {
 
 struct StateID {
     using size_type = unsigned long long;
-    static constexpr size_type undefined =
+    static constexpr size_type UNDEFINED =
         std::numeric_limits<size_type>::max();
 
-    StateID(size_type id = StateID::undefined)
+    StateID(size_type id = StateID::UNDEFINED)
         : id(id)
     {
     }
@@ -60,4 +60,4 @@ struct hash<probfd::StateID> {
 
 } // namespace std
 
-#endif // __TYPES_H__
+#endif // PROBFD_TYPES_H

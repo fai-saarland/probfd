@@ -17,10 +17,8 @@
 #include <sstream>
 #include <vector>
 
-namespace probfd {
-
 /// This namespace contains code used for dumping search spaces as dot graphs.
-namespace graphviz {
+namespace probfd::graphviz {
 
 namespace internal {
 class GraphBuilder {
@@ -36,7 +34,7 @@ public:
         {
         }
 
-        void setAttribute(std::string attribute, std::string value)
+        void set_attribute(std::string attribute, std::string value)
         {
             attributes_.emplace(std::move(attribute), std::move(value));
         }
@@ -54,27 +52,22 @@ public:
         }
 
     public:
-        int getRank() const { return rank_; }
+        [[nodiscard]]
+        int get_rank() const
+        {
+            return rank_;
+        }
     };
 
 private:
     class StateNode : public Node {
         friend class GraphBuilder;
-        StateID id_;
-
-        StateNode(std::string name, int rank, StateID id)
-            : Node(std::move(name), rank)
-            , id_(id)
-        {
-        }
+        using Node::Node;
     };
 
     class DummyNode : public Node {
         friend class GraphBuilder;
-        DummyNode(std::string name, int rank)
-            : Node(std::move(name), rank)
-        {
-        }
+        using Node::Node;
     };
 
     class Edge : public Configurable {
@@ -101,29 +94,29 @@ private:
 
 public:
     explicit GraphBuilder(StateID initial)
-        : GraphBuilder(initial, getDefaultNodeName())
+        : GraphBuilder(initial, get_default_node_name())
     {
     }
 
     GraphBuilder(StateID initial, std::string name)
         : initial_(initial)
     {
-        insertStateNode(initial, 0, std::move(name));
+        insert_state_node(initial, 0, std::move(name));
     }
 
-    Node& getNode(StateID id) { return *id_to_nodes_[id]; }
+    Node& get_node(StateID id) { return *id_to_nodes_[id]; }
 
-    std::pair<Node*, bool> insertNode(StateID id)
+    std::pair<Node*, bool> insert_node(StateID id)
     {
-        return insertStateNode(id, 0, getDefaultNodeName());
+        return insert_state_node(id, 0, get_default_node_name());
     }
 
-    Node* CreateDummyNode(int rank)
+    Node* create_dummy_node(int rank)
     {
-        return CreateDummyNode(rank, getDefaultDummyNodeName());
+        return create_dummy_node(rank, get_default_dummy_node_name());
     }
 
-    Node* CreateDummyNode(int rank, std::string name)
+    Node* create_dummy_node(int rank, std::string name)
     {
         auto& r =
             dummynodes_.emplace_back(new DummyNode(std::move(name), rank));
@@ -131,14 +124,9 @@ public:
         return r.get();
     }
 
-    Node* CreateStateNode(StateID id, int rank)
+    Node* create_state_node(StateID id, int rank, std::string name)
     {
-        return CreateStateNode(id, rank, getDefaultNodeName());
-    }
-
-    Node* CreateStateNode(StateID id, int rank, std::string name)
-    {
-        auto& r = nodes_.emplace_back(new StateNode(std::move(name), rank, id));
+        auto& r = nodes_.emplace_back(new StateNode(std::move(name), rank));
         id_to_nodes_[id] = r.get();
         r->rank_ = rank;
 
@@ -147,13 +135,13 @@ public:
         return r.get();
     }
 
-    std::pair<Node*, bool> insertStateNode(StateID id, int rank)
+    std::pair<Node*, bool> insert_state_node(StateID id, int rank)
     {
-        return insertStateNode(id, rank, getDefaultNodeName());
+        return insert_state_node(id, rank, get_default_node_name());
     }
 
     std::pair<Node*, bool>
-    insertStateNode(StateID id, int rank, std::string name)
+    insert_state_node(StateID id, int rank, std::string name)
     {
         auto it = id_to_nodes_.find(id);
 
@@ -161,16 +149,18 @@ public:
             return std::make_pair(it->second, false);
         }
 
-        return std::make_pair(CreateStateNode(id, rank, std::move(name)), true);
+        return std::make_pair(
+            create_state_node(id, rank, std::move(name)),
+            true);
     }
 
-    Configurable& createEdge(Node& source, Node& target)
+    Configurable& create_edge(Node& source, Node& target)
     {
-        return createEdge(source, target, getDefaultEdgeName());
+        return create_edge(source, target, get_default_edge_name());
     }
 
     Configurable&
-    createEdge(Node& source_node, Node& target_node, std::string name)
+    create_edge(Node& source_node, Node& target_node, std::string name)
     {
         return *edges_.emplace_back(
             new Edge(std::move(name), source_node, target_node));
@@ -191,7 +181,7 @@ public:
 
         for (const auto& group : std::views::values(ranked_nodes_)) {
             out << "    { ";
-            emitAttribute(out, "rank", "same");
+            emit_attribute(out, "rank", "same");
             out << "; ";
 
             for (const auto* node : group) {
@@ -208,7 +198,7 @@ public:
             out << node->name_;
             if (!node->attributes_.empty()) {
                 out << " ";
-                emitAttributeList(out, node->attributes_);
+                emit_attribute_list(out, node->attributes_);
             }
             out << ";\n";
         }
@@ -220,7 +210,7 @@ public:
             out << node->name_;
             if (!node->attributes_.empty()) {
                 out << " ";
-                emitAttributeList(out, node->attributes_);
+                emit_attribute_list(out, node->attributes_);
             }
             out << ";\n";
         }
@@ -229,10 +219,10 @@ public:
 
         for (const auto& edge : edges_) {
             out << "    ";
-            emitEdge(out, edge->source_, edge->target_);
+            emit_edge(out, edge->source_, edge->target_);
             if (!edge->attributes_.empty()) {
                 out << " ";
-                emitAttributeList(out, edge->attributes_);
+                emit_attribute_list(out, edge->attributes_);
             }
             out << ";\n";
         }
@@ -241,7 +231,7 @@ public:
     }
 
 private:
-    void emitAttributeList(
+    static void emit_attribute_list(
         std::ostream& out,
         const std::map<std::string, std::string>& attributes)
     {
@@ -252,16 +242,16 @@ private:
 
         assert(it != end);
 
-        emitAttribute(out, it->first, it->second);
+        emit_attribute(out, it->first, it->second);
         while (++it != end) {
             out << ", ";
-            emitAttribute(out, it->first, it->second);
+            emit_attribute(out, it->first, it->second);
         }
 
         out << "]";
     }
 
-    void emitAttribute(
+    static void emit_attribute(
         std::ostream& out,
         const std::string& attribute,
         const std::string& value)
@@ -269,22 +259,25 @@ private:
         out << attribute << "=\"" << value << "\"";
     }
 
-    void emitEdge(std::ostream& out, Node& source, Node& target)
+    static void emit_edge(std::ostream& out, Node& source, Node& target)
     {
         out << source.name_ << " -> " << target.name_;
     }
 
-    std::string getDefaultNodeName() const
+    [[nodiscard]]
+    std::string get_default_node_name() const
     {
         return "node_" + std::to_string(nodes_.size());
     }
 
-    std::string getDefaultDummyNodeName() const
+    [[nodiscard]]
+    std::string get_default_dummy_node_name() const
     {
         return "intermediate_node_" + std::to_string(dummynodes_.size());
     }
 
-    std::string getDefaultEdgeName() const
+    [[nodiscard]]
+    std::string get_default_edge_name() const
     {
         return "edge_" + std::to_string(edges_.size());
     }
@@ -325,7 +318,7 @@ void dump_state_space_dot_graph(
     ss << std::setprecision(3);
 
     std::deque<SearchInfo> open;
-    open.emplace_back(istateid, initial_state, &builder.getNode(istateid));
+    open.emplace_back(istateid, initial_state, &builder.get_node(istateid));
 
     do {
         auto& s = open.front();
@@ -334,19 +327,19 @@ void dump_state_space_dot_graph(
         const StateID state_id = s.state_id;
         auto* node = s.node;
 
-        node->setAttribute("label", sstr(state));
-        node->setAttribute("shape", "circle");
+        node->set_attribute("label", sstr(state));
+        node->set_attribute("shape", "circle");
 
         const auto term = mdp->get_termination_info(state);
         bool expand = expand_terminal || !term.is_goal_state();
 
         if (term.is_goal_state()) {
-            node->setAttribute("peripheries", std::to_string(2));
+            node->set_attribute("peripheries", std::to_string(2));
         } else if (
             expand && prune != nullptr &&
             prune->evaluate(state) == term.get_cost()) {
             expand = false;
-            node->setAttribute("peripheries", std::to_string(3));
+            node->set_attribute("peripheries", std::to_string(3));
         }
 
         open.pop_front();
@@ -389,11 +382,11 @@ void dump_state_space_dot_graph(
 
             if (successors.is_dirac()) {
                 const auto succ_id = successors.begin()->item;
-                auto [succ_node, inserted] = builder.insertNode(succ_id);
+                auto [succ_node, inserted] = builder.insert_node(succ_id);
 
-                auto& direct_edge = builder.createEdge(*node, *succ_node);
-                direct_edge.setAttribute("arrowhead", "vee");
-                direct_edge.setAttribute("label", label_text);
+                auto& direct_edge = builder.create_edge(*node, *succ_node);
+                direct_edge.set_attribute("arrowhead", "vee");
+                direct_edge.set_attribute("label", label_text);
 
                 if (inserted) {
                     open.emplace_back(
@@ -406,13 +399,13 @@ void dump_state_space_dot_graph(
             }
 
             Distribution<internal::GraphBuilder::Node*> successor_nodes;
-            int my_rank = node->getRank();
+            int my_rank = node->get_rank();
             int max_rank = 0;
 
             for (const auto& [succ_id, prob] : successors) {
                 auto [succ_node, inserted] =
-                    builder.insertStateNode(succ_id, my_rank + 2);
-                max_rank = std::max(max_rank, succ_node->getRank());
+                    builder.insert_state_node(succ_id, my_rank + 2);
+                max_rank = std::max(max_rank, succ_node->get_rank());
                 successor_nodes.add_probability(succ_node, prob);
 
                 if (inserted) {
@@ -423,26 +416,26 @@ void dump_state_space_dot_graph(
                 }
             }
 
-            auto* intermediate = builder.CreateDummyNode(
+            auto* intermediate = builder.create_dummy_node(
                 my_rank < max_rank ? my_rank + 1 : my_rank - 1);
-            intermediate->setAttribute("xlabel", astr(act));
-            // intermediate->setAttribute("tooltip", astr(act));
-            intermediate->setAttribute("shape", "point");
-            intermediate->setAttribute("style", "filled");
-            intermediate->setAttribute("fillcolor", "black");
+            intermediate->set_attribute("xlabel", astr(act));
+            // intermediate->set_attribute("tooltip", astr(act));
+            intermediate->set_attribute("shape", "point");
+            intermediate->set_attribute("style", "filled");
+            intermediate->set_attribute("fillcolor", "black");
 
-            auto& interm_edge = builder.createEdge(*node, *intermediate);
-            interm_edge.setAttribute("arrowhead", "none");
-            interm_edge.setAttribute("label", label_text);
+            auto& interm_edge = builder.create_edge(*node, *intermediate);
+            interm_edge.set_attribute("arrowhead", "none");
+            interm_edge.set_attribute("label", label_text);
 
             for (const auto& [succ_node, prob] : successor_nodes) {
                 ss << prob;
                 std::string prob_text = ss.str();
                 ss.str("");
 
-                auto& edge = builder.createEdge(*intermediate, *succ_node);
-                edge.setAttribute("arrowhead", "vee");
-                edge.setAttribute("label", prob_text);
+                auto& edge = builder.create_edge(*intermediate, *succ_node);
+                edge.set_attribute("arrowhead", "vee");
+                edge.set_attribute("label", prob_text);
             }
         }
 
@@ -452,7 +445,6 @@ void dump_state_space_dot_graph(
     builder.emit(out);
 }
 
-} // namespace graphviz
-} // namespace probfd
+} // namespace probfd::graphviz
 
-#endif // __GRAPH_VISUALIZATION_H__
+#endif // PROBFD_UTILS_GRAPH_VISUALIZATION_H

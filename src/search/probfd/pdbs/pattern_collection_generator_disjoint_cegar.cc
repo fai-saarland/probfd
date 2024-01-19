@@ -17,24 +17,23 @@
 
 using namespace std;
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 using namespace cegar;
 
 PatternCollectionGeneratorDisjointCegar::
     PatternCollectionGeneratorDisjointCegar(const plugins::Options& opts)
     : PatternCollectionGenerator(opts)
-    , use_wildcard_policies(opts.get<bool>("use_wildcard_policies"))
-    , single_goal(opts.get<bool>("single_goal"))
-    , max_pdb_size(opts.get<int>("max_pdb_size"))
-    , max_collection_size(opts.get<int>("max_collection_size"))
-    , max_time(opts.get<double>("max_time"))
-    , rng(utils::parse_rng_from_options(opts))
-    , subcollection_finder_factory(
+    , use_wildcard_policies_(opts.get<bool>("use_wildcard_policies"))
+    , single_goal_(opts.get<bool>("single_goal"))
+    , max_pdb_size_(opts.get<int>("max_pdb_size"))
+    , max_collection_size_(opts.get<int>("max_collection_size"))
+    , max_time_(opts.get<double>("max_time"))
+    , rng_(utils::parse_rng_from_options(opts))
+    , subcollection_finder_factory_(
           opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
               "subcollection_finder_factory"))
-    , flaw_strategy(
+    , flaw_strategy_(
           opts.get<std::shared_ptr<FlawFindingStrategy>>("flaw_strategy"))
 {
 }
@@ -45,20 +44,20 @@ PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
 {
     // Store the set of goals in random order.
     ProbabilisticTaskProxy task_proxy(*task);
-    vector<int> goals = get_goals_in_random_order(task_proxy, *rng);
+    vector<int> goals = get_goals_in_random_order(task_proxy, *rng_);
 
-    if (single_goal) {
+    if (single_goal_) {
         goals.erase(goals.begin() + 1, goals.end());
     }
 
     CEGAR cegar(
-        log,
-        rng,
-        flaw_strategy,
-        use_wildcard_policies,
-        max_pdb_size,
-        max_collection_size,
-        max_time,
+        log_,
+        rng_,
+        flaw_strategy_,
+        use_wildcard_policies_,
+        max_pdb_size_,
+        max_collection_size_,
+        max_time_,
         std::move(goals));
 
     std::shared_ptr pdbs =
@@ -71,7 +70,7 @@ PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
     }
 
     std::shared_ptr<SubCollectionFinder> subcollection_finder =
-        subcollection_finder_factory->create_subcollection_finder(task_proxy);
+        subcollection_finder_factory_->create_subcollection_finder(task_proxy);
 
     PatternCollectionInformation pattern_collection_information(
         task_proxy,
@@ -137,5 +136,4 @@ public:
 static plugins::FeaturePlugin<PatternCollectionGeneratorDisjointCEGARFeature>
     _plugin;
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs

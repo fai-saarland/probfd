@@ -1,7 +1,6 @@
 #include "probfd/solvers/mdp_heuristic_search.h"
 
 #include "probfd/algorithms/exhaustive_ao.h"
-#include "probfd/algorithms/open_list.h"
 
 #include "probfd/plugins/multi_feature_plugin.h"
 #include "probfd/plugins/naming_conventions.h"
@@ -11,8 +10,7 @@
 #include <memory>
 #include <string>
 
-namespace probfd {
-namespace solvers {
+namespace probfd::solvers {
 namespace {
 
 using namespace algorithms;
@@ -31,7 +29,7 @@ public:
     {
     }
 
-    std::string get_heuristic_search_name() const override
+    [[nodiscard]] std::string get_heuristic_search_name() const override
     {
         return "exhaustive_ao";
     }
@@ -60,8 +58,8 @@ public:
     }
 };
 
+} // namespace
+
 static BinaryFeaturePlugin<ExhaustiveAOSolverFeature> _plugin;
 
-} // namespace
-} // namespace solvers
-} // namespace probfd
+} // namespace probfd::solvers

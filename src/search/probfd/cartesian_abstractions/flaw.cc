@@ -10,8 +10,7 @@
 
 using namespace std;
 
-namespace probfd {
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 
 Flaw::Flaw(
     State&& concrete_state,
@@ -54,5 +53,4 @@ vector<Split> Flaw::get_possible_splits() const
     return splits;
 }
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions

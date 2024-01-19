@@ -1,11 +1,12 @@
 #include "probfd/cartesian_abstractions/evaluators.h"
 
+#ifndef NDEBUG
 #include "downward/utils/collections.h"
+#endif
 
 #include <cassert>
 
-namespace probfd {
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 
 value_t CartesianHeuristic::evaluate(int state) const
 {
@@ -14,19 +15,18 @@ value_t CartesianHeuristic::evaluate(int state) const
 
 value_t CartesianHeuristic::get_h_value(int state) const
 {
-    assert(utils::in_bounds(state, h_values));
-    return h_values[state];
+    assert(utils::in_bounds(state, h_values_));
+    return h_values_[state];
 }
 
 void CartesianHeuristic::set_h_value(int state, value_t h)
 {
-    h_values[state] = h;
+    h_values_[state] = h;
 }
 
 void CartesianHeuristic::on_split(int state)
 {
-    h_values.push_back(h_values[state]);
+    h_values_.push_back(h_values_[state]);
 }
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions

@@ -4,12 +4,9 @@
 
 #include "downward/plugins/plugin.h"
 
-#include "downward/abstract_task.h"
 #include "downward/task_proxy.h"
 
-namespace probfd {
-namespace pdbs {
-namespace cegar {
+namespace probfd::pdbs::cegar {
 
 namespace {
 bool collect_flaws(
@@ -63,6 +60,4 @@ public:
     }
 } _category_plugin;
 
-} // namespace cegar
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs::cegar

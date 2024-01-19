@@ -15,14 +15,13 @@
 #include <ostream>
 #include <vector>
 
+// Forward Declarations
 namespace utils {
 class CountdownTimer;
 }
 
-namespace probfd {
-
 /// This namespace contains preprocessing algorithms for SSPs.
-namespace preprocessing {
+namespace probfd::preprocessing {
 
 /**
  * @brief Contains printable statistics for the end component decomposition.
@@ -97,8 +96,9 @@ class EndComponentDecomposition {
 
         unsigned explored : 1 = 0;
         unsigned expandable_goal : 1 = 0; // non-terminal goal?
-        unsigned stackid_ : 30 = UNDEF;
+        unsigned stackid : 30 = UNDEF;
 
+        [[nodiscard]]
         bool onstack() const;
         auto get_status() const;
     };
@@ -172,6 +172,7 @@ public:
 
     void print_statistics(std::ostream& out) const;
 
+    [[nodiscard]]
     ECDStatistics get_statistics() const;
 
 private:
@@ -187,7 +188,7 @@ private:
 
     void find_and_decompose_sccs(
         QuotientSystem& sys,
-        const unsigned limit,
+        unsigned limit,
         utils::CountdownTimer& timer,
         auto&... mdp_and_h);
 
@@ -210,11 +211,10 @@ private:
         utils::CountdownTimer& timer);
 };
 
-} // namespace preprocessing
-} // namespace probfd
+} // namespace probfd::preprocessing
 
 #define GUARD_INCLUDE_PROBFD_PREPROCESSING_END_COMPONENT_DECOMPOSITION_H
 #include "probfd/preprocessing/end_component_decomposition_impl.h"
 #undef GUARD_INCLUDE_PROBFD_PREPROCESSING_END_COMPONENT_DECOMPOSITION_H
 
-#endif // __END_COMPONENT_DECOMPOSITION_H__
+#endif // PROBFD_PREPROCESSING_END_COMPONENT_DECOMPOSITION_H

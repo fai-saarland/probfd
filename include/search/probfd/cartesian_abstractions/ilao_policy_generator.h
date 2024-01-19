@@ -6,31 +6,31 @@
 
 #include <memory>
 
+// Forward Declarations
 namespace utils {
 class CountdownTimer;
 }
 
-namespace probfd {
-
-namespace quotients {
+namespace probfd::quotients {
 template <typename, typename>
 struct QuotientState;
 template <typename>
 struct QuotientAction;
-} // namespace quotients
+} // namespace probfd::quotients
 
-namespace policy_pickers {
+namespace probfd::policy_pickers {
 template <typename State, typename Action>
 class ArbitraryTiebreaker;
 }
 
-namespace cartesian_abstractions {
-
+namespace probfd::cartesian_abstractions {
 class AbstractState;
 class Abstraction;
 class CartesianHeuristic;
-
 struct ProbabilisticTransition;
+} // namespace probfd::cartesian_abstractions
+
+namespace probfd::cartesian_abstractions {
 
 /**
  * @brief Find an optimal policy using ILAO*.
@@ -39,7 +39,7 @@ class ILAOPolicyGenerator : public PolicyGenerator {
     std::shared_ptr<policy_pickers::ArbitraryTiebreaker<
         quotients::QuotientState<int, const ProbabilisticTransition*>,
         quotients::QuotientAction<const ProbabilisticTransition*>>>
-        picker;
+        picker_;
 
 public:
     ILAOPolicyGenerator();
@@ -51,7 +51,6 @@ public:
         utils::CountdownTimer& time_limit) override;
 };
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions
 
 #endif // PROBFD_CARTESIAN_ABSTRACTIONS_ILAO_POLICY_GENERATOR_H

@@ -10,7 +10,6 @@
 #include "downward/utils/rng.h"
 
 #include <cassert>
-#include <cstdlib>
 #include <deque>
 #include <map>
 #include <unordered_set>

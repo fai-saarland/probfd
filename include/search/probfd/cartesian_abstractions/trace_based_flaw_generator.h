@@ -11,27 +11,29 @@
 #include <optional>
 #include <vector>
 
+// Forward Declarations
 namespace utils {
 class CountdownTimer;
 class LogProxy;
 } // namespace utils
 
-namespace probfd {
-namespace cartesian_abstractions {
-
+namespace probfd::cartesian_abstractions {
 class AbstractState;
 class Abstraction;
 class CartesianHeuristic;
 class TraceGenerator;
+} // namespace probfd::cartesian_abstractions
+
+namespace probfd::cartesian_abstractions {
 
 /*
   Find flaws in a generated trace.
 */
 class TraceBasedFlawGenerator : public FlawGenerator {
-    std::unique_ptr<TraceGenerator> trace_generator;
+    std::unique_ptr<TraceGenerator> trace_generator_;
 
-    utils::Timer find_trace_timer = utils::Timer(true);
-    utils::Timer find_flaw_timer = utils::Timer(true);
+    utils::Timer find_trace_timer_ = utils::Timer(true);
+    utils::Timer find_flaw_timer_ = utils::Timer(true);
 
     std::unique_ptr<Trace> find_trace(
         Abstraction& abstraction,
@@ -48,8 +50,8 @@ class TraceBasedFlawGenerator : public FlawGenerator {
         utils::CountdownTimer& timer);
 
 public:
-    TraceBasedFlawGenerator(TraceGenerator* trace_generator);
-    ~TraceBasedFlawGenerator();
+    explicit TraceBasedFlawGenerator(TraceGenerator* trace_generator);
+    ~TraceBasedFlawGenerator() override;
 
     std::optional<Flaw> generate_flaw(
         const ProbabilisticTaskProxy& task_proxy,
@@ -70,7 +72,6 @@ public:
     std::unique_ptr<FlawGenerator> create_flaw_generator() override;
 };
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions
 
 #endif // PROBFD_CARTESIAN_TRACE_BASED_FLAW_GENERATOR_H

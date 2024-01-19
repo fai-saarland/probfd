@@ -19,9 +19,7 @@
 #include <cassert>
 #include <deque>
 
-namespace probfd {
-namespace algorithms {
-namespace heuristic_search {
+namespace probfd::algorithms::heuristic_search {
 
 namespace internal {
 
@@ -247,7 +245,7 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize_report(
 {
     const StateID initial_id = mdp.get_state_id(state);
     StateInfo& info = get_state_info(initial_id);
-    initial_state_info = &info;
+    initial_state_info_ = &info;
 
     if (!initialize_if_needed(mdp, h, initial_id, info)) {
         return;
@@ -262,7 +260,8 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize_report(
     }
 
     statistics_.value = info.get_value();
-    statistics_.before_last_update = statistics_;
+    statistics_.before_last_update =
+        static_cast<const internal::CoreStatistics&>(statistics_);
     statistics_.initial_state_estimate = info.get_value();
     statistics_.initial_state_found_terminal = info.is_terminal();
 }
@@ -316,7 +315,7 @@ void HeuristicSearchBase<State, Action, StateInfoT>::state_value_changed(
     StateInfo& info)
 {
     ++statistics_.value_changes;
-    if (&info == initial_state_info) {
+    if (&info == initial_state_info_) {
         statistics_.jump();
     }
 }
@@ -422,9 +421,9 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::filter_greedy_transitions(
     lower_bound_qvalues.reserve(transitions.size());
 
     std::erase_if(transitions, [&, state_id](const auto& transition) {
-        if (auto Q = normalized_qvalue(mdp, h, state_id, transition)) {
-            set_min(best_value, *Q);
-            lower_bound_qvalues.push_back(as_lower_bound(*Q));
+        if (auto q = normalized_qvalue(mdp, h, state_id, transition)) {
+            set_min(best_value, *q);
+            lower_bound_qvalues.push_back(as_lower_bound(*q));
             return false;
         }
 
@@ -506,8 +505,8 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
         has_only_self_loops = true;
 
         for (auto& transition : transitions) {
-            if (auto Q = normalized_qvalue(mdp, h, state_id, transition)) {
-                set_min(best_value, *Q);
+            if (auto q = normalized_qvalue(mdp, h, state_id, transition)) {
+                set_min(best_value, *q);
                 has_only_self_loops = false;
             }
         }
@@ -538,11 +537,11 @@ template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
     MDP& mdp,
     Evaluator& h,
-    param_type<State> state,
+    param_type<State> initial_state,
     ProgressReport progress,
     double max_time) -> std::unique_ptr<Policy>
 {
-    this->solve(mdp, h, state, progress, max_time);
+    this->solve(mdp, h, initial_state, progress, max_time);
 
     /*
      * Expand some greedy policy graph, starting from the initial state.
@@ -551,7 +550,7 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
     using MapPolicy = policies::MapPolicy<State, Action>;
     std::unique_ptr<MapPolicy> policy(new MapPolicy(&mdp));
 
-    const StateID initial_state_id = mdp.get_state_id(state);
+    const StateID initial_state_id = mdp.get_state_id(initial_state);
 
     std::deque<StateID> queue;
     std::set<StateID> visited;
@@ -603,6 +602,4 @@ void HeuristicSearchAlgorithm<State, Action, StateInfoT>::print_statistics(
     this->print_additional_statistics(out);
 }
 
-} // namespace heuristic_search
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::heuristic_search

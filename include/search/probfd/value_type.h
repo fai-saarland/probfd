@@ -1,8 +1,8 @@
 #ifndef PROBFD_VALUE_TYPE_H
 #define PROBFD_VALUE_TYPE_H
 
-#include <string>
 #include <limits>
+#include <string>
 
 /// The top-level namespace of probabilistic Fast Downward.
 namespace probfd {
@@ -29,7 +29,7 @@ constexpr value_t double_to_value(double d)
 /// User-defined floating-point literals for state values.
 constexpr value_t operator"" _vt(long double value)
 {
-    return double_to_value(value);
+    return double_to_value(static_cast<double>(value));
 }
 
 /// User-defined integer literals for state values.
@@ -52,13 +52,16 @@ struct approx_eq_to {
     const value_t value;
     const value_t epsilon;
 
-    approx_eq_to(value_t value, value_t epsilon = g_epsilon)
+    explicit approx_eq_to(value_t value, value_t epsilon = g_epsilon)
         : value(value)
         , epsilon(epsilon)
     {
     }
 
-    bool operator()(value_t other) { return is_approx_equal(value, other); }
+    bool operator()(value_t other) const
+    {
+        return is_approx_equal(value, other);
+    }
 };
 
 /// Unary function object for approximate inequality comparison.
@@ -66,15 +69,18 @@ struct approx_neq_to {
     const value_t value;
     const value_t epsilon;
 
-    approx_neq_to(value_t value, value_t epsilon = g_epsilon)
+    explicit approx_neq_to(value_t value, value_t epsilon = g_epsilon)
         : value(value)
         , epsilon(epsilon)
     {
     }
 
-    bool operator()(value_t other) { return !is_approx_equal(value, other); }
+    bool operator()(value_t other) const
+    {
+        return !is_approx_equal(value, other);
+    }
 };
 
 } // namespace probfd
 
-#endif // __VALUE_TYPE_H__
+#endif // PROBFD_VALUE_TYPE_H

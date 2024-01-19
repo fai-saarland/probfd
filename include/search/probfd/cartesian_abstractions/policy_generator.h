@@ -5,16 +5,17 @@
 
 #include <memory>
 
+// Forward Declarations
 namespace utils {
 class CountdownTimer;
 } // namespace utils
 
-namespace probfd {
-namespace cartesian_abstractions {
-
+namespace probfd::cartesian_abstractions {
 class Abstraction;
-class CartesianCostFunction;
 class CartesianHeuristic;
+} // namespace probfd::cartesian_abstractions
+
+namespace probfd::cartesian_abstractions {
 
 class PolicyGenerator {
 public:
@@ -27,7 +28,6 @@ public:
         utils::CountdownTimer& time_limit) = 0;
 };
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions
 
 #endif // PROBFD_CARTESIAN_POLICY_GENERATOR_H

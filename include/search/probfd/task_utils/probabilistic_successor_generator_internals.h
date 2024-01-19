@@ -11,14 +11,15 @@ class State;
 
 namespace probfd {
 class TaskStateSpace;
-
 template <typename>
 struct Transition;
+} // namespace probfd
 
-namespace successor_generator {
+namespace probfd::successor_generator {
+
 class ProbabilisticGeneratorBase {
 public:
-    virtual ~ProbabilisticGeneratorBase() {}
+    virtual ~ProbabilisticGeneratorBase() = default;
 
     virtual void generate_applicable_ops(
         const std::vector<int>& state,
@@ -31,45 +32,45 @@ public:
 };
 
 class ProbabilisticGeneratorForkBinary : public ProbabilisticGeneratorBase {
-    std::unique_ptr<ProbabilisticGeneratorBase> generator1;
-    std::unique_ptr<ProbabilisticGeneratorBase> generator2;
+    std::unique_ptr<ProbabilisticGeneratorBase> generator_1_;
+    std::unique_ptr<ProbabilisticGeneratorBase> generator_2_;
 
 public:
     ProbabilisticGeneratorForkBinary(
         std::unique_ptr<ProbabilisticGeneratorBase> generator1,
         std::unique_ptr<ProbabilisticGeneratorBase> generator2);
 
-    virtual void generate_applicable_ops(
+    void generate_applicable_ops(
         const std::vector<int>& state,
         std::vector<OperatorID>& applicable_ops) const override;
 
-    virtual void generate_transitions(
+    void generate_transitions(
         const State& state,
         std::vector<Transition<OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const override;
 };
 
 class ProbabilisticGeneratorForkMulti : public ProbabilisticGeneratorBase {
-    std::vector<std::unique_ptr<ProbabilisticGeneratorBase>> children;
+    std::vector<std::unique_ptr<ProbabilisticGeneratorBase>> children_;
 
 public:
-    ProbabilisticGeneratorForkMulti(
+    explicit ProbabilisticGeneratorForkMulti(
         std::vector<std::unique_ptr<ProbabilisticGeneratorBase>> children);
 
-    virtual void generate_applicable_ops(
+    void generate_applicable_ops(
         const std::vector<int>& state,
         std::vector<OperatorID>& applicable_ops) const override;
 
-    virtual void generate_transitions(
+    void generate_transitions(
         const State& state,
         std::vector<Transition<OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const override;
 };
 
 class ProbabilisticGeneratorSwitchVector : public ProbabilisticGeneratorBase {
-    int switch_var_id;
+    int switch_var_id_;
     std::vector<std::unique_ptr<ProbabilisticGeneratorBase>>
-        generator_for_value;
+        generator_for_value_;
 
 public:
     ProbabilisticGeneratorSwitchVector(
@@ -77,20 +78,20 @@ public:
         std::vector<std::unique_ptr<ProbabilisticGeneratorBase>>&&
             generator_for_value);
 
-    virtual void generate_applicable_ops(
+    void generate_applicable_ops(
         const std::vector<int>& state,
         std::vector<OperatorID>& applicable_ops) const override;
 
-    virtual void generate_transitions(
+    void generate_transitions(
         const State& state,
         std::vector<Transition<OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const override;
 };
 
 class ProbabilisticGeneratorSwitchHash : public ProbabilisticGeneratorBase {
-    int switch_var_id;
+    int switch_var_id_;
     std::unordered_map<int, std::unique_ptr<ProbabilisticGeneratorBase>>
-        generator_for_value;
+        generator_for_value_;
 
 public:
     ProbabilisticGeneratorSwitchHash(
@@ -98,20 +99,20 @@ public:
         std::unordered_map<int, std::unique_ptr<ProbabilisticGeneratorBase>>&&
             generator_for_value);
 
-    virtual void generate_applicable_ops(
+    void generate_applicable_ops(
         const std::vector<int>& state,
         std::vector<OperatorID>& applicable_ops) const override;
 
-    virtual void generate_transitions(
+    void generate_transitions(
         const State& state,
         std::vector<Transition<OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const override;
 };
 
 class ProbabilisticGeneratorSwitchSingle : public ProbabilisticGeneratorBase {
-    int switch_var_id;
-    int value;
-    std::unique_ptr<ProbabilisticGeneratorBase> generator_for_value;
+    int switch_var_id_;
+    int value_;
+    std::unique_ptr<ProbabilisticGeneratorBase> generator_for_value_;
 
 public:
     ProbabilisticGeneratorSwitchSingle(
@@ -119,50 +120,49 @@ public:
         int value,
         std::unique_ptr<ProbabilisticGeneratorBase> generator_for_value);
 
-    virtual void generate_applicable_ops(
+    void generate_applicable_ops(
         const std::vector<int>& state,
         std::vector<OperatorID>& applicable_ops) const override;
 
-    virtual void generate_transitions(
+    void generate_transitions(
         const State& state,
         std::vector<Transition<OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const override;
 };
 
 class ProbabilisticGeneratorLeafVector : public ProbabilisticGeneratorBase {
-    std::vector<OperatorID> applicable_operators;
+    std::vector<OperatorID> applicable_operators_;
 
 public:
-    ProbabilisticGeneratorLeafVector(
+    explicit ProbabilisticGeneratorLeafVector(
         std::vector<OperatorID>&& applicable_operators);
 
-    virtual void generate_applicable_ops(
+    void generate_applicable_ops(
         const std::vector<int>& state,
         std::vector<OperatorID>& applicable_ops) const override;
 
-    virtual void generate_transitions(
+    void generate_transitions(
         const State& state,
         std::vector<Transition<OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const override;
 };
 
 class ProbabilisticGeneratorLeafSingle : public ProbabilisticGeneratorBase {
-    OperatorID applicable_operator;
+    OperatorID applicable_operator_;
 
 public:
-    ProbabilisticGeneratorLeafSingle(OperatorID applicable_operator);
+    explicit ProbabilisticGeneratorLeafSingle(OperatorID applicable_operator);
 
-    virtual void generate_applicable_ops(
+    void generate_applicable_ops(
         const std::vector<int>& state,
         std::vector<OperatorID>& applicable_ops) const override;
 
-    virtual void generate_transitions(
+    void generate_transitions(
         const State& state,
         std::vector<Transition<OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const override;
 };
 
-} // namespace successor_generator
-} // namespace probfd
+} // namespace probfd::successor_generator
 
 #endif

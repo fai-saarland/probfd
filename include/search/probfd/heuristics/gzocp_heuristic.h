@@ -6,30 +6,29 @@
 #include <memory>
 #include <vector>
 
+// Forward Declarations
 namespace utils {
 class RandomNumberGenerator;
 class LogProxy;
-}
+} // namespace utils
 
-namespace probfd {
-
-namespace pdbs {
+namespace probfd::pdbs {
 class ProbabilityAwarePatternDatabase;
 class PatternCollectionGenerator;
-} // namespace pdbs
+} // namespace probfd::pdbs
 
-namespace heuristics {
+namespace probfd::heuristics {
 
 class GZOCPHeuristic : public TaskDependentHeuristic {
 public:
     enum OrderingStrategy { RANDOM, SIZE_ASC, SIZE_DESC, INHERIT };
 
 private:
-    const value_t termination_cost;
-    const OrderingStrategy ordering;
-    const std::shared_ptr<utils::RandomNumberGenerator> rng;
+    const value_t termination_cost_;
+    const OrderingStrategy ordering_;
+    const std::shared_ptr<utils::RandomNumberGenerator> rng_;
 
-    std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs;
+    std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs_;
 
 public:
     explicit GZOCPHeuristic(
@@ -49,7 +48,6 @@ protected:
     value_t evaluate(const State& state) const override;
 };
 
-} // namespace heuristics
-} // namespace probfd
+} // namespace probfd::heuristics
 
 #endif // PROBFD_HEURISTICS_GZOCP_HEURISTIC_H

@@ -4,26 +4,24 @@
 
 using namespace std;
 
-namespace probfd {
-namespace extra_tasks {
+namespace probfd::extra_tasks {
 
 ModifiedGoalsTask::ModifiedGoalsTask(
     const shared_ptr<ProbabilisticTask>& parent,
     vector<FactPair>&& goals)
     : DelegatingTask(parent)
-    , goals(std::move(goals))
+    , goals_(std::move(goals))
 {
 }
 
 int ModifiedGoalsTask::get_num_goals() const
 {
-    return goals.size();
+    return static_cast<int>(goals_.size());
 }
 
 FactPair ModifiedGoalsTask::get_goal_fact(int index) const
 {
-    return goals[index];
+    return goals_[index];
 }
 
-} // namespace extra_tasks
-} // namespace probfd
+} // namespace probfd::extra_tasks

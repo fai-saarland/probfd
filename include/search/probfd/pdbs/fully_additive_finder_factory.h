@@ -5,8 +5,7 @@
 
 #include <memory>
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 class FullyAdditiveFinderFactory : public SubCollectionFinderFactory {
 public:
@@ -14,7 +13,6 @@ public:
         const ProbabilisticTaskProxy& task_proxy) override;
 };
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif // PROBFD_PDBS_FULLY_ADDITIVE_FINDER_FACTORY_H

@@ -12,11 +12,14 @@ class RandomNumberGenerator;
 
 namespace probfd {
 class ProbabilisticTaskProxy;
+}
 
-namespace pdbs {
-
+namespace probfd::pdbs {
 class ProjectionStateSpace;
 class ProbabilityAwarePatternDatabase;
+} // namespace probfd::pdbs
+
+namespace probfd::pdbs {
 
 Pattern extended_pattern(const Pattern& pattern, int add_var);
 
@@ -36,7 +39,6 @@ void dump_graphviz(
     std::ostream& out,
     bool transition_labels);
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif // PROBFD_PDBS_UTILS_H

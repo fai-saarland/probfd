@@ -10,8 +10,7 @@
 #include <memory>
 #include <string>
 
-namespace probfd {
-namespace solvers {
+namespace probfd::solvers {
 namespace {
 
 using namespace algorithms::topological_vi;
@@ -45,8 +44,8 @@ public:
     }
 };
 
+} // namespace
+
 static FeaturePlugin<TopologicalVISolverFeature> _plugin;
 
-} // namespace
-} // namespace solvers
-} // namespace probfd
+} // namespace probfd::solvers

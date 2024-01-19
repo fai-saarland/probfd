@@ -4,9 +4,7 @@
 #include "downward/cartesian_abstractions/types.h"
 
 #include <deque>
-#include <limits>
 #include <memory>
-#include <unordered_set>
 #include <vector>
 
 namespace cartesian_abstractions {
@@ -18,11 +16,11 @@ class RefinementHierarchy;
 namespace probfd {
 template <typename, typename>
 class Policy;
+}
 
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 
 struct TransitionOutcome;
-
 struct ProbabilisticTransition;
 
 // Classed reused from classical implementation
@@ -46,7 +44,6 @@ using Solution = Policy<int, const ProbabilisticTransition*>;
 
 static constexpr int UNDEFINED = -1;
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions
 
 #endif // PROBFD_CARTESIAN_ABSTRACTIONS_TYPES_H

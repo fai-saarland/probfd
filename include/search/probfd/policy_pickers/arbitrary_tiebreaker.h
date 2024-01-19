@@ -3,12 +3,12 @@
 
 #include "probfd/policy_pickers/stable_policy_picker.h" // IWYU pragma: export
 
+// Forward Declarations
 namespace plugins {
 class Options;
 }
 
-namespace probfd {
-namespace policy_pickers {
+namespace probfd::policy_pickers {
 
 template <typename State, typename Action>
 class ArbitraryTiebreaker
@@ -28,9 +28,8 @@ public:
         algorithms::StateProperties&) override;
 };
 
-} // namespace policy_pickers
-} // namespace probfd
+} // namespace probfd::policy_pickers
 
 #include "probfd/policy_pickers/arbitrary_tiebreaker_impl.h"
 
-#endif // __ARBITRARY_TIEBREAKER_H__
+#endif // PROBFD_POLICY_PICKER_ARBITRARY_TIEBREAKER_H

@@ -13,51 +13,51 @@ namespace probfd {
 
 template <typename F>
 class scope_success {
-    F f;
+    F f_;
 
 public:
-    scope_success(F&& f)
-        : f(std::move(f))
+    explicit scope_success(F&& f)
+        : f_(std::move(f))
     {
     }
     ~scope_success()
     {
-        if (!std::uncaught_exceptions()) f();
+        if (!std::uncaught_exceptions()) f_();
     }
 };
 
 template <typename F>
 class scope_fail {
-    F f;
+    F f_;
 
 public:
-    scope_fail(F&& f)
-        : f(std::move(f))
+    explicit scope_fail(F&& f)
+        : f_(std::move(f))
     {
     }
     ~scope_fail()
     {
-        if (std::uncaught_exceptions()) f();
+        if (std::uncaught_exceptions()) f_();
     }
 };
 
 template <typename F>
 class scope_exit {
-    F f;
+    F f_;
 
 public:
-    scope_exit(F&& f)
-        : f(std::move(f))
+    explicit scope_exit(F&& f)
+        : f_(std::move(f))
     {
     }
-    ~scope_exit() { f(); }
+    ~scope_exit() { f_(); }
 };
 
 class TimerScope {
-    utils::Timer& timer;
+    utils::Timer& timer_;
 
 public:
-    TimerScope(utils::Timer& timer);
+    explicit TimerScope(utils::Timer& timer);
     ~TimerScope();
 };
 

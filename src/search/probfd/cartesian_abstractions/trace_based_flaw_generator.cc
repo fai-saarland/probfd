@@ -29,12 +29,11 @@
 
 using namespace std;
 
-namespace probfd {
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 
 TraceBasedFlawGenerator::TraceBasedFlawGenerator(
     TraceGenerator* trace_generator)
-    : trace_generator(trace_generator)
+    : trace_generator_(trace_generator)
 {
 }
 
@@ -46,8 +45,8 @@ std::unique_ptr<Trace> TraceBasedFlawGenerator::find_trace(
     CartesianHeuristic& heuristic,
     utils::CountdownTimer& timer)
 {
-    TimerScope scope(find_trace_timer);
-    return trace_generator->find_trace(abstraction, init_id, heuristic, timer);
+    TimerScope scope(find_trace_timer_);
+    return trace_generator_->find_trace(abstraction, init_id, heuristic, timer);
 }
 
 optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
@@ -89,7 +88,7 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
     utils::LogProxy& log,
     utils::CountdownTimer& timer)
 {
-    TimerScope scope(find_flaw_timer);
+    TimerScope scope(find_flaw_timer_);
 
     if (log.is_at_least_debug()) log << "Check solution:" << endl;
 
@@ -148,14 +147,15 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
 
 void TraceBasedFlawGenerator::notify_split()
 {
-    trace_generator->notify_split();
+    trace_generator_->notify_split();
 }
 
 void TraceBasedFlawGenerator::print_statistics(utils::LogProxy& log)
 {
     if (log.is_at_least_normal()) {
-        log << "Time for finding abstract traces: " << find_trace_timer << endl;
-        log << "Time for finding trace flaws: " << find_flaw_timer << endl;
+        log << "Time for finding abstract traces: " << find_trace_timer_
+            << endl;
+        log << "Time for finding trace flaws: " << find_flaw_timer_ << endl;
     }
 }
 
@@ -174,6 +174,7 @@ public:
     {
     }
 
+    [[nodiscard]]
     std::shared_ptr<AStarFlawGeneratorFactory>
     create_component(const plugins::Options&, const utils::Context&)
         const override
@@ -184,5 +185,4 @@ public:
 
 static plugins::FeaturePlugin<AStarFlawGeneratorFactoryFeature> _plugin;
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions

@@ -10,16 +10,15 @@
 
 #include "downward/utils/countdown_timer.h"
 
-namespace probfd {
-namespace algorithms {
-namespace trap_aware_lrtdp {
+namespace probfd::algorithms::trap_aware_lrtdp {
 
 namespace internal {
 
 inline void Statistics::print(std::ostream& out) const
 {
     out << "  Trials: " << trials << std::endl;
-    out << "  Average trial length: " << ((double)trial_length / trials)
+    out << "  Average trial length: "
+        << (static_cast<double>(trial_length) / static_cast<double>(trials))
         << std::endl;
     out << "  Bellman backups (trials): " << trial_bellman_backups << std::endl;
     out << "  Bellman backups (check&solved): "
@@ -367,11 +366,7 @@ TALRTDP<State, Action, UseInterval>::TALRTDP(
     TrialTerminationCondition stop_consistent,
     bool reexpand_traps,
     std::shared_ptr<QuotientSuccessorSampler> succ_sampler)
-    : algorithm_(
-          policy_chooser,
-          stop_consistent,
-          reexpand_traps,
-          succ_sampler)
+    : algorithm_(policy_chooser, stop_consistent, reexpand_traps, succ_sampler)
 {
 }
 
@@ -400,6 +395,4 @@ void TALRTDP<State, Action, UseInterval>::print_statistics(
     return algorithm_.print_statistics(out);
 }
 
-} // namespace trap_aware_lrtdp
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::trap_aware_lrtdp

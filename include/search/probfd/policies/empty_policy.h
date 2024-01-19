@@ -4,13 +4,12 @@
 
 #include "probfd/policy.h"
 
-namespace probfd {
-namespace policies {
+namespace probfd::policies {
 
 template <typename State, typename Action>
 class EmptyPolicy : public Policy<State, Action> {
 public:
-    /// Retrives the action and optimal state value interval specified by the
+    /// Retrieves the action and optimal state value interval specified by the
     /// policy for a given state.
     std::optional<PolicyDecision<Action>>
     get_decision(const State&) const override
@@ -19,7 +18,6 @@ public:
     }
 };
 
-} // namespace policies
-} // namespace probfd
+} // namespace probfd::policies
 
 #endif

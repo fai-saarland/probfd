@@ -7,6 +7,7 @@
 
 #include <memory>
 
+// Forward Declarations
 namespace plugins {
 class Options;
 }
@@ -15,8 +16,7 @@ namespace utils {
 class RandomNumberGenerator;
 }
 
-namespace probfd {
-namespace successor_samplers {
+namespace probfd::successor_samplers {
 
 template <typename Action>
 class VBiasedSuccessorSampler : public algorithms::SuccessorSampler<Action> {
@@ -37,9 +37,8 @@ protected:
         algorithms::StateProperties& properties) override;
 };
 
-} // namespace successor_samplers
-} // namespace probfd
+} // namespace probfd::successor_samplers
 
 #include "probfd/successor_samplers/vbiased_successor_sampler_impl.h"
 
-#endif // __VBIASED_SUCCESSOR_SAMPLER_H__
+#endif // PROBFD_SUCCESSOR_SAMPLERS_VBIASED_SUCCESSOR_SAMPLER_H

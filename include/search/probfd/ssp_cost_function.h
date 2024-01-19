@@ -7,22 +7,27 @@
 #include "probfd/type_traits.h"
 #include "probfd/value_type.h"
 
+// Forward Declarations
 class OperatorID;
 class State;
 
 namespace probfd {
 
 class SSPCostFunction : public FDRCostFunction {
-    ProbabilisticTaskProxy task_proxy;
+    ProbabilisticTaskProxy task_proxy_;
 
 public:
     explicit SSPCostFunction(const ProbabilisticTaskProxy& task_proxy);
 
+    [[nodiscard]]
     bool is_goal(param_type<State> state) const override;
-    value_t get_non_goal_termination_cost() const override final;
+
+    [[nodiscard]]
+    value_t get_non_goal_termination_cost() const final;
+
     value_t get_action_cost(OperatorID op) override;
 };
 
 } // namespace probfd
 
-#endif // MAXPROB_COST_FUNCTION_H
+#endif // PROBFD_SSP_COST_FUNCTION_H

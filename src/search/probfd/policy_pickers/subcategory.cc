@@ -21,10 +21,7 @@
 
 #include "downward/utils/rng_options.h"
 
-#include <type_traits>
-
-namespace probfd {
-namespace policy_pickers {
+namespace probfd::policy_pickers {
 namespace {
 
 using namespace plugins;
@@ -122,6 +119,8 @@ public:
     }
 };
 
+} // namespace
+
 static MultiCategoryPlugin<PolicyPickerCategoryPlugin> _category_plugin1;
 
 static FeaturePlugin<OperatorIDTieBreakerFeature> _plugin_operator_id;
@@ -130,6 +129,4 @@ static MultiFeaturePlugin<ArbitraryTieBreakerFeature> _plugin_arbitary;
 static MultiFeaturePlugin<RandomTieBreakerFeature> _plugin_random;
 static MultiFeaturePlugin<ValueGapTieBreakerFeature> _plugin_value_gap;
 
-} // namespace
-} // namespace policy_pickers
-} // namespace probfd
+} // namespace probfd::policy_pickers

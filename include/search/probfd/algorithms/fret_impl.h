@@ -8,9 +8,7 @@
 
 #include "downward/utils/countdown_timer.h"
 
-namespace probfd {
-namespace algorithms {
-namespace fret {
+namespace probfd::algorithms::fret {
 
 namespace internal {
 
@@ -446,19 +444,19 @@ bool ValueGraph<State, Action, StateInfoT>::get_successors(
 {
     assert(successors.empty());
 
-    ClearGuard _guard(ids, opt_transitions);
+    ClearGuard _(ids_, opt_transitions_);
 
     bool value_changed = base_algorithm.bellman_update(
         quotient,
         heuristic,
         qstate,
-        opt_transitions);
+        opt_transitions_);
 
-    for (const auto& transition : opt_transitions) {
+    for (const auto& transition : opt_transitions_) {
         aops.push_back(transition.action);
 
         for (const StateID sid : transition.successor_dist.support()) {
-            if (ids.insert(sid).second) {
+            if (ids_.insert(sid).second) {
                 successors.push_back(sid);
             }
         }
@@ -479,7 +477,7 @@ bool PolicyGraph<State, Action, StateInfoT>::get_successors(
     std::optional a = base_algorithm.get_greedy_action(quotient_state_id);
     assert(a.has_value());
 
-    ClearGuard _guard(t_);
+    ClearGuard _(t_);
 
     const QState quotient_state = quotient.get_state(quotient_state_id);
     quotient.generate_action_transitions(quotient_state, *a, t_);
@@ -493,6 +491,4 @@ bool PolicyGraph<State, Action, StateInfoT>::get_successors(
     return false;
 }
 
-} // namespace fret
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::fret

@@ -2,8 +2,7 @@
 
 #include "downward/plugins/plugin.h"
 
-namespace probfd {
-namespace occupation_measures {
+namespace probfd::occupation_measures {
 
 static class ConstraintGeneratorCategoryPlugin
     : public plugins::TypedCategoryPlugin<ConstraintGenerator> {
@@ -14,5 +13,4 @@ public:
     }
 } _category_plugin;
 
-} // namespace occupation_measures
-} // namespace probfd
+} // namespace probfd::occupation_measures

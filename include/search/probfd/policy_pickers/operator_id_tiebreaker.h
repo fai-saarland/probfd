@@ -10,12 +10,12 @@
 #include <optional>
 #include <vector>
 
+// Forward Declarations
 namespace plugins {
 class Options;
 } // namespace plugins
 
-namespace probfd {
-namespace policy_pickers {
+namespace probfd::policy_pickers {
 
 class OperatorIdTiebreaker
     : public StablePolicyPicker<State, OperatorID, OperatorIdTiebreaker> {
@@ -30,10 +30,9 @@ public:
         StateID state,
         std::optional<OperatorID> prev_policy,
         const std::vector<Transition<OperatorID>>& greedy_transitions,
-        algorithms::StateProperties& properties);
+        algorithms::StateProperties& properties) override;
 };
 
-} // namespace policy_pickers
-} // namespace probfd
+} // namespace probfd::policy_pickers
 
-#endif // __OPERATOR_ID_TIEBREAKER_H__
+#endif // PROBFD_POLICY_PICKER_OPERATOR_ID_TIEBREAKER_H

@@ -13,6 +13,7 @@
 #include <memory>
 #include <string>
 
+// Forward Declarations
 namespace plugins {
 class Options;
 class Feature;
@@ -20,35 +21,36 @@ class Feature;
 
 namespace probfd {
 class ProbabilisticTask;
+}
 
 /// This namespace contains the solver plugins for various search algorithms.
-namespace solvers {
+namespace probfd::solvers {
 
 /**
  * @brief Base interface for MDP solvers.
  */
 class MDPSolver : public SolverInterface {
 protected:
-    const std::shared_ptr<ProbabilisticTask> task;
-    const ProbabilisticTaskProxy task_proxy;
-    const std::shared_ptr<FDRCostFunction> task_cost_function;
-    mutable utils::LogProxy log;
+    const std::shared_ptr<ProbabilisticTask> task_;
+    const ProbabilisticTaskProxy task_proxy_;
+    const std::shared_ptr<FDRCostFunction> task_cost_function_;
+    mutable utils::LogProxy log_;
 
-    const std::unique_ptr<TaskStateSpace> task_mdp;
-    const std::shared_ptr<FDREvaluator> heuristic;
+    const std::unique_ptr<TaskStateSpace> task_mdp_;
+    const std::shared_ptr<FDREvaluator> heuristic_;
 
     ProgressReport progress_;
 
-    const double max_time;
+    const double max_time_;
 
-    bool solution_found = true;
+    bool solution_found_ = true;
 
 public:
     /**
      * @brief Constructs the MDP solver from the given options.
      */
     explicit MDPSolver(const plugins::Options& opts);
-    ~MDPSolver();
+    ~MDPSolver() override;
 
     /**
      * @brief Factory method a new instance of the encapsulated MDP algorithm.
@@ -68,17 +70,16 @@ public:
     /**
      * @brief Runs the encapsulated MDP on the global problem.
      */
-    virtual void solve() override;
+    void solve() override;
 
     /**
      * @brief Checks if the MDP algorithm found a solution.
      */
-    virtual bool found_solution() const override { return solution_found; }
+    bool found_solution() const override { return solution_found_; }
 
     static void add_options_to_feature(plugins::Feature& feature);
 };
 
-} // namespace solvers
-} // namespace probfd
+} // namespace probfd::solvers
 
-#endif // __MDP_SOLVER_H__
+#endif // PROBFD_SOLVERS_MDP_SOLVER_H

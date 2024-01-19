@@ -5,6 +5,7 @@
 
 #include <memory>
 
+// Forward Declarations
 namespace utils {
 class RandomNumberGenerator;
 }
@@ -14,31 +15,30 @@ class Feature;
 class Options;
 } // namespace plugins
 
-namespace probfd {
-namespace pdbs {
-
+namespace probfd::pdbs {
 class SubCollectionFinderFactory;
+}
 
-namespace cegar {
+namespace probfd::pdbs::cegar {
 class FlawFindingStrategy;
-} // namespace cegar
+} // namespace probfd::pdbs::cegar
+
+namespace probfd::pdbs {
 
 class PatternCollectionGeneratorDisjointCegar
     : public PatternCollectionGenerator {
-    const bool use_wildcard_policies;
-    const bool single_goal;
-    const int max_pdb_size;
-    const int max_collection_size;
-    const double max_time;
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
-    std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory;
-    std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy;
+    const bool use_wildcard_policies_;
+    const bool single_goal_;
+    const int max_pdb_size_;
+    const int max_collection_size_;
+    const double max_time_;
+    std::shared_ptr<utils::RandomNumberGenerator> rng_;
+    std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory_;
+    std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy_;
 
 public:
     explicit PatternCollectionGeneratorDisjointCegar(
         const plugins::Options& opts);
-
-    virtual ~PatternCollectionGeneratorDisjointCegar() = default;
 
     PatternCollectionInformation generate(
         const std::shared_ptr<ProbabilisticTask>& task,
@@ -48,7 +48,6 @@ public:
 void add_pattern_collection_generator_cegar_options_to_feature(
     plugins::Feature& feature);
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif // PROBFD_PDBS_PATTERN_COLLECTION_GENERATOR_DISJOINT_CEGAR_H

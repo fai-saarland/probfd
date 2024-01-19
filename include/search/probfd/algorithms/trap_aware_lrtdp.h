@@ -7,19 +7,19 @@
 
 #include "downward/utils/timer.h"
 
+// Forward Declarations
 namespace utils {
 class CountdownTimer;
 }
 
-namespace probfd {
-namespace algorithms {
-
+namespace probfd::algorithms {
 template <typename>
 class SuccessorSampler;
+}
 
 /// Namespace dedicated to labelled real-time dynamic programming (LRTDP) with
 /// native trap handling support.
-namespace trap_aware_lrtdp {
+namespace probfd::algorithms::trap_aware_lrtdp {
 
 enum class TrialTerminationCondition {
     TERMINAL,
@@ -49,10 +49,21 @@ struct PerStateInformation : public StateInfo {
     static constexpr uint8_t BITS = StateInfo::BITS + 2;
     static constexpr uint8_t MASK = (3 << StateInfo::BITS);
 
-    bool is_solved() const { return (this->info & MASK) == SOLVED; }
+    [[nodiscard]]
+    bool is_solved() const
+    {
+        return (this->info & MASK) == SOLVED;
+    }
+
+    [[nodiscard]]
+    bool is_on_trial() const
+    {
+        return (this->info & MARKED_TRIAL);
+    }
+
     void set_solved() { this->info = (this->info & ~MASK) | SOLVED; }
-    bool is_on_trial() const { return (this->info & MARKED_TRIAL); }
     void set_on_trial() { this->info = this->info | MARKED_TRIAL; }
+
     void clear_trial_flag() { this->info = (this->info & ~MARKED_TRIAL); }
 };
 
@@ -117,6 +128,7 @@ class TALRTDPImpl
         Flags flags;
 
         bool next_successor();
+        [[nodiscard]]
         StateID get_successor() const;
     };
 
@@ -201,7 +213,7 @@ private:
     bool push(
         QuotientSystem& quotient,
         QEvaluator& heuristic,
-        const StateID state,
+        StateID state,
         Flags& parent_flags);
 };
 
@@ -237,17 +249,15 @@ public:
         Evaluator& heuristic,
         param_type<State> s,
         ProgressReport progress,
-        double max_time) override final;
+        double max_time) final;
 
-    void print_statistics(std::ostream& out) const override final;
+    void print_statistics(std::ostream& out) const final;
 };
 
-} // namespace trap_aware_lrtdp
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::trap_aware_lrtdp
 
 #define GUARD_INCLUDE_PROBFD_ALGORITHMS_TRAP_AWARE_LRTDP_H
 #include "probfd/algorithms/trap_aware_lrtdp_impl.h"
 #undef GUARD_INCLUDE_PROBFD_ALGORITHMS_TRAP_AWARE_LRTDP_H
 
-#endif // __TRAP_AWARE_LRTDP_H__
+#endif // PROBFD_ALGORITHMS_TRAP_AWARE_LRTDP_H

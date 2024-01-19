@@ -19,14 +19,11 @@
 #include "downward/plugins/plugin.h"
 
 #include <cassert>
-#include <utility>
 
 using namespace std;
 using namespace utils;
 
-namespace probfd {
-namespace pdbs {
-namespace cegar {
+namespace probfd::pdbs::cegar {
 
 PUCSFlawFinder::PUCSFlawFinder(const plugins::Options& opts)
     : PUCSFlawFinder(opts.get<int>("max_search_states"))
@@ -34,7 +31,7 @@ PUCSFlawFinder::PUCSFlawFinder(const plugins::Options& opts)
 }
 
 PUCSFlawFinder::PUCSFlawFinder(int max_search_states)
-    : max_search_states(max_search_states)
+    : max_search_states_(max_search_states)
 {
 }
 
@@ -47,20 +44,20 @@ bool PUCSFlawFinder::apply_policy(
     std::vector<Flaw>& flaw_list,
     utils::CountdownTimer& timer)
 {
-    assert(pq.empty() && probabilities.empty());
+    assert(pq_.empty() && probabilities_.empty());
 
     // Exception safety due to TimeoutException
     scope_exit guard([&] {
-        pq.clear();
-        probabilities.clear();
+        pq_.clear();
+        probabilities_.clear();
     });
 
     StateRegistry registry(task_proxy);
 
     {
         const State& init = registry.get_initial_state();
-        pq.push(1.0, init);
-        probabilities[StateID(init.get_id())].path_probability = 1.0;
+        pq_.push(1.0, init);
+        probabilities_[StateID(init.get_id())].path_probability = 1.0;
     }
 
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
@@ -69,8 +66,8 @@ bool PUCSFlawFinder::apply_policy(
     do {
         timer.throw_if_expired();
 
-        auto [path_probability, current] = pq.pop();
-        auto& info = probabilities[StateID(current.get_id())];
+        auto [path_probability, current] = pq_.pop();
+        auto& info = probabilities_[StateID(current.get_id())];
         assert(!info.expanded);
 
         // TODO remove this once we have a real priority queue...
@@ -116,18 +113,18 @@ bool PUCSFlawFinder::apply_policy(
                     current,
                     outcome.get_effects());
 
-                if (static_cast<int>(registry.size()) > max_search_states) {
+                if (static_cast<int>(registry.size()) > max_search_states_) {
                     return false;
                 }
 
-                auto& succ_entry = probabilities[StateID(successor.get_id())];
+                auto& succ_entry = probabilities_[StateID(successor.get_id())];
                 const auto succ_prob =
                     path_probability * outcome.get_probability();
 
                 if (!succ_entry.expanded &&
                     succ_entry.path_probability < succ_prob) {
                     succ_entry.path_probability = succ_prob;
-                    pq.push(succ_prob, std::move(successor));
+                    pq_.push(succ_prob, successor);
                 }
             }
 
@@ -143,7 +140,7 @@ bool PUCSFlawFinder::apply_policy(
         return false;
 
     continue_exploration:;
-    } while (!pq.empty());
+    } while (!pq_.empty());
 
     return true;
 }
@@ -170,6 +167,4 @@ public:
 
 static plugins::FeaturePlugin<PUCSFlawFinderFeature> _plugin;
 
-} // namespace cegar
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs::cegar

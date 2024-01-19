@@ -7,8 +7,7 @@
 #include <memory>
 #include <string>
 
-namespace probfd {
-namespace solvers {
+namespace probfd::solvers {
 namespace {
 
 using namespace plugins;
@@ -42,8 +41,8 @@ public:
     }
 };
 
+} // namespace
+
 static FeaturePlugin<TATopologicalVISolverFeature> _plugin;
 
-} // namespace
-} // namespace solvers
-} // namespace probfd
+} // namespace probfd::solvers

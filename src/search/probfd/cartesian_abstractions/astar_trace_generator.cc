@@ -10,16 +10,13 @@
 
 #include "downward/utils/countdown_timer.h"
 
-#include <algorithm>
 #include <cassert>
-#include <cstddef>
 #include <deque>
 #include <ostream>
 
 using namespace std;
 
-namespace probfd {
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 
 std::ostream& operator<<(std::ostream& os, const TransitionOutcome& t)
 {
@@ -45,13 +42,18 @@ public:
         g = new_g;
     }
 
-    value_t get_g_value() const { return g; }
+    [[nodiscard]]
+    value_t get_g_value() const
+    {
+        return g;
+    }
 
     void set_incoming_transition(const TransitionOutcome& transition)
     {
         incoming_transition = transition;
     }
 
+    [[nodiscard]]
     const TransitionOutcome& get_incoming_transition() const
     {
         assert(
@@ -62,7 +64,7 @@ public:
 };
 
 AStarTraceGenerator::AStarTraceGenerator()
-    : search_info(1)
+    : search_info_(1)
 {
 }
 
@@ -74,9 +76,9 @@ unique_ptr<Trace> AStarTraceGenerator::find_trace(
 {
     // Exception safety (timeout)
     scope_exit guard([&] {
-        open_queue.clear();
+        open_queue_.clear();
 
-        for (AbstractSearchInfo& info : search_info) {
+        for (AbstractSearchInfo& info : search_info_) {
             info.reset();
         }
     });
@@ -84,14 +86,14 @@ unique_ptr<Trace> AStarTraceGenerator::find_trace(
     const auto& out =
         abstraction.get_transition_system().get_outgoing_transitions();
 
-    search_info[init_id].decrease_g_value_to(0);
-    open_queue.push(heuristic.get_h_value(init_id), init_id);
+    search_info_[init_id].decrease_g_value_to(0);
+    open_queue_.push(heuristic.get_h_value(init_id), init_id);
 
-    while (!open_queue.empty()) {
+    while (!open_queue_.empty()) {
         timer.throw_if_expired();
 
-        const auto [old_f, state_id] = open_queue.pop();
-        const value_t g = search_info[state_id].get_g_value();
+        const auto [old_f, state_id] = open_queue_.pop();
+        const value_t g = search_info_[state_id].get_g_value();
 
         assert(0 <= g && g < INFINITE_VALUE);
 
@@ -102,7 +104,7 @@ unique_ptr<Trace> AStarTraceGenerator::find_trace(
         if (new_f < old_f) continue;
 
         if (abstraction.get_goals().contains(state_id)) {
-            open_queue.clear();
+            open_queue_.clear();
             std::unique_ptr<Trace> solution =
                 extract_solution(init_id, state_id, timer);
             update_heuristic(abstraction, heuristic, *solution);
@@ -119,15 +121,15 @@ unique_ptr<Trace> AStarTraceGenerator::find_trace(
                 const value_t succ_g = g + op_cost;
                 assert(succ_g >= 0);
 
-                if (succ_g < search_info[succ_id].get_g_value()) {
-                    search_info[succ_id].decrease_g_value_to(succ_g);
+                if (succ_g < search_info_[succ_id].get_g_value()) {
+                    search_info_[succ_id].decrease_g_value_to(succ_g);
                     auto h = heuristic.get_h_value(succ_id);
                     if (h == INFINITE_VALUE) continue;
                     const value_t f = succ_g + h;
                     assert(f >= 0);
                     assert(f != INFINITE_VALUE);
-                    open_queue.push(f, succ_id);
-                    search_info[succ_id].set_incoming_transition(
+                    open_queue_.push(f, succ_id);
+                    search_info_[succ_id].set_incoming_transition(
                         TransitionOutcome(op_id, i, state_id));
                 }
             }
@@ -149,7 +151,7 @@ unique_ptr<Trace> AStarTraceGenerator::extract_solution(
     while (current_id != init_id) {
         timer.throw_if_expired();
         const TransitionOutcome& prev =
-            search_info[current_id].get_incoming_transition();
+            search_info_[current_id].get_incoming_transition();
         solution->emplace_front(prev.op_id, prev.eff_id, current_id);
         assert(prev.target_id != current_id);
         current_id = prev.target_id;
@@ -170,7 +172,7 @@ void AStarTraceGenerator::update_heuristic(
     }
 
     for (int i = 0; i != abstraction.get_num_states(); ++i) {
-        auto& info = search_info[i];
+        auto& info = search_info_[i];
         if (info.get_g_value() < INFINITE_VALUE) {
             const value_t new_h = std::max(
                 heuristic.get_h_value(i),
@@ -182,8 +184,7 @@ void AStarTraceGenerator::update_heuristic(
 
 void AStarTraceGenerator::notify_split()
 {
-    search_info.emplace_back();
+    search_info_.emplace_back();
 }
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions

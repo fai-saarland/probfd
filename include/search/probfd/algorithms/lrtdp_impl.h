@@ -8,9 +8,7 @@
 
 #include <cassert>
 
-namespace probfd {
-namespace algorithms {
-namespace lrtdp {
+namespace probfd::algorithms::lrtdp {
 
 namespace internal {
 
@@ -30,7 +28,7 @@ LRTDP<State, Action, UseInterval>::LRTDP(
     TrialTerminationCondition stop_consistent,
     std::shared_ptr<SuccessorSampler> succ_sampler)
     : Base(policy_chooser)
-    , StopConsistent(stop_consistent)
+    , stop_consistent_(stop_consistent)
     , sample_(succ_sampler)
 {
 }
@@ -127,13 +125,13 @@ void LRTDP<State, Action, UseInterval>::trial(
         // state_info.mark_trial();
         assert(!state_info.is_terminal());
 
-        if ((StopConsistent == CONSISTENT && !value_changed) ||
-            (StopConsistent == INCONSISTENT && value_changed) ||
-            (StopConsistent == REVISITED && state_info.is_marked_trial())) {
+        if ((stop_consistent_ == CONSISTENT && !value_changed) ||
+            (stop_consistent_ == INCONSISTENT && value_changed) ||
+            (stop_consistent_ == REVISITED && state_info.is_marked_trial())) {
             break;
         }
 
-        if (StopConsistent == REVISITED) {
+        if (stop_consistent_ == REVISITED) {
             state_info.mark_trial();
         }
 
@@ -141,7 +139,7 @@ void LRTDP<State, Action, UseInterval>::trial(
             this->sample_state(*sample_, state_id, transition->successor_dist));
     }
 
-    if (StopConsistent == REVISITED) {
+    if (stop_consistent_ == REVISITED) {
         current_trial_.pop_back();
 
         for (const StateID state : current_trial_) {
@@ -313,6 +311,4 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve_original(
 }
 */
 
-} // namespace lrtdp
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::lrtdp

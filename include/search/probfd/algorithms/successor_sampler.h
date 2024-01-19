@@ -3,14 +3,17 @@
 
 #include "probfd/types.h"
 
+// Forward Declarations
 namespace probfd {
-    
 template <typename>
 class Distribution;
+}
 
-namespace algorithms {
-
+namespace probfd::algorithms {
 class StateProperties;
+}
+
+namespace probfd::algorithms {
 
 /**
  * @brief An interface used to sample a state from a successor distribution.
@@ -48,7 +51,6 @@ public:
     virtual void print_statistics(std::ostream&) const {}
 };
 
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms
 
-#endif // __SUCCESSOR_SAMPLER_H__
+#endif // PROBFD_ALGORITHMS_SUCCESSOR_SAMPLER_H

@@ -18,14 +18,17 @@
 #include <memory>
 #include <vector>
 
+// Forward Declarations
 class OperatorID;
 class Evaluator;
 
 namespace probfd {
 template <typename>
 class Distribution;
-
 class ProbabilisticTask;
+} // namespace probfd
+
+namespace probfd {
 
 class TaskStateSpace : public FDRSimpleMDP {
 protected:
@@ -47,8 +50,8 @@ protected:
     };
 
 protected:
-    ProbabilisticTaskProxy task_proxy;
-    mutable utils::LogProxy log;
+    ProbabilisticTaskProxy task_proxy_;
+    mutable utils::LogProxy log_;
 
     successor_generator::ProbabilisticSuccessorGenerator gen_;
     StateRegistry state_registry_;
@@ -66,8 +69,8 @@ public:
         const std::vector<std::shared_ptr<::Evaluator>>&
             path_dependent_evaluators = {});
 
-    StateID get_state_id(const State& state) override final;
-    State get_state(StateID state_id) override final;
+    StateID get_state_id(const State& state) final;
+    State get_state(StateID state_id) final;
 
     void generate_applicable_actions(
         const State& state,
@@ -89,8 +92,8 @@ public:
 
     value_t get_action_cost(OperatorID op) override;
 
-    bool is_goal(const State& state) const override final;
-    value_t get_non_goal_termination_cost() const override final;
+    bool is_goal(const State& state) const final;
+    value_t get_non_goal_termination_cost() const final;
 
     const State& get_initial_state();
 
@@ -110,4 +113,4 @@ protected:
 
 } // namespace probfd
 
-#endif // __TRANSITION_GENERATOR_H__
+#endif // PROBFD_TASK_STATE_SPACE_H

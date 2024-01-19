@@ -7,12 +7,11 @@
 
 using namespace std;
 
-namespace probfd {
-namespace successor_generator {
+namespace probfd::successor_generator {
 
 ProbabilisticSuccessorGenerator::ProbabilisticSuccessorGenerator(
     const TaskBaseProxy& task_proxy)
-    : root(ProbabilisticSuccessorGeneratorFactory(task_proxy).create())
+    : root_(ProbabilisticSuccessorGeneratorFactory(task_proxy).create())
 {
 }
 
@@ -23,7 +22,7 @@ void ProbabilisticSuccessorGenerator::generate_applicable_ops(
     vector<OperatorID>& applicable_ops) const
 {
     state.unpack();
-    root->generate_applicable_ops(state.get_unpacked_values(), applicable_ops);
+    root_->generate_applicable_ops(state.get_unpacked_values(), applicable_ops);
 }
 
 void ProbabilisticSuccessorGenerator::generate_transitions(
@@ -32,8 +31,7 @@ void ProbabilisticSuccessorGenerator::generate_transitions(
     TaskStateSpace& task_state_space) const
 {
     state.unpack();
-    root->generate_transitions(state, transitions, task_state_space);
+    root_->generate_transitions(state, transitions, task_state_space);
 }
 
-} // namespace successor_generator
-} // namespace probfd
+} // namespace probfd::successor_generator

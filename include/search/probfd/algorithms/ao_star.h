@@ -5,15 +5,14 @@
 
 #include <vector>
 
-namespace probfd {
-namespace algorithms {
-
+// Forward Declarations
+namespace probfd::algorithms {
 template <typename>
 class SuccessorSampler;
+}
 
 /// Namespace dedicated to the AO* algorithm.
-namespace ao_search {
-namespace ao_star {
+namespace probfd::algorithms::ao_search::ao_star {
 
 /**
  * @brief Implementation of the AO* algorithm.
@@ -60,18 +59,15 @@ protected:
     Interval do_solve(
         MDP& mdp,
         Evaluator& heuristic,
-        param_type<State> state,
+        param_type<State> initial_state,
         ProgressReport& progress,
         double max_time) override;
 };
 
-} // namespace ao_star
-} // namespace ao_search
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::ao_search::ao_star
 
 #define GUARD_INCLUDE_PROBFD_ALGORITHMS_AO_STAR_H
 #include "probfd/algorithms/ao_star_impl.h"
 #undef GUARD_INCLUDE_PROBFD_ALGORITHMS_AO_STAR_H
 
-#endif // __AO_STAR_H__
+#endif // PROBFD_ALGORITHMS_AO_STAR_H

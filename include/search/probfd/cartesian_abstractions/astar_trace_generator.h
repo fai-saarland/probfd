@@ -11,15 +11,17 @@
 #include <memory>
 #include <vector>
 
+// Forward Declarations
 namespace utils {
 class CountdownTimer;
 }
 
-namespace probfd {
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 class Abstraction;
 class CartesianHeuristic;
+} // namespace probfd::cartesian_abstractions
 
+namespace probfd::cartesian_abstractions {
 /*
   Find an optimal trace in the determinization using A*.
 */
@@ -27,8 +29,8 @@ class AStarTraceGenerator : public TraceGenerator {
     class AbstractSearchInfo;
 
     // Keep data structures around to avoid reallocating them.
-    priority_queues::HeapQueue<value_t, int> open_queue;
-    std::vector<AbstractSearchInfo> search_info;
+    priority_queues::HeapQueue<value_t, int> open_queue_;
+    std::vector<AbstractSearchInfo> search_info_;
 
     std::unique_ptr<Trace>
     extract_solution(int init_id, int goal_id, utils::CountdownTimer& timer)
@@ -51,7 +53,6 @@ public:
     void notify_split() override;
 };
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions
 
 #endif // PROBFD_CARTESIAN_ASTAR_TRACE_GENERATOR_H

@@ -14,15 +14,13 @@
 #include <limits>
 #include <type_traits>
 
+// Forward Declarations
 namespace utils {
 class CountdownTimer;
 }
 
-namespace probfd {
-namespace algorithms {
-
 /// Namespace dedicated to the Find, Revise, Eliminate Traps (FRET) framework.
-namespace fret {
+namespace probfd::algorithms::fret {
 
 namespace internal {
 
@@ -45,8 +43,17 @@ struct TarjanStateInformation {
     unsigned stack_index = UNDEF;
     unsigned lowlink = UNDEF;
 
-    bool is_explored() const { return lowlink != UNDEF; }
-    bool is_on_stack() const { return stack_index != UNDEF; }
+    [[nodiscard]]
+    bool is_explored() const
+    {
+        return lowlink != UNDEF;
+    }
+
+    [[nodiscard]]
+    bool is_on_stack() const
+    {
+        return stack_index != UNDEF;
+    }
 
     void open(const unsigned x)
     {
@@ -133,7 +140,6 @@ class FRET : public MDPAlgorithm<State, Action> {
         heuristic_search::HeuristicSearchAlgorithm<QState, QAction, StateInfoT>;
     using QEvaluator = probfd::Evaluator<QState>;
 
-    using StackIterator = std::deque<StateID>::iterator;
     using StackInfo = internal::StackInfo<QAction>;
 
     std::shared_ptr<QHeuristicSearchAlgorithm> base_algorithm_;
@@ -148,14 +154,14 @@ public:
         Evaluator& heuristic,
         param_type<State> state,
         ProgressReport progress,
-        double max_time = std::numeric_limits<double>::infinity()) override;
+        double max_time) override;
 
     Interval solve(
         MDP& mdp,
         Evaluator& heuristic,
         param_type<State> state,
         ProgressReport progress,
-        double max_time = std::numeric_limits<double>::infinity()) override;
+        double max_time) override;
 
     void print_statistics(std::ostream& out) const override;
 
@@ -202,8 +208,8 @@ class ValueGraph {
 
     using QEvaluator = Evaluator<QState>;
 
-    std::unordered_set<StateID> ids;
-    std::vector<Transition<QAction>> opt_transitions;
+    std::unordered_set<StateID> ids_;
+    std::vector<Transition<QAction>> opt_transitions_;
 
 public:
     bool get_successors(
@@ -230,9 +236,9 @@ class PolicyGraph {
 public:
     bool get_successors(
         QuotientSystem& quotient,
-        QEvaluator& heuristic,
+        QEvaluator&,
         QHeuristicSearchAlgorithm& base_algorithm,
-        StateID qstate,
+        StateID quotient_state_id,
         std::vector<QAction>& aops,
         std::vector<StateID>& successors);
 };
@@ -261,9 +267,7 @@ template <typename State, typename Action, typename StateInfoT>
 using FRETPi =
     FRET<State, Action, StateInfoT, PolicyGraph<State, Action, StateInfoT>>;
 
-} // namespace fret
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::fret
 
 #define GUARD_INCLUDE_PROBFD_ALGORITHMS_FRET_H
 #include "probfd/algorithms/fret_impl.h"

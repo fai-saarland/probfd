@@ -3,19 +3,21 @@
 
 #include "probfd/policies/empty_policy.h"
 
-#include "probfd/progress_report.h"
 #include "probfd/type_traits.h"
 
 #include <limits>
 #include <memory>
 
+// Forward Declarations
 namespace probfd {
-
 template <typename, typename>
 class MDP;
-
 template <typename>
 class Evaluator;
+class ProgressReport;
+} // namespace probfd
+
+namespace probfd {
 
 /**
  * @brief Interface for MDP algorithm implementations.
@@ -70,4 +72,4 @@ public:
 
 } // namespace probfd
 
-#endif // __ALGORITHM_H__
+#endif // PROBFD_MDP_ALGORITHM_H

@@ -7,16 +7,16 @@
 #include <unordered_set>
 #include <utility>
 
-namespace probfd {
-namespace pdbs {
-namespace cegar {
+namespace probfd::pdbs::cegar {
 class FlawFindingStrategy;
 }
 
+namespace probfd::pdbs {
+
 class PatternCollectionGeneratorMultipleCegar
     : public PatternCollectionGeneratorMultiple {
-    const bool use_wildcard_policies;
-    std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy;
+    const bool use_wildcard_policies_;
+    std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy_;
 
     std::pair<
         std::shared_ptr<ProjectionStateSpace>,
@@ -35,7 +35,6 @@ public:
         const plugins::Options& opts);
 };
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif // PROBFD_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_CEGAR_H

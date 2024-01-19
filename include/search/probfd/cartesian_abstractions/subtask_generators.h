@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 
+// Forward Declarations
 struct FactPair;
 
 namespace landmarks {
@@ -21,8 +22,9 @@ class LogProxy;
 
 namespace probfd {
 class ProbabilisticTask;
+}
 
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 
 using Facts = std::vector<FactPair>;
 using SharedTasks = std::vector<std::shared_ptr<ProbabilisticTask>>;
@@ -44,7 +46,7 @@ public:
   Return copies of the original task.
 */
 class TaskDuplicator : public SubtaskGenerator {
-    int num_copies;
+    int num_copies_;
 
 public:
     explicit TaskDuplicator(const plugins::Options& opts);
@@ -58,8 +60,8 @@ public:
   Use ModifiedGoalsTask to return a subtask for each goal fact.
 */
 class GoalDecomposition : public SubtaskGenerator {
-    FactOrder fact_order;
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
+    FactOrder fact_order_;
+    std::shared_ptr<utils::RandomNumberGenerator> rng_;
 
 public:
     explicit GoalDecomposition(const plugins::Options& opts);
@@ -74,16 +76,9 @@ public:
   focussing on a single landmark fact.
 */
 class LandmarkDecomposition : public SubtaskGenerator {
-    FactOrder fact_order;
-    bool combine_facts;
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
-
-    /* Perform domain abstraction by combining facts that have to be
-       achieved before a given landmark can be made true. */
-    std::shared_ptr<ProbabilisticTask> build_domain_abstracted_task(
-        const std::shared_ptr<ProbabilisticTask>& parent,
-        const landmarks::LandmarkGraph& landmark_graph,
-        const FactPair& fact) const;
+    FactOrder fact_order_;
+    bool combine_facts_;
+    std::shared_ptr<utils::RandomNumberGenerator> rng_;
 
 public:
     explicit LandmarkDecomposition(const plugins::Options& opts);
@@ -93,7 +88,6 @@ public:
         utils::LogProxy& log) const override;
 };
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions
 
 #endif // PROBFD_CARTESIAN_SUBTASK_GENERATORS_H

@@ -6,30 +6,34 @@
 #include "probfd/storage/segmented_memory_pool.h"
 
 #include "probfd/fdr_types.h"
-#include "probfd/probabilistic_task.h"
 #include "probfd/types.h"
 
 #include "downward/per_state_information.h"
-
-#include "downward/operator_id.h"
 
 #include <limits>
 #include <memory>
 #include <vector>
 
+// Forward Declarations
 class Evaluator;
 class State;
+class OperatorID;
 
 namespace utils {
 class LogProxy;
 }
 
 namespace probfd {
+class ProbabilisticTask;
 template <typename>
 class Distribution;
+} // namespace probfd
+
+namespace probfd {
 
 class CachingTaskStateSpace : public TaskStateSpace {
     struct CacheEntry {
+        [[nodiscard]]
         bool is_initialized() const
         {
             return naops != std::numeric_limits<unsigned>::max();
@@ -56,23 +60,23 @@ public:
 
     void generate_applicable_actions(
         const State& state,
-        std::vector<OperatorID>& result) override final;
+        std::vector<OperatorID>& result) final;
 
     void generate_action_transitions(
         const State& state,
         OperatorID operator_id,
-        Distribution<StateID>& result) override final;
+        Distribution<StateID>& result) final;
 
     void generate_all_transitions(
         const State& state,
         std::vector<OperatorID>& aops,
-        std::vector<Distribution<StateID>>& successors) override final;
+        std::vector<Distribution<StateID>>& successors) final;
 
     void generate_all_transitions(
         const State& state,
-        std::vector<Transition>& transitions) override final;
+        std::vector<Transition>& transitions) final;
 
-    void print_statistics() const override final;
+    void print_statistics() const final;
 
 private:
     void compute_successor_states(
@@ -87,4 +91,4 @@ private:
 
 } // namespace probfd
 
-#endif // __TRANSITION_GENERATOR_H__
+#endif // PROBFD_CACHING_TASK_STATE_SPACE_H

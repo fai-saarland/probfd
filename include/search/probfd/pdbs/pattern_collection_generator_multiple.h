@@ -10,6 +10,7 @@
 #include <unordered_set>
 #include <utility>
 
+// Forward Declarations
 struct FactPair;
 
 namespace plugins {
@@ -23,24 +24,27 @@ class RandomNumberGenerator;
 
 namespace probfd {
 class ProbabilisticTaskProxy;
+}
 
-namespace pdbs {
-
+namespace probfd::pdbs {
 class ProjectionStateSpace;
 class ProbabilityAwarePatternDatabase;
+} // namespace probfd::pdbs
+
+namespace probfd::pdbs {
 
 class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
-    const std::string implementation_name;
-    const int max_pdb_size;
-    const int max_collection_size;
-    const double pattern_generation_max_time;
-    const double total_max_time;
-    const double stagnation_limit;
-    const double blacklisting_start_time;
-    const bool enable_blacklist_on_stagnation;
-    const std::shared_ptr<utils::RandomNumberGenerator> rng;
-    const int random_seed;
-    const bool use_saturated_costs;
+    const std::string implementation_name_;
+    const int max_pdb_size_;
+    const int max_collection_size_;
+    const double pattern_generation_max_time_;
+    const double total_max_time_;
+    const double stagnation_limit_;
+    const double blacklisting_start_time_;
+    const bool enable_blacklist_on_stagnation_;
+    const std::shared_ptr<utils::RandomNumberGenerator> rng_;
+    const int random_seed_;
+    const bool use_saturated_costs_;
 
     bool collection_size_limit_reached(int remaining_collection_size) const;
     bool time_limit_reached(const utils::CountdownTimer& timer) const;
@@ -57,7 +61,7 @@ class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
         const FactPair& goal,
         std::unordered_set<int>&& blacklisted_variables) = 0;
 
-    virtual PatternCollectionInformation generate(
+    PatternCollectionInformation generate(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
 
@@ -67,9 +71,8 @@ public:
         std::string implementation_name);
 };
 
-    extern void add_multiple_options_to_feature(plugins::Feature& feature);
+extern void add_multiple_options_to_feature(plugins::Feature& feature);
 
-    } // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif // PROBFD_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_H

@@ -6,9 +6,7 @@
 
 #include <cassert>
 
-namespace probfd {
-namespace algorithms {
-namespace heuristic_depth_first_search {
+namespace probfd::algorithms::heuristic_depth_first_search {
 
 namespace internal {
 
@@ -43,21 +41,21 @@ template <typename State, typename Action, bool UseInterval>
 HeuristicDepthFirstSearch<State, Action, UseInterval>::
     HeuristicDepthFirstSearch(
         std::shared_ptr<PolicyPicker> policy_chooser,
-        bool LabelSolved,
-        bool ForwardUpdates,
-        BacktrackingUpdateType BackwardUpdates,
-        bool CutoffInconsistent,
-        bool GreedyExploration,
-        bool PerformValueIteration,
-        bool ExpandTipStates)
+        bool label_solved,
+        bool forward_updates,
+        BacktrackingUpdateType backward_updates,
+        bool cutoff_inconsistent,
+        bool greedy_exploration,
+        bool perform_value_iteration,
+        bool expand_tip_states)
     : Base(std::move(policy_chooser))
-    , LabelSolved(LabelSolved)
-    , ForwardUpdates(ForwardUpdates)
-    , BackwardUpdates(BackwardUpdates)
-    , CutoffInconsistent(CutoffInconsistent)
-    , GreedyExploration(GreedyExploration)
-    , PerformValueIteration(PerformValueIteration)
-    , ExpandTipStates(ExpandTipStates)
+    , label_solved_(label_solved)
+    , forward_updates_(forward_updates)
+    , backward_updates_(backward_updates)
+    , cutoff_inconsistent_(cutoff_inconsistent)
+    , greedy_exploration_(greedy_exploration)
+    , perform_value_iteration_(perform_value_iteration)
+    , expand_tip_states_(expand_tip_states)
 {
 }
 
@@ -80,7 +78,7 @@ Interval HeuristicDepthFirstSearch<State, Action, UseInterval>::do_solve(
     utils::CountdownTimer timer(max_time);
 
     const StateID stateid = mdp.get_state_id(state);
-    if (PerformValueIteration) {
+    if (perform_value_iteration_) {
         solve_with_vi_termination(mdp, heuristic, stateid, progress, timer);
     } else {
         solve_without_vi_termination(mdp, heuristic, stateid, progress, timer);
@@ -145,7 +143,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
     using namespace internal;
     using enum BacktrackingUpdateType;
 
-    ClearGuard _guard(state_infos_);
+    ClearGuard _(state_infos_);
 
     {
         StateInfo& pers_info = this->get_state_info(state);
@@ -190,8 +188,8 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
             bool last_unsolved_succs = einfo->unsolved_succs;
             bool last_value_changed = einfo->value_changed;
 
-            if (BackwardUpdates == SINGLE ||
-                (last_value_changed && BackwardUpdates == ON_DEMAND)) {
+            if (backward_updates_ == SINGLE ||
+                (last_value_changed && backward_updates_ == ON_DEMAND)) {
                 statistics_.backtracking_updates++;
                 auto result =
                     this->bellman_policy_update(mdp, heuristic, einfo->stateid);
@@ -213,7 +211,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
                     }
                 }
 
-                if (BackwardUpdates == CONVERGENCE && last_unsolved_succs) {
+                if (backward_updates_ == CONVERGENCE && last_unsolved_succs) {
                     auto result = backtracking_value_iteration(
                         mdp,
                         heuristic,
@@ -229,7 +227,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
                     for (const StateID state_id : scc) {
                         state_infos_[state_id].status = CLOSED;
 
-                        if (LabelSolved) {
+                        if (label_solved_) {
                             this->get_state_info(state_id).set_solved();
                         }
                     }
@@ -268,7 +266,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::push_successor(
     do {
         timer.throw_if_expired();
 
-        StateID succid = einfo.successors.back();
+        StateID succid = einfo.get_current_successor();
 
         StateInfo& pers_succ_info = this->get_state_info(succid);
 
@@ -297,7 +295,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::push_successor(
                 einfo.unsolved_succs = true;
             }
 
-            if (GreedyExploration && einfo.unsolved_succs) {
+            if (greedy_exploration_ && einfo.unsolved_succs) {
                 keep_expanding = false;
                 break;
             }
@@ -331,7 +329,7 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval>::push(
 
     const bool is_tip_state = !sinfo.is_policy_initialized();
 
-    if (ForwardUpdates || is_tip_state) {
+    if (forward_updates_ || is_tip_state) {
         sinfo.set_policy_initialized();
         statistics_.forward_updates++;
 
@@ -351,8 +349,8 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval>::push(
             return CLOSED;
         }
 
-        if ((!ExpandTipStates && is_tip_state) ||
-            (CutoffInconsistent && value_changed)) {
+        if ((!expand_tip_states_ && is_tip_state) ||
+            (cutoff_inconsistent_ && value_changed)) {
             return UNSOLVED;
         }
 
@@ -453,6 +451,4 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::vi_step(
     return std::make_pair(values_not_conv, policy_not_conv);
 }
 
-} // namespace heuristic_depth_first_search
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::heuristic_depth_first_search

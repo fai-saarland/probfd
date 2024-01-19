@@ -9,10 +9,10 @@
 #include <string>
 #include <vector>
 
+// Forward Declarations
 struct FactPair;
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 /**
  * @brief Implements the state ranking function for abstract states of
@@ -43,16 +43,19 @@ public:
     /**
      * @brief Get the number of abstract states.
      */
+    [[nodiscard]]
     unsigned int num_states() const;
 
     /**
      * @brief Get the number of variables considered by the projection.
      */
+    [[nodiscard]]
     unsigned int num_vars() const;
 
     /**
      * @brief Get the pattern of the projection.
      */
+    [[nodiscard]]
     const Pattern& get_pattern() const;
 
     /**
@@ -60,11 +63,13 @@ public:
      * \f$ N_i = \prod_{j=0}^{i-1} |\mathcal{D}_j| \f$
      * for variable \f$ i \f$ of the projection.
      */
+    [[nodiscard]]
     long long int get_multiplier(int i) const;
 
     /**
      * @brief Get the domain size for a projection variable.
      */
+    [[nodiscard]]
     int get_domain_size(int i) const;
 
     /**
@@ -77,6 +82,7 @@ public:
      * is the ranking coefficient of projection variable
      * \f$i \in \{1, \dots, k\}\f$.
      */
+    [[nodiscard]]
     StateRank get_abstract_rank(const State& state) const;
 
     /**
@@ -88,6 +94,7 @@ public:
      * is the ranking coefficient of projection variable
      * \f$i \in \{1, \dots, k\}\f$.
      */
+    [[nodiscard]]
     int rank_fact(int idx, int val) const;
 
     /**
@@ -105,6 +112,7 @@ public:
      * is the ranking coefficient of projection variable
      * \f$i \in \{1, \dots, k\}\f$.
      */
+    [[nodiscard]]
     std::vector<int> unrank(StateRank abstract_state) const;
 
     /**
@@ -117,6 +125,7 @@ public:
      * \mathcal{D}_i.
      * \f]
      */
+    [[nodiscard]]
     int value_of(StateRank rank, int idx) const;
 
     /**
@@ -166,7 +175,6 @@ public:
     std::string operator()(StateRank state) const;
 };
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif // PROBFD_PDBS_STATE_RANKING_FUNCTION_H

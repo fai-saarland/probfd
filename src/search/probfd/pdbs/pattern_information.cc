@@ -8,52 +8,50 @@
 
 using namespace std;
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 PatternInformation::PatternInformation(
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction* task_cost_function,
     Pattern pattern)
-    : task_proxy(task_proxy)
-    , task_cost_function(task_cost_function)
-    , pattern(std::move(pattern))
+    : task_proxy_(task_proxy)
+    , task_cost_function_(task_cost_function)
+    , pattern_(std::move(pattern))
 {
 }
 
 bool PatternInformation::information_is_valid() const
 {
-    return !pdb || pdb->get_pattern() == pattern;
+    return !pdb_ || pdb_->get_pattern() == pattern_;
 }
 
 void PatternInformation::create_pdb_if_missing()
 {
-    if (!pdb) {
-        pdb = make_shared<ProbabilityAwarePatternDatabase>(
-            task_proxy,
-            *task_cost_function,
-            pattern,
-            task_proxy.get_initial_state());
+    if (!pdb_) {
+        pdb_ = make_shared<ProbabilityAwarePatternDatabase>(
+            task_proxy_,
+            *task_cost_function_,
+            pattern_,
+            task_proxy_.get_initial_state());
     }
 }
 
 void PatternInformation::set_pdb(
-    const shared_ptr<ProbabilityAwarePatternDatabase>& pdb_)
+    const shared_ptr<ProbabilityAwarePatternDatabase>& pdb)
 {
-    pdb = pdb_;
+    pdb_ = pdb;
     assert(information_is_valid());
 }
 
 const Pattern& PatternInformation::get_pattern() const
 {
-    return pattern;
+    return pattern_;
 }
 
 shared_ptr<ProbabilityAwarePatternDatabase> PatternInformation::get_pdb()
 {
     create_pdb_if_missing();
-    return pdb;
+    return pdb_;
 }
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs

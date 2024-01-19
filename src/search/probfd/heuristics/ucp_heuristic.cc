@@ -12,13 +12,11 @@
 
 #include "downward/task_utils/task_properties.h"
 
-#include <cstddef>
 #include <utility>
 
 using namespace probfd::pdbs;
 
-namespace probfd {
-namespace heuristics {
+namespace probfd::heuristics {
 
 namespace {
 class UniformTaskCostFunction : public FDRSimpleCostFunction {
@@ -36,7 +34,8 @@ public:
 
         for (const ProbabilisticOperatorProxy op : operators) {
             costs.push_back(
-                static_cast<value_t>(op.get_cost()) / num_abstractions);
+                static_cast<value_t>(op.get_cost()) /
+                static_cast<value_t>(num_abstractions));
         }
     }
 
@@ -45,11 +44,13 @@ public:
         return costs[op.get_index()];
     }
 
+    [[nodiscard]]
     bool is_goal(const State& state) const override
     {
         return ::task_properties::is_goal_state(task_proxy, state);
     }
 
+    [[nodiscard]]
     value_t get_non_goal_termination_cost() const override
     {
         return INFINITE_VALUE;
@@ -62,8 +63,8 @@ UCPHeuristic::UCPHeuristic(
     std::shared_ptr<FDRCostFunction> task_cost_function,
     utils::LogProxy log,
     std::shared_ptr<PatternCollectionGenerator> generator)
-    : TaskDependentHeuristic(task, log)
-    , termination_cost(task_cost_function->get_non_goal_termination_cost())
+    : TaskDependentHeuristic(task, std::move(log))
+    , termination_cost_(task_cost_function->get_non_goal_termination_cost())
 {
     auto pattern_collection_info =
         generator->generate(task, task_cost_function);
@@ -72,21 +73,21 @@ UCPHeuristic::UCPHeuristic(
 
     const size_t num_abstractions = patterns->size();
 
-    pdbs.reserve(num_abstractions);
+    pdbs_.reserve(num_abstractions);
 
-    UniformTaskCostFunction task_costs(task_proxy, num_abstractions);
+    UniformTaskCostFunction task_costs(task_proxy_, num_abstractions);
 
-    const State& initial_state = task_proxy.get_initial_state();
+    const State& initial_state = task_proxy_.get_initial_state();
 
     for (const Pattern& pattern : *patterns) {
-        StateRankingFunction rankingf(task_proxy.get_variables(), pattern);
+        StateRankingFunction rankingf(task_proxy_.get_variables(), pattern);
         ProjectionStateSpace state_space(
-            task_proxy,
+            task_proxy_,
             task_costs,
             rankingf,
             true);
         StateRank init_rank = rankingf.get_abstract_rank(initial_state);
-        pdbs.emplace_back(state_space, std::move(rankingf), init_rank);
+        pdbs_.emplace_back(state_space, std::move(rankingf), init_rank);
     }
 }
 
@@ -96,10 +97,10 @@ value_t UCPHeuristic::evaluate(const State& state) const
 {
     value_t value = 0.0_vt;
 
-    for (const auto& pdb : pdbs) {
+    for (const auto& pdb : pdbs_) {
         const value_t estimate = pdb.lookup_estimate(state);
 
-        if (estimate == termination_cost) {
+        if (estimate == termination_cost_) {
             return estimate;
         }
 
@@ -156,9 +157,8 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<UCPHeuristicFactoryFeature> _plugin;
-
 } // namespace
 
-} // namespace heuristics
-} // namespace probfd
+static plugins::FeaturePlugin<UCPHeuristicFactoryFeature> _plugin;
+
+} // namespace probfd::heuristics

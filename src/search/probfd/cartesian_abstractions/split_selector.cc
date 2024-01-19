@@ -10,8 +10,6 @@
 
 #include "downward/plugins/plugin.h"
 
-#include "downward/task_proxy.h"
-
 #include <cassert>
 #include <limits>
 #include <utility>
@@ -22,36 +20,35 @@ namespace utils {
 class Context;
 }
 
-namespace probfd {
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 
 SplitSelectorRandom::SplitSelectorRandom(
     std::shared_ptr<utils::RandomNumberGenerator> rng)
-    : rng(std::move(rng))
+    : rng_(std::move(rng))
 {
 }
 
 SplitSelectorUnwanted::SplitSelectorUnwanted(int factor)
-    : factor(factor)
+    : factor_(factor)
 {
 }
 
 SplitSelectorRefinedness::SplitSelectorRefinedness(
     const std::shared_ptr<ProbabilisticTask>& task,
     double factor)
-    : task_proxy(*task)
-    , factor(factor)
+    : task_proxy_(*task)
+    , factor_(factor)
 {
 }
 
 SplitSelectorHAdd::SplitSelectorHAdd(
     const std::shared_ptr<ProbabilisticTask>& task)
-    : task(task)
-    , task_proxy(*task)
-    , additive_heuristic(create_additive_heuristic(task))
+    : task_(task)
+    , task_proxy_(*task)
+    , additive_heuristic_(create_additive_heuristic(task))
 {
-    additive_heuristic->compute_heuristic_for_cegar(
-        task_proxy.get_initial_state());
+    additive_heuristic_->compute_heuristic_for_cegar(
+        task_proxy_.get_initial_state());
 }
 
 SplitSelectorHAdd::~SplitSelectorHAdd() = default;
@@ -78,16 +75,17 @@ const Split& SplitSelectorRandom::pick_split(
         return splits[0];
     }
 
-    return *rng->choose(splits);
+    return *rng_->choose(splits);
 }
 
 double SplitSelectorUnwanted::rate_split(
     const AbstractState& state,
     const Split& split) const
 {
-    int num_unwanted_values = state.count(split.var_id) - split.values.size();
+    int num_unwanted_values =
+        state.count(split.var_id) - static_cast<int>(split.values.size());
     assert(num_unwanted_values >= 1);
-    return static_cast<double>(factor * num_unwanted_values);
+    return static_cast<double>(factor_ * num_unwanted_values);
 }
 
 double SplitSelectorRefinedness::rate_split(
@@ -95,19 +93,19 @@ double SplitSelectorRefinedness::rate_split(
     const Split& split) const
 {
     const int var_id = split.var_id;
-    double all_values = task_proxy.get_variables()[var_id].get_domain_size();
+    double all_values = task_proxy_.get_variables()[var_id].get_domain_size();
     assert(all_values >= 2);
     double remaining_values = state.count(var_id);
     assert(2 <= remaining_values && remaining_values <= all_values);
     double refinedness = -(remaining_values / all_values);
     assert(-1.0 <= refinedness && refinedness < 0.0);
-    return factor * refinedness;
+    return factor_ * refinedness;
 }
 
 int SplitSelectorHAdd::get_hadd_value(int var_id, int value) const
 {
-    assert(additive_heuristic);
-    int hadd = additive_heuristic->get_cost_for_cegar(var_id, value);
+    assert(additive_heuristic_);
+    int hadd = additive_heuristic_->get_cost_for_cegar(var_id, value);
     assert(hadd != -1);
     return hadd;
 }
@@ -154,7 +152,7 @@ SplitSelectorMaxHAdd::rate_split(const AbstractState&, const Split& split) const
 
 SplitSelectorRandomFactory::SplitSelectorRandomFactory(
     const plugins::Options& opts)
-    : rng(utils::parse_rng_from_options(opts))
+    : rng_(utils::parse_rng_from_options(opts))
 {
 }
 
@@ -162,7 +160,7 @@ std::unique_ptr<SplitSelector>
 SplitSelectorRandomFactory::create_split_selector(
     const std::shared_ptr<ProbabilisticTask>&)
 {
-    return std::make_unique<SplitSelectorRandom>(rng);
+    return std::make_unique<SplitSelectorRandom>(rng_);
 }
 
 std::unique_ptr<SplitSelector>
@@ -247,6 +245,7 @@ public:
             "h-value will probably be raised) in the flaw state");
     }
 
+    [[nodiscard]]
     std::shared_ptr<SplitSelectorMinUnwantedFactory>
     create_component(const plugins::Options&, const utils::Context&)
         const override
@@ -268,6 +267,7 @@ public:
             "h-value will probably be raised) in the flaw state");
     }
 
+    [[nodiscard]]
     std::shared_ptr<SplitSelectorMaxUnwantedFactory>
     create_component(const plugins::Options&, const utils::Context&)
         const override
@@ -289,6 +289,7 @@ public:
             "in the flaw state");
     }
 
+    [[nodiscard]]
     std::shared_ptr<SplitSelectorMinRefinedFactory>
     create_component(const plugins::Options&, const utils::Context&)
         const override
@@ -310,6 +311,7 @@ public:
             "in the flaw state");
     }
 
+    [[nodiscard]]
     std::shared_ptr<SplitSelectorMaxRefinedFactory>
     create_component(const plugins::Options&, const utils::Context&)
         const override
@@ -330,6 +332,7 @@ public:
             "over all facts that need to be removed from the flaw state");
     }
 
+    [[nodiscard]]
     std::shared_ptr<SplitSelectorMinHAddFactory>
     create_component(const plugins::Options&, const utils::Context&)
         const override
@@ -351,6 +354,7 @@ public:
             "state");
     }
 
+    [[nodiscard]]
     std::shared_ptr<SplitSelectorMaxHAddFactory>
     create_component(const plugins::Options&, const utils::Context&)
         const override
@@ -369,5 +373,4 @@ static plugins::FeaturePlugin<SplitSelectorMaxRefinedFactoryFeature> _plugin5;
 static plugins::FeaturePlugin<SplitSelectorMinHAddFactoryFeature> _plugin6;
 static plugins::FeaturePlugin<SplitSelectorMaxHAddFactoryFeature> _plugin7;
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions

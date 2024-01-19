@@ -18,23 +18,27 @@ class LogProxy;
 
 namespace probfd {
 class ProbabilisticTaskProxy;
+}
 
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 class AbstractState;
 class Abstraction;
 class CartesianHeuristic;
 class PolicyGenerator;
 class PolicyFlawFinder;
+} // namespace probfd::cartesian_abstractions
+
+namespace probfd::cartesian_abstractions {
 
 /**
  * @brief Find flaws using ILAO*.
  */
 class PolicyBasedFlawGenerator : public FlawGenerator {
-    std::unique_ptr<PolicyGenerator> policy_generator;
-    std::unique_ptr<PolicyFlawFinder> policy_flaw_finder;
+    std::unique_ptr<PolicyGenerator> policy_generator_;
+    std::unique_ptr<PolicyFlawFinder> policy_flaw_finder_;
 
-    utils::Timer find_policy_timer = utils::Timer(true);
-    utils::Timer find_flaw_timer = utils::Timer(true);
+    utils::Timer find_policy_timer_ = utils::Timer(true);
+    utils::Timer find_flaw_timer_ = utils::Timer(true);
 
     std::unique_ptr<Solution> find_solution(
         Abstraction& abstraction,
@@ -55,7 +59,7 @@ public:
         PolicyGenerator* policy_generator,
         PolicyFlawFinder* policy_flaw_finder);
 
-    ~PolicyBasedFlawGenerator();
+    ~PolicyBasedFlawGenerator() override;
 
     std::optional<Flaw> generate_flaw(
         const ProbabilisticTaskProxy& task_proxy,
@@ -72,15 +76,14 @@ public:
 };
 
 class ILAOFlawGeneratorFactory : public FlawGeneratorFactory {
-    int max_search_states;
+    int max_search_states_;
 
 public:
-    ILAOFlawGeneratorFactory(int max_search_states);
+    explicit ILAOFlawGeneratorFactory(int max_search_states);
 
     std::unique_ptr<FlawGenerator> create_flaw_generator() override;
 };
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions
 
 #endif // PROBFD_CARTESIAN_POLICY_BASED_FLAW_GENERATOR_H

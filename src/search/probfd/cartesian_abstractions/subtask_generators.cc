@@ -33,8 +33,7 @@
 
 using namespace std;
 
-namespace probfd {
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 
 namespace {
 class SortFactsByIncreasingHaddValues {
@@ -111,8 +110,25 @@ static Facts filter_and_order_facts(
     return facts;
 }
 
+/* Perform domain abstraction by combining facts that have to be
+   achieved before a given landmark can be made true. */
+static shared_ptr<ProbabilisticTask> build_domain_abstracted_task(
+    const shared_ptr<ProbabilisticTask>& parent,
+    const landmarks::LandmarkGraph& landmark_graph,
+    const FactPair& fact)
+{
+    extra_tasks::VarToGroups value_groups;
+    for (auto& pair :
+         ::cartesian_abstractions::get_prev_landmarks(landmark_graph, fact)) {
+        int var = pair.first;
+        vector<int>& group = pair.second;
+        if (group.size() >= 2) value_groups[var].push_back(group);
+    }
+    return extra_tasks::build_domain_abstracted_task(parent, value_groups);
+}
+
 TaskDuplicator::TaskDuplicator(const plugins::Options& opts)
-    : num_copies(opts.get<int>("copies"))
+    : num_copies_(opts.get<int>("copies"))
 {
 }
 
@@ -121,16 +137,16 @@ SharedTasks TaskDuplicator::get_subtasks(
     utils::LogProxy&) const
 {
     SharedTasks subtasks;
-    subtasks.reserve(num_copies);
-    for (int i = 0; i < num_copies; ++i) {
+    subtasks.reserve(num_copies_);
+    for (int i = 0; i < num_copies_; ++i) {
         subtasks.push_back(task);
     }
     return subtasks;
 }
 
 GoalDecomposition::GoalDecomposition(const plugins::Options& opts)
-    : fact_order(opts.get<FactOrder>("order"))
-    , rng(utils::parse_rng_from_options(opts))
+    : fact_order_(opts.get<FactOrder>("order"))
+    , rng_(utils::parse_rng_from_options(opts))
 {
 }
 
@@ -142,7 +158,7 @@ SharedTasks GoalDecomposition::get_subtasks(
     ProbabilisticTaskProxy task_proxy(*task);
     Facts goal_facts =
         ::task_properties::get_fact_pairs(task_proxy.get_goals());
-    filter_and_order_facts(task, fact_order, goal_facts, *rng, log);
+    filter_and_order_facts(task, fact_order_, goal_facts, *rng_, log);
     for (const FactPair& goal : goal_facts) {
         shared_ptr<ProbabilisticTask> subtask =
             make_shared<extra_tasks::ModifiedGoalsTask>(task, Facts{goal});
@@ -152,27 +168,10 @@ SharedTasks GoalDecomposition::get_subtasks(
 }
 
 LandmarkDecomposition::LandmarkDecomposition(const plugins::Options& opts)
-    : fact_order(opts.get<FactOrder>("order"))
-    , combine_facts(opts.get<bool>("combine_facts"))
-    , rng(utils::parse_rng_from_options(opts))
+    : fact_order_(opts.get<FactOrder>("order"))
+    , combine_facts_(opts.get<bool>("combine_facts"))
+    , rng_(utils::parse_rng_from_options(opts))
 {
-}
-
-shared_ptr<ProbabilisticTask>
-LandmarkDecomposition::build_domain_abstracted_task(
-    const shared_ptr<ProbabilisticTask>& parent,
-    const landmarks::LandmarkGraph& landmark_graph,
-    const FactPair& fact) const
-{
-    assert(combine_facts);
-    extra_tasks::VarToGroups value_groups;
-    for (auto& pair :
-         ::cartesian_abstractions::get_prev_landmarks(landmark_graph, fact)) {
-        int var = pair.first;
-        vector<int>& group = pair.second;
-        if (group.size() >= 2) value_groups[var].push_back(group);
-    }
-    return extra_tasks::build_domain_abstracted_task(parent, value_groups);
 }
 
 SharedTasks LandmarkDecomposition::get_subtasks(
@@ -186,11 +185,11 @@ SharedTasks LandmarkDecomposition::get_subtasks(
         ::cartesian_abstractions::get_landmark_graph(determinzation_task);
     Facts landmark_facts =
         ::cartesian_abstractions::get_fact_landmarks(*landmark_graph);
-    filter_and_order_facts(task, fact_order, landmark_facts, *rng, log);
+    filter_and_order_facts(task, fact_order_, landmark_facts, *rng_, log);
     for (const FactPair& landmark : landmark_facts) {
         shared_ptr<ProbabilisticTask> subtask =
             make_shared<extra_tasks::ModifiedGoalsTask>(task, Facts{landmark});
-        if (combine_facts) {
+        if (combine_facts_) {
             subtask = build_domain_abstracted_task(
                 subtask,
                 *landmark_graph,
@@ -210,6 +209,8 @@ static void add_fact_order_option(plugins::Feature& feature)
     utils::add_rng_options(feature);
 }
 
+namespace {
+
 class TaskDuplicatorFeature
     : public plugins::TypedFeature<SubtaskGenerator, TaskDuplicator> {
 public:
@@ -224,8 +225,6 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<TaskDuplicatorFeature> _plugin_original;
-
 class GoalDecompositionFeature
     : public plugins::TypedFeature<SubtaskGenerator, GoalDecomposition> {
 public:
@@ -235,8 +234,6 @@ public:
         add_fact_order_option(*this);
     }
 };
-
-static plugins::FeaturePlugin<GoalDecompositionFeature> _plugin_goals;
 
 class LandmarkDecompositionFeature
     : public plugins::TypedFeature<SubtaskGenerator, LandmarkDecomposition> {
@@ -252,7 +249,7 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<LandmarkDecompositionFeature> _plugin_landmarks;
+} // namespace
 
 static class SubtaskGeneratorCategoryPlugin
     : public plugins::TypedCategoryPlugin<SubtaskGenerator> {
@@ -264,11 +261,14 @@ public:
     }
 } _category_plugin;
 
+static plugins::FeaturePlugin<TaskDuplicatorFeature> _plugin_original;
+static plugins::FeaturePlugin<GoalDecompositionFeature> _plugin_goals;
+static plugins::FeaturePlugin<LandmarkDecompositionFeature> _plugin_landmarks;
+
 static plugins::TypedEnumPlugin<FactOrder> _enum_plugin(
     {{"original", "according to their (internal) variable index"},
      {"random", "according to a random permutation"},
      {"hadd_up", "according to their h^add value, lowest first"},
      {"hadd_down", "according to their h^add value, highest first "}});
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions

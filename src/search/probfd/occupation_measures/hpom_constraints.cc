@@ -5,6 +5,7 @@
 #include "probfd/task_utils/task_properties.h"
 
 #include "probfd/cost_function.h"
+#include "probfd/probabilistic_task.h"
 #include "probfd/task_proxy.h"
 #include "probfd/value_type.h"
 
@@ -17,17 +18,14 @@
 #include "downward/utils/system.h"
 #include "downward/utils/timer.h"
 
-#include "downward/abstract_task.h"
 #include "downward/task_proxy.h"
 
-#include <cstddef>
 #include <iostream>
 #include <memory>
 #include <set>
 #include <utility>
 
-namespace probfd {
-namespace occupation_measures {
+namespace probfd::occupation_measures {
 
 namespace {
 
@@ -267,5 +265,4 @@ void HPOMGenerator::generate_hpom_lp(
     }
 }
 
-} // namespace occupation_measures
-} // namespace probfd
+} // namespace probfd::occupation_measures

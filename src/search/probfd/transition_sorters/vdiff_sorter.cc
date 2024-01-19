@@ -3,14 +3,14 @@
 #include "probfd/algorithms/state_properties.h"
 
 #include "probfd/distribution.h"
+#include "probfd/interval.h"
 
 #include <algorithm>
 #include <functional>
 #include <ranges>
 #include <utility>
 
-namespace probfd {
-namespace transition_sorters {
+namespace probfd::transition_sorters {
 
 VDiffSorter::VDiffSorter(value_t favor_large_gaps)
     : favor_large_gaps_(favor_large_gaps)
@@ -39,5 +39,4 @@ void VDiffSorter::sort(
         });
 }
 
-} // namespace transition_sorters
-} // namespace probfd
+} // namespace probfd::transition_sorters

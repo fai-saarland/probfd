@@ -9,10 +9,11 @@ class PatternCollectionInformation;
 } // namespace pdbs
 
 namespace probfd {
-
 template <typename, typename>
 class MultiPolicy;
-namespace pdbs {
+}
+
+namespace probfd::pdbs {
 
 class ProjectionStateSpace;
 class ProbabilityAwarePatternDatabase;
@@ -31,7 +32,6 @@ class ProjectionOperator;
 
 using ProjectionMultiPolicy = MultiPolicy<StateRank, const ProjectionOperator*>;
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif // PROBFD_PDBS_TYPES_H

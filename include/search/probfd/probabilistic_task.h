@@ -18,8 +18,6 @@ namespace probfd {
  */
 class ProbabilisticTask : public AbstractTaskBase {
 public:
-    virtual ~ProbabilisticTask() override = default;
-
     /// Get the cost of the probabilistic operator with index \p op_index.
     virtual value_t get_operator_cost(int op_index) const = 0;
 

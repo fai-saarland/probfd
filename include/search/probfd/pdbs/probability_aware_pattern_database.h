@@ -14,10 +14,13 @@
 
 namespace probfd {
 class ProbabilisticTaskProxy;
+}
 
-namespace pdbs {
-
+namespace probfd::pdbs {
 class ProjectionStateSpace;
+}
+
+namespace probfd::pdbs {
 
 /**
  * @brief Implementation of a probability-aware pattern database.
@@ -33,7 +36,7 @@ class ProjectionStateSpace;
  */
 class ProbabilityAwarePatternDatabase {
     StateRankingFunction ranking_function_;
-    std::vector<value_t> value_table;
+    std::vector<value_t> value_table_;
 
     ProbabilityAwarePatternDatabase(
         ProbabilisticTaskProxy task_proxy,
@@ -265,31 +268,36 @@ public:
         double max_time = std::numeric_limits<double>::infinity());
 
     /// Get the pattern of the pattern database.
-    [[nodiscard]] const Pattern& get_pattern() const;
+    [[nodiscard]]
+    const Pattern& get_pattern() const;
 
     /// Get the abstraction mapping of the pattern database.
-    [[nodiscard]] const StateRankingFunction&
-    get_state_ranking_function() const;
+    [[nodiscard]]
+    const StateRankingFunction& get_state_ranking_function() const;
 
     /// Get the abstraction mapping of the pattern database.
-    [[nodiscard]] const std::vector<value_t>& get_value_table() const;
+    [[nodiscard]]
+    const std::vector<value_t>& get_value_table() const;
 
     /// Get the number of states in this PDB's projection.
-    [[nodiscard]] unsigned int num_states() const;
+    [[nodiscard]]
+    unsigned int num_states() const;
 
     /// Compute the state rank of the abstract state of an input state.
-    [[nodiscard]] StateRank get_abstract_state(const State& state) const;
+    [[nodiscard]]
+    StateRank get_abstract_state(const State& state) const;
 
     /// Get the optimal state value of the abstract state corresponding to the
     /// input state.
-    [[nodiscard]] value_t lookup_estimate(const State& s) const;
+    [[nodiscard]]
+    value_t lookup_estimate(const State& s) const;
 
     /// Look up the estimate of an abstract state specified by state rank in
     /// the lookup table.
-    [[nodiscard]] value_t lookup_estimate(StateRank s) const;
+    [[nodiscard]]
+    value_t lookup_estimate(StateRank s) const;
 };
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif // PROBFD_PDBS_PROBABILITY_AWARE_PATTERN_DATABASE_H

@@ -2,18 +2,14 @@
 
 #include "downward/abstract_task.h"
 
-#include <algorithm>
 #include <cassert>
-#include <cstddef>
-#include <iosfwd>
 #include <limits>
 #include <ranges>
 #include <sstream>
 #include <stdexcept>
 #include <utility>
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 StateRankingFunction::StateRankingFunction(
     const VariablesProxy& variables,
@@ -179,5 +175,4 @@ std::string StateRankToString::operator()(StateRank state) const
     return out.str();
 }
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs

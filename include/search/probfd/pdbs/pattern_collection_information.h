@@ -14,8 +14,7 @@ namespace pdbs {
 class PatternCollectionInformation;
 }
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 /*
   This class contains everything we know about a pattern collection. It will
@@ -30,8 +29,8 @@ namespace pdbs {
   as an interface for ownership transfer rather than sharing it.
 */
 class PatternCollectionInformation {
-    ProbabilisticTaskProxy task_proxy;
-    std::shared_ptr<FDRCostFunction> task_cost_function;
+    ProbabilisticTaskProxy task_proxy_;
+    std::shared_ptr<FDRCostFunction> task_cost_function_;
 
     std::shared_ptr<PatternCollection> patterns_;
     std::shared_ptr<PPDBCollection> pdbs_;
@@ -42,6 +41,7 @@ class PatternCollectionInformation {
     void create_pdbs_if_missing();
     void create_pattern_cliques_if_missing();
 
+    [[nodiscard]]
     bool information_is_valid() const;
 
 public:
@@ -67,13 +67,13 @@ public:
     set_subcollections(const std::shared_ptr<std::vector<PatternSubCollection>>&
                            subcollections);
 
+    [[nodiscard]]
     std::shared_ptr<PatternCollection> get_patterns() const;
     std::shared_ptr<PPDBCollection> get_pdbs();
     std::shared_ptr<std::vector<PatternSubCollection>> get_subcollections();
     std::shared_ptr<SubCollectionFinder> get_subcollection_finder();
 };
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif // PROBFD_PDBS_PATTERN_COLLECTION_INFORMATION_H

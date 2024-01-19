@@ -6,6 +6,7 @@
 #include <iosfwd>
 #include <memory>
 
+// Forward Declarations
 class State;
 
 namespace lp {
@@ -15,9 +16,10 @@ class LPSolver;
 
 namespace probfd {
 class ProbabilisticTask;
+}
 
 /// Namespace dedicated to occupation measure heuristic base classes
-namespace occupation_measures {
+namespace probfd::occupation_measures {
 
 class ConstraintGenerator {
 public:
@@ -50,7 +52,7 @@ public:
 
     virtual void print_statistics(std::ostream&) {}
 };
-} // namespace occupation_measures
-} // namespace probfd
+
+} // namespace probfd::occupation_measures
 
 #endif // PROBFD_OCCUPATION_MEASURES_CONSTRAINT_GENERATOR_H

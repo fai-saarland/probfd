@@ -2,8 +2,7 @@
 
 #include "downward/plugins/plugin.h"
 
-namespace probfd {
-namespace transition_sorters {
+namespace probfd::transition_sorters {
 
 static class FDRTransitionSorterFactoryCategoryPlugin
     : public plugins::TypedCategoryPlugin<FDRTransitionSorterFactory> {
@@ -27,5 +26,4 @@ public:
 
 static plugins::FeaturePlugin<VDiffSorterFactoryFeature> _plugin_value_gap;
 
-} // namespace transition_sorters
-} // namespace probfd
+} // namespace probfd::transition_sorters

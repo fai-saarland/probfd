@@ -6,8 +6,10 @@
 #include <memory>
 
 namespace probfd {
-
 class ProbabilisticTask;
+}
+
+namespace probfd {
 
 class TaskEvaluatorFactory {
 public:
@@ -20,4 +22,4 @@ public:
 
 } // namespace probfd
 
-#endif // HEURISTIC_FACTORY_H
+#endif // PROBFD_HEURISTIC_FACTORY_H

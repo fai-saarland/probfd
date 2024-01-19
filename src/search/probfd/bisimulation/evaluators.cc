@@ -1,8 +1,8 @@
 #include "probfd/bisimulation/evaluators.h"
 
 #include "probfd/bisimulation/bisimilar_state_space.h"
-namespace probfd {
-namespace bisimulation {
+
+namespace probfd::bisimulation {
 
 InducedQuotientEvaluator::InducedQuotientEvaluator(
     BisimilarStateSpace* bisim,
@@ -17,6 +17,4 @@ value_t InducedQuotientEvaluator::evaluate(QuotientState s) const
     return bisim_->is_dead_end(s) ? upper_bound_ : 0_vt;
 }
 
-} // namespace bisimulation
-
-} // namespace probfd
+} // namespace probfd::bisimulation

@@ -8,8 +8,7 @@
 
 #include <vector>
 
-namespace probfd {
-namespace transition_sorters {
+namespace probfd::transition_sorters {
 
 class VDiffSorter : public FDRTransitionSorter {
     const value_t favor_large_gaps_;
@@ -18,14 +17,13 @@ public:
     explicit VDiffSorter(value_t favor_large_gaps);
 
 protected:
-    virtual void sort(
+    void sort(
         const State& state,
         const std::vector<OperatorID>& action_choices,
         std::vector<Distribution<StateID>>& successors,
         algorithms::StateProperties& properties) override;
 };
 
-} // namespace transition_sorters
-} // namespace probfd
+} // namespace probfd::transition_sorters
 
-#endif // __VDIFF_TIEBREAKER_H__
+#endif // PROBFD_TRANSITION_SORTERS_VDIFF_SORTER_H

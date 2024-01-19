@@ -4,9 +4,7 @@
 
 #include "downward/utils/countdown_timer.h"
 
-namespace probfd {
-namespace algorithms {
-namespace ao_search {
+namespace probfd::algorithms::ao_search {
 
 template <
     typename State,
@@ -206,7 +204,7 @@ template <
     template <typename>
     class StateInfoExtension>
 void AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
-    mark_solved_push_parents(StateInfo& info, bool dead)
+    mark_solved_push_parents(StateInfo& info, [[maybe_unused]] bool dead)
 {
     assert(!info.is_terminal() && !info.is_solved());
     assert(!dead || info.is_dead_end());
@@ -279,6 +277,4 @@ bool AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
     return result;
 }
 
-} // namespace ao_search
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::ao_search

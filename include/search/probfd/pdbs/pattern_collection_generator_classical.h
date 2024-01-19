@@ -3,16 +3,18 @@
 
 #include "probfd/pdbs/pattern_collection_generator.h"
 
-#include "downward/pdbs/pattern_generator.h"
-
 #include <memory>
 
+namespace pdbs {
+class PatternCollectionGenerator;
+}
+
+// Forward Declarations
 namespace plugins {
 class Options;
 } // namespace plugins
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 class SubCollectionFinderFactory;
 
@@ -25,24 +27,22 @@ class SubCollectionFinderFactory;
  * PDBs.
  */
 class PatternCollectionGeneratorClassical : public PatternCollectionGenerator {
-    std::shared_ptr<::pdbs::PatternCollectionGenerator> gen;
-    std::shared_ptr<SubCollectionFinderFactory> finder_factory;
+    std::shared_ptr<::pdbs::PatternCollectionGenerator> gen_;
+    std::shared_ptr<SubCollectionFinderFactory> finder_factory_;
 
     PatternCollectionGeneratorClassical(
-        const utils::LogProxy& log,
+        utils::LogProxy log,
         std::shared_ptr<::pdbs::PatternCollectionGenerator> gen,
         std::shared_ptr<SubCollectionFinderFactory> finder);
 
 public:
-    PatternCollectionGeneratorClassical(const plugins::Options& opts);
-    ~PatternCollectionGeneratorClassical() override = default;
+    explicit PatternCollectionGeneratorClassical(const plugins::Options& opts);
 
     PatternCollectionInformation generate(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
 };
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif // PROBFD_PDBS_PATTERN_COLLECTION_GENERATOR_CLASSICAL_H

@@ -19,8 +19,7 @@
 
 #include "downward/utils/timer.h"
 
-namespace probfd {
-namespace solvers {
+namespace probfd::solvers {
 
 struct BisimulationTimer {
     utils::Timer timer;
@@ -48,8 +47,8 @@ protected:
     using QQState = quotients::QuotientState<QState, QAction>;
     using QQAction = quotients::QuotientAction<QAction>;
 
-    const std::shared_ptr<ProbabilisticTask> task;
-    const std::shared_ptr<FDRCostFunction> task_cost_function;
+    const std::shared_ptr<ProbabilisticTask> task_;
+    const std::shared_ptr<FDRCostFunction> task_cost_function_;
 
     const std::string algorithm_name_;
 
@@ -57,7 +56,7 @@ protected:
 
     bisimulation::BisimilarStateSpace state_space_;
 
-    BisimulationTimer stats;
+    BisimulationTimer stats_;
 
 public:
     explicit BisimulationBasedHeuristicSearchAlgorithm(
@@ -65,19 +64,19 @@ public:
         std::shared_ptr<FDRCostFunction> task_cost_function,
         std::string algorithm_name,
         std::shared_ptr<MDPAlgorithm<QState, QAction>> algorithm)
-        : task(std::move(task))
-        , task_cost_function(std::move(task_cost_function))
+        : task_(std::move(task))
+        , task_cost_function_(std::move(task_cost_function))
         , algorithm_name_(std::move(algorithm_name))
         , algorithm_(std::move(algorithm))
         , state_space_(
               task.get(),
               task_cost_function->get_non_goal_termination_cost())
     {
-        stats.timer.stop();
-        stats.states = state_space_.num_bisimilar_states();
-        stats.transitions = state_space_.num_transitions();
+        stats_.timer.stop();
+        stats_.states = state_space_.num_bisimilar_states();
+        stats_.transitions = state_space_.num_transitions();
 
-        std::cout << "Bisimulation built after " << stats.timer << std::endl;
+        std::cout << "Bisimulation built after " << stats_.timer << std::endl;
         std::cout << "Bisimilar state space contains "
                   << state_space_.num_bisimilar_states() << " states and "
                   << state_space_.num_transitions() << " transitions."
@@ -131,7 +130,7 @@ public:
                     std::forward<Args>(args)...)));
     }
 
-    virtual Interval solve(
+    Interval solve(
         FDRMDP&,
         FDREvaluator&,
         const State&,
@@ -140,7 +139,7 @@ public:
     {
         bisimulation::InducedQuotientEvaluator heuristic(
             &state_space_,
-            task_cost_function->get_non_goal_termination_cost());
+            task_cost_function_->get_non_goal_termination_cost());
 
         std::cout << "Running " << algorithm_name_ << "..." << std::endl;
         return algorithm_->solve(
@@ -151,9 +150,9 @@ public:
             max_time);
     }
 
-    virtual void print_statistics(std::ostream& out) const override
+    void print_statistics(std::ostream& out) const override
     {
-        stats.print(out);
+        stats_.print(out);
 
         out << std::endl;
         out << "Algorithm " << algorithm_name_ << " statistics:" << std::endl;
@@ -161,7 +160,6 @@ public:
     }
 };
 
-} // namespace solvers
-} // namespace probfd
+} // namespace probfd::solvers
 
-#endif // __BISIMULATION_HEURISTIC_SEARCH_H__
+#endif // PROBFD_SOLVERS_BISIMULATION_HEURISTIC_SEARCH_ALGORITHM_H

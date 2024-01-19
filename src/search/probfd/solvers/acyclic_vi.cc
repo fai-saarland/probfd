@@ -10,8 +10,7 @@
 #include <memory>
 #include <string>
 
-namespace probfd {
-namespace solvers {
+namespace probfd::solvers {
 namespace {
 
 using namespace algorithms::acyclic_vi;
@@ -44,8 +43,8 @@ public:
     }
 };
 
+} // namespace
+
 static FeaturePlugin<AcyclicVISolverFeature> _plugin;
 
-} // namespace
-} // namespace solvers
-} // namespace probfd
+} // namespace probfd::solvers

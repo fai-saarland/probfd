@@ -6,13 +6,15 @@
 
 #include <vector>
 
+// Forward Declarations
 namespace probfd {
-
 template <typename>
 class Distribution;
-
 template <typename>
 struct Transition;
+} // namespace probfd
+
+namespace probfd {
 
 /**
  * @brief An interface representing a Markov Decision Process (MDP) without

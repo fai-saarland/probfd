@@ -10,27 +10,25 @@
 
 using namespace std;
 
-namespace probfd {
-namespace tasks {
+namespace probfd::tasks {
 
 CostAdaptedTask::CostAdaptedTask(
     const shared_ptr<ProbabilisticTask>& parent,
     OperatorCost cost_type)
     : DelegatingTask(parent)
-    , cost_type(cost_type)
-    , parent_is_unit_cost(
+    , cost_type_(cost_type)
+    , parent_is_unit_cost_(
           task_properties::is_unit_cost(ProbabilisticTaskProxy(*parent)))
 {
 }
 
 value_t CostAdaptedTask::get_operator_cost(int index) const
 {
-    ProbabilisticOperatorProxy op(*parent, index);
+    ProbabilisticOperatorProxy op(*parent_, index);
     return task_properties::get_adjusted_action_cost(
         op,
-        cost_type,
-        parent_is_unit_cost);
+        cost_type_,
+        parent_is_unit_cost_);
 }
 
-} // namespace tasks
-} // namespace probfd
+} // namespace probfd::tasks

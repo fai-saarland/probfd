@@ -4,12 +4,12 @@
 #include "probfd/occupation_measures/constraint_generator.h"
 
 #include "probfd/fdr_types.h"
-#include "probfd/probabilistic_task.h"
 
 #include <cstddef>
 #include <memory>
 #include <vector>
 
+// Forward Declarations
 class State;
 
 namespace lp {
@@ -18,7 +18,10 @@ class LinearProgram;
 } // namespace lp
 
 namespace probfd {
-namespace occupation_measures {
+class ProbabilisticTask;
+}
+
+namespace probfd::occupation_measures {
 
 /**
  * @brief Implements the regrouped operator counting heuristic constraints
@@ -31,16 +34,12 @@ public:
     void initialize_constraints(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function,
-        lp::LinearProgram& lp) override final;
+        lp::LinearProgram& lp) final;
 
-    void
-    update_constraints(const State& state, lp::LPSolver& solver) override final;
-
-    void
-    reset_constraints(const State& state, lp::LPSolver& solver) override final;
+    void update_constraints(const State& state, lp::LPSolver& solver) final;
+    void reset_constraints(const State& state, lp::LPSolver& solver) final;
 };
 
-} // namespace occupation_measures
-} // namespace probfd
+} // namespace probfd::occupation_measures
 
 #endif // PROBFD_OCCUPATION_MEASURES_HROC_CONSTRAINTS_H

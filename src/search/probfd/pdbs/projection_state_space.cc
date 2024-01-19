@@ -2,7 +2,6 @@
 
 #include "probfd/pdbs/projection_operator.h"
 #include "probfd/pdbs/state_ranking_function.h"
-#include "probfd/pdbs/types.h"
 
 #include "probfd/cost_function.h"
 #include "probfd/distribution.h"
@@ -13,16 +12,13 @@
 #include <algorithm>
 #include <cassert>
 #include <compare>
-#include <cstddef>
 #include <functional>
 #include <iterator>
 #include <set>
 #include <span>
 #include <tuple>
-#include <utility>
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 namespace {
 // Footprint used for detecting duplicate operators.
@@ -66,7 +62,7 @@ ProjectionStateSpace::ProjectionStateSpace(
     bool operator_pruning,
     double max_time)
     : match_tree_(task_proxy.get_operators().size())
-    , parent_cost_function(&task_cost_function)
+    , parent_cost_function_(&task_cost_function)
     , goal_state_flags_(ranking_function.num_states(), false)
 {
     utils::CountdownTimer timer(max_time);
@@ -181,7 +177,7 @@ ProjectionStateSpace::ProjectionStateSpace(
                     offset -= ranking_function.rank_fact(idx, it++->value);
                 }
 
-                new_op.outcome_offsets.add_probability(offset, prob);
+                new_op.outcome_offsets_.add_probability(offset, prob);
             }
 
             // Construct the precondition by merging the original
@@ -208,7 +204,7 @@ ProjectionStateSpace::ProjectionStateSpace(
                 const value_t cost =
                     task_cost_function.get_action_cost(operator_id);
 
-                if (!duplicates.emplace(cost, pre_rank, new_op.outcome_offsets)
+                if (!duplicates.emplace(cost, pre_rank, new_op.outcome_offsets_)
                          .second) {
                     continue;
                 }
@@ -283,7 +279,7 @@ void ProjectionStateSpace::generate_action_transitions(
     const ProjectionOperator* op,
     Distribution<StateID>& result)
 {
-    for (const auto& [offset, probability] : op->outcome_offsets) {
+    for (const auto& [offset, probability] : op->outcome_offsets_) {
         result.add_probability(state + offset, probability);
     }
 }
@@ -314,13 +310,12 @@ bool ProjectionStateSpace::is_goal(StateRank state) const
 
 value_t ProjectionStateSpace::get_non_goal_termination_cost() const
 {
-    return parent_cost_function->get_non_goal_termination_cost();
+    return parent_cost_function_->get_non_goal_termination_cost();
 }
 
 value_t ProjectionStateSpace::get_action_cost(const ProjectionOperator* op)
 {
-    return parent_cost_function->get_action_cost(op->operator_id);
+    return parent_cost_function_->get_action_cost(op->operator_id);
 }
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs

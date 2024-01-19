@@ -3,8 +3,7 @@
 
 #include "downward/plugins/plugin.h"
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 std::unique_ptr<SubCollectionFinder>
 FullyAdditiveFinderFactory::create_subcollection_finder(
@@ -22,7 +21,7 @@ public:
     {
     }
 
-    std::shared_ptr<FullyAdditiveFinderFactory>
+    [[nodiscard]] std::shared_ptr<FullyAdditiveFinderFactory>
     create_component(const plugins::Options&, const utils::Context&)
         const override
     {
@@ -32,5 +31,4 @@ public:
 
 static plugins::FeaturePlugin<FullyAdditiveFinderFactoryFeature> _plugin;
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs

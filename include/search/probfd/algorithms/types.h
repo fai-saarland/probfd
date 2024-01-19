@@ -5,15 +5,14 @@
 
 #include <type_traits>
 
-namespace probfd {
-namespace algorithms {
+/// This namespace contains implementations of SSP search algorithms.
+namespace probfd::algorithms {
 
 /// Convenience value type alias for algorithms selecting interval iteration
 /// behaviour based on a template parameter.
 template <bool UseInterval>
 using AlgorithmValueType = std::conditional_t<UseInterval, Interval, value_t>;
 
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms
 
 #endif

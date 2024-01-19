@@ -11,9 +11,7 @@
 
 #include "downward/utils/countdown_timer.h"
 
-namespace probfd {
-namespace algorithms {
-namespace acyclic_vi {
+namespace probfd::algorithms::acyclic_vi {
 
 template <typename State, typename Action>
 AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
@@ -263,6 +261,4 @@ bool AcyclicValueIteration<State, Action>::push_state(
     return true;
 }
 
-} // namespace acyclic_vi
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::acyclic_vi

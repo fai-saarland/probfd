@@ -16,8 +16,7 @@
 #include <variant>
 #include <vector>
 
-namespace probfd {
-namespace quotients {
+namespace probfd::quotients {
 
 template <typename State, typename Action>
 class QuotientSystem;
@@ -44,11 +43,12 @@ class QuotientInformation {
 
     struct StateInfo;
 
-    std::vector<StateInfo> state_infos;
-    std::vector<Action> aops; // First outer, then inner actions
-    size_t total_num_outer_acts = 0;
-    TerminationInfo termination_info;
+    std::vector<StateInfo> state_infos_;
+    std::vector<Action> aops_; // First outer, then inner actions
+    size_t total_num_outer_acts_ = 0;
+    TerminationInfo termination_info_;
 
+    [[nodiscard]]
     size_t num_members() const;
 
     auto member_ids();
@@ -81,6 +81,7 @@ public:
     void
     for_each_member_state(std::invocable<param_type<State>> auto&& f) const;
 
+    [[nodiscard]]
     size_t num_members() const;
 
     void get_collapsed_actions(std::vector<QuotientAction<Action>>& aops) const;
@@ -107,9 +108,9 @@ class QuotientSystem
     static constexpr StateID::size_type FLAG = ~MASK;
 
 public:
-    struct const_iterator : public add_postfix_inc_dec<const_iterator> {
+    class const_iterator : public add_postfix_inc_dec<const_iterator> {
         const QuotientSystem* qs_ = nullptr;
-        StateID i;
+        StateID i_;
 
     public:
         using add_postfix_inc_dec<const_iterator>::operator++;
@@ -164,6 +165,7 @@ public:
 
     QState translate_state(param_type<State> s) const;
 
+    [[nodiscard]]
     StateID translate_state_id(StateID sid) const;
 
     template <typename Range>
@@ -186,12 +188,15 @@ private:
     QuotientInformation* get_quotient_info(StateID state_id);
     const QuotientInformation* get_quotient_info(StateID state_id) const;
 
+    [[nodiscard]]
     StateID::size_type get_masked_state_id(StateID sid) const;
 
     void set_masked_state_id(StateID sid, const StateID::size_type& qsid);
 };
 
-} // namespace quotients
+} // namespace probfd::quotients
+
+namespace probfd {
 
 template <typename Action>
 struct is_cheap_to_copy<quotients::QuotientAction<Action>> : std::true_type {};
@@ -202,4 +207,4 @@ struct is_cheap_to_copy<quotients::QuotientAction<Action>> : std::true_type {};
 #include "probfd/quotients/quotient_system_impl.h"
 #undef GUARD_INCLUDE_PROBFD_QUOTIENTS_QUOTIENT_SYSTEM_H
 
-#endif // __QUOTIENT_SYSTEM_H__
+#endif // PROBFD_QUOTIENTS_QUOTIENT_SYSTEM_H

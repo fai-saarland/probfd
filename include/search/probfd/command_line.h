@@ -4,9 +4,12 @@
 #include <memory>
 #include <string>
 
+// Forward Declarations
 namespace probfd {
-
 class SolverInterface;
+}
+
+namespace probfd {
 
 extern std::shared_ptr<SolverInterface>
 parse_cmd_line(int argc, const char** argv, bool is_unit_cost);

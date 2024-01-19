@@ -18,21 +18,17 @@ namespace plugins {
 class Options;
 } // namespace plugins
 
-namespace probfd {
-namespace pdbs {
-namespace cegar {
+namespace probfd::pdbs::cegar {
 
 class BFSFlawFinder : public FlawFindingStrategy {
-    std::deque<State> open;
-    storage::PerStateStorage<bool> closed;
+    std::deque<State> open_;
+    storage::PerStateStorage<bool> closed_;
 
-    const int max_search_states;
+    const int max_search_states_;
 
 public:
     explicit BFSFlawFinder(const plugins::Options& opts);
     explicit BFSFlawFinder(int max_search_states);
-
-    ~BFSFlawFinder() override = default;
 
     bool apply_policy(
         const ProbabilisticTaskProxy& task_proxy,
@@ -46,8 +42,6 @@ public:
     std::string get_name() override;
 };
 
-} // namespace cegar
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs::cegar
 
 #endif // PROBFD_PDBS_CEGAR_BFS_FLAW_FINDER_H

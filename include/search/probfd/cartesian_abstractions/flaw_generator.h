@@ -7,6 +7,7 @@
 #include <optional>
 #include <vector>
 
+// Forward Declarations
 namespace utils {
 class CountdownTimer;
 class LogProxy;
@@ -14,11 +15,15 @@ class LogProxy;
 
 namespace probfd {
 class ProbabilisticTaskProxy;
+}
 
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 class AbstractState;
 class Abstraction;
 class CartesianHeuristic;
+} // namespace probfd::cartesian_abstractions
+
+namespace probfd::cartesian_abstractions {
 
 /**
  * @brief Find flaws in the abstraction.
@@ -47,7 +52,6 @@ public:
     virtual std::unique_ptr<FlawGenerator> create_flaw_generator() = 0;
 };
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions
 
 #endif // PROBFD_CARTESIAN_FLAW_GENERATOR_H

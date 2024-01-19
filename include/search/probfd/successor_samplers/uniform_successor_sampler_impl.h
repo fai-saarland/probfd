@@ -6,9 +6,9 @@
 #include "downward/utils/rng_options.h"
 
 #include <memory>
+#include <utility>
 
-namespace probfd {
-namespace successor_samplers {
+namespace probfd::successor_samplers {
 
 template <typename Action>
 UniformSuccessorSampler<Action>::UniformSuccessorSampler(
@@ -20,7 +20,7 @@ UniformSuccessorSampler<Action>::UniformSuccessorSampler(
 template <typename Action>
 UniformSuccessorSampler<Action>::UniformSuccessorSampler(
     std::shared_ptr<utils::RandomNumberGenerator> rng)
-    : rng_(rng)
+    : rng_(std::move(rng))
 {
 }
 
@@ -35,5 +35,4 @@ StateID UniformSuccessorSampler<Action>::sample(
     return successors.begin()[rng_->random(successors.size())].item;
 }
 
-} // namespace successor_samplers
-} // namespace probfd
+} // namespace probfd::successor_samplers

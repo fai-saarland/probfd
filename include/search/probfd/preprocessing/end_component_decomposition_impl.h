@@ -10,8 +10,7 @@
 #include <ranges>
 #include <type_traits>
 
-namespace probfd {
-namespace preprocessing {
+namespace probfd::preprocessing {
 
 inline void ECDStatistics::print(std::ostream& out) const
 {
@@ -31,7 +30,7 @@ inline void ECDStatistics::print(std::ostream& out) const
 template <typename State, typename Action>
 bool EndComponentDecomposition<State, Action>::StateInfo::onstack() const
 {
-    return stackid_ < UNDEF;
+    return stackid < UNDEF;
 }
 
 template <typename State, typename Action>
@@ -278,7 +277,7 @@ bool EndComponentDecomposition<State, Action>::push(
         std::move(successors),
         mdp);
 
-    state_info.stackid_ = stack_.size();
+    state_info.stackid = stack_.size();
     stack_.emplace_back(state_id);
 
     return true;
@@ -293,16 +292,16 @@ bool EndComponentDecomposition<State, Action>::push(
     assert(info.onstack());
 
     info.explored = true;
-    StackInfo& scc_info = stack_[info.stackid_];
+    StackInfo& scc_info = stack_[info.stackid];
 
     if (scc_info.successors.empty()) {
-        info.stackid_ = StateInfo::UNDEF;
+        info.stackid = StateInfo::UNDEF;
         ++stats_.ec1;
         return false;
     }
 
     const auto stack_size = stack_.size();
-    info.stackid_ = stack_size;
+    info.stackid = stack_size;
 
     expansion_queue_.emplace_back(
         stack_size,
@@ -425,7 +424,7 @@ bool EndComponentDecomposition<State, Action>::push_successor(
                 break;
 
             case StateInfo::ONSTACK: // Same SCC
-                e.lstck = std::min(e.lstck, succ_info.stackid_);
+                e.lstck = std::min(e.lstck, succ_info.stackid);
 
                 e.recurse = e.recurse || e.nz_or_leaves_scc;
                 s_succs.emplace_back(succ_id);
@@ -459,7 +458,7 @@ void EndComponentDecomposition<State, Action>::scc_found(
         assert(s.aops.empty());
         const StateID scc_repr_id = s.stateid;
         StateInfo& info = state_infos_[scc_repr_id];
-        info.stackid_ = StateInfo::UNDEF;
+        info.stackid = StateInfo::UNDEF;
 
         stack_.pop_back();
 
@@ -501,7 +500,7 @@ void EndComponentDecomposition<State, Action>::scc_found(
             for (const auto& stk_info : scc) {
                 assert(stk_info.successors.size() == stk_info.aops.size());
                 StateInfo& info = state_infos_[stk_info.stateid];
-                info.stackid_ = StateInfo::UNDEF;
+                info.stackid = StateInfo::UNDEF;
 
                 transitions += stk_info.aops.size();
             }
@@ -545,5 +544,4 @@ void EndComponentDecomposition<State, Action>::decompose(
     assert(expansion_queue_.size() == limit);
 }
 
-} // namespace preprocessing
-} // namespace probfd
+} // namespace probfd::preprocessing

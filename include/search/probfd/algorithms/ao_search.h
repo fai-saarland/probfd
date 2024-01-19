@@ -9,11 +9,8 @@
 #include <type_traits>
 #include <vector>
 
-namespace probfd {
-namespace algorithms {
-
 /// Namespace dedicated to the AO* family of MDP algorithms.
-namespace ao_search {
+namespace probfd::algorithms::ao_search {
 
 struct Statistics {
     unsigned long long iterations = 0;
@@ -31,20 +28,45 @@ struct PerStateInformation : public StateInfo {
     static constexpr uint8_t MASK = 3 << StateInfo::BITS;
     static constexpr uint8_t BITS = StateInfo::BITS + 2;
 
-    bool is_tip_state() const { return update_order == 0; }
-    bool is_marked() const { return this->info & MARK; }
-    bool is_solved() const { return this->info & SOLVED; }
-    bool is_unflagged() const { return (this->info & MASK) == 0; }
+    [[nodiscard]]
+    bool is_tip_state() const
+    {
+        return update_order == 0;
+    }
+
+    [[nodiscard]]
+    bool is_marked() const
+    {
+        return this->info & MARK;
+    }
+
+    [[nodiscard]]
+    bool is_solved() const
+    {
+        return this->info & SOLVED;
+    }
+
+    [[nodiscard]]
+    bool is_unflagged() const
+    {
+        return (this->info & MASK) == 0;
+    }
 
     void mark()
     {
         assert(!is_solved());
         this->info = (this->info & ~MASK) | MARK;
     }
+
     void unmark() { this->info = (this->info & ~MARK); }
     void set_solved() { this->info = (this->info & ~MASK) | SOLVED; }
 
-    const std::vector<StateID>& get_parents() const { return parents; }
+    [[nodiscard]]
+    const std::vector<StateID>& get_parents() const
+    {
+        return parents;
+    }
+
     std::vector<StateID>& get_parents() { return parents; }
     void add_parent(StateID s) { parents.push_back(s); }
 
@@ -156,12 +178,10 @@ private:
         requires(!StorePolicy);
 };
 
-} // namespace ao_search
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::ao_search
 
 #define GUARD_INCLUDE_PROBFD_ALGORITHMS_AO_SEARCH_H
 #include "probfd/algorithms/ao_search_impl.h"
 #undef GUARD_INCLUDE_PROBFD_ALGORITHMS_AO_SEARCH_H
 
-#endif // __AO_SEARCH_H__
+#endif // PROBFD_ALGORITHMS_AO_SEARCH_H

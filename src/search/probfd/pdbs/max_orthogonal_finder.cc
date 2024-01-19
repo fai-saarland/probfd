@@ -6,12 +6,11 @@
 
 #include "downward/pdbs/pattern_cliques.h"
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 MaxOrthogonalityFinderBase::MaxOrthogonalityFinderBase(
     const ProbabilisticTaskProxy& task_proxy)
-    : var_orthogonality(compute_prob_orthogonal_vars(task_proxy, false))
+    : var_orthogonality_(compute_prob_orthogonal_vars(task_proxy, false))
 {
 }
 
@@ -20,7 +19,7 @@ MaxOrthogonalityFinderBase::compute_subcollections(
     const PatternCollection& patterns)
 {
     std::vector<std::vector<int>> c_graph =
-        build_compatibility_graph_orthogonality(patterns, var_orthogonality);
+        build_compatibility_graph_orthogonality(patterns, var_orthogonality_);
 
     std::shared_ptr<std::vector<PatternSubCollection>> additive_subcollections(
         new std::vector<PatternSubCollection>());
@@ -40,7 +39,7 @@ MaxOrthogonalityFinderBase::compute_subcollections_with_pattern(
         patterns,
         known_pattern_cliques,
         new_pattern,
-        var_orthogonality);
+        var_orthogonality_);
 }
 
 value_t AdditiveMaxOrthogonalityFinder::evaluate_subcollection(
@@ -81,5 +80,4 @@ MultiplicativeMaxOrthogonalityFinder::combine(value_t left, value_t right) const
     return 1_vt - (1_vt - left) * (1_vt - right);
 }
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs

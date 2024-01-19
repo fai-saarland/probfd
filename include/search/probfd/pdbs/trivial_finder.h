@@ -6,8 +6,7 @@
 #include <memory>
 #include <vector>
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 class TrivialFinder : public SubCollectionFinder {
 public:
@@ -19,14 +18,15 @@ public:
         const std::vector<PatternSubCollection>& known_pattern_cliques,
         const Pattern& new_pattern) override;
 
+    [[nodiscard]]
     value_t evaluate_subcollection(
         const std::vector<value_t>& pdb_estimates,
         const std::vector<int>& subcollection) const override;
 
+    [[nodiscard]]
     value_t combine(value_t left, value_t right) const override;
 };
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif // PROBFD_PDBS_TRIVIAL_FINDER_H

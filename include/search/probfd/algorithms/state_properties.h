@@ -1,13 +1,17 @@
 #ifndef PROBFD_ALGORITHMS_STATE_PROPERTIES_H
 #define PROBFD_ALGORITHMS_STATE_PROPERTIES_H
 
-#include "probfd/interval.h"
 #include "probfd/types.h"
+#include "probfd/value_type.h"
 
 #include <optional>
 
+// Forward Declarations
 namespace probfd {
-namespace algorithms {
+struct Interval;
+}
+
+namespace probfd::algorithms {
 
 /**
  * @brief Interface providing access to various state properties during
@@ -30,7 +34,6 @@ public:
     virtual Interval lookup_bounds(StateID state_id) = 0;
 };
 
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms
 
-#endif // __HEURISTIC_SEARCH_CONNECTOR_H__
+#endif // PROBFD_ALGORITHMS_STATE_PROPERTIES_H

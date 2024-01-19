@@ -13,6 +13,7 @@
 #include <unordered_set>
 #include <vector>
 
+// Forward Declarations
 class VariablesProxy;
 
 namespace utils {
@@ -22,12 +23,14 @@ class RandomNumberGenerator;
 
 namespace probfd {
 class ProbabilisticTaskProxy;
+}
 
-namespace pdbs {
-namespace cegar {
-
+namespace probfd::pdbs::cegar {
 struct Flaw;
 class FlawFindingStrategy;
+} // namespace probfd::pdbs::cegar
+
+namespace probfd::pdbs::cegar {
 
 struct CEGARResult {
     std::unique_ptr<ProjectionCollection> projections;
@@ -39,37 +42,37 @@ struct CEGARResult {
 class CEGAR {
     class PDBInfo;
 
-    mutable utils::LogProxy log;
+    mutable utils::LogProxy log_;
 
     // Random number generator
-    const std::shared_ptr<utils::RandomNumberGenerator> rng;
+    const std::shared_ptr<utils::RandomNumberGenerator> rng_;
 
     // Flaw finding strategy
-    const std::shared_ptr<FlawFindingStrategy> flaw_strategy;
+    const std::shared_ptr<FlawFindingStrategy> flaw_strategy_;
 
     // behavior defining parameters
-    const bool wildcard;
-    const int max_pdb_size;
-    const int max_collection_size;
-    const double max_time;
+    const bool wildcard_;
+    const int max_pdb_size_;
+    const int max_collection_size_;
+    const double max_time_;
 
-    const std::vector<int> goals;
-    std::unordered_set<int> blacklisted_variables;
+    const std::vector<int> goals_;
+    std::unordered_set<int> blacklisted_variables_;
 
     // the pattern collection in form of their pdbs plus stored plans.
-    std::vector<std::unique_ptr<PDBInfo>> pdb_infos;
+    std::vector<std::unique_ptr<PDBInfo>> pdb_infos_;
 
     // Takes a variable as key and returns the index of the solutions-entry
     // whose pattern contains said variable. Used for checking if a variable
     // is already included in some pattern as well as for quickly finding
     // the other partner for merging.
-    std::unordered_map<int, int> variable_to_collection_index;
+    std::unordered_map<int, int> variable_to_collection_index_;
 
-    int collection_size = 0;
+    int collection_size_ = 0;
 
 public:
     CEGAR(
-        const utils::LogProxy& log,
+        utils::LogProxy log,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy,
         bool wildcard,
@@ -100,10 +103,12 @@ private:
 
     bool
     can_add_singleton_pattern(const VariablesProxy& variables, int var) const;
+
     bool can_add_variable_to_pattern(
         const VariablesProxy& variables,
         int index,
         int var) const;
+
     bool can_merge_patterns(int index1, int index2) const;
 
     void add_pattern_for_var(
@@ -111,12 +116,14 @@ private:
         FDRSimpleCostFunction& task_cost_function,
         int var,
         utils::CountdownTimer& timer);
+
     void add_variable_to_pattern(
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
         int index,
         int var,
         utils::CountdownTimer& timer);
+
     void merge_patterns(
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
@@ -137,8 +144,6 @@ private:
 
 extern void add_cegar_wildcard_option_to_feature(plugins::Feature& feature);
 
-} // namespace cegar
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs::cegar
 
 #endif // PROBFD_PDBS_CEGAR_CEGAR_H

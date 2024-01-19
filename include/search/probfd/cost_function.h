@@ -23,17 +23,25 @@ class TerminationInfo {
 public:
     TerminationInfo() = default;
 
-    static TerminationInfo from_goal() { return TerminationInfo(true, 0_vt); }
+    static TerminationInfo from_goal() { return {true, 0_vt}; }
     static TerminationInfo from_non_goal(value_t value)
     {
-        return TerminationInfo(false, value);
+        return {false, value};
     }
 
     /// Check if this state is a goal.
-    bool is_goal_state() const { return is_goal_; }
+    [[nodiscard]]
+    bool is_goal_state() const
+    {
+        return is_goal_;
+    }
 
     /// Obtains the cost paid upon termination in the state.
-    value_t get_cost() const { return terminal_cost_; }
+    [[nodiscard]]
+    value_t get_cost() const
+    {
+        return terminal_cost_;
+    }
 };
 
 /**
@@ -94,12 +102,10 @@ public:
 template <typename State, typename Action>
 class SimpleCostFunction : public CostFunction<State, Action> {
 public:
-    virtual ~SimpleCostFunction() override = default;
-
     /**
      * @brief Get the termination cost info of the input state.
      */
-    TerminationInfo get_termination_info(param_type<State> state) override final
+    TerminationInfo get_termination_info(param_type<State> state) final
     {
         return is_goal(state) ? TerminationInfo::from_goal()
                               : TerminationInfo::from_non_goal(
@@ -107,6 +113,7 @@ public:
     }
 
     virtual bool is_goal(param_type<State> state) const = 0;
+    [[nodiscard]]
     virtual value_t get_non_goal_termination_cost() const = 0;
 };
 

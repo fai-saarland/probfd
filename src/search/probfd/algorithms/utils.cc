@@ -5,8 +5,7 @@
 #include <algorithm>
 #include <cassert>
 
-namespace probfd {
-namespace algorithms {
+namespace probfd::algorithms {
 
 value_t as_lower_bound(Interval interval)
 {
@@ -51,5 +50,4 @@ bool update(value_t& lhs, value_t rhs)
     return result;
 }
 
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms

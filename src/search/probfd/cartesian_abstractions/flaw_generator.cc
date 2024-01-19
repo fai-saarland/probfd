@@ -4,8 +4,7 @@
 
 using namespace std;
 
-namespace probfd {
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 
 static class FlawGeneratorFactoryCategoryPlugin
     : public plugins::TypedCategoryPlugin<FlawGeneratorFactory> {
@@ -19,5 +18,4 @@ public:
     }
 } _category_plugin;
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions

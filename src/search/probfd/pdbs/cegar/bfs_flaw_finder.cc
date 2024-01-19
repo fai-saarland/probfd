@@ -23,9 +23,7 @@
 using namespace std;
 using namespace utils;
 
-namespace probfd {
-namespace pdbs {
-namespace cegar {
+namespace probfd::pdbs::cegar {
 
 BFSFlawFinder::BFSFlawFinder(const plugins::Options& opts)
     : BFSFlawFinder(opts.get<int>("max_search_states"))
@@ -33,8 +31,8 @@ BFSFlawFinder::BFSFlawFinder(const plugins::Options& opts)
 }
 
 BFSFlawFinder::BFSFlawFinder(int max_search_states)
-    : closed(false)
-    , max_search_states(max_search_states)
+    : closed_(false)
+    , max_search_states_(max_search_states)
 {
 }
 
@@ -47,20 +45,20 @@ bool BFSFlawFinder::apply_policy(
     std::vector<Flaw>& flaw_list,
     utils::CountdownTimer& timer)
 {
-    assert(open.empty() && closed.empty());
+    assert(open_.empty() && closed_.empty());
 
     // Exception safety due to TimeoutException
     scope_exit guard([&] {
-        open.clear();
-        closed.clear();
+        open_.clear();
+        closed_.clear();
     });
 
     StateRegistry registry(task_proxy);
 
     {
         const State& init = registry.get_initial_state();
-        open.push_back(init);
-        closed[init.get_id()] = true;
+        open_.push_back(init);
+        closed_[init.get_id()] = true;
     }
 
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
@@ -69,7 +67,7 @@ bool BFSFlawFinder::apply_policy(
     do {
         timer.throw_if_expired();
 
-        const State& current = open.front();
+        const State& current = open_.front();
         const StateRank abs = pdb.get_abstract_state(current);
 
         {
@@ -108,15 +106,16 @@ bool BFSFlawFinder::apply_policy(
                         current,
                         outcome.get_effects());
 
-                    if (static_cast<int>(registry.size()) > max_search_states) {
+                    if (static_cast<int>(registry.size()) >
+                        max_search_states_) {
                         return false;
                     }
 
-                    auto seen = closed[StateID(successor.get_id())];
+                    auto seen = closed_[StateID(successor.get_id())];
 
                     if (!seen) {
                         seen = true;
-                        open.push_back(std::move(successor));
+                        open_.push_back(std::move(successor));
                     }
                 }
 
@@ -133,9 +132,9 @@ bool BFSFlawFinder::apply_policy(
         }
 
     continue_exploration:;
-        open.pop_front();
+        open_.pop_front();
 
-    } while (!open.empty());
+    } while (!open_.empty());
 
     return true;
 }
@@ -162,6 +161,4 @@ public:
 
 static plugins::FeaturePlugin<BFSFlawFinderFeature> _plugin;
 
-} // namespace cegar
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs::cegar

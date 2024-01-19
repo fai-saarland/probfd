@@ -12,6 +12,7 @@
 #include <set>
 #include <vector>
 
+// Forward Declarations
 namespace plugins {
 class Options;
 }
@@ -28,14 +29,17 @@ class RandomWalkSampler;
 namespace dynamic_bitset {
 template <typename>
 class DynamicBitset;
-};
+}
 
 namespace probfd {
 class ProbabilisticTaskProxy;
+}
 
-namespace pdbs {
-
+namespace probfd::pdbs {
 class SubCollectionFinderFactory;
+}
+
+namespace probfd::pdbs {
 
 // Implementation of the pattern generation algorithm by Haslum et al.
 class PatternCollectionGeneratorHillclimbing
@@ -45,24 +49,24 @@ class PatternCollectionGeneratorHillclimbing
     struct Sample;
     class IncrementalPPDBs;
 
-    std::shared_ptr<PatternCollectionGenerator> initial_generator;
-    std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory;
+    std::shared_ptr<PatternCollectionGenerator> initial_generator_;
+    std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory_;
 
     // maximum number of states for each pdb
-    const int pdb_max_size;
+    const int pdb_max_size_;
     // maximum added size of all pdbs
-    const int collection_max_size;
-    const int num_samples;
+    const int collection_max_size_;
+    const int num_samples_;
     // minimal improvement required for hill climbing to continue search
-    const int min_improvement;
-    const double max_time;
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
+    const int min_improvement_;
+    const double max_time_;
+    std::shared_ptr<utils::RandomNumberGenerator> rng_;
 
     // maximum size of the PDB search space
-    int remaining_states;
+    int remaining_states_;
 
     // for stats only
-    int num_rejected;
+    int num_rejected_;
 
     /*
       For the given PDB, all possible extensions of its pattern by one
@@ -98,7 +102,7 @@ class PatternCollectionGeneratorHillclimbing
         const sampling::RandomWalkSampler& sampler,
         value_t init_h,
         value_t termination_cost,
-        std::vector<Sample>& samples);
+        std::vector<Sample>& samples) const;
 
     /*
       Searches for the best improving pdb in candidate_pdbs according to the
@@ -143,7 +147,8 @@ class PatternCollectionGeneratorHillclimbing
 public:
     explicit PatternCollectionGeneratorHillclimbing(
         const plugins::Options& opts);
-    ~PatternCollectionGeneratorHillclimbing();
+
+    ~PatternCollectionGeneratorHillclimbing() override;
 
     /*
       Runs the hill climbing algorithm. Note that the
@@ -156,7 +161,6 @@ public:
         const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
 };
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif // PROBFD_PDBS_PATTERN_COLLECTION_GENERATOR_HILLCLIMBING_H

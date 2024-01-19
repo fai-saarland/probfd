@@ -13,8 +13,6 @@
 
 #include "downward/state_registry.h"
 
-#include "downward/cartesian_abstractions/cartesian_set.h"
-
 #include "downward/task_utils/task_properties.h"
 
 #include "downward/utils/countdown_timer.h"
@@ -33,11 +31,10 @@
 using namespace std;
 using namespace std::views;
 
-namespace probfd {
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 
 CompletePolicyFlawFinder::CompletePolicyFlawFinder(int max_search_states)
-    : max_search_states(max_search_states)
+    : max_search_states_(max_search_states)
 {
 }
 
@@ -111,7 +108,7 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
             State next_concrete =
                 registry.get_successor_state(state, outcome.get_effects());
 
-            if (static_cast<int>(registry.size()) > max_search_states) {
+            if (static_cast<int>(registry.size()) > max_search_states_) {
                 if (log.is_at_least_normal()) {
                     log << "Reached maximal number of flaw search states."
                         << endl;
@@ -147,5 +144,4 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
     return std::nullopt;
 }
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions

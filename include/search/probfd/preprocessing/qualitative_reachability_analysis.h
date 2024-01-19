@@ -22,8 +22,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace probfd {
-namespace preprocessing {
+namespace probfd::preprocessing {
 
 struct QRStatistics {
     unsigned long long goals = 0;
@@ -50,9 +49,12 @@ struct StateInfo {
     unsigned explored : 1 = 0;
     unsigned dead : 1 = 1;     // dead end flag
     unsigned solvable : 1 = 0; // solvable state flag
-    unsigned stackid_ : 29 = UNDEF;
+    unsigned stackid : 29 = UNDEF;
 
+    [[nodiscard]]
     bool onstack() const;
+
+    [[nodiscard]]
     auto get_status() const;
 };
 
@@ -179,11 +181,10 @@ private:
         utils::CountdownTimer& timer);
 };
 
-} // namespace preprocessing
-} // namespace probfd
+} // namespace probfd::preprocessing
 
 #define GUARD_INCLUDE_PROBFD_PREPROCESSING_QUALITATIVE_REACHABILITY_ANALYSIS_H
 #include "probfd/preprocessing/qualitative_reachability_analysis_impl.h"
 #undef GUARD_INCLUDE_PROBFD_PREPROCESSING_QUALITATIVE_REACHABILITY_ANALYSIS_H
 
-#endif // __END_COMPONENT_DECOMPOSITION_H__
+#endif // PROBFD_PREPROCESSING_QUALITATIVE_REACHABILITY_ANALYSIS_H

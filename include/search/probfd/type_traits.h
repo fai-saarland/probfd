@@ -3,6 +3,7 @@
 
 #include <type_traits>
 
+// Forward Declarations
 class OperatorID;
 
 namespace probfd {
@@ -26,4 +27,4 @@ using param_type =
 
 } // namespace probfd
 
-#endif // __TYPES_H__
+#endif // PROBFD_CALL_TRAITS_H

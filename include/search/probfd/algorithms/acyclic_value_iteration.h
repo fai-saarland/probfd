@@ -8,22 +8,18 @@
 
 #include <stack>
 
+// Forward Declarations
 namespace utils {
 class CountdownTimer;
 }
 
-namespace probfd {
-
-namespace policies {
+namespace probfd::policies {
 template <typename, typename>
 class MapPolicy;
 }
 
-/// This namespace contains implementations of SSP search algorithms.
-namespace algorithms {
-
 /// Namespace dedicated to the acyclic value iteration algorithm.
-namespace acyclic_vi {
+namespace probfd::algorithms::acyclic_vi {
 
 namespace internal {
 
@@ -157,9 +153,7 @@ private:
         StateInfo& succ_info);
 };
 
-} // namespace acyclic_vi
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::acyclic_vi
 
 #define GUARD_INCLUDE_PROBFD_ALGORITHMS_ACYCLIC_VALUE_ITERATION_H
 
@@ -167,4 +161,4 @@ private:
 
 #undef GUARD_INCLUDE_PROBFD_ALGORITHMS_ACYCLIC_VALUE_ITERATION_H
 
-#endif // __ACYCLIC_VALUE_ITERATION_H__
+#endif // PROBFD_ALGORITHMS_ACYCLIC_VALUE_ITERATION_H

@@ -10,9 +10,7 @@
 
 #include "downward/utils/countdown_timer.h"
 
-namespace probfd {
-namespace algorithms {
-namespace idual {
+namespace probfd::algorithms::idual {
 
 inline void Statistics::print(std::ostream& out) const
 {
@@ -25,10 +23,10 @@ inline void Statistics::print(std::ostream& out) const
 
 inline unsigned ValueGroup::get_id(value_t val)
 {
-    values.push_back(val);
-    auto it = indices.insert(values.size() - 1);
+    values_.push_back(val);
+    auto it = indices_.insert(values_.size() - 1);
     if (!it.second) {
-        values.pop_back();
+        values_.pop_back();
     }
 
     return *it.first;
@@ -55,7 +53,7 @@ Interval IDual<State, Action>::solve(
     const double eps = g_epsilon;
     const double inf = lp_solver_.get_infinity();
 
-    StateID prev_state = StateID::undefined;
+    StateID prev_state = StateID::UNDEFINED;
     unsigned next_var_id = 0;
     unsigned next_constraint_id = 0;
     std::vector<StateID> frontier;
@@ -129,7 +127,7 @@ Interval IDual<State, Action>::solve(
                 continue;
             }
 
-            ClearGuard _guard(aops, transitions);
+            ClearGuard _(aops, transitions);
             mdp.generate_all_transitions(state, aops, transitions);
 
             for (const auto [action, transition] : zip(aops, transitions)) {
@@ -236,7 +234,7 @@ Interval IDual<State, Action>::solve(
         progress.print();
     } while (!frontier.empty());
 
-    assert(lp_sol.size() > 0);
+    assert(!lp_sol.empty());
 
     statistics_.lp_variables = next_var_id;
     statistics_.lp_constraints = next_constraint_id;
@@ -245,6 +243,4 @@ Interval IDual<State, Action>::solve(
     return Interval(objective, INFINITE_VALUE);
 }
 
-} // namespace idual
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::idual

@@ -14,8 +14,7 @@
 #include <memory>
 #include <string>
 
-namespace probfd {
-namespace solvers {
+namespace probfd::solvers {
 namespace {
 
 using namespace algorithms;
@@ -36,12 +35,14 @@ class ExhaustiveDFSSolver : public MDPSolver {
 public:
     explicit ExhaustiveDFSSolver(const Options& opts)
         : MDPSolver(opts)
-        , cost_bound_(0_vt, task_cost_function->get_non_goal_termination_cost())
+        , cost_bound_(
+              0_vt,
+              task_cost_function_->get_non_goal_termination_cost())
         , transition_sort_(
               opts.contains("order")
                   ? opts.get<std::shared_ptr<FDRTransitionSorterFactory>>(
                             "order")
-                        ->create_transition_sorter(this->task_mdp.get())
+                        ->create_transition_sorter(this->task_mdp_.get())
                   : nullptr)
         , dual_bounds_(opts.get<bool>("dual_bounds"))
         , reevaluate_(opts.get<bool>("reevaluate"))
@@ -102,8 +103,8 @@ public:
     }
 };
 
+} // namespace
+
 static FeaturePlugin<ExhaustiveDFSSolverFeature> _plugin;
 
-} // namespace
-} // namespace solvers
-} // namespace probfd
+} // namespace probfd::solvers

@@ -13,13 +13,15 @@
 namespace probfd {
 template <typename>
 class Distribution;
-
 class ProbabilisticTaskProxy;
+} // namespace probfd
 
-namespace pdbs {
-
+namespace probfd::pdbs {
 class ProjectionOperator;
 class StateRankingFunction;
+} // namespace probfd::pdbs
+
+namespace probfd::pdbs {
 
 /// Represents the state space of a projection of a probabilistic planning
 /// task.
@@ -27,7 +29,7 @@ class ProjectionStateSpace
     : public SimpleMDP<StateRank, const ProjectionOperator*> {
 
     MatchTree match_tree_;
-    FDRSimpleCostFunction* parent_cost_function;
+    FDRSimpleCostFunction* parent_cost_function_;
     std::vector<bool> goal_state_flags_;
 
 public:
@@ -60,14 +62,15 @@ public:
         StateRank state,
         std::vector<Transition>& transitions) override;
 
+    [[nodiscard]]
     bool is_goal(StateRank state) const override;
 
+    [[nodiscard]]
     value_t get_non_goal_termination_cost() const override;
 
     value_t get_action_cost(const ProjectionOperator* op) override;
 };
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif // PROBFD_PDBS_PROJECTION_STATE_SPACE_H

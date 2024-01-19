@@ -4,19 +4,17 @@
 
 #include "probfd/task_proxy.h"
 
-#include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
 
 #include "downward/task_utils/task_properties.h"
 
+#include "downward/abstract_task.h"
 #include "downward/task_proxy.h"
 
 #include <algorithm>
 #include <cassert>
 #include <map>
 
-#include <functional>
-#include <memory>
 #include <ostream>
 #include <type_traits>
 #include <unordered_set>
@@ -24,8 +22,7 @@
 
 using namespace std;
 
-namespace probfd {
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 
 static vector<vector<FactPair>>
 get_preconditions_by_operator(const ProbabilisticOperatorsProxy& ops)
@@ -112,10 +109,10 @@ static int lookup_value(const vector<FactPair>& facts, int var)
 
 ProbabilisticTransitionSystem::ProbabilisticTransitionSystem(
     const ProbabilisticOperatorsProxy& ops)
-    : preconditions_by_operator(get_preconditions_by_operator(ops))
-    , postconditions_by_operator_and_outcome(
+    : preconditions_by_operator_(get_preconditions_by_operator(ops))
+    , postconditions_by_operator_and_outcome_(
           get_postconditions_by_operator_and_outcome(ops))
-    , probabilities_by_operator_and_outcome(
+    , probabilities_by_operator_and_outcome_(
           get_probabilities_by_operator_and_outcome(ops))
 {
     construct_trivial_abstraction(ops);
@@ -126,29 +123,29 @@ ProbabilisticTransitionSystem::~ProbabilisticTransitionSystem() = default;
 int ProbabilisticTransitionSystem::get_precondition_value(int op_id, int var)
     const
 {
-    return lookup_value(preconditions_by_operator[op_id], var);
+    return lookup_value(preconditions_by_operator_[op_id], var);
 }
 
 int ProbabilisticTransitionSystem::get_postcondition_value(
     int op_id,
-    int eff_id,
+    std::size_t eff_id,
     int var) const
 {
     return lookup_value(
-        postconditions_by_operator_and_outcome[op_id][eff_id],
+        postconditions_by_operator_and_outcome_[op_id][eff_id],
         var);
 }
 
 size_t ProbabilisticTransitionSystem::get_num_operator_outcomes(int op_id) const
 {
-    return postconditions_by_operator_and_outcome[op_id].size();
+    return postconditions_by_operator_and_outcome_[op_id].size();
 }
 
 void ProbabilisticTransitionSystem::enlarge_vectors_by_one()
 {
-    outgoing.emplace_back();
-    incoming.emplace_back();
-    loops.emplace_back();
+    outgoing_.emplace_back();
+    incoming_.emplace_back();
+    loops_.emplace_back();
 }
 
 void ProbabilisticTransitionSystem::construct_trivial_abstraction(
@@ -159,10 +156,10 @@ void ProbabilisticTransitionSystem::construct_trivial_abstraction(
     assert(get_num_states() == 1);
 
     for (const auto& op : ops) {
-        loops[0].emplace_back(op.get_id());
+        loops_[0].emplace_back(op.get_id());
     }
 
-    num_loops += ops.size();
+    num_loops_ += ops.size();
 }
 
 void ProbabilisticTransitionSystem::add_transition(
@@ -171,21 +168,21 @@ void ProbabilisticTransitionSystem::add_transition(
     std::vector<int> target_ids)
 {
     auto& transition =
-        transitions.emplace_back(src_id, op_id, std::move(target_ids));
-    outgoing[src_id].push_back(&transition);
+        transitions_.emplace_back(src_id, op_id, std::move(target_ids));
+    outgoing_[src_id].push_back(&transition);
 
     std::unordered_set<int> seen;
     for (int target_id : transition.target_ids) {
         if (seen.insert(target_id).second) {
-            incoming[target_id].push_back(&transition);
+            incoming_[target_id].push_back(&transition);
         }
     }
 }
 
 void ProbabilisticTransitionSystem::add_loop(int src_id, int op_id)
 {
-    loops[src_id].emplace_back(op_id);
-    ++num_loops;
+    loops_[src_id].emplace_back(op_id);
+    ++num_loops_;
 }
 
 void ProbabilisticTransitionSystem::rewire_incoming_transitions(
@@ -197,7 +194,7 @@ void ProbabilisticTransitionSystem::rewire_incoming_transitions(
     int v1_id = v1.get_id();
     int v2_id = v2.get_id();
 
-    auto old_incoming = std::move(incoming[v1_id]);
+    auto old_incoming = std::move(incoming_[v1_id]);
 
     for (ProbabilisticTransition* transition : old_incoming) {
         assert(utils::contains(transition->target_ids, v1_id));
@@ -269,13 +266,13 @@ void ProbabilisticTransitionSystem::rewire_incoming_transitions(
 
             if (v1_incoming) {
                 // Transition is incoming for v1.
-                incoming[v1_id].push_back(transition);
+                incoming_[v1_id].push_back(transition);
                 assert(utils::contains(transition->target_ids, v1_id));
             }
 
             if (v2_incoming) {
                 // Transition is incoming for v2.
-                incoming[v2_id].push_back(transition);
+                incoming_[v2_id].push_back(transition);
                 assert(utils::contains(transition->target_ids, v2_id));
             }
         } else {
@@ -301,11 +298,11 @@ void ProbabilisticTransitionSystem::rewire_incoming_transitions(
             assert(v1_possible || v2_possible);
 
             if (v1_possible) {
-                incoming[v1_id].push_back(transition);
+                incoming_[v1_id].push_back(transition);
             }
 
             if (v2_possible) {
-                incoming[v2_id].push_back(transition);
+                incoming_[v2_id].push_back(transition);
             }
         }
     }
@@ -320,7 +317,7 @@ void ProbabilisticTransitionSystem::rewire_outgoing_transitions(
     int v1_id = v1.get_id();
     int v2_id = v2.get_id();
 
-    auto old_outgoing = std::move(outgoing[v1_id]);
+    auto old_outgoing = std::move(outgoing_[v1_id]);
 
     for (ProbabilisticTransition* transition : old_outgoing) {
         int op_id = transition->op_id;
@@ -356,7 +353,7 @@ void ProbabilisticTransitionSystem::rewire_outgoing_transitions(
 
             if (v1_possible) {
                 // Transition is still outgoing for v1. Re-add it.
-                outgoing[v1_id].push_back(transition);
+                outgoing_[v1_id].push_back(transition);
                 if (v2_possible) {
                     // Copy transition to v2.
                     add_transition(v2_id, op_id, target_ids);
@@ -364,17 +361,17 @@ void ProbabilisticTransitionSystem::rewire_outgoing_transitions(
             } else {
                 // Transition is now outgoing for v2.
                 transition->source_id = v2_id;
-                outgoing[v2_id].push_back(transition);
+                outgoing_[v2_id].push_back(transition);
             }
         } else if (v1.contains(var, pre)) {
             // Transition is still outgoing for v1. Re-add it.
-            outgoing[v1_id].push_back(transition);
+            outgoing_[v1_id].push_back(transition);
         } else {
             assert(v2.contains(var, pre));
 
             // Transition is now outgoing for v2.
             transition->source_id = v2_id;
-            outgoing[v2_id].push_back(transition);
+            outgoing_[v2_id].push_back(transition);
         }
     }
 }
@@ -390,7 +387,7 @@ void ProbabilisticTransitionSystem::rewire_loops(
     int v1_id = v1.get_id();
     int v2_id = v2.get_id();
 
-    auto old_loops = std::move(loops[v1_id]);
+    auto old_loops = std::move(loops_[v1_id]);
 
     for (int op_id : old_loops) {
         const int pre = get_precondition_value(op_id, var);
@@ -499,7 +496,7 @@ void ProbabilisticTransitionSystem::rewire_loops(
         }
     }
 
-    num_loops -= old_loops.size();
+    num_loops_ -= old_loops.size();
 }
 
 void ProbabilisticTransitionSystem::rewire(
@@ -521,52 +518,52 @@ value_t
 ProbabilisticTransitionSystem::get_probability(int op_index, int eff_index)
     const
 {
-    return probabilities_by_operator_and_outcome[op_index][eff_index];
+    return probabilities_by_operator_and_outcome_[op_index][eff_index];
 }
 
 const std::vector<std::vector<ProbabilisticTransition*>>&
 ProbabilisticTransitionSystem::get_incoming_transitions() const
 {
-    return incoming;
+    return incoming_;
 }
 
 const std::vector<std::vector<ProbabilisticTransition*>>&
 ProbabilisticTransitionSystem::get_outgoing_transitions() const
 {
-    return outgoing;
+    return outgoing_;
 }
 
 const std::deque<std::vector<int>>&
 ProbabilisticTransitionSystem::get_loops() const
 {
-    return loops;
+    return loops_;
 }
 
 const std::deque<ProbabilisticTransition>&
 ProbabilisticTransitionSystem::get_transitions() const
 {
-    return transitions;
+    return transitions_;
 }
 
 int ProbabilisticTransitionSystem::get_num_states() const
 {
-    assert(incoming.size() == outgoing.size());
-    return outgoing.size();
+    assert(incoming_.size() == outgoing_.size());
+    return static_cast<int>(outgoing_.size());
 }
 
 int ProbabilisticTransitionSystem::get_num_operators() const
 {
-    return preconditions_by_operator.size();
+    return static_cast<int>(preconditions_by_operator_.size());
 }
 
 int ProbabilisticTransitionSystem::get_num_non_loops() const
 {
-    return transitions.size();
+    return static_cast<int>(transitions_.size());
 }
 
 int ProbabilisticTransitionSystem::get_num_loops() const
 {
-    return num_loops;
+    return static_cast<int>(num_loops_);
 }
 
 void ProbabilisticTransitionSystem::print_statistics(utils::LogProxy& log) const
@@ -577,5 +574,4 @@ void ProbabilisticTransitionSystem::print_statistics(utils::LogProxy& log) const
     }
 }
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions

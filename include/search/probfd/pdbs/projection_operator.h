@@ -8,10 +8,8 @@
 
 #include <string>
 
-namespace probfd {
-
 /// Namespace dedicated to probabilistic pattern databases.
-namespace pdbs {
+namespace probfd::pdbs {
 
 /**
  * @brief Represents an operator of a projection state space.
@@ -23,7 +21,7 @@ class ProjectionOperator {
     // operator is applicable in exactly one state. The successor states are
     // computed by adding an offset to the source state rank (t = s + offset).
     // The distribution contains these offsets.
-    Distribution<int> outcome_offsets;
+    Distribution<int> outcome_offsets_;
 
 public:
     explicit ProjectionOperator(OperatorID id);
@@ -35,7 +33,7 @@ public:
         const ProjectionOperator& left,
         const ProjectionOperator& right)
     {
-        return left.outcome_offsets == right.outcome_offsets;
+        return left.outcome_offsets_ == right.outcome_offsets_;
     }
 };
 
@@ -43,14 +41,13 @@ public:
  * @brief Helper class to convert projection operators to strings.
  */
 class ProjectionOperatorToString {
-    ProbabilisticTaskProxy task_proxy;
+    ProbabilisticTaskProxy task_proxy_;
 
 public:
     explicit ProjectionOperatorToString(ProbabilisticTaskProxy task_proxy);
     std::string operator()(const ProjectionOperator* op) const;
 };
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif // PROBFD_PDBS_PROJECTION_OPERATOR_H

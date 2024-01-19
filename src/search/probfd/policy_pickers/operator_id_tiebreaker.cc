@@ -8,8 +8,7 @@
 
 #include <limits>
 
-namespace probfd {
-namespace policy_pickers {
+namespace probfd::policy_pickers {
 
 OperatorIdTiebreaker::OperatorIdTiebreaker(const plugins::Options& opts)
     : OperatorIdTiebreaker(
@@ -43,5 +42,4 @@ int OperatorIdTiebreaker::pick_index(
     return min_idx;
 }
 
-} // namespace policy_pickers
-} // namespace probfd
+} // namespace probfd::policy_pickers

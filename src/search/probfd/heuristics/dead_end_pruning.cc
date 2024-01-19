@@ -17,8 +17,7 @@
 #include <iostream>
 #include <utility>
 
-namespace probfd {
-namespace heuristics {
+namespace probfd::heuristics {
 
 DeadEndPruningHeuristic::DeadEndPruningHeuristic(
     std::shared_ptr<::Evaluator> pruning_function,
@@ -90,8 +89,8 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<DeadEndPruningHeuristicFactoryFeature> _plugin;
 } // namespace
 
-} // namespace heuristics
-} // namespace probfd
+static plugins::FeaturePlugin<DeadEndPruningHeuristicFactoryFeature> _plugin;
+
+} // namespace probfd::heuristics

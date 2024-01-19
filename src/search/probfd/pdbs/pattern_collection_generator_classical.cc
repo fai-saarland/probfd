@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "probfd/pdbs/pattern_collection_generator_classical.h"
 
 #include "probfd/pdbs/pattern_collection_information.h"
@@ -5,18 +7,19 @@
 
 #include "probfd/tasks/all_outcomes_determinization.h"
 
+#include "downward/pdbs/pattern_generator.h"
+
 #include "downward/plugins/plugin.h"
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 PatternCollectionGeneratorClassical::PatternCollectionGeneratorClassical(
-    const utils::LogProxy& log,
+    utils::LogProxy log,
     std::shared_ptr<::pdbs::PatternCollectionGenerator> gen,
     std::shared_ptr<SubCollectionFinderFactory> finder_factory)
-    : PatternCollectionGenerator(log)
-    , gen(gen)
-    , finder_factory(finder_factory)
+    : PatternCollectionGenerator(std::move(log))
+    , gen_(std::move(gen))
+    , finder_factory_(std::move(finder_factory))
 {
 }
 
@@ -41,11 +44,11 @@ PatternCollectionInformation PatternCollectionGeneratorClassical::generate(
         new tasks::AODDeterminizationTask(task.get()));
 
     std::shared_ptr<SubCollectionFinder> finder =
-        finder_factory->create_subcollection_finder(task_proxy);
+        finder_factory_->create_subcollection_finder(task_proxy);
     return PatternCollectionInformation(
         task_proxy,
         task_cost_function,
-        gen->generate(determinization),
+        gen_->generate(determinization),
         finder);
 }
 
@@ -81,5 +84,4 @@ public:
 static plugins::FeaturePlugin<PatternCollectionGeneratorClassicalFeature>
     _plugin;
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs

@@ -51,13 +51,13 @@ struct ExplicitOperator {
 };
 
 class RootTask : public AbstractTask {
-    vector<ExplicitVariable> variables;
+    vector<ExplicitVariable> variables_;
     // TODO: think about using hash sets here.
-    vector<vector<set<FactPair>>> mutexes;
-    vector<ExplicitOperator> operators;
-    vector<ExplicitOperator> axioms;
-    vector<int> initial_state_values;
-    vector<FactPair> goals;
+    vector<vector<set<FactPair>>> mutexes_;
+    vector<ExplicitOperator> operators_;
+    vector<ExplicitOperator> axioms_;
+    vector<int> initial_state_values_;
+    vector<FactPair> goals_;
 
     const ExplicitVariable& get_variable(int var) const;
     const ExplicitEffect&
@@ -68,54 +68,51 @@ class RootTask : public AbstractTask {
 public:
     explicit RootTask(istream& in);
 
-    virtual int get_num_variables() const override;
-    virtual string get_variable_name(int var) const override;
-    virtual int get_variable_domain_size(int var) const override;
-    virtual int get_variable_axiom_layer(int var) const override;
-    virtual int get_variable_default_axiom_value(int var) const override;
-    virtual string get_fact_name(const FactPair& fact) const override;
-    virtual bool are_facts_mutex(const FactPair& fact1, const FactPair& fact2)
+    int get_num_variables() const override;
+    string get_variable_name(int var) const override;
+    int get_variable_domain_size(int var) const override;
+    int get_variable_axiom_layer(int var) const override;
+    int get_variable_default_axiom_value(int var) const override;
+    string get_fact_name(const FactPair& fact) const override;
+    bool are_facts_mutex(const FactPair& fact1, const FactPair& fact2)
         const override;
 
-    virtual int get_num_axioms() const override;
+    int get_num_axioms() const override;
 
-    virtual string get_axiom_name(int index) const override;
-    virtual int get_num_axiom_preconditions(int index) const override;
-    virtual FactPair
+    string get_axiom_name(int index) const override;
+    int get_num_axiom_preconditions(int index) const override;
+    FactPair
     get_axiom_precondition(int op_index, int fact_index) const override;
-    virtual int get_num_axiom_effects(int op_index) const override;
-    virtual int
+    int get_num_axiom_effects(int op_index) const override;
+    int
     get_num_axiom_effect_conditions(int op_index, int eff_index) const override;
-    virtual FactPair
+    FactPair
     get_axiom_effect_condition(int op_index, int eff_index, int cond_index)
         const override;
-    virtual FactPair
-    get_axiom_effect(int op_index, int eff_index) const override;
+    FactPair get_axiom_effect(int op_index, int eff_index) const override;
 
-    virtual int get_num_operators() const override;
+    int get_num_operators() const override;
 
-    virtual int get_operator_cost(int index) const override;
-    virtual string get_operator_name(int index) const override;
-    virtual int get_num_operator_preconditions(int index) const override;
-    virtual FactPair
+    int get_operator_cost(int index) const override;
+    string get_operator_name(int index) const override;
+    int get_num_operator_preconditions(int index) const override;
+    FactPair
     get_operator_precondition(int op_index, int fact_index) const override;
-    virtual int get_num_operator_effects(int op_index) const override;
+    int get_num_operator_effects(int op_index) const override;
     virtual int get_num_operator_effect_conditions(int op_index, int eff_index)
         const override;
-    virtual FactPair
+    FactPair
     get_operator_effect_condition(int op_index, int eff_index, int cond_index)
         const override;
-    virtual FactPair
-    get_operator_effect(int op_index, int eff_index) const override;
-    virtual int
-    convert_operator_index(int index, const AbstractTaskBase* ancestor_task)
+    FactPair get_operator_effect(int op_index, int eff_index) const override;
+    int convert_operator_index(int index, const AbstractTaskBase* ancestor_task)
         const override;
 
-    virtual int get_num_goals() const override;
-    virtual FactPair get_goal_fact(int index) const override;
+    int get_num_goals() const override;
+    FactPair get_goal_fact(int index) const override;
 
-    virtual vector<int> get_initial_state_values() const override;
-    virtual void convert_ancestor_state_values(
+    vector<int> get_initial_state_values() const override;
+    void convert_ancestor_state_values(
         vector<int>& values,
         const AbstractTaskBase* ancestor_task) const override;
 };
@@ -367,26 +364,26 @@ RootTask::RootTask(istream& in)
 {
     read_and_verify_version(in);
     bool use_metric = read_metric(in);
-    variables = read_variables(in);
-    int num_variables = variables.size();
+    variables_ = read_variables(in);
+    int num_variables = variables_.size();
 
-    mutexes = read_mutexes(in, variables);
+    mutexes_ = read_mutexes(in, variables_);
 
-    initial_state_values.resize(num_variables);
+    initial_state_values_.resize(num_variables);
     check_magic(in, "begin_state");
     for (int i = 0; i < num_variables; ++i) {
-        in >> initial_state_values[i];
+        in >> initial_state_values_[i];
     }
     check_magic(in, "end_state");
 
     for (int i = 0; i < num_variables; ++i) {
-        variables[i].axiom_default_value = initial_state_values[i];
+        variables_[i].axiom_default_value = initial_state_values_[i];
     }
 
-    goals = read_goal(in);
-    check_facts(goals, variables);
-    operators = read_actions(in, false, use_metric, variables);
-    axioms = read_actions(in, true, use_metric, variables);
+    goals_ = read_goal(in);
+    check_facts(goals_, variables_);
+    operators_ = read_actions(in, false, use_metric, variables_);
+    axioms_ = read_actions(in, true, use_metric, variables_);
     /* TODO: We should be stricter here and verify that we
        have reached the end of "in". */
 
@@ -395,13 +392,13 @@ RootTask::RootTask(istream& in)
       that this task is completely constructed.
     */
     AxiomEvaluator& axiom_evaluator = g_axiom_evaluators[TaskBaseProxy(*this)];
-    axiom_evaluator.evaluate(initial_state_values);
+    axiom_evaluator.evaluate(initial_state_values_);
 }
 
 const ExplicitVariable& RootTask::get_variable(int var) const
 {
-    assert(utils::in_bounds(var, variables));
-    return variables[var];
+    assert(utils::in_bounds(var, variables_));
+    return variables_[var];
 }
 
 const ExplicitEffect&
@@ -416,17 +413,17 @@ const ExplicitOperator&
 RootTask::get_operator_or_axiom(int index, bool is_axiom) const
 {
     if (is_axiom) {
-        assert(utils::in_bounds(index, axioms));
-        return axioms[index];
+        assert(utils::in_bounds(index, axioms_));
+        return axioms_[index];
     } else {
-        assert(utils::in_bounds(index, operators));
-        return operators[index];
+        assert(utils::in_bounds(index, operators_));
+        return operators_[index];
     }
 }
 
 int RootTask::get_num_variables() const
 {
-    return variables.size();
+    return variables_.size();
 }
 
 string RootTask::get_variable_name(int var) const
@@ -462,14 +459,14 @@ bool RootTask::are_facts_mutex(const FactPair& fact1, const FactPair& fact2)
         // Same variable: mutex iff different value.
         return fact1.value != fact2.value;
     }
-    assert(utils::in_bounds(fact1.var, mutexes));
-    assert(utils::in_bounds(fact1.value, mutexes[fact1.var]));
-    return bool(mutexes[fact1.var][fact1.value].count(fact2));
+    assert(utils::in_bounds(fact1.var, mutexes_));
+    assert(utils::in_bounds(fact1.value, mutexes_[fact1.var]));
+    return bool(mutexes_[fact1.var][fact1.value].count(fact2));
 }
 
 int RootTask::get_num_axioms() const
 {
-    return axioms.size();
+    return axioms_.size();
 }
 
 string RootTask::get_axiom_name(int index) const
@@ -516,7 +513,7 @@ FactPair RootTask::get_axiom_effect(int op_index, int eff_index) const
 
 int RootTask::get_num_operators() const
 {
-    return operators.size();
+    return operators_.size();
 }
 
 int RootTask::get_operator_cost(int index) const
@@ -579,18 +576,18 @@ int RootTask::convert_operator_index(
 
 int RootTask::get_num_goals() const
 {
-    return goals.size();
+    return goals_.size();
 }
 
 FactPair RootTask::get_goal_fact(int index) const
 {
-    assert(utils::in_bounds(index, goals));
-    return goals[index];
+    assert(utils::in_bounds(index, goals_));
+    return goals_[index];
 }
 
 vector<int> RootTask::get_initial_state_values() const
 {
-    return initial_state_values;
+    return initial_state_values_;
 }
 
 void RootTask::convert_ancestor_state_values(
@@ -616,7 +613,8 @@ public:
     {
     }
 
-    virtual shared_ptr<AbstractTask>
+    [[nodiscard]]
+    shared_ptr<AbstractTask>
     create_component(const plugins::Options&, const utils::Context&)
         const override
     {
@@ -624,5 +622,5 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<RootTaskFeature> _plugin;
+static plugins::FeaturePlugin<RootTaskFeature> plugin;
 } // namespace tasks

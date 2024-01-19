@@ -7,21 +7,21 @@
 #include <ostream>
 #include <vector>
 
+// Forward Declarations
 namespace probfd {
-
 template <typename>
 class Distribution;
-
 template <typename>
 struct Transition;
-
 template <typename, typename>
 class MDP;
+} // namespace probfd
 
-namespace algorithms {
-
+namespace probfd::algorithms {
 class StateProperties;
+}
 
+namespace probfd::algorithms {
 /**
  * @brief An strategy interface used to choose break ties between multiple
  * greedy actions for a state.
@@ -84,7 +84,6 @@ public:
     virtual void print_statistics(std::ostream&) {}
 };
 
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms
 
-#endif // __POLICY_PICKER_H__
+#endif // PROBFD_ALGORITHMS_POLICY_PICKER_H

@@ -1,9 +1,7 @@
 #include "probfd/cartesian_abstractions/distances.h"
 
-#include "probfd/cartesian_abstractions/abstract_state.h"
 #include "probfd/cartesian_abstractions/abstraction.h"
 #include "probfd/cartesian_abstractions/evaluators.h"
-#include "probfd/cartesian_abstractions/types.h"
 
 #include "probfd/algorithms/ta_topological_value_iteration.h"
 
@@ -11,16 +9,14 @@
 
 #include "probfd/utils/iterators.h"
 
-#include "probfd/type_traits.h"
+#include "probfd/progress_report.h"
 #include "probfd/types.h"
 
 #include <iterator>
-#include <ranges>
 
 using namespace std;
 
-namespace probfd {
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 
 struct ProbabilisticTransition;
 
@@ -59,5 +55,4 @@ compute_distances(Abstraction& abstraction, CartesianHeuristic& heuristic)
     return values;
 }
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions

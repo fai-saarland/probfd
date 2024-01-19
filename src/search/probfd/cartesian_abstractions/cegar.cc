@@ -29,13 +29,11 @@
 
 #include <cassert>
 #include <iostream>
-#include <optional>
 #include <utility>
 
 using namespace std;
 
-namespace probfd {
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 
 CEGARResult::~CEGARResult() = default;
 
@@ -46,14 +44,14 @@ CEGAR::CEGAR(
     std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory,
     std::shared_ptr<SplitSelectorFactory> split_selector_factory,
     utils::LogProxy log)
-    : max_states(max_states)
-    , max_non_looping_transitions(max_non_looping_transitions)
-    , max_time(max_time)
-    , flaw_generator_factory(std::move(flaw_generator_factory))
-    , split_selector_factory(std::move(split_selector_factory))
-    , log(std::move(log))
+    : max_states_(max_states)
+    , max_non_looping_transitions_(max_non_looping_transitions)
+    , max_time_(max_time)
+    , flaw_generator_factory_(std::move(flaw_generator_factory))
+    , split_selector_factory_(std::move(split_selector_factory))
+    , log_(std::move(log))
 {
-    assert(max_states >= 1);
+    assert(max_states_ >= 1);
 }
 
 CEGAR::~CEGAR() = default;
@@ -61,11 +59,11 @@ CEGAR::~CEGAR() = default;
 CEGARResult
 CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
 {
-    if (log.is_at_least_normal()) {
-        log << "Start building abstraction." << endl;
-        log << "Maximum number of abstract states: " << max_states << endl;
-        log << "Maximum number of abstract transitions: "
-            << max_non_looping_transitions << endl;
+    if (log_.is_at_least_normal()) {
+        log_ << "Start building abstraction." << endl;
+        log_ << "Maximum number of abstract states: " << max_states_ << endl;
+        log_ << "Maximum number of abstract transitions: "
+             << max_non_looping_transitions_ << endl;
     }
 
     const ProbabilisticTaskProxy task_proxy(*task);
@@ -73,12 +71,12 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
         ::cartesian_abstractions::get_domain_sizes(task_proxy));
 
     std::unique_ptr<FlawGenerator> flaw_generator =
-        flaw_generator_factory->create_flaw_generator();
+        flaw_generator_factory_->create_flaw_generator();
     std::unique_ptr<SplitSelector> split_selector =
-        split_selector_factory->create_split_selector(task);
+        split_selector_factory_->create_split_selector(task);
 
     // Limit the time for building the abstraction.
-    utils::CountdownTimer timer(max_time);
+    utils::CountdownTimer timer(max_time_);
 
     /* DAG with inner nodes for all split states and leaves for all
        current states. */
@@ -87,7 +85,7 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
     std::unique_ptr<Abstraction> abstraction(new Abstraction(
         task_proxy,
         task_properties::get_operator_costs(task_proxy),
-        log));
+        log_));
     std::unique_ptr<CartesianHeuristic> heuristic(new CartesianHeuristic());
 
     utils::Timer refine_timer(true);
@@ -119,21 +117,21 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
                 *abstraction,
                 &abstraction->get_initial_state(),
                 *heuristic,
-                log,
+                log_,
                 timer);
 
             if (!utils::extra_memory_padding_is_reserved()) {
-                if (log.is_at_least_normal()) {
-                    log << "Reached memory limit during flaw search." << endl;
+                if (log_.is_at_least_normal()) {
+                    log_ << "Reached memory limit during flaw search." << endl;
                 }
                 break;
             }
 
             if (!flaw) {
-                if (log.is_at_least_normal()) {
-                    log << "Failed to generate a flaw. Stopping refinement "
-                           "loop."
-                        << endl;
+                if (log_.is_at_least_normal()) {
+                    log_ << "Failed to generate a flaw. Stopping refinement "
+                            "loop."
+                         << endl;
                 }
                 break;
             }
@@ -147,34 +145,34 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
                 *flaw,
                 refine_timer);
 
-            if (log.is_at_least_verbose() &&
+            if (log_.is_at_least_verbose() &&
                 abstraction->get_num_states() % 1000 == 0) {
-                log << abstraction->get_num_states() << "/" << max_states
-                    << " states, "
-                    << abstraction->get_transition_system().get_num_non_loops()
-                    << "/" << max_non_looping_transitions << " transitions"
-                    << endl;
+                log_ << abstraction->get_num_states() << "/" << max_states_
+                     << " states, "
+                     << abstraction->get_transition_system().get_num_non_loops()
+                     << "/" << max_non_looping_transitions_ << " transitions"
+                     << endl;
             }
         }
     } catch (utils::TimeoutException&) {
         // NOTE: The time limit is not checked during abstraction refinement,
         // although this may be an expensive operation, since it cannot be
         // interrupted without corrupting the abstraction.
-        if (log.is_at_least_normal()) {
-            log << "Reached time limit." << endl;
+        if (log_.is_at_least_normal()) {
+            log_ << "Reached time limit." << endl;
         }
     }
 
-    flaw_generator->print_statistics(log);
+    flaw_generator->print_statistics(log_);
 
-    if (log.is_at_least_normal()) {
-        log << "Time for splitting states: " << refine_timer << endl;
+    if (log_.is_at_least_normal()) {
+        log_ << "Time for splitting states: " << refine_timer << endl;
     }
 
-    if (log.is_at_least_normal()) {
-        log << "Done building abstraction." << endl;
-        log << "Time for building abstraction: " << timer.get_elapsed_time()
-            << endl;
+    if (log_.is_at_least_normal()) {
+        log_ << "Done building abstraction." << endl;
+        log_ << "Time for building abstraction: " << timer.get_elapsed_time()
+             << endl;
         abstraction->print_statistics();
     }
 
@@ -186,21 +184,21 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
 
 bool CEGAR::may_keep_refining(const Abstraction& abstraction) const
 {
-    if (abstraction.get_num_states() >= max_states) {
-        if (log.is_at_least_normal()) {
-            log << "Reached maximum number of states." << endl;
+    if (abstraction.get_num_states() >= max_states_) {
+        if (log_.is_at_least_normal()) {
+            log_ << "Reached maximum number of states." << endl;
         }
         return false;
     } else if (
         abstraction.get_transition_system().get_num_non_loops() >=
-        max_non_looping_transitions) {
-        if (log.is_at_least_normal()) {
-            log << "Reached maximum number of transitions." << endl;
+        max_non_looping_transitions_) {
+        if (log_.is_at_least_normal()) {
+            log_ << "Reached maximum number of transitions." << endl;
         }
         return false;
     } else if (!utils::extra_memory_padding_is_reserved()) {
-        if (log.is_at_least_normal()) {
-            log << "Reached memory limit." << endl;
+        if (log_.is_at_least_normal()) {
+            log_ << "Reached memory limit." << endl;
         }
         return false;
     }
@@ -285,5 +283,4 @@ void CEGAR::refine_abstraction(
     flaw_generator.notify_split();
 }
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions

@@ -1,7 +1,6 @@
 #ifndef PROBFD_HEURISTICS_PROBABILITY_AWARE_PDB_HEURISTIC_H
 #define PROBFD_HEURISTICS_PROBABILITY_AWARE_PDB_HEURISTIC_H
 
-#include "probfd/pdbs/pattern_collection_generator.h"
 #include "probfd/pdbs/types.h"
 
 #include "probfd/heuristics/task_dependent_heuristic.h"
@@ -9,17 +8,17 @@
 #include <memory>
 #include <vector>
 
+// Forward Declarations
 namespace utils {
 class LogProxy;
 }
 
-namespace probfd {
-
-namespace pdbs {
+namespace probfd::pdbs {
+class PatternCollectionGenerator;
 class SubCollectionFinder;
-}
+} // namespace probfd::pdbs
 
-namespace heuristics {
+namespace probfd::heuristics {
 
 /**
  * @brief The probability-aware PDB heuristic.
@@ -29,12 +28,12 @@ namespace heuristics {
  * algorithms (see options).
  */
 class ProbabilityAwarePDBHeuristic : public TaskDependentHeuristic {
-    const value_t termination_cost;
+    const value_t termination_cost_;
 
-    std::shared_ptr<std::vector<pdbs::Pattern>> patterns;
-    std::shared_ptr<pdbs::PPDBCollection> pdbs;
-    std::shared_ptr<std::vector<pdbs::PatternSubCollection>> subcollections;
-    std::shared_ptr<pdbs::SubCollectionFinder> subcollection_finder;
+    std::shared_ptr<std::vector<pdbs::Pattern>> patterns_;
+    std::shared_ptr<pdbs::PPDBCollection> pdbs_;
+    std::shared_ptr<std::vector<pdbs::PatternSubCollection>> subcollections_;
+    std::shared_ptr<pdbs::SubCollectionFinder> subcollection_finder_;
 
 public:
     ProbabilityAwarePDBHeuristic(
@@ -47,7 +46,6 @@ public:
     value_t evaluate(const State& state) const override;
 };
 
-} // namespace heuristics
-} // namespace probfd
+} // namespace probfd::heuristics
 
 #endif // PROBFD_HEURISTICS_PROBABILITY_AWARE_PDB_HEURISTIC_H

@@ -5,8 +5,7 @@
 
 #include <memory>
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 class AdditiveMaxOrthogonalityFinderFactory
     : public SubCollectionFinderFactory {
@@ -22,7 +21,6 @@ public:
         const ProbabilisticTaskProxy& task_proxy) override;
 };
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif // PROBFD_PDBS_MAX_ORTHOGONAL_FINDER_FACTORY_H

@@ -11,19 +11,19 @@
 #include <type_traits>
 #include <vector>
 
+// Forward Declarations
 namespace utils {
 class CountdownTimer;
 }
 
-namespace probfd {
-namespace algorithms {
-
+namespace probfd::algorithms {
 template <typename>
 class OpenList;
+}
 
 /// Namespace dedicated to the depth-first heuristic search (DFHS) family with
 /// native trap handling support.
-namespace trap_aware_dfhs {
+namespace probfd::algorithms::trap_aware_dfhs {
 
 enum class BacktrackingUpdateType {
     DISABLED,
@@ -52,7 +52,12 @@ struct PerStateInformation : public BaseInfo {
     static constexpr uint8_t BITS = BaseInfo::BITS + 1;
     static constexpr uint8_t MASK = (1 << BaseInfo::BITS);
 
-    bool is_solved() const { return this->info & SOLVED; }
+    [[nodiscard]]
+    bool is_solved() const
+    {
+        return this->info & SOLVED;
+    }
+
     void set_solved() { this->info = (this->info & ~MASK) | SOLVED; }
 };
 
@@ -126,6 +131,7 @@ class TADFHSImpl
         }
 
         bool next_successor();
+        [[nodiscard]]
         StateID get_successor() const;
     };
 
@@ -208,14 +214,14 @@ private:
     void dfhs_vi_driver(
         QuotientSystem& quotient,
         QEvaluator& heuristic,
-        const StateID state,
+        StateID state,
         ProgressReport& progress,
         utils::CountdownTimer& timer);
 
     void dfhs_label_driver(
         QuotientSystem& quotient,
         QEvaluator& heuristic,
-        const StateID state,
+        StateID state,
         ProgressReport& progress,
         utils::CountdownTimer& timer);
 
@@ -255,20 +261,19 @@ private:
     bool backtrack_from_non_singleton(
         QuotientSystem& quotient,
         QEvaluator& heuristic,
-        const StateID state,
+        StateID state,
         Flags& flags,
         auto scc);
 
     bool backtrack_trap(
         QuotientSystem& quotient,
         QEvaluator& heuristic,
-        const StateID state,
+        StateID state,
         Flags& flags,
         auto scc);
 
-    void backtrack_solved(const StateID, Flags& flags, auto scc);
-
-    void backtrack_unsolved(const StateID, Flags& flags, auto scc);
+    void backtrack_solved(StateID, Flags& flags, auto scc);
+    void backtrack_unsolved(StateID, Flags& flags, auto scc);
 
     template <bool Convergence>
     UpdateResult value_iteration(
@@ -327,14 +332,14 @@ public:
 
     void print_statistics(std::ostream& out) const override;
 
+    [[nodiscard]]
     value_t lookup_value(StateID state_id) const;
 
+    [[nodiscard]]
     bool was_visited(StateID state_id) const;
 };
 
-} // namespace trap_aware_dfhs
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::trap_aware_dfhs
 
 #define GUARD_INCLUDE_PROBFD_ALGORITHMS_TRAP_AWARE_DFHS_H
 #include "probfd/algorithms/trap_aware_dfhs_impl.h"

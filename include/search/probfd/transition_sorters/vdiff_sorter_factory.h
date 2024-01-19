@@ -7,27 +7,24 @@
 
 #include <memory>
 
+// Forward Declarations
 namespace plugins {
 class Options;
 } // namespace plugins
 
-namespace probfd {
-
 /// This namespace contains implementations of successor sorting algorithms.
-namespace transition_sorters {
+namespace probfd::transition_sorters {
 
 class VDiffSorterFactory : public FDRTransitionSorterFactory {
     const value_t favor_large_gaps_;
 
 public:
     explicit VDiffSorterFactory(const plugins::Options&);
-    ~VDiffSorterFactory() override = default;
 
     std::shared_ptr<FDRTransitionSorter>
     create_transition_sorter(FDRMDP* state_space) override;
 };
 
-} // namespace transition_sorters
-} // namespace probfd
+} // namespace probfd::transition_sorters
 
-#endif // __VDIFF_TIEBREAKER_H__
+#endif // PROBFD_TRANSITION_SORTERS_VDIFF_SORTER_FACTORY_H

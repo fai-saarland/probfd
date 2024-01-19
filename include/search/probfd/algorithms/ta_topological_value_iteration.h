@@ -17,11 +17,8 @@ namespace utils {
 class CountdownTimer;
 }
 
-namespace probfd {
-namespace algorithms {
-
 /// Namespace dedicated to trap-aware Topological Value Iteration (TATVI).
-namespace ta_topological_vi {
+namespace probfd::algorithms::ta_topological_vi {
 
 /**
  * @brief Topological value iteration statistics.
@@ -124,7 +121,7 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         std::vector<ItemProbabilityPair<StateID>> scc_successors;
 
         // Probability to remain in the same state.
-        // Casted to the self-loop normalization factor after
+        // Cast to the self-loop normalization factor after
         // finalize_transition().
         value_t self_loop_prob = 0.0_vt;
 
@@ -218,6 +215,7 @@ public:
     /**
      * @brief Retreive the algorithm statistics.
      */
+    [[nodiscard]]
     Statistics get_statistics() const;
 
     /**
@@ -295,12 +293,10 @@ private:
     void scc_found_ecd(ECDExplorationInfo& e, utils::CountdownTimer& timer);
 };
 
-} // namespace ta_topological_vi
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::ta_topological_vi
 
 #define GUARD_INCLUDE_PROBFD_ALGORITHMS_TA_TOPOLOGICAL_VALUE_ITERATION_H
 #include "probfd/algorithms/ta_topological_value_iteration_impl.h"
 #undef GUARD_INCLUDE_PROBFD_ALGORITHMS_TA_TOPOLOGICAL_VALUE_ITERATION_H
 
-#endif // __TOPOLOGICAL_VALUE_ITERATION_H__
+#endif // PROBFD_ALGORITHMS_TA_TOPOLOGICAL_VALUE_ITERATION_H

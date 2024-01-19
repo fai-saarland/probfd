@@ -6,9 +6,7 @@
 
 #include "downward/utils/countdown_timer.h"
 
-namespace probfd {
-namespace algorithms {
-namespace exhaustive_ao {
+namespace probfd::algorithms::exhaustive_ao {
 
 template <typename State, typename Action, bool UseInterval>
 ExhaustiveAOSearch<State, Action, UseInterval>::ExhaustiveAOSearch(
@@ -23,13 +21,13 @@ template <typename State, typename Action, bool UseInterval>
 Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
     MDP& mdp,
     Evaluator& heuristic,
-    param_type<State> state,
+    param_type<State> initial_state,
     ProgressReport& progress,
     double max_time)
 {
     utils::CountdownTimer timer(max_time);
 
-    StateID initstateid = mdp.get_state_id(state);
+    StateID initstateid = mdp.get_state_id(initial_state);
     const auto& state_info = this->get_state_info(initstateid);
     open_list_->push(initstateid);
 
@@ -72,7 +70,7 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
         unsigned unsolved = 0;
         unsigned min_succ_order = std::numeric_limits<unsigned>::max();
 
-        ClearGuard _guard(this->transitions_);
+        ClearGuard _(this->transitions_);
         const State state = mdp.get_state(stateid);
         mdp.generate_all_transitions(state, this->transitions_);
 
@@ -124,6 +122,4 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
     return state_info.get_bounds();
 }
 
-} // namespace exhaustive_ao
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::exhaustive_ao

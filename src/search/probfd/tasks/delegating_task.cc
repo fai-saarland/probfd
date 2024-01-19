@@ -2,81 +2,80 @@
 
 using namespace std;
 
-namespace probfd {
-namespace tasks {
+namespace probfd::tasks {
 
 DelegatingTask::DelegatingTask(const shared_ptr<ProbabilisticTask>& parent)
-    : parent(parent)
+    : parent_(parent)
 {
 }
 
 int DelegatingTask::get_num_variables() const
 {
-    return parent->get_num_variables();
+    return parent_->get_num_variables();
 }
 
 string DelegatingTask::get_variable_name(int var) const
 {
-    return parent->get_variable_name(var);
+    return parent_->get_variable_name(var);
 }
 
 int DelegatingTask::get_variable_domain_size(int var) const
 {
-    return parent->get_variable_domain_size(var);
+    return parent_->get_variable_domain_size(var);
 }
 
 int DelegatingTask::get_variable_axiom_layer(int var) const
 {
-    return parent->get_variable_axiom_layer(var);
+    return parent_->get_variable_axiom_layer(var);
 }
 
 int DelegatingTask::get_variable_default_axiom_value(int var) const
 {
-    return parent->get_variable_default_axiom_value(var);
+    return parent_->get_variable_default_axiom_value(var);
 }
 
 string DelegatingTask::get_fact_name(const FactPair& fact) const
 {
-    return parent->get_fact_name(fact);
+    return parent_->get_fact_name(fact);
 }
 
 bool DelegatingTask::are_facts_mutex(
     const FactPair& fact1,
     const FactPair& fact2) const
 {
-    return parent->are_facts_mutex(fact1, fact2);
+    return parent_->are_facts_mutex(fact1, fact2);
 }
 
 int DelegatingTask::get_num_axioms() const
 {
-    return parent->get_num_axioms();
+    return parent_->get_num_axioms();
 }
 
 string DelegatingTask::get_axiom_name(int index) const
 {
-    return parent->get_axiom_name(index);
+    return parent_->get_axiom_name(index);
 }
 
 int DelegatingTask::get_num_axiom_preconditions(int index) const
 {
-    return parent->get_num_axiom_preconditions(index);
+    return parent_->get_num_axiom_preconditions(index);
 }
 
 FactPair
 DelegatingTask::get_axiom_precondition(int op_index, int fact_index) const
 {
-    return parent->get_axiom_precondition(op_index, fact_index);
+    return parent_->get_axiom_precondition(op_index, fact_index);
 }
 
 int DelegatingTask::get_num_axiom_effects(int op_index) const
 {
-    return parent->get_num_axiom_effects(op_index);
+    return parent_->get_num_axiom_effects(op_index);
 }
 
 int DelegatingTask::get_num_axiom_effect_conditions(int op_index, int eff_index)
     const
 {
-    return parent->get_num_axiom_effect_conditions(op_index, eff_index);
+    return parent_->get_num_axiom_effect_conditions(op_index, eff_index);
 }
 
 FactPair DelegatingTask::get_axiom_effect_condition(
@@ -84,53 +83,53 @@ FactPair DelegatingTask::get_axiom_effect_condition(
     int eff_index,
     int cond_index) const
 {
-    return parent->get_axiom_effect_condition(op_index, eff_index, cond_index);
+    return parent_->get_axiom_effect_condition(op_index, eff_index, cond_index);
 }
 
 FactPair DelegatingTask::get_axiom_effect(int op_index, int eff_index) const
 {
-    return parent->get_axiom_effect(op_index, eff_index);
+    return parent_->get_axiom_effect(op_index, eff_index);
 }
 
 value_t DelegatingTask::get_operator_cost(int index) const
 {
-    return parent->get_operator_cost(index);
+    return parent_->get_operator_cost(index);
 }
 
 string DelegatingTask::get_operator_name(int index) const
 {
-    return parent->get_operator_name(index);
+    return parent_->get_operator_name(index);
 }
 
 int DelegatingTask::get_num_operators() const
 {
-    return parent->get_num_operators();
+    return parent_->get_num_operators();
 }
 
 int DelegatingTask::get_num_operator_preconditions(int index) const
 {
-    return parent->get_num_operator_preconditions(index);
+    return parent_->get_num_operator_preconditions(index);
 }
 
 FactPair
 DelegatingTask::get_operator_precondition(int op_index, int fact_index) const
 {
-    return parent->get_operator_precondition(op_index, fact_index);
+    return parent_->get_operator_precondition(op_index, fact_index);
 }
 
 int DelegatingTask::get_num_goals() const
 {
-    return parent->get_num_goals();
+    return parent_->get_num_goals();
 }
 
 FactPair DelegatingTask::get_goal_fact(int index) const
 {
-    return parent->get_goal_fact(index);
+    return parent_->get_goal_fact(index);
 }
 
 vector<int> DelegatingTask::get_initial_state_values() const
 {
-    return parent->get_initial_state_values();
+    return parent_->get_initial_state_values();
 }
 
 void DelegatingTask::convert_ancestor_state_values(
@@ -140,7 +139,7 @@ void DelegatingTask::convert_ancestor_state_values(
     if (this == ancestor_task) {
         return;
     }
-    parent->convert_ancestor_state_values(values, ancestor_task);
+    parent_->convert_ancestor_state_values(values, ancestor_task);
     convert_state_values_from_parent(values);
 }
 
@@ -152,32 +151,32 @@ int DelegatingTask::convert_operator_index(
         return index;
     }
     int parent_index = convert_operator_index_to_parent(index);
-    return parent->convert_operator_index(parent_index, ancestor_task);
+    return parent_->convert_operator_index(parent_index, ancestor_task);
 }
 
 int DelegatingTask::get_num_operator_outcomes(int op_index) const
 {
-    return parent->get_num_operator_outcomes(op_index);
+    return parent_->get_num_operator_outcomes(op_index);
 }
 
 value_t DelegatingTask::get_operator_outcome_probability(
     int op_index,
     int outcome_index) const
 {
-    return parent->get_operator_outcome_probability(op_index, outcome_index);
+    return parent_->get_operator_outcome_probability(op_index, outcome_index);
 }
 
 int DelegatingTask::get_operator_outcome_id(int op_index, int outcome_index)
     const
 {
-    return parent->get_operator_outcome_id(op_index, outcome_index);
+    return parent_->get_operator_outcome_id(op_index, outcome_index);
 }
 
 int DelegatingTask::get_num_operator_outcome_effects(
     int op_index,
     int outcome_index) const
 {
-    return parent->get_num_operator_outcome_effects(op_index, outcome_index);
+    return parent_->get_num_operator_outcome_effects(op_index, outcome_index);
 }
 
 FactPair DelegatingTask::get_operator_outcome_effect(
@@ -185,7 +184,7 @@ FactPair DelegatingTask::get_operator_outcome_effect(
     int outcome_index,
     int eff_index) const
 {
-    return parent->get_operator_outcome_effect(
+    return parent_->get_operator_outcome_effect(
         op_index,
         outcome_index,
         eff_index);
@@ -196,7 +195,7 @@ int DelegatingTask::get_num_operator_outcome_effect_conditions(
     int outcome_index,
     int eff_index) const
 {
-    return parent->get_num_operator_outcome_effect_conditions(
+    return parent_->get_num_operator_outcome_effect_conditions(
         op_index,
         outcome_index,
         eff_index);
@@ -208,12 +207,11 @@ FactPair DelegatingTask::get_operator_outcome_effect_condition(
     int eff_index,
     int cond_index) const
 {
-    return parent->get_operator_outcome_effect_condition(
+    return parent_->get_operator_outcome_effect_condition(
         op_index,
         outcome_index,
         eff_index,
         cond_index);
 }
 
-} // namespace tasks
-} // namespace probfd
+} // namespace probfd::tasks

@@ -7,8 +7,7 @@
 #include <string>
 #include <vector>
 
-namespace probfd {
-namespace extra_tasks {
+namespace probfd::extra_tasks {
 
 /*
   Task transformation for performing domain abstraction.
@@ -17,11 +16,11 @@ namespace extra_tasks {
   domain_abstracted_task_factory.h for creating DomainAbstractedTasks.
 */
 class DomainAbstractedTask : public tasks::DelegatingTask {
-    const std::vector<int> domain_size;
-    const std::vector<int> initial_state_values;
-    const std::vector<FactPair> goals;
-    const std::vector<std::vector<std::string>> fact_names;
-    const std::vector<std::vector<int>> value_map;
+    const std::vector<int> domain_size_;
+    const std::vector<int> initial_state_values_;
+    const std::vector<FactPair> goals_;
+    const std::vector<std::vector<std::string>> fact_names_;
+    const std::vector<std::vector<int>> value_map_;
 
     FactPair get_abstract_fact(const FactPair& fact) const;
 
@@ -57,7 +56,6 @@ public:
     convert_state_values_from_parent(std::vector<int>& values) const override;
 };
 
-} // namespace extra_tasks
-} // namespace probfd
+} // namespace probfd::extra_tasks
 
 #endif

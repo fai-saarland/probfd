@@ -13,38 +13,38 @@
 
 #include "downward/utils/timer.h"
 
+#include <cstddef>
 #include <iosfwd>
 #include <memory>
-#include <stddef.h>
 #include <vector>
 
 namespace probfd {
 class ProgressReport;
+}
 
-namespace algorithms {
-namespace i2dual {
+namespace probfd::algorithms::i2dual {
 
 class I2Dual : public MDPAlgorithm<State, OperatorID> {
     struct IDualData;
 
     struct Statistics {
-        utils::Timer idual_timer_ = utils::Timer(true);
-        utils::Timer lp_solver_timer_ = utils::Timer(true);
-        utils::Timer hpom_timer_ = utils::Timer(true);
+        utils::Timer idual_timer = utils::Timer(true);
+        utils::Timer lp_solver_timer = utils::Timer(true);
+        utils::Timer hpom_timer = utils::Timer(true);
 
-        unsigned long long iterations_ = 0;
-        unsigned long long expansions_ = 0;
-        unsigned long long open_states_ = 0;
-        unsigned long long num_lp_vars_ = 0;
-        unsigned long long num_lp_constraints_ = 0;
-        unsigned long long hpom_num_vars_ = 0;
-        unsigned long long hpom_num_constraints_ = 0;
+        unsigned long long iterations = 0;
+        unsigned long long expansions = 0;
+        unsigned long long open_states = 0;
+        unsigned long long num_lp_vars = 0;
+        unsigned long long num_lp_constraints = 0;
+        unsigned long long hpom_num_vars = 0;
+        unsigned long long hpom_num_constraints = 0;
 
         void print(std::ostream& out) const;
     };
 
-    ProbabilisticTaskProxy task_proxy;
-    std::shared_ptr<FDRCostFunction> task_cost_function;
+    ProbabilisticTaskProxy task_proxy_;
+    std::shared_ptr<FDRCostFunction> task_cost_function_;
 
     const bool hpom_enabled_;
     const bool incremental_hpom_updates_;
@@ -78,7 +78,7 @@ public:
     Interval solve(
         FDRMDP& mdp,
         FDREvaluator& heuristic,
-        const State& state,
+        const State& initial_state,
         ProgressReport progress,
         double max_time) override;
 
@@ -102,7 +102,7 @@ private:
         FDRMDP& mdp,
         storage::PerStateStorage<IDualData>& data,
         const std::vector<StateID>& frontier,
-        const unsigned start);
+        unsigned start);
 
     void remove_fringe_state_from_hpom(
         const State& state,
@@ -115,8 +115,6 @@ private:
         named_vector::NamedVector<lp::LPConstraint>& constraints) const;
 };
 
-} // namespace i2dual
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::i2dual
 
-#endif // __I2DUAL_H__
+#endif // PROBFD_ALGORITHMS_I2DUAL_H

@@ -2,8 +2,6 @@
 
 #include "probfd/algorithms/lrtdp.h"
 
-#include "probfd/algorithms/successor_sampler.h"
-
 #include "probfd/plugins/multi_feature_plugin.h"
 #include "probfd/plugins/naming_conventions.h"
 
@@ -13,8 +11,7 @@
 #include <memory>
 #include <string>
 
-namespace probfd {
-namespace solvers {
+namespace probfd::solvers {
 namespace {
 
 using namespace algorithms;
@@ -53,7 +50,10 @@ public:
         }
     }
 
-    std::string get_heuristic_search_name() const override { return "lrtdp"; }
+    [[nodiscard]] std::string get_heuristic_search_name() const override
+    {
+        return "lrtdp";
+    }
 
     std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
@@ -94,6 +94,8 @@ public:
     }
 };
 
+} // namespace
+
 static MultiFeaturePlugin<LRTDPSolverFeature> _plugins;
 
 static TypedEnumPlugin<TrialTerminationCondition> _enum_plugin(
@@ -102,6 +104,4 @@ static TypedEnumPlugin<TrialTerminationCondition> _enum_plugin(
      {"inconsistent", "Stop trials at epsilon inconsistent states"},
      {"revisited", "Stop trials upon revisiting a state"}});
 
-} // namespace
-} // namespace solvers
-} // namespace probfd
+} // namespace probfd::solvers

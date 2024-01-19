@@ -12,19 +12,13 @@
 #include "probfd/plugins/multi_feature_plugin.h"
 #include "probfd/plugins/naming_conventions.h"
 
-#include "probfd/fdr_types.h"
-
-#include "downward/task_proxy.h"
-
 #include "downward/plugins/plugin.h"
 
 #include "downward/utils/rng_options.h"
 
 #include <memory>
-#include <type_traits>
 
-namespace probfd {
-namespace successor_samplers {
+namespace probfd::successor_samplers {
 namespace {
 
 using namespace plugins;
@@ -69,7 +63,8 @@ public:
     {
     }
 
-    std::shared_ptr<Wrapper<ArbitrarySuccessorSampler, Bisimulation, Fret>>
+    [[nodiscard]] std::shared_ptr<
+        Wrapper<ArbitrarySuccessorSampler, Bisimulation, Fret>>
     create_component(const Options&, const utils::Context&) const override
     {
         return std::make_shared<
@@ -90,7 +85,8 @@ public:
     {
     }
 
-    std::shared_ptr<Wrapper<MostLikelySuccessorSampler, Bisimulation, Fret>>
+    [[nodiscard]] std::shared_ptr<
+        Wrapper<MostLikelySuccessorSampler, Bisimulation, Fret>>
     create_component(const Options&, const utils::Context&) const override
     {
         return std::make_shared<
@@ -159,6 +155,8 @@ public:
     }
 };
 
+} // namespace
+
 static MultiCategoryPlugin<SuccessorSamplerCategoryPlugin> _category_plugin;
 
 static MultiFeaturePlugin<ArbitrarySuccessorSamplerFeature> _plugin_arbitary;
@@ -170,6 +168,4 @@ static MultiFeaturePlugin<UniformSuccessorSamplerFeature>
 static MultiFeaturePlugin<VBiasedSuccessorSamplerFeature> _plugin_vbiased;
 static MultiFeaturePlugin<VDiffSuccessorSamplerFeature> _plugin_value_gap;
 
-} // namespace
-} // namespace successor_samplers
-} // namespace probfd
+} // namespace probfd::successor_samplers

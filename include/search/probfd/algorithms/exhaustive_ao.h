@@ -3,14 +3,14 @@
 
 #include "probfd/algorithms/ao_search.h"
 
-namespace probfd {
-namespace algorithms {
-
+// Forward Declarations
+namespace probfd::algorithms {
 template <typename>
 class OpenList;
+}
 
 /// I do not know this algorithm.
-namespace exhaustive_ao {
+namespace probfd::algorithms::exhaustive_ao {
 
 namespace internal {
 
@@ -28,7 +28,7 @@ struct PerStateInformation : public ao_search::PerStateInformation<StateInfo> {
  * An exhaustive version of the AO* algorithm that computes an optimal value
  * function for every state reachable from the initial state.
  *
- * \todo Add some implementation notes.
+ * @todo Add some implementation notes.
  *
  * @tparam State - The state type of the underlying MDP model.
  * @tparam Action - The action type of the underlying MDP model.
@@ -65,17 +65,15 @@ protected:
     Interval do_solve(
         MDP& mdp,
         Evaluator& heuristic,
-        param_type<State> state,
+        param_type<State> initial_state,
         ProgressReport& progress,
         double max_time) override;
 };
 
-} // namespace exhaustive_ao
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::exhaustive_ao
 
 #define GUARD_INCLUDE_PROBFD_ALGORITHMS_EXHAUSTIVE_AO_H
 #include "probfd/algorithms/exhaustive_ao_impl.h"
 #undef GUARD_INCLUDE_PROBFD_ALGORITHMS_EXHAUSTIVE_AO_H
 
-#endif // __EXHAUSTIVE_AO_H__
+#endif // PROBFD_ALGORITHMS_EXHAUSTIVE_AO_H

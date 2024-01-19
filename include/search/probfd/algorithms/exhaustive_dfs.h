@@ -14,14 +14,14 @@
 #include <deque>
 #include <limits>
 
-namespace probfd {
-namespace algorithms {
-
+// Forward Declarations
+namespace probfd::algorithms {
 template <typename, typename>
 class TransitionSorter;
+}
 
 /// namespace for anytime TVI
-namespace exhaustive_dfs {
+namespace probfd::algorithms::exhaustive_dfs {
 
 struct Statistics {
     unsigned long long expanded = 0;
@@ -97,12 +97,36 @@ struct SearchNodeInformation {
     AlgorithmValueType<UseInterval> value;
     value_t term_cost;
 
-    bool is_new() const { return status == NEW; }
-    bool is_open() const { return status == OPEN; }
-    bool is_onstack() const { return status == ONSTACK; }
-    bool is_closed() const { return status & CLOSED; }
-    bool is_dead_end() const { return status == DEAD || status == MARKED; }
-    bool is_marked_dead_end() const { return status == MARKED; }
+    [[nodiscard]]
+    bool is_new() const
+    {
+        return status == NEW;
+    }
+    [[nodiscard]]
+    bool is_open() const
+    {
+        return status == OPEN;
+    }
+    [[nodiscard]]
+    bool is_onstack() const
+    {
+        return status == ONSTACK;
+    }
+    [[nodiscard]]
+    bool is_closed() const
+    {
+        return status & CLOSED;
+    }
+    [[nodiscard]]
+    bool is_dead_end() const
+    {
+        return status == DEAD || status == MARKED;
+    }
+    [[nodiscard]]
+    bool is_marked_dead_end() const
+    {
+        return status == MARKED;
+    }
 
     void open()
     {
@@ -127,6 +151,7 @@ struct SearchNodeInformation {
 
     void mark_dead_end() { status = MARKED; }
 
+    [[nodiscard]]
     value_t get_value() const
     {
         if constexpr (UseInterval) {
@@ -136,6 +161,7 @@ struct SearchNodeInformation {
         }
     }
 
+    [[nodiscard]]
     Interval get_bounds() const
     {
         if constexpr (!UseInterval) {
@@ -269,12 +295,10 @@ private:
     bool check_early_convergence(const SearchNodeInformation& node) const;
 };
 
-} // namespace exhaustive_dfs
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::exhaustive_dfs
 
 #define GUARD_INCLUDE_PROBFD_ALGORITHMS_EXHAUSTIVE_DFS_H
 #include "probfd/algorithms/exhaustive_dfs_impl.h"
 #undef GUARD_INCLUDE_PROBFD_ALGORITHMS_EXHAUSTIVE_DFS_H
 
-#endif // __EXHAUSTIVE_DFS_H__
+#endif // PROBFD_ALGORITHMS_EXHAUSTIVE_DFS_H

@@ -10,10 +10,10 @@
 #include <memory>
 #include <vector>
 
+// Forward Declarations
 class State;
 
-namespace probfd {
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 
 /*
   Store RefinementHierarchy and heuristic values for looking up abstract state
@@ -21,8 +21,8 @@ namespace cartesian_abstractions {
 */
 class CartesianHeuristicFunction {
     // Avoid const to enable moving.
-    std::unique_ptr<RefinementHierarchy> refinement_hierarchy;
-    std::vector<value_t> h_values;
+    std::unique_ptr<RefinementHierarchy> refinement_hierarchy_;
+    std::vector<value_t> h_values_;
 
 public:
     CartesianHeuristicFunction(
@@ -34,10 +34,10 @@ public:
 
     ~CartesianHeuristicFunction();
 
+    [[nodiscard]]
     value_t get_value(const State& state) const;
 };
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions
 
 #endif // PROBFD_CARTESIAN_ABSTRACTIONS_CARTESIAN_HEURISTIC_FUNCTION_H

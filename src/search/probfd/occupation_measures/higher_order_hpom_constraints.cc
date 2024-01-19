@@ -19,32 +19,29 @@
 #include <memory>
 #include <utility>
 
-namespace probfd {
-namespace occupation_measures {
+namespace probfd::occupation_measures {
 
 std::vector<int> HigherOrderHPOMGenerator::get_first_pattern() const
 {
     std::vector<int> pattern(projection_size_);
 
     for (size_t i = 0; i != pattern.size(); ++i) {
-        pattern[i] = i;
+        pattern[i] = static_cast<int>(i);
     }
 
     return pattern;
 }
 
-bool HigherOrderHPOMGenerator::next_pattern(
-    std::size_t num_variables,
-    std::vector<int>& pattern) const
+bool next_pattern(std::size_t num_variables, std::vector<int>& pattern)
 {
     bool overflow = false;
 
     int idx;
     int base = 0;
 
-    int high = num_variables;
+    int high = static_cast<int>(num_variables);
 
-    for (idx = pattern.size() - 1; idx >= 0; --idx, --high) {
+    for (idx = static_cast<int>(pattern.size()) - 1; idx >= 0; --idx, --high) {
         const int next = pattern[idx] + 1;
 
         if (next < high) {
@@ -77,9 +74,9 @@ int HigherOrderHPOMGenerator::PatternInfo::get_state_id(
     return res;
 }
 
-std::vector<int> HigherOrderHPOMGenerator::get_first_partial_state(
+std::vector<int> get_first_partial_state(
     const std::vector<int>& pattern,
-    const std::vector<int>& pindices) const
+    const std::vector<int>& pindices)
 {
     std::vector<int> buffer(pattern.size());
 
@@ -91,13 +88,13 @@ std::vector<int> HigherOrderHPOMGenerator::get_first_partial_state(
     return buffer;
 }
 
-bool HigherOrderHPOMGenerator::next_partial_state(
+bool next_partial_state(
     const VariablesProxy& variables,
     std::vector<int>& pstate,
     const std::vector<int>& pattern,
-    const std::vector<int>& pindices) const
+    const std::vector<int>& pindices)
 {
-    for (int idx = pattern.size() - 1; idx >= 0; --idx) {
+    for (int idx = static_cast<int>(pattern.size()) - 1; idx >= 0; --idx) {
         const int var = pattern[idx];
 
         if (pindices[var] != -1) continue;
@@ -387,5 +384,4 @@ void HigherOrderHPOMGenerator::reset_constraints(
     } while (next_pattern(state.size(), pattern));
 }
 
-} // namespace occupation_measures
-} // namespace probfd
+} // namespace probfd::occupation_measures

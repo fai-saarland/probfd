@@ -3,8 +3,6 @@
 #include "probfd/solver_interface.h"
 #include "probfd/value_type.h"
 
-#include "downward/parser/abstract_syntax_tree.h"
-#include "downward/parser/decorated_abstract_syntax_tree.h"
 #include "downward/parser/lexical_analyzer.h"
 #include "downward/parser/syntax_analyzer.h"
 #include "downward/parser/token_stream.h"
@@ -18,8 +16,6 @@
 #include "downward/utils/system.h"
 
 #include <any>
-#include <cstddef>
-#include <cstdlib>
 #include <iostream>
 #include <stdexcept>
 #include <vector>
@@ -79,7 +75,7 @@ replace_old_style_predefinitions(const vector<string>& args)
                 input_error("at most one '--search' argument may be specified");
             if (is_last) input_error("missing argument after --search");
             arg = args[++i];
-            new_args.push_back("--search");
+            new_args.emplace_back("--search");
             new_search_argument << arg << string(num_predefinitions, ')');
             new_args.push_back(new_search_argument.str());
             has_search_argument = true;
@@ -101,12 +97,12 @@ parse_cmd_line_aux(const vector<string>& args)
 
     // TODO: Remove code duplication.
     for (size_t i = 0; i < args.size(); ++i) {
-        string arg = args[i];
+        const string& arg = args[i];
         bool is_last = (i == args.size() - 1);
         if (arg == "--search") {
             if (algorithm) input_error("multiple --search arguments defined");
             if (is_last) input_error("missing argument after --search");
-            string search_arg = args[++i];
+            const string& search_arg = args[++i];
             try {
                 parser::TokenStream tokens = parser::split_tokens(search_arg);
                 parser::ASTNodePtr parsed = parser::parse(tokens);
@@ -121,7 +117,7 @@ parse_cmd_line_aux(const vector<string>& args)
             bool txt2tags = false;
             vector<string> plugin_names;
             for (size_t j = i + 1; j < args.size(); ++j) {
-                string help_arg = args[j];
+                const string& help_arg = args[j];
                 if (help_arg == "--txt2tags") {
                     txt2tags = true;
                 } else {
@@ -203,7 +199,7 @@ parse_cmd_line(int argc, const char** argv, bool is_unit_cost)
         } else if (arg == "--always") {
             active = true;
         } else if (active) {
-            args.push_back(argv[i]);
+            args.emplace_back(argv[i]);
         }
     }
 

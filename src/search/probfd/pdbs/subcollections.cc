@@ -6,14 +6,12 @@
 #include "probfd/value_type.h"
 
 #include <algorithm>
-#include <cstddef>
 #include <iterator>
 #include <map>
 #include <unordered_set>
 #include <utility>
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 namespace {
 
@@ -51,14 +49,18 @@ public:
         }
     }
 
-    value_t get_probability(const std::vector<FactPair>& effects) const
+    [[nodiscard]] value_t
+    get_probability(const std::vector<FactPair>& effects) const
     {
         auto it = effects_to_probs.find(effects);
         return it != effects_to_probs.end() ? it->second : 0_vt;
     }
 
-    bool is_stochastic() const { return effects_to_probs.size() > 1; }
-    bool is_pseudo_deterministic() const
+    [[nodiscard]] bool is_stochastic() const
+    {
+        return effects_to_probs.size() > 1;
+    }
+    [[nodiscard]] bool is_pseudo_deterministic() const
     {
         if (effects_to_probs.size() == 2) {
             auto it = effects_to_probs.cbegin();
@@ -73,8 +75,8 @@ public:
     auto begin() { return effects_to_probs.begin(); }
     auto end() { return effects_to_probs.end(); }
 
-    auto begin() const { return effects_to_probs.begin(); }
-    auto end() const { return effects_to_probs.end(); }
+    [[nodiscard]] auto begin() const { return effects_to_probs.begin(); }
+    [[nodiscard]] auto end() const { return effects_to_probs.end(); }
 };
 
 template <typename T>
@@ -333,5 +335,4 @@ bool is_independent_collection(
     return true;
 }
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs

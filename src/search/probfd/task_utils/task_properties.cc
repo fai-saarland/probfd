@@ -11,25 +11,30 @@
 
 #include "downward/abstract_task.h"
 
-#include <algorithm>
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <ranges>
 #include <unordered_map>
 #include <utility>
 
 using namespace std;
+namespace vws = std::views;
 using utils::ExitCode;
 
-namespace probfd {
-namespace task_properties {
+namespace probfd::task_properties {
+
+static bool is_one(value_t value)
+{
+    return value == 1_vt;
+}
 
 bool is_unit_cost(const ProbabilisticTaskProxy& task)
 {
-    for (ProbabilisticOperatorProxy op : task.get_operators()) {
-        if (op.get_cost() != 1_vt) return false;
-    }
-    return true;
+    return std::ranges::all_of(
+        task.get_operators() |
+            vws::transform(&ProbabilisticOperatorProxy::get_cost),
+        is_one);
 }
 
 value_t get_adjusted_action_cost(
@@ -143,5 +148,4 @@ const AbstractTask& get_determinization(const ProbabilisticTask* task)
     return *determinizations_cache[task];
 }
 
-} // namespace task_properties
-} // namespace probfd
+} // namespace probfd::task_properties

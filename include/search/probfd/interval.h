@@ -27,6 +27,7 @@ struct Interval {
 
     /// Returns the length of the interval. If both bounds are infinity and
     /// have the same sign, returns 0.
+    [[nodiscard]]
     double length() const;
 
     /**
@@ -34,6 +35,7 @@ struct Interval {
      *
      * @see Interval::length()
      */
+    [[nodiscard]]
     bool bounds_approximately_equal(value_t tolerance = g_epsilon) const;
 };
 
@@ -65,4 +67,4 @@ std::ostream& operator<<(std::ostream& os, Interval val);
 
 } // namespace probfd
 
-#endif // __VALUE_UTILS_H__
+#endif // PROBFD_VALUE_UTILS_H

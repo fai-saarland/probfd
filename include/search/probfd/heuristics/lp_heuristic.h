@@ -5,13 +5,10 @@
 
 #include "downward/lp/lp_solver.h"
 
-#include "downward/plugins/options.h"
-
 #include <memory>
 #include <vector>
 
-namespace probfd {
-namespace heuristics {
+namespace probfd::heuristics {
 
 /**
  * @brief Base class for heuristics based on linear programming.
@@ -38,7 +35,7 @@ public:
     {
     }
 
-    value_t evaluate(const State& state) const override final
+    value_t evaluate(const State& state) const final
     {
         assert(!lp_solver_.has_temporary_constraints());
 
@@ -57,7 +54,6 @@ public:
     }
 };
 
-} // namespace heuristics
-} // namespace probfd
+} // namespace probfd::heuristics
 
 #endif

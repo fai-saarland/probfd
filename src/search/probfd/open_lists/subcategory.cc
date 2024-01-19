@@ -11,10 +11,8 @@
 #include "downward/plugins/plugin.h"
 
 #include <memory>
-#include <type_traits>
 
-namespace probfd {
-namespace open_lists {
+namespace probfd::open_lists {
 namespace {
 
 using namespace algorithms;
@@ -59,7 +57,7 @@ public:
     {
     }
 
-    std::shared_ptr<Wrapped<FifoOpenList, Bisimulation, Fret>>
+    [[nodiscard]] std::shared_ptr<Wrapped<FifoOpenList, Bisimulation, Fret>>
     create_component(const Options&, const utils::Context&) const override
     {
         return std::make_shared<Wrapped<FifoOpenList, Bisimulation, Fret>>();
@@ -78,17 +76,17 @@ public:
     {
     }
 
-    std::shared_ptr<Wrapped<LifoOpenList, Bisimulation, Fret>>
+    [[nodiscard]] std::shared_ptr<Wrapped<LifoOpenList, Bisimulation, Fret>>
     create_component(const Options&, const utils::Context&) const override
     {
         return std::make_shared<Wrapped<LifoOpenList, Bisimulation, Fret>>();
     }
 };
 
+} // namespace
+
 static MultiCategoryPlugin<OpenListCategoryPlugin> _category_plugin;
 static MultiFeaturePlugin<FifoOpenListFeature> _plugin_fifo;
 static MultiFeaturePlugin<LifoOpenListFeature> _plugin_lifo;
 
-} // namespace
-} // namespace open_lists
-} // namespace probfd
+} // namespace probfd::open_lists

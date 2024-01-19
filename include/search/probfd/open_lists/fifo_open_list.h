@@ -5,19 +5,25 @@
 
 #include <deque>
 
-namespace probfd {
-
 /// This namespace contains implementations of open lists.
-namespace open_lists {
+namespace probfd::open_lists {
 
 template <typename Action>
 class FifoOpenList : public algorithms::OpenList<Action> {
     std::deque<StateID> queue_;
 
 public:
-    bool empty() const override { return queue_.empty(); }
+    [[nodiscard]]
+    bool empty() const override
+    {
+        return queue_.empty();
+    }
 
-    unsigned size() const override { return queue_.size(); }
+    [[nodiscard]]
+    unsigned size() const override
+    {
+        return queue_.size();
+    }
 
     StateID pop() override
     {
@@ -31,7 +37,6 @@ public:
     void clear() override { queue_.clear(); }
 };
 
-} // namespace open_lists
-} // namespace probfd
+} // namespace probfd::open_lists
 
-#endif // __FIFO_OPEN_LIST_H__
+#endif // PROBFD_OPEN_LISTS_FIFO_OPEN_LIST_H

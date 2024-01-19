@@ -57,8 +57,7 @@ using namespace std;
   by a begin and end index into the overall operator sequence.
 */
 
-namespace probfd {
-namespace successor_generator {
+namespace probfd::successor_generator {
 struct OperatorRange {
     int begin;
     int end;
@@ -69,9 +68,17 @@ struct OperatorRange {
     {
     }
 
-    bool empty() const { return begin == end; }
+    [[nodiscard]]
+    bool empty() const
+    {
+        return begin == end;
+    }
 
-    int span() const { return end - begin; }
+    [[nodiscard]]
+    int span() const
+    {
+        return end - begin;
+    }
 };
 
 class OperatorInfo {
@@ -94,9 +101,14 @@ public:
         return precondition < other.precondition;
     }
 
-    OperatorID get_op() const { return op; }
+    [[nodiscard]]
+    OperatorID get_op() const
+    {
+        return op;
+    }
 
     // Returns -1 as a past-the-end sentinel.
+    [[nodiscard]]
     int get_var(int depth) const
     {
         if (depth == static_cast<int>(precondition.size())) {
@@ -106,7 +118,11 @@ public:
         }
     }
 
-    int get_value(int depth) const { return precondition[depth].value; }
+    [[nodiscard]]
+    int get_value(int depth) const
+    {
+        return precondition[depth].value;
+    }
 };
 
 enum class GroupOperatorsBy { VAR, VALUE };
@@ -117,12 +133,14 @@ class OperatorGrouper {
     const GroupOperatorsBy group_by;
     OperatorRange range;
 
+    [[nodiscard]]
     const OperatorInfo& get_current_op_info() const
     {
         assert(!range.empty());
         return operator_infos[range.begin];
     }
 
+    [[nodiscard]]
     int get_current_group_key() const
     {
         const OperatorInfo& op_info = get_current_op_info();
@@ -147,7 +165,11 @@ public:
     {
     }
 
-    bool done() const { return range.empty(); }
+    [[nodiscard]]
+    bool done() const
+    {
+        return range.empty();
+    }
 
     pair<int, OperatorRange> next()
     {
@@ -164,15 +186,14 @@ public:
 
 ProbabilisticSuccessorGeneratorFactory::ProbabilisticSuccessorGeneratorFactory(
     const TaskBaseProxy& task_proxy)
-    : task_proxy(task_proxy)
+    : task_proxy_(task_proxy)
 {
 }
 
 ProbabilisticSuccessorGeneratorFactory::
     ~ProbabilisticSuccessorGeneratorFactory() = default;
 
-GeneratorPtr ProbabilisticSuccessorGeneratorFactory::construct_fork(
-    vector<GeneratorPtr> nodes) const
+static GeneratorPtr construct_fork(vector<GeneratorPtr> nodes)
 {
     int size = nodes.size();
     if (size == 1) {
@@ -196,7 +217,7 @@ GeneratorPtr ProbabilisticSuccessorGeneratorFactory::construct_leaf(
     vector<OperatorID> operators;
     operators.reserve(range.span());
     while (range.begin != range.end) {
-        operators.emplace_back(operator_infos[range.begin].get_op());
+        operators.emplace_back(operator_infos_[range.begin].get_op());
         ++range.begin;
     }
 
@@ -213,7 +234,7 @@ GeneratorPtr ProbabilisticSuccessorGeneratorFactory::construct_switch(
     int switch_var_id,
     ValuesAndGenerators values_and_generators) const
 {
-    VariablesProxy variables = task_proxy.get_variables();
+    VariablesProxy variables = task_proxy_.get_variables();
     int var_domain = variables[switch_var_id].get_domain_size();
     int num_children = values_and_generators.size();
 
@@ -254,7 +275,7 @@ GeneratorPtr ProbabilisticSuccessorGeneratorFactory::construct_recursive(
 {
     vector<GeneratorPtr> nodes;
     OperatorGrouper grouper_by_var(
-        operator_infos,
+        operator_infos_,
         depth,
         GroupOperatorsBy::VAR,
         range);
@@ -271,7 +292,7 @@ GeneratorPtr ProbabilisticSuccessorGeneratorFactory::construct_recursive(
             // variable.
             ValuesAndGenerators values_and_generators;
             OperatorGrouper grouper_by_value(
-                operator_infos,
+                operator_infos_,
                 depth,
                 GroupOperatorsBy::VALUE,
                 var_range);
@@ -305,22 +326,21 @@ static vector<FactPair> build_sorted_precondition(const OperatorLightProxy& op)
 
 GeneratorPtr ProbabilisticSuccessorGeneratorFactory::create()
 {
-    OperatorsLightProxy operators = task_proxy.get_light_operators();
-    operator_infos.reserve(operators.size());
+    OperatorsLightProxy operators = task_proxy_.get_light_operators();
+    operator_infos_.reserve(operators.size());
     for (OperatorLightProxy op : operators) {
-        operator_infos.emplace_back(
+        operator_infos_.emplace_back(
             OperatorID(op.get_id()),
             build_sorted_precondition(op));
     }
     /* Use stable_sort rather than sort for reproducibility.
        This amounts to breaking ties by operator ID. */
-    stable_sort(operator_infos.begin(), operator_infos.end());
+    stable_sort(operator_infos_.begin(), operator_infos_.end());
 
-    OperatorRange full_range(0, operator_infos.size());
+    OperatorRange full_range(0, operator_infos_.size());
     GeneratorPtr root = construct_recursive(0, full_range);
-    operator_infos.clear();
+    operator_infos_.clear();
     return root;
 }
 
-} // namespace successor_generator
-} // namespace probfd
+} // namespace probfd::successor_generator

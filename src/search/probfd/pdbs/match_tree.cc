@@ -15,8 +15,7 @@
 
 using namespace std;
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 struct MatchTree::Node {
     static const int LEAF_NODE = -1;
@@ -34,6 +33,7 @@ struct MatchTree::Node {
     std::unique_ptr<Node> star_successor;
 
     void initialize(int var_id, int var_multiplier, int var_domain_size);
+    [[nodiscard]]
     bool is_leaf_node() const;
 };
 
@@ -59,7 +59,7 @@ bool MatchTree::Node::is_leaf_node() const
 
 MatchTree::MatchTree(size_t hint_num_operators)
 {
-    projection_operators.reserve(hint_num_operators);
+    projection_operators_.reserve(hint_num_operators);
 }
 
 MatchTree::~MatchTree() = default;
@@ -140,11 +140,11 @@ void MatchTree::insert(
     insert_recursive(
         task_variables,
         ranking_function,
-        projection_operators.size(),
+        projection_operators_.size(),
         progression_preconditions,
         0,
-        root);
-    projection_operators.push_back(std::move(op));
+        root_);
+    projection_operators_.push_back(std::move(op));
 }
 
 void MatchTree::get_applicable_operators_recursive(
@@ -160,7 +160,7 @@ void MatchTree::get_applicable_operators_recursive(
      */
 
     for (size_t op_index : node->applicable_operator_ids) {
-        operator_ids.push_back(projection_operators.data() + op_index);
+        operator_ids.push_back(projection_operators_.data() + op_index);
     }
 
     if (node->is_leaf_node()) return;
@@ -198,7 +198,7 @@ void MatchTree::generate_all_transitions_recursive(
      */
 
     for (size_t op_index : node->applicable_operator_ids) {
-        auto* op = projection_operators.data() + op_index;
+        auto* op = projection_operators_.data() + op_index;
         auto& t = transitions.emplace_back(op);
         state_space.generate_action_transitions(
             abstract_state_rank,
@@ -233,9 +233,9 @@ void MatchTree::get_applicable_operators(
     StateRank abstract_state_rank,
     vector<const ProjectionOperator*>& operator_ids) const
 {
-    if (root)
+    if (root_)
         get_applicable_operators_recursive(
-            root.get(),
+            root_.get(),
             abstract_state_rank,
             operator_ids);
 }
@@ -245,9 +245,9 @@ void MatchTree::generate_all_transitions(
     std::vector<Transition<const ProjectionOperator*>>& transitions,
     ProjectionStateSpace& state_space) const
 {
-    if (root)
+    if (root_)
         generate_all_transitions_recursive(
-            root.get(),
+            root_.get(),
             abstract_state_rank,
             transitions,
             state_space);
@@ -255,7 +255,7 @@ void MatchTree::generate_all_transitions(
 
 const ProjectionOperator& MatchTree::get_index_operator(int index) const
 {
-    return projection_operators[index];
+    return projection_operators_[index];
 }
 
 void MatchTree::dump_recursive(std::ostream& out, Node* node) const
@@ -300,8 +300,7 @@ void MatchTree::dump_recursive(std::ostream& out, Node* node) const
 
 void MatchTree::dump(std::ostream& out) const
 {
-    dump_recursive(out, root.get());
+    dump_recursive(out, root_.get());
 }
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs

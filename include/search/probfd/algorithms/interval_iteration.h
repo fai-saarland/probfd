@@ -12,15 +12,10 @@
 
 #include "probfd/mdp_algorithm.h"
 
-#include "downward/utils/collections.h"
-
 #include <limits>
 
-namespace probfd {
-namespace algorithms {
-
 /// Namespace dedicated to interval iteration on MaxProb MDPs.
-namespace interval_iteration {
+namespace probfd::algorithms::interval_iteration {
 
 /**
  * @brief Implemention of interval iteration \cite haddad:etal:misc-17.
@@ -71,10 +66,10 @@ class IntervalIteration : public MDPAlgorithm<State, Action> {
 
     const bool extract_probability_one_states_;
 
-    QuotientQRAnalysis qr_analysis;
-    Decomposer ec_decomposer;
+    QuotientQRAnalysis qr_analysis_;
+    Decomposer ec_decomposer_;
 
-    QuotientValueIteration vi;
+    QuotientValueIteration vi_;
 
     preprocessing::ECDStatistics ecd_statistics_;
     topological_vi::Statistics tvi_statistics_;
@@ -121,15 +116,13 @@ private:
         SetLike& dead_ends,
         SetLike2& one_states,
         QuotientSystem& sys,
-        utils::CountdownTimer timer);
+        utils::CountdownTimer& timer);
 };
 
-} // namespace interval_iteration
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::interval_iteration
 
 #define GUARD_INCLUDE_PROBFD_ALGORITHMS_INTERVAL_ITERATION_H
 #include "probfd/algorithms/interval_iteration_impl.h"
 #undef GUARD_INCLUDE_PROBFD_ALGORITHMS_INTERVAL_ITERATION_H
 
-#endif // __INTERVAL_ITERATION_H__dead_ends
+#endif // PROBFD_ALGORITHMS_INTERVAL_ITERATION_H

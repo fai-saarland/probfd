@@ -1,6 +1,7 @@
 #include "probfd/interval.h"
 
 #include <ostream>
+
 namespace probfd {
 
 Interval::Interval(value_t val)

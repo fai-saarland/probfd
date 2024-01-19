@@ -26,9 +26,7 @@
 using namespace std;
 using namespace utils;
 
-namespace probfd {
-namespace pdbs {
-namespace cegar {
+namespace probfd::pdbs::cegar {
 
 SamplingFlawFinder::SamplingFlawFinder(const plugins::Options& opts)
     : SamplingFlawFinder(
@@ -40,8 +38,8 @@ SamplingFlawFinder::SamplingFlawFinder(const plugins::Options& opts)
 SamplingFlawFinder::SamplingFlawFinder(
     std::shared_ptr<utils::RandomNumberGenerator> rng,
     int max_search_states)
-    : rng(std::move(rng))
-    , max_search_states(max_search_states)
+    : rng_(std::move(rng))
+    , max_search_states_(max_search_states)
 {
 }
 
@@ -54,25 +52,25 @@ bool SamplingFlawFinder::apply_policy(
     std::vector<Flaw>& flaw_list,
     utils::CountdownTimer& timer)
 {
-    assert(stk.empty() && einfos.empty());
+    assert(stk_.empty() && einfos_.empty());
 
     // Exception safety due to TimeoutException
     scope_exit guard([&] {
-        stk.clear();
-        einfos.clear();
+        stk_.clear();
+        einfos_.clear();
     });
 
     StateRegistry registry(task_proxy);
-    stk.push_back(registry.get_initial_state());
+    stk_.push_back(registry.get_initial_state());
 
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
     const GoalsProxy goals = task_proxy.get_goals();
 
     for (;;) {
-        const State* current = &stk.back();
+        const State* current = &stk_.back();
         const StateRank abs = pdb.get_abstract_state(*current);
 
-        ExplorationInfo* einfo = &einfos[StateID(current->get_id())];
+        ExplorationInfo* einfo = &einfos_[StateID(current->get_id())];
 
         assert(!einfo->explored);
         einfo->explored = true;
@@ -114,7 +112,8 @@ bool SamplingFlawFinder::apply_policy(
                         *current,
                         outcome.get_effects());
 
-                    if (static_cast<int>(registry.size()) > max_search_states) {
+                    if (static_cast<int>(registry.size()) >
+                        max_search_states_) {
                         return false;
                     }
 
@@ -142,15 +141,15 @@ bool SamplingFlawFinder::apply_policy(
                 timer.throw_if_expired();
 
                 // Sample next successor
-                auto it = einfo->successors.sample(*rng);
+                auto it = einfo->successors.sample(*rng_);
                 const StateID succ_id = it->item;
                 einfo->successors.erase(it);
 
                 State successor = registry.lookup_state(succ_id);
 
                 // Ignore states already seen
-                if (!einfos[succ_id].explored) {
-                    stk.push_back(std::move(successor));
+                if (!einfos_[succ_id].explored) {
+                    stk_.push_back(std::move(successor));
                     goto continue_exploration;
                 }
             }
@@ -158,14 +157,14 @@ bool SamplingFlawFinder::apply_policy(
         backtrack:;
 
             do {
-                stk.pop_back();
+                stk_.pop_back();
 
-                if (stk.empty()) {
+                if (stk_.empty()) {
                     return true;
                 }
 
-                current = &stk.back();
-                einfo = &einfos[StateID(current->get_id())];
+                current = &stk_.back();
+                einfo = &einfos_[StateID(current->get_id())];
             } while (einfo->successors.empty());
         }
 
@@ -196,6 +195,4 @@ public:
 
 static plugins::FeaturePlugin<SamplingFlawFinderFeature> _plugin;
 
-} // namespace cegar
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs::cegar

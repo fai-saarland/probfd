@@ -7,9 +7,7 @@
 #include <memory>
 #include <string>
 
-namespace probfd {
-namespace solvers {
-namespace i2dual {
+namespace probfd::solvers::i2dual {
 namespace {
 
 using namespace algorithms;
@@ -34,16 +32,15 @@ public:
     std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
         return std::make_unique<algorithms::i2dual::I2Dual>(
-            this->task,
-            this->task_cost_function,
+            this->task_,
+            this->task_cost_function_,
             hpom_enabled_,
             incremental_hpom_updates_,
             solver_type_);
     }
 };
 
-class I2DualSolverFeature
-    : public TypedFeature<SolverInterface, I2DualSolver> {
+class I2DualSolverFeature : public TypedFeature<SolverInterface, I2DualSolver> {
 public:
     I2DualSolverFeature()
         : TypedFeature<SolverInterface, I2DualSolver>("i2dual")
@@ -59,9 +56,8 @@ public:
     }
 };
 
+} // namespace
+
 static FeaturePlugin<I2DualSolverFeature> _plugin;
 
-} // namespace
-} // namespace i2dual
-} // namespace solvers
-} // namespace probfd
+} // namespace probfd::solvers::i2dual

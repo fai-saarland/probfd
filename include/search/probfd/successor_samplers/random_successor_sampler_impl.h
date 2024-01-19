@@ -3,8 +3,7 @@
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
 
-namespace probfd {
-namespace successor_samplers {
+namespace probfd::successor_samplers {
 
 template <typename Action>
 RandomSuccessorSampler<Action>::RandomSuccessorSampler(
@@ -30,5 +29,4 @@ StateID RandomSuccessorSampler<Action>::sample(
     return successors.sample(*rng_)->item;
 }
 
-} // namespace successor_samplers
-} // namespace probfd
+} // namespace probfd::successor_samplers

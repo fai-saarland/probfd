@@ -1,7 +1,6 @@
 #include "downward/plugins/options.h"
 
-namespace probfd {
-namespace policy_pickers {
+namespace probfd::policy_pickers {
 
 template <typename State, typename Action>
 ArbitraryTiebreaker<State, Action>::ArbitraryTiebreaker(
@@ -27,5 +26,4 @@ int ArbitraryTiebreaker<State, Action>::pick_index(
     return 0;
 }
 
-} // namespace policy_pickers
-} // namespace probfd
+} // namespace probfd::policy_pickers

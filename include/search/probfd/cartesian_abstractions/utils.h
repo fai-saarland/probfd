@@ -12,6 +12,7 @@
 #include <memory>
 #include <vector>
 
+// Forward Declarations
 namespace additive_heuristic {
 class AdditiveHeuristic;
 }
@@ -19,8 +20,9 @@ class AdditiveHeuristic;
 namespace probfd {
 class ProbabilisticTaskProxy;
 class ProbabilisticTask;
+} // namespace probfd
 
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 
 // Create the Cartesian set that corresponds to the given preconditions or
 // goals.
@@ -50,7 +52,6 @@ extern utils::HashSet<FactPair> get_relaxed_possible_before(
     const ProbabilisticTaskProxy& task,
     const FactPair& fact);
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions
 
 #endif // PROBFD_CARTESIAN_ABSTRACTIONS_UTILS_H

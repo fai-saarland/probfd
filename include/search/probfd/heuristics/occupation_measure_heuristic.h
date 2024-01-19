@@ -5,17 +5,16 @@
 
 #include <memory>
 
+// Forward Declarations
 namespace plugins {
 class Options;
 }
 
-namespace probfd {
-
-namespace occupation_measures {
+namespace probfd::occupation_measures {
 class ConstraintGenerator;
 }
 
-namespace heuristics {
+namespace probfd::heuristics {
 
 /**
  * @brief Implements an occupation measure heuristic built from the specified
@@ -30,8 +29,6 @@ protected:
         constraint_generator_;
 
 public:
-    explicit OccupationMeasureHeuristic(const plugins::Options& opts);
-
     OccupationMeasureHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
         std::shared_ptr<FDRCostFunction> task_cost_function,
@@ -45,7 +42,6 @@ private:
     void reset_constraints(const State& state) const;
 };
 
-} // namespace heuristics
-} // namespace probfd
+} // namespace probfd::heuristics
 
 #endif // PROBFD_HEURISTICS_OCCUPATION_MEASURE_HEURISTIC_H

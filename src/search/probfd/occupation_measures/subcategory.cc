@@ -14,7 +14,6 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 
 using namespace probfd;
 using namespace probfd::heuristics;
@@ -87,7 +86,7 @@ public:
         OccupationMeasureHeuristic::add_options_to_feature(*this);
     }
 
-    std::shared_ptr<OccupationMeasureHeuristicFactory>
+    [[nodiscard]] std::shared_ptr<OccupationMeasureHeuristicFactory>
     create_component(const plugins::Options& options, const utils::Context&)
         const override
     {
@@ -132,7 +131,7 @@ public:
         OccupationMeasureHeuristic::add_options_to_feature(*this);
     }
 
-    std::shared_ptr<OccupationMeasureHeuristicFactory>
+    [[nodiscard]] std::shared_ptr<OccupationMeasureHeuristicFactory>
     create_component(const plugins::Options& options, const utils::Context&)
         const override
     {
@@ -180,7 +179,7 @@ public:
         add_option<int>("projection_size", "The size of the projections", "1");
     }
 
-    std::shared_ptr<OccupationMeasureHeuristicFactory>
+    [[nodiscard]] std::shared_ptr<OccupationMeasureHeuristicFactory>
     create_component(const plugins::Options& options, const utils::Context&)
         const override
     {
@@ -218,7 +217,7 @@ public:
             "det_adapter(generator=systematic(pattern_max_size=2))");
     }
 
-    std::shared_ptr<OccupationMeasureHeuristicFactory>
+    [[nodiscard]] std::shared_ptr<OccupationMeasureHeuristicFactory>
     create_component(const plugins::Options& options, const utils::Context&)
         const override
     {

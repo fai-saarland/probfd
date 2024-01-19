@@ -8,10 +8,10 @@
 #include <memory>
 #include <vector>
 
+// Forward Declarations
 class State;
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 class SubCollectionFinder {
 public:
@@ -26,10 +26,12 @@ public:
         const std::vector<PatternSubCollection>& known_pattern_cliques,
         const Pattern& new_pattern) = 0;
 
+    [[nodiscard]]
     virtual value_t evaluate_subcollection(
         const std::vector<value_t>& pdb_estimates,
         const std::vector<int>& subcollection) const = 0;
 
+    [[nodiscard]]
     virtual value_t combine(value_t left, value_t right) const = 0;
 
     value_t evaluate(
@@ -39,7 +41,6 @@ public:
         value_t termination_cost);
 };
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif // PROBFD_PDBS_SUBCOLLECTION_FINDER_H

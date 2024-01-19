@@ -9,12 +9,11 @@
 #include "probfd/utils/iterators.h"
 
 #include "probfd/evaluator.h"
-#include "probfd/type_traits.h"
+#include "probfd/progress_report.h"
 #include "probfd/types.h"
 
 #include "downward/utils/collections.h"
 #include "downward/utils/countdown_timer.h"
-#include "downward/utils/timer.h"
 
 #include <iterator>
 #include <ranges>
@@ -167,7 +166,7 @@ void compute_value_table(
         {
         }
 
-        value_t evaluate(StateRank state) const override
+        [[nodiscard]] value_t evaluate(StateRank state) const override
         {
             if (utils::contains(pruned_states, state)) {
                 return pruned_value;

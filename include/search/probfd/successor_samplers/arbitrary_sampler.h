@@ -3,10 +3,8 @@
 
 #include "probfd/algorithms/successor_sampler.h"
 
-namespace probfd {
-
 /// This namespace contains implementations of transition successor samplers.
-namespace successor_samplers {
+namespace probfd::successor_samplers {
 
 template <typename Action>
 class ArbitrarySuccessorSampler : public algorithms::SuccessorSampler<Action> {
@@ -18,9 +16,8 @@ protected:
         algorithms::StateProperties& properties) override;
 };
 
-} // namespace successor_samplers
-} // namespace probfd
+} // namespace probfd::successor_samplers
 
 #include "probfd/successor_samplers/arbitrary_sampler_impl.h"
 
-#endif // __ARBITRARY_SELECTOR_H__
+#endif // PROBFD_SUCCESSOR_SAMPLERS_ARBITRARY_SAMPLER_H

@@ -8,19 +8,19 @@
 
 #include <memory>
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 class ProbabilityAwarePatternDatabase;
 
 class PatternInformation {
-    ProbabilisticTaskProxy task_proxy;
-    FDRSimpleCostFunction* task_cost_function;
-    Pattern pattern;
-    std::shared_ptr<ProbabilityAwarePatternDatabase> pdb;
+    ProbabilisticTaskProxy task_proxy_;
+    FDRSimpleCostFunction* task_cost_function_;
+    Pattern pattern_;
+    std::shared_ptr<ProbabilityAwarePatternDatabase> pdb_;
 
     void create_pdb_if_missing();
 
+    [[nodiscard]]
     bool information_is_valid() const;
 
 public:
@@ -31,13 +31,17 @@ public:
 
     void set_pdb(const std::shared_ptr<ProbabilityAwarePatternDatabase>& pdb);
 
-    ProbabilisticTaskProxy get_task_proxy() const { return task_proxy; }
+    [[nodiscard]]
+    ProbabilisticTaskProxy get_task_proxy() const
+    {
+        return task_proxy_;
+    }
 
+    [[nodiscard]]
     const Pattern& get_pattern() const;
     std::shared_ptr<ProbabilityAwarePatternDatabase> get_pdb();
 };
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif // PROBFD_PDBS_PATTERN_INFORMATION_H

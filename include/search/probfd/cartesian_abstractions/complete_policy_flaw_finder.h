@@ -8,6 +8,7 @@
 #include <optional>
 #include <vector>
 
+// Forward Declarations
 namespace utils {
 class CountdownTimer;
 class LogProxy;
@@ -15,15 +16,19 @@ class LogProxy;
 
 namespace probfd {
 class ProbabilisticTaskProxy;
+}
 
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 class Abstraction;
+}
+
+namespace probfd::cartesian_abstractions {
 
 class CompletePolicyFlawFinder : public PolicyFlawFinder {
-    int max_search_states;
+    int max_search_states_;
 
 public:
-    CompletePolicyFlawFinder(int max_search_states);
+    explicit CompletePolicyFlawFinder(int max_search_states);
 
     std::optional<Flaw> find_flaw(
         const ProbabilisticTaskProxy& task_proxy,
@@ -34,7 +39,6 @@ public:
         utils::CountdownTimer& timer) override;
 };
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions
 
 #endif // PROBFD_CARTESIAN_COMPLETE_POLICY_FLAW_FINDER_H

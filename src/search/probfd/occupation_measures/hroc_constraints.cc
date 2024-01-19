@@ -5,7 +5,9 @@
 #include "probfd/task_utils/task_properties.h"
 
 #include "probfd/cost_function.h"
+#include "probfd/probabilistic_task.h"
 #include "probfd/task_proxy.h"
+#include "probfd/value_type.h"
 
 #include "downward/algorithms/named_vector.h"
 
@@ -17,14 +19,12 @@
 #include "downward/utils/timer.h"
 
 #include "downward/task_proxy.h"
-#include "probfd/value_type.h"
 
 #include <cassert>
 #include <iostream>
 #include <memory>
 
-namespace probfd {
-namespace occupation_measures {
+namespace probfd::occupation_measures {
 
 void HROCGenerator::initialize_constraints(
     const std::shared_ptr<ProbabilisticTask>& task,
@@ -162,5 +162,4 @@ void HROCGenerator::reset_constraints(const State& state, lp::LPSolver& solver)
     }
 }
 
-} // namespace occupation_measures
-} // namespace probfd
+} // namespace probfd::occupation_measures

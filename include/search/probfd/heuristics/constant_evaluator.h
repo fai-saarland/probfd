@@ -5,8 +5,7 @@
 #include "probfd/type_traits.h"
 #include "probfd/value_type.h"
 
-namespace probfd {
-namespace heuristics {
+namespace probfd::heuristics {
 
 /**
  * @brief Returns a constant estimate for each state.
@@ -24,28 +23,28 @@ public:
     {
     }
 
-    virtual value_t evaluate(param_type<State>) const override
+    [[nodiscard]]
+    value_t evaluate(param_type<State>) const override
     {
         return value_;
     }
 };
 
+/**
+ * @brief Returns an estimate of zero for each state.
+ */
+template <typename State>
+class BlindEvaluator : public ConstantEvaluator<State> {
+public:
     /**
-     * @brief Returns an estimate of zero for each state.
+     * @brief Construct with constant estimate \p value .
      */
-    template <typename State>
-    class BlindEvaluator : public ConstantEvaluator<State> {
-    public:
-        /**
-         * @brief Construct with constant estimate \p value .
-         */
-        BlindEvaluator()
-            : ConstantEvaluator<State>(0_vt)
-        {
-        }
-    };
+    BlindEvaluator()
+        : ConstantEvaluator<State>(0_vt)
+    {
+    }
+};
 
-    } // namespace heuristics
-    } // namespace probfd
+} // namespace probfd::heuristics
 
-#endif // __CONSTANT_EVALUATOR_H__
+#endif // PROBFD_HEURISTICS_CONSTANT_EVALUATOR_H

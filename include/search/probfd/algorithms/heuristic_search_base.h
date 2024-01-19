@@ -16,24 +16,23 @@
 #include <type_traits>
 #include <vector>
 
+// Forward Declarations
 namespace probfd {
-
 template <typename>
 class Distribution;
-
 template <typename>
 struct Transition;
+} // namespace probfd
 
-namespace algorithms {
-
+namespace probfd::algorithms {
 template <typename, typename>
 class PolicyPicker;
-
 template <typename>
 class SuccessorSampler;
+} // namespace probfd::algorithms
 
 /// Namespace dedicated to the MDP h search base implementation
-namespace heuristic_search {
+namespace probfd::algorithms::heuristic_search {
 
 namespace internal {
 
@@ -58,7 +57,7 @@ struct CoreStatistics {
 struct Statistics : public CoreStatistics {
     unsigned state_info_bytes = 0;
     value_t initial_state_estimate = 0;
-    bool initial_state_found_terminal = 0;
+    bool initial_state_found_terminal = false;
 
     value_t value = 0_vt;
     CoreStatistics before_last_update;
@@ -73,7 +72,10 @@ struct Statistics : public CoreStatistics {
      */
     void print(std::ostream& out) const;
 
-    void jump() { before_last_update = *this; }
+    void jump()
+    {
+        before_last_update = static_cast<const CoreStatistics&>(*this);
+    }
 };
 
 template <typename StateInfo>
@@ -128,7 +130,7 @@ private:
 
     internal::StateInfos<StateInfo> state_infos_;
 
-    StateInfo* initial_state_info = nullptr;
+    StateInfo* initial_state_info_ = nullptr;
 
     // Reused buffer
     std::vector<Transition> transitions_;
@@ -148,28 +150,33 @@ public:
     /**
      * @brief Looks up the current lower bound for the cost of \p state_id.
      */
+    [[nodiscard]]
     value_t lookup_value(StateID state_id) const;
 
     /**
      * @brief Looks up the current cost interval of \p state_id.
      */
+    [[nodiscard]]
     Interval lookup_bounds(StateID state_id) const;
 
     /**
      * @brief Checks if the state \p state_id is terminal.
      */
+    [[nodiscard]]
     bool is_terminal(StateID state_id) const;
 
     /**
      * @brief Checks if the state represented by \p state_id is marked as a
      * dead-end.
      */
+    [[nodiscard]]
     bool is_marked_dead_end(StateID state_id) const;
 
     /**
      * @brief Checks if the state represented by \p state_id has been visited
      * yet.
      */
+    [[nodiscard]]
     bool was_visited(StateID state_id) const;
 
     /**
@@ -305,17 +312,16 @@ public:
         Evaluator& h,
         param_type<State> state,
         ProgressReport progress,
-        double max_time =
-            std::numeric_limits<double>::infinity()) final override;
+        double max_time) final;
 
     std::unique_ptr<Policy> compute_policy(
         MDP& mdp,
         Evaluator& h,
         param_type<State> state,
         ProgressReport progress,
-        double max_time = std::numeric_limits<double>::infinity()) override;
+        double max_time) final;
 
-    void print_statistics(std::ostream& out) const final override;
+    void print_statistics(std::ostream& out) const final;
 
     /**
      * @brief Sets up internal custom reports of a state in an implementation.
@@ -377,9 +383,7 @@ using HeuristicSearchAlgorithmExt = HeuristicSearchAlgorithm<
     StateInfoExtension<
         PerStateBaseInformation<Action, StorePolicy, UseInterval>>>;
 
-} // namespace heuristic_search
-} // namespace algorithms
-} // namespace probfd
+} // namespace probfd::algorithms::heuristic_search
 
 #define GUARD_INCLUDE_PROBFD_ALGORITHMS_HEURISTIC_SEARCH_BASE_H
 #include "probfd/algorithms/heuristic_search_base_impl.h"

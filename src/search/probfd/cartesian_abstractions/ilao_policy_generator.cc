@@ -5,7 +5,6 @@
 #include "probfd/cartesian_abstractions/evaluators.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition.h"
 
-#include "probfd/algorithms/policy_picker.h"
 #include "probfd/algorithms/trap_aware_dfhs.h"
 
 #include "probfd/policy_pickers/arbitrary_tiebreaker.h"
@@ -14,24 +13,20 @@
 
 #include "probfd/policy.h"
 #include "probfd/progress_report.h"
-#include "probfd/type_traits.h"
 #include "probfd/value_type.h"
 
 #include "downward/utils/countdown_timer.h"
-#include "downward/utils/timer.h"
 
 #include <optional>
-#include <set>
 
 using namespace std;
 
-namespace probfd {
-namespace cartesian_abstractions {
+namespace probfd::cartesian_abstractions {
 
 ILAOPolicyGenerator::ILAOPolicyGenerator()
-    : picker(new policy_pickers::ArbitraryTiebreaker<
-             quotients::QuotientState<int, const ProbabilisticTransition*>,
-             quotients::QuotientAction<const ProbabilisticTransition*>>(true))
+    : picker_(new policy_pickers::ArbitraryTiebreaker<
+              quotients::QuotientState<int, const ProbabilisticTransition*>,
+              quotients::QuotientAction<const ProbabilisticTransition*>>(true))
 {
 }
 
@@ -47,7 +42,7 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
     algorithms::trap_aware_dfhs::
         TADepthFirstHeuristicSearch<int, const ProbabilisticTransition*, false>
             hdfs(
-                picker,
+                picker_,
                 false,
                 algorithms::trap_aware_dfhs::BacktrackingUpdateType::SINGLE,
                 false,
@@ -77,5 +72,4 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
     return policy;
 }
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions

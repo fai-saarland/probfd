@@ -6,43 +6,47 @@
 #include "probfd/evaluator.h"
 #include "probfd/value_type.h"
 
+// Forward Declarations
 namespace pdbs {
 class PatternDatabase;
 }
 
-namespace probfd {
-namespace pdbs {
-
+namespace probfd::pdbs {
 class StateRankingFunction;
 class ProbabilityAwarePatternDatabase;
+} // namespace probfd::pdbs
+
+namespace probfd::pdbs {
 
 /// Type alias for heuristics for projection states.
 using StateRankEvaluator = Evaluator<StateRank>;
 
 class PDBEvaluator : public StateRankEvaluator {
-    const ::pdbs::PatternDatabase& pdb;
+    const ::pdbs::PatternDatabase& pdb_;
 
 public:
     explicit PDBEvaluator(const ::pdbs::PatternDatabase& pdb);
 
+    [[nodiscard]]
     value_t evaluate(StateRank state) const override;
 };
 
 class DeadendPDBEvaluator : public StateRankEvaluator {
-    const ::pdbs::PatternDatabase& pdb;
+    const ::pdbs::PatternDatabase& pdb_;
 
 public:
     explicit DeadendPDBEvaluator(const ::pdbs::PatternDatabase& pdb);
 
+    [[nodiscard]]
     value_t evaluate(StateRank state) const override;
 };
 
 class IncrementalPPDBEvaluator : public StateRankEvaluator {
-    const ProbabilityAwarePatternDatabase& pdb;
+    const ProbabilityAwarePatternDatabase& pdb_;
 
-    int left_multiplier;
-    int right_multiplier;
-    int domain_size;
+    int left_multiplier_;
+    int right_multiplier_;
+    int domain_size_;
 
 public:
     explicit IncrementalPPDBEvaluator(
@@ -50,17 +54,19 @@ public:
         const StateRankingFunction* mapper,
         int add_var);
 
+    [[nodiscard]]
     value_t evaluate(StateRank state) const override;
 
 private:
+    [[nodiscard]]
     StateRank to_parent_state(StateRank state) const;
 };
 
 class MergeEvaluator : public StateRankEvaluator {
-    const StateRankingFunction& mapper;
-    const ProbabilityAwarePatternDatabase& left;
-    const ProbabilityAwarePatternDatabase& right;
-    const value_t termination_cost;
+    const StateRankingFunction& mapper_;
+    const ProbabilityAwarePatternDatabase& left_;
+    const ProbabilityAwarePatternDatabase& right_;
+    const value_t termination_cost_;
 
 public:
     MergeEvaluator(
@@ -69,16 +75,10 @@ public:
         const ProbabilityAwarePatternDatabase& right,
         value_t termination_cost);
 
+    [[nodiscard]]
     value_t evaluate(StateRank state) const override;
-
-private:
-    StateRank convert(
-        StateRank state_rank,
-        const StateRankingFunction& refined_mapping,
-        const StateRankingFunction& coarser_mapping) const;
 };
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif // PROBFD_PDBS_EVALUATORS_H

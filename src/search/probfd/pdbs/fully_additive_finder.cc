@@ -1,10 +1,8 @@
 #include "probfd/pdbs/fully_additive_finder.h"
 
-#include <cstdlib>
 #include <numeric>
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 std::shared_ptr<std::vector<PatternSubCollection>>
 FullyAdditiveFinder::compute_subcollections(const PatternCollection& patterns)
@@ -44,5 +42,4 @@ value_t FullyAdditiveFinder::combine(value_t left, value_t right) const
     return left + right;
 }
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs

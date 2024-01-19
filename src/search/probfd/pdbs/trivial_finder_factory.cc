@@ -3,8 +3,7 @@
 
 #include "downward/plugins/plugin.h"
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 std::unique_ptr<SubCollectionFinder>
 TrivialFinderFactory::create_subcollection_finder(const ProbabilisticTaskProxy&)
@@ -21,7 +20,7 @@ public:
     {
     }
 
-    std::shared_ptr<TrivialFinderFactory>
+    [[nodiscard]] std::shared_ptr<TrivialFinderFactory>
     create_component(const plugins::Options&, const utils::Context&)
         const override
     {
@@ -31,5 +30,4 @@ public:
 
 static plugins::FeaturePlugin<TrivialFinderFactoryFeature> _plugin;
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs

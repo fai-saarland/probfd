@@ -4,7 +4,6 @@
 #include "downward/utils/timer.h"
 
 #include <cassert>
-#include <cstddef>
 
 namespace probfd {
 

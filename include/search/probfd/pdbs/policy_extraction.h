@@ -13,8 +13,10 @@ class RandomNumberGenerator;
 }
 
 namespace probfd::pdbs {
-
 class ProjectionStateSpace;
+}
+
+namespace probfd::pdbs {
 
 /**
  * @brief Extract an abstract optimal policy from the value table.
@@ -23,8 +25,8 @@ class ProjectionStateSpace;
  * wildcard option is specified, a wildcard policy will be returned, i.e., a
  * policy that assigns multiple equivalent operators to a abstract state.
  */
-[[nodiscard]] std::unique_ptr<ProjectionMultiPolicy>
-compute_optimal_projection_policy(
+[[nodiscard]]
+std::unique_ptr<ProjectionMultiPolicy> compute_optimal_projection_policy(
     ProjectionStateSpace& state_space,
     std::span<const value_t> value_table,
     StateRank initial_state,
@@ -39,8 +41,8 @@ compute_optimal_projection_policy(
  * wildcard option is specified, a wildcard policy will be returned, i.e., a
  * policy that assigns multiple equivalent operators to a abstract state.
  */
-[[nodiscard]] std::unique_ptr<ProjectionMultiPolicy>
-compute_greedy_projection_policy(
+[[nodiscard]]
+std::unique_ptr<ProjectionMultiPolicy> compute_greedy_projection_policy(
     ProjectionStateSpace& state_space,
     std::span<const value_t> value_table,
     StateRank initial_state,

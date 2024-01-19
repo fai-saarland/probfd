@@ -24,9 +24,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace probfd {
-
-namespace preprocessing {
+namespace probfd::preprocessing {
 
 inline void QRStatistics::print(std::ostream& out) const
 {
@@ -45,7 +43,7 @@ namespace internal {
 
 inline bool StateInfo::onstack() const
 {
-    return stackid_ < UNDEF;
+    return stackid < UNDEF;
 }
 
 inline auto StateInfo::get_status() const
@@ -275,7 +273,7 @@ void QualitativeReachabilityAnalysis<State, Action>::push_state(
     StateInfo& state_info)
 {
     const std::size_t stack_size = stack_.size();
-    state_info.stackid_ = stack_size;
+    state_info.stackid = stack_size;
     stack_.emplace_back(state_id);
     expansion_queue_.emplace_back(stack_size);
 }
@@ -306,7 +304,7 @@ bool QualitativeReachabilityAnalysis<State, Action>::push_successor(
             break;
 
         case StateInfo::ONSTACK: // Same SCC
-            unsigned succ_stack_id = succ_info.stackid_;
+            unsigned succ_stack_id = succ_info.stackid;
             e.lstck = std::min(e.lstck, succ_stack_id);
 
             e.transitions_in_scc = true;
@@ -336,7 +334,7 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
     if (st_info.dead) {
         for (const StateID state_id : scc | transform(&StackInfo::stateid)) {
             StateInfo& info = state_infos_[state_id];
-            info.stackid_ = StateInfo::UNDEF;
+            info.stackid = StateInfo::UNDEF;
             assert(info.dead);
             *dead_out = state_id;
             *unsolvable_out = state_id;
@@ -386,7 +384,8 @@ void QualitativeReachabilityAnalysis<State, Action>::compute_solvable(
             return std::ranges::subrange(solvable_begin(), solvable_end());
         }
 
-        [[nodiscard]] bool has_solvable() const
+        [[nodiscard]]
+        bool has_solvable() const
         {
             return solvable_beg != partition.end();
         }
@@ -464,7 +463,7 @@ void QualitativeReachabilityAnalysis<State, Action>::compute_solvable(
     for (std::size_t i = 0; i != scc.size(); ++i) {
         StackInfo& info = scc[i];
         StateInfo& state_info = state_infos_[info.stateid];
-        state_info.stackid_ = StateInfo::UNDEF;
+        state_info.stackid = StateInfo::UNDEF;
         state_info.dead = false;
 
         assert(
@@ -565,5 +564,4 @@ void QualitativeReachabilityAnalysis<State, Action>::compute_solvable(
     }
 }
 
-} // namespace preprocessing
-} // namespace probfd
+} // namespace probfd::preprocessing

@@ -9,16 +9,14 @@
 #include <string>
 #include <vector>
 
-namespace probfd {
-namespace tasks {
+namespace probfd::tasks {
 
 class DelegatingTask : public ProbabilisticTask {
 protected:
-    const std::shared_ptr<ProbabilisticTask> parent;
+    const std::shared_ptr<ProbabilisticTask> parent_;
 
 public:
     explicit DelegatingTask(const std::shared_ptr<ProbabilisticTask>& parent);
-    ~DelegatingTask() override = default;
 
     int get_num_variables() const override;
     std::string get_variable_name(int var) const override;
@@ -95,7 +93,6 @@ public:
     }
 };
 
-} // namespace tasks
-} // namespace probfd
+} // namespace probfd::tasks
 
 #endif // PROBFD_TASKS_DELEGATING_TASK_H

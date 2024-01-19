@@ -18,15 +18,19 @@
 #include <utility>
 #include <vector>
 
+// Forward Declarations
 namespace probfd {
 class ProbabilisticTaskProxy;
 template <typename>
 class Distribution;
+} // namespace probfd
 
-namespace cartesian_abstractions {
-
+namespace probfd::cartesian_abstractions {
 class ProbabilisticTransitionSystem;
 struct ProbabilisticTransition;
+} // namespace probfd::cartesian_abstractions
+
+namespace probfd::cartesian_abstractions {
 
 /*
   Store the set of AbstractStates, use FlawGenerator to find flaws,
@@ -34,20 +38,20 @@ struct ProbabilisticTransition;
   solutions and maintain the RefinementHierarchy.
 */
 class Abstraction : public SimpleMDP<int, const ProbabilisticTransition*> {
-    const std::unique_ptr<ProbabilisticTransitionSystem> transition_system;
-    const State concrete_initial_state;
-    const std::vector<FactPair> goal_facts;
+    const std::unique_ptr<ProbabilisticTransitionSystem> transition_system_;
+    const State concrete_initial_state_;
+    const std::vector<FactPair> goal_facts_;
 
-    // All (as of yet unsplit) abstract states.
-    AbstractStates states;
+    // All (yet unsplit) abstract states.
+    AbstractStates states_;
     // State ID of abstract initial state.
-    int init_id;
+    int init_id_;
     // Abstract goal states.
-    Goals goals;
+    Goals goals_;
 
-    std::vector<value_t> operator_costs;
+    std::vector<value_t> operator_costs_;
 
-    mutable utils::LogProxy log;
+    mutable utils::LogProxy log_;
 
     void initialize_trivial_abstraction(const std::vector<int>& domain_sizes);
 
@@ -56,7 +60,7 @@ public:
         const ProbabilisticTaskProxy& task,
         std::vector<value_t> operator_costs,
         utils::LogProxy log);
-    ~Abstraction();
+    ~Abstraction() override;
 
     Abstraction(const Abstraction&) = delete;
 
@@ -108,7 +112,6 @@ public:
     void print_statistics() const override;
 };
 
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions
 
 #endif // PROBFD_CARTESIAN_ABSTRACTION_H

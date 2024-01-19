@@ -67,9 +67,9 @@ template <typename Derived>
 class add_pm_assignment {
 public:
     Derived& operator+=(int n)
-        requires requires(Derived d, int n) {
+        requires requires(Derived d, int x) {
             {
-                d + n
+                d + x
             } -> std::convertible_to<Derived>;
         }
     {
@@ -79,9 +79,9 @@ public:
     }
 
     Derived& operator-=(int n)
-        requires requires(Derived d, int n) {
+        requires requires(Derived d, int x) {
             {
-                d - n
+                d - x
             } -> std::convertible_to<Derived>;
         }
     {
@@ -108,9 +108,9 @@ template <typename Derived>
 class add_subscript {
 public:
     auto& operator[](int n)
-        requires requires(Derived d, int n) {
+        requires requires(Derived d, int x) {
             {
-                d + n
+                d + x
             } -> std::convertible_to<Derived>;
             {
                 *d

@@ -5,6 +5,7 @@
 
 #include <memory>
 
+// Forward Declarations
 namespace plugins {
 class Options;
 class Feature;
@@ -14,8 +15,7 @@ namespace utils {
 class RandomNumberGenerator;
 }
 
-namespace probfd {
-namespace policy_pickers {
+namespace probfd::policy_pickers {
 
 template <typename State, typename Action>
 class RandomTiebreaker
@@ -23,7 +23,7 @@ class RandomTiebreaker
           State,
           Action,
           RandomTiebreaker<State, Action>> {
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
+    std::shared_ptr<utils::RandomNumberGenerator> rng_;
 
 public:
     explicit RandomTiebreaker(const plugins::Options&);
@@ -39,9 +39,8 @@ public:
         algorithms::StateProperties& properties);
 };
 
-} // namespace policy_pickers
-} // namespace probfd
+} // namespace probfd::policy_pickers
 
 #include "probfd/policy_pickers/random_tiebreaker_impl.h"
 
-#endif // __RANDOM_TIEBREAKER_H__
+#endif // PROBFD_POLICY_PICKER_RANDOM_TIEBREAKER_H

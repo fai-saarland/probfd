@@ -1,7 +1,7 @@
 BasedOnStyle: LLVM
 AccessModifierOffset: '-4'
 AlignAfterOpenBracket: AlwaysBreak
-AllowAllArgumentsOnNextLine : 'false'
+AllowAllArgumentsOnNextLine: 'false'
 AllowAllParametersOfDeclarationOnNextLine: 'false'
 AllowShortBlocksOnASingleLine: 'false'
 AllowShortCaseLabelsOnASingleLine: 'true'
@@ -11,18 +11,19 @@ AllowShortLoopsOnASingleLine: 'true'
 AlwaysBreakTemplateDeclarations: 'Yes'
 BinPackArguments: 'false'
 BinPackParameters: 'false'
+BreakAfterAttributes: Always
 BreakBeforeBraces: Custom
 BraceWrapping:
-  AfterClass:      false
+  AfterClass: false
   AfterControlStatement: false
-  AfterEnum:       false
-  AfterFunction:   true
-  AfterNamespace:  false
-  AfterStruct:     false
-  AfterUnion:      false
-  BeforeCatch:     false
-  BeforeElse:      false
-  IndentBraces:    false
+  AfterEnum: false
+  AfterFunction: true
+  AfterNamespace: false
+  AfterStruct: false
+  AfterUnion: false
+  BeforeCatch: false
+  BeforeElse: false
+  IndentBraces: false
 BreakConstructorInitializers: BeforeComma
 BreakInheritanceList: BeforeComma
 ColumnLimit: '80'

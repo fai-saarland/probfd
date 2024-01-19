@@ -6,8 +6,7 @@
 
 #include "downward/task_proxy.h"
 
-namespace probfd {
-namespace occupation_measures {
+namespace probfd::occupation_measures {
 
 /**
  * @brief Casts a range of facts representing a partial variable assignment to
@@ -25,7 +24,6 @@ std::vector<int> pasmt_to_vector(const auto& fact_range, int num_variables)
     return vec;
 }
 
-} // namespace occupation_measures
-} // namespace probfd
+} // namespace probfd::occupation_measures
 
 #endif // PROBFD_OCCUPATION_MEASURES_UTILS_H

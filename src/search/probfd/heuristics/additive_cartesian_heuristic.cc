@@ -18,8 +18,7 @@
 using namespace std;
 using namespace probfd::cartesian_abstractions;
 
-namespace probfd {
-namespace heuristics {
+namespace probfd::heuristics {
 
 static vector<CartesianHeuristicFunction> generate_heuristic_functions(
     std::shared_ptr<ProbabilisticTask> task,
@@ -38,8 +37,8 @@ static vector<CartesianHeuristicFunction> generate_heuristic_functions(
 
     CostSaturation cost_saturation(
         subtask_generators,
-        flaw_generator_factory,
-        split_selector_factory,
+        std::move(flaw_generator_factory),
+        std::move(split_selector_factory),
         max_states,
         max_transitions,
         max_time,
@@ -60,12 +59,12 @@ AdditiveCartesianHeuristic::AdditiveCartesianHeuristic(
     double max_time,
     bool use_general_costs)
     : TaskDependentHeuristic(std::move(task), std::move(log))
-    , heuristic_functions(generate_heuristic_functions(
-          this->task,
-          this->log,
-          subtask_generators,
-          flaw_generator_factory,
-          split_selector_factory,
+    , heuristic_functions_(generate_heuristic_functions(
+          this->task_,
+          this->log_,
+          std::move(subtask_generators),
+          std::move(flaw_generator_factory),
+          std::move(split_selector_factory),
           max_states,
           max_transitions,
           max_time,
@@ -75,10 +74,10 @@ AdditiveCartesianHeuristic::AdditiveCartesianHeuristic(
 
 value_t AdditiveCartesianHeuristic::evaluate(const State& ancestor_state) const
 {
-    const State state = task_proxy.convert_ancestor_state(ancestor_state);
+    const State state = task_proxy_.convert_ancestor_state(ancestor_state);
 
     value_t sum_h = 0;
-    for (const CartesianHeuristicFunction& function : heuristic_functions) {
+    for (const CartesianHeuristicFunction& function : heuristic_functions_) {
         const value_t value = function.get_value(state);
         assert(value >= 0_vt);
         if (value == INFINITE_VALUE) return INFINITE_VALUE;
@@ -199,8 +198,8 @@ public:
     }
 };
 
+} // namespace
+
 static plugins::FeaturePlugin<AdditiveCartesianHeuristicFactoryFeature> _plugin;
 
-} // namespace
-} // namespace heuristics
-} // namespace probfd
+} // namespace probfd::heuristics

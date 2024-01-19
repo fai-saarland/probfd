@@ -6,25 +6,29 @@
 #include "probfd/evaluator.h"
 #include "probfd/value_type.h"
 
-namespace probfd {
-namespace bisimulation {
+// Forward Declarations
+namespace probfd::bisimulation {
 class BisimilarStateSpace;
+}
+
+namespace probfd::bisimulation {
 
 /// Type alias for evaluators for probabilistic bisimulation quotients.
 using QuotientEvaluator = Evaluator<QuotientState>;
 
-struct InducedQuotientEvaluator : public QuotientEvaluator {
+class InducedQuotientEvaluator : public QuotientEvaluator {
     BisimilarStateSpace* bisim_;
     const value_t upper_bound_;
 
+public:
     explicit InducedQuotientEvaluator(
         BisimilarStateSpace* bisim,
         value_t upper_bound = 0);
 
+    [[nodiscard]]
     value_t evaluate(QuotientState state) const override;
 };
 
-} // namespace bisimulation
-} // namespace probfd
+} // namespace probfd::bisimulation
 
 #endif // PROBFD_BISIMULATION_EVALUATORS_H

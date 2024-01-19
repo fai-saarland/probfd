@@ -5,8 +5,7 @@
 
 #include <memory>
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 class TrivialFinderFactory : public SubCollectionFinderFactory {
 public:
@@ -14,7 +13,6 @@ public:
     create_subcollection_finder(const ProbabilisticTaskProxy&) override;
 };
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif // PROBFD_PDBS_TRIVIAL_FINDER_FACTORY_H

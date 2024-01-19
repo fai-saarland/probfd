@@ -8,20 +8,16 @@
 #include "probfd/pdbs/trivial_finder.h"
 
 #include "probfd/cost_function.h"
-#include "probfd/fdr_types.h"
 
 #include "downward/task_utils/task_properties.h"
 
 #include "downward/utils/countdown_timer.h"
-#include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
 
 #include "downward/plugins/plugin.h"
 
-#include <algorithm>
 #include <cassert>
-#include <cstddef>
 #include <ostream>
 #include <set>
 #include <span>
@@ -29,8 +25,7 @@
 
 using namespace std;
 
-namespace probfd {
-namespace pdbs {
+namespace probfd::pdbs {
 
 namespace {
 
@@ -89,11 +84,13 @@ public:
         return costs[op_id.get_index()];
     }
 
+    [[nodiscard]]
     bool is_goal(const State& state) const override
     {
         return ::task_properties::is_goal_state(task_proxy, state);
     }
 
+    [[nodiscard]]
     value_t get_non_goal_termination_cost() const override
     {
         return non_goal_termination;
@@ -120,20 +117,20 @@ PatternCollectionGeneratorMultiple::PatternCollectionGeneratorMultiple(
     const plugins::Options& opts,
     std::string implementation_name)
     : PatternCollectionGenerator(opts)
-    , implementation_name(std::move(implementation_name))
-    , max_pdb_size(opts.get<int>("max_pdb_size"))
-    , max_collection_size(opts.get<int>("max_collection_size"))
-    , pattern_generation_max_time(
+    , implementation_name_(std::move(implementation_name))
+    , max_pdb_size_(opts.get<int>("max_pdb_size"))
+    , max_collection_size_(opts.get<int>("max_collection_size"))
+    , pattern_generation_max_time_(
           opts.get<double>("pattern_generation_max_time"))
-    , total_max_time(opts.get<double>("total_max_time"))
-    , stagnation_limit(opts.get<double>("stagnation_limit"))
-    , blacklisting_start_time(
-          total_max_time * opts.get<double>("blacklist_trigger_percentage"))
-    , enable_blacklist_on_stagnation(
+    , total_max_time_(opts.get<double>("total_max_time"))
+    , stagnation_limit_(opts.get<double>("stagnation_limit"))
+    , blacklisting_start_time_(
+          total_max_time_ * opts.get<double>("blacklist_trigger_percentage"))
+    , enable_blacklist_on_stagnation_(
           opts.get<bool>("enable_blacklist_on_stagnation"))
-    , rng(utils::parse_rng_from_options(opts))
-    , random_seed(opts.get<int>("random_seed"))
-    , use_saturated_costs(opts.get<bool>("use_saturated_costs"))
+    , rng_(utils::parse_rng_from_options(opts))
+    , random_seed_(opts.get<int>("random_seed"))
+    , use_saturated_costs_(opts.get<bool>("use_saturated_costs"))
 {
 }
 
@@ -147,8 +144,8 @@ bool PatternCollectionGeneratorMultiple::collection_size_limit_reached(
           violates the limit, possibly even with only using a single goal
           variable.
         */
-        if (log.is_at_least_normal()) {
-            log << "collection size limit reached" << endl;
+        if (log_.is_at_least_normal()) {
+            log_ << "collection size limit reached" << endl;
         }
         return true;
     }
@@ -159,8 +156,8 @@ bool PatternCollectionGeneratorMultiple::time_limit_reached(
     const utils::CountdownTimer& timer) const
 {
     if (timer.is_expired()) {
-        if (log.is_at_least_normal()) {
-            log << "time limit reached" << endl;
+        if (log_.is_at_least_normal()) {
+            log_ << "time limit reached" << endl;
         }
         return true;
     }
@@ -171,35 +168,35 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
     const shared_ptr<ProbabilisticTask>& task,
     const std::shared_ptr<FDRCostFunction>& task_cost_function)
 {
-    if (log.is_at_least_normal()) {
-        log << "max pdb size: " << max_pdb_size << endl;
-        log << "max collection size: " << max_collection_size << endl;
-        log << "max time: " << total_max_time << endl;
-        log << "stagnation time limit: " << stagnation_limit << endl;
-        log << "timer after which blacklisting is enabled: "
-            << blacklisting_start_time << endl;
-        log << "enable blacklisting after stagnation: "
-            << enable_blacklist_on_stagnation << endl;
+    if (log_.is_at_least_normal()) {
+        log_ << "max pdb size: " << max_pdb_size_ << endl;
+        log_ << "max collection size: " << max_collection_size_ << endl;
+        log_ << "max time: " << total_max_time_ << endl;
+        log_ << "stagnation time limit: " << stagnation_limit_ << endl;
+        log_ << "timer after which blacklisting is enabled: "
+             << blacklisting_start_time_ << endl;
+        log_ << "enable blacklisting after stagnation: "
+             << enable_blacklist_on_stagnation_ << endl;
     }
 
     ProbabilisticTaskProxy task_proxy(*task);
     ExplicitTaskCostFunction cost_function(task_proxy, *task_cost_function);
 
-    utils::CountdownTimer timer(total_max_time);
+    utils::CountdownTimer timer(total_max_time_);
 
     // Store the set of goals in random order.
-    vector<FactPair> goals = get_goals_in_random_order(task_proxy, *rng);
+    vector<FactPair> goals = get_goals_in_random_order(task_proxy, *rng_);
 
     // Store the non-goal variables for potential blacklisting.
     vector<int> non_goal_variables = get_non_goal_variables(task_proxy);
 
-    if (log.is_at_least_debug()) {
-        log << "goal variables: ";
+    if (log_.is_at_least_debug()) {
+        log_ << "goal variables: ";
         for (FactPair goal : goals) {
-            log << goal.var << ", ";
+            log_ << goal.var << ", ";
         }
-        log << endl;
-        log << "non-goal variables: " << non_goal_variables << endl;
+        log_ << endl;
+        log_ << "non-goal variables: " << non_goal_variables << endl;
     }
 
     // Collect all unique patterns and their PDBs.
@@ -207,28 +204,28 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
     shared_ptr<PPDBCollection> generated_pdbs = make_shared<PPDBCollection>();
 
     shared_ptr<utils::RandomNumberGenerator> pattern_computation_rng =
-        make_shared<utils::RandomNumberGenerator>(random_seed);
+        make_shared<utils::RandomNumberGenerator>(random_seed_);
 
     int num_iterations = 0;
     int goal_index = 0;
     bool blacklisting = false;
     double time_point_of_last_new_pattern = 0.0;
-    int remaining_collection_size = max_collection_size;
+    int remaining_collection_size = max_collection_size_;
     std::vector<value_t> saturated_costs(task_proxy.get_operators().size());
 
     while (true) {
         // Check if blacklisting should be started.
         if (!blacklisting &&
-            timer.get_elapsed_time() > blacklisting_start_time) {
+            timer.get_elapsed_time() > blacklisting_start_time_) {
             blacklisting = true;
             /*
               Also treat this time point as having seen a new pattern to avoid
               stopping due to stagnation right after enabling blacklisting.
             */
             time_point_of_last_new_pattern = timer.get_elapsed_time();
-            if (log.is_at_least_normal()) {
-                log << "given percentage of total time limit "
-                    << "exhausted; enabling blacklisting." << endl;
+            if (log_.is_at_least_normal()) {
+                log_ << "given percentage of total time limit "
+                     << "exhausted; enabling blacklisting." << endl;
             }
         }
 
@@ -240,26 +237,26 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
               We want to choose at least 1 non-goal variable, so we pick a
               random value in the range [1, |non-goal variables|].
             */
-            int blacklist_size = rng->random(non_goal_variables.size());
+            int blacklist_size = rng_->random(non_goal_variables.size());
             ++blacklist_size;
-            rng->shuffle(non_goal_variables);
+            rng_->shuffle(non_goal_variables);
             blacklisted_variables.insert(
                 non_goal_variables.begin(),
                 non_goal_variables.begin() + blacklist_size);
-            if (log.is_at_least_debug()) {
-                log << "blacklisting " << blacklist_size << " out of "
-                    << non_goal_variables.size() << " non-goal variables: ";
+            if (log_.is_at_least_debug()) {
+                log_ << "blacklisting " << blacklist_size << " out of "
+                     << non_goal_variables.size() << " non-goal variables: ";
                 for (int var : blacklisted_variables) {
-                    log << var << ", ";
+                    log_ << var << ", ";
                 }
-                log << endl;
+                log_ << endl;
             }
         }
 
-        int remaining_pdb_size = min(remaining_collection_size, max_pdb_size);
+        int remaining_pdb_size = min(remaining_collection_size, max_pdb_size_);
         double remaining_time =
             min(static_cast<double>(timer.get_remaining_time()),
-                pattern_generation_max_time);
+                pattern_generation_max_time_);
 
         auto [state_space, pdb] = compute_pattern(
             remaining_pdb_size,
@@ -271,12 +268,12 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
             std::move(blacklisted_variables));
 
         const Pattern& pattern = pdb->get_pattern();
-        if (log.is_at_least_debug()) {
-            log << "generated PDB with pattern " << pattern << endl;
+        if (log_.is_at_least_debug()) {
+            log_ << "generated PDB with pattern " << pattern << endl;
         }
 
         if (generated_patterns.insert(pattern).second) {
-            if (use_saturated_costs) {
+            if (use_saturated_costs_) {
                 compute_saturated_costs(
                     *state_space,
                     pdb->get_value_table(),
@@ -302,25 +299,25 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
         // Test if no new pattern was generated for longer than
         // stagnation_limit.
         if (timer.get_elapsed_time() - time_point_of_last_new_pattern >
-            stagnation_limit) {
-            if (enable_blacklist_on_stagnation) {
+            stagnation_limit_) {
+            if (enable_blacklist_on_stagnation_) {
                 if (blacklisting) {
-                    if (log.is_at_least_normal()) {
-                        log << "stagnation limit reached "
-                            << "despite blacklisting, terminating" << endl;
+                    if (log_.is_at_least_normal()) {
+                        log_ << "stagnation limit reached "
+                             << "despite blacklisting, terminating" << endl;
                     }
                     break;
                 } else {
-                    if (log.is_at_least_normal()) {
-                        log << "stagnation limit reached, "
-                            << "enabling blacklisting" << endl;
+                    if (log_.is_at_least_normal()) {
+                        log_ << "stagnation limit reached, "
+                             << "enabling blacklisting" << endl;
                     }
                     blacklisting = true;
                     time_point_of_last_new_pattern = timer.get_elapsed_time();
                 }
             } else {
-                if (log.is_at_least_normal()) {
-                    log << "stagnation limit reached, terminating" << endl;
+                if (log_.is_at_least_normal()) {
+                    log_ << "stagnation limit reached, terminating" << endl;
                 }
                 break;
             }
@@ -340,7 +337,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
 
     std::shared_ptr<SubCollectionFinder> finder;
 
-    if (use_saturated_costs) {
+    if (use_saturated_costs_) {
         finder = std::make_shared<FullyAdditiveFinder>();
     } else {
         finder = std::make_shared<TrivialFinder>();
@@ -354,11 +351,11 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
 
     result.set_pdbs(generated_pdbs);
 
-    if (log.is_at_least_normal()) {
-        log << implementation_name
-            << " number of iterations: " << num_iterations << endl;
-        log << implementation_name << " average time per generator: "
-            << timer.get_elapsed_time() / num_iterations << endl;
+    if (log_.is_at_least_normal()) {
+        log_ << implementation_name_
+             << " number of iterations: " << num_iterations << endl;
+        log_ << implementation_name_ << " average time per generator: "
+             << timer.get_elapsed_time() / num_iterations << endl;
     }
 
     return result;
@@ -463,5 +460,4 @@ void add_multiple_options_to_feature(plugins::Feature& feature)
     utils::add_rng_options(feature);
 }
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs

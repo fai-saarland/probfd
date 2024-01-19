@@ -7,13 +7,17 @@
 
 #include <span>
 
+// Forward Declarations
 namespace probfd {
 template <typename>
 class Evaluator;
+}
 
-namespace pdbs {
-
+namespace probfd::pdbs {
 class ProjectionStateSpace;
+}
+
+namespace probfd::pdbs {
 
 /**
  * @brief Computes the optimal value function of the abstraction, complete up to
@@ -26,7 +30,6 @@ void compute_value_table(
     std::span<value_t> value_table,
     double max_time);
 
-} // namespace pdbs
-} // namespace probfd
+} // namespace probfd::pdbs
 
 #endif // PROBFD_PDBS_DISTANCES_H

@@ -2,8 +2,7 @@
 
 #include "probfd/distribution.h"
 
-namespace probfd {
-namespace successor_samplers {
+namespace probfd::successor_samplers {
 
 template <typename Action>
 StateID MostLikelySuccessorSampler<Action>::sample(
@@ -26,5 +25,4 @@ StateID MostLikelySuccessorSampler<Action>::sample(
     return res;
 }
 
-} // namespace successor_samplers
-} // namespace probfd
+} // namespace probfd::successor_samplers

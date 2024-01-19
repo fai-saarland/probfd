@@ -4,21 +4,24 @@
 #include <memory>
 #include <vector>
 
+// Forward Declarations
 class OperatorID;
 class State;
 class TaskBaseProxy;
 
 namespace probfd {
 class TaskStateSpace;
-
 template <typename>
 struct Transition;
+} // namespace probfd
 
-namespace successor_generator {
+namespace probfd::successor_generator {
 class ProbabilisticGeneratorBase;
+}
 
+namespace probfd::successor_generator {
 class ProbabilisticSuccessorGenerator {
-    std::unique_ptr<ProbabilisticGeneratorBase> root;
+    std::unique_ptr<ProbabilisticGeneratorBase> root_;
 
 public:
     explicit ProbabilisticSuccessorGenerator(const TaskBaseProxy& task_proxy);
@@ -39,7 +42,6 @@ public:
         TaskStateSpace& task_state_space) const;
 };
 
-} // namespace successor_generator
-} // namespace probfd
+} // namespace probfd::successor_generator
 
 #endif
