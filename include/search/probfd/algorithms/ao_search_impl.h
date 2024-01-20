@@ -2,9 +2,16 @@
 #error "This file should only be included from ao_search.h"
 #endif
 
+#include <ostream>
+
 #include "downward/utils/countdown_timer.h"
 
 namespace probfd::algorithms::ao_search {
+
+inline void Statistics::print(std::ostream& out) const
+{
+    out << "  Iterations: " << iterations << std::endl;
+}
 
 template <
     typename State,

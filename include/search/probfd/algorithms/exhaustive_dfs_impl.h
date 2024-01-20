@@ -59,8 +59,6 @@ ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
     ExhaustiveDepthFirstSearch(
         std::shared_ptr<TransitionSorter> transition_sorting,
         Interval cost_bound,
-        bool reevaluate,
-        bool notify_initial,
         bool path_updates,
         bool only_propagate_when_changed)
     : transition_sort_(transition_sorting)
@@ -74,8 +72,6 @@ ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
     }())
     , value_propagation_(path_updates)
     , only_propagate_when_changed_(only_propagate_when_changed)
-    , evaluator_recomputation_(reevaluate)
-    , notify_initial_state_(notify_initial)
 {
 }
 
@@ -204,7 +200,7 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
         transition_sort_->sort(state, aops, successors, search_space_);
     }
 
-    expansion_infos_.emplace_back(stack_infos_.size(), neighbors_.size());
+    expansion_infos_.emplace_back(stack_infos_.size());
     stack_infos_.emplace_back(state_id);
 
     ExpansionInformation& exp = expansion_infos_.back();
@@ -402,10 +398,6 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
             expanding.succ = expanding.successors.back().begin();
         }
 
-        backtracked_from_dead_end_scc_ = false;
-        last_all_dead_ = true;
-        last_all_marked_dead_ = true;
-
         last_all_dead_ = expanding.all_successors_are_dead;
         last_all_marked_dead_ = expanding.all_successors_marked_dead;
         statistics_.backtracks++;
@@ -524,55 +516,6 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
 
     if (it == expansion_infos_.rend()) {
         progress.print();
-    }
-}
-
-template <typename State, typename Action, bool UseInterval>
-void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
-    mark_current_component_dead()
-{
-    statistics_.sccs++;
-    statistics_.dead_end_sccs++;
-    statistics_.pruned_dead_end_sccs++;
-
-    assert(!expansion_infos_.empty());
-    unsigned lowlink = -1;
-
-    for (;;) {
-        ExpansionInformation& exp = expansion_infos_.back();
-        StackInformation& stack_info = stack_infos_[exp.stack_index];
-        const StateID stateid = stack_info.state_ref;
-        SearchNodeInformation& node = search_space_[stateid];
-        node.lowlink = std::min(node.lowlink, lowlink);
-
-        for (const auto& successors : exp.successors) {
-            for (const StateID sid : successors.support()) {
-                SearchNodeInformation& succ_info = search_space_[sid];
-                succ_info.value = succ_info.term_cost;
-                succ_info.mark_dead_end();
-
-                if (succ_info.is_onstack()) {
-                    node.lowlink = std::min(node.lowlink, succ_info.lowlink);
-                }
-            }
-        }
-
-        lowlink = node.lowlink;
-
-        if (exp.stack_index == lowlink) {
-            auto it = stack_infos_.rbegin();
-            do {
-                SearchNodeInformation& info = search_space_[it->state_ref];
-                info.value = info.term_cost;
-                info.mark_dead_end();
-            } while ((it++)->state_ref != stateid);
-
-            stack_infos_.erase(it.base(), stack_infos_.end());
-            expansion_infos_.pop_back();
-            return;
-        }
-
-        expansion_infos_.pop_back();
     }
 }
 

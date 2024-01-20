@@ -44,16 +44,14 @@ struct Statistics {
 };
 
 struct ExpansionInformation {
-    ExpansionInformation(unsigned stack_index, unsigned neighbors_size)
+    explicit ExpansionInformation(unsigned stack_index)
         : stack_index(stack_index)
-        , neighbors_size(neighbors_size)
     {
     }
 
     std::vector<Distribution<StateID>> successors;
     Distribution<StateID>::const_iterator succ;
     unsigned stack_index;
-    unsigned neighbors_size;
 
     bool all_successors_are_dead = true;
     bool all_successors_marked_dead = true;
@@ -227,8 +225,6 @@ class ExhaustiveDepthFirstSearch : public MDPAlgorithm<State, Action> {
 
     const bool value_propagation_;
     const bool only_propagate_when_changed_;
-    const bool evaluator_recomputation_;
-    const bool notify_initial_state_;
 
     Statistics statistics_;
     SearchNodeInfos<UseInterval> search_space_;
@@ -239,14 +235,11 @@ class ExhaustiveDepthFirstSearch : public MDPAlgorithm<State, Action> {
 
     bool last_all_dead_ = true;
     bool last_all_marked_dead_ = true;
-    bool backtracked_from_dead_end_scc_ = false;
 
 public:
     explicit ExhaustiveDepthFirstSearch(
         std::shared_ptr<TransitionSorter> transition_sorting,
         Interval cost_bound,
-        bool reevaluate,
-        bool notify_initial,
         bool path_updates,
         bool only_propagate_when_changed);
 
@@ -289,8 +282,6 @@ private:
         bool was_poped,
         value_t val,
         ProgressReport& progress);
-
-    void mark_current_component_dead();
 
     bool check_early_convergence(const SearchNodeInformation& node) const;
 };

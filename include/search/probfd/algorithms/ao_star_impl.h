@@ -77,11 +77,9 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
                     break;
                 }
 
-                constexpr auto UMAX = std::numeric_limits<unsigned>::max();
+                unsigned min_succ_order = std::numeric_limits<unsigned>::max();
 
-                unsigned min_succ_order = UMAX;
-
-                ClearGuard _guard(this->transitions_);
+                ClearGuard _(this->transitions_);
                 const State state = mdp.get_state(stateid);
                 mdp.generate_all_transitions(state, this->transitions_);
 
@@ -99,13 +97,15 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
                         assert(!succ_info.is_solved());
                         succ_info.mark();
                         succ_info.add_parent(stateid);
-                        assert(succ_info.update_order < UMAX);
+                        assert(
+                            succ_info.update_order <
+                            std::numeric_limits<unsigned>::max());
                         min_succ_order =
                             std::min(min_succ_order, succ_info.update_order);
                     }
                 }
 
-                assert(min_succ_order < UMAX);
+                assert(min_succ_order < std::numeric_limits<unsigned>::max());
 
                 info.update_order = min_succ_order + 1;
 

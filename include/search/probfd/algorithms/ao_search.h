@@ -5,6 +5,7 @@
 
 #include "probfd/storage/per_state_storage.h"
 
+#include <iosfwd>
 #include <queue>
 #include <type_traits>
 #include <vector>
@@ -14,11 +15,7 @@ namespace probfd::algorithms::ao_search {
 
 struct Statistics {
     unsigned long long iterations = 0;
-
-    void print(std::ostream& out) const
-    {
-        out << "  Iterations: " << iterations << std::endl;
-    }
+    void print(std::ostream& out) const;
 };
 
 template <typename StateInfo>
@@ -27,6 +24,9 @@ struct PerStateInformation : public StateInfo {
     static constexpr uint8_t SOLVED = 2 << StateInfo::BITS;
     static constexpr uint8_t MASK = 3 << StateInfo::BITS;
     static constexpr uint8_t BITS = StateInfo::BITS + 2;
+
+    unsigned update_order = 0;
+    std::vector<StateID> parents;
 
     [[nodiscard]]
     bool is_tip_state() const
@@ -52,6 +52,18 @@ struct PerStateInformation : public StateInfo {
         return (this->info & MASK) == 0;
     }
 
+    [[nodiscard]]
+    const std::vector<StateID>& get_parents() const
+    {
+        return parents;
+    }
+
+    [[nodiscard]]
+    std::vector<StateID>& get_parents()
+    {
+        return parents;
+    }
+
     void mark()
     {
         assert(!is_solved());
@@ -59,19 +71,10 @@ struct PerStateInformation : public StateInfo {
     }
 
     void unmark() { this->info = (this->info & ~MARK); }
+
     void set_solved() { this->info = (this->info & ~MASK) | SOLVED; }
 
-    [[nodiscard]]
-    const std::vector<StateID>& get_parents() const
-    {
-        return parents;
-    }
-
-    std::vector<StateID>& get_parents() { return parents; }
     void add_parent(StateID s) { parents.push_back(s); }
-
-    unsigned update_order = 0;
-    std::vector<StateID> parents;
 };
 
 /**

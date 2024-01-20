@@ -27,8 +27,6 @@ class ExhaustiveDFSSolver : public MDPSolver {
     std::shared_ptr<FDRTransitionSorter> transition_sort_;
 
     const bool dual_bounds_;
-    const bool reevaluate_;
-    const bool notify_s0_;
     const bool path_updates_;
     const bool only_propagate_when_changed_;
 
@@ -45,8 +43,6 @@ public:
                         ->create_transition_sorter(this->task_mdp_.get())
                   : nullptr)
         , dual_bounds_(opts.get<bool>("dual_bounds"))
-        , reevaluate_(opts.get<bool>("reevaluate"))
-        , notify_s0_(opts.get<bool>("initial_state_notification"))
         , path_updates_(opts.get<bool>("reverse_path_updates"))
         , only_propagate_when_changed_(
               opts.get<bool>("only_propagate_when_changed"))
@@ -64,16 +60,12 @@ public:
             return std::make_unique<Algorithm2>(
                 transition_sort_,
                 cost_bound_,
-                reevaluate_,
-                notify_s0_,
                 path_updates_,
                 only_propagate_when_changed_);
         } else {
             return std::make_unique<Algorithm>(
                 transition_sort_,
                 cost_bound_,
-                reevaluate_,
-                notify_s0_,
                 path_updates_,
                 only_propagate_when_changed_);
         }
@@ -96,8 +88,6 @@ public:
             ArgumentInfo::NO_DEFAULT);
 
         add_option<bool>("dual_bounds", "", "false");
-        add_option<bool>("reevaluate", "", "true");
-        add_option<bool>("initial_state_notification", "", "false");
         add_option<bool>("reverse_path_updates", "", "true");
         add_option<bool>("only_propagate_when_changed", "", "true");
     }
