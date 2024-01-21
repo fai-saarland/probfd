@@ -122,9 +122,6 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         // self-loops excluded.
         std::vector<ItemProbabilityPair<StateID>> scc_successors;
 
-        // Self-loop normalization factor.
-        value_t normalization = 1_vt;
-
         explicit QValueInfo(value_t action_cost);
 
         bool finalize_transition(value_t self_loop_prob);

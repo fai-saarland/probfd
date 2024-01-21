@@ -87,11 +87,6 @@ class TopologicalValueIteration : public MDPAlgorithm<State, Action> {
         // The action id this Q value belongs to.
         Action action;
 
-        // Probability to remain in the same state.
-        // Cast to the self-loop normalization factor after
-        // finalize_transition().
-        value_t normalization = 1_vt;
-
         // Precomputed part of the Q-value.
         // Sum of action cost plus those weighted successor values which
         // have already converged due to topological ordering.

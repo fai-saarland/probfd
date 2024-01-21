@@ -137,12 +137,13 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::QValueInfo::
     finalize_transition(value_t self_loop_prob)
 {
     if (self_loop_prob != 0.0_vt) {
-        // Calculate self-loop normalization factor
-        normalization = 1.0_vt / (1.0_vt - self_loop_prob);
+        // Apply self-loop normalization
+        const value_t normalization = 1.0_vt / (1.0_vt - self_loop_prob);
 
-        if (scc_successors.empty()) {
-            // Apply self-loop normalization immediately
-            conv_part *= normalization;
+        conv_part *= normalization;
+
+        for (auto& pair : scc_successors) {
+            pair.probability *= normalization;
         }
     }
 
@@ -158,10 +159,6 @@ auto TATopologicalValueIteration<State, Action, UseInterval>::QValueInfo::
 
     for (auto& [state_id, prob] : scc_successors) {
         res += prob * value_store[state_id];
-    }
-
-    if (normalization != 1_vt) {
-        res *= normalization;
     }
 
     return res;
@@ -349,12 +346,11 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
 
                 tinfo.scc_successors.emplace_back(succ_id, prob);
             } else {
-                const AlgorithmValueType& s_value = value_store[succ_id];
                 explore->recurse =
                     explore->recurse || !tinfo.scc_successors.empty();
                 explore->nz_or_leaves_scc = true;
 
-                tinfo.conv_part += prob * s_value;
+                tinfo.conv_part += prob * value_store[succ_id];
             }
         } while (
             (!explore->next_successor() && !explore->next_transition(mdp)) ||
@@ -393,29 +389,29 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
         assert(succ_id != explore.state_id);
 
         StateInfo& succ_info = state_information_[succ_id];
-        AlgorithmValueType& s_value = value_store[succ_id];
-        int status = succ_info.status;
 
-        QValueInfo& tinfo = explore.stack_info.ec_transitions.back();
-
-        switch (status) {
+        switch (succ_info.status) {
         default: abort();
         case StateInfo::NEW: {
-            push_state(succ_id, succ_info, s_value);
+            push_state(succ_id, succ_info, value_store[succ_id]);
             return true; // recursion on new state
         }
 
-        case StateInfo::CLOSED:
+        case StateInfo::CLOSED: {
+            QValueInfo& tinfo = explore.stack_info.ec_transitions.back();
+
             explore.nz_or_leaves_scc = true;
             explore.recurse = explore.recurse || !tinfo.scc_successors.empty();
 
-            tinfo.conv_part += prob * s_value;
+            tinfo.conv_part += prob * value_store[succ_id];
             break;
+        }
 
         case StateInfo::ONSTACK:
             explore.lowlink = std::min(explore.lowlink, succ_info.stack_id);
             explore.recurse = explore.recurse || explore.nz_or_leaves_scc;
 
+            QValueInfo& tinfo = explore.stack_info.ec_transitions.back();
             tinfo.scc_successors.emplace_back(succ_id, prob);
         }
     } while (explore.next_successor() || explore.next_transition(mdp));

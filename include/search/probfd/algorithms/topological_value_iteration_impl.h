@@ -141,12 +141,13 @@ bool TopologicalValueIteration<State, Action, UseInterval>::QValueInfo::
     finalize_transition(value_t self_loop_prob)
 {
     if (self_loop_prob != 0_vt) {
-        // Calculate self-loop normalization factor
-        normalization = 1_vt / (1_vt - self_loop_prob);
+        // Apply self-loop normalization
+        const value_t normalization = 1_vt / (1_vt - self_loop_prob);
 
-        if (nconv_successors.empty()) {
-            // Apply self-loop normalization immediately
-            conv_part *= normalization;
+        conv_part *= normalization;
+
+        for (auto& pair : nconv_successors) {
+            pair.probability *= normalization;
         }
     }
 
@@ -161,10 +162,6 @@ auto TopologicalValueIteration<State, Action, UseInterval>::QValueInfo::
 
     for (auto& [value, prob] : nconv_successors) {
         res += prob * (*value);
-    }
-
-    if (normalization != 1_vt) {
-        res *= normalization;
     }
 
     return res;
