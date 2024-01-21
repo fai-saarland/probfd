@@ -17,9 +17,11 @@ template <typename State, typename Action>
 AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
     IncrementalExpansionInfo(
         StateID state_id,
+        StateInfo& state_info,
         std::vector<Action> remaining_aops,
         MDP& mdp)
     : state_id(state_id)
+    , state_info(state_info)
     , remaining_aops(std::move(remaining_aops))
 {
     assert(!this->remaining_aops.empty());
@@ -31,17 +33,24 @@ bool AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
     next_successor()
 {
     assert(successor != transition.end());
-    return ++successor != transition.end();
+    if (++successor != transition.end()) {
+        return true;
+    }
+
+    finalize_transition();
+
+    return false;
 }
 
 template <typename State, typename Action>
 bool AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
-    next_transition(MDP& mdp)
+    next_transition(MDP& mdp, MapPolicy* policy)
 {
     assert(!remaining_aops.empty());
     remaining_aops.pop_back();
 
     if (remaining_aops.empty()) {
+        finalize_expansion(policy);
         return false;
     }
 
@@ -140,49 +149,39 @@ void AcyclicValueIteration<State, Action>::dfs_expand(
                 continue; // DFS recursion
             }
 
-            backtrack_successor(*e, probability, succ_info);
+            e->backtrack_successor(probability, succ_info);
         } while (e->next_successor());
-
-        finalize_transition(*e);
-    } while (e->next_transition(mdp));
-
-    finalize_expansion(*e, policy);
+    } while (e->next_transition(mdp, policy));
 }
 
 template <typename State, typename Action>
-void AcyclicValueIteration<State, Action>::backtrack_successor(
-    IncrementalExpansionInfo& e,
-    value_t probability,
-    StateInfo& succ_info)
+void AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
+    backtrack_successor(value_t probability, StateInfo& succ_info)
 {
     // Update transition Q-value
-    e.t_value += probability * succ_info.value;
+    t_value += probability * succ_info.value;
 }
 
 template <typename State, typename Action>
-void AcyclicValueIteration<State, Action>::finalize_transition(
-    IncrementalExpansionInfo& e)
+void AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
+    finalize_transition()
 {
     // Minimum Q-value
-    StateInfo& info = state_infos_[e.state_id];
-
-    if (e.t_value < info.value) {
-        info.best_action = e.remaining_aops.back();
-        info.value = e.t_value;
+    if (t_value < state_info.value) {
+        state_info.best_action = remaining_aops.back();
+        state_info.value = t_value;
     }
 }
 
 template <typename State, typename Action>
-void AcyclicValueIteration<State, Action>::finalize_expansion(
-    IncrementalExpansionInfo& e,
-    MapPolicy* policy)
+void AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
+    finalize_expansion(MapPolicy* policy)
 {
-    StateInfo& info = state_infos_[e.state_id];
     if (!policy) return;
     policy->emplace_decision(
-        e.state_id,
-        *info.best_action,
-        Interval(info.value));
+        state_id,
+        *state_info.best_action,
+        Interval(state_info.value));
 }
 
 template <typename State, typename Action>
@@ -193,7 +192,7 @@ bool AcyclicValueIteration<State, Action>::dfs_backtrack(
 {
     IncrementalExpansionInfo* e;
 
-    for (;;) {
+    do {
         expansion_stack_.pop();
 
         if (expansion_stack_.empty()) {
@@ -205,20 +204,10 @@ bool AcyclicValueIteration<State, Action>::dfs_backtrack(
         e = &expansion_stack_.top();
 
         const auto [succ_id, probability] = *e->successor;
-        backtrack_successor(*e, probability, state_infos_[succ_id]);
+        e->backtrack_successor(probability, state_infos_[succ_id]);
+    } while (!e->next_successor() && !e->next_transition(mdp, policy));
 
-        if (e->next_successor()) {
-            return true;
-        }
-
-        finalize_transition(*e);
-
-        if (e->next_transition(mdp)) {
-            return true;
-        }
-
-        finalize_expansion(*e, policy);
-    }
+    return true;
 }
 
 template <typename State, typename Action>
@@ -256,7 +245,8 @@ bool AcyclicValueIteration<State, Action>::push_state(
     }
 
     ++statistics_.state_expansions;
-    expansion_stack_.emplace(state_id, std::move(remaining_aops), mdp);
+    expansion_stack_
+        .emplace(state_id, succ_info, std::move(remaining_aops), mdp);
 
     return true;
 }

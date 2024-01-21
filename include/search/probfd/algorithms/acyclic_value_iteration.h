@@ -75,6 +75,7 @@ class AcyclicValueIteration : public MDPAlgorithm<State, Action> {
 
     struct IncrementalExpansionInfo {
         const StateID state_id;
+        StateInfo& state_info;
 
         // Applicable operators left to expand
         std::vector<Action> remaining_aops;
@@ -88,14 +89,19 @@ class AcyclicValueIteration : public MDPAlgorithm<State, Action> {
 
         IncrementalExpansionInfo(
             StateID state_id,
+            StateInfo& state_info,
             std::vector<Action> remaining_aops,
             MDP& mdp);
 
         bool next_successor();
-        bool next_transition(MDP& mdp);
+        bool next_transition(MDP& mdp, MapPolicy* policy);
+
+        void backtrack_successor(value_t probability, StateInfo& succ_info);
 
     private:
         void setup_transition(MDP& mdp);
+        void finalize_transition();
+        void finalize_expansion(MapPolicy* policy);
     };
 
     Statistics statistics_;
@@ -133,15 +139,6 @@ private:
         Evaluator& heuristic,
         utils::CountdownTimer& timer,
         MapPolicy* policy);
-
-    void backtrack_successor(
-        IncrementalExpansionInfo& e,
-        value_t probability,
-        StateInfo& succ_info);
-
-    void finalize_transition(IncrementalExpansionInfo& e);
-
-    void finalize_expansion(IncrementalExpansionInfo& e, MapPolicy* policy);
 
     bool
     dfs_backtrack(MDP& mdp, utils::CountdownTimer& timer, MapPolicy* policy);
