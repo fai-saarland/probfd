@@ -69,6 +69,14 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
     struct StackInfo;
 
     struct ExplorationInfo {
+        // Immutable state
+        StateID state_id;
+        StackInfo& stack_info;
+        unsigned stackidx;
+
+        // Tarjans's algorithm state
+        unsigned lowlink;
+
         // Exploration State -- Remaining operators
         std::vector<Action> aops;
 
@@ -76,9 +84,7 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         Distribution<StateID> transition;
         typename Distribution<StateID>::const_iterator successor;
 
-        // Tarjans's algorithm state
-        unsigned stackidx;
-        unsigned lowlink;
+        value_t self_loop_prob = 0_vt;
 
         // End component decomposition state
 
@@ -88,25 +94,21 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         // transition that can remain in the MDP. Both cannot be part of an
         // end component and removing them affects connectivity of the SCCs,
         // so recursion is necessary after removal.
-        bool recurse = false;
+        bool recurse : 1 = false;
 
         // whether the transition has non-zero cost or can leave the scc
-        bool nz_or_leaves_scc;
+        bool nz_or_leaves_scc : 1;
 
-        // bool all_zero = true;
-        // Interval exit_interval = Interval(INFINITE_VALUE, -INFINITE_VALUE);
-
-        explicit ExplorationInfo(unsigned int stackidx);
-
-        bool next_transition(MDP& mdp, StackInfo& stack_info, StateID state_id);
-        bool forward_non_loop_transition(
-            MDP& mdp,
+        ExplorationInfo(
+            StateID state_id,
             StackInfo& stack_info,
-            const State& state,
-            StateID state_id);
-        bool next_successor(StackInfo& stack_info);
+            unsigned int stackidx);
 
-        Action& get_current_action();
+        bool next_transition(MDP& mdp);
+        bool forward_non_loop_transition(MDP& mdp, const State& state);
+        bool forward_non_loop_successor();
+        bool next_successor();
+
         ItemProbabilityPair<StateID> get_current_successor();
     };
 
@@ -120,14 +122,12 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         // self-loops excluded.
         std::vector<ItemProbabilityPair<StateID>> scc_successors;
 
-        // Probability to remain in the same state.
-        // Cast to the self-loop normalization factor after
-        // finalize_transition().
-        value_t self_loop_prob = 0.0_vt;
+        // Self-loop normalization factor.
+        value_t normalization = 1_vt;
 
         explicit QValueInfo(value_t action_cost);
 
-        bool finalize_transition();
+        bool finalize_transition(value_t self_loop_prob);
 
         template <typename ValueStore>
         AlgorithmValueType compute_q_value(ValueStore& value_store) const;
@@ -160,6 +160,10 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
     };
 
     struct ECDExplorationInfo {
+        // Immutable info
+        StackInfo& stack_info;
+        unsigned stackidx;
+
         // Exploration state - Action
         typename std::vector<QValueInfo>::iterator action;
         typename std::vector<QValueInfo>::iterator end;
@@ -168,34 +172,29 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         typename std::vector<ItemProbabilityPair<StateID>>::iterator successor;
 
         // Tarjan's algorithm state
-        unsigned stackidx;
         unsigned lowlink;
-
-        // Reference to the value update struct for this state.
-        StackInfo& stack_info;
 
         // End component decomposition state
 
         // ECD recursion flag. Recurse if there is a transition that can leave
         // and remain in the current scc.
-        bool recurse = false;
+        bool recurse : 1 = false;
 
         // Whether the current transition remains in or leaves the current scc.
-        bool leaves_scc = false;
-        bool remains_scc = false;
+        bool leaves_scc : 1 = false;
+        bool remains_scc : 1 = false;
 
         ECDExplorationInfo(StackInfo& stack_info, unsigned stackidx);
 
         bool next_transition();
         bool next_successor();
 
-        QValueInfo& get_current_action();
         ItemProbabilityPair<StateID> get_current_successor();
     };
 
     storage::PerStateStorage<StateInfo> state_information_;
     std::deque<ExplorationInfo> exploration_stack_;
-    std::vector<StackInfo> stack_;
+    std::deque<StackInfo> stack_;
 
     std::deque<ECDExplorationInfo> exploration_stack_ecd_;
     std::deque<StateID> stack_ecd_;
@@ -250,9 +249,7 @@ private:
         MDP& mdp,
         Evaluator& heuristic,
         ExplorationInfo& exp_info,
-        StackInfo& stack_info,
-        StateID state_id,
-        AlgorithmValueType& state_value);
+        auto& value_store);
 
     /**
      * Iterates over all possible successors and tries to find a new
@@ -265,8 +262,6 @@ private:
     bool successor_loop(
         MDP& mdp,
         ExplorationInfo& explore,
-        StackInfo& stack_info,
-        StateID state_id,
         auto& value_store,
         utils::CountdownTimer& timer);
 
@@ -276,8 +271,7 @@ private:
     void scc_found(
         auto& value_store,
         ExplorationInfo& exp_info,
-        auto begin,
-        auto end,
+        auto scc,
         utils::CountdownTimer& timer);
 
     void find_and_decompose_sccs(

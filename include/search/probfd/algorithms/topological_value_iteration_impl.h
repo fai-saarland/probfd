@@ -28,15 +28,9 @@ inline void Statistics::print(std::ostream& out) const
 
 template <typename State, typename Action, bool UseInterval>
 TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
-    ExplorationInfo(
-        std::vector<Action> aops,
-        Distribution<StateID> transition,
-        StateID state_id,
-        unsigned stackidx)
-    : aops(std::move(aops))
-    , transition(std::move(transition))
-    , successor(this->transition.begin())
-    , state_id(state_id)
+    ExplorationInfo(StateID state_id, StackInfo& stack_info, unsigned stackidx)
+    : state_id(state_id)
+    , stack_info(stack_info)
     , stackidx(stackidx)
     , lowlink(stackidx)
 {
@@ -51,20 +45,31 @@ void TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 
 template <typename State, typename Action, bool UseInterval>
 bool TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
-    next_transition(MDP& mdp, StackInfo& stack_info)
+    next_transition(MDP& mdp)
 {
-    for (aops.pop_back(); !aops.empty(); aops.pop_back()) {
-        transition.clear();
-        const State state = mdp.get_state(state_id);
-        mdp.generate_action_transitions(state, aops.back(), transition);
+    aops.pop_back();
+    transition.clear();
 
-        if (!transition.is_dirac(state_id)) {
-            successor = transition.begin();
-            stack_info.nconv_qs.emplace_back(
-                aops.back(),
-                mdp.get_action_cost(aops.back()));
-            return true;
+    self_loop_prob = 0_vt;
+
+    return !aops.empty() &&
+           forward_non_loop_transition(mdp, mdp.get_state(state_id));
+}
+
+template <typename State, typename Action, bool UseInterval>
+bool TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
+    next_successor()
+{
+    ++successor;
+    if (forward_non_loop_successor()) return true;
+
+    auto& tinfo = stack_info.nconv_qs.back();
+
+    if (tinfo.finalize_transition(self_loop_prob)) {
+        if (set_min(stack_info.conv_part, tinfo.conv_part)) {
+            stack_info.best_converged = tinfo.action;
         }
+        stack_info.nconv_qs.pop_back();
     }
 
     return false;
@@ -72,9 +77,39 @@ bool TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 
 template <typename State, typename Action, bool UseInterval>
 bool TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
-    next_successor()
+    forward_non_loop_transition(MDP& mdp, const State& state)
 {
-    return ++successor != transition.end();
+    do {
+        mdp.generate_action_transitions(state, aops.back(), transition);
+        successor = transition.begin();
+
+        if (forward_non_loop_successor()) {
+            stack_info.nconv_qs.emplace_back(
+                aops.back(),
+                mdp.get_action_cost(aops.back()));
+            return true;
+        }
+
+        aops.pop_back();
+        transition.clear();
+    } while (!aops.empty());
+
+    return false;
+}
+
+template <typename State, typename Action, bool UseInterval>
+bool TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
+    forward_non_loop_successor()
+{
+    do {
+        if (successor->item != state_id) {
+            return true;
+        }
+
+        self_loop_prob += successor->probability;
+    } while (++successor != transition.end());
+
+    return false;
 }
 
 template <typename State, typename Action, bool UseInterval>
@@ -103,15 +138,15 @@ TopologicalValueIteration<State, Action, UseInterval>::QValueInfo::QValueInfo(
 
 template <typename State, typename Action, bool UseInterval>
 bool TopologicalValueIteration<State, Action, UseInterval>::QValueInfo::
-    finalize_transition()
+    finalize_transition(value_t self_loop_prob)
 {
     if (self_loop_prob != 0_vt) {
         // Calculate self-loop normalization factor
-        self_loop_prob = 1_vt / (1_vt - self_loop_prob);
+        normalization = 1_vt / (1_vt - self_loop_prob);
 
         if (nconv_successors.empty()) {
             // Apply self-loop normalization immediately
-            conv_part *= self_loop_prob;
+            conv_part *= normalization;
         }
     }
 
@@ -128,8 +163,8 @@ auto TopologicalValueIteration<State, Action, UseInterval>::QValueInfo::
         res += prob * (*value);
     }
 
-    if (self_loop_prob != 0_vt) {
-        res *= self_loop_prob;
+    if (normalization != 1_vt) {
+        res *= normalization;
     }
 
     return res;
@@ -138,15 +173,10 @@ auto TopologicalValueIteration<State, Action, UseInterval>::QValueInfo::
 template <typename State, typename Action, bool UseInterval>
 TopologicalValueIteration<State, Action, UseInterval>::StackInfo::StackInfo(
     StateID state_id,
-    AlgorithmValueType& value_ref,
-    value_t terminal_cost,
-    unsigned num_aops)
+    AlgorithmValueType& value_ref)
     : state_id(state_id)
     , value(&value_ref)
-    , terminal_cost(terminal_cost)
-    , conv_part(terminal_cost)
 {
-    nconv_qs.reserve(num_aops);
 }
 
 template <typename State, typename Action, bool UseInterval>
@@ -239,31 +269,15 @@ Interval TopologicalValueIteration<State, Action, UseInterval>::solve(
     StateInfo& iinfo = state_information_[init_state_id];
     AlgorithmValueType& init_value = value_store[init_state_id];
 
-    if (!push_state(mdp, heuristic, init_state_id, iinfo, init_value)) {
-        if constexpr (UseInterval) {
-            return init_value;
-        } else {
-            return Interval(init_value, INFINITE_VALUE);
-        }
-    }
-
-    ExplorationInfo* explore = &exploration_stack_.back();
-    StateID state_id = explore->state_id;
-    StackInfo* stack_info = &stack_[explore->stackidx];
+    push_state(init_state_id, iinfo, init_value);
 
     for (;;) {
-        while (successor_loop(
-            mdp,
-            heuristic,
-            *explore,
-            *stack_info,
-            state_id,
-            value_store,
-            timer)) {
+        ExplorationInfo* explore;
+
+        do {
             explore = &exploration_stack_.back();
-            state_id = explore->state_id;
-            stack_info = &stack_[explore->stackidx];
-        }
+        } while (initialize_state(mdp, heuristic, *explore, value_store) &&
+                 successor_loop(mdp, *explore, value_store, timer));
 
         do {
             // Check if an SCC was found.
@@ -272,9 +286,7 @@ Interval TopologicalValueIteration<State, Action, UseInterval>::solve(
             const bool onstack = stack_id != lowlink;
 
             if (!onstack) {
-                const auto begin = stack_.begin() + stack_id;
-                const auto end = stack_.end();
-                scc_found(begin, end, policy, timer);
+                scc_found(stack_ | std::views::drop(stack_id), policy, timer);
             }
 
             exploration_stack_.pop_back();
@@ -290,12 +302,10 @@ Interval TopologicalValueIteration<State, Action, UseInterval>::solve(
             timer.throw_if_expired();
 
             explore = &exploration_stack_.back();
-            state_id = explore->state_id;
-            stack_info = &stack_[explore->stackidx];
 
             const auto [succ_id, prob] = explore->get_current_successor();
             AlgorithmValueType& s_value = value_store[succ_id];
-            QValueInfo& tinfo = stack_info->nconv_qs.back();
+            QValueInfo& tinfo = explore->stack_info.nconv_qs.back();
 
             if (onstack) {
                 explore->update_lowlink(lowlink);
@@ -303,118 +313,78 @@ Interval TopologicalValueIteration<State, Action, UseInterval>::solve(
             } else {
                 tinfo.conv_part += prob * s_value;
             }
-
-            if (explore->next_successor()) {
-                break;
-            }
-
-            if (tinfo.finalize_transition()) {
-                set_min(stack_info->conv_part, tinfo.conv_part);
-                stack_info->nconv_qs.pop_back();
-            }
-        } while (!explore->next_transition(mdp, *stack_info));
+        } while (
+            (!explore->next_successor() && !explore->next_transition(mdp)) ||
+            !successor_loop(mdp, *explore, value_store, timer));
     }
 }
 
 template <typename State, typename Action, bool UseInterval>
-bool TopologicalValueIteration<State, Action, UseInterval>::push_state(
-    MDP& mdp,
-    Evaluator& heuristic,
+void TopologicalValueIteration<State, Action, UseInterval>::push_state(
     StateID state_id,
     StateInfo& state_info,
     AlgorithmValueType& state_value)
 {
-    assert(state_info.status == StateInfo::NEW);
+    const std::size_t stack_size = stack_.size();
+    exploration_stack_.emplace_back(
+        state_id,
+        stack_.emplace_back(state_id, state_value),
+        stack_size);
+    state_info.stack_id = stack_size;
+    state_info.status = StateInfo::ONSTACK;
+}
 
-    const State state = mdp.get_state(state_id);
+template <typename State, typename Action, bool UseInterval>
+bool TopologicalValueIteration<State, Action, UseInterval>::initialize_state(
+    MDP& mdp,
+    Evaluator& heuristic,
+    ExplorationInfo& exp_info,
+    auto& value_store)
+{
+    assert(state_information_[exp_info.state_id].status == StateInfo::NEW);
+
+    const State state = mdp.get_state(exp_info.state_id);
 
     const TerminationInfo state_eval = mdp.get_termination_info(state);
     const value_t t_cost = state_eval.get_cost();
     const value_t estimate = heuristic.evaluate(state);
 
+    exp_info.stack_info.conv_part = AlgorithmValueType(t_cost);
+
+    AlgorithmValueType& state_value = value_store[exp_info.state_id];
+
+    if constexpr (UseInterval) {
+        state_value.lower = estimate;
+        state_value.upper = t_cost;
+    } else {
+        state_value = estimate;
+    }
+
     if (state_eval.is_goal_state()) {
         ++statistics_.goal_states;
 
         if (!expand_goals_) {
-            ++statistics_.terminal_states;
-
-            state_value = AlgorithmValueType(0_vt);
-            state_info.status = StateInfo::CLOSED;
-
+            ++statistics_.pruned;
             return false;
         }
     } else if (estimate == t_cost) {
         ++statistics_.pruned;
-
-        state_value = AlgorithmValueType(estimate);
-        state_info.status = StateInfo::CLOSED;
-
         return false;
     }
 
-    state_info.status = StateInfo::ONSTACK;
+    mdp.generate_applicable_actions(state, exp_info.aops);
 
-    std::vector<Action> aops;
-    mdp.generate_applicable_actions(state, aops);
+    const size_t num_aops = exp_info.aops.size();
+
+    exp_info.stack_info.nconv_qs.reserve(num_aops);
+
     ++statistics_.expanded_states;
 
-    if (aops.empty()) {
+    if (exp_info.aops.empty()) {
         ++statistics_.terminal_states;
-
-        state_value = AlgorithmValueType(t_cost);
-        state_info.status = StateInfo::CLOSED;
-
-        return false;
+    } else if (exp_info.forward_non_loop_transition(mdp, state)) {
+        return true;
     }
-
-    /************** Forward to first non self loop ****************/
-    Distribution<StateID> transition;
-
-    do {
-        Action& current_op = aops.back();
-
-        mdp.generate_action_transitions(state, aops.back(), transition);
-
-        assert(!transition.empty());
-
-        // Check for self loop
-        if (!transition.is_dirac(state_id)) {
-            if constexpr (UseInterval) {
-                assert(t_cost >= estimate);
-                state_value.lower = estimate;
-                state_value.upper = t_cost;
-            } else {
-                state_value = estimate;
-            }
-
-            std::size_t stack_size = stack_.size();
-
-            state_info.stack_id = stack_size;
-
-            // Found non-self loop action, push and return success.
-            auto& s_info =
-                stack_.emplace_back(state_id, state_value, t_cost, aops.size());
-
-            s_info.nconv_qs.emplace_back(
-                current_op,
-                mdp.get_action_cost(current_op));
-
-            exploration_stack_.emplace_back(
-                std::move(aops),
-                std::move(transition),
-                state_id,
-                stack_size);
-
-            return true;
-        }
-
-        aops.pop_back();
-        transition.clear();
-    } while (!aops.empty());
-    /*****************************************************************/
-
-    state_value = AlgorithmValueType(t_cost);
-    state_info.status = StateInfo::CLOSED;
 
     return false;
 }
@@ -423,38 +393,29 @@ template <typename State, typename Action, bool UseInterval>
 template <typename ValueStore>
 bool TopologicalValueIteration<State, Action, UseInterval>::successor_loop(
     MDP& mdp,
-    Evaluator& heuristic,
     ExplorationInfo& explore,
-    StackInfo& stack_info,
-    StateID state_id,
     ValueStore& value_store,
     utils::CountdownTimer& timer)
 {
     do {
-        assert(!stack_info.nconv_qs.empty());
-
-        QValueInfo& tinfo = stack_info.nconv_qs.back();
+        assert(!explore.stack_info.nconv_qs.empty());
+        QValueInfo& tinfo = explore.stack_info.nconv_qs.back();
 
         do {
             timer.throw_if_expired();
 
             const auto [succ_id, prob] = explore.get_current_successor();
-
-            if (succ_id == state_id) {
-                tinfo.self_loop_prob += prob;
-                continue;
-            }
-
+            assert(succ_id != explore.state_id);
             StateInfo& succ_info = state_information_[succ_id];
             AlgorithmValueType& s_value = value_store[succ_id];
 
             switch (succ_info.status) {
-            case StateInfo::NEW:
-                if (push_state(mdp, heuristic, succ_id, succ_info, s_value)) {
-                    return true; // recursion on new state
-                }
+            default: abort();
+            case StateInfo::NEW: {
+                push_state(succ_id, succ_info, s_value);
+                return true; // recursion on new state
+            }
 
-                [[fallthrough]];
             case StateInfo::CLOSED: tinfo.conv_part += prob * s_value; break;
 
             case StateInfo::ONSTACK:
@@ -462,50 +423,37 @@ bool TopologicalValueIteration<State, Action, UseInterval>::successor_loop(
                 tinfo.nconv_successors.emplace_back(&s_value, prob);
             }
         } while (explore.next_successor());
-
-        if (tinfo.finalize_transition()) {
-            if (set_min(stack_info.conv_part, tinfo.conv_part)) {
-                stack_info.best_converged = tinfo.action;
-            }
-            stack_info.nconv_qs.pop_back();
-        }
-    } while (explore.next_transition(mdp, stack_info));
+    } while (explore.next_transition(mdp));
 
     return false;
 }
 
 template <typename State, typename Action, bool UseInterval>
 void TopologicalValueIteration<State, Action, UseInterval>::scc_found(
-    StackIterator begin,
-    StackIterator end,
+    auto scc,
     MapPolicy* policy,
     utils::CountdownTimer& timer)
 {
-    assert(begin != end);
+    assert(!scc.empty());
 
     ++statistics_.sccs;
 
-    if (std::distance(begin, end) == 1) {
+    if (scc.size() == 1) {
         // Singleton SCCs can only transition to a child SCC. The state
         // value has already converged due to topological ordering.
         ++statistics_.singleton_sccs;
-        StateInfo& state_info = state_information_[begin->state_id];
-        update(*begin->value, begin->conv_part);
+        StackInfo& single = scc.front();
+        StateInfo& state_info = state_information_[single.state_id];
+        update(*single.value, single.conv_part);
         assert(state_info.status == StateInfo::ONSTACK);
         state_info.status = StateInfo::CLOSED;
     } else {
         // Mark all states as closed
-        {
-            auto it = begin;
-            do {
-                StackInfo& stack_it = *it;
-                StateInfo& state_it = state_information_[stack_it.state_id];
-
-                assert(state_it.status == StateInfo::ONSTACK);
-                assert(!stack_it.nconv_qs.empty());
-
-                state_it.status = StateInfo::CLOSED;
-            } while (++it != end);
+        for (StackInfo& stk_info : scc) {
+            StateInfo& state_info = state_information_[stk_info.state_id];
+            assert(state_info.status == StateInfo::ONSTACK);
+            assert(!stk_info.nconv_qs.empty());
+            state_info.status = StateInfo::CLOSED;
         }
 
         // Now run VI on the SCC until convergence
@@ -515,35 +463,33 @@ void TopologicalValueIteration<State, Action, UseInterval>::scc_found(
             timer.throw_if_expired();
 
             converged = true;
-            auto it = begin;
+            auto it = scc.begin();
 
             do {
                 if (it->update_value()) converged = false;
                 ++statistics_.bellman_backups;
-            } while (++it != end);
+            } while (++it != scc.end());
         } while (!converged);
 
         // Extract a policy from this SCC
         if (policy) {
-            auto it = begin;
-
-            do {
+            for (StackInfo& stk_info : scc) {
                 if constexpr (UseInterval) {
                     policy->emplace_decision(
-                        it->state_id,
-                        *it->best_action,
-                        *it->value);
+                        stk_info.state_id,
+                        *stk_info.best_action,
+                        *stk_info.value);
                 } else {
                     policy->emplace_decision(
-                        it->state_id,
-                        *it->best_action,
-                        Interval(*it->value, INFINITE_VALUE));
+                        stk_info.state_id,
+                        *stk_info.best_action,
+                        Interval(*stk_info.value, INFINITE_VALUE));
                 }
-            } while (++it != end);
+            }
         }
     }
 
-    stack_.erase(begin, end);
+    stack_.erase(scc.begin(), scc.end());
 }
 
 } // namespace probfd::algorithms::topological_vi

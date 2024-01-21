@@ -90,7 +90,7 @@ class TopologicalValueIteration : public MDPAlgorithm<State, Action> {
         // Probability to remain in the same state.
         // Cast to the self-loop normalization factor after
         // finalize_transition().
-        value_t self_loop_prob = 0_vt;
+        value_t normalization = 1_vt;
 
         // Precomputed part of the Q-value.
         // Sum of action cost plus those weighted successor values which
@@ -103,7 +103,7 @@ class TopologicalValueIteration : public MDPAlgorithm<State, Action> {
 
         QValueInfo(Action action, value_t action_cost);
 
-        bool finalize_transition();
+        bool finalize_transition(value_t self_loop_prob);
 
         AlgorithmValueType compute_q_value() const;
     };
@@ -113,9 +113,6 @@ class TopologicalValueIteration : public MDPAlgorithm<State, Action> {
 
         // Reference to the state value of the state.
         AlgorithmValueType* value;
-
-        // The state cost
-        AlgorithmValueType terminal_cost;
 
         // Precomputed part of the max of the value update.
         // Minimum over all Q values of actions leaving the SCC.
@@ -130,11 +127,7 @@ class TopologicalValueIteration : public MDPAlgorithm<State, Action> {
         // The optimal action among those leaving the SCC.
         std::optional<Action> best_converged = std::nullopt;
 
-        StackInfo(
-            StateID state_id,
-            AlgorithmValueType& value_ref,
-            value_t terminal_cost,
-            unsigned num_aops);
+        StackInfo(StateID state_id, AlgorithmValueType& value_ref);
 
         bool update_value();
     };
@@ -147,21 +140,26 @@ class TopologicalValueIteration : public MDPAlgorithm<State, Action> {
 
     public:
         // Immutable info
-        StateID state_id;  // State this information belongs to
+        StateID state_id; // State this information belongs to
+        StackInfo& stack_info;
         unsigned stackidx; // Index on the stack of the associated state
 
         unsigned lowlink;
 
+        value_t self_loop_prob = 0_vt;
+
         ExplorationInfo(
-            std::vector<Action> aops,
-            Distribution<StateID> transition,
             StateID state_id,
+            StackInfo& stack_info,
             unsigned stackidx);
 
         void update_lowlink(unsigned upd);
 
-        bool next_transition(MDP& mdp, StackInfo& stack_info);
+        bool next_transition(MDP& mdp);
         bool next_successor();
+
+        bool forward_non_loop_transition(MDP& mdp, const State& state);
+        bool forward_non_loop_successor();
 
         Action& get_current_action();
         ItemProbabilityPair<StateID> get_current_successor();
@@ -224,12 +222,21 @@ private:
      * onto the queue unless it is terminal modulo self-loops. Returns
      * true if the state was pushed.
      */
-    bool push_state(
-        MDP& mdp,
-        Evaluator& heuristic,
+    void push_state(
         StateID state_id,
         StateInfo& state_info,
         AlgorithmValueType& state_value);
+
+    /**
+     * Initializes the data structures for this new state and pushes it
+     * onto the queue unless it is terminal modulo self-loops. Returns
+     * true if the state was pushed.
+     */
+    bool initialize_state(
+        MDP& mdp,
+        Evaluator& heuristic,
+        ExplorationInfo& exp_info,
+        auto& value_store);
 
     /**
      * Iterates over all possible successors and tries to find a new
@@ -242,21 +249,14 @@ private:
     template <typename ValueStore>
     bool successor_loop(
         MDP& mdp,
-        Evaluator& heuristic,
         ExplorationInfo& explore,
-        StackInfo& stack_info,
-        StateID state_id,
         ValueStore& value_store,
         utils::CountdownTimer& timer);
 
     /**
      * Handle the new SCC and perform value iteration on it.
      */
-    void scc_found(
-        StackIterator begin,
-        StackIterator end,
-        MapPolicy* policy,
-        utils::CountdownTimer& timer);
+    void scc_found(auto scc, MapPolicy* policy, utils::CountdownTimer& timer);
 };
 
 } // namespace probfd::algorithms::topological_vi
