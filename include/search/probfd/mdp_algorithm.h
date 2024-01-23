@@ -3,6 +3,7 @@
 
 #include "probfd/policies/empty_policy.h"
 
+#include "probfd/progress_report.h"
 #include "probfd/type_traits.h"
 
 #include <limits>
