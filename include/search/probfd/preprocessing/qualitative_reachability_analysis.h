@@ -102,15 +102,18 @@ class QualitativeReachabilityAnalysis {
     using StackInfo = internal::StackInfo;
 
     struct ExpansionInfo {
-        const StateID state_id;
+        StateID state_id;
+        StackInfo& stack_info;
+        StateInfo& state_info;
 
         // Tarjan's SCC algorithm: stack id and lowlink
-        const unsigned stck;
+        unsigned stck;
         unsigned lstck;
 
-        bool exits_only_solvable = true;
-        bool transitions_in_scc = false;
-        bool exits_scc = false;
+        // Temporary transition flags
+        bool exits_only_solvable : 1 = true;
+        bool exits_scc : 1 = false;
+        bool transitions_in_scc : 1 = false;
 
         // Mutable info
         std::vector<Action> aops;         // Remaining unexpanded operators
@@ -118,7 +121,11 @@ class QualitativeReachabilityAnalysis {
         // Next state to expand
         typename Distribution<StateID>::const_iterator successor;
 
-        explicit ExpansionInfo(StateID state_id, unsigned int stck);
+        explicit ExpansionInfo(
+            StateID state_id,
+            StackInfo& stack_info,
+            StateInfo& state_info,
+            unsigned int stck);
 
         /**
          * Advances to the next non-loop action. Returns nullptr if such an
@@ -126,7 +133,7 @@ class QualitativeReachabilityAnalysis {
          */
         bool next_action(MDP& mdp);
         bool forward_non_self_loop(MDP& mdp, const State& state);
-        bool next_successor(StackInfo& s);
+        bool next_successor();
 
         StateID get_current_successor();
     };
@@ -135,7 +142,7 @@ class QualitativeReachabilityAnalysis {
 
     storage::PerStateStorage<StateInfo> state_infos_;
     std::deque<ExpansionInfo> expansion_queue_;
-    std::vector<StackInfo> stack_;
+    std::deque<StackInfo> stack_;
 
     QRStatistics stats_;
 
@@ -157,26 +164,14 @@ private:
     bool initialize(
         MDP& mdp,
         const Evaluator* pruning_function,
-        ExpansionInfo& exp_info,
-        StackInfo& stack_info,
-        StateInfo& state_info);
+        ExpansionInfo& exp_info);
 
-    bool push_successor(
-        MDP& mdp,
-        ExpansionInfo& e,
-        StackInfo& s,
-        StateInfo& st,
-        utils::CountdownTimer& timer);
+    bool
+    push_successor(MDP& mdp, ExpansionInfo& e, utils::CountdownTimer& timer);
 
     void scc_found(
-        std::ranges::random_access_range auto&& scc,
+        unsigned int stack_idx,
         std::output_iterator<StateID> auto dead_out,
-        std::output_iterator<StateID> auto unsolvable_out,
-        std::output_iterator<StateID> auto solvable_out,
-        utils::CountdownTimer& timer);
-
-    void compute_solvable(
-        std::ranges::random_access_range auto&& scc,
         std::output_iterator<StateID> auto unsolvable_out,
         std::output_iterator<StateID> auto solvable_out,
         utils::CountdownTimer& timer);
