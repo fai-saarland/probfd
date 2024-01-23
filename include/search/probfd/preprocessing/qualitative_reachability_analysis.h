@@ -102,6 +102,8 @@ class QualitativeReachabilityAnalysis {
     using StackInfo = internal::StackInfo;
 
     struct ExpansionInfo {
+        const StateID state_id;
+
         // Tarjan's SCC algorithm: stack id and lowlink
         const unsigned stck;
         unsigned lstck;
@@ -116,15 +118,14 @@ class QualitativeReachabilityAnalysis {
         // Next state to expand
         typename Distribution<StateID>::const_iterator successor;
 
-        explicit ExpansionInfo(unsigned int stck);
+        explicit ExpansionInfo(StateID state_id, unsigned int stck);
 
         /**
          * Advances to the next non-loop action. Returns nullptr if such an
          * action does not exist.
          */
-        bool next_action(MDP& mdp, StateID state_id);
-        bool
-        forward_non_self_loop(MDP& mdp, const State& state, StateID state_id);
+        bool next_action(MDP& mdp);
+        bool forward_non_self_loop(MDP& mdp, const State& state);
         bool next_successor(StackInfo& s);
 
         StateID get_current_successor();

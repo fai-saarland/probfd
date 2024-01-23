@@ -60,16 +60,17 @@ inline StackInfo::StackInfo(StateID sid)
 
 template <typename State, typename Action>
 QualitativeReachabilityAnalysis<State, Action>::ExpansionInfo::ExpansionInfo(
+    StateID state_id,
     unsigned int stck)
-    : stck(stck)
+    : state_id(state_id)
+    , stck(stck)
     , lstck(stck)
 {
 }
 
 template <typename State, typename Action>
 bool QualitativeReachabilityAnalysis<State, Action>::ExpansionInfo::next_action(
-    MDP& mdp,
-    StateID state_id)
+    MDP& mdp)
 {
     // Reset transition flags
     exits_only_solvable = true;
@@ -79,13 +80,12 @@ bool QualitativeReachabilityAnalysis<State, Action>::ExpansionInfo::next_action(
     aops.pop_back();
     transition.clear();
 
-    return !aops.empty() &&
-           forward_non_self_loop(mdp, mdp.get_state(state_id), state_id);
+    return !aops.empty() && forward_non_self_loop(mdp, mdp.get_state(state_id));
 }
 
 template <typename State, typename Action>
 bool QualitativeReachabilityAnalysis<State, Action>::ExpansionInfo::
-    forward_non_self_loop(MDP& mdp, const State& state, StateID state_id)
+    forward_non_self_loop(MDP& mdp, const State& state)
 {
     do {
         mdp.generate_action_transitions(state, aops.back(), transition);
@@ -216,7 +216,7 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
             }
 
             st->dead = st->dead && bt_info.dead;
-        } while ((!e->next_successor(*s) && !e->next_action(mdp, s->stateid)) ||
+        } while ((!e->next_successor(*s) && !e->next_action(mdp)) ||
                  !push_successor(mdp, *e, *s, *st, timer));
     }
 }
@@ -264,7 +264,7 @@ bool QualitativeReachabilityAnalysis<State, Action>::initialize(
         return false;
     }
 
-    return exp_info.forward_non_self_loop(mdp, state, state_id);
+    return exp_info.forward_non_self_loop(mdp, state);
 }
 
 template <typename State, typename Action>
@@ -275,7 +275,7 @@ void QualitativeReachabilityAnalysis<State, Action>::push_state(
     const std::size_t stack_size = stack_.size();
     state_info.stackid = stack_size;
     stack_.emplace_back(state_id);
-    expansion_queue_.emplace_back(stack_size);
+    expansion_queue_.emplace_back(state_id, stack_size);
 }
 
 template <typename State, typename Action>
@@ -314,7 +314,7 @@ bool QualitativeReachabilityAnalysis<State, Action>::push_successor(
         }
 
         st.dead = st.dead && succ_info.dead;
-    } while (e.next_successor(s) || e.next_action(mdp, s.stateid));
+    } while (e.next_successor(s) || e.next_action(mdp));
 
     return false;
 }
