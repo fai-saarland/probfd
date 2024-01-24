@@ -177,25 +177,21 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
             timer.throw_if_expired();
 
             const unsigned stck = e->stck;
+            const unsigned lstck = e->lstck;
+            const bool backtrack_from_scc = stck == lstck;
 
-            if (stck == 0) {
-                assert(e->lstck == 0);
-
-                scc_found(0, dead_out, unsolvable_out, solvable_out, timer);
-                expansion_queue_.pop_back();
-                return;
+            if (backtrack_from_scc) {
+                scc_found(stck, dead_out, unsolvable_out, solvable_out, timer);
             }
 
-            const unsigned lstck = e->lstck;
-
             ExpansionInfo successor(std::move(*e));
-
             expansion_queue_.pop_back();
+
+            if (expansion_queue_.empty()) return;
+
             e = &expansion_queue_.back();
 
-            if (stck == lstck) {
-                scc_found(stck, dead_out, unsolvable_out, solvable_out, timer);
-
+            if (backtrack_from_scc) {
                 if (!successor.state_info.solvable)
                     e->exits_only_solvable = false;
                 e->exits_scc = true;
@@ -291,6 +287,8 @@ bool QualitativeReachabilityAnalysis<State, Action>::push_successor(
             exp_info.exits_only_solvable =
                 exp_info.exits_only_solvable && succ_info.solvable;
             exp_info.exits_scc = true;
+            exp_info.state_info.dead =
+                exp_info.state_info.dead && succ_info.dead;
             break;
 
         case StateInfo::ONSTACK: // Same SCC
@@ -304,8 +302,6 @@ bool QualitativeReachabilityAnalysis<State, Action>::push_successor(
                 exp_info.stck,
                 exp_info.stack_info.transition_flags.size());
         }
-
-        exp_info.state_info.dead = exp_info.state_info.dead && succ_info.dead;
     } while (exp_info.next_successor() || exp_info.next_action(mdp));
 
     return false;
