@@ -61,9 +61,20 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         // Status Flags
         enum { NEW, CLOSED, ONSTACK };
 
-        uint8_t status = NEW;
-        unsigned stack_id = std::numeric_limits<unsigned>::max();
-        unsigned ecd_stack_id = std::numeric_limits<unsigned>::max();
+        static constexpr uint32_t UNDEF =
+            std::numeric_limits<uint32_t>::max() >> 1;
+        static constexpr uint32_t UNDEF_ECD =
+            std::numeric_limits<uint32_t>::max();
+
+        unsigned explored : 1 = 0;
+        unsigned stack_id : 31 = UNDEF;
+        unsigned ecd_stack_id = UNDEF_ECD;
+
+        [[nodiscard]]
+        auto get_status() const;
+
+        [[nodiscard]]
+        auto get_ecd_status() const;
     };
 
     struct StackInfo;
