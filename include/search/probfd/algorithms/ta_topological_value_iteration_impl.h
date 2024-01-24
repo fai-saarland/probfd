@@ -308,10 +308,13 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
         do {
             const unsigned stack_id = explore->stackidx;
             const unsigned lowlink = explore->lowlink;
-            const bool onstack = stack_id != lowlink;
+
+            assert(stack_id >= lowlink);
+
+            const bool backtrack_from_scc = stack_id == lowlink;
 
             // Check if an SCC was found.
-            if (!onstack) {
+            if (backtrack_from_scc) {
                 scc_found(
                     value_store,
                     *explore,
@@ -319,8 +322,7 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
                     timer);
             }
 
-            const bool recurse = explore->recurse;
-
+            ExplorationInfo successor(std::move(*explore));
             exploration_stack_.pop_back();
 
             if (exploration_stack_.empty()) {
@@ -336,21 +338,20 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
             explore = &exploration_stack_.back();
 
             const auto [succ_id, prob] = explore->get_current_successor();
-
             QValueInfo& tinfo = explore->stack_info.ec_transitions.back();
 
-            if (onstack) {
-                explore->lowlink = std::min(explore->lowlink, lowlink);
-                explore->recurse =
-                    explore->recurse || recurse || explore->nz_or_leaves_scc;
-
-                tinfo.scc_successors.emplace_back(succ_id, prob);
-            } else {
+            if (backtrack_from_scc) {
                 explore->recurse =
                     explore->recurse || !tinfo.scc_successors.empty();
                 explore->nz_or_leaves_scc = true;
 
                 tinfo.conv_part += prob * value_store[succ_id];
+            } else {
+                explore->lowlink = std::min(explore->lowlink, lowlink);
+                explore->recurse = explore->recurse || successor.recurse ||
+                                   explore->nz_or_leaves_scc;
+
+                tinfo.scc_successors.emplace_back(succ_id, prob);
             }
         } while (
             (!explore->next_successor() && !explore->next_transition(mdp)) ||
@@ -605,18 +606,18 @@ void TATopologicalValueIteration<State, Action, UseInterval>::
 
         // Iterative backtracking
         do {
-            const bool recurse = e->recurse;
             const unsigned int stck = e->stackidx;
             const unsigned int lowlink = e->lowlink;
 
             assert(stck >= lowlink);
 
-            const bool is_onstack = stck != lowlink;
+            const bool backtracked_from_scc = stck == lowlink;
 
-            if (!is_onstack) {
+            if (backtracked_from_scc) {
                 scc_found_ecd(*e, timer);
             }
 
+            ECDExplorationInfo successor(std::move(*e));
             exploration_stack_ecd_.pop_back();
 
             if (exploration_stack_ecd_.size() == limit) {
@@ -627,13 +628,13 @@ void TATopologicalValueIteration<State, Action, UseInterval>::
 
             e = &exploration_stack_ecd_.back();
 
-            if (is_onstack) {
-                e->lowlink = std::min(e->lowlink, lowlink);
-                e->recurse = e->recurse || recurse || e->leaves_scc;
-                e->remains_scc = true;
-            } else {
+            if (backtracked_from_scc) {
                 e->recurse = e->recurse || e->remains_scc;
                 e->leaves_scc = true;
+            } else {
+                e->lowlink = std::min(e->lowlink, lowlink);
+                e->recurse = e->recurse || successor.recurse || e->leaves_scc;
+                e->remains_scc = true;
             }
         } while ((!e->next_successor() && !e->next_transition()) ||
                  !push_successor_ecd(*e, timer));
