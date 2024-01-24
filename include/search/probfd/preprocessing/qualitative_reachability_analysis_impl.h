@@ -41,14 +41,9 @@ inline void QRStatistics::print(std::ostream& out) const
 
 namespace internal {
 
-inline bool StateInfo::onstack() const
-{
-    return stackid < UNDEF;
-}
-
 inline auto StateInfo::get_status() const
 {
-    return explored ? (onstack() ? ONSTACK : CLOSED) : NEW;
+    return explored ? (stackid < UNDEF ? ONSTACK : CLOSED) : NEW;
 }
 
 inline StackInfo::StackInfo(StateID sid)
