@@ -108,7 +108,8 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         bool recurse : 1 = false;
 
         // whether the transition has non-zero cost or can leave the scc
-        bool nz_or_leaves_scc : 1;
+        bool non_zero : 1;
+        bool leaves_scc : 1 = false;
 
         ExplorationInfo(
             StateID state_id,
