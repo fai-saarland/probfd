@@ -28,6 +28,20 @@ inline void Statistics::print(std::ostream& out) const
 }
 
 template <typename State, typename Action, bool UseInterval>
+auto TATopologicalValueIteration<State, Action, UseInterval>::StateInfo::
+    get_status() const
+{
+    return explored ? (stack_id < UNDEF ? ONSTACK : CLOSED) : NEW;
+}
+
+template <typename State, typename Action, bool UseInterval>
+auto TATopologicalValueIteration<State, Action, UseInterval>::StateInfo::
+    get_ecd_status() const
+{
+    return explored ? (ecd_stack_id < UNDEF_ECD ? ONSTACK : CLOSED) : NEW;
+}
+
+template <typename State, typename Action, bool UseInterval>
 TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
     ExplorationInfo(
         StateID state_id,
@@ -370,8 +384,8 @@ void TATopologicalValueIteration<State, Action, UseInterval>::push_state(
         state_id,
         stack_.emplace_back(state_id, value),
         stack_size);
+    state_info.explored = 1;
     state_info.stack_id = stack_size;
-    state_info.status = StateInfo::ONSTACK;
 }
 
 template <typename State, typename Action, bool UseInterval>
@@ -391,7 +405,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
 
         StateInfo& succ_info = state_information_[succ_id];
 
-        switch (succ_info.status) {
+        switch (succ_info.get_status()) {
         default: abort();
         case StateInfo::NEW: {
             push_state(succ_id, succ_info, value_store[succ_id]);
@@ -427,7 +441,9 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::initialize_state(
     ExplorationInfo& exp_info,
     auto& value_store)
 {
-    assert(state_information_[exp_info.state_id].status == StateInfo::ONSTACK);
+    assert(
+        state_information_[exp_info.state_id].get_status() ==
+        StateInfo::ONSTACK);
 
     const State state = mdp.get_state(exp_info.state_id);
 
@@ -488,9 +504,9 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
          exp_info.all_zero)) {
         for (auto it = begin; it != end; ++it) {
             StateInfo& state_info = state_information_[begin->state_id];
-            assert(state_info.status == StateInfo::ONSTACK);
+            assert(state_info.get_status() == StateInfo::ONSTACK);
             update(*begin->value, exp_info.exit_interval.lower);
-            state_info.status = StateInfo::CLOSED;
+            state_info.stack_id = StateInfo::UNDEF;
         }
 
         stack_.erase(begin, end);
@@ -503,9 +519,9 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
         // The state value is therefore the base value.
         StackInfo& single = scc.front();
         StateInfo& state_info = state_information_[single.state_id];
-        assert(state_info.status == StateInfo::ONSTACK);
+        assert(state_info.get_status() == StateInfo::ONSTACK);
         update(*single.value, single.conv_part);
-        state_info.status = StateInfo::CLOSED;
+        state_info.stack_id = StateInfo::UNDEF;
         ++statistics_.singleton_sccs;
         stack_.pop_back();
         return;
@@ -515,20 +531,26 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
         // Run recursive EC Decomposition
         for (StackInfo& stack_info : scc) {
             StateInfo& state_info = state_information_[stack_info.state_id];
-            assert(state_info.status == StateInfo::ONSTACK);
-            state_info.status = StateInfo::NEW;
+            assert(state_info.get_status() == StateInfo::ONSTACK);
+            state_info.explored = 0;
         }
 
         for (StackInfo& stack_info : scc) {
             const StateID id = stack_info.state_id;
             StateInfo& state_info = state_information_[id];
 
-            if (state_info.status == StateInfo::NEW) {
+            if (state_info.get_ecd_status() == StateInfo::NEW) {
                 // Run decomposition
                 find_and_decompose_sccs(id, state_info, timer);
             }
 
-            assert(state_info.status == StateInfo::CLOSED);
+            assert(state_info.get_ecd_status() == StateInfo::CLOSED);
+        }
+
+        for (StackInfo& stack_info : scc) {
+            StateInfo& state_info = state_information_[stack_info.state_id];
+            state_info.stack_id = StateInfo::UNDEF;
+            assert(state_info.get_status() == StateInfo::CLOSED);
         }
 
         assert(exploration_stack_ecd_.empty());
@@ -536,11 +558,11 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
         // We found an end component, patch it
         StackInfo& repr_stk = scc.front();
         const StateID scc_repr_id = repr_stk.state_id;
-        state_information_[scc_repr_id].status = StateInfo::CLOSED;
+        state_information_[scc_repr_id].stack_id = StateInfo::UNDEF;
 
         // Spider construction
         for (StackInfo& succ_stk : scc | std::views::drop(1)) {
-            state_information_[succ_stk.state_id].status = StateInfo::CLOSED;
+            state_information_[succ_stk.state_id].stack_id = StateInfo::UNDEF;
 
             // Move all non-EC transitions to representative state
             std::move(
@@ -589,8 +611,8 @@ void TATopologicalValueIteration<State, Action, UseInterval>::
     const unsigned limit = exploration_stack_ecd_.size();
 
     const auto stack_size = stack_ecd_.size();
+    state_info.explored = 1;
     state_info.ecd_stack_id = stack_size;
-    state_info.status = StateInfo::ONSTACK;
     exploration_stack_ecd_.emplace_back(
         stack_[state_info.stack_id],
         stack_size);
@@ -651,11 +673,11 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::
         const StateID succ_id = e.get_current_successor().item;
         StateInfo& succ_info = state_information_[succ_id];
 
-        switch (succ_info.status) {
+        switch (succ_info.get_ecd_status()) {
         case StateInfo::NEW: {
             const auto stack_size = stack_ecd_.size();
+            succ_info.explored = 1;
             succ_info.ecd_stack_id = stack_size;
-            succ_info.status = StateInfo::ONSTACK;
             exploration_stack_ecd_.emplace_back(
                 stack_[succ_info.stack_id],
                 stack_size);
@@ -706,22 +728,24 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found_ecd(
 
     if (std::distance(scc_begin, scc_end) == 1) {
         const StateID scc_repr_id = *scc_begin;
-        state_information_[scc_repr_id].status = StateInfo::CLOSED;
+        state_information_[scc_repr_id].ecd_stack_id = StateInfo::UNDEF_ECD;
     } else if (e.recurse) {
         for (auto it = scc_begin; it != scc_end; ++it) {
-            state_information_[*it].status = StateInfo::NEW;
+            StateInfo& state_info = state_information_[*it];
+            state_info.explored = 0;
+            state_info.ecd_stack_id = StateInfo::UNDEF_ECD;
         }
 
         for (unsigned i = e.stackidx; i < stack_ecd_.size(); ++i) {
             const StateID id = stack_ecd_[i];
             StateInfo& state_info = state_information_[id];
 
-            if (state_info.status == StateInfo::NEW) {
+            if (state_info.get_ecd_status() == StateInfo::NEW) {
                 // Recursively run decomposition
                 find_and_decompose_sccs(id, state_info, timer);
             }
 
-            assert(state_info.status == StateInfo::CLOSED);
+            assert(state_info.get_ecd_status() == StateInfo::CLOSED);
         }
     } else {
         // We found an end component, patch it
@@ -729,14 +753,14 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found_ecd(
         StateInfo& repr_state_info = state_information_[scc_repr_id];
         StackInfo& repr_stk = stack_[repr_state_info.stack_id];
 
-        repr_state_info.status = StateInfo::CLOSED;
+        repr_state_info.ecd_stack_id = StateInfo::UNDEF_ECD;
 
         // Spider construction
         for (auto it = scc_begin + 1; it != scc_end; ++it) {
             StateInfo& state_info = state_information_[*it];
             StackInfo& succ_stk = stack_[state_info.stack_id];
 
-            state_info.status = StateInfo::CLOSED;
+            state_info.ecd_stack_id = StateInfo::UNDEF_ECD;
 
             // Move all non-EC transitions to representative state
             std::move(
