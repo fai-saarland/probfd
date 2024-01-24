@@ -52,9 +52,6 @@ struct StateInfo {
     unsigned stackid : 29 = UNDEF;
 
     [[nodiscard]]
-    bool onstack() const;
-
-    [[nodiscard]]
     auto get_status() const;
 };
 
