@@ -192,7 +192,7 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
             e = &expansion_queue_.back();
 
             if (backtrack_from_scc) {
-                if (successor.state_info.solvable)
+                if (!successor.state_info.solvable)
                     e->exits_only_solvable = false;
                 e->exits_scc = true;
             } else {
