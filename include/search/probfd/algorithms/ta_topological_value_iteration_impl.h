@@ -76,7 +76,8 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 
         if (forward_non_loop_successor()) {
             const auto cost = mdp.get_action_cost(aops.back());
-            nz_or_leaves_scc = cost != 0.0_vt;
+            non_zero = cost != 0.0_vt;
+            if (non_zero) recurse = true;
             stack_info.ec_transitions.emplace_back(cost);
             return true;
         }
@@ -120,7 +121,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
         // transition
         set_min(stack_info.conv_part, tinfo.conv_part);
         stack_info.ec_transitions.pop_back();
-    } else if (nz_or_leaves_scc) {
+    } else if (non_zero || leaves_scc) {
         // Only some exiting or cost is non-zero ->
         // Not part of an end component
         // Move the transition to the set of non-EC transitions
@@ -357,13 +358,13 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
             if (backtrack_from_scc) {
                 explore->recurse =
                     explore->recurse || !tinfo.scc_successors.empty();
-                explore->nz_or_leaves_scc = true;
+                explore->leaves_scc = true;
 
                 tinfo.conv_part += prob * value_store[succ_id];
             } else {
                 explore->lowlink = std::min(explore->lowlink, lowlink);
                 explore->recurse = explore->recurse || successor.recurse ||
-                                   explore->nz_or_leaves_scc;
+                                   explore->leaves_scc;
 
                 tinfo.scc_successors.emplace_back(succ_id, prob);
             }
@@ -415,7 +416,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
         case StateInfo::CLOSED: {
             QValueInfo& tinfo = explore.stack_info.ec_transitions.back();
 
-            explore.nz_or_leaves_scc = true;
+            explore.leaves_scc = true;
             explore.recurse = explore.recurse || !tinfo.scc_successors.empty();
 
             tinfo.conv_part += prob * value_store[succ_id];
@@ -424,7 +425,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
 
         case StateInfo::ONSTACK:
             explore.lowlink = std::min(explore.lowlink, succ_info.stack_id);
-            explore.recurse = explore.recurse || explore.nz_or_leaves_scc;
+            explore.recurse = explore.recurse || explore.leaves_scc;
 
             QValueInfo& tinfo = explore.stack_info.ec_transitions.back();
             tinfo.scc_successors.emplace_back(succ_id, prob);
