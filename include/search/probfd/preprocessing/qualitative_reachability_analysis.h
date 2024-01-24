@@ -44,7 +44,7 @@ namespace internal {
 
 struct StateInfo {
     enum { NEW, ONSTACK, CLOSED };
-    static constexpr uint32_t UNDEF = std::numeric_limits<uint32_t>::max() >> 4;
+    static constexpr uint32_t UNDEF = std::numeric_limits<uint32_t>::max() >> 3;
 
     unsigned explored : 1 = 0;
     unsigned dead : 1 = 1;     // dead end flag
