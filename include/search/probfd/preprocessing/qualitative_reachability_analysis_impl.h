@@ -178,6 +178,9 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
 
             const unsigned stck = e->stck;
             const unsigned lstck = e->lstck;
+
+            assert(stck >= lstck);
+
             const bool backtrack_from_scc = stck == lstck;
 
             if (backtrack_from_scc) {
@@ -188,6 +191,8 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
             expansion_queue_.pop_back();
 
             if (expansion_queue_.empty()) return;
+
+            timer.throw_if_expired();
 
             e = &expansion_queue_.back();
 
