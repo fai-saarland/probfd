@@ -280,9 +280,9 @@ Interval TopologicalValueIteration<State, Action, UseInterval>::solve(
             // Check if an SCC was found.
             const unsigned stack_id = explore->stackidx;
             const unsigned lowlink = explore->lowlink;
-            const bool onstack = stack_id != lowlink;
+            const bool backtrack_from_scc = stack_id == lowlink;
 
-            if (!onstack) {
+            if (backtrack_from_scc) {
                 scc_found(stack_ | std::views::drop(stack_id), policy, timer);
             }
 
@@ -304,11 +304,11 @@ Interval TopologicalValueIteration<State, Action, UseInterval>::solve(
             AlgorithmValueType& s_value = value_store[succ_id];
             QValueInfo& tinfo = explore->stack_info.nconv_qs.back();
 
-            if (onstack) {
+            if (backtrack_from_scc) {
+                tinfo.conv_part += prob * s_value;
+            } else {
                 explore->update_lowlink(lowlink);
                 tinfo.nconv_successors.emplace_back(&s_value, prob);
-            } else {
-                tinfo.conv_part += prob * s_value;
             }
         } while (
             (!explore->next_successor() && !explore->next_transition(mdp)) ||
