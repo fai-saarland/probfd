@@ -166,7 +166,8 @@ void compute_value_table(
         {
         }
 
-        [[nodiscard]] value_t evaluate(StateRank state) const override
+        [[nodiscard]]
+        value_t evaluate(StateRank state) const override
         {
             if (utils::contains(pruned_states, state)) {
                 return pruned_value;
@@ -183,16 +184,7 @@ void compute_value_table(
 
     std::vector<StateID> pruned_states;
 
-    if (mdp.get_non_goal_termination_cost() == INFINITE_VALUE) {
-        analysis.run_analysis(
-            mdp,
-            nullptr,
-            initial_state,
-            iterators::discarding_output_iterator{},
-            std::back_inserter(pruned_states),
-            iterators::discarding_output_iterator{},
-            timer.get_remaining_time());
-    } else {
+    if (mdp.get_non_goal_termination_cost() != INFINITE_VALUE) {
         analysis.run_analysis(
             mdp,
             nullptr,

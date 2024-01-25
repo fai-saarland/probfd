@@ -108,7 +108,7 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         bool recurse : 1 = false;
 
         // whether the transition has non-zero cost or can leave the scc
-        bool non_zero : 1;
+        bool non_zero : 1 = true;
         bool leaves_scc : 1 = false;
 
         ExplorationInfo(
@@ -161,6 +161,24 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         // to an end component within the current scc.
         // Iteratively refined during end component decomposition.
         std::vector<QValueInfo> ec_transitions;
+
+        struct ParentTransition {
+            unsigned parent_idx;
+            unsigned parent_transition_idx;
+        };
+
+        struct TransitionFlags {
+            bool is_active_exiting : 1; // Is the transition active and an SCC
+                                        // exit?
+            bool is_active : 1;         // Is the transition active?
+        };
+
+        unsigned active_exit_transitions =
+            0;                           // Number of active exit transitions.
+        unsigned active_transitions = 0; // Number of active transitions.
+
+        std::vector<TransitionFlags> transition_flags;
+        std::vector<ParentTransition> parents;
 
         StackInfo(StateID state_id, AlgorithmValueType& value_ref);
 
@@ -280,7 +298,7 @@ private:
     void scc_found(
         auto& value_store,
         ExplorationInfo& exp_info,
-        auto scc,
+        unsigned int stack_idx,
         utils::CountdownTimer& timer);
 
     void find_and_decompose_sccs(
