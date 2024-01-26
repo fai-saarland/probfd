@@ -95,6 +95,7 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         Distribution<StateID> transition;
         typename Distribution<StateID>::const_iterator successor;
 
+        Interval exit_interval;
         value_t self_loop_prob = 0_vt;
 
         // End component decomposition state
@@ -106,6 +107,7 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         // end component and removing them affects connectivity of the SCCs,
         // so recursion is necessary after removal.
         bool recurse : 1 = false;
+        bool has_all_zero : 1 = true;
 
         // whether the transition has non-zero cost or can leave the scc
         bool non_zero : 1;
@@ -161,6 +163,24 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         // to an end component within the current scc.
         // Iteratively refined during end component decomposition.
         std::vector<QValueInfo> ec_transitions;
+
+        struct ParentTransition {
+            unsigned parent_idx;
+            unsigned parent_transition_idx;
+        };
+
+        struct TransitionFlags {
+            bool is_active_exiting : 1; // Is the transition active and an SCC
+                                        // exit?
+            bool is_active : 1;         // Is the transition active?
+        };
+
+        unsigned active_exit_transitions =
+            0;                           // Number of active exit transitions.
+        unsigned active_transitions = 0; // Number of active transitions.
+
+        std::vector<TransitionFlags> transition_flags;
+        std::vector<ParentTransition> parents;
 
         StackInfo(StateID state_id, AlgorithmValueType& value_ref);
 
@@ -235,7 +255,7 @@ public:
      */
     Interval solve(
         MDP& mdp,
-        Evaluator& heuristic,
+        const Evaluator& heuristic,
         StateID init_state_id,
         auto& value_store,
         double max_time = std::numeric_limits<double>::infinity());
@@ -256,7 +276,7 @@ private:
      */
     bool initialize_state(
         MDP& mdp,
-        Evaluator& heuristic,
+        const Evaluator& heuristic,
         ExplorationInfo& exp_info,
         auto& value_store);
 
@@ -280,7 +300,7 @@ private:
     void scc_found(
         auto& value_store,
         ExplorationInfo& exp_info,
-        auto scc,
+        unsigned int stack_idx,
         utils::CountdownTimer& timer);
 
     void find_and_decompose_sccs(

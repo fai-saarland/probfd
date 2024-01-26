@@ -58,9 +58,11 @@ template <typename State, typename Action, bool UseInterval>
 bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
     next_transition(MDP& mdp)
 {
+    self_loop_prob = 0_vt;
+    leaves_scc = false;
+
     aops.pop_back();
     transition.clear();
-    self_loop_prob = 0_vt;
 
     return !aops.empty() &&
            forward_non_loop_transition(mdp, mdp.get_state(state_id));
@@ -77,7 +79,10 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
         if (forward_non_loop_successor()) {
             const auto cost = mdp.get_action_cost(aops.back());
             non_zero = cost != 0.0_vt;
-            if (non_zero) recurse = true;
+            if (non_zero) {
+                has_all_zero = false;
+                recurse = true;
+            }
             stack_info.ec_transitions.emplace_back(cost);
             return true;
         }
@@ -115,18 +120,38 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 
     auto& tinfo = stack_info.ec_transitions.back();
 
+    const bool exits_only_solvable =
+        tinfo.conv_part != AlgorithmValueType(INFINITE_VALUE);
+
     if (tinfo.finalize_transition(self_loop_prob)) {
         // Universally exiting -> Not part of scc
         // Update converged portion of q value and ignore this
         // transition
         set_min(stack_info.conv_part, tinfo.conv_part);
         stack_info.ec_transitions.pop_back();
-    } else if (non_zero || leaves_scc) {
-        // Only some exiting or cost is non-zero ->
-        // Not part of an end component
-        // Move the transition to the set of non-EC transitions
-        stack_info.non_ec_transitions.push_back(std::move(tinfo));
-        stack_info.ec_transitions.pop_back();
+
+        if (exits_only_solvable) {
+            ++stack_info.active_exit_transitions;
+            ++stack_info.active_transitions;
+        }
+    } else {
+        if (non_zero || leaves_scc) {
+            // Only some exiting or cost is non-zero ->
+            // Not part of an end component
+            // Move the transition to the set of non-EC transitions
+            stack_info.non_ec_transitions.push_back(std::move(tinfo));
+            stack_info.ec_transitions.pop_back();
+        }
+
+        if (exits_only_solvable) {
+            if (leaves_scc) {
+                ++stack_info.active_exit_transitions;
+            }
+            ++stack_info.active_transitions;
+        }
+        stack_info.transition_flags.emplace_back(
+            exits_only_solvable && leaves_scc,
+            exits_only_solvable);
     }
 
     return false;
@@ -299,7 +324,7 @@ TATopologicalValueIteration<State, Action, UseInterval>::get_statistics() const
 template <typename State, typename Action, bool UseInterval>
 Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
     MDP& mdp,
-    Evaluator& heuristic,
+    const Evaluator& heuristic,
     StateID init_state_id,
     auto& value_store,
     double max_time)
@@ -330,11 +355,7 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
 
             // Check if an SCC was found.
             if (backtrack_from_scc) {
-                scc_found(
-                    value_store,
-                    *explore,
-                    stack_ | std::views::drop(stack_id),
-                    timer);
+                scc_found(value_store, *explore, stack_id, timer);
             }
 
             ExplorationInfo successor(std::move(*explore));
@@ -360,13 +381,29 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
                     explore->recurse || !tinfo.scc_successors.empty();
                 explore->leaves_scc = true;
 
-                tinfo.conv_part += prob * value_store[succ_id];
+                const AlgorithmValueType value = value_store[succ_id];
+                tinfo.conv_part += prob * value;
+                explore->exit_interval.lower =
+                    std::min(explore->exit_interval.lower, value);
+                explore->exit_interval.upper =
+                    std::max(explore->exit_interval.upper, value);
             } else {
                 explore->lowlink = std::min(explore->lowlink, lowlink);
+                explore->exit_interval.lower = std::min(
+                    explore->exit_interval.lower,
+                    successor.exit_interval.lower);
+                explore->exit_interval.upper = std::max(
+                    explore->exit_interval.upper,
+                    successor.exit_interval.upper);
+                explore->has_all_zero =
+                    explore->has_all_zero && successor.has_all_zero;
                 explore->recurse = explore->recurse || successor.recurse ||
                                    explore->leaves_scc;
 
                 tinfo.scc_successors.emplace_back(succ_id, prob);
+                successor.stack_info.parents.emplace_back(
+                    explore->stackidx,
+                    explore->stack_info.transition_flags.size());
             }
         } while (
             (!explore->next_successor() && !explore->next_transition(mdp)) ||
@@ -419,16 +456,27 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
             explore.leaves_scc = true;
             explore.recurse = explore.recurse || !tinfo.scc_successors.empty();
 
-            tinfo.conv_part += prob * value_store[succ_id];
+            const AlgorithmValueType value = value_store[succ_id];
+            tinfo.conv_part += prob * value;
+            explore.exit_interval.lower =
+                std::min(explore.exit_interval.lower, value);
+            explore.exit_interval.upper =
+                std::max(explore.exit_interval.upper, value);
             break;
         }
 
         case StateInfo::ONSTACK:
-            explore.lowlink = std::min(explore.lowlink, succ_info.stack_id);
+            unsigned succ_stack_id = succ_info.stack_id;
+            explore.lowlink = std::min(explore.lowlink, succ_stack_id);
             explore.recurse = explore.recurse || explore.leaves_scc;
 
             QValueInfo& tinfo = explore.stack_info.ec_transitions.back();
             tinfo.scc_successors.emplace_back(succ_id, prob);
+
+            auto& parents = stack_[succ_stack_id].parents;
+            parents.emplace_back(
+                explore.stackidx,
+                explore.stack_info.transition_flags.size());
         }
     } while (explore.next_successor() || explore.next_transition(mdp));
 
@@ -438,7 +486,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
 template <typename State, typename Action, bool UseInterval>
 bool TATopologicalValueIteration<State, Action, UseInterval>::initialize_state(
     MDP& mdp,
-    Evaluator& heuristic,
+    const Evaluator& heuristic,
     ExplorationInfo& exp_info,
     auto& value_store)
 {
@@ -453,6 +501,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::initialize_state(
     const value_t estimate = heuristic.evaluate(state);
 
     exp_info.stack_info.conv_part = AlgorithmValueType(t_cost);
+    exp_info.exit_interval = Interval(t_cost);
 
     AlgorithmValueType& state_value = value_store[exp_info.state_id];
 
@@ -461,6 +510,11 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::initialize_state(
         state_value.upper = t_cost;
     } else {
         state_value = estimate;
+    }
+
+    if (t_cost != INFINITE_VALUE) {
+        ++exp_info.stack_info.active_exit_transitions;
+        ++exp_info.stack_info.active_transitions;
     }
 
     if (state_term.is_goal_state()) {
@@ -492,27 +546,28 @@ template <typename State, typename Action, bool UseInterval>
 void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
     auto& value_store,
     ExplorationInfo& exp_info,
-    auto scc,
+    unsigned int stack_idx,
     utils::CountdownTimer& timer)
 {
+    auto scc = stack_ | std::views::drop(stack_idx);
+
     assert(!scc.empty());
 
     ++statistics_.sccs;
 
-    /* Takes care of dead ends
     if (exp_info.exit_interval.lower == INFINITE_VALUE ||
         (exp_info.exit_interval.lower == exp_info.exit_interval.upper &&
-         exp_info.all_zero)) {
-        for (auto it = begin; it != end; ++it) {
-            StateInfo& state_info = state_information_[begin->state_id];
+         exp_info.has_all_zero)) {
+        for (StackInfo& stk_info : scc) {
+            StateInfo& state_info = state_information_[stk_info.state_id];
             assert(state_info.get_status() == StateInfo::ONSTACK);
-            update(*begin->value, exp_info.exit_interval.lower);
+            update(*stk_info.value, exp_info.exit_interval.lower);
             state_info.stack_id = StateInfo::UNDEF;
         }
 
-        stack_.erase(begin, end);
+        stack_.erase(scc.begin(), scc.end());
         return;
-    }*/
+    }
 
     if (scc.size() == 1) {
         // For singleton SCCs, we only have transitions which are
@@ -581,6 +636,205 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
             // Connect to representative state with zero cost action
             auto& t = succ_stk.non_ec_transitions.emplace_back(0.0_vt);
             t.scc_successors.emplace_back(scc_repr_id, 1.0_vt);
+        }
+    }
+
+    class Partition {
+        std::vector<std::vector<int>::iterator> scc_index_to_local;
+        std::vector<int> partition;
+        std::vector<int>::iterator solvable_beg;
+        std::vector<int>::iterator solvable_exits_beg;
+
+    public:
+        explicit Partition(std::size_t size)
+            : scc_index_to_local(size)
+            , partition(size, 0)
+        {
+            for (unsigned int i = 0; i != size; ++i) {
+                scc_index_to_local[i] = partition.begin() + i;
+                partition[i] = static_cast<int>(i);
+            }
+
+            solvable_beg = partition.begin();
+            solvable_exits_beg = partition.begin();
+        }
+
+        auto solvable_begin() { return solvable_beg; }
+        auto solvable_end() { return partition.end(); }
+
+        auto solvable()
+        {
+            return std::ranges::subrange(solvable_begin(), solvable_end());
+        }
+
+        [[nodiscard]]
+        bool has_solvable() const
+        {
+            return solvable_beg != partition.end();
+        }
+
+        void demote_unsolvable(int s)
+        {
+            auto local = scc_index_to_local[s];
+            std::swap(scc_index_to_local[*solvable_beg], scc_index_to_local[s]);
+            std::swap(*solvable_beg, *local);
+
+            ++solvable_beg;
+        }
+
+        void demote_exit_unsolvable(int s)
+        {
+            auto local = scc_index_to_local[s];
+            std::swap(
+                scc_index_to_local[*solvable_exits_beg],
+                scc_index_to_local[s]);
+            std::swap(
+                scc_index_to_local[*solvable_beg],
+                scc_index_to_local[*solvable_exits_beg]);
+
+            std::swap(*solvable_exits_beg, *local);
+            std::swap(*solvable_beg, *solvable_exits_beg);
+
+            ++solvable_beg;
+            ++solvable_exits_beg;
+        }
+
+        void demote_exit_solvable(int s)
+        {
+            auto local = scc_index_to_local[s];
+            std::swap(
+                scc_index_to_local[*solvable_exits_beg],
+                scc_index_to_local[s]);
+            std::swap(*solvable_exits_beg, *local);
+
+            ++solvable_exits_beg;
+        }
+
+        bool promote_solvable(int s)
+        {
+            if (!is_unsolvable(s)) {
+                return false;
+            }
+
+            --solvable_beg;
+
+            auto local = scc_index_to_local[s];
+            std::swap(scc_index_to_local[*solvable_beg], scc_index_to_local[s]);
+            std::swap(*solvable_beg, *local);
+
+            return true;
+        }
+
+        void mark_non_exit_states_unsolvable()
+        {
+            solvable_beg = solvable_exits_beg;
+        }
+
+        bool is_unsolvable(int s)
+        {
+            return scc_index_to_local[s] < solvable_beg;
+        }
+    };
+
+    // Set the value of unsolvable states of this SCC to -inf.
+    // Start by partitioning states into inactive states, active exits and
+    // active non-exists.
+    // The partition is initialized optimistically, i.e., all states start out
+    // as active exits.
+    Partition partition(scc.size());
+
+    for (std::size_t i = 0; i != scc.size(); ++i) {
+        StackInfo& info = scc[i];
+
+        assert(
+            info.active_transitions != 0 || info.active_exit_transitions == 0);
+
+        // Transform to local indices
+        for (auto& parent_info : info.parents) {
+            parent_info.parent_idx -= stack_idx;
+        }
+
+        if (info.active_exit_transitions == 0) {
+            if (info.active_transitions > 0) {
+                partition.demote_exit_solvable(i);
+            } else {
+                value_store[info.state_id] = AlgorithmValueType(INFINITE_VALUE);
+                partition.demote_exit_unsolvable(i);
+            }
+        }
+    }
+
+    if (partition.has_solvable()) {
+        // Compute the set of solvable states of this SCC.
+        for (;;) {
+            timer.throw_if_expired();
+
+            // Collect states that can currently reach an exit and mark other
+            // states unsolvable.
+            auto unsolv_it = partition.solvable_begin();
+
+            partition.mark_non_exit_states_unsolvable();
+
+            for (auto it = partition.solvable_end();
+                 it != partition.solvable_begin();) {
+                for (const auto& [parent_idx, tr_idx] : scc[*--it].parents) {
+                    StackInfo& pinfo = scc[parent_idx];
+
+                    if (pinfo.transition_flags[tr_idx].is_active) {
+                        partition.promote_solvable(parent_idx);
+                    }
+                }
+            }
+
+            // No new unsolvable states -> stop.
+            if (unsolv_it == partition.solvable_begin()) break;
+
+            // Run fixpoint iteration starting with the new unsolvable states
+            // that could not reach an exit anymore.
+            do {
+                timer.throw_if_expired();
+
+                StackInfo& scc_elem = scc[*unsolv_it];
+
+                // The state was marked unsolvable.
+                assert(partition.is_unsolvable(*unsolv_it));
+
+                value_store[scc_elem.state_id] =
+                    AlgorithmValueType(INFINITE_VALUE);
+
+                for (const auto& [parent_idx, tr_idx] : scc_elem.parents) {
+                    StackInfo& pinfo = scc[parent_idx];
+                    auto& transition_flags = pinfo.transition_flags[tr_idx];
+
+                    assert(
+                        !transition_flags.is_active_exiting ||
+                        transition_flags.is_active);
+
+                    if (partition.is_unsolvable(parent_idx)) continue;
+
+                    if (transition_flags.is_active_exiting) {
+                        transition_flags.is_active_exiting = false;
+                        transition_flags.is_active = false;
+
+                        --pinfo.active_transitions;
+                        --pinfo.active_exit_transitions;
+
+                        if (pinfo.active_transitions == 0) {
+                            partition.demote_exit_unsolvable(parent_idx);
+                        } else if (pinfo.active_exit_transitions == 0) {
+                            partition.demote_exit_solvable(parent_idx);
+                        }
+                    } else if (transition_flags.is_active) {
+                        transition_flags.is_active = false;
+
+                        --pinfo.active_transitions;
+
+                        if (pinfo.active_transitions == 0) {
+                            partition.demote_unsolvable(parent_idx);
+                        }
+                    }
+                }
+            } while (++unsolv_it != partition.solvable_begin());
         }
     }
 

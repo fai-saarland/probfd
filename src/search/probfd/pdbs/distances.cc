@@ -1,23 +1,15 @@
 #include "probfd/pdbs/distances.h"
 
 #include "probfd/algorithms/ta_topological_value_iteration.h"
-#include "probfd/preprocessing/qualitative_reachability_analysis.h"
 
 #include "probfd/pdbs/projection_operator.h"
 #include "probfd/pdbs/projection_state_space.h"
 
-#include "probfd/utils/iterators.h"
-
 #include "probfd/evaluator.h"
-#include "probfd/progress_report.h"
-#include "probfd/types.h"
 
-#include "downward/utils/collections.h"
 #include "downward/utils/countdown_timer.h"
 
-#include <iterator>
 #include <ranges>
-#include <vector>
 
 #if !defined(NDEBUG) && (defined(HAS_CPLEX) || defined(HAS_SOPLEX))
 #include "downward/lp/lp_solver.h"
@@ -147,69 +139,20 @@ void compute_value_table(
     std::span<value_t> value_table,
     double max_time)
 {
-    using namespace preprocessing;
     using namespace algorithms::ta_topological_vi;
-
-    class WrapperHeuristic : public Evaluator<StateRank> {
-        const std::vector<StateID>& pruned_states;
-        const Evaluator<StateRank>& parent;
-        const value_t pruned_value;
-
-    public:
-        WrapperHeuristic(
-            const std::vector<StateID>& pruned_states,
-            const Evaluator<StateRank>& parent,
-            value_t pruned_value)
-            : pruned_states(pruned_states)
-            , parent(parent)
-            , pruned_value(pruned_value)
-        {
-        }
-
-        [[nodiscard]] value_t evaluate(StateRank state) const override
-        {
-            if (utils::contains(pruned_states, state)) {
-                return pruned_value;
-            }
-
-            return parent.evaluate(state);
-        }
-    };
 
     utils::CountdownTimer timer(max_time);
 
-    QualitativeReachabilityAnalysis<StateRank, const ProjectionOperator*>
-        analysis(true);
-
-    std::vector<StateID> pruned_states;
-
-    if (mdp.get_non_goal_termination_cost() == INFINITE_VALUE) {
-        analysis.run_analysis(
-            mdp,
-            nullptr,
-            initial_state,
-            iterators::discarding_output_iterator{},
-            std::back_inserter(pruned_states),
-            iterators::discarding_output_iterator{},
-            timer.get_remaining_time());
-    } else {
-        analysis.run_analysis(
-            mdp,
-            nullptr,
-            initial_state,
-            std::back_inserter(pruned_states),
-            iterators::discarding_output_iterator{},
-            iterators::discarding_output_iterator{},
-            timer.get_remaining_time());
-    }
-
-    WrapperHeuristic h(
-        pruned_states,
-        heuristic,
-        mdp.get_non_goal_termination_cost());
-
     TATopologicalValueIteration<StateRank, const ProjectionOperator*> vi;
-    vi.solve(mdp, h, initial_state, value_table, timer.get_remaining_time());
+    vi.solve(
+        mdp,
+        heuristic,
+        initial_state,
+        value_table,
+        timer.get_remaining_time());
+
+    std::cout << " Initial state value: " << value_table[initial_state]
+              << std::endl;
 
 #if !defined(NDEBUG) && (defined(HAS_CPLEX) || defined(HAS_SOPLEX))
     verify(mdp, value_table, initial_state, pruned_states);
