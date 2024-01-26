@@ -134,8 +134,12 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
         true,
         false);
 
-    auto policy =
-        hdfs.compute_policy(mdp, heuristic, mdp.get_initial_state(), report);
+    auto policy = hdfs.compute_policy(
+        mdp,
+        heuristic,
+        mdp.get_initial_state(),
+        report,
+        std::numeric_limits<double>::infinity());
 
     std::optional<PolicyDecision<OperatorID>> decision =
         policy->get_decision(mdp.get_initial_state());
