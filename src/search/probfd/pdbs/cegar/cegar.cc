@@ -667,8 +667,8 @@ CEGARResult CEGAR::generate_pdbs(
 
                     if (log_.is_at_least_verbose()) {
                         log_ << "CEGAR: Task solved during computation of "
-                                "abstract"
-                             << "policies." << endl;
+                                "abstract policies."
+                             << endl;
                         log_ << "CEGAR: Cost of policy: "
                              << info->get_policy_cost(initial_state) << endl;
                     }
