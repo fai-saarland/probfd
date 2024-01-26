@@ -28,27 +28,21 @@ std::unique_ptr<ProjectionMultiPolicy> compute_optimal_projection_policy(
     using PredecessorList =
         std::vector<std::pair<StateRank, const ProjectionOperator*>>;
 
-    const value_t term_cost = mdp.get_non_goal_termination_cost();
-
-    assert(value_table[initial_state] != term_cost);
-
     std::unique_ptr policy = std::make_unique<
         policies::VectorMultiPolicy<StateRank, const ProjectionOperator*>>(
         &mdp,
         value_table.size());
 
-    // return empty policy indicating unsolvable
-    if (mdp.is_goal(initial_state)) {
+    // return empty policy indicating to terminate immediately
+    if (value_table[initial_state] ==
+        mdp.get_termination_info(initial_state).get_cost()) {
         return policy;
     }
+    
+    std::deque<StateRank> open = {initial_state};
+    std::unordered_set<StateRank> closed = {initial_state};
 
     std::map<StateRank, PredecessorList> predecessors;
-
-    std::deque<StateRank> open;
-    std::unordered_set<StateRank> closed;
-    open.push_back(initial_state);
-    closed.insert(initial_state);
-
     std::vector<StateRank> goals;
 
     // Build the greedy policy graph
@@ -58,8 +52,8 @@ std::unique_ptr<ProjectionMultiPolicy> compute_optimal_projection_policy(
 
         const value_t value = value_table[s];
 
-        // Skip dead-ends, the operator is irrelevant
-        if (value == term_cost) {
+        // Skip states in which temrination is optimal
+        if (value == mdp.get_termination_info(s).get_cost()) {
             continue;
         }
 
