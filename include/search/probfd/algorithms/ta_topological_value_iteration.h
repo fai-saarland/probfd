@@ -303,10 +303,7 @@ private:
         unsigned int stack_idx,
         utils::CountdownTimer& timer);
 
-    void find_and_decompose_sccs(
-        StateID state_id,
-        StateInfo& state_info,
-        utils::CountdownTimer& timer);
+    void find_and_decompose_sccs(auto&& scc_ids, utils::CountdownTimer& timer);
 
     bool initialize_ecd(ECDExplorationInfo& exp_info);
 
