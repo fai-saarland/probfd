@@ -18,7 +18,7 @@ compute_distances(Abstraction& abstraction, CartesianHeuristic& heuristic)
 
     algorithms::ta_topological_vi::
         TATopologicalValueIteration<int, const ProbabilisticTransition*>
-            tvi;
+            tvi(abstraction.get_num_states());
 
     tvi.solve(
         abstraction,

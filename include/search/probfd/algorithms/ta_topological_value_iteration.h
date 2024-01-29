@@ -258,7 +258,7 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
     };
 
     storage::PerStateStorage<StateInfo> state_information_;
-    std::deque<ExplorationInfo> exploration_stack_;
+    std::vector<ExplorationInfo> exploration_stack_;
     std::deque<StackInfo> stack_;
 
     std::vector<ECDExplorationInfo> exploration_stack_ecd_;
@@ -270,6 +270,17 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
     Statistics statistics_;
 
 public:
+    TATopologicalValueIteration() = default;
+
+    explicit TATopologicalValueIteration(std::size_t num_states_hint)
+    {
+        exploration_stack_.reserve(num_states_hint);
+        exploration_stack_ecd_.reserve(num_states_hint);
+        stack_ecd_.reserve(num_states_hint);
+        decomposition_queue_.reserve(num_states_hint);
+        scc_.reserve(num_states_hint);
+    }
+
     Interval solve(
         MDP& mdp,
         Evaluator& heuristic,

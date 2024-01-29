@@ -143,7 +143,8 @@ void compute_value_table(
 
     utils::CountdownTimer timer(max_time);
 
-    TATopologicalValueIteration<StateRank, const ProjectionOperator*> vi;
+    TATopologicalValueIteration<StateRank, const ProjectionOperator*> vi(
+        value_table.size());
     vi.solve(
         mdp,
         heuristic,
