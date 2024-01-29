@@ -191,8 +191,12 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
 
     FRETPi<State, OperatorID, typename HDFS::StateInfo> fret(hdfs);
 
-    auto policy =
-        fret.compute_policy(mdp, heuristic, mdp.get_initial_state(), report);
+    auto policy = fret.compute_policy(
+        mdp,
+        heuristic,
+        mdp.get_initial_state(),
+        report,
+        std::numeric_limits<double>::infinity());
 
     std::optional<PolicyDecision<OperatorID>> decision =
         policy->get_decision(mdp.get_initial_state());
