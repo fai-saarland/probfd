@@ -138,6 +138,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
             // Move the transition to the set of non-EC transitions
             stack_info.non_ec_transitions.push_back(std::move(tinfo));
             stack_info.ec_transitions.pop_back();
+            recurse = true;
         }
 
         if (exits_only_solvable) {
@@ -255,6 +256,10 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::
             return true;
         }
     } else {
+        if (remains_scc) {
+            recurse = true;
+        }
+
         stack_info.non_ec_transitions.push_back(std::move(*action));
 
         if (action != --end) {
@@ -379,8 +384,6 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
             QValueInfo& tinfo = explore->stack_info.ec_transitions.back();
 
             if (backtrack_from_scc) {
-                explore->recurse =
-                    explore->recurse || !tinfo.scc_successors.empty();
                 explore->leaves_scc = true;
 
                 const AlgorithmValueType value = value_store[succ_id];
@@ -399,8 +402,7 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
                     successor.exit_interval.upper);
                 explore->has_all_zero =
                     explore->has_all_zero && successor.has_all_zero;
-                explore->recurse = explore->recurse || successor.recurse ||
-                                   explore->leaves_scc || explore->non_zero;
+                explore->recurse = explore->recurse || successor.recurse;
 
                 tinfo.scc_successors.emplace_back(succ_id, prob);
                 successor.stack_info.parents.emplace_back(
@@ -458,7 +460,6 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
             QValueInfo& tinfo = explore.stack_info.ec_transitions.back();
 
             explore.leaves_scc = true;
-            explore.recurse = explore.recurse || !tinfo.scc_successors.empty();
 
             const AlgorithmValueType value = value_store[succ_id];
             tinfo.conv_part += prob * value;
@@ -472,8 +473,6 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
         case StateInfo::ONSTACK:
             unsigned succ_stack_id = succ_info.stack_id;
             explore.lowlink = std::min(explore.lowlink, succ_stack_id);
-            explore.recurse =
-                explore.recurse || explore.leaves_scc || explore.non_zero;
 
             QValueInfo& tinfo = explore.stack_info.ec_transitions.back();
             tinfo.scc_successors.emplace_back(succ_id, prob);
@@ -907,12 +906,10 @@ void TATopologicalValueIteration<State, Action, UseInterval>::
                     const ECDExplorationInfo& successor = *e--;
 
                     if (backtracked_from_scc) {
-                        e->recurse = e->recurse || e->remains_scc;
                         e->leaves_scc = true;
                     } else {
                         e->lowlink = std::min(e->lowlink, lowlink);
-                        e->recurse =
-                            e->recurse || successor.recurse || e->leaves_scc;
+                        e->recurse = e->recurse || successor.recurse;
                         e->remains_scc = true;
                     }
 
@@ -952,15 +949,10 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::
             return true;
         }
 
-        case StateInfo::CLOSED:
-            e.recurse = e.recurse || e.remains_scc;
-            e.leaves_scc = true;
-            break;
+        case StateInfo::CLOSED: e.leaves_scc = true; break;
 
         case StateInfo::ONSTACK:
             e.lowlink = std::min(e.lowlink, succ_info.ecd_stack_id);
-
-            e.recurse = e.recurse || e.leaves_scc;
             e.remains_scc = true;
         }
     } while (e.next_successor() || e.next_transition());
