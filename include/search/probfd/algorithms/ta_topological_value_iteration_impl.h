@@ -356,22 +356,27 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
             // Check if an SCC was found.
             if (backtrack_from_scc) {
                 scc_found(value_store, *explore, stack_id, timer);
-            }
 
-            ExplorationInfo successor(std::move(*explore));
-            exploration_stack_.pop_back();
+                if (stack_id == 0) {
+                    assert(stack_.empty());
+                    assert(exploration_stack_.size() == 1);
+                    exploration_stack_.pop_back();
 
-            if (exploration_stack_.empty()) {
-                if constexpr (UseInterval) {
-                    return value_store[init_state_id];
-                } else {
-                    return Interval(value_store[init_state_id], INFINITE_VALUE);
+                    if constexpr (UseInterval) {
+                        return value_store[init_state_id];
+                    } else {
+                        return Interval(
+                            value_store[init_state_id],
+                            INFINITE_VALUE);
+                    }
                 }
             }
 
+            assert(exploration_stack_.size() > 1);
+
             timer.throw_if_expired();
 
-            explore = &exploration_stack_.back();
+            const ExplorationInfo& successor = *explore--;
 
             const auto [succ_id, prob] = explore->get_current_successor();
             QValueInfo& tinfo = explore->stack_info.ec_transitions.back();
@@ -405,6 +410,8 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
                     explore->stackidx,
                     explore->stack_info.transition_flags.size());
             }
+
+            exploration_stack_.pop_back();
         } while (
             (!explore->next_successor() && !explore->next_transition(mdp)) ||
             !successor_loop(mdp, *explore, value_store, timer));
@@ -886,18 +893,20 @@ void TATopologicalValueIteration<State, Action, UseInterval>::
 
                     if (backtracked_from_scc) {
                         scc_found_ecd(*e);
+
+                        if (stck == 0) {
+                            assert(stack_ecd_.empty());
+                            assert(exploration_stack_ecd_.size() == 1);
+                            exploration_stack_ecd_.pop_back();
+                            goto break_outer;
+                        }
                     }
 
-                    ECDExplorationInfo successor(std::move(*e));
-                    exploration_stack_ecd_.pop_back();
-
-                    if (exploration_stack_ecd_.empty()) {
-                        goto break_outer;
-                    }
+                    assert(exploration_stack_ecd_.size() > 1);
 
                     timer.throw_if_expired();
 
-                    e = &exploration_stack_ecd_.back();
+                    const ECDExplorationInfo& successor = *e--;
 
                     if (backtracked_from_scc) {
                         e->recurse = e->recurse || e->remains_scc;
@@ -908,6 +917,8 @@ void TATopologicalValueIteration<State, Action, UseInterval>::
                             e->recurse || successor.recurse || e->leaves_scc;
                         e->remains_scc = true;
                     }
+
+                    exploration_stack_ecd_.pop_back();
                 } while ((!e->next_successor() && !e->next_transition()) ||
                          !push_successor_ecd(*e, timer));
             }
