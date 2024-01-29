@@ -549,9 +549,9 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
     unsigned int stack_idx,
     utils::CountdownTimer& timer)
 {
-    namespace vws = std::views;
+    using namespace std::views;
 
-    auto scc = stack_ | vws::drop(stack_idx);
+    auto scc = stack_ | drop(stack_idx);
 
     assert(!scc.empty());
 
@@ -587,16 +587,14 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
 
     if (exp_info.recurse) {
         // Run recursive EC Decomposition
-        for (StackInfo& stack_info : scc) {
-            StateInfo& state_info = state_information_[stack_info.state_id];
-            assert(state_info.get_status() == StateInfo::ONSTACK);
-            state_info.explored = 0;
+        scc_.reserve(scc.size());
+
+        for (const auto state_id : scc | transform(&StackInfo::state_id)) {
+            scc_.push_back(state_id);
         }
 
         // Run decomposition
-        find_and_decompose_sccs(
-            scc | vws::transform(&StackInfo::state_id),
-            timer);
+        find_and_decompose_sccs(timer);
 
         for (StackInfo& stack_info : scc) {
             StateInfo& state_info = state_information_[stack_info.state_id];
@@ -612,7 +610,7 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
         state_information_[scc_repr_id].stack_id = StateInfo::UNDEF;
 
         // Spider construction
-        for (StackInfo& succ_stk : scc | std::views::drop(1)) {
+        for (StackInfo& succ_stk : scc | drop(1)) {
             state_information_[succ_stk.state_id].stack_id = StateInfo::UNDEF;
 
             // Move all non-EC transitions to representative state
@@ -853,70 +851,74 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
 
 template <typename State, typename Action, bool UseInterval>
 void TATopologicalValueIteration<State, Action, UseInterval>::
-    find_and_decompose_sccs(auto&& scc_ids, utils::CountdownTimer& timer)
+    find_and_decompose_sccs(utils::CountdownTimer& timer)
 {
-    for (const StateID state_id : scc_ids) {
-        StateInfo& state_info = state_information_[state_id];
-        if (state_info.get_ecd_status() != StateInfo::NEW) continue;
-
-        const unsigned limit = exploration_stack_ecd_.size();
-
-        const auto stack_size = stack_ecd_.size();
-        state_info.explored = 1;
-        state_info.ecd_stack_id = stack_size;
-        exploration_stack_ecd_.emplace_back(
-            stack_[state_info.stack_id],
-            stack_size);
-        stack_ecd_.emplace_back(state_id);
-
-        for (;;) {
-            ECDExplorationInfo* e;
-
-            // DFS recursion
-            do {
-                e = &exploration_stack_ecd_.back();
-            } while (initialize_ecd(*e) && push_successor_ecd(*e, timer));
-
-            // Iterative backtracking
-            do {
-                const unsigned int stck = e->stackidx;
-                const unsigned int lowlink = e->lowlink;
-
-                assert(stck >= lowlink);
-
-                const bool backtracked_from_scc = stck == lowlink;
-
-                if (backtracked_from_scc) {
-                    scc_found_ecd(*e, timer);
-                }
-
-                ECDExplorationInfo successor(std::move(*e));
-                exploration_stack_ecd_.pop_back();
-
-                if (exploration_stack_ecd_.size() == limit) {
-                    assert(state_info.get_ecd_status() == StateInfo::CLOSED);
-                    goto break_outer;
-                }
-
-                timer.throw_if_expired();
-
-                e = &exploration_stack_ecd_.back();
-
-                if (backtracked_from_scc) {
-                    e->recurse = e->recurse || e->remains_scc;
-                    e->leaves_scc = true;
-                } else {
-                    e->lowlink = std::min(e->lowlink, lowlink);
-                    e->recurse =
-                        e->recurse || successor.recurse || e->leaves_scc;
-                    e->remains_scc = true;
-                }
-            } while ((!e->next_successor() && !e->next_transition()) ||
-                     !push_successor_ecd(*e, timer));
+    do {
+        for (const StateID state_id : scc_) {
+            state_information_[state_id].explored = 0;
         }
 
-    break_outer:;
-    }
+        for (const StateID state_id : scc_) {
+            StateInfo& state_info = state_information_[state_id];
+            if (state_info.get_ecd_status() != StateInfo::NEW) continue;
+
+            state_info.explored = 1;
+            state_info.ecd_stack_id = 0;
+            exploration_stack_ecd_.emplace_back(stack_[state_info.stack_id], 0);
+            stack_ecd_.emplace_back(state_id);
+
+            for (;;) {
+                ECDExplorationInfo* e;
+
+                // DFS recursion
+                do {
+                    e = &exploration_stack_ecd_.back();
+                } while (initialize_ecd(*e) && push_successor_ecd(*e, timer));
+
+                // Iterative backtracking
+                do {
+                    const unsigned int stck = e->stackidx;
+                    const unsigned int lowlink = e->lowlink;
+
+                    assert(stck >= lowlink);
+
+                    const bool backtracked_from_scc = stck == lowlink;
+
+                    if (backtracked_from_scc) {
+                        scc_found_ecd(*e);
+                    }
+
+                    ECDExplorationInfo successor(std::move(*e));
+                    exploration_stack_ecd_.pop_back();
+
+                    if (exploration_stack_ecd_.empty()) {
+                        goto break_outer;
+                    }
+
+                    timer.throw_if_expired();
+
+                    e = &exploration_stack_ecd_.back();
+
+                    if (backtracked_from_scc) {
+                        e->recurse = e->recurse || e->remains_scc;
+                        e->leaves_scc = true;
+                    } else {
+                        e->lowlink = std::min(e->lowlink, lowlink);
+                        e->recurse =
+                            e->recurse || successor.recurse || e->leaves_scc;
+                        e->remains_scc = true;
+                    }
+                } while ((!e->next_successor() && !e->next_transition()) ||
+                         !push_successor_ecd(*e, timer));
+            }
+
+        break_outer:;
+        }
+
+        scc_.clear();
+    } while (decomposition_queue_.pop_scc(scc_));
+
+    assert(scc_.empty());
 }
 
 template <typename State, typename Action, bool UseInterval>
@@ -976,37 +978,31 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::initialize_ecd(
 
 template <typename State, typename Action, bool UseInterval>
 void TATopologicalValueIteration<State, Action, UseInterval>::scc_found_ecd(
-    ECDExplorationInfo& e,
-    utils::CountdownTimer& timer)
+    ECDExplorationInfo& e)
 {
     namespace vws = std::views;
 
-    auto scc_begin = stack_ecd_.begin() + e.stackidx;
-    auto scc_end = stack_ecd_.end();
+    auto scc = stack_ecd_ | std::views::drop(e.stackidx);
 
-    if (std::distance(scc_begin, scc_end) == 1) {
-        const StateID scc_repr_id = *scc_begin;
-        state_information_[scc_repr_id].ecd_stack_id = StateInfo::UNDEF_ECD;
+    if (scc.size() == 1) {
+        state_information_[scc.front()].ecd_stack_id = StateInfo::UNDEF_ECD;
     } else if (e.recurse) {
-        for (auto it = scc_begin; it != scc_end; ++it) {
-            StateInfo& state_info = state_information_[*it];
-            state_info.explored = 0;
-            state_info.ecd_stack_id = StateInfo::UNDEF_ECD;
+        decomposition_queue_.register_new_scc();
+        for (const StateID state_id : scc) {
+            decomposition_queue_.add_scc_state(state_id);
+            state_information_[state_id].ecd_stack_id = StateInfo::UNDEF_ECD;
         }
-
-        // Recursively run decomposition
-        find_and_decompose_sccs(stack_ecd_ | vws::drop(e.stackidx), timer);
     } else {
         // We found an end component, patch it
-        const StateID scc_repr_id = *scc_begin;
+        const StateID scc_repr_id = scc.front();
         StateInfo& repr_state_info = state_information_[scc_repr_id];
         StackInfo& repr_stk = stack_[repr_state_info.stack_id];
 
         repr_state_info.ecd_stack_id = StateInfo::UNDEF_ECD;
 
         // Spider construction
-        for (auto it = scc_begin + 1; it != scc_end; ++it) {
-            StateInfo& state_info = state_information_[*it];
+        for (const StateID state_id : scc | std::views::drop(1)) {
+            StateInfo& state_info = state_information_[state_id];
             StackInfo& succ_stk = stack_[state_info.stack_id];
 
             state_info.ecd_stack_id = StateInfo::UNDEF_ECD;
@@ -1029,8 +1025,7 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found_ecd(
         }
     }
 
-    // Previous iterators were invalidated during recursion!
-    stack_ecd_.erase(stack_ecd_.begin() + e.stackidx, stack_ecd_.end());
+    stack_ecd_.erase(scc.begin(), scc.end());
 
     assert(stack_ecd_.size() == e.stackidx);
 }

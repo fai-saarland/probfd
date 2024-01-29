@@ -221,12 +221,51 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         ItemProbabilityPair<StateID> get_current_successor();
     };
 
+    struct DecompositionQueue {
+        std::vector<StateID> state_ids;
+        std::vector<std::size_t> scc_spans;
+
+        void reserve(std::size_t num_states)
+        {
+            state_ids.reserve(num_states);
+            scc_spans.reserve(num_states);
+        }
+
+        void register_new_scc() { scc_spans.push_back(state_ids.size()); }
+
+        void add_scc_state(StateID state_id) { state_ids.push_back(state_id); }
+
+        bool pop_scc(std::vector<StateID>& r)
+        {
+            using namespace std::views;
+
+            assert(r.empty());
+
+            if (state_ids.empty()) return false;
+
+            auto scc_view = state_ids | drop(scc_spans.back());
+
+            for (const auto state_id : scc_view) {
+                r.push_back(state_id);
+            }
+
+            state_ids.erase(scc_view.begin(), scc_view.end());
+
+            scc_spans.pop_back();
+
+            return true;
+        }
+    };
+
     storage::PerStateStorage<StateInfo> state_information_;
     std::deque<ExplorationInfo> exploration_stack_;
     std::deque<StackInfo> stack_;
 
-    std::deque<ECDExplorationInfo> exploration_stack_ecd_;
-    std::deque<StateID> stack_ecd_;
+    std::vector<ECDExplorationInfo> exploration_stack_ecd_;
+    std::vector<StateID> stack_ecd_;
+
+    DecompositionQueue decomposition_queue_;
+    std::vector<StateID> scc_;
 
     Statistics statistics_;
 
@@ -303,14 +342,14 @@ private:
         unsigned int stack_idx,
         utils::CountdownTimer& timer);
 
-    void find_and_decompose_sccs(auto&& scc_ids, utils::CountdownTimer& timer);
+    void find_and_decompose_sccs(utils::CountdownTimer& timer);
 
     bool initialize_ecd(ECDExplorationInfo& exp_info);
 
     bool
     push_successor_ecd(ECDExplorationInfo& e, utils::CountdownTimer& timer);
 
-    void scc_found_ecd(ECDExplorationInfo& e, utils::CountdownTimer& timer);
+    void scc_found_ecd(ECDExplorationInfo& e);
 };
 
 } // namespace probfd::algorithms::ta_topological_vi
