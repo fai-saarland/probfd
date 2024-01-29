@@ -79,10 +79,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
         if (forward_non_loop_successor()) {
             const auto cost = mdp.get_action_cost(aops.back());
             non_zero = cost != 0.0_vt;
-            if (non_zero) {
-                has_all_zero = false;
-                recurse = true;
-            }
+            if (non_zero) has_all_zero = false;
             stack_info.ec_transitions.emplace_back(cost);
             return true;
         }
@@ -403,7 +400,7 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
                 explore->has_all_zero =
                     explore->has_all_zero && successor.has_all_zero;
                 explore->recurse = explore->recurse || successor.recurse ||
-                                   explore->leaves_scc;
+                                   explore->leaves_scc || explore->non_zero;
 
                 tinfo.scc_successors.emplace_back(succ_id, prob);
                 successor.stack_info.parents.emplace_back(
@@ -475,7 +472,8 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
         case StateInfo::ONSTACK:
             unsigned succ_stack_id = succ_info.stack_id;
             explore.lowlink = std::min(explore.lowlink, succ_stack_id);
-            explore.recurse = explore.recurse || explore.leaves_scc;
+            explore.recurse =
+                explore.recurse || explore.leaves_scc || explore.non_zero;
 
             QValueInfo& tinfo = explore.stack_info.ec_transitions.back();
             tinfo.scc_successors.emplace_back(succ_id, prob);
