@@ -18,7 +18,7 @@ StateEquivalenceRelation ShrinkStrategyIdentity::compute_equivalence_relation(
                 [](auto index) -> StateEquivalenceClass { return {index}; })};
 }
 
-bool ShrinkStrategyIdentity::requires_init_distances() const
+bool ShrinkStrategyIdentity::requires_liveness() const
 {
     return false;
 }

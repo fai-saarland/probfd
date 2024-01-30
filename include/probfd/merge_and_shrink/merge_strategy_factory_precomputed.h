@@ -21,7 +21,7 @@ public:
         std::shared_ptr<ProbabilisticTask>& task,
         const FactoredTransitionSystem& fts) override;
 
-    bool requires_init_distances() const override;
+    bool requires_liveness() const override;
     bool requires_goal_distances() const override;
 
 protected:

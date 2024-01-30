@@ -13,7 +13,7 @@ class ShrinkStrategyRandom : public ShrinkStrategyBucketBased {
 public:
     explicit ShrinkStrategyRandom(int random_seed);
 
-    bool requires_init_distances() const override { return false; }
+    bool requires_liveness() const override { return false; }
     bool requires_goal_distances() const override { return false; }
 
 protected:

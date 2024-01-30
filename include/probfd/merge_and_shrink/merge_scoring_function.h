@@ -33,7 +33,7 @@ public:
         const FactoredTransitionSystem& fts,
         const std::vector<std::pair<int, int>>& merge_candidates) = 0;
 
-    virtual bool requires_init_distances() const = 0;
+    virtual bool requires_liveness() const = 0;
     virtual bool requires_goal_distances() const = 0;
 
     // Overriding methods must set initialized to true.

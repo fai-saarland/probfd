@@ -40,7 +40,7 @@ public:
         const std::vector<std::pair<int, int>>& merge_candidates) override;
     void initialize(const ProbabilisticTaskProxy& task_proxy) override;
 
-    bool requires_init_distances() const override { return false; }
+    bool requires_liveness() const override { return false; }
     bool requires_goal_distances() const override { return false; }
 
 private:

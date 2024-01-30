@@ -27,7 +27,7 @@ namespace probfd::merge_and_shrink {
 
 extern FactoredTransitionSystem create_factored_transition_system(
     const ProbabilisticTaskProxy& task_proxy,
-    bool compute_init_distances,
+    bool compute_liveness,
     bool compute_goal_distances,
     utils::LogProxy& log);
 

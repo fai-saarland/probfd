@@ -18,6 +18,7 @@ class RandomNumberGenerator;
 
 namespace probfd {
 class ProbabilisticTask;
+class ProbabilisticTaskProxy;
 }
 
 namespace probfd::merge_and_shrink {
@@ -51,7 +52,7 @@ public:
         const FactoredTransitionSystem& fts,
         const std::vector<int>& indices_subset);
 
-    virtual bool requires_init_distances() const = 0;
+    virtual bool requires_liveness() const = 0;
     virtual bool requires_goal_distances() const = 0;
 
 protected:

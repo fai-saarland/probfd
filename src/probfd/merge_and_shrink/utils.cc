@@ -159,63 +159,6 @@ bool shrink_before_merge_step(
     return shrunk1 || shrunk2;
 }
 
-bool prune_step(
-    FactoredTransitionSystem& fts,
-    int index,
-    bool prune_unreachable_states,
-    bool prune_irrelevant_states,
-    utils::LogProxy& log)
-{
-    assert(prune_unreachable_states || prune_irrelevant_states);
-
-    const TransitionSystem& ts = fts.get_transition_system(index);
-    const Distances& distances = fts.get_distances(index);
-    const int num_states = ts.get_size();
-    StateEquivalenceRelation state_equivalence_relation;
-    state_equivalence_relation.reserve(num_states);
-
-    int unreachable_count = 0;
-    int irrelevant_count = 0;
-    int dead_count = 0;
-
-    for (int state = 0; state < num_states; ++state) {
-        /* If pruning both unreachable and irrelevant states, a state which is
-           dead is counted for both statistics! */
-        bool prune_state = false;
-        if (prune_unreachable_states) {
-            assert(distances.are_init_distances_computed());
-            if (distances.get_init_distance(state) == INFINITE_VALUE) {
-                ++unreachable_count;
-                prune_state = true;
-            }
-        }
-
-        if (prune_irrelevant_states) {
-            assert(distances.are_goal_distances_computed());
-            if (distances.get_goal_distance(state) == INFINITE_VALUE) {
-                ++irrelevant_count;
-                prune_state = true;
-            }
-        }
-
-        if (prune_state) {
-            ++dead_count;
-        } else {
-            StateEquivalenceClass state_equivalence_class;
-            state_equivalence_class.push_front(state);
-            state_equivalence_relation.push_back(state_equivalence_class);
-        }
-    }
-
-    if (log.is_at_least_verbose() && (unreachable_count || irrelevant_count)) {
-        log << ts.tag() << "unreachable: " << unreachable_count << " states, "
-            << "irrelevant: " << irrelevant_count << " states ("
-            << "total dead: " << dead_count << " states)" << endl;
-    }
-
-    return fts.apply_abstraction(index, state_equivalence_relation, log);
-}
-
 vector<int> compute_abstraction_mapping(
     int num_states,
     const StateEquivalenceRelation& equivalence_relation)
