@@ -50,9 +50,7 @@ void MergeAndShrinkHeuristic::extract_factor(
         std::move(final_entry.first);
     unique_ptr<Distances> distances = std::move(final_entry.second);
     if (!distances->are_goal_distances_computed()) {
-        const bool compute_init = false;
-        const bool compute_goal = true;
-        distances->compute_distances(compute_init, compute_goal, log_);
+        distances->compute_distances(false, log_);
     }
     assert(distances->are_goal_distances_computed());
     mas_representations.push_back(

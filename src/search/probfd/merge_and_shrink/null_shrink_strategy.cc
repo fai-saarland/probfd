@@ -18,7 +18,7 @@ StateEquivalenceRelation NullShrinkStrategy::compute_equivalence_relation(
     return relation;
 }
 
-bool NullShrinkStrategy::requires_init_distances() const
+bool NullShrinkStrategy::requires_liveness() const
 {
     return false;
 }

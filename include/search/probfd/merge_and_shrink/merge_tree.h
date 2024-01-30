@@ -99,7 +99,7 @@ public:
     */
     void update(std::pair<int, int> merge, int new_index);
 
-    bool done() const;
+    bool done() const { return root->is_leaf(); }
 
     int compute_num_internal_nodes() const;
 

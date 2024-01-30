@@ -45,7 +45,7 @@ public:
         const Distances& distances,
         int target_size,
         utils::LogProxy& log) const = 0;
-    virtual bool requires_init_distances() const = 0;
+    virtual bool requires_liveness() const = 0;
     virtual bool requires_goal_distances() const = 0;
 
     void dump_options(utils::LogProxy& log) const;

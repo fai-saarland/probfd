@@ -13,7 +13,7 @@ public:
         const FactoredTransitionSystem& fts,
         const std::vector<std::pair<int, int>>& merge_candidates) override;
 
-    bool requires_init_distances() const override { return false; }
+    bool requires_liveness() const override { return false; }
     bool requires_goal_distances() const override { return false; }
 };
 

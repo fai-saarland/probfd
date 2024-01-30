@@ -13,25 +13,19 @@ using namespace std;
 
 namespace probfd::merge_and_shrink {
 
-static void dijkstra_search(
-    const vector<vector<pair<int, value_t>>>& graph,
-    priority_queues::HeapQueue<value_t, int>& queue,
-    vector<value_t>& distances)
+static void forward_search(
+    const vector<vector<int>>& graph,
+    std::vector<int>& queue,
+    vector<bool>& liveness)
 {
     while (!queue.empty()) {
-        pair<int, int> top_pair = queue.pop();
-        int distance = top_pair.first;
-        int state = top_pair.second;
-        value_t state_distance = distances[state];
-        assert(state_distance <= distance);
-        if (state_distance < distance) continue;
-        for (size_t i = 0; i < graph[state].size(); ++i) {
-            const auto [successor, cost] = graph[state][i];
-            value_t successor_cost = state_distance + cost;
-            if (distances[successor] > successor_cost) {
-                distances[successor] = successor_cost;
-                queue.push(successor_cost, successor);
-            }
+        int state = queue.back();
+        queue.pop_back();
+
+        for (int successor : graph[state]) {
+            if (liveness[successor]) continue;
+            liveness[successor] = true;
+            queue.push_back(successor);
         }
     }
 }
@@ -41,26 +35,36 @@ Distances::Distances(const TransitionSystem& transition_system)
 {
 }
 
-void Distances::compute_init_distances()
+void Distances::compute_liveness()
 {
-    vector<vector<pair<int, value_t>>> forward_graph(
-        transition_system.get_size());
+    int init_state = transition_system.get_init_state();
+
+    if (goal_distances[init_state] == INFINITE_VALUE) {
+        return;
+    }
+
+    vector<vector<int>> forward_graph(transition_system.get_size());
     for (const LocalLabelInfo& local_label_info : transition_system) {
-        const value_t cost = local_label_info.get_cost();
         for (const auto& [src, targets] : local_label_info.get_transitions()) {
+            // Skip transitions which are not alive
+            if (std::ranges::any_of(targets, [this](int state) {
+                    return goal_distances[state] == INFINITE_VALUE;
+                }))
+                continue;
+
             for (int target : targets) {
-                forward_graph[src].emplace_back(target, cost);
+                forward_graph[src].emplace_back(target);
             }
         }
     }
 
     // TODO: Reuse the same queue for multiple computations to save speed?
-    priority_queues::HeapQueue<value_t, int> queue;
-    init_distances[transition_system.get_init_state()] = 0;
-    queue.push(0, transition_system.get_init_state());
-    dijkstra_search(forward_graph, queue, init_distances);
+    std::vector<int> queue;
+    liveness[init_state] = true;
+    queue.push_back(init_state);
+    forward_search(forward_graph, queue, liveness);
 
-    init_distances_computed = true;
+    liveness_computed = true;
 }
 
 void Distances::compute_goal_distances()
@@ -70,41 +74,14 @@ void Distances::compute_goal_distances()
     goal_distances_computed = true;
 }
 
-void Distances::compute_distances(
-    bool compute_init_distances,
-    bool compute_goal_distances,
-    utils::LogProxy& log)
+void Distances::compute_distances(bool compute_liveness, utils::LogProxy& log)
 {
-    assert(compute_init_distances || compute_goal_distances);
+    assert(compute_liveness);
     /*
-      This method does the following:
-      - Computes the distances of abstract states from the abstract
-        initial state ("abstract g") and to the abstract goal states
-        ("abstract h"), depending on the given flags.
+      This method computes the distances of abstract states to the abstract
+      goal states ("abstract J*") and if specfified, also computes the alive
+      states.
     */
-
-#ifndef NDEBUG
-    if (are_init_distances_computed()) {
-        /*
-          The only scenario where distance information is allowed to be
-          present when computing distances is when computing goal distances
-          for the final transition system in a setting where only init
-          distances have been computed during the merge-and-shrink computation.
-        */
-        assert(!are_goal_distances_computed());
-        assert(goal_distances.empty());
-        assert(!compute_init_distances);
-        assert(compute_goal_distances);
-    } else {
-        /*
-          Otherwise, when computing distances, the previous (invalid)
-          distance information must have been cleared before.
-        */
-        assert(
-            !are_init_distances_computed() && !are_goal_distances_computed());
-        assert(init_distances.empty() && goal_distances.empty());
-    }
-#endif
 
     if (log.is_at_least_verbose()) {
         log << transition_system.tag();
@@ -116,58 +93,47 @@ void Distances::compute_distances(
         if (log.is_at_least_verbose()) {
             log << "empty transition system, no distances to compute" << endl;
         }
-        init_distances_computed = true;
+        liveness_computed = true;
         goal_distances_computed = true;
         return;
     }
 
     if (log.is_at_least_verbose()) {
         log << "computing ";
-        if (compute_init_distances && compute_goal_distances) {
-            log << "init and goal";
-        } else if (compute_init_distances) {
-            log << "init";
-        } else if (compute_goal_distances) {
-            log << "goal";
+        if (compute_liveness) {
+            log << "liveness and ";
         }
-        log << " distances";
+        log << "goal distances";
     }
 
-    if (compute_init_distances) {
-        init_distances.resize(num_states, INFINITE_VALUE);
-        Distances::compute_init_distances();
-    }
+    goal_distances.resize(num_states, INFINITE_VALUE);
+    Distances::compute_goal_distances();
 
-    if (compute_goal_distances) {
-        goal_distances.resize(num_states, INFINITE_VALUE);
-        Distances::compute_goal_distances();
+    if (compute_liveness) {
+        liveness.resize(num_states, false);
+        Distances::compute_liveness();
     }
 }
 
 void Distances::apply_abstraction(
     const StateEquivalenceRelation& state_equivalence_relation,
-    bool compute_init_distances,
-    bool compute_goal_distances,
+    bool compute_liveness,
     utils::LogProxy& log)
 {
-    if (compute_init_distances) {
-        assert(are_init_distances_computed());
-        assert(state_equivalence_relation.size() < init_distances.size());
-    }
-    if (compute_goal_distances) {
-        assert(are_goal_distances_computed());
-        assert(state_equivalence_relation.size() < goal_distances.size());
-    }
+    assert(
+        !compute_liveness ||
+        (is_liveness_computed() &&
+         state_equivalence_relation.size() < liveness.size()));
+    assert(are_goal_distances_computed());
+    assert(state_equivalence_relation.size() < goal_distances.size());
 
     int new_num_states = state_equivalence_relation.size();
-    vector<value_t> new_init_distances;
+    vector<bool> new_liveness;
     vector<value_t> new_goal_distances;
-    if (compute_init_distances) {
-        new_init_distances.resize(new_num_states, DISTANCE_UNKNOWN);
+    if (compute_liveness) {
+        new_liveness.resize(new_num_states, false);
     }
-    if (compute_goal_distances) {
-        new_goal_distances.resize(new_num_states, DISTANCE_UNKNOWN);
-    }
+    new_goal_distances.resize(new_num_states, DISTANCE_UNKNOWN);
 
     for (int new_state = 0; new_state < new_num_states; ++new_state) {
         const StateEquivalenceClass& state_eqv_class =
@@ -175,20 +141,16 @@ void Distances::apply_abstraction(
         assert(!state_eqv_class.empty());
 
         auto pos = state_eqv_class.begin();
-        value_t new_init_dist = -1;
+        bool is_alive = false;
         value_t new_goal_dist = -1;
-        if (compute_init_distances) {
-            new_init_dist = init_distances[*pos];
+        if (compute_liveness) {
+            is_alive = liveness[*pos];
         }
-        if (compute_goal_distances) {
-            new_goal_dist = goal_distances[*pos];
-        }
+        new_goal_dist = goal_distances[*pos];
 
         auto distance_different = [=, this](int state) {
-            return (compute_init_distances &&
-                    init_distances[state] != new_init_dist) ||
-                   (compute_goal_distances &&
-                    goal_distances[state] != new_goal_dist);
+            return (compute_liveness && liveness[state] != is_alive) ||
+                   (goal_distances[state] != new_goal_dist);
         };
 
         if (std::any_of(++pos, state_eqv_class.end(), distance_different)) {
@@ -197,37 +159,33 @@ void Distances::apply_abstraction(
                 log << transition_system.tag()
                     << "simplification was not f-preserving!" << endl;
             }
-            init_distances.clear();
+            liveness.clear();
             goal_distances.clear();
-            init_distances_computed = false;
+            liveness_computed = false;
             goal_distances_computed = false;
-            compute_distances(
-                compute_init_distances,
-                compute_goal_distances,
-                log);
+            compute_distances(compute_liveness, log);
             return;
         }
 
-        if (compute_init_distances) {
-            new_init_distances[new_state] = new_init_dist;
+        if (compute_liveness) {
+            new_liveness[new_state] = is_alive;
         }
-        if (compute_goal_distances) {
-            new_goal_distances[new_state] = new_goal_dist;
-        }
+
+        new_goal_distances[new_state] = new_goal_dist;
     }
 
-    init_distances = std::move(new_init_distances);
+    liveness = std::move(new_liveness);
     goal_distances = std::move(new_goal_distances);
 }
 
 void Distances::dump(utils::LogProxy& log) const
 {
     if (log.is_at_least_debug()) {
-        if (are_init_distances_computed()) {
+        if (is_liveness_computed()) {
             log << "Init distances: ";
-            for (size_t i = 0; i < init_distances.size(); ++i) {
-                log << i << ": " << init_distances[i];
-                if (i != init_distances.size() - 1) {
+            for (size_t i = 0; i < liveness.size(); ++i) {
+                log << i << ": " << liveness[i];
+                if (i != liveness.size() - 1) {
                     log << ", ";
                 }
             }

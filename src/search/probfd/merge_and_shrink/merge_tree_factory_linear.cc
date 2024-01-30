@@ -6,6 +6,8 @@
 
 #include "probfd/tasks/all_outcomes_determinization.h"
 
+#include "probfd/tasks/all_outcomes_determinization.h"
+
 #include "probfd/task_proxy.h"
 
 #include "downward/plugins/plugin.h"

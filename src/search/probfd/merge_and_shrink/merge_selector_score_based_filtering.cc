@@ -90,10 +90,10 @@ void MergeSelectorScoreBasedFiltering::dump_selector_specific_options(
     }
 }
 
-bool MergeSelectorScoreBasedFiltering::requires_init_distances() const
+bool MergeSelectorScoreBasedFiltering::requires_liveness() const
 {
     for (const auto& scoring_function : merge_scoring_functions) {
-        if (scoring_function->requires_init_distances()) {
+        if (scoring_function->requires_liveness()) {
             return true;
         }
     }

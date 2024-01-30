@@ -33,7 +33,7 @@ vector<ShrinkBucketBased::Bucket> ShrinkH::partition_into_buckets(
     const TransitionSystem& ts,
     const Distances& distances) const
 {
-    assert(distances.are_init_distances_computed());
+    assert(distances.is_liveness_computed());
     assert(distances.are_goal_distances_computed());
 
     return ordered_buckets_use_map(ts, distances);

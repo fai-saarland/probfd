@@ -40,7 +40,7 @@ private:
 public:
     explicit ShrinkH(const plugins::Options& opts);
 
-    virtual bool requires_init_distances() const override { return true; }
+    virtual bool requires_liveness() const override { return true; }
     virtual bool requires_goal_distances() const override { return true; }
 
 protected:

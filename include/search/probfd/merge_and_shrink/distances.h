@@ -30,24 +30,24 @@ class Distances {
     static constexpr value_t DISTANCE_UNKNOWN = -1;
 
     const TransitionSystem& transition_system;
-    std::vector<value_t> init_distances;
+    std::vector<bool> liveness;
     std::vector<value_t> goal_distances;
-    bool init_distances_computed = false;
+    bool liveness_computed = false;
     bool goal_distances_computed = false;
 
-    void compute_init_distances();
+    void compute_liveness();
     void compute_goal_distances();
 
 public:
     explicit Distances(const TransitionSystem& transition_system);
 
-    bool are_init_distances_computed() const { return init_distances_computed; }
+    bool is_liveness_computed() const { return liveness_computed; }
     bool are_goal_distances_computed() const { return goal_distances_computed; }
 
-    value_t get_init_distance(int state) const
+    bool is_alive(int state) const
     {
-        assert(are_init_distances_computed());
-        return init_distances[state];
+        assert(is_liveness_computed());
+        return liveness[state];
     }
 
     value_t get_goal_distance(int state) const
@@ -56,10 +56,7 @@ public:
         return goal_distances[state];
     }
 
-    void compute_distances(
-        bool compute_init_distances,
-        bool compute_goal_distances,
-        utils::LogProxy& log);
+    void compute_distances(bool compute_liveness, utils::LogProxy& log);
 
     /*
       Update distances according to the given abstraction. If the abstraction
@@ -72,8 +69,7 @@ public:
     */
     void apply_abstraction(
         const StateEquivalenceRelation& state_equivalence_relation,
-        bool compute_init_distances,
-        bool compute_goal_distances,
+        bool compute_liveness,
         utils::LogProxy& log);
 
     void dump(utils::LogProxy& log) const;
@@ -82,4 +78,4 @@ public:
 
 } // namespace probfd::merge_and_shrink
 
-#endif
+#endif // PROBFD_HEURISTICS_MERGE_AND_SHRINK_DISTANCES_H

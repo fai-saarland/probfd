@@ -43,23 +43,21 @@ FactoredTransitionSystem::FactoredTransitionSystem(
     vector<unique_ptr<TransitionSystem>>&& transition_systems,
     vector<unique_ptr<MergeAndShrinkRepresentation>>&& mas_representations,
     vector<unique_ptr<Distances>>&& distances,
-    const bool compute_init_distances,
+    const bool compute_liveness,
     const bool compute_goal_distances,
     utils::LogProxy& log)
     : labels(std::move(labels))
     , transition_systems(std::move(transition_systems))
     , mas_representations(std::move(mas_representations))
     , distances(std::move(distances))
-    , compute_init_distances(compute_init_distances)
+    , compute_liveness(compute_liveness)
     , compute_goal_distances(compute_goal_distances)
     , num_active_entries(this->transition_systems.size())
 {
+    assert(!compute_liveness || compute_goal_distances);
     for (size_t index = 0; index < this->transition_systems.size(); ++index) {
-        if (compute_init_distances || compute_goal_distances) {
-            this->distances[index]->compute_distances(
-                compute_init_distances,
-                compute_goal_distances,
-                log);
+        if (compute_goal_distances) {
+            this->distances[index]->compute_distances(compute_liveness, log);
         }
         assert(is_component_valid(index));
     }
@@ -84,8 +82,7 @@ void FactoredTransitionSystem::assert_index_valid(int index) const
 bool FactoredTransitionSystem::is_component_valid(int index) const
 {
     assert(is_active(index));
-    if (compute_init_distances &&
-        !distances[index]->are_init_distances_computed()) {
+    if (compute_liveness && !distances[index]->is_liveness_computed()) {
         return false;
     }
     if (compute_goal_distances &&
@@ -144,11 +141,10 @@ bool FactoredTransitionSystem::apply_abstraction(
         state_equivalence_relation,
         abstraction_mapping,
         log);
-    if (compute_init_distances || compute_goal_distances) {
+    if (compute_goal_distances) {
         distances[index]->apply_abstraction(
             state_equivalence_relation,
-            compute_init_distances,
-            compute_goal_distances,
+            compute_liveness,
             log);
     }
     mas_representations[index]->apply_abstraction_to_lookup_table(
@@ -188,11 +184,8 @@ int FactoredTransitionSystem::merge(
 
     auto& dist = *distances.emplace_back(std::make_unique<Distances>(new_ts));
     // Restore the invariant that distances are computed.
-    if (compute_init_distances || compute_goal_distances) {
-        dist.compute_distances(
-            compute_init_distances,
-            compute_goal_distances,
-            log);
+    if (compute_goal_distances) {
+        dist.compute_distances(compute_liveness, log);
     }
     --num_active_entries;
 

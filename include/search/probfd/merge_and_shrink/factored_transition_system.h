@@ -69,7 +69,7 @@ class FactoredTransitionSystem {
     std::vector<std::unique_ptr<MergeAndShrinkRepresentation>>
         mas_representations;
     std::vector<std::unique_ptr<Distances>> distances;
-    const bool compute_init_distances;
+    const bool compute_liveness;
     const bool compute_goal_distances;
     int num_active_entries;
 
@@ -95,7 +95,7 @@ public:
         std::vector<std::unique_ptr<MergeAndShrinkRepresentation>>&&
             mas_representations,
         std::vector<std::unique_ptr<Distances>>&& distances,
-        bool compute_init_distances,
+        bool compute_liveness,
         bool compute_goal_distances,
         utils::LogProxy& log);
     ~FactoredTransitionSystem(); // cannot default due to forward declarations

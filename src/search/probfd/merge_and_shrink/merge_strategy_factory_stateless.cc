@@ -41,9 +41,9 @@ void MergeStrategyFactoryStateless::dump_strategy_specific_options() const
     }
 }
 
-bool MergeStrategyFactoryStateless::requires_init_distances() const
+bool MergeStrategyFactoryStateless::requires_liveness() const
 {
-    return merge_selector->requires_init_distances();
+    return merge_selector->requires_liveness();
 }
 
 bool MergeStrategyFactoryStateless::requires_goal_distances() const

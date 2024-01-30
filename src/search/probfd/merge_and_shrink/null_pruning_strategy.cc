@@ -17,7 +17,7 @@ StateEquivalenceRelation NullPruningStrategy::compute_pruning_abstraction(
     return relation;
 }
 
-bool NullPruningStrategy::requires_init_distances() const
+bool NullPruningStrategy::requires_liveness() const
 {
     return false;
 }
