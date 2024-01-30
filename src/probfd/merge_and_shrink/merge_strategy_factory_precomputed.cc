@@ -29,9 +29,9 @@ MergeStrategyFactoryPrecomputed::compute_merge_strategy(
         merge_tree_factory->compute_merge_tree(task));
 }
 
-bool MergeStrategyFactoryPrecomputed::requires_init_distances() const
+bool MergeStrategyFactoryPrecomputed::requires_liveness() const
 {
-    return merge_tree_factory->requires_init_distances();
+    return merge_tree_factory->requires_liveness();
 }
 
 bool MergeStrategyFactoryPrecomputed::requires_goal_distances() const

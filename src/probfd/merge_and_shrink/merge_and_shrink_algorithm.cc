@@ -388,17 +388,16 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     warn_on_unusual_options(log);
     log << endl;
 
-    const bool compute_init_distances =
-        shrink_strategy->requires_init_distances() ||
-        merge_strategy_factory->requires_init_distances() ||
-        prune_strategy->requires_init_distances();
+    const bool compute_liveness = shrink_strategy->requires_liveness() ||
+                                  merge_strategy_factory->requires_liveness() ||
+                                  prune_strategy->requires_liveness();
     const bool compute_goal_distances =
         shrink_strategy->requires_goal_distances() ||
         merge_strategy_factory->requires_goal_distances() ||
         prune_strategy->requires_goal_distances();
     FactoredTransitionSystem fts = create_factored_transition_system(
         task_proxy,
-        compute_init_distances,
+        compute_liveness,
         compute_goal_distances,
         log);
     if (log.is_at_least_normal()) {

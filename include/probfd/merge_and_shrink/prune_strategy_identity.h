@@ -16,7 +16,7 @@ public:
         const Distances& distances,
         utils::LogProxy& log) override;
 
-    bool requires_init_distances() const override;
+    bool requires_liveness() const override;
     bool requires_goal_distances() const override;
 
     void dump_options(utils::LogProxy& log) const override;

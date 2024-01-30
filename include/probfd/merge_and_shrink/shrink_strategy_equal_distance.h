@@ -32,7 +32,7 @@ private:
 public:
     ShrinkStrategyEqualDistance(int random_seed, Priority high_low);
 
-    bool requires_init_distances() const override { return true; }
+    bool requires_liveness() const override { return false; }
     bool requires_goal_distances() const override { return true; }
 
 protected:

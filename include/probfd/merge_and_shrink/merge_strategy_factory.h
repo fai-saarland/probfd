@@ -37,7 +37,7 @@ public:
         std::shared_ptr<ProbabilisticTask>& task,
         const FactoredTransitionSystem& fts) = 0;
 
-    virtual bool requires_init_distances() const = 0;
+    virtual bool requires_liveness() const = 0;
     virtual bool requires_goal_distances() const = 0;
 
 protected:

@@ -33,7 +33,7 @@ public:
         const FactoredTransitionSystem& fts,
         const std::vector<int>& indices_subset) override;
 
-    bool requires_init_distances() const override { return false; }
+    bool requires_liveness() const override { return false; }
     bool requires_goal_distances() const override { return false; }
 
 protected:

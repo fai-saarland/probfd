@@ -18,10 +18,6 @@ class TransitionSystem;
 namespace probfd::merge_and_shrink {
 
 class ShrinkStrategy {
-protected:
-    virtual std::string name() const = 0;
-    virtual void dump_strategy_specific_options(utils::LogProxy& log) const = 0;
-
 public:
     virtual ~ShrinkStrategy() = default;
 
@@ -45,11 +41,17 @@ public:
         int target_size,
         utils::LogProxy& log) const = 0;
 
-    virtual bool requires_init_distances() const = 0;
+    virtual bool requires_liveness() const = 0;
     virtual bool requires_goal_distances() const = 0;
 
     void dump_options(utils::LogProxy& log) const;
+
     std::string get_name() const;
+
+protected:
+    virtual std::string name() const = 0;
+
+    virtual void dump_strategy_specific_options(utils::LogProxy& log) const = 0;
 };
 
 } // namespace probfd::merge_and_shrink

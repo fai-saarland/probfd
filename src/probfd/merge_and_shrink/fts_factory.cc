@@ -106,7 +106,7 @@ public:
       misuse because the class is only used internally in this file.
     */
     FactoredTransitionSystem create(
-        bool compute_init_distances,
+        bool compute_liveness,
         bool compute_goal_distances,
         utils::LogProxy& log);
 };
@@ -446,7 +446,7 @@ vector<unique_ptr<Distances>> FTSFactory::create_distances(
 }
 
 FactoredTransitionSystem FTSFactory::create(
-    const bool compute_init_distances,
+    const bool compute_liveness,
     const bool compute_goal_distances,
     utils::LogProxy& log)
 {
@@ -471,19 +471,19 @@ FactoredTransitionSystem FTSFactory::create(
         std::move(transition_systems),
         std::move(mas_representations),
         std::move(distances),
-        compute_init_distances,
+        compute_liveness,
         compute_goal_distances,
         log);
 }
 
 FactoredTransitionSystem create_factored_transition_system(
     const ProbabilisticTaskProxy& task_proxy,
-    const bool compute_init_distances,
+    const bool compute_liveness,
     const bool compute_goal_distances,
     utils::LogProxy& log)
 {
     return FTSFactory(task_proxy)
-        .create(compute_init_distances, compute_goal_distances, log);
+        .create(compute_liveness, compute_goal_distances, log);
 }
 
 } // namespace probfd::merge_and_shrink

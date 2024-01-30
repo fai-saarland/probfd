@@ -49,8 +49,9 @@ void MergeAndShrinkHeuristic::extract_factor(
     */
     auto [mas_representation, distances] = fts.extract_factor(index);
     if (!distances->are_goal_distances_computed()) {
-        distances->compute_distances(false, true, log_);
+        distances->compute_distances(false, log_);
     }
+
     assert(distances->are_goal_distances_computed());
     mas_representations.push_back(
         mas_representation->create_distance_representation(*distances));
