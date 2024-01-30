@@ -18,7 +18,7 @@ static State sample_state_with_random_walk(
     int init_h,
     double average_operator_cost,
     utils::RandomNumberGenerator& rng,
-    function<bool(State)> is_dead_end)
+    const function<bool(State)>& is_dead_end)
 {
     assert(init_h != numeric_limits<int>::max());
     int n;

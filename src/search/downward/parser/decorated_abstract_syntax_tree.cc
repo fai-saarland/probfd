@@ -105,7 +105,7 @@ const DecoratedASTNode& FunctionArgument::get_value() const
     return *value;
 }
 
-void FunctionArgument::dump(string indent) const
+void FunctionArgument::dump(const string& indent) const
 {
     cout << indent << key << " = " << endl;
     value->dump("| " + indent);
@@ -156,7 +156,7 @@ void DecoratedLetNode::dump(string indent) const
 }
 
 DecoratedFunctionCallNode::DecoratedFunctionCallNode(
-    shared_ptr<const plugins::Feature> feature,
+    const shared_ptr<const plugins::Feature>& feature,
     vector<FunctionArgument>&& arguments,
     const string& unparsed_config)
     : feature(feature)

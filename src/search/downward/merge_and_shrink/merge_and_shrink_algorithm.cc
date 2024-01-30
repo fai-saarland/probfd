@@ -36,7 +36,7 @@ using utils::ExitCode;
 
 namespace merge_and_shrink {
 static void
-log_progress(const utils::Timer& timer, string msg, utils::LogProxy& log)
+log_progress(const utils::Timer& timer, const string& msg, utils::LogProxy& log)
 {
     log << "M&S algorithm timer: " << timer << " (" << msg << ")" << endl;
 }

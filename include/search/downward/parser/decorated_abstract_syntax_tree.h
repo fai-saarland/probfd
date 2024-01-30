@@ -75,7 +75,7 @@ public:
 
     std::string get_key() const;
     const DecoratedASTNode& get_value() const;
-    void dump(std::string indent) const;
+    void dump(const std::string& indent) const;
 
     // TODO: This is here only for the iterated search. Once we switch to
     // builders, we won't need it any more.
@@ -111,7 +111,7 @@ class DecoratedFunctionCallNode : public DecoratedASTNode {
 
 public:
     DecoratedFunctionCallNode(
-        std::shared_ptr<const plugins::Feature> feature,
+        const std::shared_ptr<const plugins::Feature>& feature,
         std::vector<FunctionArgument>&& arguments,
         const std::string& unparsed_config);
 

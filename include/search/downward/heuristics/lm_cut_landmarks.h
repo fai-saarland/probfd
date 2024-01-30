@@ -114,8 +114,8 @@ public:
     */
     bool compute_landmarks(
         const State& state,
-        CostCallback cost_callback,
-        LandmarkCallback landmark_callback);
+        const CostCallback& cost_callback,
+        const LandmarkCallback& landmark_callback);
 };
 
 inline void RelaxedOperator::update_h_max_supporter()
