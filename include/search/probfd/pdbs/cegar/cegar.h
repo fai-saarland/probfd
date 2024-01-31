@@ -6,8 +6,6 @@
 #include "probfd/fdr_types.h"
 #include "probfd/value_type.h"
 
-#include "downward/utils/logging.h"
-
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
@@ -16,8 +14,13 @@
 // Forward Declarations
 class VariablesProxy;
 
+namespace plugins {
+class Feature;
+}
+
 namespace utils {
 class CountdownTimer;
+class LogProxy;
 class RandomNumberGenerator;
 } // namespace utils
 
@@ -41,8 +44,6 @@ struct CEGARResult {
 
 class CEGAR {
     class PDBInfo;
-
-    mutable utils::LogProxy log_;
 
     // Random number generator
     const std::shared_ptr<utils::RandomNumberGenerator> rng_;
@@ -72,7 +73,6 @@ class CEGAR {
 
 public:
     CEGAR(
-        utils::LogProxy log,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy,
         bool wildcard,
@@ -86,20 +86,23 @@ public:
 
     CEGARResult generate_pdbs(
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function);
+        FDRSimpleCostFunction& task_cost_function,
+        utils::LogProxy log);
 
 private:
     void generate_trivial_solution_collection(
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
-        utils::CountdownTimer& timer);
+        utils::CountdownTimer& timer,
+        utils::LogProxy log);
 
     int get_flaws(
         ProbabilisticTaskProxy task_proxy,
         std::vector<Flaw>& flaws,
         std::vector<int>& flaw_offsets,
         value_t termination_cost,
-        utils::CountdownTimer& timer);
+        utils::CountdownTimer& timer,
+        utils::LogProxy log);
 
     bool
     can_add_singleton_pattern(const VariablesProxy& variables, int var) const;
@@ -137,9 +140,10 @@ private:
         const VariablesProxy& variables,
         const std::vector<Flaw>& flaws,
         const std::vector<int>& flaw_offsets,
-        utils::CountdownTimer& timer);
+        utils::CountdownTimer& timer,
+        utils::LogProxy log);
 
-    void print_collection() const;
+    void print_collection(utils::LogProxy log) const;
 };
 
 extern void add_cegar_wildcard_option_to_feature(plugins::Feature& feature);

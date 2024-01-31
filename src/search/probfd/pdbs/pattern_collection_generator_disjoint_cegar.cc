@@ -51,7 +51,6 @@ PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
     }
 
     CEGAR cegar(
-        log_,
         rng_,
         flaw_strategy_,
         use_wildcard_policies_,
@@ -61,7 +60,7 @@ PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
         std::move(goals));
 
     std::shared_ptr pdbs =
-        cegar.generate_pdbs(task_proxy, *task_cost_function).pdbs;
+        cegar.generate_pdbs(task_proxy, *task_cost_function, log_).pdbs;
 
     auto patterns = std::make_shared<PatternCollection>();
 
