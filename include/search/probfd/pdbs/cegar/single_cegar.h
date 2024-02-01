@@ -7,7 +7,6 @@
 #include "probfd/value_type.h"
 
 #include <memory>
-#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
