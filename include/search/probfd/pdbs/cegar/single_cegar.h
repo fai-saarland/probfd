@@ -6,8 +6,6 @@
 #include "probfd/fdr_types.h"
 #include "probfd/value_type.h"
 
-#include "downward/utils/logging.h"
-
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
@@ -16,9 +14,13 @@
 // Forward Declarations
 class VariablesProxy;
 
+namespace plugins {
+class Feature;
+}
+
 namespace utils {
 class CountdownTimer;
-class Feature;
+class LogProxy;
 class RandomNumberGenerator;
 } // namespace utils
 
