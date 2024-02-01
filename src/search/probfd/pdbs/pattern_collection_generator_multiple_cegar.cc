@@ -1,6 +1,7 @@
 #include "probfd/pdbs/pattern_collection_generator_multiple_cegar.h"
 
-#include "probfd/pdbs/cegar/cegar.h"
+#include "probfd/pdbs/cegar/single_cegar.h"
+#include "probfd/pdbs/probability_aware_pattern_database.h"
 #include "probfd/pdbs/projection_state_space.h"
 
 #include "probfd/task_proxy.h"
@@ -40,26 +41,18 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
     const FactPair& goal,
     unordered_set<int>&& blacklisted_variables)
 {
-    CEGAR cegar(
-        log_,
+    SingleCEGAR single_cegar(
         rng,
         flaw_strategy_,
         use_wildcard_policies_,
         max_pdb_size,
-        max_pdb_size,
         max_time,
-        {goal.var},
+        goal.var,
         std::move(blacklisted_variables));
-    auto [state_spaces, pdbs] =
-        cegar.generate_pdbs(task_proxy, task_cost_function);
-    assert(state_spaces->size() == pdbs->size());
-    if (pdbs->size() > 1) {
-        cerr << "CEGAR limited to one goal computed more than one pattern"
-             << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
-    }
+    auto [state_space, pdb] =
+        single_cegar.generate_pdbs(task_proxy, task_cost_function, log_);
 
-    return {std::move(state_spaces->front()), pdbs->front()};
+    return {std::move(state_space), std::move(pdb)};
 }
 
 class PatternCollectionGeneratorMultipleCegarFeature
