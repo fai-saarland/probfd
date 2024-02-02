@@ -25,17 +25,19 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
     std::shared_ptr<PatternCollectionGenerator> generator,
     double max_time_dominance_pruning,
     utils::LogProxy log)
-    : TaskDependentHeuristic(task, log)
+    : TaskDependentHeuristic(std::move(task), std::move(log))
     , termination_cost_(task_cost_function->get_non_goal_termination_cost())
 {
     utils::Timer construction_timer;
 
     utils::Timer generator_timer;
     auto pattern_collection_info =
-        generator->generate(task, task_cost_function);
+        generator->generate(task_, task_cost_function);
     const double generator_time = generator_timer();
 
-    this->patterns_ = pattern_collection_info.get_patterns();
+    std::shared_ptr<std::vector<pdbs::Pattern>> patterns =
+        pattern_collection_info.get_patterns();
+
     this->pdbs_ = pattern_collection_info.get_pdbs();
     this->subcollections_ = pattern_collection_info.get_subcollections();
     this->subcollection_finder_ =
@@ -47,7 +49,7 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
         utils::Timer timer;
 
         ::pdbs::prune_dominated_cliques(
-            *patterns_,
+            *patterns,
             *pdbs_,
             *subcollections_,
             static_cast<int>(task_proxy_.get_variables().size()),
@@ -57,7 +59,7 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
         dominance_pruning_time = timer();
     }
 
-    if (log.is_at_least_normal()) {
+    if (log_.is_at_least_normal()) {
         // Gather statistics.
         const double construction_time = construction_timer();
 
@@ -65,7 +67,7 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
         size_t variables = 0;
         size_t abstract_states = 0;
 
-        for (auto pdb : *pdbs_) {
+        for (const auto& pdb : *pdbs_) {
             size_t vars = pdb->get_pattern().size();
             largest_pattern = std::max(largest_pattern, vars);
             variables += vars;
@@ -74,7 +76,7 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
 
         size_t total_subcollections_size = 0;
 
-        for (auto subcollection : *subcollections_) {
+        for (const auto& subcollection : *subcollections_) {
             total_subcollections_size += subcollection.size();
         }
 
@@ -88,28 +90,28 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
             static_cast<double>(total_subcollections_size) /
             static_cast<double>(subcollections_->size());
 
-        log << "\n"
-            << "Pattern Databases Statistics:\n"
-            << "  Total number of PDBs: " << pdbs_->size() << "\n"
-            << "  Total number of variables: " << variables << "\n"
-            << "  Total number of abstract states: " << abstract_states << "\n"
-            << "  Average number of variables per PDB: " << avg_variables
-            << "\n"
-            << "  Average number of abstract states per PDB: "
-            << avg_abstract_states << "\n"
+        log_ << "\n"
+             << "Pattern Databases Statistics:\n"
+             << "  Total number of PDBs: " << pdbs_->size() << "\n"
+             << "  Total number of variables: " << variables << "\n"
+             << "  Total number of abstract states: " << abstract_states << "\n"
+             << "  Average number of variables per PDB: " << avg_variables
+             << "\n"
+             << "  Average number of abstract states per PDB: "
+             << avg_abstract_states << "\n"
 
-            << "  Largest pattern size: " << largest_pattern << "\n"
+             << "  Largest pattern size: " << largest_pattern << "\n"
 
-            << "  Total number of subcollections: " << subcollections_->size()
-            << "\n"
-            << "  Total number of subcollection PDBs: "
-            << total_subcollections_size << "\n"
-            << "  Average size of subcollection PDBs: "
-            << avg_subcollection_size << "\n"
+             << "  Total number of subcollections: " << subcollections_->size()
+             << "\n"
+             << "  Total number of subcollection PDBs: "
+             << total_subcollections_size << "\n"
+             << "  Average size of subcollection PDBs: "
+             << avg_subcollection_size << "\n"
 
-            << "  Generator time: " << generator_time << "s\n"
-            << "  Dominance pruning time: " << dominance_pruning_time << "s\n"
-            << "  Total construction time: " << construction_time << "s\n";
+             << "  Generator time: " << generator_time << "s\n"
+             << "  Dominance pruning time: " << dominance_pruning_time << "s\n"
+             << "  Total construction time: " << construction_time << "s\n";
     }
 }
 
