@@ -11,48 +11,32 @@
 
 namespace probfd::pdbs {
 
+static constexpr auto maxint = std::numeric_limits<long long int>::max();
+
 StateRankingFunction::StateRankingFunction(
     const VariablesProxy& variables,
     Pattern pattern)
     : pattern_(std::move(pattern))
     , var_infos_(pattern_.size())
 {
-    assert(!pattern_.empty());
     assert(std::is_sorted(pattern_.begin(), pattern_.end()));
 
-    constexpr long long int maxint = std::numeric_limits<long long int>::max();
+    long long int multiplier = 1;
 
-    {
-        VariableInfo& first_info = var_infos_[0];
-        first_info.multiplier = 1;
-    }
+    for (auto [cur_info, var] : std::views::zip(var_infos_, pattern_)) {
+        const int domain_size = variables[var].get_domain_size();
+        cur_info.domain = domain_size;
+        cur_info.multiplier = multiplier;
 
-    for (unsigned i = 1; i < var_infos_.size(); ++i) {
-        VariableInfo& prev_info = var_infos_[i - 1];
-        VariableInfo& cur_info = var_infos_[i];
-
-        const int d = variables[pattern_[i - 1]].get_domain_size();
-        prev_info.domain = d;
-
-        if (prev_info.multiplier > maxint / d) {
+        if (multiplier > maxint / domain_size) {
             throw std::range_error("Construction of PDB would exceed "
                                    "std::numeric_limits<long long int>::max()");
         }
 
-        cur_info.multiplier = prev_info.multiplier * d;
+        multiplier *= domain_size;
     }
 
-    VariableInfo& last_info = var_infos_.back();
-
-    const int d = variables[pattern_.back()].get_domain_size();
-    last_info.domain = d;
-
-    if (last_info.multiplier > maxint / d) {
-        throw std::range_error("Construction of PDB would exceed "
-                               "std::numeric_limits<long long int>::max()");
-    }
-
-    num_states_ = last_info.multiplier * d;
+    num_states_ = multiplier;
 }
 
 unsigned StateRankingFunction::num_states() const
