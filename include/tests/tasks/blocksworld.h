@@ -8,32 +8,43 @@
 namespace tests {
 
 class BlocksworldTask : public probfd::ProbabilisticTask {
-    int blocks;
-    std::vector<int> initial_state;
-    std::vector<FactPair> goal_state;
+    const int blocks;
 
-    const int pick_tower_begin;
     const int pick_up_begin;
     const int pick_table_begin;
-
     const int put_tower_block_begin;
     const int put_tower_down_begin;
     const int put_on_block_begin;
     const int put_table_begin;
 
-    const int num_operators;
+    struct VariableInfo {
+        std::string name;
+        std::vector<std::string> fact_names;
+    };
 
-    int get_clear_var(int block) const;
-    int get_location_var(int block) const;
-    int get_hand_var() const;
+    struct EffectInfo {
+        probfd::value_t probability;
+        std::vector<FactPair> effects;
+    };
+
+    struct OperatorInfo {
+        std::string name;
+        probfd::value_t cost;
+        std::vector<FactPair> preconditions;
+        std::vector<EffectInfo> outcomes;
+    };
+
+    std::vector<VariableInfo> variables;
+    std::vector<OperatorInfo> operators;
+
+    std::vector<int> initial_state;
+    std::vector<FactPair> goal_state;
 
 public:
     BlocksworldTask(
         int num_blocks,
         const std::vector<std::vector<int>>& initial,
         const std::vector<std::vector<int>>& goal);
-
-    ~BlocksworldTask() override = default;
 
     int get_num_variables() const override;
 
@@ -113,6 +124,25 @@ public:
         int outcome_index,
         int eff_index,
         int cond_index) const override;
+
+    int get_clear_var(int block) const;
+    int get_location_var(int block) const;
+    int get_hand_var() const;
+
+    FactPair get_fact_is_block_clear(int block, bool is_clear) const;
+    FactPair get_fact_block_on_block(int block1, int block2) const;
+    FactPair get_fact_block_on_table(int block) const;
+    FactPair get_fact_block_in_hand(int block) const;
+    FactPair get_fact_is_hand_empty(bool is_empty) const;
+
+    int get_operator_pick_up_tower_index(int b1, int b2, int b3) const;
+    int get_operator_pick_up_block_on_block_index(int b1, int b2) const;
+    int get_operator_pick_up_block_from_table_index(int b) const;
+
+    int get_operator_put_tower_on_block_index(int b1, int b2, int b3) const;
+    int get_operator_put_tower_on_table_index(int b1, int b2) const;
+    int get_operator_put_block_on_block_index(int b1, int b2) const;
+    int get_operator_put_block_on_table_index(int b) const;
 };
 
 } // namespace tests
