@@ -56,3 +56,14 @@ create_test_library(
     DEPENDS
         test_utils
 )
+
+create_test_library(
+    NAME pdb_tests
+    HELP "PDB Tests"
+    SOURCES
+        tests/pdb_tests
+    DEPENDS
+        test_utils
+        probability_aware_pdbs
+        mdp
+)
