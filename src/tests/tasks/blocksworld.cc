@@ -1,4 +1,5 @@
 #include "tests/tasks/blocksworld.h"
+#include "downward/task_proxy.h"
 
 #include <set>
 
@@ -540,6 +541,22 @@ int BlocksworldTask::get_operator_put_block_on_block_index(int b1, int b2) const
 int BlocksworldTask::get_operator_put_block_on_table_index(int b) const
 {
     return put_table_begin + b;
+}
+
+State BlocksworldTask::get_state(const std::vector<FactPair>& facts)
+{
+    std::vector<int> values(variables.size(), -1);
+
+    for (const auto& [var, val] : facts) {
+        if (values[var] != -1) abort();
+        values[var] = val;
+    }
+
+    for (const int val : values) {
+        if (val == -1) abort();
+    }
+
+    return State(*this, std::move(values));
 }
 
 } // namespace tests

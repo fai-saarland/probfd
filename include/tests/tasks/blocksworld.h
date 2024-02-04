@@ -5,6 +5,8 @@
 
 #include <vector>
 
+class State;
+
 namespace tests {
 
 class BlocksworldTask : public probfd::ProbabilisticTask {
@@ -143,6 +145,8 @@ public:
     int get_operator_put_tower_on_table_index(int b1, int b2) const;
     int get_operator_put_block_on_block_index(int b1, int b2) const;
     int get_operator_put_block_on_table_index(int b) const;
+
+    State get_state(const std::vector<FactPair>& facts);
 };
 
 } // namespace tests
