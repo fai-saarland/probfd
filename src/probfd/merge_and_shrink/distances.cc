@@ -2,12 +2,21 @@
 
 #include "probfd/merge_and_shrink/transition_system.h"
 
+#include "probfd/algorithms/ta_topological_value_iteration.h"
+
+#include "probfd/heuristics/constant_heuristic.h"
+
+#include "probfd/distribution.h"
+#include "probfd/mdp.h"
+#include "probfd/transition_tail.h"
+
 #include "downward/algorithms/priority_queues.h"
 
 #include "downward/utils/logging.h"
 
 #include <cassert>
 #include <deque>
+#include <ranges>
 
 using namespace std;
 
@@ -67,9 +76,136 @@ void Distances::compute_liveness()
     liveness_computed = true;
 }
 
+namespace {
+struct ProbabilisticTransition {
+    value_t cost;
+    Distribution<int> successor_dist;
+};
+
+class ExplicitMDP : public MDP<int, const ProbabilisticTransition*> {
+    std::vector<std::vector<ProbabilisticTransition>> transitions_;
+    std::vector<bool> goal_flags_;
+
+public:
+    explicit ExplicitMDP(const TransitionSystem& transition_system)
+        : transitions_(transition_system.get_size())
+        , goal_flags_(transition_system.get_size())
+    {
+        namespace vws = std::views;
+
+        // Set up transitions
+        for (const LocalLabelInfo& label_info : transition_system) {
+            const value_t label_cost = label_info.get_cost();
+            const auto& probabilities = label_info.get_probabilities();
+            for (const auto& [src, targets] : label_info.get_transitions()) {
+                auto& [_, successor_dist] =
+                    transitions_[src].emplace_back(label_cost);
+                for (auto [item, prob] : vws::zip(targets, probabilities)) {
+                    successor_dist.add_probability(item, prob);
+                }
+            }
+        }
+
+        // Set up goal state flags
+        for (int i = 0; i != transition_system.get_size(); ++i) {
+            goal_flags_[i] = transition_system.is_goal_state(i);
+        }
+    }
+
+    StateID get_state_id(int state) override { return StateID(state); }
+
+    int get_state(StateID state_id) override
+    {
+        return static_cast<int>(state_id.id);
+    }
+
+    void generate_applicable_actions(
+        int state,
+        std::vector<const ProbabilisticTransition*>& result) override
+    {
+        result.reserve(transitions_[state].size());
+        for (const ProbabilisticTransition& t : transitions_[state]) {
+            result.push_back(&t);
+        }
+    }
+
+    void generate_action_transitions(
+        int state,
+        const ProbabilisticTransition* action,
+        SuccessorDistribution& result) override
+    {
+        for (auto [succ, prob] : action->successor_dist) {
+            if (succ == state) continue;
+            result.add_non_source_probability(StateID(succ), prob);
+        }
+    }
+
+    void generate_all_transitions(
+        int state,
+        std::vector<const ProbabilisticTransition*>& aops,
+        std::vector<SuccessorDistribution>& successors) override
+    {
+        aops.reserve(transitions_[state].size());
+        successors.reserve(transitions_[state].size());
+        for (const ProbabilisticTransition& t : transitions_[state]) {
+            aops.push_back(&t);
+            auto& dist = successors.emplace_back();
+            for (auto [succ, prob] : t.successor_dist) {
+                if (succ == state) continue;
+                dist.add_non_source_probability(StateID(succ), prob);
+            }
+        }
+    }
+
+    void generate_all_transitions(
+        int state,
+        std::vector<TransitionTailType>& transitions) override
+    {
+        transitions.reserve(transitions_[state].size());
+        for (const ProbabilisticTransition& t : transitions_[state]) {
+            auto& [action, successor_dist] = transitions.emplace_back(&t);
+            for (auto [succ, prob] : t.successor_dist) {
+                if (succ == state) continue;
+                successor_dist.add_non_source_probability(StateID(succ), prob);
+            }
+        }
+    }
+
+    TerminationInfo get_termination_info(int state) override
+    {
+        return goal_flags_[state]
+                   ? TerminationInfo::from_goal(0_vt)
+                   : TerminationInfo::from_non_goal(INFINITE_VALUE);
+    }
+
+    value_t get_action_cost(const ProbabilisticTransition* action) override
+    {
+        return action->cost;
+    }
+};
+} // namespace
+
 void Distances::compute_goal_distances()
 {
-    // TODO
+    using namespace algorithms::ta_topological_vi;
+
+    assert(
+        goal_distances.size() ==
+        static_cast<std::size_t>(transition_system.get_size()));
+
+    ExplicitMDP explicit_mdp(transition_system);
+
+    TATopologicalValueIteration<int, const ProbabilisticTransition*> tatvi(
+        0.001);
+
+    for (int i = 0; i != transition_system.get_size(); ++i) {
+        if (goal_distances[i] != -INFINITE_VALUE) continue; // Already seen
+        tatvi.solve(
+            explicit_mdp,
+            heuristics::ConstantEvaluator<int>(0_vt),
+            0,
+            goal_distances);
+    }
 
     goal_distances_computed = true;
 }
@@ -105,7 +241,7 @@ void Distances::compute_distances(bool compute_liveness, utils::LogProxy& log)
         log << "goal distances";
     }
 
-    goal_distances.resize(num_states, INFINITE_VALUE);
+    goal_distances.resize(num_states, -INFINITE_VALUE);
     compute_goal_distances();
 
     if (compute_liveness) {
