@@ -10,6 +10,10 @@
 #include "downward/utils/memory.h"
 #include "downward/utils/system.h"
 
+#ifndef NDEBUG
+#include "downward/utils/collections.h"
+#endif
+
 #include <cassert>
 
 using namespace std;
