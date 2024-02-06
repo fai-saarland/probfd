@@ -129,7 +129,7 @@ LabelReduction::compute_combinable_equivalence_relation(
     for (int index : fts) {
         if (index != ts_index) {
             const TransitionSystem& ts = fts.get_transition_system(index);
-            for (const LocalLabelInfo& local_label_info : ts) {
+            for (const LocalLabelInfo& local_label_info : ts.label_infos()) {
                 relation.refine(local_label_info.get_label_group());
             }
         }

@@ -151,7 +151,7 @@ void ShrinkBisimulation::compute_signatures(
 
     int label_group_counter = 0;
 
-    for (const LocalLabelInfo& local_label_info : ts) {
+    for (const LocalLabelInfo& local_label_info : ts.label_infos()) {
         for (const auto& [src, targets] : local_label_info.get_transitions()) {
             assert(signatures[src].state == src);
 

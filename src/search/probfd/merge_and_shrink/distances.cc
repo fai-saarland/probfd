@@ -57,7 +57,7 @@ void Distances::compute_liveness()
     }
 
     vector<vector<int>> forward_graph(transition_system.get_size());
-    for (const LocalLabelInfo& local_label_info : transition_system) {
+    for (const auto& local_label_info : transition_system.label_infos()) {
         for (const auto& [src, targets] : local_label_info.get_transitions()) {
             // Skip transitions which are not alive
             if (std::ranges::any_of(targets, [this](int state) {
@@ -98,7 +98,7 @@ public:
         namespace vws = std::views;
 
         // Set up transitions
-        for (const LocalLabelInfo& label_info : transition_system) {
+        for (const auto& label_info : transition_system.label_infos()) {
             const value_t cost = label_info.get_cost();
             const auto& probabilities = label_info.get_probabilities();
             for (const auto& t : label_info.get_transitions()) {

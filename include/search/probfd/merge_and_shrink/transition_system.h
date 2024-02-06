@@ -11,6 +11,7 @@
 #include <deque>
 #include <iostream>
 #include <memory>
+#include <ranges>
 #include <string>
 #include <utility>
 #include <vector>
@@ -120,35 +121,6 @@ public:
     bool is_consistent() const;
 };
 
-/*
-  Iterator class for TransitionSystem which provides access to the active
-  entries of into local_label_infos.
-*/
-class TransitionSystemConstIterator {
-    std::vector<LocalLabelInfo>::const_iterator it;
-    std::vector<LocalLabelInfo>::const_iterator end_it;
-
-    void advance_to_next_valid_index();
-
-public:
-    TransitionSystemConstIterator(
-        std::vector<LocalLabelInfo>::const_iterator it,
-        std::vector<LocalLabelInfo>::const_iterator end_it);
-    TransitionSystemConstIterator& operator++();
-
-    const LocalLabelInfo& operator*() const { return *it; }
-
-    bool operator==(const TransitionSystemConstIterator& rhs) const
-    {
-        return it == rhs.it;
-    }
-
-    bool operator!=(const TransitionSystemConstIterator& rhs) const
-    {
-        return it != rhs.it;
-    }
-};
-
 class TransitionSystem {
     /*
       The following two attributes are only used for output.
@@ -245,18 +217,10 @@ public:
         const std::vector<std::pair<int, std::vector<int>>>& label_mapping,
         bool only_equivalent_labels);
 
-    TransitionSystemConstIterator begin() const
+    auto label_infos() const
     {
-        return TransitionSystemConstIterator(
-            local_label_infos.begin(),
-            local_label_infos.end());
-    }
-
-    TransitionSystemConstIterator end() const
-    {
-        return TransitionSystemConstIterator(
-            local_label_infos.end(),
-            local_label_infos.end());
+        using namespace std::views;
+        return local_label_infos | filter(&LocalLabelInfo::is_active);
     }
 
     /*
