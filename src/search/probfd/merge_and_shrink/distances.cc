@@ -200,7 +200,7 @@ void Distances::compute_goal_distances()
         tatvi.solve(
             explicit_mdp,
             heuristics::BlindEvaluator<int>(),
-            0,
+            i,
             goal_distances);
     }
 
@@ -209,7 +209,6 @@ void Distances::compute_goal_distances()
 
 void Distances::compute_distances(bool compute_liveness, utils::LogProxy& log)
 {
-    assert(compute_liveness);
     /*
       This method computes the distances of abstract states to the abstract
       goal states ("abstract J*") and if specfified, also computes the alive
