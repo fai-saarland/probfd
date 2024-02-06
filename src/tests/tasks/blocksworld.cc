@@ -215,7 +215,7 @@ BlocksworldTask::BlocksworldTask(
                     get_fact_block_on_block(b1, b2)};
                 op_info.outcomes = {
                     {1,
-                     {get_fact_is_hand_empty(false),
+                     {get_fact_is_hand_empty(true),
                       get_fact_block_on_table(b2)}}};
             }
         }
@@ -247,7 +247,7 @@ BlocksworldTask::BlocksworldTask(
                 get_fact_is_block_clear(b1, true)};
             op_info.outcomes = {
                 {1,
-                 {get_fact_is_hand_empty(false), get_fact_block_on_table(b1)}}};
+                 {get_fact_is_hand_empty(true), get_fact_block_on_table(b1)}}};
         }
     }
 }
