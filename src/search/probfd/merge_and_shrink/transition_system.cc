@@ -194,7 +194,7 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
     for (int s1 = 0; s1 < ts1_size; ++s1) {
         if (!ts1.goal_states[s1]) continue;
         for (int s2 = 0; s2 < ts2_size; ++s2) {
-            if (ts1.goal_states[s2]) {
+            if (ts2.goal_states[s2]) {
                 const int state = s1 * ts2_size + s2;
                 goal_states[state] = true;
             }
