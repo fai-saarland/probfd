@@ -301,6 +301,7 @@ create_probfd_library(
         probfd/pdbs/projection_state_space
         probfd/pdbs/saturation
         probfd/pdbs/state_ranking_function
+        probfd/pdbs/utils
     DEPENDS pdbs mdp task_dependent_heuristic
     DEPENDENCY_ONLY
 )
@@ -325,8 +326,6 @@ create_probfd_library(
         probfd/pdbs/fully_additive_finder
         probfd/pdbs/trivial_finder
         probfd/pdbs/subcollections
-
-        probfd/pdbs/utils
     DEPENDS probability_aware_pdbs max_cliques
     DEPENDENCY_ONLY
 )
