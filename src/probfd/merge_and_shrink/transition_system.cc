@@ -589,7 +589,10 @@ bool TransitionSystem::is_label_mapping_consistent() const
             local_label_infos[local_label].get_label_group();
         assert(!label_group.empty());
 
-        if (std::binary_search(label_group.begin(), label_group.end(), label)) {
+        if (!std::binary_search(
+                label_group.begin(),
+                label_group.end(),
+                label)) {
             dump_label_mapping();
             cerr << "label " << label
                  << " is not part of the "
