@@ -16,6 +16,7 @@
 
 #include <cassert>
 #include <map>
+#include <ranges>
 #include <unordered_map>
 #include <vector>
 
@@ -153,15 +154,18 @@ void FTSFactory::initialize_transition_system_data(const Labels& labels)
         ts_data.init_state = initial_state[var_id].get_value();
         ts_data.goal_states.resize(range, false);
 
-        for (FactProxy goal : task_proxy.get_goals()) {
-            if (goal.get_variable().get_id() == var_id) {
-                ts_data.goal_states[goal.get_value()] = true;
-                return;
-            }
-        }
+        auto goals = task_proxy.get_goals();
 
-        for (int value = 0; value < range; ++value) {
-            ts_data.goal_states[value] = true;
+        auto it = std::ranges::find_if(goals, [=](FactProxy goal) {
+            return goal.get_variable().get_id() == var_id;
+        });
+
+        if (it != goals.end()) {
+            ts_data.goal_states[(*it).get_value()] = true;
+        } else {
+            for (int value = 0; value < range; ++value) {
+                ts_data.goal_states[value] = true;
+            }
         }
     }
 }
