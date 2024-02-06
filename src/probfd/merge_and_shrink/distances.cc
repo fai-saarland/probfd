@@ -205,7 +205,7 @@ void Distances::compute_goal_distances()
         tatvi.solve(
             explicit_mdp,
             heuristics::ConstantEvaluator<int>(0_vt),
-            0,
+            i,
             goal_distances);
     }
 
