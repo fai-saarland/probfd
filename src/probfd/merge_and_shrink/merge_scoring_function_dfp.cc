@@ -40,7 +40,7 @@ compute_label_ranks(const FactoredTransitionSystem& fts, int index)
     // Irrelevant (and inactive, i.e. reduced) labels have a dummy rank of -1
     vector label_ranks(num_labels, -1.0);
 
-    for (const LocalLabelInfo& local_label_info : ts) {
+    for (const LocalLabelInfo& local_label_info : ts.label_infos()) {
         const LabelGroup& label_group = local_label_info.get_label_group();
         const auto probabilities = local_label_info.get_probabilities();
         const auto& transitions = local_label_info.get_transitions();

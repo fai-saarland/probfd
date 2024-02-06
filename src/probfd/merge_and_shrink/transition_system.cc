@@ -108,29 +108,6 @@ bool LocalLabelInfo::is_consistent() const
            utils::is_sorted_unique(transitions);
 }
 
-TransitionSystemConstIterator::TransitionSystemConstIterator(
-    vector<LocalLabelInfo>::const_iterator it,
-    vector<LocalLabelInfo>::const_iterator end_it)
-    : it(it)
-    , end_it(end_it)
-{
-    advance_to_next_valid_index();
-}
-
-void TransitionSystemConstIterator::advance_to_next_valid_index()
-{
-    while (it != end_it && !it->is_active()) {
-        ++it;
-    }
-}
-
-TransitionSystemConstIterator& TransitionSystemConstIterator::operator++()
-{
-    ++it;
-    advance_to_next_valid_index();
-    return *this;
-}
-
 /*
   Implementation note: Transitions are grouped by their label groups,
   not by source state or any such thing. Such a grouping is beneficial
@@ -234,7 +211,7 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
     */
     const int multiplier = ts2_size;
     vector<int> dead_labels;
-    for (const LocalLabelInfo& local_label_info : ts1) {
+    for (const LocalLabelInfo& local_label_info : ts1.label_infos()) {
         const LabelGroup& group1 = local_label_info.get_label_group();
         const vector<Transition>& transitions1 =
             local_label_info.get_transitions();
@@ -570,10 +547,7 @@ string TransitionSystem::tag() const
 
 bool TransitionSystem::are_local_labels_consistent() const
 {
-    for (const LocalLabelInfo& local_label_info : *this) {
-        if (!local_label_info.is_consistent()) return false;
-    }
-    return true;
+    return std::ranges::all_of(label_infos(), &LocalLabelInfo::is_consistent);
 }
 
 bool TransitionSystem::is_valid() const
@@ -651,7 +625,7 @@ bool TransitionSystem::is_solvable(const Distances& distances) const
 int TransitionSystem::compute_total_transitions() const
 {
     int total = 0;
-    for (const LocalLabelInfo& local_label_info : *this) {
+    for (const LocalLabelInfo& local_label_info : label_infos()) {
         total += local_label_info.get_transitions().size();
     }
     return total;
@@ -689,7 +663,7 @@ void TransitionSystem::dump_dot_graph(utils::LogProxy& log) const
 
         // Introduce intermediate nodes for every transition
         size_t k = 0;
-        for (const LocalLabelInfo& local_label_info : *this) {
+        for (const LocalLabelInfo& local_label_info : label_infos()) {
             const vector<Transition>& transitions =
                 local_label_info.get_transitions();
             for (size_t i = 0; i != transitions.size(); ++i) {
@@ -699,7 +673,7 @@ void TransitionSystem::dump_dot_graph(utils::LogProxy& log) const
         }
 
         k = 0;
-        for (const LocalLabelInfo& local_label_info : *this) {
+        for (const LocalLabelInfo& local_label_info : label_infos()) {
             const LabelGroup& label_group = local_label_info.get_label_group();
             const vector<Transition>& transitions =
                 local_label_info.get_transitions();
@@ -732,7 +706,7 @@ void TransitionSystem::dump_labels_and_transitions(utils::LogProxy& log) const
 {
     if (log.is_at_least_debug()) {
         log << tag() << "transitions" << endl;
-        for (const LocalLabelInfo& local_label_info : *this) {
+        for (const LocalLabelInfo& local_label_info : label_infos()) {
             const LabelGroup& label_group = local_label_info.get_label_group();
             log << "labels: " << label_group << endl;
             log << "transitions: ";
