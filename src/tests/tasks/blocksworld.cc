@@ -1,6 +1,7 @@
 #include "tests/tasks/blocksworld.h"
 #include "downward/task_proxy.h"
 
+#include <format>
 #include <set>
 
 using namespace probfd;
@@ -76,9 +77,6 @@ BlocksworldTask::BlocksworldTask(
     for (const std::vector<int>& stack : goal) {
         if (stack.empty()) abort();
 
-        // This block must be clear
-        goal_state.emplace_back(get_clear_var(stack.front()), 1);
-
         for (size_t i = 0; i != stack.size() - 1; ++i) {
             // Blocks may not be encountered twice
             if (!seen.insert(stack[i]).second) abort();
@@ -93,9 +91,6 @@ BlocksworldTask::BlocksworldTask(
         // The last block is on the table
         goal_state.emplace_back(get_location_var(stack.back()), blocks);
     }
-
-    // Hand must be empty
-    goal_state.emplace_back(get_hand_var(), 1);
 
     for (int i = 0; i != blocks; ++i) {
         auto& info = variables[get_clear_var(i)];
