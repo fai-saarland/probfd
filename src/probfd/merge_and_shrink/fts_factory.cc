@@ -287,7 +287,7 @@ void FTSFactory::build_transitions_for_operator(
         assert(utils::is_sorted_unique(transitions));
 
         auto& data = transition_system_data_by_var[var_no];
-        vector<int> label_to_local_label = data.label_to_local_label;
+        vector<int>& label_to_local_label = data.label_to_local_label;
         vector<LocalLabelInfo>& local_label_infos = data.local_label_infos;
 
         for (size_t local_label = 0; local_label < local_label_infos.size();
