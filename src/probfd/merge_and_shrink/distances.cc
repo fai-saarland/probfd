@@ -18,6 +18,10 @@
 #include <deque>
 #include <ranges>
 
+#ifndef NDEBUG
+#include <utility> // for std::cmp_equal
+#endif
+
 using namespace std;
 
 namespace probfd::merge_and_shrink {
@@ -189,9 +193,7 @@ void Distances::compute_goal_distances()
 {
     using namespace algorithms::ta_topological_vi;
 
-    assert(
-        goal_distances.size() ==
-        static_cast<std::size_t>(transition_system.get_size()));
+    assert(std::cmp_equal(goal_distances.size(), transition_system.get_size()));
 
     ExplicitMDP explicit_mdp(transition_system);
 
