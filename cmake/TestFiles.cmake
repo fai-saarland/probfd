@@ -67,3 +67,22 @@ create_library(
         probfd_core
     TARGET probfd_tests
 )
+
+create_library(
+    NAME mns_tests
+    HELP "MnS Tests"
+    SOURCES
+        tests/mns_tests
+    DEPENDS
+        GTest::gtest
+        test_utils
+        pa_merge_and_shrink
+        probfd_core
+        # TODO remove
+        plugins
+        parser
+        logging_options
+        rng_options
+    TARGET
+        probfd_tests
+)
