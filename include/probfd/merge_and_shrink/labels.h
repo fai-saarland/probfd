@@ -54,7 +54,8 @@ public:
     {
         using namespace std::views;
         return zip(iota(0U, label_infos.size()), label_infos) |
-               filter([](const auto& p) { return p.second.cost != -1_vt; });
+               filter(
+                   [](const auto& p) { return std::get<1>(p).cost != -1_vt; });
     }
 
     void dump_labels(utils::LogProxy log) const;
