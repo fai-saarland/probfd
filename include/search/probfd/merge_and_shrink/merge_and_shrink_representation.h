@@ -22,12 +22,15 @@ namespace probfd::merge_and_shrink {
 class MergeAndShrinkRepresentation {
 protected:
     int domain_size;
+    std::vector<int> lookup_table;
 
 public:
     explicit MergeAndShrinkRepresentation(int domain_size);
     virtual ~MergeAndShrinkRepresentation() = default;
 
     int get_domain_size() const;
+
+    void scale(int scale);
 
     virtual void apply_abstraction_to_lookup_table(
         const std::vector<int>& abstraction_mapping) = 0;
@@ -51,8 +54,6 @@ public:
 class MergeAndShrinkRepresentationLeaf : public MergeAndShrinkRepresentation {
     const int var_id;
 
-    std::vector<int> lookup_table;
-
 public:
     MergeAndShrinkRepresentationLeaf(int var_id, int domain_size);
 
@@ -69,7 +70,6 @@ public:
 class MergeAndShrinkRepresentationMerge : public MergeAndShrinkRepresentation {
     std::unique_ptr<MergeAndShrinkRepresentation> left_child;
     std::unique_ptr<MergeAndShrinkRepresentation> right_child;
-    std::vector<std::vector<int>> lookup_table;
 
 public:
     MergeAndShrinkRepresentationMerge(
@@ -88,10 +88,10 @@ public:
 
 class MergeAndShrinkDistanceRepresentation {
 protected:
-    int domain_size;
+    std::vector<value_t> lookup_table;
 
 public:
-    explicit MergeAndShrinkDistanceRepresentation(int domain_size);
+    explicit MergeAndShrinkDistanceRepresentation(std::size_t table_size);
     virtual ~MergeAndShrinkDistanceRepresentation() = default;
 
     virtual value_t get_abstract_distance(const State& state) const = 0;
@@ -100,14 +100,11 @@ public:
 
 class MergeAndShrinkDistanceRepresentationLeaf
     : public MergeAndShrinkDistanceRepresentation {
-    const int var_id;
-
-    std::vector<value_t> lookup_table;
+    int var_id;
 
 public:
     MergeAndShrinkDistanceRepresentationLeaf(
         int var_id,
-        int domain_size,
         std::vector<int>& state_lookup_table,
         const Distances& distances);
 
@@ -119,14 +116,12 @@ class MergeAndShrinkDistanceRepresentationMerge
     : public MergeAndShrinkDistanceRepresentation {
     std::unique_ptr<MergeAndShrinkRepresentation> left_child;
     std::unique_ptr<MergeAndShrinkRepresentation> right_child;
-    std::vector<std::vector<value_t>> lookup_table;
 
 public:
     MergeAndShrinkDistanceRepresentationMerge(
-        int domain_size,
         std::unique_ptr<MergeAndShrinkRepresentation> left_child,
         std::unique_ptr<MergeAndShrinkRepresentation> right_child,
-        std::vector<std::vector<int>>& state_lookup_table,
+        std::vector<int>& state_lookup_table,
         const Distances& distances);
 
     value_t get_abstract_distance(const State& state) const override;

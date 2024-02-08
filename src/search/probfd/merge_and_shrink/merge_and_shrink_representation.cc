@@ -17,7 +17,9 @@ namespace probfd::merge_and_shrink {
 
 MergeAndShrinkRepresentation::MergeAndShrinkRepresentation(int domain_size)
     : domain_size(domain_size)
+    , lookup_table(domain_size)
 {
+    std::iota(lookup_table.begin(), lookup_table.end(), 0);
 }
 
 int MergeAndShrinkRepresentation::get_domain_size() const
@@ -25,14 +27,21 @@ int MergeAndShrinkRepresentation::get_domain_size() const
     return domain_size;
 }
 
+void MergeAndShrinkRepresentation::scale(int scale)
+{
+    for (int& entry : lookup_table) {
+        if (entry != PRUNED_STATE) {
+            entry *= scale;
+        }
+    }
+}
+
 MergeAndShrinkRepresentationLeaf::MergeAndShrinkRepresentationLeaf(
     int var_id,
     int domain_size)
     : MergeAndShrinkRepresentation(domain_size)
     , var_id(var_id)
-    , lookup_table(domain_size)
 {
-    iota(lookup_table.begin(), lookup_table.end(), 0);
 }
 
 void MergeAndShrinkRepresentationLeaf::apply_abstraction_to_lookup_table(
@@ -56,12 +65,7 @@ int MergeAndShrinkRepresentationLeaf::get_abstract_state(
 
 bool MergeAndShrinkRepresentationLeaf::is_total() const
 {
-    for (int entry : lookup_table) {
-        if (entry == PRUNED_STATE) {
-            return false;
-        }
-    }
-    return true;
+    return !utils::contains(lookup_table, PRUNED_STATE);
 }
 
 void MergeAndShrinkRepresentationLeaf::dump(utils::LogProxy& log) const
@@ -81,7 +85,6 @@ MergeAndShrinkRepresentationLeaf::create_distance_representation(
 {
     auto r = std::make_unique<MergeAndShrinkDistanceRepresentationLeaf>(
         var_id,
-        domain_size,
         lookup_table,
         distances);
     lookup_table.clear();
@@ -95,28 +98,18 @@ MergeAndShrinkRepresentationMerge::MergeAndShrinkRepresentationMerge(
           left_child_->get_domain_size() * right_child_->get_domain_size())
     , left_child(std::move(left_child_))
     , right_child(std::move(right_child_))
-    , lookup_table(
-          left_child->get_domain_size(),
-          vector<int>(right_child->get_domain_size()))
 {
-    int counter = 0;
-    for (vector<int>& row : lookup_table) {
-        for (int& abstract_state : row) {
-            abstract_state = counter++;
-        }
-    }
+    right_child->scale(left_child->get_domain_size());
 }
 
 void MergeAndShrinkRepresentationMerge::apply_abstraction_to_lookup_table(
     const vector<int>& abstraction_mapping)
 {
     int new_domain_size = 0;
-    for (vector<int>& row : lookup_table) {
-        for (int& entry : row) {
-            if (entry != PRUNED_STATE) {
-                entry = abstraction_mapping[entry];
-                new_domain_size = max(new_domain_size, entry + 1);
-            }
+    for (int& entry : lookup_table) {
+        if (entry != PRUNED_STATE) {
+            entry = abstraction_mapping[entry];
+            new_domain_size = max(new_domain_size, entry + 1);
         }
     }
     domain_size = new_domain_size;
@@ -128,31 +121,33 @@ int MergeAndShrinkRepresentationMerge::get_abstract_state(
     int state1 = left_child->get_abstract_state(state);
     int state2 = right_child->get_abstract_state(state);
     if (state1 == PRUNED_STATE || state2 == PRUNED_STATE) return PRUNED_STATE;
-    return lookup_table[state1][state2];
+    return lookup_table[state1 + state2];
 }
 
 bool MergeAndShrinkRepresentationMerge::is_total() const
 {
-    for (const vector<int>& row : lookup_table) {
-        for (int entry : row) {
-            if (entry == PRUNED_STATE) {
-                return false;
-            }
-        }
-    }
-    return left_child->is_total() && right_child->is_total();
+    return !utils::contains(lookup_table, PRUNED_STATE) &&
+           left_child->is_total() && right_child->is_total();
 }
 
 void MergeAndShrinkRepresentationMerge::dump(utils::LogProxy& log) const
 {
     if (log.is_at_least_debug()) {
         log << "abstract state lookup table (merge): " << endl;
-        for (const auto& row : lookup_table) {
-            for (const auto& value : row) {
-                log << value << ", ";
+
+        auto it = lookup_table.begin();
+        auto end = lookup_table.end();
+
+        while (it != end) {
+            auto sub_end = it + left_child->get_domain_size();
+            assert(it != sub_end);
+            log << *it;
+            for (++it; it != sub_end; ++it) {
+                log << ", " << *it;
             }
             log << endl;
         }
+
         log << "left child:" << endl;
         left_child->dump(log);
         log << "right child:" << endl;
@@ -165,7 +160,6 @@ MergeAndShrinkRepresentationMerge::create_distance_representation(
     const Distances& distances)
 {
     auto r = std::make_unique<MergeAndShrinkDistanceRepresentationMerge>(
-        domain_size,
         std::move(left_child),
         std::move(right_child),
         lookup_table,
@@ -175,20 +169,18 @@ MergeAndShrinkRepresentationMerge::create_distance_representation(
 }
 
 MergeAndShrinkDistanceRepresentation::MergeAndShrinkDistanceRepresentation(
-    int domain_size)
-    : domain_size(domain_size)
+    std::size_t table_size)
+    : lookup_table(table_size)
 {
 }
 
 MergeAndShrinkDistanceRepresentationLeaf::
     MergeAndShrinkDistanceRepresentationLeaf(
         int var_id,
-        int domain_size,
         std::vector<int>& state_lookup_table,
         const Distances& distances)
-    : MergeAndShrinkDistanceRepresentation(domain_size)
+    : MergeAndShrinkDistanceRepresentation(state_lookup_table.size())
     , var_id(var_id)
-    , lookup_table(domain_size)
 {
     assert(distances.are_goal_distances_computed());
     for (size_t i = 0; i != state_lookup_table.size(); ++i) {
@@ -218,29 +210,20 @@ void MergeAndShrinkDistanceRepresentationLeaf::dump(utils::LogProxy& log) const
 
 MergeAndShrinkDistanceRepresentationMerge::
     MergeAndShrinkDistanceRepresentationMerge(
-        int domain_size,
         std::unique_ptr<MergeAndShrinkRepresentation> left_child_,
         std::unique_ptr<MergeAndShrinkRepresentation> right_child_,
-        std::vector<std::vector<int>>& state_lookup_table,
+        std::vector<int>& state_lookup,
         const Distances& distances)
-    : MergeAndShrinkDistanceRepresentation(domain_size)
+    : MergeAndShrinkDistanceRepresentation(state_lookup.size())
     , left_child(std::move(left_child_))
     , right_child(std::move(right_child_))
-    , lookup_table(
-          left_child->get_domain_size(),
-          vector<value_t>(right_child->get_domain_size()))
 {
+    using namespace std::views;
     assert(distances.are_goal_distances_computed());
-    for (size_t i = 0; i != state_lookup_table.size(); ++i) {
-        vector<int>& row = state_lookup_table[i];
-        vector<value_t>& distance_row = lookup_table[i];
-        for (size_t j = 0; j != row.size(); ++j) {
-            const int abstract_state = row[j];
-
-            distance_row[j] = abstract_state != PRUNED_STATE
-                                  ? distances.get_goal_distance(abstract_state)
-                                  : INFINITE_VALUE;
-        }
+    for (auto [abstract_state, lookup] : zip(state_lookup, lookup_table)) {
+        lookup = abstract_state != PRUNED_STATE
+                     ? distances.get_goal_distance(abstract_state)
+                     : INFINITE_VALUE;
     }
 }
 
@@ -250,19 +233,26 @@ value_t MergeAndShrinkDistanceRepresentationMerge::get_abstract_distance(
     int state1 = left_child->get_abstract_state(state);
     int state2 = right_child->get_abstract_state(state);
     if (state1 == PRUNED_STATE || state2 == PRUNED_STATE) return INFINITE_VALUE;
-    return lookup_table[state1][state2];
+    return lookup_table[state1 + state2];
 }
 
 void MergeAndShrinkDistanceRepresentationMerge::dump(utils::LogProxy& log) const
 {
     if (log.is_at_least_debug()) {
         log << "abstract distance lookup table (merge): " << endl;
-        for (const auto& row : lookup_table) {
-            for (const auto& value : row) {
-                log << value << ", ";
+        auto it = lookup_table.begin();
+        auto end = lookup_table.end();
+
+        while (it != end) {
+            auto sub_end = it + left_child->get_domain_size();
+            assert(it != sub_end);
+            log << *it;
+            for (++it; it != sub_end; ++it) {
+                log << ", " << *it;
             }
             log << endl;
         }
+
         log << "left child:" << endl;
         left_child->dump(log);
         log << "right child:" << endl;
