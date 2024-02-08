@@ -61,7 +61,8 @@ class FTSFactory {
 
     vector<TransitionSystemData> transition_system_data_by_var;
 
-    unique_ptr<Labels> create_labels();
+    Labels create_labels();
+
     void initialize_transition_system_data(const Labels& labels);
 
     bool is_relevant(int var_no, int label_no) const;
@@ -89,6 +90,7 @@ class FTSFactory {
         const Labels& labels);
 
     void build_transitions(const Labels& labels);
+
     vector<unique_ptr<TransitionSystem>> create_transition_systems();
     vector<unique_ptr<MergeAndShrinkRepresentation>>
     create_mas_representations() const;
@@ -117,7 +119,7 @@ FTSFactory::FTSFactory(const ProbabilisticTaskProxy& task_proxy)
     assert(!task_properties::has_conditional_effects(task_proxy));
 }
 
-unique_ptr<Labels> FTSFactory::create_labels()
+Labels FTSFactory::create_labels()
 {
     vector<LabelInfo> label_infos;
     ProbabilisticOperatorsProxy ops = task_proxy.get_operators();
@@ -134,8 +136,7 @@ unique_ptr<Labels> FTSFactory::create_labels()
             }
         }
     }
-
-    return std::make_unique<Labels>(std::move(label_infos), max_num_labels);
+    return Labels(std::move(label_infos), max_num_labels);
 }
 
 void FTSFactory::initialize_transition_system_data(const Labels& labels)
@@ -450,10 +451,10 @@ FactoredTransitionSystem FTSFactory::create(
         log << "Building atomic transition systems... " << endl;
     }
 
-    unique_ptr<Labels> labels = create_labels();
+    Labels labels = create_labels();
 
-    initialize_transition_system_data(*labels);
-    build_transitions(*labels);
+    initialize_transition_system_data(labels);
+    build_transitions(labels);
 
     vector<unique_ptr<TransitionSystem>> transition_systems =
         create_transition_systems();

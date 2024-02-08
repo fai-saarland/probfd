@@ -3,8 +3,6 @@
 
 #include "probfd/value_type.h"
 
-#include "downward/utils/logging.h"
-
 #include <memory>
 #include <ranges>
 #include <vector>
