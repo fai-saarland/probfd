@@ -3,6 +3,10 @@
 
 #include "probfd/value_type.h"
 
+#include "downward/utils/logging.h"
+
+#include <memory>
+#include <ranges>
 #include <vector>
 
 namespace utils {
@@ -14,39 +18,6 @@ namespace probfd::merge_and_shrink {
 struct LabelInfo {
     value_t cost;
     std::vector<value_t> probabilities;
-};
-
-/*
-  Iterator class for Labels.
-
-  The iterator provides the *index* into label_costs of Labels, which is the
-  ID of the label.
-
-  Implementation note: to avoid keeping a reference to label_costs, this class
-  stores the current position (curr_pos) in addition to the iterator (it) which
-  are always incremented in parallel.
-*/
-class LabelsConstIterator {
-    const std::vector<LabelInfo>::const_iterator end_it;
-    std::vector<LabelInfo>::const_iterator it;
-    std::size_t current_pos;
-
-    void advance_to_next_valid_index();
-
-public:
-    LabelsConstIterator(
-        const std::vector<LabelInfo>& label_infos,
-        std::vector<LabelInfo>::const_iterator it);
-
-    LabelsConstIterator& operator++();
-
-    int operator*() const { return static_cast<int>(current_pos); }
-
-    friend bool
-    operator==(const LabelsConstIterator& lhs, const LabelsConstIterator& rhs)
-    {
-        return lhs.it == rhs.it;
-    }
 };
 
 /*
@@ -81,14 +52,11 @@ public:
 
     void reduce_labels(const std::vector<int>& old_labels);
 
-    LabelsConstIterator begin() const
+    auto get_active_labels() const
     {
-        return LabelsConstIterator(label_infos, label_infos.begin());
-    }
-
-    LabelsConstIterator end() const
-    {
-        return LabelsConstIterator(label_infos, label_infos.end());
+        using namespace std::views;
+        return zip(iota(0U, label_infos.size()), label_infos) |
+               filter([](const auto& p) { return p.second.cost != -1_vt; });
     }
 
     void dump_labels(utils::LogProxy log) const;
