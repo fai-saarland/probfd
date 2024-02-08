@@ -16,15 +16,14 @@ using namespace std;
 namespace probfd::merge_and_shrink {
 
 MergeAndShrinkRepresentation::MergeAndShrinkRepresentation(int domain_size)
-    : domain_size(domain_size)
-    , lookup_table(domain_size)
+    : lookup_table(domain_size)
 {
     std::iota(lookup_table.begin(), lookup_table.end(), 0);
 }
 
 int MergeAndShrinkRepresentation::get_domain_size() const
 {
-    return domain_size;
+    return std::ranges::max(lookup_table) + 1;
 }
 
 int MergeAndShrinkRepresentation::get_table_size() const
@@ -44,14 +43,11 @@ void MergeAndShrinkRepresentation::scale(int scale)
 void MergeAndShrinkRepresentation::apply_abstraction_to_lookup_table(
     const vector<int>& abstraction_mapping)
 {
-    int new_domain_size = 0;
     for (int& entry : lookup_table) {
         if (entry != PRUNED_STATE) {
             entry = abstraction_mapping[entry];
-            new_domain_size = max(new_domain_size, entry + 1);
         }
     }
-    domain_size = new_domain_size;
 }
 
 MergeAndShrinkRepresentationLeaf::MergeAndShrinkRepresentationLeaf(
