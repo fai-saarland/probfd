@@ -595,7 +595,7 @@ bool TransitionSystem::is_valid(const Labels& labels) const
 
 bool TransitionSystem::is_label_mapping_consistent(const Labels& labels) const
 {
-    for (int label : labels) {
+    for (int label : labels.get_active_labels() | std::views::keys) {
         int local_label = label_to_local_label[label];
         const LabelGroup& label_group =
             local_label_infos[local_label].get_label_group();
@@ -636,7 +636,7 @@ void TransitionSystem::dump_label_mapping(
     std::ostream& out) const
 {
     out << "to local label mapping: ";
-    for (int label : labels) {
+    for (int label : labels.get_active_labels() | std::views::keys) {
         out << label << " -> " << label_to_local_label[label] << ", ";
     }
     out << endl;

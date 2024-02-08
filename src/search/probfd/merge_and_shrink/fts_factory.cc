@@ -321,9 +321,8 @@ void FTSFactory::build_transitions_for_irrelevant_ops(
     std::map<std::vector<value_t>, LabelGroup> irrelevant_labels;
     value_t cost = INFINITE_VALUE;
 
-    for (int label : labels) {
+    for (const auto& [label, info] : labels.get_active_labels()) {
         if (!is_relevant(var_id, label)) {
-            const LabelInfo& info = labels.get_label_info(label);
             irrelevant_labels[info.probabilities].push_back(label);
             cost = min(cost, info.cost);
         }

@@ -121,7 +121,7 @@ LabelReduction::compute_combinable_equivalence_relation(
     int num_labels = labels.get_num_active_labels();
     vector<int> all_active_labels;
     all_active_labels.reserve(num_labels);
-    for (int label : labels) {
+    for (int label : labels.get_active_labels() | std::views::keys) {
         all_active_labels.push_back(label);
     }
     equivalence_relation::EquivalenceRelation relation(all_active_labels);
