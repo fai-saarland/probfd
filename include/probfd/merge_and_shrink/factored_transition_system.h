@@ -1,6 +1,7 @@
 #ifndef PROBFD_HEURISTICS_MERGE_AND_SHRINK_FACTORED_TRANSITION_SYSTEM_H
 #define PROBFD_HEURISTICS_MERGE_AND_SHRINK_FACTORED_TRANSITION_SYSTEM_H
 
+#include "probfd/merge_and_shrink/labels.h"
 #include "probfd/merge_and_shrink/types.h"
 
 #include "downward/utils/logging.h"
@@ -15,7 +16,6 @@ namespace probfd::merge_and_shrink {
 class Distances;
 class FactoredTransitionSystem;
 class MergeAndShrinkRepresentation;
-class Labels;
 class TransitionSystem;
 } // namespace probfd::merge_and_shrink
 
@@ -59,7 +59,7 @@ public:
   interface that this class shows to the outside world.
 */
 class FactoredTransitionSystem {
-    std::unique_ptr<Labels> labels;
+    Labels labels;
 
     // Entries with nullptr have been merged.
     std::vector<std::unique_ptr<TransitionSystem>> transition_systems;
@@ -87,7 +87,7 @@ class FactoredTransitionSystem {
 
 public:
     FactoredTransitionSystem(
-        std::unique_ptr<Labels> labels,
+        Labels labels,
         std::vector<std::unique_ptr<TransitionSystem>>&& transition_systems,
         std::vector<std::unique_ptr<MergeAndShrinkRepresentation>>&&
             mas_representations,
@@ -161,7 +161,7 @@ public:
     int get_num_active_entries() const { return num_active_entries; }
 
     // Used by LabelReduction and MergeScoringFunctionDFP
-    const Labels& get_labels() const { return *labels; }
+    const Labels& get_labels() const { return labels; }
 
     int get_size() const { return transition_systems.size(); }
 
