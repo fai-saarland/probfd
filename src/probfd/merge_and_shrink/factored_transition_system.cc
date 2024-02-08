@@ -96,7 +96,7 @@ bool FactoredTransitionSystem::is_component_valid(int index) const
         !distances[index]->are_goal_distances_computed()) {
         return false;
     }
-    return transition_systems[index]->is_valid();
+    return transition_systems[index]->is_valid(*labels);
 }
 
 void FactoredTransitionSystem::assert_all_components_valid() const
@@ -121,6 +121,7 @@ void FactoredTransitionSystem::apply_label_mapping(
     for (size_t i = 0; i < transition_systems.size(); ++i) {
         if (transition_systems[i]) {
             transition_systems[i]->apply_label_reduction(
+                *labels,
                 label_mapping,
                 static_cast<int>(i) != combinable_index);
         }
@@ -216,7 +217,7 @@ void FactoredTransitionSystem::statistics(int index, utils::LogProxy& log) const
     if (log.is_at_least_verbose()) {
         assert(is_component_valid(index));
         const TransitionSystem& ts = *transition_systems[index];
-        ts.statistics(log);
+        ts.dump_statistics(log);
         const Distances& dist = *distances[index];
         dist.statistics(log);
     }

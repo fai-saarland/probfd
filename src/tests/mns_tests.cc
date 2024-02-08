@@ -56,6 +56,7 @@ TEST(MnSTests, test_atomic_fts)
     std::ranges::input_range auto label_infos1 = ts1.label_infos().base();
     std::ranges::input_range auto label_infos2 = ts2.label_infos().base();
 
+    ASSERT_EQ(label_infos0.size(), 2);
     ASSERT_EQ(label_infos0[0].get_cost(), 1);
     ASSERT_EQ(
         label_infos0[0].get_probabilities(),
@@ -71,44 +72,36 @@ TEST(MnSTests, test_atomic_fts)
     ASSERT_EQ(label_infos0[1].get_probabilities(), (std::vector{1_vt}));
     ASSERT_EQ(label_infos0[1].get_label_group(), std::vector{1});
     ASSERT_EQ(label_infos0[1].get_transitions().size(), 1);
-    ASSERT_EQ(label_infos0[1].get_transitions()[0].src, 1);
-    ASSERT_EQ(label_infos0[1].get_transitions()[0].targets, (std::vector{1}));
+    ASSERT_EQ(label_infos0[1].get_transitions()[0], Transition(1, {1}));
 
+    ASSERT_EQ(label_infos1.size(), 2);
     ASSERT_EQ(label_infos1[0].get_cost(), 1);
     ASSERT_EQ(
         label_infos1[0].get_probabilities(),
         (std::vector{0.75_vt, 0.25_vt}));
     ASSERT_EQ(label_infos1[0].get_label_group(), std::vector{0});
     ASSERT_EQ(label_infos1[0].get_transitions().size(), 1);
-    ASSERT_EQ(label_infos1[0].get_transitions()[0].src, 1);
-    ASSERT_EQ(
-        label_infos1[0].get_transitions()[0].targets,
-        (std::vector{2, 1}));
+    ASSERT_EQ(label_infos1[0].get_transitions()[0], Transition(1, {2, 1}));
 
     ASSERT_EQ(label_infos1[1].get_cost(), 0);
     ASSERT_EQ(label_infos1[1].get_probabilities(), (std::vector{1_vt}));
     ASSERT_EQ(label_infos1[1].get_label_group(), std::vector{1});
     ASSERT_EQ(label_infos1[1].get_transitions().size(), 1);
-    ASSERT_EQ(label_infos1[1].get_transitions()[0].src, 2);
-    ASSERT_EQ(label_infos1[1].get_transitions()[0].targets, (std::vector{1}));
+    ASSERT_EQ(label_infos1[1].get_transitions()[0], Transition(2, {1}));
 
+    ASSERT_EQ(label_infos2.size(), 2);
     ASSERT_EQ(label_infos2[0].get_cost(), 1);
     ASSERT_EQ(
         label_infos2[0].get_probabilities(),
         (std::vector{0.75_vt, 0.25_vt}));
     ASSERT_EQ(label_infos2[0].get_label_group(), std::vector{0});
     ASSERT_EQ(label_infos2[0].get_transitions().size(), 1);
-    ASSERT_EQ(label_infos2[0].get_transitions()[0].src, 1);
-    ASSERT_EQ(
-        label_infos2[0].get_transitions()[0].targets,
-        (std::vector{0, 1}));
+    ASSERT_EQ(label_infos2[0].get_transitions()[0], Transition(1, {0, 1}));
 
     ASSERT_EQ(label_infos2[1].get_cost(), 0);
     ASSERT_EQ(label_infos2[1].get_probabilities(), (std::vector{1_vt}));
     ASSERT_EQ(label_infos2[1].get_label_group(), std::vector{1});
     ASSERT_EQ(label_infos2[1].get_transitions().size(), 2);
-    ASSERT_EQ(label_infos2[1].get_transitions()[0].src, 0);
-    ASSERT_EQ(label_infos2[1].get_transitions()[0].targets, (std::vector{1}));
-    ASSERT_EQ(label_infos2[1].get_transitions()[1].src, 1);
-    ASSERT_EQ(label_infos2[1].get_transitions()[1].targets, (std::vector{1}));
+    ASSERT_EQ(label_infos2[1].get_transitions()[0], Transition(0, {1}));
+    ASSERT_EQ(label_infos2[1].get_transitions()[1], Transition(1, {1}));
 }
