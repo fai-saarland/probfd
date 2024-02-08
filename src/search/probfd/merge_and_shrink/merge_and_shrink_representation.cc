@@ -27,6 +27,11 @@ int MergeAndShrinkRepresentation::get_domain_size() const
     return domain_size;
 }
 
+int MergeAndShrinkRepresentation::get_table_size() const
+{
+    return static_cast<int>(lookup_table.size());
+}
+
 void MergeAndShrinkRepresentation::scale(int scale)
 {
     for (int& entry : lookup_table) {
@@ -36,15 +41,7 @@ void MergeAndShrinkRepresentation::scale(int scale)
     }
 }
 
-MergeAndShrinkRepresentationLeaf::MergeAndShrinkRepresentationLeaf(
-    int var_id,
-    int domain_size)
-    : MergeAndShrinkRepresentation(domain_size)
-    , var_id(var_id)
-{
-}
-
-void MergeAndShrinkRepresentationLeaf::apply_abstraction_to_lookup_table(
+void MergeAndShrinkRepresentation::apply_abstraction_to_lookup_table(
     const vector<int>& abstraction_mapping)
 {
     int new_domain_size = 0;
@@ -55,6 +52,14 @@ void MergeAndShrinkRepresentationLeaf::apply_abstraction_to_lookup_table(
         }
     }
     domain_size = new_domain_size;
+}
+
+MergeAndShrinkRepresentationLeaf::MergeAndShrinkRepresentationLeaf(
+    int var_id,
+    int domain_size)
+    : MergeAndShrinkRepresentation(domain_size)
+    , var_id(var_id)
+{
 }
 
 int MergeAndShrinkRepresentationLeaf::get_abstract_state(
@@ -102,19 +107,6 @@ MergeAndShrinkRepresentationMerge::MergeAndShrinkRepresentationMerge(
     right_child->scale(left_child->get_domain_size());
 }
 
-void MergeAndShrinkRepresentationMerge::apply_abstraction_to_lookup_table(
-    const vector<int>& abstraction_mapping)
-{
-    int new_domain_size = 0;
-    for (int& entry : lookup_table) {
-        if (entry != PRUNED_STATE) {
-            entry = abstraction_mapping[entry];
-            new_domain_size = max(new_domain_size, entry + 1);
-        }
-    }
-    domain_size = new_domain_size;
-}
-
 int MergeAndShrinkRepresentationMerge::get_abstract_state(
     const State& state) const
 {
@@ -139,7 +131,7 @@ void MergeAndShrinkRepresentationMerge::dump(utils::LogProxy& log) const
         auto end = lookup_table.end();
 
         while (it != end) {
-            auto sub_end = it + left_child->get_domain_size();
+            auto sub_end = it + left_child->get_table_size();
             assert(it != sub_end);
             log << *it;
             for (++it; it != sub_end; ++it) {
@@ -244,7 +236,7 @@ void MergeAndShrinkDistanceRepresentationMerge::dump(utils::LogProxy& log) const
         auto end = lookup_table.end();
 
         while (it != end) {
-            auto sub_end = it + left_child->get_domain_size();
+            auto sub_end = it + left_child->get_table_size();
             assert(it != sub_end);
             log << *it;
             for (++it; it != sub_end; ++it) {
