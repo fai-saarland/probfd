@@ -43,7 +43,7 @@ void FTSConstIterator::operator++()
 }
 
 FactoredTransitionSystem::FactoredTransitionSystem(
-    unique_ptr<Labels> labels,
+    Labels labels,
     vector<unique_ptr<TransitionSystem>>&& transition_systems,
     vector<unique_ptr<MergeAndShrinkRepresentation>>&& mas_representations,
     vector<unique_ptr<Distances>>&& distances,
@@ -93,7 +93,7 @@ bool FactoredTransitionSystem::is_component_valid(int index) const
         !distances[index]->are_goal_distances_computed()) {
         return false;
     }
-    return transition_systems[index]->is_valid(*labels);
+    return transition_systems[index]->is_valid(labels);
 }
 
 void FactoredTransitionSystem::assert_all_components_valid() const
@@ -111,14 +111,14 @@ void FactoredTransitionSystem::apply_label_mapping(
 {
     assert_all_components_valid();
     for (const auto& entry : label_mapping) {
-        assert(entry.first == labels->get_num_total_labels());
+        assert(entry.first == labels.get_num_total_labels());
         const vector<int>& old_labels = entry.second;
-        labels->reduce_labels(old_labels);
+        labels.reduce_labels(old_labels);
     }
     for (size_t i = 0; i < transition_systems.size(); ++i) {
         if (transition_systems[i]) {
             transition_systems[i]->apply_label_reduction(
-                *labels,
+                labels,
                 label_mapping,
                 static_cast<int>(i) != combinable_index);
         }
@@ -170,7 +170,7 @@ int FactoredTransitionSystem::merge(
     assert(is_component_valid(index2));
     const TransitionSystem& new_ts =
         *transition_systems.emplace_back(TransitionSystem::merge(
-            *labels,
+            labels,
             *transition_systems[index1],
             *transition_systems[index2],
             log));
