@@ -28,11 +28,12 @@ public:
     virtual ~MergeAndShrinkRepresentation() = default;
 
     int get_domain_size() const;
+    int get_table_size() const;
 
     void scale(int scale);
 
-    virtual void apply_abstraction_to_lookup_table(
-        const std::vector<int>& abstraction_mapping) = 0;
+    void apply_abstraction_to_lookup_table(
+        const std::vector<int>& abstraction_mapping);
     /*
       Return the value that state is mapped to. This is either an abstract
       state (if set_distances has not been called) or a distance (if it has).
@@ -56,8 +57,6 @@ class MergeAndShrinkRepresentationLeaf : public MergeAndShrinkRepresentation {
 public:
     MergeAndShrinkRepresentationLeaf(int var_id, int domain_size);
 
-    void apply_abstraction_to_lookup_table(
-        const std::vector<int>& abstraction_mapping) override;
     int get_abstract_state(const State& state) const override;
     bool is_total() const override;
     void dump(utils::LogProxy& log) const override;
@@ -75,8 +74,6 @@ public:
         std::unique_ptr<MergeAndShrinkRepresentation> left_child,
         std::unique_ptr<MergeAndShrinkRepresentation> right_child);
 
-    void apply_abstraction_to_lookup_table(
-        const std::vector<int>& abstraction_mapping) override;
     int get_abstract_state(const State& state) const override;
     bool is_total() const override;
     void dump(utils::LogProxy& log) const override;
