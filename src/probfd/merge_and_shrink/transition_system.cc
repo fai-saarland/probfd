@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <iterator>
+#include <numeric>
 #include <ranges>
 #include <sstream>
 #include <string>
@@ -21,15 +23,75 @@ using utils::ExitCode;
 
 namespace probfd::merge_and_shrink {
 
-ostream& operator<<(ostream& os, const Transition& trans)
+namespace {
+template <typename T, char LPAREN = '[', char RPAREN = ']'>
+std::istream& operator>>(std::istream& in, std::vector<T>& list)
 {
-    os << trans.src << "-> (" << trans.targets[0];
+    using R = std::conditional_t<std::is_same_v<T, bool>, int, T>;
 
-    for (size_t i = 1; i < trans.targets.size(); ++i) {
-        os << "," << trans.targets[i];
+    if (in.get() != LPAREN) {
+        in.setstate(std::ios::failbit);
+        return in;
     }
-    os << ")";
-    return os;
+
+    if ((in >> std::ws, in.peek() != RPAREN)) {
+        {
+            R element;
+            if (!(in >> element)) return in;
+
+            if constexpr (std::is_same_v<T, bool>) {
+                list.push_back(element != 0);
+            } else {
+                list.push_back(element);
+            }
+        }
+
+        while ((in >> std::ws, in.peek() != RPAREN)) {
+            if (in.get() != ',') {
+                in.setstate(std::ios::failbit);
+                return in;
+            }
+
+            R element;
+            if (!(in >> std::ws >> element)) return in;
+
+            if constexpr (std::is_same_v<T, bool>) {
+                list.push_back(element != 0);
+            } else {
+                list.push_back(element);
+            }
+        }
+    }
+
+    in.get();
+    return in;
+}
+} // namespace
+
+LocalLabelInfo LocalLabelInfo::read_from_file(istream& is)
+{
+    LabelGroup label_group;
+    std::vector<Transition> transitions;
+    std::vector<value_t> probabilities;
+    value_t cost;
+
+    if (!(is >> label_group))
+        throw std::invalid_argument("Could not read label group.");
+    if (is.get() != ',') throw std::invalid_argument("Expected \",\".");
+    if (!(is >> std::ws >> cost))
+        throw std::invalid_argument("Could not read cost.");
+    if (is.get() != ',') throw std::invalid_argument("Expected \",\".");
+    if (!(is >> std::ws >> probabilities))
+        throw std::invalid_argument("Could not read probabilities.");
+    if (is.get() != ',') throw std::invalid_argument("Expected \",\".");
+    if (!(is >> std::ws >> transitions))
+        throw std::invalid_argument("Could not read transitions.");
+
+    return LocalLabelInfo(
+        std::move(label_group),
+        std::move(transitions),
+        std::move(probabilities),
+        cost);
 }
 
 void LocalLabelInfo::add_label(int label, value_t label_cost)
@@ -108,6 +170,21 @@ bool LocalLabelInfo::is_consistent() const
            utils::is_sorted_unique(transitions);
 }
 
+std::ostream& operator<<(std::ostream& out, const LocalLabelInfo& label_info)
+{
+    return out << "Labels: " << label_info.get_label_group()
+               << ", Cost: " << label_info.get_cost()
+               << ", Probabilities: " << label_info.get_probabilities()
+               << ", Transitions: " << label_info.get_transitions();
+}
+
+void dump_to_file(std::ostream& out, const LocalLabelInfo& label_info)
+{
+    out << label_info.get_label_group() << ", " << label_info.get_cost() << ", "
+        << label_info.get_probabilities() << ", "
+        << label_info.get_transitions();
+}
+
 /*
   Implementation note: Transitions are grouped by their label groups,
   not by source state or any such thing. Such a grouping is beneficial
@@ -124,39 +201,18 @@ bool LocalLabelInfo::is_consistent() const
 */
 
 TransitionSystem::TransitionSystem(
-    int num_variables,
-    vector<int>&& incorporated_variables,
-    const Labels& labels,
-    vector<int>&& label_to_local_label,
-    vector<LocalLabelInfo>&& local_label_infos,
-    int num_states,
-    vector<bool>&& goal_states,
-    int init_state)
-    : num_variables(num_variables)
-    , incorporated_variables(std::move(incorporated_variables))
-    , labels(std::move(labels))
+    vector<int> incorporated_variables,
+    vector<int> label_to_local_label,
+    vector<LocalLabelInfo> local_label_infos,
+    int init_state,
+    vector<bool> goal_states)
+    : incorporated_variables(std::move(incorporated_variables))
     , label_to_local_label(std::move(label_to_local_label))
     , local_label_infos(std::move(local_label_infos))
-    , num_states(num_states)
-    , goal_states(std::move(goal_states))
     , init_state(init_state)
-{
-    assert(is_valid());
-}
-
-TransitionSystem::TransitionSystem(const TransitionSystem& other)
-    : num_variables(other.num_variables)
-    , incorporated_variables(other.incorporated_variables)
-    , labels(other.labels)
-    , label_to_local_label(other.label_to_local_label)
-    , local_label_infos(other.local_label_infos)
-    , num_states(other.num_states)
-    , goal_states(other.goal_states)
-    , init_state(other.init_state)
+    , goal_states(std::move(goal_states))
 {
 }
-
-TransitionSystem::~TransitionSystem() = default;
 
 unique_ptr<TransitionSystem> TransitionSystem::merge(
     const Labels& labels,
@@ -165,14 +221,15 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
     utils::LogProxy& log)
 {
     if (log.is_at_least_verbose()) {
-        log << "Merging " << ts1.get_description() << " and "
-            << ts2.get_description() << endl;
+        log << "Merging transition system with variables "
+            << ts1.get_incorporated_variables()
+            << " and transition system with variables "
+            << ts2.get_incorporated_variables() << endl;
     }
 
     assert(ts1.init_state != PRUNED_STATE && ts2.init_state != PRUNED_STATE);
-    assert(ts1.is_valid() && ts2.is_valid());
+    assert(ts1.is_valid(labels) && ts2.is_valid(labels));
 
-    int num_variables = ts1.num_variables;
     vector<int> incorporated_variables;
     std::ranges::set_union(
         ts1.incorporated_variables,
@@ -183,13 +240,12 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
 
     const int ts1_size = ts1.get_size();
     const int ts2_size = ts2.get_size();
-    int num_states = ts1_size * ts2_size;
 
     // Compute merged initial state
-    int init_state = ts1.init_state * ts2_size + ts2.init_state;
+    const int init_state = ts1.init_state * ts2_size + ts2.init_state;
 
     // Compute merged goal states
-    vector<bool> goal_states(num_states, false);
+    vector goal_states(ts1_size * ts2_size, false);
     for (int s1 = 0; s1 < ts1_size; ++s1) {
         if (!ts1.goal_states[s1]) continue;
         for (int s2 = 0; s2 < ts2_size; ++s2) {
@@ -272,7 +328,7 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
             int new_local_label = local_label_infos.size();
             value_t cost = INFINITE_VALUE;
             for (int label : new_labels) {
-                cost = min(ts1.labels.get_label_cost(label), cost);
+                cost = min(labels.get_label_cost(label), cost);
                 label_to_local_label[label] = new_local_label;
             }
 
@@ -297,7 +353,7 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
         int new_local_label = local_label_infos.size();
         value_t cost = INFINITE_VALUE;
         for (int label : dead_labels) {
-            cost = min(cost, ts1.labels.get_label_cost(label));
+            cost = min(cost, labels.get_label_cost(label));
             label_to_local_label[label] = new_local_label;
         }
         // Dead labels have empty transitions
@@ -309,14 +365,11 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
     }
 
     return std::make_unique<TransitionSystem>(
-        num_variables,
         std::move(incorporated_variables),
-        ts1.labels,
         std::move(label_to_local_label),
         std::move(local_label_infos),
-        num_states,
-        std::move(goal_states),
-        init_state);
+        init_state,
+        std::move(goal_states));
 }
 
 void TransitionSystem::compute_equivalent_local_labels()
@@ -352,8 +405,6 @@ void TransitionSystem::compute_equivalent_local_labels()
             }
         }
     }
-
-    assert(is_valid());
 }
 
 void TransitionSystem::apply_abstraction(
@@ -361,10 +412,8 @@ void TransitionSystem::apply_abstraction(
     const vector<int>& abstraction_mapping,
     utils::LogProxy& log)
 {
-    assert(is_valid());
-
     int new_num_states = state_equivalence_relation.size();
-    assert(new_num_states < num_states);
+    assert(new_num_states < get_size());
     if (log.is_at_least_verbose()) {
         log << tag() << "applying abstraction (" << get_size() << " to "
             << new_num_states << " states)" << endl;
@@ -416,13 +465,10 @@ void TransitionSystem::apply_abstraction(
     }
 
     compute_equivalent_local_labels();
-
-    num_states = new_num_states;
-
-    assert(is_valid());
 }
 
 void TransitionSystem::apply_label_reduction(
+    const Labels& labels,
     const vector<pair<int, vector<int>>>& label_mapping,
     bool only_equivalent_labels)
 {
@@ -535,14 +581,7 @@ void TransitionSystem::apply_label_reduction(
         compute_equivalent_local_labels();
     }
 
-    assert(is_valid());
-}
-
-string TransitionSystem::tag() const
-{
-    string desc(get_description());
-    desc[0] = toupper(desc[0]);
-    return desc + ": ";
+    assert(is_valid(labels));
 }
 
 bool TransitionSystem::are_local_labels_consistent() const
@@ -550,12 +589,12 @@ bool TransitionSystem::are_local_labels_consistent() const
     return std::ranges::all_of(label_infos(), &LocalLabelInfo::is_consistent);
 }
 
-bool TransitionSystem::is_valid() const
+bool TransitionSystem::is_valid(const Labels& labels) const
 {
-    return are_local_labels_consistent() && is_label_mapping_consistent();
+    return are_local_labels_consistent() && is_label_mapping_consistent(labels);
 }
 
-bool TransitionSystem::is_label_mapping_consistent() const
+bool TransitionSystem::is_label_mapping_consistent(const Labels& labels) const
 {
     for (int label : labels) {
         int local_label = label_to_local_label[label];
@@ -567,7 +606,7 @@ bool TransitionSystem::is_label_mapping_consistent() const
                 label_group.begin(),
                 label_group.end(),
                 label)) {
-            dump_label_mapping();
+            dump_label_mapping(labels, cerr);
             cerr << "label " << label
                  << " is not part of the "
                     "local label it is mapped to"
@@ -581,7 +620,7 @@ bool TransitionSystem::is_label_mapping_consistent() const
         const LocalLabelInfo& local_label_info = local_label_infos[local_label];
         for (int label : local_label_info.get_label_group()) {
             if (label_to_local_label[label] != static_cast<int>(local_label)) {
-                dump_label_mapping();
+                dump_label_mapping(labels, cerr);
                 cerr << "label " << label
                      << " is not mapped "
                         "to the local label it is part of"
@@ -593,72 +632,67 @@ bool TransitionSystem::is_label_mapping_consistent() const
     return true;
 }
 
-void TransitionSystem::dump_label_mapping() const
+void TransitionSystem::dump_label_mapping(
+    const Labels& labels,
+    std::ostream& out) const
 {
-    utils::g_log << "to local label mapping: ";
+    out << "to local label mapping: ";
     for (int label : labels) {
-        utils::g_log << label << " -> " << label_to_local_label[label] << ", ";
+        out << label << " -> " << label_to_local_label[label] << ", ";
     }
-    utils::g_log << endl;
-    utils::g_log << "local to label mapping: ";
+    out << endl;
+    out << "local to label mapping: ";
     for (size_t local_label = 0; local_label < local_label_infos.size();
          ++local_label) {
-        utils::g_log << local_label << ": "
-                     << local_label_infos[local_label].get_label_group()
-                     << ", ";
+        out << local_label << ": "
+            << local_label_infos[local_label].get_label_group() << ", ";
     }
-    utils::g_log << endl;
+    out << endl;
 }
 
 bool TransitionSystem::is_solvable(const Distances& distances) const
 {
-    if (init_state == PRUNED_STATE) {
-        return false;
-    }
-    if (distances.are_goal_distances_computed() &&
-        distances.get_goal_distance(init_state) == INFINITE_VALUE) {
-        return false;
-    }
-    return true;
+    return init_state != PRUNED_STATE &&
+           (!distances.are_goal_distances_computed() ||
+            distances.get_goal_distance(init_state) != INFINITE_VALUE);
 }
 
 int TransitionSystem::compute_total_transitions() const
 {
     int total = 0;
     for (const LocalLabelInfo& local_label_info : label_infos()) {
-        total += local_label_info.get_transitions().size();
+        total += local_label_info.get_num_transitions();
     }
     return total;
 }
 
-string TransitionSystem::get_description() const
+string TransitionSystem::tag() const
 {
-    ostringstream s;
-    if (incorporated_variables.size() == 1) {
-        s << "atomic transition system #" << *incorporated_variables.begin();
-    } else {
-        s << "composite transition system with "
-          << incorporated_variables.size() << "/" << num_variables << " vars";
+    std::stringstream ss;
+    ss << "Transition system with variables " << incorporated_variables << ": ";
+    return ss.str();
+}
+
+void TransitionSystem::dump_statistics(utils::LogProxy& log) const
+{
+    if (log.is_at_least_verbose()) {
+        log << tag() << get_size() << " states, " << compute_total_transitions()
+            << " arcs" << endl;
     }
-    return s.str();
 }
 
 void TransitionSystem::dump_dot_graph(utils::LogProxy& log) const
 {
-    assert(is_valid());
-
     if (log.is_at_least_debug()) {
         log << "digraph transition_system";
-        for (size_t i = 0; i < incorporated_variables.size(); ++i)
-            log << "_" << incorporated_variables[i];
+        for (int var : incorporated_variables) log << "_" << var;
         log << " {" << endl;
         log << "    node [shape = none] start;" << endl;
-        for (int i = 0; i < num_states; ++i) {
-            bool is_init = (i == init_state);
-            bool is_goal = goal_states[i];
-            log << "    node [shape = " << (is_goal ? "doublecircle" : "circle")
-                << "] node" << i << ";" << endl;
-            if (is_init) log << "    start -> node" << i << ";" << endl;
+        for (int i = 0; i < get_size(); ++i) {
+            log << "    node [shape = "
+                << (goal_states[i] ? "doublecircle" : "circle") << "] node" << i
+                << ";" << endl;
+            if (i == init_state) log << "    start -> node" << i << ";" << endl;
         }
 
         // Introduce intermediate nodes for every transition
@@ -677,9 +711,8 @@ void TransitionSystem::dump_dot_graph(utils::LogProxy& log) const
             const LabelGroup& label_group = local_label_info.get_label_group();
             const vector<Transition>& transitions =
                 local_label_info.get_transitions();
-            for (const Transition& transition : transitions) {
+            for (const auto& [src, targets] : transitions) {
                 // Connect source to intermediate node
-                int src = transition.src;
                 log << "    node" << src << " -> interm" << k << " [label = ";
                 for (auto label_it = label_group.begin();
                      label_it != label_group.end();
@@ -690,7 +723,7 @@ void TransitionSystem::dump_dot_graph(utils::LogProxy& log) const
                 log << "];" << endl;
 
                 // Connect intermediate node to each target
-                for (int target : transition.targets) {
+                for (int target : targets) {
                     log << "    interm" << k << " -> node" << target << ";"
                         << endl;
                 }
@@ -704,35 +737,72 @@ void TransitionSystem::dump_dot_graph(utils::LogProxy& log) const
 
 void TransitionSystem::dump_labels_and_transitions(utils::LogProxy& log) const
 {
-    if (log.is_at_least_debug()) {
-        log << tag() << "transitions" << endl;
-        for (const LocalLabelInfo& local_label_info : label_infos()) {
-            const LabelGroup& label_group = local_label_info.get_label_group();
-            log << "labels: " << label_group << endl;
-            log << "transitions: ";
-            const vector<Transition>& transitions =
-                local_label_info.get_transitions();
-            for (size_t i = 0; i < transitions.size(); ++i) {
-                int src = transitions[i].src;
-                auto& targets = transitions[i].targets;
-                if (i != 0) log << ",";
-                log << src << " -> (" << targets[0];
-                for (int t : targets | std::views::drop(1)) {
-                    log << ", " << t;
-                }
-                log << ")";
-            }
-            utils::g_log << "cost: " << local_label_info.get_cost() << endl;
-        }
+    if (!log.is_at_least_debug()) return;
+
+    log << tag() << "\nTransitions:";
+    for (const LocalLabelInfo& label_info : label_infos()) {
+        log << label_info;
     }
+    log << std::endl;
 }
 
-void TransitionSystem::statistics(utils::LogProxy& log) const
+void TransitionSystem::dump_to_file(std::ostream& out) const
 {
-    if (log.is_at_least_verbose()) {
-        log << tag() << get_size() << " states, " << compute_total_transitions()
-            << " arcs " << endl;
+    out << incorporated_variables << '\n' << label_to_local_label << '\n';
+    for (const LocalLabelInfo& label_info : label_infos()) {
+        merge_and_shrink::dump_to_file(out, label_info);
+        out << '\n';
     }
+    out << init_state << '\n' << goal_states;
+}
+
+TransitionSystem TransitionSystem::read_from_file(std::istream& is)
+{
+    std::vector<int> incorporated_variables;
+    std::vector<int> label_to_local_label;
+    std::vector<LocalLabelInfo> local_labels;
+    int init_state;
+    std::vector<bool> goal_states;
+
+    if (!(is >> incorporated_variables))
+        throw std::invalid_argument("Expected incorporated variables.");
+
+    is >> std::ws;
+    if (!(is >> label_to_local_label))
+        throw std::invalid_argument("Expected label to local label mapping.");
+
+    while ((is >> std::ws).peek() == '[') {
+        local_labels.emplace_back(LocalLabelInfo::read_from_file(is));
+    }
+
+    if (!(is >> std::ws >> init_state))
+        throw std::invalid_argument("Expected initial state.");
+
+    if (!(is >> std::ws >> goal_states))
+        throw std::invalid_argument("Expected goal states.");
+
+    return TransitionSystem(
+        std::move(incorporated_variables),
+        std::move(label_to_local_label),
+        std::move(local_labels),
+        init_state,
+        std::move(goal_states));
+}
+
+std::ostream& operator<<(std::ostream& os, const TransitionSystem& ts)
+{
+    os << "Incorporated Variables: " << ts.incorporated_variables << '\n'
+       << "Local label mapping: " << ts.label_to_local_label << '\n';
+
+    auto&& label_infos = ts.label_infos();
+    os << "Local Label Transitions:\n";
+    for (auto&& elem : label_infos) {
+        os << "  " << elem << '\n';
+    }
+
+    return os << "Number of states: " << ts.get_size() << '\n'
+              << "Initial State: " << ts.init_state << '\n'
+              << "Goal states: " << ts.goal_states;
 }
 
 } // namespace probfd::merge_and_shrink

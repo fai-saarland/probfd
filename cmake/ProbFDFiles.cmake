@@ -371,6 +371,7 @@ create_library(
         probfd/merge_and_shrink/shrink_strategy_bisimulation
         probfd/merge_and_shrink/prune_strategy_identity
         probfd/merge_and_shrink/transition_system
+        probfd/merge_and_shrink/transition
         probfd/merge_and_shrink/types
         probfd/merge_and_shrink/utils
     DEPENDS
