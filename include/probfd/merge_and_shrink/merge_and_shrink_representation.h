@@ -20,7 +20,6 @@ namespace probfd::merge_and_shrink {
 
 class MergeAndShrinkRepresentation {
 protected:
-    int domain_size;
     std::vector<int> lookup_table;
 
 public:
