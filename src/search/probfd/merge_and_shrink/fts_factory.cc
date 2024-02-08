@@ -84,8 +84,7 @@ private:
         VariableProxy variable,
         const Labels& labels);
     void build_transitions(const Labels& labels);
-    vector<unique_ptr<TransitionSystem>>
-    create_transition_systems(const Labels& labels);
+    vector<unique_ptr<TransitionSystem>> create_transition_systems();
     vector<unique_ptr<MergeAndShrinkRepresentation>>
     create_mas_representations() const;
     vector<unique_ptr<Distances>> create_distances(
@@ -331,7 +330,7 @@ void FTSFactory::build_transitions_for_irrelevant_ops(
     }
 
     TransitionSystemData& ts_data = transition_system_data_by_var[var_id];
-    for (auto& [probabilities, labels] : irrelevant_labels) {
+    for (auto& [probabilities, label_group] : irrelevant_labels) {
         vector<Transition> transitions;
         transitions.reserve(num_states);
         for (int state = 0; state < num_states; ++state) {
@@ -340,12 +339,12 @@ void FTSFactory::build_transitions_for_irrelevant_ops(
                 std::vector<int>(probabilities.size(), state));
         }
         int new_local_label = ts_data.local_label_infos.size();
-        for (int label : labels) {
+        for (int label : label_group) {
             assert(ts_data.label_to_local_label[label] == -1);
             ts_data.label_to_local_label[label] = new_local_label;
         }
         ts_data.local_label_infos.emplace_back(
-            std::move(labels),
+            std::move(label_group),
             std::move(transitions),
             std::move(probabilities),
             cost);
@@ -371,8 +370,7 @@ void FTSFactory::build_transitions(const Labels& labels)
         build_transitions_for_irrelevant_ops(variable, labels);
 }
 
-vector<unique_ptr<TransitionSystem>>
-FTSFactory::create_transition_systems(const Labels& labels)
+vector<unique_ptr<TransitionSystem>> FTSFactory::create_transition_systems()
 {
     // Create the actual TransitionSystem objects.
     int num_variables = task_proxy.get_variables().size();
@@ -384,14 +382,11 @@ FTSFactory::create_transition_systems(const Labels& labels)
 
     for (TransitionSystemData& ts_data : transition_system_data_by_var) {
         result.push_back(std::make_unique<TransitionSystem>(
-            ts_data.num_variables,
             std::move(ts_data.incorporated_variables),
-            labels,
             std::move(ts_data.label_to_local_label),
             std::move(ts_data.local_label_infos),
-            ts_data.num_states,
-            std::move(ts_data.goal_states),
-            ts_data.init_state));
+            ts_data.init_state,
+            std::move(ts_data.goal_states)));
     }
 
     return result;
@@ -451,7 +446,7 @@ FactoredTransitionSystem FTSFactory::create(
     build_transitions(*labels);
 
     vector<unique_ptr<TransitionSystem>> transition_systems =
-        create_transition_systems(*labels);
+        create_transition_systems();
     vector<unique_ptr<MergeAndShrinkRepresentation>> mas_representations =
         create_mas_representations();
     vector<unique_ptr<Distances>> distances =

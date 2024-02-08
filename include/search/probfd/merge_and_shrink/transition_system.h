@@ -1,6 +1,7 @@
 #ifndef PROBFD_HEURISTICS_MERGE_AND_SHRINK_TRANSITION_SYSTEM_H
 #define PROBFD_HEURISTICS_MERGE_AND_SHRINK_TRANSITION_SYSTEM_H
 
+#include "probfd/merge_and_shrink/transition.h"
 #include "probfd/merge_and_shrink/types.h"
 
 #include "probfd/value_type.h"
@@ -26,14 +27,6 @@ class Labels;
 } // namespace probfd::merge_and_shrink
 
 namespace probfd::merge_and_shrink {
-
-struct Transition {
-    int src;
-    std::vector<int> targets;
-
-    friend auto
-    operator<=>(const Transition& lhs, const Transition& rhs) = default;
-};
 
 using LabelGroup = std::vector<int>;
 
@@ -70,6 +63,8 @@ public:
     {
         assert(is_consistent());
     }
+
+    static LocalLabelInfo read_from_file(std::istream& file);
 
     void add_label(int label, value_t label_cost);
 
@@ -118,71 +113,88 @@ public:
 
     value_t get_cost() const { return cost; }
 
+    std::size_t get_num_transitions() const { return transitions.size(); }
+
     bool is_consistent() const;
+
+    friend std::ostream&
+    operator<<(std::ostream& out, const LocalLabelInfo& label_info);
+
+    friend void
+    dump_to_file(std::ostream& out, const LocalLabelInfo& label_info);
+
+    friend bool
+    operator==(const LocalLabelInfo& left, const LocalLabelInfo& right) =
+        default;
 };
 
 class TransitionSystem {
     /*
-      The following two attributes are only used for output.
-
-      - num_variables: total number of variables in the factored
-        transition system
-
-      - incorporated_variables: variables that contributed to this
-        transition system
-    */
-    const int num_variables;
+     * This attribute is only used for output. Vvariables that contributed to
+     * this transition system.
+     */
     std::vector<int> incorporated_variables;
 
-    const Labels& labels;
     /*
-      All locally equivalent labels are grouped together, and their
-      transitions are only stored once for every such group, see below.
-
-      LabelEquivalenceRelation stores the equivalence relation over all
-      labels of the underlying factored transition system.
-    */
+     * All locally equivalent labels are grouped together, and their
+     * transitions are only stored once for every such group, see below.
+     *
+     * LabelEquivalenceRelation stores the equivalence relation over all
+     * labels of the underlying factored transition system.
+     */
     std::vector<int> label_to_local_label;
     std::vector<LocalLabelInfo> local_label_infos;
 
-    int num_states;
-    std::vector<bool> goal_states;
     int init_state;
+    std::vector<bool> goal_states;
 
     /*
-      Check if two or more labels are locally equivalent to each other, and
-      if so, update the label equivalence relation.
-    */
+     * Check if two or more labels are locally equivalent to each other, and
+     * if so, update the label equivalence relation.
+     */
     void compute_equivalent_local_labels();
 
     // Statistics and output
     int compute_total_transitions() const;
-    std::string get_description() const;
 
     /*
-      The transitions for every group of locally equivalent labels are
-      sorted (by source, by target) and there are no duplicates.
-    */
+     * The transitions for every group of locally equivalent labels are
+     * sorted (by source, by target) and there are no duplicates.
+     */
     bool are_local_labels_consistent() const;
 
     /*
       The mapping label_to_local_label is consistent with local_label_infos.
     */
-    bool is_label_mapping_consistent() const;
-    void dump_label_mapping() const;
+    bool is_label_mapping_consistent(const Labels& labels) const;
+
+    void dump_label_mapping(const Labels& labels, std::ostream& out) const;
 
 public:
     TransitionSystem(
-        int num_variables,
-        std::vector<int>&& incorporated_variables,
-        const Labels& labels,
-        std::vector<int>&& label_to_local_label,
-        std::vector<LocalLabelInfo>&& local_label_infos,
-        int num_states,
-        std::vector<bool>&& goal_states,
-        int init_state);
-    TransitionSystem(const TransitionSystem& other);
-    ~TransitionSystem();
+        std::vector<int> incorporated_variables,
+        std::vector<int> label_to_local_label,
+        std::vector<LocalLabelInfo> local_label_infos,
+        int init_state,
+        std::vector<bool> goal_states);
+
+    int get_size() const { return static_cast<int>(goal_states.size()); }
+
+    int get_init_state() const { return init_state; }
+
+    bool is_goal_state(int state) const { return goal_states[state]; }
+
+    const std::vector<int>& get_incorporated_variables() const
+    {
+        return incorporated_variables;
+    }
+
+    auto label_infos() const
+    {
+        using namespace std::views;
+        return local_label_infos | filter(&LocalLabelInfo::is_active);
+    }
+
     /*
       Factory method to construct the merge of two transition systems.
 
@@ -214,14 +226,17 @@ public:
       once.
     */
     void apply_label_reduction(
+        const Labels& labels,
         const std::vector<std::pair<int, std::vector<int>>>& label_mapping,
         bool only_equivalent_labels);
 
-    auto label_infos() const
-    {
-        using namespace std::views;
-        return local_label_infos | filter(&LocalLabelInfo::is_active);
-    }
+    /*
+      The transitions for every group of locally equivalent labels are
+      sorted (by source, by target) and there are no duplicates.
+    */
+    bool is_valid(const Labels& labels) const;
+
+    bool is_solvable(const Distances& distances) const;
 
     /*
       Method to identify the transition system in output.
@@ -232,27 +247,20 @@ public:
     */
     std::string tag() const;
 
-    /*
-      The transitions for every group of locally equivalent labels are
-      sorted (by source, by target) and there are no duplicates.
-    */
-    bool is_valid() const;
-
-    bool is_solvable(const Distances& distances) const;
+    void dump_statistics(utils::LogProxy& log) const;
     void dump_dot_graph(utils::LogProxy& log) const;
     void dump_labels_and_transitions(utils::LogProxy& log) const;
-    void statistics(utils::LogProxy& log) const;
 
-    int get_size() const { return num_states; }
+    void dump_to_file(std::ostream& out) const;
 
-    int get_init_state() const { return init_state; }
+    static TransitionSystem read_from_file(std::istream& is);
 
-    bool is_goal_state(int state) const { return goal_states[state]; }
+    friend std::ostream&
+    operator<<(std::ostream& os, const TransitionSystem& ts);
 
-    const std::vector<int>& get_incorporated_variables() const
-    {
-        return incorporated_variables;
-    }
+    friend bool
+    operator==(const TransitionSystem& left, const TransitionSystem& right) =
+        default;
 };
 
 } // namespace probfd::merge_and_shrink
