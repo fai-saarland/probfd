@@ -11,32 +11,6 @@ using namespace std;
 
 namespace probfd::merge_and_shrink {
 
-LabelsConstIterator::LabelsConstIterator(
-    const vector<LabelInfo>& label_infos,
-    vector<LabelInfo>::const_iterator it)
-    : end_it(label_infos.end())
-    , it(it)
-    , current_pos(distance(label_infos.begin(), it))
-{
-    advance_to_next_valid_index();
-}
-
-void LabelsConstIterator::advance_to_next_valid_index()
-{
-    while (it != end_it && it->cost == -1_vt) {
-        ++it;
-        ++current_pos;
-    }
-}
-
-LabelsConstIterator& LabelsConstIterator::operator++()
-{
-    ++it;
-    ++current_pos;
-    advance_to_next_valid_index();
-    return *this;
-}
-
 Labels::Labels(vector<LabelInfo>&& label_infos, int max_num_labels)
     : label_infos(std::move(label_infos))
     , max_num_labels(max_num_labels)
@@ -90,9 +64,7 @@ void Labels::reduce_labels(const vector<int>& old_labels)
     label_infos.emplace_back(
         new_label_cost,
         std::move(new_label_probabilities));
-
-    num_active_labels -= old_labels.size();
-    ++num_active_labels;
+    num_active_labels -= old_labels.size() + 1;
 }
 
 void Labels::dump_labels(utils::LogProxy log) const
