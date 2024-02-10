@@ -2,6 +2,8 @@
 
 #include "probfd/algorithms/types.h"
 
+#include "probfd/task_proxy.h"
+
 #include "downward/utils/logging.h"
 
 #include <cassert>
@@ -11,11 +13,35 @@ using namespace std;
 
 namespace probfd::merge_and_shrink {
 
-Labels::Labels(vector<LabelInfo>&& label_infos, int max_num_labels)
-    : label_infos(std::move(label_infos))
-    , max_num_labels(max_num_labels)
-    , num_active_labels(this->label_infos.size())
+LabelInfo::LabelInfo(ProbabilisticOperatorProxy op)
+    : cost(op.get_cost())
 {
+    for (ProbabilisticOutcomeProxy outcome : op.get_outcomes()) {
+        probabilities.push_back(outcome.get_probability());
+    }
+}
+
+LabelInfo::LabelInfo(value_t cost, std::vector<value_t> probabilities)
+    : cost(cost)
+    , probabilities(std::move(probabilities))
+{
+}
+
+Labels::Labels(ProbabilisticOperatorsProxy operators)
+{
+    const int num_ops = operators.size();
+
+    if (num_ops > 0) {
+        max_num_labels = 2 * num_ops - 1;
+        label_infos.reserve(max_num_labels);
+        for (const ProbabilisticOperatorProxy op : operators) {
+            label_infos.emplace_back(op);
+        }
+    } else {
+        max_num_labels = 0;
+    }
+
+    num_active_labels = num_ops;
 }
 
 value_t Labels::get_label_cost(int label) const
@@ -28,12 +54,6 @@ const std::vector<value_t>& Labels::get_label_probabilities(int label) const
 {
     assert(label_infos[label].cost != -1_vt);
     return label_infos[label].probabilities;
-}
-
-const LabelInfo& Labels::get_label_info(int label) const
-{
-    assert(label_infos[label].cost != -1_vt);
-    return label_infos[label];
 }
 
 void Labels::reduce_labels(const vector<int>& old_labels)
@@ -58,7 +78,7 @@ void Labels::reduce_labels(const vector<int>& old_labels)
         }
 
         cost = -1_vt;
-        probabilities.clear();
+        utils::release_vector_memory(probabilities);
     }
 
     label_infos.emplace_back(
