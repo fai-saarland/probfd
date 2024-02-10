@@ -11,11 +11,19 @@ namespace utils {
 class LogProxy;
 }
 
+namespace probfd {
+class ProbabilisticOperatorProxy;
+class ProbabilisticOperatorsProxy;
+} // namespace probfd
+
 namespace probfd::merge_and_shrink {
 
 struct LabelInfo {
     value_t cost;
     std::vector<value_t> probabilities;
+
+    explicit LabelInfo(ProbabilisticOperatorProxy op);
+    LabelInfo(value_t cost, std::vector<value_t> probabilities);
 };
 
 /*
@@ -33,13 +41,11 @@ class Labels {
     int num_active_labels; // The current number of active (non-reduced) labels.
 
 public:
-    Labels(std::vector<LabelInfo>&& label_infos, int max_num_labels);
+    explicit Labels(ProbabilisticOperatorsProxy operators);
 
     value_t get_label_cost(int label) const;
 
     const std::vector<value_t>& get_label_probabilities(int label) const;
-
-    const LabelInfo& get_label_info(int label) const;
 
     // The summed number of both inactive and active labels.
     int get_num_total_labels() const { return label_infos.size(); }
