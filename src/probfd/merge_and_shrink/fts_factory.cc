@@ -41,7 +41,6 @@ class FTSFactory {
 
     struct TransitionSystemData {
         // The following two attributes are only used for statistics
-        int num_variables;
         vector<int> incorporated_variables;
 
         vector<int> label_to_local_label;
@@ -128,7 +127,6 @@ void FTSFactory::initialize_transition_system_data(const Labels& labels)
         int var_id = var.get_id();
 
         TransitionSystemData& ts_data = transition_system_data_by_var[var_id];
-        ts_data.num_variables = variables.size();
         ts_data.incorporated_variables.push_back(var_id);
         ts_data.label_to_local_label.resize(labels.get_max_num_labels(), -1);
         ts_data.relevant_labels.resize(labels.get_num_total_labels(), false);
