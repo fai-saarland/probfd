@@ -29,18 +29,15 @@ namespace probfd::merge_and_shrink {
 class Distances {
     static constexpr value_t DISTANCE_UNKNOWN = -1;
 
-    const TransitionSystem& transition_system;
     std::vector<bool> liveness;
     std::vector<value_t> goal_distances;
     bool liveness_computed = false;
     bool goal_distances_computed = false;
 
-    void compute_liveness();
-    void compute_goal_distances();
+    void compute_liveness(const TransitionSystem& transition_system);
+    void compute_goal_distances(const TransitionSystem& transition_system);
 
 public:
-    explicit Distances(const TransitionSystem& transition_system);
-
     bool is_liveness_computed() const { return liveness_computed; }
     bool are_goal_distances_computed() const { return goal_distances_computed; }
 
@@ -56,7 +53,10 @@ public:
         return goal_distances[state];
     }
 
-    void compute_distances(bool compute_liveness, utils::LogProxy& log);
+    void compute_distances(
+        const TransitionSystem& transition_system,
+        bool compute_liveness,
+        utils::LogProxy& log);
 
     /*
       Update distances according to the given abstraction. If the abstraction
@@ -68,12 +68,15 @@ public:
       out of date.)
     */
     void apply_abstraction(
+        const TransitionSystem& transition_system,
         const StateEquivalenceRelation& state_equivalence_relation,
         bool compute_liveness,
         utils::LogProxy& log);
 
     void dump(utils::LogProxy& log) const;
-    void statistics(utils::LogProxy& log) const;
+    void
+    statistics(const TransitionSystem& transition_system, utils::LogProxy& log)
+        const;
 };
 
 } // namespace probfd::merge_and_shrink

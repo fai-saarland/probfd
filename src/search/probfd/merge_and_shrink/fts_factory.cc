@@ -77,8 +77,7 @@ private:
     vector<unique_ptr<TransitionSystem>> create_transition_systems();
     vector<unique_ptr<MergeAndShrinkRepresentation>>
     create_mas_representations() const;
-    vector<unique_ptr<Distances>> create_distances(
-        const vector<unique_ptr<TransitionSystem>>& transition_systems) const;
+    vector<unique_ptr<Distances>> create_distances() const;
 
 public:
     explicit FTSFactory(const ProbabilisticTaskProxy& task_proxy);
@@ -381,8 +380,7 @@ FTSFactory::create_mas_representations() const
     return result;
 }
 
-vector<unique_ptr<Distances>> FTSFactory::create_distances(
-    const vector<unique_ptr<TransitionSystem>>& transition_systems) const
+vector<unique_ptr<Distances>> FTSFactory::create_distances() const
 {
     // Create the actual Distances objects.
     int num_variables = task_proxy.get_variables().size();
@@ -393,8 +391,7 @@ vector<unique_ptr<Distances>> FTSFactory::create_distances(
     result.reserve(num_variables * 2 - 1);
 
     for (int var_no = 0; var_no < num_variables; ++var_no) {
-        result.push_back(
-            std::make_unique<Distances>(*transition_systems[var_no]));
+        result.push_back(std::make_unique<Distances>());
     }
 
     return result;
@@ -418,8 +415,7 @@ FactoredTransitionSystem FTSFactory::create(
         create_transition_systems();
     vector<unique_ptr<MergeAndShrinkRepresentation>> mas_representations =
         create_mas_representations();
-    vector<unique_ptr<Distances>> distances =
-        create_distances(transition_systems);
+    vector<unique_ptr<Distances>> distances = create_distances();
 
     return FactoredTransitionSystem(
         std::move(labels),

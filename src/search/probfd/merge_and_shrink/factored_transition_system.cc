@@ -61,7 +61,10 @@ FactoredTransitionSystem::FactoredTransitionSystem(
     assert(!compute_liveness || compute_goal_distances);
     for (size_t index = 0; index < this->transition_systems.size(); ++index) {
         if (compute_goal_distances) {
-            this->distances[index]->compute_distances(compute_liveness, log);
+            this->distances[index]->compute_distances(
+                *transition_systems[index],
+                compute_liveness,
+                log);
         }
         assert(is_component_valid(index));
     }
@@ -142,12 +145,11 @@ bool FactoredTransitionSystem::apply_abstraction(
         transition_systems[index]->get_size(),
         state_equivalence_relation);
 
-    transition_systems[index]->apply_abstraction(
-        state_equivalence_relation,
-        abstraction_mapping,
-        log);
+    TransitionSystem& ts = *transition_systems[index];
+    ts.apply_abstraction(state_equivalence_relation, abstraction_mapping, log);
     if (compute_goal_distances) {
         distances[index]->apply_abstraction(
+            ts,
             state_equivalence_relation,
             compute_liveness,
             log);
@@ -187,10 +189,10 @@ int FactoredTransitionSystem::merge(
     mas_representations[index1] = nullptr;
     mas_representations[index2] = nullptr;
 
-    auto& dist = *distances.emplace_back(std::make_unique<Distances>(new_ts));
+    auto& dist = *distances.emplace_back(std::make_unique<Distances>());
     // Restore the invariant that distances are computed.
     if (compute_goal_distances) {
-        dist.compute_distances(compute_liveness, log);
+        dist.compute_distances(new_ts, compute_liveness, log);
     }
     --num_active_entries;
 
@@ -215,7 +217,7 @@ void FactoredTransitionSystem::statistics(int index, utils::LogProxy& log) const
         const TransitionSystem& ts = *transition_systems[index];
         ts.dump_statistics(log);
         const Distances& dist = *distances[index];
-        dist.statistics(log);
+        dist.statistics(ts, log);
     }
 }
 
