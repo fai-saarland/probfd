@@ -66,18 +66,6 @@ private:
     bool is_relevant(int var_no, int label_no) const;
     void mark_as_relevant(int var_no, int label_no);
 
-    void handle_operator_effect(
-        OperatorProxy op,
-        EffectProxy effect,
-        const unordered_map<int, int>& pre_val,
-        vector<bool>& has_effect_on_var,
-        vector<vector<Transition>>& transitions_by_var);
-    void handle_operator_precondition(
-        OperatorProxy op,
-        FactProxy precondition,
-        const vector<bool>& has_effect_on_var,
-        vector<vector<Transition>>& transitions_by_var);
-
     void build_transitions_for_operator(
         ProbabilisticOperatorProxy op,
         const Labels& labels);
