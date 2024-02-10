@@ -43,12 +43,7 @@ static void forward_search(
     }
 }
 
-Distances::Distances(const TransitionSystem& transition_system)
-    : transition_system(transition_system)
-{
-}
-
-void Distances::compute_liveness()
+void Distances::compute_liveness(const TransitionSystem& transition_system)
 {
     const int init_state = transition_system.get_init_state();
 
@@ -189,7 +184,8 @@ public:
 };
 } // namespace
 
-void Distances::compute_goal_distances()
+void Distances::compute_goal_distances(
+    const TransitionSystem& transition_system)
 {
     using namespace algorithms::ta_topological_vi;
 
@@ -212,7 +208,10 @@ void Distances::compute_goal_distances()
     goal_distances_computed = true;
 }
 
-void Distances::compute_distances(bool compute_liveness, utils::LogProxy& log)
+void Distances::compute_distances(
+    const TransitionSystem& transition_system,
+    bool compute_liveness,
+    utils::LogProxy& log)
 {
     /*
       This method computes the distances of abstract states to the abstract
@@ -244,15 +243,16 @@ void Distances::compute_distances(bool compute_liveness, utils::LogProxy& log)
     }
 
     goal_distances.resize(num_states, -INFINITE_VALUE);
-    compute_goal_distances();
+    compute_goal_distances(transition_system);
 
     if (compute_liveness) {
         liveness.resize(num_states, false);
-        Distances::compute_liveness();
+        Distances::compute_liveness(transition_system);
     }
 }
 
 void Distances::apply_abstraction(
+    const TransitionSystem& transition_system,
     const StateEquivalenceRelation& state_equivalence_relation,
     bool compute_liveness,
     utils::LogProxy& log)
@@ -303,7 +303,7 @@ void Distances::apply_abstraction(
             goal_distances.clear();
             liveness_computed = false;
             goal_distances_computed = false;
-            compute_distances(compute_liveness, log);
+            compute_distances(transition_system, compute_liveness, log);
             return;
         }
 
@@ -344,7 +344,9 @@ void Distances::dump(utils::LogProxy& log) const
     }
 }
 
-void Distances::statistics(utils::LogProxy& log) const
+void Distances::statistics(
+    const TransitionSystem& transition_system,
+    utils::LogProxy& log) const
 {
     if (log.is_at_least_verbose()) {
         log << transition_system.tag();
