@@ -60,14 +60,14 @@ vector<double> MergeScoringFunctionMIASM::compute_scores(
             silent_log);
 
         // Compute distances for the product and count the alive states.
-        const auto distances = std::make_unique<Distances>(*product);
-        distances->compute_distances(true, silent_log);
+        Distances distances;
+        distances.compute_distances(*product, true, silent_log);
 
         const int num_states = product->get_size();
         int alive_states_count = 0;
 
         for (int state = 0; state < num_states; ++state) {
-            if (distances->is_alive(state)) {
+            if (distances.is_alive(state)) {
                 ++alive_states_count;
             }
         }
