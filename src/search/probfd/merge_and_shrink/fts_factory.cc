@@ -62,10 +62,8 @@ class FTSFactory {
     vector<TransitionSystemData> transition_system_data_by_var;
 
 private:
-    Labels create_labels();
-
     void initialize_transition_system_data(const Labels& labels);
-    
+
     bool is_relevant(int var_no, int label_no) const;
     void mark_as_relevant(int var_no, int label_no);
 
@@ -114,25 +112,6 @@ FTSFactory::FTSFactory(const ProbabilisticTaskProxy& task_proxy)
     : task_proxy(task_proxy)
 {
     assert(!task_properties::has_conditional_effects(task_proxy));
-}
-
-Labels FTSFactory::create_labels()
-{
-    vector<LabelInfo> label_infos;
-    ProbabilisticOperatorsProxy ops = task_proxy.get_operators();
-    int num_ops = ops.size();
-    int max_num_labels = 0;
-    if (num_ops > 0) {
-        max_num_labels = 2 * num_ops - 1;
-        label_infos.reserve(max_num_labels);
-        for (ProbabilisticOperatorProxy op : ops) {
-            LabelInfo& info = label_infos.emplace_back(op.get_cost());
-            for (ProbabilisticOutcomeProxy outcome : op.get_outcomes()) {
-                info.probabilities.push_back(outcome.get_probability());
-            }
-        }
-    }
-    return Labels(std::move(label_infos), max_num_labels);
 }
 
 void FTSFactory::initialize_transition_system_data(const Labels& labels)
@@ -444,7 +423,7 @@ FactoredTransitionSystem FTSFactory::create(
         log << "Building atomic transition systems... " << endl;
     }
 
-    Labels labels = create_labels();
+    Labels labels(task_proxy.get_operators());
 
     initialize_transition_system_data(labels);
     build_transitions(labels);
