@@ -46,22 +46,22 @@ class FTSFactory {
         vector<int> label_to_local_label;
         vector<LocalLabelInfo> local_label_infos;
         vector<bool> relevant_labels;
-        int num_states;
         vector<bool> goal_states;
         int init_state;
 
         TransitionSystemData() = default;
+        TransitionSystemData(TransitionSystemData&& other) = default;
+
         TransitionSystemData(const TransitionSystemData& other) = delete;
         TransitionSystemData&
         operator=(const TransitionSystemData& other) = delete;
-        TransitionSystemData(TransitionSystemData&& other) = default;
         TransitionSystemData& operator=(TransitionSystemData&& other) = delete;
     };
 
     vector<TransitionSystemData> transition_system_data_by_var;
 
 private:
-    void initialize_transition_system_data(const Labels& labels);
+    void initialize_transition_system_data(int max_num_labels);
 
     bool is_relevant(int var_no, int label_no) const;
     void mark_as_relevant(int var_no, int label_no);
@@ -73,11 +73,6 @@ private:
         VariableProxy variable,
         const Labels& labels);
     void build_transitions(const Labels& labels);
-
-    vector<unique_ptr<TransitionSystem>> create_transition_systems();
-    vector<unique_ptr<MergeAndShrinkRepresentation>>
-    create_mas_representations() const;
-    vector<unique_ptr<Distances>> create_distances() const;
 
 public:
     explicit FTSFactory(const ProbabilisticTaskProxy& task_proxy);
@@ -100,40 +95,34 @@ FTSFactory::FTSFactory(const ProbabilisticTaskProxy& task_proxy)
     assert(!task_properties::has_conditional_effects(task_proxy));
 }
 
-void FTSFactory::initialize_transition_system_data(const Labels& labels)
+void FTSFactory::initialize_transition_system_data(int max_num_labels)
 {
     VariablesProxy variables = task_proxy.get_variables();
-    transition_system_data_by_var.resize(variables.size());
-
+    GoalsProxy goals = task_proxy.get_goals();
     State initial_state = task_proxy.get_initial_state();
 
+    auto goal_facts = goals | std::views::transform(&FactProxy::get_pair);
+    auto goals_it = goal_facts.begin();
+    auto goals_end = goal_facts.end();
+
+    transition_system_data_by_var.resize(variables.size());
+
     for (VariableProxy var : variables) {
-        int var_id = var.get_id();
+        const int var_id = var.get_id();
+        const int range = var.get_domain_size();
 
         TransitionSystemData& ts_data = transition_system_data_by_var[var_id];
         ts_data.incorporated_variables.push_back(var_id);
-        ts_data.label_to_local_label.resize(labels.get_max_num_labels(), -1);
-        ts_data.relevant_labels.resize(labels.get_num_total_labels(), false);
-
-        // build state data
-        int range = var.get_domain_size();
-        ts_data.num_states = range;
-
+        ts_data.label_to_local_label.resize(max_num_labels, -1);
+        ts_data.relevant_labels.resize(max_num_labels, false);
         ts_data.init_state = initial_state[var_id].get_value();
-        ts_data.goal_states.resize(range, false);
 
-        auto goals = task_proxy.get_goals();
-
-        auto it = std::ranges::find_if(goals, [=](FactProxy goal) {
-            return goal.get_variable().get_id() == var_id;
-        });
-
-        if (it != goals.end()) {
-            ts_data.goal_states[(*it).get_value()] = true;
+        if (goals_it != goals_end && (*goals_it).var == var_id) {
+            ts_data.goal_states.resize(range, false);
+            ts_data.goal_states[(*goals_it).value] = true;
+            ++goals_it;
         } else {
-            for (int value = 0; value < range; ++value) {
-                ts_data.goal_states[value] = true;
-            }
+            ts_data.goal_states.resize(range, true);
         }
     }
 }
@@ -338,65 +327,6 @@ void FTSFactory::build_transitions(const Labels& labels)
         build_transitions_for_irrelevant_ops(variable, labels);
 }
 
-vector<unique_ptr<TransitionSystem>> FTSFactory::create_transition_systems()
-{
-    // Create the actual TransitionSystem objects.
-    int num_variables = task_proxy.get_variables().size();
-
-    // We reserve space for the transition systems added later by merging.
-    vector<unique_ptr<TransitionSystem>> result;
-    assert(num_variables >= 1);
-    result.reserve(num_variables * 2 - 1);
-
-    for (TransitionSystemData& ts_data : transition_system_data_by_var) {
-        result.push_back(std::make_unique<TransitionSystem>(
-            std::move(ts_data.incorporated_variables),
-            std::move(ts_data.label_to_local_label),
-            std::move(ts_data.local_label_infos),
-            ts_data.init_state,
-            std::move(ts_data.goal_states)));
-    }
-
-    return result;
-}
-
-vector<unique_ptr<MergeAndShrinkRepresentation>>
-FTSFactory::create_mas_representations() const
-{
-    // Create the actual MergeAndShrinkRepresentation objects.
-    int num_variables = task_proxy.get_variables().size();
-
-    // We reserve space for the transition systems added later by merging.
-    vector<unique_ptr<MergeAndShrinkRepresentation>> result;
-    assert(num_variables >= 1);
-    result.reserve(num_variables * 2 - 1);
-
-    for (int var_id = 0; var_id < num_variables; ++var_id) {
-        int range = task_proxy.get_variables()[var_id].get_domain_size();
-        result.push_back(
-            std::make_unique<MergeAndShrinkRepresentationLeaf>(var_id, range));
-    }
-
-    return result;
-}
-
-vector<unique_ptr<Distances>> FTSFactory::create_distances() const
-{
-    // Create the actual Distances objects.
-    int num_variables = task_proxy.get_variables().size();
-
-    // We reserve space for the transition systems added later by merging.
-    vector<unique_ptr<Distances>> result;
-    assert(num_variables >= 1);
-    result.reserve(num_variables * 2 - 1);
-
-    for (int var_no = 0; var_no < num_variables; ++var_no) {
-        result.push_back(std::make_unique<Distances>());
-    }
-
-    return result;
-}
-
 FactoredTransitionSystem FTSFactory::create(
     const bool compute_liveness,
     const bool compute_goal_distances,
@@ -408,14 +338,37 @@ FactoredTransitionSystem FTSFactory::create(
 
     Labels labels(task_proxy.get_operators());
 
-    initialize_transition_system_data(labels);
+    initialize_transition_system_data(labels.get_max_num_labels());
     build_transitions(labels);
 
-    vector<unique_ptr<TransitionSystem>> transition_systems =
-        create_transition_systems();
-    vector<unique_ptr<MergeAndShrinkRepresentation>> mas_representations =
-        create_mas_representations();
-    vector<unique_ptr<Distances>> distances = create_distances();
+    VariablesProxy variables = task_proxy.get_variables();
+    int num_variables = static_cast<int>(variables.size());
+    assert(num_variables >= 1);
+
+    // Create the actual TransitionSystem, MergeAndShrinkRepresentation and
+    // Distances objects.
+    vector<unique_ptr<TransitionSystem>> transition_systems;
+    vector<unique_ptr<MergeAndShrinkRepresentation>> mas_representations;
+    vector<unique_ptr<Distances>> distances;
+
+    // We reserve space for the data structures systems added later by merging.
+    transition_systems.reserve(num_variables * 2 - 1);
+    mas_representations.reserve(num_variables * 2 - 1);
+    distances.reserve(num_variables * 2 - 1);
+
+    for (int var_id = 0; var_id < num_variables; ++var_id) {
+        int range = variables[var_id].get_domain_size();
+        auto& ts_data = transition_system_data_by_var[var_id];
+        transition_systems.push_back(std::make_unique<TransitionSystem>(
+            std::move(ts_data.incorporated_variables),
+            std::move(ts_data.label_to_local_label),
+            std::move(ts_data.local_label_infos),
+            ts_data.init_state,
+            std::move(ts_data.goal_states)));
+        mas_representations.push_back(
+            std::make_unique<MergeAndShrinkRepresentationLeaf>(var_id, range));
+        distances.push_back(std::make_unique<Distances>());
+    }
 
     return FactoredTransitionSystem(
         std::move(labels),
