@@ -6,6 +6,8 @@
 
 using namespace probfd;
 
+using std::ranges::sort;
+
 namespace tests {
 
 BlocksworldTask::BlocksworldTask(
@@ -248,6 +250,14 @@ BlocksworldTask::BlocksworldTask(
             op_info.outcomes = {
                 {1,
                  {get_fact_is_hand_empty(true), get_fact_block_on_table(b1)}}};
+        }
+    }
+
+    // Sort fact ranges in increasing order of variable ids.
+    for (OperatorInfo& op_info : operators) {
+        sort(op_info.preconditions, {}, &FactPair::var);
+        for (EffectInfo& effect_info : op_info.outcomes) {
+            sort(effect_info.effects, {}, &FactPair::var);
         }
     }
 }
