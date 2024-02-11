@@ -1,5 +1,7 @@
 include_guard(GLOBAL)
 
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+
 add_library(common_cxx_flags INTERFACE)
 target_compile_features(common_cxx_flags INTERFACE cxx_std_23)
 target_include_directories(
