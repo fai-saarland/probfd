@@ -35,7 +35,6 @@ using namespace plugins;
 
 MDPSolver::MDPSolver(const Options& opts)
     : task_(tasks::g_root_task)
-    , task_proxy_(*task_)
     , task_cost_function_(
           opts.get<std::shared_ptr<TaskCostFunctionFactory>>("costs")
               ->create_cost_function(task_))
