@@ -169,7 +169,6 @@ create_probfd_library(
 
     # Successor Sorters
     probfd/transition_sorters/vdiff_sorter
-    probfd/transition_sorters/vdiff_sorter_factory
     probfd/transition_sorters/subcategory
 
     # Base heuristic search solver

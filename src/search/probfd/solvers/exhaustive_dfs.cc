@@ -2,9 +2,8 @@
 
 #include "probfd/algorithms/exhaustive_dfs.h"
 
+#include "probfd/algorithms/fdr_types.h"
 #include "probfd/algorithms/transition_sorter.h"
-
-#include "probfd/transition_sorters/task_transition_sorter_factory.h"
 
 #include "downward/plugins/plugin.h"
 
@@ -38,9 +37,7 @@ public:
               task_cost_function_->get_non_goal_termination_cost())
         , transition_sort_(
               opts.contains("order")
-                  ? opts.get<std::shared_ptr<FDRTransitionSorterFactory>>(
-                            "order")
-                        ->create_transition_sorter(this->task_mdp_.get())
+                  ? opts.get<std::shared_ptr<FDRTransitionSorter>>("order")
                   : nullptr)
         , dual_bounds_(opts.get<bool>("dual_bounds"))
         , path_updates_(opts.get<bool>("reverse_path_updates"))
@@ -82,7 +79,7 @@ public:
 
         MDPSolver::add_options_to_feature(*this);
 
-        add_option<std::shared_ptr<FDRTransitionSorterFactory>>(
+        add_option<std::shared_ptr<FDRTransitionSorter>>(
             "order",
             "",
             ArgumentInfo::NO_DEFAULT);

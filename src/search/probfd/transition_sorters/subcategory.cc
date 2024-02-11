@@ -1,29 +1,36 @@
-#include "probfd/transition_sorters/vdiff_sorter_factory.h"
+#include "probfd/transition_sorters/vdiff_sorter.h"
 
 #include "downward/plugins/plugin.h"
 
 namespace probfd::transition_sorters {
 
-static class FDRTransitionSorterFactoryCategoryPlugin
-    : public plugins::TypedCategoryPlugin<FDRTransitionSorterFactory> {
+static class FDRTransitionSorterCategoryPlugin
+    : public plugins::TypedCategoryPlugin<FDRTransitionSorter> {
 public:
-    FDRTransitionSorterFactoryCategoryPlugin()
-        : TypedCategoryPlugin("FDRTransitionSorterFactory")
+    FDRTransitionSorterCategoryPlugin()
+        : TypedCategoryPlugin("FDRTransitionSorter")
     {
     }
 } _category_plugin_collection;
 
-class VDiffSorterFactoryFeature
-    : public plugins::
-          TypedFeature<FDRTransitionSorterFactory, VDiffSorterFactory> {
+class VDiffSorterFeature
+    : public plugins::TypedFeature<FDRTransitionSorter, VDiffSorter> {
 public:
-    VDiffSorterFactoryFeature()
-        : TypedFeature("value_gap_sort_factory")
+    VDiffSorterFeature()
+        : TypedFeature("value_gap_sort")
     {
         add_option<bool>("prefer_large_gaps", "", "false");
     }
+
+    std::shared_ptr<VDiffSorter>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return std::make_shared<VDiffSorter>(
+            opts.get<bool>("prefer_large_gaps"));
+    }
 };
 
-static plugins::FeaturePlugin<VDiffSorterFactoryFeature> _plugin_value_gap;
+static plugins::FeaturePlugin<VDiffSorterFeature> _plugin_value_gap;
 
 } // namespace probfd::transition_sorters
