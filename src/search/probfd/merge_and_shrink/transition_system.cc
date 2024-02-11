@@ -185,6 +185,29 @@ void dump_to_file(std::ostream& out, const LocalLabelInfo& label_info)
         << label_info.get_transitions();
 }
 
+std::partial_ordering
+operator<=>(const LocalLabelInfo& left, const LocalLabelInfo& right)
+{
+    if (auto cmp = left.probabilities.size() <=> right.probabilities.size();
+        cmp != 0)
+        return cmp;
+    if (auto cmp = left.probabilities <=> right.probabilities; cmp != 0)
+        return cmp;
+    if (auto cmp = left.transitions <=> right.transitions; cmp != 0) return cmp;
+    if (auto cmp = left.cost <=> right.cost; cmp != 0) return cmp;
+    return left.label_group <=> right.label_group;
+}
+
+bool merge_if_equivalent(LocalLabelInfo& left, const LocalLabelInfo& right)
+{
+    if (std::tie(left.probabilities, left.transitions) ==
+        std::tie(right.probabilities, right.transitions)) {
+        left.label_group.push_back(right.label_group.back());
+        return true;
+    }
+    return false;
+}
+
 /*
   Implementation note: Transitions are grouped by their label groups,
   not by source state or any such thing. Such a grouping is beneficial
