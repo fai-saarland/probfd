@@ -186,28 +186,16 @@ void dump_to_file(std::ostream& out, const LocalLabelInfo& label_info)
 }
 
 std::partial_ordering
-operator<=>(const LocalLabelInfo& left, const LocalLabelInfo& right)
+compare_transitions(const LocalLabelInfo& left, const LocalLabelInfo& right)
 {
-    if (const auto cmp =
-            left.probabilities.size() <=> right.probabilities.size();
-        cmp != 0)
-        return cmp;
-    if (const auto cmp = left.probabilities <=> right.probabilities; cmp != 0)
-        return cmp;
-    if (const auto cmp = left.transitions <=> right.transitions; cmp != 0)
-        return cmp;
-    if (const auto cmp = left.cost <=> right.cost; cmp != 0) return cmp;
-    return left.label_group <=> right.label_group;
+    return std::tie(left.probabilities, left.transitions) <=>
+           std::tie(right.probabilities, right.transitions);
 }
 
-bool merge_if_equivalent(LocalLabelInfo& left, const LocalLabelInfo& right)
+void LocalLabelInfo::merge(const LocalLabelInfo& right)
 {
-    if (std::tie(left.probabilities, left.transitions) ==
-        std::tie(right.probabilities, right.transitions)) {
-        left.label_group.push_back(right.label_group.back());
-        return true;
-    }
-    return false;
+    cost = std::min(cost, right.cost);
+    label_group.push_back(right.label_group.back());
 }
 
 /*
