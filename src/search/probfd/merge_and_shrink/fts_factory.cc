@@ -226,8 +226,6 @@ void FTSFactory::build_transitions_for_operator(
 
 void FTSFactory::build_transitions(const Labels& labels)
 {
-    using std::ranges::unique;
-
     /*
       - Compute all transitions of all operators for all variables, grouping
         transitions of locally equivalent labels for a given variable.
@@ -243,12 +241,25 @@ void FTSFactory::build_transitions(const Labels& labels)
         auto& local_label_infos = ts_data.local_label_infos;
 
         // Merge equivalent label groups
-        std::ranges::sort(local_label_infos);
-        auto [it, end] = unique(local_label_infos, merge_if_equivalent);
-        local_label_infos.erase(it, end);
+        auto cmp = [](LocalLabelInfo* left, LocalLabelInfo* right) {
+            return compare_transitions(*left, *right) < 0;
+        };
+
+        std::set<LocalLabelInfo*, decltype(cmp)> duplicates;
+
+        std::erase_if(local_label_infos, [&](LocalLabelInfo& element) {
+            if (auto pair = duplicates.insert(&element); !pair.second) {
+                LocalLabelInfo& first_occurence = **pair.first;
+                first_occurence.merge(element);
+                return true;
+            }
+
+            return false;
+        });
 
         // Construct global label to local label mapping
-        for (int index = 0; index != local_label_infos.size(); ++index) {
+        for (std::size_t index = 0; index != local_label_infos.size();
+             ++index) {
             auto& local_label_info = local_label_infos[index];
             for (int label : local_label_info.get_label_group()) {
                 ts_data.label_to_local_label[label] = index;
