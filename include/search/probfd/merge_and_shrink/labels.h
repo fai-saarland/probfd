@@ -1,8 +1,6 @@
 #ifndef PROBFD_HEURISTICS_MERGE_AND_SHRINK_LABELS_H
 #define PROBFD_HEURISTICS_MERGE_AND_SHRINK_LABELS_H
 
-#include "probfd/utils/fixed_size_array.h"
-
 #include "probfd/value_type.h"
 
 #include <memory>
