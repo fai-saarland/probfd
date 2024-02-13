@@ -121,18 +121,15 @@ public:
     friend void
     dump_to_file(std::ostream& out, const LocalLabelInfo& label_info);
 
-    friend std::partial_ordering
-    operator<=>(const LocalLabelInfo& left, const LocalLabelInfo& right);
+    friend std::partial_ordering compare_transitions(
+        const LocalLabelInfo& left,
+        const LocalLabelInfo& right);
 
-    friend bool
-    operator==(const LocalLabelInfo& left, const LocalLabelInfo& right) =
-        default;
-
-    friend bool
-    merge_if_equivalent(LocalLabelInfo& left, const LocalLabelInfo& right);
+    void merge(const LocalLabelInfo& right);
 };
 
-bool merge_if_equivalent(LocalLabelInfo& left, const LocalLabelInfo& right);
+std::partial_ordering
+compare_transitions(const LocalLabelInfo& left, const LocalLabelInfo& right);
 
 class TransitionSystem {
     /*
