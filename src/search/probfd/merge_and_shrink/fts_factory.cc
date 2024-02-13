@@ -132,7 +132,7 @@ void FTSFactory::build_transitions_for_operator(
     const auto preconditions = op.get_preconditions();
     const auto outcomes = op.get_outcomes();
 
-    const auto num_outcomes = outcomes.size();
+    const auto num_outcomes = static_cast<int>(outcomes.size());
 
     auto precondition_it = preconditions.begin();
     auto precondition_end = preconditions.end();
