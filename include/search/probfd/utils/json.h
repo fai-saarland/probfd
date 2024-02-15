@@ -14,7 +14,7 @@ template <typename T>
 void write(std::ostream& os, const T& t);
 
 template <typename T>
-T read_json(std::istream& is);
+T read(std::istream& is);
 
 template <typename T>
 concept JsonReadable = requires(std::istream& is) {
@@ -166,7 +166,7 @@ public:
     {
     }
 
-    T operator*() const { return read_json<T>(*is); }
+    T operator*() const { return read<T>(*is); }
 
     json_iterator& operator++()
     {
@@ -198,12 +198,19 @@ concept Container = std::ranges::input_range<R> &&
                         json_iterator<std::ranges::range_value_t<R>>>;
 
 template <typename T>
-T read_json(std::istream& is)
+T read(std::istream& is)
 {
     if constexpr (std::is_same_v<T, bool>) {
-        std::string token;
-        is >> token;
-        return token == "true";
+        if (is.peek() == 't' && (is.ignore(), is.get() == 'r') &&
+            is.get() == 'u' && is.get() == 'e') {
+            return true;
+        } else if (
+            is.get() == 'f' && is.get() == 'a' && is.get() == 'l' &&
+            is.get() == 's' && is.get() == 'e') {
+            return false;
+        }
+
+        throw std::invalid_argument("Expected 'true' of 'false'!");
     } else if constexpr (std::is_integral_v<T> || std::is_floating_point_v<T>) {
         T number;
         is >> number;
@@ -233,13 +240,13 @@ T read_json(std::istream& is)
 }
 
 template <typename F, typename... T>
-std::tuple<F, T...> read_json_array(std::istream& is)
+std::tuple<F, T...> read_array(std::istream& is)
 {
     expect(is, "[");
     is >> std::ws;
     std::tuple<F, T...> t{
-        read_json<F>(is),
-        (expect(is, ","), is >> std::ws, read_json<T>(is))...};
+        read<F>(is),
+        (expect(is, ","), is >> std::ws, read<T>(is))...};
     is >> std::ws;
     expect(is, "]");
     is >> std::ws;
@@ -248,7 +255,7 @@ std::tuple<F, T...> read_json_array(std::istream& is)
 
 template <typename F, typename... T>
 std::tuple<F, T...>
-read_json_object(std::istream& is, auto&& first, auto&&... tokens)
+read_object(std::istream& is, auto&& first, auto&&... tokens)
 {
     expect(is, "{");
     is >> std::ws;
@@ -259,7 +266,7 @@ read_json_object(std::istream& is, auto&& first, auto&&... tokens)
          is >> std::ws,
          expect(is, ":"),
          is >> std::ws,
-         read_json<F>(is)),
+         read<F>(is)),
         (is >> std::ws,
          expect(is, ","),
          is >> std::ws,
@@ -269,7 +276,7 @@ read_json_object(std::istream& is, auto&& first, auto&&... tokens)
          is >> std::ws,
          expect(is, ":"),
          is >> std::ws,
-         read_json<T>(is))...};
+         read<T>(is))...};
     is >> std::ws;
     expect(is, "}");
     is >> std::ws;
@@ -293,13 +300,14 @@ T construct_from_tuple(std::tuple<Args...>&& tuple)
 template <typename T, typename... Args>
 T construct_from_array(std::istream& is)
 {
-    return construct_from_tuple<T>(json::read_json_array<Args...>(is));
+    return construct_from_tuple<T>(json::read_array<Args...>(is));
 }
 
 template <typename T, typename... Args>
 T construct_from_object(std::istream& is, auto&&... tokens)
+    requires(sizeof...(tokens) == sizeof...(Args))
 {
-    return construct_from_tuple<T>(read_json_object<Args...>(is, tokens...));
+    return construct_from_tuple<T>(read_object<Args...>(is, tokens...));
 }
 
 } // namespace probfd::json
