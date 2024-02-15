@@ -18,7 +18,12 @@ struct Transition {
     operator<<(std::ostream& os, const Transition& transition);
 
     friend std::istream& operator>>(std::istream& is, Transition& transition);
+
+    friend void dump_json(std::ostream& os, const Transition& transition);
+    static Transition read_json(std::istream& is);
 };
+
+void dump_json(std::ostream& os, const Transition& transition);
 
 } // namespace probfd::merge_and_shrink
 

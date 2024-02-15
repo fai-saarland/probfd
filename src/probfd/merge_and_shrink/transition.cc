@@ -1,5 +1,7 @@
 #include "probfd/merge_and_shrink/transition.h"
 
+#include "probfd/utils/json.h"
+
 #include "downward/utils/logging.h"
 
 #include <iostream>
@@ -74,6 +76,16 @@ std::istream& operator>>(std::istream& is, Transition& transition)
     is >> std::ws;
 
     return operator>> <int, '(', ')'>(is, transition.targets);
+}
+
+void dump_json(std::ostream& os, const Transition& transition)
+{
+    json::write_array(os, transition.src, transition.targets);
+}
+
+Transition Transition::read_json(std::istream& is)
+{
+    return json::construct_from_array<Transition, int, std::vector<int>>(is);
 }
 
 } // namespace probfd::merge_and_shrink
