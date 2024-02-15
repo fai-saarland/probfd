@@ -121,9 +121,6 @@ public:
     friend bool
     operator==(const LocalLabelInfo&, const LocalLabelInfo&) = default;
 
-    friend void
-    dump_to_file(std::ostream& out, const LocalLabelInfo& label_info);
-
     friend void dump_json(std::ostream& os, const LocalLabelInfo& info);
     static LocalLabelInfo read_json(std::istream& is);
 
@@ -261,8 +258,6 @@ public:
     void dump_statistics(utils::LogProxy& log) const;
     void dump_dot_graph(utils::LogProxy& log) const;
     void dump_labels_and_transitions(utils::LogProxy& log) const;
-
-    void dump_to_file(std::ostream& out) const;
 
     static TransitionSystem read_from_file(std::istream& is);
 
