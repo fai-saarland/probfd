@@ -180,13 +180,6 @@ std::ostream& operator<<(std::ostream& out, const LocalLabelInfo& label_info)
                << ", Transitions: " << label_info.get_transitions();
 }
 
-void dump_to_file(std::ostream& out, const LocalLabelInfo& label_info)
-{
-    out << label_info.get_label_group() << ", " << label_info.get_cost() << ", "
-        << label_info.get_probabilities() << ", "
-        << label_info.get_transitions();
-}
-
 void dump_json(std::ostream& os, const LocalLabelInfo& info)
 {
     json::write_object(
@@ -778,16 +771,6 @@ void TransitionSystem::dump_labels_and_transitions(utils::LogProxy& log) const
         log << label_info;
     }
     log << std::endl;
-}
-
-void TransitionSystem::dump_to_file(std::ostream& out) const
-{
-    out << incorporated_variables << '\n' << label_to_local_label << '\n';
-    for (const LocalLabelInfo& label_info : label_infos()) {
-        merge_and_shrink::dump_to_file(out, label_info);
-        out << '\n';
-    }
-    out << init_state << '\n' << goal_states;
 }
 
 TransitionSystem TransitionSystem::read_from_file(std::istream& is)
