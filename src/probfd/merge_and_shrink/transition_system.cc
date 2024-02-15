@@ -853,4 +853,21 @@ void dump_json(std::ostream& os, const TransitionSystem& ts)
         std::forward_as_tuple("goal_states", ts.goal_states));
 }
 
+TransitionSystem TransitionSystem::read_json(std::istream& is)
+{
+    return json::construct_from_object<
+        TransitionSystem,
+        std::vector<int>,
+        LabelGroup,
+        std::vector<LocalLabelInfo>,
+        int,
+        std::vector<bool>>(
+        is,
+        "incorporated_variables",
+        "label_to_local_label",
+        "local_label_infos",
+        "init_state",
+        "goal_states");
+}
+
 } // namespace probfd::merge_and_shrink

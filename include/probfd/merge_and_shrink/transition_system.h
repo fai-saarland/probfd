@@ -118,6 +118,9 @@ public:
     friend std::ostream&
     operator<<(std::ostream& out, const LocalLabelInfo& label_info);
 
+    friend bool
+    operator==(const LocalLabelInfo&, const LocalLabelInfo&) = default;
+
     friend void
     dump_to_file(std::ostream& out, const LocalLabelInfo& label_info);
 
@@ -270,6 +273,7 @@ public:
     operator==(const TransitionSystem& left, const TransitionSystem& right) =
         default;
 
+    static TransitionSystem read_json(std::istream& is);
     friend void dump_json(std::ostream& os, const TransitionSystem& ts);
 };
 

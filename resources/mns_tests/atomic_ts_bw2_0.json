@@ -1,0 +1,189 @@
+{
+  "incorporated_variables": [
+    0
+  ],
+  "label_to_local_label": [
+    0,
+    1,
+    0,
+    2,
+    3,
+    4,
+    0,
+    5,
+    6,
+    4,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+  ],
+  "local_label_infos": [
+    {
+      "labels": [
+        0,
+        2,
+        6
+      ],
+      "transitions": [
+        [
+          1,
+          [
+            1,
+            1
+          ]
+        ]
+      ],
+      "probabilities": [
+        0.75,
+        0.25
+      ],
+      "cost": 0
+    },
+    {
+      "labels": [
+        1
+      ],
+      "transitions": [
+        [
+          0,
+          [
+            1,
+            1
+          ]
+        ],
+        [
+          1,
+          [
+            1,
+            1
+          ]
+        ]
+      ],
+      "probabilities": [
+        0.75,
+        0.25
+      ],
+      "cost": 1
+    },
+    {
+      "labels": [
+        3
+      ],
+      "transitions": [
+        [
+          0,
+          [
+            0,
+            0
+          ]
+        ],
+        [
+          1,
+          [
+            1,
+            1
+          ]
+        ]
+      ],
+      "probabilities": [
+        0.75,
+        0.25
+      ],
+      "cost": 1
+    },
+    {
+      "labels": [
+        4
+      ],
+      "transitions": [
+        [
+          0,
+          [
+            0
+          ]
+        ],
+        [
+          1,
+          [
+            1
+          ]
+        ]
+      ],
+      "probabilities": [
+        1
+      ],
+      "cost": 0
+    },
+    {
+      "labels": [
+        5,
+        9
+      ],
+      "transitions": [
+        [
+          0,
+          [
+            0
+          ]
+        ],
+        [
+          1,
+          [
+            1
+          ]
+        ]
+      ],
+      "probabilities": [
+        1
+      ],
+      "cost": 0
+    },
+    {
+      "labels": [
+        7
+      ],
+      "transitions": [
+        [
+          1,
+          [
+            0,
+            1
+          ]
+        ]
+      ],
+      "probabilities": [
+        0.75,
+        0.25
+      ],
+      "cost": 0
+    },
+    {
+      "labels": [
+        8
+      ],
+      "transitions": [
+        [
+          1,
+          [
+            1
+          ]
+        ]
+      ],
+      "probabilities": [
+        1
+      ],
+      "cost": 0
+    }
+  ],
+  "init_state": 1,
+  "goal_states": [
+    true,
+    true
+  ]
+}
