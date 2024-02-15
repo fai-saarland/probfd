@@ -121,12 +121,17 @@ public:
     friend void
     dump_to_file(std::ostream& out, const LocalLabelInfo& label_info);
 
+    friend void dump_json(std::ostream& os, const LocalLabelInfo& info);
+    static LocalLabelInfo read_json(std::istream& is);
+
     friend std::partial_ordering compare_transitions(
         const LocalLabelInfo& left,
         const LocalLabelInfo& right);
 
     void merge(const LocalLabelInfo& right);
 };
+
+void dump_json(std::ostream& os, const LocalLabelInfo& info);
 
 std::partial_ordering
 compare_transitions(const LocalLabelInfo& left, const LocalLabelInfo& right);
@@ -264,6 +269,8 @@ public:
     friend bool
     operator==(const TransitionSystem& left, const TransitionSystem& right) =
         default;
+
+    friend void dump_json(std::ostream& os, const TransitionSystem& ts);
 };
 
 } // namespace probfd::merge_and_shrink
