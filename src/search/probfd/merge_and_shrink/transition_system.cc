@@ -3,6 +3,8 @@
 #include "probfd/merge_and_shrink/distances.h"
 #include "probfd/merge_and_shrink/labels.h"
 
+#include "probfd/utils/json.h"
+
 #include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/system.h"
@@ -183,6 +185,26 @@ void dump_to_file(std::ostream& out, const LocalLabelInfo& label_info)
     out << label_info.get_label_group() << ", " << label_info.get_cost() << ", "
         << label_info.get_probabilities() << ", "
         << label_info.get_transitions();
+}
+
+void dump_json(std::ostream& os, const LocalLabelInfo& info)
+{
+    json::write_object(
+        os,
+        std::forward_as_tuple("labels", info.label_group),
+        std::forward_as_tuple("transitions", info.transitions),
+        std::forward_as_tuple("probabilities", info.probabilities),
+        std::forward_as_tuple("cost", info.cost));
+}
+
+LocalLabelInfo LocalLabelInfo::read_json(std::istream& is)
+{
+    return json::construct_from_object<
+        LocalLabelInfo,
+        LabelGroup,
+        std::vector<Transition>,
+        std::vector<value_t>,
+        value_t>(is, "labels", "transitions", "probabilities", "cost");
 }
 
 std::partial_ordering
@@ -815,6 +837,19 @@ std::ostream& operator<<(std::ostream& os, const TransitionSystem& ts)
     return os << "Number of states: " << ts.get_size() << '\n'
               << "Initial State: " << ts.init_state << '\n'
               << "Goal states: " << ts.goal_states;
+}
+
+void dump_json(std::ostream& os, const TransitionSystem& ts)
+{
+    json::write_object(
+        os,
+        std::forward_as_tuple(
+            "incorporated_variables",
+            ts.incorporated_variables),
+        std::forward_as_tuple("label_to_local_label", ts.label_to_local_label),
+        std::forward_as_tuple("local_label_infos", ts.local_label_infos),
+        std::forward_as_tuple("init_state", ts.init_state),
+        std::forward_as_tuple("goal_states", ts.goal_states));
 }
 
 } // namespace probfd::merge_and_shrink
