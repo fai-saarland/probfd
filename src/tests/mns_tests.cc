@@ -6,7 +6,6 @@
 #include "probfd/merge_and_shrink/fts_factory.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
-#include "probfd/pdbs/distances.h"
 #include "probfd/pdbs/projection_state_space.h"
 #include "probfd/pdbs/state_ranking_function.h"
 
@@ -102,6 +101,27 @@ TEST(MnSTests, test_atomic_fts3)
             "system!",
             i);
     }
+}
+
+TEST(MnSTests, test_merge1)
+{
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+
+    std::ifstream labels_file("resources/mns_tests/bw3_labels.json");
+    std::ifstream file1("resources/mns_tests/atomic_ts_bw3_0.json");
+    std::ifstream file2("resources/mns_tests/atomic_ts_bw3_1.json");
+
+    auto labels = json::read<Labels>(labels_file);
+    auto ts1 = json::read<TransitionSystem>(file1);
+    auto ts2 = json::read<TransitionSystem>(file2);
+
+    auto ts = TransitionSystem::merge(labels, ts1, ts2, log);
+
+    std::ifstream e_file("resources/mns_tests/test_merge1_result.json");
+    auto expected_ts = json::read<TransitionSystem>(e_file);
+
+    ASSERT_EQ(*ts, expected_ts) << "Transition system did not match expected "
+                                   "transiiton system!";
 }
 
 TEST(MnSTests, test_shrink_all)

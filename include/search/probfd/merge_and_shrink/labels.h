@@ -3,6 +3,7 @@
 
 #include "probfd/value_type.h"
 
+#include <iosfwd>
 #include <memory>
 #include <ranges>
 #include <vector>
@@ -24,6 +25,9 @@ struct LabelInfo {
 
     explicit LabelInfo(ProbabilisticOperatorProxy op);
     LabelInfo(value_t cost, std::vector<value_t> probabilities);
+
+    static LabelInfo read_json(std::istream& is);
+    friend void dump_json(std::ostream& os, const LabelInfo& label_info);
 };
 
 /*
@@ -42,6 +46,11 @@ class Labels {
 
 public:
     explicit Labels(ProbabilisticOperatorsProxy operators);
+
+    Labels(
+        std::vector<LabelInfo> label_infos,
+        int max_num_labels,
+        int num_active_labels);
 
     value_t get_label_cost(int label) const;
 
@@ -65,6 +74,9 @@ public:
     }
 
     void dump_labels(utils::LogProxy log) const;
+
+    static Labels read_json(std::istream& is);
+    friend void dump_json(std::ostream& os, const Labels& labels);
 };
 
 } // namespace probfd::merge_and_shrink
