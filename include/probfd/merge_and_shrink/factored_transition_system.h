@@ -15,7 +15,7 @@ class LogProxy;
 namespace probfd::merge_and_shrink {
 class Distances;
 class FactoredTransitionSystem;
-class MergeAndShrinkRepresentation;
+class FactoredMapping;
 class TransitionSystem;
 } // namespace probfd::merge_and_shrink
 
@@ -63,8 +63,7 @@ class FactoredTransitionSystem {
 
     // Entries with nullptr have been merged.
     std::vector<std::unique_ptr<TransitionSystem>> transition_systems;
-    std::vector<std::unique_ptr<MergeAndShrinkRepresentation>>
-        mas_representations;
+    std::vector<std::unique_ptr<FactoredMapping>> factored_mappings;
     std::vector<std::unique_ptr<Distances>> distances;
     const bool compute_liveness;
     const bool compute_goal_distances;
@@ -89,8 +88,7 @@ public:
     FactoredTransitionSystem(
         Labels labels,
         std::vector<std::unique_ptr<TransitionSystem>>&& transition_systems,
-        std::vector<std::unique_ptr<MergeAndShrinkRepresentation>>&&
-            mas_representations,
+        std::vector<std::unique_ptr<FactoredMapping>>&& factored_mappings,
         std::vector<std::unique_ptr<Distances>>&& distances,
         bool compute_liveness,
         bool compute_goal_distances,
@@ -143,9 +141,7 @@ public:
     /*
       Extract the factor at the given index, rendering the FTS invalid.
     */
-    std::pair<
-        std::unique_ptr<MergeAndShrinkRepresentation>,
-        std::unique_ptr<Distances>>
+    std::pair<std::unique_ptr<FactoredMapping>, std::unique_ptr<Distances>>
     extract_factor(int index);
 
     const TransitionSystem& get_transition_system(int index) const

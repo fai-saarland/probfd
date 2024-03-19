@@ -1,6 +1,7 @@
 #include "probfd/merge_and_shrink/merge_and_shrink_algorithm.h"
 
 #include "probfd/merge_and_shrink/distances.h"
+#include "probfd/merge_and_shrink/factored_mapping.h"
 #include "probfd/merge_and_shrink/factored_transition_system.h"
 #include "probfd/merge_and_shrink/fts_factory.h"
 #include "probfd/merge_and_shrink/label_reduction.h"
