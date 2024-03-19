@@ -13,17 +13,14 @@ namespace utils {
 class LogProxy;
 }
 
-namespace probfd {
-namespace merge_and_shrink {
+namespace probfd::merge_and_shrink {
 class Distances;
 class FactoredTransitionSystem;
 class FactoredMapping;
 class TransitionSystem;
-} // namespace merge_and_shrink
-} // namespace probfd
+} // namespace probfd::merge_and_shrink
 
-namespace probfd {
-namespace merge_and_shrink {
+namespace probfd::merge_and_shrink {
 
 class FTSConstIterator {
     /*
@@ -204,7 +201,6 @@ public:
     void dump(utils::LogProxy& log) const;
 };
 
-} // namespace merge_and_shrink
-} // namespace probfd
+} // namespace probfd::merge_and_shrink
 
 #endif
