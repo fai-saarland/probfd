@@ -184,30 +184,6 @@ public:
 };
 } // namespace
 
-void Distances::compute_goal_distances(
-    const TransitionSystem& transition_system)
-{
-    using namespace algorithms::ta_topological_vi;
-
-    assert(std::cmp_equal(goal_distances.size(), transition_system.get_size()));
-
-    ExplicitMDP explicit_mdp(transition_system);
-
-    TATopologicalValueIteration<int, const ProbabilisticTransition*> tatvi(
-        0.001);
-
-    for (int i = 0; i != transition_system.get_size(); ++i) {
-        if (goal_distances[i] != -INFINITE_VALUE) continue; // Already seen
-        tatvi.solve(
-            explicit_mdp,
-            heuristics::ConstantEvaluator<int>(0_vt),
-            i,
-            goal_distances);
-    }
-
-    goal_distances_computed = true;
-}
-
 void Distances::compute_distances(
     const TransitionSystem& transition_system,
     bool compute_liveness,
@@ -243,7 +219,8 @@ void Distances::compute_distances(
     }
 
     goal_distances.resize(num_states, -INFINITE_VALUE);
-    compute_goal_distances(transition_system);
+    compute_goal_distances(transition_system, goal_distances);
+    goal_distances_computed = true;
 
     if (compute_liveness) {
         liveness.resize(num_states, false);
@@ -359,6 +336,29 @@ void Distances::statistics(
             log << "transition system is unsolvable";
         }
         log << endl;
+    }
+}
+
+void compute_goal_distances(
+    const TransitionSystem& transition_system,
+    std::span<value_t> distances)
+{
+    using namespace algorithms::ta_topological_vi;
+
+    assert(std::cmp_equal(distances.size(), transition_system.get_size()));
+
+    ExplicitMDP explicit_mdp(transition_system);
+
+    TATopologicalValueIteration<int, const ProbabilisticTransition*> tatvi(
+        0.001);
+
+    for (int i = 0; i != transition_system.get_size(); ++i) {
+        if (distances[i] != -INFINITE_VALUE) continue; // Already seen
+        tatvi.solve(
+            explicit_mdp,
+            heuristics::ConstantEvaluator<int>(0_vt),
+            i,
+            distances);
     }
 }
 

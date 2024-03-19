@@ -23,6 +23,33 @@ using namespace downward::cli::plugins;
 
 namespace probfd::heuristics {
 
+struct MergeAndShrinkHeuristic::FactorDistances {
+    std::unique_ptr<FactoredMapping> factored_mapping;
+    std::vector<value_t> distance_table;
+
+    FactorDistances(
+        std::unique_ptr<merge_and_shrink::FactoredMapping> factored_mapping,
+        Distances& distances)
+        : factored_mapping(std::move(factored_mapping))
+        , distance_table(distances.extract_goal_distances())
+    {
+    }
+
+    FactorDistances(
+        std::unique_ptr<merge_and_shrink::FactoredMapping> factored_mapping,
+        TransitionSystem& ts)
+        : factored_mapping(std::move(factored_mapping))
+        , distance_table(ts.get_size(), -INFINITE_VALUE)
+    {
+        compute_goal_distances(ts, distance_table);
+    }
+
+    value_t lookup_distance(const State& state) const
+    {
+        return distance_table[factored_mapping->get_abstract_state(state)];
+    }
+};
+
 MergeAndShrinkHeuristic::MergeAndShrinkHeuristic(
     MergeAndShrinkAlgorithm& algorithm,
     std::shared_ptr<ProbabilisticTask> task,
@@ -31,8 +58,45 @@ MergeAndShrinkHeuristic::MergeAndShrinkHeuristic(
 {
     log_ << "Initializing merge-and-shrink heuristic..." << endl;
     FactoredTransitionSystem fts =
-        algorithm.build_factored_transition_system(task, log_);
-    extract_factors(fts);
+        algorithm.build_factored_transition_system(task);
+
+    /*
+      TODO: This method has quite a bit of fiddling with aspects of
+      transition systems and the merge-and-shrink representation (checking
+      whether distances have been computed; computing them) that we would
+      like to have at a lower level. See also the TODO in
+      factored_transition_system.h on improving the interface of that class
+      (and also related classes like TransitionSystem etc).
+    */
+    assert(factor_distances.empty());
+
+    int num_active_factors = fts.get_num_active_entries();
+    if (log_.is_at_least_normal()) {
+        log_ << "Number of remaining factors: " << num_active_factors << endl;
+    }
+
+    bool unsolvable = extract_unsolvable_factor(fts);
+    if (!unsolvable) {
+        // Iterate over remaining factors and extract and store the nontrivial
+        // ones.
+        for (int index : fts) {
+            if (fts.is_factor_trivial(index)) {
+                if (log_.is_at_least_verbose()) {
+                    log_ << fts.get_transition_system(index).tag()
+                         << "is trivial." << endl;
+                }
+                continue;
+            }
+
+            extract_factor(fts, index);
+        }
+    }
+
+    int num_factors_kept = factor_distances.size();
+    if (log_.is_at_least_normal()) {
+        log_ << "Number of factors kept: " << num_factors_kept << endl;
+    }
+
     log_ << "Done initializing merge-and-shrink heuristic." << endl << endl;
 }
 
@@ -47,14 +111,13 @@ void MergeAndShrinkHeuristic::extract_factor(
       system, compute goal distances if necessary and store the M&S
       representation, which serves as the heuristic.
     */
-    auto [mas_representation, distances] = fts.extract_factor(index);
-    if (!distances->are_goal_distances_computed()) {
-        distances->compute_distances(false, log_);
-    }
+    auto&& [ts, fm, distances] = fts.extract_factor(index);
 
-    assert(distances->are_goal_distances_computed());
-    mas_representations.push_back(
-        mas_representation->create_distance_representation(*distances));
+    if (distances->are_goal_distances_computed()) {
+        factor_distances.emplace_back(std::move(fm), *distances);
+    } else {
+        factor_distances.emplace_back(std::move(fm), *ts);
+    }
 }
 
 bool MergeAndShrinkHeuristic::extract_unsolvable_factor(
@@ -64,7 +127,7 @@ bool MergeAndShrinkHeuristic::extract_unsolvable_factor(
        return true. Otherwise, return false. */
     for (const int index : fts) {
         if (!fts.is_factor_solvable(index)) {
-            mas_representations.reserve(1);
+            factor_distances.reserve(1);
             extract_factor(fts, index);
             if (log_.is_at_least_normal()) {
                 log_ << fts.get_transition_system(index).tag()
@@ -76,54 +139,11 @@ bool MergeAndShrinkHeuristic::extract_unsolvable_factor(
     return false;
 }
 
-void MergeAndShrinkHeuristic::extract_nontrivial_factors(
-    FactoredTransitionSystem& fts)
-{
-    // Iterate over remaining factors and extract and store the nontrivial ones.
-    for (const int index : fts) {
-        if (fts.is_factor_trivial(index)) {
-            if (log_.is_at_least_verbose()) {
-                log_ << fts.get_transition_system(index).tag() << "is trivial."
-                     << endl;
-            }
-        } else {
-            extract_factor(fts, index);
-        }
-    }
-}
-
-void MergeAndShrinkHeuristic::extract_factors(FactoredTransitionSystem& fts)
-{
-    /*
-      TODO: This method has quite a bit of fiddling with aspects of
-      transition systems and the merge-and-shrink representation (checking
-      whether distances have been computed; computing them) that we would
-      like to have at a lower level. See also the TODO in
-      factored_transition_system.h on improving the interface of that class
-      (and also related classes like TransitionSystem etc).
-    */
-    assert(mas_representations.empty());
-
-    const int num_active_factors = fts.get_num_active_entries();
-    if (log_.is_at_least_normal()) {
-        log_ << "Number of remaining factors: " << num_active_factors << endl;
-    }
-
-    if (const bool unsolvable = extract_unsolvable_factor(fts); !unsolvable) {
-        extract_nontrivial_factors(fts);
-    }
-
-    const int num_factors_kept = mas_representations.size();
-    if (log_.is_at_least_normal()) {
-        log_ << "Number of factors kept: " << num_factors_kept << endl;
-    }
-}
-
 value_t MergeAndShrinkHeuristic::evaluate(const State& state) const
 {
     value_t heuristic = 0;
-    for (const auto& mas_representation : mas_representations) {
-        value_t cost = mas_representation->get_abstract_distance(state);
+    for (const auto& distances : factor_distances) {
+        value_t cost = distances.lookup_distance(state);
         if (cost == INFINITE_VALUE) {
             // If state is unreachable or irrelevant, we encountered a dead end.
             return INFINITE_VALUE;
@@ -132,5 +152,11 @@ value_t MergeAndShrinkHeuristic::evaluate(const State& state) const
     }
     return heuristic;
 }
+
+namespace {
+
+class MergeAndShrinkHeuristicFactory : public TaskEvaluatorFactory {
+    MergeAndShrinkAlgorithm algorithm;
+    const utils::LogProxy log_;
 
 } // namespace probfd::heuristics

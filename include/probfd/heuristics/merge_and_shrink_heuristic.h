@@ -5,25 +5,21 @@
 
 namespace probfd::merge_and_shrink {
 class FactoredTransitionSystem;
-class MergeAndShrinkDistanceRepresentation;
 class MergeAndShrinkAlgorithm;
 } // namespace probfd::merge_and_shrink
 
 namespace probfd::heuristics {
 
 class MergeAndShrinkHeuristic : public TaskDependentHeuristic {
+    struct FactorDistances;
+
     // The final merge-and-shrink representations, storing goal distances.
-    std::vector<
-        std::unique_ptr<merge_and_shrink::MergeAndShrinkDistanceRepresentation>>
-        mas_representations;
+    std::vector<FactorDistances> factor_distances;
 
     void
     extract_factor(merge_and_shrink::FactoredTransitionSystem& fts, int index);
     bool
     extract_unsolvable_factor(merge_and_shrink::FactoredTransitionSystem& fts);
-    void
-    extract_nontrivial_factors(merge_and_shrink::FactoredTransitionSystem& fts);
-    void extract_factors(merge_and_shrink::FactoredTransitionSystem& fts);
 
 public:
     MergeAndShrinkHeuristic(
