@@ -1,4 +1,4 @@
-#include "probfd/merge_and_shrink/merge_and_shrink_representation.h"
+#include "probfd/merge_and_shrink/factored_mapping.h"
 
 #include "probfd/merge_and_shrink/distances.h"
 #include "probfd/merge_and_shrink/types.h"
@@ -15,23 +15,23 @@ using namespace std;
 
 namespace probfd::merge_and_shrink {
 
-MergeAndShrinkRepresentation::MergeAndShrinkRepresentation(int domain_size)
+FactoredMapping::FactoredMapping(int domain_size)
     : lookup_table(domain_size)
 {
     std::iota(lookup_table.begin(), lookup_table.end(), 0);
 }
 
-int MergeAndShrinkRepresentation::get_domain_size() const
+int FactoredMapping::get_domain_size() const
 {
     return std::ranges::max(lookup_table) + 1;
 }
 
-int MergeAndShrinkRepresentation::get_table_size() const
+int FactoredMapping::get_table_size() const
 {
     return static_cast<int>(lookup_table.size());
 }
 
-void MergeAndShrinkRepresentation::scale(int scale)
+void FactoredMapping::scale(int scale)
 {
     for (int& entry : lookup_table) {
         if (entry != PRUNED_STATE) {
@@ -40,8 +40,7 @@ void MergeAndShrinkRepresentation::scale(int scale)
     }
 }
 
-void MergeAndShrinkRepresentation::apply_abstraction_to_lookup_table(
-    const vector<int>& abstraction_mapping)
+void FactoredMapping::apply_abstraction(const vector<int>& abstraction_mapping)
 {
     for (int& entry : lookup_table) {
         if (entry != PRUNED_STATE) {
@@ -50,26 +49,23 @@ void MergeAndShrinkRepresentation::apply_abstraction_to_lookup_table(
     }
 }
 
-MergeAndShrinkRepresentationLeaf::MergeAndShrinkRepresentationLeaf(
-    int var_id,
-    int domain_size)
-    : MergeAndShrinkRepresentation(domain_size)
+FactoredMappingAtomic::FactoredMappingAtomic(int var_id, int domain_size)
+    : FactoredMapping(domain_size)
     , var_id(var_id)
 {
 }
 
-int MergeAndShrinkRepresentationLeaf::get_abstract_state(
-    const State& state) const
+int FactoredMappingAtomic::get_abstract_state(const State& state) const
 {
     return lookup_table[state[var_id].get_value()];
 }
 
-bool MergeAndShrinkRepresentationLeaf::is_total() const
+bool FactoredMappingAtomic::is_total() const
 {
     return !utils::contains(lookup_table, PRUNED_STATE);
 }
 
-void MergeAndShrinkRepresentationLeaf::dump(utils::LogProxy& log) const
+void FactoredMappingAtomic::dump(utils::LogProxy& log) const
 {
     if (log.is_at_least_debug()) {
         log << "abstract state lookup table (leaf): ";
@@ -81,7 +77,7 @@ void MergeAndShrinkRepresentationLeaf::dump(utils::LogProxy& log) const
 }
 
 std::unique_ptr<MergeAndShrinkDistanceRepresentation>
-MergeAndShrinkRepresentationLeaf::create_distance_representation(
+FactoredMappingAtomic::create_distance_representation(
     const Distances& distances)
 {
     auto r = std::make_unique<MergeAndShrinkDistanceRepresentationLeaf>(
@@ -92,10 +88,10 @@ MergeAndShrinkRepresentationLeaf::create_distance_representation(
     return r;
 }
 
-MergeAndShrinkRepresentationMerge::MergeAndShrinkRepresentationMerge(
-    unique_ptr<MergeAndShrinkRepresentation> left_child_,
-    unique_ptr<MergeAndShrinkRepresentation> right_child_)
-    : MergeAndShrinkRepresentation(
+FactoredMappingMerge::FactoredMappingMerge(
+    unique_ptr<FactoredMapping> left_child_,
+    unique_ptr<FactoredMapping> right_child_)
+    : FactoredMapping(
           left_child_->get_domain_size() * right_child_->get_domain_size())
     , left_child(std::move(left_child_))
     , right_child(std::move(right_child_))
@@ -103,8 +99,7 @@ MergeAndShrinkRepresentationMerge::MergeAndShrinkRepresentationMerge(
     right_child->scale(left_child->get_domain_size());
 }
 
-int MergeAndShrinkRepresentationMerge::get_abstract_state(
-    const State& state) const
+int FactoredMappingMerge::get_abstract_state(const State& state) const
 {
     int state1 = left_child->get_abstract_state(state);
     int state2 = right_child->get_abstract_state(state);
@@ -112,13 +107,13 @@ int MergeAndShrinkRepresentationMerge::get_abstract_state(
     return lookup_table[state1 + state2];
 }
 
-bool MergeAndShrinkRepresentationMerge::is_total() const
+bool FactoredMappingMerge::is_total() const
 {
     return !utils::contains(lookup_table, PRUNED_STATE) &&
            left_child->is_total() && right_child->is_total();
 }
 
-void MergeAndShrinkRepresentationMerge::dump(utils::LogProxy& log) const
+void FactoredMappingMerge::dump(utils::LogProxy& log) const
 {
     if (log.is_at_least_debug()) {
         log << "abstract state lookup table (merge): " << endl;
@@ -144,8 +139,7 @@ void MergeAndShrinkRepresentationMerge::dump(utils::LogProxy& log) const
 }
 
 std::unique_ptr<MergeAndShrinkDistanceRepresentation>
-MergeAndShrinkRepresentationMerge::create_distance_representation(
-    const Distances& distances)
+FactoredMappingMerge::create_distance_representation(const Distances& distances)
 {
     auto r = std::make_unique<MergeAndShrinkDistanceRepresentationMerge>(
         std::move(left_child),
@@ -198,8 +192,8 @@ void MergeAndShrinkDistanceRepresentationLeaf::dump(utils::LogProxy& log) const
 
 MergeAndShrinkDistanceRepresentationMerge::
     MergeAndShrinkDistanceRepresentationMerge(
-        std::unique_ptr<MergeAndShrinkRepresentation> left_child_,
-        std::unique_ptr<MergeAndShrinkRepresentation> right_child_,
+        std::unique_ptr<FactoredMapping> left_child_,
+        std::unique_ptr<FactoredMapping> right_child_,
         std::vector<int>& state_lookup,
         const Distances& distances)
     : MergeAndShrinkDistanceRepresentation(state_lookup.size())

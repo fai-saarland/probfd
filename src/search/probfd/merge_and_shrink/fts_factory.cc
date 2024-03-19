@@ -1,9 +1,9 @@
 #include "probfd/merge_and_shrink/fts_factory.h"
 
 #include "probfd/merge_and_shrink/distances.h"
+#include "probfd/merge_and_shrink/factored_mapping.h"
 #include "probfd/merge_and_shrink/factored_transition_system.h"
 #include "probfd/merge_and_shrink/labels.h"
-#include "probfd/merge_and_shrink/merge_and_shrink_representation.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
 #include "probfd/task_utils/task_properties.h"
@@ -286,10 +286,10 @@ FactoredTransitionSystem FTSFactory::create(
     int num_variables = static_cast<int>(variables.size());
     assert(num_variables >= 1);
 
-    // Create the actual TransitionSystem, MergeAndShrinkRepresentation and
+    // Create the actual TransitionSystem, FactoredMapping and
     // Distances objects.
     vector<unique_ptr<TransitionSystem>> transition_systems;
-    vector<unique_ptr<MergeAndShrinkRepresentation>> mas_representations;
+    vector<unique_ptr<FactoredMapping>> mas_representations;
     vector<unique_ptr<Distances>> distances;
 
     // We reserve space for the data structures systems added later by merging.
@@ -307,7 +307,7 @@ FactoredTransitionSystem FTSFactory::create(
             ts_data.init_state,
             std::move(ts_data.goal_states)));
         mas_representations.push_back(
-            std::make_unique<MergeAndShrinkRepresentationLeaf>(var_id, range));
+            std::make_unique<FactoredMappingAtomic>(var_id, range));
         distances.push_back(std::make_unique<Distances>());
     }
 

@@ -19,21 +19,20 @@ class MergeAndShrinkDistanceRepresentation;
 
 namespace probfd::merge_and_shrink {
 
-class MergeAndShrinkRepresentation {
+class FactoredMapping {
 protected:
     std::vector<int> lookup_table;
 
 public:
-    explicit MergeAndShrinkRepresentation(int domain_size);
-    virtual ~MergeAndShrinkRepresentation() = default;
+    explicit FactoredMapping(int domain_size);
+    virtual ~FactoredMapping() = default;
 
     int get_domain_size() const;
     int get_table_size() const;
 
     void scale(int scale);
 
-    void apply_abstraction_to_lookup_table(
-        const std::vector<int>& abstraction_mapping);
+    void apply_abstraction(const std::vector<int>& abstraction_mapping);
     /*
       Return the value that state is mapped to. This is either an abstract
       state (if set_distances has not been called) or a distance (if it has).
@@ -51,11 +50,11 @@ public:
     create_distance_representation(const Distances& distances) = 0;
 };
 
-class MergeAndShrinkRepresentationLeaf : public MergeAndShrinkRepresentation {
+class FactoredMappingAtomic : public FactoredMapping {
     const int var_id;
 
 public:
-    MergeAndShrinkRepresentationLeaf(int var_id, int domain_size);
+    FactoredMappingAtomic(int var_id, int domain_size);
 
     int get_abstract_state(const State& state) const override;
     bool is_total() const override;
@@ -65,14 +64,14 @@ public:
     create_distance_representation(const Distances& distances) override;
 };
 
-class MergeAndShrinkRepresentationMerge : public MergeAndShrinkRepresentation {
-    std::unique_ptr<MergeAndShrinkRepresentation> left_child;
-    std::unique_ptr<MergeAndShrinkRepresentation> right_child;
+class FactoredMappingMerge : public FactoredMapping {
+    std::unique_ptr<FactoredMapping> left_child;
+    std::unique_ptr<FactoredMapping> right_child;
 
 public:
-    MergeAndShrinkRepresentationMerge(
-        std::unique_ptr<MergeAndShrinkRepresentation> left_child,
-        std::unique_ptr<MergeAndShrinkRepresentation> right_child);
+    FactoredMappingMerge(
+        std::unique_ptr<FactoredMapping> left_child,
+        std::unique_ptr<FactoredMapping> right_child);
 
     int get_abstract_state(const State& state) const override;
     bool is_total() const override;
@@ -110,13 +109,13 @@ public:
 
 class MergeAndShrinkDistanceRepresentationMerge
     : public MergeAndShrinkDistanceRepresentation {
-    std::unique_ptr<MergeAndShrinkRepresentation> left_child;
-    std::unique_ptr<MergeAndShrinkRepresentation> right_child;
+    std::unique_ptr<FactoredMapping> left_child;
+    std::unique_ptr<FactoredMapping> right_child;
 
 public:
     MergeAndShrinkDistanceRepresentationMerge(
-        std::unique_ptr<MergeAndShrinkRepresentation> left_child,
-        std::unique_ptr<MergeAndShrinkRepresentation> right_child,
+        std::unique_ptr<FactoredMapping> left_child,
+        std::unique_ptr<FactoredMapping> right_child,
         std::vector<int>& state_lookup_table,
         const Distances& distances);
 

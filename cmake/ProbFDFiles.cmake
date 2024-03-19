@@ -453,13 +453,13 @@ create_probfd_library(
     HELP "The probability-aware Merge-and-Shrink heuristic"
     SOURCES
         probfd/merge_and_shrink/distances
+        probfd/merge_and_shrink/factored_mapping
         probfd/merge_and_shrink/factored_transition_system
         probfd/merge_and_shrink/fts_factory
         probfd/merge_and_shrink/label_equivalence_relation
         probfd/merge_and_shrink/label_reduction
         probfd/merge_and_shrink/labels
         probfd/merge_and_shrink/merge_and_shrink_algorithm
-        probfd/merge_and_shrink/merge_and_shrink_representation
         probfd/merge_and_shrink/merge_scoring_function
         probfd/merge_and_shrink/merge_scoring_function_dfp
         probfd/merge_and_shrink/merge_scoring_function_goal_relevance
