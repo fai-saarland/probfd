@@ -108,7 +108,7 @@ void write(std::ostream& os, const T& t)
         }
         os << "}";
     } else {
-        static_assert(false, "Type not dumpable!");
+        static_assert(!std::is_same_v<T, T>, "Type not dumpable!");
     }
 }
 
