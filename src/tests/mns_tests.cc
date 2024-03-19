@@ -6,6 +6,16 @@
 #include "probfd/merge_and_shrink/fts_factory.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
+#include "probfd/pdbs/distances.h"
+#include "probfd/pdbs/projection_state_space.h"
+#include "probfd/pdbs/state_ranking_function.h"
+
+#include "probfd/heuristics/constant_evaluator.h"
+
+#include "probfd/algorithms/ta_topological_value_iteration.h"
+
+#include "probfd/ssp_cost_function.h"
+
 #include "probfd/task_proxy.h"
 
 #include "probfd/utils/json.h"
@@ -91,5 +101,125 @@ TEST(MnSTests, test_atomic_fts3)
             "Transition system {} did not match the expected transition "
             "system!",
             i);
+    }
+}
+
+TEST(MnSTests, test_projection_distances)
+{
+    using namespace probfd::pdbs;
+
+    BlocksworldTask task(3, {{0, 1, 2}}, {{0, 1, 2}});
+
+    ProbabilisticTaskProxy task_proxy(task);
+    probfd::SSPCostFunction cost_function(task_proxy);
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+    FactoredTransitionSystem fts =
+        create_factored_transition_system(task_proxy, false, false, log);
+
+    ASSERT_EQ(fts.get_size(), task.get_num_variables())
+        << "Unexpected number of atomic factors!";
+
+    for (int i = 0; i != fts.get_size(); ++i) {
+        const auto& ts = fts.get_transition_system(i);
+        std::vector<value_t> distances(ts.get_size(), -INFINITE_VALUE);
+        compute_goal_distances(ts, distances);
+
+        StateRankingFunction state_ranking(task_proxy.get_variables(), {i});
+
+        ProjectionStateSpace projection(
+            task_proxy,
+            cost_function,
+            state_ranking);
+
+        std::vector<value_t> value_table(
+            state_ranking.num_states(),
+            -INFINITE_VALUE);
+
+        probfd::algorithms::ta_topological_vi::
+            TATopologicalValueIteration<StateRank, const ProjectionOperator*>
+                vi(value_table.size());
+
+        for (size_t k = 0; k != value_table.size(); ++k) {
+            if (value_table[k] != -INFINITE_VALUE) continue;
+            vi.solve(
+                projection,
+                heuristics::BlindEvaluator<StateRank>(),
+                k,
+                value_table);
+        }
+
+        for (size_t k = 0; k != value_table.size(); ++k) {
+            if (std::isinf(value_table[k]))
+                ASSERT_EQ(value_table[k], distances[k]);
+            else
+                ASSERT_NEAR(value_table[k], distances[k], 0.0001)
+                    << "Distances do not match pdb distances!";
+        }
+    }
+}
+
+TEST(MnSTests, test_projection_distances2)
+{
+    using namespace probfd::pdbs;
+
+    BlocksworldTask task(2, {{0, 1}}, {{0, 1}});
+
+    ProbabilisticTaskProxy task_proxy(task);
+    probfd::SSPCostFunction cost_function(task_proxy);
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+    FactoredTransitionSystem fts =
+        create_factored_transition_system(task_proxy, false, false, log);
+
+    ASSERT_EQ(fts.get_size(), task.get_num_variables())
+        << "Unexpected number of atomic factors!";
+
+    for (int i = 0; i != fts.get_size(); ++i) {
+        const auto& ts1 = fts.get_transition_system(i);
+
+        for (int j = i + 1; j < fts.get_size(); ++j) {
+            const auto& ts2 = fts.get_transition_system(j);
+
+            auto merge =
+                TransitionSystem::merge(fts.get_labels(), ts1, ts2, log);
+
+            std::vector<value_t> distances(merge->get_size(), -INFINITE_VALUE);
+            compute_goal_distances(*merge, distances);
+
+            StateRankingFunction state_ranking(
+                task_proxy.get_variables(),
+                {i, j});
+
+            ProjectionStateSpace projection(
+                task_proxy,
+                cost_function,
+                state_ranking);
+
+            std::vector<value_t> value_table(
+                state_ranking.num_states(),
+                -INFINITE_VALUE);
+
+            probfd::algorithms::ta_topological_vi::TATopologicalValueIteration<
+                StateRank,
+                const ProjectionOperator*>
+                vi(value_table.size());
+
+            for (size_t k = 0; k != value_table.size(); ++k) {
+                if (value_table[k] != -INFINITE_VALUE) continue;
+                vi.solve(
+                    projection,
+                    heuristics::BlindEvaluator<StateRank>(),
+                    k,
+                    value_table);
+            }
+
+            for (size_t k = 0; k != value_table.size(); ++k) {
+                if (std::isinf(value_table[k]))
+                    ASSERT_EQ(value_table[k], distances[k]);
+                else
+                    ASSERT_NEAR(value_table[k], distances[k], 0.0001)
+                        << "Distances do not match for pattern {" << i << ", "
+                        << j << "} and state " << k << " !";
+            }
+        }
     }
 }
