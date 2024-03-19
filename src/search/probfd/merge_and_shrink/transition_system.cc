@@ -271,7 +271,7 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
     const int ts2_size = ts2.get_size();
 
     // Compute merged initial state
-    const int init_state = ts1.init_state * ts2_size + ts2.init_state;
+    const int init_state = ts1.init_state + ts2.init_state * ts1_size;
 
     // Compute merged goal states
     vector<bool> goal_states(ts1_size * ts2_size, false);
@@ -279,7 +279,7 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
         if (!ts1.goal_states[s1]) continue;
         for (int s2 = 0; s2 < ts2_size; ++s2) {
             if (ts2.goal_states[s2]) {
-                const int state = s1 * ts2_size + s2;
+                const int state = s1 + s2 * ts1_size;
                 goal_states[state] = true;
             }
         }
@@ -294,7 +294,6 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
           l is dead in T1 only and l' is dead in T2 only, so they are not
           locally equivalent in either of the components).
     */
-    int multiplier = ts2_size;
     vector<int> dead_labels;
     for (const LocalLabelInfo& local_label_info : ts1.label_infos()) {
         const LabelGroup& group1 = local_label_info.get_label_group();
@@ -340,10 +339,10 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
                 for (const auto& [src2, targets2] : transitions2) {
                     assert(targets1.size() == targets2.size());
 
-                    const int src = src1 * multiplier + src2;
+                    const int src = src1 + src2 * ts1_size;
                     std::vector<int> targets;
                     for (const auto [t1, t2] : views::zip(targets1, targets2)) {
-                        targets.push_back(t1 * multiplier + t2);
+                        targets.push_back(t1 + t2 * ts1_size);
                     }
                     new_transitions.emplace_back(src, std::move(targets));
                 }
