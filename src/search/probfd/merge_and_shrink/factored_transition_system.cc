@@ -199,11 +199,15 @@ int FactoredTransitionSystem::merge(
     return new_index;
 }
 
-pair<unique_ptr<FactoredMapping>, unique_ptr<Distances>>
+tuple<
+    unique_ptr<TransitionSystem>,
+    unique_ptr<FactoredMapping>,
+    unique_ptr<Distances>>
 FactoredTransitionSystem::extract_factor(int index)
 {
     assert(is_component_valid(index));
-    return make_pair(
+    return make_tuple(
+        std::move(transition_systems[index]),
         std::move(factored_mappings[index]),
         std::move(distances[index]));
 }

@@ -6,6 +6,7 @@
 #include "probfd/value_type.h"
 
 #include <cassert>
+#include <span>
 #include <vector>
 
 /*
@@ -35,7 +36,6 @@ class Distances {
     bool goal_distances_computed = false;
 
     void compute_liveness(const TransitionSystem& transition_system);
-    void compute_goal_distances(const TransitionSystem& transition_system);
 
 public:
     bool is_liveness_computed() const { return liveness_computed; }
@@ -51,6 +51,11 @@ public:
     {
         assert(are_goal_distances_computed());
         return goal_distances[state];
+    }
+
+    std::vector<value_t> extract_goal_distances()
+    {
+        return std::move(goal_distances);
     }
 
     void compute_distances(
@@ -78,6 +83,10 @@ public:
     statistics(const TransitionSystem& transition_system, utils::LogProxy& log)
         const;
 };
+
+void compute_goal_distances(
+    const TransitionSystem& transition_system,
+    std::span<value_t> distances);
 
 } // namespace probfd::merge_and_shrink
 

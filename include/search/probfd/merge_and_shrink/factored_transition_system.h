@@ -143,7 +143,10 @@ public:
     /*
       Extract the factor at the given index, rendering the FTS invalid.
     */
-    std::pair<std::unique_ptr<FactoredMapping>, std::unique_ptr<Distances>>
+    std::tuple<
+        std::unique_ptr<TransitionSystem>,
+        std::unique_ptr<FactoredMapping>,
+        std::unique_ptr<Distances>>
     extract_factor(int index);
 
     const TransitionSystem& get_transition_system(int index) const

@@ -13,11 +13,8 @@ class LogProxy;
 }
 
 namespace probfd::merge_and_shrink {
-class Distances;
-class MergeAndShrinkDistanceRepresentation;
-} // namespace probfd::merge_and_shrink
 
-namespace probfd::merge_and_shrink {
+class FactoredMappingMerge;
 
 class FactoredMapping {
 protected:
@@ -27,27 +24,23 @@ public:
     explicit FactoredMapping(int domain_size);
     virtual ~FactoredMapping() = default;
 
-    int get_domain_size() const;
-    int get_table_size() const;
-
-    void scale(int scale);
+    int get_num_abstract_states() const;
 
     void apply_abstraction(const std::vector<int>& abstraction_mapping);
-    /*
-      Return the value that state is mapped to. This is either an abstract
-      state (if set_distances has not been called) or a distance (if it has).
-      If the represented function is not total, the returned value is DEAD_END
-      if the abstract state is PRUNED_STATE or if the (distance) value is
-      INFINITE_VALUE.
-    */
+
+    /// Returns the abstract state this state is mapped to, or PRUNED_STATE if
+    /// the state is not in the domain of the mapping.
     virtual int get_abstract_state(const State& state) const = 0;
+
     /* Return true iff the represented function is total, i.e., does not map
        to PRUNED_STATE. */
     virtual bool is_total() const = 0;
+
     virtual void dump(utils::LogProxy& log) const = 0;
 
-    virtual std::unique_ptr<MergeAndShrinkDistanceRepresentation>
-    create_distance_representation(const Distances& distances) = 0;
+private:
+    friend class FactoredMappingMerge;
+    void scale(int scale);
 };
 
 class FactoredMappingAtomic : public FactoredMapping {
@@ -59,9 +52,6 @@ public:
     int get_abstract_state(const State& state) const override;
     bool is_total() const override;
     void dump(utils::LogProxy& log) const override;
-
-    std::unique_ptr<MergeAndShrinkDistanceRepresentation>
-    create_distance_representation(const Distances& distances) override;
 };
 
 class FactoredMappingMerge : public FactoredMapping {
@@ -75,51 +65,6 @@ public:
 
     int get_abstract_state(const State& state) const override;
     bool is_total() const override;
-    void dump(utils::LogProxy& log) const override;
-
-    std::unique_ptr<MergeAndShrinkDistanceRepresentation>
-    create_distance_representation(const Distances& distances) override;
-};
-
-class MergeAndShrinkDistanceRepresentation {
-protected:
-    std::vector<value_t> lookup_table;
-
-public:
-    explicit MergeAndShrinkDistanceRepresentation(std::size_t table_size);
-    virtual ~MergeAndShrinkDistanceRepresentation() = default;
-
-    virtual value_t get_abstract_distance(const State& state) const = 0;
-    virtual void dump(utils::LogProxy& log) const = 0;
-};
-
-class MergeAndShrinkDistanceRepresentationLeaf
-    : public MergeAndShrinkDistanceRepresentation {
-    int var_id;
-
-public:
-    MergeAndShrinkDistanceRepresentationLeaf(
-        int var_id,
-        std::vector<int>& state_lookup_table,
-        const Distances& distances);
-
-    value_t get_abstract_distance(const State& state) const override;
-    void dump(utils::LogProxy& log) const override;
-};
-
-class MergeAndShrinkDistanceRepresentationMerge
-    : public MergeAndShrinkDistanceRepresentation {
-    std::unique_ptr<FactoredMapping> left_child;
-    std::unique_ptr<FactoredMapping> right_child;
-
-public:
-    MergeAndShrinkDistanceRepresentationMerge(
-        std::unique_ptr<FactoredMapping> left_child,
-        std::unique_ptr<FactoredMapping> right_child,
-        std::vector<int>& state_lookup_table,
-        const Distances& distances);
-
-    value_t get_abstract_distance(const State& state) const override;
     void dump(utils::LogProxy& log) const override;
 };
 
