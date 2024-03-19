@@ -4,6 +4,8 @@
 
 #include "probfd/task_proxy.h"
 
+#include "probfd/utils/json.h"
+
 #include "downward/utils/logging.h"
 
 #include <cassert>
@@ -24,6 +26,33 @@ LabelInfo::LabelInfo(ProbabilisticOperatorProxy op)
 LabelInfo::LabelInfo(value_t cost, std::vector<value_t> probabilities)
     : cost(cost)
     , probabilities(std::move(probabilities))
+{
+}
+
+LabelInfo LabelInfo::read_json(std::istream& is)
+{
+    return json::
+        construct_from_object<LabelInfo, value_t, std::vector<value_t>>(
+            is,
+            "cost",
+            "probabilities");
+}
+
+void dump_json(std::ostream& os, const LabelInfo& label_info)
+{
+    json::write_object(
+        os,
+        std::forward_as_tuple("cost", label_info.cost),
+        std::forward_as_tuple("probabilities", label_info.probabilities));
+}
+
+Labels::Labels(
+    std::vector<LabelInfo> label_infos,
+    int max_num_labels,
+    int num_active_labels)
+    : label_infos(std::move(label_infos))
+    , max_num_labels(max_num_labels)
+    , num_active_labels(num_active_labels)
 {
 }
 
@@ -97,6 +126,25 @@ void Labels::dump_labels(utils::LogProxy log) const
                 << ", probabilities " << probabilities << endl;
         }
     }
+}
+
+Labels Labels::read_json(std::istream& is)
+{
+    return json::
+        construct_from_object<Labels, std::vector<LabelInfo>, int, int>(
+            is,
+            "label_infos",
+            "max_num_labels",
+            "num_active_labels");
+}
+
+void dump_json(std::ostream& os, const Labels& labels)
+{
+    json::write_object(
+        os,
+        std::forward_as_tuple("label_infos", labels.label_infos),
+        std::forward_as_tuple("max_num_labels", labels.max_num_labels),
+        std::forward_as_tuple("num_active_labels", labels.num_active_labels));
 }
 
 } // namespace probfd::merge_and_shrink
