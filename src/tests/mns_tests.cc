@@ -104,6 +104,26 @@ TEST(MnSTests, test_atomic_fts3)
     }
 }
 
+TEST(MnSTests, test_shrink_all)
+{
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+
+    std::ifstream file("resources/mns_tests/atomic_ts_bw3_0.json");
+    auto ts = json::read<TransitionSystem>(file);
+    StateEquivalenceRelation eq_rel;
+    std::forward_list<int> all_states(ts.get_size());
+    std::iota(all_states.begin(), all_states.end(), 0);
+    eq_rel.push_back(std::move(all_states));
+    std::vector<int> state_mapping(ts.get_size(), 0);
+    ts.apply_abstraction(eq_rel, state_mapping, log);
+
+    std::ifstream e_file("resources/mns_tests/test_shrink_all_result.json");
+    auto expected_ts = json::read<TransitionSystem>(e_file);
+
+    ASSERT_EQ(ts, expected_ts) << "Transition system did not match expected "
+                                  "transiiton system!";
+}
+
 TEST(MnSTests, test_projection_distances)
 {
     using namespace probfd::pdbs;
