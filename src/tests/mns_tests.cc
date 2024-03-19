@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
 #include "probfd/merge_and_shrink/distances.h"
+#include "probfd/merge_and_shrink/factored_mapping.h"
 #include "probfd/merge_and_shrink/factored_transition_system.h"
 #include "probfd/merge_and_shrink/fts_factory.h"
-#include "probfd/merge_and_shrink/merge_and_shrink_representation.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
 #include "probfd/task_proxy.h"
