@@ -241,14 +241,16 @@ void FTSFactory::build_transitions(const Labels& labels)
 
         std::set<LocalLabelInfo*, decltype(cmp)> duplicates;
 
-        std::erase_if(local_label_infos, [&](LocalLabelInfo& element) {
-            if (auto [it, inserted] = duplicates.insert(&element); !inserted) {
-                LocalLabelInfo& first_occurence = **it;
-                first_occurence.merge(element);
-                return true;
-            }
+        for (LocalLabelInfo& element : local_label_infos) {
+            auto [it, inserted] = duplicates.insert(&element);
+            if (inserted) continue;
 
-            return false;
+            LocalLabelInfo& first_occurence = **it;
+            first_occurence.merge(element);
+        }
+
+        std::erase_if(local_label_infos, [&](LocalLabelInfo& element) {
+            return element.get_label_group().empty();
         });
 
         // Construct global label to local label mapping

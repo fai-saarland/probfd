@@ -128,7 +128,7 @@ public:
         const LocalLabelInfo& left,
         const LocalLabelInfo& right);
 
-    void merge(const LocalLabelInfo& right);
+    void merge(LocalLabelInfo& right);
 };
 
 void dump_json(std::ostream& os, const LocalLabelInfo& info);
