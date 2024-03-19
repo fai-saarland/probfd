@@ -9,15 +9,15 @@
 #include "probfd/pdbs/projection_state_space.h"
 #include "probfd/pdbs/state_ranking_function.h"
 
-#include "probfd/heuristics/constant_evaluator.h"
+#include "probfd/heuristics/constant_heuristic.h"
 
 #include "probfd/algorithms/ta_topological_value_iteration.h"
-
-#include "probfd/ssp_cost_function.h"
 
 #include "probfd/task_proxy.h"
 
 #include "probfd/utils/json.h"
+
+#include "probfd/task_cost_function.h"
 
 #include "downward/utils/logging.h"
 
@@ -148,15 +148,20 @@ TEST(MnSTests, test_projection_distances)
 {
     using namespace probfd::pdbs;
 
-    BlocksworldTask task(3, {{0, 1, 2}}, {{0, 1, 2}});
+    auto task = std::make_shared<BlocksworldTask>(
+        3,
+        std::vector<std::vector<int>>{{0, 1, 2}},
+        std::vector<std::vector<int>>{{0, 1, 2}});
 
-    ProbabilisticTaskProxy task_proxy(task);
-    probfd::SSPCostFunction cost_function(task_proxy);
+    auto cost_function = std::make_shared<TaskCostFunction>(task);
+
+    ProbabilisticTaskProxy task_proxy(*task);
+
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
     FactoredTransitionSystem fts =
         create_factored_transition_system(task_proxy, false, false, log);
 
-    ASSERT_EQ(fts.get_size(), task.get_num_variables())
+    ASSERT_EQ(fts.get_size(), task->get_num_variables())
         << "Unexpected number of atomic factors!";
 
     for (int i = 0; i != fts.get_size(); ++i) {
@@ -171,11 +176,9 @@ TEST(MnSTests, test_projection_distances)
             cost_function,
             state_ranking);
 
-        std::vector<value_t> value_table(
-            state_ranking.num_states(),
-            -INFINITE_VALUE);
+        std::vector value_table(state_ranking.num_states(), -INFINITE_VALUE);
 
-        probfd::algorithms::ta_topological_vi::
+        algorithms::ta_topological_vi::
             TATopologicalValueIteration<StateRank, const ProjectionOperator*>
                 vi(value_table.size());
 
@@ -183,7 +186,7 @@ TEST(MnSTests, test_projection_distances)
             if (value_table[k] != -INFINITE_VALUE) continue;
             vi.solve(
                 projection,
-                heuristics::BlindEvaluator<StateRank>(),
+                heuristics::ConstantEvaluator<StateRank>(0_vt),
                 k,
                 value_table);
         }
@@ -202,15 +205,19 @@ TEST(MnSTests, test_projection_distances2)
 {
     using namespace probfd::pdbs;
 
-    BlocksworldTask task(2, {{0, 1}}, {{0, 1}});
+    auto task = std::make_shared<BlocksworldTask>(
+        2,
+        std::vector<std::vector<int>>{{0, 1}},
+        std::vector<std::vector<int>>{{0, 1}});
 
-    ProbabilisticTaskProxy task_proxy(task);
-    probfd::SSPCostFunction cost_function(task_proxy);
+    auto cost_function = std::make_shared<TaskCostFunction>(task);
+
+    ProbabilisticTaskProxy task_proxy(*task);
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
     FactoredTransitionSystem fts =
         create_factored_transition_system(task_proxy, false, false, log);
 
-    ASSERT_EQ(fts.get_size(), task.get_num_variables())
+    ASSERT_EQ(fts.get_size(), task->get_num_variables())
         << "Unexpected number of atomic factors!";
 
     for (int i = 0; i != fts.get_size(); ++i) {
@@ -247,7 +254,7 @@ TEST(MnSTests, test_projection_distances2)
                 if (value_table[k] != -INFINITE_VALUE) continue;
                 vi.solve(
                     projection,
-                    heuristics::BlindEvaluator<StateRank>(),
+                    heuristics::ConstantEvaluator<StateRank>(0_vt),
                     k,
                     value_table);
             }

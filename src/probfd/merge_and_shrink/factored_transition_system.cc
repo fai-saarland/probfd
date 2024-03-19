@@ -42,27 +42,34 @@ void FTSConstIterator::operator++()
     next_valid_index();
 }
 
+Factor::Factor(Factor&&) noexcept = default;
+Factor& Factor::operator=(Factor&&) noexcept = default;
+Factor::~Factor() = default;
+
+bool Factor::is_valid() const
+{
+    return (transition_system && factored_mapping && distances) ||
+           (!transition_system && !factored_mapping && !distances);
+}
+
 FactoredTransitionSystem::FactoredTransitionSystem(
     Labels labels,
-    vector<unique_ptr<TransitionSystem>>&& transition_systems,
-    vector<unique_ptr<FactoredMapping>>&& factored_mappings,
-    vector<unique_ptr<Distances>>&& distances,
+    vector<Factor>&& factors,
     const bool compute_liveness,
     const bool compute_goal_distances,
     utils::LogProxy& log)
     : labels(std::move(labels))
-    , transition_systems(std::move(transition_systems))
-    , factored_mappings(std::move(factored_mappings))
-    , distances(std::move(distances))
+    , factors(std::move(factors))
     , compute_liveness(compute_liveness)
     , compute_goal_distances(compute_goal_distances)
-    , num_active_entries(this->transition_systems.size())
+    , num_active_entries(this->factors.size())
 {
     assert(!compute_liveness || compute_goal_distances);
-    for (size_t index = 0; index < this->transition_systems.size(); ++index) {
+    for (size_t index = 0; index < this->factors.size(); ++index) {
         if (compute_goal_distances) {
-            this->distances[index]->compute_distances(
-                *transition_systems[index],
+            Factor& factor = factors[index];
+            factor.distances->compute_distances(
+                *factor.transition_system,
                 compute_liveness,
                 log);
         }
@@ -70,20 +77,10 @@ FactoredTransitionSystem::FactoredTransitionSystem(
     }
 }
 
-FactoredTransitionSystem::FactoredTransitionSystem(
-    FactoredTransitionSystem&& other) noexcept = default;
-
-FactoredTransitionSystem::~FactoredTransitionSystem() = default;
-
 void FactoredTransitionSystem::assert_index_valid(int index) const
 {
-    assert(utils::in_bounds(index, transition_systems));
-    assert(utils::in_bounds(index, factored_mappings));
-    assert(utils::in_bounds(index, distances));
-    if (!(transition_systems[index] && factored_mappings[index] &&
-          distances[index]) &&
-        !(!transition_systems[index] && !factored_mappings[index] &&
-          !distances[index])) {
+    assert(utils::in_bounds(index, factors));
+    if (!factors[index].is_valid()) {
         cerr << "Factor at index is in an inconsistent state!" << endl;
         utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
@@ -92,20 +89,24 @@ void FactoredTransitionSystem::assert_index_valid(int index) const
 bool FactoredTransitionSystem::is_component_valid(int index) const
 {
     assert(is_active(index));
-    if (compute_liveness && !distances[index]->is_liveness_computed()) {
+    const Factor& factor = factors[index];
+
+    if (compute_liveness && !factor.distances->is_liveness_computed()) {
         return false;
     }
+
     if (compute_goal_distances &&
-        !distances[index]->are_goal_distances_computed()) {
+        !factor.distances->are_goal_distances_computed()) {
         return false;
     }
-    return transition_systems[index]->is_valid(labels);
+
+    return factor.transition_system->is_valid(labels);
 }
 
 void FactoredTransitionSystem::assert_all_components_valid() const
 {
-    for (size_t index = 0; index < transition_systems.size(); ++index) {
-        if (transition_systems[index]) {
+    for (size_t index = 0; index < factors.size(); ++index) {
+        if (factors[index].transition_system) {
             assert(is_component_valid(index));
         }
     }
@@ -120,10 +121,9 @@ void FactoredTransitionSystem::apply_label_mapping(
         assert(fst == labels.get_num_total_labels());
         labels.reduce_labels(old_labels);
     }
-
-    for (size_t i = 0; i < transition_systems.size(); ++i) {
-        if (transition_systems[i]) {
-            transition_systems[i]->apply_label_reduction(
+    for (size_t i = 0; i < factors.size(); ++i) {
+        if (factors[i].transition_system) {
+            factors[i].transition_system->apply_label_reduction(
                 labels,
                 label_mapping,
                 static_cast<int>(i) != combinable_index);
@@ -140,25 +140,25 @@ bool FactoredTransitionSystem::apply_abstraction(
 {
     assert(is_component_valid(index));
 
+    auto&& [ts, fm, distances] = factors[index];
+
     if (const int new_num_states = state_equivalence_relation.size();
-        new_num_states == transition_systems[index]->get_size()) {
+        new_num_states == ts->get_size()) {
         return false;
     }
 
-    const vector<int> abstraction_mapping = compute_abstraction_mapping(
-        transition_systems[index]->get_size(),
-        state_equivalence_relation);
+    const vector<int> abstraction_mapping =
+        compute_abstraction_mapping(ts->get_size(), state_equivalence_relation);
 
-    TransitionSystem& ts = *transition_systems[index];
-    ts.apply_abstraction(state_equivalence_relation, abstraction_mapping, log);
+    ts->apply_abstraction(state_equivalence_relation, abstraction_mapping, log);
     if (compute_goal_distances) {
-        distances[index]->apply_abstraction(
-            ts,
+        distances->apply_abstraction(
+            *ts,
             state_equivalence_relation,
             compute_liveness,
             log);
     }
-    factored_mappings[index]->apply_abstraction(abstraction_mapping);
+    fm->apply_abstraction(abstraction_mapping);
 
     /* If distances need to be recomputed, this already happened in the
        Distances object. */
@@ -173,57 +173,49 @@ int FactoredTransitionSystem::merge(
 {
     assert(is_component_valid(index1));
     assert(is_component_valid(index2));
-    const TransitionSystem& new_ts =
-        *transition_systems.emplace_back(TransitionSystem::merge(
-            labels,
-            *transition_systems[index1],
-            *transition_systems[index2],
-            log));
-    transition_systems[index1] = nullptr;
-    transition_systems[index2] = nullptr;
 
-    distances[index1] = nullptr;
-    distances[index2] = nullptr;
+    auto&& [ts1, fm1, distances1] = factors[index1];
+    auto&& [ts2, fm2, distances2] = factors[index2];
 
-    factored_mappings.push_back(std::make_unique<FactoredMappingMerge>(
-        std::move(factored_mappings[index1]),
-        std::move(factored_mappings[index2])));
-    factored_mappings[index1] = nullptr;
-    factored_mappings[index2] = nullptr;
+    auto&& [ts, fm, distances] = factors.emplace_back();
 
-    auto& dist = *distances.emplace_back(std::make_unique<Distances>());
+    ts = TransitionSystem::merge(labels, *ts1, *ts2, log);
+    ts1 = nullptr;
+    ts2 = nullptr;
+
+    distances1 = nullptr;
+    distances2 = nullptr;
+
+    fm = std::make_unique<FactoredMappingMerge>(std::move(fm1), std::move(fm2));
+    fm1 = nullptr;
+    fm2 = nullptr;
+
+    distances = std::make_unique<Distances>();
+
     // Restore the invariant that distances are computed.
     if (compute_goal_distances) {
-        dist.compute_distances(new_ts, compute_liveness, log);
+        distances->compute_distances(*ts, compute_liveness, log);
     }
     --num_active_entries;
 
-    int new_index = transition_systems.size() - 1;
+    int new_index = factors.size() - 1;
     assert(is_component_valid(new_index));
     return new_index;
 }
 
-tuple<
-    unique_ptr<TransitionSystem>,
-    unique_ptr<FactoredMapping>,
-    unique_ptr<Distances>>
-FactoredTransitionSystem::extract_factor(int index)
+Factor FactoredTransitionSystem::extract_factor(int index)
 {
     assert(is_component_valid(index));
-    return make_tuple(
-        std::move(transition_systems[index]),
-        std::move(factored_mappings[index]),
-        std::move(distances[index]));
+    return std::move(factors[index]);
 }
 
 void FactoredTransitionSystem::statistics(int index, utils::LogProxy& log) const
 {
     if (log.is_at_least_verbose()) {
         assert(is_component_valid(index));
-        const TransitionSystem& ts = *transition_systems[index];
-        ts.dump_statistics(log);
-        const Distances& dist = *distances[index];
-        dist.statistics(ts, log);
+        const Factor& factor = factors[index];
+        factor.transition_system->dump_statistics(log);
+        factor.distances->statistics(*factor.transition_system, log);
     }
 }
 
@@ -231,8 +223,9 @@ void FactoredTransitionSystem::dump(int index, utils::LogProxy& log) const
 {
     if (log.is_at_least_debug()) {
         assert_index_valid(index);
-        transition_systems[index]->dump_labels_and_transitions(log);
-        factored_mappings[index]->dump(log);
+        const Factor& factor = factors[index];
+        factor.transition_system->dump_labels_and_transitions(log);
+        factor.factored_mapping->dump(log);
     }
 }
 
@@ -248,16 +241,19 @@ void FactoredTransitionSystem::dump(utils::LogProxy& log) const
 bool FactoredTransitionSystem::is_factor_solvable(int index) const
 {
     assert(is_component_valid(index));
-    return transition_systems[index]->is_solvable(*distances[index]);
+    const Factor& factor = factors[index];
+    return factor.transition_system->is_solvable(*factor.distances);
 }
 
 bool FactoredTransitionSystem::is_factor_trivial(int index) const
 {
     assert(is_component_valid(index));
-    if (!factored_mappings[index]->is_total()) {
+    const Factor& factor = factors[index];
+
+    if (!factor.factored_mapping->is_total()) {
         return false;
     }
-    const TransitionSystem& ts = *transition_systems[index];
+    const TransitionSystem& ts = *factor.transition_system;
     for (int state = 0; state < ts.get_size(); ++state) {
         if (!ts.is_goal_state(state)) {
             return false;
@@ -269,7 +265,7 @@ bool FactoredTransitionSystem::is_factor_trivial(int index) const
 bool FactoredTransitionSystem::is_active(int index) const
 {
     assert_index_valid(index);
-    return transition_systems[index] != nullptr;
+    return factors[index].transition_system != nullptr;
 }
 
 } // namespace probfd::merge_and_shrink
