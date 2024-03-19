@@ -25,6 +25,7 @@
 
 #include <format>
 #include <fstream>
+#include <numeric>
 
 using namespace probfd;
 using namespace probfd::merge_and_shrink;
