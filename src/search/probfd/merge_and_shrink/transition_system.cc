@@ -207,10 +207,11 @@ compare_transitions(const LocalLabelInfo& left, const LocalLabelInfo& right)
            std::tie(right.probabilities, right.transitions);
 }
 
-void LocalLabelInfo::merge(const LocalLabelInfo& right)
+void LocalLabelInfo::merge(LocalLabelInfo& right)
 {
     cost = std::min(cost, right.cost);
     label_group.push_back(right.label_group.back());
+    right.label_group.clear();
 }
 
 /*
