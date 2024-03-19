@@ -45,6 +45,20 @@ public:
     }
 };
 
+struct Factor {
+    std::unique_ptr<TransitionSystem> transition_system;
+    std::unique_ptr<FactoredMapping> factored_mapping;
+    std::unique_ptr<Distances> distances;
+
+    Factor() = default;
+
+    Factor(Factor&&) noexcept;
+    Factor& operator=(Factor&&) noexcept;
+    ~Factor();
+
+    bool is_valid() const;
+};
+
 /*
   NOTE: A "factor" of this factored transition system is identfied by its
   index as used in the vectors in this class. Since transformations like
@@ -61,10 +75,8 @@ public:
 class FactoredTransitionSystem {
     Labels labels;
 
-    // Entries with nullptr have been merged.
-    std::vector<std::unique_ptr<TransitionSystem>> transition_systems;
-    std::vector<std::unique_ptr<FactoredMapping>> factored_mappings;
-    std::vector<std::unique_ptr<Distances>> distances;
+    std::vector<Factor> factors;
+
     const bool compute_liveness;
     const bool compute_goal_distances;
     int num_active_entries;
@@ -87,24 +99,10 @@ class FactoredTransitionSystem {
 public:
     FactoredTransitionSystem(
         Labels labels,
-        std::vector<std::unique_ptr<TransitionSystem>>&& transition_systems,
-        std::vector<std::unique_ptr<FactoredMapping>>&& factored_mappings,
-        std::vector<std::unique_ptr<Distances>>&& distances,
+        std::vector<Factor>&& factors,
         bool compute_liveness,
         bool compute_goal_distances,
         utils::LogProxy& log);
-
-    ~FactoredTransitionSystem(); // cannot default due to forward declarations
-
-    // No copying construction, copy or move assignment.
-    FactoredTransitionSystem(const FactoredTransitionSystem&) = delete;
-    FactoredTransitionSystem&
-    operator=(const FactoredTransitionSystem&) = delete;
-    FactoredTransitionSystem&
-    operator=(FactoredTransitionSystem&& other) = delete;
-
-    // Default move construction.
-    FactoredTransitionSystem(FactoredTransitionSystem&& other) noexcept;
 
     // Merge-and-shrink transformations.
     /*
@@ -141,20 +139,16 @@ public:
     /*
       Extract the factor at the given index, rendering the FTS invalid.
     */
-    std::tuple<
-        std::unique_ptr<TransitionSystem>,
-        std::unique_ptr<FactoredMapping>,
-        std::unique_ptr<Distances>>
-    extract_factor(int index);
+    Factor extract_factor(int index);
 
     const TransitionSystem& get_transition_system(int index) const
     {
-        return *transition_systems[index];
+        return *factors[index].transition_system;
     }
 
     const Distances& get_distances(int index) const
     {
-        return *distances[index];
+        return *factors[index].distances;
     }
 
     int get_num_active_entries() const { return num_active_entries; }
@@ -162,7 +156,7 @@ public:
     // Used by LabelReduction and MergeScoringFunctionDFP
     const Labels& get_labels() const { return labels; }
 
-    int get_size() const { return transition_systems.size(); }
+    int get_size() const { return factors.size(); }
 
     /*
       A factor is solvable iff the distance of the initial state to some goal
