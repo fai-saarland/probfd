@@ -70,7 +70,9 @@ auto as_object(R&& range)
 template <typename T>
 void write(std::ostream& os, const T& t)
 {
-    if constexpr (std::is_same_v<T, bool>) {
+    if constexpr (
+        std::is_same_v<T, bool> ||
+        std::is_same_v<std::vector<bool>::const_reference, T>) {
         os << (t ? "true" : "false");
     } else if constexpr (std::integral<T> || std::floating_point<T>) {
         os << t;
@@ -85,7 +87,8 @@ void write(std::ostream& os, const T& t)
         if (!t.empty()) {
             write(os, t.front());
             for (const auto& elem : t | std::views::drop(1)) {
-                write(os << ',', elem);
+                os << ',';
+                write(os, elem);
             }
         }
         os << "]";
@@ -105,7 +108,7 @@ void write(std::ostream& os, const T& t)
         }
         os << "}";
     } else {
-        static_assert("Type not dumpable!");
+        static_assert(false, "Type not dumpable!");
     }
 }
 
