@@ -304,7 +304,7 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
 
         // Distribute the labels of this group among the "buckets"
         // corresponding to the groups of ts2.
-        unordered_map<int, vector<int>> buckets;
+        map<int, vector<int>> buckets;
         for (int label : group1) {
             int ts_local_label2 = ts2.label_to_local_label[label];
             buckets[ts_local_label2].push_back(label);
