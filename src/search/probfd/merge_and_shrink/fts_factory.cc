@@ -288,36 +288,29 @@ FactoredTransitionSystem FTSFactory::create(
     int num_variables = static_cast<int>(variables.size());
     assert(num_variables >= 1);
 
-    // Create the actual TransitionSystem, FactoredMapping and
-    // Distances objects.
-    vector<unique_ptr<TransitionSystem>> transition_systems;
-    vector<unique_ptr<FactoredMapping>> mas_representations;
-    vector<unique_ptr<Distances>> distances;
+    // Create the actual Factor objects.
+    vector<Factor> factors;
 
     // We reserve space for the data structures systems added later by merging.
-    transition_systems.reserve(num_variables * 2 - 1);
-    mas_representations.reserve(num_variables * 2 - 1);
-    distances.reserve(num_variables * 2 - 1);
+    factors.reserve(num_variables * 2 - 1);
 
     for (int var_id = 0; var_id < num_variables; ++var_id) {
         int range = variables[var_id].get_domain_size();
         auto& ts_data = transition_system_data_by_var[var_id];
-        transition_systems.push_back(std::make_unique<TransitionSystem>(
+        auto&& [ts, fm, distances] = factors.emplace_back();
+        ts = std::make_unique<TransitionSystem>(
             std::move(ts_data.incorporated_variables),
             std::move(ts_data.label_to_local_label),
             std::move(ts_data.local_label_infos),
             ts_data.init_state,
-            std::move(ts_data.goal_states)));
-        mas_representations.push_back(
-            std::make_unique<FactoredMappingAtomic>(var_id, range));
-        distances.push_back(std::make_unique<Distances>());
+            std::move(ts_data.goal_states));
+        fm = std::make_unique<FactoredMappingAtomic>(var_id, range);
+        distances = std::make_unique<Distances>();
     }
 
     return FactoredTransitionSystem(
         std::move(labels),
-        std::move(transition_systems),
-        std::move(mas_representations),
-        std::move(distances),
+        std::move(factors),
         compute_liveness,
         compute_goal_distances,
         log);
