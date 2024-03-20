@@ -271,3 +271,89 @@ TEST(MnSTests, test_projection_distances2)
         }
     }
 }
+
+TEST(MnSTests, test_projection_distances3)
+{
+    using namespace probfd::pdbs;
+
+    BlocksworldTask task(3, {{0, 1, 2}}, {{0, 1, 2}});
+
+    ProbabilisticTaskProxy task_proxy(task);
+    probfd::SSPCostFunction cost_function(task_proxy);
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+    FactoredTransitionSystem fts =
+        create_factored_transition_system(task_proxy, false, false, log);
+
+    ASSERT_EQ(fts.get_size(), task.get_num_variables())
+        << "Unexpected number of atomic factors!";
+
+    auto ts56 = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(5),
+        fts.get_transition_system(6),
+        log);
+
+    auto ts456 = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(4),
+        *ts56,
+        log);
+
+    auto ts3456 = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(3),
+        *ts456,
+        log);
+
+    auto ts23456 = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(2),
+        *ts3456,
+        log);
+
+    auto ts123456 = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(1),
+        *ts23456,
+        log);
+
+    auto ts = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(0),
+        *ts123456,
+        log);
+
+    std::vector<value_t> distances(ts->get_size(), -INFINITE_VALUE);
+    compute_goal_distances(*ts, distances);
+
+    StateRankingFunction state_ranking(
+        task_proxy.get_variables(),
+        {0, 1, 2, 3, 4, 5, 6});
+
+    ProjectionStateSpace projection(task_proxy, cost_function, state_ranking);
+
+    std::vector<value_t> value_table(
+        state_ranking.num_states(),
+        -INFINITE_VALUE);
+
+    probfd::algorithms::ta_topological_vi::
+        TATopologicalValueIteration<StateRank, const ProjectionOperator*>
+            vi(value_table.size());
+
+    for (size_t k = 0; k != value_table.size(); ++k) {
+        if (value_table[k] != -INFINITE_VALUE) continue;
+        vi.solve(
+            projection,
+            heuristics::BlindEvaluator<StateRank>(),
+            k,
+            value_table);
+    }
+
+    for (size_t k = 0; k != value_table.size(); ++k) {
+        if (std::isinf(value_table[k]))
+            ASSERT_EQ(value_table[k], distances[k]);
+        else
+            ASSERT_NEAR(value_table[k], distances[k], 0.0001)
+                << "Distances do not match pdb distances!";
+    }
+}
