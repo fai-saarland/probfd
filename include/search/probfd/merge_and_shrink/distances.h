@@ -35,8 +35,6 @@ class Distances {
     bool liveness_computed = false;
     bool goal_distances_computed = false;
 
-    void compute_liveness(const TransitionSystem& transition_system);
-
 public:
     bool is_liveness_computed() const { return liveness_computed; }
     bool are_goal_distances_computed() const { return goal_distances_computed; }
@@ -83,6 +81,12 @@ public:
     statistics(const TransitionSystem& transition_system, utils::LogProxy& log)
         const;
 };
+
+void compute_liveness(
+    const TransitionSystem& transition_system,
+    std::span<const value_t> goal_distances,
+    std::vector<bool>& liveness,
+    std::vector<int> queue = std::vector<int>());
 
 void compute_goal_distances(
     const TransitionSystem& transition_system,
