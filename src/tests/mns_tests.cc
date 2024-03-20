@@ -47,7 +47,7 @@ TEST(MnSTests, test_atomic_fts)
     for (int i = 0; i != fts.get_size(); ++i) {
         const auto& ts = fts.get_transition_system(i);
         std::ifstream file(
-            std::format("resources/mns_tests/atomic_ts_bw1_{}.json", i));
+            std::format("resources/mns_tests/bw1_ts_{}.json", i));
         const auto expected_ts = json::read<TransitionSystem>(file);
         ASSERT_EQ(ts, expected_ts) << std::format(
             "Transition system {} did not match the expected transition "
@@ -71,7 +71,7 @@ TEST(MnSTests, test_atomic_fts2)
     for (int i = 0; i != fts.get_size(); ++i) {
         const auto& ts = fts.get_transition_system(i);
         std::ifstream file(
-            std::format("resources/mns_tests/atomic_ts_bw2_{}.json", i));
+            std::format("resources/mns_tests/bw2_ts_{}.json", i));
         const auto expected_ts = json::read<TransitionSystem>(file);
         ASSERT_EQ(ts, expected_ts) << std::format(
             "Transition system {} did not match the expected transition "
@@ -95,7 +95,7 @@ TEST(MnSTests, test_atomic_fts3)
     for (int i = 0; i != fts.get_size(); ++i) {
         const auto& ts = fts.get_transition_system(i);
         std::ifstream file(
-            std::format("resources/mns_tests/atomic_ts_bw3_{}.json", i));
+            std::format("resources/mns_tests/bw3_ts_{}.json", i));
         const auto expected_ts = json::read<TransitionSystem>(file);
         ASSERT_EQ(ts, expected_ts) << std::format(
             "Transition system {} did not match the expected transition "
@@ -109,8 +109,8 @@ TEST(MnSTests, test_merge1)
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
 
     std::ifstream labels_file("resources/mns_tests/bw3_labels.json");
-    std::ifstream file1("resources/mns_tests/atomic_ts_bw3_0.json");
-    std::ifstream file2("resources/mns_tests/atomic_ts_bw3_1.json");
+    std::ifstream file1("resources/mns_tests/bw3_ts_0.json");
+    std::ifstream file2("resources/mns_tests/bw3_ts_1.json");
 
     auto labels = json::read<Labels>(labels_file);
     auto ts1 = json::read<TransitionSystem>(file1);
@@ -118,7 +118,7 @@ TEST(MnSTests, test_merge1)
 
     auto ts = TransitionSystem::merge(labels, ts1, ts2, log);
 
-    std::ifstream e_file("resources/mns_tests/test_merge1_result.json");
+    std::ifstream e_file("resources/mns_tests/bw3_ts_01.json");
     auto expected_ts = json::read<TransitionSystem>(e_file);
 
     ASSERT_EQ(*ts, expected_ts) << "Transition system did not match expected "
@@ -129,7 +129,7 @@ TEST(MnSTests, test_shrink_all)
 {
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
 
-    std::ifstream file("resources/mns_tests/atomic_ts_bw3_0.json");
+    std::ifstream file("resources/mns_tests/bw3_ts_0.json");
     auto ts = json::read<TransitionSystem>(file);
     StateEquivalenceRelation eq_rel;
     std::forward_list<int> all_states(ts.get_size());
@@ -138,7 +138,7 @@ TEST(MnSTests, test_shrink_all)
     std::vector<int> state_mapping(ts.get_size(), 0);
     ts.apply_abstraction(eq_rel, state_mapping, log);
 
-    std::ifstream e_file("resources/mns_tests/test_shrink_all_result.json");
+    std::ifstream e_file("resources/mns_tests/bw3_ts_0_shrink_all.json");
     auto expected_ts = json::read<TransitionSystem>(e_file);
 
     ASSERT_EQ(ts, expected_ts) << "Transition system did not match expected "
