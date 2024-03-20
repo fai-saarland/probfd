@@ -174,7 +174,7 @@ public:
 
 void Distances::compute_distances(
     const TransitionSystem& transition_system,
-    bool compute_liveness,
+    bool do_compute_liveness,
     utils::LogProxy& log)
 {
     /*
@@ -200,7 +200,7 @@ void Distances::compute_distances(
 
     if (log.is_at_least_verbose()) {
         log << "computing ";
-        if (compute_liveness) {
+        if (do_compute_liveness) {
             log << "liveness and ";
         }
         log << "goal distances";
@@ -210,9 +210,9 @@ void Distances::compute_distances(
     compute_goal_distances(transition_system, goal_distances);
     goal_distances_computed = true;
 
-    if (compute_liveness) {
+    if (do_compute_liveness) {
         liveness.resize(num_states, false);
-        ::compute_liveness(transition_system, goal_distances, liveness);
+        compute_liveness(transition_system, goal_distances, liveness);
         liveness_computed = true;
     }
 }
