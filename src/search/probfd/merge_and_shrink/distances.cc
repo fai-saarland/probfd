@@ -179,7 +179,7 @@ void Distances::compute_distances(
 {
     /*
       This method computes the distances of abstract states to the abstract
-      goal states ("abstract J*") and if specfified, also computes the alive
+      goal states ("abstract J*") and if specified, also computes the alive
       states.
     */
 
