@@ -212,7 +212,7 @@ void Distances::compute_distances(
 
     if (compute_liveness) {
         liveness.resize(num_states, false);
-        compute_liveness(transition_system, goal_distances, liveness);
+        ::compute_liveness(transition_system, goal_distances, liveness);
         liveness_computed = true;
     }
 }
