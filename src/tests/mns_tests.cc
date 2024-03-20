@@ -181,7 +181,7 @@ TEST(MnSTests, test_projection_distances)
 
         algorithms::ta_topological_vi::
             TATopologicalValueIteration<StateRank, const ProjectionOperator*>
-                vi(value_table.size());
+                vi(0.001, value_table.size());
 
         for (size_t k = 0; k != value_table.size(); ++k) {
             if (value_table[k] != -INFINITE_VALUE) continue;
@@ -230,7 +230,7 @@ TEST(MnSTests, test_projection_distances2)
             auto merge =
                 TransitionSystem::merge(fts.get_labels(), ts1, ts2, log);
 
-            std::vector<value_t> distances(merge->get_size(), -INFINITE_VALUE);
+            std::vector distances(merge->get_size(), -INFINITE_VALUE);
             compute_goal_distances(*merge, distances);
 
             StateRankingFunction state_ranking(
@@ -242,14 +242,14 @@ TEST(MnSTests, test_projection_distances2)
                 cost_function,
                 state_ranking);
 
-            std::vector<value_t> value_table(
+            std::vector value_table(
                 state_ranking.num_states(),
                 -INFINITE_VALUE);
 
-            probfd::algorithms::ta_topological_vi::TATopologicalValueIteration<
+            algorithms::ta_topological_vi::TATopologicalValueIteration<
                 StateRank,
                 const ProjectionOperator*>
-                vi(value_table.size());
+                vi(0.001, value_table.size());
 
             for (size_t k = 0; k != value_table.size(); ++k) {
                 if (value_table[k] != -INFINITE_VALUE) continue;
@@ -276,15 +276,19 @@ TEST(MnSTests, test_projection_distances3)
 {
     using namespace probfd::pdbs;
 
-    BlocksworldTask task(3, {{0, 1, 2}}, {{0, 1, 2}});
+    auto task = std::make_shared<BlocksworldTask>(
+        3,
+        std::vector<std::vector<int>>{{0, 1, 2}},
+        std::vector<std::vector<int>>{{0, 1, 2}});
 
-    ProbabilisticTaskProxy task_proxy(task);
-    probfd::SSPCostFunction cost_function(task_proxy);
+    auto cost_function = std::make_shared<TaskCostFunction>(task);
+
+    ProbabilisticTaskProxy task_proxy(*task);
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
     FactoredTransitionSystem fts =
         create_factored_transition_system(task_proxy, false, false, log);
 
-    ASSERT_EQ(fts.get_size(), task.get_num_variables())
+    ASSERT_EQ(fts.get_size(), task->get_num_variables())
         << "Unexpected number of atomic factors!";
 
     auto ts56 = TransitionSystem::merge(
@@ -332,19 +336,17 @@ TEST(MnSTests, test_projection_distances3)
 
     ProjectionStateSpace projection(task_proxy, cost_function, state_ranking);
 
-    std::vector<value_t> value_table(
-        state_ranking.num_states(),
-        -INFINITE_VALUE);
+    std::vector value_table(state_ranking.num_states(), -INFINITE_VALUE);
 
-    probfd::algorithms::ta_topological_vi::
+    algorithms::ta_topological_vi::
         TATopologicalValueIteration<StateRank, const ProjectionOperator*>
-            vi(value_table.size());
+            vi(0.001, value_table.size());
 
     for (size_t k = 0; k != value_table.size(); ++k) {
         if (value_table[k] != -INFINITE_VALUE) continue;
         vi.solve(
             projection,
-            heuristics::BlindEvaluator<StateRank>(),
+            heuristics::ConstantEvaluator<StateRank>(0_vt),
             k,
             value_table);
     }

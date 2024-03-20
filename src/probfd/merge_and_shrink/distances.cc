@@ -26,39 +26,25 @@ using namespace std;
 
 namespace probfd::merge_and_shrink {
 
-static void forward_search(
-    const vector<vector<int>>& graph,
-    std::vector<int>& queue,
-    vector<bool>& liveness)
-{
-    while (!queue.empty()) {
-        const int state = queue.back();
-        queue.pop_back();
-
-        for (int successor : graph[state]) {
-            if (liveness[successor]) continue;
-            liveness[successor] = true;
-            queue.push_back(successor);
-        }
-    }
-}
-
-void Distances::compute_liveness(const TransitionSystem& transition_system)
+void compute_liveness(
+    const TransitionSystem& transition_system,
+    std::span<const value_t> goal_distances,
+    std::vector<bool>& liveness,
+    std::vector<int> queue)
 {
     const int init_state = transition_system.get_init_state();
 
-    if (goal_distances[init_state] == INFINITE_VALUE) {
-        return;
-    }
+    auto is_unsolvable = [&](int state) {
+        return goal_distances[state] == INFINITE_VALUE;
+    };
+
+    if (is_unsolvable(init_state)) return;
 
     vector<vector<int>> forward_graph(transition_system.get_size());
     for (const auto& local_label_info : transition_system.label_infos()) {
         for (const auto& [src, targets] : local_label_info.get_transitions()) {
             // Skip transitions which are not alive
-            if (std::ranges::any_of(targets, [this](int state) {
-                    return goal_distances[state] == INFINITE_VALUE;
-                }))
-                continue;
+            if (std::ranges::any_of(targets, is_unsolvable)) continue;
 
             for (int target : targets) {
                 forward_graph[src].emplace_back(target);
@@ -66,13 +52,19 @@ void Distances::compute_liveness(const TransitionSystem& transition_system)
         }
     }
 
-    // TODO: Reuse the same queue for multiple computations to save speed?
-    std::vector<int> queue;
     liveness[init_state] = true;
     queue.push_back(init_state);
-    forward_search(forward_graph, queue, liveness);
 
-    liveness_computed = true;
+    while (!queue.empty()) {
+        const int state = queue.back();
+        queue.pop_back();
+
+        for (int successor : forward_graph[state]) {
+            if (liveness[successor]) continue;
+            liveness[successor] = true;
+            queue.push_back(successor);
+        }
+    }
 }
 
 namespace {
@@ -224,7 +216,11 @@ void Distances::compute_distances(
 
     if (compute_liveness) {
         liveness.resize(num_states, false);
-        Distances::compute_liveness(transition_system);
+        merge_and_shrink::compute_liveness(
+            transition_system,
+            goal_distances,
+            liveness);
+        liveness_computed = true;
     }
 }
 
@@ -350,7 +346,8 @@ void compute_goal_distances(
     ExplicitMDP explicit_mdp(transition_system);
 
     TATopologicalValueIteration<int, const ProbabilisticTransition*> tatvi(
-        0.001);
+        0.001,
+        transition_system.get_size());
 
     for (int i = 0; i != transition_system.get_size(); ++i) {
         if (distances[i] != -INFINITE_VALUE) continue; // Already seen
