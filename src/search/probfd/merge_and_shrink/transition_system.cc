@@ -415,16 +415,19 @@ void TransitionSystem::compute_equivalent_local_labels()
         if (!local_label_info1.is_active()) continue;
 
         const auto& transitions1 = local_label_info1.get_transitions();
+        const auto& probabilities1 = local_label_info1.get_probabilities();
 
         for (int llabel2 = llabel1 + 1; llabel2 < num_local_labels; ++llabel2) {
             auto& local_label_info2 = local_label_infos[llabel2];
             if (!local_label_info2.is_active()) continue;
 
             const auto& transitions2 = local_label_info2.get_transitions();
+            const auto& probabilities2 = local_label_info2.get_probabilities();
 
             // Comparing transitions directly works because they are
             // sorted and unique.
-            if (transitions1 == transitions2) {
+            if (probabilities1 == probabilities2 &&
+                transitions1 == transitions2) {
                 for (int label : local_label_info2.get_label_group()) {
                     label_to_local_label[label] = llabel1;
                 }
