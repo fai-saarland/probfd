@@ -444,7 +444,7 @@ void TransitionSystem::apply_abstraction(
     utils::LogProxy& log)
 {
     int new_num_states = state_equivalence_relation.size();
-    assert(new_num_states < get_size());
+    assert(new_num_states <= get_size());
     if (log.is_at_least_verbose()) {
         log << tag() << "applying abstraction (" << get_size() << " to "
             << new_num_states << " states)" << endl;
