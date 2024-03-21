@@ -8,6 +8,9 @@
 
 #include "probfd/merge_and_shrink/shrink_bisimulation.h"
 
+#include "probfd/merge_and_shrink/pruning_strategy_alive.h"
+#include "probfd/merge_and_shrink/pruning_strategy_solvable.h"
+
 #include "probfd/pdbs/projection_state_space.h"
 #include "probfd/pdbs/state_ranking_function.h"
 
@@ -442,6 +445,174 @@ TEST(MnSTests, test_bisimulation_distance_preserved)
     for (size_t k = 0; k != old_distances.size(); ++k) {
         if (std::isinf(old_distances[k]))
             ASSERT_EQ(old_distances[k], new_distances[abs_mapping[k]]);
+        else
+            ASSERT_NEAR(old_distances[k], new_distances[abs_mapping[k]], 0.0001)
+                << "Distance of state " << k << " not preserved!";
+    }
+}
+
+TEST(MnSTests, test_prune_solvable)
+{
+    using namespace probfd::pdbs;
+
+    BlocksworldTask task(3, {{0, 1, 2}}, {{0, 1, 2}});
+
+    ProbabilisticTaskProxy task_proxy(task);
+    probfd::SSPCostFunction cost_function(task_proxy);
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+    FactoredTransitionSystem fts =
+        create_factored_transition_system(task_proxy, false, false, log);
+
+    ASSERT_EQ(fts.get_size(), task.get_num_variables())
+        << "Unexpected number of atomic factors!";
+
+    auto ts56 = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(5),
+        fts.get_transition_system(6),
+        log);
+
+    auto ts456 = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(4),
+        *ts56,
+        log);
+
+    auto ts3456 = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(3),
+        *ts456,
+        log);
+
+    auto ts23456 = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(2),
+        *ts3456,
+        log);
+
+    auto ts123456 = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(1),
+        *ts23456,
+        log);
+
+    auto ts = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(0),
+        *ts123456,
+        log);
+
+    PruningStrategySolvable prune;
+    Distances distances;
+    distances.compute_distances(*ts, false, log);
+
+    auto eq_relation = prune.compute_pruning_abstraction(*ts, distances, log);
+
+    std::vector<int> abs_mapping(ts->get_size(), PRUNED_STATE);
+    for (size_t i = 0; i != eq_relation.size(); ++i) {
+        const auto& eq_class = eq_relation[i];
+        for (int state : eq_class) {
+            abs_mapping[state] = static_cast<int>(i);
+        }
+    }
+
+    ts->apply_abstraction(eq_relation, abs_mapping, log);
+
+    std::vector<value_t> new_distances(ts->get_size(), -INFINITE_VALUE);
+    compute_goal_distances(*ts, new_distances);
+
+    auto old_distances = distances.extract_goal_distances();
+
+    auto is_infinite = [](value_t value) { return value == INFINITE_VALUE; };
+    ASSERT_TRUE(std::ranges::none_of(new_distances, is_infinite));
+
+    for (size_t k = 0; k != old_distances.size(); ++k) {
+        if (std::isinf(old_distances[k]))
+            ASSERT_TRUE(abs_mapping[k] == PRUNED_STATE);
+        else
+            ASSERT_NEAR(old_distances[k], new_distances[abs_mapping[k]], 0.0001)
+                << "Distance of state " << k << " not preserved!";
+    }
+}
+
+TEST(MnSTests, test_prune_alive)
+{
+    using namespace probfd::pdbs;
+
+    BlocksworldTask task(3, {{0, 1, 2}}, {{0, 1, 2}});
+
+    ProbabilisticTaskProxy task_proxy(task);
+    probfd::SSPCostFunction cost_function(task_proxy);
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+    FactoredTransitionSystem fts =
+        create_factored_transition_system(task_proxy, false, false, log);
+
+    ASSERT_EQ(fts.get_size(), task.get_num_variables())
+        << "Unexpected number of atomic factors!";
+
+    auto ts56 = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(5),
+        fts.get_transition_system(6),
+        log);
+
+    auto ts456 = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(4),
+        *ts56,
+        log);
+
+    auto ts3456 = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(3),
+        *ts456,
+        log);
+
+    auto ts23456 = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(2),
+        *ts3456,
+        log);
+
+    auto ts123456 = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(1),
+        *ts23456,
+        log);
+
+    auto ts = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(0),
+        *ts123456,
+        log);
+
+    PruningStrategyAlive prune;
+    Distances distances;
+    distances.compute_distances(*ts, true, log);
+
+    auto eq_relation = prune.compute_pruning_abstraction(*ts, distances, log);
+
+    std::vector<int> abs_mapping(ts->get_size(), PRUNED_STATE);
+    for (size_t i = 0; i != eq_relation.size(); ++i) {
+        const auto& eq_class = eq_relation[i];
+        for (int state : eq_class) {
+            abs_mapping[state] = static_cast<int>(i);
+        }
+    }
+
+    ts->apply_abstraction(eq_relation, abs_mapping, log);
+
+    std::vector<value_t> new_distances(ts->get_size(), -INFINITE_VALUE);
+    compute_goal_distances(*ts, new_distances);
+
+    auto old_distances = distances.extract_goal_distances();
+
+    auto is_infinite = [](value_t value) { return value == INFINITE_VALUE; };
+    ASSERT_TRUE(std::ranges::none_of(new_distances, is_infinite));
+
+    for (size_t k = 0; k != old_distances.size(); ++k) {
+        if (!distances.is_alive(k))
+            ASSERT_TRUE(abs_mapping[k] == PRUNED_STATE);
         else
             ASSERT_NEAR(old_distances[k], new_distances[abs_mapping[k]], 0.0001)
                 << "Distance of state " << k << " not preserved!";
