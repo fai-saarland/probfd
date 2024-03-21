@@ -456,15 +456,18 @@ void TransitionSystem::apply_abstraction(
     }
 
     // Compute abstract goal states
-    goal_states.erase(goal_states.begin() + new_num_states, goal_states.end());
+    std::vector<bool> new_goal_states(new_num_states);
 
     for (int new_state = 0; new_state < new_num_states; ++new_state) {
         const auto& state_eqv_class = state_equivalence_relation[new_state];
         assert(!state_eqv_class.empty());
 
         auto is_goal = [&](int old_state) { return goal_states[old_state]; };
-        goal_states[new_state] = std::ranges::any_of(state_eqv_class, is_goal);
+        new_goal_states[new_state] =
+            std::ranges::any_of(state_eqv_class, is_goal);
     }
+
+    goal_states = std::move(new_goal_states);
 
     // Update all transitions.
     for (LocalLabelInfo& local_label_info : local_label_infos) {
