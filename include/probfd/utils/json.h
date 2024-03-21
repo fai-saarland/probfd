@@ -74,8 +74,18 @@ void write(std::ostream& os, const T& t)
         std::is_same_v<T, bool> ||
         std::is_same_v<std::vector<bool>::const_reference, T>) {
         os << (t ? "true" : "false");
-    } else if constexpr (std::integral<T> || std::floating_point<T>) {
+    } else if constexpr (std::integral<T>) {
         os << t;
+    } else if constexpr (std::floating_point<T>) {
+        switch (std::fpclassify(t)) {
+        case FP_INFINITE:
+            os << "\"";
+            if (t < 0) os << "-";
+            os << "inf\"";
+            break;
+
+        default: os << t;
+        }
     } else if constexpr (
         std::is_convertible_v<T, const char*> ||
         std::is_same_v<T, std::string>) {
@@ -214,8 +224,25 @@ T read(std::istream& is)
         }
 
         throw std::invalid_argument("Expected 'true' of 'false'!");
-    } else if constexpr (std::is_integral_v<T> || std::is_floating_point_v<T>) {
+    } else if constexpr (std::is_integral_v<T>) {
         T number;
+        is >> number;
+        return number;
+    } else if constexpr (std::floating_point<T>) {
+        T number;
+
+        if (is.peek() == '\"') {
+            // Expect infinity
+            is.ignore();
+            if (is.peek() == '-') {
+                is.ignore(5);
+                return -std::numeric_limits<T>::infinity();
+            } else {
+                is.ignore(4);
+                return std::numeric_limits<T>::infinity();
+            }
+        }
+
         is >> number;
         return number;
     } else if constexpr (std::is_same_v<T, std::string>) {
@@ -224,7 +251,7 @@ T read(std::istream& is)
         return text;
     } else if constexpr (JsonReadable<T>) {
         return T::read_json(is);
-    } else if (Container<T>) {
+    } else if constexpr (Container<T>) {
         is >> std::ws;
         expect(is, "[");
         is >> std::ws;
