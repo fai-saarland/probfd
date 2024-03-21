@@ -456,20 +456,14 @@ void add_merge_and_shrink_algorithm_options_to_feature(
     // Merge strategy option.
     feature.add_option<shared_ptr<MergeStrategyFactory>>(
         "merge_strategy",
-        "See detailed documentation for merge strategies. "
-        "We currently recommend SCC-DFP, which can be achieved using "
-        "{{{merge_strategy=merge_sccs(order_of_sccs=topological,merge_selector="
-        "score_based_filtering(scoring_functions=[goal_relevance,dfp,total_"
-        "order"
-        "]))}}}");
+        "See detailed documentation for merge strategies.",
+        plugins::ArgumentInfo::NO_DEFAULT);
 
     // Shrink strategy option.
     feature.add_option<shared_ptr<ShrinkStrategy>>(
         "shrink_strategy",
-        "See detailed documentation for shrink strategies. "
-        "We currently recommend non-greedy shrink_bisimulation, which can be "
-        "achieved using "
-        "{{{shrink_strategy=shrink_bisimulation(greedy=false)}}}");
+        "See detailed documentation for shrink strategies.",
+        plugins::ArgumentInfo::NO_DEFAULT);
 
     // Pruning strategy option.
     feature.add_option<shared_ptr<PruningStrategy>>(

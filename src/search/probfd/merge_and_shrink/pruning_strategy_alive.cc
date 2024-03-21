@@ -5,6 +5,8 @@
 
 #include "downward/utils/logging.h"
 
+#include "downward/plugins/plugin.h"
+
 namespace probfd::merge_and_shrink {
 
 StateEquivalenceRelation PruningStrategyAlive::compute_pruning_abstraction(
@@ -34,5 +36,33 @@ StateEquivalenceRelation PruningStrategyAlive::compute_pruning_abstraction(
 
     return state_equivalence_relation;
 }
+
+bool PruningStrategyAlive::requires_liveness() const
+{
+    return true;
+}
+
+bool PruningStrategyAlive::requires_goal_distances() const
+{
+    return false;
+}
+
+static class PruningStrategyAliveFeature
+    : public plugins::TypedFeature<PruningStrategy, PruningStrategyAlive> {
+public:
+    PruningStrategyAliveFeature()
+        : TypedFeature("prune_alive")
+    {
+        document_title("Alive states prune strategy");
+        document_synopsis("This prune strategy keeps only alive states.");
+    }
+
+    std::shared_ptr<PruningStrategyAlive>
+    create_component(const plugins::Options&, const utils::Context&)
+        const override
+    {
+        return std::make_shared<PruningStrategyAlive>();
+    }
+} _plugin;
 
 } // namespace probfd::merge_and_shrink

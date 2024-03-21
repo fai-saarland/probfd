@@ -5,11 +5,7 @@
 
 namespace probfd::merge_and_shrink {
 
-/*
-  A pruning strategy specifies which states from a factor are pruned in between
-  merge steps.
-*/
-class NullPruningStrategy : public PruningStrategy {
+class PruningStrategyIdentity : public PruningStrategy {
 public:
     StateEquivalenceRelation compute_pruning_abstraction(
         const TransitionSystem& ts,
