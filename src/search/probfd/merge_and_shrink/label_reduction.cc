@@ -44,21 +44,19 @@ void LabelReduction::initialize(const ProbabilisticTaskProxy& task_proxy)
     assert(!initialized());
 
     // Compute the transition system order.
-    size_t max_transition_system_count =
-        task_proxy.get_variables().size() * 2 - 1;
+    int max_transition_system_count = task_proxy.get_variables().size() * 2 - 1;
     transition_system_order.reserve(max_transition_system_count);
     if (lr_system_order == LabelReductionSystemOrder::REGULAR ||
         lr_system_order == LabelReductionSystemOrder::RANDOM) {
-        for (size_t i = 0; i < max_transition_system_count; ++i)
+        for (int i = 0; i < max_transition_system_count; ++i)
             transition_system_order.push_back(i);
         if (lr_system_order == LabelReductionSystemOrder::RANDOM) {
             rng->shuffle(transition_system_order);
         }
     } else {
         assert(lr_system_order == LabelReductionSystemOrder::REVERSE);
-        for (size_t i = 0; i < max_transition_system_count; ++i)
-            transition_system_order.push_back(
-                max_transition_system_count - 1 - i);
+        for (int i = max_transition_system_count - 1; i >= 0; --i)
+            transition_system_order.push_back(i);
     }
 }
 
@@ -73,7 +71,7 @@ void LabelReduction::compute_label_mapping(
     int num_labels = 0;
     int num_labels_after_reduction = 0;
     for (const equivalence_relation::Block& block : relation) {
-        unordered_map<value_t, vector<int>> cost_to_equivalent_labels;
+        map<value_t, vector<int>> cost_to_equivalent_labels;
         for (int label : block) {
             assert(label < next_new_label);
             value_t cost = labels.get_label_cost(label);
@@ -120,11 +118,20 @@ LabelReduction::compute_combinable_equivalence_relation(
     const Labels& labels = fts.get_labels();
     int num_labels = labels.get_num_active_labels();
     vector<int> all_active_labels;
+    map<std::vector<value_t>, vector<int>> probvec_to_labels;
     all_active_labels.reserve(num_labels);
     for (int label : labels.get_active_labels() | std::views::keys) {
         all_active_labels.push_back(label);
+        probvec_to_labels[labels.get_label_probabilities(label)].push_back(
+            label);
     }
+
     equivalence_relation::EquivalenceRelation relation(all_active_labels);
+
+    // Refine with subsets of labels with the same probability vector.
+    for (const auto& labels : probvec_to_labels | std::views::values) {
+        relation.refine(labels);
+    }
 
     for (int index : fts) {
         if (index != ts_index) {
