@@ -83,7 +83,12 @@ struct Signature {
 };
 
 ShrinkBisimulation::ShrinkBisimulation(const plugins::Options& opts)
-    : at_limit(opts.get<AtLimit>("at_limit"))
+    : ShrinkBisimulation(opts.get<AtLimit>("at_limit"))
+{
+}
+
+ShrinkBisimulation::ShrinkBisimulation(AtLimit at_limit)
+    : at_limit(at_limit)
 {
 }
 
@@ -102,7 +107,7 @@ int ShrinkBisimulation::initialize_groups(
        unsolvable.
     */
 
-    unordered_map<value_t, int> h_to_group;
+    map<value_t, int> h_to_group;
     int num_groups = 1; // Group 0 is for goal states.
 
     for (int state = 0; state < ts.get_size(); ++state) {
