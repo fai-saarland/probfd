@@ -552,6 +552,61 @@ create_library(
 )
 
 create_library(
+    NAME prune_strategy_category
+    HELP "Enables prune strategy category plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/prune_strategy_category
+    DEPENDS
+        pa_merge_and_shrink
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME prune_alive_feature
+    HELP "Enables alive prune strategy plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/prune_strategy_alive
+    DEPENDS
+        pa_merge_and_shrink
+        prune_strategy_category
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME prune_solvable_feature
+    HELP "Enables solvable prune strategy plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/prune_strategy_solvable
+    DEPENDS
+        pa_merge_and_shrink
+        prune_strategy_category
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME prune_identity_feature
+    HELP "Enables identity prune strategy plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/prune_strategy_identity
+    DEPENDS
+        pa_merge_and_shrink
+        prune_strategy_category
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
     NAME open_list_plugin
     HELP "Enables the open list plugin"
     SOURCES

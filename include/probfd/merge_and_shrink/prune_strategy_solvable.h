@@ -21,8 +21,8 @@ public:
         const Distances& distances,
         utils::LogProxy& log) override;
 
-    bool requires_liveness() const override { return false; }
-    bool requires_goal_distances() const override { return true; }
+    bool requires_liveness() const override;
+    bool requires_goal_distances() const override;
 
     void dump_options(utils::LogProxy&) const override {}
 };
