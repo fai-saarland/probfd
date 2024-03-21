@@ -130,6 +130,61 @@ TEST(MnSTests, test_merge1)
                                    "transiiton system!";
 }
 
+TEST(MnSTests, test_merge2)
+{
+    BlocksworldTask task(3, {{0, 1, 2}}, {{0, 1, 2}});
+
+    ProbabilisticTaskProxy task_proxy(task);
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+    FactoredTransitionSystem fts =
+        create_factored_transition_system(task_proxy, false, false, log);
+
+    ASSERT_EQ(fts.get_size(), task.get_num_variables())
+        << "Unexpected number of atomic factors!";
+
+    auto ts56 = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(5),
+        fts.get_transition_system(6),
+        log);
+
+    auto ts456 = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(4),
+        *ts56,
+        log);
+
+    auto ts3456 = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(3),
+        *ts456,
+        log);
+
+    auto ts23456 = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(2),
+        *ts3456,
+        log);
+
+    auto ts123456 = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(1),
+        *ts23456,
+        log);
+
+    auto ts = TransitionSystem::merge(
+        fts.get_labels(),
+        fts.get_transition_system(0),
+        *ts123456,
+        log);
+
+    std::ifstream e_file("resources/mns_tests/bw3_ts_0123456.json");
+    auto expected_ts = json::read<TransitionSystem>(e_file);
+
+    ASSERT_EQ(*ts, expected_ts) << "Transition system did not match expected "
+                                   "transiiton system!";
+}
+
 TEST(MnSTests, test_shrink_all)
 {
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
@@ -285,44 +340,11 @@ TEST(MnSTests, test_projection_distances3)
     ASSERT_EQ(fts.get_size(), task.get_num_variables())
         << "Unexpected number of atomic factors!";
 
-    auto ts56 = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(5),
-        fts.get_transition_system(6),
-        log);
+    std::ifstream e_file("resources/mns_tests/bw3_ts_0123456.json");
+    auto ts = json::read<TransitionSystem>(e_file);
 
-    auto ts456 = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(4),
-        *ts56,
-        log);
-
-    auto ts3456 = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(3),
-        *ts456,
-        log);
-
-    auto ts23456 = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(2),
-        *ts3456,
-        log);
-
-    auto ts123456 = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(1),
-        *ts23456,
-        log);
-
-    auto ts = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(0),
-        *ts123456,
-        log);
-
-    std::vector<value_t> distances(ts->get_size(), -INFINITE_VALUE);
-    compute_goal_distances(*ts, distances);
+    std::vector<value_t> distances(ts.get_size(), -INFINITE_VALUE);
+    compute_goal_distances(ts, distances);
 
     StateRankingFunction state_ranking(
         task_proxy.get_variables(),
@@ -371,54 +393,21 @@ TEST(MnSTests, test_bisimulation_distance_preserved)
     ASSERT_EQ(fts.get_size(), task.get_num_variables())
         << "Unexpected number of atomic factors!";
 
-    auto ts56 = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(5),
-        fts.get_transition_system(6),
-        log);
-
-    auto ts456 = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(4),
-        *ts56,
-        log);
-
-    auto ts3456 = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(3),
-        *ts456,
-        log);
-
-    auto ts23456 = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(2),
-        *ts3456,
-        log);
-
-    auto ts123456 = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(1),
-        *ts23456,
-        log);
-
-    auto ts = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(0),
-        *ts123456,
-        log);
+    std::ifstream e_file("resources/mns_tests/bw3_ts_0123456.json");
+    auto ts = json::read<TransitionSystem>(e_file);
 
     Distances distances;
-    distances.compute_distances(*ts, false, log);
+    distances.compute_distances(ts, false, log);
 
     ShrinkBisimulation bisimulation(AtLimit::RETURN);
 
     auto eq_relation = bisimulation.compute_equivalence_relation(
-        *ts,
+        ts,
         distances,
         std::numeric_limits<int>::max(),
         log);
 
-    std::vector<int> abs_mapping(ts->get_size());
+    std::vector<int> abs_mapping(ts.get_size());
     for (size_t i = 0; i != eq_relation.size(); ++i) {
         const auto& eq_class = eq_relation[i];
         for (int state : eq_class) {
@@ -426,10 +415,10 @@ TEST(MnSTests, test_bisimulation_distance_preserved)
         }
     }
 
-    ts->apply_abstraction(eq_relation, abs_mapping, log);
+    ts.apply_abstraction(eq_relation, abs_mapping, log);
 
-    std::vector<value_t> new_distances(ts->get_size(), -INFINITE_VALUE);
-    compute_goal_distances(*ts, new_distances);
+    std::vector<value_t> new_distances(ts.get_size(), -INFINITE_VALUE);
+    compute_goal_distances(ts, new_distances);
 
     auto old_distances = distances.extract_goal_distances();
 
@@ -457,49 +446,16 @@ TEST(MnSTests, test_prune_solvable)
     ASSERT_EQ(fts.get_size(), task.get_num_variables())
         << "Unexpected number of atomic factors!";
 
-    auto ts56 = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(5),
-        fts.get_transition_system(6),
-        log);
-
-    auto ts456 = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(4),
-        *ts56,
-        log);
-
-    auto ts3456 = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(3),
-        *ts456,
-        log);
-
-    auto ts23456 = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(2),
-        *ts3456,
-        log);
-
-    auto ts123456 = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(1),
-        *ts23456,
-        log);
-
-    auto ts = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(0),
-        *ts123456,
-        log);
+    std::ifstream e_file("resources/mns_tests/bw3_ts_0123456.json");
+    auto ts = json::read<TransitionSystem>(e_file);
 
     PruningStrategySolvable prune;
     Distances distances;
-    distances.compute_distances(*ts, false, log);
+    distances.compute_distances(ts, false, log);
 
-    auto eq_relation = prune.compute_pruning_abstraction(*ts, distances, log);
+    auto eq_relation = prune.compute_pruning_abstraction(ts, distances, log);
 
-    std::vector<int> abs_mapping(ts->get_size(), PRUNED_STATE);
+    std::vector<int> abs_mapping(ts.get_size(), PRUNED_STATE);
     for (size_t i = 0; i != eq_relation.size(); ++i) {
         const auto& eq_class = eq_relation[i];
         for (int state : eq_class) {
@@ -507,10 +463,10 @@ TEST(MnSTests, test_prune_solvable)
         }
     }
 
-    ts->apply_abstraction(eq_relation, abs_mapping, log);
+    ts.apply_abstraction(eq_relation, abs_mapping, log);
 
-    std::vector<value_t> new_distances(ts->get_size(), -INFINITE_VALUE);
-    compute_goal_distances(*ts, new_distances);
+    std::vector<value_t> new_distances(ts.get_size(), -INFINITE_VALUE);
+    compute_goal_distances(ts, new_distances);
 
     auto old_distances = distances.extract_goal_distances();
 
@@ -541,49 +497,16 @@ TEST(MnSTests, test_prune_alive)
     ASSERT_EQ(fts.get_size(), task.get_num_variables())
         << "Unexpected number of atomic factors!";
 
-    auto ts56 = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(5),
-        fts.get_transition_system(6),
-        log);
-
-    auto ts456 = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(4),
-        *ts56,
-        log);
-
-    auto ts3456 = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(3),
-        *ts456,
-        log);
-
-    auto ts23456 = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(2),
-        *ts3456,
-        log);
-
-    auto ts123456 = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(1),
-        *ts23456,
-        log);
-
-    auto ts = TransitionSystem::merge(
-        fts.get_labels(),
-        fts.get_transition_system(0),
-        *ts123456,
-        log);
+    std::ifstream e_file("resources/mns_tests/bw3_ts_0123456.json");
+    auto ts = json::read<TransitionSystem>(e_file);
 
     PruningStrategyAlive prune;
     Distances distances;
-    distances.compute_distances(*ts, true, log);
+    distances.compute_distances(ts, true, log);
 
-    auto eq_relation = prune.compute_pruning_abstraction(*ts, distances, log);
+    auto eq_relation = prune.compute_pruning_abstraction(ts, distances, log);
 
-    std::vector<int> abs_mapping(ts->get_size(), PRUNED_STATE);
+    std::vector<int> abs_mapping(ts.get_size(), PRUNED_STATE);
     for (size_t i = 0; i != eq_relation.size(); ++i) {
         const auto& eq_class = eq_relation[i];
         for (int state : eq_class) {
@@ -591,10 +514,10 @@ TEST(MnSTests, test_prune_alive)
         }
     }
 
-    ts->apply_abstraction(eq_relation, abs_mapping, log);
+    ts.apply_abstraction(eq_relation, abs_mapping, log);
 
-    std::vector<value_t> new_distances(ts->get_size(), -INFINITE_VALUE);
-    compute_goal_distances(*ts, new_distances);
+    std::vector<value_t> new_distances(ts.get_size(), -INFINITE_VALUE);
+    compute_goal_distances(ts, new_distances);
 
     auto old_distances = distances.extract_goal_distances();
 
