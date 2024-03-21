@@ -480,12 +480,14 @@ create_probfd_library(
         probfd/merge_and_shrink/merge_tree
         probfd/merge_and_shrink/merge_tree_factory
         probfd/merge_and_shrink/merge_tree_factory_linear
+        probfd/merge_and_shrink/null_pruning_strategy
+        probfd/merge_and_shrink/pruning_strategy_alive
+        probfd/merge_and_shrink/pruning_strategy_solvable
         probfd/merge_and_shrink/shrink_strategy
         probfd/merge_and_shrink/shrink_bucket_based
         probfd/merge_and_shrink/shrink_h
         probfd/merge_and_shrink/shrink_random
         probfd/merge_and_shrink/shrink_bisimulation
-        probfd/merge_and_shrink/null_pruning_strategy
         probfd/merge_and_shrink/transition
         probfd/merge_and_shrink/transition_system
         probfd/merge_and_shrink/types
