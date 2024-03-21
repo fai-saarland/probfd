@@ -210,12 +210,14 @@ void Distances::compute_distances(
         log << "goal distances";
     }
 
-    goal_distances.resize(num_states, -INFINITE_VALUE);
+    goal_distances.resize(num_states);
+    std::ranges::fill(goal_distances, -INFINITE_VALUE);
     compute_goal_distances(transition_system, goal_distances);
     goal_distances_computed = true;
 
     if (compute_liveness) {
         liveness.resize(num_states, false);
+        std::ranges::fill(liveness, false);
         merge_and_shrink::compute_liveness(
             transition_system,
             goal_distances,
@@ -239,12 +241,10 @@ void Distances::apply_abstraction(
 
     const int new_num_states = state_equivalence_relation.size();
     vector<bool> new_liveness;
-    vector<value_t> new_goal_distances;
+    vector new_goal_distances(new_num_states, DISTANCE_UNKNOWN);
     if (compute_liveness) {
         new_liveness.resize(new_num_states, false);
     }
-
-    new_goal_distances.resize(new_num_states, DISTANCE_UNKNOWN);
 
     for (int new_state = 0; new_state < new_num_states; ++new_state) {
         const StateEquivalenceClass& state_eqv_class =
