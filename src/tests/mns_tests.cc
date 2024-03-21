@@ -11,11 +11,14 @@
 #include "probfd/merge_and_shrink/pruning_strategy_alive.h"
 #include "probfd/merge_and_shrink/pruning_strategy_solvable.h"
 
+#include "probfd/merge_and_shrink/label_reduction.h"
+
 #include "probfd/task_proxy.h"
 
 #include "probfd/utils/json.h"
 
 #include "downward/utils/logging.h"
+#include "downward/utils/rng.h"
 
 #include "tests/tasks/blocksworld.h"
 
@@ -396,6 +399,48 @@ TEST(MnSTests, test_prune_alive)
             ASSERT_TRUE(abs_mapping[k] == PRUNED_STATE);
         else
             ASSERT_NEAR(old_distances[k], new_distances[abs_mapping[k]], 0.0001)
+                << "Distance of state " << k << " not preserved!";
+    }
+}
+
+TEST(MnSTests, test_label_reduction)
+{
+    BlocksworldTask task(2, {{0, 1}}, {{0, 1}}, 1, 1, 1, 1);
+
+    ProbabilisticTaskProxy task_proxy(task);
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+    FactoredTransitionSystem fts =
+        create_factored_transition_system(task_proxy, false, false, log);
+
+    int index = fts.merge(
+        0,
+        fts.merge(1, fts.merge(2, fts.merge(3, 4, log), log), log),
+        log);
+
+    auto rng = std::make_shared<utils::RandomNumberGenerator>(42);
+    LabelReduction label_reduction(
+        true,
+        true,
+        LabelReductionMethod::ALL_TRANSITION_SYSTEMS,
+        LabelReductionSystemOrder::REGULAR,
+        rng);
+
+    label_reduction.initialize(task_proxy);
+
+    auto& ts = fts.get_transition_system(index);
+    std::vector<value_t> old_distances(ts.get_size(), -INFINITE_VALUE);
+    compute_goal_distances(ts, old_distances);
+
+    label_reduction.reduce(0, 0, fts, log);
+
+    std::vector<value_t> new_distances(ts.get_size(), -INFINITE_VALUE);
+    compute_goal_distances(ts, new_distances);
+
+    for (size_t k = 0; k != old_distances.size(); ++k) {
+        if (old_distances[k] == INFINITE_VALUE)
+            ASSERT_TRUE(new_distances[k] == INFINITE_VALUE);
+        else
+            ASSERT_NEAR(old_distances[k], new_distances[k], 0.0001)
                 << "Distance of state " << k << " not preserved!";
     }
 }

@@ -26,11 +26,26 @@ using utils::ExitCode;
 namespace probfd::merge_and_shrink {
 
 LabelReduction::LabelReduction(const plugins::Options& options)
-    : lr_before_shrinking(options.get<bool>("before_shrinking"))
-    , lr_before_merging(options.get<bool>("before_merging"))
-    , lr_method(options.get<LabelReductionMethod>("method"))
-    , lr_system_order(options.get<LabelReductionSystemOrder>("system_order"))
-    , rng(utils::parse_rng_from_options(options))
+    : LabelReduction(
+          options.get<bool>("before_shrinking"),
+          options.get<bool>("before_merging"),
+          options.get<LabelReductionMethod>("method"),
+          options.get<LabelReductionSystemOrder>("system_order"),
+          utils::parse_rng_from_options(options))
+{
+}
+
+LabelReduction::LabelReduction(
+    bool before_shrinking,
+    bool before_merging,
+    LabelReductionMethod method,
+    LabelReductionSystemOrder system_order,
+    std::shared_ptr<utils::RandomNumberGenerator> rng)
+    : lr_before_shrinking(before_shrinking)
+    , lr_before_merging(before_merging)
+    , lr_method(method)
+    , lr_system_order(system_order)
+    , rng(std::move(rng))
 {
 }
 

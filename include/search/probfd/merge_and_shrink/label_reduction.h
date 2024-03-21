@@ -78,6 +78,12 @@ class LabelReduction {
 
 public:
     explicit LabelReduction(const plugins::Options& options);
+    LabelReduction(
+        bool lr_before_shrinking,
+        bool lr_before_merging,
+        LabelReductionMethod lr_method,
+        LabelReductionSystemOrder lr_system_order,
+        std::shared_ptr<utils::RandomNumberGenerator> rng);
 
     void initialize(const ProbabilisticTaskProxy& task_proxy);
     bool reduce(
