@@ -11,15 +11,6 @@
 #include "probfd/merge_and_shrink/pruning_strategy_alive.h"
 #include "probfd/merge_and_shrink/pruning_strategy_solvable.h"
 
-#include "probfd/pdbs/projection_state_space.h"
-#include "probfd/pdbs/state_ranking_function.h"
-
-#include "probfd/heuristics/constant_evaluator.h"
-
-#include "probfd/algorithms/ta_topological_value_iteration.h"
-
-#include "probfd/ssp_cost_function.h"
-
 #include "probfd/task_proxy.h"
 
 #include "probfd/utils/json.h"
@@ -207,47 +198,19 @@ TEST(MnSTests, test_shrink_all)
 
 TEST(MnSTests, test_projection_distances)
 {
-    using namespace probfd::pdbs;
-
-    BlocksworldTask task(3, {{0, 1, 2}}, {{0, 1, 2}});
-
-    ProbabilisticTaskProxy task_proxy(task);
-    probfd::SSPCostFunction cost_function(task_proxy);
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
-    FactoredTransitionSystem fts =
-        create_factored_transition_system(task_proxy, false, false, log);
 
-    ASSERT_EQ(fts.get_size(), task.get_num_variables())
-        << "Unexpected number of atomic factors!";
+    for (int i = 0; i != 5; ++i) {
+        std::ifstream file(
+            std::format("resources/mns_tests/bw3_ts_{}.json", i));
+        auto ts = json::read<TransitionSystem>(file);
 
-    for (int i = 0; i != fts.get_size(); ++i) {
-        const auto& ts = fts.get_transition_system(i);
+        std::ifstream d_file(
+            std::format("resources/mns_tests/bw3_ts_{}_distances.json", i));
+        auto value_table = json::read<std::vector<value_t>>(d_file);
+
         std::vector<value_t> distances(ts.get_size(), -INFINITE_VALUE);
         compute_goal_distances(ts, distances);
-
-        StateRankingFunction state_ranking(task_proxy.get_variables(), {i});
-
-        ProjectionStateSpace projection(
-            task_proxy,
-            cost_function,
-            state_ranking);
-
-        std::vector<value_t> value_table(
-            state_ranking.num_states(),
-            -INFINITE_VALUE);
-
-        probfd::algorithms::ta_topological_vi::
-            TATopologicalValueIteration<StateRank, const ProjectionOperator*>
-                vi(value_table.size());
-
-        for (size_t k = 0; k != value_table.size(); ++k) {
-            if (value_table[k] != -INFINITE_VALUE) continue;
-            vi.solve(
-                projection,
-                heuristics::BlindEvaluator<StateRank>(),
-                k,
-                value_table);
-        }
 
         for (size_t k = 0; k != value_table.size(); ++k) {
             if (std::isinf(value_table[k]))
@@ -261,57 +224,25 @@ TEST(MnSTests, test_projection_distances)
 
 TEST(MnSTests, test_projection_distances2)
 {
-    using namespace probfd::pdbs;
-
-    BlocksworldTask task(2, {{0, 1}}, {{0, 1}});
-
-    ProbabilisticTaskProxy task_proxy(task);
-    probfd::SSPCostFunction cost_function(task_proxy);
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
-    FactoredTransitionSystem fts =
-        create_factored_transition_system(task_proxy, false, false, log);
 
-    ASSERT_EQ(fts.get_size(), task.get_num_variables())
-        << "Unexpected number of atomic factors!";
+    for (int i = 0; i != 5; ++i) {
+        for (int j = i + 1; j < 5; ++j) {
+            std::ifstream ts_file(std::format(
+                "resources/mns_tests/bw2_ts_{}{}"
+                ".json",
+                i,
+                j));
+            auto ts = json::read<TransitionSystem>(ts_file);
 
-    for (int i = 0; i != fts.get_size(); ++i) {
-        const auto& ts1 = fts.get_transition_system(i);
+            std::ifstream d_file(std::format(
+                "resources/mns_tests/bw2_ts_{}{}_distances.json",
+                i,
+                j));
+            auto value_table = json::read<std::vector<value_t>>(d_file);
 
-        for (int j = i + 1; j < fts.get_size(); ++j) {
-            const auto& ts2 = fts.get_transition_system(j);
-
-            auto merge =
-                TransitionSystem::merge(fts.get_labels(), ts1, ts2, log);
-
-            std::vector<value_t> distances(merge->get_size(), -INFINITE_VALUE);
-            compute_goal_distances(*merge, distances);
-
-            StateRankingFunction state_ranking(
-                task_proxy.get_variables(),
-                {i, j});
-
-            ProjectionStateSpace projection(
-                task_proxy,
-                cost_function,
-                state_ranking);
-
-            std::vector<value_t> value_table(
-                state_ranking.num_states(),
-                -INFINITE_VALUE);
-
-            probfd::algorithms::ta_topological_vi::TATopologicalValueIteration<
-                StateRank,
-                const ProjectionOperator*>
-                vi(value_table.size());
-
-            for (size_t k = 0; k != value_table.size(); ++k) {
-                if (value_table[k] != -INFINITE_VALUE) continue;
-                vi.solve(
-                    projection,
-                    heuristics::BlindEvaluator<StateRank>(),
-                    k,
-                    value_table);
-            }
+            std::vector<value_t> distances(ts.get_size(), -INFINITE_VALUE);
+            compute_goal_distances(ts, distances);
 
             for (size_t k = 0; k != value_table.size(); ++k) {
                 if (std::isinf(value_table[k]))
@@ -327,47 +258,16 @@ TEST(MnSTests, test_projection_distances2)
 
 TEST(MnSTests, test_projection_distances3)
 {
-    using namespace probfd::pdbs;
-
-    BlocksworldTask task(3, {{0, 1, 2}}, {{0, 1, 2}});
-
-    ProbabilisticTaskProxy task_proxy(task);
-    probfd::SSPCostFunction cost_function(task_proxy);
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
-    FactoredTransitionSystem fts =
-        create_factored_transition_system(task_proxy, false, false, log);
 
-    ASSERT_EQ(fts.get_size(), task.get_num_variables())
-        << "Unexpected number of atomic factors!";
+    std::ifstream ts_file("resources/mns_tests/bw3_ts_0123456.json");
+    auto ts = json::read<TransitionSystem>(ts_file);
 
-    std::ifstream e_file("resources/mns_tests/bw3_ts_0123456.json");
-    auto ts = json::read<TransitionSystem>(e_file);
+    std::ifstream d_file("resources/mns_tests/bw3_ts_0123456_distances.json");
+    auto value_table = json::read<std::vector<value_t>>(d_file);
 
     std::vector<value_t> distances(ts.get_size(), -INFINITE_VALUE);
     compute_goal_distances(ts, distances);
-
-    StateRankingFunction state_ranking(
-        task_proxy.get_variables(),
-        {0, 1, 2, 3, 4, 5, 6});
-
-    ProjectionStateSpace projection(task_proxy, cost_function, state_ranking);
-
-    std::vector<value_t> value_table(
-        state_ranking.num_states(),
-        -INFINITE_VALUE);
-
-    probfd::algorithms::ta_topological_vi::
-        TATopologicalValueIteration<StateRank, const ProjectionOperator*>
-            vi(value_table.size());
-
-    for (size_t k = 0; k != value_table.size(); ++k) {
-        if (value_table[k] != -INFINITE_VALUE) continue;
-        vi.solve(
-            projection,
-            heuristics::BlindEvaluator<StateRank>(),
-            k,
-            value_table);
-    }
 
     for (size_t k = 0; k != value_table.size(); ++k) {
         if (std::isinf(value_table[k]))
@@ -380,21 +280,10 @@ TEST(MnSTests, test_projection_distances3)
 
 TEST(MnSTests, test_bisimulation_distance_preserved)
 {
-    using namespace probfd::pdbs;
-
-    BlocksworldTask task(3, {{0, 1, 2}}, {{0, 1, 2}});
-
-    ProbabilisticTaskProxy task_proxy(task);
-    probfd::SSPCostFunction cost_function(task_proxy);
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
-    FactoredTransitionSystem fts =
-        create_factored_transition_system(task_proxy, false, false, log);
 
-    ASSERT_EQ(fts.get_size(), task.get_num_variables())
-        << "Unexpected number of atomic factors!";
-
-    std::ifstream e_file("resources/mns_tests/bw3_ts_0123456.json");
-    auto ts = json::read<TransitionSystem>(e_file);
+    std::ifstream ts_file("resources/mns_tests/bw3_ts_0123456.json");
+    auto ts = json::read<TransitionSystem>(ts_file);
 
     Distances distances;
     distances.compute_distances(ts, false, log);
@@ -433,26 +322,15 @@ TEST(MnSTests, test_bisimulation_distance_preserved)
 
 TEST(MnSTests, test_prune_solvable)
 {
-    using namespace probfd::pdbs;
-
-    BlocksworldTask task(3, {{0, 1, 2}}, {{0, 1, 2}});
-
-    ProbabilisticTaskProxy task_proxy(task);
-    probfd::SSPCostFunction cost_function(task_proxy);
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
-    FactoredTransitionSystem fts =
-        create_factored_transition_system(task_proxy, false, false, log);
-
-    ASSERT_EQ(fts.get_size(), task.get_num_variables())
-        << "Unexpected number of atomic factors!";
 
     std::ifstream e_file("resources/mns_tests/bw3_ts_0123456.json");
     auto ts = json::read<TransitionSystem>(e_file);
 
-    PruningStrategySolvable prune;
     Distances distances;
     distances.compute_distances(ts, false, log);
 
+    PruningStrategySolvable prune;
     auto eq_relation = prune.compute_pruning_abstraction(ts, distances, log);
 
     std::vector<int> abs_mapping(ts.get_size(), PRUNED_STATE);
@@ -484,26 +362,15 @@ TEST(MnSTests, test_prune_solvable)
 
 TEST(MnSTests, test_prune_alive)
 {
-    using namespace probfd::pdbs;
-
-    BlocksworldTask task(3, {{0, 1, 2}}, {{0, 1, 2}});
-
-    ProbabilisticTaskProxy task_proxy(task);
-    probfd::SSPCostFunction cost_function(task_proxy);
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
-    FactoredTransitionSystem fts =
-        create_factored_transition_system(task_proxy, false, false, log);
-
-    ASSERT_EQ(fts.get_size(), task.get_num_variables())
-        << "Unexpected number of atomic factors!";
 
     std::ifstream e_file("resources/mns_tests/bw3_ts_0123456.json");
     auto ts = json::read<TransitionSystem>(e_file);
 
-    PruningStrategyAlive prune;
     Distances distances;
     distances.compute_distances(ts, true, log);
 
+    PruningStrategyAlive prune;
     auto eq_relation = prune.compute_pruning_abstraction(ts, distances, log);
 
     std::vector<int> abs_mapping(ts.get_size(), PRUNED_STATE);
