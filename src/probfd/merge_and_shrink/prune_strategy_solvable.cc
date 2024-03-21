@@ -35,4 +35,14 @@ StateEquivalenceRelation PruneStrategySolvable::compute_pruning_abstraction(
     return state_equivalence_relation;
 }
 
+bool PruneStrategySolvable::requires_liveness() const
+{
+    return false;
+}
+
+bool PruneStrategySolvable::requires_goal_distances() const
+{
+    return true;
+}
+
 } // namespace probfd::merge_and_shrink
