@@ -36,6 +36,7 @@ class ShrinkBisimulation : public ShrinkStrategy {
 
 public:
     explicit ShrinkBisimulation(const plugins::Options& opts);
+    explicit ShrinkBisimulation(AtLimit at_limit);
 
     StateEquivalenceRelation compute_equivalence_relation(
         const TransitionSystem& ts,
