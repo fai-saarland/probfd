@@ -19,7 +19,7 @@ StateEquivalenceRelation PruneStrategySolvable::compute_pruning_abstraction(
     for (int state = 0; state < num_states; ++state) {
         /* If pruning both unreachable and irrelevant states, a state which is
            dead is counted for both statistics! */
-        assert(distances.is_liveness_computed());
+        assert(distances.are_goal_distances_computed());
         if (distances.get_goal_distance(state) != INFINITE_VALUE) {
             state_equivalence_relation.push_back({state});
         } else {
