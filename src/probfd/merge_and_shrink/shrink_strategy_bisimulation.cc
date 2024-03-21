@@ -17,7 +17,6 @@
 #include <iostream>
 #include <limits>
 #include <memory>
-#include <unordered_map>
 
 using namespace std;
 using namespace downward::cli::plugins;
@@ -102,7 +101,7 @@ static int initialize_groups(
        unsolvable.
     */
 
-    unordered_map<value_t, int> h_to_group;
+    map<value_t, int> h_to_group;
     int num_groups = 1; // Group 0 is for goal states.
 
     for (int state = 0; state < ts.get_size(); ++state) {
