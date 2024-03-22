@@ -39,7 +39,7 @@ class MergeStrategyFactoryCategoryPlugin
     : public TypedCategoryPlugin<MergeStrategyFactory> {
 public:
     MergeStrategyFactoryCategoryPlugin()
-        : TypedCategoryPlugin("MergeStrategy")
+        : TypedCategoryPlugin("PMergeStrategy")
     {
         document_synopsis(
             "This page describes the various merge strategies supported "

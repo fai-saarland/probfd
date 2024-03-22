@@ -58,7 +58,7 @@ class MergeStrategyFactoryPrecomputedFeature
           MergeStrategyFactoryPrecomputed> {
 public:
     MergeStrategyFactoryPrecomputedFeature()
-        : TypedFeature("merge_precomputed")
+        : TypedFeature("pmerge_precomputed")
     {
         document_title("Precomputed merge strategy");
         document_synopsis(

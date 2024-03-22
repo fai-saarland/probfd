@@ -24,7 +24,7 @@ class MergeScoringFunctionCategoryPlugin
     : public TypedCategoryPlugin<MergeScoringFunction> {
 public:
     MergeScoringFunctionCategoryPlugin()
-        : TypedCategoryPlugin("pMergeScoringFunction")
+        : TypedCategoryPlugin("PMergeScoringFunction")
     {
         document_synopsis(
             "This page describes various merge scoring functions. A scoring "

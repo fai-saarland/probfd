@@ -327,7 +327,7 @@ class LabelReductionFeature
     : public TypedFeature<LabelReduction, LabelReduction> {
 public:
     LabelReductionFeature()
-        : TypedFeature("exact")
+        : TypedFeature("pexact")
     {
         document_title("Exact generalized label reduction");
         document_synopsis(
@@ -402,7 +402,7 @@ class LabelReductionCategoryPlugin
     : public TypedCategoryPlugin<LabelReduction> {
 public:
     LabelReductionCategoryPlugin()
-        : TypedCategoryPlugin("LabelReduction")
+        : TypedCategoryPlugin("PLabelReduction")
     {
         document_synopsis(
             "This page describes the current single 'option' for "
