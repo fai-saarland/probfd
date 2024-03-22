@@ -127,12 +127,12 @@ bool MergeAndShrinkHeuristic::extract_unsolvable_factor(
        return true. Otherwise, return false. */
     for (const int index : fts) {
         if (!fts.is_factor_solvable(index)) {
-            factor_distances.reserve(1);
-            extract_factor(fts, index);
             if (log_.is_at_least_normal()) {
                 log_ << fts.get_transition_system(index).tag()
                      << "use this unsolvable factor as heuristic." << endl;
             }
+            factor_distances.reserve(1);
+            extract_factor(fts, index);
             return true;
         }
     }
