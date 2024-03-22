@@ -24,8 +24,7 @@ namespace probfd::pdbs {
 static void verify(
     ProjectionStateSpace& mdp,
     std::span<const value_t> value_table,
-    StateRank initial_state,
-    const std::vector<StateID>& pruned_states)
+    StateRank initial_state)
 {
     lp::LPSolverType type;
 
@@ -56,7 +55,7 @@ static void verify(
         StateRank s = queue.front();
         queue.pop_front();
 
-        if (utils::contains(pruned_states, s)) {
+        if (value_table[s] == INFINITE_VALUE) {
             continue;
         }
 
@@ -123,9 +122,9 @@ static void verify(
     std::vector<double> solution = solver.extract_solution();
 
     for (StateRank s = 0; s != num_states; ++s) {
-        if (utils::contains(pruned_states, s) || !seen.contains(s)) {
-            assert(value_table[s] == term_cost);
-        } else {
+        if (!seen.contains(s)) {
+            assert(value_table[s] == -INFINITE_VALUE);
+        } else if (value_table[s] != INFINITE_VALUE) {
             assert(is_approx_equal(solution[s], value_table[s], 0.001));
         }
     }
@@ -156,7 +155,7 @@ void compute_value_table(
               << std::endl;
 
 #if !defined(NDEBUG) && (defined(HAS_CPLEX) || defined(HAS_SOPLEX))
-    verify(mdp, value_table, initial_state, pruned_states);
+    verify(mdp, value_table, initial_state);
 #endif
 }
 

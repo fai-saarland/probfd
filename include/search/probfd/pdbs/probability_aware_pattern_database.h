@@ -40,12 +40,10 @@ class ProbabilityAwarePatternDatabase {
 
     ProbabilityAwarePatternDatabase(
         ProbabilisticTaskProxy task_proxy,
-        Pattern pattern,
-        value_t dead_end_cost);
+        Pattern pattern);
 
-    ProbabilityAwarePatternDatabase(
-        StateRankingFunction ranking_function,
-        value_t dead_end_cost);
+    explicit ProbabilityAwarePatternDatabase(
+        StateRankingFunction ranking_function);
 
 public:
     /**

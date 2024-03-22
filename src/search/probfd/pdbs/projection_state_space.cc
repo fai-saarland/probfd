@@ -250,8 +250,6 @@ ProjectionStateSpace::ProjectionStateSpace(
         }
     }
 
-    assert(non_goal_vars.size() != pattern.size()); // No goal no fun.
-
     do {
         goal_state_flags_[base] = true;
     } while (ranking_function.next_rank(base, non_goal_vars));

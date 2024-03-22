@@ -1,0 +1,54 @@
+{
+  "incorporated_variables": [
+    1
+  ],
+  "label_to_local_label": [
+    0,
+    1,
+    -1
+  ],
+  "local_label_infos": [
+    {
+      "labels": [
+        0
+      ],
+      "transitions": [
+        [
+          1,
+          [
+            2,
+            1
+          ]
+        ]
+      ],
+      "probabilities": [
+        0.75,
+        0.25
+      ],
+      "cost": 1
+    },
+    {
+      "labels": [
+        1
+      ],
+      "transitions": [
+        [
+          2,
+          [
+            1
+          ]
+        ]
+      ],
+      "probabilities": [
+        1
+      ],
+      "cost": 0
+    }
+  ],
+  "init_state": 1,
+  "goal_states": [
+    false,
+    true,
+    false
+  ]
+}

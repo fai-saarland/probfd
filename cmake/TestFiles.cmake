@@ -67,3 +67,14 @@ create_test_library(
         probability_aware_pdbs
         mdp
 )
+
+create_test_library(
+    NAME mns_tests
+    HELP "MnS Tests"
+    SOURCES
+        tests/mns_tests
+    DEPENDS
+        test_utils
+        pa_mas
+        mdp
+)
