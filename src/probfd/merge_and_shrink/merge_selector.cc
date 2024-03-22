@@ -59,7 +59,7 @@ class MergeSelectorCategoryPlugin
     : public TypedCategoryPlugin<MergeSelector> {
 public:
     MergeSelectorCategoryPlugin()
-        : TypedCategoryPlugin("pMergeSelector")
+        : TypedCategoryPlugin("PMergeSelector")
     {
         document_synopsis(
             "This page describes the available merge selectors. They are used "

@@ -296,7 +296,7 @@ class ShrinkBisimulationFeature
     : public TypedFeature<ShrinkStrategy, ShrinkBisimulation> {
 public:
     ShrinkBisimulationFeature()
-        : TypedFeature("shrink_bisimulation")
+        : TypedFeature("pshrink_bisimulation")
     {
         document_title("Bismulation based shrink strategy");
         document_synopsis(

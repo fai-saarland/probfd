@@ -36,10 +36,11 @@ class ShrinkRandomFeature
     : public TypedFeature<ShrinkStrategy, ShrinkStrategyRandom> {
 public:
     ShrinkRandomFeature()
-        : TypedFeature("shrink_random")
+        : TypedFeature("pshrink_random")
     {
-        document_title("Random");
-        document_synopsis("");
+        document_title("Random Shrink Strategy");
+        document_synopsis(
+            "This strategy picks states to shrink uniformly at random.");
 
         add_bucket_based_shrink_options_to_feature(*this);
     }
