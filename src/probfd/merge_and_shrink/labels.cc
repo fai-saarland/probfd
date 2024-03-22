@@ -113,7 +113,7 @@ void Labels::reduce_labels(const vector<int>& old_labels)
     label_infos.emplace_back(
         new_label_cost,
         std::move(new_label_probabilities));
-    num_active_labels -= old_labels.size() + 1;
+    num_active_labels -= old_labels.size() - 1;
 }
 
 void Labels::dump_labels(utils::LogProxy log) const
