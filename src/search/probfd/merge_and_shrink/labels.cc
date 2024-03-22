@@ -100,6 +100,9 @@ void Labels::reduce_labels(const vector<int>& old_labels)
     auto& front_info = label_infos[old_labels.front()];
     value_t new_label_cost = front_info.cost;
     auto&& new_label_probabilities = std::move(front_info.probabilities);
+
+    front_info.cost = -1_vt;
+
     for (int old_label : std::views::drop(old_labels, 1)) {
         LabelInfo& info = label_infos[old_label];
 
@@ -111,6 +114,7 @@ void Labels::reduce_labels(const vector<int>& old_labels)
         info.cost = -1_vt;
         utils::release_vector_memory(info.probabilities);
     }
+
     label_infos.emplace_back(
         new_label_cost,
         std::move(new_label_probabilities));
