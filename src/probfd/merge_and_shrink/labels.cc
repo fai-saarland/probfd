@@ -95,7 +95,10 @@ void Labels::reduce_labels(const vector<int>& old_labels)
       we compute the cost of the new label as the minimum cost of all old
       labels reduced to it to satisfy admissibility.
     */
-    auto& [new_label_cost, new_label_probabilities] = label_infos[old_labels.front()];
+    auto& [first_label_cost, new_label_probabilities] = label_infos[old_labels.front()];
+
+    value_t new_label_cost = first_label_cost;
+    first_label_cost = -1_vt;
 
     for (const int old_label : std::views::drop(old_labels, 1)) {
         auto& [cost, probabilities] = label_infos[old_label];
