@@ -149,23 +149,28 @@ void FTSFactory::build_transitions_for_operator(
 
         // Has no precondition on this variable
         for (int src : std::views::iota(0, range)) {
-            auto& t = var_transitions.emplace_back(
+            var_transitions.emplace_back(
                 src,
-                std::vector<int>(num_outcomes));
+                std::vector<int>(num_outcomes, -1));
+        }
 
-            for (int e = 0; e != num_outcomes; ++e) {
-                auto outcome_effects = outcomes[e].get_effects();
-                auto& [eff_id, num_effs] = outcome_effects_it[e];
-                if (eff_id != num_effs && outcome_effects[eff_id]
-                                                  .get_fact()
-                                                  .get_variable()
-                                                  .get_id() == var_id) {
-                    // Has an effect on this variable
+        for (int e = 0; e != num_outcomes; ++e) {
+            auto outcome_effects = outcomes[e].get_effects();
+            auto& [eff_id, num_effs] = outcome_effects_it[e];
+            if (eff_id != num_effs &&
+                outcome_effects[eff_id].get_fact().get_variable().get_id() ==
+                    var_id) {
+                // Has an effect on this variable
+                for (int src : std::views::iota(0, range)) {
+                    auto& t = var_transitions[src];
                     t.targets[e] =
                         outcome_effects[eff_id].get_fact().get_value();
-                    ++eff_id;
-                } else {
-                    // Has no effect on this variable
+                }
+                ++eff_id;
+            } else {
+                // Has no effect on this variable
+                for (int src : std::views::iota(0, range)) {
+                    auto& t = var_transitions[src];
                     t.targets[e] = src;
                 }
             }
