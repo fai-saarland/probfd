@@ -62,7 +62,7 @@ static class MergeTreeFactoryCategoryPlugin
     : public plugins::TypedCategoryPlugin<MergeTreeFactory> {
 public:
     MergeTreeFactoryCategoryPlugin()
-        : TypedCategoryPlugin("pMergeTree")
+        : TypedCategoryPlugin("PMergeTree")
     {
         document_synopsis(
             "This page describes the available merge trees that can be used to "

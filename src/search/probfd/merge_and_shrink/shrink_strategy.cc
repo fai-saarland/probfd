@@ -31,7 +31,7 @@ static class ShrinkStrategyCategoryPlugin
     : public plugins::TypedCategoryPlugin<ShrinkStrategy> {
 public:
     ShrinkStrategyCategoryPlugin()
-        : TypedCategoryPlugin("ShrinkStrategy")
+        : TypedCategoryPlugin("PShrinkStrategy")
     {
         document_synopsis(
             "This page describes the various shrink strategies supported "

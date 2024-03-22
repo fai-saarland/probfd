@@ -41,7 +41,7 @@ class ShrinkRandomFeature
     : public plugins::TypedFeature<ShrinkStrategy, ShrinkRandom> {
 public:
     ShrinkRandomFeature()
-        : TypedFeature("shrink_random")
+        : TypedFeature("pshrink_random")
     {
         document_title("Random");
         document_synopsis("");
@@ -52,4 +52,4 @@ public:
 
 static plugins::FeaturePlugin<ShrinkRandomFeature> _plugin;
 
-} // namespace probfd
+} // namespace probfd::merge_and_shrink

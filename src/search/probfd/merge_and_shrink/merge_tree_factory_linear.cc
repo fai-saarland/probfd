@@ -166,6 +166,7 @@ public:
 
 static plugins::FeaturePlugin<MergeTreeFactoryLinearFeature> _plugin;
 
+/*
 static plugins::TypedEnumPlugin<variable_order_finder::VariableOrderType>
     _enum_plugin(
         {{"cg_goal_level",
@@ -185,5 +186,6 @@ static plugins::TypedEnumPlugin<variable_order_finder::VariableOrderType>
           "variables are ordered according to their level in the causal graph"},
          {"reverse_level",
           "variables are ordered reverse to their level in the causal graph"}});
+*/
 
 } // namespace probfd::merge_and_shrink
