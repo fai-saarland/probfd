@@ -67,7 +67,7 @@ FactoredTransitionSystem::FactoredTransitionSystem(
     assert(!compute_liveness || compute_goal_distances);
     for (size_t index = 0; index < this->factors.size(); ++index) {
         if (compute_goal_distances) {
-            Factor& factor = factors[index];
+            Factor& factor = this->factors[index];
             factor.distances->compute_distances(
                 *factor.transition_system,
                 compute_liveness,
