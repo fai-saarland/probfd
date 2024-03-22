@@ -558,19 +558,15 @@ void TransitionSystem::apply_label_reduction(
         for (const auto& [new_label, old_labels] : label_mapping) {
             assert(old_labels.size() >= 2);
 
-            int first_local = label_to_local_label[old_labels.front()];
-            const auto& first_local_info = local_label_infos[first_local];
-
-            auto new_label_transitions = first_local_info.get_transitions();
-            auto probabilities = first_local_info.get_probabilities();
-
             unordered_set<int> seen_local_labels;
+            std::vector<Transition> new_label_transitions;
 
-            for (int old_label : views::all(old_labels) | views::drop(1)) {
+            std::vector<value_t> probabilities =
+                local_label_infos[label_to_local_label[old_labels.front()]]
+                    .get_probabilities();
+
+            for (int old_label : old_labels) {
                 int old_local_label = label_to_local_label[old_label];
-                assert(
-                    probabilities ==
-                    local_label_infos[old_local_label].get_probabilities());
 
                 if (seen_local_labels.insert(old_local_label).second) {
                     auto& local_info = local_label_infos[old_local_label];
@@ -593,9 +589,8 @@ void TransitionSystem::apply_label_reduction(
             label_to_local_label[new_label] = new_local_label;
             value_t new_cost = labels.get_label_cost(new_label);
 
-            LabelGroup new_label_group = {new_label};
             local_label_infos.emplace_back(
-                std::move(new_label_group),
+                std::vector<int>{new_label},
                 std::move(new_label_transitions),
                 std::move(probabilities),
                 new_cost);
