@@ -49,9 +49,10 @@ enum class ExitCode {
     SEARCH_UNSUPPORTED = 34
 };
 
-[[noreturn]] extern void exit_with(ExitCode returncode);
-[[noreturn]] extern void oom_exit_with(ExitCode exitcode);
-[[noreturn]] extern void exit_after_receiving_signal(ExitCode returncode);
+[[noreturn]]
+extern void exit_with(ExitCode returncode);
+[[noreturn]]
+extern void exit_with_reentrant(ExitCode returncode);
 
 int get_peak_memory_in_kb();
 const char* get_exit_code_message_reentrant(ExitCode exitcode);
