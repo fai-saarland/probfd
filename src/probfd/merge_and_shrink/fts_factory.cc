@@ -144,23 +144,25 @@ void FTSFactory::build_transitions_for_operator(
 
         // Has no precondition on this variable
         for (int src : std::views::iota(0, range)) {
-            auto& [_, targets] = var_transitions.emplace_back(
-                src,
-                std::vector<int>(num_outcomes));
+            var_transitions.emplace_back(src, std::vector(num_outcomes, -1));
+        }
 
-            for (int e = 0; e != num_outcomes; ++e) {
-                auto outcome_effects = outcomes[e].get_effects();
-                if (auto& [eff_id, num_effs] = outcome_effects_it[e];
-                    eff_id != num_effs && outcome_effects[eff_id]
-                                                  .get_fact()
-                                                  .get_variable()
-                                                  .get_id() == var_id) {
-                    // Has an effect on this variable
-                    targets[e] = outcome_effects[eff_id].get_fact().get_value();
-                    ++eff_id;
-                } else {
-                    // Has no effect on this variable
-                    targets[e] = src;
+        for (int e = 0; e != num_outcomes; ++e) {
+            auto outcome_effects = outcomes[e].get_effects();
+            if (auto& [eff_id, num_effs] = outcome_effects_it[e];
+                eff_id != num_effs &&
+                outcome_effects[eff_id].get_fact().get_variable().get_id() ==
+                    var_id) {
+                // Has an effect on this variable
+                for (const int src : std::views::iota(0, range)) {
+                    var_transitions[src].targets[e] =
+                        outcome_effects[eff_id].get_fact().get_value();
+                }
+                ++eff_id;
+            } else {
+                // Has no effect on this variable
+                for (const int src : std::views::iota(0, range)) {
+                    var_transitions[src].targets[e] = src;
                 }
             }
         }
@@ -239,7 +241,7 @@ void FTSFactory::build_transitions(const Labels& labels)
             return compare_transitions(*left, *right) < 0;
         };
 
-        std::set<LocalLabelInfo*, decltype(cmp)> duplicates;
+        std::set<LocalLabelInfo*, decltype(cmp)> duplicates(cmp);
 
         for (LocalLabelInfo& element : local_label_infos) {
             auto [it, inserted] = duplicates.insert(&element);
@@ -249,7 +251,7 @@ void FTSFactory::build_transitions(const Labels& labels)
             first_occurence.merge(element);
         }
 
-        std::erase_if(local_label_infos, [&](LocalLabelInfo& element) {
+        std::erase_if(local_label_infos, [&](const LocalLabelInfo& element) {
             return element.get_label_group().empty();
         });
 
