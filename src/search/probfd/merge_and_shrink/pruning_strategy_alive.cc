@@ -47,7 +47,9 @@ bool PruningStrategyAlive::requires_goal_distances() const
     return false;
 }
 
-static class PruningStrategyAliveFeature
+namespace {
+
+class PruningStrategyAliveFeature
     : public plugins::TypedFeature<PruningStrategy, PruningStrategyAlive> {
 public:
     PruningStrategyAliveFeature()
@@ -63,6 +65,10 @@ public:
     {
         return std::make_shared<PruningStrategyAlive>();
     }
-} _plugin;
+};
+
+plugins::FeaturePlugin<PruningStrategyAliveFeature> _plugin;
+
+} // namespace
 
 } // namespace probfd::merge_and_shrink

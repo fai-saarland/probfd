@@ -34,7 +34,9 @@ void PruningStrategyIdentity::dump_options(utils::LogProxy&) const
     // Nothing to report.
 }
 
-static class PruningStrategyIdentityFeature
+namespace {
+
+class PruningStrategyIdentityFeature
     : public plugins::TypedFeature<PruningStrategy, PruningStrategyIdentity> {
 public:
     PruningStrategyIdentityFeature()
@@ -50,6 +52,10 @@ public:
     {
         return std::make_shared<PruningStrategyIdentity>();
     }
-} _plugin;
+};
+
+plugins::FeaturePlugin<PruningStrategyIdentityFeature> _plugin;
+
+} // namespace
 
 } // namespace probfd::merge_and_shrink
