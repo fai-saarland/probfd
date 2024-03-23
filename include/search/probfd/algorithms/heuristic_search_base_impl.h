@@ -522,8 +522,8 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
 
 template <typename State, typename Action, typename StateInfoT>
 Interval HeuristicSearchAlgorithm<State, Action, StateInfoT>::solve(
-    MDP& mdp,
-    Evaluator& h,
+    MDPType& mdp,
+    EvaluatorType& h,
     param_type<State> state,
     ProgressReport progress,
     double max_time)
@@ -535,11 +535,11 @@ Interval HeuristicSearchAlgorithm<State, Action, StateInfoT>::solve(
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
-    MDP& mdp,
-    Evaluator& h,
+    MDPType& mdp,
+    EvaluatorType& h,
     param_type<State> initial_state,
     ProgressReport progress,
-    double max_time) -> std::unique_ptr<Policy>
+    double max_time) -> std::unique_ptr<PolicyType>
 {
     this->solve(mdp, h, initial_state, progress, max_time);
 

@@ -74,8 +74,8 @@ template <typename State, typename Action>
 class IDual : public MDPAlgorithm<State, Action> {
     using Base = typename IDual::MDPAlgorithm;
 
-    using MDP = typename Base::MDP;
-    using Evaluator = typename Base::Evaluator;
+    using MDPType = typename Base::MDPType;
+    using EvaluatorType = typename Base::EvaluatorType;
 
     lp::LPSolver lp_solver_;
     storage::PerStateStorage<PerStateInfo> state_infos_;
@@ -87,8 +87,8 @@ public:
     explicit IDual(lp::LPSolverType solver_type);
 
     Interval solve(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> initial_state,
         ProgressReport progress,
         double max_time) override;

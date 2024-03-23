@@ -82,9 +82,9 @@ public:
         std::vector<const ProbabilisticTransition*>& aops,
         std::vector<Distribution<StateID>>& successors) override;
 
-    void
-    generate_all_transitions(int state, std::vector<Transition>& transitions)
-        override;
+    void generate_all_transitions(
+        int state,
+        std::vector<TransitionType>& transitions) override;
 
     bool is_goal(int state) const override;
     value_t get_non_goal_termination_cost() const override;

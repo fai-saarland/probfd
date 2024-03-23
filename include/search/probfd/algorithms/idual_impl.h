@@ -40,8 +40,8 @@ IDual<State, Action>::IDual(lp::LPSolverType solver_type)
 
 template <typename State, typename Action>
 Interval IDual<State, Action>::solve(
-    MDP& mdp,
-    Evaluator& heuristic,
+    MDPType& mdp,
+    EvaluatorType& heuristic,
     param_type<State> initial_state,
     ProgressReport progress,
     double max_time)

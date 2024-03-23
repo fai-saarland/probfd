@@ -93,11 +93,11 @@ void Abstraction::generate_all_transitions(
 
 void Abstraction::generate_all_transitions(
     int state,
-    std::vector<Transition>& transitions)
+    std::vector<TransitionType>& transitions)
 {
     for (const auto* t :
          transition_system_->get_outgoing_transitions()[state]) {
-        Transition& transition = transitions.emplace_back(t);
+        TransitionType& transition = transitions.emplace_back(t);
         generate_action_transitions(state, t, transition.successor_dist);
     }
 }

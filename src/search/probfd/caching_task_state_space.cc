@@ -107,7 +107,7 @@ void CachingTaskStateSpace::generate_all_transitions(
 
 void CachingTaskStateSpace::generate_all_transitions(
     const State& state,
-    std::vector<Transition>& transitions)
+    std::vector<TransitionType>& transitions)
 {
     const ProbabilisticOperatorsProxy operators = task_proxy_.get_operators();
 
@@ -116,7 +116,7 @@ void CachingTaskStateSpace::generate_all_transitions(
     transitions.reserve(entry.naops);
 
     for (OperatorID op_id : counted(entry.aops, entry.naops)) {
-        Transition& t = transitions.emplace_back(op_id);
+        TransitionType& t = transitions.emplace_back(op_id);
         Distribution<StateID>& result = t.successor_dist;
 
         const ProbabilisticOperatorProxy op = operators[op_id];

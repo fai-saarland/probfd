@@ -52,8 +52,8 @@ template <typename State, typename Action, bool UseInterval = false>
 class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
     using Base = typename TATopologicalValueIteration::MDPAlgorithm;
 
-    using MDP = typename Base::MDP;
-    using Evaluator = typename Base::Evaluator;
+    using MDPType = typename Base::MDPType;
+    using EvaluatorType = typename Base::EvaluatorType;
 
     using AlgorithmValueType = algorithms::AlgorithmValueType<UseInterval>;
 
@@ -118,8 +118,8 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
             StackInfo& stack_info,
             unsigned int stackidx);
 
-        bool next_transition(MDP& mdp);
-        bool forward_non_loop_transition(MDP& mdp, const State& state);
+        bool next_transition(MDPType& mdp);
+        bool forward_non_loop_transition(MDPType& mdp, const State& state);
         bool forward_non_loop_successor();
         bool next_successor();
 
@@ -282,8 +282,8 @@ public:
     }
 
     Interval solve(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> state,
         ProgressReport,
         double max_time) override;
@@ -304,8 +304,8 @@ public:
      * output parameter \p value_store. Returns the value of the initial state.
      */
     Interval solve(
-        MDP& mdp,
-        const Evaluator& heuristic,
+        MDPType& mdp,
+        const EvaluatorType& heuristic,
         StateID init_state_id,
         auto& value_store,
         double max_time = std::numeric_limits<double>::infinity());
@@ -325,8 +325,8 @@ private:
      * true if the state was pushed.
      */
     bool initialize_state(
-        MDP& mdp,
-        const Evaluator& heuristic,
+        MDPType& mdp,
+        const EvaluatorType& heuristic,
         ExplorationInfo& exp_info,
         auto& value_store);
 
@@ -339,7 +339,7 @@ private:
      * states, and updates the data structures of the source state.
      */
     bool successor_loop(
-        MDP& mdp,
+        MDPType& mdp,
         ExplorationInfo& explore,
         auto& value_store,
         utils::CountdownTimer& timer);

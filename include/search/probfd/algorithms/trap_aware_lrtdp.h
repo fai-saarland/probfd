@@ -225,9 +225,9 @@ class TALRTDP : public MDPAlgorithm<State, Action> {
     using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
 
-    using Policy = typename Base::Policy;
-    using MDP = typename Base::MDP;
-    using Evaluator = typename Base::Evaluator;
+    using PolicyType = typename Base::PolicyType;
+    using MDPType = typename Base::MDPType;
+    using EvaluatorType = typename Base::EvaluatorType;
 
     using QuotientPolicyPicker = PolicyPicker<QState, QAction>;
     using QuotientSuccessorSampler = SuccessorSampler<QAction>;
@@ -245,8 +245,8 @@ public:
         std::shared_ptr<QuotientSuccessorSampler> succ_sampler);
 
     Interval solve(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> s,
         ProgressReport progress,
         double max_time) final;

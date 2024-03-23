@@ -51,8 +51,8 @@ template <typename State, typename Action>
 class IntervalIteration : public MDPAlgorithm<State, Action> {
     using Base = typename IntervalIteration::MDPAlgorithm;
 
-    using MDP = typename Base::MDP;
-    using Evaluator = typename Base::Evaluator;
+    using MDPType = typename Base::MDPType;
+    using EvaluatorType = typename Base::EvaluatorType;
 
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QState = quotients::QuotientState<State, Action>;
@@ -82,8 +82,8 @@ public:
         bool expand_goals);
 
     Interval solve(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> state,
         ProgressReport,
         double max_time) override;
@@ -92,8 +92,8 @@ public:
 
     template <typename ValueStoreT, typename SetLike, typename SetLike2>
     Interval solve(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> state,
         ValueStoreT& value_store,
         SetLike& dead_ends,
@@ -102,15 +102,15 @@ public:
 
 private:
     std::unique_ptr<QuotientSystem> create_quotient(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> state,
         utils::CountdownTimer& timer);
 
     template <typename ValueStoreT, typename SetLike, typename SetLike2>
     Interval mysolve(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> state,
         ValueStoreT& value_store,
         SetLike& dead_ends,

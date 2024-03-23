@@ -60,7 +60,7 @@ public:
 
     void generate_all_transitions(
         StateRank state,
-        std::vector<Transition>& transitions) override;
+        std::vector<TransitionType>& transitions) override;
 
     [[nodiscard]]
     bool is_goal(StateRank state) const override;

@@ -77,8 +77,8 @@ ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
 
 template <typename State, typename Action, bool UseInterval>
 Interval ExhaustiveDepthFirstSearch<State, Action, UseInterval>::solve(
-    MDP& mdp,
-    Evaluator& heuristic,
+    MDPType& mdp,
+    EvaluatorType& heuristic,
     param_type<State> state,
     ProgressReport progress,
     double)
@@ -125,8 +125,8 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
 template <typename State, typename Action, bool UseInterval>
 bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
     initialize_search_node(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         StateID state_id,
         SearchNodeInformation& info)
 {
@@ -140,8 +140,8 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
 template <typename State, typename Action, bool UseInterval>
 bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
     initialize_search_node(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> state,
         SearchNodeInformation& info)
 {
@@ -178,8 +178,8 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
 
 template <typename State, typename Action, bool UseInterval>
 bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
-    MDP& mdp,
-    Evaluator& heuristic,
+    MDPType& mdp,
+    EvaluatorType& heuristic,
     StateID state_id,
     SearchNodeInformation& info)
 {
@@ -302,8 +302,8 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
 
 template <typename State, typename Action, bool UseInterval>
 void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
-    MDP& mdp,
-    Evaluator& heuristic,
+    MDPType& mdp,
+    EvaluatorType& heuristic,
     ProgressReport& progress)
 {
     using namespace std;

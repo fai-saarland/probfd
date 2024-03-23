@@ -29,10 +29,10 @@ namespace probfd {
 template <typename State, typename Action>
 class MDPAlgorithm {
 protected:
-    using Policy = Policy<State, Action>;
+    using PolicyType = Policy<State, Action>;
 
-    using MDP = MDP<State, Action>;
-    using Evaluator = Evaluator<State>;
+    using MDPType = MDP<State, Action>;
+    using EvaluatorType = Evaluator<State>;
 
     static constexpr double INF_TIME = std::numeric_limits<double>::infinity();
 
@@ -44,9 +44,9 @@ public:
      *
      * The default implementation of this method returns an empty policy.
      */
-    virtual std::unique_ptr<Policy> compute_policy(
-        MDP&,
-        Evaluator&,
+    virtual std::unique_ptr<PolicyType> compute_policy(
+        MDPType&,
+        EvaluatorType&,
         param_type<State>,
         ProgressReport,
         double = INF_TIME)
@@ -59,8 +59,8 @@ public:
      * maximum time limit.
      */
     virtual Interval solve(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> state,
         ProgressReport progress,
         double max_time = INF_TIME) = 0;

@@ -606,8 +606,8 @@ TADepthFirstHeuristicSearch<State, Action, UseInterval>::
 
 template <typename State, typename Action, bool UseInterval>
 Interval TADepthFirstHeuristicSearch<State, Action, UseInterval>::solve(
-    MDP& mdp,
-    Evaluator& heuristic,
+    MDPType& mdp,
+    EvaluatorType& heuristic,
     param_type<State> state,
     ProgressReport progress,
     double max_time)
@@ -624,11 +624,11 @@ Interval TADepthFirstHeuristicSearch<State, Action, UseInterval>::solve(
 
 template <typename State, typename Action, bool UseInterval>
 auto TADepthFirstHeuristicSearch<State, Action, UseInterval>::compute_policy(
-    MDP& mdp,
-    Evaluator& heuristic,
+    MDPType& mdp,
+    EvaluatorType& heuristic,
     param_type<State> state,
     ProgressReport progress,
-    double max_time) -> std::unique_ptr<Policy>
+    double max_time) -> std::unique_ptr<PolicyType>
 {
     QuotientSystem quotient(mdp);
     quotients::QuotientMaxHeuristic<State, Action> qheuristic(heuristic);
