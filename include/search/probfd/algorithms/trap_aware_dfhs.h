@@ -287,9 +287,9 @@ template <typename State, typename Action, bool UseInterval>
 class TADepthFirstHeuristicSearch : public MDPAlgorithm<State, Action> {
     using Base = typename TADepthFirstHeuristicSearch::MDPAlgorithm;
 
-    using Policy = typename Base::Policy;
-    using MDP = typename Base::MDP;
-    using Evaluator = typename Base::Evaluator;
+    using PolicyType = typename Base::PolicyType;
+    using MDPType = typename Base::MDPType;
+    using EvaluatorType = typename Base::EvaluatorType;
 
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QState = quotients::QuotientState<State, Action>;
@@ -317,15 +317,15 @@ public:
         std::shared_ptr<QuotientOpenList> open_list);
 
     Interval solve(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> state,
         ProgressReport progress,
         double max_time) override;
 
-    std::unique_ptr<Policy> compute_policy(
-        MDP& mdp,
-        Evaluator& heuristic,
+    std::unique_ptr<PolicyType> compute_policy(
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> state,
         ProgressReport progress,
         double max_time) override;

@@ -25,8 +25,8 @@ IntervalIteration<State, Action>::IntervalIteration(
 
 template <typename State, typename Action>
 Interval IntervalIteration<State, Action>::solve(
-    MDP& mdp,
-    Evaluator& heuristic,
+    MDPType& mdp,
+    EvaluatorType& heuristic,
     param_type<State> state,
     ProgressReport,
     double max_time)
@@ -47,8 +47,8 @@ void IntervalIteration<State, Action>::print_statistics(std::ostream& out) const
 template <typename State, typename Action>
 template <typename ValueStoreT, typename SetLike, typename SetLike2>
 Interval IntervalIteration<State, Action>::solve(
-    MDP& mdp,
-    Evaluator& heuristic,
+    MDPType& mdp,
+    EvaluatorType& heuristic,
     param_type<State> state,
     ValueStoreT& value_store,
     SetLike& dead_ends,
@@ -88,8 +88,8 @@ Interval IntervalIteration<State, Action>::solve(
 
 template <typename State, typename Action>
 auto IntervalIteration<State, Action>::create_quotient(
-    MDP& mdp,
-    Evaluator& heuristic,
+    MDPType& mdp,
+    EvaluatorType& heuristic,
     param_type<State> state,
     utils::CountdownTimer& timer) -> std::unique_ptr<QuotientSystem>
 {
@@ -107,8 +107,8 @@ auto IntervalIteration<State, Action>::create_quotient(
 template <typename State, typename Action>
 template <typename ValueStoreT, typename SetLike, typename SetLike2>
 Interval IntervalIteration<State, Action>::mysolve(
-    MDP& mdp,
-    Evaluator& heuristic,
+    MDPType& mdp,
+    EvaluatorType& heuristic,
     param_type<State> state,
     ValueStoreT& value_store,
     SetLike& dead_ends,

@@ -129,9 +129,9 @@ template <
 class FRET : public MDPAlgorithm<State, Action> {
     using Base = typename FRET::MDPAlgorithm;
 
-    using Policy = typename Base::Policy;
-    using MDP = typename Base::MDP;
-    using Evaluator = typename Base::Evaluator;
+    using PolicyType = typename Base::PolicyType;
+    using MDPType = typename Base::MDPType;
+    using EvaluatorType = typename Base::EvaluatorType;
 
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QState = quotients::QuotientState<State, Action>;
@@ -149,16 +149,16 @@ class FRET : public MDPAlgorithm<State, Action> {
 public:
     explicit FRET(std::shared_ptr<QHeuristicSearchAlgorithm> algorithm);
 
-    std::unique_ptr<Policy> compute_policy(
-        MDP& mdp,
-        Evaluator& heuristic,
+    std::unique_ptr<PolicyType> compute_policy(
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> state,
         ProgressReport progress,
         double max_time) override;
 
     Interval solve(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> state,
         ProgressReport progress,
         double max_time) override;

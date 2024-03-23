@@ -68,9 +68,9 @@ template <typename State, typename Action, bool UseInterval = false>
 class TopologicalValueIteration : public MDPAlgorithm<State, Action> {
     using Base = typename TopologicalValueIteration::MDPAlgorithm;
 
-    using Policy = typename Base::Policy;
-    using MDP = typename Base::MDP;
-    using Evaluator = typename Base::Evaluator;
+    using PolicyType = typename Base::PolicyType;
+    using MDPType = typename Base::MDPType;
+    using EvaluatorType = typename Base::EvaluatorType;
 
     using MapPolicy = policies::MapPolicy<State, Action>;
     using AlgorithmValueType = algorithms::AlgorithmValueType<UseInterval>;
@@ -150,10 +150,10 @@ class TopologicalValueIteration : public MDPAlgorithm<State, Action> {
 
         void update_lowlink(unsigned upd);
 
-        bool next_transition(MDP& mdp);
+        bool next_transition(MDPType& mdp);
         bool next_successor();
 
-        bool forward_non_loop_transition(MDP& mdp, const State& state);
+        bool forward_non_loop_transition(MDPType& mdp, const State& state);
         bool forward_non_loop_successor();
 
         Action& get_current_action();
@@ -173,16 +173,16 @@ class TopologicalValueIteration : public MDPAlgorithm<State, Action> {
 public:
     explicit TopologicalValueIteration(bool expand_goals);
 
-    std::unique_ptr<Policy> compute_policy(
-        MDP& mdp,
-        Evaluator& heuristic,
+    std::unique_ptr<PolicyType> compute_policy(
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> state,
         ProgressReport,
         double max_time) override;
 
     Interval solve(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> state,
         ProgressReport,
         double max_time) override;
@@ -204,8 +204,8 @@ public:
      */
     template <typename ValueStore>
     Interval solve(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         StateID init_state_id,
         ValueStore& value_store,
         double max_time = std::numeric_limits<double>::infinity(),
@@ -228,8 +228,8 @@ private:
      * true if the state was pushed.
      */
     bool initialize_state(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         ExplorationInfo& exp_info,
         auto& value_store);
 
@@ -243,7 +243,7 @@ private:
      */
     template <typename ValueStore>
     bool successor_loop(
-        MDP& mdp,
+        MDPType& mdp,
         ExplorationInfo& explore,
         ValueStore& value_store,
         utils::CountdownTimer& timer);

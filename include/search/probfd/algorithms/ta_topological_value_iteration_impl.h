@@ -56,7 +56,7 @@ TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 
 template <typename State, typename Action, bool UseInterval>
 bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
-    next_transition(MDP& mdp)
+    next_transition(MDPType& mdp)
 {
     self_loop_prob = 0_vt;
     leaves_scc = false;
@@ -70,7 +70,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 
 template <typename State, typename Action, bool UseInterval>
 bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
-    forward_non_loop_transition(MDP& mdp, const State& state)
+    forward_non_loop_transition(MDPType& mdp, const State& state)
 {
     do {
         mdp.generate_action_transitions(state, aops.back(), transition);
@@ -298,8 +298,8 @@ TATopologicalValueIteration<State, Action, UseInterval>::ECDExplorationInfo::
 
 template <typename State, typename Action, bool UseInterval>
 Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
-    MDP& mdp,
-    Evaluator& heuristic,
+    MDPType& mdp,
+    EvaluatorType& heuristic,
     param_type<State> state,
     ProgressReport,
     double max_time)
@@ -325,8 +325,8 @@ TATopologicalValueIteration<State, Action, UseInterval>::get_statistics() const
 
 template <typename State, typename Action, bool UseInterval>
 Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
-    MDP& mdp,
-    const Evaluator& heuristic,
+    MDPType& mdp,
+    const EvaluatorType& heuristic,
     StateID init_state_id,
     auto& value_store,
     double max_time)
@@ -434,7 +434,7 @@ void TATopologicalValueIteration<State, Action, UseInterval>::push_state(
 
 template <typename State, typename Action, bool UseInterval>
 bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
-    MDP& mdp,
+    MDPType& mdp,
     ExplorationInfo& explore,
     auto& value_store,
     utils::CountdownTimer& timer)
@@ -489,8 +489,8 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
 
 template <typename State, typename Action, bool UseInterval>
 bool TATopologicalValueIteration<State, Action, UseInterval>::initialize_state(
-    MDP& mdp,
-    const Evaluator& heuristic,
+    MDPType& mdp,
+    const EvaluatorType& heuristic,
     ExplorationInfo& exp_info,
     auto& value_store)
 {

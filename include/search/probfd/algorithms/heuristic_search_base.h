@@ -295,10 +295,10 @@ class HeuristicSearchAlgorithm
     using HSBase = typename HeuristicSearchAlgorithm::HeuristicSearchBase;
 
 protected:
-    using Policy = typename AlgorithmBase::Policy;
+    using PolicyType = typename AlgorithmBase::PolicyType;
 
-    using MDP = typename AlgorithmBase::MDP;
-    using Evaluator = typename AlgorithmBase::Evaluator;
+    using MDPType = typename AlgorithmBase::MDPType;
+    using EvaluatorType = typename AlgorithmBase::EvaluatorType;
 
     using StateInfo = typename HSBase::StateInfo;
     using PolicyPicker = typename HSBase::PolicyPicker;
@@ -308,15 +308,15 @@ public:
     using HSBase::HSBase;
 
     Interval solve(
-        MDP& mdp,
-        Evaluator& h,
+        MDPType& mdp,
+        EvaluatorType& h,
         param_type<State> state,
         ProgressReport progress,
         double max_time) final;
 
-    std::unique_ptr<Policy> compute_policy(
-        MDP& mdp,
-        Evaluator& h,
+    std::unique_ptr<PolicyType> compute_policy(
+        MDPType& mdp,
+        EvaluatorType& h,
         param_type<State> state,
         ProgressReport progress,
         double max_time) final;
@@ -342,8 +342,8 @@ public:
      * Called internally after initializing the progress report.
      */
     virtual Interval do_solve(
-        MDP& mdp,
-        Evaluator& h,
+        MDPType& mdp,
+        EvaluatorType& h,
         param_type<State> state,
         ProgressReport& progress,
         double max_time) = 0;

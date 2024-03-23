@@ -64,9 +64,9 @@ template <typename State, typename Action>
 class AcyclicValueIteration : public MDPAlgorithm<State, Action> {
     using Base = typename AcyclicValueIteration::MDPAlgorithm;
 
-    using Policy = typename Base::Policy;
-    using MDP = typename Base::MDP;
-    using Evaluator = typename Base::Evaluator;
+    using PolicyType = typename Base::PolicyType;
+    using MDPType = typename Base::MDPType;
+    using EvaluatorType = typename Base::EvaluatorType;
 
     using MapPolicy = policies::MapPolicy<State, Action>;
 
@@ -91,15 +91,15 @@ class AcyclicValueIteration : public MDPAlgorithm<State, Action> {
             StateID state_id,
             StateInfo& state_info,
             std::vector<Action> remaining_aops,
-            MDP& mdp);
+            MDPType& mdp);
 
         bool next_successor();
-        bool next_transition(MDP& mdp, MapPolicy* policy);
+        bool next_transition(MDPType& mdp, MapPolicy* policy);
 
         void backtrack_successor(value_t probability, StateInfo& succ_info);
 
     private:
-        void setup_transition(MDP& mdp);
+        void setup_transition(MDPType& mdp);
         void finalize_transition();
         void finalize_expansion(MapPolicy* policy);
     };
@@ -110,23 +110,23 @@ class AcyclicValueIteration : public MDPAlgorithm<State, Action> {
     std::stack<IncrementalExpansionInfo> expansion_stack_;
 
 public:
-    std::unique_ptr<Policy> compute_policy(
-        MDP& mdp,
-        Evaluator& heuristic,
+    std::unique_ptr<PolicyType> compute_policy(
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> initial_state,
         ProgressReport progress,
         double max_time) override;
 
     Interval solve(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> initial_state,
         ProgressReport progress,
         double max_time) override;
 
     Interval solve(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> initial_state,
         double max_time,
         MapPolicy* policy);
@@ -135,17 +135,19 @@ public:
 
 private:
     void dfs_expand(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         utils::CountdownTimer& timer,
         MapPolicy* policy);
 
-    bool
-    dfs_backtrack(MDP& mdp, utils::CountdownTimer& timer, MapPolicy* policy);
+    bool dfs_backtrack(
+        MDPType& mdp,
+        utils::CountdownTimer& timer,
+        MapPolicy* policy);
 
     bool push_state(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         StateID state_id,
         StateInfo& succ_info);
 };

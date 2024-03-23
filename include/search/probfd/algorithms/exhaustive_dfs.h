@@ -210,8 +210,8 @@ template <typename State, typename Action, bool UseInterval>
 class ExhaustiveDepthFirstSearch : public MDPAlgorithm<State, Action> {
     using Base = typename ExhaustiveDepthFirstSearch::MDPAlgorithm;
 
-    using MDP = typename Base::MDP;
-    using Evaluator = typename Base::Evaluator;
+    using MDPType = typename Base::MDPType;
+    using EvaluatorType = typename Base::EvaluatorType;
 
     using TransitionSorter = TransitionSorter<State, Action>;
 
@@ -244,8 +244,8 @@ public:
         bool only_propagate_when_changed);
 
     Interval solve(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> state,
         ProgressReport progress,
         double) override;
@@ -258,25 +258,27 @@ private:
         ProgressReport& progress);
 
     bool initialize_search_node(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         StateID state_id,
         SearchNodeInformation& info);
 
     bool initialize_search_node(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> state,
         SearchNodeInformation& info);
 
     bool push_state(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         StateID state_id,
         SearchNodeInformation& info);
 
-    void
-    run_exploration(MDP& mdp, Evaluator& heuristic, ProgressReport& progress);
+    void run_exploration(
+        MDPType& mdp,
+        EvaluatorType& heuristic,
+        ProgressReport& progress);
 
     void propagate_value_along_trace(
         bool was_poped,

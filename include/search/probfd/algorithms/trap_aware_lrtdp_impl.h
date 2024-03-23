@@ -372,8 +372,8 @@ TALRTDP<State, Action, UseInterval>::TALRTDP(
 
 template <typename State, typename Action, bool UseInterval>
 Interval TALRTDP<State, Action, UseInterval>::solve(
-    MDP& mdp,
-    Evaluator& heuristic,
+    MDPType& mdp,
+    EvaluatorType& heuristic,
     param_type<State> s,
     ProgressReport progress,
     double max_time)
