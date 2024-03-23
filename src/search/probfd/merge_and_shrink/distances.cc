@@ -145,9 +145,9 @@ public:
         }
     }
 
-    void
-    generate_all_transitions(int state, std::vector<Transition>& transitions)
-        override
+    void generate_all_transitions(
+        int state,
+        std::vector<TransitionType>& transitions) override
     {
         transitions.reserve(transitions_[state].size());
         for (const ProbabilisticTransition& t : transitions_[state]) {

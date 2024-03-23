@@ -88,7 +88,7 @@ public:
 
     void generate_all_transitions(
         const State& state,
-        std::vector<Transition>& transitions) override;
+        std::vector<TransitionType>& transitions) override;
 
     value_t get_action_cost(OperatorID op) override;
 

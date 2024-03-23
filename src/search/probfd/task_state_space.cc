@@ -86,7 +86,7 @@ void TaskStateSpace::generate_all_transitions(
 
 void TaskStateSpace::generate_all_transitions(
     const State& state,
-    std::vector<Transition>& transitions)
+    std::vector<TransitionType>& transitions)
 {
     gen_.generate_transitions(state, transitions, *this);
 

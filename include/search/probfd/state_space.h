@@ -43,7 +43,7 @@ namespace probfd {
 template <typename State, typename Action>
 class StateSpace {
 protected:
-    using Transition = Transition<Action>;
+    using TransitionType = Transition<Action>;
 
 public:
     virtual ~StateSpace() = default;
@@ -88,7 +88,7 @@ public:
      */
     virtual void generate_all_transitions(
         param_type<State> state,
-        std::vector<Transition>& transitions) = 0;
+        std::vector<TransitionType>& transitions) = 0;
 };
 
 } // namespace probfd

@@ -74,7 +74,7 @@ public:
 
     void generate_all_transitions(
         const State& state,
-        std::vector<Transition>& transitions) final;
+        std::vector<TransitionType>& transitions) final;
 
     void print_statistics() const final;
 
