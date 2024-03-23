@@ -5,6 +5,7 @@
 #include <cassert>
 #include <compare>
 #include <limits>
+#include <tuple>
 #include <vector>
 
 /*
@@ -12,7 +13,7 @@
 */
 
 namespace dynamic_bitset {
-template<typename Block = unsigned int>
+template <typename Block = unsigned int>
 class DynamicBitset {
     static_assert(
         !std::numeric_limits<Block>::is_signed,
@@ -26,28 +27,31 @@ class DynamicBitset {
 
     static const int bits_per_block = std::numeric_limits<Block>::digits;
 
-    static int compute_num_blocks(std::size_t num_bits) {
+    static int compute_num_blocks(std::size_t num_bits)
+    {
         return num_bits / bits_per_block +
                static_cast<int>(num_bits % bits_per_block != 0);
     }
 
-    static std::size_t block_index(std::size_t pos) {
+    static std::size_t block_index(std::size_t pos)
+    {
         return pos / bits_per_block;
     }
 
-    static std::size_t bit_index(std::size_t pos) {
+    static std::size_t bit_index(std::size_t pos)
+    {
         return pos % bits_per_block;
     }
 
-    static Block bit_mask(std::size_t pos) {
+    static Block bit_mask(std::size_t pos)
+    {
         return Block(1) << bit_index(pos);
     }
 
-    int count_bits_in_last_block() const {
-        return bit_index(num_bits);
-    }
+    int count_bits_in_last_block() const { return bit_index(num_bits); }
 
-    void zero_unused_bits() {
+    void zero_unused_bits()
+    {
         const int bits_in_last_block = count_bits_in_last_block();
 
         if (bits_in_last_block != 0) {
@@ -58,13 +62,12 @@ class DynamicBitset {
 
 public:
     explicit DynamicBitset(std::size_t num_bits)
-        : blocks(compute_num_blocks(num_bits), zeros),
-          num_bits(num_bits) {
+        : blocks(compute_num_blocks(num_bits), zeros)
+        , num_bits(num_bits)
+    {
     }
 
-    std::size_t size() const {
-        return num_bits;
-    }
+    std::size_t size() const { return num_bits; }
 
     /*
       Count the number of set bits.
@@ -72,7 +75,8 @@ public:
       The computation could be made faster by using a more sophisticated
       algorithm (see https://en.wikipedia.org/wiki/Hamming_weight).
     */
-    int count() const {
+    int count() const
+    {
         int result = 0;
         for (std::size_t pos = 0; pos < num_bits; ++pos) {
             result += static_cast<int>(test(pos));
@@ -80,48 +84,48 @@ public:
         return result;
     }
 
-    void set() {
+    void set()
+    {
         std::fill(blocks.begin(), blocks.end(), ones);
         zero_unused_bits();
     }
 
-    void reset() {
-        std::fill(blocks.begin(), blocks.end(), zeros);
-    }
+    void reset() { std::fill(blocks.begin(), blocks.end(), zeros); }
 
-    void set(std::size_t pos) {
+    void set(std::size_t pos)
+    {
         assert(pos < num_bits);
         blocks[block_index(pos)] |= bit_mask(pos);
     }
 
-    void reset(std::size_t pos) {
+    void reset(std::size_t pos)
+    {
         assert(pos < num_bits);
         blocks[block_index(pos)] &= ~bit_mask(pos);
     }
 
-    bool test(std::size_t pos) const {
+    bool test(std::size_t pos) const
+    {
         assert(pos < num_bits);
         return (blocks[block_index(pos)] & bit_mask(pos)) != 0;
     }
 
-    bool operator[](std::size_t pos) const {
-        return test(pos);
-    }
+    bool operator[](std::size_t pos) const { return test(pos); }
 
-    bool intersects(const DynamicBitset &other) const {
+    bool intersects(const DynamicBitset& other) const
+    {
         assert(size() == other.size());
         for (std::size_t i = 0; i < blocks.size(); ++i) {
-            if (blocks[i] & other.blocks[i])
-                return true;
+            if (blocks[i] & other.blocks[i]) return true;
         }
         return false;
     }
 
-    bool is_subset_of(const DynamicBitset &other) const {
+    bool is_subset_of(const DynamicBitset& other) const
+    {
         assert(size() == other.size());
         for (std::size_t i = 0; i < blocks.size(); ++i) {
-            if (blocks[i] & ~other.blocks[i])
-                return false;
+            if (blocks[i] & ~other.blocks[i]) return false;
         }
         return true;
     }
@@ -143,13 +147,13 @@ public:
     }
 };
 
-template<typename Block>
+template <typename Block>
 const Block DynamicBitset<Block>::zeros = Block(0);
 
-template<typename Block>
+template <typename Block>
 // MSVC's bitwise negation always returns a signed type.
 const Block DynamicBitset<Block>::ones = Block(~Block(0));
-}
+} // namespace dynamic_bitset
 
 /*
 This source file was derived from the boost::dynamic_bitset library
