@@ -48,23 +48,23 @@ class ExhaustiveAOSearch
           internal::PerStateInformation> {
     using Base = typename ExhaustiveAOSearch::AOBase;
 
-    using MDP = typename Base::MDP;
-    using Evaluator = typename Base::Evaluator;
-    using PolicyPicker = typename Base::PolicyPicker;
+    using MDPType = typename Base::MDPType;
+    using EvaluatorType = typename Base::EvaluatorType;
+    using PolicyPickerType = typename Base::PolicyPickerType;
 
-    using OpenList = OpenList<Action>;
+    using OpenListType = OpenList<Action>;
 
-    std::shared_ptr<OpenList> open_list_;
+    std::shared_ptr<OpenListType> open_list_;
 
 public:
     ExhaustiveAOSearch(
-        std::shared_ptr<PolicyPicker> policy_chooser,
-        std::shared_ptr<OpenList> open_list);
+        std::shared_ptr<PolicyPickerType> policy_chooser,
+        std::shared_ptr<OpenListType> open_list);
 
 protected:
     Interval do_solve(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> initial_state,
         ProgressReport& progress,
         double max_time) override;

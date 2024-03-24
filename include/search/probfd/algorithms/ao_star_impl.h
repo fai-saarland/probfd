@@ -17,8 +17,8 @@ namespace probfd::algorithms::ao_search::ao_star {
 
 template <typename State, typename Action, bool UseInterval>
 AOStar<State, Action, UseInterval>::AOStar(
-    std::shared_ptr<PolicyPicker> policy_chooser,
-    std::shared_ptr<SuccessorSampler> outcome_selection)
+    std::shared_ptr<PolicyPickerType> policy_chooser,
+    std::shared_ptr<SuccessorSamplerType> outcome_selection)
     : Base(policy_chooser)
     , outcome_selection_(outcome_selection)
 {
@@ -26,8 +26,8 @@ AOStar<State, Action, UseInterval>::AOStar(
 
 template <typename State, typename Action, bool UseInterval>
 Interval AOStar<State, Action, UseInterval>::do_solve(
-    MDP& mdp,
-    Evaluator& heuristic,
+    MDPType& mdp,
+    EvaluatorType& heuristic,
     param_type<State> initial_state,
     ProgressReport& progress,
     double max_time)

@@ -40,25 +40,25 @@ class AOStar
     : public AOBase<State, Action, UseInterval, true, PerStateInformation> {
     using Base = typename AOStar::AOBase;
 
-    using MDP = typename Base::MDP;
-    using Evaluator = typename Base::Evaluator;
-    using PolicyPicker = typename Base::PolicyPicker;
+    using MDPType = typename Base::MDPType;
+    using EvaluatorType = typename Base::EvaluatorType;
+    using PolicyPickerType = typename Base::PolicyPickerType;
 
-    using SuccessorSampler = SuccessorSampler<Action>;
+    using SuccessorSamplerType = SuccessorSampler<Action>;
 
-    std::shared_ptr<SuccessorSampler> outcome_selection_;
+    std::shared_ptr<SuccessorSamplerType> outcome_selection_;
 
     Distribution<StateID> selected_transition_;
 
 public:
     AOStar(
-        std::shared_ptr<PolicyPicker> policy_chooser,
-        std::shared_ptr<SuccessorSampler> outcome_selection);
+        std::shared_ptr<PolicyPickerType> policy_chooser,
+        std::shared_ptr<SuccessorSamplerType> outcome_selection);
 
 protected:
     Interval do_solve(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> initial_state,
         ProgressReport& progress,
         double max_time) override;
