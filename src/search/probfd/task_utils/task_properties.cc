@@ -104,7 +104,7 @@ int get_num_total_effects(const ProbabilisticTaskProxy& task_proxy)
     return num_effects;
 }
 
-void dump_task(const ProbabilisticTaskProxy& task_proxy)
+void dump_probabilistic_task(const ProbabilisticTaskProxy& task_proxy)
 {
     ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
     value_t min_action_cost = numeric_limits<int>::max();
