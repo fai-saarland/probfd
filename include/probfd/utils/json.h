@@ -2,6 +2,7 @@
 #ifndef PROBFD_UTILS_JSON_H
 #define PROBFD_UTILS_JSON_H
 
+#include <cmath>
 #include <concepts>
 #include <format>
 #include <iostream>
