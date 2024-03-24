@@ -29,9 +29,9 @@ MergeScoringFunctionTotalOrder::MergeScoringFunctionTotalOrder(
 {
 }
 
-static std::pair<int&, int&> rotate(std::pair<int, int> p)
+static std::pair<int, int> rotate(std::pair<int, int> p)
 {
-    return std::pair<int&, int&>(p.second, p.first);
+    return std::make_pair(p.second, p.first);
 }
 
 vector<double> MergeScoringFunctionTotalOrder::compute_scores(
