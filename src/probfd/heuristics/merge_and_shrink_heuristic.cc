@@ -58,7 +58,7 @@ MergeAndShrinkHeuristic::MergeAndShrinkHeuristic(
 {
     log_ << "Initializing merge-and-shrink heuristic..." << endl;
     FactoredTransitionSystem fts =
-        algorithm.build_factored_transition_system(task);
+        algorithm.build_factored_transition_system(task, log);
 
     /*
       TODO: This method has quite a bit of fiddling with aspects of
@@ -152,11 +152,5 @@ value_t MergeAndShrinkHeuristic::evaluate(const State& state) const
     }
     return heuristic;
 }
-
-namespace {
-
-class MergeAndShrinkHeuristicFactory : public TaskEvaluatorFactory {
-    MergeAndShrinkAlgorithm algorithm;
-    const utils::LogProxy log_;
 
 } // namespace probfd::heuristics
