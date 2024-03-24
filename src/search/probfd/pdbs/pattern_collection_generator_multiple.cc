@@ -361,7 +361,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
     return result;
 }
 
-void add_multiple_algorithm_implementation_notes_to_feature(
+static void add_multiple_algorithm_implementation_notes_to_feature(
     plugins::Feature& feature)
 {
     feature.document_note(

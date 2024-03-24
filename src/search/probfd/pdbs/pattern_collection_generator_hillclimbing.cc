@@ -45,7 +45,7 @@ static std::vector<int> get_goal_variables(const TaskBaseProxy& task_proxy)
     return goal_vars;
 }
 
-unsigned long long compute_total_pdb_size(const PPDBCollection& pdbs)
+static unsigned long long compute_total_pdb_size(const PPDBCollection& pdbs)
 {
     unsigned long long size = 0;
 
@@ -814,7 +814,7 @@ PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(
     return pci;
 }
 
-void add_hillclimbing_options(plugins::Feature& feature)
+static void add_hillclimbing_options(plugins::Feature& feature)
 {
     feature.add_option<std::shared_ptr<PatternCollectionGenerator>>(
         "initial_generator",
@@ -868,7 +868,7 @@ void add_hillclimbing_options(plugins::Feature& feature)
     utils::add_rng_options(feature);
 }
 
-void check_hillclimbing_options(
+static void check_hillclimbing_options(
     const plugins::Options& opts,
     const utils::Context& context)
 {

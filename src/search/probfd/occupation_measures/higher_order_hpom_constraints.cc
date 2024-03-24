@@ -21,18 +21,7 @@
 
 namespace probfd::occupation_measures {
 
-std::vector<int> HigherOrderHPOMGenerator::get_first_pattern() const
-{
-    std::vector<int> pattern(projection_size_);
-
-    for (size_t i = 0; i != pattern.size(); ++i) {
-        pattern[i] = static_cast<int>(i);
-    }
-
-    return pattern;
-}
-
-bool next_pattern(std::size_t num_variables, std::vector<int>& pattern)
+static bool next_pattern(std::size_t num_variables, std::vector<int>& pattern)
 {
     bool overflow = false;
 
@@ -62,19 +51,7 @@ bool next_pattern(std::size_t num_variables, std::vector<int>& pattern)
     return !overflow;
 }
 
-int HigherOrderHPOMGenerator::PatternInfo::get_state_id(
-    const std::vector<int>& state) const
-{
-    int res = 0;
-
-    for (size_t i = 0; i < multipliers.size(); ++i) {
-        res += multipliers[i] * state[i];
-    }
-
-    return res;
-}
-
-std::vector<int> get_first_partial_state(
+static std::vector<int> get_first_partial_state(
     const std::vector<int>& pattern,
     const std::vector<int>& pindices)
 {
@@ -88,7 +65,7 @@ std::vector<int> get_first_partial_state(
     return buffer;
 }
 
-bool next_partial_state(
+static bool next_partial_state(
     const VariablesProxy& variables,
     std::vector<int>& pstate,
     const std::vector<int>& pattern,
@@ -110,6 +87,29 @@ bool next_partial_state(
     }
 
     return false;
+}
+
+std::vector<int> HigherOrderHPOMGenerator::get_first_pattern() const
+{
+    std::vector<int> pattern(projection_size_);
+
+    for (size_t i = 0; i != pattern.size(); ++i) {
+        pattern[i] = static_cast<int>(i);
+    }
+
+    return pattern;
+}
+
+int HigherOrderHPOMGenerator::PatternInfo::get_state_id(
+    const std::vector<int>& state) const
+{
+    int res = 0;
+
+    for (size_t i = 0; i < multipliers.size(); ++i) {
+        res += multipliers[i] * state[i];
+    }
+
+    return res;
 }
 
 int HigherOrderHPOMGenerator::PatternInfo::get_updated_id(
