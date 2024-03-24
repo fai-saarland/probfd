@@ -316,10 +316,7 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
         for (auto& [local_label2, new_labels] : buckets) {
             const auto& transitions2 =
                 ts2.local_label_infos[local_label2].get_transitions();
-            assert(
-                probabilities1 ==
-                ts2.local_label_infos[local_label2].get_probabilities());
-
+            
             if (transitions1.empty() || transitions2.empty()) {
                 dead_labels.insert(
                     dead_labels.end(),
@@ -327,6 +324,10 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
                     new_labels.end());
                 continue;
             }
+
+            assert(
+                probabilities1 ==
+                ts2.local_label_infos[local_label2].get_probabilities());
 
             // Create the new transitions for this bucket
             vector<Transition> new_transitions;
