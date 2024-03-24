@@ -94,21 +94,22 @@ vector<value_t> get_operator_costs(const ProbabilisticTaskProxy& task_proxy)
     return costs;
 }
 
-int get_num_total_effects(const TaskProxy& task_proxy)
+int get_num_total_effects(const ProbabilisticTaskProxy& task_proxy)
 {
     int num_effects = 0;
-    for (OperatorProxy op : task_proxy.get_operators())
-        num_effects += op.get_effects().size();
+    for (ProbabilisticOperatorProxy op : task_proxy.get_operators())
+        for (ProbabilisticOutcomeProxy outcome : op.get_outcomes())
+            num_effects += outcome.get_effects().size();
     num_effects += task_proxy.get_axioms().size();
     return num_effects;
 }
 
-void dump_task(const TaskProxy& task_proxy)
+void dump_probabilistic_task(const ProbabilisticTaskProxy& task_proxy)
 {
-    OperatorsProxy operators = task_proxy.get_operators();
-    int min_action_cost = numeric_limits<int>::max();
-    int max_action_cost = 0;
-    for (OperatorProxy op : operators) {
+    ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
+    value_t min_action_cost = numeric_limits<int>::max();
+    value_t max_action_cost = 0;
+    for (ProbabilisticOperatorProxy op : operators) {
         min_action_cost = min(min_action_cost, op.get_cost());
         max_action_cost = max(max_action_cost, op.get_cost());
     }

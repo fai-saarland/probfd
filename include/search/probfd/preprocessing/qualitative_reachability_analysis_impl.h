@@ -69,7 +69,7 @@ QualitativeReachabilityAnalysis<State, Action>::ExpansionInfo::ExpansionInfo(
 
 template <typename State, typename Action>
 bool QualitativeReachabilityAnalysis<State, Action>::ExpansionInfo::next_action(
-    MDP& mdp)
+    MDPType& mdp)
 {
     // Reset transition flags
     exits_only_solvable = true;
@@ -84,7 +84,7 @@ bool QualitativeReachabilityAnalysis<State, Action>::ExpansionInfo::next_action(
 
 template <typename State, typename Action>
 bool QualitativeReachabilityAnalysis<State, Action>::ExpansionInfo::
-    forward_non_self_loop(MDP& mdp, const State& state)
+    forward_non_self_loop(MDPType& mdp, const State& state)
 {
     do {
         mdp.generate_action_transitions(state, aops.back(), transition);
@@ -143,8 +143,8 @@ QualitativeReachabilityAnalysis<State, Action>::QualitativeReachabilityAnalysis(
 
 template <typename State, typename Action>
 void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
-    MDP& mdp,
-    const Evaluator* pruning_function,
+    MDPType& mdp,
+    const EvaluatorType* pruning_function,
     param_type<State> source_state,
     std::output_iterator<StateID> auto dead_out,
     std::output_iterator<StateID> auto unsolvable_out,
@@ -212,8 +212,8 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
 
 template <typename State, typename Action>
 bool QualitativeReachabilityAnalysis<State, Action>::initialize(
-    MDP& mdp,
-    const Evaluator* pruning_function,
+    MDPType& mdp,
+    const EvaluatorType* pruning_function,
     ExpansionInfo& exp_info)
 {
     // assert(!state_info.explored);
@@ -267,7 +267,7 @@ void QualitativeReachabilityAnalysis<State, Action>::push_state(
 
 template <typename State, typename Action>
 bool QualitativeReachabilityAnalysis<State, Action>::push_successor(
-    MDP& mdp,
+    MDPType& mdp,
     ExpansionInfo& exp_info,
     utils::CountdownTimer& timer)
 {

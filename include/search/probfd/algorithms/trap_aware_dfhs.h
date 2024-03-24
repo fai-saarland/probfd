@@ -77,8 +77,8 @@ class TADFHSImpl
     using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
 
-    using QEvaluator = typename Base::Evaluator;
-    using QuotientPolicyPicker = typename Base::PolicyPicker;
+    using QEvaluator = typename Base::EvaluatorType;
+    using QuotientPolicyPicker = typename Base::PolicyPickerType;
     using UpdateResult = typename Base ::UpdateResult;
     using StateInfo = typename Base::StateInfo;
 

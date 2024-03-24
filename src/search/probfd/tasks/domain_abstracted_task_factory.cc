@@ -20,6 +20,8 @@ using namespace std;
 
 namespace probfd::extra_tasks {
 
+namespace {
+
 class DomainAbstractedTaskFactory {
 private:
     vector<int> domain_size;
@@ -30,8 +32,8 @@ private:
     shared_ptr<ProbabilisticTask> task;
 
     void combine_values(int var, const ValueGroups& groups);
-    [[nodiscard]] string
-    get_combined_fact_name(int var, const ValueGroup& values) const;
+    [[nodiscard]]
+    string get_combined_fact_name(int var, const ValueGroup& values) const;
 
 public:
     DomainAbstractedTaskFactory(
@@ -39,7 +41,8 @@ public:
         const VarToGroups& value_groups);
     ~DomainAbstractedTaskFactory() = default;
 
-    [[nodiscard]] shared_ptr<ProbabilisticTask> get_task() const;
+    [[nodiscard]]
+    shared_ptr<ProbabilisticTask> get_task() const;
 };
 
 DomainAbstractedTaskFactory::DomainAbstractedTaskFactory(
@@ -176,8 +179,10 @@ shared_ptr<ProbabilisticTask> DomainAbstractedTaskFactory::get_task() const
     return task;
 }
 
-shared_ptr<ProbabilisticTask> build_domain_abstracted_task(
-    const shared_ptr<ProbabilisticTask>& parent,
+} // namespace
+
+std::shared_ptr<ProbabilisticTask> build_domain_abstracted_task(
+    const std::shared_ptr<ProbabilisticTask>& parent,
     const VarToGroups& value_groups)
 {
     return DomainAbstractedTaskFactory(parent, value_groups).get_task();

@@ -70,7 +70,7 @@ void QuotientInformation<Action>::filter_actions(
 }
 
 template <typename State, typename Action>
-QuotientState<State, Action>::QuotientState(MDP& mdp, State single)
+QuotientState<State, Action>::QuotientState(MDPType& mdp, State single)
     : mdp(mdp)
     , single_or_quotient(std::move(single))
 {
@@ -78,8 +78,8 @@ QuotientState<State, Action>::QuotientState(MDP& mdp, State single)
 
 template <typename State, typename Action>
 QuotientState<State, Action>::QuotientState(
-    MDP& mdp,
-    const QuotientInformation* quotient)
+    MDPType& mdp,
+    const QuotientInformationType* quotient)
     : mdp(mdp)
     , single_or_quotient(quotient)
 {
@@ -96,12 +96,12 @@ value_t QuotientState<State, Action>::member_maximum(F&& f) const
 
     return std::visit(
         overloaded{
-            [&](const QuotientInformation* quotient) {
+            [&](const QuotientInformationType* quotient) {
                 value_t res = -INFINITE_VALUE;
                 for (param_type<State> state :
-                     quotient->member_ids() |
-                         transform(
-                             std::bind_front(&MDP::get_state, std::ref(mdp)))) {
+                     quotient->member_ids() | transform(std::bind_front(
+                                                  &MDPType::get_state,
+                                                  std::ref(mdp)))) {
                     res = std::max(res, f(state));
                 }
                 return res;
@@ -116,11 +116,12 @@ void QuotientState<State, Action>::for_each_member_state(
 {
     std::visit(
         overloaded{
-            [&](const QuotientInformation* quotient) {
+            [&](const QuotientInformationType* quotient) {
                 std::ranges::for_each(
                     quotient->member_ids() |
-                        std::views::transform(
-                            std::bind_front(&MDP::get_state, std::ref(mdp))),
+                        std::views::transform(std::bind_front(
+                            &MDPType::get_state,
+                            std::ref(mdp))),
                     f);
             },
             [&](param_type<State> single) { f(single); }},
@@ -132,7 +133,7 @@ size_t QuotientState<State, Action>::num_members() const
 {
     return std::visit(
         overloaded{
-            [](const QuotientInformation* quotient) {
+            [](const QuotientInformationType* quotient) {
                 return quotient->num_members();
             },
             [](param_type<State>) -> size_t { return 1; }},
@@ -145,7 +146,7 @@ void QuotientState<State, Action>::get_collapsed_actions(
 {
     std::visit(
         overloaded{
-            [&](const QuotientInformation* info) {
+            [&](const QuotientInformationType* info) {
                 aops.reserve(info->aops_.size() - info->total_num_outer_acts_);
 
                 auto aid = info->aops_.begin();
@@ -167,8 +168,8 @@ void QuotientState<State, Action>::get_collapsed_actions(
 }
 
 template <typename State, typename Action>
-QuotientSystem<State, Action>::const_iterator::const_iterator(
-    const QuotientSystem* qs,
+quotient_id_iterator<State, Action>::quotient_id_iterator(
+    const QuotientSystem<State, Action>* qs,
     StateID x)
     : qs_(qs)
     , i_(x)
@@ -177,12 +178,11 @@ QuotientSystem<State, Action>::const_iterator::const_iterator(
 }
 
 template <typename State, typename Action>
-auto QuotientSystem<State, Action>::const_iterator::operator++()
-    -> const_iterator&
+auto quotient_id_iterator<State, Action>::operator++() -> quotient_id_iterator&
 {
     while (++i_.id < qs_->quotient_ids_.size()) {
         const StateID ref = qs_->quotient_ids_[i_];
-        if (i_ == (ref & QuotientSystem::MASK)) {
+        if (i_ == (ref & QuotientSystem<State, Action>::MASK)) {
             break;
         }
     }
@@ -192,20 +192,20 @@ auto QuotientSystem<State, Action>::const_iterator::operator++()
 
 template <typename State, typename Action>
 bool operator==(
-    const typename QuotientSystem<State, Action>::const_iterator& left,
-    const typename QuotientSystem<State, Action>::const_iterator& right)
+    const typename QuotientSystem<State, Action>::quotient_id_iterator& left,
+    const typename QuotientSystem<State, Action>::quotient_id_iterator& right)
 {
     return left.i_ == right.i_;
 }
 
 template <typename State, typename Action>
-StateID QuotientSystem<State, Action>::const_iterator::operator*() const
+StateID quotient_id_iterator<State, Action>::operator*() const
 {
     return i_;
 }
 
 template <typename State, typename Action>
-QuotientSystem<State, Action>::QuotientSystem(MDP& mdp)
+QuotientSystem<State, Action>::QuotientSystem(MDPType& mdp)
     : mdp_(mdp)
 {
 }
@@ -215,7 +215,7 @@ StateID QuotientSystem<State, Action>::get_state_id(param_type<QState> state)
 {
     return std::visit(
         overloaded{
-            [&](const QuotientInformation* info) {
+            [&](const QuotientInformationType* info) {
                 return info->state_infos_.front().state_id;
             },
             [&](param_type<State> s) { return mdp_.get_state_id(s); }},
@@ -225,7 +225,7 @@ StateID QuotientSystem<State, Action>::get_state_id(param_type<QState> state)
 template <typename State, typename Action>
 auto QuotientSystem<State, Action>::get_state(StateID state_id) -> QState
 {
-    const QuotientInformation* info = get_quotient_info(state_id);
+    const QuotientInformationType* info = get_quotient_info(state_id);
 
     if (info) {
         return QState(mdp_, info);
@@ -241,7 +241,7 @@ void QuotientSystem<State, Action>::generate_applicable_actions(
 {
     std::visit(
         overloaded{
-            [&](const QuotientInformation* info) {
+            [&](const QuotientInformationType* info) {
                 aops.reserve(info->total_num_outer_acts_);
 
                 auto aid = info->aops_.begin();
@@ -295,7 +295,7 @@ void QuotientSystem<State, Action>::generate_all_transitions(
 {
     std::visit(
         overloaded{
-            [&](const QuotientInformation* info) {
+            [&](const QuotientInformationType* info) {
                 aops.reserve(info->total_num_outer_acts_);
                 successors.reserve(info->total_num_outer_acts_);
 
@@ -349,7 +349,7 @@ void QuotientSystem<State, Action>::generate_all_transitions(
 {
     std::visit(
         overloaded{
-            [&](const QuotientInformation* info) {
+            [&](const QuotientInformationType* info) {
                 transitions.reserve(info->total_num_outer_acts_);
 
                 auto aop = info->aops_.begin();
@@ -399,7 +399,7 @@ QuotientSystem<State, Action>::get_termination_info(param_type<QState> s)
 {
     return std::visit(
         overloaded{
-            [&](const QuotientInformation* info) {
+            [&](const QuotientInformationType* info) {
                 return info->termination_info_;
             },
             [&](param_type<State> state) {
@@ -415,7 +415,7 @@ value_t QuotientSystem<State, Action>::get_action_cost(QAction qa)
 }
 
 template <typename State, typename Action>
-auto QuotientSystem<State, Action>::get_parent_mdp() -> MDP&
+auto QuotientSystem<State, Action>::get_parent_mdp() -> MDPType&
 {
     return mdp_;
 }
@@ -423,13 +423,13 @@ auto QuotientSystem<State, Action>::get_parent_mdp() -> MDP&
 template <typename State, typename Action>
 auto QuotientSystem<State, Action>::begin() const -> const_iterator
 {
-    return const_iterator(this, 0);
+    return quotient_id_iterator(this, 0);
 }
 
 template <typename State, typename Action>
 auto QuotientSystem<State, Action>::end() const -> const_iterator
 {
-    return const_iterator(this, quotient_ids_.size());
+    return quotient_id_iterator(this, quotient_ids_.size());
 }
 
 template <typename State, typename Action>
@@ -476,7 +476,7 @@ void QuotientSystem<State, Action>::build_quotient(
     bool is_goal = false;
 
     // Get or create quotient
-    QuotientInformation& qinfo = quotients_[rid];
+    QuotientInformationType& qinfo = quotients_[rid];
 
     // We handle the representative state first so that it
     // appears first in the data structure.
@@ -536,7 +536,7 @@ void QuotientSystem<State, Action>::build_quotient(
         if (qsqid & FLAG) {
             // Get the old quotient
             auto qit = quotients_.find(qsqid & MASK);
-            QuotientInformation& q = qit->second;
+            QuotientInformationType& q = qit->second;
 
             // Filter actions
             q.filter_actions(aops);
@@ -604,7 +604,7 @@ void QuotientSystem<State, Action>::build_new_quotient(
     const auto& raops = get<1>(entry);
 
     // Get or create quotient
-    QuotientInformation& qinfo = quotients_[rid];
+    QuotientInformationType& qinfo = quotients_[rid];
 
     // We handle the representative state first so that it
     // appears first in the data structure.
@@ -693,7 +693,7 @@ auto QuotientSystem<State, Action>::partition_actions(
 
 template <typename State, typename Action>
 auto QuotientSystem<State, Action>::get_quotient_info(StateID state_id)
-    -> QuotientInformation*
+    -> QuotientInformationType*
 {
     const StateID::size_type qid = get_masked_state_id(state_id);
     return qid & FLAG ? &quotients_.find(qid & MASK)->second : nullptr;
@@ -701,7 +701,7 @@ auto QuotientSystem<State, Action>::get_quotient_info(StateID state_id)
 
 template <typename State, typename Action>
 auto QuotientSystem<State, Action>::get_quotient_info(StateID state_id) const
-    -> const QuotientInformation*
+    -> const QuotientInformationType*
 {
     const StateID::size_type qid = get_masked_state_id(state_id);
     return qid & FLAG ? &quotients_.find(qid & MASK)->second : nullptr;

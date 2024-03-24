@@ -71,7 +71,7 @@ inline void Statistics::print(std::ostream& out) const
 
 template <typename State, typename Action, typename StateInfoT>
 HeuristicSearchBase<State, Action, StateInfoT>::HeuristicSearchBase(
-    std::shared_ptr<PolicyPicker> policy_chooser)
+    std::shared_ptr<PolicyPickerType> policy_chooser)
     : policy_chooser_(policy_chooser)
 {
     statistics_.state_info_bytes = sizeof(StateInfo);
@@ -147,8 +147,8 @@ HeuristicSearchBase<State, Action, StateInfoT>::get_greedy_action(
 template <typename State, typename Action, typename StateInfoT>
 std::optional<Action>
 HeuristicSearchBase<State, Action, StateInfoT>::compute_greedy_action(
-    MDP& mdp,
-    Evaluator& h,
+    MDPType& mdp,
+    EvaluatorType& h,
     StateID state_id)
     requires(!StorePolicy)
 {
@@ -174,8 +174,8 @@ HeuristicSearchBase<State, Action, StateInfoT>::compute_greedy_action(
 
 template <typename State, typename Action, typename StateInfoT>
 bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
-    MDP& mdp,
-    Evaluator& h,
+    MDPType& mdp,
+    EvaluatorType& h,
     StateID s)
 {
     return bellman_update(mdp, h, s, lookup_initialize(mdp, h, s));
@@ -183,10 +183,10 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
 
 template <typename State, typename Action, typename StateInfoT>
 bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
-    MDP& mdp,
-    Evaluator& h,
+    MDPType& mdp,
+    EvaluatorType& h,
     StateID state_id,
-    std::vector<Transition>& greedy)
+    std::vector<TransitionType>& greedy)
 {
     return bellman_update(
         mdp,
@@ -198,8 +198,8 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::bellman_policy_update(
-    MDP& mdp,
-    Evaluator& h,
+    MDPType& mdp,
+    EvaluatorType& h,
     StateID state_id) -> UpdateResult
     requires(StorePolicy)
 {
@@ -238,8 +238,8 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::bellman_policy_update(
 
 template <typename State, typename Action, typename StateInfoT>
 void HeuristicSearchBase<State, Action, StateInfoT>::initialize_report(
-    MDP& mdp,
-    Evaluator& h,
+    MDPType& mdp,
+    EvaluatorType& h,
     param_type<State> state,
     ProgressReport& progress)
 {
@@ -322,8 +322,8 @@ void HeuristicSearchBase<State, Action, StateInfoT>::state_value_changed(
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::lookup_initialize(
-    MDP& mdp,
-    Evaluator& h,
+    MDPType& mdp,
+    EvaluatorType& h,
     StateID state_id) -> StateInfo&
 {
     StateInfo& state_info = get_state_info(state_id);
@@ -333,8 +333,8 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::lookup_initialize(
 
 template <typename State, typename Action, typename StateInfoT>
 bool HeuristicSearchBase<State, Action, StateInfoT>::initialize_if_needed(
-    MDP& mdp,
-    Evaluator& h,
+    MDPType& mdp,
+    EvaluatorType& h,
     StateID state_id,
     StateInfo& state_info)
 {
@@ -373,10 +373,10 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::initialize_if_needed(
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::normalized_qvalue(
-    MDP& mdp,
-    Evaluator& h,
+    MDPType& mdp,
+    EvaluatorType& h,
     StateID state_id,
-    const Transition& transition) -> std::optional<AlgorithmValueType>
+    const TransitionType& transition) -> std::optional<AlgorithmValueType>
 {
     AlgorithmValueType t_value(mdp.get_action_cost(transition.action));
     value_t non_self_loop = 1_vt;
@@ -404,10 +404,10 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::normalized_qvalue(
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::filter_greedy_transitions(
-    MDP& mdp,
-    Evaluator& h,
+    MDPType& mdp,
+    EvaluatorType& h,
     StateID state_id,
-    std::vector<Transition>& transitions,
+    std::vector<TransitionType>& transitions,
     value_t termination_cost) -> AlgorithmValueType
 {
     using std::ranges::remove_if;
@@ -445,8 +445,8 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::filter_greedy_transitions(
 
 template <typename State, typename Action, typename StateInfoT>
 bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
-    MDP& mdp,
-    Evaluator& h,
+    MDPType& mdp,
+    EvaluatorType& h,
     StateID state_id,
     StateInfo& state_info,
     auto&... optional_out_greedy)

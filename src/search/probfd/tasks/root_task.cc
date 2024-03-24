@@ -24,8 +24,11 @@ using utils::ExitCode;
 
 namespace probfd::tasks {
 
-static const auto PRE_FILE_PROB_VERSION = "3P";
 shared_ptr<ProbabilisticTask> g_root_task = nullptr;
+
+namespace {
+
+const auto PRE_FILE_PROB_VERSION = "3P";
 
 struct ExplicitVariable {
     int domain_size;
@@ -190,8 +193,7 @@ public:
         const override;
 };
 
-static void
-check_fact(const FactPair& fact, const vector<ExplicitVariable>& variables)
+void check_fact(const FactPair& fact, const vector<ExplicitVariable>& variables)
 {
     if (!utils::in_bounds(fact.var, variables)) {
         cerr << "Invalid variable id: " << fact.var << endl;
@@ -204,7 +206,7 @@ check_fact(const FactPair& fact, const vector<ExplicitVariable>& variables)
     }
 }
 
-static void check_facts(
+void check_facts(
     const vector<FactPair>& facts,
     const vector<ExplicitVariable>& variables)
 {
@@ -213,7 +215,7 @@ static void check_facts(
     }
 }
 
-static void check_facts(
+void check_facts(
     const ExplicitAxiom& axiom,
     const vector<ExplicitVariable>& variables)
 {
@@ -225,7 +227,7 @@ static void check_facts(
     }
 }
 
-static void check_facts(
+void check_facts(
     const ProbabilisticOperator& action,
     const vector<ExplicitVariable>& variables)
 {
@@ -851,6 +853,8 @@ int RootTask::convert_operator_index(
     return index;
 }
 
+} // namespace
+
 std::unique_ptr<ProbabilisticTask> read_sas_task(std::istream& in)
 {
     return std::make_unique<RootTask>(in);
@@ -872,6 +876,7 @@ void set_root_task(std::shared_ptr<ProbabilisticTask> task)
 }
 
 namespace {
+
 class RootTaskFeature
     : public plugins::TypedFeature<ProbabilisticTask, ProbabilisticTask> {
 public:
@@ -889,8 +894,8 @@ public:
     }
 };
 
-} // namespace
+plugins::FeaturePlugin<RootTaskFeature> _plugin;
 
-static plugins::FeaturePlugin<RootTaskFeature> _plugin;
+} // namespace
 
 } // namespace probfd::tasks

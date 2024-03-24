@@ -132,8 +132,8 @@ public:
     using StateInfo = typename Base::StateInfo;
 
 private:
-    using MDP = typename Base::MDP;
-    using Evaluator = typename Base::Evaluator;
+    using MDP = typename Base::MDPType;
+    using Evaluator = typename Base::EvaluatorType;
 
     using PolicyPicker = typename Base::PolicyPicker;
 

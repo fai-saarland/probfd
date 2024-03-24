@@ -16,7 +16,7 @@ namespace utils {
 void out_of_memory_handler()
 {
     cout << "Failed to allocate memory." << endl;
-    oom_exit_with(ExitCode::SEARCH_OUT_OF_MEMORY);
+    exit_with_reentrant(ExitCode::SEARCH_OUT_OF_MEMORY);
 }
 
 void signal_handler(int signal_number)

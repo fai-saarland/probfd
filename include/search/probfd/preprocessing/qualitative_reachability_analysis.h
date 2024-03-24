@@ -92,8 +92,8 @@ struct StackInfo {
  */
 template <typename State, typename Action>
 class QualitativeReachabilityAnalysis {
-    using MDP = MDP<State, Action>;
-    using Evaluator = Evaluator<State>;
+    using MDPType = MDP<State, Action>;
+    using EvaluatorType = Evaluator<State>;
 
     using StateInfo = internal::StateInfo;
     using StackInfo = internal::StackInfo;
@@ -128,8 +128,8 @@ class QualitativeReachabilityAnalysis {
          * Advances to the next non-loop action. Returns nullptr if such an
          * action does not exist.
          */
-        bool next_action(MDP& mdp);
-        bool forward_non_self_loop(MDP& mdp, const State& state);
+        bool next_action(MDPType& mdp);
+        bool forward_non_self_loop(MDPType& mdp, const State& state);
         bool next_successor();
 
         StateID get_current_successor();
@@ -147,8 +147,8 @@ public:
     explicit QualitativeReachabilityAnalysis(bool expand_goals);
 
     void run_analysis(
-        MDP& mdp,
-        const Evaluator* pruning_function,
+        MDPType& mdp,
+        const EvaluatorType* pruning_function,
         param_type<State> source_state,
         std::output_iterator<StateID> auto dead_out,
         std::output_iterator<StateID> auto unsolvable_out,
@@ -159,12 +159,14 @@ private:
     void push_state(StateID state_id, StateInfo& state_info);
 
     bool initialize(
-        MDP& mdp,
-        const Evaluator* pruning_function,
+        MDPType& mdp,
+        const EvaluatorType* pruning_function,
         ExpansionInfo& exp_info);
 
-    bool
-    push_successor(MDP& mdp, ExpansionInfo& e, utils::CountdownTimer& timer);
+    bool push_successor(
+        MDPType& mdp,
+        ExpansionInfo& e,
+        utils::CountdownTimer& timer);
 
     void scc_found(
         unsigned int stack_idx,

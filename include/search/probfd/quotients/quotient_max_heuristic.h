@@ -14,7 +14,7 @@ namespace probfd::quotients {
 
 template <typename State, typename Action>
 class QuotientMaxHeuristic : public Evaluator<QuotientState<State, Action>> {
-    using QuotientState = QuotientState<State, Action>;
+    using QState = QuotientState<State, Action>;
 
     const Evaluator<State>& original_;
 
@@ -24,7 +24,7 @@ public:
     {
     }
 
-    value_t evaluate(param_type<QuotientState> state) const override
+    value_t evaluate(param_type<QState> state) const override
     {
         return state.member_maximum(
             std::bind_front(&Evaluator<State>::evaluate, std::ref(original_)));

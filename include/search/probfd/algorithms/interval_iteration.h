@@ -54,7 +54,7 @@ class IntervalIteration : public MDPAlgorithm<State, Action> {
     using MDPType = typename Base::MDPType;
     using EvaluatorType = typename Base::EvaluatorType;
 
-    using QuotientSystem = quotients::QuotientSystem<State, Action>;
+    using QSystem = quotients::QuotientSystem<State, Action>;
     using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
 
@@ -101,7 +101,7 @@ public:
         double max_time = std::numeric_limits<double>::infinity());
 
 private:
-    std::unique_ptr<QuotientSystem> create_quotient(
+    std::unique_ptr<QSystem> create_quotient(
         MDPType& mdp,
         EvaluatorType& heuristic,
         param_type<State> state,
@@ -115,7 +115,7 @@ private:
         ValueStoreT& value_store,
         SetLike& dead_ends,
         SetLike2& one_states,
-        QuotientSystem& sys,
+        QSystem& sys,
         utils::CountdownTimer& timer);
 };
 

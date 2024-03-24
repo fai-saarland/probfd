@@ -111,11 +111,11 @@ public:
 template <typename State, typename Action, typename StateInfoT>
 class HeuristicSearchBase {
 protected:
-    using MDP = MDP<State, Action>;
-    using Evaluator = Evaluator<State>;
-    using Transition = Transition<Action>;
+    using MDPType = MDP<State, Action>;
+    using EvaluatorType = Evaluator<State>;
+    using TransitionType = Transition<Action>;
 
-    using PolicyPicker = PolicyPicker<State, Action>;
+    using PolicyPickerType = PolicyPicker<State, Action>;
 
 public:
     using StateInfo = StateInfoT;
@@ -123,17 +123,17 @@ public:
     static constexpr bool StorePolicy = StateInfo::StorePolicy;
     static constexpr bool UseInterval = StateInfo::UseInterval;
 
-    using AlgorithmValueType = AlgorithmValueType<UseInterval>;
+    using AlgorithmValueType = AlgorithmValue<UseInterval>;
 
 private:
-    std::shared_ptr<PolicyPicker> policy_chooser_;
+    std::shared_ptr<PolicyPickerType> policy_chooser_;
 
     internal::StateInfos<StateInfo> state_infos_;
 
     StateInfo* initial_state_info_ = nullptr;
 
     // Reused buffer
-    std::vector<Transition> transitions_;
+    std::vector<TransitionType> transitions_;
 
 protected:
     internal::Statistics statistics_;
@@ -141,11 +141,12 @@ protected:
     struct UpdateResult {
         bool value_changed;
         bool policy_changed;
-        std::optional<Transition> greedy_transition = std::nullopt;
+        std::optional<TransitionType> greedy_transition = std::nullopt;
     };
 
 public:
-    explicit HeuristicSearchBase(std::shared_ptr<PolicyPicker> policy_chooser);
+    explicit HeuristicSearchBase(
+        std::shared_ptr<PolicyPickerType> policy_chooser);
 
     /**
      * @brief Looks up the current lower bound for the cost of \p state_id.
@@ -190,38 +191,39 @@ public:
         requires(StorePolicy);
 
     std::optional<Action>
-    compute_greedy_action(MDP& mdp, Evaluator& h, StateID state_id)
+    compute_greedy_action(MDPType& mdp, EvaluatorType& h, StateID state_id)
         requires(!StorePolicy);
 
     /**
      * @brief Computes the Bellman update for a state and returns whether the
      * value changed.
      */
-    bool bellman_update(MDP& mdp, Evaluator& h, StateID s);
+    bool bellman_update(MDPType& mdp, EvaluatorType& h, StateID s);
 
     /**
      * @brief Computes the Bellman update for a state and outputs all greedy
      * transitions, and returns whether the value changed.
      */
     bool bellman_update(
-        MDP& mdp,
-        Evaluator& h,
+        MDPType& mdp,
+        EvaluatorType& h,
         StateID state_id,
-        std::vector<Transition>& greedy);
+        std::vector<TransitionType>& greedy);
 
     /**
      * @brief Computes the Bellman update for a state, recomputes the greedy
      * action for it, and outputs status changes and the new greedy transition.
      */
-    UpdateResult bellman_policy_update(MDP& mdp, Evaluator& h, StateID state_id)
+    UpdateResult
+    bellman_policy_update(MDPType& mdp, EvaluatorType& h, StateID state_id)
         requires(StorePolicy);
 
 protected:
     auto get_state_infos() { return state_infos_.get_infos(); }
 
     void initialize_report(
-        MDP& mdp,
-        Evaluator& h,
+        MDPType& mdp,
+        EvaluatorType& h,
         param_type<State> state,
         ProgressReport& progress);
 
@@ -250,30 +252,31 @@ private:
 
     void state_value_changed(StateInfo& info);
 
-    StateInfo& lookup_initialize(MDP& mdp, Evaluator& h, StateID state_id);
+    StateInfo&
+    lookup_initialize(MDPType& mdp, EvaluatorType& h, StateID state_id);
 
     bool initialize_if_needed(
-        MDP& mdp,
-        Evaluator& h,
+        MDPType& mdp,
+        EvaluatorType& h,
         StateID state_id,
         StateInfo& state_info);
 
     std::optional<AlgorithmValueType> normalized_qvalue(
-        MDP& mdp,
-        Evaluator& h,
+        MDPType& mdp,
+        EvaluatorType& h,
         StateID state_id,
-        const Transition& transition);
+        const TransitionType& transition);
 
     AlgorithmValueType filter_greedy_transitions(
-        MDP& mdp,
-        Evaluator& h,
+        MDPType& mdp,
+        EvaluatorType& h,
         StateID state_id,
-        std::vector<Transition>& transitions,
+        std::vector<TransitionType>& transitions,
         value_t termination_cost);
 
     bool bellman_update(
-        MDP& mdp,
-        Evaluator& h,
+        MDPType& mdp,
+        EvaluatorType& h,
         StateID state_id,
         StateInfo& state_info,
         auto&... optional_out_greedy);
@@ -301,7 +304,7 @@ protected:
     using EvaluatorType = typename AlgorithmBase::EvaluatorType;
 
     using StateInfo = typename HSBase::StateInfo;
-    using PolicyPicker = typename HSBase::PolicyPicker;
+    using PolicyPicker = typename HSBase::PolicyPickerType;
 
 public:
     // Inherited constructor

@@ -83,8 +83,8 @@ class TALRTDPImpl
     using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
 
-    using QEvaluator = typename Base::Evaluator;
-    using QuotientPolicyPicker = typename Base::PolicyPicker;
+    using QEvaluator = typename Base::EvaluatorType;
+    using QuotientPolicyPicker = typename Base::PolicyPickerType;
     using StateInfo = typename Base::StateInfo;
 
     using QuotientSuccessorSampler = SuccessorSampler<QAction>;

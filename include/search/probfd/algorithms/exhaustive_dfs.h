@@ -92,7 +92,7 @@ struct SearchNodeInformation {
     // stack
     unsigned lowlink = std::numeric_limits<unsigned int>::max();
     uint8_t status = NEW;
-    AlgorithmValueType<UseInterval> value;
+    AlgorithmValue<UseInterval> value;
     value_t term_cost;
 
     [[nodiscard]]
@@ -213,12 +213,12 @@ class ExhaustiveDepthFirstSearch : public MDPAlgorithm<State, Action> {
     using MDPType = typename Base::MDPType;
     using EvaluatorType = typename Base::EvaluatorType;
 
-    using TransitionSorter = TransitionSorter<State, Action>;
+    using TransitionSorterType = TransitionSorter<State, Action>;
 
-    using AlgorithmValueType = AlgorithmValueType<UseInterval>;
-    using SearchNodeInformation = SearchNodeInformation<UseInterval>;
+    using AlgorithmValueType = AlgorithmValue<UseInterval>;
+    using SearchNodeInfo = SearchNodeInformation<UseInterval>;
 
-    std::shared_ptr<TransitionSorter> transition_sort_;
+    std::shared_ptr<TransitionSorterType> transition_sort_;
 
     const Interval cost_bound_;
     const AlgorithmValueType trivial_bound_;
@@ -238,7 +238,7 @@ class ExhaustiveDepthFirstSearch : public MDPAlgorithm<State, Action> {
 
 public:
     explicit ExhaustiveDepthFirstSearch(
-        std::shared_ptr<TransitionSorter> transition_sorting,
+        std::shared_ptr<TransitionSorterType> transition_sorting,
         Interval cost_bound,
         bool path_updates,
         bool only_propagate_when_changed);
@@ -254,26 +254,26 @@ public:
 
 private:
     void register_value_reports(
-        const SearchNodeInformation& info,
+        const SearchNodeInfo& info,
         ProgressReport& progress);
 
     bool initialize_search_node(
         MDPType& mdp,
         EvaluatorType& heuristic,
         StateID state_id,
-        SearchNodeInformation& info);
+        SearchNodeInfo& info);
 
     bool initialize_search_node(
         MDPType& mdp,
         EvaluatorType& heuristic,
         param_type<State> state,
-        SearchNodeInformation& info);
+        SearchNodeInfo& info);
 
     bool push_state(
         MDPType& mdp,
         EvaluatorType& heuristic,
         StateID state_id,
-        SearchNodeInformation& info);
+        SearchNodeInfo& info);
 
     void run_exploration(
         MDPType& mdp,
@@ -285,7 +285,7 @@ private:
         value_t val,
         ProgressReport& progress);
 
-    bool check_early_convergence(const SearchNodeInformation& node) const;
+    bool check_early_convergence(const SearchNodeInfo& node) const;
 };
 
 } // namespace probfd::algorithms::exhaustive_dfs

@@ -10,8 +10,8 @@ namespace probfd::algorithms::exhaustive_ao {
 
 template <typename State, typename Action, bool UseInterval>
 ExhaustiveAOSearch<State, Action, UseInterval>::ExhaustiveAOSearch(
-    std::shared_ptr<PolicyPicker> policy_chooser,
-    std::shared_ptr<OpenList> open_list)
+    std::shared_ptr<PolicyPickerType> policy_chooser,
+    std::shared_ptr<OpenListType> open_list)
     : Base(policy_chooser)
     , open_list_(open_list)
 {
@@ -19,8 +19,8 @@ ExhaustiveAOSearch<State, Action, UseInterval>::ExhaustiveAOSearch(
 
 template <typename State, typename Action, bool UseInterval>
 Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
-    MDP& mdp,
-    Evaluator& heuristic,
+    MDPType& mdp,
+    EvaluatorType& heuristic,
     param_type<State> initial_state,
     ProgressReport& progress,
     double max_time)

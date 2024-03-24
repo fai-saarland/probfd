@@ -14,12 +14,11 @@
 
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 
 using namespace probfd;
 using namespace probfd::cartesian_abstractions;
 
-size_t get_num_transitions(const ProbabilisticTransitionSystem& ts)
+static size_t get_num_transitions(const ProbabilisticTransitionSystem& ts)
 {
     return ts.get_num_loops() + ts.get_num_non_loops();
 }

@@ -104,10 +104,10 @@ class AOBase
     using Base = typename AOBase::HeuristicSearchAlgorithm;
 
 protected:
-    using MDP = typename Base::MDP;
-    using Evaluator = typename Base::Evaluator;
+    using MDPType = typename Base::MDPType;
+    using EvaluatorType = typename Base::EvaluatorType;
+    using PolicyPickerType = typename Base::PolicyPicker;
     using StateInfo = typename Base::StateInfo;
-    using PolicyPicker = typename Base::PolicyPicker;
 
 private:
     struct PrioritizedStateID {
@@ -140,15 +140,15 @@ protected:
     setup_custom_reports(param_type<State>, ProgressReport& progress) override;
 
     void backpropagate_tip_value(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         utils::CountdownTimer& timer);
 
     void backpropagate_update_order(StateID tip, utils::CountdownTimer& timer);
 
     void initialize_tip_state_value(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         StateID state,
         StateInfo& info,
         bool& terminal,
@@ -163,8 +163,8 @@ protected:
 
 private:
     bool update_value_check_solved(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         StateID state,
         const StateInfo& info,
         bool& solved,
@@ -172,8 +172,8 @@ private:
         requires(StorePolicy);
 
     bool update_value_check_solved(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         StateID state,
         const StateInfo& info,
         bool& solved,

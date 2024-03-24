@@ -108,7 +108,7 @@ struct PerStateBaseInformation
     static constexpr bool StorePolicy = StorePolicy_;
     static constexpr bool UseInterval = UseInterval_;
 
-    AlgorithmValueType<UseInterval> value;
+    AlgorithmValue<UseInterval> value;
 
     /// Checks if the value bounds are epsilon-close.
     [[nodiscard]]

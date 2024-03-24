@@ -49,8 +49,8 @@ template <
     class StateInfoExtension>
 void AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
     backpropagate_tip_value(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         utils::CountdownTimer& timer)
 {
     while (!queue_.empty()) {
@@ -137,8 +137,8 @@ template <
     class StateInfoExtension>
 void AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
     initialize_tip_state_value(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         StateID state,
         StateInfo& info,
         bool& terminal,
@@ -229,8 +229,8 @@ template <
     class StateInfoExtension>
 bool AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
     update_value_check_solved(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         StateID state,
         const StateInfo& info,
         bool& solved,
@@ -268,8 +268,8 @@ template <
     class StateInfoExtension>
 bool AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
     update_value_check_solved(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         StateID state,
         const StateInfo& info,
         bool& solved,

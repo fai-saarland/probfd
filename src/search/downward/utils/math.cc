@@ -15,11 +15,6 @@ bool is_product_within_limit(int factor1, int factor2, int limit)
     return factor2 == 0 || factor1 <= limit / factor2;
 }
 
-bool is_product_within_limit(size_t factor1, size_t factor2, size_t limit)
-{
-    return factor2 == 0 || factor1 <= limit / factor2;
-}
-
 static bool is_product_within_limit_unsigned(
     unsigned int factor1,
     unsigned int factor2,

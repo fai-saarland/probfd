@@ -6,7 +6,9 @@
 #include <vector>
 
 // Forward Declarations
+namespace probfd {
 class ProbabilisticTask;
+}
 
 namespace probfd::extra_tasks {
 

@@ -73,7 +73,7 @@ class TopologicalValueIteration : public MDPAlgorithm<State, Action> {
     using EvaluatorType = typename Base::EvaluatorType;
 
     using MapPolicy = policies::MapPolicy<State, Action>;
-    using AlgorithmValueType = algorithms::AlgorithmValueType<UseInterval>;
+    using AlgorithmValueType = algorithms::AlgorithmValue<UseInterval>;
 
     struct StateInfo {
         // Status Flags
