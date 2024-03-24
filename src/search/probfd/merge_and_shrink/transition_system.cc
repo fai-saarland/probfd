@@ -149,6 +149,7 @@ void LocalLabelInfo::merge_local_label_info(LocalLabelInfo& local_label_info)
     assert(is_consistent());
     assert(local_label_info.is_consistent());
     assert(transitions == local_label_info.transitions);
+    assert(probabilities == local_label_info.probabilities);
     label_group.insert(
         label_group.end(),
         make_move_iterator(local_label_info.label_group.begin()),
@@ -162,6 +163,7 @@ void LocalLabelInfo::merge_local_label_info(LocalLabelInfo& local_label_info)
 void LocalLabelInfo::deactivate()
 {
     utils::release_vector_memory(transitions);
+    utils::release_vector_memory(probabilities);
     utils::release_vector_memory(label_group);
     cost = -1;
 }
@@ -294,7 +296,7 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
           l is dead in T1 only and l' is dead in T2 only, so they are not
           locally equivalent in either of the components).
     */
-    vector<int> dead_labels;
+    map<std::vector<value_t>, std::vector<int>> dead_labels;
     for (const LocalLabelInfo& local_label_info : ts1.label_infos()) {
         const LabelGroup& group1 = local_label_info.get_label_group();
         const vector<Transition>& transitions1 =
@@ -316,18 +318,19 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
         for (auto& [local_label2, new_labels] : buckets) {
             const auto& transitions2 =
                 ts2.local_label_infos[local_label2].get_transitions();
-            
-            if (transitions1.empty() || transitions2.empty()) {
-                dead_labels.insert(
-                    dead_labels.end(),
-                    new_labels.begin(),
-                    new_labels.end());
-                continue;
-            }
 
             assert(
                 probabilities1 ==
                 ts2.local_label_infos[local_label2].get_probabilities());
+
+            if (transitions1.empty() || transitions2.empty()) {
+                auto& dead_group = dead_labels[probabilities1];
+                dead_group.insert(
+                    dead_group.end(),
+                    new_labels.begin(),
+                    new_labels.end());
+                continue;
+            }
 
             // Create the new transitions for this bucket
             vector<Transition> new_transitions;
@@ -376,20 +379,22 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
       All dead labels should form one single label group.
     */
     if (!dead_labels.empty()) {
-        sort(dead_labels.begin(), dead_labels.end());
+        for (auto& [probabilities, dead_group] : dead_labels) {
+            sort(dead_group.begin(), dead_group.end());
 
-        int new_local_label = local_label_infos.size();
-        value_t cost = INFINITE_VALUE;
-        for (int label : dead_labels) {
-            cost = min(cost, labels.get_label_cost(label));
-            label_to_local_label[label] = new_local_label;
+            int new_local_label = local_label_infos.size();
+            value_t cost = INFINITE_VALUE;
+            for (int label : dead_group) {
+                cost = min(cost, labels.get_label_cost(label));
+                label_to_local_label[label] = new_local_label;
+            }
+            // Dead labels have empty transitions
+            local_label_infos.emplace_back(
+                std::move(dead_group),
+                vector<Transition>(),
+                probabilities,
+                cost);
         }
-        // Dead labels have empty transitions
-        local_label_infos.emplace_back(
-            std::move(dead_labels),
-            vector<Transition>(),
-            vector<value_t>(),
-            cost);
     }
 
     return std::make_unique<TransitionSystem>(
@@ -572,7 +577,7 @@ void TransitionSystem::apply_label_reduction(
                 if (seen_local_labels.insert(old_local_label).second) {
                     auto& local_info = local_label_infos[old_local_label];
                     const auto& transitions = local_info.get_transitions();
-                    assert(probabilities == local_info.get_probabilities());
+                    // assert(probabilities == local_info.get_probabilities());
 
                     new_label_transitions.insert(
                         new_label_transitions.end(),
