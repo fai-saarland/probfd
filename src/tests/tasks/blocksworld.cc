@@ -1,6 +1,7 @@
 #include "tests/tasks/blocksworld.h"
 #include "downward/task_proxy.h"
 
+#include <format>
 #include <set>
 
 using namespace probfd;
