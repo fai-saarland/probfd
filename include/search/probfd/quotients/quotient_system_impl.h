@@ -181,7 +181,7 @@ auto quotient_id_iterator<State, Action>::operator++() -> quotient_id_iterator&
 {
     while (++i_.id < qs_->quotient_ids_.size()) {
         const StateID ref = qs_->quotient_ids_[i_];
-        if (i_ == (ref & QuotientSystem::MASK)) {
+        if (i_ == (ref & QuotientSystem<State, Action>::MASK)) {
             break;
         }
     }
