@@ -167,8 +167,8 @@ void QuotientState<State, Action>::get_collapsed_actions(
 }
 
 template <typename State, typename Action>
-QuotientSystem<State, Action>::const_iterator::const_iterator(
-    const QuotientSystem* qs,
+quotient_id_iterator<State, Action>::quotient_id_iterator(
+    const QuotientSystem<State, Action>* qs,
     StateID x)
     : qs_(qs)
     , i_(x)
@@ -177,8 +177,7 @@ QuotientSystem<State, Action>::const_iterator::const_iterator(
 }
 
 template <typename State, typename Action>
-auto QuotientSystem<State, Action>::const_iterator::operator++()
-    -> const_iterator&
+auto quotient_id_iterator<State, Action>::operator++() -> quotient_id_iterator&
 {
     while (++i_.id < qs_->quotient_ids_.size()) {
         const StateID ref = qs_->quotient_ids_[i_];
@@ -192,14 +191,14 @@ auto QuotientSystem<State, Action>::const_iterator::operator++()
 
 template <typename State, typename Action>
 bool operator==(
-    const typename QuotientSystem<State, Action>::const_iterator& left,
-    const typename QuotientSystem<State, Action>::const_iterator& right)
+    const typename QuotientSystem<State, Action>::quotient_id_iterator& left,
+    const typename QuotientSystem<State, Action>::quotient_id_iterator& right)
 {
     return left.i_ == right.i_;
 }
 
 template <typename State, typename Action>
-StateID QuotientSystem<State, Action>::const_iterator::operator*() const
+StateID quotient_id_iterator<State, Action>::operator*() const
 {
     return i_;
 }
@@ -423,13 +422,13 @@ auto QuotientSystem<State, Action>::get_parent_mdp() -> MDP&
 template <typename State, typename Action>
 auto QuotientSystem<State, Action>::begin() const -> const_iterator
 {
-    return const_iterator(this, 0);
+    return quotient_id_iterator(this, 0);
 }
 
 template <typename State, typename Action>
 auto QuotientSystem<State, Action>::end() const -> const_iterator
 {
-    return const_iterator(this, quotient_ids_.size());
+    return quotient_id_iterator(this, quotient_ids_.size());
 }
 
 template <typename State, typename Action>

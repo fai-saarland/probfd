@@ -88,9 +88,39 @@ public:
 };
 
 template <typename State, typename Action>
+class quotient_id_iterator;
+
+template <typename State, typename Action>
+bool operator==(
+    const quotient_id_iterator<State, Action>& left,
+    const quotient_id_iterator<State, Action>& right);
+
+template <typename State, typename Action>
+class quotient_id_iterator
+    : public add_postfix_inc_dec<quotient_id_iterator<State, Action>> {
+    const QuotientSystem<State, Action>* qs_ = nullptr;
+    StateID i_;
+
+public:
+    using add_postfix_inc_dec<quotient_id_iterator>::operator++;
+
+    using difference_type = std::ptrdiff_t;
+    using value_type = StateID;
+
+    quotient_id_iterator() = default;
+    quotient_id_iterator(const QuotientSystem<State, Action>* qs, StateID x);
+
+    quotient_id_iterator& operator++();
+    StateID operator*() const;
+
+    friend bool operator==
+        <>(const quotient_id_iterator& left, const quotient_id_iterator& right);
+};
+
+template <typename State, typename Action>
 class QuotientSystem
     : public MDP<QuotientState<State, Action>, QuotientAction<Action>> {
-    friend struct const_iterator;
+    friend class quotient_id_iterator<State, Action>;
 
     using QuotientInformation = QuotientInformation<Action>;
     using QState = QuotientState<State, Action>;
@@ -108,26 +138,7 @@ class QuotientSystem
     static constexpr StateID::size_type FLAG = ~MASK;
 
 public:
-    class const_iterator : public add_postfix_inc_dec<const_iterator> {
-        const QuotientSystem* qs_ = nullptr;
-        StateID i_;
-
-    public:
-        using add_postfix_inc_dec<const_iterator>::operator++;
-
-        using difference_type = std::ptrdiff_t;
-        using value_type = StateID;
-
-        const_iterator() = default;
-        const_iterator(const QuotientSystem* qs, StateID x);
-
-        const_iterator& operator++();
-        StateID operator*() const;
-
-        friend bool
-        operator==(const const_iterator& left, const const_iterator& right);
-    };
-
+    using const_iterator = quotient_id_iterator<State, Action>;
     static_assert(std::input_iterator<const_iterator>);
 
     explicit QuotientSystem(MDP& mdp);
