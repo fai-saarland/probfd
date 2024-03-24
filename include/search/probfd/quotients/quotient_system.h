@@ -62,14 +62,16 @@ struct QuotientState {
     template <typename, typename>
     friend class QuotientSystem;
 
-    using QuotientInformation = QuotientInformation<Action>;
-    using MDP = MDP<State, Action>;
+    using QuotientInformationType = QuotientInformation<Action>;
+    using MDPType = MDP<State, Action>;
 
-    MDP& mdp;
-    std::variant<State, const QuotientInformation*> single_or_quotient;
+    MDPType& mdp;
+    std::variant<State, const QuotientInformationType*> single_or_quotient;
 
-    explicit QuotientState(MDP& mdp, State single);
-    explicit QuotientState(MDP& mdp, const QuotientInformation* quotient);
+    explicit QuotientState(MDPType& mdp, State single);
+    explicit QuotientState(
+        MDPType& mdp,
+        const QuotientInformationType* quotient);
 
 public:
     template <std::invocable<param_type<State>> F>
@@ -122,15 +124,15 @@ class QuotientSystem
     : public MDP<QuotientState<State, Action>, QuotientAction<Action>> {
     friend class quotient_id_iterator<State, Action>;
 
-    using QuotientInformation = QuotientInformation<Action>;
+    using QuotientInformationType = QuotientInformation<Action>;
     using QState = QuotientState<State, Action>;
     using QAction = QuotientAction<Action>;
 
-    using MDP = MDP<State, Action>;
+    using MDPType = MDP<State, Action>;
 
-    std::unordered_map<StateID::size_type, QuotientInformation> quotients_;
+    std::unordered_map<StateID::size_type, QuotientInformationType> quotients_;
     segmented_vector::SegmentedVector<StateID::size_type> quotient_ids_;
-    MDP& mdp_;
+    MDPType& mdp_;
 
     // MASK: bitmask used to obtain the quotient state id, if it exists
     // FLAG: whether a quotient state id exists
@@ -141,7 +143,7 @@ public:
     using const_iterator = quotient_id_iterator<State, Action>;
     static_assert(std::input_iterator<const_iterator>);
 
-    explicit QuotientSystem(MDP& mdp);
+    explicit QuotientSystem(MDPType& mdp);
 
     StateID get_state_id(param_type<QState> state) override;
 
@@ -169,7 +171,7 @@ public:
 
     value_t get_action_cost(QAction qa) override;
 
-    MDP& get_parent_mdp();
+    MDPType& get_parent_mdp();
 
     const_iterator begin() const;
     const_iterator end() const;
@@ -196,8 +198,8 @@ private:
         std::ranges::input_range auto&& aops,
         const std::ranges::input_range auto& filter) const;
 
-    QuotientInformation* get_quotient_info(StateID state_id);
-    const QuotientInformation* get_quotient_info(StateID state_id) const;
+    QuotientInformationType* get_quotient_info(StateID state_id);
+    const QuotientInformationType* get_quotient_info(StateID state_id) const;
 
     [[nodiscard]]
     StateID::size_type get_masked_state_id(StateID sid) const;
