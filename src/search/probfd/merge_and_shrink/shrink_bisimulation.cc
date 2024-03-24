@@ -211,7 +211,7 @@ StateEquivalenceRelation ShrinkBisimulation::compute_equivalence_relation(
         for (int sig_start = 0; sig_start != num_states; sig_start = sig_end) {
             // Split the current group.
             int num_new_groups = 0;
-            for (sig_end = sig_start + 1; sig_start != num_states; ++sig_end) {
+            for (sig_end = sig_start + 1; sig_end < num_states; ++sig_end) {
                 const Signature& prev_sig = signatures[sig_end - 1];
                 const Signature& curr_sig = signatures[sig_end];
 
@@ -239,7 +239,7 @@ StateEquivalenceRelation ShrinkBisimulation::compute_equivalence_relation(
             // Split into new groups.
             stable = false;
 
-            for (int i = sig_start + 1; i != sig_end; ++i) {
+            for (int i = sig_start + 1; i < sig_end; ++i) {
                 const Signature& prev_sig = signatures[i - 1];
                 const Signature& curr_sig = signatures[i];
 
