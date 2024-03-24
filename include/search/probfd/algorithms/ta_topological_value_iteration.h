@@ -55,7 +55,7 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
     using MDPType = typename Base::MDPType;
     using EvaluatorType = typename Base::EvaluatorType;
 
-    using AlgorithmValueType = algorithms::AlgorithmValueType<UseInterval>;
+    using AlgorithmValueType = algorithms::AlgorithmValue<UseInterval>;
 
     struct StateInfo {
         // Status Flags

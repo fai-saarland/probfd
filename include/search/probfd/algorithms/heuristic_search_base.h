@@ -123,7 +123,7 @@ public:
     static constexpr bool StorePolicy = StateInfo::StorePolicy;
     static constexpr bool UseInterval = StateInfo::UseInterval;
 
-    using AlgorithmValueType = AlgorithmValueType<UseInterval>;
+    using AlgorithmValueType = AlgorithmValue<UseInterval>;
 
 private:
     std::shared_ptr<PolicyPicker> policy_chooser_;

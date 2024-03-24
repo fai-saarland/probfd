@@ -92,7 +92,7 @@ struct SearchNodeInformation {
     // stack
     unsigned lowlink = std::numeric_limits<unsigned int>::max();
     uint8_t status = NEW;
-    AlgorithmValueType<UseInterval> value;
+    AlgorithmValue<UseInterval> value;
     value_t term_cost;
 
     [[nodiscard]]
@@ -215,7 +215,7 @@ class ExhaustiveDepthFirstSearch : public MDPAlgorithm<State, Action> {
 
     using TransitionSorter = TransitionSorter<State, Action>;
 
-    using AlgorithmValueType = AlgorithmValueType<UseInterval>;
+    using AlgorithmValueType = AlgorithmValue<UseInterval>;
     using SearchNodeInformation = SearchNodeInformation<UseInterval>;
 
     std::shared_ptr<TransitionSorter> transition_sort_;

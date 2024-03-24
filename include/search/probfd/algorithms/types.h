@@ -11,7 +11,7 @@ namespace probfd::algorithms {
 /// Convenience value type alias for algorithms selecting interval iteration
 /// behaviour based on a template parameter.
 template <bool UseInterval>
-using AlgorithmValueType = std::conditional_t<UseInterval, Interval, value_t>;
+using AlgorithmValue = std::conditional_t<UseInterval, Interval, value_t>;
 
 } // namespace probfd::algorithms
 
