@@ -57,7 +57,7 @@ void Statistics::print(std::ostream& out) const
 template <typename State, typename Action, bool UseInterval>
 ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
     ExhaustiveDepthFirstSearch(
-        std::shared_ptr<TransitionSorter> transition_sorting,
+        std::shared_ptr<TransitionSorterType> transition_sorting,
         Interval cost_bound,
         bool path_updates,
         bool only_propagate_when_changed)
@@ -84,7 +84,7 @@ Interval ExhaustiveDepthFirstSearch<State, Action, UseInterval>::solve(
     double)
 {
     StateID stateid = mdp.get_state_id(state);
-    SearchNodeInformation& info = search_space_[stateid];
+    SearchNodeInfo& info = search_space_[stateid];
     if (!initialize_search_node(mdp, heuristic, state, info)) {
         return search_space_.lookup_bounds(stateid);
     }
@@ -110,7 +110,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::print_statistics(
 template <typename State, typename Action, bool UseInterval>
 void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
     register_value_reports(
-        const SearchNodeInformation& info,
+        const SearchNodeInfo& info,
         ProgressReport& progress)
 {
     progress.register_bound("v", [info]() {
@@ -128,7 +128,7 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
         MDPType& mdp,
         EvaluatorType& heuristic,
         StateID state_id,
-        SearchNodeInformation& info)
+        SearchNodeInfo& info)
 {
     return initialize_search_node(
         mdp,
@@ -143,7 +143,7 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
         MDPType& mdp,
         EvaluatorType& heuristic,
         param_type<State> state,
-        SearchNodeInformation& info)
+        SearchNodeInfo& info)
 {
     assert(info.is_new());
     info.value = trivial_bound_;
@@ -181,7 +181,7 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
     MDPType& mdp,
     EvaluatorType& heuristic,
     StateID state_id,
-    SearchNodeInformation& info)
+    SearchNodeInfo& info)
 {
     std::vector<Action> aops;
     std::vector<Distribution<StateID>> successors;
@@ -227,7 +227,7 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
                 return true;
             }
 
-            SearchNodeInformation& succ_info = search_space_[succ_id];
+            SearchNodeInfo& succ_info = search_space_[succ_id];
             if (succ_info.is_new()) {
                 initialize_search_node(mdp, heuristic, succ_id, succ_info);
             }
@@ -318,7 +318,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
         assert(!stack_info.successors.empty());
 
         const StateID stateid = stack_info.state_ref;
-        SearchNodeInformation& node_info = search_space_[stateid];
+        SearchNodeInfo& node_info = search_space_[stateid];
 
         expanding.update_successors_dead(last_all_dead_);
         expanding.all_successors_marked_dead =
@@ -335,7 +335,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
                 const auto [succ_id, prob] = *expanding.succ;
 
                 assert(succ_id != stateid);
-                SearchNodeInformation& succ_info = search_space_[succ_id];
+                SearchNodeInfo& succ_info = search_space_[succ_id];
                 assert(!succ_info.is_new());
 
                 if (succ_info.is_open()) {
@@ -455,7 +455,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
                                 best = best > t_first ? best : t_first;
                             }
 
-                            SearchNodeInformation& snode_info =
+                            SearchNodeInfo& snode_info =
                                 search_space_[s.state_ref];
                             if (best > snode_info.get_value()) {
                                 changed = changed || !is_approx_equal(
@@ -504,7 +504,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
 
     for (; it != expansion_infos_.rend(); ++it) {
         StackInformation& st = stack_infos_[it->stack_index];
-        SearchNodeInformation& sn = search_space_[st.state_ref];
+        SearchNodeInfo& sn = search_space_[st.state_ref];
         const auto& t = st.successors[st.successors.size() - st.i - 1];
         const value_t v = t.base + it->succ->probability * val;
         if (!update_lower_bound(sn.value, v)) {
@@ -521,7 +521,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
 
 template <typename State, typename Action, bool UseInterval>
 bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
-    check_early_convergence(const SearchNodeInformation& node) const
+    check_early_convergence(const SearchNodeInfo& node) const
 {
     if constexpr (UseInterval) {
         return node.value.upper <= node.value.lower;

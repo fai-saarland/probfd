@@ -24,9 +24,9 @@ inline void Statistics::print(std::ostream& out) const
 
 template <typename State, typename Action, bool UseInterval>
 LRTDP<State, Action, UseInterval>::LRTDP(
-    std::shared_ptr<PolicyPicker> policy_chooser,
+    std::shared_ptr<PolicyPickerType> policy_chooser,
     TrialTerminationCondition stop_consistent,
-    std::shared_ptr<SuccessorSampler> succ_sampler)
+    std::shared_ptr<SuccessorSamplerType> succ_sampler)
     : Base(policy_chooser)
     , stop_consistent_(stop_consistent)
     , sample_(succ_sampler)
@@ -43,8 +43,8 @@ void LRTDP<State, Action, UseInterval>::reset_search_state()
 
 template <typename State, typename Action, bool UseInterval>
 Interval LRTDP<State, Action, UseInterval>::do_solve(
-    MDP& mdp,
-    Evaluator& heuristic,
+    MDPType& mdp,
+    EvaluatorType& heuristic,
     param_type<State> state,
     ProgressReport& progress,
     double max_time)
@@ -86,8 +86,8 @@ void LRTDP<State, Action, UseInterval>::setup_custom_reports(
 
 template <typename State, typename Action, bool UseInterval>
 void LRTDP<State, Action, UseInterval>::trial(
-    MDP& mdp,
-    Evaluator& heuristic,
+    MDPType& mdp,
+    EvaluatorType& heuristic,
     StateID initial_state,
     utils::CountdownTimer& timer)
 {
@@ -162,8 +162,8 @@ void LRTDP<State, Action, UseInterval>::trial(
 
 template <typename State, typename Action, bool UseInterval>
 bool LRTDP<State, Action, UseInterval>::check_and_solve(
-    MDP& mdp,
-    Evaluator& heuristic,
+    MDPType& mdp,
+    EvaluatorType& heuristic,
     StateID init_state_id,
     utils::CountdownTimer& timer)
 {

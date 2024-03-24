@@ -84,9 +84,9 @@ struct ECDStatistics {
  */
 template <typename State, typename Action>
 class EndComponentDecomposition {
-    using MDP = MDP<State, Action>;
-    using Evaluator = Evaluator<State>;
-    using QuotientSystem = quotients::QuotientSystem<State, Action>;
+    using MDPType = MDP<State, Action>;
+    using EvaluatorType = Evaluator<State>;
+    using QSystem = quotients::QuotientSystem<State, Action>;
 
     struct StateInfo {
         enum { NEW, ONSTACK, CLOSED };
@@ -130,13 +130,13 @@ class EndComponentDecomposition {
             unsigned stck,
             std::vector<Action> aops,
             std::vector<std::vector<StateID>> successors,
-            MDP& mdp);
+            MDPType& mdp);
 
         // Used in decomposition recursion
         bool next_action(std::nullptr_t);
 
         // Used in root iteration
-        bool next_action(MDP& mdp);
+        bool next_action(MDPType& mdp);
 
         bool next_successor();
 
@@ -164,9 +164,9 @@ public:
      * Only the fragment of the MDP that is reachable from the given initial
      * state is considered.
      */
-    std::unique_ptr<QuotientSystem> build_quotient_system(
-        MDP& mdp,
-        const Evaluator* pruning_function,
+    std::unique_ptr<QSystem> build_quotient_system(
+        MDPType& mdp,
+        const EvaluatorType* pruning_function,
         param_type<State> initial_state,
         double max_time = std::numeric_limits<double>::infinity());
 
@@ -180,14 +180,14 @@ private:
     bool push(
         StateID state_id,
         StateInfo& state_info,
-        MDP& mdp,
-        const Evaluator* pruning_function);
+        MDPType& mdp,
+        const EvaluatorType* pruning_function);
 
     // Used in decomposition recursion
     bool push(StateID state_id, StateInfo& info);
 
     void find_and_decompose_sccs(
-        QuotientSystem& sys,
+        QSystem& sys,
         unsigned limit,
         utils::CountdownTimer& timer,
         auto&... mdp_and_h);
@@ -200,15 +200,12 @@ private:
 
     template <bool RootIteration>
     void scc_found(
-        QuotientSystem& sys,
+        QSystem& sys,
         ExpansionInfo& e,
         StackInfo& s,
         utils::CountdownTimer& timer);
 
-    void decompose(
-        QuotientSystem& sys,
-        unsigned start,
-        utils::CountdownTimer& timer);
+    void decompose(QSystem& sys, unsigned start, utils::CountdownTimer& timer);
 };
 
 } // namespace probfd::preprocessing

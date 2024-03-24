@@ -153,16 +153,16 @@ public:
     using StateInfo = typename Base::StateInfo;
 
 private:
-    using MDP = typename Base::MDPType;
-    using Evaluator = typename Base::EvaluatorType;
-    using PolicyPicker = typename Base::PolicyPicker;
+    using MDPType = typename Base::MDPType;
+    using EvaluatorType = typename Base::EvaluatorType;
+    using PolicyPickerType = typename Base::PolicyPicker;
 
-    using SuccessorSampler = SuccessorSampler<Action>;
+    using SuccessorSamplerType = SuccessorSampler<Action>;
 
     using Statistics = internal::Statistics;
 
     const TrialTerminationCondition stop_consistent_;
-    std::shared_ptr<SuccessorSampler> sample_;
+    std::shared_ptr<SuccessorSamplerType> sample_;
 
     std::vector<StateID> current_trial_;
     std::vector<StateID> policy_queue_;
@@ -175,16 +175,16 @@ public:
      * @brief Constructs an LRTDP solver object.
      */
     LRTDP(
-        std::shared_ptr<PolicyPicker> policy_chooser,
+        std::shared_ptr<PolicyPickerType> policy_chooser,
         TrialTerminationCondition stop_consistent,
-        std::shared_ptr<SuccessorSampler> succ_sampler);
+        std::shared_ptr<SuccessorSamplerType> succ_sampler);
 
     void reset_search_state() override;
 
 protected:
     Interval do_solve(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         param_type<State> state,
         ProgressReport& progress,
         double max_time) override;
@@ -196,14 +196,14 @@ protected:
 
 private:
     void trial(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         StateID initial_state,
         utils::CountdownTimer& timer);
 
     bool check_and_solve(
-        MDP& mdp,
-        Evaluator& heuristic,
+        MDPType& mdp,
+        EvaluatorType& heuristic,
         StateID init_state_id,
         utils::CountdownTimer& timer);
 

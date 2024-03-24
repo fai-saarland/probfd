@@ -91,7 +91,7 @@ auto IntervalIteration<State, Action>::create_quotient(
     MDPType& mdp,
     EvaluatorType& heuristic,
     param_type<State> state,
-    utils::CountdownTimer& timer) -> std::unique_ptr<QuotientSystem>
+    utils::CountdownTimer& timer) -> std::unique_ptr<QSystem>
 {
     auto sys = ec_decomposer_.build_quotient_system(
         mdp,
@@ -113,7 +113,7 @@ Interval IntervalIteration<State, Action>::mysolve(
     ValueStoreT& value_store,
     SetLike& dead_ends,
     SetLike2& one_states,
-    QuotientSystem& sys,
+    QSystem& sys,
     utils::CountdownTimer& timer)
 {
     QState qstate = sys.translate_state(state);

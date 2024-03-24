@@ -57,7 +57,7 @@ EndComponentDecomposition<State, Action>::ExpansionInfo::ExpansionInfo(
     unsigned stck,
     std::vector<Action> aops,
     std::vector<std::vector<StateID>> successors,
-    MDP& mdp)
+    MDPType& mdp)
     : stck(stck)
     , lstck(stck)
     , nz_or_leaves_scc(mdp.get_action_cost(aops.back()) != 0_vt)
@@ -79,7 +79,7 @@ bool EndComponentDecomposition<State, Action>::ExpansionInfo::next_action(
 
 template <typename State, typename Action>
 bool EndComponentDecomposition<State, Action>::ExpansionInfo::next_action(
-    MDP& mdp)
+    MDPType& mdp)
 {
     assert(aops.size() == successors.size());
     aops.pop_back();
@@ -153,15 +153,15 @@ EndComponentDecomposition<State, Action>::EndComponentDecomposition(
 
 template <typename State, typename Action>
 auto EndComponentDecomposition<State, Action>::build_quotient_system(
-    MDP& mdp,
-    const Evaluator* pruning_function,
+    MDPType& mdp,
+    const EvaluatorType* pruning_function,
     param_type<State> initial_state,
-    double max_time) -> std::unique_ptr<QuotientSystem>
+    double max_time) -> std::unique_ptr<QSystem>
 {
     utils::CountdownTimer timer(max_time);
 
     stats_ = ECDStatistics();
-    auto sys = std::make_unique<QuotientSystem>(mdp);
+    auto sys = std::make_unique<QSystem>(mdp);
 
     auto init_id = mdp.get_state_id(initial_state);
 
@@ -193,8 +193,8 @@ template <typename State, typename Action>
 bool EndComponentDecomposition<State, Action>::push(
     StateID state_id,
     StateInfo& state_info,
-    MDP& mdp,
-    const Evaluator* pruning_function)
+    MDPType& mdp,
+    const EvaluatorType* pruning_function)
 {
     state_info.explored = 1;
     State state = mdp.get_state(state_id);
@@ -315,7 +315,7 @@ bool EndComponentDecomposition<State, Action>::push(
 
 template <typename State, typename Action>
 void EndComponentDecomposition<State, Action>::find_and_decompose_sccs(
-    QuotientSystem& sys,
+    QSystem& sys,
     const unsigned limit,
     utils::CountdownTimer& timer,
     auto&... mdp_and_h)
@@ -447,7 +447,7 @@ bool EndComponentDecomposition<State, Action>::push_successor(
 template <typename State, typename Action>
 template <bool RootIteration>
 void EndComponentDecomposition<State, Action>::scc_found(
-    QuotientSystem& sys,
+    QSystem& sys,
     ExpansionInfo& e,
     StackInfo& s,
     utils::CountdownTimer& timer)
@@ -523,7 +523,7 @@ void EndComponentDecomposition<State, Action>::scc_found(
 
 template <typename State, typename Action>
 void EndComponentDecomposition<State, Action>::decompose(
-    QuotientSystem& sys,
+    QSystem& sys,
     unsigned start,
     utils::CountdownTimer& timer)
 {
