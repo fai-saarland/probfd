@@ -13,6 +13,7 @@
 #include "downward/utils/rng_options.h"
 
 #include <cassert>
+#include <utility>
 
 using namespace std;
 
@@ -30,7 +31,7 @@ MergeScoringFunctionTotalOrder::MergeScoringFunctionTotalOrder(
 
 static std::pair<int&, int&> rotate(std::pair<int, int> p)
 {
-    return std::tie(p.second, p.first);
+    return std::pair<int&, int&>(p.second, p.first);
 }
 
 vector<double> MergeScoringFunctionTotalOrder::compute_scores(
