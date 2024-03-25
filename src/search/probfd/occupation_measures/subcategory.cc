@@ -83,10 +83,12 @@ public:
         document_property("admissible", "yes");
         document_property("consistent", "yes");
 
-        OccupationMeasureHeuristic::add_options_to_feature(*this);
+        utils::add_log_options_to_feature(*this);
+        lp::add_lp_solver_option_to_feature(*this);
     }
 
-    [[nodiscard]] std::shared_ptr<OccupationMeasureHeuristicFactory>
+    [[nodiscard]]
+    std::shared_ptr<OccupationMeasureHeuristicFactory>
     create_component(const plugins::Options& options, const utils::Context&)
         const override
     {
@@ -128,10 +130,12 @@ public:
         document_property("admissible", "yes");
         document_property("consistent", "yes");
 
-        OccupationMeasureHeuristic::add_options_to_feature(*this);
+        utils::add_log_options_to_feature(*this);
+        lp::add_lp_solver_option_to_feature(*this);
     }
 
-    [[nodiscard]] std::shared_ptr<OccupationMeasureHeuristicFactory>
+    [[nodiscard]]
+    std::shared_ptr<OccupationMeasureHeuristicFactory>
     create_component(const plugins::Options& options, const utils::Context&)
         const override
     {
@@ -174,12 +178,14 @@ public:
         document_property("admissible", "yes");
         document_property("consistent", "yes");
 
-        OccupationMeasureHeuristic::add_options_to_feature(*this);
+        utils::add_log_options_to_feature(*this);
+        lp::add_lp_solver_option_to_feature(*this);
 
         add_option<int>("projection_size", "The size of the projections", "1");
     }
 
-    [[nodiscard]] std::shared_ptr<OccupationMeasureHeuristicFactory>
+    [[nodiscard]]
+    std::shared_ptr<OccupationMeasureHeuristicFactory>
     create_component(const plugins::Options& options, const utils::Context&)
         const override
     {
@@ -208,7 +214,8 @@ public:
         document_property("admissible", "yes");
         document_property("consistent", "yes");
 
-        OccupationMeasureHeuristic::add_options_to_feature(*this);
+        utils::add_log_options_to_feature(*this);
+        lp::add_lp_solver_option_to_feature(*this);
 
         add_option<std::shared_ptr<probfd::pdbs::PatternCollectionGenerator>>(
             "patterns",
@@ -217,7 +224,8 @@ public:
             "det_adapter(generator=systematic(pattern_max_size=2))");
     }
 
-    [[nodiscard]] std::shared_ptr<OccupationMeasureHeuristicFactory>
+    [[nodiscard]]
+    std::shared_ptr<OccupationMeasureHeuristicFactory>
     create_component(const plugins::Options& options, const utils::Context&)
         const override
     {
