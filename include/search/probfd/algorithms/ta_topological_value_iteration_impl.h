@@ -672,32 +672,28 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
 
         void demote_unsolvable(int s)
         {
+            assert(scc_index_to_local[s] >= solvable_beg);
+            assert(scc_index_to_local[s] < solvable_exits_beg);
+
             auto local = scc_index_to_local[s];
             std::swap(scc_index_to_local[*solvable_beg], scc_index_to_local[s]);
             std::swap(*solvable_beg, *local);
 
             ++solvable_beg;
+
+            assert(scc_index_to_local[s] < solvable_beg);
         }
 
         void demote_exit_unsolvable(int s)
         {
-            auto local = scc_index_to_local[s];
-            std::swap(
-                scc_index_to_local[*solvable_exits_beg],
-                scc_index_to_local[s]);
-            std::swap(
-                scc_index_to_local[*solvable_beg],
-                scc_index_to_local[*solvable_exits_beg]);
-
-            std::swap(*solvable_exits_beg, *local);
-            std::swap(*solvable_beg, *solvable_exits_beg);
-
-            ++solvable_beg;
-            ++solvable_exits_beg;
+            demote_exit_solvable(s);
+            demote_unsolvable(s);
         }
 
         void demote_exit_solvable(int s)
         {
+            assert(scc_index_to_local[s] >= solvable_exits_beg);
+
             auto local = scc_index_to_local[s];
             std::swap(
                 scc_index_to_local[*solvable_exits_beg],
@@ -705,6 +701,9 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
             std::swap(*solvable_exits_beg, *local);
 
             ++solvable_exits_beg;
+
+            assert(scc_index_to_local[s] >= solvable_beg);
+            assert(scc_index_to_local[s] < solvable_exits_beg);
         }
 
         bool promote_solvable(int s)
@@ -718,6 +717,9 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
             auto local = scc_index_to_local[s];
             std::swap(scc_index_to_local[*solvable_beg], scc_index_to_local[s]);
             std::swap(*solvable_beg, *local);
+
+            assert(scc_index_to_local[s] >= solvable_beg);
+            assert(scc_index_to_local[s] < solvable_exits_beg);
 
             return true;
         }
