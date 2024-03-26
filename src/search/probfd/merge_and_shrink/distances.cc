@@ -14,6 +14,8 @@
 
 #include "downward/utils/logging.h"
 
+#include "downward/lp/lp_solver.h"
+
 #include <cassert>
 #include <deque>
 #include <ranges>
@@ -326,6 +328,141 @@ void Distances::statistics(
     }
 }
 
+static void verify(ExplicitMDP& mdp, std::span<const value_t> value_table)
+{
+    lp::LPSolverType type = lp::LPSolverType::CPLEX;
+
+    lp::LPSolver solver(type);
+    const double inf = solver.get_infinity();
+
+    named_vector::NamedVector<lp::LPVariable> variables;
+    std::vector<int> unsolvable_indices;
+
+    const int num_states = static_cast<int>(value_table.size());
+
+    for (int i = 0; i != num_states; ++i) {
+        if (value_table[i] == INFINITE_VALUE) {
+            unsolvable_indices.push_back(i);
+            variables.emplace_back(0_vt, inf, 0_vt);
+        } else {
+            variables.emplace_back(0_vt, inf, 1_vt);
+        }
+    }
+
+    named_vector::NamedVector<lp::LPConstraint> constraints;
+
+    for (int i = 0; i != value_table.size(); ++i) {
+        if (mdp.get_termination_info(i).is_goal_state()) {
+            auto& g = constraints.emplace_back(0_vt, 0_vt);
+            g.insert(i, 1_vt);
+        }
+
+        // Generate operators...
+        std::vector<const ProbabilisticTransition*> aops;
+        mdp.generate_applicable_actions(i, aops);
+
+        // Push successors
+        for (const ProbabilisticTransition* op : aops) {
+            const value_t cost = mdp.get_action_cost(op);
+
+            Distribution<StateID> successor_dist;
+            mdp.generate_action_transitions(i, op, successor_dist);
+
+            if (successor_dist.is_dirac(i)) {
+                continue;
+            }
+
+            auto& constr = constraints.emplace_back(-inf, cost);
+
+            value_t non_loop_prob = 0_vt;
+            for (const auto& [succ, prob] : successor_dist) {
+                if (succ != static_cast<size_t>(i)) {
+                    non_loop_prob += prob;
+                    constr.insert(succ.id, -prob);
+                }
+            }
+
+            constr.insert(i, non_loop_prob);
+        }
+    }
+
+    auto variables_copy = variables;
+    auto constraints_copy = constraints;
+
+    solver.load_problem(lp::LinearProgram(
+        lp::LPObjectiveSense::MAXIMIZE,
+        std::move(variables_copy),
+        std::move(constraints_copy),
+        inf));
+
+    solver.solve();
+
+    if (!solver.has_optimal_solution()) {
+        if (solver.is_infeasible()) {
+            std::cerr << "Critical error: LP was infeasible, so a negative "
+                         "cost transition cycle exists!"
+                      << std::endl;
+        } else {
+            assert(solver.is_unbounded());
+            std::cerr << "Critical error: LP was unbounded, so an unsolvable "
+                         "state has not been detected!"
+                      << std::endl;
+        }
+
+        solver.print_failure_analysis();
+        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+    }
+
+    std::vector<double> solution = solver.extract_solution();
+
+    for (int i = 0; i != num_states; ++i) {
+        if (value_table[i] != INFINITE_VALUE &&
+            !is_approx_equal(solution[i], value_table[i], 0.001)) {
+            std::cerr << "State value for state " << i << " was "
+                      << value_table[i] << " but expected " << solution[i]
+                      << "!" << std::endl;
+            utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+        }
+    }
+
+    if (unsolvable_indices.empty()) return;
+
+    for (auto& variable : variables) {
+        variable.objective_coefficient = 0_vt;
+    }
+
+    unsolvable_indices.push_back(unsolvable_indices.front());
+
+    for (size_t i = 1; i < unsolvable_indices.size(); ++i) {
+        int index = unsolvable_indices[i - 1];
+        int next_index = unsolvable_indices[i];
+
+        variables[index].objective_coefficient = 1_vt;
+
+        auto& con = constraints.emplace_back(0_vt, 0_vt);
+        con.insert(index, 1_vt);
+        con.insert(next_index, -1_vt);
+    }
+
+    std::cout << "Checking unsolvability..." << std::endl;
+
+    variables_copy = variables;
+    constraints_copy = constraints;
+
+    solver.load_problem(lp::LinearProgram(
+        lp::LPObjectiveSense::MAXIMIZE,
+        std::move(variables_copy),
+        std::move(constraints_copy),
+        inf));
+
+    solver.solve();
+
+    if (!solver.is_unbounded()) {
+        std::cerr << "An unsolvable state is solvable!" << std::endl;
+        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+    }
+}
+
 void compute_goal_distances(
     const TransitionSystem& transition_system,
     std::span<value_t> goal_distances)
@@ -347,6 +484,9 @@ void compute_goal_distances(
             i,
             goal_distances);
     }
+
+    std::cout << "Verifying distances..." << std::endl;
+    verify(explicit_mdp, goal_distances);
 }
 
 } // namespace probfd::merge_and_shrink
