@@ -46,7 +46,8 @@ struct MergeAndShrinkHeuristic::FactorDistances {
 
     value_t lookup_distance(const State& state) const
     {
-        return distance_table[factored_mapping->get_abstract_state(state)];
+        const int abs = factored_mapping->get_abstract_state(state);
+        return abs == PRUNED_STATE ? INFINITE_VALUE : distance_table[abs];
     }
 };
 
