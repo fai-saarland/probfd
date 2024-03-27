@@ -819,7 +819,7 @@ static void add_hillclimbing_options(plugins::Feature& feature)
     feature.add_option<std::shared_ptr<PatternCollectionGenerator>>(
         "initial_generator",
         "generator for the initial pattern database ",
-        "det_adapter(generator=systematic(pattern_max_size=1))");
+        "classical_generator(generator=systematic(pattern_max_size=1))");
 
     feature.add_option<std::shared_ptr<SubCollectionFinderFactory>>(
         "subcollection_finder_factory",
