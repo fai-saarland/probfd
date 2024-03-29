@@ -153,7 +153,7 @@ public:
         add_option<std::shared_ptr<PatternCollectionGenerator>>(
             "patterns",
             "The pattern generation algorithm.",
-            "det_adapter_ec(generator=systematic(pattern_max_size=2))");
+            "classical_generator(generator=systematic(pattern_max_size=2))");
     }
 };
 
