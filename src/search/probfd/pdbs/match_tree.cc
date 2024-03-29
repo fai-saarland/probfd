@@ -253,11 +253,6 @@ void MatchTree::generate_all_transitions(
             state_space);
 }
 
-const ProjectionOperator& MatchTree::get_index_operator(int index) const
-{
-    return projection_operators_[index];
-}
-
 void MatchTree::dump_recursive(std::ostream& out, Node* node) const
 {
     if (!node) {

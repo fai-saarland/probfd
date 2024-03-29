@@ -86,11 +86,6 @@ public:
         StateRank abstract_state,
         std::vector<Transition<const ProjectionOperator*>>& transitions,
         ProjectionStateSpace& state_space) const;
-    /**
-     * @brief Obtain the projection operator at a specific index.
-     */
-    [[nodiscard]]
-    const ProjectionOperator& get_index_operator(int index) const;
 
     /**
      * @brief Dump the match tree to an output stream.
