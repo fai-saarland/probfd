@@ -152,9 +152,6 @@ void compute_value_table(
         value_table,
         timer.get_remaining_time());
 
-    std::cout << " Initial state value: " << value_table[initial_state]
-              << std::endl;
-
 #if !defined(NDEBUG) && (defined(HAS_CPLEX) || defined(HAS_SOPLEX))
     verify(mdp, value_table, initial_state, pruned_states);
 #endif
