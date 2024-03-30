@@ -2,11 +2,6 @@
 
 namespace probfd::pdbs {
 
-ProjectionOperator::ProjectionOperator(OperatorID id)
-    : operator_id(id)
-{
-}
-
 ProjectionOperatorToString::ProjectionOperatorToString(
     ProbabilisticTaskProxy task_proxy)
     : task_proxy_(task_proxy)

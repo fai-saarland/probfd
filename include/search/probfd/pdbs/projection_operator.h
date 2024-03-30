@@ -17,6 +17,11 @@ namespace probfd::pdbs {
 class ProjectionOperator {
     friend class ProjectionStateSpace;
 
+public:
+    /// The operator ID of the task-level operator inducing this operator.
+    OperatorID operator_id;
+
+private:
     // Implementation detail. Like in the classical implementation, each
     // operator is applicable in exactly one state. The successor states are
     // computed by adding an offset to the source state rank (t = s + offset).
@@ -24,10 +29,11 @@ class ProjectionOperator {
     Distribution<int> outcome_offsets_;
 
 public:
-    explicit ProjectionOperator(OperatorID id);
-
-    /// The operator ID of the task-level operator inducing this operator.
-    OperatorID operator_id;
+    explicit ProjectionOperator(OperatorID id, const auto& distr)
+        : operator_id(id)
+        , outcome_offsets_(distr)
+    {
+    }
 
     friend bool are_equivalent(
         const ProjectionOperator& left,

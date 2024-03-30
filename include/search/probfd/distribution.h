@@ -87,6 +87,16 @@ public:
     using const_iterator =
         typename std::vector<ItemProbabilityPair<T>>::const_iterator;
 
+    Distribution() = default;
+
+    explicit Distribution(const auto& pair_range)
+    {
+        distribution_.reserve(pair_range.size());
+        for (const auto& [t, prob] : pair_range) {
+            add_probability(t, prob);
+        }
+    }
+
     /**
      * @brief Reserves space for \p capacity number of elements in
      * the support of the distribution.
@@ -96,12 +106,20 @@ public:
     /**
      * @brief Checks if the distribution is in an empty state.
      */
-    [[nodiscard]] bool empty() const { return distribution_.empty(); }
+    [[nodiscard]]
+    bool empty() const
+    {
+        return distribution_.empty();
+    }
 
     /**
      * @brief Returns the size of the support.
      */
-    [[nodiscard]] size_t size() const { return distribution_.size(); }
+    [[nodiscard]]
+    size_t size() const
+    {
+        return distribution_.size();
+    }
 
     void clear() { distribution_.clear(); }
 
@@ -165,7 +183,11 @@ public:
     /**
      * @brief Checks if the distribution is a Dirac distribution.
      */
-    [[nodiscard]] bool is_dirac() const { return size() == 1; }
+    [[nodiscard]]
+    bool is_dirac() const
+    {
+        return size() == 1;
+    }
 
     /**
      * @brief Computes the expectation over a real random variable according to

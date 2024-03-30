@@ -83,24 +83,6 @@ int StateRankingFunction::value_of(StateRank state_rank, int idx) const
     return (state_rank / info.multiplier) % info.domain;
 }
 
-bool StateRankingFunction::next_partial_assignment(
-    std::vector<FactPair>& partial_state) const
-{
-    for (int i = partial_state.size() - 1; i >= 0; --i) {
-        auto& [var, val] = partial_state[i];
-        const int next = val + 1;
-
-        if (next < var_infos_[var].domain) {
-            val = next;
-            return true;
-        }
-
-        val = 0;
-    }
-
-    return false;
-}
-
 bool StateRankingFunction::next_rank(
     StateRank& abstract_state_rank,
     std::span<int> mutable_variables) const

@@ -129,15 +129,6 @@ public:
     int value_of(StateRank rank, int idx) const;
 
     /**
-     * @brief Compute the lexicographically next partial assignment.
-     *
-     * @returns false iff the partial assignment is already maximal, i.e., all
-     * facts values are maximal. In this case, the partial assignment assigning
-     * all zeroes is returned.
-     */
-    bool next_partial_assignment(std::vector<FactPair>& partial_state) const;
-
-    /**
      * @brief Compute the next-highest rank that corresponds to the same
      * abstract state modulo a given subset of projection variable values.
      *

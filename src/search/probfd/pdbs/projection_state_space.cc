@@ -14,9 +14,12 @@
 #include <compare>
 #include <functional>
 #include <iterator>
+#include <ranges>
 #include <set>
 #include <span>
 #include <tuple>
+
+using namespace std::views;
 
 namespace probfd::pdbs {
 
@@ -36,24 +39,153 @@ struct ProgressionOperatorFootprint {
     }
 };
 
-struct OutcomeInfo {
-    StateRank base_effect = StateRank(0);
-    std::vector<int> missing_pres;
+struct Outcome {
+    ProbabilisticEffectsProxy proxy;
+    std::pair<
+        ProxyIterator<ProbabilisticEffectsProxy>,
+        ProxyIterator<ProbabilisticEffectsProxy>>
+        effect_range;
 
-    friend bool operator<(const OutcomeInfo& a, const OutcomeInfo& b)
+    explicit Outcome(ProbabilisticOutcomeProxy outcome)
+        : proxy(outcome.get_effects())
+        , effect_range(proxy.begin(), proxy.end())
     {
-        return std::tie(a.base_effect, a.missing_pres) <
-               std::tie(b.base_effect, b.missing_pres);
-    }
-
-    friend bool operator==(const OutcomeInfo& a, const OutcomeInfo& b)
-    {
-        return std::tie(a.base_effect, a.missing_pres) ==
-               std::tie(b.base_effect, b.missing_pres);
     }
 };
 
+struct ProbabilisticOffset {
+    StateRank rank_offset = 0;
+    value_t probability;
+};
+
+struct MissingPreconditionInfo {
+    int precondition_index;
+    std::vector<std::vector<ProbabilisticOffset>::iterator> affected_offsets;
+};
+
+struct OperatorInfo {
+    std::vector<ProbabilisticOffset> effect_infos;
+    std::vector<MissingPreconditionInfo> missing_info;
+};
+
 } // namespace
+
+static void compute_projection_operator_info(
+    ProbabilisticOperatorProxy op,
+    const StateRankingFunction& ranking_function,
+    std::vector<FactPair>& precondition,
+    OperatorInfo& operator_info)
+{
+    std::vector<Outcome> outcomes;
+
+    operator_info.effect_infos.reserve(op.get_outcomes().size());
+    outcomes.reserve(op.get_outcomes().size());
+
+    for (ProbabilisticOutcomeProxy outcome : op.get_outcomes()) {
+        outcomes.emplace_back(outcome);
+        operator_info.effect_infos.emplace_back(0, outcome.get_probability());
+    }
+
+    auto op_preconditions = op.get_preconditions();
+    auto it = op_preconditions.begin();
+    auto end = op_preconditions.end();
+
+    const Pattern& pattern = ranking_function.get_pattern();
+
+    for (size_t i = 0; i != pattern.size(); ++i) {
+        int var = pattern[i];
+
+        for (;;) {
+            if (it == end) { // No precondition on this variable
+            no_precondition:;
+                bool has_effect = false;
+                std::vector<std::vector<ProbabilisticOffset>::iterator>
+                    affected_offsets;
+
+                auto out_it = outcomes.begin();
+                auto out_end = outcomes.end();
+                auto out_info_it = operator_info.effect_infos.begin();
+
+                for (; out_it != out_end; ++out_it, ++out_info_it) {
+                    auto& [eff_it, eff_end] = out_it->effect_range;
+                    while (eff_it != eff_end) {
+                        FactPair eff_fact = (*eff_it).get_fact().get_pair();
+
+                        // Skip effect on var not in patterm
+                        if (eff_fact.var < var) {
+                            ++eff_it;
+                            continue;
+                        }
+
+                        // Effect on this variable
+                        if (eff_fact.var == var) {
+                            has_effect = true;
+                            affected_offsets.push_back(out_info_it);
+                            out_info_it->rank_offset +=
+                                ranking_function.rank_fact(i, eff_fact.value);
+                            ++eff_it;
+                        }
+
+                        break;
+                    }
+                }
+
+                if (has_effect) {
+                    operator_info.missing_info.emplace_back(
+                        precondition.size(),
+                        affected_offsets);
+                    precondition.emplace_back(i, 0);
+                }
+
+                break;
+            }
+
+            FactPair pre_fact = (*it).get_pair();
+
+            // Skip precondition on var not in patterm
+            if (pre_fact.var < var) {
+                ++it;
+                continue;
+            }
+
+            if (pre_fact.var > var) goto no_precondition;
+
+            int pre_val = (*it).get_value();
+            precondition.emplace_back(i, pre_val);
+
+            auto out_it = outcomes.begin();
+            auto out_end = outcomes.end();
+            auto out_info_it = operator_info.effect_infos.begin();
+
+            for (; out_it != out_end; ++out_it, ++out_info_it) {
+                auto& [eff_it, eff_end] = out_it->effect_range;
+                while (eff_it != eff_end) {
+                    FactPair eff_fact = (*eff_it).get_fact().get_pair();
+
+                    // Skip effect on var not in patterm
+                    if (eff_fact.var < var) {
+                        ++eff_it;
+                        continue;
+                    }
+
+                    // Effect on this variable
+                    if (eff_fact.var == var) {
+                        out_info_it->rank_offset += ranking_function.rank_fact(
+                            i,
+                            eff_fact.value - pre_val);
+                        ++eff_it;
+                    }
+
+                    break;
+                }
+            }
+
+            ++it;
+
+            break;
+        }
+    }
+}
 
 ProjectionStateSpace::ProjectionStateSpace(
     ProbabilisticTaskProxy task_proxy,
@@ -74,12 +206,6 @@ ProjectionStateSpace::ProjectionStateSpace(
 
     std::set<ProgressionOperatorFootprint> duplicates;
 
-    std::vector<int> pdb_indices(variables.size(), -1);
-
-    for (size_t i = 0; i < pattern.size(); ++i) {
-        pdb_indices[pattern[i]] = i;
-    }
-
     // Construct partial assignment ranking function for operator pruning
     std::vector<long long int> partial_multipliers;
     if (operator_pruning) {
@@ -99,97 +225,53 @@ ProjectionStateSpace::ProjectionStateSpace(
         timer.throw_if_expired();
 
         const OperatorID operator_id(op.get_id());
+        const value_t cost = task_cost_function.get_action_cost(operator_id);
 
-        // Precondition partial state and partial state to enumerate
-        // effect values not appearing in precondition
-        std::vector<FactPair> local_precondition;
+        std::vector<FactPair> precondition;
+        OperatorInfo operator_info;
 
-        for (const FactProxy& fact : op.get_preconditions()) {
-            const auto [pre_var, pre_val] = fact.get_pair();
-            const int pdb_index = pdb_indices[pre_var];
+        // Compute projection precondition, as well as all variables in
+        // U_i dom(eff_i) \ dom(pre).
+        // Also compute the offsets for each outcome, assuming missing
+        // preconditions have value 0.
+        compute_projection_operator_info(
+            op,
+            ranking_function,
+            precondition,
+            operator_info);
 
-            if (pdb_index != -1) {
-                local_precondition.emplace_back(pdb_index, pre_val);
-            }
-        }
+        // Advances through all partial assignments p with
+        // dom(p) = dom(pre) U (U_i dom(eff_i) \ \dom(pre))
+        // and updates the rank offset for each effect accordingly
+        auto next_precondition = [&](auto& missing, auto& precondition) {
+            for (const auto& [missing_idx, affected_offsets] : missing) {
+                auto& [var, val] = precondition[missing_idx];
+                const int next = val + 1;
+                const int domain = ranking_function.get_domain_size(var);
+                const int multiplier = ranking_function.get_multiplier(var);
 
-        std::vector<FactPair> values;
-
-        // Info about each probabilistic outcome
-        Distribution<OutcomeInfo> outcomes;
-
-        // Collect info about the outcomes
-        for (const ProbabilisticOutcomeProxy& out : op.get_outcomes()) {
-            OutcomeInfo info;
-
-            for (ProbabilisticEffectProxy effect : out.get_effects()) {
-                const auto [eff_var, eff_val] = effect.get_fact().get_pair();
-                const int var = pdb_indices[eff_var];
-                if (var == -1) continue;
-
-                auto pre_it = std::ranges::lower_bound(
-                    local_precondition,
-                    var,
-                    std::ranges::less(),
-                    &FactPair::var);
-
-                int val_change = eff_val;
-
-                if (pre_it == local_precondition.end() || pre_it->var != var) {
-                    values.emplace_back(var, 0);
-                    info.missing_pres.push_back(var);
-                } else {
-                    val_change -= pre_it->value;
+                if (next < ranking_function.get_domain_size(var)) {
+                    val = next;
+                    for (const auto& it : affected_offsets) {
+                        it->rank_offset -= multiplier;
+                    }
+                    return true;
                 }
 
-                info.base_effect += ranking_function.rank_fact(var, val_change);
+                val = 0;
+                for (const auto& it : affected_offsets) {
+                    it->rank_offset += (domain - 1) * multiplier;
+                }
             }
 
-            outcomes.add_probability(std::move(info), out.get_probability());
-        }
+            return false;
+        };
 
-        utils::sort_unique(values);
-
-        // We enumerate all values for variables that are not part of
-        // the precondition but in an effect. Depending on the value of the
-        // variable, the value change caused by the abstract operator would
-        // be different, hence we generate on operator for each state where
-        // enabled.
         do {
             timer.throw_if_expired();
 
             // Generate the progression operator
-            ProjectionOperator new_op(operator_id);
-
-            for (const auto& [info, prob] : outcomes) {
-                const auto& [base_effect, missing_pres] = info;
-
-                StateRank offset = base_effect;
-
-                auto it = values.begin();
-                auto end = values.end();
-
-                for (const int idx : missing_pres) {
-                    it = std::find_if(it, end, [=](auto a) {
-                        return a.var == idx;
-                    });
-                    assert(it != end);
-                    offset -= ranking_function.rank_fact(idx, it++->value);
-                }
-
-                new_op.outcome_offsets_.add_probability(offset, prob);
-            }
-
-            // Construct the precondition by merging the original
-            // precondition partial state with the partial state for the
-            // non-precondition effects of this iteration
-            std::vector<FactPair> precondition;
-            precondition.reserve(local_precondition.size() + values.size());
-
-            std::ranges::merge(
-                local_precondition,
-                values,
-                std::back_inserter(precondition));
+            ProjectionOperator new_op(operator_id, operator_info.effect_infos);
 
             if (operator_pruning) {
                 // Generate a rank for the precondition to check for
@@ -200,9 +282,6 @@ ProjectionStateSpace::ProjectionStateSpace(
                     // to the range [0, d + 1] where d is the domain size
                     pre_rank += partial_multipliers[var] * (val + 1);
                 }
-
-                const value_t cost =
-                    task_cost_function.get_action_cost(operator_id);
 
                 if (!duplicates.emplace(cost, pre_rank, new_op.outcome_offsets_)
                          .second) {
@@ -216,7 +295,7 @@ ProjectionStateSpace::ProjectionStateSpace(
                 ranking_function,
                 std::move(new_op),
                 precondition);
-        } while (ranking_function.next_partial_assignment(values));
+        } while (next_precondition(operator_info.missing_info, precondition));
     }
 
     const GoalsProxy task_goals = task_proxy.get_goals();
@@ -226,12 +305,14 @@ ProjectionStateSpace::ProjectionStateSpace(
 
     // Translate sparse goal into pdb index space
     // and collect non-goal variables aswell.
-    const int num_goal_facts = task_goals.size();
-    const int num_variables = pattern.size();
+    const int num_variables = static_cast<int>(pattern.size());
 
-    for (int v = 0, w = 0; v != static_cast<int>(pattern.size());) {
+    auto goal_it = task_goals.begin();
+    const auto goal_end = task_goals.end();
+
+    for (int v = 0; v != num_variables;) {
         const int p_var = pattern[v];
-        const FactProxy goal_fact = task_goals[w];
+        const FactProxy goal_fact = *goal_it;
         const int g_var = goal_fact.get_variable().get_id();
 
         if (p_var < g_var) {
@@ -241,7 +322,7 @@ ProjectionStateSpace::ProjectionStateSpace(
                 base += ranking_function.rank_fact(v++, goal_fact.get_value());
             }
 
-            if (++w == num_goal_facts) {
+            if (++goal_it == goal_end) {
                 while (v < num_variables) {
                     non_goal_vars.push_back(v++);
                 }
