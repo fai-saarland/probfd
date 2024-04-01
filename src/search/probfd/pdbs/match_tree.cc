@@ -67,8 +67,9 @@ MatchTree::~MatchTree() = default;
 void MatchTree::insert_recursive(
     const VariablesProxy& task_variables,
     const StateRankingFunction& ranking_function,
-    const size_t op_index,
+    ProjectionOperator op,
     const vector<FactPair>& progression_preconditions,
+    bool operator_pruning,
     int pre_index,
     std::unique_ptr<Node>& node)
 {
@@ -79,7 +80,19 @@ void MatchTree::insert_recursive(
 
     if (pre_index == static_cast<int>(progression_preconditions.size())) {
         // All preconditions have been checked, insert operator ID.
-        node->applicable_operator_ids.push_back(op_index);
+
+        // If operator pruning is enabled, check if there is an equivalent
+        // operator first.
+        if (operator_pruning) {
+            for (std::size_t op_id : node->applicable_operator_ids) {
+                if (are_equivalent(op, projection_operators_[op_id])) {
+                    return;
+                }
+            }
+        }
+
+        node->applicable_operator_ids.push_back(projection_operators_.size());
+        projection_operators_.push_back(std::move(op));
     } else {
         const FactPair& fact = progression_preconditions[pre_index];
         int pattern_var_id = fact.var;
@@ -112,8 +125,9 @@ void MatchTree::insert_recursive(
             insert_recursive(
                 task_variables,
                 ranking_function,
-                op_index,
+                std::move(op),
                 progression_preconditions,
+                operator_pruning,
                 pre_index,
                 node->successors[fact.value]);
         } else {
@@ -123,8 +137,9 @@ void MatchTree::insert_recursive(
             insert_recursive(
                 task_variables,
                 ranking_function,
-                op_index,
+                std::move(op),
                 progression_preconditions,
+                operator_pruning,
                 pre_index,
                 node->star_successor);
         }
@@ -135,16 +150,17 @@ void MatchTree::insert(
     const VariablesProxy& task_variables,
     const StateRankingFunction& ranking_function,
     ProjectionOperator op,
-    const vector<FactPair>& progression_preconditions)
+    const vector<FactPair>& progression_preconditions,
+    bool operator_pruning)
 {
     insert_recursive(
         task_variables,
         ranking_function,
-        projection_operators_.size(),
+        std::move(op),
         progression_preconditions,
+        operator_pruning,
         0,
         root_);
-    projection_operators_.push_back(std::move(op));
 }
 
 void MatchTree::get_applicable_operators_recursive(

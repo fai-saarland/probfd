@@ -21,6 +21,9 @@ public:
     /// The operator ID of the task-level operator inducing this operator.
     OperatorID operator_id;
 
+    /// The cost of the operator
+    value_t cost;
+
 private:
     // Implementation detail. Like in the classical implementation, each
     // operator is applicable in exactly one state. The successor states are
@@ -29,8 +32,9 @@ private:
     Distribution<int> outcome_offsets_;
 
 public:
-    explicit ProjectionOperator(OperatorID id, const auto& distr)
+    explicit ProjectionOperator(OperatorID id, value_t cost, const auto& distr)
         : operator_id(id)
+        , cost(cost)
         , outcome_offsets_(distr)
     {
     }
@@ -39,7 +43,8 @@ public:
         const ProjectionOperator& left,
         const ProjectionOperator& right)
     {
-        return left.outcome_offsets_ == right.outcome_offsets_;
+        return left.cost == right.cost &&
+               left.outcome_offsets_ == right.outcome_offsets_;
     }
 };
 

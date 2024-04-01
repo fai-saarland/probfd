@@ -37,8 +37,9 @@ class MatchTree {
     void insert_recursive(
         const VariablesProxy& task_variables,
         const StateRankingFunction& ranking_function,
-        size_t op_index,
+        ProjectionOperator op,
         const std::vector<FactPair>& progression_preconditions,
+        bool operator_pruning,
         int pre_index,
         std::unique_ptr<Node>& edge_from_parent);
 
@@ -68,7 +69,8 @@ public:
         const VariablesProxy& task_variables,
         const StateRankingFunction& ranking_function,
         ProjectionOperator op,
-        const std::vector<FactPair>& progression_preconditions);
+        const std::vector<FactPair>& progression_preconditions,
+        bool operator_pruning);
 
     /**
      * @brief Obtain the applicable prohjection operators for a given abstract

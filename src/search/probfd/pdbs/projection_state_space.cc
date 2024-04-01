@@ -9,13 +9,9 @@
 
 #include "downward/utils/countdown_timer.h"
 
-#include <algorithm>
 #include <cassert>
 #include <compare>
 #include <functional>
-#include <iterator>
-#include <ranges>
-#include <set>
 #include <span>
 #include <tuple>
 
@@ -24,20 +20,6 @@ using namespace std::views;
 namespace probfd::pdbs {
 
 namespace {
-// Footprint used for detecting duplicate operators.
-struct ProgressionOperatorFootprint {
-    value_t cost;
-    long long int precondition_hash;
-    Distribution<StateRank> successors;
-
-    friend bool operator<(
-        const ProgressionOperatorFootprint& a,
-        const ProgressionOperatorFootprint& b)
-    {
-        return std::tie(a.cost, a.precondition_hash, a.successors) <
-               std::tie(b.cost, b.precondition_hash, b.successors);
-    }
-};
 
 struct Outcome {
     ProbabilisticEffectsProxy proxy;
@@ -204,22 +186,6 @@ ProjectionStateSpace::ProjectionStateSpace(
     const VariablesProxy variables = task_proxy.get_variables();
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
 
-    std::set<ProgressionOperatorFootprint> duplicates;
-
-    // Construct partial assignment ranking function for operator pruning
-    std::vector<long long int> partial_multipliers;
-    if (operator_pruning) {
-        partial_multipliers.reserve(pattern.size());
-
-        int p = 1;
-        partial_multipliers.push_back(1);
-
-        for (size_t i = 1; i != pattern.size(); ++i) {
-            p *= ranking_function.get_domain_size(i - 1) + 1;
-            partial_multipliers.push_back(p);
-        }
-    }
-
     // Generate the abstract operators for each probabilistic operator
     for (const ProbabilisticOperatorProxy& op : operators) {
         timer.throw_if_expired();
@@ -271,30 +237,18 @@ ProjectionStateSpace::ProjectionStateSpace(
             timer.throw_if_expired();
 
             // Generate the progression operator
-            ProjectionOperator new_op(operator_id, operator_info.effect_infos);
-
-            if (operator_pruning) {
-                // Generate a rank for the precondition to check for
-                // duplicates
-                long long int pre_rank = 0;
-                for (const auto& [var, val] : precondition) {
-                    // Missing preconditions are -1, so we add 1 to adjust
-                    // to the range [0, d + 1] where d is the domain size
-                    pre_rank += partial_multipliers[var] * (val + 1);
-                }
-
-                if (!duplicates.emplace(cost, pre_rank, new_op.outcome_offsets_)
-                         .second) {
-                    continue;
-                }
-            }
+            ProjectionOperator new_op(
+                operator_id,
+                cost,
+                operator_info.effect_infos);
 
             // Now add the progression operators to the match tree
             match_tree_.insert(
                 variables,
                 ranking_function,
                 std::move(new_op),
-                precondition);
+                precondition,
+                operator_pruning);
         } while (next_precondition(operator_info.missing_info, precondition));
     }
 
@@ -396,7 +350,7 @@ value_t ProjectionStateSpace::get_non_goal_termination_cost() const
 
 value_t ProjectionStateSpace::get_action_cost(const ProjectionOperator* op)
 {
-    return parent_cost_function_->get_action_cost(op->operator_id);
+    return op->cost;
 }
 
 } // namespace probfd::pdbs
