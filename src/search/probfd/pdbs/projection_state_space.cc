@@ -35,17 +35,20 @@ struct Outcome {
     }
 };
 
-struct ProbabilisticOffset {
-    StateRank rank_offset = 0;
-    value_t probability;
-};
-
-struct MissingPreconditionInfo {
-    int precondition_index;
-    std::vector<std::vector<ProbabilisticOffset>::iterator> affected_offsets;
-};
-
 struct OperatorInfo {
+    struct ProbabilisticOffset {
+        StateRank rank_offset = 0;
+        value_t probability;
+    };
+
+    struct MissingPreconditionInfo {
+        int precondition_index;
+        std::vector<std::vector<ProbabilisticOffset>::iterator>
+            affected_offsets;
+    };
+
+    using offset_iterator = std::vector<ProbabilisticOffset>::iterator;
+
     std::vector<ProbabilisticOffset> effect_infos;
     std::vector<MissingPreconditionInfo> missing_info;
 };
@@ -81,8 +84,7 @@ static void compute_projection_operator_info(
             if (it == end) { // No precondition on this variable
             no_precondition:;
                 bool has_effect = false;
-                std::vector<std::vector<ProbabilisticOffset>::iterator>
-                    affected_offsets;
+                std::vector<OperatorInfo::offset_iterator> affected_offsets;
 
                 auto out_it = outcomes.begin();
                 auto out_end = outcomes.end();
@@ -183,7 +185,6 @@ ProjectionStateSpace::ProjectionStateSpace(
 
     const Pattern& pattern = ranking_function.get_pattern();
 
-    const VariablesProxy variables = task_proxy.get_variables();
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
 
     // Generate the abstract operators for each probabilistic operator
@@ -244,7 +245,6 @@ ProjectionStateSpace::ProjectionStateSpace(
 
             // Now add the progression operators to the match tree
             match_tree_.insert(
-                variables,
                 ranking_function,
                 std::move(new_op),
                 precondition,

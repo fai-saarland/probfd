@@ -35,7 +35,6 @@ class MatchTree {
     std::vector<ProjectionOperator> projection_operators_;
 
     void insert_recursive(
-        const VariablesProxy& task_variables,
         const StateRankingFunction& ranking_function,
         ProjectionOperator op,
         const std::vector<FactPair>& progression_preconditions,
@@ -66,7 +65,6 @@ public:
      * into the match tree.
      */
     void insert(
-        const VariablesProxy& task_variables,
         const StateRankingFunction& ranking_function,
         ProjectionOperator op,
         const std::vector<FactPair>& progression_preconditions,

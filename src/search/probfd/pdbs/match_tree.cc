@@ -65,7 +65,6 @@ MatchTree::MatchTree(size_t hint_num_operators)
 MatchTree::~MatchTree() = default;
 
 void MatchTree::insert_recursive(
-    const VariablesProxy& task_variables,
     const StateRankingFunction& ranking_function,
     ProjectionOperator op,
     const vector<FactPair>& progression_preconditions,
@@ -96,9 +95,8 @@ void MatchTree::insert_recursive(
     } else {
         const FactPair& fact = progression_preconditions[pre_index];
         int pattern_var_id = fact.var;
-        int var_id = ranking_function.get_pattern()[pattern_var_id];
         int var_multiplier = ranking_function.get_multiplier(pattern_var_id);
-        int var_domain_size = task_variables[var_id].get_domain_size();
+        int var_domain_size = ranking_function.get_domain_size(pattern_var_id);
 
         // Set up node correctly or insert a new node if necessary.
         if (node->is_leaf_node()) {
@@ -123,7 +121,6 @@ void MatchTree::insert_recursive(
             // Operator has a precondition on the variable tested by node.
             ++pre_index;
             insert_recursive(
-                task_variables,
                 ranking_function,
                 std::move(op),
                 progression_preconditions,
@@ -135,7 +132,6 @@ void MatchTree::insert_recursive(
             // node: follow/create the star-edge.
             assert(node->var_id < fact.var);
             insert_recursive(
-                task_variables,
                 ranking_function,
                 std::move(op),
                 progression_preconditions,
@@ -147,14 +143,12 @@ void MatchTree::insert_recursive(
 }
 
 void MatchTree::insert(
-    const VariablesProxy& task_variables,
     const StateRankingFunction& ranking_function,
     ProjectionOperator op,
     const vector<FactPair>& progression_preconditions,
     bool operator_pruning)
 {
     insert_recursive(
-        task_variables,
         ranking_function,
         std::move(op),
         progression_preconditions,
