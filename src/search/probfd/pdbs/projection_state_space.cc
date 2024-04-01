@@ -245,7 +245,7 @@ ProjectionStateSpace::ProjectionStateSpace(
 
             // Now add the progression operators to the match tree
             match_tree_.insert(
-                ranking_function,
+                ranking_function.get_enumerator(),
                 std::move(new_op),
                 precondition,
                 operator_pruning);

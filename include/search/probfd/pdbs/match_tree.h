@@ -9,7 +9,6 @@
 #include <vector>
 
 // Forward Declarations
-class VariablesProxy;
 struct FactPair;
 
 namespace probfd {
@@ -18,9 +17,9 @@ struct Transition;
 }
 
 namespace probfd::pdbs {
+class AssignmentEnumerator;
 class ProjectionOperator;
 class ProjectionStateSpace;
-class StateRankingFunction;
 } // namespace probfd::pdbs
 
 namespace probfd::pdbs {
@@ -35,7 +34,7 @@ class MatchTree {
     std::vector<ProjectionOperator> projection_operators_;
 
     void insert_recursive(
-        const StateRankingFunction& ranking_function,
+        const AssignmentEnumerator& enumerator,
         ProjectionOperator op,
         const std::vector<FactPair>& progression_preconditions,
         bool operator_pruning,
@@ -65,7 +64,7 @@ public:
      * into the match tree.
      */
     void insert(
-        const StateRankingFunction& ranking_function,
+        const AssignmentEnumerator& ranking_function,
         ProjectionOperator op,
         const std::vector<FactPair>& progression_preconditions,
         bool operator_pruning);
