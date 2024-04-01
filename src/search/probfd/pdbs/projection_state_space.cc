@@ -208,7 +208,7 @@ ProjectionStateSpace::ProjectionStateSpace(
 
         // Advances through all partial assignments p with
         // dom(p) = dom(pre) U (U_i dom(eff_i) \ \dom(pre))
-        // and updates the rank offset for each effect accordingly
+        // and updates the rank offset for each outcome accordingly
         auto next_precondition = [&](auto& missing, auto& precondition) {
             for (const auto& [missing_idx, affected_offsets] : missing) {
                 auto& [var, val] = precondition[missing_idx];
