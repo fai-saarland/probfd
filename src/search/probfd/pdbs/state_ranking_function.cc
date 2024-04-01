@@ -2,8 +2,6 @@
 
 #include "downward/abstract_task.h"
 
-#include <cassert>
-#include <limits>
 #include <ranges>
 #include <sstream>
 #include <stdexcept>
@@ -11,47 +9,34 @@
 
 namespace probfd::pdbs {
 
-static constexpr auto maxint = std::numeric_limits<long long int>::max();
-
 StateRankingFunction::StateRankingFunction(
     const VariablesProxy& variables,
     Pattern pattern)
     : pattern_(std::move(pattern))
-    , var_infos_(pattern_.size())
+    , enumerator_(pattern_ | std::views::transform([&](int var) {
+                      return variables[var].get_domain_size();
+                  }))
 {
-    assert(std::is_sorted(pattern_.begin(), pattern_.end()));
-
-    long long int multiplier = 1;
-
-    for (auto [cur_info, var] : std::views::zip(var_infos_, pattern_)) {
-        const int domain_size = variables[var].get_domain_size();
-        cur_info.domain = domain_size;
-        cur_info.multiplier = multiplier;
-
-        if (multiplier > maxint / domain_size) {
-            throw std::range_error("Construction of PDB would exceed "
-                                   "std::numeric_limits<long long int>::max()");
-        }
-
-        multiplier *= domain_size;
-    }
-
-    num_states_ = multiplier;
 }
 
 unsigned StateRankingFunction::num_states() const
 {
-    return num_states_;
+    return enumerator_.num_assignments();
 }
 
 unsigned StateRankingFunction::num_vars() const
 {
-    return var_infos_.size();
+    return enumerator_.num_vars();
 }
 
 const Pattern& StateRankingFunction::get_pattern() const
 {
     return pattern_;
+}
+
+const AssignmentEnumerator& StateRankingFunction::get_enumerator() const
+{
+    return enumerator_;
 }
 
 StateRank StateRankingFunction::get_abstract_rank(const State& state) const
@@ -65,52 +50,34 @@ StateRank StateRankingFunction::get_abstract_rank(const State& state) const
 
 int StateRankingFunction::rank_fact(int idx, int val) const
 {
-    return var_infos_[idx].multiplier * val;
+    return enumerator_.rank_fact(idx, val);
 }
 
 std::vector<int> StateRankingFunction::unrank(StateRank state_rank) const
 {
-    std::vector<int> values(var_infos_.size());
-    for (size_t i = 0; i != var_infos_.size(); ++i) {
-        values[i] = value_of(state_rank, i);
-    }
-    return values;
+    return enumerator_.unrank(state_rank);
 }
 
 int StateRankingFunction::value_of(StateRank state_rank, int idx) const
 {
-    const VariableInfo& info = var_infos_[idx];
-    return (state_rank / info.multiplier) % info.domain;
+    return enumerator_.value_of(state_rank, idx);
 }
 
 bool StateRankingFunction::next_rank(
     StateRank& abstract_state_rank,
     std::span<int> mutable_variables) const
 {
-    for (int var : mutable_variables) {
-        const int domain = var_infos_[var].domain;
-        const int multiplier = var_infos_[var].multiplier;
-        const int value = (abstract_state_rank / multiplier) % domain;
-
-        if (value + 1 < domain) {
-            abstract_state_rank += multiplier;
-            return true;
-        }
-
-        abstract_state_rank -= value * multiplier;
-    }
-
-    return false;
+    return enumerator_.next_index(abstract_state_rank, mutable_variables);
 }
 
 long long int StateRankingFunction::get_multiplier(int var) const
 {
-    return var_infos_[var].multiplier;
+    return enumerator_.get_multiplier(var);
 }
 
 int StateRankingFunction::get_domain_size(int var) const
 {
-    return var_infos_[var].domain;
+    return enumerator_.get_domain_size(var);
 }
 
 StateRankToString::StateRankToString(

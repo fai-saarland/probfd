@@ -1,6 +1,7 @@
 #ifndef PROBFD_PDBS_STATE_RANKING_FUNCTION_H
 #define PROBFD_PDBS_STATE_RANKING_FUNCTION_H
 
+#include "probfd/pdbs/assignment_enumerator.h"
 #include "probfd/pdbs/types.h"
 
 #include "downward/task_proxy.h"
@@ -8,9 +9,6 @@
 #include <span>
 #include <string>
 #include <vector>
-
-// Forward Declarations
-struct FactPair;
 
 namespace probfd::pdbs {
 
@@ -24,14 +22,8 @@ namespace probfd::pdbs {
  * (un-) ranking functions as stated in \cite sievers:etal:socs-12 .
  */
 class StateRankingFunction {
-    struct VariableInfo {
-        long long int multiplier;
-        int domain;
-    };
-
     Pattern pattern_;
-    std::vector<VariableInfo> var_infos_;
-    long long int num_states_;
+    AssignmentEnumerator enumerator_;
 
 public:
     /**
@@ -57,6 +49,12 @@ public:
      */
     [[nodiscard]]
     const Pattern& get_pattern() const;
+
+    /**
+     * @brief Get the assignment enumerator for the projection's assignments.
+     */
+    [[nodiscard]]
+    const AssignmentEnumerator& get_enumerator() const;
 
     /**
      * @brief Get the ranking coefficient

@@ -291,6 +291,7 @@ create_probfd_library(
     NAME probability_aware_pdbs
     HELP "Probability-aware PDBs base classes"
     SOURCES
+    probfd/pdbs/assignment_enumerator
     probfd/pdbs/distances
     probfd/pdbs/evaluators
     probfd/pdbs/match_tree
