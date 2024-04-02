@@ -26,6 +26,8 @@ class StateRankingFunction {
     AssignmentEnumerator enumerator_;
 
 public:
+    StateRankingFunction() = default;
+    
     /**
      * @brief Constructs the ranking function for a projection specified by a
      * given pattern and the task's variables.

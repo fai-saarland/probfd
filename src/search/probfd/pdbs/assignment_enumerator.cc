@@ -1,9 +1,13 @@
 #include "probfd/pdbs/assignment_enumerator.h"
 
 #include <ranges>
-#include <sstream>
 
 namespace probfd::pdbs {
+
+AssignmentEnumerator::AssignmentEnumerator()
+    : num_assignments_(1)
+{
+}
 
 unsigned AssignmentEnumerator::num_assignments() const
 {

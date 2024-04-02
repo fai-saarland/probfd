@@ -20,10 +20,15 @@ class AssignmentEnumerator {
 
 public:
     /**
+     * @brief Constructs the enumeration function for empty assignments.
+     */
+    AssignmentEnumerator();
+
+    /**
      * @brief Constructs the enumeration function for assignments with the
      * given domains.
      */
-    AssignmentEnumerator(const auto& domain_sizes)
+    explicit AssignmentEnumerator(const auto& domain_sizes)
         : var_infos_(domain_sizes.size())
     {
         using namespace std::views;
