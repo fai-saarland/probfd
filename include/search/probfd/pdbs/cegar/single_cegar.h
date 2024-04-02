@@ -88,8 +88,7 @@ private:
         SingleCEGARResult& result,
         ProbabilisticTaskProxy task_proxy,
         std::vector<Flaw>& flaws,
-        value_t termination_cost,
-        StateRank initial_state,
+        const State& initial_state,
         utils::CountdownTimer& timer,
         utils::LogProxy log);
 

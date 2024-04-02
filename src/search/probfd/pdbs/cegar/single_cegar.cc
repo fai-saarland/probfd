@@ -64,21 +64,22 @@ bool SingleCEGAR::get_flaws(
     SingleCEGARResult& result,
     ProbabilisticTaskProxy task_proxy,
     std::vector<Flaw>& flaws,
-    value_t termination_cost,
-    StateRank initial_state,
+    const State& initial_state,
     utils::CountdownTimer& timer,
     utils::LogProxy log)
 {
+    StateRank init_state_rank = result.pdb->get_abstract_state(initial_state);
+
     std::unique_ptr<ProjectionMultiPolicy> policy =
         compute_optimal_projection_policy(
             *result.projection,
             result.pdb->get_value_table(),
-            initial_state,
+            init_state_rank,
             *rng_,
             wildcard_);
 
     // abort here if no abstract solution could be found
-    if (result.pdb->lookup_estimate(initial_state) == termination_cost) {
+    if (policy->get_decisions(init_state_rank).empty()) {
         log << "SingleCEGAR: Problem unsolvable" << endl;
         utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
     }
@@ -221,12 +222,12 @@ SingleCEGARResult SingleCEGAR::generate_pdbs(
 
     utils::CountdownTimer timer(max_time_);
 
+    State initial_state = task_proxy.get_initial_state();
+
     const VariablesProxy variables = task_proxy.get_variables();
 
     // Start with a solution of the trivial abstraction
     StateRankingFunction ranking_function(task_proxy.get_variables(), {var});
-    StateRank initial_state =
-        ranking_function.get_abstract_rank(task_proxy.get_initial_state());
 
     auto projection = std::make_unique<ProjectionStateSpace>(
         task_proxy,
@@ -235,10 +236,13 @@ SingleCEGARResult SingleCEGAR::generate_pdbs(
         false,
         timer.get_remaining_time());
 
+    StateRank init_state_rank =
+        ranking_function.get_abstract_rank(initial_state);
+
     auto pdb = std::make_unique<ProbabilityAwarePatternDatabase>(
         *projection,
         std::move(ranking_function),
-        initial_state,
+        init_state_rank,
         heuristics::ConstantEvaluator<StateRank>(0_vt),
         timer.get_remaining_time());
 
@@ -257,9 +261,6 @@ SingleCEGARResult SingleCEGAR::generate_pdbs(
     // main loop of the algorithm
     int refinement_counter = 1;
 
-    const value_t termination_cost =
-        task_cost_function.get_non_goal_termination_cost();
-
     try {
         for (;;) {
             if (log.is_at_least_verbose()) {
@@ -270,7 +271,6 @@ SingleCEGARResult SingleCEGAR::generate_pdbs(
                     result,
                     task_proxy,
                     flaws,
-                    termination_cost,
                     initial_state,
                     timer,
                     log))
