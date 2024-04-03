@@ -19,10 +19,9 @@
 
 #include "downward/plugins/plugin.h"
 
-#include <algorithm>
 #include <cassert>
-#include <functional>
 #include <ostream>
+#include <ranges>
 #include <span>
 #include <utility>
 
