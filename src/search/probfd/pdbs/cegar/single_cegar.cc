@@ -45,14 +45,12 @@ SingleCEGAR::SingleCEGAR(
     std::shared_ptr<FlawFindingStrategy> flaw_strategy,
     bool wildcard,
     int max_pdb_size,
-    double max_time,
     int var,
     std::unordered_set<int> blacklisted_variables)
     : rng_(std::move(rng))
     , flaw_strategy_(std::move(flaw_strategy))
     , wildcard_(wildcard)
     , max_pdb_size_(max_pdb_size)
-    , max_time_(max_time)
     , var(var)
     , blacklisted_variables_(std::move(blacklisted_variables))
 {
@@ -205,13 +203,14 @@ void SingleCEGAR::refine(
 SingleCEGARResult SingleCEGAR::generate_pdbs(
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
+    double max_time,
     utils::LogProxy log)
 {
     if (log.is_at_least_normal()) {
         log << "SingleCEGAR options: \n"
             << "  flaw strategy: " << flaw_strategy_->get_name() << "\n"
             << "  max pdb size: " << max_pdb_size_ << "\n"
-            << "  max time: " << max_time_ << "\n"
+            << "  max time: " << max_time << "\n"
             << "  wildcard plans: " << std::boolalpha << wildcard_ << "\n"
             << "  variable: " << var << "\n"
             << "  blacklisted variables: " << blacklisted_variables_ << endl;
@@ -221,7 +220,7 @@ SingleCEGARResult SingleCEGAR::generate_pdbs(
         log << endl;
     }
 
-    utils::CountdownTimer timer(max_time_);
+    utils::CountdownTimer timer(max_time);
 
     State initial_state = task_proxy.get_initial_state();
 

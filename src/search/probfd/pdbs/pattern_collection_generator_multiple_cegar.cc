@@ -46,11 +46,13 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
         flaw_strategy_,
         use_wildcard_policies_,
         max_pdb_size,
-        max_time,
         goal.var,
         std::move(blacklisted_variables));
-    auto [state_space, pdb] =
-        single_cegar.generate_pdbs(task_proxy, task_cost_function, log_);
+    auto [state_space, pdb] = single_cegar.generate_pdbs(
+        task_proxy,
+        task_cost_function,
+        max_time,
+        log_);
 
     return {std::move(state_space), std::move(pdb)};
 }

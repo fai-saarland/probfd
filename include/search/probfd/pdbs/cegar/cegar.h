@@ -55,7 +55,6 @@ class CEGAR {
     const bool wildcard_;
     const int max_pdb_size_;
     const int max_collection_size_;
-    const double max_time_;
 
     const std::vector<int> goals_;
     std::unordered_set<int> blacklisted_variables_;
@@ -78,7 +77,6 @@ public:
         bool wildcard,
         int max_pdb_size,
         int max_collection_size,
-        double max_time,
         std::vector<int> goals,
         std::unordered_set<int> blacklisted_variables = {});
 
@@ -87,6 +85,7 @@ public:
     CEGARResult generate_pdbs(
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
+        double max_time,
         utils::LogProxy log);
 
 private:

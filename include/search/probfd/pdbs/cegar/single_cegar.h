@@ -61,7 +61,6 @@ class SingleCEGAR {
     // behavior defining parameters
     const bool wildcard_;
     const int max_pdb_size_;
-    const double max_time_;
 
     const int var;
     std::unordered_set<int> blacklisted_variables_;
@@ -72,7 +71,6 @@ public:
         std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy,
         bool wildcard,
         int max_pdb_size,
-        double max_time,
         int var,
         std::unordered_set<int> blacklisted_variables = {});
 
@@ -81,6 +79,7 @@ public:
     SingleCEGARResult generate_pdbs(
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
+        double max_time,
         utils::LogProxy log);
 
 private:
