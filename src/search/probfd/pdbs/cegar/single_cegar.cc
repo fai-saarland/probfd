@@ -45,13 +45,11 @@ SingleCEGAR::SingleCEGAR(
     std::shared_ptr<FlawFindingStrategy> flaw_strategy,
     bool wildcard,
     int max_pdb_size,
-    int var,
     std::unordered_set<int> blacklisted_variables)
     : rng_(std::move(rng))
     , flaw_strategy_(std::move(flaw_strategy))
     , wildcard_(wildcard)
     , max_pdb_size_(max_pdb_size)
-    , var(var)
     , blacklisted_variables_(std::move(blacklisted_variables))
 {
 }
@@ -200,7 +198,8 @@ void SingleCEGAR::refine(
     blacklisted_variables_.insert(flaw_var);
 }
 
-SingleCEGARResult SingleCEGAR::generate_pdbs(
+void SingleCEGAR::run_cegar_loop(
+    SingleCEGARResult& result,
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
     double max_time,
@@ -212,7 +211,6 @@ SingleCEGARResult SingleCEGAR::generate_pdbs(
             << "  max pdb size: " << max_pdb_size_ << "\n"
             << "  max time: " << max_time << "\n"
             << "  wildcard plans: " << std::boolalpha << wildcard_ << "\n"
-            << "  variable: " << var << "\n"
             << "  blacklisted variables: " << blacklisted_variables_ << endl;
     }
 
@@ -225,28 +223,6 @@ SingleCEGARResult SingleCEGAR::generate_pdbs(
     State initial_state = task_proxy.get_initial_state();
 
     const VariablesProxy variables = task_proxy.get_variables();
-
-    // Start with a solution of the trivial abstraction
-    StateRankingFunction ranking_function(task_proxy.get_variables(), {var});
-
-    auto projection = std::make_unique<ProjectionStateSpace>(
-        task_proxy,
-        task_cost_function,
-        ranking_function,
-        false,
-        timer.get_remaining_time());
-
-    StateRank init_state_rank =
-        ranking_function.get_abstract_rank(initial_state);
-
-    auto pdb = std::make_unique<ProbabilityAwarePatternDatabase>(
-        *projection,
-        std::move(ranking_function),
-        init_state_rank,
-        heuristics::ConstantEvaluator<StateRank>(0_vt),
-        timer.get_remaining_time());
-
-    SingleCEGARResult result(std::move(projection), std::move(pdb));
 
     if (log.is_at_least_normal()) {
         log << "SingleCEGAR initial collection: " << result.pdb->get_pattern();
@@ -308,8 +284,6 @@ SingleCEGARResult SingleCEGAR::generate_pdbs(
             << "  computation time: " << timer.get_elapsed_time() << "\n"
             << "  number of iterations: " << refinement_counter << endl;
     }
-
-    return result;
 }
 
 } // namespace probfd::pdbs::cegar

@@ -9,10 +9,9 @@
 #include "downward/plugins/plugin.h"
 
 #include "downward/abstract_task.h"
+#include "downward/utils/countdown_timer.h"
 
-#include <cassert>
 #include <iostream>
-#include <vector>
 
 using namespace std;
 
@@ -41,20 +40,43 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
     const FactPair& goal,
     unordered_set<int>&& blacklisted_variables)
 {
+    utils::CountdownTimer timer(max_time);
+
+    // Start with a solution of the trivial abstraction
+    StateRankingFunction ranking_function(
+        task_proxy.get_variables(),
+        {goal.var});
+
+    auto projection = std::make_unique<ProjectionStateSpace>(
+        task_proxy,
+        task_cost_function,
+        ranking_function,
+        false,
+        timer.get_remaining_time());
+
+    StateRank init_state_rank =
+        ranking_function.get_abstract_rank(task_proxy.get_initial_state());
+
+    auto pdb = std::make_unique<ProbabilityAwarePatternDatabase>(
+        *projection,
+        std::move(ranking_function),
+        init_state_rank,
+        heuristics::ConstantEvaluator<StateRank>(0_vt),
+        timer.get_remaining_time());
+
+    SingleCEGARResult result(std::move(projection), std::move(pdb));
+
     SingleCEGAR single_cegar(
         rng,
         flaw_strategy_,
         use_wildcard_policies_,
         max_pdb_size,
-        goal.var,
         std::move(blacklisted_variables));
-    auto [state_space, pdb] = single_cegar.generate_pdbs(
-        task_proxy,
-        task_cost_function,
-        max_time,
-        log_);
 
-    return {std::move(state_space), std::move(pdb)};
+    single_cegar
+        .run_cegar_loop(result, task_proxy, task_cost_function, max_time, log_);
+
+    return std::make_pair(std::move(result.projection), std::move(result.pdb));
 }
 
 class PatternCollectionGeneratorMultipleCegarFeature
