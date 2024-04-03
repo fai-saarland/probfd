@@ -44,7 +44,6 @@ class CEGAR::PDBInfo {
     StateRank initial_state;
     std::unique_ptr<ProbabilityAwarePatternDatabase> pdb;
     std::unique_ptr<ProjectionMultiPolicy> policy;
-    bool solved = false;
 
 public:
     PDBInfo(
@@ -92,11 +91,6 @@ public:
 
     std::unique_ptr<ProjectionStateSpace> extract_state_space();
     std::unique_ptr<ProbabilityAwarePatternDatabase> extract_pdb();
-
-    [[nodiscard]]
-    bool is_solved() const;
-
-    void mark_as_solved();
 
     [[nodiscard]]
     bool is_solvable() const;
@@ -238,16 +232,6 @@ std::unique_ptr<ProbabilityAwarePatternDatabase> CEGAR::PDBInfo::extract_pdb()
     return std::move(pdb);
 }
 
-bool CEGAR::PDBInfo::is_solved() const
-{
-    return solved;
-}
-
-void CEGAR::PDBInfo::mark_as_solved()
-{
-    solved = true;
-}
-
 bool CEGAR::PDBInfo::is_solvable() const
 {
     return state_space->is_goal(initial_state) ||
@@ -283,13 +267,13 @@ void CEGAR::print_collection(utils::LogProxy log) const
 {
     log << "[";
 
-    for (size_t i = 0; i < pdb_infos_.size(); ++i) {
-        const auto& info = pdb_infos_[i];
-        if (info) {
-            log << info->get_pattern();
-            if (i != pdb_infos_.size() - 1) {
-                log << ", ";
-            }
+    auto unsolved_infos =
+        std::ranges::subrange(pdb_infos_.begin(), unsolved_end);
+
+    if (!unsolved_infos.empty()) {
+        log << unsolved_infos.front().get_pattern();
+        for (const auto& info : unsolved_infos | std::views::drop(1)) {
+            log << ", " << info.get_pattern();
         }
     }
 
@@ -304,9 +288,14 @@ void CEGAR::generate_trivial_solution_collection(
 {
     assert(!goals_.empty());
 
+    pdb_infos_.reserve(goals_.size());
+
     for (int var : goals_) {
         add_pattern_for_var(task_proxy, task_cost_function, var, timer);
     }
+
+    unsolved_end = pdb_infos_.end();
+    solved_end = pdb_infos_.end();
 
     if (log.is_at_least_normal()) {
         log << "CEGAR initial collection: ";
@@ -318,24 +307,22 @@ void CEGAR::generate_trivial_solution_collection(
     }
 }
 
-int CEGAR::get_flaws(
+auto CEGAR::get_flaws(
     ProbabilisticTaskProxy task_proxy,
     std::vector<Flaw>& flaws,
     std::vector<int>& flaw_offsets,
     utils::CountdownTimer& timer,
-    utils::LogProxy log)
+    utils::LogProxy log) -> std::vector<PDBInfo>::iterator
 {
-    const int num_pdb_infos = static_cast<int>(pdb_infos_.size());
-    for (int idx = 0; idx < num_pdb_infos; ++idx) {
-        auto& info = pdb_infos_[idx];
+    auto info_it = pdb_infos_.begin();
+    auto flaw_offset_it = flaw_offsets.begin();
 
-        if (!info || info->is_solved()) {
-            flaw_offsets[idx] = static_cast<int>(flaws.size());
-            continue;
-        }
+    while (info_it != unsolved_end) {
+        auto& info = *info_it;
 
-        // abort here if no abstract solution could be found
-        if (!info->is_solvable()) {
+        // abort if no abstract solution could be found
+        // TODO should do this on construction already
+        if (!info.is_solvable()) {
             log << "CEGAR: Problem unsolvable" << endl;
             utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
         }
@@ -346,15 +333,14 @@ int CEGAR::get_flaws(
         const size_t num_flaws_before = flaws.size();
         const bool executable = flaw_strategy_->apply_policy(
             task_proxy,
-            info->get_pdb().get_state_ranking_function(),
-            info->get_mdp(),
-            info->get_policy(),
+            info.get_pdb().get_state_ranking_function(),
+            info.get_mdp(),
+            info.get_policy(),
             blacklisted_variables_,
             flaws,
             timer);
 
         const size_t new_num_flaws = flaws.size();
-        flaw_offsets[idx] = static_cast<int>(new_num_flaws);
 
         // Check for new flaws
         if (new_num_flaws == num_flaws_before) {
@@ -369,30 +355,37 @@ int CEGAR::get_flaws(
                  * tests for empty blacklists.
                  */
                 flaws.clear();
-                return idx;
+                return info_it;
             }
 
-            info->mark_as_solved();
+            if (info_it != --unsolved_end) {
+                auto& moved_info = *unsolved_end;
+                // update look-up table
+                for (int var : moved_info.get_pattern()) {
+                    variable_to_info_[var] = info_it;
+                }
+
+                info = std::move(moved_info);
+            }
+
+            continue;
         }
+
+        *flaw_offset_it = static_cast<int>(new_num_flaws);
+
+        ++info_it;
+        ++flaw_offset_it;
     }
 
-    return -1;
-}
-
-bool CEGAR::can_add_singleton_pattern(const VariablesProxy& variables, int var)
-    const
-{
-    const int pdb_size = variables[var].get_domain_size();
-    return pdb_size <= max_pdb_size_ &&
-           collection_size_ <= max_collection_size_ - pdb_size;
+    return unsolved_end;
 }
 
 bool CEGAR::can_add_variable_to_pattern(
     const VariablesProxy& variables,
-    int index,
+    std::vector<PDBInfo>::iterator info_it,
     int var) const
 {
-    int pdb_size = pdb_infos_[index]->get_pdb().num_states();
+    int pdb_size = info_it->get_pdb().num_states();
     int domain_size = variables[var].get_domain_size();
 
     if (!utils::is_product_within_limit(pdb_size, domain_size, max_pdb_size_)) {
@@ -403,10 +396,12 @@ bool CEGAR::can_add_variable_to_pattern(
     return collection_size_ + added_size <= max_collection_size_;
 }
 
-bool CEGAR::can_merge_patterns(int index1, int index2) const
+bool CEGAR::can_merge_patterns(
+    std::vector<PDBInfo>::iterator info_it1,
+    std::vector<PDBInfo>::iterator info_it2) const
 {
-    int pdb_size1 = pdb_infos_[index1]->get_pdb().num_states();
-    int pdb_size2 = pdb_infos_[index2]->get_pdb().num_states();
+    int pdb_size1 = info_it1->get_pdb().num_states();
+    int pdb_size2 = info_it2->get_pdb().num_states();
 
     if (!utils::is_product_within_limit(pdb_size1, pdb_size2, max_pdb_size_)) {
         return false;
@@ -422,30 +417,35 @@ void CEGAR::add_pattern_for_var(
     int var,
     utils::CountdownTimer& timer)
 {
-    auto& info = pdb_infos_.emplace_back(new PDBInfo(
+    auto info_it = pdb_infos_.emplace(
+        pdb_infos_.end(),
         task_proxy,
         StateRankingFunction(task_proxy.get_variables(), {var}),
         task_cost_function,
         *rng_,
         wildcard_,
-        timer));
-    variable_to_collection_index_[var] = pdb_infos_.size() - 1;
-    collection_size_ += info->get_pdb().num_states();
+        timer);
+
+    variable_to_info_[var] = info_it;
+    collection_size_ += info_it->get_pdb().num_states();
 }
 
 void CEGAR::add_variable_to_pattern(
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
-    int index,
+    std::vector<PDBInfo>::iterator info_it,
     int var,
     utils::CountdownTimer& timer)
 {
-    PDBInfo& info = *pdb_infos_[index];
+    PDBInfo& info = *info_it;
 
-    auto pdb = info.get_pdb();
+    const auto& pdb = info.get_pdb();
+
+    // update collection size
+    collection_size_ -= pdb.num_states();
 
     // compute new solution
-    std::unique_ptr<PDBInfo> new_info(new PDBInfo(
+    info = PDBInfo(
         task_proxy,
         StateRankingFunction(
             task_proxy.get_variables(),
@@ -455,42 +455,44 @@ void CEGAR::add_variable_to_pattern(
         pdb,
         var,
         wildcard_,
-        timer));
+        timer);
 
     // update collection size
-    collection_size_ -= pdb.num_states();
-    collection_size_ += new_info->get_pdb().num_states();
+    collection_size_ += info.get_pdb().num_states();
 
     // update look-up table
-    variable_to_collection_index_[var] = index;
-    pdb_infos_[index] = std::move(new_info);
+    variable_to_info_[var] = info_it;
 }
 
 void CEGAR::merge_patterns(
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
-    int index1,
-    int index2,
+    std::vector<PDBInfo>::iterator info_it1,
+    std::vector<PDBInfo>::iterator info_it2,
     utils::CountdownTimer& timer)
 {
     // Merge pattern at index2 into pattern at index2
-    PDBInfo& solution1 = *pdb_infos_[index1];
-    PDBInfo& solution2 = *pdb_infos_[index2];
+    PDBInfo& solution1 = *info_it1;
+    PDBInfo& solution2 = *info_it2;
 
     const ProbabilityAwarePatternDatabase& pdb1 = solution1.get_pdb();
     const ProbabilityAwarePatternDatabase& pdb2 = solution2.get_pdb();
 
     // update look-up table
     for (int var : solution2.get_pattern()) {
-        variable_to_collection_index_[var] = index1;
+        variable_to_info_[var] = info_it1;
     }
 
     // store old pdb sizes
     int pdb_size1 = pdb1.num_states();
     int pdb_size2 = pdb2.num_states();
 
+    // update collection size
+    collection_size_ -= pdb_size1;
+    collection_size_ -= pdb_size2;
+
     // compute merge solution
-    unique_ptr<PDBInfo> merged(new PDBInfo(
+    solution1 = PDBInfo(
         task_proxy,
         StateRankingFunction(
             task_proxy.get_variables(),
@@ -500,16 +502,33 @@ void CEGAR::merge_patterns(
         pdb1,
         pdb2,
         wildcard_,
-        timer));
+        timer);
 
     // update collection size
-    collection_size_ -= pdb_size1;
-    collection_size_ -= pdb_size2;
-    collection_size_ += merged->get_pdb().num_states();
+    collection_size_ += solution1.get_pdb().num_states();
 
-    // clean-up
-    pdb_infos_[index1] = std::move(merged);
-    pdb_infos_[index2] = nullptr;
+    // fill gap if created
+    if (info_it2 != --unsolved_end) {
+        auto& moved_from = *unsolved_end;
+
+        // update look-up table
+        for (int var : moved_from.get_pattern()) {
+            variable_to_info_[var] = info_it2;
+        }
+
+        solution2 = std::move(moved_from);
+    }
+
+    if (unsolved_end != --solved_end) {
+        auto& moved_from = *solved_end;
+
+        // update look-up table
+        for (int var : moved_from.get_pattern()) {
+            variable_to_info_[var] = unsolved_end;
+        }
+
+        *unsolved_end = std::move(moved_from);
+    }
 }
 
 void CEGAR::refine(
@@ -530,11 +549,12 @@ void CEGAR::refine(
     int solution_index = std::distance(
         flaw_offsets.begin(),
         std::ranges::upper_bound(flaw_offsets, random_flaw_index));
+    auto solution_it = std::next(pdb_infos_.begin(), solution_index);
     int var = flaw.variable;
 
     if (log.is_at_least_verbose()) {
         log << "CEGAR: chosen flaw: pattern "
-            << pdb_infos_[solution_index]->get_pattern();
+            << pdb_infos_[solution_index].get_pattern();
     }
 
     if (log.is_at_least_verbose()) {
@@ -547,20 +567,19 @@ void CEGAR::refine(
         log << "on " << var << endl;
     }
 
-    const auto it = variable_to_collection_index_.find(var);
+    const auto it = variable_to_info_.find(var);
 
-    if (it != variable_to_collection_index_.end()) {
+    if (it != variable_to_info_.end()) {
         // var is already in another pattern of the collection
-        int other_index = it->second;
-        assert(other_index != solution_index);
-        assert(pdb_infos_[other_index] != nullptr);
+        auto other_it = it->second;
+        assert(other_it != solution_it);
 
         if (log.is_at_least_verbose()) {
             log << "CEGAR: var" << var << " is already in pattern "
-                << pdb_infos_[other_index]->get_pattern() << endl;
+                << other_it->get_pattern() << endl;
         }
 
-        if (can_merge_patterns(solution_index, other_index)) {
+        if (can_merge_patterns(solution_it, other_it)) {
             if (log.is_at_least_verbose()) {
                 log << "CEGAR: merge the two patterns" << endl;
             }
@@ -568,8 +587,8 @@ void CEGAR::refine(
             merge_patterns(
                 task_proxy,
                 task_cost_function,
-                solution_index,
-                other_index,
+                solution_it,
+                other_it,
                 timer);
             return;
         }
@@ -583,7 +602,7 @@ void CEGAR::refine(
                 << endl;
         }
 
-        if (can_add_variable_to_pattern(variables, solution_index, var)) {
+        if (can_add_variable_to_pattern(variables, solution_it, var)) {
             if (log.is_at_least_verbose()) {
                 log << "CEGAR: add it to the pattern" << endl;
             }
@@ -591,7 +610,7 @@ void CEGAR::refine(
             add_variable_to_pattern(
                 task_proxy,
                 task_cost_function,
-                solution_index,
+                solution_it,
                 var,
                 timer);
             return;
@@ -643,7 +662,7 @@ CEGARResult CEGAR::generate_pdbs(
 
     std::vector<Flaw> flaws;
     std::vector<int> flaw_offsets(pdb_infos_.size(), 0);
-    int solution_index = -1;
+    std::vector<PDBInfo>::iterator solution_it;
 
     // main loop of the algorithm
     int refinement_counter = 1;
@@ -654,12 +673,12 @@ CEGARResult CEGAR::generate_pdbs(
                 log << "iteration #" << refinement_counter << endl;
             }
 
-            solution_index =
+            solution_it =
                 get_flaws(task_proxy, flaws, flaw_offsets, timer, log);
 
             if (flaws.empty()) {
-                if (solution_index != -1) {
-                    const auto& info = pdb_infos_[solution_index];
+                if (solution_it != unsolved_end) {
+                    const auto& info = *solution_it;
 
                     assert(blacklisted_variables_.empty());
 
@@ -668,7 +687,7 @@ CEGARResult CEGAR::generate_pdbs(
                                "abstract policies."
                             << endl;
                         log << "CEGAR: Cost of policy: "
-                            << info->get_policy_cost(initial_state) << endl;
+                            << info.get_policy_cost(initial_state) << endl;
                     }
                 } else {
                     if (log.is_at_least_verbose()) {
@@ -721,16 +740,14 @@ CEGARResult CEGAR::generate_pdbs(
         std::make_unique<std::vector<std::unique_ptr<ProjectionStateSpace>>>();
     auto pdbs = std::make_unique<PPDBCollection>();
 
-    if (solution_index != -1) {
-        auto& info = pdb_infos_[solution_index];
-        state_spaces->emplace_back(info->extract_state_space());
-        pdbs->emplace_back(info->extract_pdb());
+    if (solution_it != unsolved_end) {
+        auto& info = *solution_it;
+        state_spaces->emplace_back(info.extract_state_space());
+        pdbs->emplace_back(info.extract_pdb());
     } else {
-        for (const auto& info : pdb_infos_) {
-            if (info) {
-                state_spaces->emplace_back(info->extract_state_space());
-                pdbs->emplace_back(info->extract_pdb());
-            }
+        for (auto& info : pdb_infos_) {
+            state_spaces->emplace_back(info.extract_state_space());
+            pdbs->emplace_back(info.extract_pdb());
         }
     }
 

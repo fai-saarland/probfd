@@ -60,13 +60,15 @@ class CEGAR {
     std::unordered_set<int> blacklisted_variables_;
 
     // the pattern collection in form of their pdbs plus stored plans.
-    std::vector<std::unique_ptr<PDBInfo>> pdb_infos_;
+    std::vector<PDBInfo> pdb_infos_;
+    std::vector<PDBInfo>::iterator unsolved_end;
+    std::vector<PDBInfo>::iterator solved_end;
 
-    // Takes a variable as key and returns the index of the solutions-entry
+    // Takes a variable as key and returns an iterator to the solutions-entry
     // whose pattern contains said variable. Used for checking if a variable
     // is already included in some pattern as well as for quickly finding
     // the other partner for merging.
-    std::unordered_map<int, int> variable_to_collection_index_;
+    std::unordered_map<int, std::vector<PDBInfo>::iterator> variable_to_info_;
 
     int collection_size_ = 0;
 
@@ -95,22 +97,21 @@ private:
         utils::CountdownTimer& timer,
         utils::LogProxy log);
 
-    int get_flaws(
+    std::vector<PDBInfo>::iterator get_flaws(
         ProbabilisticTaskProxy task_proxy,
         std::vector<Flaw>& flaws,
         std::vector<int>& flaw_offsets,
         utils::CountdownTimer& timer,
         utils::LogProxy log);
 
-    bool
-    can_add_singleton_pattern(const VariablesProxy& variables, int var) const;
-
     bool can_add_variable_to_pattern(
         const VariablesProxy& variables,
-        int index,
+        std::vector<PDBInfo>::iterator info_it,
         int var) const;
 
-    bool can_merge_patterns(int index1, int index2) const;
+    bool can_merge_patterns(
+        std::vector<PDBInfo>::iterator info_it1,
+        std::vector<PDBInfo>::iterator info_it2) const;
 
     void add_pattern_for_var(
         ProbabilisticTaskProxy task_proxy,
@@ -121,15 +122,15 @@ private:
     void add_variable_to_pattern(
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
-        int index,
+        std::vector<PDBInfo>::iterator info_it,
         int var,
         utils::CountdownTimer& timer);
 
     void merge_patterns(
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
-        int index1,
-        int index2,
+        std::vector<PDBInfo>::iterator info_it1,
+        std::vector<PDBInfo>::iterator info_it2,
         utils::CountdownTimer& timer);
 
     void refine(
