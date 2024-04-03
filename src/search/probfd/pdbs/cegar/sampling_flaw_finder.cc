@@ -45,8 +45,8 @@ SamplingFlawFinder::SamplingFlawFinder(
 
 bool SamplingFlawFinder::apply_policy(
     const ProbabilisticTaskProxy& task_proxy,
+    const StateRankingFunction& state_ranking_function,
     const ProjectionStateSpace& mdp,
-    const ProbabilityAwarePatternDatabase& pdb,
     const ProjectionMultiPolicy& policy,
     const std::unordered_set<int>& blacklisted_variables,
     std::vector<Flaw>& flaw_list,
@@ -68,7 +68,8 @@ bool SamplingFlawFinder::apply_policy(
 
     for (;;) {
         const State* current = &stk_.back();
-        const StateRank abs = pdb.get_abstract_state(*current);
+        const StateRank abs =
+            state_ranking_function.get_abstract_rank(*current);
 
         ExplorationInfo* einfo = &einfos_[StateID(current->get_id())];
 

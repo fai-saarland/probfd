@@ -21,7 +21,7 @@ class ProbabilisticTaskProxy;
 }
 
 namespace probfd::pdbs {
-class ProbabilityAwarePatternDatabase;
+class StateRankingFunction;
 }
 
 namespace probfd::pdbs::cegar {
@@ -39,8 +39,8 @@ public:
     // remaining goals are added to the list for goal violations.
     virtual bool apply_policy(
         const ProbabilisticTaskProxy& task_proxy,
+        const StateRankingFunction& state_ranking_function,
         const ProjectionStateSpace& mdp,
-        const ProbabilityAwarePatternDatabase& pdb,
         const ProjectionMultiPolicy& policy,
         const std::unordered_set<int>& blacklisted_variables,
         std::vector<Flaw>& flaws,

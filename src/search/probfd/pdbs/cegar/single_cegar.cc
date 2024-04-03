@@ -88,8 +88,8 @@ bool SingleCEGAR::get_flaws(
     // We always start with the initial state.
     const bool executable = flaw_strategy_->apply_policy(
         task_proxy,
+        result.pdb->get_state_ranking_function(),
         *result.projection,
-        *result.pdb,
         *policy,
         blacklisted_variables_,
         flaws,

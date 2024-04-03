@@ -346,8 +346,8 @@ int CEGAR::get_flaws(
         const size_t num_flaws_before = flaws.size();
         const bool executable = flaw_strategy_->apply_policy(
             task_proxy,
+            info->get_pdb().get_state_ranking_function(),
             info->get_mdp(),
-            info->get_pdb(),
             info->get_policy(),
             blacklisted_variables_,
             flaws,

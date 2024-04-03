@@ -38,8 +38,8 @@ BFSFlawFinder::BFSFlawFinder(int max_search_states)
 
 bool BFSFlawFinder::apply_policy(
     const ProbabilisticTaskProxy& task_proxy,
+    const StateRankingFunction& state_ranking_function,
     const ProjectionStateSpace& mdp,
-    const ProbabilityAwarePatternDatabase& pdb,
     const ProjectionMultiPolicy& policy,
     const std::unordered_set<int>& blacklisted_variables,
     std::vector<Flaw>& flaw_list,
@@ -68,7 +68,7 @@ bool BFSFlawFinder::apply_policy(
         timer.throw_if_expired();
 
         const State& current = open_.front();
-        const StateRank abs = pdb.get_abstract_state(current);
+        const StateRank abs = state_ranking_function.get_abstract_rank(current);
 
         {
             const std::vector abs_decisions = policy.get_decisions(abs);
