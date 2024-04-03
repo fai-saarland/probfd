@@ -99,7 +99,7 @@ public:
     void mark_as_solved();
 
     [[nodiscard]]
-    bool solution_exists(value_t termination_cost) const;
+    bool is_solvable() const;
 
     [[nodiscard]]
     bool is_goal(StateRank rank) const;
@@ -248,9 +248,10 @@ void CEGAR::PDBInfo::mark_as_solved()
     solved = true;
 }
 
-bool CEGAR::PDBInfo::solution_exists(value_t termination_cost) const
+bool CEGAR::PDBInfo::is_solvable() const
 {
-    return pdb->lookup_estimate(initial_state) != termination_cost;
+    return state_space->is_goal(initial_state) ||
+           !policy->get_decisions(initial_state).empty();
 }
 
 bool CEGAR::PDBInfo::is_goal(StateRank rank) const
@@ -323,7 +324,6 @@ int CEGAR::get_flaws(
     ProbabilisticTaskProxy task_proxy,
     std::vector<Flaw>& flaws,
     std::vector<int>& flaw_offsets,
-    value_t termination_cost,
     utils::CountdownTimer& timer,
     utils::LogProxy log)
 {
@@ -337,7 +337,7 @@ int CEGAR::get_flaws(
         }
 
         // abort here if no abstract solution could be found
-        if (!info->solution_exists(termination_cost)) {
+        if (!info->is_solvable()) {
             log << "CEGAR: Problem unsolvable" << endl;
             utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
         }
@@ -649,22 +649,14 @@ CEGARResult CEGAR::generate_pdbs(
     // main loop of the algorithm
     int refinement_counter = 1;
 
-    const value_t termination_cost =
-        task_cost_function.get_non_goal_termination_cost();
-
     try {
         for (;;) {
             if (log.is_at_least_verbose()) {
                 log << "iteration #" << refinement_counter << endl;
             }
 
-            solution_index = get_flaws(
-                task_proxy,
-                flaws,
-                flaw_offsets,
-                termination_cost,
-                timer,
-                log);
+            solution_index =
+                get_flaws(task_proxy, flaws, flaw_offsets, timer, log);
 
             if (flaws.empty()) {
                 if (solution_index != -1) {

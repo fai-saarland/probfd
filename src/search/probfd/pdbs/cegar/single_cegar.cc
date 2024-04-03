@@ -79,7 +79,8 @@ bool SingleCEGAR::get_flaws(
             wildcard_);
 
     // abort here if no abstract solution could be found
-    if (policy->get_decisions(init_state_rank).empty()) {
+    if (!result.projection->is_goal(init_state_rank) &&
+        policy->get_decisions(init_state_rank).empty()) {
         log << "SingleCEGAR: Problem unsolvable" << endl;
         utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
     }
