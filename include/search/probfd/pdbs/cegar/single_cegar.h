@@ -52,9 +52,6 @@ struct SingleCEGARResult {
 };
 
 class SingleCEGAR {
-    // Random number generator
-    const std::shared_ptr<utils::RandomNumberGenerator> rng_;
-
     // Flaw finding strategy
     const std::shared_ptr<FlawFindingStrategy> flaw_strategy_;
 
@@ -66,7 +63,6 @@ class SingleCEGAR {
 
 public:
     SingleCEGAR(
-        std::shared_ptr<utils::RandomNumberGenerator> rng,
         std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy,
         bool wildcard,
         int max_pdb_size,
@@ -78,6 +74,7 @@ public:
         SingleCEGARResult& result,
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
+        utils::RandomNumberGenerator& rng,
         double max_time,
         utils::LogProxy log);
 
@@ -87,6 +84,7 @@ private:
         ProbabilisticTaskProxy task_proxy,
         std::vector<Flaw>& flaws,
         const State& initial_state,
+        utils::RandomNumberGenerator& rng,
         utils::CountdownTimer& timer,
         utils::LogProxy log);
 
@@ -94,8 +92,8 @@ private:
         SingleCEGARResult& result,
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
-        const VariablesProxy& variables,
         const std::vector<Flaw>& flaws,
+        utils::RandomNumberGenerator& rng,
         utils::CountdownTimer& timer,
         utils::LogProxy log);
 };

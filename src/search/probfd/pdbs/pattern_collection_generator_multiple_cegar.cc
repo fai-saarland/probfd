@@ -67,14 +67,18 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
     SingleCEGARResult result(std::move(projection), std::move(pdb));
 
     SingleCEGAR single_cegar(
-        rng,
         flaw_strategy_,
         use_wildcard_policies_,
         max_pdb_size,
         std::move(blacklisted_variables));
 
-    single_cegar
-        .run_cegar_loop(result, task_proxy, task_cost_function, max_time, log_);
+    single_cegar.run_cegar_loop(
+        result,
+        task_proxy,
+        task_cost_function,
+        *rng,
+        max_time,
+        log_);
 
     return std::make_pair(std::move(result.projection), std::move(result.pdb));
 }

@@ -41,13 +41,11 @@ SingleCEGARResult::operator=(SingleCEGARResult&&) noexcept = default;
 SingleCEGARResult::~SingleCEGARResult() = default;
 
 SingleCEGAR::SingleCEGAR(
-    std::shared_ptr<utils::RandomNumberGenerator> rng,
     std::shared_ptr<FlawFindingStrategy> flaw_strategy,
     bool wildcard,
     int max_pdb_size,
     std::unordered_set<int> blacklisted_variables)
-    : rng_(std::move(rng))
-    , flaw_strategy_(std::move(flaw_strategy))
+    : flaw_strategy_(std::move(flaw_strategy))
     , wildcard_(wildcard)
     , max_pdb_size_(max_pdb_size)
     , blacklisted_variables_(std::move(blacklisted_variables))
@@ -61,6 +59,7 @@ bool SingleCEGAR::get_flaws(
     ProbabilisticTaskProxy task_proxy,
     std::vector<Flaw>& flaws,
     const State& initial_state,
+    utils::RandomNumberGenerator& rng,
     utils::CountdownTimer& timer,
     utils::LogProxy log)
 {
@@ -71,7 +70,7 @@ bool SingleCEGAR::get_flaws(
             *result.projection,
             result.pdb->get_value_table(),
             init_state_rank,
-            *rng_,
+            rng,
             wildcard_);
 
     // abort here if no abstract solution could be found
@@ -127,15 +126,15 @@ void SingleCEGAR::refine(
     SingleCEGARResult& result,
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
-    const VariablesProxy& variables,
     const std::vector<Flaw>& flaws,
+    utils::RandomNumberGenerator& rng,
     utils::CountdownTimer& timer,
     utils::LogProxy log)
 {
     assert(!flaws.empty());
 
     // pick a random flaw
-    const Flaw& flaw = *rng_->choose(flaws);
+    const Flaw& flaw = *rng.choose(flaws);
 
     int flaw_var = flaw.variable;
 
@@ -160,7 +159,7 @@ void SingleCEGAR::refine(
     // a single new pattern.
     if (utils::is_product_within_limit(
             result.pdb->num_states(),
-            variables[flaw_var].get_domain_size(),
+            task_proxy.get_variables()[flaw_var].get_domain_size(),
             max_pdb_size_)) {
         if (log.is_at_least_verbose()) {
             log << "SingleCEGAR: add it to the pattern" << endl;
@@ -202,6 +201,7 @@ void SingleCEGAR::run_cegar_loop(
     SingleCEGARResult& result,
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
+    utils::RandomNumberGenerator& rng,
     double max_time,
     utils::LogProxy log)
 {
@@ -221,8 +221,6 @@ void SingleCEGAR::run_cegar_loop(
     utils::CountdownTimer timer(max_time);
 
     State initial_state = task_proxy.get_initial_state();
-
-    const VariablesProxy variables = task_proxy.get_variables();
 
     if (log.is_at_least_normal()) {
         log << "SingleCEGAR initial collection: " << result.pdb->get_pattern();
@@ -248,6 +246,7 @@ void SingleCEGAR::run_cegar_loop(
                     task_proxy,
                     flaws,
                     initial_state,
+                    rng,
                     timer,
                     log))
                 break;
@@ -260,8 +259,8 @@ void SingleCEGAR::run_cegar_loop(
                 result,
                 task_proxy,
                 task_cost_function,
-                variables,
                 flaws,
+                rng,
                 timer,
                 log);
 
