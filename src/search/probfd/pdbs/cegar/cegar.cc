@@ -92,9 +92,6 @@ public:
     std::unique_ptr<ProbabilityAwarePatternDatabase> extract_pdb();
 
     [[nodiscard]]
-    bool is_solvable() const;
-
-    [[nodiscard]]
     bool is_goal(StateRank rank) const;
 };
 
@@ -231,12 +228,6 @@ std::unique_ptr<ProbabilityAwarePatternDatabase> CEGAR::PDBInfo::extract_pdb()
     return std::move(pdb);
 }
 
-bool CEGAR::PDBInfo::is_solvable() const
-{
-    return state_space->is_goal(initial_state) ||
-           !policy->get_decisions(initial_state).empty();
-}
-
 bool CEGAR::PDBInfo::is_goal(StateRank rank) const
 {
     return state_space->is_goal(rank);
@@ -310,21 +301,13 @@ auto CEGAR::get_flaws(
     ProbabilisticTaskProxy task_proxy,
     std::vector<Flaw>& flaws,
     std::vector<int>& flaw_offsets,
-    utils::CountdownTimer& timer,
-    utils::LogProxy log) -> std::vector<PDBInfo>::iterator
+    utils::CountdownTimer& timer) -> std::vector<PDBInfo>::iterator
 {
     auto info_it = pdb_infos_.begin();
     auto flaw_offset_it = flaw_offsets.begin();
 
     while (info_it != unsolved_end) {
         auto& info = *info_it;
-
-        // abort if no abstract solution could be found
-        // TODO should do this on construction already
-        if (!info.is_solvable()) {
-            log << "CEGAR: Problem unsolvable" << endl;
-            utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
-        }
 
         // find out if and why the abstract solution
         // would not work for the concrete task.
@@ -349,7 +332,7 @@ auto CEGAR::get_flaws(
             if (executable && blacklisted_variables_.empty()) {
                 /*
                  * If there are no flaws, this does not guarantee that the
-                 * plan is valid in the concrete state space because we might
+                 * policy is valid in the concrete state space because we might
                  * have ignored variables that have been blacklisted. Hence, the
                  * tests for empty blacklists.
                  */
@@ -672,8 +655,7 @@ CEGARResult CEGAR::generate_pdbs(
                 log << "iteration #" << refinement_counter << endl;
             }
 
-            solution_it =
-                get_flaws(task_proxy, flaws, flaw_offsets, timer, log);
+            solution_it = get_flaws(task_proxy, flaws, flaw_offsets, timer);
 
             if (flaws.empty()) {
                 if (solution_it != unsolved_end) {
@@ -682,11 +664,10 @@ CEGARResult CEGAR::generate_pdbs(
                     assert(blacklisted_variables_.empty());
 
                     if (log.is_at_least_verbose()) {
+                        const auto cost = info.get_policy_cost(initial_state);
                         log << "CEGAR: Task solved during computation of "
-                               "abstract policies."
-                            << endl;
-                        log << "CEGAR: Cost of policy: "
-                            << info.get_policy_cost(initial_state) << endl;
+                               "abstract policies.\n"
+                            << "CEGAR: Cost of policy: " << cost << endl;
                     }
                 } else {
                     if (log.is_at_least_verbose()) {

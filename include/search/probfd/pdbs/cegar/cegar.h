@@ -101,8 +101,7 @@ private:
         ProbabilisticTaskProxy task_proxy,
         std::vector<Flaw>& flaws,
         std::vector<int>& flaw_offsets,
-        utils::CountdownTimer& timer,
-        utils::LogProxy log);
+        utils::CountdownTimer& timer);
 
     bool can_add_variable_to_pattern(
         const VariablesProxy& variables,
