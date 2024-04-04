@@ -80,6 +80,26 @@ bool SingleCEGAR::get_flaws(
         utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
     }
 
+    auto accept_flaw = [&](const Flaw& flaw) {
+        int var = flaw.variable;
+        if (blacklisted_variables_.contains(var)) return false;
+
+        if (!utils::is_product_within_limit(
+                result.pdb->num_states(),
+                task_proxy.get_variables()[var].get_domain_size(),
+                max_pdb_size_)) {
+            if (log.is_at_least_verbose()) {
+                log << "ignoring flaw on var " << var
+                    << " due to size limit, blacklisting..." << endl;
+            }
+
+            blacklisted_variables_.insert(var);
+            return false;
+        }
+
+        return true;
+    };
+
     // find out if and why the abstract solution
     // would not work for the concrete task.
     // We always start with the initial state.
@@ -88,8 +108,8 @@ bool SingleCEGAR::get_flaws(
         result.pdb->get_state_ranking_function(),
         *result.projection,
         *policy,
-        blacklisted_variables_,
         flaws,
+        accept_flaw,
         timer);
 
     // Check for new flaws
@@ -141,9 +161,6 @@ void SingleCEGAR::refine(
     if (log.is_at_least_verbose()) {
         log << "SingleCEGAR: chosen flaw: pattern "
             << result.pdb->get_pattern();
-    }
-
-    if (log.is_at_least_verbose()) {
         log << " with a violated";
         if (flaw.is_precondition) {
             log << " precondition ";
@@ -157,44 +174,36 @@ void SingleCEGAR::refine(
     // Note on precondition violations: flaw_var may be a goal variable but
     // nevertheless is added to the pattern causing the flaw and not to
     // a single new pattern.
-    if (utils::is_product_within_limit(
-            result.pdb->num_states(),
-            task_proxy.get_variables()[flaw_var].get_domain_size(),
-            max_pdb_size_)) {
-        if (log.is_at_least_verbose()) {
-            log << "SingleCEGAR: add it to the pattern" << endl;
-        }
-
-        // compute new solution
-        StateRankingFunction ranking_function(
-            task_proxy.get_variables(),
-            extended_pattern(result.pdb->get_pattern(), flaw_var));
-        StateRank initial_state =
-            ranking_function.get_abstract_rank(task_proxy.get_initial_state());
-
-        result.projection = std::make_unique<ProjectionStateSpace>(
-            task_proxy,
-            task_cost_function,
-            ranking_function,
-            false,
-            timer.get_remaining_time());
-
-        result.pdb = std::make_unique<ProbabilityAwarePatternDatabase>(
-            *result.projection,
-            std::move(ranking_function),
-            initial_state,
-            *result.pdb,
-            flaw_var,
-            timer.get_remaining_time());
-
-        return;
-    }
+    assert(utils::is_product_within_limit(
+        result.pdb->num_states(),
+        task_proxy.get_variables()[flaw_var].get_domain_size(),
+        max_pdb_size_));
 
     if (log.is_at_least_verbose()) {
-        log << "could not add var due to size limits, blacklisting var" << endl;
+        log << "SingleCEGAR: add it to the pattern" << endl;
     }
 
-    blacklisted_variables_.insert(flaw_var);
+    // compute new solution
+    StateRankingFunction ranking_function(
+        task_proxy.get_variables(),
+        extended_pattern(result.pdb->get_pattern(), flaw_var));
+    StateRank initial_state =
+        ranking_function.get_abstract_rank(task_proxy.get_initial_state());
+
+    result.projection = std::make_unique<ProjectionStateSpace>(
+        task_proxy,
+        task_cost_function,
+        ranking_function,
+        false,
+        timer.get_remaining_time());
+
+    result.pdb = std::make_unique<ProbabilityAwarePatternDatabase>(
+        *result.projection,
+        std::move(ranking_function),
+        initial_state,
+        *result.pdb,
+        flaw_var,
+        timer.get_remaining_time());
 }
 
 void SingleCEGAR::run_cegar_loop(

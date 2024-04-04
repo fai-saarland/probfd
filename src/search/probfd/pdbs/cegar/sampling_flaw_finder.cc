@@ -48,8 +48,8 @@ bool SamplingFlawFinder::apply_policy(
     const StateRankingFunction& state_ranking_function,
     const ProjectionStateSpace& mdp,
     const ProjectionMultiPolicy& policy,
-    const std::unordered_set<int>& blacklisted_variables,
-    std::vector<Flaw>& flaw_list,
+    std::vector<Flaw>& flaws,
+    const std::function<bool(const Flaw&)>& accept_flaw,
     utils::CountdownTimer& timer)
 {
     assert(stk_.empty() && einfos_.empty());
@@ -81,11 +81,8 @@ bool SamplingFlawFinder::apply_policy(
 
             // Goal flaw check
             if (abs_decisions.empty()) {
-                if (mdp.is_goal(abs) && collect_flaws(
-                                            goals,
-                                            *current,
-                                            blacklisted_variables,
-                                            flaw_list)) {
+                if (mdp.is_goal(abs) &&
+                    collect_flaws(goals, *current, flaws, accept_flaw)) {
                     return false;
                 }
 
@@ -102,8 +99,8 @@ bool SamplingFlawFinder::apply_policy(
                 if (collect_flaws(
                         op.get_preconditions(),
                         *current,
-                        blacklisted_variables,
-                        local_flaws)) {
+                        local_flaws,
+                        accept_flaw)) {
                     continue; // Try next operator
                 }
 
@@ -127,10 +124,7 @@ bool SamplingFlawFinder::apply_policy(
             }
 
             // Insert all flaws of all operators
-            flaw_list.insert(
-                flaw_list.end(),
-                local_flaws.begin(),
-                local_flaws.end());
+            flaws.insert(flaws.end(), local_flaws.begin(), local_flaws.end());
 
             return false;
         }

@@ -9,12 +9,12 @@
 namespace probfd::pdbs::cegar {
 
 namespace {
-bool collect_flaws(
-    auto facts,
+bool collect_flaws_(
+    const auto& facts,
     const State& state,
+    std::vector<Flaw>& flaws,
     bool is_precondition,
-    const std::unordered_set<int>& blacklist,
-    std::vector<Flaw>& flaw_list)
+    const std::function<bool(const Flaw&)>& accept_flaw)
 {
     bool flaws_found = false;
 
@@ -22,9 +22,12 @@ bool collect_flaws(
     for (const FactProxy fact : facts) {
         const auto& [var, val] = fact.get_pair();
 
-        if (state[var].get_value() != val && !blacklist.contains(var)) {
-            flaws_found = true;
-            flaw_list.emplace_back(var, is_precondition);
+        if (state[var].get_value() != val) {
+            Flaw flaw(var, is_precondition);
+            if (accept_flaw(flaw)) {
+                flaws_found = true;
+                flaws.push_back(flaw);
+            }
         }
     }
 
@@ -35,19 +38,19 @@ bool collect_flaws(
 bool collect_flaws(
     PreconditionsProxy facts,
     const State& state,
-    const std::unordered_set<int>& blacklist,
-    std::vector<Flaw>& flaw_list)
+    std::vector<Flaw>& flaws,
+    const std::function<bool(const Flaw&)>& accept_flaw)
 {
-    return collect_flaws(facts, state, true, blacklist, flaw_list);
+    return collect_flaws_(facts, state, flaws, true, accept_flaw);
 }
 
 bool collect_flaws(
     GoalsProxy facts,
     const State& state,
-    const std::unordered_set<int>& blacklist,
-    std::vector<Flaw>& flaw_list)
+    std::vector<Flaw>& flaws,
+    const std::function<bool(const Flaw&)>& accept_flaw)
 {
-    return collect_flaws(facts, state, false, blacklist, flaw_list);
+    return collect_flaws_(facts, state, flaws, false, accept_flaw);
 }
 
 static class FlawFindingStrategyCategoryPlugin

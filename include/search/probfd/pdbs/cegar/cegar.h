@@ -70,7 +70,7 @@ class CEGAR {
     // the other partner for merging.
     std::unordered_map<int, std::vector<PDBInfo>::iterator> variable_to_info_;
 
-    int collection_size_ = 0;
+    int remaining_size_ = max_collection_size_;
 
 public:
     CEGAR(
@@ -101,7 +101,8 @@ private:
         ProbabilisticTaskProxy task_proxy,
         std::vector<Flaw>& flaws,
         std::vector<int>& flaw_offsets,
-        utils::CountdownTimer& timer);
+        utils::CountdownTimer& timer,
+        utils::LogProxy log);
 
     bool can_add_variable_to_pattern(
         const VariablesProxy& variables,

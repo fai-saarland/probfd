@@ -3,6 +3,7 @@
 
 #include "probfd/pdbs/types.h"
 
+#include <functional>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -42,8 +43,8 @@ public:
         const StateRankingFunction& state_ranking_function,
         const ProjectionStateSpace& mdp,
         const ProjectionMultiPolicy& policy,
-        const std::unordered_set<int>& blacklisted_variables,
         std::vector<Flaw>& flaws,
+        const std::function<bool(const Flaw&)>& notify_flaw,
         utils::CountdownTimer& timer) = 0;
 
     virtual std::string get_name() = 0;
@@ -52,14 +53,14 @@ public:
 bool collect_flaws(
     PreconditionsProxy facts,
     const State& state,
-    const std::unordered_set<int>& blacklist,
-    std::vector<Flaw>& flaw_list);
+    std::vector<Flaw>& flaws,
+    const std::function<bool(const Flaw&)>& accept_flaw);
 
 bool collect_flaws(
     GoalsProxy facts,
     const State& state,
-    const std::unordered_set<int>& blacklist,
-    std::vector<Flaw>& flaw_list);
+    std::vector<Flaw>& flaws,
+    const std::function<bool(const Flaw&)>& accept_flaw);
 
 } // namespace probfd::pdbs::cegar
 

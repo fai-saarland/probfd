@@ -40,8 +40,8 @@ bool PUCSFlawFinder::apply_policy(
     const StateRankingFunction& state_ranking_function,
     const ProjectionStateSpace& mdp,
     const ProjectionMultiPolicy& policy,
-    const std::unordered_set<int>& blacklisted_variables,
-    std::vector<Flaw>& flaw_list,
+    std::vector<Flaw>& flaws,
+    const std::function<bool(const Flaw&)>& accept_flaw,
     utils::CountdownTimer& timer)
 {
     assert(pq_.empty() && probabilities_.empty());
@@ -87,7 +87,7 @@ bool PUCSFlawFinder::apply_policy(
         // We reached a terminal state, check if it is a goal or dead-end
         if (abs_decisions.empty()) {
             if (mdp.is_goal(abs) &&
-                collect_flaws(goals, current, blacklisted_variables, flaw_list))
+                collect_flaws(goals, current, flaws, accept_flaw))
                 return false;
 
             continue;
@@ -102,8 +102,8 @@ bool PUCSFlawFinder::apply_policy(
             if (collect_flaws(
                     op.get_preconditions(),
                     current,
-                    blacklisted_variables,
-                    local_flaws)) {
+                    local_flaws,
+                    accept_flaw)) {
                 continue; // Try next operator
             }
 
@@ -132,10 +132,7 @@ bool PUCSFlawFinder::apply_policy(
         }
 
         // Insert all flaws of all operators
-        flaw_list.insert(
-            flaw_list.end(),
-            local_flaws.begin(),
-            local_flaws.end());
+        flaws.insert(flaws.end(), local_flaws.begin(), local_flaws.end());
 
         return false;
 

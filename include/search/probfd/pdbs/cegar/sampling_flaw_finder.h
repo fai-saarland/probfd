@@ -55,8 +55,8 @@ public:
         const StateRankingFunction& state_ranking_function,
         const ProjectionStateSpace& mdp,
         const ProjectionMultiPolicy& policy,
-        const std::unordered_set<int>& blacklisted_variables,
-        std::vector<Flaw>& flaw_list,
+        std::vector<Flaw>& flaws,
+        const std::function<bool(const Flaw&)>& notify_flaw,
         utils::CountdownTimer& timer) override;
 
     std::string get_name() override;

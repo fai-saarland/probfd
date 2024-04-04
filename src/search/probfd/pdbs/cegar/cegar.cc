@@ -301,7 +301,8 @@ auto CEGAR::get_flaws(
     ProbabilisticTaskProxy task_proxy,
     std::vector<Flaw>& flaws,
     std::vector<int>& flaw_offsets,
-    utils::CountdownTimer& timer) -> std::vector<PDBInfo>::iterator
+    utils::CountdownTimer& timer,
+    utils::LogProxy log) -> std::vector<PDBInfo>::iterator
 {
     auto info_it = pdb_infos_.begin();
     auto flaw_offset_it = flaw_offsets.begin();
@@ -309,17 +310,38 @@ auto CEGAR::get_flaws(
     while (info_it != unsolved_end) {
         auto& info = *info_it;
 
-        // find out if and why the abstract solution
-        // would not work for the concrete task.
-        // We always start with the initial state.
+        auto accept_flaw = [&](const Flaw& flaw) {
+            int var = flaw.variable;
+            if (blacklisted_variables_.contains(var)) return false;
+
+            const auto it = variable_to_info_.find(var);
+            if ((it != variable_to_info_.end() &&
+                 !can_merge_patterns(info_it, it->second)) ||
+                !can_add_variable_to_pattern(
+                    task_proxy.get_variables(),
+                    info_it,
+                    var)) {
+                if (log.is_at_least_verbose()) {
+                    log << "ignoring flaw on var " << var
+                        << " due to size limits, blacklisting..." << endl;
+                }
+
+                blacklisted_variables_.insert(var);
+                return false;
+            }
+
+            return true;
+        };
+
         const size_t num_flaws_before = flaws.size();
+
         const bool executable = flaw_strategy_->apply_policy(
             task_proxy,
             info.get_pdb().get_state_ranking_function(),
             info.get_mdp(),
             info.get_policy(),
-            blacklisted_variables_,
             flaws,
+            accept_flaw,
             timer);
 
         const size_t new_num_flaws = flaws.size();
@@ -370,12 +392,8 @@ bool CEGAR::can_add_variable_to_pattern(
     int pdb_size = info_it->get_pdb().num_states();
     int domain_size = variables[var].get_domain_size();
 
-    if (!utils::is_product_within_limit(pdb_size, domain_size, max_pdb_size_)) {
-        return false;
-    }
-
-    int added_size = pdb_size * domain_size - pdb_size;
-    return collection_size_ + added_size <= max_collection_size_;
+    const int limit = std::min(max_pdb_size_, remaining_size_ + pdb_size);
+    return utils::is_product_within_limit(pdb_size, domain_size, limit);
 }
 
 bool CEGAR::can_merge_patterns(
@@ -385,12 +403,11 @@ bool CEGAR::can_merge_patterns(
     int pdb_size1 = info_it1->get_pdb().num_states();
     int pdb_size2 = info_it2->get_pdb().num_states();
 
-    if (!utils::is_product_within_limit(pdb_size1, pdb_size2, max_pdb_size_)) {
-        return false;
-    }
+    const int limit = std::min(
+        max_pdb_size_,
+        max_collection_size_ - remaining_size_ + pdb_size1 + pdb_size2);
 
-    int added_size = pdb_size1 * pdb_size2 - pdb_size1 - pdb_size2;
-    return collection_size_ + added_size <= max_collection_size_;
+    return utils::is_product_within_limit(pdb_size1, pdb_size2, limit);
 }
 
 void CEGAR::add_pattern_for_var(
@@ -409,7 +426,7 @@ void CEGAR::add_pattern_for_var(
         timer);
 
     variable_to_info_[var] = info_it;
-    collection_size_ += info_it->get_pdb().num_states();
+    remaining_size_ -= info_it->get_pdb().num_states();
 }
 
 void CEGAR::add_variable_to_pattern(
@@ -424,7 +441,7 @@ void CEGAR::add_variable_to_pattern(
     const auto& pdb = info.get_pdb();
 
     // update collection size
-    collection_size_ -= pdb.num_states();
+    remaining_size_ += pdb.num_states();
 
     // compute new solution
     info = PDBInfo(
@@ -440,7 +457,7 @@ void CEGAR::add_variable_to_pattern(
         timer);
 
     // update collection size
-    collection_size_ += info.get_pdb().num_states();
+    remaining_size_ -= info.get_pdb().num_states();
 
     // update look-up table
     variable_to_info_[var] = info_it;
@@ -470,8 +487,7 @@ void CEGAR::merge_patterns(
     int pdb_size2 = pdb2.num_states();
 
     // update collection size
-    collection_size_ -= pdb_size1;
-    collection_size_ -= pdb_size2;
+    remaining_size_ += pdb_size1 + pdb_size2;
 
     // compute merge solution
     solution1 = PDBInfo(
@@ -487,7 +503,7 @@ void CEGAR::merge_patterns(
         timer);
 
     // update collection size
-    collection_size_ += solution1.get_pdb().num_states();
+    remaining_size_ -= solution1.get_pdb().num_states();
 
     // fill gap if created
     if (info_it2 != --unsolved_end) {
@@ -537,9 +553,6 @@ void CEGAR::refine(
     if (log.is_at_least_verbose()) {
         log << "CEGAR: chosen flaw: pattern "
             << pdb_infos_[solution_index].get_pattern();
-    }
-
-    if (log.is_at_least_verbose()) {
         log << " with a violated";
         if (flaw.is_precondition) {
             log << " precondition ";
@@ -555,56 +568,40 @@ void CEGAR::refine(
         // var is already in another pattern of the collection
         auto other_it = it->second;
         assert(other_it != solution_it);
+        assert(can_merge_patterns(solution_it, other_it));
 
         if (log.is_at_least_verbose()) {
-            log << "CEGAR: var" << var << " is already in pattern "
+            log << "CEGAR: var " << var << " is already in pattern "
                 << other_it->get_pattern() << endl;
+            log << "CEGAR: merge the two patterns" << endl;
         }
 
-        if (can_merge_patterns(solution_it, other_it)) {
-            if (log.is_at_least_verbose()) {
-                log << "CEGAR: merge the two patterns" << endl;
-            }
-
-            merge_patterns(
-                task_proxy,
-                task_cost_function,
-                solution_it,
-                other_it,
-                timer);
-            return;
-        }
-    } else {
-        // var is not yet in the collection
-        // Note on precondition violations: var may be a goal variable but
-        // nevertheless is added to the pattern causing the flaw and not to
-        // a single new pattern.
-        if (log.is_at_least_verbose()) {
-            log << "CEGAR: var" << var << " is not in the collection yet"
-                << endl;
-        }
-
-        if (can_add_variable_to_pattern(variables, solution_it, var)) {
-            if (log.is_at_least_verbose()) {
-                log << "CEGAR: add it to the pattern" << endl;
-            }
-
-            add_variable_to_pattern(
-                task_proxy,
-                task_cost_function,
-                solution_it,
-                var,
-                timer);
-            return;
-        }
+        merge_patterns(
+            task_proxy,
+            task_cost_function,
+            solution_it,
+            other_it,
+            timer);
+        return;
     }
 
+    assert(can_add_variable_to_pattern(variables, solution_it, var));
+
+    // var is not yet in the collection
+    // Note on precondition violations: var may be a goal variable but
+    // nevertheless is added to the pattern causing the flaw and not to
+    // a single new pattern.
     if (log.is_at_least_verbose()) {
-        log << "could not add var/merge pattern containing var "
-            << "due to size limits, blacklisting var" << endl;
+        log << "CEGAR: var " << var << " is not in the collection yet" << endl;
+        log << "CEGAR: add it to the pattern" << endl;
     }
 
-    blacklisted_variables_.insert(var);
+    add_variable_to_pattern(
+        task_proxy,
+        task_cost_function,
+        solution_it,
+        var,
+        timer);
 }
 
 CEGARResult CEGAR::generate_pdbs(
@@ -655,7 +652,8 @@ CEGARResult CEGAR::generate_pdbs(
                 log << "iteration #" << refinement_counter << endl;
             }
 
-            solution_it = get_flaws(task_proxy, flaws, flaw_offsets, timer);
+            solution_it =
+                get_flaws(task_proxy, flaws, flaw_offsets, timer, log);
 
             if (flaws.empty()) {
                 if (solution_it != unsolved_end) {
@@ -696,8 +694,8 @@ CEGARResult CEGAR::generate_pdbs(
             flaws.clear();
 
             if (log.is_at_least_verbose()) {
-                log << "CEGAR: current collection size: " << collection_size_
-                    << endl;
+                log << "CEGAR: current collection size: "
+                    << max_collection_size_ - remaining_size_ << endl;
                 log << "CEGAR: current collection: ";
                 print_collection(log);
             }
@@ -739,8 +737,8 @@ CEGARResult CEGAR::generate_pdbs(
             << "\n"
             // << "  final collection: " << *patterns << "\n"
             << "  final collection number of PDBs: " << pdbs->size() << "\n"
-            << "  final collection summed PDB sizes: " << collection_size_
-            << endl;
+            << "  final collection summed PDB sizes: "
+            << max_collection_size_ - remaining_size_ << endl;
     }
 
     return CEGARResult{std::move(state_spaces), std::move(pdbs)};
