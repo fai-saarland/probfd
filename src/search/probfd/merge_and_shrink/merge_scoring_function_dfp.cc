@@ -36,7 +36,6 @@ compute_label_ranks(const FactoredTransitionSystem& fts, int index)
 
     for (const LocalLabelInfo& local_label_info : ts.label_infos()) {
         const LabelGroup& label_group = local_label_info.get_label_group();
-        const auto probabilities = local_label_info.get_probabilities();
         const auto& transitions = local_label_info.get_transitions();
 
         bool group_relevant =
