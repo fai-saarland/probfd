@@ -725,7 +725,8 @@ CEGARResult CEGAR::generate_pdbs(
         state_spaces->emplace_back(info.extract_state_space());
         pdbs->emplace_back(info.extract_pdb());
     } else {
-        for (auto& info : pdb_infos_) {
+        for (auto& info :
+             std::ranges::subrange(pdb_infos_.begin(), solved_end)) {
             state_spaces->emplace_back(info.extract_state_space());
             pdbs->emplace_back(info.extract_pdb());
         }
