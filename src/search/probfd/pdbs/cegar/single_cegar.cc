@@ -200,9 +200,9 @@ void SingleCEGAR::refine(
     result.pdb = std::make_unique<ProbabilityAwarePatternDatabase>(
         *result.projection,
         std::move(ranking_function),
-        initial_state,
         *result.pdb,
         flaw_var,
+        initial_state,
         timer.get_remaining_time());
 }
 

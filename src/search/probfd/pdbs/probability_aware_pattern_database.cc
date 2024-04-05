@@ -95,8 +95,8 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     ProjectionStateSpace& mdp,
     StateRankingFunction ranking_function,
-    StateRank initial_state,
     const ::pdbs::PatternDatabase& pdb,
+    StateRank initial_state,
     double max_time)
     : ProbabilityAwarePatternDatabase(
           mdp,
@@ -141,9 +141,9 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     ProjectionStateSpace& mdp,
     StateRankingFunction ranking_function,
-    StateRank initial_state,
     const ProbabilityAwarePatternDatabase& pdb,
     int add_var,
+    StateRank initial_state,
     double max_time)
     : ProbabilityAwarePatternDatabase(std::move(ranking_function))
 {
@@ -190,9 +190,9 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     ProjectionStateSpace& mdp,
     StateRankingFunction ranking_function,
-    StateRank initial_state,
     const ProbabilityAwarePatternDatabase& left,
     const ProbabilityAwarePatternDatabase& right,
+    StateRank initial_state,
     double max_time)
     : ProbabilityAwarePatternDatabase(std::move(ranking_function))
 {

@@ -142,8 +142,8 @@ public:
     ProbabilityAwarePatternDatabase(
         ProjectionStateSpace& projection,
         StateRankingFunction ranking_function,
-        StateRank initial_state,
         const ::pdbs::PatternDatabase& pdb,
+        StateRank initial_state,
         double max_time = std::numeric_limits<double>::infinity());
 
     /**
@@ -200,9 +200,9 @@ public:
     ProbabilityAwarePatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
-        StateRank initial_state,
         const ProbabilityAwarePatternDatabase& pdb,
         int add_var,
+        StateRank initial_state,
         double max_time = std::numeric_limits<double>::infinity());
 
     /**
@@ -260,9 +260,9 @@ public:
     ProbabilityAwarePatternDatabase(
         ProjectionStateSpace& state_space,
         StateRankingFunction ranking_function,
-        StateRank initial_state,
         const ProbabilityAwarePatternDatabase& left,
         const ProbabilityAwarePatternDatabase& right,
+        StateRank initial_state,
         double max_time = std::numeric_limits<double>::infinity());
 
     /// Get the pattern of the pattern database.
