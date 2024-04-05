@@ -1,6 +1,7 @@
 #ifndef PROBFD_PDBS_CEGAR_SINGLE_CEGAR_H
 #define PROBFD_PDBS_CEGAR_SINGLE_CEGAR_H
 
+#include "probfd/pdbs/state_ranking_function.h"
 #include "probfd/pdbs/types.h"
 
 #include "probfd/fdr_types.h"
@@ -39,20 +40,27 @@ class FlawFindingStrategy;
 
 namespace probfd::pdbs::cegar {
 
-struct SingleCEGARResult {
+struct ProjectionTransformation {
+    StateRankingFunction ranking_function;
     std::unique_ptr<ProjectionStateSpace> projection;
-    std::unique_ptr<ProbabilityAwarePatternDatabase> pdb;
+    std::vector<value_t> distances;
 
-    SingleCEGARResult(
-        std::unique_ptr<ProjectionStateSpace>&& projection,
-        std::unique_ptr<ProbabilityAwarePatternDatabase>&& pdb);
-    SingleCEGARResult(SingleCEGARResult&&) noexcept;
-    SingleCEGARResult& operator=(SingleCEGARResult&&) noexcept;
-    ~SingleCEGARResult();
+    // Constructs the transformation's abstraction mapping and state space,
+    // and allocates the J* value table, initially filled with NaNs.
+    ProjectionTransformation(
+        ProbabilisticTaskProxy task_proxy,
+        FDRSimpleCostFunction& task_cost_function,
+        Pattern pattern,
+        bool operator_pruning = true,
+        double max_time = std::numeric_limits<double>::infinity());
+
+    ProjectionTransformation(ProjectionTransformation&&) noexcept;
+    ProjectionTransformation& operator=(ProjectionTransformation&&) noexcept;
+    ~ProjectionTransformation();
 };
 
 extern void run_cegar_loop(
-    SingleCEGARResult& result,
+    ProjectionTransformation& transformation,
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
     cegar::FlawFindingStrategy& flaw_strategy,

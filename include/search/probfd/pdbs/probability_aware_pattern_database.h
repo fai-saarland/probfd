@@ -46,6 +46,10 @@ class ProbabilityAwarePatternDatabase {
         StateRankingFunction ranking_function);
 
 public:
+    ProbabilityAwarePatternDatabase(
+        StateRankingFunction ranking_function_,
+        std::vector<value_t> value_table_);
+
     /**
      * @brief Construct a probability-aware pattern database for a given task
      * and pattern.

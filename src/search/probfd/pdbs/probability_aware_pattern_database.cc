@@ -36,6 +36,14 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
 }
 
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
+    StateRankingFunction ranking_function,
+    std::vector<value_t> value_table)
+    : ranking_function_(std::move(ranking_function))
+    , value_table_(std::move(value_table))
+{
+}
+
+ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
     Pattern pattern,
@@ -133,7 +141,10 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     compute_value_table(
         mdp,
         ranking_function_.get_abstract_rank(initial_state),
-        IncrementalPPDBEvaluator(pdb, &ranking_function_, add_var),
+        IncrementalPPDBEvaluator(
+            pdb.get_value_table(),
+            ranking_function_,
+            add_var),
         value_table_,
         timer.get_remaining_time());
 }
@@ -150,7 +161,10 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     compute_value_table(
         mdp,
         initial_state,
-        IncrementalPPDBEvaluator(pdb, &ranking_function_, add_var),
+        IncrementalPPDBEvaluator(
+            pdb.get_value_table(),
+            ranking_function_,
+            add_var),
         value_table_,
         max_time);
 }

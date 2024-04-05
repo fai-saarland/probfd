@@ -42,7 +42,7 @@ public:
 };
 
 class IncrementalPPDBEvaluator : public StateRankEvaluator {
-    const ProbabilityAwarePatternDatabase& pdb_;
+    const std::vector<value_t>& value_table_;
 
     int left_multiplier_;
     int right_multiplier_;
@@ -50,8 +50,8 @@ class IncrementalPPDBEvaluator : public StateRankEvaluator {
 
 public:
     explicit IncrementalPPDBEvaluator(
-        const ProbabilityAwarePatternDatabase& pdb,
-        const StateRankingFunction* mapper,
+        const std::vector<value_t>& value_table,
+        const StateRankingFunction& mapper,
         int add_var);
 
     [[nodiscard]]

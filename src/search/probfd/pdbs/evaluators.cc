@@ -70,27 +70,27 @@ value_t DeadendPDBEvaluator::evaluate(StateRank state) const
 }
 
 IncrementalPPDBEvaluator::IncrementalPPDBEvaluator(
-    const ProbabilityAwarePatternDatabase& pdb,
-    const StateRankingFunction* mapper,
+    const std::vector<value_t>& value_table,
+    const StateRankingFunction& mapper,
     int add_var)
-    : pdb_(pdb)
+    : value_table_(value_table)
 {
-    const Pattern& pattern = mapper->get_pattern();
+    const Pattern& pattern = mapper.get_pattern();
     auto it = std::ranges::lower_bound(pattern, add_var);
     assert(it != pattern.end());
     auto idx = std::distance(pattern.begin(), it);
 
-    this->domain_size_ = mapper->get_domain_size(idx);
-    this->left_multiplier_ = mapper->get_multiplier(idx);
+    this->domain_size_ = mapper.get_domain_size(idx);
+    this->left_multiplier_ = mapper.get_multiplier(idx);
     this->right_multiplier_ =
-        static_cast<unsigned int>(idx + 1) < mapper->num_vars()
-            ? mapper->get_multiplier(idx + 1)
-            : mapper->num_states();
+        static_cast<unsigned int>(idx + 1) < mapper.num_vars()
+            ? mapper.get_multiplier(idx + 1)
+            : mapper.num_states();
 }
 
 value_t IncrementalPPDBEvaluator::evaluate(StateRank state) const
 {
-    return pdb_.lookup_estimate(to_parent_state(state));
+    return value_table_[to_parent_state(state)];
 }
 
 StateRank IncrementalPPDBEvaluator::to_parent_state(StateRank rank) const

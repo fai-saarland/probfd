@@ -1,6 +1,8 @@
 #include "probfd/pdbs/pattern_collection_generator_multiple_cegar.h"
 
 #include "probfd/pdbs/cegar/single_cegar.h"
+
+#include "probfd/pdbs/distances.h"
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 #include "probfd/pdbs/projection_state_space.h"
 
@@ -12,6 +14,7 @@
 #include "downward/utils/countdown_timer.h"
 
 #include <iostream>
+#include <limits>
 
 using namespace std;
 
@@ -43,31 +46,23 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
     utils::CountdownTimer timer(max_time);
 
     // Start with a solution of the trivial abstraction
-    StateRankingFunction ranking_function(
-        task_proxy.get_variables(),
-        {goal.var});
-
-    auto projection = std::make_unique<ProjectionStateSpace>(
+    ProjectionTransformation transformation(
         task_proxy,
         task_cost_function,
-        ranking_function,
+        {goal.var},
         false,
         timer.get_remaining_time());
 
-    StateRank init_state_rank =
-        ranking_function.get_abstract_rank(task_proxy.get_initial_state());
-
-    auto pdb = std::make_unique<ProbabilityAwarePatternDatabase>(
-        *projection,
-        std::move(ranking_function),
-        init_state_rank,
-        heuristics::ConstantEvaluator<StateRank>(0_vt),
+    compute_value_table(
+        *transformation.projection,
+        transformation.ranking_function.get_abstract_rank(
+            task_proxy.get_initial_state()),
+        heuristics::BlindEvaluator<StateRank>(),
+        transformation.distances,
         timer.get_remaining_time());
 
-    SingleCEGARResult result(std::move(projection), std::move(pdb));
-
     run_cegar_loop(
-        result,
+        transformation,
         task_proxy,
         task_cost_function,
         *flaw_strategy_,
@@ -78,7 +73,11 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
         max_time,
         log_);
 
-    return std::make_pair(std::move(result.projection), std::move(result.pdb));
+    return std::make_pair(
+        std::move(transformation.projection),
+        std::make_unique<ProbabilityAwarePatternDatabase>(
+            std::move(transformation.ranking_function),
+            std::move(transformation.distances)));
 }
 
 class PatternCollectionGeneratorMultipleCegarFeature
