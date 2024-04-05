@@ -13,9 +13,6 @@
 #include "downward/abstract_task.h"
 #include "downward/utils/countdown_timer.h"
 
-#include <iostream>
-#include <limits>
-
 using namespace std;
 
 namespace probfd::pdbs {
@@ -31,9 +28,7 @@ PatternCollectionGeneratorMultipleCegar::
 {
 }
 
-std::pair<
-    std::shared_ptr<ProjectionStateSpace>,
-    std::shared_ptr<ProbabilityAwarePatternDatabase>>
+ProjectionTransformation
 PatternCollectionGeneratorMultipleCegar::compute_pattern(
     int max_pdb_size,
     double max_time,
@@ -73,11 +68,7 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
         max_time,
         log_);
 
-    return std::make_pair(
-        std::move(transformation.projection),
-        std::make_unique<ProbabilityAwarePatternDatabase>(
-            std::move(transformation.ranking_function),
-            std::move(transformation.distances)));
+    return transformation;
 }
 
 class PatternCollectionGeneratorMultipleCegarFeature

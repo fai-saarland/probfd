@@ -6,8 +6,8 @@
 #include "probfd/pdbs/distances.h"
 #include "probfd/pdbs/evaluators.h"
 #include "probfd/pdbs/policy_extraction.h"
-#include "probfd/pdbs/probability_aware_pattern_database.h"
 #include "probfd/pdbs/projection_state_space.h"
+#include "probfd/pdbs/projection_transformation.h"
 #include "probfd/pdbs/utils.h"
 
 #include "probfd/multi_policy.h"
@@ -22,7 +22,6 @@
 
 #include <cassert>
 #include <functional>
-#include <limits>
 #include <ostream>
 #include <utility>
 
@@ -225,20 +224,12 @@ void SingleCEGAR::refine(
     // compute new solution
     std::vector<value_t> prev_distances = std::move(distances);
 
-    ranking_function = StateRankingFunction(
-        task_proxy.get_variables(),
-        extended_pattern(ranking_function.get_pattern(), flaw_var));
-
-    projection = std::make_unique<ProjectionStateSpace>(
+    transformation = ProjectionTransformation(
         task_proxy,
         task_cost_function,
-        ranking_function,
+        extended_pattern(ranking_function.get_pattern(), flaw_var),
         false,
         timer.get_remaining_time());
-
-    distances = std::vector<value_t>(
-        ranking_function.num_states(),
-        std::numeric_limits<value_t>::quiet_NaN());
 
     IncrementalPPDBEvaluator h(prev_distances, ranking_function, flaw_var);
 
@@ -340,31 +331,6 @@ void SingleCEGAR::run_cegar_loop(
 }
 
 } // namespace
-
-ProjectionTransformation::ProjectionTransformation(
-    ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
-    Pattern pattern,
-    bool operator_pruning,
-    double max_time)
-    : ranking_function(task_proxy.get_variables(), std::move(pattern))
-    , projection(std::make_unique<ProjectionStateSpace>(
-          task_proxy,
-          task_cost_function,
-          ranking_function,
-          operator_pruning,
-          max_time))
-    , distances(
-          ranking_function.num_states(),
-          std::numeric_limits<value_t>::quiet_NaN())
-{
-}
-
-ProjectionTransformation::ProjectionTransformation(
-    ProjectionTransformation&&) noexcept = default;
-ProjectionTransformation& ProjectionTransformation::operator=(
-    ProjectionTransformation&&) noexcept = default;
-ProjectionTransformation::~ProjectionTransformation() = default;
 
 void run_cegar_loop(
     ProjectionTransformation& transformation,

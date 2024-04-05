@@ -18,10 +18,7 @@ class PatternCollectionGeneratorMultipleCegar
     const bool use_wildcard_policies_;
     std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy_;
 
-    std::pair<
-        std::shared_ptr<ProjectionStateSpace>,
-        std::shared_ptr<ProbabilityAwarePatternDatabase>>
-    compute_pattern(
+    ProjectionTransformation compute_pattern(
         int max_pdb_size,
         double max_time,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,

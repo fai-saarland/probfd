@@ -299,6 +299,7 @@ create_probfd_library(
     probfd/pdbs/probability_aware_pattern_database
     probfd/pdbs/projection_operator
     probfd/pdbs/projection_state_space
+    probfd/pdbs/projection_transformation
     probfd/pdbs/saturation
     probfd/pdbs/state_ranking_function
     probfd/pdbs/utils
