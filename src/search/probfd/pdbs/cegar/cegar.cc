@@ -40,7 +40,6 @@ CEGARResult::~CEGARResult() = default;
  */
 class CEGAR::PDBInfo {
     std::unique_ptr<ProjectionStateSpace> state_space;
-    StateRank initial_state;
     std::unique_ptr<ProbabilityAwarePatternDatabase> pdb;
     std::unique_ptr<ProjectionMultiPolicy> policy;
 
@@ -49,6 +48,7 @@ public:
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
         StateRankingFunction ranking_function,
+        StateRank initial_state,
         utils::RandomNumberGenerator& rng,
         bool wildcard,
         utils::CountdownTimer& timer);
@@ -59,6 +59,7 @@ public:
         StateRankingFunction ranking_function,
         const ProbabilityAwarePatternDatabase& previous,
         int add_var,
+        StateRank initial_state,
         utils::RandomNumberGenerator& rng,
         bool wildcard,
         utils::CountdownTimer& timer);
@@ -69,6 +70,7 @@ public:
         StateRankingFunction ranking_function,
         const ProbabilityAwarePatternDatabase& merge_left,
         const ProbabilityAwarePatternDatabase& merge_right,
+        StateRank initial_state,
         utils::RandomNumberGenerator& rng,
         bool wildcard,
         utils::CountdownTimer& timer);
@@ -93,12 +95,15 @@ public:
 
     [[nodiscard]]
     bool is_goal(StateRank rank) const;
+
+    void release();
 };
 
 CEGAR::PDBInfo::PDBInfo(
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
     StateRankingFunction ranking_function,
+    StateRank initial_state,
     utils::RandomNumberGenerator& rng,
     bool wildcard,
     utils::CountdownTimer& timer)
@@ -108,8 +113,6 @@ CEGAR::PDBInfo::PDBInfo(
           ranking_function,
           false,
           timer.get_remaining_time()))
-    , initial_state(
-          ranking_function.get_abstract_rank(task_proxy.get_initial_state()))
     , pdb(new ProbabilityAwarePatternDatabase(
           *state_space,
           std::move(ranking_function),
@@ -131,6 +134,7 @@ CEGAR::PDBInfo::PDBInfo(
     StateRankingFunction ranking_function,
     const ProbabilityAwarePatternDatabase& previous,
     int add_var,
+    StateRank initial_state,
     utils::RandomNumberGenerator& rng,
     bool wildcard,
     utils::CountdownTimer& timer)
@@ -140,8 +144,6 @@ CEGAR::PDBInfo::PDBInfo(
           ranking_function,
           false,
           timer.get_remaining_time()))
-    , initial_state(
-          ranking_function.get_abstract_rank(task_proxy.get_initial_state()))
     , pdb(new ProbabilityAwarePatternDatabase(
           *state_space,
           std::move(ranking_function),
@@ -164,6 +166,7 @@ CEGAR::PDBInfo::PDBInfo(
     StateRankingFunction ranking_function,
     const ProbabilityAwarePatternDatabase& left,
     const ProbabilityAwarePatternDatabase& right,
+    StateRank initial_state,
     utils::RandomNumberGenerator& rng,
     bool wildcard,
     utils::CountdownTimer& timer)
@@ -173,8 +176,6 @@ CEGAR::PDBInfo::PDBInfo(
           ranking_function,
           false,
           timer.get_remaining_time()))
-    , initial_state(
-          ranking_function.get_abstract_rank(task_proxy.get_initial_state()))
     , pdb(new ProbabilityAwarePatternDatabase(
           *state_space,
           std::move(ranking_function),
@@ -233,6 +234,13 @@ bool CEGAR::PDBInfo::is_goal(StateRank rank) const
     return state_space->is_goal(rank);
 }
 
+void CEGAR::PDBInfo::release()
+{
+    state_space.reset();
+    pdb.reset();
+    policy.reset();
+}
+
 CEGAR::CEGAR(
     const shared_ptr<utils::RandomNumberGenerator>& arg_rng,
     std::shared_ptr<FlawFindingStrategy> flaw_strategy,
@@ -255,7 +263,7 @@ CEGAR::~CEGAR() = default;
 
 void CEGAR::print_collection(utils::LogProxy log) const
 {
-    log << "[";
+    log << "Unsolved patterns: [";
 
     auto unsolved_infos =
         std::ranges::subrange(pdb_infos_.begin(), unsolved_end);
@@ -263,6 +271,17 @@ void CEGAR::print_collection(utils::LogProxy log) const
     if (!unsolved_infos.empty()) {
         log << unsolved_infos.front().get_pattern();
         for (const auto& info : unsolved_infos | std::views::drop(1)) {
+            log << ", " << info.get_pattern();
+        }
+    }
+
+    log << "], Solved patterns: [";
+
+    auto solved_infos = std::ranges::subrange(unsolved_end, solved_end);
+
+    if (!solved_infos.empty()) {
+        log << solved_infos.front().get_pattern();
+        for (const auto& info : solved_infos | std::views::drop(1)) {
             log << ", " << info.get_pattern();
         }
     }
@@ -362,14 +381,28 @@ auto CEGAR::get_flaws(
                 return info_it;
             }
 
-            if (info_it != --unsolved_end) {
-                auto& moved_info = *unsolved_end;
+            --unsolved_end;
+
+            if (log.is_at_least_verbose()) {
+                log << "CEGAR: Marking pattern as solved: "
+                    << info_it->get_pattern() << std::endl;
+                log << "CEGAR: Remaining unsolved patterns: "
+                    << unsolved_end - pdb_infos_.begin() << std::endl;
+            }
+
+            if (info_it != unsolved_end) {
+                auto& swapped_info = *unsolved_end;
+
                 // update look-up table
-                for (int var : moved_info.get_pattern()) {
+                for (int var : swapped_info.get_pattern()) {
                     variable_to_info_[var] = info_it;
                 }
 
-                info = std::move(moved_info);
+                for (int var : info.get_pattern()) {
+                    variable_to_info_[var] = unsolved_end;
+                }
+
+                std::swap(info, swapped_info);
             }
 
             continue;
@@ -416,11 +449,15 @@ void CEGAR::add_pattern_for_var(
     int var,
     utils::CountdownTimer& timer)
 {
+    StateRankingFunction ranking_function(task_proxy.get_variables(), {var});
+    StateRank initial_state =
+        ranking_function.get_abstract_rank(task_proxy.get_initial_state());
     auto info_it = pdb_infos_.emplace(
         pdb_infos_.end(),
         task_proxy,
         task_cost_function,
-        StateRankingFunction(task_proxy.get_variables(), {var}),
+        std::move(ranking_function),
+        initial_state,
         *rng_,
         wildcard_,
         timer);
@@ -444,14 +481,18 @@ void CEGAR::add_variable_to_pattern(
     remaining_size_ += pdb.num_states();
 
     // compute new solution
+    StateRankingFunction ranking_function(
+        task_proxy.get_variables(),
+        extended_pattern(pdb.get_pattern(), var));
+    StateRank initial_state =
+        ranking_function.get_abstract_rank(task_proxy.get_initial_state());
     info = PDBInfo(
         task_proxy,
         task_cost_function,
-        StateRankingFunction(
-            task_proxy.get_variables(),
-            extended_pattern(pdb.get_pattern(), var)),
+        std::move(ranking_function),
         pdb,
         var,
+        initial_state,
         *rng_,
         wildcard_,
         timer);
@@ -490,23 +531,30 @@ void CEGAR::merge_patterns(
     remaining_size_ += pdb_size1 + pdb_size2;
 
     // compute merge solution
+    StateRankingFunction ranking_function(
+        task_proxy.get_variables(),
+        utils::merge_sorted(pdb1.get_pattern(), pdb2.get_pattern()));
+    StateRank initial_state =
+        ranking_function.get_abstract_rank(task_proxy.get_initial_state());
+
     solution1 = PDBInfo(
         task_proxy,
         task_cost_function,
-        StateRankingFunction(
-            task_proxy.get_variables(),
-            utils::merge_sorted(pdb1.get_pattern(), pdb2.get_pattern())),
+        std::move(ranking_function),
         pdb1,
         pdb2,
+        initial_state,
         *rng_,
         wildcard_,
         timer);
+
+    solution2.release();
 
     // update collection size
     remaining_size_ -= solution1.get_pdb().num_states();
 
     // fill gap if created
-    if (info_it2 != --unsolved_end) {
+    if (info_it2 < unsolved_end && info_it2 != --unsolved_end) {
         auto& moved_from = *unsolved_end;
 
         // update look-up table
@@ -515,17 +563,18 @@ void CEGAR::merge_patterns(
         }
 
         solution2 = std::move(moved_from);
+        info_it2 = unsolved_end;
     }
 
-    if (unsolved_end != --solved_end) {
+    if (info_it2 != --solved_end) {
         auto& moved_from = *solved_end;
 
         // update look-up table
         for (int var : moved_from.get_pattern()) {
-            variable_to_info_[var] = unsolved_end;
+            variable_to_info_[var] = info_it2;
         }
 
-        *unsolved_end = std::move(moved_from);
+        *info_it2 = std::move(moved_from);
     }
 }
 
@@ -669,7 +718,7 @@ CEGARResult CEGAR::generate_pdbs(
                     }
                 } else {
                     if (log.is_at_least_verbose()) {
-                        log << "CEGAR: Flaw list empty."
+                        log << "CEGAR: Flaw list empty. "
                             << "No further refinements possible." << endl;
                     }
                 }
