@@ -66,17 +66,15 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
 
     SingleCEGARResult result(std::move(projection), std::move(pdb));
 
-    SingleCEGAR single_cegar(
-        flaw_strategy_,
-        use_wildcard_policies_,
-        max_pdb_size,
-        std::move(blacklisted_variables));
-
-    single_cegar.run_cegar_loop(
+    run_cegar_loop(
         result,
         task_proxy,
         task_cost_function,
+        *flaw_strategy_,
+        std::move(blacklisted_variables),
+        max_pdb_size,
         *rng,
+        use_wildcard_policies_,
         max_time,
         log_);
 

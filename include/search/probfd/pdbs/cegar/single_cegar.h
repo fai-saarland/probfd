@@ -51,52 +51,17 @@ struct SingleCEGARResult {
     ~SingleCEGARResult();
 };
 
-class SingleCEGAR {
-    // Flaw finding strategy
-    const std::shared_ptr<FlawFindingStrategy> flaw_strategy_;
-
-    // behavior defining parameters
-    const bool wildcard_;
-
-    const int max_pdb_size_;
-    std::unordered_set<int> blacklisted_variables_;
-
-public:
-    SingleCEGAR(
-        std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy,
-        bool wildcard,
-        int max_pdb_size,
-        std::unordered_set<int> blacklisted_variables = {});
-
-    ~SingleCEGAR();
-
-    void run_cegar_loop(
-        SingleCEGARResult& result,
-        ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
-        utils::RandomNumberGenerator& rng,
-        double max_time,
-        utils::LogProxy log);
-
-private:
-    bool get_flaws(
-        SingleCEGARResult& result,
-        ProbabilisticTaskProxy task_proxy,
-        std::vector<Flaw>& flaws,
-        const State& initial_state,
-        utils::RandomNumberGenerator& rng,
-        utils::CountdownTimer& timer,
-        utils::LogProxy log);
-
-    void refine(
-        SingleCEGARResult& result,
-        ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
-        const std::vector<Flaw>& flaws,
-        utils::RandomNumberGenerator& rng,
-        utils::CountdownTimer& timer,
-        utils::LogProxy log);
-};
+extern void run_cegar_loop(
+    SingleCEGARResult& result,
+    ProbabilisticTaskProxy task_proxy,
+    FDRSimpleCostFunction& task_cost_function,
+    cegar::FlawFindingStrategy& flaw_strategy,
+    std::unordered_set<int> blacklisted_variables,
+    int max_pdb_size,
+    utils::RandomNumberGenerator& rng,
+    bool wildcard,
+    double max_time,
+    utils::LogProxy log);
 
 extern void add_cegar_wildcard_option_to_feature(plugins::Feature& feature);
 
