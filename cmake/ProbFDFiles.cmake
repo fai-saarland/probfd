@@ -304,7 +304,11 @@ create_probfd_library(
     probfd/pdbs/state_ranking_function
     probfd/pdbs/utils
     probfd/pdbs/verification
-    DEPENDS pdbs mdp task_dependent_heuristic
+    DEPENDS
+        pdbs
+        mdp
+        task_dependent_heuristic
+        lp_solver
     DEPENDENCY_ONLY
 )
 
