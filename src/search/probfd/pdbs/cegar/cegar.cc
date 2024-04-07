@@ -436,9 +436,8 @@ bool CEGAR::can_merge_patterns(
     int pdb_size1 = info_it1->get_pdb().num_states();
     int pdb_size2 = info_it2->get_pdb().num_states();
 
-    const int limit = std::min(
-        max_pdb_size_,
-        max_collection_size_ - remaining_size_ + pdb_size1 + pdb_size2);
+    const int limit =
+        std::min(max_pdb_size_, remaining_size_ + pdb_size1 + pdb_size2);
 
     return utils::is_product_within_limit(pdb_size1, pdb_size2, limit);
 }
