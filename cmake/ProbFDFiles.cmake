@@ -351,6 +351,14 @@ create_probfd_library(
 )
 
 create_probfd_library(
+    NAME papdbs_systematic_generator
+    HELP "Systematic pattern collection generator"
+    SOURCES
+    probfd/pdbs/pattern_collection_generator_systematic
+    DEPENDS padbs_pattern_generators
+)
+
+create_probfd_library(
     NAME papdbs_hillclimbing_generator
     HELP "Hillclimbing pattern collection generator for PPDBs"
     SOURCES
