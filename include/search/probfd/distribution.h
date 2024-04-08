@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cassert>
 #include <compare>
+#include <ostream>
 #include <ranges>
 #include <utility>
 #include <vector>
@@ -96,12 +97,20 @@ public:
     /**
      * @brief Checks if the distribution is in an empty state.
      */
-    [[nodiscard]] bool empty() const { return distribution_.empty(); }
+    [[nodiscard]]
+    bool empty() const
+    {
+        return distribution_.empty();
+    }
 
     /**
      * @brief Returns the size of the support.
      */
-    [[nodiscard]] size_t size() const { return distribution_.size(); }
+    [[nodiscard]]
+    size_t size() const
+    {
+        return distribution_.size();
+    }
 
     void clear() { distribution_.clear(); }
 
@@ -165,7 +174,11 @@ public:
     /**
      * @brief Checks if the distribution is a Dirac distribution.
      */
-    [[nodiscard]] bool is_dirac() const { return size() == 1; }
+    [[nodiscard]]
+    bool is_dirac() const
+    {
+        return size() == 1;
+    }
 
     /**
      * @brief Computes the expectation over a real random variable according to
@@ -311,6 +324,22 @@ public:
     operator==(const Distribution<T>& left, const Distribution<T>& right)
     {
         return left.distribution_ == right.distribution_;
+    }
+
+    friend std::ostream&
+    operator<<(std::ostream& os, const Distribution<T>& distribution)
+    {
+        using namespace std::views;
+
+        if (distribution.distribution_.empty()) return os;
+
+        const auto& first = distribution.distribution_.front();
+        os << "{" << first.item << " -> " << first.probability;
+        for (const auto& [item, probability] :
+             distribution.distribution_ | drop(1)) {
+            os << ", " << item << " -> " << probability;
+        }
+        return os << "}";
     }
 };
 
