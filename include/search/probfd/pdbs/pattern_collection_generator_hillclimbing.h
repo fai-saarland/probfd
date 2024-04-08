@@ -22,10 +22,6 @@ class CountdownTimer;
 class RandomNumberGenerator;
 } // namespace utils
 
-namespace sampling {
-class RandomWalkSampler;
-}
-
 namespace dynamic_bitset {
 template <typename>
 class DynamicBitset;
@@ -33,6 +29,10 @@ class DynamicBitset;
 
 namespace probfd {
 class ProbabilisticTaskProxy;
+}
+
+namespace probfd::sampling {
+class RandomWalkSampler;
 }
 
 namespace probfd::pdbs {
@@ -139,7 +139,6 @@ class PatternCollectionGeneratorHillclimbing
       PDBs. This is quite a large time gain, but may use a lot of memory.
     */
     void hill_climbing(
-        const ProbabilisticTask* task,
         const ProbabilisticTaskProxy& task_proxy,
         FDRSimpleCostFunction& task_cost_function,
         IncrementalPPDBs& current_pdbs);

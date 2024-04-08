@@ -7,6 +7,8 @@
 #include "probfd/cost_function.h"
 #include "probfd/task_proxy.h"
 
+#include "probfd/task_utils/causal_graph.h"
+#include "probfd/task_utils/sampling.h"
 #include "probfd/task_utils/task_properties.h"
 
 #include "downward/algorithms/dynamic_bitset.h"
@@ -17,9 +19,6 @@
 #include "downward/utils/math.h"
 #include "downward/utils/rng_options.h"
 #include "downward/utils/timer.h"
-
-#include "downward/task_utils/causal_graph.h"
-#include "downward/task_utils/sampling.h"
 
 #include "downward/plugins/plugin.h"
 
@@ -88,12 +87,9 @@ static unsigned long long compute_total_pdb_size(const PPDBCollection& pdbs)
   2. for a given neighbour variable already in the pattern.
 */
 static std::vector<std::vector<int>>
-compute_relevant_neighbours(const ProbabilisticTask* task)
+compute_relevant_neighbours(const ProbabilisticTaskProxy& task_proxy)
 {
-    const AbstractTask& determinization =
-        task_properties::get_determinization(task);
-    TaskProxy task_proxy(determinization);
-    const causal_graph::CausalGraph& causal_graph =
+    const causal_graph::ProbabilisticCausalGraph& causal_graph =
         task_proxy.get_causal_graph();
     const std::vector<int> goal_vars = get_goal_variables(task_proxy);
 
@@ -526,7 +522,7 @@ void PatternCollectionGeneratorHillclimbing::sample_states(
         };
 
         // TODO How to choose the length of the random walk in MaxProb?
-        State sample = sampler.sample_state(static_cast<int>(init_h), f);
+        State sample = sampler.sample_state(init_h, f);
 
         hill_climbing_timer.throw_if_expired();
 
@@ -603,7 +599,6 @@ PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
 }
 
 void PatternCollectionGeneratorHillclimbing::hill_climbing(
-    const ProbabilisticTask* task,
     const ProbabilisticTaskProxy& task_proxy,
     FDRSimpleCostFunction& task_cost_function,
     IncrementalPPDBs& current_pdbs)
@@ -615,7 +610,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
     utils::CountdownTimer hill_climbing_timer(max_time_);
 
     const PatternCollection relevant_neighbours =
-        compute_relevant_neighbours(task);
+        compute_relevant_neighbours(task_proxy);
 
     // Candidate patterns generated so far (used to avoid duplicates).
     std::set<DynamicBitset> generated_patterns;
@@ -649,10 +644,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
 
         State initial_state = task_proxy.get_initial_state();
 
-        const AbstractTask& aod = task_properties::get_determinization(task);
-        TaskProxy aod_task_proxy(aod);
-
-        sampling::RandomWalkSampler sampler(aod_task_proxy, *rng_);
+        sampling::RandomWalkSampler sampler(task_proxy, *rng_);
         std::vector<Sample> samples;
         samples.reserve(num_samples_);
 
@@ -801,11 +793,7 @@ PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(
     value_t init_h = current_pdbs.evaluate(initial_state, termination_cost);
 
     if (init_h != termination_cost && max_time_ > 0) {
-        hill_climbing(
-            task.get(),
-            task_proxy,
-            *task_cost_function,
-            current_pdbs);
+        hill_climbing(task_proxy, *task_cost_function, current_pdbs);
     }
 
     PatternCollectionInformation pci =
