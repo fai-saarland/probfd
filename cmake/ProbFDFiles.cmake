@@ -10,6 +10,7 @@ create_probfd_library(
 
         # Tasks
         probfd/probabilistic_task
+        probfd/task_proxy
 
         probfd/task_utils/task_properties
 
@@ -41,6 +42,9 @@ create_probfd_library(
 
         # Constant evaluator (default)
         probfd/heuristics/constant_evaluator
+
+        # Task Utils
+        probfd/task_utils/causal_graph
 
         # Utility
         probfd/utils/guards
