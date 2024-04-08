@@ -134,11 +134,14 @@ struct ProbabilisticCausalGraphBuilder {
             }
         }
 
+        std::set<int> eff_vars;
+
         // Handle pre->eff links from effect conditions.
         for (auto outcome : outcomes) {
             for (ProbabilisticEffectProxy eff : outcome.get_effects()) {
                 VariableProxy eff_var = eff.get_fact().get_variable();
                 int eff_var_id = eff_var.get_id();
+                eff_vars.insert(eff_var_id);
                 for (FactProxy pre : eff.get_conditions()) {
                     int pre_var_id = pre.get_variable().get_id();
                     if (pre_var_id != eff_var_id)
@@ -148,7 +151,6 @@ struct ProbabilisticCausalGraphBuilder {
         }
 
         // Handle eff->eff links.
-        std::set<int> eff_vars;
         for (auto it = eff_vars.begin(); it != eff_vars.end(); ++it) {
             for (auto it2 = std::next(it); it2 != eff_vars.end(); ++it2) {
                 handle_eff_eff_edge(*it, *it2);
