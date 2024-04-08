@@ -31,6 +31,10 @@ class ProbabilisticOutcomesProxy;
 class ProbabilisticTaskProxy;
 } // namespace probfd
 
+namespace probfd::causal_graph {
+class ProbabilisticCausalGraph;
+}
+
 namespace probfd {
 
 /// Proxy class used to inspect the list of effect conditions of a conditional
@@ -336,6 +340,8 @@ public:
         return ProbabilisticOperatorsProxy(
             *static_cast<const ProbabilisticTask*>(task));
     }
+
+    const causal_graph::ProbabilisticCausalGraph& get_causal_graph() const;
 };
 
 /// Checks if the conditions of a probabilistic effect are fulfilled in a state.
