@@ -94,6 +94,25 @@ vector<value_t> get_operator_costs(const ProbabilisticTaskProxy& task_proxy)
     return costs;
 }
 
+value_t get_average_operator_cost(const ProbabilisticTaskProxy& task_proxy)
+{
+    value_t average_operator_cost = 0;
+    for (ProbabilisticOperatorProxy op : task_proxy.get_operators()) {
+        average_operator_cost += op.get_cost();
+    }
+    return average_operator_cost /
+           static_cast<value_t>(task_proxy.get_operators().size());
+}
+
+value_t get_min_operator_cost(const ProbabilisticTaskProxy& task_proxy)
+{
+    value_t min_cost = INFINITE_VALUE;
+    for (ProbabilisticOperatorProxy op : task_proxy.get_operators()) {
+        min_cost = min(min_cost, op.get_cost());
+    }
+    return min_cost;
+}
+
 int get_num_total_effects(const ProbabilisticTaskProxy& task_proxy)
 {
     int num_effects = 0;

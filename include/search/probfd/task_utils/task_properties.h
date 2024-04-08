@@ -19,6 +19,15 @@ class ProbabilisticTask;
 
 namespace probfd::task_properties {
 
+inline bool
+is_applicable(const ProbabilisticOperatorProxy& op, const State& state)
+{
+    for (FactProxy precondition : op.get_preconditions()) {
+        if (state[precondition.get_variable()] != precondition) return false;
+    }
+    return true;
+}
+
 value_t get_adjusted_action_cost(
     const ProbabilisticOperatorProxy& op,
     OperatorCost cost_type,
@@ -61,6 +70,9 @@ extern void verify_no_conditional_effects(const ProbabilisticTaskProxy& task);
 
 std::vector<value_t>
 get_operator_costs(const ProbabilisticTaskProxy& task_proxy);
+extern value_t
+get_average_operator_cost(const ProbabilisticTaskProxy& task_proxy);
+extern value_t get_min_operator_cost(const ProbabilisticTaskProxy& task_proxy);
 
 /*
   Return the total number of effects of the task, including the

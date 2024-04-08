@@ -45,6 +45,7 @@ create_probfd_library(
 
     # Task Utils
     probfd/task_utils/causal_graph
+    probfd/task_utils/sampling
 
     # Utility
     probfd/utils/guards
