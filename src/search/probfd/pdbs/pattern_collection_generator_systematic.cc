@@ -64,10 +64,10 @@ PatternCollectionGeneratorSystematic::PatternCollectionGeneratorSystematic(
 {
 }
 
-void PatternCollectionGeneratorSystematic::compute_eff_pre_neighbors(
+static void compute_eff_pre_neighbors(
     const causal_graph::ProbabilisticCausalGraph& cg,
     const Pattern& pattern,
-    vector<int>& result) const
+    vector<int>& result)
 {
     /*
       Compute all variables that are reachable from pattern by an
@@ -89,10 +89,10 @@ void PatternCollectionGeneratorSystematic::compute_eff_pre_neighbors(
     result.assign(candidates.begin(), candidates.end());
 }
 
-void PatternCollectionGeneratorSystematic::compute_connection_points(
+static void compute_connection_points(
     const causal_graph::ProbabilisticCausalGraph& cg,
     const Pattern& pattern,
-    vector<int>& result) const
+    vector<int>& result)
 {
     /*
       The "connection points" of a pattern are those variables of which

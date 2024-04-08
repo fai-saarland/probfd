@@ -22,7 +22,6 @@ class ProbabilisticCausalGraph;
 
 namespace probfd::pdbs {
 
-// Invariant: patterns are always sorted.
 class PatternCollectionGeneratorSystematic : public PatternCollectionGenerator {
     using PatternSet = utils::HashSet<Pattern>;
 
@@ -40,14 +39,6 @@ public:
 
 private:
     void enqueue_pattern_if_new(const Pattern& pattern);
-    void compute_eff_pre_neighbors(
-        const causal_graph::ProbabilisticCausalGraph& cg,
-        const Pattern& pattern,
-        std::vector<int>& result) const;
-    void compute_connection_points(
-        const causal_graph::ProbabilisticCausalGraph& cg,
-        const Pattern& pattern,
-        std::vector<int>& result) const;
 
     void build_sga_patterns(
         const ProbabilisticTaskProxy& task_proxy,
