@@ -13,12 +13,15 @@ enum class AtLimit { RETURN, USE_UP };
 
 class ShrinkProbabilisticBisimulation : public ShrinkStrategy {
     const AtLimit at_limit;
+    const bool require_goal_distances;
 
     struct Signature;
 
 public:
     explicit ShrinkProbabilisticBisimulation(const plugins::Options& opts);
-    explicit ShrinkProbabilisticBisimulation(AtLimit at_limit);
+    ShrinkProbabilisticBisimulation(
+        AtLimit at_limit,
+        bool require_goal_distances);
 
     StateEquivalenceRelation compute_equivalence_relation(
         const TransitionSystem& ts,
@@ -26,8 +29,8 @@ public:
         int target_size,
         utils::LogProxy& log) const override;
 
-    bool requires_liveness() const override { return false; }
-    bool requires_goal_distances() const override { return true; }
+    bool requires_liveness() const override;
+    bool requires_goal_distances() const override;
 
 protected:
     virtual void

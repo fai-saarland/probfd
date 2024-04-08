@@ -82,13 +82,17 @@ struct ShrinkProbabilisticBisimulation::Signature {
 
 ShrinkProbabilisticBisimulation::ShrinkProbabilisticBisimulation(
     const plugins::Options& opts)
-    : ShrinkProbabilisticBisimulation(opts.get<AtLimit>("at_limit"))
+    : ShrinkProbabilisticBisimulation(
+          opts.get<AtLimit>("at_limit"),
+          opts.get<bool>("require_goal_distances"))
 {
 }
 
 ShrinkProbabilisticBisimulation::ShrinkProbabilisticBisimulation(
-    AtLimit at_limit)
+    AtLimit at_limit,
+    bool require_goal_distances)
     : at_limit(at_limit)
+    , require_goal_distances(require_goal_distances)
 {
 }
 
@@ -106,6 +110,14 @@ int ShrinkProbabilisticBisimulation::initialize_groups(
        perform the shrinking if that pruning shows that the problem is
        unsolvable.
     */
+
+    if (!distances.are_goal_distances_computed()) {
+        for (int state = 0; state < ts.get_size(); ++state) {
+            state_to_group[state] = ts.is_goal_state(state) ? 0 : 1;
+        }
+
+        return 2;
+    }
 
     map<value_t, int> h_to_group;
     int num_groups = 1; // Group 0 is for goal states.
@@ -189,7 +201,7 @@ ShrinkProbabilisticBisimulation::compute_equivalence_relation(
     int target_size,
     utils::LogProxy&) const
 {
-    assert(distances.are_goal_distances_computed());
+    assert(!require_goal_distances || distances.are_goal_distances_computed());
     int num_states = ts.get_size();
 
     vector<int> state_to_group(num_states);
@@ -280,6 +292,16 @@ break_outer_loop:;
     return equivalence_relation;
 }
 
+bool ShrinkProbabilisticBisimulation::requires_liveness() const
+{
+    return false;
+}
+
+bool ShrinkProbabilisticBisimulation::requires_goal_distances() const
+{
+    return require_goal_distances;
+}
+
 string ShrinkProbabilisticBisimulation::name() const
 {
     return "bisimulation";
@@ -329,6 +351,11 @@ public:
             "at_limit",
             "what to do when the size limit is hit",
             "return");
+        add_option<bool>(
+            "require_goal_distances",
+            "whether goal distance computation is enforced for initialization "
+            "of the equivalence relation",
+            "false");
     }
 };
 
