@@ -580,7 +580,6 @@ void CEGAR::merge_patterns(
 void CEGAR::refine(
     ProbabilisticTaskProxy task_proxy,
     FDRSimpleCostFunction& task_cost_function,
-    const VariablesProxy& variables,
     const std::vector<Flaw>& flaws,
     const std::vector<int>& flaw_offsets,
     utils::CountdownTimer& timer,
@@ -675,8 +674,6 @@ CEGARResult CEGAR::generate_pdbs(
 
     utils::CountdownTimer timer(max_time);
 
-    const VariablesProxy variables = task_proxy.get_variables();
-
     // Start with a solution of the trivial abstraction
     generate_trivial_solution_collection(
         task_proxy,
@@ -732,7 +729,6 @@ CEGARResult CEGAR::generate_pdbs(
             refine(
                 task_proxy,
                 task_cost_function,
-                variables,
                 flaws,
                 flaw_offsets,
                 timer,

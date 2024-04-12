@@ -136,7 +136,6 @@ private:
     void refine(
         ProbabilisticTaskProxy task_proxy,
         FDRSimpleCostFunction& task_cost_function,
-        const VariablesProxy& variables,
         const std::vector<Flaw>& flaws,
         const std::vector<int>& flaw_offsets,
         utils::CountdownTimer& timer,
