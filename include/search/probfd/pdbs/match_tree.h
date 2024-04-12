@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <iosfwd>
 #include <memory>
+#include <stack>
 #include <vector>
 
 // Forward Declarations
@@ -32,27 +33,7 @@ class MatchTree {
 
     std::unique_ptr<Node> root_;
     std::vector<ProjectionOperator> projection_operators_;
-
-    void insert_recursive(
-        const AssignmentEnumerator& enumerator,
-        ProjectionOperator op,
-        const std::vector<FactPair>& progression_preconditions,
-        bool operator_pruning,
-        int pre_index,
-        std::unique_ptr<Node>& edge_from_parent);
-
-    void get_applicable_operators_recursive(
-        Node* node,
-        StateRank abstract_state,
-        std::vector<const ProjectionOperator*>& operators) const;
-
-    void generate_all_transitions_recursive(
-        Node* node,
-        StateRank abstract_state,
-        std::vector<Transition<const ProjectionOperator*>>& transitions,
-        ProjectionStateSpace& state_space) const;
-
-    void dump_recursive(std::ostream& out, Node* node) const;
+    mutable std::stack<Node*> nodes_; // reuse storage
 
 public:
     explicit MatchTree(size_t hint_num_operators = 0);
@@ -90,6 +71,9 @@ public:
      * @brief Dump the match tree to an output stream.
      */
     void dump(std::ostream& out) const;
+
+private:
+    void dump_recursive(std::ostream& out, Node* node) const;
 };
 
 } // namespace probfd::pdbs
