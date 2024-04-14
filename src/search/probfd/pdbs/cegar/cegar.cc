@@ -631,9 +631,7 @@ void CEGAR::refine(
             timer);
         return;
     }
-
-    assert(can_add_variable_to_pattern(variables, solution_it, var));
-
+    
     // var is not yet in the collection
     // Note on precondition violations: var may be a goal variable but
     // nevertheless is added to the pattern causing the flaw and not to
