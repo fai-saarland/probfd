@@ -319,6 +319,8 @@ void ShrinkBisimulation::dump_strategy_specific_options(
     }
 }
 
+namespace {
+
 class ShrinkBisimulationFeature
     : public plugins::TypedFeature<ShrinkStrategy, ShrinkBisimulation> {
 public:
@@ -354,12 +356,14 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<ShrinkBisimulationFeature> _plugin;
+plugins::FeaturePlugin<ShrinkBisimulationFeature> _plugin;
 
-static plugins::TypedEnumPlugin<AtLimit> _enum_plugin(
+plugins::TypedEnumPlugin<AtLimit> _enum_plugin(
     {{"return", "stop without refining the equivalence class further"},
      {"use_up",
       "continue refining the equivalence class until "
       "the size limit is hit"}});
+
+} // namespace
 
 } // namespace probfd::merge_and_shrink

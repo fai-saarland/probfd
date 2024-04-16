@@ -9,9 +9,11 @@ class Options;
 
 namespace probfd::merge_and_shrink {
 
-enum class AtLimit { RETURN, USE_UP };
-
 class ShrinkProbabilisticBisimulation : public ShrinkStrategy {
+public:
+    enum class AtLimit { RETURN, USE_UP };
+
+private:
     const AtLimit at_limit;
     const bool require_goal_distances;
 

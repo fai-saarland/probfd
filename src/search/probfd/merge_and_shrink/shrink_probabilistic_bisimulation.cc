@@ -323,12 +323,14 @@ void ShrinkProbabilisticBisimulation::dump_strategy_specific_options(
     }
 }
 
+namespace {
+
 class ShrinkProbabilisticBisimulationFeature
     : public plugins::
           TypedFeature<ShrinkStrategy, ShrinkProbabilisticBisimulation> {
 public:
     ShrinkProbabilisticBisimulationFeature()
-        : TypedFeature("pshrink_bisimulation")
+        : TypedFeature("pshrink_probabilistic_bisimulation")
     {
         document_title("Bismulation based shrink strategy");
         document_synopsis(
@@ -347,7 +349,7 @@ public:
                 "AAAI Press",
                 "2011"));
 
-        add_option<AtLimit>(
+        add_option<ShrinkProbabilisticBisimulation::AtLimit>(
             "at_limit",
             "what to do when the size limit is hit",
             "return");
@@ -359,12 +361,14 @@ public:
     }
 };
 
-static plugins::FeaturePlugin<ShrinkProbabilisticBisimulationFeature> _plugin;
+plugins::FeaturePlugin<ShrinkProbabilisticBisimulationFeature> _plugin;
 
-static plugins::TypedEnumPlugin<AtLimit> _enum_plugin(
+plugins::TypedEnumPlugin<ShrinkProbabilisticBisimulation::AtLimit> _enum_plugin(
     {{"return", "stop without refining the equivalence class further"},
      {"use_up",
       "continue refining the equivalence class until "
       "the size limit is hit"}});
+
+} // namespace
 
 } // namespace probfd::merge_and_shrink

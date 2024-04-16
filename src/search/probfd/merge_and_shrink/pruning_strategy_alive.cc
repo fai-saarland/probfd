@@ -44,7 +44,7 @@ bool PruningStrategyAlive::requires_liveness() const
 
 bool PruningStrategyAlive::requires_goal_distances() const
 {
-    return false;
+    return true;
 }
 
 namespace {
