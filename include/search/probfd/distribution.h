@@ -280,11 +280,11 @@ public:
     }
 
     template <typename UnaryPredicate>
-    size_t remove_if_normalize(UnaryPredicate pred)
+    value_t remove_if_normalize(UnaryPredicate pred)
     {
         value_t normalize_factor = 0_vt;
 
-        const auto num_removed = std::erase_if(
+        std::erase_if(
             this->distribution_,
             [&pred, &normalize_factor](auto& target) {
                 if (pred(target)) {
@@ -298,7 +298,13 @@ public:
             this->normalize(1_vt / (1_vt - normalize_factor));
         }
 
-        return num_removed;
+        return normalize_factor;
+    }
+
+    value_t remove_if_normalize(const T& t)
+    {
+        return remove_if_normalize(
+            [&](const auto& elem) { return elem.item == t; });
     }
 
     auto begin() { return distribution_.begin(); }

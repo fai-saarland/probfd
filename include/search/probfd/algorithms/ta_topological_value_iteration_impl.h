@@ -70,7 +70,6 @@ template <typename State, typename Action, bool UseInterval>
 bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
     next_transition(MDPType& mdp)
 {
-    self_loop_prob = 0_vt;
     leaves_scc = false;
 
     aops.pop_back();
@@ -86,10 +85,13 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 {
     do {
         mdp.generate_action_transitions(state, aops.back(), transition);
-        successor = transition.begin();
+        const value_t self_loop_prob = transition.remove_if_normalize(state_id);
 
-        if (forward_non_loop_successor()) {
-            const auto cost = mdp.get_action_cost(aops.back());
+        if (!transition.empty()) {
+            successor = transition.begin();
+
+            const value_t normalization = 1.0_vt / (1.0_vt - self_loop_prob);
+            const auto cost = normalization * mdp.get_action_cost(aops.back());
             non_zero = cost != 0.0_vt;
             if (non_zero) has_all_zero = false;
             stack_info.ec_transitions.emplace_back(cost);
@@ -98,23 +100,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 
         aops.pop_back();
         transition.clear();
-        self_loop_prob = 0_vt;
     } while (!aops.empty());
-
-    return false;
-}
-
-template <typename State, typename Action, bool UseInterval>
-bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
-    forward_non_loop_successor()
-{
-    do {
-        if (successor->item != state_id) {
-            return true;
-        }
-
-        self_loop_prob += successor->probability;
-    } while (++successor != transition.end());
 
     return false;
 }
@@ -123,7 +109,7 @@ template <typename State, typename Action, bool UseInterval>
 bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
     next_successor()
 {
-    if (++successor != transition.end() && forward_non_loop_successor()) {
+    if (++successor != transition.end()) {
         return true;
     }
 
@@ -132,7 +118,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
     const bool exits_only_solvable =
         tinfo.conv_part != AlgorithmValueType(INFINITE_VALUE);
 
-    if (tinfo.finalize_transition(self_loop_prob)) {
+    if (tinfo.scc_successors.empty()) {
         // Universally exiting -> Not part of scc
         // Update converged portion of q value and ignore this
         // transition
@@ -180,24 +166,6 @@ TATopologicalValueIteration<State, Action, UseInterval>::QValueInfo::QValueInfo(
     value_t action_cost)
     : conv_part(action_cost)
 {
-}
-
-template <typename State, typename Action, bool UseInterval>
-bool TATopologicalValueIteration<State, Action, UseInterval>::QValueInfo::
-    finalize_transition(value_t self_loop_prob)
-{
-    if (self_loop_prob != 0.0_vt) {
-        // Apply self-loop normalization
-        const value_t normalization = 1.0_vt / (1.0_vt - self_loop_prob);
-
-        conv_part *= normalization;
-
-        for (auto& pair : scc_successors) {
-            pair.probability *= normalization;
-        }
-    }
-
-    return scc_successors.empty();
 }
 
 template <typename State, typename Action, bool UseInterval>

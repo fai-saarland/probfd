@@ -106,7 +106,6 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         typename Distribution<StateID>::const_iterator successor;
 
         Interval exit_interval;
-        value_t self_loop_prob = 0_vt;
 
         // End component decomposition state
 
@@ -130,7 +129,6 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
 
         bool next_transition(MDPType& mdp);
         bool forward_non_loop_transition(MDPType& mdp, const State& state);
-        bool forward_non_loop_successor();
         bool next_successor();
 
         ItemProbabilityPair<StateID> get_current_successor();
@@ -147,8 +145,6 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         std::vector<ItemProbabilityPair<StateID>> scc_successors;
 
         explicit QValueInfo(value_t action_cost);
-
-        bool finalize_transition(value_t self_loop_prob);
 
         template <typename ValueStore>
         AlgorithmValueType compute_q_value(ValueStore& value_store) const;
