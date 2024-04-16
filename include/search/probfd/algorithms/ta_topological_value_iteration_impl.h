@@ -4,6 +4,7 @@
 
 #include "probfd/algorithms/utils.h"
 
+#include "probfd/utils/guards.h"
 #include "probfd/utils/iterators.h"
 
 #include "probfd/cost_function.h"
@@ -25,6 +26,17 @@ inline void Statistics::print(std::ostream& out) const
     out << "  Maximal SCCs: " << sccs << " (" << singleton_sccs
         << " are singleton)" << std::endl;
     out << "  Bellman backups: " << bellman_backups << std::endl;
+
+    out << "  Time spent initializing state data: " << initialize_state_timer
+        << std::endl;
+    out << "  Time spent expanding successors: " << successor_handling_timer
+        << std::endl;
+    out << "  Time spent handling SCCs: " << scc_handling_timer << std::endl;
+    out << "  Time spent backtracking: " << backtracking_timer << std::endl;
+    out << "  Time spent running VI on SCCs: " << vi_timer << std::endl;
+    out << "  Time spent decomposing ECs: " << decomposition_timer << std::endl;
+    out << "  Time spent in solvability analysis: " << solvability_timer
+        << std::endl;
 }
 
 template <typename State, typename Action, bool UseInterval>
@@ -331,6 +343,10 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
     auto& value_store,
     double max_time)
 {
+    statistics_ = Statistics();
+
+    // scope_exit _([this] { statistics_.print(std::cout); });
+
     utils::CountdownTimer timer(max_time);
 
     push_state(
@@ -377,6 +393,8 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
             assert(exploration_stack_.size() > 1);
 
             timer.throw_if_expired();
+
+            TimerScope _(statistics_.backtracking_timer);
 
             const ExplorationInfo& successor = *explore--;
 
@@ -439,6 +457,8 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
     auto& value_store,
     utils::CountdownTimer& timer)
 {
+    TimerScope _(statistics_.successor_handling_timer);
+
     do {
         assert(!explore.stack_info.ec_transitions.empty());
 
@@ -498,6 +518,8 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::initialize_state(
         state_information_[exp_info.state_id].get_status() ==
         StateInfo::ONSTACK);
 
+    TimerScope _(statistics_.initialize_state_timer);
+
     const State state = mdp.get_state(exp_info.state_id);
 
     const TerminationInfo state_term = mdp.get_termination_info(state);
@@ -555,6 +577,8 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
 {
     using namespace std::views;
 
+    TimerScope _(statistics_.scc_handling_timer);
+
     auto scc = stack_ | drop(stack_idx);
 
     assert(!scc.empty());
@@ -591,6 +615,8 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
 
     if (exp_info.recurse) {
         // Run recursive EC Decomposition
+        TimerScope _(statistics_.decomposition_timer);
+
         scc_.reserve(scc.size());
 
         for (const auto state_id : scc | transform(&StackInfo::state_id)) {
@@ -735,122 +761,133 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
         }
     };
 
-    // Set the value of unsolvable states of this SCC to -inf.
-    // Start by partitioning states into inactive states, active exits and
-    // active non-exists.
-    // The partition is initialized optimistically, i.e., all states start out
-    // as active exits.
-    Partition partition(scc.size());
+    {
+        TimerScope _(statistics_.solvability_timer);
 
-    for (std::size_t i = 0; i != scc.size(); ++i) {
-        StackInfo& info = scc[i];
+        // Set the value of unsolvable states of this SCC to -inf.
+        // Start by partitioning states into inactive states, active exits and
+        // active non-exists.
+        // The partition is initialized optimistically, i.e., all states start
+        // out as active exits.
+        Partition partition(scc.size());
 
-        assert(
-            info.active_transitions != 0 || info.active_exit_transitions == 0);
+        for (std::size_t i = 0; i != scc.size(); ++i) {
+            StackInfo& info = scc[i];
 
-        // Transform to local indices
-        for (auto& parent_info : info.parents) {
-            parent_info.parent_idx -= stack_idx;
-        }
+            assert(
+                info.active_transitions != 0 ||
+                info.active_exit_transitions == 0);
 
-        if (info.active_exit_transitions == 0) {
-            if (info.active_transitions > 0) {
-                partition.demote_exit_solvable(i);
-            } else {
-                value_store[info.state_id] = AlgorithmValueType(INFINITE_VALUE);
-                partition.demote_exit_unsolvable(i);
+            // Transform to local indices
+            for (auto& parent_info : info.parents) {
+                parent_info.parent_idx -= stack_idx;
             }
-        }
-    }
 
-    if (partition.has_solvable()) {
-        // Compute the set of solvable states of this SCC.
-        for (;;) {
-            timer.throw_if_expired();
-
-            // Collect states that can currently reach an exit and mark other
-            // states unsolvable.
-            auto unsolv_it = partition.solvable_begin();
-
-            partition.mark_non_exit_states_unsolvable();
-
-            for (auto it = partition.solvable_end();
-                 it != partition.solvable_begin();) {
-                for (const auto& [parent_idx, tr_idx] : scc[*--it].parents) {
-                    StackInfo& pinfo = scc[parent_idx];
-
-                    if (pinfo.transition_flags[tr_idx].is_active) {
-                        partition.promote_solvable(parent_idx);
-                    }
+            if (info.active_exit_transitions == 0) {
+                if (info.active_transitions > 0) {
+                    partition.demote_exit_solvable(i);
+                } else {
+                    value_store[info.state_id] =
+                        AlgorithmValueType(INFINITE_VALUE);
+                    partition.demote_exit_unsolvable(i);
                 }
             }
+        }
 
-            // No new unsolvable states -> stop.
-            if (unsolv_it == partition.solvable_begin()) break;
-
-            // Run fixpoint iteration starting with the new unsolvable states
-            // that could not reach an exit anymore.
-            do {
+        if (partition.has_solvable()) {
+            // Compute the set of solvable states of this SCC.
+            for (;;) {
                 timer.throw_if_expired();
 
-                StackInfo& scc_elem = scc[*unsolv_it];
+                // Collect states that can currently reach an exit and mark
+                // other states unsolvable.
+                auto unsolv_it = partition.solvable_begin();
 
-                // The state was marked unsolvable.
-                assert(partition.is_unsolvable(*unsolv_it));
+                partition.mark_non_exit_states_unsolvable();
 
-                value_store[scc_elem.state_id] =
-                    AlgorithmValueType(INFINITE_VALUE);
+                for (auto it = partition.solvable_end();
+                     it != partition.solvable_begin();) {
+                    for (const auto& [parent_idx, tr_idx] :
+                         scc[*--it].parents) {
+                        StackInfo& pinfo = scc[parent_idx];
 
-                for (const auto& [parent_idx, tr_idx] : scc_elem.parents) {
-                    StackInfo& pinfo = scc[parent_idx];
-                    auto& transition_flags = pinfo.transition_flags[tr_idx];
-
-                    assert(
-                        !transition_flags.is_active_exiting ||
-                        transition_flags.is_active);
-
-                    if (partition.is_unsolvable(parent_idx)) continue;
-
-                    if (transition_flags.is_active_exiting) {
-                        transition_flags.is_active_exiting = false;
-                        transition_flags.is_active = false;
-
-                        --pinfo.active_transitions;
-                        --pinfo.active_exit_transitions;
-
-                        if (pinfo.active_transitions == 0) {
-                            partition.demote_exit_unsolvable(parent_idx);
-                        } else if (pinfo.active_exit_transitions == 0) {
-                            partition.demote_exit_solvable(parent_idx);
-                        }
-                    } else if (transition_flags.is_active) {
-                        transition_flags.is_active = false;
-
-                        --pinfo.active_transitions;
-
-                        if (pinfo.active_transitions == 0) {
-                            partition.demote_unsolvable(parent_idx);
+                        if (pinfo.transition_flags[tr_idx].is_active) {
+                            partition.promote_solvable(parent_idx);
                         }
                     }
                 }
-            } while (++unsolv_it != partition.solvable_begin());
+
+                // No new unsolvable states -> stop.
+                if (unsolv_it == partition.solvable_begin()) break;
+
+                // Run fixpoint iteration starting with the new unsolvable
+                // states that could not reach an exit anymore.
+                do {
+                    timer.throw_if_expired();
+
+                    StackInfo& scc_elem = scc[*unsolv_it];
+
+                    // The state was marked unsolvable.
+                    assert(partition.is_unsolvable(*unsolv_it));
+
+                    value_store[scc_elem.state_id] =
+                        AlgorithmValueType(INFINITE_VALUE);
+
+                    for (const auto& [parent_idx, tr_idx] : scc_elem.parents) {
+                        StackInfo& pinfo = scc[parent_idx];
+                        auto& transition_flags = pinfo.transition_flags[tr_idx];
+
+                        assert(
+                            !transition_flags.is_active_exiting ||
+                            transition_flags.is_active);
+
+                        if (partition.is_unsolvable(parent_idx)) continue;
+
+                        if (transition_flags.is_active_exiting) {
+                            transition_flags.is_active_exiting = false;
+                            transition_flags.is_active = false;
+
+                            --pinfo.active_transitions;
+                            --pinfo.active_exit_transitions;
+
+                            if (pinfo.active_transitions == 0) {
+                                partition.demote_exit_unsolvable(parent_idx);
+                            } else if (pinfo.active_exit_transitions == 0) {
+                                partition.demote_exit_solvable(parent_idx);
+                            }
+                        } else if (transition_flags.is_active) {
+                            transition_flags.is_active = false;
+
+                            --pinfo.active_transitions;
+
+                            if (pinfo.active_transitions == 0) {
+                                partition.demote_unsolvable(parent_idx);
+                            }
+                        }
+                    }
+                } while (++unsolv_it != partition.solvable_begin());
+            }
         }
     }
 
     // Now run VI on the SCC until convergence
-    bool converged;
+    {
+        TimerScope _(statistics_.vi_timer);
 
-    do {
-        timer.throw_if_expired();
-
-        converged = true;
-        auto it = scc.begin();
+        bool converged;
 
         do {
-            if (it->update_value(value_store)) converged = false;
-            ++statistics_.bellman_backups;
-        } while (++it != scc.end());
-    } while (!converged);
+            timer.throw_if_expired();
+
+            converged = true;
+            auto it = scc.begin();
+
+            do {
+                if (it->update_value(value_store)) converged = false;
+                ++statistics_.bellman_backups;
+            } while (++it != scc.end());
+        } while (!converged);
+    }
 
     stack_.erase(scc.begin(), scc.end());
 }

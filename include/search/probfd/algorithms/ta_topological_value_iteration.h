@@ -8,6 +8,8 @@
 #include "probfd/distribution.h"
 #include "probfd/mdp_algorithm.h"
 
+#include "downward/utils/timer.h"
+
 #include <deque>
 #include <limits>
 #include <ostream>
@@ -31,6 +33,14 @@ struct Statistics {
     unsigned long long singleton_sccs = 0;
     unsigned long long bellman_backups = 0;
     unsigned long long pruned = 0;
+
+    utils::Timer initialize_state_timer = utils::Timer(false);
+    utils::Timer successor_handling_timer = utils::Timer(false);
+    utils::Timer scc_handling_timer = utils::Timer(false);
+    utils::Timer backtracking_timer = utils::Timer(false);
+    utils::Timer vi_timer = utils::Timer(false);
+    utils::Timer decomposition_timer = utils::Timer(false);
+    utils::Timer solvability_timer = utils::Timer(false);
 
     void print(std::ostream& out) const;
 };
