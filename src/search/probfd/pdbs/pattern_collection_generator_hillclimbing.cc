@@ -93,7 +93,7 @@ compute_relevant_neighbours(const ProbabilisticTask* task)
     const AbstractTask& determinization =
         task_properties::get_determinization(task);
     TaskProxy task_proxy(determinization);
-    const causal_graph::CausalGraph& causal_graph =
+    const ::causal_graph::CausalGraph& causal_graph =
         task_proxy.get_causal_graph();
     const std::vector<int> goal_vars = get_goal_variables(task_proxy);
 
