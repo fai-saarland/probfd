@@ -291,7 +291,7 @@ TEST(MnSTests, test_bisimulation_distance_preserved)
     Distances distances;
     distances.compute_distances(ts, false, log);
 
-    ShrinkBisimulation bisimulation(AtLimit::RETURN);
+    ShrinkBisimulation bisimulation(AtLimit::RETURN, true);
 
     auto eq_relation = bisimulation.compute_equivalence_relation(
         ts,
