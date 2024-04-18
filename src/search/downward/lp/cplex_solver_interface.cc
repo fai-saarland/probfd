@@ -12,7 +12,8 @@
 using namespace std;
 
 namespace lp {
-[[noreturn]] static void handle_cplex_error(CPXENVptr env, int error_code)
+[[noreturn]]
+static void handle_cplex_error(CPXENVptr env, int error_code)
 {
     /*
       We checked for additional warnings when using the OSI framework, and
@@ -176,7 +177,7 @@ void CplexSolverInterface::CplexMatrix::assign_row_by_row(
         coefficients.insert(coefficients.end(), coeffs.begin(), coeffs.end());
     }
     starts.push_back(coefficients.size());
-    assert(static_cast<int>(starts.size()) == constraints.size() + 1);
+    assert(starts.size() == constraints.size() + 1);
     assert(indices.size() == coefficients.size());
 }
 
@@ -242,12 +243,11 @@ void CplexSolverInterface::CplexRowsInfo::assign(
             }
         }
     }
-    assert(static_cast<int>(rhs.size()) == constraints.size());
-    assert(static_cast<int>(sense.size()) == constraints.size());
-    assert(static_cast<int>(range_values.size()) <= constraints.size());
+    assert(rhs.size() == constraints.size());
+    assert(sense.size() == constraints.size());
+    assert(range_values.size() <= constraints.size());
     assert(
-        (dense_range_values &&
-         (static_cast<int>(range_values.size()) == constraints.size()) &&
+        (dense_range_values && (range_values.size() == constraints.size()) &&
          (range_indices.size() == 0)) ||
         (!dense_range_values && (range_values.size() == range_indices.size())));
 }
