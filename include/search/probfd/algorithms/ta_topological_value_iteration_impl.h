@@ -70,10 +70,10 @@ template <typename State, typename Action, bool UseInterval>
 bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
     next_transition(MDPType& mdp)
 {
-    leaves_scc = false;
-
     aops.pop_back();
     transition.clear();
+
+    assert(q_value.scc_successors.empty());
 
     return !aops.empty() &&
            forward_non_loop_transition(mdp, mdp.get_state(state_id));
@@ -92,9 +92,8 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 
             const value_t normalization = 1.0_vt / (1.0_vt - self_loop_prob);
             const auto cost = normalization * mdp.get_action_cost(aops.back());
-            non_zero = cost != 0.0_vt;
-            if (non_zero) has_all_zero = false;
-            stack_info.ec_transitions.emplace_back(cost);
+            if (cost != 0.0_vt) has_all_zero = false;
+            q_value.conv_part = AlgorithmValueType(cost);
             return true;
         }
 
@@ -113,30 +112,36 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
         return true;
     }
 
-    auto& tinfo = stack_info.ec_transitions.back();
-
     const bool exits_only_solvable =
-        tinfo.conv_part != AlgorithmValueType(INFINITE_VALUE);
+        q_value.conv_part != AlgorithmValueType(INFINITE_VALUE);
 
-    if (tinfo.scc_successors.empty()) {
+    const size_t num_scc_succs = q_value.scc_successors.size();
+
+    if (num_scc_succs == 0) {
         // Universally exiting -> Not part of scc
         // Update converged portion of q value and ignore this
         // transition
-        set_min(stack_info.conv_part, tinfo.conv_part);
-        stack_info.ec_transitions.pop_back();
+        set_min(stack_info.conv_part, q_value.conv_part);
 
         if (exits_only_solvable) {
             ++stack_info.active_exit_transitions;
             ++stack_info.active_transitions;
         }
     } else {
-        if (non_zero || leaves_scc) {
+        const bool leaves_scc = num_scc_succs != transition.size();
+
+        if (leaves_scc || q_value.conv_part != AlgorithmValueType(0_vt)) {
             // Only some exiting or cost is non-zero ->
             // Not part of an end component
-            // Move the transition to the set of non-EC transitions
-            stack_info.non_ec_transitions.push_back(std::move(tinfo));
-            stack_info.ec_transitions.pop_back();
-            recurse = true;
+            // Add the transition to the set of non-EC transitions
+            if (!stack_info.non_ec_transitions.insert(std::move(q_value))
+                     .second) {
+                // Not moved if insertion didn't take place
+                q_value.scc_successors.clear();
+            }
+        } else {
+            // Otherwise add to EC transitions
+            stack_info.ec_transitions.emplace_back(std::move(q_value));
         }
 
         if (exits_only_solvable) {
@@ -150,6 +155,8 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
             exits_only_solvable);
     }
 
+    assert(q_value.scc_successors.empty());
+
     return false;
 }
 
@@ -159,13 +166,6 @@ TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
     get_current_successor()
 {
     return *successor;
-}
-
-template <typename State, typename Action, bool UseInterval>
-TATopologicalValueIteration<State, Action, UseInterval>::QValueInfo::QValueInfo(
-    value_t action_cost)
-    : conv_part(action_cost)
-{
 }
 
 template <typename State, typename Action, bool UseInterval>
@@ -189,25 +189,6 @@ TATopologicalValueIteration<State, Action, UseInterval>::StackInfo::StackInfo(
     : state_id(state_id)
     , value(&value_ref)
 {
-}
-
-template <typename State, typename Action, bool UseInterval>
-template <typename ValueStore>
-bool TATopologicalValueIteration<State, Action, UseInterval>::StackInfo::
-    update_value(ValueStore& value_store)
-{
-    AlgorithmValueType v = conv_part;
-
-    for (const QValueInfo& info : non_ec_transitions) {
-        set_min(v, info.compute_q_value(value_store));
-    }
-
-    if constexpr (UseInterval) {
-        update(*value, v);
-        return !value->bounds_equal();
-    } else {
-        return update(*value, v);
-    }
 }
 
 template <typename State, typename Action, bool UseInterval>
@@ -240,7 +221,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::
             recurse = true;
         }
 
-        stack_info.non_ec_transitions.push_back(std::move(*action));
+        stack_info.non_ec_transitions.insert(std::move(*action));
 
         if (action != --end) {
             *action = std::move(*end);
@@ -367,13 +348,10 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
             const ExplorationInfo& successor = *explore--;
 
             const auto [succ_id, prob] = explore->get_current_successor();
-            QValueInfo& tinfo = explore->stack_info.ec_transitions.back();
 
             if (backtrack_from_scc) {
-                explore->leaves_scc = true;
-
                 const AlgorithmValueType value = value_store[succ_id];
-                tinfo.conv_part += prob * value;
+                explore->q_value.conv_part += prob * value;
                 explore->exit_interval.lower =
                     std::min(explore->exit_interval.lower, value);
                 explore->exit_interval.upper =
@@ -388,9 +366,8 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
                     successor.exit_interval.upper);
                 explore->has_all_zero =
                     explore->has_all_zero && successor.has_all_zero;
-                explore->recurse = explore->recurse || successor.recurse;
 
-                tinfo.scc_successors.emplace_back(succ_id, prob);
+                explore->q_value.scc_successors.emplace_back(succ_id, prob);
                 successor.stack_info.parents.emplace_back(
                     explore->stackidx,
                     explore->stack_info.transition_flags.size());
@@ -428,8 +405,6 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
     TimerScope _(statistics_.successor_handling_timer);
 
     do {
-        assert(!explore.stack_info.ec_transitions.empty());
-
         timer.throw_if_expired();
 
         const auto [succ_id, prob] = explore.get_current_successor();
@@ -445,12 +420,8 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
         }
 
         case StateInfo::CLOSED: {
-            QValueInfo& tinfo = explore.stack_info.ec_transitions.back();
-
-            explore.leaves_scc = true;
-
             const AlgorithmValueType value = value_store[succ_id];
-            tinfo.conv_part += prob * value;
+            explore.q_value.conv_part += prob * value;
             explore.exit_interval.lower =
                 std::min(explore.exit_interval.lower, value);
             explore.exit_interval.upper =
@@ -461,9 +432,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
         case StateInfo::ONSTACK:
             unsigned succ_stack_id = succ_info.stack_id;
             explore.lowlink = std::min(explore.lowlink, succ_stack_id);
-
-            QValueInfo& tinfo = explore.stack_info.ec_transitions.back();
-            tinfo.scc_successors.emplace_back(succ_id, prob);
+            explore.q_value.scc_successors.emplace_back(succ_id, prob);
 
             auto& parents = stack_[succ_stack_id].parents;
             parents.emplace_back(
@@ -522,7 +491,6 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::initialize_state(
 
     const size_t num_aops = exp_info.aops.size();
 
-    exp_info.stack_info.non_ec_transitions.reserve(num_aops);
     exp_info.stack_info.ec_transitions.reserve(num_aops);
 
     ++statistics_.expanded_states;
@@ -581,7 +549,9 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
         return;
     }
 
-    if (exp_info.recurse) {
+    if (std::ranges::any_of(scc, [](const StackInfo& stk_info) {
+            return !stk_info.non_ec_transitions.empty();
+        })) {
         // Run recursive EC Decomposition
         TimerScope _(statistics_.decomposition_timer);
 
@@ -612,21 +582,22 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
             state_information_[succ_stk.state_id].stack_id = StateInfo::UNDEF;
 
             // Move all non-EC transitions to representative state
-            std::move(
-                succ_stk.non_ec_transitions.begin(),
-                succ_stk.non_ec_transitions.end(),
-                std::back_inserter(repr_stk.non_ec_transitions));
+            for (auto& info : succ_stk.non_ec_transitions) {
+                repr_stk.non_ec_transitions.insert(std::move(info));
+            }
 
             // Free memory
-            std::vector<QValueInfo>().swap(succ_stk.non_ec_transitions);
+            decltype(succ_stk.non_ec_transitions)().swap(
+                succ_stk.non_ec_transitions);
 
             set_min(repr_stk.conv_part, succ_stk.conv_part);
 
             succ_stk.conv_part = AlgorithmValueType(INFINITE_VALUE);
 
             // Connect to representative state with zero cost action
-            auto& t = succ_stk.non_ec_transitions.emplace_back(0.0_vt);
-            t.scc_successors.emplace_back(scc_repr_id, 1.0_vt);
+            succ_stk.non_ec_transitions.emplace(
+                0.0_vt,
+                std::vector{ItemProbabilityPair<StateID>(scc_repr_id, 1.0_vt)});
         }
     }
 
@@ -842,18 +813,48 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
     {
         TimerScope _(statistics_.vi_timer);
 
+        struct Foo {
+            AlgorithmValueType* value;
+            AlgorithmValueType conv_part;
+            std::vector<QValueInfo> transitions;
+        };
+
+        std::vector<Foo> table;
+        table.reserve(scc.size());
+
+        for (auto it = scc.begin(); it != scc.end(); ++it) {
+            auto& t = table.emplace_back(it->value, it->conv_part);
+            auto& tr = it->non_ec_transitions;
+            t.transitions.reserve(tr.size());
+            for (auto it2 = tr.begin(); it2 != tr.end();) {
+                t.transitions.push_back(std::move(tr.extract(it2++).value()));
+            }
+        }
+
         bool converged;
 
         do {
             timer.throw_if_expired();
 
             converged = true;
-            auto it = scc.begin();
+            auto it = table.begin();
 
             do {
-                if (it->update_value(value_store)) converged = false;
+                AlgorithmValueType v = it->conv_part;
+
+                for (const QValueInfo& info : it->transitions) {
+                    set_min(v, info.compute_q_value(value_store));
+                }
+
+                if constexpr (UseInterval) {
+                    update(*it->value, v);
+                    if (!it->value->bounds_equal()) converged = false;
+                } else {
+                    if (update(*it->value, v)) converged = false;
+                }
+
                 ++statistics_.bellman_backups;
-            } while (++it != scc.end());
+            } while (++it != table.end());
         } while (!converged);
     }
 
@@ -1016,20 +1017,21 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found_ecd(
             state_info.ecd_stack_id = StateInfo::UNDEF_ECD;
 
             // Move all non-EC transitions to representative state
-            std::move(
-                succ_stk.non_ec_transitions.begin(),
-                succ_stk.non_ec_transitions.end(),
-                std::back_inserter(repr_stk.non_ec_transitions));
+            for (auto& info : succ_stk.non_ec_transitions) {
+                repr_stk.non_ec_transitions.insert(std::move(info));
+            }
 
             // Free memory
-            std::vector<QValueInfo>().swap(succ_stk.non_ec_transitions);
+            decltype(succ_stk.non_ec_transitions)().swap(
+                succ_stk.non_ec_transitions);
 
             set_min(repr_stk.conv_part, succ_stk.conv_part);
             succ_stk.conv_part = AlgorithmValueType(INFINITE_VALUE);
 
             // Connect to representative state with zero cost action
-            auto& t = succ_stk.non_ec_transitions.emplace_back(0.0_vt);
-            t.scc_successors.emplace_back(scc_repr_id, 1.0_vt);
+            succ_stk.non_ec_transitions.emplace(
+                0.0_vt,
+                std::vector{ItemProbabilityPair<StateID>(scc_repr_id, 1.0_vt)});
         }
     }
 

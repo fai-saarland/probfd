@@ -81,6 +81,21 @@ struct approx_neq_to {
     }
 };
 
+/// Unary function object for approximate inequality comparison.
+struct approx_less {
+    const value_t epsilon;
+
+    explicit approx_less(value_t epsilon = g_epsilon)
+        : epsilon(epsilon)
+    {
+    }
+
+    bool operator()(value_t left, value_t right) const
+    {
+        return is_approx_less(left, right);
+    }
+};
+
 } // namespace probfd
 
 #endif // PROBFD_VALUE_TYPE_H

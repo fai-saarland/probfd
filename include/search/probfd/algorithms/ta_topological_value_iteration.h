@@ -13,6 +13,7 @@
 #include <deque>
 #include <limits>
 #include <ostream>
+#include <set>
 #include <vector>
 
 namespace utils {
@@ -89,6 +90,20 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
 
     struct StackInfo;
 
+    struct QValueInfo {
+        // Precomputed part of the Q-value.
+        // Sum of action cost plus those weighted successor values which
+        // have already converged due to topological ordering.
+        AlgorithmValueType conv_part;
+
+        // Pointers to successor values which have not yet converged,
+        // self-loops excluded.
+        std::vector<ItemProbabilityPair<StateID>> scc_successors;
+
+        template <typename ValueStore>
+        AlgorithmValueType compute_q_value(ValueStore& value_store) const;
+    };
+
     struct ExplorationInfo {
         // Immutable state
         StateID state_id;
@@ -105,6 +120,9 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         Distribution<StateID> transition;
         typename Distribution<StateID>::const_iterator successor;
 
+        // Exploration state -- Current Q value info
+        QValueInfo q_value;
+
         Interval exit_interval;
 
         // End component decomposition state
@@ -115,12 +133,7 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         // transition that can remain in the MDP. Both cannot be part of an
         // end component and removing them affects connectivity of the SCCs,
         // so recursion is necessary after removal.
-        bool recurse : 1 = false;
         bool has_all_zero : 1 = true;
-
-        // whether the transition has non-zero cost or can leave the scc
-        bool non_zero : 1;
-        bool leaves_scc : 1 = false;
 
         ExplorationInfo(
             StateID state_id,
@@ -134,20 +147,22 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         ItemProbabilityPair<StateID> get_current_successor();
     };
 
-    struct QValueInfo {
-        // Precomputed part of the Q-value.
-        // Sum of action cost plus those weighted successor values which
-        // have already converged due to topological ordering.
-        AlgorithmValueType conv_part;
-
-        // Pointers to successor values which have not yet converged,
-        // self-loops excluded.
-        std::vector<ItemProbabilityPair<StateID>> scc_successors;
-
-        explicit QValueInfo(value_t action_cost);
-
-        template <typename ValueStore>
-        AlgorithmValueType compute_q_value(ValueStore& value_store) const;
+    struct cmp_qval_info {
+        bool operator()(const QValueInfo& left, const QValueInfo& right) const
+        {
+            return is_approx_less(left.conv_part, right.conv_part) ||
+                   (is_approx_equal(left.conv_part, right.conv_part) &&
+                    std::ranges::lexicographical_compare(
+                        left.scc_successors,
+                        right.scc_successors,
+                        [](const auto& left, const auto& right) {
+                            return left.item < right.item ||
+                                   (left.item == right.item &&
+                                    is_approx_less(
+                                        left.probability,
+                                        right.probability));
+                        }));
+        }
     };
 
     struct StackInfo {
@@ -163,7 +178,7 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
 
         // Q value structs for transitions belonging to the scc,
         // but not to an end component.
-        std::vector<QValueInfo> non_ec_transitions;
+        std::set<QValueInfo, cmp_qval_info> non_ec_transitions;
 
         // Q value structs for transitions currently assumed to belong
         // to an end component within the current scc.
@@ -189,9 +204,6 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         std::vector<ParentTransition> parents;
 
         StackInfo(StateID state_id, AlgorithmValueType& value_ref);
-
-        template <typename ValueStore>
-        bool update_value(ValueStore& value_store);
     };
 
     struct ECDExplorationInfo {
