@@ -94,7 +94,7 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         // Precomputed part of the Q-value.
         // Sum of action cost plus those weighted successor values which
         // have already converged due to topological ordering.
-        AlgorithmValueType conv_part;
+        mutable AlgorithmValueType conv_part;
 
         // Pointers to successor values which have not yet converged,
         // self-loops excluded.
@@ -150,18 +150,15 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
     struct cmp_qval_info {
         bool operator()(const QValueInfo& left, const QValueInfo& right) const
         {
-            return is_approx_less(left.conv_part, right.conv_part) ||
-                   (is_approx_equal(left.conv_part, right.conv_part) &&
-                    std::ranges::lexicographical_compare(
-                        left.scc_successors,
-                        right.scc_successors,
-                        [](const auto& left, const auto& right) {
-                            return left.item < right.item ||
-                                   (left.item == right.item &&
-                                    is_approx_less(
-                                        left.probability,
-                                        right.probability));
-                        }));
+            return std::ranges::lexicographical_compare(
+                left.scc_successors,
+                right.scc_successors,
+                [](const auto& left, const auto& right) {
+                    return left.item < right.item ||
+                           (left.item == right.item && is_approx_less(
+                                                           left.probability,
+                                                           right.probability));
+                });
         }
     };
 
@@ -204,6 +201,8 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         std::vector<ParentTransition> parents;
 
         StackInfo(StateID state_id, AlgorithmValueType& value_ref);
+
+        void add_non_ec_transition(QValueInfo&& info);
     };
 
     struct ECDExplorationInfo {

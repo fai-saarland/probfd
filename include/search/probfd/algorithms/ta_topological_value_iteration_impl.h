@@ -134,11 +134,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
             // Only some exiting or cost is non-zero ->
             // Not part of an end component
             // Add the transition to the set of non-EC transitions
-            if (!stack_info.non_ec_transitions.insert(std::move(q_value))
-                     .second) {
-                // Not moved if insertion didn't take place
-                q_value.scc_successors.clear();
-            }
+            stack_info.add_non_ec_transition(std::move(q_value));
         } else {
             // Otherwise add to EC transitions
             stack_info.ec_transitions.emplace_back(std::move(q_value));
@@ -192,6 +188,18 @@ TATopologicalValueIteration<State, Action, UseInterval>::StackInfo::StackInfo(
 }
 
 template <typename State, typename Action, bool UseInterval>
+void TATopologicalValueIteration<State, Action, UseInterval>::StackInfo::
+    add_non_ec_transition(QValueInfo&& info)
+{
+    auto [it, inserted] = non_ec_transitions.insert(std::move(info));
+    if (!inserted) {
+        // Not moved if insertion didn't take place
+        set_min(it->conv_part, info.conv_part);
+        info.scc_successors.clear();
+    }
+}
+
+template <typename State, typename Action, bool UseInterval>
 TATopologicalValueIteration<State, Action, UseInterval>::ECDExplorationInfo::
     ECDExplorationInfo(StackInfo& stack_info, unsigned stackidx)
     : stack_info(stack_info)
@@ -221,7 +229,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::
             recurse = true;
         }
 
-        stack_info.non_ec_transitions.insert(std::move(*action));
+        stack_info.add_non_ec_transition(std::move(*action));
 
         if (action != --end) {
             *action = std::move(*end);
@@ -582,13 +590,14 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
             state_information_[succ_stk.state_id].stack_id = StateInfo::UNDEF;
 
             // Move all non-EC transitions to representative state
-            for (auto& info : succ_stk.non_ec_transitions) {
-                repr_stk.non_ec_transitions.insert(std::move(info));
+            auto& tr = succ_stk.non_ec_transitions;
+            for (auto it = tr.begin(); it != tr.end();) {
+                repr_stk.add_non_ec_transition(
+                    std::move(tr.extract(it++).value()));
             }
 
             // Free memory
-            decltype(succ_stk.non_ec_transitions)().swap(
-                succ_stk.non_ec_transitions);
+            std::decay_t<decltype(tr)>().swap(tr);
 
             set_min(repr_stk.conv_part, succ_stk.conv_part);
 
@@ -813,13 +822,13 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
     {
         TimerScope _(statistics_.vi_timer);
 
-        struct Foo {
+        struct VIInfo {
             AlgorithmValueType* value;
             AlgorithmValueType conv_part;
             std::vector<QValueInfo> transitions;
         };
 
-        std::vector<Foo> table;
+        std::vector<VIInfo> table;
         table.reserve(scc.size());
 
         for (auto it = scc.begin(); it != scc.end(); ++it) {
@@ -1017,13 +1026,14 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found_ecd(
             state_info.ecd_stack_id = StateInfo::UNDEF_ECD;
 
             // Move all non-EC transitions to representative state
-            for (auto& info : succ_stk.non_ec_transitions) {
-                repr_stk.non_ec_transitions.insert(std::move(info));
+            auto& tr = succ_stk.non_ec_transitions;
+            for (auto it = tr.begin(); it != tr.end();) {
+                repr_stk.add_non_ec_transition(
+                    std::move(tr.extract(it++).value()));
             }
 
             // Free memory
-            decltype(succ_stk.non_ec_transitions)().swap(
-                succ_stk.non_ec_transitions);
+            std::decay_t<decltype(tr)>().swap(tr);
 
             set_min(repr_stk.conv_part, succ_stk.conv_part);
             succ_stk.conv_part = AlgorithmValueType(INFINITE_VALUE);
