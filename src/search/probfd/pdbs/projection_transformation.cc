@@ -8,7 +8,7 @@ namespace probfd::pdbs {
 
 ProjectionTransformation::ProjectionTransformation(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    FDRCostFunction& task_cost_function,
     Pattern pattern,
     bool operator_pruning,
     double max_time)

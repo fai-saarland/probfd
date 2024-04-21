@@ -68,9 +68,7 @@ public:
         , task_cost_function_(std::move(task_cost_function))
         , algorithm_name_(std::move(algorithm_name))
         , algorithm_(std::move(algorithm))
-        , state_space_(
-              task.get(),
-              task_cost_function->get_non_goal_termination_cost())
+        , state_space_(task.get())
     {
         stats_.timer.stop();
         stats_.states = state_space_.num_bisimilar_states();
@@ -137,9 +135,7 @@ public:
         ProgressReport progress,
         double max_time) override
     {
-        bisimulation::InducedQuotientEvaluator heuristic(
-            &state_space_,
-            task_cost_function_->get_non_goal_termination_cost());
+        bisimulation::InducedQuotientEvaluator heuristic(&state_space_);
 
         std::cout << "Running " << algorithm_name_ << "..." << std::endl;
         return algorithm_->solve(

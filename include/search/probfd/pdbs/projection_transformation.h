@@ -29,7 +29,7 @@ struct ProjectionTransformation {
     // and allocates the J* value table, initially filled with NaNs.
     ProjectionTransformation(
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        FDRCostFunction& task_cost_function,
         Pattern pattern,
         bool operator_pruning = true,
         double max_time = std::numeric_limits<double>::infinity());

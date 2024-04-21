@@ -9,8 +9,7 @@ namespace probfd::pdbs {
 value_t SubCollectionFinder::evaluate(
     const PPDBCollection& database,
     const std::vector<PatternSubCollection>& subcollections,
-    const State& state,
-    value_t termination_cost)
+    const State& state)
 {
     if (database.empty()) return 0_vt;
 
@@ -19,7 +18,7 @@ value_t SubCollectionFinder::evaluate(
     for (std::size_t i = 0; i != database.size(); ++i) {
         const value_t estimate = database[i]->lookup_estimate(state);
 
-        if (estimate == termination_cost) {
+        if (estimate == INFINITE_VALUE) {
             return estimate;
         }
 

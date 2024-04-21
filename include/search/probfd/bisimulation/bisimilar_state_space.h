@@ -49,7 +49,6 @@ class BisimilarStateSpace : public MDP<QuotientState, QuotientAction> {
     };
 
     ProbabilisticTaskProxy task_proxy_;
-    const value_t upper_bound_;
 
     std::unique_ptr<merge_and_shrink::FactoredTransitionSystem> fts_;
     const merge_and_shrink::TransitionSystem* abstraction_;
@@ -68,7 +67,7 @@ public:
      * @brief Constructs the quotient of the induced state space of the task
      * with respect to a bisimulation of the all outcomes determinization.
      */
-    BisimilarStateSpace(const ProbabilisticTask* task, value_t upper_bound);
+    explicit BisimilarStateSpace(const ProbabilisticTask* task);
 
     ~BisimilarStateSpace() override;
 
@@ -94,17 +93,14 @@ public:
         QuotientState state,
         std::vector<TransitionType>& transitions) override;
 
-    TerminationInfo get_termination_info(QuotientState state) override;
+    /// Checks whether the given quotient state is a goal state.
+    bool is_goal(QuotientState s) const override;
 
     value_t get_action_cost(QuotientAction action) override;
 
     /// Get the initial state of the probabilistic bisimulation quotient.
     [[nodiscard]]
     QuotientState get_initial_state() const;
-
-    /// Checks whether the given quotient state is a goal state.
-    [[nodiscard]]
-    bool is_goal_state(QuotientState s) const;
 
     /// Checks whether the given quotient state is a dead end.
     [[nodiscard]]

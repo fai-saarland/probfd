@@ -173,7 +173,7 @@ static void compute_projection_operator_info(
 
 ProjectionStateSpace::ProjectionStateSpace(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    FDRCostFunction& task_cost_function,
     const StateRankingFunction& ranking_function,
     bool operator_pruning,
     double max_time)
@@ -341,11 +341,6 @@ void ProjectionStateSpace::generate_all_transitions(
 bool ProjectionStateSpace::is_goal(StateRank state) const
 {
     return goal_state_flags_[state];
-}
-
-value_t ProjectionStateSpace::get_non_goal_termination_cost() const
-{
-    return parent_cost_function_->get_non_goal_termination_cost();
 }
 
 value_t ProjectionStateSpace::get_action_cost(const ProjectionOperator* op)

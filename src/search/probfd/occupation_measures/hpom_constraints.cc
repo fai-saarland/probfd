@@ -100,18 +100,6 @@ void HPOMGenerator::generate_hpom_lp(
     lp::LinearProgram& lp,
     std::vector<int>& offset_)
 {
-    const value_t term_cost =
-        task_cost_function.get_non_goal_termination_cost();
-
-    if (term_cost != INFINITE_VALUE && term_cost != 1_vt) {
-        std::cerr << "Termination costs beyond 1 (MaxProb) and +infinity (SSP) "
-                     "currently unsupported in hpom implementation.";
-        utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
-    }
-
-    const bool maxprob =
-        task_cost_function.get_non_goal_termination_cost() == 1_vt;
-
     ::task_properties::verify_no_axioms(task_proxy);
     task_properties::verify_no_conditional_effects(task_proxy);
 
@@ -139,7 +127,7 @@ void HPOMGenerator::generate_hpom_lp(
 
     // Variable representing total inflow to artificial goal
     // Maximized in MaxProb, must be constant 1 for SSPs
-    lp_variables.emplace_back(maxprob ? 0 : 1, 1, maxprob ? -1 : 0);
+    lp_variables.emplace_back(1, 1, 0);
 
     std::vector<int> the_goal =
         pasmt_to_vector(task_proxy.get_goals(), num_variables);
@@ -168,7 +156,7 @@ void HPOMGenerator::generate_hpom_lp(
 
     // Now ordinary actions
     for (const ProbabilisticOperatorProxy& op : task_proxy.get_operators()) {
-        const auto cost = maxprob ? 0 : op.get_cost();
+        const auto cost = op.get_cost();
 
         // Get dense precondition
         const std::vector<int> pre =

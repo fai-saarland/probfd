@@ -37,8 +37,7 @@ public:
     value_t evaluate(
         const PPDBCollection& database,
         const std::vector<PatternSubCollection>& subcollections,
-        const State& state,
-        value_t termination_cost);
+        const State& state);
 };
 
 } // namespace probfd::pdbs

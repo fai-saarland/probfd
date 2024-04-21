@@ -19,14 +19,13 @@ void verify(
 {
     lp::LPSolver solver(type);
     const double inf = solver.get_infinity();
-    const value_t term_cost = mdp.get_non_goal_termination_cost();
 
     named_vector::NamedVector<lp::LPVariable> variables;
 
     const int num_states = static_cast<int>(value_table.size());
 
     for (int i = 0; i != num_states; ++i) {
-        variables.emplace_back(0_vt, std::min(term_cost, inf), 0_vt);
+        variables.emplace_back(0_vt, inf, 0_vt);
     }
 
     named_vector::NamedVector<lp::LPConstraint> constraints;

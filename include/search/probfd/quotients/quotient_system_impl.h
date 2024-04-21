@@ -394,17 +394,12 @@ void QuotientSystem<State, Action>::generate_all_transitions(
 }
 
 template <typename State, typename Action>
-TerminationInfo
-QuotientSystem<State, Action>::get_termination_info(param_type<QState> s)
+bool QuotientSystem<State, Action>::is_goal(param_type<QState> s) const
 {
     return std::visit(
         overloaded{
-            [&](const QuotientInformationType* info) {
-                return info->termination_info_;
-            },
-            [&](param_type<State> state) {
-                return mdp_.get_termination_info(state);
-            }},
+            [&](const QuotientInformationType* info) { return info->is_goal_; },
+            [&](param_type<State> state) { return mdp_.is_goal(state); }},
         s.single_or_quotient);
 }
 
@@ -472,9 +467,6 @@ void QuotientSystem<State, Action>::build_quotient(
     const StateID rid = get<0>(entry);
     const auto& raops = get<1>(entry);
 
-    value_t min_termination = INFINITE_VALUE;
-    bool is_goal = false;
-
     // Get or create quotient
     QuotientInformationType& qinfo = quotients_[rid];
 
@@ -487,10 +479,8 @@ void QuotientSystem<State, Action>::build_quotient(
 
         const State repr = mdp_.get_state(rid);
 
-        // Merge goal state status and termination cost
-        const auto repr_term = mdp_.get_termination_info(repr);
-        min_termination = std::min(min_termination, repr_term.get_cost());
-        is_goal = is_goal || repr_term.is_goal_state();
+        // Goal state status
+        qinfo.is_goal_ = mdp_.is_goal(repr);
 
         // Generate the applicable actions and add them to the new
         // quotient
@@ -513,11 +503,6 @@ void QuotientSystem<State, Action>::build_quotient(
     } else {
         // Filter actions
         qinfo.filter_actions(raops);
-
-        // Merge goal state status and termination cost
-        const auto repr_term = qinfo.termination_info_;
-        min_termination = std::min(min_termination, repr_term.get_cost());
-        is_goal = is_goal || repr_term.is_goal_state();
     }
 
     for (const auto& entry : submdp) {
@@ -541,10 +526,8 @@ void QuotientSystem<State, Action>::build_quotient(
             // Filter actions
             q.filter_actions(aops);
 
-            // Merge goal state status and termination cost
-            const auto mem_term = q.termination_info_;
-            min_termination = std::min(min_termination, mem_term.get_cost());
-            is_goal = is_goal || mem_term.is_goal_state();
+            // Goal state status
+            qinfo.is_goal_ = qinfo.is_goal_ || q.is_goal_;
 
             // Insert all states belonging to it to the new quotient
             for (const auto& p : q.state_infos_) {
@@ -565,10 +548,8 @@ void QuotientSystem<State, Action>::build_quotient(
 
             const State mem = mdp_.get_state(state_id);
 
-            // Merge goal state status and termination cost
-            const auto mem_term = mdp_.get_termination_info(mem);
-            min_termination = std::min(min_termination, mem_term.get_cost());
-            is_goal = is_goal || mem_term.is_goal_state();
+            // Goal state status
+            qinfo.is_goal_ = qinfo.is_goal_ || mdp_.is_goal(mem);
 
             // Generate the applicable actions and add them to the new
             // quotient
@@ -588,10 +569,6 @@ void QuotientSystem<State, Action>::build_quotient(
             qinfo.total_num_outer_acts_ += b.num_outer_acts;
         }
     }
-
-    qinfo.termination_info_ =
-        is_goal ? TerminationInfo::from_goal()
-                : TerminationInfo::from_non_goal(min_termination);
 }
 
 template <typename State, typename Action>
@@ -610,10 +587,6 @@ void QuotientSystem<State, Action>::build_new_quotient(
     // appears first in the data structure.
     assert(qinfo.state_infos_.empty());
 
-    // Merged goal state status and termination cost
-    value_t min_termination;
-    bool is_goal;
-
     {
         // Add this state to the quotient
         auto& b = qinfo.state_infos_.emplace_back(rid);
@@ -621,10 +594,8 @@ void QuotientSystem<State, Action>::build_new_quotient(
 
         const State repr = mdp_.get_state(rid);
 
-        // Merge goal state status and termination cost
-        const auto repr_term = mdp_.get_termination_info(repr);
-        min_termination = repr_term.get_cost();
-        is_goal = repr_term.is_goal_state();
+        // Goal state status
+        qinfo.is_goal_ = mdp_.is_goal(repr);
 
         // Generate the applicable actions
         mdp_.generate_applicable_actions(repr, qinfo.aops_);
@@ -655,10 +626,8 @@ void QuotientSystem<State, Action>::build_new_quotient(
 
         const State mem = mdp_.get_state(state_id);
 
-        // Merge goal state status and termination cost
-        const auto mem_term = mdp_.get_termination_info(mem);
-        min_termination = std::min(min_termination, mem_term.get_cost());
-        is_goal = is_goal || mem_term.is_goal_state();
+        // Goal state status
+        qinfo.is_goal_ = qinfo.is_goal_ || mdp_.is_goal(mem);
 
         // Generate the applicable actions
         mdp_.generate_applicable_actions(mem, qinfo.aops_);
@@ -671,10 +640,6 @@ void QuotientSystem<State, Action>::build_new_quotient(
 
         qinfo.total_num_outer_acts_ += b.num_outer_acts;
     }
-
-    qinfo.termination_info_ =
-        is_goal ? TerminationInfo::from_goal()
-                : TerminationInfo::from_non_goal(min_termination);
 }
 
 template <typename State, typename Action>

@@ -92,7 +92,6 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 
             const value_t normalization = 1.0_vt / (1.0_vt - self_loop_prob);
             const auto cost = normalization * mdp.get_action_cost(aops.back());
-            if (cost != 0.0_vt) has_all_zero = false;
             q_value.conv_part = AlgorithmValueType(cost);
             return true;
         }
@@ -330,7 +329,7 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
 
             // Check if an SCC was found.
             if (backtrack_from_scc) {
-                scc_found(value_store, *explore, stack_id, timer);
+                scc_found(value_store, stack_id, timer);
 
                 if (stack_id == 0) {
                     assert(stack_.empty());
@@ -360,21 +359,8 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
             if (backtrack_from_scc) {
                 const AlgorithmValueType value = value_store[succ_id];
                 explore->q_value.conv_part += prob * value;
-                explore->exit_interval.lower =
-                    std::min(explore->exit_interval.lower, value);
-                explore->exit_interval.upper =
-                    std::max(explore->exit_interval.upper, value);
             } else {
                 explore->lowlink = std::min(explore->lowlink, lowlink);
-                explore->exit_interval.lower = std::min(
-                    explore->exit_interval.lower,
-                    successor.exit_interval.lower);
-                explore->exit_interval.upper = std::max(
-                    explore->exit_interval.upper,
-                    successor.exit_interval.upper);
-                explore->has_all_zero =
-                    explore->has_all_zero && successor.has_all_zero;
-
                 explore->q_value.scc_successors.emplace_back(succ_id, prob);
                 successor.stack_info.parents.emplace_back(
                     explore->stackidx,
@@ -430,10 +416,6 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
         case StateInfo::CLOSED: {
             const AlgorithmValueType value = value_store[succ_id];
             explore.q_value.conv_part += prob * value;
-            explore.exit_interval.lower =
-                std::min(explore.exit_interval.lower, value);
-            explore.exit_interval.upper =
-                std::max(explore.exit_interval.upper, value);
             break;
         }
 
@@ -472,7 +454,6 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::initialize_state(
     const value_t estimate = heuristic.evaluate(state);
 
     exp_info.stack_info.conv_part = AlgorithmValueType(t_cost);
-    exp_info.exit_interval = Interval(t_cost);
 
     AlgorithmValueType& state_value = value_store[exp_info.state_id];
 
@@ -515,7 +496,6 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::initialize_state(
 template <typename State, typename Action, bool UseInterval>
 void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
     auto& value_store,
-    ExplorationInfo& exp_info,
     unsigned int stack_idx,
     utils::CountdownTimer& timer)
 {
@@ -528,20 +508,6 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
     assert(!scc.empty());
 
     ++statistics_.sccs;
-
-    if (exp_info.exit_interval.lower == INFINITE_VALUE ||
-        (exp_info.exit_interval.lower == exp_info.exit_interval.upper &&
-         exp_info.has_all_zero)) {
-        for (StackInfo& stk_info : scc) {
-            StateInfo& state_info = state_information_[stk_info.state_id];
-            assert(state_info.get_status() == StateInfo::ONSTACK);
-            update(*stk_info.value, exp_info.exit_interval.lower);
-            state_info.stack_id = StateInfo::UNDEF;
-        }
-
-        stack_.erase(scc.begin(), scc.end());
-        return;
-    }
 
     if (scc.size() == 1) {
         // For singleton SCCs, we only have transitions which are

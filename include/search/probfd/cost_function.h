@@ -12,22 +12,17 @@ namespace probfd {
  */
 class TerminationInfo {
     bool is_goal_;
-    value_t terminal_cost_;
 
-    TerminationInfo(bool is_goal, value_t terminal_cost)
+    explicit TerminationInfo(bool is_goal)
         : is_goal_(is_goal)
-        , terminal_cost_(terminal_cost)
     {
     }
 
 public:
     TerminationInfo() = default;
 
-    static TerminationInfo from_goal() { return {true, 0_vt}; }
-    static TerminationInfo from_non_goal(value_t value)
-    {
-        return {false, value};
-    }
+    static TerminationInfo from_goal() { return TerminationInfo{true}; }
+    static TerminationInfo from_non_goal() { return TerminationInfo{false}; }
 
     /// Check if this state is a goal.
     [[nodiscard]]
@@ -40,7 +35,7 @@ public:
     [[nodiscard]]
     value_t get_cost() const
     {
-        return terminal_cost_;
+        return is_goal_ ? 0_vt : INFINITE_VALUE;
     }
 };
 
@@ -91,30 +86,18 @@ public:
      *
      * @see TerminationInfo
      */
-    virtual TerminationInfo get_termination_info(param_type<State> state) = 0;
+    TerminationInfo get_termination_info(param_type<State> state) const
+    {
+        return this->is_goal(state) ? TerminationInfo::from_goal()
+                                    : TerminationInfo::from_non_goal();
+    }
+
+    virtual bool is_goal(param_type<State> state) const = 0;
 
     /**
      * @brief Gets the cost of an action.
      */
     virtual value_t get_action_cost(param_type<Action> action) = 0;
-};
-
-template <typename State, typename Action>
-class SimpleCostFunction : public CostFunction<State, Action> {
-public:
-    /**
-     * @brief Get the termination cost info of the input state.
-     */
-    TerminationInfo get_termination_info(param_type<State> state) final
-    {
-        return is_goal(state) ? TerminationInfo::from_goal()
-                              : TerminationInfo::from_non_goal(
-                                    get_non_goal_termination_cost());
-    }
-
-    virtual bool is_goal(param_type<State> state) const = 0;
-    [[nodiscard]]
-    virtual value_t get_non_goal_termination_cost() const = 0;
 };
 
 } // namespace probfd

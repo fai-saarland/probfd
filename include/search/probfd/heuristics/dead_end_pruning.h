@@ -22,7 +22,6 @@ namespace probfd::heuristics {
  */
 class DeadEndPruningHeuristic : public FDREvaluator {
     const std::shared_ptr<::Evaluator> pruning_function_;
-    const value_t dead_end_value_;
 
 public:
     /**
@@ -32,9 +31,8 @@ public:
      * @param dead_end_value - State estimate returned for states that are
      * dead-ends according to the classical heuristic.
      */
-    DeadEndPruningHeuristic(
-        std::shared_ptr<::Evaluator> pruning_function,
-        value_t dead_end_value);
+    explicit DeadEndPruningHeuristic(
+        std::shared_ptr<::Evaluator> pruning_function);
 
     [[nodiscard]]
     value_t evaluate(const State& state) const override;

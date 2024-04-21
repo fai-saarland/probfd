@@ -38,7 +38,7 @@ std::unique_ptr<ProjectionMultiPolicy> compute_optimal_projection_policy(
         mdp.get_termination_info(initial_state).get_cost()) {
         return policy;
     }
-    
+
     std::deque<StateRank> open = {initial_state};
     std::unordered_set<StateRank> closed = {initial_state};
 
@@ -146,8 +146,6 @@ std::unique_ptr<ProjectionMultiPolicy> compute_greedy_projection_policy(
     utils::RandomNumberGenerator& rng,
     bool wildcard)
 {
-    const value_t term_cost = mdp.get_non_goal_termination_cost();
-
     std::unique_ptr policy = std::make_unique<
         policies::VectorMultiPolicy<StateRank, const ProjectionOperator*>>(
         &mdp,
@@ -170,7 +168,7 @@ std::unique_ptr<ProjectionMultiPolicy> compute_greedy_projection_policy(
         const value_t value = value_table[s];
 
         // Skip dead-ends, the operator is irrelevant
-        if (value == term_cost) {
+        if (value == INFINITE_VALUE) {
             continue;
         }
 

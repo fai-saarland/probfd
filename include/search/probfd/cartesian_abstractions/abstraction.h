@@ -37,7 +37,7 @@ namespace probfd::cartesian_abstractions {
   use SplitSelector to select splits in case of ambiguities, break spurious
   solutions and maintain the RefinementHierarchy.
 */
-class Abstraction : public SimpleMDP<int, const ProbabilisticTransition*> {
+class Abstraction : public MDP<int, const ProbabilisticTransition*> {
     const std::unique_ptr<ProbabilisticTransitionSystem> transition_system_;
     const State concrete_initial_state_;
     const std::vector<FactPair> goal_facts_;
@@ -87,7 +87,6 @@ public:
         std::vector<TransitionType>& transitions) override;
 
     bool is_goal(int state) const override;
-    value_t get_non_goal_termination_cost() const override;
 
     value_t get_action_cost(const ProbabilisticTransition* t) override;
 

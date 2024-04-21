@@ -20,10 +20,8 @@
 namespace probfd::heuristics {
 
 DeadEndPruningHeuristic::DeadEndPruningHeuristic(
-    std::shared_ptr<::Evaluator> pruning_function,
-    value_t dead_end_value)
+    std::shared_ptr<::Evaluator> pruning_function)
     : pruning_function_(std::move(pruning_function))
-    , dead_end_value_(dead_end_value)
 {
     if (!pruning_function_->dead_ends_are_reliable()) {
         std::cerr << "Dead end pruning heuristic was constructed with an "
@@ -37,7 +35,7 @@ value_t DeadEndPruningHeuristic::evaluate(const State& state) const
 {
     EvaluationContext context(state);
     ::EvaluationResult result = pruning_function_->compute_result(context);
-    return result.is_infinite() ? dead_end_value_ : 0_vt;
+    return result.is_infinite() ? INFINITE_VALUE : 0_vt;
 }
 
 void DeadEndPruningHeuristic::print_statistics() const
@@ -73,9 +71,7 @@ std::unique_ptr<FDREvaluator> DeadEndPruningHeuristicFactory::create_evaluator(
     std::shared_ptr<ProbabilisticTask>,
     std::shared_ptr<FDRCostFunction> task_cost_function)
 {
-    return std::make_unique<DeadEndPruningHeuristic>(
-        evaluator_,
-        task_cost_function->get_non_goal_termination_cost());
+    return std::make_unique<DeadEndPruningHeuristic>(evaluator_);
 }
 
 class DeadEndPruningHeuristicFactoryFeature

@@ -31,18 +31,6 @@ void HROCGenerator::initialize_constraints(
     const std::shared_ptr<FDRCostFunction>& task_cost_function,
     lp::LinearProgram& lp)
 {
-    const value_t term_cost =
-        task_cost_function->get_non_goal_termination_cost();
-
-    if (term_cost != INFINITE_VALUE && term_cost != 1_vt) {
-        std::cerr << "Termination costs beyond 1 (MaxProb) and +infinity (SSP) "
-                     "currently unsupported in hroc implementation.";
-        utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
-    }
-
-    const bool maxprob =
-        task_cost_function->get_non_goal_termination_cost() == 1_vt;
-
     ProbabilisticTaskProxy task_proxy(*task);
     ::task_properties::verify_no_axioms(task_proxy);
     task_properties::verify_no_conditional_effects(task_proxy);
@@ -77,11 +65,7 @@ void HROCGenerator::initialize_constraints(
     constraints.resize(num_facts, lp::LPConstraint(0.0, inf));
 
     // Insert flow absorption variable into goal fact constraints
-    if (maxprob) {
-        lp_variables.emplace_back(0, 1, -1);
-    } else {
-        lp_variables.emplace_back(1, 1, 0);
-    }
+    lp_variables.emplace_back(1, 1, 0);
 
     for (const FactProxy goal_fact : task_proxy.get_goals()) {
         const std::size_t off = ncc_offsets_[goal_fact.get_variable().get_id()];
@@ -89,7 +73,7 @@ void HROCGenerator::initialize_constraints(
     }
 
     for (const ProbabilisticOperatorProxy op : task_proxy.get_operators()) {
-        const value_t cost = maxprob ? 0_vt : op.get_cost();
+        const value_t cost = op.get_cost();
 
         const ProbabilisticOutcomesProxy outcomes = op.get_outcomes();
 

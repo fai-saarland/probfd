@@ -66,14 +66,12 @@ class MergeEvaluator : public StateRankEvaluator {
     const StateRankingFunction& mapper_;
     const ProbabilityAwarePatternDatabase& left_;
     const ProbabilityAwarePatternDatabase& right_;
-    const value_t termination_cost_;
 
 public:
     MergeEvaluator(
         const StateRankingFunction& mapper,
         const ProbabilityAwarePatternDatabase& left,
-        const ProbabilityAwarePatternDatabase& right,
-        value_t termination_cost);
+        const ProbabilityAwarePatternDatabase& right);
 
     [[nodiscard]]
     value_t evaluate(StateRank state) const override;

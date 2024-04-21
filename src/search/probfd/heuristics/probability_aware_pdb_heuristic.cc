@@ -26,7 +26,6 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
     double max_time_dominance_pruning,
     utils::LogProxy log)
     : TaskDependentHeuristic(std::move(task), std::move(log))
-    , termination_cost_(task_cost_function->get_non_goal_termination_cost())
 {
     utils::Timer construction_timer;
 
@@ -117,8 +116,7 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
 
 value_t ProbabilityAwarePDBHeuristic::evaluate(const State& state) const
 {
-    return subcollection_finder_
-        ->evaluate(*pdbs_, *subcollections_, state, termination_cost_);
+    return subcollection_finder_->evaluate(*pdbs_, *subcollections_, state);
 }
 
 namespace {

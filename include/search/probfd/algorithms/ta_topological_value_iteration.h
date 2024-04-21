@@ -123,18 +123,6 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
         // Exploration state -- Current Q value info
         QValueInfo q_value;
 
-        Interval exit_interval;
-
-        // End component decomposition state
-
-        // recursive decomposition flag
-        // Recursively decompose the SCC if there is a zero-cost transition
-        // in it that can leave and remain in the scc, or a non-zero-cost
-        // transition that can remain in the MDP. Both cannot be part of an
-        // end component and removing them affects connectivity of the SCCs,
-        // so recursion is necessary after removal.
-        bool has_all_zero : 1 = true;
-
         ExplorationInfo(
             StateID state_id,
             StackInfo& stack_info,
@@ -366,7 +354,6 @@ private:
      */
     void scc_found(
         auto& value_store,
-        ExplorationInfo& exp_info,
         unsigned int stack_idx,
         utils::CountdownTimer& timer);
 

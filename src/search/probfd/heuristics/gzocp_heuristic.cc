@@ -29,7 +29,7 @@ using namespace probfd::pdbs;
 namespace probfd::heuristics {
 
 namespace {
-class ExplicitTaskCostFunction : public FDRSimpleCostFunction {
+class ExplicitTaskCostFunction : public FDRCostFunction {
     ProbabilisticTaskProxy task_proxy;
     std::vector<value_t> costs;
     std::vector<std::set<int>> affected_vars;
@@ -63,12 +63,6 @@ public:
         return ::task_properties::is_goal_state(task_proxy, state);
     }
 
-    [[nodiscard]]
-    value_t get_non_goal_termination_cost() const override
-    {
-        return INFINITE_VALUE;
-    }
-
     void decrease_costs(const ProbabilityAwarePatternDatabase& pdb)
     {
         for (size_t op_id = 0; op_id != costs.size(); ++op_id) {
@@ -95,7 +89,6 @@ GZOCPHeuristic::GZOCPHeuristic(
     OrderingStrategy order,
     std::shared_ptr<utils::RandomNumberGenerator> rng)
     : TaskDependentHeuristic(task, std::move(log))
-    , termination_cost_(task_cost_function->get_non_goal_termination_cost())
     , ordering_(order)
     , rng_(rng)
 {
@@ -157,7 +150,7 @@ value_t GZOCPHeuristic::evaluate(const State& state) const
     for (const auto& pdb : pdbs_) {
         value_t estimate = pdb.lookup_estimate(state);
 
-        if (estimate == termination_cost_) {
+        if (estimate == INFINITE_VALUE) {
             return estimate;
         }
 

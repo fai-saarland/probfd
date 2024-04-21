@@ -103,12 +103,10 @@ StateRank IncrementalPPDBEvaluator::to_parent_state(StateRank rank) const
 MergeEvaluator::MergeEvaluator(
     const StateRankingFunction& mapper,
     const ProbabilityAwarePatternDatabase& left,
-    const ProbabilityAwarePatternDatabase& right,
-    value_t termination_cost)
+    const ProbabilityAwarePatternDatabase& right)
     : mapper_(mapper)
     , left_(left)
     , right_(right)
-    , termination_cost_(termination_cost)
 {
 }
 
@@ -119,7 +117,7 @@ value_t MergeEvaluator::evaluate(StateRank state) const
 
     auto leval = left_.lookup_estimate(lstate);
 
-    if (leval == termination_cost_) {
+    if (leval == INFINITE_VALUE) {
         return leval;
     }
 
@@ -128,7 +126,7 @@ value_t MergeEvaluator::evaluate(StateRank state) const
 
     auto reval = right_.lookup_estimate(rstate);
 
-    if (reval == termination_cost_) {
+    if (reval == INFINITE_VALUE) {
         return reval;
     }
 

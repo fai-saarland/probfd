@@ -31,7 +31,6 @@ create_probfd_library(
     probfd/algorithms/utils
 
     # Cost Functions
-    probfd/maxprob_cost_function
     probfd/ssp_cost_function
 
     # Task Cost Function Factories
@@ -189,14 +188,6 @@ create_probfd_library(
     probfd/solvers/aostar
     probfd/solvers/exhaustive_ao
     DEPENDS mdp_heuristic_search_base bisimulation_core
-)
-
-create_probfd_library(
-    NAME exhaustive_dfhs
-    HELP "exhaustive depth-first heuristic search"
-    SOURCES
-    probfd/solvers/exhaustive_dfs
-    DEPENDS mdp_heuristic_search_base
 )
 
 create_probfd_library(

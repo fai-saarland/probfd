@@ -18,12 +18,9 @@ using QuotientEvaluator = Evaluator<QuotientState>;
 
 class InducedQuotientEvaluator : public QuotientEvaluator {
     BisimilarStateSpace* bisim_;
-    const value_t upper_bound_;
 
 public:
-    explicit InducedQuotientEvaluator(
-        BisimilarStateSpace* bisim,
-        value_t upper_bound = 0);
+    explicit InducedQuotientEvaluator(BisimilarStateSpace* bisim);
 
     [[nodiscard]]
     value_t evaluate(QuotientState state) const override;

@@ -48,14 +48,19 @@ public:
     {
     }
 
-    [[nodiscard]] std::string get_algorithm_name() const
+    [[nodiscard]]
+    std::string get_algorithm_name() const
     {
         return (
             interval_iteration_ ? "bisimulation interval iteration"
                                 : "bisimulation value iteration");
     }
 
-    [[nodiscard]] bool found_solution() const override { return true; }
+    [[nodiscard]]
+    bool found_solution() const override
+    {
+        return true;
+    }
 
     void solve() override
     {
@@ -67,9 +72,7 @@ public:
         std::cout << "Building bisimulation..." << std::endl;
 
         BisimulationTimer stats;
-        bisimulation::BisimilarStateSpace state_space(
-            tasks::g_root_task.get(),
-            1_vt);
+        bisimulation::BisimilarStateSpace state_space(tasks::g_root_task.get());
 
         stats.timer.stop();
         stats.states = state_space.num_bisimilar_states();

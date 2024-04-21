@@ -19,7 +19,7 @@ using namespace probfd::pdbs;
 namespace probfd::heuristics {
 
 namespace {
-class UniformTaskCostFunction : public FDRSimpleCostFunction {
+class UniformTaskCostFunction : public FDRCostFunction {
     ProbabilisticTaskProxy task_proxy;
     std::vector<value_t> costs;
 
@@ -49,12 +49,6 @@ public:
     {
         return ::task_properties::is_goal_state(task_proxy, state);
     }
-
-    [[nodiscard]]
-    value_t get_non_goal_termination_cost() const override
-    {
-        return INFINITE_VALUE;
-    }
 };
 } // namespace
 
@@ -64,7 +58,6 @@ UCPHeuristic::UCPHeuristic(
     utils::LogProxy log,
     std::shared_ptr<PatternCollectionGenerator> generator)
     : TaskDependentHeuristic(task, std::move(log))
-    , termination_cost_(task_cost_function->get_non_goal_termination_cost())
 {
     auto pattern_collection_info =
         generator->generate(task, task_cost_function);
@@ -100,7 +93,7 @@ value_t UCPHeuristic::evaluate(const State& state) const
     for (const auto& pdb : pdbs_) {
         const value_t estimate = pdb.lookup_estimate(state);
 
-        if (estimate == termination_cost_) {
+        if (estimate == INFINITE_VALUE) {
             return estimate;
         }
 

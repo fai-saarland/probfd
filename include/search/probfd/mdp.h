@@ -21,23 +21,6 @@ class MDP
 };
 
 /**
- * @brief Basic interface for MDPs.
- */
-template <typename State, typename Action>
-class SimpleMDP : public MDP<State, Action> {
-public:
-    TerminationInfo get_termination_info(param_type<State> state) final
-    {
-        return is_goal(state) ? TerminationInfo::from_goal()
-                              : TerminationInfo::from_non_goal(
-                                    get_non_goal_termination_cost());
-    }
-
-    virtual bool is_goal(param_type<State> state) const = 0;
-    [[nodiscard]] virtual value_t get_non_goal_termination_cost() const = 0;
-};
-
-/**
  * @brief Composes a state space and a cost function to an MDP.
  *
  * @tparam State - The state type of the MDP.
@@ -100,12 +83,10 @@ struct CompositeMDP : public MDP<State, Action> {
     /**
      * @brief Returns the cost to terminate in a given state and checks whether
      * a state is a goal
-     *
-     * @see TerminationInfo
      */
-    TerminationInfo get_termination_info(param_type<State> state) final
+    bool is_goal(param_type<State> state) const final
     {
-        return cost_function.get_termination_info(state);
+        return cost_function.is_goal(state);
     }
 
     /**

@@ -25,7 +25,7 @@ using namespace probfd::pdbs;
 namespace probfd::heuristics {
 
 namespace {
-class ExplicitTaskCostFunction : public FDRSimpleCostFunction {
+class ExplicitTaskCostFunction : public FDRCostFunction {
     ProbabilisticTaskProxy task_proxy;
     std::vector<value_t> costs;
 
@@ -52,12 +52,6 @@ public:
         return ::task_properties::is_goal_state(task_proxy, state);
     }
 
-    [[nodiscard]]
-    value_t get_non_goal_termination_cost() const override
-    {
-        return INFINITE_VALUE;
-    }
-
     value_t& operator[](size_t i) { return costs[i]; }
     const value_t& operator[](size_t i) const { return costs[i]; }
 };
@@ -71,7 +65,6 @@ SCPHeuristic::SCPHeuristic(
     OrderingStrategy order,
     std::shared_ptr<utils::RandomNumberGenerator> rng)
     : TaskDependentHeuristic(task, std::move(log))
-    , termination_cost_(task_cost_function->get_non_goal_termination_cost())
     , ordering_(order)
     , rng_(rng)
 {
@@ -155,7 +148,7 @@ value_t SCPHeuristic::evaluate(const State& state) const
     for (const auto& pdb : pdbs_) {
         const value_t estimate = pdb.lookup_estimate(state);
 
-        if (estimate == termination_cost_) {
+        if (estimate == INFINITE_VALUE) {
             return estimate;
         }
 

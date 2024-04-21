@@ -68,10 +68,6 @@ void dump_graphviz(
         out << x << "\\n"
             << "h = " << value_text;
 
-        if (value == mdp.get_non_goal_termination_cost()) {
-            out << "(dead)";
-        }
-
         out << std::endl;
 
         return out.str();

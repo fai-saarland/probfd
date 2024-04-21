@@ -46,7 +46,7 @@ class CEGAR::PDBInfo {
 public:
     PDBInfo(
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        FDRCostFunction& task_cost_function,
         StateRankingFunction ranking_function,
         StateRank initial_state,
         utils::RandomNumberGenerator& rng,
@@ -55,7 +55,7 @@ public:
 
     PDBInfo(
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        FDRCostFunction& task_cost_function,
         StateRankingFunction ranking_function,
         const ProbabilityAwarePatternDatabase& previous,
         int add_var,
@@ -66,7 +66,7 @@ public:
 
     PDBInfo(
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        FDRCostFunction& task_cost_function,
         StateRankingFunction ranking_function,
         const ProbabilityAwarePatternDatabase& merge_left,
         const ProbabilityAwarePatternDatabase& merge_right,
@@ -101,7 +101,7 @@ public:
 
 CEGAR::PDBInfo::PDBInfo(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    FDRCostFunction& task_cost_function,
     StateRankingFunction ranking_function,
     StateRank initial_state,
     utils::RandomNumberGenerator& rng,
@@ -130,7 +130,7 @@ CEGAR::PDBInfo::PDBInfo(
 
 CEGAR::PDBInfo::PDBInfo(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    FDRCostFunction& task_cost_function,
     StateRankingFunction ranking_function,
     const ProbabilityAwarePatternDatabase& previous,
     int add_var,
@@ -162,7 +162,7 @@ CEGAR::PDBInfo::PDBInfo(
 
 CEGAR::PDBInfo::PDBInfo(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    FDRCostFunction& task_cost_function,
     StateRankingFunction ranking_function,
     const ProbabilityAwarePatternDatabase& left,
     const ProbabilityAwarePatternDatabase& right,
@@ -291,7 +291,7 @@ void CEGAR::print_collection(utils::LogProxy log) const
 
 void CEGAR::generate_trivial_solution_collection(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    FDRCostFunction& task_cost_function,
     utils::CountdownTimer& timer,
     utils::LogProxy log)
 {
@@ -444,7 +444,7 @@ bool CEGAR::can_merge_patterns(
 
 void CEGAR::add_pattern_for_var(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    FDRCostFunction& task_cost_function,
     int var,
     utils::CountdownTimer& timer)
 {
@@ -467,7 +467,7 @@ void CEGAR::add_pattern_for_var(
 
 void CEGAR::add_variable_to_pattern(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    FDRCostFunction& task_cost_function,
     std::vector<PDBInfo>::iterator info_it,
     int var,
     utils::CountdownTimer& timer)
@@ -505,7 +505,7 @@ void CEGAR::add_variable_to_pattern(
 
 void CEGAR::merge_patterns(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    FDRCostFunction& task_cost_function,
     std::vector<PDBInfo>::iterator info_it1,
     std::vector<PDBInfo>::iterator info_it2,
     utils::CountdownTimer& timer)
@@ -579,7 +579,7 @@ void CEGAR::merge_patterns(
 
 void CEGAR::refine(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    FDRCostFunction& task_cost_function,
     const std::vector<Flaw>& flaws,
     const std::vector<int>& flaw_offsets,
     utils::CountdownTimer& timer,
@@ -631,7 +631,7 @@ void CEGAR::refine(
             timer);
         return;
     }
-    
+
     // var is not yet in the collection
     // Note on precondition violations: var may be a goal variable but
     // nevertheless is added to the pattern causing the flaw and not to
@@ -651,7 +651,7 @@ void CEGAR::refine(
 
 CEGARResult CEGAR::generate_pdbs(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    FDRCostFunction& task_cost_function,
     double max_time,
     utils::LogProxy log)
 {

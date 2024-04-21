@@ -107,11 +107,6 @@ bool Abstraction::is_goal(int state) const
     return goals_.contains(state);
 }
 
-value_t Abstraction::get_non_goal_termination_cost() const
-{
-    return INFINITE_VALUE;
-}
-
 value_t Abstraction::get_action_cost(const ProbabilisticTransition* t)
 {
     return operator_costs_[t->op_id];

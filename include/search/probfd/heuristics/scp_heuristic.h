@@ -24,7 +24,6 @@ public:
     enum OrderingStrategy { RANDOM, SIZE_ASC, SIZE_DESC, INHERIT };
 
 private:
-    const value_t termination_cost_;
     const OrderingStrategy ordering_;
     const std::shared_ptr<utils::RandomNumberGenerator> rng_;
 

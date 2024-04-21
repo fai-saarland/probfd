@@ -14,9 +14,6 @@ template <typename, typename>
 class CostFunction;
 
 template <typename, typename>
-class SimpleCostFunction;
-
-template <typename, typename>
 class MDP;
 
 template <typename, typename>
@@ -33,16 +30,10 @@ class Evaluator;
 using FDRStateSpace = StateSpace<State, OperatorID>;
 
 /// Type alias for cost functions for MDPs in FDR.
-using FDRCostFunction = SimpleCostFunction<State, OperatorID>;
-
-/// Type alias for simple cost functions for MDPs in FDR.
-using FDRSimpleCostFunction = SimpleCostFunction<State, OperatorID>;
+using FDRCostFunction = CostFunction<State, OperatorID>;
 
 /// Type alias for MDPs with states in FDR.
 using FDRMDP = MDP<State, OperatorID>;
-
-/// Type alias for simple MDPs with states in FDR.
-using FDRSimpleMDP = SimpleMDP<State, OperatorID>;
 
 /// Type alias for evaluators for states in FDR.
 using FDREvaluator = Evaluator<State>;

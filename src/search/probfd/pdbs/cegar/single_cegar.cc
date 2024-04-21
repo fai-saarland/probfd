@@ -50,7 +50,7 @@ public:
     void run_cegar_loop(
         ProjectionTransformation& transformation,
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        FDRCostFunction& task_cost_function,
         utils::RandomNumberGenerator& rng,
         double max_time,
         utils::LogProxy log);
@@ -68,7 +68,7 @@ private:
     void refine(
         ProjectionTransformation& transformation,
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        FDRCostFunction& task_cost_function,
         const std::vector<Flaw>& flaws,
         utils::RandomNumberGenerator& rng,
         utils::CountdownTimer& timer,
@@ -181,7 +181,7 @@ bool SingleCEGAR::get_flaws(
 void SingleCEGAR::refine(
     ProjectionTransformation& transformation,
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    FDRCostFunction& task_cost_function,
     const std::vector<Flaw>& flaws,
     utils::RandomNumberGenerator& rng,
     utils::CountdownTimer& timer,
@@ -244,7 +244,7 @@ void SingleCEGAR::refine(
 void SingleCEGAR::run_cegar_loop(
     ProjectionTransformation& transformation,
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    FDRCostFunction& task_cost_function,
     utils::RandomNumberGenerator& rng,
     double max_time,
     utils::LogProxy log)
@@ -335,7 +335,7 @@ void SingleCEGAR::run_cegar_loop(
 void run_cegar_loop(
     ProjectionTransformation& transformation,
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    FDRCostFunction& task_cost_function,
     cegar::FlawFindingStrategy& flaw_strategy,
     std::unordered_set<int> blacklisted_variables,
     int max_pdb_size,

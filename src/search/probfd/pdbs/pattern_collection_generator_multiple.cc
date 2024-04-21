@@ -58,17 +58,15 @@ vector<int> get_non_goal_variables(const ProbabilisticTaskProxy& task_proxy)
     return non_goal_variables;
 }
 
-class ExplicitTaskCostFunction : public FDRSimpleCostFunction {
+class ExplicitTaskCostFunction : public FDRCostFunction {
     const ProbabilisticTaskProxy& task_proxy;
     std::vector<value_t> costs;
-    const value_t non_goal_termination;
 
 public:
     ExplicitTaskCostFunction(
         const ProbabilisticTaskProxy& task_proxy,
-        FDRSimpleCostFunction& cost_function)
+        FDRCostFunction& cost_function)
         : task_proxy(task_proxy)
-        , non_goal_termination(cost_function.get_non_goal_termination_cost())
     {
         const auto operators = task_proxy.get_operators();
         costs.reserve(operators.size());
@@ -88,12 +86,6 @@ public:
     bool is_goal(const State& state) const override
     {
         return ::task_properties::is_goal_state(task_proxy, state);
-    }
-
-    [[nodiscard]]
-    value_t get_non_goal_termination_cost() const override
-    {
-        return non_goal_termination;
     }
 
     void update_costs(const std::vector<value_t>& saturated_costs)

@@ -49,11 +49,8 @@ namespace bisimulation {
 
 static constexpr const int BUCKET_SIZE = 1024 * 64;
 
-BisimilarStateSpace::BisimilarStateSpace(
-    const ProbabilisticTask* task,
-    value_t upper_bound)
+BisimilarStateSpace::BisimilarStateSpace(const ProbabilisticTask* task)
     : task_proxy_(*task)
-    , upper_bound_(upper_bound)
     , abstraction_(nullptr)
 {
     utils::Timer timer_total;
@@ -345,10 +342,10 @@ void BisimilarStateSpace::generate_all_transitions(
     }
 }
 
-TerminationInfo BisimilarStateSpace::get_termination_info(QuotientState s)
+bool BisimilarStateSpace::is_goal(QuotientState s) const
 {
-    return is_goal_state(s) ? TerminationInfo::from_goal()
-                            : TerminationInfo::from_non_goal(upper_bound_);
+    return s != dead_end_state_ &&
+           abstraction_->is_goal_state(std::to_underlying(s));
 }
 
 value_t BisimilarStateSpace::get_action_cost(QuotientAction)
@@ -359,12 +356,6 @@ value_t BisimilarStateSpace::get_action_cost(QuotientAction)
 QuotientState BisimilarStateSpace::get_initial_state() const
 {
     return initial_state_;
-}
-
-bool BisimilarStateSpace::is_goal_state(QuotientState s) const
-{
-    return s != dead_end_state_ &&
-           abstraction_->is_goal_state(std::to_underlying(s));
 }
 
 bool BisimilarStateSpace::is_dead_end(QuotientState s) const

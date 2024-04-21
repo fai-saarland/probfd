@@ -14,7 +14,6 @@ class PatternCollectionGenerator;
 namespace probfd::heuristics {
 
 class UCPHeuristic : public TaskDependentHeuristic {
-    const value_t termination_cost_;
     std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs_;
 
 public:

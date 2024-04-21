@@ -22,9 +22,6 @@ public:
     [[nodiscard]]
     bool is_goal(param_type<State> state) const override;
 
-    [[nodiscard]]
-    value_t get_non_goal_termination_cost() const final;
-
     value_t get_action_cost(OperatorID op) override;
 };
 

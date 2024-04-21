@@ -4,17 +4,14 @@
 
 namespace probfd::bisimulation {
 
-InducedQuotientEvaluator::InducedQuotientEvaluator(
-    BisimilarStateSpace* bisim,
-    value_t upper_bound)
+InducedQuotientEvaluator::InducedQuotientEvaluator(BisimilarStateSpace* bisim)
     : bisim_(bisim)
-    , upper_bound_(upper_bound)
 {
 }
 
 value_t InducedQuotientEvaluator::evaluate(QuotientState s) const
 {
-    return bisim_->is_dead_end(s) ? upper_bound_ : 0_vt;
+    return bisim_->is_dead_end(s) ? INFINITE_VALUE : 0_vt;
 }
 
 } // namespace probfd::bisimulation

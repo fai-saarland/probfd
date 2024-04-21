@@ -12,7 +12,7 @@ namespace probfd::pdbs {
 
 PatternInformation::PatternInformation(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction* task_cost_function,
+    FDRCostFunction* task_cost_function,
     Pattern pattern)
     : task_proxy_(task_proxy)
     , task_cost_function_(task_cost_function)
