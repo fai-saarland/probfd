@@ -183,18 +183,53 @@ int FactoredTransitionSystem::merge(
     ts1 = nullptr;
     ts2 = nullptr;
 
-    distances1 = nullptr;
-    distances2 = nullptr;
+    if (!compute_goal_distances) {
+        distances1 = nullptr;
+        distances2 = nullptr;
+    }
 
-    fm = std::make_unique<FactoredMappingMerge>(std::move(fm1), std::move(fm2));
+    fm = std::make_unique<FactoredMappingMerge>(
+        std::move(fm1),
+        std::move(fm2));
     fm1 = nullptr;
     fm2 = nullptr;
 
     distances = std::make_unique<Distances>();
 
+    class MergeHeuristic : public Evaluator<int> {
+        const FactoredMappingMerge& merge_fm;
+        std::vector<value_t> distance_table1;
+        std::vector<value_t> distance_table2;
+
+    public:
+        MergeHeuristic(
+            const FactoredMappingMerge& merge_fm,
+            Distances& distances1,
+            Distances& distances2)
+            : merge_fm(merge_fm)
+            , distance_table1(distances1.extract_goal_distances())
+            , distance_table2(distances2.extract_goal_distances())
+        {
+        }
+
+        value_t evaluate(int state) const override
+        {
+            const auto [left, right] = merge_fm.get_children_states(state);
+            return std::max(distance_table1[left], distance_table2[right]);
+        }
+    };
+
     // Restore the invariant that distances are computed.
     if (compute_goal_distances) {
-        distances->compute_distances(*ts, compute_liveness, log);
+        MergeHeuristic heuristic(
+            static_cast<const FactoredMappingMerge&>(*fm),
+            *distances1,
+            *distances2);
+
+        distances1 = nullptr;
+        distances2 = nullptr;
+
+        distances->compute_distances(*ts, compute_liveness, log, heuristic);
     }
     --num_active_entries;
 
