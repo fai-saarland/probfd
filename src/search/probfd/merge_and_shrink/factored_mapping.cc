@@ -122,4 +122,11 @@ void FactoredMappingMerge::dump(utils::LogProxy& log) const
     }
 }
 
+std::pair<int, int> FactoredMappingMerge::get_children_states(int state) const
+{
+    return {
+        state % left_child->get_num_abstract_states(),
+        state / left_child->get_num_abstract_states()};
+}
+
 } // namespace probfd::merge_and_shrink
