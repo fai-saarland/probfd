@@ -65,6 +65,8 @@ public:
     int get_abstract_state(const State& state) const override;
     bool is_total() const override;
     void dump(utils::LogProxy& log) const override;
+
+    std::pair<int, int> get_children_states(int state) const;
 };
 
 } // namespace probfd::merge_and_shrink
