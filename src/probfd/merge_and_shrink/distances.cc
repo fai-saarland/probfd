@@ -10,8 +10,6 @@
 #include "probfd/mdp.h"
 #include "probfd/transition_tail.h"
 
-#include "downward/algorithms/priority_queues.h"
-
 #include "downward/utils/logging.h"
 
 #include <cassert>
@@ -179,7 +177,8 @@ public:
 void Distances::compute_distances(
     const TransitionSystem& transition_system,
     bool compute_liveness,
-    utils::LogProxy& log)
+    utils::LogProxy& log,
+    const Heuristic<int>& heuristic)
 {
     /*
       This method computes the distances of abstract states to the abstract
@@ -211,8 +210,8 @@ void Distances::compute_distances(
     }
 
     goal_distances.resize(num_states);
-    std::ranges::fill(goal_distances, -INFINITE_VALUE);
-    compute_goal_distances(transition_system, goal_distances);
+    std::ranges::fill(goal_distances, DISTANCE_UNKNOWN);
+    compute_goal_distances(transition_system, goal_distances, heuristic);
     goal_distances_computed = true;
 
     if (compute_liveness) {
@@ -258,6 +257,11 @@ void Distances::apply_abstraction(
         const value_t new_goal_dist = goal_distances[*pos];
         new_goal_distances[new_state] = new_goal_dist;
 
+        // HACK: ad-hoc fp precision value used here that is more tolerant
+        // than the default tolerance. Ideally, the shrink strategies
+        // should return whether the returned abstraction is exact, so we
+        // can skip this check altogether if that is the case.
+
         auto distance_different = [=, this](int state) {
             // HACK: ad-hoc fp precision value used here that is more tolerant
             // than the default tolerance. Ideally, the shrink strategies
@@ -266,10 +270,9 @@ void Distances::apply_abstraction(
             return !is_approx_equal(goal_distances[state], new_goal_dist, 1e-3);
         };
 
-        if (std::any_of(
-                std::next(pos),
-                state_eqv_class.end(),
-                distance_different)) {
+        using std::views::drop;
+
+        if (ranges::any_of(state_eqv_class | drop(1), distance_different)) {
             recompute_goal_distances = true;
             break;
         }
@@ -372,7 +375,8 @@ void Distances::statistics(
 
 void compute_goal_distances(
     const TransitionSystem& transition_system,
-    std::span<value_t> distances)
+    std::span<value_t> distances,
+    const Heuristic<int>& heuristic)
 {
     using namespace algorithms::ta_topological_vi;
 
@@ -385,12 +389,8 @@ void compute_goal_distances(
         transition_system.get_size());
 
     for (int i = 0; i != transition_system.get_size(); ++i) {
-        if (distances[i] != -INFINITE_VALUE) continue; // Already seen
-        tatvi.solve(
-            explicit_mdp,
-            heuristics::ConstantEvaluator<int>(0_vt),
-            i,
-            distances);
+        if (!std::isnan(distances[i])) continue; // Already seen
+        tatvi.solve(explicit_mdp, heuristic, i, distances);
     }
 }
 
