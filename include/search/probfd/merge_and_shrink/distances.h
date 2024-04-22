@@ -3,6 +3,8 @@
 
 #include "probfd/merge_and_shrink/types.h"
 
+#include "probfd/heuristics/constant_evaluator.h"
+
 #include "probfd/value_type.h"
 
 #include <cassert>
@@ -27,10 +29,10 @@ class TransitionSystem;
 
 namespace probfd::merge_and_shrink {
 
-class Distances {
-    static constexpr value_t DISTANCE_UNKNOWN =
-        std::numeric_limits<value_t>::quiet_NaN();
+static constexpr value_t DISTANCE_UNKNOWN =
+    std::numeric_limits<value_t>::quiet_NaN();
 
+class Distances {
     std::vector<bool> liveness;
     std::vector<value_t> goal_distances;
     bool liveness_computed = false;
@@ -60,7 +62,8 @@ public:
     void compute_distances(
         const TransitionSystem& transition_system,
         bool compute_liveness,
-        utils::LogProxy& log);
+        utils::LogProxy& log,
+        const Evaluator<int>& heuristic = heuristics::BlindEvaluator<int>());
 
     /*
       Update distances according to the given abstraction. If the abstraction
@@ -91,7 +94,8 @@ void compute_liveness(
 
 void compute_goal_distances(
     const TransitionSystem& transition_system,
-    std::span<value_t> distances);
+    std::span<value_t> distances,
+    const Evaluator<int>& heuristic = heuristics::BlindEvaluator<int>());
 
 } // namespace probfd::merge_and_shrink
 

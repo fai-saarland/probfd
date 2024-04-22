@@ -39,7 +39,7 @@ struct MergeAndShrinkHeuristic::FactorDistances {
         std::unique_ptr<merge_and_shrink::FactoredMapping> factored_mapping,
         TransitionSystem& ts)
         : factored_mapping(std::move(factored_mapping))
-        , distance_table(ts.get_size(), -INFINITE_VALUE)
+        , distance_table(ts.get_size(), DISTANCE_UNKNOWN)
     {
         compute_goal_distances(ts, distance_table);
     }
