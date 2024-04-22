@@ -28,7 +28,8 @@ class TransitionSystem;
 namespace probfd::merge_and_shrink {
 
 class Distances {
-    static constexpr value_t DISTANCE_UNKNOWN = -1;
+    static constexpr value_t DISTANCE_UNKNOWN =
+        std::numeric_limits<value_t>::quiet_NaN();
 
     std::vector<bool> liveness;
     std::vector<value_t> goal_distances;

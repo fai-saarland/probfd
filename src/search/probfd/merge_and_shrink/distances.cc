@@ -203,7 +203,7 @@ void Distances::compute_distances(
         if (do_compute_liveness) {
             log << "liveness and ";
         }
-        log << "goal distances";
+        log << "goal distances" << endl;
     }
 
     goal_distances.resize(num_states);
@@ -239,43 +239,80 @@ void Distances::apply_abstraction(
         new_liveness.resize(new_num_states, false);
     }
 
+    bool recompute_goal_distances = false;
+    bool recompute_liveness = false;
+
     for (int new_state = 0; new_state < new_num_states; ++new_state) {
-        const StateEquivalenceClass& state_eqv_class =
-            state_equivalence_relation[new_state];
+        const auto& state_eqv_class = state_equivalence_relation[new_state];
         assert(!state_eqv_class.empty());
 
         auto pos = state_eqv_class.begin();
-        bool is_alive = false;
-        value_t new_goal_dist = -1;
-        if (compute_liveness) {
-            is_alive = liveness[*pos];
-        }
-        new_goal_dist = goal_distances[*pos];
+
+        const value_t new_goal_dist = goal_distances[*pos];
+        new_goal_distances[new_state] = new_goal_dist;
 
         auto distance_different = [=, this](int state) {
-            return (compute_liveness && liveness[state] != is_alive) ||
-                   (goal_distances[state] != new_goal_dist);
+            // HACK: ad-hoc fp precision value used here that is more tolerant
+            // than the default tolerance. Ideally, the shrink strategies
+            // should return whether the returned abstraction is exact, so we
+            // can skip this check altogether if that is the case.
+            return !is_approx_equal(goal_distances[state], new_goal_dist, 1e-3);
         };
 
-        if (std::any_of(++pos, state_eqv_class.end(), distance_different)) {
-            // Not J*-preserving -> recompute
-            if (log.is_at_least_verbose()) {
-                log << transition_system.tag()
-                    << "simplification was not f-preserving!" << endl;
-            }
-            liveness.clear();
-            goal_distances.clear();
-            liveness_computed = false;
-            goal_distances_computed = false;
-            compute_distances(transition_system, compute_liveness, log);
-            return;
+        if (std::any_of(
+                std::next(pos),
+                state_eqv_class.end(),
+                distance_different)) {
+            recompute_goal_distances = true;
+            break;
         }
 
         if (compute_liveness) {
+            bool is_alive = liveness[*pos];
             new_liveness[new_state] = is_alive;
-        }
 
-        new_goal_distances[new_state] = new_goal_dist;
+            auto liveness_different = [=, this](int state) {
+                return liveness[state] != is_alive;
+            };
+
+            if (std::any_of(
+                    std::next(pos),
+                    state_eqv_class.end(),
+                    liveness_different)) {
+                recompute_liveness = true;
+            }
+        }
+    }
+
+    if (recompute_goal_distances) {
+        // Not J*-preserving -> recompute
+        if (log.is_at_least_verbose()) {
+            log << transition_system.tag()
+                << "simplification was not J*-preserving!" << endl;
+        }
+        liveness.clear();
+        goal_distances.clear();
+        liveness_computed = false;
+        goal_distances_computed = false;
+        compute_distances(transition_system, compute_liveness, log);
+        return;
+    }
+
+    if (recompute_liveness) {
+        // J* preserving, but not alive preserving -> recompute
+        if (log.is_at_least_verbose()) {
+            log << transition_system.tag()
+                << "simplification was not alive-preserving!" << endl;
+        }
+        const int num_states = transition_system.get_size();
+        liveness.resize(num_states);
+        std::ranges::fill(liveness, false);
+        merge_and_shrink::compute_liveness(
+            transition_system,
+            goal_distances,
+            liveness);
+        liveness_computed = true;
+        return;
     }
 
     liveness = std::move(new_liveness);
