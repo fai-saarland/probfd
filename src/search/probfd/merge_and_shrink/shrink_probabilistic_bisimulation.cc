@@ -197,7 +197,7 @@ ShrinkProbabilisticBisimulation::compute_equivalence_relation(
     const TransitionSystem& ts,
     const Distances& distances,
     int target_size,
-    utils::LogProxy&) const
+    utils::LogProxy& log) const
 {
     assert(!require_goal_distances || distances.are_goal_distances_computed());
     int num_states = ts.get_size();
@@ -243,11 +243,13 @@ ShrinkProbabilisticBisimulation::compute_equivalence_relation(
             }
 
             if (at_limit == AtLimit::RETURN &&
-                num_groups + num_new_groups > target_size) {
+                num_groups + num_new_groups >= target_size) {
                 /* Can't split the group (or the set of groups for
                    this h value) -- would exceed bound on abstract
                    state number.
                 */
+                log << "Bisimulation: Size limit was hit. Stopping early."
+                    << std::endl;
                 goto break_outer_loop;
             }
 
@@ -263,7 +265,12 @@ ShrinkProbabilisticBisimulation::compute_equivalence_relation(
                 if (prev_sig.succ_signature != curr_sig.succ_signature) {
                     state_to_group[curr_sig.state] = num_groups;
                     assert(num_groups <= target_size);
-                    if (++num_groups == target_size) break;
+                    if (++num_groups == target_size) {
+                        log << "Bisimulation: Size limit was hit. Stopping "
+                               "early."
+                            << std::endl;
+                        goto break_outer_loop;
+                    };
                 }
             }
         }
