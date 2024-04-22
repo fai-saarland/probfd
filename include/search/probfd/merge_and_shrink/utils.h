@@ -8,7 +8,8 @@
 
 namespace utils {
 class LogProxy;
-}
+class Timer;
+} // namespace utils
 
 namespace probfd::merge_and_shrink {
 class FactoredTransitionSystem;
@@ -57,6 +58,7 @@ extern bool shrink_before_merge_step(
     int max_states_before_merge,
     int shrink_threshold_before_merge,
     const ShrinkStrategy& shrink_strategy,
+    utils::Timer& shrink_strategy_timer,
     utils::LogProxy& log);
 
 /*

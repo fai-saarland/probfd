@@ -5,6 +5,7 @@
 #include "probfd/merge_and_shrink/types.h"
 
 #include "downward/utils/logging.h"
+#include "downward/utils/timer.h"
 
 #include <memory>
 #include <vector>
@@ -81,6 +82,11 @@ class FactoredTransitionSystem {
     const bool compute_liveness;
     const bool compute_goal_distances;
     int num_active_entries;
+
+    utils::Timer state_abstraction_timer = utils::Timer(false);
+    utils::Timer label_abstraction_timer = utils::Timer(false);
+    utils::Timer merge_timer = utils::Timer(false);
+    utils::Timer semantics_timer = utils::Timer(false);
 
     /*
       Assert that the factor at the given index is in a consistent state, i.e.
@@ -193,6 +199,7 @@ public:
     FTSConstIterator end() const { return FTSConstIterator(*this, true); }
 
     void statistics(int index, utils::LogProxy& log) const;
+    void dump_statistics(utils::LogProxy& log) const;
     void dump(int index, utils::LogProxy& log) const;
     void dump(utils::LogProxy& log) const;
 };

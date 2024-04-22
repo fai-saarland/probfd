@@ -7,6 +7,7 @@
 
 #include "downward/utils/logging.h"
 #include "downward/utils/math.h"
+#include "downward/utils/timer.h"
 
 #include <cassert>
 #include <cmath>
@@ -64,12 +65,13 @@ pair<int, int> compute_shrink_sizes(
   if the size limit is not violated. If so, trigger the shrinking process.
   Return true iff the factor was actually shrunk.
 */
-bool shrink_factor(
+static bool shrink_factor(
     FactoredTransitionSystem& fts,
     int index,
     int new_size,
     int shrink_threshold_before_merge,
     const ShrinkStrategy& shrink_strategy,
+    utils::Timer& shrink_strategy_timer,
     utils::LogProxy& log)
 {
     /*
@@ -89,9 +91,11 @@ bool shrink_factor(
         }
 
         const Distances& distances = fts.get_distances(index);
+        shrink_strategy_timer.resume();
         StateEquivalenceRelation equivalence_relation =
             shrink_strategy
                 .compute_equivalence_relation(ts, distances, new_size, log);
+        shrink_strategy_timer.stop();
         // TODO: We currently violate this; see issue250
         // assert(equivalence_relation.size() <= target_size);
         return fts.apply_abstraction(index, equivalence_relation, log);
@@ -107,6 +111,7 @@ bool shrink_before_merge_step(
     int max_states_before_merge,
     int shrink_threshold_before_merge,
     const ShrinkStrategy& shrink_strategy,
+    utils::Timer& shrink_strategy_timer,
     utils::LogProxy& log)
 {
     /*
@@ -132,6 +137,7 @@ bool shrink_before_merge_step(
         new_sizes.first,
         shrink_threshold_before_merge,
         shrink_strategy,
+        shrink_strategy_timer,
         log);
     if (shrunk1) {
         fts.statistics(index1, log);
@@ -142,6 +148,7 @@ bool shrink_before_merge_step(
         new_sizes.second,
         shrink_threshold_before_merge,
         shrink_strategy,
+        shrink_strategy_timer,
         log);
     if (shrunk2) {
         fts.statistics(index2, log);

@@ -6,6 +6,10 @@
 #include "probfd/merge_and_shrink/transition_system.h"
 #include "probfd/merge_and_shrink/utils.h"
 
+#include "probfd/utils/guards.h"
+
+#include "probfd/evaluator.h"
+
 #include "downward/utils/logging.h"
 #include "downward/utils/memory.h"
 #include "downward/utils/system.h"
@@ -67,6 +71,8 @@ FactoredTransitionSystem::FactoredTransitionSystem(
     assert(!compute_liveness || compute_goal_distances);
     for (size_t index = 0; index < this->factors.size(); ++index) {
         if (compute_goal_distances) {
+            TimerScope _(semantics_timer);
+
             Factor& factor = this->factors[index];
             factor.distances->compute_distances(
                 *factor.transition_system,
@@ -116,6 +122,8 @@ void FactoredTransitionSystem::apply_label_mapping(
     const vector<pair<int, vector<int>>>& label_mapping,
     int combinable_index)
 {
+    TimerScope _(label_abstraction_timer);
+
     assert_all_components_valid();
     for (const auto& entry : label_mapping) {
         assert(entry.first == labels.get_num_total_labels());
@@ -147,18 +155,29 @@ bool FactoredTransitionSystem::apply_abstraction(
         return false;
     }
 
-    vector<int> abstraction_mapping =
-        compute_abstraction_mapping(ts->get_size(), state_equivalence_relation);
+    {
+        TimerScope _(state_abstraction_timer);
 
-    ts->apply_abstraction(state_equivalence_relation, abstraction_mapping, log);
+        vector<int> abstraction_mapping = compute_abstraction_mapping(
+            ts->get_size(),
+            state_equivalence_relation);
+
+        ts->apply_abstraction(
+            state_equivalence_relation,
+            abstraction_mapping,
+            log);
+        fm->apply_abstraction(abstraction_mapping);
+    }
+
     if (compute_goal_distances) {
+        TimerScope _(semantics_timer);
+
         distances->apply_abstraction(
             *ts,
             state_equivalence_relation,
             compute_liveness,
             log);
     }
-    fm->apply_abstraction(abstraction_mapping);
 
     /* If distances need to be recomputed, this already happened in the
        Distances object. */
@@ -179,22 +198,26 @@ int FactoredTransitionSystem::merge(
 
     auto&& [ts, fm, distances] = factors.emplace_back();
 
-    ts = TransitionSystem::merge(labels, *ts1, *ts2, log);
-    ts1 = nullptr;
-    ts2 = nullptr;
+    {
+        TimerScope _(merge_timer);
 
-    if (!compute_goal_distances) {
-        distances1 = nullptr;
-        distances2 = nullptr;
+        ts = TransitionSystem::merge(labels, *ts1, *ts2, log);
+        ts1 = nullptr;
+        ts2 = nullptr;
+
+        if (!compute_goal_distances) {
+            distances1 = nullptr;
+            distances2 = nullptr;
+        }
+
+        fm = std::make_unique<FactoredMappingMerge>(
+            std::move(fm1),
+            std::move(fm2));
+        fm1 = nullptr;
+        fm2 = nullptr;
+
+        distances = std::make_unique<Distances>();
     }
-
-    fm = std::make_unique<FactoredMappingMerge>(
-        std::move(fm1),
-        std::move(fm2));
-    fm1 = nullptr;
-    fm2 = nullptr;
-
-    distances = std::make_unique<Distances>();
 
     class MergeHeuristic : public Evaluator<int> {
         const FactoredMappingMerge& merge_fm;
@@ -221,6 +244,8 @@ int FactoredTransitionSystem::merge(
 
     // Restore the invariant that distances are computed.
     if (compute_goal_distances) {
+        TimerScope _(semantics_timer);
+
         MergeHeuristic heuristic(
             static_cast<const FactoredMappingMerge&>(*fm),
             *distances1,
@@ -262,6 +287,20 @@ void FactoredTransitionSystem::dump(int index, utils::LogProxy& log) const
         factor.transition_system->dump_labels_and_transitions(log);
         factor.factored_mapping->dump(log);
     }
+}
+
+void FactoredTransitionSystem::dump_statistics(utils::LogProxy& log) const
+{
+    if (!log.is_at_least_normal()) return;
+
+    log << "Time spent applying state abstractions: " << state_abstraction_timer
+        << std::endl;
+    log << "Time spent applying label abstractions: " << label_abstraction_timer
+        << std::endl;
+    log << "Time spent merging transition systems: " << merge_timer
+        << std::endl;
+    log << "Time spent updating semantics information: " << semantics_timer
+        << std::endl;
 }
 
 void FactoredTransitionSystem::dump(utils::LogProxy& log) const

@@ -5,7 +5,6 @@
 #include "probfd/merge_and_shrink/factored_transition_system.h"
 #include "probfd/merge_and_shrink/fts_factory.h"
 #include "probfd/merge_and_shrink/label_reduction.h"
-#include "probfd/merge_and_shrink/labels.h"
 #include "probfd/merge_and_shrink/merge_strategy.h"
 #include "probfd/merge_and_shrink/merge_strategy_factory.h"
 #include "probfd/merge_and_shrink/pruning_strategy.h"
@@ -180,6 +179,11 @@ void MergeAndShrinkAlgorithm::main_loop(
     MergeStrategy& merge_strategy,
     utils::CountdownTimer& timer)
 {
+    utils::Timer shrink_strategy_timer(false);
+    utils::Timer merge_strategy_timer(false);
+    utils::Timer label_reducer_timer(false);
+    utils::Timer prune_strategy_timer(false);
+
     int maximum_intermediate_size = 0;
     for (int i = 0; i < fts.get_size(); ++i) {
         int size = fts.get_transition_system(i).get_size();
@@ -205,8 +209,10 @@ void MergeAndShrinkAlgorithm::main_loop(
     };
 
     while (fts.get_num_active_entries() > 1) {
+        merge_strategy_timer.resume();
         // Choose next transition systems to merge
         const auto [merge_index1, merge_index2] = merge_strategy.get_next();
+        merge_strategy_timer.stop();
 
         if (ran_out_of_time(timer)) {
             break;
@@ -225,8 +231,13 @@ void MergeAndShrinkAlgorithm::main_loop(
 
         // Label reduction (before shrinking)
         if (label_reduction && label_reduction->reduce_before_shrinking()) {
+            label_reducer_timer.resume();
+
             bool reduced =
                 label_reduction->reduce(merge_index1, merge_index2, fts, log);
+
+            label_reducer_timer.stop();
+
             if (log.is_at_least_normal() && reduced) {
                 log_main_loop_progress("after label reduction");
             }
@@ -245,7 +256,9 @@ void MergeAndShrinkAlgorithm::main_loop(
             max_states_before_merge,
             shrink_threshold_before_merge,
             *shrink_strategy,
+            shrink_strategy_timer,
             log);
+
         if (log.is_at_least_normal() && shrunk) {
             log_main_loop_progress("after shrinking");
         }
@@ -256,8 +269,13 @@ void MergeAndShrinkAlgorithm::main_loop(
 
         // Label reduction (before merging)
         if (label_reduction && label_reduction->reduce_before_merging()) {
+            label_reducer_timer.resume();
+
             bool reduced =
                 label_reduction->reduce(merge_index1, merge_index2, fts, log);
+
+            label_reducer_timer.stop();
+
             if (log.is_at_least_normal() && reduced) {
                 log_main_loop_progress("after label reduction");
             }
@@ -287,11 +305,16 @@ void MergeAndShrinkAlgorithm::main_loop(
 
         // Pruning
         if (pruning_strategy) {
+            prune_strategy_timer.resume();
+
             auto pruning_relation =
                 pruning_strategy->compute_pruning_abstraction(
                     fts.get_transition_system(merged_index),
                     fts.get_distances(merged_index),
                     log);
+
+            prune_strategy_timer.stop();
+
             bool pruned =
                 fts.apply_abstraction(merged_index, pruning_relation, log);
             if (log.is_at_least_normal() && pruned) {
@@ -333,6 +356,11 @@ void MergeAndShrinkAlgorithm::main_loop(
 
     log << "End of merge-and-shrink algorithm, statistics:" << endl;
     log << "Main loop runtime: " << timer.get_elapsed_time() << endl;
+    log << "Time spent by shrink strategy: " << shrink_strategy_timer << endl;
+    log << "Time spent by merge strategy: " << merge_strategy_timer << endl;
+    log << "Time spent by label reducer: " << label_reducer_timer << endl;
+    log << "Time spent by prune strategy: " << prune_strategy_timer << endl;
+    fts.dump_statistics(log);
     log << "Maximum intermediate abstraction size: "
         << maximum_intermediate_size << endl;
 }
