@@ -244,8 +244,10 @@ StateEquivalenceRelation ShrinkBisimulation::compute_equivalence_relation(
                    this h value) -- would exceed bound on abstract
                    state number.
                 */
-                log << "Bisimulation: Size limit was hit. Stopping early."
-                    << std::endl;
+                if (log.is_at_least_verbose()) {
+                    log << "Bisimulation: Size limit was hit. Stopping early."
+                        << std::endl;
+                }
                 goto break_outer_loop;
             }
 
@@ -262,9 +264,11 @@ StateEquivalenceRelation ShrinkBisimulation::compute_equivalence_relation(
                     state_to_group[curr_sig.state] = num_groups;
                     assert(num_groups <= target_size);
                     if (++num_groups == target_size) {
-                        log << "Bisimulation: Size limit was hit. Stopping "
-                               "early."
-                            << std::endl;
+                        if (log.is_at_least_verbose()) {
+                            log << "Bisimulation: Size limit was hit. Stopping "
+                                   "early."
+                                << std::endl;
+                        }
                         goto break_outer_loop;
                     }
                 }
