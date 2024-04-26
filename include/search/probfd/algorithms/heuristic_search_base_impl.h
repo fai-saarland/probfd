@@ -99,13 +99,6 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::is_terminal(
 }
 
 template <typename State, typename Action, typename StateInfoT>
-bool HeuristicSearchBase<State, Action, StateInfoT>::is_marked_dead_end(
-    StateID state_id) const
-{
-    return get_state_info(state_id).is_dead_end();
-}
-
-template <typename State, typename Action, typename StateInfoT>
 bool HeuristicSearchBase<State, Action, StateInfoT>::was_visited(
     StateID state_id) const
 {
@@ -118,21 +111,6 @@ void HeuristicSearchBase<State, Action, StateInfoT>::clear_policy(
     requires(StorePolicy)
 {
     get_state_info(state_id).clear_policy();
-}
-
-template <typename State, typename Action, typename StateInfoT>
-bool HeuristicSearchBase<State, Action, StateInfoT>::notify_dead_end(
-    StateInfo& state_info,
-    value_t termination_cost)
-{
-    if (!state_info.is_dead_end()) {
-        state_info.set_dead_end();
-        state_value_changed(state_info);
-        state_info.value = AlgorithmValueType(termination_cost);
-        return true;
-    }
-
-    return false;
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -156,9 +134,7 @@ HeuristicSearchBase<State, Action, StateInfoT>::compute_greedy_action(
     const State state = mdp.get_state(state_id);
     mdp.generate_all_transitions(state, transitions_);
 
-    value_t termination_cost = mdp.get_termination_info(state).get_cost();
-
-    filter_greedy_transitions(mdp, h, state_id, transitions_, termination_cost);
+    filter_greedy_transitions(mdp, h, state_id, transitions_);
 
     if (transitions_.empty()) return std::nullopt;
 
@@ -251,13 +227,13 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize_report(
         return;
     }
 
-    if constexpr (UseInterval) {
-        progress.register_bound("v", [&info]() { return info.value; });
-    } else {
-        progress.register_bound("v", [&info]() {
+    progress.register_bound("v", [&info] {
+        if constexpr (UseInterval) {
+            return info.value;
+        } else {
             return Interval(info.value, INFINITE_VALUE);
-        });
-    }
+        }
+    });
 
     statistics_.value = info.get_value();
     statistics_.before_last_update =
@@ -298,6 +274,17 @@ StateID HeuristicSearchBase<State, Action, StateInfoT>::sample_state(
         *this->get_greedy_action(source),
         transition,
         state_infos_);
+}
+
+template <typename State, typename Action, typename StateInfoT>
+auto HeuristicSearchBase<State, Action, StateInfoT>::get_estimate_value(
+    value_t lower_bound) -> AlgorithmValueType
+{
+    if constexpr (UseInterval) {
+        return Interval(lower_bound, INFINITE_VALUE);
+    } else {
+        return lower_bound;
+    }
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -342,29 +329,20 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::initialize_if_needed(
 
     statistics_.evaluated_states++;
 
-    State state = mdp.get_state(state_id);
-    TerminationInfo term = mdp.get_termination_info(state);
-    const value_t t_cost = term.get_cost();
+    const State state = mdp.get_state(state_id);
 
-    if (term.is_goal_state()) {
+    if (mdp.is_goal(state)) {
         state_info.set_goal();
-        state_info.value = AlgorithmValueType(t_cost);
+        state_info.value = AlgorithmValueType(0);
         statistics_.goal_states++;
-        return true;
-    }
-
-    const value_t estimate = h.evaluate(state);
-    if (estimate == t_cost) {
-        statistics_.pruned_states++;
-        notify_dead_end(state_info, t_cost);
     } else {
-        state_info.set_on_fringe();
-
-        if constexpr (UseInterval) {
-            state_info.value.lower = estimate;
-            state_info.value.upper = t_cost;
+        const value_t estimate = h.evaluate(state);
+        if (estimate == INFINITE_VALUE) {
+            statistics_.pruned_states++;
+            state_info.value = AlgorithmValueType(INFINITE_VALUE);
         } else {
-            state_info.value = estimate;
+            state_info.set_on_fringe();
+            state_info.value = get_estimate_value(estimate);
         }
     }
 
@@ -379,25 +357,29 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::normalized_qvalue(
     const TransitionType& transition) -> std::optional<AlgorithmValueType>
 {
     AlgorithmValueType t_value(mdp.get_action_cost(transition.action));
-    value_t non_self_loop = 1_vt;
-    bool loop = true;
 
-    for (const auto& [succ_id, prob] : transition.successor_dist) {
-        if (succ_id == state_id) {
-            non_self_loop -= prob;
-            continue;
+    auto true_successors =
+        std::views::filter(transition.successor_dist, [=](const auto& p) {
+            return p.item != state_id;
+        });
+
+    if (true_successors.empty()) return std::nullopt;
+
+    value_t non_self_loop = 0_vt;
+
+    for (const auto& [succ_id, prob] : true_successors) {
+        const auto& succ_info = lookup_initialize(mdp, h, succ_id);
+        const AlgorithmValueType& value = succ_info.value;
+
+        if (as_lower_bound(value) == INFINITE_VALUE) {
+            return value;
         }
 
-        const auto& succ_info = lookup_initialize(mdp, h, succ_id);
         t_value += prob * succ_info.value;
-        loop = false;
+        non_self_loop += prob;
     }
 
-    if (loop) return std::nullopt;
-
-    if (non_self_loop < 1_vt) {
-        t_value *= (1 / non_self_loop);
-    }
+    t_value *= (1 / non_self_loop);
 
     return t_value;
 }
@@ -407,15 +389,14 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::filter_greedy_transitions(
     MDPType& mdp,
     EvaluatorType& h,
     StateID state_id,
-    std::vector<TransitionType>& transitions,
-    value_t termination_cost) -> AlgorithmValueType
+    std::vector<TransitionType>& transitions) -> AlgorithmValueType
 {
     using std::ranges::remove_if;
 
     // First compute the (self-loop normalized) Q values for the lower
     // bound, the minimum Q value, and remove self-loop transitions in the
     // process
-    AlgorithmValueType best_value(termination_cost);
+    AlgorithmValueType best_value(INFINITE_VALUE);
 
     std::vector<value_t> lower_bound_qvalues;
     lower_bound_qvalues.reserve(transitions.size());
@@ -482,26 +463,19 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
         }
     }();
 
-    const value_t termination_cost = mdp.get_termination_info(state).get_cost();
-
     if (transitions.empty()) {
         statistics_.terminal_states++;
-        return notify_dead_end(state_info, termination_cost);
+        return this->update(state_info, AlgorithmValueType(INFINITE_VALUE));
     }
 
     AlgorithmValueType best_value;
     bool has_only_self_loops;
 
     if constexpr (input_exists) {
-        best_value = filter_greedy_transitions(
-            mdp,
-            h,
-            state_id,
-            transitions,
-            termination_cost);
+        best_value = filter_greedy_transitions(mdp, h, state_id, transitions);
         has_only_self_loops = transitions.empty();
     } else {
-        best_value = AlgorithmValueType(termination_cost);
+        best_value = AlgorithmValueType(INFINITE_VALUE);
         has_only_self_loops = true;
 
         for (auto& transition : transitions) {
@@ -514,7 +488,6 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
 
     if (has_only_self_loops) {
         statistics_.self_loop_states++;
-        return notify_dead_end(state_info, termination_cost);
     }
 
     return this->update(state_info, best_value);

@@ -167,13 +167,6 @@ public:
     bool is_terminal(StateID state_id) const;
 
     /**
-     * @brief Checks if the state represented by \p state_id is marked as a
-     * dead-end.
-     */
-    [[nodiscard]]
-    bool is_marked_dead_end(StateID state_id) const;
-
-    /**
      * @brief Checks if the state represented by \p state_id has been visited
      * yet.
      */
@@ -245,8 +238,7 @@ protected:
         const Distribution<StateID>& transition);
 
 private:
-    // Stores dead-end information in state info and returns true on change.
-    bool notify_dead_end(StateInfo& state_info, value_t termination_cost);
+    AlgorithmValueType get_estimate_value(value_t lower_bound);
 
     bool update(StateInfo& state_info, AlgorithmValueType other);
 
@@ -271,8 +263,7 @@ private:
         MDPType& mdp,
         EvaluatorType& h,
         StateID state_id,
-        std::vector<TransitionType>& transitions,
-        value_t termination_cost);
+        std::vector<TransitionType>& transitions);
 
     bool bellman_update(
         MDPType& mdp,

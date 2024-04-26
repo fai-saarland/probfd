@@ -4,6 +4,7 @@
 #include "probfd/algorithms/types.h"
 
 #include "probfd/algorithms/state_properties.h"
+#include "probfd/algorithms/utils.h"
 
 #include "probfd/storage/per_state_storage.h"
 
@@ -38,11 +39,10 @@ struct StatesPolicy<Action, true> {
 
 struct StateFlags {
     static constexpr uint8_t INITIALIZED = 1;
-    static constexpr uint8_t DEAD = 2;
-    static constexpr uint8_t GOAL = 4;
-    static constexpr uint8_t FRINGE = 5;
-    static constexpr uint8_t MASK = 7;
-    static constexpr uint8_t BITS = 3;
+    static constexpr uint8_t GOAL = 2;
+    static constexpr uint8_t FRINGE = 3;
+    static constexpr uint8_t MASK = 0b11;
+    static constexpr uint8_t BITS = 2;
 
     uint8_t info = 0;
 
@@ -53,21 +53,9 @@ struct StateFlags {
     }
 
     [[nodiscard]]
-    bool is_dead_end() const
-    {
-        return (info & MASK) == DEAD;
-    }
-
-    [[nodiscard]]
     bool is_goal_state() const
     {
         return (info & MASK) == GOAL;
-    }
-
-    [[nodiscard]]
-    bool is_terminal() const
-    {
-        return is_dead_end() || is_goal_state();
     }
 
     [[nodiscard]]
@@ -86,12 +74,6 @@ struct StateFlags {
     {
         assert(!is_value_initialized());
         info = (info & ~MASK) | FRINGE;
-    }
-
-    void set_dead_end()
-    {
-        assert(!is_goal_state() && !is_dead_end());
-        info = (info & ~MASK) | DEAD;
     }
 
     void removed_from_fringe()
@@ -136,6 +118,18 @@ struct PerStateBaseInformation
         } else {
             return Interval(value, INFINITE_VALUE);
         }
+    }
+
+    [[nodiscard]]
+    bool is_dead_end() const
+    {
+        return as_lower_bound(value) == INFINITE_VALUE;
+    }
+
+    [[nodiscard]]
+    bool is_terminal() const
+    {
+        return is_dead_end() || is_goal_state();
     }
 };
 
