@@ -18,10 +18,10 @@ from .plan_manager import PlanManager
 # TODO: We might want to turn translate into a module and call it with "python -m translate".
 REL_TRANSLATE_PATH = os.path.join("translate", "translate.py")
 if os.name == "posix":
-    REL_SEARCH_PATH = "downward"
+    REL_SEARCH_PATH = "probfd"
     VALIDATE = "validate"
 elif os.name == "nt":
-    REL_SEARCH_PATH = "downward.exe"
+    REL_SEARCH_PATH = "probfd.exe"
     VALIDATE = "validate.exe"
 else:
     returncodes.exit_with_driver_unsupported_error("Unsupported OS: " + os.name)
