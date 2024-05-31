@@ -17,6 +17,7 @@
 #include "downward/plugins/options.h"
 #include "downward/plugins/plugin.h"
 
+#include <fstream>
 #include <iostream>
 #include <limits>
 #include <optional>
@@ -62,6 +63,8 @@ MDPSolver::MDPSolver(const Options& opts)
           std::cout,
           opts.get<bool>("report_enabled"))
     , max_time_(opts.get<double>("max_time"))
+    , policy_filename(opts.get<std::string>("policy_file"))
+    , print_fact_names(opts.get<bool>("print_fact_names"))
 {
     progress_.register_print([&ss = *this->task_mdp_](std::ostream& out) {
         out << "registered=" << ss.get_num_registered_states();
@@ -86,19 +89,51 @@ void MDPSolver::solve()
 
         const State& initial_state = task_mdp_->get_initial_state();
 
-        Interval val = algorithm->solve(
-            *task_mdp_,
-            *heuristic_,
-            initial_state,
-            progress_,
-            max_time_);
+        std::unique_ptr<Policy<State, OperatorID>> policy =
+            algorithm->compute_policy(
+                *task_mdp_,
+                *heuristic_,
+                initial_state,
+                progress_,
+                max_time_);
         total_timer.stop();
 
         std::cout << "analysis done. [t=" << utils::g_timer << "]" << std::endl;
 
         std::cout << std::endl;
 
-        print_analysis_result(val);
+        print_analysis_result(
+            policy->get_decision(initial_state)->q_value_interval);
+
+        if (policy) {
+            using namespace std;
+
+            std::ofstream out(policy_filename);
+            auto print_state = [this](const State& state, std::ostream& out) {
+                if (print_fact_names) {
+                    out << state[0].get_name();
+                    for (const FactProxy& fact : state | views::drop(1)) {
+                        out << ", " << fact.get_name();
+                    }
+                } else {
+                    out << "{ " << state[0].get_variable().get_id() << " -> "
+                        << state[0].get_value();
+
+                    for (const FactProxy& fact : state | views::drop(1)) {
+                        const auto [var, val] = fact.get_pair();
+                        out << ", " << var << " -> " << val;
+                    }
+                    out << " }";
+                }
+            };
+
+            auto print_action =
+                [this](const OperatorID& op_id, std::ostream& out) {
+                    out << this->task_->get_operator_name(op_id.get_index());
+                };
+
+            policy->print(out, print_state, print_action);
+        }
 
         std::cout << std::endl;
         std::cout << "State space interface:" << std::endl;
@@ -117,7 +152,6 @@ void MDPSolver::solve()
         print_additional_statistics();
     } catch (utils::TimeoutException&) {
         std::cout << "Time limit reached. Analysis was aborted." << std::endl;
-        solution_found_ = false;
     }
 }
 
@@ -139,6 +173,8 @@ void MDPSolver::add_options_to_feature(Feature& feature)
     feature.add_option<value_t>("report_epsilon", "", "1e-4");
     feature.add_option<bool>("report_enabled", "", "true");
     feature.add_option<double>("max_time", "", "infinity");
+    feature.add_option<std::string>("policy_file", "", "\"my_policy.policy\"");
+    feature.add_option<bool>("print_fact_names", "", "true");
     utils::add_log_options_to_feature(feature);
 }
 

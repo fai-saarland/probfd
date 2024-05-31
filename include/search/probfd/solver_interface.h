@@ -3,12 +3,18 @@
 
 #include "probfd/value_type.h"
 
+#include "downward/operator_id.h"
+#include "downward/task_proxy.h"
+
 #include <iosfwd>
+#include <memory>
 
 // Forward Declarations
 namespace probfd {
 struct Interval;
-}
+template <typename, typename>
+class Policy;
+} // namespace probfd
 
 namespace probfd {
 

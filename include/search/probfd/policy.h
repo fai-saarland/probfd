@@ -3,6 +3,7 @@
 
 #include "probfd/multi_policy.h"
 
+#include <functional>
 #include <optional>
 #include <vector>
 
@@ -37,6 +38,11 @@ public:
         if (decision) decisions.emplace_back(std::move(*decision));
         return decisions;
     }
+
+    virtual void print(
+        std::ostream& out,
+        std::function<void(const State&, std::ostream&)> state_printer,
+        std::function<void(const Action&, std::ostream&)> action_printer) = 0;
 };
 
 } // namespace probfd

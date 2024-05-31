@@ -43,6 +43,9 @@ private:
     ProgressReport progress_;
 
     const double max_time_;
+    const std::string policy_filename;
+    const bool print_fact_names;
+
     bool solution_found_ = true;
 
 public:

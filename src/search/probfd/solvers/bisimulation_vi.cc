@@ -9,6 +9,7 @@
 
 #include "probfd/tasks/root_task.h"
 
+#include "probfd/policy.h"
 #include "probfd/progress_report.h"
 
 #include "downward/utils/timer.h"
@@ -48,14 +49,19 @@ public:
     {
     }
 
-    [[nodiscard]] std::string get_algorithm_name() const
+    [[nodiscard]]
+    std::string get_algorithm_name() const
     {
         return (
             interval_iteration_ ? "bisimulation interval iteration"
                                 : "bisimulation value iteration");
     }
 
-    [[nodiscard]] bool found_solution() const override { return true; }
+    [[nodiscard]]
+    bool found_solution() const override
+    {
+        return true;
+    }
 
     void solve() override
     {
