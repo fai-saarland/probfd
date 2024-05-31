@@ -211,6 +211,11 @@ Interval FRET<State, Action, StateInfoT, GreedyGraphGenerator>::solve(
 {
     utils::CountdownTimer timer(max_time);
 
+    progress.register_print([&](std::ostream& out) {
+        out << "fret=" << statistics_.iterations
+            << ", traps=" << statistics_.traps;
+    });
+
     for (;;) {
         const Interval value =
             heuristic_search(quotient, heuristic, state, progress, timer);
@@ -239,11 +244,6 @@ FRET<State, Action, StateInfoT, GreedyGraphGenerator>::heuristic_search(
 #if defined(EXPENSIVE_STATISTICS)
     TimerScope scoped(statistics_.heuristic_search);
 #endif
-
-    progress.register_print([&](std::ostream& out) {
-        out << "fret=" << statistics_.iterations
-            << ", traps=" << statistics_.traps;
-    });
 
     return base_algorithm_->solve(
         quotient,
