@@ -62,7 +62,7 @@ struct PerStateInformation : public StateInfo {
 
     void set_solved() { this->info = (this->info & ~MASK) | SOLVED; }
 
-    void clear() { this->info &= MASK; }
+    void clear() { this->info &= ~MASK; }
 };
 
 enum StateStatus {
