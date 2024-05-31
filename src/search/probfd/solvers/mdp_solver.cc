@@ -102,11 +102,11 @@ void MDPSolver::solve()
 
         std::cout << std::endl;
 
-        print_analysis_result(
-            policy->get_decision(initial_state)->q_value_interval);
-
         if (policy) {
             using namespace std;
+
+            print_analysis_result(
+                policy->get_decision(initial_state)->q_value_interval);
 
             std::ofstream out(policy_filename);
             auto print_state = [this](const State& state, std::ostream& out) {
