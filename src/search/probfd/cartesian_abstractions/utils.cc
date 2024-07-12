@@ -18,13 +18,11 @@ namespace probfd::cartesian_abstractions {
 unique_ptr<additive_heuristic::AdditiveHeuristic>
 create_additive_heuristic(const shared_ptr<ProbabilisticTask>& task)
 {
-    plugins::Options opts;
-    opts.set<shared_ptr<AbstractTask>>(
-        "transform",
-        std::make_shared<tasks::AODDeterminizationTask>(task.get()));
-    opts.set<bool>("cache_estimates", false);
-    opts.set<utils::Verbosity>("verbosity", utils::Verbosity::SILENT);
-    return std::make_unique<additive_heuristic::AdditiveHeuristic>(opts);
+    return std::make_unique<additive_heuristic::AdditiveHeuristic>(
+        std::make_shared<tasks::AODDeterminizationTask>(task.get()),
+        false,
+        "",
+        utils::Verbosity::SILENT);
 }
 
 static bool operator_applicable(

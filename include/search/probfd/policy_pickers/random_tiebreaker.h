@@ -6,11 +6,6 @@
 #include <memory>
 
 // Forward Declarations
-namespace plugins {
-class Options;
-class Feature;
-} // namespace plugins
-
 namespace utils {
 class RandomNumberGenerator;
 }
@@ -26,7 +21,7 @@ class RandomTiebreaker
     std::shared_ptr<utils::RandomNumberGenerator> rng_;
 
 public:
-    explicit RandomTiebreaker(const plugins::Options&);
+    explicit RandomTiebreaker(bool stable_policy, int random_seed);
     explicit RandomTiebreaker(
         bool stable_policy,
         std::shared_ptr<utils::RandomNumberGenerator> rng);

@@ -14,12 +14,22 @@ class LandmarkSumHeuristic : public LandmarkHeuristic {
     get_min_cost_of_achievers(const std::unordered_set<int>& achievers) const;
     void compute_landmark_costs();
 
-    int get_heuristic_value(const State &ancestor_state) override;
+    int get_heuristic_value(const State& ancestor_state) override;
+
 public:
-    explicit LandmarkSumHeuristic(const plugins::Options &opts);
+    LandmarkSumHeuristic(
+        const std::shared_ptr<LandmarkFactory>& lm_factory,
+        bool pref,
+        bool prog_goal,
+        bool prog_gn,
+        bool prog_r,
+        const std::shared_ptr<AbstractTask>& transform,
+        bool cache_estimates,
+        const std::string& description,
+        utils::Verbosity verbosity);
 
     virtual bool dead_ends_are_reliable() const override;
 };
-}
+} // namespace landmarks
 
 #endif

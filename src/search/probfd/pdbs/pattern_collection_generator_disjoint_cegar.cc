@@ -22,19 +22,26 @@ namespace probfd::pdbs {
 using namespace cegar;
 
 PatternCollectionGeneratorDisjointCegar::
-    PatternCollectionGeneratorDisjointCegar(const plugins::Options& opts)
-    : PatternCollectionGenerator(opts)
-    , use_wildcard_policies_(opts.get<bool>("use_wildcard_policies"))
-    , single_goal_(opts.get<bool>("single_goal"))
-    , max_pdb_size_(opts.get<int>("max_pdb_size"))
-    , max_collection_size_(opts.get<int>("max_collection_size"))
-    , max_time_(opts.get<double>("max_time"))
-    , rng_(utils::parse_rng_from_options(opts))
-    , subcollection_finder_factory_(
-          opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
-              "subcollection_finder_factory"))
-    , flaw_strategy_(
-          opts.get<std::shared_ptr<FlawFindingStrategy>>("flaw_strategy"))
+    PatternCollectionGeneratorDisjointCegar(
+        bool use_wildcard_policies,
+        bool single_goal,
+        int max_pdb_size,
+        int max_collection_size,
+        double max_time,
+        int random_seed,
+        const std::shared_ptr<SubCollectionFinderFactory>&
+            subcollection_finder_factory,
+        const std::shared_ptr<FlawFindingStrategy>& flaw_strategy,
+        utils::Verbosity verbosity)
+    : PatternCollectionGenerator(verbosity)
+    , use_wildcard_policies_(use_wildcard_policies)
+    , single_goal_(single_goal)
+    , max_pdb_size_(max_pdb_size)
+    , max_collection_size_(max_collection_size)
+    , max_time_(max_time)
+    , rng_(utils::get_rng(random_seed))
+    , subcollection_finder_factory_(subcollection_finder_factory)
+    , flaw_strategy_(flaw_strategy)
 {
 }
 
@@ -128,7 +135,25 @@ public:
         : TypedFeature("ppdbs_disjoint_cegar")
     {
         add_pattern_collection_generator_cegar_options_to_feature(*this);
-        utils::add_rng_options(*this);
+        utils::add_rng_options_to_feature(*this);
+    } // namespace probfd::pdbs
+
+    virtual shared_ptr<PatternCollectionGeneratorDisjointCegar>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<
+            PatternCollectionGeneratorDisjointCegar>(
+            opts.get<bool>("use_wildcard_policies"),
+            opts.get<bool>("single_goal"),
+            opts.get<int>("max_pdb_size"),
+            opts.get<int>("max_collection_size"),
+            opts.get<double>("max_time"),
+            utils::get_rng_arguments_from_options(opts),
+            opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
+                "subcollection_finder_factory"),
+            opts.get<std::shared_ptr<FlawFindingStrategy>>("flaw_strategy"),
+            utils::get_log_arguments_from_options(opts));
     }
 };
 

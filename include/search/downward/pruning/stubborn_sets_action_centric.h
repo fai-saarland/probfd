@@ -18,7 +18,7 @@ class StubbornSetsActionCentric : public stubborn_sets::StubbornSets {
     virtual void compute_stubborn_set(const State& state) override;
 
 protected:
-    explicit StubbornSetsActionCentric(const plugins::Options& opts);
+    explicit StubbornSetsActionCentric(utils::Verbosity verbosity);
     bool can_disable(int op1_no, int op2_no) const;
     bool can_conflict(int op1_no, int op2_no) const;
 

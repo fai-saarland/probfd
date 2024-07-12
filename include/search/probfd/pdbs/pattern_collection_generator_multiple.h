@@ -16,7 +16,8 @@ struct FactPair;
 
 namespace plugins {
 class Feature;
-}
+class Options;
+} // namespace plugins
 
 namespace utils {
 class CountdownTimer;
@@ -35,7 +36,6 @@ class ProbabilityAwarePatternDatabase;
 namespace probfd::pdbs {
 
 class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
-    const std::string implementation_name_;
     const int max_pdb_size_;
     const int max_collection_size_;
     const double pattern_generation_max_time_;
@@ -43,9 +43,11 @@ class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
     const double stagnation_limit_;
     const double blacklisting_start_time_;
     const bool enable_blacklist_on_stagnation_;
-    const std::shared_ptr<utils::RandomNumberGenerator> rng_;
-    const int random_seed_;
     const bool use_saturated_costs_;
+
+    const std::shared_ptr<utils::RandomNumberGenerator> rng_;
+
+    const std::string implementation_name_;
 
     bool collection_size_limit_reached(int remaining_collection_size) const;
     bool time_limit_reached(const utils::CountdownTimer& timer) const;
@@ -65,11 +67,32 @@ class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
 
 public:
     explicit PatternCollectionGeneratorMultiple(
-        const plugins::Options& opts,
-        std::string implementation_name);
+        int max_pdb_size,
+        int max_collection_size,
+        double pattern_generation_max_time,
+        double total_max_time,
+        double stagnation_limit,
+        double blacklist_trigger_percentage,
+        bool enable_blacklist_on_stagnation,
+        bool use_saturated_costs,
+        int random_seed,
+        std::string implementation_name,
+        utils::Verbosity verbosity);
 };
 
 extern void add_multiple_options_to_feature(plugins::Feature& feature);
+extern std::tuple<
+    int,
+    int,
+    double,
+    double,
+    double,
+    double,
+    bool,
+    bool,
+    int,
+    utils::Verbosity>
+get_multiple_arguments_from_options(const plugins::Options& options);
 
 } // namespace probfd::pdbs
 

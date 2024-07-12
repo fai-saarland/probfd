@@ -26,7 +26,7 @@ protected:
     mutable utils::LogProxy log_;
 
 public:
-    explicit PatternGenerator(const plugins::Options& opts);
+    explicit PatternGenerator(utils::Verbosity);
     explicit PatternGenerator(utils::LogProxy log);
 
     virtual ~PatternGenerator() = default;
@@ -36,6 +36,8 @@ public:
 };
 
 extern void add_pattern_generator_options_to_feature(plugins::Feature& feature);
+std::tuple<utils::Verbosity>
+get_generator_arguments_from_options(const plugins::Options& opts);
 
 } // namespace probfd::pdbs
 

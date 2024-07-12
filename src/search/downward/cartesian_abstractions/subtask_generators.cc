@@ -35,7 +35,11 @@ class SortFactsByIncreasingHaddValues {
 public:
     explicit SortFactsByIncreasingHaddValues(
         const shared_ptr<AbstractTask>& task)
-        : hadd(create_additive_heuristic(task))
+        : hadd(std::make_unique<additive_heuristic::AdditiveHeuristic>(
+              task,
+              false,
+              "h^add within CEGAR abstractions",
+              utils::Verbosity::SILENT))
     {
         TaskProxy task_proxy(*task);
         hadd->compute_heuristic_for_cegar(task_proxy.get_initial_state());
@@ -101,8 +105,8 @@ static Facts filter_and_order_facts(
     return facts;
 }
 
-TaskDuplicator::TaskDuplicator(const plugins::Options& opts)
-    : num_copies(opts.get<int>("copies"))
+TaskDuplicator::TaskDuplicator(int copies)
+    : num_copies(copies)
 {
 }
 
@@ -118,9 +122,9 @@ SharedTasks TaskDuplicator::get_subtasks(
     return subtasks;
 }
 
-GoalDecomposition::GoalDecomposition(const plugins::Options& opts)
-    : fact_order(opts.get<FactOrder>("order"))
-    , rng(utils::parse_rng_from_options(opts))
+GoalDecomposition::GoalDecomposition(FactOrder order, int random_seed)
+    : fact_order(order)
+    , rng(utils::get_rng(random_seed))
 {
 }
 
@@ -140,10 +144,13 @@ SharedTasks GoalDecomposition::get_subtasks(
     return subtasks;
 }
 
-LandmarkDecomposition::LandmarkDecomposition(const plugins::Options& opts)
-    : fact_order(opts.get<FactOrder>("order"))
-    , combine_facts(opts.get<bool>("combine_facts"))
-    , rng(utils::parse_rng_from_options(opts))
+LandmarkDecomposition::LandmarkDecomposition(
+    FactOrder order,
+    int random_seed,
+    bool combine_facts)
+    : fact_order(order)
+    , combine_facts(combine_facts)
+    , rng(utils::get_rng(random_seed))
 {
 }
 
@@ -191,7 +198,15 @@ static void add_fact_order_option(plugins::Feature& feature)
         "order",
         "ordering of goal or landmark facts",
         "hadd_down");
-    utils::add_rng_options(feature);
+    utils::add_rng_options_to_feature(feature);
+}
+
+static tuple<FactOrder, int>
+get_fact_order_arguments_from_options(const plugins::Options& opts)
+{
+    return tuple_cat(
+        make_tuple(opts.get<FactOrder>("order")),
+        utils::get_rng_arguments_from_options(opts));
 }
 
 class TaskDuplicatorFeature
@@ -206,6 +221,14 @@ public:
             "1",
             plugins::Bounds("1", "infinity"));
     }
+
+    virtual shared_ptr<TaskDuplicator>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<TaskDuplicator>(
+            opts.get<int>("copies"));
+    }
 };
 
 static plugins::FeaturePlugin<TaskDuplicatorFeature> _plugin_original;
@@ -217,6 +240,14 @@ public:
         : TypedFeature("goals")
     {
         add_fact_order_option(*this);
+    }
+
+    virtual shared_ptr<GoalDecomposition>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<GoalDecomposition>(
+            get_fact_order_arguments_from_options(opts));
     }
 };
 
@@ -233,6 +264,15 @@ public:
             "combine_facts",
             "combine landmark facts with domain abstraction",
             "true");
+    }
+
+    virtual shared_ptr<LandmarkDecomposition>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<LandmarkDecomposition>(
+            get_fact_order_arguments_from_options(opts),
+            opts.get<bool>("combine_facts"));
     }
 };
 

@@ -145,7 +145,17 @@ class PatternCollectionGeneratorHillclimbing
 
 public:
     explicit PatternCollectionGeneratorHillclimbing(
-        const plugins::Options& opts);
+        std::shared_ptr<PatternCollectionGenerator> initial_generator,
+        std::shared_ptr<SubCollectionFinderFactory>
+            subcollection_finder_factory,
+        int pdb_max_size,
+        int collection_max_size,
+        int num_samples,
+        int min_improvement,
+        double max_time,
+        int search_space_max_size,
+        int random_seed,
+        utils::Verbosity verbosity);
 
     ~PatternCollectionGeneratorHillclimbing() override;
 

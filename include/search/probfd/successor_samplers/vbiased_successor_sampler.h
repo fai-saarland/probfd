@@ -8,10 +8,6 @@
 #include <memory>
 
 // Forward Declarations
-namespace plugins {
-class Options;
-}
-
 namespace utils {
 class RandomNumberGenerator;
 }
@@ -24,7 +20,7 @@ class VBiasedSuccessorSampler : public algorithms::SuccessorSampler<Action> {
     std::shared_ptr<utils::RandomNumberGenerator> rng_;
 
 public:
-    explicit VBiasedSuccessorSampler(const plugins::Options& opts);
+    explicit VBiasedSuccessorSampler(int random_seed);
 
     explicit VBiasedSuccessorSampler(
         std::shared_ptr<utils::RandomNumberGenerator> rng);

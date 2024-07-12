@@ -15,8 +15,8 @@ namespace probfd::pdbs {
 
 class PatternCollectionGeneratorMultipleCegar
     : public PatternCollectionGeneratorMultiple {
-    const bool use_wildcard_policies_;
     std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy_;
+    const bool use_wildcard_policies_;
 
     ProjectionTransformation compute_pattern(
         int max_pdb_size,
@@ -29,7 +29,18 @@ class PatternCollectionGeneratorMultipleCegar
 
 public:
     explicit PatternCollectionGeneratorMultipleCegar(
-        const plugins::Options& opts);
+        std::shared_ptr<probfd::pdbs::cegar::FlawFindingStrategy> flaw_strategy,
+        bool use_wildcard_policies,
+        int max_pdb_size,
+        int max_collection_size,
+        double pattern_generation_max_time,
+        double total_max_time,
+        double stagnation_limit,
+        double blacklist_trigger_percentage,
+        bool enable_blacklist_on_stagnation,
+        bool use_saturated_costs,
+        int random_seed,
+        utils::Verbosity verbosity);
 };
 
 } // namespace probfd::pdbs

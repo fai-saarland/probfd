@@ -17,7 +17,7 @@ class Options;
 namespace utils {
 class LogProxy;
 class RandomNumberGenerator;
-}
+} // namespace utils
 
 namespace merge_and_shrink {
 class FactoredTransitionSystem;
@@ -47,11 +47,7 @@ enum class LabelReductionMethod {
   reversed regular order and random is a random one. All orders are
   precomputed and reused for every call to reduce().
 */
-enum class LabelReductionSystemOrder {
-    REGULAR,
-    REVERSE,
-    RANDOM
-};
+enum class LabelReductionSystemOrder { REGULAR, REVERSE, RANDOM };
 
 class LabelReduction {
     // Options for label reduction
@@ -76,20 +72,21 @@ class LabelReduction {
         const FactoredTransitionSystem& fts) const;
 
 public:
-    explicit LabelReduction(const plugins::Options& options);
-    void initialize(const TaskProxy &task_proxy);
+    LabelReduction(
+        bool before_shrinking,
+        bool before_merging,
+        LabelReductionMethod method,
+        LabelReductionSystemOrder system_order,
+        int random_seed);
+    void initialize(const TaskProxy& task_proxy);
     bool reduce(
-        const std::pair<int, int> &next_merge,
-        FactoredTransitionSystem &fts,
-        utils::LogProxy &log) const;
-    void dump_options(utils::LogProxy &log) const;
-    bool reduce_before_shrinking() const {
-        return lr_before_shrinking;
-    }
-    bool reduce_before_merging() const {
-        return lr_before_merging;
-    }
+        const std::pair<int, int>& next_merge,
+        FactoredTransitionSystem& fts,
+        utils::LogProxy& log) const;
+    void dump_options(utils::LogProxy& log) const;
+    bool reduce_before_shrinking() const { return lr_before_shrinking; }
+    bool reduce_before_merging() const { return lr_before_merging; }
 };
-}
+} // namespace merge_and_shrink
 
 #endif

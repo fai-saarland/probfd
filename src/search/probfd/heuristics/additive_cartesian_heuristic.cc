@@ -91,7 +91,6 @@ value_t AdditiveCartesianHeuristic::evaluate(const State& ancestor_state) const
 namespace {
 
 class AdditiveCartesianHeuristicFactory : public TaskEvaluatorFactory {
-    const utils::LogProxy log_;
     const std::vector<std::shared_ptr<SubtaskGenerator>> subtask_generators;
     const std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory;
     const std::shared_ptr<SplitSelectorFactory> split_selector_factory;
@@ -100,8 +99,18 @@ class AdditiveCartesianHeuristicFactory : public TaskEvaluatorFactory {
     const double max_time;
     const bool use_general_costs;
 
+    const utils::LogProxy log_;
+
 public:
-    explicit AdditiveCartesianHeuristicFactory(const plugins::Options& opts);
+    AdditiveCartesianHeuristicFactory(
+        std::vector<shared_ptr<SubtaskGenerator>> subtasks,
+        shared_ptr<FlawGeneratorFactory> flaw_generator_factory,
+        shared_ptr<SplitSelectorFactory> split_selector_factory,
+        int max_states,
+        int max_transitions,
+        double max_time,
+        bool use_general_costs,
+        utils::Verbosity verbosity);
 
     std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,
@@ -109,18 +118,22 @@ public:
 };
 
 AdditiveCartesianHeuristicFactory::AdditiveCartesianHeuristicFactory(
-    const plugins::Options& opts)
-    : log_(utils::get_log_from_options(opts))
-    , subtask_generators(
-          opts.get_list<shared_ptr<SubtaskGenerator>>("subtasks"))
-    , flaw_generator_factory(
-          opts.get<shared_ptr<FlawGeneratorFactory>>("flaw_generator_factory"))
-    , split_selector_factory(
-          opts.get<shared_ptr<SplitSelectorFactory>>("split_selector_factory"))
-    , max_states(opts.get<int>("max_states"))
-    , max_transitions(opts.get<int>("max_transitions"))
-    , max_time(opts.get<double>("max_time"))
-    , use_general_costs(opts.get<bool>("use_general_costs"))
+    std::vector<shared_ptr<SubtaskGenerator>> subtasks,
+    shared_ptr<FlawGeneratorFactory> flaw_generator_factory,
+    shared_ptr<SplitSelectorFactory> split_selector_factory,
+    int max_states,
+    int max_transitions,
+    double max_time,
+    bool use_general_costs,
+    utils::Verbosity verbosity)
+    : subtask_generators(std::move(subtasks))
+    , flaw_generator_factory(std::move(flaw_generator_factory))
+    , split_selector_factory(std::move(split_selector_factory))
+    , max_states(max_states)
+    , max_transitions(max_transitions)
+    , max_time(max_time)
+    , use_general_costs(use_general_costs)
+    , log_(utils::get_log_for_verbosity(verbosity))
 {
 }
 
@@ -150,6 +163,15 @@ public:
         : TypedFeature("pcegar")
     {
         document_title("Additive CEGAR heuristic");
+
+        document_language_support("action costs", "supported");
+        document_language_support("conditional effects", "not supported");
+        document_language_support("axioms", "not supported");
+
+        document_property("admissible", "yes");
+        document_property("consistent", "yes");
+        document_property("safe", "yes");
+        document_property("preferred operators", "no");
 
         add_list_option<shared_ptr<SubtaskGenerator>>(
             "subtasks",
@@ -185,16 +207,25 @@ public:
             "use_general_costs",
             "allow negative costs in cost partitioning",
             "true");
-        TaskDependentHeuristic::add_options_to_feature(*this);
+        add_task_dependent_heuristic_options_to_feature(*this);
+    }
 
-        document_language_support("action costs", "supported");
-        document_language_support("conditional effects", "not supported");
-        document_language_support("axioms", "not supported");
-
-        document_property("admissible", "yes");
-        document_property("consistent", "yes");
-        document_property("safe", "yes");
-        document_property("preferred operators", "no");
+    std::shared_ptr<AdditiveCartesianHeuristicFactory>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<
+            AdditiveCartesianHeuristicFactory>(
+            opts.get_list<shared_ptr<SubtaskGenerator>>("subtasks"),
+            opts.get<shared_ptr<FlawGeneratorFactory>>(
+                "flaw_generator_factory"),
+            opts.get<shared_ptr<SplitSelectorFactory>>(
+                "split_selector_factory"),
+            opts.get<int>("max_states"),
+            opts.get<int>("max_transitions"),
+            opts.get<double>("max_time"),
+            opts.get<bool>("use_general_costs"),
+            get_task_dependent_heuristic_arguments_from_options(opts));
     }
 };
 

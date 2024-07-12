@@ -30,6 +30,8 @@ class IteratedSearch : public SearchAlgorithm {
     virtual SearchStatus step() override;
 
 public:
+    // TODO this still needs the options objects, the prototype for issue559
+    // resolves this
     IteratedSearch(const plugins::Options& opts);
 
     virtual void save_plan_if_necessary() override;

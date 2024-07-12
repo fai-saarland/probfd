@@ -16,10 +16,6 @@
 class StateID;
 class State;
 
-namespace plugins {
-class Options;
-} // namespace plugins
-
 namespace utils {
 class RandomNumberGenerator;
 }
@@ -43,7 +39,7 @@ class SamplingFlawFinder : public FlawFindingStrategy {
     const int max_search_states_;
 
 public:
-    explicit SamplingFlawFinder(const plugins::Options& opts);
+    explicit SamplingFlawFinder(int random_seed, int max_search_states);
     explicit SamplingFlawFinder(
         std::shared_ptr<utils::RandomNumberGenerator> rng,
         int max_search_states);

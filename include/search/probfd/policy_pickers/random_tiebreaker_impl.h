@@ -1,17 +1,16 @@
 #include <utility>
 
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
-
-#include "downward/plugins/options.h"
 
 namespace probfd::policy_pickers {
 
 template <typename State, typename Action>
-RandomTiebreaker<State, Action>::RandomTiebreaker(const plugins::Options& opts)
+RandomTiebreaker<State, Action>::RandomTiebreaker(
+    bool stable_policy,
+    int random_seed)
     : RandomTiebreaker(
-          opts.get<bool>("stable_policy"),
-          utils::parse_rng_from_options(opts))
+          stable_policy,
+          std::make_shared<utils::RandomNumberGenerator>(random_seed))
 {
 }
 

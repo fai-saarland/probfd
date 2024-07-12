@@ -4,17 +4,7 @@
 
 #include "probfd/interval.h"
 
-#include "downward/plugins/options.h"
-
 namespace probfd::policy_pickers {
-
-template <typename State, typename Action>
-VDiffTiebreaker<State, Action>::VDiffTiebreaker(const plugins::Options& opts)
-    : VDiffTiebreaker(
-          opts.get<bool>("stable_policy"),
-          opts.get<bool>("prefer_large_gaps") ? -1 : 1)
-{
-}
 
 template <typename State, typename Action>
 VDiffTiebreaker<State, Action>::VDiffTiebreaker(

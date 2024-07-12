@@ -5,7 +5,6 @@
 #include "probfd/interval.h"
 
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 
 #include "downward/plugins/plugin.h"
 
@@ -13,9 +12,10 @@ namespace probfd::successor_samplers {
 
 template <typename Action>
 VDiffSuccessorSampler<Action>::VDiffSuccessorSampler(
-    const plugins::Options& opts)
-    : rng_(utils::parse_rng_from_options(opts))
-    , prefer_large_gaps_(opts.get<bool>("prefer_large_gaps"))
+    int random_seed,
+    bool prefer_large_gaps)
+    : rng_(std::make_shared<utils::RandomNumberGenerator>(random_seed))
+    , prefer_large_gaps_(prefer_large_gaps)
 {
 }
 

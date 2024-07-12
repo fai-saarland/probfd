@@ -3,7 +3,6 @@
 #include "probfd/distribution.h"
 
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 
 #include <memory>
 #include <utility>
@@ -11,9 +10,8 @@
 namespace probfd::successor_samplers {
 
 template <typename Action>
-UniformSuccessorSampler<Action>::UniformSuccessorSampler(
-    const plugins::Options& opts)
-    : rng_(utils::parse_rng_from_options(opts))
+UniformSuccessorSampler<Action>::UniformSuccessorSampler(int random_seed)
+    : rng_(std::make_shared<utils::RandomNumberGenerator>(random_seed))
 {
 }
 

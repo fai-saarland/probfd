@@ -4,22 +4,15 @@
 
 #include "downward/operator_id.h"
 
-#include "downward/plugins/options.h"
-
 #include <limits>
 
 namespace probfd::policy_pickers {
 
-OperatorIdTiebreaker::OperatorIdTiebreaker(const plugins::Options& opts)
-    : OperatorIdTiebreaker(
-          opts.get<bool>("stable_policy"),
-          opts.get<bool>("prefer_smaller") ? 1 : -1)
-{
-}
-
-OperatorIdTiebreaker::OperatorIdTiebreaker(bool stable_policy, int ascending)
+OperatorIdTiebreaker::OperatorIdTiebreaker(
+    bool stable_policy,
+    bool prefer_smaller)
     : OperatorIdTiebreaker::StablePolicyPicker(stable_policy)
-    , ascending_(ascending)
+    , ascending_(prefer_smaller ? 1 : -1)
 {
 }
 

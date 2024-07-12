@@ -19,7 +19,11 @@ class LimitedPruning : public PruningMethod {
     prune(const State& state, std::vector<OperatorID>& op_ids) override;
 
 public:
-    explicit LimitedPruning(const plugins::Options& opts);
+    explicit LimitedPruning(
+        const std::shared_ptr<PruningMethod>& pruning,
+        double min_required_pruning_ratio,
+        int expansions_before_checking_pruning_ratio,
+        utils::Verbosity verbosity);
     virtual void initialize(const std::shared_ptr<AbstractTask>&) override;
 };
 } // namespace limited_pruning

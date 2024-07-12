@@ -49,7 +49,7 @@ class TaskDuplicator : public SubtaskGenerator {
     int num_copies_;
 
 public:
-    explicit TaskDuplicator(const plugins::Options& opts);
+    explicit TaskDuplicator(int copies);
 
     SharedTasks get_subtasks(
         const std::shared_ptr<ProbabilisticTask>& task,
@@ -64,7 +64,7 @@ class GoalDecomposition : public SubtaskGenerator {
     std::shared_ptr<utils::RandomNumberGenerator> rng_;
 
 public:
-    explicit GoalDecomposition(const plugins::Options& opts);
+    explicit GoalDecomposition(FactOrder order, int random_seed);
 
     SharedTasks get_subtasks(
         const std::shared_ptr<ProbabilisticTask>& task,
@@ -81,7 +81,10 @@ class LandmarkDecomposition : public SubtaskGenerator {
     std::shared_ptr<utils::RandomNumberGenerator> rng_;
 
 public:
-    explicit LandmarkDecomposition(const plugins::Options& opts);
+    explicit LandmarkDecomposition(
+        FactOrder order,
+        bool combine_facts,
+        int random_seed);
 
     SharedTasks get_subtasks(
         const std::shared_ptr<ProbabilisticTask>& task,

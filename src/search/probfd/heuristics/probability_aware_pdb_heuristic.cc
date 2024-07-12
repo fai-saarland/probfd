@@ -125,11 +125,14 @@ namespace {
 
 class ProbabilityAwarePDBHeuristicFactory : public TaskEvaluatorFactory {
     const std::shared_ptr<PatternCollectionGenerator> patterns_;
-    const double time_dominance_pruning_;
-    const utils::LogProxy log_;
+    const double max_time_dominance_pruning_;
+    const utils::Verbosity verbosity_;
 
 public:
-    explicit ProbabilityAwarePDBHeuristicFactory(const plugins::Options& opts);
+    ProbabilityAwarePDBHeuristicFactory(
+        std::shared_ptr<PatternCollectionGenerator> patterns,
+        double max_time_dominance_pruning,
+        utils::Verbosity verbosity);
 
     std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,
@@ -137,11 +140,12 @@ public:
 };
 
 ProbabilityAwarePDBHeuristicFactory::ProbabilityAwarePDBHeuristicFactory(
-    const plugins::Options& opts)
-    : patterns_(
-          opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"))
-    , time_dominance_pruning_(opts.get<double>("max_time_dominance_pruning"))
-    , log_(utils::get_log_from_options(opts))
+    std::shared_ptr<PatternCollectionGenerator> patterns,
+    double max_time_dominance_pruning,
+    utils::Verbosity verbosity)
+    : patterns_(std::move(patterns))
+    , max_time_dominance_pruning_(max_time_dominance_pruning)
+    , verbosity_(verbosity)
 {
 }
 
@@ -154,8 +158,8 @@ ProbabilityAwarePDBHeuristicFactory::create_evaluator(
         task,
         task_cost_function,
         patterns_,
-        time_dominance_pruning_,
-        log_);
+        max_time_dominance_pruning_,
+        utils::get_log_for_verbosity(verbosity_));
 }
 
 class ProbabilityAwarePDBHeuristicFactoryFeature
@@ -179,12 +183,23 @@ public:
         document_property("consistent", "yes");
         document_property("safe", "yes");
 
-        TaskDependentHeuristic::add_options_to_feature(*this);
         add_option<std::shared_ptr<PatternCollectionGenerator>>(
             "patterns",
             "",
             "classical_generator(generator=systematic(pattern_max_size=2))");
         add_option<double>("max_time_dominance_pruning", "", "0.0");
+        add_task_dependent_heuristic_options_to_feature(*this);
+    }
+
+    std::shared_ptr<ProbabilityAwarePDBHeuristicFactory>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<
+            ProbabilityAwarePDBHeuristicFactory>(
+            opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"),
+            opts.get<double>("max_time_dominance_pruning"),
+            get_task_dependent_heuristic_arguments_from_options(opts));
     }
 };
 

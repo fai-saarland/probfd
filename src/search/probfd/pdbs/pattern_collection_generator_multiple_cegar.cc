@@ -20,11 +20,33 @@ namespace probfd::pdbs {
 using namespace cegar;
 
 PatternCollectionGeneratorMultipleCegar::
-    PatternCollectionGeneratorMultipleCegar(const plugins::Options& opts)
-    : PatternCollectionGeneratorMultiple(opts, "CEGAR")
-    , use_wildcard_policies_(opts.get<bool>("use_wildcard_policies"))
-    , flaw_strategy_(
-          opts.get<std::shared_ptr<FlawFindingStrategy>>("flaw_strategy"))
+    PatternCollectionGeneratorMultipleCegar(
+        std::shared_ptr<FlawFindingStrategy> flaw_strategy,
+        bool use_wildcard_policies,
+        int max_pdb_size,
+        int max_collection_size,
+        double pattern_generation_max_time,
+        double total_max_time,
+        double stagnation_limit,
+        double blacklist_trigger_percentage,
+        bool enable_blacklist_on_stagnation,
+        bool use_saturated_costs,
+        int random_seed,
+        utils::Verbosity verbosity)
+    : PatternCollectionGeneratorMultiple(
+          max_pdb_size,
+          max_collection_size,
+          pattern_generation_max_time,
+          total_max_time,
+          stagnation_limit,
+          blacklist_trigger_percentage,
+          enable_blacklist_on_stagnation,
+          use_saturated_costs,
+          random_seed,
+          "CEGAR",
+          verbosity)
+    , flaw_strategy_(std::move(flaw_strategy))
+    , use_wildcard_policies_(use_wildcard_policies)
 {
 }
 
@@ -79,13 +101,24 @@ public:
     PatternCollectionGeneratorMultipleCegarFeature()
         : TypedFeature("ppdbs_multiple_cegar")
     {
-        add_multiple_options_to_feature(*this);
-        add_cegar_wildcard_option_to_feature(*this);
-
         add_option<std::shared_ptr<cegar::FlawFindingStrategy>>(
             "flaw_strategy",
             "strategy used to find flaws in a policy",
             "pucs_flaw_finder()");
+        add_cegar_wildcard_option_to_feature(*this);
+        add_multiple_options_to_feature(*this);
+    }
+
+    std::shared_ptr<PatternCollectionGeneratorMultipleCegar>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<
+            PatternCollectionGeneratorMultipleCegar>(
+            opts.get<std::shared_ptr<cegar::FlawFindingStrategy>>(
+                "flaw_strategy"),
+            get_cegar_wildcard_arguments_from_options(opts),
+            get_multiple_arguments_from_options(opts));
     }
 };
 

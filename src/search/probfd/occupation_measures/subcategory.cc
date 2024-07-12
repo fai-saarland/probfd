@@ -22,12 +22,15 @@ using namespace probfd::occupation_measures;
 namespace {
 
 class OccupationMeasureHeuristicFactory : public TaskEvaluatorFactory {
-    const utils::LogProxy log_;
+    const utils::Verbosity verbosity_;
     const lp::LPSolverType lp_solver_type_;
     const std::shared_ptr<ConstraintGenerator> constraints_;
 
 public:
-    explicit OccupationMeasureHeuristicFactory(const plugins::Options& opts);
+    explicit OccupationMeasureHeuristicFactory(
+        utils::Verbosity verbosity,
+        lp::LPSolverType lp_solver_type,
+        const std::shared_ptr<ConstraintGenerator>& constraints);
 
     std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,
@@ -35,11 +38,12 @@ public:
 };
 
 OccupationMeasureHeuristicFactory::OccupationMeasureHeuristicFactory(
-    const plugins::Options& opts)
-    : log_(utils::get_log_from_options(opts))
-    , lp_solver_type_(opts.get<lp::LPSolverType>("lpsolver"))
-    , constraints_(opts.get<std::shared_ptr<ConstraintGenerator>>(
-          "constraint_generator"))
+    utils::Verbosity verbosity,
+    lp::LPSolverType lp_solver_type,
+    const std::shared_ptr<ConstraintGenerator>& constraints)
+    : verbosity_(verbosity)
+    , lp_solver_type_(lp_solver_type)
+    , constraints_(constraints)
 {
 }
 
@@ -51,7 +55,7 @@ OccupationMeasureHeuristicFactory::create_evaluator(
     return std::make_unique<OccupationMeasureHeuristic>(
         task,
         task_cost_function,
-        log_,
+        utils::get_log_for_verbosity(verbosity_),
         lp_solver_type_,
         constraints_);
 }
@@ -92,12 +96,11 @@ public:
     create_component(const plugins::Options& options, const utils::Context&)
         const override
     {
-        plugins::Options options_copy(options);
-        options_copy.set<std::shared_ptr<ConstraintGenerator>>(
-            "constraint_generator",
+        return plugins::make_shared_from_arg_tuples<
+            OccupationMeasureHeuristicFactory>(
+            utils::get_log_arguments_from_options(options),
+            lp::get_lp_solver_arguments_from_options(options),
             std::make_shared<HROCGenerator>());
-        return std::make_shared<OccupationMeasureHeuristicFactory>(
-            options_copy);
     }
 };
 
@@ -139,12 +142,11 @@ public:
     create_component(const plugins::Options& options, const utils::Context&)
         const override
     {
-        plugins::Options options_copy(options);
-        options_copy.set<std::shared_ptr<ConstraintGenerator>>(
-            "constraint_generator",
+        return plugins::make_shared_from_arg_tuples<
+            OccupationMeasureHeuristicFactory>(
+            utils::get_log_arguments_from_options(options),
+            lp::get_lp_solver_arguments_from_options(options),
             std::make_shared<HPOMGenerator>());
-        return std::make_shared<OccupationMeasureHeuristicFactory>(
-            options_copy);
     }
 };
 
@@ -189,12 +191,11 @@ public:
     create_component(const plugins::Options& options, const utils::Context&)
         const override
     {
-        plugins::Options options_copy(options);
-        options_copy.set<std::shared_ptr<ConstraintGenerator>>(
-            "constraint_generator",
+        return plugins::make_shared_from_arg_tuples<
+            OccupationMeasureHeuristicFactory>(
+            utils::get_log_arguments_from_options(options),
+            lp::get_lp_solver_arguments_from_options(options),
             std::make_shared<HigherOrderHPOMGenerator>(options));
-        return std::make_shared<OccupationMeasureHeuristicFactory>(
-            options_copy);
     }
 };
 
@@ -229,12 +230,11 @@ public:
     create_component(const plugins::Options& options, const utils::Context&)
         const override
     {
-        plugins::Options options_copy(options);
-        options_copy.set<std::shared_ptr<ConstraintGenerator>>(
-            "constraint_generator",
+        return plugins::make_shared_from_arg_tuples<
+            OccupationMeasureHeuristicFactory>(
+            utils::get_log_arguments_from_options(options),
+            lp::get_lp_solver_arguments_from_options(options),
             std::make_shared<PHOGenerator>(options));
-        return std::make_shared<OccupationMeasureHeuristicFactory>(
-            options_copy);
     }
 };
 

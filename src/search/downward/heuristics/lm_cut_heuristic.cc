@@ -14,17 +14,17 @@
 using namespace std;
 
 namespace lm_cut_heuristic {
-LandmarkCutHeuristic::LandmarkCutHeuristic(const plugins::Options& opts)
-    : Heuristic(opts)
+LandmarkCutHeuristic::LandmarkCutHeuristic(
+    const shared_ptr<AbstractTask>& transform,
+    bool cache_estimates,
+    const string& description,
+    utils::Verbosity verbosity)
+    : Heuristic(transform, cache_estimates, description, verbosity)
     , landmark_generator(std::make_unique<LandmarkCutLandmarks>(task_proxy))
 {
     if (log.is_at_least_normal()) {
         log << "Initializing landmark cut heuristic..." << endl;
     }
-}
-
-LandmarkCutHeuristic::~LandmarkCutHeuristic()
-{
 }
 
 int LandmarkCutHeuristic::compute_heuristic(const State& ancestor_state)
@@ -48,7 +48,7 @@ public:
     {
         document_title("Landmark-cut heuristic");
 
-        Heuristic::add_options_to_feature(*this);
+        add_heuristic_options_to_feature(*this, "lmcut");
 
         document_language_support("action costs", "supported");
         document_language_support("conditional effects", "not supported");
@@ -58,6 +58,14 @@ public:
         document_property("consistent", "no");
         document_property("safe", "yes");
         document_property("preferred operators", "no");
+    }
+
+    virtual shared_ptr<LandmarkCutHeuristic>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<LandmarkCutHeuristic>(
+            get_heuristic_arguments_from_options(opts));
     }
 };
 

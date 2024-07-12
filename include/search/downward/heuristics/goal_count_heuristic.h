@@ -9,7 +9,11 @@ protected:
     virtual int compute_heuristic(const State& ancestor_state) override;
 
 public:
-    explicit GoalCountHeuristic(const plugins::Options& opts);
+    GoalCountHeuristic(
+        const std::shared_ptr<AbstractTask>& transform,
+        bool cache_estimates,
+        const std::string& description,
+        utils::Verbosity verbosity);
 };
 } // namespace goal_count_heuristic
 

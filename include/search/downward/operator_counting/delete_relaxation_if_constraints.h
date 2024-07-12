@@ -65,7 +65,9 @@ class DeleteRelaxationIFConstraints : public ConstraintGenerator {
     void create_constraints(const TaskProxy& task_proxy, lp::LinearProgram& lp);
 
 public:
-    explicit DeleteRelaxationIFConstraints(const plugins::Options& opts);
+    explicit DeleteRelaxationIFConstraints(
+        bool use_time_vars,
+        bool use_integer_vars);
 
     virtual void initialize_constraints(
         const std::shared_ptr<AbstractTask>& task,

@@ -28,9 +28,14 @@ public:
     TaskDependentHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
         utils::LogProxy log);
-
-    static void add_options_to_feature(plugins::Feature& feature);
 };
+
+extern void
+add_task_dependent_heuristic_options_to_feature(plugins::Feature& feature);
+
+extern std::tuple<utils::Verbosity>
+get_task_dependent_heuristic_arguments_from_options(
+    const plugins::Options& opts);
 
 } // namespace probfd::heuristics
 

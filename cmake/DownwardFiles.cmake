@@ -81,6 +81,7 @@ create_fast_downward_library(
         downward/utils/system_unix
         downward/utils/system_windows
         downward/utils/timer
+        downward/utils/tuples
     CORE_LIBRARY
 )
 

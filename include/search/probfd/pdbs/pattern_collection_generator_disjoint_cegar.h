@@ -38,7 +38,17 @@ class PatternCollectionGeneratorDisjointCegar
 
 public:
     explicit PatternCollectionGeneratorDisjointCegar(
-        const plugins::Options& opts);
+        bool use_wildcard_policies,
+        bool single_goal,
+        int max_pdb_size,
+        int max_collection_size,
+        double max_time,
+        int random_seed,
+        const std::shared_ptr<SubCollectionFinderFactory>&
+            subcollection_finder_factory,
+        const std::shared_ptr<probfd::pdbs::cegar::FlawFindingStrategy>&
+            flaw_strategy,
+        utils::Verbosity verbosity);
 
     PatternCollectionInformation generate(
         const std::shared_ptr<ProbabilisticTask>& task,

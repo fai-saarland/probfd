@@ -3,11 +3,6 @@
 
 #include "probfd/policy_pickers/stable_policy_picker.h"
 
-// Forward Declarations
-namespace plugins {
-class Options;
-} // namespace plugins
-
 namespace probfd::policy_pickers {
 
 template <typename State, typename Action>
@@ -16,7 +11,6 @@ class VDiffTiebreaker
     const value_t favor_large_gaps_;
 
 public:
-    explicit VDiffTiebreaker(const plugins::Options&);
     explicit VDiffTiebreaker(bool stable_policy, value_t favor_large_gaps);
 
     int pick_index(

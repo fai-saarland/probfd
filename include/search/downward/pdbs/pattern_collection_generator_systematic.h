@@ -49,7 +49,10 @@ class PatternCollectionGeneratorSystematic : public PatternCollectionGenerator {
     compute_patterns(const std::shared_ptr<AbstractTask>& task) override;
 
 public:
-    explicit PatternCollectionGeneratorSystematic(const plugins::Options& opts);
+    PatternCollectionGeneratorSystematic(
+        int pattern_max_size,
+        bool only_interesting_patterns,
+        utils::Verbosity verbosity);
 };
 } // namespace pdbs
 

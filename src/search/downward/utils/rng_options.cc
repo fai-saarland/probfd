@@ -7,7 +7,7 @@
 using namespace std;
 
 namespace utils {
-void add_rng_options(plugins::Feature& feature)
+void add_rng_options_to_feature(plugins::Feature& feature)
 {
     feature.add_option<int>(
         "random_seed",
@@ -18,10 +18,13 @@ void add_rng_options(plugins::Feature& feature)
         plugins::Bounds("-1", "infinity"));
 }
 
-shared_ptr<RandomNumberGenerator>
-parse_rng_from_options(const plugins::Options& options)
+tuple<int> get_rng_arguments_from_options(const plugins::Options& opts)
 {
-    int seed = options.get<int>("random_seed");
+    return make_tuple(opts.get<int>("random_seed"));
+}
+
+shared_ptr<RandomNumberGenerator> get_rng(int seed)
+{
     if (seed == -1) {
         // Use an arbitrary default seed.
         static shared_ptr<utils::RandomNumberGenerator> rng =

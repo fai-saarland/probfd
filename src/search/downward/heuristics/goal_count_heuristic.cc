@@ -8,8 +8,12 @@
 using namespace std;
 
 namespace goal_count_heuristic {
-GoalCountHeuristic::GoalCountHeuristic(const plugins::Options& opts)
-    : Heuristic(opts)
+GoalCountHeuristic::GoalCountHeuristic(
+    const shared_ptr<AbstractTask>& transform,
+    bool cache_estimates,
+    const string& description,
+    utils::Verbosity verbosity)
+    : Heuristic(transform, cache_estimates, description, verbosity)
 {
     if (log.is_at_least_normal()) {
         log << "Initializing goal count heuristic..." << endl;
@@ -38,7 +42,7 @@ public:
     {
         document_title("Goal count heuristic");
 
-        Heuristic::add_options_to_feature(*this);
+        add_heuristic_options_to_feature(*this, "goalcount");
 
         document_language_support("action costs", "ignored by design");
         document_language_support("conditional effects", "supported");
@@ -48,6 +52,14 @@ public:
         document_property("consistent", "no");
         document_property("safe", "yes");
         document_property("preferred operators", "no");
+    }
+
+    virtual shared_ptr<GoalCountHeuristic>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<GoalCountHeuristic>(
+            get_heuristic_arguments_from_options(opts));
     }
 };
 

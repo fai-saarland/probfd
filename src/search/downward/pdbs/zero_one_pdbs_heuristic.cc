@@ -1,7 +1,5 @@
 #include "downward/pdbs/zero_one_pdbs_heuristic.h"
 
-#include "downward/pdbs/pattern_generator.h"
-
 #include "downward/plugins/plugin.h"
 
 #include <limits>
@@ -9,12 +7,10 @@
 using namespace std;
 
 namespace pdbs {
-static ZeroOnePDBs get_zero_one_pdbs_from_options(
+static ZeroOnePDBs get_zero_one_pdbs_from_generator(
     const shared_ptr<AbstractTask>& task,
-    const plugins::Options& opts)
+    const shared_ptr<PatternCollectionGenerator>& pattern_generator)
 {
-    shared_ptr<PatternCollectionGenerator> pattern_generator =
-        opts.get<shared_ptr<PatternCollectionGenerator>>("patterns");
     PatternCollectionInformation pattern_collection_info =
         pattern_generator->generate(task);
     shared_ptr<PatternCollection> patterns =
@@ -23,9 +19,14 @@ static ZeroOnePDBs get_zero_one_pdbs_from_options(
     return ZeroOnePDBs(task_proxy, *patterns);
 }
 
-ZeroOnePDBsHeuristic::ZeroOnePDBsHeuristic(const plugins::Options& opts)
-    : Heuristic(opts)
-    , zero_one_pdbs(get_zero_one_pdbs_from_options(task, opts))
+ZeroOnePDBsHeuristic::ZeroOnePDBsHeuristic(
+    const shared_ptr<PatternCollectionGenerator>& patterns,
+    const shared_ptr<AbstractTask>& transform,
+    bool cache_estimates,
+    const string& description,
+    utils::Verbosity verbosity)
+    : Heuristic(transform, cache_estimates, description, verbosity)
+    , zero_one_pdbs(get_zero_one_pdbs_from_generator(task, patterns))
 {
 }
 
@@ -66,7 +67,7 @@ public:
             "patterns",
             "pattern generation method",
             "systematic(1)");
-        Heuristic::add_options_to_feature(*this);
+        add_heuristic_options_to_feature(*this, "zopdbs");
 
         document_language_support("action costs", "supported");
         document_language_support("conditional effects", "not supported");
@@ -76,6 +77,15 @@ public:
         document_property("consistent", "yes");
         document_property("safe", "yes");
         document_property("preferred operators", "no");
+    }
+
+    virtual shared_ptr<ZeroOnePDBsHeuristic>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<ZeroOnePDBsHeuristic>(
+            opts.get<shared_ptr<PatternCollectionGenerator>>("patterns"),
+            get_heuristic_arguments_from_options(opts));
     }
 };
 

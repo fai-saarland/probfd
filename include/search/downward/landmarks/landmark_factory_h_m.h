@@ -173,7 +173,11 @@ class LandmarkFactoryHM : public LandmarkFactory {
         const;
 
 public:
-    explicit LandmarkFactoryHM(const plugins::Options& opts);
+    LandmarkFactoryHM(
+        int m,
+        bool conjunctive_landmarks,
+        bool use_orders,
+        utils::Verbosity verbosity);
 
     virtual bool supports_conditional_effects() const override;
 };

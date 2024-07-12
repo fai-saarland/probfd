@@ -14,23 +14,12 @@
 namespace probfd::pdbs {
 
 PatternCollectionGeneratorClassical::PatternCollectionGeneratorClassical(
-    utils::LogProxy log,
     std::shared_ptr<::pdbs::PatternCollectionGenerator> gen,
-    std::shared_ptr<SubCollectionFinderFactory> finder_factory)
-    : PatternCollectionGenerator(std::move(log))
+    std::shared_ptr<SubCollectionFinderFactory> finder_factory,
+    utils::Verbosity verbosity)
+    : PatternCollectionGenerator(verbosity)
     , gen_(std::move(gen))
     , finder_factory_(std::move(finder_factory))
-{
-}
-
-PatternCollectionGeneratorClassical::PatternCollectionGeneratorClassical(
-    const plugins::Options& opts)
-    : PatternCollectionGeneratorClassical(
-          utils::get_log_from_options(opts),
-          opts.get<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
-              "generator"),
-          opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
-              "subcollection_finder_factory"))
 {
 }
 
@@ -78,6 +67,19 @@ public:
             "subcollection_finder_factory",
             "The subcollection finder factory.",
             "finder_trivial_factory()");
+    }
+
+    std::shared_ptr<PatternCollectionGeneratorClassical>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<
+            PatternCollectionGeneratorClassical>(
+            opts.get<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
+                "generator"),
+            opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
+                "subcollection_finder_factory"),
+            utils::get_log_arguments_from_options(opts));
     }
 };
 

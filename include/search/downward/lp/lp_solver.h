@@ -12,7 +12,8 @@
 
 namespace plugins {
 class Feature;
-}
+class Options;
+} // namespace plugins
 
 namespace lp {
 enum class LPSolverType { CPLEX, SOPLEX };
@@ -20,6 +21,8 @@ enum class LPSolverType { CPLEX, SOPLEX };
 enum class LPObjectiveSense { MAXIMIZE, MINIMIZE };
 
 void add_lp_solver_option_to_feature(plugins::Feature& feature);
+std::tuple<LPSolverType>
+get_lp_solver_arguments_from_options(const plugins::Options& opts);
 
 class LinearProgram;
 

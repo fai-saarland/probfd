@@ -34,7 +34,6 @@ public:
         const TaskProxy& task_proxy,
         int max_cache_size,
         utils::LogProxy& log);
-    ~CGCache();
 
     bool is_cached(int var) const { return !cache[var].empty(); }
 

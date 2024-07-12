@@ -2,8 +2,6 @@
 
 #include "downward/open_list_factory.h"
 
-#include "downward/plugins/options.h"
-
 #include "downward/evaluators/g_evaluator.h"
 #include "downward/evaluators/sum_evaluator.h"
 #include "downward/evaluators/weighted_evaluator.h"
@@ -21,28 +19,6 @@ using GEval = g_evaluator::GEvaluator;
 using SumEval = sum_evaluator::SumEvaluator;
 using WeightedEval = weighted_evaluator::WeightedEvaluator;
 
-shared_ptr<OpenListFactory> create_standard_scalar_open_list_factory(
-    const shared_ptr<Evaluator>& eval,
-    bool pref_only)
-{
-    plugins::Options options;
-    options.set("eval", eval);
-    options.set("pref_only", pref_only);
-    return make_shared<standard_scalar_open_list::BestFirstOpenListFactory>(
-        options);
-}
-
-static shared_ptr<OpenListFactory> create_alternation_open_list_factory(
-    const vector<shared_ptr<OpenListFactory>>& subfactories,
-    int boost)
-{
-    plugins::Options options;
-    options.set("sublists", subfactories);
-    options.set("boost", boost);
-    return make_shared<alternation_open_list::AlternationOpenListFactory>(
-        options);
-}
-
 /*
   Helper function for common code of create_greedy_open_list_factory
   and create_wastar_open_list_factory.
@@ -53,28 +29,40 @@ static shared_ptr<OpenListFactory> create_alternation_open_list_factory_aux(
     int boost)
 {
     if (evals.size() == 1 && preferred_evaluators.empty()) {
-        return create_standard_scalar_open_list_factory(evals[0], false);
+        return make_shared<standard_scalar_open_list::BestFirstOpenListFactory>(
+            evals[0],
+            false);
     } else {
         vector<shared_ptr<OpenListFactory>> subfactories;
         for (const shared_ptr<Evaluator>& evaluator : evals) {
             subfactories.push_back(
-                create_standard_scalar_open_list_factory(evaluator, false));
+                make_shared<
+                    standard_scalar_open_list::BestFirstOpenListFactory>(
+                    evaluator,
+                    false));
             if (!preferred_evaluators.empty()) {
                 subfactories.push_back(
-                    create_standard_scalar_open_list_factory(evaluator, true));
+                    make_shared<
+                        standard_scalar_open_list::BestFirstOpenListFactory>(
+                        evaluator,
+                        true));
             }
         }
-        return create_alternation_open_list_factory(subfactories, boost);
+        return make_shared<alternation_open_list::AlternationOpenListFactory>(
+            subfactories,
+            boost);
     }
 }
 
-shared_ptr<OpenListFactory>
-create_greedy_open_list_factory(const plugins::Options& options)
+shared_ptr<OpenListFactory> create_greedy_open_list_factory(
+    const vector<shared_ptr<Evaluator>>& evals,
+    const vector<shared_ptr<Evaluator>>& preferred_evaluators,
+    int boost)
 {
     return create_alternation_open_list_factory_aux(
-        options.get_list<shared_ptr<Evaluator>>("evals"),
-        options.get_list<shared_ptr<Evaluator>>("preferred"),
-        options.get<int>("boost"));
+        evals,
+        preferred_evaluators,
+        boost);
 }
 
 /*
@@ -88,84 +76,63 @@ create_greedy_open_list_factory(const plugins::Options& options)
   we use g instead of g + 0 * h.
 */
 static shared_ptr<Evaluator> create_wastar_eval(
-    const plugins::Options& options,
+    utils::Verbosity verbosity,
     const shared_ptr<GEval>& g_eval,
-    int w,
+    int weight,
     const shared_ptr<Evaluator>& h_eval)
 {
-    if (w == 0) {
+    if (weight == 0) {
         return g_eval;
     }
     shared_ptr<Evaluator> w_h_eval = nullptr;
-    if (w == 1) {
+    if (weight == 1) {
         w_h_eval = h_eval;
     } else {
-        plugins::Options weighted_evaluator_options;
-        weighted_evaluator_options.set<utils::Verbosity>(
-            "verbosity",
-            options.get<utils::Verbosity>("verbosity"));
-        weighted_evaluator_options.set<shared_ptr<Evaluator>>("eval", h_eval);
-        weighted_evaluator_options.set<int>("weight", w);
-        w_h_eval = make_shared<WeightedEval>(weighted_evaluator_options);
+        w_h_eval = make_shared<WeightedEval>(
+            h_eval,
+            weight,
+            "wastar.w_h_eval",
+            verbosity);
     }
-    plugins::Options sum_evaluator_options;
-    sum_evaluator_options.set<utils::Verbosity>(
-        "verbosity",
-        options.get<utils::Verbosity>("verbosity"));
-    sum_evaluator_options.set<vector<shared_ptr<Evaluator>>>(
-        "evals",
-        vector<shared_ptr<Evaluator>>({g_eval, w_h_eval}));
-    return make_shared<SumEval>(sum_evaluator_options);
+    return make_shared<SumEval>(
+        vector<shared_ptr<Evaluator>>({g_eval, w_h_eval}),
+        "wastar.eval",
+        verbosity);
 }
 
-shared_ptr<OpenListFactory>
-create_wastar_open_list_factory(const plugins::Options& options)
+shared_ptr<OpenListFactory> create_wastar_open_list_factory(
+    const vector<shared_ptr<Evaluator>>& base_evals,
+    const vector<shared_ptr<Evaluator>>& preferred,
+    int boost,
+    int weight,
+    utils::Verbosity verbosity)
 {
-    vector<shared_ptr<Evaluator>> base_evals =
-        options.get_list<shared_ptr<Evaluator>>("evals");
-    int w = options.get<int>("w");
-
-    plugins::Options g_evaluator_options;
-    g_evaluator_options.set<utils::Verbosity>(
-        "verbosity",
-        options.get<utils::Verbosity>("verbosity"));
-    shared_ptr<GEval> g_eval = make_shared<GEval>(g_evaluator_options);
+    shared_ptr<GEval> g_eval = make_shared<GEval>("wastar.g_eval", verbosity);
     vector<shared_ptr<Evaluator>> f_evals;
     f_evals.reserve(base_evals.size());
     for (const shared_ptr<Evaluator>& eval : base_evals)
-        f_evals.push_back(create_wastar_eval(options, g_eval, w, eval));
+        f_evals.push_back(create_wastar_eval(verbosity, g_eval, weight, eval));
 
-    return create_alternation_open_list_factory_aux(
-        f_evals,
-        options.get_list<shared_ptr<Evaluator>>("preferred"),
-        options.get<int>("boost"));
+    return create_alternation_open_list_factory_aux(f_evals, preferred, boost);
 }
 
 pair<shared_ptr<OpenListFactory>, const shared_ptr<Evaluator>>
-create_astar_open_list_factory_and_f_eval(const plugins::Options& opts)
+create_astar_open_list_factory_and_f_eval(
+    const shared_ptr<Evaluator>& h_eval,
+    utils::Verbosity verbosity)
 {
-    plugins::Options g_evaluator_options;
-    g_evaluator_options.set<utils::Verbosity>(
-        "verbosity",
-        opts.get<utils::Verbosity>("verbosity"));
-    shared_ptr<GEval> g = make_shared<GEval>(g_evaluator_options);
-    shared_ptr<Evaluator> h = opts.get<shared_ptr<Evaluator>>("eval");
-    plugins::Options f_evaluator_options;
-    f_evaluator_options.set<utils::Verbosity>(
-        "verbosity",
-        opts.get<utils::Verbosity>("verbosity"));
-    f_evaluator_options.set<vector<shared_ptr<Evaluator>>>(
-        "evals",
-        vector<shared_ptr<Evaluator>>({g, h}));
-    shared_ptr<Evaluator> f = make_shared<SumEval>(f_evaluator_options);
-    vector<shared_ptr<Evaluator>> evals = {f, h};
+    shared_ptr<GEval> g = make_shared<GEval>("astar.g_eval", verbosity);
+    shared_ptr<Evaluator> f = make_shared<SumEval>(
+        vector<shared_ptr<Evaluator>>({g, h_eval}),
+        "astar.f_eval",
+        verbosity);
+    vector<shared_ptr<Evaluator>> evals = {f, h_eval};
 
-    plugins::Options options;
-    options.set("evals", evals);
-    options.set("pref_only", false);
-    options.set("unsafe_pruning", false);
     shared_ptr<OpenListFactory> open =
-        make_shared<tiebreaking_open_list::TieBreakingOpenListFactory>(options);
+        make_shared<tiebreaking_open_list::TieBreakingOpenListFactory>(
+            evals,
+            false,
+            false);
     return make_pair(open, f);
 }
 } // namespace search_common

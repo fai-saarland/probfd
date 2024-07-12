@@ -24,9 +24,8 @@ static bool contain_conflicting_fact(
     return false;
 }
 
-StubbornSetsActionCentric::StubbornSetsActionCentric(
-    const plugins::Options& opts)
-    : StubbornSets(opts)
+StubbornSetsActionCentric::StubbornSetsActionCentric(utils::Verbosity verbosity)
+    : StubbornSets(verbosity)
 {
 }
 

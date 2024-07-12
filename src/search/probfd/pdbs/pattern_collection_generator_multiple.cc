@@ -114,23 +114,28 @@ public:
 } // namespace
 
 PatternCollectionGeneratorMultiple::PatternCollectionGeneratorMultiple(
-    const plugins::Options& opts,
-    std::string implementation_name)
-    : PatternCollectionGenerator(opts)
+    int max_pdb_size,
+    int max_collection_size,
+    double pattern_generation_max_time,
+    double total_max_time,
+    double stagnation_limit,
+    double blacklist_trigger_percentage,
+    bool enable_blacklist_on_stagnation,
+    bool use_saturated_costs,
+    int random_seed,
+    std::string implementation_name,
+    utils::Verbosity verbosity)
+    : PatternCollectionGenerator(verbosity)
+    , max_pdb_size_(max_pdb_size)
+    , max_collection_size_(max_collection_size)
+    , pattern_generation_max_time_(pattern_generation_max_time)
+    , total_max_time_(total_max_time)
+    , stagnation_limit_(stagnation_limit)
+    , blacklisting_start_time_(total_max_time_ * blacklist_trigger_percentage)
+    , enable_blacklist_on_stagnation_(enable_blacklist_on_stagnation)
+    , use_saturated_costs_(use_saturated_costs)
+    , rng_(utils::get_rng(random_seed))
     , implementation_name_(std::move(implementation_name))
-    , max_pdb_size_(opts.get<int>("max_pdb_size"))
-    , max_collection_size_(opts.get<int>("max_collection_size"))
-    , pattern_generation_max_time_(
-          opts.get<double>("pattern_generation_max_time"))
-    , total_max_time_(opts.get<double>("total_max_time"))
-    , stagnation_limit_(opts.get<double>("stagnation_limit"))
-    , blacklisting_start_time_(
-          total_max_time_ * opts.get<double>("blacklist_trigger_percentage"))
-    , enable_blacklist_on_stagnation_(
-          opts.get<bool>("enable_blacklist_on_stagnation"))
-    , rng_(utils::parse_rng_from_options(opts))
-    , random_seed_(opts.get<int>("random_seed"))
-    , use_saturated_costs_(opts.get<bool>("use_saturated_costs"))
 {
 }
 
@@ -203,9 +208,6 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
     set<Pattern> generated_patterns;
     shared_ptr<PPDBCollection> generated_pdbs = make_shared<PPDBCollection>();
 
-    shared_ptr<utils::RandomNumberGenerator> pattern_computation_rng =
-        make_shared<utils::RandomNumberGenerator>(random_seed_);
-
     int num_iterations = 0;
     int goal_index = 0;
     bool blacklisting = false;
@@ -261,7 +263,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
         auto [ranking_function, state_space, distances] = compute_pattern(
             remaining_pdb_size,
             remaining_time,
-            pattern_computation_rng,
+            rng_,
             task_proxy,
             cost_function,
             goals[goal_index],
@@ -421,8 +423,35 @@ void add_multiple_options_to_feature(plugins::Feature& feature)
         "algorithm continues with the remaining costs. If false, the maximum "
         "PDB estimate is used.",
         "true");
+    utils::add_rng_options_to_feature(feature);
     add_pattern_collection_generator_options_to_feature(feature);
-    utils::add_rng_options(feature);
+}
+
+std::tuple<
+    int,
+    int,
+    double,
+    double,
+    double,
+    double,
+    bool,
+    bool,
+    int,
+    utils::Verbosity>
+get_multiple_arguments_from_options(const plugins::Options& options)
+{
+    return std::tuple_cat(
+        std::make_tuple(
+            options.get<int>("max_pdb_size"),
+            options.get<int>("max_collection_size"),
+            options.get<double>("pattern_generation_max_time"),
+            options.get<double>("total_max_time"),
+            options.get<double>("stagnation_limit"),
+            options.get<double>("blacklist_trigger_percentage"),
+            options.get<bool>("enable_blacklist_on_stagnation"),
+            options.get<bool>("use_saturated_costs")),
+        utils::get_rng_arguments_from_options(options),
+        get_collection_generator_arguments_from_options(options));
 }
 
 } // namespace probfd::pdbs

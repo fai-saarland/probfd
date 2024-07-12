@@ -631,7 +631,7 @@ void CEGAR::refine(
             timer);
         return;
     }
-    
+
     // var is not yet in the collection
     // Note on precondition violations: var may be a goal variable but
     // nevertheless is added to the pattern causing the flaw and not to
@@ -794,6 +794,12 @@ void add_cegar_wildcard_option_to_feature(plugins::Feature& feature)
         "operators that induce the same transition; otherwise compute regular "
         "plans which are sequences of single operators",
         "false");
+}
+
+std::tuple<bool>
+get_cegar_wildcard_arguments_from_options(const plugins::Options& opts)
+{
+    return std::make_tuple(opts.get<bool>("use_wildcard_policies"));
 }
 
 } // namespace probfd::pdbs::cegar

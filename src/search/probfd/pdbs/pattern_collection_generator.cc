@@ -7,8 +7,8 @@
 namespace probfd::pdbs {
 
 PatternCollectionGenerator::PatternCollectionGenerator(
-    const plugins::Options& opts)
-    : log_(utils::get_log_from_options(opts))
+    utils::Verbosity verbosity)
+    : log_(utils::get_log_for_verbosity(verbosity))
 {
 }
 
@@ -21,6 +21,12 @@ void add_pattern_collection_generator_options_to_feature(
     plugins::Feature& feature)
 {
     utils::add_log_options_to_feature(feature);
+}
+
+std::tuple<utils::Verbosity>
+get_collection_generator_arguments_from_options(const plugins::Options& opts)
+{
+    return utils::get_log_arguments_from_options(opts);
 }
 
 static class PatternCollectionGeneratorCategoryPlugin

@@ -10,11 +10,6 @@
 #include <optional>
 #include <vector>
 
-// Forward Declarations
-namespace plugins {
-class Options;
-} // namespace plugins
-
 namespace probfd::policy_pickers {
 
 class OperatorIdTiebreaker
@@ -22,8 +17,7 @@ class OperatorIdTiebreaker
     const int ascending_;
 
 public:
-    explicit OperatorIdTiebreaker(const plugins::Options&);
-    explicit OperatorIdTiebreaker(bool stable_policy, int ascending);
+    explicit OperatorIdTiebreaker(bool stable_policy, bool prefer_smaller);
 
     int pick_index(
         FDRMDP& mdp,

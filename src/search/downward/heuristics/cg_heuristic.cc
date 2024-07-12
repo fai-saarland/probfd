@@ -16,8 +16,13 @@ using namespace std;
 using namespace domain_transition_graph;
 
 namespace cg_heuristic {
-CGHeuristic::CGHeuristic(const plugins::Options& opts)
-    : Heuristic(opts)
+CGHeuristic::CGHeuristic(
+    int max_cache_size,
+    const shared_ptr<AbstractTask>& transform,
+    bool cache_estimates,
+    const string& description,
+    utils::Verbosity verbosity)
+    : Heuristic(transform, cache_estimates, description, verbosity)
     , cache_hits(0)
     , cache_misses(0)
     , helpful_transition_extraction_counter(0)
@@ -27,7 +32,6 @@ CGHeuristic::CGHeuristic(const plugins::Options& opts)
         log << "Initializing causal graph heuristic..." << endl;
     }
 
-    int max_cache_size = opts.get<int>("max_cache_size");
     if (max_cache_size > 0)
         cache = std::make_unique<CGCache>(task_proxy, max_cache_size, log);
 
@@ -41,10 +45,6 @@ CGHeuristic::CGHeuristic(const plugins::Options& opts)
     };
     DTGFactory factory(task_proxy, false, pruning_condition);
     transition_graphs = factory.build_dtgs();
-}
-
-CGHeuristic::~CGHeuristic()
-{
 }
 
 bool CGHeuristic::dead_ends_are_reliable() const
@@ -321,7 +321,7 @@ public:
             "disable cache)",
             "1000000",
             plugins::Bounds("0", "infinity"));
-        Heuristic::add_options_to_feature(*this);
+        add_heuristic_options_to_feature(*this, "cg");
 
         document_language_support("action costs", "supported");
         document_language_support("conditional effects", "supported");
@@ -335,6 +335,15 @@ public:
         document_property("consistent", "no");
         document_property("safe", "no");
         document_property("preferred operators", "yes");
+    }
+
+    virtual shared_ptr<CGHeuristic>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<CGHeuristic>(
+            opts.get<int>("max_cache_size"),
+            get_heuristic_arguments_from_options(opts));
     }
 };
 

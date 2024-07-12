@@ -63,90 +63,32 @@ BisimilarStateSpace::BisimilarStateSpace(
               << std::endl;
 
     // Construct a linear merge tree
-    plugins::Options merge_tree_options;
-    merge_tree_options.set<int>("random_seed", -1);
-    merge_tree_options.set<utils::Verbosity>(
-        "verbosity",
-        utils::Verbosity::SILENT);
-    merge_tree_options.set<UpdateOption>(
-        "update_option",
+    auto linear_merge_tree_factory = std::make_shared<MergeTreeFactoryLinear>(
+        variable_order_finder::VariableOrderType::LEVEL,
+        -1,
         UpdateOption::USE_FIRST);
-    merge_tree_options.set<variable_order_finder::VariableOrderType>(
-        "variable_order",
-        variable_order_finder::VariableOrderType::LEVEL);
-
-    std::shared_ptr<MergeTreeFactory> linear_merge_tree_factory(
-        new MergeTreeFactoryLinear(merge_tree_options));
 
     // Construct the merge strategy factory
-    plugins::Options merge_strategy_opts;
-    merge_strategy_opts.set<utils::Verbosity>(
-        "verbosity",
-        utils::Verbosity::SILENT);
-    merge_strategy_opts.set<std::shared_ptr<MergeTreeFactory>>(
-        "merge_tree",
-        linear_merge_tree_factory);
-
-    std::shared_ptr<MergeStrategyFactory> merge_strategy_factory(
-        new MergeStrategyFactoryPrecomputed(merge_strategy_opts));
+    auto merge_strategy_factory =
+        std::make_shared<MergeStrategyFactoryPrecomputed>(
+            linear_merge_tree_factory,
+            utils::Verbosity::SILENT);
 
     // Construct a bisimulation-based shrinking strategy
-    plugins::Options opts_bisim;
-    opts_bisim.set<bool>("greedy", false);
-    opts_bisim.set<AtLimit>("at_limit", AtLimit::RETURN);
+    auto shrinking =
+        std::make_shared<ShrinkBisimulation>(false, AtLimit::RETURN);
 
-    std::shared_ptr<ShrinkStrategy> shrinking(
-        new ShrinkBisimulation(opts_bisim));
-
-    /*
-    plugins::Options opts_label_reduction;
-    opts_label_reduction.set<bool>("before_shrinking", true);
-    opts_label_reduction.set<bool>("before_merging", false);
-    opts_label_reduction.set<LabelReductionMethod>(
-        "method",
-        LabelReductionMethod::ALL_TRANSITION_SYSTEMS_WITH_FIXPOINT);
-    opts_label_reduction.set<LabelReductionSystemOrder>(
-        "system_order",
-        LabelReductionSystemOrder::REGULAR);
-    opts_label_reduction.set<int>("random_seed", -1);
-
-    std::shared_ptr<LabelReduction> label_reduction(
-        new LabelReduction(opts_label_reduction));
-    */
-
-    // Finally, set MnS algorithm options (no label reduction)
-    plugins::Options opts_algorithm;
-
-    opts_algorithm.set<utils::Verbosity>("verbosity", utils::Verbosity::SILENT);
-
-    opts_algorithm.set<std::shared_ptr<MergeStrategyFactory>>(
-        "merge_strategy",
-        merge_strategy_factory);
-
-    opts_algorithm.set<std::shared_ptr<ShrinkStrategy>>(
-        "shrink_strategy",
-        shrinking);
-
-    /*
-    opts_algorithm.set<std::shared_ptr<LabelReduction>>(
-        "label_reduction",
-        label_reduction);
-    */
-
-    opts_algorithm.set<bool>("prune_unreachable_states", true);
-    opts_algorithm.set<bool>("prune_irrelevant_states", true);
-
-    opts_algorithm.set<double>(
-        "main_loop_max_time",
-        std::numeric_limits<double>::infinity());
-
-    opts_algorithm.set<int>("max_states", std::numeric_limits<int>::max());
-    opts_algorithm.set<int>(
-        "max_states_before_merge",
-        std::numeric_limits<int>::max());
-    opts_algorithm.set<int>(
-        "threshold_before_merge",
-        std::numeric_limits<int>::max());
+    MergeAndShrinkAlgorithm mns_algorithm(
+        merge_strategy_factory,
+        shrinking,
+        nullptr,
+        true,
+        true,
+        std::numeric_limits<int>::max(),
+        std::numeric_limits<int>::max(),
+        std::numeric_limits<int>::max(),
+        std::numeric_limits<double>::infinity(),
+        utils::Verbosity::SILENT);
 
     num_cached_transitions_ = 0;
 
@@ -155,7 +97,6 @@ BisimilarStateSpace::BisimilarStateSpace(
 
     TaskProxy det_task_proxy(determinization);
 
-    MergeAndShrinkAlgorithm mns_algorithm(opts_algorithm);
     this->fts_ = std::make_unique<FactoredTransitionSystem>(
         mns_algorithm.build_factored_transition_system(det_task_proxy));
 

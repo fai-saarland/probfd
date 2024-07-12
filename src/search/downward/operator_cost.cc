@@ -6,7 +6,6 @@
 #include "downward/utils/system.h"
 
 #include <cstdlib>
-#include <vector>
 
 using namespace std;
 
@@ -39,7 +38,7 @@ int get_adjusted_action_cost(
             is_unit_cost);
 }
 
-void add_cost_type_option_to_feature(plugins::Feature& feature)
+void add_cost_type_options_to_feature(plugins::Feature& feature)
 {
     feature.add_option<OperatorCost>(
         "cost_type",
@@ -47,6 +46,12 @@ void add_cost_type_option_to_feature(plugins::Feature& feature)
         "No matter what this setting is, axioms will always be considered "
         "as actions of cost 0 by the heuristics that treat axioms as actions.",
         "normal");
+}
+
+tuple<OperatorCost>
+get_cost_type_arguments_from_options(const plugins::Options& opts)
+{
+    return make_tuple(opts.get<OperatorCost>("cost_type"));
 }
 
 static plugins::TypedEnumPlugin<OperatorCost> _enum_plugin(

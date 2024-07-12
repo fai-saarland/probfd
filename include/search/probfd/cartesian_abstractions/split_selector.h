@@ -15,10 +15,6 @@ namespace additive_heuristic {
 class AdditiveHeuristic;
 }
 
-namespace plugins {
-class Options;
-}
-
 namespace utils {
 class RandomNumberGenerator;
 }
@@ -178,7 +174,7 @@ class SplitSelectorRandomFactory : public SplitSelectorFactory {
     std::shared_ptr<utils::RandomNumberGenerator> rng_;
 
 public:
-    explicit SplitSelectorRandomFactory(const plugins::Options& opts);
+    explicit SplitSelectorRandomFactory(int random_seed);
 
     std::unique_ptr<SplitSelector> create_split_selector(
         const std::shared_ptr<ProbabilisticTask>& task) override;

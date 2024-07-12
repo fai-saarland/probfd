@@ -8,10 +8,6 @@
 #include <memory>
 
 // Forward Declarations
-namespace plugins {
-class Options;
-}
-
 namespace utils {
 class RandomNumberGenerator;
 }
@@ -26,7 +22,7 @@ class VDiffSuccessorSampler : public algorithms::SuccessorSampler<Action> {
     Distribution<StateID> biased_;
 
 public:
-    explicit VDiffSuccessorSampler(const plugins::Options& opts);
+    explicit VDiffSuccessorSampler(int random_seed, bool prefer_large_gaps);
 
     explicit VDiffSuccessorSampler(
         std::shared_ptr<utils::RandomNumberGenerator> rng,

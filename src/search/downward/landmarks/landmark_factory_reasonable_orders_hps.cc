@@ -12,9 +12,10 @@
 using namespace std;
 namespace landmarks {
 LandmarkFactoryReasonableOrdersHPS::LandmarkFactoryReasonableOrdersHPS(
-    const plugins::Options& opts)
-    : LandmarkFactory(opts)
-    , lm_factory(opts.get<shared_ptr<LandmarkFactory>>("lm_factory"))
+    const shared_ptr<LandmarkFactory>& lm_factory,
+    utils::Verbosity verbosity)
+    : LandmarkFactory(verbosity)
+    , lm_factory(lm_factory)
 {
 }
 
@@ -428,6 +429,16 @@ public:
         document_language_support(
             "conditional_effects",
             "supported if subcomponent supports them");
+    }
+
+    virtual shared_ptr<LandmarkFactoryReasonableOrdersHPS>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<
+            LandmarkFactoryReasonableOrdersHPS>(
+            opts.get<shared_ptr<LandmarkFactory>>("lm_factory"),
+            get_landmark_factory_arguments_from_options(opts));
     }
 };
 

@@ -39,7 +39,8 @@ MDPSolver::MDPSolver(const Options& opts)
     , task_cost_function_(
           opts.get<std::shared_ptr<TaskCostFunctionFactory>>("costs")
               ->create_cost_function(task_))
-    , log_(utils::get_log_from_options(opts))
+    , log_(
+          utils::get_log_for_verbosity(opts.get<utils::Verbosity>("verbosity")))
     , task_mdp_(
           opts.get<bool>("cache")
               ? new CachingTaskStateSpace(

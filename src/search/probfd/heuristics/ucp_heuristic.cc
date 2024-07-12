@@ -113,22 +113,25 @@ value_t UCPHeuristic::evaluate(const State& state) const
 namespace {
 
 class UCPHeuristicFactory : public TaskEvaluatorFactory {
-    const utils::LogProxy log_;
+    const utils::Verbosity verbosity_;
     const std::shared_ptr<PatternCollectionGenerator>
         pattern_collection_generator_;
 
 public:
-    explicit UCPHeuristicFactory(const plugins::Options& opts);
+    explicit UCPHeuristicFactory(
+        utils::Verbosity verbosity,
+        std::shared_ptr<PatternCollectionGenerator> generator);
 
     std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,
         std::shared_ptr<FDRCostFunction> task_cost_function) override;
 };
 
-UCPHeuristicFactory::UCPHeuristicFactory(const plugins::Options& opts)
-    : log_(utils::get_log_from_options(opts))
-    , pattern_collection_generator_(
-          opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"))
+UCPHeuristicFactory::UCPHeuristicFactory(
+    utils::Verbosity verbosity,
+    std::shared_ptr<PatternCollectionGenerator> generator)
+    : verbosity_(verbosity)
+    , pattern_collection_generator_(std::move(generator))
 {
 }
 
@@ -139,7 +142,7 @@ std::unique_ptr<FDREvaluator> UCPHeuristicFactory::create_evaluator(
     return std::make_unique<UCPHeuristic>(
         task,
         task_cost_function,
-        log_,
+        utils::get_log_for_verbosity(verbosity_),
         pattern_collection_generator_);
 }
 
@@ -149,11 +152,20 @@ public:
     UCPHeuristicFactoryFeature()
         : TypedFeature("ucp_heuristic")
     {
-        TaskDependentHeuristic::add_options_to_feature(*this);
         add_option<std::shared_ptr<PatternCollectionGenerator>>(
             "patterns",
             "The pattern generation algorithm.",
             "classical_generator(generator=systematic(pattern_max_size=2))");
+        add_task_dependent_heuristic_options_to_feature(*this);
+    }
+
+    std::shared_ptr<UCPHeuristicFactory>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<UCPHeuristicFactory>(
+            get_task_dependent_heuristic_arguments_from_options(opts),
+            opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"));
     }
 };
 

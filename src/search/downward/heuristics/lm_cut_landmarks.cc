@@ -54,10 +54,6 @@ LandmarkCutLandmarks::LandmarkCutLandmarks(const TaskProxy& task_proxy)
     }
 }
 
-LandmarkCutLandmarks::~LandmarkCutLandmarks()
-{
-}
-
 void LandmarkCutLandmarks::build_relaxed_operator(const OperatorProxy& op)
 {
     vector<RelaxedProposition*> precondition;

@@ -66,6 +66,8 @@ class ArbitraryTieBreakerFeature
     : public TypedFeature<
           PolicyPicker<Bisimulation, Fret>,
           Wrapper<ArbitraryTiebreaker, Bisimulation, Fret>> {
+    using R = Wrapper<ArbitraryTiebreaker, Bisimulation, Fret>;
+
 public:
     ArbitraryTieBreakerFeature()
         : ArbitraryTieBreakerFeature::TypedFeature(
@@ -73,6 +75,13 @@ public:
                   "arbitrary_policy_tiebreaker"))
     {
         this->template add_option<bool>("stable_policy", "", "true");
+    }
+
+    std::shared_ptr<R>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return std::make_shared<R>(opts.get<bool>("stable_policy"));
     }
 };
 
@@ -85,6 +94,15 @@ public:
         add_option<bool>("stable_policy", "", "true");
         add_option<bool>("prefer_smaller", "", "true");
     }
+
+    std::shared_ptr<OperatorIdTiebreaker>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<OperatorIdTiebreaker>(
+            opts.get<bool>("stable_policy"),
+            opts.get<bool>("prefer_smaller"));
+    }
 };
 
 template <bool Bisimulation, bool Fret>
@@ -92,6 +110,9 @@ class RandomTieBreakerFeature
     : public TypedFeature<
           PolicyPicker<Bisimulation, Fret>,
           Wrapper<RandomTiebreaker, Bisimulation, Fret>> {
+
+    using R = Wrapper<RandomTiebreaker, Bisimulation, Fret>;
+
 public:
     RandomTieBreakerFeature()
         : RandomTieBreakerFeature::TypedFeature(
@@ -99,7 +120,16 @@ public:
                   "random_policy_tiebreaker"))
     {
         this->template add_option<bool>("stable_policy", "", "true");
-        utils::add_rng_options(*this);
+        utils::add_rng_options_to_feature(*this);
+    }
+
+    std::shared_ptr<R>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<R>(
+            opts.get<bool>("stable_policy"),
+            utils::get_rng_arguments_from_options(opts));
     }
 };
 
@@ -108,6 +138,8 @@ class ValueGapTieBreakerFeature
     : public TypedFeature<
           PolicyPicker<Bisimulation, Fret>,
           Wrapper<VDiffTiebreaker, Bisimulation, Fret>> {
+    using R = Wrapper<VDiffTiebreaker, Bisimulation, Fret>;
+
 public:
     ValueGapTieBreakerFeature()
         : ValueGapTieBreakerFeature::TypedFeature(
@@ -116,6 +148,15 @@ public:
     {
         this->template add_option<bool>("stable_policy", "", "true");
         this->template add_option<bool>("prefer_large_gaps", "", "true");
+    }
+
+    std::shared_ptr<R>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<R>(
+            opts.get<bool>("stable_policy"),
+            opts.get<bool>("prefer_large_gaps"));
     }
 };
 

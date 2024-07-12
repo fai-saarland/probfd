@@ -20,8 +20,10 @@ protected:
     dump_tree_specific_options(utils::LogProxy& log) const override;
 
 public:
-    explicit MergeTreeFactoryLinear(const plugins::Options& options);
-    virtual ~MergeTreeFactoryLinear() override = default;
+    MergeTreeFactoryLinear(
+        variable_order_finder::VariableOrderType variable_order,
+        int random_seed,
+        UpdateOption update_option);
     virtual std::unique_ptr<MergeTree>
     compute_merge_tree(const TaskProxy& task_proxy) override;
     virtual std::unique_ptr<MergeTree> compute_merge_tree(

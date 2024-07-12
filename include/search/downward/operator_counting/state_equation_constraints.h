@@ -45,7 +45,7 @@ class StateEquationConstraints : public ConstraintGenerator {
         double infinity);
 
 public:
-    explicit StateEquationConstraints(const plugins::Options& opts);
+    explicit StateEquationConstraints(utils::Verbosity verbosity);
     virtual void initialize_constraints(
         const std::shared_ptr<AbstractTask>& task,
         lp::LinearProgram& lp) override;

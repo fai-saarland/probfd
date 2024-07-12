@@ -1,9 +1,6 @@
 #include "downward/cartesian_abstractions/utils.h"
 
-#include "downward/plugins/options.h"
-
 #include "downward/heuristics/additive_heuristic.h"
-#include "downward/task_utils/task_properties.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/memory.h"
 
@@ -14,15 +11,6 @@
 using namespace std;
 
 namespace cartesian_abstractions {
-unique_ptr<additive_heuristic::AdditiveHeuristic>
-create_additive_heuristic(const shared_ptr<AbstractTask>& task)
-{
-    plugins::Options opts;
-    opts.set<shared_ptr<AbstractTask>>("transform", task);
-    opts.set<bool>("cache_estimates", false);
-    opts.set<utils::Verbosity>("verbosity", utils::Verbosity::SILENT);
-    return std::make_unique<additive_heuristic::AdditiveHeuristic>(opts);
-}
 
 static bool operator_applicable(
     const OperatorProxy& op,

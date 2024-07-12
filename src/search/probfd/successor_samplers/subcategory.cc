@@ -63,8 +63,8 @@ public:
     {
     }
 
-    [[nodiscard]] std::shared_ptr<
-        Wrapper<ArbitrarySuccessorSampler, Bisimulation, Fret>>
+    [[nodiscard]]
+    std::shared_ptr<Wrapper<ArbitrarySuccessorSampler, Bisimulation, Fret>>
     create_component(const Options&, const utils::Context&) const override
     {
         return std::make_shared<
@@ -85,8 +85,8 @@ public:
     {
     }
 
-    [[nodiscard]] std::shared_ptr<
-        Wrapper<MostLikelySuccessorSampler, Bisimulation, Fret>>
+    [[nodiscard]]
+    std::shared_ptr<Wrapper<MostLikelySuccessorSampler, Bisimulation, Fret>>
     create_component(const Options&, const utils::Context&) const override
     {
         return std::make_shared<
@@ -99,13 +99,23 @@ class UniformSuccessorSamplerFeature
     : public TypedFeature<
           SuccessorSampler<Bisimulation, Fret>,
           Wrapper<UniformSuccessorSampler, Bisimulation, Fret>> {
+    using R = Wrapper<UniformSuccessorSampler, Bisimulation, Fret>;
+
 public:
     UniformSuccessorSamplerFeature()
         : UniformSuccessorSamplerFeature::TypedFeature(
               add_mdp_type_to_option<Bisimulation, Fret>(
                   "uniform_random_successor_sampler"))
     {
-        utils::add_rng_options(*this);
+        utils::add_rng_options_to_feature(*this);
+    }
+
+    std::shared_ptr<R>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<R>(
+            utils::get_rng_arguments_from_options(opts));
     }
 };
 
@@ -114,13 +124,23 @@ class RandomSuccessorSamplerFeature
     : public TypedFeature<
           SuccessorSampler<Bisimulation, Fret>,
           Wrapper<RandomSuccessorSampler, Bisimulation, Fret>> {
+    using R = Wrapper<RandomSuccessorSampler, Bisimulation, Fret>;
+
 public:
     RandomSuccessorSamplerFeature()
         : RandomSuccessorSamplerFeature::TypedFeature(
               add_mdp_type_to_option<Bisimulation, Fret>(
                   "random_successor_sampler"))
     {
-        utils::add_rng_options(*this);
+        utils::add_rng_options_to_feature(*this);
+    }
+
+    std::shared_ptr<R>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<R>(
+            utils::get_rng_arguments_from_options(opts));
     }
 };
 
@@ -129,13 +149,23 @@ class VBiasedSuccessorSamplerFeature
     : public TypedFeature<
           SuccessorSampler<Bisimulation, Fret>,
           Wrapper<VBiasedSuccessorSampler, Bisimulation, Fret>> {
+    using R = Wrapper<VBiasedSuccessorSampler, Bisimulation, Fret>;
+
 public:
     VBiasedSuccessorSamplerFeature()
         : VBiasedSuccessorSamplerFeature::TypedFeature(
               add_mdp_type_to_option<Bisimulation, Fret>(
                   "vbiased_successor_sampler"))
     {
-        utils::add_rng_options(*this);
+        utils::add_rng_options_to_feature(*this);
+    }
+
+    std::shared_ptr<R>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<R>(
+            utils::get_rng_arguments_from_options(opts));
     }
 };
 
@@ -144,14 +174,25 @@ class VDiffSuccessorSamplerFeature
     : public TypedFeature<
           SuccessorSampler<Bisimulation, Fret>,
           Wrapper<VDiffSuccessorSampler, Bisimulation, Fret>> {
+    using R = Wrapper<VDiffSuccessorSampler, Bisimulation, Fret>;
+
 public:
     VDiffSuccessorSamplerFeature()
         : VDiffSuccessorSamplerFeature::TypedFeature(
               add_mdp_type_to_option<Bisimulation, Fret>(
                   "value_gap_successor_sampler"))
     {
-        utils::add_rng_options(*this);
+        utils::add_rng_options_to_feature(*this);
         this->template add_option<bool>("prefer_large_gaps", "", "true");
+    }
+
+    std::shared_ptr<R>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<R>(
+            utils::get_rng_arguments_from_options(opts),
+            opts.get<bool>("prefer_large_gaps"));
     }
 };
 

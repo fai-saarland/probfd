@@ -11,10 +11,8 @@ using namespace std;
 
 namespace merge_and_shrink {
 MergeSelectorScoreBasedFiltering::MergeSelectorScoreBasedFiltering(
-    const plugins::Options& options)
-    : merge_scoring_functions(
-          options.get_list<shared_ptr<MergeScoringFunction>>(
-              "scoring_functions"))
+    const vector<shared_ptr<MergeScoringFunction>>& scoring_functions)
+    : merge_scoring_functions(scoring_functions)
 {
 }
 
@@ -131,6 +129,15 @@ public:
             "scoring_functions",
             "The list of scoring functions used to compute scores for "
             "candidates.");
+    }
+
+    virtual shared_ptr<MergeSelectorScoreBasedFiltering>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return make_shared<MergeSelectorScoreBasedFiltering>(
+            opts.get_list<shared_ptr<MergeScoringFunction>>(
+                "scoring_functions"));
     }
 };
 

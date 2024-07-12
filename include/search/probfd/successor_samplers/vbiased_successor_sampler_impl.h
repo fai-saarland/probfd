@@ -3,14 +3,12 @@
 #include "probfd/algorithms/state_properties.h"
 
 #include "downward/utils/rng.h"
-#include "downward/utils/rng_options.h"
 
 namespace probfd::successor_samplers {
 
 template <typename Action>
-VBiasedSuccessorSampler<Action>::VBiasedSuccessorSampler(
-    const plugins::Options& opts)
-    : rng_(utils::parse_rng_from_options(opts))
+VBiasedSuccessorSampler<Action>::VBiasedSuccessorSampler(int random_seed)
+    : rng_(std::make_shared<utils::RandomNumberGenerator>(random_seed))
 {
 }
 

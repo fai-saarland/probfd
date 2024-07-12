@@ -26,8 +26,9 @@ protected:
     do_insertion(EvaluationContext& eval_context, const Entry& entry) override;
 
 public:
-    explicit AlternationOpenList(const plugins::Options& opts);
-    virtual ~AlternationOpenList() override = default;
+    AlternationOpenList(
+        const vector<shared_ptr<OpenListFactory>>& sublists,
+        int boost);
 
     virtual Entry remove_min() override;
     virtual bool empty() const override;
@@ -40,11 +41,12 @@ public:
 };
 
 template <class Entry>
-AlternationOpenList<Entry>::AlternationOpenList(const plugins::Options& opts)
-    : boost_amount(opts.get<int>("boost"))
+AlternationOpenList<Entry>::AlternationOpenList(
+    const vector<shared_ptr<OpenListFactory>>& sublists,
+    int boost)
+    : boost_amount(boost)
 {
-    vector<shared_ptr<OpenListFactory>> open_list_factories(
-        opts.get_list<shared_ptr<OpenListFactory>>("sublists"));
+    vector<shared_ptr<OpenListFactory>> open_list_factories(sublists);
     open_lists.reserve(open_list_factories.size());
     for (const auto& factory : open_list_factories)
         open_lists.push_back(factory->create_open_list<Entry>());
@@ -129,19 +131,25 @@ bool AlternationOpenList<Entry>::is_reliable_dead_end(
 }
 
 AlternationOpenListFactory::AlternationOpenListFactory(
-    const plugins::Options& options)
-    : options(options)
+    const vector<shared_ptr<OpenListFactory>>& sublists,
+    int boost)
+    : sublists(sublists)
+    , boost(boost)
 {
 }
 
 unique_ptr<StateOpenList> AlternationOpenListFactory::create_state_open_list()
 {
-    return std::make_unique<AlternationOpenList<StateOpenListEntry>>(options);
+    return std::make_unique<AlternationOpenList<StateOpenListEntry>>(
+        sublists,
+        boost);
 }
 
 unique_ptr<EdgeOpenList> AlternationOpenListFactory::create_edge_open_list()
 {
-    return std::make_unique<AlternationOpenList<EdgeOpenListEntry>>(options);
+    return std::make_unique<AlternationOpenList<EdgeOpenListEntry>>(
+        sublists,
+        boost);
 }
 
 class AlternationOpenListFeature
@@ -165,14 +173,16 @@ public:
     }
 
     virtual shared_ptr<AlternationOpenListFactory> create_component(
-        const plugins::Options& options,
+        const plugins::Options& opts,
         const utils::Context& context) const override
     {
         plugins::verify_list_non_empty<shared_ptr<OpenListFactory>>(
             context,
-            options,
+            opts,
             "sublists");
-        return make_shared<AlternationOpenListFactory>(options);
+        return plugins::make_shared_from_arg_tuples<AlternationOpenListFactory>(
+            opts.get_list<shared_ptr<OpenListFactory>>("sublists"),
+            opts.get<int>("boost"));
     }
 };
 

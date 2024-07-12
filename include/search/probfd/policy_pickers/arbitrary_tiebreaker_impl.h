@@ -1,13 +1,4 @@
-#include "downward/plugins/options.h"
-
 namespace probfd::policy_pickers {
-
-template <typename State, typename Action>
-ArbitraryTiebreaker<State, Action>::ArbitraryTiebreaker(
-    const plugins::Options& opts)
-    : ArbitraryTiebreaker(opts.get<bool>("stable_policy"))
-{
-}
 
 template <typename State, typename Action>
 ArbitraryTiebreaker<State, Action>::ArbitraryTiebreaker(bool stable_policy)

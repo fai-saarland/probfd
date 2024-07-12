@@ -76,10 +76,6 @@ CGCache::CGCache(
     }
 }
 
-CGCache::~CGCache()
-{
-}
-
 int CGCache::compute_required_cache_size(
     int var_id,
     const vector<int>& depends_on,

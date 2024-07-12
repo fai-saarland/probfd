@@ -17,9 +17,10 @@ namespace landmarks {
    method with others, don't use it by itself. */
 
 LandmarkFactoryRpgExhaust::LandmarkFactoryRpgExhaust(
-    const plugins::Options& opts)
-    : LandmarkFactoryRelaxation(opts)
-    , only_causal_landmarks(opts.get<bool>("only_causal_landmarks"))
+    bool only_causal_landmarks,
+    utils::Verbosity verbosity)
+    : LandmarkFactoryRelaxation(verbosity)
+    , only_causal_landmarks(only_causal_landmarks)
 {
 }
 
@@ -74,12 +75,21 @@ public:
             "Exhaustively checks for each fact if it is a landmark."
             "This check is done using relaxed planning.");
 
-        add_landmark_factory_options_to_feature(*this);
         add_only_causal_landmarks_option_to_feature(*this);
+        add_landmark_factory_options_to_feature(*this);
 
         document_language_support(
             "conditional_effects",
             "ignored, i.e. not supported");
+    }
+
+    virtual shared_ptr<LandmarkFactoryRpgExhaust>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<LandmarkFactoryRpgExhaust>(
+            get_only_causal_landmarks_arguments_from_options(opts),
+            get_landmark_factory_arguments_from_options(opts));
     }
 };
 

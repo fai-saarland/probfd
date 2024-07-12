@@ -9,7 +9,6 @@ class MergeScoringFunctionDFP : public MergeScoringFunction {
 
 public:
     MergeScoringFunctionDFP() = default;
-    virtual ~MergeScoringFunctionDFP() override = default;
     virtual std::vector<double> compute_scores(
         const FactoredTransitionSystem& fts,
         const std::vector<std::pair<int, int>>& merge_candidates) override;

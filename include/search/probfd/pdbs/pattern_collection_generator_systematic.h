@@ -31,7 +31,10 @@ class PatternCollectionGeneratorSystematic : public PatternCollectionGenerator {
     PatternSet pattern_set; // Cleared after pattern computation.
 
 public:
-    explicit PatternCollectionGeneratorSystematic(const plugins::Options& opts);
+    PatternCollectionGeneratorSystematic(
+        int pattern_max_size,
+        bool only_interesting_patterns,
+        utils::Verbosity verbosity);
 
     PatternCollectionInformation generate(
         const std::shared_ptr<ProbabilisticTask>& task,

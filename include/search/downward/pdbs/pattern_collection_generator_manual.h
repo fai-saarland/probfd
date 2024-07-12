@@ -15,8 +15,9 @@ class PatternCollectionGeneratorManual : public PatternCollectionGenerator {
     compute_patterns(const std::shared_ptr<AbstractTask>& task) override;
 
 public:
-    explicit PatternCollectionGeneratorManual(const plugins::Options& opts);
-    virtual ~PatternCollectionGeneratorManual() = default;
+    explicit PatternCollectionGeneratorManual(
+        const std::vector<Pattern>& patterns,
+        utils::Verbosity verbosity);
 };
 } // namespace pdbs
 

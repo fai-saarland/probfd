@@ -387,20 +387,26 @@ bool PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
 }
 
 PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
-    const plugins::Options& opts)
-    : PatternCollectionGenerator(opts)
-    , initial_generator_(opts.get<std::shared_ptr<PatternCollectionGenerator>>(
-          "initial_generator"))
-    , subcollection_finder_factory_(
-          opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
-              "subcollection_finder_factory"))
-    , pdb_max_size_(opts.get<int>("pdb_max_size"))
-    , collection_max_size_(opts.get<int>("collection_max_size"))
-    , num_samples_(opts.get<int>("num_samples"))
-    , min_improvement_(opts.get<int>("min_improvement"))
-    , max_time_(opts.get<double>("max_time"))
-    , rng_(utils::parse_rng_from_options(opts))
-    , remaining_states_(opts.get<int>("search_space_max_size"))
+    std::shared_ptr<PatternCollectionGenerator> initial_generator,
+    std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory,
+    int pdb_max_size,
+    int collection_max_size,
+    int num_samples,
+    int min_improvement,
+    double max_time,
+    int search_space_max_size,
+    int random_seed,
+    utils::Verbosity verbosity)
+    : PatternCollectionGenerator(verbosity)
+    , initial_generator_(std::move(initial_generator))
+    , subcollection_finder_factory_(std::move(subcollection_finder_factory))
+    , pdb_max_size_(pdb_max_size)
+    , collection_max_size_(collection_max_size)
+    , num_samples_(num_samples)
+    , min_improvement_(min_improvement)
+    , max_time_(max_time)
+    , rng_(utils::get_rng(random_seed))
+    , remaining_states_(search_space_max_size)
     , num_rejected_(0)
 {
 }
@@ -852,8 +858,8 @@ static void add_hillclimbing_options(plugins::Feature& feature)
         "infinity",
         plugins::Bounds("0.0", "infinity"));
 
+    utils::add_rng_options_to_feature(feature);
     add_pattern_collection_generator_options_to_feature(feature);
-    utils::add_rng_options(feature);
 }
 
 static void check_hillclimbing_options(
@@ -879,12 +885,25 @@ public:
 
     [[nodiscard]]
     std::shared_ptr<PatternCollectionGeneratorHillclimbing> create_component(
-        const plugins::Options& options,
+        const plugins::Options& opts,
         const utils::Context& context) const override
     {
-        check_hillclimbing_options(options, context);
-        return std::make_shared<PatternCollectionGeneratorHillclimbing>(
-            options);
+        check_hillclimbing_options(opts, context);
+
+        return plugins::make_shared_from_arg_tuples<
+            PatternCollectionGeneratorHillclimbing>(
+            opts.get<std::shared_ptr<PatternCollectionGenerator>>(
+                "initial_generator"),
+            opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
+                "subcollection_finder_factory"),
+            opts.get<int>("pdb_max_size"),
+            opts.get<int>("collection_max_size"),
+            opts.get<int>("search_space_max_size"),
+            opts.get<int>("num_samples"),
+            opts.get<int>("min_improvement"),
+            opts.get<double>("max_time"),
+            utils::get_rng_arguments_from_options(opts),
+            get_collection_generator_arguments_from_options(opts));
     }
 };
 

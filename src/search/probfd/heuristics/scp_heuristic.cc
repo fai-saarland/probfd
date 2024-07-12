@@ -168,26 +168,34 @@ value_t SCPHeuristic::evaluate(const State& state) const
 namespace {
 
 class SCPHeuristicFactory : public TaskEvaluatorFactory {
-    const utils::LogProxy log_;
     const std::shared_ptr<PatternCollectionGenerator>
         pattern_collection_generator_;
     const SCPHeuristic::OrderingStrategy ordering_;
-    const std::shared_ptr<utils::RandomNumberGenerator> rng_;
+    const int random_seed_;
+    const utils::Verbosity verbosity_;
 
 public:
-    explicit SCPHeuristicFactory(const plugins::Options& opts);
+    SCPHeuristicFactory(
+        std::shared_ptr<PatternCollectionGenerator>
+            pattern_collection_generator,
+        SCPHeuristic::OrderingStrategy ordering,
+        int random_seed,
+        utils::Verbosity verbosity);
 
     std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,
         std::shared_ptr<FDRCostFunction> task_cost_function) override;
 };
 
-SCPHeuristicFactory::SCPHeuristicFactory(const plugins::Options& opts)
-    : log_(utils::get_log_from_options(opts))
-    , pattern_collection_generator_(
-          opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"))
-    , ordering_(opts.get<SCPHeuristic::OrderingStrategy>("order"))
-    , rng_(utils::parse_rng_from_options(opts))
+SCPHeuristicFactory::SCPHeuristicFactory(
+    std::shared_ptr<PatternCollectionGenerator> pattern_collection_generator,
+    SCPHeuristic::OrderingStrategy ordering,
+    int random_seed,
+    utils::Verbosity verbosity)
+    : pattern_collection_generator_(std::move(pattern_collection_generator))
+    , ordering_(ordering)
+    , random_seed_(random_seed)
+    , verbosity_(verbosity)
 {
 }
 
@@ -198,10 +206,10 @@ std::unique_ptr<FDREvaluator> SCPHeuristicFactory::create_evaluator(
     return std::make_unique<SCPHeuristic>(
         task,
         task_cost_function,
-        log_,
+        utils::get_log_for_verbosity(verbosity_),
         pattern_collection_generator_,
         ordering_,
-        rng_);
+        utils::get_rng(random_seed_));
 }
 
 class SCPHeuristicFactoryFeature
@@ -210,9 +218,6 @@ public:
     SCPHeuristicFactoryFeature()
         : TypedFeature("scp_heuristic")
     {
-        TaskDependentHeuristic::add_options_to_feature(*this);
-        utils::add_rng_options(*this);
-
         add_option<std::shared_ptr<PatternCollectionGenerator>>(
             "patterns",
             "The pattern generation algorithm.",
@@ -221,6 +226,20 @@ public:
             "order",
             "The order in which patterns are considered",
             "random");
+
+        utils::add_rng_options_to_feature(*this);
+        add_task_dependent_heuristic_options_to_feature(*this);
+    }
+
+    std::shared_ptr<SCPHeuristicFactory>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<SCPHeuristicFactory>(
+            opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"),
+            opts.get<SCPHeuristic::OrderingStrategy>("order"),
+            utils::get_rng_arguments_from_options(opts),
+            get_task_dependent_heuristic_arguments_from_options(opts));
     }
 };
 

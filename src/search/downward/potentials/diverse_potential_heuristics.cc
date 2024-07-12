@@ -16,12 +16,18 @@ using namespace std;
 
 namespace potentials {
 DiversePotentialHeuristics::DiversePotentialHeuristics(
-    const plugins::Options& opts)
-    : optimizer(opts)
-    , max_num_heuristics(opts.get<int>("max_num_heuristics"))
-    , num_samples(opts.get<int>("num_samples"))
-    , rng(utils::parse_rng_from_options(opts))
-    , log(utils::get_log_from_options(opts))
+    int num_samples,
+    int max_num_heuristics,
+    double max_potential,
+    lp::LPSolverType lpsolver,
+    const shared_ptr<AbstractTask>& transform,
+    int random_seed,
+    utils::Verbosity verbosity)
+    : optimizer(transform, lpsolver, max_potential)
+    , max_num_heuristics(max_num_heuristics)
+    , num_samples(num_samples)
+    , rng(utils::get_rng(random_seed))
+    , log(utils::get_log_for_verbosity(verbosity))
 {
 }
 
@@ -174,18 +180,30 @@ public:
             "maximum number of potential heuristics",
             "infinity",
             plugins::Bounds("0", "infinity"));
-        prepare_parser_for_admissible_potentials(*this);
-        utils::add_rng_options(*this);
+        add_admissible_potentials_options_to_feature(
+            *this,
+            "diverse_potentials");
+        utils::add_rng_options_to_feature(*this);
     }
 
     virtual shared_ptr<PotentialMaxHeuristic>
-    create_component(const plugins::Options& options, const utils::Context&)
+    create_component(const plugins::Options& opts, const utils::Context&)
         const override
     {
-        DiversePotentialHeuristics factory(options);
         return make_shared<PotentialMaxHeuristic>(
-            options,
-            factory.find_functions());
+            DiversePotentialHeuristics(
+                opts.get<int>("num_samples"),
+                opts.get<int>("max_num_heuristics"),
+                opts.get<double>("max_potential"),
+                opts.get<lp::LPSolverType>("lpsolver"),
+                opts.get<shared_ptr<AbstractTask>>("transform"),
+                opts.get<int>("random_seed"),
+                opts.get<utils::Verbosity>("verbosity"))
+                .find_functions(),
+            opts.get<shared_ptr<AbstractTask>>("transform"),
+            opts.get<bool>("cache_estimates"),
+            opts.get<string>("description"),
+            opts.get<utils::Verbosity>("verbosity"));
     }
 };
 

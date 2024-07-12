@@ -54,7 +54,10 @@ class StubbornSetsAtomCentric : public stubborn_sets::StubbornSets {
     virtual void compute_stubborn_set(const State& state) override;
 
 public:
-    explicit StubbornSetsAtomCentric(const plugins::Options& opts);
+    explicit StubbornSetsAtomCentric(
+        bool use_sibling_shortcut,
+        AtomSelectionStrategy atom_selection_strategy,
+        utils::Verbosity verbosity);
     virtual void initialize(const std::shared_ptr<AbstractTask>& task) override;
 };
 } // namespace stubborn_sets_atom_centric

@@ -150,9 +150,8 @@ SplitSelectorMaxHAdd::rate_split(const AbstractState&, const Split& split) const
     return get_max_hadd_value(split.var_id, split.values);
 }
 
-SplitSelectorRandomFactory::SplitSelectorRandomFactory(
-    const plugins::Options& opts)
-    : rng_(utils::parse_rng_from_options(opts))
+SplitSelectorRandomFactory::SplitSelectorRandomFactory(int random_seed)
+    : rng_(utils::get_rng(random_seed))
 {
 }
 
@@ -228,7 +227,15 @@ public:
         document_synopsis(
             "select a random variable (among all eligible variables)");
 
-        utils::add_rng_options(*this);
+        utils::add_rng_options_to_feature(*this);
+    }
+
+    std::shared_ptr<SplitSelectorRandomFactory>
+    create_component(const plugins::Options& opts, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<SplitSelectorRandomFactory>(
+            utils::get_rng_arguments_from_options(opts));
     }
 };
 

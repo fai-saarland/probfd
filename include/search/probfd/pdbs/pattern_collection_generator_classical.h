@@ -15,8 +15,10 @@ class Options;
 } // namespace plugins
 
 namespace probfd::pdbs {
-
 class SubCollectionFinderFactory;
+}
+
+namespace probfd::pdbs {
 
 /**
  * @brief The classical pattern generator adapter.
@@ -30,13 +32,11 @@ class PatternCollectionGeneratorClassical : public PatternCollectionGenerator {
     std::shared_ptr<::pdbs::PatternCollectionGenerator> gen_;
     std::shared_ptr<SubCollectionFinderFactory> finder_factory_;
 
-    PatternCollectionGeneratorClassical(
-        utils::LogProxy log,
-        std::shared_ptr<::pdbs::PatternCollectionGenerator> gen,
-        std::shared_ptr<SubCollectionFinderFactory> finder);
-
 public:
-    explicit PatternCollectionGeneratorClassical(const plugins::Options& opts);
+    explicit PatternCollectionGeneratorClassical(
+        std::shared_ptr<::pdbs::PatternCollectionGenerator> gen,
+        std::shared_ptr<SubCollectionFinderFactory> finder_factory,
+        utils::Verbosity verbosity);
 
     PatternCollectionInformation generate(
         const std::shared_ptr<ProbabilisticTask>& task,
