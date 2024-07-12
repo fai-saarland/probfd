@@ -26,7 +26,7 @@ namespace utils {
   that are "fed" to the main hashing function (implemented in class
   HashState) one by one. This allows a compositional approach to
   hashing. For example, the code for a pair p is the concatenation of
-  code(x.first) and code(x.second).
+  code(p.first) and code(p.second).
 
   A simpler compositional approach to hashing would first hash the
   components of an object and then combine the hash values, and this
@@ -80,7 +80,8 @@ namespace utils {
 /*
   Circular rotation (http://stackoverflow.com/a/31488147/224132).
 */
-inline uint32_t rotate(uint32_t value, uint32_t offset) {
+inline uint32_t rotate(uint32_t value, uint32_t offset)
+{
     return (value << offset) | (value >> (32 - offset));
 }
 
@@ -100,7 +101,8 @@ class HashState {
       Any information in (a, b, c) before mix() is still in (a, b, c) after
       mix().
     */
-    void mix() {
+    void mix()
+    {
         a -= c;
         a ^= rotate(c, 4);
         c += b;
@@ -127,7 +129,8 @@ class HashState {
       Triples of (a, b, c) differing in only a few bits will usually produce
       values of c that look totally different.
     */
-    void final_mix() {
+    void final_mix()
+    {
         c ^= b;
         c -= rotate(b, 14);
         a ^= c;
@@ -146,13 +149,15 @@ class HashState {
 
 public:
     HashState()
-        : a(0xdeadbeef),
-          b(a),
-          c(a),
-          pending_values(0) {
+        : a(0xdeadbeef)
+        , b(a)
+        , c(a)
+        , pending_values(0)
+    {
     }
 
-    void feed(std::uint32_t value) {
+    void feed(std::uint32_t value)
+    {
         assert(pending_values != -1);
         if (pending_values == 3) {
             mix();
@@ -175,7 +180,8 @@ public:
       further, i.e., make further calls to feed, get_hash32 or get_hash64. We
       set pending_values = -1 to catch such illegal usage in debug mode.
     */
-    std::uint32_t get_hash32() {
+    std::uint32_t get_hash32()
+    {
         assert(pending_values != -1);
         if (pending_values) {
             /*
@@ -193,7 +199,8 @@ public:
     /*
       See comment for get_hash32.
     */
-    std::uint64_t get_hash64() {
+    std::uint64_t get_hash64()
+    {
         assert(pending_values != -1);
         if (pending_values) {
             // See comment for get_hash32.
@@ -203,7 +210,6 @@ public:
         return (static_cast<std::uint64_t>(b) << 32) | c;
     }
 };
-
 
 /*
   These functions add a new object to an existing HashState object.
@@ -220,7 +226,8 @@ static_assert(
     "unsigned int and uint32_t have different sizes");
 
 template <typename I>
-inline void feed_integer(HashState &hash_state, I value) {
+inline void feed_integer(HashState& hash_state, I value)
+{
     if constexpr (sizeof(I) == sizeof(std::uint32_t)) {
         hash_state.feed(static_cast<std::uint32_t>(value));
     } else {
@@ -230,44 +237,54 @@ inline void feed_integer(HashState &hash_state, I value) {
     }
 }
 
-inline void feed(HashState &hash_state, int value) {
+inline void feed(HashState& hash_state, int value)
+{
     feed_integer(hash_state, value);
 }
 
-inline void feed(HashState &hash_state, long int value) {
+inline void feed(HashState& hash_state, long int value)
+{
     feed_integer(hash_state, value);
 }
 
-inline void feed(HashState &hash_state, long long int value) {
+inline void feed(HashState& hash_state, long long int value)
+{
     feed_integer(hash_state, value);
 }
 
-inline void feed(HashState &hash_state, unsigned int value) {
+inline void feed(HashState& hash_state, unsigned int value)
+{
     feed_integer(hash_state, value);
 }
 
-inline void feed(HashState &hash_state, unsigned long int value) {
+inline void feed(HashState& hash_state, unsigned long int value)
+{
     feed_integer(hash_state, value);
 }
 
-inline void feed(HashState &hash_state, unsigned long long int value) {
+inline void feed(HashState& hash_state, unsigned long long int value)
+{
     feed_integer(hash_state, value);
 }
 
-template<typename T>
-void feed(HashState &hash_state, const T *p) {
-    // This is wasteful in 32-bit mode, but we plan to discontinue 32-bit compiles anyway.
+template <typename T>
+void feed(HashState& hash_state, const T* p)
+{
+    // This is wasteful in 32-bit mode, but we plan to discontinue 32-bit
+    // compiles anyway.
     feed(hash_state, reinterpret_cast<std::uint64_t>(p));
 }
 
-template<typename T1, typename T2>
-void feed(HashState &hash_state, const std::pair<T1, T2> &p) {
+template <typename T1, typename T2>
+void feed(HashState& hash_state, const std::pair<T1, T2>& p)
+{
     feed(hash_state, p.first);
     feed(hash_state, p.second);
 }
 
-template<typename T>
-void feed(HashState &hash_state, const std::vector<T> &vec) {
+template <typename T>
+void feed(HashState& hash_state, const std::vector<T>& vec)
+{
     /*
       Feed vector size to ensure that no two different vectors of the same type
       have the same code prefix.
@@ -276,13 +293,14 @@ void feed(HashState &hash_state, const std::vector<T> &vec) {
       the build on MacOS (see msg7812).
     */
     feed(hash_state, static_cast<uint64_t>(vec.size()));
-    for (const T &item : vec) {
+    for (const T& item : vec) {
         feed(hash_state, item);
     }
 }
 
-template<typename T>
-void feed_iterable(HashState &hash_state, T begin, T end) {
+template <typename T>
+void feed_iterable(HashState& hash_state, T begin, T end)
+{
     /*
       Feed vector size to ensure that no two different vectors of the same type
       have the same code prefix.
@@ -295,6 +313,13 @@ void feed_iterable(HashState &hash_state, T begin, T end) {
     }
 }
 
+template <typename... T>
+void feed(HashState& hash_state, const std::tuple<T...>& t)
+{
+    std::apply(
+        [&](auto&&... element) { ((feed(hash_state, element)), ...); },
+        t);
+}
 
 /*
   Public hash functions.
@@ -303,32 +328,32 @@ void feed_iterable(HashState &hash_state, T begin, T end) {
   more exotic use cases, such as implementing a custom hash table, you can also
   use `get_hash32()`, `get_hash64()` and `get_hash()` directly.
 */
-template<typename T>
-std::uint32_t get_hash32(const T &value) {
+template <typename T>
+std::uint32_t get_hash32(const T& value)
+{
     HashState hash_state;
     feed(hash_state, value);
     return hash_state.get_hash32();
 }
 
-template<typename T>
-std::uint64_t get_hash64(const T &value) {
+template <typename T>
+std::uint64_t get_hash64(const T& value)
+{
     HashState hash_state;
     feed(hash_state, value);
     return hash_state.get_hash64();
 }
 
-template<typename T>
-std::size_t get_hash(const T &value) {
+template <typename T>
+std::size_t get_hash(const T& value)
+{
     return static_cast<std::size_t>(get_hash64(value));
 }
 
-
 // This struct should only be used by HashMap and HashSet below.
-template<typename T>
+template <typename T>
 struct Hash {
-    std::size_t operator()(const T &val) const {
-        return get_hash(val);
-    }
+    std::size_t operator()(const T& val) const { return get_hash(val); }
 };
 
 /*
@@ -339,11 +364,11 @@ struct Hash {
 
   To hash types that are not supported out of the box, implement utils::feed.
 */
-template<typename T1, typename T2>
+template <typename T1, typename T2>
 using HashMap = std::unordered_map<T1, T2, Hash<T1>>;
 
-template<typename T>
+template <typename T>
 using HashSet = std::unordered_set<T, Hash<T>>;
-}
+} // namespace utils
 
 #endif
