@@ -15,3 +15,6 @@ docs/html/
 # Graphviz
 *.dot
 .DS_Store
+
+# Output policy
+*.policy
