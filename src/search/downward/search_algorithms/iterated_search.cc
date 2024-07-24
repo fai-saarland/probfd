@@ -66,7 +66,7 @@ SearchStatus IteratedSearch::step()
     if (!current_search) {
         return found_solution() ? SOLVED : FAILED;
     }
-    if (pass_bound) {
+    if (pass_bound && best_bound < current_search->get_bound()) {
         current_search->set_bound(best_bound);
     }
     ++phase;
@@ -151,8 +151,10 @@ public:
             true);
         add_option<bool>(
             "pass_bound",
-            "use bound from previous search. The bound is the real cost "
-            "of the plan found before, regardless of the cost_type parameter.",
+            "use the bound of iterated search as a bound for its component "
+            "search algorithms, unless these already have a lower bound set. "
+            "The iterated search bound is tightened whenever a component finds "
+            "a cheaper plan.",
             "true");
         add_option<bool>("repeat_last", "repeat last phase of search", "false");
         add_option<bool>(
