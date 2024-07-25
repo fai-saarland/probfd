@@ -1,10 +1,7 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import print_function
-
 import errno
 import logging
 import os.path
+import shutil
 import subprocess
 import sys
 
@@ -15,16 +12,21 @@ from . import returncodes
 from . import util
 from .plan_manager import PlanManager
 
-# TODO: We might want to turn translate into a module and call it with "python -m translate".
-REL_TRANSLATE_PATH = os.path.join("translate", "translate.py")
 if os.name == "posix":
-    REL_SEARCH_PATH = "probfd"
-    VALIDATE = "validate"
+    BINARY_EXT = ""
 elif os.name == "nt":
-    REL_SEARCH_PATH = "probfd.exe"
-    VALIDATE = "validate.exe"
+    BINARY_EXT = ".exe"
 else:
     returncodes.exit_with_driver_unsupported_error("Unsupported OS: " + os.name)
+
+# TODO: We might want to turn translate into a module and call it with "python3 -m translate".
+REL_TRANSLATE_PATH = os.path.join("translate", "translate.py")
+REL_SEARCH_PATH = f"probfd{BINARY_EXT}"
+# Older versions of VAL use lower case, newer versions upper case. We prefer the
+# older version because this is what our build instructions recommend.
+VALIDATE = (shutil.which(f"validate{BINARY_EXT}") or
+            shutil.which(f"Validate{BINARY_EXT}"))
+
 
 def get_executable(build, rel_path):
     # First, consider 'build' to be a path directly to the binaries.
@@ -59,7 +61,8 @@ def run_translate(args):
         args.translate_memory_limit, args.overall_memory_limit)
     translate = get_executable(args.build, REL_TRANSLATE_PATH)
     assert sys.executable, "Path to interpreter could not be found"
-    cmd = [sys.executable] + [translate] + args.translate_inputs + args.translate_options
+    cmd = [sys.executable] + [
+        translate] + args.translate_inputs + args.translate_options
 
     stderr, returncode = call.get_error_output_and_returncode(
         "translator",
@@ -76,7 +79,7 @@ def run_translate(args):
         if not stderr:
             output_related_to_memory_error = False
         for line in stderr.splitlines():
-            if b"MemoryError" not in line:
+            if "MemoryError" not in line:
                 output_related_to_memory_error = False
                 break
         if output_related_to_memory_error:
@@ -123,7 +126,7 @@ def run_search(args):
                 "search needs --alias, --portfolio, or search options")
         if "--help" not in args.search_options:
             pass
-            #args.search_options.extend(["--internal-plan-file", args.plan_file])
+            # args.search_options.extend(["--internal-plan-file", args.plan_file])
         try:
             call.check_call(
                 "search",
@@ -137,7 +140,8 @@ def run_search(args):
             # would need to return (err.returncode, True) if the returncode is
             # in [0..10].
             # Negative exit codes are allowed for passing out signals.
-            assert err.returncode >= 10 or err.returncode < 0, "got returncode < 10: {}".format(err.returncode)
+            assert err.returncode >= 10 or err.returncode < 0, "got returncode < 10: {}".format(
+                err.returncode)
             return (err.returncode, False)
         else:
             return (0, True)
@@ -153,7 +157,8 @@ def run_validate(args):
     elif num_files == 2:
         domain, task = args.filenames
     else:
-        returncodes.exit_with_driver_input_error("validate needs one or two PDDL input files.")
+        returncodes.exit_with_driver_input_error(
+            "validate needs one or two PDDL input files.")
 
     plan_files = list(PlanManager(args.plan_file).get_existing_plans())
     if not plan_files:
@@ -169,7 +174,8 @@ def run_validate(args):
             memory_limit=args.validate_memory_limit)
     except OSError as err:
         if err.errno == errno.ENOENT:
-            returncodes.exit_with_driver_input_error("Error: {} not found. Is it on the PATH?".format(VALIDATE))
+            returncodes.exit_with_driver_input_error(
+                "Error: {} not found. Is it on the PATH?".format(VALIDATE))
         else:
             returncodes.exit_with_driver_critical_error(err)
     else:

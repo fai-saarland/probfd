@@ -1,11 +1,6 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import print_function
-
 import os
 
 from . import returncodes
-
 
 DRIVER_DIR = os.path.abspath(os.path.dirname(__file__))
 REPO_ROOT_DIR = os.path.dirname(DRIVER_DIR)
@@ -28,10 +23,12 @@ def find_domain_filename(task_filename):
     Find domain filename for the given task using automatic naming rules.
     """
     dirname, basename = os.path.split(task_filename)
+    basename_root, ext = os.path.splitext(basename)
 
     domain_basenames = [
         "domain.pddl",
-        basename[:3] + "-domain.pddl",
+        basename_root + "-domain" + ext,
+        basename[:3] + "-domain.pddl",  # for airport
         "domain_" + basename,
         "domain-" + basename,
     ]
@@ -43,4 +40,3 @@ def find_domain_filename(task_filename):
 
     returncodes.exit_with_driver_input_error(
         "Error: Could not find domain file using automatic naming rules.")
-

@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import division, print_function
-
-from . import returncodes
-from . import util
+import logging
 
 try:
     import resource
@@ -11,6 +6,8 @@ except ImportError:
     resource = None
 import sys
 
+from . import returncodes
+from . import util
 
 """
 Notes on limits: On Windows, the resource module does not exist and hence we
@@ -68,7 +65,8 @@ def get_memory_limit(component_limit, overall_limit):
     """
     Return the minimum of the component and overall limits or None if neither is set.
     """
-    limits = [limit for limit in [component_limit, overall_limit] if limit is not None]
+    limits = [limit for limit in [component_limit, overall_limit] if
+              limit is not None]
     return min(limits) if limits else None
 
 
@@ -90,9 +88,20 @@ def get_time_limit(component_limit, overall_limit):
         try:
             elapsed_time = util.get_elapsed_time()
         except NotImplementedError:
-            returncodes.exit_with_driver_unsupported_error(CANNOT_LIMIT_TIME_MSG)
+            returncodes.exit_with_driver_unsupported_error(
+                CANNOT_LIMIT_TIME_MSG)
         else:
             remaining_time = max(0, overall_limit - elapsed_time)
             if limit is None or remaining_time < limit:
                 limit = round_time_limit(remaining_time)
     return limit
+
+
+def print_limits(nick, time_limit, memory_limit):
+    if time_limit is not None:
+        time_limit = str(time_limit) + "s"
+    logging.info("{} time limit: {}".format(nick, time_limit))
+    if memory_limit is not None:
+        memory_limit = int(convert_to_mb(memory_limit))
+        memory_limit = str(memory_limit) + " MB"
+    logging.info("{} memory limit: {}".format(nick, memory_limit))

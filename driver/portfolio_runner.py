@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import print_function
-
 """ Module for running planner portfolios.
 
 Memory limits: We apply the same memory limit that is given to the
@@ -19,14 +15,13 @@ the process is started.
 
 __all__ = ["run"]
 
-import os
 import subprocess
+import sys
 
 from . import call
 from . import limits
 from . import returncodes
 from . import util
-
 
 DEFAULT_TIMEOUT = 1800
 
@@ -48,7 +43,8 @@ def adapt_args(args, search_cost_type, heuristic_cost_type, plan_manager):
     for index, arg in enumerate(args):
         if arg == "--evaluator" or arg == "--heuristic":
             heuristic = args[index + 1]
-            heuristic = adapt_heuristic_cost_type(heuristic, heuristic_cost_type)
+            heuristic = adapt_heuristic_cost_type(heuristic,
+                                                  heuristic_cost_type)
             args[index + 1] = heuristic
         elif arg == "--search":
             search = args[index + 1]
@@ -58,8 +54,8 @@ def adapt_args(args, search_cost_type, heuristic_cost_type, plan_manager):
                     "\"bound=BOUND\" in each search configuration. "
                     "See the FDSS portfolios for examples.")
             for name, value in [
-                    ("BOUND", g_bound),
-                    ("S_COST_TYPE", search_cost_type)]:
+                ("BOUND", g_bound),
+                ("S_COST_TYPE", search_cost_type)]:
                 search = search.replace(name, str(value))
             search = adapt_heuristic_cost_type(search, heuristic_cost_type)
             args[index + 1] = search
@@ -87,11 +83,12 @@ def compute_run_time(timeout, configs, pos):
     print("remaining time: {}".format(remaining_time))
     relative_time = configs[pos][0]
     remaining_relative_time = sum(config[0] for config in configs[pos:])
-    print("config {}: relative time {}, remaining {}".format(
-          pos, relative_time, remaining_relative_time))
-    # For the last config we have relative_time == remaining_relative_time, so
-    # we use all of the remaining time at the end.
-    return limits.round_time_limit(remaining_time * relative_time / remaining_relative_time)
+    absolute_time_limit = limits.round_time_limit(
+        remaining_time * relative_time / remaining_relative_time)
+    print(
+        "config {}: relative time {}, remaining time {}, absolute time {}".format(
+            pos, relative_time, remaining_relative_time, absolute_time_limit))
+    return absolute_time_limit
 
 
 def run_sat_config(configs, pos, search_cost_type, heuristic_cost_type,
@@ -106,7 +103,8 @@ def run_sat_config(configs, pos, search_cost_type, heuristic_cost_type,
         args.extend([
             "--internal-previous-portfolio-plans",
             str(plan_manager.get_plan_counter())])
-    result = run_search(executable, args, sas_file, plan_manager, run_time, memory)
+    result = run_search(executable, args, sas_file, plan_manager, run_time,
+                        memory)
     plan_manager.process_new_plans()
     return result
 
@@ -126,7 +124,7 @@ def run_sat(configs, executable, sas_file, plan_manager, final_config,
                 configs, pos, search_cost_type, heuristic_cost_type,
                 executable, sas_file, plan_manager, timeout, memory)
             if exitcode is None:
-                return
+                continue
 
             yield exitcode
             if exitcode == returncodes.SEARCH_UNSOLVABLE:
@@ -137,7 +135,7 @@ def run_sat(configs, executable, sas_file, plan_manager, final_config,
                     return
                 configs_next_round.append((relative_time, args))
                 if (not changed_cost_types and can_change_cost_type(args) and
-                    plan_manager.get_problem_type() == "general cost"):
+                        plan_manager.get_problem_type() == "general cost"):
                     print("Switch to real costs and repeat last run.")
                     changed_cost_types = True
                     search_cost_type = "normal"
@@ -175,6 +173,8 @@ def run_sat(configs, executable, sas_file, plan_manager, final_config,
 def run_opt(configs, executable, sas_file, plan_manager, timeout, memory):
     for pos, (relative_time, args) in enumerate(configs):
         run_time = compute_run_time(timeout, configs, pos)
+        if run_time <= 0:
+            return
         exitcode = run_search(executable, args, sas_file, plan_manager,
                               run_time, memory)
         yield exitcode
@@ -184,7 +184,8 @@ def run_opt(configs, executable, sas_file, plan_manager, timeout, memory):
 
 
 def can_change_cost_type(args):
-    return any("S_COST_TYPE" in part or "H_COST_TRANSFORM" in part for part in args)
+    return any(
+        "S_COST_TYPE" in part or "H_COST_TRANSFORM" in part for part in args)
 
 
 def get_portfolio_attributes(portfolio):
@@ -199,9 +200,11 @@ def get_portfolio_attributes(portfolio):
                 "uses the old portfolio syntax? See the FDSS portfolios "
                 "for examples using the new syntax." % portfolio)
     if "CONFIGS" not in attributes:
-        returncodes.exit_with_driver_critical_error("portfolios must define CONFIGS")
+        returncodes.exit_with_driver_critical_error(
+            "portfolios must define CONFIGS")
     if "OPTIMAL" not in attributes:
-        returncodes.exit_with_driver_critical_error("portfolios must define OPTIMAL")
+        returncodes.exit_with_driver_critical_error(
+            "portfolios must define OPTIMAL")
     return attributes
 
 
@@ -223,8 +226,9 @@ def run(portfolio, executable, sas_file, plan_manager, time, memory):
             "Please pass a time limit to fast-downward.py.")
 
     if time is None:
-        if os.name == "nt":
-            returncodes.exit_with_driver_unsupported_error(limits.RESOURCE_MODULE_MISSING_MSG)
+        if sys.platform == "win32":
+            returncodes.exit_with_driver_unsupported_error(
+                limits.CANNOT_LIMIT_TIME_MSG)
         else:
             returncodes.exit_with_driver_input_error(
                 "Portfolios need a time limit. Please pass --search-time-limit "
@@ -239,4 +243,4 @@ def run(portfolio, executable, sas_file, plan_manager, time, memory):
         exitcodes = run_sat(
             configs, executable, sas_file, plan_manager, final_config,
             final_config_builder, timeout, memory)
-    return returncodes.generate_portfolio_exitcode(exitcodes)
+    return returncodes.generate_portfolio_exitcode(list(exitcodes))
