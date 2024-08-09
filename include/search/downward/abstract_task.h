@@ -41,12 +41,8 @@ inline void feed(HashState& hash_state, const FactPair& fact)
 }
 } // namespace utils
 
-class AbstractTaskBase
-    : public subscriber::SubscriberService<AbstractTaskBase> {
+class PlanningTask : public subscriber::SubscriberService<PlanningTask> {
 public:
-    AbstractTaskBase() = default;
-    virtual ~AbstractTaskBase() = default;
-
     virtual int get_num_variables() const = 0;
     virtual std::string get_variable_name(int var) const = 0;
     virtual int get_variable_domain_size(int var) const = 0;
@@ -92,7 +88,7 @@ public:
      */
     virtual void convert_ancestor_state_values(
         std::vector<int>& values,
-        const AbstractTaskBase* ancestor_task) const = 0;
+        const PlanningTask* ancestor_task) const = 0;
 
     /*
      * Convert an operator index from this task, C (child), into an operator
@@ -101,15 +97,12 @@ public:
      * on A.
      */
     virtual int
-    convert_operator_index(int index, const AbstractTaskBase* ancestor_task)
+    convert_operator_index(int index, const PlanningTask* ancestor_task)
         const = 0;
 };
 
-class AbstractTask : public AbstractTaskBase {
+class AbstractTask : public PlanningTask {
 public:
-    AbstractTask() = default;
-    virtual ~AbstractTask() override = default;
-
     virtual int get_operator_cost(int index) const = 0;
 
     virtual int get_num_operator_effects(int op_index) const = 0;

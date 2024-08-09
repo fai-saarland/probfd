@@ -210,7 +210,7 @@ std::vector<int> AODDeterminizationTask::get_initial_state_values() const
  */
 void AODDeterminizationTask::convert_ancestor_state_values(
     std::vector<int>&,
-    const AbstractTaskBase* ancestor_task) const
+    const PlanningTask* ancestor_task) const
 {
     (void)ancestor_task;
     assert(ancestor_task == this || ancestor_task == parent_task_);
@@ -223,7 +223,7 @@ void AODDeterminizationTask::convert_ancestor_state_values(
  */
 int AODDeterminizationTask::convert_operator_index(
     int index,
-    const AbstractTaskBase* ancestor_task) const
+    const PlanningTask* ancestor_task) const
 {
     (void)ancestor_task;
     assert(ancestor_task == this);

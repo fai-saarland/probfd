@@ -74,7 +74,7 @@ get_relaxed_possible_before(const TaskProxy& task, const FactProxy& fact)
     return reachable_facts;
 }
 
-vector<int> get_domain_sizes(const TaskBaseProxy& task)
+vector<int> get_domain_sizes(const PlanningTaskProxy& task)
 {
     vector<int> domain_sizes;
     for (VariableProxy var : task.get_variables())

@@ -8,7 +8,7 @@
 using namespace std;
 
 namespace successor_generator {
-SuccessorGenerator::SuccessorGenerator(const TaskBaseProxy& task_proxy)
+SuccessorGenerator::SuccessorGenerator(const PlanningTaskProxy& task_proxy)
     : root(SuccessorGeneratorFactory(task_proxy).create())
 {
 }

@@ -26,7 +26,7 @@ namespace cartesian_abstractions {
 extern utils::HashSet<FactProxy>
 get_relaxed_possible_before(const TaskProxy& task, const FactProxy& fact);
 
-extern std::vector<int> get_domain_sizes(const TaskBaseProxy& task);
+extern std::vector<int> get_domain_sizes(const PlanningTaskProxy& task);
 } // namespace cartesian_abstractions
 
 /*

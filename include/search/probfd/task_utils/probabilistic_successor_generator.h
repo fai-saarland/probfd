@@ -7,7 +7,7 @@
 // Forward Declarations
 class OperatorID;
 class State;
-class TaskBaseProxy;
+class PlanningTaskProxy;
 
 namespace probfd {
 class TaskStateSpace;
@@ -24,7 +24,8 @@ class ProbabilisticSuccessorGenerator {
     std::unique_ptr<ProbabilisticGeneratorBase> root_;
 
 public:
-    explicit ProbabilisticSuccessorGenerator(const TaskBaseProxy& task_proxy);
+    explicit ProbabilisticSuccessorGenerator(
+        const PlanningTaskProxy& task_proxy);
     /*
       We cannot use the default destructor (implicitly or explicitly)
       here because GeneratorBase is a forward declaration and the

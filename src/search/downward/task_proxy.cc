@@ -11,7 +11,7 @@
 using namespace std;
 
 State::State(
-    const AbstractTaskBase& task,
+    const PlanningTask& task,
     const StateRegistry& registry,
     StateID id,
     const PackedStateBin* buffer)
@@ -29,7 +29,7 @@ State::State(
 }
 
 State::State(
-    const AbstractTaskBase& task,
+    const PlanningTask& task,
     const StateRegistry& registry,
     StateID id,
     const PackedStateBin* buffer,
@@ -40,7 +40,7 @@ State::State(
     this->values = make_shared<vector<int>>(std::move(values));
 }
 
-State::State(const AbstractTaskBase& task, vector<int>&& values)
+State::State(const PlanningTask& task, vector<int>&& values)
     : task(&task)
     , registry(nullptr)
     , id(StateID::no_state)
@@ -62,7 +62,7 @@ void State::apply_axioms(std::vector<int>& values) const
 {
     if (task->get_num_axioms() > 0) {
         AxiomEvaluator& axiom_evaluator =
-            g_axiom_evaluators[TaskBaseProxy(*task)];
+            g_axiom_evaluators[PlanningTaskProxy(*task)];
         axiom_evaluator.evaluate(values);
     }
 }

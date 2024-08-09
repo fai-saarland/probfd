@@ -15,7 +15,7 @@ inline bool is_applicable(const AxiomOrOperatorProxy& op, const State& state)
     return true;
 }
 
-inline bool is_applicable(const OperatorLightProxy& op, const State& state)
+inline bool is_applicable(const PartialOperatorProxy& op, const State& state)
 {
     for (FactProxy precondition : op.get_preconditions()) {
         if (state[precondition.get_variable()] != precondition) return false;
@@ -23,7 +23,7 @@ inline bool is_applicable(const OperatorLightProxy& op, const State& state)
     return true;
 }
 
-inline bool is_goal_state(const TaskBaseProxy& task, const State& state)
+inline bool is_goal_state(const PlanningTaskProxy& task, const State& state)
 {
     for (FactProxy goal : task.get_goals()) {
         if (state[goal.get_variable()] != goal) return false;
@@ -39,13 +39,13 @@ inline bool is_goal_state(const TaskBaseProxy& task, const State& state)
 extern bool is_unit_cost(const TaskProxy& task);
 
 // Runtime: O(1)
-extern bool has_axioms(const TaskBaseProxy& task);
+extern bool has_axioms(const PlanningTaskProxy& task);
 
 /*
   Report an error and exit with ExitCode::UNSUPPORTED if the task has axioms.
   Runtime: O(1)
 */
-extern void verify_no_axioms(const TaskBaseProxy& task);
+extern void verify_no_axioms(const PlanningTaskProxy& task);
 
 // Runtime: O(n), where n is the number of operators.
 extern bool has_conditional_effects(const TaskProxy& task);
@@ -65,7 +65,7 @@ extern int get_min_operator_cost(const TaskProxy& task_proxy);
   Return the number of facts of the task.
   Runtime: O(n), where n is the number of state variables.
 */
-extern int get_num_facts(const TaskBaseProxy& task_proxy);
+extern int get_num_facts(const PlanningTaskProxy& task_proxy);
 
 /*
   Return the total number of effects of the task, including the
@@ -85,7 +85,7 @@ std::vector<FactPair> get_fact_pairs(const FactProxyCollection& facts)
     return fact_pairs;
 }
 
-extern void print_variable_statistics(const TaskBaseProxy& task_proxy);
+extern void print_variable_statistics(const PlanningTaskProxy& task_proxy);
 extern void dump_pddl(const State& state);
 extern void dump_fdr(const State& state);
 extern void dump_goals(const GoalsProxy& goals);

@@ -100,9 +100,9 @@ public:
 
     void convert_ancestor_state_values(
         std::vector<int>&,
-        const AbstractTaskBase* ancestor_task) const final;
+        const PlanningTask* ancestor_task) const final;
 
-    int convert_operator_index(int index, const AbstractTaskBase* ancestor_task)
+    int convert_operator_index(int index, const PlanningTask* ancestor_task)
         const final;
 
 private:

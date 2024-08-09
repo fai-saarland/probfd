@@ -22,7 +22,7 @@ using namespace std;
 namespace probfd::cartesian_abstractions {
 
 namespace {
-vector<int> get_domain_sizes(const TaskBaseProxy& task)
+vector<int> get_domain_sizes(const PlanningTaskProxy& task)
 {
     vector<int> domain_sizes;
     for (VariableProxy var : task.get_variables())

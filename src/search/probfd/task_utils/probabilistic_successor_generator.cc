@@ -10,7 +10,7 @@ using namespace std;
 namespace probfd::successor_generator {
 
 ProbabilisticSuccessorGenerator::ProbabilisticSuccessorGenerator(
-    const TaskBaseProxy& task_proxy)
+    const PlanningTaskProxy& task_proxy)
     : root_(ProbabilisticSuccessorGeneratorFactory(task_proxy).create())
 {
 }

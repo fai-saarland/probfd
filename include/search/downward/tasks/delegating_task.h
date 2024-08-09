@@ -61,7 +61,7 @@ public:
     virtual FactPair
     get_operator_effect(int op_index, int eff_index) const override;
     virtual int
-    convert_operator_index(int index, const AbstractTaskBase* ancestor_task)
+    convert_operator_index(int index, const PlanningTask* ancestor_task)
         const final override;
 
     virtual int convert_operator_index_to_parent(int index) const
@@ -76,7 +76,7 @@ public:
 
     virtual void convert_ancestor_state_values(
         std::vector<int>& values,
-        const AbstractTaskBase* ancestor_task) const final override;
+        const PlanningTask* ancestor_task) const final override;
     virtual void convert_state_values_from_parent(std::vector<int>&) const {}
 };
 } // namespace tasks

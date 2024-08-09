@@ -160,7 +160,7 @@ public:
 };
 
 SuccessorGeneratorFactory::SuccessorGeneratorFactory(
-    const TaskBaseProxy& task_proxy)
+    const PlanningTaskProxy& task_proxy)
     : task_proxy(task_proxy)
 {
 }
@@ -285,7 +285,8 @@ SuccessorGeneratorFactory::construct_recursive(int depth, OperatorRange range)
     return construct_fork(std::move(nodes));
 }
 
-static vector<FactPair> build_sorted_precondition(const OperatorLightProxy& op)
+static vector<FactPair>
+build_sorted_precondition(const PartialOperatorProxy& op)
 {
     vector<FactPair> precond;
     precond.reserve(op.get_preconditions().size());
@@ -298,9 +299,9 @@ static vector<FactPair> build_sorted_precondition(const OperatorLightProxy& op)
 
 GeneratorPtr SuccessorGeneratorFactory::create()
 {
-    OperatorsLightProxy operators = task_proxy.get_light_operators();
+    PartialOperatorsProxy operators = task_proxy.get_partial_operators();
     operator_infos.reserve(operators.size());
-    for (OperatorLightProxy op : operators) {
+    for (PartialOperatorProxy op : operators) {
         operator_infos.emplace_back(
             OperatorID(op.get_id()),
             build_sorted_precondition(op));

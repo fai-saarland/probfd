@@ -9,7 +9,7 @@
 #include <vector>
 
 // Forward Declarations
-class AbstractTaskBase;
+class PlanningTask;
 
 namespace additive_heuristic {
 class AdditiveHeuristic;
@@ -113,7 +113,7 @@ public:
 
 // Compare the h^add(s_0) values of the facts.
 class SplitSelectorHAdd {
-    const std::shared_ptr<AbstractTaskBase> task_;
+    const std::shared_ptr<PlanningTask> task_;
     const ProbabilisticTaskProxy task_proxy_;
     std::unique_ptr<additive_heuristic::AdditiveHeuristic> additive_heuristic_;
 

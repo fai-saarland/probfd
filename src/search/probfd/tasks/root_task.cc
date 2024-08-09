@@ -187,9 +187,9 @@ public:
 
     void convert_ancestor_state_values(
         vector<int>& values,
-        const AbstractTaskBase* ancestor_task) const override;
+        const PlanningTask* ancestor_task) const override;
 
-    int convert_operator_index(int index, const AbstractTaskBase* ancestor_task)
+    int convert_operator_index(int index, const PlanningTask* ancestor_task)
         const override;
 };
 
@@ -604,7 +604,8 @@ RootTask::RootTask(std::istream& in)
       HACK: We use a TaskProxy to access g_axiom_evaluators here which
       assumes that this task is completely constructed.
     */
-    AxiomEvaluator& axiom_evaluator = g_axiom_evaluators[TaskBaseProxy(*this)];
+    AxiomEvaluator& axiom_evaluator =
+        g_axiom_evaluators[PlanningTaskProxy(*this)];
     axiom_evaluator.evaluate(initial_state_values);
 }
 
@@ -836,7 +837,7 @@ vector<int> RootTask::get_initial_state_values() const
 
 void RootTask::convert_ancestor_state_values(
     vector<int>&,
-    const AbstractTaskBase* ancestor_task) const
+    const PlanningTask* ancestor_task) const
 {
     if (this != ancestor_task) {
         ABORT("Invalid state conversion");
@@ -845,7 +846,7 @@ void RootTask::convert_ancestor_state_values(
 
 int RootTask::convert_operator_index(
     int index,
-    const AbstractTaskBase* ancestor_task) const
+    const PlanningTask* ancestor_task) const
 {
     if (this != ancestor_task) {
         ABORT("Invalid operator ID conversion");

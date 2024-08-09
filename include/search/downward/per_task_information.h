@@ -21,7 +21,7 @@
 
 */
 template <class Entry>
-class PerTaskInformation : public subscriber::Subscriber<AbstractTaskBase> {
+class PerTaskInformation : public subscriber::Subscriber<PlanningTask> {
     /*
       EntryConstructor is the type of a function that can create objects for
       a given task if the PerTaskInformation is accessed for a task that has no
@@ -31,7 +31,7 @@ class PerTaskInformation : public subscriber::Subscriber<AbstractTaskBase> {
       object.
     */
     using EntryConstructor =
-        std::function<std::unique_ptr<Entry>(const TaskBaseProxy&)>;
+        std::function<std::unique_ptr<Entry>(const PlanningTaskProxy&)>;
     EntryConstructor entry_constructor;
     utils::HashMap<TaskID, std::unique_ptr<Entry>> entries;
 
@@ -39,10 +39,10 @@ public:
     /*
       If no entry_constructor is passed to the PerTaskInformation explicitly,
       we assume the class Entry has a constructor that takes a single
-      TaskBaseProxy parameter.
+      PlanningTaskProxy parameter.
     */
     PerTaskInformation()
-        : entry_constructor([](const TaskBaseProxy& task_proxy) {
+        : entry_constructor([](const PlanningTaskProxy& task_proxy) {
             return std::make_unique<Entry>(task_proxy);
         })
     {
@@ -53,7 +53,7 @@ public:
     {
     }
 
-    Entry& operator[](const TaskBaseProxy& task_proxy)
+    Entry& operator[](const PlanningTaskProxy& task_proxy)
     {
         TaskID id = task_proxy.get_id();
         const auto& it = entries.find(id);
@@ -64,9 +64,9 @@ public:
         return *entries[id];
     }
 
-    virtual void notify_service_destroyed(const AbstractTaskBase* task) override
+    virtual void notify_service_destroyed(const PlanningTask* task) override
     {
-        TaskID id = TaskBaseProxy(*task).get_id();
+        TaskID id = PlanningTaskProxy(*task).get_id();
         entries.erase(id);
     }
 };

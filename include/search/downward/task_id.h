@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <functional>
 
-class AbstractTaskBase;
+class PlanningTask;
 
 /*
   A TaskID uniquely identifies a task (for unordered_maps and comparison)
@@ -16,7 +16,7 @@ class TaskID {
     const std::uintptr_t value;
 
 public:
-    explicit TaskID(const AbstractTaskBase* task)
+    explicit TaskID(const PlanningTask* task)
         : value(reinterpret_cast<uintptr_t>(task))
     {
     }

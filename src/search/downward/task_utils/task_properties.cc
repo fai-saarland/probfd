@@ -21,12 +21,12 @@ bool is_unit_cost(const TaskProxy& task)
     return true;
 }
 
-bool has_axioms(const TaskBaseProxy& task)
+bool has_axioms(const PlanningTaskProxy& task)
 {
     return !task.get_axioms().empty();
 }
 
-void verify_no_axioms(const TaskBaseProxy& task)
+void verify_no_axioms(const PlanningTaskProxy& task)
 {
     if (has_axioms(task)) {
         cerr << "This configuration does not support axioms!" << endl
@@ -90,7 +90,7 @@ int get_min_operator_cost(const TaskProxy& task_proxy)
     return min_cost;
 }
 
-int get_num_facts(const TaskBaseProxy& task_proxy)
+int get_num_facts(const PlanningTaskProxy& task_proxy)
 {
     int num_facts = 0;
     for (VariableProxy var : task_proxy.get_variables())
@@ -107,7 +107,7 @@ int get_num_total_effects(const TaskProxy& task_proxy)
     return num_effects;
 }
 
-void print_variable_statistics(const TaskBaseProxy& task_proxy)
+void print_variable_statistics(const PlanningTaskProxy& task_proxy)
 {
     const int_packer::IntPacker& state_packer = g_state_packers[task_proxy];
 
@@ -180,7 +180,7 @@ void dump_task(const TaskProxy& task_proxy)
 }
 
 PerTaskInformation<int_packer::IntPacker>
-    g_state_packers([](const TaskBaseProxy& task_proxy) {
+    g_state_packers([](const PlanningTaskProxy& task_proxy) {
         VariablesProxy variables = task_proxy.get_variables();
         vector<int> variable_ranges;
         variable_ranges.reserve(variables.size());

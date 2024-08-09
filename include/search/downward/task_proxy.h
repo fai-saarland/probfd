@@ -35,11 +35,11 @@ class OperatorEffectConditionsProxy;
 class OperatorEffectsProxy;
 class OperatorProxy;
 class OperatorsProxy;
-class OperatorsLightProxy;
+class PartialOperatorsProxy;
 class PreconditionsProxy;
 class State;
 class StateRegistry;
-class TaskBaseProxy;
+class PlanningTaskProxy;
 class TaskProxy;
 class VariableProxy;
 class VariablesProxy;
@@ -103,9 +103,7 @@ using PackedStateBin = int_packer::IntPacker::Bin;
 template <typename T>
 concept SizedSubscriptable = requires(const T c, std::size_t s) {
     c.operator[](s);
-    {
-        c.size()
-    } -> std::convertible_to<std::size_t>;
+    { c.size() } -> std::convertible_to<std::size_t>;
 };
 
 template <SizedSubscriptable T>
@@ -232,12 +230,12 @@ public:
 };
 
 class FactProxy {
-    const AbstractTaskBase* task;
+    const PlanningTask* task;
     FactPair fact;
 
 public:
-    FactProxy(const AbstractTaskBase& task, int var_id, int value);
-    FactProxy(const AbstractTaskBase& task, const FactPair& fact);
+    FactProxy(const PlanningTask& task, int var_id, int value);
+    FactProxy(const PlanningTask& task, const FactPair& fact);
     ~FactProxy() = default;
 
     VariableProxy get_variable() const;
@@ -263,12 +261,12 @@ public:
 };
 
 class FactsProxyIterator {
-    const AbstractTaskBase* task;
+    const PlanningTask* task;
     int var_id;
     int value;
 
 public:
-    FactsProxyIterator(const AbstractTaskBase& task, int var_id, int value)
+    FactsProxyIterator(const PlanningTask& task, int var_id, int value)
         : task(&task)
         , var_id(var_id)
         , value(value)
@@ -313,10 +311,10 @@ public:
   order of increasing value for each variable.
 */
 class FactsProxy {
-    const AbstractTaskBase* task;
+    const PlanningTask* task;
 
 public:
-    explicit FactsProxy(const AbstractTaskBase& task)
+    explicit FactsProxy(const PlanningTask& task)
         : task(&task)
     {
     }
@@ -331,11 +329,11 @@ public:
 };
 
 class VariableProxy {
-    const AbstractTaskBase* task;
+    const PlanningTask* task;
     int id;
 
 public:
-    VariableProxy(const AbstractTaskBase& task, int id)
+    VariableProxy(const PlanningTask& task, int id)
         : task(&task)
         , id(id)
     {
@@ -391,10 +389,10 @@ public:
 };
 
 class VariablesProxy : public ProxyCollection<VariablesProxy> {
-    const AbstractTaskBase* task;
+    const PlanningTask* task;
 
 public:
-    explicit VariablesProxy(const AbstractTaskBase& task)
+    explicit VariablesProxy(const PlanningTask& task)
         : task(&task)
     {
     }
@@ -413,11 +411,11 @@ public:
 
 class AxiomPreconditionsProxy
     : public ProxyCollection<AxiomPreconditionsProxy> {
-    const AbstractTaskBase* task;
+    const PlanningTask* task;
     int axiom_index;
 
 public:
-    AxiomPreconditionsProxy(const AbstractTaskBase& task, int axiom_index)
+    AxiomPreconditionsProxy(const PlanningTask& task, int axiom_index)
         : task(&task)
         , axiom_index(axiom_index)
     {
@@ -439,11 +437,11 @@ public:
 
 class OperatorPreconditionsProxy
     : public ProxyCollection<OperatorPreconditionsProxy> {
-    const AbstractTaskBase* task;
+    const PlanningTask* task;
     int op_index;
 
 public:
-    OperatorPreconditionsProxy(const AbstractTaskBase& task, int op_index)
+    OperatorPreconditionsProxy(const PlanningTask& task, int op_index)
         : task(&task)
         , op_index(op_index)
     {
@@ -494,13 +492,13 @@ public:
 
 class AxiomEffectConditionsProxy
     : public ProxyCollection<AxiomEffectConditionsProxy> {
-    const AbstractTaskBase* task;
+    const PlanningTask* task;
     int axiom_index;
     int eff_index;
 
 public:
     AxiomEffectConditionsProxy(
-        const AbstractTaskBase& task,
+        const PlanningTask& task,
         int axiom_index,
         int eff_index)
         : task(&task)
@@ -585,15 +583,12 @@ public:
 };
 
 class AxiomEffectProxy {
-    const AbstractTaskBase* task;
+    const PlanningTask* task;
     int axiom_index;
     int eff_index;
 
 public:
-    AxiomEffectProxy(
-        const AbstractTaskBase& task,
-        int axiom_index,
-        int eff_index)
+    AxiomEffectProxy(const PlanningTask& task, int axiom_index, int eff_index)
         : task(&task)
         , axiom_index(axiom_index)
         , eff_index(eff_index)
@@ -667,11 +662,11 @@ public:
 };
 
 class AxiomEffectsProxy : public ProxyCollection<AxiomEffectsProxy> {
-    const AbstractTaskBase* task;
+    const PlanningTask* task;
     int op_index;
 
 public:
-    AxiomEffectsProxy(const AbstractTaskBase& task, int op_index)
+    AxiomEffectsProxy(const PlanningTask& task, int op_index)
         : task(&task)
         , op_index(op_index)
     {
@@ -739,11 +734,11 @@ public:
 };
 
 class AxiomProxy {
-    const AbstractTaskBase* task;
+    const PlanningTask* task;
     int index;
 
 public:
-    AxiomProxy(const AbstractTaskBase& task, int index)
+    AxiomProxy(const PlanningTask& task, int index)
         : task(&task)
         , index(index)
     {
@@ -774,27 +769,16 @@ public:
     int get_id() const { return index; }
 };
 
-class OperatorLightProxy {
+class PartialOperatorProxy {
 protected:
-    const AbstractTaskBase* task;
+    const PlanningTask* task;
     int index;
 
 public:
-    OperatorLightProxy(const AbstractTaskBase& task, int index)
+    PartialOperatorProxy(const PlanningTask& task, int index)
         : task(&task)
         , index(index)
     {
-    }
-
-    bool operator==(const OperatorLightProxy& other) const
-    {
-        assert(task == other.task);
-        return index == other.index;
-    }
-
-    bool operator!=(const OperatorLightProxy& other) const
-    {
-        return !(*this == other);
     }
 
     OperatorPreconditionsProxy get_preconditions() const
@@ -811,17 +795,24 @@ public:
       live in a class that handles the task transformation and known about both
       the original and the transformed task.
     */
-    OperatorID
-    get_ancestor_operator_id(const AbstractTaskBase* ancestor_task) const
+    OperatorID get_ancestor_operator_id(const PlanningTask* ancestor_task) const
     {
         return OperatorID(task->convert_operator_index(index, ancestor_task));
     }
+
+    friend bool operator==(
+        const PartialOperatorProxy& left,
+        const PartialOperatorProxy& right)
+    {
+        assert(left.task == right.task);
+        return left.index == right.index;
+    }
 };
 
-class OperatorProxy : public OperatorLightProxy {
+class OperatorProxy : public PartialOperatorProxy {
 public:
     OperatorProxy(const AbstractTask& task, int index)
-        : OperatorLightProxy(task, index)
+        : PartialOperatorProxy(task, index)
     {
     }
 
@@ -913,10 +904,10 @@ public:
 };
 
 class AxiomsProxy : public ProxyCollection<AxiomsProxy> {
-    const AbstractTaskBase* task;
+    const PlanningTask* task;
 
 public:
-    explicit AxiomsProxy(const AbstractTaskBase& task)
+    explicit AxiomsProxy(const PlanningTask& task)
         : task(&task)
     {
     }
@@ -953,34 +944,34 @@ public:
     }
 };
 
-class OperatorsLightProxy : public ProxyCollection<OperatorsLightProxy> {
-    const AbstractTaskBase* task;
+class PartialOperatorsProxy : public ProxyCollection<PartialOperatorsProxy> {
+    const PlanningTask* task;
 
 public:
-    explicit OperatorsLightProxy(const AbstractTaskBase& task)
+    explicit PartialOperatorsProxy(const PlanningTask& task)
         : task(&task)
     {
     }
 
     std::size_t size() const { return task->get_num_operators(); }
 
-    OperatorLightProxy operator[](std::size_t index) const
+    PartialOperatorProxy operator[](std::size_t index) const
     {
         assert(index < size());
-        return OperatorLightProxy(*task, index);
+        return PartialOperatorProxy(*task, index);
     }
 
-    OperatorLightProxy operator[](OperatorID id) const
+    PartialOperatorProxy operator[](OperatorID id) const
     {
         return (*this)[id.get_index()];
     }
 };
 
 class GoalsProxy : public ProxyCollection<GoalsProxy> {
-    const AbstractTaskBase* task;
+    const PlanningTask* task;
 
 public:
-    explicit GoalsProxy(const AbstractTaskBase& task)
+    explicit GoalsProxy(const PlanningTask& task)
         : task(&task)
     {
     }
@@ -1008,7 +999,7 @@ class State : public ProxyCollection<State> {
       a 4-byte gap at the end of the object. But it would probably be nice to
       have fewer attributes regardless.
     */
-    const AbstractTaskBase* task;
+    const PlanningTask* task;
     const StateRegistry* registry;
     StateID id;
     const PackedStateBin* buffer;
@@ -1029,19 +1020,19 @@ class State : public ProxyCollection<State> {
 public:
     // Construct a registered state with only packed data.
     State(
-        const AbstractTaskBase& task,
+        const PlanningTask& task,
         const StateRegistry& registry,
         StateID id,
         const PackedStateBin* buffer);
     // Construct a registered state with packed and unpacked data.
     State(
-        const AbstractTaskBase& task,
+        const PlanningTask& task,
         const StateRegistry& registry,
         StateID id,
         const PackedStateBin* buffer,
         std::vector<int>&& values);
     // Construct a state with only unpacked data.
-    State(const AbstractTaskBase& task, std::vector<int>&& values);
+    State(const PlanningTask& task, std::vector<int>&& values);
 
     bool operator==(const State& other) const;
     bool operator!=(const State& other) const;
@@ -1054,7 +1045,7 @@ public:
     FactProxy operator[](std::size_t var_id) const;
     FactProxy operator[](VariableProxy var) const;
 
-    TaskBaseProxy get_task() const;
+    PlanningTaskProxy get_task() const;
 
     /* Return a pointer to the registry in which this state is registered.
        If the state is not registered, return nullptr. */
@@ -1119,19 +1110,19 @@ inline void feed(HashState& hash_state, const State& state)
 }
 } // namespace utils
 
-class TaskBaseProxy {
+class PlanningTaskProxy {
 protected:
-    const AbstractTaskBase* task;
+    const PlanningTask* task;
 
 public:
-    explicit TaskBaseProxy(const AbstractTaskBase& task)
+    explicit PlanningTaskProxy(const PlanningTask& task)
         : task(&task)
     {
     }
-    ~TaskBaseProxy() = default;
+    ~PlanningTaskProxy() = default;
 
     void subscribe_to_task_destruction(
-        subscriber::Subscriber<AbstractTaskBase>* subscriber) const
+        subscriber::Subscriber<PlanningTask>* subscriber) const
     {
         task->subscribe(subscriber);
     }
@@ -1140,9 +1131,9 @@ public:
 
     VariablesProxy get_variables() const { return VariablesProxy(*task); }
 
-    OperatorsLightProxy get_light_operators() const
+    PartialOperatorsProxy get_partial_operators() const
     {
-        return OperatorsLightProxy(*task);
+        return PartialOperatorsProxy(*task);
     }
 
     AxiomsProxy get_axioms() const { return AxiomsProxy(*task); }
@@ -1191,7 +1182,7 @@ public:
     */
     State convert_ancestor_state(const State& ancestor_state) const
     {
-        TaskBaseProxy ancestor_task_proxy = ancestor_state.get_task();
+        PlanningTaskProxy ancestor_task_proxy = ancestor_state.get_task();
         // Create a copy of the state values for the new state.
         ancestor_state.unpack();
         std::vector<int> state_values = ancestor_state.get_unpacked_values();
@@ -1204,10 +1195,10 @@ public:
     explicit operator TaskProxy() const;
 };
 
-class TaskProxy : public TaskBaseProxy {
+class TaskProxy : public PlanningTaskProxy {
 public:
     explicit TaskProxy(const AbstractTask& task)
-        : TaskBaseProxy(task)
+        : PlanningTaskProxy(task)
     {
     }
     ~TaskProxy() = default;
@@ -1220,12 +1211,12 @@ public:
     const causal_graph::CausalGraph& get_causal_graph() const;
 };
 
-inline TaskBaseProxy::operator TaskProxy() const
+inline PlanningTaskProxy::operator TaskProxy() const
 {
     return TaskProxy(*static_cast<const AbstractTask*>(task));
 }
 
-inline FactProxy::FactProxy(const AbstractTaskBase& task, const FactPair& fact)
+inline FactProxy::FactProxy(const PlanningTask& task, const FactPair& fact)
     : task(&task)
     , fact(fact)
 {
@@ -1233,7 +1224,7 @@ inline FactProxy::FactProxy(const AbstractTaskBase& task, const FactPair& fact)
     assert(fact.value >= 0 && fact.value < get_variable().get_domain_size());
 }
 
-inline FactProxy::FactProxy(const AbstractTaskBase& task, int var_id, int value)
+inline FactProxy::FactProxy(const PlanningTask& task, int var_id, int value)
     : FactProxy(task, FactPair(var_id, value))
 {
 }
@@ -1322,9 +1313,9 @@ inline FactProxy State::operator[](VariableProxy var) const
     return (*this)[var.get_id()];
 }
 
-inline TaskBaseProxy State::get_task() const
+inline PlanningTaskProxy State::get_task() const
 {
-    return TaskBaseProxy(*task);
+    return PlanningTaskProxy(*task);
 }
 
 inline const StateRegistry* State::get_registry() const

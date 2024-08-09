@@ -93,11 +93,10 @@ public:
 
     std::vector<int> get_initial_state_values() const override;
 
-    void
-    convert_ancestor_state_values(std::vector<int>&, const AbstractTaskBase*)
+    void convert_ancestor_state_values(std::vector<int>&, const PlanningTask*)
         const override;
 
-    int convert_operator_index(int, const AbstractTaskBase*) const override;
+    int convert_operator_index(int, const PlanningTask*) const override;
 
     probfd::value_t get_operator_cost(int index) const override;
 

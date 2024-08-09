@@ -55,9 +55,9 @@ public:
 
     void convert_ancestor_state_values(
         std::vector<int>& values,
-        const AbstractTaskBase* ancestor_task) const override;
+        const PlanningTask* ancestor_task) const override;
 
-    int convert_operator_index(int index, const AbstractTaskBase* ancestor_task)
+    int convert_operator_index(int index, const PlanningTask* ancestor_task)
         const override;
 
     int get_num_operator_outcomes(int op_index) const override;

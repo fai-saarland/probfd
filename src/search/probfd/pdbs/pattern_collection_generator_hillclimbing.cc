@@ -32,7 +32,7 @@ using namespace utils;
 
 namespace probfd::pdbs {
 
-static std::vector<int> get_goal_variables(const TaskBaseProxy& task_proxy)
+static std::vector<int> get_goal_variables(const PlanningTaskProxy& task_proxy)
 {
     std::vector<int> goal_vars;
     GoalsProxy goals = task_proxy.get_goals();
@@ -749,8 +749,8 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
 
     if (log_.is_at_least_normal()) {
         log_ << "\n"
-             << "Hill Climbing Generator Statistics:"
-             << "\n  Iterations: " << num_iterations
+             << "Hill Climbing Generator Statistics:" << "\n  Iterations: "
+             << num_iterations
              << "\n  Generated patterns: " << generated_patterns.size()
              << "\n  Rejected patterns: " << num_rejected_
              << "\n  Maximum candidate PDB size: " << max_pdb_size

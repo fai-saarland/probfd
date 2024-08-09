@@ -107,9 +107,9 @@ EvaluationResult Heuristic::compute_result(EvaluationContext& eval_context)
     }
 
 #ifndef NDEBUG
-    TaskBaseProxy global_task_proxy = state.get_task();
-    OperatorsLightProxy global_operators =
-        global_task_proxy.get_light_operators();
+    PlanningTaskProxy global_task_proxy = state.get_task();
+    PartialOperatorsProxy global_operators =
+        global_task_proxy.get_partial_operators();
     if (heuristic != EvaluationResult::INFTY) {
         for (OperatorID op_id : preferred_operators)
             assert(

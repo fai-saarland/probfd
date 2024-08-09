@@ -69,7 +69,7 @@ class AxiomEvaluator {
     void evaluate_aux(Values& values, const Accessor& accessor);
 
 public:
-    explicit AxiomEvaluator(const TaskBaseProxy& task_proxy);
+    explicit AxiomEvaluator(const PlanningTaskProxy& task_proxy);
 
     void evaluate(std::vector<int>& state);
 };

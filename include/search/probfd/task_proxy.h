@@ -254,10 +254,10 @@ public:
 };
 
 /// Proxy class used to inspect a single probabilistic operator.
-class ProbabilisticOperatorProxy : public OperatorLightProxy {
+class ProbabilisticOperatorProxy : public PartialOperatorProxy {
 public:
     ProbabilisticOperatorProxy(const ProbabilisticTask& task, int index)
-        : OperatorLightProxy(task, index)
+        : PartialOperatorProxy(task, index)
     {
     }
 
@@ -326,10 +326,10 @@ public:
 };
 
 /// Proxy class used to inspect a probabilistic planning task.
-class ProbabilisticTaskProxy : public TaskBaseProxy {
+class ProbabilisticTaskProxy : public PlanningTaskProxy {
 public:
     explicit ProbabilisticTaskProxy(const ProbabilisticTask& task)
-        : TaskBaseProxy(task)
+        : PlanningTaskProxy(task)
     {
     }
 

@@ -50,7 +50,7 @@ public:
         const shared_ptr<ProbabilisticTask>& task)
         : hadd(create_additive_heuristic(task))
     {
-        TaskBaseProxy task_proxy(*task);
+        PlanningTaskProxy task_proxy(*task);
         hadd->compute_heuristic_for_cegar(task_proxy.get_initial_state());
     }
 
@@ -62,7 +62,7 @@ public:
 } // namespace
 
 static void
-remove_initial_state_facts(const TaskBaseProxy& task_proxy, Facts& facts)
+remove_initial_state_facts(const PlanningTaskProxy& task_proxy, Facts& facts)
 {
     State initial_state = task_proxy.get_initial_state();
     std::erase_if(facts, [&](FactPair fact) {

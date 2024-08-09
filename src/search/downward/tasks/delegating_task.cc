@@ -146,7 +146,7 @@ FactPair DelegatingTask::get_operator_effect(int op_index, int eff_index) const
 
 int DelegatingTask::convert_operator_index(
     int index,
-    const AbstractTaskBase* ancestor_task) const
+    const PlanningTask* ancestor_task) const
 {
     if (ancestor_task == this) {
         return index;
@@ -172,7 +172,7 @@ vector<int> DelegatingTask::get_initial_state_values() const
 
 void DelegatingTask::convert_ancestor_state_values(
     vector<int>& values,
-    const AbstractTaskBase* ancestor_task) const
+    const PlanningTask* ancestor_task) const
 {
     if (this == ancestor_task) {
         return;

@@ -91,7 +91,7 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
         const auto op = operators[transition->op_id];
 
         // Check for operator applicability
-        if (!::task_properties::is_applicable(op, state)) {
+        if (!task_properties::is_applicable(op, state)) {
             if (log.is_at_least_debug())
                 log << "Operator not applicable: " << op.get_name() << endl;
             state.unpack();

@@ -134,7 +134,7 @@ vector<int> DelegatingTask::get_initial_state_values() const
 
 void DelegatingTask::convert_ancestor_state_values(
     vector<int>& values,
-    const AbstractTaskBase* ancestor_task) const
+    const PlanningTask* ancestor_task) const
 {
     if (this == ancestor_task) {
         return;
@@ -145,7 +145,7 @@ void DelegatingTask::convert_ancestor_state_values(
 
 int DelegatingTask::convert_operator_index(
     int index,
-    const AbstractTaskBase* ancestor_task) const
+    const PlanningTask* ancestor_task) const
 {
     if (ancestor_task == this) {
         return index;

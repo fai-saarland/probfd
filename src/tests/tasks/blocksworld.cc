@@ -371,12 +371,12 @@ std::vector<int> BlocksworldTask::get_initial_state_values() const
 
 void BlocksworldTask::convert_ancestor_state_values(
     std::vector<int>&,
-    const AbstractTaskBase*) const
+    const PlanningTask*) const
 {
     abort();
 }
 
-int BlocksworldTask::convert_operator_index(int, const AbstractTaskBase*) const
+int BlocksworldTask::convert_operator_index(int, const PlanningTask*) const
 {
     abort();
 }
