@@ -17,10 +17,7 @@
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/math.h"
-#include "downward/utils/rng_options.h"
 #include "downward/utils/timer.h"
-
-#include "downward/plugins/plugin.h"
 
 #include <algorithm>
 #include <cassert>
@@ -395,7 +392,7 @@ PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
     int min_improvement,
     double max_time,
     int search_space_max_size,
-    int random_seed,
+    std::shared_ptr<utils::RandomNumberGenerator> rng,
     utils::Verbosity verbosity)
     : PatternCollectionGenerator(verbosity)
     , initial_generator_(std::move(initial_generator))
@@ -405,7 +402,7 @@ PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
     , num_samples_(num_samples)
     , min_improvement_(min_improvement)
     , max_time_(max_time)
-    , rng_(utils::get_rng(random_seed))
+    , rng_(std::move(rng))
     , remaining_states_(search_space_max_size)
     , num_rejected_(0)
 {
@@ -807,107 +804,5 @@ PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(
 
     return pci;
 }
-
-static void add_hillclimbing_options(plugins::Feature& feature)
-{
-    feature.add_option<std::shared_ptr<PatternCollectionGenerator>>(
-        "initial_generator",
-        "generator for the initial pattern database ",
-        "psystematic(pattern_max_size=1)");
-
-    feature.add_option<std::shared_ptr<SubCollectionFinderFactory>>(
-        "subcollection_finder_factory",
-        "The subcollection finder factory.",
-        "finder_trivial_factory()");
-
-    feature.add_option<int>(
-        "pdb_max_size",
-        "maximal number of states per pattern database ",
-        "2M",
-        plugins::Bounds("1", "infinity"));
-    feature.add_option<int>(
-        "collection_max_size",
-        "maximal number of states in the pattern collection",
-        "10M",
-        plugins::Bounds("1", "infinity"));
-    feature.add_option<int>(
-        "search_space_max_size",
-        "maximal number of states in the pattern search space",
-        "30M",
-        plugins::Bounds("1", "infinity"));
-    feature.add_option<int>(
-        "num_samples",
-        "number of samples (random states) on which to evaluate each "
-        "candidate pattern collection",
-        "1000",
-        plugins::Bounds("1", "infinity"));
-    feature.add_option<int>(
-        "min_improvement",
-        "minimum number of samples on which a candidate pattern "
-        "collection must improve on the current one to be considered "
-        "as the next pattern collection ",
-        "10",
-        plugins::Bounds("1", "infinity"));
-    feature.add_option<double>(
-        "max_time",
-        "maximum time in seconds for improving the initial pattern "
-        "collection via hill climbing. If set to 0, no hill climbing "
-        "is performed at all. Note that this limit only affects hill "
-        "climbing. Use max_time_dominance_pruning to limit the time "
-        "spent for pruning dominated patterns.",
-        "infinity",
-        plugins::Bounds("0.0", "infinity"));
-
-    utils::add_rng_options_to_feature(feature);
-    add_pattern_collection_generator_options_to_feature(feature);
-}
-
-static void check_hillclimbing_options(
-    const plugins::Options& opts,
-    const utils::Context& context)
-{
-    if (opts.get<int>("min_improvement") > opts.get<int>("num_samples")) {
-        context.error(
-            "Minimum improvement must not be higher than number of samples");
-    }
-}
-
-class PatternCollectionGeneratorHillclimbingFeature
-    : public plugins::TypedFeature<
-          PatternCollectionGenerator,
-          PatternCollectionGeneratorHillclimbing> {
-public:
-    PatternCollectionGeneratorHillclimbingFeature()
-        : TypedFeature("hillclimbing_probabilistic")
-    {
-        add_hillclimbing_options(*this);
-    }
-
-    [[nodiscard]]
-    std::shared_ptr<PatternCollectionGeneratorHillclimbing> create_component(
-        const plugins::Options& opts,
-        const utils::Context& context) const override
-    {
-        check_hillclimbing_options(opts, context);
-
-        return plugins::make_shared_from_arg_tuples<
-            PatternCollectionGeneratorHillclimbing>(
-            opts.get<std::shared_ptr<PatternCollectionGenerator>>(
-                "initial_generator"),
-            opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
-                "subcollection_finder_factory"),
-            opts.get<int>("pdb_max_size"),
-            opts.get<int>("collection_max_size"),
-            opts.get<int>("search_space_max_size"),
-            opts.get<int>("num_samples"),
-            opts.get<int>("min_improvement"),
-            opts.get<double>("max_time"),
-            utils::get_rng_arguments_from_options(opts),
-            get_collection_generator_arguments_from_options(opts));
-    }
-};
-
-static plugins::FeaturePlugin<PatternCollectionGeneratorHillclimbingFeature>
-    _plugin;
 
 } // namespace probfd::pdbs

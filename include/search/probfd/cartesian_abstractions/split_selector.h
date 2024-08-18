@@ -174,7 +174,8 @@ class SplitSelectorRandomFactory : public SplitSelectorFactory {
     std::shared_ptr<utils::RandomNumberGenerator> rng_;
 
 public:
-    explicit SplitSelectorRandomFactory(int random_seed);
+    explicit SplitSelectorRandomFactory(
+        std::shared_ptr<utils::RandomNumberGenerator> rng);
 
     std::unique_ptr<SplitSelector> create_split_selector(
         const std::shared_ptr<ProbabilisticTask>& task) override;

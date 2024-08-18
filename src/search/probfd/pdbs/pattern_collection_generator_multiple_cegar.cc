@@ -8,8 +8,6 @@
 
 #include "probfd/task_proxy.h"
 
-#include "downward/plugins/plugin.h"
-
 #include "downward/abstract_task.h"
 #include "downward/utils/countdown_timer.h"
 
@@ -31,7 +29,7 @@ PatternCollectionGeneratorMultipleCegar::
         double blacklist_trigger_percentage,
         bool enable_blacklist_on_stagnation,
         bool use_saturated_costs,
-        int random_seed,
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
         utils::Verbosity verbosity)
     : PatternCollectionGeneratorMultiple(
           max_pdb_size,
@@ -42,7 +40,7 @@ PatternCollectionGeneratorMultipleCegar::
           blacklist_trigger_percentage,
           enable_blacklist_on_stagnation,
           use_saturated_costs,
-          random_seed,
+          std::move(rng),
           "CEGAR",
           verbosity)
     , flaw_strategy_(std::move(flaw_strategy))
@@ -92,37 +90,5 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
 
     return transformation;
 }
-
-class PatternCollectionGeneratorMultipleCegarFeature
-    : public plugins::TypedFeature<
-          PatternCollectionGenerator,
-          PatternCollectionGeneratorMultipleCegar> {
-public:
-    PatternCollectionGeneratorMultipleCegarFeature()
-        : TypedFeature("ppdbs_multiple_cegar")
-    {
-        add_option<std::shared_ptr<cegar::FlawFindingStrategy>>(
-            "flaw_strategy",
-            "strategy used to find flaws in a policy",
-            "pucs_flaw_finder()");
-        add_cegar_wildcard_option_to_feature(*this);
-        add_multiple_options_to_feature(*this);
-    }
-
-    std::shared_ptr<PatternCollectionGeneratorMultipleCegar>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<
-            PatternCollectionGeneratorMultipleCegar>(
-            opts.get<std::shared_ptr<cegar::FlawFindingStrategy>>(
-                "flaw_strategy"),
-            get_cegar_wildcard_arguments_from_options(opts),
-            get_multiple_arguments_from_options(opts));
-    }
-};
-
-static plugins::FeaturePlugin<PatternCollectionGeneratorMultipleCegarFeature>
-    _plugin;
 
 } // namespace probfd::pdbs

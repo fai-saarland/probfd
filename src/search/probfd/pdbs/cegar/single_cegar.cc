@@ -18,8 +18,6 @@
 #include "downward/utils/math.h"
 #include "downward/utils/rng.h"
 
-#include "downward/plugins/plugin.h"
-
 #include <cassert>
 #include <functional>
 #include <ostream>

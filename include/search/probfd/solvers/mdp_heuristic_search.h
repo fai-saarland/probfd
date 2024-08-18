@@ -6,8 +6,6 @@
 #include "probfd/algorithms/fret.h"
 #include "probfd/algorithms/policy_picker.h"
 
-#include "probfd/quotients/quotient_system.h"
-
 #include "probfd/solvers/bisimulation_heuristic_search_algorithm.h"
 
 #include <memory>
@@ -15,58 +13,73 @@
 #include <type_traits>
 #include <utility>
 
-// Forward Declarations
-namespace plugins {
-class Options;
-class Feature;
-} // namespace plugins
+class State;
+class OperatorID;
+
+namespace probfd::quotients {
+template <typename, typename>
+struct QuotientState;
+template <typename>
+struct QuotientAction;
+} // namespace probfd::quotients
+
+namespace probfd::bisimulation {
+enum class QuotientState;
+enum class QuotientAction;
+} // namespace probfd::bisimulation
 
 namespace probfd::solvers {
 
-template <template <typename> typename S, bool Bisimulation, bool Fret>
-using WrappedType = std::conditional_t<
+template <bool Bisimulation, bool Fret>
+using StateType = std::conditional_t<
     Bisimulation,
     std::conditional_t<
         Fret,
-        S<quotients::QuotientAction<bisimulation::QuotientAction>>,
-        S<bisimulation::QuotientAction>>,
+        probfd::quotients::QuotientState<
+            probfd::bisimulation::QuotientState,
+            probfd::bisimulation::QuotientAction>,
+        probfd::bisimulation::QuotientState>,
     std::conditional_t<
         Fret,
-        S<quotients::QuotientAction<OperatorID>>,
-        S<OperatorID>>>;
+        probfd::quotients::QuotientState<State, OperatorID>,
+        State>>;
 
-template <
-    template <typename, typename>
-    typename S,
-    bool Bisimulation,
-    bool Fret>
-using WrappedType2 = std::conditional_t<
+template <bool Bisimulation, bool Fret>
+using ActionType = std::conditional_t<
     Bisimulation,
     std::conditional_t<
         Fret,
-        S<quotients::QuotientState<
-              bisimulation::QuotientState,
-              bisimulation::QuotientAction>,
-          quotients::QuotientAction<bisimulation::QuotientAction>>,
-        S<bisimulation::QuotientState, bisimulation::QuotientAction>>,
+        probfd::quotients::QuotientAction<probfd::bisimulation::QuotientAction>,
+        probfd::bisimulation::QuotientAction>,
     std::conditional_t<
         Fret,
-        S<quotients::QuotientState<State, OperatorID>,
-          quotients::QuotientAction<OperatorID>>,
-        S<State, OperatorID>>>;
+        probfd::quotients::QuotientAction<OperatorID>,
+        OperatorID>>;
 
 template <bool Bisimulation, bool Fret>
 class MDPHeuristicSearchBase : public MDPSolver {
 protected:
+    using PolicyPicker = algorithms::PolicyPicker<
+        StateType<Bisimulation, Fret>,
+        ActionType<Bisimulation, Fret>>;
+
     const bool dual_bounds_;
-    const std::shared_ptr<
-        WrappedType2<algorithms::PolicyPicker, Bisimulation, Fret>>
-        tiebreaker_;
+    const std::shared_ptr<PolicyPicker> tiebreaker_;
 
 public:
-    explicit MDPHeuristicSearchBase(const plugins::Options& opts);
-
-    static void add_options_to_feature(plugins::Feature& feature);
+    MDPHeuristicSearchBase(
+        bool dual_bounds,
+        std::shared_ptr<PolicyPicker> policy,
+        utils::Verbosity verbosity,
+        const std::shared_ptr<TaskCostFunctionFactory>& costs,
+        std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
+        bool cache,
+        const std::shared_ptr<TaskEvaluatorFactory>& eval,
+        std::optional<value_t> report_epsilon,
+        bool report_enabled,
+        double max_time,
+        std::string policy_filename,
+        bool print_fact_names);
 
     void print_additional_statistics() const override;
 
@@ -80,9 +93,19 @@ template <>
 class MDPHeuristicSearch<false, false>
     : public MDPHeuristicSearchBase<false, false> {
 public:
-    explicit MDPHeuristicSearch(const plugins::Options& opts);
-
-    static void add_options_to_feature(plugins::Feature& feature);
+    MDPHeuristicSearch(
+        bool dual_bounds,
+        std::shared_ptr<PolicyPicker> policy,
+        utils::Verbosity verbosity,
+        const std::shared_ptr<TaskCostFunctionFactory>& costs,
+        std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
+        bool cache,
+        const std::shared_ptr<TaskEvaluatorFactory>& eval,
+        std::optional<value_t> report_epsilon,
+        bool report_enabled,
+        double max_time,
+        std::string policy_filename,
+        bool print_fact_names);
 
     std::string get_algorithm_name() const override;
 
@@ -113,9 +136,20 @@ class MDPHeuristicSearch<false, true>
     const bool fret_on_policy_;
 
 public:
-    explicit MDPHeuristicSearch(const plugins::Options& opts);
-
-    static void add_options_to_feature(plugins::Feature& feature);
+    MDPHeuristicSearch(
+        bool fret_on_policy,
+        bool dual_bounds,
+        std::shared_ptr<PolicyPicker> policy,
+        utils::Verbosity verbosity,
+        const std::shared_ptr<TaskCostFunctionFactory>& costs,
+        std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
+        bool cache,
+        const std::shared_ptr<TaskEvaluatorFactory>& eval,
+        std::optional<value_t> report_epsilon,
+        bool report_enabled,
+        double max_time,
+        std::string policy_filename,
+        bool print_fact_names);
 
     std::string get_algorithm_name() const override;
 
@@ -188,9 +222,19 @@ template <>
 class MDPHeuristicSearch<true, false>
     : public MDPHeuristicSearchBase<true, false> {
 public:
-    explicit MDPHeuristicSearch(const plugins::Options& opts);
-
-    static void add_options_to_feature(plugins::Feature& feature);
+    MDPHeuristicSearch(
+        bool dual_bounds,
+        std::shared_ptr<PolicyPicker> policy,
+        utils::Verbosity verbosity,
+        const std::shared_ptr<TaskCostFunctionFactory>& costs,
+        std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
+        bool cache,
+        const std::shared_ptr<TaskEvaluatorFactory>& eval,
+        std::optional<value_t> report_epsilon,
+        bool report_enabled,
+        double max_time,
+        std::string policy_filename,
+        bool print_fact_names);
 
     std::string get_algorithm_name() const override;
 
@@ -222,9 +266,20 @@ class MDPHeuristicSearch<true, true>
     const bool fret_on_policy_;
 
 public:
-    explicit MDPHeuristicSearch(const plugins::Options& opts);
-
-    static void add_options_to_feature(plugins::Feature& feature);
+    MDPHeuristicSearch(
+        bool fret_on_policy,
+        bool dual_bounds,
+        std::shared_ptr<PolicyPicker> policy,
+        utils::Verbosity verbosity,
+        const std::shared_ptr<TaskCostFunctionFactory>& costs,
+        std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
+        bool cache,
+        const std::shared_ptr<TaskEvaluatorFactory>& eval,
+        std::optional<value_t> report_epsilon,
+        bool report_enabled,
+        double max_time,
+        std::string policy_filename,
+        bool print_fact_names);
 
     std::string get_algorithm_name() const override;
 

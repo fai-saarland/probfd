@@ -10,10 +10,6 @@ class PatternCollectionGenerator;
 }
 
 // Forward Declarations
-namespace plugins {
-class Options;
-} // namespace plugins
-
 namespace probfd::pdbs {
 class SubCollectionFinderFactory;
 }

@@ -6,7 +6,6 @@
 
 #include "downward/heuristics/additive_heuristic.h"
 
-#include "downward/plugins/options.h"
 #include "downward/utils/logging.h"
 
 class AbstractTask;

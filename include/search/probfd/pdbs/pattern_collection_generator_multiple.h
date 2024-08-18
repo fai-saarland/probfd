@@ -14,11 +14,6 @@
 // Forward Declarations
 struct FactPair;
 
-namespace plugins {
-class Feature;
-class Options;
-} // namespace plugins
-
 namespace utils {
 class CountdownTimer;
 class RandomNumberGenerator;
@@ -75,24 +70,10 @@ public:
         double blacklist_trigger_percentage,
         bool enable_blacklist_on_stagnation,
         bool use_saturated_costs,
-        int random_seed,
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
         std::string implementation_name,
         utils::Verbosity verbosity);
 };
-
-extern void add_multiple_options_to_feature(plugins::Feature& feature);
-extern std::tuple<
-    int,
-    int,
-    double,
-    double,
-    double,
-    double,
-    bool,
-    bool,
-    int,
-    utils::Verbosity>
-get_multiple_arguments_from_options(const plugins::Options& options);
 
 } // namespace probfd::pdbs
 

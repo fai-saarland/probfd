@@ -2,9 +2,6 @@
 
 #include "downward/utils/logging.h"
 
-#include "downward/plugins/options.h"
-#include "downward/plugins/plugin.h"
-
 #include <ostream>
 #include <utility>
 
@@ -73,9 +70,8 @@ void AdaptiveFlawGenerator::print_statistics(utils::LogProxy& log)
 }
 
 AdaptiveFlawGeneratorFactory::AdaptiveFlawGeneratorFactory(
-    const plugins::Options& opts)
-    : generator_factories_(
-          opts.get_list<std::shared_ptr<FlawGeneratorFactory>>("generators"))
+    std::vector<std::shared_ptr<FlawGeneratorFactory>> generators)
+    : generator_factories_(std::move(generators))
 {
 }
 
@@ -90,21 +86,5 @@ AdaptiveFlawGeneratorFactory::create_flaw_generator()
 
     return std::make_unique<AdaptiveFlawGenerator>(std::move(generators));
 }
-
-class AdaptiveFlawGeneratorFactoryFeature
-    : public plugins::
-          TypedFeature<FlawGeneratorFactory, AdaptiveFlawGeneratorFactory> {
-public:
-    AdaptiveFlawGeneratorFactoryFeature()
-        : TypedFeature("flaws_adaptive")
-    {
-        add_list_option<std::shared_ptr<FlawGeneratorFactory>>(
-            "generators",
-            "The linear hierachy of flaw generators.",
-            "[flaws_astar(), flaws_ilao()]");
-    }
-};
-
-static plugins::FeaturePlugin<AdaptiveFlawGeneratorFactoryFeature> _plugin;
 
 } // namespace probfd::cartesian_abstractions

@@ -3,6 +3,8 @@
 
 #include "probfd/heuristics/task_dependent_heuristic.h"
 
+#include "probfd/task_evaluator_factory.h"
+
 #include <memory>
 #include <vector>
 
@@ -41,6 +43,26 @@ public:
 
 protected:
     value_t evaluate(const State& state) const override;
+};
+
+class SCPHeuristicFactory : public TaskEvaluatorFactory {
+    const std::shared_ptr<probfd::pdbs::PatternCollectionGenerator>
+        pattern_collection_generator_;
+    const SCPHeuristic::OrderingStrategy ordering_;
+    const int random_seed_;
+    const utils::Verbosity verbosity_;
+
+public:
+    SCPHeuristicFactory(
+        std::shared_ptr<probfd::pdbs::PatternCollectionGenerator>
+            pattern_collection_generator,
+        SCPHeuristic::OrderingStrategy ordering,
+        int random_seed,
+        utils::Verbosity verbosity);
+
+    std::unique_ptr<FDREvaluator> create_evaluator(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<FDRCostFunction> task_cost_function) override;
 };
 
 } // namespace probfd::heuristics

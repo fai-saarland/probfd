@@ -13,10 +13,6 @@
 #include <vector>
 
 // Forward Declarations
-namespace plugins {
-class Options;
-}
-
 namespace utils {
 class CountdownTimer;
 class RandomNumberGenerator;
@@ -154,7 +150,7 @@ public:
         int min_improvement,
         double max_time,
         int search_space_max_size,
-        int random_seed,
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
         utils::Verbosity verbosity);
 
     ~PatternCollectionGeneratorHillclimbing() override;

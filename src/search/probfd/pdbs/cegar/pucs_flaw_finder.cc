@@ -16,19 +16,12 @@
 
 #include "downward/state_registry.h"
 
-#include "downward/plugins/plugin.h"
-
 #include <cassert>
 
 using namespace std;
 using namespace utils;
 
 namespace probfd::pdbs::cegar {
-
-PUCSFlawFinder::PUCSFlawFinder(const plugins::Options& opts)
-    : PUCSFlawFinder(opts.get<int>("max_search_states"))
-{
-}
 
 PUCSFlawFinder::PUCSFlawFinder(int max_search_states)
     : max_search_states_(max_search_states)
@@ -146,22 +139,5 @@ std::string PUCSFlawFinder::get_name()
 {
     return "PUCS Flaw Finder";
 }
-
-class PUCSFlawFinderFeature
-    : public plugins::TypedFeature<FlawFindingStrategy, PUCSFlawFinder> {
-public:
-    PUCSFlawFinderFeature()
-        : TypedFeature("pucs_flaw_finder")
-    {
-        add_option<int>(
-            "max_search_states",
-            "Maximal number of generated states after which the flaw search is "
-            "aborted.",
-            "20M",
-            plugins::Bounds("0", "infinity"));
-    }
-};
-
-static plugins::FeaturePlugin<PUCSFlawFinderFeature> _plugin;
 
 } // namespace probfd::pdbs::cegar

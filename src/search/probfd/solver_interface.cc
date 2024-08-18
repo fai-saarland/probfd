@@ -2,8 +2,6 @@
 
 #include "probfd/interval.h"
 
-#include "downward/plugins/plugin.h"
-
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -34,15 +32,5 @@ void SolverInterface::print_initial_state_value(Interval value, int spaces)
     print_value(std::cout, value.upper);
     std::cout << "]" << std::endl;
 }
-
-static class SolverInterfaceCategoryPlugin
-    : public plugins::TypedCategoryPlugin<SolverInterface> {
-public:
-    SolverInterfaceCategoryPlugin()
-        : TypedCategoryPlugin("SolverInterface")
-    {
-        document_synopsis("Represents a generic planning problem solver");
-    }
-} _category_plugin;
 
 } // namespace probfd

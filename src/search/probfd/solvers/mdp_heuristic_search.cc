@@ -1,25 +1,48 @@
+#include "probfd_plugins/naming_conventions.h"
+
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "probfd/plugins/naming_conventions.h"
+#include "probfd/quotients/quotient_system.h"
 
 #include "downward/plugins/plugin.h"
 
 #include <iostream>
 
-namespace probfd::solvers {
-
-using namespace algorithms;
 using namespace plugins;
+
+using namespace probfd::algorithms;
+
+using namespace probfd_plugins;
+
+namespace probfd::solvers {
 
 template <bool Bisimulation, bool Fret>
 MDPHeuristicSearchBase<Bisimulation, Fret>::MDPHeuristicSearchBase(
-    const Options& opts)
-    : MDPSolver(opts)
-    , dual_bounds_(opts.get<bool>("dual_bounds"))
-    , tiebreaker_(
-          opts.get<
-              std::shared_ptr<WrappedType2<PolicyPicker, Bisimulation, Fret>>>(
-              "policy"))
+    bool dual_bounds,
+    std::shared_ptr<PolicyPicker> policy,
+    utils::Verbosity verbosity,
+    const std::shared_ptr<TaskCostFunctionFactory>& costs,
+    std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
+    bool cache,
+    const std::shared_ptr<TaskEvaluatorFactory>& eval,
+    std::optional<value_t> report_epsilon,
+    bool report_enabled,
+    double max_time,
+    std::string policy_filename,
+    bool print_fact_names)
+    : MDPSolver(
+          verbosity,
+          costs,
+          std::move(path_dependent_evaluators),
+          cache,
+          eval,
+          report_epsilon,
+          report_enabled,
+          max_time,
+          policy_filename,
+          print_fact_names)
+    , dual_bounds_(dual_bounds)
+    , tiebreaker_(std::move(policy))
 {
 }
 
@@ -28,21 +51,6 @@ void MDPHeuristicSearchBase<Bisimulation, Fret>::print_additional_statistics()
     const
 {
     tiebreaker_->print_statistics(std::cout);
-}
-
-template <bool Bisimulation, bool Fret>
-void MDPHeuristicSearchBase<Bisimulation, Fret>::add_options_to_feature(
-    Feature& feature)
-{
-    MDPSolver::add_options_to_feature(feature);
-
-    feature.add_option<bool>("dual_bounds", "", "false");
-    feature.add_option<
-        std::shared_ptr<WrappedType2<PolicyPicker, Bisimulation, Fret>>>(
-        "policy",
-        "",
-        add_mdp_type_to_option<Bisimulation, Fret>(
-            "arbitrary_policy_tiebreaker()"));
 }
 
 std::string MDPHeuristicSearch<false, false>::get_algorithm_name() const
@@ -67,53 +75,128 @@ std::string MDPHeuristicSearch<true, true>::get_algorithm_name() const
 {
     std::ostringstream out;
     out << "fret" << (fret_on_policy_ ? "_pi" : "_v") << "("
-        << this->get_heuristic_search_name() << "(bisimulation)"
-        << ")";
+        << this->get_heuristic_search_name() << "(bisimulation)" << ")";
     return out.str();
 }
 
-MDPHeuristicSearch<false, false>::MDPHeuristicSearch(const Options& opts)
-    : MDPHeuristicSearchBase(opts)
+MDPHeuristicSearch<false, false>::MDPHeuristicSearch(
+    bool dual_bounds,
+    std::shared_ptr<PolicyPicker> policy,
+    utils::Verbosity verbosity,
+    const std::shared_ptr<TaskCostFunctionFactory>& costs,
+    std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
+    bool cache,
+    const std::shared_ptr<TaskEvaluatorFactory>& eval,
+    std::optional<value_t> report_epsilon,
+    bool report_enabled,
+    double max_time,
+    std::string policy_filename,
+    bool print_fact_names)
+    : MDPHeuristicSearchBase(
+          dual_bounds,
+          std::move(policy),
+          verbosity,
+          costs,
+          std::move(path_dependent_evaluators),
+          cache,
+          eval,
+          report_epsilon,
+          report_enabled,
+          max_time,
+          std::move(policy_filename),
+          print_fact_names)
 {
 }
 
-MDPHeuristicSearch<false, true>::MDPHeuristicSearch(const Options& opts)
-    : MDPHeuristicSearchBase(opts)
-    , fret_on_policy_(opts.get<bool>("fret_on_policy", false))
+MDPHeuristicSearch<false, true>::MDPHeuristicSearch(
+    bool fret_on_policy,
+    bool dual_bounds,
+    std::shared_ptr<PolicyPicker> policy,
+    utils::Verbosity verbosity,
+    const std::shared_ptr<TaskCostFunctionFactory>& costs,
+    std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
+    bool cache,
+    const std::shared_ptr<TaskEvaluatorFactory>& eval,
+    std::optional<value_t> report_epsilon,
+    bool report_enabled,
+    double max_time,
+    std::string policy_filename,
+    bool print_fact_names)
+    : MDPHeuristicSearchBase(
+          dual_bounds,
+          std::move(policy),
+          verbosity,
+          costs,
+          std::move(path_dependent_evaluators),
+          cache,
+          eval,
+          report_epsilon,
+          report_enabled,
+          max_time,
+          std::move(policy_filename),
+          print_fact_names)
+    , fret_on_policy_(fret_on_policy)
 {
 }
 
-MDPHeuristicSearch<true, false>::MDPHeuristicSearch(const Options& opts)
-    : MDPHeuristicSearchBase(opts)
+MDPHeuristicSearch<true, false>::MDPHeuristicSearch(
+    bool dual_bounds,
+    std::shared_ptr<PolicyPicker> policy,
+    utils::Verbosity verbosity,
+    const std::shared_ptr<TaskCostFunctionFactory>& costs,
+    std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
+    bool cache,
+    const std::shared_ptr<TaskEvaluatorFactory>& eval,
+    std::optional<value_t> report_epsilon,
+    bool report_enabled,
+    double max_time,
+    std::string policy_filename,
+    bool print_fact_names)
+    : MDPHeuristicSearchBase(
+          dual_bounds,
+          std::move(policy),
+          verbosity,
+          costs,
+          std::move(path_dependent_evaluators),
+          cache,
+          eval,
+          report_epsilon,
+          report_enabled,
+          max_time,
+          std::move(policy_filename),
+          print_fact_names)
 {
 }
 
-MDPHeuristicSearch<true, true>::MDPHeuristicSearch(const Options& opts)
-    : MDPHeuristicSearchBase(opts)
-    , fret_on_policy_(opts.get<bool>("fret_on_policy"))
+MDPHeuristicSearch<true, true>::MDPHeuristicSearch(
+    bool fret_on_policy,
+    bool dual_bounds,
+    std::shared_ptr<PolicyPicker> policy,
+    utils::Verbosity verbosity,
+    const std::shared_ptr<TaskCostFunctionFactory>& costs,
+    std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
+    bool cache,
+    const std::shared_ptr<TaskEvaluatorFactory>& eval,
+    std::optional<value_t> report_epsilon,
+    bool report_enabled,
+    double max_time,
+    std::string policy_filename,
+    bool print_fact_names)
+    : MDPHeuristicSearchBase(
+          dual_bounds,
+          std::move(policy),
+          verbosity,
+          costs,
+          std::move(path_dependent_evaluators),
+          cache,
+          eval,
+          report_epsilon,
+          report_enabled,
+          max_time,
+          std::move(policy_filename),
+          print_fact_names)
+    , fret_on_policy_(fret_on_policy)
 {
-}
-
-void MDPHeuristicSearch<false, false>::add_options_to_feature(Feature& feature)
-{
-    MDPHeuristicSearchBase::add_options_to_feature(feature);
-}
-
-void MDPHeuristicSearch<false, true>::add_options_to_feature(Feature& feature)
-{
-    MDPHeuristicSearchBase::add_options_to_feature(feature);
-    feature.add_option<bool>("fret_on_policy", "", "true");
-}
-
-void MDPHeuristicSearch<true, false>::add_options_to_feature(Feature& feature)
-{
-    MDPHeuristicSearchBase::add_options_to_feature(feature);
-}
-
-void MDPHeuristicSearch<true, true>::add_options_to_feature(Feature& feature)
-{
-    MDPHeuristicSearchBase::add_options_to_feature(feature);
-    feature.add_option<bool>("fret_on_policy", "", "true");
 }
 
 } // namespace probfd::solvers

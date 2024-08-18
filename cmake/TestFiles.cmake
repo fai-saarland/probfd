@@ -4,7 +4,7 @@ create_test_library(
     SOURCES
         tests/fp_tests
     DEPENDS
-        mdp
+        probfd_core
         core_probabilistic_tasks
     CORE_LIBRARY
 )
@@ -15,7 +15,7 @@ create_test_library(
     SOURCES
         tests/interval_tests
     DEPENDS
-        mdp
+        probfd_core
         core_probabilistic_tasks
 )
 
@@ -25,7 +25,7 @@ create_test_library(
     SOURCES
         tests/tasks/blocksworld
     DEPENDS
-        mdp
+        probfd_core
         core_probabilistic_tasks
 )
 
@@ -65,5 +65,5 @@ create_test_library(
     DEPENDS
         test_utils
         probability_aware_pdbs
-        mdp
+        probfd_core
 )

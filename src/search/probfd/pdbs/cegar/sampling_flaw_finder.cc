@@ -14,11 +14,8 @@
 #include "probfd/task_proxy.h"
 
 #include "downward/utils/countdown_timer.h"
-#include "downward/utils/rng_options.h"
 
 #include "downward/state_registry.h"
-
-#include "downward/plugins/plugin.h"
 
 #include <cassert>
 #include <utility>
@@ -28,11 +25,6 @@ using namespace utils;
 
 namespace probfd::pdbs::cegar {
 
-SamplingFlawFinder::SamplingFlawFinder(int random_seed, int max_search_states)
-    : SamplingFlawFinder(utils::get_rng(random_seed), max_search_states)
-{
-}
-
 SamplingFlawFinder::SamplingFlawFinder(
     std::shared_ptr<utils::RandomNumberGenerator> rng,
     int max_search_states)
@@ -40,6 +32,8 @@ SamplingFlawFinder::SamplingFlawFinder(
     , max_search_states_(max_search_states)
 {
 }
+
+SamplingFlawFinder::~SamplingFlawFinder() = default;
 
 bool SamplingFlawFinder::apply_policy(
     const ProbabilisticTaskProxy& task_proxy,
@@ -169,32 +163,5 @@ std::string SamplingFlawFinder::get_name()
 {
     return "Sampling Flaw Finder";
 }
-
-class SamplingFlawFinderFeature
-    : public plugins::TypedFeature<FlawFindingStrategy, SamplingFlawFinder> {
-public:
-    SamplingFlawFinderFeature()
-        : TypedFeature("sampling_flaw_finder")
-    {
-        utils::add_rng_options_to_feature(*this);
-        add_option<int>(
-            "max_search_states",
-            "Maximal number of generated states after which the flaw search is "
-            "aborted.",
-            "20M",
-            plugins::Bounds("0", "infinity"));
-    }
-
-    std::shared_ptr<SamplingFlawFinder>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<SamplingFlawFinder>(
-            utils::get_rng_arguments_from_options(opts),
-            opts.get<int>("max_search_states"));
-    }
-};
-
-static plugins::FeaturePlugin<SamplingFlawFinderFeature> _plugin;
 
 } // namespace probfd::pdbs::cegar

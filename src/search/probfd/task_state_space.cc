@@ -29,13 +29,13 @@ TaskStateSpace::TaskStateSpace(
     std::shared_ptr<ProbabilisticTask> task,
     utils::LogProxy log,
     std::shared_ptr<FDRSimpleCostFunction> cost_function,
-    const std::vector<std::shared_ptr<::Evaluator>>& path_dependent_evaluators)
+    std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators)
     : task_proxy_(*task)
     , log_(std::move(log))
     , gen_(task_proxy_)
     , state_registry_(task_proxy_)
     , cost_function_(std::move(cost_function))
-    , notify_(path_dependent_evaluators)
+    , notify_(std::move(path_dependent_evaluators))
 {
 }
 

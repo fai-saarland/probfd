@@ -10,10 +10,6 @@
 // Forward Declarations
 class VariablesProxy;
 
-namespace plugins {
-class Options;
-} // namespace plugins
-
 /// Namespace dedicated to occupation measure heuristics
 namespace probfd::occupation_measures {
 
@@ -49,8 +45,6 @@ class HigherOrderHPOMGenerator : public ConstraintGenerator {
     std::vector<PatternInfo> infos_;
 
 public:
-    explicit HigherOrderHPOMGenerator(const plugins::Options& opts);
-
     explicit HigherOrderHPOMGenerator(int projection_size);
 
     void initialize_constraints(

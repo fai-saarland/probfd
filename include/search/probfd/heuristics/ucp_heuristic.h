@@ -2,6 +2,7 @@
 #define PROBFD_HEURISTICS_UCP_HEURISTIC_H
 
 #include "probfd/heuristics/task_dependent_heuristic.h"
+#include "probfd/task_evaluator_factory.h"
 
 #include <memory>
 #include <vector>
@@ -18,7 +19,7 @@ class UCPHeuristic : public TaskDependentHeuristic {
     std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs_;
 
 public:
-    explicit UCPHeuristic(
+    UCPHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
         std::shared_ptr<FDRCostFunction> task_cost_function,
         utils::LogProxy log,
@@ -33,6 +34,21 @@ public:
 
 protected:
     value_t evaluate(const State& state) const override;
+};
+
+class UCPHeuristicFactory : public TaskEvaluatorFactory {
+    const utils::Verbosity verbosity_;
+    const std::shared_ptr<probfd::pdbs::PatternCollectionGenerator>
+        pattern_collection_generator_;
+
+public:
+    UCPHeuristicFactory(
+        utils::Verbosity verbosity,
+        std::shared_ptr<probfd::pdbs::PatternCollectionGenerator> generator);
+
+    std::unique_ptr<FDREvaluator> create_evaluator(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<FDRCostFunction> task_cost_function) override;
 };
 
 } // namespace probfd::heuristics

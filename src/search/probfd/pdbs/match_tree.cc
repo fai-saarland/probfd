@@ -7,11 +7,9 @@
 #include "probfd/transition.h"
 
 #include "downward/abstract_task.h"
-#include "downward/task_proxy.h"
 
 #include <cassert>
 #include <ostream>
-#include <stack>
 #include <utility>
 
 using namespace std;

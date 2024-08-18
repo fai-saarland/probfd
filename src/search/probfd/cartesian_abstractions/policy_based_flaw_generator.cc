@@ -12,25 +12,25 @@
 
 #include "downward/utils/logging.h"
 
-#include "downward/plugins/bounds.h"
-#include "downward/plugins/options.h"
-#include "downward/plugins/plugin.h"
-
 #include <ostream>
 
 using namespace std;
+
 namespace utils {
 class CountdownTimer;
 }
 
 namespace probfd {
 class ProbabilisticTaskProxy;
+}
 
-namespace cartesian_abstractions {
-
+namespace probfd::cartesian_abstractions {
 class AbstractState;
 class Abstraction;
 class CartesianHeuristic;
+} // namespace probfd::cartesian_abstractions
+
+namespace probfd::cartesian_abstractions {
 
 PolicyBasedFlawGenerator::PolicyBasedFlawGenerator(
     PolicyGenerator* policy_generator,
@@ -126,33 +126,4 @@ std::unique_ptr<FlawGenerator> ILAOFlawGeneratorFactory::create_flaw_generator()
         new CompletePolicyFlawFinder(max_search_states_));
 }
 
-class ILAOFlawGeneratorFactoryFeature
-    : public plugins::
-          TypedFeature<FlawGeneratorFactory, ILAOFlawGeneratorFactory> {
-public:
-    ILAOFlawGeneratorFactoryFeature()
-        : TypedFeature("flaws_ilao")
-    {
-        add_option<int>(
-            "max_search_states",
-            "maximum number of concrete states allowed to be generated during "
-            "flaw "
-            "search before giving up",
-            "infinity",
-            plugins::Bounds("1", "infinity"));
-    }
-
-    [[nodiscard]]
-    shared_ptr<ILAOFlawGeneratorFactory>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return make_shared<ILAOFlawGeneratorFactory>(
-            opts.get<int>("max_search_states"));
-    }
-};
-
-static plugins::FeaturePlugin<ILAOFlawGeneratorFactoryFeature> _plugin;
-
-} // namespace cartesian_abstractions
-} // namespace probfd
+} // namespace probfd::cartesian_abstractions

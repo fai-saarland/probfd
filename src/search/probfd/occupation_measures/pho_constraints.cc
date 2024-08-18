@@ -22,12 +22,6 @@ namespace probfd::occupation_measures {
 
 using namespace pdbs;
 
-PHOGenerator::PHOGenerator(const plugins::Options& opts)
-    : PHOGenerator(
-          opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"))
-{
-}
-
 PHOGenerator::PHOGenerator(
     std::shared_ptr<PatternCollectionGenerator> generator)
     : generator_(std::move(generator))

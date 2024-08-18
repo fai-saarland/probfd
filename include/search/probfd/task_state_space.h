@@ -66,8 +66,8 @@ public:
         std::shared_ptr<ProbabilisticTask> task,
         utils::LogProxy log,
         std::shared_ptr<FDRSimpleCostFunction> cost_function,
-        const std::vector<std::shared_ptr<::Evaluator>>&
-            path_dependent_evaluators = {});
+        std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators =
+            {});
 
     StateID get_state_id(const State& state) final;
     State get_state(StateID state_id) final;

@@ -4,6 +4,7 @@
 #include "probfd/pdbs/types.h"
 
 #include "probfd/heuristics/task_dependent_heuristic.h"
+#include "probfd/task_evaluator_factory.h"
 
 #include <memory>
 #include <vector>
@@ -25,7 +26,7 @@ namespace probfd::heuristics {
  *
  * Combines multiple projections heuristics. The type of combination is
  * specified by the configuration of the pattern collection generation
- * algorithms (see options).
+ * algorithm.
  */
 class ProbabilityAwarePDBHeuristic : public TaskDependentHeuristic {
     const value_t termination_cost_;
@@ -43,6 +44,22 @@ public:
         utils::LogProxy log);
 
     value_t evaluate(const State& state) const override;
+};
+
+class ProbabilityAwarePDBHeuristicFactory : public TaskEvaluatorFactory {
+    const std::shared_ptr<probfd::pdbs::PatternCollectionGenerator> patterns_;
+    const double max_time_dominance_pruning_;
+    const utils::Verbosity verbosity_;
+
+public:
+    ProbabilityAwarePDBHeuristicFactory(
+        std::shared_ptr<probfd::pdbs::PatternCollectionGenerator> patterns,
+        double max_time_dominance_pruning,
+        utils::Verbosity verbosity);
+
+    std::unique_ptr<FDREvaluator> create_evaluator(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<FDRCostFunction> task_cost_function) override;
 };
 
 } // namespace probfd::heuristics

@@ -2,14 +2,11 @@
 #define PROBFD_HEURISTICS_OCCUPATION_MEASURE_HEURISTIC_H
 
 #include "probfd/heuristics/lp_heuristic.h"
+#include "probfd/task_evaluator_factory.h"
 
 #include <memory>
 
 // Forward Declarations
-namespace plugins {
-class Options;
-}
-
 namespace probfd::occupation_measures {
 class ConstraintGenerator;
 }
@@ -40,6 +37,24 @@ public:
 private:
     void update_constraints(const State& state) const;
     void reset_constraints(const State& state) const;
+};
+
+class OccupationMeasureHeuristicFactory : public TaskEvaluatorFactory {
+    const utils::Verbosity verbosity_;
+    const lp::LPSolverType lp_solver_type_;
+    const std::shared_ptr<occupation_measures::ConstraintGenerator>
+        constraints_;
+
+public:
+    OccupationMeasureHeuristicFactory(
+        utils::Verbosity verbosity,
+        lp::LPSolverType lp_solver_type,
+        const std::shared_ptr<occupation_measures::ConstraintGenerator>&
+            constraints);
+
+    std::unique_ptr<FDREvaluator> create_evaluator(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<FDRCostFunction> task_cost_function) override;
 };
 
 } // namespace probfd::heuristics

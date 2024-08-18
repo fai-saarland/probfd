@@ -2,6 +2,7 @@
 #define PROBFD_HEURISTICS_CONSTANT_EVALUATOR_H
 
 #include "probfd/evaluator.h"
+#include "probfd/task_evaluator_factory.h"
 #include "probfd/type_traits.h"
 #include "probfd/value_type.h"
 
@@ -43,6 +44,13 @@ public:
         : ConstantEvaluator<State>(0_vt)
     {
     }
+};
+
+class BlindEvaluatorFactory : public TaskEvaluatorFactory {
+public:
+    std::unique_ptr<FDREvaluator> create_evaluator(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<FDRCostFunction> task_cost_function) override;
 };
 
 } // namespace probfd::heuristics

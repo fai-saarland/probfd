@@ -8,8 +8,6 @@
 #include "probfd/task_evaluator_factory.h"
 #include "probfd/value_type.h"
 
-#include "downward/plugins/plugin.h"
-
 #include "downward/task_utils/task_properties.h"
 
 #include <utility>
@@ -44,13 +42,11 @@ public:
         return costs[op.get_index()];
     }
 
-    [[nodiscard]]
     bool is_goal(const State& state) const override
     {
         return ::task_properties::is_goal_state(task_proxy, state);
     }
 
-    [[nodiscard]]
     value_t get_non_goal_termination_cost() const override
     {
         return INFINITE_VALUE;
@@ -110,23 +106,6 @@ value_t UCPHeuristic::evaluate(const State& state) const
     return value;
 }
 
-namespace {
-
-class UCPHeuristicFactory : public TaskEvaluatorFactory {
-    const utils::Verbosity verbosity_;
-    const std::shared_ptr<PatternCollectionGenerator>
-        pattern_collection_generator_;
-
-public:
-    explicit UCPHeuristicFactory(
-        utils::Verbosity verbosity,
-        std::shared_ptr<PatternCollectionGenerator> generator);
-
-    std::unique_ptr<FDREvaluator> create_evaluator(
-        std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function) override;
-};
-
 UCPHeuristicFactory::UCPHeuristicFactory(
     utils::Verbosity verbosity,
     std::shared_ptr<PatternCollectionGenerator> generator)
@@ -145,32 +124,5 @@ std::unique_ptr<FDREvaluator> UCPHeuristicFactory::create_evaluator(
         utils::get_log_for_verbosity(verbosity_),
         pattern_collection_generator_);
 }
-
-class UCPHeuristicFactoryFeature
-    : public plugins::TypedFeature<TaskEvaluatorFactory, UCPHeuristicFactory> {
-public:
-    UCPHeuristicFactoryFeature()
-        : TypedFeature("ucp_heuristic")
-    {
-        add_option<std::shared_ptr<PatternCollectionGenerator>>(
-            "patterns",
-            "The pattern generation algorithm.",
-            "classical_generator(generator=systematic(pattern_max_size=2))");
-        add_task_dependent_heuristic_options_to_feature(*this);
-    }
-
-    std::shared_ptr<UCPHeuristicFactory>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<UCPHeuristicFactory>(
-            get_task_dependent_heuristic_arguments_from_options(opts),
-            opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"));
-    }
-};
-
-} // namespace
-
-static plugins::FeaturePlugin<UCPHeuristicFactoryFeature> _plugin;
 
 } // namespace probfd::heuristics

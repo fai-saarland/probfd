@@ -11,10 +11,6 @@ namespace landmarks {
 class LandmarkGraph;
 }
 
-namespace plugins {
-class Options;
-}
-
 namespace utils {
 class RandomNumberGenerator;
 class LogProxy;

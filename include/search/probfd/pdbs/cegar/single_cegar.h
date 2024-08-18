@@ -14,11 +14,6 @@
 // Forward Declarations
 class VariablesProxy;
 
-namespace plugins {
-class Feature;
-class Options;
-} // namespace plugins
-
 namespace utils {
 class CountdownTimer;
 class LogProxy;
@@ -53,10 +48,6 @@ extern void run_cegar_loop(
     bool wildcard,
     double max_time,
     utils::LogProxy log);
-
-extern void add_cegar_wildcard_option_to_feature(plugins::Feature& feature);
-extern std::tuple<bool>
-get_cegar_wildcard_arguments_from_options(const plugins::Options& opts);
 
 } // namespace probfd::pdbs::cegar
 

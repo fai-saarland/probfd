@@ -144,11 +144,6 @@ int HigherOrderHPOMGenerator::PatternInfo::to_id(
     return id;
 }
 
-HigherOrderHPOMGenerator::HigherOrderHPOMGenerator(const plugins::Options& opts)
-    : HigherOrderHPOMGenerator(opts.get<int>("projection_size"))
-{
-}
-
 HigherOrderHPOMGenerator::HigherOrderHPOMGenerator(int projection_size)
     : projection_size_(projection_size)
 {

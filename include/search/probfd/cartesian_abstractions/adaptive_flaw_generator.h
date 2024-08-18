@@ -15,10 +15,6 @@ class CountdownTimer;
 class LogProxy;
 } // namespace utils
 
-namespace plugins {
-class Options;
-}
-
 namespace probfd {
 class ProbabilisticTaskProxy;
 }
@@ -61,7 +57,8 @@ class AdaptiveFlawGeneratorFactory : public FlawGeneratorFactory {
     std::vector<std::shared_ptr<FlawGeneratorFactory>> generator_factories_;
 
 public:
-    explicit AdaptiveFlawGeneratorFactory(const plugins::Options& opts);
+    explicit AdaptiveFlawGeneratorFactory(
+        std::vector<std::shared_ptr<FlawGeneratorFactory>> generators);
 
     std::unique_ptr<FlawGenerator> create_flaw_generator() override;
 };

@@ -6,13 +6,10 @@
 #include "probfd/pdbs/projection_state_space.h"
 #include "probfd/pdbs/saturation.h"
 
-#include "probfd/task_evaluator_factory.h"
 #include "probfd/value_type.h"
 
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
-
-#include "downward/plugins/plugin.h"
 
 #include "downward/task_utils/task_properties.h"
 
@@ -23,6 +20,31 @@
 using namespace probfd::pdbs;
 
 namespace probfd::heuristics {
+
+SCPHeuristicFactory::SCPHeuristicFactory(
+    std::shared_ptr<PatternCollectionGenerator> pattern_collection_generator,
+    SCPHeuristic::OrderingStrategy ordering,
+    int random_seed,
+    utils::Verbosity verbosity)
+    : pattern_collection_generator_(std::move(pattern_collection_generator))
+    , ordering_(ordering)
+    , random_seed_(random_seed)
+    , verbosity_(verbosity)
+{
+}
+
+std::unique_ptr<FDREvaluator> SCPHeuristicFactory::create_evaluator(
+    std::shared_ptr<ProbabilisticTask> task,
+    std::shared_ptr<FDRCostFunction> task_cost_function)
+{
+    return std::make_unique<SCPHeuristic>(
+        task,
+        task_cost_function,
+        utils::get_log_for_verbosity(verbosity_),
+        pattern_collection_generator_,
+        ordering_,
+        utils::get_rng(random_seed_));
+}
 
 namespace {
 class ExplicitTaskCostFunction : public FDRSimpleCostFunction {
@@ -164,94 +186,5 @@ value_t SCPHeuristic::evaluate(const State& state) const
 
     return value;
 }
-
-namespace {
-
-class SCPHeuristicFactory : public TaskEvaluatorFactory {
-    const std::shared_ptr<PatternCollectionGenerator>
-        pattern_collection_generator_;
-    const SCPHeuristic::OrderingStrategy ordering_;
-    const int random_seed_;
-    const utils::Verbosity verbosity_;
-
-public:
-    SCPHeuristicFactory(
-        std::shared_ptr<PatternCollectionGenerator>
-            pattern_collection_generator,
-        SCPHeuristic::OrderingStrategy ordering,
-        int random_seed,
-        utils::Verbosity verbosity);
-
-    std::unique_ptr<FDREvaluator> create_evaluator(
-        std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function) override;
-};
-
-SCPHeuristicFactory::SCPHeuristicFactory(
-    std::shared_ptr<PatternCollectionGenerator> pattern_collection_generator,
-    SCPHeuristic::OrderingStrategy ordering,
-    int random_seed,
-    utils::Verbosity verbosity)
-    : pattern_collection_generator_(std::move(pattern_collection_generator))
-    , ordering_(ordering)
-    , random_seed_(random_seed)
-    , verbosity_(verbosity)
-{
-}
-
-std::unique_ptr<FDREvaluator> SCPHeuristicFactory::create_evaluator(
-    std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<FDRCostFunction> task_cost_function)
-{
-    return std::make_unique<SCPHeuristic>(
-        task,
-        task_cost_function,
-        utils::get_log_for_verbosity(verbosity_),
-        pattern_collection_generator_,
-        ordering_,
-        utils::get_rng(random_seed_));
-}
-
-class SCPHeuristicFactoryFeature
-    : public plugins::TypedFeature<TaskEvaluatorFactory, SCPHeuristicFactory> {
-public:
-    SCPHeuristicFactoryFeature()
-        : TypedFeature("scp_heuristic")
-    {
-        add_option<std::shared_ptr<PatternCollectionGenerator>>(
-            "patterns",
-            "The pattern generation algorithm.",
-            "classical_generator(generator=systematic(pattern_max_size=2))");
-        add_option<SCPHeuristic::OrderingStrategy>(
-            "order",
-            "The order in which patterns are considered",
-            "random");
-
-        utils::add_rng_options_to_feature(*this);
-        add_task_dependent_heuristic_options_to_feature(*this);
-    }
-
-    std::shared_ptr<SCPHeuristicFactory>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<SCPHeuristicFactory>(
-            opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"),
-            opts.get<SCPHeuristic::OrderingStrategy>("order"),
-            utils::get_rng_arguments_from_options(opts),
-            get_task_dependent_heuristic_arguments_from_options(opts));
-    }
-};
-
-} // namespace
-
-static plugins::FeaturePlugin<SCPHeuristicFactoryFeature> _plugin;
-
-static plugins::TypedEnumPlugin<SCPHeuristic::OrderingStrategy> _enum_plugin(
-    {{"random", "the order is random"},
-     {"size_asc", "orders the PDBs by increasing size"},
-     {"size_desc", "orders the PDBs by decreasing size"},
-     {"inherit",
-      "inherits the order from the underlying pattern generation algorithm"}});
 
 } // namespace probfd::heuristics

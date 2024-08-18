@@ -10,11 +10,6 @@ namespace utils {
 class RandomNumberGenerator;
 }
 
-namespace plugins {
-class Feature;
-class Options;
-} // namespace plugins
-
 namespace probfd::pdbs {
 class SubCollectionFinderFactory;
 }
@@ -43,7 +38,7 @@ public:
         int max_pdb_size,
         int max_collection_size,
         double max_time,
-        int random_seed,
+        std::shared_ptr<utils::RandomNumberGenerator> rng,
         const std::shared_ptr<SubCollectionFinderFactory>&
             subcollection_finder_factory,
         const std::shared_ptr<probfd::pdbs::cegar::FlawFindingStrategy>&
@@ -54,9 +49,6 @@ public:
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
 };
-
-void add_pattern_collection_generator_cegar_options_to_feature(
-    plugins::Feature& feature);
 
 } // namespace probfd::pdbs
 

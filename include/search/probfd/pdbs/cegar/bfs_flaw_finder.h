@@ -14,10 +14,6 @@
 #include <unordered_set>
 #include <vector>
 
-namespace plugins {
-class Options;
-} // namespace plugins
-
 namespace probfd::pdbs::cegar {
 
 class BFSFlawFinder : public FlawFindingStrategy {
@@ -27,7 +23,6 @@ class BFSFlawFinder : public FlawFindingStrategy {
     const int max_search_states_;
 
 public:
-    explicit BFSFlawFinder(const plugins::Options& opts);
     explicit BFSFlawFinder(int max_search_states);
 
     bool apply_policy(

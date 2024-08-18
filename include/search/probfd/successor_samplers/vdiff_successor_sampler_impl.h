@@ -6,8 +6,6 @@
 
 #include "downward/utils/rng.h"
 
-#include "downward/plugins/plugin.h"
-
 namespace probfd::successor_samplers {
 
 template <typename Action>

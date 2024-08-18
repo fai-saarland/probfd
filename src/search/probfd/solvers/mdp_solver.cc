@@ -14,62 +14,44 @@
 
 #include "downward/utils/exceptions.h"
 
-#include "downward/plugins/options.h"
-#include "downward/plugins/plugin.h"
-
 #include <fstream>
 #include <iostream>
 #include <limits>
 #include <optional>
 
-class Evaluator;
-class State;
-
-namespace probfd {
-class TaskCostFunctionFactory;
-class TaskEvaluatorFactory;
-} // namespace probfd
-
 namespace probfd::solvers {
 
-using namespace plugins;
-
-MDPSolver::MDPSolver(const Options& opts)
-    : task_(tasks::g_root_task)
-    , task_cost_function_(
-          opts.get<std::shared_ptr<TaskCostFunctionFactory>>("costs")
-              ->create_cost_function(task_))
-    , log_(
-          utils::get_log_for_verbosity(opts.get<utils::Verbosity>("verbosity")))
+MDPSolver::MDPSolver(
+    utils::Verbosity verbosity,
+    const std::shared_ptr<TaskCostFunctionFactory>& costs,
+    std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
+    bool cache,
+    const std::shared_ptr<TaskEvaluatorFactory>& eval,
+    std::optional<value_t> report_epsilon,
+    bool report_enabled,
+    double max_time,
+    std::string policy_filename,
+    bool print_fact_names)
+    : log_(utils::get_log_for_verbosity(verbosity))
+    , task_(tasks::g_root_task)
+    , task_cost_function_(costs->create_cost_function(task_))
     , task_mdp_(
-          opts.get<bool>("cache")
-              ? new CachingTaskStateSpace(
-                    task_,
-                    log_,
-                    task_cost_function_,
-                    opts.get_list<std::shared_ptr<::Evaluator>>(
-                        "path_dependent_evaluators"))
-              : new TaskStateSpace(
-                    task_,
-                    log_,
-                    task_cost_function_,
-                    opts.get_list<std::shared_ptr<::Evaluator>>(
-                        "path_dependent_evaluators")))
-    , heuristic_(opts.get<std::shared_ptr<TaskEvaluatorFactory>>("eval")
-                     ->create_evaluator(task_, task_cost_function_))
-    , progress_(
-          opts.contains("report_epsilon")
-              ? std::optional<value_t>(opts.get<value_t>("report_epsilon"))
-              : std::nullopt,
-          std::cout,
-          opts.get<bool>("report_enabled"))
-    , max_time_(opts.get<double>("max_time"))
-    , policy_filename(opts.get<std::string>("policy_file"))
-    , print_fact_names(opts.get<bool>("print_fact_names"))
+          cache ? new CachingTaskStateSpace(
+                      task_,
+                      log_,
+                      task_cost_function_,
+                      std::move(path_dependent_evaluators))
+                : new TaskStateSpace(
+                      task_,
+                      log_,
+                      task_cost_function_,
+                      std::move(path_dependent_evaluators)))
+    , heuristic_(eval->create_evaluator(task_, task_cost_function_))
+    , progress_(report_epsilon, std::cout, report_enabled)
+    , max_time_(max_time)
+    , policy_filename(std::move(policy_filename))
+    , print_fact_names(print_fact_names)
 {
-    progress_.register_print([&ss = *this->task_mdp_](std::ostream& out) {
-        out << "registered=" << ss.get_num_registered_states();
-    });
 }
 
 MDPSolver::~MDPSolver() = default;
@@ -154,29 +136,6 @@ void MDPSolver::solve()
     } catch (utils::TimeoutException&) {
         std::cout << "Time limit reached. Analysis was aborted." << std::endl;
     }
-}
-
-void MDPSolver::add_options_to_feature(Feature& feature)
-{
-    feature.add_option<std::shared_ptr<TaskCostFunctionFactory>>(
-        "costs",
-        "",
-        "ssp()");
-    feature.add_option<std::shared_ptr<TaskEvaluatorFactory>>(
-        "eval",
-        "",
-        "blind_eval()");
-    feature.add_option<bool>("cache", "", "false");
-    feature.add_list_option<std::shared_ptr<::Evaluator>>(
-        "path_dependent_evaluators",
-        "",
-        "[]");
-    feature.add_option<value_t>("report_epsilon", "", "1e-4");
-    feature.add_option<bool>("report_enabled", "", "true");
-    feature.add_option<double>("max_time", "", "infinity");
-    feature.add_option<std::string>("policy_file", "", "\"my_policy.policy\"");
-    feature.add_option<bool>("print_fact_names", "", "true");
-    utils::add_log_options_to_feature(feature);
 }
 
 } // namespace probfd::solvers

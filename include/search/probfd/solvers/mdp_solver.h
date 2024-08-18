@@ -14,29 +14,27 @@
 #include <string>
 
 // Forward Declarations
-namespace plugins {
-class Options;
-class Feature;
-} // namespace plugins
-
 namespace probfd {
 class ProbabilisticTask;
-}
+class TaskCostFunctionFactory;
+class TaskEvaluatorFactory;
+} // namespace probfd
 
-/// This namespace contains the solver plugins for various search algorithms.
+/// This namespace contains the solver interface base class for various search
+/// algorithms.
 namespace probfd::solvers {
 
 /**
  * @brief Base interface for MDP solvers.
  */
 class MDPSolver : public SolverInterface {
+    mutable utils::LogProxy log_;
+
 protected:
     const std::shared_ptr<ProbabilisticTask> task_;
     const std::shared_ptr<FDRCostFunction> task_cost_function_;
 
 private:
-    mutable utils::LogProxy log_;
-
     const std::unique_ptr<TaskStateSpace> task_mdp_;
     const std::shared_ptr<FDREvaluator> heuristic_;
 
@@ -50,9 +48,20 @@ private:
 
 public:
     /**
-     * @brief Constructs the MDP solver from the given options.
+     * @brief Constructs the MDP solver from the given arguments.
      */
-    explicit MDPSolver(const plugins::Options& opts);
+    MDPSolver(
+        utils::Verbosity verbosity,
+        const std::shared_ptr<TaskCostFunctionFactory>& costs,
+        std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
+        bool cache,
+        const std::shared_ptr<TaskEvaluatorFactory>& eval,
+        std::optional<value_t> report_epsilon,
+        bool report_enabled,
+        double max_time,
+        std::string policy_filename,
+        bool print_fact_names);
+
     ~MDPSolver() override;
 
     /**
@@ -79,8 +88,6 @@ public:
      * @brief Checks if the MDP algorithm found a solution.
      */
     bool found_solution() const override { return solution_found_; }
-
-    static void add_options_to_feature(plugins::Feature& feature);
 };
 
 } // namespace probfd::solvers

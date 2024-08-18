@@ -18,8 +18,6 @@
 #include "downward/utils/logging.h"
 #include "downward/utils/memory.h"
 
-#include "downward/plugins/plugin.h"
-
 #include "downward/task_proxy.h"
 
 #include <cassert>
@@ -164,25 +162,5 @@ AStarFlawGeneratorFactory::create_flaw_generator()
 {
     return std::make_unique<TraceBasedFlawGenerator>(new AStarTraceGenerator());
 }
-
-class AStarFlawGeneratorFactoryFeature
-    : public plugins::
-          TypedFeature<FlawGeneratorFactory, AStarFlawGeneratorFactory> {
-public:
-    AStarFlawGeneratorFactoryFeature()
-        : TypedFeature("flaws_astar")
-    {
-    }
-
-    [[nodiscard]]
-    std::shared_ptr<AStarFlawGeneratorFactory>
-    create_component(const plugins::Options&, const utils::Context&)
-        const override
-    {
-        return std::make_shared<AStarFlawGeneratorFactory>();
-    }
-};
-
-static plugins::FeaturePlugin<AStarFlawGeneratorFactoryFeature> _plugin;
 
 } // namespace probfd::cartesian_abstractions

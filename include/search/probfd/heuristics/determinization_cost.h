@@ -3,6 +3,8 @@
 
 #include "probfd/evaluator.h"
 #include "probfd/fdr_types.h"
+#include "probfd/probabilistic_task.h"
+#include "probfd/task_evaluator_factory.h"
 #include "probfd/value_type.h"
 
 #include <memory>
@@ -36,6 +38,21 @@ public:
     value_t evaluate(const State& state) const override;
 
     void print_statistics() const override;
+};
+
+class DeterminizationCostHeuristicFactory : public TaskEvaluatorFactory {
+    const std::shared_ptr<::Evaluator> evaluator_;
+
+public:
+    /**
+     * @brief Construct from determinization-based heuristic.
+     */
+    explicit DeterminizationCostHeuristicFactory(
+        std::shared_ptr<::Evaluator> evaluator);
+
+    std::unique_ptr<FDREvaluator> create_evaluator(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<FDRCostFunction> task_cost_function) override;
 };
 
 } // namespace probfd::heuristics

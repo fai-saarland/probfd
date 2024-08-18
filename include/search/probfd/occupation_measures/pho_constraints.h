@@ -10,10 +10,6 @@
 // Forward Declarations
 class State;
 
-namespace plugins {
-class Options;
-}
-
 namespace lp {
 struct LPVariable;
 class LPConstraint;
@@ -31,7 +27,6 @@ class PHOGenerator : public ConstraintGenerator {
     std::shared_ptr<pdbs::PPDBCollection> pdbs_;
 
 public:
-    explicit PHOGenerator(const plugins::Options& opts);
     explicit PHOGenerator(
         std::shared_ptr<pdbs::PatternCollectionGenerator> generator);
 

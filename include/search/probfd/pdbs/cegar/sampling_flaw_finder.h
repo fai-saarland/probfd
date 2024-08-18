@@ -39,12 +39,11 @@ class SamplingFlawFinder : public FlawFindingStrategy {
     const int max_search_states_;
 
 public:
-    explicit SamplingFlawFinder(int random_seed, int max_search_states);
     explicit SamplingFlawFinder(
         std::shared_ptr<utils::RandomNumberGenerator> rng,
         int max_search_states);
 
-    ~SamplingFlawFinder() override = default;
+    ~SamplingFlawFinder() override;
 
     bool apply_policy(
         const ProbabilisticTaskProxy& task_proxy,

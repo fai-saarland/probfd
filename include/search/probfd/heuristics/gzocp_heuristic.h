@@ -2,6 +2,7 @@
 #define PROBFD_HEURISTICS_GZOCP_HEURISTIC_H
 
 #include "probfd/heuristics/task_dependent_heuristic.h"
+#include "probfd/task_evaluator_factory.h"
 
 #include <memory>
 #include <vector>
@@ -46,6 +47,26 @@ public:
 
 protected:
     value_t evaluate(const State& state) const override;
+};
+
+class GZOCPHeuristicFactory : public TaskEvaluatorFactory {
+    const std::shared_ptr<probfd::pdbs::PatternCollectionGenerator>
+        pattern_collection_generator_;
+    const GZOCPHeuristic::OrderingStrategy ordering_;
+    const int random_seed_;
+    const utils::Verbosity verbosity_;
+
+public:
+    explicit GZOCPHeuristicFactory(
+        std::shared_ptr<probfd::pdbs::PatternCollectionGenerator>
+            pattern_collection_generator_,
+        GZOCPHeuristic::OrderingStrategy ordering_,
+        int random_seed_,
+        utils::Verbosity verbosity_);
+
+    std::unique_ptr<FDREvaluator> create_evaluator(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<FDRCostFunction> task_cost_function) override;
 };
 
 } // namespace probfd::heuristics

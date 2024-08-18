@@ -10,8 +10,6 @@
 
 #include "downward/axioms.h"
 
-#include "downward/plugins/plugin.h"
-
 #include <algorithm>
 #include <cassert>
 #include <compare>
@@ -875,28 +873,5 @@ void set_root_task(std::shared_ptr<ProbabilisticTask> task)
     ::tasks::g_root_task = std::make_shared<AODDeterminizationTask>(task.get());
     g_root_task = std::move(task);
 }
-
-namespace {
-
-class RootTaskFeature
-    : public plugins::TypedFeature<ProbabilisticTask, ProbabilisticTask> {
-public:
-    RootTaskFeature()
-        : TypedFeature("root_ppt")
-    {
-    }
-
-    [[nodiscard]]
-    shared_ptr<ProbabilisticTask>
-    create_component(const plugins::Options&, const utils::Context&)
-        const override
-    {
-        return g_root_task;
-    }
-};
-
-plugins::FeaturePlugin<RootTaskFeature> _plugin;
-
-} // namespace
 
 } // namespace probfd::tasks

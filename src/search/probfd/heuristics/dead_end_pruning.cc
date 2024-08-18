@@ -11,9 +11,6 @@
 #include "downward/evaluation_result.h"
 #include "downward/evaluator.h"
 
-#include "downward/plugins/options.h"
-#include "downward/plugins/plugin.h"
-
 #include <iostream>
 #include <utility>
 
@@ -45,27 +42,9 @@ void DeadEndPruningHeuristic::print_statistics() const
     // pruning_function_->print_statistics();
 }
 
-namespace {
-class DeadEndPruningHeuristicFactory : public TaskEvaluatorFactory {
-    const std::shared_ptr<::Evaluator> evaluator_;
-
-public:
-    /**
-     * @brief Construct from options.
-     *
-     * @param opts - Only one option is available:
-     * + heuristic - Specifies the underlying classical heuristic.
-     */
-    explicit DeadEndPruningHeuristicFactory(const plugins::Options& opts);
-
-    std::unique_ptr<FDREvaluator> create_evaluator(
-        std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function) override;
-};
-
 DeadEndPruningHeuristicFactory::DeadEndPruningHeuristicFactory(
-    const plugins::Options& opts)
-    : evaluator_(opts.get<std::shared_ptr<::Evaluator>>("evaluator"))
+    std::shared_ptr<::Evaluator> evaluator)
+    : evaluator_(std::move(evaluator))
 {
 }
 
@@ -77,20 +56,5 @@ std::unique_ptr<FDREvaluator> DeadEndPruningHeuristicFactory::create_evaluator(
         evaluator_,
         task_cost_function->get_non_goal_termination_cost());
 }
-
-class DeadEndPruningHeuristicFactoryFeature
-    : public plugins::
-          TypedFeature<TaskEvaluatorFactory, DeadEndPruningHeuristicFactory> {
-public:
-    DeadEndPruningHeuristicFactoryFeature()
-        : TypedFeature("prune_dead_ends")
-    {
-        add_option<std::shared_ptr<::Evaluator>>("evaluator");
-    }
-};
-
-} // namespace
-
-static plugins::FeaturePlugin<DeadEndPruningHeuristicFactoryFeature> _plugin;
 
 } // namespace probfd::heuristics

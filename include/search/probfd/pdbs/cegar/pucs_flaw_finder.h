@@ -20,10 +20,6 @@
 // Forward Declarations
 class State;
 
-namespace plugins {
-class Options;
-} // namespace plugins
-
 namespace probfd::pdbs::cegar {
 
 class PUCSFlawFinder : public FlawFindingStrategy {
@@ -38,7 +34,6 @@ class PUCSFlawFinder : public FlawFindingStrategy {
     const int max_search_states_;
 
 public:
-    explicit PUCSFlawFinder(const plugins::Options& opts);
     explicit PUCSFlawFinder(int max_search_states);
 
     bool apply_policy(

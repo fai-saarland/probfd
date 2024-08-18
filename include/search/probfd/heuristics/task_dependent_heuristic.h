@@ -9,11 +9,6 @@
 
 #include <memory>
 
-// Forward Declarations
-namespace plugins {
-class Feature;
-} // namespace plugins
-
 /// This namespace contains heuristic implementations.
 namespace probfd::heuristics {
 
@@ -29,13 +24,6 @@ public:
         std::shared_ptr<ProbabilisticTask> task,
         utils::LogProxy log);
 };
-
-extern void
-add_task_dependent_heuristic_options_to_feature(plugins::Feature& feature);
-
-extern std::tuple<utils::Verbosity>
-get_task_dependent_heuristic_arguments_from_options(
-    const plugins::Options& opts);
 
 } // namespace probfd::heuristics
 

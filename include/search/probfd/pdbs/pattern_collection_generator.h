@@ -8,11 +8,6 @@
 #include <memory>
 
 // Forward Declarations
-namespace plugins {
-class Feature;
-class Options;
-} // namespace plugins
-
 namespace probfd {
 class ProbabilisticTask;
 }
@@ -36,11 +31,6 @@ public:
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function) = 0;
 };
-
-extern void
-add_pattern_collection_generator_options_to_feature(plugins::Feature& feature);
-extern std::tuple<utils::Verbosity>
-get_collection_generator_arguments_from_options(const plugins::Options& opts);
 
 } // namespace probfd::pdbs
 
