@@ -153,9 +153,9 @@ public:
 
         bisimulation::BisimilarStateSpace state_space(
             task_,
+            task_cost_function_,
             det_task_proxy,
-            *transition_system,
-            1_vt);
+            *transition_system);
 
         stats_.time = timer();
         stats_.states = state_space.num_bisimilar_states();
@@ -167,7 +167,7 @@ public:
                   << state_space.num_transitions() << " transitions."
                   << std::endl;
         std::cout << std::endl;
-        
+
         heuristics::BlindEvaluator<QState> heuristic;
 
         std::cout << "Running " << algorithm_name_ << "..." << std::endl;

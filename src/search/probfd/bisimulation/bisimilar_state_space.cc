@@ -47,11 +47,11 @@ static constexpr const int BUCKET_SIZE = 1024 * 64;
 
 BisimilarStateSpace::BisimilarStateSpace(
     std::shared_ptr<ProbabilisticTask> task,
+    std::shared_ptr<FDRCostFunction> task_cost_function,
     const TaskProxy& det_task_proxy,
-    const merge_and_shrink::TransitionSystem& transition_system,
-    value_t upper_bound)
+    const merge_and_shrink::TransitionSystem& transition_system)
     : task_(std::move(task))
-    , upper_bound_(upper_bound)
+    , task_cost_function_(std::move(task_cost_function))
 {
     num_cached_transitions_ = 0;
 
@@ -214,8 +214,10 @@ void BisimilarStateSpace::generate_all_transitions(
 
 TerminationInfo BisimilarStateSpace::get_termination_info(QuotientState s)
 {
-    return is_goal_state(s) ? TerminationInfo::from_goal()
-                            : TerminationInfo::from_non_goal(upper_bound_);
+    return is_goal_state(s)
+               ? TerminationInfo::from_goal()
+               : TerminationInfo::from_non_goal(
+                     task_cost_function_->get_non_goal_termination_cost());
 }
 
 value_t BisimilarStateSpace::get_action_cost(QuotientAction)

@@ -15,6 +15,8 @@
 
 #include "probfd/tasks/determinization_task.h"
 
+#include "probfd/task_cost_function_factory.h"
+
 #include "downward/merge_and_shrink/factored_transition_system.h"
 #include "downward/merge_and_shrink/merge_and_shrink_representation.h"
 #include "downward/merge_and_shrink/transition_system.h"
@@ -64,11 +66,16 @@ class BisimulationIteration : public SolverInterface {
     using QState = bisimulation::QuotientState;
     using QAction = bisimulation::QuotientAction;
 
+    const std::shared_ptr<ProbabilisticTask>& task_ = tasks::g_root_task;
+    const std::shared_ptr<TaskCostFunctionFactory> costs_;
     const bool interval_iteration_;
 
 public:
-    explicit BisimulationIteration(bool interval)
-        : interval_iteration_(interval)
+    BisimulationIteration(
+        std::shared_ptr<TaskCostFunctionFactory> costs,
+        bool interval)
+        : costs_(std::move(costs))
+        , interval_iteration_(interval)
     {
     }
 
@@ -86,15 +93,14 @@ public:
         using namespace algorithms::interval_iteration;
         using namespace algorithms::topological_vi;
 
-        const std::shared_ptr<ProbabilisticTask>& task = tasks::g_root_task;
-        ProbabilisticTaskProxy task_proxy(*task);
+        ProbabilisticTaskProxy task_proxy(*task_);
 
         utils::Timer total_timer;
 
         std::cout << "Building bisimulation..." << std::endl;
 
         std::shared_ptr determinization =
-            std::make_shared<tasks::DeterminizationTask>(task);
+            std::make_shared<tasks::DeterminizationTask>(task_);
 
         TaskProxy det_task_proxy(*determinization);
 
@@ -115,11 +121,14 @@ public:
 
         utils::Timer timer;
 
+        std::shared_ptr task_cost_function =
+            costs_->create_cost_function(task_);
+
         bisimulation::BisimilarStateSpace state_space(
-            task,
+            task_,
+            task_cost_function,
             det_task_proxy,
-            *transition_system,
-            1_vt);
+            *transition_system);
 
         double time = timer();
         unsigned states = state_space.num_bisimilar_states();
@@ -179,13 +188,21 @@ public:
               "bisimulation_vi")
     {
         document_title("Bisimulation Value Iteration.");
+
+        add_option<std::shared_ptr<TaskCostFunctionFactory>>(
+            "costs",
+            "",
+            "maxprob()");
     }
 
 protected:
     std::shared_ptr<BisimulationIteration>
-    create_component(const Options&, const utils::Context&) const override
+    create_component(const Options& options, const utils::Context&)
+        const override
     {
-        return std::make_shared<BisimulationIteration>(false);
+        return std::make_shared<BisimulationIteration>(
+            options.get<std::shared_ptr<TaskCostFunctionFactory>>("costs"),
+            false);
     }
 };
 
@@ -197,13 +214,21 @@ public:
               "bisimulation_ii")
     {
         document_title("Bisimulation Interval Iteration.");
+
+        add_option<std::shared_ptr<TaskCostFunctionFactory>>(
+            "costs",
+            "",
+            "maxprob()");
     }
 
 protected:
     std::shared_ptr<BisimulationIteration>
-    create_component(const Options&, const utils::Context&) const override
+    create_component(const Options& options, const utils::Context&)
+        const override
     {
-        return std::make_shared<BisimulationIteration>(true);
+        return std::make_shared<BisimulationIteration>(
+            options.get<std::shared_ptr<TaskCostFunctionFactory>>("costs"),
+            true);
     }
 };
 

@@ -3,6 +3,7 @@
 
 #include "probfd/bisimulation/types.h"
 
+#include "probfd/fdr_types.h"
 #include "probfd/mdp.h"
 
 #include "probfd/task_proxy.h"
@@ -38,7 +39,7 @@ class BisimilarStateSpace : public MDP<QuotientState, QuotientAction> {
     };
 
     std::shared_ptr<ProbabilisticTask> task_;
-    const value_t upper_bound_;
+    std::shared_ptr<FDRCostFunction> task_cost_function_;
 
     std::vector<bool> goal_flags_;
 
@@ -52,9 +53,9 @@ class BisimilarStateSpace : public MDP<QuotientState, QuotientAction> {
 public:
     BisimilarStateSpace(
         std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<FDRCostFunction> task_cost_function,
         const TaskProxy& det_task_proxy,
-        const merge_and_shrink::TransitionSystem& transition_system,
-        value_t upper_bound);
+        const merge_and_shrink::TransitionSystem& transition_system);
 
     ~BisimilarStateSpace() override;
 
