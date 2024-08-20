@@ -7,10 +7,17 @@
 
 #include "probfd/heuristics/constant_evaluator.h"
 
+#include "probfd/task_utils/task_properties.h"
+
 #include "probfd/tasks/root_task.h"
 
-#include "probfd/policy.h"
 #include "probfd/progress_report.h"
+
+#include "probfd/tasks/all_outcomes_determinization.h"
+
+#include "downward/merge_and_shrink/factored_transition_system.h"
+#include "downward/merge_and_shrink/merge_and_shrink_representation.h"
+#include "downward/merge_and_shrink/transition_system.h"
 
 #include "downward/utils/timer.h"
 
@@ -22,20 +29,36 @@
 
 using namespace plugins;
 using namespace probfd;
+using namespace probfd::bisimulation;
 
 namespace {
 
-struct BisimulationTimer {
+merge_and_shrink::Factor
+compute_bisimulation_on_determinization(const TaskProxy& det_task_proxy)
+{
     utils::Timer timer;
-    unsigned states;
-    unsigned transitions;
-    void print(std::ostream& out) const
-    {
-        out << "  Bisimulation time: " << timer << std::endl;
-        out << "  Bisimilar states: " << states << std::endl;
-        out << "  Transitions in bisimulation: " << transitions << std::endl;
-    }
-};
+
+    std::cout << "Computing all-outcomes determinization bisimulation..."
+              << std::endl;
+
+    auto factor =
+        bisimulation::compute_bisimulation_on_determinization(det_task_proxy);
+
+    std::cout << "AOD-bisimulation was constructed in " << timer << std::endl;
+
+    return factor;
+}
+
+static void print_bisimulation_stats(
+    std::ostream& out,
+    double time,
+    unsigned states,
+    unsigned transitions)
+{
+    out << "  Bisimulation time: " << time << std::endl;
+    out << "  Bisimilar states: " << states << std::endl;
+    out << "  Transitions in bisimulation: " << transitions << std::endl;
+}
 
 class BisimulationIteration : public SolverInterface {
     using QState = bisimulation::QuotientState;
@@ -63,23 +86,48 @@ public:
         using namespace algorithms::interval_iteration;
         using namespace algorithms::topological_vi;
 
+        const std::shared_ptr<ProbabilisticTask>& task = tasks::g_root_task;
+        ProbabilisticTaskProxy task_proxy(*task);
+
         utils::Timer total_timer;
 
         std::cout << "Building bisimulation..." << std::endl;
 
-        BisimulationTimer stats;
+        std::shared_ptr determinization =
+            std::make_shared<tasks::AODDeterminizationTask>(task.get());
+
+        TaskProxy det_task_proxy(*determinization);
+
+        auto [transition_system, state_mapping, distances] =
+            compute_bisimulation_on_determinization(det_task_proxy);
+
+        if (!transition_system->is_solvable(*distances)) {
+            std::cout << "Initial state recognized as unsolvable!" << std::endl;
+            print_analysis_result(Interval(1_vt, 1_vt));
+            std::cout << std::endl;
+            return;
+        }
+
+        State initial = task_proxy.get_initial_state();
+        initial.unpack();
+        const auto initial_state =
+            QuotientState(state_mapping->get_value(initial));
+
+        utils::Timer timer;
+
         bisimulation::BisimilarStateSpace state_space(
-            tasks::g_root_task.get(),
+            task,
+            det_task_proxy,
+            *transition_system,
             1_vt);
 
-        stats.timer.stop();
-        stats.states = state_space.num_bisimilar_states();
-        stats.transitions = state_space.num_transitions();
+        double time = timer();
+        unsigned states = state_space.num_bisimilar_states();
+        unsigned transitions = state_space.num_transitions();
 
-        std::cout << "Bisimulation built after " << stats.timer << std::endl;
-        std::cout << "Bisimilar state space contains "
-                  << state_space.num_bisimilar_states() << " states and "
-                  << state_space.num_transitions() << " transitions.\n"
+        std::cout << "Bisimulation built after " << time << std::endl;
+        std::cout << "Bisimilar state space contains " << states
+                  << " states and " << transitions << " transitions.\n"
                   << std::endl;
 
         std::cout << "Running " << get_algorithm_name()
@@ -103,11 +151,8 @@ public:
 
         ProgressReport progress;
 
-        const Interval val = solver->solve(
-            state_space,
-            blind,
-            state_space.get_initial_state(),
-            progress);
+        const Interval val =
+            solver->solve(state_space, blind, initial_state, progress);
 
         std::cout << "analysis done! [t=" << total_timer << "]" << std::endl;
         std::cout << std::endl;
@@ -116,7 +161,7 @@ public:
 
         std::cout << std::endl;
         std::cout << "Bisimulation:" << std::endl;
-        stats.print(std::cout);
+        print_bisimulation_stats(std::cout, time, states, transitions);
 
         std::cout << std::endl;
         std::cout << "Algorithm " << get_algorithm_name()

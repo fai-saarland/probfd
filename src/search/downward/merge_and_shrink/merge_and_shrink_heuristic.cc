@@ -65,8 +65,8 @@ void MergeAndShrinkHeuristic::extract_factor(
     */
     auto final_entry = fts.extract_factor(index);
     unique_ptr<MergeAndShrinkRepresentation> mas_representation =
-        std::move(final_entry.first);
-    unique_ptr<Distances> distances = std::move(final_entry.second);
+        std::move(final_entry.mas_representation);
+    unique_ptr<Distances> distances = std::move(final_entry.distances);
     if (!distances->are_goal_distances_computed()) {
         const bool compute_init = false;
         const bool compute_goal = true;

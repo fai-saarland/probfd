@@ -20,6 +20,7 @@ namespace merge_and_shrink {
 class Distances;
 class FactoredTransitionSystem;
 class TransitionSystem;
+struct Factor;
 } // namespace merge_and_shrink
 
 namespace probfd {
@@ -48,12 +49,11 @@ class BisimilarStateSpace : public MDP<QuotientState, QuotientAction> {
         int* successors;
     };
 
-    ProbabilisticTaskProxy task_proxy_;
+    std::shared_ptr<ProbabilisticTask> task_;
     const value_t upper_bound_;
 
     std::vector<bool> goal_flags_;
 
-    QuotientState initial_state_;
     QuotientState dead_end_state_;
 
     unsigned num_cached_transitions_;
@@ -66,7 +66,11 @@ public:
      * @brief Constructs the quotient of the induced state space of the task
      * with respect to a bisimulation of the all outcomes determinization.
      */
-    BisimilarStateSpace(const ProbabilisticTask* task, value_t upper_bound);
+    BisimilarStateSpace(
+        std::shared_ptr<ProbabilisticTask> task,
+        const TaskProxy& det_task_proxy,
+        const merge_and_shrink::TransitionSystem& transition_system,
+        value_t upper_bound);
 
     ~BisimilarStateSpace() override;
 
@@ -96,9 +100,6 @@ public:
 
     value_t get_action_cost(QuotientAction action) override;
 
-    /// Get the initial state of the probabilistic bisimulation quotient.
-    QuotientState get_initial_state() const;
-
     /// Checks whether the given quotient state is a goal state.
     bool is_goal_state(QuotientState s) const;
 
@@ -114,6 +115,9 @@ public:
     /// Dumps the quotient state space to an output stream as a dot graph.
     void dump(std::ostream& out) const;
 };
+
+merge_and_shrink::Factor
+compute_bisimulation_on_determinization(const TaskProxy& det_task_proxy);
 
 } // namespace probfd::bisimulation
 

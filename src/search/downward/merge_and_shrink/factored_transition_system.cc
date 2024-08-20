@@ -38,6 +38,21 @@ void FTSConstIterator::operator++()
     next_valid_index();
 }
 
+Factor::Factor(
+    std::unique_ptr<TransitionSystem> transition_system,
+    std::unique_ptr<MergeAndShrinkRepresentation> mas_representation,
+    std::unique_ptr<Distances> distances)
+    : transition_system(std::move(transition_system))
+    , mas_representation(std::move(mas_representation))
+    , distances(std::move(distances))
+{
+}
+
+Factor::~Factor() = default;
+
+Factor::Factor(Factor&&) = default;
+Factor& Factor::operator=(Factor&&) = default;
+
 FactoredTransitionSystem::FactoredTransitionSystem(
     unique_ptr<Labels> labels,
     vector<unique_ptr<TransitionSystem>>&& transition_systems,
@@ -216,11 +231,11 @@ int FactoredTransitionSystem::merge(
     return new_index;
 }
 
-pair<unique_ptr<MergeAndShrinkRepresentation>, unique_ptr<Distances>>
-FactoredTransitionSystem::extract_factor(int index)
+Factor FactoredTransitionSystem::extract_factor(int index)
 {
     assert(is_component_valid(index));
-    return make_pair(
+    return Factor(
+        std::move(transition_systems[index]),
         std::move(mas_representations[index]),
         std::move(distances[index]));
 }

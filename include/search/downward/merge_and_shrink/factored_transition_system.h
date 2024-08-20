@@ -47,6 +47,22 @@ public:
     }
 };
 
+struct Factor {
+    std::unique_ptr<TransitionSystem> transition_system;
+    std::unique_ptr<MergeAndShrinkRepresentation> mas_representation;
+    std::unique_ptr<Distances> distances;
+
+    Factor(
+        std::unique_ptr<TransitionSystem> transition_system,
+        std::unique_ptr<MergeAndShrinkRepresentation> mas_representation,
+        std::unique_ptr<Distances> distances);
+
+    ~Factor();
+
+    Factor(Factor&&);
+    Factor& operator=(Factor&&);
+};
+
 /*
   NOTE: A "factor" of this factored transition system is identfied by its
   index as used in the vectors in this class. Since transformations like
@@ -139,10 +155,7 @@ public:
     /*
       Extract the factor at the given index, rendering the FTS invalid.
     */
-    std::pair<
-        std::unique_ptr<MergeAndShrinkRepresentation>,
-        std::unique_ptr<Distances>>
-    extract_factor(int index);
+    Factor extract_factor(int index);
 
     void statistics(int index, utils::LogProxy& log) const;
     void dump(int index, utils::LogProxy& log) const;
