@@ -50,32 +50,29 @@
 */
 
 namespace segmented_vector {
-template<class Entry, class Allocator = std::allocator<Entry>>
+template <class Entry, class Allocator = std::allocator<Entry>>
 class SegmentedVector {
     using ATraits = std::allocator_traits<Allocator>;
     using EntryAllocator = typename ATraits::template rebind_alloc<Entry>;
 
     static const size_t SEGMENT_BYTES = 8192;
 
-    static const size_t SEGMENT_ELEMENTS =
-        (SEGMENT_BYTES / sizeof(Entry)) >= 1 ?
-        (SEGMENT_BYTES / sizeof(Entry)) : 1;
+    static const size_t SEGMENT_ELEMENTS = (SEGMENT_BYTES / sizeof(Entry)) >= 1
+                                               ? (SEGMENT_BYTES / sizeof(Entry))
+                                               : 1;
 
     EntryAllocator entry_allocator;
 
-    std::vector<Entry *> segments;
+    std::vector<Entry*> segments;
     size_t the_size;
 
-    size_t get_segment(size_t index) const {
-        return index / SEGMENT_ELEMENTS;
-    }
+    size_t get_segment(size_t index) const { return index / SEGMENT_ELEMENTS; }
 
-    size_t get_offset(size_t index) const {
-        return index % SEGMENT_ELEMENTS;
-    }
+    size_t get_offset(size_t index) const { return index % SEGMENT_ELEMENTS; }
 
-    void add_segment() {
-        Entry *new_segment = entry_allocator.allocate(SEGMENT_ELEMENTS);
+    void add_segment()
+    {
+        Entry* new_segment = entry_allocator.allocate(SEGMENT_ELEMENTS);
         segments.push_back(new_segment);
     }
 
@@ -225,9 +222,18 @@ public:
     using const_iterator = sviterator<true>;
 
     SegmentedVector()
-        : the_size(0) {
+        : the_size(0)
+    {
         // Add an initial segment to make iterator implementation easier
         add_segment();
+    }
+
+    SegmentedVector(std::size_t size, const Entry& entry = Entry())
+        : the_size(0)
+    {
+        while (size > the_size) {
+            push_back(entry);
+        }
     }
 
     SegmentedVector(const EntryAllocator& allocator_)
@@ -237,7 +243,8 @@ public:
         add_segment();
     }
 
-    ~SegmentedVector() {
+    ~SegmentedVector()
+    {
         for (size_t i = 0; i < the_size; ++i) {
             ATraits::destroy(entry_allocator, &operator[](i));
         }
@@ -246,25 +253,26 @@ public:
         }
     }
 
-    Entry &operator[](size_t index) {
+    Entry& operator[](size_t index)
+    {
         assert(index < the_size);
         size_t segment = get_segment(index);
         size_t offset = get_offset(index);
         return segments[segment][offset];
     }
 
-    const Entry &operator[](size_t index) const {
+    const Entry& operator[](size_t index) const
+    {
         assert(index < the_size);
         size_t segment = get_segment(index);
         size_t offset = get_offset(index);
         return segments[segment][offset];
     }
 
-    size_t size() const {
-        return the_size;
-    }
+    size_t size() const { return the_size; }
 
-    void push_back(const Entry &entry) {
+    void push_back(const Entry& entry)
+    {
         size_t segment = get_segment(the_size);
         size_t offset = get_offset(the_size);
         if (segment == segments.size() - 1) {
@@ -276,7 +284,8 @@ public:
         ++the_size;
     }
 
-    void pop_back() {
+    void pop_back()
+    {
         ATraits::destroy(entry_allocator, &operator[](the_size - 1));
         --the_size;
         /*
@@ -323,7 +332,7 @@ public:
     }
 };
 
-template<class Element, class Allocator = std::allocator<Element>>
+template <class Element, class Allocator = std::allocator<Element>>
 class SegmentedArrayVector {
     using ATraits = std::allocator_traits<Allocator>;
     using ElementAllocator = typename ATraits::template rebind_alloc<Element>;
@@ -336,19 +345,22 @@ class SegmentedArrayVector {
 
     ElementAllocator element_allocator;
 
-    std::vector<Element *> segments;
+    std::vector<Element*> segments;
     size_t the_size;
 
-    size_t get_segment(size_t index) const {
+    size_t get_segment(size_t index) const
+    {
         return index / arrays_per_segment;
     }
 
-    size_t get_offset(size_t index) const {
+    size_t get_offset(size_t index) const
+    {
         return (index % arrays_per_segment) * elements_per_array;
     }
 
-    void add_segment() {
-        Element *new_segment = element_allocator.allocate(elements_per_segment);
+    void add_segment()
+    {
+        Element* new_segment = element_allocator.allocate(elements_per_segment);
         segments.push_back(new_segment);
     }
 
@@ -358,21 +370,26 @@ class SegmentedArrayVector {
 
 public:
     SegmentedArrayVector(size_t elements_per_array_)
-        : elements_per_array(elements_per_array_),
-          arrays_per_segment(
-              std::max(SEGMENT_BYTES / (elements_per_array * sizeof(Element)), size_t(1))),
-          elements_per_segment(elements_per_array * arrays_per_segment),
-          the_size(0) {
+        : elements_per_array(elements_per_array_)
+        , arrays_per_segment(std::max(
+              SEGMENT_BYTES / (elements_per_array * sizeof(Element)),
+              size_t(1)))
+        , elements_per_segment(elements_per_array * arrays_per_segment)
+        , the_size(0)
+    {
     }
 
-
-    SegmentedArrayVector(size_t elements_per_array_, const ElementAllocator &allocator_)
-        : element_allocator(allocator_),
-          elements_per_array(elements_per_array_),
-          arrays_per_segment(
-              std::max(SEGMENT_BYTES / (elements_per_array * sizeof(Element)), size_t(1))),
-          elements_per_segment(elements_per_array * arrays_per_segment),
-          the_size(0) {
+    SegmentedArrayVector(
+        size_t elements_per_array_,
+        const ElementAllocator& allocator_)
+        : element_allocator(allocator_)
+        , elements_per_array(elements_per_array_)
+        , arrays_per_segment(std::max(
+              SEGMENT_BYTES / (elements_per_array * sizeof(Element)),
+              size_t(1)))
+        , elements_per_segment(elements_per_array * arrays_per_segment)
+        , the_size(0)
+    {
     }
 
     ~SegmentedArrayVector()
@@ -387,25 +404,26 @@ public:
         }
     }
 
-    Element *operator[](size_t index) {
+    Element* operator[](size_t index)
+    {
         assert(index < the_size);
         size_t segment = get_segment(index);
         size_t offset = get_offset(index);
         return segments[segment] + offset;
     }
 
-    const Element *operator[](size_t index) const {
+    const Element* operator[](size_t index) const
+    {
         assert(index < the_size);
         size_t segment = get_segment(index);
         size_t offset = get_offset(index);
         return segments[segment] + offset;
     }
 
-    size_t size() const {
-        return the_size;
-    }
+    size_t size() const { return the_size; }
 
-    void push_back(const Element *entry) {
+    void push_back(const Element* entry)
+    {
         size_t segment = get_segment(the_size);
         size_t offset = get_offset(the_size);
         if (segment == segments.size()) {
@@ -413,13 +431,14 @@ public:
             // Must add a new segment.
             add_segment();
         }
-        Element *dest = segments[segment] + offset;
+        Element* dest = segments[segment] + offset;
         for (size_t i = 0; i < elements_per_array; ++i)
             ATraits::construct(element_allocator, dest++, *entry++);
         ++the_size;
     }
 
-    void pop_back() {
+    void pop_back()
+    {
         for (size_t offset = 0; offset < elements_per_array; ++offset) {
             ATraits::destroy(
                 element_allocator,
@@ -443,6 +462,6 @@ public:
         }
     }
 };
-}
+} // namespace segmented_vector
 
 #endif

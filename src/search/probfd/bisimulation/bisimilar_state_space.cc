@@ -52,14 +52,11 @@ BisimilarStateSpace::BisimilarStateSpace(
     const merge_and_shrink::TransitionSystem& transition_system)
     : task_(std::move(task))
     , task_cost_function_(std::move(task_cost_function))
+    , num_cached_transitions_(0)
+    , transitions_(transition_system.get_size() + 1)
+    , goal_flags_(transition_system.get_size() + 1, false)
 {
-    num_cached_transitions_ = 0;
-
-    transitions_.resize(
-        transition_system.get_size(),
-        std::vector<CachedTransition>());
-
-    dead_end_state_ = QuotientState(transitions_.size());
+    int dead_end_state = transitions_.size();
 
     ProbabilisticTaskProxy task_proxy(*task_);
     OperatorsProxy det_operators = det_task_proxy.get_operators();
@@ -111,7 +108,7 @@ BisimilarStateSpace::BisimilarStateSpace(
                     t->op = op.first;
                     t->successors = allocate(size);
                     for (int j = 0; j != size; ++j) {
-                        t->successors[j] = std::to_underlying(dead_end_state_);
+                        t->successors[j] = dead_end_state;
                     }
                     ++num_cached_transitions_;
                 }
@@ -120,8 +117,6 @@ BisimilarStateSpace::BisimilarStateSpace(
             }
         }
     }
-
-    goal_flags_.resize(transition_system.get_size(), false);
 
     for (std::size_t i = 0; i != goal_flags_.size(); ++i) {
         goal_flags_[i] = transition_system.is_goal_state(i);
@@ -144,12 +139,7 @@ void BisimilarStateSpace::generate_applicable_actions(
     QuotientState state,
     std::vector<QuotientAction>& result)
 {
-    if (state == dead_end_state_) {
-        return;
-    }
-
-    const std::vector<CachedTransition>& cache =
-        transitions_[std::to_underlying(state)];
+    const auto& cache = transitions_[std::to_underlying(state)];
     result.reserve(cache.size());
     for (unsigned i = 0; i < cache.size(); ++i) {
         result.emplace_back(static_cast<QuotientAction>(i));
@@ -161,7 +151,6 @@ void BisimilarStateSpace::generate_action_transitions(
     QuotientAction a,
     Distribution<StateID>& result)
 {
-    assert(state != dead_end_state_);
     assert(
         std::to_underlying(a) <
         static_cast<int>(transitions_[std::to_underlying(state)].size()));
@@ -198,12 +187,7 @@ void BisimilarStateSpace::generate_all_transitions(
     QuotientState state,
     std::vector<TransitionType>& transitions)
 {
-    if (state == dead_end_state_) {
-        return;
-    }
-
-    const std::vector<CachedTransition>& cache =
-        transitions_[std::to_underlying(state)];
+    const auto& cache = transitions_[std::to_underlying(state)];
     transitions.reserve(cache.size());
     for (unsigned i : std::views::iota(0U, cache.size())) {
         auto a = static_cast<QuotientAction>(i);
@@ -227,7 +211,7 @@ value_t BisimilarStateSpace::get_action_cost(QuotientAction)
 
 bool BisimilarStateSpace::is_goal_state(QuotientState s) const
 {
-    return s != dead_end_state_ && goal_flags_[std::to_underlying(s)];
+    return goal_flags_[std::to_underlying(s)];
 }
 
 unsigned BisimilarStateSpace::num_bisimilar_states() const

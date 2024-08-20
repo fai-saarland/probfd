@@ -41,14 +41,14 @@ class BisimilarStateSpace : public MDP<QuotientState, QuotientAction> {
     std::shared_ptr<ProbabilisticTask> task_;
     std::shared_ptr<FDRCostFunction> task_cost_function_;
 
-    std::vector<bool> goal_flags_;
-
-    QuotientState dead_end_state_;
-
-    unsigned num_cached_transitions_;
+    unsigned num_cached_transitions_ = 0;
     segmented_vector::SegmentedVector<std::vector<CachedTransition>>
         transitions_;
+
+    // Storage for transitions
     std::vector<std::unique_ptr<int[]>> store_;
+
+    std::vector<bool> goal_flags_;
 
 public:
     BisimilarStateSpace(
