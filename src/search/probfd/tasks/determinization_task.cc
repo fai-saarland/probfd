@@ -12,7 +12,7 @@ DeterminizationTask::DeterminizationTask(
     std::shared_ptr<ProbabilisticTask> parent_task)
     : parent_task_(std::move(parent_task))
 {
-    ProbabilisticTaskProxy proxy(*parent_task);
+    ProbabilisticTaskProxy proxy(*parent_task_);
 
     for (ProbabilisticOperatorProxy op_proxy : proxy.get_operators()) {
         const int num_outcomes = op_proxy.get_outcomes().size();
