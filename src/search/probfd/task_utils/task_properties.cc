@@ -13,7 +13,6 @@
 
 #include <iostream>
 #include <limits>
-#include <memory>
 #include <ranges>
 #include <unordered_map>
 #include <utility>
@@ -29,12 +28,12 @@ static bool is_one(value_t value)
     return value == 1_vt;
 }
 
-bool is_unit_cost(const ProbabilisticTaskProxy& task)
+bool is_applicable(const ProbabilisticOperatorProxy& op, const State& state)
 {
-    return std::ranges::all_of(
-        task.get_operators() |
-            vws::transform(&ProbabilisticOperatorProxy::get_cost),
-        is_one);
+    for (FactProxy precondition : op.get_preconditions()) {
+        if (state[precondition.get_variable()] != precondition) return false;
+    }
+    return true;
 }
 
 value_t get_adjusted_action_cost(
@@ -52,6 +51,14 @@ value_t get_adjusted_action_cost(
             return op.get_cost() + 1_vt;
     default: ABORT("Unknown cost type");
     }
+}
+
+bool is_unit_cost(const ProbabilisticTaskProxy& task)
+{
+    return std::ranges::all_of(
+        task.get_operators() |
+            vws::transform(&ProbabilisticOperatorProxy::get_cost),
+        is_one);
 }
 
 static int
@@ -123,7 +130,11 @@ int get_num_total_effects(const ProbabilisticTaskProxy& task_proxy)
     return num_effects;
 }
 
-void dump_probabilistic_task(const ProbabilisticTaskProxy& task_proxy)
+namespace {
+
+void dump_probabilistic_task_(
+    const ProbabilisticTaskProxy& task_proxy,
+    auto& os)
 {
     ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
     value_t min_action_cost = numeric_limits<int>::max();
@@ -132,25 +143,40 @@ void dump_probabilistic_task(const ProbabilisticTaskProxy& task_proxy)
         min_action_cost = min(min_action_cost, op.get_cost());
         max_action_cost = max(max_action_cost, op.get_cost());
     }
-    utils::g_log << "Min action cost: " << min_action_cost << endl;
-    utils::g_log << "Max action cost: " << max_action_cost << endl;
+    os << "Min action cost: " << min_action_cost << endl;
+    os << "Max action cost: " << max_action_cost << endl;
 
     VariablesProxy variables = task_proxy.get_variables();
-    utils::g_log << "Variables (" << variables.size() << "):" << endl;
+    os << "Variables (" << variables.size() << "):" << endl;
     for (VariableProxy var : variables) {
-        utils::g_log << "  " << var.get_name() << " (range "
-                     << var.get_domain_size() << ")" << endl;
+        os << "  " << var.get_name() << " (range " << var.get_domain_size()
+           << ")" << endl;
         for (int val = 0; val < var.get_domain_size(); ++val) {
-            utils::g_log << "    " << val << ": "
-                         << var.get_fact(val).get_name() << endl;
+            os << "    " << val << ": " << var.get_fact(val).get_name() << endl;
         }
     }
     State initial_state = task_proxy.get_initial_state();
-    utils::g_log << "Initial state (PDDL):" << endl;
+    os << "Initial state (PDDL):" << endl;
     ::task_properties::dump_pddl(initial_state);
-    utils::g_log << "Initial state (FDR):" << endl;
+    os << "Initial state (FDR):" << endl;
     ::task_properties::dump_fdr(initial_state);
     ::task_properties::dump_goals(task_proxy.get_goals());
+}
+
+} // namespace
+
+void dump_probabilistic_task(
+    const ProbabilisticTaskProxy& task_proxy,
+    utils::LogProxy& log)
+{
+    dump_probabilistic_task_(task_proxy, log);
+}
+
+void dump_probabilistic_task(
+    const ProbabilisticTaskProxy& task_proxy,
+    std::ostream& os)
+{
+    dump_probabilistic_task_(task_proxy, os);
 }
 
 static std::
