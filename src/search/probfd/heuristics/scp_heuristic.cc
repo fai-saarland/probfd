@@ -131,8 +131,7 @@ SCPHeuristic::SCPHeuristic(
 
     const size_t num_operators = task_proxy_.get_operators().size();
 
-    ExplicitTaskCostFunction task_costs(task_proxy_);
-
+    auto task_costs = std::make_shared<ExplicitTaskCostFunction>(task_proxy_);
     std::vector<value_t> saturated_costs(num_operators);
 
     const State& initial_state = task_proxy_.get_initial_state();
@@ -157,14 +156,16 @@ SCPHeuristic::SCPHeuristic(
             pdb.get_value_table(),
             saturated_costs);
 
+        auto& costs_ref = *task_costs;
+
         for (size_t i = 0; i != num_operators; ++i) {
-            task_costs[i] -= saturated_costs[i];
-            assert(!is_approx_less(task_costs[i], 0.0_vt));
+            costs_ref[i] -= saturated_costs[i];
+            assert(!is_approx_less(costs_ref[i], 0.0_vt));
 
             // Avoid floating point imprecision. The PDB implementation is not
             // stable with respect to action costs very close to zero.
-            if (is_approx_equal(task_costs[i], 0.0_vt, 0.0001)) {
-                task_costs[i] = 0.0_vt;
+            if (is_approx_equal(costs_ref[i], 0.0_vt, 0.0001)) {
+                costs_ref[i] = 0.0_vt;
             }
         }
     }

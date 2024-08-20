@@ -75,7 +75,7 @@ class PatternCollectionGeneratorHillclimbing
     */
     unsigned int generate_candidate_pdbs(
         const ProbabilisticTaskProxy& task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
         utils::CountdownTimer& hill_climbing_timer,
         const std::vector<std::vector<int>>& relevant_neighbours,
         const ProbabilityAwarePatternDatabase& pdb,
@@ -136,7 +136,7 @@ class PatternCollectionGeneratorHillclimbing
     */
     void hill_climbing(
         const ProbabilisticTaskProxy& task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
         IncrementalPPDBs& current_pdbs);
 
 public:

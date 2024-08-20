@@ -14,7 +14,7 @@ class ProbabilityAwarePatternDatabase;
 
 class PatternInformation {
     ProbabilisticTaskProxy task_proxy_;
-    FDRSimpleCostFunction* task_cost_function_;
+    std::shared_ptr<FDRSimpleCostFunction> task_cost_function_;
     Pattern pattern_;
     std::shared_ptr<ProbabilityAwarePatternDatabase> pdb_;
 
@@ -26,7 +26,7 @@ class PatternInformation {
 public:
     PatternInformation(
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction* task_cost_function,
+        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         Pattern pattern);
 
     void set_pdb(const std::shared_ptr<ProbabilityAwarePatternDatabase>& pdb);

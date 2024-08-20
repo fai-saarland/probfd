@@ -173,12 +173,12 @@ static void compute_projection_operator_info(
 
 ProjectionStateSpace::ProjectionStateSpace(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     const StateRankingFunction& ranking_function,
     bool operator_pruning,
     double max_time)
     : match_tree_(task_proxy.get_operators().size())
-    , parent_cost_function_(&task_cost_function)
+    , parent_cost_function_(std::move(task_cost_function))
     , goal_state_flags_(ranking_function.num_states(), false)
 {
     utils::CountdownTimer timer(max_time);
@@ -192,7 +192,6 @@ ProjectionStateSpace::ProjectionStateSpace(
         timer.throw_if_expired();
 
         const OperatorID operator_id(op.get_id());
-        const value_t cost = task_cost_function.get_action_cost(operator_id);
 
         std::vector<FactPair> precondition;
         OperatorInfo operator_info;
@@ -238,17 +237,14 @@ ProjectionStateSpace::ProjectionStateSpace(
             timer.throw_if_expired();
 
             // Generate the progression operator
-            ProjectionOperator new_op(
-                operator_id,
-                cost,
-                operator_info.effect_infos);
+            ProjectionOperator new_op(operator_id, operator_info.effect_infos);
 
             // Now add the progression operators to the match tree
             match_tree_.insert(
                 ranking_function.get_enumerator(),
                 std::move(new_op),
                 precondition,
-                operator_pruning);
+                operator_pruning ? parent_cost_function_.get() : nullptr);
         } while (next_precondition(operator_info.missing_info, precondition));
     }
 
@@ -350,7 +346,7 @@ value_t ProjectionStateSpace::get_non_goal_termination_cost() const
 
 value_t ProjectionStateSpace::get_action_cost(const ProjectionOperator* op)
 {
-    return op->cost;
+    return parent_cost_function_->get_action_cost(op->operator_id);
 }
 
 } // namespace probfd::pdbs

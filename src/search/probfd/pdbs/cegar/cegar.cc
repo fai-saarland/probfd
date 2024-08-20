@@ -44,7 +44,7 @@ class CEGAR::PDBInfo {
 public:
     PDBInfo(
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         StateRankingFunction ranking_function,
         StateRank initial_state,
         utils::RandomNumberGenerator& rng,
@@ -53,7 +53,7 @@ public:
 
     PDBInfo(
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         StateRankingFunction ranking_function,
         const ProbabilityAwarePatternDatabase& previous,
         int add_var,
@@ -64,7 +64,7 @@ public:
 
     PDBInfo(
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         StateRankingFunction ranking_function,
         const ProbabilityAwarePatternDatabase& merge_left,
         const ProbabilityAwarePatternDatabase& merge_right,
@@ -99,7 +99,7 @@ public:
 
 CEGAR::PDBInfo::PDBInfo(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     StateRankingFunction ranking_function,
     StateRank initial_state,
     utils::RandomNumberGenerator& rng,
@@ -107,7 +107,7 @@ CEGAR::PDBInfo::PDBInfo(
     utils::CountdownTimer& timer)
     : state_space(new ProjectionStateSpace(
           task_proxy,
-          task_cost_function,
+          std::move(task_cost_function),
           ranking_function,
           false,
           timer.get_remaining_time()))
@@ -128,7 +128,7 @@ CEGAR::PDBInfo::PDBInfo(
 
 CEGAR::PDBInfo::PDBInfo(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     StateRankingFunction ranking_function,
     const ProbabilityAwarePatternDatabase& previous,
     int add_var,
@@ -138,7 +138,7 @@ CEGAR::PDBInfo::PDBInfo(
     utils::CountdownTimer& timer)
     : state_space(new ProjectionStateSpace(
           task_proxy,
-          task_cost_function,
+          std::move(task_cost_function),
           ranking_function,
           false,
           timer.get_remaining_time()))
@@ -160,7 +160,7 @@ CEGAR::PDBInfo::PDBInfo(
 
 CEGAR::PDBInfo::PDBInfo(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     StateRankingFunction ranking_function,
     const ProbabilityAwarePatternDatabase& left,
     const ProbabilityAwarePatternDatabase& right,
@@ -170,7 +170,7 @@ CEGAR::PDBInfo::PDBInfo(
     utils::CountdownTimer& timer)
     : state_space(new ProjectionStateSpace(
           task_proxy,
-          task_cost_function,
+          std::move(task_cost_function),
           ranking_function,
           false,
           timer.get_remaining_time()))
@@ -289,7 +289,7 @@ void CEGAR::print_collection(utils::LogProxy log) const
 
 void CEGAR::generate_trivial_solution_collection(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     utils::CountdownTimer& timer,
     utils::LogProxy log)
 {
@@ -298,7 +298,11 @@ void CEGAR::generate_trivial_solution_collection(
     pdb_infos_.reserve(goals_.size());
 
     for (int var : goals_) {
-        add_pattern_for_var(task_proxy, task_cost_function, var, timer);
+        add_pattern_for_var(
+            task_proxy,
+            std::move(task_cost_function),
+            var,
+            timer);
     }
 
     unsolved_end = pdb_infos_.end();
@@ -442,7 +446,7 @@ bool CEGAR::can_merge_patterns(
 
 void CEGAR::add_pattern_for_var(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     int var,
     utils::CountdownTimer& timer)
 {
@@ -452,7 +456,7 @@ void CEGAR::add_pattern_for_var(
     auto info_it = pdb_infos_.emplace(
         pdb_infos_.end(),
         task_proxy,
-        task_cost_function,
+        std::move(task_cost_function),
         std::move(ranking_function),
         initial_state,
         *rng_,
@@ -465,7 +469,7 @@ void CEGAR::add_pattern_for_var(
 
 void CEGAR::add_variable_to_pattern(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     std::vector<PDBInfo>::iterator info_it,
     int var,
     utils::CountdownTimer& timer)
@@ -485,7 +489,7 @@ void CEGAR::add_variable_to_pattern(
         ranking_function.get_abstract_rank(task_proxy.get_initial_state());
     info = PDBInfo(
         task_proxy,
-        task_cost_function,
+        std::move(task_cost_function),
         std::move(ranking_function),
         pdb,
         var,
@@ -503,7 +507,7 @@ void CEGAR::add_variable_to_pattern(
 
 void CEGAR::merge_patterns(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     std::vector<PDBInfo>::iterator info_it1,
     std::vector<PDBInfo>::iterator info_it2,
     utils::CountdownTimer& timer)
@@ -536,7 +540,7 @@ void CEGAR::merge_patterns(
 
     solution1 = PDBInfo(
         task_proxy,
-        task_cost_function,
+        std::move(task_cost_function),
         std::move(ranking_function),
         pdb1,
         pdb2,
@@ -577,7 +581,7 @@ void CEGAR::merge_patterns(
 
 void CEGAR::refine(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
     const std::vector<Flaw>& flaws,
     const std::vector<int>& flaw_offsets,
     utils::CountdownTimer& timer,
@@ -649,7 +653,7 @@ void CEGAR::refine(
 
 CEGARResult CEGAR::generate_pdbs(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
     double max_time,
     utils::LogProxy log)
 {

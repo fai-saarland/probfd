@@ -70,7 +70,7 @@ public:
      */
     ProbabilityAwarePatternDatabase(
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         Pattern pattern,
         const State& initial_state,
         bool operator_pruning = true,
@@ -121,7 +121,7 @@ public:
      */
     ProbabilityAwarePatternDatabase(
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         const ::pdbs::PatternDatabase& pdb,
         const State& initial_state,
         bool operator_pruning = true,
@@ -174,7 +174,7 @@ public:
      */
     ProbabilityAwarePatternDatabase(
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         const ProbabilityAwarePatternDatabase& pdb,
         int add_var,
         const State& initial_state,
@@ -235,7 +235,7 @@ public:
      */
     ProbabilityAwarePatternDatabase(
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         const ProbabilityAwarePatternDatabase& left,
         const ProbabilityAwarePatternDatabase& right,
         const State& initial_state,

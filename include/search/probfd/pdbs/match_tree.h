@@ -1,6 +1,8 @@
 #ifndef PROBFD_PDBS_MATCH_TREE_H
 #define PROBFD_PDBS_MATCH_TREE_H
 
+#include "probfd/fdr_types.h"
+
 #include "probfd/pdbs/types.h"
 
 #include <cstddef>
@@ -48,7 +50,7 @@ public:
         const AssignmentEnumerator& ranking_function,
         ProjectionOperator op,
         const std::vector<FactPair>& progression_preconditions,
-        bool operator_pruning);
+        FDRSimpleCostFunction* task_cost_function);
 
     /**
      * @brief Obtain the applicable prohjection operators for a given abstract

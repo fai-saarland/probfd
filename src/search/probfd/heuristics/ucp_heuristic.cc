@@ -71,7 +71,9 @@ UCPHeuristic::UCPHeuristic(
 
     pdbs_.reserve(num_abstractions);
 
-    UniformTaskCostFunction task_costs(task_proxy_, num_abstractions);
+    auto task_costs = std::make_shared<UniformTaskCostFunction>(
+        task_proxy_,
+        num_abstractions);
 
     const State& initial_state = task_proxy_.get_initial_state();
 

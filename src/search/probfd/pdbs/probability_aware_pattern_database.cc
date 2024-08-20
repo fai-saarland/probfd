@@ -45,7 +45,7 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
 
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     Pattern pattern,
     const State& initial_state,
     bool operator_pruning,
@@ -56,7 +56,7 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     utils::CountdownTimer timer(max_time);
     ProjectionStateSpace mdp(
         task_proxy,
-        task_cost_function,
+        std::move(task_cost_function),
         ranking_function_,
         operator_pruning,
         timer.get_remaining_time());
@@ -81,7 +81,7 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
 
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     const ::pdbs::PatternDatabase& pdb,
     const State& initial_state,
     bool operator_pruning,
@@ -92,7 +92,7 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
           pdb.get_pattern(),
           initial_state,
           operator_pruning,
-          task_cost_function.get_non_goal_termination_cost() == INFINITE_VALUE
+          task_cost_function->get_non_goal_termination_cost() == INFINITE_VALUE
               ? static_cast<const StateRankEvaluator&>(PDBEvaluator(pdb))
               : static_cast<const StateRankEvaluator&>(
                     DeadendPDBEvaluator(pdb)),
@@ -120,7 +120,7 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
 
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     const ProbabilityAwarePatternDatabase& pdb,
     int add_var,
     const State& initial_state,
@@ -134,7 +134,7 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
 
     ProjectionStateSpace mdp(
         task_proxy,
-        task_cost_function,
+        std::move(task_cost_function),
         ranking_function_,
         operator_pruning,
         timer.get_remaining_time());
@@ -171,7 +171,7 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
 
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     const ProbabilityAwarePatternDatabase& left,
     const ProbabilityAwarePatternDatabase& right,
     const State& initial_state,
@@ -183,20 +183,18 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
 {
     utils::CountdownTimer timer(max_time);
 
+    const auto term_cost = task_cost_function->get_non_goal_termination_cost();
+
     ProjectionStateSpace mdp(
         task_proxy,
-        task_cost_function,
+        std::move(task_cost_function),
         ranking_function_,
         operator_pruning,
         timer.get_remaining_time());
     compute_value_table(
         mdp,
         ranking_function_.get_abstract_rank(initial_state),
-        MergeEvaluator(
-            ranking_function_,
-            left,
-            right,
-            task_cost_function.get_non_goal_termination_cost()),
+        MergeEvaluator(ranking_function_, left, right, term_cost),
         value_table_,
         timer.get_remaining_time());
 }

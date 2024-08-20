@@ -82,14 +82,14 @@ public:
 
     CEGARResult generate_pdbs(
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
         double max_time,
         utils::LogProxy log);
 
 private:
     void generate_trivial_solution_collection(
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         utils::CountdownTimer& timer,
         utils::LogProxy log);
 
@@ -111,27 +111,27 @@ private:
 
     void add_pattern_for_var(
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         int var,
         utils::CountdownTimer& timer);
 
     void add_variable_to_pattern(
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         std::vector<PDBInfo>::iterator info_it,
         int var,
         utils::CountdownTimer& timer);
 
     void merge_patterns(
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         std::vector<PDBInfo>::iterator info_it1,
         std::vector<PDBInfo>::iterator info_it2,
         utils::CountdownTimer& timer);
 
     void refine(
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
         const std::vector<Flaw>& flaws,
         const std::vector<int>& flaw_offsets,
         utils::CountdownTimer& timer,

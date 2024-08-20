@@ -37,7 +37,7 @@ PatternCollectionInformation::PatternCollectionInformation(
     for (size_t i = 0; i != pdbs->size(); ++i) {
         pdbs_->emplace_back(new ProbabilityAwarePatternDatabase(
             task_proxy_,
-            *task_cost_function_,
+            task_cost_function_,
             *pdbs->operator[](i),
             task_proxy_.get_initial_state()));
     }
@@ -108,7 +108,7 @@ void PatternCollectionInformation::create_pdbs_if_missing()
         for (const Pattern& pattern : *patterns_) {
             pdbs_->emplace_back(new ProbabilityAwarePatternDatabase(
                 task_proxy_,
-                *task_cost_function_,
+                task_cost_function_,
                 pattern,
                 task_proxy_.get_initial_state()));
         }

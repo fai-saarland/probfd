@@ -48,7 +48,7 @@ public:
     void run_cegar_loop(
         ProjectionTransformation& transformation,
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
         utils::RandomNumberGenerator& rng,
         double max_time,
         utils::LogProxy log);
@@ -66,7 +66,7 @@ private:
     void refine(
         ProjectionTransformation& transformation,
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         const std::vector<Flaw>& flaws,
         utils::RandomNumberGenerator& rng,
         utils::CountdownTimer& timer,
@@ -179,7 +179,7 @@ bool SingleCEGAR::get_flaws(
 void SingleCEGAR::refine(
     ProjectionTransformation& transformation,
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     const std::vector<Flaw>& flaws,
     utils::RandomNumberGenerator& rng,
     utils::CountdownTimer& timer,
@@ -224,7 +224,7 @@ void SingleCEGAR::refine(
 
     transformation = ProjectionTransformation(
         task_proxy,
-        task_cost_function,
+        std::move(task_cost_function),
         extended_pattern(ranking_function.get_pattern(), flaw_var),
         false,
         timer.get_remaining_time());
@@ -242,7 +242,7 @@ void SingleCEGAR::refine(
 void SingleCEGAR::run_cegar_loop(
     ProjectionTransformation& transformation,
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
     utils::RandomNumberGenerator& rng,
     double max_time,
     utils::LogProxy log)
@@ -333,7 +333,7 @@ void SingleCEGAR::run_cegar_loop(
 void run_cegar_loop(
     ProjectionTransformation& transformation,
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     cegar::FlawFindingStrategy& flaw_strategy,
     std::unordered_set<int> blacklisted_variables,
     int max_pdb_size,
@@ -351,7 +351,7 @@ void run_cegar_loop(
     single_cegar.run_cegar_loop(
         transformation,
         task_proxy,
-        task_cost_function,
+        std::move(task_cost_function),
         rng,
         max_time,
         std::move(log));

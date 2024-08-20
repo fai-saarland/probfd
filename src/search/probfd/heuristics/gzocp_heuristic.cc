@@ -131,7 +131,7 @@ GZOCPHeuristic::GZOCPHeuristic(
     default: break;
     }
 
-    ExplicitTaskCostFunction task_costs(task_proxy_);
+    auto task_costs = std::make_shared<ExplicitTaskCostFunction>(task_proxy_);
 
     const State& initial_state = task_proxy_.get_initial_state();
 
@@ -146,7 +146,7 @@ GZOCPHeuristic::GZOCPHeuristic(
         auto& pdb =
             pdbs_.emplace_back(state_space, std::move(rankingf), init_rank);
 
-        task_costs.decrease_costs(pdb);
+        task_costs->decrease_costs(pdb);
     }
 }
 

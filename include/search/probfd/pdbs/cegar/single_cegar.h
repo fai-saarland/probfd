@@ -40,7 +40,7 @@ namespace probfd::pdbs::cegar {
 extern void run_cegar_loop(
     ProjectionTransformation& transformation,
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     cegar::FlawFindingStrategy& flaw_strategy,
     std::unordered_set<int> blacklisted_variables,
     int max_pdb_size,

@@ -27,15 +27,14 @@ namespace probfd::pdbs {
 /// task.
 class ProjectionStateSpace
     : public SimpleMDP<StateRank, const ProjectionOperator*> {
-
     MatchTree match_tree_;
-    FDRSimpleCostFunction* parent_cost_function_;
+    std::shared_ptr<FDRSimpleCostFunction> parent_cost_function_;
     std::vector<bool> goal_state_flags_;
 
 public:
     ProjectionStateSpace(
         ProbabilisticTaskProxy task_proxy,
-        FDRSimpleCostFunction& task_cost_function,
+        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         const StateRankingFunction& ranking_function,
         bool operator_pruning = true,
         double max_time = std::numeric_limits<double>::infinity());

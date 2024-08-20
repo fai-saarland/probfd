@@ -8,14 +8,14 @@ namespace probfd::pdbs {
 
 ProjectionTransformation::ProjectionTransformation(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction& task_cost_function,
+    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     Pattern pattern,
     bool operator_pruning,
     double max_time)
     : ranking_function(task_proxy.get_variables(), std::move(pattern))
     , projection(std::make_unique<ProjectionStateSpace>(
           task_proxy,
-          task_cost_function,
+          std::move(task_cost_function),
           ranking_function,
           operator_pruning,
           max_time))

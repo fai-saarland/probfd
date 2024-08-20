@@ -182,7 +182,9 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
     }
 
     ProbabilisticTaskProxy task_proxy(*task);
-    ExplicitTaskCostFunction cost_function(task_proxy, *task_cost_function);
+    auto cost_function = std::make_shared<ExplicitTaskCostFunction>(
+        task_proxy,
+        *task_cost_function);
 
     utils::CountdownTimer timer(total_max_time_);
 
@@ -277,7 +279,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
                     *state_space,
                     distances,
                     saturated_costs);
-                cost_function.update_costs(saturated_costs);
+                cost_function->update_costs(saturated_costs);
             }
 
             /*

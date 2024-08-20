@@ -12,10 +12,10 @@ namespace probfd::pdbs {
 
 PatternInformation::PatternInformation(
     ProbabilisticTaskProxy task_proxy,
-    FDRSimpleCostFunction* task_cost_function,
+    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     Pattern pattern)
     : task_proxy_(task_proxy)
-    , task_cost_function_(task_cost_function)
+    , task_cost_function_(std::move(task_cost_function))
     , pattern_(std::move(pattern))
 {
 }
@@ -30,7 +30,7 @@ void PatternInformation::create_pdb_if_missing()
     if (!pdb_) {
         pdb_ = make_shared<ProbabilityAwarePatternDatabase>(
             task_proxy_,
-            *task_cost_function_,
+            task_cost_function_,
             pattern_,
             task_proxy_.get_initial_state());
     }
