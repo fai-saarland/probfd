@@ -54,7 +54,7 @@ void add_mdp_hs_options_to_feature(plugins::Feature& feature)
         feature.add_option<bool>("fret_on_policy", "", "true");
     }
 
-    add_mdp_hs_base_options_to_feature<true, true>(feature);
+    add_mdp_hs_base_options_to_feature<Bisimulation, Fret>(feature);
 }
 
 template <bool Bisimulation, bool Fret>
