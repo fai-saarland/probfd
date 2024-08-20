@@ -6,10 +6,11 @@
 #include "probfd/algorithms/open_list.h"
 #include "probfd/algorithms/successor_sampler.h"
 
+#include "probfd/heuristics/constant_evaluator.h"
+
 #include "probfd/policy_pickers/arbitrary_tiebreaker.h"
 
 #include "probfd/bisimulation/bisimilar_state_space.h"
-#include "probfd/bisimulation/evaluators.h"
 
 #include "probfd/tasks/determinization_task.h"
 #include "probfd/tasks/root_task.h"
@@ -166,10 +167,8 @@ public:
                   << state_space.num_transitions() << " transitions."
                   << std::endl;
         std::cout << std::endl;
-
-        bisimulation::InducedQuotientEvaluator heuristic(
-            &state_space,
-            task_cost_function_->get_non_goal_termination_cost());
+        
+        heuristics::BlindEvaluator<QState> heuristic;
 
         std::cout << "Running " << algorithm_name_ << "..." << std::endl;
         return algorithm_

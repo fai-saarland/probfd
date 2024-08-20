@@ -19,14 +19,10 @@
 #include "downward/task_utils/variable_order_finder.h"
 
 #include "downward/utils/logging.h"
-#include "downward/utils/timer.h"
-
-#include "downward/plugins/options.h"
 
 #include "downward/task_proxy.h"
 
 #include <cassert>
-#include <iostream>
 #include <limits>
 #include <memory>
 #include <ranges>
@@ -59,15 +55,11 @@ BisimilarStateSpace::BisimilarStateSpace(
 {
     num_cached_transitions_ = 0;
 
-    goal_flags_.resize(transition_system.get_size(), false);
-
-    for (std::size_t i = 0; i != goal_flags_.size(); ++i) {
-        goal_flags_[i] = transition_system.is_goal_state(i);
-    }
-
     transitions_.resize(
         transition_system.get_size(),
         std::vector<CachedTransition>());
+
+    dead_end_state_ = QuotientState(transitions_.size());
 
     ProbabilisticTaskProxy task_proxy(*task_);
     OperatorsProxy det_operators = det_task_proxy.get_operators();
@@ -102,8 +94,6 @@ BisimilarStateSpace::BisimilarStateSpace(
             for (const auto& trans : local_info.get_transitions()) {
                 std::vector<CachedTransition>& ts = transitions_[trans.src];
                 assert(trans.target != PRUNED_STATE);
-                // if (trans.target == PRUNED_STATE ||
-                //     trans.target == trans.src) continue;
                 const auto& op = g_to_p[g_op_id];
 
                 CachedTransition* t = nullptr;
@@ -121,7 +111,7 @@ BisimilarStateSpace::BisimilarStateSpace(
                     t->op = op.first;
                     t->successors = allocate(size);
                     for (int j = 0; j != size; ++j) {
-                        t->successors[j] = PRUNED_STATE;
+                        t->successors[j] = std::to_underlying(dead_end_state_);
                     }
                     ++num_cached_transitions_;
                 }
@@ -131,7 +121,11 @@ BisimilarStateSpace::BisimilarStateSpace(
         }
     }
 
-    dead_end_state_ = QuotientState(transitions_.size());
+    goal_flags_.resize(transition_system.get_size(), false);
+
+    for (std::size_t i = 0; i != goal_flags_.size(); ++i) {
+        goal_flags_[i] = transition_system.is_goal_state(i);
+    }
 }
 
 BisimilarStateSpace::~BisimilarStateSpace() = default;
@@ -183,9 +177,7 @@ void BisimilarStateSpace::generate_action_transitions(
     for (unsigned i = 0; i < outcomes.size(); ++i) {
         const ProbabilisticOutcomeProxy outcome = outcomes[i];
         const value_t probability = outcome.get_probability();
-        const StateID id = t.successors[i] == PRUNED_STATE
-                               ? std::to_underlying(dead_end_state_)
-                               : t.successors[i];
+        const StateID id = t.successors[i];
         result.add_probability(id, probability);
     }
 }
@@ -236,69 +228,14 @@ bool BisimilarStateSpace::is_goal_state(QuotientState s) const
     return s != dead_end_state_ && goal_flags_[std::to_underlying(s)];
 }
 
-bool BisimilarStateSpace::is_dead_end(QuotientState s) const
-{
-    return s == dead_end_state_;
-}
-
 unsigned BisimilarStateSpace::num_bisimilar_states() const
 {
-    return goal_flags_.size();
+    return transitions_.size();
 }
 
 unsigned BisimilarStateSpace::num_transitions() const
 {
     return num_cached_transitions_;
-}
-
-void BisimilarStateSpace::dump(std::ostream& out) const
-{
-    ProbabilisticTaskProxy task_proxy(*task_);
-    const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
-
-    out << "digraph {" << "\n";
-
-    for (unsigned node = 0; node < transitions_.size(); ++node) {
-        out << "n" << node << " [shape=circle, label=\"#" << node << "\""
-            << (goal_flags_[node] ? ", peripheries=2" : "") << "];\n";
-    }
-    out << "n" << transitions_.size() << " [shape=circle, label=\"dead\"];\n";
-
-    unsigned t = 0;
-    for (unsigned node = 0; node < transitions_.size(); ++node) {
-        const std::vector<CachedTransition>& ts = transitions_[node];
-        for (auto i : ts) {
-            out << "t" << t << " [shape=rectangle, label=\""
-                << operators[i.op].get_name() << "\"];\n";
-            ++t;
-        }
-    }
-
-    out << "\n";
-
-    t = 0;
-    for (unsigned node = 0; node < transitions_.size(); ++node) {
-        const std::vector<CachedTransition>& ts = transitions_[node];
-        for (unsigned i = 0; i < ts.size(); ++i) {
-            out << "n" << node << " -> t" << t << ";\n";
-            Distribution<int> succs;
-            const ProbabilisticOutcomesProxy outcomes =
-                operators[ts[i].op].get_outcomes();
-            for (unsigned j = 0; j < outcomes.size(); ++j) {
-                const ProbabilisticOutcomeProxy outcome = outcomes[j];
-                const int succ = ts[i].successors[j];
-                succs.add_probability(
-                    succ == PRUNED_STATE ? (int)transitions_.size() : succ,
-                    outcome.get_probability());
-            }
-            for (const auto item : succs.support()) {
-                out << "t" << t << " -> n" << item << "\n";
-            }
-            ++t;
-        }
-    }
-
-    out << "}" << std::flush;
 }
 
 merge_and_shrink::Factor

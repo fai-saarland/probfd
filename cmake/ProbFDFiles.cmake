@@ -123,7 +123,6 @@ create_probfd_library(
     HELP "bisimulation_core"
     SOURCES
         probfd/bisimulation/bisimilar_state_space
-        probfd/bisimulation/evaluators
     DEPENDS
         probfd_core
         mas_heuristic
