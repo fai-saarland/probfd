@@ -50,13 +50,6 @@ struct ExplicitEffect {
         return std::tie(left.fact, left.conditions) <
                std::tie(right.fact, right.conditions);
     }
-
-    friend bool
-    operator==(const ExplicitEffect& left, const ExplicitEffect& right)
-    {
-        return std::tie(left.fact, left.conditions) ==
-               std::tie(right.fact, right.conditions);
-    }
 };
 
 struct DeterministicOperator {

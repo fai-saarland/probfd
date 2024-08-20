@@ -77,7 +77,7 @@ void MatchTree::insert(
             *node = std::make_unique<Node>();
         }
 
-        if (precondition_it == progression_preconditions.end()) break;
+        if (precondition_it == precondition_end) break;
 
         const FactPair& fact = *precondition_it;
         int pattern_var_id = fact.var;
