@@ -51,16 +51,14 @@ class BisimilarStateSpace : public MDP<QuotientState, QuotientAction> {
     ProbabilisticTaskProxy task_proxy_;
     const value_t upper_bound_;
 
-    std::unique_ptr<merge_and_shrink::FactoredTransitionSystem> fts_;
-    const merge_and_shrink::TransitionSystem* abstraction_;
-    std::unique_ptr<merge_and_shrink::Distances> distances_;
-    unsigned num_cached_transitions_;
+    std::vector<bool> goal_flags_;
 
     QuotientState initial_state_;
     QuotientState dead_end_state_;
+
+    unsigned num_cached_transitions_;
     segmented_vector::SegmentedVector<std::vector<CachedTransition>>
         transitions_;
-
     std::vector<std::unique_ptr<int[]>> store_;
 
 public:
@@ -99,23 +97,18 @@ public:
     value_t get_action_cost(QuotientAction action) override;
 
     /// Get the initial state of the probabilistic bisimulation quotient.
-    [[nodiscard]]
     QuotientState get_initial_state() const;
 
     /// Checks whether the given quotient state is a goal state.
-    [[nodiscard]]
     bool is_goal_state(QuotientState s) const;
 
     /// Checks whether the given quotient state is a dead end.
-    [[nodiscard]]
     bool is_dead_end(QuotientState s) const;
 
     /// Gets the number of states in the probabilistic bisimulation.
-    [[nodiscard]]
     unsigned num_bisimilar_states() const;
 
     /// Gets the number of transitions in the probabilistic bisimulation.
-    [[nodiscard]]
     unsigned num_transitions() const;
 
     /// Dumps the quotient state space to an output stream as a dot graph.

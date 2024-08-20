@@ -54,7 +54,6 @@ BisimilarStateSpace::BisimilarStateSpace(
     value_t upper_bound)
     : task_proxy_(*task)
     , upper_bound_(upper_bound)
-    , abstraction_(nullptr)
 {
     utils::Timer timer_total;
     utils::Timer timer;
@@ -97,21 +96,28 @@ BisimilarStateSpace::BisimilarStateSpace(
 
     TaskProxy det_task_proxy(determinization);
 
-    this->fts_ = std::make_unique<FactoredTransitionSystem>(
-        mns_algorithm.build_factored_transition_system(det_task_proxy));
+    FactoredTransitionSystem fts =
+        mns_algorithm.build_factored_transition_system(det_task_proxy);
 
     std::cout << "AOD-bisimulation was constructed in " << timer << std::endl;
     timer.reset();
 
-    assert(fts_->get_num_active_entries() == 1);
+    assert(fts.get_num_active_entries() == 1);
 
-    const int last_index = static_cast<int>(fts_->get_size() - 1);
+    const int last_index = static_cast<int>(fts.get_size() - 1);
 
-    if (fts_->is_factor_solvable(last_index)) {
-        abstraction_ = &fts_->get_transition_system(last_index);
+    if (fts.is_factor_solvable(last_index)) {
+        const merge_and_shrink::TransitionSystem& abstraction =
+            fts.get_transition_system(last_index);
+
+        goal_flags_.resize(abstraction.get_size(), false);
+
+        for (std::size_t i = 0; i != goal_flags_.size(); ++i) {
+            goal_flags_[i] = abstraction.is_goal_state(i);
+        }
 
         transitions_.resize(
-            abstraction_->get_size(),
+            abstraction.get_size(),
             std::vector<CachedTransition>());
 
         OperatorsProxy det_operators = det_task_proxy.get_operators();
@@ -146,7 +152,7 @@ BisimilarStateSpace::BisimilarStateSpace(
             return result;
         };
 
-        for (const LocalLabelInfo& local_info : *abstraction_) {
+        for (const LocalLabelInfo& local_info : abstraction) {
             for (const int g_op_id : local_info.get_label_group()) {
                 for (const auto& trans : local_info.get_transitions()) {
                     std::vector<CachedTransition>& ts = transitions_[trans.src];
@@ -181,10 +187,9 @@ BisimilarStateSpace::BisimilarStateSpace(
             }
         }
 
-        auto factor_info = fts_->extract_factor(last_index);
+        auto factor_info = fts.extract_factor(last_index);
         std::unique_ptr<MergeAndShrinkRepresentation> state_mapping =
             std::move(factor_info.first);
-        distances_ = std::move(factor_info.second);
 
         State initial = task_proxy_.get_initial_state();
         initial.unpack();
@@ -304,8 +309,7 @@ QuotientState BisimilarStateSpace::get_initial_state() const
 
 bool BisimilarStateSpace::is_goal_state(QuotientState s) const
 {
-    return s != dead_end_state_ &&
-           abstraction_->is_goal_state(std::to_underlying(s));
+    return s != dead_end_state_ && goal_flags_[std::to_underlying(s)];
 }
 
 bool BisimilarStateSpace::is_dead_end(QuotientState s) const
@@ -315,7 +319,8 @@ bool BisimilarStateSpace::is_dead_end(QuotientState s) const
 
 unsigned BisimilarStateSpace::num_bisimilar_states() const
 {
-    return abstraction_ != nullptr ? abstraction_->get_size() : 1;
+    const auto size = goal_flags_.size();
+    return size != 0 ? size : 1;
 }
 
 unsigned BisimilarStateSpace::num_transitions() const
@@ -327,22 +332,18 @@ void BisimilarStateSpace::dump(std::ostream& out) const
 {
     const ProbabilisticOperatorsProxy operators = task_proxy_.get_operators();
 
-    out << "digraph {"
-        << "\n";
+    out << "digraph {" << "\n";
 
     if (initial_state_ == dead_end_state_) {
-        out << "init [shape=ellipse, label=\"dead\"];"
-            << "\n";
-        out << "-> init;"
-            << "\n";
+        out << "init [shape=ellipse, label=\"dead\"];" << "\n";
+        out << "-> init;" << "\n";
         out << "}" << std::flush;
         return;
     }
 
     for (unsigned node = 0; node < transitions_.size(); ++node) {
         out << "n" << node << " [shape=circle, label=\"#" << node << "\""
-            << (abstraction_->is_goal_state(node) ? ", peripheries=2" : "")
-            << "];\n";
+            << (goal_flags_[node] ? ", peripheries=2" : "") << "];\n";
     }
     out << "n" << transitions_.size() << " [shape=circle, label=\"dead\"];\n";
 
