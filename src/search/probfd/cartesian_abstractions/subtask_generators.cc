@@ -1,6 +1,6 @@
 #include "probfd/cartesian_abstractions/subtask_generators.h"
 
-#include "probfd/tasks/all_outcomes_determinization.h"
+#include "probfd/tasks/determinization_task.h"
 #include "probfd/tasks/domain_abstracted_task_factory.h"
 #include "probfd/tasks/modified_goals_task.h"
 
@@ -176,11 +176,11 @@ SharedTasks LandmarkDecomposition::get_subtasks(
     const shared_ptr<ProbabilisticTask>& task,
     utils::LogProxy& log) const
 {
-    auto determinzation_task =
-        std::make_shared<tasks::AODDeterminizationTask>(task.get());
+    auto determinization_task =
+        std::make_shared<tasks::DeterminizationTask>(task);
     SharedTasks subtasks;
     shared_ptr<landmarks::LandmarkGraph> landmark_graph =
-        ::cartesian_abstractions::get_landmark_graph(determinzation_task);
+        ::cartesian_abstractions::get_landmark_graph(determinization_task);
     Facts landmark_facts =
         ::cartesian_abstractions::get_fact_landmarks(*landmark_graph);
     filter_and_order_facts(task, fact_order_, landmark_facts, *rng_, log);

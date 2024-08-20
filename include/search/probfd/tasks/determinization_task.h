@@ -1,5 +1,5 @@
-#ifndef PROBFD_TASKS_ALL_OUTCOMES_DETERMINIZATION_H
-#define PROBFD_TASKS_ALL_OUTCOMES_DETERMINIZATION_H
+#ifndef PROBFD_TASKS_DETERMINIZATION_TASK_H
+#define PROBFD_TASKS_DETERMINIZATION_TASK_H
 
 #include "downward/abstract_task.h"
 
@@ -24,17 +24,18 @@ namespace probfd::tasks {
  * that induces the deterministic operator. Essentially, every probabilistic
  * outcome can be chosen at will.
  */
-class AODDeterminizationTask final : public AbstractTask {
-    const ProbabilisticTask* parent_task_;
+class DeterminizationTask final : public AbstractTask {
+    std::shared_ptr<ProbabilisticTask> parent_task_;
 
     std::vector<std::pair<int, int>> det_to_prob_index_;
 
 public:
     /// Constructs the all-outcomes determinization of the input probabilistic
     /// planning task.
-    explicit AODDeterminizationTask(const ProbabilisticTask* parent_task);
+    explicit DeterminizationTask(
+        std::shared_ptr<ProbabilisticTask> parent_task);
 
-    ~AODDeterminizationTask() final = default;
+    ~DeterminizationTask() final = default;
 
     int get_num_variables() const final;
 

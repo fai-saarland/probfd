@@ -5,7 +5,7 @@
 #include "probfd/pdbs/pattern_collection_information.h"
 #include "probfd/pdbs/subcollection_finder_factory.h"
 
-#include "probfd/tasks/all_outcomes_determinization.h"
+#include "probfd/tasks/determinization_task.h"
 
 #include "downward/pdbs/pattern_generator.h"
 
@@ -27,8 +27,8 @@ PatternCollectionInformation PatternCollectionGeneratorClassical::generate(
 {
     ProbabilisticTaskProxy task_proxy(*task);
 
-    std::shared_ptr<tasks::AODDeterminizationTask> determinization(
-        new tasks::AODDeterminizationTask(task.get()));
+    std::shared_ptr determinization =
+        std::make_shared<tasks::DeterminizationTask>(task);
 
     std::shared_ptr<SubCollectionFinder> finder =
         finder_factory_->create_subcollection_finder(task_proxy);

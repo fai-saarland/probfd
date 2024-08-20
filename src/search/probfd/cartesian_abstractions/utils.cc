@@ -1,6 +1,6 @@
 #include "probfd/cartesian_abstractions/utils.h"
 
-#include "probfd/tasks/all_outcomes_determinization.h"
+#include "probfd/tasks/determinization_task.h"
 
 #include "probfd/task_proxy.h"
 
@@ -18,7 +18,7 @@ unique_ptr<additive_heuristic::AdditiveHeuristic>
 create_additive_heuristic(const shared_ptr<ProbabilisticTask>& task)
 {
     return std::make_unique<additive_heuristic::AdditiveHeuristic>(
-        std::make_shared<tasks::AODDeterminizationTask>(task.get()),
+        std::make_shared<tasks::DeterminizationTask>(task),
         false,
         "",
         utils::Verbosity::SILENT);

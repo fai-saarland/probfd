@@ -1,5 +1,5 @@
 #include "probfd/tasks/root_task.h"
-#include "probfd/tasks/all_outcomes_determinization.h"
+#include "probfd/tasks/determinization_task.h"
 
 #include "probfd/probabilistic_task.h"
 #include "probfd/value_type.h"
@@ -863,7 +863,7 @@ void set_root_task(std::shared_ptr<ProbabilisticTask> task)
 {
     // FIXME crashes in tests since it persists in between tests.
     // assert(!g_root_task);
-    ::tasks::g_root_task = std::make_shared<AODDeterminizationTask>(task.get());
+    ::tasks::g_root_task = std::make_shared<DeterminizationTask>(task);
     g_root_task = std::move(task);
 }
 

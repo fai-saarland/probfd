@@ -1,4 +1,4 @@
-#include "probfd/tasks/all_outcomes_determinization.h"
+#include "probfd/tasks/determinization_task.h"
 
 #include "probfd/probabilistic_task.h"
 
@@ -8,9 +8,9 @@
 
 namespace probfd::tasks {
 
-AODDeterminizationTask::AODDeterminizationTask(
-    const ProbabilisticTask* parent_task)
-    : parent_task_(parent_task)
+DeterminizationTask::DeterminizationTask(
+    std::shared_ptr<ProbabilisticTask> parent_task)
+    : parent_task_(std::move(parent_task))
 {
     ProbabilisticTaskProxy proxy(*parent_task);
 
@@ -22,78 +22,77 @@ AODDeterminizationTask::AODDeterminizationTask(
     }
 }
 
-int AODDeterminizationTask::get_num_variables() const
+int DeterminizationTask::get_num_variables() const
 {
     return parent_task_->get_num_variables();
 }
 
-std::string AODDeterminizationTask::get_variable_name(int var) const
+std::string DeterminizationTask::get_variable_name(int var) const
 {
     return parent_task_->get_variable_name(var);
 }
 
-int AODDeterminizationTask::get_variable_domain_size(int var) const
+int DeterminizationTask::get_variable_domain_size(int var) const
 {
     return parent_task_->get_variable_domain_size(var);
 }
 
-int AODDeterminizationTask::get_variable_axiom_layer(int var) const
+int DeterminizationTask::get_variable_axiom_layer(int var) const
 {
     return parent_task_->get_variable_axiom_layer(var);
 }
 
-int AODDeterminizationTask::get_variable_default_axiom_value(int var) const
+int DeterminizationTask::get_variable_default_axiom_value(int var) const
 {
     return parent_task_->get_variable_default_axiom_value(var);
 }
 
-std::string AODDeterminizationTask::get_fact_name(const FactPair& fact) const
+std::string DeterminizationTask::get_fact_name(const FactPair& fact) const
 {
     return parent_task_->get_fact_name(fact);
 }
 
-bool AODDeterminizationTask::are_facts_mutex(
+bool DeterminizationTask::are_facts_mutex(
     const FactPair& fact1,
     const FactPair& fact2) const
 {
     return parent_task_->are_facts_mutex(fact1, fact2);
 }
 
-int AODDeterminizationTask::get_num_axioms() const
+int DeterminizationTask::get_num_axioms() const
 {
     return parent_task_->get_num_axioms();
 }
 
-std::string AODDeterminizationTask::get_axiom_name(int index) const
+std::string DeterminizationTask::get_axiom_name(int index) const
 {
     return parent_task_->get_axiom_name(index);
 }
 
-int AODDeterminizationTask::get_num_axiom_preconditions(int index) const
+int DeterminizationTask::get_num_axiom_preconditions(int index) const
 {
     return parent_task_->get_num_axiom_preconditions(index);
 }
 
 FactPair
-AODDeterminizationTask::get_axiom_precondition(int op_index, int fact_index)
-    const
+DeterminizationTask::get_axiom_precondition(int op_index, int fact_index) const
 {
     return parent_task_->get_axiom_precondition(op_index, fact_index);
 }
 
-int AODDeterminizationTask::get_num_axiom_effects(int op_index) const
+int DeterminizationTask::get_num_axiom_effects(int op_index) const
 {
     return parent_task_->get_num_axiom_effects(op_index);
 }
 
-int AODDeterminizationTask::get_num_axiom_effect_conditions(
+int DeterminizationTask::get_num_axiom_effect_conditions(
     int op_index,
     int eff_index) const
 {
     return parent_task_->get_num_axiom_effect_conditions(op_index, eff_index);
 }
 
-FactPair AODDeterminizationTask::get_axiom_effect_condition(
+FactPair DeterminizationTask::get_axiom_effect_condition(
     int op_index,
     int eff_index,
     int cond_index) const
@@ -105,35 +104,35 @@ FactPair AODDeterminizationTask::get_axiom_effect_condition(
 }
 
 FactPair
-AODDeterminizationTask::get_axiom_effect(int op_index, int eff_index) const
+DeterminizationTask::get_axiom_effect(int op_index, int eff_index) const
 {
     return parent_task_->get_axiom_effect(op_index, eff_index);
 }
 
-int AODDeterminizationTask::get_operator_cost(int index) const
+int DeterminizationTask::get_operator_cost(int index) const
 {
     return static_cast<int>(
         parent_task_->get_operator_cost(get_parent_indices(index).first));
 }
 
-std::string AODDeterminizationTask::get_operator_name(int index) const
+std::string DeterminizationTask::get_operator_name(int index) const
 {
     return parent_task_->get_operator_name(get_parent_indices(index).first);
 }
 
-int AODDeterminizationTask::get_num_operators() const
+int DeterminizationTask::get_num_operators() const
 {
     return det_to_prob_index_.size();
 }
 
-int AODDeterminizationTask::get_num_operator_preconditions(int index) const
+int DeterminizationTask::get_num_operator_preconditions(int index) const
 {
     return parent_task_->get_num_operator_preconditions(
         get_parent_indices(index).first);
 }
 
 FactPair
-AODDeterminizationTask::get_operator_precondition(int op_index, int fact_index)
+DeterminizationTask::get_operator_precondition(int op_index, int fact_index)
     const
 {
     return parent_task_->get_operator_precondition(
@@ -141,7 +140,7 @@ AODDeterminizationTask::get_operator_precondition(int op_index, int fact_index)
         fact_index);
 }
 
-int AODDeterminizationTask::get_num_operator_effects(int op_index) const
+int DeterminizationTask::get_num_operator_effects(int op_index) const
 {
     const auto& [pr_op_index, pr_outcome_index] = get_parent_indices(op_index);
     return parent_task_->get_num_operator_outcome_effects(
@@ -149,7 +148,7 @@ int AODDeterminizationTask::get_num_operator_effects(int op_index) const
         pr_outcome_index);
 }
 
-int AODDeterminizationTask::get_num_operator_effect_conditions(
+int DeterminizationTask::get_num_operator_effect_conditions(
     int op_index,
     int eff_index) const
 {
@@ -160,7 +159,7 @@ int AODDeterminizationTask::get_num_operator_effect_conditions(
         eff_index);
 }
 
-FactPair AODDeterminizationTask::get_operator_effect_condition(
+FactPair DeterminizationTask::get_operator_effect_condition(
     int op_index,
     int eff_index,
     int cond_index) const
@@ -174,7 +173,7 @@ FactPair AODDeterminizationTask::get_operator_effect_condition(
 }
 
 FactPair
-AODDeterminizationTask::get_operator_effect(int op_index, int eff_index) const
+DeterminizationTask::get_operator_effect(int op_index, int eff_index) const
 {
     const auto& [pr_op_index, pr_outcome_index] = get_parent_indices(op_index);
     return parent_task_->get_operator_outcome_effect(
@@ -183,17 +182,17 @@ AODDeterminizationTask::get_operator_effect(int op_index, int eff_index) const
         eff_index);
 }
 
-int AODDeterminizationTask::get_num_goals() const
+int DeterminizationTask::get_num_goals() const
 {
     return parent_task_->get_num_goals();
 }
 
-FactPair AODDeterminizationTask::get_goal_fact(int index) const
+FactPair DeterminizationTask::get_goal_fact(int index) const
 {
     return parent_task_->get_goal_fact(index);
 }
 
-std::vector<int> AODDeterminizationTask::get_initial_state_values() const
+std::vector<int> DeterminizationTask::get_initial_state_values() const
 {
     return parent_task_->get_initial_state_values();
 }
@@ -208,12 +207,12 @@ std::vector<int> AODDeterminizationTask::get_initial_state_values() const
  * it should create the new vector in a local variable and then swap it with
  * the parameter.
  */
-void AODDeterminizationTask::convert_ancestor_state_values(
+void DeterminizationTask::convert_ancestor_state_values(
     std::vector<int>&,
     const PlanningTask* ancestor_task) const
 {
     (void)ancestor_task;
-    assert(ancestor_task == this || ancestor_task == parent_task_);
+    assert(ancestor_task == this || ancestor_task == parent_task_.get());
 }
 /*
  * Convert an operator index from this task, C (child), into an operator
@@ -221,7 +220,7 @@ void AODDeterminizationTask::convert_ancestor_state_values(
  * C in the sense that C is the result of a sequence of task transformations
  * on A.
  */
-int AODDeterminizationTask::convert_operator_index(
+int DeterminizationTask::convert_operator_index(
     int index,
     const PlanningTask* ancestor_task) const
 {
@@ -230,8 +229,8 @@ int AODDeterminizationTask::convert_operator_index(
     return index;
 }
 
-std::pair<int, int> AODDeterminizationTask::get_parent_indices(
-    int deterministic_operator_index) const
+std::pair<int, int>
+DeterminizationTask::get_parent_indices(int deterministic_operator_index) const
 {
     return det_to_prob_index_[deterministic_operator_index];
 }

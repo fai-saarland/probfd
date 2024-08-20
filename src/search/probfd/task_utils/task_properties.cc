@@ -1,15 +1,11 @@
 #include "probfd/task_utils/task_properties.h"
 
-#include "probfd/tasks/all_outcomes_determinization.h"
-
 #include "probfd/probabilistic_task.h"
 
 #include "downward/task_utils/task_properties.h"
 
 #include "downward/utils/logging.h"
 #include "downward/utils/system.h"
-
-#include "downward/abstract_task.h"
 
 #include <iostream>
 #include <limits>
@@ -177,21 +173,6 @@ void dump_probabilistic_task(
     std::ostream& os)
 {
     dump_probabilistic_task_(task_proxy, os);
-}
-
-static std::
-    unordered_map<const ProbabilisticTask*, std::unique_ptr<AbstractTask>>
-        determinizations_cache;
-
-const AbstractTask& get_determinization(const ProbabilisticTask* task)
-{
-    if (determinizations_cache.find(task) == determinizations_cache.end()) {
-        determinizations_cache.insert(make_pair(
-            task,
-            std::make_unique<tasks::AODDeterminizationTask>(task)));
-    }
-
-    return *determinizations_cache[task];
 }
 
 } // namespace probfd::task_properties

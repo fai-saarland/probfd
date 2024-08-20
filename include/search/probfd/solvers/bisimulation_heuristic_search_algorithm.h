@@ -11,7 +11,7 @@
 #include "probfd/bisimulation/bisimilar_state_space.h"
 #include "probfd/bisimulation/evaluators.h"
 
-#include "probfd/tasks/all_outcomes_determinization.h"
+#include "probfd/tasks/determinization_task.h"
 #include "probfd/tasks/root_task.h"
 
 #include "probfd/task_proxy.h"
@@ -132,7 +132,7 @@ public:
         ProbabilisticTaskProxy task_proxy(*task_);
 
         std::shared_ptr determinization =
-            std::make_shared<tasks::AODDeterminizationTask>(task_.get());
+            std::make_shared<tasks::DeterminizationTask>(task_);
 
         TaskProxy det_task_proxy(*determinization);
 

@@ -13,7 +13,7 @@
 
 #include "probfd/progress_report.h"
 
-#include "probfd/tasks/all_outcomes_determinization.h"
+#include "probfd/tasks/determinization_task.h"
 
 #include "downward/merge_and_shrink/factored_transition_system.h"
 #include "downward/merge_and_shrink/merge_and_shrink_representation.h"
@@ -94,7 +94,7 @@ public:
         std::cout << "Building bisimulation..." << std::endl;
 
         std::shared_ptr determinization =
-            std::make_shared<tasks::AODDeterminizationTask>(task.get());
+            std::make_shared<tasks::DeterminizationTask>(task);
 
         TaskProxy det_task_proxy(*determinization);
 

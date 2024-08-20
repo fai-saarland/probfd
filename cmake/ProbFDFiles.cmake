@@ -92,9 +92,9 @@ create_probfd_library(
     HELP "Core probabilistic tasks"
     SOURCES
         probfd/tasks/cost_adapted_task
+        probfd/tasks/determinization_task
         probfd/tasks/delegating_task
         probfd/tasks/root_task
-        probfd/tasks/all_outcomes_determinization
     CORE_LIBRARY
 )
 

@@ -122,13 +122,6 @@ extern void dump_probabilistic_task(
     const ProbabilisticTaskProxy& task_proxy,
     std::ostream& os);
 
-/*
-   Create or retrieve a determinization from cache. If determinizations are
-   created with this function, we build at most one determinization per
-   ProbabilisticTask.
-*/
-extern const AbstractTask& get_determinization(const ProbabilisticTask* task);
-
 } // namespace probfd::task_properties
 
 #endif
