@@ -209,7 +209,6 @@ def negate_and_translate_condition(condition, dictionary, ranges, mutex_dict,
 
 def translate_strips_operator_aux(operator, dictionary, ranges, mutex_dict,
                                   mutex_ranges, implied_facts, condition):
-
     # collect all add effects
     effects_by_variable = defaultdict(lambda: defaultdict(list))
     # effects_by_variables: var -> val -> list(FDR conditions)
@@ -272,7 +271,8 @@ def translate_strips_operator_aux(operator, dictionary, ranges, mutex_dict,
                         effects_by_variable[var][none_of_those].append(
                             new_cond)
 
-    return build_sas_operator(operator, condition, effects_by_variable, ranges, implied_facts)
+    return build_sas_operator(operator, condition, effects_by_variable, ranges,
+                              implied_facts)
 
 
 def build_sas_operator(strips_operator, condition, effects_by_variable, ranges,
@@ -328,7 +328,10 @@ def build_sas_operator(strips_operator, condition, effects_by_variable, ranges,
             # precondition, so we remove it from the prevail condition
             condition.pop(var, -1)
     prevail = list(condition.items())
-    return sas_tasks.SASOperator(strips_operator.identifier, strips_operator.name, prevail, pre_post, strips_operator.cost, strips_operator.probability)
+    return sas_tasks.SASOperator(strips_operator.identifier,
+                                 strips_operator.name, prevail, pre_post,
+                                 strips_operator.cost,
+                                 strips_operator.probability)
 
 
 def prune_stupid_effect_conditions(var, val, conditions, effects_on_var):
@@ -602,7 +605,10 @@ def pddl_to_sas(task):
                 options.filter_unimportant_ops)
 
     if options.give_up_cost != None:
-        op = sas_tasks.SASOperator((-1, tuple()), "(GIVE-UP)", [], [(var, -1, post, []) for (var, post) in sas_task.goal.pairs], options.give_up_cost, 1)
+        op = sas_tasks.SASOperator((-1, tuple()), "(GIVE-UP)", [],
+                                   [(var, -1, post, []) for (var, post) in
+                                    sas_task.goal.pairs], options.give_up_cost,
+                                   1)
         sas_task.operators.append(op)
 
     with timers.timing("Reconstructing probabilistic operators", block=True):
@@ -611,7 +617,8 @@ def pddl_to_sas(task):
     if options.budget != None:
         with timers.timing("Compiling budget", block=True):
             if options.budget < 0:
-                sys.stderr.write("Budget must be non-negative! Got %d.\n" % options.budget)
+                sys.stderr.write(
+                    "Budget must be non-negative! Got %d.\n" % options.budget)
                 sys.exit(TRANSLATE_ERROR)
             budget_compilation.augment_task_by_budget(sas_task, options.budget)
 
@@ -718,6 +725,9 @@ def main():
     with timers.timing("Parsing", True):
         task = pddl_parser.open(domain_filename=options.domain,
                                 task_filename=options.task)
+        task.dump()
+
+    exit()
 
     with timers.timing("Normalizing task"):
         normalize.normalize(task)
@@ -756,7 +766,7 @@ if __name__ == "__main__":
     try:
         # Reserve about 10 MB of emergency memory.
         # https://stackoverflow.com/questions/19469608/
-        emergency_memory = b"x" * 10**7
+        emergency_memory = b"x" * 10 ** 7
         main()
     except MemoryError:
         del emergency_memory
