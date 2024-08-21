@@ -26,7 +26,7 @@ MDPSolver::MDPSolver(
     const std::shared_ptr<TaskCostFunctionFactory>& costs,
     std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
     bool cache,
-    const std::shared_ptr<TaskEvaluatorFactory>& eval,
+    std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
     std::optional<value_t> report_epsilon,
     bool report_enabled,
     double max_time,
@@ -44,7 +44,7 @@ MDPSolver::MDPSolver(
                       log_,
                       std::move(path_dependent_evaluators)))
     , task_cost_function_(costs->create_cost_function(task_))
-    , heuristic_(eval->create_evaluator(task_, task_cost_function_))
+    , heuristic_factory_(std::move(heuristic_factory))
     , progress_(report_epsilon, std::cout, report_enabled)
     , max_time_(max_time)
     , policy_filename(std::move(policy_filename))
@@ -62,20 +62,34 @@ bool MDPSolver::solve()
         std::cout << " with a time limit of " << max_time_ << " seconds";
     }
 
-    std::cout << "..." << std::endl;
+    std::cout << " without a time limit." << std::endl;
 
     try {
         utils::Timer total_timer;
+
+        std::cout << "Constructing algorithm... " << std::endl;
+
         std::unique_ptr<FDRMDPAlgorithm> algorithm = create_algorithm();
+
+        std::cout << "Done." << std::endl;
 
         const State& initial_state = task_mdp_->get_initial_state();
 
         CompositeMDP<State, OperatorID> mdp{*task_mdp_, *task_cost_function_};
 
+        std::cout << "Constructing heuristic... " << std::endl;
+
+        const std::shared_ptr<FDREvaluator> heuristic =
+            heuristic_factory_->create_evaluator(task_, task_cost_function_);
+
+        std::cout << "Done." << std::endl;
+
+        std::cout << "Starting analysis... " << std::endl;
+
         std::unique_ptr<Policy<State, OperatorID>> policy =
             algorithm->compute_policy(
                 mdp,
-                *heuristic_,
+                *heuristic,
                 initial_state,
                 progress_,
                 max_time_);
@@ -130,7 +144,7 @@ bool MDPSolver::solve()
         std::cout << "  Actual solver time: " << total_timer << std::endl;
         algorithm->print_statistics(std::cout);
 
-        heuristic_->print_statistics();
+        heuristic->print_statistics();
 
         print_additional_statistics();
 

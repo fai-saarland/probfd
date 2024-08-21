@@ -37,7 +37,7 @@ protected:
     const std::shared_ptr<FDRCostFunction> task_cost_function_;
 
 private:
-    const std::shared_ptr<FDREvaluator> heuristic_;
+    const std::shared_ptr<TaskEvaluatorFactory> heuristic_factory_;
 
     ProgressReport progress_;
 
@@ -54,7 +54,7 @@ public:
         const std::shared_ptr<TaskCostFunctionFactory>& costs,
         std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
         bool cache,
-        const std::shared_ptr<TaskEvaluatorFactory>& eval,
+        std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
         std::optional<value_t> report_epsilon,
         bool report_enabled,
         double max_time,
