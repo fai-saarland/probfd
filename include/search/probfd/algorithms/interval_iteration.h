@@ -17,6 +17,17 @@
 /// Namespace dedicated to interval iteration on MaxProb MDPs.
 namespace probfd::algorithms::interval_iteration {
 
+struct Statistics {
+    preprocessing::ECDStatistics ecd_statistics;
+    topological_vi::Statistics tvi_statistics;
+
+    void print(std::ostream& out) const
+    {
+        tvi_statistics.print(out);
+        ecd_statistics.print(out);
+    }
+};
+
 /**
  * @brief Implemention of interval iteration \cite haddad:etal:misc-17.
  *
@@ -64,17 +75,15 @@ class IntervalIteration : public MDPAlgorithm<State, Action> {
     using QuotientValueIteration =
         topological_vi::TopologicalValueIteration<QState, QAction, true>;
 
+    // Algorithm parameters
     const bool extract_probability_one_states_;
 
+    // Algorithm state
     QuotientQRAnalysis qr_analysis_;
     Decomposer ec_decomposer_;
-
     QuotientValueIteration vi_;
 
-    preprocessing::ECDStatistics ecd_statistics_;
-    topological_vi::Statistics tvi_statistics_;
-
-    storage::PerStateStorage<Interval> value_store_;
+    Statistics statistics_;
 
 public:
     explicit IntervalIteration(

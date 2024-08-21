@@ -218,7 +218,8 @@ class ExhaustiveDepthFirstSearch : public MDPAlgorithm<State, Action> {
     using AlgorithmValueType = AlgorithmValue<UseInterval>;
     using SearchNodeInfo = SearchNodeInformation<UseInterval>;
 
-    std::shared_ptr<TransitionSorterType> transition_sort_;
+    // Algorithm parameters
+    const std::shared_ptr<TransitionSorterType> transition_sort_;
 
     const Interval cost_bound_;
     const AlgorithmValueType trivial_bound_;
@@ -226,7 +227,7 @@ class ExhaustiveDepthFirstSearch : public MDPAlgorithm<State, Action> {
     const bool value_propagation_;
     const bool only_propagate_when_changed_;
 
-    Statistics statistics_;
+    // Algorithm state
     SearchNodeInfos<UseInterval> search_space_;
 
     std::deque<ExpansionInformation> expansion_infos_;
@@ -235,6 +236,8 @@ class ExhaustiveDepthFirstSearch : public MDPAlgorithm<State, Action> {
 
     bool last_all_dead_ = true;
     bool last_all_marked_dead_ = true;
+
+    Statistics statistics_;
 
 public:
     explicit ExhaustiveDepthFirstSearch(

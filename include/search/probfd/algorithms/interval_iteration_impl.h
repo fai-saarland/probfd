@@ -34,14 +34,14 @@ Interval IntervalIteration<State, Action>::solve(
     utils::CountdownTimer timer(max_time);
     std::unique_ptr sys = create_quotient(mdp, heuristic, state, timer);
     std::vector<StateID> dead, one;
-    return mysolve(mdp, heuristic, state, value_store_, dead, one, *sys, timer);
+    storage::PerStateStorage<Interval> value_store;
+    return mysolve(mdp, heuristic, state, value_store, dead, one, *sys, timer);
 }
 
 template <typename State, typename Action>
 void IntervalIteration<State, Action>::print_statistics(std::ostream& out) const
 {
-    tvi_statistics_.print(out);
-    ecd_statistics_.print(out);
+    statistics_.print(out);
 }
 
 template <typename State, typename Action>
@@ -99,7 +99,7 @@ auto IntervalIteration<State, Action>::create_quotient(
         state,
         timer.get_remaining_time());
 
-    ecd_statistics_ = ec_decomposer_.get_statistics();
+    statistics_.ecd_statistics = ec_decomposer_.get_statistics();
 
     return sys;
 }
@@ -155,7 +155,7 @@ Interval IntervalIteration<State, Action>::mysolve(
         new_init_id,
         value_store,
         timer.get_remaining_time());
-    tvi_statistics_ = vi_.get_statistics();
+    statistics_.tvi_statistics = vi_.get_statistics();
     return result;
 }
 

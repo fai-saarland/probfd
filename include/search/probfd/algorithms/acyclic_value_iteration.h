@@ -104,10 +104,10 @@ class AcyclicValueIteration : public MDPAlgorithm<State, Action> {
         void finalize_expansion(MapPolicy* policy);
     };
 
-    Statistics statistics_;
-
     storage::PerStateStorage<StateInfo> state_infos_;
     std::stack<IncrementalExpansionInfo> expansion_stack_;
+
+    Statistics statistics_;
 
 public:
     std::unique_ptr<PolicyType> compute_policy(

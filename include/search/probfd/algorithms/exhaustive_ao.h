@@ -54,7 +54,8 @@ class ExhaustiveAOSearch
 
     using OpenListType = OpenList<Action>;
 
-    std::shared_ptr<OpenListType> open_list_;
+    // Algorithm parameters
+    const std::shared_ptr<OpenListType> open_list_;
 
 public:
     ExhaustiveAOSearch(

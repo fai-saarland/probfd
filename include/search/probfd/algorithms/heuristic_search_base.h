@@ -126,8 +126,10 @@ public:
     using AlgorithmValueType = AlgorithmValue<UseInterval>;
 
 private:
-    std::shared_ptr<PolicyPickerType> policy_chooser_;
+    // Algorithm parameters
+    const std::shared_ptr<PolicyPickerType> policy_chooser_;
 
+    // Algorithm state
     internal::StateInfos<StateInfo> state_infos_;
 
     StateInfo* initial_state_info_ = nullptr;

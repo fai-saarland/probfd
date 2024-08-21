@@ -160,16 +160,17 @@ class TALRTDPImpl
     static constexpr int STATE_UNSEEN = -1;
     static constexpr int STATE_CLOSED = -2;
 
+    // Algorithm parameters
     const TrialTerminationCondition stop_at_consistent_;
     const bool reexpand_traps_;
+    const std::shared_ptr<QuotientSuccessorSampler> sample_;
 
-    std::shared_ptr<QuotientSuccessorSampler> sample_;
-
-    std::deque<StateID> current_trial_;
-
+    // Algorithm state
     std::deque<ExplorationInformation> queue_;
     std::deque<StackInfo> stack_;
     storage::StateHashMap<int> stack_index_;
+
+    std::deque<StateID> current_trial_;
 
     internal::Statistics statistics_;
 

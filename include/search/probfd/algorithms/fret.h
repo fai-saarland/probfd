@@ -142,7 +142,8 @@ class FRET : public MDPAlgorithm<State, Action> {
 
     using StackInfo = internal::StackInfo<QAction>;
 
-    std::shared_ptr<QHeuristicSearchAlgorithm> base_algorithm_;
+    // Algorithm parameters
+    const std::shared_ptr<QHeuristicSearchAlgorithm> base_algorithm_;
 
     internal::Statistics statistics_;
 

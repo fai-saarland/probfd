@@ -141,6 +141,7 @@ private:
     using ExpansionInfo = internal::ExpansionInfo;
     using LocalStateInfo = internal::LocalStateInfo;
 
+    // Algorithm parameters
     const bool label_solved_;
     const bool forward_updates_;
     const BacktrackingUpdateType backward_updates_;
@@ -149,6 +150,7 @@ private:
     const bool perform_value_iteration_;
     const bool expand_tip_states_;
 
+    // Algorithm state
     storage::StateHashMap<LocalStateInfo> state_infos_;
     std::vector<StateID> visited_;
     std::deque<ExpansionInfo> expansion_queue_;

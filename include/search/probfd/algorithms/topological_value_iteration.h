@@ -162,8 +162,10 @@ class TopologicalValueIteration : public MDPAlgorithm<State, Action> {
 
     using StackIterator = typename std::vector<StackInfo>::iterator;
 
+    // Algorithm parameters
     const bool expand_goals_;
 
+    // Algorithm state
     storage::PerStateStorage<StateInfo> state_information_;
     std::deque<ExplorationInfo> exploration_stack_;
     std::vector<StackInfo> stack_;

@@ -46,8 +46,10 @@ class AOStar
 
     using SuccessorSamplerType = SuccessorSampler<Action>;
 
-    std::shared_ptr<SuccessorSamplerType> outcome_selection_;
+    // Algorithm parameters
+    const std::shared_ptr<SuccessorSamplerType> outcome_selection_;
 
+    // Re-used vector
     Distribution<StateID> selected_transition_;
 
 public:

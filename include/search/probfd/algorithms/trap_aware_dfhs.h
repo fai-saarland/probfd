@@ -163,6 +163,7 @@ class TADFHSImpl
     static constexpr int STATE_UNSEEN = -1;
     static constexpr int STATE_CLOSED = -2;
 
+    // Algorithm parameters
     const bool forward_updates_;
     const BacktrackingUpdateType backtrack_update_type_;
     const bool expand_tip_states_;
@@ -171,16 +172,17 @@ class TADFHSImpl
     const bool value_iteration_;
     const bool mark_solved_;
     const bool reexpand_removed_traps_;
+    const std::shared_ptr<QuotientOpenList> open_list_;
 
-    std::shared_ptr<QuotientOpenList> open_list_;
-
-    bool terminated_ = false;
-
+    // Algorithm state
     std::deque<ExplorationInformation> queue_;
     std::vector<StackInfo> stack_;
     std::vector<StateID> visited_states_;
     storage::StateHashMap<int> stack_index_;
 
+    bool terminated_ = false;
+
+    // Re-used buffer
     Distribution<StateID> transition_;
 
     internal::Statistics statistics_;

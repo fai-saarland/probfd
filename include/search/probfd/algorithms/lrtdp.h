@@ -161,9 +161,11 @@ private:
 
     using Statistics = internal::Statistics;
 
+    // Algorithm parameters
     const TrialTerminationCondition stop_consistent_;
-    std::shared_ptr<SuccessorSamplerType> sample_;
+    const std::shared_ptr<SuccessorSamplerType> sample_;
 
+    // Algorithm state
     std::vector<StateID> current_trial_;
     std::vector<StateID> policy_queue_;
     std::deque<StateID> visited_;
