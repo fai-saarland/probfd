@@ -86,9 +86,7 @@ public:
                                 : "bisimulation value iteration");
     }
 
-    bool found_solution() const override { return true; }
-
-    void solve() override
+    bool solve() override
     {
         using namespace algorithms::interval_iteration;
         using namespace algorithms::topological_vi;
@@ -111,7 +109,7 @@ public:
             std::cout << "Initial state recognized as unsolvable!" << std::endl;
             print_analysis_result(Interval(1_vt, 1_vt));
             std::cout << std::endl;
-            return;
+            return false;
         }
 
         State initial = task_proxy.get_initial_state();
@@ -177,6 +175,8 @@ public:
                   << " statistics:" << std::endl;
         std::cout << "  Actual solver time: " << vi_timer << std::endl;
         solver->print_statistics(std::cout);
+
+        return true;
     }
 };
 

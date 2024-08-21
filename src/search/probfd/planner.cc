@@ -40,7 +40,7 @@ int main(int argc, const char** argv)
         parse_cmd_line(argc, argv, unit_cost);
 
     utils::g_search_timer.resume();
-    algorithm->solve();
+    bool found_solution = algorithm->solve();
     utils::g_search_timer.stop();
     utils::g_timer.stop();
 
@@ -48,9 +48,8 @@ int main(int argc, const char** argv)
     utils::g_log << "Search time: " << utils::g_search_timer << endl;
     utils::g_log << "Total time: " << utils::g_timer << endl;
 
-    ExitCode exitcode = algorithm->found_solution()
-                            ? ExitCode::SUCCESS
-                            : ExitCode::SEARCH_UNSOLVED_INCOMPLETE;
+    ExitCode exitcode = found_solution ? ExitCode::SUCCESS
+                                       : ExitCode::SEARCH_UNSOLVED_INCOMPLETE;
     utils::report_exit_code_reentrant(exitcode);
     return static_cast<int>(exitcode);
 }

@@ -44,8 +44,6 @@ private:
     const std::string policy_filename;
     const bool print_fact_names;
 
-    bool solution_found_ = true;
-
 public:
     /**
      * @brief Constructs the MDP solver from the given arguments.
@@ -82,12 +80,7 @@ public:
     /**
      * @brief Runs the encapsulated MDP on the global problem.
      */
-    void solve() override;
-
-    /**
-     * @brief Checks if the MDP algorithm found a solution.
-     */
-    bool found_solution() const override { return solution_found_; }
+    bool solve() override;
 };
 
 } // namespace probfd::solvers

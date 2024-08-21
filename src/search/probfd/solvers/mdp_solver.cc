@@ -56,7 +56,7 @@ MDPSolver::MDPSolver(
 
 MDPSolver::~MDPSolver() = default;
 
-void MDPSolver::solve()
+bool MDPSolver::solve()
 {
     std::cout << "Running MDP algorithm " << get_algorithm_name();
 
@@ -133,9 +133,13 @@ void MDPSolver::solve()
         heuristic_->print_statistics();
 
         print_additional_statistics();
+
+        return policy != nullptr;
     } catch (utils::TimeoutException&) {
         std::cout << "Time limit reached. Analysis was aborted." << std::endl;
     }
+
+    return false;
 }
 
 } // namespace probfd::solvers
