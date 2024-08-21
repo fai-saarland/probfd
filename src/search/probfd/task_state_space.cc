@@ -28,13 +28,11 @@ void TaskStateSpace::Statistics::print(utils::LogProxy log) const
 TaskStateSpace::TaskStateSpace(
     std::shared_ptr<ProbabilisticTask> task,
     utils::LogProxy log,
-    std::shared_ptr<FDRSimpleCostFunction> cost_function,
     std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators)
     : task_proxy_(*task)
     , log_(std::move(log))
-    , gen_(task_proxy_)
     , state_registry_(task_proxy_)
-    , cost_function_(std::move(cost_function))
+    , gen_(task_proxy_)
     , notify_(std::move(path_dependent_evaluators))
 {
 }
@@ -94,21 +92,6 @@ void TaskStateSpace::generate_all_transitions(
     ++statistics_.all_transitions_generator_calls;
     statistics_.computed_operators += transitions.size();
     statistics_.generated_operators += transitions.size();
-}
-
-value_t TaskStateSpace::get_action_cost(OperatorID op)
-{
-    return cost_function_->get_action_cost(op);
-}
-
-bool TaskStateSpace::is_goal(const State& state) const
-{
-    return cost_function_->is_goal(state);
-}
-
-value_t TaskStateSpace::get_non_goal_termination_cost() const
-{
-    return cost_function_->get_non_goal_termination_cost();
 }
 
 const State& TaskStateSpace::get_initial_state()

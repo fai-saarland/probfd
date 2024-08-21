@@ -34,7 +34,8 @@ public:
     }
 
     virtual bool is_goal(param_type<State> state) const = 0;
-    [[nodiscard]] virtual value_t get_non_goal_termination_cost() const = 0;
+    [[nodiscard]]
+    virtual value_t get_non_goal_termination_cost() const = 0;
 };
 
 /**
@@ -45,8 +46,18 @@ public:
  */
 template <typename State, typename Action>
 struct CompositeMDP : public MDP<State, Action> {
+    using TransitionType = Transition<Action>;
+
     StateSpace<State, Action>& state_space;
     CostFunction<State, Action>& cost_function;
+
+    CompositeMDP(
+        StateSpace<State, Action>& state_space,
+        CostFunction<State, OperatorID>& cost_function)
+        : state_space(state_space)
+        , cost_function(cost_function)
+    {
+    }
 
     /**
      * @brief Get the state ID for a given state.
@@ -95,6 +106,13 @@ struct CompositeMDP : public MDP<State, Action> {
         std::vector<Distribution<StateID>>& successors) final
     {
         return state_space.generate_all_transitions(state, aops, successors);
+    }
+
+    virtual void generate_all_transitions(
+        param_type<State> state,
+        std::vector<TransitionType>& transitions) final
+    {
+        return state_space.generate_all_transitions(state, transitions);
     }
 
     /**

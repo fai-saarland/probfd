@@ -54,7 +54,6 @@ public:
     CachingTaskStateSpace(
         std::shared_ptr<ProbabilisticTask> task,
         utils::LogProxy log,
-        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators);
 
     void generate_applicable_actions(

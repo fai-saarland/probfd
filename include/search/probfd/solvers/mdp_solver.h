@@ -32,10 +32,11 @@ class MDPSolver : public SolverInterface {
 
 protected:
     const std::shared_ptr<ProbabilisticTask> task_;
+
+    const std::unique_ptr<TaskStateSpace> task_mdp_;
     const std::shared_ptr<FDRCostFunction> task_cost_function_;
 
 private:
-    const std::unique_ptr<TaskStateSpace> task_mdp_;
     const std::shared_ptr<FDREvaluator> heuristic_;
 
     ProgressReport progress_;

@@ -29,12 +29,10 @@ namespace probfd {
 CachingTaskStateSpace::CachingTaskStateSpace(
     std::shared_ptr<ProbabilisticTask> task,
     utils::LogProxy log,
-    std::shared_ptr<FDRSimpleCostFunction> cost_function,
     std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators)
     : TaskStateSpace(
           std::move(task),
           std::move(log),
-          std::move(cost_function),
           std::move(path_dependent_evaluators))
 {
 }

@@ -34,18 +34,16 @@ MDPSolver::MDPSolver(
     bool print_fact_names)
     : log_(utils::get_log_for_verbosity(verbosity))
     , task_(tasks::g_root_task)
-    , task_cost_function_(costs->create_cost_function(task_))
     , task_mdp_(
           cache ? new CachingTaskStateSpace(
                       task_,
                       log_,
-                      task_cost_function_,
                       std::move(path_dependent_evaluators))
                 : new TaskStateSpace(
                       task_,
                       log_,
-                      task_cost_function_,
                       std::move(path_dependent_evaluators)))
+    , task_cost_function_(costs->create_cost_function(task_))
     , heuristic_(eval->create_evaluator(task_, task_cost_function_))
     , progress_(report_epsilon, std::cout, report_enabled)
     , max_time_(max_time)
@@ -72,9 +70,11 @@ bool MDPSolver::solve()
 
         const State& initial_state = task_mdp_->get_initial_state();
 
+        CompositeMDP<State, OperatorID> mdp{*task_mdp_, *task_cost_function_};
+
         std::unique_ptr<Policy<State, OperatorID>> policy =
             algorithm->compute_policy(
-                *task_mdp_,
+                mdp,
                 *heuristic_,
                 initial_state,
                 progress_,

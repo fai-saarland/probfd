@@ -30,7 +30,7 @@ class ProbabilisticTask;
 
 namespace probfd {
 
-class TaskStateSpace : public FDRSimpleMDP {
+class TaskStateSpace : public FDRStateSpace {
 protected:
     struct Statistics {
         unsigned long long single_transition_generator_calls = 0;
@@ -53,10 +53,9 @@ protected:
     ProbabilisticTaskProxy task_proxy_;
     mutable utils::LogProxy log_;
 
-    successor_generator::ProbabilisticSuccessorGenerator gen_;
     StateRegistry state_registry_;
+    successor_generator::ProbabilisticSuccessorGenerator gen_;
 
-    const std::shared_ptr<FDRSimpleCostFunction> cost_function_;
     const std::vector<std::shared_ptr<::Evaluator>> notify_;
 
     Statistics statistics_;
@@ -65,7 +64,6 @@ public:
     TaskStateSpace(
         std::shared_ptr<ProbabilisticTask> task,
         utils::LogProxy log,
-        std::shared_ptr<FDRSimpleCostFunction> cost_function,
         std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators =
             {});
 
@@ -90,16 +88,11 @@ public:
         const State& state,
         std::vector<TransitionType>& transitions) override;
 
-    value_t get_action_cost(OperatorID op) override;
-
-    bool is_goal(const State& state) const final;
-    value_t get_non_goal_termination_cost() const final;
-
     const State& get_initial_state();
 
     size_t get_num_registered_states() const;
 
-    void print_statistics() const override;
+    virtual void print_statistics() const;
 
     void compute_successor_dist(
         const State& s,
