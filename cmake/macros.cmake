@@ -75,7 +75,7 @@ function(add_existing_test_sources_to_list _HEADERS_LIST_VAR _SOURCES_LIST_VAR)
 endfunction()
 
 function(create_fast_downward_library)
-    create_library(TARGET downward FLAGS common_cxx_flags FIND_SOURCES add_existing_sources_to_list ${ARGV})
+    create_library(TARGET probfd FLAGS common_cxx_flags FIND_SOURCES add_existing_sources_to_list ${ARGV})
 endfunction()
 
 function(create_probfd_library)
@@ -93,10 +93,10 @@ function(create_library)
     cmake_parse_arguments(_LIBRARY "${_OPTIONS}" "${_ONE_VALUE_ARGS}" "${_MULTI_VALUE_ARGS}" ${ARGN})
     # Check mandatory arguments.
     if(NOT _LIBRARY_NAME)
-        message(FATAL_ERROR "fast_downward_library: 'NAME' argument required.")
+        message(FATAL_ERROR "create_library: 'NAME' argument required.")
     endif()
     if(NOT _LIBRARY_SOURCES)
-        message(FATAL_ERROR "fast_downward_library: 'SOURCES' argument required.")
+        message(FATAL_ERROR "create_library: 'SOURCES' argument required.")
     endif()
 
     cmake_language(CALL ${_LIBRARY_FIND_SOURCES} _LIBRARY_HEADERS _LIBRARY_SOURCES)

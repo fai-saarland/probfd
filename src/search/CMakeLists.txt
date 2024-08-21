@@ -40,14 +40,13 @@ include(options)
 report_bitwidth()
 set_up_build_types("Debug;Release")
 set_up_options()
-    
-add_executable(downward ${CMAKE_CURRENT_SOURCE_DIR}/downward/planner.cc)
+
 add_executable(probfd ${CMAKE_CURRENT_SOURCE_DIR}/probfd/planner.cc)
 
 # On Windows we have to copy all DLLs next to the generated binary.
 if (WIN32)
-    copy_dlls_to_binary_dir_after_build(downward)
-endif()
+    copy_dlls_to_binary_dir_after_build(probfd)
+endif ()
 
 # Collect source files needed for the active plugins.
 include(DownwardFiles)
