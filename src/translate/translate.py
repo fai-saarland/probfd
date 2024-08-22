@@ -727,8 +727,6 @@ def main():
                                 task_filename=options.task)
         task.dump()
 
-    exit()
-
     with timers.timing("Normalizing task"):
         normalize.normalize(task)
 

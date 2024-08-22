@@ -17,18 +17,18 @@ def parse_args():
         dest="use_partial_encoding",
         action="store_false",
         help="By default we represent facts that occur in multiple "
-        "mutex groups only in one variable. Using this parameter adds "
-        "these facts to multiple variables. This can make the meaning "
-        "of the variables clearer, but increases the number of facts.")
+             "mutex groups only in one variable. Using this parameter adds "
+             "these facts to multiple variables. This can make the meaning "
+             "of the variables clearer, but increases the number of facts.")
     argparser.add_argument(
         "--invariant-generation-max-candidates",
         default=100000,
         type=int,
         help="max number of candidates for invariant generation "
-        "(default: %(default)d). Set to 0 to disable invariant "
-        "generation and obtain only binary variables. The limit is "
-        "needed for grounded input files that would otherwise produce "
-        "too many candidates.")
+             "(default: %(default)d). Set to 0 to disable invariant "
+             "generation and obtain only binary variables. The limit is "
+             "needed for grounded input files that would otherwise produce "
+             "too many candidates.")
     argparser.add_argument(
         "--sas-file",
         default="output.sas",
@@ -42,8 +42,8 @@ def parse_args():
         "--add-implied-preconditions",
         action="store_true",
         help="infer additional preconditions. This setting can cause a "
-        "severe performance penalty due to weaker relevance analysis "
-        "(see issue7).")
+             "severe performance penalty due to weaker relevance analysis "
+             "(see issue7).")
     argparser.add_argument(
         "--keep-unreachable-facts",
         dest="filter_unreachable_facts",
@@ -54,7 +54,7 @@ def parse_args():
         dest="reorder_variables",
         action="store_false",
         help="do not reorder variables based on the causal graph. Do not use "
-        "this option with the causal graph heuristic!")
+             "this option with the causal graph heuristic!")
     argparser.add_argument(
         "--keep-unimportant-variables",
         dest="filter_unimportant_vars",
@@ -70,11 +70,6 @@ def parse_args():
         "--dump-task",
         action="store_true",
         help="dump human-readable SAS+ representation of the task")
-    argparser.add_argument(
-        "--enumerate-forall",
-        action="store_true",
-        default=False,
-        help="Tries to enumerate forall expression in preconditions")
     argparser.add_argument(
         "--force-probabilistic",
         action="store_true",
