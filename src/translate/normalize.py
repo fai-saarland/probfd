@@ -385,7 +385,6 @@ def substitute_complicated_goal(task):
 
 def normalize(task):
     remove_universal_quantifiers(task)
-    task.dump()
     substitute_complicated_goal(task)
     build_DNF(task)
     split_disjunctions(task)

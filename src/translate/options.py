@@ -3,6 +3,8 @@ import sys
 
 from fractions import Fraction
 
+from typing import Optional
+
 
 def parse_args():
     argparser = argparse.ArgumentParser()
@@ -31,8 +33,8 @@ def parse_args():
              "too many candidates.")
     argparser.add_argument(
         "--sas-file",
-        default="output.sas",
-        help="path to the SAS output file (default: %(default)s)")
+        default="output.psas",
+        help="path to the probabilistic SAS output file (default: %(default)s)")
     argparser.add_argument(
         "--invariant-generation-max-time",
         default=300,
@@ -83,11 +85,12 @@ def parse_args():
                            default="cost",
                            choices=["cost", "one", "plus_one", "min_one"],
                            help="How actions affect the budget")
-    argparser.add_argument("--give-up-cost", default=None, type=int)
+    argparser.add_argument("--give-up-cost", default=None,
+                           type=Optional[Fraction])
     argparser.add_argument(
         "--discount-factor",
         default=None,
-        type=Fraction,
+        type=Optional[Fraction],
         help=
         "Discounted SSP compilation with given discount factor in range (0, 1)"
     )

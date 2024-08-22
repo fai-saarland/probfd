@@ -1,4 +1,5 @@
 from .actions import Action
+from .actions import DeterminizedAction
 from .actions import PropositionalAction
 from .axioms import Axiom
 from .axioms import PropositionalAxiom

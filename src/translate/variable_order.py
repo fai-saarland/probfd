@@ -1,10 +1,11 @@
-
+import heapq
 from collections import defaultdict, deque
 from itertools import chain
-import heapq
 
 import sccs
+
 DEBUG = False
+
 
 class CausalGraph:
     """Weighted causal graph used for defining a variable order.
@@ -47,17 +48,20 @@ class CausalGraph:
         ### issue26) it performed better than the (clearer) weighting
         ### described in the Fast Downward paper (which would require
         ### a more complicated implementation).
-        for op in operators:
-            source_vars = [var for (var, value) in op.prevail]
-            for var, pre, _, _ in op.pre_post:
-                if pre != -1:
-                    source_vars.append(var)
 
-            for target, _, _, cond in op.pre_post:
-                for source in chain(source_vars, (var for var, _ in cond)):
-                    if source != target:
-                        self.weighted_graph[source][target] += 1
-                        self.predecessor_graph[target].add(source)
+        # NOTE: Each operator can contribute a weight of at most one.
+        # The weight it contributes to an arc is the total probability that
+        # the arc dependency triggers.
+        for op in operators:
+            source_vars = [var for (var, value) in op.precondition]
+
+            for outcome in op.outcomes:
+                for (target, _), cond in outcome.cond_eff:
+                    for source in chain(source_vars, (var for var, _ in cond)):
+                        if source != target:
+                            self.weighted_graph[source][target] += (
+                                outcome.probability)
+                            self.predecessor_graph[target].add(source)
 
     def weight_graph_from_axioms(self, axioms):
         for ax in axioms:
@@ -69,7 +73,7 @@ class CausalGraph:
 
     def get_strongly_connected_components(self):
         unweighted_graph = [[] for _ in range(self.num_variables)]
-        assert(len(self.weighted_graph) <= self.num_variables)
+        assert (len(self.weighted_graph) <= self.num_variables)
         for source, target_weights in self.weighted_graph.items():
             unweighted_graph[source] = sorted(target_weights.keys())
         return sccs.get_sccs_adjacency_list(unweighted_graph)
@@ -85,7 +89,8 @@ class CausalGraph:
                     # for each variable in component only list edges inside
                     # component.
                     subgraph_edges = subgraph[var]
-                    for target, cost in sorted(self.weighted_graph[var].items()):
+                    for target, cost in sorted(
+                            self.weighted_graph[var].items()):
                         if target in scc:
                             if target in self.goal_map:
                                 subgraph_edges.append((target, 100000 + cost))
@@ -155,7 +160,7 @@ class MaxDAG:
                 min_elem = entries.popleft()
             if not entries:
                 del weight_to_nodes[min_key]
-                heapq.heappop(weights) # remove min_key from heap
+                heapq.heappop(weights)  # remove min_key from heap
             if min_elem is None or min_elem in done:
                 # since we use lazy deletion from the heap weights,
                 # there can be weights with a "done" entry in
@@ -181,6 +186,7 @@ class MaxDAG:
 
 class VariableOrder:
     """Apply a given variable order to a SAS task."""
+
     def __init__(self, ordering):
         """Ordering is a list of variable numbers in the desired order.
 
@@ -235,20 +241,25 @@ class VariableOrder:
     def _apply_to_operators(self, operators, filter_unimportant_ops=True):
         new_ops = []
         for op in operators:
-            pre_post = []
-            for eff_var, pre, post, cond in op.pre_post:
-                if eff_var in self.new_var:
-                    new_cond = list((self.new_var[var], val)
-                                    for var, val in cond
+            new_precondition = list((self.new_var[var], val)
+                                    for var, val in op.precondition
                                     if var in self.new_var)
-                    pre_post.append(
-                        (self.new_var[eff_var], pre, post, new_cond))
-            if not filter_unimportant_ops or pre_post:
-                op.pre_post = pre_post
-                op.prevail = [(self.new_var[var], val)
-                              for var, val in op.prevail
-                              if var in self.new_var]
-                new_ops.append(op)
+            op.precondition = new_precondition
+            for outcome in op.outcomes:
+                cond_eff = []
+                for (eff_var, post), cond in outcome.cond_eff:
+                    if eff_var in self.new_var:
+                        new_cond = list((self.new_var[var], val)
+                                        for var, val in cond
+                                        if var in self.new_var)
+                        cond_eff.append(
+                            ((self.new_var[eff_var], post), new_cond))
+                if not filter_unimportant_ops or cond_eff:
+                    outcome.cond_eff = cond_eff
+                    outcome.prevail = [self.new_var[var]
+                                       for var in outcome.prevail
+                                       if var in self.new_var]
+                    new_ops.append(op)
         print("%s of %s operators necessary." % (len(new_ops),
                                                  len(operators)))
         operators[:] = new_ops

@@ -1,96 +1,41 @@
-import fractions
-from collections import defaultdict
+import itertools
+from fractions import Fraction
+from typing import List, Tuple
 
-import options
-
-SAS_FILE_VERSION = "3"
-SAS_FILE_VERSION_PROBABILISTIC = "3P"
+SAS_FILE_VERSION = "1"
 
 DEBUG = False
 
+VarValPair = Tuple[int, int]
+
 
 class SASTask:
-    """Planning task in finite-domain representation.
+    """Probabilistic planning task in finite-domain representation.
 
     The user is responsible for making sure that the data fits a
     number of structural restrictions. For example, conditions should
     generally be sorted and mention each variable at most once. See
     the validate methods for details."""
 
-    def __init__(self, variables, mutexes, init, goal,
-                 operators, axioms, metric):
+    def __init__(self,
+                 variables: "SASTask",
+                 mutexes: List["SASMutexGroup"],
+                 init: "SASInit",
+                 goal: "SASGoal",
+                 operators: List["SASOperator"],
+                 axioms: List["SASAxiom"],
+                 metric: bool) -> None:
         self.variables = variables
         self.mutexes = mutexes
         self.init = init
         self.goal = goal
         self.operators = sorted(operators, key=lambda op: (
-            op.name, op.prevail, op.pre_post))
+            op.name, op.outcomes))
         self.axioms = sorted(axioms, key=lambda axiom: (
             axiom.condition, axiom.effect))
         self.metric = metric
-        self.probabilistic_operators = []
         if DEBUG:
             self.validate()
-
-
-    def _remove_noop_operators(self):
-        assert not self.probabilistic_operators
-        i = 0
-        for j in range(len(self.operators)):
-            if self.operators[j].pre_post:
-                if i != j:
-                    self.operators[i] = self.operators[j]
-                i += 1
-        self.operators = self.operators[:i]
-
-
-    def rebuild_probabilistic_operators(self):
-        def prob_op_identifier(outcome):
-            # Need to take into account preconditions due to normalization step
-            # when translation a propositional operator into a sas operator
-            # (cf. translate.py)
-            precon = []
-            for var, val in outcome.prevail:
-                precon.append((var, val))
-            for var, pre, _, _ in outcome.pre_post:
-                if pre != -1:
-                    precon.append((var, pre))
-            precon = sorted(precon)
-            return (outcome.identifier, tuple(precon))
-        mapping = defaultdict(list)
-        prob = False
-        for i, outcome in enumerate(self.operators):
-            ix = prob_op_identifier(outcome)
-            mapping[ix].append((i, outcome.probability or fractions.Fraction(1)))
-            prob = prob or (outcome.probability != None and outcome.probability < fractions.Fraction(1))
-        if not prob and not options.force_probabilistic:
-            return self._remove_noop_operators()
-        for key in mapping:
-            group = mapping[key]
-            remainder = fractions.Fraction(1)
-            for i, _ in group:
-                name = self.operators[i].name
-                break
-            for _, p in group:
-                remainder = remainder - p
-            assert remainder == fractions.Fraction(0), "%s' outcome probabilities do not sum up to 1 %r" % (name, remainder)
-            assert len(set((self.operators[i].name for i, _ in group))) == 1, "outcomes have different action names"
-            is_noop = True
-            for i, _ in group:
-                if self.operators[i].pre_post:
-                    is_noop = False
-                    break
-            if not is_noop:
-                self.probabilistic_operators.append(ProbabilisticSASOperator(name, group))
-
-        self.probabilistic_operators = sorted(self.probabilistic_operators, key = lambda op: (op.name, len(op.outcomes)))
-        ops = []
-        for pop in self.probabilistic_operators:
-            for i in range(len(pop.outcomes)):
-                outcome_idx = pop.outcomes[i][0]
-                ops.append(self.operators[outcome_idx])
-                pop.outcomes[i] = (len(ops) - 1, pop.outcomes[i][1])
-        self.operators = ops
 
     def validate(self):
         """Fail an assertion if the task is invalid.
@@ -121,8 +66,6 @@ class SASTask:
             op.validate(self.variables)
         for axiom in self.axioms:
             axiom.validate(self.variables, self.init)
-        for op in self.probabilistic_operators:
-            op.validate(self.variables)
         assert self.metric is False or self.metric is True, self.metric
 
     def dump(self):
@@ -142,17 +85,11 @@ class SASTask:
         print("%d axioms:" % len(self.axioms))
         for axiom in self.axioms:
             axiom.dump()
-        print("%d probabilistic operators:" % len(self.probabilistic_operators))
-        for op in self.probabilistic_operators:
-            op.dump()
         print("metric: %s" % self.metric)
 
     def output(self, stream):
         print("begin_version", file=stream)
-        if self.probabilistic_operators:
-            print(SAS_FILE_VERSION_PROBABILISTIC, file=stream)
-        else:
-            print(SAS_FILE_VERSION, file=stream)
+        print(SAS_FILE_VERSION, file=stream)
         print("end_version", file=stream)
         print("begin_metric", file=stream)
         print(int(self.metric), file=stream)
@@ -169,10 +106,6 @@ class SASTask:
         print(len(self.axioms), file=stream)
         for axiom in self.axioms:
             axiom.output(stream)
-        if self.probabilistic_operators:
-            print(len(self.probabilistic_operators), file=stream)
-            for op in self.probabilistic_operators:
-                op.output(stream)
 
     def get_encoding_size(self):
         task_size = 0
@@ -184,13 +117,12 @@ class SASTask:
             task_size += op.get_encoding_size()
         for axiom in self.axioms:
             task_size += axiom.get_encoding_size()
-        for op in self.probabilistic_operators:
-            task_size += op.get_encoding_size()
         return task_size
 
 
 class SASVariables:
-    def __init__(self, ranges, axiom_layers, value_names):
+    def __init__(self, ranges: List[int], axiom_layers: List[int],
+                 value_names: List[List[str]]) -> None:
         self.ranges = ranges
         self.axiom_layers = axiom_layers
         self.value_names = value_names
@@ -256,7 +188,7 @@ class SASVariables:
 
 
 class SASMutexGroup:
-    def __init__(self, facts):
+    def __init__(self, facts: List[VarValPair]):
         self.facts = sorted(facts)
 
     def validate(self, variables):
@@ -308,7 +240,7 @@ class SASInit:
 
 
 class SASGoal:
-    def __init__(self, pairs):
+    def __init__(self, pairs: List[Tuple[int, int]]) -> None:
         self.pairs = sorted(pairs)
 
     def validate(self, variables):
@@ -331,58 +263,37 @@ class SASGoal:
         return len(self.pairs)
 
 
-class ProbabilisticSASOperator:
-    def __init__(self, name, outcomes):
-        self.name = name
-        self.outcomes = list(outcomes)
-
-    def validate(self, variables):
-        assert len(self.outcomes) >= 1
-        assert sum((prob for _, prob in self.outcomes)) == fractions.Fraction(1)
-
-    def dump(self):
-        print(self.name)
-        print("outcomes:", len(self.outcomes))
-        for out, prob in self.outcomes:
-            print(out, prob)
-
-    def output(self, stream):
-        print("begin_probabilistic_operator", file=stream)
-        print(self.name[1:-1], file=stream)
-        print(len(self.outcomes), file=stream)
-        for out, prob in self.outcomes:
-            print(out, prob, file = stream)
-        print("end_probabilistic_operator", file=stream)
-
-    def get_encoding_size(self):
-        return len(self.outcomes)
-
-
-class SASOperator:
-    def __init__(self, identifier, name, prevail, pre_post, cost, probability):
-        self.identifier = identifier
-        self.name = name
-        self.prevail = sorted(prevail)
-        self.pre_post = self._canonical_pre_post(pre_post)
-        self.cost = cost
+class SASOutcome:
+    def __init__(self,
+                 probability: Fraction,
+                 prevail: List[VarValPair],
+                 cond_eff: List[Tuple[VarValPair, List[VarValPair]]]) -> None:
         self.probability = probability
+        self.prevail = sorted(prevail)
+        self.cond_eff = self._canonical_cond_eff(cond_eff)
 
-    def _canonical_pre_post(self, pre_post):
+    def _canonical_cond_eff(self, cond_eff):
         # Return a sorted and uniquified version of pre_post. We would
         # like to just use sorted(set(pre_post)), but this fails because
         # the effect conditions are a list and hence not hashable.
         def tuplify(entry):
-            var, pre, post, cond = entry
-            return var, pre, post, tuple(cond)
-        def listify(entry):
-            var, pre, post, cond = entry
-            return var, pre, post, list(cond)
-        pre_post = map(tuplify, pre_post)
-        pre_post = sorted(set(pre_post))
-        pre_post = list(map(listify, pre_post))
-        return pre_post
+            (var, post), cond = entry
+            return var, post, tuple(cond)
 
-    def validate(self, variables):
+        def listify(entry):
+            var, post, cond = entry
+            return (var, post), list(cond)
+
+        cond_eff = map(tuplify, cond_eff)
+        cond_eff = sorted(set(cond_eff))
+        cond_eff = list(map(listify, cond_eff))
+        return cond_eff
+
+    def __le__(self, other):
+        return (self.probability, self.prevail, self.cond_eff) < (
+            other.probability, other.prevail, other.cond_eff)
+
+    def validate(self, variables, precondition):
         """Validate the operator.
 
         Assert that
@@ -400,7 +311,6 @@ class SASOperator:
         8. If a variable has multiple pre_post rules, then pre is
            identical in all these rules.
         9. There is at least one effect.
-        10. Costs are non-negative integers.
 
         Odd things that are *not* illegal:
         - The effect in a pre_post rule may be identical to the
@@ -431,10 +341,11 @@ class SASOperator:
         """
 
         variables.validate_condition(self.prevail)
-        assert self.pre_post == self._canonical_pre_post(self.pre_post)
+        assert self.cond_eff == self._canonical_cond_eff(self.cond_eff)
         prevail_vars = {var for (var, value) in self.prevail}
         pre_values = {}
-        for var, pre, post, cond in self.pre_post:
+        for (var, post), cond in self.cond_eff:
+            pre = precondition[var]
             variables.validate_condition(cond)
             assert var not in prevail_vars
             if pre != -1:
@@ -445,70 +356,107 @@ class SASOperator:
                 assert pre_values[var] == pre
             else:
                 pre_values[var] = pre
-        for var, pre, post, cond in self.pre_post:
+        for _, cond in self.cond_eff:
             for cvar, cval in cond:
-                assert(cvar not in pre_values or pre_values[cvar] == -1)
-                assert(cvar not in prevail_vars)
-        # assert self.pre_post
-        assert self.cost >= 0 and self.cost == int(self.cost)
+                assert cvar not in pre_values or pre_values[cvar] == -1
+                assert cvar not in prevail_vars
+        assert self.cond_eff
+
+    def get_encoding_size(self):
+        size = 1 + len(self.prevail)
+        for _, cond in self.cond_eff:
+            size += 1 + len(cond)
+        return size
 
     def dump(self):
-        print(self.name)
-        print("Prevail:")
-        for var, val in self.prevail:
-            print("  v%d: %d" % (var, val))
-        print("Pre/Post:")
-        for var, pre, post, cond in self.pre_post:
+        print(f"Probability: {self.probability}")
+        print("  Prevail:")
+        for var in self.prevail:
+            print("    v%d" % var)
+        print("  Conditional Effects:")
+        for (var, post), cond in self.cond_eff:
             if cond:
                 cond_str = " [%s]" % ", ".join(
                     ["%d: %d" % tuple(c) for c in cond])
             else:
                 cond_str = ""
-            print("  v%d: %d -> %d%s" % (var, pre, post, cond_str))
+            print("    v%d -> %d%s" % (var, post, cond_str))
+
+    def output(self, stream):
+        print(self.probability, file=stream)
+        # print(len(self.prevail), file=stream)
+        # for var in self.prevail:
+        #    print(var, file=stream)
+        print(len(self.cond_eff), file=stream)
+        for (var, post), cond in self.cond_eff:
+            print(len(cond), end=' ', file=stream)
+            for cvar, cval in cond:
+                print(cvar, cval, end=' ', file=stream)
+            print(var, post, file=stream)
+
+
+class SASOperator:
+    def __init__(self, name: str, precondition: List[VarValPair],
+                 outcomes: List[SASOutcome], cost: Fraction) -> None:
+        self.name = name
+        self.precondition = sorted(precondition)
+        self.outcomes = outcomes
+        self.cost = cost
+
+    def validate(self, variables):
+        """Validate the operator.
+
+        Assert that
+        1. Precondition makes sense.
+        2. Probabilities sum up to one and are non-negative.
+        3. Costs are non-negative.
+        4. Every outcome is valid w.r.t. the precondition.
+        """
+
+        variables.validate_condition(self.precondition)
+
+        assert self.outcomes
+
+        assert 0 < self.outcomes[0].probability <= 1
+        total_prob = self.outcomes[0].probability
+
+        for outcome in itertools.islice(self.outcomes, 1):
+            assert 0 < outcome.probability <= 1
+            total_prob += outcome.probability
+
+        assert total_prob == 1
+
+        assert self.cost >= 0
+
+        for outcome in self.outcomes:
+            outcome.validate(variables, self.precondition)
+
+    def dump(self):
+        print(self.name)
+        print("Precondition:")
+        for var, val in self.precondition:
+            print(f"  v{var} = {val}")
+        for outcome in self.outcomes:
+            outcome.dump()
 
     def output(self, stream):
         print("begin_operator", file=stream)
         print(self.name[1:-1], file=stream)
-        print(len(self.prevail), file=stream)
-        for var, val in self.prevail:
-            print(var, val, file=stream)
-        print(len(self.pre_post), file=stream)
-        for var, pre, post, cond in self.pre_post:
-            print(len(cond), end=' ', file=stream)
-            for cvar, cval in cond:
-                print(cvar, cval, end=' ', file=stream)
-            print(var, pre, post, file=stream)
+        print(len(self.precondition), file=stream)
+        for var, val in self.precondition:
+            print(f"{var} {val}", file=stream)
+        print(len(self.outcomes), file=stream)
+        for outcome in self.outcomes:
+            outcome.output(stream)
         print(self.cost, file=stream)
         print("end_operator", file=stream)
 
     def get_encoding_size(self):
-        size = 1 + len(self.prevail)
-        for var, pre, post, cond in self.pre_post:
-            size += 1 + len(cond)
-            if pre != -1:
-                size += 1
-        return size
-
-    def get_applicability_conditions(self):
-        """Return the combined applicability conditions
-        (prevail conditions and preconditions) of the operator.
-
-        Returns a sorted list of (var, value) pairs. This is
-        guaranteed to contain at most one fact per variable and
-        must hence be non-contradictory."""
-        conditions = {}
-        for var, val in self.prevail:
-            assert var not in conditions
-            conditions[var] = val
-        for var, pre, post, cond in self.pre_post:
-            if pre != -1:
-                assert var not in conditions or conditions[var] == pre
-                conditions[var] = pre
-        return sorted(conditions.items())
+        return 1 + sum(map(lambda obj: obj.get_encoding_size(), self.outcomes))
 
 
 class SASAxiom:
-    def __init__(self, condition, effect):
+    def __init__(self, condition: List[VarValPair], effect: VarValPair) -> None:
         self.condition = sorted(condition)
         self.effect = effect
         assert self.effect[1] in (0, 1)

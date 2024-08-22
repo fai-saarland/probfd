@@ -4,6 +4,8 @@ import os
 import sys
 import traceback
 
+from fractions import Fraction
+
 
 def python_version_supported():
     return sys.version_info >= (3, 6)
@@ -209,80 +211,92 @@ def negate_and_translate_condition(condition, dictionary, ranges, mutex_dict,
 
 def translate_strips_operator_aux(operator, dictionary, ranges, mutex_dict,
                                   mutex_ranges, implied_facts, condition):
-    # collect all add effects
-    effects_by_variable = defaultdict(lambda: defaultdict(list))
-    # effects_by_variables: var -> val -> list(FDR conditions)
-    add_conds_by_variable = defaultdict(list)
-    for conditions, fact in operator.add_effects:
-        eff_condition_list = translate_strips_conditions(
-            conditions, dictionary, ranges, mutex_dict, mutex_ranges)
-        if eff_condition_list is None:  # Impossible condition for this effect.
-            continue
-        for var, val in dictionary[fact]:
-            effects_by_variable[var][val].extend(eff_condition_list)
-            add_conds_by_variable[var].append(conditions)
+    outcomes = []
 
-    # collect all del effects
-    del_effects_by_variable = defaultdict(lambda: defaultdict(list))
-    for conditions, fact in operator.del_effects:
-        eff_condition_list = translate_strips_conditions(
-            conditions, dictionary, ranges, mutex_dict, mutex_ranges)
-        if eff_condition_list is None:  # Impossible condition for this effect.
-            continue
-        for var, val in dictionary[fact]:
-            del_effects_by_variable[var][val].extend(eff_condition_list)
+    for strips_outcome in operator.strips_outcomes:
+        # collect all add effects
+        effects_by_variable = defaultdict(lambda: defaultdict(list))
+        # effects_by_variables: var -> val -> list(FDR conditions)
+        add_conds_by_variable = defaultdict(list)
+        for conditions, fact in strips_outcome.add_effects:
+            eff_condition_list = translate_strips_conditions(
+                conditions, dictionary, ranges, mutex_dict, mutex_ranges)
+            if eff_condition_list is None:
+                continue  # Impossible condition for this effect.
+            for var, val in dictionary[fact]:
+                effects_by_variable[var][val].extend(eff_condition_list)
+                add_conds_by_variable[var].append(conditions)
 
-    # add effect var=none_of_those for all del effects with the additional
-    # condition that the deleted value has been true and no add effect triggers
-    for var in del_effects_by_variable:
-        no_add_effect_condition = negate_and_translate_condition(
-            add_conds_by_variable[var], dictionary, ranges, mutex_dict,
-            mutex_ranges)
-        if no_add_effect_condition is None:  # there is always an add effect
-            continue
-        none_of_those = ranges[var] - 1
-        for val, conds in del_effects_by_variable[var].items():
-            for cond in conds:
-                # add guard
-                if var in cond and cond[var] != val:
-                    continue  # condition inconsistent with deleted atom
-                cond[var] = val
-                # add condition that no add effect triggers
-                for no_add_cond in no_add_effect_condition:
-                    new_cond = dict(cond)
-                    # This is a rather expensive step. We try every no_add_cond
-                    # with every condition of the delete effect and discard the
-                    # overal combination if it is unsatisfiable. Since
-                    # no_add_effect_condition is precomputed it can contain many
-                    # no_add_conds in which a certain literal occurs. So if cond
-                    # plus the literal is already unsatisfiable, we still try
-                    # all these combinations. A possible optimization would be
-                    # to re-compute no_add_effect_condition for every delete
-                    # effect and to unfold the product(*condition) in
-                    # negate_and_translate_condition to allow an early break.
-                    for cvar, cval in no_add_cond.items():
-                        if cvar in new_cond and new_cond[cvar] != cval:
-                            # the del effect condition plus the deleted atom
-                            # imply that some add effect on the variable
-                            # triggers
-                            break
-                        new_cond[cvar] = cval
-                    else:
-                        effects_by_variable[var][none_of_those].append(
-                            new_cond)
+        # collect all del effects
+        del_effects_by_variable = defaultdict(lambda: defaultdict(list))
+        for conditions, fact in strips_outcome.del_effects:
+            eff_condition_list = translate_strips_conditions(
+                conditions, dictionary, ranges, mutex_dict, mutex_ranges)
+            if eff_condition_list is None:
+                continue  # Impossible condition for this effect.
+            for var, val in dictionary[fact]:
+                del_effects_by_variable[var][val].extend(eff_condition_list)
 
-    return build_sas_operator(operator, condition, effects_by_variable, ranges,
-                              implied_facts)
+        # add effect var=none_of_those for all del effects with the additional
+        # condition that the deleted value has been true and no add effect
+        # triggers
+        for var in del_effects_by_variable:
+            no_add_effect_condition = negate_and_translate_condition(
+                add_conds_by_variable[var], dictionary, ranges, mutex_dict,
+                mutex_ranges)
+            if no_add_effect_condition is None:  # there is always an add effect
+                continue
+            none_of_those = ranges[var] - 1
+            for val, conds in del_effects_by_variable[var].items():
+                for cond in conds:
+                    # add guard
+                    if var in cond and cond[var] != val:
+                        continue  # condition inconsistent with deleted atom
+                    cond[var] = val
+                    # add condition that no add effect triggers
+                    for no_add_cond in no_add_effect_condition:
+                        new_cond = dict(cond)
+                        # This is a rather expensive step. We try every
+                        # no_add_cond with every condition of the delete
+                        # effect and discard the overal combination if it is
+                        # unsatisfiable. Since no_add_effect_condition is
+                        # precomputed it can contain many no_add_conds in
+                        # which a certain literal occurs. So if cond plus the
+                        # literal is already unsatisfiable, we still try all
+                        # these combinations. A possible optimization would be
+                        # to re-compute no_add_effect_condition for every delete
+                        # effect and to unfold the product(*condition) in
+                        # negate_and_translate_condition to allow an early
+                        # break.
+                        for cvar, cval in no_add_cond.items():
+                            if cvar in new_cond and new_cond[cvar] != cval:
+                                # the del effect condition plus the deleted atom
+                                # imply that some add effect on the variable
+                                # triggers
+                                break
+                            new_cond[cvar] = cval
+                        else:
+                            effects_by_variable[var][none_of_those].append(
+                                new_cond)
+
+        outcomes.append(build_sas_outcome(strips_outcome.probability,
+                                          condition,
+                                          effects_by_variable, ranges,
+                                          implied_facts))
+
+    return sas_tasks.SASOperator(operator.name, list(condition.items()),
+                                 outcomes, operator.cost)
 
 
-def build_sas_operator(strips_operator, condition, effects_by_variable, ranges,
-                       implied_facts):
+def build_sas_outcome(probability, condition, effects_by_variable,
+                      ranges, implied_facts):
     if options.add_implied_preconditions:
         implied_precondition = set()
         for fact in condition.items():
             implied_precondition.update(implied_facts[fact])
     prevail_and_pre = dict(condition)
-    pre_post = []
+    prevail = condition
+    eff = []
     for var, effects_on_var in effects_by_variable.items():
         orig_pre = condition.get(var, -1)
         added_effect = False
@@ -308,8 +322,8 @@ def build_sas_operator(strips_operator, condition, effects_by_variable, ranges,
                     pre = 1 - post
             for eff_condition in eff_condition_lists:
                 # we do not need to represent a precondition as effect condition
-                # and we do not want to keep an effect whose condition contradicts
-                # a pre- or prevail condition
+                # and we do not want to keep an effect whose condition
+                # contradicts a pre- or prevail condition
                 filtered_eff_condition = []
                 eff_condition_contradicts_precondition = False
                 for variable, value in eff_condition:
@@ -321,17 +335,13 @@ def build_sas_operator(strips_operator, condition, effects_by_variable, ranges,
                         filtered_eff_condition.append((variable, value))
                 if eff_condition_contradicts_precondition:
                     continue
-                pre_post.append((var, pre, post, filtered_eff_condition))
+                eff.append(((var, post), filtered_eff_condition))
                 added_effect = True
         if added_effect:
             # the condition on var is not a prevail condition but a
             # precondition, so we remove it from the prevail condition
-            condition.pop(var, -1)
-    prevail = list(condition.items())
-    return sas_tasks.SASOperator(strips_operator.identifier,
-                                 strips_operator.name, prevail, pre_post,
-                                 strips_operator.cost,
-                                 strips_operator.probability)
+            prevail.pop(var, -1)
+    return sas_tasks.SASOutcome(probability, prevail, eff)
 
 
 def prune_stupid_effect_conditions(var, val, conditions, effects_on_var):
@@ -544,8 +554,9 @@ def pddl_to_sas(task):
         assert isinstance(item, pddl.Literal)
 
     with timers.timing("Computing fact groups", block=True):
+        determinization = task.get_determinization()
         groups, mutex_groups, translation_key = fact_groups.compute_groups(
-            task, atoms, reachable_action_params)
+            determinization, atoms, reachable_action_params)
 
     with timers.timing("Building STRIPS to SAS dictionary"):
         ranges, strips_to_sas = strips_to_sas_dictionary(
@@ -605,14 +616,15 @@ def pddl_to_sas(task):
                 options.filter_unimportant_ops)
 
     if options.give_up_cost != None:
-        op = sas_tasks.SASOperator((-1, tuple()), "(GIVE-UP)", [],
-                                   [(var, -1, post, []) for (var, post) in
-                                    sas_task.goal.pairs], options.give_up_cost,
-                                   1)
+        op = sas_tasks.SASOperator(
+            "finite-penalty-give-up",
+            [],
+            [sas_tasks.SASOutcome(
+                Fraction(1),
+                [],
+                [(fact, []) for fact in sas_task.goal.pairs])],
+            options.give_up_cost)
         sas_task.operators.append(op)
-
-    with timers.timing("Reconstructing probabilistic operators", block=True):
-        sas_task.rebuild_probabilistic_operators()
 
     if options.budget != None:
         with timers.timing("Compiling budget", block=True):
@@ -623,12 +635,8 @@ def pddl_to_sas(task):
             budget_compilation.augment_task_by_budget(sas_task, options.budget)
 
     if options.discount_factor != None:
-        with timers.timing("Compiling discount factor", block=True):
-            if options.discount_factor <= 0.0 or options.discount_factor >= 1.0:
-                sys.stderr.write(
-                    "Discount factor must be in range (0, 1)! Got %d.\n" %
-                    options.discount_factor)
-                sys.exit(TRANSLATE_ERROR)
+        with ((timers.timing("Compiling discount factor", block=True))):
+            assert 0.0 < options.discount_factor < 1.0
 
             discount_compilation.augment_task_by_discount_factor(
                 sas_task, options.discount_factor)
@@ -725,7 +733,6 @@ def main():
     with timers.timing("Parsing", True):
         task = pddl_parser.open(domain_filename=options.domain,
                                 task_filename=options.task)
-        task.dump()
 
     with timers.timing("Normalizing task"):
         normalize.normalize(task)
