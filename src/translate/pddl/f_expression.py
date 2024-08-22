@@ -1,9 +1,13 @@
-from __future__ import print_function
-
 from fractions import Fraction
+from typing import List
 
 
-class FunctionalExpression(object):
+class Expression(object):
+    def instantiate(self, var_mapping, init_facts):
+        raise NotImplemented()
+
+
+class FunctionalExpression(Expression):
     def __init__(self, parts):
         self.parts = tuple(parts)
 
@@ -30,6 +34,9 @@ class NumericConstant(FunctionalExpression):
 
     def __str__(self):
         return "%s %s" % (self.__class__.__name__, self.value)
+
+    def __hash__(self):
+        return self.value.__hash__()
 
     def _dump(self):
         return str(self)
@@ -76,6 +83,51 @@ class PrimitiveNumericExpression(FunctionalExpression):
         return result
 
 
+class ArithmeticExpression(Expression):
+    def __init__(self, operation, args: List[Expression]):
+        self.operation = operation
+        self.args = tuple(args)
+        self.hash = hash((self.__class__, self.operation, self.args))
+
+    def __hash__(self):
+        return self.hash
+
+    def __eq__(self, other):
+        return (
+                self.__class__ == other.__class__ and
+                self.operation == other.operation and
+                self.args == other.args)
+
+    def __str__(self):
+        return "%s %s(%s)" % (
+            "Arith", self.operation, ", ".join(map(str, self.args)))
+
+    def dump(self, indent="  "):
+        print("%s%s" % (indent, self._dump()))
+
+    def _dump(self):
+        return str(self)
+
+    def instantiate(self, var_mapping, init_assignments):
+        args = [arg.instantiate(var_mapping, init_assignments)
+                for arg in self.args]
+
+        assert self.operation in ["+", "*"]
+
+        if self.operation == "+":
+            val = Fraction(0)
+            func = Fraction.__add__
+        else:
+            val = Fraction(1)
+            func = Fraction.__mul__
+
+        for arg in args:
+            assert isinstance(arg, NumericConstant)
+            val = func(val, arg.value)
+
+        return NumericConstant(val)
+
+
 class FunctionAssignment(object):
     def __init__(self, fluent, expression):
         self.fluent = fluent
@@ -95,7 +147,8 @@ class FunctionAssignment(object):
 
     def instantiate(self, var_mapping, init_facts):
         if not (isinstance(self.expression, PrimitiveNumericExpression) or
-                isinstance(self.expression, NumericConstant)):
+                isinstance(self.expression, NumericConstant) or
+                isinstance(self.expression, ArithmeticExpression)):
             raise ValueError("Cannot instantiate assignment: not normalized")
         # We know that this assignment is a cost effect of an action (for initial state
         # assignments, "instantiate" is not called). Hence, we know that the fluent is

@@ -3,7 +3,7 @@ from typing import List, Union, Tuple
 
 from . import conditions
 from .conditions import Condition, Literal
-from .f_expression import Increase, NumericConstant
+from .f_expression import Increase, NumericConstant, ArithmeticExpression
 from .pddl_types import TypedObject
 
 AnyEffect = Union[
@@ -218,7 +218,6 @@ class UniversalEffect(object):
         else:
             return UniversalEffect(self.parameters, norm_effect)
 
-
     def extract_cost(self):
         return None, self
 
@@ -297,13 +296,34 @@ class ConjunctiveEffect(object):
 
     def extract_cost(self):
         new_effects = []
-        cost_effect = None
+        cost_effects = []
         for effect in self.effects:
             if isinstance(effect, CostEffect):
-                cost_effect = effect
+                cost_effects.append(effect)
             else:
                 new_effects.append(effect)
-        return cost_effect, ConjunctiveEffect(new_effects)
+
+        conj = ConjunctiveEffect(new_effects)
+
+        if not cost_effects:
+            return None, conj
+
+        if len(cost_effects) == 1:
+            return cost_effects[0], conj
+
+        # If multiple cost effects appear, their costs are additive.
+        first_fluent = cost_effects[0].effect.fluent
+        sum_expressions = []
+
+        for cost_effect in cost_effects:
+            assert cost_effect.effect.fluent == first_fluent
+            sum_expressions.append(cost_effect.effect.expression)
+
+        additive_cost_effect = CostEffect(Increase(
+            first_fluent,
+            ArithmeticExpression("+", sum_expressions)))
+
+        return additive_cost_effect, conj
 
 
 class ProbabilisticEffect(object):
@@ -338,26 +358,29 @@ class ProbabilisticEffect(object):
         weighted_cost = 0
         fluent = None
 
+        weighted_cost_exprs = []
+
         for probability, effect in self.effect_probability_pairs:
             cost_effect, remaining = effect.extract_cost()
 
-            if cost_effect is None:
-                cost = 0
-            else:
+            if cost_effect is not None:
                 assert isinstance(cost_effect.effect, Increase)
-                assert isinstance(cost_effect.effect.expression,
-                                  NumericConstant)
                 assert not fluent or cost_effect.effect.fluent == fluent
 
-                cost = cost_effect.effect.expression.value
+                weighted_cost_exprs.append(ArithmeticExpression(
+                    "*",
+                    [NumericConstant(probability),
+                     cost_effect.effect.expression]))
                 fluent = cost_effect.effect.fluent
 
-            weighted_cost += probability * cost
             remaining_pairs.append((probability, remaining))
 
-        cost_effect = CostEffect(
-            Increase(fluent, NumericConstant(
-                weighted_cost))) if weighted_cost != 0 else None
+        if weighted_cost_exprs:
+            cost_effect = CostEffect(
+                Increase(fluent, ArithmeticExpression(
+                    "+", weighted_cost_exprs)))
+        else:
+            cost_effect = None
 
         return cost_effect, ProbabilisticEffect(remaining_pairs)
 
