@@ -259,7 +259,8 @@ class VariableOrder:
                     outcome.prevail = [self.new_var[var]
                                        for var in outcome.prevail
                                        if var in self.new_var]
-                    new_ops.append(op)
+
+            new_ops.append(op)
         print("%s of %s operators necessary." % (len(new_ops),
                                                  len(operators)))
         operators[:] = new_ops

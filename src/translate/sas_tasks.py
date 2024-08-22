@@ -18,7 +18,7 @@ class SASTask:
     the validate methods for details."""
 
     def __init__(self,
-                 variables: "SASTask",
+                 variables: "SASVariables",
                  mutexes: List["SASMutexGroup"],
                  init: "SASInit",
                  goal: "SASGoal",
