@@ -219,8 +219,8 @@ class UniversalEffect(object):
             return UniversalEffect(self.parameters, norm_effect)
 
 
-def extract_cost(self):
-    return None, self
+    def extract_cost(self):
+        return None, self
 
 
 class ConjunctiveEffect(object):
