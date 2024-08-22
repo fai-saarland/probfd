@@ -1,6 +1,6 @@
 import contextlib
-import fractions
 import sys
+from fractions import Fraction
 
 import graph
 import pddl
@@ -288,7 +288,8 @@ def parse_literal(context, alist, type_dict, predicate_dict, negated=False):
         if alist[0] == "not":
             if len(alist) != 2:
                 context.error(
-                    "Negated literal definition has to have exactly one block as argument.",
+                    "Negated literal definition has to have exactly one block "
+                    "as argument.",
                     alist, syntax=SYNTAX_LITERAL_NEGATED)
             alist = alist[1]
             if not isinstance(alist, list) or not alist:
@@ -362,7 +363,7 @@ def add_probabilistic_outcomes(tmp_effect, result):
     else:
         effects = []
         add_effects(tmp_effect, effects)
-        result.append((fractions.Fraction(1), effects))
+        result.append((Fraction(1), effects))
 
 
 def add_effects(tmp_effect, result):
@@ -408,7 +409,7 @@ def add_effects(tmp_effect, result):
 
 
 def parse_probability(context, text):
-    probability = fractions.Fraction(text)
+    probability = Fraction(text)
 
     if probability <= 0 or probability > 1:
         context.error("Expected probability between zero and one", probability)
@@ -468,15 +469,14 @@ def parse_effect(context, alist, type_dict, predicate_dict):
         assignment = parse_assignment(context, alist)
         return pddl.CostEffect(assignment)
     elif tag == "probabilistic":
-        # Generate effects for each outcome and then set their probability appropriately
-        if (len(alist) % 2 == 0):
+        if len(alist) % 2 == 0:
             context.error(
                 "Each probabilistic outcome must have an associated "
                 "probability", alist, syntax=SYNTAX_EFFECT_PROBABILISTIC)
         outcome_pairs = [(alist[i], alist[i + 1]) for i in
                          range(1, len(alist), 2)]
 
-        remaining_probability = fractions.Fraction(1)
+        remaining_probability = Fraction(1)
         outcomes = []
         for pair in outcome_pairs:
             probability = parse_probability(context, pair[0])
@@ -503,15 +503,17 @@ def parse_effect(context, alist, type_dict, predicate_dict):
 
 
 def parse_expression(context, exp):
-    with context.layer("Parsing expression"):
+    with ((context.layer("Parsing expression"))):
         if isinstance(exp, list):
             if len(exp) < 1:
                 context.error("Expression cannot be an empty block.",
                               syntax=SYNTAX_EXPRESSION)
             functionsymbol = exp[0]
             return pddl.PrimitiveNumericExpression(functionsymbol, exp[1:])
+        elif "/" in exp:
+            return pddl.NumericConstant(Fraction(exp))
         elif exp.replace(".", "").isdigit() and exp.count(".") <= 1:
-            return pddl.NumericConstant(float(exp))
+            return pddl.NumericConstant(Fraction(exp))
         elif exp[0] == "-":
             context.error("Expression cannot be a negative number",
                           syntax=SYNTAX_EXPRESSION)

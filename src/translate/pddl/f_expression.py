@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-import fractions
+from fractions import Fraction
 
 
 class FunctionalExpression(object):
@@ -22,11 +22,11 @@ class FunctionalExpression(object):
 class NumericConstant(FunctionalExpression):
     parts = ()
 
-    def __init__(self, value):
-        self.value = fractions.Fraction(value)
+    def __init__(self, value: Fraction):
+        self.value = value
 
     def __eq__(self, other):
-        return (self.__class__ == other.__class__ and self.value == other.value)
+        return self.__class__ == other.__class__ and self.value == other.value
 
     def __str__(self):
         return "%s %s" % (self.__class__.__name__, self.value)
