@@ -13,7 +13,7 @@ class Metric(IntEnum):
 class Task:
     def __init__(self, domain_name, task_name, requirements,
                  types, objects, predicates, functions, init, goal,
-                 actions, axioms, metric: Metric):
+                 actions, axioms, metric: Metric, metric_fluent: str):
         self.domain_name = domain_name
         self.task_name = task_name
         self.requirements = requirements
@@ -27,6 +27,7 @@ class Task:
         self.axioms = axioms
         self.axiom_counter = 0
         self.metric = metric
+        self.metric_fluent = metric_fluent
 
     def add_axiom(self, parameters, condition):
         name = "new-axiom@%d" % self.axiom_counter
@@ -72,7 +73,7 @@ class Task:
         return Task(self.domain_name, self.task_name, self.requirements,
                     self.types, self.objects, self.predicates,
                     self.functions, self.init, self.goal, det_actions,
-                    self.axioms, self.metric)
+                    self.axioms, self.metric, self.metric_fluent)
 
 
 class Requirements:

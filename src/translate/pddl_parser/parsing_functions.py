@@ -30,8 +30,8 @@ SYNTAX_CONDITION_FORALL_EXISTS = "({forall, exists} VARIABLES CONDITION)"
 SYNTAX_EFFECT_FORALL = "(forall VARIABLES EFFECT)"
 SYNTAX_EFFECT_WHEN = "(when CONDITION EFFECT)"
 SYNTAX_EFFECT_PROBABILISTIC = "(probabilistic [PROBABILITY EFFECT]+)"
-SYNTAX_EFFECT_INCREASE = "(increase (total-cost) ASSIGNMENT)"
-SYNTAX_EFFECT_DECREASE = "(decrease (total-cost) ASSIGNMENT)"
+SYNTAX_EFFECT_INCREASE = "(increase {(total-cost),(reward)} ASSIGNMENT)"
+SYNTAX_EFFECT_DECREASE = "(decrease {(total-cost),(reward)} ASSIGNMENT)"
 
 SYNTAX_EXPRESSION = "POSITIVE_NUMBER or (FUNCTION VARIABLES*)"
 SYNTAX_ASSIGNMENT = "({=,increase,decrease} EXPRESSION EXPRESSION)"
@@ -39,7 +39,7 @@ SYNTAX_ASSIGNMENT = "({=,increase,decrease} EXPRESSION EXPRESSION)"
 SYNTAX_DOMAIN_DOMAIN_NAME = "(domain NAME)"
 SYNTAX_TASK_PROBLEM_NAME = "(problem NAME)"
 SYNTAX_TASK_DOMAIN_NAME = "(:domain NAME)"
-SYNTAX_METRIC = "(:metric {minimize,maximize} (total-cost))"
+SYNTAX_METRIC = "(:metric {minimize,maximize} {(total-cost),(reward)})"
 
 CONDITION_TAG_TO_SYNTAX = {
     "and": SYNTAX_CONDITION_AND,
@@ -338,11 +338,13 @@ def _get_predicate_id_and_arity(context, text, type_dict, predicate_dict):
         return the_type.get_predicate_name(), 1
 
 
-def parse_outcomes(context, alist, result, type_dict, predicate_dict):
+def parse_outcomes(
+        context, alist, result, type_dict, predicate_dict, has_reward_fluent):
     """Parse a PDDL effect (any combination of simple, conjunctive,
     conditional, universal and probabilistic)."""
     with context.layer("Parsing effect"):
-        tmp_effect = parse_effect(context, alist, type_dict, predicate_dict)
+        tmp_effect = parse_effect(
+            context, alist, type_dict, predicate_dict, has_reward_fluent)
         normalized = tmp_effect.normalize()
         cost_eff, rest_effect = normalized.extract_cost()
         add_probabilistic_outcomes(rest_effect, result)
@@ -418,7 +420,7 @@ def parse_probability(context, text):
     return probability
 
 
-def parse_effect(context, alist, type_dict, predicate_dict):
+def parse_effect(context, alist, type_dict, predicate_dict, has_reward_fluent):
     if not alist:
         context.error("All (sub-)effects have to be a non-empty blocks.", alist)
     tag = alist[0]
@@ -430,7 +432,8 @@ def parse_effect(context, alist, type_dict, predicate_dict):
                     "All sub-effects of a conjunction have to be blocks.",
                     eff)
             effects.append(
-                parse_effect(context, eff, type_dict, predicate_dict))
+                parse_effect(
+                    context, eff, type_dict, predicate_dict, has_reward_fluent))
         return pddl.ConjunctiveEffect(effects)
     elif tag == "forall":
         if len(alist) != 3:
@@ -445,7 +448,8 @@ def parse_effect(context, alist, type_dict, predicate_dict):
             context.expected_list_error(
                 "Second argument (EFFECT) of 'forall'",
                 alist[2], syntax=SYNTAX_EFFECT_FORALL)
-        effect = parse_effect(context, alist[2], type_dict, predicate_dict)
+        effect = parse_effect(
+            context, alist[2], type_dict, predicate_dict, has_reward_fluent)
         return pddl.UniversalEffect(parameters, effect)
     elif tag == "when":
         if len(alist) != 3:
@@ -461,18 +465,39 @@ def parse_effect(context, alist, type_dict, predicate_dict):
             context.expected_list_error(
                 "Second argument (EFFECT) of 'when'",
                 alist[2], syntax=SYNTAX_EFFECT_WHEN)
-        effect = parse_effect(context, alist[2], type_dict, predicate_dict)
+        effect = parse_effect(
+            context, alist[2], type_dict, predicate_dict, has_reward_fluent)
         return pddl.ConditionalEffect(condition, effect)
     elif tag == "increase":
-        if len(alist) != 3 or alist[1] != ["total-cost"]:
+        if len(alist) != 3:
             context.error("'increase' expects two arguments",
                           alist, syntax=SYNTAX_EFFECT_INCREASE)
+
+        if has_reward_fluent:
+            if alist[1] != ["reward"]:
+                context.error("'increase' only supports 'reward' fluent here "
+                              "due to requirement :rewards",
+                              alist, syntax=SYNTAX_EFFECT_INCREASE)
+        elif alist[1] != ["total-cost"]:
+            context.error("'increase' only supports 'total-cost' fluent here",
+                          alist, syntax=SYNTAX_EFFECT_INCREASE)
+
         assignment = parse_assignment(context, alist)
         return pddl.CostEffect(assignment)
     elif tag == "decrease":
-        if len(alist) != 3 or alist[1] != ["total-cost"]:
+        if len(alist) != 3:
             context.error("'decrease' expects two arguments",
                           alist, syntax=SYNTAX_EFFECT_DECREASE)
+
+        if has_reward_fluent:
+            if alist[1] != ["reward"]:
+                context.error("'decrease' only supports 'reward' fluent here "
+                              "due to requirement :rewards",
+                              alist, syntax=SYNTAX_EFFECT_DECREASE)
+        elif alist[1] != ["total-cost"]:
+            context.error("'decrease' only supports 'total-cost' fluent here",
+                          alist, syntax=SYNTAX_EFFECT_DECREASE)
+
         assignment = parse_assignment(context, alist)
         return pddl.CostEffect(assignment)
     elif tag == "probabilistic":
@@ -487,7 +512,8 @@ def parse_effect(context, alist, type_dict, predicate_dict):
         outcomes = []
         for pair in outcome_pairs:
             probability = parse_probability(context, pair[0])
-            effect = parse_effect(context, pair[1], type_dict, predicate_dict)
+            effect = parse_effect(context, pair[1], type_dict,
+                                  predicate_dict, has_reward_fluent)
             remaining_probability -= probability
             outcomes.append((probability, effect))
 
@@ -549,7 +575,7 @@ def parse_assignment(context, alist):
                           f" Use '=' or 'increase'.")
 
 
-def parse_action(context, alist, type_dict, predicate_dict):
+def parse_action(context, alist, type_dict, predicate_dict, has_reward_fluent):
     with context.layer("Parsing action name"):
         if len(alist) < 4:
             context.error(
@@ -608,7 +634,7 @@ def parse_action(context, alist, type_dict, predicate_dict):
                 if effect_list:
                     cost = parse_outcomes(
                         context, effect_list, outcomes, type_dict,
-                        predicate_dict)
+                        predicate_dict, has_reward_fluent)
         except StopIteration:
             context.error(f"Missing fields. Expecting {SYNTAX_ACTION}.")
         for _ in iterator:
@@ -642,7 +668,8 @@ def parse_axiom(context, alist, type_dict, predicate_dict):
                           len(predicate.arguments), condition)
 
 
-def parse_axioms_and_actions(context, entries, type_dict, predicate_dict):
+def parse_axioms_and_actions(
+        context, entries, type_dict, predicate_dict, has_reward_fluent):
     the_axioms = []
     the_actions = []
     for no, entry in enumerate(entries, start=1):
@@ -656,7 +683,7 @@ def parse_axioms_and_actions(context, entries, type_dict, predicate_dict):
                 assert entry[0] == ":action"
                 with context.layer(f"Parsing {len(the_actions) + 1}. action"):
                     action = parse_action(context, entry, type_dict,
-                                          predicate_dict)
+                                          predicate_dict, has_reward_fluent)
                     if action is not None:
                         the_actions.append(action)
     return the_axioms, the_actions
@@ -721,14 +748,18 @@ def parse_task(domain_pddl, task_pddl):
     context = Context()
     if not isinstance(domain_pddl, list):
         context.error("Invalid definition of a PDDL domain.")
-    domain_name, domain_requirements, types, type_dict, constants, predicates, \
-        predicate_dict, functions, actions, axioms = parse_domain_pddl(context,
-                                                                       domain_pddl)
+
+    (domain_name, domain_requirements, types, type_dict, constants,
+     predicates, predicate_dict, functions, actions, axioms,
+     has_reward_fluent) = parse_domain_pddl(context, domain_pddl)
+
     if not isinstance(task_pddl, list):
         context.error("Invalid definition of a PDDL task.")
-    task_name, task_domain_name, task_requirements, objects, init, goal, \
-        metric = parse_task_pddl(context, task_pddl, type_dict,
-                                 predicate_dict)
+
+    (task_name, task_domain_name, task_requirements, objects, init, goal,
+     metric, metric_fluent) = parse_task_pddl(context, task_pddl, type_dict,
+                                              predicate_dict,
+                                              has_reward_fluent)
 
     if domain_name != task_domain_name:
         context.error(f"The domain name specified by the task "
@@ -747,7 +778,8 @@ def parse_task(domain_pddl, task_pddl):
 
     return pddl.Task(
         domain_name, task_name, requirements, types, objects,
-        predicates, functions, init, goal, actions, axioms, metric)
+        predicates, functions, init, goal, actions, axioms, metric,
+        metric_fluent)
 
 
 def parse_domain_pddl(context, domain_pddl):
@@ -825,21 +857,27 @@ def parse_domain_pddl(context, domain_pddl):
         yield predicate_dict
         yield the_functions
 
+        req = requirements.requirements
+        has_reward_fluent = ":rewards" in req or ":mdp" in req
+
         entries = []
         if first_action is not None:
             entries.append(first_action)
         entries.extend(iterator)
 
         the_axioms, the_actions = parse_axioms_and_actions(
-            context, entries, type_dict, predicate_dict)
+            context, entries, type_dict, predicate_dict, has_reward_fluent)
 
         yield the_actions
         yield the_axioms
 
+        yield has_reward_fluent
 
-def parse_task_pddl(context, task_pddl, type_dict, predicate_dict):
+
+def parse_task_pddl(
+        context, task_pddl, type_dict, predicate_dict, has_reward_fluent):
     iterator = iter(task_pddl)
-    with (context.layer("Parsing task")):
+    with context.layer("Parsing task"):
         define_tag = next(iterator)
         if define_tag != "define":
             context.error("Task definition expected to start with '(define ")
@@ -871,7 +909,11 @@ def parse_task_pddl(context, task_pddl, type_dict, predicate_dict):
         else:
             requirements = []
             objects_opt = requirements_opt
-        yield parse_requirements(context, requirements)
+        req = parse_requirements(context, requirements)
+        has_reward_fluent = (has_reward_fluent or
+                             ":rewards" in req.requirements or
+                             ":mdp" in req.requirements)
+        yield req
 
         assert_named_block(context, objects_opt, [":objects", ":init"])
         if objects_opt[0] == ":objects":
@@ -901,13 +943,28 @@ def parse_task_pddl(context, task_pddl, type_dict, predicate_dict):
                             not isinstance(entry[2], list) or
                             len(entry[2]) != 1 or
                             entry[1] not in ["minimize", "maximize"] or
-                            entry[2][0] != "total-cost"):
+                            entry[2][0] not in ["total-cost", "reward"]):
                         context.error("Invalid metric definition.", entry,
                                       syntax=SYNTAX_METRIC)
+
+                    if has_reward_fluent:
+                        if entry[2][0] != "reward":
+                            context.error(
+                                ":rewards requirement mandates use of "
+                                "'reward' fluent instead of 'total-cost'"
+                                "in metric")
+                    elif entry[2][0] == "reward":
+                        context.error("use of 'reward' fluent in metric, but "
+                                      ":rewards requirement not specified")
+                    elif entry[2][0] != "total-cost":
+                        context.error(f"unsupported fluent in metric:"
+                                      f"{entry[2][0]}")
+
                     metric = (pddl.Metric.MINIMIZE
                               if entry[1] == "minimize"
                               else pddl.Metric.MAXIMIZE)
         yield metric
+        yield "reward" if has_reward_fluent else "total-cost"
 
         for _ in iterator:
             assert False, "This line should be unreachable"

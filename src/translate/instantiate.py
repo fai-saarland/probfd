@@ -66,7 +66,8 @@ def instantiate(task, model):
             inst_action = action.instantiate(
                 variable_mapping, init_facts, init_assignments,
                 fluent_facts, type_to_objects,
-                task.metric)
+                task.metric,
+                task.metric_fluent)
             if inst_action:
                 instantiated_actions.append(inst_action)
         elif isinstance(atom.predicate, pddl.Axiom):

@@ -97,7 +97,7 @@ class Action(object):
         return result
 
     def instantiate(self, var_mapping, init_facts, init_assignments,
-                    fluent_facts, objects_by_type, metric):
+                    fluent_facts, objects_by_type, metric, metric_fluent):
         """Return a PropositionalAction which corresponds to the instantiation of
         this action with the arguments in var_mapping. Only fluent parts of the
         conditions (those in fluent_facts) are included. init_facts are evaluated
@@ -130,7 +130,7 @@ class Action(object):
             else:
                 weight = self.weight.instantiate(
                     var_mapping,
-                    init_assignments).expression.value
+                    init_assignments, metric_fluent).expression.value
         else:
             weight = Fraction(1)
 

@@ -26,7 +26,8 @@ class SASTask:
                  goal: "SASGoal",
                  operators: List["SASOperator"],
                  axioms: List["SASAxiom"],
-                 metric: Metric) -> None:
+                 metric: Metric,
+                 rewards: bool) -> None:
         self.variables = variables
         self.mutexes = mutexes
         self.init = init
@@ -36,6 +37,7 @@ class SASTask:
         self.axioms = sorted(axioms, key=lambda axiom: (
             axiom.condition, axiom.effect))
         self.metric = metric
+        self.rewards = rewards
         if DEBUG:
             self.validate()
 
@@ -95,6 +97,7 @@ class SASTask:
         print("end_version", file=stream)
         print("begin_metric", file=stream)
         print(int(self.metric), file=stream)
+        print(int(self.rewards), file=stream)
         print("end_metric", file=stream)
         self.variables.output(stream)
         print(len(self.mutexes), file=stream)

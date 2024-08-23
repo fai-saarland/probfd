@@ -455,7 +455,7 @@ def dump_task(init, goals, actions, axioms, axiom_layer_dict):
 
 def translate_task(strips_to_sas, ranges, translation_key, mutex_dict,
                    mutex_ranges, mutex_key, init, goals, actions, axioms,
-                   metric, implied_facts):
+                   metric, rewards, implied_facts):
     with timers.timing("Processing axioms", block=True):
         axioms, axiom_init, axiom_layer_dict = axiom_rules.handle_axioms(
             actions, axioms, goals)
@@ -510,7 +510,7 @@ def translate_task(strips_to_sas, ranges, translation_key, mutex_dict,
     variables = sas_tasks.SASVariables(ranges, axiom_layers, translation_key)
     mutexes = [sas_tasks.SASMutexGroup(group) for group in mutex_key]
     return sas_tasks.SASTask(variables, mutexes, init, goal, operators, axioms,
-                             metric)
+                             metric, rewards)
 
 
 def trivial_task(solvable):
@@ -597,7 +597,8 @@ def pddl_to_sas(task):
         sas_task = translate_task(strips_to_sas, ranges, translation_key,
                                   mutex_dict, mutex_ranges, mutex_key,
                                   task.init, goal_list, actions, axioms,
-                                  task.metric, implied_facts)
+                                  task.metric, task.metric_fluent == "reward",
+                                  implied_facts)
 
     print("%d effect conditions simplified" %
           simplified_effect_condition_counter)

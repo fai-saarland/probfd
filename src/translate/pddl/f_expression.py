@@ -3,7 +3,7 @@ from typing import List
 
 
 class Expression(object):
-    def instantiate(self, var_mapping, init_facts):
+    def instantiate(self, var_mapping, init_facts, metric_fluent):
         raise NotImplemented()
 
 
@@ -19,7 +19,7 @@ class FunctionalExpression(Expression):
     def _dump(self):
         return self.__class__.__name__
 
-    def instantiate(self, var_mapping, init_facts):
+    def instantiate(self, var_mapping, init_facts, metric_fluent):
         raise ValueError("Cannot instantiate condition: not normalized")
 
 
@@ -41,7 +41,7 @@ class NumericConstant(FunctionalExpression):
     def _dump(self):
         return str(self)
 
-    def instantiate(self, var_mapping, init_facts):
+    def instantiate(self, var_mapping, init_facts, metric_fluent):
         return self
 
 
@@ -71,7 +71,7 @@ class PrimitiveNumericExpression(FunctionalExpression):
     def _dump(self):
         return str(self)
 
-    def instantiate(self, var_mapping, init_assignments):
+    def instantiate(self, var_mapping, init_assignments, metric_fluent):
         args = [var_mapping.get(arg, arg) for arg in self.args]
         pne = PrimitiveNumericExpression(self.symbol, args)
         assert self.symbol != "total-cost"
@@ -108,8 +108,8 @@ class ArithmeticExpression(Expression):
     def _dump(self):
         return str(self)
 
-    def instantiate(self, var_mapping, init_assignments):
-        args = [arg.instantiate(var_mapping, init_assignments)
+    def instantiate(self, var_mapping, init_assignments, metric_fluent):
+        args = [arg.instantiate(var_mapping, init_assignments, metric_fluent)
                 for arg in self.args]
 
         assert self.operation in ["+", "-", "*"]
@@ -155,8 +155,8 @@ class UnaryArithmeticExpression(Expression):
     def _dump(self):
         return str(self)
 
-    def instantiate(self, var_mapping, init_assignments):
-        arg = self.arg.instantiate(var_mapping, init_assignments)
+    def instantiate(self, var_mapping, init_assignments, metric_fluent):
+        arg = self.arg.instantiate(var_mapping, init_assignments, metric_fluent)
 
         assert isinstance(arg, NumericConstant)
         assert self.operation in ["+", "-"]
@@ -186,17 +186,19 @@ class FunctionAssignment(object):
     def _dump(self):
         return self.__class__.__name__
 
-    def instantiate(self, var_mapping, init_facts):
+    def instantiate(self, var_mapping, init_facts, metric_fluent):
         if not (isinstance(self.expression, PrimitiveNumericExpression) or
                 isinstance(self.expression, NumericConstant) or
                 isinstance(self.expression, ArithmeticExpression)):
             raise ValueError("Cannot instantiate assignment: not normalized")
-        # We know that this assignment is a cost effect of an action (for initial state
-        # assignments, "instantiate" is not called). Hence, we know that the fluent is
-        # the 0-ary "total-cost" which does not need to be instantiated
-        assert self.fluent.symbol == "total-cost"
+        # We know that this assignment is a cost effect of an action (for
+        # initial state assignments, "instantiate" is not called). Hence,
+        # we know that the fluent is the 0-ary metric fluent which does not
+        # need to be instantiated
+        assert self.fluent.symbol == metric_fluent
         fluent = self.fluent
-        expression = self.expression.instantiate(var_mapping, init_facts)
+        expression = self.expression.instantiate(var_mapping, init_facts,
+                                                 metric_fluent)
         return self.__class__(fluent, expression)
 
 
