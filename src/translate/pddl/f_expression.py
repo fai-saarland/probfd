@@ -112,11 +112,14 @@ class ArithmeticExpression(Expression):
         args = [arg.instantiate(var_mapping, init_assignments)
                 for arg in self.args]
 
-        assert self.operation in ["+", "*"]
+        assert self.operation in ["+", "-", "*"]
 
         if self.operation == "+":
             val = Fraction(0)
             func = Fraction.__add__
+        elif self.operation == "-":
+            val = Fraction(0)
+            func = Fraction.__sub__
         else:
             val = Fraction(1)
             func = Fraction.__mul__
@@ -124,6 +127,44 @@ class ArithmeticExpression(Expression):
         for arg in args:
             assert isinstance(arg, NumericConstant)
             val = func(val, arg.value)
+
+        return NumericConstant(val)
+
+
+class UnaryArithmeticExpression(Expression):
+    def __init__(self, operation, arg: Expression):
+        self.operation = operation
+        self.arg = arg
+        self.hash = hash((self.__class__, self.operation, self.arg))
+
+    def __hash__(self):
+        return self.hash
+
+    def __eq__(self, other):
+        return (
+                self.__class__ == other.__class__ and
+                self.operation == other.operation and
+                self.arg == other.arg)
+
+    def __str__(self):
+        return "%s %s(%s)" % ("UnaryArith", self.operation, str(self.arg))
+
+    def dump(self, indent="  "):
+        print("%s%s" % (indent, self._dump()))
+
+    def _dump(self):
+        return str(self)
+
+    def instantiate(self, var_mapping, init_assignments):
+        arg = self.arg.instantiate(var_mapping, init_assignments)
+
+        assert isinstance(arg, NumericConstant)
+        assert self.operation in ["+", "-"]
+
+        if self.operation == "-":
+            val = -arg.value
+        else:
+            val = arg.value
 
         return NumericConstant(val)
 

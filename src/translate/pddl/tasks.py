@@ -1,11 +1,19 @@
+from enum import IntEnum
+
 from . import axioms
 from . import predicates
+
+
+class Metric(IntEnum):
+    NONE = 0
+    MINIMIZE = 1
+    MAXIMIZE = 2
 
 
 class Task:
     def __init__(self, domain_name, task_name, requirements,
                  types, objects, predicates, functions, init, goal,
-                 actions, axioms, use_metric):
+                 actions, axioms, metric: Metric):
         self.domain_name = domain_name
         self.task_name = task_name
         self.requirements = requirements
@@ -18,7 +26,7 @@ class Task:
         self.actions = actions
         self.axioms = axioms
         self.axiom_counter = 0
-        self.use_min_cost_metric = use_metric
+        self.metric = metric
 
     def add_axiom(self, parameters, condition):
         name = "new-axiom@%d" % self.axiom_counter
@@ -64,7 +72,7 @@ class Task:
         return Task(self.domain_name, self.task_name, self.requirements,
                     self.types, self.objects, self.predicates,
                     self.functions, self.init, self.goal, det_actions,
-                    self.axioms, self.use_min_cost_metric)
+                    self.axioms, self.metric)
 
 
 class Requirements:
@@ -77,7 +85,7 @@ class Requirements:
                 ":existential-preconditions", ":universal-preconditions",
                 ":quantified-preconditions", ":conditional-effects",
                 ":derived-predicates", ":action-costs",
-                ":probabilistic-effects"), req
+                ":probabilistic-effects", ":rewards", ":mdp"), req
 
     def __str__(self):
         return ", ".join(self.requirements)

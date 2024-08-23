@@ -31,20 +31,21 @@ SYNTAX_EFFECT_FORALL = "(forall VARIABLES EFFECT)"
 SYNTAX_EFFECT_WHEN = "(when CONDITION EFFECT)"
 SYNTAX_EFFECT_PROBABILISTIC = "(probabilistic [PROBABILITY EFFECT]+)"
 SYNTAX_EFFECT_INCREASE = "(increase (total-cost) ASSIGNMENT)"
+SYNTAX_EFFECT_DECREASE = "(decrease (total-cost) ASSIGNMENT)"
 
 SYNTAX_EXPRESSION = "POSITIVE_NUMBER or (FUNCTION VARIABLES*)"
-SYNTAX_ASSIGNMENT = "({=,increase} EXPRESSION EXPRESSION)"
+SYNTAX_ASSIGNMENT = "({=,increase,decrease} EXPRESSION EXPRESSION)"
 
 SYNTAX_DOMAIN_DOMAIN_NAME = "(domain NAME)"
 SYNTAX_TASK_PROBLEM_NAME = "(problem NAME)"
 SYNTAX_TASK_DOMAIN_NAME = "(:domain NAME)"
-SYNTAX_METRIC = "(:metric minimize (total-cost))"
+SYNTAX_METRIC = "(:metric {minimize,maximize} (total-cost))"
 
 CONDITION_TAG_TO_SYNTAX = {
-    "and"   : SYNTAX_CONDITION_AND,
-    "or"    : SYNTAX_CONDITION_OR,
-    "imply" : SYNTAX_CONDITION_IMPLY,
-    "not"   : SYNTAX_CONDITION_NOT,
+    "and": SYNTAX_CONDITION_AND,
+    "or": SYNTAX_CONDITION_OR,
+    "imply": SYNTAX_CONDITION_IMPLY,
+    "not": SYNTAX_CONDITION_NOT,
     "forall": SYNTAX_CONDITION_FORALL_EXISTS,
 }
 
@@ -468,6 +469,12 @@ def parse_effect(context, alist, type_dict, predicate_dict):
                           alist, syntax=SYNTAX_EFFECT_INCREASE)
         assignment = parse_assignment(context, alist)
         return pddl.CostEffect(assignment)
+    elif tag == "decrease":
+        if len(alist) != 3 or alist[1] != ["total-cost"]:
+            context.error("'decrease' expects two arguments",
+                          alist, syntax=SYNTAX_EFFECT_DECREASE)
+        assignment = parse_assignment(context, alist)
+        return pddl.CostEffect(assignment)
     elif tag == "probabilistic":
         if len(alist) % 2 == 0:
             context.error(
@@ -533,6 +540,10 @@ def parse_assignment(context, alist):
             return pddl.Assign(head, exp)
         elif op == "increase":
             return pddl.Increase(head, exp)
+        elif op == "decrease":
+            return pddl.Increase(
+                head,
+                pddl.UnaryArithmeticExpression("-", exp))
         else:
             context.error(f"Unsupported assignment operator '{op}'."
                           f" Use '=' or 'increase'.")
@@ -716,8 +727,8 @@ def parse_task(domain_pddl, task_pddl):
     if not isinstance(task_pddl, list):
         context.error("Invalid definition of a PDDL task.")
     task_name, task_domain_name, task_requirements, objects, init, goal, \
-        use_metric = parse_task_pddl(context, task_pddl, type_dict,
-                                     predicate_dict)
+        metric = parse_task_pddl(context, task_pddl, type_dict,
+                                 predicate_dict)
 
     if domain_name != task_domain_name:
         context.error(f"The domain name specified by the task "
@@ -736,7 +747,7 @@ def parse_task(domain_pddl, task_pddl):
 
     return pddl.Task(
         domain_name, task_name, requirements, types, objects,
-        predicates, functions, init, goal, actions, axioms, use_metric)
+        predicates, functions, init, goal, actions, axioms, metric)
 
 
 def parse_domain_pddl(context, domain_pddl):
@@ -828,7 +839,7 @@ def parse_domain_pddl(context, domain_pddl):
 
 def parse_task_pddl(context, task_pddl, type_dict, predicate_dict):
     iterator = iter(task_pddl)
-    with context.layer("Parsing task"):
+    with (context.layer("Parsing task")):
         define_tag = next(iterator)
         if define_tag != "define":
             context.error("Task definition expected to start with '(define ")
@@ -882,17 +893,21 @@ def parse_task_pddl(context, task_pddl, type_dict, predicate_dict):
                 context.error("Expected non-empty goal.", syntax=SYNTAX_GOAL)
             yield parse_condition(context, goal[1], type_dict, predicate_dict)
 
-        use_metric = False
+        metric = pddl.Metric.NONE
         for entry in iterator:
             if isinstance(entry, list) and entry[0] == ":metric":
                 with context.layer("Parsing metric"):
-                    if len(entry) != 3 or not isinstance(entry[2], list) or len(
-                            entry[2]) != 1 or entry[1] != "minimize" or \
-                            entry[2][0] != "total-cost":
+                    if (len(entry) != 3 or
+                            not isinstance(entry[2], list) or
+                            len(entry[2]) != 1 or
+                            entry[1] not in ["minimize", "maximize"] or
+                            entry[2][0] != "total-cost"):
                         context.error("Invalid metric definition.", entry,
                                       syntax=SYNTAX_METRIC)
-                    use_metric = True
-        yield use_metric
+                    metric = (pddl.Metric.MINIMIZE
+                              if entry[1] == "minimize"
+                              else pddl.Metric.MAXIMIZE)
+        yield metric
 
         for _ in iterator:
             assert False, "This line should be unreachable"

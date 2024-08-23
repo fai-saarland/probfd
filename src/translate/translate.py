@@ -292,7 +292,7 @@ def translate_strips_operator_aux(operator, dictionary, ranges, mutex_dict,
                                           implied_facts))
 
     return sas_tasks.SASOperator(operator.name, list(condition.items()),
-                                 outcomes, operator.cost)
+                                 outcomes, operator.weight)
 
 
 def build_sas_outcome(probability, condition, effects_by_variable,
@@ -597,7 +597,7 @@ def pddl_to_sas(task):
         sas_task = translate_task(strips_to_sas, ranges, translation_key,
                                   mutex_dict, mutex_ranges, mutex_key,
                                   task.init, goal_list, actions, axioms,
-                                  task.use_min_cost_metric, implied_facts)
+                                  task.metric, implied_facts)
 
     print("%d effect conditions simplified" %
           simplified_effect_condition_counter)

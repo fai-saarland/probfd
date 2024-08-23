@@ -20,13 +20,16 @@ from .effects import ProbabilisticEffect
 from .effects import ProbabilisticOutcomes
 from .effects import SimpleEffect
 from .effects import UniversalEffect
+from .f_expression import ArithmeticExpression
 from .f_expression import Assign
 from .f_expression import Increase
 from .f_expression import NumericConstant
 from .f_expression import PrimitiveNumericExpression
+from .f_expression import UnaryArithmeticExpression
 from .functions import Function
 from .pddl_types import Type
 from .pddl_types import TypedObject
 from .predicates import Predicate
+from .tasks import Metric
 from .tasks import Requirements
 from .tasks import Task

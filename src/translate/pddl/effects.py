@@ -219,6 +219,8 @@ class UniversalEffect(object):
             return UniversalEffect(self.parameters, norm_effect)
 
     def extract_cost(self):
+        assert (self.effect.extract_cost()[0] is None,
+                "Costs within universal effects are not supported")
         return None, self
 
 

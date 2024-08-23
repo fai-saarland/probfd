@@ -2,6 +2,8 @@ import itertools
 from fractions import Fraction
 from typing import List, Tuple
 
+from pddl import Metric
+
 SAS_FILE_VERSION = "1"
 
 DEBUG = False
@@ -24,7 +26,7 @@ class SASTask:
                  goal: "SASGoal",
                  operators: List["SASOperator"],
                  axioms: List["SASAxiom"],
-                 metric: bool) -> None:
+                 metric: Metric) -> None:
         self.variables = variables
         self.mutexes = mutexes
         self.init = init
@@ -66,7 +68,7 @@ class SASTask:
             op.validate(self.variables)
         for axiom in self.axioms:
             axiom.validate(self.variables, self.init)
-        assert self.metric is False or self.metric is True, self.metric
+        assert self.metric in [Metric.NONE, Metric.MINIMIZE, Metric.MAXIMIZE]
 
     def dump(self):
         print("variables:")

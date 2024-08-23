@@ -70,7 +70,7 @@ class BalanceChecker:
             precond = pddl.Conjunction(precond_parts).simplified()
             return pddl.DeterminizedAction(
                 action.name, action.parameters, action.num_external_parameters,
-                precond, action.effects, action.cost)
+                precond, action.effects, action.weight)
         else:
             return action
 

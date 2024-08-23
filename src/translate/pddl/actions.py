@@ -1,12 +1,13 @@
 import copy
 from fractions import Fraction
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 from . import conditions
 from .conditions import Condition, Literal
 from .effects import Effect
 from .f_expression import Increase
 from .pddl_types import TypedObject
+from .tasks import Metric
 
 
 class Action(object):
@@ -14,7 +15,7 @@ class Action(object):
                  num_external_parameters: int,
                  precondition: Condition,
                  outcomes: List[Tuple[Fraction, List[Effect]]],
-                 cost: Optional[Increase]):
+                 weight: Optional[Union[Increase]]):
         assert 0 <= num_external_parameters <= len(parameters)
         self.name = name
         self.parameters = parameters
@@ -26,8 +27,8 @@ class Action(object):
         self.num_external_parameters = num_external_parameters
         self.precondition = precondition
         self.outcomes = outcomes
-        self.cost = cost
-        self.uniquify_variables()  # TODO: uniquify variables in cost?
+        self.weight = weight
+        self.uniquify_variables()  # TODO: uniquify variables in weight?
 
     def determinize(self):
         det_actions = []
@@ -36,7 +37,7 @@ class Action(object):
                                                   self.parameters,
                                                   self.num_external_parameters,
                                                   self.precondition, effects,
-                                                  self.cost))
+                                                  self.weight))
 
         return det_actions
 
@@ -52,12 +53,12 @@ class Action(object):
             print("  Probability: %s" % prob)
             for eff in effects:
                 eff.dump(indent="    ")
-        print("Cost:")
-        if self.cost:
-            if isinstance(self.cost, Fraction):
-                print("  " + str(self.cost))
+        print("Weight:")
+        if self.weight:
+            if isinstance(self.weight, Fraction):
+                print("  " + str(self.weight))
             else:
-                self.cost.dump()
+                self.weight.dump()
         else:
             print("  None")
 
@@ -80,7 +81,7 @@ class Action(object):
         return Action(self.name, self.parameters,
                       self.num_external_parameters,
                       self.precondition.relaxed().simplified(),
-                      new_outcomes, self.cost)
+                      new_outcomes, self.weight)
 
     def untyped(self):
         # We do not actually remove the types from the parameter lists,
@@ -123,25 +124,26 @@ class Action(object):
                                 objects_by_type, inst_effects)
             inst_outcomes.append((prob, inst_effects))
 
-        if metric:
-            if self.cost is None:
-                cost = Fraction(0)
+        if metric != Metric.NONE:
+            if self.weight is None:
+                weight = Fraction(0)
             else:
-                cost = self.cost.instantiate(var_mapping,
-                                             init_assignments).expression.value
+                weight = self.weight.instantiate(
+                    var_mapping,
+                    init_assignments).expression.value
         else:
-            cost = Fraction(1)
+            weight = Fraction(1)
 
-        assert isinstance(cost, Fraction)
+        assert isinstance(weight, Fraction)
 
-        return PropositionalAction(name, precondition, inst_outcomes, cost)
+        return PropositionalAction(name, precondition, inst_outcomes, weight)
 
 
 class DeterminizedAction:
     def __init__(self, name: str, parameters: List[TypedObject],
                  num_external_parameters: int,
                  precondition: Condition, effects: List[Effect],
-                 cost: Optional[Increase]):
+                 weight: Optional[Union[Increase]]):
         assert 0 <= num_external_parameters <= len(parameters)
         self.name = name
         self.parameters = parameters
@@ -153,8 +155,8 @@ class DeterminizedAction:
         self.num_external_parameters = num_external_parameters
         self.precondition = precondition
         self.effects = effects
-        self.cost = cost
-        self.uniquify_variables()  # TODO: uniquify variables in cost?
+        self.weight = weight
+        self.uniquify_variables()  # TODO: uniquify variables in weight?
 
     def __repr__(self):
         return "<Action %r at %#x>" % (self.name, id(self))
@@ -166,9 +168,9 @@ class DeterminizedAction:
         print("Effects:")
         for eff in self.effects:
             eff.dump()
-        print("Cost:")
-        if self.cost:
-            self.cost.dump()
+        print("Weight:")
+        if self.weight:
+            self.weight.dump()
         else:
             print("  None")
 
@@ -219,20 +221,22 @@ class DeterminizedAction:
                                           fluent_facts, precondition)
         except conditions.Impossible:
             return None
+
         effects = []
         for eff in self.effects:
             eff.instantiate(var_mapping, init_facts, fluent_facts,
                             objects_by_type, effects)
+
         if effects:
             if metric:
-                if self.cost is None:
-                    cost = 0
+                if self.weight is None:
+                    weight = 0
                 else:
-                    cost = int(self.cost.instantiate(
-                        var_mapping, init_assignments).expression.value)
+                    weight = self.weight.instantiate(
+                        var_mapping, init_assignments).expression.value
             else:
-                cost = 1
-            return PropositionalAction(name, precondition, effects, cost)
+                weight = 1
+            return PropositionalAction(name, precondition, effects, weight)
         else:
             return None
 
@@ -246,7 +250,7 @@ class PropositionalAction:
 
     def __init__(self, name: str, precondition: List[Literal],
                  outcomes: List[Tuple[Fraction, List[Effect]]],
-                 cost: Fraction):
+                 weight: Fraction):
         self.name = name
         self.precondition = precondition
         self.strips_outcomes = []
@@ -266,7 +270,7 @@ class PropositionalAction:
                     strips_outcome.del_effects.append(
                         (condition, effect.negate()))
             self.strips_outcomes.append(strips_outcome)
-        self.cost = cost
+        self.weight = weight
 
     def determinize(self):
         det_actions = []
@@ -277,7 +281,7 @@ class PropositionalAction:
                                                  self.precondition,
                                                  strips_outcome.add_effects,
                                                  strips_outcome.del_effects,
-                                                 self.cost))
+                                                 self.weight))
 
         return det_actions
 
@@ -294,19 +298,19 @@ class PropositionalAction:
                 print("  ADD: %s -> %s" % (", ".join(map(str, cond)), fact))
             for cond, fact in strips_outcome.del_effects:
                 print("  DEL: %s -> %s" % (", ".join(map(str, cond)), fact))
-        print("cost:", self.cost)
+        print("weight:", self.weight)
 
 
 class DeterministicPropositionalAction:
     def __init__(self, name: str, precondition: List[Literal],
                  add_effects: List[Tuple[List[Literal], Literal]],
                  del_effects: List[Tuple[List[Literal], Literal]],
-                 cost: Fraction):
+                 weight: Fraction):
         self.name = name
         self.precondition = precondition
         self.add_effects = add_effects
         self.del_effects = del_effects
-        self.cost = cost
+        self.weight = weight
 
     def __repr__(self):
         return "<DeterministicPropositionalAction %r at %#x>" % (self.name,
@@ -320,4 +324,4 @@ class DeterministicPropositionalAction:
             print("ADD: %s -> %s" % (", ".join(map(str, cond)), fact))
         for cond, fact in self.del_effects:
             print("DEL: %s -> %s" % (", ".join(map(str, cond)), fact))
-        print("cost:", self.cost)
+        print("weight:", self.weight)
