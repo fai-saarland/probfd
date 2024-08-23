@@ -51,7 +51,6 @@ public:
      */
     MDPSolver(
         utils::Verbosity verbosity,
-        const std::shared_ptr<TaskCostFunctionFactory>& costs,
         std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
         bool cache,
         std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,

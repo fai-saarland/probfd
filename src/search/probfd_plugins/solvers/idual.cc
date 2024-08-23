@@ -31,7 +31,6 @@ public:
     IDualSolver(
         lp::LPSolverType lp_solver_type,
         utils::Verbosity verbosity,
-        const std::shared_ptr<TaskCostFunctionFactory>& costs,
         std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
         bool cache,
         const std::shared_ptr<TaskEvaluatorFactory>& eval,
@@ -42,7 +41,6 @@ public:
         bool print_fact_names)
         : MDPSolver(
               verbosity,
-              costs,
               std::move(path_dependent_evaluators),
               cache,
               eval,

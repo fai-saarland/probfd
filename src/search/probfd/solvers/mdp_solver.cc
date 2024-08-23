@@ -7,7 +7,7 @@
 #include "probfd/evaluator.h"
 #include "probfd/interval.h"
 #include "probfd/mdp_algorithm.h"
-#include "probfd/task_cost_function_factory.h"
+#include "probfd/task_cost_function.h"
 #include "probfd/task_evaluator_factory.h"
 
 #include "downward/utils/timer.h"
@@ -23,7 +23,6 @@ namespace probfd::solvers {
 
 MDPSolver::MDPSolver(
     utils::Verbosity verbosity,
-    const std::shared_ptr<TaskCostFunctionFactory>& costs,
     std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
     bool cache,
     std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
@@ -43,7 +42,7 @@ MDPSolver::MDPSolver(
                       task_,
                       log_,
                       std::move(path_dependent_evaluators)))
-    , task_cost_function_(costs->create_cost_function(task_))
+    , task_cost_function_(std::make_shared<TaskCostFunction>(task_))
     , heuristic_factory_(std::move(heuristic_factory))
     , progress_(report_epsilon, std::cout, report_enabled)
     , max_time_(max_time)

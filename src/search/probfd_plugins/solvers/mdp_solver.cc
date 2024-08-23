@@ -10,10 +10,6 @@ namespace probfd_plugins::solvers {
 
 void add_base_solver_options_to_feature(plugins::Feature& feature)
 {
-    feature.add_option<std::shared_ptr<TaskCostFunctionFactory>>(
-        "costs",
-        "",
-        "ssp()");
     feature.add_option<std::shared_ptr<TaskEvaluatorFactory>>(
         "eval",
         "",
@@ -33,7 +29,6 @@ void add_base_solver_options_to_feature(plugins::Feature& feature)
 
 std::tuple<
     utils::Verbosity,
-    std::shared_ptr<TaskCostFunctionFactory>,
     std::vector<std::shared_ptr<::Evaluator>>,
     bool,
     std::shared_ptr<TaskEvaluatorFactory>,
@@ -47,7 +42,6 @@ get_base_solver_args_from_options(const plugins::Options& options)
     return std::tuple_cat(
         utils::get_log_arguments_from_options(options),
         std::make_tuple(
-            options.get<std::shared_ptr<TaskCostFunctionFactory>>("costs"),
             options.get_list<std::shared_ptr<::Evaluator>>(
                 "path_dependent_evaluators"),
             options.get<bool>("cache"),

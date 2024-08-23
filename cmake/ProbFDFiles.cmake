@@ -31,11 +31,7 @@ create_probfd_library(
         probfd/algorithms/utils
 
         # Cost Functions
-        probfd/maxprob_cost_function
-        probfd/ssp_cost_function
-
-        # Task Cost Function Factories
-        probfd/task_cost_function_factory
+        probfd/task_cost_function
 
         # Task Evaluator Factories
         probfd/task_evaluator_factory
@@ -69,7 +65,6 @@ create_probfd_library(
     SOURCES
         probfd_plugins/probabilistic_task
         probfd_plugins/solver_interface
-        probfd_plugins/task_cost_function_factory
         probfd_plugins/task_evaluator_factory
     DEPENDS
         probfd_core
