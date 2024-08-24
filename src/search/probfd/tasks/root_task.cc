@@ -67,7 +67,7 @@ struct ProbabilisticOutcome {
     value_t probability;
     vector<ConditionalEffect> effects;
 
-    ProbabilisticOutcome(std::istream& in);
+    explicit ProbabilisticOutcome(std::istream& in);
 };
 
 struct ProbabilisticOperator {
@@ -348,6 +348,7 @@ ProbabilisticOperator::ProbabilisticOperator(
 
     // Read preconditions
     this->preconditions = read_facts(in);
+    std::ranges::sort(this->preconditions);
 
     // Read number of outcomes
     int num_outcomes;
