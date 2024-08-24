@@ -302,7 +302,7 @@ def build_sas_outcome(probability, condition, effects_by_variable,
         for fact in condition.items():
             implied_precondition.update(implied_facts[fact])
     prevail_and_pre = dict(condition)
-    prevail = condition
+    prevail = condition.copy()
     eff = []
     for var, effects_on_var in effects_by_variable.items():
         orig_pre = condition.get(var, -1)
@@ -752,6 +752,7 @@ def main():
                 if effect.literal.negated:
                     del action.effects[index]
 
+    task.dump()
     sas_task = pddl_to_sas(task)
     dump_statistics(sas_task)
     with timers.timing("Writing output"):
