@@ -34,10 +34,12 @@ class BalanceChecker:
                     if not add_actions or add_actions[-1] is not action:
                         add_actions.append(action)
             if create_heavy_act:
-                heavy_act = pddl.Action(action.name, action.parameters,
-                                        action.num_external_parameters,
-                                        action.precondition, too_heavy_effects,
-                                        action.cost)
+                heavy_act = pddl.DeterminizedAction(action.name,
+                                                    action.parameters,
+                                                    action.num_external_parameters,
+                                                    action.precondition,
+                                                    too_heavy_effects,
+                                                    action.weight)
             # heavy_act: duplicated universal effects and assigned unique names
             # to all quantified variables (implicitly in constructor)
             self.action_to_heavy_action[action] = heavy_act

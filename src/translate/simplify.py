@@ -367,9 +367,6 @@ class VarValueRenaming:
         new_outcomes = []
 
         for outcome in op.outcomes:
-            new_prevail = [self.new_var_nos[var] for var in
-                           outcome.prevail]
-            new_prevail_vars = set(new_prevail)
             new_cond_eff = []
 
             for entry in outcome.cond_eff:
@@ -378,16 +375,12 @@ class VarValueRenaming:
                     new_cond_eff.append(new_entry)
                     # Mark the variable in the entry as not prevailed.
                     new_var = new_entry[0]
-                    new_prevail_vars.discard(new_var)
 
             if filter_unimportant_ops and not new_cond_eff:
                 # The operator has no effect.
                 return None
 
-            new_prevail = sorted(new_prevail_vars)
-
             new_outcomes.append(sas_tasks.SASOutcome(outcome.probability,
-                                                     new_prevail,
                                                      new_cond_eff))
 
         return sas_tasks.SASOperator(op.name, op.precondition, new_outcomes,

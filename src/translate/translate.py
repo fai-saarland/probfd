@@ -301,12 +301,10 @@ def build_sas_outcome(probability, condition, effects_by_variable,
         implied_precondition = set()
         for fact in condition.items():
             implied_precondition.update(implied_facts[fact])
-    prevail_and_pre = dict(condition)
-    prevail = condition.copy()
+    precondition = dict(condition)
     eff = []
     for var, effects_on_var in effects_by_variable.items():
         orig_pre = condition.get(var, -1)
-        added_effect = False
         for post, eff_conditions in effects_on_var.items():
             pre = orig_pre
             # if the effect does not change the variable value, we ignore it
@@ -330,12 +328,12 @@ def build_sas_outcome(probability, condition, effects_by_variable,
             for eff_condition in eff_condition_lists:
                 # we do not need to represent a precondition as effect condition
                 # and we do not want to keep an effect whose condition
-                # contradicts a pre- or prevail condition
+                # contradicts a pre-condition
                 filtered_eff_condition = []
                 eff_condition_contradicts_precondition = False
                 for variable, value in eff_condition:
-                    if variable in prevail_and_pre:
-                        if prevail_and_pre[variable] != value:
+                    if variable in precondition:
+                        if precondition[variable] != value:
                             eff_condition_contradicts_precondition = True
                             break
                     else:
@@ -343,12 +341,7 @@ def build_sas_outcome(probability, condition, effects_by_variable,
                 if eff_condition_contradicts_precondition:
                     continue
                 eff.append(((var, post), filtered_eff_condition))
-                added_effect = True
-        if added_effect:
-            # the condition on var is not a prevail condition but a
-            # precondition, so we remove it from the prevail condition
-            prevail.pop(var, -1)
-    return sas_tasks.SASOutcome(probability, prevail, eff)
+    return sas_tasks.SASOutcome(probability, eff)
 
 
 def prune_stupid_effect_conditions(var, val, conditions, effects_on_var):

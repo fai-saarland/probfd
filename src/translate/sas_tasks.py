@@ -271,10 +271,8 @@ class SASGoal:
 class SASOutcome:
     def __init__(self,
                  probability: Fraction,
-                 prevail: List[VarValPair],
                  cond_eff: List[Tuple[VarValPair, List[VarValPair]]]) -> None:
         self.probability = probability
-        self.prevail = sorted(prevail)
         self.cond_eff = self._canonical_cond_eff(cond_eff)
 
     def _canonical_cond_eff(self, cond_eff):
@@ -295,30 +293,23 @@ class SASOutcome:
         return cond_eff
 
     def __le__(self, other):
-        return (self.probability, self.prevail, self.cond_eff) < (
-            other.probability, other.prevail, other.cond_eff)
+        return (self.probability, self.cond_eff) < (
+            other.probability, other.cond_eff)
 
     def validate(self, variables, precondition):
         """Validate the operator.
 
         Assert that
-        1. Prevail conditions are valid conditions (i.e., sorted and
-           all referring to different variables)
-        2. The pre_post list is sorted by (var, pre, post, cond), and the
-           same (var, pre, post, cond) 4-tuple is not repeated.
-        3. Effect conditions are valid conditions and do not contain variables
-           from the pre- or prevail conditions.
-        4. Variables occurring in pre_post rules do not have a prevail
-           condition.
-        5. Preconditions in pre_post are -1 or valid facts.
-        6. Effects are valid facts.
-        7. Effect variables are non-derived.
-        8. If a variable has multiple pre_post rules, then pre is
-           identical in all these rules.
-        9. There is at least one effect.
+        1. The cond_eff list is sorted by ((var, post), cond), and the
+           same ((var, post), cond) tuple is not repeated.
+        2. Effect conditions are valid conditions and do not contain variables
+           from the pre-conditions.
+        3. Effects are valid facts.
+        4. Effect variables are non-derived.
+        5. There is at least one effect.
 
         Odd things that are *not* illegal:
-        - The effect in a pre_post rule may be identical to the
+        - The effect in a cond_eff rule may be identical to the
           precondition or to an effect condition of that effect.
 
         TODO/open question:
@@ -345,14 +336,11 @@ class SASOutcome:
           and follows them.
         """
 
-        variables.validate_condition(self.prevail)
         assert self.cond_eff == self._canonical_cond_eff(self.cond_eff)
-        prevail_vars = {var for (var, value) in self.prevail}
         pre_values = {}
         for (var, post), cond in self.cond_eff:
             pre = precondition[var]
             variables.validate_condition(cond)
-            assert var not in prevail_vars
             if pre != -1:
                 variables.validate_fact((var, pre))
             variables.validate_fact((var, post))
@@ -364,20 +352,16 @@ class SASOutcome:
         for _, cond in self.cond_eff:
             for cvar, cval in cond:
                 assert cvar not in pre_values or pre_values[cvar] == -1
-                assert cvar not in prevail_vars
         assert self.cond_eff
 
     def get_encoding_size(self):
-        size = 1 + len(self.prevail)
+        size = 1
         for _, cond in self.cond_eff:
             size += 1 + len(cond)
         return size
 
     def dump(self):
         print(f"Probability: {self.probability}")
-        print("  Prevail:")
-        for var in self.prevail:
-            print("    v%d" % var)
         print("  Conditional Effects:")
         for (var, post), cond in self.cond_eff:
             if cond:
@@ -389,9 +373,6 @@ class SASOutcome:
 
     def output(self, stream):
         print(self.probability, file=stream)
-        # print(len(self.prevail), file=stream)
-        # for var in self.prevail:
-        #    print(var, file=stream)
         print(len(self.cond_eff), file=stream)
         for (var, post), cond in self.cond_eff:
             print(len(cond), end=' ', file=stream)

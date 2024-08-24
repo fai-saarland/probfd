@@ -256,9 +256,6 @@ class VariableOrder:
                             ((self.new_var[eff_var], post), new_cond))
                 if not filter_unimportant_ops or cond_eff:
                     outcome.cond_eff = cond_eff
-                    outcome.prevail = [self.new_var[var]
-                                       for var in outcome.prevail
-                                       if var in self.new_var]
 
             new_ops.append(op)
         print("%s of %s operators necessary." % (len(new_ops),
