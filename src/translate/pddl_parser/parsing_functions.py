@@ -20,6 +20,7 @@ SYNTAX_ACTION = "(:action NAME [:parameters PARAMETERS]? " \
                 "[:precondition PRECONDITION]? :effect EFFECT)"
 SYNTAX_AXIOM = "(:derived PREDICATE CONDITION)"
 SYNTAX_GOAL = "(:goal GOAL)"
+SYNTAX_GOAL_REWARD = "(:goal_reward NUMBER)"
 
 SYNTAX_CONDITION_AND = "(and CONDITION*)"
 SYNTAX_CONDITION_OR = "(or CONDITION*)"
@@ -757,9 +758,11 @@ def parse_task(domain_pddl, task_pddl):
         context.error("Invalid definition of a PDDL task.")
 
     (task_name, task_domain_name, task_requirements, objects, init, goal,
-     metric, metric_fluent) = parse_task_pddl(context, task_pddl, type_dict,
-                                              predicate_dict,
-                                              has_reward_fluent)
+     goal_reward, metric, metric_fluent) = parse_task_pddl(context,
+                                                           task_pddl,
+                                                           type_dict,
+                                                           predicate_dict,
+                                                           has_reward_fluent)
 
     if domain_name != task_domain_name:
         context.error(f"The domain name specified by the task "
@@ -778,7 +781,7 @@ def parse_task(domain_pddl, task_pddl):
 
     return pddl.Task(
         domain_name, task_name, requirements, types, objects,
-        predicates, functions, init, goal, actions, axioms, metric,
+        predicates, functions, init, goal, goal_reward, actions, axioms, metric,
         metric_fluent)
 
 
@@ -934,6 +937,25 @@ def parse_task_pddl(
                     not goal[1]):
                 context.error("Expected non-empty goal.", syntax=SYNTAX_GOAL)
             yield parse_condition(context, goal[1], type_dict, predicate_dict)
+
+        goal_reward = next(iterator)
+        if check_named_block(goal_reward, [":goal-reward"]):
+            if not has_reward_fluent:
+                context.error("Goal reward construct requires :rewards "
+                              "PPDDL requirement.")
+
+            with context.layer("Parsing goal reward"):
+                if len(goal_reward) != 2 or not goal_reward[1]:
+                    context.error("Invalid goal reward definition.",
+                                  syntax=SYNTAX_GOAL_REWARD)
+                exp = parse_expression(context, goal_reward[1])
+                if not isinstance(exp, pddl.NumericConstant):
+                    context.error("Goal reward must be a constant.",
+                                  syntax=SYNTAX_GOAL_REWARD)
+                yield exp.value
+        else:
+            iterator = goal
+            yield None
 
         metric = pddl.Metric.NONE
         for entry in iterator:

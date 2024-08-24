@@ -12,7 +12,7 @@ class Metric(IntEnum):
 
 class Task:
     def __init__(self, domain_name, task_name, requirements,
-                 types, objects, predicates, functions, init, goal,
+                 types, objects, predicates, functions, init, goal, goal_reward,
                  actions, axioms, metric: Metric, metric_fluent: str):
         self.domain_name = domain_name
         self.task_name = task_name
@@ -23,6 +23,7 @@ class Task:
         self.functions = functions
         self.init = init
         self.goal = goal
+        self.goal_reward = goal_reward
         self.actions = actions
         self.axioms = axioms
         self.axiom_counter = 0
@@ -57,6 +58,9 @@ class Task:
             print("  %s" % fact)
         print("Goal:")
         self.goal.dump()
+        if self.goal_reward:
+            print("Goal Reward:")
+            print(self.goal_reward)
         print("Actions:")
         for action in self.actions:
             action.dump()
@@ -72,8 +76,8 @@ class Task:
 
         return Task(self.domain_name, self.task_name, self.requirements,
                     self.types, self.objects, self.predicates,
-                    self.functions, self.init, self.goal, det_actions,
-                    self.axioms, self.metric, self.metric_fluent)
+                    self.functions, self.init, self.goal, self.goal_reward,
+                    det_actions, self.axioms, self.metric, self.metric_fluent)
 
 
 class Requirements:

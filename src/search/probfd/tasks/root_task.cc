@@ -37,6 +37,7 @@ enum Optimization : unsigned char {
 struct Metric {
     Optimization optimization;
     bool rewards;
+    std::optional<value_t> goal_reward;
 };
 
 struct ExplicitVariable {
@@ -429,11 +430,20 @@ Metric read_metric(std::istream& in)
 {
     int optimization;
     bool rewards;
+    std::optional<value_t> goal_reward;
     check_magic(in, "begin_metric");
     in >> optimization;
     in >> rewards;
+    if (rewards) {
+        bool g;
+        in >> g;
+        goal_reward = g;
+    }
     check_magic(in, "end_metric");
-    return Metric{static_cast<Optimization>(optimization), rewards};
+    return Metric{
+        static_cast<Optimization>(optimization),
+        rewards,
+        goal_reward};
 }
 
 vector<ExplicitVariable> read_variables(std::istream& in)
@@ -571,7 +581,15 @@ RootTask::RootTask(std::istream& in)
     /* TODO: We should be stricter here and verify that we
        have reached the end of "in". */
 
-    termination_cost = metric.rewards ? 1_vt : INFINITE_VALUE;
+    if (metric.rewards) {
+        assert(metric.goal_reward.has_value());
+        termination_cost = *metric.goal_reward;
+        if (metric.optimization == Optimization::MINIMIZE) {
+            termination_cost = -termination_cost;
+        }
+    } else {
+        termination_cost = INFINITE_VALUE;
+    }
 
     /*
       HACK: We use a TaskProxy to access g_axiom_evaluators here which

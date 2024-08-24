@@ -1,6 +1,6 @@
 import itertools
 from fractions import Fraction
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from pddl import Metric
 
@@ -24,6 +24,7 @@ class SASTask:
                  mutexes: List["SASMutexGroup"],
                  init: "SASInit",
                  goal: "SASGoal",
+                 goal_reward: Optional[Fraction],
                  operators: List["SASOperator"],
                  axioms: List["SASAxiom"],
                  metric: Metric,
@@ -32,6 +33,7 @@ class SASTask:
         self.mutexes = mutexes
         self.init = init
         self.goal = goal
+        self.goal_reward = goal_reward
         self.operators = sorted(operators, key=lambda op: (
             op.name, op.outcomes))
         self.axioms = sorted(axioms, key=lambda axiom: (
@@ -83,6 +85,9 @@ class SASTask:
         self.init.dump()
         print("goal:")
         self.goal.dump()
+        if self.goal_reward:
+            print("goal reward:")
+            print(self.goal_reward)
         print("%d operators:" % len(self.operators))
         for operator in self.operators:
             operator.dump()
@@ -98,6 +103,11 @@ class SASTask:
         print("begin_metric", file=stream)
         print(int(self.metric), file=stream)
         print(int(self.rewards), file=stream)
+        if self.goal_reward:
+            assert self.rewards
+            print(self.goal_reward, file=stream)
+        elif self.rewards:
+            print(0, file=stream)
         print("end_metric", file=stream)
         self.variables.output(stream)
         print(len(self.mutexes), file=stream)
@@ -292,7 +302,7 @@ class SASOutcome:
         cond_eff = list(map(listify, cond_eff))
         return cond_eff
 
-    def __le__(self, other):
+    def __lt__(self, other):
         return (self.probability, self.cond_eff) < (
             other.probability, other.cond_eff)
 
