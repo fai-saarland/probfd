@@ -571,7 +571,7 @@ RootTask::RootTask(std::istream& in)
     /* TODO: We should be stricter here and verify that we
        have reached the end of "in". */
 
-    termination_cost = metric.rewards ? 0_vt : INFINITE_VALUE;
+    termination_cost = metric.rewards ? 1_vt : INFINITE_VALUE;
 
     /*
       HACK: We use a TaskProxy to access g_axiom_evaluators here which
