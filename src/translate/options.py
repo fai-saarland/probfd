@@ -3,6 +3,8 @@ import sys
 
 from fractions import Fraction
 
+from typing import Optional
+
 
 def parse_args():
     argparser = argparse.ArgumentParser()
@@ -17,22 +19,22 @@ def parse_args():
         dest="use_partial_encoding",
         action="store_false",
         help="By default we represent facts that occur in multiple "
-        "mutex groups only in one variable. Using this parameter adds "
-        "these facts to multiple variables. This can make the meaning "
-        "of the variables clearer, but increases the number of facts.")
+             "mutex groups only in one variable. Using this parameter adds "
+             "these facts to multiple variables. This can make the meaning "
+             "of the variables clearer, but increases the number of facts.")
     argparser.add_argument(
         "--invariant-generation-max-candidates",
         default=100000,
         type=int,
         help="max number of candidates for invariant generation "
-        "(default: %(default)d). Set to 0 to disable invariant "
-        "generation and obtain only binary variables. The limit is "
-        "needed for grounded input files that would otherwise produce "
-        "too many candidates.")
+             "(default: %(default)d). Set to 0 to disable invariant "
+             "generation and obtain only binary variables. The limit is "
+             "needed for grounded input files that would otherwise produce "
+             "too many candidates.")
     argparser.add_argument(
         "--sas-file",
-        default="output.sas",
-        help="path to the SAS output file (default: %(default)s)")
+        default="output.psas",
+        help="path to the probabilistic SAS output file (default: %(default)s)")
     argparser.add_argument(
         "--invariant-generation-max-time",
         default=300,
@@ -42,8 +44,8 @@ def parse_args():
         "--add-implied-preconditions",
         action="store_true",
         help="infer additional preconditions. This setting can cause a "
-        "severe performance penalty due to weaker relevance analysis "
-        "(see issue7).")
+             "severe performance penalty due to weaker relevance analysis "
+             "(see issue7).")
     argparser.add_argument(
         "--keep-unreachable-facts",
         dest="filter_unreachable_facts",
@@ -54,7 +56,7 @@ def parse_args():
         dest="reorder_variables",
         action="store_false",
         help="do not reorder variables based on the causal graph. Do not use "
-        "this option with the causal graph heuristic!")
+             "this option with the causal graph heuristic!")
     argparser.add_argument(
         "--keep-unimportant-variables",
         dest="filter_unimportant_vars",
@@ -71,11 +73,6 @@ def parse_args():
         action="store_true",
         help="dump human-readable SAS+ representation of the task")
     argparser.add_argument(
-        "--enumerate-forall",
-        action="store_true",
-        default=False,
-        help="Tries to enumerate forall expression in preconditions")
-    argparser.add_argument(
         "--force-probabilistic",
         action="store_true",
         default=False,
@@ -88,11 +85,12 @@ def parse_args():
                            default="cost",
                            choices=["cost", "one", "plus_one", "min_one"],
                            help="How actions affect the budget")
-    argparser.add_argument("--give-up-cost", default=None, type=int)
+    argparser.add_argument("--give-up-cost", default=None,
+                           type=Optional[Fraction])
     argparser.add_argument(
         "--discount-factor",
         default=None,
-        type=Fraction,
+        type=Optional[Fraction],
         help=
         "Discounted SSP compilation with given discount factor in range (0, 1)"
     )

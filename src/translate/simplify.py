@@ -30,6 +30,7 @@ import sas_tasks
 
 DEBUG = False
 
+
 # TODO:
 # This is all quite hackish and would be easier if the translator were
 # restructured so that more information is immediately available for
@@ -141,14 +142,16 @@ def build_dtgs(task):
         return result
 
     for op in task.operators:
-        conditions = dict(op.get_applicability_conditions())
-        for var_no, _, post, cond in op.pre_post:
-            effective_pre = get_effective_pre(var_no, conditions, cond)
-            if effective_pre is not None:
-                add_arc(var_no, effective_pre, post)
+        conditions = dict(op.precondition)
+
+        for outcome in op.outcomes:
+            for (var, post), cond in outcome.cond_eff:
+                effective_pre = get_effective_pre(var, conditions, cond)
+                if effective_pre is not None:
+                    add_arc(var, effective_pre, post)
     for axiom in task.axioms:
-        var_no, val = axiom.effect
-        add_arc(var_no, -1, val)
+        var, val = axiom.effect
+        add_arc(var, -1, val)
 
     return dtgs
 
@@ -156,20 +159,24 @@ def build_dtgs(task):
 always_false = object()
 always_true = object()
 
+
 class Impossible(Exception):
     pass
+
 
 class TriviallySolvable(Exception):
     pass
 
+
 class DoesNothing(Exception):
     pass
 
+
 class VarValueRenaming:
     def __init__(self):
-        self.new_var_nos = []   # indexed by old var_no
-        self.new_values = []    # indexed by old var_no and old value
-        self.new_sizes = []     # indexed by new var_no
+        self.new_var_nos = []  # indexed by old var_no
+        self.new_values = []  # indexed by old var_no and old value
+        self.new_sizes = []  # indexed by new var_no
         self.new_var_count = 0
         self.num_removed_values = 0
 
@@ -266,7 +273,7 @@ class VarValueRenaming:
             for var, val in mutex.facts:
                 new_var_no, new_value = self.translate_pair((var, val))
                 if (new_value is not always_true and
-                    new_value is not always_false):
+                        new_value is not always_false):
                     new_facts.append((new_var_no, new_value))
             if len(new_facts) >= 2:
                 mutex.facts = new_facts
@@ -351,40 +358,33 @@ class VarValueRenaming:
         # entries for the same variable. We solve this by computing
         # the sorting into prevail vs. preconditions from scratch, too.
 
-        applicability_conditions = op.get_applicability_conditions()
         try:
-            self.convert_pairs(applicability_conditions)
+            self.convert_pairs(op.precondition)
         except Impossible:
-            # The operator is never applicable.
-            # TODO Can this happen for one but not all probabilistic outcomes
-            # of some probabilistic operator?
             return None
-        conditions_dict = dict(applicability_conditions)
-        new_prevail_vars = set(conditions_dict)
 
-        new_pre_post = []
-        for entry in op.pre_post:
-            new_entry = self.translate_pre_post(entry, conditions_dict)
-            if new_entry is not None:
-                new_pre_post.append(new_entry)
-                # Mark the variable in the entry as not prevailed.
-                new_var = new_entry[0]
-                new_prevail_vars.discard(new_var)
+        conditions_dict = dict(op.precondition)
+        new_outcomes = []
 
-        if filter_unimportant_ops and not new_pre_post:
-            # The operator has no effect.
-            return None
-        new_prevail = sorted(
-            (var, value)
-            for (var, value) in conditions_dict.items()
-            if var in new_prevail_vars)
-        return sas_tasks.SASOperator(
-            op.identifier,
-            op.name,
-            new_prevail,
-            new_pre_post,
-            op.cost,
-            op.probability)
+        for outcome in op.outcomes:
+            new_cond_eff = []
+
+            for entry in outcome.cond_eff:
+                new_entry = self.translate_cond_eff(entry, conditions_dict)
+                if new_entry is not None:
+                    new_cond_eff.append(new_entry)
+                    # Mark the variable in the entry as not prevailed.
+                    new_var = new_entry[0]
+
+            if filter_unimportant_ops and not new_cond_eff:
+                # The operator has no effect.
+                return None
+
+            new_outcomes.append(sas_tasks.SASOutcome(outcome.probability,
+                                                     new_cond_eff))
+
+        return sas_tasks.SASOperator(op.name, op.precondition, new_outcomes,
+                                     op.cost)
 
     def apply_to_axiom(self, axiom):
         # The following line may generate an Impossible exception,
@@ -398,7 +398,8 @@ class VarValueRenaming:
             raise DoesNothing
         axiom.effect = new_var, new_value
 
-    def translate_pre_post(self, pre_post_entry, conditions_dict): # TODO filter_unimportant_ops
+    def translate_cond_eff(self, pre_post_entry, conditions_dict):
+        # TODO filter_unimportant_ops
         """Return a translated version of a pre_post entry.
         If the entry never causes a value change, return None.
 
@@ -422,21 +423,11 @@ class VarValueRenaming:
         - otherwise => return converted pre_post tuple
         """
 
-        var_no, pre, post, cond = pre_post_entry
-        new_var_no, new_post = self.translate_pair((var_no, post))
+        (var, post), cond = pre_post_entry
+        new_var, new_post = self.translate_pair((var, post))
 
-        if new_post is always_true:
-            return None
-
-        if pre == -1:
-            new_pre = -1
-        else:
-            _, new_pre = self.translate_pair((var_no, pre))
-        assert new_pre is not always_false, (
-            "This function should only be called for operators "
-            "whose applicability conditions are deemed possible.")
-
-        if new_post == new_pre:
+        if new_post is always_true or (new_var in conditions_dict and
+                                       new_post == conditions_dict[new_var]):
             return None
 
         new_cond = list(cond)
@@ -448,7 +439,7 @@ class VarValueRenaming:
 
         for cond_var, cond_value in new_cond:
             if (cond_var in conditions_dict and
-                conditions_dict[cond_var] != cond_value):
+                    conditions_dict[cond_var] != cond_value):
                 # This effect condition is not compatible with
                 # the applicability conditions.
                 return None
@@ -458,11 +449,7 @@ class VarValueRenaming:
             "(as far as our analysis can determine this), "
             "and then new_post cannot be always_false")
 
-        assert new_pre is not always_true, (
-            "if this pre_post changes the value and can fire, "
-            "new_pre cannot be always_true")
-
-        return new_var_no, new_pre, new_post, new_cond
+        return (new_var, new_post), new_cond
 
     def translate_pair(self, fact_pair):
         (var_no, value) = fact_pair
@@ -481,6 +468,7 @@ class VarValueRenaming:
                 assert new_var_no is not None
                 new_pairs.append((new_var_no, new_value))
         pairs[:] = new_pairs
+
 
 def build_renaming(dtgs):
     renaming = VarValueRenaming()

@@ -27,6 +27,7 @@ DomainAbstractedTask::DomainAbstractedTask(
     , goals_(std::move(goals))
     , fact_names_(std::move(fact_names))
     , value_map_(std::move(value_map))
+    , non_goal_termination_cost(parent->get_non_goal_termination_cost())
 {
     if (parent->get_num_axioms() > 0) {
         ABORT("DomainAbstractedTask doesn't support axioms.");
@@ -111,6 +112,10 @@ void DomainAbstractedTask::convert_state_values_from_parent(
         int new_value = value_map_[var][old_value];
         values[var] = new_value;
     }
+}
+value_t DomainAbstractedTask::get_non_goal_termination_cost() const
+{
+    return non_goal_termination_cost;
 }
 
 } // namespace probfd::extra_tasks

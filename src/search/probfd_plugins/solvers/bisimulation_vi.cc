@@ -12,10 +12,9 @@
 #include "probfd/tasks/root_task.h"
 
 #include "probfd/progress_report.h"
+#include "probfd/task_cost_function.h"
 
 #include "probfd/tasks/determinization_task.h"
-
-#include "probfd/task_cost_function_factory.h"
 
 #include "downward/merge_and_shrink/factored_transition_system.h"
 #include "downward/merge_and_shrink/merge_and_shrink_representation.h"
@@ -51,7 +50,7 @@ compute_bisimulation_on_determinization(const TaskProxy& det_task_proxy)
     return factor;
 }
 
-static void print_bisimulation_stats(
+void print_bisimulation_stats(
     std::ostream& out,
     double time,
     unsigned states,
@@ -67,15 +66,11 @@ class BisimulationIteration : public SolverInterface {
     using QAction = bisimulation::QuotientAction;
 
     const std::shared_ptr<ProbabilisticTask>& task_ = tasks::g_root_task;
-    const std::shared_ptr<TaskCostFunctionFactory> costs_;
     const bool interval_iteration_;
 
 public:
-    BisimulationIteration(
-        std::shared_ptr<TaskCostFunctionFactory> costs,
-        bool interval)
-        : costs_(std::move(costs))
-        , interval_iteration_(interval)
+    explicit BisimulationIteration(bool interval)
+        : interval_iteration_(interval)
     {
     }
 
@@ -120,7 +115,7 @@ public:
         utils::Timer timer;
 
         std::shared_ptr task_cost_function =
-            costs_->create_cost_function(task_);
+            std::make_shared<TaskCostFunction>(task_);
 
         bisimulation::BisimilarStateSpace state_space(
             task_,
@@ -188,21 +183,13 @@ public:
               "bisimulation_vi")
     {
         document_title("Bisimulation Value Iteration.");
-
-        add_option<std::shared_ptr<TaskCostFunctionFactory>>(
-            "costs",
-            "",
-            "maxprob()");
     }
 
 protected:
     std::shared_ptr<BisimulationIteration>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    create_component(const Options&, const utils::Context&) const override
     {
-        return std::make_shared<BisimulationIteration>(
-            options.get<std::shared_ptr<TaskCostFunctionFactory>>("costs"),
-            false);
+        return std::make_shared<BisimulationIteration>(false);
     }
 };
 
@@ -214,21 +201,13 @@ public:
               "bisimulation_ii")
     {
         document_title("Bisimulation Interval Iteration.");
-
-        add_option<std::shared_ptr<TaskCostFunctionFactory>>(
-            "costs",
-            "",
-            "maxprob()");
     }
 
 protected:
     std::shared_ptr<BisimulationIteration>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    create_component(const Options&, const utils::Context&) const override
     {
-        return std::make_shared<BisimulationIteration>(
-            options.get<std::shared_ptr<TaskCostFunctionFactory>>("costs"),
-            true);
+        return std::make_shared<BisimulationIteration>(true);
     }
 };
 

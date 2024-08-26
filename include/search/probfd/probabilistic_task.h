@@ -18,6 +18,9 @@ namespace probfd {
  */
 class ProbabilisticTask : public PlanningTask {
 public:
+    /// Get the cost of terminating in a non-goal state.
+    virtual value_t get_non_goal_termination_cost() const = 0;
+
     /// Get the cost of the probabilistic operator with index \p op_index.
     virtual value_t get_operator_cost(int op_index) const = 0;
 

@@ -18,6 +18,8 @@ protected:
 public:
     explicit DelegatingTask(const std::shared_ptr<ProbabilisticTask>& parent);
 
+    value_t get_non_goal_termination_cost() const override;
+
     int get_num_variables() const override;
     std::string get_variable_name(int var) const override;
     int get_variable_domain_size(int var) const override;

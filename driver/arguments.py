@@ -95,7 +95,7 @@ Examples:
     for desc, parameters in EXAMPLES)
 
 COMPONENTS_PLUS_OVERALL = ["translate", "search", "validate", "overall"]
-DEFAULT_SAS_FILE = "output.sas"
+DEFAULT_SAS_FILE = "output.psas"
 
 """
 Function to emulate the behavior of ArgumentParser.error, but with our
