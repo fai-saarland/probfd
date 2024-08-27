@@ -27,6 +27,9 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
 {
     utils::CountdownTimer timer(max_time);
 
+    // Re-used buffer
+    std::vector<Transition<Action>> transitions;
+
     StateID initstateid = mdp.get_state_id(initial_state);
     const auto& state_info = this->state_infos_[initstateid];
     open_list_->push(initstateid);
@@ -45,24 +48,12 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
 
         ++this->statistics_.iterations;
 
-        bool solved = false;
-        bool dead = false;
-        bool terminal = false;
-        bool value_changed = false;
+        bool value_changed =
+            this->update_value_check_solved(mdp, heuristic, stateid, info);
 
-        this->initialize_tip_state_value(
-            mdp,
-            heuristic,
-            stateid,
-            info,
-            terminal,
-            solved,
-            dead,
-            value_changed,
-            timer);
-
-        if (terminal) {
-            assert(info.is_solved());
+        if (info.is_solved()) {
+            this->push_parents_to_queue(info);
+            this->backpropagate_tip_value(mdp, heuristic, timer);
             continue;
         }
 
@@ -70,11 +61,11 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
         unsigned unsolved = 0;
         unsigned min_succ_order = std::numeric_limits<unsigned>::max();
 
-        ClearGuard _(this->transitions_);
+        ClearGuard _(transitions);
         const State state = mdp.get_state(stateid);
-        mdp.generate_all_transitions(state, this->transitions_);
+        mdp.generate_all_transitions(state, transitions);
 
-        for (const auto& [op, dist] : this->transitions_) {
+        for (const auto& [op, dist] : transitions) {
             for (auto& [succid, prob] : dist) {
                 auto& succ_info = this->state_infos_[succid];
                 if (!succ_info.is_solved()) {
@@ -96,22 +87,29 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
         info.alive = alive > 0;
 
         if (unsolved == 0) {
-            this->mark_solved_push_parents(info, info.alive == 0);
+            assert(!info.is_terminal() && !info.is_solved());
+            assert(info.alive != 0 || info.is_dead_end());
+
+            info.set_solved();
+            this->push_parents_to_queue(info);
             this->backpropagate_tip_value(mdp, heuristic, timer);
             continue;
         }
 
         assert(min_succ_order < std::numeric_limits<unsigned>::max());
-        info.update_order = min_succ_order + 1;
         info.unsolved = unsolved;
 
-        for (const auto& transition : this->transitions_) {
+        for (const auto& transition : transitions) {
             for (StateID succ_id : transition.successor_dist.support()) {
                 this->state_infos_[succ_id].unmark();
             }
         }
 
-        this->backpropagate_update_order(stateid, timer);
+        this->backpropagate_update_order(
+            stateid,
+            info,
+            min_succ_order + 1,
+            timer);
 
         if (value_changed) {
             this->push_parents_to_queue(info);

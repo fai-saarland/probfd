@@ -40,6 +40,10 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
     auto& iinfo = this->state_infos_[initstateid];
     iinfo.update_order = 0;
 
+    // Re-used buffer
+    std::vector<Transition<Action>> transitions;
+    Distribution<StateID> successor_dist;
+
     while (!iinfo.is_solved()) {
         StateID stateid = initstateid;
 
@@ -50,43 +54,27 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
             assert(!info.is_solved());
 
             if (info.is_tip_state()) {
-                bool solved = false;
-                bool dead = false;
-                bool terminal = false;
-                bool value_changed = false;
-
-                this->initialize_tip_state_value(
+                bool value_changed = this->update_value_check_solved(
                     mdp,
                     heuristic,
                     stateid,
-                    info,
-                    terminal,
-                    solved,
-                    dead,
-                    value_changed,
-                    timer);
+                    info);
 
-                if (terminal) {
-                    assert(info.is_solved());
-                    break;
-                }
-
-                if (solved) {
-                    this->mark_solved_push_parents(info, dead);
+                if (info.is_solved()) {
+                    this->push_parents_to_queue(info);
                     this->backpropagate_tip_value(mdp, heuristic, timer);
                     break;
                 }
 
-                unsigned min_succ_order = std::numeric_limits<unsigned>::max();
-
-                ClearGuard _(this->transitions_);
+                ClearGuard _(transitions);
                 const State state = mdp.get_state(stateid);
-                mdp.generate_all_transitions(state, this->transitions_);
+                mdp.generate_all_transitions(state, transitions);
 
-                auto all_successors =
-                    this->transitions_ | transform([](auto& t) {
-                        return t.successor_dist.support();
-                    });
+                auto all_successors = transitions | transform([](auto& t) {
+                                          return t.successor_dist.support();
+                                      });
+
+                unsigned min_succ_order = std::numeric_limits<unsigned>::max();
 
                 for (auto successors : all_successors) {
                     for (const StateID succ_id : successors) {
@@ -107,15 +95,17 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
 
                 assert(min_succ_order < std::numeric_limits<unsigned>::max());
 
-                info.update_order = min_succ_order + 1;
-
                 for (auto successors : all_successors) {
                     for (const StateID succ_id : successors) {
                         this->state_infos_[succ_id].unmark();
                     }
                 }
 
-                this->backpropagate_update_order(stateid, timer);
+                this->backpropagate_update_order(
+                    stateid,
+                    info,
+                    min_succ_order + 1,
+                    timer);
 
                 if (value_changed) {
                     this->push_parents_to_queue(info);
@@ -129,26 +119,18 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
                 !info.is_solved());
 
             const State state = mdp.get_state(stateid);
+            const Action action = *this->get_greedy_action(stateid);
 
-            ClearGuard guard(this->selected_transition_);
+            ClearGuard guard(successor_dist);
 
-            auto action = *this->get_greedy_action(stateid);
+            mdp.generate_action_transitions(state, action, successor_dist);
 
-            mdp.generate_action_transitions(
-                state,
-                action,
-                this->selected_transition_);
+            successor_dist.remove_if_normalize([this](const auto& target) {
+                return this->state_infos_[target.item].is_solved();
+            });
 
-            this->selected_transition_.remove_if_normalize(
-                [this](const auto& target) {
-                    return this->state_infos_[target.item].is_solved();
-                });
-
-            outcome_selection_->sample(
-                stateid,
-                action,
-                this->selected_transition_,
-                this->state_infos_);
+            outcome_selection_
+                ->sample(stateid, action, successor_dist, this->state_infos_);
         }
 
         ++this->statistics_.iterations;

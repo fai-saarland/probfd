@@ -118,8 +118,6 @@ private:
     std::priority_queue<PrioritizedStateID> queue_;
 
 protected:
-    std::vector<Transition<Action>> transitions_;
-
     Statistics statistics_;
 
 public:
@@ -137,40 +135,26 @@ protected:
         EvaluatorType& heuristic,
         utils::CountdownTimer& timer);
 
-    void backpropagate_update_order(StateID tip, utils::CountdownTimer& timer);
-
-    void initialize_tip_state_value(
-        MDPType& mdp,
-        EvaluatorType& heuristic,
-        StateID state,
+    void backpropagate_update_order(
+        StateID tip,
         StateInfo& info,
-        bool& terminal,
-        bool& solved,
-        bool& dead,
-        bool& value_changed,
+        unsigned update_order,
         utils::CountdownTimer& timer);
 
     void push_parents_to_queue(StateInfo& info);
 
-    void mark_solved_push_parents(StateInfo& info, bool dead);
-
-private:
     bool update_value_check_solved(
         MDPType& mdp,
         EvaluatorType& heuristic,
         StateID state,
-        const StateInfo& info,
-        bool& solved,
-        bool& dead)
+        StateInfo& info)
         requires(StateInfo::StorePolicy);
 
     bool update_value_check_solved(
         MDPType& mdp,
         EvaluatorType& heuristic,
         StateID state,
-        const StateInfo& info,
-        bool& solved,
-        bool& dead)
+        StateInfo& info)
         requires(!StateInfo::StorePolicy);
 };
 

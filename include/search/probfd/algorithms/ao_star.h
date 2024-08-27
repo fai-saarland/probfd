@@ -52,9 +52,6 @@ class AOStar
     // Algorithm parameters
     const std::shared_ptr<SuccessorSamplerType> outcome_selection_;
 
-    // Re-used vector
-    Distribution<StateID> selected_transition_;
-
 public:
     AOStar(
         std::shared_ptr<PolicyPickerType> policy_chooser,
