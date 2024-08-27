@@ -428,6 +428,10 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
 
     constexpr bool input_exists = sizeof...(optional_out_greedy) == 1;
 
+    if constexpr (!input_exists) {
+        ClearGuard _(transitions_);
+    }
+
 #if defined(EXPENSIVE_STATISTICS)
     TimerScope scoped_upd_timer(statistics_.update_time);
 #endif
