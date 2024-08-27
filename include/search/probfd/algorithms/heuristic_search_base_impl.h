@@ -288,19 +288,6 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::get_state_info(
 }
 
 template <typename State, typename Action, typename StateInfoT>
-StateID HeuristicSearchBase<State, Action, StateInfoT>::sample_state(
-    SuccessorSampler<Action>& sampler,
-    StateID source,
-    const Distribution<StateID>& transition)
-{
-    return sampler.sample(
-        source,
-        *this->get_greedy_action(source),
-        transition,
-        state_infos_);
-}
-
-template <typename State, typename Action, typename StateInfoT>
 bool HeuristicSearchBase<State, Action, StateInfoT>::update(
     StateInfo& state_info,
     AlgorithmValueType other)

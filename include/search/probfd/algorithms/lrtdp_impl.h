@@ -135,8 +135,13 @@ void LRTDP<State, Action, UseInterval>::trial(
             state_info.mark_trial();
         }
 
-        current_trial_.push_back(
-            this->sample_state(*sample_, state_id, transition->successor_dist));
+        auto next = sample_->sample(
+            state_id,
+            transition->action,
+            transition->successor_dist,
+            this->state_infos_);
+
+        current_trial_.push_back(next);
     }
 
     if (stop_consistent_ == REVISITED) {

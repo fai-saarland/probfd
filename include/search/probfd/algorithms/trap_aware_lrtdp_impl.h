@@ -143,8 +143,13 @@ bool TALRTDPImpl<State, Action, UseInterval>::trial(
             info.set_on_trial();
         }
 
-        current_trial_.push_back(
-            this->sample_state(*sample_, stateid, transition->successor_dist));
+        auto next = sample_->sample(
+            stateid,
+            transition->action,
+            transition->successor_dist,
+            this->state_infos_);
+
+        current_trial_.push_back(next);
     }
 
     statistics_.trial_length += current_trial_.size();

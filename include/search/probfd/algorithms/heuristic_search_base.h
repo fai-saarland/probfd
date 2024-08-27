@@ -129,15 +129,15 @@ private:
     // Algorithm parameters
     const std::shared_ptr<PolicyPickerType> policy_chooser_;
 
-    // Algorithm state
-    internal::StateInfos<StateInfo> state_infos_;
-
     StateInfo* initial_state_info_ = nullptr;
 
     // Reused buffer
     std::vector<TransitionType> transitions_;
 
 protected:
+    // Algorithm state
+    internal::StateInfos<StateInfo> state_infos_;
+
     internal::Statistics statistics_;
 
     struct UpdateResult {
@@ -240,11 +240,6 @@ protected:
      * @brief Get the state info object of a state.
      */
     const StateInfo& get_state_info(StateID id) const;
-
-    StateID sample_state(
-        SuccessorSampler<Action>& sampler,
-        StateID source,
-        const Distribution<StateID>& transition);
 
 private:
     // Stores dead-end information in state info and returns true on change.

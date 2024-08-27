@@ -131,20 +131,24 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
             const State state = mdp.get_state(stateid);
 
             ClearGuard guard(this->selected_transition_);
+
+            auto action = *this->get_greedy_action(stateid);
+
             mdp.generate_action_transitions(
                 state,
-                *this->get_greedy_action(stateid),
+                action,
                 this->selected_transition_);
 
             this->selected_transition_.remove_if_normalize(
                 [this](const auto& target) {
                     return this->get_state_info(target.item).is_solved();
                 });
-
-            stateid = this->sample_state(
-                *outcome_selection_,
+            
+            outcome_selection_->sample(
                 stateid,
-                this->selected_transition_);
+                action,
+                this->selected_transition_,
+                this->state_infos_);
         }
 
         ++this->statistics_.iterations;
