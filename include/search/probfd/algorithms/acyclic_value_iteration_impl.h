@@ -14,6 +14,87 @@
 namespace probfd::algorithms::acyclic_vi {
 
 template <typename State, typename Action>
+void StatisticsObserver<State, Action>::on_state_selected_for_expansion(
+    const State&)
+{
+    ++state_expansions;
+}
+
+template <typename State, typename Action>
+void StatisticsObserver<State, Action>::on_goal_state(const State&)
+{
+    ++goal_states;
+}
+
+template <typename State, typename Action>
+void StatisticsObserver<State, Action>::on_terminal_state(const State&)
+{
+    ++terminal_states;
+}
+
+template <typename State, typename Action>
+void StatisticsObserver<State, Action>::on_pruned_state(const State&)
+{
+    ++pruned_states;
+}
+
+template <typename State, typename Action>
+void StatisticsObserver<State, Action>::print(std::ostream& out) const
+{
+    out << "  Expanded state(s): " << state_expansions << std::endl;
+    out << "  Pruned state(s): " << pruned_states << std::endl;
+    out << "  Terminal state(s): " << terminal_states << std::endl;
+    out << "  Goal state(s): " << goal_states << std::endl;
+}
+
+namespace internal {
+
+template <typename State, typename Action>
+void AcyclicValueIterationObserverCollection<State, Action>::register_observer(
+    std::shared_ptr<Observer> observer)
+{
+    observers_.push_back(std::move(observer));
+}
+
+template <typename State, typename Action>
+void AcyclicValueIterationObserverCollection<State, Action>::
+    notify_state_selected_for_expansion(const State& state)
+{
+    for (auto& observer : observers_) {
+        observer.on_state_selected_for_expansion(state);
+    }
+}
+
+template <typename State, typename Action>
+void AcyclicValueIterationObserverCollection<State, Action>::notify_goal_state(
+    const State& state)
+{
+    for (auto& observer : observers_) {
+        observer.on_goal_state(state);
+    }
+}
+
+template <typename State, typename Action>
+void AcyclicValueIterationObserverCollection<State, Action>::
+    notify_terminal_state(const State& state)
+{
+    for (auto& observer : observers_) {
+        observer.on_terminal_state(state);
+    }
+}
+
+template <typename State, typename Action>
+void AcyclicValueIterationObserverCollection<State, Action>::
+    notify_pruned_state(const State& state)
+{
+    for (auto& observer : observers_) {
+        observer.on_pruned_state(state);
+    }
+}
+
+} // namespace internal
+
+template <typename State, typename Action>
 AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
     IncrementalExpansionInfo(
         StateID state_id,
@@ -108,7 +189,7 @@ Interval AcyclicValueIteration<State, Action>::solve(
     const StateID initial_state_id = mdp.get_state_id(initial_state);
     StateInfo& iinfo = state_infos_[initial_state_id];
 
-    if (!push_state(mdp, heuristic, initial_state_id, iinfo)) {
+    if (!expand_state(mdp, heuristic, initial_state_id, iinfo)) {
         return Interval(iinfo.value);
     }
 
@@ -121,10 +202,10 @@ Interval AcyclicValueIteration<State, Action>::solve(
 }
 
 template <typename State, typename Action>
-void AcyclicValueIteration<State, Action>::print_statistics(
-    std::ostream& out) const
+void AcyclicValueIteration<State, Action>::register_observer(
+    std::shared_ptr<Observer> observer)
 {
-    statistics_.print(out);
+    observers_.register_observer(std::move(observer));
 }
 
 template <typename State, typename Action>
@@ -143,8 +224,13 @@ void AcyclicValueIteration<State, Action>::dfs_expand(
             const auto [succ_id, probability] = *e->successor;
             StateInfo& succ_info = state_infos_[succ_id];
 
-            if (!succ_info.expanded &&
-                push_state(mdp, heuristic, succ_id, succ_info)) {
+            if (succ_info.status == StateInfo::ON_STACK) {
+                std::cerr << "State space is not acyclic!" << std::endl;
+                utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+            }
+
+            if (succ_info.status == StateInfo::NEW &&
+                expand_state(mdp, heuristic, succ_id, succ_info)) {
                 e = &expansion_stack_.top();
                 continue; // DFS recursion
             }
@@ -160,6 +246,7 @@ void AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
 {
     // Update transition Q-value
     t_value += probability * succ_info.value;
+    succ_info.status = StateInfo::CLOSED;
 }
 
 template <typename State, typename Action>
@@ -211,40 +298,46 @@ bool AcyclicValueIteration<State, Action>::dfs_backtrack(
 }
 
 template <typename State, typename Action>
-bool AcyclicValueIteration<State, Action>::push_state(
+bool AcyclicValueIteration<State, Action>::expand_state(
     MDPType& mdp,
     EvaluatorType& heuristic,
     StateID state_id,
     StateInfo& succ_info)
 {
-    assert(!succ_info.expanded);
-    succ_info.expanded = true;
+    assert(succ_info.status == StateInfo::NEW);
+    succ_info.status = StateInfo::ON_STACK;
 
     const State state = mdp.get_state(state_id);
     const TerminationInfo term_info = mdp.get_termination_info(state);
     const value_t term_value = term_info.get_cost();
 
-    succ_info.value = term_value;
-
     if (term_info.is_goal_state()) {
-        ++statistics_.terminal_states;
-        ++statistics_.goal_states;
+        observers_.notify_state_selected_for_expansion(state);
+        observers_.notify_goal_state(state);
         return false;
     }
 
     if (heuristic.evaluate(state) == term_value) {
-        ++statistics_.pruned;
+        observers_.notify_pruned_state(state);
+        return false;
+    }
+
+    observers_.notify_state_selected_for_expansion(state);
+
+    succ_info.value = term_value;
+
+    if (term_info.is_goal_state()) {
+        observers_.notify_goal_state(state);
         return false;
     }
 
     std::vector<Action> remaining_aops;
     mdp.generate_applicable_actions(state, remaining_aops);
     if (remaining_aops.empty()) {
-        ++statistics_.terminal_states;
+        observers_.notify_terminal_state(state);
         return false;
     }
 
-    ++statistics_.state_expansions;
     expansion_stack_
         .emplace(state_id, succ_info, std::move(remaining_aops), mdp);
 
