@@ -43,10 +43,10 @@ SYNTAX_TASK_DOMAIN_NAME = "(:domain NAME)"
 SYNTAX_METRIC = "(:metric {minimize,maximize} {(total-cost),(reward)})"
 
 CONDITION_TAG_TO_SYNTAX = {
-    "and": SYNTAX_CONDITION_AND,
-    "or": SYNTAX_CONDITION_OR,
-    "imply": SYNTAX_CONDITION_IMPLY,
-    "not": SYNTAX_CONDITION_NOT,
+    "and"   : SYNTAX_CONDITION_AND,
+    "or"    : SYNTAX_CONDITION_OR,
+    "imply" : SYNTAX_CONDITION_IMPLY,
+    "not"   : SYNTAX_CONDITION_NOT,
     "forall": SYNTAX_CONDITION_FORALL_EXISTS,
 }
 
@@ -954,7 +954,6 @@ def parse_task_pddl(
                                   syntax=SYNTAX_GOAL_REWARD)
                 yield exp.value
         else:
-            iterator = goal
             yield None
 
         metric = pddl.Metric.NONE
@@ -988,7 +987,8 @@ def parse_task_pddl(
         yield metric
         yield "reward" if has_reward_fluent else "total-cost"
 
-        for _ in iterator:
+        for i in iterator:
+            print(i)
             assert False, "This line should be unreachable"
 
 
