@@ -28,7 +28,7 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
     utils::CountdownTimer timer(max_time);
 
     StateID initstateid = mdp.get_state_id(initial_state);
-    const auto& state_info = this->get_state_info(initstateid);
+    const auto& state_info = this->state_infos_[initstateid];
     open_list_->push(initstateid);
 
     do {
@@ -37,7 +37,7 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
 
         assert(!this->open_list_->empty());
         StateID stateid = open_list_->pop();
-        auto& info = this->get_state_info(stateid);
+        auto& info = this->state_infos_[stateid];
 
         if (!info.is_tip_state() || info.is_solved()) {
             continue;
@@ -76,7 +76,7 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
 
         for (const auto& [op, dist] : this->transitions_) {
             for (auto& [succid, prob] : dist) {
-                auto& succ_info = this->get_state_info(succid);
+                auto& succ_info = this->state_infos_[succid];
                 if (!succ_info.is_solved()) {
                     if (!succ_info.is_marked()) {
                         succ_info.mark();
@@ -107,7 +107,7 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
 
         for (const auto& transition : this->transitions_) {
             for (StateID succ_id : transition.successor_dist.support()) {
-                this->get_state_info(succ_id).unmark();
+                this->state_infos_[succ_id].unmark();
             }
         }
 

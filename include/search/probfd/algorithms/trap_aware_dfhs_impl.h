@@ -147,7 +147,7 @@ void TADFHSImpl<State, Action, UseInterval>::dfhs_label_driver(
     bool is_complete = false;
     do {
         is_complete = policy_exploration(quotient, heuristic, state, timer) &&
-                      this->get_state_info(state).is_solved();
+                      this->state_infos_[state].is_solved();
         visited_states_.clear();
         ++statistics_.iterations;
         progress.print();
@@ -210,7 +210,7 @@ bool TADFHSImpl<State, Action, UseInterval>::push_successor(
         if (succ_status == STATE_UNSEEN) {
             // expand state (either not expanded before, or last
             // value change was before pushing einfo.state)
-            StateInfo& succ_info = this->get_state_info(succ);
+            StateInfo& succ_info = this->state_infos_[succ];
             if (succ_info.is_terminal() || succ_info.is_solved()) {
                 succ_info.set_solved();
                 einfo.flags.update(succ_info);
@@ -226,7 +226,7 @@ bool TADFHSImpl<State, Action, UseInterval>::push_successor(
             }
             succ_status = STATE_CLOSED;
         } else if (succ_status == STATE_CLOSED) {
-            const StateInfo& succ_info = this->get_state_info(succ);
+            const StateInfo& succ_info = this->state_infos_[succ];
             einfo.flags.update(succ_info);
             if (mark_solved_) {
                 einfo.flags.all_solved =
@@ -340,7 +340,7 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
 
     {
         Flags flags;
-        StateInfo& state_info = this->get_state_info(start_state);
+        StateInfo& state_info = this->state_infos_[start_state];
         if (state_info.is_terminal() || state_info.is_solved()) {
             state_info.set_solved();
             flags.update(state_info);
@@ -450,7 +450,7 @@ void TADFHSImpl<State, Action, UseInterval>::backtrack_from_singleton(
 
     if (flags.complete && flags.all_solved) {
         if (mark_solved_) {
-            this->get_state_info(state).set_solved();
+            this->state_infos_[state].set_solved();
         } else if (value_iteration_) {
             visited_states_.push_back(state);
         }
@@ -502,7 +502,7 @@ bool TADFHSImpl<State, Action, UseInterval>::backtrack_trap(
     TimerScope scope(statistics_.trap_timer);
 
     quotient.build_quotient(scc, *scc.begin());
-    this->get_state_info(state).clear_policy();
+    this->state_infos_[state].clear_policy();
     stack_.erase(scc.begin(), scc.end());
     return repush_trap(quotient, heuristic, state, flags);
 }
@@ -516,7 +516,7 @@ void TADFHSImpl<State, Action, UseInterval>::backtrack_solved(
     if (mark_solved_) {
         for (const auto& entry : scc) {
             stack_index_[entry.state_id] = STATE_CLOSED;
-            this->get_state_info(entry.state_id).set_solved();
+            this->state_infos_[entry.state_id].set_solved();
         }
     } else {
         assert(value_iteration_);

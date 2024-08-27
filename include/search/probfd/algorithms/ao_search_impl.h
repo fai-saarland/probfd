@@ -41,7 +41,7 @@ void AOBase<State, Action, StateInfo>::backpropagate_tip_value(
         auto elem = queue_.top();
         queue_.pop();
 
-        auto& info = this->get_state_info(elem.state_id);
+        auto& info = this->state_infos_[elem.state_id];
         assert(!info.is_goal_state());
         assert(!info.is_terminal() || info.is_solved());
 
@@ -76,7 +76,7 @@ void AOBase<State, Action, StateInfo>::backpropagate_update_order(
     StateID tip,
     utils::CountdownTimer& timer)
 {
-    queue_.emplace(this->get_state_info(tip).update_order, tip);
+    queue_.emplace(this->state_infos_[tip].update_order, tip);
 
     while (!queue_.empty()) {
         timer.throw_if_expired();
@@ -84,13 +84,13 @@ void AOBase<State, Action, StateInfo>::backpropagate_update_order(
         auto elem = queue_.top();
         queue_.pop();
 
-        auto& info = this->get_state_info(elem.state_id);
+        auto& info = this->state_infos_[elem.state_id];
         if (info.update_order > elem.update_order) {
             continue;
         }
 
         std::erase_if(info.get_parents(), [this, elem](StateID state_id) {
-            auto& pinfo = this->get_state_info(state_id);
+            auto& pinfo = this->state_infos_[state_id];
             if (pinfo.is_solved()) {
                 return true;
             }
@@ -142,7 +142,7 @@ void AOBase<State, Action, StateInfo>::push_parents_to_queue(StateInfo& info)
 {
     auto& parents = info.get_parents();
     for (StateID parent : parents) {
-        auto& pinfo = this->get_state_info(parent);
+        auto& pinfo = this->state_infos_[parent];
         assert(!pinfo.is_dead_end() || pinfo.is_solved());
 
         if constexpr (!StateInfo::StorePolicy) {
@@ -202,7 +202,7 @@ bool AOBase<State, Action, StateInfo>::update_value_check_solved(
     dead = info.is_dead_end();
 
     for (const auto succ_id : greedy_transition->successor_dist.support()) {
-        const auto& succ_info = this->get_state_info(succ_id);
+        const auto& succ_info = this->state_infos_[succ_id];
         solved = solved && succ_info.is_solved();
         dead = dead && succ_info.is_dead_end();
     }

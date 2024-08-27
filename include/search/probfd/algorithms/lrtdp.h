@@ -200,13 +200,6 @@ private:
         EvaluatorType& heuristic,
         StateID init_state_id,
         utils::CountdownTimer& timer);
-
-    /*
-    bool check_and_solve_original(
-        MDP& mdp,
-        Evaluator& heuristic,
-        StateID init_state_id);
-    */
 };
 
 } // namespace probfd::algorithms::lrtdp

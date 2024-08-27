@@ -81,35 +81,35 @@ template <typename State, typename Action, typename StateInfoT>
 value_t HeuristicSearchBase<State, Action, StateInfoT>::lookup_value(
     StateID state_id) const
 {
-    return get_state_info(state_id).get_value();
+    return state_infos_[state_id].get_value();
 }
 
 template <typename State, typename Action, typename StateInfoT>
 Interval HeuristicSearchBase<State, Action, StateInfoT>::lookup_bounds(
     StateID state_id) const
 {
-    return get_state_info(state_id).get_bounds();
+    return state_infos_[state_id].get_bounds();
 }
 
 template <typename State, typename Action, typename StateInfoT>
 bool HeuristicSearchBase<State, Action, StateInfoT>::is_terminal(
     StateID state_id) const
 {
-    return get_state_info(state_id).is_terminal();
+    return state_infos_[state_id].is_terminal();
 }
 
 template <typename State, typename Action, typename StateInfoT>
 bool HeuristicSearchBase<State, Action, StateInfoT>::is_marked_dead_end(
     StateID state_id) const
 {
-    return get_state_info(state_id).is_dead_end();
+    return state_infos_[state_id].is_dead_end();
 }
 
 template <typename State, typename Action, typename StateInfoT>
 bool HeuristicSearchBase<State, Action, StateInfoT>::was_visited(
     StateID state_id) const
 {
-    return get_state_info(state_id).is_value_initialized();
+    return state_infos_[state_id].is_value_initialized();
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -117,7 +117,7 @@ void HeuristicSearchBase<State, Action, StateInfoT>::clear_policy(
     StateID state_id)
     requires(StorePolicy)
 {
-    get_state_info(state_id).clear_policy();
+    state_infos_[state_id].clear_policy();
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -141,7 +141,7 @@ HeuristicSearchBase<State, Action, StateInfoT>::get_greedy_action(
     StateID state_id)
     requires(StorePolicy)
 {
-    return get_state_info(state_id).policy;
+    return state_infos_[state_id].policy;
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -244,7 +244,7 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize_report(
     ProgressReport& progress)
 {
     const StateID initial_id = mdp.get_state_id(state);
-    StateInfo& info = get_state_info(initial_id);
+    StateInfo& info = this->state_infos_[initial_id];
     initial_state_info_ = &info;
 
     if (!initialize_if_needed(mdp, h, initial_id, info)) {
@@ -274,20 +274,6 @@ void HeuristicSearchBase<State, Action, StateInfoT>::print_statistics(
 }
 
 template <typename State, typename Action, typename StateInfoT>
-auto HeuristicSearchBase<State, Action, StateInfoT>::get_state_info(StateID id)
-    -> StateInfo&
-{
-    return state_infos_[id];
-}
-
-template <typename State, typename Action, typename StateInfoT>
-auto HeuristicSearchBase<State, Action, StateInfoT>::get_state_info(
-    StateID id) const -> const StateInfo&
-{
-    return state_infos_[id];
-}
-
-template <typename State, typename Action, typename StateInfoT>
 bool HeuristicSearchBase<State, Action, StateInfoT>::update(
     StateInfo& state_info,
     AlgorithmValueType other)
@@ -313,7 +299,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::lookup_initialize(
     EvaluatorType& h,
     StateID state_id) -> StateInfo&
 {
-    StateInfo& state_info = get_state_info(state_id);
+    StateInfo& state_info = this->state_infos_[state_id];
     initialize_if_needed(mdp, h, state_id, state_info);
     return state_info;
 }

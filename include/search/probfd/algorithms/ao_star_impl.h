@@ -37,7 +37,7 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
     utils::CountdownTimer timer(max_time);
 
     const StateID initstateid = mdp.get_state_id(initial_state);
-    auto& iinfo = this->get_state_info(initstateid);
+    auto& iinfo = this->state_infos_[initstateid];
     iinfo.update_order = 0;
 
     while (!iinfo.is_solved()) {
@@ -46,7 +46,7 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
         for (;;) {
             timer.throw_if_expired();
 
-            auto& info = this->get_state_info(stateid);
+            auto& info = this->state_infos_[stateid];
             assert(!info.is_solved());
 
             if (info.is_tip_state()) {
@@ -90,7 +90,7 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
 
                 for (auto successors : all_successors) {
                     for (const StateID succ_id : successors) {
-                        auto& succ_info = this->get_state_info(succ_id);
+                        auto& succ_info = this->state_infos_[succ_id];
 
                         if (!succ_info.is_unflagged()) continue;
 
@@ -111,7 +111,7 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
 
                 for (auto successors : all_successors) {
                     for (const StateID succ_id : successors) {
-                        this->get_state_info(succ_id).unmark();
+                        this->state_infos_[succ_id].unmark();
                     }
                 }
 
@@ -141,9 +141,9 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
 
             this->selected_transition_.remove_if_normalize(
                 [this](const auto& target) {
-                    return this->get_state_info(target.item).is_solved();
+                    return this->state_infos_[target.item].is_solved();
                 });
-            
+
             outcome_selection_->sample(
                 stateid,
                 action,

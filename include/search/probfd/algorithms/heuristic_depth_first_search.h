@@ -154,7 +154,7 @@ private:
     const bool expand_tip_states_;
 
     // Algorithm state
-    storage::StateHashMap<LocalStateInfo> state_infos_;
+    storage::StateHashMap<LocalStateInfo> local_state_infos_;
     std::vector<StateID> visited_;
     std::deque<ExpansionInfo> expansion_queue_;
     std::deque<StateID> stack_;

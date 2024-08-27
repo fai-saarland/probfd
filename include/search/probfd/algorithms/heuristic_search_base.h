@@ -11,6 +11,7 @@
 #include "downward/utils/timer.h"
 #endif
 
+#include <algorithm>
 #include <iostream>
 #include <limits>
 #include <type_traits>
@@ -96,7 +97,7 @@ public:
         return state_infos_[state_id].get_bounds();
     }
 
-    auto get_infos() { return std::views::all(state_infos_); }
+    void reset() { std::ranges::for_each(state_infos_, &StateInfo::clear); }
 };
 
 } // namespace internal
@@ -221,8 +222,6 @@ public:
         requires(StorePolicy);
 
 protected:
-    auto get_state_infos() { return state_infos_.get_infos(); }
-
     void initialize_report(
         MDPType& mdp,
         EvaluatorType& h,
@@ -230,16 +229,6 @@ protected:
         ProgressReport& progress);
 
     void print_statistics(std::ostream& out) const;
-
-    /**
-     * @brief Get the state info object of a state.
-     */
-    StateInfo& get_state_info(StateID id);
-
-    /**
-     * @brief Get the state info object of a state.
-     */
-    const StateInfo& get_state_info(StateID id) const;
 
 private:
     // Stores dead-end information in state info and returns true on change.
