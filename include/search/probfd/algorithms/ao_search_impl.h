@@ -13,45 +13,27 @@ inline void Statistics::print(std::ostream& out) const
     out << "  Iterations: " << iterations << std::endl;
 }
 
-template <
-    typename State,
-    typename Action,
-    bool Interval,
-    bool StorePolicy,
-    template <typename>
-    class StateInfoExtension>
-void AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
-    print_additional_statistics(std::ostream& out) const
+template <typename State, typename Action, typename StateInfo>
+void AOBase<State, Action, StateInfo>::print_additional_statistics(
+    std::ostream& out) const
 {
     statistics_.print(out);
 }
 
-template <
-    typename State,
-    typename Action,
-    bool Interval,
-    bool StorePolicy,
-    template <typename>
-    class StateInfoExtension>
-void AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
-    setup_custom_reports(param_type<State>, ProgressReport& progress)
+template <typename State, typename Action, typename StateInfo>
+void AOBase<State, Action, StateInfo>::setup_custom_reports(
+    param_type<State>,
+    ProgressReport& progress)
 {
     progress.register_print(
         [&](std::ostream& out) { out << "i=" << statistics_.iterations; });
 }
 
-template <
-    typename State,
-    typename Action,
-    bool Interval,
-    bool StorePolicy,
-    template <typename>
-    class StateInfoExtension>
-void AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
-    backpropagate_tip_value(
-        MDPType& mdp,
-        EvaluatorType& heuristic,
-        utils::CountdownTimer& timer)
+template <typename State, typename Action, typename StateInfo>
+void AOBase<State, Action, StateInfo>::backpropagate_tip_value(
+    MDPType& mdp,
+    EvaluatorType& heuristic,
+    utils::CountdownTimer& timer)
 {
     while (!queue_.empty()) {
         timer.throw_if_expired();
@@ -89,15 +71,10 @@ void AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
     }
 }
 
-template <
-    typename State,
-    typename Action,
-    bool Interval,
-    bool StorePolicy,
-    template <typename>
-    class StateInfoExtension>
-void AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
-    backpropagate_update_order(StateID tip, utils::CountdownTimer& timer)
+template <typename State, typename Action, typename StateInfo>
+void AOBase<State, Action, StateInfo>::backpropagate_update_order(
+    StateID tip,
+    utils::CountdownTimer& timer)
 {
     queue_.emplace(this->get_state_info(tip).update_order, tip);
 
@@ -128,24 +105,17 @@ void AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
     }
 }
 
-template <
-    typename State,
-    typename Action,
-    bool Interval,
-    bool StorePolicy,
-    template <typename>
-    class StateInfoExtension>
-void AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
-    initialize_tip_state_value(
-        MDPType& mdp,
-        EvaluatorType& heuristic,
-        StateID state,
-        StateInfo& info,
-        bool& terminal,
-        bool& solved,
-        bool& dead,
-        bool& value_changed,
-        utils::CountdownTimer& timer)
+template <typename State, typename Action, typename StateInfo>
+void AOBase<State, Action, StateInfo>::initialize_tip_state_value(
+    MDPType& mdp,
+    EvaluatorType& heuristic,
+    StateID state,
+    StateInfo& info,
+    bool& terminal,
+    bool& solved,
+    bool& dead,
+    bool& value_changed,
+    utils::CountdownTimer& timer)
 {
     assert(!info.is_solved() && info.is_tip_state());
     assert(queue_.empty());
@@ -167,22 +137,15 @@ void AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
     assert(queue_.empty());
 }
 
-template <
-    typename State,
-    typename Action,
-    bool Interval,
-    bool StorePolicy,
-    template <typename>
-    class StateInfoExtension>
-void AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
-    push_parents_to_queue(StateInfo& info)
+template <typename State, typename Action, typename StateInfo>
+void AOBase<State, Action, StateInfo>::push_parents_to_queue(StateInfo& info)
 {
     auto& parents = info.get_parents();
     for (StateID parent : parents) {
         auto& pinfo = this->get_state_info(parent);
         assert(!pinfo.is_dead_end() || pinfo.is_solved());
 
-        if constexpr (!StorePolicy) {
+        if constexpr (!StateInfo::StorePolicy) {
             if (info.is_solved()) {
                 assert(pinfo.unsolved > 0 || pinfo.is_solved());
                 --pinfo.unsolved;
@@ -203,15 +166,10 @@ void AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
     }
 }
 
-template <
-    typename State,
-    typename Action,
-    bool Interval,
-    bool StorePolicy,
-    template <typename>
-    class StateInfoExtension>
-void AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
-    mark_solved_push_parents(StateInfo& info, [[maybe_unused]] bool dead)
+template <typename State, typename Action, typename StateInfo>
+void AOBase<State, Action, StateInfo>::mark_solved_push_parents(
+    StateInfo& info,
+    [[maybe_unused]] bool dead)
 {
     assert(!info.is_terminal() && !info.is_solved());
     assert(!dead || info.is_dead_end());
@@ -220,22 +178,15 @@ void AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
     push_parents_to_queue(info);
 }
 
-template <
-    typename State,
-    typename Action,
-    bool Interval,
-    bool StorePolicy,
-    template <typename>
-    class StateInfoExtension>
-bool AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
-    update_value_check_solved(
-        MDPType& mdp,
-        EvaluatorType& heuristic,
-        StateID state,
-        const StateInfo& info,
-        bool& solved,
-        bool& dead)
-    requires(StorePolicy)
+template <typename State, typename Action, typename StateInfo>
+bool AOBase<State, Action, StateInfo>::update_value_check_solved(
+    MDPType& mdp,
+    EvaluatorType& heuristic,
+    StateID state,
+    const StateInfo& info,
+    bool& solved,
+    bool& dead)
+    requires(StateInfo::StorePolicy)
 {
     const auto update_result =
         this->bellman_policy_update(mdp, heuristic, state);
@@ -259,22 +210,15 @@ bool AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
     return update_result.value_changed;
 }
 
-template <
-    typename State,
-    typename Action,
-    bool Interval,
-    bool StorePolicy,
-    template <typename>
-    class StateInfoExtension>
-bool AOBase<State, Action, Interval, StorePolicy, StateInfoExtension>::
-    update_value_check_solved(
-        MDPType& mdp,
-        EvaluatorType& heuristic,
-        StateID state,
-        const StateInfo& info,
-        bool& solved,
-        bool& dead)
-    requires(!StorePolicy)
+template <typename State, typename Action, typename StateInfo>
+bool AOBase<State, Action, StateInfo>::update_value_check_solved(
+    MDPType& mdp,
+    EvaluatorType& heuristic,
+    StateID state,
+    const StateInfo& info,
+    bool& solved,
+    bool& dead)
+    requires(!StateInfo::StorePolicy)
 {
     const bool result = this->bellman_update(mdp, heuristic, state);
 

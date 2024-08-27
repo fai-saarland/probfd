@@ -361,33 +361,6 @@ public:
     virtual void print_additional_statistics(std::ostream& out) const = 0;
 };
 
-template <typename T>
-struct NoAdditionalStateData : public T {};
-
-template <
-    typename State,
-    typename Action,
-    bool UseInterval = false,
-    bool StorePolicy = false,
-    template <typename> class StateInfoExtension = NoAdditionalStateData>
-using HeuristicSearchBaseExt = HeuristicSearchBase<
-    State,
-    Action,
-    StateInfoExtension<
-        PerStateBaseInformation<Action, StorePolicy, UseInterval>>>;
-
-template <
-    typename State,
-    typename Action,
-    bool UseInterval = false,
-    bool StorePolicy = false,
-    template <typename> class StateInfoExtension = NoAdditionalStateData>
-using HeuristicSearchAlgorithmExt = HeuristicSearchAlgorithm<
-    State,
-    Action,
-    StateInfoExtension<
-        PerStateBaseInformation<Action, StorePolicy, UseInterval>>>;
-
 } // namespace probfd::algorithms::heuristic_search
 
 #define GUARD_INCLUDE_PROBFD_ALGORITHMS_HEURISTIC_SEARCH_BASE_H

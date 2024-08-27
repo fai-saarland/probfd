@@ -37,7 +37,10 @@ namespace probfd::algorithms::ao_search::ao_star {
  */
 template <typename State, typename Action, bool UseInterval>
 class AOStar
-    : public AOBase<State, Action, UseInterval, true, PerStateInformation> {
+    : public AOBase<
+          State,
+          Action,
+          PerStateInformation<Action, UseInterval, true>> {
     using Base = typename AOStar::AOBase;
 
     using MDPType = typename Base::MDPType;

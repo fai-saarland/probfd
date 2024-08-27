@@ -18,12 +18,18 @@ struct Statistics {
     void print(std::ostream& out) const;
 };
 
-template <typename StateInfo>
-struct PerStateInformation : public StateInfo {
-    static constexpr uint8_t MARK = 1 << StateInfo::BITS;
-    static constexpr uint8_t SOLVED = 2 << StateInfo::BITS;
-    static constexpr uint8_t MASK = 3 << StateInfo::BITS;
-    static constexpr uint8_t BITS = StateInfo::BITS + 2;
+template <typename Action, bool Interval, bool StorePolicy>
+struct PerStateInformation
+    : public heuristic_search::
+          PerStateBaseInformation<Action, StorePolicy, Interval> {
+private:
+    using Base = PerStateInformation::PerStateBaseInformation;
+
+public:
+    static constexpr uint8_t MARK = 1 << Base::BITS;
+    static constexpr uint8_t SOLVED = 2 << Base::BITS;
+    static constexpr uint8_t MASK = 3 << Base::BITS;
+    static constexpr uint8_t BITS = Base::BITS + 2;
 
     unsigned update_order = 0;
     std::vector<StateID> parents;
@@ -82,32 +88,19 @@ struct PerStateInformation : public StateInfo {
  *
  * @tparam State - The state type of the underlying MDP.
  * @tparam Action - The action type of the underlying MDP.
- * @tparam Interval - Determines whether interval bounds are used.
- * @tparam StorePolicy - Determines whether a greedy policy is maintained.
- * @tparam StateInfoExtension - The extended state information struct used by
- * the derived algorithm.
+ * @tparam StateInfo - The state information struct used by the derived
+ * algorithm.
  */
-template <
-    typename State,
-    typename Action,
-    bool Interval,
-    bool StorePolicy,
-    template <typename>
-    class StateInfoExtension>
+template <typename State, typename Action, typename StateInfo>
 class AOBase
-    : public heuristic_search::HeuristicSearchAlgorithmExt<
-          State,
-          Action,
-          Interval,
-          StorePolicy,
-          StateInfoExtension> {
+    : public heuristic_search::
+          HeuristicSearchAlgorithm<State, Action, StateInfo> {
     using Base = typename AOBase::HeuristicSearchAlgorithm;
 
 protected:
     using MDPType = typename Base::MDPType;
     using EvaluatorType = typename Base::EvaluatorType;
     using PolicyPickerType = typename Base::PolicyPicker;
-    using StateInfo = typename Base::StateInfo;
 
 private:
     struct PrioritizedStateID {
@@ -169,7 +162,7 @@ private:
         const StateInfo& info,
         bool& solved,
         bool& dead)
-        requires(StorePolicy);
+        requires(StateInfo::StorePolicy);
 
     bool update_value_check_solved(
         MDPType& mdp,
@@ -178,7 +171,7 @@ private:
         const StateInfo& info,
         bool& solved,
         bool& dead)
-        requires(!StorePolicy);
+        requires(!StateInfo::StorePolicy);
 };
 
 } // namespace probfd::algorithms::ao_search

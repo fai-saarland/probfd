@@ -36,12 +36,17 @@ struct Statistics {
     void print(std::ostream& out) const;
 };
 
-template <typename StateInfo>
-struct PerStateInformation : public StateInfo {
-    static constexpr uint8_t INITIALIZED = 1 << StateInfo::BITS;
-    static constexpr uint8_t SOLVED = 2 << StateInfo::BITS;
-    static constexpr uint8_t MASK = 3 << StateInfo::BITS;
-    static constexpr uint8_t BITS = StateInfo::BITS + 2;
+template <typename Action, bool UseInterval>
+struct PerStateInformation
+    : public heuristic_search::
+          PerStateBaseInformation<Action, true, UseInterval> {
+    using Base = PerStateInformation::PerStateBaseInformation;
+
+public:
+    static constexpr uint8_t INITIALIZED = 1 << Base::BITS;
+    static constexpr uint8_t SOLVED = 2 << Base::BITS;
+    static constexpr uint8_t MASK = 3 << Base::BITS;
+    static constexpr uint8_t BITS = Base::BITS + 2;
 
     [[nodiscard]]
     bool is_policy_initialized() const
@@ -120,12 +125,10 @@ struct ExpansionInfo {
  */
 template <typename State, typename Action, bool UseInterval>
 class HeuristicDepthFirstSearch
-    : public heuristic_search::HeuristicSearchAlgorithmExt<
+    : public heuristic_search::HeuristicSearchAlgorithm<
           State,
           Action,
-          UseInterval,
-          true,
-          internal::PerStateInformation> {
+          internal::PerStateInformation<Action, UseInterval>> {
     using Base = typename HeuristicDepthFirstSearch::HeuristicSearchAlgorithm;
 
 public:

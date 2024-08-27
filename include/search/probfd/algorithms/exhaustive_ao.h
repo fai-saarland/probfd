@@ -14,8 +14,9 @@ namespace probfd::algorithms::exhaustive_ao {
 
 namespace internal {
 
-template <typename StateInfo>
-struct PerStateInformation : public ao_search::PerStateInformation<StateInfo> {
+template <typename Action, bool UseInterval>
+struct PerStateInformation
+    : public ao_search::PerStateInformation<Action, UseInterval, false> {
     unsigned unsolved : 31 = 0;
     unsigned alive : 1 = 0;
 };
@@ -43,9 +44,7 @@ class ExhaustiveAOSearch
     : public ao_search::AOBase<
           State,
           Action,
-          UseInterval,
-          false,
-          internal::PerStateInformation> {
+          internal::PerStateInformation<Action, UseInterval>> {
     using Base = typename ExhaustiveAOSearch::AOBase;
 
     using MDPType = typename Base::MDPType;

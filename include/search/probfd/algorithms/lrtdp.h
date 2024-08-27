@@ -53,31 +53,25 @@ struct Statistics {
     void print(std::ostream& out) const;
 };
 
-template <typename StateInfo>
-struct PerStateInformation : public StateInfo {
-    static constexpr uint8_t MARKED_OPEN = (1 << StateInfo::BITS);
-    static constexpr uint8_t MARKED_TRIAL = (2 << StateInfo::BITS);
-    static constexpr uint8_t SOLVED = (4 << StateInfo::BITS);
-    static constexpr uint8_t BITS = StateInfo::BITS + 3;
-    static constexpr uint8_t MASK = (7 << StateInfo::BITS);
+template <typename Action, bool UseInterval>
+struct PerStateInformation
+    : public heuristic_search::
+          PerStateBaseInformation<Action, true, UseInterval> {
+private:
+    using Base = typename PerStateInformation::PerStateBaseInformation;
 
-    [[nodiscard]]
-    bool is_marked_open() const
-    {
-        return this->info & MARKED_OPEN;
-    }
+public:
+    static constexpr uint8_t MARKED_OPEN = 1 << Base::BITS;
+    static constexpr uint8_t MARKED_TRIAL = 2 << Base::BITS;
+    static constexpr uint8_t SOLVED = 4 << Base::BITS;
+    static constexpr uint8_t BITS = Base::BITS + 3;
+    static constexpr uint8_t MASK = 7 << Base::BITS;
 
-    [[nodiscard]]
-    bool is_marked_trial() const
-    {
-        return this->info & MARKED_TRIAL;
-    }
+    bool is_marked_open() const { return this->info & MARKED_OPEN; }
 
-    [[nodiscard]]
-    bool is_solved() const
-    {
-        return this->info & SOLVED;
-    }
+    bool is_marked_trial() const { return this->info & MARKED_TRIAL; }
+
+    bool is_solved() const { return this->info & SOLVED; }
 
     void mark_open()
     {
@@ -141,12 +135,10 @@ struct PerStateInformation : public StateInfo {
  */
 template <typename State, typename Action, bool UseInterval>
 class LRTDP
-    : public heuristic_search::HeuristicSearchAlgorithmExt<
+    : public heuristic_search::HeuristicSearchAlgorithm<
           State,
           Action,
-          UseInterval,
-          true,
-          internal::PerStateInformation> {
+          internal::PerStateInformation<Action, UseInterval>> {
     using Base = typename LRTDP::HeuristicSearchAlgorithm;
 
 public:

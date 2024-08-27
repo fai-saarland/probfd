@@ -42,24 +42,22 @@ struct Statistics {
     void register_report(ProgressReport& report) const;
 };
 
-template <typename StateInfo>
-struct PerStateInformation : public StateInfo {
-    static constexpr uint8_t MARKED_TRIAL = (1 << StateInfo::BITS);
-    static constexpr uint8_t SOLVED = (2 << StateInfo::BITS);
-    static constexpr uint8_t BITS = StateInfo::BITS + 2;
-    static constexpr uint8_t MASK = (3 << StateInfo::BITS);
+template <typename Action, bool UseInterval>
+struct PerStateInformation
+    : public heuristic_search::
+          PerStateBaseInformation<Action, true, UseInterval> {
+private:
+    using Base = PerStateInformation::PerStateBaseInformation;
 
-    [[nodiscard]]
-    bool is_solved() const
-    {
-        return (this->info & MASK) == SOLVED;
-    }
+public:
+    static constexpr uint8_t MARKED_TRIAL = 1 << Base::BITS;
+    static constexpr uint8_t SOLVED = 2 << Base::BITS;
+    static constexpr uint8_t BITS = Base::BITS + 2;
+    static constexpr uint8_t MASK = 3 << Base::BITS;
 
-    [[nodiscard]]
-    bool is_on_trial() const
-    {
-        return (this->info & MARKED_TRIAL);
-    }
+    bool is_solved() const { return (this->info & MASK) == SOLVED; }
+
+    bool is_on_trial() const { return (this->info & MARKED_TRIAL); }
 
     void set_solved() { this->info = (this->info & ~MASK) | SOLVED; }
     void set_on_trial() { this->info = this->info | MARKED_TRIAL; }
@@ -71,12 +69,12 @@ struct PerStateInformation : public StateInfo {
 
 template <typename State, typename Action, bool UseInterval>
 class TALRTDPImpl
-    : public heuristic_search::HeuristicSearchBaseExt<
+    : public heuristic_search::HeuristicSearchBase<
           quotients::QuotientState<State, Action>,
           quotients::QuotientAction<Action>,
-          UseInterval,
-          true,
-          internal::PerStateInformation> {
+          internal::PerStateInformation<
+              quotients::QuotientAction<Action>,
+              UseInterval>> {
     using Base = typename TALRTDPImpl::HeuristicSearchBase;
 
     using QuotientSystem = quotients::QuotientSystem<State, Action>;

@@ -46,11 +46,17 @@ struct Statistics {
     void register_report(ProgressReport& report) const;
 };
 
-template <typename BaseInfo>
-struct PerStateInformation : public BaseInfo {
-    static constexpr uint8_t SOLVED = (1 << BaseInfo::BITS);
-    static constexpr uint8_t BITS = BaseInfo::BITS + 1;
-    static constexpr uint8_t MASK = (1 << BaseInfo::BITS);
+template <typename Action, bool UseInterval>
+struct PerStateInformation
+    : public heuristic_search::
+          PerStateBaseInformation<Action, true, UseInterval> {
+private:
+    using Base = PerStateInformation::PerStateBaseInformation;
+
+public:
+    static constexpr uint8_t SOLVED = 1 << Base::BITS;
+    static constexpr uint8_t BITS = Base::BITS + 1;
+    static constexpr uint8_t MASK = 1 << Base::BITS;
 
     [[nodiscard]]
     bool is_solved() const
@@ -65,12 +71,12 @@ struct PerStateInformation : public BaseInfo {
 
 template <typename State, typename Action, bool UseInterval>
 class TADFHSImpl
-    : public heuristic_search::HeuristicSearchBaseExt<
+    : public heuristic_search::HeuristicSearchBase<
           quotients::QuotientState<State, Action>,
           quotients::QuotientAction<Action>,
-          UseInterval,
-          true,
-          internal::PerStateInformation> {
+          internal::PerStateInformation<
+              quotients::QuotientAction<Action>,
+              UseInterval>> {
     using Base = typename TADFHSImpl::HeuristicSearchBase;
 
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
