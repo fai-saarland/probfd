@@ -6,6 +6,8 @@
 
 #include "probfd/algorithms/successor_sampler.h"
 
+#include "probfd/utils/views.h"
+
 #include "probfd/progress_report.h"
 
 #include "downward/utils/countdown_timer.h"
@@ -72,33 +74,30 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
 
                 auto all_successors = transitions | transform([](auto& t) {
                                           return t.successor_dist.support();
-                                      });
+                                      }) |
+                                      std::views::join;
 
                 unsigned min_succ_order = std::numeric_limits<unsigned>::max();
 
-                for (auto successors : all_successors) {
-                    for (const StateID succ_id : successors) {
-                        auto& succ_info = this->state_infos_[succ_id];
+                for (const StateID succ_id : all_successors) {
+                    auto& succ_info = this->state_infos_[succ_id];
 
-                        if (!succ_info.is_unflagged()) continue;
+                    if (!succ_info.is_unflagged()) continue;
 
-                        assert(!succ_info.is_solved());
-                        succ_info.mark();
-                        succ_info.add_parent(stateid);
-                        assert(
-                            succ_info.update_order <
-                            std::numeric_limits<unsigned>::max());
-                        min_succ_order =
-                            std::min(min_succ_order, succ_info.update_order);
-                    }
+                    assert(!succ_info.is_solved());
+                    succ_info.mark();
+                    succ_info.add_parent(stateid);
+                    assert(
+                        succ_info.update_order <
+                        std::numeric_limits<unsigned>::max());
+                    min_succ_order =
+                        std::min(min_succ_order, succ_info.update_order);
                 }
 
                 assert(min_succ_order < std::numeric_limits<unsigned>::max());
 
-                for (auto successors : all_successors) {
-                    for (const StateID succ_id : successors) {
-                        this->state_infos_[succ_id].unmark();
-                    }
+                for (const StateID succ_id : all_successors) {
+                    this->state_infos_[succ_id].unmark();
                 }
 
                 this->backpropagate_update_order(

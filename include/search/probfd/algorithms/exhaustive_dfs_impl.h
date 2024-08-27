@@ -109,9 +109,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::print_statistics(
 
 template <typename State, typename Action, bool UseInterval>
 void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
-    register_value_reports(
-        const SearchNodeInfo& info,
-        ProgressReport& progress)
+    register_value_reports(const SearchNodeInfo& info, ProgressReport& progress)
 {
     progress.register_bound("v", [info]() {
         if constexpr (UseInterval) {
@@ -444,7 +442,8 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
                             StackInformation& s = *it;
                             assert(!s.successors.empty());
                             value_t best = s.successors.back().base;
-                            for (const auto& t : views::reverse(s.successors)) {
+                            for (const auto& t :
+                                 std::views::reverse(s.successors)) {
                                 value_t t_first = t.base;
                                 for (auto [succ_id, prob] : t.successors) {
                                     t_first +=
