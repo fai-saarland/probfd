@@ -176,9 +176,10 @@ template <typename State, typename Action, typename StateInfoT>
 bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
     MDPType& mdp,
     EvaluatorType& h,
-    StateID s)
+    StateID state_id)
 {
-    return bellman_update(mdp, h, s, lookup_initialize(mdp, h, s));
+    StateInfo& state_info = this->state_infos_[state_id];
+    return bellman_update(mdp, h, state_id, state_info);
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -188,12 +189,8 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
     StateID state_id,
     std::vector<TransitionType>& greedy)
 {
-    return bellman_update(
-        mdp,
-        h,
-        state_id,
-        lookup_initialize(mdp, h, state_id),
-        greedy);
+    StateInfo& state_info = this->state_infos_[state_id];
+    return bellman_update(mdp, h, state_id, state_info, greedy);
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -203,7 +200,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::bellman_policy_update(
     StateID state_id) -> UpdateResult
     requires(StorePolicy)
 {
-    StateInfo& state_info = lookup_initialize(mdp, h, state_id);
+    StateInfo& state_info = this->state_infos_[state_id];
 
     ClearGuard guard(transitions_);
 
