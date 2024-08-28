@@ -244,7 +244,7 @@ private:
     bool initialize_if_needed(
         MDPType& mdp,
         EvaluatorType& h,
-        StateID state_id,
+        param_type<State> state,
         StateInfo& state_info);
 
     std::optional<AlgorithmValueType> normalized_qvalue(
@@ -253,12 +253,18 @@ private:
         StateID state_id,
         const TransitionType& transition);
 
-    AlgorithmValueType filter_greedy_transitions(
+    AlgorithmValueType compute_q_values(
         MDPType& mdp,
         EvaluatorType& h,
         StateID state_id,
+        value_t termination_cost,
         std::vector<TransitionType>& transitions,
-        value_t termination_cost);
+        std::vector<AlgorithmValueType>& qvalues);
+
+    AlgorithmValueType filter_greedy_transitions(
+        std::vector<TransitionType>& transitions,
+        std::vector<AlgorithmValueType>& qvalues,
+        const AlgorithmValueType& best_value);
 
     bool bellman_update(
         MDPType& mdp,
