@@ -43,9 +43,12 @@ class AOStar
           PerStateInformation<Action, UseInterval, true>> {
     using Base = typename AOStar::AOBase;
 
+    friend Base;
+
     using MDPType = typename Base::MDPType;
     using EvaluatorType = typename Base::EvaluatorType;
     using PolicyPickerType = typename Base::PolicyPickerType;
+    using StateInfo = typename Base::StateInfo;
 
     using SuccessorSamplerType = SuccessorSampler<Action>;
 
@@ -64,6 +67,13 @@ protected:
         param_type<State> initial_state,
         ProgressReport& progress,
         double max_time) override;
+
+private:
+    bool update_value_check_solved(
+        MDPType& mdp,
+        EvaluatorType& heuristic,
+        StateID state,
+        StateInfo& info);
 };
 
 } // namespace probfd::algorithms::ao_search::ao_star

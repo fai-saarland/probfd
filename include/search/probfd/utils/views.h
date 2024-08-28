@@ -240,7 +240,7 @@ struct concat_view_iter_cat<Const, Vs...> {
                           concat_reference_t<maybe_const_t<Const, Vs>...>>)
             return std::input_iterator_tag{};
         else
-            return []<typename... Cats>(Cats... cats) {
+            return []<typename... Cats>(Cats...) {
                 if constexpr (
                     (std::derived_from<Cats, std::random_access_iterator_tag> &&
                      ...) &&

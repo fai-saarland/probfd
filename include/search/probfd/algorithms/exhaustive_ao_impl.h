@@ -57,13 +57,13 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
             continue;
         }
 
-        unsigned alive = 0;
-        unsigned unsolved = 0;
-        unsigned min_succ_order = std::numeric_limits<unsigned>::max();
-
         ClearGuard _(transitions);
         const State state = mdp.get_state(stateid);
         mdp.generate_all_transitions(state, transitions);
+
+        unsigned alive = 0;
+        unsigned unsolved = 0;
+        unsigned min_succ_order = std::numeric_limits<unsigned>::max();
 
         for (const auto& [op, dist] : transitions) {
             for (auto& [succid, prob] : dist) {
@@ -118,6 +118,24 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
     } while (!state_info.is_solved());
 
     return state_info.get_bounds();
+}
+
+template <typename State, typename Action, bool UseInterval>
+bool ExhaustiveAOSearch<State, Action, UseInterval>::update_value_check_solved(
+    MDPType& mdp,
+    EvaluatorType& heuristic,
+    StateID state,
+    StateInfo& info)
+{
+    assert(!info.is_solved());
+
+    const bool result = this->bellman_update(mdp, heuristic, state);
+
+    if (!info.unsolved) {
+        info.set_solved();
+    }
+
+    return result;
 }
 
 } // namespace probfd::algorithms::exhaustive_ao

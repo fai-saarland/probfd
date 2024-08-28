@@ -131,6 +131,7 @@ protected:
     setup_custom_reports(param_type<State>, ProgressReport& progress) override;
 
     void backpropagate_tip_value(
+        this auto& self,
         MDPType& mdp,
         EvaluatorType& heuristic,
         utils::CountdownTimer& timer);
@@ -142,20 +143,6 @@ protected:
         utils::CountdownTimer& timer);
 
     void push_parents_to_queue(StateInfo& info);
-
-    bool update_value_check_solved(
-        MDPType& mdp,
-        EvaluatorType& heuristic,
-        StateID state,
-        StateInfo& info)
-        requires(StateInfo::StorePolicy);
-
-    bool update_value_check_solved(
-        MDPType& mdp,
-        EvaluatorType& heuristic,
-        StateID state,
-        StateInfo& info)
-        requires(!StateInfo::StorePolicy);
 };
 
 } // namespace probfd::algorithms::ao_search

@@ -139,4 +139,33 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
     return iinfo.get_bounds();
 }
 
+template <typename State, typename Action, bool UseInterval>
+bool AOStar<State, Action, UseInterval>::update_value_check_solved(
+    MDPType& mdp,
+    EvaluatorType& heuristic,
+    StateID state,
+    StateInfo& info)
+{
+    assert(!info.is_solved());
+
+    const auto update_result =
+        this->bellman_policy_update(mdp, heuristic, state);
+    const auto& greedy_transition = update_result.greedy_transition;
+
+    bool all_succs_solved = true;
+
+    if (greedy_transition) {
+        for (const auto succ_id : greedy_transition->successor_dist.support()) {
+            const auto& succ_info = this->state_infos_[succ_id];
+            all_succs_solved = all_succs_solved && succ_info.is_solved();
+        }
+    }
+
+    if (all_succs_solved) {
+        info.set_solved();
+    }
+
+    return update_result.value_changed;
+}
+
 } // namespace probfd::algorithms::ao_search::ao_star

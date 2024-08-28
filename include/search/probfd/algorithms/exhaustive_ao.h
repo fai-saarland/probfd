@@ -47,9 +47,12 @@ class ExhaustiveAOSearch
           internal::PerStateInformation<Action, UseInterval>> {
     using Base = typename ExhaustiveAOSearch::AOBase;
 
+    friend Base;
+    
     using MDPType = typename Base::MDPType;
     using EvaluatorType = typename Base::EvaluatorType;
     using PolicyPickerType = typename Base::PolicyPickerType;
+    using StateInfo = typename Base::StateInfo;
 
     using OpenListType = OpenList<Action>;
 
@@ -68,6 +71,13 @@ protected:
         param_type<State> initial_state,
         ProgressReport& progress,
         double max_time) override;
+
+private:
+    bool update_value_check_solved(
+        MDPType& mdp,
+        EvaluatorType& heuristic,
+        StateID state,
+        StateInfo& info);
 };
 
 } // namespace probfd::algorithms::exhaustive_ao

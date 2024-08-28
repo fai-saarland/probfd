@@ -31,17 +31,18 @@ void AOBase<State, Action, StateInfo>::setup_custom_reports(
 
 template <typename State, typename Action, typename StateInfo>
 void AOBase<State, Action, StateInfo>::backpropagate_tip_value(
+    this auto& self,
     MDPType& mdp,
     EvaluatorType& heuristic,
     utils::CountdownTimer& timer)
 {
-    while (!queue_.empty()) {
+    while (!self.queue_.empty()) {
         timer.throw_if_expired();
 
-        auto elem = queue_.top();
-        queue_.pop();
+        auto elem = self.queue_.top();
+        self.queue_.pop();
 
-        auto& info = this->state_infos_[elem.state_id];
+        auto& info = self.state_infos_[elem.state_id];
         assert(!info.is_goal_state());
         assert(!info.is_terminal() || info.is_solved());
 
@@ -54,10 +55,10 @@ void AOBase<State, Action, StateInfo>::backpropagate_tip_value(
         info.unmark();
 
         bool value_changed =
-            update_value_check_solved(mdp, heuristic, elem.state_id, info);
+            self.update_value_check_solved(mdp, heuristic, elem.state_id, info);
 
         if (info.is_solved() || value_changed) {
-            push_parents_to_queue(info);
+            self.push_parents_to_queue(info);
         }
     }
 }
@@ -126,55 +127,6 @@ void AOBase<State, Action, StateInfo>::push_parents_to_queue(StateInfo& info)
     if (info.is_solved()) {
         utils::release_vector_memory(parents);
     }
-}
-
-template <typename State, typename Action, typename StateInfo>
-bool AOBase<State, Action, StateInfo>::update_value_check_solved(
-    MDPType& mdp,
-    EvaluatorType& heuristic,
-    StateID state,
-    StateInfo& info)
-    requires(StateInfo::StorePolicy)
-{
-    assert(!info.is_solved());
-
-    const auto update_result =
-        this->bellman_policy_update(mdp, heuristic, state);
-    const auto& greedy_transition = update_result.greedy_transition;
-
-    bool all_succs_solved = true;
-
-    if (greedy_transition) {
-        for (const auto succ_id : greedy_transition->successor_dist.support()) {
-            const auto& succ_info = this->state_infos_[succ_id];
-            all_succs_solved = all_succs_solved && succ_info.is_solved();
-        }
-    }
-
-    if (all_succs_solved) {
-        info.set_solved();
-    }
-
-    return update_result.value_changed;
-}
-
-template <typename State, typename Action, typename StateInfo>
-bool AOBase<State, Action, StateInfo>::update_value_check_solved(
-    MDPType& mdp,
-    EvaluatorType& heuristic,
-    StateID state,
-    StateInfo& info)
-    requires(!StateInfo::StorePolicy)
-{
-    assert(!info.is_solved());
-
-    const bool result = this->bellman_update(mdp, heuristic, state);
-
-    if (!info.unsolved) {
-        info.set_solved();
-    }
-
-    return result;
 }
 
 } // namespace probfd::algorithms::ao_search
