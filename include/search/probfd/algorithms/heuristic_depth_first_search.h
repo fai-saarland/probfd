@@ -57,7 +57,7 @@ public:
     [[nodiscard]]
     bool is_solved() const
     {
-        return this->info & SOLVED;
+        return this->info & SOLVED || this->is_terminal();
     }
 
     void set_policy_initialized()

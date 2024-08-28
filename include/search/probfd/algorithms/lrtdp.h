@@ -71,7 +71,10 @@ public:
 
     bool is_marked_trial() const { return this->info & MARKED_TRIAL; }
 
-    bool is_solved() const { return this->info & SOLVED; }
+    bool is_solved() const
+    {
+        return this->info & SOLVED || this->is_terminal();
+    }
 
     void mark_open()
     {

@@ -320,11 +320,6 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval>::push(
 
     assert(!sinfo.is_solved());
 
-    if (sinfo.is_dead_end()) {
-        sinfo.set_solved();
-        return CLOSED;
-    }
-
     const bool is_tip_state = !sinfo.is_policy_initialized();
 
     if (forward_updates_ || is_tip_state) {

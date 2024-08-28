@@ -55,7 +55,10 @@ public:
     static constexpr uint8_t BITS = Base::BITS + 2;
     static constexpr uint8_t MASK = 3 << Base::BITS;
 
-    bool is_solved() const { return (this->info & MASK) == SOLVED; }
+    bool is_solved() const
+    {
+        return (this->info & MASK) == SOLVED || this->is_terminal();
+    }
 
     bool is_on_trial() const { return (this->info & MARKED_TRIAL); }
 

@@ -436,6 +436,8 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
     StateInfo& state_info,
     auto&... optional_out_greedy)
 {
+    assert(!state_info.is_terminal());
+
     static_assert(sizeof...(optional_out_greedy) < 2);
 
     constexpr bool input_exists = sizeof...(optional_out_greedy) == 1;
@@ -447,11 +449,8 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
 #if defined(EXPENSIVE_STATISTICS)
     TimerScope scoped_upd_timer(statistics_.update_time);
 #endif
-    statistics_.backups++;
 
-    if (state_info.is_terminal()) {
-        return false;
-    }
+    statistics_.backups++;
 
     if (state_info.is_on_fringe()) {
         ++statistics_.backed_up_states;
