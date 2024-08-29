@@ -145,6 +145,11 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
 
     {
         StateInfo& pers_info = this->state_infos_[state];
+
+        if (pers_info.is_solved()) {
+            return true;
+        }
+
         bool value_changed = false;
         const uint8_t pstatus =
             push(mdp, heuristic, state, pers_info, value_changed);
