@@ -485,7 +485,7 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
             h,
             state_id,
             termination_cost,
-            transitions_,
+            transitions,
             qvalues);
         filter_greedy_transitions(transitions, qvalues, best_value);
         has_only_self_loops = transitions.empty();
