@@ -216,6 +216,7 @@ private:
         QuotientSystem& quotient,
         QEvaluator& heuristic,
         StateID state,
+        StateInfo& state_info,
         Flags& parent_flags);
 };
 

@@ -123,7 +123,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::trial(
 
         statistics_.trial_bellman_backups++;
         const auto result =
-            this->bellman_policy_update(quotient, heuristic, stateid);
+            this->bellman_policy_update(quotient, heuristic, stateid, info);
         const bool changed = result.value_changed;
         const auto& transition = result.greedy_transition;
 
@@ -188,7 +188,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
         return true;
     }
 
-    if (Flags flags; !push(quotient, heuristic, s, flags)) {
+    if (Flags flags; !push(quotient, heuristic, s, sinfo, flags)) {
         stack_index_.clear();
         return flags.rv;
     }
@@ -205,6 +205,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
 
             if (einfo->is_root) {
                 const StateID state = einfo->state;
+                StateInfo& state_info = this->state_infos_[state];
                 const unsigned stack_index = stack_index_[state];
                 auto scc = stack_ | std::views::drop(stack_index);
 
@@ -213,9 +214,13 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                     stack_.pop_back();
                     if (!einfo->flags.rv) {
                         ++this->statistics_.check_and_solve_bellman_backups;
-                        this->bellman_policy_update(quotient, heuristic, state);
+                        this->bellman_policy_update(
+                            quotient,
+                            heuristic,
+                            state,
+                            state_info);
                     } else {
-                        this->state_infos_[state].set_solved();
+                        state_info.set_solved();
                     }
                 } else {
                     if (einfo->flags.is_trap) {
@@ -225,13 +230,18 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                         }
                         TimerScope scope(statistics_.trap_timer);
                         quotient.build_quotient(scc, *scc.begin());
-                        this->state_infos_[state].clear_policy();
+                        state_info.clear_policy();
                         ++this->statistics_.traps;
                         ++this->statistics_.check_and_solve_bellman_backups;
                         stack_.erase(scc.begin(), scc.end());
                         if (reexpand_traps_) {
                             queue_.pop_back();
-                            if (push(quotient, heuristic, state, flags)) {
+                            if (push(
+                                    quotient,
+                                    heuristic,
+                                    state,
+                                    state_info,
+                                    flags)) {
                                 break;
                             } else {
                                 goto skip_pop;
@@ -240,7 +250,8 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                             this->bellman_policy_update(
                                 quotient,
                                 heuristic,
-                                state);
+                                state,
+                                state_info);
                             einfo->flags.rv = false;
                         }
                     } else if (einfo->flags.rv) {
@@ -255,7 +266,8 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                             this->bellman_policy_update(
                                 quotient,
                                 heuristic,
-                                entry.state_id);
+                                entry.state_id,
+                                state_info);
                         }
                         stack_.erase(scc.begin(), scc.end());
                     }
@@ -302,7 +314,12 @@ bool TALRTDPImpl<State, Action, UseInterval>::push_successor(
             }
             if (succ_info.is_solved()) {
                 einfo.flags.update(succ_info);
-            } else if (push(quotient, heuristic, succ, einfo.flags)) {
+            } else if (push(
+                           quotient,
+                           heuristic,
+                           succ,
+                           succ_info,
+                           einfo.flags)) {
                 return true;
             }
             // don't notify_state this state again within this
@@ -326,18 +343,20 @@ template <typename State, typename Action, bool UseInterval>
 bool TALRTDPImpl<State, Action, UseInterval>::push(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
-    const StateID state,
+    StateID state,
+    StateInfo& state_info,
     Flags& parent_flags)
 {
     assert(quotient.translate_state_id(state) == state);
 
     ++this->statistics_.check_and_solve_bellman_backups;
 
-    const auto result = this->bellman_policy_update(quotient, heuristic, state);
+    const auto result =
+        this->bellman_policy_update(quotient, heuristic, state, state_info);
     const auto& transition = result.greedy_transition;
 
     if (!transition) {
-        assert(this->state_infos_[state].is_dead_end());
+        assert(state_info.is_dead_end());
         parent_flags.rv = parent_flags.rv && !result.value_changed;
         parent_flags.is_trap = false;
         return false;

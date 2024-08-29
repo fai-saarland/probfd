@@ -112,7 +112,8 @@ void LRTDP<State, Action, UseInterval>::trial(
 
         this->statistics_.trial_bellman_backups++;
 
-        auto upd_info = this->bellman_policy_update(mdp, heuristic, state_id);
+        auto upd_info =
+            this->bellman_policy_update(mdp, heuristic, state_id, state_info);
         const bool value_changed = upd_info.value_changed;
         const auto& transition = upd_info.greedy_transition;
 
@@ -176,7 +177,7 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
     assert(!current_trial_.empty() && policy_queue_.empty());
 
     ClearGuard guard(visited_);
-    
+
     {
         auto& init_info = this->state_infos_[init_state_id];
         if (init_info.is_solved()) return true;
@@ -197,7 +198,8 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
 
         this->statistics_.check_and_solve_bellman_backups++;
 
-        auto upd_info = this->bellman_policy_update(mdp, heuristic, state_id);
+        auto upd_info =
+            this->bellman_policy_update(mdp, heuristic, state_id, info);
         const auto& transition = upd_info.greedy_transition;
 
         if (!transition) {
@@ -236,8 +238,9 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
     } else {
         for (StateID sid : visited_) {
             statistics_.check_and_solve_bellman_backups++;
-            this->bellman_policy_update(mdp, heuristic, sid);
-            this->state_infos_[sid].unmark();
+            StateInfo& info = this->state_infos_[sid];
+            this->bellman_policy_update(mdp, heuristic, sid, info);
+            info.unmark();
         }
     }
 

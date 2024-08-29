@@ -187,8 +187,6 @@ private:
         param_type<QState> state,
         utils::CountdownTimer& timer);
 
-    void collapse_trap(QuotientSystem& quotient, auto scc);
-
     bool push(
         QuotientSystem& quotient,
         QEvaluator& heuristic,

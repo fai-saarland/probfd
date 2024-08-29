@@ -338,11 +338,15 @@ bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::
                 if (einfo->is_leaf) {
                     // Terminal and self-loop leaf SCCs are always pruned
                     assert(scc.size() > 1);
-                    collapse_trap(quotient, scc);
-                    base_algorithm_->bellman_policy_update(
-                        quotient,
-                        heuristic,
-                        state_id);
+                    {
+#if defined(EXPENSIVE_STATISTICS)
+                        TimerScope t(statistics_.trap_removal);
+#endif
+                        quotient.build_quotient(scc, *scc.begin());
+                    }
+                    base_algorithm_->clear_policy(state_id);
+
+                    ++statistics_.traps;
                     ++trap_counter;
                 }
 
@@ -370,26 +374,6 @@ bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::
             einfo->successors.pop_back();
         } while (einfo->successors.empty());
     }
-}
-
-template <
-    typename State,
-    typename Action,
-    typename StateInfoT,
-    typename GreedyGraphGenerator>
-void FRET<State, Action, StateInfoT, GreedyGraphGenerator>::collapse_trap(
-    QuotientSystem& quotient,
-    auto scc)
-{
-#if defined(EXPENSIVE_STATISTICS)
-    TimerScope t(statistics_.trap_removal);
-#endif
-
-    // Now collapse the quotient
-    quotient.build_quotient(scc, *scc.begin());
-    base_algorithm_->clear_policy(scc.begin()->state_id);
-
-    ++statistics_.traps;
 }
 
 template <

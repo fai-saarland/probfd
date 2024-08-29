@@ -149,7 +149,7 @@ bool AOStar<State, Action, UseInterval>::update_value_check_solved(
     assert(!info.is_solved());
 
     const auto update_result =
-        this->bellman_policy_update(mdp, heuristic, state);
+        this->bellman_policy_update(mdp, heuristic, state, info);
     const auto& greedy_transition = update_result.greedy_transition;
 
     bool all_succs_solved = true;

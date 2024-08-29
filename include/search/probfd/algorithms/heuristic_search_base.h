@@ -217,8 +217,11 @@ public:
      * @brief Computes the Bellman update for a state, recomputes the greedy
      * action for it, and outputs status changes and the new greedy transition.
      */
-    UpdateResult
-    bellman_policy_update(MDPType& mdp, EvaluatorType& h, StateID state_id)
+    UpdateResult bellman_policy_update(
+        MDPType& mdp,
+        EvaluatorType& h,
+        StateID state_id,
+        StateInfo& state_info)
         requires(StorePolicy);
 
 protected:
@@ -231,8 +234,8 @@ protected:
     void print_statistics(std::ostream& out) const;
 
 private:
-    // Stores dead-end information in state info and returns true on change.
-    bool notify_dead_end(StateInfo& state_info, value_t termination_cost);
+    // Stores dead-end information in state info.
+    void set_dead_end(StateInfo& state_info, value_t termination_cost);
 
     bool update(StateInfo& state_info, AlgorithmValueType other);
 

@@ -121,18 +121,14 @@ void HeuristicSearchBase<State, Action, StateInfoT>::clear_policy(
 }
 
 template <typename State, typename Action, typename StateInfoT>
-bool HeuristicSearchBase<State, Action, StateInfoT>::notify_dead_end(
+void HeuristicSearchBase<State, Action, StateInfoT>::set_dead_end(
     StateInfo& state_info,
     value_t termination_cost)
 {
-    if (!state_info.is_dead_end()) {
-        state_info.set_dead_end();
-        state_value_changed(state_info);
-        state_info.value = AlgorithmValueType(termination_cost);
-        return true;
-    }
-
-    return false;
+    assert(!state_info.is_dead_end());
+    state_info.set_dead_end();
+    state_value_changed(state_info);
+    state_info.value = AlgorithmValueType(termination_cost);
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -205,10 +201,11 @@ template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::bellman_policy_update(
     MDPType& mdp,
     EvaluatorType& h,
-    StateID state_id) -> UpdateResult
+    StateID state_id,
+    StateInfo& state_info) -> UpdateResult
     requires(StorePolicy)
 {
-    StateInfo& state_info = this->state_infos_[state_id];
+    assert(!state_info.is_terminal());
 
     ClearGuard guard(transitions_);
 
@@ -334,7 +331,7 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::initialize_if_needed(
     const value_t estimate = h.evaluate(state);
     if (estimate == t_cost) {
         statistics_.pruned_states++;
-        notify_dead_end(state_info, t_cost);
+        set_dead_end(state_info, t_cost);
     } else {
         state_info.set_on_fringe();
 
@@ -474,7 +471,8 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
 
     if (transitions.empty()) {
         statistics_.terminal_states++;
-        return notify_dead_end(state_info, termination_cost);
+        set_dead_end(state_info, termination_cost);
+        return true;
     }
 
     AlgorithmValueType best_value;
@@ -505,7 +503,8 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
 
     if (has_only_self_loops) {
         statistics_.self_loop_states++;
-        return notify_dead_end(state_info, termination_cost);
+        set_dead_end(state_info, termination_cost);
+        return true;
     }
 
     return this->update(state_info, best_value);

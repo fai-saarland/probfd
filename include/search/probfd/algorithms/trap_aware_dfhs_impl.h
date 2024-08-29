@@ -255,8 +255,11 @@ bool TADFHSImpl<State, Action, UseInterval>::push_state(
     const bool tip = state_info.is_on_fringe();
     if (tip || forward_updates_) {
         ++statistics_.fw_updates;
-        auto result =
-            this->bellman_policy_update(quotient, heuristic, state_id);
+        auto result = this->bellman_policy_update(
+            quotient,
+            heuristic,
+            state_id,
+            state_info);
         flags.all_solved = flags.all_solved && !result.value_changed;
         const bool cutoff = (!expand_tip_states_ && tip) ||
                             (cutoff_inconsistent_ && result.value_changed);
@@ -299,7 +302,9 @@ bool TADFHSImpl<State, Action, UseInterval>::repush_trap(
     flags.clear();
     ++statistics_.fw_updates;
 
-    auto result = this->bellman_policy_update(quotient, heuristic, state);
+    StateInfo& state_info = this->state_infos_[state];
+    auto result =
+        this->bellman_policy_update(quotient, heuristic, state, state_info);
     flags.all_solved = !result.value_changed;
     const bool cutoff = !reexpand_removed_traps_ ||
                         (cutoff_inconsistent_ && result.value_changed);
@@ -372,8 +377,12 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
                 (backtrack_update_type_ == ON_DEMAND &&
                  (!flags.complete || !flags.all_solved))) {
                 ++statistics_.bw_updates;
-                auto updated =
-                    this->bellman_policy_update(quotient, heuristic, state);
+                StateInfo& state_info = this->state_infos_[state];
+                auto updated = this->bellman_policy_update(
+                    quotient,
+                    heuristic,
+                    state,
+                    state_info);
                 flags.complete = flags.complete && !updated.policy_changed;
                 flags.all_solved = flags.all_solved && !updated.value_changed;
                 terminated_ = terminated_ ||
@@ -387,10 +396,12 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
 
                 if (scc.size() == 1) {
                     if (backtrack_update_type_ == CONVERGENCE) {
+                        StateInfo& state_info = this->state_infos_[state];
                         auto res = this->bellman_policy_update(
                             quotient,
                             heuristic,
-                            state);
+                            state,
+                            state_info);
                         flags.complete = flags.complete && !res.policy_changed;
                         flags.all_solved =
                             flags.all_solved && !res.value_changed;
@@ -488,7 +499,7 @@ template <typename State, typename Action, bool UseInterval>
 bool TADFHSImpl<State, Action, UseInterval>::backtrack_trap(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
-    const StateID state,
+    StateID state,
     Flags& flags,
     auto scc)
 {
@@ -563,8 +574,12 @@ auto TADFHSImpl<State, Action, UseInterval>::value_iteration(
         for (const StateID id : range) {
             timer.throw_if_expired();
 
-            const auto result =
-                this->bellman_policy_update(quotient, heuristic, id);
+            StateInfo& state_info = this->state_infos_[id];
+            const auto result = this->bellman_policy_update(
+                quotient,
+                heuristic,
+                id,
+                state_info);
             value_changed = value_changed || result.value_changed;
             policy_changed = policy_changed || result.policy_changed;
         }
