@@ -170,13 +170,6 @@ public:
     bool is_terminal(StateID state_id) const;
 
     /**
-     * @brief Checks if the state represented by \p state_id is marked as a
-     * dead-end.
-     */
-    [[nodiscard]]
-    bool is_marked_dead_end(StateID state_id) const;
-
-    /**
      * @brief Checks if the state represented by \p state_id has been visited
      * yet.
      */

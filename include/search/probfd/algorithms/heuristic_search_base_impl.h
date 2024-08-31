@@ -99,13 +99,6 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::is_terminal(
 }
 
 template <typename State, typename Action, typename StateInfoT>
-bool HeuristicSearchBase<State, Action, StateInfoT>::is_marked_dead_end(
-    StateID state_id) const
-{
-    return state_infos_[state_id].is_dead_end();
-}
-
-template <typename State, typename Action, typename StateInfoT>
 bool HeuristicSearchBase<State, Action, StateInfoT>::was_visited(
     StateID state_id) const
 {
