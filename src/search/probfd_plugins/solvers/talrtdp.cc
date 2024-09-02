@@ -103,7 +103,7 @@ public:
         add_option<std::shared_ptr<QSuccessorSampler>>(
             "successor_sampler",
             "Successor bias for the trials.",
-            add_mdp_type_to_option<false, true>("random_successor_sampler"));
+            add_mdp_type_to_option<false, true>("random_successor_sampler()"));
         add_option<TrialTerminationCondition>(
             "terminate_trial",
             "The trial termination condition.",
