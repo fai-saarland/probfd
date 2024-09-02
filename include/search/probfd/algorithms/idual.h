@@ -9,6 +9,7 @@
 
 #include "downward/lp/lp_solver.h"
 
+#include <limits>
 #include <set>
 #include <vector>
 
@@ -76,6 +77,7 @@ class IDual : public MDPAlgorithm<State, Action> {
 
     using MDPType = typename Base::MDPType;
     using EvaluatorType = typename Base::EvaluatorType;
+    using PolicyType = typename Base::PolicyType;
 
     lp::LPSolver lp_solver_;
     storage::PerStateStorage<PerStateInfo> state_infos_;
@@ -87,6 +89,13 @@ public:
     explicit IDual(lp::LPSolverType solver_type);
 
     Interval solve(
+        MDPType& mdp,
+        EvaluatorType& heuristic,
+        param_type<State> initial_state,
+        ProgressReport progress,
+        double max_time) override;
+
+    std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
         EvaluatorType& heuristic,
         param_type<State> initial_state,

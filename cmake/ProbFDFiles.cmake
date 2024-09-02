@@ -45,10 +45,12 @@ create_probfd_library(
 
         # Utility
         probfd/utils/guards
+        probfd/utils/not_implemented
 
         probfd/solver_interface
 
         probfd/solvers/mdp_solver
+        probfd/solvers/bisimulation_heuristic_search_algorithm
     DEPENDS
         core_sources
         core_tasks

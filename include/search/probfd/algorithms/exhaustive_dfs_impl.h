@@ -6,6 +6,8 @@
 
 #include "probfd/algorithms/transition_sorter.h"
 
+#include "probfd/utils/not_implemented.h"
+
 #include "probfd/evaluator.h"
 
 #include <cassert>
@@ -98,6 +100,17 @@ Interval ExhaustiveDepthFirstSearch<State, Action, UseInterval>::solve(
     run_exploration(mdp, heuristic, progress);
 
     return search_space_.lookup_bounds(stateid);
+}
+
+template <typename State, typename Action, bool UseInterval>
+auto ExhaustiveDepthFirstSearch<State, Action, UseInterval>::compute_policy(
+    MDPType&,
+    EvaluatorType&,
+    param_type<State>,
+    ProgressReport,
+    double) -> std::unique_ptr<PolicyType>
+{
+    not_implemented();
 }
 
 template <typename State, typename Action, bool UseInterval>

@@ -5,6 +5,8 @@
 #include "probfd/algorithms/types.h"
 #include "probfd/algorithms/utils.h"
 
+#include "probfd/utils/not_implemented.h"
+
 #include "probfd/distribution.h"
 #include "probfd/evaluator.h"
 
@@ -241,6 +243,17 @@ Interval IDual<State, Action>::solve(
     statistics_.open = open_states.size();
 
     return Interval(objective, INFINITE_VALUE);
+}
+
+template <typename State, typename Action>
+auto IDual<State, Action>::compute_policy(
+    MDPType&,
+    EvaluatorType&,
+    param_type<State>,
+    ProgressReport,
+    double) -> std::unique_ptr<PolicyType>
+{
+    not_implemented();
 }
 
 } // namespace probfd::algorithms::idual

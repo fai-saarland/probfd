@@ -212,6 +212,7 @@ class ExhaustiveDepthFirstSearch : public MDPAlgorithm<State, Action> {
 
     using MDPType = typename Base::MDPType;
     using EvaluatorType = typename Base::EvaluatorType;
+    using PolicyType = Base::PolicyType;
 
     using TransitionSorterType = TransitionSorter<State, Action>;
 
@@ -251,7 +252,14 @@ public:
         EvaluatorType& heuristic,
         param_type<State> state,
         ProgressReport progress,
-        double) override;
+        double max_time) override;
+
+    std::unique_ptr<PolicyType> compute_policy(
+        MDPType& mdp,
+        EvaluatorType& heuristic,
+        param_type<State> state,
+        ProgressReport progress,
+        double max_time) override;
 
     void print_statistics(std::ostream& out) const override;
 

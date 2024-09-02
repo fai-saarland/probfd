@@ -64,6 +64,7 @@ class IntervalIteration : public MDPAlgorithm<State, Action> {
 
     using MDPType = typename Base::MDPType;
     using EvaluatorType = typename Base::EvaluatorType;
+    using PolicyType = typename Base::PolicyType;
 
     using QSystem = quotients::QuotientSystem<State, Action>;
     using QState = quotients::QuotientState<State, Action>;
@@ -94,7 +95,14 @@ public:
         MDPType& mdp,
         EvaluatorType& heuristic,
         param_type<State> state,
-        ProgressReport,
+        ProgressReport report,
+        double max_time) override;
+
+    std::unique_ptr<PolicyType> compute_policy(
+        MDPType& mdp,
+        EvaluatorType& heuristic,
+        param_type<State> state,
+        ProgressReport report,
         double max_time) override;
 
     void print_statistics(std::ostream& out) const override;

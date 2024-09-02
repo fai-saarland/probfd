@@ -297,6 +297,16 @@ Interval I2Dual::solve(
     return Interval(objective_, INFINITE_VALUE);
 }
 
+auto I2Dual::compute_policy(
+    FDRMDP&,
+    FDREvaluator&,
+    const State&,
+    ProgressReport,
+    double) -> std::unique_ptr<PolicyType>
+{
+    abort();
+}
+
 bool I2Dual::evaluate_state(
     FDRMDP& mdp,
     FDREvaluator& heuristic,

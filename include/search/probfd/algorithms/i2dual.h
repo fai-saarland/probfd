@@ -15,6 +15,7 @@
 
 #include <cstddef>
 #include <iosfwd>
+#include <limits>
 #include <memory>
 #include <vector>
 
@@ -78,6 +79,13 @@ public:
     Interval solve(
         FDRMDP& mdp,
         FDREvaluator& heuristic,
+        const State& initial_state,
+        ProgressReport progress,
+        double max_time) override;
+
+    std::unique_ptr<PolicyType> compute_policy(
+        FDRMDP& mdp,
+        EvaluatorType& heuristic,
         const State& initial_state,
         ProgressReport progress,
         double max_time) override;

@@ -7,6 +7,7 @@
 #include "probfd/evaluator.h"
 #include "probfd/interval.h"
 #include "probfd/mdp_algorithm.h"
+#include "probfd/policy.h"
 #include "probfd/task_cost_function.h"
 #include "probfd/task_evaluator_factory.h"
 

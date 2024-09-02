@@ -6,6 +6,7 @@
 
 #include "probfd/utils/guards.h"
 #include "probfd/utils/iterators.h"
+#include "probfd/utils/not_implemented.h"
 
 #include "probfd/cost_function.h"
 #include "probfd/evaluator.h"
@@ -386,6 +387,17 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
             (!explore->next_successor() && !explore->next_transition(mdp)) ||
             !successor_loop(mdp, *explore, value_store, timer));
     }
+}
+
+template <typename State, typename Action, bool UseInterval>
+auto TATopologicalValueIteration<State, Action, UseInterval>::compute_policy(
+    MDPType&,
+    EvaluatorType&,
+    param_type<State>,
+    ProgressReport,
+    double) -> std::unique_ptr<PolicyType>
+{
+    not_implemented();
 }
 
 template <typename State, typename Action, bool UseInterval>

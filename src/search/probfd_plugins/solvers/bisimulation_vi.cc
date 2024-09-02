@@ -25,6 +25,7 @@
 #include "downward/plugins/plugin.h"
 
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <string>
 
@@ -153,8 +154,12 @@ public:
 
         ProgressReport progress;
 
-        const Interval val =
-            solver->solve(state_space, blind, initial_state, progress);
+        const Interval val = solver->solve(
+            state_space,
+            blind,
+            initial_state,
+            progress,
+            std::numeric_limits<double>::infinity());
 
         std::cout << "analysis done! [t=" << total_timer << "]" << std::endl;
         std::cout << std::endl;

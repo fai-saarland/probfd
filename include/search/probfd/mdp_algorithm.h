@@ -1,8 +1,7 @@
 #ifndef PROBFD_MDP_ALGORITHM_H
 #define PROBFD_MDP_ALGORITHM_H
 
-#include "probfd/policies/empty_policy.h"
-
+#include "probfd/policy.h"
 #include "probfd/progress_report.h"
 #include "probfd/type_traits.h"
 
@@ -34,25 +33,18 @@ protected:
     using MDPType = MDP<State, Action>;
     using EvaluatorType = Evaluator<State>;
 
-    static constexpr double INF_TIME = std::numeric_limits<double>::infinity();
-
 public:
     virtual ~MDPAlgorithm() = default;
 
     /**
      * @brief Computes a partial policy for the input state.
-     *
-     * The default implementation of this method returns an empty policy.
      */
     virtual std::unique_ptr<PolicyType> compute_policy(
-        MDPType&,
-        EvaluatorType&,
-        param_type<State>,
-        ProgressReport,
-        double = INF_TIME)
-    {
-        return std::make_unique<policies::EmptyPolicy<State, Action>>();
-    }
+        MDPType& mdp,
+        EvaluatorType& heuristic,
+        param_type<State> state,
+        ProgressReport progress,
+        double maxtime) = 0;
 
     /**
      * @brief Runs the MDP algorithm for the initial state \p state with a
@@ -63,7 +55,7 @@ public:
         EvaluatorType& heuristic,
         param_type<State> state,
         ProgressReport progress,
-        double max_time = INF_TIME) = 0;
+        double max_time) = 0;
 
     /**
      * @brief Prints algorithm statistics to the specified output stream.

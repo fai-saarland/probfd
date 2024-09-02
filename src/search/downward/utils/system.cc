@@ -16,6 +16,8 @@ const char* get_exit_code_message_reentrant(ExitCode exitcode)
     case ExitCode::SEARCH_INPUT_ERROR: return "Usage error occurred.";
     case ExitCode::SEARCH_UNSUPPORTED:
         return "Tried to use unsupported feature.";
+    case ExitCode::SEARCH_UNIMPLEMENTED:
+        return "Tried to use unimplemented feature.";
     case ExitCode::SEARCH_UNSOLVABLE: return "Task is provably unsolvable.";
     case ExitCode::SEARCH_UNSOLVED_INCOMPLETE:
         return "Search stopped without finding a solution.";

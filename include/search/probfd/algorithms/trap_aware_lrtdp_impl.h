@@ -413,6 +413,122 @@ Interval TALRTDP<State, Action, UseInterval>::solve(
 }
 
 template <typename State, typename Action, bool UseInterval>
+auto TALRTDP<State, Action, UseInterval>::compute_policy(
+    MDPType& mdp,
+    EvaluatorType& heuristic,
+    param_type<State> state,
+    ProgressReport progress,
+    double max_time) -> std::unique_ptr<PolicyType>
+{
+    QuotientSystem quotient(mdp);
+    quotients::QuotientMaxHeuristic<State, Action> qheuristic(heuristic);
+
+    QState qinit = quotient.translate_state(state);
+    algorithm_.solve_quotient(quotient, qheuristic, qinit, progress, max_time);
+
+    /*
+     * The quotient policy only specifies the optimal actions between
+     * traps. We need to supplement the optimal actions within the
+     * traps, i.e. the actions which point every other member state of
+     * the trap towards that trap member state that owns the optimal
+     * quotient action.
+     *
+     * We fully explore the quotient policy starting from the initial
+     * state and compute the optimal 'inner' actions for each trap. To
+     * this end, we first generate the sub-MDP of the trap. Afterwards,
+     * we expand the trap graph backwards from the state that has the
+     * optimal quotient action. For each encountered state, we select
+     * the action with which it is encountered first as the policy
+     * action.
+     */
+    using MapPolicy = policies::MapPolicy<State, Action>;
+    std::unique_ptr<MapPolicy> policy(new MapPolicy(&mdp));
+
+    const StateID initial_state_id = quotient.get_state_id(qinit);
+
+    std::deque<StateID> queue({initial_state_id});
+    std::set<StateID> visited({initial_state_id});
+
+    do {
+        const StateID quotient_id = queue.front();
+        const QState quotient_state = quotient.get_state(quotient_id);
+        queue.pop_front();
+
+        std::optional quotient_action =
+            algorithm_.get_greedy_action(quotient_id);
+
+        // Terminal states have no policy decision.
+        if (!quotient_action) {
+            continue;
+        }
+
+        const Interval quotient_bound = algorithm_.lookup_bounds(quotient_id);
+
+        const StateID exiting_id = quotient_action->state_id;
+
+        policy->emplace_decision(
+            exiting_id,
+            quotient_action->action,
+            quotient_bound);
+
+        // Nothing else needs to be done if the trap has only one state.
+        if (quotient_state.num_members() != 1) {
+            std::unordered_map<StateID, std::set<QAction>> parents;
+
+            // Build the inverse graph
+            std::vector<QAction> inner_actions;
+            quotient_state.get_collapsed_actions(inner_actions);
+
+            for (const QAction& qaction : inner_actions) {
+                StateID source_id = qaction.state_id;
+                Action action = qaction.action;
+
+                const State source = mdp.get_state(source_id);
+
+                Distribution<StateID> successors;
+                mdp.generate_action_transitions(source, action, successors);
+
+                for (const StateID succ_id : successors.support()) {
+                    parents[succ_id].insert(qaction);
+                }
+            }
+
+            // Now traverse the inverse graph starting from the exiting
+            // state
+            std::deque<StateID> inverse_queue({exiting_id});
+            std::set<StateID> inverse_visited({exiting_id});
+
+            do {
+                const StateID next_id = inverse_queue.front();
+                inverse_queue.pop_front();
+
+                for (const auto& [pred_id, act] : parents[next_id]) {
+                    if (inverse_visited.insert(pred_id).second) {
+                        policy->emplace_decision(pred_id, act, quotient_bound);
+                        inverse_queue.push_back(pred_id);
+                    }
+                }
+            } while (!inverse_queue.empty());
+        }
+
+        // Push the successor traps.
+        Distribution<StateID> successors;
+        quotient.generate_action_transitions(
+            quotient_state,
+            *quotient_action,
+            successors);
+
+        for (const StateID succ_id : successors.support()) {
+            if (visited.insert(succ_id).second) {
+                queue.push_back(succ_id);
+            }
+        }
+    } while (!queue.empty());
+
+    return policy;
+}
+
+template <typename State, typename Action, bool UseInterval>
 void TALRTDP<State, Action, UseInterval>::print_statistics(
     std::ostream& out) const
 {

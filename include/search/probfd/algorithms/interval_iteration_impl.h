@@ -4,6 +4,8 @@
 
 #include "probfd/quotients/quotient_max_heuristic.h"
 
+#include "probfd/utils/not_implemented.h"
+
 #include "probfd/progress_report.h"
 
 #include "downward/utils/collections.h"
@@ -36,6 +38,17 @@ Interval IntervalIteration<State, Action>::solve(
     std::vector<StateID> dead, one;
     storage::PerStateStorage<Interval> value_store;
     return mysolve(mdp, heuristic, state, value_store, dead, one, *sys, timer);
+}
+
+template <typename State, typename Action>
+auto IntervalIteration<State, Action>::compute_policy(
+    MDPType&,
+    EvaluatorType&,
+    param_type<State>,
+    ProgressReport,
+    double) -> std::unique_ptr<PolicyType>
+{
+    not_implemented();
 }
 
 template <typename State, typename Action>
