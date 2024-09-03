@@ -237,7 +237,7 @@ private:
     StateInfo&
     lookup_initialize(MDPType& mdp, EvaluatorType& h, StateID state_id);
 
-    bool initialize_if_needed(
+    void initialize(
         MDPType& mdp,
         EvaluatorType& h,
         param_type<State> state,

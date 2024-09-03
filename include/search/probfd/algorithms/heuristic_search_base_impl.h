@@ -243,9 +243,9 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize_report(
     StateInfo& info = this->state_infos_[initial_id];
     initial_state_info_ = &info;
 
-    if (!initialize_if_needed(mdp, h, state, info)) {
-        return;
-    }
+    if (info.is_value_initialized()) return;
+
+    initialize(mdp, h, state, info);
 
     if constexpr (UseInterval) {
         progress.register_bound("v", [&info]() { return info.value; });
@@ -296,19 +296,20 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::lookup_initialize(
     StateID state_id) -> StateInfo&
 {
     StateInfo& state_info = this->state_infos_[state_id];
-    State state = mdp.get_state(state_id);
-    initialize_if_needed(mdp, h, state, state_info);
+    if (state_info.is_value_initialized()) return state_info;
+    const State state = mdp.get_state(state_id);
+    initialize(mdp, h, state, state_info);
     return state_info;
 }
 
 template <typename State, typename Action, typename StateInfoT>
-bool HeuristicSearchBase<State, Action, StateInfoT>::initialize_if_needed(
+void HeuristicSearchBase<State, Action, StateInfoT>::initialize(
     MDPType& mdp,
     EvaluatorType& h,
     param_type<State> state,
     StateInfo& state_info)
 {
-    if (state_info.is_value_initialized()) return false;
+    assert(!state_info.is_value_initialized());
 
     statistics_.evaluated_states++;
 
@@ -319,7 +320,7 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::initialize_if_needed(
         state_info.set_goal();
         state_info.value = AlgorithmValueType(t_cost);
         statistics_.goal_states++;
-        return true;
+        return;
     }
 
     const value_t estimate = h.evaluate(state);
@@ -336,8 +337,6 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::initialize_if_needed(
             state_info.value = estimate;
         }
     }
-
-    return true;
 }
 
 template <typename State, typename Action, typename StateInfoT>
