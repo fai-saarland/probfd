@@ -180,125 +180,99 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
 {
     assert(!this->current_trial_.empty());
 
-    const StateID s = quotient.translate_state_id(this->current_trial_.back());
-    auto& sinfo = this->state_infos_[s];
+    push(quotient.translate_state_id(this->current_trial_.back()));
 
-    if (sinfo.is_solved()) {
-        // was labeled in some prior check_and_solve() invocation
-        return true;
-    }
-
-    if (Flags flags; !push(quotient, heuristic, s, sinfo, flags)) {
-        stack_index_.clear();
-        return flags.rv;
-    }
-
-    ExplorationInformation* einfo = &queue_.back();
+    ExplorationInformation* einfo;
+    StateInfo* sinfo;
 
     for (;;) {
-        while (this->push_successor(quotient, heuristic, *einfo, timer)) {
+        do {
             einfo = &queue_.back();
-        }
+            sinfo = &this->state_infos_[einfo->state];
+        } while (this->initialize(
+                     quotient,
+                     heuristic,
+                     einfo->state,
+                     *sinfo,
+                     *einfo) &&
+                 this->push_successor(quotient, *einfo, timer));
 
         do {
-            Flags flags = einfo->flags;
-
             if (einfo->is_root) {
                 const StateID state = einfo->state;
-                StateInfo& state_info = this->state_infos_[state];
                 const unsigned stack_index = stack_index_[state];
                 auto scc = stack_ | std::views::drop(stack_index);
 
-                if (scc.size() == 1) {
-                    stack_index_[state] = STATE_CLOSED;
-                    stack_.pop_back();
-                    if (!einfo->flags.rv) {
-                        ++this->statistics_.check_and_solve_bellman_backups;
-                        this->bellman_policy_update(
-                            quotient,
-                            heuristic,
-                            state,
-                            state_info);
-                    } else {
-                        state_info.set_solved();
+                if (einfo->is_trap && scc.size() > 1) {
+                    assert(einfo->rv);
+                    for (const auto& entry : scc) {
+                        stack_index_[entry.state_id] = STATE_CLOSED;
                     }
+                    TimerScope scope(statistics_.trap_timer);
+                    quotient.build_quotient(scc, *scc.begin());
+                    sinfo->clear_policy();
+                    ++this->statistics_.traps;
+                    stack_.erase(scc.begin(), scc.end());
+                    if (reexpand_traps_) {
+                        queue_.pop_back();
+                        push(state);
+                        break;
+                    }
+
+                    ++this->statistics_.check_and_solve_bellman_backups;
+                    this->bellman_policy_update(
+                        quotient,
+                        heuristic,
+                        state,
+                        *sinfo);
+                    einfo->rv = false;
                 } else {
-                    if (einfo->flags.is_trap) {
-                        assert(einfo->flags.rv);
-                        for (const auto& entry : scc) {
-                            stack_index_[entry.state_id] = STATE_CLOSED;
-                        }
-                        TimerScope scope(statistics_.trap_timer);
-                        quotient.build_quotient(scc, *scc.begin());
-                        state_info.clear_policy();
-                        ++this->statistics_.traps;
-                        ++this->statistics_.check_and_solve_bellman_backups;
-                        stack_.erase(scc.begin(), scc.end());
-                        if (reexpand_traps_) {
-                            queue_.pop_back();
-                            if (push(
-                                    quotient,
-                                    heuristic,
-                                    state,
-                                    state_info,
-                                    flags)) {
-                                break;
-                            } else {
-                                goto skip_pop;
-                            }
+                    for (const auto& entry : scc) {
+                        const StateID id = entry.state_id;
+                        StateInfo& info = this->state_infos_[id];
+                        stack_index_[id] = STATE_CLOSED;
+                        if (info.is_solved()) continue;
+                        if (einfo->rv) {
+                            info.set_solved();
                         } else {
+                            ++this->statistics_.check_and_solve_bellman_backups;
                             this->bellman_policy_update(
                                 quotient,
                                 heuristic,
-                                state,
-                                state_info);
-                            einfo->flags.rv = false;
+                                id,
+                                info);
                         }
-                    } else if (einfo->flags.rv) {
-                        for (const auto& entry : scc) {
-                            stack_index_[entry.state_id] = STATE_CLOSED;
-                            this->state_infos_[entry.state_id].set_solved();
-                        }
-                        stack_.erase(scc.begin(), scc.end());
-                    } else {
-                        for (const auto& entry : scc) {
-                            stack_index_[entry.state_id] = STATE_CLOSED;
-                            this->bellman_policy_update(
-                                quotient,
-                                heuristic,
-                                entry.state_id,
-                                state_info);
-                        }
-                        stack_.erase(scc.begin(), scc.end());
                     }
+                    stack_.erase(scc.begin(), scc.end());
                 }
 
-                flags.is_trap = false;
+                einfo->is_trap = false;
             }
 
-            queue_.pop_back();
+            ExplorationInformation bt_einfo = std::move(*einfo);
 
-        skip_pop:;
+            queue_.pop_back();
 
             if (queue_.empty()) {
                 assert(stack_.empty());
                 stack_index_.clear();
-                return sinfo.is_solved();
+                return sinfo->is_solved();
             }
 
             timer.throw_if_expired();
 
             einfo = &queue_.back();
+            sinfo = &this->state_infos_[einfo->state];
 
-            einfo->flags.update(flags);
-        } while (!einfo->next_successor());
+            einfo->update(bt_einfo);
+        } while (!einfo->next_successor() ||
+                 !this->push_successor(quotient, *einfo, timer));
     }
 }
 
 template <typename State, typename Action, bool UseInterval>
 bool TALRTDPImpl<State, Action, UseInterval>::push_successor(
     QuotientSystem& quotient,
-    QEvaluator& heuristic,
     ExplorationInformation& einfo,
     utils::CountdownTimer& timer)
 {
@@ -309,22 +283,8 @@ bool TALRTDPImpl<State, Action, UseInterval>::push_successor(
         StateInfo& succ_info = this->state_infos_[succ];
         int& sidx = stack_index_[succ];
         if (sidx == STATE_UNSEEN) {
-            if (succ_info.is_terminal()) {
-                succ_info.set_solved();
-            }
-            if (succ_info.is_solved()) {
-                einfo.flags.update(succ_info);
-            } else if (push(
-                           quotient,
-                           heuristic,
-                           succ,
-                           succ_info,
-                           einfo.flags)) {
-                return true;
-            }
-            // don't notify_state this state again within this
-            // check_and_solve iteration
-            sidx = STATE_CLOSED;
+            push(succ);
+            return true;
         } else if (sidx >= 0) {
             int& sidx2 = stack_index_[einfo.state];
             if (sidx < sidx2) {
@@ -332,7 +292,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::push_successor(
                 einfo.is_root = false;
             }
         } else {
-            einfo.flags.update(succ_info);
+            einfo.update(succ_info);
         }
     } while (einfo.next_successor());
 
@@ -340,14 +300,27 @@ bool TALRTDPImpl<State, Action, UseInterval>::push_successor(
 }
 
 template <typename State, typename Action, bool UseInterval>
-bool TALRTDPImpl<State, Action, UseInterval>::push(
+void TALRTDPImpl<State, Action, UseInterval>::push(StateID state)
+{
+    queue_.emplace_back(state);
+    stack_index_[state] = stack_.size();
+    stack_.emplace_back(state);
+}
+
+template <typename State, typename Action, bool UseInterval>
+bool TALRTDPImpl<State, Action, UseInterval>::initialize(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
     StateID state,
     StateInfo& state_info,
-    Flags& parent_flags)
+    ExplorationInformation& e_info)
 {
     assert(quotient.translate_state_id(state) == state);
+
+    if (state_info.is_solved()) {
+        e_info.is_trap = false;
+        return false;
+    }
 
     ++this->statistics_.check_and_solve_bellman_backups;
 
@@ -357,30 +330,27 @@ bool TALRTDPImpl<State, Action, UseInterval>::push(
 
     if (!transition) {
         assert(state_info.is_dead_end());
-        parent_flags.rv = parent_flags.rv && !result.value_changed;
-        parent_flags.is_trap = false;
+        e_info.rv = e_info.rv && !result.value_changed;
+        e_info.is_trap = false;
         return false;
     }
 
     if (result.value_changed) {
-        parent_flags.rv = false;
-        parent_flags.is_trap = false;
-        parent_flags.is_dead = false;
+        e_info.rv = false;
+        e_info.is_trap = false;
+        e_info.is_dead = false;
         return false;
     }
 
-    queue_.emplace_back(state);
-    ExplorationInformation& e = queue_.back();
     for (const StateID sel : transition->successor_dist.support()) {
         if (sel != state) {
-            e.successors.push_back(sel);
+            e_info.successors.push_back(sel);
         }
     }
 
-    assert(!e.successors.empty());
-    e.flags.is_trap = quotient.get_action_cost(transition->action) == 0;
-    stack_index_[state] = stack_.size();
-    stack_.emplace_back(state, transition->action);
+    assert(!e_info.successors.empty());
+    e_info.is_trap = quotient.get_action_cost(transition->action) == 0;
+    stack_.back().aops.emplace_back(transition->action);
     return true;
 }
 

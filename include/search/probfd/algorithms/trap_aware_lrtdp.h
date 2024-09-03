@@ -90,33 +90,6 @@ class TALRTDPImpl
 
     using QuotientSuccessorSampler = SuccessorSampler<QAction>;
 
-    struct Flags {
-        bool is_dead = true;
-        bool is_trap = true;
-        bool rv = true;
-
-        void clear()
-        {
-            is_dead = true;
-            is_trap = true;
-            rv = true;
-        }
-
-        void update(const Flags& flags)
-        {
-            is_trap = is_trap && flags.is_trap;
-            is_dead = is_dead && flags.is_dead;
-            rv = rv && flags.rv;
-        }
-
-        void update(const StateInfo& succ_info)
-        {
-            is_trap = false;
-            is_dead = is_dead && succ_info.is_dead_end();
-            rv = rv && succ_info.is_solved();
-        }
-    };
-
     struct ExplorationInformation {
         explicit ExplorationInformation(StateID state_id)
             : state(state_id)
@@ -126,20 +99,42 @@ class TALRTDPImpl
         StateID state;
         std::vector<StateID> successors;
         bool is_root = true;
-        Flags flags;
+        bool is_dead = true;
+        bool is_trap = true;
+        bool rv = true;
 
         bool next_successor();
         [[nodiscard]]
         StateID get_successor() const;
+
+        void update(const ExplorationInformation& backtracked)
+        {
+            is_trap = is_trap && backtracked.is_trap;
+            is_dead = is_dead && backtracked.is_dead;
+            rv = rv && backtracked.rv;
+        }
+
+        void update(const StateInfo& succ_info)
+        {
+            is_trap = false;
+            is_dead = is_dead && succ_info.is_dead_end();
+            rv = rv && succ_info.is_solved();
+        }
+
+        void clear()
+        {
+            is_dead = true;
+            is_trap = true;
+            rv = true;
+        }
     };
 
     struct StackInfo {
         StateID state_id;
         std::vector<QAction> aops;
 
-        StackInfo(StateID state_id, QAction action)
+        explicit StackInfo(StateID state_id)
             : state_id(state_id)
-            , aops({action})
         {
         }
 
@@ -208,16 +203,17 @@ private:
 
     bool push_successor(
         QuotientSystem& quotient,
-        QEvaluator& heuristic,
         ExplorationInformation& einfo,
         utils::CountdownTimer& timer);
 
-    bool push(
+    void push(StateID state);
+
+    bool initialize(
         QuotientSystem& quotient,
         QEvaluator& heuristic,
         StateID state,
         StateInfo& state_info,
-        Flags& parent_flags);
+        ExplorationInformation& e_info);
 };
 
 template <typename State, typename Action, bool UseInterval>
