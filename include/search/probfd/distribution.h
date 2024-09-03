@@ -142,34 +142,19 @@ public:
         distribution_.emplace(it, std::move(t), prob);
     }
 
-    iterator find(const T& t)
+    auto find(this auto&& self, const T& t)
     {
         auto it = std::ranges::lower_bound(
-            distribution_,
+            self.distribution_,
             t,
             std::less<>{},
             &ItemProbabilityPair<T>::item);
 
-        if (it == end() || it->item == t) {
+        if (it == self.end() || it->item == t) {
             return it;
         }
 
-        return end();
-    }
-
-    const_iterator find(const T& t) const
-    {
-        auto it = std::ranges::lower_bound(
-            distribution_,
-            t,
-            std::less<>{},
-            &ItemProbabilityPair<T>::item);
-
-        if (it == end() || it->item == t) {
-            return it;
-        }
-
-        return end();
+        return self.end();
     }
 
     /**
@@ -307,25 +292,13 @@ public:
             [&](const auto& elem) { return elem.item == t; });
     }
 
-    auto begin() { return distribution_.begin(); }
+    auto begin(this auto&& self) { return self.distribution_.begin(); }
+    auto end(this auto&& self) { return self.distribution_.end(); }
 
-    auto begin() const { return distribution_.begin(); }
-
-    auto end() { return distribution_.end(); }
-
-    auto end() const { return distribution_.end(); }
-
-    auto support()
+    auto support(this auto&& self)
     {
         return std::views::transform(
-            distribution_,
-            &ItemProbabilityPair<T>::item);
-    }
-
-    auto support() const
-    {
-        return std::views::transform(
-            distribution_,
+            self.distribution_,
             &ItemProbabilityPair<T>::item);
     }
 
