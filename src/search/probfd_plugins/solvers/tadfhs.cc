@@ -187,6 +187,10 @@ public:
             "Ordering in which successors are considered during policy "
             "exploration.",
             add_mdp_type_to_option<false, true>("lifo_open_list()"));
+        add_option<bool>(
+            "reexpand_traps",
+            "Immediately re-expand the collapsed trap state.",
+            "true");
 
         add_mdp_hs_options_to_feature<false, true>(*this);
     }
@@ -224,6 +228,10 @@ public:
             "Ordering in which successors are considered during policy "
             "exploration.",
             add_mdp_type_to_option<false, true>("lifo_open_list()"));
+        add_option<bool>(
+            "reexpand_traps",
+            "Immediately re-expand the collapsed trap state.",
+            "true");
 
         add_mdp_hs_options_to_feature<false, true>(*this);
     }
@@ -262,7 +270,11 @@ public:
             "Ordering in which successors are considered during policy "
             "exploration.",
             add_mdp_type_to_option<false, true>("lifo_open_list()"));
-
+        add_option<bool>(
+            "reexpand_traps",
+            "Immediately re-expand the collapsed trap state.",
+            "true");
+        
         add_mdp_hs_options_to_feature<false, true>(*this);
     }
 
