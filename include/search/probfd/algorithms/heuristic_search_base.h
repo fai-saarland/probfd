@@ -267,7 +267,8 @@ private:
         EvaluatorType& h,
         StateID state_id,
         StateInfo& state_info,
-        auto&... optional_out_greedy);
+        std::vector<TransitionType>& transitions,
+        bool filter_greedy);
 };
 
 /**
