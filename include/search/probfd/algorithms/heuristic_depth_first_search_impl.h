@@ -361,11 +361,12 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval>::push(
             expansion_queue_.emplace_back(stateid, transition->successor_dist);
         einfo.value_changed = value_changed;
     } else {
-        const auto transition =
-            this->bellman_policy_update(mdp, heuristic, stateid, sinfo)
-                .greedy_transition;
-        assert(transition.has_value());
-        expansion_queue_.emplace_back(stateid, transition->successor_dist);
+        const auto action = this->get_greedy_action(stateid);
+        assert(action.has_value());
+        const State state = mdp.get_state(stateid);
+        Distribution<StateID> successor_dist;
+        mdp.generate_action_transitions(state, *action, successor_dist);
+        expansion_queue_.emplace_back(stateid, successor_dist);
     }
 
     return ONSTACK;
