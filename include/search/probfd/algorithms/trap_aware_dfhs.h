@@ -85,10 +85,14 @@ class TADFHSImpl
 
     using QEvaluator = typename Base::EvaluatorType;
     using QuotientPolicyPicker = typename Base::PolicyPickerType;
-    using UpdateResult = typename Base ::UpdateResult;
     using StateInfo = typename Base::StateInfo;
 
     using QuotientOpenList = OpenList<QAction>;
+
+    struct UpdateResult {
+        bool value_changed;
+        bool policy_changed;
+    };
 
     struct Flags {
         /// was the exploration cut off?

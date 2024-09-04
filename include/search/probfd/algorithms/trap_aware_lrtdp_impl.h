@@ -122,10 +122,9 @@ bool TALRTDPImpl<State, Action, UseInterval>::trial(
         }
 
         statistics_.trial_bellman_backups++;
-        const auto result =
+        const auto [value_changed, transition] =
             this->bellman_policy_update(quotient, heuristic, stateid, info);
-        const bool changed = result.value_changed;
-        const auto& transition = result.greedy_transition;
+        this->set_policy(info, transition);
 
         if (!transition) {
             info.set_solved();
@@ -133,8 +132,8 @@ bool TALRTDPImpl<State, Action, UseInterval>::trial(
             break;
         }
 
-        if ((stop_at_consistent_ == CONSISTENT && !changed) ||
-            (stop_at_consistent_ == INCONSISTENT && changed) ||
+        if ((stop_at_consistent_ == CONSISTENT && !value_changed) ||
+            (stop_at_consistent_ == INCONSISTENT && value_changed) ||
             (stop_at_consistent_ == REVISITED && info.is_on_trial())) {
             break;
         }
@@ -220,11 +219,12 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                     }
 
                     ++this->statistics_.check_and_solve_bellman_backups;
-                    this->bellman_policy_update(
+                    auto res = this->bellman_policy_update(
                         quotient,
                         heuristic,
                         state,
                         *sinfo);
+                    this->set_policy(*sinfo, res.transition);
                     einfo->rv = false;
                 } else {
                     for (const auto& entry : scc) {
@@ -236,11 +236,12 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                             info.set_solved();
                         } else {
                             ++this->statistics_.check_and_solve_bellman_backups;
-                            this->bellman_policy_update(
+                            auto res = this->bellman_policy_update(
                                 quotient,
                                 heuristic,
                                 id,
                                 info);
+                            this->set_policy(info, res.transition);
                         }
                     }
                     stack_.erase(scc.begin(), scc.end());
@@ -324,18 +325,18 @@ bool TALRTDPImpl<State, Action, UseInterval>::initialize(
 
     ++this->statistics_.check_and_solve_bellman_backups;
 
-    const auto result =
+    const auto [value_changed, transition] =
         this->bellman_policy_update(quotient, heuristic, state, state_info);
-    const auto& transition = result.greedy_transition;
+    this->set_policy(state_info, transition);
 
     if (!transition) {
         assert(state_info.is_dead_end());
-        e_info.rv = e_info.rv && !result.value_changed;
+        e_info.rv = e_info.rv && !value_changed;
         e_info.is_trap = false;
         return false;
     }
 
-    if (result.value_changed) {
+    if (value_changed) {
         e_info.rv = false;
         e_info.is_trap = false;
         e_info.is_dead = false;

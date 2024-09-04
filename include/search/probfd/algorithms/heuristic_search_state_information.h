@@ -22,17 +22,36 @@ template <typename Action>
 struct StatesPolicy<Action, true> {
     std::optional<Action> policy = std::nullopt;
 
-    void set_policy(Action a) { policy = a; }
-    void clear_policy() { policy = std::nullopt; }
-    std::optional<Action> get_policy() const { return policy; }
-    bool update_policy(Action a)
-    {
-        if (!policy || a != policy) {
-            set_policy(a);
-            return true;
-        }
+    void set_policy(const std::optional<Action>& a) { policy = a; }
 
-        return false;
+    void set_policy(const std::optional<Transition<Action>>& transition)
+    {
+        set_policy(
+            transition.template transform([](auto& t) { return t.action; }));
+    }
+
+    void set_policy(std::nullopt_t) { policy = std::nullopt; }
+
+    void clear_policy() { set_policy(std::nullopt); }
+
+    std::optional<Action> get_policy() const { return policy; }
+
+    bool update_policy(const std::optional<Action>& a)
+    {
+        bool changed = policy != a;
+        set_policy(a);
+        return changed;
+    }
+
+    bool update_policy(const std::optional<Transition<Action>>& transition)
+    {
+        return update_policy(
+            transition.template transform([](auto& t) { return t.action; }));
+    }
+
+    bool update_policy(std::nullopt_t)
+    {
+        return update_policy(std::optional<Action>{});
     }
 };
 

@@ -148,9 +148,9 @@ bool AOStar<State, Action, UseInterval>::update_value_check_solved(
 {
     assert(!info.is_solved());
 
-    const auto update_result =
+    const auto [value_changed, greedy_transition] =
         this->bellman_policy_update(mdp, heuristic, state, info);
-    const auto& greedy_transition = update_result.greedy_transition;
+    this->set_policy(info, greedy_transition);
 
     bool all_succs_solved = true;
 
@@ -165,7 +165,7 @@ bool AOStar<State, Action, UseInterval>::update_value_check_solved(
         info.set_solved();
     }
 
-    return update_result.value_changed;
+    return value_changed;
 }
 
 } // namespace probfd::algorithms::ao_search::ao_star

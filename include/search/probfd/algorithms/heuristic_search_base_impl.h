@@ -207,8 +207,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::bellman_policy_update(
         bellman_update(mdp, h, state_id, state_info, transitions_, true);
 
     if (transitions_.empty()) {
-        state_info.clear_policy();
-        return UpdateResult{value_change, false};
+        return UpdateResult{value_change, std::nullopt};
     }
 
 #if defined(EXPENSIVE_STATISTICS)
@@ -225,11 +224,27 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::bellman_policy_update(
         state_infos_);
     assert(utils::in_bounds(index, transitions_));
 
-    auto& transition = transitions_[index];
+    return UpdateResult{value_change, std::move(transitions_[index])};
+}
 
-    const bool policy_change = state_info.update_policy(transition.action);
+template <typename State, typename Action, typename StateInfoT>
+bool HeuristicSearchBase<State, Action, StateInfoT>::update_policy(
+    StateInfo& state_info,
+    const std::optional<TransitionType>& transition)
+    requires(StorePolicy)
+{
+    ++statistics_.policy_updates;
+    return state_info.update_policy(transition);
+}
 
-    return UpdateResult{value_change, policy_change, std::move(transition)};
+template <typename State, typename Action, typename StateInfoT>
+void HeuristicSearchBase<State, Action, StateInfoT>::set_policy(
+    StateInfo& state_info,
+    const std::optional<TransitionType>& transition)
+    requires(StorePolicy)
+{
+    ++statistics_.policy_updates;
+    state_info.set_policy(transition);
 }
 
 template <typename State, typename Action, typename StateInfoT>

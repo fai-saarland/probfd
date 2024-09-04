@@ -143,8 +143,7 @@ protected:
 
     struct UpdateResult {
         bool value_changed;
-        bool policy_changed;
-        std::optional<TransitionType> greedy_transition = std::nullopt;
+        std::optional<TransitionType> transition;
     };
 
 public:
@@ -215,6 +214,16 @@ public:
         EvaluatorType& h,
         StateID state_id,
         StateInfo& state_info)
+        requires(StorePolicy);
+
+    bool update_policy(
+        StateInfo& state_info,
+        const std::optional<TransitionType>& transition)
+        requires(StorePolicy);
+
+    void set_policy(
+        StateInfo& state_info,
+        const std::optional<TransitionType>& transition)
         requires(StorePolicy);
 
 protected:
