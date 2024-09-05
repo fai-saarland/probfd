@@ -96,17 +96,39 @@ void AcyclicValueIterationObserverCollection<State, Action>::
 
 template <typename State, typename Action>
 AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
-    IncrementalExpansionInfo(
-        StateID state_id,
-        StateInfo& state_info,
-        std::vector<Action> remaining_aops,
-        MDPType& mdp)
+    IncrementalExpansionInfo(StateID state_id, StateInfo& state_info)
     : state_id(state_id)
     , state_info(state_info)
-    , remaining_aops(std::move(remaining_aops))
 {
-    assert(!this->remaining_aops.empty());
-    setup_transition(mdp);
+}
+
+template <typename State, typename Action>
+void AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
+    setup_transition(MDPType& mdp)
+{
+    assert(transition.empty());
+    auto& next_action = remaining_aops.back();
+    t_value = mdp.get_action_cost(next_action);
+    const State state = mdp.get_state(state_id);
+    mdp.generate_action_transitions(state, next_action, transition);
+    successor = transition.begin();
+}
+
+template <typename State, typename Action>
+void AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
+    backtrack_successor(value_t probability, StateInfo& succ_info)
+{
+    // Update transition Q-value
+    t_value += probability * succ_info.value;
+    succ_info.status = StateInfo::CLOSED;
+}
+
+template <typename State, typename Action>
+bool AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::advance(
+    MDPType& mdp,
+    MapPolicy* policy)
+{
+    return next_successor() || next_transition(mdp, policy);
 }
 
 template <typename State, typename Action>
@@ -143,13 +165,24 @@ bool AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
 
 template <typename State, typename Action>
 void AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
-    setup_transition(MDPType& mdp)
+    finalize_transition()
 {
-    auto& next_action = remaining_aops.back();
-    t_value = mdp.get_action_cost(next_action);
-    const State state = mdp.get_state(state_id);
-    mdp.generate_action_transitions(state, next_action, transition);
-    successor = transition.begin();
+    // Minimum Q-value
+    if (t_value < state_info.value) {
+        state_info.best_action = remaining_aops.back();
+        state_info.value = t_value;
+    }
+}
+
+template <typename State, typename Action>
+void AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
+    finalize_expansion(MapPolicy* policy)
+{
+    if (!policy || !state_info.best_action) return;
+    policy->emplace_decision(
+        state_id,
+        *state_info.best_action,
+        Interval(state_info.value));
 }
 
 template <typename State, typename Action>
@@ -189,16 +222,33 @@ Interval AcyclicValueIteration<State, Action>::solve(
     const StateID initial_state_id = mdp.get_state_id(initial_state);
     StateInfo& iinfo = state_infos_[initial_state_id];
 
-    if (!expand_state(mdp, heuristic, initial_state_id, iinfo)) {
-        return Interval(iinfo.value);
+    expansion_stack_.emplace(initial_state_id, iinfo);
+    iinfo.status = StateInfo::ON_STACK;
+
+    IncrementalExpansionInfo* e;
+
+    for (;;) {
+        do {
+            e = &expansion_stack_.top();
+        } while (expand_state(mdp, heuristic, *e) &&
+                 push_successor(mdp, policy, *e, timer));
+
+        do {
+            expansion_stack_.pop();
+
+            if (expansion_stack_.empty()) {
+                return Interval(iinfo.value);
+            }
+
+            timer.throw_if_expired();
+
+            e = &expansion_stack_.top();
+
+            const auto [succ_id, probability] = *e->successor;
+            e->backtrack_successor(probability, state_infos_[succ_id]);
+        } while (!e->advance(mdp, policy) ||
+                 !push_successor(mdp, policy, *e, timer));
     }
-
-    do {
-        dfs_expand(mdp, heuristic, timer, policy);
-    } while (dfs_backtrack(mdp, timer, policy));
-
-    assert(expansion_stack_.empty());
-    return Interval(iinfo.value);
 }
 
 template <typename State, typename Action>
@@ -209,107 +259,52 @@ void AcyclicValueIteration<State, Action>::register_observer(
 }
 
 template <typename State, typename Action>
-void AcyclicValueIteration<State, Action>::dfs_expand(
+bool AcyclicValueIteration<State, Action>::push_successor(
     MDPType& mdp,
-    EvaluatorType& heuristic,
-    utils::CountdownTimer& timer,
-    MapPolicy* policy)
+    MapPolicy* policy,
+    IncrementalExpansionInfo& e,
+    utils::CountdownTimer& timer)
 {
-    IncrementalExpansionInfo* e = &expansion_stack_.top();
-
     do {
-        do {
-            timer.throw_if_expired();
-
-            const auto [succ_id, probability] = *e->successor;
-            StateInfo& succ_info = state_infos_[succ_id];
-
-            if (succ_info.status == StateInfo::ON_STACK) {
-                std::cerr << "State space is not acyclic!" << std::endl;
-                utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
-            }
-
-            if (succ_info.status == StateInfo::NEW &&
-                expand_state(mdp, heuristic, succ_id, succ_info)) {
-                e = &expansion_stack_.top();
-                continue; // DFS recursion
-            }
-
-            e->backtrack_successor(probability, succ_info);
-        } while (e->next_successor());
-    } while (e->next_transition(mdp, policy));
-}
-
-template <typename State, typename Action>
-void AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
-    backtrack_successor(value_t probability, StateInfo& succ_info)
-{
-    // Update transition Q-value
-    t_value += probability * succ_info.value;
-    succ_info.status = StateInfo::CLOSED;
-}
-
-template <typename State, typename Action>
-void AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
-    finalize_transition()
-{
-    // Minimum Q-value
-    if (t_value < state_info.value) {
-        state_info.best_action = remaining_aops.back();
-        state_info.value = t_value;
-    }
-}
-
-template <typename State, typename Action>
-void AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
-    finalize_expansion(MapPolicy* policy)
-{
-    if (!policy) return;
-    policy->emplace_decision(
-        state_id,
-        *state_info.best_action,
-        Interval(state_info.value));
-}
-
-template <typename State, typename Action>
-bool AcyclicValueIteration<State, Action>::dfs_backtrack(
-    MDPType& mdp,
-    utils::CountdownTimer& timer,
-    MapPolicy* policy)
-{
-    IncrementalExpansionInfo* e;
-
-    do {
-        expansion_stack_.pop();
-
-        if (expansion_stack_.empty()) {
-            return false;
-        }
-
         timer.throw_if_expired();
 
-        e = &expansion_stack_.top();
+        const auto [succ_id, probability] = *e.successor;
+        StateInfo& succ_info = state_infos_[succ_id];
 
-        const auto [succ_id, probability] = *e->successor;
-        e->backtrack_successor(probability, state_infos_[succ_id]);
-    } while (!e->next_successor() && !e->next_transition(mdp, policy));
+        if (succ_info.status == StateInfo::ON_STACK) {
+            std::cerr << "State space is not acyclic!" << std::endl;
+            utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+        }
 
-    return true;
+        if (succ_info.status == StateInfo::NEW) {
+            expansion_stack_.emplace(succ_id, succ_info);
+            succ_info.status = StateInfo::ON_STACK;
+            return true; // DFS recursion
+        }
+
+        assert(succ_info.status == StateInfo::CLOSED);
+
+        e.backtrack_successor(probability, succ_info);
+    } while (e.advance(mdp, policy));
+
+    return false;
 }
 
 template <typename State, typename Action>
 bool AcyclicValueIteration<State, Action>::expand_state(
     MDPType& mdp,
     EvaluatorType& heuristic,
-    StateID state_id,
-    StateInfo& succ_info)
+    IncrementalExpansionInfo& e_info)
 {
-    assert(succ_info.status == StateInfo::NEW);
-    succ_info.status = StateInfo::ON_STACK;
+    const State state = mdp.get_state(e_info.state_id);
+    StateInfo& succ_info = e_info.state_info;
 
-    const State state = mdp.get_state(state_id);
+    assert(succ_info.status == StateInfo::ON_STACK);
+
     const TerminationInfo term_info = mdp.get_termination_info(state);
     const value_t term_value = term_info.get_cost();
+
+    succ_info.value = term_value;
 
     if (term_info.is_goal_state()) {
         observers_.notify_state_selected_for_expansion(state);
@@ -324,22 +319,15 @@ bool AcyclicValueIteration<State, Action>::expand_state(
 
     observers_.notify_state_selected_for_expansion(state);
 
-    succ_info.value = term_value;
+    assert(e_info.remaining_aops.empty());
 
-    if (term_info.is_goal_state()) {
-        observers_.notify_goal_state(state);
-        return false;
-    }
-
-    std::vector<Action> remaining_aops;
-    mdp.generate_applicable_actions(state, remaining_aops);
-    if (remaining_aops.empty()) {
+    mdp.generate_applicable_actions(state, e_info.remaining_aops);
+    if (e_info.remaining_aops.empty()) {
         observers_.notify_terminal_state(state);
         return false;
     }
 
-    expansion_stack_
-        .emplace(state_id, succ_info, std::move(remaining_aops), mdp);
+    e_info.setup_transition(mdp);
 
     return true;
 }

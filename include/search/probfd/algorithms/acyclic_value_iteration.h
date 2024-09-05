@@ -139,19 +139,18 @@ class AcyclicValueIteration : public MDPAlgorithm<State, Action> {
         // The current transition Q-value
         value_t t_value;
 
-        IncrementalExpansionInfo(
-            StateID state_id,
-            StateInfo& state_info,
-            std::vector<Action> remaining_aops,
-            MDPType& mdp);
+        IncrementalExpansionInfo(StateID state_id, StateInfo& state_info);
 
-        bool next_successor();
-        bool next_transition(MDPType& mdp, MapPolicy* policy);
+        void setup_transition(MDPType& mdp);
 
         void backtrack_successor(value_t probability, StateInfo& succ_info);
 
+        bool advance(MDPType& mdp, MapPolicy* policy);
+
     private:
-        void setup_transition(MDPType& mdp);
+        bool next_successor();
+        bool next_transition(MDPType& mdp, MapPolicy* policy);
+
         void finalize_transition();
         void finalize_expansion(MapPolicy* policy);
     };
@@ -186,22 +185,16 @@ public:
     void register_observer(std::shared_ptr<Observer> observer);
 
 private:
-    void dfs_expand(
+    bool push_successor(
         MDPType& mdp,
-        EvaluatorType& heuristic,
-        utils::CountdownTimer& timer,
-        MapPolicy* policy);
-
-    bool dfs_backtrack(
-        MDPType& mdp,
-        utils::CountdownTimer& timer,
-        MapPolicy* policy);
+        MapPolicy* policy,
+        IncrementalExpansionInfo& e,
+        utils::CountdownTimer& timer);
 
     bool expand_state(
         MDPType& mdp,
         EvaluatorType& heuristic,
-        StateID state_id,
-        StateInfo& succ_info);
+        IncrementalExpansionInfo& e_info);
 };
 
 } // namespace probfd::algorithms::acyclic_vi
