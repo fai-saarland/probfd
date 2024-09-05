@@ -1,12 +1,12 @@
 #ifndef PROBFD_ALGORITHMS_HEURISTIC_SEARCH_STATE_INFORMATION_H
 #define PROBFD_ALGORITHMS_HEURISTIC_SEARCH_STATE_INFORMATION_H
 
-#include "probfd/algorithms/types.h"
-
 #include "probfd/algorithms/state_properties.h"
+#include "probfd/algorithms/types.h"
 
 #include "probfd/storage/per_state_storage.h"
 
+#include "probfd/transition.h"
 #include "probfd/types.h"
 
 #include <cassert>
@@ -26,8 +26,7 @@ struct StatesPolicy<Action, true> {
 
     void set_policy(const std::optional<Transition<Action>>& transition)
     {
-        set_policy(
-            transition.template transform([](auto& t) { return t.action; }));
+        set_policy(transition.transform([](auto& t) { return t.action; }));
     }
 
     void set_policy(std::nullopt_t) { policy = std::nullopt; }
@@ -46,7 +45,7 @@ struct StatesPolicy<Action, true> {
     bool update_policy(const std::optional<Transition<Action>>& transition)
     {
         return update_policy(
-            transition.template transform([](auto& t) { return t.action; }));
+            transition.transform([](auto& t) { return t.action; }));
     }
 
     bool update_policy(std::nullopt_t)
