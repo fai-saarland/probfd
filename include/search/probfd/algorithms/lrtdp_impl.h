@@ -178,14 +178,8 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
 
     ClearGuard guard(visited_);
 
-    {
-        auto& init_info = this->state_infos_[init_state_id];
-        if (init_info.is_solved()) return true;
-        init_info.mark_open();
-        policy_queue_.emplace_back(init_state_id);
-    }
-
     bool rv = true;
+    policy_queue_.emplace_back(init_state_id);
 
     do {
         timer.throw_if_expired();
@@ -194,7 +188,9 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
         policy_queue_.pop_back();
 
         auto& info = this->state_infos_[state_id];
-        assert(info.is_marked_open() && !info.is_solved());
+        if (info.is_solved()) continue;
+        assert(!info.is_marked_open());
+        info.mark_open();
 
         this->statistics_.check_and_solve_bellman_backups++;
 
@@ -202,12 +198,6 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
             this->bellman_policy_update(mdp, heuristic, state_id, info);
 
         this->set_policy(info, transition);
-
-        if (!transition) {
-            assert(info.is_terminal());
-            info.mark_solved();
-            continue;
-        }
 
         visited_.push_front(state_id);
 
@@ -223,23 +213,25 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
             }
         }
 
+        if (!transition) {
+            continue;
+        }
+
         for (StateID succ_id : transition->successor_dist.support()) {
-            auto& succ_info = this->state_infos_[succ_id];
-            if (!succ_info.is_solved() && !succ_info.is_marked_open()) {
-                succ_info.mark_open();
+            const StateInfo& succ_info = this->state_infos_[succ_id];
+            if (!succ_info.is_marked_open()) {
                 policy_queue_.emplace_back(succ_id);
             }
         }
     } while (!policy_queue_.empty());
 
-    if (rv) {
-        for (StateID sid : visited_) {
-            this->state_infos_[sid].mark_solved();
-        }
-    } else {
-        for (StateID sid : visited_) {
+    for (StateID sid : visited_) {
+        StateInfo& info = this->state_infos_[sid];
+        if (info.is_solved()) continue;
+        if (rv) {
+            info.mark_solved();
+        } else {
             statistics_.check_and_solve_bellman_backups++;
-            StateInfo& info = this->state_infos_[sid];
             auto res = this->bellman_policy_update(mdp, heuristic, sid, info);
             this->set_policy(info, res.transition);
             info.unmark();
