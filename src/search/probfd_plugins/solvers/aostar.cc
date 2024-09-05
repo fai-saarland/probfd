@@ -69,7 +69,7 @@ public:
             "successor_sampler",
             "",
             add_mdp_type_to_option<Bisimulation, false>(
-                "arbitrary_successor_sampler"));
+                "arbitrary_successor_sampler()"));
     }
 
 protected:
