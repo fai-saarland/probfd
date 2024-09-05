@@ -106,7 +106,6 @@ void AOBase<State, Action, StateInfo>::push_parents_to_queue(StateInfo& info)
     auto& parents = info.get_parents();
     for (StateID parent : parents) {
         auto& pinfo = this->state_infos_[parent];
-        assert(!pinfo.is_dead_end() || pinfo.is_solved());
 
         if constexpr (!StateInfo::StorePolicy) {
             if (info.is_solved()) {

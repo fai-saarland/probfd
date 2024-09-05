@@ -330,7 +330,6 @@ bool TALRTDPImpl<State, Action, UseInterval>::initialize(
     this->set_policy(state_info, transition);
 
     if (!transition) {
-        assert(state_info.is_dead_end());
         e_info.rv = e_info.rv && !value_changed;
         e_info.is_trap = false;
         return false;
@@ -339,7 +338,6 @@ bool TALRTDPImpl<State, Action, UseInterval>::initialize(
     if (value_changed) {
         e_info.rv = false;
         e_info.is_trap = false;
-        e_info.is_dead = false;
         return false;
     }
 

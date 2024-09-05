@@ -213,7 +213,7 @@ bool TADFHSImpl<State, Action, UseInterval>::push_successor(
             StateInfo& succ_info = this->state_infos_[succ];
             if (succ_info.is_terminal() || succ_info.is_solved()) {
                 succ_info.set_solved();
-                einfo.flags.update(succ_info);
+                einfo.flags.is_trap = false;
             } else if (push_state(
                            quotient,
                            heuristic,
@@ -227,7 +227,7 @@ bool TADFHSImpl<State, Action, UseInterval>::push_successor(
             succ_status = STATE_CLOSED;
         } else if (succ_status == STATE_CLOSED) {
             const StateInfo& succ_info = this->state_infos_[succ];
-            einfo.flags.update(succ_info);
+            einfo.flags.is_trap = false;
             if (mark_solved_) {
                 einfo.flags.all_solved =
                     einfo.flags.all_solved && succ_info.is_solved();
@@ -267,7 +267,6 @@ bool TADFHSImpl<State, Action, UseInterval>::push_state(
         terminated_ = terminate_exploration_ && cutoff;
 
         if (!transition) {
-            assert(state_info.is_dead_end());
             flags.is_trap = false;
             return false;
         }
@@ -349,7 +348,7 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
         StateInfo& state_info = this->state_infos_[start_state];
         if (state_info.is_terminal() || state_info.is_solved()) {
             state_info.set_solved();
-            flags.update(state_info);
+            flags.is_trap = false;
             return flags.complete;
         }
 
@@ -508,7 +507,6 @@ bool TADFHSImpl<State, Action, UseInterval>::backtrack_trap(
     Flags& flags,
     auto scc)
 {
-    assert(flags.dead);
     ++this->statistics_.traps;
 
     for (const auto& entry : scc) {

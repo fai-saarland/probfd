@@ -98,10 +98,9 @@ class TALRTDPImpl
 
         StateID state;
         std::vector<StateID> successors;
-        bool is_root = true;
-        bool is_dead = true;
-        bool is_trap = true;
-        bool rv = true;
+        bool is_root : 1 = true;
+        bool is_trap : 1 = true;
+        bool rv : 1 = true;
 
         bool next_successor();
         [[nodiscard]]
@@ -110,20 +109,17 @@ class TALRTDPImpl
         void update(const ExplorationInformation& backtracked)
         {
             is_trap = is_trap && backtracked.is_trap;
-            is_dead = is_dead && backtracked.is_dead;
             rv = rv && backtracked.rv;
         }
 
         void update(const StateInfo& succ_info)
         {
             is_trap = false;
-            is_dead = is_dead && succ_info.is_dead_end();
             rv = rv && succ_info.is_solved();
         }
 
         void clear()
         {
-            is_dead = true;
             is_trap = true;
             rv = true;
         }

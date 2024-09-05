@@ -118,7 +118,6 @@ void HeuristicSearchBase<State, Action, StateInfoT>::set_dead_end(
     StateInfo& state_info,
     value_t termination_cost)
 {
-    assert(!state_info.is_dead_end());
     state_info.set_dead_end();
     state_value_changed(state_info);
     state_info.value = AlgorithmValueType(termination_cost);
@@ -339,18 +338,19 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize(
     }
 
     const value_t estimate = h.evaluate(state);
+
+    if constexpr (UseInterval) {
+        state_info.value.lower = estimate;
+        state_info.value.upper = t_cost;
+    } else {
+        state_info.value = estimate;
+    }
+
     if (estimate == t_cost) {
         statistics_.pruned_states++;
-        set_dead_end(state_info, t_cost);
+        state_info.set_dead_end();
     } else {
         state_info.set_on_fringe();
-
-        if constexpr (UseInterval) {
-            state_info.value.lower = estimate;
-            state_info.value.upper = t_cost;
-        } else {
-            state_info.value = estimate;
-        }
     }
 }
 

@@ -99,8 +99,6 @@ class TADFHSImpl
         bool complete = true;
         /// were all reached outside-SCC states marked solved?
         bool all_solved = true;
-        /// were all reached outside-SCC states marked dead end?
-        bool dead = true;
         /// are there any outside-SCC states reachable, and do all transitions
         /// within the SCC generate 0-cost?
         bool is_trap = true;
@@ -109,21 +107,13 @@ class TADFHSImpl
         {
             complete = true;
             all_solved = true;
-            dead = true;
             is_trap = true;
-        }
-
-        void update(const StateInfo& info)
-        {
-            dead = dead && info.is_dead_end();
-            is_trap = false;
         }
 
         void update(const Flags& flags)
         {
             complete = complete && flags.complete;
             all_solved = all_solved && flags.all_solved;
-            dead = dead && flags.dead;
             is_trap = is_trap && flags.is_trap;
         }
     };
