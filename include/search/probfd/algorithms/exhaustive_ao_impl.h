@@ -48,9 +48,9 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
 
         ++this->statistics_.iterations;
 
-        bool value_changed =
-            this->update_value_check_solved(mdp, heuristic, stateid, info);
+        bool value_changed = this->bellman_update(mdp, heuristic, stateid);
 
+        // Terminal non-goal state or pruned by heuristic
         if (info.is_solved()) {
             this->push_parents_to_queue(info);
             this->backpropagate_tip_value(mdp, heuristic, timer);
@@ -61,34 +61,26 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
         const State state = mdp.get_state(stateid);
         mdp.generate_all_transitions(state, transitions);
 
-        unsigned alive = 0;
-        unsigned unsolved = 0;
-        unsigned min_succ_order = std::numeric_limits<unsigned>::max();
+        unsigned min_order = std::numeric_limits<unsigned>::max();
 
         for (const auto& [op, dist] : transitions) {
             for (auto& [succid, prob] : dist) {
                 auto& succ_info = this->state_infos_[succid];
-                if (!succ_info.is_solved()) {
-                    if (!succ_info.is_marked()) {
-                        succ_info.mark();
-                        succ_info.add_parent(stateid);
-                        min_succ_order =
-                            std::min(min_succ_order, succ_info.update_order);
-                        ++unsolved;
-                    }
+                if (succ_info.is_solved()) continue;
 
-                    open_list_->push(stateid, op, prob, succid);
-                } else if (!succ_info.is_dead_end()) {
-                    ++alive;
-                }
+                open_list_->push(stateid, op, prob, succid);
+
+                if (succ_info.is_marked()) continue;
+
+                succ_info.mark();
+                succ_info.add_parent(stateid);
+                min_order = std::min(min_order, succ_info.update_order);
+                ++info.unsolved;
             }
         }
 
-        info.alive = alive > 0;
-
-        if (unsolved == 0) {
+        if (info.unsolved == 0) {
             assert(!info.is_terminal() && !info.is_solved());
-            assert(info.alive != 0 || info.is_dead_end());
 
             info.set_solved();
             this->push_parents_to_queue(info);
@@ -96,20 +88,14 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
             continue;
         }
 
-        assert(min_succ_order < std::numeric_limits<unsigned>::max());
-        info.unsolved = unsolved;
-
         for (const auto& transition : transitions) {
             for (StateID succ_id : transition.successor_dist.support()) {
                 this->state_infos_[succ_id].unmark();
             }
         }
 
-        this->backpropagate_update_order(
-            stateid,
-            info,
-            min_succ_order + 1,
-            timer);
+        assert(min_order < std::numeric_limits<unsigned>::max());
+        this->backpropagate_update_order(stateid, info, min_order + 1, timer);
 
         if (value_changed) {
             this->push_parents_to_queue(info);
@@ -131,7 +117,7 @@ bool ExhaustiveAOSearch<State, Action, UseInterval>::update_value_check_solved(
 
     const bool result = this->bellman_update(mdp, heuristic, state);
 
-    if (!info.unsolved) {
+    if (info.unsolved == 0) {
         info.set_solved();
     }
 

@@ -17,8 +17,7 @@ namespace internal {
 template <typename Action, bool UseInterval>
 struct PerStateInformation
     : public ao_search::PerStateInformation<Action, UseInterval, false> {
-    unsigned unsolved : 31 = 0;
-    unsigned alive : 1 = 0;
+    unsigned unsolved = 0;
 };
 
 } // namespace internal
@@ -48,7 +47,7 @@ class ExhaustiveAOSearch
     using Base = typename ExhaustiveAOSearch::AOBase;
 
     friend Base;
-    
+
     using MDPType = typename Base::MDPType;
     using EvaluatorType = typename Base::EvaluatorType;
     using PolicyPickerType = typename Base::PolicyPickerType;

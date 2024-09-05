@@ -112,9 +112,6 @@ void AOBase<State, Action, StateInfo>::push_parents_to_queue(StateInfo& info)
             if (info.is_solved()) {
                 assert(pinfo.unsolved > 0 || pinfo.is_solved());
                 --pinfo.unsolved;
-                if (!info.is_dead_end()) {
-                    pinfo.alive = 1;
-                }
             }
         }
 
