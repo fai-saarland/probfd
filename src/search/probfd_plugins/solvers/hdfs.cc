@@ -123,17 +123,14 @@ protected:
                 context.error("cutoff_inconsistent requires forward updates!");
             }
             if (backward_updates == ON_DEMAND) {
-                context.error("ondemand backward updates required forward "
-                              "updates!");
-            }
-            if (!value_iteration && backward_updates == DISABLED) {
+                if (!expand_tip) {
+                    context.error(
+                        "ondemand backward updates require forward updates or "
+                        "expand_tip=true!");
+                }
+            } else if (backward_updates == DISABLED && !value_iteration) {
                 context.error("either value_iteration, forward_updates, or "
                               "backward_updates must be enabled!");
-            }
-            if (expand_tip && backward_updates == ON_DEMAND) {
-                context.error(
-                    "ondemand backward updates require forward updates or "
-                    "expand_tip=true!");
             }
         }
 
