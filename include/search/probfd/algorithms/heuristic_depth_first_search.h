@@ -151,7 +151,7 @@ private:
     const bool cutoff_inconsistent_;
     const bool greedy_exploration_;
     const bool perform_value_iteration_;
-    const bool expand_tip_states_;
+    const bool cutoff_tip_;
 
     // Algorithm state
     storage::StateHashMap<LocalStateInfo> local_state_infos_;
@@ -170,7 +170,7 @@ public:
         bool cutoff_inconsistent,
         bool greedy_exploration,
         bool perform_value_iteration,
-        bool expand_tip_states);
+        bool cutoff_tip);
 
     void reset_search_state() override;
 

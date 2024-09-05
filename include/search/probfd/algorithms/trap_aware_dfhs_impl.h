@@ -60,7 +60,7 @@ TADFHSImpl<State, Action, UseInterval>::TADFHSImpl(
     std::shared_ptr<QuotientPolicyPicker> policy_chooser,
     bool forward_updates,
     BacktrackingUpdateType backtrack_update_type,
-    bool expand_tip_states,
+    bool cutoff_tip,
     bool cutoff_inconsistent,
     bool stop_exploration_inconsistent,
     bool value_iteration,
@@ -70,7 +70,7 @@ TADFHSImpl<State, Action, UseInterval>::TADFHSImpl(
     : Base(policy_chooser)
     , forward_updates_(forward_updates)
     , backtrack_update_type_(backtrack_update_type)
-    , expand_tip_states_(expand_tip_states)
+    , cutoff_tip_(cutoff_tip)
     , cutoff_inconsistent_(cutoff_inconsistent)
     , terminate_exploration_(stop_exploration_inconsistent)
     , value_iteration_(value_iteration)
@@ -262,8 +262,8 @@ bool TADFHSImpl<State, Action, UseInterval>::push_state(
             state_info);
         this->set_policy(state_info, transition);
         flags.all_solved = flags.all_solved && !value_changed;
-        const bool cutoff = (!expand_tip_states_ && tip) ||
-                            (cutoff_inconsistent_ && value_changed);
+        const bool cutoff =
+            (cutoff_tip_ && tip) || (cutoff_inconsistent_ && value_changed);
         terminated_ = terminate_exploration_ && cutoff;
 
         if (!transition) {
@@ -604,7 +604,7 @@ TADepthFirstHeuristicSearch<State, Action, UseInterval>::
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
         bool forward_updates,
         BacktrackingUpdateType backtrack_update_type,
-        bool expand_tip_states,
+        bool cutoff_tip,
         bool cutoff_inconsistent,
         bool stop_exploration_inconsistent,
         bool value_iteration,
@@ -615,7 +615,7 @@ TADepthFirstHeuristicSearch<State, Action, UseInterval>::
           policy_chooser,
           forward_updates,
           backtrack_update_type,
-          expand_tip_states,
+          cutoff_tip,
           cutoff_inconsistent,
           stop_exploration_inconsistent,
           value_iteration,

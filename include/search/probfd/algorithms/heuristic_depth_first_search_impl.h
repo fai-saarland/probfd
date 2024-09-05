@@ -47,7 +47,7 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::
         bool cutoff_inconsistent,
         bool greedy_exploration,
         bool perform_value_iteration,
-        bool expand_tip_states)
+        bool cutoff_tip)
     : Base(std::move(policy_chooser))
     , label_solved_(label_solved)
     , forward_updates_(forward_updates)
@@ -55,7 +55,7 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::
     , cutoff_inconsistent_(cutoff_inconsistent)
     , greedy_exploration_(greedy_exploration)
     , perform_value_iteration_(perform_value_iteration)
-    , expand_tip_states_(expand_tip_states)
+    , cutoff_tip_(cutoff_tip)
 {
 }
 
@@ -353,8 +353,10 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval>::push(
             return CLOSED;
         }
 
-        if ((!expand_tip_states_ && is_tip_state) ||
-            (cutoff_inconsistent_ && value_changed)) {
+        const bool cutoff = (cutoff_tip_ && is_tip_state) ||
+                            (cutoff_inconsistent_ && value_changed);
+
+        if (cutoff) {
             return UNSOLVED;
         }
 

@@ -94,7 +94,7 @@ public:
             ->template create_quotient_heuristic_search_algorithm<Algorithm>(
                 forward_updates_,
                 backward_updates_,
-                !cutoff_tip_,
+                cutoff_tip_,
                 cutoff_inconsistent_,
                 terminate_exploration_,
                 value_iteration_,
@@ -274,7 +274,7 @@ public:
             "reexpand_traps",
             "Immediately re-expand the collapsed trap state.",
             "true");
-        
+
         add_mdp_hs_options_to_feature<false, true>(*this);
     }
 

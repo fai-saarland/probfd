@@ -38,7 +38,7 @@ class DFHSSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
     const bool cutoff_inconsistent_;
     const bool partial_exploration_;
     const bool value_iteration_;
-    const bool expand_tip_states_;
+    const bool cutoff_tip_states_;
 
 public:
     template <typename... Args>
@@ -50,7 +50,7 @@ public:
         bool cutoff_inconsistent,
         bool partial_exploration,
         bool vi,
-        bool expand_tip,
+        bool cutoff_tip,
         Args&&... args)
         : MDPHeuristicSearch<Bisimulation, Fret>(std::forward<Args>(args)...)
         , name_(std::move(variant_name))
@@ -60,7 +60,7 @@ public:
         , cutoff_inconsistent_(cutoff_inconsistent)
         , partial_exploration_(partial_exploration)
         , value_iteration_(vi)
-        , expand_tip_states_(expand_tip)
+        , cutoff_tip_states_(cutoff_tip)
     {
     }
 
@@ -75,7 +75,7 @@ public:
             cutoff_inconsistent_,
             partial_exploration_,
             value_iteration_,
-            expand_tip_states_);
+            cutoff_tip_states_);
     }
 };
 
@@ -89,16 +89,28 @@ public:
     {
         this->document_title("Depth-first heuristic search family.");
 
-        this->template add_option<bool>("labeling", "", "true");
-        this->template add_option<bool>("fwup", "", "true");
+        this->template add_option<bool>(
+            "labeling",
+            "",
+            ArgumentInfo::NO_DEFAULT);
+        this->template add_option<bool>("fwup", "", ArgumentInfo::NO_DEFAULT);
         this->template add_option<BacktrackingUpdateType>(
             "bwup",
             "",
             "ondemand");
-        this->template add_option<bool>("cutoff_inconsistent", "", "true");
-        this->template add_option<bool>("partial_exploration", "", "false");
-        this->template add_option<bool>("vi", "", "false");
-        this->template add_option<bool>("expand_tip", "", "true");
+        this->template add_option<bool>(
+            "cutoff_inconsistent",
+            "",
+            ArgumentInfo::NO_DEFAULT);
+        this->template add_option<bool>(
+            "partial_exploration",
+            "",
+            ArgumentInfo::NO_DEFAULT);
+        this->template add_option<bool>("vi", "", ArgumentInfo::NO_DEFAULT);
+        this->template add_option<bool>(
+            "cutoff_tip",
+            "",
+            ArgumentInfo::NO_DEFAULT);
 
         add_mdp_hs_options_to_feature<Bisimulation, Fret>(*this);
     }
@@ -116,17 +128,17 @@ protected:
         bool cutoff_inconsistent = options.get<bool>("cutoff_inconsistent");
         bool partial_exploration = options.get<bool>("partial_exploration");
         bool value_iteration = options.get<bool>("vi");
-        bool expand_tip = options.get<bool>("expand_tip");
+        bool cutoff_tip = options.get<bool>("cutoff_tip");
 
         if (!forward_updates) {
             if (cutoff_inconsistent) {
                 context.error("cutoff_inconsistent requires forward updates!");
             }
             if (backward_updates == ON_DEMAND) {
-                if (!expand_tip) {
+                if (cutoff_tip) {
                     context.error(
                         "ondemand backward updates require forward updates or "
-                        "expand_tip=true!");
+                        "cutoff_tip=false!");
                 }
             } else if (backward_updates == DISABLED && !value_iteration) {
                 context.error("either value_iteration, forward_updates, or "
@@ -134,9 +146,9 @@ protected:
             }
         }
 
-        if (partial_exploration && expand_tip && !cutoff_inconsistent) {
+        if (partial_exploration && !cutoff_tip && !cutoff_inconsistent) {
             context.error(
-                "greedy exploration requires either expand_tip=false or "
+                "greedy exploration requires either cutoff_tip=true or "
                 "cutoff_inconsistent=true");
         }
 
@@ -149,7 +161,7 @@ protected:
             cutoff_inconsistent,
             partial_exploration,
             value_iteration,
-            expand_tip,
+            cutoff_tip,
             get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
     }
 };
@@ -180,7 +192,7 @@ public:
             true,
             false,
             false,
-            true,
+            false,
             get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
     }
 };
@@ -211,7 +223,7 @@ public:
             false,
             false,
             true,
-            false,
+            true,
             get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
     }
 };
@@ -224,8 +236,7 @@ public:
         : HDPSolverFeature::TypedFeature(
               add_wrapper_algo_suffix<Bisimulation, Fret>("hdp"))
     {
-        this->document_title(
-            "HDP variant of trap-aware depth-first heuristic search.");
+        this->document_title("HDP variant of depth-first heuristic search.");
 
         add_mdp_hs_options_to_feature<Bisimulation, Fret>(*this);
     }
@@ -243,7 +254,7 @@ public:
             true,
             false,
             false,
-            true,
+            false,
             get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
     }
 };
@@ -254,6 +265,18 @@ MultiFeaturePlugin<ILAOSolverFeature> _plugins_ilao;
 MultiFeaturePlugin<HDPSolverFeature> _plugins_hdp;
 
 TypedEnumPlugin<BacktrackingUpdateType> _fret_enum_plugin(
-    {{"disabled", ""}, {"ondemand", ""}, {"single", ""}, {"convergence", ""}});
+    {{"disabled",
+      "No update is performed when backtracking from a state during the dfs "
+      "exploration."},
+     {"on_demand",
+      "An update is performed when backtracking from a state during the dfs "
+      "exploration, but only if a successor value was not epsilon-consistent "
+      "during a recursive call."},
+     {"single",
+      "An update is always performed when backtracking from a state during the "
+      "dfs exploration."},
+     {"convergence",
+      "Value iteration is performed until convergence when backtracking from "
+      "an SCC."}});
 
 } // namespace

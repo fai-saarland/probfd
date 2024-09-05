@@ -166,7 +166,7 @@ class TADFHSImpl
     // Algorithm parameters
     const bool forward_updates_;
     const BacktrackingUpdateType backtrack_update_type_;
-    const bool expand_tip_states_;
+    const bool cutoff_tip_;
     const bool cutoff_inconsistent_;
     const bool terminate_exploration_;
     const bool value_iteration_;
@@ -310,7 +310,7 @@ public:
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
         bool forward_updates,
         BacktrackingUpdateType backtrack_update_type,
-        bool expand_tip_states,
+        bool cutoff_tip,
         bool cutoff_inconsistent,
         bool stop_exploration_inconsistent,
         bool value_iteration,
