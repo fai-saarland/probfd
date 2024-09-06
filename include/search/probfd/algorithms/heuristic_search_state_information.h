@@ -91,7 +91,8 @@ struct StateFlags {
 
     void set_on_fringe()
     {
-        assert(!is_value_initialized());
+        // FRET may demote to fringe state when collapsing a trap
+        // assert(!is_value_initialized());
         info = (info & ~MASK) | FRINGE;
     }
 

@@ -346,6 +346,7 @@ bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::
                     }
 
                     auto& base_info = base_algorithm_->state_infos_[state_id];
+                    base_info.set_on_fringe();
                     base_algorithm_->update_policy(base_info, std::nullopt);
 
                     ++statistics_.traps;

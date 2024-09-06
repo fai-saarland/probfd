@@ -43,29 +43,17 @@ struct PerStateInformation
     using Base = PerStateInformation::PerStateBaseInformation;
 
 public:
-    static constexpr uint8_t INITIALIZED = 1 << Base::BITS;
-    static constexpr uint8_t SOLVED = 2 << Base::BITS;
-    static constexpr uint8_t MASK = 3 << Base::BITS;
-    static constexpr uint8_t BITS = Base::BITS + 2;
-
-    [[nodiscard]]
-    bool is_policy_initialized() const
-    {
-        return (this->info & MASK) != 0;
-    }
+    static constexpr uint8_t SOLVED = 1 << Base::BITS;
+    static constexpr uint8_t MASK = 1 << Base::BITS;
+    static constexpr uint8_t BITS = Base::BITS + 1;
 
     [[nodiscard]]
     bool is_solved() const
     {
-        return this->info & SOLVED || this->is_terminal();
+        return (this->info & SOLVED) != 0 || this->is_terminal();
     }
 
-    void set_policy_initialized()
-    {
-        this->info = (this->info & ~MASK) | INITIALIZED;
-    }
-
-    void set_solved() { this->info = (this->info & ~MASK) | SOLVED; }
+    void set_solved() { this->info |= SOLVED; }
 
     void clear() { this->info &= ~MASK; }
 };

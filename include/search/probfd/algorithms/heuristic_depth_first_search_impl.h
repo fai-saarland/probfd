@@ -331,10 +331,9 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval>::push(
 
     assert(!sinfo.is_solved());
 
-    const bool is_tip_state = !sinfo.is_policy_initialized();
+    const bool is_tip_state = sinfo.is_on_fringe();
 
     if (forward_updates_ || is_tip_state) {
-        sinfo.set_policy_initialized();
         statistics_.forward_updates++;
 
         auto [value, transition] =
