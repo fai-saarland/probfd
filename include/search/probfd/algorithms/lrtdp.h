@@ -61,45 +61,30 @@ private:
     using Base = typename PerStateInformation::PerStateBaseInformation;
 
 public:
-    static constexpr uint8_t MARKED_OPEN = 1 << Base::BITS;
-    static constexpr uint8_t MARKED_TRIAL = 2 << Base::BITS;
-    static constexpr uint8_t SOLVED = 4 << Base::BITS;
-    static constexpr uint8_t BITS = Base::BITS + 3;
-    static constexpr uint8_t MASK = 7 << Base::BITS;
-
-    bool is_marked_open() const { return this->info & MARKED_OPEN; }
-
-    bool is_marked_trial() const { return this->info & MARKED_TRIAL; }
+    static constexpr uint8_t VISITED = 0b01 << Base::BITS;
+    static constexpr uint8_t SOLVED = 0b10 << Base::BITS;
+    static constexpr uint8_t BITS = Base::BITS + 2;
+    static constexpr uint8_t MASK = 0b11 << Base::BITS;
 
     bool is_solved() const
     {
         return this->info & SOLVED || this->is_terminal();
     }
 
-    void mark_open()
+    void mark_solved() { this->info |= SOLVED; }
+
+    bool is_closed() const { return (this->info & VISITED) != 0; }
+
+    void mark_closed()
     {
         assert(!is_solved());
-        this->info = (this->info & ~MASK) | MARKED_OPEN;
+        this->info |= VISITED;
     }
 
-    void mark_trial()
+    void unmark_closed()
     {
         assert(!is_solved());
-        this->info = (this->info & ~MASK) | MARKED_TRIAL;
-    }
-
-    void mark_solved() { this->info = (this->info & ~MASK) | SOLVED; }
-
-    void unmark_trial()
-    {
-        assert(!is_solved());
-        this->info = this->info & ~MARKED_TRIAL;
-    }
-
-    void unmark()
-    {
-        assert(!is_solved());
-        this->info = this->info & ~MASK;
+        this->info &= ~VISITED;
     }
 
     void clear() { this->info &= ~MASK; }

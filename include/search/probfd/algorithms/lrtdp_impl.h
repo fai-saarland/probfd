@@ -126,17 +126,16 @@ void LRTDP<State, Action, UseInterval>::trial(
             break;
         }
 
-        // state_info.mark_trial();
         assert(!state_info.is_terminal());
 
         if ((stop_consistent_ == CONSISTENT && !value_changed) ||
             (stop_consistent_ == INCONSISTENT && value_changed) ||
-            (stop_consistent_ == REVISITED && state_info.is_marked_trial())) {
+            (stop_consistent_ == REVISITED && state_info.is_closed())) {
             break;
         }
 
         if (stop_consistent_ == REVISITED) {
-            state_info.mark_trial();
+            state_info.mark_closed();
         }
 
         auto next = sample_->sample(
@@ -152,8 +151,8 @@ void LRTDP<State, Action, UseInterval>::trial(
         for (const StateID state :
              current_trial_ | std::views::reverse | std::views::drop(1)) {
             auto& info = this->state_infos_[state];
-            assert(info.is_marked_trial());
-            info.unmark_trial();
+            assert(info.is_closed());
+            info.unmark_closed();
         }
     }
 
@@ -179,8 +178,14 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
 
     ClearGuard guard(visited_);
 
+    {
+        StateInfo& state_info = this->state_infos_[init_state_id];
+        if (state_info.is_solved()) return true;
+        policy_queue_.emplace_back(init_state_id);
+        state_info.mark_closed();
+    }
+
     bool rv = true;
-    policy_queue_.emplace_back(init_state_id);
 
     do {
         timer.throw_if_expired();
@@ -189,9 +194,10 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
         policy_queue_.pop_back();
 
         auto& info = this->state_infos_[state_id];
-        if (info.is_solved()) continue;
-        assert(!info.is_marked_open());
-        info.mark_open();
+        assert(!info.is_solved());
+        assert(info.is_closed());
+
+        visited_.push_front(state_id);
 
         this->statistics_.check_and_solve_bellman_backups++;
 
@@ -200,8 +206,6 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
 
         bool value_changed = this->update_value(info, value);
         this->update_policy(info, transition);
-
-        visited_.push_front(state_id);
 
         if constexpr (UseInterval) {
             if (!info.bounds_agree()) {
@@ -220,8 +224,9 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
         }
 
         for (StateID succ_id : transition->successor_dist.support()) {
-            const StateInfo& succ_info = this->state_infos_[succ_id];
-            if (!succ_info.is_marked_open()) {
+            StateInfo& succ_info = this->state_infos_[succ_id];
+            if (!succ_info.is_closed() && !succ_info.is_solved()) {
+                succ_info.mark_closed();
                 policy_queue_.emplace_back(succ_id);
             }
         }
@@ -229,7 +234,12 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
 
     for (StateID sid : visited_) {
         StateInfo& info = this->state_infos_[sid];
+
         if (info.is_solved()) continue;
+
+        assert(info.is_closed());
+        info.unmark_closed();
+
         if (rv) {
             info.mark_solved();
         } else {
@@ -238,7 +248,6 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
                 this->compute_bellman_policy(mdp, heuristic, sid, info);
             this->update_value(info, value);
             this->update_policy(info, transition);
-            info.unmark();
         }
     }
 
