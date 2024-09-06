@@ -32,6 +32,15 @@ template <typename>
 class SuccessorSampler;
 } // namespace probfd::algorithms
 
+namespace probfd::algorithms::fret {
+template <typename, typename, typename, typename>
+class FRET;
+template <typename, typename, typename>
+class PolicyGraph;
+template <typename, typename, typename>
+class ValueGraph;
+} // namespace probfd::algorithms::fret
+
 /// Namespace dedicated to the MDP h search base implementation
 namespace probfd::algorithms::heuristic_search {
 
@@ -41,7 +50,6 @@ namespace internal {
  * @brief Base statistics for MDP h search.
  */
 struct CoreStatistics {
-    unsigned long long backups = 0;
     unsigned long long backed_up_states = 0;
     unsigned long long evaluated_states = 0;
     unsigned long long pruned_states = 0;
@@ -49,6 +57,7 @@ struct CoreStatistics {
     unsigned long long terminal_states = 0;
     unsigned long long self_loop_states = 0;
     unsigned long long value_changes = 0;
+    unsigned long long value_updates = 0;
     unsigned long long policy_updates = 0;
 };
 
@@ -118,6 +127,16 @@ protected:
 
     using PolicyPickerType = PolicyPicker<State, Action>;
 
+    // Fret implementation has access to the internals of this base class.
+    template <typename, typename, typename, typename>
+    friend class fret::FRET;
+
+    template <typename, typename, typename>
+    friend class fret::PolicyGraph;
+
+    template <typename, typename, typename>
+    friend class fret::ValueGraph;
+
 public:
     using StateInfo = StateInfoT;
 
@@ -133,7 +152,7 @@ private:
     StateInfo* initial_state_info_ = nullptr;
 
     // Reused buffer
-    std::vector<TransitionType> transitions_;
+    mutable std::vector<TransitionType> transitions_;
 
 protected:
     // Algorithm state
@@ -141,8 +160,8 @@ protected:
 
     internal::Statistics statistics_;
 
-    struct UpdateResult {
-        bool value_changed;
+    struct BellmanResult {
+        AlgorithmValueType best_value;
         std::optional<TransitionType> transition;
     };
 
@@ -151,22 +170,10 @@ public:
         std::shared_ptr<PolicyPickerType> policy_chooser);
 
     /**
-     * @brief Looks up the current lower bound for the cost of \p state_id.
-     */
-    [[nodiscard]]
-    value_t lookup_value(StateID state_id) const;
-
-    /**
-     * @brief Looks up the current cost interval of \p state_id.
+     * @brief Looks up the current value interval of \p state_id.
      */
     [[nodiscard]]
     Interval lookup_bounds(StateID state_id) const;
-
-    /**
-     * @brief Checks if the state \p state_id is terminal.
-     */
-    [[nodiscard]]
-    bool is_terminal(StateID state_id) const;
 
     /**
      * @brief Checks if the state represented by \p state_id has been visited
@@ -175,53 +182,59 @@ public:
     [[nodiscard]]
     bool was_visited(StateID state_id) const;
 
-    /**
-     * @brief Clears the currently selected greedy action for the state
-     * represented by \p state_id
-     */
-    void clear_policy(StateID state_id)
-        requires(StorePolicy);
-
-    std::optional<Action> get_greedy_action(StateID state_id)
-        requires(StorePolicy);
-
-    std::optional<Action>
-    compute_greedy_action(MDPType& mdp, EvaluatorType& h, StateID state_id)
+    std::optional<TransitionType>
+    compute_greedy_transition(MDPType& mdp, EvaluatorType& h, StateID state_id)
         requires(!StorePolicy);
 
     /**
-     * @brief Computes the Bellman update for a state and returns whether the
-     * value changed.
+     * @brief Computes the Bellman operator value for a state.
      */
-    bool bellman_update(MDPType& mdp, EvaluatorType& h, StateID s);
+    AlgorithmValueType compute_bellman(
+        MDPType& mdp,
+        EvaluatorType& h,
+        StateID s,
+        StateInfo& state_info);
 
     /**
-     * @brief Computes the Bellman update for a state and outputs all greedy
-     * transitions, and returns whether the value changed.
+     * @brief Computes the Bellman operator value for a state, as well as all
+     * transitions achieving the minimum.
      */
-    bool bellman_update(
+    AlgorithmValueType compute_bellman_and_greedy(
         MDPType& mdp,
         EvaluatorType& h,
         StateID state_id,
+        StateInfo& state_info,
         std::vector<TransitionType>& greedy);
 
     /**
-     * @brief Computes the Bellman update for a state, recomputes the greedy
-     * action for it, and outputs status changes and the new greedy transition.
+     * @brief Computes the Bellman operator value for a state, as well as a
+     * single transition achieving the minimum.
+     *
+     * The transition that achieves the minimum is chosen by the policy
+     * selector passed on construction among all achievers.
      */
-    UpdateResult bellman_policy_update(
+    BellmanResult compute_bellman_policy(
         MDPType& mdp,
         EvaluatorType& h,
         StateID state_id,
         StateInfo& state_info)
         requires(StorePolicy);
 
-    bool update_policy(
-        StateInfo& state_info,
-        const std::optional<TransitionType>& transition)
-        requires(StorePolicy);
+    /**
+     * @brief Updates the value of the state associated with the given storage.
+     *
+     * Returns true if the value has changed by more than the global epsilon,
+     * otherwise false.
+     */
+    bool update_value(StateInfo& state_info, AlgorithmValueType other);
 
-    void set_policy(
+    /**
+     * @brief Updates the current greedy action of the state associated with
+     * the given storage.
+     *
+     * Returns true if the greedy action has changed and false otherwise.
+     */
+    bool update_policy(
         StateInfo& state_info,
         const std::optional<TransitionType>& transition)
         requires(StorePolicy);
@@ -236,15 +249,7 @@ protected:
     void print_statistics(std::ostream& out) const;
 
 private:
-    // Stores dead-end information in state info.
-    void set_dead_end(StateInfo& state_info, value_t termination_cost);
-
-    bool update(StateInfo& state_info, AlgorithmValueType other);
-
     void state_value_changed(StateInfo& info);
-
-    StateInfo&
-    lookup_initialize(MDPType& mdp, EvaluatorType& h, StateID state_id);
 
     void initialize(
         MDPType& mdp,
@@ -271,13 +276,19 @@ private:
         std::vector<AlgorithmValueType>& qvalues,
         const AlgorithmValueType& best_value);
 
-    bool bellman_update(
+    AlgorithmValueType compute_bellman(
         MDPType& mdp,
         EvaluatorType& h,
         StateID state_id,
         StateInfo& state_info,
         std::vector<TransitionType>& transitions,
         bool filter_greedy);
+
+    std::optional<TransitionType> select_action(
+        MDPType& mdp,
+        StateID state_id,
+        std::optional<Action> previous_greedy,
+        std::vector<TransitionType>& transitions);
 };
 
 /**

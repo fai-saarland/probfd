@@ -48,7 +48,8 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
 
         ++this->statistics_.iterations;
 
-        bool value_changed = this->bellman_update(mdp, heuristic, stateid);
+        auto value = this->compute_bellman(mdp, heuristic, stateid, info);
+        bool value_changed = this->update_value(info, value);
 
         // Terminal non-goal state or pruned by heuristic
         if (info.is_solved()) {
@@ -115,13 +116,14 @@ bool ExhaustiveAOSearch<State, Action, UseInterval>::update_value_check_solved(
 {
     assert(!info.is_solved());
 
-    const bool result = this->bellman_update(mdp, heuristic, state);
+    const auto value = this->compute_bellman(mdp, heuristic, state, info);
+    bool value_changed = this->update_value(info, value);
 
     if (info.unsolved == 0) {
         info.set_solved();
     }
 
-    return result;
+    return value_changed;
 }
 
 } // namespace probfd::algorithms::exhaustive_ao

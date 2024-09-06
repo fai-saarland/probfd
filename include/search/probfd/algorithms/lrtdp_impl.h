@@ -112,10 +112,11 @@ void LRTDP<State, Action, UseInterval>::trial(
 
         this->statistics_.trial_bellman_backups++;
 
-        auto [value_changed, transition] =
-            this->bellman_policy_update(mdp, heuristic, state_id, state_info);
+        auto [value, transition] =
+            this->compute_bellman_policy(mdp, heuristic, state_id, state_info);
 
-        this->set_policy(state_info, transition);
+        bool value_changed = this->update_value(state_info, value);
+        this->update_policy(state_info, transition);
 
         if (!transition) {
             // terminal
@@ -194,10 +195,11 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
 
         this->statistics_.check_and_solve_bellman_backups++;
 
-        auto [value_changed, transition] =
-            this->bellman_policy_update(mdp, heuristic, state_id, info);
+        auto [value, transition] =
+            this->compute_bellman_policy(mdp, heuristic, state_id, info);
 
-        this->set_policy(info, transition);
+        bool value_changed = this->update_value(info, value);
+        this->update_policy(info, transition);
 
         visited_.push_front(state_id);
 
@@ -232,8 +234,10 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
             info.mark_solved();
         } else {
             statistics_.check_and_solve_bellman_backups++;
-            auto res = this->bellman_policy_update(mdp, heuristic, sid, info);
-            this->set_policy(info, res.transition);
+            auto [value, transition] =
+                this->compute_bellman_policy(mdp, heuristic, sid, info);
+            this->update_value(info, value);
+            this->update_policy(info, transition);
             info.unmark();
         }
     }

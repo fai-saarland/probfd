@@ -195,11 +195,12 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
                 (last_value_changed && backward_updates_ == ON_DEMAND)) {
                 statistics_.backtracking_updates++;
                 StateInfo& state_info = this->state_infos_[einfo->stateid];
-                auto [value_changed, transition] = this->bellman_policy_update(
+                auto [value, transition] = this->compute_bellman_policy(
                     mdp,
                     heuristic,
                     einfo->stateid,
                     state_info);
+                bool value_changed = this->update_value(state_info, value);
                 bool policy_changed =
                     this->update_policy(state_info, transition);
                 last_value_changed = value_changed;
@@ -336,10 +337,11 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval>::push(
         sinfo.set_policy_initialized();
         statistics_.forward_updates++;
 
-        auto [value_changed, transition] =
-            this->bellman_policy_update(mdp, heuristic, stateid, sinfo);
+        auto [value, transition] =
+            this->compute_bellman_policy(mdp, heuristic, stateid, sinfo);
 
-        this->set_policy(sinfo, transition);
+        bool value_changed = this->update_value(sinfo, value);
+        this->update_policy(sinfo, transition);
 
         parent_value_changed = parent_value_changed || value_changed;
 
@@ -364,7 +366,7 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval>::push(
             expansion_queue_.emplace_back(stateid, transition->successor_dist);
         einfo.value_changed = value_changed;
     } else {
-        const auto action = this->get_greedy_action(stateid);
+        const auto action = sinfo.get_policy();
         assert(action.has_value());
         const State state = mdp.get_state(stateid);
         Distribution<StateID> successor_dist;
@@ -445,8 +447,9 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::vi_step(
         ++stat_counter;
 
         StateInfo& state_info = this->state_infos_[id];
-        const auto [value_changed, transition] =
-            this->bellman_policy_update(mdp, heuristic, id, state_info);
+        const auto [value, transition] =
+            this->compute_bellman_policy(mdp, heuristic, id, state_info);
+        bool value_changed = this->update_value(state_info, value);
         bool policy_changed = this->update_policy(state_info, transition);
         values_not_conv = values_not_conv || value_changed;
         policy_not_conv = policy_not_conv || policy_changed;

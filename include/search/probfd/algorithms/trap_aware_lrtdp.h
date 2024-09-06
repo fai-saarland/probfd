@@ -70,6 +70,9 @@ public:
 
 } // namespace internal
 
+template <typename, typename, bool>
+class TALRTDP;
+
 template <typename State, typename Action, bool UseInterval>
 class TALRTDPImpl
     : public heuristic_search::HeuristicSearchBase<
@@ -89,6 +92,9 @@ class TALRTDPImpl
     using StateInfo = typename Base::StateInfo;
 
     using QuotientSuccessorSampler = SuccessorSampler<QAction>;
+
+    template <typename, typename, bool>
+    friend class TALRTDP;
 
     struct ExplorationInformation {
         explicit ExplorationInformation(StateID state_id)

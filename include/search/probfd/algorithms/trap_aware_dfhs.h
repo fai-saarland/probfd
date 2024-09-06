@@ -69,6 +69,9 @@ public:
 
 } // namespace internal
 
+template <typename, typename, bool>
+class TADepthFirstHeuristicSearch;
+
 template <typename State, typename Action, bool UseInterval>
 class TADFHSImpl
     : public heuristic_search::HeuristicSearchBase<
@@ -88,6 +91,9 @@ class TADFHSImpl
     using StateInfo = typename Base::StateInfo;
 
     using QuotientOpenList = OpenList<QAction>;
+
+    template <typename, typename, bool>
+    friend class TADepthFirstHeuristicSearch;
 
     struct UpdateResult {
         bool value_changed;
@@ -335,7 +341,7 @@ public:
     void print_statistics(std::ostream& out) const override;
 
     [[nodiscard]]
-    value_t lookup_value(StateID state_id) const;
+    Interval lookup_bounds(StateID state_id) const;
 
     [[nodiscard]]
     bool was_visited(StateID state_id) const;

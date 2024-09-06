@@ -38,7 +38,7 @@ inline void Statistics::print(std::ostream& out) const
     out << "  Terminal state(s): " << terminal_states << std::endl;
     out << "  Self-loop state(s): " << self_loop_states << std::endl;
     out << "  Backed up state(s): " << backed_up_states << std::endl;
-    out << "  Number of backups: " << backups << std::endl;
+    out << "  Number of value updates: " << value_updates << std::endl;
     out << "  Number of value changes: " << value_changes << std::endl;
     out << "  Number of policy updates: " << policy_updates << std::endl;
 
@@ -54,8 +54,8 @@ inline void Statistics::print(std::ostream& out) const
         << before_last_update.self_loop_states << std::endl;
     out << "  Backed up state(s) until last value change: "
         << before_last_update.backed_up_states << std::endl;
-    out << "  Number of backups until last value change: "
-        << before_last_update.backups << std::endl;
+    out << "  Number of value_updates until last value change: "
+        << before_last_update.value_updates << std::endl;
     out << "  Number of value changes until last value change: "
         << before_last_update.value_changes << std::endl;
     out << "  Number of policy updates until last value change: "
@@ -78,24 +78,10 @@ HeuristicSearchBase<State, Action, StateInfoT>::HeuristicSearchBase(
 }
 
 template <typename State, typename Action, typename StateInfoT>
-value_t HeuristicSearchBase<State, Action, StateInfoT>::lookup_value(
-    StateID state_id) const
-{
-    return state_infos_[state_id].get_value();
-}
-
-template <typename State, typename Action, typename StateInfoT>
 Interval HeuristicSearchBase<State, Action, StateInfoT>::lookup_bounds(
     StateID state_id) const
 {
     return state_infos_[state_id].get_bounds();
-}
-
-template <typename State, typename Action, typename StateInfoT>
-bool HeuristicSearchBase<State, Action, StateInfoT>::is_terminal(
-    StateID state_id) const
-{
-    return state_infos_[state_id].is_terminal();
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -106,38 +92,10 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::was_visited(
 }
 
 template <typename State, typename Action, typename StateInfoT>
-void HeuristicSearchBase<State, Action, StateInfoT>::clear_policy(
-    StateID state_id)
-    requires(StorePolicy)
-{
-    state_infos_[state_id].clear_policy();
-}
-
-template <typename State, typename Action, typename StateInfoT>
-void HeuristicSearchBase<State, Action, StateInfoT>::set_dead_end(
-    StateInfo& state_info,
-    value_t termination_cost)
-{
-    state_info.set_dead_end();
-    state_value_changed(state_info);
-    state_info.value = AlgorithmValueType(termination_cost);
-}
-
-template <typename State, typename Action, typename StateInfoT>
-std::optional<Action>
-HeuristicSearchBase<State, Action, StateInfoT>::get_greedy_action(
-    StateID state_id)
-    requires(StorePolicy)
-{
-    return state_infos_[state_id].policy;
-}
-
-template <typename State, typename Action, typename StateInfoT>
-std::optional<Action>
-HeuristicSearchBase<State, Action, StateInfoT>::compute_greedy_action(
+auto HeuristicSearchBase<State, Action, StateInfoT>::compute_greedy_transition(
     MDPType& mdp,
     EvaluatorType& h,
-    StateID state_id)
+    StateID state_id) -> std::optional<TransitionType>
     requires(!StorePolicy)
 {
     ClearGuard guard(transitions_);
@@ -156,74 +114,60 @@ HeuristicSearchBase<State, Action, StateInfoT>::compute_greedy_action(
         qvalues);
     filter_greedy_transitions(transitions_, qvalues, best_value);
 
-    if (transitions_.empty()) return std::nullopt;
-
-    const int index = this->policy_chooser_->pick_index(
-        mdp,
-        state_id,
-        std::nullopt,
-        transitions_,
-        state_infos_);
-
-    return transitions_[index].action;
+    return select_action(mdp, state_id, std::nullopt, transitions_);
 }
 
 template <typename State, typename Action, typename StateInfoT>
-bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
+auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
     MDPType& mdp,
     EvaluatorType& h,
-    StateID state_id)
+    StateID state_id,
+    StateInfo& state_info) -> AlgorithmValueType
 {
-    StateInfo& state_info = this->state_infos_[state_id];
     ClearGuard _(transitions_);
-    return bellman_update(mdp, h, state_id, state_info, transitions_, false);
+    return compute_bellman(mdp, h, state_id, state_info, transitions_, false);
 }
 
 template <typename State, typename Action, typename StateInfoT>
-bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
+auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
     MDPType& mdp,
     EvaluatorType& h,
     StateID state_id,
-    std::vector<TransitionType>& greedy)
+    StateInfo& state_info,
+    std::vector<TransitionType>& greedy) -> AlgorithmValueType
 {
-    StateInfo& state_info = this->state_infos_[state_id];
-    return bellman_update(mdp, h, state_id, state_info, greedy, true);
+    return compute_bellman(mdp, h, state_id, state_info, greedy, true);
 }
 
 template <typename State, typename Action, typename StateInfoT>
-auto HeuristicSearchBase<State, Action, StateInfoT>::bellman_policy_update(
+auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_policy(
     MDPType& mdp,
     EvaluatorType& h,
     StateID state_id,
-    StateInfo& state_info) -> UpdateResult
+    StateInfo& state_info) -> BellmanResult
     requires(StorePolicy)
 {
     assert(!state_info.is_terminal());
 
     ClearGuard guard(transitions_);
 
-    const bool value_change =
-        bellman_update(mdp, h, state_id, state_info, transitions_, true);
+    const AlgorithmValueType best_value =
+        compute_bellman(mdp, h, state_id, state_info, transitions_, true);
 
-    if (transitions_.empty()) {
-        return UpdateResult{value_change, std::nullopt};
-    }
+    return BellmanResult{
+        best_value,
+        select_action(mdp, state_id, state_info.get_policy(), transitions_)};
+}
 
-#if defined(EXPENSIVE_STATISTICS)
-    TimerScope scoped(statistics_.policy_selection_time);
-#endif
-
-    ++statistics_.policy_updates;
-
-    const int index = this->policy_chooser_->pick_index(
-        mdp,
-        state_id,
-        state_info.get_policy(),
-        transitions_,
-        state_infos_);
-    assert(utils::in_bounds(index, transitions_));
-
-    return UpdateResult{value_change, std::move(transitions_[index])};
+template <typename State, typename Action, typename StateInfoT>
+bool HeuristicSearchBase<State, Action, StateInfoT>::update_value(
+    StateInfo& state_info,
+    AlgorithmValueType other)
+{
+    statistics_.value_updates++;
+    bool b = algorithms::update(state_info.value, other);
+    if (b) state_value_changed(state_info);
+    return b;
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -234,16 +178,6 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::update_policy(
 {
     ++statistics_.policy_updates;
     return state_info.update_policy(transition);
-}
-
-template <typename State, typename Action, typename StateInfoT>
-void HeuristicSearchBase<State, Action, StateInfoT>::set_policy(
-    StateInfo& state_info,
-    const std::optional<TransitionType>& transition)
-    requires(StorePolicy)
-{
-    ++statistics_.policy_updates;
-    state_info.set_policy(transition);
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -284,16 +218,6 @@ void HeuristicSearchBase<State, Action, StateInfoT>::print_statistics(
 }
 
 template <typename State, typename Action, typename StateInfoT>
-bool HeuristicSearchBase<State, Action, StateInfoT>::update(
-    StateInfo& state_info,
-    AlgorithmValueType other)
-{
-    bool b = algorithms::update(state_info.value, other);
-    if (b) state_value_changed(state_info);
-    return b;
-}
-
-template <typename State, typename Action, typename StateInfoT>
 void HeuristicSearchBase<State, Action, StateInfoT>::state_value_changed(
     StateInfo& info)
 {
@@ -301,19 +225,6 @@ void HeuristicSearchBase<State, Action, StateInfoT>::state_value_changed(
     if (&info == initial_state_info_) {
         statistics_.jump();
     }
-}
-
-template <typename State, typename Action, typename StateInfoT>
-auto HeuristicSearchBase<State, Action, StateInfoT>::lookup_initialize(
-    MDPType& mdp,
-    EvaluatorType& h,
-    StateID state_id) -> StateInfo&
-{
-    StateInfo& state_info = this->state_infos_[state_id];
-    if (state_info.is_value_initialized()) return state_info;
-    const State state = mdp.get_state(state_id);
-    initialize(mdp, h, state, state_info);
-    return state_info;
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -371,7 +282,10 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::normalized_qvalue(
             continue;
         }
 
-        const auto& succ_info = lookup_initialize(mdp, h, succ_id);
+        auto& succ_info = state_infos_[succ_id];
+        if (!succ_info.is_value_initialized()) {
+            initialize(mdp, h, mdp.get_state(succ_id), succ_info);
+        }
         t_value += prob * succ_info.value;
         loop = false;
     }
@@ -434,13 +348,13 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::filter_greedy_transitions(
 }
 
 template <typename State, typename Action, typename StateInfoT>
-bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
+auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
     MDPType& mdp,
     EvaluatorType& h,
     StateID state_id,
     StateInfo& state_info,
     std::vector<TransitionType>& transitions,
-    bool filter_greedy)
+    bool filter_greedy) -> AlgorithmValueType
 {
     assert(!state_info.is_terminal());
     assert(transitions.empty());
@@ -448,8 +362,6 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
 #if defined(EXPENSIVE_STATISTICS)
     TimerScope scoped_upd_timer(statistics_.update_time);
 #endif
-
-    statistics_.backups++;
 
     if (state_info.is_on_fringe()) {
         ++statistics_.backed_up_states;
@@ -463,8 +375,8 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
 
     if (transitions.empty()) {
         statistics_.terminal_states++;
-        set_dead_end(state_info, termination_cost);
-        return true;
+        state_info.set_dead_end();
+        return AlgorithmValueType(termination_cost);
     }
 
     AlgorithmValueType best_value;
@@ -495,11 +407,36 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::bellman_update(
 
     if (has_only_self_loops) {
         statistics_.self_loop_states++;
-        set_dead_end(state_info, termination_cost);
-        return true;
+        state_info.set_dead_end();
+        return AlgorithmValueType(termination_cost);
     }
 
-    return this->update(state_info, best_value);
+    return best_value;
+}
+
+template <typename State, typename Action, typename StateInfoT>
+auto HeuristicSearchBase<State, Action, StateInfoT>::select_action(
+    MDPType& mdp,
+    StateID state_id,
+    std::optional<Action> previous_greedy,
+    std::vector<TransitionType>& transitions) -> std::optional<TransitionType>
+{
+#if defined(EXPENSIVE_STATISTICS)
+    TimerScope scoped(statistics_.policy_selection_time);
+#endif
+
+    if (transitions.empty()) return std::nullopt;
+
+    const int index = this->policy_chooser_->pick_index(
+        mdp,
+        state_id,
+        previous_greedy,
+        transitions,
+        state_infos_);
+
+    assert(utils::in_bounds(index, transitions));
+
+    return std::move(transitions[index]);
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -546,9 +483,11 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
         std::optional<Action> action;
 
         if constexpr (HSBase::StorePolicy) {
-            action = this->get_greedy_action(state_id);
+            const StateInfo& state_info = this->state_infos_[state_id];
+            action = state_info.get_policy();
         } else {
-            action = this->compute_greedy_action(mdp, h, state_id);
+            action = this->compute_greedy_transition(mdp, h, state_id)
+                         .transform([](const auto& t) { return t.action; });
         }
 
         // Terminal states have no policy decision.

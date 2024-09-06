@@ -122,9 +122,10 @@ bool TALRTDPImpl<State, Action, UseInterval>::trial(
         }
 
         statistics_.trial_bellman_backups++;
-        const auto [value_changed, transition] =
-            this->bellman_policy_update(quotient, heuristic, stateid, info);
-        this->set_policy(info, transition);
+        const auto [value, transition] =
+            this->compute_bellman_policy(quotient, heuristic, stateid, info);
+        bool value_changed = this->update_value(info, value);
+        this->update_policy(info, transition);
 
         if (!transition) {
             info.set_solved();
@@ -209,7 +210,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                     }
                     TimerScope scope(statistics_.trap_timer);
                     quotient.build_quotient(scc, *scc.begin());
-                    sinfo->clear_policy();
+                    sinfo->update_policy(std::nullopt);
                     ++this->statistics_.traps;
                     stack_.erase(scc.begin(), scc.end());
                     if (reexpand_traps_) {
@@ -219,12 +220,13 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                     }
 
                     ++this->statistics_.check_and_solve_bellman_backups;
-                    auto res = this->bellman_policy_update(
+                    auto [value, transition] = this->compute_bellman_policy(
                         quotient,
                         heuristic,
                         state,
                         *sinfo);
-                    this->set_policy(*sinfo, res.transition);
+                    this->update_value(*sinfo, value);
+                    this->update_policy(*sinfo, transition);
                     einfo->rv = false;
                 } else {
                     for (const auto& entry : scc) {
@@ -236,12 +238,14 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                             info.set_solved();
                         } else {
                             ++this->statistics_.check_and_solve_bellman_backups;
-                            auto res = this->bellman_policy_update(
-                                quotient,
-                                heuristic,
-                                id,
-                                info);
-                            this->set_policy(info, res.transition);
+                            auto [value, transition] =
+                                this->compute_bellman_policy(
+                                    quotient,
+                                    heuristic,
+                                    id,
+                                    info);
+                            this->update_value(info, value);
+                            this->update_policy(info, transition);
                         }
                     }
                     stack_.erase(scc.begin(), scc.end());
@@ -325,9 +329,10 @@ bool TALRTDPImpl<State, Action, UseInterval>::initialize(
 
     ++this->statistics_.check_and_solve_bellman_backups;
 
-    const auto [value_changed, transition] =
-        this->bellman_policy_update(quotient, heuristic, state, state_info);
-    this->set_policy(state_info, transition);
+    const auto [value, transition] =
+        this->compute_bellman_policy(quotient, heuristic, state, state_info);
+    bool value_changed = this->update_value(state_info, value);
+    this->update_policy(state_info, transition);
 
     if (!transition) {
         e_info.rv = e_info.rv && !value_changed;
@@ -423,15 +428,16 @@ auto TALRTDP<State, Action, UseInterval>::compute_policy(
         const QState quotient_state = quotient.get_state(quotient_id);
         queue.pop_front();
 
-        std::optional quotient_action =
-            algorithm_.get_greedy_action(quotient_id);
+        const auto& state_info = algorithm_.state_infos_[quotient_id];
+
+        std::optional quotient_action = state_info.get_policy();
 
         // Terminal states have no policy decision.
         if (!quotient_action) {
             continue;
         }
 
-        const Interval quotient_bound = algorithm_.lookup_bounds(quotient_id);
+        const Interval quotient_bound = as_interval(state_info.value);
 
         const StateID exiting_id = quotient_action->state_id;
 

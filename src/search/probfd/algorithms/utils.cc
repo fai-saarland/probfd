@@ -17,6 +17,16 @@ value_t as_lower_bound(value_t single)
     return single;
 }
 
+Interval as_interval(value_t lower_bound)
+{
+    return Interval(lower_bound, INFINITE_VALUE);
+}
+
+Interval as_interval(Interval value)
+{
+    return value;
+}
+
 bool set_min(Interval& lhs, Interval rhs)
 {
     set_min(lhs.upper, rhs.upper);

@@ -86,8 +86,8 @@ auto FRET<State, Action, StateInfoT, GreedyGraphGenerator>::compute_policy(
         const QState quotient_state = quotient.get_state(quotient_id);
         queue.pop_front();
 
-        std::optional quotient_action =
-            base_algorithm_->get_greedy_action(quotient_id);
+        auto& base_info = base_algorithm_->state_infos_[quotient_id];
+        std::optional quotient_action = base_info.get_policy();
 
         // Terminal states have no policy decision.
         if (!quotient_action) {
@@ -344,7 +344,9 @@ bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::
 #endif
                         quotient.build_quotient(scc, *scc.begin());
                     }
-                    base_algorithm_->clear_policy(state_id);
+
+                    auto& base_info = base_algorithm_->state_infos_[state_id];
+                    base_algorithm_->update_policy(base_info, std::nullopt);
 
                     ++statistics_.traps;
                     ++trap_counter;
@@ -390,7 +392,9 @@ bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::push(
     StateID state_id,
     unsigned int& unexpanded)
 {
-    if (base_algorithm_->is_terminal(state_id)) {
+    const auto& state_info = base_algorithm_->state_infos_[state_id];
+
+    if (state_info.is_terminal()) {
         return false;
     }
 
@@ -430,11 +434,15 @@ bool ValueGraph<State, Action, StateInfoT>::get_successors(
 
     ClearGuard _(ids_, opt_transitions_);
 
-    bool value_changed = base_algorithm.bellman_update(
+    auto& state_info = base_algorithm.state_infos_[qstate];
+    auto value = base_algorithm.compute_bellman_and_greedy(
         quotient,
         heuristic,
         qstate,
+        state_info,
         opt_transitions_);
+
+    bool value_changed = base_algorithm.update_value(state_info, value);
 
     for (const auto& transition : opt_transitions_) {
         aops.push_back(transition.action);
@@ -458,7 +466,8 @@ bool PolicyGraph<State, Action, StateInfoT>::get_successors(
     std::vector<QAction>& aops,
     std::vector<StateID>& successors)
 {
-    std::optional a = base_algorithm.get_greedy_action(quotient_state_id);
+    auto& base_info = base_algorithm.state_infos_[quotient_state_id];
+    auto a = base_info.get_policy();
     assert(a.has_value());
 
     ClearGuard _(t_);

@@ -59,6 +59,12 @@ value_t as_lower_bound(Interval interval);
 /// Returns the value unchanged.
 value_t as_lower_bound(value_t single);
 
+/// Returns the interval with the given lower bound and infinte upper bound.
+Interval as_interval(value_t lower_bound);
+
+/// Returns the value unchanged.
+Interval as_interval(Interval value);
+
 /**
  * @brief Computes the assignments `lhs.lower <- min(lhs.lower, rhs.lower)` and
  * `lower <- min(lhs.lower, rhs.lower)`.

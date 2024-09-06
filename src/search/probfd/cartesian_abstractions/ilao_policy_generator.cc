@@ -65,7 +65,7 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
 
     for (int i = 0; i != abstraction.get_num_states(); ++i) {
         if (hdfs.was_visited(i)) {
-            heuristic.set_h_value(i, hdfs.lookup_value(i));
+            heuristic.set_h_value(i, hdfs.lookup_bounds(i).lower);
         }
     }
 

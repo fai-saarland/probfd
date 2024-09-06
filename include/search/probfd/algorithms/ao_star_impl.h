@@ -118,18 +118,20 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
                 !info.is_solved());
 
             const State state = mdp.get_state(stateid);
-            const Action action = *this->get_greedy_action(stateid);
+            const auto action = info.get_policy();
+
+            assert(action.has_value());
 
             ClearGuard guard(successor_dist);
 
-            mdp.generate_action_transitions(state, action, successor_dist);
+            mdp.generate_action_transitions(state, *action, successor_dist);
 
             successor_dist.remove_if_normalize([this](const auto& target) {
                 return this->state_infos_[target.item].is_solved();
             });
 
             outcome_selection_
-                ->sample(stateid, action, successor_dist, this->state_infos_);
+                ->sample(stateid, *action, successor_dist, this->state_infos_);
         }
 
         ++this->statistics_.iterations;
@@ -148,9 +150,10 @@ bool AOStar<State, Action, UseInterval>::update_value_check_solved(
 {
     assert(!info.is_solved());
 
-    const auto [value_changed, greedy_transition] =
-        this->bellman_policy_update(mdp, heuristic, state, info);
-    this->set_policy(info, greedy_transition);
+    const auto [value, greedy_transition] =
+        this->compute_bellman_policy(mdp, heuristic, state, info);
+    bool value_changed = this->update_value(info, value);
+    this->update_policy(info, greedy_transition);
 
     bool all_succs_solved = true;
 
