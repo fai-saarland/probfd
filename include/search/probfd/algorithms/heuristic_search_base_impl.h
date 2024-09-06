@@ -25,8 +25,6 @@ namespace internal {
 
 inline void Statistics::print(std::ostream& out) const
 {
-    out << "  Stored " << state_info_bytes << " bytes per state" << std::endl;
-
     out << "  Initial state value estimation: " << initial_state_estimate
         << std::endl;
     out << "  Initial state value found terminal: "
@@ -37,7 +35,7 @@ inline void Statistics::print(std::ostream& out) const
     out << "  Goal state(s): " << goal_states << std::endl;
     out << "  Terminal state(s): " << terminal_states << std::endl;
     out << "  Self-loop state(s): " << self_loop_states << std::endl;
-    out << "  Backed up state(s): " << backed_up_states << std::endl;
+    out << "  Expanded state(s): " << expanded_states << std::endl;
     out << "  Number of value updates: " << value_updates << std::endl;
     out << "  Number of value changes: " << value_changes << std::endl;
     out << "  Number of policy updates: " << policy_updates << std::endl;
@@ -52,9 +50,9 @@ inline void Statistics::print(std::ostream& out) const
         << before_last_update.terminal_states << std::endl;
     out << "  Self-loop state(s) until last value change: "
         << before_last_update.self_loop_states << std::endl;
-    out << "  Backed up state(s) until last value change: "
-        << before_last_update.backed_up_states << std::endl;
-    out << "  Number of value_updates until last value change: "
+    out << "  Expanded state(s) until last value change: "
+        << before_last_update.expanded_states << std::endl;
+    out << "  Number of value updates until last value change: "
         << before_last_update.value_updates << std::endl;
     out << "  Number of value changes until last value change: "
         << before_last_update.value_changes << std::endl;
@@ -74,7 +72,6 @@ HeuristicSearchBase<State, Action, StateInfoT>::HeuristicSearchBase(
     std::shared_ptr<PolicyPickerType> policy_chooser)
     : policy_chooser_(policy_chooser)
 {
-    statistics_.state_info_bytes = sizeof(StateInfo);
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -197,7 +194,6 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize_report(
 
     initialize(mdp, h, state, info);
 
-    statistics_.value = info.get_value();
     statistics_.before_last_update =
         static_cast<const internal::CoreStatistics&>(statistics_);
     statistics_.initial_state_estimate = info.get_value();
@@ -208,6 +204,7 @@ template <typename State, typename Action, typename StateInfoT>
 void HeuristicSearchBase<State, Action, StateInfoT>::print_statistics(
     std::ostream& out) const
 {
+    out << "  Stored " << sizeof(StateInfo) << " bytes per state" << std::endl;
     statistics_.print(out);
 }
 
@@ -358,7 +355,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
 #endif
 
     if (state_info.is_on_fringe()) {
-        ++statistics_.backed_up_states;
+        ++statistics_.expanded_states;
         state_info.removed_from_fringe();
     }
 

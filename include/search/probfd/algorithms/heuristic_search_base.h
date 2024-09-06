@@ -50,12 +50,14 @@ namespace internal {
  * @brief Base statistics for MDP h search.
  */
 struct CoreStatistics {
-    unsigned long long backed_up_states = 0;
     unsigned long long evaluated_states = 0;
     unsigned long long pruned_states = 0;
     unsigned long long goal_states = 0;
+
+    unsigned long long expanded_states = 0;
     unsigned long long terminal_states = 0;
     unsigned long long self_loop_states = 0;
+
     unsigned long long value_changes = 0;
     unsigned long long value_updates = 0;
     unsigned long long policy_updates = 0;
@@ -65,11 +67,9 @@ struct CoreStatistics {
  * @brief Extended statistics for MDP h search.
  */
 struct Statistics : public CoreStatistics {
-    unsigned state_info_bytes = 0;
     value_t initial_state_estimate = 0;
     bool initial_state_found_terminal = false;
 
-    value_t value = 0_vt;
     CoreStatistics before_last_update;
 
 #if defined(EXPENSIVE_STATISTICS)
