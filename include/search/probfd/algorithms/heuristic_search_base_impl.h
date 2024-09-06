@@ -40,25 +40,6 @@ inline void Statistics::print(std::ostream& out) const
     out << "  Number of value changes: " << value_changes << std::endl;
     out << "  Number of policy updates: " << policy_updates << std::endl;
 
-    out << "  Evaluated state(s) until last value change: "
-        << before_last_update.evaluated_states << std::endl;
-    out << "  Pruned state(s) until last value change: "
-        << before_last_update.pruned_states << std::endl;
-    out << "  Goal state(s) until last value change: "
-        << before_last_update.goal_states << std::endl;
-    out << "  Terminal state(s) until last value change: "
-        << before_last_update.terminal_states << std::endl;
-    out << "  Self-loop state(s) until last value change: "
-        << before_last_update.self_loop_states << std::endl;
-    out << "  Expanded state(s) until last value change: "
-        << before_last_update.expanded_states << std::endl;
-    out << "  Number of value updates until last value change: "
-        << before_last_update.value_updates << std::endl;
-    out << "  Number of value changes until last value change: "
-        << before_last_update.value_changes << std::endl;
-    out << "  Number of policy updates until last value change: "
-        << before_last_update.policy_updates << std::endl;
-
 #if defined(EXPENSIVE_STATISTICS)
     out << "  Updating time: " << update_time << std::endl;
     out << "  Policy selection time: " << policy_selection_time << std::endl;
@@ -163,7 +144,8 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::update_value(
 {
     statistics_.value_updates++;
     bool b = algorithms::update(state_info.value, other);
-    if (b) state_value_changed(state_info);
+    if (b) ++statistics_.value_changes;
+    ;
     return b;
 }
 
@@ -186,7 +168,6 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize_report(
 {
     const StateID initial_id = mdp.get_state_id(state);
     StateInfo& info = this->state_infos_[initial_id];
-    initial_state_info_ = &info;
 
     progress.register_bound("v", [&info]() { return as_interval(info.value); });
 
@@ -194,8 +175,6 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize_report(
 
     initialize(mdp, h, state, info);
 
-    statistics_.before_last_update =
-        static_cast<const internal::CoreStatistics&>(statistics_);
     statistics_.initial_state_estimate = info.get_value();
     statistics_.initial_state_found_terminal = info.is_terminal();
 }
@@ -206,16 +185,6 @@ void HeuristicSearchBase<State, Action, StateInfoT>::print_statistics(
 {
     out << "  Stored " << sizeof(StateInfo) << " bytes per state" << std::endl;
     statistics_.print(out);
-}
-
-template <typename State, typename Action, typename StateInfoT>
-void HeuristicSearchBase<State, Action, StateInfoT>::state_value_changed(
-    StateInfo& info)
-{
-    ++statistics_.value_changes;
-    if (&info == initial_state_info_) {
-        statistics_.jump();
-    }
 }
 
 template <typename State, typename Action, typename StateInfoT>

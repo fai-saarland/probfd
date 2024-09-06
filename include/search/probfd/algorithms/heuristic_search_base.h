@@ -49,7 +49,7 @@ namespace internal {
 /**
  * @brief Base statistics for MDP h search.
  */
-struct CoreStatistics {
+struct Statistics {
     unsigned long long evaluated_states = 0;
     unsigned long long pruned_states = 0;
     unsigned long long goal_states = 0;
@@ -61,16 +61,9 @@ struct CoreStatistics {
     unsigned long long value_changes = 0;
     unsigned long long value_updates = 0;
     unsigned long long policy_updates = 0;
-};
 
-/**
- * @brief Extended statistics for MDP h search.
- */
-struct Statistics : public CoreStatistics {
     value_t initial_state_estimate = 0;
     bool initial_state_found_terminal = false;
-
-    CoreStatistics before_last_update;
 
 #if defined(EXPENSIVE_STATISTICS)
     utils::Timer update_time = utils::Timer(true);
@@ -81,11 +74,6 @@ struct Statistics : public CoreStatistics {
      * @brief Prints the statistics to the specified output stream.
      */
     void print(std::ostream& out) const;
-
-    void jump()
-    {
-        before_last_update = static_cast<const CoreStatistics&>(*this);
-    }
 };
 
 template <typename StateInfo>
@@ -148,8 +136,6 @@ public:
 private:
     // Algorithm parameters
     const std::shared_ptr<PolicyPickerType> policy_chooser_;
-
-    StateInfo* initial_state_info_ = nullptr;
 
     // Reused buffer
     mutable std::vector<TransitionType> transitions_;
@@ -249,8 +235,6 @@ protected:
     void print_statistics(std::ostream& out) const;
 
 private:
-    void state_value_changed(StateInfo& info);
-
     void initialize(
         MDPType& mdp,
         EvaluatorType& h,
