@@ -191,17 +191,11 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize_report(
     StateInfo& info = this->state_infos_[initial_id];
     initial_state_info_ = &info;
 
+    progress.register_bound("v", [&info]() { return as_interval(info.value); });
+
     if (info.is_value_initialized()) return;
 
     initialize(mdp, h, state, info);
-
-    if constexpr (UseInterval) {
-        progress.register_bound("v", [&info]() { return info.value; });
-    } else {
-        progress.register_bound("v", [&info]() {
-            return Interval(info.value, INFINITE_VALUE);
-        });
-    }
 
     statistics_.value = info.get_value();
     statistics_.before_last_update =
