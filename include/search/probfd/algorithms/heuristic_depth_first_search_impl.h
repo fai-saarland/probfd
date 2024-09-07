@@ -76,13 +76,19 @@ Interval HeuristicDepthFirstSearch<State, Action, UseInterval>::do_solve(
     utils::CountdownTimer timer(max_time);
 
     const StateID stateid = mdp.get_state_id(state);
+    const StateInfo& state_info = this->state_infos_[stateid];
+
+    progress.register_bound("v", [&state_info]() {
+        return as_interval(state_info.value);
+    });
+
     if (perform_value_iteration_) {
         solve_with_vi_termination(mdp, heuristic, stateid, progress, timer);
     } else {
         solve_without_vi_termination(mdp, heuristic, stateid, progress, timer);
     }
 
-    return this->state_infos_[stateid].get_bounds();
+    return state_info.get_bounds();
 }
 
 template <typename State, typename Action, bool UseInterval>

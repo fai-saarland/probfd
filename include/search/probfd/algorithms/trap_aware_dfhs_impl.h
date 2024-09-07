@@ -89,18 +89,26 @@ Interval TADFHSImpl<State, Action, UseInterval>::solve_quotient(
     ProgressReport& progress,
     double max_time)
 {
-    Base::initialize_report(quotient, heuristic, qstate, progress);
-    statistics_.register_report(progress);
-
     utils::CountdownTimer timer(max_time);
 
-    StateID state_id = quotient.get_state_id(qstate);
+    Base::initialize_initial_state(quotient, heuristic, qstate);
+
+    const StateID state_id = quotient.get_state_id(qstate);
+    const StateInfo& state_info = this->state_infos_[state_id];
+
+    progress.register_bound("v", [&state_info]() {
+        return as_interval(state_info.value);
+    });
+
+    statistics_.register_report(progress);
+
     if (value_iteration_) {
         dfhs_vi_driver(quotient, heuristic, state_id, progress, timer);
     } else {
         dfhs_label_driver(quotient, heuristic, state_id, progress, timer);
     }
-    return this->lookup_bounds(state_id);
+
+    return state_info.get_bounds();
 }
 
 template <typename State, typename Action, bool UseInterval>

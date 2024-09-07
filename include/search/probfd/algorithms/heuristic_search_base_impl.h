@@ -159,16 +159,12 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::update_policy(
 }
 
 template <typename State, typename Action, typename StateInfoT>
-void HeuristicSearchBase<State, Action, StateInfoT>::initialize_report(
+void HeuristicSearchBase<State, Action, StateInfoT>::initialize_initial_state(
     MDPType& mdp,
     EvaluatorType& h,
-    param_type<State> state,
-    ProgressReport& progress)
+    param_type<State> state)
 {
-    const StateID initial_id = mdp.get_state_id(state);
-    StateInfo& info = this->state_infos_[initial_id];
-
-    progress.register_bound("v", [&info]() { return as_interval(info.value); });
+    StateInfo& info = this->state_infos_[mdp.get_state_id(state)];
 
     if (info.is_value_initialized()) return;
 
@@ -201,17 +197,16 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize(
     const value_t t_cost = term.get_cost();
 
     if (term.is_goal_state()) {
+        statistics_.goal_states++;
         state_info.set_goal();
         state_info.value = AlgorithmValueType(t_cost);
-        statistics_.goal_states++;
         return;
     }
 
     const value_t estimate = h.evaluate(state);
 
     if constexpr (UseInterval) {
-        state_info.value.lower = estimate;
-        state_info.value.upper = t_cost;
+        state_info.value = Interval(estimate, t_cost);
     } else {
         state_info.value = estimate;
     }
@@ -406,7 +401,7 @@ Interval HeuristicSearchAlgorithm<State, Action, StateInfoT>::solve(
     ProgressReport progress,
     double max_time)
 {
-    HSBase::initialize_report(mdp, h, state, progress);
+    HSBase::initialize_initial_state(mdp, h, state);
     return this->do_solve(mdp, h, state, progress, max_time);
 }
 

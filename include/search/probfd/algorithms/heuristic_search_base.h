@@ -226,11 +226,10 @@ public:
         requires(StorePolicy);
 
 protected:
-    void initialize_report(
+    void initialize_initial_state(
         MDPType& mdp,
         EvaluatorType& h,
-        param_type<State> state,
-        ProgressReport& progress);
+        param_type<State> state);
 
     void print_statistics(std::ostream& out) const;
 

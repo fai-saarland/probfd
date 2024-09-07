@@ -21,8 +21,8 @@ template <typename State, typename Action, bool UseInterval>
 AOStar<State, Action, UseInterval>::AOStar(
     std::shared_ptr<PolicyPickerType> policy_chooser,
     std::shared_ptr<SuccessorSamplerType> outcome_selection)
-    : Base(policy_chooser)
-    , outcome_selection_(outcome_selection)
+    : Base(std::move(policy_chooser))
+    , outcome_selection_(std::move(outcome_selection))
 {
 }
 
@@ -36,21 +36,26 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
 {
     using namespace std::views;
 
-    progress.register_print([&](std::ostream& out) {
-        out << "i=" << this->statistics_.iterations;
-    });
-
     utils::CountdownTimer timer(max_time);
 
     const StateID initstateid = mdp.get_state_id(initial_state);
     auto& iinfo = this->state_infos_[initstateid];
+
+    progress.register_bound("v", [&iinfo]() {
+        return as_interval(iinfo.value);
+    });
+
+    progress.register_print([&](std::ostream& out) {
+        out << "i=" << this->statistics_.iterations;
+    });
+
     iinfo.update_order = 0;
 
     // Re-used buffer
     std::vector<Transition<Action>> transitions;
     Distribution<StateID> successor_dist;
 
-    while (!iinfo.is_solved()) {
+    for (; !iinfo.is_solved(); progress.print()) {
         StateID stateid = initstateid;
 
         for (;;) {
@@ -139,7 +144,6 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
         }
 
         ++this->statistics_.iterations;
-        progress.print();
     }
 
     return iinfo.get_bounds();

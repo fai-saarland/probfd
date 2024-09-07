@@ -25,10 +25,6 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
     ProgressReport& progress,
     double max_time)
 {
-    progress.register_print([&](std::ostream& out) {
-        out << "i=" << this->statistics_.iterations;
-    });
-
     utils::CountdownTimer timer(max_time);
 
     // Re-used buffer
@@ -36,7 +32,16 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
 
     StateID initstateid = mdp.get_state_id(initial_state);
     const auto& state_info = this->state_infos_[initstateid];
+
     open_list_->push(initstateid);
+
+    progress.register_bound("v", [&state_info]() {
+        return as_interval(state_info.value);
+    });
+
+    progress.register_print([&](std::ostream& out) {
+        out << "i=" << this->statistics_.iterations;
+    });
 
     do {
         timer.throw_if_expired();

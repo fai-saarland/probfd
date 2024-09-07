@@ -74,21 +74,28 @@ Interval TALRTDPImpl<State, Action, UseInterval>::solve_quotient(
     ProgressReport& progress,
     double max_time)
 {
-    Base::initialize_report(quotient, heuristic, state, progress);
-    this->statistics_.register_report(progress);
-
     utils::CountdownTimer timer(max_time);
 
+    Base::initialize_initial_state(quotient, heuristic, state);
+
     const StateID state_id = quotient.get_state_id(state);
-    bool terminate = false;
+    const StateInfo& state_info = this->state_infos_[state_id];
+
+    progress.register_bound("v", [&state_info]() {
+        return as_interval(state_info.value);
+    });
+
+    this->statistics_.register_report(progress);
+
+    bool terminate;
     do {
         terminate = trial(quotient, heuristic, state_id, timer);
-        statistics_.trials++;
         assert(state_id == quotient.translate_state_id(state_id));
+        statistics_.trials++;
         progress.print();
     } while (!terminate);
 
-    return this->lookup_bounds(state_id);
+    return state_info.get_bounds();
 }
 
 template <typename State, typename Action, bool UseInterval>
