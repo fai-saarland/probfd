@@ -48,6 +48,9 @@ Interval LRTDP<State, Action, UseInterval>::do_solve(
     ProgressReport& progress,
     double max_time)
 {
+    progress.register_print(
+        [&](std::ostream& out) { out << "trials=" << statistics_.trials; });
+
     utils::CountdownTimer timer(max_time);
 
     const StateID state_id = mdp.get_state_id(state);
@@ -72,15 +75,6 @@ void LRTDP<State, Action, UseInterval>::print_additional_statistics(
     std::ostream& out) const
 {
     statistics_.print(out);
-}
-
-template <typename State, typename Action, bool UseInterval>
-void LRTDP<State, Action, UseInterval>::setup_custom_reports(
-    param_type<State>,
-    ProgressReport& progress)
-{
-    progress.register_print(
-        [&](std::ostream& out) { out << "trials=" << statistics_.trials; });
 }
 
 template <typename State, typename Action, bool UseInterval>

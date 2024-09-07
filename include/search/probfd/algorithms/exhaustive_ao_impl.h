@@ -25,6 +25,10 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
     ProgressReport& progress,
     double max_time)
 {
+    progress.register_print([&](std::ostream& out) {
+        out << "i=" << this->statistics_.iterations;
+    });
+
     utils::CountdownTimer timer(max_time);
 
     // Re-used buffer

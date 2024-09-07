@@ -21,15 +21,6 @@ void AOBase<State, Action, StateInfo>::print_additional_statistics(
 }
 
 template <typename State, typename Action, typename StateInfo>
-void AOBase<State, Action, StateInfo>::setup_custom_reports(
-    param_type<State>,
-    ProgressReport& progress)
-{
-    progress.register_print(
-        [&](std::ostream& out) { out << "i=" << statistics_.iterations; });
-}
-
-template <typename State, typename Action, typename StateInfo>
 void AOBase<State, Action, StateInfo>::backpropagate_tip_value(
     this auto& self,
     MDPType& mdp,

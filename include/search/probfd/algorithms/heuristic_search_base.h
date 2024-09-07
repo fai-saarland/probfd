@@ -320,19 +320,6 @@ public:
     void print_statistics(std::ostream& out) const final;
 
     /**
-     * @brief Sets up internal custom reports of a state in an implementation.
-     */
-    virtual void setup_custom_reports(param_type<State>, ProgressReport&) {}
-
-    /**
-     * @brief Resets the h search algorithm object to a clean state.
-     *
-     * This method is needed by the FRET algorithm to restart the heuristic
-     * search after traps have been collapsed.
-     */
-    virtual void reset_search_state() {}
-
-    /**
      * @brief Solves for the optimal state value of the input state.
      *
      * Called internally after initializing the progress report.
@@ -350,6 +337,42 @@ public:
      * Called internally after printing the base h search statistics.
      */
     virtual void print_additional_statistics(std::ostream& out) const = 0;
+};
+
+/**
+ * @brief Heuristics search algorithm that can be used within FRET.
+ *
+ * @tparam State - The state type of the underlying MDP model.
+ * @tparam Action - The action type of the undelying MDP model.
+ * @tparam StateInfoT - The state information container type.
+ */
+template <typename State, typename Action, typename StateInfoT>
+class FRETHeuristicSearchAlgorithm
+    : public HeuristicSearchAlgorithm<State, Action, StateInfoT> {
+    using AlgorithmBase = typename FRETHeuristicSearchAlgorithm::MDPAlgorithm;
+    using HSBase =
+        typename FRETHeuristicSearchAlgorithm::HeuristicSearchAlgorithm;
+
+protected:
+    using PolicyType = typename AlgorithmBase::PolicyType;
+
+    using MDPType = typename AlgorithmBase::MDPType;
+    using EvaluatorType = typename AlgorithmBase::EvaluatorType;
+
+    using StateInfo = typename HSBase::StateInfo;
+    using PolicyPicker = typename HSBase::PolicyPickerType;
+
+public:
+    // Inherited constructor
+    using HSBase::HSBase;
+
+    /**
+     * @brief Resets the h search algorithm object to a clean state.
+     *
+     * This method is needed by the FRET algorithm to restart the heuristic
+     * search after traps have been collapsed.
+     */
+    virtual void reset_search_state() {}
 };
 
 } // namespace probfd::algorithms::heuristic_search

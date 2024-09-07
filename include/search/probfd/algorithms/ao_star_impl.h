@@ -36,6 +36,10 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
 {
     using namespace std::views;
 
+    progress.register_print([&](std::ostream& out) {
+        out << "i=" << this->statistics_.iterations;
+    });
+
     utils::CountdownTimer timer(max_time);
 
     const StateID initstateid = mdp.get_state_id(initial_state);

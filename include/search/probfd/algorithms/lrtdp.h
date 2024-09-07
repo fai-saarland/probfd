@@ -123,11 +123,11 @@ public:
  */
 template <typename State, typename Action, bool UseInterval>
 class LRTDP
-    : public heuristic_search::HeuristicSearchAlgorithm<
+    : public heuristic_search::FRETHeuristicSearchAlgorithm<
           State,
           Action,
           internal::PerStateInformation<Action, UseInterval>> {
-    using Base = typename LRTDP::HeuristicSearchAlgorithm;
+    using Base = typename LRTDP::FRETHeuristicSearchAlgorithm;
 
 public:
     using StateInfo = typename Base::StateInfo;
@@ -172,9 +172,6 @@ protected:
         double max_time) override;
 
     void print_additional_statistics(std::ostream& out) const override;
-
-    void
-    setup_custom_reports(param_type<State>, ProgressReport& progress) override;
 
 private:
     void trial(

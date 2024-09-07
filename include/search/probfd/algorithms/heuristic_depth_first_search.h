@@ -113,11 +113,12 @@ struct ExpansionInfo {
  */
 template <typename State, typename Action, bool UseInterval>
 class HeuristicDepthFirstSearch
-    : public heuristic_search::HeuristicSearchAlgorithm<
+    : public heuristic_search::FRETHeuristicSearchAlgorithm<
           State,
           Action,
           internal::PerStateInformation<Action, UseInterval>> {
-    using Base = typename HeuristicDepthFirstSearch::HeuristicSearchAlgorithm;
+    using Base =
+        typename HeuristicDepthFirstSearch::FRETHeuristicSearchAlgorithm;
 
 public:
     using StateInfo = typename Base::StateInfo;
@@ -168,9 +169,9 @@ protected:
         Evaluator& heuristic,
         param_type<State> state,
         ProgressReport& progress,
-        double max_time) override;
+        double max_time);
 
-    void print_additional_statistics(std::ostream& out) const override;
+    void print_additional_statistics(std::ostream& out) const;
 
 private:
     void solve_with_vi_termination(

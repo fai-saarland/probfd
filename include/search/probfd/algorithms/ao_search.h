@@ -127,9 +127,6 @@ public:
 protected:
     void print_additional_statistics(std::ostream& out) const override;
 
-    void
-    setup_custom_reports(param_type<State>, ProgressReport& progress) override;
-
     void backpropagate_tip_value(
         this auto& self,
         MDPType& mdp,

@@ -145,7 +145,6 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::update_value(
     statistics_.value_updates++;
     bool b = algorithms::update(state_info.value, other);
     if (b) ++statistics_.value_changes;
-    ;
     return b;
 }
 
@@ -408,7 +407,6 @@ Interval HeuristicSearchAlgorithm<State, Action, StateInfoT>::solve(
     double max_time)
 {
     HSBase::initialize_report(mdp, h, state, progress);
-    this->setup_custom_reports(state, progress);
     return this->do_solve(mdp, h, state, progress, max_time);
 }
 

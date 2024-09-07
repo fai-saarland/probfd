@@ -136,8 +136,8 @@ class FRET : public MDPAlgorithm<State, Action> {
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
-    using QHeuristicSearchAlgorithm =
-        heuristic_search::HeuristicSearchAlgorithm<QState, QAction, StateInfoT>;
+    using QHeuristicSearchAlgorithm = heuristic_search::
+        FRETHeuristicSearchAlgorithm<QState, QAction, StateInfoT>;
     using QEvaluator = probfd::Evaluator<QState>;
 
     using StackInfo = internal::StackInfo<QAction>;
