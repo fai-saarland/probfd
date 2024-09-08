@@ -78,8 +78,8 @@ struct ExpansionInfo {
 
     std::vector<StateID> successors;
 
-    bool unsolved = false;
-    bool value_changed = false;
+    bool unsolved : 1 = false;
+    bool value_changed : 1 = false;
 
     bool next_successor();
     [[nodiscard]]
