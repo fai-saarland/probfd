@@ -305,7 +305,6 @@ FeaturePlugin<TrapAwareHDPSolverFeature> _plugin_hdp;
 TypedEnumPlugin<BacktrackingUpdateType> _fret_enum_plugin(
     {{"disabled", "No value updates are made."},
      {"ondemand", "update if some value changed during forward updates"},
-     {"single", "single update"},
-     {"convergence", "run value iteration until convergence"}});
+     {"single", "single update"}});
 
 } // namespace

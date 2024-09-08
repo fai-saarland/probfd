@@ -25,12 +25,7 @@ class OpenList;
 /// native trap handling support.
 namespace probfd::algorithms::trap_aware_dfhs {
 
-enum class BacktrackingUpdateType {
-    DISABLED,
-    ON_DEMAND,
-    SINGLE,
-    CONVERGENCE,
-};
+enum class BacktrackingUpdateType { DISABLED, ON_DEMAND, SINGLE };
 
 namespace internal {
 
@@ -283,7 +278,6 @@ private:
     void backtrack_solved(StateID, Flags& flags, auto scc);
     void backtrack_unsolved(StateID, Flags& flags, auto scc);
 
-    template <bool Convergence>
     UpdateResult value_iteration(
         QuotientSystem& quotient,
         QEvaluator& heuristic,

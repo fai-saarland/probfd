@@ -13,10 +13,7 @@ namespace internal {
 inline void Statistics::print(std::ostream& out) const
 {
     out << "  Iterations: " << iterations << std::endl;
-    out << "  Value iterations (backtracking): "
-        << backtracking_value_iterations << std::endl;
-    out << "  Value iterations (convergence): " << convergence_value_iterations
-        << std::endl;
+    out << "  Value iterations: " << convergence_value_iterations << std::endl;
     out << "  Bellman backups (forward): " << forward_updates << std::endl;
     out << "  Bellman backups (backtracking): " << backtracking_updates
         << std::endl;
@@ -198,7 +195,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
             bool last_value_changed = einfo->value_changed;
 
             if (backward_updates_ == SINGLE ||
-                (last_value_changed && backward_updates_ == ON_DEMAND)) {
+                (backward_updates_ == ON_DEMAND && last_value_changed)) {
                 statistics_.backtracking_updates++;
                 StateInfo& state_info = this->state_infos_[einfo->stateid];
                 auto [value, transition] = this->compute_bellman_policy(
@@ -224,16 +221,6 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
                     if (!last_unsolved_succs && !last_value_changed) {
                         visited_.insert(visited_.end(), scc.begin(), scc.end());
                     }
-                }
-
-                if (backward_updates_ == CONVERGENCE && last_unsolved_succs) {
-                    auto result = backtracking_value_iteration(
-                        mdp,
-                        heuristic,
-                        scc,
-                        timer);
-                    last_value_changed = result.first;
-                    last_unsolved_succs = result.second || last_unsolved_succs;
                 }
 
                 last_unsolved_succs = last_unsolved_succs || last_value_changed;
@@ -380,34 +367,6 @@ uint8_t HeuristicDepthFirstSearch<State, Action, UseInterval>::push(
     }
 
     return ONSTACK;
-}
-
-template <typename State, typename Action, bool UseInterval>
-std::pair<bool, bool> HeuristicDepthFirstSearch<State, Action, UseInterval>::
-    backtracking_value_iteration(
-        MDP& mdp,
-        Evaluator& heuristic,
-        const std::ranges::input_range auto& range,
-        utils::CountdownTimer& timer)
-{
-    bool ever_values_not_conv = false;
-    bool ever_policy_not_conv = false;
-
-    for (;;) {
-        auto [value_changed, policy_changed] = vi_step(
-            mdp,
-            heuristic,
-            range,
-            timer,
-            statistics_.backtracking_updates);
-
-        ever_values_not_conv = ever_values_not_conv || value_changed;
-        ever_policy_not_conv = ever_values_not_conv || policy_changed;
-
-        if (!value_changed) break;
-    }
-
-    return std::make_pair(ever_values_not_conv, ever_policy_not_conv);
 }
 
 template <typename State, typename Action, bool UseInterval>

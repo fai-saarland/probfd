@@ -16,12 +16,7 @@ class CountdownTimer;
 /// Namespace dedicated to Depth-First Heuristic Search.
 namespace probfd::algorithms::heuristic_depth_first_search {
 
-enum class BacktrackingUpdateType {
-    DISABLED,
-    ON_DEMAND,
-    SINGLE,
-    CONVERGENCE,
-};
+enum class BacktrackingUpdateType { DISABLED, ON_DEMAND, SINGLE };
 
 namespace internal {
 
@@ -30,7 +25,6 @@ struct Statistics {
     unsigned long long forward_updates = 0;
     unsigned long long backtracking_updates = 0;
     unsigned long long convergence_updates = 0;
-    unsigned long long backtracking_value_iterations = 0;
     unsigned long long convergence_value_iterations = 0;
 
     void print(std::ostream& out) const;
@@ -211,12 +205,6 @@ private:
         bool& parent_value_changed);
 
     bool value_iteration(
-        MDP& mdp,
-        Evaluator& heuristic,
-        const std::ranges::input_range auto& range,
-        utils::CountdownTimer& timer);
-
-    std::pair<bool, bool> backtracking_value_iteration(
         MDP& mdp,
         Evaluator& heuristic,
         const std::ranges::input_range auto& range,

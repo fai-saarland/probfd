@@ -97,7 +97,7 @@ public:
         this->template add_option<BacktrackingUpdateType>(
             "bwup",
             "",
-            "ondemand");
+            ArgumentInfo::NO_DEFAULT);
         this->template add_option<bool>(
             "cutoff_inconsistent",
             "",
@@ -167,37 +167,6 @@ protected:
 };
 
 template <bool Bisimulation, bool Fret>
-class LAOSolverFeature
-    : public TypedFeature<SolverInterface, DFHSSolver<Bisimulation, Fret>> {
-public:
-    LAOSolverFeature()
-        : LAOSolverFeature::TypedFeature(
-              add_wrapper_algo_suffix<Bisimulation, Fret>("lao"))
-    {
-        this->document_title("LAO* variant of depth-first heuristic search.");
-
-        add_mdp_hs_options_to_feature<Bisimulation, Fret>(*this);
-    }
-
-    std::shared_ptr<DFHSSolver<Bisimulation, Fret>>
-    create_component(const Options& options, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<
-            DFHSSolver<Bisimulation, Fret>>(
-            "lao",
-            false,
-            false,
-            BacktrackingUpdateType::CONVERGENCE,
-            true,
-            false,
-            false,
-            false,
-            get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
-    }
-};
-
-template <bool Bisimulation, bool Fret>
 class ILAOSolverFeature
     : public TypedFeature<SolverInterface, DFHSSolver<Bisimulation, Fret>> {
 public:
@@ -259,10 +228,9 @@ public:
     }
 };
 
-MultiFeaturePlugin<DFHSSolverFeature> _plugins_dfhs1;
-MultiFeaturePlugin<LAOSolverFeature> _plugins_lao;
-MultiFeaturePlugin<ILAOSolverFeature> _plugins_ilao;
-MultiFeaturePlugin<HDPSolverFeature> _plugins_hdp;
+MultiFeaturePlugin<DFHSSolverFeature> _plugin_dfhs;
+MultiFeaturePlugin<ILAOSolverFeature> _plugin_ilao;
+MultiFeaturePlugin<HDPSolverFeature> _plugin_hdp;
 
 TypedEnumPlugin<BacktrackingUpdateType> _fret_enum_plugin(
     {{"disabled",
@@ -274,9 +242,6 @@ TypedEnumPlugin<BacktrackingUpdateType> _fret_enum_plugin(
       "during a recursive call."},
      {"single",
       "An update is always performed when backtracking from a state during the "
-      "dfs exploration."},
-     {"convergence",
-      "Value iteration is performed until convergence when backtracking from "
-      "an SCC."}});
+      "dfs exploration."}});
 
 } // namespace

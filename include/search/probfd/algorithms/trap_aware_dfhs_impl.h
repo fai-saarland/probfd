@@ -132,11 +132,8 @@ void TADFHSImpl<State, Action, UseInterval>::dfhs_vi_driver(
         const bool is_complete =
             policy_exploration(quotient, heuristic, state, timer);
         if (is_complete) {
-            vi_res = value_iteration<false>(
-                quotient,
-                heuristic,
-                visited_states_,
-                timer);
+            vi_res =
+                value_iteration(quotient, heuristic, visited_states_, timer);
         }
         visited_states_.clear();
         ++statistics_.iterations;
@@ -409,46 +406,14 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
                 auto scc = stack_ | std::views::drop(last_lowlink);
 
                 if (scc.size() == 1) {
-                    if (backtrack_update_type_ == CONVERGENCE) {
-                        StateInfo& state_info = this->state_infos_[state];
-                        auto [value, transition] = this->compute_bellman_policy(
-                            quotient,
-                            heuristic,
-                            state,
-                            state_info);
-                        bool value_changed =
-                            this->update_value(state_info, value);
-                        bool policy_changed =
-                            this->update_policy(state_info, transition);
-                        flags.complete = flags.complete && !policy_changed;
-                        flags.all_solved = flags.all_solved && !value_changed;
-                        terminated_ = terminated_ ||
-                                      (terminate_exploration_ &&
-                                       cutoff_inconsistent_ && value_changed);
-                    }
                     backtrack_from_singleton(state, flags);
-                } else {
-                    if (backtrack_update_type_ == CONVERGENCE) {
-                        auto res = value_iteration<true>(
-                            quotient,
-                            heuristic,
-                            scc | std::views::transform(&StackInfo::state_id),
-                            timer);
-                        flags.complete = flags.complete && !res.policy_changed;
-                        flags.all_solved =
-                            flags.all_solved && !res.value_changed;
-                        terminated_ = terminated_ || (terminate_exploration_ &&
-                                                      cutoff_inconsistent_ &&
-                                                      res.value_changed);
-                    }
-                    if (backtrack_from_non_singleton(
-                            quotient,
-                            heuristic,
-                            state,
-                            flags,
-                            scc)) {
-                        break; // re-expanded trap, continue exploring
-                    }
+                } else if (backtrack_from_non_singleton(
+                               quotient,
+                               heuristic,
+                               state,
+                               flags,
+                               scc)) {
+                    break; // re-expanded trap, continue exploring
                 }
             }
 
@@ -572,7 +537,6 @@ void TADFHSImpl<State, Action, UseInterval>::backtrack_unsolved(
 }
 
 template <typename State, typename Action, bool UseInterval>
-template <bool Convergence>
 auto TADFHSImpl<State, Action, UseInterval>::value_iteration(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
@@ -606,7 +570,7 @@ auto TADFHSImpl<State, Action, UseInterval>::value_iteration(
             updated_all.value_changed || value_changed_for_any;
         updated_all.policy_changed =
             updated_all.policy_changed || policy_changed_for_any;
-    } while (value_changed_for_any && (Convergence || !policy_changed_for_any));
+    } while (value_changed_for_any && !policy_changed_for_any);
 
     return updated_all;
 }
