@@ -49,25 +49,20 @@ public:
 
     void set_solved() { this->info |= SOLVED; }
 
+    void unset_solved() { this->info &= ~SOLVED; }
+
     void clear() { this->info &= ~MASK; }
 };
 
-enum StateStatus {
-    NEW = 0,
-    ONSTACK = 1,
-    CLOSED = 2,
-    UNSOLVED = 3,
-    UNDEF = std::numeric_limits<unsigned>::max() >> 1
-};
+enum StateStatus { NEW = 0, ONSTACK = 1, CLOSED = 2 };
 
 struct LocalStateInfo {
     uint8_t status = StateStatus::NEW;
-    unsigned index = StateStatus::UNDEF;
-    unsigned lowlink = StateStatus::UNDEF;
+    unsigned index = std::numeric_limits<unsigned>::max();
+    unsigned lowlink = std::numeric_limits<unsigned>::max();
 
     void open(unsigned stack_index)
     {
-        status = ONSTACK;
         index = stack_index;
         lowlink = stack_index;
     }
@@ -195,11 +190,12 @@ private:
         bool& keep_expanding,
         utils::CountdownTimer& timer);
 
-    uint8_t push(
+    void push(
         MDP& mdp,
         Evaluator& heuristic,
         StateID stateid,
         StateInfo& sinfo,
+        LocalStateInfo& local_info,
         bool& parent_value_changed);
 
     bool value_iteration(
