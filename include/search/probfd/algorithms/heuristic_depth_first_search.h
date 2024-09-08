@@ -54,10 +54,10 @@ public:
     void clear() { this->info &= ~MASK; }
 };
 
-enum StateStatus { NEW = 0, ONSTACK = 1, CLOSED = 2 };
-
 struct LocalStateInfo {
-    uint8_t status = StateStatus::NEW;
+    enum { NEW = 0, ONSTACK = 1, CLOSED = 2 };
+
+    uint8_t status = NEW;
     unsigned index = std::numeric_limits<unsigned>::max();
     unsigned lowlink = std::numeric_limits<unsigned>::max();
 
@@ -69,9 +69,8 @@ struct LocalStateInfo {
 };
 
 struct ExpansionInfo {
-    ExpansionInfo(StateID state, const Distribution<StateID>& t)
+    explicit ExpansionInfo(StateID state)
         : stateid(state)
-        , successors(std::from_range, t.support())
     {
     }
 
@@ -182,21 +181,27 @@ private:
         StateID state,
         utils::CountdownTimer& timer);
 
+    bool advance(
+        MDP& mdp,
+        Evaluator& heuristic,
+        ExpansionInfo& einfo,
+        StateInfo& state_info);
+
     bool push_successor(
         MDP& mdp,
         Evaluator& heuristic,
         ExpansionInfo& einfo,
-        LocalStateInfo& sinfo,
-        bool& keep_expanding,
+        StateInfo& sinfo,
+        LocalStateInfo& lsinfo,
         utils::CountdownTimer& timer);
 
-    void push(
+    void push(StateID stateid);
+
+    bool initialize(
         MDP& mdp,
         Evaluator& heuristic,
-        StateID stateid,
-        StateInfo& sinfo,
-        LocalStateInfo& local_info,
-        bool& parent_value_changed);
+        ExpansionInfo& einfo,
+        StateInfo& sinfo);
 
     bool value_iteration(
         MDP& mdp,
