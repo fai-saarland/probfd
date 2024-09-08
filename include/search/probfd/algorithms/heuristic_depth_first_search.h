@@ -76,17 +76,15 @@ struct LocalStateInfo {
 struct ExpansionInfo {
     ExpansionInfo(StateID state, const Distribution<StateID>& t)
         : stateid(state)
+        , successors(std::from_range, t.support())
     {
-        for (const StateID s : t.support()) {
-            successors.push_back(s);
-        }
     }
 
     const StateID stateid;
 
     std::vector<StateID> successors;
 
-    bool unsolved_succs = false;
+    bool unsolved = false;
     bool value_changed = false;
 
     bool next_successor();

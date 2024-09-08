@@ -191,7 +191,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
         // Iterative backtracking
         do {
             unsigned last_lowlink = sinfo->lowlink;
-            bool last_unsolved_succs = einfo->unsolved_succs;
+            bool last_unsolved = einfo->unsolved;
             bool last_value_changed = einfo->value_changed;
 
             if (backward_updates_ == SINGLE ||
@@ -207,31 +207,26 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
                 bool policy_changed =
                     this->update_policy(state_info, transition);
                 last_value_changed = value_changed;
-                last_unsolved_succs = last_unsolved_succs || policy_changed;
+                last_unsolved =
+                    last_unsolved || value_changed || policy_changed;
             }
 
             if (sinfo->index == sinfo->lowlink) {
                 auto scc = stack_ | std::views::drop(sinfo->index);
 
                 for (const StateID state_id : scc) {
-                    local_state_infos_[state_id].status = UNSOLVED;
-                }
-
-                if constexpr (GetVisited) {
-                    if (!last_unsolved_succs && !last_value_changed) {
-                        visited_.insert(visited_.end(), scc.begin(), scc.end());
-                    }
-                }
-
-                last_unsolved_succs = last_unsolved_succs || last_value_changed;
-
-                if (!last_unsolved_succs) {
-                    for (const StateID state_id : scc) {
+                    if (!last_unsolved) {
                         local_state_infos_[state_id].status = CLOSED;
 
                         if (label_solved_) {
                             this->state_infos_[state_id].set_solved();
                         }
+
+                        if constexpr (GetVisited) {
+                            visited_.push_back(state_id);
+                        }
+                    } else {
+                        local_state_infos_[state_id].status = UNSOLVED;
                     }
                 }
 
@@ -240,15 +235,14 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
 
             expansion_queue_.pop_back();
 
-            if (expansion_queue_.empty())
-                return !last_unsolved_succs && !last_value_changed;
+            if (expansion_queue_.empty()) return !last_unsolved;
 
             einfo = &expansion_queue_.back();
             sinfo = &local_state_infos_[einfo->stateid];
 
             sinfo->lowlink = std::min(sinfo->lowlink, last_lowlink);
-            einfo->unsolved_succs =
-                einfo->unsolved_succs || last_unsolved_succs;
+            einfo->unsolved =
+                einfo->unsolved || last_unsolved || last_value_changed;
             einfo->value_changed = einfo->value_changed || last_value_changed;
         } while (!einfo->next_successor() || !keep_expanding);
     }
@@ -294,18 +288,17 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::push_successor(
             succ_info.status = status;
 
             if (status == UNSOLVED) {
-                einfo.unsolved_succs = true;
+                einfo.unsolved = true;
             }
 
-            if (greedy_exploration_ && einfo.unsolved_succs) {
+            if (greedy_exploration_ && einfo.unsolved) {
                 keep_expanding = false;
                 break;
             }
         } else if (succ_info.status == ONSTACK) {
             sinfo.lowlink = std::min(sinfo.lowlink, succ_info.index);
         } else {
-            einfo.unsolved_succs =
-                einfo.unsolved_succs || succ_info.status == UNSOLVED;
+            einfo.unsolved = einfo.unsolved || succ_info.status == UNSOLVED;
         }
     } while (einfo.next_successor());
 
