@@ -153,11 +153,10 @@ class TADFHSImpl
     const BacktrackingUpdateType backtrack_update_type_;
     const bool cutoff_tip_;
     const bool cutoff_inconsistent_;
-    const bool terminate_exploration_;
+    const bool terminate_exploration_on_cutoff_;
     const bool value_iteration_;
-    const bool mark_solved_;
-    const bool reexpand_removed_traps_;
-    const std::shared_ptr<QuotientOpenList> open_list_;
+    const bool label_solved_;
+    const bool reexpand_traps_;
 
     // Algorithm state
     std::deque<ExplorationInformation> queue_;
@@ -180,12 +179,12 @@ public:
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
         bool forward_updates,
         BacktrackingUpdateType backtrack_update_type,
-        bool expand_tip_states,
+        bool cutoff_tip,
         bool cutoff_inconsistent,
-        bool stop_exploration_inconsistent,
+        bool terminate_exploration_on_cutoff,
         bool value_iteration,
-        bool mark_solved,
-        bool reexpand_removed_traps);
+        bool label_solved,
+        bool reexpand_traps);
 
     Interval solve_quotient(
         QuotientSystem& quotient,

@@ -78,8 +78,8 @@ struct ExpansionInfo {
 
     std::vector<StateID> successors;
 
-    bool unsolved : 1 = false;
-    bool value_changed : 1 = false;
+    bool solved : 1 = true;
+    bool value_converged : 1 = true;
 
     bool next_successor();
     [[nodiscard]]
@@ -120,13 +120,13 @@ private:
     using LocalStateInfo = internal::LocalStateInfo;
 
     // Algorithm parameters
-    const bool label_solved_;
     const bool forward_updates_;
-    const BacktrackingUpdateType backward_updates_;
-    const bool cutoff_inconsistent_;
-    const bool greedy_exploration_;
-    const bool perform_value_iteration_;
+    const BacktrackingUpdateType backtrack_update_type_;
     const bool cutoff_tip_;
+    const bool cutoff_inconsistent_;
+    const bool terminate_exploration_on_cutoff_;
+    const bool value_iteration_;
+    const bool label_solved_;
 
     // Algorithm state
     storage::StateHashMap<LocalStateInfo> local_state_infos_;
@@ -139,13 +139,13 @@ private:
 public:
     HeuristicDepthFirstSearch(
         std::shared_ptr<PolicyPicker> policy_chooser,
-        bool label_solved,
         bool forward_updates,
-        BacktrackingUpdateType backward_updates,
+        BacktrackingUpdateType backtrack_update_type,
+        bool cutoff_tip,
         bool cutoff_inconsistent,
-        bool greedy_exploration,
-        bool perform_value_iteration,
-        bool cutoff_tip);
+        bool terminate_exploration_on_cutoff,
+        bool value_iteration,
+        bool label_solved);
 
     void reset_search_state() override;
 

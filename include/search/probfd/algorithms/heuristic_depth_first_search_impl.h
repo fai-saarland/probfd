@@ -38,21 +38,21 @@ template <typename State, typename Action, bool UseInterval>
 HeuristicDepthFirstSearch<State, Action, UseInterval>::
     HeuristicDepthFirstSearch(
         std::shared_ptr<PolicyPicker> policy_chooser,
-        bool label_solved,
         bool forward_updates,
-        BacktrackingUpdateType backward_updates,
+        BacktrackingUpdateType backtrack_update_type,
+        bool cutoff_tip,
         bool cutoff_inconsistent,
-        bool greedy_exploration,
-        bool perform_value_iteration,
-        bool cutoff_tip)
+        bool terminate_exploration_on_cutoff,
+        bool value_iteration,
+        bool label_solved)
     : Base(std::move(policy_chooser))
-    , label_solved_(label_solved)
     , forward_updates_(forward_updates)
-    , backward_updates_(backward_updates)
-    , cutoff_inconsistent_(cutoff_inconsistent)
-    , greedy_exploration_(greedy_exploration)
-    , perform_value_iteration_(perform_value_iteration)
+    , backtrack_update_type_(backtrack_update_type)
     , cutoff_tip_(cutoff_tip)
+    , cutoff_inconsistent_(cutoff_inconsistent)
+    , terminate_exploration_on_cutoff_(terminate_exploration_on_cutoff)
+    , value_iteration_(value_iteration)
+    , label_solved_(label_solved)
 {
 }
 
@@ -79,7 +79,7 @@ Interval HeuristicDepthFirstSearch<State, Action, UseInterval>::do_solve(
         return as_interval(state_info.value);
     });
 
-    if (perform_value_iteration_) {
+    if (value_iteration_) {
         solve_with_vi_termination(mdp, heuristic, stateid, progress, timer);
     } else {
         solve_without_vi_termination(mdp, heuristic, stateid, progress, timer);
@@ -166,8 +166,8 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
         // Iterative backtracking
         do {
             unsigned last_lowlink = lsinfo->lowlink;
-            bool last_unsolved = einfo->unsolved;
-            bool last_value_changed = einfo->value_changed;
+            bool last_solved = einfo->solved;
+            bool last_value_converged = einfo->value_converged;
 
             if (lsinfo->index == lsinfo->lowlink) {
                 auto scc = stack_ | std::views::drop(lsinfo->index);
@@ -176,13 +176,14 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
                     local_state_infos_[state_id].status =
                         LocalStateInfo::CLOSED;
 
-                    if (einfo->unsolved) continue;
+                    if (!einfo->solved) continue;
 
                     StateInfo& mem_info = this->state_infos_[state_id];
-
                     if (mem_info.is_solved()) continue;
 
-                    mem_info.set_solved();
+                    if (label_solved_) {
+                        mem_info.set_solved();
+                    }
 
                     if constexpr (GetVisited) {
                         visited_.push_back(state_id);
@@ -194,18 +195,19 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
 
             expansion_queue_.pop_back();
 
-            if (expansion_queue_.empty()) return !last_unsolved;
+            if (expansion_queue_.empty()) return last_solved;
 
             einfo = &expansion_queue_.back();
             sinfo = &this->state_infos_[einfo->stateid];
             lsinfo = &local_state_infos_[einfo->stateid];
 
             lsinfo->lowlink = std::min(lsinfo->lowlink, last_lowlink);
-            einfo->unsolved =
-                einfo->unsolved || last_unsolved || last_value_changed;
-            einfo->value_changed = einfo->value_changed || last_value_changed;
+            einfo->solved =
+                einfo->solved && last_solved && last_value_converged;
+            einfo->value_converged =
+                einfo->value_converged && last_value_converged;
 
-            if (greedy_exploration_ && einfo->unsolved) {
+            if (terminate_exploration_on_cutoff_ && !einfo->solved) {
                 keep_expanding = false;
             }
         } while (!keep_expanding || !advance(mdp, heuristic, *einfo, *sinfo));
@@ -225,8 +227,8 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::advance(
         return true;
     }
 
-    if (backward_updates_ == SINGLE ||
-        (backward_updates_ == ON_DEMAND && einfo.value_changed)) {
+    if (backtrack_update_type_ == SINGLE ||
+        (backtrack_update_type_ == ON_DEMAND && !einfo.value_converged)) {
         statistics_.backtracking_updates++;
         auto [value, transition] = this->compute_bellman_policy(
             mdp,
@@ -239,8 +241,8 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::advance(
         // Note: it is only necessary to check whether eps-consistency
         // was reached on backward update when both directions are
         // enabled
-        einfo.value_changed = value_changed;
-        einfo.unsolved = einfo.unsolved || value_changed || policy_changed;
+        einfo.value_converged = !value_changed;
+        einfo.solved = einfo.solved && !value_changed && !policy_changed;
     }
 
     return false;
@@ -263,14 +265,19 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::push_successor(
         const StateID succid = einfo.get_current_successor();
         const LocalStateInfo& succ_info = local_state_infos_[succid];
 
-        if (succ_info.status == LocalStateInfo::NEW) {
+        const int succ_status = succ_info.status;
+
+        if (succ_status == LocalStateInfo::NEW) {
             push(succid);
             return true;
-        } else if (succ_info.status == LocalStateInfo::ONSTACK) {
-            lsinfo.lowlink = std::min(lsinfo.lowlink, succ_info.index);
+        } else if (succ_status == LocalStateInfo::CLOSED) {
+            if (label_solved_) {
+                einfo.solved =
+                    einfo.solved && this->state_infos_[succid].is_solved();
+            }
         } else {
-            einfo.unsolved =
-                einfo.unsolved || !this->state_infos_[succid].is_solved();
+            assert(succ_status == LocalStateInfo::ONSTACK);
+            lsinfo.lowlink = std::min(lsinfo.lowlink, succ_info.index);
         }
     } while (advance(mdp, heuristic, einfo, sinfo));
 
@@ -298,21 +305,14 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
     using namespace internal;
 
     // Ignore labels if labelling option is turned off
-    if (label_solved_) {
-        if (sinfo.is_solved()) {
-            return false;
-        }
-    } else {
-        sinfo.unset_solved();
-
-        if (sinfo.is_terminal()) {
-            return false;
-        }
+    if (sinfo.is_solved()) {
+        assert(label_solved_ || sinfo.is_terminal());
+        return false;
     }
 
-    const bool is_tip_state = sinfo.is_on_fringe();
-
     const StateID stateid = einfo.stateid;
+
+    const bool is_tip_state = sinfo.is_on_fringe();
 
     if (forward_updates_ || is_tip_state) {
         statistics_.forward_updates++;
@@ -320,12 +320,12 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
         auto [value, transition] =
             this->compute_bellman_policy(mdp, heuristic, stateid, sinfo);
 
-        einfo.value_changed = this->update_value(sinfo, value);
+        einfo.value_converged = !this->update_value(sinfo, value);
         this->update_policy(sinfo, transition);
 
         if constexpr (UseInterval) {
-            einfo.value_changed = einfo.value_changed ||
-                                  !sinfo.value.bounds_approximately_equal();
+            einfo.value_converged = einfo.value_converged &&
+                                    sinfo.value.bounds_approximately_equal();
         }
 
         if (!transition) {
@@ -333,10 +333,10 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
         }
 
         const bool cutoff = (cutoff_tip_ && is_tip_state) ||
-                            (cutoff_inconsistent_ && einfo.value_changed);
+                            (cutoff_inconsistent_ && !einfo.value_converged);
 
         if (cutoff) {
-            einfo.unsolved = true;
+            einfo.solved = false;
             return false;
         }
 

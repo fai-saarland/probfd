@@ -79,19 +79,19 @@ TADFHSImpl<State, Action, UseInterval>::TADFHSImpl(
     BacktrackingUpdateType backtrack_update_type,
     bool cutoff_tip,
     bool cutoff_inconsistent,
-    bool stop_exploration_inconsistent,
+    bool terminate_exploration_on_cutoff,
     bool value_iteration,
-    bool mark_solved,
-    bool reexpand_removed_traps)
+    bool label_solved,
+    bool reexpand_traps)
     : Base(policy_chooser)
     , forward_updates_(forward_updates)
     , backtrack_update_type_(backtrack_update_type)
     , cutoff_tip_(cutoff_tip)
     , cutoff_inconsistent_(cutoff_inconsistent)
-    , terminate_exploration_(stop_exploration_inconsistent)
+    , terminate_exploration_on_cutoff_(terminate_exploration_on_cutoff)
     , value_iteration_(value_iteration)
-    , mark_solved_(mark_solved)
-    , reexpand_removed_traps_(reexpand_removed_traps)
+    , label_solved_(label_solved)
+    , reexpand_traps_(reexpand_traps)
     , stack_index_(NEW)
 {
 }
@@ -224,7 +224,7 @@ bool TADFHSImpl<State, Action, UseInterval>::advance(
         einfo.value_converged = einfo.value_converged && !value_changed;
         einfo.all_solved =
             einfo.all_solved && !value_changed && !policy_changed;
-        terminated_ = terminated_ || (terminate_exploration_ &&
+        terminated_ = terminated_ || (terminate_exploration_on_cutoff_ &&
                                       cutoff_inconsistent_ && value_changed);
     }
 
@@ -243,18 +243,20 @@ bool TADFHSImpl<State, Action, UseInterval>::push_successor(
 
         const StateID succ = quotient.translate_state_id(einfo.get_successor());
 
-        int& succ_status = stack_index_[succ];
+        const int succ_status = stack_index_[succ];
+
         if (succ_status == NEW) {
             push(succ);
             return true;
         } else if (succ_status == CLOSED) {
             einfo.is_trap = false;
-            if (mark_solved_) {
-                const StateInfo& succ_info = this->state_infos_[succ];
-                einfo.all_solved = einfo.all_solved && succ_info.is_solved();
+            if (label_solved_) {
+                einfo.all_solved =
+                    einfo.all_solved && this->state_infos_[succ].is_solved();
             }
         } else {
             // is on stack
+            assert(succ_status >= 0);
             einfo.lowlink = std::min(einfo.lowlink, succ_status);
         }
     } while (advance(quotient, heuristic, einfo));
@@ -281,8 +283,8 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
     const StateID state_id = einfo.state;
 
     StateInfo& state_info = this->state_infos_[state_id];
-    if (state_info.is_terminal() || state_info.is_solved()) {
-        state_info.set_solved();
+    if (state_info.is_solved()) {
+        assert(label_solved_ || state_info.is_terminal());
         einfo.is_trap = false;
         return false;
     }
@@ -302,7 +304,7 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
         einfo.all_solved = einfo.all_solved && !value_changed;
         const bool cutoff =
             (cutoff_tip_ && tip) || (cutoff_inconsistent_ && value_changed);
-        terminated_ = terminate_exploration_ && cutoff;
+        terminated_ = terminate_exploration_on_cutoff_ && cutoff;
 
         if (!transition) {
             einfo.is_trap = false;
@@ -375,7 +377,7 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
                     state_info.set_on_fringe();
 
                     // re-push trap if enabled
-                    if (reexpand_removed_traps_) {
+                    if (reexpand_traps_) {
                         stack_.erase(scc.begin(), scc.end());
                         queue_.pop_back();
                         push(state_id);
@@ -386,14 +388,18 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
 
                     einfo->value_converged = false;
                     einfo->all_solved = false;
-                } else if (einfo->all_solved) {
+                } else {
                     for (const auto state_id :
                          scc | std::views::transform(&StackInfo::state_id)) {
                         stack_index_[state_id] = CLOSED;
-                        StateInfo& state_info = this->state_infos_[state_id];
-                        if (state_info.is_solved()) continue;
-                        if (mark_solved_) {
-                            state_info.set_solved();
+
+                        if (!einfo->all_solved) continue;
+
+                        StateInfo& mem_info = this->state_infos_[state_id];
+                        if (mem_info.is_solved()) continue;
+
+                        if (label_solved_) {
+                            mem_info.set_solved();
                         } else {
                             assert(value_iteration_);
                             visited_states_.push_back(state_id);

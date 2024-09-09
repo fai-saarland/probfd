@@ -32,35 +32,35 @@ class DFHSSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
 
     const std::string name_;
 
-    const bool labeling_;
     const bool forward_updates_;
     const BacktrackingUpdateType backward_updates_;
+    const bool cutoff_tip_states_;
     const bool cutoff_inconsistent_;
     const bool partial_exploration_;
+    const bool labeling_;
     const bool value_iteration_;
-    const bool cutoff_tip_states_;
 
 public:
     template <typename... Args>
     DFHSSolver(
         std::string variant_name,
-        bool labeling,
         bool fwup,
         BacktrackingUpdateType bwup,
+        bool cutoff_tip,
         bool cutoff_inconsistent,
         bool partial_exploration,
+        bool labeling,
         bool vi,
-        bool cutoff_tip,
         Args&&... args)
         : MDPHeuristicSearch<Bisimulation, Fret>(std::forward<Args>(args)...)
         , name_(std::move(variant_name))
-        , labeling_(labeling)
         , forward_updates_(fwup)
         , backward_updates_(bwup)
+        , cutoff_tip_states_(cutoff_tip)
         , cutoff_inconsistent_(cutoff_inconsistent)
         , partial_exploration_(partial_exploration)
+        , labeling_(labeling)
         , value_iteration_(vi)
-        , cutoff_tip_states_(cutoff_tip)
     {
     }
 
@@ -69,13 +69,13 @@ public:
     std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
     {
         return this->template create_heuristic_search_algorithm<Algorithm>(
-            labeling_,
             forward_updates_,
             backward_updates_,
+            cutoff_tip_states_,
             cutoff_inconsistent_,
             partial_exploration_,
-            value_iteration_,
-            cutoff_tip_states_);
+            labeling_,
+            value_iteration_);
     }
 };
 
@@ -122,13 +122,14 @@ protected:
     {
         using enum BacktrackingUpdateType;
 
-        bool labeling = options.get<bool>("labeling");
         bool forward_updates = options.get<bool>("fwup");
         auto backward_updates = options.get<BacktrackingUpdateType>("bwup");
-        bool cutoff_inconsistent = options.get<bool>("cutoff_inconsistent");
-        bool partial_exploration = options.get<bool>("partial_exploration");
-        bool value_iteration = options.get<bool>("vi");
         bool cutoff_tip = options.get<bool>("cutoff_tip");
+        bool cutoff_inconsistent = options.get<bool>("cutoff_inconsistent");
+        bool terminate_exploration_on_cutoff =
+            options.get<bool>("terminate_exploration_on_cutoff");
+        bool labeling = options.get<bool>("labeling");
+        bool value_iteration = options.get<bool>("vi");
 
         if (!forward_updates) {
             if (cutoff_inconsistent) {
@@ -146,7 +147,8 @@ protected:
             }
         }
 
-        if (partial_exploration && !cutoff_tip && !cutoff_inconsistent) {
+        if (terminate_exploration_on_cutoff && !cutoff_tip &&
+            !cutoff_inconsistent) {
             context.error(
                 "greedy exploration requires either cutoff_tip=true or "
                 "cutoff_inconsistent=true");
@@ -155,13 +157,13 @@ protected:
         return plugins::make_shared_from_arg_tuples<
             DFHSSolver<Bisimulation, Fret>>(
             "dfhs",
-            labeling,
             forward_updates,
             backward_updates,
-            cutoff_inconsistent,
-            partial_exploration,
-            value_iteration,
             cutoff_tip,
+            cutoff_inconsistent,
+            terminate_exploration_on_cutoff,
+            labeling,
+            value_iteration,
             get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
     }
 };
@@ -187,12 +189,44 @@ public:
             DFHSSolver<Bisimulation, Fret>>(
             "ilao",
             false,
+            BacktrackingUpdateType::SINGLE,
+            true,
+            false,
+            false,
+            false,
+            true,
+            get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
+    }
+};
+
+template <bool Bisimulation, bool Fret>
+class LILAOSolverFeature
+    : public TypedFeature<SolverInterface, DFHSSolver<Bisimulation, Fret>> {
+public:
+    LILAOSolverFeature()
+        : LILAOSolverFeature::TypedFeature(
+              add_wrapper_algo_suffix<Bisimulation, Fret>("lilao"))
+    {
+        this->document_title("Labelled iLAO* variant of depth-first heuristic "
+                             "search.");
+
+        add_mdp_hs_options_to_feature<Bisimulation, Fret>(*this);
+    }
+
+    std::shared_ptr<DFHSSolver<Bisimulation, Fret>>
+    create_component(const Options& options, const utils::Context&)
+        const override
+    {
+        return plugins::make_shared_from_arg_tuples<
+            DFHSSolver<Bisimulation, Fret>>(
+            "lilao",
             false,
             BacktrackingUpdateType::SINGLE,
+            true,
             false,
             false,
             true,
-            true,
+            false,
             get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
     }
 };
@@ -218,18 +252,19 @@ public:
             DFHSSolver<Bisimulation, Fret>>(
             "hdp",
             true,
-            true,
             BacktrackingUpdateType::ON_DEMAND,
+            false,
             true,
             false,
             false,
-            false,
+            true,
             get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
     }
 };
 
 MultiFeaturePlugin<DFHSSolverFeature> _plugin_dfhs;
 MultiFeaturePlugin<ILAOSolverFeature> _plugin_ilao;
+MultiFeaturePlugin<LILAOSolverFeature> _plugin_lilao;
 MultiFeaturePlugin<HDPSolverFeature> _plugin_hdp;
 
 TypedEnumPlugin<BacktrackingUpdateType> _fret_enum_plugin(
