@@ -95,35 +95,17 @@ class TADFHSImpl
         bool policy_changed;
     };
 
-    struct Flags {
-        /// was the exploration cut off?
-        bool complete = true;
-        /// were all reached outside-SCC states marked solved?
-        bool all_solved = true;
-        /// are there any outside-SCC states reachable, and do all transitions
-        /// within the SCC generate 0-cost?
-        bool is_trap = true;
-
-        void clear()
-        {
-            complete = true;
-            all_solved = true;
-            is_trap = true;
-        }
-
-        void update(const Flags& flags)
-        {
-            complete = complete && flags.complete;
-            all_solved = all_solved && flags.all_solved;
-            is_trap = is_trap && flags.is_trap;
-        }
-    };
-
     struct ExplorationInformation {
         StateID state;
         int lowlink;
         std::vector<StateID> successors;
-        Flags flags;
+
+        /// did the value of a descendant change?
+        bool value_converged : 1 = true;
+        /// were all greedy outside-SCC descendants explored and solved?
+        bool all_solved : 1 = true;
+        /// is this state's scc a trap?
+        bool is_trap : 1 = true;
 
         explicit ExplorationInformation(StateID state, int stack_index)
             : state(state)
@@ -132,32 +114,34 @@ class TADFHSImpl
         }
 
         bool next_successor();
-        [[nodiscard]]
         StateID get_successor() const;
+
+        void update(const ExplorationInformation& other);
+
+        void clear();
     };
 
     struct StackInfo {
         StateID state_id;
-        std::vector<QAction> aops;
+        std::optional<QAction> action;
 
-        StackInfo(StateID state_id, QAction action)
+        explicit StackInfo(StateID state_id)
             : state_id(state_id)
-            , aops({action})
         {
         }
 
         template <size_t i>
-        friend auto& get(StackInfo& info)
+        friend auto get(StackInfo& info)
         {
             if constexpr (i == 0) return info.state_id;
-            if constexpr (i == 1) return info.aops;
+            if constexpr (i == 1) return std::views::single(*info.action);
         }
 
         template <size_t i>
-        friend const auto& get(const StackInfo& info)
+        friend auto get(const StackInfo& info)
         {
             if constexpr (i == 0) return info.state_id;
-            if constexpr (i == 1) return info.aops;
+            if constexpr (i == 1) return std::views::single(*info.action);
         }
     };
 
@@ -201,8 +185,7 @@ public:
         bool stop_exploration_inconsistent,
         bool value_iteration,
         bool mark_solved,
-        bool reexpand_removed_traps,
-        std::shared_ptr<QuotientOpenList> open_list);
+        bool reexpand_removed_traps);
 
     Interval solve_quotient(
         QuotientSystem& quotient,
@@ -230,6 +213,7 @@ private:
 
     void enqueue(
         QuotientSystem& quotient,
+        ExplorationInformation& einfo,
         StateID state,
         QAction action,
         const Distribution<StateID>& successor_dist);
@@ -245,43 +229,18 @@ private:
         ExplorationInformation& einfo,
         utils::CountdownTimer& timer);
 
-    bool push_state(
+    bool initialize(
         QuotientSystem& quotient,
         QEvaluator& heuristic,
-        StateID state,
-        StateInfo& state_info,
-        Flags& flags);
+        ExplorationInformation& einfo);
 
-    bool repush_trap(
-        QuotientSystem& quotient,
-        QEvaluator& heuristic,
-        StateID state,
-        Flags& flags);
+    void push(StateID state_id);
 
     bool policy_exploration(
         QuotientSystem& quotient,
         QEvaluator& heuristic,
         StateID start_state,
         utils::CountdownTimer& timer);
-
-    void backtrack_from_singleton(StateID state, Flags& flags);
-
-    bool backtrack_from_non_singleton(
-        QuotientSystem& quotient,
-        QEvaluator& heuristic,
-        StateID state,
-        Flags& flags,
-        auto scc);
-
-    bool backtrack_trap(
-        QuotientSystem& quotient,
-        QEvaluator& heuristic,
-        StateID state,
-        Flags& flags,
-        auto scc);
-
-    void backtrack_solved(StateID, Flags& flags, auto scc);
-    void backtrack_unsolved(StateID, Flags& flags, auto scc);
 
     UpdateResult value_iteration(
         QuotientSystem& quotient,
@@ -303,7 +262,6 @@ class TADepthFirstHeuristicSearch : public MDPAlgorithm<State, Action> {
     using QAction = quotients::QuotientAction<Action>;
 
     using QuotientPolicyPicker = PolicyPicker<QState, QAction>;
-    using QuotientOpenList = OpenList<QAction>;
 
     TADFHSImpl<State, Action, UseInterval> algorithm_;
 
@@ -320,8 +278,7 @@ public:
         bool stop_exploration_inconsistent,
         bool value_iteration,
         bool mark_solved,
-        bool reexpand_removed_traps,
-        std::shared_ptr<QuotientOpenList> open_list);
+        bool reexpand_removed_traps);
 
     Interval solve(
         MDPType& mdp,

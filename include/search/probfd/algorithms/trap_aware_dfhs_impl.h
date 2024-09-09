@@ -56,6 +56,23 @@ TADFHSImpl<State, Action, UseInterval>::ExplorationInformation::get_successor()
 }
 
 template <typename State, typename Action, bool UseInterval>
+void TADFHSImpl<State, Action, UseInterval>::ExplorationInformation::update(
+    const ExplorationInformation& other)
+{
+    if (!other.value_converged) value_converged = false;
+    if (!other.all_solved) all_solved = false;
+    if (!other.is_trap) is_trap = false;
+}
+
+template <typename State, typename Action, bool UseInterval>
+void TADFHSImpl<State, Action, UseInterval>::ExplorationInformation::clear()
+{
+    value_converged = true;
+    all_solved = true;
+    is_trap = true;
+}
+
+template <typename State, typename Action, bool UseInterval>
 TADFHSImpl<State, Action, UseInterval>::TADFHSImpl(
     std::shared_ptr<QuotientPolicyPicker> policy_chooser,
     bool forward_updates,
@@ -65,8 +82,7 @@ TADFHSImpl<State, Action, UseInterval>::TADFHSImpl(
     bool stop_exploration_inconsistent,
     bool value_iteration,
     bool mark_solved,
-    bool reexpand_removed_traps,
-    std::shared_ptr<QuotientOpenList> open_list)
+    bool reexpand_removed_traps)
     : Base(policy_chooser)
     , forward_updates_(forward_updates)
     , backtrack_update_type_(backtrack_update_type)
@@ -76,7 +92,6 @@ TADFHSImpl<State, Action, UseInterval>::TADFHSImpl(
     , value_iteration_(value_iteration)
     , mark_solved_(mark_solved)
     , reexpand_removed_traps_(reexpand_removed_traps)
-    , open_list_(open_list)
     , stack_index_(NEW)
 {
 }
@@ -129,9 +144,9 @@ void TADFHSImpl<State, Action, UseInterval>::dfhs_vi_driver(
 {
     UpdateResult vi_res{true, true};
     do {
-        const bool is_complete =
+        const bool solved =
             policy_exploration(quotient, heuristic, state, timer);
-        if (is_complete) {
+        if (solved) {
             vi_res =
                 value_iteration(quotient, heuristic, visited_states_, timer);
         }
@@ -149,54 +164,35 @@ void TADFHSImpl<State, Action, UseInterval>::dfhs_label_driver(
     ProgressReport& progress,
     utils::CountdownTimer& timer)
 {
-    bool is_complete = false;
+    bool solved;
     do {
-        is_complete = policy_exploration(quotient, heuristic, state, timer) &&
-                      this->state_infos_[state].is_solved();
+        solved = policy_exploration(quotient, heuristic, state, timer) &&
+                 this->state_infos_[state].is_solved();
         visited_states_.clear();
         ++statistics_.iterations;
         progress.print();
-    } while (!is_complete);
+    } while (!solved);
 }
 
 template <typename State, typename Action, bool UseInterval>
 void TADFHSImpl<State, Action, UseInterval>::enqueue(
     QuotientSystem& quotient,
+    ExplorationInformation& einfo,
     StateID state,
     QAction action,
     const Distribution<StateID>& successor_dist)
 {
-    const bool zero_cost = quotient.get_action_cost(action) == 0;
+    stack_.back().action = action;
 
-    queue_.emplace_back(state, stack_.size());
-    stack_index_[state] = stack_.size();
-    stack_.emplace_back(state, action);
+    einfo.successors.reserve(successor_dist.size());
 
-    ExplorationInformation& info = queue_.back();
-    info.successors.reserve(successor_dist.size());
-
-    if (open_list_ == nullptr) {
-        for (const StateID item : successor_dist.support()) {
-            if (item != state) {
-                info.successors.push_back(item);
-            }
-        }
-    } else {
-        for (const auto& [item, probability] : successor_dist) {
-            if (item != state) {
-                open_list_->push(state, action, probability, item);
-            }
-        }
-        info.successors.resize(open_list_->size(), StateID::UNDEFINED);
-        int i = open_list_->size() - 1;
-        while (!open_list_->empty()) {
-            info.successors[i] = open_list_->pop();
-            --i;
-        }
+    for (const StateID item : successor_dist.support()) {
+        if (item == state) continue;
+        einfo.successors.push_back(item);
     }
 
-    assert(!info.successors.empty());
-    info.flags.is_trap = zero_cost;
+    assert(!einfo.successors.empty());
+    einfo.is_trap = quotient.get_action_cost(action) == 0;
 }
 
 template <typename State, typename Action, bool UseInterval>
@@ -207,11 +203,15 @@ bool TADFHSImpl<State, Action, UseInterval>::advance(
 {
     using enum BacktrackingUpdateType;
 
-    if (einfo.next_successor()) return true;
+    if (terminated_) {
+        einfo.value_converged = false;
+        einfo.all_solved = false;
+    } else if (einfo.next_successor()) {
+        return true;
+    }
 
     if (backtrack_update_type_ == SINGLE ||
-        (backtrack_update_type_ == ON_DEMAND &&
-         (!einfo.flags.complete || !einfo.flags.all_solved))) {
+        (backtrack_update_type_ == ON_DEMAND && !einfo.value_converged)) {
         ++statistics_.bw_updates;
         StateInfo& state_info = this->state_infos_[einfo.state];
         auto [value, transition] = this->compute_bellman_policy(
@@ -221,8 +221,9 @@ bool TADFHSImpl<State, Action, UseInterval>::advance(
             state_info);
         bool value_changed = this->update_value(state_info, value);
         bool policy_changed = this->update_policy(state_info, transition);
-        einfo.flags.complete = einfo.flags.complete && !policy_changed;
-        einfo.flags.all_solved = einfo.flags.all_solved && !value_changed;
+        einfo.value_converged = einfo.value_converged && !value_changed;
+        einfo.all_solved =
+            einfo.all_solved && !value_changed && !policy_changed;
         terminated_ = terminated_ || (terminate_exploration_ &&
                                       cutoff_inconsistent_ && value_changed);
     }
@@ -244,51 +245,50 @@ bool TADFHSImpl<State, Action, UseInterval>::push_successor(
 
         int& succ_status = stack_index_[succ];
         if (succ_status == NEW) {
-            // expand state (either not expanded before, or last
-            // value change was before pushing einfo.state)
-            StateInfo& succ_info = this->state_infos_[succ];
-            if (succ_info.is_terminal() || succ_info.is_solved()) {
-                succ_info.set_solved();
-                einfo.flags.is_trap = false;
-            } else if (push_state(
-                           quotient,
-                           heuristic,
-                           succ,
-                           succ_info,
-                           einfo.flags)) {
-                return true;
-            } else if (mark_solved_) {
-                einfo.flags.all_solved = false;
-            }
-            succ_status = CLOSED;
+            push(succ);
+            return true;
         } else if (succ_status == CLOSED) {
-            const StateInfo& succ_info = this->state_infos_[succ];
-            einfo.flags.is_trap = false;
+            einfo.is_trap = false;
             if (mark_solved_) {
-                einfo.flags.all_solved =
-                    einfo.flags.all_solved && succ_info.is_solved();
+                const StateInfo& succ_info = this->state_infos_[succ];
+                einfo.all_solved = einfo.all_solved && succ_info.is_solved();
             }
         } else {
             // is on stack
             einfo.lowlink = std::min(einfo.lowlink, succ_status);
         }
-    } while (advance(quotient, heuristic, einfo) && !terminated_);
+    } while (advance(quotient, heuristic, einfo));
 
     return false;
 }
 
 template <typename State, typename Action, bool UseInterval>
-bool TADFHSImpl<State, Action, UseInterval>::push_state(
+void TADFHSImpl<State, Action, UseInterval>::push(StateID state_id)
+{
+    queue_.emplace_back(state_id, stack_.size());
+    stack_index_[state_id] = stack_.size();
+    stack_.emplace_back(state_id);
+}
+
+template <typename State, typename Action, bool UseInterval>
+bool TADFHSImpl<State, Action, UseInterval>::initialize(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
-    StateID state_id,
-    StateInfo& state_info,
-    Flags& flags)
+    ExplorationInformation& einfo)
 {
-    assert(
-        !terminated_ && !state_info.is_solved() && !state_info.is_terminal());
+    assert(!terminated_);
+
+    const StateID state_id = einfo.state;
+
+    StateInfo& state_info = this->state_infos_[state_id];
+    if (state_info.is_terminal() || state_info.is_solved()) {
+        state_info.set_solved();
+        einfo.is_trap = false;
+        return false;
+    }
 
     const bool tip = state_info.is_on_fringe();
+
     if (tip || forward_updates_) {
         ++statistics_.fw_updates;
         auto [value, transition] = this->compute_bellman_policy(
@@ -298,23 +298,27 @@ bool TADFHSImpl<State, Action, UseInterval>::push_state(
             state_info);
         bool value_changed = this->update_value(state_info, value);
         this->update_policy(state_info, transition);
-        flags.all_solved = flags.all_solved && !value_changed;
+        einfo.value_converged = einfo.value_converged && !value_changed;
+        einfo.all_solved = einfo.all_solved && !value_changed;
         const bool cutoff =
             (cutoff_tip_ && tip) || (cutoff_inconsistent_ && value_changed);
         terminated_ = terminate_exploration_ && cutoff;
 
         if (!transition) {
-            flags.is_trap = false;
+            einfo.is_trap = false;
             return false;
         }
 
         if (cutoff) {
-            flags.complete = false;
+            einfo.is_trap = false;
+            einfo.value_converged = false;
+            einfo.all_solved = false;
             return false;
         }
 
         enqueue(
             quotient,
+            einfo,
             state_id,
             transition->action,
             transition->successor_dist);
@@ -323,50 +327,10 @@ bool TADFHSImpl<State, Action, UseInterval>::push_state(
         auto action = state_info.get_policy();
         assert(action.has_value());
         quotient.generate_action_transitions(state, *action, transition_);
-        enqueue(quotient, state_id, *action, transition_);
+        enqueue(quotient, einfo, state_id, *action, transition_);
         transition_.clear();
     }
 
-    return true;
-}
-
-template <typename State, typename Action, bool UseInterval>
-bool TADFHSImpl<State, Action, UseInterval>::repush_trap(
-    QuotientSystem& quotient,
-    QEvaluator& heuristic,
-    StateID state,
-    Flags& flags)
-{
-    flags.clear();
-    ++statistics_.fw_updates;
-
-    StateInfo& state_info = this->state_infos_[state];
-    auto [value, transition] =
-        this->compute_bellman_policy(quotient, heuristic, state, state_info);
-    bool value_changed = this->update_value(state_info, value);
-    this->update_policy(state_info, transition);
-    flags.all_solved = !value_changed;
-    const bool cutoff =
-        !reexpand_removed_traps_ || (cutoff_inconsistent_ && value_changed);
-    terminated_ = terminated_ || (terminate_exploration_ && cutoff);
-
-    if (!transition) {
-        flags.is_trap = false;
-        return false;
-    }
-
-    if (cutoff) {
-        flags.complete = false;
-        return false;
-    }
-
-    if (!queue_.empty()) {
-        queue_.back().flags.update(flags);
-    }
-
-    flags.clear();
-
-    enqueue(quotient, state, transition->action, transition->successor_dist);
     return true;
 }
 
@@ -380,169 +344,86 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
     assert(visited_states_.empty());
     terminated_ = false;
 
-    {
-        Flags flags;
-        StateInfo& state_info = this->state_infos_[start_state];
-        if (state_info.is_terminal() || state_info.is_solved()) {
-            state_info.set_solved();
-            flags.is_trap = false;
-            return flags.complete;
-        }
+    push(start_state);
 
-        if (!push_state(quotient, heuristic, start_state, state_info, flags)) {
-            return flags.complete;
-        }
-    }
-
-    ExplorationInformation* einfo = &queue_.back();
-    StateID state = einfo->state;
+    ExplorationInformation* einfo;
 
     for (;;) {
-        while (this->push_successor(quotient, heuristic, *einfo, timer)) {
+        do {
             einfo = &queue_.back();
-            state = einfo->state;
-        }
+        } while (initialize(quotient, heuristic, *einfo) &&
+                 push_successor(quotient, heuristic, *einfo, timer));
 
         do {
-            Flags flags = einfo->flags;
             const int last_lowlink = einfo->lowlink;
-            queue_.pop_back();
-
-            flags.complete = flags.complete && !terminated_;
 
             // Is SCC root?
-            if (einfo->lowlink == stack_index_[state]) {
+            if (einfo->lowlink == stack_index_[einfo->state]) {
                 auto scc = stack_ | std::views::drop(last_lowlink);
 
-                if (scc.size() == 1) {
-                    backtrack_from_singleton(state, flags);
-                } else if (backtrack_from_non_singleton(
-                               quotient,
-                               heuristic,
-                               state,
-                               flags,
-                               scc)) {
-                    break; // re-expanded trap, continue exploring
+                assert(!einfo->is_trap || einfo->value_converged);
+
+                const StateID state_id = einfo->state;
+
+                if (scc.size() > 1 && einfo->is_trap) {
+                    ++this->statistics_.traps;
+
+                    // Collapse trap and reset quotient state data
+                    TimerScope scope(statistics_.trap_timer);
+
+                    quotient.build_quotient(scc, *scc.begin());
+                    StateInfo& state_info = this->state_infos_[state_id];
+                    state_info.update_policy(std::nullopt);
+                    state_info.set_on_fringe();
+
+                    // re-push trap if enabled
+                    if (reexpand_removed_traps_) {
+                        stack_.erase(scc.begin(), scc.end());
+                        queue_.pop_back();
+                        push(state_id);
+                        break;
+                    }
+
+                    stack_index_[state_id] = CLOSED;
+
+                    einfo->value_converged = false;
+                    einfo->all_solved = false;
+                } else if (einfo->all_solved) {
+                    for (const auto state_id :
+                         scc | std::views::transform(&StackInfo::state_id)) {
+                        stack_index_[state_id] = CLOSED;
+                        StateInfo& state_info = this->state_infos_[state_id];
+                        if (state_info.is_solved()) continue;
+                        if (mark_solved_) {
+                            state_info.set_solved();
+                        } else {
+                            assert(value_iteration_);
+                            visited_states_.push_back(state_id);
+                        }
+                    }
                 }
+
+                einfo->is_trap = false;
+                stack_.erase(scc.begin(), scc.end());
             }
+
+            ExplorationInformation bt_einfo = std::move(*einfo);
+            queue_.pop_back();
 
             if (queue_.empty()) {
                 assert(stack_.empty());
                 stack_index_.clear();
-                return flags.complete && flags.all_solved;
+                return einfo->all_solved;
             }
 
             timer.throw_if_expired();
 
             einfo = &queue_.back();
-            state = einfo->state;
 
             einfo->lowlink = std::min(last_lowlink, einfo->lowlink);
-            einfo->flags.update(flags);
-        } while (!advance(quotient, heuristic, *einfo) || terminated_);
+            einfo->update(bt_einfo);
+        } while (!advance(quotient, heuristic, *einfo));
     }
-}
-
-template <typename State, typename Action, bool UseInterval>
-void TADFHSImpl<State, Action, UseInterval>::backtrack_from_singleton(
-    StateID state,
-    Flags& flags)
-{
-    assert(stack_.back().state_id == state);
-
-    if (flags.complete && flags.all_solved) {
-        if (mark_solved_) {
-            this->state_infos_[state].set_solved();
-        } else if (value_iteration_) {
-            visited_states_.push_back(state);
-        }
-    }
-
-    stack_index_[state] = CLOSED;
-    stack_.pop_back();
-    flags.is_trap = false;
-}
-
-template <typename State, typename Action, bool UseInterval>
-bool TADFHSImpl<State, Action, UseInterval>::backtrack_from_non_singleton(
-    QuotientSystem& quotient,
-    QEvaluator& heuristic,
-    const StateID state,
-    Flags& flags,
-    auto scc)
-{
-    assert(!flags.is_trap || !flags.complete || flags.all_solved);
-
-    if (flags.complete && flags.all_solved) {
-        if (flags.is_trap) {
-            return backtrack_trap(quotient, heuristic, state, flags, scc);
-        }
-
-        backtrack_solved(state, flags, scc);
-    } else {
-        backtrack_unsolved(state, flags, scc);
-    }
-
-    return false;
-}
-
-template <typename State, typename Action, bool UseInterval>
-bool TADFHSImpl<State, Action, UseInterval>::backtrack_trap(
-    QuotientSystem& quotient,
-    QEvaluator& heuristic,
-    StateID state,
-    Flags& flags,
-    auto scc)
-{
-    ++this->statistics_.traps;
-
-    for (const auto& entry : scc) {
-        stack_index_[entry.state_id] = CLOSED;
-    }
-
-    TimerScope scope(statistics_.trap_timer);
-
-    quotient.build_quotient(scc, *scc.begin());
-    this->state_infos_[state].update_policy(std::nullopt);
-    stack_.erase(scc.begin(), scc.end());
-    return repush_trap(quotient, heuristic, state, flags);
-}
-
-template <typename State, typename Action, bool UseInterval>
-void TADFHSImpl<State, Action, UseInterval>::backtrack_solved(
-    const StateID,
-    Flags& flags,
-    auto scc)
-{
-    if (mark_solved_) {
-        for (const auto& entry : scc) {
-            stack_index_[entry.state_id] = CLOSED;
-            this->state_infos_[entry.state_id].set_solved();
-        }
-    } else {
-        assert(value_iteration_);
-        for (const auto& entry : scc) {
-            stack_index_[entry.state_id] = CLOSED;
-            visited_states_.push_back(entry.state_id);
-        }
-    }
-
-    flags.is_trap = false;
-    stack_.erase(scc.begin(), scc.end());
-}
-
-template <typename State, typename Action, bool UseInterval>
-void TADFHSImpl<State, Action, UseInterval>::backtrack_unsolved(
-    const StateID,
-    Flags& flags,
-    auto scc)
-{
-    for (const auto& entry : scc) {
-        stack_index_[entry.state_id] = CLOSED;
-    }
-
-    flags.is_trap = false;
-    stack_.erase(scc.begin(), scc.end());
 }
 
 template <typename State, typename Action, bool UseInterval>
@@ -595,10 +476,9 @@ TADepthFirstHeuristicSearch<State, Action, UseInterval>::
         bool stop_exploration_inconsistent,
         bool value_iteration,
         bool mark_solved,
-        bool reexpand_removed_traps,
-        std::shared_ptr<QuotientOpenList> open_list)
+        bool reexpand_removed_traps)
     : algorithm_(
-          policy_chooser,
+          std::move(policy_chooser),
           forward_updates,
           backtrack_update_type,
           cutoff_tip,
@@ -606,8 +486,7 @@ TADepthFirstHeuristicSearch<State, Action, UseInterval>::
           stop_exploration_inconsistent,
           value_iteration,
           mark_solved,
-          reexpand_removed_traps,
-          open_list)
+          reexpand_removed_traps)
 {
 }
 
