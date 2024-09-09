@@ -36,9 +36,9 @@ auto QuotientInformation<Action>::member_ids() const
 
 template <typename Action>
 void QuotientInformation<Action>::filter_actions(
-    const std::vector<QuotientAction<Action>>& filter)
+    const std::ranges::input_range auto& filter)
 {
-    if (filter.empty()) {
+    if (std::ranges::empty(filter)) {
         return;
     }
 
@@ -51,7 +51,7 @@ void QuotientInformation<Action>::filter_actions(
             act_it,
             act_it + info.num_outer_acts,
             [&info, &filter](Action a) {
-                return !utils::contains(
+                return !std::ranges::contains(
                     filter,
                     QuotientAction<Action>(info.state_id, a));
             });

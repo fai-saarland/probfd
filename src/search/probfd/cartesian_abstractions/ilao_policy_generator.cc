@@ -50,8 +50,7 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
                 false,
                 true,
                 false,
-                true,
-                nullptr);
+                true);
 
     ProgressReport report(0.0_vt);
     report.disable();

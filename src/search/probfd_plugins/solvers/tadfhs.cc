@@ -99,8 +99,7 @@ public:
                 terminate_exploration_,
                 value_iteration_,
                 !value_iteration_,
-                reexpand_traps_,
-                open_list_);
+                reexpand_traps_);
     }
 };
 

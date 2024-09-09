@@ -54,7 +54,7 @@ class QuotientInformation {
     auto member_ids();
     auto member_ids() const;
 
-    void filter_actions(const std::vector<QuotientAction<Action>>& filter);
+    void filter_actions(const std::ranges::input_range auto& filter);
 };
 
 template <typename State, typename Action>
