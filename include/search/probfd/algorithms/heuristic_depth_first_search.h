@@ -155,9 +155,9 @@ protected:
         Evaluator& heuristic,
         param_type<State> state,
         ProgressReport& progress,
-        double max_time);
+        double max_time) override;
 
-    void print_additional_statistics(std::ostream& out) const;
+    void print_additional_statistics(std::ostream& out) const override;
 
 private:
     void solve_with_vi_termination(

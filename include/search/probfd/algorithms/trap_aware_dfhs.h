@@ -161,8 +161,8 @@ class TADFHSImpl
         }
     };
 
-    static constexpr int STATE_UNSEEN = -1;
-    static constexpr int STATE_CLOSED = -2;
+    static constexpr int NEW = -1;
+    static constexpr int CLOSED = -2;
 
     // Algorithm parameters
     const bool forward_updates_;
@@ -234,10 +234,15 @@ private:
         QAction action,
         const Distribution<StateID>& successor_dist);
 
+    bool advance(
+        QuotientSystem& quotient,
+        QEvaluator& heuristic,
+        ExplorationInformation& einfo);
+
     bool push_successor(
         QuotientSystem& quotient,
         QEvaluator& heuristic,
-        ExplorationInformation einfo,
+        ExplorationInformation& einfo,
         utils::CountdownTimer& timer);
 
     bool push_state(

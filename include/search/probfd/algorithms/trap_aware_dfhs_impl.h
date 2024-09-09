@@ -77,7 +77,7 @@ TADFHSImpl<State, Action, UseInterval>::TADFHSImpl(
     , mark_solved_(mark_solved)
     , reexpand_removed_traps_(reexpand_removed_traps)
     , open_list_(open_list)
-    , stack_index_(STATE_UNSEEN)
+    , stack_index_(NEW)
 {
 }
 
@@ -200,10 +200,41 @@ void TADFHSImpl<State, Action, UseInterval>::enqueue(
 }
 
 template <typename State, typename Action, bool UseInterval>
+bool TADFHSImpl<State, Action, UseInterval>::advance(
+    QuotientSystem& quotient,
+    QEvaluator& heuristic,
+    ExplorationInformation& einfo)
+{
+    using enum BacktrackingUpdateType;
+
+    if (einfo.next_successor()) return true;
+
+    if (backtrack_update_type_ == SINGLE ||
+        (backtrack_update_type_ == ON_DEMAND &&
+         (!einfo.flags.complete || !einfo.flags.all_solved))) {
+        ++statistics_.bw_updates;
+        StateInfo& state_info = this->state_infos_[einfo.state];
+        auto [value, transition] = this->compute_bellman_policy(
+            quotient,
+            heuristic,
+            einfo.state,
+            state_info);
+        bool value_changed = this->update_value(state_info, value);
+        bool policy_changed = this->update_policy(state_info, transition);
+        einfo.flags.complete = einfo.flags.complete && !policy_changed;
+        einfo.flags.all_solved = einfo.flags.all_solved && !value_changed;
+        terminated_ = terminated_ || (terminate_exploration_ &&
+                                      cutoff_inconsistent_ && value_changed);
+    }
+
+    return false;
+}
+
+template <typename State, typename Action, bool UseInterval>
 bool TADFHSImpl<State, Action, UseInterval>::push_successor(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
-    ExplorationInformation einfo,
+    ExplorationInformation& einfo,
     utils::CountdownTimer& timer)
 {
     do {
@@ -212,7 +243,7 @@ bool TADFHSImpl<State, Action, UseInterval>::push_successor(
         const StateID succ = quotient.translate_state_id(einfo.get_successor());
 
         int& succ_status = stack_index_[succ];
-        if (succ_status == STATE_UNSEEN) {
+        if (succ_status == NEW) {
             // expand state (either not expanded before, or last
             // value change was before pushing einfo.state)
             StateInfo& succ_info = this->state_infos_[succ];
@@ -229,8 +260,8 @@ bool TADFHSImpl<State, Action, UseInterval>::push_successor(
             } else if (mark_solved_) {
                 einfo.flags.all_solved = false;
             }
-            succ_status = STATE_CLOSED;
-        } else if (succ_status == STATE_CLOSED) {
+            succ_status = CLOSED;
+        } else if (succ_status == CLOSED) {
             const StateInfo& succ_info = this->state_infos_[succ];
             einfo.flags.is_trap = false;
             if (mark_solved_) {
@@ -241,7 +272,7 @@ bool TADFHSImpl<State, Action, UseInterval>::push_successor(
             // is on stack
             einfo.lowlink = std::min(einfo.lowlink, succ_status);
         }
-    } while (einfo.next_successor() && !terminated_);
+    } while (advance(quotient, heuristic, einfo) && !terminated_);
 
     return false;
 }
@@ -346,8 +377,6 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
     StateID start_state,
     utils::CountdownTimer& timer)
 {
-    using enum BacktrackingUpdateType;
-
     assert(visited_states_.empty());
     terminated_ = false;
 
@@ -381,26 +410,6 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
 
             flags.complete = flags.complete && !terminated_;
 
-            if (backtrack_update_type_ == SINGLE ||
-                (backtrack_update_type_ == ON_DEMAND &&
-                 (!flags.complete || !flags.all_solved))) {
-                ++statistics_.bw_updates;
-                StateInfo& state_info = this->state_infos_[state];
-                auto [value, transition] = this->compute_bellman_policy(
-                    quotient,
-                    heuristic,
-                    state,
-                    state_info);
-                bool value_changed = this->update_value(state_info, value);
-                bool policy_changed =
-                    this->update_policy(state_info, transition);
-                flags.complete = flags.complete && !policy_changed;
-                flags.all_solved = flags.all_solved && !value_changed;
-                terminated_ =
-                    terminated_ || (terminate_exploration_ &&
-                                    cutoff_inconsistent_ && value_changed);
-            }
-
             // Is SCC root?
             if (einfo->lowlink == stack_index_[state]) {
                 auto scc = stack_ | std::views::drop(last_lowlink);
@@ -430,7 +439,7 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
 
             einfo->lowlink = std::min(last_lowlink, einfo->lowlink);
             einfo->flags.update(flags);
-        } while (!einfo->next_successor() || terminated_);
+        } while (!advance(quotient, heuristic, *einfo) || terminated_);
     }
 }
 
@@ -449,7 +458,7 @@ void TADFHSImpl<State, Action, UseInterval>::backtrack_from_singleton(
         }
     }
 
-    stack_index_[state] = STATE_CLOSED;
+    stack_index_[state] = CLOSED;
     stack_.pop_back();
     flags.is_trap = false;
 }
@@ -488,7 +497,7 @@ bool TADFHSImpl<State, Action, UseInterval>::backtrack_trap(
     ++this->statistics_.traps;
 
     for (const auto& entry : scc) {
-        stack_index_[entry.state_id] = STATE_CLOSED;
+        stack_index_[entry.state_id] = CLOSED;
     }
 
     TimerScope scope(statistics_.trap_timer);
@@ -507,13 +516,13 @@ void TADFHSImpl<State, Action, UseInterval>::backtrack_solved(
 {
     if (mark_solved_) {
         for (const auto& entry : scc) {
-            stack_index_[entry.state_id] = STATE_CLOSED;
+            stack_index_[entry.state_id] = CLOSED;
             this->state_infos_[entry.state_id].set_solved();
         }
     } else {
         assert(value_iteration_);
         for (const auto& entry : scc) {
-            stack_index_[entry.state_id] = STATE_CLOSED;
+            stack_index_[entry.state_id] = CLOSED;
             visited_states_.push_back(entry.state_id);
         }
     }
@@ -529,7 +538,7 @@ void TADFHSImpl<State, Action, UseInterval>::backtrack_unsolved(
     auto scc)
 {
     for (const auto& entry : scc) {
-        stack_index_[entry.state_id] = STATE_CLOSED;
+        stack_index_[entry.state_id] = CLOSED;
     }
 
     flags.is_trap = false;
