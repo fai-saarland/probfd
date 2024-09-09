@@ -2,8 +2,8 @@
 
 #include "probfd/tasks/root_task.h"
 
+#include "probfd/algorithms/depth_first_heuristic_search.h"
 #include "probfd/algorithms/fret.h"
-#include "probfd/algorithms/heuristic_depth_first_search.h"
 
 #include "probfd/policy_pickers/arbitrary_tiebreaker.h"
 

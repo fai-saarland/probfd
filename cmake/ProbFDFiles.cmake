@@ -286,7 +286,7 @@ create_probfd_library(
     NAME trap_aware_dfhs_solver_plugins
     HELP "Trap-Aware DFHS solver plugins"
     SOURCES
-        probfd_plugins/solvers/tadfhs
+        probfd_plugins/solvers/ta_depth_first_heuristic_search
     DEPENDS
         mdp_heuristic_search_base_options
 )
@@ -295,7 +295,7 @@ create_probfd_library(
     NAME dfhs_solver_plugins
     HELP "depth-first heuristic search solver plugins"
     SOURCES
-        probfd_plugins/solvers/hdfs
+        probfd_plugins/solvers/depth_first_heuristic_search
     DEPENDS
         mdp_heuristic_search_base_options
         bisimulation_core

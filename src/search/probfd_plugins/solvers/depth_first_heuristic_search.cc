@@ -3,7 +3,7 @@
 
 #include "probfd_plugins/solvers/mdp_heuristic_search.h"
 
-#include "probfd/algorithms/heuristic_depth_first_search.h"
+#include "probfd/algorithms/depth_first_heuristic_search.h"
 
 #include "downward/utils/system.h"
 

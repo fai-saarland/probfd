@@ -1,5 +1,5 @@
-#ifndef PROBFD_ALGORITHMS_HEURISTIC_DEPTH_FIRST_SEARCH_H
-#define PROBFD_ALGORITHMS_HEURISTIC_DEPTH_FIRST_SEARCH_H
+#ifndef PROBFD_ALGORITHMS_DEPTH_FIRST_HEURISTIC_SEARCH_H
+#define PROBFD_ALGORITHMS_DEPTH_FIRST_HEURISTIC_SEARCH_H
 
 #include "probfd/algorithms/heuristic_search_base.h"
 
@@ -220,7 +220,7 @@ private:
 } // namespace probfd::algorithms::heuristic_depth_first_search
 
 #define GUARD_INCLUDE_PROBFD_ALGORITHMS_HEURISTIC_DEPTH_FIRST_SEARCH_H
-#include "probfd/algorithms/heuristic_depth_first_search_impl.h"
+#include "probfd/algorithms/depth_first_heuristic_search_impl.h"
 #undef GUARD_INCLUDE_PROBFD_ALGORITHMS_HEURISTIC_DEPTH_FIRST_SEARCH_H
 
-#endif // PROBFD_ALGORITHMS_HEURISTIC_DEPTH_FIRST_SEARCH_H
+#endif // PROBFD_ALGORITHMS_DEPTH_FIRST_HEURISTIC_SEARCH_H
