@@ -36,7 +36,8 @@ struct Statistics {
 
 struct PerStateInfo {
     enum { NEW, OPEN, CLOSED, TERMINAL };
-    unsigned idx = std::numeric_limits<unsigned>::max();
+    unsigned var_idx = std::numeric_limits<unsigned>::max();
+    unsigned constraints_idx = std::numeric_limits<unsigned>::max();
     uint8_t status = NEW;
 };
 
@@ -101,6 +102,16 @@ public:
         param_type<State> initial_state,
         ProgressReport progress,
         double max_time) override;
+
+private:
+    Interval solve(
+        MDPType& mdp,
+        EvaluatorType& heuristic,
+        param_type<State> initial_state,
+        ProgressReport progress,
+        double max_time,
+        std::vector<double>& primal_solution,
+        std::vector<double>& dual_solution);
 };
 
 } // namespace probfd::algorithms::idual
