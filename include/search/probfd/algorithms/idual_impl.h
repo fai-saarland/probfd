@@ -14,6 +14,8 @@
 #include "downward/utils/countdown_timer.h"
 #include "probfd/policies/map_policy.h"
 
+#include <deque>
+
 namespace probfd::algorithms::idual {
 
 inline void Statistics::print(std::ostream& out) const
