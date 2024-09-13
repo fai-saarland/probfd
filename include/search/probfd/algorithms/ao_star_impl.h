@@ -91,9 +91,9 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
                 for (const StateID succ_id : all_successors) {
                     auto& succ_info = this->state_infos_[succ_id];
 
-                    if (!succ_info.is_unflagged()) continue;
+                    if (!succ_info.is_unflagged() || succ_info.is_solved())
+                        continue;
 
-                    assert(!succ_info.is_solved());
                     succ_info.mark();
                     succ_info.add_parent(stateid);
                     assert(
@@ -139,8 +139,11 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
                 return this->state_infos_[target.item].is_solved();
             });
 
-            outcome_selection_
-                ->sample(stateid, *action, successor_dist, this->state_infos_);
+            stateid = outcome_selection_->sample(
+                stateid,
+                *action,
+                successor_dist,
+                this->state_infos_);
         }
 
         ++this->statistics_.iterations;
