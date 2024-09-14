@@ -28,7 +28,6 @@ public:
 
     int pick_index(
         MDP<State, Action>& mdp,
-        StateID state,
         std::optional<Action> prev_policy,
         const std::vector<Transition<Action>>& greedy_transitions,
         algorithms::StateProperties& properties);

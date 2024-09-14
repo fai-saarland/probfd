@@ -16,7 +16,7 @@ protected:
     /*
       Insert an entry into the open list. This is called by insert, so
       see comments there. This method will not be called if
-      is_dead_end() is true or if only_preferred is true and the entry
+      is_terminal() is true or if only_preferred is true and the entry
       to be inserted is not preferred. Hence, these conditions need
       not be checked by the implementation.
     */
@@ -106,7 +106,7 @@ public:
     bool only_contains_preferred_entries() const;
 
     /*
-      is_dead_end and is_reliable_dead_end return true if the state
+      is_terminal and is_reliable_dead_end return true if the state
       associated with the passed-in evaluation context is deemed a
       dead end by the open list.
 

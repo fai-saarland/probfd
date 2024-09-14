@@ -72,7 +72,6 @@ public:
      */
     virtual int pick_index(
         MDP<State, Action>& mdp,
-        StateID state_id,
         std::optional<Action> incumbent_greedy,
         const std::vector<Transition<Action>>& greedy_transitions,
         StateProperties& properties) = 0;

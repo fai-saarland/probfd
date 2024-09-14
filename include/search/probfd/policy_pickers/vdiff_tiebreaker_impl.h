@@ -18,7 +18,6 @@ VDiffTiebreaker<State, Action>::VDiffTiebreaker(
 template <typename State, typename Action>
 int VDiffTiebreaker<State, Action>::pick_index(
     MDP<State, Action>&,
-    StateID,
     std::optional<Action>,
     const std::vector<Transition<Action>>& greedy_transitions,
     algorithms::StateProperties& properties)

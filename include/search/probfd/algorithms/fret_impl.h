@@ -220,7 +220,7 @@ Interval FRET<State, Action, StateInfoT, GreedyGraphGenerator>::solve(
         const Interval value =
             heuristic_search(quotient, heuristic, state, progress, timer);
 
-        if (find_and_remove_traps(quotient, heuristic, state, timer)) {
+        if (find_and_remove_traps(quotient, state, timer)) {
             return value;
         }
 
@@ -261,7 +261,6 @@ template <
 bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::
     find_and_remove_traps(
         QuotientSystem& quotient,
-        QEvaluator& heuristic,
         param_type<QState> state,
         utils::CountdownTimer& timer)
 {
@@ -282,7 +281,6 @@ bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::
 
     if (!push(
             quotient,
-            heuristic,
             exploration_queue,
             stack,
             *sinfo,
@@ -306,7 +304,6 @@ bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::
             } else if (
                 !succ_info.is_explored() && push(
                                                 quotient,
-                                                heuristic,
                                                 exploration_queue,
                                                 stack,
                                                 succ_info,
@@ -386,7 +383,6 @@ template <
     typename GreedyGraphGenerator>
 bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::push(
     QuotientSystem& quotient,
-    QEvaluator& heuristic,
     std::deque<internal::ExplorationInfo>& queue,
     std::deque<StackInfo>& stack,
     internal::TarjanStateInformation& info,
@@ -395,7 +391,7 @@ bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::push(
 {
     const auto& state_info = base_algorithm_->state_infos_[state_id];
 
-    if (state_info.is_terminal()) {
+    if (state_info.is_goal_or_terminal()) {
         return false;
     }
 
@@ -404,7 +400,6 @@ bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::push(
     std::vector<StateID> succs;
     if (greedy_graph.get_successors(
             quotient,
-            heuristic,
             *base_algorithm_,
             state_id,
             aops,
@@ -425,7 +420,6 @@ bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::push(
 template <typename State, typename Action, typename StateInfoT>
 bool ValueGraph<State, Action, StateInfoT>::get_successors(
     QuotientSystem& quotient,
-    QEvaluator& heuristic,
     QHeuristicSearchAlgorithm& base_algorithm,
     StateID qstate,
     std::vector<QAction>& aops,
@@ -433,15 +427,24 @@ bool ValueGraph<State, Action, StateInfoT>::get_successors(
 {
     assert(successors.empty());
 
-    ClearGuard _(ids_, opt_transitions_);
-
     auto& state_info = base_algorithm.state_infos_[qstate];
+
+    const QState state = quotient.get_state(qstate);
+    const value_t termination_cost =
+        quotient.get_termination_info(state).get_cost();
+
+    ClearGuard _(opt_transitions_, ids_, q_values);
+    base_algorithm.generate_non_tip_transitions(
+        quotient,
+        state,
+        opt_transitions_);
+
     auto value = base_algorithm.compute_bellman_and_greedy(
         quotient,
-        heuristic,
         qstate,
-        state_info,
-        opt_transitions_);
+        opt_transitions_,
+        termination_cost,
+        q_values);
 
     bool value_changed = base_algorithm.update_value(state_info, value);
 
@@ -461,7 +464,6 @@ bool ValueGraph<State, Action, StateInfoT>::get_successors(
 template <typename State, typename Action, typename StateInfoT>
 bool PolicyGraph<State, Action, StateInfoT>::get_successors(
     QuotientSystem& quotient,
-    QEvaluator&,
     QHeuristicSearchAlgorithm& base_algorithm,
     StateID quotient_state_id,
     std::vector<QAction>& aops,
@@ -469,7 +471,8 @@ bool PolicyGraph<State, Action, StateInfoT>::get_successors(
 {
     auto& base_info = base_algorithm.state_infos_[quotient_state_id];
     auto a = base_info.get_policy();
-    assert(a.has_value());
+
+    if (!a.has_value()) return false;
 
     ClearGuard _(t_);
 

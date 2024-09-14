@@ -45,6 +45,8 @@ class AOStar
 
     friend Base;
 
+    using AlgorithmValueType = Base::AlgorithmValueType;
+
     using MDPType = typename Base::MDPType;
     using EvaluatorType = typename Base::EvaluatorType;
     using PolicyPickerType = typename Base::PolicyPickerType;
@@ -54,6 +56,11 @@ class AOStar
 
     // Algorithm parameters
     const std::shared_ptr<SuccessorSamplerType> outcome_selection_;
+
+    // Re-used buffers
+    std::vector<Transition<Action>> transitions_;
+    std::vector<AlgorithmValueType> qvalues_;
+    Distribution<StateID> successor_dist_;
 
 public:
     AOStar(
@@ -71,8 +78,8 @@ protected:
 private:
     bool update_value_check_solved(
         MDPType& mdp,
-        EvaluatorType& heuristic,
-        StateID state,
+        param_type<State> state,
+        std::vector<Transition<Action>> transitions,
         StateInfo& info);
 };
 

@@ -27,9 +27,6 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
 {
     utils::CountdownTimer timer(max_time);
 
-    // Re-used buffer
-    std::vector<Transition<Action>> transitions;
-
     StateID initstateid = mdp.get_state_id(initial_state);
     const auto& state_info = this->state_infos_[initstateid];
 
@@ -51,29 +48,33 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
         StateID stateid = open_list_->pop();
         auto& info = this->state_infos_[stateid];
 
-        if (!info.is_tip_state() || info.is_solved()) {
+        if (!info.is_on_fringe() || info.is_solved()) {
             continue;
         }
 
         ++this->statistics_.iterations;
 
-        auto value = this->compute_bellman(mdp, heuristic, stateid, info);
+        const State state = mdp.get_state(stateid);
+        const value_t termination_cost =
+            mdp.get_termination_info(state).get_cost();
+
+        ClearGuard _(transitions_);
+        this->expand_and_initialize(mdp, heuristic, state, info, transitions_);
+
+        const auto value =
+            this->compute_bellman(mdp, stateid, transitions_, termination_cost);
         bool value_changed = this->update_value(info, value);
 
-        // Terminal non-goal state or pruned by heuristic
+        // Terminal state
         if (info.is_solved()) {
-            this->push_parents_to_queue(info);
-            this->backpropagate_tip_value(mdp, heuristic, timer);
+            assert(transitions_.empty());
+            this->backpropagate_tip_value(mdp, transitions_, info, timer);
             continue;
         }
 
-        ClearGuard _(transitions);
-        const State state = mdp.get_state(stateid);
-        mdp.generate_all_transitions(state, transitions);
-
         unsigned min_order = std::numeric_limits<unsigned>::max();
 
-        for (const auto& [op, dist] : transitions) {
+        for (const auto& [op, dist] : transitions_) {
             for (auto& [succid, prob] : dist) {
                 auto& succ_info = this->state_infos_[succid];
                 if (succ_info.is_solved()) continue;
@@ -90,15 +91,13 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
         }
 
         if (info.unsolved == 0) {
-            assert(!info.is_terminal() && !info.is_solved());
-
+            transitions_.clear();
             info.set_solved();
-            this->push_parents_to_queue(info);
-            this->backpropagate_tip_value(mdp, heuristic, timer);
+            this->backpropagate_tip_value(mdp, transitions_, info, timer);
             continue;
         }
 
-        for (const auto& transition : transitions) {
+        for (const auto& transition : transitions_) {
             for (StateID succ_id : transition.successor_dist.support()) {
                 this->state_infos_[succ_id].unmark();
             }
@@ -108,8 +107,8 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
         this->backpropagate_update_order(stateid, info, min_order + 1, timer);
 
         if (value_changed) {
-            this->push_parents_to_queue(info);
-            this->backpropagate_tip_value(mdp, heuristic, timer);
+            transitions_.clear();
+            this->backpropagate_tip_value(mdp, transitions_, info, timer);
         }
     } while (!state_info.is_solved());
 
@@ -119,13 +118,19 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
 template <typename State, typename Action, bool UseInterval>
 bool ExhaustiveAOSearch<State, Action, UseInterval>::update_value_check_solved(
     MDPType& mdp,
-    EvaluatorType& heuristic,
-    StateID state,
+    param_type<State> state,
+    std::vector<Transition<Action>> transitions,
     StateInfo& info)
 {
     assert(!info.is_solved());
 
-    const auto value = this->compute_bellman(mdp, heuristic, state, info);
+    const value_t termination_cost = mdp.get_termination_info(state).get_cost();
+
+    const auto value = this->compute_bellman(
+        mdp,
+        mdp.get_state_id(state),
+        transitions,
+        termination_cost);
     bool value_changed = this->update_value(info, value);
 
     if (info.unsolved == 0) {

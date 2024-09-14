@@ -35,12 +35,6 @@ public:
     std::vector<StateID> parents;
 
     [[nodiscard]]
-    bool is_tip_state() const
-    {
-        return update_order == 0;
-    }
-
-    [[nodiscard]]
     bool is_marked() const
     {
         return this->info & MARK;
@@ -49,13 +43,7 @@ public:
     [[nodiscard]]
     bool is_solved() const
     {
-        return this->info & SOLVED || this->is_terminal();
-    }
-
-    [[nodiscard]]
-    bool is_unflagged() const
-    {
-        return (this->info & MASK) == 0;
+        return this->info & SOLVED || this->is_goal_or_terminal();
     }
 
     [[nodiscard]]
@@ -130,7 +118,8 @@ protected:
     void backpropagate_tip_value(
         this auto& self,
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        std::vector<Transition<Action>>& transitions,
+        StateInfo& state_info,
         utils::CountdownTimer& timer);
 
     void backpropagate_update_order(
@@ -139,6 +128,7 @@ protected:
         unsigned update_order,
         utils::CountdownTimer& timer);
 
+private:
     void push_parents_to_queue(StateInfo& info);
 };
 

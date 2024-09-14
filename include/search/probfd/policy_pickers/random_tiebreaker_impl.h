@@ -26,7 +26,6 @@ RandomTiebreaker<State, Action>::RandomTiebreaker(
 template <typename State, typename Action>
 int RandomTiebreaker<State, Action>::pick_index(
     MDP<State, Action>&,
-    StateID,
     std::optional<Action>,
     const std::vector<Transition<Action>>& greedy_transitions,
     algorithms::StateProperties&)

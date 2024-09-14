@@ -43,7 +43,7 @@ public:
       estimated plan length, which is computed as the ratio of the h value of
       the initial state divided by the average operator costs. Whenever a dead
       end is detected or a state has no successors, restart from the initial
-      state. The function 'is_dead_end' should return whether a given state is
+      state. The function 'is_terminal' should return whether a given state is
       a dead end. If omitted, no dead end detection is performed. The 'init_h'
       value should be an estimate of the solution cost.
     */

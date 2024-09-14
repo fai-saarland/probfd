@@ -103,23 +103,47 @@ void LRTDP<State, Action, UseInterval>::trial(
             break;
         }
 
+        const State state = mdp.get_state(state_id);
+        const value_t termination_cost =
+            mdp.get_termination_info(state).get_cost();
+
+        ClearGuard _(transitions_, qvalues_);
+
+        if (state_info.is_on_fringe()) {
+            this->expand_and_initialize(
+                mdp,
+                heuristic,
+                state,
+                state_info,
+                transitions_);
+        } else {
+            this->generate_non_tip_transitions(mdp, state, transitions_);
+        }
+
         this->statistics_.trial_bellman_backups++;
 
-        auto [value, transition] =
-            this->compute_bellman_policy(mdp, heuristic, state_id, state_info);
+        auto value = this->compute_bellman_and_greedy(
+            mdp,
+            state_id,
+            transitions_,
+            termination_cost,
+            qvalues_);
+
+        auto transition = this->select_greedy_transition(
+            mdp,
+            state_info.get_policy(),
+            transitions_);
 
         bool value_changed = this->update_value(state_info, value);
         this->update_policy(state_info, transition);
 
         if (!transition) {
-            // terminal
-            assert(state_info.is_terminal());
             state_info.mark_solved();
             current_trial_.pop_back();
             break;
         }
 
-        assert(!state_info.is_terminal());
+        assert(!state_info.is_goal_or_terminal());
 
         if ((stop_consistent_ == CONSISTENT && !value_changed) ||
             (stop_consistent_ == INCONSISTENT && value_changed) ||
@@ -192,10 +216,36 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
 
         visited_.push_front(state_id);
 
+        const State state = mdp.get_state(state_id);
+        const value_t termination_cost =
+            mdp.get_termination_info(state).get_cost();
+
+        ClearGuard _(transitions_, qvalues_);
+
+        if (info.is_on_fringe()) {
+            this->expand_and_initialize(
+                mdp,
+                heuristic,
+                state,
+                info,
+                transitions_);
+        } else {
+            this->generate_non_tip_transitions(mdp, state, transitions_);
+        }
+
         this->statistics_.check_and_solve_bellman_backups++;
 
-        auto [value, transition] =
-            this->compute_bellman_policy(mdp, heuristic, state_id, info);
+        auto value = this->compute_bellman_and_greedy(
+            mdp,
+            state_id,
+            transitions_,
+            termination_cost,
+            qvalues_);
+
+        auto transition = this->select_greedy_transition(
+            mdp,
+            info.get_policy(),
+            transitions_);
 
         bool value_changed = this->update_value(info, value);
         this->update_policy(info, transition);
@@ -213,6 +263,7 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
         }
 
         if (!transition) {
+            info.mark_solved();
             continue;
         }
 
@@ -236,9 +287,29 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
         if (rv) {
             info.mark_solved();
         } else {
+            assert(!info.is_on_fringe());
+
+            const State state = mdp.get_state(sid);
+            const value_t termination_cost =
+                mdp.get_termination_info(state).get_cost();
+
+            ClearGuard _(transitions_, qvalues_);
+            this->generate_non_tip_transitions(mdp, state, transitions_);
+
             statistics_.check_and_solve_bellman_backups++;
-            auto [value, transition] =
-                this->compute_bellman_policy(mdp, heuristic, sid, info);
+
+            auto value = this->compute_bellman_and_greedy(
+                mdp,
+                sid,
+                transitions_,
+                termination_cost,
+                qvalues_);
+
+            auto transition = this->select_greedy_transition(
+                mdp,
+                info.get_policy(),
+                transitions_);
+
             this->update_value(info, value);
             this->update_policy(info, transition);
         }

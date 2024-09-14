@@ -44,7 +44,7 @@ public:
     [[nodiscard]]
     bool is_solved() const
     {
-        return (this->info & SOLVED) != 0 || this->is_terminal();
+        return (this->info & SOLVED) != 0 || this->is_goal_or_terminal();
     }
 
     void set_solved() { this->info |= SOLVED; }
@@ -108,6 +108,7 @@ class HeuristicDepthFirstSearch
 
 public:
     using StateInfo = typename Base::StateInfo;
+    using AlgorithmValueType = Base::AlgorithmValueType;
 
 private:
     using MDP = typename Base::MDPType;
@@ -135,6 +136,10 @@ private:
     std::deque<StateID> stack_;
 
     Statistics statistics_;
+
+    // Re-used buffer
+    std::vector<Transition<Action>> transitions_;
+    std::vector<AlgorithmValueType> qvalues_;
 
 public:
     HeuristicDepthFirstSearch(
@@ -181,15 +186,10 @@ private:
         StateID state,
         utils::CountdownTimer& timer);
 
-    bool advance(
-        MDP& mdp,
-        Evaluator& heuristic,
-        ExpansionInfo& einfo,
-        StateInfo& state_info);
+    bool advance(MDP& mdp, ExpansionInfo& einfo, StateInfo& state_info);
 
     bool push_successor(
         MDP& mdp,
-        Evaluator& heuristic,
         ExpansionInfo& einfo,
         StateInfo& sinfo,
         LocalStateInfo& lsinfo,
@@ -205,13 +205,11 @@ private:
 
     bool value_iteration(
         MDP& mdp,
-        Evaluator& heuristic,
         const std::ranges::input_range auto& range,
         utils::CountdownTimer& timer);
 
     std::pair<bool, bool> vi_step(
         MDP& mdp,
-        Evaluator& heuristic,
         const std::ranges::input_range auto& range,
         utils::CountdownTimer& timer,
         unsigned long long& stat_counter);

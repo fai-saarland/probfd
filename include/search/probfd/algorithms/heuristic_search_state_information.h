@@ -45,7 +45,7 @@ struct StatesPolicy<Action, true> {
 
 struct StateFlags {
     static constexpr uint8_t INITIALIZED = 1;
-    static constexpr uint8_t DEAD = 2;
+    static constexpr uint8_t TERMINAL = 2;
     static constexpr uint8_t GOAL = 4;
     static constexpr uint8_t FRINGE = 5;
     static constexpr uint8_t MASK = 7;
@@ -60,9 +60,9 @@ struct StateFlags {
     }
 
     [[nodiscard]]
-    bool is_dead_end() const
+    bool is_terminal() const
     {
-        return (info & MASK) == DEAD;
+        return (info & MASK) == TERMINAL;
     }
 
     [[nodiscard]]
@@ -72,9 +72,9 @@ struct StateFlags {
     }
 
     [[nodiscard]]
-    bool is_terminal() const
+    bool is_goal_or_terminal() const
     {
-        return is_dead_end() || is_goal_state();
+        return is_terminal() || is_goal_state();
     }
 
     [[nodiscard]]
@@ -96,15 +96,15 @@ struct StateFlags {
         info = (info & ~MASK) | FRINGE;
     }
 
-    void set_dead_end()
+    void set_terminal()
     {
-        assert(!is_goal_state() && !is_dead_end());
-        info = (info & ~MASK) | DEAD;
+        assert(!is_goal_or_terminal());
+        info = (info & ~MASK) | TERMINAL;
     }
 
     void removed_from_fringe()
     {
-        assert(is_value_initialized() && !is_terminal());
+        assert(is_value_initialized() && !is_goal_or_terminal());
         info = (info & ~MASK) | INITIALIZED;
     }
 };

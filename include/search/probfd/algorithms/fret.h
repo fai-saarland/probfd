@@ -183,13 +183,11 @@ private:
 
     bool find_and_remove_traps(
         QuotientSystem& quotient,
-        QEvaluator& heuristic,
         param_type<QState> state,
         utils::CountdownTimer& timer);
 
     bool push(
         QuotientSystem& quotient,
-        QEvaluator& heuristic,
         std::deque<internal::ExplorationInfo>& queue,
         std::deque<StackInfo>& stack,
         internal::TarjanStateInformation& info,
@@ -202,18 +200,22 @@ class ValueGraph {
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
+
     using QHeuristicSearchAlgorithm =
         heuristic_search::HeuristicSearchAlgorithm<QState, QAction, StateInfoT>;
+
+    using AlgorithmValueType =
+        typename QHeuristicSearchAlgorithm::AlgorithmValueType;
 
     using QEvaluator = Evaluator<QState>;
 
     std::unordered_set<StateID> ids_;
     std::vector<Transition<QAction>> opt_transitions_;
+    std::vector<AlgorithmValueType> q_values;
 
 public:
     bool get_successors(
         QuotientSystem& quotient,
-        QEvaluator& heuristic,
         QHeuristicSearchAlgorithm& base_algorithm,
         StateID qstate,
         std::vector<QAction>& aops,
@@ -235,7 +237,6 @@ class PolicyGraph {
 public:
     bool get_successors(
         QuotientSystem& quotient,
-        QEvaluator&,
         QHeuristicSearchAlgorithm& base_algorithm,
         StateID quotient_state_id,
         std::vector<QAction>& aops,

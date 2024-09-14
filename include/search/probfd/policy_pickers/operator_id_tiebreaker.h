@@ -21,7 +21,6 @@ public:
 
     int pick_index(
         FDRMDP& mdp,
-        StateID state,
         std::optional<OperatorID> prev_policy,
         const std::vector<Transition<OperatorID>>& greedy_transitions,
         algorithms::StateProperties& properties) override;

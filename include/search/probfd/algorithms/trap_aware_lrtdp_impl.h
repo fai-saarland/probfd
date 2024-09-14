@@ -123,18 +123,46 @@ bool TALRTDPImpl<State, Action, UseInterval>::trial(
 
         StateID stateid = current_trial_.back();
         auto& info = this->state_infos_[stateid];
+
         if (info.is_solved()) {
             current_trial_.pop_back();
             break;
         }
 
+        const QState state = quotient.get_state(stateid);
+        const value_t termination_cost =
+            quotient.get_termination_info(state).get_cost();
+
+        ClearGuard _(transitions_, qvalues_);
+        if (info.is_on_fringe()) {
+            this->expand_and_initialize(
+                quotient,
+                heuristic,
+                state,
+                info,
+                transitions_);
+        } else {
+            this->generate_non_tip_transitions(quotient, state, transitions_);
+        }
+
+        const auto value = this->compute_bellman_and_greedy(
+            quotient,
+            stateid,
+            transitions_,
+            termination_cost,
+            qvalues_);
+
         statistics_.trial_bellman_backups++;
-        const auto [value, transition] =
-            this->compute_bellman_policy(quotient, heuristic, stateid, info);
+
+        auto transition = this->select_greedy_transition(
+            quotient,
+            info.get_policy(),
+            transitions_);
+
         bool value_changed = this->update_value(info, value);
         this->update_policy(info, transition);
 
-        if (!transition) {
+        if (!transition.has_value()) {
             info.set_solved();
             current_trial_.pop_back();
             break;
@@ -206,8 +234,8 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
 
         do {
             if (einfo->is_root) {
-                const StateID state = einfo->state;
-                const unsigned stack_index = stack_index_[state];
+                const StateID state_id = einfo->state;
+                const unsigned stack_index = stack_index_[state_id];
                 auto scc = stack_ | std::views::drop(stack_index);
 
                 if (einfo->is_trap && scc.size() > 1) {
@@ -215,25 +243,48 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                     for (const auto& entry : scc) {
                         stack_index_[entry.state_id] = STATE_CLOSED;
                     }
+
                     TimerScope scope(statistics_.trap_timer);
                     quotient.build_quotient(scc, *scc.begin());
                     sinfo->update_policy(std::nullopt);
-                    ++this->statistics_.traps;
+                    ++statistics_.traps;
                     stack_.erase(scc.begin(), scc.end());
+
                     if (reexpand_traps_) {
                         queue_.pop_back();
-                        push(state);
+                        push(state_id);
                         break;
                     }
 
-                    ++this->statistics_.check_and_solve_bellman_backups;
-                    auto [value, transition] = this->compute_bellman_policy(
-                        quotient,
-                        heuristic,
-                        state,
-                        *sinfo);
-                    this->update_value(*sinfo, value);
-                    this->update_policy(*sinfo, transition);
+                    ++statistics_.check_and_solve_bellman_backups;
+
+                    const QState state = quotient.get_state(state_id);
+                    const value_t termination_cost =
+                        quotient.get_termination_info(state).get_cost();
+
+                    {
+                        ClearGuard _(transitions_, qvalues_);
+                        this->generate_non_tip_transitions(
+                            quotient,
+                            state,
+                            transitions_);
+
+                        auto value = this->compute_bellman_and_greedy(
+                            quotient,
+                            state_id,
+                            transitions_,
+                            termination_cost,
+                            qvalues_);
+
+                        auto transition = this->select_greedy_transition(
+                            quotient,
+                            sinfo->get_policy(),
+                            transitions_);
+
+                        this->update_value(*sinfo, value);
+                        this->update_policy(*sinfo, transition);
+                    }
+
                     einfo->rv = false;
                 } else {
                     for (const auto& entry : scc) {
@@ -244,13 +295,30 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                         if (einfo->rv) {
                             info.set_solved();
                         } else {
+                            const QState state = quotient.get_state(id);
+                            const value_t termination_cost =
+                                quotient.get_termination_info(state).get_cost();
+
+                            ClearGuard _(transitions_, qvalues_);
+                            this->generate_non_tip_transitions(
+                                quotient,
+                                state,
+                                transitions_);
+
                             ++this->statistics_.check_and_solve_bellman_backups;
-                            auto [value, transition] =
-                                this->compute_bellman_policy(
-                                    quotient,
-                                    heuristic,
-                                    id,
-                                    info);
+
+                            auto value = this->compute_bellman_and_greedy(
+                                quotient,
+                                id,
+                                transitions_,
+                                termination_cost,
+                                qvalues_);
+
+                            auto transition = this->select_greedy_transition(
+                                quotient,
+                                info.get_policy(),
+                                transitions_);
+
                             this->update_value(info, value);
                             this->update_policy(info, transition);
                         }
@@ -323,21 +391,48 @@ template <typename State, typename Action, bool UseInterval>
 bool TALRTDPImpl<State, Action, UseInterval>::initialize(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
-    StateID state,
+    StateID state_id,
     StateInfo& state_info,
     ExplorationInformation& e_info)
 {
-    assert(quotient.translate_state_id(state) == state);
+    assert(quotient.translate_state_id(state_id) == state_id);
 
     if (state_info.is_solved()) {
         e_info.is_trap = false;
         return false;
     }
 
+    const QState state = quotient.get_state(state_id);
+    const value_t termination_cost =
+        quotient.get_termination_info(state).get_cost();
+
+    ClearGuard _(transitions_, qvalues_);
+
+    if (state_info.is_on_fringe()) {
+        this->expand_and_initialize(
+            quotient,
+            heuristic,
+            state,
+            state_info,
+            transitions_);
+    } else {
+        this->generate_non_tip_transitions(quotient, state, transitions_);
+    }
+
     ++this->statistics_.check_and_solve_bellman_backups;
 
-    const auto [value, transition] =
-        this->compute_bellman_policy(quotient, heuristic, state, state_info);
+    const auto value = this->compute_bellman_and_greedy(
+        quotient,
+        state_id,
+        transitions_,
+        termination_cost,
+        qvalues_);
+
+    auto transition = this->select_greedy_transition(
+        quotient,
+        state_info.get_policy(),
+        transitions_);
+
     bool value_changed = this->update_value(state_info, value);
     this->update_policy(state_info, transition);
 
@@ -354,7 +449,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::initialize(
     }
 
     for (const StateID sel : transition->successor_dist.support()) {
-        if (sel != state) {
+        if (sel != state_id) {
             e_info.successors.push_back(sel);
         }
     }

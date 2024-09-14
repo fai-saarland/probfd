@@ -68,7 +68,7 @@ public:
 
     bool is_solved() const
     {
-        return this->info & SOLVED || this->is_terminal();
+        return this->info & SOLVED || this->is_goal_or_terminal();
     }
 
     void mark_solved() { this->info |= SOLVED; }
@@ -129,6 +129,8 @@ class LRTDP
           internal::PerStateInformation<Action, UseInterval>> {
     using Base = typename LRTDP::FRETHeuristicSearchAlgorithm;
 
+    using AlgorithmValueType = Base::AlgorithmValueType;
+
 public:
     using StateInfo = typename Base::StateInfo;
 
@@ -151,6 +153,10 @@ private:
     std::deque<StateID> visited_;
 
     Statistics statistics_;
+
+    // Re-used buffer
+    std::vector<Transition<Action>> transitions_;
+    std::vector<AlgorithmValueType> qvalues_;
 
 public:
     /**

@@ -43,19 +43,19 @@ bool set_min(value_t& lhs, value_t rhs)
     return false;
 }
 
-bool update(Interval& lhs, Interval rhs)
+bool update(Interval& lhs, Interval rhs, value_t epsilon)
 {
     const bool result = is_approx_greater(rhs.lower, lhs.lower) ||
                         is_approx_less(rhs.upper, lhs.upper);
     lhs.lower = std::max(lhs.lower, rhs.lower);
     lhs.upper = std::min(lhs.upper, rhs.upper);
-    assert(!is_approx_less(lhs.upper, lhs.lower));
+    assert(!is_approx_less(lhs.upper, lhs.lower, epsilon));
     return result;
 }
 
-bool update(value_t& lhs, value_t rhs)
+bool update(value_t& lhs, value_t rhs, value_t epsilon)
 {
-    const bool result = !is_approx_equal(lhs, rhs);
+    const bool result = !is_approx_equal(lhs, rhs, epsilon);
     lhs = rhs;
     return result;
 }

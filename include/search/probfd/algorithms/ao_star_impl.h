@@ -51,10 +51,6 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
 
     iinfo.update_order = 0;
 
-    // Re-used buffer
-    std::vector<Transition<Action>> transitions;
-    Distribution<StateID> successor_dist;
-
     for (; !iinfo.is_solved(); progress.print()) {
         StateID stateid = initstateid;
 
@@ -64,24 +60,34 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
             auto& info = this->state_infos_[stateid];
             assert(!info.is_solved());
 
-            if (info.is_tip_state()) {
-                bool value_changed = this->update_value_check_solved(
+            const State state = mdp.get_state(stateid);
+
+            if (info.is_on_fringe()) {
+                ClearGuard _(transitions_);
+                this->expand_and_initialize(
                     mdp,
                     heuristic,
-                    stateid,
+                    state,
+                    info,
+                    transitions_);
+
+                bool value_changed = this->update_value_check_solved(
+                    mdp,
+                    state,
+                    transitions_,
                     info);
 
                 if (info.is_solved()) {
-                    this->push_parents_to_queue(info);
-                    this->backpropagate_tip_value(mdp, heuristic, timer);
+                    transitions_.clear();
+                    this->backpropagate_tip_value(
+                        mdp,
+                        transitions_,
+                        info,
+                        timer);
                     break;
                 }
 
-                ClearGuard _(transitions);
-                const State state = mdp.get_state(stateid);
-                mdp.generate_all_transitions(state, transitions);
-
-                auto all_successors = transitions | transform([](auto& t) {
+                auto all_successors = transitions_ | transform([](auto& t) {
                                           return t.successor_dist.support();
                                       }) |
                                       std::views::join;
@@ -91,7 +97,7 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
                 for (const StateID succ_id : all_successors) {
                     auto& succ_info = this->state_infos_[succ_id];
 
-                    if (!succ_info.is_unflagged() || succ_info.is_solved())
+                    if (succ_info.is_marked() || succ_info.is_solved())
                         continue;
 
                     succ_info.mark();
@@ -116,33 +122,36 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
                     timer);
 
                 if (value_changed) {
-                    this->push_parents_to_queue(info);
-                    this->backpropagate_tip_value(mdp, heuristic, timer);
+                    transitions_.clear();
+                    this->backpropagate_tip_value(
+                        mdp,
+                        transitions_,
+                        info,
+                        timer);
                     break;
                 }
             }
 
             assert(
-                !info.is_tip_state() && !info.is_terminal() &&
+                !info.is_on_fringe() && !info.is_goal_or_terminal() &&
                 !info.is_solved());
 
-            const State state = mdp.get_state(stateid);
             const auto action = info.get_policy();
 
             assert(action.has_value());
 
-            ClearGuard guard(successor_dist);
+            ClearGuard guard(successor_dist_);
 
-            mdp.generate_action_transitions(state, *action, successor_dist);
+            mdp.generate_action_transitions(state, *action, successor_dist_);
 
-            successor_dist.remove_if_normalize([this](const auto& target) {
+            successor_dist_.remove_if_normalize([this](const auto& target) {
                 return this->state_infos_[target.item].is_solved();
             });
 
             stateid = outcome_selection_->sample(
                 stateid,
                 *action,
-                successor_dist,
+                successor_dist_,
                 this->state_infos_);
         }
 
@@ -155,14 +164,22 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
 template <typename State, typename Action, bool UseInterval>
 bool AOStar<State, Action, UseInterval>::update_value_check_solved(
     MDPType& mdp,
-    EvaluatorType& heuristic,
-    StateID state,
+    param_type<State> state,
+    std::vector<Transition<Action>> transitions,
     StateInfo& info)
 {
-    assert(!info.is_solved());
+    const value_t termination_cost = mdp.get_termination_info(state).get_cost();
 
-    const auto [value, greedy_transition] =
-        this->compute_bellman_policy(mdp, heuristic, state, info);
+    const auto value = this->compute_bellman_and_greedy(
+        mdp,
+        mdp.get_state_id(state),
+        transitions,
+        termination_cost,
+        qvalues_);
+
+    auto greedy_transition =
+        this->select_greedy_transition(mdp, info.get_policy(), transitions_);
+
     bool value_changed = this->update_value(info, value);
     this->update_policy(info, greedy_transition);
 

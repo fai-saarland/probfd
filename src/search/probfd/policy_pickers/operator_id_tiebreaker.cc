@@ -18,7 +18,6 @@ OperatorIdTiebreaker::OperatorIdTiebreaker(
 
 int OperatorIdTiebreaker::pick_index(
     FDRMDP&,
-    StateID,
     std::optional<OperatorID>,
     const std::vector<Transition<OperatorID>>& greedy_transitions,
     algorithms::StateProperties&)

@@ -56,7 +56,7 @@ public:
     [[nodiscard]]
     bool is_solved() const
     {
-        return this->info & SOLVED || this->is_terminal();
+        return this->info & SOLVED || this->is_goal_or_terminal();
     }
 
     void set_solved() { this->info = (this->info & ~MASK) | SOLVED; }
@@ -76,6 +76,8 @@ class TADFHSImpl
               quotients::QuotientAction<Action>,
               UseInterval>> {
     using Base = typename TADFHSImpl::HeuristicSearchBase;
+
+    using AlgorithmValueType = Base::AlgorithmValueType;
 
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QState = quotients::QuotientState<State, Action>;
@@ -167,6 +169,8 @@ class TADFHSImpl
     bool terminated_ = false;
 
     // Re-used buffer
+    std::vector<Transition<QAction>> transitions_;
+    std::vector<AlgorithmValueType> qvalues_;
     Distribution<StateID> transition_;
 
     internal::Statistics statistics_;
@@ -217,14 +221,10 @@ private:
         QAction action,
         const Distribution<StateID>& successor_dist);
 
-    bool advance(
-        QuotientSystem& quotient,
-        QEvaluator& heuristic,
-        ExplorationInformation& einfo);
+    bool advance(QuotientSystem& quotient, ExplorationInformation& einfo);
 
     bool push_successor(
         QuotientSystem& quotient,
-        QEvaluator& heuristic,
         ExplorationInformation& einfo,
         utils::CountdownTimer& timer);
 
@@ -243,7 +243,6 @@ private:
 
     UpdateResult value_iteration(
         QuotientSystem& quotient,
-        QEvaluator& heuristic,
         const std::ranges::input_range auto& range,
         utils::CountdownTimer& timer);
 };

@@ -39,6 +39,7 @@ inline void Statistics::print(std::ostream& out) const
     out << "  Number of value updates: " << value_updates << std::endl;
     out << "  Number of value changes: " << value_changes << std::endl;
     out << "  Number of policy updates: " << policy_updates << std::endl;
+    out << "  Number of policy changes: " << policy_changes << std::endl;
 
 #if defined(EXPENSIVE_STATISTICS)
     out << "  Updating time: " << update_time << std::endl;
@@ -70,80 +71,92 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::was_visited(
 }
 
 template <typename State, typename Action, typename StateInfoT>
-auto HeuristicSearchBase<State, Action, StateInfoT>::compute_greedy_transition(
-    MDPType& mdp,
-    EvaluatorType& h,
-    StateID state_id) -> std::optional<TransitionType>
-    requires(!StorePolicy)
-{
-    ClearGuard guard(transitions_);
-    const State state = mdp.get_state(state_id);
-    mdp.generate_all_transitions(state, transitions_);
-
-    value_t termination_cost = mdp.get_termination_info(state).get_cost();
-
-    std::vector<AlgorithmValueType> qvalues;
-    const AlgorithmValueType best_value = compute_q_values(
-        mdp,
-        h,
-        state_id,
-        termination_cost,
-        transitions_,
-        qvalues);
-    filter_greedy_transitions(transitions_, qvalues, best_value);
-
-    return select_action(mdp, state_id, std::nullopt, transitions_);
-}
-
-template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
-    MDPType& mdp,
-    EvaluatorType& h,
+    CostFunctionType& cost_function,
     StateID state_id,
-    StateInfo& state_info) -> AlgorithmValueType
+    const std::vector<TransitionType>& transitions,
+    value_t termination_cost) const -> AlgorithmValueType
 {
-    ClearGuard _(transitions_);
-    return compute_bellman(mdp, h, state_id, state_info, transitions_, false);
+#if defined(EXPENSIVE_STATISTICS)
+    TimerScope scoped_upd_timer(statistics_.update_time);
+#endif
+
+    AlgorithmValueType best_value = AlgorithmValueType(termination_cost);
+
+    for (auto& transition : transitions) {
+        const value_t cost = cost_function.get_action_cost(transition.action);
+        set_min(best_value, compute_qvalue(cost, state_id, transition));
+    }
+
+    return best_value;
 }
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
-    MDPType& mdp,
-    EvaluatorType& h,
+    CostFunctionType& cost_function,
     StateID state_id,
-    StateInfo& state_info,
-    std::vector<TransitionType>& greedy) -> AlgorithmValueType
+    std::vector<TransitionType>& transitions,
+    value_t termination_cost,
+    std::vector<AlgorithmValueType>& qvalues,
+    value_t epsilon) const -> AlgorithmValueType
 {
-    return compute_bellman(mdp, h, state_id, state_info, greedy, true);
+#if defined(EXPENSIVE_STATISTICS)
+    TimerScope scoped_upd_timer(statistics_.update_time);
+#endif
+
+    if (transitions.empty()) {
+        return AlgorithmValueType(termination_cost);
+    }
+
+    AlgorithmValueType best_value = compute_q_values(
+        cost_function,
+        state_id,
+        transitions,
+        termination_cost,
+        qvalues);
+
+    if (as_lower_bound(best_value) == termination_cost) {
+        transitions.clear();
+        qvalues.clear();
+        return AlgorithmValueType(termination_cost);
+    }
+
+    filter_greedy_transitions(transitions, qvalues, best_value, epsilon);
+
+    return best_value;
 }
 
 template <typename State, typename Action, typename StateInfoT>
-auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_policy(
+auto HeuristicSearchBase<State, Action, StateInfoT>::select_greedy_transition(
     MDPType& mdp,
-    EvaluatorType& h,
-    StateID state_id,
-    StateInfo& state_info) -> BellmanResult
-    requires(StorePolicy)
+    std::optional<Action> previous_greedy,
+    std::vector<TransitionType>& transitions) -> std::optional<TransitionType>
 {
-    assert(!state_info.is_terminal());
+#if defined(EXPENSIVE_STATISTICS)
+    TimerScope scoped(statistics_.policy_selection_time);
+#endif
 
-    ClearGuard guard(transitions_);
+    if (transitions.empty()) return std::nullopt;
 
-    const AlgorithmValueType best_value =
-        compute_bellman(mdp, h, state_id, state_info, transitions_, true);
+    const int index = this->policy_chooser_->pick_index(
+        mdp,
+        previous_greedy,
+        transitions,
+        state_infos_);
 
-    return BellmanResult{
-        best_value,
-        select_action(mdp, state_id, state_info.get_policy(), transitions_)};
+    assert(utils::in_bounds(index, transitions));
+
+    return std::move(transitions[index]);
 }
 
 template <typename State, typename Action, typename StateInfoT>
 bool HeuristicSearchBase<State, Action, StateInfoT>::update_value(
     StateInfo& state_info,
-    AlgorithmValueType other)
+    AlgorithmValueType other,
+    value_t epsilon)
 {
-    statistics_.value_updates++;
-    bool b = algorithms::update(state_info.value, other);
+    ++statistics_.value_updates;
+    bool b = algorithms::update(state_info.value, other, epsilon);
     if (b) ++statistics_.value_changes;
     return b;
 }
@@ -155,7 +168,9 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::update_policy(
     requires(StorePolicy)
 {
     ++statistics_.policy_updates;
-    return state_info.update_policy(transition);
+    bool b = state_info.update_policy(transition);
+    if (b) ++statistics_.policy_changes;
+    return b;
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -171,7 +186,90 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize_initial_state(
     initialize(mdp, h, state, info);
 
     statistics_.initial_state_estimate = info.get_value();
-    statistics_.initial_state_found_terminal = info.is_terminal();
+    statistics_.initial_state_found_terminal = info.is_goal_or_terminal();
+}
+
+template <typename State, typename Action, typename StateInfoT>
+void HeuristicSearchBase<State, Action, StateInfoT>::expand_and_initialize(
+    MDPType& mdp,
+    EvaluatorType& h,
+    param_type<State> state,
+    StateInfo& state_info,
+    std::vector<TransitionType>& transitions)
+{
+    assert(!state_info.is_goal_or_terminal());
+    assert(transitions.empty());
+    assert(state_info.is_on_fringe());
+
+    ++statistics_.expanded_states;
+    state_info.removed_from_fringe();
+
+    mdp.generate_all_transitions(state, transitions);
+
+    if (transitions.empty()) {
+        ++statistics_.terminal_states;
+        state_info.set_terminal();
+        return;
+    }
+
+    const StateID state_id = mdp.get_state_id(state);
+
+    erase_if(transitions, [&](auto& transition) {
+        bool loop = true;
+        auto it = transition.successor_dist.begin();
+        auto end = transition.successor_dist.end();
+
+        auto loop_it = end;
+
+        for (; it != end; ++it) {
+            const auto& [succ_id, prob] = *it;
+            if (succ_id == state_id) {
+                loop_it = it;
+                continue;
+            }
+            loop = false;
+            auto& succ_info = state_infos_[succ_id];
+            if (succ_info.is_value_initialized()) continue;
+            initialize(mdp, h, mdp.get_state(succ_id), succ_info);
+        }
+
+        if (!loop && loop_it != end) {
+            value_t prob = loop_it->probability;
+            transition.successor_dist.erase(loop_it);
+            transition.successor_dist.normalize(1 / (1 - prob));
+        }
+
+        return loop;
+    });
+
+    if (transitions.empty()) {
+        ++statistics_.self_loop_states;
+        state_info.set_terminal();
+    }
+}
+
+template <typename State, typename Action, typename StateInfoT>
+void HeuristicSearchBase<State, Action, StateInfoT>::
+    generate_non_tip_transitions(
+        MDPType& mdp,
+        param_type<State> state,
+        std::vector<TransitionType>& transitions) const
+{
+    assert(transitions.empty());
+
+    mdp.generate_all_transitions(state, transitions);
+
+    const StateID state_id = mdp.get_state_id(state);
+
+    std::erase_if(transitions, [&](auto& transition) {
+        bool loop = true;
+
+        for (StateID succ_id : transition.successor_dist.support()) {
+            if (succ_id != state_id) loop = false;
+        }
+
+        return loop;
+    });
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -213,68 +311,54 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize(
 
     if (estimate == t_cost) {
         statistics_.pruned_states++;
-        state_info.set_dead_end();
+        state_info.set_terminal();
     } else {
         state_info.set_on_fringe();
     }
 }
 
 template <typename State, typename Action, typename StateInfoT>
-auto HeuristicSearchBase<State, Action, StateInfoT>::normalized_qvalue(
-    MDPType& mdp,
-    EvaluatorType& h,
+auto HeuristicSearchBase<State, Action, StateInfoT>::compute_qvalue(
+    value_t action_cost,
     StateID state_id,
-    const TransitionType& transition) -> std::optional<AlgorithmValueType>
+    const TransitionType& transition) const -> AlgorithmValueType
 {
-    AlgorithmValueType t_value(mdp.get_action_cost(transition.action));
-    value_t non_self_loop = 1_vt;
-    bool loop = true;
+    AlgorithmValueType t_value(action_cost);
+
+    value_t non_loop_prob = 1_vt;
 
     for (const auto& [succ_id, prob] : transition.successor_dist) {
-        if (succ_id == state_id) {
-            non_self_loop -= prob;
+        if (state_id == succ_id) {
+            non_loop_prob -= prob;
             continue;
         }
 
-        auto& succ_info = state_infos_[succ_id];
-        if (!succ_info.is_value_initialized()) {
-            initialize(mdp, h, mdp.get_state(succ_id), succ_info);
-        }
-        t_value += prob * succ_info.value;
-        loop = false;
+        t_value += prob * state_infos_[succ_id].value;
     }
 
-    if (loop) return std::nullopt;
+    assert(non_loop_prob > 0_vt);
 
-    if (non_self_loop < 1_vt) {
-        t_value *= (1 / non_self_loop);
-    }
-
-    return t_value;
+    return t_value * (1_vt / non_loop_prob);
 }
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_q_values(
-    MDPType& mdp,
-    EvaluatorType& h,
+    CostFunctionType& cost_function,
     StateID state_id,
-    value_t termination_cost,
     std::vector<TransitionType>& transitions,
-    std::vector<AlgorithmValueType>& qvalues) -> AlgorithmValueType
+    value_t termination_cost,
+    std::vector<AlgorithmValueType>& qvalues) const -> AlgorithmValueType
 {
     AlgorithmValueType best_value(termination_cost);
 
     qvalues.reserve(transitions.size());
 
-    std::erase_if(transitions, [&, state_id](const auto& transition) {
-        if (auto q = normalized_qvalue(mdp, h, state_id, transition)) {
-            set_min(best_value, *q);
-            qvalues.push_back(*q);
-            return false;
-        }
-
-        return true;
-    });
+    for (const auto& transition : transitions) {
+        const value_t cost = cost_function.get_action_cost(transition.action);
+        auto q = compute_qvalue(cost, state_id, transition);
+        set_min(best_value, q);
+        qvalues.push_back(q);
+    }
 
     return best_value;
 }
@@ -283,7 +367,8 @@ template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::filter_greedy_transitions(
     std::vector<TransitionType>& transitions,
     std::vector<AlgorithmValueType>& qvalues,
-    const AlgorithmValueType& best_value) -> AlgorithmValueType
+    const AlgorithmValueType& best_value,
+    value_t epsilon) const -> AlgorithmValueType
 {
     auto view = std::views::zip(transitions, qvalues);
     auto [it, end] = std::ranges::remove_if(
@@ -291,7 +376,8 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::filter_greedy_transitions(
         [&](const AlgorithmValueType& value) {
             return !is_approx_equal(
                 as_lower_bound(best_value),
-                as_lower_bound(value));
+                as_lower_bound(value),
+                epsilon);
         },
         project<1>);
 
@@ -299,98 +385,6 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::filter_greedy_transitions(
     transitions.erase(transitions.begin() + offset, transitions.end());
 
     return best_value;
-}
-
-template <typename State, typename Action, typename StateInfoT>
-auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
-    MDPType& mdp,
-    EvaluatorType& h,
-    StateID state_id,
-    StateInfo& state_info,
-    std::vector<TransitionType>& transitions,
-    bool filter_greedy) -> AlgorithmValueType
-{
-    assert(!state_info.is_terminal());
-    assert(transitions.empty());
-
-#if defined(EXPENSIVE_STATISTICS)
-    TimerScope scoped_upd_timer(statistics_.update_time);
-#endif
-
-    if (state_info.is_on_fringe()) {
-        ++statistics_.expanded_states;
-        state_info.removed_from_fringe();
-    }
-
-    const State state = mdp.get_state(state_id);
-    mdp.generate_all_transitions(state, transitions);
-
-    const value_t termination_cost = mdp.get_termination_info(state).get_cost();
-
-    if (transitions.empty()) {
-        statistics_.terminal_states++;
-        state_info.set_dead_end();
-        return AlgorithmValueType(termination_cost);
-    }
-
-    AlgorithmValueType best_value;
-    bool has_only_self_loops;
-
-    if (filter_greedy) {
-        std::vector<AlgorithmValueType> qvalues;
-        best_value = compute_q_values(
-            mdp,
-            h,
-            state_id,
-            termination_cost,
-            transitions,
-            qvalues);
-        filter_greedy_transitions(transitions, qvalues, best_value);
-        has_only_self_loops = transitions.empty();
-    } else {
-        best_value = AlgorithmValueType(termination_cost);
-        has_only_self_loops = true;
-
-        for (auto& transition : transitions) {
-            if (auto q = normalized_qvalue(mdp, h, state_id, transition)) {
-                set_min(best_value, *q);
-                has_only_self_loops = false;
-            }
-        }
-    }
-
-    if (has_only_self_loops) {
-        statistics_.self_loop_states++;
-        state_info.set_dead_end();
-        return AlgorithmValueType(termination_cost);
-    }
-
-    return best_value;
-}
-
-template <typename State, typename Action, typename StateInfoT>
-auto HeuristicSearchBase<State, Action, StateInfoT>::select_action(
-    MDPType& mdp,
-    StateID state_id,
-    std::optional<Action> previous_greedy,
-    std::vector<TransitionType>& transitions) -> std::optional<TransitionType>
-{
-#if defined(EXPENSIVE_STATISTICS)
-    TimerScope scoped(statistics_.policy_selection_time);
-#endif
-
-    if (transitions.empty()) return std::nullopt;
-
-    const int index = this->policy_chooser_->pick_index(
-        mdp,
-        state_id,
-        previous_greedy,
-        transitions,
-        state_infos_);
-
-    assert(utils::in_bounds(index, transitions));
-
-    return std::move(transitions[index]);
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -429,6 +423,9 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
     queue.push_back(initial_state_id);
     visited.insert(initial_state_id);
 
+    std::vector<TransitionType> transitions;
+    std::vector<AlgorithmValueType> qvalues;
+
     do {
         const StateID state_id = queue.front();
         queue.pop_front();
@@ -439,8 +436,23 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
             const StateInfo& state_info = this->state_infos_[state_id];
             action = state_info.get_policy();
         } else {
-            action = this->compute_greedy_transition(mdp, h, state_id)
-                         .transform([](const auto& t) { return t.action; });
+            const State state = mdp.get_state(state_id);
+            const value_t termination_cost =
+                mdp.get_termination_info(state).get_cost();
+
+            ClearGuard _(transitions, qvalues);
+            this->generate_non_tip_transitions(mdp, state, transitions);
+
+            this->compute_bellman_and_greedy(
+                mdp,
+                state_id,
+                transitions,
+                termination_cost,
+                qvalues);
+
+            action =
+                this->select_greedy_transition(mdp, std::nullopt, transitions)
+                    .transform([](const auto& t) { return t.action; });
         }
 
         // Terminal states have no policy decision.

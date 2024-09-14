@@ -59,6 +59,7 @@ struct Statistics {
     unsigned long long self_loop_states = 0;
 
     unsigned long long value_changes = 0;
+    unsigned long long policy_changes = 0;
     unsigned long long value_updates = 0;
     unsigned long long policy_updates = 0;
 
@@ -108,8 +109,12 @@ public:
  */
 template <typename State, typename Action, typename StateInfoT>
 class HeuristicSearchBase {
+    template <bool b, typename T>
+    using const_if = std::conditional_t<b, const T, T>;
+
 protected:
     using MDPType = MDP<State, Action>;
+    using CostFunctionType = CostFunction<State, Action>;
     using EvaluatorType = Evaluator<State>;
     using TransitionType = Transition<Action>;
 
@@ -136,9 +141,6 @@ public:
 private:
     // Algorithm parameters
     const std::shared_ptr<PolicyPickerType> policy_chooser_;
-
-    // Reused buffer
-    mutable std::vector<TransitionType> transitions_;
 
 protected:
     // Algorithm state
@@ -168,51 +170,64 @@ public:
     [[nodiscard]]
     bool was_visited(StateID state_id) const;
 
-    std::optional<TransitionType>
-    compute_greedy_transition(MDPType& mdp, EvaluatorType& h, StateID state_id)
-        requires(!StorePolicy);
-
     /**
      * @brief Computes the Bellman operator value for a state.
      */
     AlgorithmValueType compute_bellman(
-        MDPType& mdp,
-        EvaluatorType& h,
-        StateID s,
-        StateInfo& state_info);
+        CostFunctionType& cost_function,
+        StateID state_id,
+        const std::vector<TransitionType>& transitions,
+        value_t termination_cost) const;
 
     /**
      * @brief Computes the Bellman operator value for a state, as well as all
-     * transitions achieving the minimum.
+     * transitions achieving a value epsilon-close to the minimum value and
+     * their computed Q-values.
+     *
+     * @param[in, out] transitions The set of transition to compute the
+     * Bellman operator for. The greedy transitions are returned through this
+     * parameter by erasing all non-greedy transitions.
+     * All greedy transitions will maintain their relative order.
+     * If no transition achieves a value lower than the termination cost,
+     * the empty list is returned, regardless of the epsilon parameter.
+     *
+     * @param[out] qvalues The Q-values are added to this list, which must be
+     * empty prior to the call, in the order that matches the greedy
+     * transitions returned in \p transitions .
      */
     AlgorithmValueType compute_bellman_and_greedy(
-        MDPType& mdp,
-        EvaluatorType& h,
+        CostFunctionType& cost_function,
         StateID state_id,
-        StateInfo& state_info,
-        std::vector<TransitionType>& greedy);
+        std::vector<TransitionType>& transitions,
+        value_t termination_cost,
+        std::vector<AlgorithmValueType>& qvalues,
+        value_t epsilon = g_epsilon) const;
 
     /**
-     * @brief Computes the Bellman operator value for a state, as well as a
-     * single transition achieving the minimum.
+     * @brief Selects a greedy transition from the given list of greedy
+     * transitions through the policy selector passed on construction.
      *
-     * The transition that achieves the minimum is chosen by the policy
-     * selector passed on construction among all achievers.
+     * If the transition list is empty, returns std::nullopt, otherwise some
+     * transition from the list.
+     *
+     * @attention The selected transition is moved from the transition list
+     * to avoid a copy.
      */
-    BellmanResult compute_bellman_policy(
+    std::optional<TransitionType> select_greedy_transition(
         MDPType& mdp,
-        EvaluatorType& h,
-        StateID state_id,
-        StateInfo& state_info)
-        requires(StorePolicy);
+        std::optional<Action> previous_greedy_action,
+        std::vector<TransitionType>& greedy_transitions);
 
     /**
      * @brief Updates the value of the state associated with the given storage.
      *
-     * Returns true if the value has changed by more than the global epsilon,
+     * @returns True if the value has changed by more than the given epsilon,
      * otherwise false.
      */
-    bool update_value(StateInfo& state_info, AlgorithmValueType other);
+    bool update_value(
+        StateInfo& state_info,
+        AlgorithmValueType other,
+        value_t epsilon = g_epsilon);
 
     /**
      * @brief Updates the current greedy action of the state associated with
@@ -231,6 +246,18 @@ protected:
         EvaluatorType& h,
         param_type<State> state);
 
+    void expand_and_initialize(
+        MDPType& mdp,
+        EvaluatorType& h,
+        param_type<State> state,
+        StateInfo& state_info,
+        std::vector<TransitionType>& transitions);
+
+    void generate_non_tip_transitions(
+        MDPType& mdp,
+        param_type<State> state,
+        std::vector<TransitionType>& transitions) const;
+
     void print_statistics(std::ostream& out) const;
 
 private:
@@ -240,38 +267,23 @@ private:
         param_type<State> state,
         StateInfo& state_info);
 
-    std::optional<AlgorithmValueType> normalized_qvalue(
-        MDPType& mdp,
-        EvaluatorType& h,
+    AlgorithmValueType compute_qvalue(
+        value_t action_cost,
         StateID state_id,
-        const TransitionType& transition);
+        const TransitionType& transition) const;
 
     AlgorithmValueType compute_q_values(
-        MDPType& mdp,
-        EvaluatorType& h,
+        CostFunctionType& cost_function,
         StateID state_id,
-        value_t termination_cost,
         std::vector<TransitionType>& transitions,
-        std::vector<AlgorithmValueType>& qvalues);
+        value_t termination_cost,
+        std::vector<AlgorithmValueType>& qvalues) const;
 
     AlgorithmValueType filter_greedy_transitions(
         std::vector<TransitionType>& transitions,
         std::vector<AlgorithmValueType>& qvalues,
-        const AlgorithmValueType& best_value);
-
-    AlgorithmValueType compute_bellman(
-        MDPType& mdp,
-        EvaluatorType& h,
-        StateID state_id,
-        StateInfo& state_info,
-        std::vector<TransitionType>& transitions,
-        bool filter_greedy);
-
-    std::optional<TransitionType> select_action(
-        MDPType& mdp,
-        StateID state_id,
-        std::optional<Action> previous_greedy,
-        std::vector<TransitionType>& transitions);
+        const AlgorithmValueType& best_value,
+        value_t epsilon = g_epsilon) const;
 };
 
 /**
@@ -288,6 +300,10 @@ class HeuristicSearchAlgorithm
     , public HeuristicSearchBase<State, Action, StateInfoT> {
     using AlgorithmBase = typename HeuristicSearchAlgorithm::MDPAlgorithm;
     using HSBase = typename HeuristicSearchAlgorithm::HeuristicSearchBase;
+
+public:
+    using TransitionType = HSBase::TransitionType;
+    using AlgorithmValueType = HSBase::AlgorithmValueType;
 
 protected:
     using PolicyType = typename AlgorithmBase::PolicyType;

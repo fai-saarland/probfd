@@ -13,7 +13,6 @@ StablePolicyPicker<State, Action, Derived>::StablePolicyPicker(
 template <typename State, typename Action, class Derived>
 int StablePolicyPicker<State, Action, Derived>::pick_index(
     MDP<State, Action>& mdp,
-    StateID state_id,
     std::optional<Action> previous_greedy,
     const std::vector<Transition<Action>>& greedy_transitions,
     algorithms::StateProperties& properties)
@@ -26,12 +25,8 @@ int StablePolicyPicker<State, Action, Derived>::pick_index(
         }
     }
 
-    return static_cast<Derived*>(this)->pick_index(
-        mdp,
-        state_id,
-        previous_greedy,
-        greedy_transitions,
-        properties);
+    return static_cast<Derived*>(this)
+        ->pick_index(mdp, previous_greedy, greedy_transitions, properties);
 }
 
 } // namespace probfd::policy_pickers

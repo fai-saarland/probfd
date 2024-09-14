@@ -57,7 +57,7 @@ public:
 
     bool is_solved() const
     {
-        return (this->info & MASK) == SOLVED || this->is_terminal();
+        return (this->info & MASK) == SOLVED || this->is_goal_or_terminal();
     }
 
     bool is_on_trial() const { return (this->info & MARKED_TRIAL); }
@@ -82,6 +82,8 @@ class TALRTDPImpl
               quotients::QuotientAction<Action>,
               UseInterval>> {
     using Base = typename TALRTDPImpl::HeuristicSearchBase;
+
+    using AlgorithmValueType = Base::AlgorithmValueType;
 
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QState = quotients::QuotientState<State, Action>;
@@ -171,6 +173,10 @@ class TALRTDPImpl
     std::deque<StateID> current_trial_;
 
     internal::Statistics statistics_;
+
+    // Buffer
+    std::vector<Transition<QAction>> transitions_;
+    std::vector<AlgorithmValueType> qvalues_;
 
 public:
     /**

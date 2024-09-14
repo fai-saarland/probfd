@@ -24,9 +24,12 @@ template <typename State, typename Action, typename StateInfo>
 void AOBase<State, Action, StateInfo>::backpropagate_tip_value(
     this auto& self,
     MDPType& mdp,
-    EvaluatorType& heuristic,
+    std::vector<Transition<Action>>& transitions,
+    StateInfo& state_info,
     utils::CountdownTimer& timer)
 {
+    self.push_parents_to_queue(state_info);
+
     while (!self.queue_.empty()) {
         timer.throw_if_expired();
 
@@ -34,8 +37,9 @@ void AOBase<State, Action, StateInfo>::backpropagate_tip_value(
         self.queue_.pop();
 
         auto& info = self.state_infos_[elem.state_id];
+        assert(!info.is_on_fringe());
         assert(!info.is_goal_state());
-        assert(!info.is_terminal() || info.is_solved());
+        assert(!info.is_goal_or_terminal() || info.is_solved());
 
         if (info.is_solved()) {
             // has been handled already
@@ -45,8 +49,13 @@ void AOBase<State, Action, StateInfo>::backpropagate_tip_value(
         assert(info.is_marked());
         info.unmark();
 
+        const State state = mdp.get_state(elem.state_id);
+
+        ClearGuard _(transitions);
+        self.generate_non_tip_transitions(mdp, state, transitions);
+
         bool value_changed =
-            self.update_value_check_solved(mdp, heuristic, elem.state_id, info);
+            self.update_value_check_solved(mdp, state, transitions, info);
 
         if (info.is_solved() || value_changed) {
             self.push_parents_to_queue(info);
@@ -105,10 +114,10 @@ void AOBase<State, Action, StateInfo>::push_parents_to_queue(StateInfo& info)
             }
         }
 
-        if (pinfo.is_unflagged()) {
-            pinfo.mark();
-            queue_.emplace(pinfo.update_order, parent);
-        }
+        if (pinfo.is_marked()) continue;
+
+        pinfo.mark();
+        queue_.emplace(pinfo.update_order, parent);
     }
 
     if (info.is_solved()) {

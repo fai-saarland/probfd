@@ -90,10 +90,10 @@ bool set_min(value_t& lhs, value_t rhs);
  * @warning It is undefined behaviour to call this function with two
  * non-intersecting intervals.
  */
-bool update(Interval& lhs, Interval rhs);
+bool update(Interval& lhs, Interval rhs, value_t epsilon = g_epsilon);
 
 // Value update
-bool update(value_t& lhs, value_t rhs);
+bool update(value_t& lhs, value_t rhs, value_t epsilon = g_epsilon);
 
 } // namespace probfd::algorithms
 

@@ -107,7 +107,7 @@ void HeuristicDepthFirstSearch<State, Action, UseInterval>::
     bool terminate;
     do {
         terminate = policy_exploration<true>(mdp, heuristic, stateid, timer) &&
-                    value_iteration(mdp, heuristic, visited_, timer);
+                    value_iteration(mdp, visited_, timer);
 
         visited_.clear();
         ++statistics_.iterations;
@@ -159,9 +159,8 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
             einfo = &expansion_queue_.back();
             sinfo = &this->state_infos_[einfo->stateid];
             lsinfo = &local_state_infos_[einfo->stateid];
-        } while (
-            initialize(mdp, heuristic, *einfo, *sinfo) &&
-            push_successor(mdp, heuristic, *einfo, *sinfo, *lsinfo, timer));
+        } while (initialize(mdp, heuristic, *einfo, *sinfo) &&
+                 push_successor(mdp, *einfo, *sinfo, *lsinfo, timer));
 
         // Iterative backtracking
         do {
@@ -210,14 +209,13 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
             if (terminate_exploration_on_cutoff_ && !einfo->solved) {
                 keep_expanding = false;
             }
-        } while (!keep_expanding || !advance(mdp, heuristic, *einfo, *sinfo));
+        } while (!keep_expanding || !advance(mdp, *einfo, *sinfo));
     }
 }
 
 template <typename State, typename Action, bool UseInterval>
 bool HeuristicDepthFirstSearch<State, Action, UseInterval>::advance(
     MDP& mdp,
-    Evaluator& heuristic,
     ExpansionInfo& einfo,
     StateInfo& state_info)
 {
@@ -229,12 +227,29 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::advance(
 
     if (backtrack_update_type_ == SINGLE ||
         (backtrack_update_type_ == ON_DEMAND && !einfo.value_converged)) {
+        assert(!state_info.is_on_fringe());
+
+        const State state = mdp.get_state(einfo.stateid);
+        const value_t termination_cost =
+            mdp.get_termination_info(state).get_cost();
+
+        ClearGuard _(transitions_, qvalues_);
+        this->generate_non_tip_transitions(mdp, state, transitions_);
+
         statistics_.backtracking_updates++;
-        auto [value, transition] = this->compute_bellman_policy(
+
+        auto value = this->compute_bellman_and_greedy(
             mdp,
-            heuristic,
             einfo.stateid,
-            state_info);
+            transitions_,
+            termination_cost,
+            qvalues_);
+
+        auto transition = this->select_greedy_transition(
+            mdp,
+            state_info.get_policy(),
+            transitions_);
+
         bool value_changed = this->update_value(state_info, value);
         bool policy_changed = this->update_policy(state_info, transition);
 
@@ -251,7 +266,6 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::advance(
 template <typename State, typename Action, bool UseInterval>
 bool HeuristicDepthFirstSearch<State, Action, UseInterval>::push_successor(
     MDP& mdp,
-    Evaluator& heuristic,
     ExpansionInfo& einfo,
     StateInfo& sinfo,
     LocalStateInfo& lsinfo,
@@ -279,7 +293,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::push_successor(
             assert(succ_status == LocalStateInfo::ONSTACK);
             lsinfo.lowlink = std::min(lsinfo.lowlink, succ_info.index);
         }
-    } while (advance(mdp, heuristic, einfo, sinfo));
+    } while (advance(mdp, einfo, sinfo));
 
     return false;
 }
@@ -306,7 +320,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
 
     // Ignore labels if labelling option is turned off
     if (sinfo.is_solved()) {
-        assert(label_solved_ || sinfo.is_terminal());
+        assert(label_solved_ || sinfo.is_goal_or_terminal());
         return false;
     }
 
@@ -315,10 +329,36 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
     const bool is_tip_state = sinfo.is_on_fringe();
 
     if (forward_updates_ || is_tip_state) {
+        const State state = mdp.get_state(einfo.stateid);
+        const value_t termination_cost =
+            mdp.get_termination_info(state).get_cost();
+
+        ClearGuard _(transitions_, qvalues_);
+
+        if (is_tip_state) {
+            this->expand_and_initialize(
+                mdp,
+                heuristic,
+                state,
+                sinfo,
+                transitions_);
+        } else {
+            this->generate_non_tip_transitions(mdp, state, transitions_);
+        }
+
         statistics_.forward_updates++;
 
-        auto [value, transition] =
-            this->compute_bellman_policy(mdp, heuristic, stateid, sinfo);
+        auto value = this->compute_bellman_and_greedy(
+            mdp,
+            einfo.stateid,
+            transitions_,
+            termination_cost,
+            qvalues_);
+
+        auto transition = this->select_greedy_transition(
+            mdp,
+            sinfo.get_policy(),
+            transitions_);
 
         einfo.value_converged = !this->update_value(sinfo, value);
         this->update_policy(sinfo, transition);
@@ -344,7 +384,8 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
             std::ranges::to<std::vector>(transition->successor_dist.support());
     } else {
         const auto action = sinfo.get_policy();
-        assert(action.has_value());
+        if (!action.has_value()) return false;
+
         const State state = mdp.get_state(stateid);
         Distribution<StateID> successor_dist;
         mdp.generate_action_transitions(state, *action, successor_dist);
@@ -358,19 +399,14 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
 template <typename State, typename Action, bool UseInterval>
 bool HeuristicDepthFirstSearch<State, Action, UseInterval>::value_iteration(
     MDP& mdp,
-    Evaluator& heuristic,
     const std::ranges::input_range auto& range,
     utils::CountdownTimer& timer)
 {
     ++statistics_.convergence_value_iterations;
 
     for (;;) {
-        auto [value_changed, policy_changed] = vi_step(
-            mdp,
-            heuristic,
-            range,
-            timer,
-            statistics_.convergence_updates);
+        auto [value_changed, policy_changed] =
+            vi_step(mdp, range, timer, statistics_.convergence_updates);
 
         if (policy_changed) return false;
         if (!value_changed) break;
@@ -383,7 +419,6 @@ template <typename State, typename Action, bool UseInterval>
 std::pair<bool, bool>
 HeuristicDepthFirstSearch<State, Action, UseInterval>::vi_step(
     MDP& mdp,
-    Evaluator& heuristic,
     const std::ranges::input_range auto& range,
     utils::CountdownTimer& timer,
     unsigned long long& stat_counter)
@@ -394,11 +429,30 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::vi_step(
     for (const StateID id : range) {
         timer.throw_if_expired();
 
+        StateInfo& state_info = this->state_infos_[id];
+
+        const State state = mdp.get_state(id);
+        const value_t termination_cost =
+            mdp.get_termination_info(state).get_cost();
+
+        ClearGuard _(transitions_, qvalues_);
+
+        this->generate_non_tip_transitions(mdp, state, transitions_);
+
+        const auto value = this->compute_bellman_and_greedy(
+            mdp,
+            id,
+            transitions_,
+            termination_cost,
+            qvalues_);
+
         ++stat_counter;
 
-        StateInfo& state_info = this->state_infos_[id];
-        const auto [value, transition] =
-            this->compute_bellman_policy(mdp, heuristic, id, state_info);
+        auto transition = this->select_greedy_transition(
+            mdp,
+            state_info.get_policy(),
+            transitions_);
+
         bool value_changed = this->update_value(state_info, value);
         bool policy_changed = this->update_policy(state_info, transition);
         values_not_conv = values_not_conv || value_changed;

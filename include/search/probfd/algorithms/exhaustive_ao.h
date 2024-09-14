@@ -58,6 +58,9 @@ class ExhaustiveAOSearch
     // Algorithm parameters
     const std::shared_ptr<OpenListType> open_list_;
 
+    // Re-used buffers
+    std::vector<Transition<Action>> transitions_;
+
 public:
     ExhaustiveAOSearch(
         std::shared_ptr<PolicyPickerType> policy_chooser,
@@ -74,8 +77,8 @@ protected:
 private:
     bool update_value_check_solved(
         MDPType& mdp,
-        EvaluatorType& heuristic,
-        StateID state,
+        param_type<State> state,
+        std::vector<Transition<Action>> transitions,
         StateInfo& info);
 };
 
