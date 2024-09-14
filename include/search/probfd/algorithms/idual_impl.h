@@ -118,10 +118,22 @@ auto IDual<State, Action>::compute_policy(
         const State state = mdp.get_state(state_id);
         mdp.generate_applicable_actions(state, aops);
 
-        int constraint_index = state_infos_[state_id].constraints_idx;
+        auto& state_info = state_infos_[state_id];
+
+        assert(
+            state_info.status == PerStateInfo::CLOSED ||
+            state_info.status == PerStateInfo::TERMINAL);
+
+        if (state_info.status == PerStateInfo::TERMINAL) {
+            back_queue.push_back(state_id);
+            continue;
+        }
+
+        unsigned int constraint_index = state_infos_[state_id].constraints_idx;
+        assert(constraint_index != std::numeric_limits<unsigned>::max());
 
         size_t actions = 0;
-        int i = 0;
+        unsigned int i = 0;
         for (const Action& action : aops) {
             if (dual_solution[constraint_index + i] > g_epsilon) {
                 Distribution<StateID> distribution;
