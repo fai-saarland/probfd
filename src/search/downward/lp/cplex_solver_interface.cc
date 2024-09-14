@@ -343,9 +343,7 @@ void CplexSolverInterface::load_problem(const LinearProgram& lp)
         }
     }
 
-    matrix.assign_column_by_column(
-        std::span(&constraints[0], constraints.size()),
-        variables.size());
+    matrix.assign_column_by_column(constraints, variables.size());
     columns.assign(variables);
     rows.assign(constraints);
     CPX_CALL(
@@ -649,7 +647,9 @@ int CplexSolverInterface::get_num_variables() const
 
 int CplexSolverInterface::get_num_constraints() const
 {
-    return CPXgetnumrows(env, problem);
+    int x = CPXgetnumrows(env, problem);
+    assert(x >= 0);
+    return x;
 }
 
 bool CplexSolverInterface::has_temporary_constraints() const
