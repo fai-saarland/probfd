@@ -10,7 +10,7 @@ class ProbabilisticTaskProxy;
 
 namespace cartesian_abstractions {
 class AbstractState;
-class Abstraction;
+class CartesianAbstraction;
 class CartesianHeuristic;
 } // namespace cartesian_abstractions
 } // namespace probfd
@@ -30,7 +30,7 @@ AdaptiveFlawGenerator::AdaptiveFlawGenerator(
 std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
     const ProbabilisticTaskProxy& task_proxy,
     const std::vector<int>& domain_sizes,
-    Abstraction& abstraction,
+    CartesianAbstraction& abstraction,
     const AbstractState* init_id,
     CartesianHeuristic& heuristic,
     utils::LogProxy& log,

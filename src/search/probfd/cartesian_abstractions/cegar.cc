@@ -1,7 +1,7 @@
 #include "probfd/cartesian_abstractions/cegar.h"
 
 #include "probfd/cartesian_abstractions/abstract_state.h"
-#include "probfd/cartesian_abstractions/abstraction.h"
+#include "probfd/cartesian_abstractions/cartesian_abstraction.h"
 #include "probfd/cartesian_abstractions/evaluators.h"
 #include "probfd/cartesian_abstractions/flaw.h"
 #include "probfd/cartesian_abstractions/flaw_generator.h"
@@ -82,7 +82,7 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
        current states. */
     std::unique_ptr<RefinementHierarchy> refinement_hierarchy(
         new RefinementHierarchy(task));
-    std::unique_ptr<Abstraction> abstraction(new Abstraction(
+    std::unique_ptr<CartesianAbstraction> abstraction(new CartesianAbstraction(
         task_proxy,
         task_properties::get_operator_costs(task_proxy),
         log_));
@@ -182,7 +182,7 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
         std::move(heuristic)};
 }
 
-bool CEGAR::may_keep_refining(const Abstraction& abstraction) const
+bool CEGAR::may_keep_refining(const CartesianAbstraction& abstraction) const
 {
     if (abstraction.get_num_states() >= max_states_) {
         if (log_.is_at_least_normal()) {
@@ -209,7 +209,7 @@ void CEGAR::separate_facts_unreachable_before_goal(
     ProbabilisticTaskProxy task_proxy,
     FlawGenerator& flaw_generator,
     RefinementHierarchy& refinement_hierarchy,
-    Abstraction& abstraction,
+    CartesianAbstraction& abstraction,
     CartesianHeuristic& heuristic,
     utils::Timer& timer)
 {
@@ -248,7 +248,7 @@ void CEGAR::refine_abstraction(
     FlawGenerator& flaw_generator,
     SplitSelector& split_selector,
     RefinementHierarchy& refinement_hierarchy,
-    Abstraction& abstraction,
+    CartesianAbstraction& abstraction,
     CartesianHeuristic& heuristic,
     const Flaw& flaw,
     utils::Timer& timer)
@@ -271,7 +271,7 @@ void CEGAR::refine_abstraction(
 void CEGAR::refine_abstraction(
     FlawGenerator& flaw_generator,
     RefinementHierarchy& refinement_hierarchy,
-    Abstraction& abstraction,
+    CartesianAbstraction& abstraction,
     CartesianHeuristic& heuristic,
     const AbstractState& abstract_state,
     int split_var,

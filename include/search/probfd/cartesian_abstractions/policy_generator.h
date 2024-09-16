@@ -11,7 +11,7 @@ class CountdownTimer;
 } // namespace utils
 
 namespace probfd::cartesian_abstractions {
-class Abstraction;
+class CartesianAbstraction;
 class CartesianHeuristic;
 } // namespace probfd::cartesian_abstractions
 
@@ -22,7 +22,7 @@ public:
     virtual ~PolicyGenerator() = default;
 
     virtual std::unique_ptr<Solution> find_solution(
-        Abstraction& abstraction,
+        CartesianAbstraction& abstraction,
         const AbstractState* init_id,
         CartesianHeuristic& heuristic,
         utils::CountdownTimer& time_limit) = 0;

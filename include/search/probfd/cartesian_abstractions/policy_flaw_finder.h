@@ -19,7 +19,7 @@ class ProbabilisticTaskProxy;
 }
 
 namespace probfd::cartesian_abstractions {
-class Abstraction;
+class CartesianAbstraction;
 class CartesianHeuristic;
 } // namespace probfd::cartesian_abstractions
 
@@ -32,7 +32,7 @@ public:
     virtual std::optional<Flaw> find_flaw(
         const ProbabilisticTaskProxy& task_proxy,
         const std::vector<int>& domain_sizes,
-        Abstraction& abstraction,
+        CartesianAbstraction& abstraction,
         Solution& policy,
         utils::LogProxy& log,
         utils::CountdownTimer& timer) = 0;

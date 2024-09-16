@@ -15,7 +15,7 @@ class CountdownTimer;
 }
 
 namespace probfd::cartesian_abstractions {
-class Abstraction;
+class CartesianAbstraction;
 class CartesianHeuristic;
 } // namespace probfd::cartesian_abstractions
 
@@ -38,7 +38,7 @@ public:
     virtual ~TraceGenerator() = default;
 
     virtual std::unique_ptr<Trace> find_trace(
-        Abstraction& abstraction,
+        CartesianAbstraction& abstraction,
         int init_id,
         CartesianHeuristic& heuristic,
         utils::CountdownTimer& timer) = 0;

@@ -1,7 +1,7 @@
 #include "probfd/cartesian_abstractions/complete_policy_flaw_finder.h"
 
 #include "probfd/cartesian_abstractions/abstract_state.h"
-#include "probfd/cartesian_abstractions/abstraction.h"
+#include "probfd/cartesian_abstractions/cartesian_abstraction.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition.h"
 #include "probfd/cartesian_abstractions/utils.h"
 
@@ -41,7 +41,7 @@ CompletePolicyFlawFinder::CompletePolicyFlawFinder(int max_search_states)
 optional<Flaw> CompletePolicyFlawFinder::find_flaw(
     const ProbabilisticTaskProxy& task_proxy,
     const std::vector<int>& domain_sizes,
-    Abstraction& abstraction,
+    CartesianAbstraction& abstraction,
     Solution& policy,
     utils::LogProxy& log,
     utils::CountdownTimer& timer)

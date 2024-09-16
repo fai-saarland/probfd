@@ -26,7 +26,7 @@ class ProbabilisticTaskProxy;
 
 namespace probfd::cartesian_abstractions {
 class AbstractState;
-class Abstraction;
+class CartesianAbstraction;
 class CartesianHeuristic;
 } // namespace probfd::cartesian_abstractions
 
@@ -43,7 +43,7 @@ PolicyBasedFlawGenerator::PolicyBasedFlawGenerator(
 PolicyBasedFlawGenerator::~PolicyBasedFlawGenerator() = default;
 
 unique_ptr<Solution> PolicyBasedFlawGenerator::find_solution(
-    Abstraction& abstraction,
+    CartesianAbstraction& abstraction,
     const AbstractState* init,
     CartesianHeuristic& heuristic,
     utils::CountdownTimer& timer)
@@ -56,7 +56,7 @@ unique_ptr<Solution> PolicyBasedFlawGenerator::find_solution(
 optional<Flaw> PolicyBasedFlawGenerator::find_flaw(
     const ProbabilisticTaskProxy& task_proxy,
     const std::vector<int>& domain_sizes,
-    Abstraction& abstraction,
+    CartesianAbstraction& abstraction,
     Solution& solution,
     utils::LogProxy& log,
     utils::CountdownTimer& timer)
@@ -74,7 +74,7 @@ optional<Flaw> PolicyBasedFlawGenerator::find_flaw(
 std::optional<Flaw> PolicyBasedFlawGenerator::generate_flaw(
     const ProbabilisticTaskProxy& task_proxy,
     const std::vector<int>& domain_sizes,
-    Abstraction& abstraction,
+    CartesianAbstraction& abstraction,
     const AbstractState* init,
     CartesianHeuristic& heuristic,
     utils::LogProxy& log,

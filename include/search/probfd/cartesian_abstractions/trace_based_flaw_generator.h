@@ -19,7 +19,7 @@ class LogProxy;
 
 namespace probfd::cartesian_abstractions {
 class AbstractState;
-class Abstraction;
+class CartesianAbstraction;
 class CartesianHeuristic;
 class TraceGenerator;
 } // namespace probfd::cartesian_abstractions
@@ -36,7 +36,7 @@ class TraceBasedFlawGenerator : public FlawGenerator {
     utils::Timer find_flaw_timer_ = utils::Timer(true);
 
     std::unique_ptr<Trace> find_trace(
-        Abstraction& abstraction,
+        CartesianAbstraction& abstraction,
         int init_id,
         CartesianHeuristic& heuristic,
         utils::CountdownTimer& timer);
@@ -45,7 +45,7 @@ class TraceBasedFlawGenerator : public FlawGenerator {
         const ProbabilisticTaskProxy& task_proxy,
         const std::vector<int>& domain_sizes,
         const Trace& solution,
-        Abstraction& abstraction,
+        CartesianAbstraction& abstraction,
         utils::LogProxy& log,
         utils::CountdownTimer& timer);
 
@@ -56,7 +56,7 @@ public:
     std::optional<Flaw> generate_flaw(
         const ProbabilisticTaskProxy& task_proxy,
         const std::vector<int>& domain_sizes,
-        Abstraction& abstraction,
+        CartesianAbstraction& abstraction,
         const AbstractState* init_id,
         CartesianHeuristic& heuristic,
         utils::LogProxy& log,

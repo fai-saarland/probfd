@@ -1,7 +1,7 @@
 #include "probfd/cartesian_abstractions/ilao_policy_generator.h"
 
 #include "probfd/cartesian_abstractions/abstract_state.h"
-#include "probfd/cartesian_abstractions/abstraction.h"
+#include "probfd/cartesian_abstractions/cartesian_abstraction.h"
 #include "probfd/cartesian_abstractions/evaluators.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition.h"
 
@@ -31,7 +31,7 @@ ILAOPolicyGenerator::ILAOPolicyGenerator()
 }
 
 unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
-    Abstraction& abstraction,
+    CartesianAbstraction& abstraction,
     const AbstractState* state,
     CartesianHeuristic& heuristic,
     utils::CountdownTimer& timer)

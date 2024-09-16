@@ -2,7 +2,7 @@
 
 #include "probfd/abstractions/distances.h"
 
-#include "probfd/cartesian_abstractions/abstraction.h"
+#include "probfd/cartesian_abstractions/cartesian_abstraction.h"
 #include "probfd/cartesian_abstractions/cartesian_heuristic_function.h"
 #include "probfd/cartesian_abstractions/cegar.h"
 #include "probfd/cartesian_abstractions/evaluators.h"

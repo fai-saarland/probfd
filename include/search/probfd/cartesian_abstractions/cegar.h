@@ -20,7 +20,7 @@ class ProbabilisticTaskProxy;
 
 namespace probfd::cartesian_abstractions {
 class AbstractState;
-class Abstraction;
+class CartesianAbstraction;
 class CartesianHeuristic;
 struct Flaw;
 class FlawGenerator;
@@ -38,7 +38,7 @@ namespace probfd::cartesian_abstractions {
  */
 struct CEGARResult {
     std::unique_ptr<RefinementHierarchy> refinement_hierarchy;
-    std::unique_ptr<Abstraction> abstraction;
+    std::unique_ptr<CartesianAbstraction> abstraction;
     std::unique_ptr<CartesianHeuristic> heuristic;
 
     ~CEGARResult();
@@ -76,7 +76,7 @@ public:
     run_refinement_loop(const std::shared_ptr<ProbabilisticTask>& task);
 
 private:
-    bool may_keep_refining(const Abstraction& abstraction) const;
+    bool may_keep_refining(const CartesianAbstraction& abstraction) const;
 
     /*
         Map all states that can only be reached after reaching the goal
@@ -90,7 +90,7 @@ private:
         ProbabilisticTaskProxy task_proxy,
         FlawGenerator& flaw_generator,
         RefinementHierarchy& refinement_hierarchy,
-        Abstraction& abstraction,
+        CartesianAbstraction& abstraction,
         CartesianHeuristic& heuristic,
         utils::Timer& timer);
 
@@ -98,7 +98,7 @@ private:
         FlawGenerator& flaw_generator,
         SplitSelector& split_selector,
         RefinementHierarchy& refinement_hierarchy,
-        Abstraction& abstraction,
+        CartesianAbstraction& abstraction,
         CartesianHeuristic& heuristic,
         const Flaw& flaw,
         utils::Timer& timer);
@@ -106,7 +106,7 @@ private:
     void refine_abstraction(
         FlawGenerator& flaw_generator,
         RefinementHierarchy& refinement_hierarchy,
-        Abstraction& abstraction,
+        CartesianAbstraction& abstraction,
         CartesianHeuristic& heuristic,
         const AbstractState& abstract_state,
         int split_var,

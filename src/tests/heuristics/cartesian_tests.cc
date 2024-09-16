@@ -4,7 +4,7 @@
 
 #include "probfd/task_proxy.h"
 
-#include "probfd/cartesian_abstractions/abstraction.h"
+#include "probfd/cartesian_abstractions/cartesian_abstraction.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition_system.h"
 #include "probfd/cartesian_abstractions/types.h"
 
@@ -30,7 +30,7 @@ TEST(CartesianTests, test_probabilistic_transition_system)
     const ProbabilisticTaskProxy task_proxy(*task);
 
     RefinementHierarchy refinement_hierarchy(task);
-    Abstraction abs(task_proxy, {}, utils::g_log);
+    CartesianAbstraction abs(task_proxy, {}, utils::g_log);
 
     ASSERT_EQ(
         get_num_transitions(abs.get_transition_system()),
@@ -60,7 +60,7 @@ TEST(CartesianTests, test_probabilistic_transition_system2)
     const ProbabilisticTaskProxy task_proxy(*task);
 
     RefinementHierarchy refinement_hierarchy(task);
-    Abstraction abs(task_proxy, {}, utils::g_log);
+    CartesianAbstraction abs(task_proxy, {}, utils::g_log);
 
     ASSERT_EQ(abs.get_num_states(), 1);
     ASSERT_EQ(

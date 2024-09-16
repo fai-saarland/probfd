@@ -1,8 +1,8 @@
 #include "probfd/cartesian_abstractions/trace_based_flaw_generator.h"
 
 #include "probfd/cartesian_abstractions/abstract_state.h"
-#include "probfd/cartesian_abstractions/abstraction.h"
 #include "probfd/cartesian_abstractions/astar_trace_generator.h"
+#include "probfd/cartesian_abstractions/cartesian_abstraction.h"
 #include "probfd/cartesian_abstractions/trace_generator.h"
 #include "probfd/cartesian_abstractions/utils.h"
 
@@ -38,7 +38,7 @@ TraceBasedFlawGenerator::TraceBasedFlawGenerator(
 TraceBasedFlawGenerator::~TraceBasedFlawGenerator() = default;
 
 std::unique_ptr<Trace> TraceBasedFlawGenerator::find_trace(
-    Abstraction& abstraction,
+    CartesianAbstraction& abstraction,
     int init_id,
     CartesianHeuristic& heuristic,
     utils::CountdownTimer& timer)
@@ -50,7 +50,7 @@ std::unique_ptr<Trace> TraceBasedFlawGenerator::find_trace(
 optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
     const ProbabilisticTaskProxy& task_proxy,
     const std::vector<int>& domain_sizes,
-    Abstraction& abstraction,
+    CartesianAbstraction& abstraction,
     const AbstractState* init,
     CartesianHeuristic& heuristic,
     utils::LogProxy& log,
@@ -82,7 +82,7 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
     const ProbabilisticTaskProxy& task_proxy,
     const std::vector<int>& domain_sizes,
     const Trace& solution,
-    Abstraction& abstraction,
+    CartesianAbstraction& abstraction,
     utils::LogProxy& log,
     utils::CountdownTimer& timer)
 {

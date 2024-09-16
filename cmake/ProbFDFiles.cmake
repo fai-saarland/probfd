@@ -603,9 +603,9 @@ create_probfd_library(
     HELP "The code for probability-aware cartesian abstractions"
     SOURCES
         probfd/cartesian_abstractions/abstract_state
-        probfd/cartesian_abstractions/abstraction
         probfd/cartesian_abstractions/adaptive_flaw_generator
         probfd/cartesian_abstractions/astar_trace_generator
+        probfd/cartesian_abstractions/cartesian_abstraction
         probfd/cartesian_abstractions/cartesian_heuristic_function
         probfd/cartesian_abstractions/cegar
         probfd/cartesian_abstractions/cost_saturation

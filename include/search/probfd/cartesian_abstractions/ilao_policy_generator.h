@@ -25,7 +25,7 @@ class ArbitraryTiebreaker;
 
 namespace probfd::cartesian_abstractions {
 class AbstractState;
-class Abstraction;
+class CartesianAbstraction;
 class CartesianHeuristic;
 struct ProbabilisticTransition;
 } // namespace probfd::cartesian_abstractions
@@ -45,7 +45,7 @@ public:
     ILAOPolicyGenerator();
 
     std::unique_ptr<Solution> find_solution(
-        Abstraction& abstraction,
+        CartesianAbstraction& abstraction,
         const AbstractState* init_id,
         CartesianHeuristic& heuristic,
         utils::CountdownTimer& time_limit) override;

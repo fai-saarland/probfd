@@ -1,4 +1,4 @@
-#include "probfd/cartesian_abstractions/abstraction.h"
+#include "probfd/cartesian_abstractions/cartesian_abstraction.h"
 
 #include "probfd/cartesian_abstractions/abstract_state.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition.h"
@@ -31,7 +31,7 @@ vector<int> get_domain_sizes(const PlanningTaskProxy& task)
 }
 } // namespace
 
-Abstraction::Abstraction(
+CartesianAbstraction::CartesianAbstraction(
     const ProbabilisticTaskProxy& task_proxy,
     std::vector<value_t> operator_costs,
     utils::LogProxy log)
@@ -45,19 +45,19 @@ Abstraction::Abstraction(
     initialize_trivial_abstraction(get_domain_sizes(task_proxy));
 }
 
-Abstraction::~Abstraction() = default;
+CartesianAbstraction::~CartesianAbstraction() = default;
 
-StateID Abstraction::get_state_id(int state)
+StateID CartesianAbstraction::get_state_id(int state)
 {
     return static_cast<StateID>(state);
 }
 
-int Abstraction::get_state(StateID state_id)
+int CartesianAbstraction::get_state(StateID state_id)
 {
     return static_cast<int>(state_id);
 }
 
-void Abstraction::generate_applicable_actions(
+void CartesianAbstraction::generate_applicable_actions(
     int state,
     std::vector<const ProbabilisticTransition*>& result)
 {
@@ -67,7 +67,7 @@ void Abstraction::generate_applicable_actions(
     }
 }
 
-void Abstraction::generate_action_transitions(
+void CartesianAbstraction::generate_action_transitions(
     int,
     const ProbabilisticTransition* action,
     Distribution<StateID>& result)
@@ -79,7 +79,7 @@ void Abstraction::generate_action_transitions(
     }
 }
 
-void Abstraction::generate_all_transitions(
+void CartesianAbstraction::generate_all_transitions(
     int state,
     std::vector<const ProbabilisticTransition*>& aops,
     std::vector<Distribution<StateID>>& successors)
@@ -91,7 +91,7 @@ void Abstraction::generate_all_transitions(
     }
 }
 
-void Abstraction::generate_all_transitions(
+void CartesianAbstraction::generate_all_transitions(
     int state,
     std::vector<TransitionType>& transitions)
 {
@@ -102,52 +102,54 @@ void Abstraction::generate_all_transitions(
     }
 }
 
-bool Abstraction::is_goal(int state) const
+bool CartesianAbstraction::is_goal(int state) const
 {
     return goals_.contains(state);
 }
 
-value_t Abstraction::get_non_goal_termination_cost() const
+value_t CartesianAbstraction::get_non_goal_termination_cost() const
 {
     return INFINITE_VALUE;
 }
 
-value_t Abstraction::get_action_cost(const ProbabilisticTransition* t)
+value_t CartesianAbstraction::get_action_cost(const ProbabilisticTransition* t)
 {
     return operator_costs_[t->op_id];
 }
 
-value_t Abstraction::get_cost(int op_index) const
+value_t CartesianAbstraction::get_cost(int op_index) const
 {
     return operator_costs_[op_index];
 }
 
-const AbstractState& Abstraction::get_initial_state() const
+const AbstractState& CartesianAbstraction::get_initial_state() const
 {
     return *states_[init_id_];
 }
 
-int Abstraction::get_num_states() const
+int CartesianAbstraction::get_num_states() const
 {
     return static_cast<int>(states_.size());
 }
 
-const Goals& Abstraction::get_goals() const
+const Goals& CartesianAbstraction::get_goals() const
 {
     return goals_;
 }
 
-const AbstractState& Abstraction::get_abstract_state(int state_id) const
+const AbstractState&
+CartesianAbstraction::get_abstract_state(int state_id) const
 {
     return *states_[state_id];
 }
 
-const ProbabilisticTransitionSystem& Abstraction::get_transition_system() const
+const ProbabilisticTransitionSystem&
+CartesianAbstraction::get_transition_system() const
 {
     return *transition_system_;
 }
 
-void Abstraction::mark_all_states_as_goals()
+void CartesianAbstraction::mark_all_states_as_goals()
 {
     goals_.clear();
     for (auto& state : states_) {
@@ -155,7 +157,7 @@ void Abstraction::mark_all_states_as_goals()
     }
 }
 
-void Abstraction::initialize_trivial_abstraction(
+void CartesianAbstraction::initialize_trivial_abstraction(
     const vector<int>& domain_sizes)
 {
     unique_ptr<AbstractState> init_state =
@@ -165,7 +167,7 @@ void Abstraction::initialize_trivial_abstraction(
     states_.push_back(std::move(init_state));
 }
 
-pair<int, int> Abstraction::refine(
+pair<int, int> CartesianAbstraction::refine(
     RefinementHierarchy& refinement_hierarchy,
     const AbstractState& abstract_state,
     int split_var,
@@ -244,7 +246,7 @@ pair<int, int> Abstraction::refine(
     return {v1_id, v2_id};
 }
 
-void Abstraction::print_statistics() const
+void CartesianAbstraction::print_statistics() const
 {
     if (log_.is_at_least_normal()) {
         log_ << "States: " << get_num_states() << endl;

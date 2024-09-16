@@ -1,6 +1,6 @@
 #include "probfd/cartesian_abstractions/astar_trace_generator.h"
 
-#include "probfd/cartesian_abstractions/abstraction.h"
+#include "probfd/cartesian_abstractions/cartesian_abstraction.h"
 #include "probfd/cartesian_abstractions/evaluators.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition_system.h"
@@ -69,7 +69,7 @@ AStarTraceGenerator::AStarTraceGenerator()
 }
 
 unique_ptr<Trace> AStarTraceGenerator::find_trace(
-    Abstraction& abstraction,
+    CartesianAbstraction& abstraction,
     int init_id,
     CartesianHeuristic& heuristic,
     utils::CountdownTimer& timer)
@@ -161,7 +161,7 @@ unique_ptr<Trace> AStarTraceGenerator::extract_solution(
 }
 
 void AStarTraceGenerator::update_heuristic(
-    Abstraction& abstraction,
+    CartesianAbstraction& abstraction,
     CartesianHeuristic& heuristic,
     const Trace& solution) const
 {
