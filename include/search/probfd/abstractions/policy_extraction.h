@@ -1,8 +1,8 @@
 #ifndef PROBFD_PDBS_POLICY_EXTRACTION_H
 #define PROBFD_PDBS_POLICY_EXTRACTION_H
 
-#include "probfd/pdbs/types.h"
-
+#include "probfd/multi_policy.h"
+#include "probfd/type_traits.h"
 #include "probfd/value_type.h"
 
 #include <memory>
@@ -12,24 +12,25 @@ namespace utils {
 class RandomNumberGenerator;
 }
 
-namespace probfd::pdbs {
-class ProjectionStateSpace;
+namespace probfd {
+template <typename, typename>
+class MDP;
 }
 
-namespace probfd::pdbs {
+namespace probfd {
 
 /**
  * @brief Extract an abstract optimal policy from the value table.
  *
  * Tie-breaking is performed randomly using the input RNG. If the \p
  * wildcard option is specified, a wildcard policy will be returned, i.e., a
- * policy that assigns multiple equivalent operators to a abstract state.
+ * policy that assigns multiple equivalent operators to an abstract state.
  */
-[[nodiscard]]
-std::unique_ptr<ProjectionMultiPolicy> compute_optimal_projection_policy(
-    ProjectionStateSpace& state_space,
+template <typename State, typename Action>
+std::unique_ptr<MultiPolicy<State, Action>> compute_optimal_projection_policy(
+    MDP<State, Action>& mdp,
     std::span<const value_t> value_table,
-    StateRank initial_state,
+    param_type<State> initial_state,
     utils::RandomNumberGenerator& rng,
     bool wildcard);
 
@@ -39,16 +40,20 @@ std::unique_ptr<ProjectionMultiPolicy> compute_optimal_projection_policy(
  *
  * Tie-breaking is performed randomly using the input RNG. If the \p
  * wildcard option is specified, a wildcard policy will be returned, i.e., a
- * policy that assigns multiple equivalent operators to a abstract state.
+ * policy that assigns multiple equivalent operators to an abstract state.
  */
-[[nodiscard]]
-std::unique_ptr<ProjectionMultiPolicy> compute_greedy_projection_policy(
-    ProjectionStateSpace& state_space,
+template <typename State, typename Action>
+std::unique_ptr<MultiPolicy<State, Action>> compute_greedy_projection_policy(
+    MDP<State, Action>& mdp,
     std::span<const value_t> value_table,
-    StateRank initial_state,
+    param_type<State> initial_state,
     utils::RandomNumberGenerator& rng,
     bool wildcard);
 
-} // namespace probfd::pdbs
+} // namespace probfd
 
-#endif // PROBFD_PDBS_POLICY_EXTRACTION_H
+#define GUARD_INCLUDE_PROBFD_ABSTRACTIONS_POLICY_EXTRACTION_H
+#include "probfd/abstractions/policy_extraction_impl.h"
+#undef GUARD_INCLUDE_PROBFD_ABSTRACTIONS_POLICY_EXTRACTION_H
+
+#endif

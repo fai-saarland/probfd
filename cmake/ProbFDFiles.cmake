@@ -379,7 +379,6 @@ create_probfd_library(
         probfd/pdbs/assignment_enumerator
         probfd/pdbs/evaluators
         probfd/pdbs/match_tree
-        probfd/pdbs/policy_extraction
         probfd/pdbs/probability_aware_pattern_database
         probfd/pdbs/projection_operator
         probfd/pdbs/projection_state_space

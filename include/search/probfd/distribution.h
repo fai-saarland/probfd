@@ -190,6 +190,23 @@ public:
     }
 
     /**
+     * @brief Computes the expectation over a real random variable according to
+     * the distribution.
+     */
+    template <typename RandomVariable>
+        requires requires(RandomVariable& rv, const T& t) {
+            { rv[t] } -> std::convertible_to<value_t>;
+        }
+    value_t expectation(RandomVariable rv) const
+    {
+        value_t ex = 0_vt;
+        for (const auto [succ, prob] : distribution_) {
+            ex += prob * rv[succ];
+        }
+        return ex;
+    }
+
+    /**
      * @brief Scales all element probablities by a common factor.
      */
     void normalize(value_t scale)
