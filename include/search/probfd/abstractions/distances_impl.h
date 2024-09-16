@@ -1,4 +1,6 @@
-#include "probfd/pdbs/distances.h"
+#ifndef GUARD_INCLUDE_PROBFD_ABSTRACTIONS_DISTANCES_H
+#error "This file should only be included from distances.h"
+#endif
 
 #include "probfd/algorithms/ta_topological_value_iteration.h"
 
@@ -9,19 +11,18 @@
 
 #include "downward/utils/countdown_timer.h"
 
-#include <ranges>
-
 #if !defined(NDEBUG) && (defined(HAS_CPLEX) || defined(HAS_SOPLEX))
 #include "downward/lp/lp_solver.h"
-#include "probfd/pdbs/verification.h"
+#include "probfd/abstractions/verification.h"
 #endif
 
-namespace probfd::pdbs {
+namespace probfd {
 
+template <typename State, typename Action>
 void compute_value_table(
-    ProjectionStateSpace& mdp,
-    StateRank initial_state,
-    const Evaluator<StateRank>& heuristic,
+    MDP<State, Action>& mdp,
+    param_type<State> initial_state,
+    const Evaluator<State>& heuristic,
     std::span<value_t> value_table,
     double max_time)
 {
@@ -29,8 +30,7 @@ void compute_value_table(
 
     utils::CountdownTimer timer(max_time);
 
-    TATopologicalValueIteration<StateRank, const ProjectionOperator*> vi(
-        value_table.size());
+    TATopologicalValueIteration<State, Action> vi(value_table.size());
     vi.solve(
         mdp,
         heuristic,
@@ -49,4 +49,4 @@ void compute_value_table(
 #endif
 }
 
-} // namespace probfd::pdbs
+} // namespace probfd

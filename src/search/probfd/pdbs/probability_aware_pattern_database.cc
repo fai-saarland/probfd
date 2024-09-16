@@ -1,7 +1,7 @@
 #include "probfd/pdbs/probability_aware_pattern_database.h"
-#include "probfd/pdbs/distances.h"
 #include "probfd/pdbs/projection_state_space.h"
 #include "probfd/pdbs/utils.h"
+#include "search/probfd/abstractions/distances.h"
 
 #include "probfd/cost_function.h"
 #include "probfd/task_proxy.h"

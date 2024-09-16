@@ -377,7 +377,6 @@ create_probfd_library(
     HELP "Probability-aware PDBs base classes"
     SOURCES
         probfd/pdbs/assignment_enumerator
-        probfd/pdbs/distances
         probfd/pdbs/evaluators
         probfd/pdbs/match_tree
         probfd/pdbs/policy_extraction
@@ -388,7 +387,6 @@ create_probfd_library(
         probfd/pdbs/saturation
         probfd/pdbs/state_ranking_function
         probfd/pdbs/utils
-        probfd/pdbs/verification
     DEPENDS
         pdbs
         probfd_core
@@ -613,7 +611,6 @@ create_probfd_library(
         probfd/cartesian_abstractions/cegar
         probfd/cartesian_abstractions/cost_saturation
         probfd/cartesian_abstractions/complete_policy_flaw_finder
-        probfd/cartesian_abstractions/distances
         probfd/cartesian_abstractions/evaluators
         probfd/cartesian_abstractions/flaw
         probfd/cartesian_abstractions/ilao_policy_generator

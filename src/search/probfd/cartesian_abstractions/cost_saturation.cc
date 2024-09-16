@@ -1,9 +1,11 @@
 #include "probfd/cartesian_abstractions/cost_saturation.h"
 
+#include "probfd/abstractions/distances.h"
+
 #include "probfd/cartesian_abstractions/abstraction.h"
 #include "probfd/cartesian_abstractions/cartesian_heuristic_function.h"
 #include "probfd/cartesian_abstractions/cegar.h"
-#include "probfd/cartesian_abstractions/distances.h"
+#include "probfd/cartesian_abstractions/evaluators.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition_system.h"
 #include "probfd/cartesian_abstractions/subtask_generators.h"
 
@@ -236,8 +238,14 @@ void CostSaturation::build_abstractions(
             abstraction->get_transition_system().get_num_non_loops();
         assert(num_states_ <= max_states_);
 
-        vector<value_t> goal_distances =
-            compute_distances(*abstraction, *heuristic);
+        vector<value_t> goal_distances(
+            abstraction->get_num_states(),
+            INFINITE_VALUE);
+        compute_value_table(
+            *abstraction,
+            abstraction->get_initial_state().get_id(),
+            *heuristic,
+            goal_distances);
         vector<value_t> saturated_costs = compute_saturated_costs(
             abstraction->get_transition_system(),
             goal_distances,

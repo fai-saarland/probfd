@@ -2,9 +2,9 @@
 
 #include "probfd/pdbs/cegar/single_cegar.h"
 
-#include "probfd/pdbs/distances.h"
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 #include "probfd/pdbs/projection_state_space.h"
+#include "search/probfd/abstractions/distances.h"
 
 #include "probfd/task_proxy.h"
 
