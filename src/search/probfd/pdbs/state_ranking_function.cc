@@ -1,7 +1,5 @@
 #include "probfd/pdbs/state_ranking_function.h"
 
-#include "downward/abstract_task.h"
-
 #include <ranges>
 #include <sstream>
 #include <utility>

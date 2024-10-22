@@ -5,8 +5,6 @@
 
 #include "probfd/algorithms/depth_first_heuristic_search.h"
 
-#include "downward/utils/system.h"
-
 #include "downward/plugins/plugin.h"
 
 #include <iostream>

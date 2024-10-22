@@ -9,7 +9,6 @@
 
 #include "probfd/task_utils/causal_graph.h"
 #include "probfd/task_utils/sampling.h"
-#include "probfd/task_utils/task_properties.h"
 
 #include "downward/algorithms/dynamic_bitset.h"
 

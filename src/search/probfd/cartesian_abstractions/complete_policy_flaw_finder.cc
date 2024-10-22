@@ -7,7 +7,6 @@
 
 #include "probfd/storage/per_state_storage.h"
 
-#include "probfd/multi_policy.h"
 #include "probfd/policy.h"
 #include "probfd/task_proxy.h"
 

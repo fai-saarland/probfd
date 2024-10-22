@@ -20,7 +20,6 @@
 #include "downward/utils/rng.h"
 
 #include <cassert>
-#include <functional>
 #include <ostream>
 #include <utility>
 

@@ -2,8 +2,6 @@
 
 #include <ranges>
 
-#include <stdlib.h>
-
 namespace probfd::pdbs {
 
 AssignmentEnumerator::AssignmentEnumerator()

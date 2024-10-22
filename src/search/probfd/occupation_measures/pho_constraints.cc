@@ -9,7 +9,6 @@
 #include "downward/utils/collections.h"
 
 #include "downward/lp/lp_solver.h"
-#include "downward/plugins/options.h"
 
 #include <iterator>
 #include <set>

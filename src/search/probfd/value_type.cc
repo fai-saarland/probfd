@@ -1,7 +1,6 @@
 #include "probfd/value_type.h"
 
 #include <cassert>
-#include <cmath>
 
 namespace probfd {
 

@@ -1,6 +1,5 @@
 #include "probfd/command_line.h"
 
-#include "probfd/policy.h"
 #include "probfd/solver_interface.h"
 
 #include "downward/utils/logging.h"

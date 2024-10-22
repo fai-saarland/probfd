@@ -11,8 +11,6 @@
 
 #include "downward/task_utils/task_properties.h"
 
-#include "downward/plugins/options.h"
-
 #include <cassert>
 #include <iostream>
 #include <map>

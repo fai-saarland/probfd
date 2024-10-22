@@ -11,8 +11,6 @@
 
 #include "downward/utils/logging.h"
 
-#include "downward/plugins/plugin.h"
-
 #include <algorithm>
 
 using namespace probfd::pdbs;

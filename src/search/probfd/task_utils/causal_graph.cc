@@ -4,13 +4,10 @@
 #include "probfd/task_proxy.h"
 
 #include "downward/utils/logging.h"
-#include "downward/utils/memory.h"
-#include "downward/utils/timer.h"
 
 #include <algorithm>
 #include <cassert>
 #include <iostream>
-#include <memory>
 #include <unordered_map>
 #include <unordered_set>
 

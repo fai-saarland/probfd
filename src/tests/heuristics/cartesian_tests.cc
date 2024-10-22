@@ -12,7 +12,6 @@
 
 #include "downward/utils/logging.h"
 
-#include <filesystem>
 #include <fstream>
 
 using namespace probfd;

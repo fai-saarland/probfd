@@ -7,8 +7,6 @@
 
 #include "probfd/task_evaluator_factory.h"
 
-#include "downward/plugins/plugin.h"
-
 #include "downward/utils/logging.h"
 
 #include <cassert>

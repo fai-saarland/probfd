@@ -9,7 +9,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <compare>
 #include <unordered_map>
 
 using namespace std;

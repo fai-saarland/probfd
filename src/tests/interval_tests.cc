@@ -2,8 +2,6 @@
 
 #include "probfd/interval.h"
 
-#include "probfd/algorithms/utils.h"
-
 using namespace probfd;
 
 TEST(IntervalTests, test_lower_bound)

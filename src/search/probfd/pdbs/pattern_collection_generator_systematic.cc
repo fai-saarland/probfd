@@ -7,8 +7,6 @@
 
 #include "probfd/task_proxy.h"
 
-#include "downward/pdbs/validation.h"
-
 #include "downward/utils/logging.h"
 
 #include <algorithm>

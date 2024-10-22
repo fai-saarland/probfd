@@ -2,8 +2,6 @@
 
 #include "downward/plugins/plugin.h"
 
-#include <utility>
-
 using namespace probfd;
 using namespace probfd::heuristics;
 
