@@ -3,6 +3,11 @@
 
 #include "probfd/task_utils/causal_graph.h"
 
+#include "probfd/probabilistic_task.h"
+
+#include <algorithm>
+#include <cassert>
+
 namespace probfd {
 
 ProbabilisticEffectConditionsProxy::ProbabilisticEffectConditionsProxy(

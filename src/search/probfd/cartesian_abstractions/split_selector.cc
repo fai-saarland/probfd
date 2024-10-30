@@ -3,6 +3,8 @@
 #include "probfd/cartesian_abstractions/abstract_state.h"
 #include "probfd/cartesian_abstractions/utils.h"
 
+#include "probfd/probabilistic_task.h"
+
 #include "downward/heuristics/additive_heuristic.h"
 
 #include "downward/utils/rng.h"

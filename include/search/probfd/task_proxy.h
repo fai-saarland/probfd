@@ -1,34 +1,26 @@
 #ifndef PROBFD_TASK_PROXY_H
 #define PROBFD_TASK_PROXY_H
 
-#include "probfd/probabilistic_task.h"
+#include "probfd/value_type.h"
 
 #include "downward/operator_id.h"
-#include "downward/state_id.h"
-#include "downward/task_id.h"
 
 #include "downward/task_proxy.h"
-
-#include "downward/utils/collections.h"
-#include "downward/utils/hash.h"
-#include "downward/utils/system.h"
-
-#include <cassert>
-#include <cstddef>
-#include <iterator>
-#include <string>
-#include <vector>
 
 // Forward Declarations
 namespace probfd {
 class ProbabilisticEffectProxy;
 class ProbabilisticEffectConditionsProxy;
 class ProbabilisticEffectsProxy;
+
 class ProbabilisticOperatorProxy;
 class ProbabilisticOperatorsProxy;
+
 class ProbabilisticOutcomeProxy;
 class ProbabilisticOutcomesProxy;
+
 class ProbabilisticTaskProxy;
+class ProbabilisticTask;
 } // namespace probfd
 
 namespace probfd::causal_graph {

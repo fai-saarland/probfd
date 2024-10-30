@@ -1,5 +1,7 @@
 #include "probfd/task_cost_function.h"
 
+#include "probfd/probabilistic_task.h"
+
 namespace probfd {
 
 TaskCostFunction::TaskCostFunction(std::shared_ptr<ProbabilisticTask> task)
