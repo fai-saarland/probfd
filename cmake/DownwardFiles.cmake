@@ -1,4 +1,4 @@
-create_fast_downward_library(
+create_library(
     NAME core_sources
     HELP "Core source files"
     SOURCES
@@ -31,9 +31,10 @@ create_fast_downward_library(
         downward/task_proxy
     DEPENDS causal_graph int_hash_set int_packer ordered_set segmented_vector subscriber successor_generator task_properties
     CORE_LIBRARY
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME plugins
     HELP "Plugin definition"
     SOURCES
@@ -48,9 +49,10 @@ create_fast_downward_library(
         downward/plugins/registry_types
         downward/plugins/types
     CORE_LIBRARY
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME parser
     HELP "Option parsing"
     SOURCES
@@ -60,9 +62,10 @@ create_fast_downward_library(
         downward/parser/syntax_analyzer
         downward/parser/token_stream
     CORE_LIBRARY
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME utils
     HELP "System utilities"
     SOURCES
@@ -83,486 +86,502 @@ create_fast_downward_library(
         downward/utils/timer
         downward/utils/tuples
     CORE_LIBRARY
+    TARGET probfd
 )
 
 # On Linux, find the rt library for clock_gettime().
-if(UNIX AND NOT APPLE)
-    target_link_libraries(utils INTERFACE rt)
+if (UNIX AND NOT APPLE)
+    target_link_libraries(utils_obj INTERFACE rt)
 endif()
 
 # On Windows, find the psapi library for determining peak memory.
-if(WIN32)
+if (WIN32)
     cmake_policy(SET CMP0074 NEW)
-    target_link_libraries(utils INTERFACE psapi)
+    target_link_libraries(utils_obj INTERFACE psapi)
 endif()
 
-create_fast_downward_library(
+create_library(
     NAME alternation_open_list
     HELP "Open list that alternates between underlying open lists in a round-robin manner"
     SOURCES
         downward/open_lists/alternation_open_list
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME best_first_open_list
     HELP "Open list that selects the best element according to a single evaluation function"
     SOURCES
         downward/open_lists/best_first_open_list
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME epsilon_greedy_open_list
     HELP "Open list that chooses an entry randomly with probability epsilon"
     SOURCES
         downward/open_lists/epsilon_greedy_open_list
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME pareto_open_list
     HELP "Pareto open list"
     SOURCES
         downward/open_lists/pareto_open_list
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME tiebreaking_open_list
     HELP "Tiebreaking open list"
     SOURCES
         downward/open_lists/tiebreaking_open_list
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME type_based_open_list
     HELP "Type-based open list"
     SOURCES
         downward/open_lists/type_based_open_list
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME dynamic_bitset
     HELP "Poor man's version of boost::dynamic_bitset"
     SOURCES
         downward/algorithms/dynamic_bitset
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME named_vector
     HELP "Generic vector with associated name for each element"
     SOURCES
         downward/algorithms/named_vector
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME equivalence_relation
     HELP "Equivalence relation over [1, ..., n] that can be iteratively refined"
     SOURCES
         downward/algorithms/equivalence_relation
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME int_hash_set
     HELP "Hash set storing non-negative integers"
     SOURCES
         downward/algorithms/int_hash_set
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME int_packer
     HELP "Greedy bin packing algorithm to pack integer variables with small domains tightly into memory"
     SOURCES
         downward/algorithms/int_packer
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME max_cliques
     HELP "Implementation of the Max Cliques algorithm by Tomita et al."
     SOURCES
         downward/algorithms/max_cliques
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME priority_queues
     HELP "Three implementations of priority queue: HeapQueue, BucketQueue and AdaptiveQueue"
     SOURCES
         downward/algorithms/priority_queues
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME ordered_set
     HELP "Set of elements ordered by insertion time"
     SOURCES
         downward/algorithms/ordered_set
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME segmented_vector
     HELP "Memory-friendly and vector-like data structure"
     SOURCES
         downward/algorithms/segmented_vector
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME subscriber
     HELP "Allows object to subscribe to the destructor of other objects"
     SOURCES
         downward/algorithms/subscriber
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME evaluators_subcategory
     HELP "Subcategory plugin for basic evaluators"
     SOURCES
         downward/evaluators/subcategory
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME const_evaluator
     HELP "The constant evaluator"
     SOURCES
         downward/evaluators/const_evaluator
     DEPENDS evaluators_subcategory
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME g_evaluator
     HELP "The g-evaluator"
     SOURCES
         downward/evaluators/g_evaluator
     DEPENDS evaluators_subcategory
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME combining_evaluator
     HELP "The combining evaluator"
     SOURCES
         downward/evaluators/combining_evaluator
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME max_evaluator
     HELP "The max evaluator"
     SOURCES
         downward/evaluators/max_evaluator
     DEPENDS combining_evaluator evaluators_subcategory
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME pref_evaluator
     HELP "The pref evaluator"
     SOURCES
         downward/evaluators/pref_evaluator
     DEPENDS evaluators_subcategory
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME weighted_evaluator
     HELP "The weighted evaluator"
     SOURCES
         downward/evaluators/weighted_evaluator
     DEPENDS evaluators_subcategory
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME sum_evaluator
     HELP "The sum evaluator"
     SOURCES
         downward/evaluators/sum_evaluator
     DEPENDS combining_evaluator evaluators_subcategory
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME null_pruning_method
     HELP "Pruning method that does nothing"
     SOURCES
         downward/pruning/null_pruning_method
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME limited_pruning
     HELP "Method for limiting another pruning method"
     SOURCES
         downward/pruning/limited_pruning
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME stubborn_sets
     HELP "Base class for all stubborn set partial order reduction methods"
     SOURCES
         downward/pruning/stubborn_sets
     DEPENDS task_properties
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME stubborn_sets_action_centric
     HELP "Base class for all action-centric stubborn set partial order reduction methods"
     SOURCES
         downward/pruning/stubborn_sets_action_centric
     DEPENDS stubborn_sets
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME stubborn_sets_atom_centric
     HELP "Atom-centric stubborn sets"
     SOURCES
         downward/pruning/stubborn_sets_atom_centric
     DEPENDS stubborn_sets
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME stubborn_sets_simple
     HELP "Stubborn sets simple"
     SOURCES
         downward/pruning/stubborn_sets_simple
     DEPENDS stubborn_sets_action_centric
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME stubborn_sets_ec
     HELP "Stubborn set method that dominates expansion core"
     SOURCES
         downward/pruning/stubborn_sets_ec
     DEPENDS stubborn_sets_action_centric task_properties
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME search_common
     HELP "Basic classes used for all search engines"
     SOURCES
         downward/search_algorithms/search_common
     DEPENDS alternation_open_list g_evaluator best_first_open_list sum_evaluator tiebreaking_open_list weighted_evaluator
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME eager_search
     HELP "Eager search algorithm"
     SOURCES
         downward/search_algorithms/eager_search
     DEPENDS null_pruning_method ordered_set successor_generator
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME plugin_astar
     HELP "A* search"
     SOURCES
         downward/search_algorithms/plugin_astar
     DEPENDS eager_search search_common
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME plugin_eager
     HELP "Eager (i.e., normal) best-first search"
     SOURCES
         downward/search_algorithms/plugin_eager
     DEPENDS eager_search search_common
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME plugin_eager_greedy
     HELP "Eager greedy best-first search"
     SOURCES
         downward/search_algorithms/plugin_eager_greedy
     DEPENDS eager_search search_common
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME plugin_eager_wastar
     HELP "Weighted eager A* search"
     SOURCES
         downward/search_algorithms/plugin_eager_wastar
     DEPENDS eager_search search_common
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME plugin_lazy
     HELP "Best-first search with deferred evaluation (lazy)"
     SOURCES
         downward/search_algorithms/plugin_lazy
     DEPENDS lazy_search search_common
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME plugin_lazy_greedy
     HELP "Greedy best-first search with deferred evaluation (lazy)"
     SOURCES
         downward/search_algorithms/plugin_lazy_greedy
     DEPENDS lazy_search search_common
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME plugin_lazy_wastar
     HELP "Weighted A* search with deferred evaluation (lazy)"
     SOURCES
         downward/search_algorithms/plugin_lazy_wastar
     DEPENDS lazy_search search_common
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME enforced_hill_climbing_search
     HELP "Lazy enforced hill-climbing search algorithm"
     SOURCES
         downward/search_algorithms/enforced_hill_climbing_search
     DEPENDS g_evaluator ordered_set pref_evaluator search_common successor_generator
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME iterated_search
     HELP "Iterated search algorithm"
     SOURCES
         downward/search_algorithms/iterated_search
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME lazy_search
     HELP "Lazy search algorithm"
     SOURCES
         downward/search_algorithms/lazy_search
     DEPENDS ordered_set successor_generator
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME lp_solver
     HELP "Interface to an LP solver"
     SOURCES
         downward/lp/lp_solver
         downward/lp/solver_interface
     DEPENDS named_vector
-    DEPENDENCY_ONLY
 )
 
 if(USE_LP)
     find_package(Cplex 12)
     if(CPLEX_FOUND)
-        target_compile_definitions(lp_solver PUBLIC HAS_CPLEX)
-        target_link_libraries(lp_solver PUBLIC cplex::cplex)
+        target_compile_definitions(lp_solver_obj PUBLIC HAS_CPLEX)
+        target_link_libraries(lp_solver_obj PUBLIC cplex::cplex)
         target_sources(
-            lp_solver
+            lp_solver_obj
             PRIVATE
-            ${PROJECT_SOURCE_DIR}/include/search/downward/lp/cplex_solver_interface.h
-            ${PROJECT_SOURCE_DIR}/src/search/downward/lp/cplex_solver_interface.cc)
+            ../include/downward/lp/cplex_solver_interface.h
+            ../src/downward/lp/cplex_solver_interface.cc)
     endif()
 
     # TODO: we actually require a version greater than 6.0.3 but it is not released yet.
     find_package(soplex 6.0.3 QUIET)
     if (SOPLEX_FOUND)
         message(STATUS "Found SoPlex: ${SOPLEX_INCLUDE_DIRS}")
-        target_compile_definitions(lp_solver PUBLIC HAS_SOPLEX)
-        target_link_libraries(lp_solver PUBLIC libsoplex)
+        target_compile_definitions(lp_solver_obj PUBLIC HAS_SOPLEX)
+        target_link_libraries(lp_solver_obj PUBLIC libsoplex)
         target_sources(
-            lp_solver
+            lp_solver_obj
             PRIVATE
-            ${PROJECT_SOURCE_DIR}/include/search/downward/lp/soplex_solver_interface.h
-            ${PROJECT_SOURCE_DIR}/src/search/downward/lp/soplex_solver_interface.cc)
+            ../include/downward/lp/soplex_solver_interface.h
+            ../src/downward/lp/soplex_solver_interface.cc)
     endif()
 endif()
 
-create_fast_downward_library(
+create_library(
     NAME relaxation_heuristic
     HELP "The base class for relaxation heuristics"
     SOURCES
         downward/heuristics/array_pool
         downward/heuristics/relaxation_heuristic
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME additive_heuristic
     HELP "The additive heuristic"
     SOURCES
         downward/heuristics/additive_heuristic
     DEPENDS priority_queues relaxation_heuristic task_properties
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME blind_search_heuristic
     HELP "The 'blind search' heuristic"
     SOURCES
         downward/heuristics/blind_search_heuristic
     DEPENDS task_properties
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME context_enhanced_additive_heuristic
     HELP "The context-enhanced additive heuristic"
     SOURCES
         downward/heuristics/cea_heuristic
     DEPENDS domain_transition_graph priority_queues task_properties
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME cg_heuristic
     HELP "The causal graph heuristic"
     SOURCES
         downward/heuristics/cg_heuristic
         downward/heuristics/cg_cache
     DEPENDS domain_transition_graph priority_queues task_properties
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME domain_transition_graph
     HELP "DTGs used by cg and cea heuristic"
     SOURCES
         downward/heuristics/domain_transition_graph
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME ff_heuristic
     HELP "The FF heuristic (an implementation of the RPG heuristic)"
     SOURCES
         downward/heuristics/ff_heuristic
     DEPENDS additive_heuristic task_properties
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME goal_count_heuristic
     HELP "The goal-counting heuristic"
     SOURCES
         downward/heuristics/goal_count_heuristic
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME hm_heuristic
     HELP "The h^m heuristic"
     SOURCES
         downward/heuristics/hm_heuristic
     DEPENDS task_properties
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME landmark_cut_heuristic
     HELP "The LM-cut heuristic"
     SOURCES
         downward/heuristics/lm_cut_heuristic
         downward/heuristics/lm_cut_landmarks
     DEPENDS priority_queues task_properties
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME max_heuristic
     HELP "The Max heuristic"
     SOURCES
         downward/heuristics/max_heuristic
     DEPENDS priority_queues relaxation_heuristic
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME core_tasks
     HELP "Core task transformations"
     SOURCES
@@ -570,9 +589,10 @@ create_fast_downward_library(
         downward/tasks/delegating_task
         downward/tasks/root_task
     CORE_LIBRARY
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME extra_tasks
     HELP "Non-core task transformations"
     SOURCES
@@ -581,27 +601,24 @@ create_fast_downward_library(
         downward/tasks/modified_goals_task
         downward/tasks/modified_operator_costs_task
     DEPENDS task_properties
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME causal_graph
     HELP "Causal Graph"
     SOURCES
         downward/task_utils/causal_graph
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME sampling
     HELP "Sampling"
     SOURCES
         downward/task_utils/sampling
     DEPENDS successor_generator task_properties
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME successor_generator
     HELP "Successor generator"
     SOURCES
@@ -609,26 +626,23 @@ create_fast_downward_library(
         downward/task_utils/successor_generator_factory
         downward/task_utils/successor_generator_internals
     DEPENDS task_properties
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME task_properties
     HELP "Task properties"
     SOURCES
         downward/task_utils/task_properties
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME variable_order_finder
     HELP "Variable order finder"
     SOURCES
         downward/task_utils/variable_order_finder
-    DEPENDENCY_ONLY
 )
 
-create_fast_downward_library(
+create_library(
     NAME cartesian_abstractions
     HELP "Plugin containing the code for Cartesian CEGAR heuristics"
     SOURCES
@@ -649,9 +663,10 @@ create_fast_downward_library(
         downward/cartesian_abstractions/utils
         downward/cartesian_abstractions/utils_landmarks
     DEPENDS additive_heuristic dynamic_bitset extra_tasks landmarks priority_queues task_properties
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME mas_heuristic
     HELP "The Merge-and-Shrink heuristic"
     SOURCES
@@ -692,9 +707,10 @@ create_fast_downward_library(
         downward/merge_and_shrink/types
         downward/merge_and_shrink/utils
     DEPENDS priority_queues equivalence_relation sccs task_properties variable_order_finder
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME landmarks
     HELP "Plugin containing the code to reason with landmarks"
     SOURCES
@@ -716,9 +732,10 @@ create_fast_downward_library(
         downward/landmarks/landmark_sum_heuristic
         downward/landmarks/util
     DEPENDS lp_solver priority_queues successor_generator task_properties
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME operator_counting
     HELP "Plugin containing the code for operator-counting heuristics"
     SOURCES
@@ -730,9 +747,10 @@ create_fast_downward_library(
         downward/operator_counting/pho_constraints
         downward/operator_counting/state_equation_constraints
     DEPENDS lp_solver landmark_cut_heuristic pdbs task_properties
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME pdbs
     HELP "Plugin containing the code for PDBs"
     SOURCES
@@ -770,9 +788,10 @@ create_fast_downward_library(
         downward/pdbs/zero_one_pdbs
         downward/pdbs/zero_one_pdbs_heuristic
     DEPENDS causal_graph max_cliques priority_queues sampling successor_generator task_properties variable_order_finder
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME potentials
     HELP "Plugin containing the code for potential heuristics"
     SOURCES
@@ -786,13 +805,13 @@ create_fast_downward_library(
         downward/potentials/subcategory
         downward/potentials/util
     DEPENDS lp_solver sampling successor_generator task_properties
+    TARGET probfd
 )
 
-create_fast_downward_library(
+create_library(
     NAME sccs
     HELP "Algorithm to compute the strongly connected components (SCCs) of a "
          "directed graph."
     SOURCES
         downward/algorithms/sccs
-    DEPENDENCY_ONLY
 )

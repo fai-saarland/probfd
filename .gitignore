@@ -2,6 +2,7 @@
 output
 output.psas
 sas_plan*
+bin/
 builds/
 build/
 .idea/

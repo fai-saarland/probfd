@@ -389,16 +389,15 @@ def parse_args():
         help="run a config with an alias (e.g. seq-sat-lama-2011)")
     driver_other.add_argument(
         "--build",
-        help="BUILD can be a predefined build name like release "
-             "(default) and debug, a custom build name, or the path to "
-             "a directory holding the planner binaries. The driver "
-             "first looks for the planner binaries under 'BUILD'. If "
-             "this path does not exist, it tries the directory "
-             "'<repo>/builds/BUILD/bin', where the build script creates "
-             "them by default.")
+        help="The path to a directory holding the planner binaries. "
+             "If not specified, '<repo>/bin/default/release' is assumed if "
+             "the option '--debug' was not specified, otherwise "
+             "'<repo>/bin/default/debug' is assumed. These are the output "
+             "directories for the default configuration compiled in debug and "
+             "release mode, respectively.")
     driver_other.add_argument(
         "--debug", action="store_true",
-        help="alias for --build=debug --validate")
+        help="alias for --build='<repo>/bin/default/debug' --validate")
     driver_other.add_argument(
         "--validate", action="store_true",
         help='validate plans (implied by --debug); needs "validate" (VAL) on PATH')
@@ -458,9 +457,9 @@ def parse_args():
                     "--validate. Do no specify both --debug and --build.")
     if not args.build:
         if args.debug:
-            args.build = "debug"
+            args.build = "bin/default/debug"
         else:
-            args.build = "release"
+            args.build = "bin/default/release"
 
     _split_planner_args(parser, args)
 

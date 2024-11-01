@@ -53,7 +53,7 @@ struct CompositeMDP : public MDP<State, Action> {
 
     CompositeMDP(
         StateSpace<State, Action>& state_space,
-        CostFunction<State, OperatorID>& cost_function)
+        CostFunction<State, Action>& cost_function)
         : state_space(state_space)
         , cost_function(cost_function)
     {
@@ -134,10 +134,6 @@ struct CompositeMDP : public MDP<State, Action> {
         return cost_function.get_action_cost(action);
     }
 };
-
-// Decution guide for aggregate initialization
-template <typename State, typename Action>
-CompositeMDP(State, Action) -> CompositeMDP<State, Action>;
 
 } // namespace probfd
 

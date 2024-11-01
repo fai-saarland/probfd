@@ -11,13 +11,15 @@
 
 #include "probfd/quotients/quotient_system.h"
 
-#include "probfd/ssp_cost_function.h"
+#include "probfd/task_cost_function.h"
 #include "probfd/task_proxy.h"
 #include "probfd/task_state_space.h"
 
 #include "tests/tasks/blocksworld.h"
 
 #include "tests/verification/policy_verification.h"
+
+#include <memory>
 
 using namespace probfd;
 using namespace tests;
@@ -114,41 +116,43 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
 
     tasks::set_root_task(task);
 
-    ProbabilisticTaskProxy task_proxy(*task);
-
     ProgressReport report(0.0_vt, std::cout, false);
     heuristics::BlindEvaluator<State> heuristic;
-    auto cost_function = std::make_shared<SSPCostFunction>(task_proxy);
+    auto cost_function = std::make_shared<TaskCostFunction>(task);
 
-    TaskStateSpace mdp(task, utils::get_silent_log(), cost_function);
+    TaskStateSpace state_space(task, utils::get_silent_log());
     auto policy_chooser = std::make_shared<
         policy_pickers::ArbitraryTiebreaker<State, OperatorID>>(true);
 
     HeuristicDepthFirstSearch<State, OperatorID, false> hdfs(
         policy_chooser,
         false,
-        false,
         BacktrackingUpdateType::SINGLE,
-        false,
+        true,
         false,
         true,
+        true,
         false);
+
+    CompositeMDP<State, OperatorID> mdp{state_space, *cost_function};
 
     auto policy = hdfs.compute_policy(
         mdp,
         heuristic,
-        mdp.get_initial_state(),
+        state_space.get_initial_state(),
         report,
         std::numeric_limits<double>::infinity());
 
     std::optional<PolicyDecision<OperatorID>> decision =
-        policy->get_decision(mdp.get_initial_state());
+        policy->get_decision(state_space.get_initial_state());
 
     ASSERT_NE(policy, nullptr);
     ASSERT_TRUE(decision.has_value());
     EXPECT_NEAR(decision->q_value_interval.lower, 8.011, 0.01);
-    ASSERT_TRUE(
-        verify_policy(mdp, *policy, mdp.get_state_id(mdp.get_initial_state())));
+    ASSERT_TRUE(verify_policy(
+        mdp,
+        *policy,
+        mdp.get_state_id(state_space.get_initial_state())));
 }
 
 TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
@@ -163,13 +167,11 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
 
     tasks::set_root_task(task);
 
-    ProbabilisticTaskProxy task_proxy(*task);
-
     ProgressReport report(0.0_vt, std::cout, false);
     heuristics::BlindEvaluator<State> heuristic;
-    auto cost_function = std::make_shared<SSPCostFunction>(task_proxy);
+    auto cost_function = std::make_shared<TaskCostFunction>(task);
 
-    TaskStateSpace mdp(task, utils::get_silent_log(), cost_function);
+    TaskStateSpace state_space(task, utils::get_silent_log());
     auto policy_chooser = std::make_shared<policy_pickers::ArbitraryTiebreaker<
         quotients::QuotientState<State, OperatorID>,
         quotients::QuotientAction<OperatorID>>>(true);
@@ -182,28 +184,32 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
     auto hdfs = std::make_shared<HDFS>(
         policy_chooser,
         false,
-        false,
         BacktrackingUpdateType::SINGLE,
+        true,
         false,
-        false,
+        true,
         true,
         false);
 
     FRETPi<State, OperatorID, typename HDFS::StateInfo> fret(hdfs);
 
+    CompositeMDP<State, OperatorID> mdp{state_space, *cost_function};
+
     auto policy = fret.compute_policy(
         mdp,
         heuristic,
-        mdp.get_initial_state(),
+        state_space.get_initial_state(),
         report,
         std::numeric_limits<double>::infinity());
 
     std::optional<PolicyDecision<OperatorID>> decision =
-        policy->get_decision(mdp.get_initial_state());
+        policy->get_decision(state_space.get_initial_state());
 
     ASSERT_NE(policy, nullptr);
     ASSERT_TRUE(decision.has_value());
     EXPECT_NEAR(decision->q_value_interval.lower, 8.011, 0.01);
-    ASSERT_TRUE(
-        verify_policy(mdp, *policy, mdp.get_state_id(mdp.get_initial_state())));
+    ASSERT_TRUE(verify_policy(
+        mdp,
+        *policy,
+        mdp.get_state_id(state_space.get_initial_state())));
 }

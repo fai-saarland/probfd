@@ -23,6 +23,8 @@ template <typename>
 class Distribution;
 template <typename>
 struct Transition;
+template <typename, typename>
+class CostFunction;
 } // namespace probfd
 
 namespace probfd::algorithms {

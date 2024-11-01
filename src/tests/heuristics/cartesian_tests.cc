@@ -2,6 +2,7 @@
 
 #include "probfd/tasks/root_task.h"
 
+#include "probfd/probabilistic_task.h"
 #include "probfd/task_proxy.h"
 
 #include "probfd/cartesian_abstractions/cartesian_abstraction.h"

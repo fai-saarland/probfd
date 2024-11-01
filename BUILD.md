@@ -3,103 +3,160 @@
 [TOC]
 
 ## Dependencies
+
 ### Mandatory Dependencies
 
-You need a C++ 20 compiler and CMake.
-To run the planner, you also need Python 3.
+You need a C++ 20 compiler, CMake, the Ninja build system and Python 3.
 
-**Linux/MacOS:** On these platforms, you also need GNU make.
-  On Debian/Ubuntu the following should install all
-  dependencies:
-  ```
-  sudo apt install cmake g++-12 make python3
-  ```
+**Linux:** On Debian/Ubuntu the following should install all dependencies:
 
-On MacOS, all dependencies can be installed via Homebrew:
-  ```
-  brew install cmake llvm make python3
-  ```
+```
+sudo apt install g++-12 cmake ninja python3
+```
 
-  Note that LLVM's clang is not symlinked to `/usr/bin/` or `/usr/local/bin/`,
-  so the environment variables `CC` and `CXX` must be set before the build.
-  This can be achieved by
-  ```
-  export CC=`brew --prefix llvm`/bin/clang
-  export CXX=`brew --prefix llvm`/bin/clang++
-  ```
+**MacOS**: All dependencies can be installed via Homebrew:
 
-**Windows:** Install [Visual Studio 2022](https://visualstudio.microsoft.com/de/downloads/),
-[Python](https://www.python.org/downloads/windows/), and [CMake](http://www.cmake.org/download/).
-Build Tools for Visual Studio 2022 can also be installed if the Visual Studio
-IDE is not desired.
-The C++ Desktop Development workload of Visual Studio installs both the
-compiler, as well as CMake.
+```
+brew install llvm cmake ninja python3
+```
 
+**Windows:** Install
+[Build Tools for Visual Studio 2022](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022)
+with the C++ Desktop development workload to obtain Microsoft's
+C++ compiler, CMake and Ninja.
+Afterwards, download and run the
+[Python installer](https://www.python.org/downloads/windows/)
+of your choice.
 
 ### Optional: Linear-Programming Solvers
 
-Some planner configurations depend on an LP or MIP solver. We support CPLEX (commercial, [free academic license](http://ibm.com/academic)) and SoPlex (Apache License, no MIP support). You can install one or both solvers without causing conflicts.
+Some planner configurations depend on an LP or MIP solver. We support CPLEX (
+commercial, [free academic license](http://ibm.com/academic)) and SoPlex (Apache
+License, no MIP support). You can install one or both solvers without causing
+conflicts.
 
-Once LP solvers are installed and the environment variables `cplex_DIR` and/or `soplex_DIR` are set up correctly, Fast Downward automatically includes each solver detected on the system in the build.
+Once LP solvers are installed and the environment variables `cplex_DIR`
+and/or `soplex_DIR` are set up correctly, Fast Downward automatically includes
+each solver detected on the system in the build.
 
 #### Installing CPLEX
 
-Obtain CPLEX and follow the guided installation. See [troubleshooting](#troubleshooting) if you have problems accessing the installer.
+Obtain CPLEX and follow the guided installation.
+See [troubleshooting](#troubleshooting) if you have problems accessing the
+installer.
 On Windows, install CPLEX into a directory without spaces.
 
-After the installation, set the environment variable `cplex_DIR` to the subdirectory `/cplex` of the installation.
+After the installation, set the environment variable `cplex_DIR` to the
+subdirectory `/cplex` of the installation.
 For example on Ubuntu:
+
 ```bash
 export cplex_DIR=/opt/ibm/ILOG/CPLEX_Studio2211/cplex
 ```
-Note that on Windows, setting up the environment variable might require using `/` instead of the more Windows-common `\`.
 
+Note that on Windows, setting up the environment variable might require
+using `/` instead of the more Windows-common `\ `.
 
 #### Installing SoPlex on Linux/macOS
 
-**Important:**  The GNU Multiple Precision library (GMP) is critical for the performance of SoPlex but the build does not complain if it is not present.
-Make sure that the build uses the library (check the output of CMake for `Found GMP`).
+**Important:** The GNU Multiple Precision library (GMP) is critical for the
+performance of SoPlex but the build does not complain if it is not present.
+Make sure that the build uses the library (check the output of CMake for
+`Found GMP`).
 
-As of SoPlex 6.0.4, the release does not support C++-20, so we build  from the tip of the [GitHub main branch](https://github.com/scipopt/soplex) (adapt the path if you install a different version or want to use a different location):
+We require at least SoPlex 7.1.0, which can be built from source as follows
+(adapt the paths if you install a different version or want to use a different
+location):
+
 ```bash
 sudo apt install libgmp3-dev
-git clone https://github.com/scipopt/soplex.git
-export soplex_DIR=/opt/soplex-6.0.4x
-export CXXFLAGS="$CXXFLAGS -Wno-use-after-free" # Ignore compiler warnings about use-after-free
-cmake -S soplex -B build
+wget https://github.com/scipopt/soplex/archive/refs/tags/release-710.tar.gz -O - | tar -xz
+cmake -S soplex-release-710 -B build
 cmake --build build
+export soplex_DIR=/opt/soplex-7.1.0
 cmake --install build --prefix $soplex_DIR
-rm -rf soplex build
+rm -rf soplex-release-710 build
 ```
 
-After installation, permanently set the environment variable `soplex_DIR` to the value you used during the installation.
+After installation, permanently set the environment variable soplex_DIR to the
+value you used during the installation.
 
-**Note:** Once [support for C++-20](https://github.com/scipopt/soplex/pull/15) has been included in a SoPlex release, we can update this and can recommend the [SoPlex homepage](https://soplex.zib.de/index.php#download) for downloads instead.
+## Compiling the Planner
 
-## Compiling the planner
+**Remarks for Windows Users**
+The following commands requires you to be in a
+`Developer PowerShell`, which you can easily launch from the Windows search bar
+after installing Build Tools for Visual Studio 2022.
 
-To build the planner, from the top-level directory run:
+### Configuring the Build
+
+The planner has different configurations which allow to
+exclude specific planner components from compilation.
+For further information, type:
 
 ```bash
-./build.py
+cmake --list-presets
 ```
 
-This creates the default build `release` in the directory `builds`. For information on alternative builds (e.g. `debug`) and further options, call
-`./build.py --help`. [Our website](https://www.fast-downward.org/ForDevelopers/CMake) has details on how to set up development builds.
+First, configure the build for a specific configuration, for
+example the `default` configuration that includes all planner
+components:
 
+```bash
+# Non-MacOS: Uses the system's C++ compiler.
+cmake --preset default
 
-### Compiling on Windows
+# MacOS: Explicitly specify that LLVM's compiler should be used.
+cmake --preset default -D CMAKE_CXX_COMPILER=$(brew --prefix llvm)/bin/clang++
+```
 
-Windows does not interpret the shebang in Python files, so you have to call `build.py` as `python3 build.py` (make sure `python3` is on your `PATH`).
+### Compiling the Build
 
-Note that compiling from the terminal is only possible with the right environment. The easiest way to get such an environment is to use the `Developer PowerShell for VS 2022` or `Developer PowerShell`.
+Each configuration can be built in either `Debug` or
+`Release` mode.
+In debug mode, optimizations are disabled, debugging symbols are
+embedded into the executable and assertions are enabled.
+In release mode, optimizations are enabled, no debugging symbols
+are omitted, and assertions are turned off.
+After the build has been configured, run the compilation
+process for the chosen configuration as follows:
 
-Alternatively, you can [create a Visual Studio Project](https://www.fast-downward.org/ForDevelopers/CMake#Custom_Builds), open it in Visual Studio and build from there. Visual Studio creates its binary files in subdirectories of the project that our driver script currently does not recognize. If you build with Visual Studio, you have to run the individual components of the planner yourself.
+```bash
+# Build configuration 'default' in release mode.
+cmake --build --preset default --config Release
+
+# Build configuration 'default' in debug mode.
+cmake --build --preset default --config Debug
+```
+
+## Running the Planner
+
+After the planner has compiled successfully, you can run it using the
+wrapper script `fast_downward.py`.
+For further information:
+
+```bash
+# Prints a help message.
+./fast_downward.py --help
+```
+
+## Running the Tests (Optional)
+
+To assert that the planner functions correctly, the tests
+of the planner can be run as follows after compiling the
+`tests` configuration:
+
+```bash
+# Runs all unit tests.
+ctest --preset all_tests
+```
 
 ## Troubleshooting
 
-* If you changed the build environment, delete the `builds` directory and rebuild.
-* **Windows:** If you cannot execute the Fast Downward binary in a new command line, then it might be unable to find a dynamically linked library.
-  Use `dumpbin /dependents PATH\TO\DOWNWARD\BINARY` to list all required libraries and ensure that they can be found in your `PATH` variable.
-* **CPLEX:** After logging in at the IBM website, you find the Ilog studio software under Technology -> Data Science. Choose the right version and switch to HTTP download unless you have the IBM download manager installed. If you have problems using their website with Firefox, try Chrome instead. Execute the downloaded binary and follow the guided installation.
-* **CPLEX:** If you get warnings about unresolved references with CPLEX, visit their [help pages](http://www-01.ibm.com/support/docview.wss?uid=swg21399926).
+* **CPLEX:** After logging in at the IBM website, you find the Ilog studio
+  software under Technology -> Data Science. Choose the right version and switch
+  to HTTP download unless you have the IBM download manager installed. If you
+  have problems using their website with Firefox, try Chrome instead. Execute
+  the downloaded binary and follow the guided installation.
+* **CPLEX:** If you get warnings about unresolved references with CPLEX, visit
+  their [help pages](http://www-01.ibm.com/support/docview.wss?uid=swg21399926).

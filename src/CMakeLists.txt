@@ -37,17 +37,28 @@ include(common_cxx_flags)
 include(macros)
 include(options)
 
-report_bitwidth()
 set_up_build_types("Debug;Release")
 set_up_options()
 
-add_executable(probfd ${CMAKE_CURRENT_SOURCE_DIR}/probfd/planner.cc)
+add_executable(probfd probfd/planner.cc)
 
 # On Windows we have to copy all DLLs next to the generated binary.
 if (WIN32)
     copy_dlls_to_binary_dir_after_build(probfd)
 endif ()
 
+# Copy the translator into the output directory.
+add_custom_target(translate ALL)
+add_custom_command(TARGET translate POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
+    ${PROJECT_SOURCE_DIR}/translate
+    $<TARGET_FILE_DIR:probfd>/translate
+    COMMENT "Copying translator module into output directory")
+
 # Collect source files needed for the active plugins.
 include(DownwardFiles)
 include(ProbFDFiles)
+include(ProbFDPlugins)
+
+# Add tests as a subproject.
+add_subdirectory(tests)

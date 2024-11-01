@@ -3,7 +3,7 @@
 
 #include "downward/open_list.h"
 
-#include "plugins/plugin.h"
+#include "downward/plugins/plugin.h"
 
 #include <memory>
 

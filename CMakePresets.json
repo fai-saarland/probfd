@@ -1,0 +1,82 @@
+{
+  "version": 9,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 30,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "description": "Base build configuration",
+      "generator": "Ninja Multi-Config",
+      "cacheVariables": {
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG": "${sourceDir}/bin/${presetName}/debug",
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE": "${sourceDir}/bin/${presetName}/release"
+      },
+      "binaryDir": "${sourceDir}/builds/${presetName}"
+    },
+    {
+      "name": "default",
+      "displayName": "Configure the project with all libraries enabled.",
+      "inherits": "base"
+    },
+    {
+      "name": "tests",
+      "displayName": "Configure the project with all libraries enabled and enable the unit tests.",
+      "inherits": "base",
+      "cacheVariables": {
+        "BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "no_lp",
+      "displayName": "Disable LP support. Calling a component that requires LP support will abort the planner at runtime.",
+      "inherits": "base",
+      "cacheVariables": {
+        "DUSE_LP": "NO"
+      }
+    },
+    {
+      "name": "minimal",
+      "displayName": "Disable all optional libraries.",
+      "inherits": "base",
+      "cacheVariables": {
+        "DISABLE_PLUGINS_BY_DEFAULT": "YES"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default",
+      "displayName": "Build the configuration 'default'.",
+      "configurePreset": "default"
+    },
+    {
+      "name": "tests",
+      "displayName": "Build the configuration 'tests'.",
+      "configurePreset": "tests"
+    },
+    {
+      "name": "no_lp",
+      "displayName": "Build the configuration 'no_lp'.",
+      "configurePreset": "no_lp"
+    },
+    {
+      "name": "minimal",
+      "displayName": "Build the configuration 'minimal'.",
+      "configurePreset": "minimal"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "all_tests",
+      "displayName": "Run tests for the default configuration.",
+      "configurePreset": "tests",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}
