@@ -2,7 +2,7 @@
   "version": 6,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 30,
+    "minor": 22,
     "patch": 0
   },
   "configurePresets": [
@@ -31,7 +31,7 @@
       }
     },
     {
-      "name": "no_lp",
+      "name": "nolp",
       "displayName": "Disable LP support. Calling a component that requires LP support will abort the planner at runtime.",
       "inherits": "base",
       "cacheVariables": {
@@ -49,31 +49,64 @@
   ],
   "buildPresets": [
     {
-      "name": "default",
-      "displayName": "Build the configuration 'default'.",
+      "name": "default-debug",
+      "displayName": "Build the configuration 'default' in debug mode.",
+      "configuration": "Debug",
       "configurePreset": "default"
     },
     {
-      "name": "tests",
-      "displayName": "Build the configuration 'tests'.",
+      "name": "tests-debug",
+      "displayName": "Build the configuration 'tests' in debug mode.",
+      "configuration": "Debug",
       "configurePreset": "tests"
     },
     {
-      "name": "no_lp",
-      "displayName": "Build the configuration 'no_lp'.",
-      "configurePreset": "no_lp"
+      "name": "nolp-debug",
+      "displayName": "Build the configuration 'nolp' in debug mode.",
+      "configuration": "Debug",
+      "configurePreset": "nolp"
     },
     {
-      "name": "minimal",
-      "displayName": "Build the configuration 'minimal'.",
+      "name": "minimal-debug",
+      "displayName": "Build the configuration 'minimal' in debug mode.",
+      "configuration": "Debug",
+      "configurePreset": "minimal"
+    },
+    {
+      "name": "default-release",
+      "displayName": "Build the configuration 'default' in release mode.",
+      "configuration": "Release",
+      "configurePreset": "default"
+    },
+    {
+      "name": "tests-release",
+      "displayName": "Build the configuration 'tests' in release mode.",
+      "configuration": "Release",
+      "configurePreset": "tests"
+    },
+    {
+      "name": "nolp-release",
+      "displayName": "Build the configuration 'nolp' in release mode.",
+      "configuration": "Release",
+      "configurePreset": "nolp"
+    },
+    {
+      "name": "minimal-release",
+      "displayName": "Build the configuration 'minimal' in release mode.",
+      "configuration": "Release",
       "configurePreset": "minimal"
     }
   ],
   "testPresets": [
     {
       "name": "all_tests",
-      "displayName": "Run tests for the default configuration.",
+      "displayName": "Run all tests.",
       "configurePreset": "tests",
+      "configuration": "Release",
+      "execution": {
+        "jobs": 0,
+        "timeout": 10
+      },
       "output": {
         "outputOnFailure": true
       }

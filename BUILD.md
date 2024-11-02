@@ -112,8 +112,7 @@ cmake --preset default -D CMAKE_CXX_COMPILER=$(brew --prefix llvm)/bin/clang++
 
 ### Compiling the Build
 
-Each configuration can be built in either `Debug` or
-`Release` mode.
+Each configuration can be built in either `Debug` or `Release` mode.
 In debug mode, optimizations are disabled, debugging symbols are
 embedded into the executable and assertions are enabled.
 In release mode, optimizations are enabled, no debugging symbols
@@ -122,11 +121,11 @@ After the build has been configured, run the compilation
 process for the chosen configuration as follows:
 
 ```bash
-# Build configuration 'default' in release mode.
-cmake --build --preset default --config Release
+# Builds configuration 'default' in release mode.
+cmake --build --preset default-release
 
-# Build configuration 'default' in debug mode.
-cmake --build --preset default --config Debug
+# Builds configuration 'tests' in debug mode.
+cmake --build --preset tests-debug
 ```
 
 ## Running the Planner
@@ -143,8 +142,8 @@ For further information:
 ## Running the Tests (Optional)
 
 To assert that the planner functions correctly, the tests
-of the planner can be run as follows after compiling the
-`tests` configuration:
+of the planner can be run as follows after successfully compiling the
+`tests` configuration in release mode:
 
 ```bash
 # Runs all unit tests.
