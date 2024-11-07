@@ -1,4 +1,4 @@
-#include "probfd/command_line.h"
+#include "probfd_plugins/command_line.h"
 
 #include "probfd/solver_interface.h"
 #include "probfd/value_type.h"
@@ -25,7 +25,8 @@ using namespace plugins;
 
 namespace probfd {
 
-[[noreturn]] static void input_error(const string& msg)
+[[noreturn]]
+static void input_error(const string& msg)
 {
     utils::g_log << msg << endl;
     utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);

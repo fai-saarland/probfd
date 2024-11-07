@@ -2,12 +2,16 @@ create_library(
     NAME probfd_core_plugin
     HELP "Enables core ProbFD plugin"
     SOURCES
+        probfd_plugins/command_line
         probfd_plugins/probabilistic_task
         probfd_plugins/solver_interface
         probfd_plugins/task_evaluator_factory
     DEPENDS
         probfd_core
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(

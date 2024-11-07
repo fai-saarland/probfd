@@ -1,9 +1,6 @@
 create_library(
     NAME probfd_core
     SOURCES
-        # Main
-        probfd/command_line
-
         # Evaluators
         probfd/evaluator
 
@@ -54,9 +51,7 @@ create_library(
     DEPENDS
         core_sources
         core_tasks
-        plugins
         utils
-        parser
         probabilistic_successor_generator
         mas_heuristic
 )

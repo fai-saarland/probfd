@@ -1,4 +1,4 @@
-#include "probfd/command_line.h"
+#include "probfd_plugins/command_line.h"
 
 #include "probfd/solver_interface.h"
 
