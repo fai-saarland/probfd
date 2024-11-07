@@ -101,19 +101,11 @@ function(create_library)
     endif()
 endfunction()
 
-function(copy_dlls_to_binary_dir_after_build _TARGET_NAME)
-    set(have_runtime_dlls
-        $<BOOL:$<TARGET_RUNTIME_DLLS:${_TARGET_NAME}>>
-    )
-
-    set(command
-        ${CMAKE_COMMAND} -E copy
-        $<TARGET_RUNTIME_DLLS:${_TARGET_NAME}>
-        $<TARGET_FILE_DIR:${_TARGET_NAME}>
-    )
-
+function(copy_runtime_dlls_post_build _TARGET_NAME)
     add_custom_command(TARGET ${_TARGET_NAME} POST_BUILD
-        COMMAND "$<${have_runtime_dlls}:${command}>"
+        COMMAND
+        "${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:${_TARGET_NAME}>
+        $<TARGET_RUNTIME_DLLS:${_TARGET_NAME}>"
         COMMAND_EXPAND_LISTS
     )
 endfunction()
