@@ -80,7 +80,6 @@ TADFHSImpl<State, Action, UseInterval>::TADFHSImpl(
     bool cutoff_tip,
     bool cutoff_inconsistent,
     bool terminate_exploration_on_cutoff,
-    bool value_iteration,
     bool label_solved,
     bool reexpand_traps)
     : Base(policy_chooser)
@@ -89,7 +88,6 @@ TADFHSImpl<State, Action, UseInterval>::TADFHSImpl(
     , cutoff_tip_(cutoff_tip)
     , cutoff_inconsistent_(cutoff_inconsistent)
     , terminate_exploration_on_cutoff_(terminate_exploration_on_cutoff)
-    , value_iteration_(value_iteration)
     , label_solved_(label_solved)
     , reexpand_traps_(reexpand_traps)
     , stack_index_(NEW)
@@ -117,7 +115,7 @@ Interval TADFHSImpl<State, Action, UseInterval>::solve_quotient(
 
     statistics_.register_report(progress);
 
-    if (value_iteration_) {
+    if (!label_solved_) {
         dfhs_vi_driver(quotient, heuristic, state_id, progress, timer);
     } else {
         dfhs_label_driver(quotient, heuristic, state_id, progress, timer);
@@ -440,7 +438,6 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
                         if (label_solved_) {
                             mem_info.set_solved();
                         } else {
-                            assert(value_iteration_);
                             visited_states_.push_back(state_id);
                         }
                     }
@@ -530,8 +527,7 @@ TADepthFirstHeuristicSearch<State, Action, UseInterval>::
         bool cutoff_tip,
         bool cutoff_inconsistent,
         bool stop_exploration_inconsistent,
-        bool value_iteration,
-        bool mark_solved,
+        bool label_solved,
         bool reexpand_removed_traps)
     : algorithm_(
           std::move(policy_chooser),
@@ -540,8 +536,7 @@ TADepthFirstHeuristicSearch<State, Action, UseInterval>::
           cutoff_tip,
           cutoff_inconsistent,
           stop_exploration_inconsistent,
-          value_iteration,
-          mark_solved,
+          label_solved,
           reexpand_removed_traps)
 {
 }

@@ -35,7 +35,7 @@ class TrapAwareDFHSSolver : public MDPHeuristicSearch<false, true> {
     const bool cutoff_tip_;
     const bool cutoff_inconsistent_;
     const bool terminate_exploration_;
-    const bool value_iteration_;
+    const bool labeling_;
     const bool reexpand_traps_;
 
 public:
@@ -46,7 +46,7 @@ public:
         bool cutoff_tip,
         bool cutoff_inconsistent,
         bool terminate_exploration,
-        bool vi,
+        bool labeling,
         bool reexpand_traps,
         bool fret_on_policy,
         bool dual_bounds,
@@ -79,7 +79,7 @@ public:
         , cutoff_tip_(cutoff_tip)
         , cutoff_inconsistent_(cutoff_inconsistent)
         , terminate_exploration_(terminate_exploration)
-        , value_iteration_(vi)
+        , labeling_(labeling)
         , reexpand_traps_(reexpand_traps)
     {
     }
@@ -97,8 +97,7 @@ public:
                 cutoff_tip_,
                 cutoff_inconsistent_,
                 terminate_exploration_,
-                value_iteration_,
-                !value_iteration_,
+                labeling_,
                 reexpand_traps_);
     }
 };
@@ -141,11 +140,7 @@ public:
             "Stop the exploration of the policy as soon as a state expansion "
             "was cutoff.",
             "false");
-        add_option<bool>(
-            "vi",
-            "Run VI to check for termination. If set to false falling back to "
-            "solved-labeling mechanism.",
-            "false");
+        add_option<bool>("labeling", "Label states as solved.", "true");
         add_option<bool>(
             "reexpand_traps",
             "Immediately re-expand the collapsed trap state.",
@@ -166,7 +161,7 @@ protected:
             options.get<bool>("cutoff_tip"),
             options.get<bool>("cutoff_inconsistent"),
             options.get<bool>("terminate_exploration"),
-            options.get<bool>("vi"),
+            options.get<bool>("labeling"),
             options.get<bool>("reexpand_traps"),
             get_mdp_hs_args_from_options<false, true>(options));
     }
@@ -199,7 +194,6 @@ public:
         const override
     {
         // opts_copy.set<std::string>("name", "ilao");
-        // opts_copy.set<bool>("labeling", false);
         return plugins::make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
             options.get<std::shared_ptr<QOpenList>>("open_list"),
             false,
@@ -207,7 +201,7 @@ public:
             true,
             false,
             false,
-            true,
+            false,
             options.get<bool>("reexpand_traps"),
             get_mdp_hs_args_from_options<false, true>(options));
     }
@@ -249,7 +243,7 @@ public:
             true,
             false,
             false,
-            false,
+            true,
             options.get<bool>("reexpand_traps"),
             get_mdp_hs_args_from_options<false, true>(options));
     }

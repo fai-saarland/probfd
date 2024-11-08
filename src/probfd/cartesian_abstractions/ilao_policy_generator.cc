@@ -41,7 +41,7 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
     // the search state.
     algorithms::trap_aware_dfhs::
         TADepthFirstHeuristicSearch<int, const ProbabilisticTransition*, false>
-            hdfs(
+            talilao(
                 picker_,
                 false,
                 algorithms::trap_aware_dfhs::BacktrackingUpdateType::SINGLE,
@@ -49,13 +49,12 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
                 false,
                 false,
                 true,
-                false,
                 true);
 
     ProgressReport report(0.0_vt);
     report.disable();
 
-    auto policy = hdfs.compute_policy(
+    auto policy = talilao.compute_policy(
         abstraction,
         heuristic,
         state->get_id(),
@@ -63,8 +62,8 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
         timer.get_remaining_time());
 
     for (int i = 0; i != abstraction.get_num_states(); ++i) {
-        if (hdfs.was_visited(i)) {
-            heuristic.set_h_value(i, hdfs.lookup_bounds(i).lower);
+        if (talilao.was_visited(i)) {
+            heuristic.set_h_value(i, talilao.lookup_bounds(i).lower);
         }
     }
 

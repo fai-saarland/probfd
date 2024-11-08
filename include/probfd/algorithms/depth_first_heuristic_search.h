@@ -95,7 +95,6 @@ struct ExpansionInfo {
  * @tparam State - The state type of the underlying MDP.
  * @tparam Action - The action type of the underlying MDP.
  * @tparam UseInterval - Whether value intervals are used.
- * @tparam Fret - Whether the algorithm is wrapped with the FRET framework.
  */
 template <typename State, typename Action, bool UseInterval>
 class HeuristicDepthFirstSearch
@@ -126,7 +125,6 @@ private:
     const bool cutoff_tip_;
     const bool cutoff_inconsistent_;
     const bool terminate_exploration_on_cutoff_;
-    const bool value_iteration_;
     const bool label_solved_;
 
     // Algorithm state
@@ -149,7 +147,6 @@ public:
         bool cutoff_tip,
         bool cutoff_inconsistent,
         bool terminate_exploration_on_cutoff,
-        bool value_iteration,
         bool label_solved);
 
     void reset_search_state() override;

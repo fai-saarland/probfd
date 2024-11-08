@@ -43,7 +43,6 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::
         bool cutoff_tip,
         bool cutoff_inconsistent,
         bool terminate_exploration_on_cutoff,
-        bool value_iteration,
         bool label_solved)
     : Base(std::move(policy_chooser))
     , forward_updates_(forward_updates)
@@ -51,7 +50,6 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::
     , cutoff_tip_(cutoff_tip)
     , cutoff_inconsistent_(cutoff_inconsistent)
     , terminate_exploration_on_cutoff_(terminate_exploration_on_cutoff)
-    , value_iteration_(value_iteration)
     , label_solved_(label_solved)
 {
 }
@@ -79,7 +77,7 @@ Interval HeuristicDepthFirstSearch<State, Action, UseInterval>::do_solve(
         return as_interval(state_info.value);
     });
 
-    if (value_iteration_) {
+    if (!label_solved_) {
         solve_with_vi_termination(mdp, heuristic, stateid, progress, timer);
     } else {
         solve_without_vi_termination(mdp, heuristic, stateid, progress, timer);

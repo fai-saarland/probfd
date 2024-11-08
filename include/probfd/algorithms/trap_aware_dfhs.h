@@ -156,7 +156,6 @@ class TADFHSImpl
     const bool cutoff_tip_;
     const bool cutoff_inconsistent_;
     const bool terminate_exploration_on_cutoff_;
-    const bool value_iteration_;
     const bool label_solved_;
     const bool reexpand_traps_;
 
@@ -186,7 +185,6 @@ public:
         bool cutoff_tip,
         bool cutoff_inconsistent,
         bool terminate_exploration_on_cutoff,
-        bool value_iteration,
         bool label_solved,
         bool reexpand_traps);
 
@@ -274,8 +272,7 @@ public:
         bool cutoff_tip,
         bool cutoff_inconsistent,
         bool stop_exploration_inconsistent,
-        bool value_iteration,
-        bool mark_solved,
+        bool label_solved,
         bool reexpand_removed_traps);
 
     Interval solve(

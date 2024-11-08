@@ -36,7 +36,6 @@ class DFHSSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
     const bool cutoff_inconsistent_;
     const bool partial_exploration_;
     const bool labeling_;
-    const bool value_iteration_;
 
 public:
     template <typename... Args>
@@ -48,7 +47,6 @@ public:
         bool cutoff_inconsistent,
         bool partial_exploration,
         bool labeling,
-        bool vi,
         Args&&... args)
         : MDPHeuristicSearch<Bisimulation, Fret>(std::forward<Args>(args)...)
         , name_(std::move(variant_name))
@@ -58,7 +56,6 @@ public:
         , cutoff_inconsistent_(cutoff_inconsistent)
         , partial_exploration_(partial_exploration)
         , labeling_(labeling)
-        , value_iteration_(vi)
     {
     }
 
@@ -72,8 +69,7 @@ public:
             cutoff_tip_states_,
             cutoff_inconsistent_,
             partial_exploration_,
-            labeling_,
-            value_iteration_);
+            labeling_);
     }
 };
 
@@ -127,7 +123,6 @@ protected:
         bool terminate_exploration_on_cutoff =
             options.get<bool>("terminate_exploration_on_cutoff");
         bool labeling = options.get<bool>("labeling");
-        bool value_iteration = options.get<bool>("vi");
 
         if (!forward_updates) {
             if (cutoff_inconsistent) {
@@ -139,7 +134,7 @@ protected:
                         "ondemand backward updates require forward updates or "
                         "cutoff_tip=false!");
                 }
-            } else if (backward_updates == DISABLED && !value_iteration) {
+            } else if (backward_updates == DISABLED && labeling) {
                 context.error("either value_iteration, forward_updates, or "
                               "backward_updates must be enabled!");
             }
@@ -161,7 +156,6 @@ protected:
             cutoff_inconsistent,
             terminate_exploration_on_cutoff,
             labeling,
-            value_iteration,
             get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
     }
 };
@@ -192,7 +186,6 @@ public:
             false,
             false,
             false,
-            true,
             get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
     }
 };
@@ -224,7 +217,6 @@ public:
             false,
             false,
             true,
-            false,
             get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
     }
 };
@@ -255,7 +247,6 @@ public:
             true,
             false,
             false,
-            true,
             get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
     }
 };

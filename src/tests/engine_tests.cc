@@ -124,19 +124,18 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
     auto policy_chooser = std::make_shared<
         policy_pickers::ArbitraryTiebreaker<State, OperatorID>>(true);
 
-    HeuristicDepthFirstSearch<State, OperatorID, false> hdfs(
+    HeuristicDepthFirstSearch<State, OperatorID, false> ilao(
         policy_chooser,
         false,
         BacktrackingUpdateType::SINGLE,
         true,
         false,
         true,
-        true,
         false);
 
     CompositeMDP<State, OperatorID> mdp{state_space, *cost_function};
 
-    auto policy = hdfs.compute_policy(
+    auto policy = ilao.compute_policy(
         mdp,
         heuristic,
         state_space.get_initial_state(),
@@ -181,17 +180,16 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
         quotients::QuotientAction<OperatorID>,
         false>;
 
-    auto hdfs = std::make_shared<HDFS>(
+    auto ilao = std::make_shared<HDFS>(
         policy_chooser,
         false,
         BacktrackingUpdateType::SINGLE,
         true,
         false,
         true,
-        true,
         false);
 
-    FRETPi<State, OperatorID, typename HDFS::StateInfo> fret(hdfs);
+    FRETPi<State, OperatorID, typename HDFS::StateInfo> fret(ilao);
 
     CompositeMDP<State, OperatorID> mdp{state_space, *cost_function};
 
