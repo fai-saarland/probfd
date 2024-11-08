@@ -28,29 +28,45 @@ VALIDATE = (shutil.which(f"validate{BINARY_EXT}") or
             shutil.which(f"Validate{BINARY_EXT}"))
 
 
-def get_executable(build, rel_path):
+def get_executable_from_path(path, rel_path):
     # First, consider 'build' to be a path directly to the binaries.
     # The path can be absolute or relative to the current working
     # directory.
-    build_dir = build
-    if not os.path.exists(build_dir):
-        # If build is not a full path to the binaries, it might be the
-        # name of a build in our standard directory structure.
-        # in this case, the binaries are in
-        #   '<repo-root>/builds/<buildname>/bin'.
-        build_dir = os.path.join(util.BUILDS_DIR, build, "bin")
-        if not os.path.exists(build_dir):
-            returncodes.exit_with_driver_input_error(
-                "Could not find build '{build}' at {build_dir}. "
-                "Please run './build.py {build}'.".format(**locals()))
+    abs_path = os.path.join(path, rel_path)
 
-    abs_path = os.path.join(build_dir, rel_path)
     if not os.path.exists(abs_path):
-        returncodes.exit_with_driver_input_error(
-            "Could not find '{rel_path}' in build '{build}'. "
-            "Please run './build.py {build}'.".format(**locals()))
+        abs_path = os.path.join(util.REPO_ROOT_DIR, path, rel_path)
+
+        if not os.path.exists(abs_path):
+            returncodes.exit_with_driver_input_error(
+                "Could not find planner executable at absolute or relative "
+                "path {path}.")
 
     return abs_path
+
+
+def get_executable(preset, build_configuration, rel_path):
+    # The binaries are in
+    #   '<repo-root>/bin/<build>/<configuration>'.
+    build_dir = os.path.join(util.BUILDS_DIR, preset)
+
+    if not os.path.exists(build_dir):
+        returncodes.exit_with_driver_input_error(
+            f"Could not find build directory {build_dir}. "
+            f"Please run 'cmake --preset {preset}' and afterwards "
+            f"'cmake --build --preset {preset}-{build_configuration}'"
+            f"to build.")
+
+    binary_dir = os.path.join(
+        util.REPO_ROOT_DIR, "bin", preset, build_configuration, rel_path)
+    if not os.path.exists(binary_dir):
+        returncodes.exit_with_driver_input_error(
+            f"Could not find planner executable for configuration preset "
+            f"'{preset}' and build configuration {build_configuration}. "
+            f"Please run "
+            f"'cmake --build --preset {preset}-{build_configuration}'.")
+
+    return binary_dir
 
 
 def run_translate(args):
@@ -59,7 +75,7 @@ def run_translate(args):
         args.translate_time_limit, args.overall_time_limit)
     memory_limit = limits.get_memory_limit(
         args.translate_memory_limit, args.overall_memory_limit)
-    translate = get_executable(args.build, REL_TRANSLATE_PATH)
+    translate = os.path.join(util.REPO_ROOT_DIR, REL_TRANSLATE_PATH)
     assert sys.executable, "Path to interpreter could not be found"
     cmd = [sys.executable] + [
         translate] + args.translate_inputs + args.translate_options
@@ -106,7 +122,12 @@ def run_search(args):
         args.search_time_limit, args.overall_time_limit)
     memory_limit = limits.get_memory_limit(
         args.search_memory_limit, args.overall_memory_limit)
-    executable = get_executable(args.build, REL_SEARCH_PATH)
+
+    if args.build is not None:
+        executable = get_executable_from_path(args.build, REL_SEARCH_PATH)
+    else:
+        executable = get_executable(
+            args.preset, args.build_config, REL_SEARCH_PATH)
 
     plan_manager = PlanManager(
         args.plan_file,

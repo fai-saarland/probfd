@@ -389,15 +389,20 @@ def parse_args():
         help="run a config with an alias (e.g. seq-sat-lama-2011)")
     driver_other.add_argument(
         "--build",
-        help="The path to a directory holding the planner binaries. "
-             "If not specified, '<repo>/bin/default/release' is assumed if "
-             "the option '--debug' was not specified, otherwise "
-             "'<repo>/bin/default/debug' is assumed. These are the output "
-             "directories for the default configuration compiled in debug and "
-             "release mode, respectively.")
+        help="absolute or relative path to a directory holding the planner "
+             "binaries. Mutually exclusive with --preset.")
+    driver_other.add_argument(
+        "--preset",
+        help="The targetted configuration preset of the planner executable. "
+             "Mutually exclusive with --build.",
+        choices=["default", "tests", "no_lp", "minimal"])
+    driver_other.add_argument(
+        "--build-config",
+        help="The build configuration to run (debug or release).",
+        choices=["debug", "release"])
     driver_other.add_argument(
         "--debug", action="store_true",
-        help="alias for --build='<repo>/bin/default/debug' --validate")
+        help="alias for --build-config='debug' --validate")
     driver_other.add_argument(
         "--validate", action="store_true",
         help='validate plans (implied by --debug); needs "validate" (VAL) on PATH')
@@ -451,15 +456,31 @@ def parse_args():
     else:
         args.sas_file = DEFAULT_SAS_FILE
 
-    if args.build and args.debug:
+    if args.debug:
+        if args.build_config:
+            print_usage_and_exit_with_driver_input_error(
+                parser, "The option --debug is an alias for "
+                        "'--build-config debug --validate'. Do not specify "
+                        "both --debug and --build-config.")
+
+        if args.build:
+            print_usage_and_exit_with_driver_input_error(
+                parser, "The option --debug is an alias for "
+                        "'--build-config debug --validate'. The options "
+                        "--build and --build-config are mutually exclusive. "
+                        "Do not specify both --debug and --build.")
+
+    if args.build and (args.preset or args.build_config):
         print_usage_and_exit_with_driver_input_error(
-            parser, "The option --debug is an alias for --build=debug "
-                    "--validate. Do no specify both --debug and --build.")
+            parser, "The options --build and --preset as well as --build and "
+                    "--build-config are mutually exclusive.")
+
     if not args.build:
-        if args.debug:
-            args.build = "bin/default/debug"
-        else:
-            args.build = "bin/default/release"
+        if not args.preset:
+            args.preset = "default"
+
+        if not args.build_config:
+            args.build_config = "debug" if args.debug else "release"
 
     _split_planner_args(parser, args)
 
