@@ -20,13 +20,16 @@ sudo apt install g++-12 cmake ninja python3
 brew install llvm cmake ninja python3
 ```
 
-**Windows:** Install
-[Build Tools for Visual Studio 2022](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022)
-with the C++ Desktop development workload to obtain Microsoft's
-C++ compiler, CMake and Ninja.
-Afterwards, download and run the
-[Python installer](https://www.python.org/downloads/windows/)
-of your choice.
+**Windows:** We recommend to use Windows' native package manager winget.
+We provide a configuration file for the installation of Build Tools for Visual
+Studio 2022 (`misc/vsconfig.json`) that installs everything needed for C++
+development. If Visual Studio is already installed, you can skip the
+installation.
+
+```
+winget install Microsoft.VisualStudio.2022.BuildTools --custom "--config misc/vsconfig.json"
+winget install Kitware.CMake Ninja-build.Ninja Python.Python.3.13
+```
 
 ### Optional: Linear-Programming Solvers
 
@@ -83,11 +86,6 @@ value you used during the installation.
 
 ## Compiling the Planner
 
-**Remarks for Windows Users**
-The following commands requires you to be in a
-`Developer PowerShell`, which you can easily launch from the Windows search bar
-after installing Build Tools for Visual Studio 2022.
-
 ### Configuring the Build
 
 The planner has different configurations which allow to
@@ -103,11 +101,7 @@ example the `default` configuration that includes all planner
 components:
 
 ```bash
-# Non-MacOS: Uses the system's C++ compiler.
 cmake --preset default
-
-# MacOS: Explicitly specify that LLVM's compiler should be used.
-cmake --preset default -D CMAKE_CXX_COMPILER=$(brew --prefix llvm)/bin/clang++
 ```
 
 ### Compiling the Build
