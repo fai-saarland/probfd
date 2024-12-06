@@ -104,7 +104,7 @@ components:
 cmake --preset default
 ```
 
-### Compiling the Build
+### Building
 
 Each configuration can be built in either `Debug` or `Release` mode.
 In debug mode, optimizations are disabled, debugging symbols are
