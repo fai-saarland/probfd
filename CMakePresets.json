@@ -9,11 +9,14 @@
     {
       "name": "base",
       "hidden": true,
+      "toolchainFile": "${sourceDir}/cmake/toolchains/toolchain.cmake",
       "description": "Base build configuration",
       "generator": "Ninja Multi-Config",
       "cacheVariables": {
         "CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG": "${sourceDir}/bin/${presetName}/debug",
-        "CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE": "${sourceDir}/bin/${presetName}/release"
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE": "${sourceDir}/bin/${presetName}/release",
+        "CMAKE_PDB_OUTPUT_DIRECTORY_DEBUG": "${sourceDir}/bin/${presetName}/debug",
+        "CMAKE_PDB_OUTPUT_DIRECTORY_RELEASE": "${sourceDir}/bin/${presetName}/release"
       },
       "binaryDir": "${sourceDir}/builds/${presetName}"
     },
