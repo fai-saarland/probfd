@@ -68,7 +68,8 @@ void CachingTaskStateSpace::generate_action_transitions(
         return false;
     });
 
-    for (const auto outcome : operators[*it].get_outcomes()) {
+    for (const auto out = operators[*it];
+         const auto outcome : out.get_outcomes()) {
         result.add_probability(*succs++, outcome.get_probability());
     }
 
