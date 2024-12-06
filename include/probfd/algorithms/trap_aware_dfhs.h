@@ -46,7 +46,7 @@ struct PerStateInformation
     : public heuristic_search::
           PerStateBaseInformation<Action, true, UseInterval> {
 private:
-    using Base = PerStateInformation::PerStateBaseInformation;
+    using Base = heuristic_search::PerStateBaseInformation<Action, true, UseInterval>;
 
 public:
     static constexpr uint8_t SOLVED = 1 << Base::BITS;

@@ -58,7 +58,7 @@ struct PerStateInformation
     : public heuristic_search::
           PerStateBaseInformation<Action, true, UseInterval> {
 private:
-    using Base = typename PerStateInformation::PerStateBaseInformation;
+    using Base = typename heuristic_search::PerStateBaseInformation<Action, true, UseInterval>;
 
 public:
     static constexpr uint8_t VISITED = 0b01 << Base::BITS;

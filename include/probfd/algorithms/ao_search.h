@@ -23,7 +23,7 @@ struct PerStateInformation
     : public heuristic_search::
           PerStateBaseInformation<Action, StorePolicy, Interval> {
 private:
-    using Base = PerStateInformation::PerStateBaseInformation;
+    using Base = heuristic_search::PerStateBaseInformation<Action, StorePolicy, Interval>;
 
 public:
     static constexpr uint8_t MARK = 1 << Base::BITS;
