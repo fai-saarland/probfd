@@ -11,7 +11,7 @@ You need a C++ 20 compiler, CMake, the Ninja build system and Python 3.
 **Linux:** On Debian/Ubuntu the following should install all dependencies:
 
 ```
-sudo apt install g++-12 cmake ninja python3
+sudo apt install g++-12 cmake ninja-build python3
 ```
 
 **MacOS**: All dependencies can be installed via Homebrew:
