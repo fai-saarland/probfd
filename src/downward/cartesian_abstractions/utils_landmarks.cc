@@ -1,7 +1,5 @@
 #include "downward/cartesian_abstractions/utils_landmarks.h"
 
-#include "downward/plugins/options.h"
-
 #include "downward/landmarks/landmark.h"
 #include "downward/landmarks/landmark_factory_h_m.h"
 #include "downward/landmarks/landmark_graph.h"

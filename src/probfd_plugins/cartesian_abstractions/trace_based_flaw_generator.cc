@@ -1,14 +1,17 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd/cartesian_abstractions/trace_based_flaw_generator.h"
 
-#include "downward/plugins/plugin.h"
+using namespace utils;
 
 using namespace probfd::cartesian_abstractions;
+
+using namespace downward_plugins::plugins;
 
 namespace {
 
 class AStarFlawGeneratorFactoryFeature
-    : public plugins::
-          TypedFeature<FlawGeneratorFactory, AStarFlawGeneratorFactory> {
+    : public TypedFeature<FlawGeneratorFactory, AStarFlawGeneratorFactory> {
 public:
     AStarFlawGeneratorFactoryFeature()
         : TypedFeature("flaws_astar")
@@ -16,13 +19,12 @@ public:
     }
 
     std::shared_ptr<AStarFlawGeneratorFactory>
-    create_component(const plugins::Options&, const utils::Context&)
-        const override
+    create_component(const Options&, const Context&) const override
     {
         return std::make_shared<AStarFlawGeneratorFactory>();
     }
 };
 
-plugins::FeaturePlugin<AStarFlawGeneratorFactoryFeature> _plugin;
+FeaturePlugin<AStarFlawGeneratorFactoryFeature> _plugin;
 
 } // namespace

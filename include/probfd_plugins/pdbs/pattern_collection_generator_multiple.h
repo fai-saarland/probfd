@@ -1,24 +1,24 @@
 #ifndef PROBFD_PLUGINS_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_H
 #define PROBFD_PLUGINS_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_H
 
-#include "downward/utils/logging.h"
-
 #include <memory>
 #include <utility>
 
 // Forward Declarations
-namespace plugins {
+namespace downward_plugins::plugins {
 class Feature;
 class Options;
-} // namespace plugins
+} // namespace downward_plugins::plugins
 
 namespace utils {
+enum class Verbosity;
 class RandomNumberGenerator;
 } // namespace utils
 
 namespace probfd_plugins::pdbs {
 
-extern void add_multiple_options_to_feature(plugins::Feature& feature);
+extern void
+add_multiple_options_to_feature(downward_plugins::plugins::Feature& feature);
 
 extern std::tuple<
     int,
@@ -31,7 +31,8 @@ extern std::tuple<
     bool,
     std::shared_ptr<utils::RandomNumberGenerator>,
     utils::Verbosity>
-get_multiple_arguments_from_options(const plugins::Options& options);
+get_multiple_arguments_from_options(
+    const downward_plugins::plugins::Options& options);
 
 } // namespace probfd_plugins::pdbs
 

@@ -1,3 +1,8 @@
+#include "downward_plugins/plugins/plugin.h"
+
+#include "downward_plugins/utils/logging_options.h"
+#include "downward_plugins/utils/rng_options.h"
+
 #include "probfd_plugins/pdbs/pattern_collection_generator_disjoint_cegar.h"
 
 #include "probfd_plugins/pdbs/cegar_options.h"
@@ -7,18 +12,24 @@
 
 #include "downward/utils/rng_options.h"
 
-#include "downward/plugins/plugin.h"
-
 using namespace std;
 
+using namespace utils;
+
 using namespace probfd::pdbs;
-using namespace probfd_plugins::pdbs;
 using namespace probfd::pdbs::cegar;
+
+using namespace downward_plugins::plugins;
+
+using downward_plugins::utils::add_log_options_to_feature;
+using downward_plugins::utils::get_log_arguments_from_options;
+
+using downward_plugins::utils::add_rng_options_to_feature;
+using downward_plugins::utils::get_rng_arguments_from_options;
 
 namespace probfd_plugins::pdbs {
 
-void add_pattern_collection_generator_cegar_options_to_feature(
-    plugins::Feature& feature)
+void add_pattern_collection_generator_cegar_options_to_feature(Feature& feature)
 {
     feature.add_option<bool>(
         "single_goal",
@@ -29,20 +40,20 @@ void add_pattern_collection_generator_cegar_options_to_feature(
         "maximum allowed number of states in a pdb (not applied to initial "
         "goal variable pattern(s))",
         "1000000",
-        plugins::Bounds("1", "infinity"));
+        Bounds("1", "infinity"));
     feature.add_option<int>(
         "max_collection_size",
         "limit for the total number of PDB entries across all PDBs (not "
         "applied to initial goal variable pattern(s))",
         "infinity",
-        plugins::Bounds("1", "infinity"));
+        Bounds("1", "infinity"));
     feature.add_option<double>(
         "max_time",
         "maximum time in seconds for CEGAR pattern generation. "
         "This includes the creation of the initial PDB collection"
         " as well as the creation of the correlation matrix.",
         "infinity",
-        plugins::Bounds("0.0", "infinity"));
+        Bounds("0.0", "infinity"));
     feature.add_option<std::shared_ptr<SubCollectionFinderFactory>>(
         "subcollection_finder_factory",
         "The subcollection finder factory.",
@@ -59,7 +70,7 @@ void add_pattern_collection_generator_cegar_options_to_feature(
 namespace {
 
 class PatternCollectionGeneratorDisjointCEGARFeature
-    : public plugins::TypedFeature<
+    : public TypedFeature<
           PatternCollectionGenerator,
           PatternCollectionGeneratorDisjointCegar> {
 public:
@@ -67,30 +78,28 @@ public:
         : TypedFeature("ppdbs_disjoint_cegar")
     {
         add_pattern_collection_generator_cegar_options_to_feature(*this);
-        utils::add_rng_options_to_feature(*this);
+        add_rng_options_to_feature(*this);
     } // namespace probfd::pdbs
 
     virtual shared_ptr<PatternCollectionGeneratorDisjointCegar>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
+    create_component(const Options& opts, const Context&) const override
     {
-        return plugins::make_shared_from_arg_tuples<
+        return make_shared_from_arg_tuples<
             PatternCollectionGeneratorDisjointCegar>(
             opts.get<bool>("use_wildcard_policies"),
             opts.get<bool>("single_goal"),
             opts.get<int>("max_pdb_size"),
             opts.get<int>("max_collection_size"),
             opts.get<double>("max_time"),
-            utils::get_rng(
-                std::get<0>(utils::get_rng_arguments_from_options(opts))),
+            get_rng(std::get<0>(get_rng_arguments_from_options(opts))),
             opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
                 "subcollection_finder_factory"),
             opts.get<std::shared_ptr<FlawFindingStrategy>>("flaw_strategy"),
-            utils::get_log_arguments_from_options(opts));
+            get_log_arguments_from_options(opts));
     }
 };
 
-plugins::FeaturePlugin<PatternCollectionGeneratorDisjointCEGARFeature> _plugin;
+FeaturePlugin<PatternCollectionGeneratorDisjointCEGARFeature> _plugin;
 
 } // namespace
 

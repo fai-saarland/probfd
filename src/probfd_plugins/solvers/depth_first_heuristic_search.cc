@@ -1,3 +1,5 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd_plugins/multi_feature_plugin.h"
 #include "probfd_plugins/naming_conventions.h"
 
@@ -5,13 +7,8 @@
 
 #include "probfd/algorithms/depth_first_heuristic_search.h"
 
-#include "downward/plugins/plugin.h"
-
-#include <iostream>
 #include <memory>
 #include <string>
-
-using namespace plugins;
 
 using namespace probfd;
 using namespace probfd::algorithms;
@@ -20,6 +17,8 @@ using namespace probfd::solvers;
 
 using namespace probfd_plugins;
 using namespace probfd_plugins::solvers;
+
+using namespace downward_plugins::plugins;
 
 namespace {
 
@@ -147,8 +146,7 @@ protected:
                 "cutoff_inconsistent=true");
         }
 
-        return plugins::make_shared_from_arg_tuples<
-            DFHSSolver<Bisimulation, Fret>>(
+        return make_shared_from_arg_tuples<DFHSSolver<Bisimulation, Fret>>(
             "dfhs",
             forward_updates,
             backward_updates,
@@ -177,8 +175,7 @@ public:
     create_component(const Options& options, const utils::Context&)
         const override
     {
-        return plugins::make_shared_from_arg_tuples<
-            DFHSSolver<Bisimulation, Fret>>(
+        return make_shared_from_arg_tuples<DFHSSolver<Bisimulation, Fret>>(
             "ilao",
             false,
             BacktrackingUpdateType::SINGLE,
@@ -208,8 +205,7 @@ public:
     create_component(const Options& options, const utils::Context&)
         const override
     {
-        return plugins::make_shared_from_arg_tuples<
-            DFHSSolver<Bisimulation, Fret>>(
+        return make_shared_from_arg_tuples<DFHSSolver<Bisimulation, Fret>>(
             "lilao",
             false,
             BacktrackingUpdateType::SINGLE,
@@ -238,8 +234,7 @@ public:
     create_component(const Options& options, const utils::Context&)
         const override
     {
-        return plugins::make_shared_from_arg_tuples<
-            DFHSSolver<Bisimulation, Fret>>(
+        return make_shared_from_arg_tuples<DFHSSolver<Bisimulation, Fret>>(
             "hdp",
             true,
             BacktrackingUpdateType::ON_DEMAND,

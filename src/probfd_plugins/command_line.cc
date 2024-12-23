@@ -1,15 +1,15 @@
 #include "probfd_plugins/command_line.h"
 
+#include "downward_plugins/parser/lexical_analyzer.h"
+#include "downward_plugins/parser/syntax_analyzer.h"
+#include "downward_plugins/parser/token_stream.h"
+
+#include "downward_plugins/plugins/doc_printer.h"
+#include "downward_plugins/plugins/raw_registry.h"
+#include "downward_plugins/plugins/registry.h"
+
 #include "probfd/solver_interface.h"
 #include "probfd/value_type.h"
-
-#include "downward/parser/lexical_analyzer.h"
-#include "downward/parser/syntax_analyzer.h"
-#include "downward/parser/token_stream.h"
-
-#include "downward/plugins/doc_printer.h"
-#include "downward/plugins/raw_registry.h"
-#include "downward/plugins/registry.h"
 
 #include "downward/utils/logging.h"
 #include "downward/utils/strings.h"
@@ -21,7 +21,8 @@
 #include <vector>
 
 using namespace std;
-using namespace plugins;
+using namespace downward_plugins::parser;
+using namespace downward_plugins::plugins;
 
 namespace probfd {
 
@@ -105,9 +106,9 @@ parse_cmd_line_aux(const vector<string>& args)
             if (is_last) input_error("missing argument after --search");
             const string& search_arg = args[++i];
             try {
-                parser::TokenStream tokens = parser::split_tokens(search_arg);
-                parser::ASTNodePtr parsed = parser::parse(tokens);
-                parser::DecoratedASTNodePtr decorated = parsed->decorate();
+                TokenStream tokens = split_tokens(search_arg);
+                ASTNodePtr parsed = parse(tokens);
+                DecoratedASTNodePtr decorated = parsed->decorate();
                 std::any constructed = decorated->construct();
                 algorithm = std::any_cast<SearchPtr>(constructed);
             } catch (const utils::ContextError& e) {
@@ -125,15 +126,13 @@ parse_cmd_line_aux(const vector<string>& args)
                     plugin_names.push_back(help_arg);
                 }
             }
-            plugins::Registry registry =
-                plugins::RawRegistry::instance()->construct_registry();
-            unique_ptr<plugins::DocPrinter> doc_printer;
+
+            Registry registry = RawRegistry::instance()->construct_registry();
+            unique_ptr<DocPrinter> doc_printer;
             if (txt2tags) {
-                doc_printer =
-                    std::make_unique<plugins::Txt2TagsPrinter>(cout, registry);
+                doc_printer = std::make_unique<Txt2TagsPrinter>(cout, registry);
             } else {
-                doc_printer =
-                    std::make_unique<plugins::PlainPrinter>(cout, registry);
+                doc_printer = std::make_unique<PlainPrinter>(cout, registry);
             }
 
             if (plugin_names.empty()) {

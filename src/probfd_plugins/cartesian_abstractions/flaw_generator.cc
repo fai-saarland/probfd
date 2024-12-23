@@ -1,13 +1,15 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd/cartesian_abstractions/flaw_generator.h"
 
-#include "downward/plugins/plugin.h"
+using namespace downward_plugins::plugins;
 
 using namespace probfd::cartesian_abstractions;
 
 namespace {
 
-static class FlawGeneratorFactoryCategoryPlugin
-    : public plugins::TypedCategoryPlugin<FlawGeneratorFactory> {
+class FlawGeneratorFactoryCategoryPlugin
+    : public TypedCategoryPlugin<FlawGeneratorFactory> {
 public:
     FlawGeneratorFactoryCategoryPlugin()
         : TypedCategoryPlugin("FlawGeneratorFactory")

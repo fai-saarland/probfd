@@ -1,15 +1,22 @@
-#include "probfd/pdbs/pattern_collection_generator_systematic.h"
+#include "downward_plugins/plugins/plugin.h"
 
-#include "downward/plugins/plugin.h"
+#include "downward_plugins/utils/logging_options.h"
+
+#include "probfd/pdbs/pattern_collection_generator_systematic.h"
 
 #include "downward/utils/markup.h"
 
 using namespace probfd::pdbs;
 
+using namespace downward_plugins::plugins;
+
+using downward_plugins::utils::add_log_options_to_feature;
+using downward_plugins::utils::get_log_arguments_from_options;
+
 namespace {
 
 class PatternCollectionGeneratorSystematicFeature
-    : public plugins::TypedFeature<
+    : public TypedFeature<
           PatternCollectionGenerator,
           PatternCollectionGeneratorSystematic> {
 public:
@@ -36,27 +43,26 @@ public:
             "pattern_max_size",
             "max number of variables per pattern",
             "1",
-            plugins::Bounds("1", "infinity"));
+            Bounds("1", "infinity"));
         add_option<bool>(
             "only_interesting_patterns",
             "Only consider the union of two disjoint patterns if the union has "
             "more information than the individual patterns.",
             "true");
-        utils::add_log_options_to_feature(*this);
+        add_log_options_to_feature(*this);
     }
 
     std::shared_ptr<PatternCollectionGeneratorSystematic>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
+    create_component(const Options& opts, const utils::Context&) const override
     {
-        return plugins::make_shared_from_arg_tuples<
+        return make_shared_from_arg_tuples<
             PatternCollectionGeneratorSystematic>(
             opts.get<int>("pattern_max_size"),
             opts.get<bool>("only_interesting_patterns"),
-            utils::get_log_arguments_from_options(opts));
+            get_log_arguments_from_options(opts));
     }
 };
 
-plugins::FeaturePlugin<PatternCollectionGeneratorSystematicFeature> _;
+FeaturePlugin<PatternCollectionGeneratorSystematicFeature> _;
 
 } // namespace

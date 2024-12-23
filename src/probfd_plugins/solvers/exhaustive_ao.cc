@@ -1,3 +1,5 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd_plugins/multi_feature_plugin.h"
 #include "probfd_plugins/naming_conventions.h"
 
@@ -7,12 +9,8 @@
 
 #include "probfd/algorithms/exhaustive_ao.h"
 
-#include "downward/plugins/plugin.h"
-
 #include <memory>
 #include <string>
-
-using namespace plugins;
 
 using namespace probfd;
 using namespace probfd::algorithms;
@@ -20,6 +18,8 @@ using namespace probfd::solvers;
 
 using namespace probfd_plugins;
 using namespace probfd_plugins::solvers;
+
+using namespace downward_plugins::plugins;
 
 namespace {
 
@@ -96,8 +96,7 @@ protected:
     create_component(const Options& options, const utils::Context&)
         const override
     {
-        return plugins::make_shared_from_arg_tuples<
-            ExhaustiveAOSolver<Bisimulation>>(
+        return make_shared_from_arg_tuples<ExhaustiveAOSolver<Bisimulation>>(
             options.get<std::shared_ptr<OpenList>>("open_list"),
             get_mdp_hs_args_from_options<Bisimulation, false>(options));
     }

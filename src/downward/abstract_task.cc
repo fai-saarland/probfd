@@ -1,9 +1,5 @@
 #include "downward/abstract_task.h"
 
-#include "downward/per_task_information.h"
-
-#include "downward/plugins/plugin.h"
-
 #include <iostream>
 
 using namespace std;
@@ -15,14 +11,3 @@ ostream& operator<<(ostream& os, const FactPair& fact_pair)
     os << fact_pair.var << "=" << fact_pair.value;
     return os;
 }
-
-static class AbstractTaskCategoryPlugin
-    : public plugins::TypedCategoryPlugin<AbstractTask> {
-public:
-    AbstractTaskCategoryPlugin()
-        : TypedCategoryPlugin("AbstractTask")
-    {
-        // TODO: Replace empty string by synopsis for the wiki page.
-        document_synopsis("");
-    }
-} _category_plugin;

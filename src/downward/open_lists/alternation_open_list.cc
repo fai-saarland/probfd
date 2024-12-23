@@ -152,39 +152,4 @@ unique_ptr<EdgeOpenList> AlternationOpenListFactory::create_edge_open_list()
         boost);
 }
 
-class AlternationOpenListFeature
-    : public plugins::
-          TypedFeature<OpenListFactory, AlternationOpenListFactory> {
-public:
-    AlternationOpenListFeature()
-        : TypedFeature("alt")
-    {
-        document_title("Alternation open list");
-        document_synopsis("alternates between several open lists.");
-
-        add_list_option<shared_ptr<OpenListFactory>>(
-            "sublists",
-            "open lists between which this one alternates");
-        add_option<int>(
-            "boost",
-            "boost value for contained open lists that are restricted "
-            "to preferred successors",
-            "0");
-    }
-
-    virtual shared_ptr<AlternationOpenListFactory> create_component(
-        const plugins::Options& opts,
-        const utils::Context& context) const override
-    {
-        plugins::verify_list_non_empty<shared_ptr<OpenListFactory>>(
-            context,
-            opts,
-            "sublists");
-        return plugins::make_shared_from_arg_tuples<AlternationOpenListFactory>(
-            opts.get_list<shared_ptr<OpenListFactory>>("sublists"),
-            opts.get<int>("boost"));
-    }
-};
-
-static plugins::FeaturePlugin<AlternationOpenListFeature> _plugin;
 } // namespace alternation_open_list

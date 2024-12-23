@@ -22,7 +22,10 @@ create_library(
     DEPENDS
         probfd_core
         core_probabilistic_tasks
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -32,80 +35,11 @@ create_library(
         probfd_plugins/solvers/mdp_solver
     DEPENDS
         probfd_core
-    TARGET probfd
-)
-
-create_library(
-    NAME acyclic_value_iteration_solver_plugin
-    HELP "Enables the acyclic value iteration solver plugin"
-    SOURCES
-        probfd_plugins/solvers/acyclic_vi
-    DEPENDS
-       mdp_solver_options
-    TARGET probfd
-)
-
-create_library(
-    NAME topological_value_iteration_solver_plugin
-    HELP "Enables the topological value iteration solver plugin"
-    SOURCES
-        probfd_plugins/solvers/topological_vi
-    DEPENDS
-        mdp_solver_options
-    TARGET probfd
-)
-
-create_library(
-    NAME trap_aware_topological_value_iteration_solver_plugin
-    HELP "Enables the trap-aware topological value iteration solver plugin"
-    SOURCES
-        probfd_plugins/solvers/ta_topological_vi
-    DEPENDS
-        mdp_solver_options
-    TARGET probfd
-)
-
-create_library(
-    NAME interval_iteration_solver_plugin
-    HELP "Enables the interval iteration solver plugin"
-    SOURCES
-        probfd_plugins/solvers/interval_iteration
-    DEPENDS
-        mdp_solver_options
-    TARGET probfd
-)
-
-create_library(
-    NAME idual_solver_plugin
-    HELP "Enables the i-dual solver plugin"
-    SOURCES
-        probfd_plugins/solvers/idual
-    DEPENDS
-        mdp_solver_options
-        lp_solver
-    TARGET probfd
-)
-
-create_library(
-    NAME i2dual_solver_plugin
-    HELP "Enables the i^2-dual solver plugin"
-    SOURCES
-        probfd_plugins/solvers/i2dual
-    DEPENDS
-        i2dual_solver
-        mdp_solver_options
-    TARGET probfd
-)
-
-create_library(
-    NAME bisimulation_based_solver_plugin
-    HELP "Enables the bisimulation-based value iteration solver plugin"
-    SOURCES
-        probfd_plugins/solvers/bisimulation_vi
-    DEPENDS
-        probfd_core
-        mdp_solver_options
-    TARGET probfd
+        parser
+        plugins
+        logging_options
+    TARGET
+        probfd
 )
 
 create_library(
@@ -116,60 +50,51 @@ create_library(
     DEPENDS
         mdp_heuristic_search_base
         mdp_solver_options
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
-    NAME ao_search_plugin
-    HELP "Enables the AO* solver variant plugin"
+    NAME acyclic_value_iteration_solver_plugin
+    HELP "Enables the acyclic value iteration solver plugin"
+    SOURCES
+        probfd_plugins/solvers/acyclic_vi
+    DEPENDS
+        mdp_solver_options
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME ao_star_plugin
+    HELP "Enables the AO* solver plugin"
     SOURCES
         probfd_plugins/solvers/aostar
-        probfd_plugins/solvers/exhaustive_ao
     DEPENDS
         mdp_heuristic_search_base_options
         probfd_core
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
-    NAME exhaustive_dfhs_plugin
-    HELP "Enables the exhaustive depth-first heuristic search solver plugin"
+    NAME bisimulation_based_solver_plugin
+    HELP "Enables the bisimulation-based value iteration solver plugin"
     SOURCES
-        probfd_plugins/solvers/exhaustive_dfs
+        probfd_plugins/solvers/bisimulation_vi
     DEPENDS
-        mdp_heuristic_search_base_options
-    TARGET probfd
-)
-
-create_library(
-    NAME lrtdp_solver_plugin
-    HELP "Enables the labeled real-time dynamic programming solver plugin"
-    SOURCES
-        probfd_plugins/solvers/lrtdp
-    DEPENDS
-        mdp_heuristic_search_base_options
         probfd_core
-    TARGET probfd
-)
-
-create_library(
-    NAME trap_aware_lrtdp_solver_plugin
-    HELP "Enables the trap-Aware LRTDP solver plugin"
-    SOURCES
-        probfd_plugins/solvers/talrtdp
-    DEPENDS
-        mdp_heuristic_search_base_options
-    TARGET probfd
-)
-
-create_library(
-    NAME trap_aware_dfhs_solver_plugin
-    HELP "Enables the trap-Aware DFHS solver plugin"
-    SOURCES
-        probfd_plugins/solvers/ta_depth_first_heuristic_search
-    DEPENDS
-        mdp_heuristic_search_base_options
-    TARGET probfd
+        mdp_solver_options
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -180,7 +105,133 @@ create_library(
     DEPENDS
         mdp_heuristic_search_base_options
         probfd_core
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME exhaustive_ao_star_plugin
+    HELP "Enables the exhaustive AO* solver plugin"
+    SOURCES
+        probfd_plugins/solvers/exhaustive_ao
+    DEPENDS
+        mdp_heuristic_search_base_options
+        probfd_core
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME exhaustive_dfhs_plugin
+    HELP "Enables the exhaustive depth-first heuristic search solver plugin"
+    SOURCES
+        probfd_plugins/solvers/exhaustive_dfs
+    DEPENDS
+        mdp_heuristic_search_base_options
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME idual_solver_plugin
+    HELP "Enables the i-dual solver plugin"
+    SOURCES
+        probfd_plugins/solvers/idual
+    DEPENDS
+        mdp_solver_options
+        lp_solver_options
+        lp_solver
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME i2dual_solver_plugin
+    HELP "Enables the i^2-dual solver plugin"
+    SOURCES
+        probfd_plugins/solvers/i2dual
+    DEPENDS
+        i2dual_solver
+        lp_solver_options
+        mdp_solver_options
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME interval_iteration_solver_plugin
+    HELP "Enables the interval iteration solver plugin"
+    SOURCES
+        probfd_plugins/solvers/interval_iteration
+    DEPENDS
+        mdp_solver_options
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME lrtdp_solver_plugin
+    HELP "Enables the labeled real-time dynamic programming solver plugin"
+    SOURCES
+        probfd_plugins/solvers/lrtdp
+    DEPENDS
+        mdp_heuristic_search_base_options
+        probfd_core
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME trap_aware_dfhs_solver_plugin
+    HELP "Enables the trap-Aware DFHS solver plugin"
+    SOURCES
+        probfd_plugins/solvers/ta_depth_first_heuristic_search
+    DEPENDS
+        mdp_heuristic_search_base_options
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME trap_aware_lrtdp_solver_plugin
+    HELP "Enables the trap-Aware LRTDP solver plugin"
+    SOURCES
+        probfd_plugins/solvers/ta_lrtdp
+    DEPENDS
+        mdp_heuristic_search_base_options
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME trap_aware_topological_value_iteration_solver_plugin
+    HELP "Enables the trap-aware topological value iteration solver plugin"
+    SOURCES
+        probfd_plugins/solvers/ta_topological_vi
+    DEPENDS
+        mdp_solver_options
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -189,6 +240,22 @@ create_library(
         probfd_plugins/heuristics/task_dependent_heuristic
     DEPENDS
         task_dependent_heuristic
+        parser
+        plugins
+        logging_options
+)
+
+create_library(
+    NAME topological_value_iteration_solver_plugin
+    HELP "Enables the topological value iteration solver plugin"
+    SOURCES
+        probfd_plugins/solvers/topological_vi
+    DEPENDS
+        mdp_solver_options
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -205,6 +272,8 @@ create_library(
         probfd_plugins/pdbs/fully_additive_finder_factory
     DEPENDS
         padbs_pattern_generators
+        parser
+        plugins
     TARGET
         probfd
 )
@@ -217,7 +286,10 @@ create_library(
     DEPENDS
         papdbs_classical_generator
         padbs_pattern_generators_plugin
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -228,7 +300,10 @@ create_library(
     DEPENDS
         papdbs_systematic_generator
         padbs_pattern_generators_plugin
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -240,7 +315,10 @@ create_library(
     DEPENDS
         papdbs_hillclimbing_generator
         padbs_pattern_generators_plugin
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -256,7 +334,10 @@ create_library(
     DEPENDS
         papdbs_cegar
         padbs_pattern_generators_plugin
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -268,7 +349,10 @@ create_library(
     DEPENDS
         papdbs_disjoint_cegar_generator
         padbs_pattern_generators_plugin
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -280,7 +364,10 @@ create_library(
     DEPENDS
         papdbs_multiple_cegar_generator
         padbs_pattern_generators_plugin
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -294,7 +381,10 @@ create_library(
         probfd_plugins/cartesian_abstractions/subtask_generators
     DEPENDS
         pa_cartesian_abstractions
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -305,7 +395,10 @@ create_library(
     DEPENDS
         task_dependent_heuristic_plugin
         probability_aware_cartesian_abstraction_heuristic
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -315,7 +408,10 @@ create_library(
         probfd_plugins/heuristics/constant_evaluator
     DEPENDS
         probfd_core
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -325,7 +421,10 @@ create_library(
         probfd_plugins/heuristics/dead_end_pruning
     DEPENDS
         deadend_pruning_heuristic
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -335,7 +434,10 @@ create_library(
         probfd_plugins/heuristics/determinization_cost
     DEPENDS
         determinization_heuristic
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -345,7 +447,10 @@ create_library(
         probfd_plugins/heuristics/gzocp_heuristic
     DEPENDS
         gzocp_pdb_heuristic
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -355,7 +460,10 @@ create_library(
         probfd_plugins/heuristics/probability_aware_pdb_heuristic
     DEPENDS
         probability_aware_pdb_heuristic
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -365,7 +473,10 @@ create_library(
         probfd_plugins/heuristics/scp_heuristic
     DEPENDS
         scp_pdb_heuristic
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -375,17 +486,24 @@ create_library(
         probfd_plugins/heuristics/ucp_heuristic
     DEPENDS
         ucp_pdb_heuristic
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
     NAME occupation_measure_heuristics_plugin
     HELP "Enables the Occupation measure heuristics plugin"
     SOURCES
+        probfd_plugins/occupation_measures/contraint_generator
         probfd_plugins/occupation_measures/subcategory
     DEPENDS
         occupation_measure_heuristic
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -395,7 +513,10 @@ create_library(
         probfd_plugins/open_lists/subcategory
     DEPENDS
         mdp_heuristic_search_base
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -405,7 +526,11 @@ create_library(
         probfd_plugins/successor_samplers/subcategory
     DEPENDS
         mdp_heuristic_search_base
-    TARGET probfd
+        rng_options
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -415,7 +540,10 @@ create_library(
         probfd_plugins/policy_pickers/subcategory
     DEPENDS
         mdp_heuristic_search_base
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -425,5 +553,8 @@ create_library(
         probfd_plugins/transition_sorters/subcategory
     DEPENDS
         mdp_heuristic_search_base
-    TARGET probfd
+        parser
+        plugins
+    TARGET
+        probfd
 )

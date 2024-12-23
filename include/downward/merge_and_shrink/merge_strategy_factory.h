@@ -8,11 +8,6 @@
 
 class TaskProxy;
 
-namespace plugins {
-class Options;
-class Feature;
-} // namespace plugins
-
 namespace merge_and_shrink {
 class FactoredTransitionSystem;
 class MergeStrategy;
@@ -35,9 +30,6 @@ public:
     virtual bool requires_goal_distances() const = 0;
 };
 
-extern void add_merge_strategy_options_to_feature(plugins::Feature& feature);
-extern std::tuple<utils::Verbosity>
-get_merge_strategy_arguments_from_options(const plugins::Options& opts);
 } // namespace merge_and_shrink
 
 #endif

@@ -6,10 +6,6 @@
 #include <memory>
 #include <vector>
 
-namespace plugins {
-class Options;
-}
-
 namespace merge_and_shrink {
 class MergeScoringFunction;
 class MergeSelectorScoreBasedFiltering : public MergeSelector {

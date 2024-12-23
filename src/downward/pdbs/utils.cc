@@ -10,7 +10,6 @@
 #include "downward/task_utils/task_properties.h"
 
 #include "downward/utils/logging.h"
-#include "downward/utils/markup.h"
 #include "downward/utils/math.h"
 #include "downward/utils/rng.h"
 
@@ -148,17 +147,4 @@ void dump_pattern_collection_generation_statistics(
     }
 }
 
-string get_rovner_et_al_reference()
-{
-    return utils::format_conference_reference(
-        {"Alexander Rovner", "Silvan Sievers", "Malte Helmert"},
-        "Counterexample-Guided Abstraction Refinement for Pattern Selection "
-        "in Optimal Classical Planning",
-        "https://ai.dmi.unibas.ch/papers/rovner-et-al-icaps2019.pdf",
-        "Proceedings of the 29th International Conference on Automated "
-        "Planning and Scheduling (ICAPS 2019)",
-        "362-367",
-        "AAAI Press",
-        "2019");
-}
 } // namespace pdbs

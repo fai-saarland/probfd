@@ -40,6 +40,7 @@ include(options)
 set_up_build_types("Debug;Release")
 set_up_options()
 
+#add_executable(probfd downward/command_line.cc downward/planner.cc)
 add_executable(probfd probfd_plugins/planner.cc)
 
 # On Windows we have to copy all DLLs next to the generated binary.
@@ -50,6 +51,8 @@ endif ()
 # Collect source files needed for the active plugins.
 include(DownwardFiles)
 include(ProbFDFiles)
+
+include(DownwardPlugins)
 include(ProbFDPlugins)
 
 # Add tests as a subproject.

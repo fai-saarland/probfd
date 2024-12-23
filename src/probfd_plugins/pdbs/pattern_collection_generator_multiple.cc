@@ -1,16 +1,23 @@
+#include "downward_plugins/plugins/plugin.h"
+
+#include "downward_plugins/utils/rng_options.h"
+
 #include "probfd_plugins/pdbs/pattern_collection_generator_multiple.h"
 
 #include "probfd_plugins/pdbs/pattern_collection_generator.h"
 
 #include "downward/utils/rng_options.h"
 
-#include "downward/plugins/plugin.h"
-
 using namespace std;
+
+using namespace downward_plugins::plugins;
+
+using downward_plugins::utils::add_rng_options_to_feature;
+using downward_plugins::utils::get_rng_arguments_from_options;
 
 namespace probfd_plugins::pdbs {
 
-void add_multiple_options_to_feature(plugins::Feature& feature)
+void add_multiple_options_to_feature(Feature& feature)
 {
     feature.add_option<int>(
         "max_pdb_size",
@@ -18,38 +25,38 @@ void add_multiple_options_to_feature(plugins::Feature& feature)
         "by compute_pattern (possibly ignored by singleton patterns consisting "
         "of a goal variable)",
         "1M",
-        plugins::Bounds("1", "infinity"));
+        Bounds("1", "infinity"));
     feature.add_option<int>(
         "max_collection_size",
         "maximum number of states in all pattern databases of the "
         "collection (possibly ignored, see max_pdb_size)",
         "10M",
-        plugins::Bounds("1", "infinity"));
+        Bounds("1", "infinity"));
     feature.add_option<double>(
         "pattern_generation_max_time",
         "maximum time in seconds for each call to the algorithm for "
         "computing a single pattern",
         "infinity",
-        plugins::Bounds("0.0", "infinity"));
+        Bounds("0.0", "infinity"));
     feature.add_option<double>(
         "total_max_time",
         "maximum time in seconds for this pattern collection generator. "
         "It will always execute at least one iteration, i.e., call the "
         "algorithm for computing a single pattern at least once.",
         "100.0",
-        plugins::Bounds("0.0", "infinity"));
+        Bounds("0.0", "infinity"));
     feature.add_option<double>(
         "stagnation_limit",
         "maximum time in seconds this pattern generator is allowed to run "
         "without generating a new pattern. It terminates prematurely if this "
         "limit is hit unless enable_blacklist_on_stagnation is enabled.",
         "20.0",
-        plugins::Bounds("1.0", "infinity"));
+        Bounds("1.0", "infinity"));
     feature.add_option<double>(
         "blacklist_trigger_percentage",
         "percentage of total_max_time after which blacklisting is enabled",
         "0.75",
-        plugins::Bounds("0.0", "1.0"));
+        Bounds("0.0", "1.0"));
     feature.add_option<bool>(
         "enable_blacklist_on_stagnation",
         "if true, blacklisting is enabled when stagnation_limit is hit "
@@ -67,7 +74,7 @@ void add_multiple_options_to_feature(plugins::Feature& feature)
         "algorithm continues with the remaining costs. If false, the maximum "
         "PDB estimate is used.",
         "true");
-    utils::add_rng_options_to_feature(feature);
+    add_rng_options_to_feature(feature);
     add_pattern_collection_generator_options_to_feature(feature);
 }
 
@@ -82,7 +89,7 @@ std::tuple<
     bool,
     std::shared_ptr<utils::RandomNumberGenerator>,
     utils::Verbosity>
-get_multiple_arguments_from_options(const plugins::Options& options)
+get_multiple_arguments_from_options(const Options& options)
 {
     return std::tuple_cat(
         std::make_tuple(
@@ -95,7 +102,7 @@ get_multiple_arguments_from_options(const plugins::Options& options)
             options.get<bool>("enable_blacklist_on_stagnation"),
             options.get<bool>("use_saturated_costs"),
             utils::get_rng(
-                std::get<0>(utils::get_rng_arguments_from_options(options)))),
+                std::get<0>(get_rng_arguments_from_options(options)))),
         get_collection_generator_arguments_from_options(options));
 }
 

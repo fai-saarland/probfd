@@ -6,11 +6,8 @@
 
 #include "downward/heuristic.h"
 
-namespace plugins {
-class Feature;
-}
-
 namespace pdbs {
+
 // Implements the canonical heuristic function.
 class CanonicalPDBsHeuristic : public Heuristic {
     CanonicalPDBs canonical_pdbs;
@@ -28,9 +25,6 @@ public:
         utils::Verbosity verbosity);
 };
 
-void add_canonical_pdbs_options_to_feature(plugins::Feature& feature);
-std::tuple<double>
-get_canonical_pdbs_arguments_from_options(const plugins::Options& opts);
 } // namespace pdbs
 
 #endif

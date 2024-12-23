@@ -5,10 +5,6 @@
 
 #include <memory>
 
-namespace plugins {
-class Feature;
-} // namespace plugins
-
 namespace utils {
 class RandomNumberGenerator;
 }
@@ -39,7 +35,6 @@ public:
         const FactoredTransitionSystem& fts,
         const std::vector<std::pair<int, int>>& merge_candidates) override;
     virtual void initialize(const TaskProxy& task_proxy) override;
-    static void add_options_to_feature(plugins::Feature& feature);
 
     virtual bool requires_init_distances() const override { return false; }
 

@@ -13,11 +13,6 @@
 
 class TaskProxy;
 
-namespace plugins {
-class Feature;
-class Options;
-} // namespace plugins
-
 class Heuristic : public Evaluator {
     struct HEntry {
         /* dirty is conceptually a bool, but Visual C++ does not support
@@ -95,12 +90,5 @@ public:
     virtual bool is_estimate_cached(const State& state) const override;
     virtual int get_cached_estimate(const State& state) const override;
 };
-
-extern void add_heuristic_options_to_feature(
-    plugins::Feature& feature,
-    const std::string& description);
-extern std::
-    tuple<std::shared_ptr<AbstractTask>, bool, std::string, utils::Verbosity>
-    get_heuristic_arguments_from_options(const plugins::Options& opts);
 
 #endif

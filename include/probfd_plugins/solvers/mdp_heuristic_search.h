@@ -1,6 +1,8 @@
 #ifndef PROBFD_PLUGINS_SOLVERS_MDP_HEURISTIC_SEARCH_H
 #define PROBFD_PLUGINS_SOLVERS_MDP_HEURISTIC_SEARCH_H
 
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd_plugins/naming_conventions.h"
 
 #include "probfd_plugins/solvers/mdp_solver.h"
@@ -8,8 +10,6 @@
 #include "probfd/solvers/mdp_heuristic_search.h"
 
 #include "probfd/bisimulation/types.h"
-
-#include "downward/plugins/plugin.h"
 
 #include <memory>
 #include <string>
@@ -24,7 +24,8 @@ using PolicyPickerType = probfd::algorithms::PolicyPicker<
     probfd::solvers::ActionType<Bisimulation, Fret>>;
 
 template <bool Bisimulation, bool Fret>
-void add_mdp_hs_base_options_to_feature(plugins::Feature& feature)
+void add_mdp_hs_base_options_to_feature(
+    downward_plugins::plugins::Feature& feature)
 {
     feature.add_option<bool>("dual_bounds", "", "false");
     feature.add_option<std::shared_ptr<PolicyPickerType<Bisimulation, Fret>>>(
@@ -37,7 +38,8 @@ void add_mdp_hs_base_options_to_feature(plugins::Feature& feature)
 }
 
 template <bool Bisimulation, bool Fret>
-auto get_mdp_hs_base_args_from_options(const plugins::Options& options)
+auto get_mdp_hs_base_args_from_options(
+    const downward_plugins::plugins::Options& options)
 {
     return std::tuple_cat(
         std::make_tuple(
@@ -48,7 +50,7 @@ auto get_mdp_hs_base_args_from_options(const plugins::Options& options)
 }
 
 template <bool Bisimulation, bool Fret>
-void add_mdp_hs_options_to_feature(plugins::Feature& feature)
+void add_mdp_hs_options_to_feature(downward_plugins::plugins::Feature& feature)
 {
     if constexpr (Fret) {
         feature.add_option<bool>("fret_on_policy", "", "true");
@@ -58,7 +60,8 @@ void add_mdp_hs_options_to_feature(plugins::Feature& feature)
 }
 
 template <bool Bisimulation, bool Fret>
-auto get_mdp_hs_args_from_options(const plugins::Options& options)
+auto get_mdp_hs_args_from_options(
+    const downward_plugins::plugins::Options& options)
 {
     if constexpr (Fret) {
         return std::tuple_cat(

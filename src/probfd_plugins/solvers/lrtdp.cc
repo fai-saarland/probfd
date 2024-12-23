@@ -1,3 +1,5 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd_plugins/multi_feature_plugin.h"
 #include "probfd_plugins/naming_conventions.h"
 
@@ -5,13 +7,11 @@
 
 #include "probfd/algorithms/lrtdp.h"
 
-#include "downward/plugins/plugin.h"
-
 #include <iostream>
 #include <memory>
 #include <string>
 
-using namespace plugins;
+using namespace utils;
 
 using namespace probfd;
 using namespace probfd::solvers;
@@ -20,6 +20,8 @@ using namespace probfd::algorithms::lrtdp;
 
 using namespace probfd_plugins;
 using namespace probfd_plugins::solvers;
+
+using namespace downward_plugins::plugins;
 
 namespace {
 
@@ -88,7 +90,7 @@ public:
 
 protected:
     std::shared_ptr<LRTDPSolver<Bisimulation, Fret>>
-    create_component(const Options& options, const utils::Context& context)
+    create_component(const Options& options, const Context& context)
         const override
     {
         using enum TrialTerminationCondition;
@@ -105,8 +107,7 @@ protected:
             }
         }
 
-        return plugins::make_shared_from_arg_tuples<
-            LRTDPSolver<Bisimulation, Fret>>(
+        return make_shared_from_arg_tuples<LRTDPSolver<Bisimulation, Fret>>(
             options.get<std::shared_ptr<Sampler>>("successor_sampler"),
             options.get<TrialTerminationCondition>("trial_termination"),
             get_mdp_hs_args_from_options<Bisimulation, Fret>(options));

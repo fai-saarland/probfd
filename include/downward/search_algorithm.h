@@ -14,11 +14,6 @@
 
 #include <vector>
 
-namespace plugins {
-class Options;
-class Feature;
-} // namespace plugins
-
 namespace ordered_set {
 template <typename T>
 class OrderedSet;
@@ -70,10 +65,6 @@ public:
         const std::string& description,
         utils::Verbosity verbosity);
 
-    // TODO options object is needed for iterated search, the prototype for
-    //  issue559 resolves this
-    explicit SearchAlgorithm(const plugins::Options& opts);
-
     virtual ~SearchAlgorithm();
     virtual void print_statistics() const = 0;
     virtual void save_plan_if_necessary();
@@ -98,19 +89,5 @@ extern void collect_preferred_operators(
     EvaluationContext& eval_context,
     Evaluator* preferred_operator_evaluator,
     ordered_set::OrderedSet<OperatorID>& preferred_operators);
-
-class PruningMethod;
-
-extern void add_search_pruning_options_to_feature(plugins::Feature& feature);
-extern std::tuple<std::shared_ptr<PruningMethod>>
-get_search_pruning_arguments_from_options(const plugins::Options& opts);
-extern void add_search_algorithm_options_to_feature(
-    plugins::Feature& feature,
-    const std::string& description);
-extern std::tuple<OperatorCost, int, double, std::string, utils::Verbosity>
-get_search_algorithm_arguments_from_options(const plugins::Options& opts);
-extern void add_successors_order_options_to_feature(plugins::Feature& feature);
-extern std::tuple<bool, bool, int>
-get_successors_order_arguments_from_options(const plugins::Options& opts);
 
 #endif

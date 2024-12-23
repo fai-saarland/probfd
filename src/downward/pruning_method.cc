@@ -1,6 +1,5 @@
 #include "downward/pruning_method.h"
 
-#include "downward/plugins/plugin.h"
 #include "downward/task_utils/task_properties.h"
 
 #include "downward/utils/logging.h"
@@ -64,31 +63,3 @@ void PruningMethod::print_statistics() const
         }
     }
 }
-
-void add_pruning_options_to_feature(plugins::Feature& feature)
-{
-    utils::add_log_options_to_feature(feature);
-    feature.document_note(
-        "Note on verbosity parameter",
-        "Setting verbosity to verbose or higher enables time measurements "
-        "in each call to prune_operators for a given state. This induces a "
-        "significant overhead, up to 30% in configurations like blind search "
-        "with the no pruning method (`null`). We recommend using at most "
-        "normal verbosity for running experiments.");
-}
-
-tuple<utils::Verbosity>
-get_pruning_arguments_from_options(const plugins::Options& opts)
-{
-    return utils::get_log_arguments_from_options(opts);
-}
-
-static class PruningMethodCategoryPlugin
-    : public plugins::TypedCategoryPlugin<PruningMethod> {
-public:
-    PruningMethodCategoryPlugin()
-        : TypedCategoryPlugin("PruningMethod")
-    {
-        document_synopsis("Prune or reorder applicable operators.");
-    }
-} _category_plugin;

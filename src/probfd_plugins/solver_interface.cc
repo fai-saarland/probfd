@@ -1,13 +1,15 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd/solver_interface.h"
 
-#include "downward/plugins/plugin.h"
-
 using namespace probfd;
+
+using namespace downward_plugins::plugins;
 
 namespace {
 
 class SolverInterfaceCategoryPlugin
-    : public plugins::TypedCategoryPlugin<SolverInterface> {
+    : public TypedCategoryPlugin<SolverInterface> {
 public:
     SolverInterfaceCategoryPlugin()
         : TypedCategoryPlugin("SolverInterface")

@@ -1,13 +1,15 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd/task_evaluator_factory.h"
 
-#include "downward/plugins/plugin.h"
-
 using namespace probfd;
+
+using namespace downward_plugins::plugins;
 
 namespace {
 
 class TaskEvaluatorFactoryCategoryPlugin
-    : public plugins::TypedCategoryPlugin<TaskEvaluatorFactory> {
+    : public TypedCategoryPlugin<TaskEvaluatorFactory> {
 public:
     TaskEvaluatorFactoryCategoryPlugin()
         : TypedCategoryPlugin("TaskEvaluatorFactory")

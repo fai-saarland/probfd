@@ -1,14 +1,18 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd/heuristics/determinization_cost.h"
 
-#include "downward/plugins/plugin.h"
+using namespace utils;
 
 using namespace probfd;
 using namespace probfd::heuristics;
 
+using namespace downward_plugins::plugins;
+
 namespace {
 
 class DeterminizationHeuristicFactoryFeature
-    : public plugins::TypedFeature<
+    : public TypedFeature<
           TaskEvaluatorFactory,
           DeterminizationCostHeuristicFactory> {
 public:
@@ -19,14 +23,13 @@ public:
     }
 
     std::shared_ptr<DeterminizationCostHeuristicFactory>
-    create_component(const plugins::Options& options, const utils::Context&)
-        const override
+    create_component(const Options& options, const Context&) const override
     {
         return std::make_shared<DeterminizationCostHeuristicFactory>(
             options.get<std::shared_ptr<::Evaluator>>("evaluator"));
     }
 };
 
-plugins::FeaturePlugin<DeterminizationHeuristicFactoryFeature> _plugin;
+FeaturePlugin<DeterminizationHeuristicFactoryFeature> _plugin;
 
 } // namespace

@@ -1,15 +1,24 @@
-#include "probfd/cartesian_abstractions/split_selector.h"
+#include "downward_plugins/plugins/plugin.h"
 
-#include "downward/plugins/plugin.h"
+#include "downward_plugins/utils/rng_options.h"
+
+#include "probfd/cartesian_abstractions/split_selector.h"
 
 #include "downward/utils/rng_options.h"
 
+using namespace utils;
+
+using namespace downward_plugins::plugins;
+
 using namespace probfd::cartesian_abstractions;
+
+using downward_plugins::utils::add_rng_options_to_feature;
+using downward_plugins::utils::get_rng_arguments_from_options;
 
 namespace {
 
 class SplitSelectorFactoryCategoryPlugin
-    : public plugins::TypedCategoryPlugin<SplitSelectorFactory> {
+    : public TypedCategoryPlugin<SplitSelectorFactory> {
 public:
     SplitSelectorFactoryCategoryPlugin()
         : TypedCategoryPlugin("SplitSelectorFactory")
@@ -20,8 +29,7 @@ public:
 } _category_plugin;
 
 class SplitSelectorRandomFactoryFeature
-    : public plugins::
-          TypedFeature<SplitSelectorFactory, SplitSelectorRandomFactory> {
+    : public TypedFeature<SplitSelectorFactory, SplitSelectorRandomFactory> {
 public:
     SplitSelectorRandomFactoryFeature()
         : TypedFeature("random")
@@ -29,22 +37,21 @@ public:
         document_synopsis(
             "select a random variable (among all eligible variables)");
 
-        utils::add_rng_options_to_feature(*this);
+        add_rng_options_to_feature(*this);
     }
 
     std::shared_ptr<SplitSelectorRandomFactory>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
+    create_component(const Options& opts, const Context&) const override
     {
-        return plugins::make_shared_from_arg_tuples<SplitSelectorRandomFactory>(
-            utils::get_rng(
-                std::get<0>(utils::get_rng_arguments_from_options(opts))));
+        return make_shared_from_arg_tuples<SplitSelectorRandomFactory>(
+            get_rng(std::get<0>(get_rng_arguments_from_options(opts))));
     }
 };
 
 class SplitSelectorMinUnwantedFactoryFeature
-    : public plugins::
-          TypedFeature<SplitSelectorFactory, SplitSelectorMinUnwantedFactory> {
+    : public TypedFeature<
+          SplitSelectorFactory,
+          SplitSelectorMinUnwantedFactory> {
 public:
     SplitSelectorMinUnwantedFactoryFeature()
         : TypedFeature("min_unwanted")
@@ -56,16 +63,16 @@ public:
     }
 
     std::shared_ptr<SplitSelectorMinUnwantedFactory>
-    create_component(const plugins::Options&, const utils::Context&)
-        const override
+    create_component(const Options&, const Context&) const override
     {
         return std::make_shared<SplitSelectorMinUnwantedFactory>();
     }
 };
 
 class SplitSelectorMaxUnwantedFactoryFeature
-    : public plugins::
-          TypedFeature<SplitSelectorFactory, SplitSelectorMaxUnwantedFactory> {
+    : public TypedFeature<
+          SplitSelectorFactory,
+          SplitSelectorMaxUnwantedFactory> {
 public:
     SplitSelectorMaxUnwantedFactoryFeature()
         : TypedFeature("max_unwanted")
@@ -77,16 +84,16 @@ public:
     }
 
     std::shared_ptr<SplitSelectorMaxUnwantedFactory>
-    create_component(const plugins::Options&, const utils::Context&)
-        const override
+    create_component(const Options&, const Context&) const override
     {
         return std::make_shared<SplitSelectorMaxUnwantedFactory>();
     }
 };
 
 class SplitSelectorMinRefinedFactoryFeature
-    : public plugins::
-          TypedFeature<SplitSelectorFactory, SplitSelectorMinRefinedFactory> {
+    : public TypedFeature<
+          SplitSelectorFactory,
+          SplitSelectorMinRefinedFactory> {
 public:
     SplitSelectorMinRefinedFactoryFeature()
         : TypedFeature("min_refined")
@@ -98,16 +105,16 @@ public:
     }
 
     std::shared_ptr<SplitSelectorMinRefinedFactory>
-    create_component(const plugins::Options&, const utils::Context&)
-        const override
+    create_component(const Options&, const Context&) const override
     {
         return std::make_shared<SplitSelectorMinRefinedFactory>();
     }
 };
 
 class SplitSelectorMaxRefinedFactoryFeature
-    : public plugins::
-          TypedFeature<SplitSelectorFactory, SplitSelectorMaxRefinedFactory> {
+    : public TypedFeature<
+          SplitSelectorFactory,
+          SplitSelectorMaxRefinedFactory> {
 public:
     SplitSelectorMaxRefinedFactoryFeature()
         : TypedFeature("max_refined")
@@ -119,16 +126,14 @@ public:
     }
 
     std::shared_ptr<SplitSelectorMaxRefinedFactory>
-    create_component(const plugins::Options&, const utils::Context&)
-        const override
+    create_component(const Options&, const Context&) const override
     {
         return std::make_shared<SplitSelectorMaxRefinedFactory>();
     }
 };
 
 class SplitSelectorMinHAddFactoryFeature
-    : public plugins::
-          TypedFeature<SplitSelectorFactory, SplitSelectorMinHAddFactory> {
+    : public TypedFeature<SplitSelectorFactory, SplitSelectorMinHAddFactory> {
 public:
     SplitSelectorMinHAddFactoryFeature()
         : TypedFeature("min_hadd")
@@ -139,16 +144,14 @@ public:
     }
 
     std::shared_ptr<SplitSelectorMinHAddFactory>
-    create_component(const plugins::Options&, const utils::Context&)
-        const override
+    create_component(const Options&, const Context&) const override
     {
         return std::make_shared<SplitSelectorMinHAddFactory>();
     }
 };
 
 class SplitSelectorMaxHAddFactoryFeature
-    : public plugins::
-          TypedFeature<SplitSelectorFactory, SplitSelectorMaxHAddFactory> {
+    : public TypedFeature<SplitSelectorFactory, SplitSelectorMaxHAddFactory> {
 public:
     SplitSelectorMaxHAddFactoryFeature()
         : TypedFeature("max_hadd")
@@ -160,19 +163,18 @@ public:
     }
 
     std::shared_ptr<SplitSelectorMaxHAddFactory>
-    create_component(const plugins::Options&, const utils::Context&)
-        const override
+    create_component(const Options&, const Context&) const override
     {
         return std::make_shared<SplitSelectorMaxHAddFactory>();
     }
 };
 
-plugins::FeaturePlugin<SplitSelectorRandomFactoryFeature> _plugin;
-plugins::FeaturePlugin<SplitSelectorMinUnwantedFactoryFeature> _plugin2;
-plugins::FeaturePlugin<SplitSelectorMaxUnwantedFactoryFeature> _plugin3;
-plugins::FeaturePlugin<SplitSelectorMinRefinedFactoryFeature> _plugin4;
-plugins::FeaturePlugin<SplitSelectorMaxRefinedFactoryFeature> _plugin5;
-plugins::FeaturePlugin<SplitSelectorMinHAddFactoryFeature> _plugin6;
-plugins::FeaturePlugin<SplitSelectorMaxHAddFactoryFeature> _plugin7;
+FeaturePlugin<SplitSelectorRandomFactoryFeature> _plugin;
+FeaturePlugin<SplitSelectorMinUnwantedFactoryFeature> _plugin2;
+FeaturePlugin<SplitSelectorMaxUnwantedFactoryFeature> _plugin3;
+FeaturePlugin<SplitSelectorMinRefinedFactoryFeature> _plugin4;
+FeaturePlugin<SplitSelectorMaxRefinedFactoryFeature> _plugin5;
+FeaturePlugin<SplitSelectorMinHAddFactoryFeature> _plugin6;
+FeaturePlugin<SplitSelectorMaxHAddFactoryFeature> _plugin7;
 
 } // namespace

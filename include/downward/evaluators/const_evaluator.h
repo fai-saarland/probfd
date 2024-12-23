@@ -3,10 +3,6 @@
 
 #include "downward/evaluator.h"
 
-namespace plugins {
-class Options;
-}
-
 namespace const_evaluator {
 class ConstEvaluator : public Evaluator {
     int value;

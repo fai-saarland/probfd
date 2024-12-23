@@ -1,15 +1,20 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd/heuristics/dead_end_pruning.h"
 
-#include "downward/plugins/plugin.h"
+using namespace utils;
 
 using namespace probfd;
 using namespace probfd::heuristics;
 
+using namespace downward_plugins::plugins;
+
 namespace {
 
 class DeadEndPruningHeuristicFactoryFeature
-    : public plugins::
-          TypedFeature<TaskEvaluatorFactory, DeadEndPruningHeuristicFactory> {
+    : public TypedFeature<
+          TaskEvaluatorFactory,
+          DeadEndPruningHeuristicFactory> {
 public:
     DeadEndPruningHeuristicFactoryFeature()
         : TypedFeature("prune_dead_ends")
@@ -19,14 +24,13 @@ public:
 
 protected:
     std::shared_ptr<DeadEndPruningHeuristicFactory>
-    create_component(const plugins::Options& options, const utils::Context&)
-        const override
+    create_component(const Options& options, const Context&) const override
     {
         return std::make_shared<DeadEndPruningHeuristicFactory>(
             options.get<std::shared_ptr<::Evaluator>>("evaluator"));
     }
 };
 
-plugins::FeaturePlugin<DeadEndPruningHeuristicFactoryFeature> _plugin;
+FeaturePlugin<DeadEndPruningHeuristicFactoryFeature> _plugin;
 
 } // namespace

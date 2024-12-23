@@ -16,11 +16,6 @@ namespace limited_pruning {
 class LimitedPruning;
 }
 
-namespace plugins {
-class Options;
-class Feature;
-} // namespace plugins
-
 class PruningMethod {
     utils::Timer timer;
     friend class limited_pruning::LimitedPruning;
@@ -40,9 +35,5 @@ public:
     void prune_operators(const State& state, std::vector<OperatorID>& op_ids);
     virtual void print_statistics() const;
 };
-
-extern void add_pruning_options_to_feature(plugins::Feature& feature);
-extern std::tuple<utils::Verbosity>
-get_pruning_arguments_from_options(const plugins::Options& opts);
 
 #endif

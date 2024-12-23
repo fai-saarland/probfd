@@ -2,8 +2,6 @@
 
 #include "downward/merge_and_shrink/merge_tree.h"
 
-#include "downward/plugins/plugin.h"
-
 #include "downward/utils/logging.h"
 #include "downward/utils/rng_options.h"
 #include "downward/utils/system.h"
@@ -44,50 +42,4 @@ unique_ptr<MergeTree> MergeTreeFactory::compute_merge_tree(
     utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
 }
 
-void add_merge_tree_options_to_feature(plugins::Feature& feature)
-{
-    utils::add_rng_options_to_feature(feature);
-    feature.add_option<UpdateOption>(
-        "update_option",
-        "When the merge tree is used within another merge strategy, how "
-        "should it be updated when a merge different to a merge from the "
-        "tree is performed.",
-        "use_random");
-}
-
-tuple<int, UpdateOption>
-get_merge_tree_arguments_from_options(const plugins::Options& opts)
-{
-    return tuple_cat(
-        utils::get_rng_arguments_from_options(opts),
-        make_tuple(opts.get<UpdateOption>("update_option")));
-}
-
-static class MergeTreeFactoryCategoryPlugin
-    : public plugins::TypedCategoryPlugin<MergeTreeFactory> {
-public:
-    MergeTreeFactoryCategoryPlugin()
-        : TypedCategoryPlugin("MergeTree")
-    {
-        document_synopsis(
-            "This page describes the available merge trees that can be used to "
-            "precompute a merge strategy, either for the entire task or a "
-            "given "
-            "subset of transition systems of a given factored transition "
-            "system.\n"
-            "Merge trees are typically used in the merge strategy of type "
-            "'precomputed', but they can also be used as fallback merge "
-            "strategies in "
-            "'combined' merge strategies.");
-    }
-} _category_plugin;
-
-static plugins::TypedEnumPlugin<UpdateOption> _enum_plugin(
-    {{"use_first",
-      "the node representing the index that would have been merged earlier "
-      "survives"},
-     {"use_second",
-      "the node representing the index that would have been merged later "
-      "survives"},
-     {"use_random", "a random node (of the above two) survives"}});
 } // namespace merge_and_shrink

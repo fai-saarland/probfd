@@ -3,14 +3,10 @@
 #include "downward/evaluation_context.h"
 #include "downward/evaluation_result.h"
 
-#include "downward/plugins/plugin.h"
 #include "downward/task_utils/task_properties.h"
-#include "downward/tasks/cost_adapted_task.h"
 #include "downward/tasks/root_task.h"
 
 #include <cassert>
-#include <cstdlib>
-#include <limits>
 
 using namespace std;
 
@@ -41,32 +37,6 @@ void Heuristic::set_preferred(const OperatorProxy& op)
 State Heuristic::convert_ancestor_state(const State& ancestor_state) const
 {
     return task_proxy.convert_ancestor_state(ancestor_state);
-}
-
-void add_heuristic_options_to_feature(
-    plugins::Feature& feature,
-    const string& description)
-{
-    feature.add_option<shared_ptr<AbstractTask>>(
-        "transform",
-        "Optional task transformation for the heuristic."
-        " Currently, adapt_costs() and no_transform() are available.",
-        "no_transform()");
-    feature.add_option<bool>(
-        "cache_estimates",
-        "cache heuristic estimates",
-        "true");
-    add_evaluator_options_to_feature(feature, description);
-}
-
-tuple<shared_ptr<AbstractTask>, bool, string, utils::Verbosity>
-get_heuristic_arguments_from_options(const plugins::Options& opts)
-{
-    return tuple_cat(
-        make_tuple(
-            opts.get<shared_ptr<AbstractTask>>("transform"),
-            opts.get<bool>("cache_estimates")),
-        get_evaluator_arguments_from_options(opts));
 }
 
 EvaluationResult Heuristic::compute_result(EvaluationContext& eval_context)

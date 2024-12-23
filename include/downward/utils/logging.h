@@ -11,11 +11,6 @@
 #include <string>
 #include <vector>
 
-namespace plugins {
-class Feature;
-class Options;
-} // namespace plugins
-
 namespace utils {
 // See add_log_options_to_feature for documentation.
 enum class Verbosity { SILENT, NORMAL, VERBOSE, DEBUG };
@@ -167,10 +162,6 @@ public:
   must be passed in by the caller.
 */
 extern LogProxy g_log;
-
-extern void add_log_options_to_feature(plugins::Feature& feature);
-extern std::tuple<Verbosity>
-get_log_arguments_from_options(const plugins::Options& opts);
 
 extern LogProxy get_log_for_verbosity(const Verbosity& verbosity);
 extern LogProxy get_silent_log();

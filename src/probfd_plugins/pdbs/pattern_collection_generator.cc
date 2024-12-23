@@ -1,21 +1,27 @@
-#include "probfd/pdbs/pattern_collection_generator.h"
+#include "downward_plugins/plugins/plugin.h"
 
-#include "downward/plugins/plugin.h"
+#include "downward_plugins/utils/logging_options.h"
+
+#include "probfd/pdbs/pattern_collection_generator.h"
 
 using namespace probfd::pdbs;
 
+using namespace downward_plugins::plugins;
+
+using downward_plugins::utils::add_log_options_to_feature;
+using downward_plugins::utils::get_log_arguments_from_options;
+
 namespace probfd_plugins::pdbs {
 
-void add_pattern_collection_generator_options_to_feature(
-    plugins::Feature& feature)
+void add_pattern_collection_generator_options_to_feature(Feature& feature)
 {
-    utils::add_log_options_to_feature(feature);
+    add_log_options_to_feature(feature);
 }
 
 std::tuple<utils::Verbosity>
-get_collection_generator_arguments_from_options(const plugins::Options& opts)
+get_collection_generator_arguments_from_options(const Options& opts)
 {
-    return utils::get_log_arguments_from_options(opts);
+    return get_log_arguments_from_options(opts);
 }
 
 } // namespace probfd_plugins::pdbs
@@ -23,7 +29,7 @@ get_collection_generator_arguments_from_options(const plugins::Options& opts)
 namespace {
 
 class PatternCollectionGeneratorCategoryPlugin
-    : public plugins::TypedCategoryPlugin<PatternCollectionGenerator> {
+    : public TypedCategoryPlugin<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorCategoryPlugin()
         : TypedCategoryPlugin("PPDBPatternCollectionGenerator")

@@ -1,7 +1,5 @@
 #include "downward/heuristics/additive_heuristic.h"
 
-#include "downward/plugins/plugin.h"
-
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/logging.h"
 
@@ -157,38 +155,4 @@ void AdditiveHeuristic::compute_heuristic_for_cegar(const State& ancestor_state)
     compute_add_and_ff(state);
 }
 
-class AdditiveHeuristicFeature
-    : public plugins::TypedFeature<Evaluator, AdditiveHeuristic> {
-public:
-    AdditiveHeuristicFeature()
-        : TypedFeature("add")
-    {
-        document_title("Additive heuristic");
-
-        add_heuristic_options_to_feature(*this, "add");
-
-        document_language_support("action costs", "supported");
-        document_language_support("conditional effects", "supported");
-        document_language_support(
-            "axioms",
-            "supported (in the sense that the planner won't complain -- "
-            "handling of axioms might be very stupid "
-            "and even render the heuristic unsafe)");
-
-        document_property("admissible", "no");
-        document_property("consistent", "no");
-        document_property("safe", "yes for tasks without axioms");
-        document_property("preferred operators", "yes");
-    }
-
-    virtual shared_ptr<AdditiveHeuristic>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<AdditiveHeuristic>(
-            get_heuristic_arguments_from_options(opts));
-    }
-};
-
-static plugins::FeaturePlugin<AdditiveHeuristicFeature> _plugin;
 } // namespace additive_heuristic

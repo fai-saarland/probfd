@@ -3,7 +3,6 @@
 #include "downward/heuristics/cg_cache.h"
 #include "downward/heuristics/domain_transition_graph.h"
 
-#include "downward/plugins/plugin.h"
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/logging.h"
 
@@ -307,45 +306,4 @@ void CGHeuristic::mark_helpful_transitions(
     }
 }
 
-class CGHeuristicFeature
-    : public plugins::TypedFeature<Evaluator, CGHeuristic> {
-public:
-    CGHeuristicFeature()
-        : TypedFeature("cg")
-    {
-        document_title("Causal graph heuristic");
-
-        add_option<int>(
-            "max_cache_size",
-            "maximum number of cached entries per variable (set to 0 to "
-            "disable cache)",
-            "1000000",
-            plugins::Bounds("0", "infinity"));
-        add_heuristic_options_to_feature(*this, "cg");
-
-        document_language_support("action costs", "supported");
-        document_language_support("conditional effects", "supported");
-        document_language_support(
-            "axioms",
-            "supported (in the sense that the planner won't complain -- "
-            "handling of axioms might be very stupid "
-            "and even render the heuristic unsafe)");
-
-        document_property("admissible", "no");
-        document_property("consistent", "no");
-        document_property("safe", "no");
-        document_property("preferred operators", "yes");
-    }
-
-    virtual shared_ptr<CGHeuristic>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<CGHeuristic>(
-            opts.get<int>("max_cache_size"),
-            get_heuristic_arguments_from_options(opts));
-    }
-};
-
-static plugins::FeaturePlugin<CGHeuristicFeature> _plugin;
 } // namespace cg_heuristic

@@ -1,14 +1,11 @@
 #include "downward/pdbs/pattern_collection_generator_combo.h"
 
 #include "downward/pdbs/pattern_generator_greedy.h"
-#include "downward/pdbs/utils.h"
 #include "downward/pdbs/validation.h"
 
 #include "downward/task_proxy.h"
 
-#include "downward/plugins/plugin.h"
 #include "downward/utils/logging.h"
-#include "downward/utils/timer.h"
 
 #include <iostream>
 #include <memory>
@@ -54,32 +51,4 @@ PatternCollectionInformation PatternCollectionGeneratorCombo::compute_patterns(
     return pci;
 }
 
-class PatternCollectionGeneratorComboFeature
-    : public plugins::TypedFeature<
-          PatternCollectionGenerator,
-          PatternCollectionGeneratorCombo> {
-public:
-    PatternCollectionGeneratorComboFeature()
-        : TypedFeature("combo")
-    {
-        add_option<int>(
-            "max_states",
-            "maximum abstraction size for combo strategy",
-            "1000000",
-            plugins::Bounds("1", "infinity"));
-        add_generator_options_to_feature(*this);
-    }
-
-    virtual shared_ptr<PatternCollectionGeneratorCombo>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<
-            PatternCollectionGeneratorCombo>(
-            opts.get<int>("max_states"),
-            get_generator_arguments_from_options(opts));
-    }
-};
-
-static plugins::FeaturePlugin<PatternCollectionGeneratorComboFeature> _plugin;
 } // namespace pdbs

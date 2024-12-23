@@ -1,14 +1,17 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd/pdbs/trivial_finder_factory.h"
 
-#include "downward/plugins/plugin.h"
+using namespace utils;
 
 using namespace probfd::pdbs;
+
+using namespace downward_plugins::plugins;
 
 namespace {
 
 class TrivialFinderFactoryFeature
-    : public plugins::
-          TypedFeature<SubCollectionFinderFactory, TrivialFinderFactory> {
+    : public TypedFeature<SubCollectionFinderFactory, TrivialFinderFactory> {
 public:
     TrivialFinderFactoryFeature()
         : TypedFeature("finder_trivial_factory")
@@ -16,13 +19,12 @@ public:
     }
 
     std::shared_ptr<TrivialFinderFactory>
-    create_component(const plugins::Options&, const utils::Context&)
-        const override
+    create_component(const Options&, const Context&) const override
     {
         return std::make_shared<TrivialFinderFactory>();
     }
 };
 
-plugins::FeaturePlugin<TrivialFinderFactoryFeature> _plugin;
+FeaturePlugin<TrivialFinderFactoryFeature> _plugin;
 
 } // namespace

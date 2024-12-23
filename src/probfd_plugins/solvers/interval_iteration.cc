@@ -1,10 +1,10 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd_plugins/solvers/mdp_solver.h"
 
 #include "probfd/solvers/mdp_solver.h"
 
 #include "probfd/algorithms/interval_iteration.h"
-
-#include "downward/plugins/plugin.h"
 
 #include "downward/operator_id.h"
 #include "downward/task_proxy.h"
@@ -12,13 +12,15 @@
 #include <memory>
 #include <string>
 
-using namespace plugins;
+using namespace utils;
 
 using namespace probfd;
 using namespace probfd::solvers;
 using namespace probfd::algorithms::interval_iteration;
 
 using namespace probfd_plugins::solvers;
+
+using namespace downward_plugins::plugins;
 
 namespace {
 
@@ -53,10 +55,9 @@ public:
 
 protected:
     std::shared_ptr<IntervalIterationSolver>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    create_component(const Options& options, const Context&) const override
     {
-        return plugins::make_shared_from_arg_tuples<IntervalIterationSolver>(
+        return make_shared_from_arg_tuples<IntervalIterationSolver>(
             get_base_solver_args_from_options(options));
     }
 };

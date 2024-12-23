@@ -1,15 +1,13 @@
 #include "downward/pdbs/pattern_generator_greedy.h"
 
 #include "downward/pdbs/pattern_information.h"
-#include "downward/pdbs/utils.h"
 
 #include "downward/task_proxy.h"
 
-#include "downward/plugins/plugin.h"
 #include "downward/task_utils/variable_order_finder.h"
+
 #include "downward/utils/logging.h"
 #include "downward/utils/math.h"
-#include "downward/utils/timer.h"
 
 #include <iostream>
 
@@ -56,29 +54,4 @@ PatternGeneratorGreedy::compute_pattern(const shared_ptr<AbstractTask>& task)
     return PatternInformation(task_proxy, std::move(pattern), log);
 }
 
-class PatternGeneratorGreedyFeature
-    : public plugins::TypedFeature<PatternGenerator, PatternGeneratorGreedy> {
-public:
-    PatternGeneratorGreedyFeature()
-        : TypedFeature("greedy")
-    {
-        add_option<int>(
-            "max_states",
-            "maximal number of abstract states in the pattern database.",
-            "1000000",
-            plugins::Bounds("1", "infinity"));
-        add_generator_options_to_feature(*this);
-    }
-
-    virtual shared_ptr<PatternGeneratorGreedy>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<PatternGeneratorGreedy>(
-            opts.get<int>("max_states"),
-            get_generator_arguments_from_options(opts));
-    }
-};
-
-static plugins::FeaturePlugin<PatternGeneratorGreedyFeature> _plugin;
 } // namespace pdbs

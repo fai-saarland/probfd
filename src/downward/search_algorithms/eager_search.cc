@@ -6,12 +6,12 @@
 #include "downward/pruning_method.h"
 
 #include "downward/algorithms/ordered_set.h"
-#include "downward/plugins/options.h"
+
 #include "downward/task_utils/successor_generator.h"
+
 #include "downward/utils/logging.h"
 
 #include <cassert>
-#include <cstdlib>
 #include <memory>
 #include <optional>
 #include <set>
@@ -331,29 +331,4 @@ void EagerSearch::update_f_value_statistics(EvaluationContext& eval_context)
     }
 }
 
-void add_eager_search_options_to_feature(
-    plugins::Feature& feature,
-    const string& description)
-{
-    add_search_pruning_options_to_feature(feature);
-    // We do not add a lazy_evaluator options here
-    // because it is only used for astar but not the other plugins.
-    add_search_algorithm_options_to_feature(feature, description);
-}
-
-tuple<
-    shared_ptr<PruningMethod>,
-    shared_ptr<Evaluator>,
-    OperatorCost,
-    int,
-    double,
-    string,
-    utils::Verbosity>
-get_eager_search_arguments_from_options(const plugins::Options& opts)
-{
-    return tuple_cat(
-        get_search_pruning_arguments_from_options(opts),
-        make_tuple(opts.get<shared_ptr<Evaluator>>("lazy_evaluator", nullptr)),
-        get_search_algorithm_arguments_from_options(opts));
-}
 } // namespace eager_search

@@ -2,8 +2,6 @@
 
 #include "downward/potentials/potential_function.h"
 
-#include "downward/plugins/options.h"
-
 using namespace std;
 
 namespace potentials {
@@ -17,6 +15,8 @@ PotentialHeuristic::PotentialHeuristic(
     , function(std::move(function))
 {
 }
+
+PotentialHeuristic::~PotentialHeuristic() = default;
 
 int PotentialHeuristic::compute_heuristic(const State& ancestor_state)
 {

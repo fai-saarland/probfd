@@ -4,8 +4,6 @@
 
 #include "downward/task_proxy.h"
 
-#include "downward/plugins/plugin.h"
-#include "downward/task_utils/task_properties.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/memory.h"
 
@@ -40,34 +38,4 @@ int LandmarkCutHeuristic::compute_heuristic(const State& ancestor_state)
     return total_cost;
 }
 
-class LandmarkCutHeuristicFeature
-    : public plugins::TypedFeature<Evaluator, LandmarkCutHeuristic> {
-public:
-    LandmarkCutHeuristicFeature()
-        : TypedFeature("lmcut")
-    {
-        document_title("Landmark-cut heuristic");
-
-        add_heuristic_options_to_feature(*this, "lmcut");
-
-        document_language_support("action costs", "supported");
-        document_language_support("conditional effects", "not supported");
-        document_language_support("axioms", "not supported");
-
-        document_property("admissible", "yes");
-        document_property("consistent", "no");
-        document_property("safe", "yes");
-        document_property("preferred operators", "no");
-    }
-
-    virtual shared_ptr<LandmarkCutHeuristic>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<LandmarkCutHeuristic>(
-            get_heuristic_arguments_from_options(opts));
-    }
-};
-
-static plugins::FeaturePlugin<LandmarkCutHeuristicFeature> _plugin;
 } // namespace lm_cut_heuristic

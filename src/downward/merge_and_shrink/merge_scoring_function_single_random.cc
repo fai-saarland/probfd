@@ -2,7 +2,6 @@
 
 #include "downward/merge_and_shrink/types.h"
 
-#include "downward/plugins/plugin.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
@@ -50,30 +49,4 @@ void MergeScoringFunctionSingleRandom::dump_function_specific_options(
     }
 }
 
-class MergeScoringFunctionSingleRandomFeature
-    : public plugins::
-          TypedFeature<MergeScoringFunction, MergeScoringFunctionSingleRandom> {
-public:
-    MergeScoringFunctionSingleRandomFeature()
-        : TypedFeature("single_random")
-    {
-        document_title("Single random");
-        document_synopsis("This scoring function assigns exactly one merge "
-                          "candidate a score of "
-                          "0, chosen randomly, and infinity to all others.");
-
-        utils::add_rng_options_to_feature(*this);
-    }
-
-    virtual shared_ptr<MergeScoringFunctionSingleRandom>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<
-            MergeScoringFunctionSingleRandom>(
-            utils::get_rng_arguments_from_options(opts));
-    }
-};
-
-static plugins::FeaturePlugin<MergeScoringFunctionSingleRandomFeature> _plugin;
 } // namespace merge_and_shrink

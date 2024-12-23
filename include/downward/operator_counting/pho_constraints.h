@@ -9,10 +9,6 @@
 
 #include <memory>
 
-namespace plugins {
-class Options;
-}
-
 namespace pdbs {
 class PatternCollectionGenerator;
 }

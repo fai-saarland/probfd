@@ -3,18 +3,9 @@
 
 #include <memory>
 
-namespace plugins {
-class Feature;
-class Options;
-} // namespace plugins
-
 namespace utils {
-class RandomNumberGenerator;
 
-// Add random_seed option to feature.
-extern void add_rng_options_to_feature(plugins::Feature& feature);
-extern std::tuple<int>
-get_rng_arguments_from_options(const plugins::Options& opts);
+class RandomNumberGenerator;
 
 /*
   Return an RNG for the given seed, which can either be the global
@@ -22,6 +13,7 @@ get_rng_arguments_from_options(const plugins::Options& opts);
   with "add_rng_options_to_feature()".
 */
 extern std::shared_ptr<RandomNumberGenerator> get_rng(int seed);
+
 } // namespace utils
 
 #endif

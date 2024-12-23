@@ -1,9 +1,10 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd/probabilistic_task.h"
 
-#include "downward/plugins/plugin.h"
-
-using namespace plugins;
 using namespace probfd;
+
+using namespace downward_plugins::plugins;
 
 namespace {
 

@@ -1,3 +1,5 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd_plugins/multi_feature_plugin.h"
 #include "probfd_plugins/naming_conventions.h"
 
@@ -8,17 +10,15 @@
 
 #include "probfd/quotients/quotient_system.h"
 
-#include "downward/plugins/plugin.h"
-
 #include <memory>
-
-using namespace plugins;
 
 using namespace probfd_plugins;
 
 using namespace probfd;
 using namespace probfd::algorithms;
 using namespace probfd::open_lists;
+
+using namespace downward_plugins::plugins;
 
 namespace {
 

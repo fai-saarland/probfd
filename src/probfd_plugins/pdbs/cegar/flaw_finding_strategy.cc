@@ -1,13 +1,15 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd/pdbs/cegar/flaw_finding_strategy.h"
 
-#include "downward/plugins/plugin.h"
-
 using namespace probfd::pdbs::cegar;
+
+using namespace downward_plugins::plugins;
 
 namespace {
 
 class FlawFindingStrategyCategoryPlugin
-    : public plugins::TypedCategoryPlugin<FlawFindingStrategy> {
+    : public TypedCategoryPlugin<FlawFindingStrategy> {
 public:
     FlawFindingStrategyCategoryPlugin()
         : TypedCategoryPlugin("FlawFindingStrategy")

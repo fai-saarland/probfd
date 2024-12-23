@@ -25,6 +25,8 @@ public:
         bool cache_estimates,
         const std::string& description,
         utils::Verbosity verbosity);
+
+    ~PotentialMaxHeuristic() override;
 };
 } // namespace potentials
 

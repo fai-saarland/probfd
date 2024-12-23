@@ -1,3 +1,7 @@
+#include "downward_plugins/plugins/plugin.h"
+
+#include "downward_plugins/utils/rng_options.h"
+
 #include "probfd_plugins/multi_feature_plugin.h"
 #include "probfd_plugins/naming_conventions.h"
 
@@ -13,20 +17,22 @@
 
 #include "probfd/quotients/quotient_system.h"
 
-#include "downward/task_proxy.h"
-
 #include "downward/operator_id.h"
-
-#include "downward/plugins/plugin.h"
+#include "downward/task_proxy.h"
 
 #include "downward/utils/rng_options.h"
 
-using namespace plugins;
+using namespace utils;
 
 using namespace probfd;
 using namespace probfd::policy_pickers;
 
 using namespace probfd_plugins;
+
+using namespace downward_plugins::plugins;
+
+using downward_plugins::utils::add_rng_options_to_feature;
+using downward_plugins::utils::get_rng_arguments_from_options;
 
 namespace {
 
@@ -82,8 +88,7 @@ public:
     }
 
     std::shared_ptr<R>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
+    create_component(const Options& opts, const Context&) const override
     {
         return std::make_shared<R>(opts.get<bool>("stable_policy"));
     }
@@ -100,10 +105,9 @@ public:
     }
 
     std::shared_ptr<OperatorIdTiebreaker>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
+    create_component(const Options& opts, const Context&) const override
     {
-        return plugins::make_shared_from_arg_tuples<OperatorIdTiebreaker>(
+        return make_shared_from_arg_tuples<OperatorIdTiebreaker>(
             opts.get<bool>("stable_policy"),
             opts.get<bool>("prefer_smaller"));
     }
@@ -124,16 +128,15 @@ public:
                   "random_policy_tiebreaker"))
     {
         this->template add_option<bool>("stable_policy", "", "true");
-        utils::add_rng_options_to_feature(*this);
+        add_rng_options_to_feature(*this);
     }
 
     std::shared_ptr<R>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
+    create_component(const Options& opts, const Context&) const override
     {
-        return plugins::make_shared_from_arg_tuples<R>(
+        return make_shared_from_arg_tuples<R>(
             opts.get<bool>("stable_policy"),
-            utils::get_rng_arguments_from_options(opts));
+            get_rng_arguments_from_options(opts));
     }
 };
 
@@ -155,10 +158,9 @@ public:
     }
 
     std::shared_ptr<R>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
+    create_component(const Options& opts, const Context&) const override
     {
-        return plugins::make_shared_from_arg_tuples<R>(
+        return make_shared_from_arg_tuples<R>(
             opts.get<bool>("stable_policy"),
             opts.get<bool>("prefer_large_gaps"));
     }
@@ -172,4 +174,4 @@ MultiFeaturePlugin<ArbitraryTieBreakerFeature> _plugin_arbitary;
 MultiFeaturePlugin<RandomTieBreakerFeature> _plugin_random;
 MultiFeaturePlugin<ValueGapTieBreakerFeature> _plugin_value_gap;
 
-} // namespace probfd::policy_pickers
+} // namespace

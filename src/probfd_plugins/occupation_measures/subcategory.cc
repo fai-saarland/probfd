@@ -1,3 +1,9 @@
+#include "downward_plugins/plugins/plugin.h"
+
+#include "downward_plugins/utils/logging_options.h"
+
+#include "downward_plugins/lp/lp_solver_options.h"
+
 #include "probfd/occupation_measures/higher_order_hpom_constraints.h"
 #include "probfd/occupation_measures/hpom_constraints.h"
 #include "probfd/occupation_measures/hroc_constraints.h"
@@ -11,20 +17,28 @@
 
 #include "downward/utils/markup.h"
 
-#include "downward/plugins/plugin.h"
-
 #include <memory>
 #include <string>
+
+using namespace utils;
 
 using namespace probfd;
 using namespace probfd::heuristics;
 using namespace probfd::pdbs;
 using namespace probfd::occupation_measures;
 
+using namespace downward_plugins::plugins;
+
+using downward_plugins::utils::add_log_options_to_feature;
+using downward_plugins::utils::get_log_arguments_from_options;
+
+using downward_plugins::lp::add_lp_solver_option_to_feature;
+using downward_plugins::lp::get_lp_solver_arguments_from_options;
+
 namespace {
 
 class HROCFactoryFeature
-    : public plugins::TypedFeature<
+    : public TypedFeature<
           TaskEvaluatorFactory,
           OccupationMeasureHeuristicFactory> {
 public:
@@ -34,7 +48,7 @@ public:
         document_title("Regrouped operator-counting heuristic");
         document_synopsis(
             "For details, see" +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Felipe Trevizan", "Sylvie Thiebaux", "Patrik Haslum"},
                 "Occupation Measure Heuristics for Probabilistic Planning",
                 "https://ojs.aaai.org/index.php/ICAPS/article/view/13840",
@@ -50,24 +64,22 @@ public:
         document_property("admissible", "yes");
         document_property("consistent", "yes");
 
-        utils::add_log_options_to_feature(*this);
-        lp::add_lp_solver_option_to_feature(*this);
+        add_log_options_to_feature(*this);
+        add_lp_solver_option_to_feature(*this);
     }
 
     std::shared_ptr<OccupationMeasureHeuristicFactory>
-    create_component(const plugins::Options& options, const utils::Context&)
-        const override
+    create_component(const Options& options, const Context&) const override
     {
-        return plugins::make_shared_from_arg_tuples<
-            OccupationMeasureHeuristicFactory>(
-            utils::get_log_arguments_from_options(options),
-            lp::get_lp_solver_arguments_from_options(options),
+        return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
+            get_log_arguments_from_options(options),
+            get_lp_solver_arguments_from_options(options),
             std::make_shared<HROCGenerator>());
     }
 };
 
 class HPOMFactoryFeature
-    : public plugins::TypedFeature<
+    : public TypedFeature<
           TaskEvaluatorFactory,
           OccupationMeasureHeuristicFactory> {
 public:
@@ -79,7 +91,7 @@ public:
         document_synopsis(
             "The projection occupation measure heuristic. "
             "For details, see" +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Felipe Trevizan", "Sylvie Thiebaux", "Patrik Haslum"},
                 "Occupation Measure Heuristics for Probabilistic Planning",
                 "https://ojs.aaai.org/index.php/ICAPS/article/view/13840",
@@ -95,24 +107,22 @@ public:
         document_property("admissible", "yes");
         document_property("consistent", "yes");
 
-        utils::add_log_options_to_feature(*this);
-        lp::add_lp_solver_option_to_feature(*this);
+        add_log_options_to_feature(*this);
+        add_lp_solver_option_to_feature(*this);
     }
 
     std::shared_ptr<OccupationMeasureHeuristicFactory>
-    create_component(const plugins::Options& options, const utils::Context&)
-        const override
+    create_component(const Options& options, const Context&) const override
     {
-        return plugins::make_shared_from_arg_tuples<
-            OccupationMeasureHeuristicFactory>(
-            utils::get_log_arguments_from_options(options),
-            lp::get_lp_solver_arguments_from_options(options),
+        return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
+            get_log_arguments_from_options(options),
+            get_lp_solver_arguments_from_options(options),
             std::make_shared<HPOMGenerator>());
     }
 };
 
 class HOHPOMFactoryFeature
-    : public plugins::TypedFeature<
+    : public TypedFeature<
           TaskEvaluatorFactory,
           OccupationMeasureHeuristicFactory> {
 public:
@@ -125,7 +135,7 @@ public:
             "projections"
             "beyond atomic projections. "
             "For details, see" +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Felipe Trevizan", "Sylvie Thiebaux", "Patrik Haslum"},
                 "Occupation Measure Heuristics for Probabilistic Planning",
                 "https://ojs.aaai.org/index.php/ICAPS/article/view/13840",
@@ -141,27 +151,25 @@ public:
         document_property("admissible", "yes");
         document_property("consistent", "yes");
 
-        utils::add_log_options_to_feature(*this);
-        lp::add_lp_solver_option_to_feature(*this);
+        add_log_options_to_feature(*this);
+        add_lp_solver_option_to_feature(*this);
 
         add_option<int>("projection_size", "The size of the projections", "1");
     }
 
     std::shared_ptr<OccupationMeasureHeuristicFactory>
-    create_component(const plugins::Options& options, const utils::Context&)
-        const override
+    create_component(const Options& options, const Context&) const override
     {
-        return plugins::make_shared_from_arg_tuples<
-            OccupationMeasureHeuristicFactory>(
-            utils::get_log_arguments_from_options(options),
-            lp::get_lp_solver_arguments_from_options(options),
+        return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
+            get_log_arguments_from_options(options),
+            get_lp_solver_arguments_from_options(options),
             std::make_shared<HigherOrderHPOMGenerator>(
                 options.get<int>("projection_size")));
     }
 };
 
 class HPHOFactoryFeature
-    : public plugins::TypedFeature<
+    : public TypedFeature<
           TaskEvaluatorFactory,
           OccupationMeasureHeuristicFactory> {
 public:
@@ -176,8 +184,8 @@ public:
         document_property("admissible", "yes");
         document_property("consistent", "yes");
 
-        utils::add_log_options_to_feature(*this);
-        lp::add_lp_solver_option_to_feature(*this);
+        add_log_options_to_feature(*this);
+        add_lp_solver_option_to_feature(*this);
 
         add_option<std::shared_ptr<probfd::pdbs::PatternCollectionGenerator>>(
             "patterns",
@@ -187,22 +195,20 @@ public:
     }
 
     std::shared_ptr<OccupationMeasureHeuristicFactory>
-    create_component(const plugins::Options& options, const utils::Context&)
-        const override
+    create_component(const Options& options, const Context&) const override
     {
-        return plugins::make_shared_from_arg_tuples<
-            OccupationMeasureHeuristicFactory>(
-            utils::get_log_arguments_from_options(options),
-            lp::get_lp_solver_arguments_from_options(options),
+        return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
+            get_log_arguments_from_options(options),
+            get_lp_solver_arguments_from_options(options),
             std::make_shared<PHOGenerator>(
                 options.get<std::shared_ptr<PatternCollectionGenerator>>(
                     "patterns")));
     }
 };
 
-plugins::FeaturePlugin<HROCFactoryFeature> _plugin_hroc;
-plugins::FeaturePlugin<HPOMFactoryFeature> _plugin_hpom;
-plugins::FeaturePlugin<HOHPOMFactoryFeature> _plugin_hohpom;
-plugins::FeaturePlugin<HPHOFactoryFeature> _plugin_hpho;
+FeaturePlugin<HROCFactoryFeature> _plugin_hroc;
+FeaturePlugin<HPOMFactoryFeature> _plugin_hpom;
+FeaturePlugin<HOHPOMFactoryFeature> _plugin_hohpom;
+FeaturePlugin<HPHOFactoryFeature> _plugin_hpho;
 
 } // namespace

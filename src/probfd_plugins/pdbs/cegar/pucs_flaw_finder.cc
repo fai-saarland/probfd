@@ -1,13 +1,17 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd/pdbs/cegar/pucs_flaw_finder.h"
 
-#include "downward/plugins/plugin.h"
+using namespace utils;
 
 using namespace probfd::pdbs::cegar;
+
+using namespace downward_plugins::plugins;
 
 namespace {
 
 class PUCSFlawFinderFeature
-    : public plugins::TypedFeature<FlawFindingStrategy, PUCSFlawFinder> {
+    : public TypedFeature<FlawFindingStrategy, PUCSFlawFinder> {
 public:
     PUCSFlawFinderFeature()
         : TypedFeature("pucs_flaw_finder")
@@ -17,19 +21,18 @@ public:
             "Maximal number of generated states after which the flaw search is "
             "aborted.",
             "20M",
-            plugins::Bounds("0", "infinity"));
+            Bounds("0", "infinity"));
     }
 
 protected:
     std::shared_ptr<PUCSFlawFinder>
-    create_component(const plugins::Options& options, const utils::Context&)
-        const override
+    create_component(const Options& options, const Context&) const override
     {
         return std::make_shared<PUCSFlawFinder>(
             options.get<int>("max_search_states"));
     }
 };
 
-plugins::FeaturePlugin<PUCSFlawFinderFeature> _plugin;
+FeaturePlugin<PUCSFlawFinderFeature> _plugin;
 
 } // namespace

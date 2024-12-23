@@ -41,6 +41,8 @@ public:
         bool cache_estimates,
         const std::string& description,
         utils::Verbosity verbosity);
+
+    ~MergeAndShrinkHeuristic() override;
 };
 } // namespace merge_and_shrink
 

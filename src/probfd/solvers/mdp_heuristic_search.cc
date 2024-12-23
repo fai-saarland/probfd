@@ -4,11 +4,8 @@
 
 #include "probfd/quotients/quotient_system.h"
 
-#include "downward/plugins/plugin.h"
-
 #include <iostream>
-
-using namespace plugins;
+#include <sstream>
 
 using namespace probfd::algorithms;
 

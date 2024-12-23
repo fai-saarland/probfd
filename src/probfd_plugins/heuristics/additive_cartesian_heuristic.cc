@@ -1,8 +1,8 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd_plugins/heuristics/task_dependent_heuristic.h"
 
 #include "probfd/heuristics/additive_cartesian_heuristic.h"
-
-#include "downward/plugins/plugin.h"
 
 using namespace probfd;
 using namespace probfd::cartesian_abstractions;
@@ -10,10 +10,12 @@ using namespace probfd::heuristics;
 
 using namespace probfd_plugins::heuristics;
 
+using namespace downward_plugins::plugins;
+
 namespace {
 
 class AdditiveCartesianHeuristicFactoryFeature
-    : public plugins::TypedFeature<
+    : public TypedFeature<
           TaskEvaluatorFactory,
           AdditiveCartesianHeuristicFactory> {
 public:
@@ -49,18 +51,18 @@ public:
             "max_states",
             "maximum sum of abstract states over all abstractions",
             "infinity",
-            plugins::Bounds("1", "infinity"));
+            Bounds("1", "infinity"));
         add_option<int>(
             "max_transitions",
             "maximum sum of real transitions (excluding self-loops) over "
             " all abstractions",
             "1M",
-            plugins::Bounds("0", "infinity"));
+            Bounds("0", "infinity"));
         add_option<double>(
             "max_time",
             "maximum time in seconds for building abstractions",
             "infinity",
-            plugins::Bounds("0.0", "infinity"));
+            Bounds("0.0", "infinity"));
         add_option<bool>(
             "use_general_costs",
             "allow negative costs in cost partitioning",
@@ -69,11 +71,9 @@ public:
     }
 
     std::shared_ptr<AdditiveCartesianHeuristicFactory>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
+    create_component(const Options& opts, const utils::Context&) const override
     {
-        return plugins::make_shared_from_arg_tuples<
-            AdditiveCartesianHeuristicFactory>(
+        return make_shared_from_arg_tuples<AdditiveCartesianHeuristicFactory>(
             opts.get_list<std::shared_ptr<SubtaskGenerator>>("subtasks"),
             opts.get<std::shared_ptr<FlawGeneratorFactory>>(
                 "flaw_generator_factory"),
@@ -87,6 +87,6 @@ public:
     }
 };
 
-plugins::FeaturePlugin<AdditiveCartesianHeuristicFactoryFeature> _plugin;
+FeaturePlugin<AdditiveCartesianHeuristicFactoryFeature> _plugin;
 
 } // namespace

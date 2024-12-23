@@ -7,30 +7,11 @@
 #include "downward/lp/soplex_solver_interface.h"
 #endif
 
-#include "downward/plugins/plugin.h"
+#include "downward/utils/system.h"
 
 using namespace std;
 
 namespace lp {
-void add_lp_solver_option_to_feature(plugins::Feature& feature)
-{
-    feature.add_option<LPSolverType>(
-        "lpsolver",
-        "external solver that should be used to solve linear programs",
-        "cplex");
-
-    feature.document_note(
-        "Note",
-        "to use an LP solver, you must build the planner with LP support. "
-        "See [build instructions "
-        "https://github.com/aibasel/downward/blob/main/BUILD.md].");
-}
-
-tuple<LPSolverType>
-get_lp_solver_arguments_from_options(const plugins::Options& opts)
-{
-    return make_tuple(opts.get<LPSolverType>("lpsolver"));
-}
 
 LPConstraint::LPConstraint(double lower_bound, double upper_bound)
     : lower_bound(lower_bound)
@@ -318,7 +299,4 @@ void LPSolver::add_constraint(
     pimpl->add_constraint(constraint, name);
 }
 
-static plugins::TypedEnumPlugin<LPSolverType> _enum_plugin(
-    {{"cplex", "commercial solver by IBM"},
-     {"soplex", "open source solver by ZIB"}});
 } // namespace lp

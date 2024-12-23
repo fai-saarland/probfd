@@ -7,11 +7,6 @@
 
 class TaskProxy;
 
-namespace plugins {
-class Options;
-class Feature;
-} // namespace plugins
-
 namespace utils {
 class LogProxy;
 class RandomNumberGenerator;
@@ -46,10 +41,6 @@ public:
     virtual bool requires_goal_distances() const = 0;
 };
 
-// Derived classes must call this method in their parsing methods.
-extern void add_merge_tree_options_to_feature(plugins::Feature& feature);
-extern std::tuple<int, UpdateOption>
-get_merge_tree_arguments_from_options(const plugins::Options& opts);
 } // namespace merge_and_shrink
 
 #endif

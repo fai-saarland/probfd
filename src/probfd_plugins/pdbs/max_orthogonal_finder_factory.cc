@@ -1,13 +1,17 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd/pdbs/max_orthogonal_finder_factory.h"
 
-#include "downward/plugins/plugin.h"
+using namespace utils;
 
 using namespace probfd::pdbs;
+
+using namespace downward_plugins::plugins;
 
 namespace {
 
 class AdditiveMaxOrthogonalityFinderFactoryFeature
-    : public plugins::TypedFeature<
+    : public TypedFeature<
           SubCollectionFinderFactory,
           AdditiveMaxOrthogonalityFinderFactory> {
 public:
@@ -17,15 +21,14 @@ public:
     }
 
     std::shared_ptr<AdditiveMaxOrthogonalityFinderFactory>
-    create_component(const plugins::Options&, const utils::Context&)
-        const override
+    create_component(const Options&, const Context&) const override
     {
         return std::make_shared<AdditiveMaxOrthogonalityFinderFactory>();
     }
 };
 
 class MultiplicativeMaxOrthogonalityFinderFactoryFeature
-    : public plugins::TypedFeature<
+    : public TypedFeature<
           SubCollectionFinderFactory,
           MultiplicativeMaxOrthogonalityFinderFactory> {
 public:
@@ -35,15 +38,13 @@ public:
     }
 
     std::shared_ptr<MultiplicativeMaxOrthogonalityFinderFactory>
-    create_component(const plugins::Options&, const utils::Context&)
-        const override
+    create_component(const Options&, const Context&) const override
     {
         return std::make_shared<MultiplicativeMaxOrthogonalityFinderFactory>();
     }
 };
 
-plugins::FeaturePlugin<AdditiveMaxOrthogonalityFinderFactoryFeature> _plugin1;
-plugins::FeaturePlugin<MultiplicativeMaxOrthogonalityFinderFactoryFeature>
-    _plugin2;
+FeaturePlugin<AdditiveMaxOrthogonalityFinderFactoryFeature> _plugin1;
+FeaturePlugin<MultiplicativeMaxOrthogonalityFinderFactoryFeature> _plugin2;
 
 } // namespace

@@ -1,12 +1,13 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd/tasks/root_task.h"
 
 #include "probfd/probabilistic_task.h"
 
-#include "downward/plugins/plugin.h"
-
-using namespace plugins;
-
+using namespace utils;
 using namespace probfd;
+
+using namespace downward_plugins::plugins;
 
 namespace {
 
@@ -19,13 +20,12 @@ public:
     }
 
     std::shared_ptr<ProbabilisticTask>
-    create_component(const plugins::Options&, const utils::Context&)
-        const override
+    create_component(const Options&, const Context&) const override
     {
         return probfd::tasks::g_root_task;
     }
 };
 
-plugins::FeaturePlugin<RootTaskFeature> _plugin;
+FeaturePlugin<RootTaskFeature> _plugin;
 
 } // namespace

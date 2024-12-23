@@ -15,11 +15,6 @@
 
 class TaskProxy;
 
-namespace plugins {
-class Options;
-class Feature;
-} // namespace plugins
-
 namespace landmarks {
 /*
   TODO: Change order to private -> protected -> public
@@ -66,15 +61,6 @@ private:
     void generate_operators_lookups(const TaskProxy& task_proxy);
 };
 
-extern void add_landmark_factory_options_to_feature(plugins::Feature& feature);
-extern std::tuple<utils::Verbosity>
-get_landmark_factory_arguments_from_options(const plugins::Options& opts);
-extern void add_use_orders_option_to_feature(plugins::Feature& feature);
-extern bool get_use_orders_arguments_from_options(const plugins::Options& opts);
-extern void
-add_only_causal_landmarks_option_to_feature(plugins::Feature& feature);
-extern bool
-get_only_causal_landmarks_arguments_from_options(const plugins::Options& opts);
 } // namespace landmarks
 
 #endif

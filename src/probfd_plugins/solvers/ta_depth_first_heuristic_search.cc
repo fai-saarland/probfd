@@ -1,3 +1,5 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd_plugins/naming_conventions.h"
 
 #include "probfd_plugins/solvers/mdp_heuristic_search.h"
@@ -6,12 +8,10 @@
 #include "probfd/algorithms/trap_aware_dfhs.h"
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include "downward/plugins/plugin.h"
-
 #include <memory>
 #include <string>
 
-using namespace plugins;
+using namespace utils;
 
 using namespace probfd;
 using namespace probfd::solvers;
@@ -20,6 +20,8 @@ using namespace probfd::algorithms::trap_aware_dfhs;
 
 using namespace probfd_plugins;
 using namespace probfd_plugins::solvers;
+
+using namespace downward_plugins::plugins;
 
 namespace {
 
@@ -51,7 +53,7 @@ public:
         bool fret_on_policy,
         bool dual_bounds,
         std::shared_ptr<PolicyPicker> policy,
-        utils::Verbosity verbosity,
+        Verbosity verbosity,
         std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
         bool cache,
         const std::shared_ptr<TaskEvaluatorFactory>& eval,
@@ -151,10 +153,9 @@ public:
 
 protected:
     std::shared_ptr<TrapAwareDFHSSolver>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    create_component(const Options& options, const Context&) const override
     {
-        return plugins::make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
+        return make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
             options.get<std::shared_ptr<QOpenList>>("open_list"),
             options.get<bool>("fwup"),
             options.get<BacktrackingUpdateType>("bwup"),
@@ -190,11 +191,10 @@ public:
     }
 
     std::shared_ptr<TrapAwareDFHSSolver>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    create_component(const Options& options, const Context&) const override
     {
         // opts_copy.set<std::string>("name", "ilao");
-        return plugins::make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
+        return make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
             options.get<std::shared_ptr<QOpenList>>("open_list"),
             false,
             BacktrackingUpdateType::SINGLE,
@@ -230,13 +230,12 @@ public:
     }
 
     std::shared_ptr<TrapAwareDFHSSolver>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    create_component(const Options& options, const Context&) const override
     {
         // opts_copy.set<std::string>("name", "lilao");
         // opts_copy.set<bool>("labeling", true);
 
-        return plugins::make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
+        return make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
             options.get<std::shared_ptr<QOpenList>>("open_list"),
             false,
             BacktrackingUpdateType::SINGLE,
@@ -272,12 +271,11 @@ public:
     }
 
     std::shared_ptr<TrapAwareDFHSSolver>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    create_component(const Options& options, const Context&) const override
     {
         // opts_copy.set<std::string>("name", "hdp");
         // opts_copy.set<bool>("labeling", true);
-        return plugins::make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
+        return make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
             options.get<std::shared_ptr<QOpenList>>("open_list"),
             true,
             BacktrackingUpdateType::ON_DEMAND,

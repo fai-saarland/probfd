@@ -1,8 +1,10 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd_plugins/heuristics/task_dependent_heuristic.h"
 
 #include "probfd/heuristics/ucp_heuristic.h"
 
-#include "downward/plugins/plugin.h"
+using namespace utils;
 
 using namespace probfd;
 using namespace probfd::pdbs;
@@ -10,10 +12,12 @@ using namespace probfd::heuristics;
 
 using namespace probfd_plugins::heuristics;
 
+using namespace downward_plugins::plugins;
+
 namespace {
 
 class UCPHeuristicFactoryFeature
-    : public plugins::TypedFeature<TaskEvaluatorFactory, UCPHeuristicFactory> {
+    : public TypedFeature<TaskEvaluatorFactory, UCPHeuristicFactory> {
 public:
     UCPHeuristicFactoryFeature()
         : TypedFeature("ucp_heuristic")
@@ -26,15 +30,14 @@ public:
     }
 
     std::shared_ptr<UCPHeuristicFactory>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
+    create_component(const Options& opts, const Context&) const override
     {
-        return plugins::make_shared_from_arg_tuples<UCPHeuristicFactory>(
+        return make_shared_from_arg_tuples<UCPHeuristicFactory>(
             get_task_dependent_heuristic_arguments_from_options(opts),
             opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"));
     }
 };
 
-plugins::FeaturePlugin<UCPHeuristicFactoryFeature> _plugin;
+FeaturePlugin<UCPHeuristicFactoryFeature> _plugin;
 
 } // namespace

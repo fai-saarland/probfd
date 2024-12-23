@@ -1,16 +1,24 @@
+#include "downward_plugins/plugins/plugin.h"
+
+#include "downward_plugins/utils/logging_options.h"
+
 #include "probfd_plugins/pdbs/pattern_collection_generator.h"
 
 #include "probfd/pdbs/pattern_collection_generator_classical.h"
 
-#include "downward/plugins/plugin.h"
+using namespace utils;
 
 using namespace probfd::pdbs;
 using namespace probfd_plugins::pdbs;
 
+using namespace downward_plugins::plugins;
+
+using downward_plugins::utils::get_log_arguments_from_options;
+
 namespace {
 
 class PatternCollectionGeneratorClassicalFeature
-    : public plugins::TypedFeature<
+    : public TypedFeature<
           PatternCollectionGenerator,
           PatternCollectionGeneratorClassical> {
 public:
@@ -38,19 +46,17 @@ public:
     }
 
     std::shared_ptr<PatternCollectionGeneratorClassical>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
+    create_component(const Options& opts, const Context&) const override
     {
-        return plugins::make_shared_from_arg_tuples<
-            PatternCollectionGeneratorClassical>(
+        return make_shared_from_arg_tuples<PatternCollectionGeneratorClassical>(
             opts.get<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
                 "generator"),
             opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
                 "subcollection_finder_factory"),
-            utils::get_log_arguments_from_options(opts));
+            get_log_arguments_from_options(opts));
     }
 };
 
-plugins::FeaturePlugin<PatternCollectionGeneratorClassicalFeature> _plugin;
+FeaturePlugin<PatternCollectionGeneratorClassicalFeature> _plugin;
 
 } // namespace

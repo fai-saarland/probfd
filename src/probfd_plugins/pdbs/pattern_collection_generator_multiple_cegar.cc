@@ -1,19 +1,23 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd_plugins/pdbs/cegar_options.h"
 #include "probfd_plugins/pdbs/pattern_collection_generator_multiple.h"
 
 #include "probfd/pdbs/pattern_collection_generator_multiple_cegar.h"
 
-#include "downward/plugins/plugin.h"
+using namespace utils;
 
 using namespace probfd_plugins::pdbs;
 
 using namespace probfd::pdbs;
 using namespace probfd::pdbs::cegar;
 
+using namespace downward_plugins::plugins;
+
 namespace {
 
 class PatternCollectionGeneratorMultipleCegarFeature
-    : public plugins::TypedFeature<
+    : public TypedFeature<
           PatternCollectionGenerator,
           PatternCollectionGeneratorMultipleCegar> {
 public:
@@ -29,10 +33,9 @@ public:
     }
 
     std::shared_ptr<PatternCollectionGeneratorMultipleCegar>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
+    create_component(const Options& opts, const Context&) const override
     {
-        return plugins::make_shared_from_arg_tuples<
+        return make_shared_from_arg_tuples<
             PatternCollectionGeneratorMultipleCegar>(
             opts.get<std::shared_ptr<cegar::FlawFindingStrategy>>(
                 "flaw_strategy"),
@@ -41,6 +44,6 @@ public:
     }
 };
 
-plugins::FeaturePlugin<PatternCollectionGeneratorMultipleCegarFeature> _plugin;
+FeaturePlugin<PatternCollectionGeneratorMultipleCegarFeature> _plugin;
 
 } // namespace

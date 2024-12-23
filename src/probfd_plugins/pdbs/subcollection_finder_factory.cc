@@ -1,13 +1,15 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd/pdbs/subcollection_finder_factory.h"
 
-#include "downward/plugins/plugin.h"
-
 using namespace probfd::pdbs;
+
+using namespace downward_plugins::plugins;
 
 namespace {
 
 class SubCollectionFinderFactoryCategoryPlugin
-    : public plugins::TypedCategoryPlugin<SubCollectionFinderFactory> {
+    : public TypedCategoryPlugin<SubCollectionFinderFactory> {
 public:
     SubCollectionFinderFactoryCategoryPlugin()
         : TypedCategoryPlugin("SubCollectionFinderFactory")

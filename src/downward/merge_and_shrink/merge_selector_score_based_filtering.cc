@@ -3,8 +3,6 @@
 #include "downward/merge_and_shrink/factored_transition_system.h"
 #include "downward/merge_and_shrink/merge_scoring_function.h"
 
-#include "downward/plugins/plugin.h"
-
 #include <cassert>
 
 using namespace std;
@@ -111,35 +109,4 @@ bool MergeSelectorScoreBasedFiltering::requires_goal_distances() const
     return false;
 }
 
-class MergeSelectorScoreBasedFilteringFeature
-    : public plugins::
-          TypedFeature<MergeSelector, MergeSelectorScoreBasedFiltering> {
-public:
-    MergeSelectorScoreBasedFilteringFeature()
-        : TypedFeature("score_based_filtering")
-    {
-        document_title("Score based filtering merge selector");
-        document_synopsis("This merge selector has a list of scoring "
-                          "functions, which are used "
-                          "iteratively to compute scores for merge candidates, "
-                          "keeping the best "
-                          "ones (with minimal scores) until only one is left.");
-
-        add_list_option<shared_ptr<MergeScoringFunction>>(
-            "scoring_functions",
-            "The list of scoring functions used to compute scores for "
-            "candidates.");
-    }
-
-    virtual shared_ptr<MergeSelectorScoreBasedFiltering>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return make_shared<MergeSelectorScoreBasedFiltering>(
-            opts.get_list<shared_ptr<MergeScoringFunction>>(
-                "scoring_functions"));
-    }
-};
-
-static plugins::FeaturePlugin<MergeSelectorScoreBasedFilteringFeature> _plugin;
 } // namespace merge_and_shrink

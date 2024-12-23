@@ -1,14 +1,21 @@
-#include "probfd_plugins/solvers/mdp_solver.h"
+#include "downward_plugins/plugins/plugin.h"
 
-#include "downward/plugins/plugin.h"
+#include "downward_plugins/utils/logging_options.h"
+
+#include "probfd_plugins/solvers/mdp_solver.h"
 
 #include <optional>
 
 using namespace probfd;
 
+using namespace downward_plugins::plugins;
+
+using downward_plugins::utils::add_log_options_to_feature;
+using downward_plugins::utils::get_log_arguments_from_options;
+
 namespace probfd_plugins::solvers {
 
-void add_base_solver_options_to_feature(plugins::Feature& feature)
+void add_base_solver_options_to_feature(Feature& feature)
 {
     feature.add_option<std::shared_ptr<TaskEvaluatorFactory>>(
         "eval",
@@ -24,7 +31,7 @@ void add_base_solver_options_to_feature(plugins::Feature& feature)
     feature.add_option<double>("max_time", "", "infinity");
     feature.add_option<std::string>("policy_file", "", "\"sas_policy\"");
     feature.add_option<bool>("print_fact_names", "", "true");
-    utils::add_log_options_to_feature(feature);
+    add_log_options_to_feature(feature);
 }
 
 std::tuple<
@@ -37,10 +44,10 @@ std::tuple<
     double,
     std::string,
     bool>
-get_base_solver_args_from_options(const plugins::Options& options)
+get_base_solver_args_from_options(const Options& options)
 {
     return std::tuple_cat(
-        utils::get_log_arguments_from_options(options),
+        get_log_arguments_from_options(options),
         std::make_tuple(
             options.get_list<std::shared_ptr<::Evaluator>>(
                 "path_dependent_evaluators"),

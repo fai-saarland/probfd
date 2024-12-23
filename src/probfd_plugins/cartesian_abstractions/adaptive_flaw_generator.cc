@@ -1,14 +1,17 @@
 #include "probfd/cartesian_abstractions/adaptive_flaw_generator.h"
 
-#include "downward/plugins/plugin.h"
+#include "downward_plugins/plugins/plugin.h"
+
+using namespace utils;
+
+using namespace downward_plugins::plugins;
 
 using namespace probfd::cartesian_abstractions;
 
 namespace {
 
 class AdaptiveFlawGeneratorFactoryFeature
-    : public plugins::
-          TypedFeature<FlawGeneratorFactory, AdaptiveFlawGeneratorFactory> {
+    : public TypedFeature<FlawGeneratorFactory, AdaptiveFlawGeneratorFactory> {
 public:
     AdaptiveFlawGeneratorFactoryFeature()
         : TypedFeature("flaws_adaptive")
@@ -21,8 +24,7 @@ public:
 
 protected:
     std::shared_ptr<AdaptiveFlawGeneratorFactory>
-    create_component(const plugins::Options& options, const utils::Context&)
-        const override
+    create_component(const Options& options, const Context&) const override
     {
         return std::make_shared<AdaptiveFlawGeneratorFactory>(
             options.get_list<std::shared_ptr<FlawGeneratorFactory>>(
@@ -30,6 +32,6 @@ protected:
     }
 };
 
-plugins::FeaturePlugin<AdaptiveFlawGeneratorFactoryFeature> _plugin;
+FeaturePlugin<AdaptiveFlawGeneratorFactoryFeature> _plugin;
 
 } // namespace

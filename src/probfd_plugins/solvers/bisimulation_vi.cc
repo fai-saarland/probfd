@@ -1,3 +1,5 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd/solver_interface.h"
 
 #include "probfd/bisimulation/bisimilar_state_space.h"
@@ -22,16 +24,15 @@
 
 #include "downward/utils/timer.h"
 
-#include "downward/plugins/plugin.h"
-
 #include <iostream>
 #include <limits>
 #include <memory>
 #include <string>
 
-using namespace plugins;
 using namespace probfd;
 using namespace probfd::bisimulation;
+
+using namespace downward_plugins::plugins;
 
 namespace {
 

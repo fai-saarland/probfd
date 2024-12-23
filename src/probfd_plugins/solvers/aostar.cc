@@ -1,3 +1,5 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd_plugins/multi_feature_plugin.h"
 #include "probfd_plugins/naming_conventions.h"
 
@@ -5,13 +7,11 @@
 
 #include "probfd/algorithms/ao_star.h"
 
-#include "downward/plugins/plugin.h"
-
 #include <iostream>
 #include <memory>
 #include <string>
 
-using namespace plugins;
+using namespace utils;
 
 using namespace probfd;
 using namespace probfd::solvers;
@@ -20,6 +20,8 @@ using namespace probfd::algorithms::ao_search::ao_star;
 
 using namespace probfd_plugins;
 using namespace probfd_plugins::solvers;
+
+using namespace downward_plugins::plugins;
 
 namespace {
 
@@ -74,10 +76,9 @@ public:
 
 protected:
     std::shared_ptr<AOStarSolver<Bisimulation>>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    create_component(const Options& options, const Context&) const override
     {
-        return plugins::make_shared_from_arg_tuples<AOStarSolver<Bisimulation>>(
+        return make_shared_from_arg_tuples<AOStarSolver<Bisimulation>>(
             options.get<std::shared_ptr<Sampler>>("successor_sampler"),
             get_mdp_hs_args_from_options<Bisimulation, false>(options));
     }

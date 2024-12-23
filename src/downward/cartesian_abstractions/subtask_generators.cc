@@ -5,7 +5,6 @@
 
 #include "downward/heuristics/additive_heuristic.h"
 #include "downward/landmarks/landmark_graph.h"
-#include "downward/plugins/plugin.h"
 #include "downward/task_utils/task_properties.h"
 #include "downward/tasks/domain_abstracted_task_factory.h"
 #include "downward/tasks/modified_goals_task.h"
@@ -16,8 +15,6 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
-#include <string>
-#include <unordered_set>
 #include <vector>
 
 using namespace std;
@@ -192,105 +189,4 @@ SharedTasks LandmarkDecomposition::get_subtasks(
     return subtasks;
 }
 
-static void add_fact_order_option(plugins::Feature& feature)
-{
-    feature.add_option<FactOrder>(
-        "order",
-        "ordering of goal or landmark facts",
-        "hadd_down");
-    utils::add_rng_options_to_feature(feature);
-}
-
-static tuple<FactOrder, int>
-get_fact_order_arguments_from_options(const plugins::Options& opts)
-{
-    return tuple_cat(
-        make_tuple(opts.get<FactOrder>("order")),
-        utils::get_rng_arguments_from_options(opts));
-}
-
-class TaskDuplicatorFeature
-    : public plugins::TypedFeature<SubtaskGenerator, TaskDuplicator> {
-public:
-    TaskDuplicatorFeature()
-        : TypedFeature("original")
-    {
-        add_option<int>(
-            "copies",
-            "number of task copies",
-            "1",
-            plugins::Bounds("1", "infinity"));
-    }
-
-    virtual shared_ptr<TaskDuplicator>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<TaskDuplicator>(
-            opts.get<int>("copies"));
-    }
-};
-
-static plugins::FeaturePlugin<TaskDuplicatorFeature> _plugin_original;
-
-class GoalDecompositionFeature
-    : public plugins::TypedFeature<SubtaskGenerator, GoalDecomposition> {
-public:
-    GoalDecompositionFeature()
-        : TypedFeature("goals")
-    {
-        add_fact_order_option(*this);
-    }
-
-    virtual shared_ptr<GoalDecomposition>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<GoalDecomposition>(
-            get_fact_order_arguments_from_options(opts));
-    }
-};
-
-static plugins::FeaturePlugin<GoalDecompositionFeature> _plugin_goals;
-
-class LandmarkDecompositionFeature
-    : public plugins::TypedFeature<SubtaskGenerator, LandmarkDecomposition> {
-public:
-    LandmarkDecompositionFeature()
-        : TypedFeature("landmarks")
-    {
-        add_fact_order_option(*this);
-        add_option<bool>(
-            "combine_facts",
-            "combine landmark facts with domain abstraction",
-            "true");
-    }
-
-    virtual shared_ptr<LandmarkDecomposition>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<LandmarkDecomposition>(
-            get_fact_order_arguments_from_options(opts),
-            opts.get<bool>("combine_facts"));
-    }
-};
-
-static plugins::FeaturePlugin<LandmarkDecompositionFeature> _plugin_landmarks;
-
-static class SubtaskGeneratorCategoryPlugin
-    : public plugins::TypedCategoryPlugin<SubtaskGenerator> {
-public:
-    SubtaskGeneratorCategoryPlugin()
-        : TypedCategoryPlugin("SubtaskGenerator")
-    {
-        document_synopsis("Subtask generator (used by the CEGAR heuristic).");
-    }
-} _category_plugin;
-
-static plugins::TypedEnumPlugin<FactOrder> _enum_plugin(
-    {{"original", "according to their (internal) variable index"},
-     {"random", "according to a random permutation"},
-     {"hadd_up", "according to their h^add value, lowest first"},
-     {"hadd_down", "according to their h^add value, highest first "}});
 } // namespace cartesian_abstractions

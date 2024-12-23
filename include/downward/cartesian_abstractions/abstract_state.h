@@ -6,7 +6,6 @@
 
 #include <vector>
 
-class ConditionsProxy;
 struct FactPair;
 class OperatorProxy;
 class State;

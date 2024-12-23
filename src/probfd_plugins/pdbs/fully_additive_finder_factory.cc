@@ -1,14 +1,19 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd/pdbs/fully_additive_finder_factory.h"
 
-#include "downward/plugins/plugin.h"
+using namespace utils;
 
 using namespace probfd::pdbs;
+
+using namespace downward_plugins::plugins;
 
 namespace {
 
 class FullyAdditiveFinderFactoryFeature
-    : public plugins::
-          TypedFeature<SubCollectionFinderFactory, FullyAdditiveFinderFactory> {
+    : public TypedFeature<
+          SubCollectionFinderFactory,
+          FullyAdditiveFinderFactory> {
 public:
     FullyAdditiveFinderFactoryFeature()
         : TypedFeature("fully_additive_factory")
@@ -16,13 +21,12 @@ public:
     }
 
     std::shared_ptr<FullyAdditiveFinderFactory>
-    create_component(const plugins::Options&, const utils::Context&)
-        const override
+    create_component(const Options&, const Context&) const override
     {
         return std::make_shared<FullyAdditiveFinderFactory>();
     }
 };
 
-plugins::FeaturePlugin<FullyAdditiveFinderFactoryFeature> _plugin;
+FeaturePlugin<FullyAdditiveFinderFactoryFeature> _plugin;
 
 } // namespace

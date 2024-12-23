@@ -1,9 +1,9 @@
-#include "probfd_plugins/solvers/mdp_solver.h"
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd/solvers/mdp_solver.h"
+#include "probfd_plugins/solvers/mdp_solver.h"
 
 #include "probfd/algorithms/topological_value_iteration.h"
-
-#include "downward/plugins/plugin.h"
 
 #include "downward/operator_id.h"
 #include "downward/task_proxy.h"
@@ -11,13 +11,15 @@
 #include <memory>
 #include <string>
 
-using namespace plugins;
+using namespace utils;
 
 using namespace probfd;
 using namespace probfd::solvers;
 using namespace probfd::algorithms::topological_vi;
 
 using namespace probfd_plugins::solvers;
+
+using namespace downward_plugins::plugins;
 
 namespace {
 
@@ -50,10 +52,9 @@ public:
 
 protected:
     std::shared_ptr<TopologicalVISolver>
-    create_component(const Options& options, const utils::Context&)
-        const override
+    create_component(const Options& options, const Context&) const override
     {
-        return plugins::make_shared_from_arg_tuples<TopologicalVISolver>(
+        return make_shared_from_arg_tuples<TopologicalVISolver>(
             get_base_solver_args_from_options(options));
     }
 };

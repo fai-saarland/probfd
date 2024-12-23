@@ -1,3 +1,5 @@
+#include "downward_plugins/plugins/plugin.h"
+
 #include "probfd_plugins/solvers/mdp_solver.h"
 
 #include "probfd/solvers/mdp_solver.h"
@@ -7,15 +9,11 @@
 #include "probfd/algorithms/fdr_types.h"
 #include "probfd/algorithms/transition_sorter.h"
 
-#include "downward/plugins/plugin.h"
-
 #include "downward/operator_id.h"
 #include "downward/task_proxy.h"
 
 #include <memory>
 #include <string>
-
-using namespace plugins;
 
 using namespace probfd;
 using namespace probfd::algorithms;
@@ -23,6 +21,8 @@ using namespace probfd::algorithms::exhaustive_dfs;
 using namespace probfd::solvers;
 
 using namespace probfd_plugins::solvers;
+
+using namespace downward_plugins::plugins;
 
 namespace {
 
@@ -118,7 +118,7 @@ protected:
     create_component(const Options& options, const utils::Context&)
         const override
     {
-        return plugins::make_shared_from_arg_tuples<ExhaustiveDFSSolver>(
+        return make_shared_from_arg_tuples<ExhaustiveDFSSolver>(
             options.get<std::shared_ptr<FDRTransitionSorter>>("order", nullptr),
             options.get<bool>("dual_bounds"),
             options.get<bool>("reverse_path_updates"),
