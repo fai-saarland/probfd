@@ -63,7 +63,6 @@ public:
      * its index in the candidate list.
      *
      * @param mdp - The MDP in which the search is performed.
-     * @param state_id - The state for which a greedy action is chosen.
      * @param incumbent_greedy - The incumbent greedy action.
      * @param greedy_transitions - A list of candidate greedy transitions.
      * @param properties - The interface to the heuristic search algorithm.
