@@ -104,8 +104,8 @@ endfunction()
 function(copy_runtime_dlls_post_build _TARGET_NAME)
     add_custom_command(TARGET ${_TARGET_NAME} POST_BUILD
         COMMAND
-        "${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:${_TARGET_NAME}>
-        $<TARGET_RUNTIME_DLLS:${_TARGET_NAME}>"
+        "${CMAKE_COMMAND}" -E copy -t "$<TARGET_FILE_DIR:${_TARGET_NAME}>"
+        "$<TARGET_RUNTIME_DLLS:${_TARGET_NAME}>"
         COMMAND_EXPAND_LISTS
     )
 endfunction()
