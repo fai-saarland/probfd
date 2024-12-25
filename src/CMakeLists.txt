@@ -41,7 +41,7 @@ set_up_build_types("Debug;Release")
 set_up_options()
 
 #add_executable(probfd downward/command_line.cc downward/planner.cc)
-add_executable(probfd probfd_plugins/planner.cc)
+add_executable(probfd command_line.cc planner.cc)
 
 # On Windows we have to copy all DLLs next to the generated binary.
 if (WIN32)

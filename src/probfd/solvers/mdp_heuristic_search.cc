@@ -1,4 +1,4 @@
-#include "probfd_plugins/naming_conventions.h"
+#include "probfd/cli/naming_conventions.h"
 
 #include "probfd/solvers/mdp_heuristic_search.h"
 
@@ -9,7 +9,7 @@
 
 using namespace probfd::algorithms;
 
-using namespace probfd_plugins;
+using namespace probfd::cli;
 
 namespace probfd::solvers {
 
