@@ -6,10 +6,9 @@ import sys
 
 from . import call
 from . import limits
-from . import portfolio_runner
 from . import returncodes
 from . import util
-from .plan_manager import PlanManager
+from .policy_manager import PolicyManager
 
 if os.name == "posix":
     BINARY_EXT = ""
@@ -128,40 +127,29 @@ def run_search(args):
         executable = get_executable(
             args.preset, args.build_config, REL_SEARCH_PATH)
 
-    plan_manager = PlanManager(
-        args.plan_file,
-        portfolio_bound=args.portfolio_bound,
-        single_plan=args.portfolio_single_plan)
-    plan_manager.delete_existing_plans()
+    policy_manager = PolicyManager(args.policy_file)
+    policy_manager.delete_existing_policies()
 
-    if args.portfolio:
-        assert not args.search_options
-        logging.info("search portfolio: %s" % args.portfolio)
-        return portfolio_runner.run(
-            args.portfolio, executable, args.search_input, plan_manager,
-            time_limit, memory_limit)
+    if not args.search_options:
+        returncodes.exit_with_driver_input_error(
+            "search needs --alias or search options")
+    if "--help" not in args.search_options:
+        pass
+    try:
+        call.check_call(
+            "search",
+            [executable] + args.search_options,
+            stdin=args.search_input,
+            time_limit=time_limit,
+            memory_limit=memory_limit)
+    except subprocess.CalledProcessError as err:
+        # TODO: if we ever add support for SEARCH_PLAN_FOUND_AND_* directly
+        # in the planner, this assertion no longer holds. Furthermore, we
+        # would need to return (err.returncode, True) if the returncode is
+        # in [0..10].
+        # Negative exit codes are allowed for passing out signals.
+        assert err.returncode >= 10 or err.returncode < 0, "got returncode < 10: {}".format(
+            err.returncode)
+        return (err.returncode, False)
     else:
-        if not args.search_options:
-            returncodes.exit_with_driver_input_error(
-                "search needs --alias, --portfolio, or search options")
-        if "--help" not in args.search_options:
-            pass
-            # args.search_options.extend(["--internal-plan-file", args.plan_file])
-        try:
-            call.check_call(
-                "search",
-                [executable] + args.search_options,
-                stdin=args.search_input,
-                time_limit=time_limit,
-                memory_limit=memory_limit)
-        except subprocess.CalledProcessError as err:
-            # TODO: if we ever add support for SEARCH_PLAN_FOUND_AND_* directly
-            # in the planner, this assertion no longer holds. Furthermore, we
-            # would need to return (err.returncode, True) if the returncode is
-            # in [0..10].
-            # Negative exit codes are allowed for passing out signals.
-            assert err.returncode >= 10 or err.returncode < 0, "got returncode < 10: {}".format(
-                err.returncode)
-            return (err.returncode, False)
-        else:
-            return (0, True)
+        return (0, True)

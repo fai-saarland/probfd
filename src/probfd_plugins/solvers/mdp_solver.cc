@@ -22,7 +22,7 @@ void add_base_solver_options_to_feature(plugins::Feature& feature)
     feature.add_option<value_t>("report_epsilon", "", "1e-4");
     feature.add_option<bool>("report_enabled", "", "true");
     feature.add_option<double>("max_time", "", "infinity");
-    feature.add_option<std::string>("policy_file", "", "\"my_policy.policy\"");
+    feature.add_option<std::string>("policy_file", "", "\"sas_policy\"");
     feature.add_option<bool>("print_fact_names", "", "true");
     utils::add_log_options_to_feature(feature);
 }

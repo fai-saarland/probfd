@@ -40,14 +40,7 @@ Limits are given in seconds or MiB. You can change the unit by using the
 suffixes s, m, h and K, M, G.
 
 By default, all limits are inactive. Only external limits (e.g. set with
-ulimit) are respected.
-
-Portfolios require that a time limit is in effect. Portfolio configurations
-that exceed their time or memory limit are aborted, and the next
-configuration is run."""
-
-EXAMPLE_PORTFOLIO = os.path.relpath(
-    aliases.PORTFOLIOS["seq-opt-fdss-1"], start=util.REPO_ROOT_DIR)
+ulimit) are respected."""
 
 EXAMPLES = [
     ("Translate and find a policy with iLAO* + hroc:",
@@ -58,9 +51,6 @@ EXAMPLES = [
       "misc/tests/benchmarks/gripper/prob01.pddl"]),
     ("Run predefined configuration on translated task:",
      ["--alias", "my-alias-config", "output.sas"]),
-    ("Run a portfolio on a translated task:",
-     ["--portfolio", EXAMPLE_PORTFOLIO,
-      "--search-time-limit", "30m", "output.sas"]),
     ("Run the search component in debug mode (with assertions enabled):",
      ["--debug", "output.sas", "--search", '"ilao()"']),
     ("Pass options to translator and search components:",
@@ -394,8 +384,9 @@ def parse_args():
         help="set log level (most verbose: debug; least verbose: warning; default: %(default)s)")
 
     driver_other.add_argument(
-        "--plan-file", metavar="FILE", default="sas_plan",
-        help="write plan(s) to FILE (default: %(default)s; anytime configurations append .1, .2, ...)")
+        "--policy-file", metavar="FILE", default="sas_policy",
+        help="write policies(s) to FILE (default: %(default)s; anytime "
+             "configurations append .1, .2, ...)")
 
     driver_other.add_argument(
         "--sas-file", metavar="FILE",
@@ -407,18 +398,9 @@ def parse_args():
              "delete file if translator and search component are active)")
 
     driver_other.add_argument(
-        "--portfolio", metavar="FILE",
-        help="run a portfolio specified in FILE")
-    driver_other.add_argument(
-        "--portfolio-bound", metavar="VALUE", default=None, type=int,
-        help="exclusive bound on plan costs (only supported for satisficing portfolios)")
-    driver_other.add_argument(
-        "--portfolio-single-plan", action="store_true",
-        help="abort satisficing portfolio after finding the first plan")
-
-    driver_other.add_argument(
         "--cleanup", action="store_true",
-        help="clean up temporary files (translator output and plan files) and exit")
+        help="clean up temporary files (translator output and policy files) "
+             "and exit")
 
     parser.add_argument(
         "planner_args", nargs=argparse.REMAINDER,
@@ -468,7 +450,6 @@ def parse_args():
 
     _check_mutex_args(parser, [
         ("--alias", args.alias is not None),
-        ("--portfolio", args.portfolio is not None),
         ("options for search component", bool(args.search_options))])
 
     _set_translator_output_options(parser, args)
@@ -481,16 +462,6 @@ def parse_args():
         except KeyError:
             print_usage_and_exit_with_driver_input_error(
                 parser, "unknown alias: %r" % args.alias)
-
-    if args.portfolio_bound is not None and not args.portfolio:
-        print_usage_and_exit_with_driver_input_error(
-            parser, "--portfolio-bound may only be used for portfolios.")
-    if args.portfolio_bound is not None and args.portfolio_bound < 0:
-        print_usage_and_exit_with_driver_input_error(
-            parser, "--portfolio-bound must not be negative.")
-    if args.portfolio_single_plan and not args.portfolio:
-        print_usage_and_exit_with_driver_input_error(
-            parser, "--portfolio-single-plan may only be used for portfolios.")
 
     if not args.version and not args.show_aliases and not args.cleanup:
         _set_components_and_inputs(parser, args)

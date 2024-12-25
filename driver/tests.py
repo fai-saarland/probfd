@@ -7,14 +7,12 @@ Test module for Fast Downward driver script. Run with
 import os
 import subprocess
 import sys
-import traceback
-from pathlib import Path
 
 import pytest
 
 from . import limits
 from . import returncodes
-from .aliases import ALIASES, PORTFOLIOS
+from .aliases import ALIASES
 from .arguments import EXAMPLES
 from .call import check_call
 from .run_components import get_executable, REL_SEARCH_PATH
@@ -51,27 +49,6 @@ def test_show_aliases():
     run_driver(["--show-aliases"])
 
 
-def test_portfolios():
-    for name, portfolio in PORTFOLIOS.items():
-        parameters = ["--portfolio", portfolio,
-                      "--search-time-limit", "30m", "output.sas"]
-        run_driver(parameters)
-
-
-def _get_portfolio_configs(portfolio: Path):
-    content = portfolio.read_text()
-    attributes = {}
-    try:
-        exec(content, attributes)
-    except Exception:
-        traceback.print_exc()
-        raise SyntaxError(
-            f"The portfolio {portfolio} could not be loaded.")
-    if "CONFIGS" not in attributes:
-        raise ValueError("portfolios must define CONFIGS")
-    return [config for _, config in attributes["CONFIGS"]]
-
-
 def _convert_to_standalone_config(config):
     replacements = [
         ("H_COST_TRANSFORM", "no_transform()"),
@@ -90,20 +67,6 @@ def _run_search(config):
         "search",
         [get_executable("release", REL_SEARCH_PATH)] + list(config),
         stdin="output.sas")
-
-
-def _get_all_portfolio_configs():
-    all_configs = set()
-    for portfolio in PORTFOLIOS.values():
-        configs = _get_portfolio_configs(Path(portfolio))
-        all_configs |= set(
-            tuple(_convert_to_standalone_config(config)) for config in configs)
-    return all_configs
-
-
-@pytest.mark.parametrize("config", _get_all_portfolio_configs())
-def test_portfolio_config(config):
-    _run_search(config)
 
 
 @pytest.mark.skipif(not limits.can_set_time_limit(),
