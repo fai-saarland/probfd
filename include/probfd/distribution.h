@@ -54,27 +54,15 @@ public:
     {
     }
 
-    /// Lexicographical less-than.
-    friend bool operator<(
+    /// Lexicographical comparison.
+    friend auto operator<=>(
         const ItemProbabilityPair<T>& left,
-        const ItemProbabilityPair<T>& right)
-    {
-        return std::tie(left.item, left.probability) <
-               std::tie(right.item, right.probability);
-    }
-
-    /// Canonical equality.
-    friend bool operator==(
-        const ItemProbabilityPair<T>& left,
-        const ItemProbabilityPair<T>& right)
-    {
-        return std::tie(left.item, left.probability) ==
-               std::tie(right.item, right.probability);
-    }
+        const ItemProbabilityPair<T>& right) = default;
 };
 
 /**
- * @brief A convenience class that represents a finite probability distribution.
+ * @brief A convenience class that represents a finite probability
+ * distribution.
  *
  * @tparam T - The item type.
  */
@@ -158,7 +146,8 @@ public:
     }
 
     /**
-     * @brief Checks if the distribution is a Dirac distribution wrt an element.
+     * @brief Checks if the distribution is a Dirac distribution wrt an
+     * element.
      */
     bool is_dirac(const T& t) const
     {
@@ -175,8 +164,8 @@ public:
     }
 
     /**
-     * @brief Computes the expectation over a real random variable according to
-     * the distribution.
+     * @brief Computes the expectation over a real random variable according
+     * to the distribution.
      */
     template <typename RandomVariable>
         requires(std::invocable<RandomVariable, T>)
@@ -190,8 +179,8 @@ public:
     }
 
     /**
-     * @brief Computes the expectation over a real random variable according to
-     * the distribution.
+     * @brief Computes the expectation over a real random variable according
+     * to the distribution.
      */
     template <typename RandomVariable>
         requires requires(RandomVariable& rv, const T& t) {
@@ -319,17 +308,9 @@ public:
             &ItemProbabilityPair<T>::item);
     }
 
-    friend bool
-    operator<(const Distribution<T>& left, const Distribution<T>& right)
-    {
-        return left.distribution_ < right.distribution_;
-    }
-
-    friend bool
-    operator==(const Distribution<T>& left, const Distribution<T>& right)
-    {
-        return left.distribution_ == right.distribution_;
-    }
+    friend auto
+    operator<=>(const Distribution<T>& left, const Distribution<T>& right) =
+        default;
 };
 
 } // namespace probfd
