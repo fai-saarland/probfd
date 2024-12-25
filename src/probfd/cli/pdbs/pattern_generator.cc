@@ -4,10 +4,6 @@
 
 #include "downward/cli/utils/logging_options.h"
 
-#include "probfd/pdbs/pattern_generator.h"
-
-using namespace probfd::pdbs;
-
 using namespace downward::cli::plugins;
 
 using downward::cli::utils::add_log_options_to_feature;
@@ -27,18 +23,3 @@ get_generator_arguments_from_options(const Options& opts)
 }
 
 } // namespace probfd::cli::pdbs
-
-namespace {
-
-class PatternGeneratorCategoryPlugin
-    : public TypedCategoryPlugin<PatternGenerator> {
-public:
-    PatternGeneratorCategoryPlugin()
-        : TypedCategoryPlugin("PPDBPatternGenerator")
-    {
-        document_synopsis("Factory for a pattern and/or the corresponding "
-                          "probability-aware PDB");
-    }
-} _category_plugin;
-
-} // namespace

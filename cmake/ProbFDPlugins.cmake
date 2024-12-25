@@ -258,11 +258,13 @@ create_library(
 )
 
 create_library(
-    NAME padbs_pattern_generators_plugin
+    NAME papdbs_pattern_generators_plugin
     HELP "Enables the base plugin for pattern collection generation for PPDBs"
     SOURCES
         probfd/cli/pdbs/pattern_generator
+        probfd/cli/pdbs/pattern_generator_category
         probfd/cli/pdbs/pattern_collection_generator
+        probfd/cli/pdbs/pattern_collection_generator_category
         probfd/cli/pdbs/pattern_collection_generator_multiple
 
         probfd/cli/pdbs/subcollection_finder_factory
@@ -283,8 +285,9 @@ create_library(
     SOURCES
         probfd/cli/pdbs/pattern_collection_generator_classical
     DEPENDS
+        pattern_generator_category
+        papdbs_pattern_generators_plugin
         papdbs_classical_generator
-        padbs_pattern_generators_plugin
         parser
         plugins
     TARGET
@@ -298,7 +301,7 @@ create_library(
         probfd/cli/pdbs/pattern_collection_generator_systematic
     DEPENDS
         papdbs_systematic_generator
-        padbs_pattern_generators_plugin
+        papdbs_pattern_generators_plugin
         parser
         plugins
     TARGET
@@ -313,7 +316,7 @@ create_library(
         probfd/cli/pdbs/pattern_collection_generator_hillclimbing
     DEPENDS
         papdbs_hillclimbing_generator
-        padbs_pattern_generators_plugin
+        papdbs_pattern_generators_plugin
         parser
         plugins
     TARGET
@@ -332,7 +335,7 @@ create_library(
         probfd/cli/pdbs/cegar/flaw_finding_strategy
     DEPENDS
         papdbs_cegar
-        padbs_pattern_generators_plugin
+        papdbs_pattern_generators_plugin
         parser
         plugins
     TARGET
@@ -347,7 +350,7 @@ create_library(
         probfd/cli/pdbs/pattern_collection_generator_disjoint_cegar
     DEPENDS
         papdbs_disjoint_cegar_generator
-        padbs_pattern_generators_plugin
+        papdbs_pattern_generators_plugin
         parser
         plugins
     TARGET
@@ -362,7 +365,7 @@ create_library(
         probfd/cli/pdbs/pattern_collection_generator_multiple_cegar
     DEPENDS
         papdbs_multiple_cegar_generator
-        padbs_pattern_generators_plugin
+        papdbs_pattern_generators_plugin
         parser
         plugins
     TARGET
@@ -392,6 +395,7 @@ create_library(
     SOURCES
         probfd/cli/heuristics/additive_cartesian_heuristic
     DEPENDS
+        evaluator_category
         task_dependent_heuristic_plugin
         probability_aware_cartesian_abstraction_heuristic
         parser
@@ -406,6 +410,7 @@ create_library(
     SOURCES
         probfd/cli/heuristics/constant_evaluator
     DEPENDS
+        evaluator_category
         probfd_core
         parser
         plugins
@@ -419,6 +424,7 @@ create_library(
     SOURCES
         probfd/cli/heuristics/dead_end_pruning
     DEPENDS
+        evaluator_category
         deadend_pruning_heuristic
         parser
         plugins
@@ -432,6 +438,7 @@ create_library(
     SOURCES
         probfd/cli/heuristics/determinization_cost
     DEPENDS
+        evaluator_category
         determinization_heuristic
         parser
         plugins
@@ -445,6 +452,7 @@ create_library(
     SOURCES
         probfd/cli/heuristics/gzocp_heuristic
     DEPENDS
+        evaluator_category
         gzocp_pdb_heuristic
         parser
         plugins
@@ -458,6 +466,7 @@ create_library(
     SOURCES
         probfd/cli/heuristics/probability_aware_pdb_heuristic
     DEPENDS
+        evaluator_category
         probability_aware_pdb_heuristic
         parser
         plugins
@@ -471,6 +480,7 @@ create_library(
     SOURCES
         probfd/cli/heuristics/scp_heuristic
     DEPENDS
+        evaluator_category
         scp_pdb_heuristic
         parser
         plugins
@@ -484,6 +494,7 @@ create_library(
     SOURCES
         probfd/cli/heuristics/ucp_heuristic
     DEPENDS
+        evaluator_category
         ucp_pdb_heuristic
         parser
         plugins

@@ -1,10 +1,8 @@
+#include "probfd/cli/pdbs/pattern_collection_generator.h"
+
 #include "downward/cli/plugins/plugin.h"
 
 #include "downward/cli/utils/logging_options.h"
-
-#include "probfd/pdbs/pattern_collection_generator.h"
-
-using namespace probfd::pdbs;
 
 using namespace downward::cli::plugins;
 
@@ -25,19 +23,3 @@ get_collection_generator_arguments_from_options(const Options& opts)
 }
 
 } // namespace probfd::cli::pdbs
-
-namespace {
-
-class PatternCollectionGeneratorCategoryPlugin
-    : public TypedCategoryPlugin<PatternCollectionGenerator> {
-public:
-    PatternCollectionGeneratorCategoryPlugin()
-        : TypedCategoryPlugin("PPDBPatternCollectionGenerator")
-    {
-        document_synopsis("Factory for pattern collections and/or "
-                          "corresponding probability-aware "
-                          "PDBs");
-    }
-} _category_plugin;
-
-} // namespace
