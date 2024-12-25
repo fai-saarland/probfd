@@ -1,12 +1,12 @@
 #include "downward/utils/logging.h"
 
+#include "downward/utils/strings.h"
 #include "downward/utils/system.h"
 #include "downward/utils/timer.h"
 
-#include "downward/plugins/plugin.h"
-
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <vector>
 
 using namespace std;
@@ -21,19 +21,6 @@ namespace utils {
 static shared_ptr<Log> global_log = make_shared<Log>(Verbosity::NORMAL);
 
 LogProxy g_log(global_log);
-
-void add_log_options_to_feature(plugins::Feature& feature)
-{
-    feature.add_option<Verbosity>(
-        "verbosity",
-        "Option to specify the verbosity level.",
-        "normal");
-}
-
-tuple<Verbosity> get_log_arguments_from_options(const plugins::Options& opts)
-{
-    return make_tuple<Verbosity>(opts.get<Verbosity>("verbosity"));
-}
 
 LogProxy get_log_for_verbosity(const Verbosity& verbosity)
 {
@@ -142,9 +129,4 @@ void trace_memory(const string& msg)
     g_log << _memory_context.decorate_block_name(msg);
 }
 
-static plugins::TypedEnumPlugin<Verbosity> _enum_plugin(
-    {{"silent", "only the most basic output"},
-     {"normal", "relevant information to monitor progress"},
-     {"verbose", "full output"},
-     {"debug", "like verbose with additional debug output"}});
 } // namespace utils

@@ -6,7 +6,6 @@
 
 #include "downward/task_proxy.h"
 
-#include "downward/plugins/plugin.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/memory.h"
 #include "downward/utils/timer.h"
@@ -176,57 +175,4 @@ void LandmarkFactory::generate_operators_lookups(const TaskProxy& task_proxy)
     }
 }
 
-void add_landmark_factory_options_to_feature(plugins::Feature& feature)
-{
-    utils::add_log_options_to_feature(feature);
-}
-
-tuple<utils::Verbosity>
-get_landmark_factory_arguments_from_options(const plugins::Options& opts)
-{
-    return utils::get_log_arguments_from_options(opts);
-}
-
-void add_use_orders_option_to_feature(plugins::Feature& feature)
-{
-    feature.add_option<bool>(
-        "use_orders",
-        "use orders between landmarks",
-        "true");
-}
-
-bool get_use_orders_arguments_from_options(const plugins::Options& opts)
-{
-    return opts.get<bool>("use_orders");
-}
-
-void add_only_causal_landmarks_option_to_feature(plugins::Feature& feature)
-{
-    feature.add_option<bool>(
-        "only_causal_landmarks",
-        "keep only causal landmarks",
-        "false");
-}
-
-bool get_only_causal_landmarks_arguments_from_options(
-    const plugins::Options& opts)
-{
-    return opts.get<bool>("only_causal_landmarks");
-}
-
-static class LandmarkFactoryCategoryPlugin
-    : public plugins::TypedCategoryPlugin<LandmarkFactory> {
-public:
-    LandmarkFactoryCategoryPlugin()
-        : TypedCategoryPlugin("LandmarkFactory")
-    {
-        document_synopsis(
-            "A landmark factory specification is either a newly created "
-            "instance or a landmark factory that has been defined previously. "
-            "This page describes how one can specify a new landmark factory "
-            "instance. For re-using landmark factories, see "
-            "OptionSyntax#Landmark_Predefinitions.");
-        allow_variable_binding();
-    }
-} _category_plugin;
 } // namespace landmarks

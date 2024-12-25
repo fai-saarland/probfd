@@ -2,8 +2,6 @@
 
 #include "downward/heuristics/domain_transition_graph.h"
 
-#include "downward/plugins/plugin.h"
-
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/logging.h"
 
@@ -478,40 +476,4 @@ bool ContextEnhancedAdditiveHeuristic::dead_ends_are_reliable() const
     return false;
 }
 
-class ContextEnhancedAdditiveHeuristicFeature
-    : public plugins::
-          TypedFeature<Evaluator, ContextEnhancedAdditiveHeuristic> {
-public:
-    ContextEnhancedAdditiveHeuristicFeature()
-        : TypedFeature("cea")
-    {
-        document_title("Context-enhanced additive heuristic");
-
-        add_heuristic_options_to_feature(*this, "cea");
-
-        document_language_support("action costs", "supported");
-        document_language_support("conditional effects", "supported");
-        document_language_support(
-            "axioms",
-            "supported (in the sense that the planner won't complain -- "
-            "handling of axioms might be very stupid "
-            "and even render the heuristic unsafe)");
-
-        document_property("admissible", "no");
-        document_property("consistent", "no");
-        document_property("safe", "no");
-        document_property("preferred operators", "yes");
-    }
-
-    virtual shared_ptr<ContextEnhancedAdditiveHeuristic>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<
-            ContextEnhancedAdditiveHeuristic>(
-            get_heuristic_arguments_from_options(opts));
-    }
-};
-
-static plugins::FeaturePlugin<ContextEnhancedAdditiveHeuristicFeature> _plugin;
 } // namespace cea_heuristic

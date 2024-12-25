@@ -1,7 +1,5 @@
 #include "downward/heuristics/blind_search_heuristic.h"
 
-#include "downward/plugins/plugin.h"
-
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/logging.h"
 
@@ -34,37 +32,4 @@ int BlindSearchHeuristic::compute_heuristic(const State& ancestor_state)
         return min_operator_cost;
 }
 
-class BlindSearchHeuristicFeature
-    : public plugins::TypedFeature<Evaluator, BlindSearchHeuristic> {
-public:
-    BlindSearchHeuristicFeature()
-        : TypedFeature("blind")
-    {
-        document_title("Blind heuristic");
-        document_synopsis(
-            "Returns cost of cheapest action for non-goal states, "
-            "0 for goal states");
-
-        add_heuristic_options_to_feature(*this, "blind");
-
-        document_language_support("action costs", "supported");
-        document_language_support("conditional effects", "supported");
-        document_language_support("axioms", "supported");
-
-        document_property("admissible", "yes");
-        document_property("consistent", "yes");
-        document_property("safe", "yes");
-        document_property("preferred operators", "no");
-    }
-
-    virtual shared_ptr<BlindSearchHeuristic>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<BlindSearchHeuristic>(
-            get_heuristic_arguments_from_options(opts));
-    }
-};
-
-static plugins::FeaturePlugin<BlindSearchHeuristicFeature> _plugin;
 } // namespace blind_search_heuristic

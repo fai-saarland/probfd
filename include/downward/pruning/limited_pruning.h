@@ -3,10 +3,6 @@
 
 #include "downward/pruning_method.h"
 
-namespace plugins {
-class Options;
-} // namespace plugins
-
 namespace limited_pruning {
 class LimitedPruning : public PruningMethod {
     std::shared_ptr<PruningMethod> pruning_method;

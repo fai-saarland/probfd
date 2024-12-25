@@ -11,11 +11,6 @@ class Evaluator;
 class PruningMethod;
 class OpenListFactory;
 
-namespace plugins {
-class Feature;
-class Options;
-} // namespace plugins
-
 namespace eager_search {
 class EagerSearch : public SearchAlgorithm {
     const bool reopen_closed_nodes;
@@ -56,18 +51,6 @@ public:
     void dump_search_space() const;
 };
 
-extern void add_eager_search_options_to_feature(
-    plugins::Feature& feature,
-    const std::string& description);
-extern std::tuple<
-    std::shared_ptr<PruningMethod>,
-    std::shared_ptr<Evaluator>,
-    OperatorCost,
-    int,
-    double,
-    std::string,
-    utils::Verbosity>
-get_eager_search_arguments_from_options(const plugins::Options& opts);
 } // namespace eager_search
 
 #endif

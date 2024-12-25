@@ -9,10 +9,6 @@
 #include <string>
 #include <vector>
 
-namespace plugins {
-class Options;
-}
-
 namespace hm_heuristic {
 /*
   Haslum's h^m heuristic family ("critical path heuristics").

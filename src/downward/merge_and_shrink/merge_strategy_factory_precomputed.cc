@@ -4,7 +4,6 @@
 #include "downward/merge_and_shrink/merge_tree.h"
 #include "downward/merge_and_shrink/merge_tree_factory.h"
 
-#include "downward/plugins/plugin.h"
 #include "downward/utils/memory.h"
 
 using namespace std;
@@ -52,50 +51,4 @@ void MergeStrategyFactoryPrecomputed::dump_strategy_specific_options() const
     }
 }
 
-class MergeStrategyFactoryPrecomputedFeature
-    : public plugins::
-          TypedFeature<MergeStrategyFactory, MergeStrategyFactoryPrecomputed> {
-public:
-    MergeStrategyFactoryPrecomputedFeature()
-        : TypedFeature("merge_precomputed")
-    {
-        document_title("Precomputed merge strategy");
-        document_synopsis(
-            "This merge strategy has a precomputed merge tree. Note that this "
-            "merge strategy does not take into account the current state of "
-            "the factored transition system. This also means that this merge "
-            "strategy relies on the factored transition system being "
-            "synchronized "
-            "with this merge tree, i.e. all merges are performed exactly as "
-            "given "
-            "by the merge tree.");
-
-        add_option<shared_ptr<MergeTreeFactory>>(
-            "merge_tree",
-            "The precomputed merge tree.");
-        add_merge_strategy_options_to_feature(*this);
-
-        document_note(
-            "Note",
-            "An example of a precomputed merge startegy is a linear merge "
-            "strategy, "
-            "which can be obtained using:\n"
-            "{{{\n"
-            "merge_strategy=merge_precomputed(merge_tree=linear(<variable_"
-            "order>))"
-            "\n}}}");
-    }
-
-    virtual shared_ptr<MergeStrategyFactoryPrecomputed>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<
-            MergeStrategyFactoryPrecomputed>(
-            opts.get<shared_ptr<MergeTreeFactory>>("merge_tree"),
-            get_merge_strategy_arguments_from_options(opts));
-    }
-};
-
-static plugins::FeaturePlugin<MergeStrategyFactoryPrecomputedFeature> _plugin;
 } // namespace merge_and_shrink

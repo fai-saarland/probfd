@@ -1,18 +1,15 @@
-#include "probfd_plugins/naming_conventions.h"
+#include "probfd/cli/naming_conventions.h"
 
 #include "probfd/solvers/mdp_heuristic_search.h"
 
 #include "probfd/quotients/quotient_system.h"
 
-#include "downward/plugins/plugin.h"
-
 #include <iostream>
-
-using namespace plugins;
+#include <sstream>
 
 using namespace probfd::algorithms;
 
-using namespace probfd_plugins;
+using namespace probfd::cli;
 
 namespace probfd::solvers {
 

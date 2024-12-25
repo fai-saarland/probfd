@@ -1,6 +1,5 @@
 #include "downward/pruning/stubborn_sets.h"
 
-#include "downward/plugins/options.h"
 #include "downward/task_utils/task_properties.h"
 
 using namespace std;

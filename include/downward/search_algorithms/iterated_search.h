@@ -3,14 +3,15 @@
 
 #include "downward/search_algorithm.h"
 
-#include "downward/parser/decorated_abstract_syntax_tree.h"
-
 #include <memory>
 #include <vector>
 
+class SearchAlgorithmFactory;
+
 namespace iterated_search {
+
 class IteratedSearch : public SearchAlgorithm {
-    std::vector<parser::LazyValue> algorithm_configs;
+    std::vector<std::shared_ptr<SearchAlgorithmFactory>> algorithm_configs;
 
     bool pass_bound;
     bool repeat_last_phase;
@@ -30,9 +31,19 @@ class IteratedSearch : public SearchAlgorithm {
     virtual SearchStatus step() override;
 
 public:
-    // TODO this still needs the options objects, the prototype for issue559
-    // resolves this
-    IteratedSearch(const plugins::Options& opts);
+    IteratedSearch(
+        OperatorCost operator_cost,
+        int bound,
+        double max_time,
+        std::string description,
+        utils::Verbosity verbosity,
+        std::vector<std::shared_ptr<SearchAlgorithmFactory>> algorithm_configs,
+        bool pass_bound,
+        bool repeat_last,
+        bool continue_on_fail,
+        bool continue_on_solve);
+
+    ~IteratedSearch() override;
 
     virtual void save_plan_if_necessary() override;
     virtual void print_statistics() const override;

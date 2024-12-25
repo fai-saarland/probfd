@@ -34,8 +34,6 @@ public:
     virtual bool requires_init_distances() const override { return false; }
 
     virtual bool requires_goal_distances() const override { return false; }
-
-    static void add_options_to_feature(plugins::Feature& feature);
 };
 } // namespace merge_and_shrink
 

@@ -12,11 +12,6 @@
 
 class AbstractTask;
 
-namespace plugins {
-class Feature;
-class Options;
-} // namespace plugins
-
 namespace utils {
 class RandomNumberGenerator;
 }
@@ -53,9 +48,6 @@ public:
     PatternInformation generate(const std::shared_ptr<AbstractTask>& task);
 };
 
-extern void add_generator_options_to_feature(plugins::Feature& feature);
-extern std::tuple<utils::Verbosity>
-get_generator_arguments_from_options(const plugins::Options& opts);
 } // namespace pdbs
 
 #endif

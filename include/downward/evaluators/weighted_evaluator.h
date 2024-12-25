@@ -5,10 +5,6 @@
 
 #include <memory>
 
-namespace plugins {
-class Options;
-}
-
 namespace weighted_evaluator {
 class WeightedEvaluator : public Evaluator {
     std::shared_ptr<Evaluator> evaluator;

@@ -2,7 +2,6 @@
 
 #include "downward/evaluation_context.h"
 #include "downward/evaluation_result.h"
-#include "downward/plugins/plugin.h"
 
 using namespace std;
 
@@ -19,26 +18,4 @@ EvaluationResult GEvaluator::compute_result(EvaluationContext& eval_context)
     return result;
 }
 
-class GEvaluatorFeature : public plugins::TypedFeature<Evaluator, GEvaluator> {
-public:
-    GEvaluatorFeature()
-        : TypedFeature("g")
-    {
-        document_subcategory("evaluators_basic");
-        document_title("g-value evaluator");
-        document_synopsis(
-            "Returns the g-value (path cost) of the search node.");
-        add_evaluator_options_to_feature(*this, "g");
-    }
-
-    virtual shared_ptr<GEvaluator>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<GEvaluator>(
-            get_evaluator_arguments_from_options(opts));
-    }
-};
-
-static plugins::FeaturePlugin<GEvaluatorFeature> _plugin;
 } // namespace g_evaluator

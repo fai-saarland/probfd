@@ -2,7 +2,6 @@
 
 #include "downward/evaluation_context.h"
 #include "downward/evaluation_result.h"
-#include "downward/plugins/plugin.h"
 
 using namespace std;
 
@@ -24,27 +23,4 @@ EvaluationResult PrefEvaluator::compute_result(EvaluationContext& eval_context)
     return result;
 }
 
-class PrefEvaluatorFeature
-    : public plugins::TypedFeature<Evaluator, PrefEvaluator> {
-public:
-    PrefEvaluatorFeature()
-        : TypedFeature("pref")
-    {
-        document_subcategory("evaluators_basic");
-        document_title("Preference evaluator");
-        document_synopsis("Returns 0 if preferred is true and 1 otherwise.");
-
-        add_evaluator_options_to_feature(*this, "pref");
-    }
-
-    virtual shared_ptr<PrefEvaluator>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<PrefEvaluator>(
-            get_evaluator_arguments_from_options(opts));
-    }
-};
-
-static plugins::FeaturePlugin<PrefEvaluatorFeature> _plugin;
 } // namespace pref_evaluator

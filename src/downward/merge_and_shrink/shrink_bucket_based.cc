@@ -1,6 +1,5 @@
 #include "downward/merge_and_shrink/shrink_bucket_based.h"
 
-#include "downward/plugins/plugin.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
@@ -106,14 +105,4 @@ StateEquivalenceRelation ShrinkBucketBased::compute_equivalence_relation(
     return compute_abstraction(buckets, target_size, log);
 }
 
-void add_shrink_bucket_options_to_feature(plugins::Feature& feature)
-{
-    utils::add_rng_options_to_feature(feature);
-}
-
-tuple<int>
-get_shrink_bucket_arguments_from_options(const plugins::Options& opts)
-{
-    return utils::get_rng_arguments_from_options(opts);
-}
 } // namespace merge_and_shrink

@@ -67,7 +67,6 @@ extern void dump_pattern_collection_generation_statistics(
     const PatternCollectionInformation& pci,
     utils::LogProxy& log);
 
-extern std::string get_rovner_et_al_reference();
 } // namespace pdbs
 
 #endif

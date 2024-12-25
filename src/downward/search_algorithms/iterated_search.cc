@@ -1,6 +1,7 @@
 #include "downward/search_algorithms/iterated_search.h"
 
-#include "downward/plugins/plugin.h"
+#include "downward/search_algorithm_factory.h"
+
 #include "downward/utils/logging.h"
 
 #include <iostream>
@@ -8,13 +9,29 @@
 using namespace std;
 
 namespace iterated_search {
-IteratedSearch::IteratedSearch(const plugins::Options& opts)
-    : SearchAlgorithm(opts)
-    , algorithm_configs(opts.get_list<parser::LazyValue>("algorithm_configs"))
-    , pass_bound(opts.get<bool>("pass_bound"))
-    , repeat_last_phase(opts.get<bool>("repeat_last"))
-    , continue_on_fail(opts.get<bool>("continue_on_fail"))
-    , continue_on_solve(opts.get<bool>("continue_on_solve"))
+
+IteratedSearch::IteratedSearch(
+    OperatorCost operator_cost,
+    int bound,
+    double max_time,
+    std::string description,
+    utils::Verbosity verbosity,
+    std::vector<std::shared_ptr<SearchAlgorithmFactory>> algorithm_configs,
+    bool pass_bound,
+    bool repeat_last,
+    bool continue_on_fail,
+    bool continue_on_solve)
+    : SearchAlgorithm(
+          operator_cost,
+          bound,
+          max_time,
+          std::move(description),
+          verbosity)
+    , algorithm_configs(std::move(algorithm_configs))
+    , pass_bound(pass_bound)
+    , repeat_last_phase(repeat_last)
+    , continue_on_fail(continue_on_fail)
+    , continue_on_solve(continue_on_solve)
     , phase(0)
     , last_phase_found_solution(false)
     , best_bound(bound)
@@ -22,19 +39,15 @@ IteratedSearch::IteratedSearch(const plugins::Options& opts)
 {
 }
 
+IteratedSearch::~IteratedSearch() = default;
+
 shared_ptr<SearchAlgorithm>
 IteratedSearch::get_search_algorithm(int algorithm_configs_index)
 {
-    parser::LazyValue& algorithm_config =
+    std::shared_ptr<SearchAlgorithmFactory>& algorithm_factory =
         algorithm_configs[algorithm_configs_index];
-    shared_ptr<SearchAlgorithm> algorithm;
-    try {
-        algorithm = algorithm_config.construct<shared_ptr<SearchAlgorithm>>();
-    } catch (const utils::ContextError& e) {
-        cerr << "Delayed construction of LazyValue failed" << endl;
-        cerr << e.get_message() << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
-    }
+    shared_ptr<SearchAlgorithm> algorithm =
+        algorithm_factory->create_algorithm();
     log << "Starting search: " << algorithm->get_description() << endl;
     return algorithm;
 }
@@ -135,88 +148,4 @@ void IteratedSearch::save_plan_if_necessary()
     // each successful search iteration.
 }
 
-class IteratedSearchFeature
-    : public plugins::TypedFeature<SearchAlgorithm, IteratedSearch> {
-public:
-    IteratedSearchFeature()
-        : TypedFeature("iterated")
-    {
-        document_title("Iterated search");
-        document_synopsis("");
-
-        add_list_option<shared_ptr<SearchAlgorithm>>(
-            "algorithm_configs",
-            "list of search algorithms for each phase",
-            "",
-            true);
-        add_option<bool>(
-            "pass_bound",
-            "use the bound of iterated search as a bound for its component "
-            "search algorithms, unless these already have a lower bound set. "
-            "The iterated search bound is tightened whenever a component finds "
-            "a cheaper plan.",
-            "true");
-        add_option<bool>("repeat_last", "repeat last phase of search", "false");
-        add_option<bool>(
-            "continue_on_fail",
-            "continue search after no solution found",
-            "false");
-        add_option<bool>(
-            "continue_on_solve",
-            "continue search after solution found",
-            "true");
-        add_search_algorithm_options_to_feature(*this, "iterated");
-
-        document_note(
-            "Note 1",
-            "We don't cache heuristic values between search iterations at"
-            " the moment. If you perform a LAMA-style iterative search,"
-            " heuristic values and other per-state information will be computed"
-            " multiple times.");
-        document_note(
-            "Note 2",
-            "The configuration\n```\n"
-            "--search \"iterated([lazy_wastar([ipdb()],w=10), "
-            "lazy_wastar([ipdb()],w=5), lazy_wastar([ipdb()],w=3), "
-            "lazy_wastar([ipdb()],w=2), lazy_wastar([ipdb()],w=1)])\"\n"
-            "```\nwould perform the preprocessing phase of the ipdb heuristic "
-            "5 times (once before each iteration).\n\n"
-            "To avoid this, use heuristic predefinition, which avoids "
-            "duplicate preprocessing, as follows:\n```\n"
-            "\"let(h,ipdb(),iterated([lazy_wastar([h],w=10), "
-            "lazy_wastar([h],w=5), lazy_wastar([h],w=3), lazy_wastar([h],w=2), "
-            "lazy_wastar([h],w=1)]))\"\n"
-            "```");
-    }
-
-    virtual shared_ptr<IteratedSearch> create_component(
-        const plugins::Options& options,
-        const utils::Context& context) const override
-    {
-        plugins::Options options_copy(options);
-        /*
-          The options entry 'algorithm_configs' is a LazyValue representing a
-          list of search algorithms. But iterated search expects a list of
-          LazyValues, each representing a search algorithm. We unpack this first
-          layer of laziness here to report potential errors in a more useful
-          context.
-
-          TODO: the medium-term plan is to get rid of LazyValue completely
-          and let the features create builders that in turn create the actual
-          search algorithms. Then we no longer need to be lazy because creating
-          the builder is a light-weight operation.
-        */
-        vector<parser::LazyValue> algorithm_configs =
-            options.get<parser::LazyValue>("algorithm_configs")
-                .construct_lazy_list();
-        options_copy.set("algorithm_configs", algorithm_configs);
-        plugins::verify_list_non_empty<parser::LazyValue>(
-            context,
-            options_copy,
-            "algorithm_configs");
-        return make_shared<IteratedSearch>(options_copy);
-    }
-};
-
-static plugins::FeaturePlugin<IteratedSearchFeature> _plugin;
 } // namespace iterated_search

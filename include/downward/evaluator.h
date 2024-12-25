@@ -10,11 +10,6 @@
 class EvaluationContext;
 class State;
 
-namespace plugins {
-class Feature;
-class Options;
-} // namespace plugins
-
 class Evaluator {
     const std::string description;
     const bool use_for_reporting_minima;
@@ -101,12 +96,5 @@ public:
     */
     virtual int get_cached_estimate(const State& state) const;
 };
-
-extern void add_evaluator_options_to_feature(
-    plugins::Feature& feature,
-    const std::string& description);
-
-extern std::tuple<std::string, utils::Verbosity>
-get_evaluator_arguments_from_options(const plugins::Options& opts);
 
 #endif

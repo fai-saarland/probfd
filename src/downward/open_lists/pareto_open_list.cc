@@ -264,40 +264,4 @@ unique_ptr<EdgeOpenList> ParetoOpenListFactory::create_edge_open_list()
         pref_only);
 }
 
-class ParetoOpenListFeature
-    : public plugins::TypedFeature<OpenListFactory, ParetoOpenListFactory> {
-public:
-    ParetoOpenListFeature()
-        : TypedFeature("pareto")
-    {
-        document_title("Pareto open list");
-        document_synopsis(
-            "Selects one of the Pareto-optimal (regarding the sub-evaluators) "
-            "entries for removal.");
-
-        add_list_option<shared_ptr<Evaluator>>("evals", "evaluators");
-        add_option<bool>(
-            "state_uniform_selection",
-            "When removing an entry, we select a non-dominated bucket "
-            "and return its oldest entry. If this option is false, we select "
-            "uniformly from the non-dominated buckets; if the option is true, "
-            "we weight the buckets with the number of entries.",
-            "false");
-        utils::add_rng_options_to_feature(*this);
-        add_open_list_options_to_feature(*this);
-    }
-
-    virtual shared_ptr<ParetoOpenListFactory>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<ParetoOpenListFactory>(
-            opts.get_list<shared_ptr<Evaluator>>("evals"),
-            opts.get<bool>("state_uniform_selection"),
-            utils::get_rng_arguments_from_options(opts),
-            get_open_list_arguments_from_options(opts));
-    }
-};
-
-static plugins::FeaturePlugin<ParetoOpenListFeature> _plugin;
 } // namespace pareto_open_list

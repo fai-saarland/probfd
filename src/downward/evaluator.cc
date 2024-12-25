@@ -1,6 +1,5 @@
 #include "downward/evaluator.h"
 
-#include "downward/plugins/plugin.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/system.h"
 
@@ -84,47 +83,3 @@ int Evaluator::get_cached_estimate(const State&) const
 {
     ABORT("Called get_cached_estimate when estimate is not cached.");
 }
-
-void add_evaluator_options_to_feature(
-    plugins::Feature& feature,
-    const string& description)
-{
-    feature.add_option<string>(
-        "description",
-        "description used to identify evaluator in logs",
-        "\"" + description + "\"");
-    utils::add_log_options_to_feature(feature);
-}
-
-tuple<string, utils::Verbosity>
-get_evaluator_arguments_from_options(const plugins::Options& opts)
-{
-    return tuple_cat(
-        make_tuple(opts.get<string>("description")),
-        utils::get_log_arguments_from_options(opts));
-}
-
-static class EvaluatorCategoryPlugin
-    : public plugins::TypedCategoryPlugin<Evaluator> {
-public:
-    EvaluatorCategoryPlugin()
-        : TypedCategoryPlugin("Evaluator")
-    {
-        document_synopsis(
-            "An evaluator specification is either a newly created evaluator "
-            "instance or an evaluator that has been defined previously. "
-            "This page describes how one can specify a new evaluator instance. "
-            "For re-using evaluators, see "
-            "OptionSyntax#Evaluator_Predefinitions.\n\n"
-            "If the evaluator is a heuristic, "
-            "definitions of //properties// in the descriptions below:\n\n"
-            " * **admissible:** h(s) <= h*(s) for all states s\n"
-            " * **consistent:** h(s) <= c(s, s') + h(s') for all states s "
-            "connected to states s' by an action with cost c(s, s')\n"
-            " * **safe:** h(s) = infinity is only true for states "
-            "with h*(s) = infinity\n"
-            " * **preferred operators:** this heuristic identifies "
-            "preferred operators ");
-        allow_variable_binding();
-    }
-} _category_plugin;

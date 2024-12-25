@@ -3,10 +3,7 @@
 #include "downward/merge_and_shrink/factored_transition_system.h"
 #include "downward/merge_and_shrink/transition_system.h"
 
-#include "downward/plugins/plugin.h"
-
 #include <cassert>
-#include <memory>
 
 using namespace std;
 
@@ -36,26 +33,4 @@ string ShrinkRandom::name() const
     return "random";
 }
 
-class ShrinkRandomFeature
-    : public plugins::TypedFeature<ShrinkStrategy, ShrinkRandom> {
-public:
-    ShrinkRandomFeature()
-        : TypedFeature("shrink_random")
-    {
-        document_title("Random");
-        document_synopsis("");
-
-        add_shrink_bucket_options_to_feature(*this);
-    }
-
-    virtual shared_ptr<ShrinkRandom>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<ShrinkRandom>(
-            get_shrink_bucket_arguments_from_options(opts));
-    }
-};
-
-static plugins::FeaturePlugin<ShrinkRandomFeature> _plugin;
 } // namespace merge_and_shrink

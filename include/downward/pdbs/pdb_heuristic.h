@@ -5,10 +5,6 @@
 
 #include "downward/heuristic.h"
 
-namespace plugins {
-class Options;
-}
-
 namespace pdbs {
 class PatternDatabase;
 

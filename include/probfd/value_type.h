@@ -1,14 +1,13 @@
 #ifndef PROBFD_VALUE_TYPE_H
 #define PROBFD_VALUE_TYPE_H
 
+#include "probfd/aliases.h"
+
 #include <limits>
 #include <string>
 
 /// The top-level namespace of probabilistic Fast Downward.
 namespace probfd {
-
-/// Typedef for the state value type
-using value_t = double;
 
 /// A constant representing state value \f$+\infty\f$.
 static constexpr value_t INFINITE_VALUE =

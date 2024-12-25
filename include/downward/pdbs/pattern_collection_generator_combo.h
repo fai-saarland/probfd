@@ -3,8 +3,6 @@
 
 #include "downward/pdbs/pattern_generator.h"
 
-#include "downward/plugins/options.h"
-
 namespace pdbs {
 /* Take one large pattern and then single-variable patterns for
    all goal variables that are not in the large pattern. */

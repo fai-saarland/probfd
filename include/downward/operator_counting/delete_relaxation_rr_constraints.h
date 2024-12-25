@@ -14,10 +14,6 @@ class LPConstraint;
 struct LPVariable;
 } // namespace lp
 
-namespace plugins {
-class Options;
-}
-
 namespace operator_counting {
 class VEGraph;
 using LPConstraints = named_vector::NamedVector<lp::LPConstraint>;
@@ -109,7 +105,9 @@ class DeleteRelaxationRRConstraints : public ConstraintGenerator {
         lp::LinearProgram& lp);
 
 public:
-    explicit DeleteRelaxationRRConstraints(const plugins::Options& opts);
+    DeleteRelaxationRRConstraints(
+        AcyclicityType acyclicity_type,
+        bool use_integer_vars);
 
     virtual void initialize_constraints(
         const std::shared_ptr<AbstractTask>& task,

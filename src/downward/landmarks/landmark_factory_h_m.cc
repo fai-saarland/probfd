@@ -5,7 +5,6 @@
 
 #include "downward/abstract_task.h"
 
-#include "downward/plugins/plugin.h"
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
@@ -1190,44 +1189,4 @@ bool LandmarkFactoryHM::supports_conditional_effects() const
     return false;
 }
 
-class LandmarkFactoryHMFeature
-    : public plugins::TypedFeature<LandmarkFactory, LandmarkFactoryHM> {
-public:
-    LandmarkFactoryHMFeature()
-        : TypedFeature("lm_hm")
-    {
-        // document_group("");
-        document_title("h^m Landmarks");
-        document_synopsis("The landmark generation method introduced by "
-                          "Keyder, Richter & Helmert (ECAI 2010).");
-
-        add_option<int>(
-            "m",
-            "subset size (if unsure, use the default of 2)",
-            "2");
-        add_option<bool>(
-            "conjunctive_landmarks",
-            "keep conjunctive landmarks",
-            "true");
-        add_use_orders_option_to_feature(*this);
-        add_landmark_factory_options_to_feature(*this);
-
-        document_language_support(
-            "conditional_effects",
-            "ignored, i.e. not supported");
-    }
-
-    virtual shared_ptr<LandmarkFactoryHM>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return plugins::make_shared_from_arg_tuples<LandmarkFactoryHM>(
-            opts.get<int>("m"),
-            opts.get<bool>("conjunctive_landmarks"),
-            get_use_orders_arguments_from_options(opts),
-            get_landmark_factory_arguments_from_options(opts));
-    }
-};
-
-static plugins::FeaturePlugin<LandmarkFactoryHMFeature> _plugin;
 } // namespace landmarks

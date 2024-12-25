@@ -4,17 +4,15 @@
 #include "downward/potentials/potential_max_heuristic.h"
 #include "downward/potentials/util.h"
 
-#include "downward/plugins/plugin.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
 #include "downward/utils/timer.h"
 
-#include <unordered_set>
-
 using namespace std;
 
 namespace potentials {
+
 DiversePotentialHeuristics::DiversePotentialHeuristics(
     int num_samples,
     int max_num_heuristics,
@@ -160,52 +158,4 @@ DiversePotentialHeuristics::find_functions()
     return std::move(diverse_functions);
 }
 
-class DiversePotentialMaxHeuristicFeature
-    : public plugins::TypedFeature<Evaluator, PotentialMaxHeuristic> {
-public:
-    DiversePotentialMaxHeuristicFeature()
-        : TypedFeature("diverse_potentials")
-    {
-        document_subcategory("heuristics_potentials");
-        document_title("Diverse potential heuristics");
-        document_synopsis(get_admissible_potentials_reference());
-
-        add_option<int>(
-            "num_samples",
-            "Number of states to sample",
-            "1000",
-            plugins::Bounds("0", "infinity"));
-        add_option<int>(
-            "max_num_heuristics",
-            "maximum number of potential heuristics",
-            "infinity",
-            plugins::Bounds("0", "infinity"));
-        add_admissible_potentials_options_to_feature(
-            *this,
-            "diverse_potentials");
-        utils::add_rng_options_to_feature(*this);
-    }
-
-    virtual shared_ptr<PotentialMaxHeuristic>
-    create_component(const plugins::Options& opts, const utils::Context&)
-        const override
-    {
-        return make_shared<PotentialMaxHeuristic>(
-            DiversePotentialHeuristics(
-                opts.get<int>("num_samples"),
-                opts.get<int>("max_num_heuristics"),
-                opts.get<double>("max_potential"),
-                opts.get<lp::LPSolverType>("lpsolver"),
-                opts.get<shared_ptr<AbstractTask>>("transform"),
-                opts.get<int>("random_seed"),
-                opts.get<utils::Verbosity>("verbosity"))
-                .find_functions(),
-            opts.get<shared_ptr<AbstractTask>>("transform"),
-            opts.get<bool>("cache_estimates"),
-            opts.get<string>("description"),
-            opts.get<utils::Verbosity>("verbosity"));
-    }
-};
-
-static plugins::FeaturePlugin<DiversePotentialMaxHeuristicFeature> _plugin;
 } // namespace potentials

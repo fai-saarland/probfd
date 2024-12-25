@@ -5,13 +5,9 @@
 #include "downward/utils/collections.h"
 #include "downward/utils/timer.h"
 
-#include "downward/plugins/plugin.h"
-
-#include <algorithm>
 #include <cassert>
 #include <memory>
 #include <set>
-#include <unordered_set>
 #include <vector>
 
 using namespace std;
@@ -606,22 +602,4 @@ void read_root_task(istream& in)
     g_root_task = make_shared<RootTask>(in);
 }
 
-class RootTaskFeature
-    : public plugins::TypedFeature<AbstractTask, AbstractTask> {
-public:
-    RootTaskFeature()
-        : TypedFeature("no_transform")
-    {
-    }
-
-    [[nodiscard]]
-    shared_ptr<AbstractTask>
-    create_component(const plugins::Options&, const utils::Context&)
-        const override
-    {
-        return g_root_task;
-    }
-};
-
-static plugins::FeaturePlugin<RootTaskFeature> plugin;
 } // namespace tasks

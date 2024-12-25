@@ -6,11 +6,6 @@
 #include <memory>
 #include <vector>
 
-namespace plugins {
-class Options;
-class Feature;
-} // namespace plugins
-
 namespace utils {
 class RandomNumberGenerator;
 }
@@ -60,9 +55,6 @@ public:
         utils::LogProxy& log) const override;
 };
 
-extern void add_shrink_bucket_options_to_feature(plugins::Feature& feature);
-extern std::tuple<int>
-get_shrink_bucket_arguments_from_options(const plugins::Options& opts);
 } // namespace merge_and_shrink
 
 #endif

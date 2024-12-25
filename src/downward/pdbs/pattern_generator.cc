@@ -2,8 +2,6 @@
 
 #include "downward/pdbs/utils.h"
 
-#include "downward/plugins/plugin.h"
-
 using namespace std;
 
 namespace pdbs {
@@ -42,34 +40,4 @@ PatternGenerator::generate(const shared_ptr<AbstractTask>& task)
     return pattern_info;
 }
 
-void add_generator_options_to_feature(plugins::Feature& feature)
-{
-    utils::add_log_options_to_feature(feature);
-}
-
-tuple<utils::Verbosity>
-get_generator_arguments_from_options(const plugins::Options& opts)
-{
-    return utils::get_log_arguments_from_options(opts);
-}
-
-static class PatternCollectionGeneratorCategoryPlugin
-    : public plugins::TypedCategoryPlugin<PatternCollectionGenerator> {
-public:
-    PatternCollectionGeneratorCategoryPlugin()
-        : TypedCategoryPlugin("PatternCollectionGenerator")
-    {
-        document_synopsis("Factory for pattern collections");
-    }
-} _category_plugin_collection;
-
-static class PatternGeneratorCategoryPlugin
-    : public plugins::TypedCategoryPlugin<PatternGenerator> {
-public:
-    PatternGeneratorCategoryPlugin()
-        : TypedCategoryPlugin("PatternGenerator")
-    {
-        document_synopsis("Factory for single patterns");
-    }
-} _category_plugin_single;
 } // namespace pdbs
