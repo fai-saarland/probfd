@@ -746,7 +746,6 @@ def main():
                 if effect.literal.negated:
                     del action.effects[index]
 
-    task.dump()
     sas_task = pddl_to_sas(task)
     dump_statistics(sas_task)
     with timers.timing("Writing output"):
