@@ -50,35 +50,26 @@ EXAMPLE_PORTFOLIO = os.path.relpath(
     aliases.PORTFOLIOS["seq-opt-fdss-1"], start=util.REPO_ROOT_DIR)
 
 EXAMPLES = [
-    ("Translate and find a plan with A* + LM-Cut:",
+    ("Translate and find a policy with iLAO* + hroc:",
      ["misc/tests/benchmarks/gripper/prob01.pddl",
-      "--search", '"astar(lmcut())"']),
+      "--search", '"ilao(hroc())"']),
     ("Translate and run no search:",
      ["--translate",
       "misc/tests/benchmarks/gripper/prob01.pddl"]),
-    ("Run predefined configuration (LAMA-2011) on translated task:",
-     ["--alias", "seq-sat-lama-2011", "output.sas"]),
+    ("Run predefined configuration on translated task:",
+     ["--alias", "my-alias-config", "output.sas"]),
     ("Run a portfolio on a translated task:",
      ["--portfolio", EXAMPLE_PORTFOLIO,
       "--search-time-limit", "30m", "output.sas"]),
-    ("Run the search component in debug mode (with assertions enabled) "
-     "and validate the resulting plan:",
-     ["--debug", "output.sas", "--search", '"astar(ipdb())"']),
+    ("Run the search component in debug mode (with assertions enabled):",
+     ["--debug", "output.sas", "--search", '"ilao()"']),
     ("Pass options to translator and search components:",
      ["misc/tests/benchmarks/gripper/prob01.pddl",
       "--translate-options", "--full-encoding",
-      "--search-options", "--search", '"astar(lmcut())"']),
-    ("Find a plan and validate it:",
-     ["--validate",
-      "misc/tests/benchmarks/gripper/prob01.pddl",
-      "--search", '"astar(cegar())"']),
+      "--search-options", "--search", '"ilao()"']),
     ("Predefine an evaluator (new style):",
      ["misc/tests/benchmarks/gripper/prob01.pddl",
-      "--search", '"let(hff, ff(), eager_greedy([hff], preferred=[hff]))"']),
-    ("Predefine an evaluator (old style):",
-     ["misc/tests/benchmarks/gripper/prob01.pddl",
-      "--evaluator", '"hff=ff()"', "--search",
-      '"eager_greedy([hff], preferred=[hff])"']),
+      "--search", '"let(hroc, hroc(), ilao(eval=[hroc]))"']),
 ]
 
 EPILOG = """component options:
@@ -94,7 +85,7 @@ Examples:
     "%s\n%s" % (desc, " ".join([os.path.basename(sys.argv[0])] + parameters))
     for desc, parameters in EXAMPLES)
 
-COMPONENTS_PLUS_OVERALL = ["translate", "search", "validate", "overall"]
+COMPONENTS_PLUS_OVERALL = ["translate", "search", "overall"]
 DEFAULT_SAS_FILE = "output.psas"
 
 """
@@ -234,12 +225,6 @@ def _set_components_and_inputs(parser, args):
 
     if not args.components:
         _set_components_automatically(parser, args)
-
-    # We implicitly activate validation in debug mode. However, for
-    # validation we need the PDDL input files and a plan, therefore both
-    # components must be active.
-    if args.validate or (args.debug and len(args.components) == 2):
-        args.components.append("validate")
 
     args.translate_inputs = []
 
@@ -402,10 +387,7 @@ def parse_args():
         choices=["debug", "release"])
     driver_other.add_argument(
         "--debug", action="store_true",
-        help="alias for --build-config='debug' --validate")
-    driver_other.add_argument(
-        "--validate", action="store_true",
-        help='validate plans (implied by --debug); needs "validate" (VAL) on PATH')
+        help="alias for --build-config='debug'")
     driver_other.add_argument(
         "--log-level", choices=["debug", "info", "warning"],
         default="info",
@@ -460,13 +442,13 @@ def parse_args():
         if args.build_config:
             print_usage_and_exit_with_driver_input_error(
                 parser, "The option --debug is an alias for "
-                        "'--build-config debug --validate'. Do not specify "
+                        "'--build-config debug'. Do not specify "
                         "both --debug and --build-config.")
 
         if args.build:
             print_usage_and_exit_with_driver_input_error(
                 parser, "The option --debug is an alias for "
-                        "'--build-config debug --validate'. The options "
+                        "'--build-config debug'. The options "
                         "--build and --build-config are mutually exclusive. "
                         "Do not specify both --debug and --build.")
 

@@ -1,4 +1,3 @@
-import errno
 import logging
 import os.path
 import shutil
@@ -166,38 +165,3 @@ def run_search(args):
             return (err.returncode, False)
         else:
             return (0, True)
-
-
-def run_validate(args):
-    logging.info("Running validate.")
-
-    num_files = len(args.filenames)
-    if num_files == 1:
-        task, = args.filenames
-        domain = util.find_domain_filename(task)
-    elif num_files == 2:
-        domain, task = args.filenames
-    else:
-        returncodes.exit_with_driver_input_error(
-            "validate needs one or two PDDL input files.")
-
-    plan_files = list(PlanManager(args.plan_file).get_existing_plans())
-    if not plan_files:
-        print("Not running validate since no plans found.")
-        return (0, True)
-    validate_inputs = [domain, task] + plan_files
-
-    try:
-        call.check_call(
-            "validate",
-            [VALIDATE] + validate_inputs,
-            time_limit=args.validate_time_limit,
-            memory_limit=args.validate_memory_limit)
-    except OSError as err:
-        if err.errno == errno.ENOENT:
-            returncodes.exit_with_driver_input_error(
-                "Error: {} not found. Is it on the PATH?".format(VALIDATE))
-        else:
-            returncodes.exit_with_driver_critical_error(err)
-    else:
-        return (0, True)
