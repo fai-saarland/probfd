@@ -15,49 +15,62 @@
 namespace probfd {
 
 /// An item-probability pair.
-template <typename T>
+template <typename T, typename PrType = value_t>
 class ItemProbabilityPair {
-    template <typename... Args, size_t... Indices>
+    template <
+        typename... Args,
+        typename... Args2,
+        size_t... Indices,
+        size_t... Indices2>
     ItemProbabilityPair(
-        std::tuple<Args...>& args,
-        value_t probability,
-        std::index_sequence<Indices...>)
-        : item(std::get<Indices>(std::move(args))...)
-        , probability(probability)
+        std::tuple<Args...> args,
+        std::tuple<Args2...> args2,
+        std::index_sequence<Indices...>,
+        std::index_sequence<Indices2...>)
+        : item(std::get<Indices>(args)...)
+        , probability{std::get<Indices2>(args2)...}
     {
     }
 
 public:
-    T item;              ///< The item.
-    value_t probability; ///< The probability of the item.
+    T item;             ///< The item.
+    PrType probability; ///< The probability of the item.
 
     /// Pairs a default-constructed item with an indeterminate probability.
-    ItemProbabilityPair() = default;
+    ItemProbabilityPair()
+        requires(std::is_default_constructible_v<T> &&
+                 std::is_default_constructible_v<PrType>)
+    = default;
 
     /// Pairs a given item with a given probability.
-    ItemProbabilityPair(T item, value_t probability)
-        : item(std::move(item))
-        , probability(probability)
+    template <typename A, typename B>
+        requires(std::is_constructible_v<T, A> &&
+                 std::is_constructible_v<PrType, B>)
+    ItemProbabilityPair(A&& item, B&& probability)
+        : item(std::forward<A>(item))
+        , probability(std::forward<B>(probability))
     {
     }
 
     /// Pairs an item constructed from a tuple of constructor arguments with a
     /// given probability.
-    template <typename... Args>
+    template <typename... Args, typename... Args2>
     ItemProbabilityPair(
-        std::tuple<Args...> constructor_args,
-        value_t probability)
+        std::piecewise_construct_t,
+        std::tuple<Args...> t1,
+        std::tuple<Args2...> t2)
         : ItemProbabilityPair(
-              constructor_args,
-              probability,
-              std::index_sequence_for<Args...>{})
+              t1,
+              t2,
+              std::index_sequence_for<Args...>{},
+              std::index_sequence_for<Args2...>{})
     {
     }
 
     /// Lexicographical comparison.
     friend auto operator<=>(
-        const ItemProbabilityPair<T>& left,
-        const ItemProbabilityPair<T>& right) = default;
+        const ItemProbabilityPair<T, PrType>& left,
+        const ItemProbabilityPair<T, PrType>& right) = default;
 };
 
 /**
