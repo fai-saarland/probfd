@@ -19,18 +19,47 @@ void add_base_solver_options_to_feature(Feature& feature)
 {
     feature.add_option<std::shared_ptr<TaskEvaluatorFactory>>(
         "eval",
-        "",
+        "The heuristic to be used by the search.",
         "blind_eval()");
-    feature.add_option<bool>("cache", "", "false");
+    feature.add_option<bool>(
+        "cache",
+        "Whether the state space should be cached to avoid re-generating "
+        "transitions. May drastically increase memory footprint.",
+        "false");
     feature.add_list_option<std::shared_ptr<::Evaluator>>(
         "path_dependent_evaluators",
-        "",
+        "A list of path-dependent classical planning evaluators to inform of "
+        "new transitions during the search.",
         "[]");
-    feature.add_option<value_t>("report_epsilon", "", "1e-4");
-    feature.add_option<bool>("report_enabled", "", "true");
-    feature.add_option<double>("max_time", "", "infinity");
-    feature.add_option<std::string>("policy_file", "", "\"sas_policy\"");
-    feature.add_option<bool>("print_fact_names", "", "true");
+    feature.add_option<value_t>(
+        "report_epsilon",
+        "Algorithms will report the current initial state objective value to "
+        "stdout if it changed by more than this threshold.",
+        "1e-4");
+    feature.add_option<bool>(
+        "report_enabled",
+        "Whether the algorithm should report its progress.",
+        "true");
+    feature.add_option<double>(
+        "max_time",
+        "The time limit after which the algorithms aborts with an exception. "
+        "This limit is not strict, algorithms only periodically check that "
+        "they "
+        "have no exhausted the time limit.",
+        "infinity");
+    feature.add_option<std::string>(
+        "policy_file",
+        "Name of the file in which the policy returned by the algorithm is "
+        "written.",
+        "\"sas_policy\"");
+    feature.add_option<bool>(
+        "print_fact_names",
+        "Determines the way in which state facts are written to the policy "
+        "output file. If true, they are printed using the fact names of the "
+        "probabilistic SAS input file. Otherwise, each fact is printed as v -> "
+        "d, where v is the index of the variable of the fact and d is the "
+        "index of the value of the fact.",
+        "true");
     add_log_options_to_feature(feature);
 }
 
