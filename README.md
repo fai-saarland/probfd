@@ -3,7 +3,7 @@ This repository is the official repository of **Probabilistic Fast Downward** (P
 an extension of the [Fast Downward planning system](https://www.fast-downward.org/)
 for fully observable probabilistic planning domains.
 
-Please visit the documentation home page of ProbFD for more information.
+Please visit the documentation homepage of ProbFD for more information.
 
 ## Contributors
 The following list includes all people that actively contributed to
@@ -18,6 +18,8 @@ under the GNU General Public License, version 3.
 Please read LICENSE.md for details.
 
 The copyright notice of Fast Downward follows.
+
+---
 
 <img src="misc/images/fast-downward.svg" width="800" alt="Fast Downward">
 
