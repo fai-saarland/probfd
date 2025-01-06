@@ -34,6 +34,8 @@ create_library(
     DEPENDS
         plugins
         core_sources
+    TARGET
+        probfd
 )
 
 create_library(
@@ -44,6 +46,8 @@ create_library(
     DEPENDS
         plugins
         core_sources
+    TARGET
+        probfd
 )
 
 create_library(
@@ -76,6 +80,8 @@ create_library(
     DEPENDS
         plugins
         core_sources
+    TARGET
+        probfd
 )
 
 create_library(
@@ -105,6 +111,8 @@ create_library(
     DEPENDS
         plugins
         core_sources
+    TARGET
+        probfd
 )
 
 create_library(
@@ -126,6 +134,8 @@ create_library(
     DEPENDS
         plugins
         core_sources
+    TARGET
+        probfd
 )
 
 create_library(
@@ -136,6 +146,8 @@ create_library(
     DEPENDS
         plugins
         core_sources
+    TARGET
+        probfd
 )
 
 create_library(
@@ -156,73 +168,85 @@ create_library(
     NAME alternation_open_list_feature
     HELP "Open list that alternates between underlying open lists in a round-robin manner"
     SOURCES
-        downward/cli/open_lists/alternation_open_list
+        downward/cli/open_lists/alternation_open_list_feature
     DEPENDS
         plugins
         alternation_open_list
+    TARGET
+        probfd
 )
 
 create_library(
     NAME best_first_open_list_feature
     HELP "Open list that selects the best element according to a single evaluation function"
     SOURCES
-        downward/cli/open_lists/best_first_open_list
+        downward/cli/open_lists/best_first_open_list_feature
     DEPENDS
         plugins
         open_list_options
         best_first_open_list
         utils
+    TARGET
+        probfd
 )
 
 create_library(
     NAME epsilon_greedy_open_list_feature
     HELP "Open list that chooses an entry randomly with probability epsilon"
     SOURCES
-        downward/cli/open_lists/epsilon_greedy_open_list
+        downward/cli/open_lists/epsilon_greedy_open_list_feature
     DEPENDS
         plugins
         open_list_options
         rng_options
         epsilon_greedy_open_list
         utils
+    TARGET
+        probfd
 )
 
 create_library(
     NAME pareto_open_list_feature
     HELP "Pareto open list"
     SOURCES
-        downward/cli/open_lists/pareto_open_list
+        downward/cli/open_lists/pareto_open_list_feature
     DEPENDS
         plugins
         open_list_options
         rng_options
         pareto_open_list
         utils
+    TARGET
+        probfd
 )
 
 create_library(
     NAME tiebreaking_open_list_feature
     HELP "Tiebreaking open list"
     SOURCES
-        downward/cli/open_lists/tiebreaking_open_list
+        downward/cli/open_lists/tiebreaking_open_list_feature
     DEPENDS
         plugins
         open_list_options
         tiebreaking_open_list
         utils
+    TARGET
+        probfd
 )
 
 create_library(
     NAME type_based_open_list_feature
     HELP "Type-based open list"
     SOURCES
-        downward/cli/open_lists/type_based_open_list
+        downward/cli/open_lists/type_based_open_list_feature
     DEPENDS
         plugins
         open_list_options
         rng_options
         type_based_open_list
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -232,6 +256,8 @@ create_library(
         downward/cli/evaluators/subcategory
     DEPENDS
         plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -250,131 +276,165 @@ create_library(
     NAME const_evaluator_feature
     HELP "The constant evaluator"
     SOURCES
-        downward/cli/evaluators/const_evaluator
+        downward/cli/evaluators/const_evaluator_feature
     DEPENDS
         plugins
         evaluator_options
         const_evaluator
         utils
+    TARGET
+        probfd
 )
 
 create_library(
     NAME g_evaluator_feature
     HELP "The g-evaluator"
     SOURCES
-        downward/cli/evaluators/g_evaluator
+        downward/cli/evaluators/g_evaluator_feature
     DEPENDS
         plugins
         evaluator_options
         g_evaluator
         utils
+    TARGET
+        probfd
 )
 
 create_library(
     NAME max_evaluator_feature
     HELP "The max evaluator"
     SOURCES
-        downward/cli/evaluators/max_evaluator
+        downward/cli/evaluators/max_evaluator_feature
     DEPENDS
         plugins
         combining_evaluator_options
         max_evaluator
         utils
+    TARGET
+        probfd
 )
 
 create_library(
     NAME pref_evaluator_feature
     HELP "The pref evaluator"
     SOURCES
-        downward/cli/evaluators/pref_evaluator
+        downward/cli/evaluators/pref_evaluator_feature
     DEPENDS
         plugins
         evaluator_options
         pref_evaluator
         utils
+    TARGET
+        probfd
 )
 
 create_library(
     NAME sum_evaluator_feature
     HELP "The sum evaluator"
     SOURCES
-        downward/cli/evaluators/sum_evaluator
+        downward/cli/evaluators/sum_evaluator_feature
     DEPENDS
         plugins
         combining_evaluator_options
         sum_evaluator
         utils
+    TARGET
+        probfd
 )
 
 create_library(
     NAME weighted_evaluator_feature
     HELP "The weighted evaluator"
     SOURCES
-        downward/cli/evaluators/weighted_evaluator
+        downward/cli/evaluators/weighted_evaluator_feature
     DEPENDS
         plugins
         evaluator_options
         weighted_evaluator
         utils
+    TARGET
+        probfd
 )
 
 create_library(
     NAME null_pruning_method_feature
     HELP "Pruning method that does nothing"
     SOURCES
-        downward/cli/pruning/null_pruning_method
+        downward/cli/pruning/null_pruning_method_feature
     DEPENDS
         plugins
         pruning_method_options
         null_pruning_method
         utils
+    TARGET
+        probfd
 )
 
 create_library(
     NAME limited_pruning_feature
     HELP "Method for limiting another pruning method"
     SOURCES
-        downward/cli/pruning/limited_pruning
+        downward/cli/pruning/limited_pruning_feature
     DEPENDS
         plugins
         pruning_method_options
         limited_pruning
         utils
+    TARGET
+        probfd
 )
 
 create_library(
     NAME stubborn_sets_atom_centric_feature
     HELP "Atom-centric stubborn sets"
     SOURCES
-        downward/cli/pruning/stubborn_sets_atom_centric
+        downward/cli/pruning/stubborn_sets_atom_centric_feature
     DEPENDS
         plugins
         pruning_method_options
         stubborn_sets_atom_centric
         utils
+    TARGET
+        probfd
 )
 
 create_library(
     NAME stubborn_sets_simple_feature
     HELP "Stubborn sets simple"
     SOURCES
-        downward/cli/pruning/stubborn_sets_simple
+        downward/cli/pruning/stubborn_sets_simple_feature
     DEPENDS
         plugins
         pruning_method_options
         stubborn_sets_simple
         utils
+    TARGET
+        probfd
 )
 
 create_library(
     NAME stubborn_sets_ec_feature
     HELP "Stubborn set method that dominates expansion core"
     SOURCES
-        downward/cli/pruning/stubborn_sets_ec
+        downward/cli/pruning/stubborn_sets_ec_feature
     DEPENDS
         plugins
         pruning_method_options
         stubborn_sets_ec
+        utils
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME eager_search_options
+    HELP "Eager search options"
+    SOURCES
+        downward/cli/search_algorithms/eager_search_options
+    DEPENDS
+        plugins
+        search_algorithm_options
+        open_list_options
         utils
 )
 
@@ -388,6 +448,8 @@ create_library(
         eager_search_options
         eager_search
         search_common
+    TARGET
+        probfd
 )
 
 create_library(
@@ -400,6 +462,8 @@ create_library(
         eager_search_options
         eager_search
         search_common
+    TARGET
+        probfd
 )
 
 create_library(
@@ -412,6 +476,8 @@ create_library(
         eager_search_options
         eager_search
         search_common
+    TARGET
+        probfd
 )
 
 create_library(
@@ -424,6 +490,8 @@ create_library(
         eager_search_options
         eager_search
         search_common
+    TARGET
+        probfd
 )
 
 create_library(
@@ -436,6 +504,8 @@ create_library(
         search_algorithm_options
         lazy_search
         search_common
+    TARGET
+        probfd
 )
 
 create_library(
@@ -448,6 +518,8 @@ create_library(
         search_algorithm_options
         lazy_search
         search_common
+    TARGET
+        probfd
 )
 
 create_library(
@@ -460,6 +532,8 @@ create_library(
         search_algorithm_options
         lazy_search
         search_common
+    TARGET
+        probfd
 )
 
 create_library(
@@ -472,6 +546,8 @@ create_library(
         search_algorithm_options
         enforced_hill_climbing_search
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -483,8 +559,9 @@ create_library(
         plugins
         search_algorithm_options
         iterated_search
-        search_algorithm_factory
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -506,6 +583,8 @@ create_library(
         plugins
         heuristic_options
         additive_heuristic
+    TARGET
+        probfd
 )
 
 create_library(
@@ -518,6 +597,8 @@ create_library(
         heuristic_options
         blind_search_heuristic
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -530,6 +611,8 @@ create_library(
         heuristic_options
         context_enhanced_additive_heuristic
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -542,6 +625,8 @@ create_library(
         heuristic_options
         cg_heuristic
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -554,6 +639,8 @@ create_library(
         heuristic_options
         ff_heuristic
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -566,6 +653,8 @@ create_library(
         heuristic_options
         goal_count_heuristic
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -578,6 +667,8 @@ create_library(
         heuristic_options
         hm_heuristic
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -590,6 +681,8 @@ create_library(
         heuristic_options
         landmark_cut_heuristic
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -602,6 +695,8 @@ create_library(
         heuristic_options
         max_heuristic
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -614,6 +709,8 @@ create_library(
         operator_cost_options
         core_sources
         core_tasks
+    TARGET
+        probfd
 )
 
 create_library(
@@ -624,16 +721,20 @@ create_library(
     DEPENDS
         plugins
         core_sources
+    TARGET
+        probfd
 )
 
 create_library(
     NAME constraint_generator_category
     HELP "Constraint generator category"
     SOURCES
-        downward/cli/operator_counting/constraint_generator_cetagory
+        downward/cli/operator_counting/constraint_generator_category
     DEPENDS
         plugins
         operator_counting
+    TARGET
+        probfd
 )
 
 create_library(
@@ -646,6 +747,8 @@ create_library(
         operator_counting
         lp_solver
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -658,17 +761,21 @@ create_library(
         operator_counting
         lp_solver
         utils
+    TARGET
+        probfd
 )
 
 create_library(
-    NAME lm_cut_contraints_feature
+    NAME lm_cut_constraints_feature
     HELP "LM-Cut constraints feature"
     SOURCES
-        downward/cli/operator_counting/lm_cut_contraints_feature
+        downward/cli/operator_counting/lm_cut_constraints_feature
     DEPENDS
         plugins
         operator_counting
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -682,6 +789,8 @@ create_library(
         lp_solver_options
         operator_counting
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -693,6 +802,8 @@ create_library(
         plugins
         operator_counting
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -705,6 +816,8 @@ create_library(
         logging_options
         operator_counting
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -733,6 +846,8 @@ create_library(
         downward/cli/potentials/subcategory
     DEPENDS
         plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -758,6 +873,8 @@ create_library(
         rng_options
         potentials
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -771,6 +888,8 @@ create_library(
         rng_options
         potentials
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -783,6 +902,8 @@ create_library(
         potential_options
         potentials
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -793,13 +914,15 @@ create_library(
     DEPENDS
         plugins
         cartesian_abstractions
+    TARGET
+        probfd
 )
 
 create_library(
     NAME subtask_generators_features
     HELP "Sub-task generators features"
     SOURCES
-        downward/cli/cartesian_abstractions/subtask_generators_category
+        downward/cli/cartesian_abstractions/subtask_generators_feature
     DEPENDS
         plugins
         rng_options
@@ -809,19 +932,23 @@ create_library(
         task_properties
         extra_tasks
         utils
+    TARGET
+        probfd
 )
 
 create_library(
     NAME additive_cartesian_heuristic_feature
     HELP "Additive cartesian heuristic feature"
     SOURCES
-        downward/cli/cartesian_abstractions/subtask_generators_category
+        downward/cli/cartesian_abstractions/additive_cartesian_heuristic_feature
     DEPENDS
         plugins
         heuristic_options
         rng_options
         cartesian_abstractions
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -847,6 +974,8 @@ create_library(
         lp_solver_options
         landmarks
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -859,6 +988,8 @@ create_library(
         landmark_heuristic_options
         landmarks
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -882,6 +1013,8 @@ create_library(
         landmark_factory_options
         landmarks
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -894,6 +1027,8 @@ create_library(
         landmark_factory_options
         landmarks
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -906,6 +1041,8 @@ create_library(
         landmark_factory_options
         landmarks
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -917,6 +1054,8 @@ create_library(
         plugins
         landmark_factory_options
         landmarks
+    TARGET
+        probfd
 )
 
 create_library(
@@ -928,6 +1067,8 @@ create_library(
         plugins
         landmark_factory_options
         landmarks
+    TARGET
+        probfd
 )
 
 create_library(
@@ -939,6 +1080,8 @@ create_library(
         plugins
         landmark_factory_options
         landmarks
+    TARGET
+        probfd
 )
 
 create_library(
@@ -949,8 +1092,10 @@ create_library(
     DEPENDS
         plugins
         rng_options
-        merge_and_shrink
+        mas_heuristic
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -960,7 +1105,7 @@ create_library(
         downward/cli/merge_and_shrink/merge_and_shrink_algorithm_options
     DEPENDS
         plugins
-        merge_and_shrink
+        mas_heuristic
         utils
 )
 
@@ -971,10 +1116,12 @@ create_library(
         downward/cli/merge_and_shrink/merge_and_shrink_heuristic_feature
     DEPENDS
         plugins
-        merge_and_skrink_algorithm_options
+        merge_and_shrink_algorithm_options
         heuristic_options
-        merge_and_shrink
+        mas_heuristic
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -984,7 +1131,9 @@ create_library(
         downward/cli/merge_and_shrink/merge_scoring_function_category
     DEPENDS
         plugins
-        merge_and_shrink
+        mas_heuristic
+    TARGET
+        probfd
 )
 
 create_library(
@@ -994,8 +1143,10 @@ create_library(
         downward/cli/merge_and_shrink/merge_scoring_function_dfp_feature
     DEPENDS
         plugins
-        merge_and_shrink
+        mas_heuristic
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1005,7 +1156,9 @@ create_library(
         downward/cli/merge_and_shrink/merge_scoring_function_goal_relevance_feature
     DEPENDS
         plugins
-        merge_and_shrink
+        mas_heuristic
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1016,8 +1169,10 @@ create_library(
     DEPENDS
         plugins
         merge_and_shrink_algorithm_options
-        merge_and_shrink
+        mas_heuristic
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1028,8 +1183,10 @@ create_library(
     DEPENDS
         plugins
         rng_options
-        merge_and_shrink
+        mas_heuristic
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1040,8 +1197,10 @@ create_library(
     DEPENDS
         plugins
         rng_options
-        merge_and_shrink
+        mas_heuristic
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1051,7 +1210,9 @@ create_library(
         downward/cli/merge_and_shrink/merge_selector_category
     DEPENDS
         plugins
-        merge_and_shrink
+        mas_heuristic
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1061,7 +1222,9 @@ create_library(
         downward/cli/merge_and_shrink/merge_selector_score_based_filtering_feature
     DEPENDS
         plugins
-        merge_and_shrink
+        mas_heuristic
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1071,7 +1234,9 @@ create_library(
         downward/cli/merge_and_shrink/merge_strategy_factory_category
     DEPENDS
         plugins
-        merge_and_shrink
+        mas_heuristic
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1082,7 +1247,9 @@ create_library(
     DEPENDS
         plugins
         merge_strategy_options
-        merge_and_shrink
+        mas_heuristic
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1093,8 +1260,10 @@ create_library(
     DEPENDS
         plugins
         merge_strategy_options
-        merge_and_shrink
+        mas_heuristic
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1105,7 +1274,9 @@ create_library(
     DEPENDS
         plugins
         merge_strategy_options
-        merge_and_shrink
+        mas_heuristic
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1116,6 +1287,8 @@ create_library(
     DEPENDS
         plugins
         logging_options
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1125,7 +1298,9 @@ create_library(
         downward/cli/merge_and_shrink/merge_tree_factory_category
     DEPENDS
         plugins
-        merge_and_shrink
+        mas_heuristic
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1136,8 +1311,10 @@ create_library(
     DEPENDS
         plugins
         merge_tree_options
-        merge_and_shrink
+        mas_heuristic
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1157,8 +1334,10 @@ create_library(
         downward/cli/merge_and_shrink/shrink_bisimulation_feature
     DEPENDS
         plugins
-        merge_and_shrink
+        mas_heuristic
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1179,8 +1358,10 @@ create_library(
     DEPENDS
         plugins
         shrink_bucket_based_options
-        merge_and_shrink
+        mas_heuristic
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1191,7 +1372,9 @@ create_library(
     DEPENDS
         plugins
         shrink_bucket_based_options
-        merge_and_shrink
+        mas_heuristic
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1201,7 +1384,9 @@ create_library(
         downward/cli/merge_and_shrink/shrink_strategy_category
     DEPENDS
         plugins
-        merge_and_shrink
+        mas_heuristic
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1214,6 +1399,8 @@ create_library(
         heuristic_options
         canonical_pdbs_heuristic_options
         pdbs
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1244,6 +1431,8 @@ create_library(
         plugins
         pattern_generator_options
         pdbs
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1258,6 +1447,8 @@ create_library(
         pattern_generator_options
         pdb_utils
         pdbs
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1271,6 +1462,8 @@ create_library(
         pattern_generator_options
         pdbs
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1286,13 +1479,15 @@ create_library(
         heuristic_options
         pdbs
         utils
+    TARGET
+        probfd
 )
 
 create_library(
     NAME pattern_collection_generator_hillclimbing_options
     HELP "Pattern collection generator hillclimbing options"
     SOURCES
-        downward/cli/pdbs/pattern_collection_generator_hillclimbing_feature
+        downward/cli/pdbs/pattern_collection_generator_hillclimbing_options
     DEPENDS
         plugins
         rng_options
@@ -1307,6 +1502,8 @@ create_library(
         plugins
         pattern_generator_options
         pdbs
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1321,6 +1518,8 @@ create_library(
         pdb_utils
         pdbs
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1347,6 +1546,8 @@ create_library(
         random_pattern_options
         pdb_utils
         pdbs
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1359,6 +1560,10 @@ create_library(
         pattern_generator_options
         pdbs
         utils
+    TARGET
+        probfd
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1369,6 +1574,8 @@ create_library(
     DEPENDS
         plugins
         pdbs
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1384,6 +1591,8 @@ create_library(
         rng_options
         pdbs
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1395,6 +1604,8 @@ create_library(
         plugins
         pattern_generator_options
         pdbs
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1406,6 +1617,8 @@ create_library(
         plugins
         pattern_generator_options
         pdbs
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1441,6 +1654,8 @@ create_library(
         plugins
         heuristic_options
         pdbs
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1459,6 +1674,8 @@ create_library(
         downward/cli/pdbs/subcategory
     DEPENDS
         plugins
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1468,6 +1685,8 @@ create_library(
         downward/cli/pdbs/utils
     DEPENDS
         utils
+    TARGET
+        probfd
 )
 
 create_library(
@@ -1479,4 +1698,6 @@ create_library(
         plugins
         heuristic_options
         pdbs
+    TARGET
+        probfd
 )

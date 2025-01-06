@@ -6,6 +6,8 @@ using namespace std;
 
 namespace downward::cli {
 
+namespace {
+
 class OpenListFactoryCategoryPlugin
     : public plugins::TypedCategoryPlugin<OpenListFactory> {
 public:
@@ -15,5 +17,7 @@ public:
         // TODO: use document_synopsis() for the wiki page.
     }
 } _category_plugin;
+
+}
 
 } // namespace downward::cli
