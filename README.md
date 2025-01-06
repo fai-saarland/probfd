@@ -1,55 +1,29 @@
 # Probabilistic Fast Downward
-**Probabilistic Fast Downward** (probFD) is an extension of the
-[Fast Downward planning system](https://www.fast-downward.org/) (release 23.06)
+This repository is the official repository of **Probabilistic Fast Downward** (ProbFD),
+an extension of the [Fast Downward planning system](https://www.fast-downward.org/)
 for fully observable probabilistic planning domains.
 
-[TOC]
-
-## Features
-The problem description language assumed by probFD is PPDDL.
-
-### Algorithms
-probFD supports a variety of different search algorithms for Generalized
-Stochastic Shortest-Path Problems (GSSPs), for example:
-
-- Topological Value Iteration
-- i-Dual and i²-Dual
-- Labelled real-time dynamic programming (LRTDP)
-- Improved LAO* (iLAO*)
-
-To handle zero-reward cycles, probFD implements both end component decomposition
-and the FRET framework to eliminate these cycles and to guarantee convergence
-of the algorithms against the optimal value function. As a special case in the 
-GSSP framework, probFD also supports MaxProb analysis.
-
-### Heuristics
-The planner currently implements the following families of heuristics:
-
-- Determinization-based heuristics by usage of a classical heuristic on the
-all-outcomes determinization.
-- Occupation measure heuristics: The regrouped operator counting heuristic
-h<sup>roc</sup> and the projection occupation measure heuristic h<sup>pom</sup>
-- Pattern database heuristics for SSPs. Multiple pattern generators are
-supported, including classical pattern generators that operator on the
-all-outcomes determinization, as well as adaptations of the CEGAR and
-hillclimbing pattern generation algorithms for probabilistic planning tasks.
-Notably also supports unavoidable dead-ends and zero-reward cycles.
-
-## Building the Planner
-See [build instructions](BUILD.md) for details.
+Please visit the documentation home page of ProbFD for more information.
 
 ## Contributors
 The following list includes all people that actively contributed to
 Probabilistic Fast Downward.
 
-- 2019-2022 Marcel Steinmetz
-- 2019-2022 Thorsten Klößner
+- 2016-2023 Marcel Steinmetz
+- 2019-2024 Thorsten Klößner
 - 2022 Thomas Keller
 
-## Fast Downward
+This version of ProbFD is based on Fast Downward version 24.06 and is likewise licensed
+under the GNU General Public License, version 3.
+Please read LICENSE.md for details.
+
+The copyright notice of Fast Downward follows.
+
+<img src="misc/images/fast-downward.svg" width="800" alt="Fast Downward">
+
 Fast Downward is a domain-independent classical planning system.
 
-Copyright 2003-2023 Fast Downward contributors (see below).
+Copyright 2003-2024 Fast Downward contributors (see below).
 
 For further information:
 - Fast Downward website: <https://www.fast-downward.org>
@@ -57,25 +31,7 @@ For further information:
 - Fast Downward mailing list: <https://groups.google.com/forum/#!forum/fast-downward>
 - Fast Downward main repository: <https://github.com/aibasel/downward>
 
-
-### Tested software versions
-
-This version of Fast Downward has been tested with the following software versions:
-
-| OS           | Python | C++ compiler                                                     | CMake |
-| ------------ | ------ | ---------------------------------------------------------------- | ----- |
-| Ubuntu 22.04 | 3.10   | GCC 11, GCC 12, Clang 14                                         | 3.22  |
-| Ubuntu 20.04 | 3.8    | GCC 10, Clang 12                                                 | 3.16  |
-| macOS 12     | 3.10   | AppleClang 14                                                    | 3.24  |
-| macOS 11     | 3.8    | AppleClang 13                                                    | 3.24  |
-| Windows 10   | 3.8    | Visual Studio Enterprise 2019 (MSVC 19.29) and 2022 (MSVC 19.31) | 3.22  |
-
-We test LP support with CPLEX 22.1.1 and SoPlex 6.0.3+. On Ubuntu we
-test both CPLEX and SoPlex. On Windows we currently only test CPLEX,
-and on macOS we do not test LP solvers (yet).
-
-
-### Contributors
+## Contributors
 
 The following list includes all people that actively contributed to
 Fast Downward, i.e., all people that appear in some commits in Fast
@@ -85,19 +41,23 @@ Currently, this list is sorted by the last year the person has been
 active, and in case of ties, by the earliest year the person started
 contributing, and finally by last name.
 
-- 2003-2023 Malte Helmert
-- 2008-2016, 2018-2023 Gabriele Roeger
-- 2010-2023 Jendrik Seipp
-- 2010-2011, 2013-2023 Silvan Sievers
-- 2012-2023 Florian Pommerening
-- 2013, 2015-2023 Salomé Eriksson
+- 2003-2024 Malte Helmert
+- 2008-2016, 2018-2024 Gabriele Roeger
+- 2010-2024 Jendrik Seipp
+- 2010-2011, 2013-2024 Silvan Sievers
+- 2012-2024 Florian Pommerening
+- 2013, 2015-2024 Salomé Eriksson
+- 2018-2024 Patrick Ferber
+- 2021-2024 Clemens Büchner
+- 2022-2024 Remo Christen
+- 2023-2024 Simon Dold
+- 2023-2024 Claudia S. Grundke
+- 2024 Martín Pozo
+- 2024 Tanja Schindler
+- 2024 David Speck
 - 2015, 2021-2023 Thomas Keller
-- 2018-2023 Patrick Ferber
 - 2018-2020, 2023 Augusto B. Corrêa
-- 2021-2023 Clemens Büchner
-- 2022-2023 Remo Christen
-- 2023 Simon Dold
-- 2023 Claudia S. Grundke
+- 2023 Victor Paléologue
 - 2023 Emanuele Tirendi
 - 2021-2022 Dominik Drexler
 - 2016-2020 Cedric Geissmann
@@ -123,8 +83,7 @@ contributing, and finally by last name.
 - 2007-2009 Matthias Westphal
 - 2009 Christian Muise
 
-
-### History
+## History
 
 The current version of Fast Downward is the merger of three different
 projects:
@@ -141,8 +100,7 @@ code and features from numerous branches of the Fast Downward codebase
 developed for various research papers. The main contributors to these
 branches are Malte Helmert, Gabi Röger and Silvia Richter.
 
-
-### License
+## License
 
 ```
 Fast Downward is free software: you can redistribute it and/or modify
