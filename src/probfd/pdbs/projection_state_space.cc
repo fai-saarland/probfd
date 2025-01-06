@@ -39,6 +39,11 @@ struct OperatorInfo {
     struct ProbabilisticOffset {
         StateRank rank_offset = 0;
         value_t probability;
+
+        operator ItemProbabilityPair<StateRank>() const
+        {
+            return ItemProbabilityPair<StateRank>(rank_offset, probability);
+        }
     };
 
     struct MissingPreconditionInfo {
@@ -237,7 +242,10 @@ ProjectionStateSpace::ProjectionStateSpace(
             timer.throw_if_expired();
 
             // Generate the progression operator
-            ProjectionOperator new_op(operator_id, operator_info.effect_infos);
+            ProjectionOperator new_op(
+                operator_id,
+                operator_info.effect_infos,
+                no_normalize);
 
             // Now add the progression operators to the match tree
             match_tree_.insert(

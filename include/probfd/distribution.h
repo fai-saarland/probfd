@@ -9,6 +9,7 @@
 #include <cassert>
 #include <compare>
 #include <ranges>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -28,7 +29,7 @@ class ItemProbabilityPair {
         std::index_sequence<Indices...>,
         std::index_sequence<Indices2...>)
         : item(std::get<Indices>(args)...)
-        , probability{std::get<Indices2>(args2)...}
+        , probability(std::get<Indices2>(args2)...)
     {
     }
 
@@ -42,11 +43,42 @@ public:
                  std::is_default_constructible_v<PrType>)
     = default;
 
+    template <typename A, typename B>
+        requires(std::is_constructible_v<T, A> &&
+                 std::is_constructible_v<PrType, B>)
+    explicit(!std::is_convertible_v<T, A> || !std::is_convertible_v<PrType, B>)
+        ItemProbabilityPair(std::pair<A, B> p)
+        : item(std::get<0>(p))
+        , probability(std::get<1>(p))
+    {
+    }
+
+    template <typename A, typename B>
+        requires(std::is_constructible_v<T, A> &&
+                 std::is_constructible_v<PrType, B>)
+    explicit(!std::is_convertible_v<T, A> || !std::is_convertible_v<PrType, B>)
+        ItemProbabilityPair(std::tuple<A, B> p)
+        : item(std::get<0>(p))
+        , probability(std::get<1>(p))
+    {
+    }
+
+    template <typename A>
+        requires(std::is_constructible_v<T, A> &&
+                 std::is_constructible_v<PrType, A>)
+    explicit(!std::is_convertible_v<T, A> || !std::is_convertible_v<PrType, A>)
+        ItemProbabilityPair(std::array<A, 2> p)
+        : item(std::get<0>(p))
+        , probability(std::get<1>(p))
+    {
+    }
+
     /// Pairs a given item with a given probability.
     template <typename A, typename B>
         requires(std::is_constructible_v<T, A> &&
                  std::is_constructible_v<PrType, B>)
-    ItemProbabilityPair(A&& item, B&& probability)
+    explicit(!std::is_convertible_v<T, A> || !std::is_convertible_v<PrType, B>)
+        ItemProbabilityPair(A&& item, B&& probability)
         : item(std::forward<A>(item))
         , probability(std::forward<B>(probability))
     {
@@ -71,7 +103,47 @@ public:
     friend auto operator<=>(
         const ItemProbabilityPair<T, PrType>& left,
         const ItemProbabilityPair<T, PrType>& right) = default;
+
+    operator std::pair<T, PrType>() const
+    {
+        return std::make_pair(item, probability);
+    }
+
+    template <std::size_t Index>
+    auto& get() &
+    {
+        if constexpr (Index == 0) return item;
+        if constexpr (Index == 1) return probability;
+    }
+
+    template <std::size_t Index>
+    const auto& get() const&
+    {
+        if constexpr (Index == 0) return item;
+        if constexpr (Index == 1) return probability;
+    }
+
+    template <std::size_t Index>
+    auto& get() &&
+    {
+        if constexpr (Index == 0) return std::move(item);
+        if constexpr (Index == 1) return std::move(probability);
+    }
+
+    template <std::size_t Index>
+    const auto& get() const&&
+    {
+        if constexpr (Index == 0) return std::move(item);
+        if constexpr (Index == 1) return std::move(probability);
+    }
 };
+
+/// Disambiguator tag type.
+struct no_normalize_t {};
+
+/// Disambiguator tag  for Distribution constructor to indicate that
+/// the probabilities are already normalized to one.
+inline constexpr no_normalize_t no_normalize = no_normalize_t{};
 
 /**
  * @brief A convenience class that represents a finite probability
@@ -90,12 +162,36 @@ public:
 
     Distribution() = default;
 
-    explicit Distribution(const auto& pair_range)
+    Distribution(std::initializer_list<ItemProbabilityPair<T>> list)
+        : distribution_(list)
     {
-        distribution_.reserve(pair_range.size());
-        for (const auto& [t, prob] : pair_range) {
-            add_probability(t, prob);
-        }
+        normalize();
+    }
+
+    Distribution(
+        std::initializer_list<ItemProbabilityPair<T>> list,
+        no_normalize_t)
+        : distribution_(list)
+    {
+    }
+
+    template <std::ranges::input_range R>
+        requires(std::convertible_to<
+                 std::ranges::range_reference_t<R>,
+                 ItemProbabilityPair<T>>)
+    explicit Distribution(std::from_range_t, R&& pair_range)
+        : distribution_(std::from_range, std::forward<R>(pair_range))
+    {
+        normalize();
+    }
+
+    template <std::ranges::input_range R>
+        requires(std::convertible_to<
+                 std::ranges::range_reference_t<R>,
+                 ItemProbabilityPair<T>>)
+    explicit Distribution(std::from_range_t, no_normalize_t, R&& pair_range)
+        : distribution_(std::from_range, std::forward<R>(pair_range))
+    {
     }
 
     /**
@@ -326,6 +422,54 @@ public:
         default;
 };
 
+namespace detail {
+
+template <typename T>
+struct is_item_prob_pair : std::false_type {};
+
+template <typename T>
+struct is_item_prob_pair<ItemProbabilityPair<T>> : std::true_type {};
+
+template <typename T>
+constexpr bool is_item_prob_pair_v = is_item_prob_pair<T>::value;
+
+template <typename T>
+struct item {};
+
+template <typename T>
+struct item<ItemProbabilityPair<T>> {
+    using type = T;
+};
+
+template <typename T>
+using item_t = typename item<T>::type;
+
+}
+
+template <std::ranges::input_range R>
+    requires(detail::is_item_prob_pair_v<std::ranges::range_value_t<R>>)
+Distribution(std::from_range_t, R&&)
+    -> Distribution<detail::item_t<std::ranges::range_value_t<R>>>;
+
 } // namespace probfd
+
+template <typename T, typename F>
+struct std::tuple_size<probfd::ItemProbabilityPair<T, F>>
+    : public integral_constant<std::size_t, 2> {};
+
+template <std::size_t I, typename T, typename F>
+struct std::tuple_element<I, probfd::ItemProbabilityPair<T, F>> {
+    static_assert(false, "Invalid index");
+};
+
+template <typename T, typename F>
+struct std::tuple_element<0, probfd::ItemProbabilityPair<T, F>> {
+    using type = T;
+};
+
+template <typename T, typename F>
+struct std::tuple_element<1, probfd::ItemProbabilityPair<T, F>> {
+    using type = F;
+};
 
 #endif // PROBFD_DISTRIBUTION_H

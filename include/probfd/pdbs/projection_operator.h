@@ -6,6 +6,7 @@
 
 #include "downward/operator_id.h"
 
+#include <ranges>
 #include <string>
 
 /// Namespace dedicated to probabilistic pattern databases.
@@ -29,9 +30,26 @@ private:
     Distribution<int> outcome_offsets_;
 
 public:
-    explicit ProjectionOperator(OperatorID id, const auto& distr)
+    template <std::ranges::input_range R>
+        requires(std::convertible_to<
+                    std::ranges::range_reference_t<R>,
+                    ItemProbabilityPair<int>>)
+    explicit ProjectionOperator(OperatorID id, R&& distr)
         : operator_id(id)
-        , outcome_offsets_(distr)
+        , outcome_offsets_(std::from_range, std::forward<R>(distr))
+    {
+    }
+
+    template <std::ranges::input_range R>
+        requires(std::convertible_to<
+                    std::ranges::range_reference_t<R>,
+                    ItemProbabilityPair<int>>)
+    explicit ProjectionOperator(OperatorID id, R&& distr, no_normalize_t)
+        : operator_id(id)
+        , outcome_offsets_(
+              std::from_range,
+              no_normalize,
+              std::forward<R>(distr))
     {
     }
 
