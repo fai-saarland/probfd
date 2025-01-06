@@ -6,7 +6,7 @@
 
 #include "probfd/algorithms/successor_sampler.h"
 
-#include "probfd/utils/views.h"
+#include "probfd/views/concat.h"
 
 #include "probfd/progress_report.h"
 

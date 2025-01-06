@@ -1,5 +1,5 @@
-#ifndef PROBFD_VIEWS_H
-#define PROBFD_VIEWS_H
+#ifndef PROBFD_CONCAT_H
+#define PROBFD_CONCAT_H
 
 #include <iterator>
 #include <ranges>
