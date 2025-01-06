@@ -1,12 +1,16 @@
 #ifndef PROBFD_CONCAT_H
 #define PROBFD_CONCAT_H
 
-#include <iterator>
 #include <ranges>
+
+namespace probfd::views {
+
+#ifndef __cpp_lib_ranges_concat
+
+#include <iterator>
 #include <utility>
 #include <variant>
 
-namespace probfd::views {
 namespace detail {
 
 // Alias for a type that is conditionally const.
@@ -671,6 +675,12 @@ struct Concat {
 
 inline constexpr Concat concat;
 
+#else
+
+inline constexpr auto concat = std::views::concat;
+
+#endif
+
 } // namespace probfd::views
 
-#endif // PROBFD_ITERATORS_H
+#endif
