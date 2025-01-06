@@ -30,7 +30,6 @@ create_library(
     HELP "Core categories"
     SOURCES
         downward/cli/abstract_task_category
-        downward/cli/open_list_factory_category
     DEPENDS
         plugins
         core_sources

@@ -4,7 +4,9 @@
 
 using namespace std;
 
-namespace downward::cli {
+using namespace downward::cli;
+
+namespace {
 
 class PruningMethodCategoryPlugin
     : public plugins::TypedCategoryPlugin<PruningMethod> {
@@ -14,6 +16,8 @@ public:
     {
         document_synopsis("Prune or reorder applicable operators.");
     }
-} _category_plugin;
+};
 
-} // namespace downward::cli
+PruningMethodCategoryPlugin _category_plugin;
+
+} // namespace

@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace downward::cli {
+using namespace downward::cli;
 
 namespace {
 
@@ -16,8 +16,8 @@ public:
     {
         // TODO: use document_synopsis() for the wiki page.
     }
-} _category_plugin;
+};
 
-}
+OpenListFactoryCategoryPlugin _category_plugin;
 
-} // namespace downward::cli
+} // namespace

@@ -4,7 +4,9 @@
 
 using namespace std;
 
-namespace downward::cli {
+using namespace downward::cli;
+
+namespace {
 
 class EvaluatorCategoryPlugin : public plugins::TypedCategoryPlugin<Evaluator> {
 public:
@@ -28,6 +30,8 @@ public:
             "preferred operators ");
         allow_variable_binding();
     }
-} _category_plugin;
+};
 
-} // namespace downward::cli
+EvaluatorCategoryPlugin _category_plugin;
+
+} // namespace

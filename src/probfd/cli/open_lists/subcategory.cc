@@ -38,11 +38,11 @@ template <bool Bisimulation, bool Fret>
 using OpenList = Wrapped<OpenList, Bisimulation, Fret>;
 
 template <bool Bisimulation, bool Fret>
-class OpenListCategoryPlugin
+class ProbfdOpenListCategoryPlugin
     : public TypedCategoryPlugin<OpenList<Bisimulation, Fret>> {
 public:
-    OpenListCategoryPlugin()
-        : OpenListCategoryPlugin::TypedCategoryPlugin(
+    ProbfdOpenListCategoryPlugin()
+        : ProbfdOpenListCategoryPlugin::TypedCategoryPlugin(
               add_mdp_type_to_category<Bisimulation, Fret>("ProbFDOpenList"))
     {
         this->document_synopsis("Open list.");
@@ -89,7 +89,7 @@ public:
     }
 };
 
-MultiCategoryPlugin<OpenListCategoryPlugin> _category_plugin;
+MultiCategoryPlugin<ProbfdOpenListCategoryPlugin> _category_plugin;
 MultiFeaturePlugin<FifoOpenListFeature> _plugin_fifo;
 MultiFeaturePlugin<LifoOpenListFeature> _plugin_lifo;
 
