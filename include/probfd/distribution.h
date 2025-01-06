@@ -190,7 +190,13 @@ public:
                  std::ranges::range_reference_t<R>,
                  ItemProbabilityPair<T>>)
     explicit Distribution(std::from_range_t, no_normalize_t, R&& pair_range)
+#ifdef __cpp_lib_containers_ranges
         : distribution_(std::from_range, std::forward<R>(pair_range))
+#else 
+        : distribution_(
+            std::ranges::begin(pair_range),
+            std::ranges::end(pair_range))
+#endif
     {
     }
 
