@@ -2,7 +2,6 @@
 
 #include "downward/operator_counting/constraint_generator.h"
 
-#include "downward/plugins/plugin.h"
 #include "downward/utils/markup.h"
 
 #include <cmath>

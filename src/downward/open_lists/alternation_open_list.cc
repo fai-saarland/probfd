@@ -2,7 +2,6 @@
 
 #include "downward/open_list.h"
 
-#include "downward/plugins/plugin.h"
 #include "downward/utils/memory.h"
 #include "downward/utils/system.h"
 

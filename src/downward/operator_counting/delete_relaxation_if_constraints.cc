@@ -3,7 +3,7 @@
 #include "downward/task_proxy.h"
 
 #include "downward/lp/lp_solver.h"
-#include "downward/plugins/plugin.h"
+
 #include "downward/utils/markup.h"
 
 #include <cassert>

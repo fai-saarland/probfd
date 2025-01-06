@@ -3,7 +3,7 @@
 #include "downward/open_list_factory.h"
 
 #include "downward/algorithms/ordered_set.h"
-#include "downward/plugins/options.h"
+
 #include "downward/task_utils/successor_generator.h"
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/logging.h"

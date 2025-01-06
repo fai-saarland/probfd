@@ -25,6 +25,8 @@ LandmarkCutHeuristic::LandmarkCutHeuristic(
     }
 }
 
+LandmarkCutHeuristic::~LandmarkCutHeuristic() = default;
+
 int LandmarkCutHeuristic::compute_heuristic(const State& ancestor_state)
 {
     State state = convert_ancestor_state(ancestor_state);

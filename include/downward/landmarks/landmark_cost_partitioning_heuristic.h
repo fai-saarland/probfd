@@ -40,6 +40,8 @@ public:
         bool alm,
         lp::LPSolverType lpsolver);
 
+    ~LandmarkCostPartitioningHeuristic() override;
+
     virtual bool dead_ends_are_reliable() const override;
 };
 } // namespace landmarks

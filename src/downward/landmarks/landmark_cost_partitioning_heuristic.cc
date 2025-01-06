@@ -41,6 +41,9 @@ LandmarkCostPartitioningHeuristic::LandmarkCostPartitioningHeuristic(
     set_cost_partitioning_algorithm(cost_partitioning, lpsolver, alm);
 }
 
+LandmarkCostPartitioningHeuristic::~LandmarkCostPartitioningHeuristic()
+    = default;
+
 void LandmarkCostPartitioningHeuristic::check_unsupported_features(
     const shared_ptr<LandmarkFactory>& lm_factory)
 {

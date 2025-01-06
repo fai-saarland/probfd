@@ -2,7 +2,6 @@
 
 #include "downward/potentials/potential_function.h"
 
-#include "downward/plugins/options.h"
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/collections.h"
 #include "downward/utils/memory.h"

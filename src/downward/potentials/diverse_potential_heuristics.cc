@@ -29,6 +29,8 @@ DiversePotentialHeuristics::DiversePotentialHeuristics(
 {
 }
 
+DiversePotentialHeuristics::~DiversePotentialHeuristics() = default;
+
 SamplesToFunctionsMap
 DiversePotentialHeuristics::filter_samples_and_compute_functions(
     const vector<State>& samples)

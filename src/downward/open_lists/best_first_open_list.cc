@@ -3,7 +3,6 @@
 #include "downward/evaluator.h"
 #include "downward/open_list.h"
 
-#include "downward/plugins/plugin.h"
 #include "downward/utils/memory.h"
 
 #include <cassert>

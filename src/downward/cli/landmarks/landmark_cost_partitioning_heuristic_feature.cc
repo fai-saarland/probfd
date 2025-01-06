@@ -14,6 +14,7 @@ using namespace landmarks;
 using namespace downward::cli::plugins;
 
 using downward::cli::landmarks::add_landmark_heuristic_options_to_feature;
+using downward::cli::landmarks::get_landmark_heuristic_arguments_from_options;
 
 using downward::cli::lp::add_lp_solver_option_to_feature;
 using downward::cli::lp::get_lp_solver_arguments_from_options;

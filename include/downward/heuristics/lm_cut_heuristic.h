@@ -19,6 +19,8 @@ public:
         bool cache_estimates,
         const std::string& description,
         utils::Verbosity verbosity);
+
+    ~LandmarkCutHeuristic() override;
 };
 } // namespace lm_cut_heuristic
 

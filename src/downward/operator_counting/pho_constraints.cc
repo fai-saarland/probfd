@@ -4,7 +4,7 @@
 #include "downward/pdbs/pattern_database.h"
 #include "downward/pdbs/pattern_generator.h"
 #include "downward/pdbs/utils.h"
-#include "downward/plugins/plugin.h"
+
 #include "downward/utils/markup.h"
 
 #include <cassert>

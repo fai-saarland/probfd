@@ -1,7 +1,7 @@
 #include "downward/operator_counting/state_equation_constraints.h"
 
 #include "downward/lp/lp_solver.h"
-#include "downward/plugins/plugin.h"
+
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/markup.h"

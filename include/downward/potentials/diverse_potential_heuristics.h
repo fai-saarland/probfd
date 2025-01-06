@@ -58,7 +58,8 @@ public:
         const std::shared_ptr<AbstractTask>& transform,
         int random_seed,
         utils::Verbosity verbosity);
-    ~DiversePotentialHeuristics() = default;
+    
+    ~DiversePotentialHeuristics();
 
     // Sample states, then cover them.
     std::vector<std::unique_ptr<PotentialFunction>> find_functions();

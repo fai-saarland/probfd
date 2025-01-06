@@ -78,6 +78,14 @@ public:
             "more efficiently, in particular in case of the h^+^ "
             "configuration, and some relaxations offer tighter bounds.\n");
     }
+
+    virtual std::shared_ptr<DeleteRelaxationRRConstraints>
+    create_component(const Options& opts, const Context&) const override
+    {
+        return std::make_shared<DeleteRelaxationRRConstraints>(
+            opts.get<AcyclicityType>("acyclicity_type"),
+            opts.get<bool>("use_integer_vars"));
+    }
 };
 
 FeaturePlugin<DeleteRelaxationRRConstraintsFeature> _plugin;
