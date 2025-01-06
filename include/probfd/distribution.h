@@ -124,14 +124,14 @@ public:
     }
 
     template <std::size_t Index>
-    auto& get() &&
+    auto&& get() &&
     {
         if constexpr (Index == 0) return std::move(item);
         if constexpr (Index == 1) return std::move(probability);
     }
 
     template <std::size_t Index>
-    const auto& get() const&&
+    const auto&& get() const&&
     {
         if constexpr (Index == 0) return std::move(item);
         if constexpr (Index == 1) return std::move(probability);
