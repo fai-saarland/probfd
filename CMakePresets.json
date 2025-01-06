@@ -1,0 +1,118 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 22,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "toolchainFile": "${sourceDir}/cmake/toolchains/toolchain.cmake",
+      "description": "Base build configuration",
+      "generator": "Ninja Multi-Config",
+      "cacheVariables": {
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG": "${sourceDir}/bin/${presetName}/debug",
+        "CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE": "${sourceDir}/bin/${presetName}/release",
+        "CMAKE_PDB_OUTPUT_DIRECTORY_DEBUG": "${sourceDir}/bin/${presetName}/debug",
+        "CMAKE_PDB_OUTPUT_DIRECTORY_RELEASE": "${sourceDir}/bin/${presetName}/release"
+      },
+      "binaryDir": "${sourceDir}/builds/${presetName}"
+    },
+    {
+      "name": "default",
+      "displayName": "Configure the project with all libraries enabled.",
+      "inherits": "base"
+    },
+    {
+      "name": "tests",
+      "displayName": "Configure the project with all libraries enabled and enable the unit tests.",
+      "inherits": "base",
+      "cacheVariables": {
+        "BUILD_TESTS": "ON"
+      }
+    },
+    {
+      "name": "nolp",
+      "displayName": "Disable LP support. Calling a component that requires LP support will abort the planner at runtime.",
+      "inherits": "base",
+      "cacheVariables": {
+        "DUSE_LP": "NO"
+      }
+    },
+    {
+      "name": "minimal",
+      "displayName": "Disable all optional libraries.",
+      "inherits": "base",
+      "cacheVariables": {
+        "DISABLE_PLUGINS_BY_DEFAULT": "YES"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default-debug",
+      "displayName": "Build the configuration 'default' in debug mode.",
+      "configuration": "Debug",
+      "configurePreset": "default"
+    },
+    {
+      "name": "tests-debug",
+      "displayName": "Build the configuration 'tests' in debug mode.",
+      "configuration": "Debug",
+      "configurePreset": "tests"
+    },
+    {
+      "name": "nolp-debug",
+      "displayName": "Build the configuration 'nolp' in debug mode.",
+      "configuration": "Debug",
+      "configurePreset": "nolp"
+    },
+    {
+      "name": "minimal-debug",
+      "displayName": "Build the configuration 'minimal' in debug mode.",
+      "configuration": "Debug",
+      "configurePreset": "minimal"
+    },
+    {
+      "name": "default-release",
+      "displayName": "Build the configuration 'default' in release mode.",
+      "configuration": "Release",
+      "configurePreset": "default"
+    },
+    {
+      "name": "tests-release",
+      "displayName": "Build the configuration 'tests' in release mode.",
+      "configuration": "Release",
+      "configurePreset": "tests"
+    },
+    {
+      "name": "nolp-release",
+      "displayName": "Build the configuration 'nolp' in release mode.",
+      "configuration": "Release",
+      "configurePreset": "nolp"
+    },
+    {
+      "name": "minimal-release",
+      "displayName": "Build the configuration 'minimal' in release mode.",
+      "configuration": "Release",
+      "configurePreset": "minimal"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "all_tests",
+      "displayName": "Run all tests.",
+      "configurePreset": "tests",
+      "configuration": "Release",
+      "execution": {
+        "jobs": 0,
+        "timeout": 10
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

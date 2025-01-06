@@ -40,45 +40,26 @@ Limits are given in seconds or MiB. You can change the unit by using the
 suffixes s, m, h and K, M, G.
 
 By default, all limits are inactive. Only external limits (e.g. set with
-ulimit) are respected.
-
-Portfolios require that a time limit is in effect. Portfolio configurations
-that exceed their time or memory limit are aborted, and the next
-configuration is run."""
-
-EXAMPLE_PORTFOLIO = os.path.relpath(
-    aliases.PORTFOLIOS["seq-opt-fdss-1"], start=util.REPO_ROOT_DIR)
+ulimit) are respected."""
 
 EXAMPLES = [
-    ("Translate and find a plan with A* + LM-Cut:",
+    ("Translate and find a policy with iLAO* + hroc:",
      ["misc/tests/benchmarks/gripper/prob01.pddl",
-      "--search", '"astar(lmcut())"']),
+      "--search", '"ilao(hroc())"']),
     ("Translate and run no search:",
      ["--translate",
       "misc/tests/benchmarks/gripper/prob01.pddl"]),
-    ("Run predefined configuration (LAMA-2011) on translated task:",
-     ["--alias", "seq-sat-lama-2011", "output.sas"]),
-    ("Run a portfolio on a translated task:",
-     ["--portfolio", EXAMPLE_PORTFOLIO,
-      "--search-time-limit", "30m", "output.sas"]),
-    ("Run the search component in debug mode (with assertions enabled) "
-     "and validate the resulting plan:",
-     ["--debug", "output.sas", "--search", '"astar(ipdb())"']),
+    ("Run predefined configuration on translated task:",
+     ["--alias", "my-alias-config", "output.sas"]),
+    ("Run the search component in debug mode (with assertions enabled):",
+     ["--debug", "output.sas", "--search", '"ilao()"']),
     ("Pass options to translator and search components:",
      ["misc/tests/benchmarks/gripper/prob01.pddl",
       "--translate-options", "--full-encoding",
-      "--search-options", "--search", '"astar(lmcut())"']),
-    ("Find a plan and validate it:",
-     ["--validate",
-      "misc/tests/benchmarks/gripper/prob01.pddl",
-      "--search", '"astar(cegar())"']),
+      "--search-options", "--search", '"ilao()"']),
     ("Predefine an evaluator (new style):",
      ["misc/tests/benchmarks/gripper/prob01.pddl",
-      "--search", '"let(hff, ff(), eager_greedy([hff], preferred=[hff]))"']),
-    ("Predefine an evaluator (old style):",
-     ["misc/tests/benchmarks/gripper/prob01.pddl",
-      "--evaluator", '"hff=ff()"', "--search",
-      '"eager_greedy([hff], preferred=[hff])"']),
+      "--search", '"let(hroc, hroc(), ilao(eval=[hroc]))"']),
 ]
 
 EPILOG = """component options:
@@ -94,7 +75,7 @@ Examples:
     "%s\n%s" % (desc, " ".join([os.path.basename(sys.argv[0])] + parameters))
     for desc, parameters in EXAMPLES)
 
-COMPONENTS_PLUS_OVERALL = ["translate", "search", "validate", "overall"]
+COMPONENTS_PLUS_OVERALL = ["translate", "search", "overall"]
 DEFAULT_SAS_FILE = "output.psas"
 
 """
@@ -234,12 +215,6 @@ def _set_components_and_inputs(parser, args):
 
     if not args.components:
         _set_components_automatically(parser, args)
-
-    # We implicitly activate validation in debug mode. However, for
-    # validation we need the PDDL input files and a plan, therefore both
-    # components must be active.
-    if args.validate or (args.debug and len(args.components) == 2):
-        args.components.append("validate")
 
     args.translate_inputs = []
 
@@ -389,27 +364,29 @@ def parse_args():
         help="run a config with an alias (e.g. seq-sat-lama-2011)")
     driver_other.add_argument(
         "--build",
-        help="BUILD can be a predefined build name like release "
-             "(default) and debug, a custom build name, or the path to "
-             "a directory holding the planner binaries. The driver "
-             "first looks for the planner binaries under 'BUILD'. If "
-             "this path does not exist, it tries the directory "
-             "'<repo>/builds/BUILD/bin', where the build script creates "
-             "them by default.")
+        help="absolute or relative path to a directory holding the planner "
+             "binaries. Mutually exclusive with --preset.")
+    driver_other.add_argument(
+        "--preset",
+        help="The targetted configuration preset of the planner executable. "
+             "Mutually exclusive with --build.",
+        choices=["default", "tests", "no_lp", "minimal"])
+    driver_other.add_argument(
+        "--build-config",
+        help="The build configuration to run (debug or release).",
+        choices=["debug", "release"])
     driver_other.add_argument(
         "--debug", action="store_true",
-        help="alias for --build=debug --validate")
-    driver_other.add_argument(
-        "--validate", action="store_true",
-        help='validate plans (implied by --debug); needs "validate" (VAL) on PATH')
+        help="alias for --build-config='debug'")
     driver_other.add_argument(
         "--log-level", choices=["debug", "info", "warning"],
         default="info",
         help="set log level (most verbose: debug; least verbose: warning; default: %(default)s)")
 
     driver_other.add_argument(
-        "--plan-file", metavar="FILE", default="sas_plan",
-        help="write plan(s) to FILE (default: %(default)s; anytime configurations append .1, .2, ...)")
+        "--policy-file", metavar="FILE", default="sas_policy",
+        help="write policies(s) to FILE (default: %(default)s; anytime "
+             "configurations append .1, .2, ...)")
 
     driver_other.add_argument(
         "--sas-file", metavar="FILE",
@@ -421,18 +398,9 @@ def parse_args():
              "delete file if translator and search component are active)")
 
     driver_other.add_argument(
-        "--portfolio", metavar="FILE",
-        help="run a portfolio specified in FILE")
-    driver_other.add_argument(
-        "--portfolio-bound", metavar="VALUE", default=None, type=int,
-        help="exclusive bound on plan costs (only supported for satisficing portfolios)")
-    driver_other.add_argument(
-        "--portfolio-single-plan", action="store_true",
-        help="abort satisficing portfolio after finding the first plan")
-
-    driver_other.add_argument(
         "--cleanup", action="store_true",
-        help="clean up temporary files (translator output and plan files) and exit")
+        help="clean up temporary files (translator output and policy files) "
+             "and exit")
 
     parser.add_argument(
         "planner_args", nargs=argparse.REMAINDER,
@@ -452,21 +420,36 @@ def parse_args():
     else:
         args.sas_file = DEFAULT_SAS_FILE
 
-    if args.build and args.debug:
+    if args.debug:
+        if args.build_config:
+            print_usage_and_exit_with_driver_input_error(
+                parser, "The option --debug is an alias for "
+                        "'--build-config debug'. Do not specify "
+                        "both --debug and --build-config.")
+
+        if args.build:
+            print_usage_and_exit_with_driver_input_error(
+                parser, "The option --debug is an alias for "
+                        "'--build-config debug'. The options "
+                        "--build and --build-config are mutually exclusive. "
+                        "Do not specify both --debug and --build.")
+
+    if args.build and (args.preset or args.build_config):
         print_usage_and_exit_with_driver_input_error(
-            parser, "The option --debug is an alias for --build=debug "
-                    "--validate. Do no specify both --debug and --build.")
+            parser, "The options --build and --preset as well as --build and "
+                    "--build-config are mutually exclusive.")
+
     if not args.build:
-        if args.debug:
-            args.build = "debug"
-        else:
-            args.build = "release"
+        if not args.preset:
+            args.preset = "default"
+
+        if not args.build_config:
+            args.build_config = "debug" if args.debug else "release"
 
     _split_planner_args(parser, args)
 
     _check_mutex_args(parser, [
         ("--alias", args.alias is not None),
-        ("--portfolio", args.portfolio is not None),
         ("options for search component", bool(args.search_options))])
 
     _set_translator_output_options(parser, args)
@@ -479,16 +462,6 @@ def parse_args():
         except KeyError:
             print_usage_and_exit_with_driver_input_error(
                 parser, "unknown alias: %r" % args.alias)
-
-    if args.portfolio_bound is not None and not args.portfolio:
-        print_usage_and_exit_with_driver_input_error(
-            parser, "--portfolio-bound may only be used for portfolios.")
-    if args.portfolio_bound is not None and args.portfolio_bound < 0:
-        print_usage_and_exit_with_driver_input_error(
-            parser, "--portfolio-bound must not be negative.")
-    if args.portfolio_single_plan and not args.portfolio:
-        print_usage_and_exit_with_driver_input_error(
-            parser, "--portfolio-single-plan may only be used for portfolios.")
 
     if not args.version and not args.show_aliases and not args.cleanup:
         _set_components_and_inputs(parser, args)

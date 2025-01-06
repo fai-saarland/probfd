@@ -43,8 +43,6 @@ def main():
             if not args.keep_sas_file:
                 print("Remove intermediate file {}".format(args.sas_file))
                 os.remove(args.sas_file)
-        elif component == "validate":
-            (exitcode, continue_execution) = run_components.run_validate(args)
         else:
             assert False, "Error: unhandled component: {}".format(component)
         print("{component} exit code: {exitcode}".format(**locals()))
@@ -60,8 +58,6 @@ def main():
         pass
 
     # Exit with the exit code of the last component that ran successfully.
-    # This means for example that if no plan was found, validate is not run,
-    # and therefore the return code is that of the search.
     sys.exit(exitcode)
 
 
