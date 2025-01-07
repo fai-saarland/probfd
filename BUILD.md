@@ -1,17 +1,29 @@
-# Build Instructions
+# Getting Started
 
 [TOC]
 
-## Dependencies
+## Obtaining the Planner
+
+To obtain the planner, clone it from the official [GitHub repository](https://github.com/fai-saarland/probfd).
+
+```
+# Via https
+git clone https://github.com/fai-saarland/probfd.git
+
+# Via ssh
+git clone git@github.com:fai-saarland/probfd.git
+```
+
+## Build Instructions
 
 ### Mandatory Dependencies
 
-You need a C++ 20 compiler, CMake, the Ninja build system and Python 3.
+You need a C++ 23 compiler, CMake, the Ninja build system and Python 3.
 
 **Linux:** On Debian/Ubuntu the following should install all dependencies:
 
 ```
-sudo apt install g++-12 cmake ninja-build python3
+sudo apt install g++-14 cmake ninja-build python3
 ```
 
 **MacOS**: All dependencies can be installed via Homebrew:
@@ -84,9 +96,9 @@ rm -rf soplex-release-710 build
 After installation, permanently set the environment variable soplex_DIR to the
 value you used during the installation.
 
-## Compiling the Planner
+### Compiling the Planner
 
-### Configuring the Build
+#### Configuring the Build
 
 The planner has different configurations which allow to
 exclude specific planner components from compilation.
@@ -104,7 +116,7 @@ components:
 cmake --preset default
 ```
 
-### Building
+#### Building
 
 Each configuration can be built in either `Debug` or `Release` mode.
 In debug mode, optimizations are disabled, debugging symbols are
