@@ -23,7 +23,9 @@ using downward::cli::merge_and_shrink::
 
 using downward::cli::merge_and_shrink::handle_shrink_limit_options_defaults;
 
-namespace merge_and_shrink {
+using namespace merge_and_shrink;
+
+namespace {
 
 class MergeAndShrinkHeuristicFeature
     : public TypedFeature<Evaluator, MergeAndShrinkHeuristic> {
@@ -171,4 +173,4 @@ public:
 
 FeaturePlugin<MergeAndShrinkHeuristicFeature> _plugin;
 
-} // namespace merge_and_shrink
+}

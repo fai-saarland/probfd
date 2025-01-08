@@ -9,7 +9,9 @@ using namespace std;
 
 using namespace downward::cli::plugins;
 
-namespace merge_and_shrink {
+using namespace merge_and_shrink;
+
+namespace {
 
 class ShrinkBisimulationFeature
     : public TypedFeature<ShrinkStrategy, ShrinkBisimulation> {
@@ -85,4 +87,4 @@ TypedEnumPlugin<AtLimit> _enum_plugin(
       "continue refining the equivalence class until "
       "the size limit is hit"}});
 
-} // namespace merge_and_shrink
+}

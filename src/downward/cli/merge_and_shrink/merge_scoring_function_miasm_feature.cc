@@ -18,7 +18,9 @@ using downward::cli::merge_and_shrink::
 
 using downward::cli::merge_and_shrink::handle_shrink_limit_options_defaults;
 
-namespace merge_and_shrink {
+using namespace merge_and_shrink;
+
+namespace {
 
 class MergeScoringFunctionMIASMFeature
     : public TypedFeature<MergeScoringFunction, MergeScoringFunctionMIASM> {
@@ -125,4 +127,4 @@ public:
 
 FeaturePlugin<MergeScoringFunctionMIASMFeature> _plugin;
 
-} // namespace merge_and_shrink
+}
