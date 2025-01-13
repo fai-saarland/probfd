@@ -47,8 +47,7 @@ ostream& operator<<(ostream& os, const Node& node)
               << " right=" << node.right_child << ">";
 }
 
-RefinementHierarchy::RefinementHierarchy(const shared_ptr<PlanningTask>& task)
-    : task(task)
+RefinementHierarchy::RefinementHierarchy()
 {
     nodes.emplace_back(0);
 }
@@ -89,8 +88,6 @@ pair<NodeID, NodeID> RefinementHierarchy::split(
 
 int RefinementHierarchy::get_abstract_state_id(const State& state) const
 {
-    PlanningTaskProxy subtask_proxy(*task);
-    State subtask_state = subtask_proxy.convert_ancestor_state(state);
-    return nodes[get_node_id(subtask_state)].get_state_id();
+    return nodes[get_node_id(state)].get_state_id();
 }
 } // namespace cartesian_abstractions

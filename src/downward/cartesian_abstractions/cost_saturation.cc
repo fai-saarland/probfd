@@ -236,6 +236,7 @@ void CostSaturation::build_abstractions(
             use_general_costs);
 
         heuristic_functions.emplace_back(
+            subtask,
             abstraction->extract_refinement_hierarchy(),
             std::move(goal_distances));
 
