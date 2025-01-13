@@ -9,6 +9,8 @@
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
 
+#include "downward/task_transformation.h"
+
 #include <cassert>
 
 using namespace std;
@@ -49,11 +51,17 @@ AdditiveCartesianHeuristic::AdditiveCartesianHeuristic(
     PickSplit pick,
     bool use_general_costs,
     int random_seed,
-    const shared_ptr<AbstractTask>& transform,
+    std::shared_ptr<AbstractTask> original_task,
+    TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
     utils::Verbosity verbosity)
-    : Heuristic(transform, cache_estimates, description, verbosity)
+    : Heuristic(
+          std::move(original_task),
+          std::move(transformation_result),
+          cache_estimates,
+          description,
+          verbosity)
     , heuristic_functions(generate_heuristic_functions(
           subtasks,
           max_states,
@@ -62,8 +70,37 @@ AdditiveCartesianHeuristic::AdditiveCartesianHeuristic(
           pick,
           use_general_costs,
           random_seed,
-          transform,
+          transformed_task,
           log))
+{
+}
+
+AdditiveCartesianHeuristic::AdditiveCartesianHeuristic(
+    const std::vector<std::shared_ptr<SubtaskGenerator>>& subtasks,
+    int max_states,
+    int max_transitions,
+    double max_time,
+    PickSplit pick,
+    bool use_general_costs,
+    int random_seed,
+    std::shared_ptr<AbstractTask> original_task,
+    const std::shared_ptr<TaskTransformation>& transformation,
+    bool cache_estimates,
+    const std::string& description,
+    utils::Verbosity verbosity)
+    : AdditiveCartesianHeuristic(
+          subtasks,
+          max_states,
+          max_transitions,
+          max_time,
+          pick,
+          use_general_costs,
+          random_seed,
+          original_task,
+          transformation->transform(original_task),
+          cache_estimates,
+          description,
+          verbosity)
 {
 }
 

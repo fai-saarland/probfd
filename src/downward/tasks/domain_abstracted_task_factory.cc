@@ -2,6 +2,8 @@
 
 #include "downward/tasks/domain_abstracted_task.h"
 
+#include "downward/transformations/domain_abstraction.h"
+
 #include "downward/task_utils/task_properties.h"
 
 #include <sstream>
@@ -76,7 +78,7 @@ DomainAbstractedTaskFactory::DomainAbstractedTaskFactory(
         std::move(initial_state_values),
         std::move(goals),
         std::move(fact_names),
-        std::move(value_map));
+        std::make_shared<DomainAbstraction>(value_map));
 }
 
 void DomainAbstractedTaskFactory::initialize(const AbstractTask& parent)

@@ -70,7 +70,24 @@ protected:
 
 public:
     AdditiveHeuristic(
-        const std::shared_ptr<AbstractTask>& transform,
+        std::shared_ptr<AbstractTask> original_task,
+        TaskTransformationResult transformation_result,
+        bool cache_estimates,
+        const std::string& description,
+        utils::Verbosity verbosity);
+
+    AdditiveHeuristic(
+        std::shared_ptr<AbstractTask> original_task,
+        const std::shared_ptr<TaskTransformation>& transformation,
+        bool cache_estimates,
+        const std::string& description,
+        utils::Verbosity verbosity);
+
+    AdditiveHeuristic(
+        std::shared_ptr<AbstractTask> original_task,
+        std::shared_ptr<AbstractTask> transformed_task,
+        std::shared_ptr<StateMapping> state_mapping,
+        std::shared_ptr<InverseOperatorMapping> inv_operator_mapping,
         bool cache_estimates,
         const std::string& description,
         utils::Verbosity verbosity);

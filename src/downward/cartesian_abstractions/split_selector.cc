@@ -8,6 +8,8 @@
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
 
+#include "downward/transformations/identity_transformation.h"
+
 #include <cassert>
 #include <iostream>
 #include <limits>
@@ -26,6 +28,9 @@ SplitSelector::SplitSelector(
         additive_heuristic =
             std::make_unique<additive_heuristic::AdditiveHeuristic>(
                 task,
+                task,
+                std::make_shared<IdentityStateMapping>(),
+                std::make_shared<IdentityOperatorMapping>(),
                 false,
                 "h^add within CEGAR abstractions",
                 utils::Verbosity::SILENT);

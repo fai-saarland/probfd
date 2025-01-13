@@ -6,6 +6,10 @@
 #include <unordered_set>
 #include <vector>
 
+class AbstractTask;
+class StateMapping;
+class InverseOperatorMapping;
+
 namespace cartesian_abstractions {
 class AbstractState;
 struct Transition;
@@ -20,6 +24,12 @@ const int UNDEFINED = -1;
 
 // Positive infinity. The name "INFINITY" is taken by an ISO C99 macro.
 const int INF = std::numeric_limits<int>::max();
+
+using SharedTasks = std::vector<std::tuple<
+    std::shared_ptr<AbstractTask>,
+    std::shared_ptr<StateMapping>,
+    std::shared_ptr<InverseOperatorMapping>>>;
+
 } // namespace cartesian_abstractions
 
 #endif

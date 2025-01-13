@@ -210,12 +210,12 @@ bool CostSaturation::state_is_dead_end(const State& state) const
 }
 
 void CostSaturation::build_abstractions(
-    const vector<shared_ptr<ProbabilisticTask>>& subtasks,
+    const SharedTasks& subtasks,
     const utils::CountdownTimer& timer,
     function<bool()> should_abort)
 {
     int rem_subtasks = static_cast<int>(subtasks.size());
-    for (shared_ptr<ProbabilisticTask> subtask : subtasks) {
+    for (auto [subtask, state_mapping, _] : subtasks) {
         subtask = get_remaining_costs_task(subtask);
 
         assert(num_states_ < max_states_);
@@ -252,6 +252,7 @@ void CostSaturation::build_abstractions(
             use_general_costs_);
 
         heuristic_functions_.emplace_back(
+            state_mapping,
             subtask,
             std::move(refinement_hierarchy),
             std::move(goal_distances));

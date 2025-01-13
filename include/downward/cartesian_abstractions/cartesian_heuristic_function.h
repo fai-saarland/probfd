@@ -5,6 +5,7 @@
 #include <vector>
 
 class AbstractTask;
+class StateMapping;
 class State;
 
 namespace cartesian_abstractions {
@@ -15,13 +16,15 @@ class RefinementHierarchy;
 */
 class CartesianHeuristicFunction {
     // Avoid const to enable moving.
-    std::shared_ptr<AbstractTask> task;
+    std::shared_ptr<StateMapping> state_mapping;
+    std::shared_ptr<AbstractTask> transformed_task;
     std::unique_ptr<RefinementHierarchy> refinement_hierarchy;
     std::vector<int> h_values;
 
 public:
     CartesianHeuristicFunction(
-        std::shared_ptr<AbstractTask> task,
+        std::shared_ptr<StateMapping> state_mapping,
+        std::shared_ptr<AbstractTask> transformed_task,
         std::unique_ptr<RefinementHierarchy>&& hierarchy,
         std::vector<int>&& h_values);
 

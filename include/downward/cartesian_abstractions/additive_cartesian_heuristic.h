@@ -21,7 +21,7 @@ protected:
     virtual int compute_heuristic(const State& ancestor_state) override;
 
 public:
-    explicit AdditiveCartesianHeuristic(
+    AdditiveCartesianHeuristic(
         const std::vector<std::shared_ptr<SubtaskGenerator>>& subtasks,
         int max_states,
         int max_transitions,
@@ -29,7 +29,22 @@ public:
         PickSplit pick,
         bool use_general_costs,
         int random_seed,
-        const std::shared_ptr<AbstractTask>& transform,
+        std::shared_ptr<AbstractTask> original_task,
+        TaskTransformationResult transformation_result,
+        bool cache_estimates,
+        const std::string& description,
+        utils::Verbosity verbosity);
+
+    AdditiveCartesianHeuristic(
+        const std::vector<std::shared_ptr<SubtaskGenerator>>& subtasks,
+        int max_states,
+        int max_transitions,
+        double max_time,
+        PickSplit pick,
+        bool use_general_costs,
+        int random_seed,
+        std::shared_ptr<AbstractTask> original_task,
+        const std::shared_ptr<TaskTransformation>& transformation,
         bool cache_estimates,
         const std::string& description,
         utils::Verbosity verbosity);

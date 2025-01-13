@@ -7,6 +7,9 @@
 #include <memory>
 #include <vector>
 
+class StateMapping;
+class InverseOperatorMapping;
+
 namespace cartesian_abstractions {
 class CartesianSet;
 class CartesianHeuristicFunction;
@@ -16,7 +19,8 @@ class RefinementHierarchy;
 namespace probfd {
 template <typename, typename>
 class Policy;
-}
+class ProbabilisticTask;
+} // namespace probfd
 
 namespace probfd::cartesian_abstractions {
 
@@ -43,6 +47,11 @@ using Trace = std::deque<TransitionOutcome>;
 using Solution = Policy<int, const ProbabilisticTransition*>;
 
 static constexpr int UNDEFINED = -1;
+
+using SharedTasks = std::vector<std::tuple<
+    std::shared_ptr<ProbabilisticTask>,
+    std::shared_ptr<StateMapping>,
+    std::shared_ptr<InverseOperatorMapping>>>;
 
 } // namespace probfd::cartesian_abstractions
 

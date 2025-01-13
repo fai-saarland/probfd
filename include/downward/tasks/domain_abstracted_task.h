@@ -3,12 +3,12 @@
 
 #include "downward/tasks/delegating_task.h"
 
-#include "downward/utils/collections.h"
-
 #include <cassert>
 #include <string>
 #include <utility>
 #include <vector>
+
+class DomainAbstraction;
 
 namespace extra_tasks {
 /*
@@ -22,19 +22,8 @@ class DomainAbstractedTask : public tasks::DelegatingTask {
     const std::vector<int> initial_state_values;
     const std::vector<FactPair> goals;
     const std::vector<std::vector<std::string>> fact_names;
-    const std::vector<std::vector<int>> value_map;
 
-    int get_abstract_value(const FactPair& fact) const
-    {
-        assert(utils::in_bounds(fact.var, value_map));
-        assert(utils::in_bounds(fact.value, value_map[fact.var]));
-        return value_map[fact.var][fact.value];
-    }
-
-    FactPair get_abstract_fact(const FactPair& fact) const
-    {
-        return FactPair(fact.var, get_abstract_value(fact));
-    }
+    const std::shared_ptr<DomainAbstraction> domain_abstraction;
 
 public:
     DomainAbstractedTask(
@@ -43,7 +32,7 @@ public:
         std::vector<int>&& initial_state_values,
         std::vector<FactPair>&& goals,
         std::vector<std::vector<std::string>>&& fact_names,
-        std::vector<std::vector<int>>&& value_map);
+        std::shared_ptr<DomainAbstraction> domain_abstraction);
 
     virtual int get_variable_domain_size(int var) const override;
     virtual std::string get_fact_name(const FactPair& fact) const override;
@@ -63,8 +52,6 @@ public:
     virtual FactPair get_goal_fact(int index) const override;
 
     virtual std::vector<int> get_initial_state_values() const override;
-    virtual void
-    convert_state_values_from_parent(std::vector<int>& values) const override;
 };
 } // namespace extra_tasks
 

@@ -175,13 +175,6 @@ public:
     FactPair get_goal_fact(int index) const override;
 
     vector<int> get_initial_state_values() const override;
-
-    void convert_ancestor_state_values(
-        vector<int>& values,
-        const PlanningTask* ancestor_task) const override;
-
-    int convert_operator_index(int index, const PlanningTask* ancestor_task)
-        const override;
 };
 
 class RootTaskCostFunction {
@@ -830,25 +823,6 @@ FactPair RootTask::get_goal_fact(int index) const
 vector<int> RootTask::get_initial_state_values() const
 {
     return initial_state_values;
-}
-
-void RootTask::convert_ancestor_state_values(
-    vector<int>&,
-    const PlanningTask* ancestor_task) const
-{
-    if (this != ancestor_task) {
-        ABORT("Invalid state conversion");
-    }
-}
-
-int RootTask::convert_operator_index(
-    int index,
-    const PlanningTask* ancestor_task) const
-{
-    if (this != ancestor_task) {
-        ABORT("Invalid operator ID conversion");
-    }
-    return index;
 }
 
 } // namespace

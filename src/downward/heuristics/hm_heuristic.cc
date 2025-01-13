@@ -3,6 +3,8 @@
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/logging.h"
 
+#include "downward/task_transformation.h"
+
 #include <cassert>
 #include <limits>
 #include <set>
@@ -12,11 +14,17 @@ using namespace std;
 namespace hm_heuristic {
 HMHeuristic::HMHeuristic(
     int m,
-    const shared_ptr<AbstractTask>& transform,
+    std::shared_ptr<AbstractTask> original_task,
+    TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
     utils::Verbosity verbosity)
-    : Heuristic(transform, cache_estimates, description, verbosity)
+    : Heuristic(
+          std::move(original_task),
+          std::move(transformation_result),
+          cache_estimates,
+          description,
+          verbosity)
     , m(m)
     , has_cond_effects(task_properties::has_conditional_effects(task_proxy))
     , goals(task_properties::get_fact_pairs(task_proxy.get_goals()))
@@ -28,6 +36,23 @@ HMHeuristic::HMHeuristic(
             << "Please do not use this for comparison!" << endl;
     }
     generate_all_tuples();
+}
+
+HMHeuristic::HMHeuristic(
+    int m,
+    std::shared_ptr<AbstractTask> original_task,
+    const std::shared_ptr<TaskTransformation>& transformation,
+    bool cache_estimates,
+    const std::string& description,
+    utils::Verbosity verbosity)
+    : HMHeuristic(
+          m,
+          original_task,
+          transformation->transform(original_task),
+          cache_estimates,
+          description,
+          verbosity)
+{
 }
 
 bool HMHeuristic::dead_ends_are_reliable() const

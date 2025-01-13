@@ -70,10 +70,8 @@ AdditiveCartesianHeuristic::AdditiveCartesianHeuristic(
 {
 }
 
-value_t AdditiveCartesianHeuristic::evaluate(const State& ancestor_state) const
+value_t AdditiveCartesianHeuristic::evaluate(const State& state) const
 {
-    const State state = task_proxy_.convert_ancestor_state(ancestor_state);
-
     value_t sum_h = 0;
     for (const CartesianHeuristicFunction& function : heuristic_functions_) {
         const value_t value = function.get_value(state);

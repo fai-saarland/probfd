@@ -54,6 +54,7 @@ tuple<
     double,
     ::lp::LPSolverType,
     shared_ptr<AbstractTask>,
+    shared_ptr<TaskTransformation>,
     bool,
     string,
     utils::Verbosity>

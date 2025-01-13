@@ -5,6 +5,8 @@
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/logging.h"
 
+#include "downward/task_transformation.h"
+
 #include <cassert>
 #include <limits>
 #include <vector>
@@ -435,11 +437,17 @@ int ContextEnhancedAdditiveHeuristic::compute_heuristic(
 }
 
 ContextEnhancedAdditiveHeuristic::ContextEnhancedAdditiveHeuristic(
-    const shared_ptr<AbstractTask>& transform,
+    std::shared_ptr<AbstractTask> original_task,
+    TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
     utils::Verbosity verbosity)
-    : Heuristic(transform, cache_estimates, description, verbosity)
+    : Heuristic(
+          std::move(original_task),
+          std::move(transformation_result),
+          cache_estimates,
+          description,
+          verbosity)
     , min_action_cost(task_properties::get_min_operator_cost(task_proxy))
 {
     if (log.is_at_least_normal()) {
@@ -458,6 +466,21 @@ ContextEnhancedAdditiveHeuristic::ContextEnhancedAdditiveHeuristic(
         local_problem_index[var.get_id()].resize(
             var.get_domain_size(),
             nullptr);
+}
+
+ContextEnhancedAdditiveHeuristic::ContextEnhancedAdditiveHeuristic(
+    std::shared_ptr<AbstractTask> original_task,
+    const std::shared_ptr<TaskTransformation>& transformation,
+    bool cache_estimates,
+    const string& description,
+    utils::Verbosity verbosity)
+    : ContextEnhancedAdditiveHeuristic(
+          original_task,
+          transformation->transform(original_task),
+          cache_estimates,
+          description,
+          verbosity)
+{
 }
 
 ContextEnhancedAdditiveHeuristic::~ContextEnhancedAdditiveHeuristic()

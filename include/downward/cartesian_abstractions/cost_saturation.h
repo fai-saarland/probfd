@@ -3,6 +3,7 @@
 
 #include "downward/cartesian_abstractions/refinement_hierarchy.h"
 #include "downward/cartesian_abstractions/split_selector.h"
+#include "downward/cartesian_abstractions/types.h"
 
 #include <memory>
 #include <vector>
@@ -47,7 +48,7 @@ class CostSaturation {
     get_remaining_costs_task(std::shared_ptr<AbstractTask>& parent) const;
     bool state_is_dead_end(const State& state) const;
     void build_abstractions(
-        const std::vector<std::shared_ptr<AbstractTask>>& subtasks,
+        const SharedTasks& subtasks,
         const utils::CountdownTimer& timer,
         const std::function<bool()>& should_abort);
     void print_statistics(utils::Duration init_time) const;

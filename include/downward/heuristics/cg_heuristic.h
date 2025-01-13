@@ -47,9 +47,18 @@ protected:
     virtual int compute_heuristic(const State& ancestor_state) override;
 
 public:
-    explicit CGHeuristic(
+    CGHeuristic(
         int max_cache_size,
-        const std::shared_ptr<AbstractTask>& transform,
+        std::shared_ptr<AbstractTask> original_task,
+        TaskTransformationResult transformation_result,
+        bool cache_estimates,
+        const std::string& description,
+        utils::Verbosity verbosity);
+
+    CGHeuristic(
+        int max_cache_size,
+        std::shared_ptr<AbstractTask> original_task,
+        const std::shared_ptr<TaskTransformation>& transformation,
         bool cache_estimates,
         const std::string& description,
         utils::Verbosity verbosity);

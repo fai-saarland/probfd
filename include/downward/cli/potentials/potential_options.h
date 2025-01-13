@@ -1,5 +1,5 @@
-#ifndef DOWNWARD_PLUGINS_POTENTIALS_UTIL_H
-#define DOWNWARD_PLUGINS_POTENTIALS_UTIL_H
+#ifndef CLI_POTENTIALS_POTENTIAL_OPTIONS_H
+#define CLI_POTENTIALS_POTENTIAL_OPTIONS_H
 
 #include "downward/lp/lp_solver.h"
 
@@ -7,6 +7,7 @@
 #include <string>
 
 class AbstractTask;
+class TaskTransformation;
 
 enum class LPSolverType;
 
@@ -31,6 +32,7 @@ std::tuple<
     double,
     lp::LPSolverType,
     std::shared_ptr<AbstractTask>,
+    std::shared_ptr<TaskTransformation>,
     bool,
     std::string,
     utils::Verbosity>
@@ -38,4 +40,4 @@ get_admissible_potential_arguments_from_options(const plugins::Options& opts);
 
 } // namespace downward::cli::potentials
 
-#endif
+#endif // CLI_POTENTIALS_POTENTIAL_OPTIONS_H

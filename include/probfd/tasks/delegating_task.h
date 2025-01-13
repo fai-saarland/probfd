@@ -55,13 +55,6 @@ public:
 
     std::vector<int> get_initial_state_values() const override;
 
-    void convert_ancestor_state_values(
-        std::vector<int>& values,
-        const PlanningTask* ancestor_task) const override;
-
-    int convert_operator_index(int index, const PlanningTask* ancestor_task)
-        const override;
-
     int get_num_operator_outcomes(int op_index) const override;
 
     value_t get_operator_outcome_probability(int op_index, int outcome_index)

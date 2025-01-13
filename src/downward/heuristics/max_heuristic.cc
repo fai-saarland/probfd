@@ -2,6 +2,8 @@
 
 #include "downward/utils/logging.h"
 
+#include "downward/task_transformation.h"
+
 #include <cassert>
 #include <vector>
 
@@ -22,15 +24,36 @@ namespace max_heuristic {
 
 // construction and destruction
 HSPMaxHeuristic::HSPMaxHeuristic(
-    const shared_ptr<AbstractTask>& transform,
+    std::shared_ptr<AbstractTask> original_task,
+    TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
     utils::Verbosity verbosity)
-    : RelaxationHeuristic(transform, cache_estimates, description, verbosity)
+    : RelaxationHeuristic(
+          std::move(original_task),
+          std::move(transformation_result),
+          cache_estimates,
+          description,
+          verbosity)
 {
     if (log.is_at_least_normal()) {
         log << "Initializing HSP max heuristic..." << endl;
     }
+}
+
+HSPMaxHeuristic::HSPMaxHeuristic(
+    std::shared_ptr<AbstractTask> original_task,
+    const std::shared_ptr<TaskTransformation>& transformation,
+    bool cache_estimates,
+    const std::string& description,
+    utils::Verbosity verbosity)
+    : HSPMaxHeuristic(
+          original_task,
+          transformation->transform(original_task),
+          cache_estimates,
+          description,
+          verbosity)
+{
 }
 
 // heuristic computation

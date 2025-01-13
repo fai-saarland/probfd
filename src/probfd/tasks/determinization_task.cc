@@ -197,38 +197,6 @@ std::vector<int> DeterminizationTask::get_initial_state_values() const
     return parent_task_->get_initial_state_values();
 }
 
-/*
- * Convert state values from an ancestor task A (ancestor) into
- * state values from this task, C (child). Task A has to be an
- * ancestor of C in the sense that C is the result of a sequence of
- * task transformations on A.
- * The values are converted in-place to avoid unnecessary copies. If a
- * subclass needs to create a new vector, e.g., because the size changes,
- * it should create the new vector in a local variable and then swap it with
- * the parameter.
- */
-void DeterminizationTask::convert_ancestor_state_values(
-    std::vector<int>&,
-    const PlanningTask* ancestor_task) const
-{
-    (void)ancestor_task;
-    assert(ancestor_task == this || ancestor_task == parent_task_.get());
-}
-/*
- * Convert an operator index from this task, C (child), into an operator
- * index from an ancestor task A (ancestor). Task A has to be an ancestor of
- * C in the sense that C is the result of a sequence of task transformations
- * on A.
- */
-int DeterminizationTask::convert_operator_index(
-    int index,
-    const PlanningTask* ancestor_task) const
-{
-    (void)ancestor_task;
-    assert(ancestor_task == this);
-    return index;
-}
-
 std::pair<int, int>
 DeterminizationTask::get_parent_indices(int deterministic_operator_index) const
 {

@@ -790,16 +790,6 @@ public:
 
     int get_id() const { return index; }
 
-    /*
-      Eventually, this method should perhaps not be part of OperatorProxy but
-      live in a class that handles the task transformation and known about both
-      the original and the transformed task.
-    */
-    OperatorID get_ancestor_operator_id(const PlanningTask* ancestor_task) const
-    {
-        return OperatorID(task->convert_operator_index(index, ancestor_task));
-    }
-
     friend bool operator==(
         const PartialOperatorProxy& left,
         const PartialOperatorProxy& right)
@@ -1167,29 +1157,6 @@ public:
     State get_initial_state() const
     {
         return create_state(task->get_initial_state_values());
-    }
-
-    /*
-      Convert a state from an ancestor task into a state of this task.
-      The given state has to belong to a task that is an ancestor of
-      this task in the sense that this task is the result of a sequence
-      of task transformations on the ancestor task. If this is not the
-      case, the function aborts.
-
-      Eventually, this method should perhaps not be part of TaskProxy but live
-      in a class that handles the task transformation and knows about both the
-      original and the transformed task.
-    */
-    State convert_ancestor_state(const State& ancestor_state) const
-    {
-        PlanningTaskProxy ancestor_task_proxy = ancestor_state.get_task();
-        // Create a copy of the state values for the new state.
-        ancestor_state.unpack();
-        std::vector<int> state_values = ancestor_state.get_unpacked_values();
-        task->convert_ancestor_state_values(
-            state_values,
-            ancestor_task_proxy.task);
-        return create_state(std::move(state_values));
     }
 
     explicit operator TaskProxy() const;

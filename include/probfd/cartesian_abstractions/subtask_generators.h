@@ -1,6 +1,8 @@
 #ifndef PROBFD_CARTESIAN_SUBTASK_GENERATORS_H
 #define PROBFD_CARTESIAN_SUBTASK_GENERATORS_H
 
+#include "probfd/cartesian_abstractions/types.h"
+
 #include <memory>
 #include <vector>
 
@@ -23,7 +25,6 @@ class ProbabilisticTask;
 namespace probfd::cartesian_abstractions {
 
 using Facts = std::vector<FactPair>;
-using SharedTasks = std::vector<std::shared_ptr<ProbabilisticTask>>;
 
 enum class FactOrder { ORIGINAL, RANDOM, HADD_UP, HADD_DOWN };
 

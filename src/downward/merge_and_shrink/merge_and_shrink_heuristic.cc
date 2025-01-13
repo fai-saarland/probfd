@@ -11,6 +11,8 @@
 #include "downward/utils/markup.h"
 #include "downward/utils/system.h"
 
+#include "downward/task_transformation.h"
+
 #include <cassert>
 #include <iostream>
 #include <utility>
@@ -30,11 +32,17 @@ MergeAndShrinkHeuristic::MergeAndShrinkHeuristic(
     int max_states_before_merge,
     int threshold_before_merge,
     double main_loop_max_time,
-    const shared_ptr<AbstractTask>& transform,
+    std::shared_ptr<AbstractTask> original_task,
+    TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
     utils::Verbosity verbosity)
-    : Heuristic(transform, cache_estimates, description, verbosity)
+    : Heuristic(
+          std::move(original_task),
+          std::move(transformation_result),
+          cache_estimates,
+          description,
+          verbosity)
 {
     log << "Initializing merge-and-shrink heuristic..." << endl;
     MergeAndShrinkAlgorithm algorithm(
@@ -52,6 +60,39 @@ MergeAndShrinkHeuristic::MergeAndShrinkHeuristic(
         algorithm.build_factored_transition_system(task_proxy);
     extract_factors(fts);
     log << "Done initializing merge-and-shrink heuristic." << endl << endl;
+}
+
+MergeAndShrinkHeuristic::MergeAndShrinkHeuristic(
+    const std::shared_ptr<MergeStrategyFactory>& merge_strategy,
+    const std::shared_ptr<ShrinkStrategy>& shrink_strategy,
+    const std::shared_ptr<LabelReduction>& label_reduction,
+    bool prune_unreachable_states,
+    bool prune_irrelevant_states,
+    int max_states,
+    int max_states_before_merge,
+    int threshold_before_merge,
+    double main_loop_max_time,
+    std::shared_ptr<AbstractTask> original_task,
+    const std::shared_ptr<TaskTransformation>& transformation,
+    bool cache_estimates,
+    const std::string& description,
+    utils::Verbosity verbosity)
+    : MergeAndShrinkHeuristic(
+          merge_strategy,
+          shrink_strategy,
+          label_reduction,
+          prune_unreachable_states,
+          prune_irrelevant_states,
+          max_states,
+          max_states_before_merge,
+          threshold_before_merge,
+          main_loop_max_time,
+          original_task,
+          transformation->transform(original_task),
+          cache_estimates,
+          description,
+          verbosity)
+{
 }
 
 MergeAndShrinkHeuristic::~MergeAndShrinkHeuristic() = default;

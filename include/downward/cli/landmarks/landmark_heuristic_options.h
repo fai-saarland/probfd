@@ -6,6 +6,7 @@
 #include <tuple>
 
 class AbstractTask;
+class TaskTransformation;
 
 namespace utils {
 enum class Verbosity;
@@ -33,6 +34,7 @@ extern std::tuple<
     bool,
     bool,
     std::shared_ptr<AbstractTask>,
+    std::shared_ptr<TaskTransformation>,
     bool,
     std::string,
     utils::Verbosity>

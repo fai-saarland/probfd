@@ -132,28 +132,6 @@ vector<int> DelegatingTask::get_initial_state_values() const
     return parent_->get_initial_state_values();
 }
 
-void DelegatingTask::convert_ancestor_state_values(
-    vector<int>& values,
-    const PlanningTask* ancestor_task) const
-{
-    if (this == ancestor_task) {
-        return;
-    }
-    parent_->convert_ancestor_state_values(values, ancestor_task);
-    convert_state_values_from_parent(values);
-}
-
-int DelegatingTask::convert_operator_index(
-    int index,
-    const PlanningTask* ancestor_task) const
-{
-    if (ancestor_task == this) {
-        return index;
-    }
-    int parent_index = convert_operator_index_to_parent(index);
-    return parent_->convert_operator_index(parent_index, ancestor_task);
-}
-
 int DelegatingTask::get_num_operator_outcomes(int op_index) const
 {
     return parent_->get_num_operator_outcomes(op_index);

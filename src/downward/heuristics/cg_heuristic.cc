@@ -6,6 +6,8 @@
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/logging.h"
 
+#include "downward/task_transformation.h"
+
 #include <algorithm>
 #include <cassert>
 #include <limits>
@@ -17,11 +19,17 @@ using namespace domain_transition_graph;
 namespace cg_heuristic {
 CGHeuristic::CGHeuristic(
     int max_cache_size,
-    const shared_ptr<AbstractTask>& transform,
+    std::shared_ptr<AbstractTask> original_task,
+    TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
     utils::Verbosity verbosity)
-    : Heuristic(transform, cache_estimates, description, verbosity)
+    : Heuristic(
+          std::move(original_task),
+          std::move(transformation_result),
+          cache_estimates,
+          description,
+          verbosity)
     , cache_hits(0)
     , cache_misses(0)
     , helpful_transition_extraction_counter(0)
@@ -44,6 +52,23 @@ CGHeuristic::CGHeuristic(
     };
     DTGFactory factory(task_proxy, false, pruning_condition);
     transition_graphs = factory.build_dtgs();
+}
+
+CGHeuristic::CGHeuristic(
+    int max_cache_size,
+    std::shared_ptr<AbstractTask> original_task,
+    const std::shared_ptr<TaskTransformation>& transformation,
+    bool cache_estimates,
+    const std::string& description,
+    utils::Verbosity verbosity)
+    : CGHeuristic(
+          max_cache_size,
+          original_task,
+          transformation->transform(original_task),
+          cache_estimates,
+          description,
+          verbosity)
+{
 }
 
 CGHeuristic::~CGHeuristic() = default;
