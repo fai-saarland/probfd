@@ -122,7 +122,7 @@ EvaluationResult Heuristic::compute_result(EvaluationContext& eval_context)
     }
 
 #ifndef NDEBUG
-    PlanningTaskProxy global_task_proxy = state.get_task();
+    PlanningTaskProxy global_task_proxy(*original_task);
     PartialOperatorsProxy global_operators =
         global_task_proxy.get_partial_operators();
     if (heuristic != EvaluationResult::INFTY) {

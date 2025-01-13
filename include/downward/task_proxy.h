@@ -1012,8 +1012,6 @@ public:
     FactProxy operator[](std::size_t var_id) const;
     FactProxy operator[](VariableProxy var) const;
 
-    PlanningTaskProxy get_task() const;
-
     /* Return a pointer to the registry in which this state is registered.
        If the state is not registered, return nullptr. */
     const StateRegistry* get_registry() const;
@@ -1248,11 +1246,6 @@ inline FactProxy State::operator[](std::size_t var_id) const
 inline FactProxy State::operator[](VariableProxy var) const
 {
     return (*this)[var.get_id()];
-}
-
-inline PlanningTaskProxy State::get_task() const
-{
-    return PlanningTaskProxy(*task);
 }
 
 inline const StateRegistry* State::get_registry() const
