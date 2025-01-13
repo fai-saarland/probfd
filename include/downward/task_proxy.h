@@ -800,6 +800,8 @@ public:
 };
 
 class OperatorProxy : public PartialOperatorProxy {
+    friend State;
+
 public:
     OperatorProxy(const AbstractTask& task, int index)
         : PartialOperatorProxy(task, index)
@@ -1062,7 +1064,9 @@ public:
     State get_unregistered_successor(const OperatorProxy& op) const;
 
     template <typename Effects>
-    State get_unregistered_successor(const Effects& effects) const
+    State get_unregistered_successor(
+        const PlanningTaskProxy& task_proxy,
+        const Effects& effects) const
     {
         assert(values);
         std::vector<int> new_values = get_unpacked_values();
@@ -1074,12 +1078,14 @@ public:
             }
         }
 
-        this->apply_axioms(new_values);
+        this->apply_axioms(task_proxy, new_values);
         return State(*task, std::move(new_values));
     }
 
 private:
-    void apply_axioms(std::vector<int>& values) const;
+    void
+    apply_axioms(const PlanningTaskProxy& task_proxy, std::vector<int>& values)
+        const;
 };
 
 namespace utils {

@@ -55,14 +55,16 @@ State::State(const PlanningTask& task, vector<int>&& values)
 State State::get_unregistered_successor(const OperatorProxy& op) const
 {
     assert(task_properties::is_applicable(op, *this));
-    return get_unregistered_successor(op.get_effects());
+    PlanningTaskProxy proxy(*op.task);
+    return get_unregistered_successor(proxy, op.get_effects());
 }
 
-void State::apply_axioms(std::vector<int>& values) const
+void State::apply_axioms(
+    const PlanningTaskProxy& task_proxy,
+    std::vector<int>& values) const
 {
-    if (task->get_num_axioms() > 0) {
-        AxiomEvaluator& axiom_evaluator =
-            g_axiom_evaluators[PlanningTaskProxy(*task)];
+    if (task_proxy.get_axioms().size() > 0) {
+        AxiomEvaluator& axiom_evaluator = g_axiom_evaluators[task_proxy];
         axiom_evaluator.evaluate(values);
     }
 }

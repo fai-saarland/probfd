@@ -110,6 +110,7 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
             const auto outcome = op.get_outcomes()[step.eff_id];
             State next_concrete_state =
                 concrete_state.get_unregistered_successor(
+                    task_proxy,
                     outcome.get_effects());
             if (!next_abstract_state->includes(next_concrete_state)) {
                 if (log.is_at_least_debug()) log << "  Paths deviate." << endl;

@@ -20,7 +20,7 @@ namespace probfd::sampling {
   Sample states with random walks.
 */
 class RandomWalkSampler {
-    const ProbabilisticOperatorsProxy operators;
+    const ProbabilisticTaskProxy task_proxy;
     const std::unique_ptr<successor_generator::ProbabilisticSuccessorGenerator>
         successor_generator;
     const State initial_state;

@@ -15,7 +15,7 @@ using namespace probfd::successor_generator;
 namespace probfd::sampling {
 
 static State sample_state_with_random_walk(
-    const ProbabilisticOperatorsProxy& operators,
+    const ProbabilisticTaskProxy& task_proxy,
     const State& initial_state,
     const ProbabilisticSuccessorGenerator& successor_generator,
     value_t init_h,
@@ -52,6 +52,8 @@ static State sample_state_with_random_walk(
         if (random < p) ++length;
     }
 
+    auto operators = task_proxy.get_operators();
+
     // Sample one state with a random walk of length length.
     State current_state(initial_state);
     vector<OperatorID> applicable_operators;
@@ -74,6 +76,7 @@ static State sample_state_with_random_walk(
                 assert(
                     task_properties::is_applicable(random_op, current_state));
                 current_state = current_state.get_unregistered_successor(
+                    task_proxy,
                     outcome.get_effects());
                 /* If current state is a dead end, then restart the random walk
                    with the initial state. */
@@ -94,7 +97,7 @@ static State sample_state_with_random_walk(
 RandomWalkSampler::RandomWalkSampler(
     const ProbabilisticTaskProxy& task_proxy,
     utils::RandomNumberGenerator& rng)
-    : operators(task_proxy.get_operators())
+    : task_proxy(task_proxy)
     , successor_generator(
           std::make_unique<
               successor_generator::ProbabilisticSuccessorGenerator>(task_proxy))
@@ -112,7 +115,7 @@ State RandomWalkSampler::sample_state(
     const std::function<bool(const State&)>& is_dead_end) const
 {
     return sample_state_with_random_walk(
-        operators,
+        task_proxy,
         initial_state,
         *successor_generator,
         init_h,
