@@ -1,10 +1,11 @@
-#ifndef CEGAR_CARTESIAN_HEURISTIC_FUNCTION_H
-#define CEGAR_CARTESIAN_HEURISTIC_FUNCTION_H
+#ifndef CARTESIAN_ABSTRACTIONS_CARTESIAN_HEURISTIC_FUNCTION_H
+#define CARTESIAN_ABSTRACTIONS_CARTESIAN_HEURISTIC_FUNCTION_H
 
 #include <memory>
 #include <vector>
 
 namespace downward {
+class AbstractTask;
 class State;
 }
 
@@ -16,11 +17,13 @@ class RefinementHierarchy;
 */
 class CartesianHeuristicFunction {
     // Avoid const to enable moving.
+    std::shared_ptr<AbstractTask> task;
     std::unique_ptr<RefinementHierarchy> refinement_hierarchy;
     std::vector<int> h_values;
 
 public:
     CartesianHeuristicFunction(
+        std::shared_ptr<AbstractTask> task,
         std::unique_ptr<RefinementHierarchy>&& hierarchy,
         std::vector<int>&& h_values);
 

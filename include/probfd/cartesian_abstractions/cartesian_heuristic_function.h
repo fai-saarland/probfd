@@ -15,6 +15,10 @@ namespace downward {
 class State;
 }
 
+namespace probfd {
+class ProbabilisticTask;
+}
+
 namespace probfd::cartesian_abstractions {
 
 /*
@@ -23,11 +27,13 @@ namespace probfd::cartesian_abstractions {
 */
 class CartesianHeuristicFunction {
     // Avoid const to enable moving.
+    std::shared_ptr<ProbabilisticTask> task_;
     std::unique_ptr<RefinementHierarchy> refinement_hierarchy_;
     std::vector<value_t> h_values_;
 
 public:
     CartesianHeuristicFunction(
+        std::shared_ptr<ProbabilisticTask> task,
         std::unique_ptr<RefinementHierarchy>&& hierarchy,
         std::vector<value_t>&& h_values);
 

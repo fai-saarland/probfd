@@ -83,7 +83,7 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
     /* DAG with inner nodes for all split states and leaves for all
        current states. */
     std::unique_ptr<RefinementHierarchy> refinement_hierarchy(
-        new RefinementHierarchy(task));
+        new RefinementHierarchy());
     std::unique_ptr<CartesianAbstraction> abstraction(new CartesianAbstraction(
         task_proxy,
         task_properties::get_operator_costs(task_proxy),
