@@ -37,7 +37,24 @@ public:
         int max_states_before_merge,
         int threshold_before_merge,
         double main_loop_max_time,
-        const std::shared_ptr<AbstractTask>& transform,
+        std::shared_ptr<AbstractTask> original_task,
+        TaskTransformationResult transformation_result,
+        bool cache_estimates,
+        const std::string& description,
+        utils::Verbosity verbosity);
+
+    MergeAndShrinkHeuristic(
+        const std::shared_ptr<MergeStrategyFactory>& merge_strategy,
+        const std::shared_ptr<ShrinkStrategy>& shrink_strategy,
+        const std::shared_ptr<LabelReduction>& label_reduction,
+        bool prune_unreachable_states,
+        bool prune_irrelevant_states,
+        int max_states,
+        int max_states_before_merge,
+        int threshold_before_merge,
+        double main_loop_max_time,
+        std::shared_ptr<AbstractTask> original_task,
+        const std::shared_ptr<TaskTransformation>& transformation_result,
         bool cache_estimates,
         const std::string& description,
         utils::Verbosity verbosity);
@@ -46,4 +63,4 @@ public:
 };
 } // namespace merge_and_shrink
 
-#endif
+#endif // MERGE_AND_SHRINK_MERGE_AND_SHRINK_HEURISTIC_H

@@ -7,6 +7,8 @@
 #include "downward/task_utils/successor_generator.h"
 #include "downward/task_utils/task_properties.h"
 
+#include "downward/task_transformation.h"
+
 #include <cmath>
 #include <limits>
 
@@ -19,7 +21,8 @@ LandmarkCostPartitioningHeuristic::LandmarkCostPartitioningHeuristic(
     bool prog_goal,
     bool prog_gn,
     bool prog_r,
-    const shared_ptr<AbstractTask>& transform,
+    std::shared_ptr<AbstractTask> original_task,
+    TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
     utils::Verbosity verbosity,
@@ -28,7 +31,8 @@ LandmarkCostPartitioningHeuristic::LandmarkCostPartitioningHeuristic(
     lp::LPSolverType lpsolver)
     : LandmarkHeuristic(
           pref,
-          transform,
+          std::move(original_task),
+          std::move(transformation_result),
           cache_estimates,
           description,
           verbosity)
@@ -39,6 +43,37 @@ LandmarkCostPartitioningHeuristic::LandmarkCostPartitioningHeuristic(
     check_unsupported_features(lm_factory);
     initialize(lm_factory, prog_goal, prog_gn, prog_r);
     set_cost_partitioning_algorithm(cost_partitioning, lpsolver, alm);
+}
+
+LandmarkCostPartitioningHeuristic::LandmarkCostPartitioningHeuristic(
+    const std::shared_ptr<LandmarkFactory>& lm_factory,
+    bool pref,
+    bool prog_goal,
+    bool prog_gn,
+    bool prog_r,
+    std::shared_ptr<AbstractTask> original_task,
+    const std::shared_ptr<TaskTransformation>& transformation,
+    bool cache_estimates,
+    const std::string& description,
+    utils::Verbosity verbosity,
+    CostPartitioningMethod cost_partitioning,
+    bool alm,
+    lp::LPSolverType lpsolver)
+    : LandmarkCostPartitioningHeuristic(
+          lm_factory,
+          pref,
+          prog_goal,
+          prog_gn,
+          prog_r,
+          original_task,
+          transformation->transform(original_task),
+          cache_estimates,
+          description,
+          verbosity,
+          cost_partitioning,
+          alm,
+          lpsolver)
+{
 }
 
 LandmarkCostPartitioningHeuristic::~LandmarkCostPartitioningHeuristic()

@@ -8,6 +8,10 @@
 
 #include "downward/utils/system.h"
 
+#include "downward/tasks/root_task.h"
+
+#include "downward/task_transformation.h"
+
 using namespace std;
 using namespace downward;
 using namespace downward::potentials;
@@ -59,13 +63,20 @@ public:
     virtual shared_ptr<PotentialHeuristic>
     create_component(const Options& opts, const utils::Context&) const override
     {
+        auto original_task = tasks::g_root_task;
+        auto transformation =
+            opts.get<shared_ptr<TaskTransformation>>("transform");
+
+        auto transformation_result = transformation->transform(original_task);
+
         return make_shared<PotentialHeuristic>(
             create_potential_function(
-                opts.get<shared_ptr<AbstractTask>>("transform"),
+                transformation_result.transformed_task,
                 opts.get<lp::LPSolverType>("lpsolver"),
                 opts.get<double>("max_potential"),
                 OptimizeFor::INITIAL_STATE),
-            opts.get<shared_ptr<AbstractTask>>("transform"),
+            original_task,
+            transformation_result,
             opts.get<bool>("cache_estimates"),
             opts.get<string>("description"),
             opts.get<utils::Verbosity>("verbosity"));
@@ -90,13 +101,20 @@ public:
     virtual shared_ptr<PotentialHeuristic>
     create_component(const Options& opts, const utils::Context&) const override
     {
+        auto original_task = tasks::g_root_task;
+        auto transformation =
+            opts.get<shared_ptr<TaskTransformation>>("transform");
+
+        auto transformation_result = transformation->transform(original_task);
+
         return make_shared<PotentialHeuristic>(
             create_potential_function(
-                opts.get<shared_ptr<AbstractTask>>("transform"),
+                transformation_result.transformed_task,
                 opts.get<lp::LPSolverType>("lpsolver"),
                 opts.get<double>("max_potential"),
                 OptimizeFor::ALL_STATES),
-            opts.get<shared_ptr<AbstractTask>>("transform"),
+            original_task,
+            transformation_result,
             opts.get<bool>("cache_estimates"),
             opts.get<string>("description"),
             opts.get<utils::Verbosity>("verbosity"));

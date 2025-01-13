@@ -6,6 +6,8 @@
 #include "downward/utils/logging.h"
 #include "downward/utils/timer.h"
 
+#include "downward/task_transformation.h"
+
 #include <iostream>
 #include <limits>
 #include <memory>
@@ -67,13 +69,41 @@ static CanonicalPDBs get_canonical_pdbs(
 CanonicalPDBsHeuristic::CanonicalPDBsHeuristic(
     const shared_ptr<PatternCollectionGenerator>& patterns,
     double max_time_dominance_pruning,
-    const shared_ptr<AbstractTask>& transform,
+    std::shared_ptr<AbstractTask> original_task,
+    TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
     utils::Verbosity verbosity)
-    : Heuristic(transform, cache_estimates, description, verbosity)
-    , canonical_pdbs(
-          get_canonical_pdbs(task, patterns, max_time_dominance_pruning, log))
+    : Heuristic(
+          std::move(original_task),
+          std::move(transformation_result),
+          cache_estimates,
+          description,
+          verbosity)
+    , canonical_pdbs(get_canonical_pdbs(
+          transformed_task,
+          patterns,
+          max_time_dominance_pruning,
+          log))
+{
+}
+
+CanonicalPDBsHeuristic::CanonicalPDBsHeuristic(
+    const std::shared_ptr<PatternCollectionGenerator>& patterns,
+    double max_time_dominance_pruning,
+    std::shared_ptr<AbstractTask> original_task,
+    const std::shared_ptr<TaskTransformation>& transformation,
+    bool cache_estimates,
+    const std::string& description,
+    utils::Verbosity verbosity)
+    : CanonicalPDBsHeuristic(
+          patterns,
+          max_time_dominance_pruning,
+          original_task,
+          transformation->transform(original_task),
+          cache_estimates,
+          description,
+          verbosity)
 {
 }
 

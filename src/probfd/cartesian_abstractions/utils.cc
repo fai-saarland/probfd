@@ -8,6 +8,8 @@
 
 #include "downward/utils/logging.h"
 
+#include "downward/transformations/identity_transformation.h"
+
 using namespace downward;
 
 using namespace std;
@@ -17,8 +19,12 @@ namespace probfd::cartesian_abstractions {
 unique_ptr<additive_heuristic::AdditiveHeuristic>
 create_additive_heuristic(const shared_ptr<ProbabilisticTask>& task)
 {
+    auto det = std::make_shared<tasks::DeterminizationTask>(task);
     return std::make_unique<additive_heuristic::AdditiveHeuristic>(
-        std::make_shared<tasks::DeterminizationTask>(task),
+        det,
+        det,
+        std::make_shared<IdentityStateMapping>(),
+        std::make_shared<IdentityOperatorMapping>(),
         false,
         "",
         utils::Verbosity::SILENT);

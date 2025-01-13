@@ -3,6 +3,8 @@
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/logging.h"
 
+#include "downward/task_transformation.h"
+
 #include <cstddef>
 #include <limits>
 #include <utility>
@@ -11,16 +13,37 @@ using namespace std;
 
 namespace downward::blind_search_heuristic {
 BlindSearchHeuristic::BlindSearchHeuristic(
-    const shared_ptr<AbstractTask>& transform,
+    std::shared_ptr<AbstractTask> original_task,
+    TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
     utils::Verbosity verbosity)
-    : Heuristic(transform, cache_estimates, description, verbosity)
+    : Heuristic(
+          std::move(original_task),
+          std::move(transformation_result),
+          cache_estimates,
+          description,
+          verbosity)
     , min_operator_cost(task_properties::get_min_operator_cost(task_proxy))
 {
     if (log.is_at_least_normal()) {
         log << "Initializing blind search heuristic..." << endl;
     }
+}
+
+BlindSearchHeuristic::BlindSearchHeuristic(
+    std::shared_ptr<AbstractTask> original_task,
+    const std::shared_ptr<TaskTransformation>& transformation,
+    bool cache_estimates,
+    const string& description,
+    utils::Verbosity verbosity)
+    : BlindSearchHeuristic(
+          original_task,
+          transformation->transform(original_task),
+          cache_estimates,
+          description,
+          verbosity)
+{
 }
 
 int BlindSearchHeuristic::compute_heuristic(const State& ancestor_state)

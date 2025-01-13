@@ -36,7 +36,15 @@ protected:
 
 public:
     FFHeuristic(
-        const std::shared_ptr<AbstractTask>& transform,
+        std::shared_ptr<AbstractTask> original_task,
+        TaskTransformationResult transformation_result,
+        bool cache_estimates,
+        const std::string& description,
+        utils::Verbosity verbosity);
+
+    FFHeuristic(
+        std::shared_ptr<AbstractTask> original_task,
+        const std::shared_ptr<TaskTransformation>& transformation_result,
         bool cache_estimates,
         const std::string& description,
         utils::Verbosity verbosity);

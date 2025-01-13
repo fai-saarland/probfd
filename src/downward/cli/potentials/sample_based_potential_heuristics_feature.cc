@@ -11,6 +11,10 @@
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
 
+#include "downward/tasks/root_task.h"
+
+#include "downward/task_transformation.h"
+
 #include <memory>
 #include <vector>
 
@@ -103,15 +107,22 @@ public:
     virtual shared_ptr<PotentialMaxHeuristic>
     create_component(const Options& opts, const Context&) const override
     {
+        auto original_task = tasks::g_root_task;
+        auto transformation =
+            opts.get<shared_ptr<TaskTransformation>>("transform");
+
+        auto transformation_result = transformation->transform(original_task);
+
         return make_shared<PotentialMaxHeuristic>(
             create_sample_based_potential_functions(
                 opts.get<int>("num_samples"),
                 opts.get<int>("num_heuristics"),
                 opts.get<double>("max_potential"),
                 opts.get<downward::lp::LPSolverType>("lpsolver"),
-                opts.get<shared_ptr<downward::AbstractTask>>("transform"),
+                transformation_result.transformed_task,
                 opts.get<int>("random_seed")),
-            opts.get<shared_ptr<downward::AbstractTask>>("transform"),
+            original_task,
+            transformation_result,
             opts.get<bool>("cache_estimates"),
             opts.get<string>("description"),
             opts.get<Verbosity>("verbosity"));

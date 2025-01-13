@@ -8,18 +8,43 @@
 #include "downward/tasks/cost_adapted_task.h"
 #include "downward/tasks/root_task.h"
 
+#include "downward/task_transformation.h"
+
 using namespace std;
 
 namespace downward::landmarks {
 LandmarkHeuristic::LandmarkHeuristic(
     bool use_preferred_operators,
-    const shared_ptr<AbstractTask>& transform,
+    std::shared_ptr<AbstractTask> original_task,
+    TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
     utils::Verbosity verbosity)
-    : Heuristic(transform, cache_estimates, description, verbosity)
+    : Heuristic(
+          std::move(original_task),
+          std::move(transformation_result),
+          cache_estimates,
+          description,
+          verbosity)
     , use_preferred_operators(use_preferred_operators)
     , successor_generator(nullptr)
+{
+}
+
+LandmarkHeuristic::LandmarkHeuristic(
+    bool use_preferred_operators,
+    std::shared_ptr<AbstractTask> original_task,
+    const std::shared_ptr<TaskTransformation>& transformation,
+    bool cache_estimates,
+    const std::string& description,
+    utils::Verbosity verbosity)
+    : LandmarkHeuristic(
+          use_preferred_operators,
+          original_task,
+          transformation->transform(original_task),
+          cache_estimates,
+          description,
+          verbosity)
 {
 }
 
@@ -36,8 +61,9 @@ void LandmarkHeuristic::initialize(
       CostAdaptedTask *of the root task*, but there is currently no good
       way to do this, so we use this incomplete, slightly less safe test.
     */
-    if (task != tasks::g_root_task &&
-        dynamic_cast<tasks::CostAdaptedTask*>(task.get()) == nullptr) {
+    if (transformed_task != tasks::g_root_task &&
+        dynamic_cast<tasks::CostAdaptedTask*>(transformed_task.get()) ==
+            nullptr) {
         cerr << "The landmark heuristics currently only support "
              << "task transformations that modify the operator costs. "
              << "See issues 845 and 686 for details." << endl;
@@ -119,7 +145,7 @@ void LandmarkHeuristic::compute_landmark_graph(
         log << "Generating landmark graph..." << endl;
     }
 
-    lm_graph = lm_factory->compute_lm_graph(task);
+    lm_graph = lm_factory->compute_lm_graph(transformed_task);
     assert(lm_factory->achievers_are_calculated());
 
     if (log.is_at_least_normal()) {

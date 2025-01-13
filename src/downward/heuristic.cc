@@ -2,6 +2,9 @@
 
 #include "downward/evaluation_context.h"
 #include "downward/evaluation_result.h"
+#include "downward/task_transformation.h"
+
+#include "downward/transformations/identity_transformation.h"
 
 #include "downward/task_utils/task_properties.h"
 #include "downward/tasks/root_task.h"
@@ -13,32 +16,72 @@ using namespace std;
 namespace downward {
 
 Heuristic::Heuristic(
-    const shared_ptr<AbstractTask>& transform,
+    std::shared_ptr<AbstractTask> original_task,
+    std::shared_ptr<AbstractTask> transformed_task,
+    std::shared_ptr<StateMapping> state_mapping,
+    std::shared_ptr<InverseOperatorMapping> inv_operator_mapping,
     bool cache_estimates,
-    const string& description,
+    const std::string& description,
     utils::Verbosity verbosity)
     : Evaluator(true, true, true, description, verbosity)
     , heuristic_cache(HEntry(NO_VALUE, true))
     // TODO: is true really a good idea here?
     , cache_evaluator_values(cache_estimates)
-    , task(transform)
-    , task_proxy(*task)
+    , original_task(std::move(original_task))
+    , transformed_task(std::move(transformed_task))
+    , state_mapping(std::move(state_mapping))
+    , inv_operator_mapping(std::move(inv_operator_mapping))
+    , task_proxy(*this->transformed_task)
 {
 }
 
-Heuristic::~Heuristic()
+Heuristic::Heuristic(
+    std::shared_ptr<AbstractTask> original_task,
+    TaskTransformationResult transformation_result,
+    bool cache_estimates,
+    const std::string& description,
+    utils::Verbosity verbosity)
+    : Heuristic(
+          std::move(original_task),
+          std::move(transformation_result.transformed_task),
+          std::move(transformation_result.state_mapping),
+          std::move(transformation_result.inv_operator_mapping),
+          cache_estimates,
+          description,
+          verbosity)
+
 {
 }
+
+Heuristic::Heuristic(
+    std::shared_ptr<AbstractTask> original_task,
+    const std::shared_ptr<TaskTransformation> transformation,
+    bool cache_estimates,
+    const std::string& description,
+    utils::Verbosity verbosity)
+    : Heuristic(
+          original_task,
+          transformation->transform(original_task),
+          cache_estimates,
+          description,
+          verbosity)
+
+{
+}
+
+Heuristic::~Heuristic() = default;
 
 void Heuristic::set_preferred(const OperatorProxy& op)
 {
     preferred_operators.insert(
-        op.get_ancestor_operator_id(tasks::g_root_task.get()));
+        inv_operator_mapping->get_ancestor_operator_id(op.get_id()));
 }
 
 State Heuristic::convert_ancestor_state(const State& ancestor_state) const
 {
-    return task_proxy.convert_ancestor_state(ancestor_state);
+    return state_mapping->convert_ancestor_state(
+        ancestor_state,
+        *transformed_task);
 }
 
 EvaluationResult Heuristic::compute_result(EvaluationContext& eval_context)

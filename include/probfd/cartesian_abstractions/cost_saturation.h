@@ -1,6 +1,8 @@
 #ifndef PROBFD_CARTESIAN_ABSTRACTIONS_COST_SATURATION_H
 #define PROBFD_CARTESIAN_ABSTRACTIONS_COST_SATURATION_H
 
+#include "probfd/cartesian_abstractions/types.h"
+
 #include "probfd/value_type.h"
 
 #include "downward/utils/logging.h"
@@ -62,7 +64,7 @@ class CostSaturation {
     get_remaining_costs_task(std::shared_ptr<ProbabilisticTask>& parent) const;
     bool state_is_dead_end(const downward::State& state) const;
     void build_abstractions(
-        const std::vector<std::shared_ptr<ProbabilisticTask>>& subtasks,
+        const SharedTasks& subtasks,
         const downward::utils::CountdownTimer& timer,
         std::function<bool()> should_abort);
     void print_statistics(downward::utils::Duration init_time) const;
@@ -87,4 +89,4 @@ public:
 
 } // namespace probfd::cartesian_abstractions
 
-#endif // PROBFD_CARTESIAN_ABSTRACTIONS_COST_SATURATION_H
+#endif

@@ -7,6 +7,7 @@
 
 namespace downward {
 class AbstractTask;
+class TaskTransformation;
 }
 
 namespace downward::utils {
@@ -35,6 +36,7 @@ extern std::tuple<
     bool,
     bool,
     std::shared_ptr<AbstractTask>,
+    std::shared_ptr<TaskTransformation>,
     bool,
     std::string,
     utils::Verbosity>

@@ -19,7 +19,17 @@ public:
     CanonicalPDBsHeuristic(
         const std::shared_ptr<PatternCollectionGenerator>& patterns,
         double max_time_dominance_pruning,
-        const std::shared_ptr<AbstractTask>& transform,
+        std::shared_ptr<AbstractTask> original_task,
+        TaskTransformationResult transformation_result,
+        bool cache_estimates,
+        const std::string& description,
+        utils::Verbosity verbosity);
+
+    CanonicalPDBsHeuristic(
+        const std::shared_ptr<PatternCollectionGenerator>& patterns,
+        double max_time_dominance_pruning,
+        std::shared_ptr<AbstractTask> original_task,
+        const std::shared_ptr<TaskTransformation>& transformation,
         bool cache_estimates,
         const std::string& description,
         utils::Verbosity verbosity);

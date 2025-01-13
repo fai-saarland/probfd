@@ -3,6 +3,8 @@
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/logging.h"
 
+#include "downward/task_transformation.h"
+
 #include <cassert>
 
 using namespace std;
@@ -10,16 +12,37 @@ using namespace std;
 namespace downward::ff_heuristic {
 // construction and destruction
 FFHeuristic::FFHeuristic(
-    const shared_ptr<AbstractTask>& transform,
+    std::shared_ptr<AbstractTask> original_task,
+    TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
     utils::Verbosity verbosity)
-    : AdditiveHeuristic(transform, cache_estimates, description, verbosity)
+    : AdditiveHeuristic(
+          std::move(original_task),
+          std::move(transformation_result),
+          cache_estimates,
+          description,
+          verbosity)
     , relaxed_plan(task_proxy.get_operators().size(), false)
 {
     if (log.is_at_least_normal()) {
         log << "Initializing FF heuristic..." << endl;
     }
+}
+
+FFHeuristic::FFHeuristic(
+    std::shared_ptr<AbstractTask> original_task,
+    const std::shared_ptr<TaskTransformation>& transformation,
+    bool cache_estimates,
+    const std::string& description,
+    utils::Verbosity verbosity)
+    : FFHeuristic(
+          original_task,
+          transformation->transform(original_task),
+          cache_estimates,
+          description,
+          verbosity)
+{
 }
 
 void FFHeuristic::mark_preferred_operators_and_relaxed_plan(

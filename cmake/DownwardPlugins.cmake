@@ -29,7 +29,7 @@ create_library(
     NAME core_categories
     HELP "Core categories"
     SOURCES
-        downward/cli/abstract_task_category
+        downward/cli/task_transformation_category
     DEPENDS
         plugins
         core_sources
@@ -718,10 +718,10 @@ create_library(
 )
 
 create_library(
-    NAME cost_adapted_task_feature
-    HELP "Cost-adapted task feature"
+    NAME cost_task_transformation_feature
+    HELP "Cost-adapted task transformation feature"
     SOURCES
-        downward/cli/tasks/cost_adapted_task_feature
+        downward/cli/tasks/cost_task_transformation_feature
     DEPENDS
         plugins
         operator_cost_options
@@ -732,10 +732,10 @@ create_library(
 )
 
 create_library(
-    NAME root_task_feature
-    HELP "Root task feature"
+    NAME identity_task_transformation_feature
+    HELP "Identity task transformation feature"
     SOURCES
-        downward/cli/tasks/root_task_feature
+        downward/cli/tasks/identity_task_transformation_feature
     DEPENDS
         plugins
         core_sources

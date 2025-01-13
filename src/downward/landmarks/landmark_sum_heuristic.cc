@@ -8,6 +8,8 @@
 #include "downward/task_utils/successor_generator.h"
 #include "downward/task_utils/task_properties.h"
 
+#include "downward/task_transformation.h"
+
 #include <limits>
 
 using namespace std;
@@ -35,13 +37,15 @@ LandmarkSumHeuristic::LandmarkSumHeuristic(
     bool prog_goal,
     bool prog_gn,
     bool prog_r,
-    const shared_ptr<AbstractTask>& transform,
+    std::shared_ptr<AbstractTask> original_task,
+    TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
     utils::Verbosity verbosity)
     : LandmarkHeuristic(
           pref,
-          transform,
+          std::move(original_task),
+          std::move(transformation_result),
           cache_estimates,
           description,
           verbosity)
@@ -52,6 +56,31 @@ LandmarkSumHeuristic::LandmarkSumHeuristic(
     }
     initialize(lm_factory, prog_goal, prog_gn, prog_r);
     compute_landmark_costs();
+}
+
+LandmarkSumHeuristic::LandmarkSumHeuristic(
+    const std::shared_ptr<LandmarkFactory>& lm_factory,
+    bool pref,
+    bool prog_goal,
+    bool prog_gn,
+    bool prog_r,
+    std::shared_ptr<AbstractTask> original_task,
+    const std::shared_ptr<TaskTransformation>& transformation,
+    bool cache_estimates,
+    const std::string& description,
+    utils::Verbosity verbosity)
+    : LandmarkSumHeuristic(
+          lm_factory,
+          pref,
+          prog_goal,
+          prog_gn,
+          prog_r,
+          original_task,
+          transformation->transform(original_task),
+          cache_estimates,
+          description,
+          verbosity)
+{
 }
 
 int LandmarkSumHeuristic::get_min_cost_of_achievers(

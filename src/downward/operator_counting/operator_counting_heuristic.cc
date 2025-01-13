@@ -4,6 +4,8 @@
 
 #include "downward/utils/markup.h"
 
+#include "downward/task_transformation.h"
+
 #include <cmath>
 
 using namespace std;
@@ -13,11 +15,17 @@ OperatorCountingHeuristic::OperatorCountingHeuristic(
     const vector<shared_ptr<ConstraintGenerator>>& constraint_generators,
     bool use_integer_operator_counts,
     lp::LPSolverType lpsolver,
-    const shared_ptr<AbstractTask>& transform,
+    std::shared_ptr<AbstractTask> original_task,
+    TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
     utils::Verbosity verbosity)
-    : Heuristic(transform, cache_estimates, description, verbosity)
+    : Heuristic(
+          std::move(original_task),
+          std::move(transformation_result),
+          cache_estimates,
+          description,
+          verbosity)
     , constraint_generators(constraint_generators)
     , lp_solver(lpsolver)
 {
@@ -38,9 +46,31 @@ OperatorCountingHeuristic::OperatorCountingHeuristic(
         {},
         infinity);
     for (const auto& generator : constraint_generators) {
-        generator->initialize_constraints(task, lp);
+        generator->initialize_constraints(transformed_task, lp);
     }
     lp_solver.load_problem(lp);
+}
+
+OperatorCountingHeuristic::OperatorCountingHeuristic(
+    const std::vector<std::shared_ptr<ConstraintGenerator>>&
+        constraint_generators,
+    bool use_integer_operator_counts,
+    lp::LPSolverType lpsolver,
+    std::shared_ptr<AbstractTask> original_task,
+    const std::shared_ptr<TaskTransformation>& transformation,
+    bool cache_estimates,
+    const std::string& description,
+    utils::Verbosity verbosity)
+    : OperatorCountingHeuristic(
+          constraint_generators,
+          use_integer_operator_counts,
+          lpsolver,
+          original_task,
+          transformation->transform(original_task),
+          cache_estimates,
+          description,
+          verbosity)
+{
 }
 
 int OperatorCountingHeuristic::compute_heuristic(const State& ancestor_state)

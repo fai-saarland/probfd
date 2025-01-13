@@ -6,8 +6,12 @@
 #include "downward/heuristics/additive_heuristic.h"
 #include "downward/landmarks/landmark_graph.h"
 #include "downward/task_utils/task_properties.h"
+
 #include "downward/tasks/domain_abstracted_task_factory.h"
 #include "downward/tasks/modified_goals_task.h"
+
+#include "downward/transformations/identity_transformation.h"
+
 #include "downward/utils/hash.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
@@ -33,12 +37,14 @@ class SortFactsByIncreasingHaddValues {
 public:
     explicit SortFactsByIncreasingHaddValues(
         const shared_ptr<AbstractTask>& task)
-        : hadd(
-              std::make_unique<additive_heuristic::AdditiveHeuristic>(
-                  task,
-                  false,
-                  "h^add within CEGAR abstractions",
-                  utils::Verbosity::SILENT))
+        : hadd(std::make_unique<additive_heuristic::AdditiveHeuristic>(
+              task,
+              task,
+              std::make_shared<IdentityStateMapping>(),
+              std::make_shared<IdentityOperatorMapping>(),
+              false,
+              "h^add within CEGAR abstractions",
+              utils::Verbosity::SILENT))
     {
         TaskProxy task_proxy(*task);
         hadd->compute_heuristic_for_cegar(task_proxy.get_initial_state());
@@ -116,7 +122,10 @@ SharedTasks TaskDuplicator::get_subtasks(
     SharedTasks subtasks;
     subtasks.reserve(num_copies);
     for (int i = 0; i < num_copies; ++i) {
-        subtasks.push_back(task);
+        subtasks.emplace_back(
+            task,
+            std::make_shared<IdentityStateMapping>(),
+            std::make_shared<IdentityOperatorMapping>());
     }
     return subtasks;
 }
@@ -138,7 +147,10 @@ SharedTasks GoalDecomposition::get_subtasks(
     for (const FactPair& goal : goal_facts) {
         shared_ptr<AbstractTask> subtask =
             make_shared<extra_tasks::ModifiedGoalsTask>(task, Facts{goal});
-        subtasks.push_back(subtask);
+        subtasks.emplace_back(
+            subtask,
+            std::make_shared<IdentityStateMapping>(),
+            std::make_shared<IdentityOperatorMapping>());
     }
     return subtasks;
 }
@@ -188,7 +200,10 @@ SharedTasks LandmarkDecomposition::get_subtasks(
                 subtask,
                 fact_to_landmark_map[landmark]);
         }
-        subtasks.push_back(subtask);
+        subtasks.emplace_back(
+            subtask,
+            std::make_shared<IdentityStateMapping>(),
+            std::make_shared<IdentityOperatorMapping>());
     }
     return subtasks;
 }

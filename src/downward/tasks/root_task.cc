@@ -97,16 +97,11 @@ public:
     get_operator_effect_condition(int op_index, int eff_index, int cond_index)
         const override;
     FactPair get_operator_effect(int op_index, int eff_index) const override;
-    int convert_operator_index(int index, const PlanningTask* ancestor_task)
-        const override;
 
     int get_num_goals() const override;
     FactPair get_goal_fact(int index) const override;
 
     vector<int> get_initial_state_values() const override;
-    void convert_ancestor_state_values(
-        vector<int>& values,
-        const PlanningTask* ancestor_task) const override;
 };
 
 static void
@@ -521,16 +516,6 @@ FactPair RootTask::get_operator_effect(int op_index, int eff_index) const
     return get_effect(op_index, eff_index, false).fact;
 }
 
-int RootTask::convert_operator_index(
-    int index,
-    const PlanningTask* ancestor_task) const
-{
-    if (this != ancestor_task) {
-        ABORT("Invalid operator ID conversion");
-    }
-    return index;
-}
-
 int RootTask::get_num_goals() const
 {
     return goals_.size();
@@ -545,15 +530,6 @@ FactPair RootTask::get_goal_fact(int index) const
 vector<int> RootTask::get_initial_state_values() const
 {
     return initial_state_values_;
-}
-
-void RootTask::convert_ancestor_state_values(
-    vector<int>&,
-    const PlanningTask* ancestor_task) const
-{
-    if (this != ancestor_task) {
-        ABORT("Invalid state conversion");
-    }
 }
 
 void read_root_task(istream& in)

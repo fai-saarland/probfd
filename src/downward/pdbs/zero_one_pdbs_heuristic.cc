@@ -1,5 +1,7 @@
 #include "downward/pdbs/zero_one_pdbs_heuristic.h"
 
+#include "downward/task_transformation.h"
+
 #include <limits>
 
 using namespace std;
@@ -19,12 +21,36 @@ static ZeroOnePDBs get_zero_one_pdbs_from_generator(
 
 ZeroOnePDBsHeuristic::ZeroOnePDBsHeuristic(
     const shared_ptr<PatternCollectionGenerator>& patterns,
-    const shared_ptr<AbstractTask>& transform,
+    std::shared_ptr<AbstractTask> original_task,
+    TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
     utils::Verbosity verbosity)
-    : Heuristic(transform, cache_estimates, description, verbosity)
-    , zero_one_pdbs(get_zero_one_pdbs_from_generator(task, patterns))
+    : Heuristic(
+          std::move(original_task),
+          std::move(transformation_result),
+          cache_estimates,
+          description,
+          verbosity)
+    , zero_one_pdbs(
+          get_zero_one_pdbs_from_generator(transformed_task, patterns))
+{
+}
+
+ZeroOnePDBsHeuristic::ZeroOnePDBsHeuristic(
+    const std::shared_ptr<PatternCollectionGenerator>& patterns,
+    std::shared_ptr<AbstractTask> original_task,
+    const std::shared_ptr<TaskTransformation>& transformation,
+    bool cache_estimates,
+    const std::string& name,
+    utils::Verbosity verbosity)
+    : ZeroOnePDBsHeuristic(
+          patterns,
+          original_task,
+          transformation->transform(original_task),
+          cache_estimates,
+          name,
+          verbosity)
 {
 }
 

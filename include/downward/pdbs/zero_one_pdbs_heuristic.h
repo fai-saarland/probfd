@@ -18,7 +18,16 @@ protected:
 public:
     ZeroOnePDBsHeuristic(
         const std::shared_ptr<PatternCollectionGenerator>& patterns,
-        const std::shared_ptr<AbstractTask>& transform,
+        std::shared_ptr<AbstractTask> original_task,
+        TaskTransformationResult transformation_result,
+        bool cache_estimates,
+        const std::string& name,
+        utils::Verbosity verbosity);
+
+    ZeroOnePDBsHeuristic(
+        const std::shared_ptr<PatternCollectionGenerator>& patterns,
+        std::shared_ptr<AbstractTask> original_task,
+        const std::shared_ptr<TaskTransformation>& transformation,
         bool cache_estimates,
         const std::string& name,
         utils::Verbosity verbosity);

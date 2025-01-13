@@ -99,13 +99,6 @@ public:
 
     std::vector<int> get_initial_state_values() const final;
 
-    void convert_ancestor_state_values(
-        std::vector<int>&,
-        const PlanningTask* ancestor_task) const final;
-
-    int convert_operator_index(int index, const PlanningTask* ancestor_task)
-        const final;
-
 private:
     std::pair<int, int>
     get_parent_indices(int deterministic_operator_index) const;

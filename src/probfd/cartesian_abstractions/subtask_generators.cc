@@ -20,6 +20,8 @@
 
 #include "downward/task_utils/task_properties.h"
 
+#include "downward/transformations/identity_transformation.h"
+
 #include "downward/task_proxy.h"
 
 #include <algorithm>
@@ -134,7 +136,10 @@ SharedTasks TaskDuplicator::get_subtasks(
     SharedTasks subtasks;
     subtasks.reserve(num_copies_);
     for (int i = 0; i < num_copies_; ++i) {
-        subtasks.push_back(task);
+        subtasks.emplace_back(
+            task,
+            std::make_shared<IdentityStateMapping>(),
+            std::make_shared<IdentityOperatorMapping>());
     }
     return subtasks;
 }
@@ -157,7 +162,10 @@ SharedTasks GoalDecomposition::get_subtasks(
     for (const FactPair& goal : goal_facts) {
         shared_ptr<ProbabilisticTask> subtask =
             make_shared<extra_tasks::ModifiedGoalsTask>(task, Facts{goal});
-        subtasks.push_back(subtask);
+        subtasks.emplace_back(
+            subtask,
+            std::make_shared<IdentityStateMapping>(),
+            std::make_shared<IdentityOperatorMapping>());
     }
     return subtasks;
 }
@@ -198,7 +206,10 @@ SharedTasks LandmarkDecomposition::get_subtasks(
                 subtask,
                 fact_to_landmark_map[landmark]);
         }
-        subtasks.push_back(subtask);
+        subtasks.emplace_back(
+            subtask,
+            std::make_shared<IdentityStateMapping>(),
+            std::make_shared<IdentityOperatorMapping>());
     }
     return subtasks;
 }

@@ -1,5 +1,7 @@
 #include "downward/tasks/domain_abstracted_task.h"
 
+#include "downward/transformations/domain_abstraction.h"
+
 #include "downward/utils/system.h"
 
 using namespace std;
@@ -33,13 +35,13 @@ DomainAbstractedTask::DomainAbstractedTask(
     vector<int>&& initial_state_values,
     vector<FactPair>&& goals,
     vector<vector<string>>&& fact_names,
-    vector<vector<int>>&& value_map)
+    std::shared_ptr<DomainAbstraction> domain_abstraction)
     : DelegatingTask(parent)
     , domain_size(std::move(domain_size))
     , initial_state_values(std::move(initial_state_values))
     , goals(std::move(goals))
     , fact_names(std::move(fact_names))
-    , value_map(std::move(value_map))
+    , domain_abstraction(std::move(domain_abstraction))
 {
     if (parent->get_num_axioms() > 0) {
         ABORT("DomainAbstractedTask doesn't support axioms.");
@@ -62,33 +64,35 @@ string DomainAbstractedTask::get_fact_name(const FactPair& fact) const
 FactPair
 DomainAbstractedTask::get_axiom_precondition(int op_index, int fact_index) const
 {
-    return get_abstract_fact(
+    return domain_abstraction->get_abstract_fact(
         parent->get_axiom_precondition(op_index, fact_index));
 }
 
 FactPair
 DomainAbstractedTask::get_axiom_effect(int op_index, int eff_index) const
 {
-    return get_abstract_fact(parent->get_axiom_effect(op_index, eff_index));
+    return domain_abstraction->get_abstract_fact(
+        parent->get_axiom_effect(op_index, eff_index));
 }
 
 FactPair
 DomainAbstractedTask::get_operator_precondition(int op_index, int fact_index)
     const
 {
-    return get_abstract_fact(
+    return domain_abstraction->get_abstract_fact(
         parent->get_operator_precondition(op_index, fact_index));
 }
 
 FactPair
 DomainAbstractedTask::get_operator_effect(int op_index, int eff_index) const
 {
-    return get_abstract_fact(parent->get_operator_effect(op_index, eff_index));
+    return domain_abstraction->get_abstract_fact(
+        parent->get_operator_effect(op_index, eff_index));
 }
 
 FactPair DomainAbstractedTask::get_goal_fact(int index) const
 {
-    return get_abstract_fact(parent->get_goal_fact(index));
+    return domain_abstraction->get_abstract_fact(parent->get_goal_fact(index));
 }
 
 vector<int> DomainAbstractedTask::get_initial_state_values() const
@@ -96,14 +100,4 @@ vector<int> DomainAbstractedTask::get_initial_state_values() const
     return initial_state_values;
 }
 
-void DomainAbstractedTask::convert_state_values_from_parent(
-    vector<int>& values) const
-{
-    int num_vars = domain_size.size();
-    for (int var = 0; var < num_vars; ++var) {
-        int old_value = values[var];
-        int new_value = value_map[var][old_value];
-        values[var] = new_value;
-    }
-}
 } // namespace extra_tasks

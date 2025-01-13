@@ -29,6 +29,7 @@ create_library(
         downward/state_registry
         downward/task_id
         downward/task_proxy
+        downward/task_transformation
     DEPENDS
         causal_graph
         int_hash_set
@@ -519,6 +520,7 @@ create_library(
         downward/tasks/cost_adapted_task
         downward/tasks/delegating_task
         downward/tasks/root_task
+        downward/transformations/identity_task_transformation
     CORE_LIBRARY
 )
 
@@ -530,6 +532,7 @@ create_library(
         downward/tasks/domain_abstracted_task_factory
         downward/tasks/modified_goals_task
         downward/tasks/modified_operator_costs_task
+        downward/transformations/domain_abstraction
     DEPENDS
         task_properties
 )

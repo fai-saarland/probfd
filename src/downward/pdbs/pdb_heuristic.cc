@@ -2,6 +2,8 @@
 
 #include "downward/pdbs/pattern_database.h"
 
+#include "downward/task_transformation.h"
+
 #include <limits>
 #include <memory>
 
@@ -18,12 +20,35 @@ static shared_ptr<PatternDatabase> get_pdb_from_generator(
 
 PDBHeuristic::PDBHeuristic(
     const shared_ptr<PatternGenerator>& pattern,
-    const shared_ptr<AbstractTask>& transform,
+    std::shared_ptr<AbstractTask> original_task,
+    TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
     utils::Verbosity verbosity)
-    : Heuristic(transform, cache_estimates, description, verbosity)
-    , pdb(get_pdb_from_generator(task, pattern))
+    : Heuristic(
+          std::move(original_task),
+          std::move(transformation_result),
+          cache_estimates,
+          description,
+          verbosity)
+    , pdb(get_pdb_from_generator(transformed_task, pattern))
+{
+}
+
+PDBHeuristic::PDBHeuristic(
+    const std::shared_ptr<PatternGenerator>& pattern_generator,
+    std::shared_ptr<AbstractTask> original_task,
+    const std::shared_ptr<TaskTransformation>& transformation,
+    bool cache_estimates,
+    const std::string& description,
+    utils::Verbosity verbosity)
+    : PDBHeuristic(
+          pattern_generator,
+          original_task,
+          transformation->transform(original_task),
+          cache_estimates,
+          description,
+          verbosity)
 {
 }
 

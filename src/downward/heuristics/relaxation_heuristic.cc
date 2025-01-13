@@ -5,6 +5,10 @@
 #include "downward/utils/logging.h"
 #include "downward/utils/timer.h"
 
+#include "downward/task_transformation.h"
+
+#include "downward/tasks/root_task.h"
+
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
@@ -37,13 +41,54 @@ UnaryOperator::UnaryOperator(
 {
 }
 
-// construction and destruction
 RelaxationHeuristic::RelaxationHeuristic(
-    const shared_ptr<AbstractTask>& transform,
+    std::shared_ptr<AbstractTask> original_task,
+    TaskTransformationResult transformation_result,
     bool cache_estimates,
-    const string& description,
+    const std::string& description,
     utils::Verbosity verbosity)
-    : Heuristic(transform, cache_estimates, description, verbosity)
+    : RelaxationHeuristic(
+          std::move(original_task),
+          std::move(transformation_result.transformed_task),
+          std::move(transformation_result.state_mapping),
+          std::move(transformation_result.inv_operator_mapping),
+          cache_estimates,
+          description,
+          verbosity)
+{
+}
+
+RelaxationHeuristic::RelaxationHeuristic(
+    std::shared_ptr<AbstractTask> original_task,
+    const std::shared_ptr<TaskTransformation>& transformation,
+    bool cache_estimates,
+    const std::string& description,
+    utils::Verbosity verbosity)
+    : RelaxationHeuristic(
+          original_task,
+          transformation->transform(original_task),
+          cache_estimates,
+          description,
+          verbosity)
+{
+}
+
+RelaxationHeuristic::RelaxationHeuristic(
+    std::shared_ptr<AbstractTask> original_task,
+    std::shared_ptr<AbstractTask> transformed_task,
+    std::shared_ptr<StateMapping> state_mapping,
+    std::shared_ptr<InverseOperatorMapping> inv_operator_mapping,
+    bool cache_estimates,
+    const std::string& description,
+    utils::Verbosity verbosity)
+    : Heuristic(
+          std::move(original_task),
+          std::move(transformed_task),
+          std::move(state_mapping),
+          std::move(inv_operator_mapping),
+          cache_estimates,
+          description,
+          verbosity)
 {
     // Build propositions.
     propositions.resize(task_properties::get_num_facts(task_proxy));

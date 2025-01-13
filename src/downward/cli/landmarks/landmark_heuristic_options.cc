@@ -67,6 +67,7 @@ tuple<
     bool,
     bool,
     shared_ptr<AbstractTask>,
+    shared_ptr<TaskTransformation>,
     bool,
     string,
     utils::Verbosity>

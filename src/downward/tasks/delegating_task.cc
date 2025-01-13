@@ -137,17 +137,6 @@ FactPair DelegatingTask::get_operator_effect(int op_index, int eff_index) const
     return parent->get_operator_effect(op_index, eff_index);
 }
 
-int DelegatingTask::convert_operator_index(
-    int index,
-    const PlanningTask* ancestor_task) const
-{
-    if (ancestor_task == this) {
-        return index;
-    }
-    int parent_index = convert_operator_index_to_parent(index);
-    return parent->convert_operator_index(parent_index, ancestor_task);
-}
-
 int DelegatingTask::get_num_goals() const
 {
     return parent->get_num_goals();
@@ -163,14 +152,4 @@ vector<int> DelegatingTask::get_initial_state_values() const
     return parent->get_initial_state_values();
 }
 
-void DelegatingTask::convert_ancestor_state_values(
-    vector<int>& values,
-    const PlanningTask* ancestor_task) const
-{
-    if (this == ancestor_task) {
-        return;
-    }
-    parent->convert_ancestor_state_values(values, ancestor_task);
-    convert_state_values_from_parent(values);
-}
 } // namespace tasks

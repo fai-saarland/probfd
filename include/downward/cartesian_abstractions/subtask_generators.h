@@ -1,6 +1,8 @@
 #ifndef CEGAR_SUBTASK_GENERATORS_H
 #define CEGAR_SUBTASK_GENERATORS_H
 
+#include "downward/cartesian_abstractions/types.h"
+
 #include <memory>
 #include <vector>
 
@@ -14,6 +16,7 @@ class InverseOperatorMapping;
 }
 
 namespace downward::landmarks {
+class LandmarkGraph;
 class LandmarkNode;
 }
 
@@ -24,7 +27,6 @@ class LogProxy;
 
 namespace downward::cartesian_abstractions {
 using Facts = std::vector<FactPair>;
-using SharedTasks = std::vector<std::shared_ptr<AbstractTask>>;
 
 enum class FactOrder { ORIGINAL, RANDOM, HADD_UP, HADD_DOWN };
 

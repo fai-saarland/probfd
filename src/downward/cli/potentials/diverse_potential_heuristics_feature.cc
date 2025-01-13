@@ -10,7 +10,12 @@
 
 #include "downward/utils/logging.h"
 
+#include "downward/tasks/root_task.h"
+
+#include "downward/task_transformation.h"
+
 using namespace std;
+using namespace downward;
 using namespace downward::utils;
 using namespace downward::potentials;
 
@@ -49,17 +54,24 @@ public:
     virtual shared_ptr<PotentialMaxHeuristic>
     create_component(const Options& opts, const Context&) const override
     {
+        auto original_task = downward::tasks::g_root_task;
+        auto transformation =
+            opts.get<shared_ptr<TaskTransformation>>("transform");
+
+        auto transformation_result = transformation->transform(original_task);
+
         return make_shared<PotentialMaxHeuristic>(
             DiversePotentialHeuristics(
                 opts.get<int>("num_samples"),
                 opts.get<int>("max_num_heuristics"),
                 opts.get<double>("max_potential"),
                 opts.get<downward::lp::LPSolverType>("lpsolver"),
-                opts.get<shared_ptr<downward::AbstractTask>>("transform"),
+                transformation_result.transformed_task,
                 opts.get<int>("random_seed"),
                 opts.get<Verbosity>("verbosity"))
                 .find_functions(),
-            opts.get<shared_ptr<downward::AbstractTask>>("transform"),
+            original_task,
+            transformation_result,
             opts.get<bool>("cache_estimates"),
             opts.get<string>("description"),
             opts.get<Verbosity>("verbosity"));
