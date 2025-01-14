@@ -41,6 +41,7 @@ class TrapAwareDFHSSolver : public MDPHeuristicSearch<false, true> {
     const bool reexpand_traps_;
 
 public:
+    template <typename... Args>
     explicit TrapAwareDFHSSolver(
         std::shared_ptr<QOpenList> open_list,
         bool fwup,
@@ -50,31 +51,8 @@ public:
         bool terminate_exploration,
         bool labeling,
         bool reexpand_traps,
-        bool fret_on_policy,
-        bool dual_bounds,
-        std::shared_ptr<PolicyPicker> policy,
-        Verbosity verbosity,
-        std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
-        bool cache,
-        const std::shared_ptr<TaskEvaluatorFactory>& eval,
-        std::optional<value_t> report_epsilon,
-        bool report_enabled,
-        double max_time,
-        std::string policy_filename,
-        bool print_fact_names)
-        : MDPHeuristicSearch<false, true>(
-              fret_on_policy,
-              dual_bounds,
-              std::move(policy),
-              verbosity,
-              std::move(path_dependent_evaluators),
-              cache,
-              eval,
-              report_epsilon,
-              report_enabled,
-              max_time,
-              std::move(policy_filename),
-              print_fact_names)
+        Args&&... args)
+        : MDPHeuristicSearch<false, true>(std::forward<Args>(args)...)
         , open_list_(std::move(open_list))
         , forward_updates_(fwup)
         , backward_updates_(bwup)

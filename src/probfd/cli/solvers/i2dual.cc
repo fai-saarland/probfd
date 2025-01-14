@@ -35,9 +35,8 @@ public:
         bool incremental_updates,
         lp::LPSolverType lp_solver,
         utils::Verbosity verbosity,
-        std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
-        bool cache,
-        const std::shared_ptr<TaskEvaluatorFactory>& eval,
+        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+        std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
         std::optional<value_t> report_epsilon,
         bool report_enabled,
         double max_time,
@@ -45,9 +44,8 @@ public:
         bool print_fact_names)
         : MDPSolver(
               verbosity,
-              std::move(path_dependent_evaluators),
-              cache,
-              eval,
+              std::move(task_state_space_factory),
+              std::move(heuristic_factory),
               report_epsilon,
               report_enabled,
               max_time,

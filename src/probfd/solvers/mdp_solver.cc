@@ -11,6 +11,7 @@
 #include "probfd/probabilistic_task.h"
 #include "probfd/task_cost_function.h"
 #include "probfd/task_evaluator_factory.h"
+#include "probfd/task_state_space_factory.h"
 
 #include "downward/utils/timer.h"
 
@@ -27,8 +28,7 @@ namespace probfd::solvers {
 
 MDPSolver::MDPSolver(
     utils::Verbosity verbosity,
-    std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
-    bool cache,
+    std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
     std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
     std::optional<value_t> report_epsilon,
     bool report_enabled,
@@ -37,16 +37,8 @@ MDPSolver::MDPSolver(
     bool print_fact_names)
     : log_(utils::get_log_for_verbosity(verbosity))
     , task_(tasks::g_root_task)
-    , task_mdp_(
-          cache ? new CachingTaskStateSpace(
-                      task_,
-                      log_,
-                      std::move(path_dependent_evaluators))
-                : new TaskStateSpace(
-                      task_,
-                      log_,
-                      std::move(path_dependent_evaluators)))
     , task_cost_function_(std::make_shared<TaskCostFunction>(task_))
+    , task_state_space_factory_(std::move(task_state_space_factory))
     , heuristic_factory_(std::move(heuristic_factory))
     , progress_(report_epsilon, std::cout, report_enabled)
     , max_time_(max_time)
@@ -107,6 +99,13 @@ bool MDPSolver::solve()
             &MDPSolver::create_algorithm,
             *this);
 
+        std::unique_ptr<TaskStateSpace> state_space = timed(
+            "Constructing state space...",
+            &TaskStateSpaceFactory::create_state_space,
+            *task_state_space_factory_,
+            task_,
+            task_cost_function_);
+
         const std::shared_ptr<FDREvaluator> heuristic = timed(
             "Constructing heuristic...",
             &TaskEvaluatorFactory::create_evaluator,
@@ -116,8 +115,8 @@ bool MDPSolver::solve()
 
         std::cout << "Starting analysis... " << std::endl;
 
-        const State& initial_state = task_mdp_->get_initial_state();
-        CompositeMDP<State, OperatorID> mdp{*task_mdp_, *task_cost_function_};
+        const State& initial_state = state_space->get_initial_state();
+        CompositeMDP<State, OperatorID> mdp{*state_space, *task_cost_function_};
 
         std::unique_ptr<Policy<State, OperatorID>> policy =
             algorithm->compute_policy(
@@ -166,10 +165,8 @@ bool MDPSolver::solve()
         }
 
         std::cout << std::endl;
-        std::cout << "State space interface:" << std::endl;
-        std::cout << "  Registered state(s): "
-                  << task_mdp_->get_num_registered_states() << std::endl;
-        task_mdp_->print_statistics();
+        std::cout << "State space interface statistics:" << std::endl;
+        state_space->print_statistics();
 
         std::cout << std::endl;
         std::cout << "Algorithm " << get_algorithm_name()

@@ -28,6 +28,33 @@ create_library(
 )
 
 create_library(
+    NAME task_state_space_factory_category
+    HELP "Category plugin for task state space factories"
+    SOURCES
+        probfd/cli/task_state_space_factory_category
+    DEPENDS
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME task_state_space_factory_features
+    HELP "Enables all task state space factory features"
+    SOURCES
+        probfd/cli/task_state_space_factory_features
+    DEPENDS
+        task_state_space_factory_category
+        probfd_core
+        parser
+        plugins
+        logging_options
+    TARGET
+        probfd
+)
+
+create_library(
     NAME mdp_solver_options
     HELP "Enables plugin options for MDP solvers"
     SOURCES
@@ -36,6 +63,7 @@ create_library(
         probfd_core
         parser
         plugins
+        task_state_space_factory_category
         logging_options
     TARGET
         probfd

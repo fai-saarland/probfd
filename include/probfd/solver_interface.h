@@ -11,9 +11,9 @@
 
 // Forward Declarations
 namespace probfd {
+class ProbabilisticTask;
+
 struct Interval;
-template <typename, typename>
-class Policy;
 } // namespace probfd
 
 namespace probfd {
@@ -32,6 +32,14 @@ public:
     virtual void print_statistics() const {}
 
     virtual bool solve() = 0;
+};
+
+class TaskSolverFactory {
+public:
+    virtual ~TaskSolverFactory() = default;
+
+    virtual std::unique_ptr<SolverInterface>
+    create(const std::shared_ptr<ProbabilisticTask>& task) = 0;
 };
 
 } // namespace probfd

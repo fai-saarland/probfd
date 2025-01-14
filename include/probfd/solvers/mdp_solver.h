@@ -1,5 +1,5 @@
-#ifndef PROBFD_SOLVERS_MDP_SOLVER_H
-#define PROBFD_SOLVERS_MDP_SOLVER_H
+#ifndef SOLVERS_MDP_SOLVER_H
+#define SOLVERS_MDP_SOLVER_H
 
 #include "probfd/solver_interface.h" // IWYU pragma: export
 
@@ -16,8 +16,8 @@
 // Forward Declarations
 namespace probfd {
 class ProbabilisticTask;
-class TaskCostFunctionFactory;
 class TaskEvaluatorFactory;
+class TaskStateSpaceFactory;
 } // namespace probfd
 
 /// This namespace contains the solver interface base class for various search
@@ -32,11 +32,10 @@ class MDPSolver : public SolverInterface {
 
 protected:
     const std::shared_ptr<ProbabilisticTask> task_;
-
-    const std::unique_ptr<TaskStateSpace> task_mdp_;
     const std::shared_ptr<FDRCostFunction> task_cost_function_;
 
 private:
+    const std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory_;
     const std::shared_ptr<TaskEvaluatorFactory> heuristic_factory_;
 
     ProgressReport progress_;
@@ -51,8 +50,7 @@ public:
      */
     MDPSolver(
         utils::Verbosity verbosity,
-        std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
-        bool cache,
+        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
         std::optional<value_t> report_epsilon,
         bool report_enabled,
@@ -80,4 +78,4 @@ public:
 
 } // namespace probfd::solvers
 
-#endif // PROBFD_SOLVERS_MDP_SOLVER_H
+#endif // SOLVERS_MDP_SOLVER_H

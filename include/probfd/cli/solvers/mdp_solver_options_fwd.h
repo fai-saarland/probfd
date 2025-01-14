@@ -18,14 +18,14 @@ enum class Verbosity;
 }
 
 namespace probfd {
+class TaskStateSpaceFactory;
 class TaskEvaluatorFactory;
 } // namespace probfd
 
 namespace probfd::cli::solvers {
 
 using MDPSolverAddditionalArgs = std::tuple<
-    std::vector<std::shared_ptr<::Evaluator>>,
-    bool,
+    std::shared_ptr<probfd::TaskStateSpaceFactory>,
     std::shared_ptr<probfd::TaskEvaluatorFactory>,
     std::optional<probfd::value_t>,
     bool,

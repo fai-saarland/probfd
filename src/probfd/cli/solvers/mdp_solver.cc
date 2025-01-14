@@ -17,20 +17,14 @@ namespace probfd::cli::solvers {
 
 void add_base_solver_options_to_feature(Feature& feature)
 {
+    feature.add_option<std::shared_ptr<TaskStateSpaceFactory>>(
+        "state_space",
+        "The factory implementation for the task state space.",
+        "default_state_space()");
     feature.add_option<std::shared_ptr<TaskEvaluatorFactory>>(
         "eval",
         "The heuristic to be used by the search.",
         "blind_eval()");
-    feature.add_option<bool>(
-        "cache",
-        "Whether the state space should be cached to avoid re-generating "
-        "transitions. May drastically increase memory footprint.",
-        "false");
-    feature.add_list_option<std::shared_ptr<::Evaluator>>(
-        "path_dependent_evaluators",
-        "A list of path-dependent classical planning evaluators to inform of "
-        "new transitions during the search.",
-        "[]");
     feature.add_option<value_t>(
         "report_epsilon",
         "Algorithms will report the current initial state objective value to "
@@ -68,9 +62,7 @@ MDPSolverArgs get_base_solver_args_from_options(const Options& options)
     return std::tuple_cat(
         get_log_arguments_from_options(options),
         std::make_tuple(
-            options.get_list<std::shared_ptr<::Evaluator>>(
-                "path_dependent_evaluators"),
-            options.get<bool>("cache"),
+            options.get<std::shared_ptr<TaskStateSpaceFactory>>("state_space"),
             options.get<std::shared_ptr<TaskEvaluatorFactory>>("eval"),
             options.contains("report_epsilon")
                 ? std::optional<value_t>(options.get<value_t>("report_epsilon"))

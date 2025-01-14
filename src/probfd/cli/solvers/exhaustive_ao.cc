@@ -32,31 +32,9 @@ class ExhaustiveAOSolver : public MDPHeuristicSearch<Bisimulation, false> {
     const std::shared_ptr<OpenList> open_list_;
 
 public:
-    ExhaustiveAOSolver(
-        std::shared_ptr<OpenList> open_list,
-        bool dual_bounds,
-        std::shared_ptr<PolicyPicker> policy,
-        utils::Verbosity verbosity,
-        std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
-        bool cache,
-        const std::shared_ptr<TaskEvaluatorFactory>& eval,
-        std::optional<value_t> report_epsilon,
-        bool report_enabled,
-        double max_time,
-        std::string policy_filename,
-        bool print_fact_names)
-        : MDPHeuristicSearch<Bisimulation, false>(
-              dual_bounds,
-              std::move(policy),
-              verbosity,
-              std::move(path_dependent_evaluators),
-              cache,
-              eval,
-              report_epsilon,
-              report_enabled,
-              max_time,
-              std::move(policy_filename),
-              print_fact_names)
+    template <typename... Args>
+    ExhaustiveAOSolver(std::shared_ptr<OpenList> open_list, Args&&... args)
+        : MDPHeuristicSearch<Bisimulation, false>(std::forward<Args>(args)...)
         , open_list_(std::move(open_list))
     {
     }

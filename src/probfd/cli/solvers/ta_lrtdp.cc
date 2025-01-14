@@ -35,37 +35,13 @@ class TrapAwareLRTDPSolver : public MDPHeuristicSearch<false, true> {
     const bool reexpand_traps_;
 
 public:
+    template <typename... Args>
     TrapAwareLRTDPSolver(
         std::shared_ptr<QSuccessorSampler> successor_sampler,
         TrialTerminationCondition terminate_trial,
         bool reexpand_traps,
-        bool fret_on_policy,
-        bool dual_bounds,
-        std::shared_ptr<algorithms::PolicyPicker<
-            quotients::QuotientState<State, OperatorID>,
-            quotients::QuotientAction<OperatorID>>> policy,
-        utils::Verbosity verbosity,
-        std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
-        bool cache,
-        const std::shared_ptr<TaskEvaluatorFactory>& eval,
-        std::optional<value_t> report_epsilon,
-        bool report_enabled,
-        double max_time,
-        std::string policy_filename,
-        bool print_fact_names)
-        : MDPHeuristicSearch<false, true>(
-              fret_on_policy,
-              dual_bounds,
-              std::move(policy),
-              verbosity,
-              std::move(path_dependent_evaluators),
-              cache,
-              eval,
-              report_epsilon,
-              report_enabled,
-              max_time,
-              std::move(policy_filename),
-              print_fact_names)
+        Args&&... args)
+        : MDPHeuristicSearch<false, true>(std::forward<Args>(args)...)
         , successor_sampler_(std::move(successor_sampler))
         , stop_consistent_(terminate_trial)
         , reexpand_traps_(reexpand_traps)

@@ -106,6 +106,8 @@ size_t TaskStateSpace::get_num_registered_states() const
 
 void TaskStateSpace::print_statistics() const
 {
+    log_ << "  Registered state(s): " << get_num_registered_states()
+         << std::endl;
     statistics_.print(log_);
 }
 

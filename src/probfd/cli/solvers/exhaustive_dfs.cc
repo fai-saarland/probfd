@@ -36,30 +36,14 @@ class ExhaustiveDFSSolver : public MDPSolver {
     const bool only_propagate_when_changed_;
 
 public:
+    template <typename... Args>
     ExhaustiveDFSSolver(
         std::shared_ptr<FDRTransitionSorter> order,
         bool dual_bounds,
         bool reverse_path_updates,
         bool only_propagate_when_changed,
-        utils::Verbosity verbosity,
-        std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators,
-        bool cache,
-        const std::shared_ptr<TaskEvaluatorFactory>& eval,
-        std::optional<value_t> report_epsilon,
-        bool report_enabled,
-        double max_time,
-        std::string policy_filename,
-        bool print_fact_names)
-        : MDPSolver(
-              verbosity,
-              std::move(path_dependent_evaluators),
-              cache,
-              eval,
-              report_epsilon,
-              report_enabled,
-              max_time,
-              std::move(policy_filename),
-              print_fact_names)
+        Args&&... args)
+        : MDPSolver(std::forward<Args>(args)...)
         , cost_bound_(
               0_vt,
               task_cost_function_->get_non_goal_termination_cost())
