@@ -13,8 +13,6 @@
 #include <vector>
 
 // Forward Declarations
-class AbstractTask;
-
 namespace probfd {
 class ProbabilisticTask;
 }
