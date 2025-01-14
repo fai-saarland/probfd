@@ -16,8 +16,8 @@ void add_pattern_collection_generator_options_to_feature(Feature& feature)
     add_log_options_to_feature(feature);
 }
 
-std::tuple<utils::Verbosity>
-get_collection_generator_arguments_from_options(const Options& opts)
+PatternCollectionGeneratorArgs
+get_pattern_collection_generator_arguments_from_options(const Options& opts)
 {
     return get_log_arguments_from_options(opts);
 }

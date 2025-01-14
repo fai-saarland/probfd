@@ -2,7 +2,7 @@
 
 #include "downward/cli/utils/rng_options.h"
 
-#include "probfd/cli/heuristics/task_dependent_heuristic.h"
+#include "probfd/cli/heuristics/task_dependent_heuristic_options.h"
 
 #include "probfd/heuristics/gzocp_heuristic.h"
 

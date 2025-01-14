@@ -102,6 +102,6 @@ protected:
     }
 };
 
-BinaryFeaturePlugin<ExhaustiveAOSolverFeature> _plugin;
+MultiFeaturePlugin<ExhaustiveAOSolverFeature> _plugin;
 
 } // namespace

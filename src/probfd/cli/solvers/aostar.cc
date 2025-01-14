@@ -77,6 +77,6 @@ protected:
     }
 };
 
-BinaryFeaturePlugin<AOStarSolverFeature> _plugin;
+MultiFeaturePlugin<AOStarSolverFeature> _plugin;
 
 } // namespace

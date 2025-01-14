@@ -63,17 +63,7 @@ void add_base_solver_options_to_feature(Feature& feature)
     add_log_options_to_feature(feature);
 }
 
-std::tuple<
-    utils::Verbosity,
-    std::vector<std::shared_ptr<::Evaluator>>,
-    bool,
-    std::shared_ptr<TaskEvaluatorFactory>,
-    std::optional<value_t>,
-    bool,
-    double,
-    std::string,
-    bool>
-get_base_solver_args_from_options(const Options& options)
+MDPSolverArgs get_base_solver_args_from_options(const Options& options)
 {
     return std::tuple_cat(
         get_log_arguments_from_options(options),

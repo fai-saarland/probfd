@@ -3,8 +3,6 @@
 #include "downward/cli/utils/logging_options.h"
 #include "downward/cli/utils/rng_options.h"
 
-#include "probfd/cli/pdbs/pattern_collection_generator_disjoint_cegar.h"
-
 #include "probfd/cli/pdbs/cegar_options.h"
 #include "probfd/cli/pdbs/pattern_collection_generator.h"
 
@@ -29,7 +27,8 @@ using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace probfd::cli::pdbs {
 
-void add_pattern_collection_generator_cegar_options_to_feature(Feature& feature)
+static void
+add_pattern_collection_generator_cegar_options_to_feature(Feature& feature)
 {
     feature.add_option<bool>(
         "single_goal",
@@ -79,14 +78,14 @@ public:
     {
         add_pattern_collection_generator_cegar_options_to_feature(*this);
         add_rng_options_to_feature(*this);
-    } // namespace probfd::pdbs
+    }
 
     virtual shared_ptr<PatternCollectionGeneratorDisjointCegar>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<
             PatternCollectionGeneratorDisjointCegar>(
-            opts.get<bool>("use_wildcard_policies"),
+            get_cegar_wildcard_arguments_from_options(opts),
             opts.get<bool>("single_goal"),
             opts.get<int>("max_pdb_size"),
             opts.get<int>("max_collection_size"),
@@ -95,7 +94,7 @@ public:
             opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
                 "subcollection_finder_factory"),
             opts.get<std::shared_ptr<FlawFindingStrategy>>("flaw_strategy"),
-            get_log_arguments_from_options(opts));
+            get_pattern_collection_generator_arguments_from_options(opts));
     }
 };
 

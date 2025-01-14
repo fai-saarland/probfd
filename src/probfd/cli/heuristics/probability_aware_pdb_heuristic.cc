@@ -1,6 +1,6 @@
 #include "downward/cli/plugins/plugin.h"
 
-#include "probfd/cli/heuristics/task_dependent_heuristic.h"
+#include "probfd/cli/heuristics/task_dependent_heuristic_options.h"
 
 #include "probfd/heuristics/probability_aware_pdb_heuristic.h"
 

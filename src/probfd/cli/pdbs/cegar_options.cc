@@ -1,6 +1,6 @@
-#include "downward/cli/plugins/plugin.h"
-
 #include "probfd/cli/pdbs/cegar_options.h"
+
+#include "downward/cli/plugins/plugin.h"
 
 using namespace downward::cli::plugins;
 
@@ -16,7 +16,7 @@ void add_cegar_wildcard_option_to_feature(Feature& feature)
         "false");
 }
 
-std::tuple<bool> get_cegar_wildcard_arguments_from_options(const Options& opts)
+CEGARArgs get_cegar_wildcard_arguments_from_options(const Options& opts)
 {
     return std::make_tuple(opts.get<bool>("use_wildcard_policies"));
 }

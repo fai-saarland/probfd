@@ -1,7 +1,9 @@
 #ifndef PROBFD_CALL_TRAITS_H
 #define PROBFD_CALL_TRAITS_H
 
+#include <tuple>
 #include <type_traits>
+#include <utility>
 
 // Forward Declarations
 class OperatorID;
@@ -24,6 +26,12 @@ static constexpr bool is_cheap_to_copy_v = is_cheap_to_copy<T>::value;
 template <typename T>
 using param_type =
     typename std::conditional_t<is_cheap_to_copy_v<T>, T, const T&>;
+
+/**
+ * @brief Concatenated tuple type of a list of tuple types.
+ */
+template <typename... T>
+using tuple_cat_t = decltype(std::tuple_cat(std::declval<T>()...));
 
 } // namespace probfd
 

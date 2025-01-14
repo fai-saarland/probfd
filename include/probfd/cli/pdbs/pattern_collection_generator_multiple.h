@@ -1,5 +1,7 @@
-#ifndef PROBFD_PLUGINS_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_H
-#define PROBFD_PLUGINS_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_H
+#ifndef CLI_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_H
+#define CLI_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_H
+
+#include "probfd/cli/pdbs/pattern_collection_generator_multiple_options_fwd.h"
 
 #include <memory>
 #include <utility>
@@ -10,30 +12,15 @@ class Feature;
 class Options;
 } // namespace downward::cli::plugins
 
-namespace utils {
-enum class Verbosity;
-class RandomNumberGenerator;
-} // namespace utils
-
 namespace probfd::cli::pdbs {
 
 extern void
 add_multiple_options_to_feature(downward::cli::plugins::Feature& feature);
 
-extern std::tuple<
-    int,
-    int,
-    double,
-    double,
-    double,
-    double,
-    bool,
-    bool,
-    std::shared_ptr<utils::RandomNumberGenerator>,
-    utils::Verbosity>
+extern PatternCollectionGeneratorMultipleArgs
 get_multiple_arguments_from_options(
     const downward::cli::plugins::Options& options);
 
 } // namespace probfd::cli::pdbs
 
-#endif
+#endif // CLI_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_H

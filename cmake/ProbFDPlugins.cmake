@@ -234,9 +234,9 @@ create_library(
 )
 
 create_library(
-    NAME task_dependent_heuristic_plugin
+    NAME task_dependent_heuristic_options
     SOURCES
-        probfd/cli/heuristics/task_dependent_heuristic
+        probfd/cli/heuristics/task_dependent_heuristic_options
     DEPENDS
         task_dependent_heuristic
         parser
@@ -396,7 +396,7 @@ create_library(
         probfd/cli/heuristics/additive_cartesian_heuristic
     DEPENDS
         evaluator_category
-        task_dependent_heuristic_plugin
+        task_dependent_heuristic_options
         probability_aware_cartesian_abstraction_heuristic
         parser
         plugins

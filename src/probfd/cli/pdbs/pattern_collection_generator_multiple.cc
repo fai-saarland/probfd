@@ -1,8 +1,8 @@
+#include "probfd/cli/pdbs/pattern_collection_generator_multiple.h"
+
 #include "downward/cli/plugins/plugin.h"
 
 #include "downward/cli/utils/rng_options.h"
-
-#include "probfd/cli/pdbs/pattern_collection_generator_multiple.h"
 
 #include "probfd/cli/pdbs/pattern_collection_generator.h"
 
@@ -78,17 +78,7 @@ void add_multiple_options_to_feature(Feature& feature)
     add_pattern_collection_generator_options_to_feature(feature);
 }
 
-std::tuple<
-    int,
-    int,
-    double,
-    double,
-    double,
-    double,
-    bool,
-    bool,
-    std::shared_ptr<utils::RandomNumberGenerator>,
-    utils::Verbosity>
+PatternCollectionGeneratorMultipleArgs
 get_multiple_arguments_from_options(const Options& options)
 {
     return std::tuple_cat(
@@ -103,7 +93,7 @@ get_multiple_arguments_from_options(const Options& options)
             options.get<bool>("use_saturated_costs"),
             utils::get_rng(
                 std::get<0>(get_rng_arguments_from_options(options)))),
-        get_collection_generator_arguments_from_options(options));
+        get_pattern_collection_generator_arguments_from_options(options));
 }
 
 } // namespace probfd::cli::pdbs

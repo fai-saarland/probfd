@@ -1,12 +1,7 @@
-#ifndef PROBFD_PLUGINS_HEURISTICS_TASK_DEPENDENT_HEURISTIC_H
-#define PROBFD_PLUGINS_HEURISTICS_TASK_DEPENDENT_HEURISTIC_H
+#ifndef CLI_HEURISTICS_TASK_DEPENDENT_HEURISTIC_OPTIONS_H
+#define CLI_HEURISTICS_TASK_DEPENDENT_HEURISTIC_OPTIONS_H
 
-#include <tuple>
-
-// Forward Declarations
-namespace utils {
-enum class Verbosity;
-}
+#include "probfd/cli/heuristics/task_dependent_heuristic_options_fwd.h"
 
 namespace downward::cli::plugins {
 class Feature;
@@ -18,10 +13,10 @@ namespace probfd::cli::heuristics {
 extern void add_task_dependent_heuristic_options_to_feature(
     downward::cli::plugins::Feature& feature);
 
-extern std::tuple<utils::Verbosity>
+extern TaskDependentHeuristicArgs
 get_task_dependent_heuristic_arguments_from_options(
     const downward::cli::plugins::Options& opts);
 
 } // namespace probfd::cli::heuristics
 
-#endif
+#endif // CLI_HEURISTICS_TASK_DEPENDENT_HEURISTIC_OPTIONS_H

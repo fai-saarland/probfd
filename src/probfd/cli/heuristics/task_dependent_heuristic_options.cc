@@ -1,4 +1,4 @@
-#include "probfd/cli/heuristics/task_dependent_heuristic.h"
+#include "probfd/cli/heuristics/task_dependent_heuristic_options.h"
 
 #include "downward/cli/utils/logging_options.h"
 
@@ -14,7 +14,7 @@ void add_task_dependent_heuristic_options_to_feature(Feature& feature)
     add_log_options_to_feature(feature);
 }
 
-std::tuple<utils::Verbosity>
+TaskDependentHeuristicArgs
 get_task_dependent_heuristic_arguments_from_options(const Options& opts)
 {
     return get_log_arguments_from_options(opts);

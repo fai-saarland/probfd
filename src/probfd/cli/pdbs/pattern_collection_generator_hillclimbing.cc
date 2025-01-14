@@ -101,7 +101,7 @@ public:
             opts.get<int>("min_improvement"),
             opts.get<double>("max_time"),
             get_rng(std::get<0>(get_rng_arguments_from_options(opts))),
-            get_collection_generator_arguments_from_options(opts));
+            get_pattern_collection_generator_arguments_from_options(opts));
     }
 };
 
