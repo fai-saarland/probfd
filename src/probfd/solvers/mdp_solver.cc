@@ -17,9 +17,11 @@
 #include "downward/utils/exceptions.h"
 
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <limits>
 #include <optional>
+#include <type_traits>
 
 namespace probfd::solvers {
 
@@ -55,6 +57,38 @@ MDPSolver::MDPSolver(
 
 MDPSolver::~MDPSolver() = default;
 
+namespace {
+class Printer {
+    utils::Timer timer;
+    std::ostream& out;
+
+public:
+    Printer(const std::string& print, std::ostream& out = std::cout)
+        : out(out)
+    {
+        out << print << ' ' << std::flush;
+    }
+
+    ~Printer()
+    {
+        if (std::uncaught_exceptions() > 0) {
+            out << "Failed after " << timer() << '.' << std::endl;
+        } else {
+            out << "Finished after " << timer() << '.' << std::endl;
+        }
+    }
+};
+
+template <typename F, typename... Args>
+std::invoke_result_t<F, Args...>
+timed(const std::string& print, F&& f, Args&&... args)
+{
+    Printer _(print, std::cout);
+    return std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
+}
+
+} // namespace
+
 bool MDPSolver::solve()
 {
     std::cout << "Running MDP algorithm " << get_algorithm_name();
@@ -68,22 +102,21 @@ bool MDPSolver::solve()
     try {
         utils::Timer total_timer;
 
-        std::cout << "Constructing algorithm... " << std::endl;
-
-        std::unique_ptr<FDRMDPAlgorithm> algorithm = create_algorithm();
-
-        std::cout << "Done." << std::endl;
+        std::unique_ptr<FDRMDPAlgorithm> algorithm = timed(
+            "Constructing algorithm...",
+            &MDPSolver::create_algorithm,
+            *this);
 
         const State& initial_state = task_mdp_->get_initial_state();
 
         CompositeMDP<State, OperatorID> mdp{*task_mdp_, *task_cost_function_};
 
-        std::cout << "Constructing heuristic... " << std::endl;
-
-        const std::shared_ptr<FDREvaluator> heuristic =
-            heuristic_factory_->create_evaluator(task_, task_cost_function_);
-
-        std::cout << "Done." << std::endl;
+        const std::shared_ptr<FDREvaluator> heuristic = timed(
+            "Constructing heuristic...",
+            &TaskEvaluatorFactory::create_evaluator,
+            *heuristic_factory_,
+            task_,
+            task_cost_function_);
 
         std::cout << "Starting analysis... " << std::endl;
 
