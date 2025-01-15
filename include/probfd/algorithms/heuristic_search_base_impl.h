@@ -278,6 +278,7 @@ void HeuristicSearchBase<State, Action, StateInfoT>::print_statistics(
 {
     out << "  Stored " << sizeof(StateInfo) << " bytes per state" << std::endl;
     statistics_.print(out);
+    policy_chooser_->print_statistics(out);
 }
 
 template <typename State, typename Action, typename StateInfoT>

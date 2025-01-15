@@ -80,8 +80,6 @@ public:
         std::string policy_filename,
         bool print_fact_names);
 
-    void print_additional_statistics() const override;
-
     virtual std::string get_heuristic_search_name() const = 0;
 };
 

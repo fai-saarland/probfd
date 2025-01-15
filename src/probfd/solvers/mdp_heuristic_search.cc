@@ -41,13 +41,6 @@ MDPHeuristicSearchBase<Bisimulation, Fret>::MDPHeuristicSearchBase(
 {
 }
 
-template <bool Bisimulation, bool Fret>
-void MDPHeuristicSearchBase<Bisimulation, Fret>::print_additional_statistics()
-    const
-{
-    tiebreaker_->print_statistics(std::cout);
-}
-
 std::string MDPHeuristicSearch<false, false>::get_algorithm_name() const
 {
     return this->get_heuristic_search_name();

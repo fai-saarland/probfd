@@ -83,13 +83,6 @@ public:
                 reexpand_traps_,
                 successor_sampler_);
     }
-
-protected:
-    void print_additional_statistics() const override
-    {
-        MDPHeuristicSearch<false, true>::print_additional_statistics();
-        successor_sampler_->print_statistics(std::cout);
-    }
 };
 
 class TrapAwareLRTDPSolverFeature

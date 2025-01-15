@@ -74,6 +74,7 @@ void LRTDP<State, Action, UseInterval>::print_additional_statistics(
     std::ostream& out) const
 {
     statistics_.print(out);
+    this->sample_->print_statistics(out);
 }
 
 template <typename State, typename Action, bool UseInterval>

@@ -107,10 +107,6 @@ bool MDPSolver::solve()
             &MDPSolver::create_algorithm,
             *this);
 
-        const State& initial_state = task_mdp_->get_initial_state();
-
-        CompositeMDP<State, OperatorID> mdp{*task_mdp_, *task_cost_function_};
-
         const std::shared_ptr<FDREvaluator> heuristic = timed(
             "Constructing heuristic...",
             &TaskEvaluatorFactory::create_evaluator,
@@ -119,6 +115,9 @@ bool MDPSolver::solve()
             task_cost_function_);
 
         std::cout << "Starting analysis... " << std::endl;
+
+        const State& initial_state = task_mdp_->get_initial_state();
+        CompositeMDP<State, OperatorID> mdp{*task_mdp_, *task_cost_function_};
 
         std::unique_ptr<Policy<State, OperatorID>> policy =
             algorithm->compute_policy(
@@ -179,8 +178,6 @@ bool MDPSolver::solve()
         algorithm->print_statistics(std::cout);
 
         heuristic->print_statistics();
-
-        print_additional_statistics();
 
         return policy != nullptr;
     } catch (utils::TimeoutException&) {

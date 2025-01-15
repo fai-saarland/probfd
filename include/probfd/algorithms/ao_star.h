@@ -75,6 +75,8 @@ protected:
         ProgressReport& progress,
         double max_time) override;
 
+    void print_additional_statistics(std::ostream& out) const override;
+
 private:
     bool update_value_check_solved(
         MDPType& mdp,

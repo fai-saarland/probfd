@@ -73,11 +73,6 @@ public:
     virtual std::string get_algorithm_name() const = 0;
 
     /**
-     * @brief Print additional algorithm statistics to std::cout.
-     */
-    virtual void print_additional_statistics() const {}
-
-    /**
      * @brief Runs the encapsulated MDP on the global problem.
      */
     bool solve() override;

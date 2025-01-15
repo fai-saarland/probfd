@@ -162,6 +162,14 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
 }
 
 template <typename State, typename Action, bool UseInterval>
+void AOStar<State, Action, UseInterval>::print_additional_statistics(
+    std::ostream& out) const
+{
+    Base::print_additional_statistics(out);
+    this->outcome_selection_->print_statistics(out);
+}
+
+template <typename State, typename Action, bool UseInterval>
 bool AOStar<State, Action, UseInterval>::update_value_check_solved(
     MDPType& mdp,
     param_type<State> state,

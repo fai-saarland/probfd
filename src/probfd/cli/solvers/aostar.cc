@@ -46,13 +46,6 @@ public:
         return this->template create_heuristic_search_algorithm<AOStar>(
             successor_sampler_);
     }
-
-protected:
-    void print_additional_statistics() const override
-    {
-        MDPHeuristicSearch<Bisimulation, false>::print_additional_statistics();
-        successor_sampler_->print_statistics(std::cout);
-    }
 };
 
 template <bool Bisimulation>

@@ -55,13 +55,6 @@ public:
             trial_termination_,
             successor_sampler_);
     }
-
-protected:
-    void print_additional_statistics() const override
-    {
-        MDPHeuristicSearch<Bisimulation, Fret>::print_additional_statistics();
-        successor_sampler_->print_statistics(std::cout);
-    }
 };
 
 template <bool Bisimulation, bool Fret>
