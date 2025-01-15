@@ -1,5 +1,5 @@
-#ifndef PROBFD_SOLVERS_SOLVER_INTERFACE_H
-#define PROBFD_SOLVERS_SOLVER_INTERFACE_H
+#ifndef SOLVER_INTERFACE_H
+#define SOLVER_INTERFACE_H
 
 #include "probfd/value_type.h"
 
@@ -44,4 +44,4 @@ public:
 
 } // namespace probfd
 
-#endif
+#endif // SOLVER_INTERFACE_H

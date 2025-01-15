@@ -32,7 +32,9 @@ public:
         return "topological_value_iteration";
     }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+        const std::shared_ptr<ProbabilisticTask>&,
+        const std::shared_ptr<FDRCostFunction>&) override
     {
         return std::make_unique<TopologicalValueIteration<State, OperatorID>>(
             false);
@@ -40,10 +42,10 @@ public:
 };
 
 class TopologicalVISolverFeature
-    : public TypedFeature<SolverInterface, TopologicalVISolver> {
+    : public TypedFeature<TaskSolverFactory, TopologicalVISolver> {
 public:
     TopologicalVISolverFeature()
-        : TypedFeature<SolverInterface, TopologicalVISolver>(
+        : TypedFeature<TaskSolverFactory, TopologicalVISolver>(
               "topological_value_iteration")
     {
         document_title("Topological Value Iteration.");

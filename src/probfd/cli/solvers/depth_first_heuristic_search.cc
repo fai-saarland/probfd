@@ -60,9 +60,13 @@ public:
 
     std::string get_heuristic_search_name() const override { return name_; }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<FDRCostFunction>& task_cost_function) override
     {
         return this->template create_heuristic_search_algorithm<Algorithm>(
+            task,
+            task_cost_function,
             forward_updates_,
             backward_updates_,
             cutoff_tip_states_,
@@ -74,7 +78,7 @@ public:
 
 template <bool Bisimulation, bool Fret>
 class DFHSSolverFeature
-    : public TypedFeature<SolverInterface, DFHSSolver<Bisimulation, Fret>> {
+    : public TypedFeature<TaskSolverFactory, DFHSSolver<Bisimulation, Fret>> {
 public:
     DFHSSolverFeature()
         : DFHSSolverFeature::TypedFeature(
@@ -160,7 +164,7 @@ protected:
 
 template <bool Bisimulation, bool Fret>
 class ILAOSolverFeature
-    : public TypedFeature<SolverInterface, DFHSSolver<Bisimulation, Fret>> {
+    : public TypedFeature<TaskSolverFactory, DFHSSolver<Bisimulation, Fret>> {
 public:
     ILAOSolverFeature()
         : ILAOSolverFeature::TypedFeature(
@@ -189,7 +193,7 @@ public:
 
 template <bool Bisimulation, bool Fret>
 class LILAOSolverFeature
-    : public TypedFeature<SolverInterface, DFHSSolver<Bisimulation, Fret>> {
+    : public TypedFeature<TaskSolverFactory, DFHSSolver<Bisimulation, Fret>> {
 public:
     LILAOSolverFeature()
         : LILAOSolverFeature::TypedFeature(
@@ -219,7 +223,7 @@ public:
 
 template <bool Bisimulation, bool Fret>
 class HDPSolverFeature
-    : public TypedFeature<SolverInterface, DFHSSolver<Bisimulation, Fret>> {
+    : public TypedFeature<TaskSolverFactory, DFHSSolver<Bisimulation, Fret>> {
 public:
     HDPSolverFeature()
         : HDPSolverFeature::TypedFeature(

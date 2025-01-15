@@ -29,7 +29,7 @@ namespace probfd {
 [[noreturn]]
 static void input_error(const string& msg)
 {
-    utils::g_log << msg << endl;
+    std::cout << msg << endl;
     utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
 }
 
@@ -91,10 +91,10 @@ replace_old_style_predefinitions(const vector<string>& args)
     return new_args;
 }
 
-static std::shared_ptr<SolverInterface>
+static std::shared_ptr<TaskSolverFactory>
 parse_cmd_line_aux(const vector<string>& args)
 {
-    using SearchPtr = shared_ptr<SolverInterface>;
+    using SearchPtr = shared_ptr<TaskSolverFactory>;
     SearchPtr algorithm = nullptr;
 
     // TODO: Remove code duplication.
@@ -148,34 +148,7 @@ parse_cmd_line_aux(const vector<string>& args)
         } else if (arg == "--epsilon") {
             if (is_last) input_error("missing argument after " + arg);
             probfd::g_epsilon = parse_double_arg(arg, args[++i]);
-        } /* else if (
-             arg == "--horizon" || arg == "--budget" || arg == "--step-bound") {
-             if (is_last) throw ArgError("missing argument after " + arg);
-             const std::string budget = argv[++i];
-
-             if (budget != "infinity") {
-                 probfd::g_step_bound = parse_int_arg(arg, budget);
-                 probfd::g_steps_bounded = true;
-                 if (probfd::g_step_bound < 0) input_error("budget must be
-         non-negative");
-             }
-         } else if (arg == "--step-cost-type" || arg == "--budget-cost-type") {
-             if (is_last == argc) input_error("missing argument after " + arg);
-             const std::string type = argv[++i];
-
-             if (type == "normal") {
-                 probfd::g_step_cost_type = OperatorCost::NORMAL;
-             } else if (type == "one") {
-                 probfd::g_step_cost_type = OperatorCost::ONE;
-             } else if (type == "plusone") {
-                 probfd::g_step_cost_type = OperatorCost::PLUSONE;
-             } else if (type == "max") {
-                 probfd::g_step_cost_type = OperatorCost::MAX_OPERATOR_COST;
-             } else {
-                 input_error("unknown operator cost type " + type);
-             }
-         }*/
-        else {
+        } else {
             input_error("unknown option " + arg);
         }
     }
@@ -183,7 +156,7 @@ parse_cmd_line_aux(const vector<string>& args)
     return algorithm;
 }
 
-std::shared_ptr<SolverInterface>
+std::shared_ptr<TaskSolverFactory>
 parse_cmd_line(int argc, const char** argv, bool is_unit_cost)
 {
     vector<string> args;
@@ -214,9 +187,6 @@ string usage(const string& progname)
            "* SEARCH (SearchAlgorithm): configuration of the search algorithm\n"
            "* OUTPUT (filename): translator output\n\n"
            "Options:\n"
-           "--maxprob\n"
-           "    Use the MaxProb cost model, specifying a termination cost\n"
-           "    of -1 for goal states and 0 otherwise, an no action costs.\n"
            "--help [NAME]\n"
            "    Prints help for all heuristics, open lists, etc. called NAME.\n"
            "    Without parameter: prints help for everything available\n"

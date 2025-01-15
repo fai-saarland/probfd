@@ -63,39 +63,36 @@ void print_bisimulation_stats(
     out << "  Transitions in bisimulation: " << transitions << std::endl;
 }
 
-class BisimulationIteration : public SolverInterface {
+class BisimulationSolver : public SolverInterface {
     using QState = bisimulation::QuotientState;
     using QAction = bisimulation::QuotientAction;
 
-    const std::shared_ptr<ProbabilisticTask>& task_ = tasks::g_root_task;
-    const bool interval_iteration_;
+    std::shared_ptr<ProbabilisticTask> task;
+    std::shared_ptr<FDRCostFunction> task_cost_function;
+    std::unique_ptr<MDPAlgorithm<QState, QAction>> solver;
+    std::string algorithm_name;
 
 public:
-    explicit BisimulationIteration(bool interval)
-        : interval_iteration_(interval)
+    BisimulationSolver(
+        std::shared_ptr<ProbabilisticTask> task,
+        std::shared_ptr<FDRCostFunction> task_cost_function,
+        std::unique_ptr<MDPAlgorithm<QState, QAction>> solver,
+        std::string algorithm_name)
+        : task(std::move(task))
+        , task_cost_function(std::move(task_cost_function))
+        , solver(std::move(solver))
+        , algorithm_name(std::move(algorithm_name))
     {
-    }
-
-    std::string get_algorithm_name() const
-    {
-        return (
-            interval_iteration_ ? "bisimulation interval iteration"
-                                : "bisimulation value iteration");
     }
 
     bool solve() override
     {
-        using namespace algorithms::interval_iteration;
-        using namespace algorithms::topological_vi;
-
-        ProbabilisticTaskProxy task_proxy(*task_);
-
         utils::Timer total_timer;
 
         std::cout << "Building bisimulation..." << std::endl;
 
         std::shared_ptr determinization =
-            std::make_shared<tasks::DeterminizationTask>(task_);
+            std::make_shared<tasks::DeterminizationTask>(task);
 
         TaskProxy det_task_proxy(*determinization);
 
@@ -109,6 +106,7 @@ public:
             return false;
         }
 
+        ProbabilisticTaskProxy task_proxy(*task);
         State initial = task_proxy.get_initial_state();
         initial.unpack();
         const auto initial_state =
@@ -116,11 +114,8 @@ public:
 
         utils::Timer timer;
 
-        std::shared_ptr task_cost_function =
-            std::make_shared<TaskCostFunction>(task_);
-
         bisimulation::BisimilarStateSpace state_space(
-            task_,
+            task,
             task_cost_function,
             det_task_proxy,
             *transition_system);
@@ -134,10 +129,67 @@ public:
                   << " states and " << transitions << " transitions.\n"
                   << std::endl;
 
-        std::cout << "Running " << get_algorithm_name()
-                  << " on the bisimulation..." << std::endl;
+        std::cout << "Running " << algorithm_name << " on the bisimulation..."
+                  << std::endl;
 
         utils::Timer vi_timer;
+
+        heuristics::BlindEvaluator<QState> blind;
+        ProgressReport progress;
+
+        const Interval val = solver->solve(
+            state_space,
+            blind,
+            initial_state,
+            progress,
+            std::numeric_limits<double>::infinity());
+
+        std::cout << "Finished after " << vi_timer() << " [t=" << total_timer
+                  << "]" << std::endl;
+        std::cout << std::endl;
+
+        print_analysis_result(val);
+
+        std::cout << std::endl;
+        std::cout << "Bisimulation:" << std::endl;
+        print_bisimulation_stats(std::cout, time, states, transitions);
+
+        std::cout << std::endl;
+        std::cout << "Algorithm " << algorithm_name
+                  << " statistics:" << std::endl;
+        std::cout << "  Actual solver time: " << vi_timer << std::endl;
+        solver->print_statistics(std::cout);
+
+        return true;
+    }
+};
+
+class BisimulationIterationFactory : public TaskSolverFactory {
+    using QState = bisimulation::QuotientState;
+    using QAction = bisimulation::QuotientAction;
+
+    const bool interval_iteration_;
+
+public:
+    explicit BisimulationIterationFactory(bool interval)
+        : interval_iteration_(interval)
+    {
+    }
+
+    std::string get_algorithm_name() const
+    {
+        return (
+            interval_iteration_ ? "bisimulation interval iteration"
+                                : "bisimulation value iteration");
+    }
+
+    virtual std::unique_ptr<SolverInterface>
+    create(const std::shared_ptr<ProbabilisticTask>& task)
+    {
+        using namespace algorithms::interval_iteration;
+        using namespace algorithms::topological_vi;
+
+        auto task_cost_function = std::make_shared<TaskCostFunction>(task);
 
         std::unique_ptr<MDPAlgorithm<QState, QAction>> solver;
 
@@ -151,69 +203,47 @@ public:
                     false);
         }
 
-        heuristics::BlindEvaluator<QState> blind;
-
-        ProgressReport progress;
-
-        const Interval val = solver->solve(
-            state_space,
-            blind,
-            initial_state,
-            progress,
-            std::numeric_limits<double>::infinity());
-
-        std::cout << "analysis done! [t=" << total_timer << "]" << std::endl;
-        std::cout << std::endl;
-
-        print_analysis_result(val);
-
-        std::cout << std::endl;
-        std::cout << "Bisimulation:" << std::endl;
-        print_bisimulation_stats(std::cout, time, states, transitions);
-
-        std::cout << std::endl;
-        std::cout << "Algorithm " << get_algorithm_name()
-                  << " statistics:" << std::endl;
-        std::cout << "  Actual solver time: " << vi_timer << std::endl;
-        solver->print_statistics(std::cout);
-
-        return true;
+        return std::make_unique<BisimulationSolver>(
+            task,
+            std::move(task_cost_function),
+            std::move(solver),
+            get_algorithm_name());
     }
 };
 
 class BisimulationVISolverFeature
-    : public TypedFeature<SolverInterface, BisimulationIteration> {
+    : public TypedFeature<TaskSolverFactory, BisimulationIterationFactory> {
 public:
     BisimulationVISolverFeature()
-        : TypedFeature<SolverInterface, BisimulationIteration>(
+        : TypedFeature<TaskSolverFactory, BisimulationIterationFactory>(
               "bisimulation_vi")
     {
         document_title("Bisimulation Value Iteration.");
     }
 
 protected:
-    std::shared_ptr<BisimulationIteration>
+    std::shared_ptr<BisimulationIterationFactory>
     create_component(const Options&, const utils::Context&) const override
     {
-        return std::make_shared<BisimulationIteration>(false);
+        return std::make_shared<BisimulationIterationFactory>(false);
     }
 };
 
 class BisimulationIISolverFeature
-    : public TypedFeature<SolverInterface, BisimulationIteration> {
+    : public TypedFeature<TaskSolverFactory, BisimulationIterationFactory> {
 public:
     BisimulationIISolverFeature()
-        : TypedFeature<SolverInterface, BisimulationIteration>(
+        : TypedFeature<TaskSolverFactory, BisimulationIterationFactory>(
               "bisimulation_ii")
     {
         document_title("Bisimulation Interval Iteration.");
     }
 
 protected:
-    std::shared_ptr<BisimulationIteration>
+    std::shared_ptr<BisimulationIterationFactory>
     create_component(const Options&, const utils::Context&) const override
     {
-        return std::make_shared<BisimulationIteration>(true);
+        return std::make_shared<BisimulationIterationFactory>(true);
     }
 };
 

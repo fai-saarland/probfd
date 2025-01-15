@@ -6,12 +6,12 @@
 
 // Forward Declarations
 namespace probfd {
-class SolverInterface;
+class TaskSolverFactory;
 }
 
 namespace probfd {
 
-extern std::shared_ptr<SolverInterface>
+extern std::shared_ptr<TaskSolverFactory>
 parse_cmd_line(int argc, const char** argv, bool is_unit_cost);
 
 /// Returns a string documenting usage of the planner. Receives the

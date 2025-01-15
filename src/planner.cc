@@ -22,7 +22,7 @@ int main(int argc, const char** argv)
     utils::register_event_handlers();
 
     if (argc < 2) {
-        utils::g_log << usage(argv[0]) << endl;
+        std::cout << usage(argv[0]) << endl;
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
 
@@ -35,17 +35,25 @@ int main(int argc, const char** argv)
         unit_cost = probfd::task_properties::is_unit_cost(task_proxy);
     }
 
-    shared_ptr<SolverInterface> algorithm =
+    shared_ptr<TaskSolverFactory> solver_factory =
         parse_cmd_line(argc, argv, unit_cost);
 
+    if (!solver_factory) {
+        std::cout << usage(argv[0]) << endl;
+        utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
+    }
+
+    std::unique_ptr<SolverInterface> solver =
+        solver_factory->create(tasks::g_root_task);
+
     utils::g_search_timer.resume();
-    bool found_solution = algorithm->solve();
+    bool found_solution = solver->solve();
     utils::g_search_timer.stop();
     utils::g_timer.stop();
 
-    algorithm->print_statistics();
-    utils::g_log << "Search time: " << utils::g_search_timer << endl;
-    utils::g_log << "Total time: " << utils::g_timer << endl;
+    solver->print_statistics();
+    std::cout << "Search time: " << utils::g_search_timer << endl;
+    std::cout << "Total time: " << utils::g_timer << endl;
 
     ExitCode exitcode = found_solution ? ExitCode::SUCCESS
                                        : ExitCode::SEARCH_UNSOLVED_INCOMPLETE;

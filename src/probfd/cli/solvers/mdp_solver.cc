@@ -64,13 +64,13 @@ MDPSolverArgs get_base_solver_args_from_options(const Options& options)
         std::make_tuple(
             options.get<std::shared_ptr<TaskStateSpaceFactory>>("state_space"),
             options.get<std::shared_ptr<TaskEvaluatorFactory>>("eval"),
+            options.get<double>("max_time"),
+            options.get<std::string>("policy_file"),
+            options.get<bool>("print_fact_names"),
             options.contains("report_epsilon")
                 ? std::optional<value_t>(options.get<value_t>("report_epsilon"))
                 : std::nullopt,
-            options.get<bool>("report_enabled"),
-            options.get<double>("max_time"),
-            options.get<std::string>("policy_file"),
-            options.get<bool>("print_fact_names")));
+            options.get<bool>("report_enabled")));
 }
 
 } // namespace probfd::cli::solvers

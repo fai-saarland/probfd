@@ -27,10 +27,10 @@ namespace probfd::cli::solvers {
 using MDPSolverAddditionalArgs = std::tuple<
     std::shared_ptr<probfd::TaskStateSpaceFactory>,
     std::shared_ptr<probfd::TaskEvaluatorFactory>,
-    std::optional<probfd::value_t>,
-    bool,
     double,
     std::string,
+    bool,
+    std::optional<probfd::value_t>,
     bool>;
 
 using MDPSolverArgs =

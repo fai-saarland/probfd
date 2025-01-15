@@ -27,7 +27,9 @@ public:
         return "ta_topological_value_iteration";
     }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+        const std::shared_ptr<ProbabilisticTask>&,
+        const std::shared_ptr<FDRCostFunction>&) override
     {
         using TVIAlgorithm = algorithms::ta_topological_vi::
             TATopologicalValueIteration<State, OperatorID>;
@@ -36,10 +38,10 @@ public:
 };
 
 class TATopologicalVISolverFeature
-    : public TypedFeature<SolverInterface, TATopologicalVISolver> {
+    : public TypedFeature<TaskSolverFactory, TATopologicalVISolver> {
 public:
     TATopologicalVISolverFeature()
-        : TypedFeature<SolverInterface, TATopologicalVISolver>(
+        : TypedFeature<TaskSolverFactory, TATopologicalVISolver>(
               "ta_topological_value_iteration")
     {
         document_title("Trap-Aware Topological Value Iteration.");

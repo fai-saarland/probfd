@@ -33,7 +33,9 @@ public:
         return "interval_iteration";
     }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+        const std::shared_ptr<ProbabilisticTask>&,
+        const std::shared_ptr<FDRCostFunction>&) override
     {
         return std::make_unique<IntervalIteration<State, OperatorID>>(
             false,
@@ -42,10 +44,10 @@ public:
 };
 
 class IntervalIterationSolverFeature
-    : public TypedFeature<SolverInterface, IntervalIterationSolver> {
+    : public TypedFeature<TaskSolverFactory, IntervalIterationSolver> {
 public:
     IntervalIterationSolverFeature()
-        : TypedFeature<SolverInterface, IntervalIterationSolver>(
+        : TypedFeature<TaskSolverFactory, IntervalIterationSolver>(
               "interval_iteration")
     {
         document_title("Interval Iteration");

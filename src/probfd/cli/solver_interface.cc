@@ -8,13 +8,15 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-class SolverInterfaceCategoryPlugin
-    : public TypedCategoryPlugin<SolverInterface> {
+class TaskSolverFactoryCategoryPlugin
+    : public TypedCategoryPlugin<TaskSolverFactory> {
 public:
-    SolverInterfaceCategoryPlugin()
-        : TypedCategoryPlugin("SolverInterface")
+    TaskSolverFactoryCategoryPlugin()
+        : TypedCategoryPlugin("TaskSolverFactory")
     {
-        document_synopsis("Represents a generic planning problem solver");
+        document_synopsis(
+            "Represents a factory that produces a generic planning problem "
+            "solver for a given probabilistic planning task.");
     }
 } _category_plugin;
 

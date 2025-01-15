@@ -20,20 +20,20 @@ MDPHeuristicSearchBase<Bisimulation, Fret>::MDPHeuristicSearchBase(
     utils::Verbosity verbosity,
     std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
     std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
-    std::optional<value_t> report_epsilon,
-    bool report_enabled,
     double max_time,
     std::string policy_filename,
-    bool print_fact_names)
+    bool print_fact_names,
+    std::optional<value_t> report_epsilon,
+    bool report_enabled)
     : MDPSolver(
           verbosity,
           std::move(task_state_space_factory),
           std::move(heuristic_factory),
-          report_epsilon,
-          report_enabled,
           max_time,
           policy_filename,
-          print_fact_names)
+          print_fact_names,
+          report_epsilon,
+          report_enabled)
     , dual_bounds_(dual_bounds)
     , tiebreaker_(std::move(policy))
 {
@@ -71,22 +71,22 @@ MDPHeuristicSearch<false, false>::MDPHeuristicSearch(
     utils::Verbosity verbosity,
     std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
     std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
-    std::optional<value_t> report_epsilon,
-    bool report_enabled,
     double max_time,
     std::string policy_filename,
-    bool print_fact_names)
+    bool print_fact_names,
+    std::optional<value_t> report_epsilon,
+    bool report_enabled)
     : MDPHeuristicSearchBase(
           dual_bounds,
           std::move(policy),
           verbosity,
           std::move(task_state_space_factory),
           std::move(heuristic_factory),
-          report_epsilon,
-          report_enabled,
           max_time,
           std::move(policy_filename),
-          print_fact_names)
+          print_fact_names,
+          report_epsilon,
+          report_enabled)
 {
 }
 
@@ -97,22 +97,22 @@ MDPHeuristicSearch<false, true>::MDPHeuristicSearch(
     utils::Verbosity verbosity,
     std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
     std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
-    std::optional<value_t> report_epsilon,
-    bool report_enabled,
     double max_time,
     std::string policy_filename,
-    bool print_fact_names)
+    bool print_fact_names,
+    std::optional<value_t> report_epsilon,
+    bool report_enabled)
     : MDPHeuristicSearchBase(
           dual_bounds,
           std::move(policy),
           verbosity,
           std::move(task_state_space_factory),
           std::move(heuristic_factory),
-          report_epsilon,
-          report_enabled,
           max_time,
           std::move(policy_filename),
-          print_fact_names)
+          print_fact_names,
+          report_epsilon,
+          report_enabled)
     , fret_on_policy_(fret_on_policy)
 {
 }
@@ -123,22 +123,22 @@ MDPHeuristicSearch<true, false>::MDPHeuristicSearch(
     utils::Verbosity verbosity,
     std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
     std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
-    std::optional<value_t> report_epsilon,
-    bool report_enabled,
     double max_time,
     std::string policy_filename,
-    bool print_fact_names)
+    bool print_fact_names,
+    std::optional<value_t> report_epsilon,
+    bool report_enabled)
     : MDPHeuristicSearchBase(
           dual_bounds,
           std::move(policy),
           verbosity,
           std::move(task_state_space_factory),
           std::move(heuristic_factory),
-          report_epsilon,
-          report_enabled,
           max_time,
           std::move(policy_filename),
-          print_fact_names)
+          print_fact_names,
+          report_epsilon,
+          report_enabled)
 {
 }
 
@@ -149,22 +149,22 @@ MDPHeuristicSearch<true, true>::MDPHeuristicSearch(
     utils::Verbosity verbosity,
     std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
     std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
-    std::optional<value_t> report_epsilon,
-    bool report_enabled,
     double max_time,
     std::string policy_filename,
-    bool print_fact_names)
+    bool print_fact_names,
+    std::optional<value_t> report_epsilon,
+    bool report_enabled)
     : MDPHeuristicSearchBase(
           dual_bounds,
           std::move(policy),
           verbosity,
           std::move(task_state_space_factory),
           std::move(heuristic_factory),
-          report_epsilon,
-          report_enabled,
           max_time,
           std::move(policy_filename),
-          print_fact_names)
+          print_fact_names,
+          report_epsilon,
+          report_enabled)
     , fret_on_policy_(fret_on_policy)
 {
 }

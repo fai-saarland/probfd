@@ -44,16 +44,21 @@ public:
         return "exhaustive_ao";
     }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<FDRCostFunction>& task_cost_function) override
     {
         return this->template create_heuristic_search_algorithm<
-            algorithms::exhaustive_ao::ExhaustiveAOSearch>(open_list_);
+            algorithms::exhaustive_ao::ExhaustiveAOSearch>(
+            task,
+            task_cost_function,
+            open_list_);
     }
 };
 
 template <bool Bisimulation>
 class ExhaustiveAOSolverFeature
-    : public TypedFeature<SolverInterface, ExhaustiveAOSolver<Bisimulation>> {
+    : public TypedFeature<TaskSolverFactory, ExhaustiveAOSolver<Bisimulation>> {
     using OpenList = OpenList<ActionType<Bisimulation, false>>;
 
 public:

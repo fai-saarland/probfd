@@ -27,8 +27,6 @@ using namespace downward::cli::plugins;
 namespace {
 
 class ExhaustiveDFSSolver : public MDPSolver {
-    const Interval cost_bound_;
-
     const std::shared_ptr<FDRTransitionSorter> transition_sort_;
 
     const bool dual_bounds_;
@@ -44,9 +42,6 @@ public:
         bool only_propagate_when_changed,
         Args&&... args)
         : MDPSolver(std::forward<Args>(args)...)
-        , cost_bound_(
-              0_vt,
-              task_cost_function_->get_non_goal_termination_cost())
         , transition_sort_(std::move(order))
         , dual_bounds_(dual_bounds)
         , path_updates_(reverse_path_updates)
@@ -56,21 +51,27 @@ public:
 
     std::string get_algorithm_name() const override { return "exhaustive_dfs"; }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+        const std::shared_ptr<ProbabilisticTask>&,
+        const std::shared_ptr<FDRCostFunction>& task_cost_function) override
     {
         using Algorithm = ExhaustiveDepthFirstSearch<State, OperatorID, false>;
         using Algorithm2 = ExhaustiveDepthFirstSearch<State, OperatorID, true>;
 
+        Interval cost_bound(
+            0_vt,
+            task_cost_function->get_non_goal_termination_cost());
+
         if (dual_bounds_) {
             return std::make_unique<Algorithm2>(
                 transition_sort_,
-                cost_bound_,
+                cost_bound,
                 path_updates_,
                 only_propagate_when_changed_);
         } else {
             return std::make_unique<Algorithm>(
                 transition_sort_,
-                cost_bound_,
+                cost_bound,
                 path_updates_,
                 only_propagate_when_changed_);
         }
@@ -78,10 +79,10 @@ public:
 };
 
 class ExhaustiveDFSSolverFeature
-    : public TypedFeature<SolverInterface, ExhaustiveDFSSolver> {
+    : public TypedFeature<TaskSolverFactory, ExhaustiveDFSSolver> {
 public:
     ExhaustiveDFSSolverFeature()
-        : TypedFeature<SolverInterface, ExhaustiveDFSSolver>("exhaustive_dfs")
+        : TypedFeature<TaskSolverFactory, ExhaustiveDFSSolver>("exhaustive_dfs")
     {
         document_title("Exhaustive Depth-First Search");
 

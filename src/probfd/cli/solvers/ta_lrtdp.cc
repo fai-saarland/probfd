@@ -51,10 +51,14 @@ public:
     std::string get_algorithm_name() const override { return "talrtdp"; }
     std::string get_heuristic_search_name() const override { return ""; }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<FDRCostFunction>& task_cost_function) override
     {
         return this
             ->template create_quotient_heuristic_search_algorithm<TALRTDP>(
+                task,
+                task_cost_function,
                 stop_consistent_,
                 reexpand_traps_,
                 successor_sampler_);
@@ -62,10 +66,10 @@ public:
 };
 
 class TrapAwareLRTDPSolverFeature
-    : public TypedFeature<SolverInterface, TrapAwareLRTDPSolver> {
+    : public TypedFeature<TaskSolverFactory, TrapAwareLRTDPSolver> {
 public:
     TrapAwareLRTDPSolverFeature()
-        : TypedFeature<SolverInterface, TrapAwareLRTDPSolver>("talrtdp")
+        : TypedFeature<TaskSolverFactory, TrapAwareLRTDPSolver>("talrtdp")
     {
         document_title("Trap-aware LRTDP.");
         document_synopsis(

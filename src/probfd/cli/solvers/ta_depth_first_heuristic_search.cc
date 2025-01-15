@@ -68,10 +68,14 @@ public:
 
     std::string get_heuristic_search_name() const override { return ""; }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<FDRCostFunction>& task_cost_function) override
     {
         return this
             ->template create_quotient_heuristic_search_algorithm<Algorithm>(
+                task,
+                task_cost_function,
                 forward_updates_,
                 backward_updates_,
                 cutoff_tip_,
@@ -83,10 +87,10 @@ public:
 };
 
 class TrapAwareDFHSSolverFeature
-    : public TypedFeature<SolverInterface, TrapAwareDFHSSolver> {
+    : public TypedFeature<TaskSolverFactory, TrapAwareDFHSSolver> {
 public:
     TrapAwareDFHSSolverFeature()
-        : TypedFeature<SolverInterface, TrapAwareDFHSSolver>("tadfhs")
+        : TypedFeature<TaskSolverFactory, TrapAwareDFHSSolver>("tadfhs")
     {
         document_title("Trap-aware depth-first heuristic search family.");
         document_synopsis(
@@ -147,10 +151,10 @@ protected:
 };
 
 class TrapAwareILAOSolverFeature
-    : public TypedFeature<SolverInterface, TrapAwareDFHSSolver> {
+    : public TypedFeature<TaskSolverFactory, TrapAwareDFHSSolver> {
 public:
     TrapAwareILAOSolverFeature()
-        : TypedFeature<SolverInterface, TrapAwareDFHSSolver>("tailao")
+        : TypedFeature<TaskSolverFactory, TrapAwareDFHSSolver>("tailao")
     {
         document_title(
             "iLAO* variant of trap-aware depth-first heuristic search.");
@@ -186,10 +190,10 @@ public:
 };
 
 class TrapAwareLILAOSolverFeature
-    : public TypedFeature<SolverInterface, TrapAwareDFHSSolver> {
+    : public TypedFeature<TaskSolverFactory, TrapAwareDFHSSolver> {
 public:
     TrapAwareLILAOSolverFeature()
-        : TypedFeature<SolverInterface, TrapAwareDFHSSolver>("talilao")
+        : TypedFeature<TaskSolverFactory, TrapAwareDFHSSolver>("talilao")
     {
         document_title("Labelled iLAO* variant of trap-aware depth-first "
                        "heuristic search.");
@@ -227,10 +231,10 @@ public:
 };
 
 class TrapAwareHDPSolverFeature
-    : public TypedFeature<SolverInterface, TrapAwareDFHSSolver> {
+    : public TypedFeature<TaskSolverFactory, TrapAwareDFHSSolver> {
 public:
     TrapAwareHDPSolverFeature()
-        : TypedFeature<SolverInterface, TrapAwareDFHSSolver>("tahdp")
+        : TypedFeature<TaskSolverFactory, TrapAwareDFHSSolver>("tahdp")
     {
         document_title(
             "HDP variant of trap-aware depth-first heuristic search.");

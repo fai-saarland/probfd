@@ -30,27 +30,13 @@ class I2DualSolver : public MDPSolver {
     lp::LPSolverType solver_type_;
 
 public:
+    template <typename... Args>
     I2DualSolver(
         bool disable_hpom,
         bool incremental_updates,
         lp::LPSolverType lp_solver,
-        utils::Verbosity verbosity,
-        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
-        std::optional<value_t> report_epsilon,
-        bool report_enabled,
-        double max_time,
-        std::string policy_filename,
-        bool print_fact_names)
-        : MDPSolver(
-              verbosity,
-              std::move(task_state_space_factory),
-              std::move(heuristic_factory),
-              report_epsilon,
-              report_enabled,
-              max_time,
-              std::move(policy_filename),
-              print_fact_names)
+        Args&&... args)
+        : MDPSolver(std::forward<Args>(args)...)
         , hpom_enabled_(!disable_hpom)
         , incremental_hpom_updates_(incremental_updates)
         , solver_type_(lp_solver)
@@ -59,21 +45,24 @@ public:
 
     std::string get_algorithm_name() const override { return "i2dual"; }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<FDRCostFunction>& task_cost_function) override
     {
         return std::make_unique<algorithms::i2dual::I2Dual>(
-            this->task_,
-            this->task_cost_function_,
+            task,
+            task_cost_function,
             hpom_enabled_,
             incremental_hpom_updates_,
             solver_type_);
     }
 };
 
-class I2DualSolverFeature : public TypedFeature<SolverInterface, I2DualSolver> {
+class I2DualSolverFeature
+    : public TypedFeature<TaskSolverFactory, I2DualSolver> {
 public:
     I2DualSolverFeature()
-        : TypedFeature<SolverInterface, I2DualSolver>("i2dual")
+        : TypedFeature<TaskSolverFactory, I2DualSolver>("i2dual")
     {
         document_title("i^2-dual");
 

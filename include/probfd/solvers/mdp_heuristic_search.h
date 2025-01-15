@@ -1,5 +1,5 @@
-#ifndef PROBFD_SOLVERS_MDP_HEURISTIC_SEARCH_H
-#define PROBFD_SOLVERS_MDP_HEURISTIC_SEARCH_H
+#ifndef SOLVERS_MDP_HEURISTIC_SEARCH_H
+#define SOLVERS_MDP_HEURISTIC_SEARCH_H
 
 #include "probfd/solvers/mdp_solver.h"
 
@@ -73,11 +73,11 @@ public:
         utils::Verbosity verbosity,
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
-        std::optional<value_t> report_epsilon,
-        bool report_enabled,
         double max_time,
         std::string policy_filename,
-        bool print_fact_names);
+        bool print_fact_names,
+        std::optional<value_t> report_epsilon,
+        bool report_enabled);
 
     virtual std::string get_heuristic_search_name() const = 0;
 };
@@ -95,17 +95,19 @@ public:
         utils::Verbosity verbosity,
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
-        std::optional<value_t> report_epsilon,
-        bool report_enabled,
         double max_time,
         std::string policy_filename,
-        bool print_fact_names);
+        bool print_fact_names,
+        std::optional<value_t> report_epsilon,
+        bool report_enabled);
 
     std::string get_algorithm_name() const override;
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    std::unique_ptr<FDRMDPAlgorithm>
-    create_heuristic_search_algorithm(Args&&... args)
+    std::unique_ptr<FDRMDPAlgorithm> create_heuristic_search_algorithm(
+        const std::shared_ptr<ProbabilisticTask>&,
+        const std::shared_ptr<FDRCostFunction>&,
+        Args&&... args)
     {
         if (dual_bounds_) {
             using HeuristicSearchType = HS<State, OperatorID, true>;
@@ -137,17 +139,19 @@ public:
         utils::Verbosity verbosity,
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
-        std::optional<value_t> report_epsilon,
-        bool report_enabled,
         double max_time,
         std::string policy_filename,
-        bool print_fact_names);
+        bool print_fact_names,
+        std::optional<value_t> report_epsilon,
+        bool report_enabled);
 
     std::string get_algorithm_name() const override;
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    std::unique_ptr<FDRMDPAlgorithm>
-    create_heuristic_search_algorithm(Args&&... args)
+    std::unique_ptr<FDRMDPAlgorithm> create_heuristic_search_algorithm(
+        const std::shared_ptr<ProbabilisticTask>&,
+        const std::shared_ptr<FDRCostFunction>&,
+        Args&&... args)
     {
         if (this->dual_bounds_) {
             if (this->fret_on_policy_) {
@@ -177,8 +181,10 @@ public:
     }
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    std::unique_ptr<FDRMDPAlgorithm>
-    create_quotient_heuristic_search_algorithm(Args&&... args)
+    std::unique_ptr<FDRMDPAlgorithm> create_quotient_heuristic_search_algorithm(
+        const std::shared_ptr<ProbabilisticTask>&,
+        const std::shared_ptr<FDRCostFunction>&,
+        Args&&... args)
     {
         if (dual_bounds_) {
             return std::make_unique<HS<State, OperatorID, true>>(
@@ -220,29 +226,31 @@ public:
         utils::Verbosity verbosity,
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
-        std::optional<value_t> report_epsilon,
-        bool report_enabled,
         double max_time,
         std::string policy_filename,
-        bool print_fact_names);
+        bool print_fact_names,
+        std::optional<value_t> report_epsilon,
+        bool report_enabled);
 
     std::string get_algorithm_name() const override;
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    std::unique_ptr<FDRMDPAlgorithm>
-    create_heuristic_search_algorithm(Args&&... args)
+    std::unique_ptr<FDRMDPAlgorithm> create_heuristic_search_algorithm(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<FDRCostFunction>& task_cost_function,
+        Args&&... args)
     {
         if (dual_bounds_) {
             return BisimulationBasedHeuristicSearchAlgorithm::create<HS, true>(
-                this->task_,
-                this->task_cost_function_,
+                task,
+                task_cost_function,
                 this->get_heuristic_search_name(),
                 this->tiebreaker_,
                 std::forward<Args>(args)...);
         } else {
             return BisimulationBasedHeuristicSearchAlgorithm::create<HS, false>(
-                this->task_,
-                this->task_cost_function_,
+                task,
+                task_cost_function,
                 this->get_heuristic_search_name(),
                 this->tiebreaker_,
                 std::forward<Args>(args)...);
@@ -263,17 +271,19 @@ public:
         utils::Verbosity verbosity,
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
-        std::optional<value_t> report_epsilon,
-        bool report_enabled,
         double max_time,
         std::string policy_filename,
-        bool print_fact_names);
+        bool print_fact_names,
+        std::optional<value_t> report_epsilon,
+        bool report_enabled);
 
     std::string get_algorithm_name() const override;
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    std::unique_ptr<FDRMDPAlgorithm>
-    create_heuristic_search_algorithm(Args&&... args)
+    std::unique_ptr<FDRMDPAlgorithm> create_heuristic_search_algorithm(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<FDRCostFunction>& task_cost_function,
+        Args&&... args)
     {
         if (this->dual_bounds_) {
             if (this->fret_on_policy_) {
@@ -281,13 +291,19 @@ public:
                     ->template heuristic_search_algorithm_factory_wrapper<
                         algorithms::fret::FRETPi,
                         true,
-                        HS>(std::forward<Args>(args)...);
+                        HS>(
+                        task,
+                        task_cost_function,
+                        std::forward<Args>(args)...);
             } else {
                 return this
                     ->template heuristic_search_algorithm_factory_wrapper<
                         algorithms::fret::FRETV,
                         true,
-                        HS>(std::forward<Args>(args)...);
+                        HS>(
+                        task,
+                        task_cost_function,
+                        std::forward<Args>(args)...);
             }
         } else {
             if (this->fret_on_policy_) {
@@ -295,13 +311,19 @@ public:
                     ->template heuristic_search_algorithm_factory_wrapper<
                         algorithms::fret::FRETPi,
                         false,
-                        HS>(std::forward<Args>(args)...);
+                        HS>(
+                        task,
+                        task_cost_function,
+                        std::forward<Args>(args)...);
             } else {
                 return this
                     ->template heuristic_search_algorithm_factory_wrapper<
                         algorithms::fret::FRETV,
                         false,
-                        HS>(std::forward<Args>(args)...);
+                        HS>(
+                        task,
+                        task_cost_function,
+                        std::forward<Args>(args)...);
             }
         }
     }
@@ -310,20 +332,22 @@ public:
         template <typename, typename, typename>
         class HS,
         typename... Args>
-    std::unique_ptr<FDRMDPAlgorithm>
-    create_quotient_heuristic_search_algorithm(Args&&... args)
+    std::unique_ptr<FDRMDPAlgorithm> create_quotient_heuristic_search_algorithm(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<FDRCostFunction>& task_cost_function,
+        Args&&... args)
     {
         if (dual_bounds_) {
             return BisimulationBasedHeuristicSearchAlgorithm::create<HS, true>(
-                this->task_,
-                this->task_cost_function_,
+                task,
+                task_cost_function,
                 this->get_heuristic_search_name(),
                 this->tiebreaker_,
                 std::forward<Args>(args)...);
         } else {
             return BisimulationBasedHeuristicSearchAlgorithm::create<HS, false>(
-                this->task_,
-                this->task_cost_function_,
+                task,
+                task_cost_function,
                 this->get_heuristic_search_name(),
                 this->tiebreaker_,
                 std::forward<Args>(args)...);
@@ -338,13 +362,15 @@ private:
         template <typename, typename, bool>
         class HS,
         typename... Args>
-    std::unique_ptr<FDRMDPAlgorithm>
-    heuristic_search_algorithm_factory_wrapper(Args&&... args)
+    std::unique_ptr<FDRMDPAlgorithm> heuristic_search_algorithm_factory_wrapper(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<FDRCostFunction>& task_cost_function,
+        Args&&... args)
     {
         return BisimulationBasedHeuristicSearchAlgorithm::
             create<Fret, HS, Interval>(
-                this->task_,
-                this->task_cost_function_,
+                task,
+                task_cost_function,
                 this->get_heuristic_search_name(),
                 this->tiebreaker_,
                 std::forward<Args>(args)...);
@@ -353,4 +379,4 @@ private:
 
 } // namespace probfd::solvers
 
-#endif // PROBFD_SOLVERS_MDP_HEURISTIC_SEARCH_H
+#endif // SOLVERS_MDP_HEURISTIC_SEARCH_H

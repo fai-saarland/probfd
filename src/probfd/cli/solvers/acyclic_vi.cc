@@ -33,14 +33,16 @@ public:
         return "acyclic_value_iteration";
     }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+        const std::shared_ptr<ProbabilisticTask>&,
+        const std::shared_ptr<FDRCostFunction>&) override
     {
         return std::make_unique<AcyclicValueIteration<State, OperatorID>>();
     }
 };
 
 class AcyclicVISolverFeature
-    : public TypedFeature<SolverInterface, AcyclicVISolver> {
+    : public TypedFeature<TaskSolverFactory, AcyclicVISolver> {
 public:
     AcyclicVISolverFeature()
         : TypedFeature("acyclic_value_iteration")

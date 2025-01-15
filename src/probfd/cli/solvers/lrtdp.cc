@@ -49,9 +49,13 @@ public:
 
     std::string get_heuristic_search_name() const override { return "lrtdp"; }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<FDRCostFunction>& task_cost_function) override
     {
         return this->template create_heuristic_search_algorithm<LRTDP>(
+            task,
+            task_cost_function,
             trial_termination_,
             successor_sampler_);
     }
@@ -59,12 +63,12 @@ public:
 
 template <bool Bisimulation, bool Fret>
 class LRTDPSolverFeature
-    : public TypedFeature<SolverInterface, LRTDPSolver<Bisimulation, Fret>> {
+    : public TypedFeature<TaskSolverFactory, LRTDPSolver<Bisimulation, Fret>> {
     using Sampler = SuccessorSampler<ActionType<Bisimulation, Fret>>;
 
 public:
     LRTDPSolverFeature()
-        : TypedFeature<SolverInterface, LRTDPSolver<Bisimulation, Fret>>(
+        : TypedFeature<TaskSolverFactory, LRTDPSolver<Bisimulation, Fret>>(
               add_wrapper_algo_suffix<Bisimulation, Fret>("lrtdp"))
     {
         add_mdp_hs_options_to_feature<Bisimulation, Fret>(*this);

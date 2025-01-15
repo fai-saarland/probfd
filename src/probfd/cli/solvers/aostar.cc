@@ -41,21 +41,25 @@ public:
 
     std::string get_heuristic_search_name() const override { return "aostar"; }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<FDRCostFunction>& task_cost_function) override
     {
         return this->template create_heuristic_search_algorithm<AOStar>(
+            task,
+            task_cost_function,
             successor_sampler_);
     }
 };
 
 template <bool Bisimulation>
 class AOStarSolverFeature
-    : public TypedFeature<SolverInterface, AOStarSolver<Bisimulation>> {
+    : public TypedFeature<TaskSolverFactory, AOStarSolver<Bisimulation>> {
     using Sampler = SuccessorSampler<ActionType<Bisimulation, false>>;
 
 public:
     AOStarSolverFeature()
-        : TypedFeature<SolverInterface, AOStarSolver<Bisimulation>>(
+        : TypedFeature<TaskSolverFactory, AOStarSolver<Bisimulation>>(
               add_wrapper_algo_suffix<Bisimulation, false>("aostar"))
     {
         add_mdp_hs_options_to_feature<Bisimulation, false>(*this);

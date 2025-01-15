@@ -42,7 +42,9 @@ public:
 
     std::string get_algorithm_name() const override { return "idual"; }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm() override
+    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+        const std::shared_ptr<ProbabilisticTask>&,
+        const std::shared_ptr<FDRCostFunction>&) override
     {
         using IDualAlgorithm = algorithms::idual::IDual<State, OperatorID>;
 
@@ -50,10 +52,10 @@ public:
     }
 };
 
-class IDualSolverFeature : public TypedFeature<SolverInterface, IDualSolver> {
+class IDualSolverFeature : public TypedFeature<TaskSolverFactory, IDualSolver> {
 public:
     IDualSolverFeature()
-        : TypedFeature<SolverInterface, IDualSolver>("idual")
+        : TypedFeature<TaskSolverFactory, IDualSolver>("idual")
     {
         document_title("i-dual");
 
