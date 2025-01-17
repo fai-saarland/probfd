@@ -1,22 +1,18 @@
 #ifndef PROBFD_COMMAND_LINE_H
 #define PROBFD_COMMAND_LINE_H
 
-#include <memory>
-#include <string>
+#include <functional>
 
 // Forward Declarations
-namespace probfd {
-class TaskSolverFactory;
+namespace argparse {
+class ArgumentParser;
 }
 
 namespace probfd {
 
-extern std::shared_ptr<TaskSolverFactory>
-parse_cmd_line(int argc, const char** argv, bool is_unit_cost);
+using SubCommandFn = std::function<int(argparse::ArgumentParser&)>;
 
-/// Returns a string documenting usage of the planner. Receives the
-/// program name as input.
-extern std::string usage(const std::string& progname);
+void setup_argparser(argparse::ArgumentParser& arg_parser);
 
 } // namespace probfd
 

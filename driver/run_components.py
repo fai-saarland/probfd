@@ -129,17 +129,14 @@ def run_search(args):
 
     policy_manager = PolicyManager(args.policy_file)
     policy_manager.delete_existing_policies()
+    
+    if args.search_input and args.search_options[0] == "search":
+         args.search_options.append(args.search_input)
 
-    if not args.search_options:
-        returncodes.exit_with_driver_input_error(
-            "search needs --alias or search options")
-    if "--help" not in args.search_options:
-        pass
     try:
         call.check_call(
             "search",
             [executable] + args.search_options,
-            stdin=args.search_input,
             time_limit=time_limit,
             memory_limit=memory_limit)
     except subprocess.CalledProcessError as err:

@@ -1,14 +1,8 @@
 #include "command_line.h"
 
-#include "probfd/solver_interface.h"
-
-#include "downward/utils/logging.h"
 #include "downward/utils/system.h"
-#include "downward/utils/timer.h"
 
-#include "probfd/task_proxy.h"
-#include "probfd/task_utils/task_properties.h"
-#include "probfd/tasks/root_task.h"
+#include <argparse/argparse.hpp>
 
 #include <iostream>
 
@@ -19,44 +13,32 @@ using utils::ExitCode;
 
 int main(int argc, const char** argv)
 {
-    utils::register_event_handlers();
+    argparse::ArgumentParser prog(
+        "probfd",
+        "0.0",
+        argparse::default_arguments::help);
 
-    if (argc < 2) {
-        std::cout << usage(argv[0]) << endl;
-        utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
+    setup_argparser(prog);
+
+    try {
+        prog.parse_args(argc, argv);
+    } catch (const std::exception& err) {
+        std::cerr << err.what() << '\n' << std::endl;
+
+        if (auto subcommand_parser = prog.get_used_subcommand_parser()) {
+            std::cerr << *subcommand_parser;
+        } else {
+            std::cerr << prog;
+        }
+
+        return static_cast<int>(ExitCode::SEARCH_INPUT_ERROR);
     }
 
-    bool unit_cost = false;
-    if (static_cast<string>(argv[1]) != "--help") {
-        utils::g_log << "reading input..." << endl;
-        auto input_task = probfd::tasks::read_root_tasks(cin);
-        utils::g_log << "done reading input!" << endl;
-        ProbabilisticTaskProxy task_proxy(*input_task);
-        unit_cost = probfd::task_properties::is_unit_cost(task_proxy);
+    if (auto subcommand_parser = prog.get_used_subcommand_parser()) {
+        auto subcommand = subcommand_parser->get().get<SubCommandFn>("fn");
+        return subcommand(*subcommand_parser);
     }
 
-    shared_ptr<TaskSolverFactory> solver_factory =
-        parse_cmd_line(argc, argv, unit_cost);
-
-    if (!solver_factory) {
-        std::cout << usage(argv[0]) << endl;
-        utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
-    }
-
-    std::unique_ptr<SolverInterface> solver =
-        solver_factory->create(tasks::g_root_task);
-
-    utils::g_search_timer.resume();
-    bool found_solution = solver->solve();
-    utils::g_search_timer.stop();
-    utils::g_timer.stop();
-
-    solver->print_statistics();
-    std::cout << "Search time: " << utils::g_search_timer << endl;
-    std::cout << "Total time: " << utils::g_timer << endl;
-
-    ExitCode exitcode = found_solution ? ExitCode::SUCCESS
-                                       : ExitCode::SEARCH_UNSOLVED_INCOMPLETE;
-    utils::report_exit_code_reentrant(exitcode);
-    return static_cast<int>(exitcode);
+    std::cerr << prog;
+    return static_cast<int>(ExitCode::SEARCH_INPUT_ERROR);
 }

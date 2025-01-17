@@ -36,12 +36,22 @@ cmake_minimum_required(VERSION 3.21)
 include(common_cxx_flags)
 include(macros)
 include(options)
+include(FetchContent)
 
 set_up_build_types("Debug;Release")
 set_up_options()
 
+FetchContent_Declare(
+    argparse
+    GIT_REPOSITORY https://github.com/t-kloessner/argparse.git
+    GIT_TAG dd42d68ac3ac9b5fa7127d16fa9b5ac8d4bdb166
+)
+
+FetchContent_MakeAvailable(argparse)
+
 #add_executable(probfd downward/command_line.cc downward/planner.cc)
 add_executable(probfd command_line.cc planner.cc)
+target_link_libraries(probfd PUBLIC argparse)
 
 # On Windows we have to copy all DLLs next to the generated binary.
 if (WIN32)
