@@ -44,7 +44,7 @@ set_up_options()
 FetchContent_Declare(
     argparse
     GIT_REPOSITORY https://github.com/t-kloessner/argparse.git
-    GIT_TAG dd42d68ac3ac9b5fa7127d16fa9b5ac8d4bdb166
+    GIT_TAG 2847096dccfc627b424a5fd2720f64f843ea0d94
 )
 
 FetchContent_MakeAvailable(argparse)
