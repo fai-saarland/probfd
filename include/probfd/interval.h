@@ -3,7 +3,9 @@
 
 #include "probfd/value_type.h"
 
+#include <format>
 #include <iosfwd>
+#include <vector>
 
 namespace probfd {
 
@@ -66,5 +68,26 @@ Interval operator*(Interval val, value_t scale_factor);
 std::ostream& operator<<(std::ostream& os, Interval val);
 
 } // namespace probfd
+
+template <>
+struct std::formatter<probfd::Interval> {
+    std::formatter<std::vector<probfd::value_t>> inheritted;
+    std::formatter<std::pair<probfd::value_t, probfd::value_t>> inheritted2;
+
+    constexpr formatter() { inheritted2.set_brackets("[", "]"); }
+
+    constexpr auto parse(std::format_parse_context& ctx)
+    {
+        return inheritted.parse(ctx);
+    }
+
+    auto
+    format(const probfd::Interval& interval, std::format_context& ctx) const
+    {
+        return inheritted2.format(
+            std::make_pair(interval.lower, interval.upper),
+            ctx);
+    }
+};
 
 #endif // PROBFD_VALUE_UTILS_H
