@@ -18,8 +18,6 @@ struct Interval;
 
 namespace probfd {
 
-extern void print_value(std::ostream& o, value_t value);
-
 extern void print_analysis_result(Interval result);
 
 extern void print_initial_state_value(Interval value, int spaces = 0);
