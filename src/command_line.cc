@@ -155,11 +155,7 @@ protected:
         for (const auto& [arg_info, s] :
              std::views::zip(feature.get_arguments(), arg_strings)) {
 
-            auto fmt = std::format("  {{:{}}}  {{}}", max_width);
-            std::vprint_unicode(
-                os,
-                fmt,
-                std::make_format_args(s, arg_info.help));
+            std::print(os, "  {:{}}  {}", s, max_width, arg_info.help);
 
             if (arg_info.has_default()) {
                 std::println(os, " (default: {})", arg_info.default_value);
@@ -168,13 +164,16 @@ protected:
             }
 
             const Type& arg_type = arg_info.type;
-            if (arg_type.is_enum_type()) {
-                for (const pair<string, string>& explanation :
-                     arg_type.get_documented_enum_values()) {
-                    os << std::string(max_width + 2, ' ') << "    - "
-                       << explanation.first << ": " << explanation.second
-                       << endl;
-                }
+            if (!arg_type.is_enum_type()) continue;
+
+            for (const auto& expl : arg_type.get_documented_enum_values()) {
+                std::println(
+                    os,
+                    "{:>{}} {}: {}",
+                    '-',
+                    max_width + 7,
+                    expl.first,
+                    expl.second);
             }
         }
 
@@ -242,16 +241,11 @@ protected:
             }
         }
 
-        auto fmt = std::format("  {{:<{}}}  {{}}\n", max_width);
-
         for (const auto& [subcategory, features] : subcategories) {
             for (const auto& feature : features) {
                 const auto& name = feature->get_key();
                 const auto& synopsis = feature->get_title();
-                std::vprint_unicode(
-                    os,
-                    fmt,
-                    std::make_format_args(name, synopsis));
+                std::print(os, "  {:{}}  {}\n", name, max_width, synopsis);
             }
         }
 
