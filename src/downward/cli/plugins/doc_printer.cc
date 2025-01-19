@@ -59,6 +59,10 @@ void DocPrinter::print_category(const FeatureType& type, bool recursive) const
         }
     }
 
+    for (auto& [name, features] : subcategories) {
+        std::ranges::sort(features, {}, &Feature::get_key);
+    }
+
     print_category_header(type, subcategories);
     print_category_synopsis(
         type.get_synopsis(),
