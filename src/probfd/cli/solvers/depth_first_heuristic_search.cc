@@ -84,7 +84,7 @@ public:
         : DFHSSolverFeature::TypedFeature(
               add_wrapper_algo_suffix<Bisimulation, Fret>("dfhs"))
     {
-        this->document_title("Depth-first heuristic search family.");
+        this->document_title("Depth-first heuristic search family");
 
         this->template add_option<bool>(
             "labeling",
@@ -170,7 +170,7 @@ public:
         : ILAOSolverFeature::TypedFeature(
               add_wrapper_algo_suffix<Bisimulation, Fret>("ilao"))
     {
-        this->document_title("iLAO* variant of depth-first heuristic search.");
+        this->document_title("iLAO* variant of depth-first heuristic search");
 
         add_mdp_hs_options_to_feature<Bisimulation, Fret>(*this);
     }
@@ -199,8 +199,7 @@ public:
         : LILAOSolverFeature::TypedFeature(
               add_wrapper_algo_suffix<Bisimulation, Fret>("lilao"))
     {
-        this->document_title("Labelled iLAO* variant of depth-first heuristic "
-                             "search.");
+        this->document_title("Labelled variant of iLAO*");
 
         add_mdp_hs_options_to_feature<Bisimulation, Fret>(*this);
     }
@@ -229,7 +228,7 @@ public:
         : HDPSolverFeature::TypedFeature(
               add_wrapper_algo_suffix<Bisimulation, Fret>("hdp"))
     {
-        this->document_title("HDP variant of depth-first heuristic search.");
+        this->document_title("HDP variant of depth-first heuristic search");
 
         add_mdp_hs_options_to_feature<Bisimulation, Fret>(*this);
     }

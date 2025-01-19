@@ -71,7 +71,7 @@ public:
     TrapAwareLRTDPSolverFeature()
         : TypedFeature<TaskSolverFactory, TrapAwareLRTDPSolver>("talrtdp")
     {
-        document_title("Trap-aware LRTDP.");
+        document_title("Trap-aware LRTDP");
         document_synopsis(
             "Supports all MDP types (even non-SSPs) without FRET loop.");
 

@@ -218,7 +218,7 @@ public:
         : TypedFeature<TaskSolverFactory, BisimulationIterationFactory>(
               "bisimulation_vi")
     {
-        document_title("Bisimulation Value Iteration.");
+        document_title("Bisimulation Value Iteration");
     }
 
 protected:
@@ -236,7 +236,7 @@ public:
         : TypedFeature<TaskSolverFactory, BisimulationIterationFactory>(
               "bisimulation_ii")
     {
-        document_title("Bisimulation Interval Iteration.");
+        document_title("Bisimulation Interval Iteration");
     }
 
 protected:

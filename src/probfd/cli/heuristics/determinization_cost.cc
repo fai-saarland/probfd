@@ -19,7 +19,14 @@ public:
     DeterminizationHeuristicFactoryFeature()
         : TypedFeature("det")
     {
-        add_option<std::shared_ptr<::Evaluator>>("evaluator");
+        document_title("Determinization-based Heuristic");
+        document_synopsis("This heuristic returns the estimate of a classical "
+                          "planning heuristic evaluated on the all-outcomes "
+                          "determinization of the planning task.");
+
+        add_option<std::shared_ptr<::Evaluator>>(
+            "evaluator",
+            "The classical planning heuristic.");
     }
 
     std::shared_ptr<DeterminizationCostHeuristicFactory>

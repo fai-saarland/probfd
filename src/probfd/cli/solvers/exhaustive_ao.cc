@@ -66,6 +66,8 @@ public:
         : ExhaustiveAOSolverFeature::TypedFeature(
               add_wrapper_algo_suffix<Bisimulation, false>("exhaustive_ao"))
     {
+        this->document_title("Exhaustive AO* algorithm");
+
         this->template add_option<std::shared_ptr<OpenList>>(
             "open_list",
             "",
