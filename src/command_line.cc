@@ -217,9 +217,43 @@ protected:
         }
     }
 
-    void print_category_header(const string& category_name) const override
+    void print_category_header(
+        const FeatureType& type,
+        const std::map<std::string, std::vector<const Feature*>>& subcategories)
+        const override
     {
-        os << "Help for " << category_name << endl << endl;
+        os << "##### Category " << type.name() << " #####\n\n";
+
+        if (subcategories.empty()) {
+            os << "This category has no features.\n" << std::endl;
+            return;
+        }
+
+        os << "Features:\n";
+
+        std::size_t max_width = 0;
+
+        for (const auto& [subcategory, features] : subcategories) {
+            for (const auto& feature : features) {
+                const auto& name = feature->get_key();
+                if (name.size() > max_width) max_width = name.size();
+            }
+        }
+
+        auto fmt = std::format("  {{:<{}}}  {{}}\n", max_width);
+
+        for (const auto& [subcategory, features] : subcategories) {
+            for (const auto& feature : features) {
+                const auto& name = feature->get_key();
+                const auto& synopsis = feature->get_title();
+                std::vprint_unicode(
+                    os,
+                    fmt,
+                    std::make_format_args(name, synopsis));
+            }
+        }
+
+        std::println(os);
     }
 
     void print_category_synopsis(
@@ -261,7 +295,9 @@ static int list_features(argparse::ArgumentParser& parser)
         if (auto categories =
                 parser.present<std::vector<std::string>>("category")) {
             for (const string& name : *categories) {
-                doc_printer->print_category(name);
+                doc_printer->print_category(
+                    name,
+                    parser.get<bool>("full"));
             }
         }
 
@@ -272,8 +308,6 @@ static int list_features(argparse::ArgumentParser& parser)
             }
         }
     }
-
-    cout << "Help output finished." << endl;
 
     return 0;
 }
@@ -396,8 +430,12 @@ void setup_argparser(argparse::ArgumentParser& arg_parser)
         .help("List features in txt2tags format.")
         .flag();
     feature_list_parser.add_argument("--category")
-        .help("One or more categories for which all features should be listed.")
+        .help("One or more categories which should be listed.")
         .nargs(argparse::nargs_pattern::at_least_one);
+    feature_list_parser.add_argument("--full", "-f")
+        .help("If specified, all features of specified categories will be "
+              "listed explicitly as well.")
+        .flag();
     feature_list_parser.add_argument("features")
         .help("Individual features to list.")
         .remaining();
