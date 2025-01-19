@@ -13,6 +13,8 @@
 #include "probfd/task_evaluator_factory.h"
 #include "probfd/task_state_space_factory.h"
 
+#include "probfd/utils/timed.h"
+
 #include "downward/utils/timer.h"
 
 #include "downward/utils/exceptions.h"
@@ -47,39 +49,6 @@ MDPSolver::MDPSolver(
 }
 
 MDPSolver::~MDPSolver() = default;
-
-namespace {
-class Printer {
-    utils::Timer timer;
-    std::ostream& out;
-
-public:
-    Printer(const std::string& print, std::ostream& out = std::cout)
-        : out(out)
-    {
-        out << print << ' ' << std::flush;
-    }
-
-    ~Printer()
-    {
-        if (std::uncaught_exceptions() > 0) {
-            out << "Failed after " << timer() << '.' << std::endl;
-        } else {
-            out << "Finished after " << timer() << '.' << std::endl;
-        }
-    }
-};
-
-template <typename F, typename... Args>
-std::invoke_result_t<F, Args...>
-timed(const std::string& print, F&& f, Args&&... args)
-    requires std::invocable<F, Args...>
-{
-    Printer _(print, std::cout);
-    return std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
-}
-
-} // namespace
 
 class Solver : public SolverInterface {
     std::shared_ptr<ProbabilisticTask> task;
@@ -190,7 +159,7 @@ public:
 
             std::cout << std::endl;
             std::cout << "State space interface statistics:" << std::endl;
-            state_space->print_statistics();
+            state_space->print_statistics(std::cout);
 
             std::cout << std::endl;
             std::cout << "Algorithm " << algorithm_name
@@ -216,6 +185,7 @@ MDPSolver::create(const std::shared_ptr<ProbabilisticTask>& task)
     auto task_cost_function = std::make_shared<TaskCostFunction>(task);
 
     std::unique_ptr<FDRMDPAlgorithm> algorithm = timed(
+        std::cout,
         "Constructing algorithm...",
         &MDPSolver::create_algorithm,
         *this,
@@ -223,6 +193,7 @@ MDPSolver::create(const std::shared_ptr<ProbabilisticTask>& task)
         task_cost_function);
 
     std::unique_ptr<TaskStateSpace> state_space = timed(
+        std::cout,
         "Constructing state space...",
         &TaskStateSpaceFactory::create_state_space,
         *task_state_space_factory_,
@@ -230,6 +201,7 @@ MDPSolver::create(const std::shared_ptr<ProbabilisticTask>& task)
         task_cost_function);
 
     std::shared_ptr<FDREvaluator> heuristic = timed(
+        std::cout,
         "Constructing heuristic...",
         &TaskEvaluatorFactory::create_evaluator,
         *heuristic_factory_,

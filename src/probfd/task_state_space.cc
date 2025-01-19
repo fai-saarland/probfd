@@ -13,12 +13,12 @@
 
 namespace probfd {
 
-void TaskStateSpace::Statistics::print(utils::LogProxy log) const
+void TaskStateSpace::Statistics::print(std::ostream& out) const
 {
-    log << "  Applicable operators: " << generated_operators << " generated, "
+    out << "  Applicable operators: " << generated_operators << " generated, "
         << computed_operators << " computed, " << aops_generator_calls
         << " generator calls." << std::endl;
-    log << "  Generated " << generated_states
+    out << "  Generated " << generated_states
         << " successor state(s): " << computed_successors << " computed, "
         << single_transition_generator_calls << " single-transition calls, "
         << all_transitions_generator_calls << " all-transitions calls."
@@ -27,10 +27,8 @@ void TaskStateSpace::Statistics::print(utils::LogProxy log) const
 
 TaskStateSpace::TaskStateSpace(
     std::shared_ptr<ProbabilisticTask> task,
-    utils::LogProxy log,
     std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators)
     : task_proxy_(*task)
-    , log_(std::move(log))
     , state_registry_(task_proxy_)
     , gen_(task_proxy_)
     , notify_(std::move(path_dependent_evaluators))
@@ -104,11 +102,11 @@ size_t TaskStateSpace::get_num_registered_states() const
     return state_registry_.size();
 }
 
-void TaskStateSpace::print_statistics() const
+void TaskStateSpace::print_statistics(std::ostream& out) const
 {
-    log_ << "  Registered state(s): " << get_num_registered_states()
-         << std::endl;
-    statistics_.print(log_);
+    out << "  Registered state(s): " << get_num_registered_states()
+        << std::endl;
+    statistics_.print(out);
 }
 
 void TaskStateSpace::compute_successor_dist(

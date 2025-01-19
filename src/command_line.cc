@@ -10,6 +10,8 @@
 
 #include "probfd/tasks/root_task.h"
 
+#include "probfd/utils/timed.h"
+
 #include "probfd/solver_interface.h"
 #include "probfd/value_type.h"
 
@@ -349,14 +351,11 @@ static int search(argparse::ArgumentParser& parser)
         return static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR);
     }
 
-    std::shared_ptr<ProbabilisticTask> input_task;
-
-    {
-        utils::g_log << "reading input..." << endl;
-        std::fstream input_file(parser.get("sas_file"));
-        input_task = probfd::tasks::read_root_tasks(input_file);
-        utils::g_log << "done reading input!" << endl;
-    }
+    std::shared_ptr<ProbabilisticTask> input_task = timed(
+        std::cout,
+        "Reading input task...",
+        probfd::tasks::read_root_tasks_from_file,
+        parser.get("sas_file"));
 
     std::unique_ptr<SolverInterface> solver =
         solver_factory->create(tasks::g_root_task);

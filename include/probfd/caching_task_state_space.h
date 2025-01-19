@@ -53,7 +53,6 @@ class CachingTaskStateSpace : public TaskStateSpace {
 public:
     CachingTaskStateSpace(
         std::shared_ptr<ProbabilisticTask> task,
-        utils::LogProxy log,
         std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators);
 
     void generate_applicable_actions(
@@ -74,7 +73,7 @@ public:
         const State& state,
         std::vector<TransitionType>& transitions) final;
 
-    void print_statistics() const final;
+    void print_statistics(std::ostream& out) const final;
 
 private:
     void compute_successor_states(
