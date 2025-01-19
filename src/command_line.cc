@@ -295,9 +295,7 @@ static int list_features(argparse::ArgumentParser& parser)
         if (auto categories =
                 parser.present<std::vector<std::string>>("category")) {
             for (const string& name : *categories) {
-                doc_printer->print_category(
-                    name,
-                    parser.get<bool>("full"));
+                doc_printer->print_category(name, parser.get<bool>("full"));
             }
         }
 
@@ -398,8 +396,8 @@ void setup_argparser(argparse::ArgumentParser& arg_parser)
         .metavar("FEATURE_STRING");
 
     search_parser.add_argument("algorithm")
-        .help("The search algorithm factory string. For more information, see "
-              "the list-features subcommand.")
+        .help("The search algorithm factory. For available options, see "
+              "--list-features TaskSolverFactory.")
         .required();
 
     search_parser.add_argument("sas_file")
