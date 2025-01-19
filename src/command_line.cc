@@ -21,6 +21,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <ranges>
 #include <stdexcept>
 #include <vector>
 
@@ -31,6 +32,23 @@ using namespace downward::cli::parser;
 using namespace downward::cli::plugins;
 
 using utils::ExitCode;
+
+template <>
+struct std::formatter<downward::cli::plugins::Bounds> {
+    std::formatter<std::pair<std::string, std::string>> inheritted;
+
+    constexpr auto parse(std::format_parse_context& ctx)
+    {
+        return inheritted.parse(ctx);
+    }
+
+    auto format(
+        const downward::cli::plugins::Bounds& bounds,
+        std::format_context& ctx) const
+    {
+        return inheritted.format(std::make_pair(bounds.min, bounds.max), ctx);
+    }
+};
 
 namespace probfd {
 
@@ -59,6 +77,163 @@ static string replace_old_style_predefinitions(
     return new_search_argument.str();
 }
 
+namespace {
+
+class FeaturePrinter : public DocPrinter {
+    // If this is false, notes, properties and language_features are omitted.
+    bool print_all;
+
+public:
+    FeaturePrinter(ostream& out, Registry& registry, bool print_all = false)
+        : DocPrinter(out, registry)
+        , print_all(print_all)
+    {
+    }
+
+protected:
+    void FeaturePrinter::print_synopsis(const Feature& feature) const override
+    {
+        string title = feature.get_title();
+        if (title.empty()) {
+            title = feature.get_key();
+        }
+        os << "===== " << title << " =====" << endl;
+        if (print_all && !feature.get_synopsis().empty()) {
+            os << feature.get_synopsis() << endl;
+        }
+    }
+
+    void FeaturePrinter::print_usage(const Feature& feature) const override
+    {
+        if (!feature.get_key().empty()) {
+            os << "Feature key(s):\n  " << feature.get_key() << "\n" << std::endl;
+        }
+    }
+
+    void FeaturePrinter::print_arguments(const Feature& feature) const override
+    {
+        os << "Arguments:\n";
+
+        std::size_t max_width = 0;
+
+        std::vector<std::string> arg_strings;
+
+        for (const ArgumentInfo& arg_info : feature.get_arguments()) {
+            std::string* s;
+
+            if (arg_info.bounds.has_bound()) {
+                s = &arg_strings.emplace_back(std::format(
+                    "{} ({} {})",
+                    arg_info.key,
+                    arg_info.type.name(),
+                    arg_info.bounds));
+            } else {
+                s = &arg_strings.emplace_back(
+                    std::format("{} ({})", arg_info.key, arg_info.type.name()));
+            }
+
+            auto width = s->size();
+
+            if (width > max_width) max_width = width;
+        }
+
+        for (const auto& [arg_info, s] :
+             std::views::zip(feature.get_arguments(), arg_strings)) {
+
+            auto fmt = std::format("  {{:{}}}  {{}}", max_width);
+            std::vprint_unicode(
+                os,
+                fmt,
+                std::make_format_args(s, arg_info.help));
+
+            if (arg_info.has_default()) {
+                std::println(os, " (default: {})", arg_info.default_value);
+            } else {
+                std::println(os);
+            }
+
+            const Type& arg_type = arg_info.type;
+            if (arg_type.is_enum_type()) {
+                for (const pair<string, string>& explanation :
+                     arg_type.get_documented_enum_values()) {
+                    os << std::string(max_width + 2, ' ') << "    - "
+                       << explanation.first << ": " << explanation.second
+                       << endl;
+                }
+            }
+        }
+
+        os << std::endl;
+    }
+
+    void FeaturePrinter::print_notes(const Feature& feature) const override
+    {
+        if (print_all) {
+            for (const NoteInfo& note : feature.get_notes()) {
+                if (note.long_text) {
+                    os << "=== " << note.name << " ===" << endl
+                       << note.description << endl
+                       << endl;
+                } else {
+                    os << " * " << note.name << ": " << note.description << endl
+                       << endl;
+                }
+            }
+        }
+    }
+
+    void FeaturePrinter::print_language_features(
+        const Feature& feature) const override
+    {
+        if (print_all && !feature.get_language_support().empty()) {
+            os << "Language features supported:" << endl;
+            for (const LanguageSupportInfo& ls :
+                 feature.get_language_support()) {
+                os << " * " << ls.feature << ": " << ls.description << endl;
+            }
+        }
+    }
+
+    void FeaturePrinter::print_properties(const Feature& feature) const override
+    {
+        if (print_all && !feature.get_properties().empty()) {
+            os << "Properties:" << endl;
+            for (const PropertyInfo& prop : feature.get_properties()) {
+                os << " * " << prop.property << ": " << prop.description
+                   << endl;
+            }
+        }
+    }
+
+    void FeaturePrinter::print_category_header(
+        const string& category_name) const override
+    {
+        os << "Help for " << category_name << endl << endl;
+    }
+
+    void FeaturePrinter::print_category_synopsis(
+        const string& synopsis,
+        bool supports_variable_binding) const override
+    {
+        if (print_all && !synopsis.empty()) {
+            os << synopsis << endl;
+        }
+        if (supports_variable_binding) {
+            os << endl
+               << "This feature type can be bound to variables using "
+               << "``let(variable_name, variable_definition, expression)"
+               << "`` where ``expression`` can use ``variable_name``. "
+               << "Predefinitions using ``--evaluator``, ``--heuristic``, and "
+               << "``--landmarks`` are automatically transformed into ``let``-"
+               << "expressions but are deprecated." << endl;
+        }
+    }
+
+    void FeaturePrinter::print_category_footer() const override {}
+};
+
+} // namespace
+
 static int list_features(argparse::ArgumentParser& parser)
 {
     Registry registry = RawRegistry::instance()->construct_registry();
@@ -66,7 +241,7 @@ static int list_features(argparse::ArgumentParser& parser)
     if (parser.get<bool>("--txt2tags")) {
         doc_printer = std::make_unique<Txt2TagsPrinter>(cout, registry);
     } else {
-        doc_printer = std::make_unique<PlainPrinter>(cout, registry);
+        doc_printer = std::make_unique<FeaturePrinter>(cout, registry);
     }
 
     if (auto features = parser.present<std::vector<std::string>>("features")) {
@@ -98,7 +273,7 @@ static int search(argparse::ArgumentParser& parser)
                 replace_old_style_predefinitions(search_arg, predefinitions);
         } catch (const std::invalid_argument& err) {
             std::cerr << err.what() << std::endl;
-            exit(static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR));
+            return static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR);
         }
 
         std::cout << "Using translated search string: " << search_arg
@@ -118,7 +293,7 @@ static int search(argparse::ArgumentParser& parser)
             std::any_cast<shared_ptr<TaskSolverFactory>>(constructed);
     } catch (const utils::ContextError& e) {
         std::cerr << e.get_message() << std::endl;
-        exit(static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR));
+        return static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR);
     }
 
     std::shared_ptr<ProbabilisticTask> input_task;
