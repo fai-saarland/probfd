@@ -106,7 +106,8 @@ protected:
     void FeaturePrinter::print_usage(const Feature& feature) const override
     {
         if (!feature.get_key().empty()) {
-            os << "Feature key(s):\n  " << feature.get_key() << "\n" << std::endl;
+            os << "Feature key(s):\n  " << feature.get_key() << "\n"
+               << std::endl;
         }
     }
 
@@ -120,16 +121,21 @@ protected:
 
         for (const ArgumentInfo& arg_info : feature.get_arguments()) {
             std::string* s;
+            auto tname = arg_info.type.is_basic_type() &&
+                                 arg_info.type.get_basic_type_index() ==
+                                     typeid(std::string)
+                             ? "string"
+                             : arg_info.type.name();
 
             if (arg_info.bounds.has_bound()) {
                 s = &arg_strings.emplace_back(std::format(
                     "{} ({} {})",
                     arg_info.key,
-                    arg_info.type.name(),
+                    tname,
                     arg_info.bounds));
             } else {
                 s = &arg_strings.emplace_back(
-                    std::format("{} ({})", arg_info.key, arg_info.type.name()));
+                    std::format("{} ({})", arg_info.key, tname));
             }
 
             auto width = s->size();
