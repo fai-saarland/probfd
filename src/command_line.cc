@@ -37,6 +37,8 @@ template <>
 struct std::formatter<downward::cli::plugins::Bounds> {
     std::formatter<std::pair<std::string, std::string>> inheritted;
 
+    constexpr formatter() { inheritted.set_brackets("[", "]"); }
+
     constexpr auto parse(std::format_parse_context& ctx)
     {
         return inheritted.parse(ctx);
@@ -91,7 +93,7 @@ public:
     }
 
 protected:
-    void FeaturePrinter::print_synopsis(const Feature& feature) const override
+    void print_synopsis(const Feature& feature) const override
     {
         string title = feature.get_title();
         if (title.empty()) {
@@ -103,7 +105,7 @@ protected:
         }
     }
 
-    void FeaturePrinter::print_usage(const Feature& feature) const override
+    void print_usage(const Feature& feature) const override
     {
         if (!feature.get_key().empty()) {
             os << "Feature key(s):\n  " << feature.get_key() << "\n"
@@ -111,7 +113,7 @@ protected:
         }
     }
 
-    void FeaturePrinter::print_arguments(const Feature& feature) const override
+    void print_arguments(const Feature& feature) const override
     {
         os << "Arguments:\n";
 
@@ -172,7 +174,7 @@ protected:
         os << std::endl;
     }
 
-    void FeaturePrinter::print_notes(const Feature& feature) const override
+    void print_notes(const Feature& feature) const override
     {
         if (print_all) {
             for (const NoteInfo& note : feature.get_notes()) {
@@ -188,8 +190,7 @@ protected:
         }
     }
 
-    void FeaturePrinter::print_language_features(
-        const Feature& feature) const override
+    void print_language_features(const Feature& feature) const override
     {
         if (print_all && !feature.get_language_support().empty()) {
             os << "Language features supported:" << endl;
@@ -200,7 +201,7 @@ protected:
         }
     }
 
-    void FeaturePrinter::print_properties(const Feature& feature) const override
+    void print_properties(const Feature& feature) const override
     {
         if (print_all && !feature.get_properties().empty()) {
             os << "Properties:" << endl;
@@ -211,13 +212,12 @@ protected:
         }
     }
 
-    void FeaturePrinter::print_category_header(
-        const string& category_name) const override
+    void print_category_header(const string& category_name) const override
     {
         os << "Help for " << category_name << endl << endl;
     }
 
-    void FeaturePrinter::print_category_synopsis(
+    void print_category_synopsis(
         const string& synopsis,
         bool supports_variable_binding) const override
     {
@@ -235,7 +235,7 @@ protected:
         }
     }
 
-    void FeaturePrinter::print_category_footer() const override {}
+    void print_category_footer() const override {}
 };
 
 } // namespace
@@ -250,12 +250,22 @@ static int list_features(argparse::ArgumentParser& parser)
         doc_printer = std::make_unique<FeaturePrinter>(cout, registry);
     }
 
-    if (auto features = parser.present<std::vector<std::string>>("features")) {
-        for (const string& name : *features) {
-            doc_printer->print_feature(name);
-        }
-    } else {
+    if (!parser.present("features") && !parser.present("category")) {
         doc_printer->print_all();
+    } else {
+        if (auto categories =
+                parser.present<std::vector<std::string>>("category")) {
+            for (const string& name : *categories) {
+                doc_printer->print_category(name);
+            }
+        }
+
+        if (auto features =
+                parser.present<std::vector<std::string>>("features")) {
+            for (const string& name : *features) {
+                doc_printer->print_feature(name);
+            }
+        }
     }
 
     cout << "Help output finished." << endl;
@@ -373,14 +383,18 @@ void setup_argparser(argparse::ArgumentParser& arg_parser)
             "list-features",
             "",
             argparse::default_arguments::help);
-    feature_list_parser.add_description("Lists available search features.");
+    feature_list_parser.add_description(
+        "Lists available search features. If no options are given, all "
+        "features are listed.");
 
     feature_list_parser.add_argument("--txt2tags")
         .help("List features in txt2tags format.")
         .flag();
+    feature_list_parser.add_argument("--category")
+        .help("One or more categories for which all features should be listed.")
+        .nargs(argparse::nargs_pattern::at_least_one);
     feature_list_parser.add_argument("features")
-        .help("The features to list. If none are given, all available features "
-              "are listed.")
+        .help("Individual features to list.")
         .remaining();
 
     feature_list_parser.add_argument("fn").hidden().default_value<SubCommandFn>(

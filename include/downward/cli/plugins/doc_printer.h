@@ -40,6 +40,7 @@ public:
     virtual ~DocPrinter() = default;
 
     void print_all() const;
+    void print_category(const std::string& name) const;
     void print_feature(const std::string& name) const;
 };
 

@@ -30,6 +30,21 @@ void DocPrinter::print_all() const
     }
 }
 
+void DocPrinter::print_category(const string& name) const
+{
+    FeatureTypes feature_types = registry.get_feature_types();
+    auto it = std::find_if(feature_types.begin(), feature_types.end(),
+        [&name](const FeatureType* t) {
+            return t->name() == name;
+        });
+
+    if (it == feature_types.end()) {
+        ABORT("could not find a category named '" + name + "' in the registry");
+    }
+
+    print_category(**it);
+}
+
 void DocPrinter::print_feature(const string& name) const
 {
     print_feature(*registry.get_feature(name));
