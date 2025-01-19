@@ -115,6 +115,11 @@ protected:
 
     void print_arguments(const Feature& feature) const override
     {
+        if (feature.get_arguments().empty()) {
+            os << "This feature has no arguments.\n" << std::endl;
+            return;
+        }
+
         os << "Arguments:\n";
 
         std::size_t max_width = 0;
