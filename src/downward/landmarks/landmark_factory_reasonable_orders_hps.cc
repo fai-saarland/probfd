@@ -124,10 +124,7 @@ bool LandmarkFactoryReasonableOrdersHPS::interferes(
 
     VariablesProxy variables = task_proxy.get_variables();
     for (const FactPair& lm_fact_b : landmark_b.facts) {
-        FactProxy fact_b = variables[lm_fact_b.var].get_fact(lm_fact_b.value);
         for (const FactPair& lm_fact_a : landmark_a.facts) {
-            FactProxy fact_a =
-                variables[lm_fact_a.var].get_fact(lm_fact_a.value);
             if (lm_fact_a == lm_fact_b) {
                 if (!landmark_a.conjunctive || !landmark_b.conjunctive)
                     return false;
@@ -136,7 +133,7 @@ bool LandmarkFactoryReasonableOrdersHPS::interferes(
             }
 
             // 1. a, b mutex
-            if (fact_a.is_mutex(fact_b)) return true;
+            if (task_proxy.is_mutex(lm_fact_a, lm_fact_b)) return true;
 
             // 2. Shared effect e in all operators reaching a, and e, b are
             // mutex Skip this for conjunctive nodes a, as they are typically
@@ -196,10 +193,9 @@ bool LandmarkFactoryReasonableOrdersHPS::interferes(
             }
             // Test whether one of the shared effects is inconsistent with b
             for (const pair<const int, int>& eff : shared_eff) {
-                const FactProxy& effect_fact =
-                    variables[eff.first].get_fact(eff.second);
-                if (effect_fact != fact_a && effect_fact != fact_b &&
-                    effect_fact.is_mutex(fact_b))
+                const FactPair effect_fact{eff.first, eff.second};
+                if (effect_fact != lm_fact_a && effect_fact != lm_fact_b &&
+                    task_proxy.is_mutex(effect_fact, lm_fact_b))
                     return true;
             }
         }
@@ -210,11 +206,9 @@ bool LandmarkFactoryReasonableOrdersHPS::interferes(
             const LandmarkNode &node = *parent.first;
             edge_type edge = parent.second;
             for (const FactPair &parent_prop : node.facts) {
-                const FactProxy &parent_prop_fact =
-                    variables[parent_prop.var].get_fact(parent_prop.value);
                 if (edge >= greedy_necessary &&
-                    parent_prop_fact != fact_b &&
-                    parent_prop_fact.is_mutex(fact_b))
+                    parent_prop != lm_fact_b &&
+                    task_proxy.is_mutex(parent_prop, lm_fact_b))
                     return true;
             }
         }

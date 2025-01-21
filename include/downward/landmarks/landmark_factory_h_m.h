@@ -78,12 +78,12 @@ class LandmarkFactoryHM : public LandmarkFactory {
         TriggerSet& trigger);
 
     bool possible_noop_set(
-        const VariablesProxy& variables,
+        const TaskProxy& task_proxy,
         const FluentSet& fs1,
         const FluentSet& fs2);
     void build_pm_ops(const TaskProxy& task_proxy);
     bool interesting(
-        const VariablesProxy& variables,
+        const TaskProxy& task_proxy,
         const FactPair& fact1,
         const FactPair& fact2) const;
 
@@ -117,7 +117,7 @@ class LandmarkFactoryHM : public LandmarkFactory {
     std::vector<std::pair<int, std::vector<int>>> unsat_pc_count_;
 
     void get_m_sets_(
-        const VariablesProxy& variables,
+        const TaskProxy& task_proxy,
         int m,
         int num_included,
         int current_var,
@@ -125,7 +125,7 @@ class LandmarkFactoryHM : public LandmarkFactory {
         std::vector<FluentSet>& subsets);
 
     void get_m_sets_of_set(
-        const VariablesProxy& variables,
+        const TaskProxy& task_proxy,
         int m,
         int num_included,
         int current_var_index,
@@ -134,7 +134,7 @@ class LandmarkFactoryHM : public LandmarkFactory {
         const FluentSet& superset);
 
     void get_split_m_sets(
-        const VariablesProxy& variables,
+        const TaskProxy& task_proxy,
         int m,
         int ss1_num_included,
         int ss2_num_included,
@@ -146,24 +146,24 @@ class LandmarkFactoryHM : public LandmarkFactory {
         const FluentSet& superset2);
 
     void get_m_sets(
-        const VariablesProxy& variables,
+        const TaskProxy& task_proxy,
         int m,
         std::vector<FluentSet>& subsets);
 
     void get_m_sets(
-        const VariablesProxy& variables,
+        const TaskProxy& task_proxy,
         int m,
         std::vector<FluentSet>& subsets,
         const FluentSet& superset);
 
     void get_m_sets(
-        const VariablesProxy& variables,
+        const TaskProxy& task_proxy,
         int m,
         std::vector<FluentSet>& subsets,
         const State& state);
 
     void get_split_m_sets(
-        const VariablesProxy& variables,
+        const TaskProxy& task_proxy,
         int m,
         std::vector<FluentSet>& subsets,
         const FluentSet& superset1,
@@ -183,4 +183,4 @@ public:
 };
 } // namespace landmarks
 
-#endif
+#endif // LANDMARKS_LANDMARK_FACTORY_H_M_H
