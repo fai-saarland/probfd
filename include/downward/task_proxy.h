@@ -236,6 +236,7 @@ class FactProxy {
 public:
     FactProxy(const PlanningTask& task, int var_id, int value);
     FactProxy(const PlanningTask& task, const FactPair& fact);
+
     ~FactProxy() = default;
 
     VariableProxy get_variable() const;
@@ -251,13 +252,6 @@ public:
         assert(task == other.task);
         return fact == other.fact;
     }
-
-    bool operator!=(const FactProxy& other) const { return !(*this == other); }
-
-    bool is_mutex(const FactProxy& other) const
-    {
-        return task->are_facts_mutex(fact, other.fact);
-    }
 };
 
 class FactsProxyIterator {
@@ -272,7 +266,6 @@ public:
         , value(value)
     {
     }
-    ~FactsProxyIterator() = default;
 
     FactProxy operator*() const { return FactProxy(*task, var_id, value); }
 
@@ -294,11 +287,6 @@ public:
         assert(task == other.task);
         return var_id == other.var_id && value == other.value;
     }
-
-    bool operator!=(const FactsProxyIterator& other) const
-    {
-        return !(*this == other);
-    }
 };
 
 /*
@@ -318,7 +306,6 @@ public:
         : task(&task)
     {
     }
-    ~FactsProxy() = default;
 
     FactsProxyIterator begin() const { return FactsProxyIterator(*task, 0, 0); }
 
@@ -338,17 +325,11 @@ public:
         , id(id)
     {
     }
-    ~VariableProxy() = default;
 
     bool operator==(const VariableProxy& other) const
     {
         assert(task == other.task);
         return id == other.id;
-    }
-
-    bool operator!=(const VariableProxy& other) const
-    {
-        return !(*this == other);
     }
 
     int get_id() const { return id; }
@@ -396,7 +377,6 @@ public:
         : task(&task)
     {
     }
-    ~VariablesProxy() = default;
 
     std::size_t size() const { return task->get_num_variables(); }
 
@@ -854,11 +834,6 @@ public:
         return proxy == other.proxy;
     }
 
-    bool operator!=(const AxiomOrOperatorProxy& other) const
-    {
-        return proxy != other.proxy;
-    }
-
     PreconditionsProxy get_preconditions() const
     {
         return std::visit(
@@ -1027,7 +1002,6 @@ public:
     State(const PlanningTask& task, std::vector<int>&& values);
 
     bool operator==(const State& other) const;
-    bool operator!=(const State& other) const;
 
     /* Generate unpacked data if it is not available yet. Calling the function
        on a state that already has unpacked data has no effect. */
@@ -1113,7 +1087,6 @@ public:
         : task(&task)
     {
     }
-    ~PlanningTaskProxy() = default;
 
     void subscribe_to_task_destruction(
         subscriber::Subscriber<PlanningTask>* subscriber) const
@@ -1172,7 +1145,6 @@ public:
         : PlanningTaskProxy(task)
     {
     }
-    ~TaskProxy() = default;
 
     OperatorsProxy get_operators() const
     {
@@ -1180,6 +1152,11 @@ public:
     }
 
     const causal_graph::CausalGraph& get_causal_graph() const;
+
+    bool is_mutex(const FactPair& left, const FactPair& right) const
+    {
+        return task->are_facts_mutex(left, right);
+    }
 };
 
 inline PlanningTaskProxy::operator TaskProxy() const
@@ -1233,11 +1210,6 @@ inline bool State::operator==(const State& other) const
         assert(other.values);
         return *values == *other.values;
     }
-}
-
-inline bool State::operator!=(const State& other) const
-{
-    return !(*this == other);
 }
 
 inline void State::unpack() const

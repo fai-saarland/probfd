@@ -71,4 +71,4 @@ public:
     }
 };
 
-#endif
+#endif // PER_TASK_INFORMATION_H
