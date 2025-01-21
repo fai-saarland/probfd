@@ -44,7 +44,7 @@ public:
         : TypedFeature<TaskSolverFactory, TATopologicalVISolver>(
               "ta_topological_value_iteration")
     {
-        document_title("Trap-Aware Topological Value Iteration.");
+        document_title("Trap-Aware Topological Value Iteration");
         add_base_solver_options_to_feature(*this);
     }
 

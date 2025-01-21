@@ -28,11 +28,9 @@ namespace probfd {
 
 CachingTaskStateSpace::CachingTaskStateSpace(
     std::shared_ptr<ProbabilisticTask> task,
-    utils::LogProxy log,
     std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators)
     : TaskStateSpace(
           std::move(task),
-          std::move(log),
           std::move(path_dependent_evaluators))
 {
 }
@@ -133,10 +131,10 @@ void CachingTaskStateSpace::generate_all_transitions(
     statistics_.generated_operators += transitions.size();
 }
 
-void CachingTaskStateSpace::print_statistics() const
+void CachingTaskStateSpace::print_statistics(std::ostream& out) const
 {
-    TaskStateSpace::print_statistics();
-    log_ << "  Stored arrays in bytes: " << cache_data_.size_in_bytes()
+    TaskStateSpace::print_statistics(out);
+    out << "  Stored arrays in bytes: " << cache_data_.size_in_bytes()
          << std::endl;
 }
 

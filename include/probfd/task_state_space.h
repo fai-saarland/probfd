@@ -46,13 +46,11 @@ protected:
         unsigned long long transition_computations = 0;
         unsigned long long computed_successors = 0;
 
-        void print(utils::LogProxy log) const;
+        void print(std::ostream& out) const;
     };
 
 protected:
     ProbabilisticTaskProxy task_proxy_;
-    mutable utils::LogProxy log_;
-
     StateRegistry state_registry_;
     successor_generator::ProbabilisticSuccessorGenerator gen_;
 
@@ -63,7 +61,6 @@ protected:
 public:
     TaskStateSpace(
         std::shared_ptr<ProbabilisticTask> task,
-        utils::LogProxy log,
         std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators =
             {});
 
@@ -92,7 +89,7 @@ public:
 
     size_t get_num_registered_states() const;
 
-    virtual void print_statistics() const;
+    virtual void print_statistics(std::ostream& out) const;
 
     void compute_successor_dist(
         const State& s,

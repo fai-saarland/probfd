@@ -19,6 +19,14 @@ public:
     DeadEndPruningHeuristicFactoryFeature()
         : TypedFeature("prune_dead_ends")
     {
+        document_title("Dead-End Pruning Heuristic");
+        document_synopsis(
+            "This heuristic applies a classical planning heuristic h on the "
+            "all-outcomes determinization of the planning task. "
+            "The estimate for a state s returned by this heuristic is infinity "
+            "if h(s) is infinity in the all-outcomes determinization. "
+            "Otherwise, the heuristic value is 0.");
+
         add_option<std::shared_ptr<::Evaluator>>("evaluator");
     }
 

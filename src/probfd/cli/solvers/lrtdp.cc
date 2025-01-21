@@ -71,6 +71,8 @@ public:
         : TypedFeature<TaskSolverFactory, LRTDPSolver<Bisimulation, Fret>>(
               add_wrapper_algo_suffix<Bisimulation, Fret>("lrtdp"))
     {
+        this->document_title("Labelled Real-Time Dynamic Programming");
+
         add_mdp_hs_options_to_feature<Bisimulation, Fret>(*this);
 
         this->template add_option<std::shared_ptr<Sampler>>(

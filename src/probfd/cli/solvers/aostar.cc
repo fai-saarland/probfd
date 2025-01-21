@@ -62,6 +62,8 @@ public:
         : TypedFeature<TaskSolverFactory, AOStarSolver<Bisimulation>>(
               add_wrapper_algo_suffix<Bisimulation, false>("aostar"))
     {
+        this->document_title("AO* algorithm");
+
         add_mdp_hs_options_to_feature<Bisimulation, false>(*this);
 
         this->template add_option<std::shared_ptr<Sampler>>(

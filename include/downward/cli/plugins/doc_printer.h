@@ -4,6 +4,7 @@
 #include "registry.h"
 
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -12,7 +13,7 @@ class Feature;
 class Registry;
 
 class DocPrinter {
-    virtual void print_category(const FeatureType& type) const;
+    virtual void print_category(const FeatureType& type, bool recursive) const;
     virtual void print_subcategory(
         const std::string& subcategory_name,
         const std::vector<const Feature*>& plugins) const;
@@ -28,8 +29,10 @@ protected:
     virtual void print_notes(const Feature& plugin) const = 0;
     virtual void print_language_features(const Feature& plugin) const = 0;
     virtual void print_properties(const Feature& plugin) const = 0;
-    virtual void
-    print_category_header(const std::string& category_name) const = 0;
+    virtual void print_category_header(
+        const FeatureType& type,
+        const std::map<std::string, std::vector<const Feature*>>& subcategories)
+        const = 0;
     virtual void print_category_synopsis(
         const std::string& synopsis,
         bool supports_variable_binding) const = 0;
@@ -40,6 +43,7 @@ public:
     virtual ~DocPrinter() = default;
 
     void print_all() const;
+    void print_category(const std::string& name, bool recursive) const;
     void print_feature(const std::string& name) const;
 };
 
@@ -51,8 +55,10 @@ protected:
     virtual void print_notes(const Feature& plugin) const override;
     virtual void print_language_features(const Feature& plugin) const override;
     virtual void print_properties(const Feature& plugin) const override;
-    virtual void
-    print_category_header(const std::string& category_name) const override;
+    virtual void print_category_header(
+        const FeatureType& type,
+        const std::map<std::string, std::vector<const Feature*>>&)
+        const override;
     virtual void print_category_synopsis(
         const std::string& synopsis,
         bool supports_variable_binding) const override;
@@ -73,8 +79,10 @@ protected:
     virtual void print_notes(const Feature& plugin) const override;
     virtual void print_language_features(const Feature& plugin) const override;
     virtual void print_properties(const Feature& plugin) const override;
-    virtual void
-    print_category_header(const std::string& category_name) const override;
+    virtual void print_category_header(
+        const FeatureType& type,
+        const std::map<std::string, std::vector<const Feature*>>&)
+        const override;
     virtual void print_category_synopsis(
         const std::string& synopsis,
         bool supports_variable_binding) const override;

@@ -24,7 +24,7 @@ void add_base_solver_options_to_feature(Feature& feature)
     feature.add_option<std::shared_ptr<TaskEvaluatorFactory>>(
         "eval",
         "The heuristic to be used by the search.",
-        "blind_eval()");
+        "blind_heuristic()");
     feature.add_option<value_t>(
         "report_epsilon",
         "Algorithms will report the current initial state objective value to "

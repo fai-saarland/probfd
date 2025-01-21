@@ -47,7 +47,7 @@ public:
     AcyclicVISolverFeature()
         : TypedFeature("acyclic_value_iteration")
     {
-        document_title("Acyclic Value Iteration.");
+        document_title("Acyclic Value Iteration");
         add_base_solver_options_to_feature(*this);
     }
 

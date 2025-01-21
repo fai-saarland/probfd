@@ -22,7 +22,7 @@ public:
     AdditiveCartesianHeuristicFactoryFeature()
         : TypedFeature("pcegar")
     {
-        document_title("Additive CEGAR heuristic");
+        document_title("Additive Cartesian CEGAR heuristic");
 
         document_language_support("action costs", "supported");
         document_language_support("conditional effects", "not supported");

@@ -15,8 +15,11 @@ class BlindEvaluatorFactoryFeature
     : public TypedFeature<TaskEvaluatorFactory, BlindEvaluatorFactory> {
 public:
     BlindEvaluatorFactoryFeature()
-        : TypedFeature("blind_eval")
+        : TypedFeature("blind_heuristic")
     {
+        document_title("Blind Heuristic");
+        document_synopsis(
+            "This heuristic always returns an estimate of 0 for every state.");
     }
 
     [[nodiscard]]

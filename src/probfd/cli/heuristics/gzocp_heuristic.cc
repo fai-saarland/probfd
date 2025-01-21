@@ -25,13 +25,21 @@ public:
     GZOCPHeuristicFactoryFeature()
         : TypedFeature("gzocp_heuristic")
     {
+        document_title("Greedy Zero-One Operator Cost Partitioning Heuristic");
+        document_synopsis(
+            "This heuristic computes a greedy cost-partitioning estimate over "
+            "a set of projections. The cost-partitioning assigns the full "
+            "operator cost to the first projection in the sequence that is "
+            "affected by it (induces a non-self-loop) and assigns a cost of "
+            "zero for this operator for all subsequent projections.");
+
         add_option<std::shared_ptr<PatternCollectionGenerator>>(
             "patterns",
-            "The pattern generation algorithm.",
+            "The pattern generation algorithm to construct the projections.",
             "classical_generator(generator=systematic(pattern_max_size=2))");
         add_option<GZOCPHeuristic::OrderingStrategy>(
             "order",
-            "The order in which patterns are considered",
+            "The order in which the projections are considered.",
             "random");
 
         add_rng_options_to_feature(*this);

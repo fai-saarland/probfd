@@ -48,7 +48,7 @@ public:
         : TypedFeature<TaskSolverFactory, TopologicalVISolver>(
               "topological_value_iteration")
     {
-        document_title("Topological Value Iteration.");
+        document_title("Topological Value Iteration");
         add_base_solver_options_to_feature(*this);
     }
 

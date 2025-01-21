@@ -7,6 +7,8 @@ from . import aliases
 from . import returncodes
 from . import util
 
+PROBFD_SUBCOMMANDS = ["list-features", "search"]
+
 DESCRIPTION = """Fast Downward driver script.
 
 Input files can be either a PDDL problem file (with an optional PDDL domain
@@ -133,6 +135,9 @@ def _split_off_filenames(planner_args):
     else:
         num_filenames = 0
         for arg in planner_args:
+            if arg in PROBFD_SUBCOMMANDS:
+                break
+            
             # We treat "-" by itself as a filename because by common
             # convention it denotes stdin or stdout, and we might want
             # to support this later.
@@ -154,12 +159,20 @@ def _split_planner_args(parser, args):
     args.search_options = []
 
     curr_options = args.search_options
+    substitute_subcommands = True
     for option in options:
         if option == "--translate-options":
             curr_options = args.translate_options
+            substitute_subcommands = False
         elif option == "--search-options":
             curr_options = args.search_options
+            substitute_subcommands = True
         else:
+            if (substitute_subcommands and
+                option[:2] == "--" and
+                option[2:] in PROBFD_SUBCOMMANDS):
+                option = option[2:]
+            
             curr_options.append(option)
 
 
@@ -238,13 +251,13 @@ def _set_components_and_inputs(parser, args):
             print_usage_and_exit_with_driver_input_error(
                 parser, "translator needs one or two input files")
     elif first == "search":
-        if "--help" in args.search_options:
+        if num_files == 0:
             args.search_input = None
         elif num_files == 1:
             args.search_input, = args.filenames
         else:
             print_usage_and_exit_with_driver_input_error(
-                parser, "search needs exactly one input file")
+                parser, "search needs zero or one input files")
     else:
         assert False, first
 

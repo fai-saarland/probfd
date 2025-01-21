@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cassert>
 #include <compare>
+#include <fstream>
 #include <memory>
 #include <set>
 #include <vector>
@@ -862,6 +863,13 @@ std::shared_ptr<ProbabilisticTask> read_root_tasks(std::istream& in)
     std::shared_ptr<ProbabilisticTask> input_task = read_sas_task(in);
     set_root_task(input_task);
     return input_task;
+}
+
+std::shared_ptr<ProbabilisticTask>
+read_root_tasks_from_file(const std::filesystem::path& filepath)
+{
+    std::fstream input_file(filepath);
+    return read_root_tasks(input_file);
 }
 
 void set_root_task(std::shared_ptr<ProbabilisticTask> task)

@@ -92,7 +92,7 @@ public:
     TrapAwareDFHSSolverFeature()
         : TypedFeature<TaskSolverFactory, TrapAwareDFHSSolver>("tadfhs")
     {
-        document_title("Trap-aware depth-first heuristic search family.");
+        document_title("Trap-aware depth-first heuristic search family");
         document_synopsis(
             "Supports all MDPs (even non-SSPs) without FRET loop.");
 
@@ -157,7 +157,7 @@ public:
         : TypedFeature<TaskSolverFactory, TrapAwareDFHSSolver>("tailao")
     {
         document_title(
-            "iLAO* variant of trap-aware depth-first heuristic search.");
+            "iLAO* variant of trap-aware depth-first heuristic search");
 
         add_option<std::shared_ptr<QOpenList>>(
             "open_list",
@@ -196,7 +196,7 @@ public:
         : TypedFeature<TaskSolverFactory, TrapAwareDFHSSolver>("talilao")
     {
         document_title("Labelled iLAO* variant of trap-aware depth-first "
-                       "heuristic search.");
+                       "heuristic search");
 
         add_option<std::shared_ptr<QOpenList>>(
             "open_list",
@@ -237,7 +237,7 @@ public:
         : TypedFeature<TaskSolverFactory, TrapAwareDFHSSolver>("tahdp")
     {
         document_title(
-            "HDP variant of trap-aware depth-first heuristic search.");
+            "HDP variant of trap-aware depth-first heuristic search");
 
         add_option<std::shared_ptr<QOpenList>>(
             "open_list",
