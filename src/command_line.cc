@@ -47,9 +47,10 @@ struct std::formatter<downward::cli::plugins::Bounds> {
         return inheritted.parse(ctx);
     }
 
-    auto format(
-        const downward::cli::plugins::Bounds& bounds,
-        std::format_context& ctx) const
+    template <typename FormatContext>
+    auto
+    format(const downward::cli::plugins::Bounds& bounds, FormatContext& ctx)
+        const
     {
         return inheritted.format(std::make_pair(bounds.min, bounds.max), ctx);
     }
