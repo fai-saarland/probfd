@@ -96,7 +96,7 @@ class SASTask:
             axiom.dump()
         print("metric: %s" % self.metric)
 
-    def output(self, stream):
+    def output(self, stream, mutex_stream):
         print("begin_version", file=stream)
         print(SAS_FILE_VERSION, file=stream)
         print("end_version", file=stream)
@@ -110,9 +110,6 @@ class SASTask:
             print(0, file=stream)
         print("end_metric", file=stream)
         self.variables.output(stream)
-        print(len(self.mutexes), file=stream)
-        for mutex in self.mutexes:
-            mutex.output(stream)
         self.init.output(stream)
         self.goal.output(stream)
         print(len(self.operators), file=stream)
@@ -121,6 +118,10 @@ class SASTask:
         print(len(self.axioms), file=stream)
         for axiom in self.axioms:
             axiom.output(stream)
+
+        print(len(self.mutexes), file=stream)
+        for mutex in self.mutexes:
+            mutex.output(mutex_stream)
 
     def get_encoding_size(self):
         task_size = 0

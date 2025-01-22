@@ -48,8 +48,6 @@ struct ExplicitOperator {
 
 class RootTask : public AbstractTask {
     vector<ExplicitVariable> variables_;
-    // TODO: think about using hash sets here.
-    vector<vector<set<FactPair>>> mutexes_;
     vector<ExplicitOperator> operators_;
     vector<ExplicitOperator> axioms_;
     vector<int> initial_state_values_;
@@ -70,8 +68,6 @@ public:
     int get_variable_axiom_layer(int var) const override;
     int get_variable_default_axiom_value(int var) const override;
     string get_fact_name(const FactPair& fact) const override;
-    bool are_facts_mutex(const FactPair& fact1, const FactPair& fact2)
-        const override;
 
     int get_num_axioms() const override;
 
@@ -276,57 +272,6 @@ static vector<ExplicitVariable> read_variables(istream& in)
     return variables;
 }
 
-static vector<vector<set<FactPair>>>
-read_mutexes(istream& in, const vector<ExplicitVariable>& variables)
-{
-    vector<vector<set<FactPair>>> inconsistent_facts(variables.size());
-    for (size_t i = 0; i < variables.size(); ++i)
-        inconsistent_facts[i].resize(variables[i].domain_size);
-
-    int num_mutex_groups;
-    in >> num_mutex_groups;
-
-    /*
-      NOTE: Mutex groups can overlap, in which case the same mutex
-      should not be represented multiple times. The current
-      representation takes care of that automatically by using sets.
-      If we ever change this representation, this is something to be
-      aware of.
-    */
-    for (int i = 0; i < num_mutex_groups; ++i) {
-        check_magic(in, "begin_mutex_group");
-        int num_facts;
-        in >> num_facts;
-        vector<FactPair> invariant_group;
-        invariant_group.reserve(num_facts);
-        for (int j = 0; j < num_facts; ++j) {
-            int var;
-            int value;
-            in >> var >> value;
-            invariant_group.emplace_back(var, value);
-        }
-        check_magic(in, "end_mutex_group");
-        for (const FactPair& fact1 : invariant_group) {
-            for (const FactPair& fact2 : invariant_group) {
-                if (fact1.var != fact2.var) {
-                    /* The "different variable" test makes sure we
-                       don't mark a fact as mutex with itself
-                       (important for correctness) and don't include
-                       redundant mutexes (important to conserve
-                       memory). Note that the translator (at least
-                       with default settings) removes mutex groups
-                       that contain *only* redundant mutexes, but it
-                       can of course generate mutex groups which lead
-                       to *some* redundant mutexes, where some but not
-                       all facts talk about the same variable. */
-                    inconsistent_facts[fact1.var][fact1.value].insert(fact2);
-                }
-            }
-        }
-    }
-    return inconsistent_facts;
-}
-
 static vector<FactPair> read_goal(istream& in)
 {
     check_magic(in, "begin_goal");
@@ -356,6 +301,31 @@ static vector<ExplicitOperator> read_actions(
     return actions;
 }
 
+static void skip_mutexes(std::istream& in)
+{
+    int num_mutex_groups;
+    in >> num_mutex_groups;
+
+    /*
+      NOTE: Mutex groups can overlap, in which case the same mutex
+      should not be represented multiple times. The current
+      representation takes care of that automatically by using sets.
+      If we ever change this representation, this is something to be
+      aware of.
+    */
+    for (int i = 0; i < num_mutex_groups; ++i) {
+        check_magic(in, "begin_mutex_group");
+        int num_facts;
+        in >> num_facts;
+        for (int j = 0; j < num_facts; ++j) {
+            int var;
+            int value;
+            in >> var >> value;
+        }
+        check_magic(in, "end_mutex_group");
+    }
+}
+
 RootTask::RootTask(istream& in)
 {
     read_and_verify_version(in);
@@ -363,7 +333,9 @@ RootTask::RootTask(istream& in)
     variables_ = read_variables(in);
     int num_variables = variables_.size();
 
-    mutexes_ = read_mutexes(in, variables_);
+    if (std::isdigit(in.peek())) {
+        skip_mutexes(in);
+    }
 
     initial_state_values_.resize(num_variables);
     check_magic(in, "begin_state");
@@ -447,18 +419,6 @@ string RootTask::get_fact_name(const FactPair& fact) const
 {
     assert(utils::in_bounds(fact.value, get_variable(fact.var).fact_names));
     return get_variable(fact.var).fact_names[fact.value];
-}
-
-bool RootTask::are_facts_mutex(const FactPair& fact1, const FactPair& fact2)
-    const
-{
-    if (fact1.var == fact2.var) {
-        // Same variable: mutex iff different value.
-        return fact1.value != fact2.value;
-    }
-    assert(utils::in_bounds(fact1.var, mutexes_));
-    assert(utils::in_bounds(fact1.value, mutexes_[fact1.var]));
-    return bool(mutexes_[fact1.var][fact1.value].count(fact2));
 }
 
 int RootTask::get_num_axioms() const

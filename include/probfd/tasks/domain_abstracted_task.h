@@ -38,9 +38,6 @@ public:
 
     int get_variable_domain_size(int var) const override;
     std::string get_fact_name(const downward::FactPair& fact) const override;
-    bool are_facts_mutex(
-        const downward::FactPair& fact1,
-        const downward::FactPair& fact2) const override;
 
     downward::FactPair
     get_axiom_precondition(int op_index, int fact_index) const override;

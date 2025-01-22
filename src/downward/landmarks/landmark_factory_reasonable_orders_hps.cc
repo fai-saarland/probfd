@@ -8,19 +8,26 @@
 #include "downward/utils/logging.h"
 #include "downward/utils/markup.h"
 
+#include "downward/mutexes.h"
+
 using namespace std;
 namespace downward::landmarks {
 LandmarkFactoryReasonableOrdersHPS::LandmarkFactoryReasonableOrdersHPS(
     const shared_ptr<LandmarkFactory>& lm_factory,
+    std::shared_ptr<MutexFactory> mutex_factory,
     utils::Verbosity verbosity)
     : LandmarkFactory(verbosity)
     , lm_factory(lm_factory)
+    , mutex_factory(std::move(mutex_factory))
 {
 }
 
 void LandmarkFactoryReasonableOrdersHPS::generate_landmarks(
     const shared_ptr<AbstractTask>& task)
 {
+    std::shared_ptr<MutexInformation> mutexes =
+        mutex_factory->compute_mutexes(task);
+
     if (log.is_at_least_normal()) {
         log << "Building a landmark graph with reasonable orders." << endl;
     }
@@ -32,15 +39,16 @@ void LandmarkFactoryReasonableOrdersHPS::generate_landmarks(
     if (log.is_at_least_normal()) {
         log << "approx. reasonable orders" << endl;
     }
-    approximate_reasonable_orders(task_proxy);
+    approximate_reasonable_orders(task_proxy, *mutexes);
     if (log.is_at_least_normal()) {
         log << "approx. obedient reasonable orders" << endl;
     }
-    approximate_reasonable_orders(task_proxy);
+    approximate_reasonable_orders(task_proxy, *mutexes);
 }
 
 void LandmarkFactoryReasonableOrdersHPS::approximate_reasonable_orders(
-    const TaskProxy& task_proxy)
+    const TaskProxy& task_proxy,
+    const MutexInformation& mutexes)
 {
     /*
       Approximate reasonable and obedient reasonable orders according
@@ -63,7 +71,7 @@ void LandmarkFactoryReasonableOrdersHPS::approximate_reasonable_orders(
             for (auto& node2_p : lm_graph->get_nodes()) {
                 const Landmark& landmark2 = node2_p->get_landmark();
                 if (landmark == landmark2 || landmark2.disjunctive) continue;
-                if (interferes(task_proxy, landmark2, landmark)) {
+                if (interferes(task_proxy, mutexes, landmark2, landmark)) {
                     edge_add(*node2_p, *node_p, EdgeType::REASONABLE);
                 }
             }
@@ -96,7 +104,7 @@ void LandmarkFactoryReasonableOrdersHPS::approximate_reasonable_orders(
             for (LandmarkNode* node2_p : interesting_nodes) {
                 const Landmark& landmark2 = node2_p->get_landmark();
                 if (landmark == landmark2 || landmark2.disjunctive) continue;
-                if (interferes(task_proxy, landmark2, landmark)) {
+                if (interferes(task_proxy, mutexes, landmark2, landmark)) {
                     edge_add(*node2_p, *node_p, EdgeType::REASONABLE);
                 }
             }
@@ -106,6 +114,7 @@ void LandmarkFactoryReasonableOrdersHPS::approximate_reasonable_orders(
 
 bool LandmarkFactoryReasonableOrdersHPS::interferes(
     const TaskProxy& task_proxy,
+    const MutexInformation& mutexes,
     const Landmark& landmark_a,
     const Landmark& landmark_b) const
 {
@@ -133,7 +142,7 @@ bool LandmarkFactoryReasonableOrdersHPS::interferes(
             }
 
             // 1. a, b mutex
-            if (task_proxy.is_mutex(lm_fact_a, lm_fact_b)) return true;
+            if (mutexes.are_facts_mutex(lm_fact_a, lm_fact_b)) return true;
 
             // 2. Shared effect e in all operators reaching a, and e, b are
             // mutex Skip this for conjunctive nodes a, as they are typically
@@ -195,7 +204,7 @@ bool LandmarkFactoryReasonableOrdersHPS::interferes(
             for (const pair<const int, int>& eff : shared_eff) {
                 const FactPair effect_fact{eff.first, eff.second};
                 if (effect_fact != lm_fact_a && effect_fact != lm_fact_b &&
-                    task_proxy.is_mutex(effect_fact, lm_fact_b))
+                    mutexes.are_facts_mutex(effect_fact, lm_fact_b))
                     return true;
             }
         }

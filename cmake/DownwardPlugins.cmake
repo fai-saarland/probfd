@@ -38,6 +38,25 @@ create_library(
 )
 
 create_library(
+    NAME mutexes_factory_category
+    HELP "Mutex Factory plugin category"
+    SOURCES
+        downward/cli/mutex_factory_category
+    DEPENDS
+        plugins
+        core_sources
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME from_file_mutex_factory_feature
+    HELP "Mutex factory that reads them from a file plugin"
+    SOURCES
+        downward/cli/mutexes/from_file_mutex_factory_feature
+)
+
+create_library(
     NAME evaluator_category
     HELP "Evaluator plugin category"
     SOURCES
@@ -930,6 +949,7 @@ create_library(
         landmarks
         task_properties
         extra_tasks
+        mutexes_factory_category
         utils
     TARGET
         probfd
@@ -1011,6 +1031,7 @@ create_library(
         plugins
         landmark_factory_options
         landmarks
+        mutexes_factory_category
         utils
     TARGET
         probfd
@@ -1039,6 +1060,7 @@ create_library(
         plugins
         landmark_factory_options
         landmarks
+        mutexes_factory_category
         utils
     TARGET
         probfd

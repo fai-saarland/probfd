@@ -27,9 +27,6 @@ public:
     int get_variable_axiom_layer(int var) const override;
     int get_variable_default_axiom_value(int var) const override;
     std::string get_fact_name(const downward::FactPair& fact) const override;
-    bool are_facts_mutex(
-        const downward::FactPair& fact1,
-        const downward::FactPair& fact2) const override;
 
     int get_num_axioms() const override;
 

@@ -14,8 +14,14 @@ CMakeUserPresets.json
 docs/latex/
 docs/html/
 
+# Translator output
+*.psas
+*.mutexes
+
 # Graphviz
 *.dot
+
+# MacOS
 .DS_Store
 
 # Output policy

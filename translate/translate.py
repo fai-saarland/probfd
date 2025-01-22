@@ -748,9 +748,10 @@ def main():
 
     sas_task = pddl_to_sas(task)
     dump_statistics(sas_task)
-    with timers.timing("Writing output"):
-        with open(options.sas_file, "w") as output_file:
-            sas_task.output(output_file)
+    with (timers.timing("Writing output")):
+        with (open(options.sas_file, "w") as sas_output_file,
+              open(options.mutex_file, "w") as mutex_output_file):
+            sas_task.output(sas_output_file, mutex_output_file)
     print("Done! %s" % timer)
 
 

@@ -28,8 +28,6 @@ public:
     virtual int get_variable_axiom_layer(int var) const override;
     virtual int get_variable_default_axiom_value(int var) const override;
     virtual std::string get_fact_name(const FactPair& fact) const override;
-    virtual bool are_facts_mutex(const FactPair& fact1, const FactPair& fact2)
-        const override;
 
     virtual int get_num_axioms() const override;
 

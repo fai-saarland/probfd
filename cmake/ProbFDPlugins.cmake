@@ -412,6 +412,7 @@ create_library(
         probfd/cli/cartesian_abstractions/subtask_generators
     DEPENDS
         pa_cartesian_abstractions
+        mutexes_factory_category
         parser
         plugins
     TARGET

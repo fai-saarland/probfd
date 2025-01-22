@@ -3,6 +3,11 @@
 
 #include "downward/landmarks/landmark_factory.h"
 
+namespace downward {
+class MutexFactory;
+class MutexInformation;
+}
+
 namespace downward::landmarks {
 using FluentSet = std::vector<FactPair>;
 
@@ -63,7 +68,9 @@ class LandmarkFactoryHM : public LandmarkFactory {
     virtual void
     generate_landmarks(const std::shared_ptr<AbstractTask>& task) override;
 
-    void compute_h_m_landmarks(const TaskProxy& task_proxy);
+    void compute_h_m_landmarks(
+        const TaskProxy& task_proxy,
+        const MutexInformation& mutexes);
     void compute_noop_landmarks(
         int op_index,
         int noop_index,
@@ -78,29 +85,36 @@ class LandmarkFactoryHM : public LandmarkFactory {
         TriggerSet& trigger);
 
     bool possible_noop_set(
-        const TaskProxy& task_proxy,
+        const MutexInformation& mutexes,
         const FluentSet& fs1,
         const FluentSet& fs2);
-    void build_pm_ops(const TaskProxy& task_proxy);
+    void
+    build_pm_ops(const TaskProxy& task_proxy, const MutexInformation& mutexes);
     bool interesting(
-        const TaskProxy& task_proxy,
+        const MutexInformation& mutexes,
         const FactPair& fact1,
         const FactPair& fact2) const;
 
-    void postprocess(const TaskProxy& task_proxy);
+    void
+    postprocess(const TaskProxy& task_proxy, const MutexInformation& mutexes);
 
     void discard_conjunctive_landmarks();
 
-    void calc_achievers(const TaskProxy& task_proxy);
+    void calc_achievers(
+        const TaskProxy& task_proxy,
+        const MutexInformation& mutexes);
 
     void add_lm_node(int set_index, bool goal = false);
 
-    void initialize(const TaskProxy& task_proxy);
+    void
+    initialize(const TaskProxy& task_proxy, const MutexInformation& mutexes);
     void free_unneeded_memory();
 
     void
     print_fluentset(const VariablesProxy& variables, const FluentSet& fs) const;
     void print_pm_op(const VariablesProxy& variables, const PMOp& op) const;
+
+    std::shared_ptr<MutexFactory> mutex_factory;
 
     const int m_;
     const bool conjunctive_landmarks;
@@ -118,6 +132,7 @@ class LandmarkFactoryHM : public LandmarkFactory {
 
     void get_m_sets_(
         const TaskProxy& task_proxy,
+        const MutexInformation& mutexes,
         int m,
         int num_included,
         int current_var,
@@ -126,6 +141,7 @@ class LandmarkFactoryHM : public LandmarkFactory {
 
     void get_m_sets_of_set(
         const TaskProxy& task_proxy,
+        const MutexInformation& mutexes,
         int m,
         int num_included,
         int current_var_index,
@@ -135,6 +151,7 @@ class LandmarkFactoryHM : public LandmarkFactory {
 
     void get_split_m_sets(
         const TaskProxy& task_proxy,
+        const MutexInformation& mutexes,
         int m,
         int ss1_num_included,
         int ss2_num_included,
@@ -147,23 +164,27 @@ class LandmarkFactoryHM : public LandmarkFactory {
 
     void get_m_sets(
         const TaskProxy& task_proxy,
+        const MutexInformation& mutexes,
         int m,
         std::vector<FluentSet>& subsets);
 
     void get_m_sets(
         const TaskProxy& task_proxy,
+        const MutexInformation& mutexes,
         int m,
         std::vector<FluentSet>& subsets,
         const FluentSet& superset);
 
     void get_m_sets(
         const TaskProxy& task_proxy,
+        const MutexInformation& mutexes,
         int m,
         std::vector<FluentSet>& subsets,
         const State& state);
 
     void get_split_m_sets(
         const TaskProxy& task_proxy,
+        const MutexInformation& mutexes,
         int m,
         std::vector<FluentSet>& subsets,
         const FluentSet& superset1,
@@ -174,6 +195,7 @@ class LandmarkFactoryHM : public LandmarkFactory {
 
 public:
     LandmarkFactoryHM(
+        std::shared_ptr<MutexFactory> mutex_factory,
         int m,
         bool conjunctive_landmarks,
         bool use_orders,

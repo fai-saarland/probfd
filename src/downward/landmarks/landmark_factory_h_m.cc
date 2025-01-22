@@ -4,6 +4,7 @@
 #include "downward/landmarks/landmark.h"
 
 #include "downward/abstract_task.h"
+#include "downward/mutexes.h"
 
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/collections.h"
@@ -109,6 +110,7 @@ static bool contains(list<T>& alist, const T& val)
 // (look at all the variables in the problem)
 void LandmarkFactoryHM::get_m_sets_(
     const TaskProxy& task_proxy,
+    const MutexInformation& mutexes,
     int m,
     int num_included,
     int current_var,
@@ -133,7 +135,7 @@ void LandmarkFactoryHM::get_m_sets_(
         bool use_var = true;
         FactPair current_var_fact(current_var, i);
         for (const FactPair& current_fact : current) {
-            if (!interesting(task_proxy, current_var_fact, current_fact)) {
+            if (!interesting(mutexes, current_var_fact, current_fact)) {
                 use_var = false;
                 break;
             }
@@ -143,6 +145,7 @@ void LandmarkFactoryHM::get_m_sets_(
             current.push_back(current_var_fact);
             get_m_sets_(
                 task_proxy,
+                mutexes,
                 m,
                 num_included + 1,
                 current_var + 1,
@@ -152,12 +155,20 @@ void LandmarkFactoryHM::get_m_sets_(
         }
     }
     // don't include a value of current_var in the set
-    get_m_sets_(task_proxy, m, num_included, current_var + 1, current, subsets);
+    get_m_sets_(
+        task_proxy,
+        mutexes,
+        m,
+        num_included,
+        current_var + 1,
+        current,
+        subsets);
 }
 
 // find all size m or less subsets of superset
 void LandmarkFactoryHM::get_m_sets_of_set(
     const TaskProxy& task_proxy,
+    const MutexInformation& mutexes,
     int m,
     int num_included,
     int current_var_index,
@@ -179,7 +190,7 @@ void LandmarkFactoryHM::get_m_sets_of_set(
 
     bool use_var = true;
     for (const FactPair& fluent : current) {
-        if (!interesting(task_proxy, superset[current_var_index], fluent)) {
+        if (!interesting(mutexes, superset[current_var_index], fluent)) {
             use_var = false;
             break;
         }
@@ -190,6 +201,7 @@ void LandmarkFactoryHM::get_m_sets_of_set(
         current.push_back(superset[current_var_index]);
         get_m_sets_of_set(
             task_proxy,
+            mutexes,
             m,
             num_included + 1,
             current_var_index + 1,
@@ -202,6 +214,7 @@ void LandmarkFactoryHM::get_m_sets_of_set(
     // don't include current fluent in set
     get_m_sets_of_set(
         task_proxy,
+        mutexes,
         m,
         num_included,
         current_var_index + 1,
@@ -214,6 +227,7 @@ void LandmarkFactoryHM::get_m_sets_of_set(
 // such that they have >= 1 elements from each set.
 void LandmarkFactoryHM::get_split_m_sets(
     const TaskProxy& task_proxy,
+    const MutexInformation& mutexes,
     int m,
     int ss1_num_included,
     int ss2_num_included,
@@ -250,7 +264,7 @@ void LandmarkFactoryHM::get_split_m_sets(
         (ss2_var_index == sup2_size ||
          superset1[ss1_var_index] < superset2[ss2_var_index])) {
         for (const FactPair& fluent : current) {
-            if (!interesting(task_proxy, superset1[ss1_var_index], fluent)) {
+            if (!interesting(mutexes, superset1[ss1_var_index], fluent)) {
                 use_var = false;
                 break;
             }
@@ -261,6 +275,8 @@ void LandmarkFactoryHM::get_split_m_sets(
             current.push_back(superset1[ss1_var_index]);
             get_split_m_sets(
                 task_proxy,
+                mutexes,
+
                 m,
                 ss1_num_included + 1,
                 ss2_num_included,
@@ -276,6 +292,7 @@ void LandmarkFactoryHM::get_split_m_sets(
         // don't include
         get_split_m_sets(
             task_proxy,
+            mutexes,
             m,
             ss1_num_included,
             ss2_num_included,
@@ -287,7 +304,7 @@ void LandmarkFactoryHM::get_split_m_sets(
             superset2);
     } else {
         for (const FactPair& fluent : current) {
-            if (!interesting(task_proxy, superset2[ss2_var_index], fluent)) {
+            if (!interesting(mutexes, superset2[ss2_var_index], fluent)) {
                 use_var = false;
                 break;
             }
@@ -298,6 +315,8 @@ void LandmarkFactoryHM::get_split_m_sets(
             current.push_back(superset2[ss2_var_index]);
             get_split_m_sets(
                 task_proxy,
+                mutexes,
+
                 m,
                 ss1_num_included,
                 ss2_num_included + 1,
@@ -313,6 +332,8 @@ void LandmarkFactoryHM::get_split_m_sets(
         // don't include
         get_split_m_sets(
             task_proxy,
+            mutexes,
+
             m,
             ss1_num_included,
             ss2_num_included,
@@ -332,22 +353,24 @@ void LandmarkFactoryHM::get_split_m_sets(
 // get partial assignments of size <= m in the problem
 void LandmarkFactoryHM::get_m_sets(
     const TaskProxy& task_proxy,
+    const MutexInformation& mutexes,
     int m,
     vector<FluentSet>& subsets)
 {
     FluentSet c;
-    get_m_sets_(task_proxy, m, 0, 0, c, subsets);
+    get_m_sets_(task_proxy, mutexes, m, 0, 0, c, subsets);
 }
 
 // get subsets of superset with size <= m
 void LandmarkFactoryHM::get_m_sets(
     const TaskProxy& task_proxy,
+    const MutexInformation& mutexes,
     int m,
     vector<FluentSet>& subsets,
     const FluentSet& superset)
 {
     FluentSet c;
-    get_m_sets_of_set(task_proxy, m, 0, 0, c, subsets, superset);
+    get_m_sets_of_set(task_proxy, mutexes, m, 0, 0, c, subsets, superset);
 }
 
 // second function to get subsets of size at most m that
@@ -355,6 +378,7 @@ void LandmarkFactoryHM::get_m_sets(
 // assume disjoint
 void LandmarkFactoryHM::get_split_m_sets(
     const TaskProxy& task_proxy,
+    const MutexInformation& mutexes,
     int m,
     vector<FluentSet>& subsets,
     const FluentSet& superset1,
@@ -363,6 +387,7 @@ void LandmarkFactoryHM::get_split_m_sets(
     FluentSet c;
     get_split_m_sets(
         task_proxy,
+        mutexes,
         m,
         0,
         0,
@@ -377,6 +402,7 @@ void LandmarkFactoryHM::get_split_m_sets(
 // get subsets of state with size <= m
 void LandmarkFactoryHM::get_m_sets(
     const TaskProxy& task_proxy,
+    const MutexInformation& mutexes,
     int m,
     vector<FluentSet>& subsets,
     const State& state)
@@ -385,7 +411,7 @@ void LandmarkFactoryHM::get_m_sets(
     for (FactProxy fact : state) {
         state_fluents.push_back(fact.get_pair());
     }
-    get_m_sets(task_proxy, m, subsets, state_fluents);
+    get_m_sets(task_proxy, mutexes, m, subsets, state_fluents);
 }
 
 void LandmarkFactoryHM::print_proposition(
@@ -396,8 +422,8 @@ void LandmarkFactoryHM::print_proposition(
         VariableProxy var = variables[fluent.var];
         FactProxy fact = var.get_fact(fluent.value);
         log << fact.get_name() << " (" << var.get_name() << "("
-            << fact.get_variable().get_id() << ")"
-            << "->" << fact.get_value() << ")";
+            << fact.get_variable().get_id() << ")" << "->" << fact.get_value()
+            << ")";
     }
 }
 
@@ -532,7 +558,7 @@ void LandmarkFactoryHM::print_fluentset(
 // check whether fs2 is a possible noop set for action with fs1 as effect
 // sets cannot be 1) defined on same variable, 2) otherwise mutex
 bool LandmarkFactoryHM::possible_noop_set(
-    const TaskProxy& task_proxy,
+    const MutexInformation& mutexes,
     const FluentSet& fs1,
     const FluentSet& fs2)
 {
@@ -550,7 +576,7 @@ bool LandmarkFactoryHM::possible_noop_set(
 
     for (const FactPair& fluent1 : fs1) {
         for (const FactPair& fluent2 : fs2) {
-            if (task_proxy.is_mutex(fluent1, fluent2)) return false;
+            if (mutexes.are_facts_mutex(fluent1, fluent2)) return false;
         }
     }
 
@@ -558,7 +584,9 @@ bool LandmarkFactoryHM::possible_noop_set(
 }
 
 // make the operators of the P_m problem
-void LandmarkFactoryHM::build_pm_ops(const TaskProxy& task_proxy)
+void LandmarkFactoryHM::build_pm_ops(
+    const TaskProxy& task_proxy,
+    const MutexInformation& mutexes)
 {
     FluentSet pc, eff;
     vector<FluentSet> pc_subsets, eff_subsets, noop_pc_subsets,
@@ -586,7 +614,7 @@ void LandmarkFactoryHM::build_pm_ops(const TaskProxy& task_proxy)
 
         // preconditions of P_m op are all subsets of original pc
         pc = get_operator_precondition(op);
-        get_m_sets(task_proxy, m_, pc_subsets, pc);
+        get_m_sets(task_proxy, mutexes, m_, pc_subsets, pc);
         pm_op.pc.reserve(pc_subsets.size());
 
         // set unsatisfied pc count for op
@@ -601,7 +629,7 @@ void LandmarkFactoryHM::build_pm_ops(const TaskProxy& task_proxy)
 
         // same for effects
         eff = get_operator_postcondition(variables.size(), op);
-        get_m_sets(task_proxy, m_, eff_subsets, eff);
+        get_m_sets(task_proxy, mutexes, m_, eff_subsets, eff);
         pm_op.eff.reserve(eff_subsets.size());
 
         for (const FluentSet& eff_subset : eff_subsets) {
@@ -619,7 +647,7 @@ void LandmarkFactoryHM::build_pm_ops(const TaskProxy& task_proxy)
         FluentSetToIntMap::const_iterator it = set_indices_.begin();
         while (static_cast<int>(it->first.size()) < m_ &&
                it != set_indices_.end()) {
-            if (possible_noop_set(task_proxy, eff, it->first)) {
+            if (possible_noop_set(mutexes, eff, it->first)) {
                 // for each such set, add a "conditional effect" to the operator
                 pm_op.cond_noops.resize(pm_op.cond_noops.size() + 1);
 
@@ -633,12 +661,14 @@ void LandmarkFactoryHM::build_pm_ops(const TaskProxy& task_proxy)
 
                 get_split_m_sets(
                     task_proxy,
+                    mutexes,
                     m_,
                     noop_pc_subsets,
                     pc,
                     it->first);
                 get_split_m_sets(
                     task_proxy,
+                    mutexes,
                     m_,
                     noop_eff_subsets,
                     eff,
@@ -688,27 +718,31 @@ void LandmarkFactoryHM::build_pm_ops(const TaskProxy& task_proxy)
 }
 
 bool LandmarkFactoryHM::interesting(
-    const TaskProxy& task_proxy,
+    const MutexInformation& mutexes,
     const FactPair& fact1,
     const FactPair& fact2) const
 {
     // mutexes can always be safely pruned
-    return !task_proxy.is_mutex(fact1, fact2);
+    return !mutexes.are_facts_mutex(fact1, fact2);
 }
 
 LandmarkFactoryHM::LandmarkFactoryHM(
+    std::shared_ptr<MutexFactory> mutex_factory,
     int m,
     bool conjunctive_landmarks,
     bool use_orders,
     utils::Verbosity verbosity)
     : LandmarkFactory(verbosity)
+    , mutex_factory(std::move(mutex_factory))
     , m_(m)
     , conjunctive_landmarks(conjunctive_landmarks)
     , use_orders(use_orders)
 {
 }
 
-void LandmarkFactoryHM::initialize(const TaskProxy& task_proxy)
+void LandmarkFactoryHM::initialize(
+    const TaskProxy& task_proxy,
+    const MutexInformation& mutexes)
 {
     if (log.is_at_least_normal()) {
         log << "h^m landmarks m=" << m_ << endl;
@@ -719,7 +753,7 @@ void LandmarkFactoryHM::initialize(const TaskProxy& task_proxy)
     }
     // Get all the m or less size subsets in the domain.
     vector<vector<FactPair>> msets;
-    get_m_sets(task_proxy, m_, msets);
+    get_m_sets(task_proxy, mutexes, m_, msets);
 
     // map each set to an integer
     for (size_t i = 0; i < msets.size(); ++i) {
@@ -731,17 +765,19 @@ void LandmarkFactoryHM::initialize(const TaskProxy& task_proxy)
         log << "Using " << h_m_table_.size() << " P^m fluents." << endl;
     }
 
-    build_pm_ops(task_proxy);
+    build_pm_ops(task_proxy, mutexes);
 }
 
-void LandmarkFactoryHM::postprocess(const TaskProxy& task_proxy)
+void LandmarkFactoryHM::postprocess(
+    const TaskProxy& task_proxy,
+    const MutexInformation& mutexes)
 {
     if (!conjunctive_landmarks) discard_conjunctive_landmarks();
     lm_graph->set_landmark_ids();
 
     if (!use_orders) discard_all_orderings();
 
-    calc_achievers(task_proxy);
+    calc_achievers(task_proxy, mutexes);
 }
 
 void LandmarkFactoryHM::discard_conjunctive_landmarks()
@@ -757,7 +793,9 @@ void LandmarkFactoryHM::discard_conjunctive_landmarks()
     }
 }
 
-void LandmarkFactoryHM::calc_achievers(const TaskProxy& task_proxy)
+void LandmarkFactoryHM::calc_achievers(
+    const TaskProxy& task_proxy,
+    const MutexInformation& mutexes)
 {
     assert(!achievers_calculated);
     if (log.is_at_least_normal()) {
@@ -789,7 +827,7 @@ void LandmarkFactoryHM::calc_achievers(const TaskProxy& task_proxy)
                     continue;
                 bool is_mutex = false;
                 for (const FactPair& fluent : post) {
-                    if (task_proxy.is_mutex(fluent, lm_fact)) {
+                    if (mutexes.are_facts_mutex(fluent, lm_fact)) {
                         is_mutex = true;
                         break;
                     }
@@ -801,7 +839,7 @@ void LandmarkFactoryHM::calc_achievers(const TaskProxy& task_proxy)
                     // we know that lm_val is not added by the operator
                     // so if it incompatible with the pc, this can't be an
                     // achiever
-                    if (task_proxy.is_mutex(fluent, lm_fact)) {
+                    if (mutexes.are_facts_mutex(fluent, lm_fact)) {
                         is_mutex = true;
                         break;
                     }
@@ -871,11 +909,18 @@ void LandmarkFactoryHM::propagate_pm_fact(
     }
 }
 
-void LandmarkFactoryHM::compute_h_m_landmarks(const TaskProxy& task_proxy)
+void LandmarkFactoryHM::compute_h_m_landmarks(
+    const TaskProxy& task_proxy,
+    const MutexInformation& mutexes)
 {
     // get subsets of initial state
     vector<FluentSet> init_subsets;
-    get_m_sets(task_proxy, m_, init_subsets, task_proxy.get_initial_state());
+    get_m_sets(
+        task_proxy,
+        mutexes,
+        m_,
+        init_subsets,
+        task_proxy.get_initial_state());
 
     TriggerSet current_trigger, next_trigger;
 
@@ -1095,14 +1140,16 @@ void LandmarkFactoryHM::add_lm_node(int set_index, bool goal)
 
 void LandmarkFactoryHM::generate_landmarks(const shared_ptr<AbstractTask>& task)
 {
+    const auto mutexes = mutex_factory->compute_mutexes(task);
+
     TaskProxy task_proxy(*task);
-    initialize(task_proxy);
-    compute_h_m_landmarks(task_proxy);
+    initialize(task_proxy, *mutexes);
+    compute_h_m_landmarks(task_proxy, *mutexes);
     // now construct landmarks graph
     vector<FluentSet> goal_subsets;
     FluentSet goals = task_properties::get_fact_pairs(task_proxy.get_goals());
     VariablesProxy variables = task_proxy.get_variables();
-    get_m_sets(task_proxy, m_, goal_subsets, goals);
+    get_m_sets(task_proxy, *mutexes, m_, goal_subsets, goals);
     list<int> all_lms;
     for (const FluentSet& goal_subset : goal_subsets) {
         assert(set_indices_.find(goal_subset) != set_indices_.end());
@@ -1174,7 +1221,7 @@ void LandmarkFactoryHM::generate_landmarks(const shared_ptr<AbstractTask>& task)
     }
     free_unneeded_memory();
 
-    postprocess(task_proxy);
+    postprocess(task_proxy, *mutexes);
 }
 
 bool LandmarkFactoryHM::supports_conditional_effects() const

@@ -7,6 +7,7 @@
 // Forward Declarations
 namespace downward {
 struct FactPair;
+class MutexFactory;
 }
 
 namespace downward::landmarks {
@@ -74,12 +75,14 @@ public:
   focussing on a single landmark fact.
 */
 class LandmarkDecomposition : public SubtaskGenerator {
+    std::shared_ptr<downward::MutexFactory> mutex_factory;
     FactOrder fact_order_;
     bool combine_facts_;
     std::shared_ptr<downward::utils::RandomNumberGenerator> rng_;
 
 public:
     explicit LandmarkDecomposition(
+        std::shared_ptr<downward::MutexFactory> mutex_factory,
         FactOrder order,
         bool combine_facts,
         int random_seed);

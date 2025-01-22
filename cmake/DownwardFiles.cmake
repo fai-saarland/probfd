@@ -9,6 +9,7 @@ create_library(
         downward/evaluator
         downward/evaluator_cache
         downward/heuristic
+        downward/mutexes
         downward/open_list
         downward/open_list_factory
         downward/operator_cost
@@ -73,6 +74,13 @@ if (WIN32)
     cmake_policy(SET CMP0074 NEW)
     target_link_libraries(utils_obj INTERFACE psapi)
 endif()
+
+create_library(
+    NAME from_file_mutex_factory
+    HELP "Mutex factory that reads them from a file"
+    SOURCES
+        downward/mutexes/from_file_mutex_factory
+)
 
 create_library(
     NAME alternation_open_list
