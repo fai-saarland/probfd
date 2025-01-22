@@ -49,8 +49,6 @@ public:
     virtual int get_variable_axiom_layer(int var) const = 0;
     virtual int get_variable_default_axiom_value(int var) const = 0;
     virtual std::string get_fact_name(const FactPair& fact) const = 0;
-    virtual bool
-    are_facts_mutex(const FactPair& fact1, const FactPair& fact2) const = 0;
 
     virtual int get_num_axioms() const = 0;
     virtual std::string get_axiom_name(int index) const = 0;

@@ -8,6 +8,7 @@
 
 class AbstractTask;
 struct FactPair;
+class MutexFactory;
 
 class StateMapping;
 class InverseOperatorMapping;
@@ -71,6 +72,7 @@ public:
   focussing on a single landmark fact.
 */
 class LandmarkDecomposition : public SubtaskGenerator {
+    std::shared_ptr<MutexFactory> mutex_factory;
     FactOrder fact_order;
     bool combine_facts;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
@@ -84,6 +86,7 @@ class LandmarkDecomposition : public SubtaskGenerator {
 
 public:
     explicit LandmarkDecomposition(
+        std::shared_ptr<MutexFactory> mutex_factory,
         FactOrder order,
         int random_seed,
         bool combine_facts);

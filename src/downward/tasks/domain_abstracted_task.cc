@@ -61,12 +61,6 @@ string DomainAbstractedTask::get_fact_name(const FactPair& fact) const
     return fact_names[fact.var][fact.value];
 }
 
-bool DomainAbstractedTask::are_facts_mutex(const FactPair&, const FactPair&)
-    const
-{
-    ABORT("DomainAbstractedTask doesn't support querying mutexes.");
-}
-
 FactPair
 DomainAbstractedTask::get_axiom_precondition(int op_index, int fact_index) const
 {

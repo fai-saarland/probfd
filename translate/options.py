@@ -36,6 +36,10 @@ def parse_args():
         default="output.psas",
         help="path to the probabilistic SAS output file (default: %(default)s)")
     argparser.add_argument(
+        "--mutex-file",
+        default="output.mutexes",
+        help="path to the mutex output file (default: %(default)s)")
+    argparser.add_argument(
         "--invariant-generation-max-time",
         default=300,
         type=int,

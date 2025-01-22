@@ -36,8 +36,6 @@ public:
 
     virtual int get_variable_domain_size(int var) const override;
     virtual std::string get_fact_name(const FactPair& fact) const override;
-    virtual bool are_facts_mutex(const FactPair& fact1, const FactPair& fact2)
-        const override;
 
     virtual FactPair
     get_axiom_precondition(int op_index, int fact_index) const override;

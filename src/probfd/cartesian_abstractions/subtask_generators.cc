@@ -171,10 +171,12 @@ SharedTasks GoalDecomposition::get_subtasks(
 }
 
 LandmarkDecomposition::LandmarkDecomposition(
+    std::shared_ptr<MutexFactory> mutex_factory,
     FactOrder order,
     bool combine_facts,
     int random_seed)
-    : fact_order_(order)
+    : mutex_factory(std::move(mutex_factory))
+    , fact_order_(order)
     , combine_facts_(combine_facts)
     , rng_(utils::get_rng(random_seed))
 {
@@ -188,7 +190,9 @@ SharedTasks LandmarkDecomposition::get_subtasks(
         std::make_shared<tasks::DeterminizationTask>(task);
     SharedTasks subtasks;
     shared_ptr<landmarks::LandmarkGraph> landmark_graph =
-        ::cartesian_abstractions::get_landmark_graph(determinization_task);
+        ::cartesian_abstractions::get_landmark_graph(
+            determinization_task,
+            mutex_factory);
     Facts landmark_facts =
         ::cartesian_abstractions::get_fact_landmarks(*landmark_graph);
     filter_and_order_facts(task, fact_order_, landmark_facts, *rng_, log);

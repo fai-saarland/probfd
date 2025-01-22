@@ -52,13 +52,6 @@ std::string DeterminizationTask::get_fact_name(const FactPair& fact) const
     return parent_task_->get_fact_name(fact);
 }
 
-bool DeterminizationTask::are_facts_mutex(
-    const FactPair& fact1,
-    const FactPair& fact2) const
-{
-    return parent_task_->are_facts_mutex(fact1, fact2);
-}
-
 int DeterminizationTask::get_num_axioms() const
 {
     return parent_task_->get_num_axioms();

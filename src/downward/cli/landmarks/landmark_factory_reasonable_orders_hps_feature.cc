@@ -49,6 +49,9 @@ public:
             "decided to remove them in issue1089.");
 
         add_option<shared_ptr<LandmarkFactory>>("lm_factory");
+        add_option<std::shared_ptr<MutexFactory>>(
+            "mutexes",
+            "factory for mutexes");
         add_landmark_factory_options_to_feature(*this);
 
         // TODO: correct?
@@ -62,6 +65,7 @@ public:
     {
         return make_shared_from_arg_tuples<LandmarkFactoryReasonableOrdersHPS>(
             opts.get<shared_ptr<LandmarkFactory>>("lm_factory"),
+            opts.get<std::shared_ptr<MutexFactory>>("mutexes"),
             get_landmark_factory_arguments_from_options(opts));
     }
 };

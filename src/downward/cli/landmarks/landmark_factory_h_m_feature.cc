@@ -35,6 +35,9 @@ public:
             "m",
             "subset size (if unsure, use the default of 2)",
             "2");
+        add_option<std::shared_ptr<MutexFactory>>(
+            "mutexes",
+            "factory for mutexes");
         add_option<bool>(
             "conjunctive_landmarks",
             "keep conjunctive landmarks",
@@ -51,6 +54,7 @@ public:
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<LandmarkFactoryHM>(
+            opts.get<std::shared_ptr<MutexFactory>>("mutexes"),
             opts.get<int>("m"),
             opts.get<bool>("conjunctive_landmarks"),
             get_use_orders_arguments_from_options(opts),

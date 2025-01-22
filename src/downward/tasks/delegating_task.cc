@@ -38,13 +38,6 @@ string DelegatingTask::get_fact_name(const FactPair& fact) const
     return parent->get_fact_name(fact);
 }
 
-bool DelegatingTask::are_facts_mutex(
-    const FactPair& fact1,
-    const FactPair& fact2) const
-{
-    return parent->are_facts_mutex(fact1, fact2);
-}
-
 int DelegatingTask::get_num_axioms() const
 {
     return parent->get_num_axioms();

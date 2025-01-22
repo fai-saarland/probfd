@@ -8,6 +8,7 @@
 
 // Forward Declarations
 struct FactPair;
+class MutexFactory;
 
 namespace landmarks {
 class LandmarkGraph;
@@ -73,12 +74,14 @@ public:
   focussing on a single landmark fact.
 */
 class LandmarkDecomposition : public SubtaskGenerator {
+    std::shared_ptr<MutexFactory> mutex_factory;
     FactOrder fact_order_;
     bool combine_facts_;
     std::shared_ptr<utils::RandomNumberGenerator> rng_;
 
 public:
     explicit LandmarkDecomposition(
+        std::shared_ptr<MutexFactory> mutex_factory,
         FactOrder order,
         bool combine_facts,
         int random_seed);

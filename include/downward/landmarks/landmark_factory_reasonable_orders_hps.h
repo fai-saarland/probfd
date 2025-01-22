@@ -3,16 +3,23 @@
 
 #include "downward/landmarks/landmark_factory.h"
 
+class MutexFactory;
+class MutexInformation;
+
 namespace landmarks {
 class LandmarkFactoryReasonableOrdersHPS : public LandmarkFactory {
     std::shared_ptr<LandmarkFactory> lm_factory;
+    std::shared_ptr<MutexFactory> mutex_factory;
 
     virtual void
     generate_landmarks(const std::shared_ptr<AbstractTask>& task) override;
 
-    void approximate_reasonable_orders(const TaskProxy& task_proxy);
+    void approximate_reasonable_orders(
+        const TaskProxy& task_proxy,
+        const MutexInformation& mutexes);
     bool interferes(
         const TaskProxy& task_proxy,
+        const MutexInformation& mutexes,
         const Landmark& landmark_a,
         const Landmark& landmark_b) const;
     void collect_ancestors(
@@ -26,6 +33,7 @@ class LandmarkFactoryReasonableOrdersHPS : public LandmarkFactory {
 public:
     LandmarkFactoryReasonableOrdersHPS(
         const std::shared_ptr<LandmarkFactory>& lm_factory,
+        std::shared_ptr<MutexFactory> mutex_factory,
         utils::Verbosity verbosity);
 
     virtual bool supports_conditional_effects() const override;

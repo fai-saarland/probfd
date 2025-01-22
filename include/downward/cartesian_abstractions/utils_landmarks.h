@@ -7,6 +7,7 @@
 
 class AbstractTask;
 struct FactPair;
+class MutexFactory;
 
 namespace landmarks {
 class LandmarkGraph;
@@ -15,8 +16,9 @@ class LandmarkGraph;
 namespace cartesian_abstractions {
 using VarToValues = std::unordered_map<int, std::vector<int>>;
 
-extern std::shared_ptr<landmarks::LandmarkGraph>
-get_landmark_graph(const std::shared_ptr<AbstractTask>& task);
+extern std::shared_ptr<landmarks::LandmarkGraph> get_landmark_graph(
+    const std::shared_ptr<AbstractTask>& task,
+    std::shared_ptr<MutexFactory> mutex_factory);
 extern std::vector<FactPair>
 get_fact_landmarks(const landmarks::LandmarkGraph& graph);
 

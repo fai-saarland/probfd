@@ -49,9 +49,6 @@ public:
 
     std::string get_fact_name(const FactPair& fact) const final;
 
-    bool
-    are_facts_mutex(const FactPair& fact1, const FactPair& fact2) const final;
-
     int get_num_axioms() const final;
 
     std::string get_axiom_name(int index) const final;

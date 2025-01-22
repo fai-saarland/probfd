@@ -1152,11 +1152,6 @@ public:
     }
 
     const causal_graph::CausalGraph& get_causal_graph() const;
-
-    bool is_mutex(const FactPair& left, const FactPair& right) const
-    {
-        return task->are_facts_mutex(left, right);
-    }
 };
 
 inline PlanningTaskProxy::operator TaskProxy() const

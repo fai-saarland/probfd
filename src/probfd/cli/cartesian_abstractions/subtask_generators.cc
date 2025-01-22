@@ -76,6 +76,10 @@ public:
     LandmarkDecompositionFeature()
         : TypedFeature("pcegar_landmarks")
     {
+        add_option<std::shared_ptr<MutexFactory>>(
+            "mutexes",
+            "factory for mutexes",
+            "mutexes_from_file(\"output.mutexes\")");
         add_fact_order_options(*this);
         add_option<bool>(
             "combine_facts",
@@ -87,6 +91,7 @@ public:
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<LandmarkDecomposition>(
+            opts.get<std::shared_ptr<MutexFactory>>("mutexes"),
             get_fact_order_arguments_from_options(opts),
             opts.get<bool>("combine_facts"));
     }
