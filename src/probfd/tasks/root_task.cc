@@ -15,6 +15,7 @@
 #include <compare>
 #include <fstream>
 #include <memory>
+#include <numeric>
 #include <set>
 #include <vector>
 
@@ -63,7 +64,28 @@ struct ConditionalEffect {
     }
 };
 
+struct Fraction {
+    int numerator;
+    int denominator;
+
+    friend Fraction operator+(const Fraction& left, const Fraction& right);
+
+    Fraction& operator+=(const Fraction& other)
+    {
+        return *this = (*this + other);
+    }
+};
+
+Fraction operator+(const Fraction& left, const Fraction& right)
+{
+    const int lcm = std::lcm(left.denominator, right.denominator);
+    const int numerator = (left.numerator * (lcm / left.denominator)) +
+                          (right.numerator * (lcm / right.denominator));
+    return {numerator, lcm};
+}
+
 struct ProbabilisticOutcome {
+    Fraction fractional_probability;
     value_t probability;
     vector<ConditionalEffect> effects;
 
@@ -232,19 +254,10 @@ void check_facts(
 {
     check_facts(action.preconditions, variables);
 
-    value_t total_prob = 0_vt;
+    Fraction total_prob = {0, 1};
 
     for (const auto& outcome : action.outcomes) {
-        const auto prob = outcome.probability;
-
-        if (prob <= 0_vt) {
-            cerr << "Probability must be greater than zero: " << prob << endl;
-            utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
-        } else if (prob > 1_vt) {
-            cerr << "Probability must be less or equal to one: " << prob
-                 << endl;
-            utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
-        }
+        const auto prob = outcome.fractional_probability;
 
         for (const ConditionalEffect& eff : outcome.effects) {
             check_fact(eff.fact, variables);
@@ -254,9 +267,9 @@ void check_facts(
         total_prob += prob;
     }
 
-    if (!is_approx_equal(total_prob, 1_vt)) {
+    if (total_prob.numerator != total_prob.denominator) {
         cerr << "Total outcome probabilities must sum up to one. Sum was: "
-             << total_prob << endl;
+             << total_prob.numerator << "/" << total_prob.denominator << endl;
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
 }
@@ -318,7 +331,51 @@ ProbabilisticOutcome::ProbabilisticOutcome(std::istream& in)
     // Read probability
     std::string p;
     in >> p;
-    probability = string_to_value(p);
+
+    auto it = p.find('/');
+
+    if (it == std::string::npos) {
+        fractional_probability.numerator = std::stoi(p);
+        fractional_probability.denominator = 1;
+    } else {
+        std::string numerator = p.substr(0, it);
+        std::string denominator = p.substr(it + 1);
+
+        fractional_probability.numerator = std::stoi(numerator);
+        fractional_probability.denominator = std::stoi(denominator);
+
+        if (fractional_probability.denominator < 0) {
+            cerr << "Read probability with denominator of zero: " << p << endl;
+            utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
+        }
+    }
+
+    if (fractional_probability.numerator < 0) {
+        fractional_probability.numerator = -fractional_probability.numerator;
+        fractional_probability.denominator =
+            -fractional_probability.denominator;
+    }
+
+    if (fractional_probability.numerator < 0) {
+        cerr << "Probability must be grater than zero: " << p << endl;
+        utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
+    }
+
+    if (fractional_probability.numerator > fractional_probability.denominator) {
+        cerr << "Probability must be less or equal to one: " << p << endl;
+        utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
+    }
+
+    const int gcd = std::gcd(
+        fractional_probability.numerator,
+        fractional_probability.denominator);
+
+    fractional_probability.numerator /= gcd;
+    fractional_probability.denominator /= gcd;
+
+    probability = fraction_to_value(
+        fractional_probability.numerator,
+        fractional_probability.denominator);
 
     // Read number of effects
     int count;
