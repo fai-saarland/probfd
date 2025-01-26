@@ -23,8 +23,6 @@ using utils::ExitCode;
 
 namespace probfd::tasks {
 
-shared_ptr<ProbabilisticTask> g_root_task = nullptr;
-
 namespace {
 
 const auto PRE_FILE_PROB_VERSION = "1";
@@ -858,10 +856,17 @@ std::unique_ptr<ProbabilisticTask> read_sas_task(std::istream& in)
     return std::make_unique<RootTask>(in);
 }
 
+std::unique_ptr<ProbabilisticTask>
+read_sas_task(const std::filesystem::path& filepath)
+{
+    std::fstream input_file(filepath);
+    return read_sas_task(input_file);
+}
+
 std::shared_ptr<ProbabilisticTask> read_root_tasks(std::istream& in)
 {
     std::shared_ptr<ProbabilisticTask> input_task = read_sas_task(in);
-    set_root_task(input_task);
+    ::tasks::g_root_task = std::make_shared<DeterminizationTask>(input_task);
     return input_task;
 }
 
@@ -870,14 +875,6 @@ read_root_tasks_from_file(const std::filesystem::path& filepath)
 {
     std::fstream input_file(filepath);
     return read_root_tasks(input_file);
-}
-
-void set_root_task(std::shared_ptr<ProbabilisticTask> task)
-{
-    // FIXME crashes in tests since it persists in between tests.
-    // assert(!g_root_task);
-    ::tasks::g_root_task = std::make_shared<DeterminizationTask>(task);
-    g_root_task = std::move(task);
 }
 
 } // namespace probfd::tasks

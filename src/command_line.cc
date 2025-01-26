@@ -354,7 +354,7 @@ static int search(argparse::ArgumentParser& parser)
         parser.get("sas_file"));
 
     std::unique_ptr<SolverInterface> solver =
-        solver_factory->create(tasks::g_root_task);
+        solver_factory->create(input_task);
 
     utils::g_search_timer.resume();
     bool found_solution = solver->solve();

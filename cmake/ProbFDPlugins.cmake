@@ -2,7 +2,6 @@ create_library(
     NAME probfd_core_plugin
     HELP "Enables core ProbFD plugin"
     SOURCES
-        probfd/cli/probabilistic_task
         probfd/cli/solver_interface
         probfd/cli/task_evaluator_factory
     DEPENDS

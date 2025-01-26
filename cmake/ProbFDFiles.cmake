@@ -84,6 +84,8 @@ create_library(
         probfd/tasks/domain_abstracted_task_factory
         probfd/tasks/modified_goals_task
         probfd/tasks/modified_operator_costs_task
+    DEPENDS
+        core_probabilistic_tasks
 )
 
 create_library(
