@@ -340,11 +340,24 @@ static int search(argparse::ArgumentParser& parser)
         ASTNodePtr parsed = parse(tokens);
         DecoratedASTNodePtr decorated = parsed->decorate();
         std::any constructed = decorated->construct();
-        solver_factory =
-            std::any_cast<shared_ptr<TaskSolverFactory>>(constructed);
+        try {
+            solver_factory =
+                std::any_cast<shared_ptr<TaskSolverFactory>>(constructed);
+        } catch (const std::bad_any_cast& e) {
+            std::println(
+                std::cerr,
+                "Search argument {:?} is of type {}, not "
+                "TaskSolverFactory.",
+                search_arg,
+                constructed.type().name());
+            return static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR);
+        }
     } catch (const utils::ContextError& e) {
         std::cerr << e.get_message() << std::endl;
         return static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR);
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        return static_cast<int>(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
 
     std::shared_ptr<ProbabilisticTask> input_task = timed(
