@@ -29,7 +29,7 @@ public:
 
     virtual void print_statistics() const {}
 
-    virtual bool solve() = 0;
+    virtual bool solve(double max_time) = 0;
 };
 
 class TaskSolverFactory {

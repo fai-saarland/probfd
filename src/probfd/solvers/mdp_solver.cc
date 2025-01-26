@@ -32,7 +32,6 @@ MDPSolver::MDPSolver(
     utils::Verbosity verbosity,
     std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
     std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
-    double max_time,
     std::string policy_filename,
     bool print_fact_names,
     std::optional<value_t> report_epsilon,
@@ -40,7 +39,6 @@ MDPSolver::MDPSolver(
     : log_(utils::get_log_for_verbosity(verbosity))
     , task_state_space_factory_(std::move(task_state_space_factory))
     , heuristic_factory_(std::move(heuristic_factory))
-    , max_time_(max_time)
     , policy_filename(std::move(policy_filename))
     , print_fact_names(print_fact_names)
     , report_epsilon(report_epsilon)
@@ -58,7 +56,6 @@ class Solver : public SolverInterface {
     std::unique_ptr<TaskStateSpace> state_space;
     const std::shared_ptr<FDREvaluator> heuristic;
     std::string algorithm_name;
-    double max_time;
     std::string policy_filename;
     bool print_fact_names;
 
@@ -71,7 +68,6 @@ public:
         std::unique_ptr<FDRMDPAlgorithm> algorithm,
         std::unique_ptr<TaskStateSpace> state_space,
         const std::shared_ptr<FDREvaluator> heuristic,
-        double max_time,
         std::string algorithm_name,
         std::string policy_filename,
         bool print_fact_names,
@@ -83,14 +79,13 @@ public:
         , state_space(std::move(state_space))
         , heuristic(std::move(heuristic))
         , algorithm_name(std::move(algorithm_name))
-        , max_time(max_time)
         , policy_filename(std::move(policy_filename))
         , print_fact_names(print_fact_names)
         , progress(report_epsilon, std::cout, report_enabled)
     {
     }
 
-    bool solve() override
+    bool solve(double max_time) override
     {
         std::cout << "Running MDP algorithm " << algorithm_name;
 
@@ -214,7 +209,6 @@ MDPSolver::create(const std::shared_ptr<ProbabilisticTask>& task)
         std::move(algorithm),
         std::move(state_space),
         std::move(heuristic),
-        max_time_,
         get_algorithm_name(),
         policy_filename,
         print_fact_names,

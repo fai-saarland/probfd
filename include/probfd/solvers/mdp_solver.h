@@ -34,8 +34,6 @@ private:
     const std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory_;
     const std::shared_ptr<TaskEvaluatorFactory> heuristic_factory_;
 
-    const double max_time_;
-
     const std::string policy_filename;
     const bool print_fact_names;
 
@@ -50,7 +48,6 @@ public:
         utils::Verbosity verbosity,
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
-        double max_time,
         std::string policy_filename,
         bool print_fact_names,
         std::optional<value_t> report_epsilon,

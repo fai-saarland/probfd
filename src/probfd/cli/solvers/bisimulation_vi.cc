@@ -85,7 +85,7 @@ public:
     {
     }
 
-    bool solve() override
+    bool solve(double max_time) override
     {
         utils::Timer total_timer;
 
@@ -137,12 +137,9 @@ public:
         heuristics::BlindEvaluator<QState> blind;
         ProgressReport progress;
 
-        const Interval val = solver->solve(
-            state_space,
-            blind,
-            initial_state,
-            progress,
-            std::numeric_limits<double>::infinity());
+        const Interval val =
+            solver
+                ->solve(state_space, blind, initial_state, progress, max_time);
 
         std::cout << "Finished after " << vi_timer() << " [t=" << total_timer
                   << "]" << std::endl;

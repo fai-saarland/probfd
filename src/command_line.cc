@@ -20,9 +20,11 @@
 #include "downward/utils/system.h"
 
 #include <any>
+#include <charconv>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <print>
 #include <ranges>
 #include <stdexcept>
@@ -310,9 +312,11 @@ static int list_features(argparse::ArgumentParser& parser)
 
 static int search(argparse::ArgumentParser& parser)
 {
-    if (auto eps = parser.present<float>("--epsilon")) {
+    if (auto eps = parser.present<double>("--epsilon")) {
         probfd::g_epsilon = *eps;
     }
+
+    const double max_time = parser.get<double>("--max-search-time");
 
     std::string search_arg = parser.get("algorithm");
 
@@ -343,7 +347,7 @@ static int search(argparse::ArgumentParser& parser)
         try {
             solver_factory =
                 std::any_cast<shared_ptr<TaskSolverFactory>>(constructed);
-        } catch (const std::bad_any_cast& e) {
+        } catch (const std::bad_any_cast&) {
             std::println(
                 std::cerr,
                 "Search argument {:?} is of type {}, not "
@@ -370,7 +374,7 @@ static int search(argparse::ArgumentParser& parser)
         solver_factory->create(input_task);
 
     utils::g_search_timer.resume();
-    bool found_solution = solver->solve();
+    bool found_solution = solver->solve(max_time);
     utils::g_search_timer.stop();
     utils::g_timer.stop();
 
@@ -394,8 +398,46 @@ void setup_argparser(argparse::ArgumentParser& arg_parser)
     search_parser.add_description("Runs the search component.");
     search_parser.add_argument("--epsilon")
         .help("The floating-point precision used for convergence checks.")
-        .metavar("FLOAT")
-        .scan<'g', float>();
+        .metavar("DOUBLE")
+        .scan<'g', double>();
+
+    search_parser.add_argument("--max-search-time")
+        .help("The maximum time to .")
+        .metavar("DOUBLE")
+        .default_value(std::numeric_limits<double>::infinity())
+        .scan<'g', double>()
+        .action([](const std::string& s) {
+            double d;
+
+            switch (std::from_chars(s.c_str(), s.c_str() + s.size(), d).ec) {
+            default:
+                if (d < 0.0) {
+                    std::cerr
+                        << "Maximum search time needs to be positive: " << s
+                        << std::endl;
+                    exit(static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR));
+                }
+                break;
+
+            case std::errc::invalid_argument:
+                std::println(
+                    std::cerr,
+                    "Maximum search time is not a double: {}",
+                    s);
+                exit(static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR));
+
+            case std::errc::result_out_of_range:
+                std::println(
+                    std::cerr,
+                    "Maximum search time is out of the range of representable "
+                    "values: {}",
+                    s);
+
+                exit(static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR));
+            }
+
+            return d;
+        });
 
     search_parser.add_argument("--predefinition")
         .help("[Deprecated] Feature predefinition. The options --landmarks, "

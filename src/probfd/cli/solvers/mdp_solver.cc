@@ -34,13 +34,6 @@ void add_base_solver_options_to_feature(Feature& feature)
         "report_enabled",
         "Whether the algorithm should report its progress.",
         "true");
-    feature.add_option<double>(
-        "max_time",
-        "The time limit after which the algorithms aborts with an exception. "
-        "This limit is not strict, algorithms only periodically check that "
-        "they "
-        "have no exhausted the time limit.",
-        "infinity");
     feature.add_option<std::string>(
         "policy_file",
         "Name of the file in which the policy returned by the algorithm is "
@@ -64,7 +57,6 @@ MDPSolverArgs get_base_solver_args_from_options(const Options& options)
         std::make_tuple(
             options.get<std::shared_ptr<TaskStateSpaceFactory>>("state_space"),
             options.get<std::shared_ptr<TaskEvaluatorFactory>>("eval"),
-            options.get<double>("max_time"),
             options.get<std::string>("policy_file"),
             options.get<bool>("print_fact_names"),
             options.contains("report_epsilon")
