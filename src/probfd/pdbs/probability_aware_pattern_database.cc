@@ -24,11 +24,13 @@ void compute_value_table(
     std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     const StateRankingFunction& ranking_function,
     bool operator_pruning,
-    utils::CountdownTimer& timer,
+    double max_time,
     const State& initial_state,
     const Evaluator<StateRank>& heuristic,
     std::span<value_t> value_table)
 {
+    utils::CountdownTimer timer(max_time);
+
     ProjectionStateSpace mdp(
         task_proxy,
         std::move(task_cost_function),
@@ -81,14 +83,12 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
     double max_time)
     : ProbabilityAwarePatternDatabase(task_proxy, std::move(pattern))
 {
-    utils::CountdownTimer timer(max_time);
-
     compute_value_table(
         task_proxy,
         std::move(task_cost_function),
         ranking_function_,
         operator_pruning,
-        timer,
+        max_time,
         initial_state,
         heuristic,
         value_table_);
@@ -156,14 +156,12 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
           task_proxy,
           extended_pattern(pdb.get_pattern(), add_var))
 {
-    utils::CountdownTimer timer(max_time);
-
     compute_value_table(
         task_proxy,
         std::move(task_cost_function),
         ranking_function_,
         operator_pruning,
-        timer,
+        max_time,
         initial_state,
         IncrementalPPDBEvaluator(
             pdb.get_value_table(),
@@ -204,8 +202,6 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
           task_proxy,
           utils::merge_sorted(left.get_pattern(), right.get_pattern()))
 {
-    utils::CountdownTimer timer(max_time);
-
     const auto term_cost = task_cost_function->get_non_goal_termination_cost();
 
     compute_value_table(
@@ -213,7 +209,7 @@ ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
         std::move(task_cost_function),
         ranking_function_,
         operator_pruning,
-        timer,
+        max_time,
         initial_state,
         MergeEvaluator(ranking_function_, left, right, term_cost),
         value_table_);
