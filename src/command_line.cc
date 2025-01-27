@@ -407,36 +407,29 @@ void setup_argparser(argparse::ArgumentParser& arg_parser)
         .default_value(std::numeric_limits<double>::infinity())
         .scan<'g', double>()
         .action([](const std::string& s) {
-            double d;
+            try {
+                double d = std::stod(s);
 
-            switch (std::from_chars(s.c_str(), s.c_str() + s.size(), d).ec) {
-            default:
-                if (d < 0.0) {
-                    std::cerr
-                        << "Maximum search time needs to be positive: " << s
-                        << std::endl;
-                    exit(static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR));
+                if (d >= 0.0) {
+                    return d;
                 }
-                break;
 
-            case std::errc::invalid_argument:
+                std::cerr << "Maximum search time needs to be positive: " << s
+                          << std::endl;
+            } catch (const std::invalid_argument&) {
                 std::println(
                     std::cerr,
                     "Maximum search time is not a double: {}",
                     s);
-                exit(static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR));
-
-            case std::errc::result_out_of_range:
+            } catch (const std::out_of_range&) {
                 std::println(
                     std::cerr,
                     "Maximum search time is out of the range of representable "
                     "values: {}",
                     s);
-
-                exit(static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR));
             }
 
-            return d;
+            exit(static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR));
         });
 
     search_parser.add_argument("--predefinition")
