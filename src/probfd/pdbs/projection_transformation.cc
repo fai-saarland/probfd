@@ -12,16 +12,13 @@ ProjectionTransformation::ProjectionTransformation(
     Pattern pattern,
     bool operator_pruning,
     double max_time)
-    : ranking_function(task_proxy.get_variables(), std::move(pattern))
+    : pdb(task_proxy.get_variables(), std::move(pattern))
     , projection(std::make_unique<ProjectionStateSpace>(
           task_proxy,
           std::move(task_cost_function),
-          ranking_function,
+          pdb.ranking_function,
           operator_pruning,
           max_time))
-    , distances(
-          ranking_function.num_states(),
-          std::numeric_limits<value_t>::quiet_NaN())
 {
 }
 

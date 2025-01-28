@@ -3,6 +3,7 @@
 #include "probfd/pdbs/pattern_collection_information.h"
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 #include "probfd/pdbs/subcollection_finder_factory.h"
+#include "probfd/pdbs/utils.h"
 
 #include "probfd/cost_function.h"
 #include "probfd/task_proxy.h"
@@ -239,12 +240,12 @@ PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::IncrementalPPDBs(
 void PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
     add_pdb_for_pattern(const Pattern& pattern, const State& initial_state)
 {
-    auto& pdb =
-        pattern_databases->emplace_back(new ProbabilityAwarePatternDatabase(
-            task_proxy,
-            task_cost_function,
-            pattern,
-            initial_state));
+    auto& pdb = pattern_databases->emplace_back(
+        std::make_unique<ProbabilityAwarePatternDatabase>(
+            task_proxy.get_variables(),
+            pattern));
+    const StateRank abs_init = pdb->get_abstract_state(initial_state);
+    compute_distances(*pdb, task_proxy, task_cost_function, abs_init);
     size += pdb->num_states();
 }
 
@@ -490,15 +491,28 @@ unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
                 for it and add it to candidate_pdbs if its size does not
                 surpass the size limit.
             */
-            auto& new_pdb =
-                candidate_pdbs.emplace_back(new ProbabilityAwarePatternDatabase(
-                    task_proxy,
-                    task_cost_function,
-                    pdb,
-                    rel_var_id,
-                    task_proxy.get_initial_state(),
-                    true,
-                    hill_climbing_timer.get_remaining_time()));
+            auto& new_pdb = candidate_pdbs.emplace_back(
+                std::make_unique<ProbabilityAwarePatternDatabase>(
+                    task_proxy.get_variables(),
+                    extended_pattern(pdb.get_pattern(), rel_var_id)));
+
+            IncrementalPPDBEvaluator h(
+                pdb.value_table,
+                new_pdb->ranking_function,
+                rel_var_id);
+
+            const StateRank abs_init =
+                new_pdb->get_abstract_state(task_proxy.get_initial_state());
+
+            compute_distances(
+                *new_pdb,
+                task_proxy,
+                task_cost_function,
+                abs_init,
+                h,
+                true,
+                hill_climbing_timer.get_remaining_time());
+
             const unsigned int num_states = new_pdb->num_states();
             max_pdb_size = std::max(max_pdb_size, num_states);
             remaining_states_ -= num_states;

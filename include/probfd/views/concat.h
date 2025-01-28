@@ -418,7 +418,6 @@ public:
 
     constexpr decltype(auto) operator*() const
     {
-        glibcxx_assert(!M_it.valueless_by_exception());
         using reference =
             detail::concat_reference_t<maybe_const_t<Const, Vs>...>;
         return std::visit([](auto&& it) -> reference { return *it; }, M_it);
@@ -446,7 +445,6 @@ public:
     constexpr iterator& operator--()
         requires detail::concat_is_bidirectional<Const, Vs...>
     {
-        glibcxx_assert(!M_it.valueless_by_exception());
         M_invoke_with_runtime_index([this]<size_t Idx>() { M_prev<Idx>(); });
         return *this;
     }
@@ -462,7 +460,6 @@ public:
     constexpr iterator& operator+=(difference_type n)
         requires detail::concat_is_random_access<Const, Vs...>
     {
-        glibcxx_assert(!M_it.valueless_by_exception());
         M_invoke_with_runtime_index([this, n]<size_t Idx>() {
             auto begin = std::ranges::begin(std::get<Idx>(M_parent->M_views));
             if (n > 0)
@@ -492,15 +489,12 @@ public:
                 std::ranges::iterator_t<maybe_const_t<Const, Vs>>> &&
             ...)
     {
-        glibcxx_assert(!x.M_it.valueless_by_exception());
-        glibcxx_assert(!y.M_it.valueless_by_exception());
         return x.M_it == y.M_it;
     }
 
     friend constexpr bool
     operator==(const iterator& it, std::default_sentinel_t)
     {
-        glibcxx_assert(!it.M_it.valueless_by_exception());
         constexpr auto last_idx = sizeof...(Vs) - 1;
         return (
             it.M_it.index() == last_idx &&
@@ -661,7 +655,7 @@ template <typename... Ts>
 concept can_concat_view = requires { concat_view(std::declval<Ts>()...); };
 } // namespace detail
 
-struct Concat {
+struct Concat : public std::ranges::range_adaptor_closure<Concat> {
     template <typename... Ts>
         requires detail::can_concat_view<Ts...>
     constexpr auto operator() [[nodiscard]] (Ts&&... ts) const

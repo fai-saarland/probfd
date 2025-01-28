@@ -29,10 +29,11 @@ void PatternInformation::create_pdb_if_missing()
 {
     if (!pdb_) {
         pdb_ = make_shared<ProbabilityAwarePatternDatabase>(
-            task_proxy_,
-            task_cost_function_,
-            pattern_,
-            task_proxy_.get_initial_state());
+            task_proxy_.get_variables(),
+            pattern_);
+        const StateRank istate =
+            pdb_->get_abstract_state(task_proxy_.get_initial_state());
+        compute_distances(*pdb_, task_proxy_, task_cost_function_, istate);
     }
 }
 

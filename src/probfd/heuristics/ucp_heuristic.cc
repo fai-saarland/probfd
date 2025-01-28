@@ -78,14 +78,9 @@ UCPHeuristic::UCPHeuristic(
     const State& initial_state = task_proxy_.get_initial_state();
 
     for (const Pattern& pattern : *patterns) {
-        StateRankingFunction rankingf(task_proxy_.get_variables(), pattern);
-        ProjectionStateSpace state_space(
-            task_proxy_,
-            task_costs,
-            rankingf,
-            true);
-        StateRank init_rank = rankingf.get_abstract_rank(initial_state);
-        pdbs_.emplace_back(state_space, std::move(rankingf), init_rank);
+        auto& pdb = pdbs_.emplace_back(task_proxy_.get_variables(), pattern);
+        const StateRank init_rank = pdb.get_abstract_state(initial_state);
+        compute_distances(pdb, task_proxy_, task_costs, init_rank);
     }
 }
 

@@ -94,15 +94,14 @@ bool SingleCEGAR::get_flaws(
     utils::CountdownTimer& timer,
     utils::LogProxy log)
 {
-    auto& [ranking_function, projection, distances] = transformation;
+    auto& [pdb, projection] = transformation;
 
-    StateRank init_state_rank =
-        ranking_function.get_abstract_rank(initial_state);
+    StateRank init_state_rank = pdb.get_abstract_state(initial_state);
 
     std::unique_ptr<ProjectionMultiPolicy> policy =
         compute_optimal_projection_policy(
             *projection,
-            distances,
+            pdb.value_table,
             init_state_rank,
             rng,
             wildcard_);
@@ -119,7 +118,7 @@ bool SingleCEGAR::get_flaws(
         if (blacklisted_variables_.contains(var)) return false;
 
         if (!utils::is_product_within_limit(
-                ranking_function.num_states(),
+                pdb.num_states(),
                 task_proxy.get_variables()[var].get_domain_size(),
                 max_pdb_size_)) {
             if (log.is_at_least_verbose()) {
@@ -139,7 +138,7 @@ bool SingleCEGAR::get_flaws(
     // We always start with the initial state.
     const bool executable = flaw_strategy_.apply_policy(
         task_proxy,
-        ranking_function,
+        pdb.ranking_function,
         *projection,
         *policy,
         flaws,
@@ -187,7 +186,7 @@ void SingleCEGAR::refine(
 {
     assert(!flaws.empty());
 
-    auto& [ranking_function, projection, distances] = transformation;
+    auto& [pdb, projection] = transformation;
 
     // pick a random flaw
     const Flaw& flaw = *rng.choose(flaws);
@@ -196,7 +195,7 @@ void SingleCEGAR::refine(
 
     if (log.is_at_least_verbose()) {
         log << "SingleCEGAR: chosen flaw: pattern "
-            << ranking_function.get_pattern();
+            << pdb.get_pattern();
         log << " with a violated";
         if (flaw.is_precondition) {
             log << " precondition ";
@@ -211,7 +210,7 @@ void SingleCEGAR::refine(
     // nevertheless is added to the pattern causing the flaw and not to
     // a single new pattern.
     assert(utils::is_product_within_limit(
-        ranking_function.num_states(),
+        pdb.num_states(),
         task_proxy.get_variables()[flaw_var].get_domain_size(),
         max_pdb_size_));
 
@@ -220,22 +219,22 @@ void SingleCEGAR::refine(
     }
 
     // compute new solution
-    std::vector<value_t> prev_distances = std::move(distances);
+    std::vector<value_t> prev_distances = std::move(pdb.value_table);
 
     transformation = ProjectionTransformation(
         task_proxy,
         std::move(task_cost_function),
-        extended_pattern(ranking_function.get_pattern(), flaw_var),
+        extended_pattern(pdb.get_pattern(), flaw_var),
         false,
         timer.get_remaining_time());
 
-    IncrementalPPDBEvaluator h(prev_distances, ranking_function, flaw_var);
+    IncrementalPPDBEvaluator h(prev_distances, pdb.ranking_function, flaw_var);
 
     compute_value_table(
         *projection,
-        ranking_function.get_abstract_rank(task_proxy.get_initial_state()),
+        pdb.get_abstract_state(task_proxy.get_initial_state()),
         h,
-        distances,
+        pdb.value_table,
         timer.get_remaining_time());
 }
 
@@ -266,7 +265,7 @@ void SingleCEGAR::run_cegar_loop(
 
     if (log.is_at_least_normal()) {
         log << "SingleCEGAR initial collection: "
-            << transformation.ranking_function.get_pattern();
+            << transformation.pdb.get_pattern();
 
         if (log.is_at_least_verbose()) {
             log << endl;
@@ -312,7 +311,7 @@ void SingleCEGAR::run_cegar_loop(
 
             if (log.is_at_least_verbose()) {
                 log << "SingleCEGAR: current pattern: "
-                    << transformation.ranking_function.get_pattern() << endl;
+                    << transformation.pdb.get_pattern() << endl;
             }
         }
     } catch (utils::TimeoutException&) {

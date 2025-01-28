@@ -3,7 +3,10 @@
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 #include "probfd/pdbs/trivial_finder.h"
 
+#include "probfd/cost_function.h"
+
 #include "downward/pdbs/pattern_collection_information.h"
+#include "downward/pdbs/pattern_database.h"
 
 #include "downward/utils/collections.h"
 #include "downward/utils/timer.h"
@@ -35,11 +38,21 @@ PatternCollectionInformation::PatternCollectionInformation(
     pdbs_ = make_shared<PPDBCollection>();
 
     for (size_t i = 0; i != pdbs->size(); ++i) {
-        pdbs_->emplace_back(new ProbabilityAwarePatternDatabase(
-            task_proxy_,
-            task_cost_function_,
-            *pdbs->operator[](i),
-            task_proxy_.get_initial_state()));
+        auto& dpdb = *(*pdbs)[i];
+        auto& pdb = pdbs_->emplace_back(
+            std::make_shared<ProbabilityAwarePatternDatabase>(
+                task_proxy_.get_variables(),
+                dpdb.get_pattern()));
+
+        const StateRankEvaluator& h =
+            task_cost_function_->get_non_goal_termination_cost() ==
+                    INFINITE_VALUE
+                ? static_cast<const StateRankEvaluator&>(PDBEvaluator(dpdb))
+                : static_cast<const StateRankEvaluator&>(
+                      DeadendPDBEvaluator(dpdb));
+        const StateRank istate =
+            pdb->get_abstract_state(task_proxy_.get_initial_state());
+        compute_distances(*pdb, task_proxy_, task_cost_function_, istate, h);
     }
 }
 
@@ -106,11 +119,13 @@ void PatternCollectionInformation::create_pdbs_if_missing()
         cout << "Computing PDBs for pattern collection..." << endl;
         pdbs_ = make_shared<PPDBCollection>();
         for (const Pattern& pattern : *patterns_) {
-            pdbs_->emplace_back(new ProbabilityAwarePatternDatabase(
-                task_proxy_,
-                task_cost_function_,
-                pattern,
-                task_proxy_.get_initial_state()));
+            auto& pdb = pdbs_->emplace_back(
+                std::make_unique<ProbabilityAwarePatternDatabase>(
+                    task_proxy_.get_variables(),
+                    pattern));
+            const StateRank istate =
+                pdb->get_abstract_state(task_proxy_.get_initial_state());
+            compute_distances(*pdb, task_proxy_, task_cost_function_, istate);
         }
         cout << "Done computing PDBs for pattern collection: " << timer << endl;
     }

@@ -16,7 +16,7 @@ class MultiPolicy;
 namespace probfd::pdbs {
 
 class ProjectionStateSpace;
-class ProbabilityAwarePatternDatabase;
+struct ProbabilityAwarePatternDatabase;
 
 using PatternCollection = ::pdbs::PatternCollection;
 using Pattern = ::pdbs::Pattern;

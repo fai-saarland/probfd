@@ -13,7 +13,7 @@ class PatternDatabase;
 
 namespace probfd::pdbs {
 class StateRankingFunction;
-class ProbabilityAwarePatternDatabase;
+struct ProbabilityAwarePatternDatabase;
 } // namespace probfd::pdbs
 
 namespace probfd::pdbs {

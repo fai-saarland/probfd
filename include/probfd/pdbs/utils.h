@@ -16,7 +16,7 @@ class ProbabilisticTaskProxy;
 
 namespace probfd::pdbs {
 class ProjectionStateSpace;
-class ProbabilityAwarePatternDatabase;
+struct ProbabilityAwarePatternDatabase;
 } // namespace probfd::pdbs
 
 namespace probfd::pdbs {

@@ -114,8 +114,7 @@ MergeEvaluator::MergeEvaluator(
 
 value_t MergeEvaluator::evaluate(StateRank state) const
 {
-    const StateRank lstate =
-        convert(state, mapper_, left_.get_state_ranking_function());
+    const StateRank lstate = convert(state, mapper_, left_.ranking_function);
 
     auto leval = left_.lookup_estimate(lstate);
 
@@ -123,8 +122,7 @@ value_t MergeEvaluator::evaluate(StateRank state) const
         return leval;
     }
 
-    const StateRank rstate =
-        convert(state, mapper_, right_.get_state_ranking_function());
+    const StateRank rstate = convert(state, mapper_, right_.ranking_function);
 
     auto reval = right_.lookup_estimate(rstate);
 

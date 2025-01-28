@@ -130,19 +130,18 @@ GZOCPHeuristic::GZOCPHeuristic(
 
     auto task_costs = std::make_shared<ExplicitTaskCostFunction>(task_proxy_);
 
-    const State& initial_state = task_proxy_.get_initial_state();
+    const State& init_state = task_proxy_.get_initial_state();
 
     for (const Pattern& pattern : *patterns) {
-        StateRankingFunction rankingf(task_proxy_.get_variables(), pattern);
+        auto& pdb = pdbs_.emplace_back(task_proxy_.get_variables(), pattern);
+
         ProjectionStateSpace state_space(
             task_proxy_,
             task_costs,
-            rankingf,
+            pdb.ranking_function,
             false);
-        StateRank init_rank = rankingf.get_abstract_rank(initial_state);
-        auto& pdb =
-            pdbs_.emplace_back(state_space, std::move(rankingf), init_rank);
 
+        compute_distances(pdb, state_space, pdb.get_abstract_state(init_state));
         task_costs->decrease_costs(pdb);
     }
 }

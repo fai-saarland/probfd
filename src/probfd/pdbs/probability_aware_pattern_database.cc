@@ -18,16 +18,15 @@
 
 namespace probfd::pdbs {
 
-namespace {
-void compute_value_table(
+static void compute_distances(
+    std::span<value_t> value_table,
+    const StateRankingFunction& ranking_function,
     const ProbabilisticTaskProxy& task_proxy,
     std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
-    const StateRankingFunction& ranking_function,
-    bool operator_pruning,
-    double max_time,
-    const State& initial_state,
+    StateRank abstract_initial_state,
     const Evaluator<StateRank>& heuristic,
-    std::span<value_t> value_table)
+    bool operator_pruning,
+    double max_time)
 {
     utils::CountdownTimer timer(max_time);
 
@@ -39,223 +38,67 @@ void compute_value_table(
         timer.get_remaining_time());
     compute_value_table(
         mdp,
-        ranking_function.get_abstract_rank(initial_state),
+        abstract_initial_state,
         heuristic,
         value_table,
         timer.get_remaining_time());
 }
-} // namespace
 
-ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
-    ProbabilisticTaskProxy task_proxy,
-    Pattern pattern)
-    : ranking_function_(task_proxy.get_variables(), std::move(pattern))
-    , value_table_(
-          ranking_function_.num_states(),
-          std::numeric_limits<value_t>::quiet_NaN())
-{
-}
-
-ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
-    StateRankingFunction ranking_function)
-    : ranking_function_(std::move(ranking_function))
-    , value_table_(
-          ranking_function_.num_states(),
-          std::numeric_limits<value_t>::quiet_NaN())
-{
-}
-
-ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
-    StateRankingFunction ranking_function,
-    std::vector<value_t> value_table)
-    : ranking_function_(std::move(ranking_function))
-    , value_table_(std::move(value_table))
-{
-}
-
-ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
-    ProbabilisticTaskProxy task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
-    Pattern pattern,
-    const State& initial_state,
-    bool operator_pruning,
-    const StateRankEvaluator& heuristic,
+void compute_distances(
+    ProbabilityAwarePatternDatabase& pdb,
+    ProjectionStateSpace& mdp,
+    StateRank abstract_initial_state,
+    const Evaluator<StateRank>& heuristic,
     double max_time)
-    : ProbabilityAwarePatternDatabase(task_proxy, std::move(pattern))
 {
+    utils::CountdownTimer timer(max_time);
+
     compute_value_table(
-        task_proxy,
-        std::move(task_cost_function),
-        ranking_function_,
-        operator_pruning,
-        max_time,
-        initial_state,
+        mdp,
+        abstract_initial_state,
         heuristic,
-        value_table_);
+        pdb.value_table,
+        timer.get_remaining_time());
 }
 
-ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
-    ProjectionStateSpace& mdp,
-    StateRankingFunction ranking_function,
-    StateRank initial_state,
-    const StateRankEvaluator& heuristic,
-    double max_time)
-    : ProbabilityAwarePatternDatabase(std::move(ranking_function))
-{
-    compute_value_table(mdp, initial_state, heuristic, value_table_, max_time);
-}
-
-ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
-    ProbabilisticTaskProxy task_proxy,
+void compute_distances(
+    ProbabilityAwarePatternDatabase& pdb,
+    const ProbabilisticTaskProxy& task_proxy,
     std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
-    const ::pdbs::PatternDatabase& pdb,
-    const State& initial_state,
+    StateRank abstract_initial_state,
+    const Evaluator<StateRank>& heuristic,
     bool operator_pruning,
     double max_time)
-    : ProbabilityAwarePatternDatabase(
-          task_proxy,
-          task_cost_function,
-          pdb.get_pattern(),
-          initial_state,
-          operator_pruning,
-          task_cost_function->get_non_goal_termination_cost() == INFINITE_VALUE
-              ? static_cast<const StateRankEvaluator&>(PDBEvaluator(pdb))
-              : static_cast<const StateRankEvaluator&>(
-                    DeadendPDBEvaluator(pdb)),
-          max_time)
 {
-}
-
-ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
-    ProjectionStateSpace& mdp,
-    StateRankingFunction ranking_function,
-    const ::pdbs::PatternDatabase& pdb,
-    StateRank initial_state,
-    double max_time)
-    : ProbabilityAwarePatternDatabase(
-          mdp,
-          std::move(ranking_function),
-          initial_state,
-          mdp.get_non_goal_termination_cost() == INFINITE_VALUE
-              ? static_cast<const StateRankEvaluator&>(PDBEvaluator(pdb))
-              : static_cast<const StateRankEvaluator&>(
-                    DeadendPDBEvaluator(pdb)),
-          max_time)
-{
-}
-
-ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
-    ProbabilisticTaskProxy task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
-    const ProbabilityAwarePatternDatabase& pdb,
-    int add_var,
-    const State& initial_state,
-    bool operator_pruning,
-    double max_time)
-    : ProbabilityAwarePatternDatabase(
-          task_proxy,
-          extended_pattern(pdb.get_pattern(), add_var))
-{
-    compute_value_table(
+    compute_distances(
+        pdb.value_table,
+        pdb.ranking_function,
         task_proxy,
         std::move(task_cost_function),
-        ranking_function_,
+        abstract_initial_state,
+        heuristic,
         operator_pruning,
-        max_time,
-        initial_state,
-        IncrementalPPDBEvaluator(
-            pdb.get_value_table(),
-            ranking_function_,
-            add_var),
-        value_table_);
-}
-
-ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
-    ProjectionStateSpace& mdp,
-    StateRankingFunction ranking_function,
-    const ProbabilityAwarePatternDatabase& pdb,
-    int add_var,
-    StateRank initial_state,
-    double max_time)
-    : ProbabilityAwarePatternDatabase(std::move(ranking_function))
-{
-    compute_value_table(
-        mdp,
-        initial_state,
-        IncrementalPPDBEvaluator(
-            pdb.get_value_table(),
-            ranking_function_,
-            add_var),
-        value_table_,
         max_time);
 }
 
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
-    ProbabilisticTaskProxy task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
-    const ProbabilityAwarePatternDatabase& left,
-    const ProbabilityAwarePatternDatabase& right,
-    const State& initial_state,
-    bool operator_pruning,
-    double max_time)
-    : ProbabilityAwarePatternDatabase(
-          task_proxy,
-          utils::merge_sorted(left.get_pattern(), right.get_pattern()))
+    const VariablesProxy& variables,
+    Pattern pattern)
+    : ranking_function(variables, std::move(pattern))
+    , value_table(
+          ranking_function.num_states(),
+          std::numeric_limits<value_t>::quiet_NaN())
 {
-    const auto term_cost = task_cost_function->get_non_goal_termination_cost();
-
-    compute_value_table(
-        task_proxy,
-        std::move(task_cost_function),
-        ranking_function_,
-        operator_pruning,
-        max_time,
-        initial_state,
-        MergeEvaluator(ranking_function_, left, right, term_cost),
-        value_table_);
-}
-
-ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
-    ProjectionStateSpace& mdp,
-    StateRankingFunction ranking_function,
-    const ProbabilityAwarePatternDatabase& left,
-    const ProbabilityAwarePatternDatabase& right,
-    StateRank initial_state,
-    double max_time)
-    : ProbabilityAwarePatternDatabase(std::move(ranking_function))
-{
-    compute_value_table(
-        mdp,
-        initial_state,
-        MergeEvaluator(
-            ranking_function_,
-            left,
-            right,
-            mdp.get_non_goal_termination_cost()),
-        value_table_,
-        max_time);
 }
 
 const Pattern& ProbabilityAwarePatternDatabase::get_pattern() const
 {
-    return ranking_function_.get_pattern();
-}
-
-const StateRankingFunction&
-ProbabilityAwarePatternDatabase::get_state_ranking_function() const
-{
-    return ranking_function_;
-}
-
-const std::vector<value_t>&
-ProbabilityAwarePatternDatabase::get_value_table() const
-{
-    return value_table_;
+    return ranking_function.get_pattern();
 }
 
 unsigned int ProbabilityAwarePatternDatabase::num_states() const
 {
-    return ranking_function_.num_states();
+    return ranking_function.num_states();
 }
 
 value_t ProbabilityAwarePatternDatabase::lookup_estimate(const State& s) const
@@ -265,13 +108,13 @@ value_t ProbabilityAwarePatternDatabase::lookup_estimate(const State& s) const
 
 value_t ProbabilityAwarePatternDatabase::lookup_estimate(StateRank s) const
 {
-    return value_table_[s];
+    return value_table[s];
 }
 
 StateRank
 ProbabilityAwarePatternDatabase::get_abstract_state(const State& s) const
 {
-    return ranking_function_.get_abstract_rank(s);
+    return ranking_function.get_abstract_rank(s);
 }
 
 } // namespace probfd::pdbs

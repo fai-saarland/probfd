@@ -10,7 +10,7 @@
 
 namespace probfd::pdbs {
 
-class ProbabilityAwarePatternDatabase;
+struct ProbabilityAwarePatternDatabase;
 
 class PatternInformation {
     ProbabilisticTaskProxy task_proxy_;

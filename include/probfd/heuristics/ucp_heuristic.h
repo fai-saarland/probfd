@@ -8,7 +8,7 @@
 #include <vector>
 
 namespace probfd::pdbs {
-class ProbabilityAwarePatternDatabase;
+struct ProbabilityAwarePatternDatabase;
 class PatternCollectionGenerator;
 } // namespace probfd::pdbs
 

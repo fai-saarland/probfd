@@ -259,7 +259,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
             min(static_cast<double>(timer.get_remaining_time()),
                 pattern_generation_max_time_);
 
-        auto [ranking_function, state_space, distances] = compute_pattern(
+        auto [pdb, state_space] = compute_pattern(
             remaining_pdb_size,
             remaining_time,
             rng_,
@@ -268,7 +268,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
             goals[goal_index],
             std::move(blacklisted_variables));
 
-        const Pattern& pattern = ranking_function.get_pattern();
+        const Pattern& pattern = pdb.get_pattern();
         if (log_.is_at_least_debug()) {
             log_ << "generated PDB with pattern " << pattern << endl;
         }
@@ -277,7 +277,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
             if (use_saturated_costs_) {
                 compute_saturated_costs(
                     *state_space,
-                    distances,
+                    pdb.value_table,
                     saturated_costs);
                 cost_function->update_costs(saturated_costs);
             }
@@ -288,11 +288,10 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
               time_point_of_last_new_pattern.
             */
             time_point_of_last_new_pattern = timer.get_elapsed_time();
-            remaining_collection_size -= ranking_function.num_states();
+            remaining_collection_size -= pdb.num_states();
             generated_pdbs->emplace_back(
                 std::make_unique<ProbabilityAwarePatternDatabase>(
-                    std::move(ranking_function),
-                    std::move(distances)));
+                    std::move(pdb)));
         }
 
         if (collection_size_limit_reached(remaining_collection_size) ||

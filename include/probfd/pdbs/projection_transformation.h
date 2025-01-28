@@ -1,7 +1,7 @@
 #ifndef PROBFD_PDBS_PROJECTION_TRANSFORMATION_H
 #define PROBFD_PDBS_PROJECTION_TRANSFORMATION_H
 
-#include "probfd/pdbs/state_ranking_function.h"
+#include "probfd/pdbs/probability_aware_pattern_database.h"
 #include "probfd/pdbs/types.h"
 
 #include "probfd/fdr_types.h"
@@ -21,9 +21,8 @@ class ProjectionStateSpace;
 namespace probfd::pdbs {
 
 struct ProjectionTransformation {
-    StateRankingFunction ranking_function;
+    ProbabilityAwarePatternDatabase pdb;
     std::unique_ptr<ProjectionStateSpace> projection;
-    std::vector<value_t> distances;
 
     // Constructs the transformation's abstraction mapping and state space,
     // and allocates the J* value table, initially filled with NaNs.
