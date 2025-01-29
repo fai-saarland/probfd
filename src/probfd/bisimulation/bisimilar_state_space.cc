@@ -199,7 +199,8 @@ void BisimilarStateSpace::generate_all_transitions(
 TerminationInfo BisimilarStateSpace::get_termination_info(QuotientState s)
 {
     return is_goal_state(s)
-               ? TerminationInfo::from_goal()
+               ? TerminationInfo::from_goal(
+                     task_cost_function_->get_goal_termination_cost())
                : TerminationInfo::from_non_goal(
                      task_cost_function_->get_non_goal_termination_cost());
 }

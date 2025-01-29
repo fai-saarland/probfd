@@ -107,6 +107,11 @@ bool CartesianAbstraction::is_goal(int state) const
     return goals_.contains(state);
 }
 
+value_t CartesianAbstraction::get_goal_termination_cost() const
+{
+    return 0_vt;
+}
+
 value_t CartesianAbstraction::get_non_goal_termination_cost() const
 {
     return INFINITE_VALUE;

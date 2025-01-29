@@ -14,16 +14,16 @@ class TerminationInfo {
     bool is_goal_;
     value_t terminal_cost_;
 
+public:
+    TerminationInfo() = default;
+
     TerminationInfo(bool is_goal, value_t terminal_cost)
         : is_goal_(is_goal)
         , terminal_cost_(terminal_cost)
     {
     }
 
-public:
-    TerminationInfo() = default;
-
-    static TerminationInfo from_goal() { return {true, 0_vt}; }
+    static TerminationInfo from_goal(value_t value) { return {true, value}; }
     static TerminationInfo from_non_goal(value_t value)
     {
         return {false, value};
@@ -107,13 +107,15 @@ public:
      */
     TerminationInfo get_termination_info(param_type<State> state) final
     {
-        return is_goal(state) ? TerminationInfo::from_goal()
-                              : TerminationInfo::from_non_goal(
-                                    get_non_goal_termination_cost());
+        return is_goal(state)
+                   ? TerminationInfo::from_goal(get_goal_termination_cost())
+                   : TerminationInfo::from_non_goal(
+                         get_non_goal_termination_cost());
     }
 
     virtual bool is_goal(param_type<State> state) const = 0;
     [[nodiscard]]
+    virtual value_t get_goal_termination_cost() const = 0;
     virtual value_t get_non_goal_termination_cost() const = 0;
 };
 

@@ -22,8 +22,6 @@ class DomainAbstractedTask : public tasks::DelegatingTask {
     const std::vector<std::vector<std::string>> fact_names_;
     const std::vector<std::vector<int>> value_map_;
 
-    const value_t non_goal_termination_cost;
-
     FactPair get_abstract_fact(const FactPair& fact) const;
 
 public:
@@ -35,6 +33,7 @@ public:
         std::vector<std::vector<std::string>>&& fact_names,
         std::vector<std::vector<int>>&& value_map);
 
+    value_t get_goal_termination_cost() const override;
     value_t get_non_goal_termination_cost() const override;
 
     int get_variable_domain_size(int var) const override;

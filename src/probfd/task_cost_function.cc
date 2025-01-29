@@ -15,6 +15,11 @@ bool TaskCostFunction::is_goal(const State& state) const
     return ::task_properties::is_goal_state(proxy, state);
 }
 
+value_t TaskCostFunction::get_goal_termination_cost() const
+{
+    return task_->get_goal_termination_cost();
+}
+
 value_t TaskCostFunction::get_non_goal_termination_cost() const
 {
     return task_->get_non_goal_termination_cost();

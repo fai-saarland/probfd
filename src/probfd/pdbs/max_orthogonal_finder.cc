@@ -65,19 +65,19 @@ value_t MultiplicativeMaxOrthogonalityFinder::evaluate_subcollection(
     const std::vector<value_t>& pdb_estimates,
     const std::vector<int>& subcollection) const
 {
-    auto result = 1_vt;
+    auto result = -1_vt;
 
     for (int pattern_id : subcollection) {
-        result *= 1 - pdb_estimates[pattern_id];
+        result *= -pdb_estimates[pattern_id];
     }
 
-    return 1 - result;
+    return result;
 }
 
 value_t
 MultiplicativeMaxOrthogonalityFinder::combine(value_t left, value_t right) const
 {
-    return 1_vt - (1_vt - left) * (1_vt - right);
+    return -(left * right);
 }
 
 } // namespace probfd::pdbs

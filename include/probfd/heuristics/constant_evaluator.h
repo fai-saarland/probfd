@@ -50,7 +50,7 @@ public:
         : ConstantEvaluator<State>(
               task_properties::get_min_operator_cost(operators) >= 0_vt
                   ? std::min(
-                        0_vt,
+                        cost_function.get_goal_termination_cost(),
                         cost_function.get_non_goal_termination_cost())
                   : -INFINITE_VALUE)
     {

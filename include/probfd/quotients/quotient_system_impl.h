@@ -589,9 +589,7 @@ void QuotientSystem<State, Action>::build_quotient(
         }
     }
 
-    qinfo.termination_info_ =
-        is_goal ? TerminationInfo::from_goal()
-                : TerminationInfo::from_non_goal(min_termination);
+    qinfo.termination_info_ = TerminationInfo(is_goal, min_termination);
 }
 
 template <typename State, typename Action>
@@ -672,9 +670,7 @@ void QuotientSystem<State, Action>::build_new_quotient(
         qinfo.total_num_outer_acts_ += b.num_outer_acts;
     }
 
-    qinfo.termination_info_ =
-        is_goal ? TerminationInfo::from_goal()
-                : TerminationInfo::from_non_goal(min_termination);
+    qinfo.termination_info_ = TerminationInfo(is_goal, min_termination);
 }
 
 template <typename State, typename Action>

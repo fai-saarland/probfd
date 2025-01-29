@@ -18,6 +18,9 @@ namespace probfd {
  */
 class ProbabilisticTask : public PlanningTask {
 public:
+    /// Get the cost of terminating in a goal state.
+    virtual value_t get_goal_termination_cost() const = 0;
+
     /// Get the cost of terminating in a non-goal state.
     virtual value_t get_non_goal_termination_cost() const = 0;
 

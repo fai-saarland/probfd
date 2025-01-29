@@ -17,6 +17,8 @@ public:
 
     bool is_goal(const State& state) const override;
 
+    value_t get_goal_termination_cost() const override;
+
     value_t get_non_goal_termination_cost() const override;
 
     value_t get_action_cost(OperatorID action) override;

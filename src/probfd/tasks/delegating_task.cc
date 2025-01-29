@@ -213,6 +213,12 @@ FactPair DelegatingTask::get_operator_outcome_effect_condition(
         eff_index,
         cond_index);
 }
+
+value_t DelegatingTask::get_goal_termination_cost() const
+{
+    return parent_->get_non_goal_termination_cost();
+}
+
 value_t DelegatingTask::get_non_goal_termination_cost() const
 {
     return parent_->get_non_goal_termination_cost();

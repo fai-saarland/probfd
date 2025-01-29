@@ -123,7 +123,8 @@ class RootTask : public ProbabilisticTask {
     vector<int> initial_state_values;
     vector<FactPair> goals;
 
-    value_t termination_cost;
+    value_t goal_termination_cost;
+    value_t non_goal_termination_cost;
 
     const ExplicitVariable& get_variable(int var) const;
     const ExplicitAxiom& get_axiom(int index) const;
@@ -166,6 +167,7 @@ public:
     FactPair
     get_operator_precondition(int op_index, int fact_index) const override;
 
+    value_t get_goal_termination_cost() const override;
     value_t get_non_goal_termination_cost() const override;
 
     int get_num_operator_outcomes(int index) const override;
@@ -639,12 +641,16 @@ RootTask::RootTask(std::istream& in)
 
     if (metric.rewards) {
         assert(metric.goal_reward.has_value());
-        termination_cost = *metric.goal_reward;
-        if (metric.optimization == Optimization::MINIMIZE) {
-            termination_cost = -termination_cost;
-        }
+        goal_termination_cost = *metric.goal_reward;
+        non_goal_termination_cost = 0_vt;
     } else {
-        termination_cost = INFINITE_VALUE;
+        goal_termination_cost = 0_vt;
+        non_goal_termination_cost = INFINITE_VALUE;
+    }
+
+    if (metric.optimization == Optimization::MAXIMIZE) {
+        goal_termination_cost = -goal_termination_cost;
+        non_goal_termination_cost = -non_goal_termination_cost;
     }
 
     /*
@@ -815,9 +821,14 @@ FactPair RootTask::get_operator_precondition(int op_index, int fact_index) const
     return op.preconditions[fact_index];
 }
 
+value_t RootTask::get_goal_termination_cost() const
+{
+    return goal_termination_cost;
+}
+
 value_t RootTask::get_non_goal_termination_cost() const
 {
-    return termination_cost;
+    return non_goal_termination_cost;
 }
 
 int RootTask::get_num_operator_outcomes(int index) const

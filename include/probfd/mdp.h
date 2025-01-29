@@ -28,13 +28,15 @@ class SimpleMDP : public MDP<State, Action> {
 public:
     TerminationInfo get_termination_info(param_type<State> state) final
     {
-        return is_goal(state) ? TerminationInfo::from_goal()
-                              : TerminationInfo::from_non_goal(
-                                    get_non_goal_termination_cost());
+        return is_goal(state)
+                   ? TerminationInfo::from_goal(get_goal_termination_cost())
+                   : TerminationInfo::from_non_goal(
+                         get_non_goal_termination_cost());
     }
 
     virtual bool is_goal(param_type<State> state) const = 0;
     [[nodiscard]]
+    virtual value_t get_goal_termination_cost() const = 0;
     virtual value_t get_non_goal_termination_cost() const = 0;
 };
 

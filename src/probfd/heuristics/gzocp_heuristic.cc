@@ -61,6 +61,12 @@ public:
     }
 
     [[nodiscard]]
+    value_t get_goal_termination_cost() const override
+    {
+        return 0_vt;
+    }
+
+    [[nodiscard]]
     value_t get_non_goal_termination_cost() const override
     {
         return INFINITE_VALUE;

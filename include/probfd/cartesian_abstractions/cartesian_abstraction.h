@@ -88,6 +88,7 @@ public:
         std::vector<TransitionType>& transitions) override;
 
     bool is_goal(int state) const override;
+    value_t get_goal_termination_cost() const override;
     value_t get_non_goal_termination_cost() const override;
 
     value_t get_action_cost(const ProbabilisticTransition* t) override;

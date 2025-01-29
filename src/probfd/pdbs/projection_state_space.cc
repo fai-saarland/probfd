@@ -347,6 +347,11 @@ bool ProjectionStateSpace::is_goal(StateRank state) const
     return goal_state_flags_[state];
 }
 
+value_t ProjectionStateSpace::get_goal_termination_cost() const
+{
+    return parent_cost_function_->get_goal_termination_cost();
+}
+
 value_t ProjectionStateSpace::get_non_goal_termination_cost() const
 {
     return parent_cost_function_->get_non_goal_termination_cost();
