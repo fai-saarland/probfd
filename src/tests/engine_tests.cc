@@ -114,13 +114,13 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
         {{1, 0}, {2}, {5, 4, 3}},
         {{1, 4}, {5, 3, 2, 0}}));
 
-    tasks::set_root_task(task);
-
     ProgressReport report(0.0_vt, std::cout, false);
-    heuristics::BlindEvaluator<State> heuristic;
     auto cost_function = std::make_shared<TaskCostFunction>(task);
 
-    TaskStateSpace state_space(task, utils::get_silent_log());
+    ProbabilisticOperatorsProxy ops(*task);
+    heuristics::BlindEvaluator<State> heuristic(ops, *cost_function);
+
+    TaskStateSpace state_space(task);
     auto policy_chooser = std::make_shared<
         policy_pickers::ArbitraryTiebreaker<State, OperatorID>>(true);
 
@@ -164,13 +164,13 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
         {{1, 0}, {2}, {5, 4, 3}},
         {{1, 4}, {5, 3, 2, 0}}));
 
-    tasks::set_root_task(task);
-
     ProgressReport report(0.0_vt, std::cout, false);
-    heuristics::BlindEvaluator<State> heuristic;
     auto cost_function = std::make_shared<TaskCostFunction>(task);
 
-    TaskStateSpace state_space(task, utils::get_silent_log());
+    ProbabilisticOperatorsProxy ops(*task);
+    heuristics::BlindEvaluator<State> heuristic(ops, *cost_function);
+
+    TaskStateSpace state_space(task);
     auto policy_chooser = std::make_shared<policy_pickers::ArbitraryTiebreaker<
         quotients::QuotientState<State, OperatorID>,
         quotients::QuotientAction<OperatorID>>>(true);

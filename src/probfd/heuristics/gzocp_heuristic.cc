@@ -132,6 +132,10 @@ GZOCPHeuristic::GZOCPHeuristic(
 
     const State& init_state = task_proxy_.get_initial_state();
 
+    heuristics::BlindEvaluator<StateRank> h(
+        task_proxy_.get_operators(),
+        *task_cost_function);
+
     for (const Pattern& pattern : *patterns) {
         auto& pdb = pdbs_.emplace_back(task_proxy_.get_variables(), pattern);
 
@@ -141,7 +145,11 @@ GZOCPHeuristic::GZOCPHeuristic(
             pdb.ranking_function,
             false);
 
-        compute_distances(pdb, state_space, pdb.get_abstract_state(init_state));
+        compute_distances(
+            pdb,
+            state_space,
+            pdb.get_abstract_state(init_state),
+            h);
         task_costs->decrease_costs(pdb);
     }
 }

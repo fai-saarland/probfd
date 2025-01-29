@@ -4,6 +4,8 @@
 #include "probfd/pdbs/subcollection_finder.h"
 #include "probfd/pdbs/types.h"
 
+#include "probfd/heuristics/constant_evaluator.h"
+
 #include "probfd/fdr_types.h"
 #include "probfd/task_proxy.h"
 
@@ -37,6 +39,9 @@ class PatternCollectionInformation {
     std::shared_ptr<std::vector<PatternSubCollection>> subcollections_;
 
     std::shared_ptr<SubCollectionFinder> subcollection_finder_;
+
+    // for creation if missing
+    heuristics::BlindEvaluator<StateRank> h;
 
     void create_pdbs_if_missing();
     void create_pattern_cliques_if_missing();

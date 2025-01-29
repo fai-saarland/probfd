@@ -17,6 +17,8 @@ PatternInformation::PatternInformation(
     : task_proxy_(task_proxy)
     , task_cost_function_(std::move(task_cost_function))
     , pattern_(std::move(pattern))
+    , h(task_proxy_.get_operators(), *task_cost_function_)
+
 {
 }
 
@@ -33,7 +35,7 @@ void PatternInformation::create_pdb_if_missing()
             pattern_);
         const StateRank istate =
             pdb_->get_abstract_state(task_proxy_.get_initial_state());
-        compute_distances(*pdb_, task_proxy_, task_cost_function_, istate);
+        compute_distances(*pdb_, task_proxy_, task_cost_function_, istate, h);
     }
 }
 

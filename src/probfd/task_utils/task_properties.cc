@@ -109,12 +109,18 @@ value_t get_average_operator_cost(const ProbabilisticTaskProxy& task_proxy)
 
 value_t get_min_operator_cost(const ProbabilisticTaskProxy& task_proxy)
 {
+    return get_min_operator_cost(task_proxy.get_operators());
+}
+
+value_t get_min_operator_cost(const ProbabilisticOperatorsProxy& ops)
+{
     value_t min_cost = INFINITE_VALUE;
-    for (ProbabilisticOperatorProxy op : task_proxy.get_operators()) {
+    for (ProbabilisticOperatorProxy op : ops) {
         min_cost = min(min_cost, op.get_cost());
     }
     return min_cost;
 }
+
 
 int get_num_total_effects(const ProbabilisticTaskProxy& task_proxy)
 {

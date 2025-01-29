@@ -89,7 +89,8 @@ Interval BisimulationBasedHeuristicSearchAlgorithm::solve(
               << state_space.num_transitions() << " transitions." << std::endl;
     std::cout << std::endl;
 
-    heuristics::BlindEvaluator<QState> heuristic;
+    ProbabilisticOperatorsProxy ops(*task_);
+    heuristics::BlindEvaluator<QState> heuristic(ops, *task_cost_function_);
 
     std::cout << "Running " << algorithm_name_ << "..." << std::endl;
     return algorithm_

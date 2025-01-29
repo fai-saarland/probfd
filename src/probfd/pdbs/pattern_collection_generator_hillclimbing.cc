@@ -141,6 +141,8 @@ class PatternCollectionGeneratorHillclimbing::IncrementalPPDBs {
 
     std::shared_ptr<SubCollectionFinder> subcollection_finder;
 
+    heuristics::BlindEvaluator<StateRank> h;
+
     // The sum of all abstract state sizes of all pdbs in the collection.
     long long size;
 
@@ -214,6 +216,7 @@ PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::IncrementalPPDBs(
     , pattern_databases(new PPDBCollection())
     , pattern_subcollections(nullptr)
     , subcollection_finder(std::move(subcollection_finder))
+    , h(task_proxy.get_operators(), *this->task_cost_function)
     , size(0)
 {
     pattern_databases->reserve(patterns->size());
@@ -233,6 +236,7 @@ PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::IncrementalPPDBs(
     , pattern_databases(initial_patterns.get_pdbs())
     , pattern_subcollections(initial_patterns.get_subcollections())
     , subcollection_finder(std::move(subcollection_finder))
+    , h(task_proxy.get_operators(), *this->task_cost_function)
     , size(compute_total_pdb_size(*pattern_databases))
 {
 }
@@ -245,7 +249,7 @@ void PatternCollectionGeneratorHillclimbing::IncrementalPPDBs::
             task_proxy.get_variables(),
             pattern));
     const StateRank abs_init = pdb->get_abstract_state(initial_state);
-    compute_distances(*pdb, task_proxy, task_cost_function, abs_init);
+    compute_distances(*pdb, task_proxy, task_cost_function, abs_init, h);
     size += pdb->num_states();
 }
 

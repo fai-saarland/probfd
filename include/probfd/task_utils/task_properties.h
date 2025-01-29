@@ -98,6 +98,14 @@ get_average_operator_cost(const ProbabilisticTaskProxy& task_proxy);
 extern value_t get_min_operator_cost(const ProbabilisticTaskProxy& task_proxy);
 
 /**
+ * @brief Returns the minimum operator cost of an operator space among all
+ * operators.
+ *
+ * Runtime: O(n), where n is the number of operators.
+ */
+extern value_t get_min_operator_cost(const ProbabilisticOperatorsProxy& ops);
+
+/**
  * @brief Return the total number of effects of the task, including the
  * effects of axioms.
  *

@@ -1,8 +1,12 @@
 #ifndef PROBFD_HEURISTICS_CONSTANT_EVALUATOR_H
 #define PROBFD_HEURISTICS_CONSTANT_EVALUATOR_H
 
+#include "probfd/task_utils/task_properties.h"
+
+#include "probfd/cost_function.h"
 #include "probfd/evaluator.h"
 #include "probfd/task_evaluator_factory.h"
+#include "probfd/task_proxy.h"
 #include "probfd/type_traits.h"
 #include "probfd/value_type.h"
 
@@ -40,8 +44,15 @@ public:
     /**
      * @brief Construct with constant estimate \p value .
      */
-    BlindEvaluator()
-        : ConstantEvaluator<State>(0_vt)
+    BlindEvaluator(
+        const ProbabilisticOperatorsProxy& operators,
+        const FDRCostFunction& cost_function)
+        : ConstantEvaluator<State>(
+              task_properties::get_min_operator_cost(operators) >= 0_vt
+                  ? std::min(
+                        0_vt,
+                        cost_function.get_non_goal_termination_cost())
+                  : -INFINITE_VALUE)
     {
     }
 };

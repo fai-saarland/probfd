@@ -77,10 +77,14 @@ UCPHeuristic::UCPHeuristic(
 
     const State& initial_state = task_proxy_.get_initial_state();
 
+    heuristics::BlindEvaluator<StateRank> h(
+        task_proxy_.get_operators(),
+        *task_cost_function);
+
     for (const Pattern& pattern : *patterns) {
         auto& pdb = pdbs_.emplace_back(task_proxy_.get_variables(), pattern);
         const StateRank init_rank = pdb.get_abstract_state(initial_state);
-        compute_distances(pdb, task_proxy_, task_costs, init_rank);
+        compute_distances(pdb, task_proxy_, task_costs, init_rank, h);
     }
 }
 

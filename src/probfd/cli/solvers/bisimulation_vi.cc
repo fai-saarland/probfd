@@ -134,7 +134,8 @@ public:
 
         utils::Timer vi_timer;
 
-        heuristics::BlindEvaluator<QState> blind;
+        ProbabilisticOperatorsProxy ops(*task);
+        heuristics::BlindEvaluator<QState> blind(ops, *task_cost_function);
         ProgressReport progress;
 
         const Interval val =

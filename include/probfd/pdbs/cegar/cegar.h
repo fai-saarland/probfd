@@ -24,6 +24,11 @@ namespace probfd {
 class ProbabilisticTaskProxy;
 }
 
+namespace probfd::heuristics {
+template <typename State>
+class BlindEvaluator;
+}
+
 namespace probfd::pdbs::cegar {
 struct Flaw;
 class FlawFindingStrategy;
@@ -112,6 +117,7 @@ private:
     void add_pattern_for_var(
         ProbabilisticTaskProxy task_proxy,
         std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+        const heuristics::BlindEvaluator<StateRank>& h,
         int var,
         utils::CountdownTimer& timer);
 

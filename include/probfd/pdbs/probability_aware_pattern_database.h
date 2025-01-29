@@ -88,8 +88,7 @@ void compute_distances(
     ProbabilityAwarePatternDatabase& pdb,
     ProjectionStateSpace& mdp,
     StateRank abstract_initial_state,
-    const Evaluator<StateRank>& heuristic =
-        heuristics::BlindEvaluator<StateRank>(),
+    const Evaluator<StateRank>& heuristic,
     double max_time = std::numeric_limits<double>::infinity());
 
 /**
@@ -112,8 +111,7 @@ void compute_distances(
     const ProbabilisticTaskProxy& task_proxy,
     std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     StateRank abstract_initial_state,
-    const Evaluator<StateRank>& heuristic =
-        heuristics::BlindEvaluator<StateRank>(),
+    const Evaluator<StateRank>& heuristic,
     bool operator_pruning = true,
     double max_time = std::numeric_limits<double>::infinity());
 

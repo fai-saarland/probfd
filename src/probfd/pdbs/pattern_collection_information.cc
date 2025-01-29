@@ -28,6 +28,8 @@ PatternCollectionInformation::PatternCollectionInformation(
     , task_cost_function_(std::move(arg_task_cost_function))
     , patterns_(det_info.get_patterns())
     , subcollection_finder_(std::move(arg_subcollection_finder))
+    , h(task_proxy_.get_operators(), *task_cost_function_)
+
 {
     auto pdbs = det_info.get_pdbs();
 
@@ -77,6 +79,7 @@ PatternCollectionInformation::PatternCollectionInformation(
     , task_cost_function_(std::move(task_cost_function))
     , patterns_(std::move(patterns))
     , subcollection_finder_(std::move(subcollection_finder))
+    , h(task_proxy_.get_operators(), *task_cost_function_)
 {
     assert(this->patterns_);
     assert(this->subcollection_finder_);
@@ -125,7 +128,12 @@ void PatternCollectionInformation::create_pdbs_if_missing()
                     pattern));
             const StateRank istate =
                 pdb->get_abstract_state(task_proxy_.get_initial_state());
-            compute_distances(*pdb, task_proxy_, task_cost_function_, istate);
+            compute_distances(
+                *pdb,
+                task_proxy_,
+                task_cost_function_,
+                istate,
+                h);
         }
         cout << "Done computing PDBs for pattern collection: " << timer << endl;
     }

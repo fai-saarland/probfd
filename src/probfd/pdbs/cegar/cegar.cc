@@ -49,6 +49,7 @@ public:
         std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         Pattern pattern,
         const State& initial_state,
+        const heuristics::BlindEvaluator<StateRank>& h,
         utils::RandomNumberGenerator& rng,
         bool wildcard,
         utils::CountdownTimer& timer);
@@ -102,6 +103,7 @@ CEGAR::PDBInfo::PDBInfo(
     std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     Pattern pattern,
     const State& initial_state,
+    const heuristics::BlindEvaluator<StateRank>& h,
     utils::RandomNumberGenerator& rng,
     bool wildcard,
     utils::CountdownTimer& timer)
@@ -121,7 +123,7 @@ CEGAR::PDBInfo::PDBInfo(
         *pdb,
         *state_space,
         abs_init,
-        heuristics::BlindEvaluator<StateRank>(),
+        h,
         timer.get_remaining_time());
 
     policy = compute_optimal_projection_policy(
@@ -322,10 +324,15 @@ void CEGAR::generate_trivial_solution_collection(
 
     pdb_infos_.reserve(goals_.size());
 
+    heuristics::BlindEvaluator<StateRank> h(
+        task_proxy.get_operators(),
+        *task_cost_function);
+
     for (int var : goals_) {
         add_pattern_for_var(
             task_proxy,
             std::move(task_cost_function),
+            h,
             var,
             timer);
     }
@@ -472,6 +479,7 @@ bool CEGAR::can_merge_patterns(
 void CEGAR::add_pattern_for_var(
     ProbabilisticTaskProxy task_proxy,
     std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    const heuristics::BlindEvaluator<StateRank>& h,
     int var,
     utils::CountdownTimer& timer)
 {
@@ -481,6 +489,7 @@ void CEGAR::add_pattern_for_var(
         std::move(task_cost_function),
         Pattern{var},
         task_proxy.get_initial_state(),
+        h,
         *rng_,
         wildcard_,
         timer);

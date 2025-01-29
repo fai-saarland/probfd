@@ -72,7 +72,9 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
     compute_value_table(
         *transformation.projection,
         transformation.pdb.get_abstract_state(task_proxy.get_initial_state()),
-        heuristics::BlindEvaluator<StateRank>(),
+        heuristics::BlindEvaluator<StateRank>(
+            task_proxy.get_operators(),
+            *task_cost_function),
         transformation.pdb.value_table,
         timer.get_remaining_time());
 

@@ -3,6 +3,8 @@
 
 #include "probfd/pdbs/types.h"
 
+#include "probfd/heuristics/constant_evaluator.h"
+
 #include "probfd/fdr_types.h"
 #include "probfd/task_proxy.h"
 
@@ -17,6 +19,9 @@ class PatternInformation {
     std::shared_ptr<FDRSimpleCostFunction> task_cost_function_;
     Pattern pattern_;
     std::shared_ptr<ProbabilityAwarePatternDatabase> pdb_;
+
+    // for creation if missing
+    heuristics::BlindEvaluator<StateRank> h;
 
     void create_pdb_if_missing();
 
