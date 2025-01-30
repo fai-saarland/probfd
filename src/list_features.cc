@@ -1,36 +1,20 @@
-#include "command_line.h"
+#include "list_features.h"
 
-#include "downward/cli/parser/lexical_analyzer.h"
 #include "downward/cli/parser/syntax_analyzer.h"
-#include "downward/cli/parser/token_stream.h"
 
 #include "downward/cli/plugins/doc_printer.h"
 #include "downward/cli/plugins/raw_registry.h"
 #include "downward/cli/plugins/registry.h"
 
-#include "probfd/tasks/root_task.h"
-
-#include "probfd/utils/timed.h"
-
-#include "probfd/solver_interface.h"
-#include "probfd/value_type.h"
-
-#include "downward/utils/logging.h"
-#include "downward/utils/strings.h"
 #include "downward/utils/system.h"
 
-#include <any>
 #include <charconv>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
-#include <limits>
 #include <print>
 #include <ranges>
 #include <stdexcept>
 #include <vector>
-
-#include <argparse/argparse.hpp>
 
 using namespace std;
 using namespace downward::cli::parser;
@@ -59,31 +43,6 @@ struct std::formatter<downward::cli::plugins::Bounds> {
 };
 
 namespace probfd {
-
-static string replace_old_style_predefinitions(
-    const std::string& old_search_argument,
-    const std::vector<std::string>& predefinitions)
-{
-    ostringstream new_search_argument;
-
-    for (const auto& predefinition_kv : predefinitions) {
-        vector<string> predefinition = utils::split(predefinition_kv, "=", 1);
-        if (predefinition.size() < 2)
-            throw std::invalid_argument(
-                "predefinition expects format 'key=definition'");
-        string key = predefinition[0];
-        string definition = predefinition[1];
-        if (!utils::is_alpha_numeric(key))
-            throw std::invalid_argument(
-                "predefinition key has to be alphanumeric: '" + key + "'");
-        new_search_argument << "let(" << key << "," << definition << ",";
-    }
-
-    new_search_argument << old_search_argument
-                        << string(predefinitions.size(), ')');
-
-    return new_search_argument.str();
-}
 
 namespace {
 
@@ -310,150 +269,15 @@ static int list_features(argparse::ArgumentParser& parser)
     return 0;
 }
 
-static int search(argparse::ArgumentParser& parser)
+void add_list_features_subcommand(argparse::ArgumentParser& arg_parser)
 {
-    const double max_time = parser.get<double>("--max-search-time");
-
-    std::string search_arg = parser.get("algorithm");
-
-    auto predefinitions = parser.get<std::vector<std::string>>("predefinition");
-
-    if (!predefinitions.empty()) {
-        try {
-            search_arg =
-                replace_old_style_predefinitions(search_arg, predefinitions);
-        } catch (const std::invalid_argument& err) {
-            std::cerr << err.what() << std::endl;
-            return static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR);
-        }
-
-        std::cout << "Using translated search string: " << search_arg
-                  << std::endl;
-    }
-
-    utils::register_event_handlers();
-
-    shared_ptr<TaskSolverFactory> solver_factory;
-
-    try {
-        TokenStream tokens = split_tokens(search_arg);
-        ASTNodePtr parsed = parse(tokens);
-        DecoratedASTNodePtr decorated = parsed->decorate();
-        std::any constructed = decorated->construct();
-        try {
-            solver_factory =
-                std::any_cast<shared_ptr<TaskSolverFactory>>(constructed);
-        } catch (const std::bad_any_cast&) {
-            std::println(
-                std::cerr,
-                "Search argument {:?} is of type {}, not TaskSolverFactory.",
-                search_arg,
-                constructed.type().name());
-            return static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR);
-        }
-    } catch (const utils::ContextError& e) {
-        std::cerr << e.get_message() << std::endl;
-        return static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR);
-    } catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
-        return static_cast<int>(utils::ExitCode::SEARCH_CRITICAL_ERROR);
-    }
-
-    std::shared_ptr<ProbabilisticTask> input_task = timed(
-        std::cout,
-        "Reading input task...",
-        probfd::tasks::read_root_tasks_from_file,
-        parser.get("sas_file"));
-
-    std::unique_ptr<SolverInterface> solver =
-        solver_factory->create(input_task);
-
-    utils::g_search_timer.resume();
-    bool found_solution = solver->solve(max_time);
-    utils::g_search_timer.stop();
-    utils::g_timer.stop();
-
-    solver->print_statistics();
-    std::cout << "Search time: " << utils::g_search_timer << endl;
-    std::cout << "Total time: " << utils::g_timer << endl;
-
-    ExitCode exitcode = found_solution ? ExitCode::SUCCESS
-                                       : ExitCode::SEARCH_UNSOLVED_INCOMPLETE;
-    utils::report_exit_code_reentrant(exitcode);
-    return static_cast<int>(exitcode);
-}
-
-void setup_argparser(argparse::ArgumentParser& arg_parser)
-{
-    argparse::ArgumentParser& search_parser = arg_parser.emplace_subparser(
-        "search",
-        "",
-        argparse::default_arguments::help);
-
-    search_parser.add_description("Runs the search component.");
-
-    search_parser.add_argument("--max-search-time")
-        .help("The maximum time to .")
-        .metavar("DOUBLE")
-        .default_value(std::numeric_limits<double>::infinity())
-        .scan<'g', double>()
-        .action([](const std::string& s) {
-            try {
-                double d = std::stod(s);
-
-                if (d >= 0.0) {
-                    return d;
-                }
-
-                std::cerr << "Maximum search time needs to be positive: " << s
-                          << std::endl;
-            } catch (const std::invalid_argument&) {
-                std::println(
-                    std::cerr,
-                    "Maximum search time is not a double: {}",
-                    s);
-            } catch (const std::out_of_range&) {
-                std::println(
-                    std::cerr,
-                    "Maximum search time is out of the range of representable "
-                    "values: {}",
-                    s);
-            }
-
-            exit(static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR));
-        });
-
-    search_parser.add_argument("--predefinition")
-        .help("[Deprecated] Feature predefinition. The options --landmarks, "
-              "--evaluator and --heuristic are aliases for this option.")
-        .append()
-        .metavar("FEATURE_STRING");
-
-    search_parser.add_argument("algorithm")
-        .help("The search algorithm factory. For available options, see "
-              "--list-features TaskSolverFactory.")
-        .required();
-
-    search_parser.add_argument("sas_file")
-        .help("The translated PPDDL planning problem file.")
-        .required()
-        .action([](const auto& path) {
-            if (!std::filesystem::exists(path)) {
-                std::cerr << "Input file does not exist: " << path << std::endl;
-                exit(static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR));
-            }
-
-            return path;
-        });
-
-    search_parser.add_argument("fn").hidden().default_value<SubCommandFn>(
-        search);
-
     argparse::ArgumentParser& feature_list_parser =
         arg_parser.emplace_subparser(
-            "list-features",
-            "",
-            argparse::default_arguments::help);
+            std::forward_as_tuple(
+                "list-features",
+                "",
+                argparse::default_arguments::help),
+            list_features);
     feature_list_parser.add_description(
         "Lists available search features. If no options are given, all "
         "features are listed.");
@@ -471,9 +295,6 @@ void setup_argparser(argparse::ArgumentParser& arg_parser)
     feature_list_parser.add_argument("features")
         .help("Individual features to list.")
         .remaining();
-
-    feature_list_parser.add_argument("fn").hidden().default_value<SubCommandFn>(
-        list_features);
 }
 
 } // namespace probfd

@@ -1,4 +1,5 @@
-#include "command_line.h"
+#include "list_features.h"
+#include "search.h"
 
 #include "downward/utils/system.h"
 
@@ -10,6 +11,12 @@ using namespace std;
 using namespace probfd;
 
 using utils::ExitCode;
+
+static void setup_argparser(argparse::ArgumentParser& arg_parser)
+{
+    add_search_subcommand(arg_parser);
+    add_list_features_subcommand(arg_parser);
+}
 
 int main(int argc, const char** argv)
 {
@@ -25,8 +32,9 @@ int main(int argc, const char** argv)
     } catch (const std::exception& err) {
         std::cerr << err.what() << '\n' << std::endl;
 
-        if (auto subcommand_parser = prog.get_used_subcommand_parser()) {
-            std::cerr << *subcommand_parser;
+        if (auto subcommand = prog.get_used_subcommand()) {
+            const auto& subcommand_parser = subcommand->get().first;
+            std::cerr << subcommand_parser;
         } else {
             std::cerr << prog;
         }
@@ -34,9 +42,9 @@ int main(int argc, const char** argv)
         return static_cast<int>(ExitCode::SEARCH_INPUT_ERROR);
     }
 
-    if (auto subcommand_parser = prog.get_used_subcommand_parser()) {
-        auto subcommand = subcommand_parser->get().get<SubCommandFn>("fn");
-        return subcommand(*subcommand_parser);
+    if (auto subcommand = prog.get_used_subcommand()) {
+        auto& [subcommand_parser, main] = subcommand->get();
+        return main(subcommand_parser);
     }
 
     std::cerr << prog;
