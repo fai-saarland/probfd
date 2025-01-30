@@ -162,35 +162,10 @@ void add_search_subcommand(argparse::ArgumentParser& arg_parser)
     search_parser.add_description("Runs the search component.");
 
     search_parser.add_argument("--max-search-time")
-        .help("The maximum time to .")
+        .help("The maximum search time for the algorithm.")
         .metavar("DOUBLE")
         .default_value(std::numeric_limits<double>::infinity())
-        .scan<'g', double>()
-        .action([](const std::string& s) {
-            try {
-                double d = std::stod(s);
-
-                if (d >= 0.0) {
-                    return d;
-                }
-
-                std::cerr << "Maximum search time needs to be positive: " << s
-                          << std::endl;
-            } catch (const std::invalid_argument&) {
-                std::println(
-                    std::cerr,
-                    "Maximum search time is not a double: {}",
-                    s);
-            } catch (const std::out_of_range&) {
-                std::println(
-                    std::cerr,
-                    "Maximum search time is out of the range of representable "
-                    "values: {}",
-                    s);
-            }
-
-            exit(static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR));
-        });
+        .scan<'g', double>(0.0);
 
     search_parser.add_argument("--predefinition")
         .help("[Deprecated] Feature predefinition. The options --landmarks, "
@@ -206,14 +181,7 @@ void add_search_subcommand(argparse::ArgumentParser& arg_parser)
     search_parser.add_argument("sas_file")
         .help("The translated PPDDL planning problem file.")
         .required()
-        .action([](const auto& path) {
-            if (!std::filesystem::exists(path)) {
-                std::cerr << "Input file does not exist: " << path << std::endl;
-                exit(static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR));
-            }
-
-            return path;
-        });
+        .filepath();
 }
 
 } // namespace probfd
