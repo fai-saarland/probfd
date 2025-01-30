@@ -76,6 +76,11 @@ public:
     PatternCollectionGeneratorDisjointCEGARFeature()
         : TypedFeature("ppdbs_disjoint_cegar")
     {
+        add_option<value_t>(
+            "convergence_epsilon",
+            "The tolerance for convergence checks.",
+            "10e-4");
+
         add_pattern_collection_generator_cegar_options_to_feature(*this);
         add_rng_options_to_feature(*this);
     }
@@ -85,6 +90,7 @@ public:
     {
         return make_shared_from_arg_tuples<
             PatternCollectionGeneratorDisjointCegar>(
+            opts.get<value_t>("convergence_epsilon"),
             get_cegar_wildcard_arguments_from_options(opts),
             opts.get<bool>("single_goal"),
             opts.get<int>("max_pdb_size"),

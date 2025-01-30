@@ -6,7 +6,7 @@
 #include "probfd/storage/per_state_storage.h"
 
 #include "probfd/distribution.h"
-#include "probfd/mdp_algorithm.h"
+#include "probfd/iterative_mdp_algorithm.h"
 
 #include <deque>
 #include <limits>
@@ -65,7 +65,7 @@ struct Statistics {
  * @tparam UseInterval - Whether value intervals are used.
  */
 template <typename State, typename Action, bool UseInterval = false>
-class TopologicalValueIteration : public MDPAlgorithm<State, Action> {
+class TopologicalValueIteration : public IterativeMDPAlgorithm<State, Action> {
     using Base = typename TopologicalValueIteration::MDPAlgorithm;
 
     using PolicyType = typename Base::PolicyType;
@@ -124,7 +124,7 @@ class TopologicalValueIteration : public MDPAlgorithm<State, Action> {
 
         StackInfo(StateID state_id, AlgorithmValueType& value_ref);
 
-        bool update_value();
+        bool update_value(value_t convergence_epsilon);
     };
 
     struct ExplorationInfo {
@@ -173,7 +173,7 @@ class TopologicalValueIteration : public MDPAlgorithm<State, Action> {
     Statistics statistics_;
 
 public:
-    explicit TopologicalValueIteration(bool expand_goals);
+    TopologicalValueIteration(value_t epsilon, bool expand_goals);
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,

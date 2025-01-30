@@ -25,8 +25,29 @@ using namespace downward::cli::plugins;
 namespace {
 
 class IntervalIterationSolver : public MDPSolver {
+    const value_t convergence_epsilon_;
+
 public:
-    using MDPSolver::MDPSolver;
+    IntervalIterationSolver(
+        utils::Verbosity verbosity,
+        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+        std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
+        std::string policy_filename,
+        bool print_fact_names,
+        std::optional<value_t> report_epsilon,
+        bool report_enabled,
+        value_t convergence_epsilon)
+        : MDPSolver(
+              verbosity,
+              std::move(task_state_space_factory),
+              std::move(heuristic_factory),
+              std::move(policy_filename),
+              print_fact_names,
+              report_epsilon,
+              report_enabled)
+        , convergence_epsilon_(convergence_epsilon)
+    {
+    }
 
     std::string get_algorithm_name() const override
     {
@@ -38,6 +59,7 @@ public:
         const std::shared_ptr<FDRCostFunction>&) override
     {
         return std::make_unique<IntervalIteration<State, OperatorID>>(
+            convergence_epsilon_,
             false,
             false);
     }
@@ -53,6 +75,11 @@ public:
         document_title("Interval Iteration");
 
         add_base_solver_options_to_feature(*this);
+
+        add_option<probfd::value_t>(
+            "convergence_epsilon",
+            "The tolerance for convergence checks.",
+            "10e-4");
     }
 
 protected:
@@ -60,7 +87,8 @@ protected:
     create_component(const Options& options, const Context&) const override
     {
         return make_shared_from_arg_tuples<IntervalIterationSolver>(
-            get_base_solver_args_from_options(options));
+            get_base_solver_args_from_options(options),
+            options.get<value_t>("convergence_epsilon"));
     }
 };
 

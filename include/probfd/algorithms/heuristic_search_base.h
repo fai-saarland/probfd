@@ -4,7 +4,7 @@
 #include "probfd/algorithms/heuristic_search_state_information.h"
 #include "probfd/algorithms/types.h"
 
-#include "probfd/mdp_algorithm.h"
+#include "probfd/iterative_mdp_algorithm.h"
 #include "probfd/progress_report.h"
 
 #if defined(EXPENSIVE_STATISTICS)
@@ -111,9 +111,6 @@ public:
  */
 template <typename State, typename Action, typename StateInfoT>
 class HeuristicSearchBase {
-    template <bool b, typename T>
-    using const_if = std::conditional_t<b, const T, T>;
-
 protected:
     using MDPType = MDP<State, Action>;
     using CostFunctionType = CostFunction<State, Action>;
@@ -203,7 +200,7 @@ public:
         std::vector<TransitionType>& transitions,
         value_t termination_cost,
         std::vector<AlgorithmValueType>& qvalues,
-        value_t epsilon = g_epsilon) const;
+        value_t epsilon) const;
 
     /**
      * @brief Selects a greedy transition from the given list of greedy
@@ -229,7 +226,7 @@ public:
     bool update_value(
         StateInfo& state_info,
         AlgorithmValueType other,
-        value_t epsilon = g_epsilon);
+        value_t epsilon);
 
     /**
      * @brief Updates the current greedy action of the state associated with
@@ -285,7 +282,7 @@ private:
         std::vector<TransitionType>& transitions,
         std::vector<AlgorithmValueType>& qvalues,
         const AlgorithmValueType& best_value,
-        value_t epsilon = g_epsilon) const;
+        value_t epsilon) const;
 };
 
 /**
@@ -293,12 +290,12 @@ private:
  * MDPAlgorithm.
  *
  * @tparam State - The state type of the underlying MDP model.
- * @tparam Action - The action type of the undelying MDP model.
+ * @tparam Action - The action type of the underlying MDP model.
  * @tparam StateInfoT - The state information container type.
  */
 template <typename State, typename Action, typename StateInfoT>
 class HeuristicSearchAlgorithm
-    : public MDPAlgorithm<State, Action>
+    : public IterativeMDPAlgorithm<State, Action>
     , public HeuristicSearchBase<State, Action, StateInfoT> {
     using AlgorithmBase = typename HeuristicSearchAlgorithm::MDPAlgorithm;
     using HSBase = typename HeuristicSearchAlgorithm::HeuristicSearchBase;
@@ -317,8 +314,9 @@ protected:
     using PolicyPicker = typename HSBase::PolicyPickerType;
 
 public:
-    // Inherited constructor
-    using HSBase::HSBase;
+    HeuristicSearchAlgorithm(
+        value_t epsilon,
+        std::shared_ptr<PolicyPicker> policy_chooser);
 
     Interval solve(
         MDPType& mdp,

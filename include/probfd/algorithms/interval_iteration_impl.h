@@ -16,12 +16,13 @@ namespace probfd::algorithms::interval_iteration {
 
 template <typename State, typename Action>
 IntervalIteration<State, Action>::IntervalIteration(
+    value_t epsilon,
     bool extract_probability_one_states,
     bool expand_goals)
     : extract_probability_one_states_(extract_probability_one_states)
     , qr_analysis_(expand_goals)
     , ec_decomposer_(expand_goals)
-    , vi_(expand_goals)
+    , vi_(epsilon, expand_goals)
 {
 }
 

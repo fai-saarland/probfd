@@ -8,7 +8,7 @@
 #include "probfd/storage/per_state_storage.h"
 
 #include "probfd/distribution.h"
-#include "probfd/mdp_algorithm.h"
+#include "probfd/iterative_mdp_algorithm.h"
 #include "probfd/progress_report.h"
 
 #include <deque>
@@ -207,8 +207,8 @@ struct SearchNodeInfos : public StateProperties {
  *
  */
 template <typename State, typename Action, bool UseInterval>
-class ExhaustiveDepthFirstSearch : public MDPAlgorithm<State, Action> {
-    using Base = typename ExhaustiveDepthFirstSearch::MDPAlgorithm;
+class ExhaustiveDepthFirstSearch : public IterativeMDPAlgorithm<State, Action> {
+    using Base = typename ExhaustiveDepthFirstSearch::IterativeMDPAlgorithm;
 
     using MDPType = typename Base::MDPType;
     using EvaluatorType = typename Base::EvaluatorType;
@@ -242,6 +242,7 @@ class ExhaustiveDepthFirstSearch : public MDPAlgorithm<State, Action> {
 
 public:
     explicit ExhaustiveDepthFirstSearch(
+        value_t epsilon,
         std::shared_ptr<TransitionSorterType> transition_sorting,
         Interval cost_bound,
         bool path_updates,

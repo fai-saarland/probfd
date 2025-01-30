@@ -29,6 +29,9 @@ namespace probfd::pdbs::cegar {
 namespace {
 
 class SingleCEGAR {
+    // Convergence epsilon
+    const value_t epsilon_;
+
     // Flaw finding strategy
     FlawFindingStrategy& flaw_strategy_;
 
@@ -40,6 +43,7 @@ class SingleCEGAR {
 
 public:
     SingleCEGAR(
+        value_t epsilon,
         cegar::FlawFindingStrategy& flaw_strategy,
         bool wildcard,
         int max_pdb_size,
@@ -74,11 +78,13 @@ private:
 };
 
 SingleCEGAR::SingleCEGAR(
+    value_t epsilon,
     FlawFindingStrategy& flaw_strategy,
     bool wildcard,
     int max_pdb_size,
     std::unordered_set<int> blacklisted_variables)
-    : flaw_strategy_(flaw_strategy)
+    : epsilon_(epsilon)
+    , flaw_strategy_(flaw_strategy)
     , wildcard_(wildcard)
     , max_pdb_size_(max_pdb_size)
     , blacklisted_variables_(std::move(blacklisted_variables))
@@ -103,6 +109,7 @@ bool SingleCEGAR::get_flaws(
             *projection,
             pdb.value_table,
             init_state_rank,
+            epsilon_,
             rng,
             wildcard_);
 
@@ -194,8 +201,7 @@ void SingleCEGAR::refine(
     int flaw_var = flaw.variable;
 
     if (log.is_at_least_verbose()) {
-        log << "SingleCEGAR: chosen flaw: pattern "
-            << pdb.get_pattern();
+        log << "SingleCEGAR: chosen flaw: pattern " << pdb.get_pattern();
         log << " with a violated";
         if (flaw.is_precondition) {
             log << " precondition ";
@@ -333,6 +339,7 @@ void run_cegar_loop(
     ProjectionTransformation& transformation,
     ProbabilisticTaskProxy task_proxy,
     std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    value_t convergence_epsilon,
     cegar::FlawFindingStrategy& flaw_strategy,
     std::unordered_set<int> blacklisted_variables,
     int max_pdb_size,
@@ -342,6 +349,7 @@ void run_cegar_loop(
     utils::LogProxy log)
 {
     SingleCEGAR single_cegar(
+        convergence_epsilon,
         flaw_strategy,
         wildcard,
         max_pdb_size,

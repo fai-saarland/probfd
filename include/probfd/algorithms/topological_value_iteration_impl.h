@@ -178,7 +178,7 @@ TopologicalValueIteration<State, Action, UseInterval>::StackInfo::StackInfo(
 
 template <typename State, typename Action, bool UseInterval>
 bool TopologicalValueIteration<State, Action, UseInterval>::StackInfo::
-    update_value()
+    update_value(value_t convergence_epsilon)
 {
     AlgorithmValueType v = conv_part;
     best_action = best_converged;
@@ -190,17 +190,18 @@ bool TopologicalValueIteration<State, Action, UseInterval>::StackInfo::
     }
 
     if constexpr (UseInterval) {
-        update(*value, v);
-        return !value->bounds_approximately_equal();
+        update(*value, v, convergence_epsilon);
+        return !value->bounds_approximately_equal(convergence_epsilon);
     } else {
-        return update(*value, v);
+        return update(*value, v, convergence_epsilon);
     }
 }
 
 template <typename State, typename Action, bool UseInterval>
 TopologicalValueIteration<State, Action, UseInterval>::
-    TopologicalValueIteration(bool expand_goals)
-    : expand_goals_(expand_goals)
+    TopologicalValueIteration(value_t epsilon, bool expand_goals)
+    : IterativeMDPAlgorithm<State, Action>(epsilon)
+    , expand_goals_(expand_goals)
 {
 }
 
@@ -441,7 +442,7 @@ void TopologicalValueIteration<State, Action, UseInterval>::scc_found(
         ++statistics_.singleton_sccs;
         StackInfo& single = scc.front();
         StateInfo& state_info = state_information_[single.state_id];
-        update(*single.value, single.conv_part);
+        *single.value = single.conv_part;
         assert(state_info.status == StateInfo::ONSTACK);
         state_info.status = StateInfo::CLOSED;
     } else {
@@ -463,7 +464,7 @@ void TopologicalValueIteration<State, Action, UseInterval>::scc_found(
             auto it = scc.begin();
 
             do {
-                if (it->update_value()) converged = false;
+                if (it->update_value(this->epsilon)) converged = false;
                 ++statistics_.bellman_backups;
             } while (++it != scc.end());
         } while (!converged);

@@ -19,9 +19,10 @@ namespace probfd::algorithms::ao_search::ao_star {
 
 template <typename State, typename Action, bool UseInterval>
 AOStar<State, Action, UseInterval>::AOStar(
+    value_t epsilon,
     std::shared_ptr<PolicyPickerType> policy_chooser,
     std::shared_ptr<SuccessorSamplerType> outcome_selection)
-    : Base(std::move(policy_chooser))
+    : Base(epsilon, std::move(policy_chooser))
     , outcome_selection_(std::move(outcome_selection))
 {
 }
@@ -183,12 +184,13 @@ bool AOStar<State, Action, UseInterval>::update_value_check_solved(
         mdp.get_state_id(state),
         transitions,
         termination_cost,
-        qvalues_);
+        qvalues_,
+        this->epsilon);
 
     auto greedy_transition =
         this->select_greedy_transition(mdp, info.get_policy(), transitions_);
 
-    bool value_changed = this->update_value(info, value);
+    bool value_changed = this->update_value(info, value, this->epsilon);
     this->update_policy(info, greedy_transition);
 
     bool all_succs_solved = true;

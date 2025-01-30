@@ -389,6 +389,15 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::filter_greedy_transitions(
 }
 
 template <typename State, typename Action, typename StateInfoT>
+HeuristicSearchAlgorithm<State, Action, StateInfoT>::HeuristicSearchAlgorithm(
+    value_t epsilon,
+    std::shared_ptr<PolicyPicker> policy_chooser)
+    : IterativeMDPAlgorithm<State, Action>(epsilon)
+    , HeuristicSearchBase<State, Action, StateInfoT>(std::move(policy_chooser))
+{
+}
+
+template <typename State, typename Action, typename StateInfoT>
 Interval HeuristicSearchAlgorithm<State, Action, StateInfoT>::solve(
     MDPType& mdp,
     EvaluatorType& h,
@@ -449,7 +458,8 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
                 state_id,
                 transitions,
                 termination_cost,
-                qvalues);
+                qvalues,
+                this->epsilon);
 
             action =
                 this->select_greedy_transition(mdp, std::nullopt, transitions)

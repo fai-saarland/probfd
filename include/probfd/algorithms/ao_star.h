@@ -64,6 +64,7 @@ class AOStar
 
 public:
     AOStar(
+        value_t epsilon,
         std::shared_ptr<PolicyPickerType> policy_chooser,
         std::shared_ptr<SuccessorSamplerType> outcome_selection);
 

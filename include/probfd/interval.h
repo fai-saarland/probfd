@@ -38,7 +38,7 @@ struct Interval {
      * @see Interval::length()
      */
     [[nodiscard]]
-    bool bounds_approximately_equal(value_t tolerance = g_epsilon) const;
+    bool bounds_approximately_equal(value_t tolerance) const;
 };
 
 /**

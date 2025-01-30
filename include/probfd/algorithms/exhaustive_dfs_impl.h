@@ -59,11 +59,13 @@ void Statistics::print(std::ostream& out) const
 template <typename State, typename Action, bool UseInterval>
 ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
     ExhaustiveDepthFirstSearch(
+        value_t epsilon,
         std::shared_ptr<TransitionSorterType> transition_sorting,
         Interval cost_bound,
         bool path_updates,
         bool only_propagate_when_changed)
-    : transition_sort_(transition_sorting)
+    : IterativeMDPAlgorithm<State, Action>(epsilon)
+    , transition_sort_(transition_sorting)
     , cost_bound_(cost_bound)
     , trivial_bound_([=] {
         if constexpr (UseInterval) {
@@ -435,11 +437,11 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
                     info.close();
 
                     if constexpr (UseInterval) {
-                        val_changed =
-                            update(
-                                info.value,
-                                AlgorithmValueType(info.value.lower)) ||
-                            val_changed;
+                        val_changed = update(
+                                          info.value,
+                                          AlgorithmValueType(info.value.lower),
+                                          this->epsilon) ||
+                                      val_changed;
                     }
 
                     ++scc_size;
@@ -472,7 +474,8 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
                             if (best > snode_info.get_value()) {
                                 changed = changed || !is_approx_equal(
                                                          snode_info.get_value(),
-                                                         best);
+                                                         best,
+                                                         this->epsilon);
                                 snode_info.value = AlgorithmValueType(best);
                             }
                         }

@@ -22,6 +22,10 @@ namespace probfd::cli::solvers {
 template <bool Bisimulation, bool Fret>
 void add_mdp_hs_base_options_to_feature(Feature& feature)
 {
+    feature.add_option<value_t>(
+        "convergence_epsilon",
+        "The tolerance for convergence checks.",
+        "10e-4");
     feature.add_option<bool>(
         "dual_bounds",
         "Specifies whether the algorithm should use an upper-bounding value "
@@ -44,6 +48,7 @@ get_mdp_hs_base_args_from_options(const Options& options)
 {
     return std::tuple_cat(
         std::make_tuple(
+            options.get<value_t>("convergence_epsilon"),
             options.get<bool>("dual_bounds"),
             options.get<std::shared_ptr<PolicyPickerType<Bisimulation, Fret>>>(
                 "policy")),

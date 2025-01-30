@@ -23,8 +23,9 @@ using namespace std;
 
 namespace probfd::cartesian_abstractions {
 
-ILAOPolicyGenerator::ILAOPolicyGenerator()
-    : picker_(new policy_pickers::ArbitraryTiebreaker<
+ILAOPolicyGenerator::ILAOPolicyGenerator(value_t convergence_epsilon)
+    : convergence_epsilon_(convergence_epsilon)
+    , picker_(new policy_pickers::ArbitraryTiebreaker<
               quotients::QuotientState<int, const ProbabilisticTransition*>,
               quotients::QuotientAction<const ProbabilisticTransition*>>(true))
 {
@@ -42,6 +43,7 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
     algorithms::trap_aware_dfhs::
         TADepthFirstHeuristicSearch<int, const ProbabilisticTransition*, false>
             talilao(
+                convergence_epsilon_,
                 picker_,
                 false,
                 algorithms::trap_aware_dfhs::BacktrackingUpdateType::SINGLE,

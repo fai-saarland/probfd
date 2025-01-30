@@ -163,6 +163,7 @@ public:
      * @brief Constructs an LRTDP solver object.
      */
     LRTDP(
+        value_t epsilon,
         std::shared_ptr<PolicyPickerType> policy_chooser,
         TrialTerminationCondition stop_consistent,
         std::shared_ptr<SuccessorSamplerType> succ_sampler);

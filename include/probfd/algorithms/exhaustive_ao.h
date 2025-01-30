@@ -63,6 +63,7 @@ class ExhaustiveAOSearch
 
 public:
     ExhaustiveAOSearch(
+        value_t epsilon,
         std::shared_ptr<PolicyPickerType> policy_chooser,
         std::shared_ptr<OpenListType> open_list);
 

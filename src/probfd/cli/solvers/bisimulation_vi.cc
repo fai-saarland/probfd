@@ -166,11 +166,13 @@ class BisimulationIterationFactory : public TaskSolverFactory {
     using QState = bisimulation::QuotientState;
     using QAction = bisimulation::QuotientAction;
 
+    const bool convergence_epsilon_;
     const bool interval_iteration_;
 
 public:
-    explicit BisimulationIterationFactory(bool interval)
-        : interval_iteration_(interval)
+    BisimulationIterationFactory(bool convergence_epsilon, bool interval)
+        : convergence_epsilon_(convergence_epsilon)
+        , interval_iteration_(interval)
     {
     }
 
@@ -193,11 +195,13 @@ public:
 
         if (interval_iteration_) {
             solver = std::make_unique<IntervalIteration<QState, QAction>>(
+                convergence_epsilon_,
                 false,
                 false);
         } else {
             solver =
                 std::make_unique<TopologicalValueIteration<QState, QAction>>(
+                    convergence_epsilon_,
                     false);
         }
 
@@ -217,13 +221,20 @@ public:
               "bisimulation_vi")
     {
         document_title("Bisimulation Value Iteration");
+
+        add_option<value_t>(
+            "convergence_epsilon",
+            "The tolerance for convergence checks.",
+            "10e-4");
     }
 
 protected:
     std::shared_ptr<BisimulationIterationFactory>
-    create_component(const Options&, const utils::Context&) const override
+    create_component(const Options& opts, const utils::Context&) const override
     {
-        return std::make_shared<BisimulationIterationFactory>(false);
+        return std::make_shared<BisimulationIterationFactory>(
+            opts.get<value_t>("convergence_epsilon"),
+            false);
     }
 };
 
@@ -235,13 +246,20 @@ public:
               "bisimulation_ii")
     {
         document_title("Bisimulation Interval Iteration");
+
+        add_option<value_t>(
+            "convergence_epsilon",
+            "The tolerance for convergence checks.",
+            "10e-4");
     }
 
 protected:
     std::shared_ptr<BisimulationIterationFactory>
-    create_component(const Options&, const utils::Context&) const override
+    create_component(const Options& opts, const utils::Context&) const override
     {
-        return std::make_shared<BisimulationIterationFactory>(true);
+        return std::make_shared<BisimulationIterationFactory>(
+            opts.get<value_t>("convergence_epsilon"),
+            true);
     }
 };
 

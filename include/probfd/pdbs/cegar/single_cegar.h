@@ -41,6 +41,7 @@ extern void run_cegar_loop(
     ProjectionTransformation& transformation,
     ProbabilisticTaskProxy task_proxy,
     std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    value_t convergence_epsilon,
     cegar::FlawFindingStrategy& flaw_strategy,
     std::unordered_set<int> blacklisted_variables,
     int max_pdb_size,

@@ -28,6 +28,7 @@ class I2DualSolver : public MDPSolver {
     bool hpom_enabled_;
     bool incremental_hpom_updates_;
     lp::LPSolverType solver_type_;
+    double fp_epsilon_;
 
 public:
     template <typename... Args>
@@ -35,11 +36,13 @@ public:
         bool disable_hpom,
         bool incremental_updates,
         lp::LPSolverType lp_solver,
+        double fp_epsilon,
         Args&&... args)
         : MDPSolver(std::forward<Args>(args)...)
         , hpom_enabled_(!disable_hpom)
         , incremental_hpom_updates_(incremental_updates)
         , solver_type_(lp_solver)
+        , fp_epsilon_(fp_epsilon)
     {
     }
 
@@ -54,7 +57,8 @@ public:
             task_cost_function,
             hpom_enabled_,
             incremental_hpom_updates_,
-            solver_type_);
+            solver_type_,
+            fp_epsilon_);
     }
 };
 
@@ -71,6 +75,12 @@ public:
 
         add_lp_solver_option_to_feature(*this);
 
+        add_option<double>(
+            "fp_epsilon",
+            "The tolerance to use when checking for non-zero values in an LP "
+            "solution.",
+            "0.0001");
+
         add_base_solver_options_to_feature(*this);
     }
 
@@ -83,6 +93,7 @@ protected:
             options.get<bool>("disable_hpom"),
             options.get<bool>("incremental_updates"),
             get_lp_solver_arguments_from_options(options),
+            options.get<double>("fp_epsilon"),
             get_base_solver_args_from_options(options));
     }
 };

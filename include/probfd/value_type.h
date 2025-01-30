@@ -13,9 +13,6 @@ namespace probfd {
 static constexpr value_t INFINITE_VALUE =
     std::numeric_limits<double>::infinity();
 
-/// The default tolerance value for approximate comparisons.
-extern value_t g_epsilon;
-
 value_t fraction_to_value(int nom, int denom);
 value_t string_to_value(const std::string& str);
 value_t abs(value_t val);
@@ -38,20 +35,20 @@ constexpr value_t operator"" _vt(unsigned long long value)
 }
 
 /// Equivalent to \f$|v_1 - v_2| \leq \epsilon\f$
-bool is_approx_equal(value_t v1, value_t v2, value_t epsilon = g_epsilon);
+bool is_approx_equal(value_t v1, value_t v2, value_t epsilon);
 
 /// Equivalent to \f$v_2 - v_1 > \epsilon\f$
-bool is_approx_less(value_t v1, value_t v2, value_t epsilon = g_epsilon);
+bool is_approx_less(value_t v1, value_t v2, value_t epsilon);
 
 /// Equivalent to \f$v_1 - v_2 > \epsilon\f$
-bool is_approx_greater(value_t v1, value_t v2, value_t epsilon = g_epsilon);
+bool is_approx_greater(value_t v1, value_t v2, value_t epsilon);
 
 /// Unary function object for approximate equality comparison.
 struct approx_eq_to {
     const value_t value;
     const value_t epsilon;
 
-    explicit approx_eq_to(value_t value, value_t epsilon = g_epsilon)
+    explicit approx_eq_to(value_t value, value_t epsilon)
         : value(value)
         , epsilon(epsilon)
     {
@@ -59,7 +56,7 @@ struct approx_eq_to {
 
     bool operator()(value_t other) const
     {
-        return is_approx_equal(value, other);
+        return is_approx_equal(value, other, epsilon);
     }
 };
 
@@ -68,7 +65,7 @@ struct approx_neq_to {
     const value_t value;
     const value_t epsilon;
 
-    explicit approx_neq_to(value_t value, value_t epsilon = g_epsilon)
+    explicit approx_neq_to(value_t value, value_t epsilon)
         : value(value)
         , epsilon(epsilon)
     {
@@ -76,7 +73,7 @@ struct approx_neq_to {
 
     bool operator()(value_t other) const
     {
-        return !is_approx_equal(value, other);
+        return !is_approx_equal(value, other, epsilon);
     }
 };
 
@@ -84,14 +81,14 @@ struct approx_neq_to {
 struct approx_less {
     const value_t epsilon;
 
-    explicit approx_less(value_t epsilon = g_epsilon)
+    explicit approx_less(value_t epsilon)
         : epsilon(epsilon)
     {
     }
 
     bool operator()(value_t left, value_t right) const
     {
-        return is_approx_less(left, right);
+        return is_approx_less(left, right, epsilon);
     }
 };
 

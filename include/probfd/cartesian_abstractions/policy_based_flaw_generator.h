@@ -5,6 +5,8 @@
 #include "probfd/cartesian_abstractions/flaw_generator.h"
 #include "probfd/cartesian_abstractions/types.h"
 
+#include "probfd/aliases.h"
+
 #include "downward/utils/timer.h"
 
 #include <memory>
@@ -76,10 +78,13 @@ public:
 };
 
 class ILAOFlawGeneratorFactory : public FlawGeneratorFactory {
+    value_t convergence_epsilon_;
     int max_search_states_;
 
 public:
-    explicit ILAOFlawGeneratorFactory(int max_search_states);
+    ILAOFlawGeneratorFactory(
+        value_t convergence_epsilon,
+        int max_search_states);
 
     std::unique_ptr<FlawGenerator> create_flaw_generator() override;
 };

@@ -87,7 +87,8 @@ class IntervalIteration : public MDPAlgorithm<State, Action> {
     Statistics statistics_;
 
 public:
-    explicit IntervalIteration(
+    IntervalIteration(
+        value_t epsilon,
         bool extract_probability_one_states,
         bool expand_goals);
 

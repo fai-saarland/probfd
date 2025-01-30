@@ -44,8 +44,8 @@ bool set_min(value_t& lhs, value_t rhs)
 
 bool update(Interval& lhs, Interval rhs, value_t epsilon)
 {
-    const bool result = is_approx_greater(rhs.lower, lhs.lower) ||
-                        is_approx_less(rhs.upper, lhs.upper);
+    const bool result = is_approx_greater(rhs.lower, lhs.lower, epsilon) ||
+                        is_approx_less(rhs.upper, lhs.upper, epsilon);
     lhs.lower = std::max(lhs.lower, rhs.lower);
     lhs.upper = std::min(lhs.upper, rhs.upper);
     assert(!is_approx_less(lhs.upper, lhs.lower, epsilon));

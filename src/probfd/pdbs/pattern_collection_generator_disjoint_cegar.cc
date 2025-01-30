@@ -19,6 +19,7 @@ using namespace cegar;
 
 PatternCollectionGeneratorDisjointCegar::
     PatternCollectionGeneratorDisjointCegar(
+        value_t convergence_epsilon,
         bool use_wildcard_policies,
         bool single_goal,
         int max_pdb_size,
@@ -30,6 +31,7 @@ PatternCollectionGeneratorDisjointCegar::
         const std::shared_ptr<FlawFindingStrategy>& flaw_strategy,
         utils::Verbosity verbosity)
     : PatternCollectionGenerator(verbosity)
+    , convergence_epsilon_(convergence_epsilon)
     , use_wildcard_policies_(use_wildcard_policies)
     , single_goal_(single_goal)
     , max_pdb_size_(max_pdb_size)
@@ -54,6 +56,7 @@ PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
     }
 
     CEGAR cegar(
+        convergence_epsilon_,
         rng_,
         flaw_strategy_,
         use_wildcard_policies_,

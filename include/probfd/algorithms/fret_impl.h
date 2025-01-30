@@ -444,9 +444,13 @@ bool ValueGraph<State, Action, StateInfoT>::get_successors(
         qstate,
         opt_transitions_,
         termination_cost,
-        q_values);
+        q_values,
+        base_algorithm.get_convergence_epsilon());
 
-    bool value_changed = base_algorithm.update_value(state_info, value);
+    bool value_changed = base_algorithm.update_value(
+        state_info,
+        value,
+        base_algorithm.get_convergence_epsilon());
 
     for (const auto& transition : opt_transitions_) {
         aops.push_back(transition.action);

@@ -89,12 +89,14 @@ I2Dual::I2Dual(
     std::shared_ptr<FDRCostFunction> task_cost_function,
     bool hpom_enabled,
     bool incremental_updates,
-    lp::LPSolverType solver_type)
+    lp::LPSolverType solver_type,
+    double fp_epsilon)
     : task_proxy_(*task)
     , task_cost_function_(std::move(task_cost_function))
     , hpom_enabled_(hpom_enabled)
     , incremental_hpom_updates_(incremental_updates)
     , lp_solver_(solver_type)
+    , fp_epsilon_(fp_epsilon)
 {
 }
 
@@ -180,7 +182,7 @@ Interval I2Dual::solve(
                 for (const auto& [prob, var_id] : state_data.incoming) {
                     const double amount = state_data.estimate * prob;
                     obj_coef[var_id] -= amount;
-                    assert(obj_coef[var_id] >= -g_epsilon);
+                    assert(obj_coef[var_id] >= -fp_epsilon_);
                     lp_solver_.set_objective_coefficient(
                         var_id,
                         std::abs(obj_coef[var_id]));
@@ -276,7 +278,7 @@ Interval I2Dual::solve(
         // Push frontier candidates and remove them
         std::erase_if(frontier_candidates, [&](StateID state_id) {
             for (const auto& [_, var_id] : idual_data[state_id].incoming) {
-                if (solution[var_id] > g_epsilon) {
+                if (solution[var_id] > fp_epsilon_) {
                     frontier.push_back(state_id);
                     return true;
                 }

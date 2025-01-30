@@ -120,10 +120,10 @@ struct PerStateBaseInformation
 
     /// Checks if the value bounds are epsilon-close.
     [[nodiscard]]
-    bool bounds_agree() const
+    bool bounds_approximately_equal(value_t epsilon) const
+        requires UseInterval
     {
-        static_assert(UseInterval, "No interval available!");
-        return value.bounds_approximately_equal();
+        return value.bounds_approximately_equal(epsilon);
     }
 
     [[nodiscard]]

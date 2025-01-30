@@ -10,9 +10,10 @@ namespace probfd::algorithms::exhaustive_ao {
 
 template <typename State, typename Action, bool UseInterval>
 ExhaustiveAOSearch<State, Action, UseInterval>::ExhaustiveAOSearch(
+    value_t epsilon,
     std::shared_ptr<PolicyPickerType> policy_chooser,
     std::shared_ptr<OpenListType> open_list)
-    : Base(policy_chooser)
+    : Base(epsilon, policy_chooser)
     , open_list_(open_list)
 {
 }
@@ -63,7 +64,7 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
 
         const auto value =
             this->compute_bellman(mdp, stateid, transitions_, termination_cost);
-        bool value_changed = this->update_value(info, value);
+        bool value_changed = this->update_value(info, value, this->epsilon);
 
         // Terminal state
         if (info.is_solved()) {
@@ -131,7 +132,7 @@ bool ExhaustiveAOSearch<State, Action, UseInterval>::update_value_check_solved(
         mdp.get_state_id(state),
         transitions,
         termination_cost);
-    bool value_changed = this->update_value(info, value);
+    bool value_changed = this->update_value(info, value, this->epsilon);
 
     if (info.unsolved == 0) {
         info.set_solved();

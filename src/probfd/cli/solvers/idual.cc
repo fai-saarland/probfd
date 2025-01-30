@@ -30,13 +30,18 @@ using downward::cli::lp::get_lp_solver_arguments_from_options;
 namespace {
 
 class IDualSolver : public MDPSolver {
-    lp::LPSolverType solver_type_;
+    const lp::LPSolverType solver_type_;
+    const double fp_epsilon_;
 
 public:
     template <typename... Args>
-    IDualSolver(lp::LPSolverType lp_solver_type, Args&&... args)
+    IDualSolver(
+        lp::LPSolverType lp_solver_type,
+        double fp_epsilon,
+        Args&&... args)
         : MDPSolver(std::forward<Args>(args)...)
         , solver_type_(lp_solver_type)
+        , fp_epsilon_(fp_epsilon)
     {
     }
 
@@ -48,7 +53,7 @@ public:
     {
         using IDualAlgorithm = algorithms::idual::IDual<State, OperatorID>;
 
-        return std::make_unique<IDualAlgorithm>(solver_type_);
+        return std::make_unique<IDualAlgorithm>(solver_type_, fp_epsilon_);
     }
 };
 
@@ -61,6 +66,12 @@ public:
 
         add_lp_solver_option_to_feature(*this);
 
+        add_option<double>(
+            "fp_epsilon",
+            "The tolerance to use when checking for non-zero values in an LP "
+            "solution.",
+            "0.0001");
+
         add_base_solver_options_to_feature(*this);
     }
 
@@ -71,6 +82,7 @@ protected:
     {
         return make_shared_from_arg_tuples<IDualSolver>(
             get_lp_solver_arguments_from_options(options),
+            options.get<double>("fp_epsilon"),
             get_base_solver_args_from_options(options));
     }
 };

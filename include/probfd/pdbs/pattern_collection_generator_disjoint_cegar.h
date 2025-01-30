@@ -3,6 +3,8 @@
 
 #include "probfd/pdbs/pattern_collection_generator.h"
 
+#include "probfd/aliases.h"
+
 #include <memory>
 
 // Forward Declarations
@@ -22,6 +24,7 @@ namespace probfd::pdbs {
 
 class PatternCollectionGeneratorDisjointCegar
     : public PatternCollectionGenerator {
+    const value_t convergence_epsilon_;
     const bool use_wildcard_policies_;
     const bool single_goal_;
     const int max_pdb_size_;
@@ -33,6 +36,7 @@ class PatternCollectionGeneratorDisjointCegar
 
 public:
     explicit PatternCollectionGeneratorDisjointCegar(
+        value_t convergence_epsilon,
         bool use_wildcard_policies,
         bool single_goal,
         int max_pdb_size,

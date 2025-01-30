@@ -52,6 +52,8 @@ class I2Dual : public MDPAlgorithm<State, OperatorID> {
 
     lp::LPSolver lp_solver_;
 
+    const double fp_epsilon_ = 0.001;
+
     size_t next_lp_var_ = 0;
     size_t next_lp_constr_id_ = 0;
 
@@ -72,7 +74,8 @@ public:
         std::shared_ptr<FDRCostFunction> task_cost_function,
         bool hpom_enabled,
         bool incremental_updates,
-        lp::LPSolverType solver_type);
+        lp::LPSolverType solver_type,
+        double fp_precision = 0.0001);
 
     void print_statistics(std::ostream& out) const override;
 

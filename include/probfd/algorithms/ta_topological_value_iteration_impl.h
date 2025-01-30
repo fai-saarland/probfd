@@ -294,6 +294,25 @@ TATopologicalValueIteration<State, Action, UseInterval>::get_statistics() const
 }
 
 template <typename State, typename Action, bool UseInterval>
+TATopologicalValueIteration<State, Action, UseInterval>::
+    TATopologicalValueIteration(value_t epsilon)
+    : IterativeMDPAlgorithm<State, Action>(epsilon)
+{
+}
+
+template <typename State, typename Action, bool UseInterval>
+TATopologicalValueIteration<State, Action, UseInterval>::
+    TATopologicalValueIteration(value_t epsilon, std::size_t num_states_hint)
+    : TATopologicalValueIteration(epsilon)
+{
+    exploration_stack_.reserve(num_states_hint);
+    exploration_stack_ecd_.reserve(num_states_hint);
+    stack_ecd_.reserve(num_states_hint);
+    decomposition_queue_.reserve(num_states_hint);
+    scc_.reserve(num_states_hint);
+}
+
+template <typename State, typename Action, bool UseInterval>
 Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
     MDPType& mdp,
     const EvaluatorType& heuristic,
@@ -547,7 +566,10 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
         for (StackInfo& stk_info : scc) {
             StateInfo& state_info = state_information_[stk_info.state_id];
             assert(state_info.get_status() == StateInfo::ONSTACK);
-            update(*stk_info.value, exp_info.exit_interval.lower);
+            update(
+                *stk_info.value,
+                exp_info.exit_interval.lower,
+                this->epsilon);
             state_info.stack_id = StateInfo::UNDEF;
         }
 
@@ -562,7 +584,7 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
         StackInfo& single = scc.front();
         StateInfo& state_info = state_information_[single.state_id];
         assert(state_info.get_status() == StateInfo::ONSTACK);
-        update(*single.value, single.conv_part);
+        *single.value = single.conv_part;
         state_info.stack_id = StateInfo::UNDEF;
         ++statistics_.singleton_sccs;
         stack_.pop_back();
@@ -871,7 +893,7 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
                     update(*it->value, v);
                     if (!it->value->bounds_equal()) converged = false;
                 } else {
-                    if (update(*it->value, v)) converged = false;
+                    if (update(*it->value, v, this->epsilon)) converged = false;
                 }
 
                 ++statistics_.bellman_backups;

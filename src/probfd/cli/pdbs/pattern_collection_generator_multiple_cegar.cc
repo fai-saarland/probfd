@@ -24,6 +24,11 @@ public:
     PatternCollectionGeneratorMultipleCegarFeature()
         : TypedFeature("ppdbs_multiple_cegar")
     {
+        add_option<probfd::value_t>(
+            "convergence_epsilon",
+            "The tolerance for convergence checks.",
+            "10e-4");
+
         add_option<std::shared_ptr<cegar::FlawFindingStrategy>>(
             "flaw_strategy",
             "strategy used to find flaws in a policy",
@@ -37,6 +42,7 @@ public:
     {
         return make_shared_from_arg_tuples<
             PatternCollectionGeneratorMultipleCegar>(
+            opts.get<probfd::value_t>("convergence_epsilon"),
             opts.get<std::shared_ptr<cegar::FlawFindingStrategy>>(
                 "flaw_strategy"),
             get_cegar_wildcard_arguments_from_options(opts),

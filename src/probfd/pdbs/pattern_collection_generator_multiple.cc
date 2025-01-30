@@ -105,7 +105,7 @@ public:
     {
         for (size_t i = 0; i != costs.size(); ++i) {
             costs[i] -= saturated_costs[i];
-            assert(!is_approx_less(costs[i], 0.0_vt));
+            assert(!is_approx_less(costs[i], 0.0_vt, 0.0001));
 
             // Avoid floating point imprecision. The PDB implementation is not
             // stable with respect to action costs very close to zero.

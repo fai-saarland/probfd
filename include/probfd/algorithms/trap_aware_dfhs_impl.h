@@ -74,6 +74,7 @@ void TADFHSImpl<State, Action, UseInterval>::ExplorationInformation::clear()
 
 template <typename State, typename Action, bool UseInterval>
 TADFHSImpl<State, Action, UseInterval>::TADFHSImpl(
+    value_t epsilon,
     std::shared_ptr<QuotientPolicyPicker> policy_chooser,
     bool forward_updates,
     BacktrackingUpdateType backtrack_update_type,
@@ -83,6 +84,7 @@ TADFHSImpl<State, Action, UseInterval>::TADFHSImpl(
     bool label_solved,
     bool reexpand_traps)
     : Base(policy_chooser)
+    , epsilon_(epsilon)
     , forward_updates_(forward_updates)
     , backtrack_update_type_(backtrack_update_type)
     , cutoff_tip_(cutoff_tip)
@@ -223,9 +225,11 @@ bool TADFHSImpl<State, Action, UseInterval>::advance(
             einfo.state,
             transitions_,
             termination_cost,
-            qvalues_);
+            qvalues_,
+            this->epsilon_);
 
-        bool value_changed = this->update_value(state_info, value);
+        bool value_changed =
+            this->update_value(state_info, value, this->epsilon_);
         bool policy_changed = this->update_policy(
             state_info,
             this->select_greedy_transition(
@@ -326,14 +330,16 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
             einfo.state,
             transitions_,
             termination_cost,
-            qvalues_);
+            qvalues_,
+            this->epsilon_);
 
         auto transition = this->select_greedy_transition(
             quotient,
             state_info.get_policy(),
             transitions_);
 
-        bool value_changed = this->update_value(state_info, value);
+        bool value_changed =
+            this->update_value(state_info, value, this->epsilon_);
         this->update_policy(state_info, transition);
 
         einfo.value_converged = einfo.value_converged && !value_changed;
@@ -496,9 +502,11 @@ auto TADFHSImpl<State, Action, UseInterval>::value_iteration(
                 id,
                 transitions_,
                 termination_cost,
-                qvalues_);
+                qvalues_,
+                this->epsilon_);
 
-            bool value_changed = this->update_value(state_info, value);
+            bool value_changed =
+                this->update_value(state_info, value, this->epsilon_);
             bool policy_changed = this->update_policy(
                 state_info,
                 this->select_greedy_transition(
@@ -521,6 +529,7 @@ auto TADFHSImpl<State, Action, UseInterval>::value_iteration(
 template <typename State, typename Action, bool UseInterval>
 TADepthFirstHeuristicSearch<State, Action, UseInterval>::
     TADepthFirstHeuristicSearch(
+        value_t epsilon,
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
         bool forward_updates,
         BacktrackingUpdateType backtrack_update_type,
@@ -530,6 +539,7 @@ TADepthFirstHeuristicSearch<State, Action, UseInterval>::
         bool label_solved,
         bool reexpand_removed_traps)
     : algorithm_(
+          epsilon,
           std::move(policy_chooser),
           forward_updates,
           backtrack_update_type,

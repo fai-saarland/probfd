@@ -150,6 +150,8 @@ class TADFHSImpl
     static constexpr int NEW = -1;
     static constexpr int CLOSED = -2;
 
+    const value_t epsilon_;
+
     // Algorithm parameters
     const bool forward_updates_;
     const BacktrackingUpdateType backtrack_update_type_;
@@ -179,6 +181,7 @@ public:
      * @brief Constructs a trap-aware DFHS solver object.
      */
     TADFHSImpl(
+        value_t epsilon,
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
         bool forward_updates,
         BacktrackingUpdateType backtrack_update_type,
@@ -266,6 +269,7 @@ public:
      * @brief Constructs a trap-aware DFHS solver object.
      */
     TADepthFirstHeuristicSearch(
+        value_t epsilon,
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
         bool forward_updates,
         BacktrackingUpdateType backtrack_update_type,

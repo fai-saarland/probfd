@@ -63,11 +63,13 @@ protected:
         StateType<Bisimulation, Fret>,
         ActionType<Bisimulation, Fret>>;
 
+    const value_t convergence_epsilon_;
     const bool dual_bounds_;
     const std::shared_ptr<PolicyPicker> tiebreaker_;
 
 public:
     MDPHeuristicSearchBase(
+        value_t convergence_epsilon,
         bool dual_bounds,
         std::shared_ptr<PolicyPicker> policy,
         utils::Verbosity verbosity,
@@ -89,6 +91,7 @@ class MDPHeuristicSearch<false, false>
     : public MDPHeuristicSearchBase<false, false> {
 public:
     MDPHeuristicSearch(
+        value_t convergence_epsilon,
         bool dual_bounds,
         std::shared_ptr<PolicyPicker> policy,
         utils::Verbosity verbosity,
@@ -110,11 +113,13 @@ public:
         if (dual_bounds_) {
             using HeuristicSearchType = HS<State, OperatorID, true>;
             return std::make_unique<HeuristicSearchType>(
+                convergence_epsilon_,
                 tiebreaker_,
                 std::forward<Args>(args)...);
         } else {
             using HeuristicSearchType = HS<State, OperatorID, false>;
             return std::make_unique<HeuristicSearchType>(
+                convergence_epsilon_,
                 tiebreaker_,
                 std::forward<Args>(args)...);
         }
@@ -132,6 +137,7 @@ class MDPHeuristicSearch<false, true>
 public:
     MDPHeuristicSearch(
         bool fret_on_policy,
+        value_t convergence_epsilon,
         bool dual_bounds,
         std::shared_ptr<PolicyPicker> policy,
         utils::Verbosity verbosity,
@@ -185,10 +191,12 @@ public:
     {
         if (dual_bounds_) {
             return std::make_unique<HS<State, OperatorID, true>>(
+                convergence_epsilon_,
                 tiebreaker_,
                 std::forward<Args>(args)...);
         } else {
             return std::make_unique<HS<State, OperatorID, false>>(
+                convergence_epsilon_,
                 tiebreaker_,
                 std::forward<Args>(args)...);
         }
@@ -208,6 +216,7 @@ private:
         using StateInfoT = typename HS<QState, QAction, Interval>::StateInfo;
         return std::make_unique<Fret<State, OperatorID, StateInfoT>>(
             std::make_shared<HS<QState, QAction, Interval>>(
+                convergence_epsilon_,
                 tiebreaker_,
                 std::forward<Args>(args)...));
     }
@@ -218,6 +227,7 @@ class MDPHeuristicSearch<true, false>
     : public MDPHeuristicSearchBase<true, false> {
 public:
     MDPHeuristicSearch(
+        value_t convergence_epsilon,
         bool dual_bounds,
         std::shared_ptr<PolicyPicker> policy,
         utils::Verbosity verbosity,
@@ -236,20 +246,27 @@ public:
         const std::shared_ptr<FDRCostFunction>& task_cost_function,
         Args&&... args)
     {
+        using QState = bisimulation::QuotientState;
+        using QAction = bisimulation::QuotientAction;
+
         if (dual_bounds_) {
-            return BisimulationBasedHeuristicSearchAlgorithm::create<HS, true>(
+            return std::make_unique<BisimulationBasedHeuristicSearchAlgorithm>(
                 task,
                 task_cost_function,
                 this->get_heuristic_search_name(),
-                this->tiebreaker_,
-                std::forward<Args>(args)...);
+                std::make_shared<HS<QState, QAction, true>>(
+                    this->convergence_epsilon_,
+                    this->tiebreaker_,
+                    std::forward<Args>(args)...));
         } else {
-            return BisimulationBasedHeuristicSearchAlgorithm::create<HS, false>(
+            return std::make_unique<BisimulationBasedHeuristicSearchAlgorithm>(
                 task,
                 task_cost_function,
                 this->get_heuristic_search_name(),
-                this->tiebreaker_,
-                std::forward<Args>(args)...);
+                std::make_shared<HS<QState, QAction, false>>(
+                    this->convergence_epsilon_,
+                    this->tiebreaker_,
+                    std::forward<Args>(args)...));
         }
     }
 };
@@ -262,6 +279,7 @@ class MDPHeuristicSearch<true, true>
 public:
     MDPHeuristicSearch(
         bool fret_on_policy,
+        value_t convergence_epsilon,
         bool dual_bounds,
         std::shared_ptr<PolicyPicker> policy,
         utils::Verbosity verbosity,
@@ -324,7 +342,7 @@ public:
     }
 
     template <
-        template <typename, typename, typename>
+        template <typename, typename, bool>
         class HS,
         typename... Args>
     std::unique_ptr<FDRMDPAlgorithm> create_quotient_heuristic_search_algorithm(
@@ -332,20 +350,27 @@ public:
         const std::shared_ptr<FDRCostFunction>& task_cost_function,
         Args&&... args)
     {
+        using QState = bisimulation::QuotientState;
+        using QAction = bisimulation::QuotientAction;
+
         if (dual_bounds_) {
-            return BisimulationBasedHeuristicSearchAlgorithm::create<HS, true>(
+            return std::make_unique<BisimulationBasedHeuristicSearchAlgorithm>(
                 task,
                 task_cost_function,
                 this->get_heuristic_search_name(),
-                this->tiebreaker_,
-                std::forward<Args>(args)...);
+                std::make_shared<HS<QState, QAction, true>>(
+                    this->convergence_epsilon_,
+                    this->tiebreaker_,
+                    std::forward<Args>(args)...));
         } else {
-            return BisimulationBasedHeuristicSearchAlgorithm::create<HS, false>(
+            return std::make_unique<BisimulationBasedHeuristicSearchAlgorithm>(
                 task,
                 task_cost_function,
                 this->get_heuristic_search_name(),
-                this->tiebreaker_,
-                std::forward<Args>(args)...);
+                std::make_shared<HS<QState, QAction, false>>(
+                    this->convergence_epsilon_,
+                    this->tiebreaker_,
+                    std::forward<Args>(args)...));
         }
     }
 
@@ -362,13 +387,23 @@ private:
         const std::shared_ptr<FDRCostFunction>& task_cost_function,
         Args&&... args)
     {
-        return BisimulationBasedHeuristicSearchAlgorithm::
-            create<Fret, HS, Interval>(
-                task,
-                task_cost_function,
-                this->get_heuristic_search_name(),
-                this->tiebreaker_,
-                std::forward<Args>(args)...);
+        using QState = bisimulation::QuotientState;
+        using QAction = bisimulation::QuotientAction;
+
+        using QQState = quotients::QuotientState<QState, QAction>;
+        using QQAction = quotients::QuotientAction<QAction>;
+
+        using StateInfoT = typename HS<QQState, QQAction, Interval>::StateInfo;
+
+        return std::make_unique<BisimulationBasedHeuristicSearchAlgorithm>(
+            task,
+            task_cost_function,
+            this->get_heuristic_search_name(),
+            std::make_shared<Fret<QState, QAction, StateInfoT>>(
+                std::make_shared<HS<QQState, QQAction, Interval>>(
+                    this->convergence_epsilon_,
+                    this->tiebreaker_,
+                    std::forward<Args>(args)...)));
     }
 };
 

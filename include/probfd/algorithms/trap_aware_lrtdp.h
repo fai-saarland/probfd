@@ -160,6 +160,8 @@ class TALRTDPImpl
     static constexpr int STATE_UNSEEN = -1;
     static constexpr int STATE_CLOSED = -2;
 
+    const value_t epsilon_;
+
     // Algorithm parameters
     const TrialTerminationCondition stop_at_consistent_;
     const bool reexpand_traps_;
@@ -183,6 +185,7 @@ public:
      * @brief Constructs a trap-aware LRTDP solver object.
      */
     TALRTDPImpl(
+        value_t epsilon,
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
         TrialTerminationCondition stop_consistent,
         bool reexpand_traps,
@@ -246,6 +249,7 @@ public:
      * @brief Constructs a trap-aware LRTDP solver object.
      */
     TALRTDP(
+        value_t epsilon,
         std::shared_ptr<QuotientPolicyPicker> policy_chooser,
         TrialTerminationCondition stop_consistent,
         bool reexpand_traps,

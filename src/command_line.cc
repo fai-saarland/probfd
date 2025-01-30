@@ -312,10 +312,6 @@ static int list_features(argparse::ArgumentParser& parser)
 
 static int search(argparse::ArgumentParser& parser)
 {
-    if (auto eps = parser.present<double>("--epsilon")) {
-        probfd::g_epsilon = *eps;
-    }
-
     const double max_time = parser.get<double>("--max-search-time");
 
     std::string search_arg = parser.get("algorithm");
@@ -350,8 +346,7 @@ static int search(argparse::ArgumentParser& parser)
         } catch (const std::bad_any_cast&) {
             std::println(
                 std::cerr,
-                "Search argument {:?} is of type {}, not "
-                "TaskSolverFactory.",
+                "Search argument {:?} is of type {}, not TaskSolverFactory.",
                 search_arg,
                 constructed.type().name());
             return static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR);
@@ -396,10 +391,6 @@ void setup_argparser(argparse::ArgumentParser& arg_parser)
         argparse::default_arguments::help);
 
     search_parser.add_description("Runs the search component.");
-    search_parser.add_argument("--epsilon")
-        .help("The floating-point precision used for convergence checks.")
-        .metavar("DOUBLE")
-        .scan<'g', double>();
 
     search_parser.add_argument("--max-search-time")
         .help("The maximum time to .")

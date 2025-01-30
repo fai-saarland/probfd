@@ -81,13 +81,15 @@ class IDual : public MDPAlgorithm<State, Action> {
     using PolicyType = typename Base::PolicyType;
 
     lp::LPSolver lp_solver_;
+    const double fp_epsilon_ = 0.001;
+
     storage::PerStateStorage<PerStateInfo> state_infos_;
     ValueGroup terminals_;
 
     Statistics statistics_;
 
 public:
-    explicit IDual(lp::LPSolverType solver_type);
+    IDual(lp::LPSolverType solver_type, const double fp_epsilon = 0.0001);
 
     Interval solve(
         MDPType& mdp,

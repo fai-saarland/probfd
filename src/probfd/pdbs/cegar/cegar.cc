@@ -50,6 +50,7 @@ public:
         Pattern pattern,
         const State& initial_state,
         const heuristics::BlindEvaluator<StateRank>& h,
+        value_t greedy_epsilon,
         utils::RandomNumberGenerator& rng,
         bool wildcard,
         utils::CountdownTimer& timer);
@@ -60,6 +61,7 @@ public:
         const ProbabilityAwarePatternDatabase& previous,
         int add_var,
         const State& initial_state,
+        value_t greedy_epsilon,
         utils::RandomNumberGenerator& rng,
         bool wildcard,
         utils::CountdownTimer& timer);
@@ -70,6 +72,7 @@ public:
         const ProbabilityAwarePatternDatabase& merge_left,
         const ProbabilityAwarePatternDatabase& merge_right,
         const State& initial_state,
+        value_t greedy_epsilon,
         utils::RandomNumberGenerator& rng,
         bool wildcard,
         utils::CountdownTimer& timer);
@@ -104,6 +107,7 @@ CEGAR::PDBInfo::PDBInfo(
     Pattern pattern,
     const State& initial_state,
     const heuristics::BlindEvaluator<StateRank>& h,
+    value_t greedy_epsilon,
     utils::RandomNumberGenerator& rng,
     bool wildcard,
     utils::CountdownTimer& timer)
@@ -130,6 +134,7 @@ CEGAR::PDBInfo::PDBInfo(
         *state_space,
         pdb->value_table,
         abs_init,
+        greedy_epsilon,
         rng,
         wildcard);
 }
@@ -140,6 +145,7 @@ CEGAR::PDBInfo::PDBInfo(
     const ProbabilityAwarePatternDatabase& previous,
     int add_var,
     const State& initial_state,
+    value_t greedy_epsilon,
     utils::RandomNumberGenerator& rng,
     bool wildcard,
     utils::CountdownTimer& timer)
@@ -171,6 +177,7 @@ CEGAR::PDBInfo::PDBInfo(
         *state_space,
         pdb->value_table,
         abs_init,
+        greedy_epsilon,
         rng,
         wildcard);
 }
@@ -181,6 +188,7 @@ CEGAR::PDBInfo::PDBInfo(
     const ProbabilityAwarePatternDatabase& left,
     const ProbabilityAwarePatternDatabase& right,
     const State& initial_state,
+    value_t greedy_epsilon,
     utils::RandomNumberGenerator& rng,
     bool wildcard,
     utils::CountdownTimer& timer)
@@ -213,6 +221,7 @@ CEGAR::PDBInfo::PDBInfo(
         *state_space,
         pdb->value_table,
         abs_init,
+        greedy_epsilon,
         rng,
         wildcard);
 }
@@ -267,6 +276,7 @@ void CEGAR::PDBInfo::release()
 }
 
 CEGAR::CEGAR(
+    value_t convergence_epsilon,
     const shared_ptr<utils::RandomNumberGenerator>& arg_rng,
     std::shared_ptr<FlawFindingStrategy> flaw_strategy,
     bool wildcard,
@@ -274,7 +284,8 @@ CEGAR::CEGAR(
     int arg_max_collection_size,
     std::vector<int> goals,
     std::unordered_set<int> blacklisted_variables)
-    : rng_(arg_rng)
+    : convergence_epsilon(convergence_epsilon)
+    , rng_(arg_rng)
     , flaw_strategy_(std::move(flaw_strategy))
     , wildcard_(wildcard)
     , max_pdb_size_(arg_max_pdb_size)
@@ -490,6 +501,7 @@ void CEGAR::add_pattern_for_var(
         Pattern{var},
         task_proxy.get_initial_state(),
         h,
+        convergence_epsilon,
         *rng_,
         wildcard_,
         timer);
@@ -519,6 +531,7 @@ void CEGAR::add_variable_to_pattern(
         pdb,
         var,
         task_proxy.get_initial_state(),
+        convergence_epsilon,
         *rng_,
         wildcard_,
         timer);
@@ -563,6 +576,7 @@ void CEGAR::merge_patterns(
         pdb1,
         pdb2,
         task_proxy.get_initial_state(),
+        convergence_epsilon,
         *rng_,
         wildcard_,
         timer);

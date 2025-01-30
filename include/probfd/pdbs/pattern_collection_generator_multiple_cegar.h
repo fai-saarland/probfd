@@ -15,6 +15,7 @@ namespace probfd::pdbs {
 
 class PatternCollectionGeneratorMultipleCegar
     : public PatternCollectionGeneratorMultiple {
+    const value_t convergence_epsilon_;
     std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy_;
     const bool use_wildcard_policies_;
 
@@ -29,6 +30,7 @@ class PatternCollectionGeneratorMultipleCegar
 
 public:
     explicit PatternCollectionGeneratorMultipleCegar(
+        value_t convergence_epsilon,
         std::shared_ptr<probfd::pdbs::cegar::FlawFindingStrategy> flaw_strategy,
         bool use_wildcard_policies,
         int max_pdb_size,

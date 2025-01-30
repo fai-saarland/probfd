@@ -46,6 +46,9 @@ struct CEGARResult {
 class CEGAR {
     class PDBInfo;
 
+    // Convergence check epsilon
+    const value_t convergence_epsilon;
+
     // Random number generator
     const std::shared_ptr<utils::RandomNumberGenerator> rng_;
 
@@ -75,6 +78,7 @@ class CEGAR {
 
 public:
     CEGAR(
+        value_t convergence_epsilon,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy,
         bool wildcard,

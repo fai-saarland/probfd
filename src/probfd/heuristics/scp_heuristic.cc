@@ -167,7 +167,7 @@ SCPHeuristic::SCPHeuristic(
 
         for (size_t i = 0; i != num_operators; ++i) {
             costs_ref[i] -= saturated_costs[i];
-            assert(!is_approx_less(costs_ref[i], 0.0_vt));
+            assert(!is_approx_less(costs_ref[i], 0.0_vt, 0.0001));
 
             // Avoid floating point imprecision. The PDB implementation is not
             // stable with respect to action costs very close to zero.

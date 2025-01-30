@@ -4,6 +4,8 @@
 #include "probfd/cartesian_abstractions/policy_generator.h"
 #include "probfd/cartesian_abstractions/types.h"
 
+#include "probfd/aliases.h"
+
 #include <memory>
 
 // Forward Declarations
@@ -36,13 +38,15 @@ namespace probfd::cartesian_abstractions {
  * @brief Find an optimal policy using ILAO*.
  */
 class ILAOPolicyGenerator : public PolicyGenerator {
+    const value_t convergence_epsilon_;
+
     std::shared_ptr<policy_pickers::ArbitraryTiebreaker<
         quotients::QuotientState<int, const ProbabilisticTransition*>,
         quotients::QuotientAction<const ProbabilisticTransition*>>>
         picker_;
 
 public:
-    ILAOPolicyGenerator();
+    explicit ILAOPolicyGenerator(value_t convergence_epsilon);
 
     std::unique_ptr<Solution> find_solution(
         CartesianAbstraction& abstraction,

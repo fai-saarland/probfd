@@ -6,7 +6,7 @@
 #include "probfd/storage/per_state_storage.h"
 
 #include "probfd/distribution.h"
-#include "probfd/mdp_algorithm.h"
+#include "probfd/iterative_mdp_algorithm.h"
 
 #include "downward/utils/timer.h"
 
@@ -60,7 +60,8 @@ struct Statistics {
  * @tparam UseInterval - Whether value intervals are used.
  */
 template <typename State, typename Action, bool UseInterval = false>
-class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
+class TATopologicalValueIteration
+    : public IterativeMDPAlgorithm<State, Action> {
     using Base = typename TATopologicalValueIteration::MDPAlgorithm;
 
     using MDPType = typename Base::MDPType;
@@ -158,7 +159,8 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
                     return left.item < right.item ||
                            (left.item == right.item && is_approx_less(
                                                            left.probability,
-                                                           right.probability));
+                                                           right.probability,
+                                                           0.0001));
                 });
         }
     };
@@ -288,16 +290,9 @@ class TATopologicalValueIteration : public MDPAlgorithm<State, Action> {
     Statistics statistics_;
 
 public:
-    TATopologicalValueIteration() = default;
+    explicit TATopologicalValueIteration(value_t epsilon);
 
-    explicit TATopologicalValueIteration(std::size_t num_states_hint)
-    {
-        exploration_stack_.reserve(num_states_hint);
-        exploration_stack_ecd_.reserve(num_states_hint);
-        stack_ecd_.reserve(num_states_hint);
-        decomposition_queue_.reserve(num_states_hint);
-        scc_.reserve(num_states_hint);
-    }
+    TATopologicalValueIteration(value_t epsilon, std::size_t num_states_hint);
 
     Interval solve(
         MDPType& mdp,

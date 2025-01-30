@@ -37,6 +37,7 @@ StateID ExpansionInfo::get_current_successor() const
 template <typename State, typename Action, bool UseInterval>
 HeuristicDepthFirstSearch<State, Action, UseInterval>::
     HeuristicDepthFirstSearch(
+        value_t epsilon,
         std::shared_ptr<PolicyPicker> policy_chooser,
         bool forward_updates,
         BacktrackingUpdateType backtrack_update_type,
@@ -44,7 +45,7 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::
         bool cutoff_inconsistent,
         bool terminate_exploration_on_cutoff,
         bool label_solved)
-    : Base(std::move(policy_chooser))
+    : Base(epsilon, std::move(policy_chooser))
     , forward_updates_(forward_updates)
     , backtrack_update_type_(backtrack_update_type)
     , cutoff_tip_(cutoff_tip)
@@ -241,14 +242,16 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::advance(
             einfo.stateid,
             transitions_,
             termination_cost,
-            qvalues_);
+            qvalues_,
+            this->epsilon);
 
         auto transition = this->select_greedy_transition(
             mdp,
             state_info.get_policy(),
             transitions_);
 
-        bool value_changed = this->update_value(state_info, value);
+        bool value_changed =
+            this->update_value(state_info, value, this->epsilon);
         bool policy_changed = this->update_policy(state_info, transition);
 
         // Note: it is only necessary to check whether eps-consistency
@@ -351,19 +354,22 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
             einfo.stateid,
             transitions_,
             termination_cost,
-            qvalues_);
+            qvalues_,
+            this->epsilon);
 
         auto transition = this->select_greedy_transition(
             mdp,
             sinfo.get_policy(),
             transitions_);
 
-        einfo.value_converged = !this->update_value(sinfo, value);
+        einfo.value_converged =
+            !this->update_value(sinfo, value, this->epsilon);
         this->update_policy(sinfo, transition);
 
         if constexpr (UseInterval) {
-            einfo.value_converged = einfo.value_converged &&
-                                    sinfo.value.bounds_approximately_equal();
+            einfo.value_converged =
+                einfo.value_converged &&
+                sinfo.value.bounds_approximately_equal(this->epsilon);
         }
 
         if (!transition) {
@@ -442,7 +448,8 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::vi_step(
             id,
             transitions_,
             termination_cost,
-            qvalues_);
+            qvalues_,
+            this->epsilon);
 
         ++stat_counter;
 
@@ -451,14 +458,16 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::vi_step(
             state_info.get_policy(),
             transitions_);
 
-        bool value_changed = this->update_value(state_info, value);
+        bool value_changed =
+            this->update_value(state_info, value, this->epsilon);
         bool policy_changed = this->update_policy(state_info, transition);
         values_not_conv = values_not_conv || value_changed;
         policy_not_conv = policy_not_conv || policy_changed;
 
         if constexpr (UseInterval) {
-            values_not_conv = values_not_conv ||
-                              !state_info.value.bounds_approximately_equal();
+            values_not_conv =
+                values_not_conv ||
+                !state_info.value.bounds_approximately_equal(this->epsilon);
         }
     }
 

@@ -15,6 +15,7 @@ namespace probfd::solvers {
 
 template <bool Bisimulation, bool Fret>
 MDPHeuristicSearchBase<Bisimulation, Fret>::MDPHeuristicSearchBase(
+    value_t convergence_epsilon,
     bool dual_bounds,
     std::shared_ptr<PolicyPicker> policy,
     utils::Verbosity verbosity,
@@ -32,6 +33,7 @@ MDPHeuristicSearchBase<Bisimulation, Fret>::MDPHeuristicSearchBase(
           print_fact_names,
           report_epsilon,
           report_enabled)
+    , convergence_epsilon_(convergence_epsilon)
     , dual_bounds_(dual_bounds)
     , tiebreaker_(std::move(policy))
 {
@@ -64,6 +66,7 @@ std::string MDPHeuristicSearch<true, true>::get_algorithm_name() const
 }
 
 MDPHeuristicSearch<false, false>::MDPHeuristicSearch(
+    value_t convergence_epsilon,
     bool dual_bounds,
     std::shared_ptr<PolicyPicker> policy,
     utils::Verbosity verbosity,
@@ -74,6 +77,7 @@ MDPHeuristicSearch<false, false>::MDPHeuristicSearch(
     std::optional<value_t> report_epsilon,
     bool report_enabled)
     : MDPHeuristicSearchBase(
+          convergence_epsilon,
           dual_bounds,
           std::move(policy),
           verbosity,
@@ -88,6 +92,7 @@ MDPHeuristicSearch<false, false>::MDPHeuristicSearch(
 
 MDPHeuristicSearch<false, true>::MDPHeuristicSearch(
     bool fret_on_policy,
+    value_t convergence_epsilon,
     bool dual_bounds,
     std::shared_ptr<PolicyPicker> policy,
     utils::Verbosity verbosity,
@@ -98,6 +103,7 @@ MDPHeuristicSearch<false, true>::MDPHeuristicSearch(
     std::optional<value_t> report_epsilon,
     bool report_enabled)
     : MDPHeuristicSearchBase(
+          convergence_epsilon,
           dual_bounds,
           std::move(policy),
           verbosity,
@@ -112,6 +118,7 @@ MDPHeuristicSearch<false, true>::MDPHeuristicSearch(
 }
 
 MDPHeuristicSearch<true, false>::MDPHeuristicSearch(
+    value_t convergence_epsilon,
     bool dual_bounds,
     std::shared_ptr<PolicyPicker> policy,
     utils::Verbosity verbosity,
@@ -122,6 +129,7 @@ MDPHeuristicSearch<true, false>::MDPHeuristicSearch(
     std::optional<value_t> report_epsilon,
     bool report_enabled)
     : MDPHeuristicSearchBase(
+          convergence_epsilon,
           dual_bounds,
           std::move(policy),
           verbosity,
@@ -136,6 +144,7 @@ MDPHeuristicSearch<true, false>::MDPHeuristicSearch(
 
 MDPHeuristicSearch<true, true>::MDPHeuristicSearch(
     bool fret_on_policy,
+    value_t convergence_epsilon,
     bool dual_bounds,
     std::shared_ptr<PolicyPicker> policy,
     utils::Verbosity verbosity,
@@ -146,6 +155,7 @@ MDPHeuristicSearch<true, true>::MDPHeuristicSearch(
     std::optional<value_t> report_epsilon,
     bool report_enabled)
     : MDPHeuristicSearchBase(
+          convergence_epsilon,
           dual_bounds,
           std::move(policy),
           verbosity,

@@ -27,6 +27,8 @@ using namespace downward::cli::plugins;
 namespace {
 
 class ExhaustiveDFSSolver : public MDPSolver {
+    const value_t convergence_epsilon_;
+
     const std::shared_ptr<FDRTransitionSorter> transition_sort_;
 
     const bool dual_bounds_;
@@ -36,12 +38,14 @@ class ExhaustiveDFSSolver : public MDPSolver {
 public:
     template <typename... Args>
     ExhaustiveDFSSolver(
+        value_t convergence_epsilon,
         std::shared_ptr<FDRTransitionSorter> order,
         bool dual_bounds,
         bool reverse_path_updates,
         bool only_propagate_when_changed,
         Args&&... args)
         : MDPSolver(std::forward<Args>(args)...)
+        , convergence_epsilon_(convergence_epsilon)
         , transition_sort_(std::move(order))
         , dual_bounds_(dual_bounds)
         , path_updates_(reverse_path_updates)
@@ -64,12 +68,14 @@ public:
 
         if (dual_bounds_) {
             return std::make_unique<Algorithm2>(
+                convergence_epsilon_,
                 transition_sort_,
                 cost_bound,
                 path_updates_,
                 only_propagate_when_changed_);
         } else {
             return std::make_unique<Algorithm>(
+                convergence_epsilon_,
                 transition_sort_,
                 cost_bound,
                 path_updates_,
@@ -85,6 +91,11 @@ public:
         : TypedFeature<TaskSolverFactory, ExhaustiveDFSSolver>("exhaustive_dfs")
     {
         document_title("Exhaustive Depth-First Search");
+
+        add_option<value_t>(
+            "convergence_epsilon",
+            "The tolerance for convergence checks.",
+            "10e-4");
 
         add_option<std::shared_ptr<FDRTransitionSorter>>(
             "order",
@@ -104,6 +115,7 @@ protected:
         const override
     {
         return make_shared_from_arg_tuples<ExhaustiveDFSSolver>(
+            options.get<value_t>("convergence_epsilon"),
             options.get<std::shared_ptr<FDRTransitionSorter>>("order", nullptr),
             options.get<bool>("dual_bounds"),
             options.get<bool>("reverse_path_updates"),

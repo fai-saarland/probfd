@@ -20,6 +20,7 @@ using namespace cegar;
 
 PatternCollectionGeneratorMultipleCegar::
     PatternCollectionGeneratorMultipleCegar(
+        value_t convergence_epsilon,
         std::shared_ptr<FlawFindingStrategy> flaw_strategy,
         bool use_wildcard_policies,
         int max_pdb_size,
@@ -44,6 +45,7 @@ PatternCollectionGeneratorMultipleCegar::
           std::move(rng),
           "CEGAR",
           verbosity)
+    , convergence_epsilon_(convergence_epsilon)
     , flaw_strategy_(std::move(flaw_strategy))
     , use_wildcard_policies_(use_wildcard_policies)
 {
@@ -82,6 +84,7 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
         transformation,
         task_proxy,
         task_cost_function,
+        convergence_epsilon_,
         *flaw_strategy_,
         std::move(blacklisted_variables),
         max_pdb_size,

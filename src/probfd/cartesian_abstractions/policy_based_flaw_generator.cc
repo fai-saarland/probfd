@@ -114,15 +114,18 @@ void PolicyBasedFlawGenerator::print_statistics(utils::LogProxy& log)
     }
 }
 
-ILAOFlawGeneratorFactory::ILAOFlawGeneratorFactory(int max_search_states)
-    : max_search_states_(max_search_states)
+ILAOFlawGeneratorFactory::ILAOFlawGeneratorFactory(
+    value_t convergence_epsilon,
+    int max_search_states)
+    : convergence_epsilon_(convergence_epsilon)
+    , max_search_states_(max_search_states)
 {
 }
 
 std::unique_ptr<FlawGenerator> ILAOFlawGeneratorFactory::create_flaw_generator()
 {
     return std::make_unique<PolicyBasedFlawGenerator>(
-        new ILAOPolicyGenerator(),
+        new ILAOPolicyGenerator(convergence_epsilon_),
         new CompletePolicyFlawFinder(max_search_states_));
 }
 

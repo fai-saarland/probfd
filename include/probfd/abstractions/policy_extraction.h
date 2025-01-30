@@ -31,6 +31,7 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_optimal_projection_policy(
     MDP<State, Action>& mdp,
     std::span<const value_t> value_table,
     param_type<State> initial_state,
+    value_t greedy_epsilon,
     utils::RandomNumberGenerator& rng,
     bool wildcard);
 
@@ -47,6 +48,7 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_greedy_projection_policy(
     MDP<State, Action>& mdp,
     std::span<const value_t> value_table,
     param_type<State> initial_state,
+    value_t greedy_epsilon,
     utils::RandomNumberGenerator& rng,
     bool wildcard);
 

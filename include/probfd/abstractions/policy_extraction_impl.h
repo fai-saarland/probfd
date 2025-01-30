@@ -25,6 +25,7 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_optimal_projection_policy(
     MDP<State, Action>& mdp,
     std::span<const value_t> value_table,
     param_type<State> initial_state,
+    value_t greedy_epsilon,
     utils::RandomNumberGenerator& rng,
     bool wildcard)
 {
@@ -61,7 +62,7 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_optimal_projection_policy(
             value_t op_value = mdp.get_action_cost(op) +
                                successor_dist.expectation(value_table);
 
-            if (!is_approx_equal(value, op_value)) continue;
+            if (!is_approx_equal(value, op_value, greedy_epsilon)) continue;
 
             for (const StateID succ : successor_dist.support()) {
                 if (closed.insert(succ).second) {
@@ -137,6 +138,7 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_greedy_projection_policy(
     MDP<State, Action>& mdp,
     std::span<const value_t> value_table,
     param_type<State> initial_state,
+    value_t greedy_epsilon,
     utils::RandomNumberGenerator& rng,
     bool wildcard)
 {
@@ -179,7 +181,7 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_greedy_projection_policy(
             const value_t op_value = mdp.get_action_cost(op) +
                                      successor_dist.expectation(value_table);
 
-            return is_approx_equal(value, op_value);
+            return is_approx_equal(value, op_value, greedy_epsilon);
         });
 
         assert(it != transitions.end());

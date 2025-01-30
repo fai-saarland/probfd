@@ -54,11 +54,13 @@ TALRTDPImpl<State, Action, UseInterval>::ExplorationInformation::get_successor()
 
 template <typename State, typename Action, bool UseInterval>
 TALRTDPImpl<State, Action, UseInterval>::TALRTDPImpl(
+    value_t epsilon,
     std::shared_ptr<QuotientPolicyPicker> policy_chooser,
     TrialTerminationCondition stop_consistent,
     bool reexpand_traps,
     std::shared_ptr<QuotientSuccessorSampler> succ_sampler)
     : Base(policy_chooser)
+    , epsilon_(epsilon)
     , stop_at_consistent_(stop_consistent)
     , reexpand_traps_(reexpand_traps)
     , sample_(succ_sampler)
@@ -151,7 +153,8 @@ bool TALRTDPImpl<State, Action, UseInterval>::trial(
             stateid,
             transitions_,
             termination_cost,
-            qvalues_);
+            qvalues_,
+            this->epsilon_);
 
         statistics_.trial_bellman_backups++;
 
@@ -160,7 +163,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::trial(
             info.get_policy(),
             transitions_);
 
-        bool value_changed = this->update_value(info, value);
+        bool value_changed = this->update_value(info, value, this->epsilon_);
         this->update_policy(info, transition);
 
         if (!transition.has_value()) {
@@ -275,14 +278,15 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                             state_id,
                             transitions_,
                             termination_cost,
-                            qvalues_);
+                            qvalues_,
+                            this->epsilon_);
 
                         auto transition = this->select_greedy_transition(
                             quotient,
                             sinfo->get_policy(),
                             transitions_);
 
-                        this->update_value(*sinfo, value);
+                        this->update_value(*sinfo, value, this->epsilon_);
                         this->update_policy(*sinfo, transition);
                     }
 
@@ -313,14 +317,15 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                                 id,
                                 transitions_,
                                 termination_cost,
-                                qvalues_);
+                                qvalues_,
+                                this->epsilon_);
 
                             auto transition = this->select_greedy_transition(
                                 quotient,
                                 info.get_policy(),
                                 transitions_);
 
-                            this->update_value(info, value);
+                            this->update_value(info, value, this->epsilon_);
                             this->update_policy(info, transition);
                         }
                     }
@@ -427,14 +432,15 @@ bool TALRTDPImpl<State, Action, UseInterval>::initialize(
         state_id,
         transitions_,
         termination_cost,
-        qvalues_);
+        qvalues_,
+        this->epsilon_);
 
     auto transition = this->select_greedy_transition(
         quotient,
         state_info.get_policy(),
         transitions_);
 
-    bool value_changed = this->update_value(state_info, value);
+    bool value_changed = this->update_value(state_info, value, this->epsilon_);
     this->update_policy(state_info, transition);
 
     if (!transition) {
@@ -463,11 +469,17 @@ bool TALRTDPImpl<State, Action, UseInterval>::initialize(
 
 template <typename State, typename Action, bool UseInterval>
 TALRTDP<State, Action, UseInterval>::TALRTDP(
+    value_t epsilon,
     std::shared_ptr<QuotientPolicyPicker> policy_chooser,
     TrialTerminationCondition stop_consistent,
     bool reexpand_traps,
     std::shared_ptr<QuotientSuccessorSampler> succ_sampler)
-    : algorithm_(policy_chooser, stop_consistent, reexpand_traps, succ_sampler)
+    : algorithm_(
+          epsilon,
+          policy_chooser,
+          stop_consistent,
+          reexpand_traps,
+          succ_sampler)
 {
 }
 

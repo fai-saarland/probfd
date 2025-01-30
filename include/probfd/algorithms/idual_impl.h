@@ -39,8 +39,11 @@ inline unsigned ValueGroup::get_id(value_t val)
 }
 
 template <typename State, typename Action>
-IDual<State, Action>::IDual(lp::LPSolverType solver_type)
+IDual<State, Action>::IDual(
+    lp::LPSolverType solver_type,
+    const double fp_epsilon)
     : lp_solver_(solver_type)
+    , fp_epsilon_(fp_epsilon)
 {
 }
 
@@ -135,7 +138,7 @@ auto IDual<State, Action>::compute_policy(
         size_t actions = 0;
         unsigned int i = 0;
         for (const Action& action : aops) {
-            if (dual_solution[constraint_index + i] > g_epsilon) {
+            if (dual_solution[constraint_index + i] > fp_epsilon_) {
                 Distribution<StateID> distribution;
                 mdp.generate_action_transitions(state, action, distribution);
 
@@ -359,7 +362,7 @@ Interval IDual<State, Action>::solve(
 
         open_states.erase_if([&](const auto& pair) {
             for (auto& r : pair.second.incoming) {
-                if (dual_solution[r] > g_epsilon) { // inflow > 0
+                if (dual_solution[r] > fp_epsilon_) { // inflow > 0
                     state_infos_[pair.first.id].status = PerStateInfo::CLOSED;
                     frontier.emplace_back(pair.first);
                     return true;

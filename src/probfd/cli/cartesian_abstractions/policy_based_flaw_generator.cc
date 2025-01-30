@@ -16,6 +16,11 @@ public:
     ILAOFlawGeneratorFactoryFeature()
         : TypedFeature("flaws_ilao")
     {
+        add_option<probfd::value_t>(
+            "convergence_epsilon",
+            "The tolerance for convergence checks.",
+            "10e-4");
+
         add_option<int>(
             "max_search_states",
             "maximum number of concrete states allowed to be generated during "
@@ -29,6 +34,7 @@ public:
     create_component(const Options& opts, const Context&) const override
     {
         return std::make_shared<ILAOFlawGeneratorFactory>(
+            opts.get<probfd::value_t>("convergence_epsilon"),
             opts.get<int>("max_search_states"));
     }
 };

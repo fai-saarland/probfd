@@ -25,10 +25,11 @@ inline void Statistics::print(std::ostream& out) const
 
 template <typename State, typename Action, bool UseInterval>
 LRTDP<State, Action, UseInterval>::LRTDP(
+    value_t epsilon,
     std::shared_ptr<PolicyPickerType> policy_chooser,
     TrialTerminationCondition stop_consistent,
     std::shared_ptr<SuccessorSamplerType> succ_sampler)
-    : Base(policy_chooser)
+    : Base(epsilon, policy_chooser)
     , stop_consistent_(stop_consistent)
     , sample_(succ_sampler)
 {
@@ -128,14 +129,16 @@ void LRTDP<State, Action, UseInterval>::trial(
             state_id,
             transitions_,
             termination_cost,
-            qvalues_);
+            qvalues_,
+            this->epsilon);
 
         auto transition = this->select_greedy_transition(
             mdp,
             state_info.get_policy(),
             transitions_);
 
-        bool value_changed = this->update_value(state_info, value);
+        bool value_changed =
+            this->update_value(state_info, value, this->epsilon);
         this->update_policy(state_info, transition);
 
         if (!transition) {
@@ -241,18 +244,19 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
             state_id,
             transitions_,
             termination_cost,
-            qvalues_);
+            qvalues_,
+            this->epsilon);
 
         auto transition = this->select_greedy_transition(
             mdp,
             info.get_policy(),
             transitions_);
 
-        bool value_changed = this->update_value(info, value);
+        bool value_changed = this->update_value(info, value, this->epsilon);
         this->update_policy(info, transition);
 
         if constexpr (UseInterval) {
-            if (!info.bounds_agree()) {
+            if (!info.bounds_approximately_equal(this->epsilon)) {
                 rv = false;
                 continue;
             }
@@ -304,14 +308,15 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
                 sid,
                 transitions_,
                 termination_cost,
-                qvalues_);
+                qvalues_,
+                this->epsilon);
 
             auto transition = this->select_greedy_transition(
                 mdp,
                 info.get_policy(),
                 transitions_);
 
-            this->update_value(info, value);
+            this->update_value(info, value, this->epsilon);
             this->update_policy(info, transition);
         }
     }

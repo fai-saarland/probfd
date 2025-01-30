@@ -24,7 +24,7 @@ int VDiffTiebreaker<State, Action>::pick_index(
 {
     auto it = std::ranges::min_element(
         greedy_transitions,
-        [](value_t lhs, value_t rhs) { return is_approx_less(lhs, rhs); },
+        {},
         [&properties, factor = favor_large_gaps_](const Transition<Action>& t) {
             return t.successor_dist.expectation([&](StateID id) {
                 return factor * properties.lookup_bounds(id).length();
