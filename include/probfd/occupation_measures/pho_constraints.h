@@ -23,12 +23,10 @@ class PatternCollectionGenerator;
 namespace probfd::occupation_measures {
 
 class PHOGenerator : public ConstraintGenerator {
-    std::shared_ptr<pdbs::PatternCollectionGenerator> generator_;
-    std::shared_ptr<pdbs::PPDBCollection> pdbs_;
+    pdbs::PPDBCollection pdbs_;
 
 public:
-    explicit PHOGenerator(
-        std::shared_ptr<pdbs::PatternCollectionGenerator> generator);
+    explicit PHOGenerator(pdbs::PPDBCollection pdbs);
 
     void initialize_constraints(
         const std::shared_ptr<ProbabilisticTask>& task,
@@ -37,6 +35,18 @@ public:
 
     void update_constraints(const State& state, lp::LPSolver& solver) final;
     void reset_constraints(const State& state, lp::LPSolver& solver) final;
+};
+
+class PHOGeneratorFactory : public ConstraintGeneratorFactory {
+    std::shared_ptr<pdbs::PatternCollectionGenerator> generator_;
+
+public:
+    explicit PHOGeneratorFactory(
+        std::shared_ptr<pdbs::PatternCollectionGenerator> generator);
+
+    std::unique_ptr<ConstraintGenerator> construct_constraint_generator(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
 };
 
 } // namespace probfd::occupation_measures

@@ -42,10 +42,11 @@ void OccupationMeasureHeuristic::reset_constraints(const State& state) const
 OccupationMeasureHeuristicFactory::OccupationMeasureHeuristicFactory(
     utils::Verbosity verbosity,
     lp::LPSolverType lp_solver_type,
-    const std::shared_ptr<ConstraintGenerator>& constraints)
+    const std::shared_ptr<ConstraintGeneratorFactory>&
+        constraint_generator_factory)
     : verbosity_(verbosity)
     , lp_solver_type_(lp_solver_type)
-    , constraints_(constraints)
+    , constraint_generator_factory_(constraint_generator_factory)
 {
 }
 
@@ -54,12 +55,17 @@ OccupationMeasureHeuristicFactory::create_evaluator(
     std::shared_ptr<ProbabilisticTask> task,
     std::shared_ptr<FDRCostFunction> task_cost_function)
 {
+    auto constraints =
+        constraint_generator_factory_->construct_constraint_generator(
+            task,
+            task_cost_function);
+
     return std::make_unique<OccupationMeasureHeuristic>(
         std::move(task),
         std::move(task_cost_function),
         utils::get_log_for_verbosity(verbosity_),
         lp_solver_type_,
-        constraints_);
+        std::move(constraints));
 }
 
 } // namespace probfd::heuristics

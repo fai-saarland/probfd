@@ -36,13 +36,6 @@ class FlawFindingStrategy;
 
 namespace probfd::pdbs::cegar {
 
-struct CEGARResult {
-    std::unique_ptr<ProjectionCollection> projections;
-    std::unique_ptr<PPDBCollection> pdbs;
-
-    ~CEGARResult();
-};
-
 class CEGAR {
     class PDBInfo;
 
@@ -89,9 +82,11 @@ public:
 
     ~CEGAR();
 
-    CEGARResult generate_pdbs(
+    void generate_pdbs(
         ProbabilisticTaskProxy task_proxy,
         const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
+        ProjectionCollection& projections,
+        PPDBCollection& pdbs,
         double max_time,
         utils::LogProxy log);
 

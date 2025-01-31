@@ -29,8 +29,6 @@ using namespace std::ranges;
 
 namespace probfd::pdbs::cegar {
 
-CEGARResult::~CEGARResult() = default;
-
 /*
  * Implementation notes: The state space needs to be kept to find flaws in the
  * policy. Since it exists anyway, the algorithm is also a producer of
@@ -683,9 +681,11 @@ void CEGAR::refine(
         timer);
 }
 
-CEGARResult CEGAR::generate_pdbs(
+void CEGAR::generate_pdbs(
     ProbabilisticTaskProxy task_proxy,
     const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
+    ProjectionCollection& projections,
+    PPDBCollection& pdbs,
     double max_time,
     utils::LogProxy log)
 {
@@ -790,19 +790,15 @@ CEGARResult CEGAR::generate_pdbs(
         log << endl;
     }
 
-    auto state_spaces =
-        std::make_unique<std::vector<std::unique_ptr<ProjectionStateSpace>>>();
-    auto pdbs = std::make_unique<PPDBCollection>();
-
     if (solution_it != unsolved_end) {
         auto& info = *solution_it;
-        state_spaces->emplace_back(info.extract_state_space());
-        pdbs->emplace_back(info.extract_pdb());
+        projections.emplace_back(info.extract_state_space());
+        pdbs.emplace_back(info.extract_pdb());
     } else {
         for (auto& info :
              std::ranges::subrange(pdb_infos_.begin(), solved_end)) {
-            state_spaces->emplace_back(info.extract_state_space());
-            pdbs->emplace_back(info.extract_pdb());
+            projections.emplace_back(info.extract_state_space());
+            pdbs.emplace_back(info.extract_pdb());
         }
     }
 
@@ -812,12 +808,10 @@ CEGARResult CEGAR::generate_pdbs(
             << "  number of iterations: " << refinement_counter
             << "\n"
             // << "  final collection: " << *patterns << "\n"
-            << "  final collection number of PDBs: " << pdbs->size() << "\n"
+            << "  final collection number of PDBs: " << pdbs.size() << "\n"
             << "  final collection summed PDB sizes: "
             << max_collection_size_ - remaining_size_ << endl;
     }
-
-    return CEGARResult{std::move(state_spaces), std::move(pdbs)};
 }
 
 } // namespace probfd::pdbs::cegar

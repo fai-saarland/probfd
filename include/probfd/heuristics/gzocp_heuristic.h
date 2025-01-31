@@ -40,6 +40,8 @@ public:
         OrderingStrategy order,
         std::shared_ptr<utils::RandomNumberGenerator> rng);
 
+    ~GZOCPHeuristic();
+
     void print_statistics() const override
     {
         // TODO

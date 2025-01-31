@@ -4,16 +4,15 @@
 
 namespace probfd::pdbs {
 
-std::shared_ptr<std::vector<PatternSubCollection>>
+std::vector<PatternSubCollection>
 TrivialFinder::compute_subcollections(const PatternCollection& patterns)
 {
-    std::shared_ptr<std::vector<PatternSubCollection>> additive_subcollections(
-        new std::vector<PatternSubCollection>());
-    additive_subcollections->reserve(patterns.size());
+    std::vector<PatternSubCollection> additive_subcollections;
+    additive_subcollections.reserve(patterns.size());
 
     int size = static_cast<int>(patterns.size());
     for (int i = 0; i < size; ++i) {
-        additive_subcollections->push_back({i});
+        additive_subcollections.push_back({i});
     }
 
     return additive_subcollections;

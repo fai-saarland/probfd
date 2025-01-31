@@ -74,7 +74,7 @@ public:
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
             get_log_arguments_from_options(options),
             get_lp_solver_arguments_from_options(options),
-            std::make_shared<HROCGenerator>());
+            std::make_shared<HROCGeneratorFactory>());
     }
 };
 
@@ -117,7 +117,7 @@ public:
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
             get_log_arguments_from_options(options),
             get_lp_solver_arguments_from_options(options),
-            std::make_shared<HPOMGenerator>());
+            std::make_shared<HPOMGeneratorFactory>());
     }
 };
 
@@ -163,7 +163,7 @@ public:
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
             get_log_arguments_from_options(options),
             get_lp_solver_arguments_from_options(options),
-            std::make_shared<HigherOrderHPOMGenerator>(
+            std::make_shared<HigherOrderHPOMGeneratorFactory>(
                 options.get<int>("projection_size")));
     }
 };
@@ -200,7 +200,7 @@ public:
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
             get_log_arguments_from_options(options),
             get_lp_solver_arguments_from_options(options),
-            std::make_shared<PHOGenerator>(
+            std::make_shared<PHOGeneratorFactory>(
                 options.get<std::shared_ptr<PatternCollectionGenerator>>(
                     "patterns")));
     }

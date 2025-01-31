@@ -19,7 +19,7 @@ public:
     explicit MaxOrthogonalityFinderBase(
         const ProbabilisticTaskProxy& task_proxy);
 
-    std::shared_ptr<std::vector<PatternSubCollection>>
+    std::vector<PatternSubCollection>
     compute_subcollections(const PatternCollection&) override;
 
     std::vector<PatternSubCollection> compute_subcollections_with_pattern(

@@ -21,23 +21,18 @@ namespace probfd::occupation_measures {
 
 using namespace pdbs;
 
-PHOGenerator::PHOGenerator(
-    std::shared_ptr<PatternCollectionGenerator> generator)
-    : generator_(std::move(generator))
+PHOGenerator::PHOGenerator(pdbs::PPDBCollection pdbs)
+    : pdbs_(std::move(pdbs))
 {
 }
 
 void PHOGenerator::initialize_constraints(
     const std::shared_ptr<ProbabilisticTask>& task,
-    const std::shared_ptr<FDRCostFunction>& task_cost_function,
+    const std::shared_ptr<FDRCostFunction>&,
     lp::LinearProgram& lp)
 {
     ProbabilisticTaskProxy task_proxy(*task);
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
-
-    auto pattern_collection_info =
-        generator_->generate(task, task_cost_function);
-    this->pdbs_ = pattern_collection_info.get_pdbs();
 
     const double lp_infinity = lp.get_infinity();
 
@@ -55,8 +50,7 @@ void PHOGenerator::initialize_constraints(
         lp_variables.emplace_back(0.0, lp_infinity, 1.0);
     }
 
-    for (std::size_t i = 0; i != pdbs_->size(); ++i) {
-        auto& pdb = pdbs_->operator[](i);
+    for (auto& pdb : pdbs_) {
         auto& pdb_constraint = lp_constraints.emplace_back(0.0, lp_infinity);
 
         for (const ProbabilisticOperatorProxy op : operators) {
@@ -72,15 +66,29 @@ void PHOGenerator::initialize_constraints(
 
 void PHOGenerator::update_constraints(const State& state, lp::LPSolver& solver)
 {
-    for (std::size_t i = 0; i != pdbs_->size(); ++i) {
-        auto& pdb = pdbs_->operator[](i);
-        solver.set_constraint_lower_bound(i, pdb->lookup_estimate(state));
+    for (std::size_t i = 0; i != pdbs_.size(); ++i) {
+        solver.set_constraint_lower_bound(i, pdbs_[i]->lookup_estimate(state));
     }
 }
 
 void PHOGenerator::reset_constraints(const State&, lp::LPSolver&)
 {
     // No need to reset, constraints are overwritten in the next iteration
+}
+
+PHOGeneratorFactory::PHOGeneratorFactory(
+    std::shared_ptr<pdbs::PatternCollectionGenerator> generator)
+    : generator_(std::move(generator))
+{
+}
+
+std::unique_ptr<ConstraintGenerator>
+PHOGeneratorFactory::construct_constraint_generator(
+    const std::shared_ptr<ProbabilisticTask>& task,
+    const std::shared_ptr<FDRCostFunction>& task_cost_function)
+{
+    auto r = generator_->generate(task, task_cost_function);
+    return std::make_unique<PHOGenerator>(r.get_pdbs());
 }
 
 } // namespace probfd::occupation_measures

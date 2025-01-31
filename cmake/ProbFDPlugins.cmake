@@ -533,7 +533,7 @@ create_library(
     NAME occupation_measure_heuristics_plugin
     HELP "Enables the Occupation measure heuristics plugin"
     SOURCES
-        probfd/cli/occupation_measures/contraint_generator
+        probfd/cli/occupation_measures/constraint_generator_factory
         probfd/cli/occupation_measures/subcategory
     DEPENDS
         occupation_measure_heuristic

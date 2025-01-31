@@ -3,6 +3,7 @@
 #include "probfd/pdbs/cegar/cegar.h"
 #include "probfd/pdbs/pattern_collection_information.h"
 #include "probfd/pdbs/probability_aware_pattern_database.h"
+#include "probfd/pdbs/projection_state_space.h"
 #include "probfd/pdbs/subcollection_finder_factory.h"
 #include "probfd/pdbs/utils.h"
 
@@ -64,14 +65,21 @@ PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
         max_collection_size_,
         std::move(goals));
 
-    std::shared_ptr pdbs =
-        cegar.generate_pdbs(task_proxy, task_cost_function, max_time_, log_)
-            .pdbs;
+    ProjectionCollection projections;
+    PPDBCollection pdbs;
 
-    auto patterns = std::make_shared<PatternCollection>();
+    cegar.generate_pdbs(
+        task_proxy,
+        task_cost_function,
+        projections,
+        pdbs,
+        max_time_,
+        log_);
 
-    for (const auto& pdb : *pdbs) {
-        patterns->push_back(pdb->get_pattern());
+    PatternCollection patterns;
+
+    for (const auto& pdb : pdbs) {
+        patterns.push_back(pdb->get_pattern());
     }
 
     std::shared_ptr<SubCollectionFinder> subcollection_finder =

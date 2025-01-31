@@ -377,4 +377,18 @@ void HigherOrderHPOMGenerator::reset_constraints(
     } while (next_pattern(state.size(), pattern));
 }
 
+HigherOrderHPOMGeneratorFactory::HigherOrderHPOMGeneratorFactory(
+    int projection_size)
+    : projection_size_(projection_size)
+{
+}
+
+std::unique_ptr<ConstraintGenerator>
+HigherOrderHPOMGeneratorFactory::construct_constraint_generator(
+    const std::shared_ptr<ProbabilisticTask>&,
+    const std::shared_ptr<FDRCostFunction>&)
+{
+    return std::make_unique<HigherOrderHPOMGenerator>(projection_size_);
+}
+
 } // namespace probfd::occupation_measures

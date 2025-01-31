@@ -14,17 +14,15 @@ MaxOrthogonalityFinderBase::MaxOrthogonalityFinderBase(
 {
 }
 
-std::shared_ptr<std::vector<PatternSubCollection>>
+std::vector<PatternSubCollection>
 MaxOrthogonalityFinderBase::compute_subcollections(
     const PatternCollection& patterns)
 {
     std::vector<std::vector<int>> c_graph =
         build_compatibility_graph_orthogonality(patterns, var_orthogonality_);
 
-    std::shared_ptr<std::vector<PatternSubCollection>> additive_subcollections(
-        new std::vector<PatternSubCollection>());
-
-    max_cliques::compute_max_cliques(c_graph, *additive_subcollections);
+    std::vector<PatternSubCollection> additive_subcollections;
+    max_cliques::compute_max_cliques(c_graph, additive_subcollections);
 
     return additive_subcollections;
 }

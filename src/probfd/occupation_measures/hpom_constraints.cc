@@ -265,4 +265,12 @@ void HPOMGenerator::generate_hpom_lp(
     }
 }
 
+std::unique_ptr<ConstraintGenerator>
+HPOMGeneratorFactory::construct_constraint_generator(
+    const std::shared_ptr<ProbabilisticTask>&,
+    const std::shared_ptr<FDRCostFunction>&)
+{
+    return std::unique_ptr<HPOMGenerator>();
+}
+
 } // namespace probfd::occupation_measures

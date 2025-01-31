@@ -17,7 +17,7 @@ class SubCollectionFinder {
 public:
     virtual ~SubCollectionFinder() = default;
 
-    virtual std::shared_ptr<std::vector<PatternSubCollection>>
+    virtual std::vector<PatternSubCollection>
     compute_subcollections(const PatternCollection&) = 0;
 
     virtual std::vector<PatternSubCollection>

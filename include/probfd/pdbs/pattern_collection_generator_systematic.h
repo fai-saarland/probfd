@@ -27,8 +27,6 @@ class PatternCollectionGeneratorSystematic : public PatternCollectionGenerator {
 
     const size_t max_pattern_size;
     const bool only_interesting_patterns;
-    std::shared_ptr<PatternCollection> patterns;
-    PatternSet pattern_set; // Cleared after pattern computation.
 
 public:
     PatternCollectionGeneratorSystematic(
@@ -41,13 +39,22 @@ public:
         const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
 
 private:
-    void enqueue_pattern_if_new(const Pattern& pattern);
+    void enqueue_pattern_if_new(
+        const Pattern& pattern,
+        PatternCollection& patterns,
+        PatternSet& pattern_set);
 
     void build_sga_patterns(
         const ProbabilisticTaskProxy& task_proxy,
-        const causal_graph::ProbabilisticCausalGraph& cg);
-    void build_patterns(const ProbabilisticTaskProxy& task_proxy);
-    void build_patterns_naive(const ProbabilisticTaskProxy& task_proxy);
+        const causal_graph::ProbabilisticCausalGraph& cg,
+        PatternCollection& patterns,
+        PatternSet& pattern_set);
+    void build_patterns(
+        const ProbabilisticTaskProxy& task_proxy,
+        PatternCollection& patterns);
+    void build_patterns_naive(
+        const ProbabilisticTaskProxy& task_proxy,
+        PatternCollection& patterns);
 };
 
 } // namespace probfd::pdbs

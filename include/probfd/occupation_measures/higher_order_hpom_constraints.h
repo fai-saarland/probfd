@@ -61,6 +61,17 @@ private:
     std::vector<int> get_first_pattern() const;
 };
 
+class HigherOrderHPOMGeneratorFactory : public ConstraintGeneratorFactory {
+    const int projection_size_;
+
+public:
+    explicit HigherOrderHPOMGeneratorFactory(int projection_size);
+
+    std::unique_ptr<ConstraintGenerator> construct_constraint_generator(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
+};
+
 } // namespace probfd::occupation_measures
 
 #endif // PROBFD_OCCUPATION_MEASURES_HIGHER_ORDER_HPOM_CONSTRAINTS_H

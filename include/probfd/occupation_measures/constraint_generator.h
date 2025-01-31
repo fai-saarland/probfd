@@ -16,7 +16,7 @@ class LPSolver;
 
 namespace probfd {
 class ProbabilisticTask;
-}
+} // namespace probfd
 
 /// Namespace dedicated to occupation measure heuristic base classes
 namespace probfd::occupation_measures {
@@ -51,6 +51,15 @@ public:
     reset_constraints(const State& state, lp::LPSolver& solver) = 0;
 
     virtual void print_statistics(std::ostream&) {}
+};
+
+class ConstraintGeneratorFactory {
+public:
+    ~ConstraintGeneratorFactory() = default;
+
+    virtual std::unique_ptr<ConstraintGenerator> construct_constraint_generator(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<FDRCostFunction>& task_cost_function) = 0;
 };
 
 } // namespace probfd::occupation_measures

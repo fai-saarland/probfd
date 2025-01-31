@@ -31,8 +31,8 @@ namespace probfd::heuristics {
 class ProbabilityAwarePDBHeuristic : public TaskDependentHeuristic {
     const value_t termination_cost_;
 
-    std::shared_ptr<pdbs::PPDBCollection> pdbs_;
-    std::shared_ptr<std::vector<pdbs::PatternSubCollection>> subcollections_;
+    pdbs::PPDBCollection pdbs_;
+    std::vector<pdbs::PatternSubCollection> subcollections_;
     std::shared_ptr<pdbs::SubCollectionFinder> subcollection_finder_;
 
 public:

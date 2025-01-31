@@ -4,12 +4,11 @@
 
 namespace probfd::pdbs {
 
-std::shared_ptr<std::vector<PatternSubCollection>>
+std::vector<PatternSubCollection>
 FullyAdditiveFinder::compute_subcollections(const PatternCollection& patterns)
 {
-    auto single_subcollection =
-        std::make_shared<std::vector<PatternSubCollection>>();
-    auto& all_patterns = single_subcollection->emplace_back(patterns.size());
+    std::vector<PatternSubCollection> single_subcollection;
+    auto& all_patterns = single_subcollection.emplace_back(patterns.size());
     std::iota(all_patterns.begin(), all_patterns.end(), 0);
     return single_subcollection;
 }

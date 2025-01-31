@@ -41,6 +41,8 @@ public:
         OrderingStrategy order,
         std::shared_ptr<utils::RandomNumberGenerator> rng);
 
+    ~SCPHeuristic();
+
 protected:
     value_t evaluate(const State& state) const override;
 };

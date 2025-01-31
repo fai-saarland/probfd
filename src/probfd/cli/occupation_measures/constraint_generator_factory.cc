@@ -8,11 +8,11 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-class ConstraintGeneratorCategoryPlugin
+class ConstraintGeneratorFactoryCategoryPlugin
     : public TypedCategoryPlugin<ConstraintGenerator> {
 public:
-    ConstraintGeneratorCategoryPlugin()
-        : TypedCategoryPlugin("OMConstraintGenerator")
+    ConstraintGeneratorFactoryCategoryPlugin()
+        : TypedCategoryPlugin("OMConstraintGeneratorFactory")
     {
     }
 } _category_plugin;

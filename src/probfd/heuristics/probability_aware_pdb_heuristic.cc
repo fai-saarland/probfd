@@ -33,11 +33,12 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
         generator->generate(task_, task_cost_function);
     const double generator_time = generator_timer();
 
-    std::shared_ptr<std::vector<pdbs::Pattern>> patterns =
+    std::vector<pdbs::Pattern> patterns =
         pattern_collection_info.get_patterns();
 
-    this->pdbs_ = pattern_collection_info.get_pdbs();
-    this->subcollections_ = pattern_collection_info.get_subcollections();
+    this->pdbs_ = std::move(pattern_collection_info.get_pdbs());
+    this->subcollections_ =
+        std::move(pattern_collection_info.get_subcollections());
     this->subcollection_finder_ =
         pattern_collection_info.get_subcollection_finder();
 
@@ -47,9 +48,9 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
         utils::Timer timer;
 
         ::pdbs::prune_dominated_cliques(
-            *patterns,
-            *pdbs_,
-            *subcollections_,
+            patterns,
+            pdbs_,
+            subcollections_,
             static_cast<int>(task_proxy_.get_variables().size()),
             max_time_dominance_pruning,
             utils::g_log);
@@ -65,7 +66,7 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
         size_t variables = 0;
         size_t abstract_states = 0;
 
-        for (const auto& pdb : *pdbs_) {
+        for (const auto& pdb : pdbs_) {
             size_t vars = pdb->get_pattern().size();
             largest_pattern = std::max(largest_pattern, vars);
             variables += vars;
@@ -74,23 +75,23 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
 
         size_t total_subcollections_size = 0;
 
-        for (const auto& subcollection : *subcollections_) {
+        for (const auto& subcollection : subcollections_) {
             total_subcollections_size += subcollection.size();
         }
 
         const double avg_variables =
-            static_cast<double>(variables) / static_cast<double>(pdbs_->size());
+            static_cast<double>(variables) / static_cast<double>(pdbs_.size());
         const double avg_abstract_states =
             static_cast<double>(abstract_states) /
-            static_cast<double>(pdbs_->size());
+            static_cast<double>(pdbs_.size());
 
         const double avg_subcollection_size =
             static_cast<double>(total_subcollections_size) /
-            static_cast<double>(subcollections_->size());
+            static_cast<double>(subcollections_.size());
 
         log_ << "\n"
              << "Pattern Databases Statistics:\n"
-             << "  Total number of PDBs: " << pdbs_->size() << "\n"
+             << "  Total number of PDBs: " << pdbs_.size() << "\n"
              << "  Total number of variables: " << variables << "\n"
              << "  Total number of abstract states: " << abstract_states << "\n"
              << "  Average number of variables per PDB: " << avg_variables
@@ -100,7 +101,7 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
 
              << "  Largest pattern size: " << largest_pattern << "\n"
 
-             << "  Total number of subcollections: " << subcollections_->size()
+             << "  Total number of subcollections: " << subcollections_.size()
              << "\n"
              << "  Total number of subcollection PDBs: "
              << total_subcollections_size << "\n"
@@ -116,7 +117,7 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
 value_t ProbabilityAwarePDBHeuristic::evaluate(const State& state) const
 {
     return subcollection_finder_
-        ->evaluate(*pdbs_, *subcollections_, state, termination_cost_);
+        ->evaluate(pdbs_, subcollections_, state, termination_cost_);
 }
 
 ProbabilityAwarePDBHeuristicFactory::ProbabilityAwarePDBHeuristicFactory(

@@ -40,6 +40,13 @@ public:
     void reset_constraints(const State& state, lp::LPSolver& solver) final;
 };
 
+class HROCGeneratorFactory : public ConstraintGeneratorFactory {
+public:
+    std::unique_ptr<ConstraintGenerator> construct_constraint_generator(
+        const std::shared_ptr<ProbabilisticTask>& task,
+        const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
+};
+
 } // namespace probfd::occupation_measures
 
 #endif // PROBFD_OCCUPATION_MEASURES_HROC_CONSTRAINTS_H

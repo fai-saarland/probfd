@@ -23,9 +23,6 @@ namespace probfd::pdbs {
   always contain patterns, but can also contain the computed PDBs and
   additive subsets of the PDBs. If one of the latter is not available, then
   this information is created when it is requested.
-  Ownership of the information is shared between the creators of this class
-  (usually PatternCollectionGenerators), the class itself, and its users
-  (consumers of pattern collections like heuristics).
 
   TODO: this should probably re-use PatternInformation and it could also act
   as an interface for ownership transfer rather than sharing it.
@@ -34,9 +31,9 @@ class PatternCollectionInformation {
     ProbabilisticTaskProxy task_proxy_;
     std::shared_ptr<FDRCostFunction> task_cost_function_;
 
-    std::shared_ptr<PatternCollection> patterns_;
-    std::shared_ptr<PPDBCollection> pdbs_;
-    std::shared_ptr<std::vector<PatternSubCollection>> subcollections_;
+    PatternCollection patterns_;
+    PPDBCollection pdbs_;
+    std::vector<PatternSubCollection> subcollections_;
 
     std::shared_ptr<SubCollectionFinder> subcollection_finder_;
 
@@ -45,9 +42,6 @@ class PatternCollectionInformation {
 
     void create_pdbs_if_missing();
     void create_pattern_cliques_if_missing();
-
-    [[nodiscard]]
-    bool information_is_valid() const;
 
 public:
     PatternCollectionInformation(
@@ -59,23 +53,21 @@ public:
     PatternCollectionInformation(
         const ProbabilisticTaskProxy& task_proxy,
         std::shared_ptr<FDRCostFunction> task_cost_function,
-        std::shared_ptr<PatternCollection> patterns);
+        PatternCollection patterns);
 
     PatternCollectionInformation(
         const ProbabilisticTaskProxy& task_proxy,
         std::shared_ptr<FDRCostFunction> task_cost_function,
-        std::shared_ptr<PatternCollection> patterns,
+        PatternCollection patterns,
         std::shared_ptr<SubCollectionFinder> subcollection_finder);
 
-    void set_pdbs(const std::shared_ptr<PPDBCollection>& pdbs);
-    void
-    set_subcollections(const std::shared_ptr<std::vector<PatternSubCollection>>&
-                           subcollections);
+    void set_pdbs(PPDBCollection pdbs);
+    void set_subcollections(std::vector<PatternSubCollection> subcollections);
 
     [[nodiscard]]
-    std::shared_ptr<PatternCollection> get_patterns() const;
-    std::shared_ptr<PPDBCollection> get_pdbs();
-    std::shared_ptr<std::vector<PatternSubCollection>> get_subcollections();
+    const PatternCollection& get_patterns() const;
+    PPDBCollection& get_pdbs();
+    std::vector<PatternSubCollection>& get_subcollections();
     std::shared_ptr<SubCollectionFinder> get_subcollection_finder();
 };
 

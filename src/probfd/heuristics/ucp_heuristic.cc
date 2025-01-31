@@ -70,9 +70,9 @@ UCPHeuristic::UCPHeuristic(
     auto pattern_collection_info =
         generator->generate(task, task_cost_function);
 
-    auto patterns = pattern_collection_info.get_patterns();
+    const auto& patterns = pattern_collection_info.get_patterns();
 
-    const size_t num_abstractions = patterns->size();
+    const size_t num_abstractions = patterns.size();
 
     pdbs_.reserve(num_abstractions);
 
@@ -86,7 +86,7 @@ UCPHeuristic::UCPHeuristic(
         task_proxy_.get_operators(),
         *task_cost_function);
 
-    for (const Pattern& pattern : *patterns) {
+    for (const Pattern& pattern : patterns) {
         auto& pdb = pdbs_.emplace_back(task_proxy_.get_variables(), pattern);
         const StateRank init_rank = pdb.get_abstract_state(initial_state);
         compute_distances(pdb, task_proxy_, task_costs, init_rank, h);

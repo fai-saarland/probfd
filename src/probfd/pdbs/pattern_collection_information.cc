@@ -26,7 +26,7 @@ PatternCollectionInformation::PatternCollectionInformation(
     shared_ptr<SubCollectionFinder> arg_subcollection_finder)
     : task_proxy_(arg_task_proxy)
     , task_cost_function_(std::move(arg_task_cost_function))
-    , patterns_(det_info.get_patterns())
+    , patterns_(*det_info.get_patterns())
     , subcollection_finder_(std::move(arg_subcollection_finder))
     , h(task_proxy_.get_operators(), *task_cost_function_)
 
@@ -37,11 +37,9 @@ PatternCollectionInformation::PatternCollectionInformation(
         return;
     }
 
-    pdbs_ = make_shared<PPDBCollection>();
-
     for (size_t i = 0; i != pdbs->size(); ++i) {
         auto& dpdb = *(*pdbs)[i];
-        auto& pdb = pdbs_->emplace_back(
+        auto& pdb = pdbs_.emplace_back(
             std::make_shared<ProbabilityAwarePatternDatabase>(
                 task_proxy_.get_variables(),
                 dpdb.get_pattern()));
@@ -61,7 +59,7 @@ PatternCollectionInformation::PatternCollectionInformation(
 PatternCollectionInformation::PatternCollectionInformation(
     const ProbabilisticTaskProxy& task_proxy,
     std::shared_ptr<FDRCostFunction> task_cost_function,
-    shared_ptr<PatternCollection> patterns)
+    PatternCollection patterns)
     : PatternCollectionInformation(
           task_proxy,
           std::move(task_cost_function),
@@ -73,7 +71,7 @@ PatternCollectionInformation::PatternCollectionInformation(
 PatternCollectionInformation::PatternCollectionInformation(
     const ProbabilisticTaskProxy& task_proxy,
     std::shared_ptr<FDRCostFunction> task_cost_function,
-    shared_ptr<PatternCollection> patterns,
+    PatternCollection patterns,
     shared_ptr<SubCollectionFinder> subcollection_finder)
     : task_proxy_(task_proxy)
     , task_cost_function_(std::move(task_cost_function))
@@ -81,48 +79,19 @@ PatternCollectionInformation::PatternCollectionInformation(
     , subcollection_finder_(std::move(subcollection_finder))
     , h(task_proxy_.get_operators(), *task_cost_function_)
 {
-    assert(this->patterns_);
     assert(this->subcollection_finder_);
     // validate_and_normalize_patterns(*patterns);
 }
 
-bool PatternCollectionInformation::information_is_valid() const
-{
-    if (!patterns_) {
-        return false;
-    }
-    int num_patterns = patterns_->size();
-    if (pdbs_) {
-        if (patterns_->size() != pdbs_->size()) {
-            return false;
-        }
-        for (int i = 0; i < num_patterns; ++i) {
-            if ((*patterns_)[i] != (*pdbs_)[i]->get_pattern()) {
-                return false;
-            }
-        }
-    }
-    if (subcollections_) {
-        for (const PatternSubCollection& clique : *subcollections_) {
-            for (PatternID pattern_id : clique) {
-                if (!utils::in_bounds(pattern_id, *patterns_)) {
-                    return false;
-                }
-            }
-        }
-    }
-    return true;
-}
-
 void PatternCollectionInformation::create_pdbs_if_missing()
 {
-    assert(patterns_);
-    if (!pdbs_) {
+    if (pdbs_.size() != patterns_.size()) {
+        assert(pdbs_.empty());
+
         utils::Timer timer;
         cout << "Computing PDBs for pattern collection..." << endl;
-        pdbs_ = make_shared<PPDBCollection>();
-        for (const Pattern& pattern : *patterns_) {
-            auto& pdb = pdbs_->emplace_back(
+        for (const Pattern& pattern : patterns_) {
+            auto& pdb = pdbs_.emplace_back(
                 std::make_unique<ProbabilityAwarePatternDatabase>(
                     task_proxy_.get_variables(),
                     pattern));
@@ -141,44 +110,39 @@ void PatternCollectionInformation::create_pdbs_if_missing()
 
 void PatternCollectionInformation::create_pattern_cliques_if_missing()
 {
-    if (!subcollections_) {
+    if (subcollections_.empty()) {
         utils::Timer timer;
         cout << "Computing pattern cliques for pattern collection..." << endl;
         subcollections_ =
-            subcollection_finder_->compute_subcollections(*patterns_);
+            subcollection_finder_->compute_subcollections(patterns_);
         cout << "Done computing pattern cliques for pattern collection: "
              << timer << endl;
     }
 }
 
-void PatternCollectionInformation::set_pdbs(
-    const shared_ptr<PPDBCollection>& pdbs)
+void PatternCollectionInformation::set_pdbs(PPDBCollection pdbs)
 {
     pdbs_ = pdbs;
-    assert(information_is_valid());
 }
 
 void PatternCollectionInformation::set_subcollections(
-    const shared_ptr<vector<PatternSubCollection>>& subcollections)
+    vector<PatternSubCollection> subcollections)
 {
     subcollections_ = subcollections;
-    assert(information_is_valid());
 }
 
-shared_ptr<PatternCollection> PatternCollectionInformation::get_patterns() const
+const PatternCollection& PatternCollectionInformation::get_patterns() const
 {
-    assert(patterns_);
     return patterns_;
 }
 
-shared_ptr<PPDBCollection> PatternCollectionInformation::get_pdbs()
+PPDBCollection& PatternCollectionInformation::get_pdbs()
 {
     create_pdbs_if_missing();
     return pdbs_;
 }
 
-shared_ptr<vector<PatternSubCollection>>
-PatternCollectionInformation::get_subcollections()
+vector<PatternSubCollection>& PatternCollectionInformation::get_subcollections()
 {
     create_pattern_cliques_if_missing();
     return subcollections_;

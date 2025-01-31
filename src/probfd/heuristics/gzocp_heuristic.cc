@@ -107,27 +107,17 @@ GZOCPHeuristic::GZOCPHeuristic(
 
     auto patterns = pattern_collection_info.get_patterns();
 
-    pdbs_.reserve(patterns->size());
+    pdbs_.reserve(patterns.size());
 
     switch (ordering_) {
-    case RANDOM: rng->shuffle(*patterns); break;
+    case RANDOM: rng->shuffle(patterns); break;
 
     case SIZE_ASC:
-        std::stable_sort(
-            patterns->begin(),
-            patterns->end(),
-            [](const auto& left, const auto& right) {
-                return left.size() < right.size();
-            });
+        std::ranges::stable_sort(patterns, std::less<>(), &Pattern::size);
         break;
 
     case SIZE_DESC:
-        std::stable_sort(
-            patterns->begin(),
-            patterns->end(),
-            [](const auto& left, const auto& right) {
-                return left.size() > right.size();
-            });
+        std::ranges::stable_sort(patterns, std::greater<>(), &Pattern::size);
         break;
 
     case INHERIT:
@@ -142,7 +132,7 @@ GZOCPHeuristic::GZOCPHeuristic(
         task_proxy_.get_operators(),
         *task_cost_function);
 
-    for (const Pattern& pattern : *patterns) {
+    for (const Pattern& pattern : patterns) {
         auto& pdb = pdbs_.emplace_back(task_proxy_.get_variables(), pattern);
 
         ProjectionStateSpace state_space(
@@ -159,6 +149,8 @@ GZOCPHeuristic::GZOCPHeuristic(
         task_costs->decrease_costs(pdb);
     }
 }
+
+GZOCPHeuristic::~GZOCPHeuristic() = default;
 
 value_t GZOCPHeuristic::evaluate(const State& state) const
 {

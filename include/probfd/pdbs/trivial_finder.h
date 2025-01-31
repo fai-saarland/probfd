@@ -10,7 +10,7 @@ namespace probfd::pdbs {
 
 class TrivialFinder : public SubCollectionFinder {
 public:
-    std::shared_ptr<std::vector<PatternSubCollection>>
+    std::vector<PatternSubCollection>
     compute_subcollections(const PatternCollection&) override;
 
     std::vector<PatternSubCollection> compute_subcollections_with_pattern(

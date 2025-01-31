@@ -9,6 +9,7 @@
 // Forward Declarations
 namespace probfd::occupation_measures {
 class ConstraintGenerator;
+class ConstraintGeneratorFactory;
 }
 
 namespace probfd::heuristics {
@@ -42,15 +43,15 @@ private:
 class OccupationMeasureHeuristicFactory : public TaskEvaluatorFactory {
     const utils::Verbosity verbosity_;
     const lp::LPSolverType lp_solver_type_;
-    const std::shared_ptr<occupation_measures::ConstraintGenerator>
-        constraints_;
+    const std::shared_ptr<occupation_measures::ConstraintGeneratorFactory>
+        constraint_generator_factory_;
 
 public:
     OccupationMeasureHeuristicFactory(
         utils::Verbosity verbosity,
         lp::LPSolverType lp_solver_type,
-        const std::shared_ptr<occupation_measures::ConstraintGenerator>&
-            constraints);
+        const std::shared_ptr<occupation_measures::ConstraintGeneratorFactory>&
+            constraint_generator_factory);
 
     std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,

@@ -213,7 +213,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
 
     // Collect all unique patterns and their PDBs.
     set<Pattern> generated_patterns;
-    shared_ptr<PPDBCollection> generated_pdbs = make_shared<PPDBCollection>();
+    PPDBCollection generated_pdbs;
 
     int num_iterations = 0;
     int goal_index = 0;
@@ -297,7 +297,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
             */
             time_point_of_last_new_pattern = timer.get_elapsed_time();
             remaining_collection_size -= pdb.num_states();
-            generated_pdbs->emplace_back(
+            generated_pdbs.emplace_back(
                 std::make_unique<ProbabilityAwarePatternDatabase>(
                     std::move(pdb)));
         }
@@ -340,10 +340,10 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
         assert(utils::in_bounds(goal_index, goals));
     }
 
-    shared_ptr<PatternCollection> patterns = make_shared<PatternCollection>();
-    patterns->reserve(generated_pdbs->size());
-    for (const auto& gen_pdb : *generated_pdbs) {
-        patterns->push_back(gen_pdb->get_pattern());
+    PatternCollection patterns;
+    patterns.reserve(generated_pdbs.size());
+    for (const auto& gen_pdb : generated_pdbs) {
+        patterns.push_back(gen_pdb->get_pattern());
     }
 
     std::shared_ptr<SubCollectionFinder> finder;
