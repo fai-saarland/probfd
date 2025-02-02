@@ -1,5 +1,5 @@
-#ifndef CLI_MULTI_FEATURE_PLUGIN_H
-#define CLI_MULTI_FEATURE_PLUGIN_H
+#ifndef PROBFD_CLI_MULTI_FEATURE_PLUGIN_H
+#define PROBFD_CLI_MULTI_FEATURE_PLUGIN_H
 
 #include "downward/cli/plugins/plugin.h"
 
@@ -66,4 +66,4 @@ struct MultiFeaturePlugin<T, b...>
 
 } // namespace probfd::cli
 
-#endif // CLI_MULTI_FEATURE_PLUGIN_H
+#endif // PROBFD_CLI_MULTI_FEATURE_PLUGIN_H

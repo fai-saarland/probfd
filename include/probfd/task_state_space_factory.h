@@ -1,5 +1,5 @@
-#ifndef TASK_STATE_SPACE_FACTORY_H
-#define TASK_STATE_SPACE_FACTORY_H
+#ifndef PROBFD_TASK_STATE_SPACE_FACTORY_H
+#define PROBFD_TASK_STATE_SPACE_FACTORY_H
 
 #include "probfd/fdr_types.h"
 
@@ -23,4 +23,4 @@ public:
 
 } // namespace probfd
 
-#endif // TASK_STATE_SPACE_FACTORY_H
+#endif // PROBFD_TASK_STATE_SPACE_FACTORY_H

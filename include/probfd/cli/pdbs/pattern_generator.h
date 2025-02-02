@@ -1,5 +1,5 @@
-#ifndef CLI_PDBS_PATTERN_GENERATOR_H
-#define CLI_PDBS_PATTERN_GENERATOR_H
+#ifndef PROBFD_CLI_PDBS_PATTERN_GENERATOR_H
+#define PROBFD_CLI_PDBS_PATTERN_GENERATOR_H
 
 #include "probfd/cli/pdbs/pattern_generator_options_fwd.h"
 
@@ -18,4 +18,4 @@ extern PatternGeneratorArgs get_generator_arguments_from_options(
 
 } // namespace probfd::cli::pdbs
 
-#endif // CLI_PDBS_PATTERN_GENERATOR_H
+#endif // PROBFD_CLI_PDBS_PATTERN_GENERATOR_H

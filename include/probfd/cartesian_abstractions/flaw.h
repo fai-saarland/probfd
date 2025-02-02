@@ -1,5 +1,5 @@
-#ifndef PROBFD_CARTESIAN_FLAW_H
-#define PROBFD_CARTESIAN_FLAW_H
+#ifndef PROBFD_CARTESIAN_ABSTRACTIONS_FLAW_H
+#define PROBFD_CARTESIAN_ABSTRACTIONS_FLAW_H
 
 #include "probfd/cartesian_abstractions/types.h"
 
@@ -34,4 +34,4 @@ struct Flaw {
 
 } // namespace probfd::cartesian_abstractions
 
-#endif // PROBFD_CARTESIAN_FLAW_H
+#endif // PROBFD_CARTESIAN_ABSTRACTIONS_FLAW_H

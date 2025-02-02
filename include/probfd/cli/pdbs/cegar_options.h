@@ -1,5 +1,5 @@
-#ifndef CLI_PDBS_CEGAR_OPTIONS_H
-#define CLI_PDBS_CEGAR_OPTIONS_H
+#ifndef PROBFD_CLI_PDBS_CEGAR_OPTIONS_H
+#define PROBFD_CLI_PDBS_CEGAR_OPTIONS_H
 
 #include "probfd/cli/pdbs/cegar_options_fwd.h"
 
@@ -19,4 +19,4 @@ extern CEGARArgs get_cegar_wildcard_arguments_from_options(
 
 } // namespace probfd::cli::pdbs
 
-#endif // CLI_PDBS_CEGAR_OPTIONS_H
+#endif // PROBFD_CLI_PDBS_CEGAR_OPTIONS_H

@@ -1,5 +1,5 @@
-#ifndef PROBFD_HEURISTIC_FACTORY_H
-#define PROBFD_HEURISTIC_FACTORY_H
+#ifndef PROBFD_TASK_EVALUATOR_FACTORY_H
+#define PROBFD_TASK_EVALUATOR_FACTORY_H
 
 #include "probfd/fdr_types.h"
 
@@ -22,4 +22,4 @@ public:
 
 } // namespace probfd
 
-#endif // PROBFD_HEURISTIC_FACTORY_H
+#endif // PROBFD_TASK_EVALUATOR_FACTORY_H

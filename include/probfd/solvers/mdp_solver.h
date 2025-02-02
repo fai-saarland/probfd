@@ -1,5 +1,5 @@
-#ifndef SOLVERS_MDP_SOLVER_H
-#define SOLVERS_MDP_SOLVER_H
+#ifndef PROBFD_SOLVERS_MDP_SOLVER_H
+#define PROBFD_SOLVERS_MDP_SOLVER_H
 
 #include "probfd/solver_interface.h" // IWYU pragma: export
 
@@ -73,4 +73,4 @@ public:
 
 } // namespace probfd::solvers
 
-#endif // SOLVERS_MDP_SOLVER_H
+#endif // PROBFD_SOLVERS_MDP_SOLVER_H

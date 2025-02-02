@@ -1,5 +1,5 @@
-#ifndef PROBFD_CARTESIAN_EVALUATORS_H
-#define PROBFD_CARTESIAN_EVALUATORS_H
+#ifndef PROBFD_CARTESIAN_ABSTRACTIONS_EVALUATORS_H
+#define PROBFD_CARTESIAN_ABSTRACTIONS_EVALUATORS_H
 
 #include "probfd/evaluator.h"
 #include "probfd/value_type.h"
@@ -23,4 +23,4 @@ public:
 
 } // namespace probfd::cartesian_abstractions
 
-#endif // PROBFD_CARTESIAN_EVALUATORS_H
+#endif // PROBFD_CARTESIAN_ABSTRACTIONS_EVALUATORS_H

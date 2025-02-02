@@ -1,5 +1,5 @@
-#ifndef SOLVERS_MDP_HEURISTIC_SEARCH_H
-#define SOLVERS_MDP_HEURISTIC_SEARCH_H
+#ifndef PROBFD_SOLVERS_MDP_HEURISTIC_SEARCH_H
+#define PROBFD_SOLVERS_MDP_HEURISTIC_SEARCH_H
 
 #include "probfd/solvers/mdp_solver.h"
 
@@ -409,4 +409,4 @@ private:
 
 } // namespace probfd::solvers
 
-#endif // SOLVERS_MDP_HEURISTIC_SEARCH_H
+#endif // PROBFD_SOLVERS_MDP_HEURISTIC_SEARCH_H

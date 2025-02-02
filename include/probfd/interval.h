@@ -1,5 +1,5 @@
-#ifndef PROBFD_VALUE_UTILS_H
-#define PROBFD_VALUE_UTILS_H
+#ifndef PROBFD_INTERVAL_H
+#define PROBFD_INTERVAL_H
 
 #include "probfd/value_type.h"
 
@@ -90,4 +90,4 @@ struct std::formatter<probfd::Interval> {
     }
 };
 
-#endif // PROBFD_VALUE_UTILS_H
+#endif // PROBFD_INTERVAL_H

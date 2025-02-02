@@ -1,5 +1,5 @@
-#ifndef PROBFD_ITERATORS_H
-#define PROBFD_ITERATORS_H
+#ifndef PROBFD_UTILS_ITERATORS_H
+#define PROBFD_UTILS_ITERATORS_H
 
 #include <iterator>
 #include <utility>
@@ -30,4 +30,4 @@ struct discarding_output_iterator {
 
 } // namespace probfd::iterators
 
-#endif // PROBFD_ITERATORS_H
+#endif // PROBFD_UTILS_ITERATORS_H

@@ -1,5 +1,5 @@
-#ifndef PROBFD_POLICY_PICKER_ARBITRARY_TIEBREAKER_H
-#define PROBFD_POLICY_PICKER_ARBITRARY_TIEBREAKER_H
+#ifndef PROBFD_POLICY_PICKERS_ARBITRARY_TIEBREAKER_H
+#define PROBFD_POLICY_PICKERS_ARBITRARY_TIEBREAKER_H
 
 #include "probfd/policy_pickers/stable_policy_picker.h" // IWYU pragma: export
 
@@ -25,4 +25,4 @@ public:
 
 #include "probfd/policy_pickers/arbitrary_tiebreaker_impl.h"
 
-#endif // PROBFD_POLICY_PICKER_ARBITRARY_TIEBREAKER_H
+#endif // PROBFD_POLICY_PICKERS_ARBITRARY_TIEBREAKER_H

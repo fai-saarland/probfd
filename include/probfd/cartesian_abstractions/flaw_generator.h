@@ -1,5 +1,5 @@
-#ifndef PROBFD_CARTESIAN_FLAW_GENERATOR_H
-#define PROBFD_CARTESIAN_FLAW_GENERATOR_H
+#ifndef PROBFD_CARTESIAN_ABSTRACTIONS_FLAW_GENERATOR_H
+#define PROBFD_CARTESIAN_ABSTRACTIONS_FLAW_GENERATOR_H
 
 #include "probfd/cartesian_abstractions/flaw.h"
 
@@ -54,4 +54,4 @@ public:
 
 } // namespace probfd::cartesian_abstractions
 
-#endif // PROBFD_CARTESIAN_FLAW_GENERATOR_H
+#endif // PROBFD_CARTESIAN_ABSTRACTIONS_FLAW_GENERATOR_H

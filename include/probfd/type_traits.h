@@ -1,5 +1,5 @@
-#ifndef PROBFD_CALL_TRAITS_H
-#define PROBFD_CALL_TRAITS_H
+#ifndef PROBFD_TYPE_TRAITS_H
+#define PROBFD_TYPE_TRAITS_H
 
 #include <tuple>
 #include <type_traits>
@@ -35,4 +35,4 @@ using tuple_cat_t = decltype(std::tuple_cat(std::declval<T>()...));
 
 } // namespace probfd
 
-#endif // PROBFD_CALL_TRAITS_H
+#endif // PROBFD_TYPE_TRAITS_H

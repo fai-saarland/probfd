@@ -1,5 +1,5 @@
-#ifndef PROBFD_CARTESIAN_POLICY_FLAW_FINDER_H
-#define PROBFD_CARTESIAN_POLICY_FLAW_FINDER_H
+#ifndef PROBFD_CARTESIAN_ABSTRACTIONS_POLICY_FLAW_FINDER_H
+#define PROBFD_CARTESIAN_ABSTRACTIONS_POLICY_FLAW_FINDER_H
 
 #include "probfd/cartesian_abstractions/flaw.h"
 #include "probfd/cartesian_abstractions/types.h"
@@ -40,4 +40,4 @@ public:
 
 } // namespace probfd::cartesian_abstractions
 
-#endif // PROBFD_CARTESIAN_POLICY_FLAW_FINDER_H
+#endif // PROBFD_CARTESIAN_ABSTRACTIONS_POLICY_FLAW_FINDER_H

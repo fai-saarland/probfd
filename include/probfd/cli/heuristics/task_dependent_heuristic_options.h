@@ -1,5 +1,5 @@
-#ifndef CLI_HEURISTICS_TASK_DEPENDENT_HEURISTIC_OPTIONS_H
-#define CLI_HEURISTICS_TASK_DEPENDENT_HEURISTIC_OPTIONS_H
+#ifndef PROBFD_CLI_HEURISTICS_TASK_DEPENDENT_HEURISTIC_OPTIONS_H
+#define PROBFD_CLI_HEURISTICS_TASK_DEPENDENT_HEURISTIC_OPTIONS_H
 
 #include "probfd/cli/heuristics/task_dependent_heuristic_options_fwd.h"
 
@@ -19,4 +19,4 @@ get_task_dependent_heuristic_arguments_from_options(
 
 } // namespace probfd::cli::heuristics
 
-#endif // CLI_HEURISTICS_TASK_DEPENDENT_HEURISTIC_OPTIONS_H
+#endif // PROBFD_CLI_HEURISTICS_TASK_DEPENDENT_HEURISTIC_OPTIONS_H

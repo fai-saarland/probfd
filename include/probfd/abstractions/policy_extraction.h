@@ -1,5 +1,5 @@
-#ifndef PROBFD_PDBS_POLICY_EXTRACTION_H
-#define PROBFD_PDBS_POLICY_EXTRACTION_H
+#ifndef PROBFD_ABSTRACTIONS_POLICY_EXTRACTION_H
+#define PROBFD_ABSTRACTIONS_POLICY_EXTRACTION_H
 
 #include "probfd/multi_policy.h"
 #include "probfd/type_traits.h"

@@ -1,5 +1,5 @@
-#ifndef ALGORITHMS_AO_SEARCH_H
-#define ALGORITHMS_AO_SEARCH_H
+#ifndef PROBFD_ALGORITHMS_AO_SEARCH_H
+#define PROBFD_ALGORITHMS_AO_SEARCH_H
 
 #include "probfd/algorithms/heuristic_search_base.h"
 
@@ -138,4 +138,4 @@ private:
 #include "probfd/algorithms/ao_search_impl.h"
 #undef GUARD_INCLUDE_PROBFD_ALGORITHMS_AO_SEARCH_H
 
-#endif // ALGORITHMS_AO_SEARCH_H
+#endif // PROBFD_ALGORITHMS_AO_SEARCH_H

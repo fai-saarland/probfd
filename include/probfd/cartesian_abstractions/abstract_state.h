@@ -1,5 +1,5 @@
-#ifndef PROBFD_CARTESIAN_ABSTRACT_STATE_H
-#define PROBFD_CARTESIAN_ABSTRACT_STATE_H
+#ifndef PROBFD_CARTESIAN_ABSTRACTIONS_ABSTRACT_STATE_H
+#define PROBFD_CARTESIAN_ABSTRACTIONS_ABSTRACT_STATE_H
 
 #include "probfd/cartesian_abstractions/types.h"
 
@@ -90,4 +90,4 @@ public:
 
 } // namespace probfd::cartesian_abstractions
 
-#endif // PROBFD_CARTESIAN_ABSTRACT_STATE_H
+#endif // PROBFD_CARTESIAN_ABSTRACTIONS_ABSTRACT_STATE_H

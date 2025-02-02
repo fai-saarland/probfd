@@ -1,5 +1,5 @@
-#ifndef PROBFD_QUOTIENT_SYSTEM_HEURISTIC_SEARCH_INTERFACE_H
-#define PROBFD_QUOTIENT_SYSTEM_HEURISTIC_SEARCH_INTERFACE_H
+#ifndef PROBFD_QUOTIENTS_QUOTIENT_MAX_HEURISTIC_H
+#define PROBFD_QUOTIENTS_QUOTIENT_MAX_HEURISTIC_H
 
 #include "probfd/algorithms/fdr_types.h"
 #include "probfd/algorithms/open_list.h"
@@ -35,4 +35,4 @@ public:
 
 } // namespace probfd::quotients
 
-#endif // PROBFD_QUOTIENT_SYSTEM_HEURISTIC_SEARCH_INTERFACE_H
+#endif // PROBFD_QUOTIENTS_QUOTIENT_MAX_HEURISTIC_H

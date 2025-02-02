@@ -1,5 +1,5 @@
-#ifndef PROBFD_CARTESIAN_TRACE_BASED_FLAW_GENERATOR_H
-#define PROBFD_CARTESIAN_TRACE_BASED_FLAW_GENERATOR_H
+#ifndef PROBFD_CARTESIAN_ABSTRACTIONS_TRACE_BASED_FLAW_GENERATOR_H
+#define PROBFD_CARTESIAN_ABSTRACTIONS_TRACE_BASED_FLAW_GENERATOR_H
 
 #include "probfd/cartesian_abstractions/flaw.h"
 #include "probfd/cartesian_abstractions/flaw_generator.h"
@@ -74,4 +74,4 @@ public:
 
 } // namespace probfd::cartesian_abstractions
 
-#endif // PROBFD_CARTESIAN_TRACE_BASED_FLAW_GENERATOR_H
+#endif // PROBFD_CARTESIAN_ABSTRACTIONS_TRACE_BASED_FLAW_GENERATOR_H

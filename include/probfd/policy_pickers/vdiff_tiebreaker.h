@@ -1,5 +1,5 @@
-#ifndef PROBFD_POLICY_PICKER_VDIFF_TIEBREAKER_H
-#define PROBFD_POLICY_PICKER_VDIFF_TIEBREAKER_H
+#ifndef PROBFD_POLICY_PICKERS_VDIFF_TIEBREAKER_H
+#define PROBFD_POLICY_PICKERS_VDIFF_TIEBREAKER_H
 
 #include "probfd/policy_pickers/stable_policy_picker.h"
 
@@ -24,4 +24,4 @@ public:
 
 #include "probfd/policy_pickers/vdiff_tiebreaker_impl.h"
 
-#endif // PROBFD_POLICY_PICKER_VDIFF_TIEBREAKER_H
+#endif // PROBFD_POLICY_PICKERS_VDIFF_TIEBREAKER_H
