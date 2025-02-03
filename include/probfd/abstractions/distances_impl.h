@@ -21,7 +21,7 @@ namespace probfd {
 template <typename State, typename Action>
 void compute_value_table(
     MDP<State, Action>& mdp,
-    param_type<State> initial_state,
+    ParamType<State> initial_state,
     const Heuristic<State>& heuristic,
     std::span<value_t> value_table,
     double max_time)

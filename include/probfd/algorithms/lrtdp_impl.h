@@ -45,7 +45,7 @@ template <typename State, typename Action, bool UseInterval>
 Interval LRTDP<State, Action, UseInterval>::do_solve(
     MDPType& mdp,
     EvaluatorType& heuristic,
-    param_type<State> state,
+    ParamType<State> state,
     ProgressReport& progress,
     double max_time)
 {

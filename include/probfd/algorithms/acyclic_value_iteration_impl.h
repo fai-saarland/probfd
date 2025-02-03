@@ -189,7 +189,7 @@ template <typename State, typename Action>
 auto AcyclicValueIteration<State, Action>::compute_policy(
     MDPType& mdp,
     EvaluatorType& heuristic,
-    param_type<State> initial_state,
+    ParamType<State> initial_state,
     ProgressReport,
     double max_time) -> std::unique_ptr<PolicyType>
 {
@@ -202,7 +202,7 @@ template <typename State, typename Action>
 Interval AcyclicValueIteration<State, Action>::solve(
     MDPType& mdp,
     EvaluatorType& heuristic,
-    param_type<State> initial_state,
+    ParamType<State> initial_state,
     ProgressReport,
     double max_time)
 {
@@ -213,7 +213,7 @@ template <typename State, typename Action>
 Interval AcyclicValueIteration<State, Action>::solve(
     MDPType& mdp,
     EvaluatorType& heuristic,
-    param_type<State> initial_state,
+    ParamType<State> initial_state,
     double max_time,
     MapPolicy* policy)
 {

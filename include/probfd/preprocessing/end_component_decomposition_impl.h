@@ -155,7 +155,7 @@ template <typename State, typename Action>
 auto EndComponentDecomposition<State, Action>::build_quotient_system(
     MDPType& mdp,
     const EvaluatorType* pruning_function,
-    param_type<State> initial_state,
+    ParamType<State> initial_state,
     double max_time) -> std::unique_ptr<QSystem>
 {
     utils::CountdownTimer timer(max_time);

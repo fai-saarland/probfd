@@ -72,7 +72,7 @@ protected:
     Interval do_solve(
         MDPType& mdp,
         EvaluatorType& heuristic,
-        param_type<State> initial_state,
+        ParamType<State> initial_state,
         ProgressReport& progress,
         double max_time) override;
 
@@ -81,7 +81,7 @@ protected:
 private:
     bool update_value_check_solved(
         MDPType& mdp,
-        param_type<State> state,
+        ParamType<State> state,
         std::vector<Transition<Action>> transitions,
         StateInfo& info);
 };

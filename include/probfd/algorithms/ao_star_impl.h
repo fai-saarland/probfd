@@ -31,7 +31,7 @@ template <typename State, typename Action, bool UseInterval>
 Interval AOStar<State, Action, UseInterval>::do_solve(
     MDPType& mdp,
     EvaluatorType& heuristic,
-    param_type<State> initial_state,
+    ParamType<State> initial_state,
     ProgressReport& progress,
     double max_time)
 {
@@ -173,7 +173,7 @@ void AOStar<State, Action, UseInterval>::print_additional_statistics(
 template <typename State, typename Action, bool UseInterval>
 bool AOStar<State, Action, UseInterval>::update_value_check_solved(
     MDPType& mdp,
-    param_type<State> state,
+    ParamType<State> state,
     std::vector<Transition<Action>> transitions,
     StateInfo& info)
 {

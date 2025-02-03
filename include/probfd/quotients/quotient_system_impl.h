@@ -2,6 +2,7 @@
 #error "This file should only be included from quotient_system.h"
 #endif
 
+#include "probfd/aliases.h"
 #include "probfd/distribution.h"
 #include "probfd/transition.h"
 
@@ -86,10 +87,10 @@ QuotientState<State, Action>::QuotientState(
 }
 
 template <typename State, typename Action>
-template <std::invocable<param_type<State>> F>
+template <std::invocable<ParamType<State>> F>
 value_t QuotientState<State, Action>::member_maximum(F&& f) const
     requires(std::is_convertible_v<
-             std::invoke_result_t<F, param_type<State>>,
+             std::invoke_result_t<F, ParamType<State>>,
              value_t>)
 {
     using namespace std::views;
@@ -98,7 +99,7 @@ value_t QuotientState<State, Action>::member_maximum(F&& f) const
         overloaded{
             [&](const QuotientInformationType* quotient) {
                 value_t res = -INFINITE_VALUE;
-                for (param_type<State> state :
+                for (ParamType<State> state :
                      quotient->member_ids() | transform(std::bind_front(
                                                   &MDPType::get_state,
                                                   std::ref(mdp)))) {
@@ -106,13 +107,13 @@ value_t QuotientState<State, Action>::member_maximum(F&& f) const
                 }
                 return res;
             },
-            [&](param_type<State> single) { return f(single); }},
+            [&](ParamType<State> single) { return f(single); }},
         single_or_quotient);
 }
 
 template <typename State, typename Action>
 void QuotientState<State, Action>::for_each_member_state(
-    std::invocable<param_type<State>> auto&& f) const
+    std::invocable<ParamType<State>> auto&& f) const
 {
     std::visit(
         overloaded{
@@ -124,7 +125,7 @@ void QuotientState<State, Action>::for_each_member_state(
                             std::ref(mdp))),
                     f);
             },
-            [&](param_type<State> single) { f(single); }},
+            [&](ParamType<State> single) { f(single); }},
         single_or_quotient);
 }
 
@@ -136,7 +137,7 @@ size_t QuotientState<State, Action>::num_members() const
             [](const QuotientInformationType* quotient) {
                 return quotient->num_members();
             },
-            [](param_type<State>) -> size_t { return 1; }},
+            [](ParamType<State>) -> size_t { return 1; }},
         single_or_quotient);
 }
 
@@ -163,7 +164,7 @@ void QuotientState<State, Action>::get_collapsed_actions(
                     aops.size() ==
                     info->aops_.size() - info->total_num_outer_acts_);
             },
-            [](param_type<State>) { return; }},
+            [](ParamType<State>) { return; }},
         single_or_quotient);
 }
 
@@ -211,14 +212,14 @@ QuotientSystem<State, Action>::QuotientSystem(MDPType& mdp)
 }
 
 template <typename State, typename Action>
-StateID QuotientSystem<State, Action>::get_state_id(param_type<QState> state)
+StateID QuotientSystem<State, Action>::get_state_id(ParamType<QState> state)
 {
     return std::visit(
         overloaded{
             [&](const QuotientInformationType* info) {
                 return info->state_infos_.front().state_id;
             },
-            [&](param_type<State> s) { return mdp_.get_state_id(s); }},
+            [&](ParamType<State> s) { return mdp_.get_state_id(s); }},
         state.single_or_quotient);
 }
 
@@ -236,7 +237,7 @@ auto QuotientSystem<State, Action>::get_state(StateID state_id) -> QState
 
 template <typename State, typename Action>
 void QuotientSystem<State, Action>::generate_applicable_actions(
-    param_type<QState> state,
+    ParamType<QState> state,
     std::vector<QAction>& aops)
 {
     std::visit(
@@ -256,7 +257,7 @@ void QuotientSystem<State, Action>::generate_applicable_actions(
 
                 assert(aops.size() == info->total_num_outer_acts_);
             },
-            [&](param_type<State> state) {
+            [&](ParamType<State> state) {
                 std::vector<Action> orig;
                 mdp_.generate_applicable_actions(state, orig);
 
@@ -272,7 +273,7 @@ void QuotientSystem<State, Action>::generate_applicable_actions(
 
 template <typename State, typename Action>
 void QuotientSystem<State, Action>::generate_action_transitions(
-    param_type<QState>,
+    ParamType<QState>,
     QAction a,
     Distribution<StateID>& result)
 {
@@ -289,7 +290,7 @@ void QuotientSystem<State, Action>::generate_action_transitions(
 
 template <typename State, typename Action>
 void QuotientSystem<State, Action>::generate_all_transitions(
-    param_type<QState> state,
+    ParamType<QState> state,
     std::vector<QAction>& aops,
     std::vector<Distribution<StateID>>& successors)
 {
@@ -317,7 +318,7 @@ void QuotientSystem<State, Action>::generate_all_transitions(
                 assert(aops.size() == info->total_num_outer_acts_);
                 assert(successors.size() == info->total_num_outer_acts_);
             },
-            [&](param_type<State> state) {
+            [&](ParamType<State> state) {
                 std::vector<Action> orig_a;
                 mdp_.generate_applicable_actions(state, orig_a);
 
@@ -344,7 +345,7 @@ void QuotientSystem<State, Action>::generate_all_transitions(
 
 template <typename State, typename Action>
 void QuotientSystem<State, Action>::generate_all_transitions(
-    param_type<QState> state,
+    ParamType<QState> state,
     std::vector<Transition<QAction>>& transitions)
 {
     std::visit(
@@ -369,7 +370,7 @@ void QuotientSystem<State, Action>::generate_all_transitions(
 
                 assert(transitions.size() == info->total_num_outer_acts_);
             },
-            [&](param_type<State> state) {
+            [&](ParamType<State> state) {
                 std::vector<Action> orig_a;
                 mdp_.generate_applicable_actions(state, orig_a);
 
@@ -395,14 +396,14 @@ void QuotientSystem<State, Action>::generate_all_transitions(
 
 template <typename State, typename Action>
 TerminationInfo
-QuotientSystem<State, Action>::get_termination_info(param_type<QState> s)
+QuotientSystem<State, Action>::get_termination_info(ParamType<QState> s)
 {
     return std::visit(
         overloaded{
             [&](const QuotientInformationType* info) {
                 return info->termination_info_;
             },
-            [&](param_type<State> state) {
+            [&](ParamType<State> state) {
                 return mdp_.get_termination_info(state);
             }},
         s.single_or_quotient);
@@ -433,7 +434,7 @@ auto QuotientSystem<State, Action>::end() const -> const_iterator
 }
 
 template <typename State, typename Action>
-auto QuotientSystem<State, Action>::translate_state(param_type<State> s) const
+auto QuotientSystem<State, Action>::translate_state(ParamType<State> s) const
     -> QState
 {
     StateID id = mdp_.get_state_id(s);

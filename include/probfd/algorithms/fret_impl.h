@@ -44,7 +44,7 @@ template <
 auto FRET<State, Action, StateInfoT, GreedyGraphGenerator>::compute_policy(
     MDPType& mdp,
     EvaluatorType& heuristic,
-    param_type<State> state,
+    ParamType<State> state,
     ProgressReport progress,
     double max_time) -> std::unique_ptr<PolicyType>
 {
@@ -171,7 +171,7 @@ template <
 Interval FRET<State, Action, StateInfoT, GreedyGraphGenerator>::solve(
     MDPType& mdp,
     EvaluatorType& heuristic,
-    param_type<State> state,
+    ParamType<State> state,
     ProgressReport progress,
     double max_time)
 {
@@ -205,7 +205,7 @@ template <
 Interval FRET<State, Action, StateInfoT, GreedyGraphGenerator>::solve(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
-    param_type<QState> state,
+    ParamType<QState> state,
     ProgressReport& progress,
     double max_time)
 {
@@ -237,7 +237,7 @@ Interval
 FRET<State, Action, StateInfoT, GreedyGraphGenerator>::heuristic_search(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
-    param_type<QState> state,
+    ParamType<QState> state,
     ProgressReport& progress,
     utils::CountdownTimer& timer)
 {
@@ -261,7 +261,7 @@ template <
 bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::
     find_and_remove_traps(
         QuotientSystem& quotient,
-        param_type<QState> state,
+        ParamType<QState> state,
         utils::CountdownTimer& timer)
 {
     using namespace internal;

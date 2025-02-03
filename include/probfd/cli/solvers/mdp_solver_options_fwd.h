@@ -2,7 +2,6 @@
 #define PROBFD_CLI_SOLVERS_MDP_SOLVER_OPTIONS_FWD_H
 
 #include "probfd/aliases.h"
-#include "probfd/type_traits.h"
 
 #include <memory>
 #include <optional>
@@ -33,7 +32,7 @@ using MDPSolverAddditionalArgs = std::tuple<
     bool>;
 
 using MDPSolverArgs =
-    tuple_cat_t<std::tuple<utils::Verbosity>, MDPSolverAddditionalArgs>;
+    TupleCatType<std::tuple<utils::Verbosity>, MDPSolverAddditionalArgs>;
 
 } // namespace probfd::cli::solvers
 

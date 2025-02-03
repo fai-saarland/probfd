@@ -51,7 +51,7 @@ public:
     /**
      * @brief Get the state ID for a given state.
      */
-    virtual StateID get_state_id(param_type<State> state) = 0;
+    virtual StateID get_state_id(ParamType<State> state) = 0;
 
     /**
      * @brief Get the state mapped to a given state ID.
@@ -62,15 +62,15 @@ public:
      * @brief Generates the applicable actions of the state.
      */
     virtual void generate_applicable_actions(
-        param_type<State> state,
+        ParamType<State> state,
         std::vector<Action>& result) = 0;
 
     /**
      * @brief Generates the successor distribution for a given state and action.
      */
     virtual void generate_action_transitions(
-        param_type<State> state,
-        param_type<Action> action,
+        ParamType<State> state,
+        ParamType<Action> action,
         Distribution<StateID>& result) = 0;
 
     /**
@@ -78,7 +78,7 @@ public:
      * distributions for a given state.
      */
     virtual void generate_all_transitions(
-        param_type<State> state,
+        ParamType<State> state,
         std::vector<Action>& aops,
         std::vector<Distribution<StateID>>& successors) = 0;
 
@@ -87,7 +87,7 @@ public:
      * distributions for a given state.
      */
     virtual void generate_all_transitions(
-        param_type<State> state,
+        ParamType<State> state,
         std::vector<TransitionType>& transitions) = 0;
 };
 

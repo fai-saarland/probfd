@@ -297,14 +297,14 @@ public:
     Interval solve(
         MDPType& mdp,
         EvaluatorType& heuristic,
-        param_type<State> state,
+        ParamType<State> state,
         ProgressReport,
         double max_time) override;
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
         EvaluatorType& heuristic,
-        param_type<State> state,
+        ParamType<State> state,
         ProgressReport progress,
         double max_time) override;
 

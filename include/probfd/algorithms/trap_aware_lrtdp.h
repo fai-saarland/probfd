@@ -194,7 +194,7 @@ public:
     Interval solve_quotient(
         QuotientSystem& quotient,
         QEvaluator& heuristic,
-        param_type<QState> state,
+        ParamType<QState> state,
         ProgressReport& progress,
         double max_time);
 
@@ -258,14 +258,14 @@ public:
     Interval solve(
         MDPType& mdp,
         EvaluatorType& heuristic,
-        param_type<State> s,
+        ParamType<State> s,
         ProgressReport progress,
         double max_time) final;
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
         EvaluatorType& heuristic,
-        param_type<State> s,
+        ParamType<State> s,
         ProgressReport progress,
         double max_time) final;
 

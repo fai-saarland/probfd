@@ -24,7 +24,7 @@ public:
     {
     }
 
-    value_t evaluate(param_type<QState> state) const override
+    value_t evaluate(ParamType<QState> state) const override
     {
         return state.member_maximum(
             std::bind_front(&Heuristic<State>::evaluate, std::ref(original_)));

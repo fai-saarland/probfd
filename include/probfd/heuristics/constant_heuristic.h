@@ -29,7 +29,7 @@ public:
     }
 
     [[nodiscard]]
-    value_t evaluate(param_type<State>) const override
+    value_t evaluate(ParamType<State>) const override
     {
         return value_;
     }

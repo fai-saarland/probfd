@@ -251,14 +251,14 @@ public:
     Interval solve(
         MDPType& mdp,
         EvaluatorType& heuristic,
-        param_type<State> state,
+        ParamType<State> state,
         ProgressReport progress,
         double max_time) override;
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
         EvaluatorType& heuristic,
-        param_type<State> state,
+        ParamType<State> state,
         ProgressReport progress,
         double max_time) override;
 
@@ -278,7 +278,7 @@ private:
     bool initialize_search_node(
         MDPType& mdp,
         EvaluatorType& heuristic,
-        param_type<State> state,
+        ParamType<State> state,
         SearchNodeInfo& info);
 
     bool push_state(

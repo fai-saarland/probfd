@@ -153,14 +153,14 @@ public:
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
         EvaluatorType& heuristic,
-        param_type<State> state,
+        ParamType<State> state,
         ProgressReport progress,
         double max_time) override;
 
     Interval solve(
         MDPType& mdp,
         EvaluatorType& heuristic,
-        param_type<State> state,
+        ParamType<State> state,
         ProgressReport progress,
         double max_time) override;
 
@@ -170,20 +170,20 @@ private:
     Interval solve(
         QuotientSystem& quotient,
         QEvaluator& heuristic,
-        param_type<QState> state,
+        ParamType<QState> state,
         ProgressReport& progress,
         double max_time);
 
     Interval heuristic_search(
         QuotientSystem& quotient,
         QEvaluator& heuristic,
-        param_type<QState> state,
+        ParamType<QState> state,
         ProgressReport& progress,
         utils::CountdownTimer& timer);
 
     bool find_and_remove_traps(
         QuotientSystem& quotient,
-        param_type<QState> state,
+        ParamType<QState> state,
         utils::CountdownTimer& timer);
 
     bool push(

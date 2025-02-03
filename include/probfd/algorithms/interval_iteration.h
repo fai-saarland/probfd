@@ -95,14 +95,14 @@ public:
     Interval solve(
         MDPType& mdp,
         EvaluatorType& heuristic,
-        param_type<State> state,
+        ParamType<State> state,
         ProgressReport report,
         double max_time) override;
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
         EvaluatorType& heuristic,
-        param_type<State> state,
+        ParamType<State> state,
         ProgressReport report,
         double max_time) override;
 
@@ -112,7 +112,7 @@ public:
     Interval solve(
         MDPType& mdp,
         EvaluatorType& heuristic,
-        param_type<State> state,
+        ParamType<State> state,
         ValueStoreT& value_store,
         SetLike& dead_ends,
         SetLike2& one_states,
@@ -122,14 +122,14 @@ private:
     std::unique_ptr<QSystem> create_quotient(
         MDPType& mdp,
         EvaluatorType& heuristic,
-        param_type<State> state,
+        ParamType<State> state,
         utils::CountdownTimer& timer);
 
     template <typename ValueStoreT, typename SetLike, typename SetLike2>
     Interval mysolve(
         MDPType& mdp,
         EvaluatorType& heuristic,
-        param_type<State> state,
+        ParamType<State> state,
         ValueStoreT& value_store,
         SetLike& dead_ends,
         SetLike2& one_states,

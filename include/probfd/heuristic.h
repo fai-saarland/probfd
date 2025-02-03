@@ -21,7 +21,7 @@ public:
      * @brief Evaluates the heuristic on a given state and returns the
      * heuristic value.
      */
-    virtual value_t evaluate(param_type<State> state) const = 0;
+    virtual value_t evaluate(ParamType<State> state) const = 0;
 
     /**
      * @brief Prints statistics, e.g. the number of queries made to the

@@ -51,7 +51,7 @@ template <typename State, typename Action>
 Interval IDual<State, Action>::solve(
     MDPType& mdp,
     EvaluatorType& heuristic,
-    param_type<State> initial_state,
+    ParamType<State> initial_state,
     ProgressReport progress,
     double max_time)
 {
@@ -71,7 +71,7 @@ template <typename State, typename Action>
 auto IDual<State, Action>::compute_policy(
     MDPType& mdp,
     EvaluatorType& heuristic,
-    param_type<State> initial_state,
+    ParamType<State> initial_state,
     ProgressReport progress,
     double max_time) -> std::unique_ptr<PolicyType>
 {
@@ -187,7 +187,7 @@ template <typename State, typename Action>
 Interval IDual<State, Action>::solve(
     MDPType& mdp,
     EvaluatorType& heuristic,
-    param_type<State> initial_state,
+    ParamType<State> initial_state,
     ProgressReport progress,
     double max_time,
     std::vector<double>& primal_solution,

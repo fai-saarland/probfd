@@ -145,7 +145,7 @@ template <typename State, typename Action>
 void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
     MDPType& mdp,
     const EvaluatorType* pruning_function,
-    param_type<State> source_state,
+    ParamType<State> source_state,
     std::output_iterator<StateID> auto dead_out,
     std::output_iterator<StateID> auto unsolvable_out,
     std::output_iterator<StateID> auto solvable_out,

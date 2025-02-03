@@ -167,7 +167,7 @@ public:
     std::unique_ptr<QSystem> build_quotient_system(
         MDPType& mdp,
         const EvaluatorType* pruning_function,
-        param_type<State> initial_state,
+        ParamType<State> initial_state,
         double max_time = std::numeric_limits<double>::infinity());
 
     void print_statistics(std::ostream& out) const;

@@ -74,14 +74,13 @@ struct QuotientState {
         const QuotientInformationType* quotient);
 
 public:
-    template <std::invocable<param_type<State>> F>
+    template <std::invocable<ParamType<State>> F>
     value_t member_maximum(F&& f) const
         requires(std::is_convertible_v<
-                 std::invoke_result_t<F, param_type<State>>,
+                 std::invoke_result_t<F, ParamType<State>>,
                  value_t>);
 
-    void
-    for_each_member_state(std::invocable<param_type<State>> auto&& f) const;
+    void for_each_member_state(std::invocable<ParamType<State>> auto&& f) const;
 
     [[nodiscard]]
     size_t num_members() const;
@@ -145,29 +144,29 @@ public:
 
     explicit QuotientSystem(MDPType& mdp);
 
-    StateID get_state_id(param_type<QState> state) override;
+    StateID get_state_id(ParamType<QState> state) override;
 
     QState get_state(StateID state_id) override;
 
     void generate_applicable_actions(
-        param_type<QState> state,
+        ParamType<QState> state,
         std::vector<QAction>& aops) override;
 
     void generate_action_transitions(
-        param_type<QState>,
+        ParamType<QState>,
         QAction a,
         Distribution<StateID>& result) override;
 
     void generate_all_transitions(
-        param_type<QState> state,
+        ParamType<QState> state,
         std::vector<QAction>& aops,
         std::vector<Distribution<StateID>>& successors) override;
 
     void generate_all_transitions(
-        param_type<QState> state,
+        ParamType<QState> state,
         std::vector<Transition<QAction>>& transitions) override;
 
-    TerminationInfo get_termination_info(param_type<QState> s) override;
+    TerminationInfo get_termination_info(ParamType<QState> s) override;
 
     value_t get_action_cost(QAction qa) override;
 
@@ -176,7 +175,7 @@ public:
     const_iterator begin() const;
     const_iterator end() const;
 
-    QState translate_state(param_type<State> s) const;
+    QState translate_state(ParamType<State> s) const;
 
     [[nodiscard]]
     StateID translate_state_id(StateID sid) const;
@@ -212,7 +211,8 @@ private:
 namespace probfd {
 
 template <typename Action>
-struct is_cheap_to_copy<quotients::QuotientAction<Action>> : std::true_type {};
+constexpr bool enable_pass_by_value<quotients::QuotientAction<Action>> =
+    enable_pass_by_value<Action>;
 
 } // namespace probfd
 

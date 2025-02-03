@@ -91,12 +91,12 @@ public:
      *
      * @see TerminationInfo
      */
-    virtual TerminationInfo get_termination_info(param_type<State> state) = 0;
+    virtual TerminationInfo get_termination_info(ParamType<State> state) = 0;
 
     /**
      * @brief Gets the cost of an action.
      */
-    virtual value_t get_action_cost(param_type<Action> action) = 0;
+    virtual value_t get_action_cost(ParamType<Action> action) = 0;
 };
 
 template <typename State, typename Action>
@@ -105,7 +105,7 @@ public:
     /**
      * @brief Get the termination cost info of the input state.
      */
-    TerminationInfo get_termination_info(param_type<State> state) final
+    TerminationInfo get_termination_info(ParamType<State> state) final
     {
         return is_goal(state)
                    ? TerminationInfo::from_goal(get_goal_termination_cost())
@@ -113,7 +113,7 @@ public:
                          get_non_goal_termination_cost());
     }
 
-    virtual bool is_goal(param_type<State> state) const = 0;
+    virtual bool is_goal(ParamType<State> state) const = 0;
     [[nodiscard]]
     virtual value_t get_goal_termination_cost() const = 0;
     virtual value_t get_non_goal_termination_cost() const = 0;

@@ -30,7 +30,7 @@ template <typename State, typename Action>
 Interval IntervalIteration<State, Action>::solve(
     MDPType& mdp,
     EvaluatorType& heuristic,
-    param_type<State> state,
+    ParamType<State> state,
     ProgressReport,
     double max_time)
 {
@@ -45,7 +45,7 @@ template <typename State, typename Action>
 auto IntervalIteration<State, Action>::compute_policy(
     MDPType&,
     EvaluatorType&,
-    param_type<State>,
+    ParamType<State>,
     ProgressReport,
     double) -> std::unique_ptr<PolicyType>
 {
@@ -63,7 +63,7 @@ template <typename ValueStoreT, typename SetLike, typename SetLike2>
 Interval IntervalIteration<State, Action>::solve(
     MDPType& mdp,
     EvaluatorType& heuristic,
-    param_type<State> state,
+    ParamType<State> state,
     ValueStoreT& value_store,
     SetLike& dead_ends,
     SetLike2& one_states,
@@ -104,7 +104,7 @@ template <typename State, typename Action>
 auto IntervalIteration<State, Action>::create_quotient(
     MDPType& mdp,
     EvaluatorType& heuristic,
-    param_type<State> state,
+    ParamType<State> state,
     utils::CountdownTimer& timer) -> std::unique_ptr<QSystem>
 {
     auto sys = ec_decomposer_.build_quotient_system(
@@ -123,7 +123,7 @@ template <typename ValueStoreT, typename SetLike, typename SetLike2>
 Interval IntervalIteration<State, Action>::mysolve(
     MDPType& mdp,
     EvaluatorType& heuristic,
-    param_type<State> state,
+    ParamType<State> state,
     ValueStoreT& value_store,
     SetLike& dead_ends,
     SetLike2& one_states,

@@ -177,7 +177,7 @@ template <typename State, typename Action, typename StateInfoT>
 void HeuristicSearchBase<State, Action, StateInfoT>::initialize_initial_state(
     MDPType& mdp,
     EvaluatorType& h,
-    param_type<State> state)
+    ParamType<State> state)
 {
     StateInfo& info = this->state_infos_[mdp.get_state_id(state)];
 
@@ -193,7 +193,7 @@ template <typename State, typename Action, typename StateInfoT>
 void HeuristicSearchBase<State, Action, StateInfoT>::expand_and_initialize(
     MDPType& mdp,
     EvaluatorType& h,
-    param_type<State> state,
+    ParamType<State> state,
     StateInfo& state_info,
     std::vector<TransitionType>& transitions)
 {
@@ -252,7 +252,7 @@ template <typename State, typename Action, typename StateInfoT>
 void HeuristicSearchBase<State, Action, StateInfoT>::
     generate_non_tip_transitions(
         MDPType& mdp,
-        param_type<State> state,
+        ParamType<State> state,
         std::vector<TransitionType>& transitions) const
 {
     assert(transitions.empty());
@@ -285,7 +285,7 @@ template <typename State, typename Action, typename StateInfoT>
 void HeuristicSearchBase<State, Action, StateInfoT>::initialize(
     MDPType& mdp,
     EvaluatorType& h,
-    param_type<State> state,
+    ParamType<State> state,
     StateInfo& state_info)
 {
     assert(!state_info.is_value_initialized());
@@ -401,7 +401,7 @@ template <typename State, typename Action, typename StateInfoT>
 Interval HeuristicSearchAlgorithm<State, Action, StateInfoT>::solve(
     MDPType& mdp,
     EvaluatorType& h,
-    param_type<State> state,
+    ParamType<State> state,
     ProgressReport progress,
     double max_time)
 {
@@ -413,7 +413,7 @@ template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
     MDPType& mdp,
     EvaluatorType& h,
-    param_type<State> initial_state,
+    ParamType<State> initial_state,
     ProgressReport progress,
     double max_time) -> std::unique_ptr<PolicyType>
 {

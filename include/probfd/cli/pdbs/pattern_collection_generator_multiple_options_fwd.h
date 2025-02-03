@@ -3,7 +3,7 @@
 
 #include "probfd/cli/pdbs/pattern_collection_generator_options_fwd.h"
 
-#include "probfd/type_traits.h"
+#include "probfd/aliases.h"
 
 #include <memory>
 #include <utility>
@@ -18,7 +18,7 @@ namespace probfd::cli::pdbs {
 using PatternCollectionGeneratorMultipleAdditionalArgs =
     std::tuple<int, int, double, double, double, double, bool, bool>;
 
-using PatternCollectionGeneratorMultipleArgs = tuple_cat_t<
+using PatternCollectionGeneratorMultipleArgs = TupleCatType<
     PatternCollectionGeneratorMultipleAdditionalArgs,
     std::tuple<std::shared_ptr<utils::RandomNumberGenerator>>,
     PatternCollectionGeneratorArgs>;

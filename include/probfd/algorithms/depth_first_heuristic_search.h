@@ -156,7 +156,7 @@ protected:
     Interval do_solve(
         MDP& mdp,
         Evaluator& heuristic,
-        param_type<State> state,
+        ParamType<State> state,
         ProgressReport& progress,
         double max_time) override;
 

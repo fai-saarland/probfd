@@ -65,7 +65,7 @@ template <typename State, typename Action, bool UseInterval>
 Interval HeuristicDepthFirstSearch<State, Action, UseInterval>::do_solve(
     MDP& mdp,
     Evaluator& heuristic,
-    param_type<State> state,
+    ParamType<State> state,
     ProgressReport& progress,
     double max_time)
 {

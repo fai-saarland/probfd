@@ -4,7 +4,6 @@
 #include "probfd/cli/solvers/mdp_solver_options_fwd.h"
 
 #include "probfd/aliases.h"
-#include "probfd/type_traits.h"
 
 #include "probfd/solvers/mdp_heuristic_search.h"
 
@@ -25,7 +24,7 @@ using MDPHeuristicSearchBaseAdditionalArgs = std::
     tuple<value_t, bool, std::shared_ptr<PolicyPickerType<Bisimulation, Fret>>>;
 
 template <bool Bisimulation, bool Fret>
-using MDPHeuristicSearchBaseArgs = tuple_cat_t<
+using MDPHeuristicSearchBaseArgs = TupleCatType<
     MDPHeuristicSearchBaseAdditionalArgs<Bisimulation, Fret>,
     MDPSolverArgs>;
 
@@ -34,7 +33,7 @@ using FretAdditionalArgs = std::tuple<bool>;
 template <bool Bisimulation, bool Fret>
 using MDPHeuristicSearchArgs = std::conditional_t<
     Fret,
-    tuple_cat_t<
+    TupleCatType<
         FretAdditionalArgs,
         MDPHeuristicSearchBaseArgs<Bisimulation, Fret>>,
     MDPHeuristicSearchBaseArgs<Bisimulation, Fret>>;

@@ -243,18 +243,18 @@ protected:
     void initialize_initial_state(
         MDPType& mdp,
         EvaluatorType& h,
-        param_type<State> state);
+        ParamType<State> state);
 
     void expand_and_initialize(
         MDPType& mdp,
         EvaluatorType& h,
-        param_type<State> state,
+        ParamType<State> state,
         StateInfo& state_info,
         std::vector<TransitionType>& transitions);
 
     void generate_non_tip_transitions(
         MDPType& mdp,
-        param_type<State> state,
+        ParamType<State> state,
         std::vector<TransitionType>& transitions) const;
 
     void print_statistics(std::ostream& out) const;
@@ -263,7 +263,7 @@ private:
     void initialize(
         MDPType& mdp,
         EvaluatorType& h,
-        param_type<State> state,
+        ParamType<State> state,
         StateInfo& state_info);
 
     AlgorithmValueType compute_qvalue(
@@ -321,14 +321,14 @@ public:
     Interval solve(
         MDPType& mdp,
         EvaluatorType& h,
-        param_type<State> state,
+        ParamType<State> state,
         ProgressReport progress,
         double max_time) final;
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
         EvaluatorType& h,
-        param_type<State> state,
+        ParamType<State> state,
         ProgressReport progress,
         double max_time) final;
 
@@ -342,7 +342,7 @@ public:
     virtual Interval do_solve(
         MDPType& mdp,
         EvaluatorType& h,
-        param_type<State> state,
+        ParamType<State> state,
         ProgressReport& progress,
         double max_time) = 0;
 

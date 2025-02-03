@@ -6,6 +6,8 @@
 #ifndef PROBFD_CONCEPTS_H
 #define PROBFD_CONCEPTS_H
 
+#include "probfd/type_traits.h"
+
 #include <array>
 #include <complex>
 #include <ranges>
@@ -53,17 +55,22 @@ concept TupleLike = detail::IsTupleLikeHelper<T>::value;
 template <typename T>
 concept PairLike = TupleLike<T> && std::tuple_size_v<T> == 2;
 
-
 namespace detail {
 template <typename T, template <typename...> typename U>
 struct SpecializationHelper : std::false_type {};
 
 template <typename... T, template <typename...> typename U>
 struct SpecializationHelper<U<T...>, U> : std::true_type {};
-}
+} // namespace detail
 
+/// This concept is satisfied if T is a specialization of the template U.
 template <typename T, template <typename...> typename U>
 concept Specialization = detail::SpecializationHelper<T, U>::value;
+
+/// This concept is true if the variable specialization enable_pass_by_value<T>
+/// has been defined as true.
+template <typename T>
+concept PassedByValue = enable_pass_by_value<T>;
 
 } // namespace probfd
 

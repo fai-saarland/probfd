@@ -164,21 +164,21 @@ public:
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
         EvaluatorType& heuristic,
-        param_type<State> initial_state,
+        ParamType<State> initial_state,
         ProgressReport progress,
         double max_time) override;
 
     Interval solve(
         MDPType& mdp,
         EvaluatorType& heuristic,
-        param_type<State> initial_state,
+        ParamType<State> initial_state,
         ProgressReport progress,
         double max_time) override;
 
     Interval solve(
         MDPType& mdp,
         EvaluatorType& heuristic,
-        param_type<State> initial_state,
+        ParamType<State> initial_state,
         double max_time,
         MapPolicy* policy);
 

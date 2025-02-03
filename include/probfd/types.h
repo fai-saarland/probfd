@@ -1,6 +1,8 @@
 #ifndef PROBFD_TYPES_H
 #define PROBFD_TYPES_H
 
+#include "probfd/concepts.h"
+
 #include "downward/operator_id.h"
 #include "downward/state_id.h"
 
@@ -40,6 +42,12 @@ struct StateID {
 
     size_type id;
 };
+
+template <>
+constexpr bool enable_pass_by_value<StateID> = true;
+
+template <>
+constexpr bool enable_pass_by_value<OperatorID> = true;
 
 } // namespace probfd
 

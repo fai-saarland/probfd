@@ -1,6 +1,7 @@
 #ifndef PROBFD_ALGORITHMS_TRANSITION_SORTER_H
 #define PROBFD_ALGORITHMS_TRANSITION_SORTER_H
 
+#include "probfd/aliases.h"
 #include "probfd/type_traits.h"
 #include "probfd/types.h"
 
@@ -40,7 +41,7 @@ public:
      * actions.
      */
     virtual void sort(
-        param_type<State> state,
+        ParamType<State> state,
         const std::vector<Action>& aops,
         std::vector<Distribution<StateID>>& successors,
         StateProperties& properties) = 0;

@@ -72,7 +72,7 @@ template <typename State, typename Action, bool UseInterval>
 Interval TALRTDPImpl<State, Action, UseInterval>::solve_quotient(
     QuotientSystem& quotient,
     QEvaluator& heuristic,
-    param_type<QState> state,
+    ParamType<QState> state,
     ProgressReport& progress,
     double max_time)
 {
@@ -487,7 +487,7 @@ template <typename State, typename Action, bool UseInterval>
 Interval TALRTDP<State, Action, UseInterval>::solve(
     MDPType& mdp,
     EvaluatorType& heuristic,
-    param_type<State> s,
+    ParamType<State> s,
     ProgressReport progress,
     double max_time)
 {
@@ -505,7 +505,7 @@ template <typename State, typename Action, bool UseInterval>
 auto TALRTDP<State, Action, UseInterval>::compute_policy(
     MDPType& mdp,
     EvaluatorType& heuristic,
-    param_type<State> state,
+    ParamType<State> state,
     ProgressReport progress,
     double max_time) -> std::unique_ptr<PolicyType>
 {

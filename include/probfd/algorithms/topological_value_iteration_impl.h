@@ -209,7 +209,7 @@ template <typename State, typename Action, bool UseInterval>
 auto TopologicalValueIteration<State, Action, UseInterval>::compute_policy(
     MDPType& mdp,
     EvaluatorType& heuristic,
-    param_type<State> state,
+    ParamType<State> state,
     ProgressReport,
     double max_time) -> std::unique_ptr<PolicyType>
 {
@@ -229,7 +229,7 @@ template <typename State, typename Action, bool UseInterval>
 Interval TopologicalValueIteration<State, Action, UseInterval>::solve(
     MDPType& mdp,
     EvaluatorType& heuristic,
-    param_type<State> state,
+    ParamType<State> state,
     ProgressReport,
     double max_time)
 {

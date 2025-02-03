@@ -26,7 +26,7 @@ class MDP
 template <typename State, typename Action>
 class SimpleMDP : public MDP<State, Action> {
 public:
-    TerminationInfo get_termination_info(param_type<State> state) final
+    TerminationInfo get_termination_info(ParamType<State> state) final
     {
         return is_goal(state)
                    ? TerminationInfo::from_goal(get_goal_termination_cost())
@@ -34,7 +34,7 @@ public:
                          get_non_goal_termination_cost());
     }
 
-    virtual bool is_goal(param_type<State> state) const = 0;
+    virtual bool is_goal(ParamType<State> state) const = 0;
     [[nodiscard]]
     virtual value_t get_goal_termination_cost() const = 0;
     virtual value_t get_non_goal_termination_cost() const = 0;
@@ -64,7 +64,7 @@ struct CompositeMDP : public MDP<State, Action> {
     /**
      * @brief Get the state ID for a given state.
      */
-    StateID get_state_id(param_type<State> state) final
+    StateID get_state_id(ParamType<State> state) final
     {
         return state_space.get_state_id(state);
     }
@@ -81,7 +81,7 @@ struct CompositeMDP : public MDP<State, Action> {
      * @brief Generates the applicable actions of the state.
      */
     void generate_applicable_actions(
-        param_type<State> state,
+        ParamType<State> state,
         std::vector<Action>& result) final
     {
         return state_space.generate_applicable_actions(state, result);
@@ -91,8 +91,8 @@ struct CompositeMDP : public MDP<State, Action> {
      * @brief Generates the successor distribution for a given state and action.
      */
     void generate_action_transitions(
-        param_type<State> state,
-        param_type<Action> action,
+        ParamType<State> state,
+        ParamType<Action> action,
         Distribution<StateID>& result) final
     {
         return state_space.generate_action_transitions(state, action, result);
@@ -103,7 +103,7 @@ struct CompositeMDP : public MDP<State, Action> {
      * distributions for a given state.
      */
     void generate_all_transitions(
-        param_type<State> state,
+        ParamType<State> state,
         std::vector<Action>& aops,
         std::vector<Distribution<StateID>>& successors) final
     {
@@ -111,7 +111,7 @@ struct CompositeMDP : public MDP<State, Action> {
     }
 
     virtual void generate_all_transitions(
-        param_type<State> state,
+        ParamType<State> state,
         std::vector<TransitionType>& transitions) final
     {
         return state_space.generate_all_transitions(state, transitions);
@@ -123,7 +123,7 @@ struct CompositeMDP : public MDP<State, Action> {
      *
      * @see TerminationInfo
      */
-    TerminationInfo get_termination_info(param_type<State> state) final
+    TerminationInfo get_termination_info(ParamType<State> state) final
     {
         return cost_function.get_termination_info(state);
     }
@@ -131,7 +131,7 @@ struct CompositeMDP : public MDP<State, Action> {
     /**
      * @brief Gets the action cost of a state-action.
      */
-    value_t get_action_cost(param_type<Action> action) final
+    value_t get_action_cost(ParamType<Action> action) final
     {
         return cost_function.get_action_cost(action);
     }

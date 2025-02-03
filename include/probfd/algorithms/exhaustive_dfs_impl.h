@@ -83,7 +83,7 @@ template <typename State, typename Action, bool UseInterval>
 Interval ExhaustiveDepthFirstSearch<State, Action, UseInterval>::solve(
     MDPType& mdp,
     EvaluatorType& heuristic,
-    param_type<State> state,
+    ParamType<State> state,
     ProgressReport progress,
     double)
 {
@@ -108,7 +108,7 @@ template <typename State, typename Action, bool UseInterval>
 auto ExhaustiveDepthFirstSearch<State, Action, UseInterval>::compute_policy(
     MDPType&,
     EvaluatorType&,
-    param_type<State>,
+    ParamType<State>,
     ProgressReport,
     double) -> std::unique_ptr<PolicyType>
 {
@@ -155,7 +155,7 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
     initialize_search_node(
         MDPType& mdp,
         EvaluatorType& heuristic,
-        param_type<State> state,
+        ParamType<State> state,
         SearchNodeInfo& info)
 {
     assert(info.is_new());
