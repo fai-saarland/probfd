@@ -10,7 +10,7 @@
 
 #include "probfd/progress_report.h"
 
-#include "probfd/evaluator.h"
+#include "probfd/heuristic.h"
 #include "probfd/mdp.h"
 
 #include "downward/task_utils/task_properties.h"

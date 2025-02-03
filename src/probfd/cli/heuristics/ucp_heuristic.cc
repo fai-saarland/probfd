@@ -17,7 +17,7 @@ using namespace downward::cli::plugins;
 namespace {
 
 class UCPHeuristicFactoryFeature
-    : public TypedFeature<TaskEvaluatorFactory, UCPHeuristicFactory> {
+    : public TypedFeature<TaskHeuristicFactory, UCPHeuristicFactory> {
 public:
     UCPHeuristicFactoryFeature()
         : TypedFeature("ucp_heuristic")

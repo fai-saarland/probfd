@@ -1,7 +1,7 @@
-#include "probfd/heuristics/determinization_cost.h"
+#include "probfd/heuristics/determinization_cost_heuristic.h"
 
-#include "probfd/evaluator.h"
-#include "probfd/task_evaluator_factory.h"
+#include "probfd/heuristic.h"
+#include "probfd/task_heuristic_factory.h"
 
 #include "downward/evaluation_context.h"
 #include "downward/evaluation_result.h"

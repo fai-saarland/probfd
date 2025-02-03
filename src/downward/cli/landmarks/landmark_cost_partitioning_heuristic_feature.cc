@@ -91,7 +91,7 @@ public:
         document_note(
             "Preferred operators",
             "Preferred operators should not be used for optimal planning. "
-            "See Evaluator#Landmark_sum_heuristic for more information "
+            "See Heuristic#Landmark_sum_heuristic for more information "
             "on using preferred operators; the comments there also apply "
             "to this heuristic.");
 

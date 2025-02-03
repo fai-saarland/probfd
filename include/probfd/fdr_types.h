@@ -27,7 +27,7 @@ class MDPAlgorithm;
 
 // Heuristics / Evaluators
 template <typename>
-class Evaluator;
+class Heuristic;
 
 /// Type alias for state spaces in FDR.
 using FDRStateSpace = StateSpace<State, OperatorID>;
@@ -45,7 +45,7 @@ using FDRMDP = MDP<State, OperatorID>;
 using FDRSimpleMDP = SimpleMDP<State, OperatorID>;
 
 /// Type alias for evaluators for states in FDR.
-using FDREvaluator = Evaluator<State>;
+using FDREvaluator = Heuristic<State>;
 
 // Type alias for search algorithms for MDPs in FDR.
 using FDRMDPAlgorithm = MDPAlgorithm<State, OperatorID>;

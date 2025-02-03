@@ -114,7 +114,7 @@ class HeuristicSearchBase {
 protected:
     using MDPType = MDP<State, Action>;
     using CostFunctionType = CostFunction<State, Action>;
-    using EvaluatorType = Evaluator<State>;
+    using EvaluatorType = Heuristic<State>;
     using TransitionType = Transition<Action>;
 
     using PolicyPickerType = PolicyPicker<State, Action>;

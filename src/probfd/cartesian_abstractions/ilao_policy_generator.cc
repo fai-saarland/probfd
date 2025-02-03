@@ -2,7 +2,7 @@
 
 #include "probfd/cartesian_abstractions/abstract_state.h"
 #include "probfd/cartesian_abstractions/cartesian_abstraction.h"
-#include "probfd/cartesian_abstractions/evaluators.h"
+#include "probfd/cartesian_abstractions/heuristics.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition.h"
 
 #include "probfd/algorithms/trap_aware_dfhs.h"

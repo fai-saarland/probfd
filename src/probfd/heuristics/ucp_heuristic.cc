@@ -5,7 +5,7 @@
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 #include "probfd/pdbs/projection_state_space.h"
 
-#include "probfd/task_evaluator_factory.h"
+#include "probfd/task_heuristic_factory.h"
 #include "probfd/value_type.h"
 
 #include "downward/task_utils/task_properties.h"

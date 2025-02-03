@@ -138,7 +138,7 @@ class FRET : public MDPAlgorithm<State, Action> {
     using QAction = quotients::QuotientAction<Action>;
     using QHeuristicSearchAlgorithm = heuristic_search::
         FRETHeuristicSearchAlgorithm<QState, QAction, StateInfoT>;
-    using QEvaluator = probfd::Evaluator<QState>;
+    using QEvaluator = probfd::Heuristic<QState>;
 
     using StackInfo = internal::StackInfo<QAction>;
 
@@ -207,7 +207,7 @@ class ValueGraph {
     using AlgorithmValueType =
         typename QHeuristicSearchAlgorithm::AlgorithmValueType;
 
-    using QEvaluator = Evaluator<QState>;
+    using QEvaluator = Heuristic<QState>;
 
     std::unordered_set<StateID> ids_;
     std::vector<Transition<QAction>> opt_transitions_;
@@ -230,7 +230,7 @@ class PolicyGraph {
     using QHeuristicSearchAlgorithm =
         heuristic_search::HeuristicSearchAlgorithm<QState, QAction, StateInfoT>;
 
-    using QEvaluator = Evaluator<QState>;
+    using QEvaluator = Heuristic<QState>;
 
     Distribution<StateID> t_;
 

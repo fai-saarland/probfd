@@ -1,7 +1,7 @@
 #include "probfd/cartesian_abstractions/astar_trace_generator.h"
 
 #include "probfd/cartesian_abstractions/cartesian_abstraction.h"
-#include "probfd/cartesian_abstractions/evaluators.h"
+#include "probfd/cartesian_abstractions/heuristics.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition_system.h"
 #include "probfd/cartesian_abstractions/trace_generator.h"

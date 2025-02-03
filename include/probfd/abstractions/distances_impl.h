@@ -7,7 +7,7 @@
 #include "probfd/pdbs/projection_operator.h"
 #include "probfd/pdbs/projection_state_space.h"
 
-#include "probfd/evaluator.h"
+#include "probfd/heuristic.h"
 
 #include "downward/utils/countdown_timer.h"
 
@@ -22,7 +22,7 @@ template <typename State, typename Action>
 void compute_value_table(
     MDP<State, Action>& mdp,
     param_type<State> initial_state,
-    const Evaluator<State>& heuristic,
+    const Heuristic<State>& heuristic,
     std::span<value_t> value_table,
     double max_time)
 {

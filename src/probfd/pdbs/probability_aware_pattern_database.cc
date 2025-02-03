@@ -24,7 +24,7 @@ static void compute_distances(
     const ProbabilisticTaskProxy& task_proxy,
     std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     StateRank abstract_initial_state,
-    const Evaluator<StateRank>& heuristic,
+    const Heuristic<StateRank>& heuristic,
     bool operator_pruning,
     double max_time)
 {
@@ -48,7 +48,7 @@ void compute_distances(
     ProbabilityAwarePatternDatabase& pdb,
     ProjectionStateSpace& mdp,
     StateRank abstract_initial_state,
-    const Evaluator<StateRank>& heuristic,
+    const Heuristic<StateRank>& heuristic,
     double max_time)
 {
     utils::CountdownTimer timer(max_time);
@@ -66,7 +66,7 @@ void compute_distances(
     const ProbabilisticTaskProxy& task_proxy,
     std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     StateRank abstract_initial_state,
-    const Evaluator<StateRank>& heuristic,
+    const Heuristic<StateRank>& heuristic,
     bool operator_pruning,
     double max_time)
 {

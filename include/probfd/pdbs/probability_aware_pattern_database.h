@@ -1,11 +1,11 @@
 #ifndef PROBFD_PDBS_PROBABILITY_AWARE_PATTERN_DATABASE_H
 #define PROBFD_PDBS_PROBABILITY_AWARE_PATTERN_DATABASE_H
 
-#include "probfd/pdbs/evaluators.h"
+#include "probfd/pdbs/heuristics.h"
 #include "probfd/pdbs/state_ranking_function.h"
 #include "probfd/pdbs/types.h"
 
-#include "probfd/heuristics/constant_evaluator.h"
+#include "probfd/heuristics/constant_heuristic.h"
 
 #include "probfd/fdr_types.h"
 
@@ -88,7 +88,7 @@ void compute_distances(
     ProbabilityAwarePatternDatabase& pdb,
     ProjectionStateSpace& mdp,
     StateRank abstract_initial_state,
-    const Evaluator<StateRank>& heuristic,
+    const Heuristic<StateRank>& heuristic,
     double max_time = std::numeric_limits<double>::infinity());
 
 /**
@@ -111,7 +111,7 @@ void compute_distances(
     const ProbabilisticTaskProxy& task_proxy,
     std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     StateRank abstract_initial_state,
-    const Evaluator<StateRank>& heuristic,
+    const Heuristic<StateRank>& heuristic,
     bool operator_pruning = true,
     double max_time = std::numeric_limits<double>::infinity());
 

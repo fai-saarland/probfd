@@ -4,13 +4,13 @@
 
 #include "probfd/caching_task_state_space.h"
 
-#include "probfd/evaluator.h"
+#include "probfd/heuristic.h"
 #include "probfd/interval.h"
 #include "probfd/mdp_algorithm.h"
 #include "probfd/policy.h"
 #include "probfd/probabilistic_task.h"
 #include "probfd/task_cost_function.h"
-#include "probfd/task_evaluator_factory.h"
+#include "probfd/task_heuristic_factory.h"
 #include "probfd/task_state_space_factory.h"
 
 #include "probfd/utils/timed.h"
@@ -31,7 +31,7 @@ namespace probfd::solvers {
 MDPSolver::MDPSolver(
     utils::Verbosity verbosity,
     std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-    std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
+    std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
     std::string policy_filename,
     bool print_fact_names,
     std::optional<value_t> report_epsilon,
@@ -198,7 +198,7 @@ MDPSolver::create(const std::shared_ptr<ProbabilisticTask>& task)
     std::shared_ptr<FDREvaluator> heuristic = timed(
         std::cout,
         "Constructing heuristic...",
-        &TaskEvaluatorFactory::create_evaluator,
+        &TaskHeuristicFactory::create_evaluator,
         *heuristic_factory_,
         task,
         task_cost_function);

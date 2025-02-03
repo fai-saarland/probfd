@@ -9,7 +9,7 @@
 #include "probfd/utils/not_implemented.h"
 
 #include "probfd/cost_function.h"
-#include "probfd/evaluator.h"
+#include "probfd/heuristic.h"
 #include "probfd/progress_report.h"
 
 #include "downward/utils/countdown_timer.h"

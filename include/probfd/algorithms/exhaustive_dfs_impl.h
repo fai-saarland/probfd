@@ -8,7 +8,7 @@
 
 #include "probfd/utils/not_implemented.h"
 
-#include "probfd/evaluator.h"
+#include "probfd/heuristic.h"
 
 #include <cassert>
 #include <ranges>

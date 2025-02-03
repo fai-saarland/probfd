@@ -20,7 +20,7 @@ using downward::cli::utils::get_rng_arguments_from_options;
 namespace {
 
 class GZOCPHeuristicFactoryFeature
-    : public TypedFeature<TaskEvaluatorFactory, GZOCPHeuristicFactory> {
+    : public TypedFeature<TaskHeuristicFactory, GZOCPHeuristicFactory> {
 public:
     GZOCPHeuristicFactoryFeature()
         : TypedFeature("gzocp_heuristic")

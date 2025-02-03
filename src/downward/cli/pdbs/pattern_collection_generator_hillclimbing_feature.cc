@@ -68,7 +68,7 @@ public:
         document_title("Hill climbing");
         document_synopsis(
             "This algorithm uses hill climbing to generate patterns "
-            "optimized for the Evaluator#Canonical_PDB heuristic. It it "
+            "optimized for the Heuristic#Canonical_PDB heuristic. It it "
             "described "
             "in the following paper:" +
             paper_references());
@@ -100,7 +100,7 @@ public:
         document_title("iPDB");
         document_synopsis(
             "This approach is a combination of using the "
-            "Evaluator#Canonical_PDB "
+            "Heuristic#Canonical_PDB "
             "heuristic over patterns computed with the "
             "PatternCollectionGenerator#hillclimbing algorithm for pattern "
             "generation. It is a short-hand for the command-line option "
@@ -109,7 +109,7 @@ public:
             "described "
             "in the following paper:" +
             paper_references() +
-            "See also Evaluator#Canonical_PDB and "
+            "See also Heuristic#Canonical_PDB and "
             "PatternCollectionGenerator#Hill_climbing for more details.");
 
         add_hillclimbing_options_to_feature(*this);

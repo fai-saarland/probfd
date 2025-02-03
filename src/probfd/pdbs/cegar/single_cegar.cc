@@ -3,7 +3,7 @@
 #include "probfd/pdbs/cegar/flaw.h"
 #include "probfd/pdbs/cegar/flaw_finding_strategy.h"
 
-#include "probfd/pdbs/evaluators.h"
+#include "probfd/pdbs/heuristics.h"
 #include "probfd/pdbs/projection_state_space.h"
 #include "probfd/pdbs/projection_transformation.h"
 #include "probfd/pdbs/utils.h"

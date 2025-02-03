@@ -1,6 +1,6 @@
 #include "downward/cli/plugins/plugin.h"
 
-#include "probfd/heuristics/constant_evaluator.h"
+#include "probfd/heuristics/constant_heuristic.h"
 
 using namespace utils;
 
@@ -12,7 +12,7 @@ using namespace downward::cli::plugins;
 namespace {
 
 class BlindEvaluatorFactoryFeature
-    : public TypedFeature<TaskEvaluatorFactory, BlindEvaluatorFactory> {
+    : public TypedFeature<TaskHeuristicFactory, BlindEvaluatorFactory> {
 public:
     BlindEvaluatorFactoryFeature()
         : TypedFeature("blind_heuristic")

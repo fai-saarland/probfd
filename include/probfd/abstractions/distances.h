@@ -12,7 +12,7 @@
 // Forward Declarations
 namespace probfd {
 template <typename>
-class Evaluator;
+class Heuristic;
 template <typename, typename>
 class MDP;
 } // namespace probfd
@@ -27,7 +27,7 @@ template <typename State, typename Action>
 void compute_value_table(
     MDP<State, Action>& mdp,
     param_type<State> initial_state,
-    const Evaluator<State>& heuristic,
+    const Heuristic<State>& heuristic,
     std::span<value_t> value_table,
     double max_time = std::numeric_limits<double>::infinity());
 

@@ -7,7 +7,7 @@
 
 #include "probfd/policy_pickers/arbitrary_tiebreaker.h"
 
-#include "probfd/heuristics/constant_evaluator.h"
+#include "probfd/heuristics/constant_heuristic.h"
 
 #include "probfd/quotients/quotient_system.h"
 

@@ -283,7 +283,7 @@ SearchStatus EagerSearch::step()
                   large. In the medium term, we want the evaluators to
                   remember evaluator values for states themselves if
                   desired by the user, so that such recomputations
-                  will just involve a look-up by the Evaluator object
+                  will just involve a look-up by the Heuristic object
                   rather than a recomputation of the evaluator value
                   from scratch.
                 */

@@ -1,11 +1,11 @@
-#ifndef PROBFD_HEURISTICS_CONSTANT_EVALUATOR_H
-#define PROBFD_HEURISTICS_CONSTANT_EVALUATOR_H
+#ifndef PROBFD_HEURISTICS_CONSTANT_HEURISTIC_H
+#define PROBFD_HEURISTICS_CONSTANT_HEURISTIC_H
 
 #include "probfd/task_utils/task_properties.h"
 
 #include "probfd/cost_function.h"
-#include "probfd/evaluator.h"
-#include "probfd/task_evaluator_factory.h"
+#include "probfd/heuristic.h"
+#include "probfd/task_heuristic_factory.h"
 #include "probfd/task_proxy.h"
 #include "probfd/type_traits.h"
 #include "probfd/value_type.h"
@@ -16,7 +16,7 @@ namespace probfd::heuristics {
  * @brief Returns a constant estimate for each state.
  */
 template <typename State>
-class ConstantEvaluator : public Evaluator<State> {
+class ConstantEvaluator : public Heuristic<State> {
     const value_t value_;
 
 public:
@@ -57,7 +57,7 @@ public:
     }
 };
 
-class BlindEvaluatorFactory : public TaskEvaluatorFactory {
+class BlindEvaluatorFactory : public TaskHeuristicFactory {
 public:
     std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,
@@ -66,4 +66,4 @@ public:
 
 } // namespace probfd::heuristics
 
-#endif // PROBFD_HEURISTICS_CONSTANT_EVALUATOR_H
+#endif // PROBFD_HEURISTICS_CONSTANT_HEURISTIC_H

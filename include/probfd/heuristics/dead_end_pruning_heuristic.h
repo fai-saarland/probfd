@@ -1,9 +1,9 @@
-#ifndef PROBFD_HEURISTICS_DEAD_END_PRUNING_H
-#define PROBFD_HEURISTICS_DEAD_END_PRUNING_H
+#ifndef PROBFD_HEURISTICS_DEAD_END_PRUNING_HEURISTIC_H
+#define PROBFD_HEURISTICS_DEAD_END_PRUNING_HEURISTIC_H
 
-#include "probfd/evaluator.h"
 #include "probfd/fdr_types.h"
-#include "probfd/task_evaluator_factory.h"
+#include "probfd/heuristic.h"
+#include "probfd/task_heuristic_factory.h"
 #include "probfd/value_type.h"
 
 #include <memory>
@@ -43,7 +43,7 @@ public:
     void print_statistics() const override;
 };
 
-class DeadEndPruningHeuristicFactory : public TaskEvaluatorFactory {
+class DeadEndPruningHeuristicFactory : public TaskHeuristicFactory {
     const std::shared_ptr<::Evaluator> evaluator_;
 
 public:

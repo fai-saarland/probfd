@@ -3,7 +3,7 @@ create_library(
     HELP "Enables core ProbFD plugin"
     SOURCES
         probfd/cli/solver_interface
-        probfd/cli/task_evaluator_factory
+        probfd/cli/task_heuristic_factory
     DEPENDS
         probfd_core
         parser
@@ -432,10 +432,10 @@ create_library(
 )
 
 create_library(
-    NAME constant_evaluator_plugin
-    HELP "Enables the constant evaluator plugin"
+    NAME constant_heuristic_plugin
+    HELP "Enables the constant heuristic plugin"
     SOURCES
-        probfd/cli/heuristics/constant_evaluator
+        probfd/cli/heuristics/constant_heuristic
     DEPENDS
         evaluator_category
         probfd_core
@@ -449,7 +449,7 @@ create_library(
     NAME dead_end_pruning_heuristic_plugin
     HELP "Enables the dead-end pruning heuristic plugin"
     SOURCES
-        probfd/cli/heuristics/dead_end_pruning
+        probfd/cli/heuristics/dead_end_pruning_heuristic
     DEPENDS
         evaluator_category
         deadend_pruning_heuristic
@@ -463,7 +463,7 @@ create_library(
     NAME determinization_heuristic_plugin
     HELP "Enables the determinization heuristic plugin"
     SOURCES
-        probfd/cli/heuristics/determinization_cost
+        probfd/cli/heuristics/determinization_cost_heuristic
     DEPENDS
         evaluator_category
         determinization_heuristic
@@ -479,7 +479,6 @@ create_library(
     SOURCES
         probfd/cli/heuristics/gzocp_heuristic
     DEPENDS
-        evaluator_category
         gzocp_pdb_heuristic
         parser
         plugins
@@ -493,7 +492,6 @@ create_library(
     SOURCES
         probfd/cli/heuristics/probability_aware_pdb_heuristic
     DEPENDS
-        evaluator_category
         probability_aware_pdb_heuristic
         parser
         plugins
@@ -507,7 +505,6 @@ create_library(
     SOURCES
         probfd/cli/heuristics/scp_heuristic
     DEPENDS
-        evaluator_category
         scp_pdb_heuristic
         parser
         plugins
@@ -521,7 +518,6 @@ create_library(
     SOURCES
         probfd/cli/heuristics/ucp_heuristic
     DEPENDS
-        evaluator_category
         ucp_pdb_heuristic
         parser
         plugins

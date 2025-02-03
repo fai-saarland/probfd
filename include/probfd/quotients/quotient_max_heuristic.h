@@ -8,18 +8,18 @@
 
 #include "probfd/quotients/quotient_system.h"
 
-#include "probfd/evaluator.h"
+#include "probfd/heuristic.h"
 
 namespace probfd::quotients {
 
 template <typename State, typename Action>
-class QuotientMaxHeuristic : public Evaluator<QuotientState<State, Action>> {
+class QuotientMaxHeuristic : public Heuristic<QuotientState<State, Action>> {
     using QState = QuotientState<State, Action>;
 
-    const Evaluator<State>& original_;
+    const Heuristic<State>& original_;
 
 public:
-    explicit QuotientMaxHeuristic(const Evaluator<State>& original)
+    explicit QuotientMaxHeuristic(const Heuristic<State>& original)
         : original_(original)
     {
     }
@@ -27,7 +27,7 @@ public:
     value_t evaluate(param_type<QState> state) const override
     {
         return state.member_maximum(
-            std::bind_front(&Evaluator<State>::evaluate, std::ref(original_)));
+            std::bind_front(&Heuristic<State>::evaluate, std::ref(original_)));
     }
 
     void print_statistics() const final { original_.print_statistics(); }

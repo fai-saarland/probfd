@@ -16,7 +16,7 @@
 // Forward Declarations
 namespace probfd {
 class ProbabilisticTask;
-class TaskEvaluatorFactory;
+class TaskHeuristicFactory;
 class TaskStateSpaceFactory;
 } // namespace probfd
 
@@ -32,7 +32,7 @@ class MDPSolver : public TaskSolverFactory {
 
 private:
     const std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory_;
-    const std::shared_ptr<TaskEvaluatorFactory> heuristic_factory_;
+    const std::shared_ptr<TaskHeuristicFactory> heuristic_factory_;
 
     const std::string policy_filename;
     const bool print_fact_names;
@@ -47,7 +47,7 @@ public:
     MDPSolver(
         utils::Verbosity verbosity,
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
+        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,
         bool print_fact_names,
         std::optional<value_t> report_epsilon,

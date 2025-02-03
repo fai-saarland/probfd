@@ -1,5 +1,5 @@
-#ifndef PROBFD_TASK_EVALUATOR_FACTORY_H
-#define PROBFD_TASK_EVALUATOR_FACTORY_H
+#ifndef PROBFD_TASK_HEURISTIC_FACTORY_H
+#define PROBFD_TASK_HEURISTIC_FACTORY_H
 
 #include "probfd/fdr_types.h"
 
@@ -11,9 +11,9 @@ class ProbabilisticTask;
 
 namespace probfd {
 
-class TaskEvaluatorFactory {
+class TaskHeuristicFactory {
 public:
-    virtual ~TaskEvaluatorFactory() = default;
+    virtual ~TaskHeuristicFactory() = default;
 
     virtual std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,
@@ -22,4 +22,4 @@ public:
 
 } // namespace probfd
 
-#endif // PROBFD_TASK_EVALUATOR_FACTORY_H
+#endif // PROBFD_TASK_HEURISTIC_FACTORY_H

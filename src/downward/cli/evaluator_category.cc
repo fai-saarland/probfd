@@ -11,7 +11,7 @@ namespace {
 class EvaluatorCategoryPlugin : public plugins::TypedCategoryPlugin<Evaluator> {
 public:
     EvaluatorCategoryPlugin()
-        : TypedCategoryPlugin("Evaluator")
+        : TypedCategoryPlugin("Heuristic")
     {
         document_synopsis(
             "An evaluator specification is either a newly created evaluator "

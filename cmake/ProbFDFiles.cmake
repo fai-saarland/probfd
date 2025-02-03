@@ -1,8 +1,8 @@
 create_library(
     NAME probfd_core
     SOURCES
-        # Evaluators
-        probfd/evaluator
+        # Heuristics
+        probfd/heuristic
 
         # Tasks
         probfd/probabilistic_task
@@ -11,12 +11,10 @@ create_library(
         probfd/task_utils/task_properties
 
         # Basic types
-        probfd/evaluation_result
         probfd/interval
         probfd/value_type
 
         # MDP interfaces
-        probfd/state_evaluator
         probfd/cost_function
         probfd/caching_task_state_space
         probfd/task_state_space
@@ -29,11 +27,8 @@ create_library(
         # Cost Functions
         probfd/task_cost_function
 
-        # Task Evaluator Factories
-        probfd/task_evaluator_factory
-
-        # Constant evaluator (default)
-        probfd/heuristics/constant_evaluator
+        # Constant heuristic (default)
+        probfd/heuristics/constant_heuristic
 
         # Task Utils
         probfd/task_utils/causal_graph
@@ -125,7 +120,7 @@ create_library(
 create_library(
     NAME deadend_pruning_heuristic
     SOURCES
-        probfd/heuristics/dead_end_pruning
+        probfd/heuristics/dead_end_pruning_heuristic
     DEPENDS
         successor_generator
         task_dependent_heuristic
@@ -134,7 +129,7 @@ create_library(
 create_library(
     NAME determinization_heuristic
     SOURCES
-        probfd/heuristics/determinization_cost
+        probfd/heuristics/determinization_cost_heuristic
     DEPENDS
         successor_generator
         task_dependent_heuristic
@@ -175,7 +170,7 @@ create_library(
     NAME probability_aware_pdbs
     SOURCES
         probfd/pdbs/assignment_enumerator
-        probfd/pdbs/evaluators
+        probfd/pdbs/heuristics
         probfd/pdbs/match_tree
         probfd/pdbs/probability_aware_pattern_database
         probfd/pdbs/projection_operator
@@ -313,7 +308,7 @@ create_library(
         probfd/cartesian_abstractions/cegar
         probfd/cartesian_abstractions/cost_saturation
         probfd/cartesian_abstractions/complete_policy_flaw_finder
-        probfd/cartesian_abstractions/evaluators
+        probfd/cartesian_abstractions/heuristics
         probfd/cartesian_abstractions/flaw
         probfd/cartesian_abstractions/ilao_policy_generator
         probfd/cartesian_abstractions/policy_based_flaw_generator

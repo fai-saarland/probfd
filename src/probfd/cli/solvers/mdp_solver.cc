@@ -21,7 +21,7 @@ void add_base_solver_options_to_feature(Feature& feature)
         "state_space",
         "The factory implementation for the task state space.",
         "default_state_space()");
-    feature.add_option<std::shared_ptr<TaskEvaluatorFactory>>(
+    feature.add_option<std::shared_ptr<TaskHeuristicFactory>>(
         "eval",
         "The heuristic to be used by the search.",
         "blind_heuristic()");
@@ -56,7 +56,7 @@ MDPSolverArgs get_base_solver_args_from_options(const Options& options)
         get_log_arguments_from_options(options),
         std::make_tuple(
             options.get<std::shared_ptr<TaskStateSpaceFactory>>("state_space"),
-            options.get<std::shared_ptr<TaskEvaluatorFactory>>("eval"),
+            options.get<std::shared_ptr<TaskHeuristicFactory>>("eval"),
             options.get<std::string>("policy_file"),
             options.get<bool>("print_fact_names"),
             options.contains("report_epsilon")

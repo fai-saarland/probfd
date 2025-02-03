@@ -1,6 +1,6 @@
 #include "downward/cli/plugins/plugin.h"
 
-#include "probfd/heuristics/determinization_cost.h"
+#include "probfd/heuristics/determinization_cost_heuristic.h"
 
 using namespace utils;
 
@@ -13,7 +13,7 @@ namespace {
 
 class DeterminizationHeuristicFactoryFeature
     : public TypedFeature<
-          TaskEvaluatorFactory,
+          TaskHeuristicFactory,
           DeterminizationCostHeuristicFactory> {
 public:
     DeterminizationHeuristicFactoryFeature()

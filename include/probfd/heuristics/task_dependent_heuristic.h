@@ -1,8 +1,8 @@
 #ifndef PROBFD_HEURISTICS_TASK_DEPENDENT_HEURISTIC_H
 #define PROBFD_HEURISTICS_TASK_DEPENDENT_HEURISTIC_H
 
-#include "probfd/evaluator.h"
 #include "probfd/fdr_types.h"
+#include "probfd/heuristic.h"
 #include "probfd/task_proxy.h"
 
 #include "downward/utils/logging.h"

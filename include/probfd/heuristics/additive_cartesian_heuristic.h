@@ -3,7 +3,7 @@
 
 #include "probfd/heuristics/task_dependent_heuristic.h"
 
-#include "probfd/task_evaluator_factory.h"
+#include "probfd/task_heuristic_factory.h"
 
 #include <memory>
 #include <vector>
@@ -45,7 +45,7 @@ protected:
     value_t evaluate(const State& ancestor_state) const override;
 };
 
-class AdditiveCartesianHeuristicFactory : public TaskEvaluatorFactory {
+class AdditiveCartesianHeuristicFactory : public TaskHeuristicFactory {
     const std::vector<
         std::shared_ptr<probfd::cartesian_abstractions ::SubtaskGenerator>>
         subtask_generators;

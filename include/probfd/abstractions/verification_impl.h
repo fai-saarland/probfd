@@ -5,7 +5,7 @@
 #include "probfd/pdbs/projection_operator.h"
 #include "probfd/pdbs/projection_state_space.h"
 
-#include "probfd/evaluator.h"
+#include "probfd/heuristic.h"
 
 #include "downward/lp/lp_solver.h"
 

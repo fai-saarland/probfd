@@ -16,7 +16,7 @@ namespace {
 
 class ProbabilityAwarePDBHeuristicFactoryFeature
     : public TypedFeature<
-          TaskEvaluatorFactory,
+          TaskHeuristicFactory,
           ProbabilityAwarePDBHeuristicFactory> {
 public:
     ProbabilityAwarePDBHeuristicFactoryFeature()

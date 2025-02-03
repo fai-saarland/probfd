@@ -1,6 +1,6 @@
 #include "downward/cli/plugins/plugin.h"
 
-#include "probfd/heuristics/dead_end_pruning.h"
+#include "probfd/heuristics/dead_end_pruning_heuristic.h"
 
 using namespace utils;
 
@@ -13,7 +13,7 @@ namespace {
 
 class DeadEndPruningHeuristicFactoryFeature
     : public TypedFeature<
-          TaskEvaluatorFactory,
+          TaskHeuristicFactory,
           DeadEndPruningHeuristicFactory> {
 public:
     DeadEndPruningHeuristicFactoryFeature()

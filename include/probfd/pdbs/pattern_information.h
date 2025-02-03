@@ -3,7 +3,7 @@
 
 #include "probfd/pdbs/types.h"
 
-#include "probfd/heuristics/constant_evaluator.h"
+#include "probfd/heuristics/constant_heuristic.h"
 
 #include "probfd/fdr_types.h"
 #include "probfd/task_proxy.h"

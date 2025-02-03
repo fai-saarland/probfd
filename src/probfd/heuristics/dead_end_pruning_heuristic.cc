@@ -1,9 +1,9 @@
-#include "probfd/heuristics/dead_end_pruning.h"
+#include "probfd/heuristics/dead_end_pruning_heuristic.h"
 
-#include "probfd/task_evaluator_factory.h"
+#include "probfd/task_heuristic_factory.h"
 
 #include "probfd/cost_function.h"
-#include "probfd/evaluator.h"
+#include "probfd/heuristic.h"
 
 #include "downward/utils/system.h"
 

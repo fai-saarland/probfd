@@ -1,14 +1,14 @@
-#ifndef PROBFD_CARTESIAN_ABSTRACTIONS_EVALUATORS_H
-#define PROBFD_CARTESIAN_ABSTRACTIONS_EVALUATORS_H
+#ifndef PROBFD_CARTESIAN_ABSTRACTIONS_HEURISTICS_H
+#define PROBFD_CARTESIAN_ABSTRACTIONS_HEURISTICS_H
 
-#include "probfd/evaluator.h"
+#include "probfd/heuristic.h"
 #include "probfd/value_type.h"
 
 #include <vector>
 
 namespace probfd::cartesian_abstractions {
 
-class CartesianHeuristic : public Evaluator<int> {
+class CartesianHeuristic : public Heuristic<int> {
     std::vector<value_t> h_values_ = {0.0_vt};
 
 public:
@@ -23,4 +23,4 @@ public:
 
 } // namespace probfd::cartesian_abstractions
 
-#endif // PROBFD_CARTESIAN_ABSTRACTIONS_EVALUATORS_H
+#endif // PROBFD_CARTESIAN_ABSTRACTIONS_HEURISTICS_H

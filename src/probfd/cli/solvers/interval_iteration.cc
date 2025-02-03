@@ -31,7 +31,7 @@ public:
     IntervalIterationSolver(
         utils::Verbosity verbosity,
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskEvaluatorFactory> heuristic_factory,
+        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         std::string policy_filename,
         bool print_fact_names,
         std::optional<value_t> report_epsilon,

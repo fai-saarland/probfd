@@ -13,7 +13,7 @@ namespace probfd {
 template <typename, typename>
 class MDP;
 template <typename>
-class Evaluator;
+class Heuristic;
 class ProgressReport;
 } // namespace probfd
 
@@ -31,7 +31,7 @@ protected:
     using PolicyType = Policy<State, Action>;
 
     using MDPType = MDP<State, Action>;
-    using EvaluatorType = Evaluator<State>;
+    using EvaluatorType = Heuristic<State>;
 
 public:
     virtual ~MDPAlgorithm() = default;

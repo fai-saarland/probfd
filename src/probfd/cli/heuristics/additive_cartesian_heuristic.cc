@@ -16,7 +16,7 @@ namespace {
 
 class AdditiveCartesianHeuristicFactoryFeature
     : public TypedFeature<
-          TaskEvaluatorFactory,
+          TaskHeuristicFactory,
           AdditiveCartesianHeuristicFactory> {
 public:
     AdditiveCartesianHeuristicFactoryFeature()

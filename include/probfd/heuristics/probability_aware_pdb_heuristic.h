@@ -4,7 +4,7 @@
 #include "probfd/pdbs/types.h"
 
 #include "probfd/heuristics/task_dependent_heuristic.h"
-#include "probfd/task_evaluator_factory.h"
+#include "probfd/task_heuristic_factory.h"
 
 #include <memory>
 #include <vector>
@@ -46,7 +46,7 @@ public:
     value_t evaluate(const State& state) const override;
 };
 
-class ProbabilityAwarePDBHeuristicFactory : public TaskEvaluatorFactory {
+class ProbabilityAwarePDBHeuristicFactory : public TaskHeuristicFactory {
     const std::shared_ptr<probfd::pdbs::PatternCollectionGenerator> patterns_;
     const double max_time_dominance_pruning_;
     const utils::Verbosity verbosity_;

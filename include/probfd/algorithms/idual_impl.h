@@ -8,7 +8,7 @@
 #include "probfd/utils/not_implemented.h"
 
 #include "probfd/distribution.h"
-#include "probfd/evaluator.h"
+#include "probfd/heuristic.h"
 #include "probfd/transition.h"
 
 #include "downward/utils/countdown_timer.h"

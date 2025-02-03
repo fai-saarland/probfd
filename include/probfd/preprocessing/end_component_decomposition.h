@@ -5,7 +5,7 @@
 
 #include "probfd/storage/per_state_storage.h"
 
-#include "probfd/evaluator.h"
+#include "probfd/heuristic.h"
 #include "probfd/mdp.h"
 #include "probfd/type_traits.h"
 
@@ -85,7 +85,7 @@ struct ECDStatistics {
 template <typename State, typename Action>
 class EndComponentDecomposition {
     using MDPType = MDP<State, Action>;
-    using EvaluatorType = Evaluator<State>;
+    using EvaluatorType = Heuristic<State>;
     using QSystem = quotients::QuotientSystem<State, Action>;
 
     struct StateInfo {

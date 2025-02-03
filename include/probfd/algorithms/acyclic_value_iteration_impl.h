@@ -6,7 +6,7 @@
 
 #include "probfd/policies/map_policy.h"
 
-#include "probfd/evaluator.h"
+#include "probfd/heuristic.h"
 #include "probfd/mdp.h"
 
 #include "downward/utils/countdown_timer.h"

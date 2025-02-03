@@ -5,7 +5,7 @@
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 
 #include "probfd/cost_function.h"
-#include "probfd/task_evaluator_factory.h"
+#include "probfd/task_heuristic_factory.h"
 
 #include "downward/pdbs/dominance_pruning.h"
 

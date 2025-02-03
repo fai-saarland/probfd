@@ -5,7 +5,7 @@
 #include "probfd/cartesian_abstractions/cartesian_abstraction.h"
 #include "probfd/cartesian_abstractions/cartesian_heuristic_function.h"
 #include "probfd/cartesian_abstractions/cegar.h"
-#include "probfd/cartesian_abstractions/evaluators.h"
+#include "probfd/cartesian_abstractions/heuristics.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition_system.h"
 #include "probfd/cartesian_abstractions/subtask_generators.h"
 

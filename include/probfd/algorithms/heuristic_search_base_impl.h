@@ -10,7 +10,7 @@
 
 #include "probfd/utils/language.h"
 
-#include "probfd/evaluator.h"
+#include "probfd/heuristic.h"
 #include "probfd/mdp.h"
 #include "probfd/transition.h"
 

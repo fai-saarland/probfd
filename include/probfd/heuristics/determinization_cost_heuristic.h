@@ -1,10 +1,10 @@
-#ifndef PROBFD_HEURISTICS_DETERMINIZATION_COST_H
-#define PROBFD_HEURISTICS_DETERMINIZATION_COST_H
+#ifndef PROBFD_HEURISTICS_DETERMINIZATION_COST_HEURISTIC_H
+#define PROBFD_HEURISTICS_DETERMINIZATION_COST_HEURISTIC_H
 
-#include "probfd/evaluator.h"
 #include "probfd/fdr_types.h"
+#include "probfd/heuristic.h"
 #include "probfd/probabilistic_task.h"
-#include "probfd/task_evaluator_factory.h"
+#include "probfd/task_heuristic_factory.h"
 #include "probfd/value_type.h"
 
 #include <memory>
@@ -40,7 +40,7 @@ public:
     void print_statistics() const override;
 };
 
-class DeterminizationCostHeuristicFactory : public TaskEvaluatorFactory {
+class DeterminizationCostHeuristicFactory : public TaskHeuristicFactory {
     const std::shared_ptr<::Evaluator> evaluator_;
 
 public:

@@ -7,7 +7,7 @@
 
 #include "probfd/utils/iterators.h"
 
-#include "probfd/evaluator.h"
+#include "probfd/heuristic.h"
 #include "probfd/mdp.h"
 #include "probfd/type_traits.h"
 
@@ -93,7 +93,7 @@ struct StackInfo {
 template <typename State, typename Action>
 class QualitativeReachabilityAnalysis {
     using MDPType = MDP<State, Action>;
-    using EvaluatorType = Evaluator<State>;
+    using EvaluatorType = Heuristic<State>;
 
     using StateInfo = internal::StateInfo;
     using StackInfo = internal::StackInfo;

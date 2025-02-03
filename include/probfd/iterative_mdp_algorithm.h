@@ -17,7 +17,7 @@ protected:
     using PolicyType = Policy<State, Action>;
 
     using MDPType = MDP<State, Action>;
-    using EvaluatorType = Evaluator<State>;
+    using EvaluatorType = Heuristic<State>;
 
     /// Precision value for convergence checks
     const value_t epsilon;

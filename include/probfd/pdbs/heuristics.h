@@ -1,9 +1,9 @@
-#ifndef PROBFD_PDBS_EVALUATORS_H
-#define PROBFD_PDBS_EVALUATORS_H
+#ifndef PROBFD_PDBS_HEURISTICS_H
+#define PROBFD_PDBS_HEURISTICS_H
 
 #include "probfd/pdbs/types.h"
 
-#include "probfd/evaluator.h"
+#include "probfd/heuristic.h"
 #include "probfd/value_type.h"
 
 // Forward Declarations
@@ -19,7 +19,7 @@ struct ProbabilityAwarePatternDatabase;
 namespace probfd::pdbs {
 
 /// Type alias for heuristics for projection states.
-using StateRankEvaluator = Evaluator<StateRank>;
+using StateRankEvaluator = Heuristic<StateRank>;
 
 class PDBEvaluator : public StateRankEvaluator {
     const ::pdbs::PatternDatabase& pdb_;

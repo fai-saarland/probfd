@@ -1,5 +1,5 @@
-#ifndef PROBFD_EVALUATOR_H
-#define PROBFD_EVALUATOR_H
+#ifndef PROBFD_HEURISTIC_H
+#define PROBFD_HEURISTIC_H
 
 #include "probfd/type_traits.h"
 #include "probfd/types.h"
@@ -8,14 +8,14 @@
 namespace probfd {
 
 /**
- * @brief The interface representing heuristic functions.
+ * @brief The interface representing a heuristic function.
  *
- * @tparam State - The state type of the underlying MDP model.
+ * @tparam State - The type of states for which the heuristic is evaluated.
  */
 template <typename State>
-class Evaluator {
+class Heuristic {
 public:
-    virtual ~Evaluator() = default;
+    virtual ~Heuristic() = default;
 
     /**
      * @brief Evaluates the heuristic on a given state and returns the
@@ -32,4 +32,4 @@ public:
 
 } // namespace probfd
 
-#endif // PROBFD_EVALUATOR_H
+#endif // PROBFD_HEURISTIC_H

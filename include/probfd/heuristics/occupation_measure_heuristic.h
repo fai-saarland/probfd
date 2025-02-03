@@ -2,7 +2,7 @@
 #define PROBFD_HEURISTICS_OCCUPATION_MEASURE_HEURISTIC_H
 
 #include "probfd/heuristics/lp_heuristic.h"
-#include "probfd/task_evaluator_factory.h"
+#include "probfd/task_heuristic_factory.h"
 
 #include <memory>
 
@@ -40,7 +40,7 @@ private:
     void reset_constraints(const State& state) const;
 };
 
-class OccupationMeasureHeuristicFactory : public TaskEvaluatorFactory {
+class OccupationMeasureHeuristicFactory : public TaskHeuristicFactory {
     const utils::Verbosity verbosity_;
     const lp::LPSolverType lp_solver_type_;
     const std::shared_ptr<occupation_measures::ConstraintGeneratorFactory>

@@ -7,7 +7,7 @@
 #include "probfd/algorithms/interval_iteration.h"
 #include "probfd/algorithms/topological_value_iteration.h"
 
-#include "probfd/heuristics/constant_evaluator.h"
+#include "probfd/heuristics/constant_heuristic.h"
 
 #include "probfd/task_utils/task_properties.h"
 

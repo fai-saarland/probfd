@@ -22,7 +22,7 @@ using downward::cli::utils::get_rng_arguments_from_options;
 namespace {
 
 class SCPHeuristicFactoryFeature
-    : public TypedFeature<TaskEvaluatorFactory, SCPHeuristicFactory> {
+    : public TypedFeature<TaskHeuristicFactory, SCPHeuristicFactory> {
 public:
     SCPHeuristicFactoryFeature()
         : TypedFeature("scp_heuristic")

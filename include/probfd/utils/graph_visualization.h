@@ -4,7 +4,7 @@
 #include "probfd/storage/per_state_storage.h"
 
 #include "probfd/distribution.h"
-#include "probfd/evaluator.h"
+#include "probfd/heuristic.h"
 #include "probfd/mdp.h"
 
 #include <cassert>
@@ -289,7 +289,7 @@ void dump_state_space_dot_graph(
     std::ostream& out,
     const State& initial_state,
     MDP<State, Action>* mdp,
-    Evaluator<State>* prune = nullptr,
+    Heuristic<State>* prune = nullptr,
     std::function<std::string(const State&)> sstr =
         [](const State&) { return ""; },
     std::function<std::string(const Action&)> astr =

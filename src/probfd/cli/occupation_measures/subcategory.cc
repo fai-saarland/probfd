@@ -13,7 +13,7 @@
 
 #include "probfd/pdbs/pattern_collection_generator.h"
 
-#include "probfd/task_evaluator_factory.h"
+#include "probfd/task_heuristic_factory.h"
 
 #include "downward/utils/markup.h"
 
@@ -39,7 +39,7 @@ namespace {
 
 class HROCFactoryFeature
     : public TypedFeature<
-          TaskEvaluatorFactory,
+          TaskHeuristicFactory,
           OccupationMeasureHeuristicFactory> {
 public:
     HROCFactoryFeature()
@@ -80,7 +80,7 @@ public:
 
 class HPOMFactoryFeature
     : public TypedFeature<
-          TaskEvaluatorFactory,
+          TaskHeuristicFactory,
           OccupationMeasureHeuristicFactory> {
 public:
     HPOMFactoryFeature()
@@ -123,7 +123,7 @@ public:
 
 class HOHPOMFactoryFeature
     : public TypedFeature<
-          TaskEvaluatorFactory,
+          TaskHeuristicFactory,
           OccupationMeasureHeuristicFactory> {
 public:
     HOHPOMFactoryFeature()
@@ -170,7 +170,7 @@ public:
 
 class HPHOFactoryFeature
     : public TypedFeature<
-          TaskEvaluatorFactory,
+          TaskHeuristicFactory,
           OccupationMeasureHeuristicFactory> {
 public:
     HPHOFactoryFeature()

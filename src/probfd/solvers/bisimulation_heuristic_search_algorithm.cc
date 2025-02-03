@@ -2,7 +2,7 @@
 
 #include "probfd/algorithms/open_list.h"
 
-#include "probfd/heuristics/constant_evaluator.h"
+#include "probfd/heuristics/constant_heuristic.h"
 
 #include "probfd/bisimulation/bisimilar_state_space.h"
 

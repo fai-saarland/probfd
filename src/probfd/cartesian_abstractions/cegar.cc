@@ -2,9 +2,9 @@
 
 #include "probfd/cartesian_abstractions/abstract_state.h"
 #include "probfd/cartesian_abstractions/cartesian_abstraction.h"
-#include "probfd/cartesian_abstractions/evaluators.h"
 #include "probfd/cartesian_abstractions/flaw.h"
 #include "probfd/cartesian_abstractions/flaw_generator.h"
+#include "probfd/cartesian_abstractions/heuristics.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition_system.h"
 #include "probfd/cartesian_abstractions/split_selector.h"
 #include "probfd/cartesian_abstractions/utils.h"
