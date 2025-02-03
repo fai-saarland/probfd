@@ -6,6 +6,7 @@
 #ifndef PROBFD_ITEM_PROBABILITY_PAIR_H
 #define PROBFD_ITEM_PROBABILITY_PAIR_H
 
+#include "probfd/concepts.h"
 #include "probfd/value_type.h"
 
 #include <compare>
@@ -42,31 +43,13 @@ public:
                  std::is_default_constructible_v<PrType>)
     = default;
 
-    template <typename A, typename B>
-        requires(std::is_constructible_v<T, A> &&
-                 std::is_constructible_v<PrType, B>)
-    explicit(!std::is_convertible_v<T, A> || !std::is_convertible_v<PrType, B>)
-        ItemProbabilityPair(std::pair<A, B> p)
-        : item(std::get<0>(p))
-        , probability(std::get<1>(p))
-    {
-    }
-
-    template <typename A, typename B>
-        requires(std::is_constructible_v<T, A> &&
-                 std::is_constructible_v<PrType, B>)
-    explicit(!std::is_convertible_v<T, A> || !std::is_convertible_v<PrType, B>)
-        ItemProbabilityPair(std::tuple<A, B> p)
-        : item(std::get<0>(p))
-        , probability(std::get<1>(p))
-    {
-    }
-
-    template <typename A>
-        requires(std::is_constructible_v<T, A> &&
-                 std::is_constructible_v<PrType, A>)
-    explicit(!std::is_convertible_v<T, A> || !std::is_convertible_v<PrType, A>)
-        ItemProbabilityPair(std::array<A, 2> p)
+    template <PairLike P>
+        requires(std::is_constructible_v<T, std::tuple_element_t<0, P>> &&
+                 std::is_constructible_v<PrType, std::tuple_element_t<1, P>>)
+    explicit(
+        !std::is_convertible_v<std::tuple_element_t<0, P>, T> ||
+        !std::is_convertible_v<std::tuple_element_t<1, P>, T>)
+        ItemProbabilityPair(P&& p)
         : item(std::get<0>(p))
         , probability(std::get<1>(p))
     {
@@ -103,9 +86,22 @@ public:
         const ItemProbabilityPair<T, PrType>& left,
         const ItemProbabilityPair<T, PrType>& right) = default;
 
-    operator std::pair<T, PrType>() const
+    template <typename A, typename B>
+        requires(
+            std::constructible_from<A, T> && std::constructible_from<B, PrType>)
+    explicit(!std::is_convertible_v<T, A> || !std::is_convertible_v<PrType, B>)
+    operator std::pair<A, B>() const
     {
-        return std::make_pair(item, probability);
+        return std::pair<A, B>(item, probability);
+    }
+
+    template <typename A, typename B>
+        requires(
+            std::constructible_from<A, T> && std::constructible_from<B, PrType>)
+    explicit(!std::is_convertible_v<T, A> || !std::is_convertible_v<PrType, B>)
+    operator std::tuple<A, B>() const
+    {
+        return std::tuple<A, B>(item, probability);
     }
 
     template <std::size_t Index>
@@ -137,7 +133,7 @@ public:
     }
 };
 
-}
+} // namespace probfd
 
 template <typename T, typename F>
 struct std::tuple_size<probfd::ItemProbabilityPair<T, F>>
