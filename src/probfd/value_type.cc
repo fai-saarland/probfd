@@ -5,11 +5,9 @@
 
 namespace probfd {
 
-value_t g_epsilon = 5e-5;
-
-value_t fraction_to_value(int nom, int denom)
+value_t fraction_to_value(int numerator, int denominator)
 {
-    return static_cast<value_t>(nom) / static_cast<value_t>(denom);
+    return static_cast<value_t>(numerator) / static_cast<value_t>(denominator);
 }
 
 value_t string_to_value(const std::string& str)

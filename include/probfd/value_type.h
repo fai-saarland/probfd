@@ -13,7 +13,7 @@ namespace probfd {
 static constexpr value_t INFINITE_VALUE =
     std::numeric_limits<double>::infinity();
 
-value_t fraction_to_value(int nom, int denom);
+value_t fraction_to_value(int numerator, int denominator);
 value_t string_to_value(const std::string& str);
 value_t abs(value_t val);
 
