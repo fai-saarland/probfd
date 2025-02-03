@@ -55,7 +55,7 @@ public:
 
 class ConstraintGeneratorFactory {
 public:
-    ~ConstraintGeneratorFactory() = default;
+    virtual ~ConstraintGeneratorFactory() = default;
 
     virtual std::unique_ptr<ConstraintGenerator> construct_constraint_generator(
         const std::shared_ptr<ProbabilisticTask>& task,
