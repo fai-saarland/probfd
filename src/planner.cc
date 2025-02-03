@@ -33,7 +33,7 @@ int main(int argc, const char** argv)
         std::cerr << err.what() << '\n' << std::endl;
 
         if (auto subcommand = prog.get_used_subcommand()) {
-            const auto& subcommand_parser = subcommand->get().first;
+            const auto& subcommand_parser = subcommand->first;
             std::cerr << subcommand_parser;
         } else {
             std::cerr << prog;
@@ -43,7 +43,7 @@ int main(int argc, const char** argv)
     }
 
     if (auto subcommand = prog.get_used_subcommand()) {
-        auto& [subcommand_parser, main] = subcommand->get();
+        auto& [subcommand_parser, main] = *subcommand;
         return main(subcommand_parser);
     }
 
