@@ -57,4 +57,4 @@ public:
 
 } // namespace probfd::heuristics
 
-#endif // PROBFD_HEURISTICS_DEAD_END_PRUNING_H
+#endif // PROBFD_HEURISTICS_DEAD_END_PRUNING_HEURISTIC_H
