@@ -17,11 +17,11 @@
 namespace probfd {
 
 /// Disambiguator tag type.
-struct no_normalize_t {};
+struct NoNormalizeTagType {};
 
 /// Disambiguator tag  for Distribution constructor to indicate that
 /// the probabilities are already normalized to one.
-inline constexpr no_normalize_t no_normalize = no_normalize_t{};
+inline constexpr NoNormalizeTagType no_normalize = NoNormalizeTagType{};
 
 /**
  * @brief A convenience class that represents a finite probability
@@ -48,7 +48,7 @@ public:
 
     Distribution(
         std::initializer_list<ItemProbabilityPair<T>> list,
-        no_normalize_t)
+        NoNormalizeTagType)
         : distribution_(list)
     {
     }
@@ -67,7 +67,7 @@ public:
         requires(std::convertible_to<
                  std::ranges::range_reference_t<R>,
                  ItemProbabilityPair<T>>)
-    explicit Distribution(std::from_range_t, no_normalize_t, R&& pair_range)
+    explicit Distribution(std::from_range_t, NoNormalizeTagType, R&& pair_range)
 #ifdef __cpp_lib_containers_ranges
         : distribution_(std::from_range, std::forward<R>(pair_range))
 #else 
@@ -306,34 +306,10 @@ public:
         default;
 };
 
-namespace detail {
-
-template <typename T>
-struct is_item_prob_pair : std::false_type {};
-
-template <typename T>
-struct is_item_prob_pair<ItemProbabilityPair<T>> : std::true_type {};
-
-template <typename T>
-constexpr bool is_item_prob_pair_v = is_item_prob_pair<T>::value;
-
-template <typename T>
-struct item {};
-
-template <typename T>
-struct item<ItemProbabilityPair<T>> {
-    using type = T;
-};
-
-template <typename T>
-using item_t = typename item<T>::type;
-
-}
-
 template <std::ranges::input_range R>
-    requires(detail::is_item_prob_pair_v<std::ranges::range_value_t<R>>)
+    requires(Specialization<std::ranges::range_value_t<R>, ItemProbabilityPair>)
 Distribution(std::from_range_t, R&&)
-    -> Distribution<detail::item_t<std::ranges::range_value_t<R>>>;
+    -> Distribution<std::tuple_element_t<0, std::ranges::range_value_t<R>>>;
 
 } // namespace probfd
 

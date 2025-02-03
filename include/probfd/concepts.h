@@ -16,25 +16,25 @@ namespace probfd {
 
 namespace detail {
 template <typename T>
-struct is_tuple_like_helper : std::false_type {};
+struct IsTupleLikeHelper : std::false_type {};
 
 template <typename T, std::size_t N>
-struct is_tuple_like_helper<std::array<T, N>> : std::true_type {};
+struct IsTupleLikeHelper<std::array<T, N>> : std::true_type {};
 
 template <typename T>
-struct is_tuple_like_helper<std::complex<T>> : std::true_type {};
+struct IsTupleLikeHelper<std::complex<T>> : std::true_type {};
 
 template <typename A, typename B>
-struct is_tuple_like_helper<std::pair<A, B>> : std::true_type {};
+struct IsTupleLikeHelper<std::pair<A, B>> : std::true_type {};
 
 template <typename... T>
-struct is_tuple_like_helper<std::tuple<T...>> : std::true_type {};
+struct IsTupleLikeHelper<std::tuple<T...>> : std::true_type {};
 
 template <
     std::input_or_output_iterator I,
     std::sentinel_for<I> S,
     std::ranges::subrange_kind K>
-struct is_tuple_like_helper<std::ranges::subrange<I, S, K>> : std::true_type {};
+struct IsTupleLikeHelper<std::ranges::subrange<I, S, K>> : std::true_type {};
 } // namespace detail
 
 /**
@@ -43,7 +43,7 @@ struct is_tuple_like_helper<std::ranges::subrange<I, S, K>> : std::true_type {};
  * See https://en.cppreference.com/w/cpp/utility/tuple/tuple-like.
  */
 template <typename T>
-concept TupleLike = detail::is_tuple_like_helper<T>::value;
+concept TupleLike = detail::IsTupleLikeHelper<T>::value;
 
 /**
  * @brief Models the pair-like concept from the C++ std library.
@@ -52,6 +52,18 @@ concept TupleLike = detail::is_tuple_like_helper<T>::value;
  */
 template <typename T>
 concept PairLike = TupleLike<T> && std::tuple_size_v<T> == 2;
+
+
+namespace detail {
+template <typename T, template <typename...> typename U>
+struct SpecializationHelper : std::false_type {};
+
+template <typename... T, template <typename...> typename U>
+struct SpecializationHelper<U<T...>, U> : std::true_type {};
+}
+
+template <typename T, template <typename...> typename U>
+concept Specialization = detail::SpecializationHelper<T, U>::value;
 
 } // namespace probfd
 

@@ -44,7 +44,7 @@ public:
         requires(std::convertible_to<
                     std::ranges::range_reference_t<R>,
                     ItemProbabilityPair<int>>)
-    explicit ProjectionOperator(OperatorID id, R&& distr, no_normalize_t)
+    explicit ProjectionOperator(OperatorID id, R&& distr, NoNormalizeTagType)
         : operator_id(id)
         , outcome_offsets_(
               std::from_range,

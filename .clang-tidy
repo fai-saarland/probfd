@@ -82,7 +82,6 @@ readability-*,
 -readability-named-parameter,
 -readability-function-size,
 -readability-identifier-length,
-readability-identifier-naming,
 -readability-magic-numbers,
 -readability-redundant-member-init,
 -readability-suspicious-call-argument,
@@ -103,7 +102,8 @@ readability-identifier-naming,
 -readability-avoid-return-with-void-value,
 -readability-avoid-unconditional-preprocessor-if,
 -readability-function-cognitive-complexity,
--readability-reference-to-constructed-temporary'
+-readability-reference-to-constructed-temporary
+llvm-header-guard'
 CheckOptions:
   - key: abseil-cleanup-ctad.IncludeStyle
     value: llvm
@@ -833,6 +833,22 @@ CheckOptions:
     value: false
   - key: readability-identifier-naming.ClassCase
     value: CamelCase
+  - key: readability-identifier-naming.MemberCase
+    value: lower_case
+  - key: readability-identifier-naming.MethodCase
+    value: lower_case
+  - key: readability-identifier-naming.NamespaceCase
+    value: lower_case
+  - key: readability-identifier-naming.TypeAliasCase
+    value: CamelCase
+  - key: readability-identifier-naming.ConceptCase
+    value: CamelCase
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  - key: readability-identifier-naming.PrivateMemberPrefix
+    value: m_
+  - key: readability-identifier-naming.ProtectedMemberPrefix
+    value: m_
   - key: readability-implicit-bool-conversion.AllowIntegerConditions
     value: false
   - key: readability-implicit-bool-conversion.AllowPointerConditions
