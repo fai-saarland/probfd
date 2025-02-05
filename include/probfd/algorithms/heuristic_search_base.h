@@ -4,7 +4,7 @@
 #include "probfd/algorithms/heuristic_search_state_information.h"
 #include "probfd/algorithms/types.h"
 
-#include "probfd/iterative_mdp_algorithm.h"
+#include "iterative_mdp_algorithm.h"
 #include "probfd/progress_report.h"
 
 #if defined(EXPENSIVE_STATISTICS)
