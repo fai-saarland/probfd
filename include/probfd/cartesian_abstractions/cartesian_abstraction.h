@@ -5,8 +5,8 @@
 #include "probfd/cartesian_abstractions/types.h"
 
 #include "probfd/mdp.h"
+#include "probfd/state_id.h"
 #include "probfd/type_traits.h"
-#include "probfd/types.h"
 #include "probfd/value_type.h"
 
 #include "downward/utils/logging.h"

@@ -10,6 +10,8 @@
 
 #include "probfd/quotients/quotient_system.h"
 
+#include "downward/operator_id.h"
+
 #include <memory>
 
 using namespace probfd::cli;

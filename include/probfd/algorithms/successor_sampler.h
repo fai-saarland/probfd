@@ -1,7 +1,7 @@
 #ifndef PROBFD_ALGORITHMS_SUCCESSOR_SAMPLER_H
 #define PROBFD_ALGORITHMS_SUCCESSOR_SAMPLER_H
 
-#include "probfd/types.h"
+#include "probfd/state_id.h"
 
 // Forward Declarations
 namespace probfd {

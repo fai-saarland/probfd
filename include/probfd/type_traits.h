@@ -8,6 +8,8 @@
 
 #include <type_traits>
 
+class OperatorID;
+
 namespace probfd {
 
 /// This template variable controls the type of ParamType<T>.
@@ -17,6 +19,9 @@ constexpr bool enable_pass_by_value = false;
 template <typename T>
     requires(std::is_scalar_v<T>)
 constexpr bool enable_pass_by_value<T> = true;
+
+template <>
+constexpr bool enable_pass_by_value<OperatorID> = true;
 
 }
 

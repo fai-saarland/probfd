@@ -6,8 +6,8 @@
 
 #include "probfd/storage/per_state_storage.h"
 
+#include "probfd/state_id.h"
 #include "probfd/transition.h"
-#include "probfd/types.h"
 
 #include <cassert>
 #include <cstdint>

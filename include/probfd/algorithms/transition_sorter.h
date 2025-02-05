@@ -2,8 +2,8 @@
 #define PROBFD_ALGORITHMS_TRANSITION_SORTER_H
 
 #include "probfd/aliases.h"
+#include "probfd/state_id.h"
 #include "probfd/type_traits.h"
-#include "probfd/types.h"
 
 #include <vector>
 

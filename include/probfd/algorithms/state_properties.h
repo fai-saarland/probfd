@@ -1,7 +1,7 @@
 #ifndef PROBFD_ALGORITHMS_STATE_PROPERTIES_H
 #define PROBFD_ALGORITHMS_STATE_PROPERTIES_H
 
-#include "probfd/types.h"
+#include "probfd/state_id.h"
 #include "probfd/value_type.h"
 
 #include <optional>

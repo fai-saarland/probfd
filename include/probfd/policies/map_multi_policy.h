@@ -2,7 +2,7 @@
 #define PROBFD_POLICIES_MAP_MULTI_POLICY_H
 
 #include "probfd/multi_policy.h"
-#include "probfd/types.h"
+#include "probfd/state_id.h"
 
 #include <unordered_map>
 

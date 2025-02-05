@@ -3,7 +3,7 @@
 
 #include "probfd/utils/iterators.h"
 
-#include "probfd/types.h"
+#include "probfd/state_id.h"
 
 #include "downward/algorithms/segmented_vector.h"
 

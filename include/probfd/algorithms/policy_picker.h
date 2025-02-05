@@ -1,7 +1,7 @@
 #ifndef PROBFD_ALGORITHMS_POLICY_PICKER_H
 #define PROBFD_ALGORITHMS_POLICY_PICKER_H
 
-#include "probfd/types.h"
+#include "probfd/state_id.h"
 
 #include <optional>
 #include <ostream>

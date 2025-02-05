@@ -3,6 +3,7 @@
 
 #include "downward/utils/hash.h"
 
+#include <compare>
 #include <iostream>
 
 /*
@@ -36,19 +37,10 @@ public:
 
     int get_index() const { return index; }
 
-    bool operator==(const OperatorID& other) const
-    {
-        return index == other.index;
-    }
-
-    bool operator!=(const OperatorID& other) const { return !(*this == other); }
-
-    bool operator<(const OperatorID& other) const
-    {
-        return index < other.index;
-    }
-
     int hash() const { return index; }
+
+    friend bool operator==(OperatorID left, OperatorID right) = default;
+    friend auto operator<=>(OperatorID left, OperatorID right)= default;
 };
 
 std::ostream& operator<<(std::ostream& os, OperatorID id);

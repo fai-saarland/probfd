@@ -2,8 +2,8 @@
 #define PROBFD_POLICIES_MAP_POLICY_H
 
 #include "probfd/policy.h"
+#include "probfd/state_id.h"
 #include "probfd/state_space.h"
-#include "probfd/types.h"
 
 #include <unordered_map>
 

@@ -1,8 +1,8 @@
 #ifndef PROBFD_HEURISTIC_H
 #define PROBFD_HEURISTIC_H
 
+#include "probfd/state_id.h"
 #include "probfd/type_traits.h"
-#include "probfd/types.h"
 #include "probfd/value_type.h"
 
 namespace probfd {

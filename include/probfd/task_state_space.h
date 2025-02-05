@@ -5,8 +5,8 @@
 
 #include "probfd/fdr_types.h"
 #include "probfd/mdp.h"
+#include "probfd/state_id.h"
 #include "probfd/task_proxy.h"
-#include "probfd/types.h"
 #include "probfd/value_type.h"
 
 #include "downward/utils/logging.h"

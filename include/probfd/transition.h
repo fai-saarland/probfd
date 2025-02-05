@@ -2,7 +2,7 @@
 #define PROBFD_TRANSITION_H
 
 #include "probfd/distribution.h"
-#include "probfd/types.h"
+#include "probfd/state_id.h"
 
 namespace probfd {
 

@@ -6,7 +6,7 @@
 #include "probfd/storage/segmented_memory_pool.h"
 
 #include "probfd/fdr_types.h"
-#include "probfd/types.h"
+#include "probfd/state_id.h"
 
 #include "downward/per_state_information.h"
 
