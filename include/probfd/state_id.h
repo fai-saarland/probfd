@@ -38,7 +38,7 @@ struct StateID {
 };
 
 template <>
-constexpr bool enable_pass_by_value<StateID> = true;
+inline constexpr bool enable_pass_by_value<StateID> = true;
 
 } // namespace probfd
 

@@ -21,7 +21,7 @@ template <typename T>
 constexpr bool enable_pass_by_value<T> = true;
 
 template <>
-constexpr bool enable_pass_by_value<OperatorID> = true;
+inline constexpr bool enable_pass_by_value<OperatorID> = true;
 
 }
 
