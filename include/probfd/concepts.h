@@ -72,6 +72,23 @@ concept Specialization = detail::SpecializationHelper<T, U>::value;
 template <typename T>
 concept PassedByValue = enable_pass_by_value<T>;
 
+template <typename Fn, typename R, typename... Args>
+concept InvocableRV = std::invocable<Fn, Args...> &&
+                      std::convertible_to<std::invoke_result_t<Fn, Args...>, R>;
+
+template <typename T, typename I>
+concept Subscriptable = requires {
+    { std::declval<T&>()[std::declval<I>()] };
+};
+
+template <typename T, typename I>
+    requires Subscriptable<T, I>
+using SubscriptResultType = decltype(std::declval<T&>()[std::declval<I>()]);
+
+template <typename T, typename R, typename I>
+concept SubscriptableRV =
+    Subscriptable<T, I> && std::convertible_to<SubscriptResultType<T, I>, R>;
+
 } // namespace probfd
 
 #endif // PROBFD_CONCEPTS_H

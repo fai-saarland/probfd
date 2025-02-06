@@ -86,7 +86,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 {
     do {
         mdp.generate_action_transitions(state, aops.back(), transition);
-        const value_t self_loop_prob = transition.remove_if_normalize(state_id);
+        const value_t self_loop_prob = transition.remove_normalize(state_id);
 
         if (!transition.empty()) {
             successor = transition.begin();
