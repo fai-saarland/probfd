@@ -57,16 +57,13 @@ public:
         requires(std::convertible_to<
                  std::ranges::range_reference_t<R>,
                  ItemProbabilityPair<T>>)
-    explicit Distribution(std::from_range_t, R&& pair_range);
+    Distribution(std::from_range_t, R&& pair_range);
 
     template <std::ranges::input_range R>
         requires(std::convertible_to<
                  std::ranges::range_reference_t<R>,
                  ItemProbabilityPair<T>>)
-    explicit Distribution(
-        std::from_range_t,
-        NoNormalizeTagType,
-        R&& pair_range);
+    Distribution(std::from_range_t, NoNormalizeTagType, R&& pair_range);
 
     /**
      * @brief Reserves space for \p capacity number of elements in

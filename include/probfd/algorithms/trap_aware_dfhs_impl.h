@@ -221,9 +221,9 @@ bool TADFHSImpl<State, Action, UseInterval>::advance(
 
         StateInfo& state_info = this->state_infos_[einfo.state];
         auto value = this->compute_bellman_and_greedy(
-            quotient,
             einfo.state,
             transitions_,
+            quotient,
             termination_cost,
             qvalues_,
             this->epsilon_);
@@ -326,9 +326,9 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
         ++statistics_.fw_updates;
 
         auto value = this->compute_bellman_and_greedy(
-            quotient,
             einfo.state,
             transitions_,
+            quotient,
             termination_cost,
             qvalues_,
             this->epsilon_);
@@ -498,9 +498,9 @@ auto TADFHSImpl<State, Action, UseInterval>::value_iteration(
 
             StateInfo& state_info = this->state_infos_[id];
             const auto value = this->compute_bellman_and_greedy(
-                quotient,
                 id,
                 transitions_,
+                quotient,
                 termination_cost,
                 qvalues_,
                 this->epsilon_);

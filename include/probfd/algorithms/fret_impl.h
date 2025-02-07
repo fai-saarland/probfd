@@ -440,9 +440,9 @@ bool ValueGraph<State, Action, StateInfoT>::get_successors(
         opt_transitions_);
 
     auto value = base_algorithm.compute_bellman_and_greedy(
-        quotient,
         qstate,
         opt_transitions_,
+        quotient,
         termination_cost,
         q_values,
         base_algorithm.get_convergence_epsilon());

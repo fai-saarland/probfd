@@ -72,9 +72,9 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::was_visited(
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
-    CostFunctionType& cost_function,
     StateID state_id,
     const std::vector<TransitionType>& transitions,
+    CostFunctionType& cost_function,
     value_t termination_cost) const -> AlgorithmValueType
 {
 #if defined(EXPENSIVE_STATISTICS)
@@ -85,7 +85,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
 
     for (auto& transition : transitions) {
         const value_t cost = cost_function.get_action_cost(transition.action);
-        set_min(best_value, compute_qvalue(cost, state_id, transition));
+        set_min(best_value, compute_qvalue(state_id, transition, cost));
     }
 
     return best_value;
@@ -93,9 +93,9 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
-    CostFunctionType& cost_function,
     StateID state_id,
     std::vector<TransitionType>& transitions,
+    CostFunctionType& cost_function,
     value_t termination_cost,
     std::vector<AlgorithmValueType>& qvalues,
     value_t epsilon) const -> AlgorithmValueType
@@ -109,9 +109,9 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
     }
 
     AlgorithmValueType best_value = compute_q_values(
-        cost_function,
         state_id,
         transitions,
+        cost_function,
         termination_cost,
         qvalues);
 
@@ -320,9 +320,9 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize(
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_qvalue(
-    value_t action_cost,
     StateID state_id,
-    const TransitionType& transition) const -> AlgorithmValueType
+    const TransitionType& transition,
+    value_t action_cost) const -> AlgorithmValueType
 {
     AlgorithmValueType t_value(action_cost);
 
@@ -344,9 +344,9 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_qvalue(
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_q_values(
-    CostFunctionType& cost_function,
     StateID state_id,
     std::vector<TransitionType>& transitions,
+    CostFunctionType& cost_function,
     value_t termination_cost,
     std::vector<AlgorithmValueType>& qvalues) const -> AlgorithmValueType
 {
@@ -356,7 +356,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_q_values(
 
     for (const auto& transition : transitions) {
         const value_t cost = cost_function.get_action_cost(transition.action);
-        auto q = compute_qvalue(cost, state_id, transition);
+        auto q = compute_qvalue(state_id, transition, cost);
         set_min(best_value, q);
         qvalues.push_back(q);
     }
@@ -454,9 +454,9 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
             this->generate_non_tip_transitions(mdp, state, transitions);
 
             this->compute_bellman_and_greedy(
-                mdp,
                 state_id,
                 transitions,
+                mdp,
                 termination_cost,
                 qvalues,
                 this->epsilon);

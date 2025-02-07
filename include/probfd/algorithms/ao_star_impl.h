@@ -180,9 +180,9 @@ bool AOStar<State, Action, UseInterval>::update_value_check_solved(
     const value_t termination_cost = mdp.get_termination_info(state).get_cost();
 
     const auto value = this->compute_bellman_and_greedy(
-        mdp,
         mdp.get_state_id(state),
         transitions,
+        mdp,
         termination_cost,
         qvalues_,
         this->epsilon);

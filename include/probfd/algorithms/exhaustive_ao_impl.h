@@ -63,7 +63,7 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
         this->expand_and_initialize(mdp, heuristic, state, info, transitions_);
 
         const auto value =
-            this->compute_bellman(mdp, stateid, transitions_, termination_cost);
+            this->compute_bellman(stateid, transitions_, mdp, termination_cost);
         bool value_changed = this->update_value(info, value, this->epsilon);
 
         // Terminal state
@@ -128,9 +128,9 @@ bool ExhaustiveAOSearch<State, Action, UseInterval>::update_value_check_solved(
     const value_t termination_cost = mdp.get_termination_info(state).get_cost();
 
     const auto value = this->compute_bellman(
-        mdp,
         mdp.get_state_id(state),
         transitions,
+        mdp,
         termination_cost);
     bool value_changed = this->update_value(info, value, this->epsilon);
 

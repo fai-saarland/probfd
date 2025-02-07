@@ -149,9 +149,9 @@ bool TALRTDPImpl<State, Action, UseInterval>::trial(
         }
 
         const auto value = this->compute_bellman_and_greedy(
-            quotient,
             stateid,
             transitions_,
+            quotient,
             termination_cost,
             qvalues_,
             this->epsilon_);
@@ -274,9 +274,9 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                             transitions_);
 
                         auto value = this->compute_bellman_and_greedy(
-                            quotient,
                             state_id,
                             transitions_,
+                            quotient,
                             termination_cost,
                             qvalues_,
                             this->epsilon_);
@@ -313,9 +313,9 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                             ++this->statistics_.check_and_solve_bellman_backups;
 
                             auto value = this->compute_bellman_and_greedy(
-                                quotient,
                                 id,
                                 transitions_,
+                                quotient,
                                 termination_cost,
                                 qvalues_,
                                 this->epsilon_);
@@ -428,9 +428,9 @@ bool TALRTDPImpl<State, Action, UseInterval>::initialize(
     ++this->statistics_.check_and_solve_bellman_backups;
 
     const auto value = this->compute_bellman_and_greedy(
-        quotient,
         state_id,
         transitions_,
+        quotient,
         termination_cost,
         qvalues_,
         this->epsilon_);

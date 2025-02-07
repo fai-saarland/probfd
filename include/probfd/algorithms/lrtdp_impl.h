@@ -125,9 +125,9 @@ void LRTDP<State, Action, UseInterval>::trial(
         this->statistics_.trial_bellman_backups++;
 
         auto value = this->compute_bellman_and_greedy(
-            mdp,
             state_id,
             transitions_,
+            mdp,
             termination_cost,
             qvalues_,
             this->epsilon);
@@ -240,9 +240,9 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
         this->statistics_.check_and_solve_bellman_backups++;
 
         auto value = this->compute_bellman_and_greedy(
-            mdp,
             state_id,
             transitions_,
+            mdp,
             termination_cost,
             qvalues_,
             this->epsilon);
@@ -304,9 +304,9 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
             statistics_.check_and_solve_bellman_backups++;
 
             auto value = this->compute_bellman_and_greedy(
-                mdp,
                 sid,
                 transitions_,
+                mdp,
                 termination_cost,
                 qvalues_,
                 this->epsilon);

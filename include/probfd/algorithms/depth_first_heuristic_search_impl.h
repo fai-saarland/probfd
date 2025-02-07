@@ -238,9 +238,9 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::advance(
         statistics_.backtracking_updates++;
 
         auto value = this->compute_bellman_and_greedy(
-            mdp,
             einfo.stateid,
             transitions_,
+            mdp,
             termination_cost,
             qvalues_,
             this->epsilon);
@@ -350,9 +350,9 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
         statistics_.forward_updates++;
 
         auto value = this->compute_bellman_and_greedy(
-            mdp,
             einfo.stateid,
             transitions_,
+            mdp,
             termination_cost,
             qvalues_,
             this->epsilon);
@@ -444,9 +444,9 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::vi_step(
         this->generate_non_tip_transitions(mdp, state, transitions_);
 
         const auto value = this->compute_bellman_and_greedy(
-            mdp,
             id,
             transitions_,
+            mdp,
             termination_cost,
             qvalues_,
             this->epsilon);
