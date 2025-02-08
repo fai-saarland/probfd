@@ -12,7 +12,7 @@
 
 #include "probfd/heuristic.h"
 #include "probfd/mdp.h"
-#include "probfd/transition.h"
+#include "probfd/transition_tail.h"
 
 #include "downward/utils/collections.h"
 
@@ -73,7 +73,7 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::was_visited(
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
     StateID state_id,
-    const std::vector<TransitionType>& transitions,
+    const std::vector<TransitionTailType>& transitions,
     CostFunctionType& cost_function,
     value_t termination_cost) const -> AlgorithmValueType
 {
@@ -94,7 +94,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
     StateID state_id,
-    std::vector<TransitionType>& transitions,
+    std::vector<TransitionTailType>& transitions,
     CostFunctionType& cost_function,
     value_t termination_cost,
     std::vector<AlgorithmValueType>& qvalues,
@@ -130,7 +130,7 @@ template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::select_greedy_transition(
     MDPType& mdp,
     std::optional<Action> previous_greedy,
-    std::vector<TransitionType>& transitions) -> std::optional<TransitionType>
+    std::vector<TransitionTailType>& transitions) -> std::optional<TransitionTailType>
 {
 #if defined(EXPENSIVE_STATISTICS)
     TimerScope scoped(statistics_.policy_selection_time);
@@ -164,7 +164,7 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::update_value(
 template <typename State, typename Action, typename StateInfoT>
 bool HeuristicSearchBase<State, Action, StateInfoT>::update_policy(
     StateInfo& state_info,
-    const std::optional<TransitionType>& transition)
+    const std::optional<TransitionTailType>& transition)
     requires(StorePolicy)
 {
     ++statistics_.policy_updates;
@@ -176,7 +176,7 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::update_policy(
 template <typename State, typename Action, typename StateInfoT>
 void HeuristicSearchBase<State, Action, StateInfoT>::initialize_initial_state(
     MDPType& mdp,
-    EvaluatorType& h,
+    HeuristicType& h,
     ParamType<State> state)
 {
     StateInfo& info = this->state_infos_[mdp.get_state_id(state)];
@@ -192,10 +192,10 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize_initial_state(
 template <typename State, typename Action, typename StateInfoT>
 void HeuristicSearchBase<State, Action, StateInfoT>::expand_and_initialize(
     MDPType& mdp,
-    EvaluatorType& h,
+    HeuristicType& h,
     ParamType<State> state,
     StateInfo& state_info,
-    std::vector<TransitionType>& transitions)
+    std::vector<TransitionTailType>& transitions)
 {
     assert(!state_info.is_goal_or_terminal());
     assert(transitions.empty());
@@ -253,7 +253,7 @@ void HeuristicSearchBase<State, Action, StateInfoT>::
     generate_non_tip_transitions(
         MDPType& mdp,
         ParamType<State> state,
-        std::vector<TransitionType>& transitions) const
+        std::vector<TransitionTailType>& transitions) const
 {
     assert(transitions.empty());
 
@@ -284,7 +284,7 @@ void HeuristicSearchBase<State, Action, StateInfoT>::print_statistics(
 template <typename State, typename Action, typename StateInfoT>
 void HeuristicSearchBase<State, Action, StateInfoT>::initialize(
     MDPType& mdp,
-    EvaluatorType& h,
+    HeuristicType& h,
     ParamType<State> state,
     StateInfo& state_info)
 {
@@ -321,7 +321,7 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize(
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_qvalue(
     StateID state_id,
-    const TransitionType& transition,
+    const TransitionTailType& transition,
     value_t action_cost) const -> AlgorithmValueType
 {
     AlgorithmValueType t_value(action_cost);
@@ -345,7 +345,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_qvalue(
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_q_values(
     StateID state_id,
-    std::vector<TransitionType>& transitions,
+    std::vector<TransitionTailType>& transitions,
     CostFunctionType& cost_function,
     value_t termination_cost,
     std::vector<AlgorithmValueType>& qvalues) const -> AlgorithmValueType
@@ -366,7 +366,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_q_values(
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::filter_greedy_transitions(
-    std::vector<TransitionType>& transitions,
+    std::vector<TransitionTailType>& transitions,
     std::vector<AlgorithmValueType>& qvalues,
     const AlgorithmValueType& best_value,
     value_t epsilon) const -> AlgorithmValueType
@@ -400,7 +400,7 @@ HeuristicSearchAlgorithm<State, Action, StateInfoT>::HeuristicSearchAlgorithm(
 template <typename State, typename Action, typename StateInfoT>
 Interval HeuristicSearchAlgorithm<State, Action, StateInfoT>::solve(
     MDPType& mdp,
-    EvaluatorType& h,
+    HeuristicType& h,
     ParamType<State> state,
     ProgressReport progress,
     double max_time)
@@ -412,7 +412,7 @@ Interval HeuristicSearchAlgorithm<State, Action, StateInfoT>::solve(
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
     MDPType& mdp,
-    EvaluatorType& h,
+    HeuristicType& h,
     ParamType<State> initial_state,
     ProgressReport progress,
     double max_time) -> std::unique_ptr<PolicyType>
@@ -433,7 +433,7 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
     queue.push_back(initial_state_id);
     visited.insert(initial_state_id);
 
-    std::vector<TransitionType> transitions;
+    std::vector<TransitionTailType> transitions;
     std::vector<AlgorithmValueType> qvalues;
 
     do {

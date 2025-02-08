@@ -126,6 +126,7 @@ class QuotientSystem
     using QuotientInformationType = QuotientInformation<Action>;
     using QState = QuotientState<State, Action>;
     using QAction = QuotientAction<Action>;
+    using QTransitionTail = TransitionTail<QAction>;
 
     using MDPType = MDP<State, Action>;
 
@@ -164,7 +165,7 @@ public:
 
     void generate_all_transitions(
         ParamType<QState> state,
-        std::vector<Transition<QAction>>& transitions) override;
+        std::vector<QTransitionTail>& transitions) override;
 
     TerminationInfo get_termination_info(ParamType<QState> s) override;
 

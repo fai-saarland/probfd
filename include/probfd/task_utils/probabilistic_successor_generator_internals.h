@@ -12,7 +12,7 @@ class State;
 namespace probfd {
 class TaskStateSpace;
 template <typename>
-struct Transition;
+struct TransitionTail;
 } // namespace probfd
 
 namespace probfd::successor_generator {
@@ -27,7 +27,7 @@ public:
 
     virtual void generate_transitions(
         const State& state,
-        std::vector<Transition<OperatorID>>& transitions,
+        std::vector<TransitionTail<OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const = 0;
 };
 
@@ -46,7 +46,7 @@ public:
 
     void generate_transitions(
         const State& state,
-        std::vector<Transition<OperatorID>>& transitions,
+        std::vector<TransitionTail<OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const override;
 };
 
@@ -63,7 +63,7 @@ public:
 
     void generate_transitions(
         const State& state,
-        std::vector<Transition<OperatorID>>& transitions,
+        std::vector<TransitionTail<OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const override;
 };
 
@@ -84,7 +84,7 @@ public:
 
     void generate_transitions(
         const State& state,
-        std::vector<Transition<OperatorID>>& transitions,
+        std::vector<TransitionTail<OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const override;
 };
 
@@ -105,7 +105,7 @@ public:
 
     void generate_transitions(
         const State& state,
-        std::vector<Transition<OperatorID>>& transitions,
+        std::vector<TransitionTail<OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const override;
 };
 
@@ -126,7 +126,7 @@ public:
 
     void generate_transitions(
         const State& state,
-        std::vector<Transition<OperatorID>>& transitions,
+        std::vector<TransitionTail<OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const override;
 };
 
@@ -143,7 +143,7 @@ public:
 
     void generate_transitions(
         const State& state,
-        std::vector<Transition<OperatorID>>& transitions,
+        std::vector<TransitionTail<OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const override;
 };
 
@@ -159,7 +159,7 @@ public:
 
     void generate_transitions(
         const State& state,
-        std::vector<Transition<OperatorID>>& transitions,
+        std::vector<TransitionTail<OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const override;
 };
 

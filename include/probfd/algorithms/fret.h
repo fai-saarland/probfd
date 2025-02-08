@@ -131,14 +131,14 @@ class FRET : public MDPAlgorithm<State, Action> {
 
     using PolicyType = typename Base::PolicyType;
     using MDPType = typename Base::MDPType;
-    using EvaluatorType = typename Base::EvaluatorType;
+    using HeuristicType = typename Base::HeuristicType;
 
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
     using QHeuristicSearchAlgorithm = heuristic_search::
         FRETHeuristicSearchAlgorithm<QState, QAction, StateInfoT>;
-    using QEvaluator = probfd::Heuristic<QState>;
+    using QHeuristic = probfd::Heuristic<QState>;
 
     using StackInfo = internal::StackInfo<QAction>;
 
@@ -152,14 +152,14 @@ public:
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport progress,
         double max_time) override;
 
     Interval solve(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport progress,
         double max_time) override;
@@ -169,14 +169,14 @@ public:
 private:
     Interval solve(
         QuotientSystem& quotient,
-        QEvaluator& heuristic,
+        QHeuristic& heuristic,
         ParamType<QState> state,
         ProgressReport& progress,
         double max_time);
 
     Interval heuristic_search(
         QuotientSystem& quotient,
-        QEvaluator& heuristic,
+        QHeuristic& heuristic,
         ParamType<QState> state,
         ProgressReport& progress,
         utils::CountdownTimer& timer);
@@ -210,7 +210,7 @@ class ValueGraph {
     using QEvaluator = Heuristic<QState>;
 
     std::unordered_set<StateID> ids_;
-    std::vector<Transition<QAction>> opt_transitions_;
+    std::vector<TransitionTail<QAction>> opt_transitions_;
     std::vector<AlgorithmValueType> q_values;
 
 public:

@@ -63,7 +63,7 @@ class IntervalIteration : public MDPAlgorithm<State, Action> {
     using Base = typename IntervalIteration::MDPAlgorithm;
 
     using MDPType = typename Base::MDPType;
-    using EvaluatorType = typename Base::EvaluatorType;
+    using HeuristicType = typename Base::HeuristicType;
     using PolicyType = typename Base::PolicyType;
 
     using QSystem = quotients::QuotientSystem<State, Action>;
@@ -94,14 +94,14 @@ public:
 
     Interval solve(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport report,
         double max_time) override;
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport report,
         double max_time) override;
@@ -111,7 +111,7 @@ public:
     template <typename ValueStoreT, typename SetLike, typename SetLike2>
     Interval solve(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> state,
         ValueStoreT& value_store,
         SetLike& dead_ends,
@@ -121,14 +121,14 @@ public:
 private:
     std::unique_ptr<QSystem> create_quotient(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> state,
         utils::CountdownTimer& timer);
 
     template <typename ValueStoreT, typename SetLike, typename SetLike2>
     Interval mysolve(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> state,
         ValueStoreT& value_store,
         SetLike& dead_ends,

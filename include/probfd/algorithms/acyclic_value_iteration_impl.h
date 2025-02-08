@@ -188,7 +188,7 @@ void AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
 template <typename State, typename Action>
 auto AcyclicValueIteration<State, Action>::compute_policy(
     MDPType& mdp,
-    EvaluatorType& heuristic,
+    HeuristicType& heuristic,
     ParamType<State> initial_state,
     ProgressReport,
     double max_time) -> std::unique_ptr<PolicyType>
@@ -201,7 +201,7 @@ auto AcyclicValueIteration<State, Action>::compute_policy(
 template <typename State, typename Action>
 Interval AcyclicValueIteration<State, Action>::solve(
     MDPType& mdp,
-    EvaluatorType& heuristic,
+    HeuristicType& heuristic,
     ParamType<State> initial_state,
     ProgressReport,
     double max_time)
@@ -212,7 +212,7 @@ Interval AcyclicValueIteration<State, Action>::solve(
 template <typename State, typename Action>
 Interval AcyclicValueIteration<State, Action>::solve(
     MDPType& mdp,
-    EvaluatorType& heuristic,
+    HeuristicType& heuristic,
     ParamType<State> initial_state,
     double max_time,
     MapPolicy* policy)
@@ -293,7 +293,7 @@ bool AcyclicValueIteration<State, Action>::push_successor(
 template <typename State, typename Action>
 bool AcyclicValueIteration<State, Action>::expand_state(
     MDPType& mdp,
-    EvaluatorType& heuristic,
+    HeuristicType& heuristic,
     IncrementalExpansionInfo& e_info)
 {
     const State state = mdp.get_state(e_info.state_id);

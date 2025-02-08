@@ -64,7 +64,7 @@ void HeuristicDepthFirstSearch<State, Action, UseInterval>::reset_search_state()
 template <typename State, typename Action, bool UseInterval>
 Interval HeuristicDepthFirstSearch<State, Action, UseInterval>::do_solve(
     MDP& mdp,
-    Evaluator& heuristic,
+    HeuristicType& heuristic,
     ParamType<State> state,
     ProgressReport& progress,
     double max_time)
@@ -98,7 +98,7 @@ template <typename State, typename Action, bool UseInterval>
 void HeuristicDepthFirstSearch<State, Action, UseInterval>::
     solve_with_vi_termination(
         MDP& mdp,
-        Evaluator& heuristic,
+        HeuristicType& heuristic,
         StateID stateid,
         ProgressReport& progress,
         utils::CountdownTimer& timer)
@@ -118,7 +118,7 @@ template <typename State, typename Action, bool UseInterval>
 void HeuristicDepthFirstSearch<State, Action, UseInterval>::
     solve_without_vi_termination(
         MDP& mdp,
-        Evaluator& heuristic,
+        HeuristicType& heuristic,
         StateID stateid,
         ProgressReport& progress,
         utils::CountdownTimer& timer)
@@ -136,7 +136,7 @@ template <typename State, typename Action, bool UseInterval>
 template <bool GetVisited>
 bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
     MDP& mdp,
-    Evaluator& heuristic,
+    HeuristicType& heuristic,
     StateID state,
     utils::CountdownTimer& timer)
 {
@@ -313,7 +313,7 @@ void HeuristicDepthFirstSearch<State, Action, UseInterval>::push(
 template <typename State, typename Action, bool UseInterval>
 bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
     MDP& mdp,
-    Evaluator& heuristic,
+    HeuristicType& heuristic,
     ExpansionInfo& einfo,
     StateInfo& sinfo)
 {

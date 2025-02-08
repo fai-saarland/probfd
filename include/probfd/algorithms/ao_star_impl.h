@@ -30,7 +30,7 @@ AOStar<State, Action, UseInterval>::AOStar(
 template <typename State, typename Action, bool UseInterval>
 Interval AOStar<State, Action, UseInterval>::do_solve(
     MDPType& mdp,
-    EvaluatorType& heuristic,
+    HeuristicType& heuristic,
     ParamType<State> initial_state,
     ProgressReport& progress,
     double max_time)
@@ -174,7 +174,7 @@ template <typename State, typename Action, bool UseInterval>
 bool AOStar<State, Action, UseInterval>::update_value_check_solved(
     MDPType& mdp,
     ParamType<State> state,
-    std::vector<Transition<Action>> transitions,
+    std::vector<TransitionTail<Action>> transitions,
     StateInfo& info)
 {
     const value_t termination_cost = mdp.get_termination_info(state).get_cost();

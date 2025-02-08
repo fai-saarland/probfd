@@ -111,7 +111,7 @@ public:
 
 private:
     using MDP = typename Base::MDPType;
-    using Evaluator = typename Base::EvaluatorType;
+    using HeuristicType = typename Base::HeuristicType;
 
     using PolicyPicker = typename Base::PolicyPicker;
 
@@ -136,7 +136,7 @@ private:
     Statistics statistics_;
 
     // Re-used buffer
-    std::vector<Transition<Action>> transitions_;
+    std::vector<TransitionTail<Action>> transitions_;
     std::vector<AlgorithmValueType> qvalues_;
 
 public:
@@ -155,7 +155,7 @@ public:
 protected:
     Interval do_solve(
         MDP& mdp,
-        Evaluator& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport& progress,
         double max_time) override;
@@ -165,14 +165,14 @@ protected:
 private:
     void solve_with_vi_termination(
         MDP& mdp,
-        Evaluator& heuristic,
+        HeuristicType& heuristic,
         StateID stateid,
         ProgressReport& progress,
         utils::CountdownTimer& timer);
 
     void solve_without_vi_termination(
         MDP& mdp,
-        Evaluator& heuristic,
+        HeuristicType& heuristic,
         StateID stateid,
         ProgressReport& progress,
         utils::CountdownTimer& timer);
@@ -180,7 +180,7 @@ private:
     template <bool GetVisited>
     bool policy_exploration(
         MDP& mdp,
-        Evaluator& heuristic,
+        HeuristicType& heuristic,
         StateID state,
         utils::CountdownTimer& timer);
 
@@ -197,7 +197,7 @@ private:
 
     bool initialize(
         MDP& mdp,
-        Evaluator& heuristic,
+        HeuristicType& heuristic,
         ExpansionInfo& einfo,
         StateInfo& sinfo);
 

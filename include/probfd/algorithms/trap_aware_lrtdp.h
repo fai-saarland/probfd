@@ -89,7 +89,7 @@ class TALRTDPImpl
     using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
 
-    using QEvaluator = typename Base::EvaluatorType;
+    using QHeuristic = typename Base::HeuristicType;
     using QuotientPolicyPicker = typename Base::PolicyPickerType;
     using StateInfo = typename Base::StateInfo;
 
@@ -177,7 +177,7 @@ class TALRTDPImpl
     internal::Statistics statistics_;
 
     // Buffer
-    std::vector<Transition<QAction>> transitions_;
+    std::vector<TransitionTail<QAction>> transitions_;
     std::vector<AlgorithmValueType> qvalues_;
 
 public:
@@ -193,7 +193,7 @@ public:
 
     Interval solve_quotient(
         QuotientSystem& quotient,
-        QEvaluator& heuristic,
+        QHeuristic& heuristic,
         ParamType<QState> state,
         ProgressReport& progress,
         double max_time);
@@ -203,13 +203,13 @@ public:
 private:
     bool trial(
         QuotientSystem& quotient,
-        QEvaluator& heuristic,
+        QHeuristic& heuristic,
         StateID start_state,
         utils::CountdownTimer& timer);
 
     bool check_and_solve(
         QuotientSystem& quotient,
-        QEvaluator& heuristic,
+        QHeuristic& heuristic,
         utils::CountdownTimer& timer);
 
     bool push_successor(
@@ -221,7 +221,7 @@ private:
 
     bool initialize(
         QuotientSystem& quotient,
-        QEvaluator& heuristic,
+        QHeuristic& heuristic,
         StateID state,
         StateInfo& state_info,
         ExplorationInformation& e_info);
@@ -236,7 +236,7 @@ class TALRTDP : public MDPAlgorithm<State, Action> {
     using QAction = quotients::QuotientAction<Action>;
 
     using MDPType = typename Base::MDPType;
-    using EvaluatorType = typename Base::EvaluatorType;
+    using HeuristicType = typename Base::HeuristicType;
     using PolicyType = typename Base::PolicyType;
 
     using QuotientPolicyPicker = PolicyPicker<QState, QAction>;
@@ -257,14 +257,14 @@ public:
 
     Interval solve(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> s,
         ProgressReport progress,
         double max_time) final;
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> s,
         ProgressReport progress,
         double max_time) final;

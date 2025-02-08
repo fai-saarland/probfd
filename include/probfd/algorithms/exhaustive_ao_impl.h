@@ -21,7 +21,7 @@ ExhaustiveAOSearch<State, Action, UseInterval>::ExhaustiveAOSearch(
 template <typename State, typename Action, bool UseInterval>
 Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
     MDPType& mdp,
-    EvaluatorType& heuristic,
+    HeuristicType& heuristic,
     ParamType<State> initial_state,
     ProgressReport& progress,
     double max_time)
@@ -120,7 +120,7 @@ template <typename State, typename Action, bool UseInterval>
 bool ExhaustiveAOSearch<State, Action, UseInterval>::update_value_check_solved(
     MDPType& mdp,
     ParamType<State> state,
-    std::vector<Transition<Action>> transitions,
+    std::vector<TransitionTail<Action>> transitions,
     StateInfo& info)
 {
     assert(!info.is_solved());

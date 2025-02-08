@@ -49,7 +49,7 @@ class ExhaustiveAOSearch
     friend Base;
 
     using MDPType = typename Base::MDPType;
-    using EvaluatorType = typename Base::EvaluatorType;
+    using HeuristicType = typename Base::HeuristicType;
     using PolicyPickerType = typename Base::PolicyPickerType;
     using StateInfo = typename Base::StateInfo;
 
@@ -59,7 +59,7 @@ class ExhaustiveAOSearch
     const std::shared_ptr<OpenListType> open_list_;
 
     // Re-used buffers
-    std::vector<Transition<Action>> transitions_;
+    std::vector<TransitionTail<Action>> transitions_;
 
 public:
     ExhaustiveAOSearch(
@@ -70,7 +70,7 @@ public:
 protected:
     Interval do_solve(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> initial_state,
         ProgressReport& progress,
         double max_time) override;
@@ -79,7 +79,7 @@ private:
     bool update_value_check_solved(
         MDPType& mdp,
         ParamType<State> state,
-        std::vector<Transition<Action>> transitions,
+        std::vector<TransitionTail<Action>> transitions,
         StateInfo& info);
 };
 

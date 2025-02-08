@@ -269,7 +269,7 @@ TATopologicalValueIteration<State, Action, UseInterval>::ECDExplorationInfo::
 template <typename State, typename Action, bool UseInterval>
 Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
     MDPType& mdp,
-    EvaluatorType& heuristic,
+    HeuristicType& heuristic,
     ParamType<State> state,
     ProgressReport,
     double max_time)
@@ -315,7 +315,7 @@ TATopologicalValueIteration<State, Action, UseInterval>::
 template <typename State, typename Action, bool UseInterval>
 Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
     MDPType& mdp,
-    const EvaluatorType& heuristic,
+    const HeuristicType& heuristic,
     StateID init_state_id,
     auto& value_store,
     double max_time)
@@ -411,7 +411,7 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
 template <typename State, typename Action, bool UseInterval>
 auto TATopologicalValueIteration<State, Action, UseInterval>::compute_policy(
     MDPType&,
-    EvaluatorType&,
+    HeuristicType&,
     ParamType<State>,
     ProgressReport,
     double) -> std::unique_ptr<PolicyType>
@@ -486,7 +486,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
 template <typename State, typename Action, bool UseInterval>
 bool TATopologicalValueIteration<State, Action, UseInterval>::initialize_state(
     MDPType& mdp,
-    const EvaluatorType& heuristic,
+    const HeuristicType& heuristic,
     ExplorationInfo& exp_info,
     auto& value_store)
 {

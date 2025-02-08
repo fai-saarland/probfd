@@ -10,7 +10,7 @@ template <typename State, typename Action>
 int ArbitraryTiebreaker<State, Action>::pick_index(
     MDP<State, Action>&,
     std::optional<Action>,
-    const std::vector<Transition<Action>>&,
+    const std::vector<TransitionTail<Action>>&,
     algorithms::StateProperties&)
 {
     return 0;

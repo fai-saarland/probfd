@@ -6,7 +6,7 @@
 
 #include "probfd/distribution.h"
 #include "probfd/task_proxy.h"
-#include "probfd/transition.h"
+#include "probfd/transition_tail.h"
 
 #include "downward/cartesian_abstractions/refinement_hierarchy.h"
 
@@ -93,11 +93,11 @@ void CartesianAbstraction::generate_all_transitions(
 
 void CartesianAbstraction::generate_all_transitions(
     int state,
-    std::vector<TransitionType>& transitions)
+    std::vector<TransitionTailType>& transitions)
 {
     for (const auto* t :
          transition_system_->get_outgoing_transitions()[state]) {
-        TransitionType& transition = transitions.emplace_back(t);
+        TransitionTailType& transition = transitions.emplace_back(t);
         generate_action_transitions(state, t, transition.successor_dist);
     }
 }

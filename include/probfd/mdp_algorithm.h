@@ -31,7 +31,7 @@ protected:
     using PolicyType = Policy<State, Action>;
 
     using MDPType = MDP<State, Action>;
-    using EvaluatorType = Heuristic<State>;
+    using HeuristicType = Heuristic<State>;
 
 public:
     virtual ~MDPAlgorithm() = default;
@@ -41,7 +41,7 @@ public:
      */
     virtual std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport progress,
         double maxtime) = 0;
@@ -52,7 +52,7 @@ public:
      */
     virtual Interval solve(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport progress,
         double max_time) = 0;

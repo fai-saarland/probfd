@@ -8,7 +8,7 @@
 #include "probfd/policies/vector_multi_policy.h"
 
 #include "probfd/distribution.h"
-#include "probfd/transition.h"
+#include "probfd/transition_tail.h"
 
 #include "downward/utils/rng.h"
 
@@ -54,7 +54,7 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_optimal_projection_policy(
         }
 
         // Generate operators...
-        std::vector<Transition<Action>> transitions;
+        std::vector<TransitionTail<Action>> transitions;
         mdp.generate_all_transitions(state, transitions);
 
         // Select the greedy operators and add their successors
@@ -111,7 +111,7 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_optimal_projection_policy(
 
             std::vector<PolicyDecision<Action>> decisions;
 
-            std::vector<Transition<Action>> transitions;
+            std::vector<TransitionTail<Action>> transitions;
             mdp.generate_all_transitions(pstate, transitions);
 
             for (const auto& [op, successor_dist] : transitions) {
@@ -165,7 +165,7 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_greedy_projection_policy(
         }
 
         // Generate operators...
-        std::vector<Transition<Action>> transitions;
+        std::vector<TransitionTail<Action>> transitions;
         mdp.generate_all_transitions(state, transitions);
 
         if (transitions.empty()) {

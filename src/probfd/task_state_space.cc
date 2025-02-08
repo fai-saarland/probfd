@@ -2,7 +2,7 @@
 
 #include "probfd/distribution.h"
 #include "probfd/task_proxy.h"
-#include "probfd/transition.h"
+#include "probfd/transition_tail.h"
 #include "probfd/type_traits.h"
 
 #include "downward/evaluator.h"
@@ -82,7 +82,7 @@ void TaskStateSpace::generate_all_transitions(
 
 void TaskStateSpace::generate_all_transitions(
     const State& state,
-    std::vector<TransitionType>& transitions)
+    std::vector<TransitionTailType>& transitions)
 {
     gen_.generate_transitions(state, transitions, *this);
 

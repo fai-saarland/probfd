@@ -1,5 +1,5 @@
 #include "probfd/distribution.h"
-#include "probfd/transition.h"
+#include "probfd/transition_tail.h"
 
 namespace probfd::policy_pickers {
 
@@ -14,7 +14,7 @@ template <typename State, typename Action, class Derived>
 int StablePolicyPicker<State, Action, Derived>::pick_index(
     MDP<State, Action>& mdp,
     std::optional<Action> previous_greedy,
-    const std::vector<Transition<Action>>& greedy_transitions,
+    const std::vector<TransitionTail<Action>>& greedy_transitions,
     algorithms::StateProperties& properties)
 {
     if (stable_policy_) {

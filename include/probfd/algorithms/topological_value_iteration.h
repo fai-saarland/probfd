@@ -70,7 +70,7 @@ class TopologicalValueIteration : public IterativeMDPAlgorithm<State, Action> {
 
     using PolicyType = typename Base::PolicyType;
     using MDPType = typename Base::MDPType;
-    using EvaluatorType = typename Base::EvaluatorType;
+    using HeuristicType = typename Base::HeuristicType;
 
     using MapPolicy = policies::MapPolicy<State, Action>;
     using AlgorithmValueType = algorithms::AlgorithmValue<UseInterval>;
@@ -177,14 +177,14 @@ public:
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport,
         double max_time) override;
 
     Interval solve(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport,
         double max_time) override;
@@ -207,7 +207,7 @@ public:
     template <typename ValueStore>
     Interval solve(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         StateID init_state_id,
         ValueStore& value_store,
         double max_time = std::numeric_limits<double>::infinity(),
@@ -231,7 +231,7 @@ private:
      */
     bool initialize_state(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ExplorationInfo& exp_info,
         auto& value_store);
 

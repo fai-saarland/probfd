@@ -48,7 +48,7 @@ public:
  */
 template <typename State, typename Action>
 struct CompositeMDP : public MDP<State, Action> {
-    using TransitionType = Transition<Action>;
+    using TransitionTailType = TransitionTail<Action>;
 
     StateSpace<State, Action>& state_space;
     CostFunction<State, Action>& cost_function;
@@ -112,7 +112,7 @@ struct CompositeMDP : public MDP<State, Action> {
 
     virtual void generate_all_transitions(
         ParamType<State> state,
-        std::vector<TransitionType>& transitions) final
+        std::vector<TransitionTailType>& transitions) final
     {
         return state_space.generate_all_transitions(state, transitions);
     }

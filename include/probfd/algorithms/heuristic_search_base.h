@@ -22,7 +22,7 @@ namespace probfd {
 template <typename>
 class Distribution;
 template <typename>
-struct Transition;
+struct TransitionTail;
 template <typename, typename>
 class CostFunction;
 } // namespace probfd
@@ -114,8 +114,8 @@ class HeuristicSearchBase {
 protected:
     using MDPType = MDP<State, Action>;
     using CostFunctionType = CostFunction<State, Action>;
-    using EvaluatorType = Heuristic<State>;
-    using TransitionType = Transition<Action>;
+    using HeuristicType = Heuristic<State>;
+    using TransitionTailType = TransitionTail<Action>;
 
     using PolicyPickerType = PolicyPicker<State, Action>;
 
@@ -149,7 +149,7 @@ protected:
 
     struct BellmanResult {
         AlgorithmValueType best_value;
-        std::optional<TransitionType> transition;
+        std::optional<TransitionTailType> transition;
     };
 
 public:
@@ -174,7 +174,7 @@ public:
      */
     AlgorithmValueType compute_bellman(
         StateID state_id,
-        const std::vector<TransitionType>& transitions,
+        const std::vector<TransitionTailType>& transitions,
         CostFunctionType& cost_function,
         value_t termination_cost) const;
 
@@ -196,7 +196,7 @@ public:
      */
     AlgorithmValueType compute_bellman_and_greedy(
         StateID state_id,
-        std::vector<TransitionType>& transitions,
+        std::vector<TransitionTailType>& transitions,
         CostFunctionType& cost_function,
         value_t termination_cost,
         std::vector<AlgorithmValueType>& qvalues,
@@ -212,10 +212,10 @@ public:
      * @attention The selected transition is moved from the transition list
      * to avoid a copy.
      */
-    std::optional<TransitionType> select_greedy_transition(
+    std::optional<TransitionTailType> select_greedy_transition(
         MDPType& mdp,
         std::optional<Action> previous_greedy_action,
-        std::vector<TransitionType>& greedy_transitions);
+        std::vector<TransitionTailType>& greedy_transitions);
 
     /**
      * @brief Updates the value of the state associated with the given storage.
@@ -236,50 +236,50 @@ public:
      */
     bool update_policy(
         StateInfo& state_info,
-        const std::optional<TransitionType>& transition)
+        const std::optional<TransitionTailType>& transition)
         requires(StorePolicy);
 
 protected:
     void initialize_initial_state(
         MDPType& mdp,
-        EvaluatorType& h,
+        HeuristicType& h,
         ParamType<State> state);
 
     void expand_and_initialize(
         MDPType& mdp,
-        EvaluatorType& h,
+        HeuristicType& h,
         ParamType<State> state,
         StateInfo& state_info,
-        std::vector<TransitionType>& transitions);
+        std::vector<TransitionTailType>& transitions);
 
     void generate_non_tip_transitions(
         MDPType& mdp,
         ParamType<State> state,
-        std::vector<TransitionType>& transitions) const;
+        std::vector<TransitionTailType>& transitions) const;
 
     void print_statistics(std::ostream& out) const;
 
 private:
     void initialize(
         MDPType& mdp,
-        EvaluatorType& h,
+        HeuristicType& h,
         ParamType<State> state,
         StateInfo& state_info);
 
     AlgorithmValueType compute_qvalue(
         StateID state_id,
-        const TransitionType& transition,
+        const TransitionTailType& transition,
         value_t action_cost) const;
 
     AlgorithmValueType compute_q_values(
         StateID state_id,
-        std::vector<TransitionType>& transitions,
+        std::vector<TransitionTailType>& transitions,
         CostFunctionType& cost_function,
         value_t termination_cost,
         std::vector<AlgorithmValueType>& qvalues) const;
 
     AlgorithmValueType filter_greedy_transitions(
-        std::vector<TransitionType>& transitions,
+        std::vector<TransitionTailType>& transitions,
         std::vector<AlgorithmValueType>& qvalues,
         const AlgorithmValueType& best_value,
         value_t epsilon) const;
@@ -301,14 +301,14 @@ class HeuristicSearchAlgorithm
     using HSBase = typename HeuristicSearchAlgorithm::HeuristicSearchBase;
 
 public:
-    using TransitionType = HSBase::TransitionType;
+    using TransitionTailType = HSBase::TransitionTailType;
     using AlgorithmValueType = HSBase::AlgorithmValueType;
 
 protected:
     using PolicyType = typename AlgorithmBase::PolicyType;
 
     using MDPType = typename AlgorithmBase::MDPType;
-    using EvaluatorType = typename AlgorithmBase::EvaluatorType;
+    using HeuristicType = typename AlgorithmBase::HeuristicType;
 
     using StateInfo = typename HSBase::StateInfo;
     using PolicyPicker = typename HSBase::PolicyPickerType;
@@ -320,14 +320,14 @@ public:
 
     Interval solve(
         MDPType& mdp,
-        EvaluatorType& h,
+        HeuristicType& h,
         ParamType<State> state,
         ProgressReport progress,
         double max_time) final;
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
-        EvaluatorType& h,
+        HeuristicType& h,
         ParamType<State> state,
         ProgressReport progress,
         double max_time) final;
@@ -341,7 +341,7 @@ public:
      */
     virtual Interval do_solve(
         MDPType& mdp,
-        EvaluatorType& h,
+        HeuristicType& h,
         ParamType<State> state,
         ProgressReport& progress,
         double max_time) = 0;
@@ -372,7 +372,7 @@ protected:
     using PolicyType = typename AlgorithmBase::PolicyType;
 
     using MDPType = typename AlgorithmBase::MDPType;
-    using EvaluatorType = typename AlgorithmBase::EvaluatorType;
+    using HeuristicType = typename AlgorithmBase::HeuristicType;
 
     using StateInfo = typename HSBase::StateInfo;
     using PolicyPicker = typename HSBase::PolicyPickerType;

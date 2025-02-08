@@ -9,7 +9,7 @@
 
 #include "probfd/distribution.h"
 #include "probfd/heuristic.h"
-#include "probfd/transition.h"
+#include "probfd/transition_tail.h"
 
 #include "downward/utils/countdown_timer.h"
 #include "probfd/policies/map_policy.h"
@@ -50,7 +50,7 @@ IDual<State, Action>::IDual(
 template <typename State, typename Action>
 Interval IDual<State, Action>::solve(
     MDPType& mdp,
-    EvaluatorType& heuristic,
+    HeuristicType& heuristic,
     ParamType<State> initial_state,
     ProgressReport progress,
     double max_time)
@@ -70,7 +70,7 @@ Interval IDual<State, Action>::solve(
 template <typename State, typename Action>
 auto IDual<State, Action>::compute_policy(
     MDPType& mdp,
-    EvaluatorType& heuristic,
+    HeuristicType& heuristic,
     ParamType<State> initial_state,
     ProgressReport progress,
     double max_time) -> std::unique_ptr<PolicyType>
@@ -186,7 +186,7 @@ auto IDual<State, Action>::compute_policy(
 template <typename State, typename Action>
 Interval IDual<State, Action>::solve(
     MDPType& mdp,
-    EvaluatorType& heuristic,
+    HeuristicType& heuristic,
     ParamType<State> initial_state,
     ProgressReport progress,
     double max_time,
@@ -237,7 +237,7 @@ Interval IDual<State, Action>::solve(
         frontier.push_back(prev_state);
     }
 
-    std::vector<Transition<Action>> transitions;
+    std::vector<TransitionTail<Action>> transitions;
 
     value_t objective = 0_vt;
 

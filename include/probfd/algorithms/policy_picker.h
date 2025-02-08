@@ -12,7 +12,7 @@ namespace probfd {
 template <typename>
 class Distribution;
 template <typename>
-struct Transition;
+struct TransitionTail;
 template <typename, typename>
 class MDP;
 } // namespace probfd
@@ -72,7 +72,7 @@ public:
     virtual int pick_index(
         MDP<State, Action>& mdp,
         std::optional<Action> incumbent_greedy,
-        const std::vector<Transition<Action>>& greedy_transitions,
+        const std::vector<TransitionTail<Action>>& greedy_transitions,
         StateProperties& properties) = 0;
 
     /**

@@ -77,7 +77,7 @@ class IDual : public MDPAlgorithm<State, Action> {
     using Base = typename IDual::MDPAlgorithm;
 
     using MDPType = typename Base::MDPType;
-    using EvaluatorType = typename Base::EvaluatorType;
+    using HeuristicType = typename Base::HeuristicType;
     using PolicyType = typename Base::PolicyType;
 
     lp::LPSolver lp_solver_;
@@ -93,14 +93,14 @@ public:
 
     Interval solve(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> initial_state,
         ProgressReport progress,
         double max_time) override;
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> initial_state,
         ProgressReport progress,
         double max_time) override;
@@ -108,7 +108,7 @@ public:
 private:
     Interval solve(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> initial_state,
         ProgressReport progress,
         double max_time,

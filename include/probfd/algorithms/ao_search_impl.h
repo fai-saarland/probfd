@@ -24,7 +24,7 @@ template <typename State, typename Action, typename StateInfo>
 void AOBase<State, Action, StateInfo>::backpropagate_tip_value(
     this auto& self,
     MDPType& mdp,
-    std::vector<Transition<Action>>& transitions,
+    std::vector<TransitionTail<Action>>& transitions,
     StateInfo& state_info,
     utils::CountdownTimer& timer)
 {

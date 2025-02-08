@@ -115,7 +115,7 @@ class AcyclicValueIteration : public MDPAlgorithm<State, Action> {
 
     using PolicyType = typename Base::PolicyType;
     using MDPType = typename Base::MDPType;
-    using EvaluatorType = typename Base::EvaluatorType;
+    using HeuristicType = typename Base::HeuristicType;
 
     using MapPolicy = policies::MapPolicy<State, Action>;
 
@@ -163,21 +163,21 @@ class AcyclicValueIteration : public MDPAlgorithm<State, Action> {
 public:
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> initial_state,
         ProgressReport progress,
         double max_time) override;
 
     Interval solve(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> initial_state,
         ProgressReport progress,
         double max_time) override;
 
     Interval solve(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> initial_state,
         double max_time,
         MapPolicy* policy);
@@ -193,7 +193,7 @@ private:
 
     bool expand_state(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         IncrementalExpansionInfo& e_info);
 };
 

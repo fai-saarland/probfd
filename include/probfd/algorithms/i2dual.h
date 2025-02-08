@@ -88,7 +88,7 @@ public:
 
     std::unique_ptr<PolicyType> compute_policy(
         FDRMDP& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         const State& initial_state,
         ProgressReport progress,
         double max_time) override;

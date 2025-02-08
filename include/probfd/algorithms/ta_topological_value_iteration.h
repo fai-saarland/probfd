@@ -65,7 +65,7 @@ class TATopologicalValueIteration
     using Base = typename TATopologicalValueIteration::MDPAlgorithm;
 
     using MDPType = typename Base::MDPType;
-    using EvaluatorType = typename Base::EvaluatorType;
+    using HeuristicType = typename Base::HeuristicType;
     using PolicyType = typename Base::PolicyType;
 
     using AlgorithmValueType = algorithms::AlgorithmValue<UseInterval>;
@@ -296,14 +296,14 @@ public:
 
     Interval solve(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport,
         double max_time) override;
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport progress,
         double max_time) override;
@@ -325,7 +325,7 @@ public:
      */
     Interval solve(
         MDPType& mdp,
-        const EvaluatorType& heuristic,
+        const HeuristicType& heuristic,
         StateID init_state_id,
         auto& value_store,
         double max_time = std::numeric_limits<double>::infinity());
@@ -346,7 +346,7 @@ private:
      */
     bool initialize_state(
         MDPType& mdp,
-        const EvaluatorType& heuristic,
+        const HeuristicType& heuristic,
         ExplorationInfo& exp_info,
         auto& value_store);
 

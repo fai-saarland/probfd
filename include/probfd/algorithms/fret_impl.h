@@ -43,7 +43,7 @@ template <
     typename GreedyGraphGenerator>
 auto FRET<State, Action, StateInfoT, GreedyGraphGenerator>::compute_policy(
     MDPType& mdp,
-    EvaluatorType& heuristic,
+    HeuristicType& heuristic,
     ParamType<State> state,
     ProgressReport progress,
     double max_time) -> std::unique_ptr<PolicyType>
@@ -170,7 +170,7 @@ template <
     typename GreedyGraphGenerator>
 Interval FRET<State, Action, StateInfoT, GreedyGraphGenerator>::solve(
     MDPType& mdp,
-    EvaluatorType& heuristic,
+    HeuristicType& heuristic,
     ParamType<State> state,
     ProgressReport progress,
     double max_time)
@@ -204,7 +204,7 @@ template <
     typename GreedyGraphGenerator>
 Interval FRET<State, Action, StateInfoT, GreedyGraphGenerator>::solve(
     QuotientSystem& quotient,
-    QEvaluator& heuristic,
+    QHeuristic& heuristic,
     ParamType<QState> state,
     ProgressReport& progress,
     double max_time)
@@ -236,7 +236,7 @@ template <
 Interval
 FRET<State, Action, StateInfoT, GreedyGraphGenerator>::heuristic_search(
     QuotientSystem& quotient,
-    QEvaluator& heuristic,
+    QHeuristic& heuristic,
     ParamType<QState> state,
     ProgressReport& progress,
     utils::CountdownTimer& timer)

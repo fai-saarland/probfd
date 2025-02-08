@@ -87,7 +87,7 @@ class AOBase
 
 protected:
     using MDPType = typename Base::MDPType;
-    using EvaluatorType = typename Base::EvaluatorType;
+    using HeuristicType = typename Base::HeuristicType;
     using PolicyPickerType = typename Base::PolicyPicker;
 
 private:
@@ -118,7 +118,7 @@ protected:
     void backpropagate_tip_value(
         this auto& self,
         MDPType& mdp,
-        std::vector<Transition<Action>>& transitions,
+        std::vector<TransitionTail<Action>>& transitions,
         StateInfo& state_info,
         utils::CountdownTimer& timer);
 

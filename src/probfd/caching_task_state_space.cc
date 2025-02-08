@@ -1,6 +1,6 @@
 #include "probfd/caching_task_state_space.h"
 
-#include "probfd/transition.h"
+#include "probfd/transition_tail.h"
 
 #include "probfd/distribution.h"
 #include "probfd/probabilistic_task.h"
@@ -104,7 +104,7 @@ void CachingTaskStateSpace::generate_all_transitions(
 
 void CachingTaskStateSpace::generate_all_transitions(
     const State& state,
-    std::vector<TransitionType>& transitions)
+    std::vector<TransitionTailType>& transitions)
 {
     const ProbabilisticOperatorsProxy operators = task_proxy_.get_operators();
 
@@ -113,7 +113,7 @@ void CachingTaskStateSpace::generate_all_transitions(
     transitions.reserve(entry.naops);
 
     for (OperatorID op_id : counted(entry.aops, entry.naops)) {
-        TransitionType& t = transitions.emplace_back(op_id);
+        TransitionTailType& t = transitions.emplace_back(op_id);
         Distribution<StateID>& result = t.successor_dist;
 
         const ProbabilisticOperatorProxy op = operators[op_id];

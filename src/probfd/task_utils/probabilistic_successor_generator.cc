@@ -27,7 +27,7 @@ void ProbabilisticSuccessorGenerator::generate_applicable_ops(
 
 void ProbabilisticSuccessorGenerator::generate_transitions(
     const State& state,
-    std::vector<Transition<OperatorID>>& transitions,
+    std::vector<TransitionTail<OperatorID>>& transitions,
     TaskStateSpace& task_state_space) const
 {
     state.unpack();

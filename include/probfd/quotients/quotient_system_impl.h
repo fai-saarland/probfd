@@ -4,7 +4,7 @@
 
 #include "probfd/aliases.h"
 #include "probfd/distribution.h"
-#include "probfd/transition.h"
+#include "probfd/transition_tail.h"
 
 #include "downward/utils/collections.h"
 
@@ -100,9 +100,10 @@ value_t QuotientState<State, Action>::member_maximum(F&& f) const
             [&](const QuotientInformationType* quotient) {
                 value_t res = -INFINITE_VALUE;
                 for (ParamType<State> state :
-                     quotient->member_ids() | transform(std::bind_front(
-                                                  &MDPType::get_state,
-                                                  std::ref(mdp)))) {
+                     quotient->member_ids() | transform(
+                                                  std::bind_front(
+                                                      &MDPType::get_state,
+                                                      std::ref(mdp)))) {
                     res = std::max(res, f(state));
                 }
                 return res;
@@ -119,10 +120,10 @@ void QuotientState<State, Action>::for_each_member_state(
         overloaded{
             [&](const QuotientInformationType* quotient) {
                 std::ranges::for_each(
-                    quotient->member_ids() |
-                        std::views::transform(std::bind_front(
-                            &MDPType::get_state,
-                            std::ref(mdp))),
+                    quotient->member_ids() | std::views::transform(
+                                                 std::bind_front(
+                                                     &MDPType::get_state,
+                                                     std::ref(mdp))),
                     f);
             },
             [&](ParamType<State> single) { f(single); }},
@@ -346,7 +347,7 @@ void QuotientSystem<State, Action>::generate_all_transitions(
 template <typename State, typename Action>
 void QuotientSystem<State, Action>::generate_all_transitions(
     ParamType<QState> state,
-    std::vector<Transition<QAction>>& transitions)
+    std::vector<QTransitionTail>& transitions)
 {
     std::visit(
         overloaded{
@@ -359,7 +360,7 @@ void QuotientSystem<State, Action>::generate_all_transitions(
                     const auto outers_end = aop + info.num_outer_acts;
                     for (; aop != outers_end; ++aop) {
                         QAction qa(info.state_id, *aop);
-                        Transition<QAction>& t = transitions.emplace_back(qa);
+                        QTransitionTail& t = transitions.emplace_back(qa);
                         generate_action_transitions(
                             state,
                             qa,
@@ -379,7 +380,7 @@ void QuotientSystem<State, Action>::generate_all_transitions(
 
                 for (Action a : orig_a) {
                     QAction qa(state_id, a);
-                    Transition<QAction>& t = transitions.emplace_back(qa);
+                    QTransitionTail& t = transitions.emplace_back(qa);
 
                     Distribution<StateID> orig;
                     mdp_.generate_action_transitions(state, a, orig);

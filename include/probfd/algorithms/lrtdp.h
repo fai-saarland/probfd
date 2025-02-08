@@ -136,7 +136,7 @@ public:
 
 private:
     using MDPType = typename Base::MDPType;
-    using EvaluatorType = typename Base::EvaluatorType;
+    using HeuristicType = typename Base::HeuristicType;
     using PolicyPickerType = typename Base::PolicyPicker;
 
     using SuccessorSamplerType = SuccessorSampler<Action>;
@@ -155,7 +155,7 @@ private:
     Statistics statistics_;
 
     // Re-used buffer
-    std::vector<Transition<Action>> transitions_;
+    std::vector<TransitionTail<Action>> transitions_;
     std::vector<AlgorithmValueType> qvalues_;
 
 public:
@@ -173,7 +173,7 @@ public:
 protected:
     Interval do_solve(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport& progress,
         double max_time) override;
@@ -183,13 +183,13 @@ protected:
 private:
     void trial(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         StateID initial_state,
         utils::CountdownTimer& timer);
 
     bool check_and_solve(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         StateID init_state_id,
         utils::CountdownTimer& timer);
 };

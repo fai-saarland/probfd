@@ -337,7 +337,7 @@ void ProjectionStateSpace::generate_all_transitions(
 
 void ProjectionStateSpace::generate_all_transitions(
     StateRank state,
-    std::vector<TransitionType>& transitions)
+    std::vector<TransitionTailType>& transitions)
 {
     match_tree_.generate_all_transitions(state, transitions, *this);
 }

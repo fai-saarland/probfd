@@ -83,7 +83,7 @@ public:
 
     void generate_all_transitions(
         const State& state,
-        std::vector<TransitionType>& transitions) override;
+        std::vector<TransitionTailType>& transitions) override;
 
     const State& get_initial_state();
 

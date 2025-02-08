@@ -71,7 +71,7 @@ TALRTDPImpl<State, Action, UseInterval>::TALRTDPImpl(
 template <typename State, typename Action, bool UseInterval>
 Interval TALRTDPImpl<State, Action, UseInterval>::solve_quotient(
     QuotientSystem& quotient,
-    QEvaluator& heuristic,
+    QHeuristic& heuristic,
     ParamType<QState> state,
     ProgressReport& progress,
     double max_time)
@@ -111,7 +111,7 @@ void TALRTDPImpl<State, Action, UseInterval>::print_statistics(
 template <typename State, typename Action, bool UseInterval>
 bool TALRTDPImpl<State, Action, UseInterval>::trial(
     QuotientSystem& quotient,
-    QEvaluator& heuristic,
+    QHeuristic& heuristic,
     StateID start_state,
     utils::CountdownTimer& timer)
 {
@@ -214,7 +214,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::trial(
 template <typename State, typename Action, bool UseInterval>
 bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
     QuotientSystem& quotient,
-    QEvaluator& heuristic,
+    QHeuristic& heuristic,
     utils::CountdownTimer& timer)
 {
     assert(!this->current_trial_.empty());
@@ -396,7 +396,7 @@ void TALRTDPImpl<State, Action, UseInterval>::push(StateID state)
 template <typename State, typename Action, bool UseInterval>
 bool TALRTDPImpl<State, Action, UseInterval>::initialize(
     QuotientSystem& quotient,
-    QEvaluator& heuristic,
+    QHeuristic& heuristic,
     StateID state_id,
     StateInfo& state_info,
     ExplorationInformation& e_info)
@@ -486,7 +486,7 @@ TALRTDP<State, Action, UseInterval>::TALRTDP(
 template <typename State, typename Action, bool UseInterval>
 Interval TALRTDP<State, Action, UseInterval>::solve(
     MDPType& mdp,
-    EvaluatorType& heuristic,
+    HeuristicType& heuristic,
     ParamType<State> s,
     ProgressReport progress,
     double max_time)
@@ -504,7 +504,7 @@ Interval TALRTDP<State, Action, UseInterval>::solve(
 template <typename State, typename Action, bool UseInterval>
 auto TALRTDP<State, Action, UseInterval>::compute_policy(
     MDPType& mdp,
-    EvaluatorType& heuristic,
+    HeuristicType& heuristic,
     ParamType<State> state,
     ProgressReport progress,
     double max_time) -> std::unique_ptr<PolicyType>

@@ -44,7 +44,7 @@ void LRTDP<State, Action, UseInterval>::reset_search_state()
 template <typename State, typename Action, bool UseInterval>
 Interval LRTDP<State, Action, UseInterval>::do_solve(
     MDPType& mdp,
-    EvaluatorType& heuristic,
+    HeuristicType& heuristic,
     ParamType<State> state,
     ProgressReport& progress,
     double max_time)
@@ -81,7 +81,7 @@ void LRTDP<State, Action, UseInterval>::print_additional_statistics(
 template <typename State, typename Action, bool UseInterval>
 void LRTDP<State, Action, UseInterval>::trial(
     MDPType& mdp,
-    EvaluatorType& heuristic,
+    HeuristicType& heuristic,
     StateID initial_state,
     utils::CountdownTimer& timer)
 {
@@ -191,7 +191,7 @@ void LRTDP<State, Action, UseInterval>::trial(
 template <typename State, typename Action, bool UseInterval>
 bool LRTDP<State, Action, UseInterval>::check_and_solve(
     MDPType& mdp,
-    EvaluatorType& heuristic,
+    HeuristicType& heuristic,
     StateID init_state_id,
     utils::CountdownTimer& timer)
 {

@@ -82,7 +82,7 @@ ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
 template <typename State, typename Action, bool UseInterval>
 Interval ExhaustiveDepthFirstSearch<State, Action, UseInterval>::solve(
     MDPType& mdp,
-    EvaluatorType& heuristic,
+    HeuristicType& heuristic,
     ParamType<State> state,
     ProgressReport progress,
     double)
@@ -107,7 +107,7 @@ Interval ExhaustiveDepthFirstSearch<State, Action, UseInterval>::solve(
 template <typename State, typename Action, bool UseInterval>
 auto ExhaustiveDepthFirstSearch<State, Action, UseInterval>::compute_policy(
     MDPType&,
-    EvaluatorType&,
+    HeuristicType&,
     ParamType<State>,
     ProgressReport,
     double) -> std::unique_ptr<PolicyType>
@@ -139,7 +139,7 @@ template <typename State, typename Action, bool UseInterval>
 bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
     initialize_search_node(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         StateID state_id,
         SearchNodeInfo& info)
 {
@@ -154,7 +154,7 @@ template <typename State, typename Action, bool UseInterval>
 bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
     initialize_search_node(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> state,
         SearchNodeInfo& info)
 {
@@ -192,7 +192,7 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
 template <typename State, typename Action, bool UseInterval>
 bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
     MDPType& mdp,
-    EvaluatorType& heuristic,
+    HeuristicType& heuristic,
     StateID state_id,
     SearchNodeInfo& info)
 {
@@ -316,7 +316,7 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
 template <typename State, typename Action, bool UseInterval>
 void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
     MDPType& mdp,
-    EvaluatorType& heuristic,
+    HeuristicType& heuristic,
     ProgressReport& progress)
 {
     using namespace std;

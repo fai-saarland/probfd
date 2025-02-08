@@ -83,7 +83,7 @@ class TADFHSImpl
     using QState = quotients::QuotientState<State, Action>;
     using QAction = quotients::QuotientAction<Action>;
 
-    using QEvaluator = typename Base::EvaluatorType;
+    using QHeuristic = typename Base::HeuristicType;
     using QuotientPolicyPicker = typename Base::PolicyPickerType;
     using StateInfo = typename Base::StateInfo;
 
@@ -170,7 +170,7 @@ class TADFHSImpl
     bool terminated_ = false;
 
     // Re-used buffer
-    std::vector<Transition<QAction>> transitions_;
+    std::vector<TransitionTail<QAction>> transitions_;
     std::vector<AlgorithmValueType> qvalues_;
     Distribution<StateID> transition_;
 
@@ -193,7 +193,7 @@ public:
 
     Interval solve_quotient(
         QuotientSystem& quotient,
-        QEvaluator& heuristic,
+        QHeuristic& heuristic,
         ParamType<QState> qstate,
         ProgressReport& progress,
         double max_time);
@@ -203,14 +203,14 @@ public:
 private:
     void dfhs_vi_driver(
         QuotientSystem& quotient,
-        QEvaluator& heuristic,
+        QHeuristic& heuristic,
         StateID state,
         ProgressReport& progress,
         utils::CountdownTimer& timer);
 
     void dfhs_label_driver(
         QuotientSystem& quotient,
-        QEvaluator& heuristic,
+        QHeuristic& heuristic,
         StateID state,
         ProgressReport& progress,
         utils::CountdownTimer& timer);
@@ -231,14 +231,14 @@ private:
 
     bool initialize(
         QuotientSystem& quotient,
-        QEvaluator& heuristic,
+        QHeuristic& heuristic,
         ExplorationInformation& einfo);
 
     void push(StateID state_id);
 
     bool policy_exploration(
         QuotientSystem& quotient,
-        QEvaluator& heuristic,
+        QHeuristic& heuristic,
         StateID start_state,
         utils::CountdownTimer& timer);
 
@@ -254,7 +254,7 @@ class TADepthFirstHeuristicSearch : public MDPAlgorithm<State, Action> {
 
     using PolicyType = typename Base::PolicyType;
     using MDPType = typename Base::MDPType;
-    using EvaluatorType = typename Base::EvaluatorType;
+    using HeuristicType = typename Base::HeuristicType;
 
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QState = quotients::QuotientState<State, Action>;
@@ -281,14 +281,14 @@ public:
 
     Interval solve(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport progress,
         double max_time) override;
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
-        EvaluatorType& heuristic,
+        HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport progress,
         double max_time) override;

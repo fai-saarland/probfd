@@ -16,7 +16,7 @@ struct FactPair;
 
 namespace probfd {
 template <typename>
-struct Transition;
+struct TransitionTail;
 }
 
 namespace probfd::pdbs {
@@ -66,7 +66,7 @@ public:
      */
     void generate_all_transitions(
         StateRank abstract_state,
-        std::vector<Transition<const ProjectionOperator*>>& transitions,
+        std::vector<TransitionTail<const ProjectionOperator*>>& transitions,
         ProjectionStateSpace& state_space) const;
 
     /**

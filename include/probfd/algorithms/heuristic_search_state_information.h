@@ -7,7 +7,7 @@
 #include "probfd/storage/per_state_storage.h"
 
 #include "probfd/state_id.h"
-#include "probfd/transition.h"
+#include "probfd/transition_tail.h"
 
 #include <cassert>
 #include <cstdint>
@@ -31,7 +31,7 @@ struct StatesPolicy<Action, true> {
         return changed;
     }
 
-    bool update_policy(const std::optional<Transition<Action>>& transition)
+    bool update_policy(const std::optional<TransitionTail<Action>>& transition)
     {
         return update_policy(
             transition.transform([](auto& t) { return t.action; }));
