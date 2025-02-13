@@ -446,7 +446,7 @@ bool ValueGraph<State, Action, StateInfoT>::get_successors(
         q_values,
         base_algorithm.get_convergence_epsilon());
 
-    bool value_changed = base_algorithm.update_value(
+    const auto val_upd = base_algorithm.update_value(
         state_info,
         value,
         base_algorithm.get_convergence_epsilon());
@@ -462,7 +462,7 @@ bool ValueGraph<State, Action, StateInfoT>::get_successors(
         }
     }
 
-    return value_changed;
+    return val_upd.changed;
 }
 
 template <typename State, typename Action, typename StateInfoT>

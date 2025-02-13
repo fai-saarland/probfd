@@ -149,15 +149,16 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::select_greedy_transition(
 }
 
 template <typename State, typename Action, typename StateInfoT>
-bool HeuristicSearchBase<State, Action, StateInfoT>::update_value(
+ValueUpdateResult
+HeuristicSearchBase<State, Action, StateInfoT>::update_value(
     StateInfo& state_info,
     AlgorithmValueType other,
     value_t epsilon)
 {
     ++statistics_.value_updates;
-    bool b = algorithms::update(state_info.value, other, epsilon);
-    if (b) ++statistics_.value_changes;
-    return b;
+    auto r = algorithms::update(state_info.value, other, epsilon);
+    if (r.changed) ++statistics_.value_changes;
+    return r;
 }
 
 template <typename State, typename Action, typename StateInfoT>

@@ -160,7 +160,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::trial(
             info.get_policy(),
             transitions_);
 
-        bool value_changed = this->update_value(info, value, this->epsilon_);
+        const auto val_upd = this->update_value(info, value, this->epsilon_);
         this->update_policy(info, transition);
 
         if (!transition.has_value()) {
@@ -169,8 +169,8 @@ bool TALRTDPImpl<State, Action, UseInterval>::trial(
             break;
         }
 
-        if ((stop_at_consistent_ == CONSISTENT && !value_changed) ||
-            (stop_at_consistent_ == INCONSISTENT && value_changed) ||
+        if ((stop_at_consistent_ == CONSISTENT && val_upd.converged) ||
+            (stop_at_consistent_ == INCONSISTENT && !val_upd.converged) ||
             (stop_at_consistent_ == REVISITED && info.is_on_trial())) {
             break;
         }
@@ -428,16 +428,16 @@ bool TALRTDPImpl<State, Action, UseInterval>::initialize(
         state_info.get_policy(),
         transitions_);
 
-    bool value_changed = this->update_value(state_info, value, this->epsilon_);
+    const auto val_upd = this->update_value(state_info, value, this->epsilon_);
     this->update_policy(state_info, transition);
 
     if (!transition) {
-        e_info.rv = e_info.rv && !value_changed;
+        e_info.rv = e_info.rv && val_upd.converged;
         e_info.is_trap = false;
         return false;
     }
 
-    if (value_changed) {
+    if (!val_upd.converged) {
         e_info.rv = false;
         e_info.is_trap = false;
         return false;

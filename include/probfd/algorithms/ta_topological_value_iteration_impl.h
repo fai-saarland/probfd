@@ -889,12 +889,10 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
                     set_min(v, info.compute_q_value(value_store));
                 }
 
-                if constexpr (UseInterval) {
-                    *it->value = v;
-                    if (!it->value->bounds_equal()) converged = false;
-                } else {
-                    if (update(*it->value, v, this->epsilon)) converged = false;
-                }
+                const auto val_upd = update(*it->value, v, this->epsilon);
+
+                if (!val_upd.converged)
+                    converged = false;
 
                 ++statistics_.bellman_backups;
             } while (++it != table.end());

@@ -190,7 +190,7 @@ bool AOStar<State, Action, UseInterval>::update_value_check_solved(
     auto greedy_transition =
         this->select_greedy_transition(mdp, info.get_policy(), transitions_);
 
-    bool value_changed = this->update_value(info, value, this->epsilon);
+    bool value_changed = this->update_value(info, value, this->epsilon).changed;
     this->update_policy(info, greedy_transition);
 
     bool all_succs_solved = true;

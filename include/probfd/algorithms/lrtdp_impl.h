@@ -134,7 +134,7 @@ void LRTDP<State, Action, UseInterval>::trial(
             state_info.get_policy(),
             transitions_);
 
-        bool value_changed =
+        const auto val_upd =
             this->update_value(state_info, value, this->epsilon);
         this->update_policy(state_info, transition);
 
@@ -146,8 +146,8 @@ void LRTDP<State, Action, UseInterval>::trial(
 
         assert(!state_info.is_goal_or_terminal());
 
-        if ((stop_consistent_ == CONSISTENT && !value_changed) ||
-            (stop_consistent_ == INCONSISTENT && value_changed) ||
+        if ((stop_consistent_ == CONSISTENT && val_upd.converged) ||
+            (stop_consistent_ == INCONSISTENT && !val_upd.converged) ||
             (stop_consistent_ == REVISITED && state_info.is_closed())) {
             break;
         }
@@ -246,19 +246,12 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
             info.get_policy(),
             transitions_);
 
-        bool value_changed = this->update_value(info, value, this->epsilon);
+        const auto val_upd = this->update_value(info, value, this->epsilon);
         this->update_policy(info, transition);
 
-        if constexpr (UseInterval) {
-            if (!info.bounds_approximately_equal(this->epsilon)) {
-                rv = false;
-                continue;
-            }
-        } else {
-            if (value_changed) {
-                rv = false;
-                continue;
-            }
+        if (!val_upd.converged) {
+            rv = false;
+            continue;
         }
 
         if (!transition) {

@@ -170,12 +170,7 @@ bool TopologicalValueIteration<State, Action, UseInterval>::StackInfo::
         }
     }
 
-    if constexpr (UseInterval) {
-        update(*value, v, convergence_epsilon);
-        return !value->bounds_approximately_equal(convergence_epsilon);
-    } else {
-        return update(*value, v, convergence_epsilon);
-    }
+    return !update(*value, v, convergence_epsilon).converged;
 }
 
 template <typename State, typename Action, bool UseInterval>

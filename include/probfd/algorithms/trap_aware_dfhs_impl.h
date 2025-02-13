@@ -224,7 +224,7 @@ bool TADFHSImpl<State, Action, UseInterval>::advance(
             qvalues_,
             this->epsilon_);
 
-        bool value_changed =
+        const auto val_upd =
             this->update_value(state_info, value, this->epsilon_);
         bool policy_changed = this->update_policy(
             state_info,
@@ -232,11 +232,13 @@ bool TADFHSImpl<State, Action, UseInterval>::advance(
                 quotient,
                 state_info.get_policy(),
                 transitions_));
-        einfo.value_converged = einfo.value_converged && !value_changed;
+        einfo.value_converged = val_upd.converged;
         einfo.all_solved =
-            einfo.all_solved && !value_changed && !policy_changed;
-        terminated_ = terminated_ || (terminate_exploration_on_cutoff_ &&
-                                      cutoff_inconsistent_ && value_changed);
+            einfo.all_solved && val_upd.converged && !policy_changed;
+
+        terminated_ =
+            terminated_ || (terminate_exploration_on_cutoff_ &&
+                            cutoff_inconsistent_ && !val_upd.converged);
     }
 
     return false;
@@ -328,14 +330,14 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
             state_info.get_policy(),
             transitions_);
 
-        bool value_changed =
+        const auto val_upd =
             this->update_value(state_info, value, this->epsilon_);
         this->update_policy(state_info, transition);
 
-        einfo.value_converged = einfo.value_converged && !value_changed;
-        einfo.all_solved = einfo.all_solved && !value_changed;
-        const bool cutoff =
-            (cutoff_tip_ && tip) || (cutoff_inconsistent_ && value_changed);
+        einfo.value_converged = val_upd.converged;
+        einfo.all_solved = val_upd.converged;
+        const bool cutoff = (cutoff_tip_ && tip) ||
+                            (cutoff_inconsistent_ && !val_upd.converged);
         terminated_ = terminate_exploration_on_cutoff_ && cutoff;
 
         if (!transition) {
@@ -490,7 +492,7 @@ auto TADFHSImpl<State, Action, UseInterval>::value_iteration(
                 qvalues_,
                 this->epsilon_);
 
-            bool value_changed =
+            const auto upd_val =
                 this->update_value(state_info, value, this->epsilon_);
             bool policy_changed = this->update_policy(
                 state_info,
@@ -498,7 +500,7 @@ auto TADFHSImpl<State, Action, UseInterval>::value_iteration(
                     quotient,
                     state_info.get_policy(),
                     transitions_));
-            value_changed_for_any = value_changed_for_any || value_changed;
+            value_changed_for_any = value_changed_for_any || !upd_val.converged;
             policy_changed_for_any = policy_changed_for_any || policy_changed;
         }
 

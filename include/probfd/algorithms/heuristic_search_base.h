@@ -3,6 +3,7 @@
 
 #include "probfd/algorithms/heuristic_search_state_information.h"
 #include "probfd/algorithms/types.h"
+#include "probfd/algorithms/utils.h"
 
 #include "iterative_mdp_algorithm.h"
 #include "probfd/progress_report.h"
@@ -214,10 +215,11 @@ public:
     /**
      * @brief Updates the value of the state associated with the given storage.
      *
-     * @returns True if the value has changed by more than the given epsilon,
-     * otherwise false.
+     * @returns A pair indicating whether the value has changed by more than
+     * the given epsilon in the first component and whether the value is
+     * considered to be epsilon-close to optimal in the second component.
      */
-    bool update_value(
+    ValueUpdateResult update_value(
         StateInfo& state_info,
         AlgorithmValueType other,
         value_t epsilon);

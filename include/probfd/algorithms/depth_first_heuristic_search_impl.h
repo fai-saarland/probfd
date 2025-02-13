@@ -247,15 +247,15 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::advance(
             state_info.get_policy(),
             transitions_);
 
-        bool value_changed =
+        const auto val_upd =
             this->update_value(state_info, value, this->epsilon);
         bool policy_changed = this->update_policy(state_info, transition);
 
         // Note: it is only necessary to check whether eps-consistency
         // was reached on backward update when both directions are
         // enabled
-        einfo.value_converged = !value_changed;
-        einfo.solved = einfo.solved && !value_changed && !policy_changed;
+        einfo.value_converged = val_upd.converged;
+        einfo.solved = einfo.solved && val_upd.converged && !policy_changed;
     }
 
     return false;
@@ -322,13 +322,11 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
         return false;
     }
 
-    const StateID stateid = einfo.stateid;
+    const State state = mdp.get_state(einfo.stateid);
 
     const bool is_tip_state = sinfo.is_on_fringe();
 
     if (forward_updates_ || is_tip_state) {
-        const State state = mdp.get_state(einfo.stateid);
-
         ClearGuard _(transitions_, qvalues_);
 
         if (is_tip_state) {
@@ -356,15 +354,10 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
             sinfo.get_policy(),
             transitions_);
 
-        einfo.value_converged =
-            !this->update_value(sinfo, value, this->epsilon);
+        const auto val_upd = this->update_value(sinfo, value, this->epsilon);
         this->update_policy(sinfo, transition);
 
-        if constexpr (UseInterval) {
-            einfo.value_converged =
-                einfo.value_converged &&
-                sinfo.value.bounds_approximately_equal(this->epsilon);
-        }
+        einfo.value_converged = val_upd.converged;
 
         if (!transition) {
             return false;
@@ -384,7 +377,6 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
         const auto action = sinfo.get_policy();
         if (!action.has_value()) return false;
 
-        const State state = mdp.get_state(stateid);
         SuccessorDistribution successor_dist;
         mdp.generate_action_transitions(state, *action, successor_dist);
         einfo.successors = std::ranges::to<std::vector>(
@@ -449,17 +441,10 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::vi_step(
             state_info.get_policy(),
             transitions_);
 
-        bool value_changed =
-            this->update_value(state_info, value, this->epsilon);
+        auto val_upd = this->update_value(state_info, value, this->epsilon);
         bool policy_changed = this->update_policy(state_info, transition);
-        values_not_conv = values_not_conv || value_changed;
+        values_not_conv = values_not_conv || !val_upd.converged;
         policy_not_conv = policy_not_conv || policy_changed;
-
-        if constexpr (UseInterval) {
-            values_not_conv =
-                values_not_conv ||
-                !state_info.value.bounds_approximately_equal(this->epsilon);
-        }
     }
 
     return std::make_pair(values_not_conv, policy_not_conv);

@@ -16,7 +16,7 @@ struct Interval;
 namespace probfd::algorithms {
 
 template <typename T>
-concept Clearable = requires (T& t) { t.clear(); };
+concept Clearable = requires(T& t) { t.clear(); };
 
 /**
  * @brief Helper RAII class that ensures that containers are cleared when going
@@ -83,20 +83,23 @@ bool set_min(Interval& lhs, Interval rhs);
  */
 bool set_min(value_t& lhs, value_t rhs);
 
+struct ValueUpdateResult {
+    bool changed;
+    bool converged;
+};
+
 /**
  * @brief Intersects two intervals and assigns the result to the left
  * operand.
  *
- * @returns \b true if the lower or upper bound of the left operand changed by
- * more than g_epsilon, \b false otherwise.
- *
- * @warning It is undefined behaviour to call this function with two
- * non-intersecting intervals.
+ * @returns A pair indicating whether any interval bound has changed by more
+ * than epsilon in the first component and whether the interval is epsilon-tight
+ * in the second component.
  */
-bool update(Interval& lhs, Interval rhs, value_t epsilon);
+ValueUpdateResult update(Interval& lhs, Interval rhs, value_t epsilon);
 
 // Value update
-bool update(value_t& lhs, value_t rhs, value_t epsilon);
+ValueUpdateResult update(value_t& lhs, value_t rhs, value_t epsilon);
 
 } // namespace probfd::algorithms
 

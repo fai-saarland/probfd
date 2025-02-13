@@ -432,13 +432,12 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
                     auto& info = search_space_[rend->state_ref];
                     info.close();
 
-                    if constexpr (UseInterval) {
-                        val_changed = update(
-                                          info.value,
-                                          AlgorithmValueType(info.value.lower),
-                                          this->epsilon) ||
-                                      val_changed;
-                    }
+                    const auto val_upd = update(
+                        info.value,
+                        AlgorithmValueType(as_lower_bound(info.value)),
+                        this->epsilon);
+
+                    if (val_upd.changed) val_changed = true;
 
                     ++scc_size;
                 } while ((rend++)->state_ref != stateid);
