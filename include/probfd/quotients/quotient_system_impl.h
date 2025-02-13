@@ -274,10 +274,12 @@ void QuotientSystem<State, Action>::generate_applicable_actions(
 
 template <typename State, typename Action>
 void QuotientSystem<State, Action>::generate_action_transitions(
-    ParamType<QState>,
+    ParamType<QState> source,
     QAction a,
     SuccessorDistribution& successor_dist)
 {
+    const auto q_source_id = get_state_id(source);
+
     const State state = this->mdp_.get_state(a.state_id);
 
     SuccessorDistribution orig;
@@ -285,10 +287,10 @@ void QuotientSystem<State, Action>::generate_action_transitions(
 
     successor_dist.non_source_probability = 0_vt;
 
-    for (const auto& [state_id, probability] : orig.non_source_successor_dist) {
-        successor_dist.add_non_source_probability(
-            get_masked_state_id(state_id) & MASK,
-            probability);
+    for (const auto& [succ_id, probability] : orig.non_source_successor_dist) {
+        const auto successor = get_masked_state_id(succ_id) & MASK;
+        if (successor == q_source_id) continue;
+        successor_dist.add_non_source_probability(successor, probability);
     }
 }
 
@@ -339,9 +341,10 @@ void QuotientSystem<State, Action>::generate_all_transitions(
 
                     for (const auto& [succ_id, probability] :
                          orig.non_source_successor_dist) {
-                        dist.add_non_source_probability(
-                            get_masked_state_id(succ_id) & MASK,
-                            probability);
+                        const auto successor =
+                            get_masked_state_id(succ_id) & MASK;
+                        if (state_id == successor) continue;
+                        dist.add_non_source_probability(successor, probability);
                     }
                 }
             }},
@@ -391,8 +394,11 @@ void QuotientSystem<State, Action>::generate_all_transitions(
 
                     for (const auto& [succ_id, probability] :
                          orig.non_source_successor_dist) {
+                        const auto successor =
+                            get_masked_state_id(succ_id) & MASK;
+                        if (state_id == successor) continue;
                         t.successor_dist.add_non_source_probability(
-                            get_masked_state_id(succ_id) & MASK,
+                            successor,
                             probability);
                     }
                 }
