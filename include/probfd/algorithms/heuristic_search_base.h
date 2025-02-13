@@ -147,11 +147,6 @@ protected:
 
     internal::Statistics statistics_;
 
-    struct BellmanResult {
-        AlgorithmValueType best_value;
-        std::optional<TransitionTailType> transition;
-    };
-
 public:
     explicit HeuristicSearchBase(
         std::shared_ptr<PolicyPickerType> policy_chooser);
@@ -182,16 +177,17 @@ public:
      * transitions achieving a value epsilon-close to the minimum value and
      * their computed Q-values.
      *
-     * @param[in, out] transitions The set of transition to compute the
-     * Bellman operator for. The greedy transitions are returned through this
-     * parameter by erasing all non-greedy transitions.
-     * All greedy transitions will maintain their relative order.
-     * If no transition achieves a value lower than the termination cost,
-     * the empty list is returned, regardless of the epsilon parameter.
+     * @param[in, out] transition_tails The set of transition tails to compute
+     * the Bellman operator for. The greedy transition tails are returned
+     * through this parameter by erasing all non-greedy transitions.
+     * All greedy transition tails will maintain their relative order.
+     * If no transition achieves a value lower than the termination cost for
+     * the source state, the empty list is returned, regardless of the epsilon
+     * parameter.
      *
      * @param[out] qvalues The Q-values are added to this list, which must be
      * empty prior to the call, in the order that matches the greedy
-     * transitions returned in \p transitions .
+     * transition tails returned in @p transition_tails .
      */
     AlgorithmValueType compute_bellman_and_greedy(
         ParamType<State> source_state,
