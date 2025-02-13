@@ -139,10 +139,11 @@ auto IDual<State, Action>::compute_policy(
         unsigned int i = 0;
         for (const Action& action : aops) {
             if (dual_solution[constraint_index + i] > fp_epsilon_) {
-                Distribution<StateID> distribution;
+                SuccessorDistribution distribution;
                 mdp.generate_action_transitions(state, action, distribution);
 
-                for (const StateID succ_id : distribution.support()) {
+                for (const StateID succ_id :
+                     distribution.non_source_successor_dist.support()) {
                     predecessor_edges[succ_id].emplace_back(state_id, action);
                     if (!visited.insert(succ_id).second) continue;
                     queue.push_back(succ_id);
@@ -225,11 +226,12 @@ Interval IDual<State, Action>::solve(
 
         vars.emplace_back(-inf, estimate, 1.0);
 
-        lp_solver_.load_problem(lp::LinearProgram(
-            lp::LPObjectiveSense::MAXIMIZE,
-            std::move(vars),
-            std::move(constraints),
-            inf));
+        lp_solver_.load_problem(
+            lp::LinearProgram(
+                lp::LPObjectiveSense::MAXIMIZE,
+                std::move(vars),
+                std::move(constraints),
+                inf));
         prev_state = mdp.get_state_id(initial_state);
         PerStateInfo& info = state_infos_[prev_state];
         info.var_idx = 0;
@@ -274,22 +276,17 @@ Interval IDual<State, Action>::solve(
             ClearGuard _(transitions);
             mdp.generate_all_transitions(state, transitions);
 
-            for (const auto [action, transition] : transitions) {
-                if (transition.is_dirac(state_id)) continue;
+            for (const auto [action, successor_dist] : transitions) {
+                if (successor_dist.non_source_successor_dist.empty()) continue;
 
                 int next_constraint_id = lp_solver_.get_num_constraints();
                 lp::LPConstraint c(-inf, inf);
 
                 double base_val = mdp.get_action_cost(action);
                 StateID next_prev_state = prev_state;
-                double w = 1.0;
 
-                for (const auto& [succ_id, prob] : transition) {
-                    if (succ_id == state_id) {
-                        w -= prob;
-                        continue;
-                    }
-
+                for (const auto& [succ_id, prob] :
+                     successor_dist.non_source_successor_dist) {
                     PerStateInfo& succ_info = state_infos_[succ_id];
 
                     if (succ_id > prev_state) {
@@ -342,8 +339,7 @@ Interval IDual<State, Action>::solve(
 
                 prev_state = next_prev_state;
 
-                assert(w > 0_vt);
-                c.insert(var_id, w);
+                c.insert(var_id, successor_dist.non_source_probability);
                 c.set_upper_bound(base_val);
                 lp_solver_.add_constraint(c);
             }

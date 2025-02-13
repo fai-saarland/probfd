@@ -27,6 +27,9 @@ struct Interval {
     /// Equivalent to *this = factor * (*this)
     Interval& operator*=(value_t scale_factor);
 
+    /// Equivalent to *this = (*this) / factor
+    Interval& operator/=(value_t dividend);
+
     /// Returns the length of the interval. If both bounds are infinity and
     /// have the same sign, returns 0.
     [[nodiscard]]
@@ -63,6 +66,15 @@ Interval operator*(value_t scale_factor, Interval val);
  * @copydoc operator*(value_t, Interval)
  */
 Interval operator*(Interval val, value_t scale_factor);
+
+/**
+ * @brief Compresses the interval.
+ *
+ * @param val - An interval \f$[a, b]\f$
+ * @param compress_factor - The compression factor \f$n\f$
+ * @return The interval \f$[\frac{a}{n}, \frac{b}{n}]\f$
+ */
+Interval operator/(Interval val, value_t compress_factor);
 
 /// Stream output operator. Prints '[<val.lower>,<val.upper>]'.
 std::ostream& operator<<(std::ostream& os, Interval val);

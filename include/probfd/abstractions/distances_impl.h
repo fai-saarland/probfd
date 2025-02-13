@@ -30,7 +30,7 @@ void compute_value_table(
 
     utils::CountdownTimer timer(max_time);
 
-    TATopologicalValueIteration<State, Action> vi(value_table.size());
+    TATopologicalValueIteration<State, Action> vi(10e-4, value_table.size());
     vi.solve(
         mdp,
         heuristic,

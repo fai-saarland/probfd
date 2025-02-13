@@ -1,12 +1,13 @@
 #ifndef PROBFD_ALGORITHMS_TOPOLOGICAL_VALUE_ITERATION_H
 #define PROBFD_ALGORITHMS_TOPOLOGICAL_VALUE_ITERATION_H
 
+#include "probfd/algorithms/iterative_mdp_algorithm.h"
 #include "probfd/algorithms/types.h"
 
 #include "probfd/storage/per_state_storage.h"
 
-#include "iterative_mdp_algorithm.h"
 #include "probfd/distribution.h"
+#include "probfd/transition_tail.h"
 
 #include <deque>
 #include <limits>
@@ -130,7 +131,7 @@ class TopologicalValueIteration : public IterativeMDPAlgorithm<State, Action> {
     struct ExplorationInfo {
         // Exploration State
         std::vector<Action> aops;         // Remaining unexpanded operators
-        Distribution<StateID> transition; // Currently expanded transition
+        SuccessorDistribution successor_dist; // Currently expanded transition
         Distribution<StateID>::const_iterator successor; // Current successor
 
     public:
@@ -140,8 +141,6 @@ class TopologicalValueIteration : public IterativeMDPAlgorithm<State, Action> {
         unsigned stackidx; // Index on the stack of the associated state
 
         unsigned lowlink;
-
-        value_t self_loop_prob = 0_vt;
 
         ExplorationInfo(
             StateID state_id,
@@ -154,7 +153,6 @@ class TopologicalValueIteration : public IterativeMDPAlgorithm<State, Action> {
         bool next_successor();
 
         bool forward_non_loop_transition(MDPType& mdp, const State& state);
-        bool forward_non_loop_successor();
 
         Action& get_current_action();
         ItemProbabilityPair<StateID> get_current_successor();

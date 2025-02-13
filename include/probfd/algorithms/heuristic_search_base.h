@@ -173,7 +173,6 @@ public:
      * @brief Computes the Bellman operator value for a state.
      */
     AlgorithmValueType compute_bellman(
-        StateID state_id,
         const std::vector<TransitionTailType>& transitions,
         CostFunctionType& cost_function,
         value_t termination_cost) const;
@@ -195,7 +194,6 @@ public:
      * transitions returned in \p transitions .
      */
     AlgorithmValueType compute_bellman_and_greedy(
-        StateID state_id,
         std::vector<TransitionTailType>& transitions,
         CostFunctionType& cost_function,
         value_t termination_cost,
@@ -267,12 +265,10 @@ private:
         StateInfo& state_info);
 
     AlgorithmValueType compute_qvalue(
-        StateID state_id,
         const TransitionTailType& transition,
         value_t action_cost) const;
 
     AlgorithmValueType compute_q_values(
-        StateID state_id,
         std::vector<TransitionTailType>& transitions,
         CostFunctionType& cost_function,
         value_t termination_cost,

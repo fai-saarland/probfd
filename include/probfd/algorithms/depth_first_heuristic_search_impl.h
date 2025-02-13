@@ -238,7 +238,6 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::advance(
         statistics_.backtracking_updates++;
 
         auto value = this->compute_bellman_and_greedy(
-            einfo.stateid,
             transitions_,
             mdp,
             termination_cost,
@@ -350,7 +349,6 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
         statistics_.forward_updates++;
 
         auto value = this->compute_bellman_and_greedy(
-            einfo.stateid,
             transitions_,
             mdp,
             termination_cost,
@@ -384,17 +382,17 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
             return false;
         }
 
-        einfo.successors =
-            std::ranges::to<std::vector>(transition->successor_dist.support());
+        einfo.successors = std::ranges::to<std::vector>(
+            transition->successor_dist.non_source_successor_dist.support());
     } else {
         const auto action = sinfo.get_policy();
         if (!action.has_value()) return false;
 
         const State state = mdp.get_state(stateid);
-        Distribution<StateID> successor_dist;
+        SuccessorDistribution successor_dist;
         mdp.generate_action_transitions(state, *action, successor_dist);
-        einfo.successors =
-            std::ranges::to<std::vector>(successor_dist.support());
+        einfo.successors = std::ranges::to<std::vector>(
+            successor_dist.non_source_successor_dist.support());
     }
 
     return true;
@@ -444,7 +442,6 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::vi_step(
         this->generate_non_tip_transitions(mdp, state, transitions_);
 
         const auto value = this->compute_bellman_and_greedy(
-            id,
             transitions_,
             mdp,
             termination_cost,

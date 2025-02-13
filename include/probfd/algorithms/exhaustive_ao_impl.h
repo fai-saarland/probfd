@@ -63,7 +63,7 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
         this->expand_and_initialize(mdp, heuristic, state, info, transitions_);
 
         const auto value =
-            this->compute_bellman(stateid, transitions_, mdp, termination_cost);
+            this->compute_bellman(transitions_, mdp, termination_cost);
         bool value_changed = this->update_value(info, value, this->epsilon);
 
         // Terminal state
@@ -76,11 +76,15 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
         unsigned min_order = std::numeric_limits<unsigned>::max();
 
         for (const auto& [op, dist] : transitions_) {
-            for (auto& [succid, prob] : dist) {
+            for (auto& [succid, prob] : dist.non_source_successor_dist) {
                 auto& succ_info = this->state_infos_[succid];
                 if (succ_info.is_solved()) continue;
 
-                open_list_->push(stateid, op, prob, succid);
+                open_list_->push(
+                    stateid,
+                    op,
+                    prob / dist.non_source_probability,
+                    succid);
 
                 if (succ_info.is_marked()) continue;
 
@@ -99,7 +103,8 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
         }
 
         for (const auto& transition : transitions_) {
-            for (StateID succ_id : transition.successor_dist.support()) {
+            for (StateID succ_id : transition.successor_dist
+                                       .non_source_successor_dist.support()) {
                 this->state_infos_[succ_id].unmark();
             }
         }
@@ -127,11 +132,8 @@ bool ExhaustiveAOSearch<State, Action, UseInterval>::update_value_check_solved(
 
     const value_t termination_cost = mdp.get_termination_info(state).get_cost();
 
-    const auto value = this->compute_bellman(
-        mdp.get_state_id(state),
-        transitions,
-        mdp,
-        termination_cost);
+    const auto value =
+        this->compute_bellman(transitions, mdp, termination_cost);
     bool value_changed = this->update_value(info, value, this->epsilon);
 
     if (info.unsolved == 0) {

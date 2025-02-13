@@ -3,10 +3,10 @@
 
 #include "probfd/storage/per_state_storage.h"
 
-#include "probfd/distribution.h"
 #include "probfd/fdr_types.h"
 #include "probfd/mdp_algorithm.h"
 #include "probfd/task_proxy.h"
+#include "probfd/transition_tail.h"
 #include "probfd/value_type.h"
 
 #include "downward/lp/lp_solver.h"
@@ -66,7 +66,7 @@ class I2Dual : public MDPAlgorithm<State, OperatorID> {
     value_t objective_;
 
     std::vector<OperatorID> aops_;
-    Distribution<StateID> succs_;
+    SuccessorDistribution succs_;
 
 public:
     I2Dual(

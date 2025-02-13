@@ -1,15 +1,15 @@
 #ifndef PROBFD_ALGORITHMS_EXHAUSTIVE_DFS_H
 #define PROBFD_ALGORITHMS_EXHAUSTIVE_DFS_H
 
+#include "probfd/algorithms/iterative_mdp_algorithm.h"
 #include "probfd/algorithms/state_properties.h"
-
 #include "probfd/algorithms/types.h"
 
 #include "probfd/storage/per_state_storage.h"
 
-#include "iterative_mdp_algorithm.h"
 #include "probfd/distribution.h"
 #include "probfd/progress_report.h"
+#include "probfd/transition_tail.h"
 
 #include <deque>
 #include <limits>
@@ -49,7 +49,7 @@ struct ExpansionInformation {
     {
     }
 
-    std::vector<Distribution<StateID>> successors;
+    std::vector<SuccessorDistribution> successors;
     Distribution<StateID>::const_iterator succ;
     unsigned stack_index;
 
@@ -64,8 +64,8 @@ struct ExpansionInformation {
 
 struct SCCTransition {
     Distribution<StateID> successors;
-    value_t base = 0_vt;
-    value_t self_loop = 0_vt;
+    value_t closed_value = 0_vt;
+    value_t normalization = 0_vt;
 };
 
 struct StackInformation {

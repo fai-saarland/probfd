@@ -58,22 +58,22 @@ void TaskStateSpace::generate_applicable_actions(
 void TaskStateSpace::generate_action_transitions(
     const State& state,
     OperatorID op_id,
-    Distribution<StateID>& result)
+    SuccessorDistribution& successor_dist)
 {
-    compute_successor_dist(state, op_id, result);
+    compute_successor_dist(state, op_id, successor_dist);
     ++statistics_.single_transition_generator_calls;
 }
 
 void TaskStateSpace::generate_all_transitions(
     const State& state,
     std::vector<OperatorID>& aops,
-    std::vector<Distribution<StateID>>& successors)
+    std::vector<SuccessorDistribution>& successor_dist)
 {
     compute_applicable_operators(state, aops);
-    successors.reserve(aops.size());
+    successor_dist.reserve(aops.size());
 
     for (const auto& op : aops) {
-        compute_successor_dist(state, op, successors.emplace_back());
+        compute_successor_dist(state, op, successor_dist.emplace_back());
     }
 
     ++statistics_.all_transitions_generator_calls;
@@ -112,29 +112,34 @@ void TaskStateSpace::print_statistics(std::ostream& out) const
 void TaskStateSpace::compute_successor_dist(
     const State& state,
     OperatorID op_id,
-    Distribution<StateID>& successor_dist)
+    SuccessorDistribution& successor_dist)
 {
     const ProbabilisticOperatorProxy op = task_proxy_.get_operators()[op_id];
     const auto outcomes = op.get_outcomes();
     const size_t num_outcomes = outcomes.size();
-    successor_dist.reserve(num_outcomes);
+    successor_dist.non_source_successor_dist.reserve(num_outcomes);
+
+    successor_dist.non_source_probability = 0_vt;
 
     for (const ProbabilisticOutcomeProxy outcome : outcomes) {
         value_t probability = outcome.get_probability();
         State succ =
             state_registry_.get_successor_state(state, outcome.get_effects());
 
+        if (state == succ) continue;
+
         for (const auto& h : notify_) {
             OperatorID det_op_id(outcome.get_determinization_id());
             h->notify_state_transition(state, det_op_id, succ);
         }
 
-        successor_dist.add_probability(succ.get_id(), probability);
+        successor_dist.add_non_source_probability(succ.get_id(), probability);
     }
 
     ++statistics_.transition_computations;
     statistics_.computed_successors += num_outcomes;
-    statistics_.generated_states += successor_dist.size();
+    statistics_.generated_states +=
+        successor_dist.non_source_successor_dist.size();
 }
 
 void TaskStateSpace::compute_applicable_operators(

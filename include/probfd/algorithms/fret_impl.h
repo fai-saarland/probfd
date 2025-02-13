@@ -118,10 +118,11 @@ auto FRET<State, Action, StateInfoT, GreedyGraphGenerator>::compute_policy(
 
                 const State source = mdp.get_state(source_id);
 
-                Distribution<StateID> successors;
-                mdp.generate_action_transitions(source, action, successors);
+                SuccessorDistribution successor_dist;
+                mdp.generate_action_transitions(source, action, successor_dist);
 
-                for (const StateID succ_id : successors.support()) {
+                for (const StateID succ_id :
+                     successor_dist.non_source_successor_dist.support()) {
                     parents[succ_id].insert(qaction);
                 }
             }
@@ -147,13 +148,14 @@ auto FRET<State, Action, StateInfoT, GreedyGraphGenerator>::compute_policy(
         }
 
         // Push the successor traps.
-        Distribution<StateID> successors;
+        SuccessorDistribution successors;
         quotient.generate_action_transitions(
             quotient_state,
             *quotient_action,
             successors);
 
-        for (const StateID succ_id : successors.support()) {
+        for (const StateID succ_id :
+             successors.non_source_successor_dist.support()) {
             if (visited.insert(succ_id).second) {
                 queue.push_back(succ_id);
             }
@@ -440,7 +442,6 @@ bool ValueGraph<State, Action, StateInfoT>::get_successors(
         opt_transitions_);
 
     auto value = base_algorithm.compute_bellman_and_greedy(
-        qstate,
         opt_transitions_,
         quotient,
         termination_cost,
@@ -455,7 +456,8 @@ bool ValueGraph<State, Action, StateInfoT>::get_successors(
     for (const auto& transition : opt_transitions_) {
         aops.push_back(transition.action);
 
-        for (const StateID sid : transition.successor_dist.support()) {
+        for (const StateID sid :
+             transition.successor_dist.non_source_successor_dist.support()) {
             if (ids_.insert(sid).second) {
                 successors.push_back(sid);
             }
@@ -478,12 +480,12 @@ bool PolicyGraph<State, Action, StateInfoT>::get_successors(
 
     if (!a.has_value()) return false;
 
-    ClearGuard _(t_);
+    ClearGuard _(t_.non_source_successor_dist);
 
     const QState quotient_state = quotient.get_state(quotient_state_id);
     quotient.generate_action_transitions(quotient_state, *a, t_);
 
-    for (StateID sid : t_.support()) {
+    for (StateID sid : t_.non_source_successor_dist.support()) {
         successors.push_back(sid);
     }
 

@@ -46,7 +46,8 @@ struct PerStateInformation
     : public heuristic_search::
           PerStateBaseInformation<Action, true, UseInterval> {
 private:
-    using Base = heuristic_search::PerStateBaseInformation<Action, true, UseInterval>;
+    using Base =
+        heuristic_search::PerStateBaseInformation<Action, true, UseInterval>;
 
 public:
     static constexpr uint8_t SOLVED = 1 << Base::BITS;
@@ -172,7 +173,7 @@ class TADFHSImpl
     // Re-used buffer
     std::vector<TransitionTail<QAction>> transitions_;
     std::vector<AlgorithmValueType> qvalues_;
-    Distribution<StateID> transition_;
+    SuccessorDistribution transition_;
 
     internal::Statistics statistics_;
 
@@ -218,9 +219,8 @@ private:
     void enqueue(
         QuotientSystem& quotient,
         ExplorationInformation& einfo,
-        StateID state,
         QAction action,
-        const Distribution<StateID>& successor_dist);
+        const SuccessorDistribution& successor_dist);
 
     bool advance(QuotientSystem& quotient, ExplorationInformation& einfo);
 

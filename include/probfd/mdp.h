@@ -93,9 +93,12 @@ struct CompositeMDP : public MDP<State, Action> {
     void generate_action_transitions(
         ParamType<State> state,
         ParamType<Action> action,
-        Distribution<StateID>& result) final
+        SuccessorDistribution& successor_dist) final
     {
-        return state_space.generate_action_transitions(state, action, result);
+        return state_space.generate_action_transitions(
+            state,
+            action,
+            successor_dist);
     }
 
     /**
@@ -105,9 +108,12 @@ struct CompositeMDP : public MDP<State, Action> {
     void generate_all_transitions(
         ParamType<State> state,
         std::vector<Action>& aops,
-        std::vector<Distribution<StateID>>& successors) final
+        std::vector<SuccessorDistribution>& successor_dist) final
     {
-        return state_space.generate_all_transitions(state, aops, successors);
+        return state_space.generate_all_transitions(
+            state,
+            aops,
+            successor_dist);
     }
 
     virtual void generate_all_transitions(

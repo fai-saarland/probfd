@@ -8,8 +8,7 @@
 
 // Forward Declarations
 namespace probfd {
-template <typename>
-class Distribution;
+struct SuccessorDistribution;
 template <typename>
 struct TransitionTail;
 } // namespace probfd
@@ -63,7 +62,7 @@ public:
      */
     virtual void generate_applicable_actions(
         ParamType<State> state,
-        std::vector<Action>& result) = 0;
+        std::vector<Action>& applicable_actions) = 0;
 
     /**
      * @brief Generates the successor distribution for a given state and action.
@@ -71,7 +70,7 @@ public:
     virtual void generate_action_transitions(
         ParamType<State> state,
         ParamType<Action> action,
-        Distribution<StateID>& result) = 0;
+        SuccessorDistribution& successor_dist) = 0;
 
     /**
      * @brief Generates all applicable actions and their corresponding successor
@@ -79,8 +78,8 @@ public:
      */
     virtual void generate_all_transitions(
         ParamType<State> state,
-        std::vector<Action>& aops,
-        std::vector<Distribution<StateID>>& successors) = 0;
+        std::vector<Action>& applicable_actions,
+        std::vector<SuccessorDistribution>& successor_dists) = 0;
 
     /**
      * @brief Generates all applicable actions and their corresponding successor

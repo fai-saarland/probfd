@@ -149,7 +149,7 @@ void BisimilarStateSpace::generate_applicable_actions(
 void BisimilarStateSpace::generate_action_transitions(
     QuotientState state,
     QuotientAction a,
-    Distribution<StateID>& result)
+    SuccessorDistribution& successor_dist)
 {
     assert(
         std::to_underlying(a) <
@@ -163,22 +163,26 @@ void BisimilarStateSpace::generate_action_transitions(
     const ProbabilisticOperatorProxy& op = operators[t.op];
     const ProbabilisticOutcomesProxy& outcomes = op.get_outcomes();
 
+    successor_dist.non_source_probability = 0_vt;
+
     for (unsigned i = 0; i < outcomes.size(); ++i) {
         const ProbabilisticOutcomeProxy outcome = outcomes[i];
         const value_t probability = outcome.get_probability();
         const StateID id = t.successors[i];
-        result.add_probability(id, probability);
+        if (std::to_underlying(state) == id) continue;
+        successor_dist.add_non_source_probability(id, probability);
     }
 }
 
 void BisimilarStateSpace::generate_all_transitions(
     QuotientState state,
     std::vector<QuotientAction>& aops,
-    std::vector<Distribution<StateID>>& result)
+    std::vector<SuccessorDistribution>& successor_dists)
 {
     generate_applicable_actions(state, aops);
-    result.resize(aops.size());
-    for (auto [s_aops, s_transitions] : std::views::zip(aops, result)) {
+    successor_dists.resize(aops.size());
+    for (auto [s_aops, s_transitions] :
+         std::views::zip(aops, successor_dists)) {
         generate_action_transitions(state, s_aops, s_transitions);
     }
 }

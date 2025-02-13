@@ -68,26 +68,32 @@ void CartesianAbstraction::generate_applicable_actions(
 }
 
 void CartesianAbstraction::generate_action_transitions(
-    int,
+    int source,
     const ProbabilisticTransition* action,
-    Distribution<StateID>& result)
+    SuccessorDistribution& successor_dist)
 {
+    successor_dist.non_source_probability = 0_vt;
+
     for (size_t i = 0; i != action->target_ids.size(); ++i) {
+        const auto succ = action->target_ids[i];
+
+        if (source == succ) continue;
+
         const value_t probability =
             transition_system_->get_probability(action->op_id, i);
-        result.add_probability(action->target_ids[i], probability);
+        successor_dist.add_non_source_probability(succ, probability);
     }
 }
 
 void CartesianAbstraction::generate_all_transitions(
     int state,
     std::vector<const ProbabilisticTransition*>& aops,
-    std::vector<Distribution<StateID>>& successors)
+    std::vector<SuccessorDistribution>& successor_dists)
 {
     for (const auto* t :
          transition_system_->get_outgoing_transitions()[state]) {
         aops.push_back(t);
-        generate_action_transitions(state, t, successors.emplace_back());
+        generate_action_transitions(state, t, successor_dists.emplace_back());
     }
 }
 

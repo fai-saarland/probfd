@@ -9,6 +9,7 @@
 #include "probfd/utils/not_implemented.h"
 
 #include "probfd/heuristic.h"
+#include "probfd/transition_tail.h"
 
 #include <cassert>
 #include <ranges>
@@ -197,10 +198,10 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
     SearchNodeInfo& info)
 {
     std::vector<Action> aops;
-    std::vector<Distribution<StateID>> successors;
+    std::vector<SuccessorDistribution> successor_dists;
     const State state = mdp.get_state(state_id);
-    mdp.generate_all_transitions(state, aops, successors);
-    if (successors.empty()) {
+    mdp.generate_all_transitions(state, aops, successor_dists);
+    if (successor_dists.empty()) {
         info.value = AlgorithmValueType(info.term_cost);
         info.set_dead_end();
         statistics_.terminal++;
@@ -210,7 +211,7 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
     statistics_.expanded++;
 
     if (transition_sort_ != nullptr) {
-        transition_sort_->sort(state, aops, successors, search_space_);
+        transition_sort_->sort(state, aops, successor_dists, search_space_);
     }
 
     expansion_infos_.emplace_back(stack_infos_.size());
@@ -221,24 +222,32 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
 
     si.successors.resize(aops.size());
 
-    const auto cost = info.get_value();
-
     bool pure_self_loop = true;
 
     unsigned j = 0;
     for (unsigned i = 0; i < aops.size(); ++i) {
-        auto& succs = successors[i];
+        auto& succs = successor_dists[i];
         auto& t = si.successors[i];
-        bool all_self_loops = true;
+        const auto& a = aops[i];
 
-        succs.remove_if([&, this, state_id](auto& elem) {
+        if (succs.non_source_successor_dist.empty()) {
+            continue;
+        }
+
+        pure_self_loop = false;
+
+        if (succs.non_source_probability == 0_vt) {
+            update_lower_bound(info.value, mdp.get_action_cost(a));
+            continue;
+        }
+
+        t.normalization = 1_vt / succs.non_source_probability;
+        t.closed_value = mdp.get_action_cost(a);
+
+        bool all_closed = true;
+
+        for (auto& elem : succs.non_source_successor_dist) {
             const auto [succ_id, prob] = elem;
-
-            // Remove self loops
-            if (succ_id == state_id) {
-                t.self_loop += prob;
-                return true;
-            }
 
             SearchNodeInfo& succ_info = search_space_[succ_id];
             if (succ_info.is_new()) {
@@ -246,44 +255,27 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
             }
 
             if (succ_info.is_closed()) {
-                t.base += prob * succ_info.get_value();
+                t.closed_value += prob * succ_info.get_value();
                 exp.update_successors_dead(succ_info.is_dead_end());
                 exp.all_successors_marked_dead =
                     exp.all_successors_marked_dead &&
                     succ_info.is_marked_dead_end();
-
-                all_self_loops = false;
-
-                return true;
+                continue;
             }
 
-            return false;
-        });
-
-        const auto& a = aops[i];
-        if (succs.empty()) {
-            if (!all_self_loops) {
-                pure_self_loop = false;
-                t.base += cost + mdp.get_action_cost(a);
-                auto non_loop = 1_vt - t.self_loop;
-                update_lower_bound(info.value, t.base / non_loop);
-            }
-        } else {
-            t.base += cost + mdp.get_action_cost(a);
-
-            if (t.self_loop == 0_vt) {
-                t.self_loop = 1_vt;
-            } else {
-                assert(t.self_loop < 1_vt);
-                t.self_loop = 1_vt / (1_vt - t.self_loop);
-            }
-
-            if (i != j) {
-                si.successors[j] = std::move(si.successors[i]);
-                successors[j] = std::move(successors[i]);
-            }
-            ++j;
+            all_closed = false;
         }
+
+        if (all_closed) {
+            update_lower_bound(info.value, t.closed_value * t.normalization);
+            continue;
+        }
+
+        if (i != j) {
+            si.successors[j] = std::move(si.successors[i]);
+            successor_dists[j] = std::move(successor_dists[i]);
+        }
+        ++j;
     }
 
     if (j == 0) {
@@ -302,13 +294,13 @@ bool ExhaustiveDepthFirstSearch<State, Action, UseInterval>::push_state(
         return false;
     }
 
-    successors.erase(successors.begin() + j, successors.end());
+    successor_dists.erase(successor_dists.begin() + j, successor_dists.end());
     si.successors.erase(si.successors.begin() + j, si.successors.end());
     si.i = 0;
 
     info.set_onstack(stack_infos_.size() - 1);
-    exp.successors = std::move(successors);
-    exp.succ = exp.successors.back().begin();
+    exp.successors = std::move(successor_dists);
+    exp.succ = exp.successors.back().non_source_successor_dist.begin();
 
     return true;
 }
@@ -325,7 +317,9 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
         ExpansionInformation& expanding = expansion_infos_.back();
         assert(expanding.stack_index < stack_infos_.size());
         assert(!expanding.successors.empty());
-        assert(expanding.succ != expanding.successors.back().end());
+        assert(
+            expanding.succ !=
+            expanding.successors.back().non_source_successor_dist.end());
 
         StackInformation& stack_info = stack_infos_[expanding.stack_index];
         assert(!stack_info.successors.empty());
@@ -343,7 +337,8 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
         bool completely_explored = false;
 
         for (;;) {
-            for (; expanding.succ != expanding.successors.back().end();
+            for (; expanding.succ !=
+                   expanding.successors.back().non_source_successor_dist.end();
                  ++expanding.succ) {
                 const auto [succ_id, prob] = *expanding.succ;
 
@@ -360,7 +355,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
                     expanding.all_successors_marked_dead =
                         expanding.all_successors_are_dead &&
                         succ_info.is_marked_dead_end();
-                    inc->base += prob * succ_info.get_value();
+                    inc->closed_value += prob * succ_info.get_value();
                 } else if (succ_info.is_onstack()) {
                     node_info.lowlink =
                         std::min(node_info.lowlink, succ_info.lowlink);
@@ -371,14 +366,14 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
                     expanding.all_successors_marked_dead =
                         expanding.all_successors_are_dead &&
                         succ_info.is_marked_dead_end();
-                    inc->base += prob * succ_info.get_value();
+                    inc->closed_value += prob * succ_info.get_value();
                 }
             }
 
             expanding.successors.pop_back();
             if (update_lower_bound(
                     node_info.value,
-                    inc->base * inc->self_loop)) {
+                    inc->closed_value * inc->normalization)) {
                 val_changed = true;
                 if (check_early_convergence(node_info)) {
                     expanding.successors.clear();
@@ -408,7 +403,8 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
                 ++stack_info.i;
             }
 
-            expanding.succ = expanding.successors.back().begin();
+            expanding.succ =
+                expanding.successors.back().non_source_successor_dist.begin();
         }
 
         last_all_dead_ = expanding.all_successors_are_dead;
@@ -456,16 +452,16 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::run_exploration(
                              ++it) {
                             StackInformation& s = *it;
                             assert(!s.successors.empty());
-                            value_t best = s.successors.back().base;
+                            value_t best = s.successors.back().closed_value;
                             for (const auto& t :
                                  std::views::reverse(s.successors)) {
-                                value_t t_first = t.base;
+                                value_t t_first = t.closed_value;
                                 for (auto [succ_id, prob] : t.successors) {
                                     t_first +=
                                         prob *
                                         search_space_[succ_id].get_value();
                                 }
-                                t_first = t_first * t.self_loop;
+                                t_first = t_first * t.normalization;
                                 best = best > t_first ? best : t_first;
                             }
 
@@ -521,7 +517,7 @@ void ExhaustiveDepthFirstSearch<State, Action, UseInterval>::
         StackInformation& st = stack_infos_[it->stack_index];
         SearchNodeInfo& sn = search_space_[st.state_ref];
         const auto& t = st.successors[st.successors.size() - st.i - 1];
-        const value_t v = t.base + it->succ->probability * val;
+        const value_t v = t.closed_value + it->succ->probability * val;
         if (!update_lower_bound(sn.value, v)) {
             break;
         }

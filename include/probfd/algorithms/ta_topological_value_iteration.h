@@ -9,6 +9,7 @@
 #include "probfd/distribution.h"
 
 #include "downward/utils/timer.h"
+#include "probfd/transition_tail.h"
 
 #include <deque>
 #include <limits>
@@ -98,6 +99,8 @@ class TATopologicalValueIteration
         // have already converged due to topological ordering.
         mutable AlgorithmValueType conv_part;
 
+        value_t normalization;
+
         // Pointers to successor values which have not yet converged,
         // self-loops excluded.
         std::vector<ItemProbabilityPair<StateID>> scc_successors;
@@ -119,7 +122,7 @@ class TATopologicalValueIteration
         std::vector<Action> aops;
 
         // Exploration State -- Currently expanded transition and successor
-        Distribution<StateID> transition;
+        SuccessorDistribution successor_dist;
         typename Distribution<StateID>::const_iterator successor;
 
         // Exploration state -- Current Q value info

@@ -50,12 +50,12 @@ public:
     void generate_action_transitions(
         StateRank state,
         const ProjectionOperator* op,
-        Distribution<StateID>& result) override;
+        SuccessorDistribution& successor_dist) override;
 
     void generate_all_transitions(
         StateRank state,
         std::vector<const ProjectionOperator*>& aops,
-        std::vector<Distribution<StateID>>& result) override;
+        std::vector<SuccessorDistribution>& successor_dist) override;
 
     void generate_all_transitions(
         StateRank state,

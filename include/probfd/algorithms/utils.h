@@ -15,11 +15,14 @@ struct Interval;
 
 namespace probfd::algorithms {
 
+template <typename T>
+concept Clearable = requires (T& t) { t.clear(); };
+
 /**
  * @brief Helper RAII class that ensures that containers are cleared when going
  * out of scope.
  */
-template <typename... T>
+template <Clearable... T>
 class ClearGuard {
     std::tuple<T&...> containers_;
 

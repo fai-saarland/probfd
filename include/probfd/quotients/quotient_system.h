@@ -156,12 +156,12 @@ public:
     void generate_action_transitions(
         ParamType<QState>,
         QAction a,
-        Distribution<StateID>& result) override;
+        SuccessorDistribution& successor_dist) override;
 
     void generate_all_transitions(
         ParamType<QState> state,
         std::vector<QAction>& aops,
-        std::vector<Distribution<StateID>>& successors) override;
+        std::vector<SuccessorDistribution>& successor_dists) override;
 
     void generate_all_transitions(
         ParamType<QState> state,

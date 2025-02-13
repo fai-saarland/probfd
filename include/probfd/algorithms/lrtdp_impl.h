@@ -125,7 +125,6 @@ void LRTDP<State, Action, UseInterval>::trial(
         this->statistics_.trial_bellman_backups++;
 
         auto value = this->compute_bellman_and_greedy(
-            state_id,
             transitions_,
             mdp,
             termination_cost,
@@ -162,7 +161,7 @@ void LRTDP<State, Action, UseInterval>::trial(
         auto next = sample_->sample(
             state_id,
             transition->action,
-            transition->successor_dist,
+            transition->successor_dist.non_source_successor_dist,
             this->state_infos_);
 
         current_trial_.push_back(next);
@@ -240,7 +239,6 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
         this->statistics_.check_and_solve_bellman_backups++;
 
         auto value = this->compute_bellman_and_greedy(
-            state_id,
             transitions_,
             mdp,
             termination_cost,
@@ -272,7 +270,8 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
             continue;
         }
 
-        for (StateID succ_id : transition->successor_dist.support()) {
+        for (StateID succ_id :
+             transition->successor_dist.non_source_successor_dist.support()) {
             StateInfo& succ_info = this->state_infos_[succ_id];
             if (!succ_info.is_closed() && !succ_info.is_solved()) {
                 succ_info.mark_closed();
@@ -304,7 +303,6 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
             statistics_.check_and_solve_bellman_backups++;
 
             auto value = this->compute_bellman_and_greedy(
-                sid,
                 transitions_,
                 mdp,
                 termination_cost,

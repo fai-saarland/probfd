@@ -48,9 +48,7 @@ bool TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
     next_transition(MDPType& mdp)
 {
     aops.pop_back();
-    transition.clear();
-
-    self_loop_prob = 0_vt;
+    successor_dist.clear();
 
     return !aops.empty() &&
            forward_non_loop_transition(mdp, mdp.get_state(state_id));
@@ -60,12 +58,12 @@ template <typename State, typename Action, bool UseInterval>
 bool TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
     next_successor()
 {
-    ++successor;
-    if (forward_non_loop_successor()) return true;
+    if (++successor != successor_dist.non_source_successor_dist.end())
+        return true;
 
     auto& tinfo = stack_info.nconv_qs.back();
 
-    if (tinfo.finalize_transition(self_loop_prob)) {
+    if (tinfo.finalize_transition(successor_dist.non_source_probability)) {
         if (set_min(stack_info.conv_part, tinfo.conv_part)) {
             stack_info.best_converged = tinfo.action;
         }
@@ -80,10 +78,10 @@ bool TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
     forward_non_loop_transition(MDPType& mdp, const State& state)
 {
     do {
-        mdp.generate_action_transitions(state, aops.back(), transition);
-        successor = transition.begin();
+        mdp.generate_action_transitions(state, aops.back(), successor_dist);
+        successor = successor_dist.non_source_successor_dist.begin();
 
-        if (forward_non_loop_successor()) {
+        if (successor != successor_dist.non_source_successor_dist.end()) {
             stack_info.nconv_qs.emplace_back(
                 aops.back(),
                 mdp.get_action_cost(aops.back()));
@@ -91,23 +89,8 @@ bool TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
         }
 
         aops.pop_back();
-        transition.clear();
+        successor_dist.clear();
     } while (!aops.empty());
-
-    return false;
-}
-
-template <typename State, typename Action, bool UseInterval>
-bool TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
-    forward_non_loop_successor()
-{
-    do {
-        if (successor->item != state_id) {
-            return true;
-        }
-
-        self_loop_prob += successor->probability;
-    } while (++successor != transition.end());
 
     return false;
 }
@@ -138,17 +121,15 @@ TopologicalValueIteration<State, Action, UseInterval>::QValueInfo::QValueInfo(
 
 template <typename State, typename Action, bool UseInterval>
 bool TopologicalValueIteration<State, Action, UseInterval>::QValueInfo::
-    finalize_transition(value_t self_loop_prob)
+    finalize_transition(value_t non_source_probability)
 {
-    if (self_loop_prob != 0_vt) {
-        // Apply self-loop normalization
-        const value_t normalization = 1_vt / (1_vt - self_loop_prob);
+    assert(non_source_probability != 0_vt);
 
-        conv_part *= normalization;
+    // Apply self-loop normalization
+    conv_part /= non_source_probability;
 
-        for (auto& pair : nconv_successors) {
-            pair.probability *= normalization;
-        }
+    for (auto& pair : nconv_successors) {
+        pair.probability /= non_source_probability;
     }
 
     return nconv_successors.empty();

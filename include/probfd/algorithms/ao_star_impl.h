@@ -88,10 +88,12 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
                     break;
                 }
 
-                auto all_successors = transitions_ | transform([](auto& t) {
-                                          return t.successor_dist.support();
-                                      }) |
-                                      std::views::join;
+                auto all_successors =
+                    transitions_ | transform([](auto& t) {
+                        return t.successor_dist.non_source_successor_dist
+                            .support();
+                    }) |
+                    std::views::join;
 
                 unsigned min_succ_order = std::numeric_limits<unsigned>::max();
 
@@ -141,18 +143,19 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
 
             assert(action.has_value());
 
-            ClearGuard guard(successor_dist_);
+            ClearGuard guard(successor_dist_.non_source_successor_dist);
 
             mdp.generate_action_transitions(state, *action, successor_dist_);
 
-            successor_dist_.remove_if_normalize([this](const auto& target) {
-                return this->state_infos_[target.item].is_solved();
-            });
+            successor_dist_.non_source_successor_dist.remove_if_normalize(
+                [this](const auto& target) {
+                    return this->state_infos_[target.item].is_solved();
+                });
 
             stateid = outcome_selection_->sample(
                 stateid,
                 *action,
-                successor_dist_,
+                successor_dist_.non_source_successor_dist,
                 this->state_infos_);
         }
 
@@ -180,7 +183,6 @@ bool AOStar<State, Action, UseInterval>::update_value_check_solved(
     const value_t termination_cost = mdp.get_termination_info(state).get_cost();
 
     const auto value = this->compute_bellman_and_greedy(
-        mdp.get_state_id(state),
         transitions,
         mdp,
         termination_cost,
@@ -196,7 +198,8 @@ bool AOStar<State, Action, UseInterval>::update_value_check_solved(
     bool all_succs_solved = true;
 
     if (greedy_transition) {
-        for (const auto succ_id : greedy_transition->successor_dist.support()) {
+        for (const auto succ_id : greedy_transition->successor_dist
+                                      .non_source_successor_dist.support()) {
             const auto& succ_info = this->state_infos_[succ_id];
             all_succs_solved = all_succs_solved && succ_info.is_solved();
         }

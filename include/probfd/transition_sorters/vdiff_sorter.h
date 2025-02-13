@@ -20,7 +20,7 @@ protected:
     void sort(
         const State& state,
         const std::vector<OperatorID>& action_choices,
-        std::vector<Distribution<StateID>>& successors,
+        std::vector<SuccessorDistribution>& successor_dist,
         algorithms::StateProperties& properties) override;
 };
 

@@ -25,8 +25,7 @@ class LogProxy;
 
 namespace probfd {
 class ProbabilisticTask;
-template <typename>
-class Distribution;
+struct SuccessorDistribution;
 } // namespace probfd
 
 namespace probfd {
@@ -62,12 +61,12 @@ public:
     void generate_action_transitions(
         const State& state,
         OperatorID operator_id,
-        Distribution<StateID>& result) final;
+        SuccessorDistribution& successor_dist) final;
 
     void generate_all_transitions(
         const State& state,
         std::vector<OperatorID>& aops,
-        std::vector<Distribution<StateID>>& successors) final;
+        std::vector<SuccessorDistribution>& successor_dist) final;
 
     void generate_all_transitions(
         const State& state,

@@ -9,8 +9,7 @@
 
 // Forward Declarations
 namespace probfd {
-template <typename>
-class Distribution;
+struct SuccessorDistribution;
 }
 
 namespace probfd::algorithms {
@@ -43,7 +42,7 @@ public:
     virtual void sort(
         ParamType<State> state,
         const std::vector<Action>& aops,
-        std::vector<Distribution<StateID>>& successors,
+        std::vector<SuccessorDistribution>& successor_dist,
         StateProperties& properties) = 0;
 };
 

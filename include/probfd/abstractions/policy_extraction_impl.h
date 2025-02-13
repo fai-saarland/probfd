@@ -59,12 +59,16 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_optimal_projection_policy(
 
         // Select the greedy operators and add their successors
         for (const auto& [op, successor_dist] : transitions) {
-            value_t op_value = mdp.get_action_cost(op) +
-                               successor_dist.expectation(value_table);
+            const value_t op_value =
+                mdp.get_action_cost(op) +
+                successor_dist.non_source_successor_dist.expectation(
+                    value_table) +
+                successor_dist.non_source_probability * value;
 
             if (!is_approx_equal(value, op_value, greedy_epsilon)) continue;
 
-            for (const StateID succ : successor_dist.support()) {
+            for (const StateID succ :
+                 successor_dist.non_source_successor_dist.support()) {
                 if (closed.insert(succ).second) {
                     open.push_back(succ);
                 }
@@ -106,7 +110,7 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_optimal_projection_policy(
 
             // Collect all equivalent greedy operators
             const value_t cost_sel_op = mdp.get_action_cost(sel_op);
-            Distribution<StateID> sel_successor_dist;
+            SuccessorDistribution sel_successor_dist;
             mdp.generate_action_transitions(pstate, sel_op, sel_successor_dist);
 
             std::vector<PolicyDecision<Action>> decisions;

@@ -74,12 +74,12 @@ public:
     void generate_action_transitions(
         const State& state,
         OperatorID operator_id,
-        Distribution<StateID>& result) override;
+        SuccessorDistribution& successor_dist) override;
 
     void generate_all_transitions(
         const State& state,
         std::vector<OperatorID>& aops,
-        std::vector<Distribution<StateID>>& successors) override;
+        std::vector<SuccessorDistribution>& successor_dist) override;
 
     void generate_all_transitions(
         const State& state,
@@ -94,7 +94,7 @@ public:
     void compute_successor_dist(
         const State& s,
         OperatorID op_id,
-        Distribution<StateID>& successors);
+        SuccessorDistribution& successor_dist);
 
 protected:
     void

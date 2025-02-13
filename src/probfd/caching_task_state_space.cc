@@ -29,9 +29,7 @@ namespace probfd {
 CachingTaskStateSpace::CachingTaskStateSpace(
     std::shared_ptr<ProbabilisticTask> task,
     std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators)
-    : TaskStateSpace(
-          std::move(task),
-          std::move(path_dependent_evaluators))
+    : TaskStateSpace(std::move(task), std::move(path_dependent_evaluators))
 {
 }
 
@@ -52,7 +50,7 @@ void CachingTaskStateSpace::generate_applicable_actions(
 void CachingTaskStateSpace::generate_action_transitions(
     const State& state,
     OperatorID op_id,
-    Distribution<StateID>& result)
+    SuccessorDistribution& successor_dist)
 {
     const ProbabilisticOperatorsProxy operators = task_proxy_.get_operators();
 
@@ -66,9 +64,14 @@ void CachingTaskStateSpace::generate_action_transitions(
         return false;
     });
 
+    successor_dist.non_source_probability = 0_vt;
+
     for (const auto out = operators[*it];
          const auto outcome : out.get_outcomes()) {
-        result.add_probability(*succs++, outcome.get_probability());
+        const auto succ = *succs++;
+        successor_dist.add_non_source_probability(
+            succ,
+            outcome.get_probability());
     }
 
     ++statistics_.single_transition_generator_calls;
@@ -77,24 +80,27 @@ void CachingTaskStateSpace::generate_action_transitions(
 void CachingTaskStateSpace::generate_all_transitions(
     const State& state,
     std::vector<OperatorID>& aops,
-    std::vector<Distribution<StateID>>& successors)
+    std::vector<SuccessorDistribution>& successor_dists)
 {
     const ProbabilisticOperatorsProxy operators = task_proxy_.get_operators();
 
     CacheEntry& entry = lookup(state);
     const StateID* succs = entry.succs;
     aops.reserve(entry.naops);
-    successors.reserve(entry.naops);
+    successor_dists.reserve(entry.naops);
 
     for (OperatorID op_id : counted(entry.aops, entry.naops)) {
         aops.push_back(op_id);
 
-        Distribution<StateID>& result = successors.emplace_back();
+        SuccessorDistribution& successor_dist = successor_dists.emplace_back();
 
         const ProbabilisticOperatorProxy op = operators[op_id];
 
         for (const auto outcome : op.get_outcomes()) {
-            result.add_probability(*succs++, outcome.get_probability());
+            const auto succ = *succs++;
+            successor_dist.add_non_source_probability(
+                succ,
+                outcome.get_probability());
         }
     }
 
@@ -114,14 +120,18 @@ void CachingTaskStateSpace::generate_all_transitions(
 
     for (OperatorID op_id : counted(entry.aops, entry.naops)) {
         TransitionTailType& t = transitions.emplace_back(op_id);
-        Distribution<StateID>& result = t.successor_dist;
+        SuccessorDistribution& successor_dist = t.successor_dist;
 
         const ProbabilisticOperatorProxy op = operators[op_id];
         const ProbabilisticOutcomesProxy outcomes = op.get_outcomes();
         const size_t num_outcomes = outcomes.size();
 
         for (const auto outcome : outcomes) {
-            result.add_probability(*succs++, outcome.get_probability());
+            const auto succ = *succs++;
+            if (state.get_id() == succ) continue;
+            successor_dist.add_non_source_probability(
+                succ,
+                outcome.get_probability());
         }
 
         statistics_.generated_states += num_outcomes;
@@ -135,7 +145,7 @@ void CachingTaskStateSpace::print_statistics(std::ostream& out) const
 {
     TaskStateSpace::print_statistics(out);
     out << "  Stored arrays in bytes: " << cache_data_.size_in_bytes()
-         << std::endl;
+        << std::endl;
 }
 
 void CachingTaskStateSpace::compute_successor_states(

@@ -106,12 +106,12 @@ template <typename State, typename Action>
 void AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
     setup_transition(MDPType& mdp)
 {
-    assert(transition.empty());
+    assert(successor_dist.non_source_successor_dist.empty());
     auto& next_action = remaining_aops.back();
     t_value = mdp.get_action_cost(next_action);
     const State state = mdp.get_state(state_id);
-    mdp.generate_action_transitions(state, next_action, transition);
-    successor = transition.begin();
+    mdp.generate_action_transitions(state, next_action, successor_dist);
+    successor = successor_dist.non_source_successor_dist.begin();
 }
 
 template <typename State, typename Action>
@@ -135,8 +135,8 @@ template <typename State, typename Action>
 bool AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
     next_successor()
 {
-    assert(successor != transition.end());
-    if (++successor != transition.end()) {
+    assert(successor != successor_dist.non_source_successor_dist.end());
+    if (++successor != successor_dist.non_source_successor_dist.end()) {
         return true;
     }
 
@@ -157,7 +157,7 @@ bool AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
         return false;
     }
 
-    transition.clear();
+    successor_dist.clear();
     setup_transition(mdp);
 
     return true;
@@ -167,6 +167,10 @@ template <typename State, typename Action>
 void AcyclicValueIteration<State, Action>::IncrementalExpansionInfo::
     finalize_transition()
 {
+    if (successor_dist.non_source_probability != 0_vt) {
+        t_value = (1 / successor_dist.non_source_probability) * t_value;
+    }
+
     // Minimum Q-value
     if (t_value < state_info.value) {
         state_info.best_action = remaining_aops.back();

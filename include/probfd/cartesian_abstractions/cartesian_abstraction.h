@@ -76,12 +76,12 @@ public:
     void generate_action_transitions(
         int state,
         const ProbabilisticTransition* action,
-        Distribution<StateID>& result) override;
+        SuccessorDistribution& successor_dist) override;
 
     void generate_all_transitions(
         int state,
         std::vector<const ProbabilisticTransition*>& aops,
-        std::vector<Distribution<StateID>>& successors) override;
+        std::vector<SuccessorDistribution>& successor_dists) override;
 
     void generate_all_transitions(
         int state,

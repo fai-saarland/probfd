@@ -235,12 +235,13 @@ bool EndComponentDecomposition<State, Action>::push(
 
     unsigned non_loop_actions = 0;
     for (unsigned i = 0; i < aops.size(); ++i) {
-        Distribution<StateID> transition;
-        mdp.generate_action_transitions(state, aops[i], transition);
+        SuccessorDistribution successor_dist;
+        mdp.generate_action_transitions(state, aops[i], successor_dist);
 
         std::vector<StateID> succ_ids;
 
-        for (StateID succ_id : transition.support()) {
+        for (StateID succ_id :
+             successor_dist.non_source_successor_dist.support()) {
             if (succ_id != state_id) {
                 succ_ids.push_back(succ_id);
             }

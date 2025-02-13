@@ -2,6 +2,7 @@
 
 #include "probfd/pdbs/projection_operator.h"
 #include "probfd/pdbs/projection_state_space.h"
+#include "probfd/transition_tail.h"
 
 #include <vector>
 
@@ -30,12 +31,13 @@ void compute_saturated_costs(
         for (const ProjectionOperator* op : aops) {
             int oid = op->operator_id.get_index();
 
-            Distribution<StateID> successor_dist;
+            SuccessorDistribution successor_dist;
             state_space.generate_action_transitions(s, op, successor_dist);
 
             value_t h_succ = 0;
 
-            for (const auto& [t, prob] : successor_dist) {
+            for (const auto& [t, prob] :
+                 successor_dist.non_source_successor_dist) {
                 const auto succ_val = value_table[t];
 
                 if (succ_val == INFINITE_VALUE) {

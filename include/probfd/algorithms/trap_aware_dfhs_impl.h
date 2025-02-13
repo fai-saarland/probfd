@@ -177,16 +177,15 @@ template <typename State, typename Action, bool UseInterval>
 void TADFHSImpl<State, Action, UseInterval>::enqueue(
     QuotientSystem& quotient,
     ExplorationInformation& einfo,
-    StateID state,
     QAction action,
-    const Distribution<StateID>& successor_dist)
+    const SuccessorDistribution& successor_dist)
 {
     stack_.back().action = action;
 
-    einfo.successors.reserve(successor_dist.size());
+    einfo.successors.reserve(successor_dist.non_source_successor_dist.size());
 
-    for (const StateID item : successor_dist.support()) {
-        if (item == state) continue;
+    for (const StateID item :
+         successor_dist.non_source_successor_dist.support()) {
         einfo.successors.push_back(item);
     }
 
@@ -221,7 +220,6 @@ bool TADFHSImpl<State, Action, UseInterval>::advance(
 
         StateInfo& state_info = this->state_infos_[einfo.state];
         auto value = this->compute_bellman_and_greedy(
-            einfo.state,
             transitions_,
             quotient,
             termination_cost,
@@ -294,21 +292,19 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
 {
     assert(!terminated_);
 
-    const StateID state_id = einfo.state;
-
-    StateInfo& state_info = this->state_infos_[state_id];
+    StateInfo& state_info = this->state_infos_[einfo.state];
     if (state_info.is_solved()) {
         assert(label_solved_ || state_info.is_goal_or_terminal());
         einfo.is_trap = false;
         return false;
     }
 
+    const QState state = quotient.get_state(einfo.state);
     const bool tip = state_info.is_on_fringe();
 
     if (tip || forward_updates_) {
         ClearGuard _(transitions_, qvalues_);
 
-        const QState state = quotient.get_state(einfo.state);
         const value_t termination_cost =
             quotient.get_termination_info(state).get_cost();
 
@@ -326,7 +322,6 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
         ++statistics_.fw_updates;
 
         auto value = this->compute_bellman_and_greedy(
-            einfo.state,
             transitions_,
             quotient,
             termination_cost,
@@ -363,16 +358,14 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
         enqueue(
             quotient,
             einfo,
-            state_id,
             transition->action,
             transition->successor_dist);
     } else {
         auto action = state_info.get_policy();
         if (!action.has_value()) return false;
 
-        const QState state = quotient.get_state(state_id);
         quotient.generate_action_transitions(state, *action, transition_);
-        enqueue(quotient, einfo, state_id, *action, transition_);
+        enqueue(quotient, einfo, *action, transition_);
         transition_.clear();
     }
 
@@ -498,7 +491,6 @@ auto TADFHSImpl<State, Action, UseInterval>::value_iteration(
 
             StateInfo& state_info = this->state_infos_[id];
             const auto value = this->compute_bellman_and_greedy(
-                id,
                 transitions_,
                 quotient,
                 termination_cost,
@@ -643,10 +635,11 @@ auto TADepthFirstHeuristicSearch<State, Action, UseInterval>::compute_policy(
 
                 const State source = mdp.get_state(source_id);
 
-                Distribution<StateID> successors;
-                mdp.generate_action_transitions(source, action, successors);
+                SuccessorDistribution successor_dist;
+                mdp.generate_action_transitions(source, action, successor_dist);
 
-                for (const StateID succ_id : successors.support()) {
+                for (const StateID succ_id :
+                     successor_dist.non_source_successor_dist.support()) {
                     parents[succ_id].insert(qaction);
                 }
             }
@@ -670,13 +663,14 @@ auto TADepthFirstHeuristicSearch<State, Action, UseInterval>::compute_policy(
         }
 
         // Push the successor traps.
-        Distribution<StateID> successors;
+        SuccessorDistribution successor_dist;
         quotient.generate_action_transitions(
             quotient_state,
             *quotient_action,
-            successors);
+            successor_dist);
 
-        for (const StateID succ_id : successors.support()) {
+        for (const StateID succ_id :
+             successor_dist.non_source_successor_dist.support()) {
             if (visited.insert(succ_id).second) {
                 queue.push_back(succ_id);
             }

@@ -3,9 +3,9 @@
 
 #include "probfd/storage/per_state_storage.h"
 
-#include "probfd/distribution.h"
 #include "probfd/heuristic.h"
 #include "probfd/mdp.h"
+#include "probfd/transition_tail.h"
 
 #include <cassert>
 #include <deque>
@@ -347,30 +347,20 @@ void dump_state_space_dot_graph(
             continue;
         }
 
-        std::vector<Action> aops;
-        std::vector<Distribution<StateID>> all_successors;
-        mdp->generate_all_transitions(state, aops, all_successors);
+        std::vector<TransitionTail<Action>> transitions;
+        mdp->generate_all_transitions(state, transitions);
 
-        std::vector<std::pair<Action, Distribution<StateID>>> transitions;
+        std::ranges::sort(
+            transitions,
+            {},
+            &TransitionTail<Action>::successor_dist);
+        const auto [it, end] = std::ranges::unique(
+            transitions,
+            {},
+            &TransitionTail<Action>::successor_dist);
+        transitions.erase(it, end);
 
-        for (std::size_t i = 0; i != aops.size(); ++i) {
-            transitions.emplace_back(aops[i], all_successors[i]);
-        }
-
-        auto less = [](const auto& left, const auto& right) {
-            return left.second < right.second;
-        };
-
-        auto equals = [](const auto& left, const auto& right) {
-            return left.second == right.second;
-        };
-
-        std::sort(transitions.begin(), transitions.end(), less);
-        transitions.erase(
-            std::unique(transitions.begin(), transitions.end(), equals),
-            transitions.end());
-
-        for (const auto& [act, successors] : transitions) {
+        for (const auto& [act, successor_dist] : transitions) {
             const auto a_cost = mdp->get_action_cost(act);
             if (a_cost != 0_vt) {
                 ss << a_cost << "\\n";
@@ -379,8 +369,12 @@ void dump_state_space_dot_graph(
             std::string label_text = ss.str();
             ss.str("");
 
-            if (successors.is_dirac()) {
-                const auto succ_id = successors.begin()->item;
+            if (successor_dist.is_dirac()) {
+                const StateID succ_id =
+                    successor_dist.non_source_probability == 0_vt
+                        ? mdp->get_state_id(state)
+                        : successor_dist.non_source_successor_dist.begin()
+                              ->item;
                 auto [succ_node, inserted] = builder.insert_node(succ_id);
 
                 auto& direct_edge = builder.create_edge(*node, *succ_node);
@@ -401,7 +395,8 @@ void dump_state_space_dot_graph(
             int my_rank = node->get_rank();
             int max_rank = 0;
 
-            for (const auto& [succ_id, prob] : successors) {
+            for (const auto& [succ_id, prob] :
+                 successor_dist.non_source_successor_dist) {
                 auto [succ_node, inserted] =
                     builder.insert_state_node(succ_id, my_rank + 2);
                 max_rank = std::max(max_rank, succ_node->get_rank());
@@ -438,7 +433,7 @@ void dump_state_space_dot_graph(
             }
         }
 
-        aops.clear();
+        transitions.clear();
     } while (!open.empty());
 
     builder.emit(out);

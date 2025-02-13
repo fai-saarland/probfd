@@ -4,8 +4,8 @@
 #include "probfd/pdbs/state_ranking_function.h"
 
 #include "probfd/cost_function.h"
-#include "probfd/distribution.h"
 #include "probfd/task_proxy.h"
+#include "probfd/transition_tail.h"
 
 #include "downward/utils/countdown_timer.h"
 
@@ -316,22 +316,26 @@ void ProjectionStateSpace::generate_applicable_actions(
 void ProjectionStateSpace::generate_action_transitions(
     StateRank state,
     const ProjectionOperator* op,
-    Distribution<StateID>& result)
+    SuccessorDistribution& successor_dist)
 {
+    successor_dist.non_source_probability = 0_vt;
+
     for (const auto& [offset, probability] : op->outcome_offsets_) {
-        result.add_probability(state + offset, probability);
+        const auto successor = state + offset;
+        if (successor == state) continue;
+        successor_dist.add_non_source_probability(successor, probability);
     }
 }
 
 void ProjectionStateSpace::generate_all_transitions(
     StateRank state,
     std::vector<const ProjectionOperator*>& aops,
-    std::vector<Distribution<StateID>>& result)
+    std::vector<SuccessorDistribution>& successor_dist)
 {
     generate_applicable_actions(state, aops);
-    result.reserve(aops.size());
+    successor_dist.reserve(aops.size());
     for (const ProjectionOperator* op : aops) {
-        generate_action_transitions(state, op, result.emplace_back());
+        generate_action_transitions(state, op, successor_dist.emplace_back());
     }
 }
 

@@ -149,7 +149,6 @@ bool TALRTDPImpl<State, Action, UseInterval>::trial(
         }
 
         const auto value = this->compute_bellman_and_greedy(
-            stateid,
             transitions_,
             quotient,
             termination_cost,
@@ -185,7 +184,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::trial(
         auto next = sample_->sample(
             stateid,
             transition->action,
-            transition->successor_dist,
+            transition->successor_dist.non_source_successor_dist,
             this->state_infos_);
 
         current_trial_.push_back(next);
@@ -274,7 +273,6 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                             transitions_);
 
                         auto value = this->compute_bellman_and_greedy(
-                            state_id,
                             transitions_,
                             quotient,
                             termination_cost,
@@ -313,7 +311,6 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                             ++this->statistics_.check_and_solve_bellman_backups;
 
                             auto value = this->compute_bellman_and_greedy(
-                                id,
                                 transitions_,
                                 quotient,
                                 termination_cost,
@@ -428,7 +425,6 @@ bool TALRTDPImpl<State, Action, UseInterval>::initialize(
     ++this->statistics_.check_and_solve_bellman_backups;
 
     const auto value = this->compute_bellman_and_greedy(
-        state_id,
         transitions_,
         quotient,
         termination_cost,
@@ -455,10 +451,9 @@ bool TALRTDPImpl<State, Action, UseInterval>::initialize(
         return false;
     }
 
-    for (const StateID sel : transition->successor_dist.support()) {
-        if (sel != state_id) {
-            e_info.successors.push_back(sel);
-        }
+    for (const StateID sel :
+         transition->successor_dist.non_source_successor_dist.support()) {
+        e_info.successors.push_back(sel);
     }
 
     assert(!e_info.successors.empty());
@@ -575,10 +570,11 @@ auto TALRTDP<State, Action, UseInterval>::compute_policy(
 
                 const State source = mdp.get_state(source_id);
 
-                Distribution<StateID> successors;
-                mdp.generate_action_transitions(source, action, successors);
+                SuccessorDistribution successor_dist;
+                mdp.generate_action_transitions(source, action, successor_dist);
 
-                for (const StateID succ_id : successors.support()) {
+                for (const StateID succ_id :
+                     successor_dist.non_source_successor_dist.support()) {
                     parents[succ_id].insert(qaction);
                 }
             }
@@ -602,13 +598,14 @@ auto TALRTDP<State, Action, UseInterval>::compute_policy(
         }
 
         // Push the successor traps.
-        Distribution<StateID> successors;
+        SuccessorDistribution successor_dist;
         quotient.generate_action_transitions(
             quotient_state,
             *quotient_action,
-            successors);
+            successor_dist);
 
-        for (const StateID succ_id : successors.support()) {
+        for (const StateID succ_id :
+             successor_dist.non_source_successor_dist.support()) {
             if (visited.insert(succ_id).second) {
                 queue.push_back(succ_id);
             }

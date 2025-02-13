@@ -48,32 +48,30 @@ void verify(
         for (const Action& op : aops) {
             const value_t cost = mdp.get_action_cost(op);
 
-            Distribution<StateID> successor_dist;
+            SuccessorDistribution successor_dist;
             mdp.generate_action_transitions(i, op, successor_dist);
 
-            if (successor_dist.is_dirac(i)) {
+            if (successor_dist.non_source_successor_dist.empty()) {
                 continue;
             }
 
             auto& constr = constraints.emplace_back(-inf, cost);
 
-            value_t non_loop_prob = 0_vt;
-            for (const auto& [succ, prob] : successor_dist) {
-                if (succ != static_cast<size_t>(i)) {
-                    non_loop_prob += prob;
-                    constr.insert(succ.id, -prob);
-                }
+            for (const auto& [succ, prob] :
+                 successor_dist.non_source_successor_dist) {
+                constr.insert(succ.id, -prob);
             }
 
-            constr.insert(i, non_loop_prob);
+            constr.insert(i, successor_dist.non_source_probability);
         }
     }
 
-    solver.load_problem(lp::LinearProgram(
-        lp::LPObjectiveSense::MAXIMIZE,
-        std::move(variables),
-        std::move(constraints),
-        inf));
+    solver.load_problem(
+        lp::LinearProgram(
+            lp::LPObjectiveSense::MAXIMIZE,
+            std::move(variables),
+            std::move(constraints),
+            inf));
 
     solver.solve();
 

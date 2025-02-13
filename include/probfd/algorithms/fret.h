@@ -232,7 +232,7 @@ class PolicyGraph {
 
     using QEvaluator = Heuristic<QState>;
 
-    Distribution<StateID> t_;
+    SuccessorDistribution t_;
 
 public:
     bool get_successors(

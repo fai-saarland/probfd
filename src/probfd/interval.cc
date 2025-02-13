@@ -22,10 +22,17 @@ Interval& Interval::operator+=(Interval rhs)
     return *this;
 }
 
-Interval& Interval::operator*=(value_t prob)
+Interval& Interval::operator*=(value_t scale_factor)
 {
-    lower *= prob;
-    upper *= prob;
+    lower *= scale_factor;
+    upper *= scale_factor;
+    return *this;
+}
+
+Interval& Interval::operator/=(value_t dividend)
+{
+    lower /= dividend;
+    upper /= dividend;
     return *this;
 }
 
@@ -56,6 +63,11 @@ Interval operator*(value_t val, Interval rhs)
 Interval operator*(Interval rhs, value_t val)
 {
     return Interval(rhs.lower * val, rhs.upper * val);
+}
+
+Interval operator/(Interval rhs, value_t dividend)
+{
+    return Interval(rhs.lower / dividend, rhs.upper / dividend);
 }
 
 std::ostream& operator<<(std::ostream& out, Interval value)

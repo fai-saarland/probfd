@@ -60,7 +60,7 @@ class AOStar
     // Re-used buffers
     std::vector<TransitionTail<Action>> transitions_;
     std::vector<AlgorithmValueType> qvalues_;
-    Distribution<StateID> successor_dist_;
+    SuccessorDistribution successor_dist_;
 
 public:
     AOStar(

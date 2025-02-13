@@ -5,6 +5,7 @@
 
 #include "probfd/distribution.h"
 #include "probfd/mdp_algorithm.h"
+#include "probfd/transition_tail.h"
 
 #include <stack>
 
@@ -133,7 +134,7 @@ class AcyclicValueIteration : public MDPAlgorithm<State, Action> {
         std::vector<Action> remaining_aops;
 
         // The current transition and transition successor
-        Distribution<StateID> transition;
+        SuccessorDistribution successor_dist;
         typename Distribution<StateID>::const_iterator successor;
 
         // The current transition Q-value

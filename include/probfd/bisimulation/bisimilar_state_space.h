@@ -70,12 +70,12 @@ public:
     void generate_action_transitions(
         QuotientState state,
         QuotientAction action,
-        Distribution<StateID>& result) override;
+        SuccessorDistribution& successor_dist) override;
 
     void generate_all_transitions(
         QuotientState state,
         std::vector<QuotientAction>& aops,
-        std::vector<Distribution<StateID>>& result) override;
+        std::vector<SuccessorDistribution>& successor_dists) override;
 
     void generate_all_transitions(
         QuotientState state,
