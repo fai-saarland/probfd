@@ -56,14 +56,11 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
         ++this->statistics_.iterations;
 
         const State state = mdp.get_state(stateid);
-        const value_t termination_cost =
-            mdp.get_termination_info(state).get_cost();
 
         ClearGuard _(transitions_);
         this->expand_and_initialize(mdp, heuristic, state, info, transitions_);
 
-        const auto value =
-            this->compute_bellman(transitions_, mdp, termination_cost);
+        const auto value = this->compute_bellman(state, transitions_, mdp);
         bool value_changed = this->update_value(info, value, this->epsilon);
 
         // Terminal state
@@ -130,10 +127,7 @@ bool ExhaustiveAOSearch<State, Action, UseInterval>::update_value_check_solved(
 {
     assert(!info.is_solved());
 
-    const value_t termination_cost = mdp.get_termination_info(state).get_cost();
-
-    const auto value =
-        this->compute_bellman(transitions, mdp, termination_cost);
+    const auto value = this->compute_bellman(state, transitions, mdp);
     bool value_changed = this->update_value(info, value, this->epsilon);
 
     if (info.unsolved == 0) {

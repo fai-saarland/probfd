@@ -173,9 +173,9 @@ public:
      * @brief Computes the Bellman operator value for a state.
      */
     AlgorithmValueType compute_bellman(
-        const std::vector<TransitionTailType>& transitions,
-        CostFunctionType& cost_function,
-        value_t termination_cost) const;
+        ParamType<State> source_state,
+        const std::vector<TransitionTailType>& transition_tails,
+        CostFunctionType& cost_function) const;
 
     /**
      * @brief Computes the Bellman operator value for a state, as well as all
@@ -194,9 +194,9 @@ public:
      * transitions returned in \p transitions .
      */
     AlgorithmValueType compute_bellman_and_greedy(
-        std::vector<TransitionTailType>& transitions,
+        ParamType<State> source_state,
+        std::vector<TransitionTailType>& transition_tails,
         CostFunctionType& cost_function,
-        value_t termination_cost,
         std::vector<AlgorithmValueType>& qvalues,
         value_t epsilon) const;
 
@@ -213,7 +213,7 @@ public:
     std::optional<TransitionTailType> select_greedy_transition(
         MDPType& mdp,
         std::optional<Action> previous_greedy_action,
-        std::vector<TransitionTailType>& greedy_transitions);
+        std::vector<TransitionTailType>& greedy_transition_tails);
 
     /**
      * @brief Updates the value of the state associated with the given storage.
@@ -234,7 +234,7 @@ public:
      */
     bool update_policy(
         StateInfo& state_info,
-        const std::optional<TransitionTailType>& transition)
+        const std::optional<TransitionTailType>& transition_tail)
         requires(StorePolicy);
 
 protected:
@@ -248,12 +248,12 @@ protected:
         HeuristicType& h,
         ParamType<State> state,
         StateInfo& state_info,
-        std::vector<TransitionTailType>& transitions);
+        std::vector<TransitionTailType>& transition_tails);
 
     void generate_non_tip_transitions(
         MDPType& mdp,
         ParamType<State> state,
-        std::vector<TransitionTailType>& transitions) const;
+        std::vector<TransitionTailType>& transition_tails) const;
 
     void print_statistics(std::ostream& out) const;
 
@@ -265,17 +265,16 @@ private:
         StateInfo& state_info);
 
     AlgorithmValueType compute_qvalue(
-        const TransitionTailType& transition,
-        value_t action_cost) const;
+        const TransitionTailType& transition_tail,
+        CostFunctionType& cost_function) const;
 
     AlgorithmValueType compute_q_values(
-        std::vector<TransitionTailType>& transitions,
+        std::vector<TransitionTailType>& transition_tails,
         CostFunctionType& cost_function,
-        value_t termination_cost,
         std::vector<AlgorithmValueType>& qvalues) const;
 
     AlgorithmValueType filter_greedy_transitions(
-        std::vector<TransitionTailType>& transitions,
+        std::vector<TransitionTailType>& transition_tails,
         std::vector<AlgorithmValueType>& qvalues,
         const AlgorithmValueType& best_value,
         value_t epsilon) const;

@@ -97,6 +97,14 @@ public:
      * @brief Gets the cost of an action.
      */
     virtual value_t get_action_cost(ParamType<Action> action) = 0;
+
+    /**
+     * @brief Returns the cost to terminate in a given state.
+     */
+    value_t get_termination_cost(ParamType<State> state)
+    {
+        return get_termination_info(state).get_cost();
+    }
 };
 
 template <typename State, typename Action>

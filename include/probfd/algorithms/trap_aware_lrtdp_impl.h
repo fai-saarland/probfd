@@ -133,8 +133,6 @@ bool TALRTDPImpl<State, Action, UseInterval>::trial(
         }
 
         const QState state = quotient.get_state(stateid);
-        const value_t termination_cost =
-            quotient.get_termination_info(state).get_cost();
 
         ClearGuard _(transitions_, qvalues_);
         if (info.is_on_fringe()) {
@@ -149,9 +147,9 @@ bool TALRTDPImpl<State, Action, UseInterval>::trial(
         }
 
         const auto value = this->compute_bellman_and_greedy(
+            state,
             transitions_,
             quotient,
-            termination_cost,
             qvalues_,
             this->epsilon_);
 
@@ -262,8 +260,6 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                     ++statistics_.check_and_solve_bellman_backups;
 
                     const QState state = quotient.get_state(state_id);
-                    const value_t termination_cost =
-                        quotient.get_termination_info(state).get_cost();
 
                     {
                         ClearGuard _(transitions_, qvalues_);
@@ -273,9 +269,9 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                             transitions_);
 
                         auto value = this->compute_bellman_and_greedy(
+                            state,
                             transitions_,
                             quotient,
-                            termination_cost,
                             qvalues_,
                             this->epsilon_);
 
@@ -299,8 +295,6 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                             info.set_solved();
                         } else {
                             const QState state = quotient.get_state(id);
-                            const value_t termination_cost =
-                                quotient.get_termination_info(state).get_cost();
 
                             ClearGuard _(transitions_, qvalues_);
                             this->generate_non_tip_transitions(
@@ -311,9 +305,9 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                             ++this->statistics_.check_and_solve_bellman_backups;
 
                             auto value = this->compute_bellman_and_greedy(
+                                state,
                                 transitions_,
                                 quotient,
-                                termination_cost,
                                 qvalues_,
                                 this->epsilon_);
 
@@ -406,8 +400,6 @@ bool TALRTDPImpl<State, Action, UseInterval>::initialize(
     }
 
     const QState state = quotient.get_state(state_id);
-    const value_t termination_cost =
-        quotient.get_termination_info(state).get_cost();
 
     ClearGuard _(transitions_, qvalues_);
 
@@ -425,9 +417,9 @@ bool TALRTDPImpl<State, Action, UseInterval>::initialize(
     ++this->statistics_.check_and_solve_bellman_backups;
 
     const auto value = this->compute_bellman_and_greedy(
+        state,
         transitions_,
         quotient,
-        termination_cost,
         qvalues_,
         this->epsilon_);
 

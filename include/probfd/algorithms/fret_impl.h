@@ -432,8 +432,6 @@ bool ValueGraph<State, Action, StateInfoT>::get_successors(
     auto& state_info = base_algorithm.state_infos_[qstate];
 
     const QState state = quotient.get_state(qstate);
-    const value_t termination_cost =
-        quotient.get_termination_info(state).get_cost();
 
     ClearGuard _(opt_transitions_, ids_, q_values);
     base_algorithm.generate_non_tip_transitions(
@@ -442,9 +440,9 @@ bool ValueGraph<State, Action, StateInfoT>::get_successors(
         opt_transitions_);
 
     auto value = base_algorithm.compute_bellman_and_greedy(
+        state,
         opt_transitions_,
         quotient,
-        termination_cost,
         q_values,
         base_algorithm.get_convergence_epsilon());
 

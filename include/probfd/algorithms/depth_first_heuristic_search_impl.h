@@ -229,8 +229,6 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::advance(
         assert(!state_info.is_on_fringe());
 
         const State state = mdp.get_state(einfo.stateid);
-        const value_t termination_cost =
-            mdp.get_termination_info(state).get_cost();
 
         ClearGuard _(transitions_, qvalues_);
         this->generate_non_tip_transitions(mdp, state, transitions_);
@@ -238,9 +236,9 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::advance(
         statistics_.backtracking_updates++;
 
         auto value = this->compute_bellman_and_greedy(
+            state,
             transitions_,
             mdp,
-            termination_cost,
             qvalues_,
             this->epsilon);
 
@@ -330,8 +328,6 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
 
     if (forward_updates_ || is_tip_state) {
         const State state = mdp.get_state(einfo.stateid);
-        const value_t termination_cost =
-            mdp.get_termination_info(state).get_cost();
 
         ClearGuard _(transitions_, qvalues_);
 
@@ -349,9 +345,9 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
         statistics_.forward_updates++;
 
         auto value = this->compute_bellman_and_greedy(
+            state,
             transitions_,
             mdp,
-            termination_cost,
             qvalues_,
             this->epsilon);
 
@@ -434,17 +430,15 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::vi_step(
         StateInfo& state_info = this->state_infos_[id];
 
         const State state = mdp.get_state(id);
-        const value_t termination_cost =
-            mdp.get_termination_info(state).get_cost();
 
         ClearGuard _(transitions_, qvalues_);
 
         this->generate_non_tip_transitions(mdp, state, transitions_);
 
         const auto value = this->compute_bellman_and_greedy(
+            state,
             transitions_,
             mdp,
-            termination_cost,
             qvalues_,
             this->epsilon);
 

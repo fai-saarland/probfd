@@ -72,19 +72,19 @@ bool HeuristicSearchBase<State, Action, StateInfoT>::was_visited(
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
-    const std::vector<TransitionTailType>& transitions,
-    CostFunctionType& cost_function,
-    value_t termination_cost) const -> AlgorithmValueType
+    ParamType<State> source_state,
+    const std::vector<TransitionTailType>& transition_tails,
+    CostFunctionType& cost_function) const -> AlgorithmValueType
 {
 #if defined(EXPENSIVE_STATISTICS)
     TimerScope scoped_upd_timer(statistics_.update_time);
 #endif
 
-    AlgorithmValueType best_value = AlgorithmValueType(termination_cost);
+    AlgorithmValueType best_value(
+        cost_function.get_termination_cost(source_state));
 
-    for (auto& transition : transitions) {
-        const value_t cost = cost_function.get_action_cost(transition.action);
-        set_min(best_value, compute_qvalue(transition, cost));
+    for (auto& transition_tail : transition_tails) {
+        set_min(best_value, compute_qvalue(transition_tail, cost_function));
     }
 
     return best_value;
@@ -92,9 +92,9 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
-    std::vector<TransitionTailType>& transitions,
+    ParamType<State> source_state,
+    std::vector<TransitionTailType>& transition_tails,
     CostFunctionType& cost_function,
-    value_t termination_cost,
     std::vector<AlgorithmValueType>& qvalues,
     value_t epsilon) const -> AlgorithmValueType
 {
@@ -102,20 +102,24 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
     TimerScope scoped_upd_timer(statistics_.update_time);
 #endif
 
-    if (transitions.empty()) {
-        return AlgorithmValueType(termination_cost);
+    if (transition_tails.empty()) {
+        return AlgorithmValueType(
+            cost_function.get_termination_cost(source_state));
     }
 
     AlgorithmValueType best_value =
-        compute_q_values(transitions, cost_function, termination_cost, qvalues);
+        compute_q_values(transition_tails, cost_function, qvalues);
 
-    if (as_lower_bound(best_value) == termination_cost) {
-        transitions.clear();
+    const value_t termination_cost =
+        cost_function.get_termination_cost(source_state);
+
+    if (as_lower_bound(best_value) >= termination_cost) {
+        transition_tails.clear();
         qvalues.clear();
         return AlgorithmValueType(termination_cost);
     }
 
-    filter_greedy_transitions(transitions, qvalues, best_value, epsilon);
+    filter_greedy_transitions(transition_tails, qvalues, best_value, epsilon);
 
     return best_value;
 }
@@ -124,24 +128,24 @@ template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::select_greedy_transition(
     MDPType& mdp,
     std::optional<Action> previous_greedy,
-    std::vector<TransitionTailType>& transitions)
+    std::vector<TransitionTailType>& transition_tails)
     -> std::optional<TransitionTailType>
 {
 #if defined(EXPENSIVE_STATISTICS)
     TimerScope scoped(statistics_.policy_selection_time);
 #endif
 
-    if (transitions.empty()) return std::nullopt;
+    if (transition_tails.empty()) return std::nullopt;
 
     const int index = this->policy_chooser_->pick_index(
         mdp,
         previous_greedy,
-        transitions,
+        transition_tails,
         state_infos_);
 
-    assert(utils::in_bounds(index, transitions));
+    assert(utils::in_bounds(index, transition_tails));
 
-    return std::move(transitions[index]);
+    return std::move(transition_tails[index]);
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -190,34 +194,34 @@ void HeuristicSearchBase<State, Action, StateInfoT>::expand_and_initialize(
     HeuristicType& h,
     ParamType<State> state,
     StateInfo& state_info,
-    std::vector<TransitionTailType>& transitions)
+    std::vector<TransitionTailType>& transition_tails)
 {
     assert(!state_info.is_goal_or_terminal());
-    assert(transitions.empty());
+    assert(transition_tails.empty());
     assert(state_info.is_on_fringe());
 
     ++statistics_.expanded_states;
     state_info.removed_from_fringe();
 
-    mdp.generate_all_transitions(state, transitions);
+    mdp.generate_all_transitions(state, transition_tails);
 
-    if (transitions.empty()) {
+    if (transition_tails.empty()) {
         ++statistics_.terminal_states;
         state_info.set_terminal();
         return;
     }
 
-    std::erase_if(transitions, [&](auto& transition) {
+    std::erase_if(transition_tails, [&](auto& transition) {
         return transition.successor_dist.non_source_successor_dist.empty();
     });
 
-    if (transitions.empty()) {
+    if (transition_tails.empty()) {
         ++statistics_.self_loop_states;
         state_info.set_terminal();
         return;
     }
 
-    for (auto& transition : transitions) {
+    for (auto& transition : transition_tails) {
         for (const auto& [succ_id, prob] :
              transition.successor_dist.non_source_successor_dist) {
             auto& succ_info = state_infos_[succ_id];
@@ -232,13 +236,13 @@ void HeuristicSearchBase<State, Action, StateInfoT>::
     generate_non_tip_transitions(
         MDPType& mdp,
         ParamType<State> state,
-        std::vector<TransitionTailType>& transitions) const
+        std::vector<TransitionTailType>& transition_tails) const
 {
-    assert(transitions.empty());
+    assert(transition_tails.empty());
 
-    mdp.generate_all_transitions(state, transitions);
+    mdp.generate_all_transitions(state, transition_tails);
 
-    std::erase_if(transitions, [&](auto& transition) {
+    std::erase_if(transition_tails, [&](auto& transition) {
         return transition.successor_dist.non_source_successor_dist.empty();
     });
 }
@@ -292,34 +296,33 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize(
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_qvalue(
     const TransitionTailType& transition,
-    value_t action_cost) const -> AlgorithmValueType
+    CostFunctionType& cost_function) const -> AlgorithmValueType
 {
-    AlgorithmValueType t_value(action_cost);
+    AlgorithmValueType t_value(
+        cost_function.get_action_cost(transition.action));
 
     for (const auto& [succ_id, prob] :
          transition.successor_dist.non_source_successor_dist) {
         t_value += prob * state_infos_[succ_id].value;
     }
 
-    assert (transition.successor_dist.non_source_probability != 0_vt);
+    assert(transition.successor_dist.non_source_probability != 0_vt);
 
     return t_value / transition.successor_dist.non_source_probability;
 }
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_q_values(
-    std::vector<TransitionTailType>& transitions,
+    std::vector<TransitionTailType>& transition_tails,
     CostFunctionType& cost_function,
-    value_t termination_cost,
     std::vector<AlgorithmValueType>& qvalues) const -> AlgorithmValueType
 {
-    AlgorithmValueType best_value(termination_cost);
+    AlgorithmValueType best_value(INFINITE_VALUE);
 
-    qvalues.reserve(transitions.size());
+    qvalues.reserve(transition_tails.size());
 
-    for (const auto& transition : transitions) {
-        const value_t cost = cost_function.get_action_cost(transition.action);
-        auto q = compute_qvalue(transition, cost);
+    for (const auto& transition : transition_tails) {
+        auto q = compute_qvalue(transition, cost_function);
         set_min(best_value, q);
         qvalues.push_back(q);
     }
@@ -329,12 +332,12 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_q_values(
 
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::filter_greedy_transitions(
-    std::vector<TransitionTailType>& transitions,
+    std::vector<TransitionTailType>& transition_tails,
     std::vector<AlgorithmValueType>& qvalues,
     const AlgorithmValueType& best_value,
     value_t epsilon) const -> AlgorithmValueType
 {
-    auto view = std::views::zip(transitions, qvalues);
+    auto view = std::views::zip(transition_tails, qvalues);
     auto [it, end] = std::ranges::remove_if(
         view,
         [&](const AlgorithmValueType& value) {
@@ -346,7 +349,9 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::filter_greedy_transitions(
         project<1>);
 
     const size_t offset = std::distance(view.begin(), it);
-    transitions.erase(transitions.begin() + offset, transitions.end());
+    transition_tails.erase(
+        transition_tails.begin() + offset,
+        transition_tails.end());
 
     return best_value;
 }
@@ -396,7 +401,7 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
     queue.push_back(initial_state_id);
     visited.insert(initial_state_id);
 
-    std::vector<TransitionTailType> transitions;
+    std::vector<TransitionTailType> transition_tails;
     std::vector<AlgorithmValueType> qvalues;
 
     do {
@@ -410,22 +415,22 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
             action = state_info.get_policy();
         } else {
             const State state = mdp.get_state(state_id);
-            const value_t termination_cost =
-                mdp.get_termination_info(state).get_cost();
 
-            ClearGuard _(transitions, qvalues);
-            this->generate_non_tip_transitions(mdp, state, transitions);
+            ClearGuard _(transition_tails, qvalues);
+            this->generate_non_tip_transitions(mdp, state, transition_tails);
 
             this->compute_bellman_and_greedy(
-                transitions,
+                state,
+                transition_tails,
                 mdp,
-                termination_cost,
                 qvalues,
                 this->epsilon);
 
-            action =
-                this->select_greedy_transition(mdp, std::nullopt, transitions)
-                    .transform([](const auto& t) { return t.action; });
+            action = this->select_greedy_transition(
+                             mdp,
+                             std::nullopt,
+                             transition_tails)
+                         .transform([](const auto& t) { return t.action; });
         }
 
         // Terminal states have no policy decision.

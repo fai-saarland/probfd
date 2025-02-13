@@ -106,8 +106,6 @@ void LRTDP<State, Action, UseInterval>::trial(
         }
 
         const State state = mdp.get_state(state_id);
-        const value_t termination_cost =
-            mdp.get_termination_info(state).get_cost();
 
         ClearGuard _(transitions_, qvalues_);
 
@@ -125,9 +123,9 @@ void LRTDP<State, Action, UseInterval>::trial(
         this->statistics_.trial_bellman_backups++;
 
         auto value = this->compute_bellman_and_greedy(
+            state,
             transitions_,
             mdp,
-            termination_cost,
             qvalues_,
             this->epsilon);
 
@@ -220,8 +218,6 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
         visited_.push_front(state_id);
 
         const State state = mdp.get_state(state_id);
-        const value_t termination_cost =
-            mdp.get_termination_info(state).get_cost();
 
         ClearGuard _(transitions_, qvalues_);
 
@@ -239,9 +235,9 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
         this->statistics_.check_and_solve_bellman_backups++;
 
         auto value = this->compute_bellman_and_greedy(
+            state,
             transitions_,
             mdp,
-            termination_cost,
             qvalues_,
             this->epsilon);
 
@@ -294,8 +290,6 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
             assert(!info.is_on_fringe());
 
             const State state = mdp.get_state(sid);
-            const value_t termination_cost =
-                mdp.get_termination_info(state).get_cost();
 
             ClearGuard _(transitions_, qvalues_);
             this->generate_non_tip_transitions(mdp, state, transitions_);
@@ -303,9 +297,9 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
             statistics_.check_and_solve_bellman_backups++;
 
             auto value = this->compute_bellman_and_greedy(
+                state,
                 transitions_,
                 mdp,
-                termination_cost,
                 qvalues_,
                 this->epsilon);
 

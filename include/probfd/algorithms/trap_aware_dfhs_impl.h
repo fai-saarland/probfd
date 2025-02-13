@@ -212,17 +212,15 @@ bool TADFHSImpl<State, Action, UseInterval>::advance(
         ++statistics_.bw_updates;
 
         const QState state = quotient.get_state(einfo.state);
-        const value_t termination_cost =
-            quotient.get_termination_info(state).get_cost();
 
         ClearGuard _(transitions_, qvalues_);
         this->generate_non_tip_transitions(quotient, state, transitions_);
 
         StateInfo& state_info = this->state_infos_[einfo.state];
         auto value = this->compute_bellman_and_greedy(
+            state,
             transitions_,
             quotient,
-            termination_cost,
             qvalues_,
             this->epsilon_);
 
@@ -305,9 +303,6 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
     if (tip || forward_updates_) {
         ClearGuard _(transitions_, qvalues_);
 
-        const value_t termination_cost =
-            quotient.get_termination_info(state).get_cost();
-
         if (tip) {
             this->expand_and_initialize(
                 quotient,
@@ -322,9 +317,9 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
         ++statistics_.fw_updates;
 
         auto value = this->compute_bellman_and_greedy(
+            state,
             transitions_,
             quotient,
-            termination_cost,
             qvalues_,
             this->epsilon_);
 
@@ -483,17 +478,15 @@ auto TADFHSImpl<State, Action, UseInterval>::value_iteration(
             timer.throw_if_expired();
 
             const QState state = quotient.get_state(id);
-            const value_t termination_cost =
-                quotient.get_termination_info(state).get_cost();
 
             ClearGuard _(transitions_, qvalues_);
             this->generate_non_tip_transitions(quotient, state, transitions_);
 
             StateInfo& state_info = this->state_infos_[id];
             const auto value = this->compute_bellman_and_greedy(
+                state,
                 transitions_,
                 quotient,
-                termination_cost,
                 qvalues_,
                 this->epsilon_);
 
