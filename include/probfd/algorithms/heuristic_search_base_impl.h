@@ -218,9 +218,6 @@ void HeuristicSearchBase<State, Action, StateInfoT>::expand_and_initialize(
     }
 
     for (auto& transition : transitions) {
-        auto it = transition.successor_dist.non_source_successor_dist.begin();
-        auto end = transition.successor_dist.non_source_successor_dist.end();
-
         for (const auto& [succ_id, prob] :
              transition.successor_dist.non_source_successor_dist) {
             auto& succ_info = state_infos_[succ_id];

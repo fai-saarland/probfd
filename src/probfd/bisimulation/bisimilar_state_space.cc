@@ -169,7 +169,7 @@ void BisimilarStateSpace::generate_action_transitions(
         const ProbabilisticOutcomeProxy outcome = outcomes[i];
         const value_t probability = outcome.get_probability();
         const StateID id = t.successors[i];
-        if (std::to_underlying(state) == id) continue;
+        if (std::to_underlying(state) == static_cast<int>(id)) continue;
         successor_dist.add_non_source_probability(id, probability);
     }
 }
