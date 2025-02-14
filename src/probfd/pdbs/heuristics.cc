@@ -63,10 +63,10 @@ value_t DeadendPDBEvaluator::evaluate(StateRank state) const
     int deterministic_val = pdb_.get_value_for_index(state);
 
     if (deterministic_val == std::numeric_limits<int>::max()) {
-        return 1_vt;
+        return 0_vt;
     }
 
-    return 0_vt;
+    return -1_vt;
 }
 
 IncrementalPPDBEvaluator::IncrementalPPDBEvaluator(
