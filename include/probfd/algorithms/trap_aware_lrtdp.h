@@ -98,8 +98,8 @@ class TALRTDPImpl
     template <typename, typename, bool>
     friend class TALRTDP;
 
-    struct ExplorationInformation {
-        explicit ExplorationInformation(StateID state_id)
+    struct DFSExplorationState {
+        explicit DFSExplorationState(StateID state_id)
             : state(state_id)
         {
         }
@@ -114,7 +114,7 @@ class TALRTDPImpl
         [[nodiscard]]
         StateID get_successor() const;
 
-        void update(const ExplorationInformation& backtracked)
+        void update(const DFSExplorationState& backtracked)
         {
             is_trap = is_trap && backtracked.is_trap;
             rv = rv && backtracked.rv;
@@ -168,8 +168,8 @@ class TALRTDPImpl
     const std::shared_ptr<QuotientSuccessorSampler> sample_;
 
     // Algorithm state
-    std::deque<ExplorationInformation> queue_;
-    std::deque<StackInfo> stack_;
+    std::deque<DFSExplorationState> dfs_stack_;
+    std::deque<StackInfo> tarjan_stack_;
     storage::StateHashMap<int> stack_index_;
 
     std::deque<StateID> current_trial_;
@@ -214,7 +214,7 @@ private:
 
     bool push_successor(
         QuotientSystem& quotient,
-        ExplorationInformation& einfo,
+        DFSExplorationState& einfo,
         utils::CountdownTimer& timer);
 
     void push(StateID state);
@@ -224,7 +224,7 @@ private:
         QHeuristic& heuristic,
         StateID state,
         StateInfo& state_info,
-        ExplorationInformation& e_info);
+        DFSExplorationState& e_info);
 };
 
 template <typename State, typename Action, bool UseInterval>

@@ -68,8 +68,8 @@ struct LocalStateInfo {
     }
 };
 
-struct ExpansionInfo {
-    explicit ExpansionInfo(StateID state)
+struct DFSExplorationState {
+    explicit DFSExplorationState(StateID state)
         : stateid(state)
     {
     }
@@ -116,7 +116,7 @@ private:
     using PolicyPicker = typename Base::PolicyPicker;
 
     using Statistics = internal::Statistics;
-    using ExpansionInfo = internal::ExpansionInfo;
+    using DFSExplorationState = internal::DFSExplorationState;
     using LocalStateInfo = internal::LocalStateInfo;
 
     // Algorithm parameters
@@ -130,8 +130,8 @@ private:
     // Algorithm state
     storage::StateHashMap<LocalStateInfo> local_state_infos_;
     std::vector<StateID> visited_;
-    std::deque<ExpansionInfo> expansion_queue_;
-    std::deque<StateID> stack_;
+    std::deque<DFSExplorationState> dfs_stack_;
+    std::deque<StateID> tarjan_stack_;
 
     Statistics statistics_;
 
@@ -184,11 +184,11 @@ private:
         StateID state,
         utils::CountdownTimer& timer);
 
-    bool advance(MDP& mdp, ExpansionInfo& einfo, StateInfo& state_info);
+    bool advance(MDP& mdp, DFSExplorationState& einfo, StateInfo& state_info);
 
     bool push_successor(
         MDP& mdp,
-        ExpansionInfo& einfo,
+        DFSExplorationState& einfo,
         StateInfo& sinfo,
         LocalStateInfo& lsinfo,
         utils::CountdownTimer& timer);
@@ -198,7 +198,7 @@ private:
     bool initialize(
         MDP& mdp,
         HeuristicType& heuristic,
-        ExpansionInfo& einfo,
+        DFSExplorationState& einfo,
         StateInfo& sinfo);
 
     bool value_iteration(

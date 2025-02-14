@@ -40,7 +40,7 @@ inline void Statistics::register_report(ProgressReport& report) const
 } // namespace internal
 
 template <typename State, typename Action, bool UseInterval>
-bool TADFHSImpl<State, Action, UseInterval>::ExplorationInformation::
+bool TADFHSImpl<State, Action, UseInterval>::DFSExplorationState::
     next_successor()
 {
     successors.pop_back();
@@ -49,15 +49,15 @@ bool TADFHSImpl<State, Action, UseInterval>::ExplorationInformation::
 
 template <typename State, typename Action, bool UseInterval>
 StateID
-TADFHSImpl<State, Action, UseInterval>::ExplorationInformation::get_successor()
+TADFHSImpl<State, Action, UseInterval>::DFSExplorationState::get_successor()
     const
 {
     return successors.back();
 }
 
 template <typename State, typename Action, bool UseInterval>
-void TADFHSImpl<State, Action, UseInterval>::ExplorationInformation::update(
-    const ExplorationInformation& other)
+void TADFHSImpl<State, Action, UseInterval>::DFSExplorationState::update(
+    const DFSExplorationState& other)
 {
     if (!other.value_converged) value_converged = false;
     if (!other.all_solved) all_solved = false;
@@ -65,7 +65,7 @@ void TADFHSImpl<State, Action, UseInterval>::ExplorationInformation::update(
 }
 
 template <typename State, typename Action, bool UseInterval>
-void TADFHSImpl<State, Action, UseInterval>::ExplorationInformation::clear()
+void TADFHSImpl<State, Action, UseInterval>::DFSExplorationState::clear()
 {
     value_converged = true;
     all_solved = true;
@@ -176,11 +176,11 @@ void TADFHSImpl<State, Action, UseInterval>::dfhs_label_driver(
 template <typename State, typename Action, bool UseInterval>
 void TADFHSImpl<State, Action, UseInterval>::enqueue(
     QuotientSystem& quotient,
-    ExplorationInformation& einfo,
+    DFSExplorationState& einfo,
     QAction action,
     const SuccessorDistribution& successor_dist)
 {
-    stack_.back().action = action;
+    tarjan_stack_.back().action = action;
 
     einfo.successors.reserve(successor_dist.non_source_successor_dist.size());
 
@@ -196,7 +196,7 @@ void TADFHSImpl<State, Action, UseInterval>::enqueue(
 template <typename State, typename Action, bool UseInterval>
 bool TADFHSImpl<State, Action, UseInterval>::advance(
     QuotientSystem& quotient,
-    ExplorationInformation& einfo)
+    DFSExplorationState& einfo)
 {
     using enum BacktrackingUpdateType;
 
@@ -247,7 +247,7 @@ bool TADFHSImpl<State, Action, UseInterval>::advance(
 template <typename State, typename Action, bool UseInterval>
 bool TADFHSImpl<State, Action, UseInterval>::push_successor(
     QuotientSystem& quotient,
-    ExplorationInformation& einfo,
+    DFSExplorationState& einfo,
     utils::CountdownTimer& timer)
 {
     do {
@@ -279,16 +279,16 @@ bool TADFHSImpl<State, Action, UseInterval>::push_successor(
 template <typename State, typename Action, bool UseInterval>
 void TADFHSImpl<State, Action, UseInterval>::push(StateID state_id)
 {
-    queue_.emplace_back(state_id, stack_.size());
-    stack_index_[state_id] = stack_.size();
-    stack_.emplace_back(state_id);
+    dfs_stack_.emplace_back(state_id, tarjan_stack_.size());
+    stack_index_[state_id] = tarjan_stack_.size();
+    tarjan_stack_.emplace_back(state_id);
 }
 
 template <typename State, typename Action, bool UseInterval>
 bool TADFHSImpl<State, Action, UseInterval>::initialize(
     QuotientSystem& quotient,
     QHeuristic& heuristic,
-    ExplorationInformation& einfo)
+    DFSExplorationState& einfo)
 {
     assert(!terminated_);
 
@@ -381,11 +381,11 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
 
     push(start_state);
 
-    ExplorationInformation* einfo;
+    DFSExplorationState* einfo;
 
     for (;;) {
         do {
-            einfo = &queue_.back();
+            einfo = &dfs_stack_.back();
         } while (initialize(quotient, heuristic, *einfo) &&
                  push_successor(quotient, *einfo, timer));
 
@@ -394,7 +394,7 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
 
             // Is SCC root?
             if (einfo->lowlink == stack_index_[einfo->state]) {
-                auto scc = stack_ | std::views::drop(last_lowlink);
+                auto scc = tarjan_stack_ | std::views::drop(last_lowlink);
 
                 if (scc.size() > 1 && einfo->is_trap) {
                     ++this->statistics_.traps;
@@ -411,8 +411,8 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
 
                     // re-push trap if enabled
                     if (reexpand_traps_) {
-                        stack_.erase(scc.begin(), scc.end());
-                        queue_.pop_back();
+                        tarjan_stack_.erase(scc.begin(), scc.end());
+                        dfs_stack_.pop_back();
                         push(state_id);
                         break;
                     }
@@ -440,21 +440,21 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
                 }
 
                 einfo->is_trap = false;
-                stack_.erase(scc.begin(), scc.end());
+                tarjan_stack_.erase(scc.begin(), scc.end());
             }
 
-            ExplorationInformation bt_einfo = std::move(*einfo);
-            queue_.pop_back();
+            DFSExplorationState bt_einfo = std::move(*einfo);
+            dfs_stack_.pop_back();
 
-            if (queue_.empty()) {
-                assert(stack_.empty());
+            if (dfs_stack_.empty()) {
+                assert(tarjan_stack_.empty());
                 stack_index_.clear();
                 return einfo->all_solved;
             }
 
             timer.throw_if_expired();
 
-            einfo = &queue_.back();
+            einfo = &dfs_stack_.back();
 
             einfo->lowlink = std::min(last_lowlink, einfo->lowlink);
             einfo->update(bt_einfo);

@@ -55,8 +55,8 @@ auto TATopologicalValueIteration<State, Action, UseInterval>::StateInfo::
 }
 
 template <typename State, typename Action, bool UseInterval>
-TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
-    ExplorationInfo(
+TATopologicalValueIteration<State, Action, UseInterval>::DFSExplorationState::
+    DFSExplorationState(
         StateID state_id,
         StackInfo& stack_info,
         unsigned int stackidx)
@@ -68,7 +68,8 @@ TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 }
 
 template <typename State, typename Action, bool UseInterval>
-bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
+bool TATopologicalValueIteration<State, Action, UseInterval>::
+    DFSExplorationState::
     next_transition(MDPType& mdp)
 {
     aops.pop_back();
@@ -81,7 +82,8 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 }
 
 template <typename State, typename Action, bool UseInterval>
-bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
+bool TATopologicalValueIteration<State, Action, UseInterval>::
+    DFSExplorationState::
     forward_non_loop_transition(MDPType& mdp, const State& state)
 {
     do {
@@ -105,7 +107,8 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 }
 
 template <typename State, typename Action, bool UseInterval>
-bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
+bool TATopologicalValueIteration<State, Action, UseInterval>::
+    DFSExplorationState::
     next_successor()
 {
     if (++successor != successor_dist.non_source_successor_dist.end()) {
@@ -161,7 +164,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 
 template <typename State, typename Action, bool UseInterval>
 ItemProbabilityPair<StateID>
-TATopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
+TATopologicalValueIteration<State, Action, UseInterval>::DFSExplorationState::
     get_current_successor()
 {
     return *successor;
@@ -307,7 +310,7 @@ TATopologicalValueIteration<State, Action, UseInterval>::
     TATopologicalValueIteration(value_t epsilon, std::size_t num_states_hint)
     : TATopologicalValueIteration(epsilon)
 {
-    exploration_stack_.reserve(num_states_hint);
+    dfs_stack_.reserve(num_states_hint);
     exploration_stack_ecd_.reserve(num_states_hint);
     stack_ecd_.reserve(num_states_hint);
     decomposition_queue_.reserve(num_states_hint);
@@ -334,10 +337,10 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
         value_store[init_state_id]);
 
     for (;;) {
-        ExplorationInfo* explore;
+        DFSExplorationState* explore;
 
         do {
-            explore = &exploration_stack_.back();
+            explore = &dfs_stack_.back();
         } while (initialize_state(mdp, heuristic, *explore, value_store) &&
                  successor_loop(mdp, *explore, value_store, timer));
 
@@ -355,9 +358,9 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
                 scc_found(value_store, *explore, stack_id, timer);
 
                 if (stack_id == 0) {
-                    assert(stack_.empty());
-                    assert(exploration_stack_.size() == 1);
-                    exploration_stack_.pop_back();
+                    assert(tarjan_stack_.empty());
+                    assert(dfs_stack_.size() == 1);
+                    dfs_stack_.pop_back();
 
                     if constexpr (UseInterval) {
                         return value_store[init_state_id];
@@ -369,13 +372,13 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
                 }
             }
 
-            assert(exploration_stack_.size() > 1);
+            assert(dfs_stack_.size() > 1);
 
             timer.throw_if_expired();
 
             TimerScope _(statistics_.backtracking_timer);
 
-            const ExplorationInfo& successor = *explore--;
+            const DFSExplorationState& successor = *explore--;
 
             const auto [succ_id, prob] = explore->get_current_successor();
 
@@ -403,7 +406,7 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
                     explore->stack_info.transition_flags.size());
             }
 
-            exploration_stack_.pop_back();
+            dfs_stack_.pop_back();
         } while (
             (!explore->next_successor() && !explore->next_transition(mdp)) ||
             !successor_loop(mdp, *explore, value_store, timer));
@@ -427,10 +430,10 @@ void TATopologicalValueIteration<State, Action, UseInterval>::push_state(
     StateInfo& state_info,
     AlgorithmValueType& value)
 {
-    const std::size_t stack_size = stack_.size();
-    exploration_stack_.emplace_back(
+    const std::size_t stack_size = tarjan_stack_.size();
+    dfs_stack_.emplace_back(
         state_id,
-        stack_.emplace_back(state_id, value),
+        tarjan_stack_.emplace_back(state_id, value),
         stack_size);
     state_info.explored = 1;
     state_info.stack_id = stack_size;
@@ -439,7 +442,7 @@ void TATopologicalValueIteration<State, Action, UseInterval>::push_state(
 template <typename State, typename Action, bool UseInterval>
 bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
     MDPType& mdp,
-    ExplorationInfo& explore,
+    DFSExplorationState& explore,
     auto& value_store,
     utils::CountdownTimer& timer)
 {
@@ -475,7 +478,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::successor_loop(
             explore.lowlink = std::min(explore.lowlink, succ_stack_id);
             explore.q_value.scc_successors.emplace_back(succ_id, prob);
 
-            auto& parents = stack_[succ_stack_id].parents;
+            auto& parents = tarjan_stack_[succ_stack_id].parents;
             parents.emplace_back(
                 explore.stackidx,
                 explore.stack_info.transition_flags.size());
@@ -489,7 +492,7 @@ template <typename State, typename Action, bool UseInterval>
 bool TATopologicalValueIteration<State, Action, UseInterval>::initialize_state(
     MDPType& mdp,
     const HeuristicType& heuristic,
-    ExplorationInfo& exp_info,
+    DFSExplorationState& exp_info,
     auto& value_store)
 {
     assert(
@@ -548,7 +551,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::initialize_state(
 template <typename State, typename Action, bool UseInterval>
 void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
     auto& value_store,
-    ExplorationInfo& exp_info,
+    DFSExplorationState& exp_info,
     unsigned int stack_idx,
     utils::CountdownTimer& timer)
 {
@@ -556,7 +559,7 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
 
     TimerScope _(statistics_.scc_handling_timer);
 
-    auto scc = stack_ | drop(stack_idx);
+    auto scc = tarjan_stack_ | drop(stack_idx);
 
     assert(!scc.empty());
 
@@ -572,7 +575,7 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
             state_info.stack_id = StateInfo::UNDEF;
         }
 
-        stack_.erase(scc.begin(), scc.end());
+        tarjan_stack_.erase(scc.begin(), scc.end());
         return;
     }
 
@@ -586,7 +589,7 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
         *single.value = single.conv_part;
         state_info.stack_id = StateInfo::UNDEF;
         ++statistics_.singleton_sccs;
-        stack_.pop_back();
+        tarjan_stack_.pop_back();
         return;
     }
 
@@ -899,7 +902,7 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found(
         } while (!converged);
     }
 
-    stack_.erase(scc.begin(), scc.end());
+    tarjan_stack_.erase(scc.begin(), scc.end());
 }
 
 template <typename State, typename Action, bool UseInterval>
@@ -917,7 +920,8 @@ void TATopologicalValueIteration<State, Action, UseInterval>::
 
             state_info.explored = 1;
             state_info.ecd_stack_id = 0;
-            exploration_stack_ecd_.emplace_back(stack_[state_info.stack_id], 0);
+            exploration_stack_ecd_.emplace_back(
+                tarjan_stack_[state_info.stack_id], 0);
             stack_ecd_.emplace_back(state_id);
 
             for (;;) {
@@ -992,7 +996,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::
             succ_info.explored = 1;
             succ_info.ecd_stack_id = stack_size;
             exploration_stack_ecd_.emplace_back(
-                stack_[succ_info.stack_id],
+                tarjan_stack_[succ_info.stack_id],
                 stack_size);
             stack_ecd_.emplace_back(succ_id);
             return true;
@@ -1046,14 +1050,14 @@ void TATopologicalValueIteration<State, Action, UseInterval>::scc_found_ecd(
         // We found an end component, patch it
         const StateID scc_repr_id = scc.front();
         StateInfo& repr_state_info = state_information_[scc_repr_id];
-        StackInfo& repr_stk = stack_[repr_state_info.stack_id];
+        StackInfo& repr_stk = tarjan_stack_[repr_state_info.stack_id];
 
         repr_state_info.ecd_stack_id = StateInfo::UNDEF_ECD;
 
         // Spider construction
         for (const StateID state_id : scc | std::views::drop(1)) {
             StateInfo& state_info = state_information_[state_id];
-            StackInfo& succ_stk = stack_[state_info.stack_id];
+            StackInfo& succ_stk = tarjan_stack_[state_info.stack_id];
 
             state_info.ecd_stack_id = StateInfo::UNDEF_ECD;
 

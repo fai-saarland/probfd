@@ -21,13 +21,13 @@ inline void Statistics::print(std::ostream& out) const
         << std::endl;
 }
 
-bool ExpansionInfo::next_successor()
+bool DFSExplorationState::next_successor()
 {
     successors.pop_back();
     return !successors.empty();
 }
 
-StateID ExpansionInfo::get_current_successor() const
+StateID DFSExplorationState::get_current_successor() const
 {
     return successors.back();
 }
@@ -146,7 +146,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
 
     bool keep_expanding = true;
 
-    ExpansionInfo* einfo;
+    DFSExplorationState* einfo;
     StateInfo* sinfo;
     LocalStateInfo* lsinfo;
 
@@ -155,7 +155,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
     for (;;) {
         // DFS recursion
         do {
-            einfo = &expansion_queue_.back();
+            einfo = &dfs_stack_.back();
             sinfo = &this->state_infos_[einfo->stateid];
             lsinfo = &local_state_infos_[einfo->stateid];
         } while (initialize(mdp, heuristic, *einfo, *sinfo) &&
@@ -168,7 +168,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
             bool last_value_converged = einfo->value_converged;
 
             if (lsinfo->index == lsinfo->lowlink) {
-                auto scc = stack_ | std::views::drop(lsinfo->index);
+                auto scc = tarjan_stack_ | std::views::drop(lsinfo->index);
 
                 for (const StateID state_id : scc) {
                     local_state_infos_[state_id].status =
@@ -188,14 +188,14 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
                     }
                 }
 
-                stack_.erase(scc.begin(), scc.end());
+                tarjan_stack_.erase(scc.begin(), scc.end());
             }
 
-            expansion_queue_.pop_back();
+            dfs_stack_.pop_back();
 
-            if (expansion_queue_.empty()) return last_solved;
+            if (dfs_stack_.empty()) return last_solved;
 
-            einfo = &expansion_queue_.back();
+            einfo = &dfs_stack_.back();
             sinfo = &this->state_infos_[einfo->stateid];
             lsinfo = &local_state_infos_[einfo->stateid];
 
@@ -215,7 +215,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
 template <typename State, typename Action, bool UseInterval>
 bool HeuristicDepthFirstSearch<State, Action, UseInterval>::advance(
     MDP& mdp,
-    ExpansionInfo& einfo,
+    DFSExplorationState& einfo,
     StateInfo& state_info)
 {
     using enum BacktrackingUpdateType;
@@ -264,7 +264,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::advance(
 template <typename State, typename Action, bool UseInterval>
 bool HeuristicDepthFirstSearch<State, Action, UseInterval>::push_successor(
     MDP& mdp,
-    ExpansionInfo& einfo,
+    DFSExplorationState& einfo,
     StateInfo& sinfo,
     LocalStateInfo& lsinfo,
     utils::CountdownTimer& timer)
@@ -302,16 +302,16 @@ void HeuristicDepthFirstSearch<State, Action, UseInterval>::push(
 {
     LocalStateInfo& info = local_state_infos_[stateid];
     info.status = LocalStateInfo::ONSTACK;
-    info.open(stack_.size());
-    stack_.push_back(stateid);
-    expansion_queue_.emplace_back(stateid);
+    info.open(tarjan_stack_.size());
+    tarjan_stack_.push_back(stateid);
+    dfs_stack_.emplace_back(stateid);
 }
 
 template <typename State, typename Action, bool UseInterval>
 bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
     MDP& mdp,
     HeuristicType& heuristic,
-    ExpansionInfo& einfo,
+    DFSExplorationState& einfo,
     StateInfo& sinfo)
 {
     using namespace internal;

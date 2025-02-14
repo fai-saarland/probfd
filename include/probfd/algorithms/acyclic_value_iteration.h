@@ -81,6 +81,41 @@ struct StateInfo {
 };
 
 template <typename State, typename Action>
+struct DFSExplorationState {
+    const StateID state_id;
+    StateInfo<Action>& state_info;
+
+    // Applicable operators left to expand
+    std::vector<Action> remaining_aops;
+
+    // The current transition and transition successor
+    SuccessorDistribution successor_dist;
+    typename Distribution<StateID>::const_iterator successor;
+
+    // The current transition Q-value
+    value_t t_value;
+
+    DFSExplorationState(StateID state_id, StateInfo<Action>& state_info);
+
+    void setup_transition(MDP<State, Action>& mdp);
+
+    void backtrack_successor(value_t probability, StateInfo<Action>& succ_info);
+
+    bool advance(
+        MDP<State, Action>& mdp,
+        policies::MapPolicy<State, Action>* policy);
+
+private:
+    bool next_successor();
+    bool next_transition(
+        MDP<State, Action>& mdp,
+        policies::MapPolicy<State, Action>* policy);
+
+    void finalize_transition();
+    void finalize_expansion(policies::MapPolicy<State, Action>* policy);
+};
+
+template <typename State, typename Action>
 class AcyclicValueIterationObserverCollection {
     using Observer = AcyclicValueIterationObserver<State, Action>;
 
@@ -121,43 +156,14 @@ class AcyclicValueIteration : public MDPAlgorithm<State, Action> {
     using MapPolicy = policies::MapPolicy<State, Action>;
 
     using StateInfo = internal::StateInfo<Action>;
+    using DFSExplorationState = internal::DFSExplorationState<State, Action>;
 
     using Observer = AcyclicValueIterationObserver<State, Action>;
     using ObserverCollection =
         internal::AcyclicValueIterationObserverCollection<State, Action>;
 
-    struct IncrementalExpansionInfo {
-        const StateID state_id;
-        StateInfo& state_info;
-
-        // Applicable operators left to expand
-        std::vector<Action> remaining_aops;
-
-        // The current transition and transition successor
-        SuccessorDistribution successor_dist;
-        typename Distribution<StateID>::const_iterator successor;
-
-        // The current transition Q-value
-        value_t t_value;
-
-        IncrementalExpansionInfo(StateID state_id, StateInfo& state_info);
-
-        void setup_transition(MDPType& mdp);
-
-        void backtrack_successor(value_t probability, StateInfo& succ_info);
-
-        bool advance(MDPType& mdp, MapPolicy* policy);
-
-    private:
-        bool next_successor();
-        bool next_transition(MDPType& mdp, MapPolicy* policy);
-
-        void finalize_transition();
-        void finalize_expansion(MapPolicy* policy);
-    };
-
     storage::PerStateStorage<StateInfo> state_infos_;
-    std::stack<IncrementalExpansionInfo> expansion_stack_;
+    std::stack<DFSExplorationState> dfs_stack_;
 
     ObserverCollection observers_;
 
@@ -189,13 +195,13 @@ private:
     bool push_successor(
         MDPType& mdp,
         MapPolicy* policy,
-        IncrementalExpansionInfo& e,
+        DFSExplorationState& e,
         utils::CountdownTimer& timer);
 
     bool expand_state(
         MDPType& mdp,
         HeuristicType& heuristic,
-        IncrementalExpansionInfo& e_info);
+        DFSExplorationState& e_info);
 };
 
 } // namespace probfd::algorithms::acyclic_vi

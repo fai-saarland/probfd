@@ -98,7 +98,7 @@ class TADFHSImpl
         bool policy_changed;
     };
 
-    struct ExplorationInformation {
+    struct DFSExplorationState {
         StateID state;
         int lowlink;
         std::vector<StateID> successors;
@@ -110,7 +110,7 @@ class TADFHSImpl
         /// is this state's scc a trap?
         bool is_trap : 1 = true;
 
-        explicit ExplorationInformation(StateID state, int stack_index)
+        explicit DFSExplorationState(StateID state, int stack_index)
             : state(state)
             , lowlink(stack_index)
         {
@@ -119,7 +119,7 @@ class TADFHSImpl
         bool next_successor();
         StateID get_successor() const;
 
-        void update(const ExplorationInformation& other);
+        void update(const DFSExplorationState& other);
 
         void clear();
     };
@@ -163,8 +163,8 @@ class TADFHSImpl
     const bool reexpand_traps_;
 
     // Algorithm state
-    std::deque<ExplorationInformation> queue_;
-    std::vector<StackInfo> stack_;
+    std::deque<DFSExplorationState> dfs_stack_;
+    std::vector<StackInfo> tarjan_stack_;
     std::vector<StateID> visited_states_;
     storage::StateHashMap<int> stack_index_;
 
@@ -218,21 +218,21 @@ private:
 
     void enqueue(
         QuotientSystem& quotient,
-        ExplorationInformation& einfo,
+        DFSExplorationState& einfo,
         QAction action,
         const SuccessorDistribution& successor_dist);
 
-    bool advance(QuotientSystem& quotient, ExplorationInformation& einfo);
+    bool advance(QuotientSystem& quotient, DFSExplorationState& einfo);
 
     bool push_successor(
         QuotientSystem& quotient,
-        ExplorationInformation& einfo,
+        DFSExplorationState& einfo,
         utils::CountdownTimer& timer);
 
     bool initialize(
         QuotientSystem& quotient,
         QHeuristic& heuristic,
-        ExplorationInformation& einfo);
+        DFSExplorationState& einfo);
 
     void push(StateID state_id);
 

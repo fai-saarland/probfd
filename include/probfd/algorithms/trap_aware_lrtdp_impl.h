@@ -37,7 +37,7 @@ inline void Statistics::register_report(ProgressReport& report) const
 } // namespace internal
 
 template <typename State, typename Action, bool UseInterval>
-bool TALRTDPImpl<State, Action, UseInterval>::ExplorationInformation::
+bool TALRTDPImpl<State, Action, UseInterval>::DFSExplorationState::
     next_successor()
 {
     successors.pop_back();
@@ -46,7 +46,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::ExplorationInformation::
 
 template <typename State, typename Action, bool UseInterval>
 StateID
-TALRTDPImpl<State, Action, UseInterval>::ExplorationInformation::get_successor()
+TALRTDPImpl<State, Action, UseInterval>::DFSExplorationState::get_successor()
     const
 {
     return successors.back();
@@ -218,12 +218,12 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
 
     push(quotient.translate_state_id(this->current_trial_.back()));
 
-    ExplorationInformation* einfo;
+    DFSExplorationState* einfo;
     StateInfo* sinfo;
 
     for (;;) {
         do {
-            einfo = &queue_.back();
+            einfo = &dfs_stack_.back();
             sinfo = &this->state_infos_[einfo->state];
         } while (this->initialize(
                      quotient,
@@ -237,7 +237,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
             if (einfo->is_root) {
                 const StateID state_id = einfo->state;
                 const unsigned stack_index = stack_index_[state_id];
-                auto scc = stack_ | std::views::drop(stack_index);
+                auto scc = tarjan_stack_ | std::views::drop(stack_index);
 
                 if (einfo->is_trap && scc.size() > 1) {
                     assert(einfo->rv);
@@ -249,10 +249,10 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                     quotient.build_quotient(scc, *scc.begin());
                     sinfo->update_policy(std::nullopt);
                     ++statistics_.traps;
-                    stack_.erase(scc.begin(), scc.end());
+                    tarjan_stack_.erase(scc.begin(), scc.end());
 
                     if (reexpand_traps_) {
-                        queue_.pop_back();
+                        dfs_stack_.pop_back();
                         push(state_id);
                         break;
                     }
@@ -320,25 +320,25 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                             this->update_policy(info, transition);
                         }
                     }
-                    stack_.erase(scc.begin(), scc.end());
+                    tarjan_stack_.erase(scc.begin(), scc.end());
                 }
 
                 einfo->is_trap = false;
             }
 
-            ExplorationInformation bt_einfo = std::move(*einfo);
+            DFSExplorationState bt_einfo = std::move(*einfo);
 
-            queue_.pop_back();
+            dfs_stack_.pop_back();
 
-            if (queue_.empty()) {
-                assert(stack_.empty());
+            if (dfs_stack_.empty()) {
+                assert(tarjan_stack_.empty());
                 stack_index_.clear();
                 return sinfo->is_solved();
             }
 
             timer.throw_if_expired();
 
-            einfo = &queue_.back();
+            einfo = &dfs_stack_.back();
             sinfo = &this->state_infos_[einfo->state];
 
             einfo->update(bt_einfo);
@@ -350,7 +350,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
 template <typename State, typename Action, bool UseInterval>
 bool TALRTDPImpl<State, Action, UseInterval>::push_successor(
     QuotientSystem& quotient,
-    ExplorationInformation& einfo,
+    DFSExplorationState& einfo,
     utils::CountdownTimer& timer)
 {
     do {
@@ -379,9 +379,9 @@ bool TALRTDPImpl<State, Action, UseInterval>::push_successor(
 template <typename State, typename Action, bool UseInterval>
 void TALRTDPImpl<State, Action, UseInterval>::push(StateID state)
 {
-    queue_.emplace_back(state);
-    stack_index_[state] = stack_.size();
-    stack_.emplace_back(state);
+    dfs_stack_.emplace_back(state);
+    stack_index_[state] = tarjan_stack_.size();
+    tarjan_stack_.emplace_back(state);
 }
 
 template <typename State, typename Action, bool UseInterval>
@@ -390,7 +390,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::initialize(
     QHeuristic& heuristic,
     StateID state_id,
     StateInfo& state_info,
-    ExplorationInformation& e_info)
+    DFSExplorationState& e_info)
 {
     assert(quotient.translate_state_id(state_id) == state_id);
 
@@ -450,7 +450,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::initialize(
 
     assert(!e_info.successors.empty());
     e_info.is_trap = quotient.get_action_cost(transition->action) == 0;
-    stack_.back().aops.emplace_back(transition->action);
+    tarjan_stack_.back().aops.emplace_back(transition->action);
     return true;
 }
 

@@ -27,8 +27,8 @@ inline void Statistics::print(std::ostream& out) const
 }
 
 template <typename State, typename Action, bool UseInterval>
-TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
-    ExplorationInfo(StateID state_id, StackInfo& stack_info, unsigned stackidx)
+TopologicalValueIteration<State, Action, UseInterval>::DFSExplorationState::
+    DFSExplorationState(StateID state_id, StackInfo& stack_info, unsigned stackidx)
     : state_id(state_id)
     , stack_info(stack_info)
     , stackidx(stackidx)
@@ -37,14 +37,16 @@ TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 }
 
 template <typename State, typename Action, bool UseInterval>
-void TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
+void TopologicalValueIteration<State, Action, UseInterval>::
+    DFSExplorationState::
     update_lowlink(unsigned upd)
 {
     lowlink = std::min(lowlink, upd);
 }
 
 template <typename State, typename Action, bool UseInterval>
-bool TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
+bool TopologicalValueIteration<State, Action, UseInterval>::
+    DFSExplorationState::
     next_transition(MDPType& mdp)
 {
     aops.pop_back();
@@ -55,7 +57,8 @@ bool TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 }
 
 template <typename State, typename Action, bool UseInterval>
-bool TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
+bool TopologicalValueIteration<State, Action, UseInterval>::
+    DFSExplorationState::
     next_successor()
 {
     if (++successor != successor_dist.non_source_successor_dist.end())
@@ -74,7 +77,8 @@ bool TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 }
 
 template <typename State, typename Action, bool UseInterval>
-bool TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
+bool TopologicalValueIteration<State, Action, UseInterval>::
+    DFSExplorationState::
     forward_non_loop_transition(MDPType& mdp, const State& state)
 {
     do {
@@ -96,7 +100,8 @@ bool TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 }
 
 template <typename State, typename Action, bool UseInterval>
-Action& TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
+Action& TopologicalValueIteration<State, Action, UseInterval>::
+    DFSExplorationState::
     get_current_action()
 {
     return aops.back();
@@ -104,7 +109,7 @@ Action& TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
 
 template <typename State, typename Action, bool UseInterval>
 ItemProbabilityPair<StateID>
-TopologicalValueIteration<State, Action, UseInterval>::ExplorationInfo::
+TopologicalValueIteration<State, Action, UseInterval>::DFSExplorationState::
     get_current_successor()
 {
     return *successor;
@@ -246,10 +251,10 @@ Interval TopologicalValueIteration<State, Action, UseInterval>::solve(
     push_state(init_state_id, iinfo, init_value);
 
     for (;;) {
-        ExplorationInfo* explore;
+        DFSExplorationState* explore;
 
         do {
-            explore = &exploration_stack_.back();
+            explore = &dfs_stack_.back();
         } while (initialize_state(mdp, heuristic, *explore, value_store) &&
                  successor_loop(mdp, *explore, value_store, timer));
 
@@ -260,12 +265,13 @@ Interval TopologicalValueIteration<State, Action, UseInterval>::solve(
             const bool backtrack_from_scc = stack_id == lowlink;
 
             if (backtrack_from_scc) {
-                scc_found(stack_ | std::views::drop(stack_id), policy, timer);
+                scc_found(
+                    tarjan_stack_ | std::views::drop(stack_id), policy, timer);
             }
 
-            exploration_stack_.pop_back();
+            dfs_stack_.pop_back();
 
-            if (exploration_stack_.empty()) {
+            if (dfs_stack_.empty()) {
                 if constexpr (UseInterval) {
                     return init_value;
                 } else {
@@ -275,7 +281,7 @@ Interval TopologicalValueIteration<State, Action, UseInterval>::solve(
 
             timer.throw_if_expired();
 
-            explore = &exploration_stack_.back();
+            explore = &dfs_stack_.back();
 
             const auto [succ_id, prob] = explore->get_current_successor();
             AlgorithmValueType& s_value = value_store[succ_id];
@@ -299,10 +305,10 @@ void TopologicalValueIteration<State, Action, UseInterval>::push_state(
     StateInfo& state_info,
     AlgorithmValueType& state_value)
 {
-    const std::size_t stack_size = stack_.size();
-    exploration_stack_.emplace_back(
+    const std::size_t stack_size = tarjan_stack_.size();
+    dfs_stack_.emplace_back(
         state_id,
-        stack_.emplace_back(state_id, state_value),
+        tarjan_stack_.emplace_back(state_id, state_value),
         stack_size);
     state_info.stack_id = stack_size;
     state_info.status = StateInfo::ONSTACK;
@@ -312,7 +318,7 @@ template <typename State, typename Action, bool UseInterval>
 bool TopologicalValueIteration<State, Action, UseInterval>::initialize_state(
     MDPType& mdp,
     HeuristicType& heuristic,
-    ExplorationInfo& exp_info,
+    DFSExplorationState& exp_info,
     auto& value_store)
 {
     assert(state_information_[exp_info.state_id].status == StateInfo::NEW);
@@ -367,7 +373,7 @@ template <typename State, typename Action, bool UseInterval>
 template <typename ValueStore>
 bool TopologicalValueIteration<State, Action, UseInterval>::successor_loop(
     MDPType& mdp,
-    ExplorationInfo& explore,
+    DFSExplorationState& explore,
     ValueStore& value_store,
     utils::CountdownTimer& timer)
 {
@@ -463,7 +469,7 @@ void TopologicalValueIteration<State, Action, UseInterval>::scc_found(
         }
     }
 
-    stack_.erase(scc.begin(), scc.end());
+    tarjan_stack_.erase(scc.begin(), scc.end());
 }
 
 } // namespace probfd::algorithms::topological_vi

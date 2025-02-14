@@ -109,7 +109,7 @@ class TATopologicalValueIteration
         AlgorithmValueType compute_q_value(ValueStore& value_store) const;
     };
 
-    struct ExplorationInfo {
+    struct DFSExplorationState {
         // Immutable state
         StateID state_id;
         StackInfo& stack_info;
@@ -140,7 +140,7 @@ class TATopologicalValueIteration
         // so recursion is necessary after removal.
         bool has_all_zero : 1 = true;
 
-        ExplorationInfo(
+        DFSExplorationState(
             StateID state_id,
             StackInfo& stack_info,
             unsigned int stackidx);
@@ -281,8 +281,8 @@ class TATopologicalValueIteration
     };
 
     storage::PerStateStorage<StateInfo> state_information_;
-    std::vector<ExplorationInfo> exploration_stack_;
-    std::deque<StackInfo> stack_;
+    std::vector<DFSExplorationState> dfs_stack_;
+    std::deque<StackInfo> tarjan_stack_;
 
     std::vector<ECDExplorationInfo> exploration_stack_ecd_;
     std::vector<StateID> stack_ecd_;
@@ -350,7 +350,7 @@ private:
     bool initialize_state(
         MDPType& mdp,
         const HeuristicType& heuristic,
-        ExplorationInfo& exp_info,
+        DFSExplorationState& exp_info,
         auto& value_store);
 
     /**
@@ -363,7 +363,7 @@ private:
      */
     bool successor_loop(
         MDPType& mdp,
-        ExplorationInfo& explore,
+        DFSExplorationState& explore,
         auto& value_store,
         utils::CountdownTimer& timer);
 
@@ -372,7 +372,7 @@ private:
      */
     void scc_found(
         auto& value_store,
-        ExplorationInfo& exp_info,
+        DFSExplorationState& exp_info,
         unsigned int stack_idx,
         utils::CountdownTimer& timer);
 

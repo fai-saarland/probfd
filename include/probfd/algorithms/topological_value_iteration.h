@@ -128,7 +128,7 @@ class TopologicalValueIteration : public IterativeMDPAlgorithm<State, Action> {
         bool update_value(value_t convergence_epsilon);
     };
 
-    struct ExplorationInfo {
+    struct DFSExplorationState {
         // Exploration State
         std::vector<Action> aops;         // Remaining unexpanded operators
         SuccessorDistribution successor_dist; // Currently expanded transition
@@ -142,7 +142,7 @@ class TopologicalValueIteration : public IterativeMDPAlgorithm<State, Action> {
 
         unsigned lowlink;
 
-        ExplorationInfo(
+        DFSExplorationState(
             StateID state_id,
             StackInfo& stack_info,
             unsigned stackidx);
@@ -165,8 +165,8 @@ class TopologicalValueIteration : public IterativeMDPAlgorithm<State, Action> {
 
     // Algorithm state
     storage::PerStateStorage<StateInfo> state_information_;
-    std::deque<ExplorationInfo> exploration_stack_;
-    std::vector<StackInfo> stack_;
+    std::deque<DFSExplorationState> dfs_stack_;
+    std::vector<StackInfo> tarjan_stack_;
 
     Statistics statistics_;
 
@@ -230,7 +230,7 @@ private:
     bool initialize_state(
         MDPType& mdp,
         HeuristicType& heuristic,
-        ExplorationInfo& exp_info,
+        DFSExplorationState& exp_info,
         auto& value_store);
 
     /**
@@ -244,7 +244,7 @@ private:
     template <typename ValueStore>
     bool successor_loop(
         MDPType& mdp,
-        ExplorationInfo& explore,
+        DFSExplorationState& explore,
         ValueStore& value_store,
         utils::CountdownTimer& timer);
 
