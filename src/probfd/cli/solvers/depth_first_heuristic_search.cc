@@ -33,7 +33,6 @@ class DFHSSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
     const BacktrackingUpdateType backward_updates_;
     const bool cutoff_tip_states_;
     const bool cutoff_inconsistent_;
-    const bool partial_exploration_;
     const bool labeling_;
 
 public:
@@ -44,7 +43,6 @@ public:
         BacktrackingUpdateType bwup,
         bool cutoff_tip,
         bool cutoff_inconsistent,
-        bool partial_exploration,
         bool labeling,
         Args&&... args)
         : MDPHeuristicSearch<Bisimulation, Fret>(std::forward<Args>(args)...)
@@ -53,7 +51,6 @@ public:
         , backward_updates_(bwup)
         , cutoff_tip_states_(cutoff_tip)
         , cutoff_inconsistent_(cutoff_inconsistent)
-        , partial_exploration_(partial_exploration)
         , labeling_(labeling)
     {
     }
@@ -71,7 +68,6 @@ public:
             backward_updates_,
             cutoff_tip_states_,
             cutoff_inconsistent_,
-            partial_exploration_,
             labeling_);
     }
 };
@@ -99,10 +95,6 @@ public:
             "cutoff_inconsistent",
             "",
             ArgumentInfo::NO_DEFAULT);
-        this->template add_option<bool>(
-            "partial_exploration",
-            "",
-            ArgumentInfo::NO_DEFAULT);
         this->template add_option<bool>("vi", "", ArgumentInfo::NO_DEFAULT);
         this->template add_option<bool>(
             "cutoff_tip",
@@ -123,8 +115,6 @@ protected:
         auto backward_updates = options.get<BacktrackingUpdateType>("bwup");
         bool cutoff_tip = options.get<bool>("cutoff_tip");
         bool cutoff_inconsistent = options.get<bool>("cutoff_inconsistent");
-        bool terminate_exploration_on_cutoff =
-            options.get<bool>("terminate_exploration_on_cutoff");
         bool labeling = options.get<bool>("labeling");
 
         if (!forward_updates) {
@@ -143,20 +133,12 @@ protected:
             }
         }
 
-        if (terminate_exploration_on_cutoff && !cutoff_tip &&
-            !cutoff_inconsistent) {
-            context.error(
-                "greedy exploration requires either cutoff_tip=true or "
-                "cutoff_inconsistent=true");
-        }
-
         return make_shared_from_arg_tuples<DFHSSolver<Bisimulation, Fret>>(
             "dfhs",
             forward_updates,
             backward_updates,
             cutoff_tip,
             cutoff_inconsistent,
-            terminate_exploration_on_cutoff,
             labeling,
             get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
     }
@@ -186,7 +168,6 @@ public:
             true,
             false,
             false,
-            false,
             get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
     }
 };
@@ -213,7 +194,6 @@ public:
             false,
             BacktrackingUpdateType::SINGLE,
             true,
-            false,
             false,
             true,
             get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
@@ -243,7 +223,6 @@ public:
             BacktrackingUpdateType::ON_DEMAND,
             false,
             true,
-            false,
             false,
             get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
     }

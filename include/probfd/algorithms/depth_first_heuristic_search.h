@@ -34,7 +34,8 @@ template <typename Action, bool UseInterval>
 struct PerStateInformation
     : public heuristic_search::
           PerStateBaseInformation<Action, true, UseInterval> {
-    using Base = heuristic_search::PerStateBaseInformation<Action, true, UseInterval>;
+    using Base =
+        heuristic_search::PerStateBaseInformation<Action, true, UseInterval>;
 
 public:
     static constexpr uint8_t SOLVED = 1 << Base::BITS;
@@ -54,27 +55,15 @@ public:
     void clear() { this->info &= ~MASK; }
 };
 
-struct LocalStateInfo {
-    enum { NEW = 0, ONSTACK = 1, CLOSED = 2 };
-
-    uint8_t status = NEW;
-    unsigned index = std::numeric_limits<unsigned>::max();
-    unsigned lowlink = std::numeric_limits<unsigned>::max();
-
-    void open(unsigned stack_index)
-    {
-        index = stack_index;
-        lowlink = stack_index;
-    }
-};
-
 struct DFSExplorationState {
-    explicit DFSExplorationState(StateID state)
+    DFSExplorationState(StateID state, unsigned stack_index)
         : stateid(state)
+        , lowlink(stack_index)
     {
     }
 
     const StateID stateid;
+    uint32_t lowlink;
 
     std::vector<StateID> successors;
 
@@ -117,27 +106,30 @@ private:
 
     using Statistics = internal::Statistics;
     using DFSExplorationState = internal::DFSExplorationState;
-    using LocalStateInfo = internal::LocalStateInfo;
+
+    static constexpr uint32_t NEW = std::numeric_limits<uint32_t>::max() - 1;
+    static constexpr uint32_t CLOSED = std::numeric_limits<uint32_t>::max();
 
     // Algorithm parameters
     const bool forward_updates_;
     const BacktrackingUpdateType backtrack_update_type_;
     const bool cutoff_tip_;
     const bool cutoff_inconsistent_;
-    const bool terminate_exploration_on_cutoff_;
     const bool label_solved_;
 
     // Algorithm state
-    storage::StateHashMap<LocalStateInfo> local_state_infos_;
-    std::vector<StateID> visited_;
     std::deque<DFSExplorationState> dfs_stack_;
     std::deque<StateID> tarjan_stack_;
+    storage::StateHashMap<uint32_t> stack_index_;
 
-    Statistics statistics_;
+    std::vector<StateID> visited_states_;
 
     // Re-used buffer
     std::vector<TransitionTail<Action>> transitions_;
     std::vector<AlgorithmValueType> qvalues_;
+    SuccessorDistribution successor_dist_;
+
+    Statistics statistics_;
 
 public:
     HeuristicDepthFirstSearch(
@@ -147,7 +139,6 @@ public:
         BacktrackingUpdateType backtrack_update_type,
         bool cutoff_tip,
         bool cutoff_inconsistent,
-        bool terminate_exploration_on_cutoff,
         bool label_solved);
 
     void reset_search_state() override;
@@ -190,7 +181,6 @@ private:
         MDP& mdp,
         DFSExplorationState& einfo,
         StateInfo& sinfo,
-        LocalStateInfo& lsinfo,
         utils::CountdownTimer& timer);
 
     void push(StateID stateid);

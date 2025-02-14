@@ -43,15 +43,14 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::
         BacktrackingUpdateType backtrack_update_type,
         bool cutoff_tip,
         bool cutoff_inconsistent,
-        bool terminate_exploration_on_cutoff,
         bool label_solved)
     : Base(epsilon, std::move(policy_chooser))
     , forward_updates_(forward_updates)
     , backtrack_update_type_(backtrack_update_type)
     , cutoff_tip_(cutoff_tip)
     , cutoff_inconsistent_(cutoff_inconsistent)
-    , terminate_exploration_on_cutoff_(terminate_exploration_on_cutoff)
     , label_solved_(label_solved)
+    , stack_index_(NEW)
 {
 }
 
@@ -106,9 +105,9 @@ void HeuristicDepthFirstSearch<State, Action, UseInterval>::
     bool terminate;
     do {
         terminate = policy_exploration<true>(mdp, heuristic, stateid, timer) &&
-                    value_iteration(mdp, visited_, timer);
+                    value_iteration(mdp, visited_states_, timer);
 
-        visited_.clear();
+        visited_states_.clear();
         ++statistics_.iterations;
         progress.print();
     } while (!terminate);
@@ -128,7 +127,7 @@ void HeuristicDepthFirstSearch<State, Action, UseInterval>::
         terminate = policy_exploration<false>(mdp, heuristic, stateid, timer);
         ++statistics_.iterations;
         progress.print();
-        assert(visited_.empty());
+        assert(visited_states_.empty());
     } while (!terminate);
 }
 
@@ -140,39 +139,34 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
     StateID state,
     utils::CountdownTimer& timer)
 {
-    using namespace internal;
+    assert(visited_states_.empty());
 
-    ClearGuard _(local_state_infos_);
+    ClearGuard _(stack_index_);
 
-    bool keep_expanding = true;
+    push(state);
 
     DFSExplorationState* einfo;
     StateInfo* sinfo;
-    LocalStateInfo* lsinfo;
-
-    push(state);
+    uint32_t* lsinfo;
 
     for (;;) {
         // DFS recursion
         do {
             einfo = &dfs_stack_.back();
             sinfo = &this->state_infos_[einfo->stateid];
-            lsinfo = &local_state_infos_[einfo->stateid];
+            lsinfo = &stack_index_[einfo->stateid];
         } while (initialize(mdp, heuristic, *einfo, *sinfo) &&
-                 push_successor(mdp, *einfo, *sinfo, *lsinfo, timer));
+                 push_successor(mdp, *einfo, *sinfo, timer));
 
         // Iterative backtracking
         do {
-            unsigned last_lowlink = lsinfo->lowlink;
-            bool last_solved = einfo->solved;
-            bool last_value_converged = einfo->value_converged;
+            const uint32_t last_lowlink = einfo->lowlink;
 
-            if (lsinfo->index == lsinfo->lowlink) {
-                auto scc = tarjan_stack_ | std::views::drop(lsinfo->index);
+            if (last_lowlink == *lsinfo) {
+                auto scc = tarjan_stack_ | std::views::drop(last_lowlink);
 
                 for (const StateID state_id : scc) {
-                    local_state_infos_[state_id].status =
-                        LocalStateInfo::CLOSED;
+                    stack_index_[state_id] = CLOSED;
 
                     if (!einfo->solved) continue;
 
@@ -184,31 +178,33 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
                     }
 
                     if constexpr (GetVisited) {
-                        visited_.push_back(state_id);
+                        visited_states_.push_back(state_id);
                     }
                 }
 
                 tarjan_stack_.erase(scc.begin(), scc.end());
             }
 
+            DFSExplorationState bt_einfo = std::move(*einfo);
             dfs_stack_.pop_back();
 
-            if (dfs_stack_.empty()) return last_solved;
+            if (dfs_stack_.empty()) {
+                assert(tarjan_stack_.empty());
+                return bt_einfo.solved;
+            }
+
+            timer.throw_if_expired();
 
             einfo = &dfs_stack_.back();
             sinfo = &this->state_infos_[einfo->stateid];
-            lsinfo = &local_state_infos_[einfo->stateid];
+            lsinfo = &stack_index_[einfo->stateid];
 
-            lsinfo->lowlink = std::min(lsinfo->lowlink, last_lowlink);
-            einfo->solved =
-                einfo->solved && last_solved && last_value_converged;
-            einfo->value_converged =
-                einfo->value_converged && last_value_converged;
+            einfo->lowlink = std::min(last_lowlink, einfo->lowlink);
 
-            if (terminate_exploration_on_cutoff_ && !einfo->solved) {
-                keep_expanding = false;
-            }
-        } while (!keep_expanding || !advance(mdp, *einfo, *sinfo));
+            if (!bt_einfo.solved || !bt_einfo.value_converged)
+                einfo->solved = false;
+            if (!bt_einfo.value_converged) einfo->value_converged = false;
+        } while (!advance(mdp, *einfo, *sinfo));
     }
 }
 
@@ -226,14 +222,12 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::advance(
 
     if (backtrack_update_type_ == SINGLE ||
         (backtrack_update_type_ == ON_DEMAND && !einfo.value_converged)) {
-        assert(!state_info.is_on_fringe());
-
         const State state = mdp.get_state(einfo.stateid);
 
         ClearGuard _(transitions_, qvalues_);
         this->generate_non_tip_transitions(mdp, state, transitions_);
 
-        statistics_.backtracking_updates++;
+        ++statistics_.backtracking_updates;
 
         auto value = this->compute_bellman_and_greedy(
             state,
@@ -266,7 +260,6 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::push_successor(
     MDP& mdp,
     DFSExplorationState& einfo,
     StateInfo& sinfo,
-    LocalStateInfo& lsinfo,
     utils::CountdownTimer& timer)
 {
     using namespace internal;
@@ -275,21 +268,19 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::push_successor(
         timer.throw_if_expired();
 
         const StateID succid = einfo.get_current_successor();
-        const LocalStateInfo& succ_info = local_state_infos_[succid];
+        const uint32_t succ_stack_index = stack_index_[succid];
 
-        const int succ_status = succ_info.status;
-
-        if (succ_status == LocalStateInfo::NEW) {
+        if (succ_stack_index == NEW) {
             push(succid);
             return true;
-        } else if (succ_status == LocalStateInfo::CLOSED) {
+        } else if (succ_stack_index == CLOSED) {
             if (label_solved_) {
                 einfo.solved =
                     einfo.solved && this->state_infos_[succid].is_solved();
             }
         } else {
-            assert(succ_status == LocalStateInfo::ONSTACK);
-            lsinfo.lowlink = std::min(lsinfo.lowlink, succ_info.index);
+            // is on stack
+            einfo.lowlink = std::min(einfo.lowlink, succ_stack_index);
         }
     } while (advance(mdp, einfo, sinfo));
 
@@ -300,11 +291,9 @@ template <typename State, typename Action, bool UseInterval>
 void HeuristicDepthFirstSearch<State, Action, UseInterval>::push(
     StateID stateid)
 {
-    LocalStateInfo& info = local_state_infos_[stateid];
-    info.status = LocalStateInfo::ONSTACK;
-    info.open(tarjan_stack_.size());
-    tarjan_stack_.push_back(stateid);
-    dfs_stack_.emplace_back(stateid);
+    dfs_stack_.emplace_back(stateid, tarjan_stack_.size());
+    stack_index_[stateid] = tarjan_stack_.size();
+    tarjan_stack_.emplace_back(stateid);
 }
 
 template <typename State, typename Action, bool UseInterval>
@@ -314,8 +303,6 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
     DFSExplorationState& einfo,
     StateInfo& sinfo)
 {
-    using namespace internal;
-
     // Ignore labels if labelling option is turned off
     if (sinfo.is_solved()) {
         assert(label_solved_ || sinfo.is_goal_or_terminal());
@@ -364,7 +351,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
         }
 
         const bool cutoff = (cutoff_tip_ && is_tip_state) ||
-                            (cutoff_inconsistent_ && !einfo.value_converged);
+                            (cutoff_inconsistent_ && !val_upd.converged);
 
         if (cutoff) {
             einfo.solved = false;
@@ -377,10 +364,11 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
         const auto action = sinfo.get_policy();
         if (!action.has_value()) return false;
 
-        SuccessorDistribution successor_dist;
-        mdp.generate_action_transitions(state, *action, successor_dist);
+        ClearGuard _(successor_dist_.non_source_successor_dist);
+        mdp.generate_action_transitions(state, *action, successor_dist_);
+
         einfo.successors = std::ranges::to<std::vector>(
-            successor_dist.non_source_successor_dist.support());
+            successor_dist_.non_source_successor_dist.support());
     }
 
     return true;

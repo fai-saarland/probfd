@@ -100,13 +100,13 @@ class TADFHSImpl
 
     struct DFSExplorationState {
         StateID state;
-        int lowlink;
+        uint32_t lowlink;
         std::vector<StateID> successors;
 
         /// did the value of a descendant change?
         bool value_converged : 1 = true;
         /// were all greedy outside-SCC descendants explored and solved?
-        bool all_solved : 1 = true;
+        bool solved : 1 = true;
         /// is this state's scc a trap?
         bool is_trap : 1 = true;
 
@@ -148,8 +148,8 @@ class TADFHSImpl
         }
     };
 
-    static constexpr int NEW = -1;
-    static constexpr int CLOSED = -2;
+    static constexpr uint32_t NEW = std::numeric_limits<uint32_t>::max() - 1;
+    static constexpr uint32_t CLOSED = std::numeric_limits<uint32_t>::max();
 
     const value_t epsilon_;
 
@@ -158,22 +158,20 @@ class TADFHSImpl
     const BacktrackingUpdateType backtrack_update_type_;
     const bool cutoff_tip_;
     const bool cutoff_inconsistent_;
-    const bool terminate_exploration_on_cutoff_;
     const bool label_solved_;
     const bool reexpand_traps_;
 
     // Algorithm state
     std::deque<DFSExplorationState> dfs_stack_;
     std::vector<StackInfo> tarjan_stack_;
-    std::vector<StateID> visited_states_;
-    storage::StateHashMap<int> stack_index_;
+    storage::StateHashMap<uint32_t> stack_index_;
 
-    bool terminated_ = false;
+    std::vector<StateID> visited_states_;
 
     // Re-used buffer
     std::vector<TransitionTail<QAction>> transitions_;
     std::vector<AlgorithmValueType> qvalues_;
-    SuccessorDistribution transition_;
+    SuccessorDistribution successor_dist_;
 
     internal::Statistics statistics_;
 
@@ -188,7 +186,6 @@ public:
         BacktrackingUpdateType backtrack_update_type,
         bool cutoff_tip,
         bool cutoff_inconsistent,
-        bool terminate_exploration_on_cutoff,
         bool label_solved,
         bool reexpand_traps);
 
@@ -215,12 +212,6 @@ private:
         StateID state,
         ProgressReport& progress,
         utils::CountdownTimer& timer);
-
-    void enqueue(
-        QuotientSystem& quotient,
-        DFSExplorationState& einfo,
-        QAction action,
-        const SuccessorDistribution& successor_dist);
 
     bool advance(QuotientSystem& quotient, DFSExplorationState& einfo);
 
@@ -275,7 +266,6 @@ public:
         BacktrackingUpdateType backtrack_update_type,
         bool cutoff_tip,
         bool cutoff_inconsistent,
-        bool stop_exploration_inconsistent,
         bool label_solved,
         bool reexpand_removed_traps);
 

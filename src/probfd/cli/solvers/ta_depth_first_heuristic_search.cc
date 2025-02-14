@@ -36,7 +36,6 @@ class TrapAwareDFHSSolver : public MDPHeuristicSearch<false, true> {
     const BacktrackingUpdateType backward_updates_;
     const bool cutoff_tip_;
     const bool cutoff_inconsistent_;
-    const bool terminate_exploration_;
     const bool labeling_;
     const bool reexpand_traps_;
 
@@ -48,7 +47,6 @@ public:
         BacktrackingUpdateType bwup,
         bool cutoff_tip,
         bool cutoff_inconsistent,
-        bool terminate_exploration,
         bool labeling,
         bool reexpand_traps,
         Args&&... args)
@@ -58,7 +56,6 @@ public:
         , backward_updates_(bwup)
         , cutoff_tip_(cutoff_tip)
         , cutoff_inconsistent_(cutoff_inconsistent)
-        , terminate_exploration_(terminate_exploration)
         , labeling_(labeling)
         , reexpand_traps_(reexpand_traps)
     {
@@ -80,7 +77,6 @@ public:
                 backward_updates_,
                 cutoff_tip_,
                 cutoff_inconsistent_,
-                terminate_exploration_,
                 labeling_,
                 reexpand_traps_);
     }
@@ -119,11 +115,6 @@ public:
             "Do not expand states whose values have changed during the forward "
             "updates.",
             "true");
-        add_option<bool>(
-            "terminate_exploration",
-            "Stop the exploration of the policy as soon as a state expansion "
-            "was cutoff.",
-            "false");
         add_option<bool>("labeling", "Label states as solved.", "true");
         add_option<bool>(
             "reexpand_traps",
@@ -143,7 +134,6 @@ protected:
             options.get<BacktrackingUpdateType>("bwup"),
             options.get<bool>("cutoff_tip"),
             options.get<bool>("cutoff_inconsistent"),
-            options.get<bool>("terminate_exploration"),
             options.get<bool>("labeling"),
             options.get<bool>("reexpand_traps"),
             get_mdp_hs_args_from_options<false, true>(options));
@@ -181,7 +171,6 @@ public:
             false,
             BacktrackingUpdateType::SINGLE,
             true,
-            false,
             false,
             false,
             options.get<bool>("reexpand_traps"),
@@ -223,7 +212,6 @@ public:
             BacktrackingUpdateType::SINGLE,
             true,
             false,
-            false,
             true,
             options.get<bool>("reexpand_traps"),
             get_mdp_hs_args_from_options<false, true>(options));
@@ -263,7 +251,6 @@ public:
             BacktrackingUpdateType::ON_DEMAND,
             false,
             true,
-            false,
             false,
             options.get<bool>("reexpand_traps"),
             get_mdp_hs_args_from_options<false, true>(options));

@@ -60,7 +60,7 @@ void TADFHSImpl<State, Action, UseInterval>::DFSExplorationState::update(
     const DFSExplorationState& other)
 {
     if (!other.value_converged) value_converged = false;
-    if (!other.all_solved) all_solved = false;
+    if (!other.solved) solved = false;
     if (!other.is_trap) is_trap = false;
 }
 
@@ -68,7 +68,7 @@ template <typename State, typename Action, bool UseInterval>
 void TADFHSImpl<State, Action, UseInterval>::DFSExplorationState::clear()
 {
     value_converged = true;
-    all_solved = true;
+    solved = true;
     is_trap = true;
 }
 
@@ -80,7 +80,6 @@ TADFHSImpl<State, Action, UseInterval>::TADFHSImpl(
     BacktrackingUpdateType backtrack_update_type,
     bool cutoff_tip,
     bool cutoff_inconsistent,
-    bool terminate_exploration_on_cutoff,
     bool label_solved,
     bool reexpand_traps)
     : Base(policy_chooser)
@@ -89,7 +88,6 @@ TADFHSImpl<State, Action, UseInterval>::TADFHSImpl(
     , backtrack_update_type_(backtrack_update_type)
     , cutoff_tip_(cutoff_tip)
     , cutoff_inconsistent_(cutoff_inconsistent)
-    , terminate_exploration_on_cutoff_(terminate_exploration_on_cutoff)
     , label_solved_(label_solved)
     , reexpand_traps_(reexpand_traps)
     , stack_index_(NEW)
@@ -174,47 +172,24 @@ void TADFHSImpl<State, Action, UseInterval>::dfhs_label_driver(
 }
 
 template <typename State, typename Action, bool UseInterval>
-void TADFHSImpl<State, Action, UseInterval>::enqueue(
-    QuotientSystem& quotient,
-    DFSExplorationState& einfo,
-    QAction action,
-    const SuccessorDistribution& successor_dist)
-{
-    tarjan_stack_.back().action = action;
-
-    einfo.successors.reserve(successor_dist.non_source_successor_dist.size());
-
-    for (const StateID item :
-         successor_dist.non_source_successor_dist.support()) {
-        einfo.successors.push_back(item);
-    }
-
-    assert(!einfo.successors.empty());
-    einfo.is_trap = quotient.get_action_cost(action) == 0;
-}
-
-template <typename State, typename Action, bool UseInterval>
 bool TADFHSImpl<State, Action, UseInterval>::advance(
     QuotientSystem& quotient,
     DFSExplorationState& einfo)
 {
     using enum BacktrackingUpdateType;
 
-    if (terminated_) {
-        einfo.value_converged = false;
-        einfo.all_solved = false;
-    } else if (einfo.next_successor()) {
+    if (einfo.next_successor()) {
         return true;
     }
 
     if (backtrack_update_type_ == SINGLE ||
         (backtrack_update_type_ == ON_DEMAND && !einfo.value_converged)) {
-        ++statistics_.bw_updates;
-
         const QState state = quotient.get_state(einfo.state);
 
         ClearGuard _(transitions_, qvalues_);
         this->generate_non_tip_transitions(quotient, state, transitions_);
+
+        ++statistics_.bw_updates;
 
         StateInfo& state_info = this->state_infos_[einfo.state];
         auto value = this->compute_bellman_and_greedy(
@@ -224,21 +199,17 @@ bool TADFHSImpl<State, Action, UseInterval>::advance(
             qvalues_,
             this->epsilon_);
 
+        auto transition = this->select_greedy_transition(
+            quotient,
+            state_info.get_policy(),
+            transitions_);
+
         const auto val_upd =
             this->update_value(state_info, value, this->epsilon_);
-        bool policy_changed = this->update_policy(
-            state_info,
-            this->select_greedy_transition(
-                quotient,
-                state_info.get_policy(),
-                transitions_));
-        einfo.value_converged = val_upd.converged;
-        einfo.all_solved =
-            einfo.all_solved && val_upd.converged && !policy_changed;
+        bool policy_changed = this->update_policy(state_info, transition);
 
-        terminated_ =
-            terminated_ || (terminate_exploration_on_cutoff_ &&
-                            cutoff_inconsistent_ && !val_upd.converged);
+        einfo.value_converged = val_upd.converged;
+        einfo.solved = einfo.solved && val_upd.converged && !policy_changed;
     }
 
     return false;
@@ -254,22 +225,20 @@ bool TADFHSImpl<State, Action, UseInterval>::push_successor(
         timer.throw_if_expired();
 
         const StateID succ = quotient.translate_state_id(einfo.get_successor());
+        const uint32_t succ_stack_index = stack_index_[succ];
 
-        const int succ_status = stack_index_[succ];
-
-        if (succ_status == NEW) {
+        if (succ_stack_index == NEW) {
             push(succ);
             return true;
-        } else if (succ_status == CLOSED) {
+        } else if (succ_stack_index == CLOSED) {
             einfo.is_trap = false;
             if (label_solved_) {
-                einfo.all_solved =
-                    einfo.all_solved && this->state_infos_[succ].is_solved();
+                einfo.solved =
+                    einfo.solved && this->state_infos_[succ].is_solved();
             }
         } else {
             // is on stack
-            assert(succ_status >= 0);
-            einfo.lowlink = std::min(einfo.lowlink, succ_status);
+            einfo.lowlink = std::min(einfo.lowlink, succ_stack_index);
         }
     } while (advance(quotient, einfo));
 
@@ -290,8 +259,6 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
     QHeuristic& heuristic,
     DFSExplorationState& einfo)
 {
-    assert(!terminated_);
-
     StateInfo& state_info = this->state_infos_[einfo.state];
     if (state_info.is_solved()) {
         assert(label_solved_ || state_info.is_goal_or_terminal());
@@ -300,12 +267,13 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
     }
 
     const QState state = quotient.get_state(einfo.state);
-    const bool tip = state_info.is_on_fringe();
 
-    if (tip || forward_updates_) {
+    const bool is_tip_state = state_info.is_on_fringe();
+
+    if (forward_updates_ || is_tip_state) {
         ClearGuard _(transitions_, qvalues_);
 
-        if (tip) {
+        if (is_tip_state) {
             this->expand_and_initialize(
                 quotient,
                 heuristic,
@@ -335,35 +303,41 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
         this->update_policy(state_info, transition);
 
         einfo.value_converged = val_upd.converged;
-        einfo.all_solved = val_upd.converged;
-        const bool cutoff = (cutoff_tip_ && tip) ||
-                            (cutoff_inconsistent_ && !val_upd.converged);
-        terminated_ = terminate_exploration_on_cutoff_ && cutoff;
+        einfo.solved = val_upd.converged;
 
         if (!transition) {
             einfo.is_trap = false;
             return false;
         }
 
+        const bool cutoff = (cutoff_tip_ && is_tip_state) ||
+                            (cutoff_inconsistent_ && !val_upd.converged);
+
         if (cutoff) {
             einfo.is_trap = false;
-            einfo.value_converged = false;
-            einfo.all_solved = false;
+            einfo.solved = false;
             return false;
         }
 
-        enqueue(
-            quotient,
-            einfo,
-            transition->action,
-            transition->successor_dist);
+        tarjan_stack_.back().action = transition->action;
+
+        einfo.successors = std::ranges::to<std::vector>(
+            successor_dist_.non_source_successor_dist.support());
+
+        einfo.is_trap = quotient.get_action_cost(transition->action) == 0;
     } else {
         auto action = state_info.get_policy();
         if (!action.has_value()) return false;
 
-        quotient.generate_action_transitions(state, *action, transition_);
-        enqueue(quotient, einfo, *action, transition_);
-        transition_.clear();
+        tarjan_stack_.back().action = action;
+
+        einfo.is_trap = quotient.get_action_cost(action) == 0;
+
+        ClearGuard _(successor_dist_.non_source_successor_dist);
+        quotient.generate_action_transitions(state, *action, successor_dist_);
+
+        einfo.successors = std::ranges::to<std::vector>(
+            successor_dist_.non_source_successor_dist.support());
     }
 
     return true;
@@ -377,7 +351,8 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
     utils::CountdownTimer& timer)
 {
     assert(visited_states_.empty());
-    terminated_ = false;
+
+    ClearGuard _(stack_index_);
 
     push(start_state);
 
@@ -390,10 +365,10 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
                  push_successor(quotient, *einfo, timer));
 
         do {
-            const int last_lowlink = einfo->lowlink;
+            const uint32_t last_lowlink = einfo->lowlink;
 
             // Is SCC root?
-            if (einfo->lowlink == stack_index_[einfo->state]) {
+            if (last_lowlink == stack_index_[einfo->state]) {
                 auto scc = tarjan_stack_ | std::views::drop(last_lowlink);
 
                 if (scc.size() > 1 && einfo->is_trap) {
@@ -420,13 +395,13 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
                     stack_index_[state_id] = CLOSED;
 
                     einfo->value_converged = false;
-                    einfo->all_solved = false;
+                    einfo->solved = false;
                 } else {
-                    for (const auto state_id :
+                    for (const StateID state_id :
                          scc | std::views::transform(&StackInfo::state_id)) {
                         stack_index_[state_id] = CLOSED;
 
-                        if (!einfo->all_solved) continue;
+                        if (!einfo->solved) continue;
 
                         StateInfo& mem_info = this->state_infos_[state_id];
                         if (mem_info.is_solved()) continue;
@@ -448,8 +423,7 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
 
             if (dfs_stack_.empty()) {
                 assert(tarjan_stack_.empty());
-                stack_index_.clear();
-                return einfo->all_solved;
+                return bt_einfo.solved;
             }
 
             timer.throw_if_expired();
@@ -457,7 +431,10 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
             einfo = &dfs_stack_.back();
 
             einfo->lowlink = std::min(last_lowlink, einfo->lowlink);
-            einfo->update(bt_einfo);
+
+            if (!bt_einfo.is_trap) einfo->is_trap = false;
+            if (!bt_einfo.solved) einfo->solved = false;
+            if (!bt_einfo.value_converged) einfo->value_converged = false;
         } while (!advance(quotient, *einfo));
     }
 }
@@ -522,7 +499,6 @@ TADepthFirstHeuristicSearch<State, Action, UseInterval>::
         BacktrackingUpdateType backtrack_update_type,
         bool cutoff_tip,
         bool cutoff_inconsistent,
-        bool stop_exploration_inconsistent,
         bool label_solved,
         bool reexpand_removed_traps)
     : algorithm_(
@@ -532,7 +508,6 @@ TADepthFirstHeuristicSearch<State, Action, UseInterval>::
           backtrack_update_type,
           cutoff_tip,
           cutoff_inconsistent,
-          stop_exploration_inconsistent,
           label_solved,
           reexpand_removed_traps)
 {

@@ -49,7 +49,6 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
                 algorithms::trap_aware_dfhs::BacktrackingUpdateType::SINGLE,
                 true,
                 false,
-                false,
                 true,
                 true);
 
