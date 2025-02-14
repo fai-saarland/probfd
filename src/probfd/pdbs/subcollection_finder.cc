@@ -12,7 +12,7 @@ value_t SubCollectionFinder::evaluate(
     const State& state,
     value_t termination_cost)
 {
-    if (database.empty()) return 0_vt;
+    if (database.empty()) return -INFINITE_VALUE;
 
     // Get pattern estimates
     std::vector<value_t> estimates(database.size());
@@ -34,7 +34,7 @@ value_t SubCollectionFinder::evaluate(
     return std::transform_reduce(
         subcollections.begin(),
         subcollections.end(),
-        0_vt,
+        -INFINITE_VALUE,
         static_cast<const value_t& (*)(const value_t&, const value_t&)>(
             std::max<value_t>),
         transformer);
