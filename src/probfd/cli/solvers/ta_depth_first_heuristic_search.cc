@@ -257,14 +257,22 @@ public:
     }
 };
 
-FeaturePlugin<TrapAwareDFHSSolverFeature> _plugin;
+FeaturePlugin<TrapAwareDFHSSolverFeature> _plugin_dfhs;
 FeaturePlugin<TrapAwareILAOSolverFeature> _plugin_ilao;
 FeaturePlugin<TrapAwareLILAOSolverFeature> _plugin_lilao;
 FeaturePlugin<TrapAwareHDPSolverFeature> _plugin_hdp;
 
-TypedEnumPlugin<BacktrackingUpdateType> _fret_enum_plugin(
-    {{"disabled", "No value updates are made."},
-     {"ondemand", "update if some value changed during forward updates"},
-     {"single", "single update"}});
+TypedEnumPlugin<BacktrackingUpdateType> _enum_plugin(
+    {{"disabled",
+      "No update is performed when backtracking from a state during the dfs "
+      "exploration."},
+     {"on_demand",
+      "An update is performed when backtracking from a state during the dfs "
+      "exploration, but only if a previous forward update was made and did not "
+      "result in an epsilon-consistent value. Requires forward updates to be "
+      "enabled, or tip exploration cutoff to be disabled."},
+     {"single",
+      "An update is always performed when backtracking from a state during the "
+      "dfs exploration."}});
 
 } // namespace

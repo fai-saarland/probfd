@@ -128,8 +128,9 @@ protected:
                         "cutoff_tip=false!");
                 }
             } else if (backward_updates == DISABLED && labeling) {
-                context.error("either value_iteration, forward_updates, or "
-                              "backward_updates must be enabled!");
+                context.error(
+                    "either value_iteration, forward_updates, or "
+                    "backward_updates must be enabled!");
             }
         }
 
@@ -233,14 +234,15 @@ MultiFeaturePlugin<ILAOSolverFeature> _plugin_ilao;
 MultiFeaturePlugin<LILAOSolverFeature> _plugin_lilao;
 MultiFeaturePlugin<HDPSolverFeature> _plugin_hdp;
 
-TypedEnumPlugin<BacktrackingUpdateType> _fret_enum_plugin(
+TypedEnumPlugin<BacktrackingUpdateType> _enum_plugin(
     {{"disabled",
       "No update is performed when backtracking from a state during the dfs "
       "exploration."},
      {"on_demand",
       "An update is performed when backtracking from a state during the dfs "
-      "exploration, but only if a successor value was not epsilon-consistent "
-      "during a recursive call."},
+      "exploration, but only if a previous forward update was made and did not "
+      "result in an epsilon-consistent value. Requires forward updates to be "
+      "enabled, or tip exploration cutoff to be disabled."},
      {"single",
       "An update is always performed when backtracking from a state during the "
       "dfs exploration."}});

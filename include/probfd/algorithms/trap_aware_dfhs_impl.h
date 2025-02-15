@@ -208,9 +208,15 @@ bool TADFHSImpl<State, Action, UseInterval>::advance(
             this->update_value(state_info, value, this->epsilon_);
         bool policy_changed = this->update_policy(state_info, transition);
 
+        // Note: it is only necessary to check whether eps-consistency
+        // was reached on backward update when both directions are
+        // enabled
         einfo.value_converged = val_upd.converged;
-        einfo.solved = einfo.solved && val_upd.converged && !policy_changed;
+
+        if (policy_changed) einfo.solved = false;
     }
+
+    if (!einfo.value_converged) einfo.solved = false;
 
     return false;
 }
@@ -434,7 +440,6 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
 
             if (!bt_einfo.is_trap) einfo->is_trap = false;
             if (!bt_einfo.solved) einfo->solved = false;
-            if (!bt_einfo.value_converged) einfo->value_converged = false;
         } while (!advance(quotient, *einfo));
     }
 }
