@@ -331,7 +331,7 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
 
         tarjan_stack_.back().action = action;
 
-        einfo.is_trap = quotient.get_action_cost(action) == 0;
+        einfo.is_trap = quotient.get_action_cost(*action) == 0;
 
         ClearGuard _(successor_dist_.non_source_successor_dist);
         quotient.generate_action_transitions(state, *action, successor_dist_);
