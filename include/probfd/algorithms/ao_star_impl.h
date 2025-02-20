@@ -184,8 +184,7 @@ bool AOStar<State, Action, UseInterval>::update_value_check_solved(
         state,
         transitions,
         mdp,
-        qvalues_,
-        this->epsilon);
+        qvalues_);
 
     auto greedy_transition =
         this->select_greedy_transition(mdp, info.get_policy(), transitions_);

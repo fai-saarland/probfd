@@ -443,8 +443,7 @@ bool ValueGraph<State, Action, StateInfoT>::get_successors(
         state,
         opt_transitions_,
         quotient,
-        q_values,
-        base_algorithm.get_convergence_epsilon());
+        q_values);
 
     const auto val_upd = base_algorithm.update_value(
         state_info,

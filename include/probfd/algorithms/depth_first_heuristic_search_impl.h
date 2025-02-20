@@ -231,8 +231,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::advance(
             state,
             transitions_,
             mdp,
-            qvalues_,
-            this->epsilon);
+            qvalues_);
 
         auto transition = this->select_greedy_transition(
             mdp,
@@ -334,8 +333,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
             state,
             transitions_,
             mdp,
-            qvalues_,
-            this->epsilon);
+            qvalues_);
 
         auto transition = this->select_greedy_transition(
             mdp,
@@ -420,8 +418,7 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::vi_step(
             state,
             transitions_,
             mdp,
-            qvalues_,
-            this->epsilon);
+            qvalues_);
 
         ++stat_counter;
 

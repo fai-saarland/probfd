@@ -126,8 +126,7 @@ void LRTDP<State, Action, UseInterval>::trial(
             state,
             transitions_,
             mdp,
-            qvalues_,
-            this->epsilon);
+            qvalues_);
 
         auto transition = this->select_greedy_transition(
             mdp,
@@ -238,8 +237,7 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
             state,
             transitions_,
             mdp,
-            qvalues_,
-            this->epsilon);
+            qvalues_);
 
         auto transition = this->select_greedy_transition(
             mdp,
@@ -293,8 +291,7 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
                 state,
                 transitions_,
                 mdp,
-                qvalues_,
-                this->epsilon);
+                qvalues_);
 
             auto transition = this->select_greedy_transition(
                 mdp,

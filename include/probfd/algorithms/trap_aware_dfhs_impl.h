@@ -196,8 +196,7 @@ bool TADFHSImpl<State, Action, UseInterval>::advance(
             state,
             transitions_,
             quotient,
-            qvalues_,
-            this->epsilon_);
+            qvalues_);
 
         auto transition = this->select_greedy_transition(
             quotient,
@@ -296,8 +295,7 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
             state,
             transitions_,
             quotient,
-            qvalues_,
-            this->epsilon_);
+            qvalues_);
 
         auto transition = this->select_greedy_transition(
             quotient,
@@ -471,8 +469,7 @@ auto TADFHSImpl<State, Action, UseInterval>::value_iteration(
                 state,
                 transitions_,
                 quotient,
-                qvalues_,
-                this->epsilon_);
+                qvalues_);
 
             const auto upd_val =
                 this->update_value(state_info, value, this->epsilon_);

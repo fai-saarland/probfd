@@ -31,8 +31,6 @@ class CostFunction;
 namespace probfd::algorithms {
 template <typename, typename>
 class PolicyPicker;
-template <typename>
-class SuccessorSampler;
 } // namespace probfd::algorithms
 
 namespace probfd::algorithms::fret {
@@ -175,27 +173,28 @@ public:
 
     /**
      * @brief Computes the Bellman operator value for a state, as well as all
-     * transitions achieving a value epsilon-close to the minimum value and
-     * their computed Q-values.
+     * current greedy transitions with respect to the lower state value bound.
+     *
+     * Additionally stores all greedy transition Q-values into a list.
      *
      * @param[in, out] transition_tails The set of transition tails to compute
      * the Bellman operator for. The greedy transition tails are returned
      * through this parameter by erasing all non-greedy transitions.
      * All greedy transition tails will maintain their relative order.
      * If no transition achieves a value lower than the termination cost for
-     * the source state, the empty list is returned, regardless of the epsilon
-     * parameter.
+     * the source state, the empty list is returned.
      *
-     * @param[out] qvalues The Q-values are added to this list, which must be
-     * empty prior to the call, in the order that matches the greedy
-     * transition tails returned in @p transition_tails .
+     * @param[out] qvalues The greedy transition Q-values are added to this
+     * list, which must be empty prior to the call, in the order that matches
+     * the greedy transition tails returned in @p transition_tails .
+     * Note that all Q-value lower bounds will match the minimal Q-value lower
+     * bound.
      */
     AlgorithmValueType compute_bellman_and_greedy(
         ParamType<State> source_state,
         std::vector<TransitionTailType>& transition_tails,
         CostFunctionType& cost_function,
-        std::vector<AlgorithmValueType>& qvalues,
-        value_t epsilon) const;
+        std::vector<AlgorithmValueType>& qvalues) const;
 
     /**
      * @brief Selects a greedy transition from the given list of greedy
@@ -274,8 +273,7 @@ private:
     AlgorithmValueType filter_greedy_transitions(
         std::vector<TransitionTailType>& transition_tails,
         std::vector<AlgorithmValueType>& qvalues,
-        const AlgorithmValueType& best_value,
-        value_t epsilon) const;
+        const AlgorithmValueType& best_value) const;
 };
 
 /**

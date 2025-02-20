@@ -150,8 +150,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::trial(
             state,
             transitions_,
             quotient,
-            qvalues_,
-            this->epsilon_);
+            qvalues_);
 
         statistics_.trial_bellman_backups++;
 
@@ -272,8 +271,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                             state,
                             transitions_,
                             quotient,
-                            qvalues_,
-                            this->epsilon_);
+                            qvalues_);
 
                         auto transition = this->select_greedy_transition(
                             quotient,
@@ -308,8 +306,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
                                 state,
                                 transitions_,
                                 quotient,
-                                qvalues_,
-                                this->epsilon_);
+                                qvalues_);
 
                             auto transition = this->select_greedy_transition(
                                 quotient,
@@ -420,8 +417,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::initialize(
         state,
         transitions_,
         quotient,
-        qvalues_,
-        this->epsilon_);
+        qvalues_);
 
     auto transition = this->select_greedy_transition(
         quotient,

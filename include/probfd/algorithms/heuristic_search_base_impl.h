@@ -27,9 +27,6 @@ inline void Statistics::print(std::ostream& out) const
 {
     out << "  Initial state value estimation: " << initial_state_estimate
         << std::endl;
-    out << "  Initial state value found terminal: "
-        << initial_state_found_terminal << std::endl;
-
     out << "  Evaluated state(s): " << evaluated_states << std::endl;
     out << "  Pruned state(s): " << pruned_states << std::endl;
     out << "  Goal state(s): " << goal_states << std::endl;
@@ -95,8 +92,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
     ParamType<State> source_state,
     std::vector<TransitionTailType>& transition_tails,
     CostFunctionType& cost_function,
-    std::vector<AlgorithmValueType>& qvalues,
-    value_t epsilon) const -> AlgorithmValueType
+    std::vector<AlgorithmValueType>& qvalues) const -> AlgorithmValueType
 {
 #if defined(EXPENSIVE_STATISTICS)
     TimerScope scoped_upd_timer(statistics_.update_time);
@@ -119,7 +115,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
         return AlgorithmValueType(termination_cost);
     }
 
-    filter_greedy_transitions(transition_tails, qvalues, best_value, epsilon);
+    filter_greedy_transitions(transition_tails, qvalues, best_value);
 
     return best_value;
 }
@@ -149,8 +145,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::select_greedy_transition(
 }
 
 template <typename State, typename Action, typename StateInfoT>
-ValueUpdateResult
-HeuristicSearchBase<State, Action, StateInfoT>::update_value(
+ValueUpdateResult HeuristicSearchBase<State, Action, StateInfoT>::update_value(
     StateInfo& state_info,
     AlgorithmValueType other,
     value_t epsilon)
@@ -186,7 +181,6 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize_initial_state(
     initialize(mdp, h, state, info);
 
     statistics_.initial_state_estimate = info.get_value();
-    statistics_.initial_state_found_terminal = info.is_goal_or_terminal();
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -335,17 +329,13 @@ template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::filter_greedy_transitions(
     std::vector<TransitionTailType>& transition_tails,
     std::vector<AlgorithmValueType>& qvalues,
-    const AlgorithmValueType& best_value,
-    value_t epsilon) const -> AlgorithmValueType
+    const AlgorithmValueType& best_value) const -> AlgorithmValueType
 {
     auto view = std::views::zip(transition_tails, qvalues);
     auto [it, end] = std::ranges::remove_if(
         view,
         [&](const AlgorithmValueType& value) {
-            return !is_approx_equal(
-                as_lower_bound(best_value),
-                as_lower_bound(value),
-                epsilon);
+            return as_lower_bound(best_value) != as_lower_bound(value);
         },
         project<1>);
 
@@ -424,8 +414,7 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
                 state,
                 transition_tails,
                 mdp,
-                qvalues,
-                this->epsilon);
+                qvalues);
 
             action = this->select_greedy_transition(
                              mdp,
