@@ -155,7 +155,7 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
             stateid = outcome_selection_->sample(
                 stateid,
                 *action,
-                successor_dist_.non_source_successor_dist,
+                successor_dist_,
                 this->state_infos_);
         }
 

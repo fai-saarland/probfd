@@ -73,15 +73,15 @@ public:
 
     void mark_solved() { this->info |= SOLVED; }
 
-    bool is_closed() const { return (this->info & VISITED) != 0; }
+    bool is_on_trial() const { return (this->info & VISITED) != 0; }
 
-    void mark_closed()
+    void set_on_trial()
     {
         assert(!is_solved());
         this->info |= VISITED;
     }
 
-    void unmark_closed()
+    void clear_trial_flag()
     {
         assert(!is_solved());
         this->info &= ~VISITED;
@@ -181,7 +181,7 @@ protected:
     void print_additional_statistics(std::ostream& out) const override;
 
 private:
-    void trial(
+    bool trial(
         MDPType& mdp,
         HeuristicType& heuristic,
         StateID initial_state,

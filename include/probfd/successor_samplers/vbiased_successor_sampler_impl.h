@@ -2,6 +2,8 @@
 
 #include "probfd/algorithms/state_properties.h"
 
+#include "probfd/successor_samplers/utils.h"
+
 #include "downward/utils/rng.h"
 
 namespace probfd::successor_samplers {
@@ -23,13 +25,16 @@ template <typename Action>
 StateID VBiasedSuccessorSampler<Action>::sample(
     StateID,
     Action,
-    const Distribution<StateID>& successors,
+    const SuccessorDistribution& successors,
     algorithms::StateProperties& properties)
 {
+    assert(!successors.non_source_successor_dist.empty());
+
     biased_.clear();
 
     value_t sum = 0;
-    for (const auto& [item, probability] : successors) {
+    for (const auto& [item, probability] :
+         successors.non_source_successor_dist) {
         const auto p = probability * properties.lookup_value(item);
         if (p > 0_vt) {
             sum += p;
@@ -40,8 +45,8 @@ StateID VBiasedSuccessorSampler<Action>::sample(
     if (biased_.empty()) {
         return successors.sample(*rng_)->item;
     }
-    biased_.normalize(1_vt / sum);
-    return biased_.sample(*rng_)->item;
+
+    return weighted_select(biased_, sum, *rng_)->item;
 }
 
 } // namespace probfd::successor_samplers

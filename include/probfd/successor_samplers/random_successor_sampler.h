@@ -26,7 +26,7 @@ protected:
     StateID sample(
         StateID,
         Action,
-        const Distribution<StateID>& successors,
+        const SuccessorDistribution& successors,
         algorithms::StateProperties&) override;
 };
 

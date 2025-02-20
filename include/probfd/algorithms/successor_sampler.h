@@ -5,8 +5,7 @@
 
 // Forward Declarations
 namespace probfd {
-template <typename>
-class Distribution;
+struct SuccessorDistribution;
 }
 
 namespace probfd::algorithms {
@@ -41,7 +40,7 @@ public:
     virtual StateID sample(
         StateID state,
         Action action,
-        const Distribution<StateID>& successor_dist,
+        const SuccessorDistribution& successor_dist,
         StateProperties& properties) = 0;
 
     /**

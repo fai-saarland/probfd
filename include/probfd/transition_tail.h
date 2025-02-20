@@ -33,6 +33,22 @@ struct SuccessorDistribution {
                non_source_successor_dist.empty();
     }
 
+    auto sample(utils::RandomNumberGenerator& rng) const
+    {
+        assert(!non_source_successor_dist.empty());
+
+        const value_t r = non_source_probability * rng.random();
+
+        auto it = non_source_successor_dist.begin();
+        value_t sum = it->probability;
+
+        while (sum <= r) {
+            sum += (++it)->probability;
+        }
+
+        return it;
+    }
+
     friend bool
     operator==(const SuccessorDistribution&, const SuccessorDistribution&) =
         default;

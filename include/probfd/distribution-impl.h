@@ -196,23 +196,6 @@ auto Distribution<T>::sample(utils::RandomNumberGenerator& rng)
 }
 
 template <typename T>
-auto Distribution<T>::sample(utils::RandomNumberGenerator& rng) const
-{
-    assert(!empty());
-
-    const value_t r = rng.random();
-
-    auto it = distribution_.begin();
-    value_t sum = it->probability;
-
-    while (sum <= r) {
-        sum += (++it)->probability;
-    }
-
-    return it;
-}
-
-template <typename T>
 auto Distribution<T>::erase(iterator it) -> iterator
 {
     return distribution_.erase(it);

@@ -100,7 +100,6 @@ public:
     void normalize();
 
     auto sample(utils::RandomNumberGenerator& rng);
-    auto sample(utils::RandomNumberGenerator& rng) const;
 
     iterator erase(iterator it);
     iterator erase(iterator it, iterator last);

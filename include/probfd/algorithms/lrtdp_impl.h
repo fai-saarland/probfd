@@ -61,11 +61,16 @@ Interval LRTDP<State, Action, UseInterval>::do_solve(
     progress.register_print(
         [&](std::ostream& out) { out << "trials=" << statistics_.trials; });
 
-    while (!state_info.is_solved()) {
-        trial(mdp, heuristic, state_id, timer);
+    if (state_info.is_solved()) {
+        return state_info.get_bounds();
+    }
+
+    bool terminate;
+    do {
+        terminate = trial(mdp, heuristic, state_id, timer);
         this->statistics_.trials++;
         progress.print();
-    }
+    } while (!terminate);
 
     return state_info.get_bounds();
 }
@@ -79,7 +84,7 @@ void LRTDP<State, Action, UseInterval>::print_additional_statistics(
 }
 
 template <typename State, typename Action, bool UseInterval>
-void LRTDP<State, Action, UseInterval>::trial(
+bool LRTDP<State, Action, UseInterval>::trial(
     MDPType& mdp,
     HeuristicType& heuristic,
     StateID initial_state,
@@ -89,15 +94,15 @@ void LRTDP<State, Action, UseInterval>::trial(
 
     using enum TrialTerminationCondition;
 
-    ClearGuard guard(current_trial_);
+    assert(current_trial_.empty());
 
+    ClearGuard guard(current_trial_);
     current_trial_.push_back(initial_state);
 
     for (;;) {
         timer.throw_if_expired();
 
         const StateID state_id = current_trial_.back();
-
         auto& state_info = this->state_infos_[state_id];
 
         if (state_info.is_solved()) {
@@ -122,7 +127,7 @@ void LRTDP<State, Action, UseInterval>::trial(
 
         this->statistics_.trial_bellman_backups++;
 
-        auto value = this->compute_bellman_and_greedy(
+        const auto value = this->compute_bellman_and_greedy(
             state,
             transitions_,
             mdp,
@@ -137,7 +142,7 @@ void LRTDP<State, Action, UseInterval>::trial(
             this->update_value(state_info, value, this->epsilon);
         this->update_policy(state_info, transition);
 
-        if (!transition) {
+        if (!transition.has_value()) {
             state_info.mark_solved();
             current_trial_.pop_back();
             break;
@@ -147,29 +152,30 @@ void LRTDP<State, Action, UseInterval>::trial(
 
         if ((stop_consistent_ == CONSISTENT && val_upd.converged) ||
             (stop_consistent_ == INCONSISTENT && !val_upd.converged) ||
-            (stop_consistent_ == REVISITED && state_info.is_closed())) {
+            (stop_consistent_ == REVISITED && state_info.is_on_trial())) {
             break;
         }
 
         if (stop_consistent_ == REVISITED) {
-            state_info.mark_closed();
+            state_info.set_on_trial();
         }
 
         auto next = sample_->sample(
             state_id,
             transition->action,
-            transition->successor_dist.non_source_successor_dist,
+            transition->successor_dist,
             this->state_infos_);
 
         current_trial_.push_back(next);
     }
 
+    using std::views::reverse, std::views::drop;
+
     if (stop_consistent_ == REVISITED) {
-        for (const StateID state :
-             current_trial_ | std::views::reverse | std::views::drop(1)) {
+        for (const StateID state : current_trial_ | reverse | drop(1)) {
             auto& info = this->state_infos_[state];
-            assert(info.is_closed());
-            info.unmark_closed();
+            assert(info.is_on_trial());
+            info.clear_trial_flag();
         }
     }
 
@@ -177,11 +183,13 @@ void LRTDP<State, Action, UseInterval>::trial(
         timer.throw_if_expired();
 
         if (!check_and_solve(mdp, heuristic, current_trial_.back(), timer)) {
-            break;
+            return false;
         }
 
         current_trial_.pop_back();
     } while (!current_trial_.empty());
+
+    return true;
 }
 
 template <typename State, typename Action, bool UseInterval>
@@ -199,7 +207,7 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
         StateInfo& state_info = this->state_infos_[init_state_id];
         if (state_info.is_solved()) return true;
         policy_queue_.emplace_back(init_state_id);
-        state_info.mark_closed();
+        state_info.set_on_trial();
     }
 
     bool rv = true;
@@ -212,7 +220,7 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
 
         auto& info = this->state_infos_[state_id];
         assert(!info.is_solved());
-        assert(info.is_closed());
+        assert(info.is_on_trial());
 
         visited_.push_front(state_id);
 
@@ -247,24 +255,32 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
         const auto val_upd = this->update_value(info, value, this->epsilon);
         this->update_policy(info, transition);
 
-        if (!val_upd.converged) {
-            rv = false;
-            continue;
-        }
-
-        if (!transition) {
+        if (!transition.has_value()) {
+            assert(val_upd.converged);
             info.mark_solved();
             continue;
         }
 
-        for (StateID succ_id :
-             transition->successor_dist.non_source_successor_dist.support()) {
-            StateInfo& succ_info = this->state_infos_[succ_id];
-            if (!succ_info.is_closed() && !succ_info.is_solved()) {
-                succ_info.mark_closed();
-                policy_queue_.emplace_back(succ_id);
+        // cut off if value has changed by more than epsilon
+        if (!val_upd.changed) {
+            if (!val_upd.converged) {
+                rv = false;
             }
+
+            for (const auto& d = transition->successor_dist;
+                 StateID succ_id : d.non_source_successor_dist.support()) {
+                StateInfo& succ_info = this->state_infos_[succ_id];
+                if (!succ_info.is_on_trial() && !succ_info.is_solved()) {
+                    succ_info.set_on_trial();
+                    policy_queue_.emplace_back(succ_id);
+                }
+            }
+
+            continue;
         }
+
+        // not solved if cut off because successors not generated
+        rv = false;
     } while (!policy_queue_.empty());
 
     for (StateID sid : visited_) {
@@ -272,8 +288,8 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
 
         if (info.is_solved()) continue;
 
-        assert(info.is_closed());
-        info.unmark_closed();
+        assert(info.is_on_trial());
+        info.clear_trial_flag();
 
         if (rv) {
             info.mark_solved();

@@ -2,6 +2,8 @@
 
 #include "probfd/algorithms/state_properties.h"
 
+#include "probfd/successor_samplers/utils.h"
+
 #include "probfd/interval.h"
 
 #include "downward/utils/rng.h"
@@ -30,13 +32,14 @@ template <typename Action>
 StateID VDiffSuccessorSampler<Action>::sample(
     StateID,
     Action,
-    const Distribution<StateID>& successors,
+    const SuccessorDistribution& successors,
     algorithms::StateProperties& properties)
 {
     biased_.clear();
 
     value_t sum = 0;
-    for (const auto& [item, probability] : successors) {
+    for (const auto& [item, probability] :
+         successors.non_source_successor_dist) {
         const value_t error = properties.lookup_bounds(item).length();
         const value_t p =
             probability * (prefer_large_gaps_ ? error : (1_vt - error));
@@ -45,11 +48,12 @@ StateID VDiffSuccessorSampler<Action>::sample(
             biased_.add_probability(item, p);
         }
     }
+
     if (biased_.empty()) {
         return successors.sample(*rng_)->item;
     }
-    biased_.normalize(1_vt / sum);
-    return biased_.sample(*rng_)->item;
+
+    return weighted_select(biased_, sum, *rng_)->item;
 }
 
 } // namespace probfd::successor_samplers

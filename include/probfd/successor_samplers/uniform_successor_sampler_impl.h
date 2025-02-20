@@ -26,11 +26,13 @@ template <typename Action>
 StateID UniformSuccessorSampler<Action>::sample(
     StateID,
     Action,
-    const Distribution<StateID>& successors,
+    const SuccessorDistribution& successors,
     algorithms::StateProperties&)
 {
-    assert(!successors.empty());
-    return successors.begin()[rng_->random(successors.size())].item;
+    assert(!successors.non_source_successor_dist.empty());
+    const auto num_ns_successors = successors.non_source_successor_dist.size();
+    const auto index = rng_->random(num_ns_successors);
+    return successors.non_source_successor_dist.begin()[index].item;
 }
 
 } // namespace probfd::successor_samplers

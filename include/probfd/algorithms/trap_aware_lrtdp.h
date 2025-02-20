@@ -47,7 +47,8 @@ struct PerStateInformation
     : public heuristic_search::
           PerStateBaseInformation<Action, true, UseInterval> {
 private:
-    using Base = heuristic_search::PerStateBaseInformation<Action, true, UseInterval>;
+    using Base =
+        heuristic_search::PerStateBaseInformation<Action, true, UseInterval>;
 
 public:
     static constexpr uint8_t MARKED_TRIAL = 1 << Base::BITS;
@@ -99,38 +100,23 @@ class TALRTDPImpl
     friend class TALRTDP;
 
     struct DFSExplorationState {
-        explicit DFSExplorationState(StateID state_id)
+        explicit DFSExplorationState(StateID state_id, uint32_t stack_index)
             : state(state_id)
+            , lowlink(stack_index)
         {
         }
 
         StateID state;
         std::vector<StateID> successors;
-        bool is_root : 1 = true;
+
+        uint32_t lowlink;
+
         bool is_trap : 1 = true;
         bool rv : 1 = true;
 
         bool next_successor();
         [[nodiscard]]
         StateID get_successor() const;
-
-        void update(const DFSExplorationState& backtracked)
-        {
-            is_trap = is_trap && backtracked.is_trap;
-            rv = rv && backtracked.rv;
-        }
-
-        void update(const StateInfo& succ_info)
-        {
-            is_trap = false;
-            rv = rv && succ_info.is_solved();
-        }
-
-        void clear()
-        {
-            is_trap = true;
-            rv = true;
-        }
     };
 
     struct StackInfo {
@@ -157,8 +143,10 @@ class TALRTDPImpl
         }
     };
 
-    static constexpr int STATE_UNSEEN = -1;
-    static constexpr int STATE_CLOSED = -2;
+    static constexpr uint32_t STATE_UNSEEN =
+        std::numeric_limits<uint32_t>::max();
+    static constexpr uint32_t STATE_CLOSED =
+        std::numeric_limits<uint32_t>::max() - 1;
 
     const value_t epsilon_;
 
@@ -170,7 +158,7 @@ class TALRTDPImpl
     // Algorithm state
     std::deque<DFSExplorationState> dfs_stack_;
     std::deque<StackInfo> tarjan_stack_;
-    storage::StateHashMap<int> stack_index_;
+    storage::StateHashMap<uint32_t> stack_index_;
 
     std::deque<StateID> current_trial_;
 
@@ -210,6 +198,7 @@ private:
     bool check_and_solve(
         QuotientSystem& quotient,
         QHeuristic& heuristic,
+        StateID state_id,
         utils::CountdownTimer& timer);
 
     bool push_successor(
@@ -225,6 +214,11 @@ private:
         StateID state,
         StateInfo& state_info,
         DFSExplorationState& e_info);
+
+    void do_non_tip_bellman_update(
+        QuotientSystem& quotient,
+        const QState& state,
+        StateInfo& info);
 };
 
 template <typename State, typename Action, bool UseInterval>
