@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cassert>
 #include <compare>
+#include <functional>
 #include <ranges>
 #include <type_traits>
 #include <utility>
