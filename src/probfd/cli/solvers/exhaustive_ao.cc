@@ -59,7 +59,7 @@ public:
 template <bool Bisimulation>
 class ExhaustiveAOSolverFeature
     : public TypedFeature<TaskSolverFactory, ExhaustiveAOSolver<Bisimulation>> {
-    using OpenList = OpenList<ActionType<Bisimulation, false>>;
+    using OpenListType = OpenList<ActionType<Bisimulation, false>>;
 
 public:
     ExhaustiveAOSolverFeature()
@@ -68,7 +68,7 @@ public:
     {
         this->document_title("Exhaustive AO* algorithm");
 
-        this->template add_option<std::shared_ptr<OpenList>>(
+        this->template add_option<std::shared_ptr<OpenListType>>(
             "open_list",
             "",
             add_mdp_type_to_option<Bisimulation, false>("lifo_open_list()"));
@@ -82,7 +82,7 @@ protected:
         const override
     {
         return make_shared_from_arg_tuples<ExhaustiveAOSolver<Bisimulation>>(
-            options.get<std::shared_ptr<OpenList>>("open_list"),
+            options.get<std::shared_ptr<OpenListType>>("open_list"),
             get_mdp_hs_args_from_options<Bisimulation, false>(options));
     }
 };
