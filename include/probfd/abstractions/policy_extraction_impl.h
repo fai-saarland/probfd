@@ -150,8 +150,8 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_greedy_projection_policy(
         &mdp,
         value_table.size());
 
-    std::deque<StateID> open{initial_state};
-    std::unordered_set<StateID> closed{initial_state};
+    std::deque<StateID> open{static_cast<StateID>(initial_state)};
+    std::unordered_set<StateID> closed{static_cast<StateID>(initial_state)};
 
     // Build the greedy policy graph
     while (!open.empty()) {

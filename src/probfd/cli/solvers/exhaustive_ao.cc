@@ -27,13 +27,13 @@ template <bool Bisimulation>
 class ExhaustiveAOSolver : public MDPHeuristicSearch<Bisimulation, false> {
     using PolicyPicker =
         typename MDPHeuristicSearch<Bisimulation, false>::PolicyPicker;
-    using OpenList = OpenList<ActionType<Bisimulation, false>>;
+    using OpenListType = OpenList<ActionType<Bisimulation, false>>;
 
-    const std::shared_ptr<OpenList> open_list_;
+    const std::shared_ptr<OpenListType> open_list_;
 
 public:
     template <typename... Args>
-    ExhaustiveAOSolver(std::shared_ptr<OpenList> open_list, Args&&... args)
+    ExhaustiveAOSolver(std::shared_ptr<OpenListType> open_list, Args&&... args)
         : MDPHeuristicSearch<Bisimulation, false>(std::forward<Args>(args)...)
         , open_list_(std::move(open_list))
     {

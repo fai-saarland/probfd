@@ -276,7 +276,7 @@ Interval IDual<State, Action>::solve(
             ClearGuard _(transitions);
             mdp.generate_all_transitions(state, transitions);
 
-            for (const auto [action, successor_dist] : transitions) {
+            for (const auto& [action, successor_dist] : transitions) {
                 if (successor_dist.non_source_successor_dist.empty()) continue;
 
                 int next_constraint_id = lp_solver_.get_num_constraints();
