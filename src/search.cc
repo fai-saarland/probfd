@@ -96,7 +96,7 @@ static int search(argparse::ArgumentParser& parser)
         } catch (const std::bad_any_cast&) {
             std::println(
                 std::cerr,
-                "Search argument {:?} is of type {}, not TaskSolverFactory.",
+                "Search argument \"{}\" is of type {}, not TaskSolverFactory.",
                 search_arg,
                 constructed.type().name());
             return static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR);
