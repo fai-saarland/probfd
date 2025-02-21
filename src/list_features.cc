@@ -24,13 +24,9 @@ using utils::ExitCode;
 
 template <>
 struct std::formatter<downward::cli::plugins::Bounds> {
-    std::formatter<std::pair<std::string, std::string>> inheritted;
-
-    constexpr formatter() { inheritted.set_brackets("[", "]"); }
-
     constexpr auto parse(std::format_parse_context& ctx)
     {
-        return inheritted.parse(ctx);
+        return ctx.begin();
     }
 
     template <typename FormatContext>
@@ -38,7 +34,7 @@ struct std::formatter<downward::cli::plugins::Bounds> {
     format(const downward::cli::plugins::Bounds& bounds, FormatContext& ctx)
         const
     {
-        return inheritted.format(std::make_pair(bounds.min, bounds.max), ctx);
+        return std::format_to(ctx.out(), "[{}, {}]", bounds.min, bounds.max);
     }
 };
 
