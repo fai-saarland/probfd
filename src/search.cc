@@ -33,26 +33,6 @@ using namespace downward::cli::plugins;
 
 using utils::ExitCode;
 
-template <>
-struct std::formatter<downward::cli::plugins::Bounds> {
-    std::formatter<std::pair<std::string, std::string>> inheritted;
-
-    constexpr formatter() { inheritted.set_brackets("[", "]"); }
-
-    constexpr auto parse(std::format_parse_context& ctx)
-    {
-        return inheritted.parse(ctx);
-    }
-
-    template <typename FormatContext>
-    auto
-    format(const downward::cli::plugins::Bounds& bounds, FormatContext& ctx)
-        const
-    {
-        return inheritted.format(std::make_pair(bounds.min, bounds.max), ctx);
-    }
-};
-
 namespace probfd {
 
 static string replace_old_style_predefinitions(
