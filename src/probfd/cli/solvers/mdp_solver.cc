@@ -22,7 +22,7 @@ void add_base_solver_options_to_feature(Feature& feature)
         "The factory implementation for the task state space.",
         "default_state_space()");
     feature.add_option<std::shared_ptr<TaskHeuristicFactory>>(
-        "eval",
+        "heuristic",
         "The heuristic to be used by the search.",
         "blind_heuristic()");
     feature.add_option<value_t>(

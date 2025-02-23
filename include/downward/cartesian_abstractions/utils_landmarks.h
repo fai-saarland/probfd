@@ -1,6 +1,8 @@
 #ifndef CEGAR_UTILS_LANDMARKS_H
 #define CEGAR_UTILS_LANDMARKS_H
 
+#include "downward/utils/hash.h"
+
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -10,7 +12,8 @@ struct FactPair;
 
 namespace landmarks {
 class LandmarkGraph;
-}
+class LandmarkNode;
+} // namespace landmarks
 
 namespace cartesian_abstractions {
 using VarToValues = std::unordered_map<int, std::vector<int>>;
@@ -20,14 +23,17 @@ get_landmark_graph(const std::shared_ptr<AbstractTask>& task);
 extern std::vector<FactPair>
 get_fact_landmarks(const landmarks::LandmarkGraph& graph);
 
+extern utils::HashMap<FactPair, landmarks::LandmarkNode*>
+get_fact_to_landmark_map(
+    const std::shared_ptr<landmarks::LandmarkGraph>& graph);
+
 /*
   Do a breadth-first search through the landmark graph ignoring
-  duplicates. Start at the node for the given fact and collect for each
-  variable the facts that have to be made true before the given fact
-  can be true for the first time.
+  duplicates. Start at the given node and collect for each variable the
+  facts that have to be made true before the given node can be true for
+  the first time.
 */
-extern VarToValues
-get_prev_landmarks(const landmarks::LandmarkGraph& graph, const FactPair& fact);
+extern VarToValues get_prev_landmarks(const landmarks::LandmarkNode* node);
 } // namespace cartesian_abstractions
 
 #endif

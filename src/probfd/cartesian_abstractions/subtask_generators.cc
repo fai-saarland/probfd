@@ -109,12 +109,11 @@ static Facts filter_and_order_facts(
    achieved before a given landmark can be made true. */
 static shared_ptr<ProbabilisticTask> build_domain_abstracted_task(
     const shared_ptr<ProbabilisticTask>& parent,
-    const landmarks::LandmarkGraph& landmark_graph,
-    const FactPair& fact)
+    const landmarks::LandmarkNode* node)
 {
     extra_tasks::VarToGroups value_groups;
     for (auto& pair :
-         ::cartesian_abstractions::get_prev_landmarks(landmark_graph, fact)) {
+         ::cartesian_abstractions::get_prev_landmarks(node)) {
         int var = pair.first;
         vector<int>& group = pair.second;
         if (group.size() >= 2) value_groups[var].push_back(group);
@@ -179,8 +178,10 @@ SharedTasks LandmarkDecomposition::get_subtasks(
     auto determinization_task =
         std::make_shared<tasks::DeterminizationTask>(task);
     SharedTasks subtasks;
-    shared_ptr<landmarks::LandmarkGraph> landmark_graph =
+    const shared_ptr<landmarks::LandmarkGraph> landmark_graph =
         ::cartesian_abstractions::get_landmark_graph(determinization_task);
+    utils::HashMap<FactPair, landmarks::LandmarkNode*> fact_to_landmark_map =
+        ::cartesian_abstractions::get_fact_to_landmark_map(landmark_graph);
     Facts landmark_facts =
         ::cartesian_abstractions::get_fact_landmarks(*landmark_graph);
     filter_and_order_facts(task, fact_order_, landmark_facts, *rng_, log);
@@ -190,8 +191,7 @@ SharedTasks LandmarkDecomposition::get_subtasks(
         if (combine_facts_) {
             subtask = build_domain_abstracted_task(
                 subtask,
-                *landmark_graph,
-                landmark);
+                fact_to_landmark_map[landmark]);
         }
         subtasks.push_back(subtask);
     }
