@@ -80,6 +80,25 @@ public:
         std::optional<value_t> report_epsilon,
         bool report_enabled);
 
+    template <template <typename, typename, bool> class HS, typename... Args>
+    std::unique_ptr<FDRMDPAlgorithm> create_quotient_heuristic_search_algorithm(
+        const std::shared_ptr<ProbabilisticTask>&,
+        const std::shared_ptr<FDRCostFunction>&,
+        Args&&... args)
+    {
+        if (dual_bounds_) {
+            return std::make_unique<HS<State, OperatorID, true>>(
+                convergence_epsilon_,
+                tiebreaker_,
+                std::forward<Args>(args)...);
+        } else {
+            return std::make_unique<HS<State, OperatorID, false>>(
+                convergence_epsilon_,
+                tiebreaker_,
+                std::forward<Args>(args)...);
+        }
+    }
+
     virtual std::string get_heuristic_search_name() const = 0;
 };
 
@@ -180,25 +199,6 @@ public:
                     HS,
                     false>(std::forward<Args>(args)...);
             }
-        }
-    }
-
-    template <template <typename, typename, bool> class HS, typename... Args>
-    std::unique_ptr<FDRMDPAlgorithm> create_quotient_heuristic_search_algorithm(
-        const std::shared_ptr<ProbabilisticTask>&,
-        const std::shared_ptr<FDRCostFunction>&,
-        Args&&... args)
-    {
-        if (dual_bounds_) {
-            return std::make_unique<HS<State, OperatorID, true>>(
-                convergence_epsilon_,
-                tiebreaker_,
-                std::forward<Args>(args)...);
-        } else {
-            return std::make_unique<HS<State, OperatorID, false>>(
-                convergence_epsilon_,
-                tiebreaker_,
-                std::forward<Args>(args)...);
         }
     }
 

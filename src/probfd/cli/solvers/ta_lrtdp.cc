@@ -29,7 +29,7 @@ namespace {
 using QSuccessorSampler =
     SuccessorSampler<quotients::QuotientAction<OperatorID>>;
 
-class TrapAwareLRTDPSolver : public MDPHeuristicSearch<false, true> {
+class TrapAwareLRTDPSolver : public MDPHeuristicSearchBase<false, true> {
     const std::shared_ptr<QSuccessorSampler> successor_sampler_;
     const TrialTerminationCondition stop_consistent_;
     const bool reexpand_traps_;
@@ -41,7 +41,7 @@ public:
         TrialTerminationCondition terminate_trial,
         bool reexpand_traps,
         Args&&... args)
-        : MDPHeuristicSearch<false, true>(std::forward<Args>(args)...)
+        : MDPHeuristicSearchBase<false, true>(std::forward<Args>(args)...)
         , successor_sampler_(std::move(successor_sampler))
         , stop_consistent_(terminate_trial)
         , reexpand_traps_(reexpand_traps)
@@ -88,7 +88,7 @@ public:
             "Immediately re-expand the collapsed trap state.",
             "true");
 
-        add_mdp_hs_options_to_feature<false, true>(*this);
+        add_mdp_hs_base_options_to_feature<false, true>(*this);
     }
 
 protected:
@@ -100,7 +100,7 @@ protected:
                 "successor_sampler"),
             options.get<TrialTerminationCondition>("terminate_trial"),
             options.get<bool>("reexpand_traps"),
-            get_mdp_hs_args_from_options<false, true>(options));
+            get_mdp_hs_base_args_from_options<false, true>(options));
     }
 };
 

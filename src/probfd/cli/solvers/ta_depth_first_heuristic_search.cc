@@ -27,7 +27,7 @@ namespace {
 
 using QOpenList = OpenList<quotients::QuotientAction<OperatorID>>;
 
-class TrapAwareDFHSSolver : public MDPHeuristicSearch<false, true> {
+class TrapAwareDFHSSolver : public MDPHeuristicSearchBase<false, true> {
     template <typename State, typename Action, bool Interval>
     using Algorithm = TADepthFirstHeuristicSearch<State, Action, Interval>;
 
@@ -50,7 +50,7 @@ public:
         bool labeling,
         bool reexpand_traps,
         Args&&... args)
-        : MDPHeuristicSearch<false, true>(std::forward<Args>(args)...)
+        : MDPHeuristicSearchBase<false, true>(std::forward<Args>(args)...)
         , open_list_(std::move(open_list))
         , forward_updates_(fwup)
         , backward_updates_(bwup)
@@ -121,7 +121,7 @@ public:
             "Immediately re-expand the collapsed trap state.",
             "true");
 
-        add_mdp_hs_options_to_feature<false, true>(*this);
+        add_mdp_hs_base_options_to_feature<false, true>(*this);
     }
 
 protected:
@@ -136,7 +136,7 @@ protected:
             options.get<bool>("cutoff_inconsistent"),
             options.get<bool>("labeling"),
             options.get<bool>("reexpand_traps"),
-            get_mdp_hs_args_from_options<false, true>(options));
+            get_mdp_hs_base_args_from_options<false, true>(options));
     }
 };
 
@@ -159,7 +159,7 @@ public:
             "Immediately re-expand the collapsed trap state.",
             "true");
 
-        add_mdp_hs_options_to_feature<false, true>(*this);
+        add_mdp_hs_base_options_to_feature<false, true>(*this);
     }
 
     std::shared_ptr<TrapAwareDFHSSolver>
@@ -174,7 +174,7 @@ public:
             false,
             false,
             options.get<bool>("reexpand_traps"),
-            get_mdp_hs_args_from_options<false, true>(options));
+            get_mdp_hs_base_args_from_options<false, true>(options));
     }
 };
 
@@ -197,7 +197,7 @@ public:
             "Immediately re-expand the collapsed trap state.",
             "true");
 
-        add_mdp_hs_options_to_feature<false, true>(*this);
+        add_mdp_hs_base_options_to_feature<false, true>(*this);
     }
 
     std::shared_ptr<TrapAwareDFHSSolver>
@@ -214,7 +214,7 @@ public:
             false,
             true,
             options.get<bool>("reexpand_traps"),
-            get_mdp_hs_args_from_options<false, true>(options));
+            get_mdp_hs_base_args_from_options<false, true>(options));
     }
 };
 
@@ -237,7 +237,7 @@ public:
             "Immediately re-expand the collapsed trap state.",
             "true");
 
-        add_mdp_hs_options_to_feature<false, true>(*this);
+        add_mdp_hs_base_options_to_feature<false, true>(*this);
     }
 
     std::shared_ptr<TrapAwareDFHSSolver>
@@ -253,7 +253,7 @@ public:
             true,
             false,
             options.get<bool>("reexpand_traps"),
-            get_mdp_hs_args_from_options<false, true>(options));
+            get_mdp_hs_base_args_from_options<false, true>(options));
     }
 };
 
