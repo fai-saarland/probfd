@@ -41,11 +41,11 @@ MergeAndShrinkHeuristic::MergeAndShrinkHeuristic(
         merge_strategy,
         shrink_strategy,
         label_reduction,
+        prune_unreachable_states,
+        prune_irrelevant_states,
         max_states,
         max_states_before_merge,
         threshold_before_merge,
-        prune_unreachable_states,
-        prune_irrelevant_states,
         main_loop_max_time,
         verbosity);
     FactoredTransitionSystem fts =
