@@ -4,7 +4,6 @@
 #include "downward/merge_and_shrink/merge_strategy_factory.h"
 
 namespace merge_and_shrink {
-class MergeTreeFactory;
 class MergeSelector;
 
 enum class OrderOfSCCs {
@@ -16,7 +15,6 @@ enum class OrderOfSCCs {
 
 class MergeStrategyFactorySCCs : public MergeStrategyFactory {
     OrderOfSCCs order_of_sccs;
-    std::shared_ptr<MergeTreeFactory> merge_tree_factory;
     std::shared_ptr<MergeSelector> merge_selector;
 
 protected:
@@ -26,7 +24,6 @@ protected:
 public:
     MergeStrategyFactorySCCs(
         const OrderOfSCCs& order_of_sccs,
-        const std::shared_ptr<MergeTreeFactory>& merge_tree,
         const std::shared_ptr<MergeSelector>& merge_selector,
         utils::Verbosity verbosity);
     virtual std::unique_ptr<MergeStrategy> compute_merge_strategy(

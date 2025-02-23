@@ -54,35 +54,18 @@ public:
             "order_of_sccs",
             "how the SCCs should be ordered",
             "topological");
-        add_option<shared_ptr<MergeTreeFactory>>(
-            "merge_tree",
-            "the fallback merge strategy to use if a precomputed strategy "
-            "should "
-            "be used.",
-            ArgumentInfo::NO_DEFAULT);
         add_option<shared_ptr<MergeSelector>>(
             "merge_selector",
-            "the fallback merge strategy to use if a stateless strategy should "
-            "be used.",
-            ArgumentInfo::NO_DEFAULT);
+            "the fallback merge strategy to use.");
         add_merge_strategy_options_to_feature(*this);
     }
 
     virtual shared_ptr<MergeStrategyFactorySCCs>
-    create_component(const Options& opts, const Context& context) const override
+    create_component(const Options& opts, const Context&) const override
     {
-        bool merge_tree = opts.contains("merge_tree");
-        bool merge_selector = opts.contains("merge_selector");
-        if ((merge_tree && merge_selector) ||
-            (!merge_tree && !merge_selector)) {
-            context.error(
-                "You have to specify exactly one of the options merge_tree "
-                "and merge_selector!");
-        }
         return make_shared_from_arg_tuples<MergeStrategyFactorySCCs>(
             opts.get<OrderOfSCCs>("order_of_sccs"),
-            opts.get<shared_ptr<MergeTreeFactory>>("merge_tree", nullptr),
-            opts.get<shared_ptr<MergeSelector>>("merge_selector", nullptr),
+            opts.get<shared_ptr<MergeSelector>>("merge_selector"),
             get_merge_strategy_arguments_from_options(opts));
     }
 };

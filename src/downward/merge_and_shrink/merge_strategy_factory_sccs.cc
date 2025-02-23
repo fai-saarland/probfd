@@ -34,12 +34,10 @@ compare_sccs_decreasing(const vector<int>& lhs, const vector<int>& rhs)
 
 MergeStrategyFactorySCCs::MergeStrategyFactorySCCs(
     const OrderOfSCCs& order_of_sccs,
-    const shared_ptr<MergeTreeFactory>& merge_tree,
     const shared_ptr<MergeSelector>& merge_selector,
     utils::Verbosity verbosity)
     : MergeStrategyFactory(verbosity)
     , order_of_sccs(order_of_sccs)
-    , merge_tree_factory(merge_tree)
     , merge_selector(merge_selector)
 {
 }
@@ -108,28 +106,18 @@ unique_ptr<MergeStrategy> MergeStrategyFactorySCCs::compute_merge_strategy(
 
     return std::make_unique<MergeStrategySCCs>(
         fts,
-        task_proxy,
-        merge_tree_factory,
         merge_selector,
         std::move(non_singleton_cg_sccs));
 }
 
 bool MergeStrategyFactorySCCs::requires_init_distances() const
 {
-    if (merge_tree_factory) {
-        return merge_tree_factory->requires_init_distances();
-    } else {
-        return merge_selector->requires_init_distances();
-    }
+    return merge_selector->requires_init_distances();
 }
 
 bool MergeStrategyFactorySCCs::requires_goal_distances() const
 {
-    if (merge_tree_factory) {
-        return merge_tree_factory->requires_goal_distances();
-    } else {
-        return merge_selector->requires_goal_distances();
-    }
+    return merge_selector->requires_goal_distances();
 }
 
 void MergeStrategyFactorySCCs::dump_strategy_specific_options() const
@@ -147,12 +135,7 @@ void MergeStrategyFactorySCCs::dump_strategy_specific_options() const
         log << endl;
 
         log << "Merge strategy for merging within sccs: " << endl;
-        if (merge_tree_factory) {
-            merge_tree_factory->dump_options(log);
-        }
-        if (merge_selector) {
-            merge_selector->dump_options(log);
-        }
+        merge_selector->dump_options(log);
     }
 }
 
