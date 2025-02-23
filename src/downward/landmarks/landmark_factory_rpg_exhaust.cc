@@ -16,10 +16,10 @@ namespace landmarks {
    method with others, don't use it by itself. */
 
 LandmarkFactoryRpgExhaust::LandmarkFactoryRpgExhaust(
-    bool only_causal_landmarks,
+    bool use_unary_relaxation,
     utils::Verbosity verbosity)
     : LandmarkFactoryRelaxation(verbosity)
-    , only_causal_landmarks(only_causal_landmarks)
+    , use_unary_relaxation(use_unary_relaxation)
 {
 }
 
@@ -45,16 +45,15 @@ void LandmarkFactoryRpgExhaust::generate_relaxed_landmarks(
             const FactPair lm(var.get_id(), value);
             if (!lm_graph->contains_simple_landmark(lm)) {
                 Landmark landmark({lm}, false, false);
-                if (initial_state[lm.var].get_value() == lm.value ||
-                    !relaxed_task_solvable(task_proxy, exploration, landmark)) {
+                if (!relaxed_task_solvable(
+                        task_proxy,
+                        exploration,
+                        landmark,
+                        use_unary_relaxation)) {
                     lm_graph->add_landmark(std::move(landmark));
                 }
             }
         }
-    }
-
-    if (only_causal_landmarks) {
-        discard_noncausal_landmarks(task_proxy, exploration);
     }
 }
 

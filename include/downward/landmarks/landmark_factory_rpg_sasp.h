@@ -11,7 +11,6 @@ namespace landmarks {
 class LandmarkFactoryRpgSasp : public LandmarkFactoryRelaxation {
     const bool disjunctive_landmarks;
     const bool use_orders;
-    const bool only_causal_landmarks;
     std::list<LandmarkNode*> open_landmarks;
     std::vector<std::vector<int>> disjunction_classes;
 
@@ -72,7 +71,6 @@ public:
     LandmarkFactoryRpgSasp(
         bool disjunctive_landmarks,
         bool use_orders,
-        bool only_causal_landmarks,
         utils::Verbosity verbosity);
 
     virtual bool supports_conditional_effects() const override;

@@ -41,19 +41,6 @@ bool get_use_orders_arguments_from_options(const Options& opts)
     return opts.get<bool>("use_orders");
 }
 
-void add_only_causal_landmarks_option_to_feature(Feature& feature)
-{
-    feature.add_option<bool>(
-        "only_causal_landmarks",
-        "keep only causal landmarks",
-        "false");
-}
-
-bool get_only_causal_landmarks_arguments_from_options(const Options& opts)
-{
-    return opts.get<bool>("only_causal_landmarks");
-}
-
 class LandmarkFactoryCategoryPlugin
     : public TypedCategoryPlugin<LandmarkFactory> {
 public:

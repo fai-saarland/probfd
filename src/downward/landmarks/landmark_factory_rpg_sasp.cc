@@ -1,5 +1,6 @@
 #include "downward/landmarks/landmark_factory_rpg_sasp.h"
 
+#include "downward/landmarks/exploration.h"
 #include "downward/landmarks/landmark.h"
 #include "downward/landmarks/landmark_graph.h"
 #include "downward/landmarks/util.h"
@@ -10,21 +11,16 @@
 #include "downward/utils/system.h"
 
 #include <cassert>
-#include <limits>
 
 using namespace std;
 using utils::ExitCode;
 
 namespace landmarks {
 LandmarkFactoryRpgSasp::LandmarkFactoryRpgSasp(
-    bool disjunctive_landmarks,
-    bool use_orders,
-    bool only_causal_landmarks,
-    utils::Verbosity verbosity)
+    bool disjunctive_landmarks, bool use_orders, utils::Verbosity verbosity)
     : LandmarkFactoryRelaxation(verbosity)
     , disjunctive_landmarks(disjunctive_landmarks)
     , use_orders(use_orders)
-    , only_causal_landmarks(only_causal_landmarks)
 {
 }
 
@@ -460,7 +456,7 @@ void LandmarkFactoryRpgSasp::generate_relaxed_landmarks(
               achieving the landmark.
             */
             vector<vector<bool>> reached =
-                compute_relaxed_reachability(exploration, landmark);
+                exploration.compute_relaxed_reachability(landmark.facts, false);
             /*
               Use this information to determine all operators that can
               possibly achieve *landmark* for the first time, and collect
@@ -513,10 +509,6 @@ void LandmarkFactoryRpgSasp::generate_relaxed_landmarks(
 
     if (!use_orders) {
         discard_all_orderings();
-    }
-
-    if (only_causal_landmarks) {
-        discard_noncausal_landmarks(task_proxy, exploration);
     }
 }
 
