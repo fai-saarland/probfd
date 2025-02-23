@@ -60,49 +60,57 @@ TEST(EngineTests, test_interval_set_min3)
 TEST(EngineTests, test_interval_update1)
 {
     Interval interval(8.0_vt, 40.0_vt);
-    Interval interval2(-45.0_vt, 30.0_vt);
+    Interval interval2(9.0_vt, 39.0_vt);
 
-    bool result = algorithms::update(interval, interval2);
+    const auto [changed, converged] = algorithms::update(interval, interval2, 0.001_vt);
 
-    ASSERT_TRUE(result);
-    ASSERT_EQ(interval.lower, std::max(8.0_vt, -45.0_vt));
-    ASSERT_EQ(interval.upper, std::min(40.0_vt, 30.0_vt));
+    ASSERT_TRUE(changed);
+    ASSERT_FALSE(converged);
+
+    ASSERT_EQ(interval.lower, 9.0_vt);
+    ASSERT_EQ(interval.upper, 39.0_vt);
 }
 
 TEST(EngineTests, test_interval_update2)
 {
     Interval interval(8.0_vt, 40.0_vt);
-    Interval interval2(7.0_vt, 41.0_vt);
+    Interval interval2(8.0_vt, 40.0_vt);
 
-    bool result = algorithms::update(interval, interval2);
+    const auto [changed, converged]  = algorithms::update(interval, interval2, 0.001_vt);
 
-    ASSERT_FALSE(result);
-    ASSERT_EQ(interval.lower, std::max(8.0_vt, 7.0_vt));
-    ASSERT_EQ(interval.upper, std::min(40.0_vt, 41.0_vt));
+    ASSERT_FALSE(changed);
+    ASSERT_FALSE(converged);
+
+    ASSERT_EQ(interval.lower, 8.0_vt);
+    ASSERT_EQ(interval.upper, 40.0_vt);
 }
 
 TEST(EngineTests, test_interval_update3)
 {
-    Interval interval(8.0_vt, 40.0_vt);
-    Interval interval2(25.0_vt, 30.0_vt);
+    Interval interval(8.0_vt, 8.0_vt);
+    Interval interval2(8.0_vt, 8.0_vt);
 
-    bool result = algorithms::update(interval, interval2);
+    const auto [changed, converged]  = algorithms::update(interval, interval2, 0.001_vt);
 
-    ASSERT_TRUE(result);
-    ASSERT_EQ(interval.lower, std::max(8.0_vt, 25.0_vt));
-    ASSERT_EQ(interval.upper, std::min(40.0_vt, 30.0_vt));
+    ASSERT_FALSE(changed);
+    ASSERT_TRUE(converged);
+
+    ASSERT_EQ(interval.lower, 8.0_vt);
+    ASSERT_EQ(interval.upper, 8.0_vt);
 }
 
 TEST(EngineTests, test_interval_update4)
 {
-    Interval interval(8.0_vt, 40.0_vt);
-    Interval interval2(7.0_vt, 39.0_vt);
+    Interval interval(0.0_vt, 40.0_vt);
+    Interval interval2(8.0_vt, 8.0_vt);
 
-    bool result = algorithms::update(interval, interval2);
+    const auto [changed, converged]  = algorithms::update(interval, interval2, 0.001_vt);
 
-    ASSERT_TRUE(result);
-    ASSERT_EQ(interval.lower, std::max(8.0_vt, 7.0_vt));
-    ASSERT_EQ(interval.upper, std::min(40.0_vt, 39.0_vt));
+    ASSERT_TRUE(changed);
+    ASSERT_TRUE(converged);
+
+    ASSERT_EQ(interval.lower, 8.0_vt);
+    ASSERT_EQ(interval.upper, 8.0_vt);
 }
 
 TEST(EngineTests, test_ilao_blocksworld_6_blocks)
@@ -125,12 +133,12 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
         policy_pickers::ArbitraryTiebreaker<State, OperatorID>>(true);
 
     HeuristicDepthFirstSearch<State, OperatorID, false> ilao(
+        0.001,
         policy_chooser,
         false,
         BacktrackingUpdateType::SINGLE,
         true,
         false,
-        true,
         false);
 
     CompositeMDP<State, OperatorID> mdp{state_space, *cost_function};
@@ -147,11 +155,12 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
 
     ASSERT_NE(policy, nullptr);
     ASSERT_TRUE(decision.has_value());
-    EXPECT_NEAR(decision->q_value_interval.lower, 8.011, 0.01);
+    EXPECT_NEAR(decision->q_value_interval.lower, 8.011, 0.001);
     ASSERT_TRUE(verify_policy(
         mdp,
         *policy,
-        mdp.get_state_id(state_space.get_initial_state())));
+        mdp.get_state_id(state_space.get_initial_state()),
+        0.001));
 }
 
 TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
@@ -181,12 +190,12 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
         false>;
 
     auto ilao = std::make_shared<HDFS>(
+        0.001,
         policy_chooser,
         false,
         BacktrackingUpdateType::SINGLE,
         true,
         false,
-        true,
         false);
 
     FRETPi<State, OperatorID, typename HDFS::StateInfo> fret(ilao);
@@ -205,9 +214,10 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
 
     ASSERT_NE(policy, nullptr);
     ASSERT_TRUE(decision.has_value());
-    EXPECT_NEAR(decision->q_value_interval.lower, 8.011, 0.01);
+    EXPECT_NEAR(decision->q_value_interval.lower, 8.011, 0.001);
     ASSERT_TRUE(verify_policy(
         mdp,
         *policy,
-        mdp.get_state_id(state_space.get_initial_state())));
+        mdp.get_state_id(state_space.get_initial_state()),
+        0.001));
 }

@@ -5,6 +5,7 @@
 
 #include "probfd/mdp.h"
 #include "probfd/policy.h"
+#include "probfd/transition_tail.h"
 
 #include <ranges>
 #include <stack>
@@ -20,7 +21,8 @@ template <typename State, typename Action>
 extern bool verify_policy(
     probfd::MDP<State, Action>& mdp,
     probfd::Policy<State, Action>& policy,
-    probfd::StateID init_id)
+    probfd::StateID init_id,
+    probfd::value_t epsilon)
 {
     using namespace probfd;
 
@@ -40,7 +42,7 @@ extern bool verify_policy(
         probfd::StateID state_id;
         unsigned lowlink = std::numeric_limits<unsigned>::max();
 
-        Distribution<probfd::StateID> successors;
+        SuccessorDistribution successors;
     };
 
     std::stack<ExplorationInfo> open;
@@ -80,33 +82,37 @@ extern bool verify_policy(
             info->successors);
 
         // Check Bellman equation
+        if (info->successors.non_source_successor_dist.empty()) abort();
+
         {
             value_t expected_cost = mdp.get_action_cost(decision->action);
 
-            for (const auto [successor_id, probability] : info->successors) {
+            for (const auto [successor_id, probability] :
+                 info->successors.non_source_successor_dist) {
                 const State successor = mdp.get_state(successor_id);
                 std::optional succ_decision = policy.get_decision(successor);
 
                 const value_t succ_val =
-                    succ_decision ? succ_decision->q_value_interval.lower
-                                  : 0_vt;
+                    succ_decision
+                        ? succ_decision->q_value_interval.lower
+                        : mdp.get_termination_info(successor).get_cost();
 
                 expected_cost += probability * succ_val;
             }
 
-            if (!is_approx_equal(
-                    decision->q_value_interval.lower,
-                    expected_cost))
-                return false;
-        }
+            const auto value = decision->q_value_interval.lower;
+            expected_cost +=
+                (1 - info->successors.non_source_probability) * value;
 
-        if (info->successors.empty()) abort();
+            if (!is_approx_equal(value, expected_cost, epsilon)) return false;
+        }
 
         for (;;) {
             // DFS Expansion
             do {
                 const probfd::StateID successor_id =
-                    (info->successors.end() - 1)->item;
+                    std::prev(info->successors.non_source_successor_dist.end())
+                        ->item;
                 StateInfo& succ_info = state_infos[successor_id.id];
 
                 if (!succ_info.explored) {
@@ -116,8 +122,10 @@ extern bool verify_policy(
 
                 state_info->is_dead = state_info->is_dead && succ_info.is_dead;
                 info->lowlink = std::min(info->lowlink, succ_info.stack_id);
-                info->successors.erase(info->successors.end() - 1);
-            } while (!info->successors.empty());
+                info->successors.non_source_successor_dist.erase(
+                    std::prev(
+                        info->successors.non_source_successor_dist.end()));
+            } while (!info->successors.non_source_successor_dist.empty());
 
         backtracking:;
 
@@ -156,13 +164,16 @@ extern bool verify_policy(
 
                 // The successor we backtracked from.
                 const probfd::StateID successor_id =
-                    (info->successors.end() - 1)->item;
+                    (std::prev(
+                         info->successors.non_source_successor_dist.end()))
+                        ->item;
 
                 const StateInfo& succ_info = state_infos[successor_id.id];
                 state_info->is_dead = state_info->is_dead && succ_info.is_dead;
                 info->lowlink = std::min(info->lowlink, lowlink);
-                info->successors.erase(info->successors.end() - 1);
-            } while (info->successors.empty());
+                info->successors.non_source_successor_dist.erase(
+                    info->successors.non_source_successor_dist.end() - 1);
+            } while (info->successors.non_source_successor_dist.empty());
         }
     }
 }

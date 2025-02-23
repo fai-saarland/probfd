@@ -126,6 +126,7 @@ public:
         int eff_index,
         int cond_index) const override;
 
+    probfd::value_t get_goal_termination_cost() const override;
     probfd::value_t get_non_goal_termination_cost() const override;
 
     int get_clear_var(int block) const;

@@ -450,6 +450,11 @@ BlocksworldTask::get_operator_outcome_effect_condition(int, int, int, int) const
     abort();
 }
 
+probfd::value_t BlocksworldTask::get_goal_termination_cost() const
+{
+    return 0_vt;
+}
+
 probfd::value_t BlocksworldTask::get_non_goal_termination_cost() const
 {
     return probfd::INFINITE_VALUE;
