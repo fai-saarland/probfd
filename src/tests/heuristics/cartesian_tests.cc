@@ -25,7 +25,7 @@ static size_t get_num_transitions(const ProbabilisticTransitionSystem& ts)
 
 TEST(CartesianTests, test_probabilistic_transition_system)
 {
-    std::fstream file("resources/gripper_example.sas");
+    std::fstream file("resources/gripper_example.psas");
     std::shared_ptr<ProbabilisticTask> task = tasks::read_sas_task(file);
     const ProbabilisticTaskProxy task_proxy(*task);
 
@@ -55,7 +55,7 @@ TEST(CartesianTests, test_probabilistic_transition_system)
 
 TEST(CartesianTests, test_probabilistic_transition_system2)
 {
-    std::fstream file("resources/pblocksworld_example.sas");
+    std::fstream file("resources/pblocksworld_example.psas");
     std::shared_ptr<ProbabilisticTask> task = tasks::read_sas_task(file);
     const ProbabilisticTaskProxy task_proxy(*task);
 

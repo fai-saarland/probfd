@@ -56,17 +56,6 @@ create_library(
 )
 
 create_library(
-    NAME task_tests
-    HELP "Enables planning task tests"
-    SOURCES
-        tests/task_tests
-    DEPENDS
-        GTest::gtest
-        test_utils
-    TARGET probfd_tests
-)
-
-create_library(
     NAME pdb_tests
     HELP "Enables probabilistic pattern databases tests"
     SOURCES

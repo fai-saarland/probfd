@@ -1,6 +1,6 @@
 *.pyc
 output
-output.psas
+resources/output.psas
 sas_plan*
 bin/
 builds/
