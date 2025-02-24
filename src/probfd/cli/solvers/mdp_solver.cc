@@ -56,7 +56,7 @@ MDPSolverArgs get_base_solver_args_from_options(const Options& options)
         get_log_arguments_from_options(options),
         std::make_tuple(
             options.get<std::shared_ptr<TaskStateSpaceFactory>>("state_space"),
-            options.get<std::shared_ptr<TaskHeuristicFactory>>("eval"),
+            options.get<std::shared_ptr<TaskHeuristicFactory>>("heuristic"),
             options.get<std::string>("policy_file"),
             options.get<bool>("print_fact_names"),
             options.contains("report_epsilon")
