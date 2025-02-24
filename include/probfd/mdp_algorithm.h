@@ -44,7 +44,7 @@ public:
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport progress,
-        double maxtime) = 0;
+        double max_time) = 0;
 
     /**
      * @brief Runs the MDP algorithm for the initial state \p state with a
