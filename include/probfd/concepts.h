@@ -67,6 +67,26 @@ struct SpecializationHelper<U<T...>, U> : std::true_type {};
 template <typename T, template <typename...> typename U>
 concept Specialization = detail::SpecializationHelper<T, U>::value;
 
+template <typename T, typename... List>
+concept MemberOf = (std::is_same_v<T, List> || ...);
+
+namespace detail {
+template <typename... List>
+struct dupl_free;
+
+template <>
+struct dupl_free<> : std::true_type {};
+
+template <typename A, typename... Tail>
+struct dupl_free<A, Tail...>
+    : std::bool_constant<
+          (!std::is_same_v<A, Tail> && ...) && dupl_free<Tail...>::value> {};
+} // namespace internal
+
+/// This concept is satisfied if all types are unique.
+template <typename... List>
+concept DuplicateFree = detail::dupl_free<List...>::value;
+
 /// This concept is true if the variable specialization enable_pass_by_value<T>
 /// has been defined as true.
 template <typename T>

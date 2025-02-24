@@ -11,7 +11,7 @@ namespace probfd {
  *
  * overloaded{
  *     [](int x){ return std::to_string(x); },
- *     [](std::tring x){ return x; },
+ *     [](std::string x){ return x; },
  * }
  */
 template <class... Ts>
@@ -90,9 +90,6 @@ public:
         return self;
     }
 };
-
-template <typename T>
-concept lvalue_reference = std::is_lvalue_reference_v<T>;
 
 template <typename Derived>
 class add_indirection {
