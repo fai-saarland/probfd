@@ -54,14 +54,15 @@ public:
         return "interval_iteration";
     }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
         const std::shared_ptr<ProbabilisticTask>&,
         const std::shared_ptr<FDRCostFunction>&) override
     {
-        return std::make_unique<IntervalIteration<State, OperatorID>>(
-            convergence_epsilon_,
-            false,
-            false);
+        return std::make_unique<AlgorithmAdaptor>(
+            std::make_unique<IntervalIteration<State, OperatorID>>(
+                convergence_epsilon_,
+                false,
+                false));
     }
 };
 

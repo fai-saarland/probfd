@@ -47,13 +47,14 @@ public:
 
     std::string get_algorithm_name() const override { return "idual"; }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
         const std::shared_ptr<ProbabilisticTask>&,
         const std::shared_ptr<FDRCostFunction>&) override
     {
         using IDualAlgorithm = algorithms::idual::IDual<State, OperatorID>;
 
-        return std::make_unique<IDualAlgorithm>(solver_type_, fp_epsilon_);
+        return std::make_unique<AlgorithmAdaptor>(
+            std::make_unique<IDualAlgorithm>(solver_type_, fp_epsilon_));
     }
 };
 

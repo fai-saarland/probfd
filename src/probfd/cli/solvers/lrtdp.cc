@@ -49,15 +49,16 @@ public:
 
     std::string get_heuristic_search_name() const override { return "lrtdp"; }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function) override
     {
-        return this->template create_heuristic_search_algorithm<LRTDP>(
-            task,
-            task_cost_function,
-            trial_termination_,
-            successor_sampler_);
+        return std::make_unique<AlgorithmAdaptor>(
+            this->template create_heuristic_search_algorithm<LRTDP>(
+                task,
+                task_cost_function,
+                trial_termination_,
+                successor_sampler_));
     }
 };
 
@@ -100,9 +101,10 @@ protected:
         if constexpr (Fret) {
             if (trial_termination != CONSISTENT &&
                 trial_termination != REVISITED) {
-                context.warn("Warning: LRTDP is run within FRET with an unsafe "
-                             "trial termination condition! LRTDP's trials may "
-                             "get stuck in cycles.");
+                context.warn(
+                    "Warning: LRTDP is run within FRET with an unsafe "
+                    "trial termination condition! LRTDP's trials may "
+                    "get stuck in cycles.");
             }
         }
 

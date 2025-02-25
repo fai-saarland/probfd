@@ -13,84 +13,7 @@
 
 namespace probfd::algorithms::acyclic_vi {
 
-template <typename State, typename Action>
-void StatisticsObserver<State, Action>::on_state_selected_for_expansion(
-    const State&)
-{
-    ++state_expansions;
-}
-
-template <typename State, typename Action>
-void StatisticsObserver<State, Action>::on_goal_state(const State&)
-{
-    ++goal_states;
-}
-
-template <typename State, typename Action>
-void StatisticsObserver<State, Action>::on_terminal_state(const State&)
-{
-    ++terminal_states;
-}
-
-template <typename State, typename Action>
-void StatisticsObserver<State, Action>::on_pruned_state(const State&)
-{
-    ++pruned_states;
-}
-
-template <typename State, typename Action>
-void StatisticsObserver<State, Action>::print(std::ostream& out) const
-{
-    out << "  Expanded state(s): " << state_expansions << std::endl;
-    out << "  Pruned state(s): " << pruned_states << std::endl;
-    out << "  Terminal state(s): " << terminal_states << std::endl;
-    out << "  Goal state(s): " << goal_states << std::endl;
-}
-
 namespace internal {
-
-template <typename State, typename Action>
-void AcyclicValueIterationObserverCollection<State, Action>::register_observer(
-    std::shared_ptr<Observer> observer)
-{
-    observers_.push_back(std::move(observer));
-}
-
-template <typename State, typename Action>
-void AcyclicValueIterationObserverCollection<State, Action>::
-    notify_state_selected_for_expansion(const State& state)
-{
-    for (auto& observer : observers_) {
-        observer.on_state_selected_for_expansion(state);
-    }
-}
-
-template <typename State, typename Action>
-void AcyclicValueIterationObserverCollection<State, Action>::notify_goal_state(
-    const State& state)
-{
-    for (auto& observer : observers_) {
-        observer.on_goal_state(state);
-    }
-}
-
-template <typename State, typename Action>
-void AcyclicValueIterationObserverCollection<State, Action>::
-    notify_terminal_state(const State& state)
-{
-    for (auto& observer : observers_) {
-        observer.on_terminal_state(state);
-    }
-}
-
-template <typename State, typename Action>
-void AcyclicValueIterationObserverCollection<State, Action>::
-    notify_pruned_state(const State& state)
-{
-    for (auto& observer : observers_) {
-        observer.on_pruned_state(state);
-    }
-}
 
 template <typename State, typename Action>
 DFSExplorationState<State, Action>::DFSExplorationState(
@@ -257,13 +180,6 @@ Interval AcyclicValueIteration<State, Action>::solve(
 }
 
 template <typename State, typename Action>
-void AcyclicValueIteration<State, Action>::register_observer(
-    std::shared_ptr<Observer> observer)
-{
-    observers_.register_observer(std::move(observer));
-}
-
-template <typename State, typename Action>
 bool AcyclicValueIteration<State, Action>::push_successor(
     MDPType& mdp,
     MapPolicy* policy,
@@ -312,23 +228,23 @@ bool AcyclicValueIteration<State, Action>::expand_state(
     succ_info.value = term_value;
 
     if (term_info.is_goal_state()) {
-        observers_.notify_state_selected_for_expansion(state);
-        observers_.notify_goal_state(state);
+        notifyEvent(StateExpansion{state});
+        notifyEvent(GoalStateExpansion{state});
         return false;
     }
 
     if (heuristic.evaluate(state) == term_value) {
-        observers_.notify_pruned_state(state);
+        notifyEvent(PruneStateExpansion{state});
         return false;
     }
 
-    observers_.notify_state_selected_for_expansion(state);
+    notifyEvent(StateExpansion{state});
 
     assert(e_info.remaining_aops.empty());
 
     mdp.generate_applicable_actions(state, e_info.remaining_aops);
     if (e_info.remaining_aops.empty()) {
-        observers_.notify_terminal_state(state);
+        notifyEvent(TerminalStateExpansion{state});
         return false;
     }
 

@@ -48,13 +48,14 @@ public:
         return "ta_topological_value_iteration";
     }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
         const std::shared_ptr<ProbabilisticTask>&,
         const std::shared_ptr<FDRCostFunction>&) override
     {
         using TVIAlgorithm = algorithms::ta_topological_vi::
             TATopologicalValueIteration<State, OperatorID>;
-        return std::make_unique<TVIAlgorithm>(convergence_epsilon_);
+        return std::make_unique<AlgorithmAdaptor>(
+            std::make_unique<TVIAlgorithm>(convergence_epsilon_));
     }
 };
 

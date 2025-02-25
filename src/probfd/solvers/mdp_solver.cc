@@ -28,6 +28,28 @@
 
 namespace probfd::solvers {
 
+AlgorithmAdaptor::AlgorithmAdaptor(std::unique_ptr<FDRMDPAlgorithm> algorithm)
+    : algorithm(std::move(algorithm))
+{
+}
+
+AlgorithmAdaptor::~AlgorithmAdaptor() = default;
+
+auto AlgorithmAdaptor::compute_policy(
+    MDPType& mdp,
+    HeuristicType& heuristic,
+    ParamType<State> state,
+    ProgressReport progress,
+    double max_time) -> std::unique_ptr<PolicyType>
+{
+    return algorithm->compute_policy(mdp, heuristic, state, progress, max_time);
+}
+
+void AlgorithmAdaptor::print_statistics(std::ostream& out) const
+{
+    return algorithm-> print_statistics(out);
+}
+
 MDPSolver::MDPSolver(
     utils::Verbosity verbosity,
     std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
@@ -52,7 +74,7 @@ class Solver : public SolverInterface {
     std::shared_ptr<ProbabilisticTask> task;
     std::shared_ptr<FDRCostFunction> task_cost_function;
 
-    std::unique_ptr<FDRMDPAlgorithm> algorithm;
+    std::unique_ptr<StatisticalMDPAlgorithm> algorithm;
     std::unique_ptr<TaskStateSpace> state_space;
     const std::shared_ptr<FDREvaluator> heuristic;
     std::string algorithm_name;
@@ -65,7 +87,7 @@ public:
     Solver(
         std::shared_ptr<ProbabilisticTask> task,
         std::shared_ptr<FDRCostFunction> task_cost_function,
-        std::unique_ptr<FDRMDPAlgorithm> algorithm,
+        std::unique_ptr<StatisticalMDPAlgorithm> algorithm,
         std::unique_ptr<TaskStateSpace> state_space,
         const std::shared_ptr<FDREvaluator> heuristic,
         std::string algorithm_name,
@@ -179,7 +201,7 @@ MDPSolver::create(const std::shared_ptr<ProbabilisticTask>& task)
 {
     auto task_cost_function = std::make_shared<TaskCostFunction>(task);
 
-    std::unique_ptr<FDRMDPAlgorithm> algorithm = timed(
+    std::unique_ptr<StatisticalMDPAlgorithm> algorithm = timed(
         std::cout,
         "Constructing algorithm...",
         &MDPSolver::create_algorithm,

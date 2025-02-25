@@ -57,18 +57,19 @@ public:
 
     std::string get_heuristic_search_name() const override { return name_; }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function) override
     {
-        return this->template create_heuristic_search_algorithm<Algorithm>(
-            task,
-            task_cost_function,
-            forward_updates_,
-            backward_updates_,
-            cutoff_tip_states_,
-            cutoff_inconsistent_,
-            labeling_);
+        return std::make_unique<AlgorithmAdaptor>(
+            this->template create_heuristic_search_algorithm<Algorithm>(
+                task,
+                task_cost_function,
+                forward_updates_,
+                backward_updates_,
+                cutoff_tip_states_,
+                cutoff_inconsistent_,
+                labeling_));
     }
 };
 

@@ -48,17 +48,18 @@ public:
 
     std::string get_algorithm_name() const override { return "i2dual"; }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function) override
     {
-        return std::make_unique<algorithms::i2dual::I2Dual>(
-            task,
-            task_cost_function,
-            hpom_enabled_,
-            incremental_hpom_updates_,
-            solver_type_,
-            fp_epsilon_);
+        return std::make_unique<AlgorithmAdaptor>(
+            std::make_unique<algorithms::i2dual::I2Dual>(
+                task,
+                task_cost_function,
+                hpom_enabled_,
+                incremental_hpom_updates_,
+                solver_type_,
+                fp_epsilon_));
     }
 };
 

@@ -16,6 +16,7 @@ using namespace utils;
 
 using namespace probfd;
 using namespace probfd::solvers;
+using namespace probfd::algorithms;
 using namespace probfd::algorithms::acyclic_vi;
 
 using namespace probfd::cli::solvers;
@@ -23,6 +24,42 @@ using namespace probfd::cli::solvers;
 using namespace downward::cli::plugins;
 
 namespace {
+
+class AcyclicVIWithStatistics : public StatisticalMDPAlgorithm {
+    AcyclicValueIteration<State, OperatorID> algorithm;
+
+    unsigned long long state_expansions = 0;
+    unsigned long long goal_states = 0;
+    unsigned long long terminal_states = 0;
+    unsigned long long pruned_states = 0;
+
+public:
+    AcyclicVIWithStatistics() { algorithm.registerObserverForSupported(*this); }
+
+    std::unique_ptr<PolicyType> compute_policy(
+        MDPType& mdp,
+        HeuristicType& heuristic,
+        ParamType<State> state,
+        ProgressReport progress,
+        double max_time)
+    {
+        return algorithm
+            .compute_policy(mdp, heuristic, state, progress, max_time);
+    }
+
+    void handleEvent(const StateExpansion&) { ++state_expansions; }
+    void handleEvent(const GoalStateExpansion&) { ++goal_states; }
+    void handleEvent(const TerminalStateExpansion&) { ++terminal_states; }
+    void handleEvent(const PruneStateExpansion&) { ++pruned_states; }
+
+    void print_statistics(std::ostream& out) const
+    {
+        out << "  Expanded state(s): " << state_expansions << std::endl;
+        out << "  Pruned state(s): " << pruned_states << std::endl;
+        out << "  Terminal state(s): " << terminal_states << std::endl;
+        out << "  Goal state(s): " << goal_states << std::endl;
+    }
+};
 
 class AcyclicVISolver : public MDPSolver {
 public:
@@ -33,11 +70,11 @@ public:
         return "acyclic_value_iteration";
     }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
         const std::shared_ptr<ProbabilisticTask>&,
         const std::shared_ptr<FDRCostFunction>&) override
     {
-        return std::make_unique<AcyclicValueIteration<State, OperatorID>>();
+        return std::make_unique<AcyclicVIWithStatistics>();
     }
 };
 

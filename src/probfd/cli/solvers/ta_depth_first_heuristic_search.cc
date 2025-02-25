@@ -65,12 +65,13 @@ public:
 
     std::string get_heuristic_search_name() const override { return ""; }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function) override
     {
-        return this
-            ->template create_quotient_heuristic_search_algorithm<Algorithm>(
+        return std::make_unique<AlgorithmAdaptor>(
+            this->template create_quotient_heuristic_search_algorithm<
+                Algorithm>(
                 task,
                 task_cost_function,
                 forward_updates_,
@@ -78,7 +79,7 @@ public:
                 cutoff_tip_,
                 cutoff_inconsistent_,
                 labeling_,
-                reexpand_traps_);
+                reexpand_traps_));
     }
 };
 
@@ -184,8 +185,9 @@ public:
     TrapAwareLILAOSolverFeature()
         : TypedFeature<TaskSolverFactory, TrapAwareDFHSSolver>("talilao")
     {
-        document_title("Labelled iLAO* variant of trap-aware depth-first "
-                       "heuristic search");
+        document_title(
+            "Labelled iLAO* variant of trap-aware depth-first "
+            "heuristic search");
 
         add_option<std::shared_ptr<QOpenList>>(
             "open_list",

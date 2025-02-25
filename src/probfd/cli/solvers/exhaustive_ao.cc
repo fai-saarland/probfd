@@ -44,15 +44,16 @@ public:
         return "exhaustive_ao";
     }
 
-    std::unique_ptr<FDRMDPAlgorithm> create_algorithm(
+    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function) override
     {
-        return this->template create_heuristic_search_algorithm<
-            algorithms::exhaustive_ao::ExhaustiveAOSearch>(
-            task,
-            task_cost_function,
-            open_list_);
+        return std::make_unique<AlgorithmAdaptor>(
+            this->template create_heuristic_search_algorithm<
+                algorithms::exhaustive_ao::ExhaustiveAOSearch>(
+                task,
+                task_cost_function,
+                open_list_));
     }
 };
 
