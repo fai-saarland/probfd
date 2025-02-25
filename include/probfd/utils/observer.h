@@ -45,6 +45,19 @@ protected:
     }
 
 public:
+    template <typename T>
+        requires(EventHandlerFor<T, Events> || ...)
+    void registerObserverForSupported(T& observer)
+    {
+        auto f = [this, &observer]<typename E>() {
+            if constexpr (EventHandlerFor<T, E>) {
+                this->registerObserver<E>(observer);
+            }
+        };
+
+        (f.template operator()<Events>(), ...);
+    }
+
     template <typename... ForEvents>
         requires(MemberOf<ForEvents, Events...> && ...)
     void registerObserver(EventHandlerFor<ForEvents...> auto& observer)
