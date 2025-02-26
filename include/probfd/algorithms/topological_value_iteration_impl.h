@@ -195,7 +195,7 @@ auto TopologicalValueIteration<State, Action, UseInterval>::compute_policy(
     double max_time) -> std::unique_ptr<PolicyType>
 {
     storage::PerStateStorage<AlgorithmValueType> value_store;
-    std::unique_ptr<MapPolicy> policy(new MapPolicy(&mdp));
+    auto policy = std::make_unique<MapPolicy>(&mdp);
     this->solve(
         mdp,
         heuristic,
@@ -272,6 +272,8 @@ Interval TopologicalValueIteration<State, Action, UseInterval>::solve(
             dfs_stack_.pop_back();
 
             if (dfs_stack_.empty()) {
+                assert(backtrack_from_scc);
+
                 if constexpr (UseInterval) {
                     return init_value;
                 } else {
@@ -321,7 +323,7 @@ bool TopologicalValueIteration<State, Action, UseInterval>::initialize_state(
     DFSExplorationState& exp_info,
     auto& value_store)
 {
-    assert(state_information_[exp_info.state_id].status == StateInfo::NEW);
+    assert(state_information_[exp_info.state_id].status == StateInfo::ONSTACK);
 
     const State state = mdp.get_state(exp_info.state_id);
 
@@ -425,8 +427,24 @@ void TopologicalValueIteration<State, Action, UseInterval>::scc_found(
         StackInfo& single = scc.front();
         StateInfo& state_info = state_information_[single.state_id];
         *single.value = single.conv_part;
+        single.best_action = single.best_converged;
         assert(state_info.status == StateInfo::ONSTACK);
         state_info.status = StateInfo::CLOSED;
+
+        // Extract the policy
+        if (policy && single.best_action.has_value()) {
+            if constexpr (UseInterval) {
+                policy->emplace_decision(
+                    single.state_id,
+                    *single.best_action,
+                    *single.value);
+            } else {
+                policy->emplace_decision(
+                    single.state_id,
+                    *single.best_action,
+                    Interval(*single.value, INFINITE_VALUE));
+            }
+        }
     } else {
         // Mark all states as closed
         for (StackInfo& stk_info : scc) {
@@ -454,6 +472,8 @@ void TopologicalValueIteration<State, Action, UseInterval>::scc_found(
         // Extract a policy from this SCC
         if (policy) {
             for (StackInfo& stk_info : scc) {
+                if (!stk_info.best_action.has_value()) continue;
+
                 if constexpr (UseInterval) {
                     policy->emplace_decision(
                         stk_info.state_id,
