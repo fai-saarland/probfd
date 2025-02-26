@@ -84,7 +84,7 @@ public:
         FDREvaluator& heuristic,
         const State& initial_state,
         ProgressReport progress,
-        double max_time) override;
+        double max_time);
 
     std::unique_ptr<PolicyType> compute_policy(
         FDRMDP& mdp,

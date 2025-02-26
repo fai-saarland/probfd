@@ -166,7 +166,7 @@ class TopologicalValueIteration : public IterativeMDPAlgorithm<State, Action> {
     // Algorithm state
     storage::PerStateStorage<StateInfo> state_information_;
     std::deque<DFSExplorationState> dfs_stack_;
-    std::vector<StackInfo> tarjan_stack_;
+    std::deque<StackInfo> tarjan_stack_;
 
     Statistics statistics_;
 
@@ -185,7 +185,7 @@ public:
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport,
-        double max_time) override;
+        double max_time);
 
     void print_statistics(std::ostream& out) const override;
 

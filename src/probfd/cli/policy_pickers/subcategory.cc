@@ -37,19 +37,16 @@ using downward::cli::utils::get_rng_arguments_from_options;
 namespace {
 
 template <
-    template <typename, typename>
-    typename S,
+    template <typename, typename> typename S,
     bool Bisimulation,
     bool Fret>
 using Wrapper = std::conditional_t<
     Bisimulation,
     std::conditional_t<
         Fret,
-        S<quotients::QuotientState<
-              bisimulation::QuotientState,
-              bisimulation::QuotientAction>,
-          quotients::QuotientAction<bisimulation::QuotientAction>>,
-        S<bisimulation::QuotientState, bisimulation::QuotientAction>>,
+        S<quotients::QuotientState<bisimulation::QuotientState, OperatorID>,
+          quotients::QuotientAction<OperatorID>>,
+        S<bisimulation::QuotientState, OperatorID>>,
     std::conditional_t<
         Fret,
         S<quotients::QuotientState<State, OperatorID>,

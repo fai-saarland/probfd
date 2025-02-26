@@ -56,20 +56,18 @@ BisimilarStateSpace::BisimilarStateSpace(
     , transitions_(transition_system.get_size() + 1)
     , goal_flags_(transition_system.get_size() + 1, false)
 {
-    int dead_end_state = transitions_.size();
+    int dead_end_state = transition_system.get_size();
 
     ProbabilisticTaskProxy task_proxy(*task_);
     OperatorsProxy det_operators = det_task_proxy.get_operators();
     ProbabilisticOperatorsProxy prob_operators = task_proxy.get_operators();
 
-    std::vector<std::pair<unsigned, unsigned>> g_to_p(det_operators.size());
+    std::vector<std::pair<OperatorID, unsigned>> det_to_prob_op;
     for (unsigned p_op_id = 0; p_op_id < prob_operators.size(); ++p_op_id) {
         const ProbabilisticOperatorProxy op = prob_operators[p_op_id];
         const ProbabilisticOutcomesProxy outcomes = op.get_outcomes();
         for (unsigned i = 0; i < outcomes.size(); ++i) {
-            const ProbabilisticOutcomeProxy outcome = outcomes[i];
-            g_to_p[outcome.get_determinization_id()] =
-                std::make_pair(p_op_id, i);
+            det_to_prob_op.emplace_back(OperatorID(p_op_id), i);
         }
     }
 
@@ -87,15 +85,15 @@ BisimilarStateSpace::BisimilarStateSpace(
     };
 
     for (const LocalLabelInfo& local_info : transition_system) {
-        for (const int g_op_id : local_info.get_label_group()) {
+        for (const int det_op_id : local_info.get_label_group()) {
             for (const auto& trans : local_info.get_transitions()) {
                 std::vector<CachedTransition>& ts = transitions_[trans.src];
                 assert(trans.target != PRUNED_STATE);
-                const auto& op = g_to_p[g_op_id];
+                const auto& op = det_to_prob_op[det_op_id];
 
                 CachedTransition* t = nullptr;
                 for (auto& j : ts) {
-                    if (j.op == op.first) {
+                    if (j.op_id == op.first) {
                         t = &j;
                         break;
                     }
@@ -104,9 +102,7 @@ BisimilarStateSpace::BisimilarStateSpace(
                 if (t == nullptr) {
                     const OperatorID id = OperatorID(op.first);
                     const int size = prob_operators[id].get_outcomes().size();
-                    t = &ts.emplace_back();
-                    t->op = op.first;
-                    t->successors = allocate(size);
+                    t = &ts.emplace_back(op.first, allocate(size));
                     for (int j = 0; j != size; ++j) {
                         t->successors[j] = dead_end_state;
                     }
@@ -118,7 +114,12 @@ BisimilarStateSpace::BisimilarStateSpace(
         }
     }
 
-    for (std::size_t i = 0; i != goal_flags_.size(); ++i) {
+    for (size_t i = 0; i != transitions_.size(); ++i) {
+        auto& ct = transitions_[i];
+        std::ranges::sort(ct, {}, &CachedTransition::op_id);
+    }
+
+    for (std::size_t i = 0; i != transition_system.get_size(); ++i) {
         goal_flags_[i] = transition_system.is_goal_state(i);
     }
 }
@@ -137,30 +138,31 @@ QuotientState BisimilarStateSpace::get_state(StateID s)
 
 void BisimilarStateSpace::generate_applicable_actions(
     QuotientState state,
-    std::vector<QuotientAction>& result)
+    std::vector<OperatorID>& result)
 {
     const auto& cache = transitions_[std::to_underlying(state)];
     result.reserve(cache.size());
-    for (unsigned i = 0; i < cache.size(); ++i) {
-        result.emplace_back(static_cast<QuotientAction>(i));
+    for (const auto& t : cache) {
+        result.emplace_back(t.op_id);
     }
 }
 
 void BisimilarStateSpace::generate_action_transitions(
     QuotientState state,
-    QuotientAction a,
+    OperatorID a,
     SuccessorDistribution& successor_dist)
 {
-    assert(
-        std::to_underlying(a) <
-        static_cast<int>(transitions_[std::to_underlying(state)].size()));
-
     ProbabilisticTaskProxy task_proxy(*task_);
     const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
 
-    const CachedTransition& t =
-        transitions_[std::to_underlying(state)][std::to_underlying(a)];
-    const ProbabilisticOperatorProxy& op = operators[t.op];
+    const auto& transitions = transitions_[std::to_underlying(state)];
+
+    assert(std::ranges::is_sorted(transitions, {}, &CachedTransition::op_id));
+
+    const auto it =
+        std::ranges::lower_bound(transitions, a, {}, &CachedTransition::op_id);
+
+    const ProbabilisticOperatorProxy& op = operators[a];
     const ProbabilisticOutcomesProxy& outcomes = op.get_outcomes();
 
     successor_dist.non_source_probability = 0_vt;
@@ -168,7 +170,7 @@ void BisimilarStateSpace::generate_action_transitions(
     for (unsigned i = 0; i < outcomes.size(); ++i) {
         const ProbabilisticOutcomeProxy outcome = outcomes[i];
         const value_t probability = outcome.get_probability();
-        const StateID id = t.successors[i];
+        const StateID id = it->successors[i];
         if (std::to_underlying(state) == static_cast<int>(id)) continue;
         successor_dist.add_non_source_probability(id, probability);
     }
@@ -176,14 +178,31 @@ void BisimilarStateSpace::generate_action_transitions(
 
 void BisimilarStateSpace::generate_all_transitions(
     QuotientState state,
-    std::vector<QuotientAction>& aops,
+    std::vector<OperatorID>& aops,
     std::vector<SuccessorDistribution>& successor_dists)
 {
-    generate_applicable_actions(state, aops);
-    successor_dists.resize(aops.size());
-    for (auto [s_aops, s_transitions] :
-         std::views::zip(aops, successor_dists)) {
-        generate_action_transitions(state, s_aops, s_transitions);
+    const ProbabilisticOperatorsProxy operators(*task_);
+
+    const auto& cache = transitions_[std::to_underlying(state)];
+    aops.reserve(cache.size());
+    successor_dists.reserve(cache.size());
+
+    for (const auto [op_id, successors] : cache) {
+        aops.push_back(op_id);
+        SuccessorDistribution& successor_dist = successor_dists.emplace_back();
+
+        const ProbabilisticOperatorProxy& op = operators[op_id];
+        const ProbabilisticOutcomesProxy& outcomes = op.get_outcomes();
+
+        successor_dist.non_source_probability = 0_vt;
+
+        for (unsigned i = 0; i < outcomes.size(); ++i) {
+            const ProbabilisticOutcomeProxy outcome = outcomes[i];
+            const value_t probability = outcome.get_probability();
+            const StateID id = successors[i];
+            if (std::to_underlying(state) == static_cast<int>(id)) continue;
+            successor_dist.add_non_source_probability(id, probability);
+        }
     }
 }
 
@@ -191,12 +210,26 @@ void BisimilarStateSpace::generate_all_transitions(
     QuotientState state,
     std::vector<TransitionTailType>& transitions)
 {
+    const ProbabilisticOperatorsProxy operators(*task_);
+
     const auto& cache = transitions_[std::to_underlying(state)];
     transitions.reserve(cache.size());
-    for (unsigned i : std::views::iota(0U, cache.size())) {
-        auto a = static_cast<QuotientAction>(i);
-        TransitionTailType& t = transitions.emplace_back(a);
-        generate_action_transitions(state, a, t.successor_dist);
+
+    for (const auto [op_id, successors] : cache) {
+        TransitionTailType& t = transitions.emplace_back(op_id);
+
+        const ProbabilisticOperatorProxy& op = operators[op_id];
+        const ProbabilisticOutcomesProxy& outcomes = op.get_outcomes();
+
+        t.successor_dist.non_source_probability = 0_vt;
+
+        for (unsigned i = 0; i < outcomes.size(); ++i) {
+            const ProbabilisticOutcomeProxy outcome = outcomes[i];
+            const value_t probability = outcome.get_probability();
+            const StateID id = successors[i];
+            if (std::to_underlying(state) == static_cast<int>(id)) continue;
+            t.successor_dist.add_non_source_probability(id, probability);
+        }
     }
 }
 
@@ -209,7 +242,7 @@ TerminationInfo BisimilarStateSpace::get_termination_info(QuotientState s)
                      task_cost_function_->get_non_goal_termination_cost());
 }
 
-value_t BisimilarStateSpace::get_action_cost(QuotientAction)
+value_t BisimilarStateSpace::get_action_cost(OperatorID)
 {
     return 0;
 }

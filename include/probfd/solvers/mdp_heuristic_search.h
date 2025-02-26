@@ -25,7 +25,6 @@ struct QuotientAction;
 
 namespace probfd::bisimulation {
 enum class QuotientState;
-enum class QuotientAction;
 } // namespace probfd::bisimulation
 
 namespace probfd::solvers {
@@ -35,9 +34,8 @@ using StateType = std::conditional_t<
     Bisimulation,
     std::conditional_t<
         Fret,
-        probfd::quotients::QuotientState<
-            probfd::bisimulation::QuotientState,
-            probfd::bisimulation::QuotientAction>,
+        probfd::quotients::
+            QuotientState<probfd::bisimulation::QuotientState, OperatorID>,
         probfd::bisimulation::QuotientState>,
     std::conditional_t<
         Fret,
@@ -49,8 +47,8 @@ using ActionType = std::conditional_t<
     Bisimulation,
     std::conditional_t<
         Fret,
-        probfd::quotients::QuotientAction<probfd::bisimulation::QuotientAction>,
-        probfd::bisimulation::QuotientAction>,
+        probfd::quotients::QuotientAction<OperatorID>,
+        OperatorID>,
     std::conditional_t<
         Fret,
         probfd::quotients::QuotientAction<OperatorID>,
@@ -204,10 +202,8 @@ public:
 
 private:
     template <
-        template <typename, typename, typename>
-        class Fret,
-        template <typename, typename, bool>
-        class HS,
+        template <typename, typename, typename> class Fret,
+        template <typename, typename, bool> class HS,
         bool Interval,
         typename... Args>
     std::unique_ptr<FDRMDPAlgorithm>
@@ -247,7 +243,7 @@ public:
         Args&&... args)
     {
         using QState = bisimulation::QuotientState;
-        using QAction = bisimulation::QuotientAction;
+        using QAction = OperatorID;
 
         if (dual_bounds_) {
             return std::make_unique<BisimulationBasedHeuristicSearchAlgorithm>(
@@ -341,17 +337,14 @@ public:
         }
     }
 
-    template <
-        template <typename, typename, bool>
-        class HS,
-        typename... Args>
+    template <template <typename, typename, bool> class HS, typename... Args>
     std::unique_ptr<FDRMDPAlgorithm> create_quotient_heuristic_search_algorithm(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function,
         Args&&... args)
     {
         using QState = bisimulation::QuotientState;
-        using QAction = bisimulation::QuotientAction;
+        using QAction = OperatorID;
 
         if (dual_bounds_) {
             return std::make_unique<BisimulationBasedHeuristicSearchAlgorithm>(
@@ -376,11 +369,9 @@ public:
 
 private:
     template <
-        template <typename, typename, typename>
-        class Fret,
+        template <typename, typename, typename> class Fret,
         bool Interval,
-        template <typename, typename, bool>
-        class HS,
+        template <typename, typename, bool> class HS,
         typename... Args>
     std::unique_ptr<FDRMDPAlgorithm> heuristic_search_algorithm_factory_wrapper(
         const std::shared_ptr<ProbabilisticTask>& task,
@@ -388,7 +379,7 @@ private:
         Args&&... args)
     {
         using QState = bisimulation::QuotientState;
-        using QAction = bisimulation::QuotientAction;
+        using QAction = OperatorID;
 
         using QQState = quotients::QuotientState<QState, QAction>;
         using QQAction = quotients::QuotientAction<QAction>;

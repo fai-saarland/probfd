@@ -254,7 +254,7 @@ public:
         HeuristicType& heuristic,
         ParamType<State> s,
         ProgressReport progress,
-        double max_time) final;
+        double max_time);
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,

@@ -47,17 +47,6 @@ public:
         double max_time) = 0;
 
     /**
-     * @brief Runs the MDP algorithm for the initial state \p state with a
-     * maximum time limit.
-     */
-    virtual Interval solve(
-        MDPType& mdp,
-        HeuristicType& heuristic,
-        ParamType<State> state,
-        ProgressReport progress,
-        double max_time) = 0;
-
-    /**
      * @brief Prints algorithm statistics to the specified output stream.
      */
     virtual void print_statistics(std::ostream&) const {}

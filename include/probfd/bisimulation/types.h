@@ -8,9 +8,6 @@ namespace probfd::bisimulation {
 /// Represents a state in the probabilistic bisimulation quotient.
 enum class QuotientState : int {};
 
-/// Represents an action in the probabilistic bisimulation quotient.
-enum class QuotientAction : int {};
-
 } // namespace probfd::bisimulation
 
 #endif

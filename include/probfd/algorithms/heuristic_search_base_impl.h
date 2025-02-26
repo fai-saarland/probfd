@@ -382,8 +382,7 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
      * Expand some greedy policy graph, starting from the initial state.
      * Collect optimal actions along the way.
      */
-    using MapPolicy = policies::MapPolicy<State, Action>;
-    std::unique_ptr<MapPolicy> policy(new MapPolicy(&mdp));
+    auto policy = std::make_unique<policies::MapPolicy<State, Action>>(&mdp);
 
     const StateID initial_state_id = mdp.get_state_id(initial_state);
 

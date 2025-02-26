@@ -65,7 +65,7 @@ void print_bisimulation_stats(
 
 class BisimulationSolver : public SolverInterface {
     using QState = bisimulation::QuotientState;
-    using QAction = bisimulation::QuotientAction;
+    using QAction = OperatorID;
 
     std::shared_ptr<ProbabilisticTask> task;
     std::shared_ptr<FDRCostFunction> task_cost_function;
@@ -138,9 +138,19 @@ public:
         heuristics::BlindEvaluator<QState> blind(ops, *task_cost_function);
         ProgressReport progress;
 
+        const auto policy = solver->compute_policy(
+            state_space,
+            blind,
+            initial_state,
+            progress,
+            max_time);
+
+        auto d = policy->get_decision(initial_state);
+
         const Interval val =
-            solver
-                ->solve(state_space, blind, initial_state, progress, max_time);
+            d.has_value()
+                ? d->q_value_interval
+                : Interval(task_cost_function->get_termination_cost(initial));
 
         std::cout << "Finished after " << vi_timer() << " [t=" << total_timer
                   << "]" << std::endl;
@@ -164,7 +174,7 @@ public:
 
 class BisimulationIterationFactory : public TaskSolverFactory {
     using QState = bisimulation::QuotientState;
-    using QAction = bisimulation::QuotientAction;
+    using QAction = OperatorID;
 
     const bool convergence_epsilon_;
     const bool interval_iteration_;

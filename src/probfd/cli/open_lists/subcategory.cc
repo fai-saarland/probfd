@@ -24,70 +24,60 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-template <template <typename> typename S, bool Bisimulation, bool Fret>
+template <template <typename> typename S, bool Fret>
 using Wrapped = std::conditional_t<
-    Bisimulation,
-    std::conditional_t<
-        Fret,
-        S<quotients::QuotientAction<bisimulation::QuotientAction>>,
-        S<bisimulation::QuotientAction>>,
-    std::conditional_t<
-        Fret,
-        S<quotients::QuotientAction<OperatorID>>,
-        S<OperatorID>>>;
+    Fret,
+    S<quotients::QuotientAction<OperatorID>>,
+    S<OperatorID>>;
 
-template <bool Bisimulation, bool Fret>
-using OpenList = Wrapped<OpenList, Bisimulation, Fret>;
+template <bool Fret>
+using OpenList = Wrapped<OpenList, Fret>;
 
-template <bool Bisimulation, bool Fret>
+template <bool Fret>
 class ProbfdOpenListCategoryPlugin
-    : public TypedCategoryPlugin<OpenList<Bisimulation, Fret>> {
+    : public TypedCategoryPlugin<OpenList<Fret>> {
 public:
     ProbfdOpenListCategoryPlugin()
         : ProbfdOpenListCategoryPlugin::TypedCategoryPlugin(
-              add_mdp_type_to_category<Bisimulation, Fret>("ProbFDOpenList"))
+              add_mdp_type_to_category<false, Fret>("ProbFDOpenList"))
     {
         this->document_synopsis("Open list.");
     }
 };
 
-template <bool Bisimulation, bool Fret>
+template <bool Fret>
 class FifoOpenListFeature
-    : public TypedFeature<
-          OpenList<Bisimulation, Fret>,
-          Wrapped<FifoOpenList, Bisimulation, Fret>> {
+    : public TypedFeature<OpenList<Fret>, Wrapped<FifoOpenList, Fret>> {
 public:
     FifoOpenListFeature()
         : FifoOpenListFeature::TypedFeature(
-              add_mdp_type_to_option<Bisimulation, Fret>("fifo_open_list"))
+              add_mdp_type_to_option<false, Fret>("fifo_open_list"))
     {
     }
 
     [[nodiscard]]
-    std::shared_ptr<Wrapped<FifoOpenList, Bisimulation, Fret>>
+    std::shared_ptr<Wrapped<FifoOpenList, Fret>>
     create_component(const Options&, const utils::Context&) const override
     {
-        return std::make_shared<Wrapped<FifoOpenList, Bisimulation, Fret>>();
+        return std::make_shared<Wrapped<FifoOpenList, Fret>>();
     }
 };
 
-template <bool Bisimulation, bool Fret>
+template <bool Fret>
 class LifoOpenListFeature
-    : public TypedFeature<
-          OpenList<Bisimulation, Fret>,
-          Wrapped<LifoOpenList, Bisimulation, Fret>> {
+    : public TypedFeature<OpenList<Fret>, Wrapped<LifoOpenList, Fret>> {
 public:
     LifoOpenListFeature()
         : LifoOpenListFeature::TypedFeature(
-              add_mdp_type_to_option<Bisimulation, Fret>("lifo_open_list"))
+              add_mdp_type_to_option<false, Fret>("lifo_open_list"))
     {
     }
 
     [[nodiscard]]
-    std::shared_ptr<Wrapped<LifoOpenList, Bisimulation, Fret>>
+    std::shared_ptr<Wrapped<LifoOpenList, Fret>>
     create_component(const Options&, const utils::Context&) const override
     {
-        return std::make_shared<Wrapped<LifoOpenList, Bisimulation, Fret>>();
+        return std::make_shared<Wrapped<LifoOpenList, Fret>>();
     }
 };
 

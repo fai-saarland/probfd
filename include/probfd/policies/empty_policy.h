@@ -16,13 +16,6 @@ public:
     {
         return std::nullopt;
     }
-
-    void print(
-        std::ostream&,
-        std::function<void(const State&, std::ostream&)>,
-        std::function<void(const Action&, std::ostream&)>) override
-    {
-    }
 };
 
 } // namespace probfd::policies

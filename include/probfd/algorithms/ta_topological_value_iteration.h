@@ -297,13 +297,6 @@ public:
 
     TATopologicalValueIteration(value_t epsilon, std::size_t num_states_hint);
 
-    Interval solve(
-        MDPType& mdp,
-        HeuristicType& heuristic,
-        ParamType<State> state,
-        ProgressReport,
-        double max_time) override;
-
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
         HeuristicType& heuristic,
@@ -334,6 +327,13 @@ public:
         double max_time = std::numeric_limits<double>::infinity());
 
 private:
+    Interval solve(
+        MDPType& mdp,
+        HeuristicType& heuristic,
+        ParamType<State> state,
+        ProgressReport,
+        double max_time);
+
     /**
      * Pushes a state onto the exploration queue and stack.
      */

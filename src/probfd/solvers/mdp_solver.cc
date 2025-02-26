@@ -12,6 +12,7 @@
 #include "probfd/task_cost_function.h"
 #include "probfd/task_heuristic_factory.h"
 #include "probfd/task_state_space_factory.h"
+#include "probfd/transition_tail.h"
 
 #include "probfd/utils/timed.h"
 
@@ -19,6 +20,7 @@
 
 #include "downward/utils/exceptions.h"
 
+#include <deque>
 #include <fstream>
 #include <functional>
 #include <iostream>
@@ -27,6 +29,55 @@
 #include <type_traits>
 
 namespace probfd::solvers {
+
+namespace {
+void print_policy(
+    std::ostream& out,
+    std::function<void(const State&, std::ostream&)> state_printer,
+    std::function<void(const OperatorID&, std::ostream&)> action_printer,
+    const Policy<State, OperatorID>& policy,
+    MDP<State, OperatorID>& mdp,
+    const State& initial_state)
+{
+    const StateID initial_state_id = mdp.get_state_id(initial_state);
+
+    std::deque<StateID> queue;
+    std::set<StateID> visited;
+    queue.push_back(initial_state_id);
+    visited.insert(initial_state_id);
+
+    do {
+        const StateID state_id = queue.front();
+        queue.pop_front();
+
+        const State state = mdp.get_state(state_id);
+
+        auto decision = policy.get_decision(state);
+
+        if (!decision) {
+            continue;
+        }
+
+        state_printer(state, out);
+        out << " -> ";
+        action_printer(decision->action, out);
+        out << '\n';
+
+        SuccessorDistribution successor_dist;
+        mdp.generate_action_transitions(
+            state,
+            decision->action,
+            successor_dist);
+
+        for (const StateID succ_id :
+             successor_dist.non_source_successor_dist.support()) {
+            if (visited.insert(succ_id).second) {
+                queue.push_back(succ_id);
+            }
+        }
+    } while (!queue.empty());
+}
+} // namespace
 
 AlgorithmAdaptor::AlgorithmAdaptor(std::unique_ptr<FDRMDPAlgorithm> algorithm)
     : algorithm(std::move(algorithm))
@@ -47,7 +98,7 @@ auto AlgorithmAdaptor::compute_policy(
 
 void AlgorithmAdaptor::print_statistics(std::ostream& out) const
 {
-    return algorithm-> print_statistics(out);
+    return algorithm->print_statistics(out);
 }
 
 MDPSolver::MDPSolver(
@@ -171,7 +222,13 @@ public:
                         out << this->task->get_operator_name(op_id.get_index());
                     };
 
-                policy->print(out, print_state, print_action);
+                print_policy(
+                    out,
+                    print_state,
+                    print_action,
+                    *policy,
+                    mdp,
+                    initial_state);
             }
 
             std::cout << std::endl;

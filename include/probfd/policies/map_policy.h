@@ -47,20 +47,6 @@ public:
     {
         return mapping_.find(state_id)->second;
     }
-
-    void print(
-        std::ostream& out,
-        std::function<void(const State&, std::ostream&)> state_printer,
-        std::function<void(const Action&, std::ostream&)> action_printer)
-        override
-    {
-        for (const auto& [state_id, decision] : mapping_) {
-            state_printer(state_space_->get_state(state_id), out);
-            out << " -> ";
-            action_printer(decision.action, out);
-            out << '\n';
-        }
-    }
 };
 
 } // namespace probfd::policies

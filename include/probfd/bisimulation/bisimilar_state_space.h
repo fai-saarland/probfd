@@ -32,9 +32,9 @@ class ProbabilisticTask;
 
 namespace probfd::bisimulation {
 
-class BisimilarStateSpace : public MDP<QuotientState, QuotientAction> {
+class BisimilarStateSpace : public MDP<QuotientState, OperatorID> {
     struct CachedTransition {
-        unsigned op;
+        OperatorID op_id;
         int* successors;
     };
 
@@ -65,16 +65,16 @@ public:
 
     void generate_applicable_actions(
         QuotientState state,
-        std::vector<QuotientAction>& result) override;
+        std::vector<OperatorID>& result) override;
 
     void generate_action_transitions(
         QuotientState state,
-        QuotientAction action,
+        OperatorID action,
         SuccessorDistribution& successor_dist) override;
 
     void generate_all_transitions(
         QuotientState state,
-        std::vector<QuotientAction>& aops,
+        std::vector<OperatorID>& aops,
         std::vector<SuccessorDistribution>& successor_dists) override;
 
     void generate_all_transitions(
@@ -83,7 +83,7 @@ public:
 
     TerminationInfo get_termination_info(QuotientState state) override;
 
-    value_t get_action_cost(QuotientAction action) override;
+    value_t get_action_cost(OperatorID action) override;
 
     /// Checks whether the given quotient state is a goal state.
     bool is_goal_state(QuotientState s) const;

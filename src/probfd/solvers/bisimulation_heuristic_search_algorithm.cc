@@ -6,6 +6,8 @@
 
 #include "probfd/bisimulation/bisimilar_state_space.h"
 
+#include "probfd/policies/empty_policy.h"
+
 #include "probfd/tasks/determinization_task.h"
 
 #include "probfd/utils/not_implemented.h"
@@ -40,12 +42,38 @@ BisimulationBasedHeuristicSearchAlgorithm ::
 {
 }
 
-Interval BisimulationBasedHeuristicSearchAlgorithm::solve(
+class BisimulationPolicy : public Policy<State, OperatorID> {
+    std::unique_ptr<merge_and_shrink::MergeAndShrinkRepresentation>
+        state_mapping;
+
+    std::unique_ptr<Policy<bisimulation::QuotientState, OperatorID>> qpolicy;
+
+public:
+    BisimulationPolicy(
+        std::unique_ptr<merge_and_shrink::MergeAndShrinkRepresentation>
+            state_mapping,
+        std::unique_ptr<Policy<bisimulation::QuotientState, OperatorID>>
+            qpolicy)
+        : state_mapping(std::move(state_mapping))
+        , qpolicy(std::move(qpolicy))
+    {
+    }
+
+    std::optional<PolicyDecision<OperatorID>>
+    get_decision(const State& state) const override
+    {
+        const auto abstract_state = state_mapping->get_value(state);
+        return qpolicy->get_decision(
+            static_cast<bisimulation::QuotientState>(abstract_state));
+    }
+};
+
+auto BisimulationBasedHeuristicSearchAlgorithm::compute_policy(
     FDRMDP&,
     FDREvaluator&,
     const State&,
     ProgressReport progress,
-    double max_time)
+    double max_time) -> std::unique_ptr<PolicyType>
 {
     utils::Timer timer;
 
@@ -65,7 +93,7 @@ Interval BisimulationBasedHeuristicSearchAlgorithm::solve(
 
     if (!transition_system->is_solvable(*distances)) {
         std::cout << "Initial state recognized as unsolvable!" << std::endl;
-        return Interval(1_vt, 1_vt);
+        return std::make_unique<policies::EmptyPolicy<State, OperatorID>>();
     }
 
     State initial = task_proxy.get_initial_state();
@@ -93,18 +121,16 @@ Interval BisimulationBasedHeuristicSearchAlgorithm::solve(
     heuristics::BlindEvaluator<QState> heuristic(ops, *task_cost_function_);
 
     std::cout << "Running " << algorithm_name_ << "..." << std::endl;
-    return algorithm_
-        ->solve(state_space, heuristic, initial_state, progress, max_time);
-}
+    auto pi = algorithm_->compute_policy(
+        state_space,
+        heuristic,
+        initial_state,
+        progress,
+        max_time);
 
-auto BisimulationBasedHeuristicSearchAlgorithm::compute_policy(
-    FDRMDP&,
-    FDREvaluator&,
-    const State&,
-    ProgressReport,
-    double) -> std::unique_ptr<PolicyType>
-{
-    not_implemented();
+    return std::make_unique<BisimulationPolicy>(
+        std::move(state_mapping),
+        std::move(pi));
 }
 
 void BisimulationBasedHeuristicSearchAlgorithm::print_statistics(
