@@ -229,7 +229,7 @@ public:
     }
 
     SegmentedVector(std::size_t size, const Entry& entry = Entry())
-        : the_size(0)
+        : SegmentedVector()
     {
         while (size > the_size) {
             push_back(entry);
@@ -371,9 +371,10 @@ class SegmentedArrayVector {
 public:
     SegmentedArrayVector(size_t elements_per_array_)
         : elements_per_array(elements_per_array_)
-        , arrays_per_segment(std::max(
-              SEGMENT_BYTES / (elements_per_array * sizeof(Element)),
-              size_t(1)))
+        , arrays_per_segment(
+              std::max(
+                  SEGMENT_BYTES / (elements_per_array * sizeof(Element)),
+                  size_t(1)))
         , elements_per_segment(elements_per_array * arrays_per_segment)
         , the_size(0)
     {
@@ -384,9 +385,10 @@ public:
         const ElementAllocator& allocator_)
         : element_allocator(allocator_)
         , elements_per_array(elements_per_array_)
-        , arrays_per_segment(std::max(
-              SEGMENT_BYTES / (elements_per_array * sizeof(Element)),
-              size_t(1)))
+        , arrays_per_segment(
+              std::max(
+                  SEGMENT_BYTES / (elements_per_array * sizeof(Element)),
+                  size_t(1)))
         , elements_per_segment(elements_per_array * arrays_per_segment)
         , the_size(0)
     {
