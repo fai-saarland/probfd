@@ -87,27 +87,20 @@ BisimilarStateSpace::BisimilarStateSpace(
             for (const auto& trans : local_info.get_transitions()) {
                 std::vector<CachedTransition>& ts = transitions_[trans.src];
                 assert(trans.target != PRUNED_STATE);
-                const auto& op = det_to_prob_op[det_op_id];
+                const auto& [id, outcome_index] = det_to_prob_op[det_op_id];
 
-                CachedTransition* t = nullptr;
-                for (auto& j : ts) {
-                    if (j.op_id == op.first) {
-                        t = &j;
-                        break;
-                    }
-                }
+                auto it = std::ranges::find(ts, id, &CachedTransition::op_id);
 
-                if (t == nullptr) {
-                    const OperatorID id = OperatorID(op.first);
+                if (it == ts.end()) {
                     const int size = prob_operators[id].get_outcomes().size();
-                    t = &ts.emplace_back(op.first, allocate(size));
+                    it = ts.emplace(it, id, allocate(size));
                     for (int j = 0; j != size; ++j) {
-                        t->successors[j] = dead_end_state;
+                        it->successors[j] = dead_end_state;
                     }
                     ++num_cached_transitions_;
                 }
 
-                t->successors[op.second] = trans.target;
+                it->successors[outcome_index] = trans.target;
             }
         }
     }
