@@ -48,7 +48,6 @@ static constexpr const int BUCKET_SIZE = 1024 * 64;
 BisimilarStateSpace::BisimilarStateSpace(
     std::shared_ptr<ProbabilisticTask> task,
     std::shared_ptr<FDRCostFunction> task_cost_function,
-    const TaskProxy& det_task_proxy,
     const merge_and_shrink::TransitionSystem& transition_system)
     : task_(std::move(task))
     , task_cost_function_(std::move(task_cost_function))
@@ -59,7 +58,6 @@ BisimilarStateSpace::BisimilarStateSpace(
     int dead_end_state = transition_system.get_size();
 
     ProbabilisticTaskProxy task_proxy(*task_);
-    OperatorsProxy det_operators = det_task_proxy.get_operators();
     ProbabilisticOperatorsProxy prob_operators = task_proxy.get_operators();
 
     std::vector<std::pair<OperatorID, unsigned>> det_to_prob_op;
@@ -119,7 +117,7 @@ BisimilarStateSpace::BisimilarStateSpace(
         std::ranges::sort(ct, {}, &CachedTransition::op_id);
     }
 
-    for (std::size_t i = 0; i != transition_system.get_size(); ++i) {
+    for (int i = 0; i != transition_system.get_size(); ++i) {
         goal_flags_[i] = transition_system.is_goal_state(i);
     }
 }

@@ -117,7 +117,6 @@ public:
         bisimulation::BisimilarStateSpace state_space(
             task,
             task_cost_function,
-            det_task_proxy,
             *transition_system);
 
         double time = timer();

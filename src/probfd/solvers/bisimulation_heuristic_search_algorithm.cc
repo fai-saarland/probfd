@@ -104,7 +104,6 @@ auto BisimulationBasedHeuristicSearchAlgorithm::compute_policy(
     bisimulation::BisimilarStateSpace state_space(
         task_,
         task_cost_function_,
-        det_task_proxy,
         *transition_system);
 
     stats_.time = timer();

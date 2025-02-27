@@ -54,7 +54,6 @@ public:
     BisimilarStateSpace(
         std::shared_ptr<ProbabilisticTask> task,
         std::shared_ptr<FDRCostFunction> task_cost_function,
-        const TaskProxy& det_task_proxy,
         const merge_and_shrink::TransitionSystem& transition_system);
 
     ~BisimilarStateSpace() override;
