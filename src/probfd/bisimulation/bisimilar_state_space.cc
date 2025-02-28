@@ -233,9 +233,9 @@ TerminationInfo BisimilarStateSpace::get_termination_info(QuotientState s)
                      task_cost_function_->get_non_goal_termination_cost());
 }
 
-value_t BisimilarStateSpace::get_action_cost(OperatorID)
+value_t BisimilarStateSpace::get_action_cost(OperatorID op_id)
 {
-    return 0;
+    return task_cost_function_->get_action_cost(op_id);
 }
 
 bool BisimilarStateSpace::is_goal_state(QuotientState s) const
