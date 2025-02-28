@@ -18,6 +18,8 @@
 
 #include "probfd/tasks/determinization_task.h"
 
+#include "probfd/utils/timed.h"
+
 #include "downward/merge_and_shrink/factored_transition_system.h"
 #include "downward/merge_and_shrink/merge_and_shrink_representation.h"
 #include "downward/merge_and_shrink/transition_system.h"
@@ -25,7 +27,6 @@
 #include "downward/utils/timer.h"
 
 #include <iostream>
-#include <limits>
 #include <memory>
 #include <string>
 
@@ -35,22 +36,6 @@ using namespace probfd::bisimulation;
 using namespace downward::cli::plugins;
 
 namespace {
-
-merge_and_shrink::Factor
-compute_bisimulation_on_determinization(const TaskProxy& det_task_proxy)
-{
-    utils::Timer timer;
-
-    std::cout << "Computing all-outcomes determinization bisimulation..."
-              << std::endl;
-
-    auto factor =
-        bisimulation::compute_bisimulation_on_determinization(det_task_proxy);
-
-    std::cout << "AOD-bisimulation was constructed in " << timer << std::endl;
-
-    return factor;
-}
 
 void print_bisimulation_stats(
     std::ostream& out,
@@ -96,8 +81,11 @@ public:
 
         TaskProxy det_task_proxy(*determinization);
 
-        auto [transition_system, state_mapping, distances] =
-            compute_bisimulation_on_determinization(det_task_proxy);
+        auto [transition_system, state_mapping, distances] = timed(
+            std::cout,
+            "Computing all-outcomes determinization bisimulation...",
+            bisimulation::compute_bisimulation_on_determinization,
+            det_task_proxy);
 
         if (!transition_system->is_solvable(*distances)) {
             std::cout << "Initial state recognized as unsolvable!" << std::endl;

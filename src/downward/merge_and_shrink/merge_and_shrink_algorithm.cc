@@ -32,7 +32,9 @@ namespace merge_and_shrink {
 static void
 log_progress(const utils::Timer& timer, const string& msg, utils::LogProxy& log)
 {
-    log << "M&S algorithm timer: " << timer << " (" << msg << ")" << endl;
+    if (log.is_at_least_normal()) {
+        log << "M&S algorithm timer: " << timer << " (" << msg << ")" << endl;
+    }
 }
 
 MergeAndShrinkAlgorithm::MergeAndShrinkAlgorithm(
@@ -347,10 +349,13 @@ void MergeAndShrinkAlgorithm::main_loop(
         }
     }
 
-    log << "End of merge-and-shrink algorithm, statistics:" << endl;
-    log << "Main loop runtime: " << timer.get_elapsed_time() << endl;
-    log << "Maximum intermediate abstraction size: "
-        << maximum_intermediate_size << endl;
+    if (log.is_at_least_normal()) {
+        log << "End of merge-and-shrink algorithm, statistics:" << endl;
+        log << "Main loop runtime: " << timer.get_elapsed_time() << endl;
+        log << "Maximum intermediate abstraction size: "
+            << maximum_intermediate_size << endl;
+    }
+
     shrink_strategy = nullptr;
     label_reduction = nullptr;
 }
@@ -367,11 +372,18 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     starting_peak_memory = utils::get_peak_memory_in_kb();
 
     utils::Timer timer;
-    log << "Running merge-and-shrink algorithm..." << endl;
+
+    if (log.is_at_least_normal()) {
+        log << "Running merge-and-shrink algorithm..." << endl;
+    }
+
     task_properties::verify_no_axioms(task_proxy);
     dump_options();
     warn_on_unusual_options();
-    log << endl;
+
+    if (log.is_at_least_normal()) {
+        log << endl;
+    }
 
     const bool compute_init_distances =
         shrink_strategy->requires_init_distances() ||
@@ -425,10 +437,14 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     if (!unsolvable && main_loop_max_time > 0) {
         main_loop(fts, task_proxy);
     }
-    const bool final = true;
-    report_peak_memory_delta(final);
-    log << "Merge-and-shrink algorithm runtime: " << timer << endl;
-    log << endl;
+
+    if (log.is_at_least_normal()) {
+        const bool final = true;
+        report_peak_memory_delta(final);
+        log << "Merge-and-shrink algorithm runtime: " << timer << endl;
+        log << endl;
+    }
+
     return fts;
 }
 

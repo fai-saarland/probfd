@@ -134,7 +134,10 @@ public:
     }
 
     // TODO: implement an option for logging warnings.
-    bool is_warning() const { return true; }
+    bool is_warning() const
+    {
+        return log->get_verbosity() != Verbosity::SILENT;
+    }
 
     template <typename T>
     friend LogProxy& operator<<(LogProxy& stream, const T& range)
