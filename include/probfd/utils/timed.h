@@ -41,9 +41,9 @@ public:
         }
 
         if (std::uncaught_exceptions() > 0) {
-            out << "Failed after " << timer() << '.' << std::endl;
+            out << "Failed after " << timer.stop() << '.' << std::endl;
         } else {
-            out << "Finished after " << timer() << '.' << std::endl;
+            out << "Finished after " << timer.stop() << '.' << std::endl;
         }
     }
 };
