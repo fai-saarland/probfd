@@ -28,7 +28,10 @@ inline void Statistics::print(std::ostream& out) const
 
 template <typename State, typename Action, bool UseInterval>
 TopologicalValueIteration<State, Action, UseInterval>::DFSExplorationState::
-    DFSExplorationState(StateID state_id, StackInfo& stack_info, unsigned stackidx)
+    DFSExplorationState(
+        StateID state_id,
+        StackInfo& stack_info,
+        unsigned stackidx)
     : state_id(state_id)
     , stack_info(stack_info)
     , stackidx(stackidx)
@@ -38,16 +41,14 @@ TopologicalValueIteration<State, Action, UseInterval>::DFSExplorationState::
 
 template <typename State, typename Action, bool UseInterval>
 void TopologicalValueIteration<State, Action, UseInterval>::
-    DFSExplorationState::
-    update_lowlink(unsigned upd)
+    DFSExplorationState::update_lowlink(unsigned upd)
 {
     lowlink = std::min(lowlink, upd);
 }
 
 template <typename State, typename Action, bool UseInterval>
 bool TopologicalValueIteration<State, Action, UseInterval>::
-    DFSExplorationState::
-    next_transition(MDPType& mdp)
+    DFSExplorationState::next_transition(MDPType& mdp)
 {
     aops.pop_back();
     successor_dist.clear();
@@ -58,8 +59,7 @@ bool TopologicalValueIteration<State, Action, UseInterval>::
 
 template <typename State, typename Action, bool UseInterval>
 bool TopologicalValueIteration<State, Action, UseInterval>::
-    DFSExplorationState::
-    next_successor()
+    DFSExplorationState::next_successor()
 {
     if (++successor != successor_dist.non_source_successor_dist.end())
         return true;
@@ -78,8 +78,9 @@ bool TopologicalValueIteration<State, Action, UseInterval>::
 
 template <typename State, typename Action, bool UseInterval>
 bool TopologicalValueIteration<State, Action, UseInterval>::
-    DFSExplorationState::
-    forward_non_loop_transition(MDPType& mdp, const State& state)
+    DFSExplorationState::forward_non_loop_transition(
+        MDPType& mdp,
+        const State& state)
 {
     do {
         mdp.generate_action_transitions(state, aops.back(), successor_dist);
@@ -101,8 +102,7 @@ bool TopologicalValueIteration<State, Action, UseInterval>::
 
 template <typename State, typename Action, bool UseInterval>
 Action& TopologicalValueIteration<State, Action, UseInterval>::
-    DFSExplorationState::
-    get_current_action()
+    DFSExplorationState::get_current_action()
 {
     return aops.back();
 }
@@ -266,7 +266,9 @@ Interval TopologicalValueIteration<State, Action, UseInterval>::solve(
 
             if (backtrack_from_scc) {
                 scc_found(
-                    tarjan_stack_ | std::views::drop(stack_id), policy, timer);
+                    tarjan_stack_ | std::views::drop(stack_id),
+                    policy,
+                    timer);
             }
 
             dfs_stack_.pop_back();
@@ -419,73 +421,41 @@ void TopologicalValueIteration<State, Action, UseInterval>::scc_found(
     assert(!scc.empty());
 
     ++statistics_.sccs;
+    if (scc.size() == 1) ++statistics_.singleton_sccs;
 
-    if (scc.size() == 1) {
-        // Singleton SCCs can only transition to a child SCC. The state
-        // value has already converged due to topological ordering.
-        ++statistics_.singleton_sccs;
-        StackInfo& single = scc.front();
-        StateInfo& state_info = state_information_[single.state_id];
-        *single.value = single.conv_part;
-        single.best_action = single.best_converged;
+    // Now run VI on the SCC until convergence
+    bool converged;
+
+    do {
+        timer.throw_if_expired();
+
+        converged = true;
+        auto it = scc.begin();
+
+        do {
+            if (it->update_value(this->epsilon)) converged = false;
+            ++statistics_.bellman_backups;
+        } while (++it != scc.end());
+    } while (!converged);
+
+    for (StackInfo& stk_info : scc) {
+        StateInfo& state_info = state_information_[stk_info.state_id];
         assert(state_info.status == StateInfo::ONSTACK);
         state_info.status = StateInfo::CLOSED;
 
-        // Extract the policy
-        if (policy && single.best_action.has_value()) {
-            if constexpr (UseInterval) {
-                policy->emplace_decision(
-                    single.state_id,
-                    *single.best_action,
-                    *single.value);
-            } else {
-                policy->emplace_decision(
-                    single.state_id,
-                    *single.best_action,
-                    Interval(*single.value, INFINITE_VALUE));
-            }
-        }
-    } else {
-        // Mark all states as closed
-        for (StackInfo& stk_info : scc) {
-            StateInfo& state_info = state_information_[stk_info.state_id];
-            assert(state_info.status == StateInfo::ONSTACK);
-            assert(!stk_info.nconv_qs.empty());
-            state_info.status = StateInfo::CLOSED;
-        }
+        if (!policy || !stk_info.best_action.has_value()) continue;
 
-        // Now run VI on the SCC until convergence
-        bool converged;
-
-        do {
-            timer.throw_if_expired();
-
-            converged = true;
-            auto it = scc.begin();
-
-            do {
-                if (it->update_value(this->epsilon)) converged = false;
-                ++statistics_.bellman_backups;
-            } while (++it != scc.end());
-        } while (!converged);
-
-        // Extract a policy from this SCC
-        if (policy) {
-            for (StackInfo& stk_info : scc) {
-                if (!stk_info.best_action.has_value()) continue;
-
-                if constexpr (UseInterval) {
-                    policy->emplace_decision(
-                        stk_info.state_id,
-                        *stk_info.best_action,
-                        *stk_info.value);
-                } else {
-                    policy->emplace_decision(
-                        stk_info.state_id,
-                        *stk_info.best_action,
-                        Interval(*stk_info.value, INFINITE_VALUE));
-                }
-            }
+        // Extract a policy
+        if constexpr (UseInterval) {
+            policy->emplace_decision(
+                stk_info.state_id,
+                *stk_info.best_action,
+                *stk_info.value);
+        } else {
+            policy->emplace_decision(
+                stk_info.state_id,
+                *stk_info.best_action,
+                Interval(*stk_info.value, INFINITE_VALUE));
         }
     }
 
