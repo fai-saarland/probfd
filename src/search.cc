@@ -109,7 +109,7 @@ static int search(argparse::ArgumentParser& parser)
         return static_cast<int>(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
 
-    std::shared_ptr<ProbabilisticTask> input_task = timed(
+    std::shared_ptr<ProbabilisticTask> input_task = run_time_logged(
         std::cout,
         "Reading input task...",
         probfd::tasks::read_root_tasks_from_file,

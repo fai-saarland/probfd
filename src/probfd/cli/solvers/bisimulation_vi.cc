@@ -72,20 +72,20 @@ public:
 
     bool solve(double max_time) override
     {
-        utils::Timer total_timer;
-
-        std::cout << "Building bisimulation..." << std::endl;
-
         std::shared_ptr determinization =
             std::make_shared<tasks::DeterminizationTask>(task);
 
         TaskProxy det_task_proxy(*determinization);
 
-        auto [transition_system, state_mapping, distances] = timed(
+        auto [transition_system, state_mapping, distances] = run_time_logged(
             std::cout,
             "Computing all-outcomes determinization bisimulation...",
             bisimulation::compute_bisimulation_on_determinization,
             det_task_proxy);
+
+        ProbabilisticTaskProxy task_proxy(*task);
+        State initial = task_proxy.get_initial_state();
+        initial.unpack();
 
         if (!transition_system->is_solvable(*distances)) {
             std::cout << "Initial state recognized as unsolvable!" << std::endl;
@@ -95,43 +95,51 @@ public:
             return false;
         }
 
-        ProbabilisticTaskProxy task_proxy(*task);
-        State initial = task_proxy.get_initial_state();
-        initial.unpack();
-        const auto initial_state =
-            QuotientState(state_mapping->get_value(initial));
+        utils::Timer state_space_timer(true);
 
-        utils::Timer timer;
+        auto state_space = run_time_logged(
+            state_space_timer,
+            std::cout,
+            "Constructing bisimulation abstract state space...",
+            [&]() {
+                return bisimulation::BisimilarStateSpace(
+                    task,
+                    task_cost_function,
+                    *transition_system);
+            });
 
-        bisimulation::BisimilarStateSpace state_space(
-            task,
-            task_cost_function,
-            *transition_system);
-
-        double time = timer();
         unsigned states = state_space.num_bisimilar_states();
         unsigned transitions = state_space.num_transitions();
 
-        std::cout << "Bisimulation built after " << time << std::endl;
         std::cout << "Bisimilar state space contains " << states
-                  << " states and " << transitions << " transitions.\n"
+                  << " states and " << transitions << " transitions."
                   << std::endl;
 
-        std::cout << "Running " << algorithm_name << " on the bisimulation..."
-                  << std::endl;
+        const auto initial_state =
+            QuotientState(state_mapping->get_value(initial));
 
-        utils::Timer vi_timer;
+        utils::Timer vi_timer(true);
 
-        ProbabilisticOperatorsProxy ops(*task);
-        heuristics::BlindEvaluator<QState> blind(ops, *task_cost_function);
-        ProgressReport progress;
+        auto policy = run_time_logged(
+            vi_timer,
+            std::cout,
+            "Running " + algorithm_name + " on the bisimulation...",
+            [&]() {
+                ProbabilisticOperatorsProxy ops(*task);
+                heuristics::BlindEvaluator<QState> blind(
+                    ops,
+                    *task_cost_function);
+                ProgressReport progress;
 
-        const auto policy = solver->compute_policy(
-            state_space,
-            blind,
-            initial_state,
-            progress,
-            max_time);
+                return solver->compute_policy(
+                    state_space,
+                    blind,
+                    initial_state,
+                    progress,
+                    max_time);
+            });
+
+        std::cout << std::endl;
 
         auto d = policy->get_decision(initial_state);
 
@@ -140,20 +148,20 @@ public:
                 ? d->q_value_interval
                 : Interval(task_cost_function->get_termination_cost(initial));
 
-        std::cout << "Finished after " << vi_timer() << " [t=" << total_timer
-                  << "]" << std::endl;
-        std::cout << std::endl;
-
         print_analysis_result(val);
 
         std::cout << std::endl;
         std::cout << "Bisimulation:" << std::endl;
-        print_bisimulation_stats(std::cout, time, states, transitions);
+        print_bisimulation_stats(
+            std::cout,
+            state_space_timer(),
+            states,
+            transitions);
 
         std::cout << std::endl;
         std::cout << "Algorithm " << algorithm_name
                   << " statistics:" << std::endl;
-        std::cout << "  Actual solver time: " << vi_timer << std::endl;
+        std::cout << "  Actual solver time: " << vi_timer() << std::endl;
         solver->print_statistics(std::cout);
 
         return true;

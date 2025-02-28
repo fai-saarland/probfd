@@ -258,7 +258,7 @@ MDPSolver::create(const std::shared_ptr<ProbabilisticTask>& task)
 {
     auto task_cost_function = std::make_shared<TaskCostFunction>(task);
 
-    std::unique_ptr<StatisticalMDPAlgorithm> algorithm = timed(
+    std::unique_ptr<StatisticalMDPAlgorithm> algorithm = run_time_logged(
         std::cout,
         "Constructing algorithm...",
         &MDPSolver::create_algorithm,
@@ -266,7 +266,7 @@ MDPSolver::create(const std::shared_ptr<ProbabilisticTask>& task)
         task,
         task_cost_function);
 
-    std::unique_ptr<TaskStateSpace> state_space = timed(
+    std::unique_ptr<TaskStateSpace> state_space = run_time_logged(
         std::cout,
         "Constructing state space...",
         &TaskStateSpaceFactory::create_state_space,
@@ -274,7 +274,7 @@ MDPSolver::create(const std::shared_ptr<ProbabilisticTask>& task)
         task,
         task_cost_function);
 
-    std::shared_ptr<FDREvaluator> heuristic = timed(
+    std::shared_ptr<FDREvaluator> heuristic = run_time_logged(
         std::cout,
         "Constructing heuristic...",
         &TaskHeuristicFactory::create_evaluator,

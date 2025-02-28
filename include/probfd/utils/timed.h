@@ -10,35 +10,101 @@
 
 namespace probfd {
 
+class PrintingTimer {
+    utils::Timer& timer;
+    std::string print;
+    std::ostream& out;
+    bool same_line;
+
+public:
+    PrintingTimer(
+        utils::Timer& timer,
+        std::string print,
+        std::ostream& out,
+        bool same_line = true)
+        : timer(timer)
+        , print(std::move(print))
+        , out(out)
+        , same_line(same_line)
+    {
+        if (same_line) {
+            out << this->print << ' ' << std::flush;
+        } else {
+            out << this->print << std::endl;
+        }
+    }
+
+    ~PrintingTimer()
+    {
+        if (!same_line) {
+            out << print << ' ';
+        }
+
+        if (std::uncaught_exceptions() > 0) {
+            out << "Failed after " << timer() << '.' << std::endl;
+        } else {
+            out << "Finished after " << timer() << '.' << std::endl;
+        }
+    }
+};
+
 template <typename F, typename... Args>
-std::invoke_result_t<F, Args...>
-timed(std::ostream& out, const std::string& print, F&& f, Args&&... args)
+std::invoke_result_t<F, Args...> run_time_logged(
+    std::ostream& out,
+    const std::string& print,
+    bool same_line,
+    F&& f,
+    Args&&... args)
     requires std::invocable<F, Args...>
 {
-    class Printer {
-        utils::Timer timer;
-        std::ostream& out;
-
-    public:
-        Printer(const std::string& print, std::ostream& out)
-            : out(out)
-        {
-            out << print << ' ' << std::flush;
-        }
-
-        ~Printer()
-        {
-            if (std::uncaught_exceptions() > 0) {
-                out << "Failed after " << timer() << '.' << std::endl;
-            } else {
-                out << "Finished after " << timer() << '.' << std::endl;
-            }
-        }
-    };
-
-    Printer _(print, out);
+    utils::Timer timer;
+    PrintingTimer _(timer, print, out, same_line);
     return std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
 }
+
+template <typename F, typename... Args>
+std::invoke_result_t<F, Args...> run_time_logged(
+    std::ostream& out,
+    const std::string& print,
+    F&& f,
+    Args&&... args)
+    requires std::invocable<F, Args...>
+{
+    return run_time_logged(
+        out,
+        print,
+        true,
+        std::forward<F>(f),
+        std::forward<Args>(args)...);
+}
+
+template <typename F, typename... Args>
+std::invoke_result_t<F, Args...> run_time_logged(
+    utils::Timer& timer,
+    std::ostream& out,
+    const std::string& print,
+    bool same_line,
+    F&& f,
+    Args&&... args)
+    requires std::invocable<F, Args...>
+{
+    PrintingTimer _(timer, print, out, same_line);
+    return std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
+}
+
+template <typename F, typename... Args>
+std::invoke_result_t<F, Args...> run_time_logged(
+    utils::Timer& timer,
+    std::ostream& out,
+    const std::string& print,
+    F&& f,
+    Args&&... args)
+    requires std::invocable<F, Args...>
+{
+    PrintingTimer _(timer, print, out);
+    return std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
+}
+
 
 }; // namespace probfd
 
