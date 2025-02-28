@@ -89,7 +89,8 @@ public:
 
         if (!transition_system->is_solvable(*distances)) {
             std::cout << "Initial state recognized as unsolvable!" << std::endl;
-            print_analysis_result(Interval(1_vt, 1_vt));
+            const auto cost = task_cost_function->get_termination_cost(initial);
+            print_analysis_result(Interval(cost));
             std::cout << std::endl;
             return false;
         }
