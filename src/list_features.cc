@@ -24,10 +24,7 @@ using utils::ExitCode;
 
 template <>
 struct std::formatter<downward::cli::plugins::Bounds> {
-    constexpr auto parse(std::format_parse_context& ctx)
-    {
-        return ctx.begin();
-    }
+    constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
 
     template <typename FormatContext>
     auto
@@ -96,11 +93,12 @@ protected:
                              : arg_info.type.name();
 
             if (arg_info.bounds.has_bound()) {
-                s = &arg_strings.emplace_back(std::format(
-                    "{} ({} {})",
-                    arg_info.key,
-                    tname,
-                    arg_info.bounds));
+                s = &arg_strings.emplace_back(
+                    std::format(
+                        "{} ({} {})",
+                        arg_info.key,
+                        tname,
+                        arg_info.bounds));
             } else {
                 s = &arg_strings.emplace_back(
                     std::format("{} ({})", arg_info.key, tname));
@@ -249,15 +247,25 @@ static int list_features(argparse::ArgumentParser& parser)
     } else {
         if (auto categories =
                 parser.present<std::vector<std::string>>("category")) {
-            for (const string& name : *categories) {
-                doc_printer->print_category(name, parser.get<bool>("full"));
+            try {
+                for (const string& name : *categories) {
+                    doc_printer->print_category(name, parser.get<bool>("full"));
+                }
+            } catch (const MissingSubCategoryError& error) {
+                std::cerr << error.what() << std::endl;
+                return 1;
             }
         }
 
         if (auto features =
                 parser.present<std::vector<std::string>>("features")) {
             for (const string& name : *features) {
-                doc_printer->print_feature(name);
+                try {
+                    doc_printer->print_feature(name);
+                } catch (const MissingFeatureError& error) {
+                    std::cerr << error.what() << std::endl;
+                    return 1;
+                }
             }
         }
     }
@@ -285,8 +293,9 @@ void add_list_features_subcommand(argparse::ArgumentParser& arg_parser)
         .help("One or more categories which should be listed.")
         .nargs(argparse::nargs_pattern::at_least_one);
     feature_list_parser.add_argument("--full", "-f")
-        .help("If specified, all features of specified categories will be "
-              "listed explicitly as well.")
+        .help(
+            "If specified, all features of specified categories will be "
+            "listed explicitly as well.")
         .flag();
     feature_list_parser.add_argument("features")
         .help("Individual features to list.")

@@ -8,6 +8,33 @@
 #include <unordered_set>
 
 namespace downward::cli::plugins {
+
+class MissingFeatureError : public std::exception {
+public:
+    explicit MissingFeatureError(const std::string& message)
+        : exception(message.c_str())
+    {
+    }
+
+    explicit MissingFeatureError(const char* message)
+        : exception(message)
+    {
+    }
+};
+
+class MissingSubCategoryError : public std::exception {
+public:
+    explicit MissingSubCategoryError(const std::string& message)
+        : exception(message.c_str())
+    {
+    }
+
+    explicit MissingSubCategoryError(const char* message)
+        : exception(message)
+    {
+    }
+};
+
 class Feature;
 class Registry {
     /*

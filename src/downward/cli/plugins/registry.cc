@@ -22,7 +22,8 @@ Registry::Registry(
 shared_ptr<const Feature> Registry::get_feature(const string& name) const
 {
     if (!has_feature(name)) {
-        ABORT("could not find a feature named '" + name + "' in the registry");
+        throw MissingFeatureError(
+            "could not find a feature named '" + name + "' in the registry");
     }
     return features.at(name);
 }
@@ -31,7 +32,7 @@ const SubcategoryPlugin&
 Registry::get_subcategory_plugin(const string& subcategory) const
 {
     if (!subcategory_plugins.count(subcategory)) {
-        ABORT(
+        throw MissingSubCategoryError(
             "attempt to retrieve non-existing group info from registry: " +
             string(subcategory));
     }
