@@ -140,7 +140,7 @@ public:
         std::shared_ptr<FDRCostFunction> task_cost_function,
         std::unique_ptr<StatisticalMDPAlgorithm> algorithm,
         std::unique_ptr<TaskStateSpace> state_space,
-        const std::shared_ptr<FDREvaluator> heuristic,
+        std::shared_ptr<FDREvaluator> heuristic,
         std::string algorithm_name,
         std::string policy_filename,
         bool print_fact_names,
