@@ -473,7 +473,7 @@ void EndComponentDecomposition<State, Action>::scc_found(
         if (expand_goals_) {
             for (auto& stk_info : scc) {
                 assert(stk_info.successors.size() == stk_info.aops.size());
-                StateInfo& info = state_infos_[stk_info.stateid];
+                StateInfo& info = state_infos_[stk_info.state_id];
                 if (info.expandable_goal) {
                     stk_info.successors.clear();
                     stk_info.aops.clear();
@@ -491,7 +491,7 @@ void EndComponentDecomposition<State, Action>::scc_found(
 
             for (const auto& stk_info : scc) {
                 assert(stk_info.successors.size() == stk_info.aops.size());
-                state_infos_[stk_info.stateid].explored = 0;
+                state_infos_[stk_info.state_id].explored = 0;
             }
 
             decompose(sys, e.stck, timer);
@@ -500,7 +500,7 @@ void EndComponentDecomposition<State, Action>::scc_found(
 
             for (const auto& stk_info : scc) {
                 assert(stk_info.successors.size() == stk_info.aops.size());
-                StateInfo& info = state_infos_[stk_info.stateid];
+                StateInfo& info = state_infos_[stk_info.state_id];
                 info.stackid = StateInfo::UNDEF;
 
                 transitions += stk_info.aops.size();
@@ -531,7 +531,7 @@ void EndComponentDecomposition<State, Action>::decompose(
     const unsigned limit = expansion_queue_.size();
 
     for (unsigned i = start; i < stack_.size(); ++i) {
-        const StateID id = stack_[i].stateid;
+        const StateID id = stack_[i].state_id;
         StateInfo& state_info = state_infos_[id];
 
         if (!state_info.explored && push(id, state_info)) {

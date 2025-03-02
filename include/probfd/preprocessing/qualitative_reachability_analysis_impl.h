@@ -416,7 +416,7 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
 
     auto scc = stack_ | std::views::drop(stack_idx);
 
-    const StateInfo& st_info = state_infos_[std::ranges::begin(scc)->stateid];
+    const StateInfo& st_info = state_infos_[std::ranges::begin(scc)->state_id];
 
     if (st_info.dead) {
         for (const StateID state_id : scc | transform(&StackInfo::stateid)) {

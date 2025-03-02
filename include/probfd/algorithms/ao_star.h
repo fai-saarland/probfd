@@ -20,19 +20,19 @@ namespace probfd::algorithms::ao_search::ao_star {
  * The AO* algorithm is an MDP heuristic search algorithm applicable only to
  * acyclic MDPs. The algorithm maintains a greedy policy and iteratively
  * constructs a subgraph of the MDP. In each iteration, a non-terminal leaf
- * stateid of the subgraph that is reachable by the greedy policy (a tip
- * stateid) is sampled and expanded. Afterwards, Bellman updates are performed
- * on the backward-reachable subgraph ending in the sampled stateid in reverse
+ * state_id of the subgraph that is reachable by the greedy policy (a tip
+ * state_id) is sampled and expanded. Afterwards, Bellman updates are performed
+ * on the backward-reachable subgraph ending in the sampled state_id in reverse
  * topological order, while also updating the greedy policy. The algorithm
  * terminates once no tip states are left, i.e. the greedy policy is fully
  * explored.
  *
- * @tparam State - The stateid type of the underlying MDP.
+ * @tparam State - The state_id type of the underlying MDP.
  * @tparam Action - The action type of the underlying MDP.
  * @tparam UseInterval - Whether value intervals are used.
  *
- * @remark The search algorithm does not validate that the stateid space is
- * acyclic. It is an error to invoke this search algorithm on stateid spaces
+ * @remark The search algorithm does not validate that the state_id space is
+ * acyclic. It is an error to invoke this search algorithm on state_id spaces
  * which contain cycles.
  */
 template <typename State, typename Action, bool UseInterval>

@@ -323,7 +323,7 @@ void dump_state_space_dot_graph(
     do {
         auto& s = open.front();
 
-        const State& state = s.state;
+        const State& state = s.state_id;
         auto* node = s.node;
 
         node->set_attribute("label", sstr(state));
