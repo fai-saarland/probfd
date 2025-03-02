@@ -57,12 +57,12 @@ public:
 
 struct DFSExplorationState {
     DFSExplorationState(StateID state, unsigned stack_index)
-        : stateid(state)
+        : state_id(state)
         , lowlink(stack_index)
     {
     }
 
-    const StateID stateid;
+    const StateID state_id;
     uint32_t lowlink;
 
     std::vector<StateID> successors;
@@ -168,7 +168,6 @@ private:
         ProgressReport& progress,
         utils::CountdownTimer& timer);
 
-    template <bool GetVisited>
     bool policy_exploration(
         MDP& mdp,
         HeuristicType& heuristic,
@@ -199,8 +198,7 @@ private:
     std::pair<bool, bool> vi_step(
         MDP& mdp,
         const std::ranges::input_range auto& range,
-        utils::CountdownTimer& timer,
-        unsigned long long& stat_counter);
+        utils::CountdownTimer& timer);
 };
 
 } // namespace probfd::algorithms::heuristic_depth_first_search

@@ -23,9 +23,13 @@ namespace internal {
 inline void Statistics::print(std::ostream& out) const
 {
     out << "  Iterations: " << iterations << std::endl;
+    out << "  Value iterations: " << convergence_value_iterations << std::endl;
+    out << "  Bellman backups (forward): " << forward_updates << std::endl;
+    out << "  Bellman backups (backward): " << backtracking_updates
+        << std::endl;
+    out << "  Bellman backups (convergence): " << convergence_updates
+        << std::endl;
     out << "  Traps: " << traps << std::endl;
-    out << "  Bellman backups (forward): " << fw_updates << std::endl;
-    out << "  Bellman backups (backward): " << bw_updates << std::endl;
     out << "  State re-expansions: " << reexpansions << std::endl;
     out << "  Trap removal time: " << trap_timer << std::endl;
 }
@@ -53,23 +57,6 @@ TADFHSImpl<State, Action, UseInterval>::DFSExplorationState::get_successor()
     const
 {
     return successors.back();
-}
-
-template <typename State, typename Action, bool UseInterval>
-void TADFHSImpl<State, Action, UseInterval>::DFSExplorationState::update(
-    const DFSExplorationState& other)
-{
-    if (!other.value_converged) value_converged = false;
-    if (!other.solved) solved = false;
-    if (!other.is_trap) is_trap = false;
-}
-
-template <typename State, typename Action, bool UseInterval>
-void TADFHSImpl<State, Action, UseInterval>::DFSExplorationState::clear()
-{
-    value_converged = true;
-    solved = true;
-    is_trap = true;
 }
 
 template <typename State, typename Action, bool UseInterval>
@@ -140,17 +127,14 @@ void TADFHSImpl<State, Action, UseInterval>::dfhs_vi_driver(
     ProgressReport& progress,
     utils::CountdownTimer& timer)
 {
-    UpdateResult vi_res{true, true};
+    bool terminate;
     do {
-        const bool solved =
-            policy_exploration(quotient, heuristic, state, timer);
-        if (solved) {
-            vi_res = value_iteration(quotient, visited_states_, timer);
-        }
+        terminate = policy_exploration(quotient, heuristic, state, timer) &&
+                    value_iteration(quotient, visited_states_, timer);
         visited_states_.clear();
         ++statistics_.iterations;
         progress.print();
-    } while (vi_res.value_changed || vi_res.policy_changed);
+    } while (!terminate);
 }
 
 template <typename State, typename Action, bool UseInterval>
@@ -161,20 +145,20 @@ void TADFHSImpl<State, Action, UseInterval>::dfhs_label_driver(
     ProgressReport& progress,
     utils::CountdownTimer& timer)
 {
-    bool solved;
+    bool terminate;
     do {
-        solved = policy_exploration(quotient, heuristic, state, timer) &&
-                 this->state_infos_[state].is_solved();
-        visited_states_.clear();
+        terminate = policy_exploration(quotient, heuristic, state, timer);
         ++statistics_.iterations;
         progress.print();
-    } while (!solved);
+        assert(visited_states_.empty());
+    } while (!terminate);
 }
 
 template <typename State, typename Action, bool UseInterval>
 bool TADFHSImpl<State, Action, UseInterval>::advance(
     QuotientSystem& quotient,
-    DFSExplorationState& einfo)
+    DFSExplorationState& einfo,
+    StateInfo& state_info)
 {
     using enum BacktrackingUpdateType;
 
@@ -184,14 +168,13 @@ bool TADFHSImpl<State, Action, UseInterval>::advance(
 
     if (backtrack_update_type_ == SINGLE ||
         (backtrack_update_type_ == ON_DEMAND && !einfo.value_converged)) {
-        const QState state = quotient.get_state(einfo.state);
+        const auto state = quotient.get_state(einfo.state_id);
 
         ClearGuard _(transitions_, qvalues_);
         this->generate_non_tip_transitions(quotient, state, transitions_);
 
-        ++statistics_.bw_updates;
+        ++statistics_.backtracking_updates;
 
-        StateInfo& state_info = this->state_infos_[einfo.state];
         auto value = this->compute_bellman_and_greedy(
             state,
             transitions_,
@@ -224,6 +207,7 @@ template <typename State, typename Action, bool UseInterval>
 bool TADFHSImpl<State, Action, UseInterval>::push_successor(
     QuotientSystem& quotient,
     DFSExplorationState& einfo,
+    StateInfo& sinfo,
     utils::CountdownTimer& timer)
 {
     do {
@@ -245,7 +229,7 @@ bool TADFHSImpl<State, Action, UseInterval>::push_successor(
             // is on stack
             einfo.lowlink = std::min(einfo.lowlink, succ_stack_index);
         }
-    } while (advance(quotient, einfo));
+    } while (advance(quotient, einfo, sinfo));
 
     return false;
 }
@@ -262,16 +246,16 @@ template <typename State, typename Action, bool UseInterval>
 bool TADFHSImpl<State, Action, UseInterval>::initialize(
     QuotientSystem& quotient,
     QHeuristic& heuristic,
-    DFSExplorationState& einfo)
+    DFSExplorationState& einfo,
+    StateInfo& state_info)
 {
-    StateInfo& state_info = this->state_infos_[einfo.state];
     if (state_info.is_solved()) {
         assert(label_solved_ || state_info.is_goal_or_terminal());
         einfo.is_trap = false;
         return false;
     }
 
-    const QState state = quotient.get_state(einfo.state);
+    const auto state = quotient.get_state(einfo.state_id);
 
     const bool is_tip_state = state_info.is_on_fringe();
 
@@ -289,7 +273,7 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
             this->generate_non_tip_transitions(quotient, state, transitions_);
         }
 
-        ++statistics_.fw_updates;
+        ++statistics_.forward_updates;
 
         auto value = this->compute_bellman_and_greedy(
             state,
@@ -361,32 +345,34 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
     push(start_state);
 
     DFSExplorationState* einfo;
+    StateInfo* sinfo;
 
     for (;;) {
         do {
             einfo = &dfs_stack_.back();
-        } while (initialize(quotient, heuristic, *einfo) &&
-                 push_successor(quotient, *einfo, timer));
+            sinfo = &this->state_infos_[einfo->state_id];
+        } while (initialize(quotient, heuristic, *einfo, *sinfo) &&
+                 push_successor(quotient, *einfo, *sinfo, timer));
 
         do {
             const uint32_t last_lowlink = einfo->lowlink;
+            const bool backtrack_from_scc =
+                last_lowlink == stack_index_[einfo->state_id];
 
-            // Is SCC root?
-            if (last_lowlink == stack_index_[einfo->state]) {
+            if (backtrack_from_scc) {
                 auto scc = tarjan_stack_ | std::views::drop(last_lowlink);
 
                 if (scc.size() > 1 && einfo->is_trap) {
                     ++this->statistics_.traps;
 
-                    const StateID state_id = einfo->state;
+                    const StateID state_id = einfo->state_id;
 
                     // Collapse trap and reset quotient state data
                     TimerScope scope(statistics_.trap_timer);
 
                     quotient.build_quotient(scc, *scc.begin());
-                    StateInfo& state_info = this->state_infos_[state_id];
-                    state_info.update_policy(std::nullopt);
-                    state_info.set_on_fringe();
+                    sinfo->update_policy(std::nullopt);
+                    sinfo->set_on_fringe();
 
                     // re-push trap if enabled
                     if (reexpand_traps_) {
@@ -418,7 +404,6 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
                     }
                 }
 
-                einfo->is_trap = false;
                 tarjan_stack_.erase(scc.begin(), scc.end());
             }
 
@@ -433,63 +418,78 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
             timer.throw_if_expired();
 
             einfo = &dfs_stack_.back();
+            sinfo = &this->state_infos_[einfo->state_id];
 
-            einfo->lowlink = std::min(last_lowlink, einfo->lowlink);
+            if (backtrack_from_scc) {
+                einfo->is_trap = false;
+            } else {
+                if (!bt_einfo.is_trap) einfo->is_trap = false;
+                einfo->lowlink = std::min(last_lowlink, einfo->lowlink);
+            }
 
-            if (!bt_einfo.is_trap) einfo->is_trap = false;
             if (!bt_einfo.solved) einfo->solved = false;
-        } while (!advance(quotient, *einfo));
+        } while (!advance(quotient, *einfo, *sinfo));
     }
 }
 
 template <typename State, typename Action, bool UseInterval>
-auto TADFHSImpl<State, Action, UseInterval>::value_iteration(
+bool TADFHSImpl<State, Action, UseInterval>::value_iteration(
     QuotientSystem& quotient,
     const std::ranges::input_range auto& range,
-    utils::CountdownTimer& timer) -> UpdateResult
+    utils::CountdownTimer& timer)
 {
-    UpdateResult updated_all(false, false);
-    bool value_changed_for_any;
-    bool policy_changed_for_any;
+    ++statistics_.convergence_value_iterations;
 
-    do {
-        value_changed_for_any = false;
-        policy_changed_for_any = false;
+    for (;;) {
+        auto [value_changed, policy_changed] = vi_step(quotient, range, timer);
 
-        for (const StateID id : range) {
-            timer.throw_if_expired();
+        if (policy_changed) return false;
+        if (!value_changed) break;
+    }
 
-            const QState state = quotient.get_state(id);
+    return true;
+}
 
-            ClearGuard _(transitions_, qvalues_);
-            this->generate_non_tip_transitions(quotient, state, transitions_);
+template <typename State, typename Action, bool UseInterval>
+std::pair<bool, bool> TADFHSImpl<State, Action, UseInterval>::vi_step(
+    QuotientSystem& quotient,
+    const std::ranges::input_range auto& range,
+    utils::CountdownTimer& timer)
+{
+    bool values_not_conv = false;
+    bool policy_not_conv = false;
 
-            StateInfo& state_info = this->state_infos_[id];
-            const auto value = this->compute_bellman_and_greedy(
-                state,
-                transitions_,
-                quotient,
-                qvalues_);
+    for (const StateID id : range) {
+        timer.throw_if_expired();
 
-            const auto upd_val =
-                this->update_value(state_info, value, this->epsilon_);
-            bool policy_changed = this->update_policy(
-                state_info,
-                this->select_greedy_transition(
-                    quotient,
-                    state_info.get_policy(),
-                    transitions_));
-            value_changed_for_any = value_changed_for_any || !upd_val.converged;
-            policy_changed_for_any = policy_changed_for_any || policy_changed;
-        }
+        StateInfo& state_info = this->state_infos_[id];
 
-        updated_all.value_changed =
-            updated_all.value_changed || value_changed_for_any;
-        updated_all.policy_changed =
-            updated_all.policy_changed || policy_changed_for_any;
-    } while (value_changed_for_any && !policy_changed_for_any);
+        const auto state = quotient.get_state(id);
 
-    return updated_all;
+        ClearGuard _(transitions_, qvalues_);
+
+        this->generate_non_tip_transitions(quotient, state, transitions_);
+
+        const auto value = this->compute_bellman_and_greedy(
+            state,
+            transitions_,
+            quotient,
+            qvalues_);
+
+        ++statistics_.convergence_updates;
+
+        auto transition = this->select_greedy_transition(
+            quotient,
+            state_info.get_policy(),
+            transitions_);
+
+        auto val_upd = this->update_value(state_info, value, this->epsilon_);
+        bool policy_changed = this->update_policy(state_info, transition);
+        values_not_conv = values_not_conv || !val_upd.converged;
+        policy_not_conv = policy_not_conv || policy_changed;
+    }
+
+    return std::make_pair(values_not_conv, policy_not_conv);
 }
 
 template <typename State, typename Action, bool UseInterval>
@@ -544,7 +544,7 @@ auto TADepthFirstHeuristicSearch<State, Action, UseInterval>::compute_policy(
     QuotientSystem quotient(mdp);
     quotients::QuotientMaxHeuristic<State, Action> qheuristic(heuristic);
 
-    QState qinit = quotient.translate_state(state);
+    auto qinit = quotient.translate_state(state);
     algorithm_.solve_quotient(quotient, qheuristic, qinit, progress, max_time);
 
     /*
@@ -572,7 +572,7 @@ auto TADepthFirstHeuristicSearch<State, Action, UseInterval>::compute_policy(
 
     do {
         const StateID quotient_id = queue.front();
-        const QState quotient_state = quotient.get_state(quotient_id);
+        const auto quotient_state = quotient.get_state(quotient_id);
         queue.pop_front();
 
         const auto& state_info = algorithm_.state_infos_[quotient_id];

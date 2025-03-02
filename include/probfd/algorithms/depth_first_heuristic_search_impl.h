@@ -104,7 +104,7 @@ void HeuristicDepthFirstSearch<State, Action, UseInterval>::
 {
     bool terminate;
     do {
-        terminate = policy_exploration<true>(mdp, heuristic, stateid, timer) &&
+        terminate = policy_exploration(mdp, heuristic, stateid, timer) &&
                     value_iteration(mdp, visited_states_, timer);
 
         visited_states_.clear();
@@ -124,7 +124,7 @@ void HeuristicDepthFirstSearch<State, Action, UseInterval>::
 {
     bool terminate;
     do {
-        terminate = policy_exploration<false>(mdp, heuristic, stateid, timer);
+        terminate = policy_exploration(mdp, heuristic, stateid, timer);
         ++statistics_.iterations;
         progress.print();
         assert(visited_states_.empty());
@@ -132,7 +132,6 @@ void HeuristicDepthFirstSearch<State, Action, UseInterval>::
 }
 
 template <typename State, typename Action, bool UseInterval>
-template <bool GetVisited>
 bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
     MDP& mdp,
     HeuristicType& heuristic,
@@ -147,22 +146,22 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
 
     DFSExplorationState* einfo;
     StateInfo* sinfo;
-    uint32_t* lsinfo;
 
     for (;;) {
         // DFS recursion
         do {
             einfo = &dfs_stack_.back();
-            sinfo = &this->state_infos_[einfo->stateid];
-            lsinfo = &stack_index_[einfo->stateid];
+            sinfo = &this->state_infos_[einfo->state_id];
         } while (initialize(mdp, heuristic, *einfo, *sinfo) &&
                  push_successor(mdp, *einfo, *sinfo, timer));
 
         // Iterative backtracking
         do {
             const uint32_t last_lowlink = einfo->lowlink;
+            const bool backtrack_from_scc =
+                last_lowlink == stack_index_[einfo->state_id];
 
-            if (last_lowlink == *lsinfo) {
+            if (backtrack_from_scc) {
                 auto scc = tarjan_stack_ | std::views::drop(last_lowlink);
 
                 for (const StateID state_id : scc) {
@@ -175,9 +174,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
 
                     if (label_solved_) {
                         mem_info.set_solved();
-                    }
-
-                    if constexpr (GetVisited) {
+                    } else {
                         visited_states_.push_back(state_id);
                     }
                 }
@@ -196,10 +193,11 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
             timer.throw_if_expired();
 
             einfo = &dfs_stack_.back();
-            sinfo = &this->state_infos_[einfo->stateid];
-            lsinfo = &stack_index_[einfo->stateid];
+            sinfo = &this->state_infos_[einfo->state_id];
 
-            einfo->lowlink = std::min(last_lowlink, einfo->lowlink);
+            if (!backtrack_from_scc) {
+                einfo->lowlink = std::min(last_lowlink, einfo->lowlink);
+            }
 
             if (!bt_einfo.solved) einfo->solved = false;
         } while (!advance(mdp, *einfo, *sinfo));
@@ -220,7 +218,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::advance(
 
     if (backtrack_update_type_ == SINGLE ||
         (backtrack_update_type_ == ON_DEMAND && !einfo.value_converged)) {
-        const State state = mdp.get_state(einfo.stateid);
+        const auto state = mdp.get_state(einfo.state_id);
 
         ClearGuard _(transitions_, qvalues_);
         this->generate_non_tip_transitions(mdp, state, transitions_);
@@ -309,7 +307,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::initialize(
         return false;
     }
 
-    const State state = mdp.get_state(einfo.stateid);
+    const auto state = mdp.get_state(einfo.state_id);
 
     const bool is_tip_state = sinfo.is_on_fringe();
 
@@ -383,7 +381,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::value_iteration(
 
     for (;;) {
         auto [value_changed, policy_changed] =
-            vi_step(mdp, range, timer, statistics_.convergence_updates);
+            vi_step(mdp, range, timer);
 
         if (policy_changed) return false;
         if (!value_changed) break;
@@ -397,8 +395,7 @@ std::pair<bool, bool>
 HeuristicDepthFirstSearch<State, Action, UseInterval>::vi_step(
     MDP& mdp,
     const std::ranges::input_range auto& range,
-    utils::CountdownTimer& timer,
-    unsigned long long& stat_counter)
+    utils::CountdownTimer& timer)
 {
     bool values_not_conv = false;
     bool policy_not_conv = false;
@@ -408,7 +405,7 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::vi_step(
 
         StateInfo& state_info = this->state_infos_[id];
 
-        const State state = mdp.get_state(id);
+        const auto state = mdp.get_state(id);
 
         ClearGuard _(transitions_, qvalues_);
 
@@ -420,7 +417,7 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::vi_step(
             mdp,
             qvalues_);
 
-        ++stat_counter;
+        ++statistics_.convergence_updates;
 
         auto transition = this->select_greedy_transition(
             mdp,

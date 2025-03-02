@@ -34,8 +34,10 @@ struct Statistics {
     unsigned long long iterations = 0;
     unsigned long long traps = 0;
     unsigned long long reexpansions = 0;
-    unsigned long long fw_updates = 0;
-    unsigned long long bw_updates = 0;
+    unsigned long long forward_updates = 0;
+    unsigned long long backtracking_updates = 0;
+    unsigned long long convergence_updates = 0;
+    unsigned long long convergence_value_iterations = 0;
 
     void print(std::ostream& out) const;
     void register_report(ProgressReport& report) const;
@@ -99,7 +101,7 @@ class TADFHSImpl
     };
 
     struct DFSExplorationState {
-        StateID state;
+        StateID state_id;
         uint32_t lowlink;
         std::vector<StateID> successors;
 
@@ -111,17 +113,13 @@ class TADFHSImpl
         bool is_trap : 1 = true;
 
         explicit DFSExplorationState(StateID state, int stack_index)
-            : state(state)
+            : state_id(state)
             , lowlink(stack_index)
         {
         }
 
         bool next_successor();
         StateID get_successor() const;
-
-        void update(const DFSExplorationState& other);
-
-        void clear();
     };
 
     struct StackInfo {
@@ -213,17 +211,22 @@ private:
         ProgressReport& progress,
         utils::CountdownTimer& timer);
 
-    bool advance(QuotientSystem& quotient, DFSExplorationState& einfo);
+    bool advance(
+        QuotientSystem& quotient,
+        DFSExplorationState& einfo,
+        StateInfo& state_info);
 
     bool push_successor(
         QuotientSystem& quotient,
         DFSExplorationState& einfo,
+        StateInfo& sinfo,
         utils::CountdownTimer& timer);
 
     bool initialize(
         QuotientSystem& quotient,
         QHeuristic& heuristic,
-        DFSExplorationState& einfo);
+        DFSExplorationState& einfo,
+        StateInfo& state_info);
 
     void push(StateID state_id);
 
@@ -233,7 +236,12 @@ private:
         StateID start_state,
         utils::CountdownTimer& timer);
 
-    UpdateResult value_iteration(
+    bool value_iteration(
+        QuotientSystem& quotient,
+        const std::ranges::input_range auto& range,
+        utils::CountdownTimer& timer);
+
+    std::pair<bool, bool> vi_step(
         QuotientSystem& quotient,
         const std::ranges::input_range auto& range,
         utils::CountdownTimer& timer);
