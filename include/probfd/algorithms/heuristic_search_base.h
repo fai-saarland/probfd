@@ -2,10 +2,10 @@
 #define PROBFD_ALGORITHMS_HEURISTIC_SEARCH_BASE_H
 
 #include "probfd/algorithms/heuristic_search_state_information.h"
+#include "probfd/algorithms/iterative_mdp_algorithm.h"
 #include "probfd/algorithms/types.h"
 #include "probfd/algorithms/utils.h"
 
-#include "iterative_mdp_algorithm.h"
 #include "probfd/progress_report.h"
 
 #if defined(EXPENSIVE_STATISTICS)
