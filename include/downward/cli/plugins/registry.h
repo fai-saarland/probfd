@@ -9,28 +9,28 @@
 
 namespace downward::cli::plugins {
 
-class MissingFeatureError : public std::exception {
+class MissingFeatureError : public std::runtime_error {
 public:
     explicit MissingFeatureError(const std::string& message)
-        : exception(message.c_str())
+        : runtime_error(message.c_str())
     {
     }
 
     explicit MissingFeatureError(const char* message)
-        : exception(message)
+        : runtime_error(message)
     {
     }
 };
 
-class MissingSubCategoryError : public std::exception {
+class MissingSubCategoryError : public std::runtime_error {
 public:
     explicit MissingSubCategoryError(const std::string& message)
-        : exception(message.c_str())
+        : runtime_error(message.c_str())
     {
     }
 
     explicit MissingSubCategoryError(const char* message)
-        : exception(message)
+        : runtime_error(message)
     {
     }
 };
