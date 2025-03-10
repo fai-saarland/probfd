@@ -47,7 +47,7 @@ inline auto StateInfo::get_status() const
 }
 
 inline StackInfo::StackInfo(StateID sid)
-    : stateid(sid)
+    : state_id(sid)
 {
 }
 
@@ -419,7 +419,7 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
     const StateInfo& st_info = state_infos_[std::ranges::begin(scc)->state_id];
 
     if (st_info.dead) {
-        for (const StateID state_id : scc | transform(&StackInfo::stateid)) {
+        for (const StateID state_id : scc | transform(&StackInfo::state_id)) {
             StateInfo& info = state_infos_[state_id];
             info.stackid = StateInfo::UNDEF;
             assert(info.dead);
@@ -440,7 +440,7 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
 
     for (std::size_t i = 0; i != scc.size(); ++i) {
         StackInfo& info = scc[i];
-        StateInfo& state_info = state_infos_[info.stateid];
+        StateInfo& state_info = state_infos_[info.state_id];
         state_info.stackid = StateInfo::UNDEF;
         state_info.dead = false;
 
@@ -496,7 +496,7 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
                 // The state was marked unsolvable.
                 assert(partition.is_unsolvable(*unsolv_it));
 
-                *unsolvable_out = scc_elem.stateid;
+                *unsolvable_out = scc_elem.state_id;
 
                 for (const auto& [parent_idx, tr_idx] : scc_elem.parents) {
                     StackInfo& pinfo = scc[parent_idx];
@@ -540,7 +540,7 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
     // Report the solvable states
     for (int scc_idx : solvable) {
         StackInfo& stkinfo = scc[scc_idx];
-        const StateID sid = stkinfo.stateid;
+        const StateID sid = stkinfo.state_id;
         state_infos_[sid].solvable = true;
         *solvable_out = sid;
     }

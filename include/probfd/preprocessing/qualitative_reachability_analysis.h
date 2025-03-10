@@ -70,7 +70,7 @@ struct StackInfo {
         bool is_active : 1;         // Is the transition active?
     };
 
-    StateID stateid;
+    StateID state_id;
 
     unsigned active_exit_transitions = 0; // Number of active exit transitions.
     unsigned active_transitions = 0;      // Number of active transitions.
