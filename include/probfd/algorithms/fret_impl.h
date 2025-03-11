@@ -26,22 +26,19 @@ inline void Statistics::print(std::ostream& out) const
 } // namespace internal
 
 template <
-    typename State,
-    typename Action,
-    typename StateInfoT,
+    QuotientHeuristicSearchAlgorithm NestedAlgorithm,
     typename GreedyGraphGenerator>
-FRET<State, Action, StateInfoT, GreedyGraphGenerator>::FRET(
-    std::shared_ptr<QHeuristicSearchAlgorithm> algorithm)
-    : base_algorithm_(std::move(algorithm))
+template <typename... Args>
+    requires std::constructible_from<NestedAlgorithm, Args...>
+FRET<NestedAlgorithm, GreedyGraphGenerator>::FRET(Args&&... args)
+    : base_algorithm_(std::forward<Args>(args)...)
 {
 }
 
 template <
-    typename State,
-    typename Action,
-    typename StateInfoT,
+    QuotientHeuristicSearchAlgorithm NestedAlgorithm,
     typename GreedyGraphGenerator>
-auto FRET<State, Action, StateInfoT, GreedyGraphGenerator>::compute_policy(
+auto FRET<NestedAlgorithm, GreedyGraphGenerator>::compute_policy(
     MDPType& mdp,
     HeuristicType& heuristic,
     ParamType<State> state,
@@ -86,7 +83,7 @@ auto FRET<State, Action, StateInfoT, GreedyGraphGenerator>::compute_policy(
         const QState quotient_state = quotient.get_state(quotient_id);
         queue.pop_front();
 
-        auto& base_info = base_algorithm_->state_infos_[quotient_id];
+        auto& base_info = base_algorithm_.state_infos_[quotient_id];
         std::optional quotient_action = base_info.get_policy();
 
         // Terminal states have no policy decision.
@@ -95,7 +92,7 @@ auto FRET<State, Action, StateInfoT, GreedyGraphGenerator>::compute_policy(
         }
 
         const Interval quotient_bound =
-            base_algorithm_->lookup_bounds(quotient_id);
+            base_algorithm_.lookup_bounds(quotient_id);
 
         const StateID exiting_id = quotient_action->state_id;
 
@@ -166,11 +163,9 @@ auto FRET<State, Action, StateInfoT, GreedyGraphGenerator>::compute_policy(
 }
 
 template <
-    typename State,
-    typename Action,
-    typename StateInfoT,
+    QuotientHeuristicSearchAlgorithm NestedAlgorithm,
     typename GreedyGraphGenerator>
-Interval FRET<State, Action, StateInfoT, GreedyGraphGenerator>::solve(
+Interval FRET<NestedAlgorithm, GreedyGraphGenerator>::solve(
     MDPType& mdp,
     HeuristicType& heuristic,
     ParamType<State> state,
@@ -188,23 +183,19 @@ Interval FRET<State, Action, StateInfoT, GreedyGraphGenerator>::solve(
 }
 
 template <
-    typename State,
-    typename Action,
-    typename StateInfoT,
+    QuotientHeuristicSearchAlgorithm NestedAlgorithm,
     typename GreedyGraphGenerator>
-void FRET<State, Action, StateInfoT, GreedyGraphGenerator>::print_statistics(
+void FRET<NestedAlgorithm, GreedyGraphGenerator>::print_statistics(
     std::ostream& out) const
 {
-    this->base_algorithm_->print_statistics(out);
+    this->base_algorithm_.print_statistics(out);
     statistics_.print(out);
 }
 
 template <
-    typename State,
-    typename Action,
-    typename StateInfoT,
+    QuotientHeuristicSearchAlgorithm NestedAlgorithm,
     typename GreedyGraphGenerator>
-Interval FRET<State, Action, StateInfoT, GreedyGraphGenerator>::solve(
+Interval FRET<NestedAlgorithm, GreedyGraphGenerator>::solve(
     QuotientSystem& quotient,
     QHeuristic& heuristic,
     ParamType<QState> state,
@@ -226,17 +217,14 @@ Interval FRET<State, Action, StateInfoT, GreedyGraphGenerator>::solve(
             return value;
         }
 
-        base_algorithm_->reset_search_state();
+        base_algorithm_.reset_search_state();
     }
 }
 
 template <
-    typename State,
-    typename Action,
-    typename StateInfoT,
+    QuotientHeuristicSearchAlgorithm NestedAlgorithm,
     typename GreedyGraphGenerator>
-Interval
-FRET<State, Action, StateInfoT, GreedyGraphGenerator>::heuristic_search(
+Interval FRET<NestedAlgorithm, GreedyGraphGenerator>::heuristic_search(
     QuotientSystem& quotient,
     QHeuristic& heuristic,
     ParamType<QState> state,
@@ -247,7 +235,7 @@ FRET<State, Action, StateInfoT, GreedyGraphGenerator>::heuristic_search(
     TimerScope scoped(statistics_.heuristic_search);
 #endif
 
-    return base_algorithm_->solve(
+    return base_algorithm_.solve(
         quotient,
         heuristic,
         state,
@@ -256,15 +244,12 @@ FRET<State, Action, StateInfoT, GreedyGraphGenerator>::heuristic_search(
 }
 
 template <
-    typename State,
-    typename Action,
-    typename StateInfoT,
+    QuotientHeuristicSearchAlgorithm NestedAlgorithm,
     typename GreedyGraphGenerator>
-bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::
-    find_and_remove_traps(
-        QuotientSystem& quotient,
-        ParamType<QState> state,
-        utils::CountdownTimer& timer)
+bool FRET<NestedAlgorithm, GreedyGraphGenerator>::find_and_remove_traps(
+    QuotientSystem& quotient,
+    ParamType<QState> state,
+    utils::CountdownTimer& timer)
 {
     using namespace internal;
 
@@ -344,9 +329,9 @@ bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::
                         quotient.build_quotient(scc, *scc.begin());
                     }
 
-                    auto& base_info = base_algorithm_->state_infos_[state_id];
+                    auto& base_info = base_algorithm_.state_infos_[state_id];
                     base_info.set_on_fringe();
-                    base_algorithm_->update_policy(base_info, std::nullopt);
+                    base_algorithm_.update_policy(base_info, std::nullopt);
 
                     ++statistics_.traps;
                     ++trap_counter;
@@ -379,11 +364,9 @@ bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::
 }
 
 template <
-    typename State,
-    typename Action,
-    typename StateInfoT,
+    QuotientHeuristicSearchAlgorithm NestedAlgorithm,
     typename GreedyGraphGenerator>
-bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::push(
+bool FRET<NestedAlgorithm, GreedyGraphGenerator>::push(
     QuotientSystem& quotient,
     std::deque<internal::ExplorationInfo>& queue,
     std::deque<StackInfo>& stack,
@@ -391,7 +374,7 @@ bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::push(
     StateID state_id,
     unsigned int& unexpanded)
 {
-    const auto& state_info = base_algorithm_->state_infos_[state_id];
+    const auto& state_info = base_algorithm_.state_infos_[state_id];
 
     if (state_info.is_goal_or_terminal()) {
         return false;
@@ -400,12 +383,8 @@ bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::push(
     GreedyGraphGenerator greedy_graph;
     std::vector<QAction> aops;
     std::vector<StateID> succs;
-    if (greedy_graph.get_successors(
-            quotient,
-            *base_algorithm_,
-            state_id,
-            aops,
-            succs)) {
+    if (greedy_graph
+            .get_successors(quotient, base_algorithm_, state_id, aops, succs)) {
         ++unexpanded;
     }
 
@@ -419,10 +398,10 @@ bool FRET<State, Action, StateInfoT, GreedyGraphGenerator>::push(
     return true;
 }
 
-template <typename State, typename Action, typename StateInfoT>
-bool ValueGraph<State, Action, StateInfoT>::get_successors(
+template <QuotientHeuristicSearchAlgorithm NestedAlgorithm>
+bool ValueGraph<NestedAlgorithm>::get_successors(
     QuotientSystem& quotient,
-    QHeuristicSearchAlgorithm& base_algorithm,
+    NestedAlgorithm& base_algorithm,
     StateID qstate,
     std::vector<QAction>& aops,
     std::vector<StateID>& successors)
@@ -464,10 +443,10 @@ bool ValueGraph<State, Action, StateInfoT>::get_successors(
     return val_upd.changed;
 }
 
-template <typename State, typename Action, typename StateInfoT>
-bool PolicyGraph<State, Action, StateInfoT>::get_successors(
+template <QuotientHeuristicSearchAlgorithm NestedAlgorithm>
+bool PolicyGraph<NestedAlgorithm>::get_successors(
     QuotientSystem& quotient,
-    QHeuristicSearchAlgorithm& base_algorithm,
+    NestedAlgorithm& base_algorithm,
     StateID quotient_state_id,
     std::vector<QAction>& aops,
     std::vector<StateID>& successors)

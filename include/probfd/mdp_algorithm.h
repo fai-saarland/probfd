@@ -1,6 +1,8 @@
 #ifndef PROBFD_MDP_ALGORITHM_H
 #define PROBFD_MDP_ALGORITHM_H
 
+#include "probfd/mdp_algorithm_fwd.h"
+
 #include "probfd/policy.h"
 #include "probfd/progress_report.h"
 #include "probfd/type_traits.h"

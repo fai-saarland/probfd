@@ -202,19 +202,18 @@ public:
 
 private:
     template <
-        template <typename, typename, typename> class Fret,
+        template <typename> class Fret,
         template <typename, typename, bool> class HS,
         bool Interval,
         typename... Args>
     std::unique_ptr<FDRMDPAlgorithm>
     create_heuristic_search_algorithm_wrapper(Args&&... args)
     {
-        using StateInfoT = typename HS<QState, QAction, Interval>::StateInfo;
-        return std::make_unique<Fret<State, OperatorID, StateInfoT>>(
-            std::make_shared<HS<QState, QAction, Interval>>(
-                convergence_epsilon_,
-                tiebreaker_,
-                std::forward<Args>(args)...));
+        return std::make_unique<
+            Fret<HS<QState, QAction, Interval>>>(
+            convergence_epsilon_,
+            tiebreaker_,
+            std::forward<Args>(args)...);
     }
 };
 
@@ -369,7 +368,7 @@ public:
 
 private:
     template <
-        template <typename, typename, typename> class Fret,
+        template <typename> class Fret,
         bool Interval,
         template <typename, typename, bool> class HS,
         typename... Args>
@@ -384,17 +383,15 @@ private:
         using QQState = quotients::QuotientState<QState, QAction>;
         using QQAction = quotients::QuotientAction<QAction>;
 
-        using StateInfoT = typename HS<QQState, QQAction, Interval>::StateInfo;
-
         return std::make_unique<BisimulationBasedHeuristicSearchAlgorithm>(
             task,
             task_cost_function,
             this->get_heuristic_search_name(),
-            std::make_shared<Fret<QState, QAction, StateInfoT>>(
-                std::make_shared<HS<QQState, QQAction, Interval>>(
-                    this->convergence_epsilon_,
-                    this->tiebreaker_,
-                    std::forward<Args>(args)...)));
+            std::make_shared<
+                Fret<HS<QQState, QQAction, Interval>>>(
+                this->convergence_epsilon_,
+                this->tiebreaker_,
+                std::forward<Args>(args)...));
     }
 };
 

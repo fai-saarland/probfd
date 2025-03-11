@@ -1,6 +1,8 @@
 #ifndef PROBFD_ALGORITHMS_FRET_H
 #define PROBFD_ALGORITHMS_FRET_H
 
+#include "probfd/algorithms/fret_fwd.h"
+
 #include "probfd/algorithms/heuristic_search_base.h"
 
 #include "probfd/quotients/quotient_system.h"
@@ -99,8 +101,8 @@ struct StackInfo {
 } // namespace internal
 
 /**
- * @brief Implemetation of the Find-Revise-Eliminate-Traps (FRET) framework
- * \cite kolobov:etal:icaps-11 .
+ * @brief Specialization of the Find-Revise-Eliminate-Traps (FRET) framework
+ * \cite kolobov:etal:icaps-11 for algorithms deriving from HeuristicSearchBase.
  *
  * The FRET framework is a framework designed for Generalized Stochastic
  * Shortest-Path Problems (GSSPs, \cite kolobov:etal:icaps-11). In this
@@ -114,19 +116,23 @@ struct StackInfo {
  * - The greedy policy graph of the optimal policy returned by the last
  * heuristic search
  *
- * @tparam State - The state type of the underlying MDP.
- * @tparam Action - The action type of the underlying MDP.
- * @tparam StateInfoT - The state info type of the heuristic search algorithm.
+ * @tparam NestedAlgorithm - The inner heuristic search algorithm.
  * @tparam GreedyGraphGenerator - The type of the generator used to construct
  * the search graph in which traps are found and eliminated between heuristic
  * searches.
  */
 template <
-    typename State,
-    typename Action,
-    typename StateInfoT,
+    QuotientHeuristicSearchAlgorithm NestedAlgorithm,
     typename GreedyGraphGenerator>
-class FRET : public MDPAlgorithm<State, Action> {
+class FRET
+    : public MDPAlgorithm<
+          RemoveQType<StateTypeOf<NestedAlgorithm>>,
+          RemoveQType<ActionTypeOf<NestedAlgorithm>>> {
+    using QState = StateTypeOf<NestedAlgorithm>;
+    using QAction = ActionTypeOf<NestedAlgorithm>;
+    using State = RemoveQType<QState>;
+    using Action = RemoveQType<QAction>;
+
     using Base = typename FRET::MDPAlgorithm;
 
     using PolicyType = typename Base::PolicyType;
@@ -134,21 +140,20 @@ class FRET : public MDPAlgorithm<State, Action> {
     using HeuristicType = typename Base::HeuristicType;
 
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
-    using QState = quotients::QuotientState<State, Action>;
-    using QAction = quotients::QuotientAction<Action>;
-    using QHeuristicSearchAlgorithm = heuristic_search::
-        FRETHeuristicSearchAlgorithm<QState, QAction, StateInfoT>;
+
     using QHeuristic = probfd::Heuristic<QState>;
 
     using StackInfo = internal::StackInfo<QAction>;
 
     // Algorithm parameters
-    const std::shared_ptr<QHeuristicSearchAlgorithm> base_algorithm_;
+    NestedAlgorithm base_algorithm_;
 
     internal::Statistics statistics_;
 
 public:
-    explicit FRET(std::shared_ptr<QHeuristicSearchAlgorithm> algorithm);
+    template <typename... Args>
+        requires std::constructible_from<NestedAlgorithm, Args...>
+    explicit FRET(Args&&... args);
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
@@ -195,19 +200,17 @@ private:
         unsigned int& unexpanded);
 };
 
-template <typename State, typename Action, typename StateInfoT>
+template <QuotientHeuristicSearchAlgorithm NestedAlgorithm>
 class ValueGraph {
-    using QuotientSystem = quotients::QuotientSystem<State, Action>;
-    using QState = quotients::QuotientState<State, Action>;
-    using QAction = quotients::QuotientAction<Action>;
+    using QState = StateTypeOf<NestedAlgorithm>;
+    using QAction = ActionTypeOf<NestedAlgorithm>;
+    using State = RemoveQType<QState>;
+    using Action = RemoveQType<QAction>;
 
-    using QHeuristicSearchAlgorithm =
-        heuristic_search::HeuristicSearchAlgorithm<QState, QAction, StateInfoT>;
+    using QuotientSystem = quotients::QuotientSystem<State, Action>;
 
     using AlgorithmValueType =
-        typename QHeuristicSearchAlgorithm::AlgorithmValueType;
-
-    using QEvaluator = Heuristic<QState>;
+        typename NestedAlgorithm::HeuristicSearchBase::AlgorithmValueType;
 
     std::unordered_set<StateID> ids_;
     std::vector<TransitionTail<QAction>> opt_transitions_;
@@ -216,56 +219,31 @@ class ValueGraph {
 public:
     bool get_successors(
         QuotientSystem& quotient,
-        QHeuristicSearchAlgorithm& base_algorithm,
+        NestedAlgorithm& base_algorithm,
         StateID qstate,
         std::vector<QAction>& aops,
         std::vector<StateID>& successors);
 };
 
-template <typename State, typename Action, typename StateInfoT>
+template <QuotientHeuristicSearchAlgorithm NestedAlgorithm>
 class PolicyGraph {
-    using QuotientSystem = quotients::QuotientSystem<State, Action>;
-    using QState = quotients::QuotientState<State, Action>;
-    using QAction = quotients::QuotientAction<Action>;
-    using QHeuristicSearchAlgorithm =
-        heuristic_search::HeuristicSearchAlgorithm<QState, QAction, StateInfoT>;
+    using QState = StateTypeOf<NestedAlgorithm>;
+    using QAction = ActionTypeOf<NestedAlgorithm>;
+    using State = RemoveQType<QState>;
+    using Action = RemoveQType<QAction>;
 
-    using QEvaluator = Heuristic<QState>;
+    using QuotientSystem = quotients::QuotientSystem<State, Action>;
 
     SuccessorDistribution t_;
 
 public:
     bool get_successors(
         QuotientSystem& quotient,
-        QHeuristicSearchAlgorithm& base_algorithm,
+        NestedAlgorithm& base_algorithm,
         StateID quotient_state_id,
         std::vector<QAction>& aops,
         std::vector<StateID>& successors);
 };
-
-/**
- * @brief Implementation of FRET with trap elimination in the greedy value graph
- * of the MDP.
- *
- * @tparam State - The state type of the underlying MDP.
- * @tparam Action - The action type of the underlying MDP.
- * @tparam StateInfoT - The state info type of the heuristic search algorithm.
- */
-template <typename State, typename Action, typename StateInfoT>
-using FRETV =
-    FRET<State, Action, StateInfoT, ValueGraph<State, Action, StateInfoT>>;
-
-/**
- * @brief Implementation of FRET with trap elimination in the greedy policy
- * graph of the last returned policy.
- *
- * @tparam State - The state type of the underlying MDP.
- * @tparam Action - The action type of the underlying MDP.
- * @tparam StateInfoT - The state info type of the heuristic search algorithm.
- */
-template <typename State, typename Action, typename StateInfoT>
-using FRETPi =
-    FRET<State, Action, StateInfoT, PolicyGraph<State, Action, StateInfoT>>;
 
 } // namespace probfd::algorithms::fret
 

@@ -123,11 +123,11 @@ public:
  */
 template <typename State, typename Action, bool UseInterval>
 class LRTDP
-    : public heuristic_search::FRETHeuristicSearchAlgorithm<
+    : public heuristic_search::HeuristicSearchAlgorithm<
           State,
           Action,
           internal::PerStateInformation<Action, UseInterval>> {
-    using Base = typename LRTDP::FRETHeuristicSearchAlgorithm;
+    using Base = typename LRTDP::HeuristicSearchAlgorithm;
 
     using AlgorithmValueType = Base::AlgorithmValueType;
 
@@ -167,8 +167,6 @@ public:
         std::shared_ptr<PolicyPickerType> policy_chooser,
         TrialTerminationCondition stop_consistent,
         std::shared_ptr<SuccessorSamplerType> succ_sampler);
-
-    void reset_search_state() override;
 
 protected:
     Interval do_solve(

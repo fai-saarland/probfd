@@ -1,6 +1,8 @@
 #ifndef PROBFD_ALGORITHMS_HEURISTIC_SEARCH_BASE_H
 #define PROBFD_ALGORITHMS_HEURISTIC_SEARCH_BASE_H
 
+#include "probfd/algorithms/fret_fwd.h"
+
 #include "probfd/algorithms/heuristic_search_state_information.h"
 #include "probfd/algorithms/iterative_mdp_algorithm.h"
 #include "probfd/algorithms/types.h"
@@ -33,17 +35,11 @@ template <typename, typename>
 class PolicyPicker;
 } // namespace probfd::algorithms
 
-namespace probfd::algorithms::fret {
-template <typename, typename, typename, typename>
-class FRET;
-template <typename, typename, typename>
-class PolicyGraph;
-template <typename, typename, typename>
-class ValueGraph;
-} // namespace probfd::algorithms::fret
-
 /// Namespace dedicated to the MDP h search base implementation
 namespace probfd::algorithms::heuristic_search {
+
+template <typename StateInfo>
+concept Resettable = requires(StateInfo& info) { info.clear(); };
 
 namespace internal {
 
@@ -96,20 +92,32 @@ public:
         return state_infos_[state_id].get_bounds();
     }
 
-    void reset() { std::ranges::for_each(state_infos_, &StateInfo::clear); }
+    void reset()
+        requires Resettable<StateInfo>
+    {
+        std::ranges::for_each(state_infos_, &StateInfo::clear);
+    }
 };
 
 } // namespace internal
 
 /**
- * @brief The common base class for MDP h search algorithms.
+ * @brief The common base class for MDP heuristic search algorithms.
  *
  * @tparam State - The state type of the underlying MDP model.
- * @tparam Action - The action type of the undelying MDP model.
+ * @tparam Action - The action type of the underlying MDP model.
  * @tparam StateInfoT - The state information container type.
  */
 template <typename State, typename Action, typename StateInfoT>
 class HeuristicSearchBase {
+public:
+    using StateInfo = StateInfoT;
+
+    static constexpr bool StorePolicy = StateInfo::StorePolicy;
+    static constexpr bool UseInterval = StateInfo::UseInterval;
+
+    using AlgorithmValueType = AlgorithmValue<UseInterval>;
+
 protected:
     using MDPType = MDP<State, Action>;
     using CostFunctionType = CostFunction<State, Action>;
@@ -119,22 +127,14 @@ protected:
     using PolicyPickerType = PolicyPicker<State, Action>;
 
     // Fret implementation has access to the internals of this base class.
-    template <typename, typename, typename, typename>
+    template <fret::QuotientHeuristicSearchAlgorithm, typename>
     friend class fret::FRET;
 
-    template <typename, typename, typename>
+    template <fret::QuotientHeuristicSearchAlgorithm>
     friend class fret::PolicyGraph;
 
-    template <typename, typename, typename>
+    template <fret::QuotientHeuristicSearchAlgorithm>
     friend class fret::ValueGraph;
-
-public:
-    using StateInfo = StateInfoT;
-
-    static constexpr bool StorePolicy = StateInfo::StorePolicy;
-    static constexpr bool UseInterval = StateInfo::UseInterval;
-
-    using AlgorithmValueType = AlgorithmValue<UseInterval>;
 
 private:
     // Algorithm parameters
@@ -274,6 +274,9 @@ private:
         std::vector<TransitionTailType>& transition_tails,
         std::vector<AlgorithmValueType>& qvalues,
         const AlgorithmValueType& best_value) const;
+
+    void reset_search_state()
+        requires Resettable<StateInfo>;
 };
 
 /**
@@ -343,42 +346,6 @@ public:
      * Called internally after printing the base h search statistics.
      */
     virtual void print_additional_statistics(std::ostream& out) const = 0;
-};
-
-/**
- * @brief Heuristics search algorithm that can be used within FRET.
- *
- * @tparam State - The state type of the underlying MDP model.
- * @tparam Action - The action type of the undelying MDP model.
- * @tparam StateInfoT - The state information container type.
- */
-template <typename State, typename Action, typename StateInfoT>
-class FRETHeuristicSearchAlgorithm
-    : public HeuristicSearchAlgorithm<State, Action, StateInfoT> {
-    using AlgorithmBase = typename FRETHeuristicSearchAlgorithm::MDPAlgorithm;
-    using HSBase =
-        typename FRETHeuristicSearchAlgorithm::HeuristicSearchAlgorithm;
-
-protected:
-    using PolicyType = typename AlgorithmBase::PolicyType;
-
-    using MDPType = typename AlgorithmBase::MDPType;
-    using HeuristicType = typename AlgorithmBase::HeuristicType;
-
-    using StateInfo = typename HSBase::StateInfo;
-    using PolicyPicker = typename HSBase::PolicyPickerType;
-
-public:
-    // Inherited constructor
-    using HSBase::HSBase;
-
-    /**
-     * @brief Resets the h search algorithm object to a clean state.
-     *
-     * This method is needed by the FRET algorithm to restart the heuristic
-     * search after traps have been collapsed.
-     */
-    virtual void reset_search_state() {}
 };
 
 } // namespace probfd::algorithms::heuristic_search

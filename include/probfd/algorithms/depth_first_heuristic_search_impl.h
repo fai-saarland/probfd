@@ -55,12 +55,6 @@ HeuristicDepthFirstSearch<State, Action, UseInterval>::
 }
 
 template <typename State, typename Action, bool UseInterval>
-void HeuristicDepthFirstSearch<State, Action, UseInterval>::reset_search_state()
-{
-    this->state_infos_.reset();
-}
-
-template <typename State, typename Action, bool UseInterval>
 Interval HeuristicDepthFirstSearch<State, Action, UseInterval>::do_solve(
     MDP& mdp,
     HeuristicType& heuristic,

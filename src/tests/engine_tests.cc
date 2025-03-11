@@ -62,7 +62,8 @@ TEST(EngineTests, test_interval_update1)
     Interval interval(8.0_vt, 40.0_vt);
     Interval interval2(9.0_vt, 39.0_vt);
 
-    const auto [changed, converged] = algorithms::update(interval, interval2, 0.001_vt);
+    const auto [changed, converged] =
+        algorithms::update(interval, interval2, 0.001_vt);
 
     ASSERT_TRUE(changed);
     ASSERT_FALSE(converged);
@@ -76,7 +77,8 @@ TEST(EngineTests, test_interval_update2)
     Interval interval(8.0_vt, 40.0_vt);
     Interval interval2(8.0_vt, 40.0_vt);
 
-    const auto [changed, converged]  = algorithms::update(interval, interval2, 0.001_vt);
+    const auto [changed, converged] =
+        algorithms::update(interval, interval2, 0.001_vt);
 
     ASSERT_FALSE(changed);
     ASSERT_FALSE(converged);
@@ -90,7 +92,8 @@ TEST(EngineTests, test_interval_update3)
     Interval interval(8.0_vt, 8.0_vt);
     Interval interval2(8.0_vt, 8.0_vt);
 
-    const auto [changed, converged]  = algorithms::update(interval, interval2, 0.001_vt);
+    const auto [changed, converged] =
+        algorithms::update(interval, interval2, 0.001_vt);
 
     ASSERT_FALSE(changed);
     ASSERT_TRUE(converged);
@@ -104,7 +107,8 @@ TEST(EngineTests, test_interval_update4)
     Interval interval(0.0_vt, 40.0_vt);
     Interval interval2(8.0_vt, 8.0_vt);
 
-    const auto [changed, converged]  = algorithms::update(interval, interval2, 0.001_vt);
+    const auto [changed, converged] =
+        algorithms::update(interval, interval2, 0.001_vt);
 
     ASSERT_TRUE(changed);
     ASSERT_TRUE(converged);
@@ -189,7 +193,7 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
         quotients::QuotientAction<OperatorID>,
         false>;
 
-    auto ilao = std::make_shared<HDFS>(
+    FRETPi<HDFS> fret_ilao(
         0.001,
         policy_chooser,
         false,
@@ -198,11 +202,9 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
         false,
         false);
 
-    FRETPi<State, OperatorID, typename HDFS::StateInfo> fret(ilao);
-
     CompositeMDP<State, OperatorID> mdp{state_space, *cost_function};
 
-    auto policy = fret.compute_policy(
+    auto policy = fret_ilao.compute_policy(
         mdp,
         heuristic,
         state_space.get_initial_state(),

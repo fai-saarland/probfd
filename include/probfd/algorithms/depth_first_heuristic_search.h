@@ -87,12 +87,12 @@ struct DFSExplorationState {
  */
 template <typename State, typename Action, bool UseInterval>
 class HeuristicDepthFirstSearch
-    : public heuristic_search::FRETHeuristicSearchAlgorithm<
+    : public heuristic_search::HeuristicSearchAlgorithm<
           State,
           Action,
           internal::PerStateInformation<Action, UseInterval>> {
     using Base =
-        typename HeuristicDepthFirstSearch::FRETHeuristicSearchAlgorithm;
+        typename HeuristicDepthFirstSearch::HeuristicSearchAlgorithm;
 
 public:
     using StateInfo = typename Base::StateInfo;
@@ -140,8 +140,6 @@ public:
         bool cutoff_tip,
         bool cutoff_inconsistent,
         bool label_solved);
-
-    void reset_search_state() override;
 
 protected:
     Interval do_solve(

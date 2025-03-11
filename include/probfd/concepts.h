@@ -81,7 +81,7 @@ template <typename A, typename... Tail>
 struct dupl_free<A, Tail...>
     : std::bool_constant<
           (!std::is_same_v<A, Tail> && ...) && dupl_free<Tail...>::value> {};
-} // namespace internal
+} // namespace detail
 
 /// This concept is satisfied if all types are unique.
 template <typename... List>
@@ -108,6 +108,17 @@ using SubscriptResultType = decltype(std::declval<T&>()[std::declval<I>()]);
 template <typename T, typename R, typename I>
 concept SubscriptableRV =
     Subscriptable<T, I> && std::convertible_to<SubscriptResultType<T, I>, R>;
+
+namespace detail {
+template <template <class...> class Template, class... Args>
+void DerivedFromSpecializationImpl(const Template<Args...>&);
+}
+
+/// This concept is satisfied if T has exactly one public base class which is a
+/// specialization of U.
+template <class T, template <class...> class U>
+concept DerivedFromSpecializationOf =
+    requires(const T& t) { detail::DerivedFromSpecializationImpl<U>(t); };
 
 } // namespace probfd
 

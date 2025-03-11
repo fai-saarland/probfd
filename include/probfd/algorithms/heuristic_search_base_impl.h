@@ -348,6 +348,13 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::filter_greedy_transitions(
 }
 
 template <typename State, typename Action, typename StateInfoT>
+void HeuristicSearchBase<State, Action, StateInfoT>::reset_search_state()
+    requires Resettable<StateInfo>
+{
+    this->state_infos_.reset();
+}
+
+template <typename State, typename Action, typename StateInfoT>
 HeuristicSearchAlgorithm<State, Action, StateInfoT>::HeuristicSearchAlgorithm(
     value_t epsilon,
     std::shared_ptr<PolicyPicker> policy_chooser)

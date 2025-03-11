@@ -36,12 +36,6 @@ LRTDP<State, Action, UseInterval>::LRTDP(
 }
 
 template <typename State, typename Action, bool UseInterval>
-void LRTDP<State, Action, UseInterval>::reset_search_state()
-{
-    this->state_infos_.reset();
-}
-
-template <typename State, typename Action, bool UseInterval>
 Interval LRTDP<State, Action, UseInterval>::do_solve(
     MDPType& mdp,
     HeuristicType& heuristic,
