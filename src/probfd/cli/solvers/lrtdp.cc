@@ -27,9 +27,6 @@ namespace {
 
 template <bool Bisimulation, bool Fret>
 class LRTDPSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
-    template <typename State, typename Action, bool Interval>
-    using LRTDP = LRTDP<State, Action, Interval>;
-
     using Sampler = SuccessorSampler<ActionType<Bisimulation, Fret>>;
 
     const std::shared_ptr<Sampler> successor_sampler_;
