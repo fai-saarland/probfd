@@ -104,9 +104,6 @@ create_library(
 
         # Successor Sorters
         probfd/transition_sorters/vdiff_sorter
-
-        # Base heuristic search solver
-        probfd/solvers/mdp_heuristic_search
     DEPENDS
         probfd_core
 )

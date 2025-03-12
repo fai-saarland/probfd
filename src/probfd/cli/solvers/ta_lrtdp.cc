@@ -56,7 +56,7 @@ public:
         const std::shared_ptr<FDRCostFunction>& task_cost_function) override
     {
         return std::make_unique<AlgorithmAdaptor>(
-            this->template create_quotient_heuristic_search_algorithm<TALRTDP>(
+            this->template create_search_algorithm<TALRTDP>(
                 task,
                 task_cost_function,
                 stop_consistent_,

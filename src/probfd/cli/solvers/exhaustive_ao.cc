@@ -25,8 +25,6 @@ namespace {
 
 template <bool Bisimulation>
 class ExhaustiveAOSolver : public MDPHeuristicSearch<Bisimulation, false> {
-    using PolicyPicker =
-        typename MDPHeuristicSearch<Bisimulation, false>::PolicyPicker;
     using OpenListType = OpenList<ActionType<Bisimulation, false>>;
 
     const std::shared_ptr<OpenListType> open_list_;

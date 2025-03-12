@@ -29,76 +29,33 @@ enum class QuotientState;
 
 namespace probfd::solvers {
 
-template <bool Bisimulation, bool Fret>
+template <
+    bool Bisimulation,
+    bool Fret,
+    typename State = State,
+    typename Action = OperatorID>
 using StateType = std::conditional_t<
     Bisimulation,
     std::conditional_t<
         Fret,
         probfd::quotients::
-            QuotientState<probfd::bisimulation::QuotientState, OperatorID>,
+            QuotientState<probfd::bisimulation::QuotientState, Action>,
         probfd::bisimulation::QuotientState>,
     std::conditional_t<
         Fret,
-        probfd::quotients::QuotientState<State, OperatorID>,
+        probfd::quotients::QuotientState<State, Action>,
         State>>;
 
-template <bool Bisimulation, bool Fret>
+template <
+    bool Bisimulation,
+    bool Fret,
+    typename State = State,
+    typename Action = OperatorID>
 using ActionType = std::conditional_t<
     Bisimulation,
-    std::conditional_t<
-        Fret,
-        probfd::quotients::QuotientAction<OperatorID>,
-        OperatorID>,
-    std::conditional_t<
-        Fret,
-        probfd::quotients::QuotientAction<OperatorID>,
-        OperatorID>>;
-
-template <bool Bisimulation, bool Fret>
-class MDPHeuristicSearchBase : public MDPSolver {
-protected:
-    using PolicyPicker = algorithms::PolicyPicker<
-        StateType<Bisimulation, Fret>,
-        ActionType<Bisimulation, Fret>>;
-
-    const value_t convergence_epsilon_;
-    const bool dual_bounds_;
-    const std::shared_ptr<PolicyPicker> tiebreaker_;
-
-public:
-    MDPHeuristicSearchBase(
-        value_t convergence_epsilon,
-        bool dual_bounds,
-        std::shared_ptr<PolicyPicker> policy,
-        utils::Verbosity verbosity,
-        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        std::string policy_filename,
-        bool print_fact_names,
-        std::optional<value_t> report_epsilon,
-        bool report_enabled);
-
-    template <template <typename, typename, bool> class HS, typename... Args>
-    std::unique_ptr<FDRMDPAlgorithm> create_quotient_heuristic_search_algorithm(
-        const std::shared_ptr<ProbabilisticTask>&,
-        const std::shared_ptr<FDRCostFunction>&,
-        Args&&... args)
-    {
-        if (dual_bounds_) {
-            return std::make_unique<HS<State, OperatorID, true>>(
-                convergence_epsilon_,
-                tiebreaker_,
-                std::forward<Args>(args)...);
-        } else {
-            return std::make_unique<HS<State, OperatorID, false>>(
-                convergence_epsilon_,
-                tiebreaker_,
-                std::forward<Args>(args)...);
-        }
-    }
-
-    virtual std::string get_heuristic_search_name() const = 0;
-};
+    std::conditional_t<Fret, probfd::quotients::QuotientAction<Action>, Action>,
+    std::
+        conditional_t<Fret, probfd::quotients::QuotientAction<Action>, Action>>;
 
 template <
     typename R,
@@ -144,17 +101,78 @@ std::unique_ptr<R> construct(std::tuple<Args...> args)
         std::move(args));
 }
 
-template <bool Bisimulation, bool Fret>
-class MDPHeuristicSearch;
+template <
+    bool Bisimulation,
+    bool Fret,
+    typename State = State,
+    typename Action = OperatorID>
+class MDPHeuristicSearchBase : public MDPSolver {
+protected:
+    using PolicyPicker = algorithms::PolicyPicker<
+        StateType<Bisimulation, Fret, State, Action>,
+        ActionType<Bisimulation, Fret, State, Action>>;
 
-template <>
-class MDPHeuristicSearch<false, false>
-    : public MDPHeuristicSearchBase<false, false> {
+    const value_t convergence_epsilon_;
+    const bool dual_bounds_;
+    const std::shared_ptr<PolicyPicker> tiebreaker_;
+
     template <template <typename, typename, bool> typename T>
     struct AlgTypeHelper {
         template <bool dual>
-        using type_template = T<State, OperatorID, dual>;
+        using type_template = T<State, Action, dual>;
     };
+
+public:
+    MDPHeuristicSearchBase(
+        value_t convergence_epsilon,
+        bool dual_bounds,
+        std::shared_ptr<PolicyPicker> policy,
+        utils::Verbosity verbosity,
+        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
+        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+        std::string policy_filename,
+        bool print_fact_names,
+        std::optional<value_t> report_epsilon,
+        bool report_enabled);
+
+    template <template <typename, typename, bool> class S, typename... Args>
+    std::unique_ptr<MDPAlgorithm<State, Action>> create_search_algorithm(
+        const std::shared_ptr<ProbabilisticTask>&,
+        const std::shared_ptr<FDRCostFunction>&,
+        Args&&... args)
+    {
+        return construct<
+            MDPAlgorithm<State, Action>,
+            AlgTypeHelper<S>::template type_template>(
+            std::forward_as_tuple(
+                convergence_epsilon_,
+                tiebreaker_,
+                std::forward<Args>(args)...),
+            dual_bounds_);
+    }
+
+    virtual std::string get_heuristic_search_name() const = 0;
+};
+
+template <
+    bool Bisimulation,
+    bool Fret,
+    typename State = State,
+    typename Action = OperatorID>
+class MDPHeuristicSearch;
+
+template <typename State, typename Action>
+class MDPHeuristicSearch<false, false, State, Action>
+    : public MDPHeuristicSearchBase<false, false, State, Action> {
+    template <template <typename, typename, bool> typename T>
+    struct AlgTypeHelper {
+        template <bool dual>
+        using type_template = T<State, Action, dual>;
+    };
+
+protected:
+    using PolicyPicker =
+        MDPHeuristicSearch::MDPHeuristicSearchBase::PolicyPicker;
 
 public:
     MDPHeuristicSearch(
@@ -172,7 +190,8 @@ public:
     std::string get_algorithm_name() const override;
 
     template <template <typename, typename, bool> class HS, typename... Args>
-    std::unique_ptr<FDRMDPAlgorithm> create_heuristic_search_algorithm(
+    std::unique_ptr<MDPAlgorithm<State, Action>>
+    create_heuristic_search_algorithm(
         const std::shared_ptr<ProbabilisticTask>&,
         const std::shared_ptr<FDRCostFunction>&,
         Args&&... args)
@@ -181,23 +200,21 @@ public:
             MDPAlgorithm<State, OperatorID>,
             AlgTypeHelper<HS>::template type_template>(
             std::forward_as_tuple(
-                convergence_epsilon_,
-                tiebreaker_,
+                this->convergence_epsilon_,
+                this->tiebreaker_,
                 std::forward<Args>(args)...),
-            dual_bounds_);
+            this->dual_bounds_);
     }
 };
 
-template <>
-class MDPHeuristicSearch<false, true>
-    : public MDPHeuristicSearchBase<false, true> {
-    using QState = quotients::QuotientState<State, OperatorID>;
-    using QAction = quotients::QuotientAction<OperatorID>;
-
-    const bool fret_on_policy_;
-
+template <typename State, typename Action>
+class MDPHeuristicSearch<false, true, State, Action>
+    : public MDPHeuristicSearchBase<false, true, State, Action> {
     template <template <typename, typename, bool> typename T>
     struct AlgTypeHelper {
+        using QState = quotients::QuotientState<State, Action>;
+        using QAction = quotients::QuotientAction<Action>;
+
         template <bool dual, bool fret_on_policy>
         using type_template = std::conditional_t<
             fret_on_policy,
@@ -205,105 +222,9 @@ class MDPHeuristicSearch<false, true>
             algorithms::fret::FRETV<T<QState, QAction, dual>>>;
     };
 
-public:
-    MDPHeuristicSearch(
-        bool fret_on_policy,
-        value_t convergence_epsilon,
-        bool dual_bounds,
-        std::shared_ptr<PolicyPicker> policy,
-        utils::Verbosity verbosity,
-        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        std::string policy_filename,
-        bool print_fact_names,
-        std::optional<value_t> report_epsilon,
-        bool report_enabled);
-
-    std::string get_algorithm_name() const override;
-
-    template <template <typename, typename, bool> class HS, typename... Args>
-    std::unique_ptr<FDRMDPAlgorithm> create_heuristic_search_algorithm(
-        const std::shared_ptr<ProbabilisticTask>&,
-        const std::shared_ptr<FDRCostFunction>&,
-        Args&&... args)
-    {
-        return construct<
-            FDRMDPAlgorithm,
-            AlgTypeHelper<HS>::template type_template>(
-            std::forward_as_tuple(
-                convergence_epsilon_,
-                tiebreaker_,
-                std::forward<Args>(args)...),
-            this->dual_bounds_,
-            this->fret_on_policy_);
-    }
-};
-
-template <>
-class MDPHeuristicSearch<true, false>
-    : public MDPHeuristicSearchBase<true, false> {
-    using QState = bisimulation::QuotientState;
-    using QAction = OperatorID;
-
-    template <template <typename, typename, bool> typename T>
-    struct AlgTypeHelper {
-        template <bool dual>
-        using type_template = T<QState, QAction, dual>;
-    };
-
-public:
-    MDPHeuristicSearch(
-        value_t convergence_epsilon,
-        bool dual_bounds,
-        std::shared_ptr<PolicyPicker> policy,
-        utils::Verbosity verbosity,
-        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        std::string policy_filename,
-        bool print_fact_names,
-        std::optional<value_t> report_epsilon,
-        bool report_enabled);
-
-    std::string get_algorithm_name() const override;
-
-    template <template <typename, typename, bool> class HS, typename... Args>
-    std::unique_ptr<FDRMDPAlgorithm> create_heuristic_search_algorithm(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function,
-        Args&&... args)
-    {
-        return std::make_unique<BisimulationBasedHeuristicSearchAlgorithm>(
-            task,
-            task_cost_function,
-            this->get_heuristic_search_name(),
-            construct<
-                MDPAlgorithm<QState, QAction>,
-                AlgTypeHelper<HS>::template type_template>(
-                std::forward_as_tuple(
-                    this->convergence_epsilon_,
-                    this->tiebreaker_,
-                    std::forward<Args>(args)...),
-                dual_bounds_));
-    }
-};
-
-template <>
-class MDPHeuristicSearch<true, true>
-    : public MDPHeuristicSearchBase<true, true> {
-    using QState = bisimulation::QuotientState;
-    using QAction = OperatorID;
-
-    using QQState = quotients::QuotientState<QState, QAction>;
-    using QQAction = quotients::QuotientAction<QAction>;
-
-    template <template <typename, typename, bool> typename T>
-    struct AlgTypeHelper {
-        template <bool dual, bool fret_on_policy>
-        using type_template = std::conditional_t<
-            fret_on_policy,
-            algorithms::fret::FRETPi<T<QQState, QQAction, dual>>,
-            algorithms::fret::FRETV<T<QQState, QQAction, dual>>>;
-    };
+protected:
+    using PolicyPicker =
+        MDPHeuristicSearch::MDPHeuristicSearchBase::PolicyPicker;
 
     const bool fret_on_policy_;
 
@@ -324,6 +245,47 @@ public:
     std::string get_algorithm_name() const override;
 
     template <template <typename, typename, bool> class HS, typename... Args>
+    std::unique_ptr<MDPAlgorithm<State, Action>>
+    create_heuristic_search_algorithm(
+        const std::shared_ptr<ProbabilisticTask>&,
+        const std::shared_ptr<FDRCostFunction>&,
+        Args&&... args)
+    {
+        return construct<
+            MDPAlgorithm<State, Action>,
+            AlgTypeHelper<HS>::template type_template>(
+            std::forward_as_tuple(
+                this->convergence_epsilon_,
+                this->tiebreaker_,
+                std::forward<Args>(args)...),
+            this->dual_bounds_,
+            this->fret_on_policy_);
+    }
+};
+
+template <bool Fret>
+class MDPHeuristicSearch<true, Fret, State, OperatorID>
+    : public MDPHeuristicSearch<
+          false,
+          Fret,
+          bisimulation::QuotientState,
+          OperatorID> {
+    using QState = bisimulation::QuotientState;
+    using QAction = OperatorID;
+
+    using PolicyPicker = MDPHeuristicSearch<
+        false,
+        Fret,
+        bisimulation::QuotientState,
+        OperatorID>::PolicyPicker;
+
+public:
+    template <typename... Args>
+    explicit MDPHeuristicSearch(Args&&... args);
+
+    std::string get_algorithm_name() const override;
+
+    template <template <typename, typename, bool> class HS, typename... Args>
     std::unique_ptr<FDRMDPAlgorithm> create_heuristic_search_algorithm(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function,
@@ -333,18 +295,16 @@ public:
             task,
             task_cost_function,
             this->get_heuristic_search_name(),
-            construct<
-                MDPAlgorithm<QState, QAction>,
-                AlgTypeHelper<HS>::template type_template>(
-                std::forward_as_tuple(
-                    this->convergence_epsilon_,
-                    this->tiebreaker_,
-                    std::forward<Args>(args)...),
-                dual_bounds_,
-                fret_on_policy_));
+            MDPHeuristicSearch<false, Fret, QState, QAction>::
+                template create_heuristic_search_algorithm<HS>(
+                    task,
+                    task_cost_function,
+                    std::forward<Args>(args)...));
     }
 };
 
 } // namespace probfd::solvers
+
+#include "probfd/solvers/mdp_heuristic_search_impl.h"
 
 #endif // PROBFD_SOLVERS_MDP_HEURISTIC_SEARCH_H
