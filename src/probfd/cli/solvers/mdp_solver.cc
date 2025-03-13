@@ -7,6 +7,7 @@
 #include <optional>
 
 using namespace probfd;
+using namespace probfd::solvers;
 
 using namespace downward::cli::plugins;
 
@@ -16,6 +17,15 @@ using downward::cli::utils::get_log_arguments_from_options;
 namespace probfd::cli::solvers {
 
 void add_base_solver_options_to_feature(Feature& feature)
+{
+    feature.add_option<std::shared_ptr<StatisticalMDPAlgorithmFactory>>(
+        "algorithm",
+        "The algorithm to be used by the search.",
+        ArgumentInfo::NO_DEFAULT);
+    add_base_solver_options_except_algorithm_to_feature(feature);
+}
+
+void add_base_solver_options_except_algorithm_to_feature(Feature& feature)
 {
     feature.add_option<std::shared_ptr<TaskStateSpaceFactory>>(
         "state_space",
@@ -53,10 +63,30 @@ void add_base_solver_options_to_feature(Feature& feature)
 MDPSolverArgs get_base_solver_args_from_options(const Options& options)
 {
     return std::tuple_cat(
+        std::make_tuple(
+            options.get<std::shared_ptr<StatisticalMDPAlgorithmFactory>>(
+                "algorithm"),
+            options.get<std::shared_ptr<TaskStateSpaceFactory>>("state_space"),
+            options.get<std::shared_ptr<TaskHeuristicFactory>>("heuristic")),
         get_log_arguments_from_options(options),
         std::make_tuple(
+            options.get<std::string>("policy_file"),
+            options.get<bool>("print_fact_names"),
+            options.contains("report_epsilon")
+                ? std::optional<value_t>(options.get<value_t>("report_epsilon"))
+                : std::nullopt,
+            options.get<bool>("report_enabled")));
+}
+
+MDPSolverNoAlgorithmArgs
+get_base_solver_args_no_algorithm_from_options(const Options& options)
+{
+    return std::tuple_cat(
+        std::make_tuple(
             options.get<std::shared_ptr<TaskStateSpaceFactory>>("state_space"),
-            options.get<std::shared_ptr<TaskHeuristicFactory>>("heuristic"),
+            options.get<std::shared_ptr<TaskHeuristicFactory>>("heuristic")),
+        get_log_arguments_from_options(options),
+        std::make_tuple(
             options.get<std::string>("policy_file"),
             options.get<bool>("print_fact_names"),
             options.contains("report_epsilon")

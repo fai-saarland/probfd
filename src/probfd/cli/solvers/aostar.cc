@@ -4,10 +4,10 @@
 #include "probfd/cli/naming_conventions.h"
 
 #include "probfd/cli/solvers/mdp_heuristic_search.h"
+#include "probfd/cli/solvers/mdp_solver.h"
 
 #include "probfd/algorithms/ao_star.h"
 
-#include <iostream>
 #include <memory>
 #include <string>
 
@@ -54,17 +54,17 @@ public:
 };
 
 template <bool Bisimulation>
-class AOStarSolverFeature
-    : public TypedFeature<TaskSolverFactory, AOStarSolver<Bisimulation>> {
+class AOStarSolverFeature : public TypedFeature<TaskSolverFactory, MDPSolver> {
     using Sampler = SuccessorSampler<ActionType<Bisimulation, false>>;
 
 public:
     AOStarSolverFeature()
-        : TypedFeature<TaskSolverFactory, AOStarSolver<Bisimulation>>(
+        : TypedFeature<TaskSolverFactory, MDPSolver>(
               add_wrapper_algo_suffix<Bisimulation, false>("aostar"))
     {
         this->document_title("AO* algorithm");
 
+        add_base_solver_options_except_algorithm_to_feature(*this);
         add_mdp_hs_options_to_feature<Bisimulation, false>(*this);
 
         this->template add_option<std::shared_ptr<Sampler>>(
@@ -75,12 +75,14 @@ public:
     }
 
 protected:
-    std::shared_ptr<AOStarSolver<Bisimulation>>
+    std::shared_ptr<MDPSolver>
     create_component(const Options& options, const Context&) const override
     {
-        return make_shared_from_arg_tuples<AOStarSolver<Bisimulation>>(
-            options.get<std::shared_ptr<Sampler>>("successor_sampler"),
-            get_mdp_hs_args_from_options<Bisimulation, false>(options));
+        return make_shared_from_arg_tuples<MDPSolver>(
+            make_shared_from_arg_tuples<AOStarSolver<Bisimulation>>(
+                options.get<std::shared_ptr<Sampler>>("successor_sampler"),
+                get_mdp_hs_args_from_options<Bisimulation, false>(options)),
+            get_base_solver_args_no_algorithm_from_options(options));
     }
 };
 

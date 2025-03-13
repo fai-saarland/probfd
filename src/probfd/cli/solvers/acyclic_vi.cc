@@ -3,6 +3,7 @@
 #include "probfd/cli/solvers/mdp_solver.h"
 
 #include "probfd/solvers/mdp_solver.h"
+#include "probfd/solvers/statistical_mdp_algorithm.h"
 
 #include "probfd/algorithms/acyclic_value_iteration.h"
 
@@ -61,10 +62,8 @@ public:
     }
 };
 
-class AcyclicVISolver : public MDPSolver {
+class AcyclicVISolver : public StatisticalMDPAlgorithmFactory {
 public:
-    using MDPSolver::MDPSolver;
-
     std::string get_algorithm_name() const override
     {
         return "acyclic_value_iteration";
@@ -79,21 +78,22 @@ public:
 };
 
 class AcyclicVISolverFeature
-    : public TypedFeature<TaskSolverFactory, AcyclicVISolver> {
+    : public TypedFeature<TaskSolverFactory, MDPSolver> {
 public:
     AcyclicVISolverFeature()
         : TypedFeature("acyclic_value_iteration")
     {
         document_title("Acyclic Value Iteration");
-        add_base_solver_options_to_feature(*this);
+        add_base_solver_options_except_algorithm_to_feature(*this);
     }
 
 protected:
-    std::shared_ptr<AcyclicVISolver>
+    std::shared_ptr<MDPSolver>
     create_component(const Options& options, const Context&) const override
     {
-        return make_shared_from_arg_tuples<AcyclicVISolver>(
-            get_base_solver_args_from_options(options));
+        return make_shared_from_arg_tuples<MDPSolver>(
+            std::make_shared<AcyclicVISolver>(),
+            get_base_solver_args_no_algorithm_from_options(options));
     }
 };
 

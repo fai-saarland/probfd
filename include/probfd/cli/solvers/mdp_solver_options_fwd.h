@@ -21,18 +21,25 @@ class TaskStateSpaceFactory;
 class TaskHeuristicFactory;
 } // namespace probfd
 
+namespace probfd::solvers {
+class StatisticalMDPAlgorithmFactory;
+} // namespace probfd::solvers
+
 namespace probfd::cli::solvers {
 
-using MDPSolverAddditionalArgs = std::tuple<
+using MDPSolverNoAlgorithmArgs = std::tuple<
     std::shared_ptr<probfd::TaskStateSpaceFactory>,
     std::shared_ptr<probfd::TaskHeuristicFactory>,
+    utils::Verbosity,
     std::string,
     bool,
     std::optional<probfd::value_t>,
     bool>;
 
-using MDPSolverArgs =
-    TupleCatType<std::tuple<utils::Verbosity>, MDPSolverAddditionalArgs>;
+using MDPSolverArgs = TupleCatType<
+    std::tuple<
+        std::shared_ptr<probfd::solvers::StatisticalMDPAlgorithmFactory>>,
+    MDPSolverNoAlgorithmArgs>;
 
 } // namespace probfd::cli::solvers
 

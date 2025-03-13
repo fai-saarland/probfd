@@ -7,6 +7,7 @@
 #include "probfd/algorithms/policy_picker.h"
 
 #include "probfd/solvers/bisimulation_heuristic_search_algorithm.h"
+#include "probfd/solvers/statistical_mdp_algorithm.h"
 
 #include <memory>
 #include <string>
@@ -106,7 +107,7 @@ template <
     bool Fret,
     typename State = State,
     typename Action = OperatorID>
-class MDPHeuristicSearchBase : public MDPSolver {
+class MDPHeuristicSearchBase : public StatisticalMDPAlgorithmFactory {
 protected:
     using PolicyPicker = algorithms::PolicyPicker<
         StateType<Bisimulation, Fret, State, Action>,
@@ -126,14 +127,7 @@ public:
     MDPHeuristicSearchBase(
         value_t convergence_epsilon,
         bool dual_bounds,
-        std::shared_ptr<PolicyPicker> policy,
-        utils::Verbosity verbosity,
-        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        std::string policy_filename,
-        bool print_fact_names,
-        std::optional<value_t> report_epsilon,
-        bool report_enabled);
+        std::shared_ptr<PolicyPicker> policy);
 
     template <template <typename, typename, bool> class S, typename... Args>
     std::unique_ptr<MDPAlgorithm<State, Action>> create_search_algorithm(
@@ -178,14 +172,7 @@ public:
     MDPHeuristicSearch(
         value_t convergence_epsilon,
         bool dual_bounds,
-        std::shared_ptr<PolicyPicker> policy,
-        utils::Verbosity verbosity,
-        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        std::string policy_filename,
-        bool print_fact_names,
-        std::optional<value_t> report_epsilon,
-        bool report_enabled);
+        std::shared_ptr<PolicyPicker> policy);
 
     std::string get_algorithm_name() const override;
 
@@ -233,14 +220,7 @@ public:
         bool fret_on_policy,
         value_t convergence_epsilon,
         bool dual_bounds,
-        std::shared_ptr<PolicyPicker> policy,
-        utils::Verbosity verbosity,
-        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        std::string policy_filename,
-        bool print_fact_names,
-        std::optional<value_t> report_epsilon,
-        bool report_enabled);
+        std::shared_ptr<PolicyPicker> policy);
 
     std::string get_algorithm_name() const override;
 
@@ -270,18 +250,19 @@ class MDPHeuristicSearch<true, Fret, State, OperatorID>
           Fret,
           bisimulation::QuotientState,
           OperatorID> {
-    using QState = bisimulation::QuotientState;
-    using QAction = OperatorID;
-
-    using PolicyPicker = MDPHeuristicSearch<
+    using Base = MDPHeuristicSearch<
         false,
         Fret,
         bisimulation::QuotientState,
-        OperatorID>::PolicyPicker;
+        OperatorID>;
+
+    using QState = bisimulation::QuotientState;
+    using QAction = OperatorID;
+
+    using PolicyPicker = Base::PolicyPicker;
 
 public:
-    template <typename... Args>
-    explicit MDPHeuristicSearch(Args&&... args);
+    using Base::Base;
 
     std::string get_algorithm_name() const override;
 
@@ -295,11 +276,10 @@ public:
             task,
             task_cost_function,
             this->get_heuristic_search_name(),
-            MDPHeuristicSearch<false, Fret, QState, QAction>::
-                template create_heuristic_search_algorithm<HS>(
-                    task,
-                    task_cost_function,
-                    std::forward<Args>(args)...));
+            Base::template create_heuristic_search_algorithm<HS>(
+                task,
+                task_cost_function,
+                std::forward<Args>(args)...));
     }
 };
 

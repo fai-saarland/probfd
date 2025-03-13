@@ -58,6 +58,7 @@ create_library(
     HELP "Enables plugin options for MDP solvers"
     SOURCES
         probfd/cli/solvers/mdp_solver
+        probfd/cli/solvers/statistical_mdp_algorithm_factory_category
     DEPENDS
         probfd_core
         parser

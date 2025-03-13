@@ -4,6 +4,7 @@
 #include "probfd/cli/naming_conventions.h"
 
 #include "probfd/cli/solvers/mdp_heuristic_search.h"
+#include "probfd/cli/solvers/mdp_solver.h"
 
 #include "probfd/solvers/mdp_heuristic_search.h"
 
@@ -57,12 +58,12 @@ public:
 
 template <bool Bisimulation>
 class ExhaustiveAOSolverFeature
-    : public TypedFeature<TaskSolverFactory, ExhaustiveAOSolver<Bisimulation>> {
+    : public TypedFeature<TaskSolverFactory, MDPSolver> {
     using OpenListType = OpenList<ActionType<Bisimulation, false>>;
 
 public:
     ExhaustiveAOSolverFeature()
-        : ExhaustiveAOSolverFeature::TypedFeature(
+        : TypedFeature<TaskSolverFactory, MDPSolver>(
               add_wrapper_algo_suffix<Bisimulation, false>("exhaustive_ao"))
     {
         this->document_title("Exhaustive AO* algorithm");
@@ -72,17 +73,20 @@ public:
             "",
             add_mdp_type_to_option<Bisimulation, false>("lifo_open_list()"));
 
+        add_base_solver_options_except_algorithm_to_feature(*this);
         add_mdp_hs_options_to_feature<Bisimulation, false>(*this);
     }
 
 protected:
-    std::shared_ptr<ExhaustiveAOSolver<Bisimulation>>
+    std::shared_ptr<MDPSolver>
     create_component(const Options& options, const utils::Context&)
         const override
     {
-        return make_shared_from_arg_tuples<ExhaustiveAOSolver<Bisimulation>>(
-            options.get<std::shared_ptr<OpenListType>>("open_list"),
-            get_mdp_hs_args_from_options<Bisimulation, false>(options));
+        return make_shared_from_arg_tuples<MDPSolver>(
+            make_shared_from_arg_tuples<ExhaustiveAOSolver<Bisimulation>>(
+                options.get<std::shared_ptr<OpenListType>>("open_list"),
+                get_mdp_hs_args_from_options<Bisimulation, false>(options)),
+            get_base_solver_args_no_algorithm_from_options(options));
     }
 };
 

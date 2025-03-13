@@ -1,11 +1,10 @@
 #include "probfd/solvers/mdp_solver.h"
 
-#include "probfd/tasks/root_task.h"
+#include "probfd/solvers/statistical_mdp_algorithm.h"
 
 #include "probfd/caching_task_state_space.h"
 
 #include "probfd/heuristic.h"
-#include "probfd/interval.h"
 #include "probfd/mdp_algorithm.h"
 #include "probfd/policy.h"
 #include "probfd/probabilistic_task.h"
@@ -22,11 +21,9 @@
 
 #include <deque>
 #include <fstream>
-#include <functional>
 #include <iostream>
 #include <limits>
 #include <optional>
-#include <type_traits>
 
 namespace probfd::solvers {
 
@@ -79,39 +76,19 @@ void print_policy(
 }
 } // namespace
 
-AlgorithmAdaptor::AlgorithmAdaptor(std::unique_ptr<FDRMDPAlgorithm> algorithm)
-    : algorithm(std::move(algorithm))
-{
-}
-
-AlgorithmAdaptor::~AlgorithmAdaptor() = default;
-
-auto AlgorithmAdaptor::compute_policy(
-    MDPType& mdp,
-    HeuristicType& heuristic,
-    ParamType<State> state,
-    ProgressReport progress,
-    double max_time) -> std::unique_ptr<PolicyType>
-{
-    return algorithm->compute_policy(mdp, heuristic, state, progress, max_time);
-}
-
-void AlgorithmAdaptor::print_statistics(std::ostream& out) const
-{
-    return algorithm->print_statistics(out);
-}
-
 MDPSolver::MDPSolver(
-    utils::Verbosity verbosity,
+    std::shared_ptr<StatisticalMDPAlgorithmFactory> algorithm_factory,
     std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
     std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
+    utils::Verbosity verbosity,
     std::string policy_filename,
     bool print_fact_names,
     std::optional<value_t> report_epsilon,
     bool report_enabled)
-    : log_(utils::get_log_for_verbosity(verbosity))
+    : algorithm_factory_(std::move(algorithm_factory))
     , task_state_space_factory_(std::move(task_state_space_factory))
     , heuristic_factory_(std::move(heuristic_factory))
+    , log_(utils::get_log_for_verbosity(verbosity))
     , policy_filename(std::move(policy_filename))
     , print_fact_names(print_fact_names)
     , report_epsilon(report_epsilon)
@@ -261,8 +238,8 @@ MDPSolver::create(const std::shared_ptr<ProbabilisticTask>& task)
     std::unique_ptr<StatisticalMDPAlgorithm> algorithm = run_time_logged(
         std::cout,
         "Constructing algorithm...",
-        &MDPSolver::create_algorithm,
-        *this,
+        &StatisticalMDPAlgorithmFactory::create_algorithm,
+        *algorithm_factory_,
         task,
         task_cost_function);
 
@@ -288,7 +265,7 @@ MDPSolver::create(const std::shared_ptr<ProbabilisticTask>& task)
         std::move(algorithm),
         std::move(state_space),
         std::move(heuristic),
-        get_algorithm_name(),
+        algorithm_factory_->get_algorithm_name(),
         policy_filename,
         print_fact_names,
         report_epsilon,

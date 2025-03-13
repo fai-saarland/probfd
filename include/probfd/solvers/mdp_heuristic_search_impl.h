@@ -18,23 +18,8 @@ MDPHeuristicSearchBase<Bisimulation, Fret, State, Action>::
     MDPHeuristicSearchBase(
         value_t convergence_epsilon,
         bool dual_bounds,
-        std::shared_ptr<PolicyPicker> policy,
-        utils::Verbosity verbosity,
-        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        std::string policy_filename,
-        bool print_fact_names,
-        std::optional<value_t> report_epsilon,
-        bool report_enabled)
-    : MDPSolver(
-          verbosity,
-          std::move(task_state_space_factory),
-          std::move(heuristic_factory),
-          policy_filename,
-          print_fact_names,
-          report_epsilon,
-          report_enabled)
-    , convergence_epsilon_(convergence_epsilon)
+        std::shared_ptr<PolicyPicker> policy)
+    : convergence_epsilon_(convergence_epsilon)
     , dual_bounds_(dual_bounds)
     , tiebreaker_(std::move(policy))
 {
@@ -75,25 +60,11 @@ template <typename State, typename Action>
 MDPHeuristicSearch<false, false, State, Action>::MDPHeuristicSearch(
     value_t convergence_epsilon,
     bool dual_bounds,
-    std::shared_ptr<PolicyPicker> policy,
-    utils::Verbosity verbosity,
-    std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-    std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-    std::string policy_filename,
-    bool print_fact_names,
-    std::optional<value_t> report_epsilon,
-    bool report_enabled)
+    std::shared_ptr<PolicyPicker> policy)
     : MDPHeuristicSearchBase<false, false, State, Action>(
           convergence_epsilon,
           dual_bounds,
-          std::move(policy),
-          verbosity,
-          std::move(task_state_space_factory),
-          std::move(heuristic_factory),
-          std::move(policy_filename),
-          print_fact_names,
-          report_epsilon,
-          report_enabled)
+          std::move(policy))
 {
 }
 
@@ -102,35 +73,12 @@ MDPHeuristicSearch<false, true, State, Action>::MDPHeuristicSearch(
     bool fret_on_policy,
     value_t convergence_epsilon,
     bool dual_bounds,
-    std::shared_ptr<PolicyPicker> policy,
-    utils::Verbosity verbosity,
-    std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-    std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-    std::string policy_filename,
-    bool print_fact_names,
-    std::optional<value_t> report_epsilon,
-    bool report_enabled)
+    std::shared_ptr<PolicyPicker> policy)
     : MDPHeuristicSearchBase<false, true, State, Action>(
           convergence_epsilon,
           dual_bounds,
-          std::move(policy),
-          verbosity,
-          std::move(task_state_space_factory),
-          std::move(heuristic_factory),
-          std::move(policy_filename),
-          print_fact_names,
-          report_epsilon,
-          report_enabled)
+          std::move(policy))
     , fret_on_policy_(fret_on_policy)
-{
-}
-
-template <bool Fret>
-template <typename... Args>
-MDPHeuristicSearch<true, Fret, State, OperatorID>::MDPHeuristicSearch(
-    Args&&... args)
-    : MDPHeuristicSearch<false, Fret, QState, QAction>(
-          std::forward<Args>(args)...)
 {
 }
 

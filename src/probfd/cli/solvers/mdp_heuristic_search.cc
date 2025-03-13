@@ -38,8 +38,6 @@ void add_mdp_hs_base_options_to_feature(Feature& feature)
         "The tie-breaking strategy to use when selecting a greedy policy.",
         add_mdp_type_to_option<Bisimulation, Fret>(
             "arbitrary_policy_tiebreaker()"));
-
-    add_base_solver_options_to_feature(feature);
 }
 
 template <bool Bisimulation, bool Fret>
@@ -51,8 +49,7 @@ get_mdp_hs_base_args_from_options(const Options& options)
             options.get<value_t>("convergence_epsilon"),
             options.get<bool>("dual_bounds"),
             options.get<std::shared_ptr<PolicyPickerType<Bisimulation, Fret>>>(
-                "policy")),
-        get_base_solver_args_from_options(options));
+                "policy")));
 }
 
 template <bool Bisimulation, bool Fret>

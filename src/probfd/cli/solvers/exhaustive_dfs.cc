@@ -3,6 +3,7 @@
 #include "probfd/cli/solvers/mdp_solver.h"
 
 #include "probfd/solvers/mdp_solver.h"
+#include "probfd/solvers/statistical_mdp_algorithm.h"
 
 #include "probfd/algorithms/exhaustive_dfs.h"
 
@@ -26,7 +27,7 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-class ExhaustiveDFSSolver : public MDPSolver {
+class ExhaustiveDFSSolver : public StatisticalMDPAlgorithmFactory {
     const value_t convergence_epsilon_;
 
     const std::shared_ptr<FDRTransitionSorter> transition_sort_;
@@ -36,16 +37,13 @@ class ExhaustiveDFSSolver : public MDPSolver {
     const bool only_propagate_when_changed_;
 
 public:
-    template <typename... Args>
     ExhaustiveDFSSolver(
         value_t convergence_epsilon,
         std::shared_ptr<FDRTransitionSorter> order,
         bool dual_bounds,
         bool reverse_path_updates,
-        bool only_propagate_when_changed,
-        Args&&... args)
-        : MDPSolver(std::forward<Args>(args)...)
-        , convergence_epsilon_(convergence_epsilon)
+        bool only_propagate_when_changed)
+        : convergence_epsilon_(convergence_epsilon)
         , transition_sort_(std::move(order))
         , dual_bounds_(dual_bounds)
         , path_updates_(reverse_path_updates)
@@ -87,10 +85,10 @@ public:
 };
 
 class ExhaustiveDFSSolverFeature
-    : public TypedFeature<TaskSolverFactory, ExhaustiveDFSSolver> {
+    : public TypedFeature<TaskSolverFactory, MDPSolver> {
 public:
     ExhaustiveDFSSolverFeature()
-        : TypedFeature<TaskSolverFactory, ExhaustiveDFSSolver>("exhaustive_dfs")
+        : TypedFeature<TaskSolverFactory, MDPSolver>("exhaustive_dfs")
     {
         document_title("Exhaustive Depth-First Search");
 
@@ -108,21 +106,24 @@ public:
         add_option<bool>("reverse_path_updates", "", "true");
         add_option<bool>("only_propagate_when_changed", "", "true");
 
-        add_base_solver_options_to_feature(*this);
+        add_base_solver_options_except_algorithm_to_feature(*this);
     }
 
 protected:
-    std::shared_ptr<ExhaustiveDFSSolver>
+    std::shared_ptr<MDPSolver>
     create_component(const Options& options, const utils::Context&)
         const override
     {
-        return make_shared_from_arg_tuples<ExhaustiveDFSSolver>(
-            options.get<value_t>("convergence_epsilon"),
-            options.get<std::shared_ptr<FDRTransitionSorter>>("order", nullptr),
-            options.get<bool>("dual_bounds"),
-            options.get<bool>("reverse_path_updates"),
-            options.get<bool>("only_propagate_when_changed"),
-            get_base_solver_args_from_options(options));
+        return make_shared_from_arg_tuples<MDPSolver>(
+            make_shared_from_arg_tuples<ExhaustiveDFSSolver>(
+                options.get<value_t>("convergence_epsilon"),
+                options.get<std::shared_ptr<FDRTransitionSorter>>(
+                    "order",
+                    nullptr),
+                options.get<bool>("dual_bounds"),
+                options.get<bool>("reverse_path_updates"),
+                options.get<bool>("only_propagate_when_changed")),
+            get_base_solver_args_no_algorithm_from_options(options));
     }
 };
 

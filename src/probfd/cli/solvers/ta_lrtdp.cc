@@ -3,12 +3,12 @@
 #include "probfd/cli/naming_conventions.h"
 
 #include "probfd/cli/solvers/mdp_heuristic_search.h"
+#include "probfd/cli/solvers/mdp_solver.h"
 
 #include "probfd/algorithms/successor_sampler.h"
 #include "probfd/algorithms/trap_aware_lrtdp.h"
 #include "probfd/solvers/mdp_heuristic_search.h"
 
-#include <iostream>
 #include <memory>
 #include <string>
 
@@ -66,10 +66,10 @@ public:
 };
 
 class TrapAwareLRTDPSolverFeature
-    : public TypedFeature<TaskSolverFactory, TrapAwareLRTDPSolver> {
+    : public TypedFeature<TaskSolverFactory, MDPSolver> {
 public:
     TrapAwareLRTDPSolverFeature()
-        : TypedFeature<TaskSolverFactory, TrapAwareLRTDPSolver>("talrtdp")
+        : TypedFeature<TaskSolverFactory, MDPSolver>("talrtdp")
     {
         document_title("Trap-aware LRTDP");
         document_synopsis(
@@ -88,19 +88,22 @@ public:
             "Immediately re-expand the collapsed trap state.",
             "true");
 
+        add_base_solver_options_except_algorithm_to_feature(*this);
         add_mdp_hs_base_options_to_feature<false, true>(*this);
     }
 
 protected:
-    std::shared_ptr<TrapAwareLRTDPSolver>
+    std::shared_ptr<MDPSolver>
     create_component(const Options& options, const Context&) const override
     {
-        return make_shared_from_arg_tuples<TrapAwareLRTDPSolver>(
-            options.get<std::shared_ptr<QSuccessorSampler>>(
-                "successor_sampler"),
-            options.get<TrialTerminationCondition>("terminate_trial"),
-            options.get<bool>("reexpand_traps"),
-            get_mdp_hs_base_args_from_options<false, true>(options));
+        return make_shared_from_arg_tuples<MDPSolver>(
+            make_shared_from_arg_tuples<TrapAwareLRTDPSolver>(
+                options.get<std::shared_ptr<QSuccessorSampler>>(
+                    "successor_sampler"),
+                options.get<TrialTerminationCondition>("terminate_trial"),
+                options.get<bool>("reexpand_traps"),
+                get_mdp_hs_base_args_from_options<false, true>(options)),
+            get_base_solver_args_no_algorithm_from_options(options));
     }
 };
 

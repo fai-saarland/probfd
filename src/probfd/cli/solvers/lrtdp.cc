@@ -4,10 +4,10 @@
 #include "probfd/cli/naming_conventions.h"
 
 #include "probfd/cli/solvers/mdp_heuristic_search.h"
+#include "probfd/cli/solvers/mdp_solver.h"
 
 #include "probfd/algorithms/lrtdp.h"
 
-#include <iostream>
 #include <memory>
 #include <string>
 
@@ -60,17 +60,17 @@ public:
 };
 
 template <bool Bisimulation, bool Fret>
-class LRTDPSolverFeature
-    : public TypedFeature<TaskSolverFactory, LRTDPSolver<Bisimulation, Fret>> {
+class LRTDPSolverFeature : public TypedFeature<TaskSolverFactory, MDPSolver> {
     using Sampler = SuccessorSampler<ActionType<Bisimulation, Fret>>;
 
 public:
     LRTDPSolverFeature()
-        : TypedFeature<TaskSolverFactory, LRTDPSolver<Bisimulation, Fret>>(
+        : TypedFeature<TaskSolverFactory, MDPSolver>(
               add_wrapper_algo_suffix<Bisimulation, Fret>("lrtdp"))
     {
         this->document_title("Labelled Real-Time Dynamic Programming");
 
+        add_base_solver_options_except_algorithm_to_feature(*this);
         add_mdp_hs_options_to_feature<Bisimulation, Fret>(*this);
 
         this->template add_option<std::shared_ptr<Sampler>>(
@@ -86,7 +86,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<LRTDPSolver<Bisimulation, Fret>>
+    std::shared_ptr<MDPSolver>
     create_component(const Options& options, const Context& context)
         const override
     {
@@ -105,10 +105,12 @@ protected:
             }
         }
 
-        return make_shared_from_arg_tuples<LRTDPSolver<Bisimulation, Fret>>(
-            options.get<std::shared_ptr<Sampler>>("successor_sampler"),
-            options.get<TrialTerminationCondition>("trial_termination"),
-            get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
+        return make_shared_from_arg_tuples<MDPSolver>(
+            make_shared_from_arg_tuples<LRTDPSolver<Bisimulation, Fret>>(
+                options.get<std::shared_ptr<Sampler>>("successor_sampler"),
+                options.get<TrialTerminationCondition>("trial_termination"),
+                get_mdp_hs_args_from_options<Bisimulation, Fret>(options)),
+            get_base_solver_args_no_algorithm_from_options(options));
     }
 };
 

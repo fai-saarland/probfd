@@ -5,6 +5,7 @@
 #include "probfd/cli/solvers/mdp_solver.h"
 
 #include "probfd/solvers/mdp_solver.h"
+#include "probfd/solvers/statistical_mdp_algorithm.h"
 
 #include "probfd/algorithms/i2dual.h"
 
@@ -24,22 +25,19 @@ using downward::cli::lp::get_lp_solver_arguments_from_options;
 
 namespace {
 
-class I2DualSolver : public MDPSolver {
+class I2DualSolver : public StatisticalMDPAlgorithmFactory {
     bool hpom_enabled_;
     bool incremental_hpom_updates_;
     lp::LPSolverType solver_type_;
     double fp_epsilon_;
 
 public:
-    template <typename... Args>
     I2DualSolver(
         bool disable_hpom,
         bool incremental_updates,
         lp::LPSolverType lp_solver,
-        double fp_epsilon,
-        Args&&... args)
-        : MDPSolver(std::forward<Args>(args)...)
-        , hpom_enabled_(!disable_hpom)
+        double fp_epsilon)
+        : hpom_enabled_(!disable_hpom)
         , incremental_hpom_updates_(incremental_updates)
         , solver_type_(lp_solver)
         , fp_epsilon_(fp_epsilon)
@@ -63,11 +61,10 @@ public:
     }
 };
 
-class I2DualSolverFeature
-    : public TypedFeature<TaskSolverFactory, I2DualSolver> {
+class I2DualSolverFeature : public TypedFeature<TaskSolverFactory, MDPSolver> {
 public:
     I2DualSolverFeature()
-        : TypedFeature<TaskSolverFactory, I2DualSolver>("i2dual")
+        : TypedFeature<TaskSolverFactory, MDPSolver>("i2dual")
     {
         document_title("i^2-dual");
 
@@ -82,20 +79,21 @@ public:
             "solution.",
             "0.0001");
 
-        add_base_solver_options_to_feature(*this);
+        add_base_solver_options_except_algorithm_to_feature(*this);
     }
 
 protected:
-    std::shared_ptr<I2DualSolver>
+    std::shared_ptr<MDPSolver>
     create_component(const Options& options, const utils::Context&)
         const override
     {
-        return make_shared_from_arg_tuples<I2DualSolver>(
-            options.get<bool>("disable_hpom"),
-            options.get<bool>("incremental_updates"),
-            get_lp_solver_arguments_from_options(options),
-            options.get<double>("fp_epsilon"),
-            get_base_solver_args_from_options(options));
+        return make_shared_from_arg_tuples<MDPSolver>(
+            make_shared_from_arg_tuples<I2DualSolver>(
+                options.get<bool>("disable_hpom"),
+                options.get<bool>("incremental_updates"),
+                get_lp_solver_arguments_from_options(options),
+                options.get<double>("fp_epsilon")),
+            get_base_solver_args_no_algorithm_from_options(options));
     }
 };
 

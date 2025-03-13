@@ -4,6 +4,7 @@
 #include "probfd/cli/naming_conventions.h"
 
 #include "probfd/cli/solvers/mdp_heuristic_search.h"
+#include "probfd/cli/solvers/mdp_solver.h"
 
 #include "probfd/algorithms/depth_first_heuristic_search.h"
 
@@ -74,8 +75,7 @@ public:
 };
 
 template <bool Bisimulation, bool Fret>
-class DFHSSolverFeature
-    : public TypedFeature<TaskSolverFactory, DFHSSolver<Bisimulation, Fret>> {
+class DFHSSolverFeature : public TypedFeature<TaskSolverFactory, MDPSolver> {
 public:
     DFHSSolverFeature()
         : DFHSSolverFeature::TypedFeature(
@@ -102,11 +102,12 @@ public:
             "",
             ArgumentInfo::NO_DEFAULT);
 
+        add_base_solver_options_except_algorithm_to_feature(*this);
         add_mdp_hs_options_to_feature<Bisimulation, Fret>(*this);
     }
 
 protected:
-    std::shared_ptr<DFHSSolver<Bisimulation, Fret>>
+    std::shared_ptr<MDPSolver>
     create_component(const Options& options, const utils::Context& context)
         const override
     {
@@ -135,20 +136,21 @@ protected:
             }
         }
 
-        return make_shared_from_arg_tuples<DFHSSolver<Bisimulation, Fret>>(
-            "dfhs",
-            forward_updates,
-            backward_updates,
-            cutoff_tip,
-            cutoff_inconsistent,
-            labeling,
-            get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
+        return make_shared_from_arg_tuples<MDPSolver>(
+            make_shared_from_arg_tuples<DFHSSolver<Bisimulation, Fret>>(
+                "dfhs",
+                forward_updates,
+                backward_updates,
+                cutoff_tip,
+                cutoff_inconsistent,
+                labeling,
+                get_mdp_hs_args_from_options<Bisimulation, Fret>(options)),
+            get_base_solver_args_no_algorithm_from_options(options));
     }
 };
 
 template <bool Bisimulation, bool Fret>
-class ILAOSolverFeature
-    : public TypedFeature<TaskSolverFactory, DFHSSolver<Bisimulation, Fret>> {
+class ILAOSolverFeature : public TypedFeature<TaskSolverFactory, MDPSolver> {
 public:
     ILAOSolverFeature()
         : ILAOSolverFeature::TypedFeature(
@@ -156,27 +158,29 @@ public:
     {
         this->document_title("iLAO* variant of depth-first heuristic search");
 
+        add_base_solver_options_except_algorithm_to_feature(*this);
         add_mdp_hs_options_to_feature<Bisimulation, Fret>(*this);
     }
 
-    std::shared_ptr<DFHSSolver<Bisimulation, Fret>>
+    std::shared_ptr<MDPSolver>
     create_component(const Options& options, const utils::Context&)
         const override
     {
-        return make_shared_from_arg_tuples<DFHSSolver<Bisimulation, Fret>>(
-            "ilao",
-            false,
-            BacktrackingUpdateType::SINGLE,
-            true,
-            false,
-            false,
-            get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
+        return make_shared_from_arg_tuples<MDPSolver>(
+            make_shared_from_arg_tuples<DFHSSolver<Bisimulation, Fret>>(
+                "ilao",
+                false,
+                BacktrackingUpdateType::SINGLE,
+                true,
+                false,
+                false,
+                get_mdp_hs_args_from_options<Bisimulation, Fret>(options)),
+            get_base_solver_args_no_algorithm_from_options(options));
     }
 };
 
 template <bool Bisimulation, bool Fret>
-class LILAOSolverFeature
-    : public TypedFeature<TaskSolverFactory, DFHSSolver<Bisimulation, Fret>> {
+class LILAOSolverFeature : public TypedFeature<TaskSolverFactory, MDPSolver> {
 public:
     LILAOSolverFeature()
         : LILAOSolverFeature::TypedFeature(
@@ -184,27 +188,29 @@ public:
     {
         this->document_title("Labelled variant of iLAO*");
 
+        add_base_solver_options_except_algorithm_to_feature(*this);
         add_mdp_hs_options_to_feature<Bisimulation, Fret>(*this);
     }
 
-    std::shared_ptr<DFHSSolver<Bisimulation, Fret>>
+    std::shared_ptr<MDPSolver>
     create_component(const Options& options, const utils::Context&)
         const override
     {
-        return make_shared_from_arg_tuples<DFHSSolver<Bisimulation, Fret>>(
-            "lilao",
-            false,
-            BacktrackingUpdateType::SINGLE,
-            true,
-            false,
-            true,
-            get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
+        return make_shared_from_arg_tuples<MDPSolver>(
+            make_shared_from_arg_tuples<DFHSSolver<Bisimulation, Fret>>(
+                "lilao",
+                false,
+                BacktrackingUpdateType::SINGLE,
+                true,
+                false,
+                true,
+                get_mdp_hs_args_from_options<Bisimulation, Fret>(options)),
+            get_base_solver_args_no_algorithm_from_options(options));
     }
 };
 
 template <bool Bisimulation, bool Fret>
-class HDPSolverFeature
-    : public TypedFeature<TaskSolverFactory, DFHSSolver<Bisimulation, Fret>> {
+class HDPSolverFeature : public TypedFeature<TaskSolverFactory, MDPSolver> {
 public:
     HDPSolverFeature()
         : HDPSolverFeature::TypedFeature(
@@ -212,21 +218,24 @@ public:
     {
         this->document_title("HDP variant of depth-first heuristic search");
 
+        add_base_solver_options_except_algorithm_to_feature(*this);
         add_mdp_hs_options_to_feature<Bisimulation, Fret>(*this);
     }
 
-    std::shared_ptr<DFHSSolver<Bisimulation, Fret>>
+    std::shared_ptr<MDPSolver>
     create_component(const Options& options, const utils::Context&)
         const override
     {
-        return make_shared_from_arg_tuples<DFHSSolver<Bisimulation, Fret>>(
-            "hdp",
-            true,
-            BacktrackingUpdateType::ON_DEMAND,
-            false,
-            true,
-            false,
-            get_mdp_hs_args_from_options<Bisimulation, Fret>(options));
+        return make_shared_from_arg_tuples<MDPSolver>(
+            make_shared_from_arg_tuples<DFHSSolver<Bisimulation, Fret>>(
+                "hdp",
+                true,
+                BacktrackingUpdateType::ON_DEMAND,
+                false,
+                true,
+                false,
+                get_mdp_hs_args_from_options<Bisimulation, Fret>(options)),
+            get_base_solver_args_no_algorithm_from_options(options));
     }
 };
 

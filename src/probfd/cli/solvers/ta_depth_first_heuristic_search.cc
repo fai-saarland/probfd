@@ -3,9 +3,11 @@
 #include "probfd/cli/naming_conventions.h"
 
 #include "probfd/cli/solvers/mdp_heuristic_search.h"
+#include "probfd/cli/solvers/mdp_solver.h"
 
 #include "probfd/algorithms/open_list.h"
 #include "probfd/algorithms/trap_aware_dfhs.h"
+
 #include "probfd/solvers/mdp_heuristic_search.h"
 
 #include <memory>
@@ -83,10 +85,10 @@ public:
 };
 
 class TrapAwareDFHSSolverFeature
-    : public TypedFeature<TaskSolverFactory, TrapAwareDFHSSolver> {
+    : public TypedFeature<TaskSolverFactory, MDPSolver> {
 public:
     TrapAwareDFHSSolverFeature()
-        : TypedFeature<TaskSolverFactory, TrapAwareDFHSSolver>("tadfhs")
+        : TypedFeature<TaskSolverFactory, MDPSolver>("tadfhs")
     {
         document_title("Trap-aware depth-first heuristic search family");
         document_synopsis(
@@ -121,30 +123,33 @@ public:
             "Immediately re-expand the collapsed trap state.",
             "true");
 
+        add_base_solver_options_except_algorithm_to_feature(*this);
         add_mdp_hs_base_options_to_feature<false, true>(*this);
     }
 
 protected:
-    std::shared_ptr<TrapAwareDFHSSolver>
+    std::shared_ptr<MDPSolver>
     create_component(const Options& options, const Context&) const override
     {
-        return make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
-            options.get<std::shared_ptr<QOpenList>>("open_list"),
-            options.get<bool>("fwup"),
-            options.get<BacktrackingUpdateType>("bwup"),
-            options.get<bool>("cutoff_tip"),
-            options.get<bool>("cutoff_inconsistent"),
-            options.get<bool>("labeling"),
-            options.get<bool>("reexpand_traps"),
-            get_mdp_hs_base_args_from_options<false, true>(options));
+        return make_shared_from_arg_tuples<MDPSolver>(
+            make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
+                options.get<std::shared_ptr<QOpenList>>("open_list"),
+                options.get<bool>("fwup"),
+                options.get<BacktrackingUpdateType>("bwup"),
+                options.get<bool>("cutoff_tip"),
+                options.get<bool>("cutoff_inconsistent"),
+                options.get<bool>("labeling"),
+                options.get<bool>("reexpand_traps"),
+                get_mdp_hs_base_args_from_options<false, true>(options)),
+            get_base_solver_args_no_algorithm_from_options(options));
     }
 };
 
 class TrapAwareILAOSolverFeature
-    : public TypedFeature<TaskSolverFactory, TrapAwareDFHSSolver> {
+    : public TypedFeature<TaskSolverFactory, MDPSolver> {
 public:
     TrapAwareILAOSolverFeature()
-        : TypedFeature<TaskSolverFactory, TrapAwareDFHSSolver>("tailao")
+        : TypedFeature<TaskSolverFactory, MDPSolver>("tailao")
     {
         document_title(
             "iLAO* variant of trap-aware depth-first heuristic search");
@@ -159,30 +164,33 @@ public:
             "Immediately re-expand the collapsed trap state.",
             "true");
 
+        add_base_solver_options_except_algorithm_to_feature(*this);
         add_mdp_hs_base_options_to_feature<false, true>(*this);
     }
 
-    std::shared_ptr<TrapAwareDFHSSolver>
+    std::shared_ptr<MDPSolver>
     create_component(const Options& options, const Context&) const override
     {
         // opts_copy.set<std::string>("name", "ilao");
-        return make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
-            options.get<std::shared_ptr<QOpenList>>("open_list"),
-            false,
-            BacktrackingUpdateType::SINGLE,
-            true,
-            false,
-            false,
-            options.get<bool>("reexpand_traps"),
-            get_mdp_hs_base_args_from_options<false, true>(options));
+        return make_shared_from_arg_tuples<MDPSolver>(
+            make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
+                options.get<std::shared_ptr<QOpenList>>("open_list"),
+                false,
+                BacktrackingUpdateType::SINGLE,
+                true,
+                false,
+                false,
+                options.get<bool>("reexpand_traps"),
+                get_mdp_hs_base_args_from_options<false, true>(options)),
+            get_base_solver_args_no_algorithm_from_options(options));
     }
 };
 
 class TrapAwareLILAOSolverFeature
-    : public TypedFeature<TaskSolverFactory, TrapAwareDFHSSolver> {
+    : public TypedFeature<TaskSolverFactory, MDPSolver> {
 public:
     TrapAwareLILAOSolverFeature()
-        : TypedFeature<TaskSolverFactory, TrapAwareDFHSSolver>("talilao")
+        : TypedFeature<TaskSolverFactory, MDPSolver>("talilao")
     {
         document_title(
             "Labelled iLAO* variant of trap-aware depth-first "
@@ -198,32 +206,35 @@ public:
             "Immediately re-expand the collapsed trap state.",
             "true");
 
+        add_base_solver_options_except_algorithm_to_feature(*this);
         add_mdp_hs_base_options_to_feature<false, true>(*this);
     }
 
-    std::shared_ptr<TrapAwareDFHSSolver>
+    std::shared_ptr<MDPSolver>
     create_component(const Options& options, const Context&) const override
     {
         // opts_copy.set<std::string>("name", "lilao");
         // opts_copy.set<bool>("labeling", true);
 
-        return make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
-            options.get<std::shared_ptr<QOpenList>>("open_list"),
-            false,
-            BacktrackingUpdateType::SINGLE,
-            true,
-            false,
-            true,
-            options.get<bool>("reexpand_traps"),
-            get_mdp_hs_base_args_from_options<false, true>(options));
+        return make_shared_from_arg_tuples<MDPSolver>(
+            make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
+                options.get<std::shared_ptr<QOpenList>>("open_list"),
+                false,
+                BacktrackingUpdateType::SINGLE,
+                true,
+                false,
+                true,
+                options.get<bool>("reexpand_traps"),
+                get_mdp_hs_base_args_from_options<false, true>(options)),
+            get_base_solver_args_no_algorithm_from_options(options));
     }
 };
 
 class TrapAwareHDPSolverFeature
-    : public TypedFeature<TaskSolverFactory, TrapAwareDFHSSolver> {
+    : public TypedFeature<TaskSolverFactory, MDPSolver> {
 public:
     TrapAwareHDPSolverFeature()
-        : TypedFeature<TaskSolverFactory, TrapAwareDFHSSolver>("tahdp")
+        : TypedFeature<TaskSolverFactory, MDPSolver>("tahdp")
     {
         document_title(
             "HDP variant of trap-aware depth-first heuristic search");
@@ -238,23 +249,26 @@ public:
             "Immediately re-expand the collapsed trap state.",
             "true");
 
+        add_base_solver_options_except_algorithm_to_feature(*this);
         add_mdp_hs_base_options_to_feature<false, true>(*this);
     }
 
-    std::shared_ptr<TrapAwareDFHSSolver>
+    std::shared_ptr<MDPSolver>
     create_component(const Options& options, const Context&) const override
     {
         // opts_copy.set<std::string>("name", "hdp");
         // opts_copy.set<bool>("labeling", true);
-        return make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
-            options.get<std::shared_ptr<QOpenList>>("open_list"),
-            true,
-            BacktrackingUpdateType::ON_DEMAND,
-            false,
-            true,
-            false,
-            options.get<bool>("reexpand_traps"),
-            get_mdp_hs_base_args_from_options<false, true>(options));
+        return make_shared_from_arg_tuples<MDPSolver>(
+            make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
+                options.get<std::shared_ptr<QOpenList>>("open_list"),
+                true,
+                BacktrackingUpdateType::ON_DEMAND,
+                false,
+                true,
+                false,
+                options.get<bool>("reexpand_traps"),
+                get_mdp_hs_base_args_from_options<false, true>(options)),
+            get_base_solver_args_no_algorithm_from_options(options));
     }
 };
 

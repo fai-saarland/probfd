@@ -11,12 +11,18 @@ class Feature;
 /// This namespace contains the solver plugins for various search algorithms.
 namespace probfd::cli::solvers {
 
+extern void add_base_solver_options_except_algorithm_to_feature(
+    downward::cli::plugins::Feature& feature);
+
 extern void
 add_base_solver_options_to_feature(downward::cli::plugins::Feature& feature);
 
 extern MDPSolverArgs get_base_solver_args_from_options(
     const downward::cli::plugins::Options& options);
 
+extern MDPSolverNoAlgorithmArgs get_base_solver_args_no_algorithm_from_options(
+    const downward::cli::plugins::Options& options);
+
 } // namespace probfd::cli::solvers
 
-#endif // CLI_SOLVERS_MDP_SOLVER_H
+#endif // PROBFD_CLI_SOLVERS_MDP_SOLVER_H

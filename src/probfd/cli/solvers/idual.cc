@@ -5,6 +5,7 @@
 #include "probfd/cli/solvers/mdp_solver.h"
 
 #include "probfd/solvers/mdp_solver.h"
+#include "probfd/solvers/statistical_mdp_algorithm.h"
 
 #include "probfd/algorithms/idual.h"
 
@@ -29,18 +30,13 @@ using downward::cli::lp::get_lp_solver_arguments_from_options;
 
 namespace {
 
-class IDualSolver : public MDPSolver {
+class IDualSolver : public StatisticalMDPAlgorithmFactory {
     const lp::LPSolverType solver_type_;
     const double fp_epsilon_;
 
 public:
-    template <typename... Args>
-    IDualSolver(
-        lp::LPSolverType lp_solver_type,
-        double fp_epsilon,
-        Args&&... args)
-        : MDPSolver(std::forward<Args>(args)...)
-        , solver_type_(lp_solver_type)
+    IDualSolver(lp::LPSolverType lp_solver_type, double fp_epsilon)
+        : solver_type_(lp_solver_type)
         , fp_epsilon_(fp_epsilon)
     {
     }
@@ -58,10 +54,10 @@ public:
     }
 };
 
-class IDualSolverFeature : public TypedFeature<TaskSolverFactory, IDualSolver> {
+class IDualSolverFeature : public TypedFeature<TaskSolverFactory, MDPSolver> {
 public:
     IDualSolverFeature()
-        : TypedFeature<TaskSolverFactory, IDualSolver>("idual")
+        : TypedFeature<TaskSolverFactory, MDPSolver>("idual")
     {
         document_title("i-dual");
 
@@ -73,18 +69,19 @@ public:
             "solution.",
             "0.0001");
 
-        add_base_solver_options_to_feature(*this);
+        add_base_solver_options_except_algorithm_to_feature(*this);
     }
 
 protected:
-    std::shared_ptr<IDualSolver>
+    std::shared_ptr<MDPSolver>
     create_component(const Options& options, const utils::Context&)
         const override
     {
-        return make_shared_from_arg_tuples<IDualSolver>(
-            get_lp_solver_arguments_from_options(options),
-            options.get<double>("fp_epsilon"),
-            get_base_solver_args_from_options(options));
+        return make_shared_from_arg_tuples<MDPSolver>(
+            make_shared_from_arg_tuples<IDualSolver>(
+                get_lp_solver_arguments_from_options(options),
+                options.get<double>("fp_epsilon")),
+            get_base_solver_args_no_algorithm_from_options(options));
     }
 };
 

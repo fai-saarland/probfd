@@ -3,6 +3,7 @@
 #include "probfd/cli/solvers/mdp_solver.h"
 
 #include "probfd/solvers/mdp_solver.h"
+#include "probfd/solvers/statistical_mdp_algorithm.h"
 
 #include "probfd/algorithms/ta_topological_value_iteration.h"
 
@@ -18,28 +19,12 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-class TATopologicalVISolver : public MDPSolver {
+class TATopologicalVISolver : public StatisticalMDPAlgorithmFactory {
     const value_t convergence_epsilon_;
 
 public:
-    TATopologicalVISolver(
-        utils::Verbosity verbosity,
-        std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
-        std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        std::string policy_filename,
-        bool print_fact_names,
-        std::optional<value_t> report_epsilon,
-        bool report_enabled,
-        value_t convergence_epsilon)
-        : MDPSolver(
-              verbosity,
-              std::move(task_state_space_factory),
-              std::move(heuristic_factory),
-              std::move(policy_filename),
-              print_fact_names,
-              report_epsilon,
-              report_enabled)
-        , convergence_epsilon_(convergence_epsilon)
+    explicit TATopologicalVISolver(value_t convergence_epsilon)
+        : convergence_epsilon_(convergence_epsilon)
     {
     }
 
@@ -60,14 +45,14 @@ public:
 };
 
 class TATopologicalVISolverFeature
-    : public TypedFeature<TaskSolverFactory, TATopologicalVISolver> {
+    : public TypedFeature<TaskSolverFactory, MDPSolver> {
 public:
     TATopologicalVISolverFeature()
-        : TypedFeature<TaskSolverFactory, TATopologicalVISolver>(
+        : TypedFeature<TaskSolverFactory, MDPSolver>(
               "ta_topological_value_iteration")
     {
         document_title("Trap-Aware Topological Value Iteration");
-        add_base_solver_options_to_feature(*this);
+        add_base_solver_options_except_algorithm_to_feature(*this);
 
         add_option<value_t>(
             "convergence_epsilon",
@@ -76,13 +61,14 @@ public:
     }
 
 protected:
-    std::shared_ptr<TATopologicalVISolver>
+    std::shared_ptr<MDPSolver>
     create_component(const Options& options, const utils::Context&)
         const override
     {
-        return make_shared_from_arg_tuples<TATopologicalVISolver>(
-            get_base_solver_args_from_options(options),
-            options.get<value_t>("convergence_epsilon"));
+        return make_shared_from_arg_tuples<MDPSolver>(
+            make_shared_from_arg_tuples<TATopologicalVISolver>(
+                options.get<value_t>("convergence_epsilon")),
+            get_base_solver_args_no_algorithm_from_options(options));
     }
 };
 
