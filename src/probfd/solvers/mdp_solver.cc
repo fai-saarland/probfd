@@ -77,7 +77,7 @@ void print_policy(
 } // namespace
 
 MDPSolver::MDPSolver(
-    std::shared_ptr<StatisticalMDPAlgorithmFactory> algorithm_factory,
+    std::shared_ptr<FDRStatisticalMDPAlgorithmFactory> algorithm_factory,
     std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
     std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
     utils::Verbosity verbosity,
@@ -102,7 +102,7 @@ class Solver : public SolverInterface {
     std::shared_ptr<ProbabilisticTask> task;
     std::shared_ptr<FDRCostFunction> task_cost_function;
 
-    std::unique_ptr<StatisticalMDPAlgorithm> algorithm;
+    std::unique_ptr<FDRStatisticalMDPAlgorithm> algorithm;
     std::unique_ptr<TaskStateSpace> state_space;
     const std::shared_ptr<FDREvaluator> heuristic;
     std::string algorithm_name;
@@ -115,7 +115,7 @@ public:
     Solver(
         std::shared_ptr<ProbabilisticTask> task,
         std::shared_ptr<FDRCostFunction> task_cost_function,
-        std::unique_ptr<StatisticalMDPAlgorithm> algorithm,
+        std::unique_ptr<FDRStatisticalMDPAlgorithm> algorithm,
         std::unique_ptr<TaskStateSpace> state_space,
         std::shared_ptr<FDREvaluator> heuristic,
         std::string algorithm_name,
@@ -235,10 +235,10 @@ MDPSolver::create(const std::shared_ptr<ProbabilisticTask>& task)
 {
     auto task_cost_function = std::make_shared<TaskCostFunction>(task);
 
-    std::unique_ptr<StatisticalMDPAlgorithm> algorithm = run_time_logged(
+    std::unique_ptr<FDRStatisticalMDPAlgorithm> algorithm = run_time_logged(
         std::cout,
         "Constructing algorithm...",
-        &StatisticalMDPAlgorithmFactory::create_algorithm,
+        &FDRStatisticalMDPAlgorithmFactory::create_algorithm,
         *algorithm_factory_,
         task,
         task_cost_function);

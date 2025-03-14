@@ -41,7 +41,6 @@ create_library(
         probfd/solver_interface
 
         probfd/solvers/mdp_solver
-        probfd/solvers/statistical_mdp_algorithm
         probfd/solvers/bisimulation_heuristic_search_algorithm
 
         probfd/bisimulation/bisimilar_state_space

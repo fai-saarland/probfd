@@ -26,7 +26,7 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-class AcyclicVIWithStatistics : public StatisticalMDPAlgorithm {
+class AcyclicVIWithStatistics : public FDRStatisticalMDPAlgorithm {
     AcyclicValueIteration<State, OperatorID> algorithm;
 
     unsigned long long state_expansions = 0;
@@ -62,14 +62,14 @@ public:
     }
 };
 
-class AcyclicVISolver : public StatisticalMDPAlgorithmFactory {
+class AcyclicVISolver : public FDRStatisticalMDPAlgorithmFactory {
 public:
     std::string get_algorithm_name() const override
     {
         return "acyclic_value_iteration";
     }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
+    std::unique_ptr<FDRStatisticalMDPAlgorithm> create_algorithm(
         const std::shared_ptr<ProbabilisticTask>&,
         const std::shared_ptr<FDRCostFunction>&) override
     {

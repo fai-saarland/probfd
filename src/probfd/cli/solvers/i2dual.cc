@@ -4,6 +4,7 @@
 
 #include "probfd/cli/solvers/mdp_solver.h"
 
+#include "probfd/solvers/algorithm_statistics_adaptor.h"
 #include "probfd/solvers/mdp_solver.h"
 #include "probfd/solvers/statistical_mdp_algorithm.h"
 
@@ -25,7 +26,7 @@ using downward::cli::lp::get_lp_solver_arguments_from_options;
 
 namespace {
 
-class I2DualSolver : public StatisticalMDPAlgorithmFactory {
+class I2DualSolver : public FDRStatisticalMDPAlgorithmFactory {
     bool hpom_enabled_;
     bool incremental_hpom_updates_;
     lp::LPSolverType solver_type_;
@@ -46,11 +47,11 @@ public:
 
     std::string get_algorithm_name() const override { return "i2dual"; }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
+    std::unique_ptr<FDRStatisticalMDPAlgorithm> create_algorithm(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function) override
     {
-        return std::make_unique<AlgorithmAdaptor>(
+        return std::make_unique<AlgorithmAdaptor<>>(
             std::make_unique<algorithms::i2dual::I2Dual>(
                 task,
                 task_cost_function,

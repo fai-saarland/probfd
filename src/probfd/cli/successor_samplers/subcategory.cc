@@ -62,8 +62,7 @@ class ArbitrarySuccessorSamplerFeature
 public:
     ArbitrarySuccessorSamplerFeature()
         : ArbitrarySuccessorSamplerFeature::TypedFeature(
-              add_mdp_type_to_option<false, Fret>(
-                  "arbitrary_successor_sampler"))
+              "arbitrary_successor_sampler")
     {
     }
 
@@ -83,8 +82,7 @@ class MostLikelySuccessorSamplerFeature
 public:
     MostLikelySuccessorSamplerFeature()
         : MostLikelySuccessorSamplerFeature::TypedFeature(
-              add_mdp_type_to_option<false, Fret>(
-                  "most_likely_successor_Sampler"))
+              "most_likely_successor_Sampler")
     {
     }
 
@@ -106,8 +104,7 @@ class UniformSuccessorSamplerFeature
 public:
     UniformSuccessorSamplerFeature()
         : UniformSuccessorSamplerFeature::TypedFeature(
-              add_mdp_type_to_option<false, Fret>(
-                  "uniform_random_successor_sampler"))
+              "uniform_random_successor_sampler")
     {
         add_rng_options_to_feature(*this);
     }
@@ -130,7 +127,7 @@ class RandomSuccessorSamplerFeature
 public:
     RandomSuccessorSamplerFeature()
         : RandomSuccessorSamplerFeature::TypedFeature(
-              add_mdp_type_to_option<false, Fret>("random_successor_sampler"))
+              "random_successor_sampler")
     {
         add_rng_options_to_feature(*this);
     }
@@ -153,7 +150,7 @@ class VBiasedSuccessorSamplerFeature
 public:
     VBiasedSuccessorSamplerFeature()
         : VBiasedSuccessorSamplerFeature::TypedFeature(
-              add_mdp_type_to_option<false, Fret>("vbiased_successor_sampler"))
+              "vbiased_successor_sampler")
     {
         add_rng_options_to_feature(*this);
     }
@@ -176,8 +173,7 @@ class VDiffSuccessorSamplerFeature
 public:
     VDiffSuccessorSamplerFeature()
         : VDiffSuccessorSamplerFeature::TypedFeature(
-              add_mdp_type_to_option<false, Fret>(
-                  "value_gap_successor_sampler"))
+              "value_gap_successor_sampler")
     {
         add_rng_options_to_feature(*this);
         this->template add_option<bool>("prefer_large_gaps", "", "true");

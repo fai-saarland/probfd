@@ -50,8 +50,7 @@ class FifoOpenListFeature
     : public TypedFeature<OpenList<Fret>, Wrapped<FifoOpenList, Fret>> {
 public:
     FifoOpenListFeature()
-        : FifoOpenListFeature::TypedFeature(
-              add_mdp_type_to_option<false, Fret>("fifo_open_list"))
+        : FifoOpenListFeature::TypedFeature("fifo_open_list")
     {
     }
 
@@ -68,8 +67,7 @@ class LifoOpenListFeature
     : public TypedFeature<OpenList<Fret>, Wrapped<LifoOpenList, Fret>> {
 public:
     LifoOpenListFeature()
-        : LifoOpenListFeature::TypedFeature(
-              add_mdp_type_to_option<false, Fret>("lifo_open_list"))
+        : LifoOpenListFeature::TypedFeature("lifo_open_list")
     {
     }
 

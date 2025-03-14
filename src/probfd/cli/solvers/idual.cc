@@ -4,6 +4,7 @@
 
 #include "probfd/cli/solvers/mdp_solver.h"
 
+#include "probfd/solvers/algorithm_statistics_adaptor.h"
 #include "probfd/solvers/mdp_solver.h"
 #include "probfd/solvers/statistical_mdp_algorithm.h"
 
@@ -30,7 +31,8 @@ using downward::cli::lp::get_lp_solver_arguments_from_options;
 
 namespace {
 
-class IDualSolver : public StatisticalMDPAlgorithmFactory {
+template <typename State, typename Action>
+class IDualSolver : public StatisticalMDPAlgorithmFactory<State, Action> {
     const lp::LPSolverType solver_type_;
     const double fp_epsilon_;
 
@@ -43,13 +45,13 @@ public:
 
     std::string get_algorithm_name() const override { return "idual"; }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
+    std::unique_ptr<StatisticalMDPAlgorithm<State, Action>> create_algorithm(
         const std::shared_ptr<ProbabilisticTask>&,
         const std::shared_ptr<FDRCostFunction>&) override
     {
         using IDualAlgorithm = algorithms::idual::IDual<State, OperatorID>;
 
-        return std::make_unique<AlgorithmAdaptor>(
+        return std::make_unique<AlgorithmAdaptor<State, Action>>(
             std::make_unique<IDualAlgorithm>(solver_type_, fp_epsilon_));
     }
 };
@@ -78,7 +80,7 @@ protected:
         const override
     {
         return make_shared_from_arg_tuples<MDPSolver>(
-            make_shared_from_arg_tuples<IDualSolver>(
+            make_shared_from_arg_tuples<IDualSolver<State, OperatorID>>(
                 get_lp_solver_arguments_from_options(options),
                 options.get<double>("fp_epsilon")),
             get_base_solver_args_no_algorithm_from_options(options));

@@ -30,33 +30,25 @@ enum class QuotientState;
 
 namespace probfd::solvers {
 
-template <
-    bool Bisimulation,
-    bool Fret,
-    typename State = State,
-    typename Action = OperatorID>
-using StateType = std::conditional_t<
-    Bisimulation,
-    std::conditional_t<
-        Fret,
-        probfd::quotients::
-            QuotientState<probfd::bisimulation::QuotientState, Action>,
-        probfd::bisimulation::QuotientState>,
-    std::conditional_t<
-        Fret,
-        probfd::quotients::QuotientState<State, Action>,
-        State>>;
+template <typename State, typename Action, bool Fret>
+using StateType = std::
+    conditional_t<Fret, probfd::quotients::QuotientState<State, Action>, State>;
 
-template <
-    bool Bisimulation,
-    bool Fret,
-    typename State = State,
-    typename Action = OperatorID>
-using ActionType = std::conditional_t<
-    Bisimulation,
-    std::conditional_t<Fret, probfd::quotients::QuotientAction<Action>, Action>,
-    std::
-        conditional_t<Fret, probfd::quotients::QuotientAction<Action>, Action>>;
+template <typename State, typename Action, bool Fret>
+using ActionType =
+    std::conditional_t<Fret, probfd::quotients::QuotientAction<Action>, Action>;
+
+template <template <typename, typename, bool...> typename T>
+struct FDR {
+    template <bool... b>
+    using specialization = T<State, OperatorID, b...>;
+};
+
+template <template <typename, typename, bool...> typename T>
+struct Bisim {
+    template <bool... b>
+    using specialization = T<bisimulation::QuotientState, OperatorID, b...>;
+};
 
 template <
     typename R,
@@ -102,16 +94,13 @@ std::unique_ptr<R> construct(std::tuple<Args...> args)
         std::move(args));
 }
 
-template <
-    bool Bisimulation,
-    bool Fret,
-    typename State = State,
-    typename Action = OperatorID>
-class MDPHeuristicSearchBase : public StatisticalMDPAlgorithmFactory {
+template <typename State, typename Action, bool Fret>
+class MDPHeuristicSearchBase
+    : public StatisticalMDPAlgorithmFactory<State, Action> {
 protected:
     using PolicyPicker = algorithms::PolicyPicker<
-        StateType<Bisimulation, Fret, State, Action>,
-        ActionType<Bisimulation, Fret, State, Action>>;
+        StateType<State, Action, Fret>,
+        ActionType<State, Action, Fret>>;
 
     const value_t convergence_epsilon_;
     const bool dual_bounds_;
@@ -148,16 +137,12 @@ public:
     virtual std::string get_heuristic_search_name() const = 0;
 };
 
-template <
-    bool Bisimulation,
-    bool Fret,
-    typename State = State,
-    typename Action = OperatorID>
+template <typename State, typename Action, bool Fret>
 class MDPHeuristicSearch;
 
 template <typename State, typename Action>
-class MDPHeuristicSearch<false, false, State, Action>
-    : public MDPHeuristicSearchBase<false, false, State, Action> {
+class MDPHeuristicSearch<State, Action, false>
+    : public MDPHeuristicSearchBase<State, Action, false> {
     template <template <typename, typename, bool> typename T>
     struct AlgTypeHelper {
         template <bool dual>
@@ -169,10 +154,7 @@ protected:
         MDPHeuristicSearch::MDPHeuristicSearchBase::PolicyPicker;
 
 public:
-    MDPHeuristicSearch(
-        value_t convergence_epsilon,
-        bool dual_bounds,
-        std::shared_ptr<PolicyPicker> policy);
+    using MDPHeuristicSearch::MDPHeuristicSearchBase::MDPHeuristicSearchBase;
 
     std::string get_algorithm_name() const override;
 
@@ -195,8 +177,8 @@ public:
 };
 
 template <typename State, typename Action>
-class MDPHeuristicSearch<false, true, State, Action>
-    : public MDPHeuristicSearchBase<false, true, State, Action> {
+class MDPHeuristicSearch<State, Action, true>
+    : public MDPHeuristicSearchBase<State, Action, true> {
     template <template <typename, typename, bool> typename T>
     struct AlgTypeHelper {
         using QState = quotients::QuotientState<State, Action>;
@@ -240,46 +222,6 @@ public:
                 std::forward<Args>(args)...),
             this->dual_bounds_,
             this->fret_on_policy_);
-    }
-};
-
-template <bool Fret>
-class MDPHeuristicSearch<true, Fret, State, OperatorID>
-    : public MDPHeuristicSearch<
-          false,
-          Fret,
-          bisimulation::QuotientState,
-          OperatorID> {
-    using Base = MDPHeuristicSearch<
-        false,
-        Fret,
-        bisimulation::QuotientState,
-        OperatorID>;
-
-    using QState = bisimulation::QuotientState;
-    using QAction = OperatorID;
-
-    using PolicyPicker = Base::PolicyPicker;
-
-public:
-    using Base::Base;
-
-    std::string get_algorithm_name() const override;
-
-    template <template <typename, typename, bool> class HS, typename... Args>
-    std::unique_ptr<FDRMDPAlgorithm> create_heuristic_search_algorithm(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function,
-        Args&&... args)
-    {
-        return std::make_unique<BisimulationBasedHeuristicSearchAlgorithm>(
-            task,
-            task_cost_function,
-            this->get_heuristic_search_name(),
-            Base::template create_heuristic_search_algorithm<HS>(
-                task,
-                task_cost_function,
-                std::forward<Args>(args)...));
     }
 };
 

@@ -8,6 +8,7 @@
 #include "probfd/algorithms/open_list.h"
 #include "probfd/algorithms/trap_aware_dfhs.h"
 
+#include "probfd/solvers/algorithm_statistics_adaptor.h"
 #include "probfd/solvers/mdp_heuristic_search.h"
 
 #include <memory>
@@ -29,7 +30,8 @@ namespace {
 
 using QOpenList = OpenList<quotients::QuotientAction<OperatorID>>;
 
-class TrapAwareDFHSSolver : public MDPHeuristicSearchBase<false, true> {
+class TrapAwareDFHSSolver
+    : public MDPHeuristicSearchBase<State, OperatorID, true> {
     template <typename State, typename Action, bool Interval>
     using Algorithm = TADepthFirstHeuristicSearch<State, Action, Interval>;
 
@@ -52,7 +54,8 @@ public:
         bool labeling,
         bool reexpand_traps,
         Args&&... args)
-        : MDPHeuristicSearchBase<false, true>(std::forward<Args>(args)...)
+        : MDPHeuristicSearchBase<State, OperatorID, true>(
+              std::forward<Args>(args)...)
         , open_list_(std::move(open_list))
         , forward_updates_(fwup)
         , backward_updates_(bwup)
@@ -67,11 +70,12 @@ public:
 
     std::string get_heuristic_search_name() const override { return ""; }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
+    std::unique_ptr<StatisticalMDPAlgorithm<State, OperatorID>>
+    create_algorithm(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function) override
     {
-        return std::make_unique<AlgorithmAdaptor>(
+        return std::make_unique<AlgorithmAdaptor<State, OperatorID>>(
             this->template create_search_algorithm<Algorithm>(
                 task,
                 task_cost_function,
@@ -98,7 +102,7 @@ public:
             "open_list",
             "Ordering in which successors are considered during policy "
             "exploration.",
-            add_mdp_type_to_option<false, true>("lifo_open_list()"));
+            "lifo_open_list()");
 
         add_option<bool>(
             "fwup",
@@ -124,7 +128,7 @@ public:
             "true");
 
         add_base_solver_options_except_algorithm_to_feature(*this);
-        add_mdp_hs_base_options_to_feature<false, true>(*this);
+        add_mdp_hs_base_options_to_feature<State, OperatorID, true>(*this);
     }
 
 protected:
@@ -140,7 +144,8 @@ protected:
                 options.get<bool>("cutoff_inconsistent"),
                 options.get<bool>("labeling"),
                 options.get<bool>("reexpand_traps"),
-                get_mdp_hs_base_args_from_options<false, true>(options)),
+                get_mdp_hs_base_args_from_options<State, OperatorID, true>(
+                    options)),
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
@@ -158,14 +163,14 @@ public:
             "open_list",
             "Ordering in which successors are considered during policy "
             "exploration.",
-            add_mdp_type_to_option<false, true>("lifo_open_list()"));
+            "lifo_open_list()");
         add_option<bool>(
             "reexpand_traps",
             "Immediately re-expand the collapsed trap state.",
             "true");
 
         add_base_solver_options_except_algorithm_to_feature(*this);
-        add_mdp_hs_base_options_to_feature<false, true>(*this);
+        add_mdp_hs_base_options_to_feature<State, OperatorID, true>(*this);
     }
 
     std::shared_ptr<MDPSolver>
@@ -181,7 +186,8 @@ public:
                 false,
                 false,
                 options.get<bool>("reexpand_traps"),
-                get_mdp_hs_base_args_from_options<false, true>(options)),
+                get_mdp_hs_base_args_from_options<State, OperatorID, true>(
+                    options)),
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
@@ -200,14 +206,14 @@ public:
             "open_list",
             "Ordering in which successors are considered during policy "
             "exploration.",
-            add_mdp_type_to_option<false, true>("lifo_open_list()"));
+            "lifo_open_list()");
         add_option<bool>(
             "reexpand_traps",
             "Immediately re-expand the collapsed trap state.",
             "true");
 
         add_base_solver_options_except_algorithm_to_feature(*this);
-        add_mdp_hs_base_options_to_feature<false, true>(*this);
+        add_mdp_hs_base_options_to_feature<State, OperatorID, true>(*this);
     }
 
     std::shared_ptr<MDPSolver>
@@ -225,7 +231,8 @@ public:
                 false,
                 true,
                 options.get<bool>("reexpand_traps"),
-                get_mdp_hs_base_args_from_options<false, true>(options)),
+                get_mdp_hs_base_args_from_options<State, OperatorID, true>(
+                    options)),
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
@@ -243,14 +250,14 @@ public:
             "open_list",
             "Ordering in which successors are considered during policy "
             "exploration.",
-            add_mdp_type_to_option<false, true>("lifo_open_list()"));
+            "lifo_open_list()");
         add_option<bool>(
             "reexpand_traps",
             "Immediately re-expand the collapsed trap state.",
             "true");
 
         add_base_solver_options_except_algorithm_to_feature(*this);
-        add_mdp_hs_base_options_to_feature<false, true>(*this);
+        add_mdp_hs_base_options_to_feature<State, OperatorID, true>(*this);
     }
 
     std::shared_ptr<MDPSolver>
@@ -267,7 +274,8 @@ public:
                 true,
                 false,
                 options.get<bool>("reexpand_traps"),
-                get_mdp_hs_base_args_from_options<false, true>(options)),
+                get_mdp_hs_base_args_from_options<State, OperatorID, true>(
+                    options)),
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };

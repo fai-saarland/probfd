@@ -2,6 +2,7 @@
 
 #include "probfd/cli/solvers/mdp_solver.h"
 
+#include "probfd/solvers/algorithm_statistics_adaptor.h"
 #include "probfd/solvers/mdp_solver.h"
 #include "probfd/solvers/statistical_mdp_algorithm.h"
 
@@ -27,7 +28,7 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-class ExhaustiveDFSSolver : public StatisticalMDPAlgorithmFactory {
+class ExhaustiveDFSSolver : public FDRStatisticalMDPAlgorithmFactory {
     const value_t convergence_epsilon_;
 
     const std::shared_ptr<FDRTransitionSorter> transition_sort_;
@@ -53,7 +54,7 @@ public:
 
     std::string get_algorithm_name() const override { return "exhaustive_dfs"; }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
+    std::unique_ptr<FDRStatisticalMDPAlgorithm> create_algorithm(
         const std::shared_ptr<ProbabilisticTask>&,
         const std::shared_ptr<FDRCostFunction>& task_cost_function) override
     {
@@ -65,7 +66,7 @@ public:
             task_cost_function->get_non_goal_termination_cost());
 
         if (dual_bounds_) {
-            return std::make_unique<AlgorithmAdaptor>(
+            return std::make_unique<AlgorithmAdaptor<>>(
                 std::make_unique<Algorithm2>(
                     convergence_epsilon_,
                     transition_sort_,
@@ -73,7 +74,7 @@ public:
                     path_updates_,
                     only_propagate_when_changed_));
         } else {
-            return std::make_unique<AlgorithmAdaptor>(
+            return std::make_unique<AlgorithmAdaptor<>>(
                 std::make_unique<Algorithm>(
                     convergence_epsilon_,
                     transition_sort_,

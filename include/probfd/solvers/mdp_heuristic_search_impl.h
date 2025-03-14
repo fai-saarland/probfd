@@ -13,8 +13,8 @@ using namespace probfd::cli;
 
 namespace probfd::solvers {
 
-template <bool Bisimulation, bool Fret, typename State, typename Action>
-MDPHeuristicSearchBase<Bisimulation, Fret, State, Action>::
+template <typename State, typename Action, bool Fret>
+MDPHeuristicSearchBase<State, Action, Fret>::
     MDPHeuristicSearchBase(
         value_t convergence_epsilon,
         bool dual_bounds,
@@ -27,14 +27,14 @@ MDPHeuristicSearchBase<Bisimulation, Fret, State, Action>::
 
 template <typename State, typename Action>
 std::string
-MDPHeuristicSearch<false, false, State, Action>::get_algorithm_name() const
+MDPHeuristicSearch<State, Action, false>::get_algorithm_name() const
 {
     return this->get_heuristic_search_name();
 }
 
 template <typename State, typename Action>
 std::string
-MDPHeuristicSearch<false, true, State, Action>::get_algorithm_name() const
+MDPHeuristicSearch<State, Action, true>::get_algorithm_name() const
 {
     std::ostringstream out;
     out << "fret" << (fret_on_policy_ ? "_pi" : "_v") << "("
@@ -42,39 +42,13 @@ MDPHeuristicSearch<false, true, State, Action>::get_algorithm_name() const
     return out.str();
 }
 
-template <bool Fret>
-std::string
-MDPHeuristicSearch<true, Fret, State, OperatorID>::get_algorithm_name() const
-{
-    if constexpr (Fret) {
-        std::ostringstream out;
-        out << "fret" << (this->fret_on_policy_ ? "_pi" : "_v") << "("
-            << this->get_heuristic_search_name() << "(bisimulation)" << ")";
-        return out.str();
-    } else {
-        return this->get_heuristic_search_name() + "(bisimulation)";
-    }
-}
-
 template <typename State, typename Action>
-MDPHeuristicSearch<false, false, State, Action>::MDPHeuristicSearch(
-    value_t convergence_epsilon,
-    bool dual_bounds,
-    std::shared_ptr<PolicyPicker> policy)
-    : MDPHeuristicSearchBase<false, false, State, Action>(
-          convergence_epsilon,
-          dual_bounds,
-          std::move(policy))
-{
-}
-
-template <typename State, typename Action>
-MDPHeuristicSearch<false, true, State, Action>::MDPHeuristicSearch(
+MDPHeuristicSearch<State, Action, true>::MDPHeuristicSearch(
     bool fret_on_policy,
     value_t convergence_epsilon,
     bool dual_bounds,
     std::shared_ptr<PolicyPicker> policy)
-    : MDPHeuristicSearchBase<false, true, State, Action>(
+    : MDPHeuristicSearchBase<State, Action, true>(
           convergence_epsilon,
           dual_bounds,
           std::move(policy))

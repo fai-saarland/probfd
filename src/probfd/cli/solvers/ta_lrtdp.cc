@@ -7,6 +7,8 @@
 
 #include "probfd/algorithms/successor_sampler.h"
 #include "probfd/algorithms/trap_aware_lrtdp.h"
+
+#include "probfd/solvers/algorithm_statistics_adaptor.h"
 #include "probfd/solvers/mdp_heuristic_search.h"
 
 #include <memory>
@@ -29,7 +31,8 @@ namespace {
 using QSuccessorSampler =
     SuccessorSampler<quotients::QuotientAction<OperatorID>>;
 
-class TrapAwareLRTDPSolver : public MDPHeuristicSearchBase<false, true> {
+class TrapAwareLRTDPSolver
+    : public MDPHeuristicSearchBase<State, OperatorID, true> {
     const std::shared_ptr<QSuccessorSampler> successor_sampler_;
     const TrialTerminationCondition stop_consistent_;
     const bool reexpand_traps_;
@@ -41,7 +44,8 @@ public:
         TrialTerminationCondition terminate_trial,
         bool reexpand_traps,
         Args&&... args)
-        : MDPHeuristicSearchBase<false, true>(std::forward<Args>(args)...)
+        : MDPHeuristicSearchBase<State, OperatorID, true>(
+              std::forward<Args>(args)...)
         , successor_sampler_(std::move(successor_sampler))
         , stop_consistent_(terminate_trial)
         , reexpand_traps_(reexpand_traps)
@@ -51,11 +55,12 @@ public:
     std::string get_algorithm_name() const override { return "talrtdp"; }
     std::string get_heuristic_search_name() const override { return ""; }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
+    std::unique_ptr<StatisticalMDPAlgorithm<State, OperatorID>>
+    create_algorithm(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function) override
     {
-        return std::make_unique<AlgorithmAdaptor>(
+        return std::make_unique<AlgorithmAdaptor<State, OperatorID>>(
             this->template create_search_algorithm<TALRTDP>(
                 task,
                 task_cost_function,
@@ -78,7 +83,7 @@ public:
         add_option<std::shared_ptr<QSuccessorSampler>>(
             "successor_sampler",
             "Successor bias for the trials.",
-            add_mdp_type_to_option<false, true>("random_successor_sampler()"));
+            "random_successor_sampler()");
         add_option<TrialTerminationCondition>(
             "terminate_trial",
             "The trial termination condition.",
@@ -89,7 +94,7 @@ public:
             "true");
 
         add_base_solver_options_except_algorithm_to_feature(*this);
-        add_mdp_hs_base_options_to_feature<false, true>(*this);
+        add_mdp_hs_base_options_to_feature<State, OperatorID, true>(*this);
     }
 
 protected:
@@ -102,7 +107,8 @@ protected:
                     "successor_sampler"),
                 options.get<TrialTerminationCondition>("terminate_trial"),
                 options.get<bool>("reexpand_traps"),
-                get_mdp_hs_base_args_from_options<false, true>(options)),
+                get_mdp_hs_base_args_from_options<State, OperatorID, true>(
+                    options)),
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };

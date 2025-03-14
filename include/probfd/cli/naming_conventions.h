@@ -24,24 +24,6 @@ std::string add_wrapper_algo_suffix(const std::string& str)
 }
 
 template <bool Bisimulation, bool Fret>
-std::string add_mdp_type_to_option(const std::string& str)
-{
-    if constexpr (!Bisimulation) {
-        if constexpr (!Fret) {
-            return str;
-        } else {
-            return "q_" + str;
-        }
-    } else {
-        if constexpr (!Fret) {
-            return "b_" + str;
-        } else {
-            return "qb_" + str;
-        }
-    }
-}
-
-template <bool Bisimulation, bool Fret>
 std::string add_mdp_type_to_category(const std::string& str)
 {
     if constexpr (!Bisimulation) {

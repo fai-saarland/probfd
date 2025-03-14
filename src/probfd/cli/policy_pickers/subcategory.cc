@@ -78,8 +78,7 @@ class ArbitraryTieBreakerFeature
 public:
     ArbitraryTieBreakerFeature()
         : ArbitraryTieBreakerFeature::TypedFeature(
-              add_mdp_type_to_option<Bisimulation, Fret>(
-                  "arbitrary_policy_tiebreaker"))
+              "arbitrary_policy_tiebreaker")
     {
         this->template add_option<bool>("stable_policy", "", "true");
     }
@@ -120,9 +119,7 @@ class RandomTieBreakerFeature
 
 public:
     RandomTieBreakerFeature()
-        : RandomTieBreakerFeature::TypedFeature(
-              add_mdp_type_to_option<Bisimulation, Fret>(
-                  "random_policy_tiebreaker"))
+        : RandomTieBreakerFeature::TypedFeature("random_policy_tiebreaker")
     {
         this->template add_option<bool>("stable_policy", "", "true");
         add_rng_options_to_feature(*this);
@@ -146,9 +143,7 @@ class ValueGapTieBreakerFeature
 
 public:
     ValueGapTieBreakerFeature()
-        : ValueGapTieBreakerFeature::TypedFeature(
-              add_mdp_type_to_option<Bisimulation, Fret>(
-                  "value_gap_policy_tiebreaker"))
+        : ValueGapTieBreakerFeature::TypedFeature("value_gap_policy_tiebreaker")
     {
         this->template add_option<bool>("stable_policy", "", "true");
         this->template add_option<bool>("prefer_large_gaps", "", "true");

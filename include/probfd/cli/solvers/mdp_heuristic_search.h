@@ -8,69 +8,97 @@ class Feature;
 class Options;
 } // namespace downward::cli::plugins
 
+namespace probfd::bisimulation {
+enum class QuotientState : int;
+}
+
 namespace probfd::cli::solvers {
 
-template <bool Bisimulation, bool Fret>
+template <typename State, typename Action, bool Fret>
 void add_mdp_hs_base_options_to_feature(
     downward::cli::plugins::Feature& feature);
 
-template <bool Bisimulation, bool Fret>
-MDPHeuristicSearchBaseArgs<Bisimulation, Fret>
+template <typename State, typename Action, bool Fret>
+MDPHeuristicSearchBaseArgs<State, Action, Fret>
 get_mdp_hs_base_args_from_options(
     const downward::cli::plugins::Options& options);
 
-template <bool Bisimulation, bool Fret>
+template <typename State, typename Action, bool Fret>
 void add_mdp_hs_options_to_feature(downward::cli::plugins::Feature& feature);
 
-template <bool Bisimulation, bool Fret>
-MDPHeuristicSearchArgs<Bisimulation, Fret>
+template <typename State, typename Action, bool Fret>
+MDPHeuristicSearchArgs<State, Action, Fret>
 get_mdp_hs_args_from_options(const downward::cli::plugins::Options& options);
 
 // Explicit instantion declarations
-extern template void add_mdp_hs_base_options_to_feature<true, true>(
+extern template void
+add_mdp_hs_base_options_to_feature<State, OperatorID, true>(
     downward::cli::plugins::Feature& feature);
-extern template void add_mdp_hs_base_options_to_feature<true, false>(
+extern template void
+add_mdp_hs_base_options_to_feature<State, OperatorID, false>(
     downward::cli::plugins::Feature& feature);
-extern template void add_mdp_hs_base_options_to_feature<false, true>(
+extern template void add_mdp_hs_base_options_to_feature<
+    bisimulation::QuotientState,
+    OperatorID,
+    true>(downward::cli::plugins::Feature& feature);
+extern template void add_mdp_hs_base_options_to_feature<
+    bisimulation::QuotientState,
+    OperatorID,
+    false>(downward::cli::plugins::Feature& feature);
+
+extern template MDPHeuristicSearchBaseArgs<State, OperatorID, true>
+get_mdp_hs_base_args_from_options<State, OperatorID, true>(
+    const downward::cli::plugins::Options& options);
+extern template MDPHeuristicSearchBaseArgs<State, OperatorID, false>
+get_mdp_hs_base_args_from_options<State, OperatorID, false>(
+    const downward::cli::plugins::Options& options);
+extern template MDPHeuristicSearchBaseArgs<
+    bisimulation::QuotientState,
+    OperatorID,
+    true>
+get_mdp_hs_base_args_from_options<
+    bisimulation::QuotientState,
+    OperatorID,
+    true>(const downward::cli::plugins::Options& options);
+extern template MDPHeuristicSearchBaseArgs<
+    bisimulation::QuotientState,
+    OperatorID,
+    false>
+get_mdp_hs_base_args_from_options<
+    bisimulation::QuotientState,
+    OperatorID,
+    false>(const downward::cli::plugins::Options& options);
+
+extern template void add_mdp_hs_options_to_feature<State, OperatorID, true>(
     downward::cli::plugins::Feature& feature);
-extern template void add_mdp_hs_base_options_to_feature<false, false>(
+extern template void add_mdp_hs_options_to_feature<State, OperatorID, false>(
+    downward::cli::plugins::Feature& feature);
+extern template void
+add_mdp_hs_options_to_feature<bisimulation::QuotientState, OperatorID, true>(
+    downward::cli::plugins::Feature& feature);
+extern template void
+add_mdp_hs_options_to_feature<bisimulation::QuotientState, OperatorID, false>(
     downward::cli::plugins::Feature& feature);
 
-extern template MDPHeuristicSearchBaseArgs<true, true>
-get_mdp_hs_base_args_from_options<true, true>(
+extern template MDPHeuristicSearchArgs<State, OperatorID, true>
+get_mdp_hs_args_from_options<State, OperatorID, true>(
     const downward::cli::plugins::Options& options);
-extern template MDPHeuristicSearchBaseArgs<true, false>
-get_mdp_hs_base_args_from_options<true, false>(
+extern template MDPHeuristicSearchArgs<State, OperatorID, false>
+get_mdp_hs_args_from_options<State, OperatorID, false>(
     const downward::cli::plugins::Options& options);
-extern template MDPHeuristicSearchBaseArgs<false, true>
-get_mdp_hs_base_args_from_options<false, true>(
+extern template MDPHeuristicSearchArgs<
+    bisimulation::QuotientState,
+    OperatorID,
+    true>
+get_mdp_hs_args_from_options<bisimulation::QuotientState, OperatorID, true>(
     const downward::cli::plugins::Options& options);
-extern template MDPHeuristicSearchBaseArgs<false, false>
-get_mdp_hs_base_args_from_options<false, false>(
-    const downward::cli::plugins::Options& options);
-
-extern template void add_mdp_hs_options_to_feature<true, true>(
-    downward::cli::plugins::Feature& feature);
-extern template void add_mdp_hs_options_to_feature<true, false>(
-    downward::cli::plugins::Feature& feature);
-extern template void add_mdp_hs_options_to_feature<false, true>(
-    downward::cli::plugins::Feature& feature);
-extern template void add_mdp_hs_options_to_feature<false, false>(
-    downward::cli::plugins::Feature& feature);
-
-extern template MDPHeuristicSearchArgs<true, true>
-get_mdp_hs_args_from_options<true, true>(
-    const downward::cli::plugins::Options& options);
-extern template MDPHeuristicSearchArgs<true, false>
-get_mdp_hs_args_from_options<true, false>(
-    const downward::cli::plugins::Options& options);
-extern template MDPHeuristicSearchArgs<false, true>
-get_mdp_hs_args_from_options<false, true>(
-    const downward::cli::plugins::Options& options);
-extern template MDPHeuristicSearchArgs<false, false>
-get_mdp_hs_args_from_options<false, false>(
+extern template MDPHeuristicSearchArgs<
+    bisimulation::QuotientState,
+    OperatorID,
+    false>
+get_mdp_hs_args_from_options<bisimulation::QuotientState, OperatorID, false>(
     const downward::cli::plugins::Options& options);
 
 } // namespace probfd::cli::solvers
 
-#endif // CLI_SOLVERS_MDP_HEURISTIC_SEARCH_H
+#endif // PROBFD_CLI_SOLVERS_MDP_HEURISTIC_SEARCH_H

@@ -3,6 +3,8 @@
 
 #include "probfd/aliases.h"
 
+#include "probfd/solvers/statistical_mdp_algorithm_fwd.h"
+
 #include <memory>
 #include <optional>
 #include <string>
@@ -21,10 +23,6 @@ class TaskStateSpaceFactory;
 class TaskHeuristicFactory;
 } // namespace probfd
 
-namespace probfd::solvers {
-class StatisticalMDPAlgorithmFactory;
-} // namespace probfd::solvers
-
 namespace probfd::cli::solvers {
 
 using MDPSolverNoAlgorithmArgs = std::tuple<
@@ -38,7 +36,7 @@ using MDPSolverNoAlgorithmArgs = std::tuple<
 
 using MDPSolverArgs = TupleCatType<
     std::tuple<
-        std::shared_ptr<probfd::solvers::StatisticalMDPAlgorithmFactory>>,
+        std::shared_ptr<probfd::solvers::FDRStatisticalMDPAlgorithmFactory>>,
     MDPSolverNoAlgorithmArgs>;
 
 } // namespace probfd::cli::solvers

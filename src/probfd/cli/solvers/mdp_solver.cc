@@ -18,7 +18,7 @@ namespace probfd::cli::solvers {
 
 void add_base_solver_options_to_feature(Feature& feature)
 {
-    feature.add_option<std::shared_ptr<StatisticalMDPAlgorithmFactory>>(
+    feature.add_option<std::shared_ptr<FDRStatisticalMDPAlgorithmFactory>>(
         "algorithm",
         "The algorithm to be used by the search.",
         ArgumentInfo::NO_DEFAULT);
@@ -64,18 +64,9 @@ MDPSolverArgs get_base_solver_args_from_options(const Options& options)
 {
     return std::tuple_cat(
         std::make_tuple(
-            options.get<std::shared_ptr<StatisticalMDPAlgorithmFactory>>(
-                "algorithm"),
-            options.get<std::shared_ptr<TaskStateSpaceFactory>>("state_space"),
-            options.get<std::shared_ptr<TaskHeuristicFactory>>("heuristic")),
-        get_log_arguments_from_options(options),
-        std::make_tuple(
-            options.get<std::string>("policy_file"),
-            options.get<bool>("print_fact_names"),
-            options.contains("report_epsilon")
-                ? std::optional<value_t>(options.get<value_t>("report_epsilon"))
-                : std::nullopt,
-            options.get<bool>("report_enabled")));
+            options.get<std::shared_ptr<FDRStatisticalMDPAlgorithmFactory>>(
+                "algorithm")),
+        get_base_solver_args_no_algorithm_from_options(options));
 }
 
 MDPSolverNoAlgorithmArgs

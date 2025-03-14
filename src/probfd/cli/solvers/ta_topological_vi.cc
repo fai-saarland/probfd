@@ -2,6 +2,7 @@
 
 #include "probfd/cli/solvers/mdp_solver.h"
 
+#include "probfd/solvers/algorithm_statistics_adaptor.h"
 #include "probfd/solvers/mdp_solver.h"
 #include "probfd/solvers/statistical_mdp_algorithm.h"
 
@@ -19,7 +20,7 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-class TATopologicalVISolver : public StatisticalMDPAlgorithmFactory {
+class TATopologicalVISolver : public FDRStatisticalMDPAlgorithmFactory {
     const value_t convergence_epsilon_;
 
 public:
@@ -33,13 +34,13 @@ public:
         return "ta_topological_value_iteration";
     }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
+    std::unique_ptr<FDRStatisticalMDPAlgorithm> create_algorithm(
         const std::shared_ptr<ProbabilisticTask>&,
         const std::shared_ptr<FDRCostFunction>&) override
     {
         using TVIAlgorithm = algorithms::ta_topological_vi::
             TATopologicalValueIteration<State, OperatorID>;
-        return std::make_unique<AlgorithmAdaptor>(
+        return std::make_unique<AlgorithmAdaptor<>>(
             std::make_unique<TVIAlgorithm>(convergence_epsilon_));
     }
 };

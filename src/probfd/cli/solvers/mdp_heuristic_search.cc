@@ -19,7 +19,7 @@ using namespace downward::cli::plugins;
 
 namespace probfd::cli::solvers {
 
-template <bool Bisimulation, bool Fret>
+template <typename State, typename Action, bool Fret>
 void add_mdp_hs_base_options_to_feature(Feature& feature)
 {
     feature.add_option<value_t>(
@@ -33,26 +33,25 @@ void add_mdp_hs_base_options_to_feature(Feature& feature)
         "comparing whether the lower and upper bounding value functions are "
         "epsilon-close to each other.",
         "false");
-    feature.add_option<std::shared_ptr<PolicyPickerType<Bisimulation, Fret>>>(
+    feature.add_option<std::shared_ptr<PolicyPickerType<State, Action, Fret>>>(
         "policy",
         "The tie-breaking strategy to use when selecting a greedy policy.",
-        add_mdp_type_to_option<Bisimulation, Fret>(
-            "arbitrary_policy_tiebreaker()"));
+        "arbitrary_policy_tiebreaker()");
 }
 
-template <bool Bisimulation, bool Fret>
-MDPHeuristicSearchBaseArgs<Bisimulation, Fret>
+template <typename State, typename Action, bool Fret>
+MDPHeuristicSearchBaseArgs<State, Action, Fret>
 get_mdp_hs_base_args_from_options(const Options& options)
 {
     return std::tuple_cat(
         std::make_tuple(
             options.get<value_t>("convergence_epsilon"),
             options.get<bool>("dual_bounds"),
-            options.get<std::shared_ptr<PolicyPickerType<Bisimulation, Fret>>>(
+            options.get<std::shared_ptr<PolicyPickerType<State, Action, Fret>>>(
                 "policy")));
 }
 
-template <bool Bisimulation, bool Fret>
+template <typename State, typename Action, bool Fret>
 void add_mdp_hs_options_to_feature(Feature& feature)
 {
     if constexpr (Fret) {
@@ -63,49 +62,78 @@ void add_mdp_hs_options_to_feature(Feature& feature)
             "true");
     }
 
-    add_mdp_hs_base_options_to_feature<Bisimulation, Fret>(feature);
+    add_mdp_hs_base_options_to_feature<State, Action, Fret>(feature);
 }
 
-template <bool Bisimulation, bool Fret>
-MDPHeuristicSearchArgs<Bisimulation, Fret>
+template <typename State, typename Action, bool Fret>
+MDPHeuristicSearchArgs<State, Action, Fret>
 get_mdp_hs_args_from_options(const Options& options)
 {
     if constexpr (Fret) {
         return std::tuple_cat(
             std::make_tuple(options.get<bool>("fret_on_policy")),
-            get_mdp_hs_base_args_from_options<Bisimulation, Fret>(options));
+            get_mdp_hs_base_args_from_options<State, Action, Fret>(options));
     } else {
-        return get_mdp_hs_base_args_from_options<Bisimulation, Fret>(options);
+        return get_mdp_hs_base_args_from_options<State, Action, Fret>(options);
     }
 }
 
-template void add_mdp_hs_base_options_to_feature<true, true>(Feature& feature);
-template void add_mdp_hs_base_options_to_feature<true, false>(Feature& feature);
-template void add_mdp_hs_base_options_to_feature<false, true>(Feature& feature);
 template void
-add_mdp_hs_base_options_to_feature<false, false>(Feature& feature);
+add_mdp_hs_base_options_to_feature<State, OperatorID, true>(Feature& feature);
+template void
+add_mdp_hs_base_options_to_feature<State, OperatorID, false>(Feature& feature);
+template void add_mdp_hs_base_options_to_feature<
+    bisimulation::QuotientState,
+    OperatorID,
+    true>(Feature& feature);
+template void add_mdp_hs_base_options_to_feature<
+    bisimulation::QuotientState,
+    OperatorID,
+    false>(Feature& feature);
 
-template MDPHeuristicSearchBaseArgs<true, true>
-get_mdp_hs_base_args_from_options<true, true>(const Options& options);
-template MDPHeuristicSearchBaseArgs<true, false>
-get_mdp_hs_base_args_from_options<true, false>(const Options& options);
-template MDPHeuristicSearchBaseArgs<false, true>
-get_mdp_hs_base_args_from_options<false, true>(const Options& options);
-template MDPHeuristicSearchBaseArgs<false, false>
-get_mdp_hs_base_args_from_options<false, false>(const Options& options);
+template MDPHeuristicSearchBaseArgs<State, OperatorID, true>
+get_mdp_hs_base_args_from_options<State, OperatorID, true>(
+    const Options& options);
+template MDPHeuristicSearchBaseArgs<State, OperatorID, false>
+get_mdp_hs_base_args_from_options<State, OperatorID, false>(
+    const Options& options);
+template MDPHeuristicSearchBaseArgs<
+    bisimulation::QuotientState,
+    OperatorID,
+    true>
+get_mdp_hs_base_args_from_options<
+    bisimulation::QuotientState,
+    OperatorID,
+    true>(const Options& options);
+template MDPHeuristicSearchBaseArgs<
+    bisimulation::QuotientState,
+    OperatorID,
+    false>
+get_mdp_hs_base_args_from_options<
+    bisimulation::QuotientState,
+    OperatorID,
+    false>(const Options& options);
 
-template void add_mdp_hs_options_to_feature<true, true>(Feature& feature);
-template void add_mdp_hs_options_to_feature<true, false>(Feature& feature);
-template void add_mdp_hs_options_to_feature<false, true>(Feature& feature);
-template void add_mdp_hs_options_to_feature<false, false>(Feature& feature);
+template void
+add_mdp_hs_options_to_feature<State, OperatorID, true>(Feature& feature);
+template void
+add_mdp_hs_options_to_feature<State, OperatorID, false>(Feature& feature);
+template void
+add_mdp_hs_options_to_feature<bisimulation::QuotientState, OperatorID, true>(
+    Feature& feature);
+template void
+add_mdp_hs_options_to_feature<bisimulation::QuotientState, OperatorID, false>(
+    Feature& feature);
 
-template MDPHeuristicSearchArgs<true, true>
-get_mdp_hs_args_from_options<true, true>(const Options& options);
-template MDPHeuristicSearchArgs<true, false>
-get_mdp_hs_args_from_options<true, false>(const Options& options);
-template MDPHeuristicSearchArgs<false, true>
-get_mdp_hs_args_from_options<false, true>(const Options& options);
-template MDPHeuristicSearchArgs<false, false>
-get_mdp_hs_args_from_options<false, false>(const Options& options);
+template MDPHeuristicSearchArgs<State, OperatorID, true>
+get_mdp_hs_args_from_options<State, OperatorID, true>(const Options& options);
+template MDPHeuristicSearchArgs<State, OperatorID, false>
+get_mdp_hs_args_from_options<State, OperatorID, false>(const Options& options);
+template MDPHeuristicSearchArgs<bisimulation::QuotientState, OperatorID, true>
+get_mdp_hs_args_from_options<bisimulation::QuotientState, OperatorID, true>(
+    const Options& options);
+template MDPHeuristicSearchArgs<bisimulation::QuotientState, OperatorID, false>
+get_mdp_hs_args_from_options<bisimulation::QuotientState, OperatorID, false>(
+    const Options& options);
 
 } // namespace probfd::cli::solvers

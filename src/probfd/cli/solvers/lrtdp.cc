@@ -6,6 +6,8 @@
 #include "probfd/cli/solvers/mdp_heuristic_search.h"
 #include "probfd/cli/solvers/mdp_solver.h"
 
+#include "probfd/solvers/algorithm_statistics_adaptor.h"
+
 #include "probfd/algorithms/lrtdp.h"
 
 #include <memory>
@@ -25,9 +27,9 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-template <bool Bisimulation, bool Fret>
-class LRTDPSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
-    using Sampler = SuccessorSampler<ActionType<Bisimulation, Fret>>;
+template <typename State, typename Action, bool Fret>
+class LRTDPSolver : public MDPHeuristicSearch<State, Action, Fret> {
+    using Sampler = SuccessorSampler<ActionType<State, Action, Fret>>;
 
     const std::shared_ptr<Sampler> successor_sampler_;
     const TrialTerminationCondition trial_termination_;
@@ -38,7 +40,7 @@ public:
         std::shared_ptr<Sampler> successor_sampler,
         TrialTerminationCondition trial_termination,
         Args&&... args)
-        : MDPHeuristicSearch<Bisimulation, Fret>(std::forward<Args>(args)...)
+        : MDPHeuristicSearch<State, Action, Fret>(std::forward<Args>(args)...)
         , successor_sampler_(std::move(successor_sampler))
         , trial_termination_(trial_termination)
     {
@@ -46,11 +48,11 @@ public:
 
     std::string get_heuristic_search_name() const override { return "lrtdp"; }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
+    std::unique_ptr<StatisticalMDPAlgorithm<State, Action>> create_algorithm(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function) override
     {
-        return std::make_unique<AlgorithmAdaptor>(
+        return std::make_unique<AlgorithmAdaptor<State, Action>>(
             this->template create_heuristic_search_algorithm<LRTDP>(
                 task,
                 task_cost_function,
@@ -59,25 +61,24 @@ public:
     }
 };
 
-template <bool Bisimulation, bool Fret>
+template <bool Fret>
 class LRTDPSolverFeature : public TypedFeature<TaskSolverFactory, MDPSolver> {
-    using Sampler = SuccessorSampler<ActionType<Bisimulation, Fret>>;
+    using Sampler = SuccessorSampler<ActionType<State, OperatorID, Fret>>;
 
 public:
     LRTDPSolverFeature()
         : TypedFeature<TaskSolverFactory, MDPSolver>(
-              add_wrapper_algo_suffix<Bisimulation, Fret>("lrtdp"))
+              add_wrapper_algo_suffix<false, Fret>("lrtdp"))
     {
         this->document_title("Labelled Real-Time Dynamic Programming");
 
         add_base_solver_options_except_algorithm_to_feature(*this);
-        add_mdp_hs_options_to_feature<Bisimulation, Fret>(*this);
+        add_mdp_hs_options_to_feature<State, OperatorID, Fret>(*this);
 
         this->template add_option<std::shared_ptr<Sampler>>(
             "successor_sampler",
             "",
-            add_mdp_type_to_option<Bisimulation, Fret>(
-                "random_successor_sampler()"));
+            "random_successor_sampler()");
 
         this->template add_option<TrialTerminationCondition>(
             "trial_termination",
@@ -106,10 +107,10 @@ protected:
         }
 
         return make_shared_from_arg_tuples<MDPSolver>(
-            make_shared_from_arg_tuples<LRTDPSolver<Bisimulation, Fret>>(
+            make_shared_from_arg_tuples<LRTDPSolver<State, OperatorID, Fret>>(
                 options.get<std::shared_ptr<Sampler>>("successor_sampler"),
                 options.get<TrialTerminationCondition>("trial_termination"),
-                get_mdp_hs_args_from_options<Bisimulation, Fret>(options)),
+                get_mdp_hs_args_from_options<State, OperatorID, Fret>(options)),
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
