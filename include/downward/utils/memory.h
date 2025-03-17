@@ -1,9 +1,6 @@
 #ifndef UTILS_MEMORY_H
 #define UTILS_MEMORY_H
 
-#include <memory>
-#include <utility>
-
 namespace utils {
 
 /*
