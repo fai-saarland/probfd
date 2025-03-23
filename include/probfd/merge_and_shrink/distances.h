@@ -1,5 +1,5 @@
-#ifndef PROBFD_HEURISTICS_MERGE_AND_SHRINK_DISTANCES_H
-#define PROBFD_HEURISTICS_MERGE_AND_SHRINK_DISTANCES_H
+#ifndef PROBFD_MERGE_AND_SHRINK_DISTANCES_H
+#define PROBFD_MERGE_AND_SHRINK_DISTANCES_H
 
 #include "probfd/merge_and_shrink/types.h"
 
@@ -95,4 +95,4 @@ void compute_goal_distances(
 
 } // namespace probfd::merge_and_shrink
 
-#endif // PROBFD_HEURISTICS_MERGE_AND_SHRINK_DISTANCES_H
+#endif

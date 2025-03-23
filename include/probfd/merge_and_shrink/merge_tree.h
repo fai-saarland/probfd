@@ -1,5 +1,5 @@
-#ifndef PROBFD_HEURISTICS_MERGE_AND_SHRINK_MERGE_TREE_H
-#define PROBFD_HEURISTICS_MERGE_AND_SHRINK_MERGE_TREE_H
+#ifndef PROBFD_MERGE_AND_SHRINK_MERGE_TREE_H
+#define PROBFD_MERGE_AND_SHRINK_MERGE_TREE_H
 
 #include <memory>
 #include <utility>
@@ -115,4 +115,4 @@ public:
 
 } // namespace probfd::merge_and_shrink
 
-#endif // PROBFD_HEURISTICS_MERGE_AND_SHRINK_MERGE_TREE_H
+#endif

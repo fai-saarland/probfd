@@ -36,4 +36,4 @@ private:
 
 } // namespace probfd::merge_and_shrink
 
-#endif // PROBFD_HEURISTICS_MERGE_AND_SHRINK_MERGE_SCORING_FUNCTION_SINGLE_RANDOM_H
+#endif
