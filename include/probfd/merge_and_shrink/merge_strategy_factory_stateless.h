@@ -31,4 +31,4 @@ protected:
 
 } // namespace probfd::merge_and_shrink
 
-#endif // PROBFD_HEURISTICS_MERGE_AND_SHRINK_MERGE_STRATEGY_FACTORY_STATELESS_H
+#endif
