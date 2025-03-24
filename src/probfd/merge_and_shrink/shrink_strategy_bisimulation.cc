@@ -81,7 +81,7 @@ struct Signature {
     }
 };
 
-ShrinkBisimulation::ShrinkBisimulation(
+ShrinkStrategyBisimulation::ShrinkStrategyBisimulation(
     AtLimit at_limit,
     const bool require_goal_distances)
     : at_limit(at_limit)
@@ -177,7 +177,7 @@ static void compute_signatures(
     ranges::sort(signatures);
 }
 
-StateEquivalenceRelation ShrinkBisimulation::compute_equivalence_relation(
+StateEquivalenceRelation ShrinkStrategyBisimulation::compute_equivalence_relation(
     const TransitionSystem& ts,
     const Distances& distances,
     int target_size,
@@ -273,12 +273,12 @@ break_outer_loop:;
     return equivalence_relation;
 }
 
-string ShrinkBisimulation::name() const
+string ShrinkStrategyBisimulation::name() const
 {
     return "bisimulation";
 }
 
-void ShrinkBisimulation::dump_strategy_specific_options(
+void ShrinkStrategyBisimulation::dump_strategy_specific_options(
     utils::LogProxy& log) const
 {
     if (log.is_at_least_normal()) {
@@ -296,7 +296,7 @@ void ShrinkBisimulation::dump_strategy_specific_options(
 
 namespace {
 class ShrinkBisimulationFeature
-    : public TypedFeature<ShrinkStrategy, ShrinkBisimulation> {
+    : public TypedFeature<ShrinkStrategy, ShrinkStrategyBisimulation> {
 public:
     ShrinkBisimulationFeature()
         : TypedFeature("pshrink_bisimulation")
@@ -318,7 +318,7 @@ public:
                 "AAAI Press",
                 "2011"));
 
-        add_option<ShrinkBisimulation::AtLimit>(
+        add_option<ShrinkStrategyBisimulation::AtLimit>(
             "at_limit",
             "what to do when the size limit is hit",
             "return");
@@ -330,19 +330,19 @@ public:
     }
 
 protected:
-    shared_ptr<ShrinkBisimulation>
+    shared_ptr<ShrinkStrategyBisimulation>
     create_component(const Options& options, const utils::Context&)
         const override
     {
-        return make_shared_from_arg_tuples<ShrinkBisimulation>(
-            options.get<ShrinkBisimulation::AtLimit>("at_limit"),
+        return make_shared_from_arg_tuples<ShrinkStrategyBisimulation>(
+            options.get<ShrinkStrategyBisimulation::AtLimit>("at_limit"),
             options.get<bool>("require_goal_distances"));
     }
 };
 
 FeaturePlugin<ShrinkBisimulationFeature> _plugin;
 
-TypedEnumPlugin<ShrinkBisimulation::AtLimit> _enum_plugin(
+TypedEnumPlugin<ShrinkStrategyBisimulation::AtLimit> _enum_plugin(
     {{"return", "stop without refining the equivalence class further"},
      {"use_up",
       "continue refining the equivalence class until "

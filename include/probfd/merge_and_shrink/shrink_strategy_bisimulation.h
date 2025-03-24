@@ -9,7 +9,7 @@ class Options;
 
 namespace probfd::merge_and_shrink {
 
-class ShrinkBisimulation : public ShrinkStrategy {
+class ShrinkStrategyBisimulation : public ShrinkStrategy {
 public:
     enum class AtLimit { RETURN, USE_UP };
 
@@ -18,7 +18,7 @@ private:
     const bool require_goal_distances;
 
 public:
-    ShrinkBisimulation(AtLimit at_limit, const bool require_goal_distances);
+    ShrinkStrategyBisimulation(AtLimit at_limit, const bool require_goal_distances);
 
     StateEquivalenceRelation compute_equivalence_relation(
         const TransitionSystem& ts,
