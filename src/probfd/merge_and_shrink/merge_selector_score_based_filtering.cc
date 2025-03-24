@@ -2,12 +2,13 @@
 
 #include "probfd/merge_and_shrink/merge_scoring_function.h"
 
-#include "downward/cli/plugins/plugin.h"
+#include "downward/utils/logging.h"
+#include "downward/utils/system.h"
 
 #include <cassert>
+#include <iostream>
 
 using namespace std;
-using namespace downward::cli::plugins;
 
 namespace probfd::merge_and_shrink {
 
@@ -22,6 +23,7 @@ static vector<pair<int, int>> get_remaining_candidates(
     const vector<double>& scores)
 {
     assert(merge_candidates.size() == scores.size());
+
     double best_score = std::numeric_limits<double>::infinity();
     for (const double score : scores) {
         if (score < best_score) {
@@ -35,6 +37,7 @@ static vector<pair<int, int>> get_remaining_candidates(
             result.push_back(merge_candidates[i]);
         }
     }
+
     return result;
 }
 
@@ -59,7 +62,7 @@ pair<int, int> MergeSelectorScoreBasedFiltering::select_merge(
                 "scores! Did you forget to include a uniquely tie-breaking "
                 "scoring function, e.g. total_order or single_random?"
              << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+        exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
 
     return merge_candidates.front();
@@ -107,42 +110,5 @@ bool MergeSelectorScoreBasedFiltering::requires_goal_distances() const
     }
     return false;
 }
-
-namespace {
-
-class MergeSelectorScoreBasedFilteringFeature
-    : public TypedFeature<MergeSelector, MergeSelectorScoreBasedFiltering> {
-public:
-    MergeSelectorScoreBasedFilteringFeature()
-        : TypedFeature("pscore_based_filtering")
-    {
-        document_title("Score based filtering merge selector");
-        document_synopsis(
-            "This merge selector has a list of scoring "
-            "functions, which are used "
-            "iteratively to compute scores for merge candidates, "
-            "keeping the best "
-            "ones (with minimal scores) until only one is left.");
-
-        add_list_option<shared_ptr<MergeScoringFunction>>(
-            "scoring_functions",
-            "The list of scoring functions used to compute scores for "
-            "candidates.");
-    }
-
-protected:
-    shared_ptr<MergeSelectorScoreBasedFiltering>
-    create_component(const Options& options, const utils::Context&)
-        const override
-    {
-        return make_shared_from_arg_tuples<MergeSelectorScoreBasedFiltering>(
-            options.get_list<std::shared_ptr<MergeScoringFunction>>(
-                "scoring_functions"));
-    }
-};
-
-FeaturePlugin<MergeSelectorScoreBasedFilteringFeature> _plugin;
-
-} // namespace
 
 } // namespace probfd::merge_and_shrink

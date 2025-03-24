@@ -3,10 +3,6 @@
 
 #include <vector>
 
-namespace downward::cli::plugins {
-class Options;
-}
-
 namespace equivalence_relation {
 class EquivalenceRelation;
 }
@@ -54,7 +50,6 @@ enum class LabelReductionMethod {
 enum class LabelReductionSystemOrder { REGULAR, REVERSE, RANDOM };
 
 class LabelReduction {
-    // Options for label reduction
     std::vector<int> transition_system_order;
     bool lr_before_shrinking;
     bool lr_before_merging;

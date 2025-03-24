@@ -3,11 +3,6 @@
 
 #include "probfd/merge_and_shrink/merge_strategy_factory.h"
 
-namespace downward::cli::plugins {
-class Feature;
-class Options;
-} // namespace downward::cli::plugins
-
 namespace probfd::merge_and_shrink {
 class MergeTreeFactory;
 class MergeSelector;

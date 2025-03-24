@@ -3,10 +3,6 @@
 
 #include "probfd/merge_and_shrink/shrink_strategy_bucket_based.h"
 
-namespace downward::cli::plugins {
-class Options;
-}
-
 namespace probfd::merge_and_shrink {
 
 class ShrinkStrategyRandom : public ShrinkStrategyBucketBased {

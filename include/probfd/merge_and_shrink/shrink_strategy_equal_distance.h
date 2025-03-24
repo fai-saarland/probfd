@@ -5,10 +5,6 @@
 
 #include <vector>
 
-namespace downward::cli::plugins {
-class Options;
-}
-
 namespace probfd::merge_and_shrink {
 
 /*
@@ -19,7 +15,7 @@ namespace probfd::merge_and_shrink {
 
   This could be improved, but not without complicating the code.
   Usually we set the number of abstract states large enough that we
-  do not need to merge across buckets. Therefore the complication
+  do not need to merge across buckets. Therefore, the complication
   might not be worth the code maintenance cost.
 */
 class ShrinkStrategyEqualDistance : public ShrinkStrategyBucketBased {

@@ -541,12 +541,330 @@ create_library(
 )
 
 create_library(
-    NAME pa_merge_and_shrink_heuristic_feature
-    HELP "Enables the Merge-and-shrink heuristic plugin"
+    NAME pa_merge_and_shrink_algorithm_options
+    HELP "Enables the Merge-and-shrink algorithm options"
     SOURCES
-        probfd/cli/heuristics/merge_and_shrink_heuristic
+        probfd/cli/merge_and_shrink/merge_and_shrink_algorithm_options
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pmerge_strategy_factory_category
+    HELP "Enables merge strategy factory category plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/merge_strategy_factory_category
     DEPENDS
-        probability_aware_mas_heuristic
+        pa_merge_and_shrink
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pmerge_strategy_factory_options
+    HELP "Enables the base merge strategy factory options"
+    SOURCES
+        probfd/cli/merge_and_shrink/merge_strategy_factory_options
+    DEPENDS
+        pa_merge_and_shrink
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pmerge_strategy_factory_precomputed
+    HELP "Enables precomputed merge strategy factory plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/merge_strategy_factory_precomputed
+    DEPENDS
+        pmerge_strategy_factory_category
+        pmerge_strategy_factory_options
+        pa_merge_and_shrink
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pmerge_strategy_factory_sccs
+    HELP "Enables merge strategy factory SCC plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/merge_strategy_factory_sccs
+    DEPENDS
+        pmerge_strategy_factory_category
+        pmerge_strategy_factory_options
+        pa_merge_and_shrink
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pmerge_strategy_factory_stateless
+    HELP "Enables stateless merge strategy factory plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/merge_strategy_factory_stateless
+    DEPENDS
+        pmerge_strategy_factory_category
+        pmerge_strategy_factory_options
+        pa_merge_and_shrink
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pmerge_selector_category
+    HELP "Enables merge selector category plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/merge_selector_category
+    DEPENDS
+        pa_merge_and_shrink
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pmerge_selector_score_based_filtering_feature
+    HELP "Enables merge selector score-based plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/merge_selector_score_based_filtering
+    DEPENDS
+        pa_merge_and_shrink
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pmerge_scoring_function_category
+    HELP "Enables merge scoring function category plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/merge_scoring_function_category
+    DEPENDS
+        pa_merge_and_shrink
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pmerge_scoring_function_dfp_feature
+    HELP "Enables merge scoring function dfp plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/merge_scoring_function_dfp
+    DEPENDS
+        pmerge_scoring_function_category
+        pa_merge_and_shrink
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pmerge_scoring_function_goal_relevance_feature
+    HELP "Enables merge scoring function goal relevance plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/merge_scoring_function_goal_relevance
+    DEPENDS
+        pmerge_scoring_function_category
+        pa_merge_and_shrink
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pmerge_scoring_function_miasm_feature
+    HELP "Enables merge scoring function miasm plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/merge_scoring_function_miasm
+    DEPENDS
+        pmerge_scoring_function_category
+        pa_merge_and_shrink
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pmerge_scoring_function_single_random_feature
+    HELP "Enables merge scoring function single random plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/merge_scoring_function_single_random
+    DEPENDS
+        pmerge_scoring_function_category
+        pa_merge_and_shrink
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pmerge_scoring_function_total_order_feature
+    HELP "Enables merge scoring function total order plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/merge_scoring_function_total_order
+    DEPENDS
+        pmerge_scoring_function_category
+        pa_merge_and_shrink
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pmerge_tree_factory_category
+    HELP "Enables merge tree factory category plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/merge_tree_factory_category
+    DEPENDS
+        pa_merge_and_shrink
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pmerge_tree_factory_options
+    HELP "Enables merge tree factory options"
+    SOURCES
+        probfd/cli/merge_and_shrink/merge_tree_factory_options
+    DEPENDS
+        pa_merge_and_shrink
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pmerge_tree_factory_linear
+    HELP "Enables linear merge tree factory plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/merge_tree_factory_linear
+    DEPENDS
+        pmerge_tree_factory_category
+        pmerge_tree_factory_options
+        pa_merge_and_shrink
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pshrink_strategy_category
+    HELP "Enables shrink strategy category plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/shrink_strategy_category
+    DEPENDS
+        pa_merge_and_shrink
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pshrink_strategy_identity_feature
+    HELP "Enables identity shrink strategy plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/shrink_strategy_identity
+    DEPENDS
+        pa_merge_and_shrink
+        pshrink_strategy_category
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pshrink_strategy_bucket_based_options
+    HELP "Enables bucket-based shrink strategy options"
+    SOURCES
+        probfd/cli/merge_and_shrink/shrink_strategy_bucket_based_options
+    DEPENDS
+        pa_merge_and_shrink
+        pshrink_strategy_category
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pshrink_strategy_equal_distance_feature
+    HELP "Enables equal distance shrink strategy plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/shrink_strategy_equal_distance
+    DEPENDS
+        pa_merge_and_shrink
+        pshrink_strategy_category
+        pshrink_strategy_bucket_based_options
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pshrink_strategy_random_feature
+    HELP "Enables random shrink strategy plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/shrink_strategy_random
+    DEPENDS
+        pa_merge_and_shrink
+        pshrink_strategy_category
+        pshrink_strategy_bucket_based_options
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pshrink_strategy_bisimulation_feature
+    HELP "Enables bisimulation shrink strategy plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/shrink_strategy_bisimulation
+    DEPENDS
+        pa_merge_and_shrink
+        pshrink_strategy_category
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pshrink_strategy_probabilistic_bisimulation_feature
+    HELP "Enables probabilistic bisimulation shrink strategy plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/shrink_strategy_probabilistic_bisimulation
+    DEPENDS
+        pa_merge_and_shrink
+        pshrink_strategy_category
+        parser
+        plugins
     TARGET
         probfd
 )
@@ -602,6 +920,18 @@ create_library(
         prune_strategy_category
         parser
         plugins
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME pa_merge_and_shrink_heuristic_feature
+    HELP "Enables the Merge-and-shrink heuristic plugin"
+    SOURCES
+        probfd/cli/heuristics/merge_and_shrink_heuristic
+    DEPENDS
+        probability_aware_mas_heuristic
+        pa_merge_and_shrink_algorithm_options
     TARGET
         probfd
 )

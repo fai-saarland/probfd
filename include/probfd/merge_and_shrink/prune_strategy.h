@@ -3,8 +3,6 @@
 
 #include "probfd/merge_and_shrink/types.h"
 
-#include <utility>
-
 namespace utils {
 class LogProxy;
 }

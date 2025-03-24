@@ -10,6 +10,8 @@
 
 #include "probfd/cli/heuristics/task_dependent_heuristic_options.h"
 
+#include "probfd/cli/merge_and_shrink/merge_and_shrink_algorithm_options.h"
+
 #include "downward/cli/plugins/plugin.h"
 
 using namespace std;
@@ -19,6 +21,7 @@ using namespace probfd::merge_and_shrink;
 
 using namespace downward::cli::plugins;
 using namespace probfd::cli::heuristics;
+using namespace probfd::cli::merge_and_shrink;
 
 namespace {
 
@@ -100,6 +103,7 @@ public:
     {
         Options options_copy(options);
         handle_shrink_limit_options_defaults(options_copy, context);
+
         return make_shared_from_arg_tuples<MergeAndShrinkHeuristicFactory>(
             options_copy.get<shared_ptr<MergeStrategyFactory>>(
                 "merge_strategy"),

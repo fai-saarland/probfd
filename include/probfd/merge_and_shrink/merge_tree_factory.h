@@ -6,11 +6,6 @@
 #include <tuple>
 #include <vector>
 
-namespace downward::cli::plugins {
-class Options;
-class Feature;
-} // namespace downward::cli::plugins
-
 namespace utils {
 class LogProxy;
 class RandomNumberGenerator;
@@ -60,12 +55,6 @@ protected:
 
     virtual void dump_tree_specific_options(utils::LogProxy&) const {}
 };
-
-extern void add_merge_tree_factory_options_to_feature(
-    downward::cli::plugins::Feature& feature);
-
-extern std::tuple<int, UpdateOption> get_merge_tree_factory_args_from_options(
-    const downward::cli::plugins::Options& options);
 
 } // namespace probfd::merge_and_shrink
 

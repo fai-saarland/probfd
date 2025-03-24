@@ -7,11 +7,6 @@
 #include <tuple>
 #include <vector>
 
-namespace downward::cli::plugins {
-class Options;
-class Feature;
-} // namespace downward::cli::plugins
-
 namespace utils {
 class RandomNumberGenerator;
 }
@@ -62,12 +57,6 @@ protected:
         const TransitionSystem& ts,
         const Distances& Distances) const = 0;
 };
-
-void add_bucket_based_shrink_options_to_feature(
-    downward::cli::plugins::Feature& feature);
-
-std::tuple<int> get_bucket_based_shrink_args_from_options(
-    const downward::cli::plugins::Options& options);
 
 } // namespace probfd::merge_and_shrink
 

@@ -6,11 +6,6 @@
 #include <memory>
 #include <tuple>
 
-namespace downward::cli::plugins {
-class Options;
-class Feature;
-} // namespace downward::cli::plugins
-
 namespace utils {
 class RandomNumberGenerator;
 }
@@ -47,13 +42,6 @@ private:
     std::string name() const override;
     void dump_function_specific_options(utils::LogProxy& log) const override;
 };
-
-extern void add_merge_scoring_function_total_order_options_to_feature(
-    downward::cli::plugins::Feature& feature);
-
-extern std::tuple<AtomicTSOrder, ProductTSOrder, bool, int>
-get_merge_scoring_function_total_order_args_from_options(
-    const downward::cli::plugins::Options& options);
 
 } // namespace probfd::merge_and_shrink
 
