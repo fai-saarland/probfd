@@ -33,7 +33,7 @@ MergeScoringFunctionTotalOrder::MergeScoringFunctionTotalOrder(
 {
 }
 
-static std::pair<int&, int&> rotate(std::pair<int, int> p)
+static std::pair<const int&, const int&> rotate(const std::pair<int, int>& p)
 {
     return std::tie(p.second, p.first);
 }
