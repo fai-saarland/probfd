@@ -345,7 +345,7 @@ public:
                 "AAAI Press",
                 "2011"));
 
-        add_option<AtLimit>(
+        add_option<ShrinkStrategyProbabilisticBisimulation::AtLimit>(
             "at_limit",
             "what to do when the size limit is hit",
             "return");
@@ -363,14 +363,15 @@ protected:
     {
         return make_shared_from_arg_tuples<
             ShrinkStrategyProbabilisticBisimulation>(
-            options.get<AtLimit>("at_limit"),
+            options.get<ShrinkStrategyProbabilisticBisimulation::AtLimit>(
+                "at_limit"),
             options.get<bool>("require_goal_distances"));
     }
 };
 
 FeaturePlugin<ShrinkProbabilisticBisimulationFeature> _plugin;
 
-TypedEnumPlugin<AtLimit> _enum_plugin(
+TypedEnumPlugin<ShrinkStrategyProbabilisticBisimulation::AtLimit> _enum_plugin(
     {{"return", "stop without refining the equivalence class further"},
      {"use_up",
       "continue refining the equivalence class until "

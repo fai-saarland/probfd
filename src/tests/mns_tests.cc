@@ -233,17 +233,19 @@ TEST(MnSTests, test_projection_distances2)
 
     for (int i = 0; i != 5; ++i) {
         for (int j = i + 1; j < 5; ++j) {
-            std::ifstream ts_file(std::format(
-                "resources/mns_tests/bw2_ts_{}{}"
-                ".json",
-                i,
-                j));
+            std::ifstream ts_file(
+                std::format(
+                    "resources/mns_tests/bw2_ts_{}{}"
+                    ".json",
+                    i,
+                    j));
             auto ts = json::read<TransitionSystem>(ts_file);
 
-            std::ifstream d_file(std::format(
-                "resources/mns_tests/bw2_ts_{}{}_distances.json",
-                i,
-                j));
+            std::ifstream d_file(
+                std::format(
+                    "resources/mns_tests/bw2_ts_{}{}_distances.json",
+                    i,
+                    j));
             auto value_table = json::read<std::vector<value_t>>(d_file);
 
             std::vector distances(ts.get_size(), -INFINITE_VALUE);
@@ -293,7 +295,7 @@ TEST(MnSTests, test_bisimulation_distance_preserved)
     Distances distances;
     distances.compute_distances(ts, false, log);
 
-    ShrinkBisimulation bisimulation(AtLimit::RETURN, false);
+    ShrinkBisimulation bisimulation(ShrinkBisimulation::AtLimit::RETURN, false);
 
     auto eq_relation = bisimulation.compute_equivalence_relation(
         ts,

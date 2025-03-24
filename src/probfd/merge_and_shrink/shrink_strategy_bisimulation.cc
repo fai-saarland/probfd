@@ -318,7 +318,7 @@ public:
                 "AAAI Press",
                 "2011"));
 
-        add_option<AtLimit>(
+        add_option<ShrinkBisimulation::AtLimit>(
             "at_limit",
             "what to do when the size limit is hit",
             "return");
@@ -335,14 +335,14 @@ protected:
         const override
     {
         return make_shared_from_arg_tuples<ShrinkBisimulation>(
-            options.get<AtLimit>("at_limit"),
+            options.get<ShrinkBisimulation::AtLimit>("at_limit"),
             options.get<bool>("require_goal_distances"));
     }
 };
 
 FeaturePlugin<ShrinkBisimulationFeature> _plugin;
 
-TypedEnumPlugin<AtLimit> _enum_plugin(
+TypedEnumPlugin<ShrinkBisimulation::AtLimit> _enum_plugin(
     {{"return", "stop without refining the equivalence class further"},
      {"use_up",
       "continue refining the equivalence class until "
