@@ -60,23 +60,4 @@ protected:
 
 FeaturePlugin<MergeTreeFactoryLinearFeature> _plugin;
 
-TypedEnumPlugin<variable_order_finder::VariableOrderType> _enum_plugin(
-    {{"cg_goal_level",
-      "variables are prioritized first if they have an arc to a previously "
-      "added variable, second if their goal value is defined "
-      "and third according to their level in the causal graph"},
-     {"cg_goal_random",
-      "variables are prioritized first if they have an arc to a previously "
-      "added variable, second if their goal value is defined "
-      "and third randomly"},
-     {"goal_cg_level",
-      "variables are prioritized first if their goal value is defined, "
-      "second if they have an arc to a previously added variable, "
-      "and third according to their level in the causal graph"},
-     {"random", "variables are ordered randomly"},
-     {"level",
-      "variables are ordered according to their level in the causal graph"},
-     {"reverse_level",
-      "variables are ordered reverse to their level in the causal graph"}});
-
 } // namespace
