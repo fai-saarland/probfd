@@ -21,24 +21,13 @@ class ShrinkProbabilisticBisimulationFeature
           ShrinkStrategyProbabilisticBisimulation> {
 public:
     ShrinkProbabilisticBisimulationFeature()
-        : TypedFeature("pshrink_bisimulation")
+        : TypedFeature("pshrink_probabilistic_bisimulation")
     {
-        document_title("Bismulation based shrink strategy");
+        document_title("Probabilistic Bisimulation-based shrink strategy");
         document_synopsis(
-            "This shrink strategy implements the algorithm described in"
-            " the paper:" +
-            utils::format_conference_reference(
-                {"Raz Nissim", "Joerg Hoffmann", "Malte Helmert"},
-                "Computing Perfect Heuristics in Polynomial Time: On "
-                "Bisimulation"
-                " and Merge-and-Shrink Abstractions in Optimal Planning.",
-                "https://ai.dmi.unibas.ch/papers/nissim-et-al-ijcai2011.pdf",
-                "Proceedings of the Twenty-Second International Joint "
-                "Conference"
-                " on Artificial Intelligence (IJCAI 2011)",
-                "1983-1990",
-                "AAAI Press",
-                "2011"));
+            "Computes a probabilistic bisimulation over the induced "
+            "probabilistic transition system and emits the corresponding "
+            "abstraction mapping. This strategy is not exact.");
 
         add_option<ShrinkStrategyProbabilisticBisimulation::AtLimit>(
             "at_limit",
