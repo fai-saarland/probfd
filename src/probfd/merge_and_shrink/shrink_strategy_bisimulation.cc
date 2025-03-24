@@ -81,8 +81,11 @@ struct Signature {
     }
 };
 
-ShrinkBisimulation::ShrinkBisimulation(AtLimit at_limit)
+ShrinkBisimulation::ShrinkBisimulation(
+    AtLimit at_limit,
+    const bool require_goal_distances)
     : at_limit(at_limit)
+    , require_goal_distances(require_goal_distances)
 {
 }
 
@@ -319,6 +322,11 @@ public:
             "at_limit",
             "what to do when the size limit is hit",
             "return");
+
+        add_option<bool>(
+            "require_goal_distances",
+            "whether goal distances are required",
+            "true");
     }
 
 protected:
@@ -327,7 +335,8 @@ protected:
         const override
     {
         return make_shared_from_arg_tuples<ShrinkBisimulation>(
-            options.get<AtLimit>("at_limit"));
+            options.get<AtLimit>("at_limit"),
+            options.get<bool>("require_goal_distances"));
     }
 };
 

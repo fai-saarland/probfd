@@ -13,9 +13,12 @@ enum class AtLimit { RETURN, USE_UP };
 
 class ShrinkStrategyProbabilisticBisimulation : public ShrinkStrategy {
     const AtLimit at_limit;
+    const bool require_goal_distances;
 
 public:
-    explicit ShrinkStrategyProbabilisticBisimulation(AtLimit at_limit);
+    ShrinkStrategyProbabilisticBisimulation(
+        AtLimit at_limit,
+        bool require_goal_distances);
 
     StateEquivalenceRelation compute_equivalence_relation(
         const TransitionSystem& ts,
