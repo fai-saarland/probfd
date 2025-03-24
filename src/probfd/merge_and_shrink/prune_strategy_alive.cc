@@ -42,7 +42,7 @@ bool PruneStrategyAlive::requires_liveness() const
 
 bool PruneStrategyAlive::requires_goal_distances() const
 {
-    return false;
+    return true;
 }
 
 } // namespace probfd::merge_and_shrink
