@@ -135,13 +135,9 @@ static int initialize_groups(
 
         value_t h = distances.get_goal_distance(state);
 
-        auto [first, end] = std::ranges::equal_range(
-            h_to_group,
-            h,
-            [](value_t x, value_t y) {
-                return probfd::is_approx_less(x, y, 0.001);
-            },
-            [](const auto& p) { return p.first; });
+        auto [first, end] = std::make_pair(
+            h_to_group.lower_bound(h - 1e-3),
+            h_to_group.upper_bound(h + 1e-3));
 
         if (first == end) {
             auto [it, inserted] = h_to_group.emplace(h, num_groups);
