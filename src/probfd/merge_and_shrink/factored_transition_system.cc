@@ -196,7 +196,7 @@ int FactoredTransitionSystem::merge(
 
     distances = std::make_unique<Distances>();
 
-    class MergeHeuristic : public Evaluator<int> {
+    class MergeHeuristic : public Heuristic<int> {
         const FactoredMappingMerge& merge_fm;
         std::vector<value_t> distance_table1;
         std::vector<value_t> distance_table2;
@@ -221,7 +221,7 @@ int FactoredTransitionSystem::merge(
 
     // Restore the invariant that distances are computed.
     if (compute_goal_distances) {
-        MergeHeuristic heuristic(
+        const MergeHeuristic heuristic(
             static_cast<const FactoredMappingMerge&>(*fm),
             *distances1,
             *distances2);
@@ -231,9 +231,10 @@ int FactoredTransitionSystem::merge(
 
         distances->compute_distances(*ts, compute_liveness, log, heuristic);
     }
+
     --num_active_entries;
 
-    int new_index = factors.size() - 1;
+    const int new_index = factors.size() - 1;
     assert(is_component_valid(new_index));
     return new_index;
 }
