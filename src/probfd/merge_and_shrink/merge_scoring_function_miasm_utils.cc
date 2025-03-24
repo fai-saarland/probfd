@@ -6,8 +6,6 @@
 #include "probfd/merge_and_shrink/transition_system.h"
 #include "probfd/merge_and_shrink/utils.h"
 
-#include "downward/utils/logging.h"
-
 using namespace std;
 
 namespace probfd::merge_and_shrink {

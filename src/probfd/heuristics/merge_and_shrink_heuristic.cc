@@ -10,16 +10,10 @@
 
 #include "probfd/task_heuristic_factory.h"
 
-#include "downward/utils/system.h"
-
 #include <cassert>
-#include <iostream>
 
 using namespace std;
-using utils::ExitCode;
 using namespace probfd::merge_and_shrink;
-
-using namespace downward::cli::plugins;
 
 namespace probfd::heuristics {
 
@@ -28,7 +22,7 @@ struct MergeAndShrinkHeuristic::FactorDistances {
     std::vector<value_t> distance_table;
 
     FactorDistances(
-        std::unique_ptr<merge_and_shrink::FactoredMapping> factored_mapping,
+        std::unique_ptr<FactoredMapping> factored_mapping,
         Distances& distances)
         : factored_mapping(std::move(factored_mapping))
         , distance_table(distances.extract_goal_distances())
@@ -36,8 +30,8 @@ struct MergeAndShrinkHeuristic::FactorDistances {
     }
 
     FactorDistances(
-        std::unique_ptr<merge_and_shrink::FactoredMapping> factored_mapping,
-        TransitionSystem& ts)
+        std::unique_ptr<FactoredMapping> factored_mapping,
+        const TransitionSystem& ts)
         : factored_mapping(std::move(factored_mapping))
         , distance_table(ts.get_size(), DISTANCE_UNKNOWN)
     {
@@ -71,16 +65,15 @@ MergeAndShrinkHeuristic::MergeAndShrinkHeuristic(
     */
     assert(factor_distances.empty());
 
-    int num_active_factors = fts.get_num_active_entries();
+    const int num_active_factors = fts.get_num_active_entries();
     if (log_.is_at_least_normal()) {
         log_ << "Number of remaining factors: " << num_active_factors << endl;
     }
 
-    bool unsolvable = extract_unsolvable_factor(fts);
-    if (!unsolvable) {
+    if (const bool unsolvable = extract_unsolvable_factor(fts); !unsolvable) {
         // Iterate over remaining factors and extract and store the nontrivial
         // ones.
-        for (int index : fts) {
+        for (const int index : fts) {
             if (fts.is_factor_trivial(index)) {
                 if (log_.is_at_least_verbose()) {
                     log_ << fts.get_transition_system(index).tag()
@@ -93,7 +86,7 @@ MergeAndShrinkHeuristic::MergeAndShrinkHeuristic(
         }
     }
 
-    int num_factors_kept = factor_distances.size();
+    const int num_factors_kept = factor_distances.size();
     if (log_.is_at_least_normal()) {
         log_ << "Number of factors kept: " << num_factors_kept << endl;
     }
@@ -112,9 +105,9 @@ void MergeAndShrinkHeuristic::extract_factor(
       system, compute goal distances if necessary and store the M&S
       representation, which serves as the heuristic.
     */
-    auto&& [ts, fm, distances] = fts.extract_factor(index);
 
-    if (distances->are_goal_distances_computed()) {
+    if (auto&& [ts, fm, distances] = fts.extract_factor(index);
+        distances->are_goal_distances_computed()) {
         factor_distances.emplace_back(std::move(fm), *distances);
     } else {
         factor_distances.emplace_back(std::move(fm), *ts);

@@ -93,4 +93,5 @@ pair<int, int> MergeStrategySCCs::get_next()
 
     return next_pair;
 }
+
 } // namespace probfd::merge_and_shrink

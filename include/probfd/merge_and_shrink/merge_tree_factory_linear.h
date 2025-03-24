@@ -41,13 +41,6 @@ protected:
     void dump_tree_specific_options(utils::LogProxy& log) const override;
 };
 
-void add_linear_merge_tree_factory_options_to_feature(
-    downward::cli::plugins::Feature& feature);
-
-std::tuple<int, UpdateOption, variable_order_finder::VariableOrderType>
-get_linear_merge_tree_factory_args_from_options(
-    const downward::cli::plugins::Options& options);
-
 } // namespace probfd::merge_and_shrink
 
 #endif

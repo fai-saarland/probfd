@@ -8,15 +8,9 @@
 
 #include "probfd/task_proxy.h"
 
-#include "downward/utils/markup.h"
-#include "downward/utils/rng.h"
-
-#include "downward/cli/plugins/plugin.h"
-
 #include <algorithm>
 
 using namespace std;
-using namespace downward::cli::plugins;
 
 namespace probfd::merge_and_shrink {
 
@@ -133,83 +127,5 @@ void MergeTreeFactoryLinear::dump_tree_specific_options(
         dump_variable_order_type(variable_order_type, log);
     }
 }
-
-void add_linear_merge_tree_factory_options_to_feature(Feature& feature)
-{
-    add_merge_tree_factory_options_to_feature(feature);
-
-    feature.add_option<variable_order_finder::VariableOrderType>(
-        "variable_order",
-        "the order in which atomic transition systems are merged",
-        "cg_goal_level");
-}
-
-std::tuple<int, UpdateOption, variable_order_finder::VariableOrderType>
-get_linear_merge_tree_factory_args_from_options(const Options& options)
-{
-    return std::tuple_cat(
-        get_merge_tree_factory_args_from_options(options),
-        std::make_tuple(options.get<variable_order_finder::VariableOrderType>(
-            "variable_order")));
-}
-
-namespace {
-
-class MergeTreeFactoryLinearFeature
-    : public TypedFeature<MergeTreeFactory, MergeTreeFactoryLinear> {
-public:
-    MergeTreeFactoryLinearFeature()
-        : TypedFeature("plinear")
-    {
-        document_title("Linear merge trees");
-        document_synopsis(
-            "These merge trees implement several linear merge orders, which "
-            "are described in the paper:" +
-            utils::format_conference_reference(
-                {"Malte Helmert", "Patrik Haslum", "Joerg Hoffmann"},
-                "Flexible Abstraction Heuristics for Optimal Sequential "
-                "Planning",
-                "https://ai.dmi.unibas.ch/papers/helmert-et-al-icaps2007.pdf",
-                "Proceedings of the Seventeenth International Conference on"
-                " Automated Planning and Scheduling (ICAPS 2007)",
-                "176-183",
-                "AAAI Press",
-                "2007"));
-
-        add_linear_merge_tree_factory_options_to_feature(*this);
-    }
-
-protected:
-    shared_ptr<MergeTreeFactoryLinear>
-    create_component(const Options& options, const utils::Context&)
-        const override
-    {
-        return make_shared_from_arg_tuples<MergeTreeFactoryLinear>(
-            get_linear_merge_tree_factory_args_from_options(options));
-    }
-};
-
-FeaturePlugin<MergeTreeFactoryLinearFeature> _plugin;
-
-TypedEnumPlugin<variable_order_finder::VariableOrderType> _enum_plugin(
-    {{"cg_goal_level",
-      "variables are prioritized first if they have an arc to a previously "
-      "added variable, second if their goal value is defined "
-      "and third according to their level in the causal graph"},
-     {"cg_goal_random",
-      "variables are prioritized first if they have an arc to a previously "
-      "added variable, second if their goal value is defined "
-      "and third randomly"},
-     {"goal_cg_level",
-      "variables are prioritized first if their goal value is defined, "
-      "second if they have an arc to a previously added variable, "
-      "and third according to their level in the causal graph"},
-     {"random", "variables are ordered randomly"},
-     {"level",
-      "variables are ordered according to their level in the causal graph"},
-     {"reverse_level",
-      "variables are ordered reverse to their level in the causal graph"}});
-
-} // namespace
 
 } // namespace probfd::merge_and_shrink
