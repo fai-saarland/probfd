@@ -384,7 +384,7 @@ void compute_goal_distances(
     ExplicitMDP explicit_mdp(transition_system);
 
     TATopologicalValueIteration<int, const ProbabilisticTransition*> tatvi(
-        0.001,
+        0.0001,
         transition_system.get_size());
 
     std::ranges::fill(distances, DISTANCE_UNKNOWN);

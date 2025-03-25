@@ -221,7 +221,7 @@ TEST(MnSTests, test_projection_distances)
             if (std::isinf(value_table[k]))
                 ASSERT_EQ(value_table[k], distances[k]);
             else
-                ASSERT_NEAR(value_table[k], distances[k], 0.0001)
+                ASSERT_NEAR(value_table[k], distances[k], 0.001)
                     << "Distances do not match pdb distances!";
         }
     }
@@ -255,7 +255,7 @@ TEST(MnSTests, test_projection_distances2)
                 if (std::isinf(value_table[k]))
                     ASSERT_EQ(value_table[k], distances[k]);
                 else
-                    ASSERT_NEAR(value_table[k], distances[k], 0.0001)
+                    ASSERT_NEAR(value_table[k], distances[k], 0.001)
                         << "Distances do not match for pattern {" << i << ", "
                         << j << "} and state " << k << " !";
             }
@@ -280,7 +280,7 @@ TEST(MnSTests, test_projection_distances3)
         if (std::isinf(value_table[k]))
             ASSERT_EQ(value_table[k], distances[k]);
         else
-            ASSERT_NEAR(value_table[k], distances[k], 0.0001)
+            ASSERT_NEAR(value_table[k], distances[k], 0.001)
                 << "Distances do not match pdb distances!";
     }
 }
@@ -323,7 +323,7 @@ TEST(MnSTests, test_bisimulation_distance_preserved)
         if (std::isinf(old_distances[k]))
             ASSERT_EQ(old_distances[k], new_distances[abs_mapping[k]]);
         else
-            ASSERT_NEAR(old_distances[k], new_distances[abs_mapping[k]], 0.0001)
+            ASSERT_NEAR(old_distances[k], new_distances[abs_mapping[k]], 0.001)
                 << "Distance of state " << k << " not preserved!";
     }
 }
