@@ -210,7 +210,6 @@ void Distances::compute_distances(
     }
 
     goal_distances.resize(num_states);
-    std::ranges::fill(goal_distances, DISTANCE_UNKNOWN);
     compute_goal_distances(transition_system, goal_distances, heuristic);
     goal_distances_computed = true;
 
@@ -387,6 +386,8 @@ void compute_goal_distances(
     TATopologicalValueIteration<int, const ProbabilisticTransition*> tatvi(
         0.001,
         transition_system.get_size());
+
+    std::ranges::fill(distances, DISTANCE_UNKNOWN);
 
     for (int i = 0; i != transition_system.get_size(); ++i) {
         if (!std::isnan(distances[i])) continue; // Already seen
