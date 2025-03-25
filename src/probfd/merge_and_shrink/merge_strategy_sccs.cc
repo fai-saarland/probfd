@@ -7,6 +7,7 @@
 #include "probfd/merge_and_shrink/transition_system.h"
 
 #include <cassert>
+#include <ranges>
 
 using namespace std;
 
@@ -25,6 +26,7 @@ MergeStrategySCCs::MergeStrategySCCs(
     , non_singleton_cg_sccs(std::move(non_singleton_cg_sccs))
     , current_merge_tree(nullptr)
 {
+    std::ranges::reverse(non_singleton_cg_sccs);
 }
 
 MergeStrategySCCs::~MergeStrategySCCs() = default;
@@ -48,10 +50,10 @@ pair<int, int> MergeStrategySCCs::get_next()
               There is another SCC we have to deal with. Store its factors so
               that we merge them over the next iterations.
             */
-            vector<int>& current_scc = non_singleton_cg_sccs.front();
+            vector<int>& current_scc = non_singleton_cg_sccs.back();
             assert(current_scc.size() > 1);
             current_ts_indices = std::move(current_scc);
-            non_singleton_cg_sccs.erase(non_singleton_cg_sccs.begin());
+            non_singleton_cg_sccs.pop_back();
         }
 
         // If using a merge tree factory, compute a merge tree for this set.
@@ -74,7 +76,7 @@ pair<int, int> MergeStrategySCCs::get_next()
         assert(!current_merge_tree->done());
         next_pair = current_merge_tree->get_next_merge(merged_ts_index);
         if (current_merge_tree->done()) {
-            current_merge_tree = nullptr;
+            current_merge_tree.release();
         }
     } else {
         assert(merge_selector);
@@ -82,14 +84,9 @@ pair<int, int> MergeStrategySCCs::get_next()
     }
 
     // Remove the two merged indices from the current index set.
-    for (auto it = current_ts_indices.begin();
-         it != current_ts_indices.end();) {
-        if (*it == next_pair.first || *it == next_pair.second) {
-            it = current_ts_indices.erase(it);
-        } else {
-            ++it;
-        }
-    }
+    erase_if(current_ts_indices, [=](const int idx) {
+        return idx == next_pair.first || idx == next_pair.second;
+    });
 
     return next_pair;
 }
