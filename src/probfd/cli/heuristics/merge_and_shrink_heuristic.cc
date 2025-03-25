@@ -79,7 +79,9 @@ std::unique_ptr<FDREvaluator> MergeAndShrinkHeuristicFactory::create_evaluator(
     std::shared_ptr<ProbabilisticTask> task,
     std::shared_ptr<FDRCostFunction>)
 {
-    return std::make_unique<MergeAndShrinkHeuristic>(algorithm, task, log_);
+    FactoredTransitionSystem fts =
+        algorithm.build_factored_transition_system(task, log_);
+    return std::make_unique<MergeAndShrinkHeuristic>(fts, task, log_);
 }
 
 class MergeAndShrinkHeuristicFactoryFeature
