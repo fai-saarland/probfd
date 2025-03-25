@@ -5,7 +5,6 @@
 
 namespace probfd::merge_and_shrink {
 class FactoredTransitionSystem;
-class MergeAndShrinkAlgorithm;
 } // namespace probfd::merge_and_shrink
 
 namespace probfd::heuristics {
@@ -23,7 +22,7 @@ class MergeAndShrinkHeuristic : public TaskDependentHeuristic {
 
 public:
     MergeAndShrinkHeuristic(
-        merge_and_shrink::MergeAndShrinkAlgorithm& algorithm,
+        merge_and_shrink::FactoredTransitionSystem& fts,
         std::shared_ptr<ProbabilisticTask> task,
         utils::LogProxy log);
 

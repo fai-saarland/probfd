@@ -46,14 +46,12 @@ struct MergeAndShrinkHeuristic::FactorDistances {
 };
 
 MergeAndShrinkHeuristic::MergeAndShrinkHeuristic(
-    MergeAndShrinkAlgorithm& algorithm,
+    FactoredTransitionSystem& fts,
     std::shared_ptr<ProbabilisticTask> task,
     utils::LogProxy log)
     : TaskDependentHeuristic(std::move(task), std::move(log))
 {
     log_ << "Initializing merge-and-shrink heuristic..." << endl;
-    FactoredTransitionSystem fts =
-        algorithm.build_factored_transition_system(task, log);
 
     /*
       TODO: This method has quite a bit of fiddling with aspects of
