@@ -1,4 +1,4 @@
-#include "probfd/merge_and_shrink/merge_tree_factory.h"
+#include "probfd/cli/merge_and_shrink/merge_tree_factory_options.h"
 
 #include "probfd/merge_and_shrink/merge_tree.h"
 
