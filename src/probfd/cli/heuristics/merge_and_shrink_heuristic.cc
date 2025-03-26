@@ -38,8 +38,6 @@ public:
         int max_states,
         int max_states_before_merge,
         int threshold_before_merge,
-        bool prune_unreachable_states,
-        bool prune_irrelevant_states,
         double main_loop_max_time,
         utils::Verbosity verbosity);
 
@@ -56,8 +54,6 @@ MergeAndShrinkHeuristicFactory::MergeAndShrinkHeuristicFactory(
     int max_states,
     int max_states_before_merge,
     int threshold_before_merge,
-    bool prune_unreachable_states,
-    bool prune_irrelevant_states,
     double main_loop_max_time,
     utils::Verbosity verbosity)
     : algorithm(
@@ -68,8 +64,6 @@ MergeAndShrinkHeuristicFactory::MergeAndShrinkHeuristicFactory(
           max_states,
           max_states_before_merge,
           threshold_before_merge,
-          prune_unreachable_states,
-          prune_irrelevant_states,
           main_loop_max_time)
     , log_(get_log_for_verbosity(verbosity))
 {
@@ -107,19 +101,7 @@ public:
         handle_shrink_limit_options_defaults(options_copy, context);
 
         return make_shared_from_arg_tuples<MergeAndShrinkHeuristicFactory>(
-            options_copy.get<shared_ptr<MergeStrategyFactory>>(
-                "merge_strategy"),
-            options_copy.get<shared_ptr<ShrinkStrategy>>("shrink_strategy"),
-            options_copy.get<shared_ptr<LabelReduction>>(
-                "label_reduction",
-                nullptr),
-            options_copy.get<shared_ptr<PruneStrategy>>("prune_strategy"),
-            options_copy.get<int>("max_states"),
-            options_copy.get<int>("max_states_before_merge"),
-            options_copy.get<int>("threshold_before_merge"),
-            options_copy.get<bool>("prune_unreachable_states"),
-            options_copy.get<bool>("prune_irrelevant_states"),
-            options_copy.get<double>("main_loop_max_time"),
+            get_merge_and_shrink_algorithm_arguments_from_options(options_copy),
             get_task_dependent_heuristic_arguments_from_options(options_copy));
     }
 };

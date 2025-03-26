@@ -40,10 +40,6 @@ class MergeAndShrinkAlgorithm {
        max_states and max_states_before_merge are not violated. */
     const int shrink_threshold_before_merge;
 
-    // Options for pruning
-    const bool prune_unreachable_states;
-    const bool prune_irrelevant_states;
-
     const double main_loop_max_time;
 
     long starting_peak_memory;
@@ -76,8 +72,6 @@ public:
         int max_states,
         int max_states_before_merge,
         int threshold_before_merge,
-        bool prune_unreachable_states,
-        bool prune_irrelevant_states,
         double main_loop_max_time);
 
     FactoredTransitionSystem build_factored_transition_system(
