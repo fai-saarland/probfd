@@ -50,8 +50,6 @@ MergeAndShrinkAlgorithm::MergeAndShrinkAlgorithm(
     int max_states,
     int max_states_before_merge,
     int threshold_before_merge,
-    bool prune_unreachable_states,
-    bool prune_irrelevant_states,
     double main_loop_max_time)
     : merge_strategy_factory(std::move(merge_strategy))
     , shrink_strategy(std::move(shrink_strategy))
@@ -60,8 +58,6 @@ MergeAndShrinkAlgorithm::MergeAndShrinkAlgorithm(
     , max_states(max_states)
     , max_states_before_merge(max_states_before_merge)
     , shrink_threshold_before_merge(threshold_before_merge)
-    , prune_unreachable_states(prune_unreachable_states)
-    , prune_irrelevant_states(prune_irrelevant_states)
     , main_loop_max_time(main_loop_max_time)
     , starting_peak_memory(0)
 {
