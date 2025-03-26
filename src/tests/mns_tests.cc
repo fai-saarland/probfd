@@ -38,7 +38,7 @@ TEST(MnSTests, test_atomic_fts)
     BlocksworldTask task(1, {{0}}, {{0}});
 
     ProbabilisticTaskProxy task_proxy(task);
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
     FactoredTransitionSystem fts =
         create_factored_transition_system(task_proxy, false, false, log);
 
@@ -62,7 +62,7 @@ TEST(MnSTests, test_atomic_fts2)
     BlocksworldTask task(2, {{0, 1}}, {{0, 1}});
 
     ProbabilisticTaskProxy task_proxy(task);
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
     FactoredTransitionSystem fts =
         create_factored_transition_system(task_proxy, false, false, log);
 
@@ -86,7 +86,7 @@ TEST(MnSTests, test_atomic_fts3)
     BlocksworldTask task(3, {{0, 1, 2}}, {{0, 1, 2}});
 
     ProbabilisticTaskProxy task_proxy(task);
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
     FactoredTransitionSystem fts =
         create_factored_transition_system(task_proxy, false, false, log);
 
@@ -107,7 +107,7 @@ TEST(MnSTests, test_atomic_fts3)
 
 TEST(MnSTests, test_merge1)
 {
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
 
     std::ifstream labels_file("resources/mns_tests/bw3_labels.json");
     std::ifstream file1("resources/mns_tests/bw3_ts_0.json");
@@ -131,7 +131,7 @@ TEST(MnSTests, test_merge2)
     BlocksworldTask task(3, {{0, 1, 2}}, {{0, 1, 2}});
 
     ProbabilisticTaskProxy task_proxy(task);
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
     FactoredTransitionSystem fts =
         create_factored_transition_system(task_proxy, false, false, log);
 
@@ -183,7 +183,7 @@ TEST(MnSTests, test_merge2)
 
 TEST(MnSTests, test_shrink_all)
 {
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
 
     std::ifstream file("resources/mns_tests/bw3_ts_0.json");
     auto ts = json::read<TransitionSystem>(file);
@@ -203,7 +203,7 @@ TEST(MnSTests, test_shrink_all)
 
 TEST(MnSTests, test_projection_distances)
 {
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
 
     for (int i = 0; i != 5; ++i) {
         std::ifstream file(
@@ -229,7 +229,7 @@ TEST(MnSTests, test_projection_distances)
 
 TEST(MnSTests, test_projection_distances2)
 {
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
 
     for (int i = 0; i != 5; ++i) {
         for (int j = i + 1; j < 5; ++j) {
@@ -265,7 +265,7 @@ TEST(MnSTests, test_projection_distances2)
 
 TEST(MnSTests, test_projection_distances3)
 {
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
 
     std::ifstream ts_file("resources/mns_tests/bw3_ts_0123456.json");
     auto ts = json::read<TransitionSystem>(ts_file);
@@ -287,7 +287,7 @@ TEST(MnSTests, test_projection_distances3)
 
 TEST(MnSTests, test_bisimulation_distance_preserved)
 {
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
 
     std::ifstream ts_file("resources/mns_tests/bw3_ts_0123456.json");
     auto ts = json::read<TransitionSystem>(ts_file);
@@ -330,7 +330,7 @@ TEST(MnSTests, test_bisimulation_distance_preserved)
 
 TEST(MnSTests, test_prune_solvable)
 {
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
 
     std::ifstream e_file("resources/mns_tests/bw3_ts_0123456.json");
     auto ts = json::read<TransitionSystem>(e_file);
@@ -369,7 +369,7 @@ TEST(MnSTests, test_prune_solvable)
 
 TEST(MnSTests, test_prune_alive)
 {
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
 
     std::ifstream e_file("resources/mns_tests/bw3_ts_0123456.json");
     auto ts = json::read<TransitionSystem>(e_file);
@@ -411,7 +411,7 @@ TEST(MnSTests, test_label_reduction)
     BlocksworldTask task(2, {{0, 1}}, {{0, 1}}, 1, 1, 1, 1);
 
     ProbabilisticTaskProxy task_proxy(task);
-    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::DEBUG));
+    utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
     FactoredTransitionSystem fts =
         create_factored_transition_system(task_proxy, false, false, log);
 
