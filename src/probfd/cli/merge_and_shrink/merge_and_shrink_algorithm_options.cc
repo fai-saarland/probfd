@@ -31,7 +31,7 @@ void add_merge_and_shrink_algorithm_options_to_feature(Feature& feature)
     feature.add_option<shared_ptr<ShrinkStrategy>>(
         "shrink_strategy",
         "See detailed documentation for shrink strategies.",
-        "shrink_identity()");
+        "pshrink_random()");
 
     // Pruning strategy option.
     feature.add_option<shared_ptr<PruneStrategy>>(

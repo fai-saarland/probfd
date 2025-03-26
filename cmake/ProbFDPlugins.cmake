@@ -784,20 +784,6 @@ create_library(
 )
 
 create_library(
-    NAME pshrink_strategy_identity_feature
-    HELP "Enables identity shrink strategy plugin"
-    SOURCES
-        probfd/cli/merge_and_shrink/shrink_strategy_identity
-    DEPENDS
-        pa_merge_and_shrink
-        pshrink_strategy_category
-        parser
-        plugins
-    TARGET
-        probfd
-)
-
-create_library(
     NAME pshrink_strategy_bucket_based_options
     HELP "Enables bucket-based shrink strategy options"
     SOURCES
