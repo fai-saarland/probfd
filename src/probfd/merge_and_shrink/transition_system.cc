@@ -35,7 +35,7 @@ std::istream& operator>>(std::istream& in, std::vector<T>& list)
         return in;
     }
 
-    if ((in >> std::ws, in.peek() != RPAREN)) {
+    if (in >> std::ws; in.peek() != RPAREN) {
         {
             R element;
             if (!(in >> element)) return in;
@@ -47,7 +47,7 @@ std::istream& operator>>(std::istream& in, std::vector<T>& list)
             }
         }
 
-        while ((in >> std::ws, in.peek() != RPAREN)) {
+        while (in >> std::ws, in.peek() != RPAREN) {
             if (in.get() != ',') {
                 in.setstate(std::ios::failbit);
                 return in;
@@ -69,23 +69,23 @@ std::istream& operator>>(std::istream& in, std::vector<T>& list)
 }
 } // namespace
 
-LocalLabelInfo LocalLabelInfo::read_from_file(istream& is)
+LocalLabelInfo LocalLabelInfo::read_from_file(istream& file)
 {
     LabelGroup label_group;
     std::vector<Transition> transitions;
     std::vector<value_t> probabilities;
     value_t cost;
 
-    if (!(is >> label_group))
+    if (!(file >> label_group))
         throw std::invalid_argument("Could not read label group.");
-    if (is.get() != ',') throw std::invalid_argument("Expected \",\".");
-    if (!(is >> std::ws >> cost))
+    if (file.get() != ',') throw std::invalid_argument("Expected \",\".");
+    if (!(file >> std::ws >> cost))
         throw std::invalid_argument("Could not read cost.");
-    if (is.get() != ',') throw std::invalid_argument("Expected \",\".");
-    if (!(is >> std::ws >> probabilities))
+    if (file.get() != ',') throw std::invalid_argument("Expected \",\".");
+    if (!(file >> std::ws >> probabilities))
         throw std::invalid_argument("Could not read probabilities.");
-    if (is.get() != ',') throw std::invalid_argument("Expected \",\".");
-    if (!(is >> std::ws >> transitions))
+    if (file.get() != ',') throw std::invalid_argument("Expected \",\".");
+    if (!(file >> std::ws >> transitions))
         throw std::invalid_argument("Could not read transitions.");
 
     return LocalLabelInfo(
@@ -118,12 +118,8 @@ void LocalLabelInfo::remove_labels(const vector<int>& old_labels)
 {
     assert(is_consistent());
     assert(utils::is_sorted_unique(old_labels));
-    auto it = set_difference(
-        label_group.begin(),
-        label_group.end(),
-        old_labels.begin(),
-        old_labels.end(),
-        label_group.begin());
+    const auto [_, it] =
+        ranges::set_difference(label_group, old_labels, label_group.begin());
     label_group.erase(it, label_group.end());
     assert(is_consistent());
 }
@@ -131,7 +127,7 @@ void LocalLabelInfo::remove_labels(const vector<int>& old_labels)
 void LocalLabelInfo::recompute_cost(const Labels& labels)
 {
     cost = INFINITE_VALUE;
-    for (int label : label_group) {
+    for (const int label : label_group) {
         value_t label_cost = labels.get_label_cost(label);
         cost = min(cost, label_cost);
     }
@@ -155,7 +151,7 @@ void LocalLabelInfo::merge_local_label_info(LocalLabelInfo& local_label_info)
         make_move_iterator(local_label_info.label_group.end()));
     cost = min(cost, local_label_info.cost);
     local_label_info.deactivate();
-    sort(label_group.begin(), label_group.end());
+    ranges::sort(label_group);
     assert(is_consistent());
 }
 
@@ -352,12 +348,12 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
             }
 
             // Create a new group
-            sort(new_transitions.begin(), new_transitions.end());
-            sort(new_labels.begin(), new_labels.end());
+            ranges::sort(new_transitions);
+            ranges::sort(new_labels);
 
-            int new_local_label = local_label_infos.size();
+            const int new_local_label = local_label_infos.size();
             value_t cost = INFINITE_VALUE;
-            for (int label : new_labels) {
+            for (const int label : new_labels) {
                 cost = min(labels.get_label_cost(label), cost);
                 label_to_local_label[label] = new_local_label;
             }
@@ -377,23 +373,22 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
       component and l2 was only a dead label in the second component.
       All dead labels should form one single label group.
     */
-    if (!dead_labels.empty()) {
-        for (auto& [probabilities, dead_group] : dead_labels) {
-            sort(dead_group.begin(), dead_group.end());
+    for (auto& [probabilities, dead_group] : dead_labels) {
+        ranges::sort(dead_group);
 
-            int new_local_label = local_label_infos.size();
-            value_t cost = INFINITE_VALUE;
-            for (int label : dead_group) {
-                cost = min(cost, labels.get_label_cost(label));
-                label_to_local_label[label] = new_local_label;
-            }
-            // Dead labels have empty transitions
-            local_label_infos.emplace_back(
-                std::move(dead_group),
-                vector<Transition>(),
-                probabilities,
-                cost);
+        const int new_local_label = local_label_infos.size();
+        value_t cost = INFINITE_VALUE;
+        for (const int label : dead_group) {
+            cost = min(cost, labels.get_label_cost(label));
+            label_to_local_label[label] = new_local_label;
         }
+
+        // Dead labels have empty transitions
+        local_label_infos.emplace_back(
+            std::move(dead_group),
+            vector<Transition>(),
+            probabilities,
+            cost);
     }
 
     return std::make_unique<TransitionSystem>(
@@ -414,7 +409,7 @@ void TransitionSystem::compute_equivalent_local_labels()
       reduction when combining labels which are combinable for this transition
       system.
     */
-    int num_local_labels = local_label_infos.size();
+    const int num_local_labels = local_label_infos.size();
     for (int llabel1 = 0; llabel1 < num_local_labels; ++llabel1) {
         auto& local_label_info1 = local_label_infos[llabel1];
         if (!local_label_info1.is_active()) continue;
@@ -433,7 +428,7 @@ void TransitionSystem::compute_equivalent_local_labels()
             // sorted and unique.
             if (probabilities1 == probabilities2 &&
                 transitions1 == transitions2) {
-                for (int label : local_label_info2.get_label_group()) {
+                for (const int label : local_label_info2.get_label_group()) {
                     label_to_local_label[label] = llabel1;
                 }
                 local_label_info1.merge_local_label_info(local_label_info2);
@@ -447,7 +442,7 @@ void TransitionSystem::apply_abstraction(
     const vector<int>& abstraction_mapping,
     utils::LogProxy& log)
 {
-    int new_num_states = state_equivalence_relation.size();
+    const int new_num_states = state_equivalence_relation.size();
     assert(new_num_states <= get_size());
     if (log.is_at_least_verbose()) {
         log << tag() << "applying abstraction (" << get_size() << " to "
@@ -539,13 +534,13 @@ void TransitionSystem::apply_label_reduction(
         // Update both label mappings.
         for (const auto& [new_label, old_labels] : label_mapping) {
             assert(old_labels.size() >= 2);
-            int local_label = label_to_local_label[old_labels.front()];
+            const int local_label = label_to_local_label[old_labels.front()];
             local_label_infos[local_label].apply_same_cost_label_mapping(
                 new_label,
                 old_labels);
 
             label_to_local_label[new_label] = local_label;
-            for (int old_label : old_labels) {
+            for (const int old_label : old_labels) {
                 assert(label_to_local_label[old_label] == local_label);
                 // Reset (for consistency only, old labels are never accessed).
                 label_to_local_label[old_label] = -1;
@@ -590,7 +585,7 @@ void TransitionSystem::apply_label_reduction(
 
             utils::sort_unique(new_label_transitions);
 
-            int new_local_label = local_label_infos.size();
+            const int new_local_label = local_label_infos.size();
             label_to_local_label[new_label] = new_local_label;
             value_t new_cost = labels.get_label_cost(new_label);
 
@@ -630,15 +625,12 @@ bool TransitionSystem::is_valid(const Labels& labels) const
 bool TransitionSystem::is_label_mapping_consistent(const Labels& labels) const
 {
     for (int label : labels.get_active_labels() | std::views::keys) {
-        int local_label = label_to_local_label[label];
+        const int local_label = label_to_local_label[label];
         const LabelGroup& label_group =
             local_label_infos[local_label].get_label_group();
         assert(!label_group.empty());
 
-        if (!std::binary_search(
-                label_group.begin(),
-                label_group.end(),
-                label)) {
+        if (!ranges::binary_search(label_group, label)) {
             dump_label_mapping(labels, cerr);
             cerr << "label " << label
                  << " is not part of the "
@@ -650,8 +642,8 @@ bool TransitionSystem::is_label_mapping_consistent(const Labels& labels) const
 
     for (size_t local_label = 0; local_label < local_label_infos.size();
          ++local_label) {
-        const LocalLabelInfo& local_label_info = local_label_infos[local_label];
-        for (int label : local_label_info.get_label_group()) {
+        for (const auto& local_label_info = local_label_infos[local_label];
+             const int label : local_label_info.get_label_group()) {
             if (label_to_local_label[label] != static_cast<int>(local_label)) {
                 dump_label_mapping(labels, cerr);
                 cerr << "label " << label
@@ -670,7 +662,7 @@ void TransitionSystem::dump_label_mapping(
     std::ostream& out) const
 {
     out << "to local label mapping: ";
-    for (int label : labels.get_active_labels() | std::views::keys) {
+    for (const int label : labels.get_active_labels() | std::views::keys) {
         out << label << " -> " << label_to_local_label[label] << ", ";
     }
     out << endl;
