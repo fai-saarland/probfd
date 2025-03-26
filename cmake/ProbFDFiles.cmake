@@ -366,7 +366,6 @@ create_library(
         probfd/merge_and_shrink/shrink_strategy
         probfd/merge_and_shrink/shrink_strategy_bucket_based
         probfd/merge_and_shrink/shrink_strategy_equal_distance
-        probfd/merge_and_shrink/shrink_strategy_identity
         probfd/merge_and_shrink/shrink_strategy_random
         probfd/merge_and_shrink/shrink_strategy_bisimulation
         probfd/merge_and_shrink/shrink_strategy_probabilistic_bisimulation
