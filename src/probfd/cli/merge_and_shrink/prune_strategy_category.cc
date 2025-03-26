@@ -7,11 +7,11 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-class PruningStrategyCategoryPlugin
+class PruneStrategyCategoryPlugin
     : public TypedCategoryPlugin<PruneStrategy> {
 public:
-    PruningStrategyCategoryPlugin()
-        : TypedCategoryPlugin("PruningStrategy")
+    PruneStrategyCategoryPlugin()
+        : TypedCategoryPlugin("PruneStrategy")
     {
         document_synopsis("This page describes the various pruning strategies "
                           "supported by the planner.");

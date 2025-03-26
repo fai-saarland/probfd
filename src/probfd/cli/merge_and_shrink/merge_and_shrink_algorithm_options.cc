@@ -31,20 +31,20 @@ void add_merge_and_shrink_algorithm_options_to_feature(Feature& feature)
     feature.add_option<shared_ptr<ShrinkStrategy>>(
         "shrink_strategy",
         "See detailed documentation for shrink strategies.",
-        ArgumentInfo::NO_DEFAULT);
+        "shrink_identity()");
 
     // Pruning strategy option.
     feature.add_option<shared_ptr<PruneStrategy>>(
-        "pruning_strategy",
+        "prune_strategy",
         "See detailed documentation for pruning strategies.",
-        ArgumentInfo::NO_DEFAULT);
+        "prune_identity()");
 
     // Label reduction option.
     feature.add_option<shared_ptr<LabelReduction>>(
         "label_reduction",
         "See detailed documentation for labels. There is currently only "
         "one 'option' to use label_reduction, which is "
-        "{{{label_reduction=exact}}} "
+        "{{{label_reduction=exact()}}} "
         "Also note the interaction with shrink strategies.",
         ArgumentInfo::NO_DEFAULT);
 

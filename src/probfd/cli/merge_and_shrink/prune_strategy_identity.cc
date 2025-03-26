@@ -18,11 +18,12 @@ public:
     }
 
     std::shared_ptr<PruneStrategyIdentity>
-    create_component(const Options&, const utils::Context&)
-        const override
+    create_component(const Options&, const utils::Context&) const override
     {
         return std::make_shared<PruneStrategyIdentity>();
     }
-} _plugin;
+};
 
-} // namespace probfd::merge_and_shrink
+FeaturePlugin<PruneStrategyIdentityFeature> _plugin;
+
+} // namespace

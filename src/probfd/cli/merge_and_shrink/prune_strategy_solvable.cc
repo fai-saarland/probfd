@@ -23,6 +23,8 @@ public:
     {
         return std::make_shared<PruneStrategySolvable>();
     }
-} _plugin;
+};
+
+FeaturePlugin<PruneStrategySolvableFeature> _plugin;
 
 } // namespace probfd::merge_and_shrink
