@@ -1,6 +1,7 @@
 #ifndef PROBFD_MERGE_AND_SHRINK_LABEL_REDUCTION_H
 #define PROBFD_MERGE_AND_SHRINK_LABEL_REDUCTION_H
 
+#include <memory>
 #include <vector>
 
 namespace equivalence_relation {

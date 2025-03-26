@@ -3,6 +3,7 @@
 
 #include "probfd/value_type.h"
 
+#include <memory>
 #include <vector>
 
 class State;
