@@ -60,6 +60,8 @@ class MergeAndShrinkAlgorithm {
     void main_loop(
         FactoredTransitionSystem& fts,
         MergeStrategy& merge_strategy,
+        bool compute_liveness,
+        bool compute_goal_distances,
         const utils::CountdownTimer& timer,
         utils::LogProxy log);
 

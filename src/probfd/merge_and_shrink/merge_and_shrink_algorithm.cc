@@ -25,6 +25,7 @@
 #include "downward/utils/timer.h"
 
 #include "downward/cli/plugins/plugin.h"
+#include "probfd/merge_and_shrink/factored_mapping.h"
 
 #include <cassert>
 #include <iostream>
@@ -184,6 +185,8 @@ void MergeAndShrinkAlgorithm::warn_on_unusual_options(utils::LogProxy log) const
 void MergeAndShrinkAlgorithm::main_loop(
     FactoredTransitionSystem& fts,
     MergeStrategy& merge_strategy,
+    bool compute_liveness,
+    bool compute_goal_distances,
     const utils::CountdownTimer& timer,
     utils::LogProxy log)
 {
@@ -285,7 +288,47 @@ void MergeAndShrinkAlgorithm::main_loop(
         }
 
         // Merging
-        const int merged_index = fts.merge(merge_index1, merge_index2, log);
+        auto&& [left_factor, right_factor, factor, merged_index] =
+            fts.merge(merge_index1, merge_index2, log);
+
+        class MergeHeuristic : public Heuristic<int> {
+            const FactoredMappingMerge& merge_fm;
+            std::vector<value_t> distance_table1;
+            std::vector<value_t> distance_table2;
+
+        public:
+            MergeHeuristic(
+                const FactoredMappingMerge& merge_fm,
+                Distances& distances1,
+                Distances& distances2)
+                : merge_fm(merge_fm)
+                , distance_table1(distances1.extract_goal_distances())
+                , distance_table2(distances2.extract_goal_distances())
+            {
+            }
+
+            value_t evaluate(int state) const override
+            {
+                const auto [left, right] = merge_fm.get_children_states(state);
+                return std::max(distance_table1[left], distance_table2[right]);
+            }
+        };
+
+        // Restore the invariant that distances are computed.
+        if (compute_goal_distances) {
+            const MergeHeuristic heuristic(
+                static_cast<const FactoredMappingMerge&>(
+                    *factor.factored_mapping),
+                *left_factor.distances,
+                *right_factor.distances);
+
+            factor.distances->compute_distances(
+                *factor.transition_system,
+                compute_liveness,
+                log,
+                heuristic);
+        }
+
         if (const int abs_size =
                 fts.get_transition_system(merged_index).get_size();
             abs_size > maximum_intermediate_size) {
@@ -312,6 +355,15 @@ void MergeAndShrinkAlgorithm::main_loop(
 
             const bool pruned =
                 fts.apply_abstraction(merged_index, pruning_relation, log);
+
+            if (compute_goal_distances) {
+                factor.distances->apply_abstraction(
+                    *factor.transition_system,
+                    pruning_relation,
+                    compute_liveness,
+                    log);
+            }
+
             if (log.is_at_least_normal() && pruned) {
                 if (log.is_at_least_verbose()) {
                     fts.statistics(merged_index, log);
@@ -380,18 +432,9 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     warn_on_unusual_options(log);
     log << endl;
 
-    const bool compute_liveness = shrink_strategy->requires_liveness() ||
-                                  merge_strategy_factory->requires_liveness() ||
-                                  prune_strategy->requires_liveness();
-    const bool compute_goal_distances =
-        shrink_strategy->requires_goal_distances() ||
-        merge_strategy_factory->requires_goal_distances() ||
-        prune_strategy->requires_goal_distances();
-    FactoredTransitionSystem fts = create_factored_transition_system(
-        task_proxy,
-        compute_liveness,
-        compute_goal_distances,
-        log);
+    FactoredTransitionSystem fts =
+        create_factored_transition_system(task_proxy, log);
+
     if (log.is_at_least_normal()) {
         log_progress(timer, "after computation of atomic factors", log);
     }
@@ -401,6 +444,15 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
         log << "Merge-and-shrink algorithm runtime: " << timer << endl;
         log << endl;
     });
+
+    const bool compute_liveness = shrink_strategy->requires_liveness() ||
+                                  merge_strategy_factory->requires_liveness() ||
+                                  prune_strategy->requires_liveness();
+
+    const bool compute_goal_distances =
+        shrink_strategy->requires_goal_distances() ||
+        merge_strategy_factory->requires_goal_distances() ||
+        prune_strategy->requires_goal_distances();
 
     /*
       Prune all atomic factors according to the chosen options. Stop early if
@@ -423,6 +475,9 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
         for (int index = 0; index < fts.get_size(); ++index) {
             assert(fts.is_active(index));
             if (prune_strategy) {
+                auto& ts = fts.get_transition_system(index);
+                auto& distances = fts.get_distances(index);
+
                 auto pruning_relation =
                     prune_strategy->compute_pruning_abstraction(
                         fts.get_transition_system(index),
@@ -430,6 +485,15 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
                         log);
                 const bool pruned_factor =
                     fts.apply_abstraction(index, pruning_relation, log);
+
+                if (compute_goal_distances) {
+                    distances.apply_abstraction(
+                        ts,
+                        pruning_relation,
+                        compute_liveness,
+                        log);
+                }
+
                 pruned = pruned || pruned_factor;
             }
             if (!fts.is_factor_solvable(index)) {
@@ -461,7 +525,13 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
         merge_strategy_factory->compute_merge_strategy(task, fts);
     merge_strategy_factory = nullptr;
 
-    main_loop(fts, *merge_strategy, loop_timer, log);
+    main_loop(
+        fts,
+        *merge_strategy,
+        compute_liveness,
+        compute_goal_distances,
+        loop_timer,
+        log);
 
     shrink_strategy = nullptr;
     label_reduction = nullptr;
