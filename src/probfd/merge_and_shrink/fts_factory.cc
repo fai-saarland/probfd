@@ -68,10 +68,7 @@ public:
       Note: create() may only be called once. We don't worry about
       misuse because the class is only used internally in this file.
     */
-    FactoredTransitionSystem create(
-        bool compute_liveness,
-        bool compute_goal_distances,
-        utils::LogProxy& log);
+    FactoredTransitionSystem create(utils::LogProxy& log);
 };
 
 } // namespace
@@ -267,10 +264,7 @@ void FTSFactory::build_transitions(const Labels& labels)
     }
 }
 
-FactoredTransitionSystem FTSFactory::create(
-    const bool compute_liveness,
-    const bool compute_goal_distances,
-    utils::LogProxy& log)
+FactoredTransitionSystem FTSFactory::create(utils::LogProxy& log)
 {
     if (log.is_at_least_normal()) {
         log << "Building atomic transition systems... " << endl;
@@ -305,22 +299,14 @@ FactoredTransitionSystem FTSFactory::create(
         distances = std::make_unique<Distances>();
     }
 
-    return FactoredTransitionSystem(
-        std::move(labels),
-        std::move(factors),
-        compute_liveness,
-        compute_goal_distances,
-        log);
+    return FactoredTransitionSystem(std::move(labels), std::move(factors));
 }
 
 FactoredTransitionSystem create_factored_transition_system(
     const ProbabilisticTaskProxy& task_proxy,
-    const bool compute_liveness,
-    const bool compute_goal_distances,
     utils::LogProxy& log)
 {
-    return FTSFactory(task_proxy)
-        .create(compute_liveness, compute_goal_distances, log);
+    return FTSFactory(task_proxy).create(log);
 }
 
 } // namespace probfd::merge_and_shrink

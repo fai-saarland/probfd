@@ -73,36 +73,21 @@ struct Factor {
   interface that this class shows to the outside world.
 */
 class FactoredTransitionSystem {
+public:
+    struct MergeResult {
+        Factor left_factor;
+        Factor right_factor;
+        Factor& merged_factor;
+        int merge_index;
+    };
+
+private:
     Labels labels;
-
     std::vector<Factor> factors;
-
-    const bool compute_liveness;
-    const bool compute_goal_distances;
     int num_active_entries;
 
-    /*
-      Assert that the factor at the given index is in a consistent state, i.e.
-      that there is a transition system, a distances object, and an MSR.
-    */
-    void assert_index_valid(int index) const;
-
-    /*
-      We maintain the invariant that for all factors, distances are always
-      computed and all transitions are grouped according to locally equivalent
-      labels.
-    */
-    bool is_component_valid(int index) const;
-
-    void assert_all_components_valid() const;
-
 public:
-    FactoredTransitionSystem(
-        Labels labels,
-        std::vector<Factor>&& factors,
-        bool compute_liveness,
-        bool compute_goal_distances,
-        utils::LogProxy& log);
+    FactoredTransitionSystem(Labels labels, std::vector<Factor>&& factors);
 
     // Merge-and-shrink transformations.
     /*
@@ -134,7 +119,7 @@ public:
     /*
       Merge the two factors at index1 and index2.
     */
-    int merge(int index1, int index2, utils::LogProxy& log);
+    MergeResult merge(int index1, int index2, utils::LogProxy& log);
 
     /*
       Extract the factor at the given index, rendering the FTS invalid.
@@ -145,6 +130,8 @@ public:
     {
         return *factors[index].transition_system;
     }
+
+    Distances& get_distances(int index) { return *factors[index].distances; }
 
     const Distances& get_distances(int index) const
     {
@@ -194,6 +181,24 @@ public:
     void statistics(int index, utils::LogProxy& log) const;
     void dump(int index, utils::LogProxy& log) const;
     void dump(utils::LogProxy& log) const;
+
+private:
+    /*
+      Assert that the factor at the given index is in a consistent state, i.e.
+      that there is a transition system, a distances object, and an MSR.
+    */
+    void assert_index_valid(int index) const;
+
+    /*
+      We maintain the invariant that for all factors, distances are always
+      computed and all transitions are grouped according to locally equivalent
+      labels.
+    */
+    bool is_component_valid(int index) const;
+
+    bool is_factor_valid(const Factor& factor) const;
+
+    void assert_all_components_valid() const;
 };
 
 } // namespace probfd::merge_and_shrink
