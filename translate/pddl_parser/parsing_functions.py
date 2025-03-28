@@ -939,6 +939,7 @@ def parse_task_pddl(
             yield parse_condition(context, goal[1], type_dict, predicate_dict)
 
         goal_reward = next(iterator)
+        metric_it = goal_reward
         if check_named_block(goal_reward, [":goal-reward"]):
             if not has_reward_fluent:
                 context.error("Goal reward construct requires :rewards "
@@ -953,37 +954,37 @@ def parse_task_pddl(
                     context.error("Goal reward must be a constant.",
                                   syntax=SYNTAX_GOAL_REWARD)
                 yield exp.value
+            metric_it = next(iterator)
         else:
             yield None
 
         metric = pddl.Metric.NONE
-        for entry in iterator:
-            if isinstance(entry, list) and entry[0] == ":metric":
-                with context.layer("Parsing metric"):
-                    if (len(entry) != 3 or
-                            not isinstance(entry[2], list) or
-                            len(entry[2]) != 1 or
-                            entry[1] not in ["minimize", "maximize"] or
-                            entry[2][0] not in ["total-cost", "reward"]):
-                        context.error("Invalid metric definition.", entry,
-                                      syntax=SYNTAX_METRIC)
+        if isinstance(metric_it, list) and metric_it[0] == ":metric":
+            with context.layer("Parsing metric"):
+                if (len(metric_it) != 3 or
+                        not isinstance(metric_it[2], list) or
+                        len(metric_it[2]) != 1 or
+                        metric_it[1] not in ["minimize", "maximize"] or
+                        metric_it[2][0] not in ["total-cost", "reward"]):
+                    context.error("Invalid metric definition.", metric_it,
+                                    syntax=SYNTAX_METRIC)
 
-                    if has_reward_fluent:
-                        if entry[2][0] != "reward":
-                            context.error(
-                                ":rewards requirement mandates use of "
-                                "'reward' fluent instead of 'total-cost'"
-                                "in metric")
-                    elif entry[2][0] == "reward":
-                        context.error("use of 'reward' fluent in metric, but "
-                                      ":rewards requirement not specified")
-                    elif entry[2][0] != "total-cost":
-                        context.error(f"unsupported fluent in metric:"
-                                      f"{entry[2][0]}")
+                if has_reward_fluent:
+                    if metric_it[2][0] != "reward":
+                        context.error(
+                            ":rewards requirement mandates use of "
+                            "'reward' fluent instead of 'total-cost'"
+                            "in metric")
+                elif metric_it[2][0] == "reward":
+                    context.error("use of 'reward' fluent in metric, but "
+                                    ":rewards requirement not specified")
+                elif metric_it[2][0] != "total-cost":
+                    context.error(f"unsupported fluent in metric:"
+                                    f"{metric_it[2][0]}")
 
-                    metric = (pddl.Metric.MINIMIZE
-                              if entry[1] == "minimize"
-                              else pddl.Metric.MAXIMIZE)
+                metric = (pddl.Metric.MINIMIZE
+                            if metric_it[1] == "minimize"
+                            else pddl.Metric.MAXIMIZE)
         yield metric
         yield "reward" if has_reward_fluent else "total-cost"
 
