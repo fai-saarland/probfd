@@ -1,6 +1,7 @@
 import contextlib
 import sys
 from fractions import Fraction
+from itertools import tee
 
 import graph
 import pddl
@@ -938,6 +939,7 @@ def parse_task_pddl(
                 context.error("Expected non-empty goal.", syntax=SYNTAX_GOAL)
             yield parse_condition(context, goal[1], type_dict, predicate_dict)
 
+        prev, iterator = tee(iterator)
         goal_reward = next(iterator)
         if check_named_block(goal_reward, [":goal-reward"]):
             if not has_reward_fluent:
@@ -954,6 +956,7 @@ def parse_task_pddl(
                                   syntax=SYNTAX_GOAL_REWARD)
                 yield exp.value
         else:
+            iterator = prev
             yield None
 
         metric = pddl.Metric.NONE
