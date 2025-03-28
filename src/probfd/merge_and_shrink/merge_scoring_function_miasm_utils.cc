@@ -17,6 +17,7 @@ namespace probfd::merge_and_shrink {
   return the result. Return nullptr otherwise.
 */
 static unique_ptr<TransitionSystem> copy_and_shrink_ts(
+    const Labels& labels,
     const TransitionSystem& ts,
     const Distances& distances,
     const ShrinkStrategy& shrink_strategy,
@@ -29,7 +30,7 @@ static unique_ptr<TransitionSystem> copy_and_shrink_ts(
     */
     const StateEquivalenceRelation equivalence_relation =
         shrink_strategy
-            .compute_equivalence_relation(ts, distances, new_size, log);
+            .compute_equivalence_relation(labels, ts, distances, new_size, log);
 
     // TODO: We currently violate this; see issue250
     // assert(equivalence_relation.size() <= target_size);
@@ -46,7 +47,11 @@ static unique_ptr<TransitionSystem> copy_and_shrink_ts(
         compute_abstraction_mapping(ts.get_size(), equivalence_relation);
 
     auto ts_copy = std::make_unique<TransitionSystem>(ts);
-    ts_copy->apply_abstraction(equivalence_relation, abstraction_mapping, log);
+    ts_copy->apply_abstraction(
+        labels,
+        equivalence_relation,
+        abstraction_mapping,
+        log);
     return ts_copy;
 }
 
@@ -87,6 +92,7 @@ unique_ptr<TransitionSystem> shrink_before_merge_externally(
     unique_ptr<TransitionSystem> ts1 = nullptr;
     if (must_shrink_ts1) {
         ts1 = copy_and_shrink_ts(
+            fts.get_labels(),
             original_ts1,
             fts.get_distances(index1),
             shrink_strategy,
@@ -97,6 +103,7 @@ unique_ptr<TransitionSystem> shrink_before_merge_externally(
     unique_ptr<TransitionSystem> ts2 = nullptr;
     if (must_shrink_ts2) {
         ts2 = copy_and_shrink_ts(
+            fts.get_labels(),
             original_ts2,
             fts.get_distances(index2),
             shrink_strategy,

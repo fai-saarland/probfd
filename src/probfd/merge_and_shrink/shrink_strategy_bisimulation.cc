@@ -171,6 +171,7 @@ static void compute_signatures(
 }
 
 StateEquivalenceRelation ShrinkStrategyBisimulation::compute_equivalence_relation(
+    const Labels&,
     const TransitionSystem& ts,
     const Distances& distances,
     int target_size,

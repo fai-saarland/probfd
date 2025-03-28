@@ -24,6 +24,7 @@ class LogProxy;
 }
 
 namespace probfd::merge_and_shrink {
+class Labels;
 class TransitionSystem;
 }
 
@@ -61,6 +62,7 @@ public:
     }
 
     void compute_distances(
+        const Labels& labels,
         const TransitionSystem& transition_system,
         bool compute_liveness,
         utils::LogProxy& log,
@@ -77,6 +79,7 @@ public:
       out of date.)
     */
     void apply_abstraction(
+        const Labels& labels,
         const TransitionSystem& transition_system,
         const StateEquivalenceRelation& state_equivalence_relation,
         bool compute_liveness,
@@ -95,6 +98,7 @@ void compute_liveness(
     std::vector<int> queue = std::vector<int>());
 
 void compute_goal_distances(
+    const Labels& labels,
     const TransitionSystem& transition_system,
     std::span<value_t> distances,
     const Heuristic<int>& heuristic = heuristics::ConstantEvaluator<int>(0_vt));

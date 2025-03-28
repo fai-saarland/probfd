@@ -149,6 +149,7 @@ static int initialize_groups(
 }
 
 static void compute_signatures(
+    const Labels& labels,
     const TransitionSystem& ts,
     vector<Signature>& signatures,
     const vector<int>& state_to_group)
@@ -169,7 +170,7 @@ static void compute_signatures(
     int label_group_counter = 0;
 
     for (const LocalLabelInfo& local_label_info : ts.label_infos()) {
-        const auto& probabilities = local_label_info.get_probabilities();
+        const auto& probabilities = local_label_info.get_probabilities(labels);
         for (const auto& [src, targets] : local_label_info.get_transitions()) {
             assert(signatures[src].state == src);
 
@@ -194,6 +195,7 @@ static void compute_signatures(
 
 StateEquivalenceRelation
 ShrinkStrategyProbabilisticBisimulation::compute_equivalence_relation(
+    const Labels& labels,
     const TransitionSystem& ts,
     const Distances& distances,
     int target_size,
@@ -216,7 +218,7 @@ ShrinkStrategyProbabilisticBisimulation::compute_equivalence_relation(
          signatures.clear()) {
         stable = true;
 
-        compute_signatures(ts, signatures, state_to_group);
+        compute_signatures(labels, ts, signatures, state_to_group);
 
         // Verify size of signatures.
         assert(static_cast<int>(signatures.size()) == num_states);

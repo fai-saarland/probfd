@@ -137,7 +137,11 @@ bool FactoredTransitionSystem::apply_abstraction(
     const vector<int> abstraction_mapping =
         compute_abstraction_mapping(ts->get_size(), state_equivalence_relation);
 
-    ts->apply_abstraction(state_equivalence_relation, abstraction_mapping, log);
+    ts->apply_abstraction(
+        labels,
+        state_equivalence_relation,
+        abstraction_mapping,
+        log);
     fm->apply_abstraction(abstraction_mapping);
 
     /* If distances need to be recomputed, this already happened in the

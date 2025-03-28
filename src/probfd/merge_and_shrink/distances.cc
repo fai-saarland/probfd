@@ -11,6 +11,7 @@
 #include "probfd/transition_tail.h"
 
 #include "downward/utils/logging.h"
+#include "probfd/merge_and_shrink/labels.h"
 
 #include <cassert>
 #include <deque>
@@ -76,7 +77,7 @@ class ExplicitMDP : public MDP<int, const ProbabilisticTransition*> {
     std::vector<bool> goal_flags_;
 
 public:
-    explicit ExplicitMDP(const TransitionSystem& transition_system)
+    ExplicitMDP(const Labels& labels, const TransitionSystem& transition_system)
         : transitions_(transition_system.get_size())
         , goal_flags_(transition_system.get_size())
     {
@@ -85,7 +86,8 @@ public:
         // Set up transitions
         for (const auto& label_info : transition_system.label_infos()) {
             const value_t label_cost = label_info.get_cost();
-            const auto& probabilities = label_info.get_probabilities();
+            const auto& probabilities = labels.get_label_probabilities(
+                label_info.get_label_group().front());
             for (const auto& [src, targets] : label_info.get_transitions()) {
                 auto& [_, successor_dist] =
                     transitions_[src].emplace_back(label_cost);
@@ -175,6 +177,7 @@ public:
 } // namespace
 
 void Distances::compute_distances(
+    const Labels& labels,
     const TransitionSystem& transition_system,
     bool compute_liveness,
     utils::LogProxy& log,
@@ -210,7 +213,11 @@ void Distances::compute_distances(
     }
 
     goal_distances.resize(num_states);
-    compute_goal_distances(transition_system, goal_distances, heuristic);
+    compute_goal_distances(
+        labels,
+        transition_system,
+        goal_distances,
+        heuristic);
     goal_distances_computed = true;
 
     if (compute_liveness) {
@@ -225,6 +232,7 @@ void Distances::compute_distances(
 }
 
 void Distances::apply_abstraction(
+    const Labels& labels,
     const TransitionSystem& transition_system,
     const StateEquivalenceRelation& state_equivalence_relation,
     bool compute_liveness,
@@ -303,7 +311,7 @@ void Distances::apply_abstraction(
         goal_distances.clear();
         liveness_computed = false;
         goal_distances_computed = false;
-        compute_distances(transition_system, compute_liveness, log);
+        compute_distances(labels, transition_system, compute_liveness, log);
         return;
     }
 
@@ -373,6 +381,7 @@ void Distances::statistics(
 }
 
 void compute_goal_distances(
+    const Labels& labels,
     const TransitionSystem& transition_system,
     std::span<value_t> distances,
     const Heuristic<int>& heuristic)
@@ -381,7 +390,7 @@ void compute_goal_distances(
 
     assert(std::cmp_equal(distances.size(), transition_system.get_size()));
 
-    ExplicitMDP explicit_mdp(transition_system);
+    ExplicitMDP explicit_mdp(labels, transition_system);
 
     TATopologicalValueIteration<int, const ProbabilisticTransition*> tatvi(
         0.0001,

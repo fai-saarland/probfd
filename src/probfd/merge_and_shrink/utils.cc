@@ -94,8 +94,12 @@ static bool shrink_factor(
 
         const Distances& distances = fts.get_distances(index);
         const StateEquivalenceRelation equivalence_relation =
-            shrink_strategy
-                .compute_equivalence_relation(ts, distances, new_size, log);
+            shrink_strategy.compute_equivalence_relation(
+                fts.get_labels(),
+                ts,
+                distances,
+                new_size,
+                log);
 
         // TODO: We currently violate this; see issue250
         // assert(equivalence_relation.size() <= target_size);

@@ -1,6 +1,7 @@
 #ifndef PROBFD_MERGE_AND_SHRINK_TRANSITION_SYSTEM_H
 #define PROBFD_MERGE_AND_SHRINK_TRANSITION_SYSTEM_H
 
+#include "labels.h"
 #include "probfd/merge_and_shrink/transition.h"
 #include "probfd/merge_and_shrink/types.h"
 
@@ -43,9 +44,6 @@ class LocalLabelInfo {
 
     std::vector<Transition> transitions;
 
-    // The probabilities of each individual effect
-    std::vector<value_t> probabilities;
-
     // The cost is the minimum cost over all labels in label_group.
     value_t cost;
 
@@ -53,11 +51,9 @@ public:
     LocalLabelInfo(
         LabelGroup label_group,
         std::vector<Transition> transitions,
-        std::vector<value_t> probabilities,
         value_t cost)
         : label_group(std::move(label_group))
         , transitions(std::move(transitions))
-        , probabilities(std::move(probabilities))
         , cost(cost)
     {
         assert(is_consistent());
@@ -103,11 +99,10 @@ public:
         return transitions;
     }
 
-    std::vector<value_t>& get_probabilities() { return probabilities; }
-
-    const std::vector<value_t>& get_probabilities() const
+    const std::vector<value_t>& get_probabilities(const Labels& labels) const
     {
-        return probabilities;
+        assert(!label_group.empty());
+        return labels.get_label_probabilities(label_group.front());
     }
 
     value_t get_cost() const { return cost; }
@@ -125,21 +120,14 @@ public:
     friend void dump_json(std::ostream& os, const LocalLabelInfo& info);
     static LocalLabelInfo read_json(std::istream& is);
 
-    friend std::partial_ordering compare_transitions(
-        const LocalLabelInfo& left,
-        const LocalLabelInfo& right);
-
     void merge(LocalLabelInfo& right);
 };
 
 void dump_json(std::ostream& os, const LocalLabelInfo& info);
 
-std::partial_ordering
-compare_transitions(const LocalLabelInfo& left, const LocalLabelInfo& right);
-
 class TransitionSystem {
     /*
-     * This attribute is only used for output. Vvariables that contributed to
+     * This attribute is only used for output. Variables that contributed to
      * this transition system.
      */
     std::vector<int> incorporated_variables;
@@ -161,7 +149,7 @@ class TransitionSystem {
      * Check if two or more labels are locally equivalent to each other, and
      * if so, update the label equivalence relation.
      */
-    void compute_equivalent_local_labels();
+    void compute_equivalent_local_labels(const Labels& labels);
 
     // Statistics and output
     int compute_total_transitions() const;
@@ -224,6 +212,7 @@ public:
       same equivalence class as specified in state_equivalence_relation.
     */
     void apply_abstraction(
+        const Labels& labels,
         const StateEquivalenceRelation& state_equivalence_relation,
         const std::vector<int>& abstraction_mapping,
         utils::LogProxy& log);

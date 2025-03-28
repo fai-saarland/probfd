@@ -19,6 +19,7 @@ public:
         bool require_goal_distances);
 
     StateEquivalenceRelation compute_equivalence_relation(
+        const Labels& labels,
         const TransitionSystem& ts,
         const Distances& distances,
         int target_size,
@@ -34,6 +35,7 @@ protected:
 
 private:
     void compute_abstraction(
+        const Labels& labels,
         const TransitionSystem& ts,
         const Distances& distances,
         int target_size,

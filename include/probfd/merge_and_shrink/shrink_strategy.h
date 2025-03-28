@@ -12,6 +12,7 @@ class LogProxy;
 
 namespace probfd::merge_and_shrink {
 class Distances;
+class Labels;
 class TransitionSystem;
 } // namespace probfd::merge_and_shrink
 
@@ -36,6 +37,7 @@ public:
       way.
     */
     virtual StateEquivalenceRelation compute_equivalence_relation(
+        const Labels& labels,
         const TransitionSystem& ts,
         const Distances& distances,
         int target_size,

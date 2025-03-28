@@ -73,7 +73,6 @@ LocalLabelInfo LocalLabelInfo::read_from_file(istream& file)
 {
     LabelGroup label_group;
     std::vector<Transition> transitions;
-    std::vector<value_t> probabilities;
     value_t cost;
 
     if (!(file >> label_group))
@@ -82,17 +81,11 @@ LocalLabelInfo LocalLabelInfo::read_from_file(istream& file)
     if (!(file >> std::ws >> cost))
         throw std::invalid_argument("Could not read cost.");
     if (file.get() != ',') throw std::invalid_argument("Expected \",\".");
-    if (!(file >> std::ws >> probabilities))
-        throw std::invalid_argument("Could not read probabilities.");
     if (file.get() != ',') throw std::invalid_argument("Expected \",\".");
     if (!(file >> std::ws >> transitions))
         throw std::invalid_argument("Could not read transitions.");
 
-    return LocalLabelInfo(
-        std::move(label_group),
-        std::move(transitions),
-        std::move(probabilities),
-        cost);
+    return LocalLabelInfo(std::move(label_group), std::move(transitions), cost);
 }
 
 void LocalLabelInfo::add_label(int label, value_t label_cost)
@@ -144,7 +137,6 @@ void LocalLabelInfo::merge_local_label_info(LocalLabelInfo& local_label_info)
     assert(is_consistent());
     assert(local_label_info.is_consistent());
     assert(transitions == local_label_info.transitions);
-    assert(probabilities == local_label_info.probabilities);
     label_group.insert(
         label_group.end(),
         make_move_iterator(local_label_info.label_group.begin()),
@@ -158,7 +150,6 @@ void LocalLabelInfo::merge_local_label_info(LocalLabelInfo& local_label_info)
 void LocalLabelInfo::deactivate()
 {
     utils::release_vector_memory(transitions);
-    utils::release_vector_memory(probabilities);
     utils::release_vector_memory(label_group);
     cost = -1;
 }
@@ -173,7 +164,6 @@ std::ostream& operator<<(std::ostream& out, const LocalLabelInfo& label_info)
 {
     return out << "Labels: " << label_info.get_label_group()
                << ", Cost: " << label_info.get_cost()
-               << ", Probabilities: " << label_info.get_probabilities()
                << ", Transitions: " << label_info.get_transitions();
 }
 
@@ -183,7 +173,6 @@ void dump_json(std::ostream& os, const LocalLabelInfo& info)
         os,
         std::forward_as_tuple("labels", info.label_group),
         std::forward_as_tuple("transitions", info.transitions),
-        std::forward_as_tuple("probabilities", info.probabilities),
         std::forward_as_tuple("cost", info.cost));
 }
 
@@ -193,15 +182,7 @@ LocalLabelInfo LocalLabelInfo::read_json(std::istream& is)
         LocalLabelInfo,
         LabelGroup,
         std::vector<Transition>,
-        std::vector<value_t>,
-        value_t>(is, "labels", "transitions", "probabilities", "cost");
-}
-
-std::partial_ordering
-compare_transitions(const LocalLabelInfo& left, const LocalLabelInfo& right)
-{
-    return std::tie(left.probabilities, left.transitions) <=>
-           std::tie(right.probabilities, right.transitions);
+        value_t>(is, "labels", "transitions", "cost");
 }
 
 void LocalLabelInfo::merge(LocalLabelInfo& right)
@@ -296,8 +277,9 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
         const LabelGroup& group1 = local_label_info.get_label_group();
         const vector<Transition>& transitions1 =
             local_label_info.get_transitions();
+
         const vector<value_t>& probabilities1 =
-            local_label_info.get_probabilities();
+            labels.get_label_probabilities(group1.front());
 
         // Distribute the labels of this group among the "buckets"
         // corresponding to the groups of ts2.
@@ -325,7 +307,7 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
 
             assert(
                 probabilities1 ==
-                ts2.local_label_infos[local_label2].get_probabilities());
+                labels.get_label_probabilities(new_labels.front()));
 
             // Create the new transitions for this bucket
             vector<Transition> new_transitions;
@@ -361,7 +343,6 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
             local_label_infos.emplace_back(
                 std::move(new_labels),
                 std::move(new_transitions),
-                probabilities1,
                 cost);
         }
     }
@@ -373,7 +354,7 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
       component and l2 was only a dead label in the second component.
       All dead labels should form one single label group.
     */
-    for (auto& [probabilities, dead_group] : dead_labels) {
+    for (auto& dead_group : dead_labels | std::views::values) {
         ranges::sort(dead_group);
 
         const int new_local_label = local_label_infos.size();
@@ -387,7 +368,6 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
         local_label_infos.emplace_back(
             std::move(dead_group),
             vector<Transition>(),
-            probabilities,
             cost);
     }
 
@@ -399,7 +379,7 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
         std::move(goal_states));
 }
 
-void TransitionSystem::compute_equivalent_local_labels()
+void TransitionSystem::compute_equivalent_local_labels(const Labels& labels)
 {
     /*
       Compare every group of labels and their transitions to all others and
@@ -415,14 +395,16 @@ void TransitionSystem::compute_equivalent_local_labels()
         if (!local_label_info1.is_active()) continue;
 
         const auto& transitions1 = local_label_info1.get_transitions();
-        const auto& probabilities1 = local_label_info1.get_probabilities();
+        const auto& probabilities1 =
+            local_label_info1.get_probabilities(labels);
 
         for (int llabel2 = llabel1 + 1; llabel2 < num_local_labels; ++llabel2) {
             auto& local_label_info2 = local_label_infos[llabel2];
             if (!local_label_info2.is_active()) continue;
 
             const auto& transitions2 = local_label_info2.get_transitions();
-            const auto& probabilities2 = local_label_info2.get_probabilities();
+            const auto& probabilities2 =
+                local_label_info2.get_probabilities(labels);
 
             // Comparing transitions directly works because they are
             // sorted and unique.
@@ -438,6 +420,7 @@ void TransitionSystem::compute_equivalent_local_labels()
 }
 
 void TransitionSystem::apply_abstraction(
+    const Labels& labels,
     const StateEquivalenceRelation& state_equivalence_relation,
     const vector<int>& abstraction_mapping,
     utils::LogProxy& log)
@@ -497,7 +480,7 @@ void TransitionSystem::apply_abstraction(
         assert(local_label_info.is_consistent());
     }
 
-    compute_equivalent_local_labels();
+    compute_equivalent_local_labels(labels);
 }
 
 void TransitionSystem::apply_label_reduction(
@@ -561,10 +544,6 @@ void TransitionSystem::apply_label_reduction(
             unordered_set<int> seen_local_labels;
             std::vector<Transition> new_label_transitions;
 
-            std::vector<value_t> probabilities =
-                local_label_infos[label_to_local_label[old_labels.front()]]
-                    .get_probabilities();
-
             for (int old_label : old_labels) {
                 int old_local_label = label_to_local_label[old_label];
 
@@ -592,7 +571,6 @@ void TransitionSystem::apply_label_reduction(
             local_label_infos.emplace_back(
                 std::vector<int>{new_label},
                 std::move(new_label_transitions),
-                std::move(probabilities),
                 new_cost);
         }
 
@@ -606,7 +584,7 @@ void TransitionSystem::apply_label_reduction(
             local_label_infos[local_label].recompute_cost(labels);
         }
 
-        compute_equivalent_local_labels();
+        compute_equivalent_local_labels(labels);
     }
 
     assert(is_valid(labels));

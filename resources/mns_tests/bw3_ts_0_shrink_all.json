@@ -100,22 +100,16 @@
           ]
         ]
       ],
-      "probabilities": [
-        0.1,
-        0.9
-      ],
       "cost": 0
     },
     {
       "labels": [],
       "transitions": [],
-      "probabilities": [],
       "cost": -1
     },
     {
       "labels": [],
       "transitions": [],
-      "probabilities": [],
       "cost": -1
     },
     {
@@ -145,28 +139,21 @@
           ]
         ]
       ],
-      "probabilities": [
-        0.75,
-        0.25
-      ],
       "cost": 0
     },
     {
       "labels": [],
       "transitions": [],
-      "probabilities": [],
       "cost": -1
     },
     {
       "labels": [],
       "transitions": [],
-      "probabilities": [],
       "cost": -1
     },
     {
       "labels": [],
       "transitions": [],
-      "probabilities": [],
       "cost": -1
     },
     {
@@ -189,21 +176,16 @@
           ]
         ]
       ],
-      "probabilities": [
-        1
-      ],
       "cost": 0
     },
     {
       "labels": [],
       "transitions": [],
-      "probabilities": [],
       "cost": -1
     },
     {
       "labels": [],
       "transitions": [],
-      "probabilities": [],
       "cost": -1
     }
   ],
