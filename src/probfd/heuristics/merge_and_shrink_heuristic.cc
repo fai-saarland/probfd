@@ -31,11 +31,12 @@ struct MergeAndShrinkHeuristic::FactorDistances {
 
     FactorDistances(
         std::unique_ptr<FactoredMapping> factored_mapping,
+        const Labels& labels,
         const TransitionSystem& ts)
         : factored_mapping(std::move(factored_mapping))
         , distance_table(ts.get_size(), DISTANCE_UNKNOWN)
     {
-        compute_goal_distances(ts, distance_table);
+        compute_goal_distances(labels, ts, distance_table);
     }
 
     value_t lookup_distance(const State& state) const
@@ -108,7 +109,7 @@ void MergeAndShrinkHeuristic::extract_factor(
         distances->are_goal_distances_computed()) {
         factor_distances.emplace_back(std::move(fm), *distances);
     } else {
-        factor_distances.emplace_back(std::move(fm), *ts);
+        factor_distances.emplace_back(std::move(fm), fts.get_labels(), *ts);
     }
 }
 
