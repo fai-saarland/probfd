@@ -8,6 +8,7 @@
 #include "probfd/task_proxy.h"
 
 #include "downward/utils/logging.h"
+#include "probfd/merge_and_shrink/factored_transition_system.h"
 
 using namespace std;
 
@@ -56,7 +57,8 @@ vector<double> MergeScoringFunctionMIASM::compute_scores(
 
         // Compute distances for the product and count the alive states.
         Distances distances;
-        distances.compute_distances(*product, true, silent_log);
+        distances
+            .compute_distances(fts.get_labels(), *product, true, silent_log);
 
         const int num_states = product->get_size();
         int alive_states_count = 0;

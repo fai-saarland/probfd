@@ -40,7 +40,7 @@ TEST(MnSTests, test_atomic_fts)
     ProbabilisticTaskProxy task_proxy(task);
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
     FactoredTransitionSystem fts =
-        create_factored_transition_system(task_proxy, false, false, log);
+        create_factored_transition_system(task_proxy, log);
 
     ASSERT_EQ(fts.get_size(), task.get_num_variables())
         << "Unexpected number of atomic factors!";
@@ -64,7 +64,7 @@ TEST(MnSTests, test_atomic_fts2)
     ProbabilisticTaskProxy task_proxy(task);
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
     FactoredTransitionSystem fts =
-        create_factored_transition_system(task_proxy, false, false, log);
+        create_factored_transition_system(task_proxy, log);
 
     ASSERT_EQ(fts.get_size(), task.get_num_variables())
         << "Unexpected number of atomic factors!";
@@ -88,7 +88,7 @@ TEST(MnSTests, test_atomic_fts3)
     ProbabilisticTaskProxy task_proxy(task);
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
     FactoredTransitionSystem fts =
-        create_factored_transition_system(task_proxy, false, false, log);
+        create_factored_transition_system(task_proxy, log);
 
     ASSERT_EQ(fts.get_size(), task.get_num_variables())
         << "Unexpected number of atomic factors!";
@@ -123,7 +123,7 @@ TEST(MnSTests, test_merge1)
     auto expected_ts = json::read<TransitionSystem>(e_file);
 
     ASSERT_EQ(*ts, expected_ts) << "Transition system did not match expected "
-                                   "transiiton system!";
+                                   "transition system!";
 }
 
 TEST(MnSTests, test_merge2)
@@ -133,7 +133,7 @@ TEST(MnSTests, test_merge2)
     ProbabilisticTaskProxy task_proxy(task);
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
     FactoredTransitionSystem fts =
-        create_factored_transition_system(task_proxy, false, false, log);
+        create_factored_transition_system(task_proxy, log);
 
     ASSERT_EQ(fts.get_size(), task.get_num_variables())
         << "Unexpected number of atomic factors!";
@@ -178,32 +178,38 @@ TEST(MnSTests, test_merge2)
     auto expected_ts = json::read<TransitionSystem>(e_file);
 
     ASSERT_EQ(*ts, expected_ts) << "Transition system did not match expected "
-                                   "transiiton system!";
+                                   "transition system!";
 }
 
 TEST(MnSTests, test_shrink_all)
 {
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
 
-    std::ifstream file("resources/mns_tests/bw3_ts_0.json");
-    auto ts = json::read<TransitionSystem>(file);
-    StateEquivalenceRelation eq_rel;
-    std::forward_list<int> all_states(ts.get_size());
-    std::iota(all_states.begin(), all_states.end(), 0);
-    eq_rel.push_back(std::move(all_states));
+    std::ifstream labels_file("resources/mns_tests/bw3_labels.json");
+    std::ifstream ts_file("resources/mns_tests/bw3_ts_0.json");
+
+    const auto labels = json::read<Labels>(labels_file);
+    auto ts = json::read<TransitionSystem>(ts_file);
+
+    StateEquivalenceRelation eq_rel{
+        std::views::iota(0, ts.get_size()) |
+        std::ranges::to<std::forward_list>()};
     std::vector state_mapping(ts.get_size(), 0);
-    ts.apply_abstraction(eq_rel, state_mapping, log);
+    ts.apply_abstraction(labels, eq_rel, state_mapping, log);
 
     std::ifstream e_file("resources/mns_tests/bw3_ts_0_shrink_all.json");
     auto expected_ts = json::read<TransitionSystem>(e_file);
 
     ASSERT_EQ(ts, expected_ts) << "Transition system did not match expected "
-                                  "transiiton system!";
+                                  "transition system!";
 }
 
 TEST(MnSTests, test_projection_distances)
 {
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
+
+    std::ifstream labels_file("resources/mns_tests/bw3_labels.json");
+    const auto labels = json::read<Labels>(labels_file);
 
     for (int i = 0; i != 5; ++i) {
         std::ifstream file(
@@ -215,7 +221,7 @@ TEST(MnSTests, test_projection_distances)
         auto value_table = json::read<std::vector<value_t>>(d_file);
 
         std::vector distances(ts.get_size(), -INFINITE_VALUE);
-        compute_goal_distances(ts, distances);
+        compute_goal_distances(labels, ts, distances);
 
         for (size_t k = 0; k != value_table.size(); ++k) {
             if (std::isinf(value_table[k]))
@@ -230,6 +236,9 @@ TEST(MnSTests, test_projection_distances)
 TEST(MnSTests, test_projection_distances2)
 {
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
+
+    std::ifstream labels_file("resources/mns_tests/bw2_labels.json");
+    const auto labels = json::read<Labels>(labels_file);
 
     for (int i = 0; i != 5; ++i) {
         for (int j = i + 1; j < 5; ++j) {
@@ -249,7 +258,7 @@ TEST(MnSTests, test_projection_distances2)
             auto value_table = json::read<std::vector<value_t>>(d_file);
 
             std::vector distances(ts.get_size(), -INFINITE_VALUE);
-            compute_goal_distances(ts, distances);
+            compute_goal_distances(labels, ts, distances);
 
             for (size_t k = 0; k != value_table.size(); ++k) {
                 if (std::isinf(value_table[k]))
@@ -267,6 +276,9 @@ TEST(MnSTests, test_projection_distances3)
 {
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
 
+    std::ifstream labels_file("resources/mns_tests/bw3_labels.json");
+    const auto labels = json::read<Labels>(labels_file);
+
     std::ifstream ts_file("resources/mns_tests/bw3_ts_0123456.json");
     auto ts = json::read<TransitionSystem>(ts_file);
 
@@ -274,7 +286,7 @@ TEST(MnSTests, test_projection_distances3)
     auto value_table = json::read<std::vector<value_t>>(d_file);
 
     std::vector distances(ts.get_size(), -INFINITE_VALUE);
-    compute_goal_distances(ts, distances);
+    compute_goal_distances(labels, ts, distances);
 
     for (size_t k = 0; k != value_table.size(); ++k) {
         if (std::isinf(value_table[k]))
@@ -289,17 +301,21 @@ TEST(MnSTests, test_bisimulation_distance_preserved)
 {
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
 
+    std::ifstream labels_file("resources/mns_tests/bw3_labels.json");
+    const auto labels = json::read<Labels>(labels_file);
+
     std::ifstream ts_file("resources/mns_tests/bw3_ts_0123456.json");
     auto ts = json::read<TransitionSystem>(ts_file);
 
     Distances distances;
-    distances.compute_distances(ts, false, log);
+    distances.compute_distances(labels, ts, false, log);
 
     ShrinkStrategyBisimulation bisimulation(
         ShrinkStrategyBisimulation::AtLimit::RETURN,
         false);
 
     auto eq_relation = bisimulation.compute_equivalence_relation(
+        labels,
         ts,
         distances,
         std::numeric_limits<int>::max(),
@@ -312,10 +328,10 @@ TEST(MnSTests, test_bisimulation_distance_preserved)
         }
     }
 
-    ts.apply_abstraction(eq_relation, abs_mapping, log);
+    ts.apply_abstraction(labels, eq_relation, abs_mapping, log);
 
     std::vector new_distances(ts.get_size(), -INFINITE_VALUE);
-    compute_goal_distances(ts, new_distances);
+    compute_goal_distances(labels, ts, new_distances);
 
     auto old_distances = distances.extract_goal_distances();
 
@@ -332,11 +348,14 @@ TEST(MnSTests, test_prune_solvable)
 {
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
 
+    std::ifstream labels_file("resources/mns_tests/bw3_labels.json");
+    const auto labels = json::read<Labels>(labels_file);
+
     std::ifstream e_file("resources/mns_tests/bw3_ts_0123456.json");
     auto ts = json::read<TransitionSystem>(e_file);
 
     Distances distances;
-    distances.compute_distances(ts, false, log);
+    distances.compute_distances(labels, ts, false, log);
 
     PruneStrategySolvable prune;
     auto eq_relation = prune.compute_pruning_abstraction(ts, distances, log);
@@ -348,10 +367,10 @@ TEST(MnSTests, test_prune_solvable)
         }
     }
 
-    ts.apply_abstraction(eq_relation, abs_mapping, log);
+    ts.apply_abstraction(labels, eq_relation, abs_mapping, log);
 
     std::vector new_distances(ts.get_size(), -INFINITE_VALUE);
-    compute_goal_distances(ts, new_distances);
+    compute_goal_distances(labels, ts, new_distances);
 
     auto old_distances = distances.extract_goal_distances();
 
@@ -371,11 +390,14 @@ TEST(MnSTests, test_prune_alive)
 {
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
 
+    std::ifstream labels_file("resources/mns_tests/bw3_labels.json");
+    const auto labels = json::read<Labels>(labels_file);
+
     std::ifstream e_file("resources/mns_tests/bw3_ts_0123456.json");
     auto ts = json::read<TransitionSystem>(e_file);
 
     Distances distances;
-    distances.compute_distances(ts, true, log);
+    distances.compute_distances(labels, ts, true, log);
 
     PruneStrategyAlive prune;
     auto eq_relation = prune.compute_pruning_abstraction(ts, distances, log);
@@ -387,10 +409,10 @@ TEST(MnSTests, test_prune_alive)
         }
     }
 
-    ts.apply_abstraction(eq_relation, abs_mapping, log);
+    ts.apply_abstraction(labels, eq_relation, abs_mapping, log);
 
     std::vector new_distances(ts.get_size(), -INFINITE_VALUE);
-    compute_goal_distances(ts, new_distances);
+    compute_goal_distances(labels, ts, new_distances);
 
     auto old_distances = distances.extract_goal_distances();
 
@@ -413,12 +435,19 @@ TEST(MnSTests, test_label_reduction)
     ProbabilisticTaskProxy task_proxy(task);
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
     FactoredTransitionSystem fts =
-        create_factored_transition_system(task_proxy, false, false, log);
+        create_factored_transition_system(task_proxy, log);
 
-    int index = fts.merge(
-        0,
-        fts.merge(1, fts.merge(2, fts.merge(3, 4, log), log), log),
-        log);
+    int index =
+        fts.merge(
+               0,
+               fts.merge(
+                      1,
+                      fts.merge(2, fts.merge(3, 4, log).merge_index, log)
+                          .merge_index,
+                      log)
+                   .merge_index,
+               log)
+            .merge_index;
 
     LabelReduction label_reduction(
         true,
@@ -431,12 +460,12 @@ TEST(MnSTests, test_label_reduction)
 
     auto& ts = fts.get_transition_system(index);
     std::vector old_distances(ts.get_size(), -INFINITE_VALUE);
-    compute_goal_distances(ts, old_distances);
+    compute_goal_distances(fts.get_labels(), ts, old_distances);
 
     label_reduction.reduce(0, 0, fts, log);
 
     std::vector new_distances(ts.get_size(), -INFINITE_VALUE);
-    compute_goal_distances(ts, new_distances);
+    compute_goal_distances(fts.get_labels(), ts, new_distances);
 
     for (size_t k = 0; k != old_distances.size(); ++k) {
         if (old_distances[k] == INFINITE_VALUE)

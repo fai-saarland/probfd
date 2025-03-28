@@ -323,6 +323,7 @@ void MergeAndShrinkAlgorithm::main_loop(
                 *right_factor.distances);
 
             factor.distances->compute_distances(
+                fts.get_labels(),
                 *factor.transition_system,
                 compute_liveness,
                 log,
@@ -358,6 +359,7 @@ void MergeAndShrinkAlgorithm::main_loop(
 
             if (compute_goal_distances) {
                 factor.distances->apply_abstraction(
+                    fts.get_labels(),
                     *factor.transition_system,
                     pruning_relation,
                     compute_liveness,
@@ -488,6 +490,7 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
 
                 if (compute_goal_distances) {
                     distances.apply_abstraction(
+                        fts.get_labels(),
                         ts,
                         pruning_relation,
                         compute_liveness,

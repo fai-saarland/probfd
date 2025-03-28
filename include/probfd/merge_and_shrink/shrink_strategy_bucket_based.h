@@ -41,6 +41,7 @@ public:
     explicit ShrinkStrategyBucketBased(int random_seed);
 
     StateEquivalenceRelation compute_equivalence_relation(
+        const Labels& labels,
         const TransitionSystem& ts,
         const Distances& distances,
         int target_size,

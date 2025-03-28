@@ -56,9 +56,7 @@ class FTSFactory {
 
     void initialize_transition_system_data(int max_num_labels);
 
-    void build_transitions_for_operator(
-        ProbabilisticOperatorProxy op,
-        const Labels& labels);
+    void build_transitions_for_operator(ProbabilisticOperatorProxy op);
     void build_transitions(const Labels& labels);
 
 public:
@@ -110,13 +108,10 @@ void FTSFactory::initialize_transition_system_data(int max_num_labels)
     }
 }
 
-void FTSFactory::build_transitions_for_operator(
-    ProbabilisticOperatorProxy op,
-    const Labels& labels)
+void FTSFactory::build_transitions_for_operator(ProbabilisticOperatorProxy op)
 {
     const int label = op.get_id();
     const value_t label_cost = op.get_cost();
-    const auto& probabilities = labels.get_label_probabilities(label);
 
     const VariablesProxy variables = task_proxy.get_variables();
     const int num_variables = variables.size();
@@ -169,7 +164,6 @@ void FTSFactory::build_transitions_for_operator(
         transition_system_data_by_var[var_id].local_label_infos.emplace_back(
             LabelGroup{label},
             std::move(var_transitions),
-            probabilities,
             label_cost);
     };
 
@@ -208,7 +202,6 @@ void FTSFactory::build_transitions_for_operator(
         data.local_label_infos.emplace_back(
             LabelGroup{label},
             std::move(var_transitions),
-            probabilities,
             label_cost);
     }
 
@@ -225,7 +218,7 @@ void FTSFactory::build_transitions(const Labels& labels)
       - Computes relevant operator information as a side effect.
     */
     for (const ProbabilisticOperatorProxy op : task_proxy.get_operators())
-        build_transitions_for_operator(op, labels);
+        build_transitions_for_operator(op);
 
     /*
       Merge labels with equivalent transitions into the same labels group.
@@ -234,8 +227,14 @@ void FTSFactory::build_transitions(const Labels& labels)
         auto& local_label_infos = ts_data.local_label_infos;
 
         // Merge equivalent label groups
-        auto cmp = [](const LocalLabelInfo* left, const LocalLabelInfo* right) {
-            return compare_transitions(*left, *right) < 0;
+        auto cmp = [&](const LocalLabelInfo* left,
+                       const LocalLabelInfo* right) {
+            return std::tie(
+                       left->get_probabilities(labels),
+                       left->get_transitions()) <=>
+                   std::tie(
+                       right->get_probabilities(labels),
+                       right->get_transitions()) < 0;
         };
 
         std::set<LocalLabelInfo*, decltype(cmp)> duplicates(cmp);

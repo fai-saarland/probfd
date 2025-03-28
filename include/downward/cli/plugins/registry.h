@@ -3,6 +3,7 @@
 
 #include "registry_types.h"
 
+#include <stdexcept>
 #include <string>
 #include <typeindex>
 #include <unordered_set>
