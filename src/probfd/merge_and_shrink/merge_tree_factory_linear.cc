@@ -61,10 +61,10 @@ unique_ptr<MergeTree> MergeTreeFactoryLinear::compute_merge_tree(
     const int num_ts = fts.get_size();
 
     vector var_to_ts_index(num_vars, -1);
-    vector<bool> used_ts_indices(num_ts);
+    vector used_ts_indices(num_ts, true);
 
     for (int ts_index : fts) {
-        used_ts_indices[ts_index] = ranges::contains(indices_subset, ts_index);
+        used_ts_indices[ts_index] = !ranges::contains(indices_subset, ts_index);
 
         const vector<int>& vars =
             fts.get_transition_system(ts_index).get_incorporated_variables();
@@ -85,18 +85,16 @@ unique_ptr<MergeTree> MergeTreeFactoryLinear::compute_merge_tree(
         variable_order_type,
         rng);
 
-    int next_var = vof.next();
-    int ts_index = var_to_ts_index[next_var];
-
-    assert(ts_index != -1);
+    int next_var;
+    int ts_index;
 
     // find the first valid ts index
-    while (used_ts_indices[ts_index]) {
+    do {
         assert(!vof.done());
         next_var = vof.next();
         ts_index = var_to_ts_index[next_var];
         assert(ts_index != -1);
-    }
+    } while (used_ts_indices[ts_index]);
 
     used_ts_indices[ts_index] = true;
     auto* root = new MergeTreeNode(ts_index);
