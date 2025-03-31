@@ -21,13 +21,13 @@ inline void Statistics::print(std::ostream& out) const
         << std::endl;
 }
 
-bool DFSExplorationState::next_successor()
+inline bool DFSExplorationState::next_successor()
 {
     successors.pop_back();
     return !successors.empty();
 }
 
-StateID DFSExplorationState::get_current_successor() const
+inline StateID DFSExplorationState::get_current_successor() const
 {
     return successors.back();
 }
