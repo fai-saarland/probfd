@@ -6,12 +6,18 @@
 
 using namespace probfd;
 
+using std::ranges::sort;
+
 namespace tests {
 
 BlocksworldTask::BlocksworldTask(
     int num_blocks,
     const std::vector<std::vector<int>>& initial,
-    const std::vector<std::vector<int>>& goal)
+    const std::vector<std::vector<int>>& goal,
+    probfd::value_t pick_block_cost,
+    probfd::value_t pick_tower_cost,
+    probfd::value_t put_block_cost,
+    probfd::value_t put_tower_cost)
     : blocks(num_blocks)
     , pick_up_begin(blocks * (blocks - 1) * (blocks - 2))
     , pick_table_begin(pick_up_begin + blocks * (blocks - 1))
@@ -77,9 +83,6 @@ BlocksworldTask::BlocksworldTask(
     for (const std::vector<int>& stack : goal) {
         if (stack.empty()) abort();
 
-        // This block must be clear
-        goal_state.emplace_back(get_clear_var(stack.front()), 1);
-
         for (size_t i = 0; i != stack.size() - 1; ++i) {
             // Blocks may not be encountered twice
             if (!seen.insert(stack[i]).second) abort();
@@ -94,9 +97,6 @@ BlocksworldTask::BlocksworldTask(
         // The last block is on the table
         goal_state.emplace_back(get_location_var(stack.back()), blocks);
     }
-
-    // Hand must be empty
-    goal_state.emplace_back(get_hand_var(), 1);
 
     for (int i = 0; i != blocks; ++i) {
         auto& info = variables[get_clear_var(i)];
@@ -136,7 +136,7 @@ BlocksworldTask::BlocksworldTask(
 
                     op_info.name =
                         std::format("pick-tower {} {} {}", b1, b2, b3);
-                    op_info.cost = 0;
+                    op_info.cost = pick_tower_cost;
                     op_info.preconditions = {
                         get_fact_is_hand_empty(true),
                         get_fact_is_block_clear(b1, true),
@@ -155,7 +155,7 @@ BlocksworldTask::BlocksworldTask(
 
                     op_info.name =
                         std::format("put-tower {} {} {}", b1, b2, b3);
-                    op_info.cost = 0;
+                    op_info.cost = put_tower_cost;
                     op_info.preconditions = {
                         get_fact_block_in_hand(b2),
                         get_fact_block_on_block(b1, b2),
@@ -175,7 +175,7 @@ BlocksworldTask::BlocksworldTask(
                     [get_operator_pick_up_block_on_block_index(b1, b2)];
 
                 op_info.name = std::format("pick-block {} {}", b1, b2);
-                op_info.cost = 1;
+                op_info.cost = pick_block_cost;
                 op_info.preconditions = {
                     get_fact_is_hand_empty(true),
                     get_fact_is_block_clear(b1, true),
@@ -195,7 +195,7 @@ BlocksworldTask::BlocksworldTask(
                     operators[get_operator_put_block_on_block_index(b1, b2)];
 
                 op_info.name = std::format("put-block {} {}", b1, b2);
-                op_info.cost = 0;
+                op_info.cost = put_block_cost;
                 op_info.preconditions = {
                     get_fact_block_in_hand(b1),
                     get_fact_is_block_clear(b1, true),
@@ -215,13 +215,13 @@ BlocksworldTask::BlocksworldTask(
                     operators[get_operator_put_tower_on_table_index(b1, b2)];
 
                 op_info.name = std::format("put-tower-on-table {} {}", b1, b2);
-                op_info.cost = 0;
+                op_info.cost = put_tower_cost;
                 op_info.preconditions = {
                     get_fact_block_in_hand(b2),
                     get_fact_block_on_block(b1, b2)};
                 op_info.outcomes = {
                     {1,
-                     {get_fact_is_hand_empty(false),
+                     {get_fact_is_hand_empty(true),
                       get_fact_block_on_table(b2)}}};
             }
         }
@@ -231,7 +231,7 @@ BlocksworldTask::BlocksworldTask(
                 operators[get_operator_pick_up_block_from_table_index(b1)];
 
             op_info.name = std::format("pick-block-from-table {}", b1);
-            op_info.cost = 1;
+            op_info.cost = pick_block_cost;
             op_info.preconditions = {
                 get_fact_is_hand_empty(true),
                 get_fact_is_block_clear(b1, true),
@@ -247,13 +247,21 @@ BlocksworldTask::BlocksworldTask(
                 operators[get_operator_put_block_on_table_index(b1)];
 
             op_info.name = std::format("put-block-on-table {}", b1);
-            op_info.cost = 0;
+            op_info.cost = put_block_cost;
             op_info.preconditions = {
                 get_fact_block_in_hand(b1),
                 get_fact_is_block_clear(b1, true)};
             op_info.outcomes = {
                 {1,
-                 {get_fact_is_hand_empty(false), get_fact_block_on_table(b1)}}};
+                 {get_fact_is_hand_empty(true), get_fact_block_on_table(b1)}}};
+        }
+    }
+
+    // Sort fact ranges in increasing order of variable ids.
+    for (OperatorInfo& op_info : operators) {
+        sort(op_info.preconditions, {}, &FactPair::var);
+        for (EffectInfo& effect_info : op_info.outcomes) {
+            sort(effect_info.effects, {}, &FactPair::var);
         }
     }
 }

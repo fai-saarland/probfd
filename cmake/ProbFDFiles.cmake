@@ -330,3 +330,67 @@ create_library(
     DEPENDS
         pa_cartesian_abstractions
 )
+
+create_library(
+    NAME pa_merge_and_shrink
+    HELP "The probability-aware Merge-and-Shrink heuristic"
+    SOURCES
+        probfd/merge_and_shrink/distances
+        probfd/merge_and_shrink/factored_mapping
+        probfd/merge_and_shrink/factored_transition_system
+        probfd/merge_and_shrink/fts_factory
+        probfd/merge_and_shrink/label_equivalence_relation
+        probfd/merge_and_shrink/label_reduction
+        probfd/merge_and_shrink/labels
+        probfd/merge_and_shrink/merge_and_shrink_algorithm
+        probfd/merge_and_shrink/merge_scoring_function
+        probfd/merge_and_shrink/merge_scoring_function_dfp
+        probfd/merge_and_shrink/merge_scoring_function_goal_relevance
+        probfd/merge_and_shrink/merge_scoring_function_miasm
+        probfd/merge_and_shrink/merge_scoring_function_miasm_utils
+        probfd/merge_and_shrink/merge_scoring_function_single_random
+        probfd/merge_and_shrink/merge_scoring_function_total_order
+        probfd/merge_and_shrink/merge_selector
+        probfd/merge_and_shrink/merge_selector_score_based_filtering
+        probfd/merge_and_shrink/merge_strategy
+        probfd/merge_and_shrink/merge_strategy_factory
+        probfd/merge_and_shrink/merge_strategy_factory_precomputed
+        probfd/merge_and_shrink/merge_strategy_factory_sccs
+        probfd/merge_and_shrink/merge_strategy_factory_stateless
+        probfd/merge_and_shrink/merge_strategy_precomputed
+        probfd/merge_and_shrink/merge_strategy_sccs
+        probfd/merge_and_shrink/merge_strategy_stateless
+        probfd/merge_and_shrink/merge_tree
+        probfd/merge_and_shrink/merge_tree_factory
+        probfd/merge_and_shrink/merge_tree_factory_linear
+        probfd/merge_and_shrink/shrink_strategy
+        probfd/merge_and_shrink/shrink_strategy_bucket_based
+        probfd/merge_and_shrink/shrink_strategy_equal_distance
+        probfd/merge_and_shrink/shrink_strategy_random
+        probfd/merge_and_shrink/shrink_strategy_bisimulation
+        probfd/merge_and_shrink/shrink_strategy_probabilistic_bisimulation
+        probfd/merge_and_shrink/prune_strategy_identity
+        probfd/merge_and_shrink/prune_strategy_alive
+        probfd/merge_and_shrink/prune_strategy_solvable
+        probfd/merge_and_shrink/transition_system
+        probfd/merge_and_shrink/transition
+        probfd/merge_and_shrink/types
+        probfd/merge_and_shrink/utils
+    DEPENDS
+        probfd_core
+        task_dependent_heuristic
+        priority_queues
+        equivalence_relation
+        sccs
+        task_properties
+        variable_order_finder
+)
+
+create_library(
+    NAME probability_aware_mas_heuristic
+    HELP "Probability-aware Merge-and-Shrink Heuristic"
+    SOURCES
+        probfd/heuristics/merge_and_shrink_heuristic
+    DEPENDS
+        pa_merge_and_shrink
+)

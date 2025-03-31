@@ -1,0 +1,151 @@
+{
+  "incorporated_variables": [
+    0
+  ],
+  "label_to_local_label": [
+    0,
+    1,
+    0,
+    2,
+    3,
+    3,
+    0,
+    4,
+    5,
+    3,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+  ],
+  "local_label_infos": [
+    {
+      "labels": [
+        0,
+        2,
+        6
+      ],
+      "transitions": [
+        [
+          1,
+          [
+            1,
+            1
+          ]
+        ]
+      ],
+
+      "cost": 0
+    },
+    {
+      "labels": [
+        1
+      ],
+      "transitions": [
+        [
+          0,
+          [
+            1,
+            1
+          ]
+        ],
+        [
+          1,
+          [
+            1,
+            1
+          ]
+        ]
+      ],
+
+      "cost": 1
+    },
+    {
+      "labels": [
+        3
+      ],
+      "transitions": [
+        [
+          0,
+          [
+            0,
+            0
+          ]
+        ],
+        [
+          1,
+          [
+            1,
+            1
+          ]
+        ]
+      ],
+
+      "cost": 1
+    },
+    {
+      "labels": [
+        4,
+        5,
+        9
+      ],
+      "transitions": [
+        [
+          0,
+          [
+            0
+          ]
+        ],
+        [
+          1,
+          [
+            1
+          ]
+        ]
+      ],
+
+      "cost": 0
+    },
+    {
+      "labels": [
+        7
+      ],
+      "transitions": [
+        [
+          1,
+          [
+            0,
+            1
+          ]
+        ]
+      ],
+
+      "cost": 0
+    },
+    {
+      "labels": [
+        8
+      ],
+      "transitions": [
+        [
+          1,
+          [
+            1
+          ]
+        ]
+      ],
+
+      "cost": 0
+    }
+  ],
+  "init_state": 1,
+  "goal_states": [
+    true,
+    true
+  ]
+}

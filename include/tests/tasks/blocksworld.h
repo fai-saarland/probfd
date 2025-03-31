@@ -3,6 +3,8 @@
 
 #include "probfd/probabilistic_task.h"
 
+#include "probfd/value_type.h"
+
 #include <vector>
 
 class State;
@@ -46,7 +48,11 @@ public:
     BlocksworldTask(
         int num_blocks,
         const std::vector<std::vector<int>>& initial,
-        const std::vector<std::vector<int>>& goal);
+        const std::vector<std::vector<int>>& goal,
+        probfd::value_t pick_block_cost = 1,
+        probfd::value_t pick_tower_cost = 0,
+        probfd::value_t put_block_cost = 0,
+        probfd::value_t put_tower_cost = 0);
 
     int get_num_variables() const override;
 
