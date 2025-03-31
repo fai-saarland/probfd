@@ -83,6 +83,21 @@ bool set_min(Interval& lhs, Interval rhs);
  */
 bool set_min(value_t& lhs, value_t rhs);
 
+/**
+ * @brief Computes the assignments `lhs.lower <- max(lhs.lower, rhs.lower)` and
+ * `lower <- max(lhs.lower, rhs.lower)`.
+ *
+ * @returns True if and only if \p rhs.lower was greater than \p lhs.lower .
+ */
+bool set_max(Interval& lhs, Interval rhs);
+
+/**
+ * @brief Computes the assignment lhs <- max(lhs, rhs).
+ *
+ * @returns True if and only if \p rhs was greater than \p lhs .
+ */
+bool set_max(value_t& lhs, value_t rhs);
+
 struct ValueUpdateResult {
     bool changed;
     bool converged;

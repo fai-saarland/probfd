@@ -42,6 +42,22 @@ bool set_min(value_t& lhs, value_t rhs)
     return false;
 }
 
+bool set_max(Interval& lhs, Interval rhs)
+{
+    set_max(lhs.upper, rhs.upper);
+    return set_max(lhs.lower, rhs.lower);
+}
+
+bool set_max(value_t& lhs, value_t rhs)
+{
+    if (rhs > lhs) {
+        lhs = rhs;
+        return true;
+    }
+
+    return false;
+}
+
 ValueUpdateResult update(Interval& lhs, Interval rhs, value_t epsilon)
 {
     const bool result = !is_approx_equal(rhs.lower, lhs.lower, epsilon) ||
