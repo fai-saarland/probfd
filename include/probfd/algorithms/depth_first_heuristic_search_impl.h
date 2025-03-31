@@ -194,7 +194,8 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
             }
 
             if (!bt_einfo.solved) einfo->solved = false;
-        } while (!advance(mdp, *einfo, *sinfo));
+        } while (!advance(mdp, *einfo, *sinfo) ||
+                 !push_successor(mdp, *einfo, *sinfo, timer));
     }
 }
 

@@ -315,7 +315,10 @@ bool TADFHSImpl<State, Action, UseInterval>::initialize(
         einfo.is_trap = quotient.get_action_cost(transition->action) == 0;
     } else {
         auto action = state_info.get_policy();
-        if (!action.has_value()) return false;
+        if (!action.has_value()) {
+            einfo.is_trap = false;
+            return false;
+        }
 
         tarjan_stack_.back().action = action;
 
@@ -428,7 +431,8 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
             }
 
             if (!bt_einfo.solved) einfo->solved = false;
-        } while (!advance(quotient, *einfo, *sinfo));
+        } while (!advance(quotient, *einfo, *sinfo) ||
+                 !push_successor(quotient, *einfo, *sinfo, timer));
     }
 }
 
