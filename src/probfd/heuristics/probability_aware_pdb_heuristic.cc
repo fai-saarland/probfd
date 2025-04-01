@@ -18,42 +18,67 @@ using namespace probfd::pdbs;
 namespace probfd::heuristics {
 
 ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
-    std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<FDRCostFunction> task_cost_function,
+    PPDBCollection pdbs,
+    std::vector<PatternSubCollection> subcollections,
+    std::shared_ptr<SubCollectionFinder> subcollection_finder,
+    value_t termination_cost)
+    : pdbs_(std::move(pdbs))
+    , subcollections_(std::move(subcollections))
+    , subcollection_finder_(std::move(subcollection_finder))
+    , termination_cost_(termination_cost)
+{
+}
+
+value_t ProbabilityAwarePDBHeuristic::evaluate(const State& state) const
+{
+    return subcollection_finder_
+        ->evaluate(pdbs_, subcollections_, state, termination_cost_);
+}
+
+ProbabilityAwarePDBHeuristicFactory::ProbabilityAwarePDBHeuristicFactory(
     std::shared_ptr<PatternCollectionGenerator> generator,
     double max_time_dominance_pruning,
-    utils::LogProxy log)
-    : TaskDependentHeuristic(std::move(task), std::move(log))
-    , termination_cost_(task_cost_function->get_non_goal_termination_cost())
+    utils::Verbosity verbosity)
+    : generator_(std::move(generator))
+    , max_time_dominance_pruning_(max_time_dominance_pruning)
+    , log_(get_log_for_verbosity(verbosity))
 {
-    utils::Timer construction_timer;
+}
 
-    utils::Timer generator_timer;
+std::unique_ptr<FDREvaluator>
+ProbabilityAwarePDBHeuristicFactory::create_evaluator(
+    std::shared_ptr<ProbabilisticTask> task,
+    std::shared_ptr<FDRCostFunction> task_cost_function)
+{
+    const ProbabilisticTaskProxy task_proxy(*task);
+
+    const utils::Timer construction_timer;
+
+    const utils::Timer generator_timer;
     auto pattern_collection_info =
-        generator->generate(task_, task_cost_function);
+        generator_->generate(task, task_cost_function);
     const double generator_time = generator_timer();
 
-    std::vector<pdbs::Pattern> patterns =
-        pattern_collection_info.get_patterns();
+    std::vector<Pattern> patterns = pattern_collection_info.get_patterns();
 
-    this->pdbs_ = std::move(pattern_collection_info.get_pdbs());
-    this->subcollections_ =
+    auto pdbs = std::move(pattern_collection_info.get_pdbs());
+    auto subcollections =
         std::move(pattern_collection_info.get_subcollections());
-    this->subcollection_finder_ =
+    auto subcollection_finder =
         pattern_collection_info.get_subcollection_finder();
 
     double dominance_pruning_time = 0.0;
 
-    if (max_time_dominance_pruning > 0.0) {
-        utils::Timer timer;
+    if (max_time_dominance_pruning_ > 0.0) {
+        const utils::Timer timer;
 
         ::pdbs::prune_dominated_cliques(
             patterns,
-            pdbs_,
-            subcollections_,
-            static_cast<int>(task_proxy_.get_variables().size()),
-            max_time_dominance_pruning,
-            utils::g_log);
+            pdbs,
+            subcollections,
+            static_cast<int>(task_proxy.get_variables().size()),
+            max_time_dominance_pruning_,
+            log_);
 
         dominance_pruning_time = timer();
     }
@@ -66,7 +91,7 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
         size_t variables = 0;
         size_t abstract_states = 0;
 
-        for (const auto& pdb : pdbs_) {
+        for (const auto& pdb : pdbs) {
             size_t vars = pdb->get_pattern().size();
             largest_pattern = std::max(largest_pattern, vars);
             variables += vars;
@@ -75,23 +100,23 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
 
         size_t total_subcollections_size = 0;
 
-        for (const auto& subcollection : subcollections_) {
+        for (const auto& subcollection : subcollections) {
             total_subcollections_size += subcollection.size();
         }
 
         const double avg_variables =
-            static_cast<double>(variables) / static_cast<double>(pdbs_.size());
+            static_cast<double>(variables) / static_cast<double>(pdbs.size());
         const double avg_abstract_states =
             static_cast<double>(abstract_states) /
-            static_cast<double>(pdbs_.size());
+            static_cast<double>(pdbs.size());
 
         const double avg_subcollection_size =
             static_cast<double>(total_subcollections_size) /
-            static_cast<double>(subcollections_.size());
+            static_cast<double>(subcollections.size());
 
         log_ << "\n"
              << "Pattern Databases Statistics:\n"
-             << "  Total number of PDBs: " << pdbs_.size() << "\n"
+             << "  Total number of PDBs: " << pdbs.size() << "\n"
              << "  Total number of variables: " << variables << "\n"
              << "  Total number of abstract states: " << abstract_states << "\n"
              << "  Average number of variables per PDB: " << avg_variables
@@ -101,7 +126,7 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
 
              << "  Largest pattern size: " << largest_pattern << "\n"
 
-             << "  Total number of subcollections: " << subcollections_.size()
+             << "  Total number of subcollections: " << subcollections.size()
              << "\n"
              << "  Total number of subcollection PDBs: "
              << total_subcollections_size << "\n"
@@ -112,35 +137,12 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
              << "  Dominance pruning time: " << dominance_pruning_time << "s\n"
              << "  Total construction time: " << construction_time << "s\n";
     }
-}
 
-value_t ProbabilityAwarePDBHeuristic::evaluate(const State& state) const
-{
-    return subcollection_finder_
-        ->evaluate(pdbs_, subcollections_, state, termination_cost_);
-}
-
-ProbabilityAwarePDBHeuristicFactory::ProbabilityAwarePDBHeuristicFactory(
-    std::shared_ptr<PatternCollectionGenerator> patterns,
-    double max_time_dominance_pruning,
-    utils::Verbosity verbosity)
-    : patterns_(std::move(patterns))
-    , max_time_dominance_pruning_(max_time_dominance_pruning)
-    , verbosity_(verbosity)
-{
-}
-
-std::unique_ptr<FDREvaluator>
-ProbabilityAwarePDBHeuristicFactory::create_evaluator(
-    std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<FDRCostFunction> task_cost_function)
-{
     return std::make_unique<ProbabilityAwarePDBHeuristic>(
-        task,
-        task_cost_function,
-        patterns_,
-        max_time_dominance_pruning_,
-        utils::get_log_for_verbosity(verbosity_));
+        std::move(pdbs),
+        std::move(subcollections),
+        std::move(subcollection_finder),
+        task_cost_function->get_non_goal_termination_cost());
 }
 
 } // namespace probfd::heuristics

@@ -28,32 +28,31 @@ namespace probfd::heuristics {
  * specified by the configuration of the pattern collection generation
  * algorithm.
  */
-class ProbabilityAwarePDBHeuristic : public TaskDependentHeuristic {
-    const value_t termination_cost_;
+class ProbabilityAwarePDBHeuristic : public FDREvaluator {
+    const pdbs::PPDBCollection pdbs_;
+    const std::vector<pdbs::PatternSubCollection> subcollections_;
+    const std::shared_ptr<pdbs::SubCollectionFinder> subcollection_finder_;
 
-    pdbs::PPDBCollection pdbs_;
-    std::vector<pdbs::PatternSubCollection> subcollections_;
-    std::shared_ptr<pdbs::SubCollectionFinder> subcollection_finder_;
+    const value_t termination_cost_;
 
 public:
     ProbabilityAwarePDBHeuristic(
-        std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function,
-        std::shared_ptr<pdbs::PatternCollectionGenerator> generator,
-        double max_time_dominance_pruning,
-        utils::LogProxy log);
+        pdbs::PPDBCollection pdbs,
+        std::vector<pdbs::PatternSubCollection> subcollections,
+        std::shared_ptr<pdbs::SubCollectionFinder> subcollection_finder,
+        value_t termination_cost);
 
     value_t evaluate(const State& state) const override;
 };
 
 class ProbabilityAwarePDBHeuristicFactory : public TaskHeuristicFactory {
-    const std::shared_ptr<probfd::pdbs::PatternCollectionGenerator> patterns_;
+    const std::shared_ptr<pdbs::PatternCollectionGenerator> generator_;
     const double max_time_dominance_pruning_;
-    const utils::Verbosity verbosity_;
+    mutable utils::LogProxy log_;
 
 public:
     ProbabilityAwarePDBHeuristicFactory(
-        std::shared_ptr<probfd::pdbs::PatternCollectionGenerator> patterns,
+        std::shared_ptr<pdbs::PatternCollectionGenerator> generator,
         double max_time_dominance_pruning,
         utils::Verbosity verbosity);
 
