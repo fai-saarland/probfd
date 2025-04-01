@@ -69,8 +69,9 @@ static void parse_argument(
         keyword_arguments[argument_name] = parse_node(tokens, context);
     } else {
         if (!keyword_arguments.empty()) {
-            context.error("Positional arguments have to be defined before "
-                          "any keyword arguments.");
+            context.error(
+                "Positional arguments have to be defined before "
+                "any keyword arguments.");
         }
         positional_arguments.push_back(parse_node(tokens, context));
     }
@@ -80,36 +81,55 @@ static ASTNodePtr parse_let(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
     utils::TraceBlock block(context, "Parsing Let");
     tokens.pop(context, TokenType::LET);
-    tokens.pop(context, TokenType::OPENING_PARENTHESIS);
-    string variable_name;
-    {
-        utils::TraceBlock block(context, "Parsing variable name");
-        variable_name = tokens.pop(context, TokenType::IDENTIFIER).content;
+
+    std::vector<std::pair<std::string, ASTNodePtr>> variable_definitions;
+
+    for (;;) {
+        auto& [variable_name, variable_definition] =
+            variable_definitions.emplace_back();
+
+        {
+            utils::TraceBlock block(context, "Parsing variable definition");
+            variable_definition = parse_node(tokens, context);
+        }
+        {
+            utils::TraceBlock block(
+                context,
+                "Parsing 'as' after variable definition.");
+            tokens.pop(context, TokenType::AS);
+        }
+        {
+            utils::TraceBlock block(context, "Parsing variable name");
+            variable_name = tokens.pop(context, TokenType::IDENTIFIER).content;
+        }
+
+        {
+            utils::TraceBlock block(
+                context,
+                "Parsing comma or 'in' after variable definition.");
+
+            if (const auto next = tokens.pop(context);
+                next.type == TokenType::COMMA) {
+                continue;
+            } else if (next.type == TokenType::IN) {
+                break;
+            } else {
+                ostringstream message;
+                message << "Got token " << next
+                        << ". Expected either comma or 'in'.";
+                context.error(message.str());
+            }
+        }
     }
-    {
-        utils::TraceBlock block(context, "Parsing comma after variable name.");
-        tokens.pop(context, TokenType::COMMA);
-    }
-    ASTNodePtr variable_definition;
-    {
-        utils::TraceBlock block(context, "Parsing variable definition");
-        variable_definition = parse_node(tokens, context);
-    }
-    {
-        utils::TraceBlock block(
-            context,
-            "Parsing comma after variable definition.");
-        tokens.pop(context, TokenType::COMMA);
-    }
+
     ASTNodePtr nested_value;
     {
         utils::TraceBlock block(context, "Parsing nested expression of let");
         nested_value = parse_node(tokens, context);
     }
-    tokens.pop(context, TokenType::CLOSING_PARENTHESIS);
+
     return std::make_unique<LetNode>(
-        variable_name,
-        move(variable_definition),
+        move(variable_definitions),
         move(nested_value));
 }
 

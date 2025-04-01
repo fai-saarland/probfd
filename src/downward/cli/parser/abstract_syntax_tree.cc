@@ -79,57 +79,87 @@ DecoratedASTNodePtr ASTNode::decorate() const
 }
 
 LetNode::LetNode(
-    const string& variable_name,
-    ASTNodePtr variable_definition,
+    std::vector<std::pair<std::string, ASTNodePtr>> variable_definitions,
     ASTNodePtr nested_value)
-    : variable_name(variable_name)
-    , variable_definition(move(variable_definition))
+    : variable_definitions(move(variable_definitions))
     , nested_value(move(nested_value))
 {
 }
 
 DecoratedASTNodePtr LetNode::decorate(DecorateContext& context) const
 {
-    utils::TraceBlock block(context, "Checking Let: " + variable_name);
-    const plugins::Type& var_type = variable_definition->get_type(context);
-    if (!var_type.supports_variable_binding()) {
-        context.error(
-            "The value of variable '" + variable_name +
-            "' is not permitted to be assigned to a variable.");
+    utils::TraceBlock block(
+        context,
+        "Checking Let: " +
+            utils::join(variable_definitions | views::keys, ", "));
+
+    std::vector<std::pair<std::string, DecoratedASTNodePtr>>
+        decorated_variable_definitions;
+
+    for (const auto& [variable_name, variable_definition] :
+         variable_definitions) {
+        const plugins::Type& var_type = variable_definition->get_type(context);
+        if (!var_type.supports_variable_binding()) {
+            context.error(
+                "The value of variable '" + variable_name +
+                "' is not permitted to be assigned to a variable.");
+        }
+
+        {
+            utils::TraceBlock block(context, "Check variable definition");
+            decorated_variable_definitions.emplace_back(
+                variable_name,
+                variable_definition->decorate(context));
+        }
+
+        context.add_variable(variable_name, var_type);
     }
-    DecoratedASTNodePtr decorated_definition;
-    {
-        utils::TraceBlock block(context, "Check variable definition");
-        decorated_definition = variable_definition->decorate(context);
-    }
+
     DecoratedASTNodePtr decorated_nested_value;
+
     {
         utils::TraceBlock block(context, "Check nested expression.");
-        context.add_variable(variable_name, var_type);
         decorated_nested_value = nested_value->decorate(context);
+    }
+
+    for (const auto& variable_name : variable_definitions | views::keys) {
         context.remove_variable(variable_name);
     }
+
     return std::make_unique<DecoratedLetNode>(
-        variable_name,
-        move(decorated_definition),
+        move(decorated_variable_definitions),
         move(decorated_nested_value));
 }
 
 void LetNode::dump(string indent) const
 {
-    cout << indent << "LET:" << variable_name << " = " << endl;
+    cout << indent << "LET:";
+
     indent = "| " + indent;
-    variable_definition->dump(indent);
+
+    for (const auto& [variable_name, variable_definition] :
+         variable_definitions) {
+        cout << variable_name << " = " << endl;
+        variable_definition->dump(indent);
+    }
+
     cout << indent << "IN:" << endl;
     nested_value->dump("| " + indent);
 }
 
 const plugins::Type& LetNode::get_type(DecorateContext& context) const
 {
-    const plugins::Type& variable_type = variable_definition->get_type(context);
-    context.add_variable(variable_name, variable_type);
+    for (const auto& [variable_name, variable_definition] : variable_definitions) {
+        const plugins::Type& variable_type = variable_definition->get_type(context);
+        context.add_variable(variable_name, variable_type);
+    }
+
     const plugins::Type& nested_type = nested_value->get_type(context);
-    context.remove_variable(variable_name);
+
+    for (const auto& variable_name : variable_definitions | views::keys) {
+        context.remove_variable(variable_name);
+    }
+
     return nested_type;
 }
 

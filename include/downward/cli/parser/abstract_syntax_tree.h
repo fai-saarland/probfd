@@ -31,15 +31,14 @@ public:
 using ASTNodePtr = std::unique_ptr<ASTNode>;
 
 class LetNode : public ASTNode {
-    std::string variable_name;
-    ASTNodePtr variable_definition;
+    std::vector<std::pair<std::string, ASTNodePtr>> variable_definitions;
     ASTNodePtr nested_value;
 
 public:
     LetNode(
-        const std::string& variable_name,
-        ASTNodePtr variable_definition,
+        std::vector<std::pair<std::string, ASTNodePtr>> variable_definitions,
         ASTNodePtr nested_value);
+
     DecoratedASTNodePtr decorate(DecorateContext& context) const override;
     void dump(std::string indent) const override;
     const plugins::Type& get_type(DecorateContext& context) const override;

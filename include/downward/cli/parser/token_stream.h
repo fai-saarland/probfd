@@ -18,6 +18,8 @@ enum class TokenType {
     COMMA,
     EQUALS,
     LET,
+    AS,
+    IN,
     BOOLEAN,
     STRING,
     INTEGER,

@@ -86,14 +86,14 @@ public:
 };
 
 class DecoratedLetNode : public DecoratedASTNode {
-    std::string variable_name;
-    DecoratedASTNodePtr variable_definition;
+    std::vector<std::pair<std::string, DecoratedASTNodePtr>>
+        decorated_variable_definitions;
     DecoratedASTNodePtr nested_value;
 
 public:
     DecoratedLetNode(
-        const std::string& variable_name,
-        DecoratedASTNodePtr variable_definition,
+    std::vector<std::pair<std::string, DecoratedASTNodePtr>>
+    decorated_variable_definitions,
         DecoratedASTNodePtr nested_value);
 
     std::any construct(ConstructContext& context) const override;

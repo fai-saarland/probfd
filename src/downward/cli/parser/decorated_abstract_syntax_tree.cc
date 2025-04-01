@@ -118,11 +118,10 @@ bool FunctionArgument::is_lazily_constructed() const
 }
 
 DecoratedLetNode::DecoratedLetNode(
-    const string& variable_name,
-    DecoratedASTNodePtr variable_definition,
+    std::vector<std::pair<std::string, DecoratedASTNodePtr>>
+        decorated_variable_definitions,
     DecoratedASTNodePtr nested_value)
-    : variable_name(variable_name)
-    , variable_definition(move(variable_definition))
+    : decorated_variable_definitions(move(decorated_variable_definitions))
     , nested_value(move(nested_value))
 {
 }
@@ -130,28 +129,38 @@ DecoratedLetNode::DecoratedLetNode(
 std::any DecoratedLetNode::construct(ConstructContext& context) const
 {
     utils::TraceBlock block(context, "Constructing let-expression");
-    std::any variable_value;
-    {
+    for (const auto& [variable_name, variable_definition] :
+         decorated_variable_definitions) {
         utils::TraceBlock block(
             context,
             "Constructing variable '" + variable_name + "'");
-        variable_value = variable_definition->construct(context);
+        std::any variable_value = variable_definition->construct(context);
+        context.set_variable(variable_name, variable_value);
     }
+
     std::any result;
     {
         utils::TraceBlock block(context, "Constructing nested value");
-        context.set_variable(variable_name, variable_value);
         result = nested_value->construct(context);
+    }
+
+    for (const auto& [variable_name, variable_definition] :
+         decorated_variable_definitions) {
         context.remove_variable(variable_name);
     }
+
     return result;
 }
 
 void DecoratedLetNode::dump(string indent) const
 {
-    cout << indent << "LET:" << variable_name << " = " << endl;
+    cout << indent << "LET:";
     indent = "| " + indent;
-    variable_definition->dump(indent);
+    for (const auto& [variable_name, variable_definition] :
+         decorated_variable_definitions) {
+        cout << variable_name << " = " << endl;
+        variable_definition->dump(indent);
+    }
     cout << indent << "IN:" << endl;
     nested_value->dump("| " + indent);
 }
@@ -283,8 +292,9 @@ std::any StringLiteralNode::construct(ConstructContext& context) const
         context,
         "Constructing string value from '" + value + "'");
     if (!(value.starts_with('"') && value.ends_with('"'))) {
-        ABORT("String literal value is not enclosed in quotation marks"
-              " (this should have been caught before constructing this node).");
+        ABORT(
+            "String literal value is not enclosed in quotation marks"
+            " (this should have been caught before constructing this node).");
     }
     /*
       We are not doing any further syntax checking. Escaped symbols other than
@@ -526,8 +536,9 @@ std::any CheckBoundsNode::construct(ConstructContext& context) const
         } else if (type == typeid(double)) {
             bounds_satisfied = satisfies_bounds<double>(v, min, max);
         } else {
-            ABORT("Bounds are only supported for arguments of type int or "
-                  "double.");
+            ABORT(
+                "Bounds are only supported for arguments of type int or "
+                "double.");
         }
         if (!bounds_satisfied) {
             context.error("Value is not in bounds.");
@@ -554,8 +565,13 @@ FunctionArgument::FunctionArgument(const FunctionArgument& other)
 }
 
 DecoratedLetNode::DecoratedLetNode(const DecoratedLetNode& other)
-    : variable_name(other.variable_name)
-    , variable_definition(other.variable_definition->clone())
+    : decorated_variable_definitions(
+          std::from_range,
+          other.decorated_variable_definitions |
+              std::views::transform([](const auto& v) {
+                  const auto& [name, nested_value] = v;
+                  return std::make_pair(name, nested_value->clone());
+              }))
     , nested_value(other.nested_value->clone())
 {
 }
