@@ -3,16 +3,15 @@
 
 #include "probfd/pdbs/types.h"
 
-#include "probfd/heuristics/task_dependent_heuristic.h"
+#include "probfd/fdr_types.h"
+#include "probfd/heuristic.h"
+
 #include "probfd/task_heuristic_factory.h"
+
+#include "downward/utils/logging.h"
 
 #include <memory>
 #include <vector>
-
-// Forward Declarations
-namespace utils {
-class LogProxy;
-}
 
 namespace probfd::pdbs {
 class PatternCollectionGenerator;
