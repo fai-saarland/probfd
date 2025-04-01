@@ -103,7 +103,7 @@ CategoryPlugin::CategoryPlugin(
     : pointer_type(pointer_type)
     , class_name(class_name)
     , category_name(category_name)
-    , can_be_bound_to_variable(false)
+    , can_be_bound_to_variable(true)
 {
     RawRegistry::instance()->insert_category_plugin(*this);
 }
