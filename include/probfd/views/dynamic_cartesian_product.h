@@ -1,38 +1,26 @@
 #ifndef PROBFD_DYNAMIC_CARTESIAN_PRODUCT_H
 #define PROBFD_DYNAMIC_CARTESIAN_PRODUCT_H
 
+#include "probfd/views/fold.h"
+#include "probfd/views/utils.h"
+
 #include <algorithm>
 #include <ranges>
 #include <tuple>
 #include <type_traits>
 #include <vector>
 
-#include "probfd/views/fold.h"
-
 namespace probfd::views {
-
-template <bool Const, typename T>
-using maybe_const_t = std::conditional_t<Const, const T, T>;
 
 template <std::ranges::viewable_range Range>
 using all_t = decltype(std::views::all(std::declval<Range>()));
-
-template <typename Range>
-concept dsimple_view =
-    std::ranges::view<Range> && std::ranges::range<const Range> &&
-    std::same_as<
-        std::ranges::iterator_t<Range>,
-        std::ranges::iterator_t<const Range>> &&
-    std::same_as<
-        std::ranges::sentinel_t<Range>,
-        std::ranges::sentinel_t<const Range>>;
 
 namespace detail {
 
 template <bool Const, typename R>
 concept dcartesian_product_is_random_access =
-    std::ranges::random_access_range<maybe_const_t<Const, R>> &&
-    std::ranges::sized_range<maybe_const_t<Const, R>>;
+    std::ranges::random_access_range<detail::maybe_const_t<Const, R>> &&
+    std::ranges::sized_range<detail::maybe_const_t<Const, R>>;
 
 template <typename Range>
 concept dcartesian_product_common_arg =
@@ -42,12 +30,12 @@ concept dcartesian_product_common_arg =
 
 template <bool Const, typename R>
 concept dcartesian_product_is_bidirectional =
-    std::ranges::bidirectional_range<maybe_const_t<Const, R>>;
+    std::ranges::bidirectional_range<detail::maybe_const_t<Const, R>>;
 
 template <bool Const, template <typename> class RSent, typename R>
 concept dcartesian_is_sized_sentinel = std::sized_sentinel_for<
-    RSent<maybe_const_t<Const, R>>,
-    std::ranges::iterator_t<maybe_const_t<Const, R>>>;
+    RSent<detail::maybe_const_t<Const, R>>,
+    std::ranges::iterator_t<detail::maybe_const_t<Const, R>>>;
 
 template <dcartesian_product_common_arg Range>
 constexpr auto dcartesian_common_arg_end(Range&& r)
@@ -325,7 +313,7 @@ public:
     }
 
     constexpr Iterator<false> begin()
-        requires(!dsimple_view<OR>)
+        requires(!simple_view<OR>)
     {
         return Iterator<false>(
             *this,
@@ -346,7 +334,7 @@ public:
     }
 
     constexpr Iterator<false> end()
-        requires(!dsimple_view<OR> && detail::dcartesian_product_common_arg<IR>)
+        requires(!simple_view<OR> && detail::dcartesian_product_common_arg<IR>)
     {
         std::vector<IRIT> ends(
             std::from_range,
@@ -407,8 +395,8 @@ template <std::ranges::bidirectional_range OR>
 template <bool Const>
 class dynamic_cartesian_product_view<OR>::Iterator {
     using IR = std::views::all_t<
-        std::ranges::range_reference_t<maybe_const_t<Const, OR>>>;
-    using Parent = maybe_const_t<Const, dynamic_cartesian_product_view>;
+        std::ranges::range_reference_t<detail::maybe_const_t<Const, OR>>>;
+    using Parent = detail::maybe_const_t<Const, dynamic_cartesian_product_view>;
 
     Parent* M_parent = nullptr;
 
@@ -427,7 +415,7 @@ class dynamic_cartesian_product_view<OR>::Iterator {
         else if constexpr (detail::
                                dcartesian_product_is_bidirectional<Const, IR>)
             return std::bidirectional_iterator_tag{};
-        else if constexpr (std::ranges::forward_range<maybe_const_t<Const, IR>>)
+        else if constexpr (std::ranges::forward_range<detail::maybe_const_t<Const, IR>>)
             return std::forward_iterator_tag{};
         else
             return std::input_iterator_tag{};
@@ -481,7 +469,7 @@ public:
     constexpr void operator++(int) { ++*this; }
 
     constexpr Iterator operator++(int)
-        requires std::ranges::forward_range<maybe_const_t<Const, IR>>
+        requires std::ranges::forward_range<detail::maybe_const_t<Const, IR>>
     {
         auto tmp = *this;
         ++*this;
@@ -558,7 +546,7 @@ public:
 
     friend constexpr bool operator==(const Iterator& x, const Iterator& y)
         requires std::equality_comparable<
-            std::ranges::iterator_t<maybe_const_t<Const, IR>>>
+            std::ranges::iterator_t<detail::maybe_const_t<Const, IR>>>
     {
         return x.M_current == y.M_current;
     }
@@ -571,7 +559,7 @@ public:
     }
 
     friend constexpr auto operator<=>(const Iterator& x, const Iterator& y)
-        requires std::ranges::random_access_range<maybe_const_t<Const, IR>>
+        requires std::ranges::random_access_range<detail::maybe_const_t<Const, IR>>
     {
         return x.M_current <=> y.M_current;
     }
@@ -645,7 +633,7 @@ public:
 
     friend constexpr void iter_swap(const Iterator& l, const Iterator& r)
         requires(std::indirectly_swappable<
-                 std::ranges::iterator_t<maybe_const_t<Const, IR>>>)
+                 std::ranges::iterator_t<detail::maybe_const_t<Const, IR>>>)
     {
         for (auto& [lit, rit] : std::views::zip(l.M_current, r.M_current)) {
             std::ranges::iter_swap(lit, rit);

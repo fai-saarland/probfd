@@ -1,17 +1,14 @@
 #ifndef PROBFD_CONVERT_H
 #define PROBFD_CONVERT_H
 
+#include "probfd/views/utils.h"
+
 #include <concepts>
 #include <ranges>
 #include <tuple>
 #include <type_traits>
 
 namespace probfd::views {
-
-namespace detail {
-template <bool Const, typename T>
-using maybe_const_t = std::conditional_t<Const, const T, T>;
-}
 
 template <std::ranges::input_range Vw, typename T>
     requires std::ranges::view<Vw> &&

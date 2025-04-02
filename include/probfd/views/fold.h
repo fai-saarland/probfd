@@ -1,14 +1,22 @@
-#ifndef PROBFD_FOLD_H
-#define PROBFD_FOLD_H
+#ifndef PROBFD_VIEWS_FOLD_H
+#define PROBFD_VIEWS_FOLD_H
+
+#include <version>
+
+#ifdef __cpp_lib_ranges_fold
 
 #include <algorithm>
 
 namespace probfd::views {
+inline constexpr auto fold_left = std::ranges::fold_left;
+}
 
-#ifndef __cpp_lib_ranges_fold
+#else
 
+#include <algorithm>
 #include <iterator>
 
+namespace probfd::views {
 namespace detail {
 template <typename Fp>
 class flipped {
@@ -83,12 +91,8 @@ struct fold_left_fn {
 
 inline constexpr fold_left_fn fold_left;
 
-#else
-
-inline constexpr auto fold_left = std::ranges::fold_left;
+}
 
 #endif
 
-} // namespace probfd
-
-#endif // PROBFD_FOLD_H
+#endif

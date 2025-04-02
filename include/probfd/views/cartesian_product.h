@@ -1,21 +1,25 @@
 #ifndef PROBFD_CARTESIAN_PRODUCT_H
 #define PROBFD_CARTESIAN_PRODUCT_H
 
+#include <version>
+
+#ifdef __cpp_lib_ranges_cartesian_product
+
 #include <ranges>
 
 namespace probfd::views {
+inline constexpr auto cartesian_product = std::views::cartesian_product;
+}
 
-#ifndef __cpp_lib_ranges_cartesian_product
+#else
 
+#include "probfd/views/utils.h"
+
+#include <ranges>
 #include <tuple>
 #include <type_traits>
 
-template <bool Const, typename T>
-using maybe_const_t = std::conditional_t<Const, const T, T>;
-
-template <bool Const, typename... Vs>
-concept all_random_access =
-    (std::ranges::random_access_range<maybe_const_t<Const, Vs>> && ...);
+namespace probfd::views {
 
 template <std::ranges::viewable_range Range>
 using all_t = decltype(std::views::all(std::declval<Range>()));
@@ -40,22 +44,12 @@ constexpr auto tuple_transform(Fp&& f, Tuple&& tuple)
         std::forward<Tuple>(tuple));
 }
 
-template <typename _Range>
-concept simple_view =
-    std::ranges::view<_Range> && std::ranges::range<const _Range> &&
-    std::same_as<
-        std::ranges::iterator_t<_Range>,
-        std::ranges::iterator_t<const _Range>> &&
-    std::same_as<
-        std::ranges::sentinel_t<_Range>,
-        std::ranges::sentinel_t<const _Range>>;
-
 namespace detail {
 template <bool Const, typename First, typename... Vs>
 concept cartesian_product_is_random_access =
-    (std::ranges::random_access_range<maybe_const_t<Const, First>> && ... &&
-     (std::ranges::random_access_range<maybe_const_t<Const, Vs>> &&
-      std::ranges::sized_range<maybe_const_t<Const, Vs>>));
+    (std::ranges::random_access_range<detail::maybe_const_t<Const, First>> && ... &&
+     (std::ranges::random_access_range<detail::maybe_const_t<Const, Vs>> &&
+      std::ranges::sized_range<detail::maybe_const_t<Const, Vs>>));
 
 template <typename Range>
 concept cartesian_product_common_arg =
@@ -65,9 +59,9 @@ concept cartesian_product_common_arg =
 
 template <bool Const, typename First, typename... Vs>
 concept cartesian_product_is_bidirectional =
-    (std::ranges::bidirectional_range<maybe_const_t<Const, First>> && ... &&
-     (std::ranges::bidirectional_range<maybe_const_t<Const, Vs>> &&
-      cartesian_product_common_arg<maybe_const_t<Const, Vs>>));
+    (std::ranges::bidirectional_range<detail::maybe_const_t<Const, First>> && ... &&
+     (std::ranges::bidirectional_range<detail::maybe_const_t<Const, Vs>> &&
+      cartesian_product_common_arg<detail::maybe_const_t<Const, Vs>>));
 
 template <typename First, typename... Vs>
 concept cartesian_product_is_common = cartesian_product_common_arg<First>;
@@ -83,13 +77,13 @@ template <
     typename... Vs>
 concept cartesian_is_sized_sentinel =
     (std::sized_sentinel_for<
-         FirstSent<maybe_const_t<Const, First>>,
-         std::ranges::iterator_t<maybe_const_t<Const, First>>> &&
+         FirstSent<detail::maybe_const_t<Const, First>>,
+         std::ranges::iterator_t<detail::maybe_const_t<Const, First>>> &&
      ... &&
-     (std::ranges::sized_range<maybe_const_t<Const, Vs>> &&
+     (std::ranges::sized_range<detail::maybe_const_t<Const, Vs>> &&
       std::sized_sentinel_for<
-          std::ranges::iterator_t<maybe_const_t<Const, Vs>>,
-          std::ranges::iterator_t<maybe_const_t<Const, Vs>>>));
+          std::ranges::iterator_t<detail::maybe_const_t<Const, Vs>>,
+          std::ranges::iterator_t<detail::maybe_const_t<Const, Vs>>>));
 
 template <cartesian_product_common_arg _Range>
 constexpr auto cartesian_common_arg_end(_Range& __r)
@@ -223,11 +217,11 @@ template <std::ranges::input_range First, std::ranges::forward_range... Vs>
     requires(std::ranges::view<First> && ... && std::ranges::view<Vs>)
 template <bool Const>
 class cartesian_product_view<First, Vs...>::Iterator {
-    using Parent = maybe_const_t<Const, cartesian_product_view>;
+    using Parent = detail::maybe_const_t<Const, cartesian_product_view>;
     Parent* _M_parent = nullptr;
     std::tuple<
-        std::ranges::iterator_t<maybe_const_t<Const, First>>,
-        std::ranges::iterator_t<maybe_const_t<Const, Vs>>...>
+        std::ranges::iterator_t<detail::maybe_const_t<Const, First>>,
+        std::ranges::iterator_t<detail::maybe_const_t<Const, Vs>>...>
         _M_current;
 
     constexpr Iterator(Parent& parent, decltype(_M_current) current)
@@ -249,7 +243,7 @@ class cartesian_product_view<First, Vs...>::Iterator {
                                Vs...>)
             return std::bidirectional_iterator_tag{};
         else if constexpr (std::ranges::forward_range<
-                               maybe_const_t<Const, First>>)
+                               detail::maybe_const_t<Const, First>>)
             return std::forward_iterator_tag{};
         else
             return std::input_iterator_tag{};
@@ -261,11 +255,11 @@ public:
     using iterator_category = std::input_iterator_tag;
     using iterator_concept = decltype(S_iter_concept());
     using value_type = std::tuple<
-        std::ranges::range_value_t<maybe_const_t<Const, First>>,
-        std::ranges::range_value_t<maybe_const_t<Const, Vs>>...>;
+        std::ranges::range_value_t<detail::maybe_const_t<Const, First>>,
+        std::ranges::range_value_t<detail::maybe_const_t<Const, Vs>>...>;
     using reference = std::tuple<
-        std::ranges::range_reference_t<maybe_const_t<Const, First>>,
-        std::ranges::range_reference_t<maybe_const_t<Const, Vs>>...>;
+        std::ranges::range_reference_t<detail::maybe_const_t<Const, First>>,
+        std::ranges::range_reference_t<detail::maybe_const_t<Const, Vs>>...>;
     using difference_type =
         decltype(cartesian_product_view::S_difference_type());
 
@@ -299,7 +293,7 @@ public:
     constexpr void operator++(int) { ++*this; }
 
     constexpr Iterator operator++(int)
-        requires std::ranges::forward_range<maybe_const_t<Const, First>>
+        requires std::ranges::forward_range<detail::maybe_const_t<Const, First>>
     {
         auto tmp = *this;
         ++*this;
@@ -342,7 +336,7 @@ public:
 
     friend constexpr bool operator==(const Iterator& x, const Iterator& y)
         requires std::equality_comparable<
-            std::ranges::iterator_t<maybe_const_t<Const, First>>>
+            std::ranges::iterator_t<detail::maybe_const_t<Const, First>>>
     {
         return x._M_current == y._M_current;
     }
@@ -427,10 +421,10 @@ public:
     friend constexpr void iter_swap(const Iterator& l, const Iterator& r)
         requires(
             std::indirectly_swappable<
-                std::ranges::iterator_t<maybe_const_t<Const, First>>> &&
+                std::ranges::iterator_t<detail::maybe_const_t<Const, First>>> &&
             ... &&
             std::indirectly_swappable<
-                std::ranges::iterator_t<maybe_const_t<Const, Vs>>>)
+                std::ranges::iterator_t<detail::maybe_const_t<Const, Vs>>>)
     {
         [&]<size_t... Is>(std::index_sequence<Is...>) {
             (std::ranges::iter_swap(
@@ -551,12 +545,8 @@ struct CartesianProduct
 
 inline constexpr detail::CartesianProduct cartesian_product;
 
-#else
-
-inline constexpr auto cartesian_product = std::views::cartesian_product;
+} // namespace probfd::views
 
 #endif
-
-} // namespace probfd::views
 
 #endif // PROBFD_CARTESIAN_PRODUCT_H

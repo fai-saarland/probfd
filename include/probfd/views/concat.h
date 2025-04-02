@@ -1,21 +1,28 @@
 #ifndef PROBFD_CONCAT_H
 #define PROBFD_CONCAT_H
 
+#include <version>
+
+#ifdef __cpp_lib_ranges_concat
+
 #include <ranges>
 
 namespace probfd::views {
+inline constexpr auto concat = std::views::concat;
+}
 
-#ifndef __cpp_lib_ranges_concat
+#else
+
+#include "probfd/views/utils.h"
 
 #include <iterator>
+#include <ranges>
 #include <utility>
 #include <variant>
 
-namespace detail {
+namespace probfd::views {
 
-// Alias for a type that is conditionally const.
-template <bool Const, typename Tp>
-using maybe_const_t = std::conditional_t<Const, const Tp, Tp>;
+namespace detail {
 
 template <typename... Rs>
 using concat_reference_t =
@@ -71,18 +78,6 @@ struct all_but_last_common<Const, Range> {
     static inline constexpr bool value = true;
 };
 
-template <bool Const, typename... Vs>
-concept all_random_access =
-    (std::ranges::random_access_range<maybe_const_t<Const, Vs>> && ...);
-
-template <bool Const, typename... Vs>
-concept all_bidirectional =
-    (std::ranges::bidirectional_range<maybe_const_t<Const, Vs>> && ...);
-
-template <bool Const, typename... Vs>
-concept all_forward =
-    (std::ranges::forward_range<maybe_const_t<Const, Vs>> && ...);
-
 template <bool Const, typename... Rs>
 concept concat_is_random_access =
     all_random_access<Const, Rs...> && all_but_last_common<Const, Rs...>::value;
@@ -111,16 +106,6 @@ constexpr auto tuple_transform(Fp&& f, Tuple&& t)
         },
         std::forward<Tuple>(t));
 }
-
-template <typename Range>
-concept simple_view =
-    std::ranges::view<Range> && std::ranges::range<const Range> &&
-    std::same_as<
-        std::ranges::iterator_t<Range>,
-        std::ranges::iterator_t<const Range>> &&
-    std::same_as<
-        std::ranges::sentinel_t<Range>,
-        std::ranges::sentinel_t<const Range>>;
 
 template <std::integral Tp>
 constexpr auto to_unsigned_like(Tp t) noexcept
@@ -154,7 +139,7 @@ public:
     }
 
     constexpr iterator<false> begin()
-        requires(!(detail::simple_view<Vs> && ...))
+        requires(!(simple_view<Vs> && ...))
     {
         iterator<false> it(
             this,
@@ -177,7 +162,7 @@ public:
     }
 
     constexpr auto end()
-        requires(!(detail::simple_view<Vs> && ...))
+        requires(!(simple_view<Vs> && ...))
     {
         if constexpr (detail::last_is_common<Vs...>::value) {
             constexpr auto n = sizeof...(Vs);
@@ -236,7 +221,7 @@ template <bool Const, typename... Vs>
 struct concat_view_iter_cat {};
 
 template <bool Const, typename... Vs>
-    requires detail::all_forward<Const, Vs...>
+    requires all_forward<Const, Vs...>
 struct concat_view_iter_cat<Const, Vs...> {
     static auto S_iter_cat()
     {
@@ -280,7 +265,7 @@ class concat_view<Vs...>::iterator
             return std::random_access_iterator_tag{};
         else if constexpr (detail::concat_is_bidirectional<Const, Vs...>)
             return std::bidirectional_iterator_tag{};
-        else if constexpr (detail::all_forward<Const, Vs...>)
+        else if constexpr (all_forward<Const, Vs...>)
             return std::forward_iterator_tag{};
         else
             return std::input_iterator_tag{};
@@ -435,7 +420,7 @@ public:
     constexpr void operator++(int) { ++*this; }
 
     constexpr iterator operator++(int)
-        requires detail::all_forward<Const, Vs...>
+        requires all_forward<Const, Vs...>
     {
         auto tmp = *this;
         ++*this;
@@ -503,31 +488,31 @@ public:
     }
 
     friend constexpr bool operator<(const iterator& x, const iterator& y)
-        requires detail::all_random_access<Const, Vs...>
+        requires all_random_access<Const, Vs...>
     {
         return x.M_it < y.M_it;
     }
 
     friend constexpr bool operator>(const iterator& x, const iterator& y)
-        requires detail::all_random_access<Const, Vs...>
+        requires all_random_access<Const, Vs...>
     {
         return x.M_it > y.M_it;
     }
 
     friend constexpr bool operator<=(const iterator& x, const iterator& y)
-        requires detail::all_random_access<Const, Vs...>
+        requires all_random_access<Const, Vs...>
     {
         return x.M_it <= y.M_it;
     }
 
     friend constexpr bool operator>=(const iterator& x, const iterator& y)
-        requires detail::all_random_access<Const, Vs...>
+        requires all_random_access<Const, Vs...>
     {
         return x.M_it >= y.M_it;
     }
 
     friend constexpr auto operator<=>(const iterator& x, const iterator& y)
-        requires detail::all_random_access<Const, Vs...> &&
+        requires all_random_access<Const, Vs...> &&
                  (std::three_way_comparable<
                       std::ranges::iterator_t<maybe_const_t<Const, Vs>>> &&
                   ...)
@@ -669,12 +654,8 @@ struct Concat : public std::ranges::range_adaptor_closure<Concat> {
 
 inline constexpr Concat concat;
 
-#else
-
-inline constexpr auto concat = std::views::concat;
+} // namespace probfd::views
 
 #endif
-
-} // namespace probfd::views
 
 #endif
