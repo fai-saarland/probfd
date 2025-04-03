@@ -4,6 +4,9 @@
 #include <string>
 #include <vector>
 
+// The MSVC standard library defines this...
+#undef IN
+
 namespace utils {
 class Context;
 }

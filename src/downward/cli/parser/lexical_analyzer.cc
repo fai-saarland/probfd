@@ -8,6 +8,9 @@
 #include <regex>
 #include <sstream>
 
+// The MSVC standard library defines this...
+#undef IN
+
 using namespace std;
 
 namespace downward::cli::parser {

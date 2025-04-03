@@ -8,6 +8,8 @@
 #include <cassert>
 #include <sstream>
 
+#undef IN
+
 using namespace std;
 
 namespace downward::cli::parser {

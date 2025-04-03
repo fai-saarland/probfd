@@ -5,6 +5,10 @@
 #include <iostream>
 #include <vector>
 
+// The MSVC standard library defines this...
+#undef TRUE
+#undef FALSE
+
 namespace probfd::json {
 
 enum class TokenType {
