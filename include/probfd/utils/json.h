@@ -232,9 +232,11 @@ struct JsonNull : JsonElement {
 };
 
 template <typename T>
+    requires (std::is_object_v<T>)
 T read(std::istream& is);
 
 template <typename T>
+    requires (std::is_object_v<T>)
 T read(const JsonElement& element);
 
 template <typename T>
@@ -381,6 +383,7 @@ T read(const JsonElement& element)
 }
 
 template <typename T>
+    requires (std::is_object_v<T>)
 T read(std::istream& is)
 {
     const auto tokens = tokenize(is);
@@ -389,6 +392,7 @@ T read(std::istream& is)
 }
 
 template <typename T>
+requires (std::is_object_v<T>)
 T read(const std::filesystem::path& path)
 {
     std::ifstream file(path);
