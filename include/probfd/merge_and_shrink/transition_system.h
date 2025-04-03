@@ -7,7 +7,7 @@
 
 #include "probfd/value_type.h"
 
-#include "probfd/utils/json.h"
+#include "probfd/json/json.h"
 
 #include <algorithm>
 #include <cassert>

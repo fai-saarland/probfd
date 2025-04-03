@@ -1,8 +1,10 @@
 
-#ifndef PROBFD_UTILS_JSON_TOKENIZER_H
-#define PROBFD_UTILS_JSON_TOKENIZER_H
+#ifndef PROBFD_JSON_TOKENIZE_H
+#define PROBFD_JSON_TOKENIZE_H
 
+#include <format>
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 
 // The MSVC standard library defines this...
@@ -10,6 +12,17 @@
 #undef FALSE
 
 namespace probfd::json {
+
+class TokenizationError final : public std::runtime_error {
+public:
+    template <typename... Args>
+    explicit TokenizationError(
+        std::format_string<Args...> fmt,
+        Args&&... args)
+        : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
+    {
+    }
+};
 
 enum class TokenType {
     END_OF_FILE,

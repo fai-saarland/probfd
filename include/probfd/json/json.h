@@ -2,7 +2,7 @@
 #ifndef PROBFD_UTILS_JSON_H
 #define PROBFD_UTILS_JSON_H
 
-#include "probfd/utils/json_tokenizer.h"
+#include "probfd/json/tokenize.h"
 
 #include <cmath>
 #include <concepts>

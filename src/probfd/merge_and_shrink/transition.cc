@@ -1,6 +1,6 @@
 #include "probfd/merge_and_shrink/transition.h"
 
-#include "probfd/utils/json.h"
+#include "probfd/json/json.h"
 
 #include "downward/utils/logging.h"
 

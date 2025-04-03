@@ -15,7 +15,7 @@
 
 #include "probfd/task_proxy.h"
 
-#include "probfd/utils/json.h"
+#include "probfd/json/json.h"
 
 #include "probfd/task_cost_function.h"
 

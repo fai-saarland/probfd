@@ -34,10 +34,12 @@ create_library(
         probfd/task_utils/causal_graph
         probfd/task_utils/sampling
 
+        #Json
+        probfd/json/json
+        probfd/json/tokenize
+
         # Utility
         probfd/utils/guards
-        probfd/utils/json
-        probfd/utils/json_tokenizer
         probfd/utils/not_implemented
 
         probfd/solver_interface

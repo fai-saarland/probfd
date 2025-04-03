@@ -4,7 +4,7 @@
 
 #include "probfd/task_proxy.h"
 
-#include "probfd/utils/json.h"
+#include "probfd/json/json.h"
 
 #include "downward/utils/logging.h"
 

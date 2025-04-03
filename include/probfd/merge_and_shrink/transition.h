@@ -1,7 +1,7 @@
 #ifndef PROBFD_MERGE_AND_SHRINK_TRANSITION_H
 #define PROBFD_MERGE_AND_SHRINK_TRANSITION_H
 
-#include "probfd/utils/json.h"
+#include "probfd/json/json.h"
 
 #include <compare>
 #include <format>

@@ -3,7 +3,7 @@
 #include "probfd/merge_and_shrink/distances.h"
 #include "probfd/merge_and_shrink/labels.h"
 
-#include "probfd/utils/json.h"
+#include "probfd/json/json.h"
 
 #include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
