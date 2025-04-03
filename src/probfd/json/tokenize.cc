@@ -8,6 +8,8 @@
 
 namespace probfd::json {
 
+namespace {
+
 template <typename H, typename... T>
 concept AllSame = (std::same_as<H, T> && ...);
 
@@ -60,7 +62,6 @@ struct ConstString {
     }
 };
 
-namespace {
 template <ConstString format_string, typename... Args>
 [[noreturn]]
 void throw_error(std::size_t line, std::size_t column, Args&&... args)
