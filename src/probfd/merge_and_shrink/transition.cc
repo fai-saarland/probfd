@@ -1,5 +1,6 @@
 #include "probfd/merge_and_shrink/transition.h"
 
+#include "probfd/utils/format.h"
 #include "probfd/utils/json.h"
 
 #include "downward/utils/logging.h"
@@ -53,6 +54,18 @@ std::istream& operator>>(std::istream& in, std::vector<T>& list)
 }
 } // namespace
 
+Transition::Transition(const json::JsonObject& object)
+    : src(object.read<int>("src"))
+    , targets(object.read<std::vector<int>>("targets"))
+{
+}
+
+Transition::Transition(int src, std::vector<int> targets)
+    : src(src)
+    , targets(std::move(targets))
+{
+}
+
 std::ostream& operator<<(std::ostream& os, const Transition& transition)
 {
     os << transition.src << " -> (" << transition.targets.front();
@@ -62,30 +75,13 @@ std::ostream& operator<<(std::ostream& os, const Transition& transition)
     return os << ")";
 }
 
-std::istream& operator>>(std::istream& is, Transition& transition)
+std::unique_ptr<json::JsonObject> to_json(const Transition& transition)
 {
-    if (!(is >> transition.src)) return is;
-
-    is >> std::ws;
-
-    if (is.get() != '-' || is.get() != '>') {
-        is.setstate(std::ios::failbit);
-        return is;
-    }
-
-    is >> std::ws;
-
-    return operator>> <int, '(', ')'>(is, transition.targets);
-}
-
-void dump_json(std::ostream& os, const Transition& transition)
-{
-    json::write_array(os, transition.src, transition.targets);
-}
-
-Transition Transition::read_json(std::istream& is)
-{
-    return json::construct_from_array<Transition, int, std::vector<int>>(is);
+    return json::make_object(
+        "src",
+        transition.src,
+        "targets",
+        transition.targets);
 }
 
 } // namespace probfd::merge_and_shrink

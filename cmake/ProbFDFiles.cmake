@@ -36,6 +36,8 @@ create_library(
 
         # Utility
         probfd/utils/guards
+        probfd/utils/json
+        probfd/utils/json_tokenizer
         probfd/utils/not_implemented
 
         probfd/solver_interface

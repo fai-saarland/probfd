@@ -1,359 +1,359 @@
 {
-  "incorporated_variables": [
-    1,
-    3
-  ],
-  "label_to_local_label": [
-    0,
-    1,
-    4,
-    2,
-    5,
-    6,
-    8,
-    3,
-    7,
-    9,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1
-  ],
-  "local_label_infos": [
-    {
-      "labels": [
-        0
-      ],
-      "transitions": [
-        [
-          0,
-          [
-            1,
-            1
-          ]
-        ],
-        [
-          1,
-          [
-            1,
-            1
-          ]
-        ],
-        [
-          2,
-          [
-            3,
-            3
-          ]
-        ],
-        [
-          3,
-          [
-            3,
-            3
-          ]
-        ],
-        [
-          4,
-          [
-            5,
-            5
-          ]
-        ],
-        [
-          5,
-          [
-            5,
-            5
-          ]
-        ],
-        [
-          6,
-          [
-            7,
-            7
-          ]
-        ],
-        [
-          7,
-          [
-            7,
-            7
-          ]
-        ]
-      ],
-      "cost": 1
-    },
-    {
-      "labels": [
-        1
-      ],
-      "transitions": [
-        [
-          1,
-          [
-            7,
-            5
-          ]
-        ]
-      ],
-      "cost": 1
-    },
-    {
-      "labels": [
+    "goal_states": [
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        false,
+        false
+    ],
+    "incorporated_variables": [
+        1,
         3
-      ],
-      "transitions": [
-        [
-          5,
-          [
-            7,
-            5
-          ]
-        ]
-      ],
-      "cost": 1
-    },
-    {
-      "labels": [
-        7
-      ],
-      "transitions": [
-        [
-          7,
-          [
-            1,
-            5
-          ]
-        ]
-      ],
-      "cost": 0
-    },
-    {
-      "labels": [
-        2
-      ],
-      "transitions": [
-        [
-          0,
-          [
-            0,
-            0
-          ]
-        ],
-        [
-          1,
-          [
-            1,
-            1
-          ]
-        ],
-        [
-          2,
-          [
-            2,
-            2
-          ]
-        ],
-        [
-          3,
-          [
-            3,
-            3
-          ]
-        ],
-        [
-          4,
-          [
-            4,
-            4
-          ]
-        ],
-        [
-          5,
-          [
-            5,
-            5
-          ]
-        ],
-        [
-          6,
-          [
-            6,
-            6
-          ]
-        ],
-        [
-          7,
-          [
-            7,
-            7
-          ]
-        ]
-      ],
-      "cost": 1
-    },
-    {
-      "labels": [
-        4
-      ],
-      "transitions": [
-        [
-          6,
-          [
-            4
-          ]
-        ],
-        [
-          7,
-          [
-            5
-          ]
-        ]
-      ],
-      "cost": 0
-    },
-    {
-      "labels": [
-        5
-      ],
-      "transitions": [
-        [
-          0,
-          [
-            0
-          ]
-        ],
-        [
-          1,
-          [
-            1
-          ]
-        ]
-      ],
-      "cost": 0
-    },
-    {
-      "labels": [
-        8
-      ],
-      "transitions": [
-        [
-          0,
-          [
-            0
-          ]
-        ],
-        [
-          1,
-          [
-            1
-          ]
-        ],
-        [
-          2,
-          [
-            2
-          ]
-        ],
-        [
-          3,
-          [
-            3
-          ]
-        ],
-        [
-          4,
-          [
-            4
-          ]
-        ],
-        [
-          5,
-          [
-            5
-          ]
-        ],
-        [
-          6,
-          [
-            6
-          ]
-        ],
-        [
-          7,
-          [
-            7
-          ]
-        ]
-      ],
-      "cost": 0
-    },
-    {
-      "labels": [
-        6
-      ],
-      "transitions": [
-        [
-          1,
-          [
-            0,
-            1
-          ]
-        ],
-        [
-          3,
-          [
-            2,
-            3
-          ]
-        ],
-        [
-          5,
-          [
-            4,
-            5
-          ]
-        ],
-        [
-          7,
-          [
-            6,
-            7
-          ]
-        ]
-      ],
-      "cost": 0
-    },
-    {
-      "labels": [
-        9
-      ],
-      "transitions": [
-        [
-          7,
-          [
-            5
-          ]
-        ]
-      ],
-      "cost": 0
-    }
-  ],
-  "init_state": 4,
-  "goal_states": [
-    false,
-    false,
-    false,
-    false,
-    true,
-    true,
-    false,
-    false
-  ]
-}
+    ],
+    "init_state": 4,
+    "label_to_local_label": [
+        0,
+        1,
+        4,
+        2,
+        5,
+        6,
+        8,
+        3,
+        7,
+        9,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+    ],
+    "local_label_infos": [
+        {
+            "cost": 1,
+            "labels": [
+                0
+            ],
+            "transitions": [
+                {
+                    "src": 0,
+                    "targets": [
+                        1,
+                        1
+                    ]
+                },
+                {
+                    "src": 1,
+                    "targets": [
+                        1,
+                        1
+                    ]
+                },
+                {
+                    "src": 2,
+                    "targets": [
+                        3,
+                        3
+                    ]
+                },
+                {
+                    "src": 3,
+                    "targets": [
+                        3,
+                        3
+                    ]
+                },
+                {
+                    "src": 4,
+                    "targets": [
+                        5,
+                        5
+                    ]
+                },
+                {
+                    "src": 5,
+                    "targets": [
+                        5,
+                        5
+                    ]
+                },
+                {
+                    "src": 6,
+                    "targets": [
+                        7,
+                        7
+                    ]
+                },
+                {
+                    "src": 7,
+                    "targets": [
+                        7,
+                        7
+                    ]
+                }
+            ]
+        },
+        {
+            "cost": 1,
+            "labels": [
+                1
+            ],
+            "transitions": [
+                {
+                    "src": 1,
+                    "targets": [
+                        7,
+                        5
+                    ]
+                }
+            ]
+        },
+        {
+            "cost": 1,
+            "labels": [
+                3
+            ],
+            "transitions": [
+                {
+                    "src": 5,
+                    "targets": [
+                        7,
+                        5
+                    ]
+                }
+            ]
+        },
+        {
+            "cost": 0,
+            "labels": [
+                7
+            ],
+            "transitions": [
+                {
+                    "src": 7,
+                    "targets": [
+                        1,
+                        5
+                    ]
+                }
+            ]
+        },
+        {
+            "cost": 1,
+            "labels": [
+                2
+            ],
+            "transitions": [
+                {
+                    "src": 0,
+                    "targets": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "src": 1,
+                    "targets": [
+                        1,
+                        1
+                    ]
+                },
+                {
+                    "src": 2,
+                    "targets": [
+                        2,
+                        2
+                    ]
+                },
+                {
+                    "src": 3,
+                    "targets": [
+                        3,
+                        3
+                    ]
+                },
+                {
+                    "src": 4,
+                    "targets": [
+                        4,
+                        4
+                    ]
+                },
+                {
+                    "src": 5,
+                    "targets": [
+                        5,
+                        5
+                    ]
+                },
+                {
+                    "src": 6,
+                    "targets": [
+                        6,
+                        6
+                    ]
+                },
+                {
+                    "src": 7,
+                    "targets": [
+                        7,
+                        7
+                    ]
+                }
+            ]
+        },
+        {
+            "cost": 0,
+            "labels": [
+                4
+            ],
+            "transitions": [
+                {
+                    "src": 6,
+                    "targets": [
+                        4
+                    ]
+                },
+                {
+                    "src": 7,
+                    "targets": [
+                        5
+                    ]
+                }
+            ]
+        },
+        {
+            "cost": 0,
+            "labels": [
+                5
+            ],
+            "transitions": [
+                {
+                    "src": 0,
+                    "targets": [
+                        0
+                    ]
+                },
+                {
+                    "src": 1,
+                    "targets": [
+                        1
+                    ]
+                }
+            ]
+        },
+        {
+            "cost": 0,
+            "labels": [
+                8
+            ],
+            "transitions": [
+                {
+                    "src": 0,
+                    "targets": [
+                        0
+                    ]
+                },
+                {
+                    "src": 1,
+                    "targets": [
+                        1
+                    ]
+                },
+                {
+                    "src": 2,
+                    "targets": [
+                        2
+                    ]
+                },
+                {
+                    "src": 3,
+                    "targets": [
+                        3
+                    ]
+                },
+                {
+                    "src": 4,
+                    "targets": [
+                        4
+                    ]
+                },
+                {
+                    "src": 5,
+                    "targets": [
+                        5
+                    ]
+                },
+                {
+                    "src": 6,
+                    "targets": [
+                        6
+                    ]
+                },
+                {
+                    "src": 7,
+                    "targets": [
+                        7
+                    ]
+                }
+            ]
+        },
+        {
+            "cost": 0,
+            "labels": [
+                6
+            ],
+            "transitions": [
+                {
+                    "src": 1,
+                    "targets": [
+                        0,
+                        1
+                    ]
+                },
+                {
+                    "src": 3,
+                    "targets": [
+                        2,
+                        3
+                    ]
+                },
+                {
+                    "src": 5,
+                    "targets": [
+                        4,
+                        5
+                    ]
+                },
+                {
+                    "src": 7,
+                    "targets": [
+                        6,
+                        7
+                    ]
+                }
+            ]
+        },
+        {
+            "cost": 0,
+            "labels": [
+                9
+            ],
+            "transitions": [
+                {
+                    "src": 7,
+                    "targets": [
+                        5
+                    ]
+                }
+            ]
+        }
+    ]
+ }

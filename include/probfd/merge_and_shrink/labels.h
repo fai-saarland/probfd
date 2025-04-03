@@ -3,6 +3,8 @@
 
 #include "probfd/value_type.h"
 
+#include "probfd/utils/json.h"
+
 #include <iosfwd>
 #include <memory>
 #include <ranges>
@@ -23,11 +25,11 @@ struct LabelInfo {
     value_t cost;
     std::vector<value_t> probabilities;
 
+    explicit LabelInfo(const json::JsonObject& object);
     explicit LabelInfo(ProbabilisticOperatorProxy op);
     LabelInfo(value_t cost, std::vector<value_t> probabilities);
 
-    static LabelInfo read_json(std::istream& is);
-    friend void dump_json(std::ostream& os, const LabelInfo& label_info);
+    friend std::unique_ptr<json::JsonObject> to_json(const LabelInfo& labels);
 };
 
 /*
@@ -45,6 +47,8 @@ class Labels {
     int num_active_labels; // The current number of active (non-reduced) labels.
 
 public:
+    explicit Labels(const json::JsonObject& object);
+
     explicit Labels(ProbabilisticOperatorsProxy operators);
 
     Labels(
@@ -75,8 +79,7 @@ public:
 
     void dump_labels(utils::LogProxy log) const;
 
-    static Labels read_json(std::istream& is);
-    friend void dump_json(std::ostream& os, const Labels& labels);
+    friend std::unique_ptr<json::JsonObject> to_json(const Labels& labels);
 };
 
 } // namespace probfd::merge_and_shrink

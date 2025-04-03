@@ -15,6 +15,12 @@ using namespace std;
 
 namespace probfd::merge_and_shrink {
 
+LabelInfo::LabelInfo(const json::JsonObject& object)
+    : cost(object.read<value_t>("cost"))
+    , probabilities(object.read<std::vector<value_t>>("probabilities"))
+{
+}
+
 LabelInfo::LabelInfo(ProbabilisticOperatorProxy op)
     : cost(op.get_cost())
 {
@@ -29,21 +35,20 @@ LabelInfo::LabelInfo(value_t cost, std::vector<value_t> probabilities)
 {
 }
 
-LabelInfo LabelInfo::read_json(std::istream& is)
+std::unique_ptr<json::JsonObject> to_json(const LabelInfo& label_info)
 {
-    return json::
-        construct_from_object<LabelInfo, value_t, std::vector<value_t>>(
-            is,
-            "cost",
-            "probabilities");
+    return json::make_object(
+        "cost",
+        label_info.cost,
+        "probabilities",
+        label_info.probabilities);
 }
 
-void dump_json(std::ostream& os, const LabelInfo& label_info)
+Labels::Labels(const json::JsonObject& object)
+    : label_infos(object.read<std::vector<LabelInfo>>("label_infos"))
+    , max_num_labels(object.read<int>("max_num_labels"))
+    , num_active_labels(object.read<int>("num_active_labels"))
 {
-    json::write_object(
-        os,
-        std::forward_as_tuple("cost", label_info.cost),
-        std::forward_as_tuple("probabilities", label_info.probabilities));
 }
 
 Labels::Labels(
@@ -95,7 +100,8 @@ void Labels::reduce_labels(const vector<int>& old_labels)
       we compute the cost of the new label as the minimum cost of all old
       labels reduced to it to satisfy admissibility.
     */
-    auto& [first_label_cost, new_label_probabilities] = label_infos[old_labels.front()];
+    auto& [first_label_cost, new_label_probabilities] =
+        label_infos[old_labels.front()];
 
     value_t new_label_cost = first_label_cost;
     first_label_cost = -1_vt;
@@ -125,29 +131,21 @@ void Labels::dump_labels(utils::LogProxy log) const
     for (size_t label = 0; label < label_infos.size(); ++label) {
         if (const auto& [cost, probabilities] = label_infos[label];
             cost != -1_vt) {
-            log << "label " << label << ", cost " << cost
-                << ", probabilities " << probabilities << endl;
+            log << "label " << label << ", cost " << cost << ", probabilities "
+                << probabilities << endl;
         }
     }
 }
 
-Labels Labels::read_json(std::istream& is)
+std::unique_ptr<json::JsonObject> to_json(const Labels& labels)
 {
-    return json::
-        construct_from_object<Labels, std::vector<LabelInfo>, int, int>(
-            is,
-            "label_infos",
-            "max_num_labels",
-            "num_active_labels");
-}
-
-void dump_json(std::ostream& os, const Labels& labels)
-{
-    json::write_object(
-        os,
-        std::forward_as_tuple("label_infos", labels.label_infos),
-        std::forward_as_tuple("max_num_labels", labels.max_num_labels),
-        std::forward_as_tuple("num_active_labels", labels.num_active_labels));
+    return json::make_object(
+        "label_infos",
+        labels.label_infos,
+        "max_num_labels",
+        labels.max_num_labels,
+        "num_active_labels",
+        labels.num_active_labels);
 }
 
 } // namespace probfd::merge_and_shrink

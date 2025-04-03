@@ -69,23 +69,11 @@ std::istream& operator>>(std::istream& in, std::vector<T>& list)
 }
 } // namespace
 
-LocalLabelInfo LocalLabelInfo::read_from_file(istream& file)
+LocalLabelInfo::LocalLabelInfo(const json::JsonObject& object)
+    : label_group(object.read<LabelGroup>("labels"))
+    , transitions(object.read<std::vector<Transition>>("transitions"))
+    , cost(object.read<value_t>("cost"))
 {
-    LabelGroup label_group;
-    std::vector<Transition> transitions;
-    value_t cost;
-
-    if (!(file >> label_group))
-        throw std::invalid_argument("Could not read label group.");
-    if (file.get() != ',') throw std::invalid_argument("Expected \",\".");
-    if (!(file >> std::ws >> cost))
-        throw std::invalid_argument("Could not read cost.");
-    if (file.get() != ',') throw std::invalid_argument("Expected \",\".");
-    if (file.get() != ',') throw std::invalid_argument("Expected \",\".");
-    if (!(file >> std::ws >> transitions))
-        throw std::invalid_argument("Could not read transitions.");
-
-    return LocalLabelInfo(std::move(label_group), std::move(transitions), cost);
 }
 
 void LocalLabelInfo::add_label(int label, value_t label_cost)
@@ -167,22 +155,15 @@ std::ostream& operator<<(std::ostream& out, const LocalLabelInfo& label_info)
                << ", Transitions: " << label_info.get_transitions();
 }
 
-void dump_json(std::ostream& os, const LocalLabelInfo& info)
+std::unique_ptr<json::JsonObject> to_json(const LocalLabelInfo& info)
 {
-    json::write_object(
-        os,
-        std::forward_as_tuple("labels", info.label_group),
-        std::forward_as_tuple("transitions", info.transitions),
-        std::forward_as_tuple("cost", info.cost));
-}
-
-LocalLabelInfo LocalLabelInfo::read_json(std::istream& is)
-{
-    return json::construct_from_object<
-        LocalLabelInfo,
-        LabelGroup,
-        std::vector<Transition>,
-        value_t>(is, "labels", "transitions", "cost");
+    return json::make_object(
+        "labels",
+        info.label_group,
+        "transitions",
+        info.transitions,
+        "cost",
+        info.cost);
 }
 
 void LocalLabelInfo::merge(LocalLabelInfo& right)
@@ -206,6 +187,17 @@ void LocalLabelInfo::merge(LocalLabelInfo& right)
   a graph representation permanently for the benefit of distance
   computation is not worth the overhead.
 */
+
+TransitionSystem::TransitionSystem(const json::JsonObject& object)
+    : incorporated_variables(
+          object.read<std::vector<int>>("incorporated_variables"))
+    , label_to_local_label(object.read<LabelGroup>("label_to_local_label"))
+    , local_label_infos(
+          object.read<std::vector<LocalLabelInfo>>("local_label_infos"))
+    , init_state(object.read<int>("init_state"))
+    , goal_states(object.read<std::vector<bool>>("goal_states"))
+{
+}
 
 TransitionSystem::TransitionSystem(
     vector<int> incorporated_variables,
@@ -749,39 +741,6 @@ void TransitionSystem::dump_labels_and_transitions(utils::LogProxy& log) const
     log << std::endl;
 }
 
-TransitionSystem TransitionSystem::read_from_file(std::istream& is)
-{
-    std::vector<int> incorporated_variables;
-    std::vector<int> label_to_local_label;
-    std::vector<LocalLabelInfo> local_labels;
-    int init_state;
-    std::vector<bool> goal_states;
-
-    if (!(is >> incorporated_variables))
-        throw std::invalid_argument("Expected incorporated variables.");
-
-    is >> std::ws;
-    if (!(is >> label_to_local_label))
-        throw std::invalid_argument("Expected label to local label mapping.");
-
-    while ((is >> std::ws).peek() == '[') {
-        local_labels.emplace_back(LocalLabelInfo::read_from_file(is));
-    }
-
-    if (!(is >> std::ws >> init_state))
-        throw std::invalid_argument("Expected initial state.");
-
-    if (!(is >> std::ws >> goal_states))
-        throw std::invalid_argument("Expected goal states.");
-
-    return TransitionSystem(
-        std::move(incorporated_variables),
-        std::move(label_to_local_label),
-        std::move(local_labels),
-        init_state,
-        std::move(goal_states));
-}
-
 std::ostream& operator<<(std::ostream& os, const TransitionSystem& ts)
 {
     os << "Incorporated Variables: " << ts.incorporated_variables << '\n'
@@ -798,34 +757,19 @@ std::ostream& operator<<(std::ostream& os, const TransitionSystem& ts)
               << "Goal states: " << ts.goal_states;
 }
 
-void dump_json(std::ostream& os, const TransitionSystem& ts)
+std::unique_ptr<json::JsonObject> to_json(const TransitionSystem& ts)
 {
-    json::write_object(
-        os,
-        std::forward_as_tuple(
-            "incorporated_variables",
-            ts.incorporated_variables),
-        std::forward_as_tuple("label_to_local_label", ts.label_to_local_label),
-        std::forward_as_tuple("local_label_infos", ts.local_label_infos),
-        std::forward_as_tuple("init_state", ts.init_state),
-        std::forward_as_tuple("goal_states", ts.goal_states));
-}
-
-TransitionSystem TransitionSystem::read_json(std::istream& is)
-{
-    return json::construct_from_object<
-        TransitionSystem,
-        std::vector<int>,
-        LabelGroup,
-        std::vector<LocalLabelInfo>,
-        int,
-        std::vector<bool>>(
-        is,
+    return json::make_object(
         "incorporated_variables",
+        ts.incorporated_variables,
         "label_to_local_label",
+        ts.label_to_local_label,
         "local_label_infos",
+        ts.local_label_infos,
         "init_state",
-        "goal_states");
+        ts.init_state,
+        "goal_states",
+        ts.goal_states);
 }
 
 } // namespace probfd::merge_and_shrink

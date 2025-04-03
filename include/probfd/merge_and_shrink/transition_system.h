@@ -1,11 +1,13 @@
 #ifndef PROBFD_MERGE_AND_SHRINK_TRANSITION_SYSTEM_H
 #define PROBFD_MERGE_AND_SHRINK_TRANSITION_SYSTEM_H
 
-#include "labels.h"
+#include "probfd/merge_and_shrink/labels.h"
 #include "probfd/merge_and_shrink/transition.h"
 #include "probfd/merge_and_shrink/types.h"
 
 #include "probfd/value_type.h"
+
+#include "probfd/utils/json.h"
 
 #include <algorithm>
 #include <cassert>
@@ -48,6 +50,8 @@ class LocalLabelInfo {
     value_t cost;
 
 public:
+    explicit LocalLabelInfo(const json::JsonObject& object);
+
     LocalLabelInfo(
         LabelGroup label_group,
         std::vector<Transition> transitions,
@@ -58,8 +62,6 @@ public:
     {
         assert(is_consistent());
     }
-
-    static LocalLabelInfo read_from_file(std::istream& file);
 
     void add_label(int label, value_t label_cost);
 
@@ -117,8 +119,8 @@ public:
     friend bool
     operator==(const LocalLabelInfo&, const LocalLabelInfo&) = default;
 
-    friend void dump_json(std::ostream& os, const LocalLabelInfo& info);
-    static LocalLabelInfo read_json(std::istream& is);
+    friend std::unique_ptr<json::JsonObject>
+    to_json(const LocalLabelInfo& info);
 
     void merge(LocalLabelInfo& right);
 };
@@ -168,6 +170,8 @@ class TransitionSystem {
     void dump_label_mapping(const Labels& labels, std::ostream& out) const;
 
 public:
+    explicit TransitionSystem(const json::JsonObject& object);
+
     TransitionSystem(
         std::vector<int> incorporated_variables,
         std::vector<int> label_to_local_label,
@@ -249,8 +253,6 @@ public:
     void dump_dot_graph(utils::LogProxy& log) const;
     void dump_labels_and_transitions(utils::LogProxy& log) const;
 
-    static TransitionSystem read_from_file(std::istream& is);
-
     friend std::ostream&
     operator<<(std::ostream& os, const TransitionSystem& ts);
 
@@ -258,8 +260,8 @@ public:
     operator==(const TransitionSystem& left, const TransitionSystem& right) =
         default;
 
-    static TransitionSystem read_json(std::istream& is);
-    friend void dump_json(std::ostream& os, const TransitionSystem& ts);
+    friend std::unique_ptr<json::JsonObject>
+    to_json(const TransitionSystem& info);
 };
 
 } // namespace probfd::merge_and_shrink

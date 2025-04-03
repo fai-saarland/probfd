@@ -2,344 +2,582 @@
 #ifndef PROBFD_UTILS_JSON_H
 #define PROBFD_UTILS_JSON_H
 
+#include "probfd/utils/json_tokenizer.h"
+
+#include <__filesystem/filesystem_error.h>
 #include <cmath>
 #include <concepts>
+#include <filesystem>
 #include <format>
+#include <forward_list>
+#include <fstream>
 #include <iostream>
+#include <list>
+#include <map>
 #include <ranges>
+#include <unordered_map>
 #include <vector>
 
 namespace probfd::json {
 
+class JsonElement {
+public:
+    enum class ElementID {
+        OBJECT,
+        ARRAY,
+        STRING,
+        BOOLEAN,
+        INTEGER,
+        FLOAT,
+        NUL
+    };
+
+    ElementID id;
+
+    explicit JsonElement(ElementID id)
+        : id(id)
+    {
+    }
+
+    virtual ~JsonElement() = default;
+
+    virtual void print(std::ostream& os, int indent) = 0;
+};
+
+class JsonObject : public JsonElement {
+    std::map<std::string, std::unique_ptr<JsonElement>> members;
+
+public:
+    explicit JsonObject(
+        std::map<std::string, std::unique_ptr<JsonElement>> members);
+
+    template <std::ranges::input_range R>
+        requires std::convertible_to<
+                     std::ranges::range_value_t<R>,
+                     std::pair<const std::string, std::unique_ptr<JsonElement>>>
+    JsonObject(std::from_range_t, R&& range)
+        : JsonElement(ElementID::ARRAY)
+        , members(std::from_range, std::forward<R>(range))
+    {
+    }
+
+    template <typename... T>
+        requires(
+            std::convertible_to<
+                T,
+                std::
+                    pair<const std::string, std::unique_ptr<JsonElement> &&>> &&
+            ...)
+    explicit JsonObject(T... range)
+        : JsonElement(ElementID::ARRAY)
+    {
+        (members.emplace(std::get<0>(range), std::move(std::get<1>(range))),
+         ...);
+    }
+
+    const JsonElement* get_field(const std::string& s) const;
+
+    template <typename T>
+    T read(const std::string& s) const;
+
+    void print(std::ostream& os, int indent) override;
+};
+
+template <typename T, typename It>
+class json_array_view;
+
+class JsonArray : public JsonElement {
+public:
+    using iterator = std::vector<std::unique_ptr<JsonElement>>::iterator;
+    using const_iterator =
+        std::vector<std::unique_ptr<JsonElement>>::const_iterator;
+
+    template <typename T>
+    using read_view_t = json_array_view<T, const_iterator>;
+
+private:
+    std::vector<std::unique_ptr<JsonElement>> elements;
+
+public:
+    explicit JsonArray(std::vector<std::unique_ptr<JsonElement>> elements);
+
+    template <std::ranges::input_range R>
+        requires(std::convertible_to<
+                    std::ranges::range_value_t<R>,
+                    std::unique_ptr<JsonElement>>)
+    JsonArray(std::from_range_t, R&& range)
+        : JsonElement(ElementID::ARRAY)
+        , elements(std::from_range, std::forward<R>(range))
+    {
+    }
+
+    template <typename... T>
+        requires(std::convertible_to<T, std::unique_ptr<JsonElement>> && ...)
+    explicit JsonArray(T&&... range)
+        : JsonElement(ElementID::ARRAY)
+        , elements({range...})
+    {
+    }
+
+    void print(std::ostream& os, int indent) override;
+
+    template <typename T>
+    T read(std::size_t index) const;
+
+    template <typename T>
+    read_view_t<T> read_view() const;
+
+    iterator begin() { return elements.begin(); }
+    iterator end() { return elements.end(); }
+
+    const_iterator begin() const { return elements.begin(); }
+    const_iterator end() const { return elements.end(); }
+};
+
+template <typename T, typename It>
+class json_array_view {
+    class json_array_iterator {
+        It it;
+
+    public:
+        using value_type = T;
+        using pointer = T*;
+        using reference = T;
+        using difference_type = std::ptrdiff_t;
+        using iterator_category = std::input_iterator_tag;
+
+        json_array_iterator() = default;
+
+        explicit json_array_iterator(It it);
+
+        T operator*() const;
+
+        json_array_iterator& operator++();
+
+        void operator++(int) { ++*this; }
+
+        friend bool operator==(
+            const json_array_iterator& left,
+            const json_array_iterator& right) = default;
+    };
+
+    const JsonArray& array;
+
+public:
+    explicit json_array_view(const JsonArray& array)
+        : array(array)
+    {
+    }
+
+    auto begin() { return json_array_iterator(array.begin()); }
+    auto end() { return json_array_iterator(array.end()); }
+
+    auto begin() const { return json_array_iterator(array.begin()); }
+    auto end() const { return json_array_iterator(array.end()); }
+};
+
 template <typename T>
-void write(std::ostream& os, const T& t);
+auto JsonArray::read_view() const -> read_view_t<T>
+{
+    return json_array_view<T, const_iterator>(*this);
+}
+
+struct JsonString : JsonElement {
+    std::string string;
+
+    explicit JsonString(std::string string)
+        : JsonElement(ElementID::STRING)
+        , string(std::move(string))
+    {
+    }
+
+    void print(std::ostream& os, int indent) override;
+};
+
+struct JsonBoolean : JsonElement {
+    bool value;
+
+    explicit JsonBoolean(bool value)
+        : JsonElement(ElementID::BOOLEAN)
+        , value(value)
+    {
+    }
+
+    void print(std::ostream& os, int indent) override;
+};
+
+struct JsonInteger : JsonElement {
+    long long int value;
+
+    explicit JsonInteger(long long int value)
+        : JsonElement(ElementID::INTEGER)
+        , value(value)
+    {
+    }
+
+    void print(std::ostream& os, int indent) override;
+};
+
+struct JsonFloat : JsonElement {
+    long double value;
+
+    explicit JsonFloat(long double value)
+        : JsonElement(ElementID::FLOAT)
+        , value(value)
+    {
+    }
+
+    void print(std::ostream& os, int indent) override;
+};
+
+struct JsonNull : JsonElement {
+    explicit JsonNull()
+        : JsonElement(ElementID::NUL)
+    {
+    }
+
+    void print(std::ostream& os, int indent) override;
+};
 
 template <typename T>
 T read(std::istream& is);
 
 template <typename T>
-concept JsonReadable = requires(std::istream& is) {
-    {
-        T::read_json(is)
-    } -> std::same_as<T>;
-};
+T read(const JsonElement& element);
 
 template <typename T>
-concept Writable = requires(std::ostream& os, T t) { json::write(os, t); };
-
-template <typename T>
-concept CustomDumpable = requires(std::ostream& os, T t) { dump_json(os, t); };
-
-template <typename T>
-concept DumpableRange =
-    std::ranges::input_range<T> && Writable<std::ranges::range_value_t<T>>;
-
-template <typename T>
-concept WritablePairLike = requires(const T& t) {
-    {
-        std::get<0>(t)
-    } -> Writable;
-    {
-        std::get<1>(t)
-    } -> Writable;
-};
-
-template <typename T>
-concept WritableObject = std::ranges::input_range<T> &&
-                         WritablePairLike<std::ranges::range_value_t<T>>;
-
-template <WritableObject R>
-struct JsonObjectWrapper {
-    R&& range;
-};
-
-template <typename T>
-struct is_object_wrapped_helper : std::false_type {};
-
-template <typename T>
-struct is_object_wrapped_helper<JsonObjectWrapper<T>> : std::true_type {};
-
-template <typename T>
-static constexpr bool is_object_wrapped = is_object_wrapped_helper<T>::value;
-
-template <typename R>
-auto as_object(R&& range)
+T JsonObject::read(const std::string& s) const
 {
-    return JsonObjectWrapper<R>(range);
-}
+    const auto* field = get_field(s);
 
-template <typename T>
-void write(std::ostream& os, const T& t)
-{
-    if constexpr (
-        std::is_same_v<T, bool> ||
-        std::is_same_v<std::vector<bool>::const_reference, T>) {
-        os << (t ? "true" : "false");
-    } else if constexpr (std::integral<T>) {
-        os << t;
-    } else if constexpr (std::floating_point<T>) {
-        switch (std::fpclassify(t)) {
-        case FP_INFINITE:
-            os << "\"";
-            if (t < 0) os << "-";
-            os << "inf\"";
-            break;
-
-        default: os << t;
-        }
-    } else if constexpr (
-        std::is_convertible_v<T, const char*> ||
-        std::is_same_v<T, std::string>) {
-        os << '"' << t << '"';
-    } else if constexpr (CustomDumpable<T>) {
-        dump_json(os, t);
-    } else if constexpr (DumpableRange<T>) {
-        os << "[";
-        if (!t.empty()) {
-            write(os, t.front());
-            for (const auto& elem : t | std::views::drop(1)) {
-                os << ',';
-                write(os, elem);
-            }
-        }
-        os << "]";
-    } else if constexpr (is_object_wrapped<T>) {
-        os << "{";
-        if (!t.range.empty()) {
-            auto&& first = t.range.front();
-            write(os, std::get<0>(first));
-            os << ':';
-            write(os, std::get<1>(first));
-            for (const auto& elem : t.range | std::views::drop(1)) {
-                os << ',';
-                write(os, std::get<0>(elem));
-                os << ':';
-                write(os, std::get<1>(elem));
-            }
-        }
-        os << "}";
-    } else {
-        static_assert(!std::is_same_v<T, T>, "Type not dumpable!");
-    }
-}
-
-template <typename T, typename... R>
-void write_array(std::ostream& os, T&& head, R&&... tail)
-    requires Writable<std::remove_cvref<T>> &&
-             (Writable<std::remove_cvref<R>> && ...)
-{
-    os << "[";
-    write(os, head);
-    (write(os << ',', tail), ...);
-    os << "]";
-}
-
-template <typename T, typename... R>
-void write_object(std::ostream& os, T&& head, R&&... tail)
-    requires WritablePairLike<T> && (WritablePairLike<R> && ...)
-{
-    os << "{";
-    write(os, std::get<0>(head));
-    os << ':';
-    write(os, std::get<1>(head));
-    ((os << ',',
-      write(os, std::get<0>(tail)),
-      os << ':',
-      write(os, std::get<1>(tail))),
-     ...);
-    os << "}";
-}
-
-inline void expect(std::istream& is, const std::string& text)
-{
-    for (char c : text) {
-        if (is.get() != c)
-            throw std::invalid_argument(std::format("expected \"{}\"", text));
-    }
-}
-
-template <typename T>
-class json_iterator;
-
-template <typename T>
-bool operator==(const json_iterator<T>& left, std::default_sentinel_t);
-
-template <typename T>
-class json_iterator {
-    std::istream* is;
-
-public:
-    using value_type = T;
-    using pointer = T*;
-    using reference = T;
-    using difference_type = std::ptrdiff_t;
-    using iterator_category = std::input_iterator_tag;
-
-    explicit json_iterator(std::istream& is)
-        : is(&is)
-    {
+    if (!field) {
+        throw std::invalid_argument(
+            std::format("Object does not have field {}", s));
     }
 
-    T operator*() const { return read<T>(*is); }
+    return json::read<T>(*field);
+}
 
-    json_iterator& operator++()
-    {
-        (*is) >> std::ws;
-        if (is->peek() == ',') {
-            is->ignore();
-            (*is) >> std::ws;
-        }
-        return *this;
-    }
+template <typename T, typename It>
+json_array_view<T, It>::json_array_iterator::json_array_iterator(It it)
+    : it(it)
+{
+}
 
-    void operator++(int) { ++(*this); }
+template <typename T, typename It>
+T json_array_view<T, It>::json_array_iterator::operator*() const
+{
+    return json::read<T>(**it);
+}
 
-    friend bool
-    operator== <T>(const json_iterator<T>& left, std::default_sentinel_t);
-};
+template <typename T, typename It>
+auto json_array_view<T, It>::json_array_iterator::operator++()
+    -> json_array_iterator&
+{
+    ++it;
+    return *this;
+}
 
 template <typename T>
-bool operator==(const json_iterator<T>& left, std::default_sentinel_t)
+T JsonArray::read(std::size_t index) const
 {
-    return left.is->peek() == ']';
+    if (index >= elements.size()) {
+        throw std::invalid_argument(
+            std::format("Array does not have index {}", index));
+    }
+
+    return json::read<T>(*elements[index]);
 }
+
+std::unique_ptr<JsonElement> parse_element(
+    const std::vector<Token>& tokens,
+    std::vector<Token>::const_iterator& it);
+
+std::unique_ptr<JsonElement> parse_element(const std::vector<Token>& tokens);
+
+std::unique_ptr<JsonObject> parse_object(
+    const std::vector<Token>& tokens,
+    std::vector<Token>::const_iterator& it);
+
+std::unique_ptr<JsonObject> parse_object(const std::vector<Token>& tokens);
+
+std::unique_ptr<JsonArray> parse_array(
+    const std::vector<Token>& tokens,
+    std::vector<Token>::const_iterator& it);
+
+std::unique_ptr<JsonArray> parse_array(const std::vector<Token>& tokens);
 
 template <typename R>
 concept Container = std::ranges::input_range<R> &&
                     std::constructible_from<
                         R,
-                        json_iterator<std::ranges::range_value_t<R>>,
-                        json_iterator<std::ranges::range_value_t<R>>>;
+                        std::from_range_t,
+                        JsonArray::read_view_t<std::ranges::range_value_t<R>>>;
+
+template <typename T>
+concept JsonObjectReadable = std::constructible_from<T, JsonObject&>;
+
+template <typename T>
+T read(const JsonElement& element)
+{
+    if constexpr (std::same_as<T, bool>) {
+        if (element.id == JsonElement::ElementID::BOOLEAN) {
+            return static_cast<const JsonBoolean&>(element).value;
+        }
+
+        throw std::invalid_argument("Could not read boolean.");
+    } else if constexpr (std::integral<T>) {
+        if (element.id == JsonElement::ElementID::INTEGER) {
+            return static_cast<T>(
+                static_cast<const JsonInteger&>(element).value);
+        }
+
+        throw std::invalid_argument("Could not read integer.");
+    } else if constexpr (std::floating_point<T>) {
+        if (element.id == JsonElement::ElementID::FLOAT) {
+            return static_cast<T>(static_cast<const JsonFloat&>(element).value);
+        } else if (element.id == JsonElement::ElementID::INTEGER) {
+            return static_cast<T>(
+                static_cast<const JsonInteger&>(element).value);
+        } else if (element.id == JsonElement::ElementID::STRING) {
+            const auto& json_string = static_cast<const JsonString&>(element);
+            if (json_string.string == "inf" ||
+                json_string.string == "infinity") {
+                return std::numeric_limits<T>::infinity();
+            } else if (
+                json_string.string == "-inf" ||
+                json_string.string == "-infinity") {
+                return -std::numeric_limits<T>::infinity();
+            } else if (json_string.string == "NaN") {
+                return std::numeric_limits<T>::quiet_NaN();
+            } else if (json_string.string == "-NaN") {
+                return -std::numeric_limits<T>::quiet_NaN();
+            }
+        }
+
+        throw std::invalid_argument("Could not read float.");
+    } else if constexpr (std::same_as<T, std::string>) {
+        if (element.id == JsonElement::ElementID::STRING) {
+            return static_cast<T>(
+                static_cast<const JsonString&>(element).string);
+        }
+
+        throw std::invalid_argument("Could not read string.");
+    } else if constexpr (JsonObjectReadable<T>) {
+        if (element.id == JsonElement::ElementID::OBJECT) {
+            return T(static_cast<const JsonObject&>(element));
+        }
+
+        throw std::invalid_argument("Could not read user-defined object.");
+    } else if constexpr (Container<T>) {
+        if (element.id == JsonElement::ElementID::ARRAY) {
+            const auto& array = static_cast<const JsonArray&>(element);
+            return T(
+                std::from_range,
+                array.read_view<std::ranges::range_value_t<T>>());
+        }
+
+        throw std::invalid_argument("Could not read user-defined object.");
+    } else {
+        static_assert(false, "Cannot read this type!");
+        abort();
+    }
+}
 
 template <typename T>
 T read(std::istream& is)
 {
-    if constexpr (std::is_same_v<T, bool>) {
-        if (is.peek() == 't' && (is.ignore(), is.get() == 'r') &&
-            is.get() == 'u' && is.get() == 'e') {
-            return true;
-        } else if (
-            is.get() == 'f' && is.get() == 'a' && is.get() == 'l' &&
-            is.get() == 's' && is.get() == 'e') {
-            return false;
-        }
-
-        throw std::invalid_argument("Expected 'true' of 'false'!");
-    } else if constexpr (std::is_integral_v<T>) {
-        T number;
-        is >> number;
-        return number;
-    } else if constexpr (std::floating_point<T>) {
-        T number;
-
-        if (is.peek() == '\"') {
-            // Expect infinity
-            is.ignore();
-            if (is.peek() == '-') {
-                is.ignore(5);
-                return -std::numeric_limits<T>::infinity();
-            } else {
-                is.ignore(4);
-                return std::numeric_limits<T>::infinity();
-            }
-        }
-
-        is >> number;
-        return number;
-    } else if constexpr (std::is_same_v<T, std::string>) {
-        std::string text;
-        is >> text;
-        return text;
-    } else if constexpr (JsonReadable<T>) {
-        return T::read_json(is);
-    } else if constexpr (Container<T>) {
-        is >> std::ws;
-        expect(is, "[");
-        is >> std::ws;
-
-        json_iterator<std::ranges::range_value_t<T>> it(is);
-
-        auto r = std::ranges::subrange{it, std::default_sentinel};
-        auto r2 = std::ranges::common_view{r};
-
-        T object(r2.begin(), r2.end());
-        expect(is, "]");
-        return object;
-    } else {
-        static_assert("Cannot read this type!");
-    }
+    const auto tokens = tokenize(is);
+    const auto element = parse_element(tokens);
+    return read<T>(*element);
 }
 
-template <typename F, typename... T>
-std::tuple<F, T...> read_array(std::istream& is)
+template <typename T>
+T read(const std::filesystem::path& path)
 {
-    expect(is, "[");
-    is >> std::ws;
-    std::tuple<F, T...> t{
-        read<F>(is),
-        (expect(is, ","), is >> std::ws, read<T>(is))...};
-    is >> std::ws;
-    expect(is, "]");
-    is >> std::ws;
-    return t;
+    std::ifstream file(path);
+    return read<T>(file);
 }
 
-template <typename F, typename... T>
-std::tuple<F, T...>
-read_object(std::istream& is, auto&& first, auto&&... tokens)
-{
-    expect(is, "{");
-    is >> std::ws;
-    std::tuple<F, T...> t{
-        (expect(is, "\""),
-         expect(is, first),
-         expect(is, "\""),
-         is >> std::ws,
-         expect(is, ":"),
-         is >> std::ws,
-         read<F>(is)),
-        (is >> std::ws,
-         expect(is, ","),
-         is >> std::ws,
-         expect(is, "\""),
-         expect(is, tokens),
-         expect(is, "\""),
-         is >> std::ws,
-         expect(is, ":"),
-         is >> std::ws,
-         read<T>(is))...};
-    is >> std::ws;
-    expect(is, "}");
-    is >> std::ws;
-    return t;
-}
+namespace detail {
 
-template <typename T, typename... Args>
-T construct_from_tuple(std::tuple<Args...>&& tuple)
-{
-    auto construct_from_tuple = []<std::size_t... ints>(
-                                    std::tuple<Args...>&& tuple,
-                                    std::index_sequence<ints...>) {
-        return T(std::get<ints>(tuple)...);
+template <typename T>
+void to_json(T&&) = delete;
+
+template <typename T>
+concept UnqJsonConvertible = requires(const T& t) {
+    { to_json(t) } -> std::convertible_to<std::unique_ptr<JsonElement>>;
+};
+
+} // namespace detail
+
+template <typename T>
+struct to_json_t;
+
+template <typename T>
+concept JsonConvertible =
+    requires(const T& t, to_json_t<std::remove_cvref_t<T>> j) {
+        { j(t) } -> std::convertible_to<std::unique_ptr<JsonElement>>;
     };
 
-    return construct_from_tuple(
-        std::move(tuple),
-        std::index_sequence_for<Args...>{});
+template <typename T>
+constexpr bool enable_json_array = false;
+
+template <typename T>
+concept JsonArrayConvertibleRange =
+    std::ranges::input_range<T> &&
+    JsonConvertible<std::ranges::range_value_t<T>> && enable_json_array<T>;
+
+template <typename T>
+constexpr bool enable_json_object = false;
+
+template <typename R>
+concept JsonObjectConvertibleRange =
+    std::ranges::input_range<R> &&
+    std::convertible_to<
+        std::ranges::range_value_t<R>,
+        std::pair<const std::string, std::unique_ptr<JsonElement>>> &&
+    JsonConvertible<std::ranges::range_value_t<R>> && enable_json_object<R>;
+
+template <typename T>
+struct to_json_t {
+    auto operator()(const T& value) const
+        requires(detail::UnqJsonConvertible<T>)
+    {
+        return to_json(value);
+    }
+
+    auto operator()(T value) const
+        requires(
+            std::same_as<T, bool> ||
+            std::same_as<T, std::vector<bool>::reference> ||
+            std::same_as<T, std::vector<bool>::const_reference>)
+    {
+        return std::make_unique<JsonBoolean>(value);
+    }
+
+    auto operator()(T value) const
+        requires(std::integral<T> && !std::same_as<T, bool>)
+    {
+        return std::make_unique<JsonInteger>(value);
+    }
+
+    auto operator()(T value) const
+        requires(std::floating_point<T>)
+    {
+        return std::make_unique<JsonFloat>(value);
+    }
+
+    auto operator()(const T& value) const
+        requires(std::convertible_to<T, std::string>)
+    {
+        return std::make_unique<JsonString>(std::forward<T>(value));
+    }
+
+    auto operator()(const T& value) const
+        requires(JsonArrayConvertibleRange<T>)
+    {
+        return std::make_unique<JsonArray>(
+            std::from_range,
+            value | std::views::transform([]<typename U>(const U& el) {
+                return to_json_t<U>{}(el);
+            }));
+    }
+
+    auto operator()(const T& value) const
+        requires(JsonObjectConvertibleRange<T>)
+    {
+        return std::make_unique<JsonObject>(
+            std::from_range,
+            value | std::views::transform(
+                        []<typename S, typename U>(std::pair<S, U>& p) {
+                            return std::forward_as_tuple(
+                                std::get<0>(p),
+                                to_json_t<U>{}(std::get<1>(p)));
+                        }));
+    }
+};
+
+template <typename T>
+auto to_json(const T& value)
+{
+    return to_json_t<T>{}(value);
 }
 
-template <typename T, typename... Args>
-T construct_from_array(std::istream& is)
+template <JsonConvertible... T>
+auto make_array(const T&... range)
 {
-    return construct_from_tuple<T>(json::read_array<Args...>(is));
+    return std::make_unique<JsonArray>(
+        json::to_json(std::forward<T>(range))...);
 }
 
-template <typename T, typename... Args>
-T construct_from_object(std::istream& is, auto&&... tokens)
-    requires(sizeof...(tokens) == sizeof...(Args))
+inline auto wrap_pairs()
 {
-    return construct_from_tuple<T>(read_object<Args...>(is, tokens...));
+    return std::tuple<>();
 }
+
+template <
+    std::convertible_to<std::string> S,
+    JsonConvertible T,
+    typename... Args>
+auto wrap_pairs(S&& head_string, const T& head_value, Args&&... tail)
+{
+    using R = std::invoke_result_t<to_json_t<T>, const T&>;
+
+    auto&& i = wrap_pairs(std::forward<Args>(tail)...);
+
+    return std::apply(
+        [&]<typename... Tuples>(
+            Tuples&&... args) -> std::tuple<std::pair<S&&, R>, Tuples...> {
+            return std::make_tuple<std::pair<S&&, R>, Tuples...>(
+                std::pair<S&&, R>(
+                    std::forward<S>(head_string),
+                    json::to_json(head_value)),
+                std::forward<Tuples>(args)...);
+        },
+        std::move(i));
+}
+
+template <typename... Args>
+auto make_object(Args&&... args)
+{
+    return std::apply(
+        []<typename... A>(A&&... t) {
+            return std::make_unique<JsonObject>(std::forward<A>(t)...);
+        },
+        wrap_pairs(std::forward<Args>(args)...));
+}
+
+template <JsonConvertible T>
+void write(std::ostream& os, const T& t)
+{
+    auto result = json::to_json(t);
+    result->print(os, 0);
+}
+
+template <JsonConvertible T>
+void write(const std::filesystem::path& path, const T& t)
+{
+    std::ofstream file(path);
+    return write(file, t);
+}
+
+template <typename T, typename A>
+constexpr bool enable_json_array<std::vector<T, A>> = true;
+
+template <typename T, typename A>
+constexpr bool enable_json_array<std::list<T, A>> = true;
+
+template <typename T, typename A>
+constexpr bool enable_json_array<std::forward_list<T, A>> = true;
+
+template <typename K, typename V, typename C, typename A>
+    requires std::convertible_to<K, std::string>
+constexpr bool enable_json_object<std::map<K, V, C, A>> = true;
+
+template <typename K, typename V, typename C, typename A>
+    requires std::convertible_to<K, std::string>
+constexpr bool enable_json_object<std::unordered_map<K, V, C, A>> = true;
 
 } // namespace probfd::json
 

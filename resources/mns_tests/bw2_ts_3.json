@@ -1,179 +1,179 @@
 {
-  "incorporated_variables": [
-    3
-  ],
-  "label_to_local_label": [
-    0,
-    1,
-    0,
-    2,
-    3,
-    4,
-    0,
-    5,
-    6,
-    3,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1
-  ],
-  "local_label_infos": [
-    {
-      "labels": [
+    "goal_states": [
+        false,
+        false,
+        true,
+        false
+    ],
+    "incorporated_variables": [
+        3
+    ],
+    "init_state": 2,
+    "label_to_local_label": [
+        0,
+        1,
         0,
         2,
-        6
-      ],
-      "transitions": [
-        [
-          0,
-          [
-            0,
-            0
-          ]
-        ],
-        [
-          1,
-          [
-            1,
-            1
-          ]
-        ],
-        [
-          2,
-          [
-            2,
-            2
-          ]
-        ],
-        [
-          3,
-          [
-            3,
-            3
-          ]
-        ]
-      ],
-      "cost": 0
-    },
-    {
-      "labels": [
-        1
-      ],
-      "transitions": [
-        [
-          0,
-          [
-            3,
-            2
-          ]
-        ]
-      ],
-      "cost": 1
-    },
-    {
-      "labels": [
-        3
-      ],
-      "transitions": [
-        [
-          2,
-          [
-            3,
-            2
-          ]
-        ]
-      ],
-      "cost": 1
-    },
-    {
-      "labels": [
+        3,
         4,
-        9
-      ],
-      "transitions": [
-        [
-          3,
-          [
-            2
-          ]
-        ]
-      ],
-      "cost": 0
-    },
-    {
-      "labels": [
-        5
-      ],
-      "transitions": [
-        [
-          0,
-          [
-            0
-          ]
-        ]
-      ],
-      "cost": 0
-    },
-    {
-      "labels": [
-        7
-      ],
-      "transitions": [
-        [
-          3,
-          [
-            0,
-            2
-          ]
-        ]
-      ],
-      "cost": 0
-    },
-    {
-      "labels": [
-        8
-      ],
-      "transitions": [
-        [
-          0,
-          [
-            0
-          ]
-        ],
-        [
-          1,
-          [
-            1
-          ]
-        ],
-        [
-          2,
-          [
-            2
-          ]
-        ],
-        [
-          3,
-          [
-            3
-          ]
-        ]
-      ],
-      "cost": 0
-    }
-  ],
-  "init_state": 2,
-  "goal_states": [
-    false,
-    false,
-    true,
-    false
-  ]
-}
+        0,
+        5,
+        6,
+        3,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
+    ],
+    "local_label_infos": [
+        {
+            "cost": 0,
+            "labels": [
+                0,
+                2,
+                6
+            ],
+            "transitions": [
+                {
+                    "src": 0,
+                    "targets": [
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "src": 1,
+                    "targets": [
+                        1,
+                        1
+                    ]
+                },
+                {
+                    "src": 2,
+                    "targets": [
+                        2,
+                        2
+                    ]
+                },
+                {
+                    "src": 3,
+                    "targets": [
+                        3,
+                        3
+                    ]
+                }
+            ]
+        },
+        {
+            "cost": 1,
+            "labels": [
+                1
+            ],
+            "transitions": [
+                {
+                    "src": 0,
+                    "targets": [
+                        3,
+                        2
+                    ]
+                }
+            ]
+        },
+        {
+            "cost": 1,
+            "labels": [
+                3
+            ],
+            "transitions": [
+                {
+                    "src": 2,
+                    "targets": [
+                        3,
+                        2
+                    ]
+                }
+            ]
+        },
+        {
+            "cost": 0,
+            "labels": [
+                4,
+                9
+            ],
+            "transitions": [
+                {
+                    "src": 3,
+                    "targets": [
+                        2
+                    ]
+                }
+            ]
+        },
+        {
+            "cost": 0,
+            "labels": [
+                5
+            ],
+            "transitions": [
+                {
+                    "src": 0,
+                    "targets": [
+                        0
+                    ]
+                }
+            ]
+        },
+        {
+            "cost": 0,
+            "labels": [
+                7
+            ],
+            "transitions": [
+                {
+                    "src": 3,
+                    "targets": [
+                        0,
+                        2
+                    ]
+                }
+            ]
+        },
+        {
+            "cost": 0,
+            "labels": [
+                8
+            ],
+            "transitions": [
+                {
+                    "src": 0,
+                    "targets": [
+                        0
+                    ]
+                },
+                {
+                    "src": 1,
+                    "targets": [
+                        1
+                    ]
+                },
+                {
+                    "src": 2,
+                    "targets": [
+                        2
+                    ]
+                },
+                {
+                    "src": 3,
+                    "targets": [
+                        3
+                    ]
+                }
+            ]
+        }
+    ]
+ }
