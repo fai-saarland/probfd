@@ -54,8 +54,8 @@ public:
     JsonObject(std::from_range_t, R&& range)
         : JsonElement(ElementID::ARRAY)
     {
-        for (auto&& p : range) {
-            members.emplace(std::forward(p));
+        for (std::ranges::range_reference_t<R> p : range) {
+            members.emplace(std::forward<std::ranges::range_value_t<R>>(p));
         }
     }
 
