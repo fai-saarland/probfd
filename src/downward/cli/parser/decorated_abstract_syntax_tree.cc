@@ -9,6 +9,7 @@
 
 #include <any>
 #include <limits>
+#include <ranges>
 
 using namespace std;
 
@@ -565,15 +566,13 @@ FunctionArgument::FunctionArgument(const FunctionArgument& other)
 }
 
 DecoratedLetNode::DecoratedLetNode(const DecoratedLetNode& other)
-    : decorated_variable_definitions(
-          std::from_range,
-          other.decorated_variable_definitions |
-              std::views::transform([](const auto& v) {
-                  const auto& [name, nested_value] = v;
-                  return std::make_pair(name, nested_value->clone());
-              }))
-    , nested_value(other.nested_value->clone())
+    : nested_value(other.nested_value->clone())
 {
+    for (const auto& [name, nested_value] :
+         other.decorated_variable_definitions) {
+        decorated_variable_definitions.emplace_back(
+            std::make_pair(name, nested_value->clone()));
+    }
 }
 
 shared_ptr<DecoratedASTNode> DecoratedLetNode::clone_shared() const
