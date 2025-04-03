@@ -15,6 +15,7 @@
 #include <map>
 #include <ranges>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace probfd::json {
@@ -76,7 +77,7 @@ public:
 };
 
 template <typename T, typename It>
-class json_array_view;
+class JsonArrayView;
 
 class JsonArray : public JsonElement {
 public:
@@ -85,7 +86,7 @@ public:
         std::vector<std::unique_ptr<JsonElement>>::const_iterator;
 
     template <typename T>
-    using read_view_t = json_array_view<T, const_iterator>;
+    using read_view_t = JsonArrayView<T, const_iterator>;
 
 private:
     std::vector<std::unique_ptr<JsonElement>> elements;
@@ -128,8 +129,8 @@ public:
 };
 
 template <typename T, typename It>
-class json_array_view {
-    class json_array_iterator {
+class JsonArrayView {
+    class JsonArrayIterator {
         It it;
 
     public:
@@ -138,43 +139,43 @@ class json_array_view {
         using difference_type = std::ptrdiff_t;
         using iterator_category = std::input_iterator_tag;
 
-        json_array_iterator() = default;
+        JsonArrayIterator() = default;
 
-        explicit json_array_iterator(It it);
+        explicit JsonArrayIterator(It it);
 
         T operator*() const;
 
-        json_array_iterator& operator++();
+        JsonArrayIterator& operator++();
 
         void operator++(int) { ++*this; }
 
         friend bool operator==(
-            const json_array_iterator& left,
-            const json_array_iterator& right) = default;
+            const JsonArrayIterator& left,
+            const JsonArrayIterator& right) = default;
     };
 
     const JsonArray& array;
 
 public:
-    explicit json_array_view(const JsonArray& array)
+    explicit JsonArrayView(const JsonArray& array)
         : array(array)
     {
     }
 
-    auto begin() { return json_array_iterator(array.begin()); }
-    auto end() { return json_array_iterator(array.end()); }
+    auto begin() { return JsonArrayIterator(array.begin()); }
+    auto end() { return JsonArrayIterator(array.end()); }
 
-    auto begin() const { return json_array_iterator(array.begin()); }
-    auto end() const { return json_array_iterator(array.end()); }
+    auto begin() const { return JsonArrayIterator(array.begin()); }
+    auto end() const { return JsonArrayIterator(array.end()); }
 };
 
 template <typename T>
 auto JsonArray::read_view() const -> read_view_t<T>
 {
-    return json_array_view<T, const_iterator>(*this);
+    return JsonArrayView<T, const_iterator>(*this);
 }
 
-struct JsonString : JsonElement {
+struct JsonString final : JsonElement {
     std::string string;
 
     explicit JsonString(std::string string)
@@ -186,7 +187,7 @@ struct JsonString : JsonElement {
     void print(std::ostream& os, int indent) override;
 };
 
-struct JsonBoolean : JsonElement {
+struct JsonBoolean final : JsonElement {
     bool value;
 
     explicit JsonBoolean(bool value)
@@ -198,7 +199,7 @@ struct JsonBoolean : JsonElement {
     void print(std::ostream& os, int indent) override;
 };
 
-struct JsonInteger : JsonElement {
+struct JsonInteger final : JsonElement {
     long long int value;
 
     explicit JsonInteger(long long int value)
@@ -210,7 +211,7 @@ struct JsonInteger : JsonElement {
     void print(std::ostream& os, int indent) override;
 };
 
-struct JsonFloat : JsonElement {
+struct JsonFloat final : JsonElement {
     long double value;
 
     explicit JsonFloat(long double value)
@@ -222,7 +223,7 @@ struct JsonFloat : JsonElement {
     void print(std::ostream& os, int indent) override;
 };
 
-struct JsonNull : JsonElement {
+struct JsonNull final : JsonElement {
     explicit JsonNull()
         : JsonElement(ElementID::NUL)
     {
@@ -232,11 +233,11 @@ struct JsonNull : JsonElement {
 };
 
 template <typename T>
-    requires (std::is_object_v<T>)
+    requires(std::is_object_v<T>)
 T read(std::istream& is);
 
 template <typename T>
-    requires (std::is_object_v<T>)
+    requires(std::is_object_v<T>)
 T read(const JsonElement& element);
 
 template <typename T>
@@ -253,20 +254,19 @@ T JsonObject::read(const std::string& s) const
 }
 
 template <typename T, typename It>
-json_array_view<T, It>::json_array_iterator::json_array_iterator(It it)
-    : it(it)
+JsonArrayView<T, It>::JsonArrayIterator::JsonArrayIterator(It it)
+    : it(std::move(it))
 {
 }
 
 template <typename T, typename It>
-T json_array_view<T, It>::json_array_iterator::operator*() const
+T JsonArrayView<T, It>::JsonArrayIterator::operator*() const
 {
     return json::read<T>(**it);
 }
 
 template <typename T, typename It>
-auto json_array_view<T, It>::json_array_iterator::operator++()
-    -> json_array_iterator&
+auto JsonArrayView<T, It>::JsonArrayIterator::operator++() -> JsonArrayIterator&
 {
     ++it;
     return *this;
@@ -302,21 +302,20 @@ std::unique_ptr<JsonArray> parse_array(
 std::unique_ptr<JsonArray> parse_array(const std::vector<Token>& tokens);
 
 template <typename R>
-concept Container = std::ranges::input_range<R> &&
-                    std::constructible_from<
-                        R,
-                        std::ranges::iterator_t<
-                            JsonArray::read_view_t<
-                                std::ranges::range_value_t<R>>>,
-                        std::ranges::iterator_t<
-                            JsonArray::read_view_t<
-                                std::ranges::range_value_t<R>>>>;
+concept Container =
+    std::ranges::input_range<R> &&
+    std::constructible_from<
+        R,
+        std::ranges::iterator_t<
+            JsonArray::read_view_t<std::ranges::range_value_t<R>>>,
+        std::ranges::iterator_t<
+            JsonArray::read_view_t<std::ranges::range_value_t<R>>>>;
 
 template <typename T>
 concept JsonObjectReadable = std::constructible_from<T, JsonObject&>;
 
 template <typename T>
-    requires (std::is_object_v<T>)
+    requires(std::is_object_v<T>)
 T read(const JsonElement& element)
 {
     if constexpr (std::same_as<T, bool>) {
@@ -339,8 +338,9 @@ T read(const JsonElement& element)
             return static_cast<T>(
                 static_cast<const JsonInteger&>(element).value);
         } else if (element.id == JsonElement::ElementID::STRING) {
-            const auto& json_string = static_cast<const JsonString&>(element);
-            if (json_string.string == "inf" ||
+            if (const auto& json_string =
+                    static_cast<const JsonString&>(element);
+                json_string.string == "inf" ||
                 json_string.string == "infinity") {
                 return std::numeric_limits<T>::infinity();
             } else if (
@@ -383,7 +383,7 @@ T read(const JsonElement& element)
 }
 
 template <typename T>
-    requires (std::is_object_v<T>)
+    requires(std::is_object_v<T>)
 T read(std::istream& is)
 {
     const auto tokens = tokenize(is);
@@ -392,7 +392,7 @@ T read(std::istream& is)
 }
 
 template <typename T>
-requires (std::is_object_v<T>)
+    requires(std::is_object_v<T>)
 T read(const std::filesystem::path& path)
 {
     std::ifstream file(path);
@@ -412,7 +412,7 @@ concept UnqJsonConvertible = requires(const T& t) {
 } // namespace detail
 
 template <typename T>
-    requires (std::is_object_v<T>)
+    requires(std::is_object_v<T>)
 struct to_json_t;
 
 template <typename T>
@@ -441,7 +441,7 @@ concept JsonObjectConvertibleRange =
     JsonConvertible<std::ranges::range_value_t<R>> && enable_json_object<R>;
 
 template <typename T>
-    requires (std::is_object_v<T>)
+    requires(std::is_object_v<T>)
 struct to_json_t {
     auto operator()(const T& value) const
         requires(detail::UnqJsonConvertible<T>)
