@@ -10,14 +10,6 @@
 
 namespace probfd::json {
 
-void expect(std::istream& is, const std::string& text)
-{
-    for (char c : text) {
-        if (is.get() != c)
-            throw std::invalid_argument(std::format("expected \"{}\"", text));
-    }
-}
-
 JsonObject::JsonObject(
     std::map<std::string, std::unique_ptr<JsonElement>> members)
     : JsonElement(ElementID::OBJECT)
@@ -39,14 +31,14 @@ void JsonObject::print(std::ostream& os, int indent)
 
     {
         const auto& [name, element] = *it;
-        std::print(os, "{:>{}}{:?}: ", ' ', indent + 4, name);
+        std::print(os, "{:>{}}\"{}\": ", ' ', indent + 4, name);
         element->print(os, indent + 4);
     }
 
     for (++it; it != end; ++it) {
         const auto& [name, element] = *it;
         std::println(os, ",");
-        std::print(os, "{:>{}}{:?}: ", ' ', indent + 4, name);
+        std::print(os, "{:>{}}\"{}\": ", ' ', indent + 4, name);
         element->print(os, indent + 4);
     }
 

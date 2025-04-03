@@ -51,22 +51,15 @@ public:
         std::map<std::string, std::unique_ptr<JsonElement>> members);
 
     template <std::ranges::input_range R>
-        requires std::convertible_to<
-                     std::ranges::range_value_t<R>,
-                     std::pair<const std::string, std::unique_ptr<JsonElement>>>
     JsonObject(std::from_range_t, R&& range)
         : JsonElement(ElementID::ARRAY)
-        , members(std::from_range, std::forward<R>(range))
     {
+        for (auto&& p : range) {
+            members.emplace(std::forward(p));
+        }
     }
 
     template <typename... T>
-        requires(
-            std::convertible_to<
-                T,
-                std::
-                    pair<const std::string, std::unique_ptr<JsonElement> &&>> &&
-            ...)
     explicit JsonObject(T... range)
         : JsonElement(ElementID::ARRAY)
     {
@@ -101,13 +94,14 @@ public:
     explicit JsonArray(std::vector<std::unique_ptr<JsonElement>> elements);
 
     template <std::ranges::input_range R>
-        requires(std::convertible_to<
-                    std::ranges::range_value_t<R>,
-                    std::unique_ptr<JsonElement>>)
     JsonArray(std::from_range_t, R&& range)
         : JsonElement(ElementID::ARRAY)
-        , elements(std::from_range, std::forward<R>(range))
     {
+        using E = std::ranges::range_reference_t<R>;
+
+        for (E&& elem : range) {
+            elements.push_back(std::forward<E>(elem));
+        }
     }
 
     template <typename... T>
@@ -139,8 +133,7 @@ class json_array_view {
         It it;
 
     public:
-        using value_type = T;
-        using pointer = T*;
+        using value_type = std::remove_reference_t<T>;
         using reference = T;
         using difference_type = std::ptrdiff_t;
         using iterator_category = std::input_iterator_tag;
@@ -310,13 +303,18 @@ template <typename R>
 concept Container = std::ranges::input_range<R> &&
                     std::constructible_from<
                         R,
-                        std::from_range_t,
-                        JsonArray::read_view_t<std::ranges::range_value_t<R>>>;
+                        std::ranges::iterator_t<
+                            JsonArray::read_view_t<
+                                std::ranges::range_value_t<R>>>,
+                        std::ranges::iterator_t<
+                            JsonArray::read_view_t<
+                                std::ranges::range_value_t<R>>>>;
 
 template <typename T>
 concept JsonObjectReadable = std::constructible_from<T, JsonObject&>;
 
 template <typename T>
+    requires (std::is_object_v<T>)
 T read(const JsonElement& element)
 {
     if constexpr (std::same_as<T, bool>) {
@@ -371,9 +369,8 @@ T read(const JsonElement& element)
     } else if constexpr (Container<T>) {
         if (element.id == JsonElement::ElementID::ARRAY) {
             const auto& array = static_cast<const JsonArray&>(element);
-            return T(
-                std::from_range,
-                array.read_view<std::ranges::range_value_t<T>>());
+            auto view = array.read_view<std::ranges::range_value_t<T>>();
+            return T(view.begin(), view.end());
         }
 
         throw std::invalid_argument("Could not read user-defined object.");
@@ -411,6 +408,7 @@ concept UnqJsonConvertible = requires(const T& t) {
 } // namespace detail
 
 template <typename T>
+    requires (std::is_object_v<T>)
 struct to_json_t;
 
 template <typename T>
@@ -439,6 +437,7 @@ concept JsonObjectConvertibleRange =
     JsonConvertible<std::ranges::range_value_t<R>> && enable_json_object<R>;
 
 template <typename T>
+    requires (std::is_object_v<T>)
 struct to_json_t {
     auto operator()(const T& value) const
         requires(detail::UnqJsonConvertible<T>)
@@ -577,6 +576,8 @@ constexpr bool enable_json_object<std::map<K, V, C, A>> = true;
 template <typename K, typename V, typename C, typename A>
     requires std::convertible_to<K, std::string>
 constexpr bool enable_json_object<std::unordered_map<K, V, C, A>> = true;
+
+static_assert(Container<std::vector<int>>);
 
 } // namespace probfd::json
 
