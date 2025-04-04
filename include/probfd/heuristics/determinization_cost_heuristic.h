@@ -22,15 +22,15 @@ namespace probfd::heuristics {
  * @note If the underlying classical heuristic is admissible/consistent, this
  * heuristic is also admissible/heuristic.
  */
-class DeterminizationCostHeuristic : public FDREvaluator {
-    const std::shared_ptr<::Evaluator> evaluator_;
+class DeterminizationCostHeuristic final : public FDREvaluator {
+    const std::shared_ptr<Evaluator> evaluator_;
 
 public:
     /**
      * @brief Construct from a classical heuristic.
      */
     explicit DeterminizationCostHeuristic(
-        std::shared_ptr<::Evaluator> heuristic);
+        std::shared_ptr<Evaluator> heuristic);
 
     ~DeterminizationCostHeuristic() override;
 
@@ -40,15 +40,15 @@ public:
     void print_statistics() const override;
 };
 
-class DeterminizationCostHeuristicFactory : public TaskHeuristicFactory {
-    const std::shared_ptr<::Evaluator> evaluator_;
+class DeterminizationCostHeuristicFactory final : public TaskHeuristicFactory {
+    const std::shared_ptr<Evaluator> evaluator_;
 
 public:
     /**
      * @brief Construct from determinization-based heuristic.
      */
     explicit DeterminizationCostHeuristicFactory(
-        std::shared_ptr<::Evaluator> evaluator);
+        std::shared_ptr<Evaluator> evaluator);
 
     std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,
@@ -57,4 +57,4 @@ public:
 
 } // namespace probfd::heuristics
 
-#endif // PROBFD_HEURISTICS_DETERMINIZATION_COST_H
+#endif

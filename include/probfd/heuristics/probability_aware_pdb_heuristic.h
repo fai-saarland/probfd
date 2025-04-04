@@ -27,7 +27,7 @@ namespace probfd::heuristics {
  * specified by the configuration of the pattern collection generation
  * algorithm.
  */
-class ProbabilityAwarePDBHeuristic : public FDREvaluator {
+class ProbabilityAwarePDBHeuristic final : public FDREvaluator {
     const pdbs::PPDBCollection pdbs_;
     const std::vector<pdbs::PatternSubCollection> subcollections_;
     const std::shared_ptr<pdbs::SubCollectionFinder> subcollection_finder_;
@@ -44,7 +44,7 @@ public:
     value_t evaluate(const State& state) const override;
 };
 
-class ProbabilityAwarePDBHeuristicFactory : public TaskHeuristicFactory {
+class ProbabilityAwarePDBHeuristicFactory final : public TaskHeuristicFactory {
     const std::shared_ptr<pdbs::PatternCollectionGenerator> generator_;
     const double max_time_dominance_pruning_;
     mutable utils::LogProxy log_;

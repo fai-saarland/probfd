@@ -30,7 +30,7 @@ public:
         std::shared_ptr<ProbabilisticTask> task,
         utils::LogProxy log,
         lp::LPSolverType solver_type)
-        : TaskDependentHeuristic(task, log)
+        : TaskDependentHeuristic(std::move(task), std::move(log))
         , lp_solver_(solver_type)
     {
     }
@@ -43,9 +43,9 @@ public:
 
         lp_solver_.solve();
 
-        value_t result = lp_solver_.has_optimal_solution()
-                             ? lp_solver_.get_objective_value()
-                             : INFINITE_VALUE;
+        const value_t result = lp_solver_.has_optimal_solution()
+                                   ? lp_solver_.get_objective_value()
+                                   : INFINITE_VALUE;
 
         lp_solver_.clear_temporary_constraints();
         static_cast<const Derived*>(this)->reset_constraints(state);

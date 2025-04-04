@@ -1,12 +1,13 @@
 #include "probfd/heuristics/merge_and_shrink_heuristic.h"
 
+#include "probfd/merge_and_shrink/distances.h"
 #include "probfd/merge_and_shrink/factored_transition_system.h"
 #include "probfd/merge_and_shrink/merge_and_shrink_algorithm.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
-#include "probfd/task_utils/task_properties.h"
-
 #include "probfd/task_heuristic_factory.h"
+
+#include "downward/utils/logging.h"
 
 #include "probfd/cli/heuristics/task_dependent_heuristic_options.h"
 
@@ -25,9 +26,50 @@ using namespace probfd::cli::merge_and_shrink;
 
 namespace {
 
-class MergeAndShrinkHeuristicFactory : public TaskHeuristicFactory {
+void extract_factor(
+    std::vector<FactorDistances>& factor_distances,
+    FactoredTransitionSystem& fts,
+    int index)
+{
+    /*
+      Extract the factor at the given index from the given factored
+      transition system, compute goal distances if necessary and store the
+      M&S representation, which serves as the heuristic.
+    */
+
+    if (auto&& [ts, fm, distances] = fts.extract_factor(index);
+        distances->are_goal_distances_computed()) {
+        factor_distances.emplace_back(std::move(fm), *distances);
+    } else {
+        factor_distances.emplace_back(std::move(fm), fts.get_labels(), *ts);
+    }
+}
+
+bool extract_unsolvable_factor(
+    utils::LogProxy log,
+    std::vector<FactorDistances>& factor_distances,
+    FactoredTransitionSystem& fts)
+{
+    /* Check if there is an unsolvable factor. If so, extract and store it
+       and return true. Otherwise, return false. */
+    for (const int index : fts) {
+        if (!fts.is_factor_solvable(index)) {
+            if (log.is_at_least_normal()) {
+                log << fts.get_transition_system(index).tag()
+                    << "use this unsolvable factor as heuristic." << endl;
+            }
+            factor_distances.reserve(1);
+            extract_factor(factor_distances, fts, index);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+class MergeAndShrinkHeuristicFactory final : public TaskHeuristicFactory {
     MergeAndShrinkAlgorithm algorithm;
-    const utils::LogProxy log_;
+    utils::LogProxy log_;
 
 public:
     explicit MergeAndShrinkHeuristicFactory(
@@ -75,10 +117,55 @@ std::unique_ptr<FDREvaluator> MergeAndShrinkHeuristicFactory::create_evaluator(
 {
     FactoredTransitionSystem fts =
         algorithm.build_factored_transition_system(task, log_);
-    return std::make_unique<MergeAndShrinkHeuristic>(fts, task, log_);
+
+    log_ << "Initializing merge-and-shrink heuristic..." << endl;
+
+    /*
+      TODO: This method has quite a bit of fiddling with aspects of
+      transition systems and the merge-and-shrink representation (checking
+      whether distances have been computed; computing them) that we would
+      like to have at a lower level. See also the TODO in
+      factored_transition_system.h on improving the interface of that class
+      (and also related classes like TransitionSystem etc).
+    */
+
+    std::vector<FactorDistances> factor_distances;
+
+    const int num_active_factors = fts.get_num_active_entries();
+    if (log_.is_at_least_normal()) {
+        log_ << "Number of remaining factors: " << num_active_factors << endl;
+    }
+
+    if (const bool unsolvable =
+            extract_unsolvable_factor(log_, factor_distances, fts);
+        !unsolvable) {
+        // Iterate over remaining factors and extract and store the nontrivial
+        // ones.
+        for (const int index : fts) {
+            if (fts.is_factor_trivial(index)) {
+                if (log_.is_at_least_verbose()) {
+                    log_ << fts.get_transition_system(index).tag()
+                         << "is trivial." << endl;
+                }
+                continue;
+            }
+
+            extract_factor(factor_distances, fts, index);
+        }
+    }
+
+    const int num_factors_kept = factor_distances.size();
+    if (log_.is_at_least_normal()) {
+        log_ << "Number of factors kept: " << num_factors_kept << endl;
+    }
+
+    log_ << "Done initializing merge-and-shrink heuristic." << endl << endl;
+
+    return std::make_unique<MergeAndShrinkHeuristic>(
+        std::move(factor_distances));
 }
 
-class MergeAndShrinkHeuristicFactoryFeature
+class MergeAndShrinkHeuristicFactoryFeature final
     : public TypedFeature<
           TaskHeuristicFactory,
           MergeAndShrinkHeuristicFactory> {

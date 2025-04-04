@@ -1,7 +1,8 @@
 #ifndef PROBFD_HEURISTICS_GZOCP_HEURISTIC_H
 #define PROBFD_HEURISTICS_GZOCP_HEURISTIC_H
 
-#include "probfd/heuristics/task_dependent_heuristic.h"
+#include "probfd/fdr_types.h"
+#include "probfd/heuristic.h"
 #include "probfd/task_heuristic_factory.h"
 
 #include <memory>
@@ -20,27 +21,16 @@ class PatternCollectionGenerator;
 
 namespace probfd::heuristics {
 
-class GZOCPHeuristic : public TaskDependentHeuristic {
-public:
-    enum OrderingStrategy { RANDOM, SIZE_ASC, SIZE_DESC, INHERIT };
-
-private:
+class GZOCPHeuristic final : public FDREvaluator {
     const value_t termination_cost_;
-    const OrderingStrategy ordering_;
-    const std::shared_ptr<utils::RandomNumberGenerator> rng_;
-
-    std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs_;
+    const std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs_;
 
 public:
-    explicit GZOCPHeuristic(
-        std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function,
-        utils::LogProxy log,
-        std::shared_ptr<pdbs::PatternCollectionGenerator> generator,
-        OrderingStrategy order,
-        std::shared_ptr<utils::RandomNumberGenerator> rng);
+    GZOCPHeuristic(
+        value_t termination_cost,
+        std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs);
 
-    ~GZOCPHeuristic();
+    ~GZOCPHeuristic() override;
 
     void print_statistics() const override
     {
@@ -51,20 +41,24 @@ protected:
     value_t evaluate(const State& state) const override;
 };
 
-class GZOCPHeuristicFactory : public TaskHeuristicFactory {
-    const std::shared_ptr<probfd::pdbs::PatternCollectionGenerator>
+class GZOCPHeuristicFactory final : public TaskHeuristicFactory {
+public:
+    enum OrderingStrategy { RANDOM, SIZE_ASC, SIZE_DESC, INHERIT };
+
+private:
+    const std::shared_ptr<pdbs::PatternCollectionGenerator>
         pattern_collection_generator_;
-    const GZOCPHeuristic::OrderingStrategy ordering_;
+    const OrderingStrategy ordering_;
     const int random_seed_;
     const utils::Verbosity verbosity_;
 
 public:
     explicit GZOCPHeuristicFactory(
-        std::shared_ptr<probfd::pdbs::PatternCollectionGenerator>
-            pattern_collection_generator_,
-        GZOCPHeuristic::OrderingStrategy ordering_,
-        int random_seed_,
-        utils::Verbosity verbosity_);
+        std::shared_ptr<pdbs::PatternCollectionGenerator>
+            pattern_collection_generator,
+        OrderingStrategy ordering,
+        int random_seed,
+        utils::Verbosity verbosity);
 
     std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,

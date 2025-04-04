@@ -1,9 +1,11 @@
 #ifndef PROBFD_HEURISTICS_SCP_HEURISTIC_H
 #define PROBFD_HEURISTICS_SCP_HEURISTIC_H
 
-#include "probfd/heuristics/task_dependent_heuristic.h"
-
+#include "probfd/fdr_types.h"
+#include "probfd/heuristic.h"
 #include "probfd/task_heuristic_factory.h"
+
+#include "downward/utils/logging.h"
 
 #include <memory>
 #include <vector>
@@ -21,44 +23,37 @@ class PatternCollectionGenerator;
 
 namespace probfd::heuristics {
 
-class SCPHeuristic : public TaskDependentHeuristic {
-public:
-    enum OrderingStrategy { RANDOM, SIZE_ASC, SIZE_DESC, INHERIT };
-
-private:
+class SCPHeuristic final : public FDREvaluator {
     const value_t termination_cost_;
-    const OrderingStrategy ordering_;
-    const std::shared_ptr<utils::RandomNumberGenerator> rng_;
-
-    std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs_;
+    const std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs_;
 
 public:
     explicit SCPHeuristic(
-        std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function,
-        utils::LogProxy log,
-        std::shared_ptr<pdbs::PatternCollectionGenerator> generator,
-        OrderingStrategy order,
-        std::shared_ptr<utils::RandomNumberGenerator> rng);
+        value_t termination_cost,
+        std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs);
 
-    ~SCPHeuristic();
+    ~SCPHeuristic() override;
 
 protected:
     value_t evaluate(const State& state) const override;
 };
 
-class SCPHeuristicFactory : public TaskHeuristicFactory {
-    const std::shared_ptr<probfd::pdbs::PatternCollectionGenerator>
+class SCPHeuristicFactory final : public TaskHeuristicFactory {
+public:
+    enum OrderingStrategy { RANDOM, SIZE_ASC, SIZE_DESC, INHERIT };
+
+private:
+    const std::shared_ptr<pdbs::PatternCollectionGenerator>
         pattern_collection_generator_;
-    const SCPHeuristic::OrderingStrategy ordering_;
+    const OrderingStrategy ordering_;
     const int random_seed_;
     const utils::Verbosity verbosity_;
 
 public:
     SCPHeuristicFactory(
-        std::shared_ptr<probfd::pdbs::PatternCollectionGenerator>
+        std::shared_ptr<pdbs::PatternCollectionGenerator>
             pattern_collection_generator,
-        SCPHeuristic::OrderingStrategy ordering,
+        OrderingStrategy ordering,
         int random_seed,
         utils::Verbosity verbosity);
 

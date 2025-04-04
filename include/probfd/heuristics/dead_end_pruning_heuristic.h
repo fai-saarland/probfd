@@ -21,7 +21,7 @@ namespace probfd::heuristics {
  * @note If the underlying classical heuristic is safe, this heuristic is also
  * safe.
  */
-class DeadEndPruningHeuristic : public FDREvaluator {
+class DeadEndPruningHeuristic final : public FDREvaluator {
     const std::shared_ptr<::Evaluator> pruning_function_;
     const value_t dead_end_value_;
 
@@ -43,7 +43,7 @@ public:
     void print_statistics() const override;
 };
 
-class DeadEndPruningHeuristicFactory : public TaskHeuristicFactory {
+class DeadEndPruningHeuristicFactory final : public TaskHeuristicFactory {
     const std::shared_ptr<::Evaluator> evaluator_;
 
 public:
