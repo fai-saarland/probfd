@@ -52,7 +52,7 @@ public:
     explicit DeadEndPruningHeuristicFactory(
         std::shared_ptr<downward::Evaluator> evaluator);
 
-    std::unique_ptr<FDREvaluator> create_evaluator(
+    std::unique_ptr<FDREvaluator> create_heuristic(
         std::shared_ptr<ProbabilisticTask> task,
         std::shared_ptr<FDRCostFunction> task_cost_function) override;
 };

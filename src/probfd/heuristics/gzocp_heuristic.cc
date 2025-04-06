@@ -130,7 +130,7 @@ GZOCPHeuristicFactory::GZOCPHeuristicFactory(
 {
 }
 
-std::unique_ptr<FDREvaluator> GZOCPHeuristicFactory::create_evaluator(
+std::unique_ptr<FDREvaluator> GZOCPHeuristicFactory::create_heuristic(
     std::shared_ptr<ProbabilisticTask> task,
     std::shared_ptr<FDRCostFunction> task_cost_function)
 {

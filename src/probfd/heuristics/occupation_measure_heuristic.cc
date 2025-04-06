@@ -52,7 +52,7 @@ OccupationMeasureHeuristicFactory::OccupationMeasureHeuristicFactory(
 }
 
 std::unique_ptr<FDREvaluator>
-OccupationMeasureHeuristicFactory::create_evaluator(
+OccupationMeasureHeuristicFactory::create_heuristic(
     std::shared_ptr<ProbabilisticTask> task,
     std::shared_ptr<FDRCostFunction> task_cost_function)
 {

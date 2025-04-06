@@ -60,7 +60,7 @@ AdditiveCartesianHeuristicFactory::AdditiveCartesianHeuristicFactory(
 }
 
 std::unique_ptr<FDREvaluator>
-AdditiveCartesianHeuristicFactory::create_evaluator(
+AdditiveCartesianHeuristicFactory::create_heuristic(
     std::shared_ptr<ProbabilisticTask> task,
     std::shared_ptr<FDRCostFunction>)
 {

@@ -47,7 +47,7 @@ ProbabilityAwarePDBHeuristicFactory::ProbabilityAwarePDBHeuristicFactory(
 }
 
 std::unique_ptr<FDREvaluator>
-ProbabilityAwarePDBHeuristicFactory::create_evaluator(
+ProbabilityAwarePDBHeuristicFactory::create_heuristic(
     std::shared_ptr<ProbabilisticTask> task,
     std::shared_ptr<FDRCostFunction> task_cost_function)
 {

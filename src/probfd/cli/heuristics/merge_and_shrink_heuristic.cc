@@ -85,7 +85,7 @@ public:
         double main_loop_max_time,
         utils::Verbosity verbosity);
 
-    std::unique_ptr<FDREvaluator> create_evaluator(
+    std::unique_ptr<FDREvaluator> create_heuristic(
         std::shared_ptr<ProbabilisticTask> task,
         std::shared_ptr<FDRCostFunction> task_cost_function) override;
 };
@@ -113,7 +113,7 @@ MergeAndShrinkHeuristicFactory::MergeAndShrinkHeuristicFactory(
 {
 }
 
-std::unique_ptr<FDREvaluator> MergeAndShrinkHeuristicFactory::create_evaluator(
+std::unique_ptr<FDREvaluator> MergeAndShrinkHeuristicFactory::create_heuristic(
     std::shared_ptr<ProbabilisticTask> task,
     std::shared_ptr<FDRCostFunction>)
 {

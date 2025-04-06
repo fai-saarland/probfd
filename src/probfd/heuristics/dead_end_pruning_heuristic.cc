@@ -50,7 +50,7 @@ DeadEndPruningHeuristicFactory::DeadEndPruningHeuristicFactory(
 {
 }
 
-std::unique_ptr<FDREvaluator> DeadEndPruningHeuristicFactory::create_evaluator(
+std::unique_ptr<FDREvaluator> DeadEndPruningHeuristicFactory::create_heuristic(
     std::shared_ptr<ProbabilisticTask>,
     std::shared_ptr<FDRCostFunction> task_cost_function)
 {

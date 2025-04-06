@@ -257,7 +257,7 @@ MDPSolver::create(const std::shared_ptr<ProbabilisticTask>& task)
     std::shared_ptr<FDREvaluator> heuristic = run_time_logged(
         std::cout,
         "Constructing heuristic...",
-        &TaskHeuristicFactory::create_evaluator,
+        &TaskHeuristicFactory::create_heuristic,
         *heuristic_factory_,
         task,
         task_cost_function);

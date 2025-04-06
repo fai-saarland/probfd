@@ -6,7 +6,7 @@ using namespace downward;
 
 namespace probfd::heuristics {
 
-std::unique_ptr<FDREvaluator> BlindEvaluatorFactory::create_evaluator(
+std::unique_ptr<FDREvaluator> BlindEvaluatorFactory::create_heuristic(
     std::shared_ptr<ProbabilisticTask> task,
     std::shared_ptr<FDRCostFunction> cost_function)
 {
