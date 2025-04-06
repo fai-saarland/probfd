@@ -16,7 +16,7 @@ void add_merge_strategy_options_to_feature(Feature& feature)
     add_log_options_to_feature(feature);
 }
 
-tuple<::utils::Verbosity>
+tuple<downward::utils::Verbosity>
 get_merge_strategy_arguments_from_options(const Options& opts)
 {
     return get_log_arguments_from_options(opts);

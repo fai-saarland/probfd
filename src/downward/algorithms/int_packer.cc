@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace int_packer {
+namespace downward::int_packer {
 static const int BITS_PER_BIN = sizeof(IntPacker::Bin) * 8;
 
 static IntPacker::Bin get_bit_mask(int from, int to)

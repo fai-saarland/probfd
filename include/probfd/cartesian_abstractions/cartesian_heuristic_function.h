@@ -11,7 +11,9 @@
 #include <vector>
 
 // Forward Declarations
+namespace downward {
 class State;
+}
 
 namespace probfd::cartesian_abstractions {
 
@@ -35,7 +37,7 @@ public:
     ~CartesianHeuristicFunction();
 
     [[nodiscard]]
-    value_t get_value(const State& state) const;
+    value_t get_value(const downward::State& state) const;
 };
 
 } // namespace probfd::cartesian_abstractions

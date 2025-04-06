@@ -3,7 +3,7 @@
 
 #include "downward/pruning/stubborn_sets_action_centric.h"
 
-namespace stubborn_sets_simple {
+namespace downward::stubborn_sets_simple {
 /* Implementation of simple instantiation of strong stubborn sets.
    Disjunctive action landmarks are computed trivially.*/
 class StubbornSetsSimple : public stubborn_sets::StubbornSetsActionCentric {

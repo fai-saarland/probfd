@@ -40,8 +40,8 @@ namespace probfd::cartesian_abstractions {
 class CartesianAbstraction
     : public SimpleMDP<int, const ProbabilisticTransition*> {
     const std::unique_ptr<ProbabilisticTransitionSystem> transition_system_;
-    const State concrete_initial_state_;
-    const std::vector<FactPair> goal_facts_;
+    const downward::State concrete_initial_state_;
+    const std::vector<downward::FactPair> goal_facts_;
 
     // All (yet unsplit) abstract states.
     AbstractStates states_;
@@ -52,7 +52,7 @@ class CartesianAbstraction
 
     std::vector<value_t> operator_costs_;
 
-    mutable utils::LogProxy log_;
+    mutable downward::utils::LogProxy log_;
 
     void initialize_trivial_abstraction(const std::vector<int>& domain_sizes);
 
@@ -60,7 +60,7 @@ public:
     CartesianAbstraction(
         const ProbabilisticTaskProxy& task,
         std::vector<value_t> operator_costs,
-        utils::LogProxy log);
+        downward::utils::LogProxy log);
     ~CartesianAbstraction() override;
 
     CartesianAbstraction(const CartesianAbstraction&) = delete;

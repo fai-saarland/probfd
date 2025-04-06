@@ -15,7 +15,7 @@ void add_generator_options_to_feature(Feature& feature)
     utils::add_log_options_to_feature(feature);
 }
 
-tuple<::utils::Verbosity>
+tuple<downward::utils::Verbosity>
 get_generator_arguments_from_options(const Options& opts)
 {
     return utils::get_log_arguments_from_options(opts);

@@ -23,7 +23,7 @@ struct discarding_output_iterator {
 
     discarding_output_iterator& operator++() { return *this; }
 
-    discarding_output_iterator operator++(int) { return *this; }
+    discarding_output_iterator operator++(int) const { return *this; }
 
     discarding_output_iterator& operator*() { return *this; }
 };

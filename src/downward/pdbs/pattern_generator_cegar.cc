@@ -13,7 +13,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 PatternGeneratorCEGAR::PatternGeneratorCEGAR(
     int max_pdb_size,
     double max_time,

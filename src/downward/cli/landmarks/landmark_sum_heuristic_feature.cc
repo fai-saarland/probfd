@@ -7,8 +7,8 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace landmarks;
-using namespace utils;
+using namespace downward::landmarks;
+using namespace downward::utils;
 
 using namespace downward::cli::plugins;
 
@@ -18,7 +18,7 @@ using downward::cli::landmarks::get_landmark_heuristic_arguments_from_options;
 namespace {
 
 class LandmarkSumHeuristicFeature
-    : public TypedFeature<Evaluator, LandmarkSumHeuristic> {
+    : public TypedFeature<downward::Evaluator, LandmarkSumHeuristic> {
 public:
     LandmarkSumHeuristicFeature()
         : TypedFeature("landmark_sum")
@@ -28,7 +28,7 @@ public:
             "Formerly known as the landmark heuristic or landmark count "
             "heuristic.\n"
             "See the papers" +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Silvia Richter", "Malte Helmert", "Matthias Westphal"},
                 "Landmarks Revisited",
                 "https://ai.dmi.unibas.ch/papers/richter-et-al-aaai2008.pdf",
@@ -38,7 +38,7 @@ public:
                 "AAAI Press",
                 "2008") +
             "and" +
-            utils::format_journal_reference(
+            format_journal_reference(
                 {"Silvia Richter", "Matthias Westphal"},
                 "The LAMA Planner: Guiding Cost-Based Anytime Planning with "
                 "Landmarks",

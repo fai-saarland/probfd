@@ -22,13 +22,13 @@
 using namespace std::ranges;
 using namespace std::views;
 
-class Evaluator;
+using namespace downward;
 
 namespace probfd {
 
 CachingTaskStateSpace::CachingTaskStateSpace(
     std::shared_ptr<ProbabilisticTask> task,
-    std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators)
+    std::vector<std::shared_ptr<Evaluator>> path_dependent_evaluators)
     : TaskStateSpace(std::move(task), std::move(path_dependent_evaluators))
 {
 }

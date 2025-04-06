@@ -9,7 +9,7 @@
   Implemented as a map from int to deques.
 */
 
-namespace standard_scalar_open_list {
+namespace downward::standard_scalar_open_list {
 class BestFirstOpenListFactory : public OpenListFactory {
     std::shared_ptr<Evaluator> eval;
     bool pref_only;

@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 static shared_ptr<PatternDatabase> get_pdb_from_generator(
     const shared_ptr<AbstractTask>& task,
     const shared_ptr<PatternGenerator>& pattern_generator)

@@ -17,7 +17,7 @@
   should be close to optimal in most cases. (See code comments for
   details.)
 */
-namespace int_packer {
+namespace downward::int_packer {
 class IntPacker {
     class VariableInfo;
 

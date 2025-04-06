@@ -4,7 +4,7 @@
 #include <tuple>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 enum class Verbosity;
 }
 

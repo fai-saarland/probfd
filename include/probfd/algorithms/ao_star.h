@@ -45,7 +45,7 @@ class AOStar
 
     friend Base;
 
-    using AlgorithmValueType = Base::AlgorithmValueType;
+    using AlgorithmValueType = typename Base::AlgorithmValueType;
 
     using MDPType = typename Base::MDPType;
     using HeuristicType = typename Base::HeuristicType;

@@ -8,7 +8,9 @@
 #include <vector>
 
 // Forward Declarations
+namespace downward {
 class VariablesProxy;
+}
 
 /// Namespace dedicated to occupation measure heuristics
 namespace probfd::occupation_measures {
@@ -39,7 +41,8 @@ class HigherOrderHPOMGenerator : public ConstraintGenerator {
             const std::vector<int>& pstate) const;
 
         [[nodiscard]]
-        int to_id(const std::vector<int>& pattern, const State& state) const;
+        int to_id(const std::vector<int>& pattern, const downward::State& state)
+            const;
     };
 
     std::vector<PatternInfo> infos_;
@@ -50,11 +53,15 @@ public:
     void initialize_constraints(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function,
-        lp::LinearProgram& lp) final;
+        downward::lp::LinearProgram& lp) final;
 
-    void update_constraints(const State& state, lp::LPSolver& solver) final;
+    void update_constraints(
+        const downward::State& state,
+        downward::lp::LPSolver& solver) final;
 
-    void reset_constraints(const State& state, lp::LPSolver& solver) final;
+    void reset_constraints(
+        const downward::State& state,
+        downward::lp::LPSolver& solver) final;
 
 private:
     [[nodiscard]]

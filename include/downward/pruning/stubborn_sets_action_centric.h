@@ -3,7 +3,7 @@
 
 #include "downward/pruning/stubborn_sets.h"
 
-namespace stubborn_sets {
+namespace downward::stubborn_sets {
 class StubbornSetsActionCentric : public stubborn_sets::StubbornSets {
     /*
       stubborn_queue contains the operator indices of operators that

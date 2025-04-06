@@ -10,9 +10,11 @@
 #include <vector>
 
 // Forward Declarations
+namespace downward {
 class Evaluator;
+}
 
-namespace utils {
+namespace downward::utils {
 enum class Verbosity;
 }
 
@@ -30,7 +32,7 @@ namespace probfd::cli::solvers {
 using MDPSolverNoAlgorithmArgs = std::tuple<
     std::shared_ptr<probfd::TaskStateSpaceFactory>,
     std::shared_ptr<probfd::TaskHeuristicFactory>,
-    utils::Verbosity,
+    downward::utils::Verbosity,
     std::string,
     bool,
     std::optional<probfd::value_t>,

@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-namespace pref_evaluator {
+namespace downward::pref_evaluator {
 class PrefEvaluator : public Evaluator {
 public:
     PrefEvaluator(const std::string& description, utils::Verbosity verbosity);

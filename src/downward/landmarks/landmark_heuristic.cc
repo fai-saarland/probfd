@@ -10,7 +10,7 @@
 
 using namespace std;
 
-namespace landmarks {
+namespace downward::landmarks {
 LandmarkHeuristic::LandmarkHeuristic(
     bool use_preferred_operators,
     const shared_ptr<AbstractTask>& transform,

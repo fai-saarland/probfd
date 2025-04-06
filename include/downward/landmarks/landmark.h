@@ -5,7 +5,7 @@
 
 #include <unordered_set>
 
-namespace landmarks {
+namespace downward::landmarks {
 class Landmark {
 public:
     Landmark(

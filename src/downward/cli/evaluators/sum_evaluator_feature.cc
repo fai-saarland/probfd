@@ -7,7 +7,7 @@
 #include "downward/utils/logging.h"
 
 using namespace std;
-using namespace sum_evaluator;
+using namespace downward::sum_evaluator;
 
 using namespace downward::cli::plugins;
 
@@ -19,7 +19,8 @@ using downward::cli::combining_evaluator::
 
 namespace {
 
-class SumEvaluatorFeature : public TypedFeature<Evaluator, SumEvaluator> {
+class SumEvaluatorFeature
+    : public TypedFeature<downward::Evaluator, SumEvaluator> {
 public:
     SumEvaluatorFeature()
         : TypedFeature("sum")
@@ -31,11 +32,14 @@ public:
         add_combining_evaluator_options_to_feature(*this, "sum");
     }
 
-    virtual shared_ptr<SumEvaluator>
-    create_component(const Options& opts, const utils::Context& context)
-        const override
+    virtual shared_ptr<SumEvaluator> create_component(
+        const Options& opts,
+        const downward::utils::Context& context) const override
     {
-        verify_list_non_empty<shared_ptr<Evaluator>>(context, opts, "evals");
+        verify_list_non_empty<shared_ptr<downward::Evaluator>>(
+            context,
+            opts,
+            "evals");
         return make_shared_from_arg_tuples<SumEvaluator>(
             get_combining_evaluator_arguments_from_options(opts));
     }

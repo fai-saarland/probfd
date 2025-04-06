@@ -24,6 +24,7 @@
 #include <utility>
 
 using namespace std;
+using namespace downward;
 
 namespace probfd::pdbs::cegar {
 namespace {

@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace stubborn_sets_ec {
+namespace downward::stubborn_sets_ec {
 // DTGs are stored as one adjacency list per value.
 using StubbornDTG = vector<vector<int>>;
 

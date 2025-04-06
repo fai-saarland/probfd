@@ -6,12 +6,12 @@
 #include <memory>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
 } // namespace utils
 
-namespace variable_order_finder {
+namespace downward::variable_order_finder {
 enum VariableOrderType {
     CG_GOAL_LEVEL,
     CG_GOAL_RANDOM,

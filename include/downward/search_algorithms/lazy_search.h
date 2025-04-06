@@ -14,9 +14,11 @@
 #include <memory>
 #include <vector>
 
+namespace downward {
 class OpenListFactory;
+}
 
-namespace lazy_search {
+namespace downward::lazy_search {
 class LazySearch : public SearchAlgorithm {
 protected:
     std::unique_ptr<EdgeOpenList> open_list;

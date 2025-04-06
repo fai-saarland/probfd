@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 
+namespace downward {
 class AxiomEvaluator {
     struct AxiomRule;
     struct AxiomLiteral {
@@ -75,5 +76,7 @@ public:
 };
 
 extern PerTaskInformation<AxiomEvaluator> g_axiom_evaluators;
+
+}
 
 #endif

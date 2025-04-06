@@ -8,8 +8,8 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace utils;
-using namespace operator_counting;
+using namespace downward::utils;
+using namespace downward::operator_counting;
 
 using namespace downward::cli::plugins;
 
@@ -33,7 +33,7 @@ public:
             "minus the total number of times is removed. The bounds of each "
             "constraint depend on the current state and the goal state and are "
             "updated in each state. For details, see" +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Menkes van den Briel",
                  "J. Benton",
                  "Subbarao Kambhampati",
@@ -45,7 +45,7 @@ public:
                 "651-665",
                 "Springer-Verlag",
                 "2007") +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Blai Bonet"},
                 "An admissible heuristic for SAS+ planning obtained from the"
                 " state equation",
@@ -55,7 +55,7 @@ public:
                 "2268-2274",
                 "AAAI Press",
                 "2013") +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Florian Pommerening",
                  "Gabriele Roeger",
                  "Malte Helmert",

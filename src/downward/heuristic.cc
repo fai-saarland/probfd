@@ -10,6 +10,8 @@
 
 using namespace std;
 
+namespace downward {
+
 Heuristic::Heuristic(
     const shared_ptr<AbstractTask>& transform,
     bool cache_estimates,
@@ -109,3 +111,5 @@ int Heuristic::get_cached_estimate(const State& state) const
     assert(is_estimate_cached(state));
     return heuristic_cache[state].h;
 }
+
+} // namespace downward

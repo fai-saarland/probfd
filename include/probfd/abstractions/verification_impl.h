@@ -18,13 +18,15 @@ template <typename State, typename Action>
 void verify(
     MDP<State, Action>& mdp,
     std::span<const value_t> value_table,
-    lp::LPSolverType type)
+    downward::lp::LPSolverType type)
 {
-    lp::LPSolver solver(type);
+    using namespace downward::lp;
+
+    LPSolver solver(type);
     const double inf = solver.get_infinity();
 
-    named_vector::NamedVector<lp::LPVariable> variables;
-    named_vector::NamedVector<lp::LPConstraint> constraints;
+    downward::named_vector::NamedVector<LPVariable> variables;
+    downward::named_vector::NamedVector<LPConstraint> constraints;
 
     const std::size_t num_states = value_table.size();
 
@@ -67,8 +69,8 @@ void verify(
     }
 
     solver.load_problem(
-        lp::LinearProgram(
-            lp::LPObjectiveSense::MAXIMIZE,
+        LinearProgram(
+            LPObjectiveSense::MAXIMIZE,
             std::move(variables),
             std::move(constraints),
             inf));

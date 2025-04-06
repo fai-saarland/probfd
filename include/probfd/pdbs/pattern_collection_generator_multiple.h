@@ -12,9 +12,11 @@
 #include <utility>
 
 // Forward Declarations
+namespace downward {
 struct FactPair;
+}
 
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 class RandomNumberGenerator;
 } // namespace utils
@@ -40,20 +42,20 @@ class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
     const bool enable_blacklist_on_stagnation_;
     const bool use_saturated_costs_;
 
-    const std::shared_ptr<utils::RandomNumberGenerator> rng_;
+    const std::shared_ptr<downward::utils::RandomNumberGenerator> rng_;
 
     const std::string implementation_name_;
 
     bool collection_size_limit_reached(int remaining_collection_size) const;
-    bool time_limit_reached(const utils::CountdownTimer& timer) const;
+    bool time_limit_reached(const downward::utils::CountdownTimer& timer) const;
 
     virtual ProjectionTransformation compute_pattern(
         int max_pdb_size,
         double max_time,
-        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+        const std::shared_ptr<downward::utils::RandomNumberGenerator>& rng,
         const ProbabilisticTaskProxy& task_proxy,
         const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
-        const FactPair& goal,
+        const downward::FactPair& goal,
         std::unordered_set<int>&& blacklisted_variables) = 0;
 
     PatternCollectionInformation generate(
@@ -70,9 +72,9 @@ public:
         double blacklist_trigger_percentage,
         bool enable_blacklist_on_stagnation,
         bool use_saturated_costs,
-        std::shared_ptr<utils::RandomNumberGenerator> rng,
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng,
         std::string implementation_name,
-        utils::Verbosity verbosity);
+        downward::utils::Verbosity verbosity);
 };
 
 } // namespace probfd::pdbs

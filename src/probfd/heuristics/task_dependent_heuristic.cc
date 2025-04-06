@@ -2,6 +2,8 @@
 
 #include <utility>
 
+using namespace downward;
+
 namespace probfd::heuristics {
 
 TaskDependentHeuristic::TaskDependentHeuristic(

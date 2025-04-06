@@ -18,6 +18,7 @@
 #include <iostream>
 
 using namespace std;
+using namespace downward;
 
 namespace probfd::cartesian_abstractions {
 

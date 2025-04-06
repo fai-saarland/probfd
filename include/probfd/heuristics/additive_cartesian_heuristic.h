@@ -34,7 +34,7 @@ public:
             heuristic_functions);
 
 protected:
-    value_t evaluate(const State& ancestor_state) const override;
+    value_t evaluate(const downward::State& ancestor_state) const override;
 };
 
 class AdditiveCartesianHeuristicFactory final : public TaskHeuristicFactory {
@@ -49,7 +49,7 @@ class AdditiveCartesianHeuristicFactory final : public TaskHeuristicFactory {
     const double max_time;
     const bool use_general_costs;
 
-    const utils::LogProxy log_;
+    mutable downward::utils::LogProxy log_;
 
 public:
     AdditiveCartesianHeuristicFactory(
@@ -63,27 +63,12 @@ public:
         int max_transitions,
         double max_time,
         bool use_general_costs,
-        utils::Verbosity verbosity);
+        downward::utils::Verbosity verbosity);
 
     std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,
         std::shared_ptr<FDRCostFunction> task_cost_function) override;
 };
-
-std::vector<cartesian_abstractions::CartesianHeuristicFunction>
-generate_heuristic_functions(
-    std::shared_ptr<ProbabilisticTask> task,
-    utils::LogProxy log,
-    std::vector<std::shared_ptr<cartesian_abstractions::SubtaskGenerator>>
-        subtask_generators,
-    std::shared_ptr<cartesian_abstractions::FlawGeneratorFactory>
-        flaw_generator_factory,
-    std::shared_ptr<cartesian_abstractions::SplitSelectorFactory>
-        split_selector_factory,
-    int max_states,
-    int max_transitions,
-    double max_time,
-    bool use_general_costs);
 
 } // namespace probfd::heuristics
 

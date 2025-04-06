@@ -3,7 +3,7 @@
 
 #include "downward/merge_and_shrink/shrink_bucket_based.h"
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 class ShrinkRandom : public ShrinkBucketBased {
 protected:
     virtual std::vector<Bucket> partition_into_buckets(

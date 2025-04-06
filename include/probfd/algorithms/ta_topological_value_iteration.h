@@ -17,7 +17,7 @@
 #include <set>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 }
 
@@ -36,13 +36,15 @@ struct Statistics {
     unsigned long long bellman_backups = 0;
     unsigned long long pruned = 0;
 
-    utils::Timer initialize_state_timer = utils::Timer(false);
-    utils::Timer successor_handling_timer = utils::Timer(false);
-    utils::Timer scc_handling_timer = utils::Timer(false);
-    utils::Timer backtracking_timer = utils::Timer(false);
-    utils::Timer vi_timer = utils::Timer(false);
-    utils::Timer decomposition_timer = utils::Timer(false);
-    utils::Timer solvability_timer = utils::Timer(false);
+    downward::utils::Timer initialize_state_timer =
+        downward::utils::Timer(false);
+    downward::utils::Timer successor_handling_timer =
+        downward::utils::Timer(false);
+    downward::utils::Timer scc_handling_timer = downward::utils::Timer(false);
+    downward::utils::Timer backtracking_timer = downward::utils::Timer(false);
+    downward::utils::Timer vi_timer = downward::utils::Timer(false);
+    downward::utils::Timer decomposition_timer = downward::utils::Timer(false);
+    downward::utils::Timer solvability_timer = downward::utils::Timer(false);
 
     void print(std::ostream& out) const;
 };
@@ -123,7 +125,7 @@ class TATopologicalValueIteration
 
         // Exploration State -- Currently expanded transition and successor
         SuccessorDistribution successor_dist;
-        typename Distribution<StateID>::const_iterator successor;
+        Distribution<StateID>::const_iterator successor;
 
         // Exploration state -- Current Q value info
         QValueInfo q_value;
@@ -221,7 +223,7 @@ class TATopologicalValueIteration
         typename std::vector<QValueInfo>::iterator end;
 
         // Exploration state - Transition successor
-        typename std::vector<ItemProbabilityPair<StateID>>::iterator successor;
+        std::vector<ItemProbabilityPair<StateID>>::iterator successor;
 
         // Tarjan's algorithm state
         unsigned lowlink;
@@ -268,9 +270,7 @@ class TATopologicalValueIteration
 
             auto scc_view = state_ids | drop(scc_spans.back());
 
-            for (const auto state_id : scc_view) {
-                r.push_back(state_id);
-            }
+            for (const auto state_id : scc_view) { r.push_back(state_id); }
 
             state_ids.erase(scc_view.begin(), scc_view.end());
 
@@ -365,7 +365,7 @@ private:
         MDPType& mdp,
         DFSExplorationState& explore,
         auto& value_store,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     /**
      * Handle the new SCC and perform value iteration on it.
@@ -374,14 +374,15 @@ private:
         auto& value_store,
         DFSExplorationState& exp_info,
         unsigned int stack_idx,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
-    void find_and_decompose_sccs(utils::CountdownTimer& timer);
+    void find_and_decompose_sccs(downward::utils::CountdownTimer& timer);
 
     bool initialize_ecd(ECDExplorationInfo& exp_info);
 
-    bool
-    push_successor_ecd(ECDExplorationInfo& e, utils::CountdownTimer& timer);
+    bool push_successor_ecd(
+        ECDExplorationInfo& e,
+        downward::utils::CountdownTimer& timer);
 
     void scc_found_ecd(ECDExplorationInfo& e);
 };

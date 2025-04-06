@@ -20,7 +20,7 @@ class MergeScoringFunctionMIASM : public MergeScoringFunction {
     const int max_states;
     const int max_states_before_merge;
     const int shrink_threshold_before_merge;
-    utils::LogProxy silent_log;
+    downward::utils::LogProxy silent_log;
     std::vector<std::vector<std::optional<double>>>
         cached_scores_by_merge_candidate_indices;
 
@@ -39,11 +39,13 @@ public:
     void initialize(const ProbabilisticTaskProxy& task_proxy) override;
 
     bool requires_liveness() const override { return true; }
+
     bool requires_goal_distances() const override { return true; }
 
 private:
     std::string name() const override;
-    void dump_function_specific_options(utils::LogProxy& log) const override;
+    void dump_function_specific_options(
+        downward::utils::LogProxy& log) const override;
 };
 
 } // namespace probfd::merge_and_shrink

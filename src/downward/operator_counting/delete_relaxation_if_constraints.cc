@@ -10,7 +10,7 @@
 
 using namespace std;
 
-namespace operator_counting {
+namespace downward::operator_counting {
 static void add_lp_variables(
     int count,
     LPVariables& variables,

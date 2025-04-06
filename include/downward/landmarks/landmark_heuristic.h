@@ -5,13 +5,15 @@
 
 #include "downward/utils/hash.h"
 
+namespace downward {
 class ConstBitsetView;
+}
 
-namespace successor_generator {
+namespace downward::successor_generator {
 class SuccessorGenerator;
 }
 
-namespace landmarks {
+namespace downward::landmarks {
 class LandmarkFactory;
 class LandmarkGraph;
 class LandmarkNode;

@@ -18,11 +18,11 @@ namespace probfd::pdbs {
 
 class PatternGenerator {
 protected:
-    mutable utils::LogProxy log_;
+    mutable downward::utils::LogProxy log_;
 
 public:
-    explicit PatternGenerator(utils::Verbosity);
-    explicit PatternGenerator(utils::LogProxy log);
+    explicit PatternGenerator(downward::utils::Verbosity);
+    explicit PatternGenerator(downward::utils::LogProxy log);
 
     virtual ~PatternGenerator() = default;
 

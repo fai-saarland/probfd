@@ -11,9 +11,9 @@
 #include <vector>
 
 using namespace std;
-using utils::ExitCode;
+using downward::utils::ExitCode;
 
-namespace variable_order_finder {
+namespace downward::variable_order_finder {
 VariableOrderFinder::VariableOrderFinder(
     const TaskProxy& task_proxy,
     VariableOrderType variable_order_type,

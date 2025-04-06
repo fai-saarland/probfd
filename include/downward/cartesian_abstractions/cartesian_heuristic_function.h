@@ -4,9 +4,11 @@
 #include <memory>
 #include <vector>
 
+namespace downward {
 class State;
+}
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 class RefinementHierarchy;
 /*
   Store RefinementHierarchy and heuristic values for looking up abstract state

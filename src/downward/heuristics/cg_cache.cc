@@ -14,7 +14,7 @@
 
 using namespace std;
 
-namespace cg_heuristic {
+namespace downward::cg_heuristic {
 const int CGCache::NOT_COMPUTED;
 
 CGCache::CGCache(

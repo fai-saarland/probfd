@@ -20,6 +20,7 @@
 #include <variant>
 #include <vector>
 
+namespace downward {
 class AxiomsProxy;
 class AxiomEffectProxy;
 class AxiomEffectConditionsProxy;
@@ -43,11 +44,13 @@ class PlanningTaskProxy;
 class TaskProxy;
 class VariableProxy;
 class VariablesProxy;
+}
 
-namespace causal_graph {
+namespace downward::causal_graph {
 class CausalGraph;
 }
 
+namespace downward {
 using PackedStateBin = int_packer::IntPacker::Bin;
 
 /*
@@ -1353,4 +1356,6 @@ inline const std::vector<int>& State::get_unpacked_values() const
     }
     return *values;
 }
+}
+
 #endif // DOWNWARD_TASK_PROXY_H

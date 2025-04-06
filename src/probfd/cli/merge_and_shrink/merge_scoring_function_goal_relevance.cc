@@ -6,6 +6,7 @@
 
 using namespace std;
 using namespace downward::cli::plugins;
+using namespace downward;
 using namespace probfd::merge_and_shrink;
 
 namespace {

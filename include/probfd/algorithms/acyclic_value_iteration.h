@@ -13,7 +13,7 @@
 #include <stack>
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 }
 
@@ -134,7 +134,7 @@ private:
         MDPType& mdp,
         MapPolicy* policy,
         DFSExplorationState& e,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     bool expand_state(
         MDPType& mdp,

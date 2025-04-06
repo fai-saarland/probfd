@@ -7,12 +7,14 @@
 #include <memory>
 
 // Forward Declarations
+namespace downward {
 class State;
+}
 
-namespace lp {
+namespace downward::lp {
 class LinearProgram;
 class LPSolver;
-} // namespace lp
+} // namespace downward::lp
 
 namespace probfd {
 class ProbabilisticTask;
@@ -32,7 +34,7 @@ public:
     virtual void initialize_constraints(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function,
-        lp::LinearProgram& lp) = 0;
+        downward::lp::LinearProgram& lp) = 0;
 
     /*
       Called before evaluating a state. Use this to add temporary constraints
@@ -40,15 +42,17 @@ public:
       constraints are removed automatically after the evalution.
       Returns true if a dead end was detected and false otherwise.
     */
-    virtual void
-    update_constraints(const State& state, lp::LPSolver& solver) = 0;
+    virtual void update_constraints(
+        const downward::State& state,
+        downward::lp::LPSolver& solver) = 0;
 
     /*
       Called after evaluating a state. Use this to remove to unset bounds on
       permanent constraints for this state.
     */
-    virtual void
-    reset_constraints(const State& state, lp::LPSolver& solver) = 0;
+    virtual void reset_constraints(
+        const downward::State& state,
+        downward::lp::LPSolver& solver) = 0;
 
     virtual void print_statistics(std::ostream&) {}
 };

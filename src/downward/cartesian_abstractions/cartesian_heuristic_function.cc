@@ -6,7 +6,7 @@
 
 using namespace std;
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 CartesianHeuristicFunction::CartesianHeuristicFunction(
     unique_ptr<RefinementHierarchy>&& hierarchy,
     vector<int>&& h_values)

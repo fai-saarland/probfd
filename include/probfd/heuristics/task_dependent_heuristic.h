@@ -17,12 +17,12 @@ protected:
     std::shared_ptr<ProbabilisticTask> task_;
     ProbabilisticTaskProxy task_proxy_;
 
-    mutable utils::LogProxy log_;
+    mutable downward::utils::LogProxy log_;
 
 public:
     TaskDependentHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
-        utils::LogProxy log);
+        downward::utils::LogProxy log);
 };
 
 } // namespace probfd::heuristics

@@ -14,6 +14,7 @@
 
 #include <vector>
 
+namespace downward {
 namespace ordered_set {
 template <typename T>
 class OrderedSet;
@@ -89,5 +90,6 @@ extern void collect_preferred_operators(
     EvaluationContext& eval_context,
     Evaluator* preferred_operator_evaluator,
     ordered_set::OrderedSet<OperatorID>& preferred_operators);
+}
 
 #endif

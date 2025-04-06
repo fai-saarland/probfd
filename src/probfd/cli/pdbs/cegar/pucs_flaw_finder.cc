@@ -2,6 +2,7 @@
 
 #include "probfd/pdbs/cegar/pucs_flaw_finder.h"
 
+using namespace downward;
 using namespace utils;
 
 using namespace probfd::pdbs::cegar;

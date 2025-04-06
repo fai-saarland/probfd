@@ -21,7 +21,7 @@
 #pragma GCC diagnostic pop
 #endif
 
-namespace lp {
+namespace downward::lp {
 class SoPlexSolverInterface : public SolverInterface {
     // The reference to the solver is mutable because objValueReal is not const.
     mutable soplex::SoPlex soplex;

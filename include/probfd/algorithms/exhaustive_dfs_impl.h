@@ -36,7 +36,7 @@ inline bool update_lower_bound(Interval& x, value_t v)
     return false;
 }
 
-void Statistics::print(std::ostream& out) const
+inline void Statistics::print(std::ostream& out) const
 {
     out << "  Expanded " << expanded << " state(s)." << std::endl;
     out << "  Evaluated " << evaluated << " state(s)." << std::endl;

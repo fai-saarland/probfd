@@ -17,7 +17,7 @@
 #include <vector>
 
 // Forward Declarations
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 class Distances;
 class FactoredTransitionSystem;
 class TransitionSystem;
@@ -32,9 +32,9 @@ class ProbabilisticTask;
 
 namespace probfd::bisimulation {
 
-class BisimilarStateSpace : public MDP<QuotientState, OperatorID> {
+class BisimilarStateSpace : public MDP<QuotientState, downward::OperatorID> {
     struct CachedTransition {
-        OperatorID op_id;
+        downward::OperatorID op_id;
         int* successors;
     };
 
@@ -42,7 +42,7 @@ class BisimilarStateSpace : public MDP<QuotientState, OperatorID> {
     std::shared_ptr<FDRCostFunction> task_cost_function_;
 
     unsigned num_cached_transitions_ = 0;
-    segmented_vector::SegmentedVector<std::vector<CachedTransition>>
+    downward::segmented_vector::SegmentedVector<std::vector<CachedTransition>>
         transitions_;
 
     // Storage for transitions
@@ -54,7 +54,7 @@ public:
     BisimilarStateSpace(
         std::shared_ptr<ProbabilisticTask> task,
         std::shared_ptr<FDRCostFunction> task_cost_function,
-        const merge_and_shrink::TransitionSystem& transition_system);
+        const downward::merge_and_shrink::TransitionSystem& transition_system);
 
     ~BisimilarStateSpace() override;
 
@@ -64,16 +64,16 @@ public:
 
     void generate_applicable_actions(
         QuotientState state,
-        std::vector<OperatorID>& result) override;
+        std::vector<downward::OperatorID>& result) override;
 
     void generate_action_transitions(
         QuotientState state,
-        OperatorID action,
+        downward::OperatorID action,
         SuccessorDistribution& successor_dist) override;
 
     void generate_all_transitions(
         QuotientState state,
-        std::vector<OperatorID>& aops,
+        std::vector<downward::OperatorID>& aops,
         std::vector<SuccessorDistribution>& successor_dists) override;
 
     void generate_all_transitions(
@@ -82,7 +82,7 @@ public:
 
     TerminationInfo get_termination_info(QuotientState state) override;
 
-    value_t get_action_cost(OperatorID action) override;
+    value_t get_action_cost(downward::OperatorID action) override;
 
     /// Checks whether the given quotient state is a goal state.
     bool is_goal_state(QuotientState s) const;
@@ -94,8 +94,8 @@ public:
     unsigned num_transitions() const;
 };
 
-merge_and_shrink::Factor
-compute_bisimulation_on_determinization(const TaskProxy& det_task_proxy);
+downward::merge_and_shrink::Factor compute_bisimulation_on_determinization(
+    const downward::TaskProxy& det_task_proxy);
 
 } // namespace probfd::bisimulation
 

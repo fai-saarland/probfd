@@ -5,6 +5,7 @@
 
 #include <unordered_map>
 
+namespace downward {
 class Evaluator;
 
 using EvaluationResults = std::unordered_map<Evaluator*, EvaluationResult>;
@@ -28,5 +29,6 @@ public:
         }
     }
 };
+}
 
 #endif

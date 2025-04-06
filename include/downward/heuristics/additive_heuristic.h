@@ -8,9 +8,11 @@
 
 #include <cassert>
 
+namespace downward {
 class State;
+}
 
-namespace additive_heuristic {
+namespace downward::additive_heuristic {
 using relaxation_heuristic::OpID;
 using relaxation_heuristic::PropID;
 

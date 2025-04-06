@@ -14,7 +14,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 PatternCollectionInformation::PatternCollectionInformation(
     const TaskProxy& task_proxy,
     const shared_ptr<PatternCollection>& patterns,

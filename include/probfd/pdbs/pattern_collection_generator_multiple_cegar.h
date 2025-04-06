@@ -22,16 +22,16 @@ class PatternCollectionGeneratorMultipleCegar
     ProjectionTransformation compute_pattern(
         int max_pdb_size,
         double max_time,
-        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+        const std::shared_ptr<downward::utils::RandomNumberGenerator>& rng,
         const ProbabilisticTaskProxy& task_proxy,
         const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
-        const FactPair& goal,
+        const downward::FactPair& goal,
         std::unordered_set<int>&& blacklisted_variables) override;
 
 public:
     explicit PatternCollectionGeneratorMultipleCegar(
         value_t convergence_epsilon,
-        std::shared_ptr<probfd::pdbs::cegar::FlawFindingStrategy> flaw_strategy,
+        std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy,
         bool use_wildcard_policies,
         int max_pdb_size,
         int max_collection_size,
@@ -41,8 +41,8 @@ public:
         double blacklist_trigger_percentage,
         bool enable_blacklist_on_stagnation,
         bool use_saturated_costs,
-        std::shared_ptr<utils::RandomNumberGenerator> rng,
-        utils::Verbosity verbosity);
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng,
+        downward::utils::Verbosity verbosity);
 };
 
 } // namespace probfd::pdbs

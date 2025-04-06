@@ -7,7 +7,9 @@
 #include <unordered_map>
 #include <vector>
 
+namespace downward {
 class State;
+}
 
 namespace probfd {
 class TaskStateSpace;
@@ -23,11 +25,11 @@ public:
 
     virtual void generate_applicable_ops(
         const std::vector<int>& state,
-        std::vector<OperatorID>& applicable_ops) const = 0;
+        std::vector<downward::OperatorID>& applicable_ops) const = 0;
 
     virtual void generate_transitions(
-        const State& state,
-        std::vector<TransitionTail<OperatorID>>& transitions,
+        const downward::State& state,
+        std::vector<TransitionTail<downward::OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const = 0;
 };
 
@@ -42,11 +44,11 @@ public:
 
     void generate_applicable_ops(
         const std::vector<int>& state,
-        std::vector<OperatorID>& applicable_ops) const override;
+        std::vector<downward::OperatorID>& applicable_ops) const override;
 
     void generate_transitions(
-        const State& state,
-        std::vector<TransitionTail<OperatorID>>& transitions,
+        const downward::State& state,
+        std::vector<TransitionTail<downward::OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const override;
 };
 
@@ -59,11 +61,11 @@ public:
 
     void generate_applicable_ops(
         const std::vector<int>& state,
-        std::vector<OperatorID>& applicable_ops) const override;
+        std::vector<downward::OperatorID>& applicable_ops) const override;
 
     void generate_transitions(
-        const State& state,
-        std::vector<TransitionTail<OperatorID>>& transitions,
+        const downward::State& state,
+        std::vector<TransitionTail<downward::OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const override;
 };
 
@@ -80,11 +82,11 @@ public:
 
     void generate_applicable_ops(
         const std::vector<int>& state,
-        std::vector<OperatorID>& applicable_ops) const override;
+        std::vector<downward::OperatorID>& applicable_ops) const override;
 
     void generate_transitions(
-        const State& state,
-        std::vector<TransitionTail<OperatorID>>& transitions,
+        const downward::State& state,
+        std::vector<TransitionTail<downward::OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const override;
 };
 
@@ -101,11 +103,11 @@ public:
 
     void generate_applicable_ops(
         const std::vector<int>& state,
-        std::vector<OperatorID>& applicable_ops) const override;
+        std::vector<downward::OperatorID>& applicable_ops) const override;
 
     void generate_transitions(
-        const State& state,
-        std::vector<TransitionTail<OperatorID>>& transitions,
+        const downward::State& state,
+        std::vector<TransitionTail<downward::OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const override;
 };
 
@@ -122,44 +124,45 @@ public:
 
     void generate_applicable_ops(
         const std::vector<int>& state,
-        std::vector<OperatorID>& applicable_ops) const override;
+        std::vector<downward::OperatorID>& applicable_ops) const override;
 
     void generate_transitions(
-        const State& state,
-        std::vector<TransitionTail<OperatorID>>& transitions,
+        const downward::State& state,
+        std::vector<TransitionTail<downward::OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const override;
 };
 
 class ProbabilisticGeneratorLeafVector : public ProbabilisticGeneratorBase {
-    std::vector<OperatorID> applicable_operators_;
+    std::vector<downward::OperatorID> applicable_operators_;
 
 public:
     explicit ProbabilisticGeneratorLeafVector(
-        std::vector<OperatorID>&& applicable_operators);
+        std::vector<downward::OperatorID>&& applicable_operators);
 
     void generate_applicable_ops(
         const std::vector<int>& state,
-        std::vector<OperatorID>& applicable_ops) const override;
+        std::vector<downward::OperatorID>& applicable_ops) const override;
 
     void generate_transitions(
-        const State& state,
-        std::vector<TransitionTail<OperatorID>>& transitions,
+        const downward::State& state,
+        std::vector<TransitionTail<downward::OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const override;
 };
 
 class ProbabilisticGeneratorLeafSingle : public ProbabilisticGeneratorBase {
-    OperatorID applicable_operator_;
+    downward::OperatorID applicable_operator_;
 
 public:
-    explicit ProbabilisticGeneratorLeafSingle(OperatorID applicable_operator);
+    explicit ProbabilisticGeneratorLeafSingle(
+        downward::OperatorID applicable_operator);
 
     void generate_applicable_ops(
         const std::vector<int>& state,
-        std::vector<OperatorID>& applicable_ops) const override;
+        std::vector<downward::OperatorID>& applicable_ops) const override;
 
     void generate_transitions(
-        const State& state,
-        std::vector<TransitionTail<OperatorID>>& transitions,
+        const downward::State& state,
+        std::vector<TransitionTail<downward::OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const override;
 };
 

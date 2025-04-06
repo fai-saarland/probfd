@@ -10,6 +10,7 @@
 #include <functional>
 #include <memory>
 
+namespace downward {
 /*
   A PerTaskInformation<T> acts like a HashMap<TaskID, T>
   with two main differences:
@@ -70,5 +71,6 @@ public:
         entries.erase(id);
     }
 };
+}
 
 #endif

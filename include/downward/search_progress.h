@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 
+namespace downward {
 class EvaluationContext;
 class Evaluator;
 
@@ -43,5 +44,6 @@ public:
     */
     bool check_progress(const EvaluationContext &eval_context);
 };
+}
 
 #endif

@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace sccs {
+namespace downward::sccs {
 static void
 dfs(const vector<vector<int>>& graph,
     int vertex,

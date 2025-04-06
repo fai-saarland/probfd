@@ -1,7 +1,7 @@
 #ifndef PROBFD_ALGORITHMS_UTILS_H
 #define PROBFD_ALGORITHMS_UTILS_H
 
-#include "probfd/value_type.h"
+#include "probfd/aliases.h"
 
 #include <cassert>
 #include <cstddef>

@@ -8,8 +8,10 @@
 #include <memory>
 
 // Forward Declarations
+namespace downward {
 class State;
 class OperatorID;
+}
 
 namespace probfd {
 class ProgressReport;
@@ -32,9 +34,9 @@ namespace probfd::solvers {
 
 class StatisticalMDPAlgorithm {
 protected:
-    using PolicyType = Policy<State, OperatorID>;
-    using MDPType = MDP<State, OperatorID>;
-    using HeuristicType = Heuristic<State>;
+    using PolicyType = Policy<downward::State, downward::OperatorID>;
+    using MDPType = MDP<downward::State, downward::OperatorID>;
+    using HeuristicType = Heuristic<downward::State>;
 
 public:
     virtual ~StatisticalMDPAlgorithm() = default;
@@ -45,7 +47,7 @@ public:
     virtual std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
         HeuristicType& heuristic,
-        ParamType<State> state,
+        ParamType<downward::State> state,
         ProgressReport progress,
         double max_time) = 0;
 
@@ -83,7 +85,7 @@ public:
     virtual std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
         HeuristicType& heuristic,
-        ParamType<State> state,
+        ParamType<downward::State> state,
         ProgressReport progress,
         double max_time) override;
 

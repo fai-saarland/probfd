@@ -5,6 +5,8 @@
 
 #include <cassert>
 
+using namespace downward;
+
 namespace probfd {
 
 ProgressReport::ProgressReport(

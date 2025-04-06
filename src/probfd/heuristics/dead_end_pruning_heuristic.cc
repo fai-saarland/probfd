@@ -14,10 +14,12 @@
 #include <iostream>
 #include <utility>
 
+using namespace downward;
+
 namespace probfd::heuristics {
 
 DeadEndPruningHeuristic::DeadEndPruningHeuristic(
-    std::shared_ptr<::Evaluator> pruning_function,
+    std::shared_ptr<Evaluator> pruning_function,
     value_t dead_end_value)
     : pruning_function_(std::move(pruning_function))
     , dead_end_value_(dead_end_value)
@@ -33,7 +35,7 @@ DeadEndPruningHeuristic::DeadEndPruningHeuristic(
 value_t DeadEndPruningHeuristic::evaluate(const State& state) const
 {
     EvaluationContext context(state);
-    ::EvaluationResult result = pruning_function_->compute_result(context);
+    EvaluationResult result = pruning_function_->compute_result(context);
     return result.is_infinite() ? dead_end_value_ : 0_vt;
 }
 
@@ -43,7 +45,7 @@ void DeadEndPruningHeuristic::print_statistics() const
 }
 
 DeadEndPruningHeuristicFactory::DeadEndPruningHeuristicFactory(
-    std::shared_ptr<::Evaluator> evaluator)
+    std::shared_ptr<Evaluator> evaluator)
     : evaluator_(std::move(evaluator))
 {
 }

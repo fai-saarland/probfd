@@ -26,7 +26,7 @@
      (abort()),                                                                \
      (void)0)
 
-namespace utils {
+namespace downward::utils {
 enum class ExitCode {
     /*
       For a full list of exit codes, please see driver/returncodes.py. Here,

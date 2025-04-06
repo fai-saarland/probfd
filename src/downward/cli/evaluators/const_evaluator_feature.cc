@@ -7,8 +7,8 @@
 #include "downward/utils/logging.h"
 
 using namespace std;
-using namespace utils;
-using namespace const_evaluator;
+using namespace downward::utils;
+using namespace downward::const_evaluator;
 
 using namespace downward::cli::plugins;
 
@@ -17,7 +17,8 @@ using downward::cli::get_evaluator_arguments_from_options;
 
 namespace {
 
-class ConstEvaluatorFeature : public TypedFeature<Evaluator, ConstEvaluator> {
+class ConstEvaluatorFeature
+    : public TypedFeature<downward::Evaluator, ConstEvaluator> {
 public:
     ConstEvaluatorFeature()
         : TypedFeature("const")

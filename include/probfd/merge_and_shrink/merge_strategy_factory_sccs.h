@@ -24,7 +24,7 @@ class MergeStrategyFactorySCCs : public MergeStrategyFactory {
 
 public:
     MergeStrategyFactorySCCs(
-        utils::Verbosity verbosity,
+        downward::utils::Verbosity verbosity,
         OrderOfSCCs order_of_sccs,
         std::shared_ptr<MergeTreeFactory> merge_tree_factory,
         std::shared_ptr<MergeSelector> merge_selector);

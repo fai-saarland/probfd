@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace operator_counting {
+namespace downward::operator_counting {
 OperatorCountingHeuristic::OperatorCountingHeuristic(
     const vector<shared_ptr<ConstraintGenerator>>& constraint_generators,
     bool use_integer_operator_counts,

@@ -12,6 +12,7 @@
 #include <memory>
 
 using namespace std;
+using namespace downward;
 using namespace downward::cli::plugins;
 using namespace probfd::merge_and_shrink;
 

@@ -5,11 +5,11 @@
 
 #include <memory>
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 class MergeScoringFunctionSingleRandom : public MergeScoringFunction {
     int random_seed; // only for dump options
     std::shared_ptr<utils::RandomNumberGenerator> rng;

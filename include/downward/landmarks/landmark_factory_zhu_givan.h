@@ -9,7 +9,7 @@
 #include <utility>
 #include <vector>
 
-namespace landmarks {
+namespace downward::landmarks {
 using lm_set = utils::HashSet<FactPair>;
 
 class LandmarkFactoryZhuGivan : public LandmarkFactoryRelaxation {

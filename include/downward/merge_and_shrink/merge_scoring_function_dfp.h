@@ -3,7 +3,7 @@
 
 #include "downward/merge_and_shrink/merge_scoring_function.h"
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 class MergeScoringFunctionDFP : public MergeScoringFunction {
     virtual std::string name() const override;
 

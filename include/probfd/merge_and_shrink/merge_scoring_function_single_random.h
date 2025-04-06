@@ -5,7 +5,7 @@
 
 #include <memory>
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
@@ -13,7 +13,7 @@ namespace probfd::merge_and_shrink {
 
 class MergeScoringFunctionSingleRandom : public MergeScoringFunction {
     int random_seed; // only for dump options
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
 
 public:
     explicit MergeScoringFunctionSingleRandom(int random_seed);
@@ -23,11 +23,13 @@ public:
         const std::vector<std::pair<int, int>>& merge_candidates) override;
 
     bool requires_liveness() const override { return false; }
+
     bool requires_goal_distances() const override { return false; }
 
 private:
     std::string name() const override;
-    void dump_function_specific_options(utils::LogProxy& log) const override;
+    void dump_function_specific_options(
+        downward::utils::LogProxy& log) const override;
 };
 
 } // namespace probfd::merge_and_shrink

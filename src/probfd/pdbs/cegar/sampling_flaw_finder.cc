@@ -21,12 +21,13 @@
 #include <utility>
 
 using namespace std;
-using namespace utils;
+using namespace downward;
+using namespace downward::utils;
 
 namespace probfd::pdbs::cegar {
 
 SamplingFlawFinder::SamplingFlawFinder(
-    std::shared_ptr<utils::RandomNumberGenerator> rng,
+    std::shared_ptr<RandomNumberGenerator> rng,
     int max_search_states)
     : rng_(std::move(rng))
     , max_search_states_(max_search_states)
@@ -42,7 +43,7 @@ bool SamplingFlawFinder::apply_policy(
     const ProjectionMultiPolicy& policy,
     std::vector<Flaw>& flaws,
     const std::function<bool(const Flaw&)>& accept_flaw,
-    utils::CountdownTimer& timer)
+    CountdownTimer& timer)
 {
     assert(stk_.empty() && einfos_.empty());
 
@@ -69,7 +70,7 @@ bool SamplingFlawFinder::apply_policy(
         einfo->explored = true;
 
         {
-            const std::vector abs_decisions = policy.get_decisions(abs);
+            const auto abs_decisions = policy.get_decisions(abs);
 
             // Goal flaw check
             if (abs_decisions.empty()) {

@@ -14,7 +14,7 @@
 #include <vector>
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 }
 
@@ -80,7 +80,7 @@ class IDual : public MDPAlgorithm<State, Action> {
     using HeuristicType = typename Base::HeuristicType;
     using PolicyType = typename Base::PolicyType;
 
-    lp::LPSolver lp_solver_;
+    downward::lp::LPSolver lp_solver_;
     const double fp_epsilon_ = 0.001;
 
     storage::PerStateStorage<PerStateInfo> state_infos_;
@@ -90,7 +90,7 @@ class IDual : public MDPAlgorithm<State, Action> {
 
 public:
     explicit IDual(
-        lp::LPSolverType solver_type,
+        downward::lp::LPSolverType solver_type,
         const double fp_epsilon = 0.0001);
 
     Interval solve(

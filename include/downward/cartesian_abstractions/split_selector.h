@@ -6,15 +6,15 @@
 #include <memory>
 #include <vector>
 
-namespace additive_heuristic {
+namespace downward::additive_heuristic {
 class AdditiveHeuristic;
 }
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 class AbstractState;
 
 // Strategies for selecting a split in case there are multiple possibilities.

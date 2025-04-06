@@ -10,6 +10,7 @@
 #include <memory>
 #include <string>
 
+using namespace downward;
 using namespace probfd;
 using namespace probfd::solvers;
 

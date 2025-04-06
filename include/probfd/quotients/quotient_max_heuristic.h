@@ -1,11 +1,6 @@
 #ifndef PROBFD_QUOTIENTS_QUOTIENT_MAX_HEURISTIC_H
 #define PROBFD_QUOTIENTS_QUOTIENT_MAX_HEURISTIC_H
 
-#include "probfd/algorithms/fdr_types.h"
-#include "probfd/algorithms/open_list.h"
-#include "probfd/algorithms/policy_picker.h"
-#include "probfd/algorithms/successor_sampler.h"
-
 #include "probfd/quotients/quotient_system.h"
 
 #include "probfd/heuristic.h"

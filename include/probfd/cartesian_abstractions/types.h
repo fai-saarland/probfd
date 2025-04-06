@@ -7,7 +7,7 @@
 #include <memory>
 #include <vector>
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 class CartesianSet;
 class CartesianHeuristicFunction;
 class RefinementHierarchy;
@@ -24,12 +24,12 @@ struct TransitionOutcome;
 struct ProbabilisticTransition;
 
 // Classed reused from classical implementation
-using CartesianSet = ::cartesian_abstractions::CartesianSet;
-using RefinementHierarchy = ::cartesian_abstractions::RefinementHierarchy;
+using CartesianSet = downward::cartesian_abstractions::CartesianSet;
+using RefinementHierarchy = downward::cartesian_abstractions::RefinementHierarchy;
 
 // Typedefs reused from classical implementation
-using Goals = ::cartesian_abstractions::Goals;
-using NodeID = ::cartesian_abstractions::NodeID;
+using Goals = downward::cartesian_abstractions::Goals;
+using NodeID = downward::cartesian_abstractions::NodeID;
 
 // Typedefs adapted from classical implementation
 class AbstractState;

@@ -17,6 +17,7 @@
 #include <memory>
 #include <string>
 
+using namespace downward;
 using namespace probfd;
 using namespace probfd::algorithms;
 using namespace probfd::solvers;

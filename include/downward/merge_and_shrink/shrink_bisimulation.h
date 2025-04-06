@@ -3,7 +3,7 @@
 
 #include "downward/merge_and_shrink/shrink_strategy.h"
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 struct Signature;
 
 enum class AtLimit { RETURN, USE_UP };

@@ -3,7 +3,7 @@
 
 #include "downward/open_list_factory.h"
 
-namespace tiebreaking_open_list {
+namespace downward::tiebreaking_open_list {
 class TieBreakingOpenListFactory : public OpenListFactory {
     std::vector<std::shared_ptr<Evaluator>> evals;
     bool unsafe_pruning;

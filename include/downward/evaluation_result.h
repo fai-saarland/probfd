@@ -6,6 +6,8 @@
 #include <limits>
 #include <vector>
 
+namespace downward {
+
 class EvaluationResult {
     static const int UNINITIALIZED = -2;
 
@@ -49,5 +51,7 @@ public:
     void set_preferred_operators(std::vector<OperatorID>&& preferred_operators);
     void set_count_evaluation(bool count_eval);
 };
+
+}
 
 #endif

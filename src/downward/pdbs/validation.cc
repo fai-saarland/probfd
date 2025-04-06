@@ -9,9 +9,9 @@
 #include <iostream>
 
 using namespace std;
-using utils::ExitCode;
+using downward::utils::ExitCode;
 
-namespace pdbs {
+namespace downward::pdbs {
 void validate_and_normalize_pattern(
     const TaskProxy& task_proxy,
     Pattern& pattern,

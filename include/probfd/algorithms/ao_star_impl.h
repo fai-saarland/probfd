@@ -37,7 +37,7 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
 {
     using namespace std::views;
 
-    utils::CountdownTimer timer(max_time);
+    downward::utils::CountdownTimer timer(max_time);
 
     const StateID initstateid = mdp.get_state_id(initial_state);
     auto& iinfo = this->state_infos_[initstateid];

@@ -8,7 +8,8 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace stubborn_sets_simple;
+using namespace downward::utils;
+using namespace downward::stubborn_sets_simple;
 
 using namespace downward::cli;
 using namespace downward::cli::plugins;
@@ -16,7 +17,7 @@ using namespace downward::cli::plugins;
 namespace {
 
 class StubbornSetsSimpleFeature
-    : public TypedFeature<PruningMethod, StubbornSetsSimple> {
+    : public TypedFeature<downward::PruningMethod, StubbornSetsSimple> {
 public:
     StubbornSetsSimpleFeature()
         : TypedFeature("stubborn_sets_simple")
@@ -31,7 +32,7 @@ public:
             "on several design choices, there are different variants thereof. "
             "This stubborn set variant resolves the design choices in a "
             "straight-forward way. For details, see the following papers: " +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Yusra Alkhazraji",
                  "Martin Wehrle",
                  "Robert Mattmueller",
@@ -44,7 +45,7 @@ public:
                 "891-892",
                 "IOS Press",
                 "2012") +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Martin Wehrle", "Malte Helmert"},
                 "Efficient Stubborn Sets: Generalized Algorithms and Selection "
                 "Strategies",
@@ -60,7 +61,7 @@ public:
     }
 
     virtual shared_ptr<StubbornSetsSimple>
-    create_component(const Options& opts, const utils::Context&) const override
+    create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<StubbornSetsSimple>(
             get_pruning_arguments_from_options(opts));

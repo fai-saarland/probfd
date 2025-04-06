@@ -10,9 +10,9 @@
 #include <algorithm>
 
 using namespace std;
-using namespace landmarks;
+using namespace downward::landmarks;
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 static FactPair get_fact(const Landmark& landmark)
 {
     // We assume that the given Landmarks are from an h^m landmark graph with

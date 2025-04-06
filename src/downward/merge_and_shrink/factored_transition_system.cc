@@ -15,7 +15,7 @@
 
 using namespace std;
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 FTSConstIterator::FTSConstIterator(
     const FactoredTransitionSystem& fts,
     bool end)

@@ -8,7 +8,7 @@
 #include <memory>
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
@@ -30,7 +30,7 @@ class PatternCollectionGeneratorDisjointCegar
     const int max_pdb_size_;
     const int max_collection_size_;
     const double max_time_;
-    std::shared_ptr<utils::RandomNumberGenerator> rng_;
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng_;
     std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory_;
     std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy_;
 
@@ -42,12 +42,11 @@ public:
         int max_pdb_size,
         int max_collection_size,
         double max_time,
-        std::shared_ptr<utils::RandomNumberGenerator> rng,
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng,
         const std::shared_ptr<SubCollectionFinderFactory>&
             subcollection_finder_factory,
-        const std::shared_ptr<probfd::pdbs::cegar::FlawFindingStrategy>&
-            flaw_strategy,
-        utils::Verbosity verbosity);
+        const std::shared_ptr<cegar::FlawFindingStrategy>& flaw_strategy,
+        downward::utils::Verbosity verbosity);
 
     PatternCollectionInformation generate(
         const std::shared_ptr<ProbabilisticTask>& task,

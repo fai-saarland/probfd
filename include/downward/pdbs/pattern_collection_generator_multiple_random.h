@@ -3,7 +3,7 @@
 
 #include "downward/pdbs/pattern_collection_generator_multiple.h"
 
-namespace pdbs {
+namespace downward::pdbs {
 class PatternCollectionGeneratorMultipleRandom
     : public PatternCollectionGeneratorMultiple {
     const bool bidirectional;

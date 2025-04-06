@@ -16,9 +16,9 @@
 #include <unordered_set>
 
 using namespace std;
-using utils::ExitCode;
+using downward::utils::ExitCode;
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 ostream& operator<<(ostream& os, const Transition& trans)
 {
     os << trans.src << "->" << trans.target;

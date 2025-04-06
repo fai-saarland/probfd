@@ -3,7 +3,7 @@
 
 #include "downward/evaluator.h"
 
-namespace const_evaluator {
+namespace downward::const_evaluator {
 class ConstEvaluator : public Evaluator {
     int value;
 

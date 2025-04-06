@@ -8,8 +8,8 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace utils;
-using namespace merge_and_shrink;
+using namespace downward::utils;
+using namespace downward::merge_and_shrink;
 
 using namespace downward::cli::plugins;
 
@@ -27,7 +27,7 @@ public:
         document_synopsis(
             "This shrink strategy implements the algorithm described in"
             " the paper:" +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Malte Helmert", "Patrik Haslum", "Joerg Hoffmann"},
                 "Flexible Abstraction Heuristics for Optimal Sequential "
                 "Planning",

@@ -14,7 +14,7 @@
 
 using namespace std;
 
-namespace search_common {
+namespace downward::search_common {
 using GEval = g_evaluator::GEvaluator;
 using SumEval = sum_evaluator::SumEvaluator;
 using WeightedEval = weighted_evaluator::WeightedEvaluator;

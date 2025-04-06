@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace landmarks {
+namespace downward::landmarks {
 LandmarkFactoryRelaxation::LandmarkFactoryRelaxation(utils::Verbosity verbosity)
     : LandmarkFactory(verbosity)
 {

@@ -6,6 +6,7 @@
 
 #include "probfd/heuristics/scp_heuristic.h"
 
+using namespace downward;
 using namespace utils;
 
 using namespace probfd;
@@ -49,7 +50,7 @@ public:
             "patterns",
             "The pattern generation algorithm to construct the projections.",
             "classical_generator(generator=systematic(pattern_max_size=2))");
-        add_option<SCPHeuristic::OrderingStrategy>(
+        add_option<SCPHeuristicFactory::OrderingStrategy>(
             "order",
             "The order in which the projections are considered.",
             "random");
@@ -63,7 +64,7 @@ public:
     {
         return make_shared_from_arg_tuples<SCPHeuristicFactory>(
             opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"),
-            opts.get<SCPHeuristic::OrderingStrategy>("order"),
+            opts.get<SCPHeuristicFactory::OrderingStrategy>("order"),
             get_rng_arguments_from_options(opts),
             get_task_dependent_heuristic_arguments_from_options(opts));
     }
@@ -71,7 +72,7 @@ public:
 
 FeaturePlugin<SCPHeuristicFactoryFeature> _plugin;
 
-TypedEnumPlugin<SCPHeuristic::OrderingStrategy> _enum_plugin(
+TypedEnumPlugin<SCPHeuristicFactory::OrderingStrategy> _enum_plugin(
     {{"random", "the order is random"},
      {"size_asc", "orders the PDBs by increasing size"},
      {"size_desc", "orders the PDBs by decreasing size"},

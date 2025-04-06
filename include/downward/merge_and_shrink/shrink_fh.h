@@ -5,7 +5,7 @@
 
 #include <vector>
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 /*
   NOTE: In case where we must merge across buckets (i.e. when
   the number of (f, h) pairs is larger than the number of

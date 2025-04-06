@@ -14,6 +14,7 @@
 #include <utility>
 
 using namespace std;
+using namespace downward;
 using namespace probfd::cartesian_abstractions;
 
 namespace probfd::heuristics {
@@ -24,10 +25,8 @@ AdditiveCartesianHeuristic::AdditiveCartesianHeuristic(
 {
 }
 
-value_t AdditiveCartesianHeuristic::evaluate(const State& ancestor_state) const
+value_t AdditiveCartesianHeuristic::evaluate(const State& state) const
 {
-    const State state = task_proxy_.convert_ancestor_state(ancestor_state);
-
     value_t sum_h = 0;
     for (const CartesianHeuristicFunction& function : heuristic_functions_) {
         const value_t value = function.get_value(state);
@@ -65,17 +64,22 @@ AdditiveCartesianHeuristicFactory::create_evaluator(
     std::shared_ptr<ProbabilisticTask> task,
     std::shared_ptr<FDRCostFunction>)
 {
+    if (log_.is_at_least_normal()) {
+        log_ << "Initializing additive Cartesian heuristic..." << endl;
+    }
+
+    CostSaturation cost_saturation(
+        subtask_generators,
+        std::move(flaw_generator_factory),
+        std::move(split_selector_factory),
+        max_states,
+        max_transitions,
+        max_time,
+        use_general_costs,
+        log_);
+
     return std::make_unique<AdditiveCartesianHeuristic>(
-        generate_heuristic_functions(
-            task,
-            this->log_,
-            std::move(subtask_generators),
-            std::move(flaw_generator_factory),
-            std::move(split_selector_factory),
-            max_states,
-            max_transitions,
-            max_time,
-            use_general_costs));
+        cost_saturation.generate_heuristic_functions(task));
 }
 
 } // namespace probfd::heuristics

@@ -5,7 +5,7 @@
 
 #include <memory>
 
-namespace lm_cut_heuristic {
+namespace downward::lm_cut_heuristic {
 class LandmarkCutLandmarks;
 
 class LandmarkCutHeuristic : public Heuristic {

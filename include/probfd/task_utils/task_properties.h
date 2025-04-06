@@ -13,12 +13,12 @@
 #include <vector>
 
 // Forward Declarations
-namespace probfd {
-class ProbabilisticTask;
+namespace downward::utils {
+class LogProxy;
 }
 
-namespace utils {
-class LogProxy;
+namespace probfd {
+class ProbabilisticTask;
 }
 
 namespace probfd::task_properties {
@@ -44,12 +44,13 @@ void get_affected_vars(
 /**
  * @brief Checks if a probabilistic operator is applicable in a state.
  */
-extern bool
-is_applicable(const ProbabilisticOperatorProxy& op, const State& state);
+extern bool is_applicable(
+    const ProbabilisticOperatorProxy& op,
+    const downward::State& state);
 
 extern value_t get_adjusted_action_cost(
     const ProbabilisticOperatorProxy& op,
-    OperatorCost cost_type,
+    downward::OperatorCost cost_type,
     bool is_unit_cost);
 
 /**
@@ -119,7 +120,7 @@ extern int get_num_total_effects(const ProbabilisticTaskProxy& task_proxy);
  */
 extern void dump_probabilistic_task(
     const ProbabilisticTaskProxy& task_proxy,
-    utils::LogProxy& log);
+    downward::utils::LogProxy& log);
 
 /**
  * @brief Dumps a probabilistic task to a given output stream.

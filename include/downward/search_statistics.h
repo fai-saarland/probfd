@@ -9,10 +9,11 @@
   methods.
 */
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
+namespace downward {
 class SearchStatistics {
     utils::LogProxy &log;
 
@@ -78,5 +79,6 @@ public:
     void print_basic_statistics() const;
     void print_detailed_statistics() const;
 };
+}
 
 #endif

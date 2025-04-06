@@ -406,6 +406,7 @@ create_library(
     SOURCES
         probfd/cli/cartesian_abstractions/adaptive_flaw_generator
         probfd/cli/cartesian_abstractions/flaw_generator
+        probfd/cli/cartesian_abstractions/trace_based_flaw_generator
         probfd/cli/cartesian_abstractions/policy_based_flaw_generator
         probfd/cli/cartesian_abstractions/split_selector
         probfd/cli/cartesian_abstractions/subtask_generators

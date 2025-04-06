@@ -19,14 +19,14 @@
   can be one of the bottlenecks in our code.)
 */
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
 namespace probfd::merge_and_shrink {
 class Labels;
 class TransitionSystem;
-}
+} // namespace probfd::merge_and_shrink
 
 namespace probfd::merge_and_shrink {
 
@@ -42,6 +42,7 @@ class Distances {
 
 public:
     bool is_liveness_computed() const { return liveness_computed; }
+
     bool are_goal_distances_computed() const { return goal_distances_computed; }
 
     bool is_alive(int state) const
@@ -65,7 +66,7 @@ public:
         const Labels& labels,
         const TransitionSystem& transition_system,
         bool compute_liveness,
-        utils::LogProxy& log,
+        downward::utils::LogProxy& log,
         const Heuristic<int>& heuristic =
             heuristics::ConstantEvaluator<int>(0_vt));
 
@@ -83,12 +84,12 @@ public:
         const TransitionSystem& transition_system,
         const StateEquivalenceRelation& state_equivalence_relation,
         bool compute_liveness,
-        utils::LogProxy& log);
+        downward::utils::LogProxy& log);
 
-    void dump(utils::LogProxy& log) const;
-    void
-    statistics(const TransitionSystem& transition_system, utils::LogProxy& log)
-        const;
+    void dump(downward::utils::LogProxy& log) const;
+    void statistics(
+        const TransitionSystem& transition_system,
+        downward::utils::LogProxy& log) const;
 };
 
 void compute_liveness(

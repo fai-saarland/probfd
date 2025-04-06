@@ -6,6 +6,7 @@
 #include <cassert>
 #include <unordered_map>
 
+namespace downward {
 template <class T>
 class ConstArrayView {
     const T* p;
@@ -200,5 +201,6 @@ public:
         }
     }
 };
+}
 
 #endif

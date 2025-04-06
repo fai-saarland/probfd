@@ -8,7 +8,7 @@
 #include <memory>
 #include <vector>
 
-namespace potentials {
+namespace downward::potentials {
 class PotentialFunction;
 
 /*

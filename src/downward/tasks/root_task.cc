@@ -11,9 +11,9 @@
 #include <vector>
 
 using namespace std;
-using utils::ExitCode;
+using downward::utils::ExitCode;
 
-namespace tasks {
+namespace downward::tasks {
 static const auto PRE_FILE_VERSION = "3";
 static const auto PRE_FILE_PROB_VERSION = "3P";
 shared_ptr<AbstractTask> g_root_task = nullptr;

@@ -10,7 +10,7 @@
 
 using namespace std;
 
-namespace sampling {
+namespace downward::sampling {
 static State sample_state_with_random_walk(
     const OperatorsProxy& operators,
     const State& initial_state,

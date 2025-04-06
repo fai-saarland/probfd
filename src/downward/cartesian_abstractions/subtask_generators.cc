@@ -20,7 +20,7 @@
 
 using namespace std;
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 class SortFactsByIncreasingHaddValues {
     // Can't store as unique_ptr since the class needs copy-constructor.
     shared_ptr<additive_heuristic::AdditiveHeuristic> hadd;

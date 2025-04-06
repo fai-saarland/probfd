@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 ShrinkRandom::ShrinkRandom(int random_seed)
     : ShrinkBucketBased(random_seed)
 {

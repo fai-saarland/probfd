@@ -10,7 +10,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 PatternGeneratorManual::PatternGeneratorManual(
     const vector<int>& pattern,
     utils::Verbosity verbosity)

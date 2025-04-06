@@ -5,7 +5,7 @@
 
 #include "downward/operator_cost.h"
 
-namespace tasks {
+namespace downward::tasks {
 /*
   Task transformation that changes operator costs. If the parent task assigns
   costs 'c' to an operator, its adjusted costs, depending on the value of the

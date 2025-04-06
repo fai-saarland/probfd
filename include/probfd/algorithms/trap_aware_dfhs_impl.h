@@ -89,7 +89,7 @@ Interval TADFHSImpl<State, Action, UseInterval>::solve_quotient(
     ProgressReport& progress,
     double max_time)
 {
-    utils::CountdownTimer timer(max_time);
+    downward::utils::CountdownTimer timer(max_time);
 
     Base::initialize_initial_state(quotient, heuristic, qstate);
 
@@ -125,7 +125,7 @@ void TADFHSImpl<State, Action, UseInterval>::dfhs_vi_driver(
     QHeuristic& heuristic,
     const StateID state,
     ProgressReport& progress,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     bool terminate;
     do {
@@ -143,7 +143,7 @@ void TADFHSImpl<State, Action, UseInterval>::dfhs_label_driver(
     QHeuristic& heuristic,
     const StateID state,
     ProgressReport& progress,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     bool terminate;
     do {
@@ -208,7 +208,7 @@ bool TADFHSImpl<State, Action, UseInterval>::push_successor(
     QuotientSystem& quotient,
     DFSExplorationState& einfo,
     StateInfo& sinfo,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     do {
         timer.throw_if_expired();
@@ -339,7 +339,7 @@ bool TADFHSImpl<State, Action, UseInterval>::policy_exploration(
     QuotientSystem& quotient,
     QHeuristic& heuristic,
     StateID start_state,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     assert(visited_states_.empty());
 
@@ -440,7 +440,7 @@ template <typename State, typename Action, bool UseInterval>
 bool TADFHSImpl<State, Action, UseInterval>::value_iteration(
     QuotientSystem& quotient,
     const std::ranges::input_range auto& range,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     ++statistics_.convergence_value_iterations;
 
@@ -458,7 +458,7 @@ template <typename State, typename Action, bool UseInterval>
 std::pair<bool, bool> TADFHSImpl<State, Action, UseInterval>::vi_step(
     QuotientSystem& quotient,
     const std::ranges::input_range auto& range,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     bool values_not_conv = false;
     bool policy_not_conv = false;

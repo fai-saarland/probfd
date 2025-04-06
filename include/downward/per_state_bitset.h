@@ -5,6 +5,7 @@
 
 #include <vector>
 
+namespace downward {
 class BitsetMath {
 public:
     using Block = unsigned int;
@@ -78,5 +79,6 @@ public:
     BitsetView operator[](const State& state);
     ConstBitsetView operator[](const State& state) const;
 };
+}
 
 #endif

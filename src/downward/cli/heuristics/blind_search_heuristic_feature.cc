@@ -7,8 +7,8 @@
 #include "downward/utils/logging.h"
 
 using namespace std;
-using namespace utils;
-using namespace blind_search_heuristic;
+using namespace downward::utils;
+using namespace downward::blind_search_heuristic;
 
 using namespace downward::cli::plugins;
 
@@ -18,7 +18,7 @@ using downward::cli::get_heuristic_arguments_from_options;
 namespace {
 
 class BlindSearchHeuristicFeature
-    : public TypedFeature<Evaluator, BlindSearchHeuristic> {
+    : public TypedFeature<downward::Evaluator, BlindSearchHeuristic> {
 public:
     BlindSearchHeuristicFeature()
         : TypedFeature("blind")

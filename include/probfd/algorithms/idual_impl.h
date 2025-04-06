@@ -40,7 +40,7 @@ inline unsigned ValueGroup::get_id(value_t val)
 
 template <typename State, typename Action>
 IDual<State, Action>::IDual(
-    lp::LPSolverType solver_type,
+    downward::lp::LPSolverType solver_type,
     const double fp_epsilon)
     : lp_solver_(solver_type)
     , fp_epsilon_(fp_epsilon)
@@ -195,8 +195,9 @@ Interval IDual<State, Action>::solve(
     std::vector<double>& dual_solution)
 {
     using namespace std::views;
+    using namespace downward::lp;
 
-    utils::CountdownTimer timer(max_time);
+    downward::utils::CountdownTimer timer(max_time);
 
     const double inf = lp_solver_.get_infinity();
 
@@ -221,14 +222,14 @@ Interval IDual<State, Action>::solve(
             return Interval(estimate);
         }
 
-        named_vector::NamedVector<lp::LPVariable> vars;
-        named_vector::NamedVector<lp::LPConstraint> constraints;
+        downward::named_vector::NamedVector<LPVariable> vars;
+        downward::named_vector::NamedVector<LPConstraint> constraints;
 
         vars.emplace_back(-inf, estimate, 1.0);
 
         lp_solver_.load_problem(
-            lp::LinearProgram(
-                lp::LPObjectiveSense::MAXIMIZE,
+            LinearProgram(
+                LPObjectiveSense::MAXIMIZE,
                 std::move(vars),
                 std::move(constraints),
                 inf));
@@ -280,7 +281,7 @@ Interval IDual<State, Action>::solve(
                 if (successor_dist.non_source_successor_dist.empty()) continue;
 
                 int next_constraint_id = lp_solver_.get_num_constraints();
-                lp::LPConstraint c(-inf, inf);
+                LPConstraint c(-inf, inf);
 
                 double base_val = mdp.get_action_cost(action);
                 StateID next_prev_state = prev_state;
@@ -306,7 +307,7 @@ Interval IDual<State, Action>::solve(
                         } else {
                             int next_var_id = lp_solver_.get_num_variables();
                             lp_solver_.add_variable(
-                                lp::LPVariable(-inf, estimate, 0.0),
+                                LPVariable(-inf, estimate, 0.0),
                                 std::vector<int>(),
                                 std::vector<double>());
                             succ_info.status = PerStateInfo::OPEN;

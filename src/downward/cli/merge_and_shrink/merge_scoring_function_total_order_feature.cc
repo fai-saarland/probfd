@@ -8,8 +8,8 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace utils;
-using namespace merge_and_shrink;
+using namespace downward::utils;
+using namespace downward::merge_and_shrink;
 
 using namespace downward::cli::plugins;
 
@@ -35,7 +35,7 @@ public:
             "correponds to its position in the order. This scoring function is "
             "mainly intended as tie-breaking, and has been introduced in the "
             "following paper:" +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Silvan Sievers", "Martin Wehrle", "Malte Helmert"},
                 "An Analysis of Merge Strategies for Merge-and-Shrink "
                 "Heuristics",

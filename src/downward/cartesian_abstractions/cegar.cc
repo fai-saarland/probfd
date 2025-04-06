@@ -18,7 +18,7 @@
 
 using namespace std;
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 // Create the Cartesian set that corresponds to the given preconditions or
 // goals.
 template <typename ConditionsProxy>

@@ -17,7 +17,7 @@ using EventCallback = std::function<void(const Event&)>;
 /// for the specific events.
 template <typename T, typename... Events>
 concept EventHandlerFor =
-    (requires(T& t, const Events& event) { t.handleEvent(event); } && ...);
+    requires(T& t, const Events&... event) { (t.handleEvent(event), ...); };
 
 template <typename... Events>
 class Observable {
@@ -51,7 +51,7 @@ public:
     {
         auto f = [this, &observer]<typename E>() {
             if constexpr (EventHandlerFor<T, E>) {
-                this->registerObserver<E>(observer);
+                this->template registerObserver<E>(observer);
             }
         };
 

@@ -8,7 +8,7 @@
 
 #include "downward/utils/logging.h"
 
-class AbstractTask;
+using namespace downward;
 
 using namespace std;
 

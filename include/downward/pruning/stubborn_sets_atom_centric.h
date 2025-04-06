@@ -3,7 +3,7 @@
 
 #include "downward/pruning/stubborn_sets.h"
 
-namespace stubborn_sets_atom_centric {
+namespace downward::stubborn_sets_atom_centric {
 static const int MARKED_VALUES_NONE = -2;
 static const int MARKED_VALUES_ALL = -1;
 

@@ -1,9 +1,9 @@
 #ifndef PLUGINS_PLUGIN_H
 #define PLUGINS_PLUGIN_H
 
-#include "options.h"
-#include "plugin_info.h"
-#include "raw_registry.h"
+#include "downward/cli/plugins/options.h"
+#include "downward/cli/plugins/plugin_info.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/utils/strings.h"
 #include "downward/utils/system.h"
@@ -15,7 +15,7 @@
 #include <typeindex>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class Context;
 }
 
@@ -37,7 +37,8 @@ public:
     Feature(const Feature&) = delete;
 
     virtual std::any
-    construct(const Options& opts, const ::utils::Context& context) const = 0;
+    construct(const Options& opts, const downward::utils::Context& context)
+        const = 0;
 
     /* Add option with default value. Use def_val=ArgumentInfo::NO_DEFAULT for
        optional parameters without default values. */
@@ -84,8 +85,10 @@ template <typename Constructed>
 class FeatureWithDefault : public Feature {
 protected:
     using Feature::Feature;
+
     virtual std::shared_ptr<Constructed>
-    create_component(const Options& options, const ::utils::Context&) const
+    create_component(const Options& options, const downward::utils::Context&)
+        const
     {
         return std::make_shared<Constructed>(options);
     }
@@ -96,7 +99,7 @@ class FeatureWithoutDefault : public Feature {
 protected:
     using Feature::Feature;
     virtual std::shared_ptr<Constructed>
-    create_component(const Options&, const ::utils::Context&) const = 0;
+    create_component(const Options&, const downward::utils::Context&) const = 0;
 };
 
 template <typename Constructed>
@@ -120,7 +123,8 @@ public:
     {
     }
 
-    std::any construct(const Options& options, const ::utils::Context& context)
+    std::any
+    construct(const Options& options, const downward::utils::Context& context)
         const override
     {
         std::shared_ptr<Base> ptr = this->create_component(options, context);
@@ -142,7 +146,7 @@ std::shared_ptr<T> make_shared_from_arg_tuples(Arguments... arguments)
             return std::make_shared<T>(
                 std::forward<decltype(flattened_args)>(flattened_args)...);
         },
-        ::utils::flatten_tuple(
+        downward::utils::flatten_tuple(
             std::tuple<Arguments...>(std::forward<Arguments>(arguments)...)));
 }
 
@@ -161,6 +165,7 @@ public:
         : Plugin()
     {
     }
+
     virtual std::shared_ptr<Feature> create_feature() const override
     {
         return std::make_shared<T>();

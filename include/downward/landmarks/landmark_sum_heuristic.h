@@ -3,7 +3,7 @@
 
 #include "downward/landmarks/landmark_heuristic.h"
 
-namespace landmarks {
+namespace downward::landmarks {
 class LandmarkSumHeuristic : public LandmarkHeuristic {
     const bool dead_ends_reliable;
 

@@ -7,7 +7,7 @@
 
 #include <cassert>
 
-namespace max_heuristic {
+namespace downward::max_heuristic {
 using relaxation_heuristic::OpID;
 using relaxation_heuristic::PropID;
 

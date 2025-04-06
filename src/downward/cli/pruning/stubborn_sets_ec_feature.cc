@@ -12,7 +12,7 @@ using namespace std;
 using namespace downward::cli;
 using namespace downward::cli::plugins;
 
-namespace stubborn_sets_ec {
+namespace downward::stubborn_sets_ec {
 
 class StubbornSetsECFeature
     : public TypedFeature<PruningMethod, StubbornSetsEC> {

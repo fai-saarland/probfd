@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
@@ -41,19 +41,20 @@ public:
         const TransitionSystem& ts,
         const Distances& distances,
         int target_size,
-        utils::LogProxy& log) const = 0;
+        downward::utils::LogProxy& log) const = 0;
 
     virtual bool requires_liveness() const = 0;
     virtual bool requires_goal_distances() const = 0;
 
-    void dump_options(utils::LogProxy& log) const;
+    void dump_options(downward::utils::LogProxy& log) const;
 
     std::string get_name() const;
 
 protected:
     virtual std::string name() const = 0;
 
-    virtual void dump_strategy_specific_options(utils::LogProxy& log) const = 0;
+    virtual void
+    dump_strategy_specific_options(downward::utils::LogProxy& log) const = 0;
 };
 
 } // namespace probfd::merge_and_shrink

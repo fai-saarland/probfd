@@ -3,11 +3,11 @@
 
 #include "downward/pdbs/pattern_generator.h"
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
-namespace pdbs {
+namespace downward::pdbs {
 class PatternGeneratorRandom : public PatternGenerator {
     const int max_pdb_size;
     const double max_time;

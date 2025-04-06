@@ -9,7 +9,7 @@
 #include <vector>
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 }
 
@@ -157,20 +157,20 @@ private:
         HeuristicType& heuristic,
         StateID stateid,
         ProgressReport& progress,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     void solve_without_vi_termination(
         MDP& mdp,
         HeuristicType& heuristic,
         StateID stateid,
         ProgressReport& progress,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     bool policy_exploration(
         MDP& mdp,
         HeuristicType& heuristic,
         StateID state,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     bool advance(MDP& mdp, DFSExplorationState& einfo, StateInfo& state_info);
 
@@ -178,7 +178,7 @@ private:
         MDP& mdp,
         DFSExplorationState& einfo,
         StateInfo& sinfo,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     void push(StateID stateid);
 
@@ -191,12 +191,12 @@ private:
     bool value_iteration(
         MDP& mdp,
         const std::ranges::input_range auto& range,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     std::pair<bool, bool> vi_step(
         MDP& mdp,
         const std::ranges::input_range auto& range,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 };
 
 } // namespace probfd::algorithms::heuristic_depth_first_search

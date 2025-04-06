@@ -14,7 +14,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 
 template <class T>
 extern void sort_unique(std::vector<T>& vec)

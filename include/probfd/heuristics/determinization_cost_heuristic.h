@@ -10,8 +10,10 @@
 #include <memory>
 
 // Forward Declarations
+namespace downward {
 class State;
 class Evaluator;
+}
 
 namespace probfd::heuristics {
 
@@ -23,32 +25,32 @@ namespace probfd::heuristics {
  * heuristic is also admissible/heuristic.
  */
 class DeterminizationCostHeuristic final : public FDREvaluator {
-    const std::shared_ptr<Evaluator> evaluator_;
+    const std::shared_ptr<downward::Evaluator> evaluator_;
 
 public:
     /**
      * @brief Construct from a classical heuristic.
      */
     explicit DeterminizationCostHeuristic(
-        std::shared_ptr<Evaluator> heuristic);
+        std::shared_ptr<downward::Evaluator> heuristic);
 
     ~DeterminizationCostHeuristic() override;
 
     [[nodiscard]]
-    value_t evaluate(const State& state) const override;
+    value_t evaluate(const downward::State& state) const override;
 
     void print_statistics() const override;
 };
 
 class DeterminizationCostHeuristicFactory final : public TaskHeuristicFactory {
-    const std::shared_ptr<Evaluator> evaluator_;
+    const std::shared_ptr<downward::Evaluator> evaluator_;
 
 public:
     /**
      * @brief Construct from determinization-based heuristic.
      */
     explicit DeterminizationCostHeuristicFactory(
-        std::shared_ptr<Evaluator> evaluator);
+        std::shared_ptr<downward::Evaluator> evaluator);
 
     std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,

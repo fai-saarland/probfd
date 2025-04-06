@@ -10,13 +10,15 @@
 #include <utility>
 #include <vector>
 
+namespace downward {
 class AbstractTask;
+}
 
-namespace additive_heuristic {
+namespace downward::additive_heuristic {
 class AdditiveHeuristic;
 }
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 
 /*
   The set of relaxed-reachable facts is the possibly-before set of facts that
@@ -34,7 +36,7 @@ extern std::vector<int> get_domain_sizes(const PlanningTaskProxy& task);
   shouldn't be stored in containers. Once we find a way to avoid
   storing them in containers, we should remove this hashing function.
 */
-namespace utils {
+namespace downward::utils {
 inline void feed(HashState& hash_state, const FactProxy& fact)
 {
     feed(hash_state, fact.get_pair());

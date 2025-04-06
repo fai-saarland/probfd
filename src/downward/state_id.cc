@@ -4,6 +4,8 @@
 
 using namespace std;
 
+namespace downward {
+
 const StateID StateID::no_state = StateID(-1);
 
 ostream& operator<<(ostream& os, StateID id)
@@ -11,3 +13,5 @@ ostream& operator<<(ostream& os, StateID id)
     os << "#" << id.value;
     return os;
 }
+
+} // namespace downward

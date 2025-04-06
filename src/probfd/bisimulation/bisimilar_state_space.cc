@@ -29,14 +29,8 @@
 #include <utility>
 #include <vector>
 
-class AbstractTask;
-namespace merge_and_shrink {
-class MergeStrategyFactory;
-class MergeTreeFactory;
-class ShrinkStrategy;
-} // namespace merge_and_shrink
-
-using namespace merge_and_shrink;
+using namespace downward;
+using namespace downward::merge_and_shrink;
 
 namespace probfd {
 class ProbabilisticTask;
@@ -48,7 +42,7 @@ static constexpr const int BUCKET_SIZE = 1024 * 64;
 BisimilarStateSpace::BisimilarStateSpace(
     std::shared_ptr<ProbabilisticTask> task,
     std::shared_ptr<FDRCostFunction> task_cost_function,
-    const merge_and_shrink::TransitionSystem& transition_system)
+    const TransitionSystem& transition_system)
     : task_(std::move(task))
     , task_cost_function_(std::move(task_cost_function))
     , num_cached_transitions_(0)
@@ -65,7 +59,7 @@ BisimilarStateSpace::BisimilarStateSpace(
         const ProbabilisticOperatorProxy op = prob_operators[p_op_id];
         const ProbabilisticOutcomesProxy outcomes = op.get_outcomes();
         for (unsigned i = 0; i < outcomes.size(); ++i) {
-            det_to_prob_op.emplace_back(OperatorID(p_op_id), i);
+            det_to_prob_op.emplace_back(p_op_id, i);
         }
     }
 

@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace equivalence_relation {
+namespace downward::equivalence_relation {
 class Block;
 class EquivalenceRelation;
 

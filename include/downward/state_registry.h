@@ -107,10 +107,11 @@
     The heuristic object uses an attribute of type PerStateBitset to store for
   each state and each landmark whether it was reached in this state.
 */
-namespace int_packer {
+namespace downward::int_packer {
 class IntPacker;
 }
 
+namespace downward {
 using PackedStateBin = int_packer::IntPacker::Bin;
 
 class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
@@ -241,7 +242,7 @@ public:
             for (size_t i = 0; i < new_values.size(); ++i) {
                 state_packer.set(buffer, i, new_values[i]);
             }
-            ::StateID id = insert_id_or_pop_state();
+            downward::StateID id = insert_id_or_pop_state();
             return task_proxy
                 .create_state(*this, id, buffer, std::move(new_values));
         } else {
@@ -254,7 +255,7 @@ public:
                         effect_pair.value);
                 }
             }
-            ::StateID id = insert_id_or_pop_state();
+            downward::StateID id = insert_id_or_pop_state();
             return task_proxy.create_state(*this, id, buffer);
         }
     }
@@ -324,5 +325,6 @@ public:
 
     const_iterator end() const { return const_iterator(*this, size()); }
 };
+}
 
 #endif // DOWNWARD_STATE_REGISTRY_H

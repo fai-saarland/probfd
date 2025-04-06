@@ -3,7 +3,7 @@
 
 #include <memory>
 
-namespace utils {
+namespace downward::utils {
 
 class RandomNumberGenerator;
 

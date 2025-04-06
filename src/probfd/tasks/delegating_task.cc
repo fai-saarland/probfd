@@ -2,6 +2,8 @@
 
 using namespace std;
 
+using namespace downward;
+
 namespace probfd::tasks {
 
 DelegatingTask::DelegatingTask(const shared_ptr<ProbabilisticTask>& parent)

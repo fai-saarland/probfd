@@ -12,7 +12,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 static CanonicalPDBs get_canonical_pdbs(
     const shared_ptr<AbstractTask>& task,
     const shared_ptr<PatternCollectionGenerator>& pattern_generator,

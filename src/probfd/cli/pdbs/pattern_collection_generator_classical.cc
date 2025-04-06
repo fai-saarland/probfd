@@ -6,6 +6,7 @@
 
 #include "probfd/pdbs/pattern_collection_generator_classical.h"
 
+using namespace downward;
 using namespace utils;
 
 using namespace probfd::pdbs;

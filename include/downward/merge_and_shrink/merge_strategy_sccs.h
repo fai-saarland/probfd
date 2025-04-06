@@ -6,7 +6,7 @@
 #include <memory>
 #include <vector>
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 class MergeSelector;
 class MergeStrategySCCs : public MergeStrategy {
     std::shared_ptr<MergeSelector> merge_selector;

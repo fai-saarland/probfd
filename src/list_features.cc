@@ -20,7 +20,7 @@ using namespace std;
 using namespace downward::cli::parser;
 using namespace downward::cli::plugins;
 
-using utils::ExitCode;
+using downward::utils::ExitCode;
 
 template <>
 struct std::formatter<downward::cli::plugins::Bounds> {

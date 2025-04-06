@@ -5,8 +5,8 @@
 #include "downward/heuristics/additive_heuristic.h"
 
 using namespace std;
-using namespace utils;
-using namespace additive_heuristic;
+using namespace downward::utils;
+using namespace downward::additive_heuristic;
 
 using namespace downward::cli::plugins;
 
@@ -16,7 +16,7 @@ using downward::cli::get_heuristic_arguments_from_options;
 namespace {
 
 class AdditiveHeuristicFeature
-    : public TypedFeature<Evaluator, AdditiveHeuristic> {
+    : public TypedFeature<downward::Evaluator, AdditiveHeuristic> {
 public:
     AdditiveHeuristicFeature()
         : TypedFeature("add")

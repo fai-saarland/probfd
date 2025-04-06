@@ -19,8 +19,10 @@
 #include <vector>
 
 // Forward Declarations
+namespace downward {
 class OperatorID;
 class Evaluator;
+} // namespace downward
 
 namespace probfd {
 template <typename>
@@ -49,56 +51,56 @@ protected:
         void print(std::ostream& out) const;
     };
 
-protected:
     ProbabilisticTaskProxy task_proxy_;
-    StateRegistry state_registry_;
+    downward::StateRegistry state_registry_;
     successor_generator::ProbabilisticSuccessorGenerator gen_;
 
-    const std::vector<std::shared_ptr<::Evaluator>> notify_;
+    const std::vector<std::shared_ptr<downward::Evaluator>> notify_;
 
     Statistics statistics_;
 
 public:
-    TaskStateSpace(
+    explicit TaskStateSpace(
         std::shared_ptr<ProbabilisticTask> task,
-        std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators =
-            {});
+        std::vector<std::shared_ptr<downward::Evaluator>>
+            path_dependent_evaluators = {});
 
-    StateID get_state_id(const State& state) final;
-    State get_state(StateID state_id) final;
+    StateID get_state_id(const downward::State& state) final;
+    downward::State get_state(StateID state_id) final;
 
     void generate_applicable_actions(
-        const State& state,
-        std::vector<OperatorID>& result) override;
+        const downward::State& state,
+        std::vector<downward::OperatorID>& result) override;
 
     void generate_action_transitions(
-        const State& state,
-        OperatorID operator_id,
+        const downward::State& state,
+        downward::OperatorID operator_id,
         SuccessorDistribution& successor_dist) override;
 
     void generate_all_transitions(
-        const State& state,
-        std::vector<OperatorID>& aops,
+        const downward::State& state,
+        std::vector<downward::OperatorID>& aops,
         std::vector<SuccessorDistribution>& successor_dist) override;
 
     void generate_all_transitions(
-        const State& state,
+        const downward::State& state,
         std::vector<TransitionTailType>& transitions) override;
 
-    const State& get_initial_state();
+    const downward::State& get_initial_state();
 
     size_t get_num_registered_states() const;
 
     virtual void print_statistics(std::ostream& out) const;
 
     void compute_successor_dist(
-        const State& s,
-        OperatorID op_id,
+        const downward::State& s,
+        downward::OperatorID op_id,
         SuccessorDistribution& successor_dist);
 
 protected:
-    void
-    compute_applicable_operators(const State& s, std::vector<OperatorID>& ops);
+    void compute_applicable_operators(
+        const downward::State& s,
+        std::vector<downward::OperatorID>& ops);
 };
 
 } // namespace probfd

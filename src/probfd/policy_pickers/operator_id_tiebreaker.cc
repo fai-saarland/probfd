@@ -6,6 +6,8 @@
 
 #include <limits>
 
+using namespace downward;
+
 namespace probfd::policy_pickers {
 
 OperatorIdTiebreaker::OperatorIdTiebreaker(

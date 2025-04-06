@@ -67,7 +67,7 @@ using namespace std;
     zero-terminated heap-allocated array.
 */
 
-namespace successor_generator {
+namespace downward::successor_generator {
 GeneratorForkBinary::GeneratorForkBinary(
     unique_ptr<GeneratorBase> generator1,
     unique_ptr<GeneratorBase> generator2)

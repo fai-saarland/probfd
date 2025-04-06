@@ -10,7 +10,7 @@ class Feature;
 class Options;
 } // namespace downward::cli::plugins
 
-namespace utils {
+namespace downward::utils {
 class Context;
 } // namespace utils
 
@@ -47,7 +47,7 @@ get_transition_system_size_limit_arguments_from_options(
 
 extern void handle_shrink_limit_options_defaults(
     downward::cli::plugins::Options& opts,
-    const utils::Context& context);
+    const downward::utils::Context& context);
 
 } // namespace probfd::cli::merge_and_shrink
 

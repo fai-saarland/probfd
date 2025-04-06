@@ -17,6 +17,8 @@
 
 using namespace std::views;
 
+using namespace downward;
+
 namespace probfd::pdbs {
 
 namespace {

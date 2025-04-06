@@ -10,12 +10,12 @@ public:
     StateEquivalenceRelation compute_pruning_abstraction(
         const TransitionSystem& ts,
         const Distances& distances,
-        utils::LogProxy& log) override;
+        downward::utils::LogProxy& log) override;
 
     bool requires_liveness() const override;
     bool requires_goal_distances() const override;
 
-    void dump_options(utils::LogProxy& log) const override;
+    void dump_options(downward::utils::LogProxy& log) const override;
 };
 
 } // namespace probfd::merge_and_shrink

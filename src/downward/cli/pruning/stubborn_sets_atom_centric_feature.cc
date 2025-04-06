@@ -8,7 +8,8 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace stubborn_sets_atom_centric;
+using namespace downward::utils;
+using namespace downward::stubborn_sets_atom_centric;
 
 using namespace downward::cli;
 using namespace downward::cli::plugins;
@@ -16,7 +17,7 @@ using namespace downward::cli::plugins;
 namespace {
 
 class StubbornSetsAtomCentricFeature
-    : public TypedFeature<PruningMethod, StubbornSetsAtomCentric> {
+    : public TypedFeature<downward::PruningMethod, StubbornSetsAtomCentric> {
 public:
     StubbornSetsAtomCentricFeature()
         : TypedFeature("atom_centric_stubborn_sets")
@@ -32,7 +33,7 @@ public:
             "this implementation focuses on atomic propositions (atoms), which "
             "often speeds up the computation on IPC benchmarks. For details, "
             "see" +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Gabriele Roeger",
                  "Malte Helmert",
                  "Jendrik Seipp",
@@ -61,7 +62,7 @@ public:
     }
 
     virtual shared_ptr<StubbornSetsAtomCentric>
-    create_component(const Options& opts, const utils::Context&) const override
+    create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<StubbornSetsAtomCentric>(
             opts.get<bool>("use_sibling_shortcut"),

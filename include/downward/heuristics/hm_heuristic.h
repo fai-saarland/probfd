@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-namespace hm_heuristic {
+namespace downward::hm_heuristic {
 /*
   Haslum's h^m heuristic family ("critical path heuristics").
 

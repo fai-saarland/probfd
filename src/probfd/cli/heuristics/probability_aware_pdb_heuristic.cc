@@ -4,6 +4,7 @@
 
 #include "probfd/heuristics/probability_aware_pdb_heuristic.h"
 
+using namespace downward;
 using namespace probfd;
 using namespace probfd::pdbs;
 using namespace probfd::heuristics;

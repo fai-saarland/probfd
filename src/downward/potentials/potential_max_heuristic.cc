@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace potentials {
+namespace downward::potentials {
 PotentialMaxHeuristic::PotentialMaxHeuristic(
     vector<unique_ptr<PotentialFunction>>&& functions,
     const shared_ptr<AbstractTask>& transform,

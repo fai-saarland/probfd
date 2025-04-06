@@ -3,7 +3,7 @@
 
 #include "downward/pruning_method.h"
 
-namespace null_pruning_method {
+namespace downward::null_pruning_method {
 class NullPruningMethod : public PruningMethod {
     virtual void prune(const State&, std::vector<OperatorID>&) override {}
 

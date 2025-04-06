@@ -5,7 +5,7 @@
 #include <exception>
 #include <utility>
 
-namespace utils {
+namespace downward::utils {
 class Timer;
 }
 
@@ -54,10 +54,10 @@ public:
 };
 
 class TimerScope {
-    utils::Timer& timer_;
+    downward::utils::Timer& timer_;
 
 public:
-    explicit TimerScope(utils::Timer& timer);
+    explicit TimerScope(downward::utils::Timer& timer);
     ~TimerScope();
 };
 

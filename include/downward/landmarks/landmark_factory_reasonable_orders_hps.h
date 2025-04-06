@@ -3,7 +3,7 @@
 
 #include "downward/landmarks/landmark_factory.h"
 
-namespace landmarks {
+namespace downward::landmarks {
 class LandmarkFactoryReasonableOrdersHPS : public LandmarkFactory {
     std::shared_ptr<LandmarkFactory> lm_factory;
 

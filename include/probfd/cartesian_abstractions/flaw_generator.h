@@ -8,7 +8,7 @@
 #include <vector>
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 class LogProxy;
 } // namespace utils
@@ -38,12 +38,12 @@ public:
         CartesianAbstraction& abstraction,
         const AbstractState* init_id,
         CartesianHeuristic& heuristic,
-        utils::LogProxy& log,
-        utils::CountdownTimer& timer) = 0;
+        downward::utils::LogProxy& log,
+        downward::utils::CountdownTimer& timer) = 0;
 
     virtual void notify_split() = 0;
 
-    virtual void print_statistics(utils::LogProxy& log) = 0;
+    virtual void print_statistics(downward::utils::LogProxy& log) = 0;
 };
 
 class FlawGeneratorFactory {

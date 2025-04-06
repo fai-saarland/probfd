@@ -6,15 +6,17 @@
 
 #include "downward/algorithms/named_vector.h"
 
+namespace downward {
 class AbstractTask;
 class State;
+}
 
-namespace lp {
+namespace downward::lp {
 class LinearProgram;
 class LPSolver;
 } // namespace lp
 
-namespace operator_counting {
+namespace downward::operator_counting {
 /*
   Derive from this class to add new operator-counting constraints. We support
   two types of constraints:

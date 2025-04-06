@@ -10,7 +10,7 @@
 
 using namespace std;
 
-namespace extra_tasks {
+namespace downward::extra_tasks {
 class DomainAbstractedTaskFactory {
 private:
     vector<int> domain_size;

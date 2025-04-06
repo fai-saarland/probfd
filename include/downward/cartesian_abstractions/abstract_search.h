@@ -10,7 +10,7 @@
 #include <memory>
 #include <vector>
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 using Solution = std::deque<Transition>;
 
 /*

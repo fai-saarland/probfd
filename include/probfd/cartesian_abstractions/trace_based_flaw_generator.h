@@ -12,7 +12,7 @@
 #include <vector>
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 class LogProxy;
 } // namespace utils
@@ -32,22 +32,22 @@ namespace probfd::cartesian_abstractions {
 class TraceBasedFlawGenerator : public FlawGenerator {
     std::unique_ptr<TraceGenerator> trace_generator_;
 
-    utils::Timer find_trace_timer_ = utils::Timer(true);
-    utils::Timer find_flaw_timer_ = utils::Timer(true);
+    downward::utils::Timer find_trace_timer_ = downward::utils::Timer(false);
+    downward::utils::Timer find_flaw_timer_ = downward::utils::Timer(false);
 
     std::unique_ptr<Trace> find_trace(
         CartesianAbstraction& abstraction,
         int init_id,
         CartesianHeuristic& heuristic,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     std::optional<Flaw> find_flaw(
         const ProbabilisticTaskProxy& task_proxy,
         const std::vector<int>& domain_sizes,
         const Trace& solution,
         CartesianAbstraction& abstraction,
-        utils::LogProxy& log,
-        utils::CountdownTimer& timer);
+        downward::utils::LogProxy& log,
+        downward::utils::CountdownTimer& timer);
 
 public:
     explicit TraceBasedFlawGenerator(TraceGenerator* trace_generator);
@@ -59,12 +59,12 @@ public:
         CartesianAbstraction& abstraction,
         const AbstractState* init_id,
         CartesianHeuristic& heuristic,
-        utils::LogProxy& log,
-        utils::CountdownTimer& timer) override;
+        downward::utils::LogProxy& log,
+        downward::utils::CountdownTimer& timer) override;
 
     void notify_split() override;
 
-    void print_statistics(utils::LogProxy& log) override;
+    void print_statistics(downward::utils::LogProxy& log) override;
 };
 
 class AStarFlawGeneratorFactory : public FlawGeneratorFactory {

@@ -10,7 +10,7 @@
 
 using namespace std;
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 AbstractSearch::AbstractSearch(const vector<int>& operator_costs)
     : operator_costs(operator_costs)
     , search_info(1)

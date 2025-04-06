@@ -7,14 +7,17 @@
 
 #include <vector>
 
+namespace downward {
 class OperatorProxy;
 class State;
 class TaskProxy;
+}
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
+namespace downward {
 class SearchNode {
     State state;
     SearchNodeInfo& info;
@@ -67,5 +70,6 @@ public:
     void dump(const TaskProxy& task_proxy) const;
     void print_statistics() const;
 };
+}
 
 #endif

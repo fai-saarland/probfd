@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 CartesianSet::CartesianSet(const vector<int>& domain_sizes)
 {
     domain_subsets.reserve(domain_sizes.size());

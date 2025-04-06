@@ -17,7 +17,7 @@ public:
         MDP<State, Action>& mdp,
         std::optional<Action> prev_policy,
         const std::vector<TransitionTail<Action>>& greedy_transitions,
-        algorithms::StateProperties& properties);
+        algorithms::StateProperties& properties) override;
 };
 
 } // namespace probfd::policy_pickers

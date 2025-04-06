@@ -5,13 +5,15 @@
 #include <vector>
 
 // Forward Declarations
+namespace downward {
 struct FactPair;
+}
 
-namespace landmarks {
+namespace downward::landmarks {
 class LandmarkGraph;
 }
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 class LogProxy;
 } // namespace utils
@@ -22,7 +24,7 @@ class ProbabilisticTask;
 
 namespace probfd::cartesian_abstractions {
 
-using Facts = std::vector<FactPair>;
+using Facts = std::vector<downward::FactPair>;
 using SharedTasks = std::vector<std::shared_ptr<ProbabilisticTask>>;
 
 enum class FactOrder { ORIGINAL, RANDOM, HADD_UP, HADD_DOWN };
@@ -34,7 +36,7 @@ class SubtaskGenerator {
 public:
     virtual SharedTasks get_subtasks(
         const std::shared_ptr<ProbabilisticTask>& task,
-        utils::LogProxy& log) const = 0;
+        downward::utils::LogProxy& log) const = 0;
     virtual ~SubtaskGenerator() = default;
 };
 
@@ -49,7 +51,7 @@ public:
 
     SharedTasks get_subtasks(
         const std::shared_ptr<ProbabilisticTask>& task,
-        utils::LogProxy& log) const override;
+        downward::utils::LogProxy& log) const override;
 };
 
 /*
@@ -57,14 +59,14 @@ public:
 */
 class GoalDecomposition : public SubtaskGenerator {
     FactOrder fact_order_;
-    std::shared_ptr<utils::RandomNumberGenerator> rng_;
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng_;
 
 public:
     explicit GoalDecomposition(FactOrder order, int random_seed);
 
     SharedTasks get_subtasks(
         const std::shared_ptr<ProbabilisticTask>& task,
-        utils::LogProxy& log) const override;
+        downward::utils::LogProxy& log) const override;
 };
 
 /*
@@ -74,7 +76,7 @@ public:
 class LandmarkDecomposition : public SubtaskGenerator {
     FactOrder fact_order_;
     bool combine_facts_;
-    std::shared_ptr<utils::RandomNumberGenerator> rng_;
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng_;
 
 public:
     explicit LandmarkDecomposition(
@@ -84,7 +86,7 @@ public:
 
     SharedTasks get_subtasks(
         const std::shared_ptr<ProbabilisticTask>& task,
-        utils::LogProxy& log) const override;
+        downward::utils::LogProxy& log) const override;
 };
 
 } // namespace probfd::cartesian_abstractions

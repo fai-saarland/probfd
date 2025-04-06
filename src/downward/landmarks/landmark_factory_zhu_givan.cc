@@ -14,7 +14,7 @@
 
 using namespace std;
 
-namespace landmarks {
+namespace downward::landmarks {
 LandmarkFactoryZhuGivan::LandmarkFactoryZhuGivan(
     bool use_orders,
     utils::Verbosity verbosity)

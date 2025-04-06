@@ -6,7 +6,7 @@
 #include <memory>
 #include <tuple>
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
@@ -20,7 +20,7 @@ class MergeScoringFunctionTotalOrder : public MergeScoringFunction {
     ProductTSOrder product_ts_order;
     bool atomic_before_product;
     int random_seed; // only for dump options
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
     std::vector<std::pair<int, int>> merge_candidate_order;
 
 public:
@@ -36,11 +36,13 @@ public:
     void initialize(const ProbabilisticTaskProxy& task_proxy) override;
 
     bool requires_liveness() const override { return false; }
+
     bool requires_goal_distances() const override { return false; }
 
 private:
     std::string name() const override;
-    void dump_function_specific_options(utils::LogProxy& log) const override;
+    void dump_function_specific_options(
+        downward::utils::LogProxy& log) const override;
 };
 
 } // namespace probfd::merge_and_shrink

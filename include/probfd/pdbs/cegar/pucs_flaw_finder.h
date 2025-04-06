@@ -18,7 +18,9 @@
 #include <vector>
 
 // Forward Declarations
+namespace downward {
 class State;
+}
 
 namespace probfd::pdbs::cegar {
 
@@ -28,7 +30,7 @@ class PUCSFlawFinder : public FlawFindingStrategy {
         value_t path_probability = 0_vt;
     };
 
-    priority_queues::HeapQueue<value_t, State> pq_;
+    downward::priority_queues::HeapQueue<value_t, downward::State> pq_;
     storage::PerStateStorage<ExpansionInfo> probabilities_;
 
     const int max_search_states_;
@@ -43,7 +45,7 @@ public:
         const ProjectionMultiPolicy& policy,
         std::vector<Flaw>& flaws,
         const std::function<bool(const Flaw&)>& notify_flaw,
-        utils::CountdownTimer& timer) override;
+        downward::utils::CountdownTimer& timer) override;
 
     std::string get_name() override;
 };

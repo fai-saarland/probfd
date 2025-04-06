@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
@@ -28,7 +28,7 @@ public:
 
     virtual void initialize(const ProbabilisticTaskProxy& task_proxy) = 0;
 
-    void dump_options(utils::LogProxy& log) const;
+    void dump_options(downward::utils::LogProxy& log) const;
 
     virtual bool requires_liveness() const = 0;
     virtual bool requires_goal_distances() const = 0;
@@ -36,7 +36,10 @@ public:
 protected:
     virtual std::string name() const = 0;
 
-    virtual void dump_selector_specific_options(utils::LogProxy&) const {}
+    virtual void
+    dump_selector_specific_options(downward::utils::LogProxy&) const
+    {
+    }
 
     static std::vector<std::pair<int, int>> compute_merge_candidates(
         const FactoredTransitionSystem& fts,

@@ -7,8 +7,8 @@
 #include "downward/utils/logging.h"
 
 using namespace std;
-using namespace lm_cut_heuristic;
-using namespace utils;
+using namespace downward::lm_cut_heuristic;
+using namespace downward::utils;
 
 using namespace downward::cli::plugins;
 
@@ -18,7 +18,7 @@ using downward::cli::get_heuristic_arguments_from_options;
 namespace {
 
 class LandmarkCutHeuristicFeature
-    : public TypedFeature<Evaluator, LandmarkCutHeuristic> {
+    : public TypedFeature<downward::Evaluator, LandmarkCutHeuristic> {
 public:
     LandmarkCutHeuristicFeature()
         : TypedFeature("lmcut")

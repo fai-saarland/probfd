@@ -9,6 +9,7 @@
 #include "downward/utils/rng_options.h"
 
 using namespace std;
+using namespace downward;
 
 using namespace downward::cli::plugins;
 

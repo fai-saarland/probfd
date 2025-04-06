@@ -4,6 +4,8 @@
 
 using namespace std;
 
+using namespace downward;
+
 namespace probfd::extra_tasks {
 
 ModifiedGoalsTask::ModifiedGoalsTask(

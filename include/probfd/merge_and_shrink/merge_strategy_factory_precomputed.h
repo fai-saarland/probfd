@@ -14,7 +14,7 @@ class MergeStrategyFactoryPrecomputed : public MergeStrategyFactory {
 
 public:
     MergeStrategyFactoryPrecomputed(
-        utils::Verbosity verbosity,
+        downward::utils::Verbosity verbosity,
         std::shared_ptr<MergeTreeFactory> merge_tree_factory);
 
     std::unique_ptr<MergeStrategy> compute_merge_strategy(

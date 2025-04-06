@@ -5,7 +5,7 @@
 
 #include <vector>
 
-namespace ff_heuristic {
+namespace downward::ff_heuristic {
 using relaxation_heuristic::OpID;
 using relaxation_heuristic::PropID;
 

@@ -13,7 +13,7 @@
 
 using namespace std;
 
-namespace relaxation_heuristic {
+namespace downward::relaxation_heuristic {
 Proposition::Proposition()
     : cost(-1)
     , reached_by(NO_OP)

@@ -19,7 +19,9 @@
 #include <utility>
 
 using namespace std;
-using namespace utils;
+
+using namespace downward;
+using namespace downward::utils;
 
 namespace probfd::pdbs::cegar {
 
@@ -36,7 +38,7 @@ bool BFSFlawFinder::apply_policy(
     const ProjectionMultiPolicy& policy,
     std::vector<Flaw>& flaws,
     const std::function<bool(const Flaw&)>& accept_flaw,
-    utils::CountdownTimer& timer)
+    CountdownTimer& timer)
 {
     assert(open_.empty() && closed_.empty());
 
@@ -60,11 +62,11 @@ bool BFSFlawFinder::apply_policy(
     do {
         timer.throw_if_expired();
 
-        const State& current = open_.front();
-        const StateRank abs = state_ranking_function.get_abstract_rank(current);
-
         {
-            const std::vector abs_decisions = policy.get_decisions(abs);
+            const State& current = open_.front();
+            const StateRank abs =
+                state_ranking_function.get_abstract_rank(current);
+            const auto abs_decisions = policy.get_decisions(abs);
 
             // We reached a terminal state, check if it is a goal or dead-end
             if (abs_decisions.empty()) {

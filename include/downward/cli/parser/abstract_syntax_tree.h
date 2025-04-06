@@ -1,8 +1,8 @@
 #ifndef PARSER_ABSTRACT_SYNTAX_TREE_H
 #define PARSER_ABSTRACT_SYNTAX_TREE_H
 
-#include "decorated_abstract_syntax_tree.h"
-#include "token_stream.h"
+#include "downward/cli/parser/decorated_abstract_syntax_tree.h"
+#include "downward/cli/parser/token_stream.h"
 
 #include <cassert>
 #include <memory>
@@ -11,7 +11,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace plugins {
+namespace downward::plugins {
 struct ArgumentInfo;
 class Type;
 } // namespace plugins

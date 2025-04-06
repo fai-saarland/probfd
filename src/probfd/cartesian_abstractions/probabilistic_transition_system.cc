@@ -21,6 +21,7 @@
 #include <utility>
 
 using namespace std;
+using namespace downward;
 
 namespace probfd::cartesian_abstractions {
 
@@ -197,7 +198,7 @@ void ProbabilisticTransitionSystem::rewire_incoming_transitions(
     auto old_incoming = std::move(incoming_[v1_id]);
 
     for (ProbabilisticTransition* transition : old_incoming) {
-        assert(utils::contains(transition->target_ids, v1_id));
+        assert(std::ranges::contains(transition->target_ids, v1_id));
 
         const int u_id = transition->source_id;
         const AbstractState& u = *states[u_id];
@@ -267,13 +268,13 @@ void ProbabilisticTransitionSystem::rewire_incoming_transitions(
             if (v1_incoming) {
                 // Transition is incoming for v1.
                 incoming_[v1_id].push_back(transition);
-                assert(utils::contains(transition->target_ids, v1_id));
+                assert(std::ranges::contains(transition->target_ids, v1_id));
             }
 
             if (v2_incoming) {
                 // Transition is incoming for v2.
                 incoming_[v2_id].push_back(transition);
-                assert(utils::contains(transition->target_ids, v2_id));
+                assert(std::ranges::contains(transition->target_ids, v2_id));
             }
         } else {
             bool v1_possible = false;

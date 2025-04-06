@@ -12,7 +12,7 @@
 
 using namespace std;
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 MergeTreeFactoryLinear::MergeTreeFactoryLinear(
     variable_order_finder::VariableOrderType variable_order,
     int random_seed,

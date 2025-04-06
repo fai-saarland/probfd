@@ -6,7 +6,8 @@
 
 #include "downward/utils/rng_options.h"
 
-using namespace utils;
+using namespace downward;
+using namespace downward::utils;
 
 using namespace downward::cli::plugins;
 

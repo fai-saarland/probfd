@@ -4,6 +4,7 @@
 
 #include "probfd/heuristics/additive_cartesian_heuristic.h"
 
+using namespace downward;
 using namespace probfd;
 using namespace probfd::cartesian_abstractions;
 using namespace probfd::heuristics;

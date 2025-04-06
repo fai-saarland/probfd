@@ -25,13 +25,13 @@ class ProgressReport;
 
 namespace probfd::algorithms::i2dual {
 
-class I2Dual : public MDPAlgorithm<State, OperatorID> {
+class I2Dual : public MDPAlgorithm<downward::State, downward::OperatorID> {
     struct IDualData;
 
     struct Statistics {
-        utils::Timer idual_timer = utils::Timer(true);
-        utils::Timer lp_solver_timer = utils::Timer(true);
-        utils::Timer hpom_timer = utils::Timer(true);
+        downward::utils::Timer idual_timer = downward::utils::Timer(true);
+        downward::utils::Timer lp_solver_timer = downward::utils::Timer(true);
+        downward::utils::Timer hpom_timer = downward::utils::Timer(true);
 
         unsigned long long iterations = 0;
         unsigned long long expansions = 0;
@@ -50,7 +50,7 @@ class I2Dual : public MDPAlgorithm<State, OperatorID> {
     const bool hpom_enabled_;
     const bool incremental_hpom_updates_;
 
-    lp::LPSolver lp_solver_;
+    downward::lp::LPSolver lp_solver_;
 
     const double fp_epsilon_ = 0.001;
 
@@ -59,13 +59,14 @@ class I2Dual : public MDPAlgorithm<State, OperatorID> {
 
     bool hpom_initialized_ = false;
     std::vector<int> offset_;
-    named_vector::NamedVector<lp::LPConstraint> hpom_constraints_;
+    downward::named_vector::NamedVector<downward::lp::LPConstraint>
+        hpom_constraints_;
 
     Statistics statistics_;
 
     value_t objective_;
 
-    std::vector<OperatorID> aops_;
+    std::vector<downward::OperatorID> aops_;
     SuccessorDistribution succs_;
 
 public:
@@ -74,7 +75,7 @@ public:
         std::shared_ptr<FDRCostFunction> task_cost_function,
         bool hpom_enabled,
         bool incremental_updates,
-        lp::LPSolverType solver_type,
+        downward::lp::LPSolverType solver_type,
         double fp_precision = 0.0001);
 
     void print_statistics(std::ostream& out) const override;
@@ -82,14 +83,14 @@ public:
     Interval solve(
         FDRMDP& mdp,
         FDREvaluator& heuristic,
-        const State& initial_state,
+        const downward::State& initial_state,
         ProgressReport progress,
         double max_time);
 
     std::unique_ptr<PolicyType> compute_policy(
         FDRMDP& mdp,
         HeuristicType& heuristic,
-        const State& initial_state,
+        const downward::State& initial_state,
         ProgressReport progress,
         double max_time) override;
 
@@ -97,12 +98,12 @@ private:
     bool evaluate_state(
         FDRMDP& mdp,
         FDREvaluator& heuristic,
-        const State& state,
+        const downward::State& state,
         IDualData& data);
 
     void prepare_lp();
 
-    void prepare_hpom(lp::LinearProgram& lp);
+    void prepare_hpom(downward::lp::LinearProgram& lp);
 
     void update_hpom_constraints_expanded(
         FDRMDP& mdp,
@@ -116,14 +117,16 @@ private:
         unsigned start);
 
     void remove_fringe_state_from_hpom(
-        const State& state,
+        const downward::State& state,
         const IDualData& data,
-        named_vector::NamedVector<lp::LPConstraint>& constraints) const;
+        downward::named_vector::NamedVector<downward::lp::LPConstraint>&
+            constraints) const;
 
     void add_fringe_state_to_hpom(
-        const State& state,
+        const downward::State& state,
         const IDualData& data,
-        named_vector::NamedVector<lp::LPConstraint>& constraints) const;
+        downward::named_vector::NamedVector<downward::lp::LPConstraint>&
+            constraints) const;
 };
 
 } // namespace probfd::algorithms::i2dual

@@ -2,6 +2,8 @@
 
 #include "probfd/merge_and_shrink/transition_system.h"
 
+using namespace downward;
+
 namespace probfd::merge_and_shrink {
 
 StateEquivalenceRelation PruneStrategyIdentity::compute_pruning_abstraction(

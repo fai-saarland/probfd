@@ -13,6 +13,8 @@
 #include <iterator>
 #include <limits>
 
+using namespace downward;
+
 namespace probfd::pdbs {
 
 static StateRank convert(
@@ -37,7 +39,7 @@ static StateRank convert(
     return rank;
 }
 
-PDBEvaluator::PDBEvaluator(const ::pdbs::PatternDatabase& pdb)
+PDBEvaluator::PDBEvaluator(const downward::pdbs::PatternDatabase& pdb)
     : pdb_(pdb)
 {
 }

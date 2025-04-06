@@ -9,7 +9,7 @@ using namespace downward::cli;
 namespace {
 
 class PruningMethodCategoryPlugin
-    : public plugins::TypedCategoryPlugin<PruningMethod> {
+    : public plugins::TypedCategoryPlugin<downward::PruningMethod> {
 public:
     PruningMethodCategoryPlugin()
         : TypedCategoryPlugin("PruningMethod")

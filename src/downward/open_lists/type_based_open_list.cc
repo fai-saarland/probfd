@@ -16,7 +16,7 @@
 
 using namespace std;
 
-namespace type_based_open_list {
+namespace downward::type_based_open_list {
 template <class Entry>
 class TypeBasedOpenList : public OpenList<Entry> {
     vector<shared_ptr<Evaluator>> evaluators;

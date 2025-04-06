@@ -5,9 +5,11 @@
 #include <string>
 #include <vector>
 
+namespace downward {
 class Evaluator;
+}
 
-namespace utils {
+namespace downward::utils {
 enum class Verbosity;
 }
 

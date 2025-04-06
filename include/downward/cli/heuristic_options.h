@@ -5,9 +5,11 @@
 #include <string>
 #include <tuple>
 
+namespace downward {
 class AbstractTask;
+}
 
-namespace utils {
+namespace downward::utils {
 enum class Verbosity;
 }
 

@@ -5,7 +5,7 @@
 
 #include <vector>
 
-namespace max_evaluator {
+namespace downward::max_evaluator {
 class MaxEvaluator : public combining_evaluator::CombiningEvaluator {
 protected:
     virtual int combine_values(const std::vector<int>& values) override;

@@ -5,11 +5,11 @@
 
 #include <memory>
 
-namespace lm_cut_heuristic {
+namespace downward::lm_cut_heuristic {
 class LandmarkCutLandmarks;
 }
 
-namespace operator_counting {
+namespace downward::operator_counting {
 class LMCutConstraints : public ConstraintGenerator {
     std::unique_ptr<lm_cut_heuristic::LandmarkCutLandmarks> landmark_generator;
 

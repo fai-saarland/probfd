@@ -139,7 +139,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::select_greedy_transition(
         transition_tails,
         state_infos_);
 
-    assert(utils::in_bounds(index, transition_tails));
+    assert(downward::utils::in_bounds(index, transition_tails));
 
     return std::move(transition_tails[index]);
 }

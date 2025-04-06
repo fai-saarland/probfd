@@ -14,9 +14,9 @@
 #include "downward/utils/system.h"
 
 using namespace std;
-using utils::ExitCode;
+using downward::utils::ExitCode;
 
-namespace enforced_hill_climbing_search {
+namespace downward::enforced_hill_climbing_search {
 using GEval = g_evaluator::GEvaluator;
 using PrefEval = pref_evaluator::PrefEvaluator;
 

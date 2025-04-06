@@ -13,7 +13,7 @@ void compute_saturated_costs(
     std::span<const value_t> value_table,
     std::span<value_t> saturated_costs)
 {
-    std::fill(saturated_costs.begin(), saturated_costs.end(), -INFINITE_VALUE);
+    std::ranges::fill(saturated_costs, -INFINITE_VALUE);
 
     const int num_states = value_table.size();
     for (StateRank s = 0; s < num_states; ++s) {

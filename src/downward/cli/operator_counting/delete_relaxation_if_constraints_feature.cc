@@ -7,8 +7,8 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace utils;
-using namespace operator_counting;
+using namespace downward::utils;
+using namespace downward::operator_counting;
 
 using namespace downward::cli::plugins;
 
@@ -29,7 +29,7 @@ public:
             "the "
             "optimal delete-relaxation heuristic h^+^ (see example below). "
             "For details, see" +
-            utils::format_journal_reference(
+            format_journal_reference(
                 {"Tatsuya Imai", "Alex Fukunaga"},
                 "On a practical, integer-linear programming model for "
                 "delete-free"

@@ -8,7 +8,7 @@
 #include <memory>
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
@@ -16,7 +16,7 @@ namespace probfd::successor_samplers {
 
 template <typename Action>
 class VDiffSuccessorSampler : public algorithms::SuccessorSampler<Action> {
-    const std::shared_ptr<utils::RandomNumberGenerator> rng_;
+    const std::shared_ptr<downward::utils::RandomNumberGenerator> rng_;
     const bool prefer_large_gaps_;
 
     Distribution<StateID> biased_;
@@ -25,7 +25,7 @@ public:
     explicit VDiffSuccessorSampler(int random_seed, bool prefer_large_gaps);
 
     explicit VDiffSuccessorSampler(
-        std::shared_ptr<utils::RandomNumberGenerator> rng,
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng,
         bool prefer_large_gaps);
 
 protected:

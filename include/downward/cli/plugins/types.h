@@ -1,7 +1,7 @@
 #ifndef PLUGINS_TYPES_H
 #define PLUGINS_TYPES_H
 
-#include "registry_types.h"
+#include "downward/cli/plugins/registry_types.h"
 
 #include "downward/utils/strings.h"
 
@@ -15,7 +15,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class Context;
 }
 
@@ -41,7 +41,8 @@ public:
     virtual const Type& get_nested_type() const;
 
     virtual bool is_enum_type() const;
-    virtual int get_enum_index(const std::string&, ::utils::Context&) const;
+    virtual int
+    get_enum_index(const std::string&, downward::utils::Context&) const;
     virtual const EnumInfo& get_documented_enum_values() const;
 
     virtual bool is_symbol_type() const;
@@ -119,7 +120,7 @@ public:
     virtual bool operator==(const Type& other) const override;
     virtual bool is_enum_type() const override;
     virtual int
-    get_enum_index(const std::string& value, ::utils::Context& context)
+    get_enum_index(const std::string& value, downward::utils::Context& context)
         const override;
     virtual const EnumInfo& get_documented_enum_values() const override;
     virtual std::string name() const override;
@@ -149,18 +150,15 @@ class TypeRegistry {
     struct SemanticHash {
         size_t operator()(const Type* t) const
         {
-            if (!t) {
-                return 0;
-            }
+            if (!t) { return 0; }
             return t->get_hash();
         }
     };
+
     struct SemanticEqual {
         size_t operator()(const Type* t1, const Type* t2) const
         {
-            if (!t1 || !t2) {
-                return t1 == t2;
-            }
+            if (!t1 || !t2) { return t1 == t2; }
             return *t1 == *t2;
         }
     };
@@ -219,7 +217,7 @@ extern std::any convert(
     const std::any& value,
     const Type& from_type,
     const Type& to_type,
-    ::utils::Context& context);
+    downward::utils::Context& context);
 } // namespace downward::cli::plugins
 
 #endif

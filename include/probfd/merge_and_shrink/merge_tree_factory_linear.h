@@ -5,7 +5,7 @@
 
 #include "downward/task_utils/variable_order_finder.h"
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
@@ -16,14 +16,14 @@ class ProbabilisticTask;
 namespace probfd::merge_and_shrink {
 
 class MergeTreeFactoryLinear : public MergeTreeFactory {
-    variable_order_finder::VariableOrderType variable_order_type;
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
+    downward::variable_order_finder::VariableOrderType variable_order_type;
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
 
 public:
     MergeTreeFactoryLinear(
         int random_seed,
         UpdateOption update_option,
-        variable_order_finder::VariableOrderType variable_order);
+        downward::variable_order_finder::VariableOrderType variable_order);
 
     std::unique_ptr<MergeTree>
     compute_merge_tree(std::shared_ptr<ProbabilisticTask>& task) override;
@@ -34,11 +34,13 @@ public:
         const std::vector<int>& indices_subset) override;
 
     bool requires_liveness() const override { return false; }
+
     bool requires_goal_distances() const override { return false; }
 
 protected:
     std::string name() const override;
-    void dump_tree_specific_options(utils::LogProxy& log) const override;
+    void
+    dump_tree_specific_options(downward::utils::LogProxy& log) const override;
 };
 
 } // namespace probfd::merge_and_shrink

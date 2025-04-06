@@ -7,9 +7,11 @@
 #include <unordered_map>
 #include <vector>
 
+namespace downward {
 class State;
+}
 
-namespace successor_generator {
+namespace downward::successor_generator {
 class GeneratorBase {
 public:
     virtual ~GeneratorBase() {}

@@ -15,9 +15,11 @@
 #include <vector>
 
 // Forward Declarations
+namespace downward {
 class Evaluator;
 class State;
 class OperatorID;
+} // namespace downward
 
 namespace utils {
 class LogProxy;
@@ -39,50 +41,51 @@ class CachingTaskStateSpace : public TaskStateSpace {
         }
 
         unsigned naops = std::numeric_limits<unsigned>::max();
-        OperatorID* aops = nullptr;
+        downward::OperatorID* aops = nullptr;
         StateID* succs = nullptr;
     };
 
-    PerStateInformation<CacheEntry> cache_;
+    downward::PerStateInformation<CacheEntry> cache_;
     storage::SegmentedMemoryPool<> cache_data_;
 
-    std::vector<OperatorID> aops_;
+    std::vector<downward::OperatorID> aops_;
     std::vector<StateID> successors_;
 
 public:
-    CachingTaskStateSpace(
+    explicit CachingTaskStateSpace(
         std::shared_ptr<ProbabilisticTask> task,
-        std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators);
+        std::vector<std::shared_ptr<downward::Evaluator>>
+            path_dependent_evaluators);
 
     void generate_applicable_actions(
-        const State& state,
-        std::vector<OperatorID>& result) final;
+        const downward::State& state,
+        std::vector<downward::OperatorID>& result) final;
 
     void generate_action_transitions(
-        const State& state,
-        OperatorID operator_id,
+        const downward::State& state,
+        downward::OperatorID operator_id,
         SuccessorDistribution& successor_dist) final;
 
     void generate_all_transitions(
-        const State& state,
-        std::vector<OperatorID>& aops,
+        const downward::State& state,
+        std::vector<downward::OperatorID>& aops,
         std::vector<SuccessorDistribution>& successor_dist) final;
 
     void generate_all_transitions(
-        const State& state,
+        const downward::State& state,
         std::vector<TransitionTailType>& transitions) final;
 
     void print_statistics(std::ostream& out) const final;
 
 private:
     void compute_successor_states(
-        const State& s,
-        OperatorID op_id,
+        const downward::State& s,
+        downward::OperatorID op_id,
         std::vector<StateID>& successors);
 
-    void setup_cache(const State& state, CacheEntry& entry);
+    void setup_cache(const downward::State& state, CacheEntry& entry);
 
-    CacheEntry& lookup(const State& state);
+    CacheEntry& lookup(const downward::State& state);
 };
 
 } // namespace probfd

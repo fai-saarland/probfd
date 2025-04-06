@@ -13,7 +13,7 @@
 
 using namespace std;
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 static vector<CartesianHeuristicFunction> generate_heuristic_functions(
     const vector<shared_ptr<SubtaskGenerator>>& subtask_generators,
     int max_states,

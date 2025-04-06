@@ -3,13 +3,15 @@
 
 #include <vector>
 
+namespace downward {
 class State;
+}
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
-namespace potentials {
+namespace downward::potentials {
 class PotentialOptimizer;
 
 std::vector<State> sample_without_dead_end_detection(

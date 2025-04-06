@@ -23,19 +23,19 @@ namespace probfd::heuristics {
 template <typename Derived>
 class LPHeuristic : public TaskDependentHeuristic {
 protected:
-    mutable lp::LPSolver lp_solver_;
+    mutable downward::lp::LPSolver lp_solver_;
 
 public:
     LPHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
-        utils::LogProxy log,
-        lp::LPSolverType solver_type)
+        downward::utils::LogProxy log,
+        downward::lp::LPSolverType solver_type)
         : TaskDependentHeuristic(std::move(task), std::move(log))
         , lp_solver_(solver_type)
     {
     }
 
-    value_t evaluate(const State& state) const final
+    value_t evaluate(const downward::State& state) const final
     {
         assert(!lp_solver_.has_temporary_constraints());
 

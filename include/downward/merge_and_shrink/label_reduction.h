@@ -4,18 +4,20 @@
 #include <memory>
 #include <vector>
 
+namespace downward {
 class TaskProxy;
+}
 
-namespace equivalence_relation {
+namespace downward::equivalence_relation {
 class EquivalenceRelation;
 }
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
 } // namespace utils
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 class FactoredTransitionSystem;
 
 /*

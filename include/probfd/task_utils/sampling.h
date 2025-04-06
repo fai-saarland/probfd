@@ -7,12 +7,13 @@
 #include <functional>
 #include <memory>
 
-namespace probfd::successor_generator {
-class ProbabilisticSuccessorGenerator;
+namespace downward::utils {
+class RandomNumberGenerator;
 }
 
-namespace utils {
-class RandomNumberGenerator;
+
+namespace probfd::successor_generator {
+class ProbabilisticSuccessorGenerator;
 }
 
 namespace probfd::sampling {
@@ -23,14 +24,14 @@ class RandomWalkSampler {
     const ProbabilisticOperatorsProxy operators;
     const std::unique_ptr<successor_generator::ProbabilisticSuccessorGenerator>
         successor_generator;
-    const State initial_state;
+    const downward::State initial_state;
     const double average_operator_costs;
-    utils::RandomNumberGenerator& rng;
+    downward::utils::RandomNumberGenerator& rng;
 
 public:
     RandomWalkSampler(
         const ProbabilisticTaskProxy& task_proxy,
-        utils::RandomNumberGenerator& rng);
+        downward::utils::RandomNumberGenerator& rng);
     ~RandomWalkSampler();
 
     /*
@@ -44,10 +45,10 @@ public:
       a dead end. If omitted, no dead end detection is performed. The 'init_h'
       value should be an estimate of the solution cost.
     */
-    State sample_state(
+    downward::State sample_state(
         value_t init_h,
-        const std::function<bool(const State&)>& is_dead_end =
-            [](const State&) { return false; }) const;
+        const std::function<bool(const downward::State&)>& is_dead_end =
+            [](const downward::State&) { return false; }) const;
 };
 
 } // namespace probfd::sampling

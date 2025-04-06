@@ -5,7 +5,7 @@
 
 #include <ostream>
 
-namespace utils {
+namespace downward::utils {
 class Duration {
     double seconds;
 

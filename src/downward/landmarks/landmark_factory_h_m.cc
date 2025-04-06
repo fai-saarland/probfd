@@ -11,9 +11,9 @@
 #include "downward/utils/system.h"
 
 using namespace std;
-using utils::ExitCode;
+using downward::utils::ExitCode;
 
-namespace landmarks {
+namespace downward::landmarks {
 // alist = alist \cup other
 template <typename T>
 void union_with(list<T>& alist, const list<T>& other)

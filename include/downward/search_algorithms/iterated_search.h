@@ -6,9 +6,11 @@
 #include <memory>
 #include <vector>
 
+namespace downward {
 class SearchAlgorithmFactory;
+}
 
-namespace iterated_search {
+namespace downward::iterated_search {
 
 class IteratedSearch : public SearchAlgorithm {
     std::vector<std::shared_ptr<SearchAlgorithmFactory>> algorithm_configs;

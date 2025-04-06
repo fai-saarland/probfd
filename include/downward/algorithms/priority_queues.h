@@ -25,7 +25,7 @@
   same interface as AbstractQueue, however, to facilitate swapping the
   different implementations in and out.
  */
-namespace priority_queues {
+namespace downward::priority_queues {
 template <typename Key, typename Value>
 class AbstractQueue {
 public:

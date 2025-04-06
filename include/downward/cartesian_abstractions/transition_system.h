@@ -5,14 +5,16 @@
 
 #include <vector>
 
+namespace downward {
 struct FactPair;
 class OperatorsProxy;
+}
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 /*
   Rewire transitions after each split.
 */

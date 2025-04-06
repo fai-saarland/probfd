@@ -15,15 +15,17 @@
 #include <sstream>
 #include <string>
 
+using namespace downward;
+
 namespace probfd::pdbs {
 
 Pattern extended_pattern(const Pattern& pattern, int add_var)
 {
-    assert(!utils::contains(pattern, add_var));
+    assert(!std::ranges::contains(pattern, add_var));
 
     Pattern added;
     added.reserve(pattern.size() + 1);
-    auto it = std::upper_bound(pattern.begin(), pattern.end(), add_var);
+    const auto it = std::ranges::upper_bound(pattern, add_var);
     added.insert(added.end(), pattern.begin(), it);
     added.emplace_back(add_var);
     added.insert(added.end(), it, pattern.end());
@@ -61,7 +63,7 @@ void dump_graphviz(
         out.precision(3);
 
         const value_t value = pdb.lookup_estimate(x);
-        std::string value_text =
+        const std::string value_text =
             value != INFINITE_VALUE ? std::to_string(value) : "&infin";
 
         out << x << "\\n"

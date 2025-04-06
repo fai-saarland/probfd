@@ -5,10 +5,11 @@
 #include <unordered_map>
 #include <vector>
 
+namespace downward {
 class AbstractTask;
+}
 
-
-namespace extra_tasks {
+namespace downward::extra_tasks {
 using ValueGroup = std::vector<int>;
 using ValueGroups = std::vector<ValueGroup>;
 using VarToGroups = std::unordered_map<int, ValueGroups>;

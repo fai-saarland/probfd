@@ -14,7 +14,7 @@
 
 using namespace std;
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 static vector<vector<FactPair>>
 get_preconditions_by_operator(const OperatorsProxy& ops)
 {

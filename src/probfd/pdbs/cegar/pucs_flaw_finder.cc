@@ -19,7 +19,8 @@
 #include <cassert>
 
 using namespace std;
-using namespace utils;
+using namespace downward;
+using namespace downward::utils;
 
 namespace probfd::pdbs::cegar {
 
@@ -75,7 +76,7 @@ bool PUCSFlawFinder::apply_policy(
         // Check flaws, generate successors
         const StateRank abs = state_ranking_function.get_abstract_rank(current);
 
-        const std::vector abs_decisions = policy.get_decisions(abs);
+        const auto abs_decisions = policy.get_decisions(abs);
 
         // We reached a terminal state, check if it is a goal or dead-end
         if (abs_decisions.empty()) {

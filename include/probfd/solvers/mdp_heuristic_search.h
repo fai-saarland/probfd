@@ -14,8 +14,10 @@
 #include <type_traits>
 #include <utility>
 
+namespace downward {
 class State;
 class OperatorID;
+}
 
 namespace probfd::quotients {
 template <typename, typename>
@@ -33,8 +35,8 @@ namespace probfd::solvers {
 template <
     bool Bisimulation,
     bool Fret,
-    typename State = State,
-    typename Action = OperatorID>
+    typename State = downward::State,
+    typename Action = downward::OperatorID>
 using StateType = std::conditional_t<
     Bisimulation,
     std::conditional_t<
@@ -50,8 +52,8 @@ using StateType = std::conditional_t<
 template <
     bool Bisimulation,
     bool Fret,
-    typename State = State,
-    typename Action = OperatorID>
+    typename State = downward::State,
+    typename Action = downward::OperatorID>
 using ActionType = std::conditional_t<
     Bisimulation,
     std::conditional_t<Fret, probfd::quotients::QuotientAction<Action>, Action>,
@@ -105,8 +107,8 @@ std::unique_ptr<R> construct(std::tuple<Args...> args)
 template <
     bool Bisimulation,
     bool Fret,
-    typename State = State,
-    typename Action = OperatorID>
+    typename State = downward::State,
+    typename Action = downward::OperatorID>
 class MDPHeuristicSearchBase : public StatisticalMDPAlgorithmFactory {
 protected:
     using PolicyPicker = algorithms::PolicyPicker<
@@ -151,8 +153,8 @@ public:
 template <
     bool Bisimulation,
     bool Fret,
-    typename State = State,
-    typename Action = OperatorID>
+    typename State = downward::State,
+    typename Action = downward::OperatorID>
 class MDPHeuristicSearch;
 
 template <typename State, typename Action>
@@ -166,7 +168,7 @@ class MDPHeuristicSearch<false, false, State, Action>
 
 protected:
     using PolicyPicker =
-        MDPHeuristicSearch::MDPHeuristicSearchBase::PolicyPicker;
+        typename MDPHeuristicSearch::MDPHeuristicSearchBase::PolicyPicker;
 
 public:
     MDPHeuristicSearch(
@@ -184,7 +186,7 @@ public:
         Args&&... args)
     {
         return construct<
-            MDPAlgorithm<State, OperatorID>,
+            MDPAlgorithm<State, downward::OperatorID>,
             AlgTypeHelper<HS>::template type_template>(
             std::forward_as_tuple(
                 this->convergence_epsilon_,
@@ -211,7 +213,7 @@ class MDPHeuristicSearch<false, true, State, Action>
 
 protected:
     using PolicyPicker =
-        MDPHeuristicSearch::MDPHeuristicSearchBase::PolicyPicker;
+        typename MDPHeuristicSearch::MDPHeuristicSearchBase::PolicyPicker;
 
     const bool fret_on_policy_;
 
@@ -244,22 +246,22 @@ public:
 };
 
 template <bool Fret>
-class MDPHeuristicSearch<true, Fret, State, OperatorID>
+class MDPHeuristicSearch<true, Fret, downward::State, downward::OperatorID>
     : public MDPHeuristicSearch<
           false,
           Fret,
           bisimulation::QuotientState,
-          OperatorID> {
+          downward::OperatorID> {
     using Base = MDPHeuristicSearch<
         false,
         Fret,
         bisimulation::QuotientState,
-        OperatorID>;
+        downward::OperatorID>;
 
     using QState = bisimulation::QuotientState;
-    using QAction = OperatorID;
+    using QAction = downward::OperatorID;
 
-    using PolicyPicker = Base::PolicyPicker;
+    using PolicyPicker = typename Base::PolicyPicker;
 
 public:
     using Base::Base;

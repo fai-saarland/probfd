@@ -24,6 +24,8 @@
 #include <iostream>
 #include <memory>
 
+using namespace downward;
+
 namespace probfd::occupation_measures {
 
 void HROCGenerator::initialize_constraints(

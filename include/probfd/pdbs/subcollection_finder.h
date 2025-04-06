@@ -9,7 +9,9 @@
 #include <vector>
 
 // Forward Declarations
+namespace downward {
 class State;
+}
 
 namespace probfd::pdbs {
 
@@ -37,7 +39,7 @@ public:
     value_t evaluate(
         const PPDBCollection& database,
         const std::vector<PatternSubCollection>& subcollections,
-        const State& state,
+        const downward::State& state,
         value_t termination_cost);
 };
 

@@ -6,6 +6,8 @@
 #include "downward/search_algorithms/search_common.h"
 
 using namespace std;
+using namespace downward;
+using namespace downward::lazy_search;
 using namespace downward::cli::plugins;
 
 using downward::cli::add_search_algorithm_options_to_feature;
@@ -18,7 +20,7 @@ namespace {
 const string DEFAULT_LAZY_BOOST = "1000";
 
 class LazyGreedySearchFeature
-    : public TypedFeature<SearchAlgorithm, lazy_search::LazySearch> {
+    : public TypedFeature<SearchAlgorithm, LazySearch> {
 public:
     LazyGreedySearchFeature()
         : TypedFeature("lazy_greedy")
@@ -82,10 +84,10 @@ public:
             true);
     }
 
-    virtual shared_ptr<lazy_search::LazySearch>
+    virtual shared_ptr<LazySearch>
     create_component(const Options& opts, const utils::Context&) const override
     {
-        return make_shared_from_arg_tuples<lazy_search::LazySearch>(
+        return make_shared_from_arg_tuples<LazySearch>(
             search_common::create_greedy_open_list_factory(
                 opts.get_list<shared_ptr<Evaluator>>("evals"),
                 opts.get_list<shared_ptr<Evaluator>>("preferred"),

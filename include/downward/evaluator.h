@@ -7,6 +7,7 @@
 
 #include <set>
 
+namespace downward {
 class EvaluationContext;
 class State;
 
@@ -96,5 +97,6 @@ public:
     */
     virtual int get_cached_estimate(const State& state) const;
 };
+}
 
 #endif

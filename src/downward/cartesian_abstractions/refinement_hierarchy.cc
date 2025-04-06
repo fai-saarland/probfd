@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 Node::Node(int state_id)
     : left_child(UNDEFINED)
     , right_child(UNDEFINED)

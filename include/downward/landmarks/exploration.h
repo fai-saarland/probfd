@@ -11,11 +11,11 @@
 #include <unordered_set>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
-namespace landmarks {
+namespace downward::landmarks {
 struct Proposition;
 struct UnaryOperator;
 

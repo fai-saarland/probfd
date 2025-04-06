@@ -15,7 +15,7 @@
 
 using namespace std;
 
-namespace landmarks {
+namespace downward::landmarks {
 CostPartitioningAlgorithm::CostPartitioningAlgorithm(
     const vector<int>& operator_costs,
     const LandmarkGraph& graph)

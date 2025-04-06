@@ -10,7 +10,7 @@
 
 namespace probfd::extra_tasks {
 
-class ModifiedOperatorCostsTask : public tasks::DelegatingTask {
+class ModifiedOperatorCostsTask final : public tasks::DelegatingTask {
     std::vector<value_t> operator_costs_;
 
 public:

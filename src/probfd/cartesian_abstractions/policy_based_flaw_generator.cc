@@ -15,20 +15,7 @@
 #include <ostream>
 
 using namespace std;
-
-namespace utils {
-class CountdownTimer;
-}
-
-namespace probfd {
-class ProbabilisticTaskProxy;
-}
-
-namespace probfd::cartesian_abstractions {
-class AbstractState;
-class CartesianAbstraction;
-class CartesianHeuristic;
-} // namespace probfd::cartesian_abstractions
+using namespace downward;
 
 namespace probfd::cartesian_abstractions {
 

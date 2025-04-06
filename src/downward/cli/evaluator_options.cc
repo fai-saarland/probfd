@@ -21,7 +21,7 @@ void add_evaluator_options_to_feature(
     utils::add_log_options_to_feature(feature);
 }
 
-tuple<string, ::utils::Verbosity>
+tuple<string, downward::utils::Verbosity>
 get_evaluator_arguments_from_options(const plugins::Options& opts)
 {
     return tuple_cat(

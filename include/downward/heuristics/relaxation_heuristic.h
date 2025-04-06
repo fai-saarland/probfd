@@ -10,11 +10,13 @@
 #include <cassert>
 #include <vector>
 
+namespace downward {
 class AxiomOrOperatorProxy;
 class FactProxy;
 class OperatorProxy;
+}
 
-namespace relaxation_heuristic {
+namespace downward::relaxation_heuristic {
 struct Proposition;
 struct UnaryOperator;
 

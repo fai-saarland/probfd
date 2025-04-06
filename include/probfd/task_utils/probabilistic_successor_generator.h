@@ -5,9 +5,11 @@
 #include <vector>
 
 // Forward Declarations
+namespace downward {
 class OperatorID;
 class State;
 class PlanningTaskProxy;
+}
 
 namespace probfd {
 class TaskStateSpace;
@@ -25,7 +27,7 @@ class ProbabilisticSuccessorGenerator {
 
 public:
     explicit ProbabilisticSuccessorGenerator(
-        const PlanningTaskProxy& task_proxy);
+        const downward::PlanningTaskProxy& task_proxy);
     /*
       We cannot use the default destructor (implicitly or explicitly)
       here because GeneratorBase is a forward declaration and the
@@ -34,12 +36,12 @@ public:
     ~ProbabilisticSuccessorGenerator();
 
     void generate_applicable_ops(
-        const State& state,
-        std::vector<OperatorID>& applicable_ops) const;
+        const downward::State& state,
+        std::vector<downward::OperatorID>& applicable_ops) const;
 
     void generate_transitions(
-        const State& state,
-        std::vector<TransitionTail<OperatorID>>& transitions,
+        const downward::State& state,
+        std::vector<TransitionTail<downward::OperatorID>>& transitions,
         TaskStateSpace& task_state_space) const;
 };
 

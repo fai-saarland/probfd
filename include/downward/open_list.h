@@ -6,6 +6,7 @@
 #include "downward/evaluation_context.h"
 #include "downward/operator_id.h"
 
+namespace downward {
 class StateID;
 
 template <class Entry>
@@ -153,6 +154,7 @@ template <class Entry>
 bool OpenList<Entry>::only_contains_preferred_entries() const
 {
     return only_preferred;
+}
 }
 
 #endif

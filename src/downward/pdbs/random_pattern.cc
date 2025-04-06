@@ -12,7 +12,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 static bool
 time_limit_reached(const utils::CountdownTimer& timer, utils::LogProxy& log)
 {

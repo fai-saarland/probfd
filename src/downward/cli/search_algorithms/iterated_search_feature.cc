@@ -9,7 +9,8 @@
 #include "downward/utils/logging.h"
 
 using namespace std;
-using namespace iterated_search;
+using namespace downward;
+using namespace downward::iterated_search;
 
 using namespace downward::cli::plugins;
 

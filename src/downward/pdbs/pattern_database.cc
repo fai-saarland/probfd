@@ -20,7 +20,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 AbstractOperator::AbstractOperator(
     const vector<FactPair>& prev_pairs,
     const vector<FactPair>& pre_pairs,

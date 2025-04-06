@@ -16,13 +16,14 @@
 #include <utility>
 
 using namespace std;
+using namespace downward;
 
 namespace probfd::pdbs {
 
 PatternCollectionInformation::PatternCollectionInformation(
     const ProbabilisticTaskProxy& arg_task_proxy,
     std::shared_ptr<FDRCostFunction> arg_task_cost_function,
-    ::pdbs::PatternCollectionInformation det_info,
+    downward::pdbs::PatternCollectionInformation det_info,
     shared_ptr<SubCollectionFinder> arg_subcollection_finder)
     : task_proxy_(arg_task_proxy)
     , task_cost_function_(std::move(arg_task_cost_function))

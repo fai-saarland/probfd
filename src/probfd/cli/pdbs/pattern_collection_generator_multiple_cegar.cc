@@ -5,6 +5,7 @@
 
 #include "probfd/pdbs/pattern_collection_generator_multiple_cegar.h"
 
+using namespace downward;
 using namespace utils;
 
 using namespace probfd::cli::pdbs;

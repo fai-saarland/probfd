@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 
+namespace downward {
 class AbstractTask;
 class State;
 
@@ -35,5 +36,6 @@ public:
     void prune_operators(const State& state, std::vector<OperatorID>& op_ids);
     virtual void print_statistics() const;
 };
+}
 
 #endif

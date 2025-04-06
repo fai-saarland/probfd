@@ -10,6 +10,8 @@
 
 using namespace std;
 
+namespace downward {
+
 bool SearchProgress::process_evaluator_value(
     const Evaluator* evaluator,
     int value)
@@ -49,11 +51,11 @@ bool SearchProgress::check_progress(const EvaluationContext& eval_context)
                     if (eval->is_used_for_reporting_minima()) {
                         eval->report_new_minimum_value(result);
                     }
-                    if (eval->is_used_for_boosting()) {
-                        boost = true;
-                    }
+                    if (eval->is_used_for_boosting()) { boost = true; }
                 }
             }
         });
     return boost;
 }
+
+} // namespace downward

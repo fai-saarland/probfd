@@ -3,6 +3,7 @@
 #include "downward/cli/plugins/plugin.h"
 
 using namespace probfd::merge_and_shrink;
+using namespace downward;
 using namespace downward::cli::plugins;
 
 namespace {

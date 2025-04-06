@@ -10,7 +10,7 @@
 
 using namespace std;
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 
 static bool operator_applicable(
     const OperatorProxy& op,

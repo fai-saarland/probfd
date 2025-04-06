@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 PatternInformation::PatternInformation(
     const TaskProxy& task_proxy,
     Pattern pattern,

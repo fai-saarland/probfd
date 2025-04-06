@@ -10,13 +10,14 @@ namespace probfd::successor_samplers {
 
 template <typename Action>
 VBiasedSuccessorSampler<Action>::VBiasedSuccessorSampler(int random_seed)
-    : rng_(std::make_shared<utils::RandomNumberGenerator>(random_seed))
+    : rng_(
+          std::make_shared<downward::utils::RandomNumberGenerator>(random_seed))
 {
 }
 
 template <typename Action>
 VBiasedSuccessorSampler<Action>::VBiasedSuccessorSampler(
-    std::shared_ptr<utils::RandomNumberGenerator> rng)
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng)
     : rng_(std::move(rng))
 {
 }
@@ -42,9 +43,7 @@ StateID VBiasedSuccessorSampler<Action>::sample(
         }
     }
 
-    if (biased_.empty()) {
-        return successors.sample(*rng_)->item;
-    }
+    if (biased_.empty()) { return successors.sample(*rng_)->item; }
 
     return weighted_select(biased_, sum, *rng_)->item;
 }

@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace limited_pruning {
+namespace downward::limited_pruning {
 LimitedPruning::LimitedPruning(
     const shared_ptr<PruningMethod>& pruning,
     double min_required_pruning_ratio,

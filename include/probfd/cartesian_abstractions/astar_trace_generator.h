@@ -12,7 +12,7 @@
 #include <vector>
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 }
 
@@ -29,12 +29,13 @@ class AStarTraceGenerator : public TraceGenerator {
     class AbstractSearchInfo;
 
     // Keep data structures around to avoid reallocating them.
-    priority_queues::HeapQueue<value_t, int> open_queue_;
+    downward::priority_queues::HeapQueue<value_t, int> open_queue_;
     std::vector<AbstractSearchInfo> search_info_;
 
-    std::unique_ptr<Trace>
-    extract_solution(int init_id, int goal_id, utils::CountdownTimer& timer)
-        const;
+    std::unique_ptr<Trace> extract_solution(
+        int init_id,
+        int goal_id,
+        downward::utils::CountdownTimer& timer) const;
 
     void update_heuristic(
         CartesianAbstraction& abstraction,
@@ -48,7 +49,7 @@ public:
         CartesianAbstraction& abstraction,
         int init_id,
         CartesianHeuristic& heuristic,
-        utils::CountdownTimer& timer) override;
+        downward::utils::CountdownTimer& timer) override;
 
     void notify_split() override;
 };

@@ -3,8 +3,8 @@
 #include "downward/merge_and_shrink/merge_selector_score_based_filtering.h"
 
 using namespace std;
-using namespace utils;
-using namespace merge_and_shrink;
+using namespace downward::utils;
+using namespace downward::merge_and_shrink;
 
 using namespace downward::cli::plugins;
 

@@ -16,13 +16,13 @@ namespace probfd::heuristics {
 
 class UCPHeuristic final : public TaskDependentHeuristic {
     const value_t termination_cost_;
-    const std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs_;
+    std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs_;
 
 public:
     UCPHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
         std::shared_ptr<FDRCostFunction> task_cost_function,
-        utils::LogProxy log,
+        downward::utils::LogProxy log,
         std::shared_ptr<pdbs::PatternCollectionGenerator> generator);
 
     ~UCPHeuristic() override;
@@ -33,17 +33,17 @@ public:
     }
 
 protected:
-    value_t evaluate(const State& state) const override;
+    value_t evaluate(const downward::State& state) const override;
 };
 
 class UCPHeuristicFactory final : public TaskHeuristicFactory {
-    const utils::Verbosity verbosity_;
+    const downward::utils::Verbosity verbosity_;
     const std::shared_ptr<pdbs::PatternCollectionGenerator>
         pattern_collection_generator_;
 
 public:
     UCPHeuristicFactory(
-        utils::Verbosity verbosity,
+        downward::utils::Verbosity verbosity,
         std::shared_ptr<pdbs::PatternCollectionGenerator> generator);
 
     std::unique_ptr<FDREvaluator> create_evaluator(

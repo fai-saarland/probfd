@@ -6,6 +6,8 @@
 #include "downward/search_algorithms/search_common.h"
 
 using namespace std;
+using namespace downward;
+
 using namespace downward::cli::eager_search;
 using namespace downward::cli::plugins;
 

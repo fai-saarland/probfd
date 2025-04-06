@@ -10,7 +10,7 @@
 using namespace std;
 using namespace probfd;
 
-using utils::ExitCode;
+using downward::utils::ExitCode;
 
 static void setup_argparser(argparse::ArgumentParser& arg_parser)
 {

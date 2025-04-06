@@ -9,7 +9,7 @@
 
 using namespace std;
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 static vector<int>
 compute_label_ranks(const FactoredTransitionSystem& fts, int index)
 {

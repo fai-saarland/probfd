@@ -5,7 +5,7 @@
 
 #include <memory>
 
-namespace weighted_evaluator {
+namespace downward::weighted_evaluator {
 class WeightedEvaluator : public Evaluator {
     std::shared_ptr<Evaluator> evaluator;
     int weight;

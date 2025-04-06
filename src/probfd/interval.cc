@@ -2,6 +2,8 @@
 
 #include <ostream>
 
+using namespace downward;
+
 namespace probfd {
 
 Interval::Interval(value_t val)

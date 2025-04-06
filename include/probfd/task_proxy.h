@@ -33,7 +33,7 @@ namespace probfd {
 /// effect of a probabilistic operator. Can be used as a range of FactProxies,
 /// one for each effect condition.
 class ProbabilisticEffectConditionsProxy
-    : public ProxyCollection<ProbabilisticEffectConditionsProxy> {
+    : public downward::ProxyCollection<ProbabilisticEffectConditionsProxy> {
     const ProbabilisticTask* task_;
 
     int op_index_;
@@ -52,7 +52,7 @@ public:
     std::size_t size() const;
 
     /// Accesses a specific effect condition by its list index.
-    FactProxy operator[](std::size_t index) const;
+    downward::FactProxy operator[](std::size_t index) const;
 };
 
 /// Proxy class used to inspect a probabilistic effect of a probabilistic
@@ -76,14 +76,14 @@ public:
 
     /// Get a proxy for the established fact of the probabilistic effect.
     [[nodiscard]]
-    FactProxy get_fact() const;
+    downward::FactProxy get_fact() const;
 };
 
 /// Proxy class used to inspect the list of probabilistic effects of a
 /// probabilistic operator. Can be used as a range of
 /// ProbabilisticEffectProxies, one for each probabilistic effect.
 class ProbabilisticEffectsProxy
-    : public ProxyCollection<ProbabilisticEffectsProxy> {
+    : public downward::ProxyCollection<ProbabilisticEffectsProxy> {
     const ProbabilisticTask* task_;
     int op_index_;
     int outcome_index_;
@@ -136,7 +136,7 @@ public:
 /// probabilistic operator. Can be used as a range of
 /// ProbabilisticOutcomeProxies, one for each probabilistic outcome.
 class ProbabilisticOutcomesProxy
-    : public ProxyCollection<ProbabilisticOutcomesProxy> {
+    : public downward::ProxyCollection<ProbabilisticOutcomesProxy> {
     const ProbabilisticTask* task_;
     int op_index_;
 
@@ -156,7 +156,7 @@ public:
 };
 
 /// Proxy class used to inspect a single probabilistic operator.
-class ProbabilisticOperatorProxy : public PartialOperatorProxy {
+class ProbabilisticOperatorProxy : public downward::PartialOperatorProxy {
 public:
     ProbabilisticOperatorProxy(const ProbabilisticTask& task, int index);
 
@@ -173,7 +173,7 @@ public:
 /// probabilistic task. Can be used as a range of ProbabilisticOperatorProxies,
 /// one for each probabilistic operator.
 class ProbabilisticOperatorsProxy
-    : public ProxyCollection<ProbabilisticOperatorsProxy> {
+    : public downward::ProxyCollection<ProbabilisticOperatorsProxy> {
     const ProbabilisticTask* task_;
 
 public:
@@ -187,11 +187,11 @@ public:
     ProbabilisticOperatorProxy operator[](std::size_t index) const;
 
     /// Get a proxy for a specific probabilistic operator by operator id.
-    ProbabilisticOperatorProxy operator[](OperatorID id) const;
+    ProbabilisticOperatorProxy operator[](downward::OperatorID id) const;
 };
 
 /// Proxy class used to inspect a probabilistic planning task.
-class ProbabilisticTaskProxy : public PlanningTaskProxy {
+class ProbabilisticTaskProxy : public downward::PlanningTaskProxy {
 public:
     explicit ProbabilisticTaskProxy(const ProbabilisticTask& task);
 
@@ -203,7 +203,9 @@ public:
 };
 
 /// Checks if the conditions of a probabilistic effect are fulfilled in a state.
-bool does_fire(const ProbabilisticEffectProxy& effect, const State& state);
+bool does_fire(
+    const ProbabilisticEffectProxy& effect,
+    const downward::State& state);
 
 } // namespace probfd
 

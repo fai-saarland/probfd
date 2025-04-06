@@ -5,8 +5,9 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace utils;
-using namespace operator_counting;
+using namespace downward::pdbs;
+using namespace downward::utils;
+using namespace downward::operator_counting;
 
 using namespace downward::cli::plugins;
 
@@ -23,7 +24,7 @@ public:
             "The generator will compute a PDB for each pattern and add the"
             " constraint h(s) <= sum_{o in relevant(h)} Count_o. For details,"
             " see" +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Florian Pommerening", "Gabriele Roeger", "Malte Helmert"},
                 "Getting the Most Out of Pattern Databases for Classical "
                 "Planning",
@@ -34,7 +35,7 @@ public:
                 "AAAI Press",
                 "2013"));
 
-        add_option<shared_ptr<pdbs::PatternCollectionGenerator>>(
+        add_option<shared_ptr<PatternCollectionGenerator>>(
             "patterns",
             "pattern generation method",
             "systematic(2)");
@@ -44,7 +45,7 @@ public:
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<PhOConstraints>(
-            opts.get<shared_ptr<pdbs::PatternCollectionGenerator>>("patterns"));
+            opts.get<shared_ptr<PatternCollectionGenerator>>("patterns"));
     }
 };
 

@@ -2,7 +2,7 @@
 
 using namespace std;
 
-namespace extra_tasks {
+namespace downward::extra_tasks {
 ModifiedGoalsTask::ModifiedGoalsTask(
     const shared_ptr<AbstractTask>& parent,
     vector<FactPair>&& goals)

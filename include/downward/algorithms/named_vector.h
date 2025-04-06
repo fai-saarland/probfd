@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-namespace named_vector {
+namespace downward::named_vector {
 /*
   NamedVector is a vector-like collection with optional names
   associated with each element. It is intended for attaching names

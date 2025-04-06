@@ -5,7 +5,7 @@
 
 using namespace std;
 
-namespace landmarks {
+namespace downward::landmarks {
 static vector<LandmarkNode *> get_goal_landmarks(const LandmarkGraph &graph) {
     vector<LandmarkNode *> goals;
     for (auto &node : graph.get_nodes()) {

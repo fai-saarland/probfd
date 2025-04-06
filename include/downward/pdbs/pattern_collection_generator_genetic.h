@@ -7,13 +7,15 @@
 #include <memory>
 #include <vector>
 
+namespace downward {
 class AbstractTask;
+}
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
-namespace pdbs {
+namespace downward::pdbs {
 /*
   Implementation of the pattern generation algorithm by Edelkamp. See:
   Stefan Edelkamp, Automated Creation of Pattern Database Search

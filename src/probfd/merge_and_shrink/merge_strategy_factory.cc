@@ -1,6 +1,7 @@
 #include "probfd/merge_and_shrink/merge_strategy_factory.h"
 
 using namespace std;
+using namespace downward;
 
 namespace probfd::merge_and_shrink {
 

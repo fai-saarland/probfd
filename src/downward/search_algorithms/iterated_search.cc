@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace iterated_search {
+namespace downward::iterated_search {
 
 IteratedSearch::IteratedSearch(
     OperatorCost operator_cost,

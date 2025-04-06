@@ -7,7 +7,8 @@
 #include "downward/utils/logging.h"
 
 using namespace std;
-using namespace enforced_hill_climbing_search;
+using namespace downward::utils;
+using namespace downward::enforced_hill_climbing_search;
 
 using namespace downward::cli::plugins;
 
@@ -17,7 +18,7 @@ using downward::cli::get_search_algorithm_arguments_from_options;
 namespace {
 
 class EnforcedHillClimbingSearchFeature
-    : public TypedFeature<SearchAlgorithm, EnforcedHillClimbingSearch> {
+    : public TypedFeature<downward::SearchAlgorithm, EnforcedHillClimbingSearch> {
 public:
     EnforcedHillClimbingSearchFeature()
         : TypedFeature("ehc")
@@ -25,12 +26,12 @@ public:
         document_title("Lazy enforced hill-climbing");
         document_synopsis("");
 
-        add_option<shared_ptr<Evaluator>>("h", "heuristic");
+        add_option<shared_ptr<downward::Evaluator>>("h", "heuristic");
         add_option<PreferredUsage>(
             "preferred_usage",
             "preferred operator usage",
             "prune_by_preferred");
-        add_list_option<shared_ptr<Evaluator>>(
+        add_list_option<shared_ptr<downward::Evaluator>>(
             "preferred",
             "use preferred operators of these evaluators",
             "[]");
@@ -38,12 +39,12 @@ public:
     }
 
     virtual shared_ptr<EnforcedHillClimbingSearch>
-    create_component(const Options& opts, const utils::Context&) const override
+    create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<EnforcedHillClimbingSearch>(
-            opts.get<shared_ptr<Evaluator>>("h"),
+            opts.get<shared_ptr<downward::Evaluator>>("h"),
             opts.get<PreferredUsage>("preferred_usage"),
-            opts.get_list<shared_ptr<Evaluator>>("preferred"),
+            opts.get_list<shared_ptr<downward::Evaluator>>("preferred"),
             get_search_algorithm_arguments_from_options(opts));
     }
 };

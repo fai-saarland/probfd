@@ -18,7 +18,9 @@
 #include <iostream>
 
 using namespace std;
-using utils::ExitCode;
+using downward::utils::ExitCode;
+
+namespace downward {
 
 class PruningMethod;
 
@@ -125,9 +127,7 @@ bool SearchAlgorithm::check_goal_and_set_plan(const State& state)
 
 void SearchAlgorithm::save_plan_if_necessary()
 {
-    if (found_solution()) {
-        plan_manager.save_plan(get_plan(), task_proxy);
-    }
+    if (found_solution()) { plan_manager.save_plan(get_plan(), task_proxy); }
 }
 
 int SearchAlgorithm::get_adjusted_cost(const OperatorProxy& op) const
@@ -158,3 +158,5 @@ void collect_preferred_operators(
         }
     }
 }
+
+} // namespace downward

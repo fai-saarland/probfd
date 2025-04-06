@@ -5,7 +5,7 @@
 
 #include <memory>
 
-namespace potentials {
+namespace downward::potentials {
 class PotentialFunction;
 
 /*

@@ -3,7 +3,7 @@
 #include "downward/merge_and_shrink/shrink_strategy.h"
 
 using namespace std;
-using namespace merge_and_shrink;
+using namespace downward::merge_and_shrink;
 
 using namespace downward::cli::plugins;
 

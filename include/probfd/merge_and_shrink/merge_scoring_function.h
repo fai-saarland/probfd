@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
@@ -21,7 +21,10 @@ namespace probfd::merge_and_shrink {
 class MergeScoringFunction {
     virtual std::string name() const = 0;
 
-    virtual void dump_function_specific_options(utils::LogProxy&) const {}
+    virtual void
+    dump_function_specific_options(downward::utils::LogProxy&) const
+    {
+    }
 
 protected:
     bool initialized = false;
@@ -42,7 +45,7 @@ public:
         initialized = true;
     }
 
-    void dump_options(utils::LogProxy& log) const;
+    void dump_options(downward::utils::LogProxy& log) const;
 };
 
 } // namespace probfd::merge_and_shrink

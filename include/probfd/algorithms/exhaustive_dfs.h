@@ -212,7 +212,7 @@ class ExhaustiveDepthFirstSearch : public IterativeMDPAlgorithm<State, Action> {
 
     using MDPType = typename Base::MDPType;
     using HeuristicType = typename Base::HeuristicType;
-    using PolicyType = Base::PolicyType;
+    using PolicyType = typename Base::PolicyType;
 
     using TransitionSorterType = TransitionSorter<State, Action>;
 

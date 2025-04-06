@@ -9,7 +9,7 @@
 
 using namespace std;
 
-namespace blind_search_heuristic {
+namespace downward::blind_search_heuristic {
 BlindSearchHeuristic::BlindSearchHeuristic(
     const shared_ptr<AbstractTask>& transform,
     bool cache_estimates,

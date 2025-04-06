@@ -23,9 +23,9 @@ namespace probfd {
 template <typename State, typename Action>
 class Policy : public MultiPolicy<State, Action> {
 public:
-    virtual ~Policy() = default;
+    ~Policy() override = default;
 
-    /// Retrives the action and optimal state value interval specified by the
+    /// Retrieves the action and optimal state value interval specified by the
     /// policy for a given state.
     virtual std::optional<PolicyDecision<Action>>
     get_decision(const State& state) const = 0;

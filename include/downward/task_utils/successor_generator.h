@@ -6,11 +6,13 @@
 #include <memory>
 #include <vector>
 
+namespace downward {
 class OperatorID;
 class State;
 class PlanningTaskProxy;
+}
 
-namespace successor_generator {
+namespace downward::successor_generator {
 class GeneratorBase;
 
 class SuccessorGenerator {

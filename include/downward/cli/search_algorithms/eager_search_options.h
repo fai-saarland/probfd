@@ -5,12 +5,14 @@
 #include <string>
 #include <tuple>
 
+namespace downward {
 enum OperatorCost : unsigned short;
 
 class PruningMethod;
 class Evaluator;
+}
 
-namespace utils {
+namespace downward::utils {
 enum class Verbosity;
 }
 

@@ -6,6 +6,8 @@
 
 using namespace std;
 
+namespace downward {
+
 static int
 get_adjusted_action_cost(int cost, OperatorCost cost_type, bool is_unit_cost)
 {
@@ -34,3 +36,5 @@ int get_adjusted_action_cost(
             cost_type,
             is_unit_cost);
 }
+
+} // namespace downward

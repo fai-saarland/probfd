@@ -16,7 +16,7 @@ namespace probfd::cli::merge_and_shrink {
 extern void add_merge_strategy_options_to_feature(
     downward::cli::plugins::Feature& feature);
 
-extern std::tuple<::utils::Verbosity>
+extern std::tuple<downward::utils::Verbosity>
 get_merge_strategy_args_from_options(
     const downward::cli::plugins::Options& options);
 

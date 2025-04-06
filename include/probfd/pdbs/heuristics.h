@@ -7,7 +7,7 @@
 #include "probfd/value_type.h"
 
 // Forward Declarations
-namespace pdbs {
+namespace downward::pdbs {
 class PatternDatabase;
 }
 
@@ -22,20 +22,20 @@ namespace probfd::pdbs {
 using StateRankEvaluator = Heuristic<StateRank>;
 
 class PDBEvaluator : public StateRankEvaluator {
-    const ::pdbs::PatternDatabase& pdb_;
+    const downward::pdbs::PatternDatabase& pdb_;
 
 public:
-    explicit PDBEvaluator(const ::pdbs::PatternDatabase& pdb);
+    explicit PDBEvaluator(const downward::pdbs::PatternDatabase& pdb);
 
     [[nodiscard]]
     value_t evaluate(StateRank state) const override;
 };
 
 class DeadendPDBEvaluator : public StateRankEvaluator {
-    const ::pdbs::PatternDatabase& pdb_;
+    const downward::pdbs::PatternDatabase& pdb_;
 
 public:
-    explicit DeadendPDBEvaluator(const ::pdbs::PatternDatabase& pdb);
+    explicit DeadendPDBEvaluator(const downward::pdbs::PatternDatabase& pdb);
 
     [[nodiscard]]
     value_t evaluate(StateRank state) const override;
@@ -81,4 +81,4 @@ public:
 
 } // namespace probfd::pdbs
 
-#endif // PROBFD_PDBS_EVALUATORS_H
+#endif

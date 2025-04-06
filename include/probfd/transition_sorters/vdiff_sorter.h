@@ -18,8 +18,8 @@ public:
 
 protected:
     void sort(
-        const State& state,
-        const std::vector<OperatorID>& action_choices,
+        const downward::State& state,
+        const std::vector<downward::OperatorID>& action_choices,
         std::vector<SuccessorDistribution>& successor_dist,
         algorithms::StateProperties& properties) override;
 };

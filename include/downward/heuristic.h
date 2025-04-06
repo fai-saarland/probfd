@@ -11,6 +11,7 @@
 #include <memory>
 #include <vector>
 
+namespace downward {
 class TaskProxy;
 
 class Heuristic : public Evaluator {
@@ -90,5 +91,6 @@ public:
     virtual bool is_estimate_cached(const State& state) const override;
     virtual int get_cached_estimate(const State& state) const override;
 };
+}
 
 #endif

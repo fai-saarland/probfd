@@ -44,7 +44,8 @@ MDPHeuristicSearch<false, true, State, Action>::get_algorithm_name() const
 
 template <bool Fret>
 std::string
-MDPHeuristicSearch<true, Fret, State, OperatorID>::get_algorithm_name() const
+MDPHeuristicSearch<true, Fret, downward::State, downward::OperatorID>::
+    get_algorithm_name() const
 {
     if constexpr (Fret) {
         std::ostringstream out;

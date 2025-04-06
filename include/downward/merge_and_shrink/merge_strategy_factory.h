@@ -6,9 +6,11 @@
 #include <memory>
 #include <string>
 
+namespace downward {
 class TaskProxy;
+}
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 class FactoredTransitionSystem;
 class MergeStrategy;
 

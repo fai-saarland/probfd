@@ -13,6 +13,8 @@
 
 using namespace std;
 
+using namespace downward;
+
 namespace probfd::causal_graph {
 
 static std::unordered_map<

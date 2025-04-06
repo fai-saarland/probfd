@@ -9,7 +9,7 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace utils;
+using namespace downward::utils;
 
 using namespace downward::cli::plugins;
 
@@ -23,12 +23,12 @@ using downward::cli::merge_and_shrink::
 
 using downward::cli::merge_and_shrink::handle_shrink_limit_options_defaults;
 
-using namespace merge_and_shrink;
+using namespace downward::merge_and_shrink;
 
 namespace {
 
 class MergeAndShrinkHeuristicFeature
-    : public TypedFeature<Evaluator, MergeAndShrinkHeuristic> {
+    : public TypedFeature<downward::Evaluator, MergeAndShrinkHeuristic> {
 public:
     MergeAndShrinkHeuristicFeature()
         : TypedFeature("merge_and_shrink")
@@ -38,7 +38,7 @@ public:
             "This heuristic implements the algorithm described in the "
             "following "
             "paper:" +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Silvan Sievers", "Martin Wehrle", "Malte Helmert"},
                 "Generalized Label Reduction for Merge-and-Shrink Heuristics",
                 "https://ai.dmi.unibas.ch/papers/sievers-et-al-aaai2014.pdf",
@@ -51,7 +51,7 @@ public:
             "For a more exhaustive description of merge-and-shrink, see the "
             "journal "
             "paper" +
-            utils::format_journal_reference(
+            format_journal_reference(
                 {"Silvan Sievers", "Malte Helmert"},
                 "Merge-and-Shrink: A Compositional Theory of Transformations "
                 "of Factored Transition Systems",
@@ -66,7 +66,7 @@ public:
             "with tie-breaking, and presents two new merge strategies "
             "(dyn-MIASM "
             "and SCC-DFP):" +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Silvan Sievers", "Martin Wehrle", "Malte Helmert"},
                 "An Analysis of Merge Strategies for Merge-and-Shrink "
                 "Heuristics",
@@ -80,7 +80,7 @@ public:
             "Details of the algorithms and the implementation are described in "
             "the "
             "paper" +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Silvan Sievers"},
                 "Merge-and-Shrink Heuristics for Classical Planning: Efficient "
                 "Implementation and Partial Abstractions",

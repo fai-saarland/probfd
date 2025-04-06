@@ -16,6 +16,7 @@
 #include <vector>
 
 using namespace probfd::pdbs;
+using namespace downward;
 
 namespace probfd::occupation_measures {
 

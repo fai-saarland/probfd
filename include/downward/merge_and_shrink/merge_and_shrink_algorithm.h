@@ -5,13 +5,15 @@
 
 #include <memory>
 
+namespace downward {
 class TaskProxy;
+}
 
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 }
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 class FactoredTransitionSystem;
 class LabelReduction;
 class MergeStrategyFactory;

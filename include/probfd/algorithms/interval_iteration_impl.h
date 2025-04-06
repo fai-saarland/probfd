@@ -34,7 +34,7 @@ Interval IntervalIteration<State, Action>::solve(
     ProgressReport,
     double max_time)
 {
-    utils::CountdownTimer timer(max_time);
+    downward::utils::CountdownTimer timer(max_time);
     std::unique_ptr sys = create_quotient(mdp, heuristic, state, timer);
     std::vector<StateID> dead, one;
     storage::PerStateStorage<Interval> value_store;
@@ -69,7 +69,7 @@ Interval IntervalIteration<State, Action>::solve(
     SetLike2& one_states,
     double max_time)
 {
-    utils::CountdownTimer timer(max_time);
+    downward::utils::CountdownTimer timer(max_time);
 
     auto sys = create_quotient(mdp, heuristic, state, timer);
 
@@ -85,8 +85,8 @@ Interval IntervalIteration<State, Action>::solve(
 
     for (StateID repr_id : *sys) {
         const auto value = value_store[repr_id];
-        const bool dead = utils::contains(dead_ends, repr_id);
-        const bool one = utils::contains(one_states, repr_id);
+        const bool dead = downward::utils::contains(dead_ends, repr_id);
+        const bool one = downward::utils::contains(one_states, repr_id);
 
         sys->for_each_member_state(
             repr_id,
@@ -105,7 +105,7 @@ auto IntervalIteration<State, Action>::create_quotient(
     MDPType& mdp,
     HeuristicType& heuristic,
     ParamType<State> state,
-    utils::CountdownTimer& timer) -> std::unique_ptr<QSystem>
+    downward::utils::CountdownTimer& timer) -> std::unique_ptr<QSystem>
 {
     auto sys = ec_decomposer_.build_quotient_system(
         mdp,
@@ -128,7 +128,7 @@ Interval IntervalIteration<State, Action>::mysolve(
     SetLike& dead_ends,
     SetLike2& one_states,
     QSystem& sys,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     QState qstate = sys.translate_state(state);
 
@@ -154,7 +154,9 @@ Interval IntervalIteration<State, Action>::mysolve(
             timer.get_remaining_time());
     }
 
-    assert(::utils::is_unique(dead_ends) && ::utils::is_unique(one_states));
+    assert(
+        downward::utils::is_unique(dead_ends) &&
+        downward::utils::is_unique(one_states));
 
     sys.build_quotient(dead_ends);
     sys.build_quotient(one_states);

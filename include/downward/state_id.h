@@ -3,6 +3,7 @@
 
 #include <iostream>
 
+namespace downward {
 // For documentation on classes relevant to storing and working with registered
 // states see the file state_registry.h.
 
@@ -42,6 +43,6 @@ public:
     // HACK
     int get_value() const { return value; }
 };
-
+}
 
 #endif

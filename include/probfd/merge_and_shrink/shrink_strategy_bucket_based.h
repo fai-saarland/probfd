@@ -7,7 +7,7 @@
 #include <tuple>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
@@ -35,7 +35,7 @@ namespace probfd::merge_and_shrink {
 class ShrinkStrategyBucketBased : public ShrinkStrategy {
 protected:
     using Bucket = std::vector<int>;
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
 
 public:
     explicit ShrinkStrategyBucketBased(int random_seed);
@@ -45,13 +45,13 @@ public:
         const TransitionSystem& ts,
         const Distances& distances,
         int target_size,
-        utils::LogProxy& log) const override;
+        downward::utils::LogProxy& log) const override;
 
 private:
     StateEquivalenceRelation compute_abstraction(
         const std::vector<Bucket>& buckets,
         int target_size,
-        utils::LogProxy& log) const;
+        downward::utils::LogProxy& log) const;
 
 protected:
     virtual std::vector<Bucket> partition_into_buckets(

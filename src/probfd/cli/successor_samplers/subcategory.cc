@@ -20,7 +20,8 @@
 
 #include <memory>
 
-using namespace utils;
+using namespace downward;
+using namespace downward::utils;
 
 using namespace probfd;
 using namespace probfd::cli;

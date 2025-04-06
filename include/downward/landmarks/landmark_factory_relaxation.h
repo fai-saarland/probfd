@@ -3,7 +3,7 @@
 
 #include "downward/landmarks/landmark_factory.h"
 
-namespace landmarks {
+namespace downward::landmarks {
 class Exploration;
 
 class LandmarkFactoryRelaxation : public LandmarkFactory {

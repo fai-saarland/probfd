@@ -35,7 +35,7 @@
 */
 
 
-namespace subscriber {
+namespace downward::subscriber {
 template<typename T>
 class SubscriberService;
 

@@ -3,7 +3,7 @@
 
 #include "downward/landmarks/landmark_factory_relaxation.h"
 
-namespace landmarks {
+namespace downward::landmarks {
 class LandmarkFactoryRpgExhaust : public LandmarkFactoryRelaxation {
     const bool use_unary_relaxation;
     virtual void generate_relaxed_landmarks(

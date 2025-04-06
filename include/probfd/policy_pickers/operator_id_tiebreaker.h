@@ -13,7 +13,10 @@
 namespace probfd::policy_pickers {
 
 class OperatorIdTiebreaker
-    : public StablePolicyPicker<State, OperatorID, OperatorIdTiebreaker> {
+    : public StablePolicyPicker<
+          downward::State,
+          downward::OperatorID,
+          OperatorIdTiebreaker> {
     const int ascending_;
 
 public:
@@ -21,8 +24,9 @@ public:
 
     int pick_index(
         FDRMDP& mdp,
-        std::optional<OperatorID> prev_policy,
-        const std::vector<TransitionTail<OperatorID>>& greedy_transitions,
+        std::optional<downward::OperatorID> prev_policy,
+        const std::vector<TransitionTail<downward::OperatorID>>&
+            greedy_transitions,
         algorithms::StateProperties& properties) override;
 };
 

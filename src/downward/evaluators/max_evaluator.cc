@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace max_evaluator {
+namespace downward::max_evaluator {
 MaxEvaluator::MaxEvaluator(
     const vector<shared_ptr<Evaluator>>& evals,
     const string& description,

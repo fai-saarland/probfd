@@ -10,6 +10,8 @@
 
 using namespace std;
 
+namespace downward {
+
 State::State(
     const PlanningTask& task,
     const StateRegistry& registry,
@@ -72,3 +74,5 @@ const causal_graph::CausalGraph& TaskProxy::get_causal_graph() const
     return causal_graph::get_causal_graph(
         static_cast<const AbstractTask*>(task));
 }
+
+} // namespace downward

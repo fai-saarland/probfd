@@ -7,12 +7,12 @@
 
 #include <memory>
 
-namespace lp {
+namespace downward::lp {
 class LPConstraint;
 struct LPVariable;
 } // namespace lp
 
-namespace operator_counting {
+namespace downward::operator_counting {
 using LPConstraints = named_vector::NamedVector<lp::LPConstraint>;
 using LPVariables = named_vector::NamedVector<lp::LPVariable>;
 

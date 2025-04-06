@@ -9,7 +9,7 @@ using namespace downward::cli;
 namespace {
 
 class OpenListFactoryCategoryPlugin
-    : public plugins::TypedCategoryPlugin<OpenListFactory> {
+    : public plugins::TypedCategoryPlugin<downward::OpenListFactory> {
 public:
     OpenListFactoryCategoryPlugin()
         : TypedCategoryPlugin("OpenList")

@@ -13,7 +13,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 ZeroOnePDBs::ZeroOnePDBs(
     const TaskProxy& task_proxy,
     const PatternCollection& patterns)

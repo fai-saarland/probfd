@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 struct MatchTree::Node {
     static const int LEAF_NODE = -1;
     Node();

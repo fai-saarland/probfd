@@ -2,6 +2,8 @@
 
 using namespace std;
 
+namespace downward {
+
 int BitsetMath::compute_num_blocks(size_t num_bits)
 {
     return (num_bits + bits_per_block - 1) / bits_per_block;
@@ -38,9 +40,7 @@ void BitsetView::reset(int index)
 
 void BitsetView::reset()
 {
-    for (int i = 0; i < data.size(); ++i) {
-        data[i] = BitsetMath::zeros;
-    }
+    for (int i = 0; i < data.size(); ++i) { data[i] = BitsetMath::zeros; }
 }
 
 bool BitsetView::test(int index) const
@@ -53,9 +53,7 @@ bool BitsetView::test(int index) const
 void BitsetView::intersect(const BitsetView& other)
 {
     assert(num_bits == other.num_bits);
-    for (int i = 0; i < data.size(); ++i) {
-        data[i] &= other.data[i];
-    }
+    for (int i = 0; i < data.size(); ++i) { data[i] &= other.data[i]; }
 }
 
 int BitsetView::size() const
@@ -72,9 +70,7 @@ static vector<BitsetMath::Block> pack_bit_vector(const vector<bool>& bits)
         ArrayView<BitsetMath::Block>(packed_bits.data(), num_blocks),
         num_bits);
     for (int i = 0; i < num_bits; ++i) {
-        if (bits[i]) {
-            bitset_view.set(i);
-        }
+        if (bits[i]) { bitset_view.set(i); }
     }
     return packed_bits;
 }
@@ -106,3 +102,5 @@ ConstBitsetView PerStateBitset::operator[](const State& state) const
 {
     return ConstBitsetView(data[state], num_bits_per_entry);
 }
+
+} // namespace downward

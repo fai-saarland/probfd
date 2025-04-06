@@ -15,7 +15,7 @@
 
 using namespace std;
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 ShrinkFH::ShrinkFH(HighLow shrink_f, HighLow shrink_h, int random_seed)
     : ShrinkBucketBased(random_seed)
     , f_start(shrink_f)

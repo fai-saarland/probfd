@@ -6,9 +6,11 @@
 #include <memory>
 #include <vector>
 
+namespace downward {
 class State;
+}
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
@@ -30,13 +32,13 @@ public:
 
     /// Returns the abstract state this state is mapped to, or PRUNED_STATE if
     /// the state is not in the domain of the mapping.
-    virtual int get_abstract_state(const State& state) const = 0;
+    virtual int get_abstract_state(const downward::State& state) const = 0;
 
     /* Return true iff the represented function is total, i.e., does not map
        to PRUNED_STATE. */
     virtual bool is_total() const = 0;
 
-    virtual void dump(utils::LogProxy& log) const = 0;
+    virtual void dump(downward::utils::LogProxy& log) const = 0;
 
 private:
     friend class FactoredMappingMerge;
@@ -49,9 +51,9 @@ class FactoredMappingAtomic : public FactoredMapping {
 public:
     FactoredMappingAtomic(int var_id, int domain_size);
 
-    int get_abstract_state(const State& state) const override;
+    int get_abstract_state(const downward::State& state) const override;
     bool is_total() const override;
-    void dump(utils::LogProxy& log) const override;
+    void dump(downward::utils::LogProxy& log) const override;
 };
 
 class FactoredMappingMerge : public FactoredMapping {
@@ -63,9 +65,9 @@ public:
         std::unique_ptr<FactoredMapping> left_child,
         std::unique_ptr<FactoredMapping> right_child);
 
-    int get_abstract_state(const State& state) const override;
+    int get_abstract_state(const downward::State& state) const override;
     bool is_total() const override;
-    void dump(utils::LogProxy& log) const override;
+    void dump(downward::utils::LogProxy& log) const override;
 
     std::pair<int, int> get_children_states(int state) const;
 };

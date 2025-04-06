@@ -9,10 +9,12 @@
 #include <utility>
 #include <vector>
 
+namespace downward {
 class PlanningTask;
 class State;
+}
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 class Node;
 
 /*

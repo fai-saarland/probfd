@@ -5,7 +5,7 @@
 
 using namespace std;
 
-namespace combining_evaluator {
+namespace downward::combining_evaluator {
 
 CombiningEvaluator::CombiningEvaluator(
     const vector<shared_ptr<Evaluator>>& evals,

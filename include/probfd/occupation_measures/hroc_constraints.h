@@ -10,12 +10,14 @@
 #include <vector>
 
 // Forward Declarations
+namespace downward {
 class State;
+}
 
-namespace lp {
+namespace downward::lp {
 class LPSolver;
 class LinearProgram;
-} // namespace lp
+} // namespace downward::lp
 
 namespace probfd {
 class ProbabilisticTask;
@@ -34,10 +36,14 @@ public:
     void initialize_constraints(
         const std::shared_ptr<ProbabilisticTask>& task,
         const std::shared_ptr<FDRCostFunction>& task_cost_function,
-        lp::LinearProgram& lp) final;
+        downward::lp::LinearProgram& lp) final;
 
-    void update_constraints(const State& state, lp::LPSolver& solver) final;
-    void reset_constraints(const State& state, lp::LPSolver& solver) final;
+    void update_constraints(
+        const downward::State& state,
+        downward::lp::LPSolver& solver) final;
+    void reset_constraints(
+        const downward::State& state,
+        downward::lp::LPSolver& solver) final;
 };
 
 class HROCGeneratorFactory : public ConstraintGeneratorFactory {

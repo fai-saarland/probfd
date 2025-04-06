@@ -2,7 +2,7 @@
 
 using namespace std;
 
-namespace const_evaluator {
+namespace downward::const_evaluator {
 ConstEvaluator::ConstEvaluator(
     int value,
     const string& description,

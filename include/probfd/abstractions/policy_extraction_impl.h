@@ -26,7 +26,7 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_optimal_projection_policy(
     std::span<const value_t> value_table,
     ParamType<State> initial_state,
     value_t greedy_epsilon,
-    utils::RandomNumberGenerator& rng,
+    downward::utils::RandomNumberGenerator& rng,
     bool wildcard)
 {
     using PredecessorEdge = std::pair<State, Action>;
@@ -143,7 +143,7 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_greedy_projection_policy(
     std::span<const value_t> value_table,
     ParamType<State> initial_state,
     value_t greedy_epsilon,
-    utils::RandomNumberGenerator& rng,
+    downward::utils::RandomNumberGenerator& rng,
     bool wildcard)
 {
     auto policy = std::make_unique<policies::VectorMultiPolicy<State, Action>>(

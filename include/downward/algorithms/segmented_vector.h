@@ -49,7 +49,7 @@
   states see the file state_registry.h.
 */
 
-namespace segmented_vector {
+namespace downward::segmented_vector {
 template <class Entry, class Allocator = std::allocator<Entry>>
 class SegmentedVector {
     using ATraits = std::allocator_traits<Allocator>;

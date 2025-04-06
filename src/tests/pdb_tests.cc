@@ -5,6 +5,7 @@
 #include "probfd/task_proxy.h"
 #include "tests/tasks/blocksworld.h"
 
+using namespace downward;
 using namespace probfd;
 using namespace probfd::pdbs;
 

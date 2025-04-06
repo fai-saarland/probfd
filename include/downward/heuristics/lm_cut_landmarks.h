@@ -10,7 +10,7 @@
 #include <memory>
 #include <vector>
 
-namespace lm_cut_heuristic {
+namespace downward::lm_cut_heuristic {
 // TODO: Fix duplication with the other relaxation heuristics.
 struct RelaxedProposition;
 

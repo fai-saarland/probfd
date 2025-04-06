@@ -9,11 +9,11 @@
 #include <unordered_map>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
-namespace potentials {
+namespace downward::potentials {
 using SamplesToFunctionsMap =
     utils::HashMap<State, std::unique_ptr<PotentialFunction>>;
 

@@ -6,7 +6,7 @@
 
 using namespace std;
 
-namespace stubborn_sets_atom_centric {
+namespace downward::stubborn_sets_atom_centric {
 StubbornSetsAtomCentric::StubbornSetsAtomCentric(
     bool use_sibling_shortcut,
     AtomSelectionStrategy atom_selection_strategy,

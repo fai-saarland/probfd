@@ -7,11 +7,11 @@
 
 #include <memory>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
-namespace pdbs {
+namespace downward::pdbs {
 /*
   This class is a wrapper for a pair of a pattern and the corresponding PDB.
   It always contains a pattern and can contain the computed PDB. If the latter

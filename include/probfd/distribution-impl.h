@@ -176,7 +176,7 @@ void Distribution<T>::normalize()
 }
 
 template <typename T>
-auto Distribution<T>::sample(utils::RandomNumberGenerator& rng)
+auto Distribution<T>::sample(downward::utils::RandomNumberGenerator& rng)
 {
     assert(!empty());
 
@@ -265,7 +265,7 @@ auto Distribution<T>::support(this auto&& self)
 }
 
 template <typename T>
-void swap(Distribution<T>& left, Distribution<T>& right)
+void swap(Distribution<T>& left, Distribution<T>& right) noexcept
 {
     std::swap(left.distribution_, right.distribution_);
 }

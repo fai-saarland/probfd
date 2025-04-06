@@ -5,7 +5,7 @@
 
 using namespace std;
 
-namespace utils {
+namespace downward::utils {
 static char* extra_memory_padding = nullptr;
 static bool has_gone_out_of_memory = false;
 

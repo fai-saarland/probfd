@@ -25,7 +25,8 @@
 #include <iterator>
 #include <utility>
 
-using namespace utils;
+using namespace downward;
+using namespace downward::utils;
 
 namespace probfd::pdbs {
 

@@ -6,6 +6,7 @@
 #include "probfd/task_proxy.h"
 
 using namespace std;
+using namespace downward;
 
 namespace probfd::merge_and_shrink {
 

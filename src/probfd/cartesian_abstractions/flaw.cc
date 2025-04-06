@@ -9,11 +9,12 @@
 #include <utility>
 
 using namespace std;
+using namespace downward;
 
 namespace probfd::cartesian_abstractions {
 
 Flaw::Flaw(
-    State&& concrete_state,
+    downward::State&& concrete_state,
     const AbstractState& current_abstract_state,
     CartesianSet&& desired_cartesian_set)
     : concrete_state(std::move(concrete_state))

@@ -10,6 +10,8 @@
 
 using namespace std;
 
+namespace downward {
+
 SearchNode::SearchNode(const State& state, SearchNodeInfo& info)
     : state(state)
     , info(info)
@@ -193,3 +195,5 @@ void SearchSpace::print_statistics() const
 {
     state_registry.print_statistics(log);
 }
+
+} // namespace downward

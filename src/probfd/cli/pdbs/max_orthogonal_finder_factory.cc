@@ -2,6 +2,7 @@
 
 #include "probfd/pdbs/max_orthogonal_finder_factory.h"
 
+using namespace downward;
 using namespace utils;
 
 using namespace probfd::pdbs;

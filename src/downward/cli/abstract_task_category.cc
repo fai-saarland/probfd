@@ -7,7 +7,8 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-class AbstractTaskCategoryPlugin : public TypedCategoryPlugin<AbstractTask> {
+class AbstractTaskCategoryPlugin
+    : public TypedCategoryPlugin<downward::AbstractTask> {
 public:
     AbstractTaskCategoryPlugin()
         : TypedCategoryPlugin("AbstractTask")

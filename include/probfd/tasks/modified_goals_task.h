@@ -8,17 +8,17 @@
 
 namespace probfd::extra_tasks {
 
-class ModifiedGoalsTask : public tasks::DelegatingTask {
-    const std::vector<FactPair> goals_;
+class ModifiedGoalsTask final : public tasks::DelegatingTask {
+    const std::vector<downward::FactPair> goals_;
 
 public:
     ModifiedGoalsTask(
         const std::shared_ptr<ProbabilisticTask>& parent,
-        std::vector<FactPair>&& goals);
+        std::vector<downward::FactPair>&& goals);
     ~ModifiedGoalsTask() override = default;
 
     int get_num_goals() const override;
-    FactPair get_goal_fact(int index) const override;
+    downward::FactPair get_goal_fact(int index) const override;
 };
 
 } // namespace probfd::extra_tasks

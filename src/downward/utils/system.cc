@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace utils {
+namespace downward::utils {
 const char* get_exit_code_message_reentrant(ExitCode exitcode)
 {
     switch (exitcode) {

@@ -7,8 +7,8 @@
 #include "downward/utils/logging.h"
 
 using namespace std;
-using namespace cg_heuristic;
-using namespace utils;
+using namespace downward::cg_heuristic;
+using namespace downward::utils;
 
 using namespace downward::cli::plugins;
 
@@ -17,7 +17,8 @@ using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
 
-class CGHeuristicFeature : public TypedFeature<Evaluator, CGHeuristic> {
+class CGHeuristicFeature
+    : public TypedFeature<downward::Evaluator, CGHeuristic> {
 public:
     CGHeuristicFeature()
         : TypedFeature("cg")

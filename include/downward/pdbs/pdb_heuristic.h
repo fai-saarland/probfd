@@ -5,7 +5,7 @@
 
 #include "downward/heuristic.h"
 
-namespace pdbs {
+namespace downward::pdbs {
 class PatternDatabase;
 
 // Implements a heuristic for a single PDB.

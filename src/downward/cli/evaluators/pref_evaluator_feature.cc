@@ -7,8 +7,8 @@
 #include "downward/utils/logging.h"
 
 using namespace std;
-using namespace pref_evaluator;
-using namespace utils;
+using namespace downward::pref_evaluator;
+using namespace downward::utils;
 
 using namespace downward::cli::plugins;
 
@@ -17,7 +17,8 @@ using downward::cli::get_evaluator_arguments_from_options;
 
 namespace {
 
-class PrefEvaluatorFeature : public TypedFeature<Evaluator, PrefEvaluator> {
+class PrefEvaluatorFeature
+    : public TypedFeature<downward::Evaluator, PrefEvaluator> {
 public:
     PrefEvaluatorFeature()
         : TypedFeature("pref")

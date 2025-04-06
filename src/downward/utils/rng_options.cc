@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace utils {
+namespace downward::utils {
 
 shared_ptr<RandomNumberGenerator> get_rng(int seed)
 {

@@ -6,11 +6,13 @@
 #include <memory>
 #include <string>
 
+namespace downward {
 class AbstractTask;
 
 enum class LPSolverType;
+}
 
-namespace utils {
+namespace downward::utils {
 enum class Verbosity;
 }
 

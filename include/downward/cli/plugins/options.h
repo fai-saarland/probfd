@@ -131,8 +131,8 @@ public:
 
 template <typename T>
 void verify_list_non_empty(
-    const ::utils::Context& context,
-    const plugins::Options& opts,
+    const downward::utils::Context& context,
+    const Options& opts,
     const std::string& key)
 {
     std::vector<T> list = opts.get_list<T>(key);

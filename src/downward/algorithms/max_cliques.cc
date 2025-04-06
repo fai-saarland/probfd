@@ -10,7 +10,7 @@
 
 using namespace std;
 
-namespace max_cliques {
+namespace downward::max_cliques {
 class MaxCliqueComputer {
     const vector<vector<int>>& graph;
     vector<vector<int>>& max_cliques;

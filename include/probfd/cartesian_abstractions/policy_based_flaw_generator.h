@@ -13,7 +13,7 @@
 #include <optional>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 class LogProxy;
 } // namespace utils
@@ -39,22 +39,22 @@ class PolicyBasedFlawGenerator : public FlawGenerator {
     std::unique_ptr<PolicyGenerator> policy_generator_;
     std::unique_ptr<PolicyFlawFinder> policy_flaw_finder_;
 
-    utils::Timer find_policy_timer_ = utils::Timer(true);
-    utils::Timer find_flaw_timer_ = utils::Timer(true);
+    downward::utils::Timer find_policy_timer_ = downward::utils::Timer(false);
+    downward::utils::Timer find_flaw_timer_ = downward::utils::Timer(false);
 
     std::unique_ptr<Solution> find_solution(
         CartesianAbstraction& abstraction,
         const AbstractState* init,
         CartesianHeuristic& heuristic,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     std::optional<Flaw> find_flaw(
         const ProbabilisticTaskProxy& task_proxy,
         const std::vector<int>& domain_sizes,
         CartesianAbstraction& abstraction,
         Solution& solution,
-        utils::LogProxy& log,
-        utils::CountdownTimer& timer);
+        downward::utils::LogProxy& log,
+        downward::utils::CountdownTimer& timer);
 
 public:
     PolicyBasedFlawGenerator(
@@ -69,12 +69,12 @@ public:
         CartesianAbstraction& abstraction,
         const AbstractState* init_id,
         CartesianHeuristic& heuristic,
-        utils::LogProxy& log,
-        utils::CountdownTimer& timer) override;
+        downward::utils::LogProxy& log,
+        downward::utils::CountdownTimer& timer) override;
 
     void notify_split() override;
 
-    void print_statistics(utils::LogProxy& log) override;
+    void print_statistics(downward::utils::LogProxy& log) override;
 };
 
 class ILAOFlawGeneratorFactory : public FlawGeneratorFactory {

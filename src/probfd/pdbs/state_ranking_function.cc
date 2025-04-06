@@ -4,6 +4,8 @@
 #include <sstream>
 #include <utility>
 
+using namespace downward;
+
 namespace probfd::pdbs {
 
 StateRankingFunction::StateRankingFunction(

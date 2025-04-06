@@ -3,7 +3,7 @@
 
 #include <tuple>
 
-namespace lp {
+namespace downward::lp {
 enum class LPSolverType;
 }
 
@@ -16,7 +16,7 @@ namespace downward::cli::lp {
 
 void add_lp_solver_option_to_feature(plugins::Feature& feature);
 
-std::tuple<::lp::LPSolverType>
+std::tuple<downward::lp::LPSolverType>
 get_lp_solver_arguments_from_options(const plugins::Options& opts);
 
 } // namespace downward::cli::lp

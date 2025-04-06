@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace stubborn_sets_simple {
+namespace downward::stubborn_sets_simple {
 StubbornSetsSimple::StubbornSetsSimple(utils::Verbosity verbosity)
     : StubbornSetsActionCentric(verbosity)
 {

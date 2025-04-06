@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 PatternCollectionGeneratorDisjointCegar::
     PatternCollectionGeneratorDisjointCegar(
         int max_pdb_size,

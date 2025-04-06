@@ -28,6 +28,7 @@
 #include <fstream>
 #include <numeric>
 
+using namespace downward;
 using namespace probfd;
 using namespace probfd::merge_and_shrink;
 

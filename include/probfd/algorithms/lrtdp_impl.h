@@ -43,7 +43,7 @@ Interval LRTDP<State, Action, UseInterval>::do_solve(
     ProgressReport& progress,
     double max_time)
 {
-    utils::CountdownTimer timer(max_time);
+    downward::utils::CountdownTimer timer(max_time);
 
     const StateID state_id = mdp.get_state_id(state);
     const StateInfo& state_info = this->state_infos_[state_id];
@@ -62,7 +62,7 @@ Interval LRTDP<State, Action, UseInterval>::do_solve(
     bool terminate;
     do {
         terminate = trial(mdp, heuristic, state_id, timer);
-        this->statistics_.trials++;
+        ++this->statistics_.trials;
         progress.print();
     } while (!terminate);
 
@@ -82,7 +82,7 @@ bool LRTDP<State, Action, UseInterval>::trial(
     MDPType& mdp,
     HeuristicType& heuristic,
     StateID initial_state,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     assert(!this->state_infos_[initial_state].is_solved());
 
@@ -119,7 +119,7 @@ bool LRTDP<State, Action, UseInterval>::trial(
             this->generate_non_tip_transitions(mdp, state, transitions_);
         }
 
-        this->statistics_.trial_bellman_backups++;
+        ++this->statistics_.trial_bellman_backups;
 
         const auto value = this->compute_bellman_and_greedy(
             state,
@@ -191,7 +191,7 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
     MDPType& mdp,
     HeuristicType& heuristic,
     StateID init_state_id,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     assert(!current_trial_.empty() && policy_queue_.empty());
 
@@ -233,7 +233,7 @@ bool LRTDP<State, Action, UseInterval>::check_and_solve(
             this->generate_non_tip_transitions(mdp, state, transitions_);
         }
 
-        this->statistics_.check_and_solve_bellman_backups++;
+        ++this->statistics_.check_and_solve_bellman_backups;
 
         auto value = this->compute_bellman_and_greedy(
             state,

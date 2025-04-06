@@ -10,8 +10,8 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace utils;
-using namespace merge_and_shrink;
+using namespace downward::utils;
+using namespace downward::merge_and_shrink;
 
 using namespace downward::cli::plugins;
 
@@ -30,7 +30,7 @@ public:
         document_synopsis(
             "This class implements the exact generalized label reduction "
             "described in the following paper:" +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Silvan Sievers", "Martin Wehrle", "Malte Helmert"},
                 "Generalized Label Reduction for Merge-and-Shrink Heuristics",
                 "https://ai.dmi.unibas.ch/papers/sievers-et-al-aaai2014.pdf",

@@ -15,7 +15,9 @@
 #include <vector>
 
 using namespace std;
-using namespace potentials;
+using namespace downward;
+using namespace downward::utils;
+using namespace downward::potentials;
 
 using namespace downward::cli::potentials;
 using namespace downward::cli::plugins;
@@ -38,7 +40,7 @@ void filter_dead_ends(PotentialOptimizer& optimizer, vector<State>& samples)
 void optimize_for_samples(
     PotentialOptimizer& optimizer,
     int num_samples,
-    utils::RandomNumberGenerator& rng)
+    RandomNumberGenerator& rng)
 {
     vector<State> samples =
         sample_without_dead_end_detection(optimizer, num_samples, rng);
@@ -56,13 +58,13 @@ vector<unique_ptr<PotentialFunction>> create_sample_based_potential_functions(
     int num_samples,
     int num_heuristics,
     double max_potential,
-    lp::LPSolverType lpsolver,
-    const shared_ptr<AbstractTask>& transform,
+    downward::lp::LPSolverType lpsolver,
+    const shared_ptr<downward::AbstractTask>& transform,
     int random_seed)
 {
     vector<unique_ptr<PotentialFunction>> functions;
     PotentialOptimizer optimizer(transform, lpsolver, max_potential);
-    shared_ptr<utils::RandomNumberGenerator> rng(::utils::get_rng(random_seed));
+    shared_ptr<RandomNumberGenerator> rng(get_rng(random_seed));
     for (int i = 0; i < num_heuristics; ++i) {
         optimize_for_samples(optimizer, num_samples, *rng);
         functions.push_back(optimizer.get_potential_function());
@@ -71,7 +73,7 @@ vector<unique_ptr<PotentialFunction>> create_sample_based_potential_functions(
 }
 
 class SampleBasedPotentialMaxHeuristicFeature
-    : public TypedFeature<Evaluator, PotentialMaxHeuristic> {
+    : public TypedFeature<downward::Evaluator, PotentialMaxHeuristic> {
 public:
     SampleBasedPotentialMaxHeuristicFeature()
         : TypedFeature("sample_based_potentials")
@@ -99,20 +101,20 @@ public:
     }
 
     virtual shared_ptr<PotentialMaxHeuristic>
-    create_component(const Options& opts, const utils::Context&) const override
+    create_component(const Options& opts, const Context&) const override
     {
         return make_shared<PotentialMaxHeuristic>(
             create_sample_based_potential_functions(
                 opts.get<int>("num_samples"),
                 opts.get<int>("num_heuristics"),
                 opts.get<double>("max_potential"),
-                opts.get<lp::LPSolverType>("lpsolver"),
-                opts.get<shared_ptr<AbstractTask>>("transform"),
+                opts.get<downward::lp::LPSolverType>("lpsolver"),
+                opts.get<shared_ptr<downward::AbstractTask>>("transform"),
                 opts.get<int>("random_seed")),
-            opts.get<shared_ptr<AbstractTask>>("transform"),
+            opts.get<shared_ptr<downward::AbstractTask>>("transform"),
             opts.get<bool>("cache_estimates"),
             opts.get<string>("description"),
-            opts.get<utils::Verbosity>("verbosity"));
+            opts.get<Verbosity>("verbosity"));
     }
 };
 

@@ -17,7 +17,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 int compute_pdb_size(const TaskProxy& task_proxy, const Pattern& pattern)
 {
     int size = 1;

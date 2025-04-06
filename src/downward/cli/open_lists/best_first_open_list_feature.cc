@@ -7,8 +7,8 @@
 #include "downward/utils/memory.h"
 
 using namespace std;
-using namespace standard_scalar_open_list;
-using namespace utils;
+using namespace downward::standard_scalar_open_list;
+using namespace downward::utils;
 
 using namespace downward::cli::plugins;
 
@@ -18,7 +18,7 @@ using downward::cli::get_open_list_arguments_from_options;
 namespace {
 
 class BestFirstOpenListFeature
-    : public TypedFeature<OpenListFactory, BestFirstOpenListFactory> {
+    : public TypedFeature<downward::OpenListFactory, BestFirstOpenListFactory> {
 public:
     BestFirstOpenListFeature()
         : TypedFeature("single")
@@ -27,7 +27,7 @@ public:
         document_synopsis(
             "Open list that uses a single evaluator and FIFO tiebreaking.");
 
-        add_option<shared_ptr<Evaluator>>("eval", "evaluator");
+        add_option<shared_ptr<downward::Evaluator>>("eval", "evaluator");
         add_open_list_options_to_feature(*this);
 
         document_note(
@@ -46,7 +46,7 @@ public:
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<BestFirstOpenListFactory>(
-            opts.get<shared_ptr<Evaluator>>("eval"),
+            opts.get<shared_ptr<downward::Evaluator>>("eval"),
             get_open_list_arguments_from_options(opts));
     }
 };

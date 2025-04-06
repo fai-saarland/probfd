@@ -9,7 +9,7 @@
 
 using namespace std;
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 void ShrinkStrategy::dump_options(utils::LogProxy& log) const
 {
     if (log.is_at_least_normal()) {

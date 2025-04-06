@@ -17,7 +17,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 /*
   This is used as a "collection entry" in the CEGAR algorithm. It stores
   the PDB (and with that, the pattern) and an optimal plan (in the wildcard

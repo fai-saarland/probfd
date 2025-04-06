@@ -5,9 +5,11 @@
 
 #include <memory>
 
+namespace downward {
 class State;
+}
 
-namespace pdbs {
+namespace downward::pdbs {
 class CanonicalPDBs {
     std::shared_ptr<PDBCollection> pdbs;
     std::shared_ptr<std::vector<PatternClique>> pattern_cliques;

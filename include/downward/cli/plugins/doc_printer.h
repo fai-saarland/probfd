@@ -1,7 +1,7 @@
 #ifndef PLUGINS_DOC_PRINTER_H
 #define PLUGINS_DOC_PRINTER_H
 
-#include "registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include <iostream>
 #include <map>

@@ -145,7 +145,7 @@ Interval AcyclicValueIteration<State, Action>::solve(
     double max_time,
     MapPolicy* policy)
 {
-    utils::CountdownTimer timer(max_time);
+    downward::utils::CountdownTimer timer(max_time);
 
     const StateID initial_state_id = mdp.get_state_id(initial_state);
     StateInfo& iinfo = state_infos_[initial_state_id];
@@ -184,8 +184,10 @@ bool AcyclicValueIteration<State, Action>::push_successor(
     MDPType& mdp,
     MapPolicy* policy,
     DFSExplorationState& e,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
+    using namespace downward::utils;
+
     do {
         timer.throw_if_expired();
 
@@ -194,7 +196,7 @@ bool AcyclicValueIteration<State, Action>::push_successor(
 
         if (succ_info.status == StateInfo::ON_STACK) {
             std::cerr << "State space is not acyclic!" << std::endl;
-            utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+            exit_with(ExitCode::SEARCH_CRITICAL_ERROR);
         }
 
         if (succ_info.status == StateInfo::NEW) {

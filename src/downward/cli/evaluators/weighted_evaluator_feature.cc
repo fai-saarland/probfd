@@ -7,7 +7,7 @@
 #include "downward/utils/logging.h"
 
 using namespace std;
-using namespace weighted_evaluator;
+using namespace downward::weighted_evaluator;
 
 using namespace downward::cli::plugins;
 
@@ -17,7 +17,7 @@ using downward::cli::get_evaluator_arguments_from_options;
 namespace {
 
 class WeightedEvaluatorFeature
-    : public TypedFeature<Evaluator, WeightedEvaluator> {
+    : public TypedFeature<downward::Evaluator, WeightedEvaluator> {
 public:
     WeightedEvaluatorFeature()
         : TypedFeature("weight")
@@ -27,16 +27,17 @@ public:
         document_synopsis(
             "Multiplies the value of the evaluator with the given weight.");
 
-        add_option<shared_ptr<Evaluator>>("eval", "evaluator");
+        add_option<shared_ptr<downward::Evaluator>>("eval", "evaluator");
         add_option<int>("weight", "weight");
         add_evaluator_options_to_feature(*this, "weight");
     }
 
     virtual shared_ptr<WeightedEvaluator>
-    create_component(const Options& opts, const utils::Context&) const override
+    create_component(const Options& opts, const downward::utils::Context&)
+        const override
     {
         return make_shared_from_arg_tuples<WeightedEvaluator>(
-            opts.get<shared_ptr<Evaluator>>("eval"),
+            opts.get<shared_ptr<downward::Evaluator>>("eval"),
             opts.get<int>("weight"),
             get_evaluator_arguments_from_options(opts));
     }

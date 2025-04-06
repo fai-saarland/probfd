@@ -3,7 +3,7 @@
 
 #include "downward/landmarks/landmark_factory.h"
 
-namespace landmarks {
+namespace downward::landmarks {
 using FluentSet = std::vector<FactPair>;
 
 std::ostream& operator<<(std::ostream& os, const FluentSet& fs);

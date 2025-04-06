@@ -4,7 +4,7 @@
 #include "downward/utils/exceptions.h"
 #include "downward/utils/timer.h"
 
-namespace utils {
+namespace downward::utils {
 class CountdownTimer {
     Timer timer;
     double max_time;

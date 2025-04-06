@@ -10,7 +10,7 @@
 #include <string_view>
 #include <vector>
 
-namespace lp {
+namespace downward::lp {
 enum class LPSolverType { CPLEX, SOPLEX };
 
 enum class LPObjectiveSense { MAXIMIZE, MINIMIZE };

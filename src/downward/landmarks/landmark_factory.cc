@@ -15,7 +15,7 @@
 
 using namespace std;
 
-namespace landmarks {
+namespace downward::landmarks {
 LandmarkFactory::LandmarkFactory(utils::Verbosity verbosity)
     : log(utils::get_log_for_verbosity(verbosity))
     , lm_graph(nullptr)

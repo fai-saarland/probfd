@@ -6,7 +6,7 @@
 #include <iosfwd>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
@@ -25,7 +25,7 @@ Pattern extended_pattern(const Pattern& pattern, int add_var);
 
 std::vector<int> get_goals_in_random_order(
     ProbabilisticTaskProxy task_proxy,
-    utils::RandomNumberGenerator& rng);
+    downward::utils::RandomNumberGenerator& rng);
 
 /**
  * @brief Dump the PDB's projection as a dot graph to a specified path with

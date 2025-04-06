@@ -5,7 +5,7 @@
 #include "downward/cli/utils/rng_options.h"
 
 using namespace std;
-using namespace merge_and_shrink;
+using namespace downward::merge_and_shrink;
 
 using namespace downward::cli::utils;
 

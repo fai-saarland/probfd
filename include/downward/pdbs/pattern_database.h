@@ -8,12 +8,12 @@
 #include <utility>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
 } // namespace utils
 
-namespace pdbs {
+namespace downward::pdbs {
 class AbstractOperator {
     /*
       This class represents an abstract operator how it is needed for

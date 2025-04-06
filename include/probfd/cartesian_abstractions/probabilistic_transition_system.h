@@ -11,9 +11,11 @@
 #include <vector>
 
 // Forward Declarations
+namespace downward {
 struct FactPair;
+}
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
@@ -29,8 +31,9 @@ namespace probfd::cartesian_abstractions {
 
 class ProbabilisticTransitionSystem {
     // Operator information
-    const std::vector<std::vector<FactPair>> preconditions_by_operator_;
-    const std::vector<std::vector<std::vector<FactPair>>>
+    const std::vector<std::vector<downward::FactPair>>
+        preconditions_by_operator_;
+    const std::vector<std::vector<std::vector<downward::FactPair>>>
         postconditions_by_operator_and_outcome_;
     const std::vector<std::vector<value_t>>
         probabilities_by_operator_and_outcome_;
@@ -121,7 +124,7 @@ public:
     [[nodiscard]]
     int get_num_loops() const;
 
-    void print_statistics(utils::LogProxy& log) const;
+    void print_statistics(downward::utils::LogProxy& log) const;
 };
 
 } // namespace probfd::cartesian_abstractions

@@ -11,6 +11,7 @@
 #include "probfd/merge_and_shrink/factored_transition_system.h"
 
 using namespace std;
+using namespace downward;
 
 namespace probfd::merge_and_shrink {
 

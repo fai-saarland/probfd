@@ -5,12 +5,12 @@
 #include <string_view>
 #include <vector>
 
-namespace named_vector {
+namespace downward::named_vector {
 template <typename T>
 class NamedVector;
 }
 
-namespace lp {
+namespace downward::lp {
 class LinearProgram;
 struct LPVariable;
 class LPConstraint;

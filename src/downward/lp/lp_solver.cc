@@ -11,7 +11,7 @@
 
 using namespace std;
 
-namespace lp {
+namespace downward::lp {
 
 LPConstraint::LPConstraint(double lower_bound, double upper_bound)
     : lower_bound(lower_bound)

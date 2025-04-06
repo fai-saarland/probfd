@@ -8,11 +8,11 @@
 #include <cstddef>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
-namespace pdbs {
+namespace downward::pdbs {
 /*
   Successor Generator for abstract operators.
 

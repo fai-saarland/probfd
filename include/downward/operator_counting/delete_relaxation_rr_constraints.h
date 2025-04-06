@@ -9,12 +9,12 @@
 #include <memory>
 #include <vector>
 
-namespace lp {
+namespace downward::lp {
 class LPConstraint;
 struct LPVariable;
 } // namespace lp
 
-namespace operator_counting {
+namespace downward::operator_counting {
 class VEGraph;
 using LPConstraints = named_vector::NamedVector<lp::LPConstraint>;
 using LPVariables = named_vector::NamedVector<lp::LPVariable>;

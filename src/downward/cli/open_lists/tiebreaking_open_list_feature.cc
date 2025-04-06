@@ -7,7 +7,8 @@
 #include "downward/utils/memory.h"
 
 using namespace std;
-using namespace tiebreaking_open_list;
+using namespace downward::utils;
+using namespace downward::tiebreaking_open_list;
 
 using namespace downward::cli::plugins;
 
@@ -17,7 +18,7 @@ using downward::cli::get_open_list_arguments_from_options;
 namespace {
 
 class TieBreakingOpenListFeature
-    : public TypedFeature<OpenListFactory, TieBreakingOpenListFactory> {
+    : public TypedFeature<downward::OpenListFactory, TieBreakingOpenListFactory> {
 public:
     TieBreakingOpenListFeature()
         : TypedFeature("tiebreaking")
@@ -25,7 +26,7 @@ public:
         document_title("Tie-breaking open list");
         document_synopsis("");
 
-        add_list_option<shared_ptr<Evaluator>>("evals", "evaluators");
+        add_list_option<shared_ptr<downward::Evaluator>>("evals", "evaluators");
         add_option<bool>(
             "unsafe_pruning",
             "allow unsafe pruning when the main evaluator regards a state a "
@@ -35,12 +36,12 @@ public:
     }
 
     virtual shared_ptr<TieBreakingOpenListFactory>
-    create_component(const Options& opts, const utils::Context& context)
+    create_component(const Options& opts, const Context& context)
         const override
     {
-        verify_list_non_empty<shared_ptr<Evaluator>>(context, opts, "evals");
+        verify_list_non_empty<shared_ptr<downward::Evaluator>>(context, opts, "evals");
         return make_shared_from_arg_tuples<TieBreakingOpenListFactory>(
-            opts.get_list<shared_ptr<Evaluator>>("evals"),
+            opts.get_list<shared_ptr<downward::Evaluator>>("evals"),
             opts.get<bool>("unsafe_pruning"),
             get_open_list_arguments_from_options(opts));
     }

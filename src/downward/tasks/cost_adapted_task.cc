@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace tasks {
+namespace downward::tasks {
 CostAdaptedTask::CostAdaptedTask(
     const shared_ptr<AbstractTask>& parent,
     OperatorCost cost_type)

@@ -4,13 +4,15 @@
 #include <memory>
 #include <vector>
 
+namespace downward {
 class State;
+}
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 class Distances;
 class MergeAndShrinkRepresentation {
 protected:

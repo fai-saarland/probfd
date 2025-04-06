@@ -9,7 +9,7 @@ using namespace downward::cli::plugins;
 namespace {
 
 class SearchAlgorithmFactoryCategoryPlugin
-    : public TypedCategoryPlugin<SearchAlgorithmFactory> {
+    : public TypedCategoryPlugin<downward::SearchAlgorithmFactory> {
 public:
     SearchAlgorithmFactoryCategoryPlugin()
         : TypedCategoryPlugin("SearchAlgorithmFactory")

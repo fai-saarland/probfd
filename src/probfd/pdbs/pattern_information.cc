@@ -7,6 +7,7 @@
 #include <vector>
 
 using namespace std;
+using namespace downward;
 
 namespace probfd::pdbs {
 

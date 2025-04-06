@@ -6,7 +6,7 @@
 #include <deque>
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 }
 
@@ -129,7 +129,7 @@ class LRTDP
           internal::PerStateInformation<Action, UseInterval>> {
     using Base = typename LRTDP::HeuristicSearchAlgorithm;
 
-    using AlgorithmValueType = Base::AlgorithmValueType;
+    using AlgorithmValueType = typename Base::AlgorithmValueType;
 
 public:
     using StateInfo = typename Base::StateInfo;
@@ -183,13 +183,13 @@ private:
         MDPType& mdp,
         HeuristicType& heuristic,
         StateID initial_state,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     bool check_and_solve(
         MDPType& mdp,
         HeuristicType& heuristic,
         StateID init_state_id,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 };
 
 } // namespace probfd::algorithms::lrtdp

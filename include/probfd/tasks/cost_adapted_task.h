@@ -24,13 +24,13 @@ namespace probfd::tasks {
   cost, which is 0 by default.
 */
 class CostAdaptedTask : public DelegatingTask {
-    const OperatorCost cost_type_;
+    const downward::OperatorCost cost_type_;
     const bool parent_is_unit_cost_;
 
 public:
     CostAdaptedTask(
         const std::shared_ptr<ProbabilisticTask>& parent,
-        OperatorCost cost_type);
+        downward::OperatorCost cost_type);
 
     value_t get_operator_cost(int index) const override;
 };

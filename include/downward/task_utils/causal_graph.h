@@ -51,12 +51,14 @@
 
 #include <vector>
 
+namespace downward {
 typedef std::vector<std::vector<int>> IntRelation;
 
 class AbstractTask;
 class TaskProxy;
+}
 
-namespace causal_graph {
+namespace downward::causal_graph {
 
 class CausalGraph {
     IntRelation pre_to_eff;

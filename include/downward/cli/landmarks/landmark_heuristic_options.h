@@ -5,9 +5,11 @@
 #include <string>
 #include <tuple>
 
+namespace downward {
 class AbstractTask;
+}
 
-namespace utils {
+namespace downward::utils {
 enum class Verbosity;
 }
 
@@ -16,7 +18,7 @@ class Feature;
 class Options;
 } // namespace downward::cli::plugins
 
-namespace landmarks {
+namespace downward::landmarks {
 class LandmarkFactory;
 }
 
@@ -27,7 +29,7 @@ extern void add_landmark_heuristic_options_to_feature(
     const std::string& description);
 
 extern std::tuple<
-    std::shared_ptr<::landmarks::LandmarkFactory>,
+    std::shared_ptr<downward::landmarks::LandmarkFactory>,
     bool,
     bool,
     bool,

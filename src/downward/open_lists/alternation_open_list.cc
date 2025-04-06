@@ -10,9 +10,9 @@
 #include <vector>
 
 using namespace std;
-using utils::ExitCode;
+using downward::utils::ExitCode;
 
-namespace alternation_open_list {
+namespace downward::alternation_open_list {
 template <class Entry>
 class AlternationOpenList : public OpenList<Entry> {
     vector<unique_ptr<OpenList<Entry>>> open_lists;

@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace ff_heuristic {
+namespace downward::ff_heuristic {
 // construction and destruction
 FFHeuristic::FFHeuristic(
     const shared_ptr<AbstractTask>& transform,

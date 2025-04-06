@@ -11,7 +11,7 @@
 
 using namespace std;
 
-namespace lp {
+namespace downward::lp {
 [[noreturn]]
 static void handle_cplex_error(CPXENVptr env, int error_code)
 {

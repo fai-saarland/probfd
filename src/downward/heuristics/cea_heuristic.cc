@@ -10,7 +10,7 @@
 #include <vector>
 
 using namespace std;
-using namespace domain_transition_graph;
+using namespace downward::domain_transition_graph;
 
 /* Implementation notes:
 
@@ -45,7 +45,7 @@ using namespace domain_transition_graph;
      transitions. So it's not clear if this would really save much, which
      is why we do not currently do it.
  */
-namespace cea_heuristic {
+namespace downward::cea_heuristic {
 struct LocalTransition {
     LocalProblemNode* source;
     LocalProblemNode* target;

@@ -10,6 +10,9 @@
 #include "downward/utils/rng.h"
 
 using namespace std;
+
+using namespace downward;
+
 using namespace probfd::successor_generator;
 
 namespace probfd::sampling {

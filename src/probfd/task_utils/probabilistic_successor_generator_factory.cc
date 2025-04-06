@@ -13,6 +13,8 @@
 
 using namespace std;
 
+using namespace downward;
+
 /*
   The key ideas of the construction algorithm are as follows.
 

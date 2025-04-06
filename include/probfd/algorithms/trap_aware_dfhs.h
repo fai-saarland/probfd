@@ -12,7 +12,7 @@
 #include <vector>
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 }
 
@@ -30,7 +30,7 @@ enum class BacktrackingUpdateType { DISABLED, ON_DEMAND, SINGLE };
 namespace internal {
 
 struct Statistics {
-    utils::Timer trap_timer = utils::Timer(true);
+    downward::utils::Timer trap_timer = downward::utils::Timer(false);
     unsigned long long iterations = 0;
     unsigned long long traps = 0;
     unsigned long long reexpansions = 0;
@@ -202,14 +202,14 @@ private:
         QHeuristic& heuristic,
         StateID state,
         ProgressReport& progress,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     void dfhs_label_driver(
         QuotientSystem& quotient,
         QHeuristic& heuristic,
         StateID state,
         ProgressReport& progress,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     bool advance(
         QuotientSystem& quotient,
@@ -220,7 +220,7 @@ private:
         QuotientSystem& quotient,
         DFSExplorationState& einfo,
         StateInfo& sinfo,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     bool initialize(
         QuotientSystem& quotient,
@@ -234,17 +234,17 @@ private:
         QuotientSystem& quotient,
         QHeuristic& heuristic,
         StateID start_state,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     bool value_iteration(
         QuotientSystem& quotient,
         const std::ranges::input_range auto& range,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     std::pair<bool, bool> vi_step(
         QuotientSystem& quotient,
         const std::ranges::input_range auto& range,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 };
 
 template <typename State, typename Action, bool UseInterval>

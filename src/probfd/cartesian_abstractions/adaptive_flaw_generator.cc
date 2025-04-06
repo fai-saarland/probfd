@@ -5,6 +5,9 @@
 #include <ostream>
 #include <utility>
 
+using namespace downward;
+using namespace downward::utils;
+
 namespace probfd {
 class ProbabilisticTaskProxy;
 
@@ -33,8 +36,8 @@ std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
     CartesianAbstraction& abstraction,
     const AbstractState* init_id,
     CartesianHeuristic& heuristic,
-    utils::LogProxy& log,
-    utils::CountdownTimer& timer)
+    LogProxy& log,
+    CountdownTimer& timer)
 {
     while (current_generator_ != generators_.size()) {
         auto& generator = generators_[current_generator_];
@@ -62,7 +65,7 @@ void AdaptiveFlawGenerator::notify_split()
     }
 }
 
-void AdaptiveFlawGenerator::print_statistics(utils::LogProxy& log)
+void AdaptiveFlawGenerator::print_statistics(LogProxy& log)
 {
     for (auto& gen : generators_) {
         gen->print_statistics(log);

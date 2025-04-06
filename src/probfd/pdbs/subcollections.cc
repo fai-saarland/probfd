@@ -11,6 +11,8 @@
 #include <unordered_set>
 #include <utility>
 
+using namespace downward;
+
 namespace probfd::pdbs {
 
 namespace {
@@ -33,7 +35,7 @@ public:
                  outcome.get_effects()) {
                 const auto& [var, val] = effect.get_fact().get_pair();
 
-                if (utils::contains(pattern, var)) {
+                if (std::ranges::contains(pattern, var)) {
                     projected_effects.emplace_back(var, val);
                 }
             }

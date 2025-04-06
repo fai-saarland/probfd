@@ -25,6 +25,9 @@
 #include <limits>
 #include <optional>
 
+using namespace downward;
+using namespace downward::utils;
+
 namespace probfd::solvers {
 
 namespace {
@@ -80,7 +83,7 @@ MDPSolver::MDPSolver(
     std::shared_ptr<StatisticalMDPAlgorithmFactory> algorithm_factory,
     std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
     std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-    utils::Verbosity verbosity,
+    Verbosity verbosity,
     std::string policy_filename,
     bool print_fact_names,
     std::optional<value_t> report_epsilon,
@@ -88,7 +91,7 @@ MDPSolver::MDPSolver(
     : algorithm_factory_(std::move(algorithm_factory))
     , task_state_space_factory_(std::move(task_state_space_factory))
     , heuristic_factory_(std::move(heuristic_factory))
-    , log_(utils::get_log_for_verbosity(verbosity))
+    , log_(get_log_for_verbosity(verbosity))
     , policy_filename(std::move(policy_filename))
     , print_fact_names(print_fact_names)
     , report_epsilon(report_epsilon)
@@ -146,7 +149,7 @@ public:
         std::cout << " without a time limit." << std::endl;
 
         try {
-            utils::Timer total_timer;
+            Timer total_timer;
 
             const State& initial_state = state_space->get_initial_state();
             CompositeMDP<State, OperatorID> mdp{
@@ -163,7 +166,7 @@ public:
             total_timer.stop();
 
             std::cout << "Finished after " << total_timer()
-                      << " [t=" << utils::g_timer << "]" << std::endl;
+                      << " [t=" << g_timer << "]" << std::endl;
 
             std::cout << std::endl;
 
@@ -221,7 +224,7 @@ public:
             heuristic->print_statistics();
 
             return policy != nullptr;
-        } catch (utils::TimeoutException&) {
+        } catch (TimeoutException&) {
             std::cout << "Time limit reached. Analysis was aborted."
                       << std::endl;
         }

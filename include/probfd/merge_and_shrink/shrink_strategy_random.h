@@ -10,6 +10,7 @@ public:
     explicit ShrinkStrategyRandom(int random_seed);
 
     bool requires_liveness() const override { return false; }
+
     bool requires_goal_distances() const override { return false; }
 
 protected:
@@ -19,7 +20,10 @@ protected:
 
     std::string name() const override;
 
-    void dump_strategy_specific_options(utils::LogProxy&) const override {}
+    void
+    dump_strategy_specific_options(downward::utils::LogProxy&) const override
+    {
+    }
 };
 
 } // namespace probfd::merge_and_shrink

@@ -32,6 +32,8 @@
 #include <utility>
 
 using namespace std;
+using namespace downward;
+using namespace downward::utils;
 
 namespace probfd::cartesian_abstractions {
 
@@ -43,7 +45,7 @@ CEGAR::CEGAR(
     double max_time,
     std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory,
     std::shared_ptr<SplitSelectorFactory> split_selector_factory,
-    utils::LogProxy log)
+    LogProxy log)
     : max_states_(max_states)
     , max_non_looping_transitions_(max_non_looping_transitions)
     , max_time_(max_time)
@@ -76,7 +78,7 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
         split_selector_factory_->create_split_selector(task);
 
     // Limit the time for building the abstraction.
-    utils::CountdownTimer timer(max_time_);
+    CountdownTimer timer(max_time_);
 
     /* DAG with inner nodes for all split states and leaves for all
        current states. */
@@ -88,7 +90,7 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
         log_));
     std::unique_ptr<CartesianHeuristic> heuristic(new CartesianHeuristic());
 
-    utils::Timer refine_timer(true);
+    Timer refine_timer(true);
 
     /*
       For landmark tasks we have to map all states in which the
@@ -120,7 +122,7 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
                 log_,
                 timer);
 
-            if (!utils::extra_memory_padding_is_reserved()) {
+            if (!extra_memory_padding_is_reserved()) {
                 if (log_.is_at_least_normal()) {
                     log_ << "Reached memory limit during flaw search." << endl;
                 }
@@ -154,7 +156,7 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
                      << endl;
             }
         }
-    } catch (utils::TimeoutException&) {
+    } catch (TimeoutException&) {
         // NOTE: The time limit is not checked during abstraction refinement,
         // although this may be an expensive operation, since it cannot be
         // interrupted without corrupting the abstraction.
@@ -196,7 +198,7 @@ bool CEGAR::may_keep_refining(const CartesianAbstraction& abstraction) const
             log_ << "Reached maximum number of transitions." << endl;
         }
         return false;
-    } else if (!utils::extra_memory_padding_is_reserved()) {
+    } else if (!extra_memory_padding_is_reserved()) {
         if (log_.is_at_least_normal()) {
             log_ << "Reached memory limit." << endl;
         }
@@ -211,14 +213,14 @@ void CEGAR::separate_facts_unreachable_before_goal(
     RefinementHierarchy& refinement_hierarchy,
     CartesianAbstraction& abstraction,
     CartesianHeuristic& heuristic,
-    utils::Timer& timer)
+    Timer& timer)
 {
     assert(abstraction.get_goals().size() == 1);
     assert(abstraction.get_num_states() == 1);
     assert(task_proxy.get_goals().size() == 1);
 
     FactPair goal = task_proxy.get_goals()[0].get_pair();
-    utils::HashSet<FactPair> reachable_facts =
+    HashSet<FactPair> reachable_facts =
         get_relaxed_possible_before(task_proxy, goal);
     for (VariableProxy var : task_proxy.get_variables()) {
         if (!may_keep_refining(abstraction)) break;
@@ -251,7 +253,7 @@ void CEGAR::refine_abstraction(
     CartesianAbstraction& abstraction,
     CartesianHeuristic& heuristic,
     const Flaw& flaw,
-    utils::Timer& timer)
+    Timer& timer)
 {
     TimerScope scope(timer);
     const AbstractState& abstract_state = flaw.current_abstract_state;

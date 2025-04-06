@@ -13,7 +13,7 @@
 
 using namespace std;
 
-namespace tiebreaking_open_list {
+namespace downward::tiebreaking_open_list {
 template <class Entry>
 class TieBreakingOpenList : public OpenList<Entry> {
     using Bucket = deque<Entry>;

@@ -3,7 +3,7 @@
 
 #include "downward/merge_and_shrink/merge_strategy_factory.h"
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 class MergeSelector;
 
 class MergeStrategyFactoryStateless : public MergeStrategyFactory {

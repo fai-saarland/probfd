@@ -45,7 +45,7 @@ struct ProbabilityAwarePatternDatabase {
      * number of abstract states and is filled with NaNs.
      */
     ProbabilityAwarePatternDatabase(
-        const VariablesProxy& variables,
+        const downward::VariablesProxy& variables,
         Pattern pattern);
 
     /// Get the pattern of the pattern database.
@@ -58,12 +58,12 @@ struct ProbabilityAwarePatternDatabase {
 
     /// Compute the state rank of the abstract state of an input state.
     [[nodiscard]]
-    StateRank get_abstract_state(const State& state) const;
+    StateRank get_abstract_state(const downward::State& state) const;
 
     /// Get the optimal state value of the abstract state corresponding to the
     /// input state.
     [[nodiscard]]
-    value_t lookup_estimate(const State& s) const;
+    value_t lookup_estimate(const downward::State& s) const;
 
     /// Look up the estimate of an abstract state specified by state rank in
     /// the lookup table.

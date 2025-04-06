@@ -27,7 +27,7 @@ using namespace std;
   maybe deal with all of them in the same way.
 */
 
-namespace causal_graph {
+namespace downward::causal_graph {
 static unordered_map<const AbstractTask*, unique_ptr<CausalGraph>>
     causal_graph_cache;
 

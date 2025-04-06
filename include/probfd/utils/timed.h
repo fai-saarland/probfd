@@ -11,14 +11,14 @@
 namespace probfd {
 
 class PrintingTimer {
-    utils::Timer& timer;
+    downward::utils::Timer& timer;
     std::string print;
     std::ostream& out;
     bool same_line;
 
 public:
     PrintingTimer(
-        utils::Timer& timer,
+        downward::utils::Timer& timer,
         std::string print,
         std::ostream& out,
         bool same_line = true)
@@ -57,7 +57,7 @@ std::invoke_result_t<F, Args...> run_time_logged(
     Args&&... args)
     requires std::invocable<F, Args...>
 {
-    utils::Timer timer;
+    downward::utils::Timer timer;
     PrintingTimer _(timer, print, out, same_line);
     return std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
 }
@@ -80,7 +80,7 @@ std::invoke_result_t<F, Args...> run_time_logged(
 
 template <typename F, typename... Args>
 std::invoke_result_t<F, Args...> run_time_logged(
-    utils::Timer& timer,
+    downward::utils::Timer& timer,
     std::ostream& out,
     const std::string& print,
     bool same_line,
@@ -94,7 +94,7 @@ std::invoke_result_t<F, Args...> run_time_logged(
 
 template <typename F, typename... Args>
 std::invoke_result_t<F, Args...> run_time_logged(
-    utils::Timer& timer,
+    downward::utils::Timer& timer,
     std::ostream& out,
     const std::string& print,
     F&& f,

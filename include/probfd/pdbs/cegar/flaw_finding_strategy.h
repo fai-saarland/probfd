@@ -9,11 +9,13 @@
 #include <vector>
 
 // Forward Declarations
+namespace downward {
 class State;
 class PreconditionsProxy;
 class GoalsProxy;
+}
 
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 }
 
@@ -45,20 +47,20 @@ public:
         const ProjectionMultiPolicy& policy,
         std::vector<Flaw>& flaws,
         const std::function<bool(const Flaw&)>& notify_flaw,
-        utils::CountdownTimer& timer) = 0;
+        downward::utils::CountdownTimer& timer) = 0;
 
     virtual std::string get_name() = 0;
 };
 
 bool collect_flaws(
-    PreconditionsProxy facts,
-    const State& state,
+    downward::PreconditionsProxy facts,
+    const downward::State& state,
     std::vector<Flaw>& flaws,
     const std::function<bool(const Flaw&)>& accept_flaw);
 
 bool collect_flaws(
-    GoalsProxy facts,
-    const State& state,
+    downward::GoalsProxy facts,
+    const downward::State& state,
     std::vector<Flaw>& flaws,
     const std::function<bool(const Flaw&)>& accept_flaw);
 

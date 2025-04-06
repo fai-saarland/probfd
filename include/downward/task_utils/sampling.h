@@ -6,19 +6,21 @@
 #include <functional>
 #include <memory>
 
+namespace downward {
 class State;
+}
 
-namespace successor_generator {
+namespace downward::successor_generator {
 class SuccessorGenerator;
 }
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
-using DeadEndDetector = std::function<bool(State)>;
+using DeadEndDetector = std::function<bool(downward::State)>;
 
-namespace sampling {
+namespace downward::sampling {
 /*
   Sample states with random walks.
 */

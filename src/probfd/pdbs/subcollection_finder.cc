@@ -4,6 +4,8 @@
 
 #include <numeric>
 
+using namespace downward;
+
 namespace probfd::pdbs {
 
 value_t SubCollectionFinder::evaluate(
@@ -19,9 +21,7 @@ value_t SubCollectionFinder::evaluate(
     for (std::size_t i = 0; i != database.size(); ++i) {
         const value_t estimate = database[i]->lookup_estimate(state);
 
-        if (estimate == termination_cost) {
-            return estimate;
-        }
+        if (estimate == termination_cost) { return estimate; }
 
         estimates[i] = estimate;
     }
@@ -35,8 +35,7 @@ value_t SubCollectionFinder::evaluate(
         subcollections.begin(),
         subcollections.end(),
         -INFINITE_VALUE,
-        static_cast<const value_t& (*)(const value_t&, const value_t&)>(
-            std::max<value_t>),
+        [](const auto left, const auto right) { return std::max(left, right); },
         transformer);
 }
 

@@ -11,7 +11,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 PatternCollectionGeneratorMultipleRandom::
     PatternCollectionGeneratorMultipleRandom(
         bool bidirectional,

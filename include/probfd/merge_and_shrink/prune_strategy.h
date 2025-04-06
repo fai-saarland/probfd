@@ -3,7 +3,7 @@
 
 #include "probfd/merge_and_shrink/types.h"
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
@@ -25,12 +25,12 @@ public:
     virtual StateEquivalenceRelation compute_pruning_abstraction(
         const TransitionSystem& ts,
         const Distances& distances,
-        utils::LogProxy& log) = 0;
+        downward::utils::LogProxy& log) = 0;
 
     virtual bool requires_liveness() const = 0;
     virtual bool requires_goal_distances() const = 0;
 
-    virtual void dump_options(utils::LogProxy& log) const = 0;
+    virtual void dump_options(downward::utils::LogProxy& log) const = 0;
 };
 
 } // namespace probfd::merge_and_shrink

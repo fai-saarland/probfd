@@ -3,7 +3,7 @@
 
 #include "downward/open_list_factory.h"
 
-namespace pareto_open_list {
+namespace downward::pareto_open_list {
 class ParetoOpenListFactory : public OpenListFactory {
     std::vector<std::shared_ptr<Evaluator>> evals;
     bool state_uniform_selection;

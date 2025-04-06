@@ -2,7 +2,8 @@
 
 #include "probfd/transition_sorters/vdiff_sorter.h"
 
-using namespace utils;
+using namespace downward;
+using namespace downward::utils;
 
 using namespace probfd;
 using namespace probfd::transition_sorters;

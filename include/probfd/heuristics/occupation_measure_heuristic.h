@@ -30,26 +30,26 @@ public:
     OccupationMeasureHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
         std::shared_ptr<FDRCostFunction> task_cost_function,
-        utils::LogProxy log,
-        lp::LPSolverType solver_type,
+        downward::utils::LogProxy log,
+        downward::lp::LPSolverType solver_type,
         std::shared_ptr<occupation_measures::ConstraintGenerator>
             constraint_generator);
 
 private:
-    void update_constraints(const State& state) const;
-    void reset_constraints(const State& state) const;
+    void update_constraints(const downward::State& state) const;
+    void reset_constraints(const downward::State& state) const;
 };
 
 class OccupationMeasureHeuristicFactory : public TaskHeuristicFactory {
-    const utils::Verbosity verbosity_;
-    const lp::LPSolverType lp_solver_type_;
+    const downward::utils::Verbosity verbosity_;
+    const downward::lp::LPSolverType lp_solver_type_;
     const std::shared_ptr<occupation_measures::ConstraintGeneratorFactory>
         constraint_generator_factory_;
 
 public:
     OccupationMeasureHeuristicFactory(
-        utils::Verbosity verbosity,
-        lp::LPSolverType lp_solver_type,
+        downward::utils::Verbosity verbosity,
+        downward::lp::LPSolverType lp_solver_type,
         const std::shared_ptr<occupation_measures::ConstraintGeneratorFactory>&
             constraint_generator_factory);
 

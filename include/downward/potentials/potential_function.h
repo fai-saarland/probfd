@@ -3,9 +3,11 @@
 
 #include <vector>
 
+namespace downward {
 class State;
+}
 
-namespace potentials {
+namespace downward::potentials {
 /*
   A potential function calculates the sum of potentials in a given state.
 

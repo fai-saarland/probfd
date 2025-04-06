@@ -9,13 +9,15 @@
 #include <vector>
 
 // Forward Declarations
+namespace downward {
 class PlanningTask;
+}
 
-namespace additive_heuristic {
+namespace downward::additive_heuristic {
 class AdditiveHeuristic;
 }
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
@@ -43,11 +45,11 @@ public:
 };
 
 class SplitSelectorRandom : public SplitSelector {
-    std::shared_ptr<utils::RandomNumberGenerator> rng_;
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng_;
 
 public:
     explicit SplitSelectorRandom(
-        std::shared_ptr<utils::RandomNumberGenerator> rng);
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng);
 
     const Split&
     pick_split(const AbstractState& state, const std::vector<Split>& splits)
@@ -64,9 +66,7 @@ public:
 
         assert(!splits.empty());
 
-        if (splits.size() == 1) {
-            return splits[0];
-        }
+        if (splits.size() == 1) { return splits[0]; }
 
         double max_rating = std::numeric_limits<double>::lowest();
         const Split* selected_split = nullptr;
@@ -113,9 +113,10 @@ public:
 
 // Compare the h^add(s_0) values of the facts.
 class SplitSelectorHAdd {
-    const std::shared_ptr<PlanningTask> task_;
+    const std::shared_ptr<downward::PlanningTask> task_;
     const ProbabilisticTaskProxy task_proxy_;
-    std::unique_ptr<additive_heuristic::AdditiveHeuristic> additive_heuristic_;
+    std::unique_ptr<downward::additive_heuristic::AdditiveHeuristic>
+        additive_heuristic_;
 
 public:
     explicit SplitSelectorHAdd(const std::shared_ptr<ProbabilisticTask>& task);
@@ -171,11 +172,11 @@ public:
   Select split in case there are multiple possible splits.
 */
 class SplitSelectorRandomFactory : public SplitSelectorFactory {
-    std::shared_ptr<utils::RandomNumberGenerator> rng_;
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng_;
 
 public:
     explicit SplitSelectorRandomFactory(
-        std::shared_ptr<utils::RandomNumberGenerator> rng);
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng);
 
     std::unique_ptr<SplitSelector> create_split_selector(
         const std::shared_ptr<ProbabilisticTask>& task) override;

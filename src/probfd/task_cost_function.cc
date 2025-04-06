@@ -2,6 +2,8 @@
 
 #include "probfd/probabilistic_task.h"
 
+using namespace downward;
+
 namespace probfd {
 
 TaskCostFunction::TaskCostFunction(std::shared_ptr<ProbabilisticTask> task)
@@ -12,7 +14,7 @@ TaskCostFunction::TaskCostFunction(std::shared_ptr<ProbabilisticTask> task)
 bool TaskCostFunction::is_goal(const State& state) const
 {
     ProbabilisticTaskProxy proxy(*task_);
-    return ::task_properties::is_goal_state(proxy, state);
+    return downward::task_properties::is_goal_state(proxy, state);
 }
 
 value_t TaskCostFunction::get_goal_termination_cost() const

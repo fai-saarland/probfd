@@ -3,7 +3,7 @@
 
 #include <tuple>
 
-namespace utils {
+namespace downward::utils {
 template <class... Ts, std::size_t... Is>
 auto flatten_tuple_elements(std::tuple<Ts...>&& t, std::index_sequence<Is...>);
 

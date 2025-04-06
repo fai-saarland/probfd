@@ -5,7 +5,7 @@
 
 #include <span>
 
-namespace lp {
+namespace downward::lp {
 enum class LPSolverType;
 }
 
@@ -24,7 +24,7 @@ template <typename State, typename Action>
 void verify(
     MDP<State, Action>& mdp,
     std::span<const value_t> value_table,
-    lp::LPSolverType type);
+    downward::lp::LPSolverType type);
 
 } // namespace probfd
 

@@ -5,7 +5,7 @@
 #include <list>
 #include <vector>
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 // Positive infinity. The name "INFINITY" is taken by an ISO C99 macro.
 extern const int INF;
 extern const int MINUSINF;

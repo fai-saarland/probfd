@@ -9,19 +9,20 @@
 
 namespace probfd {
 
-class TaskCostFunction : public SimpleCostFunction<State, OperatorID> {
+class TaskCostFunction
+    : public SimpleCostFunction<downward::State, downward::OperatorID> {
     std::shared_ptr<ProbabilisticTask> task_;
 
 public:
     explicit TaskCostFunction(std::shared_ptr<ProbabilisticTask> task);
 
-    bool is_goal(const State& state) const override;
+    bool is_goal(const downward::State& state) const override;
 
     value_t get_goal_termination_cost() const override;
 
     value_t get_non_goal_termination_cost() const override;
 
-    value_t get_action_cost(OperatorID action) override;
+    value_t get_action_cost(downward::OperatorID action) override;
 };
 
 } // namespace probfd

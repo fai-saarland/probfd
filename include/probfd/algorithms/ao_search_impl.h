@@ -26,7 +26,7 @@ void AOBase<State, Action, StateInfo>::backpropagate_tip_value(
     MDPType& mdp,
     std::vector<TransitionTail<Action>>& transitions,
     StateInfo& state_info,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     self.push_parents_to_queue(state_info);
 
@@ -68,7 +68,7 @@ void AOBase<State, Action, StateInfo>::backpropagate_update_order(
     StateID tip,
     StateInfo& tip_info,
     unsigned update_order,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     tip_info.update_order = update_order;
     queue_.emplace(update_order, tip);
@@ -121,7 +121,7 @@ void AOBase<State, Action, StateInfo>::push_parents_to_queue(StateInfo& info)
     }
 
     if (info.is_solved()) {
-        utils::release_vector_memory(parents);
+        downward::utils::release_vector_memory(parents);
     }
 }
 

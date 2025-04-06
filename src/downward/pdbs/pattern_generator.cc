@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 PatternCollectionGenerator::PatternCollectionGenerator(
     utils::Verbosity verbosity)
     : log(utils::get_log_for_verbosity(verbosity))

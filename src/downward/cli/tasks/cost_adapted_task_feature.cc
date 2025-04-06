@@ -6,7 +6,7 @@
 #include "downward/tasks/root_task.h"
 
 using namespace std;
-using namespace tasks;
+using namespace downward::tasks;
 
 using namespace downward::cli::plugins;
 
@@ -16,7 +16,7 @@ using downward::cli::get_cost_type_arguments_from_options;
 namespace {
 
 class CostAdaptedTaskFeature
-    : public TypedFeature<AbstractTask, CostAdaptedTask> {
+    : public TypedFeature<downward::AbstractTask, CostAdaptedTask> {
 public:
     CostAdaptedTaskFeature()
         : TypedFeature("adapt_costs")
@@ -28,7 +28,8 @@ public:
     }
 
     virtual shared_ptr<CostAdaptedTask>
-    create_component(const Options& opts, const utils::Context&) const override
+    create_component(const Options& opts, const downward::utils::Context&)
+        const override
     {
         return make_shared_from_arg_tuples<CostAdaptedTask>(
             g_root_task,

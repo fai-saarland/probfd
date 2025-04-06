@@ -7,15 +7,15 @@
 #include "downward/utils/logging.h"
 
 using namespace std;
-using namespace utils;
-using namespace g_evaluator;
+using namespace downward::utils;
+using namespace downward::g_evaluator;
 
 using namespace downward::cli;
 using namespace downward::cli::plugins;
 
 namespace {
 
-class GEvaluatorFeature : public TypedFeature<Evaluator, GEvaluator> {
+class GEvaluatorFeature : public TypedFeature<downward::Evaluator, GEvaluator> {
 public:
     GEvaluatorFeature()
         : TypedFeature("g")

@@ -3,7 +3,7 @@
 
 #include "downward/pdbs/types.h"
 
-namespace pdbs {
+namespace downward::pdbs {
 class PatternCollectionGenerator;
 class PatternCollectionInformation;
 } // namespace pdbs
@@ -18,9 +18,9 @@ namespace probfd::pdbs {
 class ProjectionStateSpace;
 struct ProbabilityAwarePatternDatabase;
 
-using PatternCollection = ::pdbs::PatternCollection;
-using Pattern = ::pdbs::Pattern;
-using PatternID = ::pdbs::PatternID;
+using PatternCollection = downward::pdbs::PatternCollection;
+using Pattern = downward::pdbs::Pattern;
+using PatternID = downward::pdbs::PatternID;
 using PatternSubCollection = std::vector<PatternID>;
 
 using ProjectionCollection = std::vector<std::unique_ptr<ProjectionStateSpace>>;

@@ -16,6 +16,8 @@
 
 using namespace probfd::cli;
 
+using namespace downward;
+
 using namespace probfd;
 using namespace probfd::algorithms;
 using namespace probfd::open_lists;

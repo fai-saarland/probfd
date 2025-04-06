@@ -9,8 +9,8 @@
 #include "downward/pdbs/pattern_collection_generator_disjoint_cegar.h"
 
 using namespace std;
-using namespace utils;
-using namespace pdbs;
+using namespace downward::utils;
+using namespace downward::pdbs;
 
 using namespace downward::cli::pdbs;
 

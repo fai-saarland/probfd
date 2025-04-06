@@ -9,10 +9,12 @@
 
 #include "downward/pdbs/pattern_generator.h"
 
+using namespace downward;
+
 namespace probfd::pdbs {
 
 PatternCollectionGeneratorClassical::PatternCollectionGeneratorClassical(
-    std::shared_ptr<::pdbs::PatternCollectionGenerator> gen,
+    std::shared_ptr<downward::pdbs::PatternCollectionGenerator> gen,
     std::shared_ptr<SubCollectionFinderFactory> finder_factory,
     utils::Verbosity verbosity)
     : PatternCollectionGenerator(verbosity)
@@ -25,18 +27,16 @@ PatternCollectionInformation PatternCollectionGeneratorClassical::generate(
     const std::shared_ptr<ProbabilisticTask>& task,
     const std::shared_ptr<FDRCostFunction>& task_cost_function)
 {
-    ProbabilisticTaskProxy task_proxy(*task);
+    const ProbabilisticTaskProxy task_proxy(*task);
 
-    std::shared_ptr determinization =
-        std::make_shared<tasks::DeterminizationTask>(task);
+    auto determinization = std::make_shared<tasks::DeterminizationTask>(task);
+    auto finder = finder_factory_->create_subcollection_finder(task_proxy);
 
-    std::shared_ptr<SubCollectionFinder> finder =
-        finder_factory_->create_subcollection_finder(task_proxy);
     return PatternCollectionInformation(
         task_proxy,
         task_cost_function,
         gen_->generate(determinization),
-        finder);
+        std::move(finder));
 }
 
 } // namespace probfd::pdbs

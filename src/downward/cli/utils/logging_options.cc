@@ -6,7 +6,7 @@
 
 using namespace std;
 
-using ::utils::Verbosity;
+using downward::utils::Verbosity;
 
 namespace downward::cli::utils {
 

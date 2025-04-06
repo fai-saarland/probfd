@@ -3,7 +3,7 @@
 #include "downward/merge_and_shrink/merge_scoring_function.h"
 
 using namespace std;
-using namespace merge_and_shrink;
+using namespace downward::merge_and_shrink;
 
 using namespace downward::cli::plugins;
 

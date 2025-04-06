@@ -3,7 +3,7 @@
 
 #include <memory>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
@@ -28,7 +28,7 @@ extern std::unique_ptr<TransitionSystem> shrink_before_merge_externally(
     int max_states,
     int max_states_before_merge,
     int shrink_threshold_before_merge,
-    utils::LogProxy& log);
+    downward::utils::LogProxy& log);
 
 } // namespace probfd::merge_and_shrink
 

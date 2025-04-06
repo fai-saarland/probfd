@@ -158,7 +158,7 @@ auto EndComponentDecomposition<State, Action>::build_quotient_system(
     ParamType<State> initial_state,
     double max_time) -> std::unique_ptr<QSystem>
 {
-    utils::CountdownTimer timer(max_time);
+    downward::utils::CountdownTimer timer(max_time);
 
     stats_ = ECDStatistics();
     auto sys = std::make_unique<QSystem>(mdp);
@@ -318,7 +318,7 @@ template <typename State, typename Action>
 void EndComponentDecomposition<State, Action>::find_and_decompose_sccs(
     QSystem& sys,
     const unsigned limit,
-    utils::CountdownTimer& timer,
+    downward::utils::CountdownTimer& timer,
     auto&... mdp_and_h)
 {
     if (expansion_queue_.size() <= limit) {
@@ -399,7 +399,7 @@ template <typename State, typename Action>
 bool EndComponentDecomposition<State, Action>::push_successor(
     ExpansionInfo& e,
     StackInfo& s,
-    utils::CountdownTimer& timer,
+    downward::utils::CountdownTimer& timer,
     auto&... mdp_and_h)
 {
     do {
@@ -451,7 +451,7 @@ void EndComponentDecomposition<State, Action>::scc_found(
     QSystem& sys,
     ExpansionInfo& e,
     StackInfo& s,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     auto scc = stack_ | std::views::drop(e.stck);
 
@@ -526,7 +526,7 @@ template <typename State, typename Action>
 void EndComponentDecomposition<State, Action>::decompose(
     QSystem& sys,
     unsigned start,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     const unsigned limit = expansion_queue_.size();
 

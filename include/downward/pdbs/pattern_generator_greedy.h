@@ -3,7 +3,7 @@
 
 #include "downward/pdbs/pattern_generator.h"
 
-namespace pdbs {
+namespace downward::pdbs {
 class PatternGeneratorGreedy : public PatternGenerator {
     const int max_states;
 

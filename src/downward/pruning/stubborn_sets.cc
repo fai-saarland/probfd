@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace stubborn_sets {
+namespace downward::stubborn_sets {
 StubbornSets::StubbornSets(utils::Verbosity verbosity)
     : PruningMethod(verbosity)
     , num_operators(-1)

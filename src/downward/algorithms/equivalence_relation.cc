@@ -6,7 +6,7 @@
 
 using namespace std;
 
-namespace equivalence_relation {
+namespace downward::equivalence_relation {
 EquivalenceRelation::EquivalenceRelation(const vector<int>& elements)
 {
     BlockListIter it_block = add_empty_block();

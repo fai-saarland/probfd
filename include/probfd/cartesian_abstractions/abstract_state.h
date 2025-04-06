@@ -11,8 +11,10 @@
 #include <vector>
 
 // Forward Declarations
+namespace downward {
 struct FactPair;
 class State;
+}
 
 namespace probfd {
 class ProbabilisticOperatorProxy;
@@ -68,10 +70,10 @@ public:
     bool includes(const AbstractState& other) const;
 
     [[nodiscard]]
-    bool includes(const State& concrete_state) const;
+    bool includes(const downward::State& concrete_state) const;
 
     [[nodiscard]]
-    bool includes(const std::vector<FactPair>& facts) const;
+    bool includes(const std::vector<downward::FactPair>& facts) const;
 
     // IDs are consecutive, so they can be used to index states in vectors.
     [[nodiscard]]

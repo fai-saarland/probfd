@@ -20,6 +20,9 @@
 #include <vector>
 
 using namespace std;
+
+using namespace downward;
+
 using utils::ExitCode;
 
 namespace probfd::tasks {

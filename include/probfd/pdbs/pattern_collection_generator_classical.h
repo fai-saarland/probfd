@@ -5,7 +5,7 @@
 
 #include <memory>
 
-namespace pdbs {
+namespace downward::pdbs {
 class PatternCollectionGenerator;
 }
 
@@ -25,14 +25,14 @@ namespace probfd::pdbs {
  * PDBs.
  */
 class PatternCollectionGeneratorClassical : public PatternCollectionGenerator {
-    std::shared_ptr<::pdbs::PatternCollectionGenerator> gen_;
+    std::shared_ptr<downward::pdbs::PatternCollectionGenerator> gen_;
     std::shared_ptr<SubCollectionFinderFactory> finder_factory_;
 
 public:
     explicit PatternCollectionGeneratorClassical(
-        std::shared_ptr<::pdbs::PatternCollectionGenerator> gen,
+        std::shared_ptr<downward::pdbs::PatternCollectionGenerator> gen,
         std::shared_ptr<SubCollectionFinderFactory> finder_factory,
-        utils::Verbosity verbosity);
+        downward::utils::Verbosity verbosity);
 
     PatternCollectionInformation generate(
         const std::shared_ptr<ProbabilisticTask>& task,

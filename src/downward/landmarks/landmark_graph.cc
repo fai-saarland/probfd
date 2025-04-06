@@ -12,7 +12,7 @@
 
 using namespace std;
 
-namespace landmarks {
+namespace downward::landmarks {
 LandmarkGraph::LandmarkGraph()
     : num_conjunctive_landmarks(0)
     , num_disjunctive_landmarks(0)

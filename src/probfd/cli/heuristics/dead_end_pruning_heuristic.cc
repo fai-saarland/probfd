@@ -2,6 +2,7 @@
 
 #include "probfd/heuristics/dead_end_pruning_heuristic.h"
 
+using namespace downward;
 using namespace utils;
 
 using namespace probfd;
@@ -27,7 +28,7 @@ public:
             "if h(s) is infinity in the all-outcomes determinization. "
             "Otherwise, the heuristic value is 0.");
 
-        add_option<std::shared_ptr<::Evaluator>>("evaluator");
+        add_option<std::shared_ptr<Evaluator>>("evaluator");
     }
 
 protected:
@@ -35,7 +36,7 @@ protected:
     create_component(const Options& options, const Context&) const override
     {
         return std::make_shared<DeadEndPruningHeuristicFactory>(
-            options.get<std::shared_ptr<::Evaluator>>("evaluator"));
+            options.get<std::shared_ptr<Evaluator>>("evaluator"));
     }
 };
 

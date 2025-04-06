@@ -4,6 +4,7 @@
 
 #include "probfd/cartesian_abstractions/subtask_generators.h"
 
+using namespace downward;
 using namespace utils;
 
 using namespace downward::cli;

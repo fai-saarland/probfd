@@ -27,6 +27,8 @@
 using namespace std;
 using namespace std::ranges;
 
+using namespace downward;
+
 namespace probfd::pdbs::cegar {
 
 /*

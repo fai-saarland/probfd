@@ -6,7 +6,7 @@
 
 #include "downward/algorithms/int_packer.h"
 
-namespace task_properties {
+namespace downward::task_properties {
 inline bool is_applicable(const AxiomOrOperatorProxy& op, const State& state)
 {
     for (FactProxy precondition : op.get_preconditions()) {

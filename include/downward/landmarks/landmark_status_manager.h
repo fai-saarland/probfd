@@ -5,7 +5,7 @@
 
 #include "downward/per_state_bitset.h"
 
-namespace landmarks {
+namespace downward::landmarks {
 class LandmarkGraph;
 class LandmarkNode;
 

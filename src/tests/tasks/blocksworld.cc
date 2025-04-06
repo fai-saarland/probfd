@@ -5,6 +5,7 @@
 #include <set>
 
 using namespace probfd;
+using namespace downward;
 
 using std::ranges::sort;
 

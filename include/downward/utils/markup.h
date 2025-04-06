@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 extern std::string format_conference_reference(
     const std::vector<std::string> &authors, const std::string &title,
     const std::string &url, const std::string &conference,

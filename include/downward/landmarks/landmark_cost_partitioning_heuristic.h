@@ -5,7 +5,7 @@
 
 #include "downward/lp/lp_solver.h"
 
-namespace landmarks {
+namespace downward::landmarks {
 class CostPartitioningAlgorithm;
 
 enum class CostPartitioningMethod {

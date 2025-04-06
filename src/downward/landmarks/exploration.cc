@@ -13,7 +13,7 @@
 
 using namespace std;
 
-namespace landmarks {
+namespace downward::landmarks {
 /*
   Implementation note: Compared to RelaxationHeuristic, we *cannot simplify*
   unary operators, because this may conflict with excluded operators.

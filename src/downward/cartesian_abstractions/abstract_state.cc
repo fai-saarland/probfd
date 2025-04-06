@@ -11,7 +11,7 @@
 
 using namespace std;
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 AbstractState::AbstractState(
     int state_id,
     NodeID node_id,

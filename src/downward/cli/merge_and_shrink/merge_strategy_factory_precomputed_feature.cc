@@ -5,8 +5,8 @@
 #include "downward/merge_and_shrink/merge_strategy_factory_precomputed.h"
 
 using namespace std;
-using namespace utils;
-using namespace merge_and_shrink;
+using namespace downward::utils;
+using namespace downward::merge_and_shrink;
 
 using namespace downward::cli::plugins;
 

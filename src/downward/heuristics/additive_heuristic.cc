@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace additive_heuristic {
+namespace downward::additive_heuristic {
 const int AdditiveHeuristic::MAX_COST_VALUE;
 
 // construction and destruction

@@ -21,6 +21,7 @@
 #include <vector>
 
 using namespace std;
+using namespace downward;
 
 namespace probfd::pdbs {
 
@@ -31,7 +32,7 @@ vector<FactPair> get_goals_in_random_order(
     utils::RandomNumberGenerator& rng)
 {
     vector<FactPair> goals =
-        ::task_properties::get_fact_pairs(task_proxy.get_goals());
+        downward::task_properties::get_fact_pairs(task_proxy.get_goals());
     rng.shuffle(goals);
     return goals;
 }

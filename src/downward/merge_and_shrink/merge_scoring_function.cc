@@ -6,7 +6,7 @@
 
 using namespace std;
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 MergeScoringFunction::MergeScoringFunction()
     : initialized(false)
 {

@@ -25,6 +25,7 @@
 #include <string>
 
 using namespace std;
+using namespace downward;
 using namespace downward::cli::plugins;
 
 using utils::ExitCode;

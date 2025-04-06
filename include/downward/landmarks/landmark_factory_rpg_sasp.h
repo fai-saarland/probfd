@@ -7,7 +7,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace landmarks {
+namespace downward::landmarks {
 class LandmarkFactoryRpgSasp : public LandmarkFactoryRelaxation {
     const bool disjunctive_landmarks;
     const bool use_orders;

@@ -13,7 +13,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 PatternCollectionGeneratorCombo::PatternCollectionGeneratorCombo(
     int max_states,
     utils::Verbosity verbosity)

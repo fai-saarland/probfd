@@ -9,7 +9,7 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-namespace landmarks {
+namespace downward::landmarks {
 LandmarkFactoryReasonableOrdersHPS::LandmarkFactoryReasonableOrdersHPS(
     const shared_ptr<LandmarkFactory>& lm_factory,
     utils::Verbosity verbosity)

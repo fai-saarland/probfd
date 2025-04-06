@@ -41,19 +41,19 @@ public:
         std::shared_ptr<pdbs::SubCollectionFinder> subcollection_finder,
         value_t termination_cost);
 
-    value_t evaluate(const State& state) const override;
+    value_t evaluate(const downward::State& state) const override;
 };
 
 class ProbabilityAwarePDBHeuristicFactory final : public TaskHeuristicFactory {
     const std::shared_ptr<pdbs::PatternCollectionGenerator> generator_;
     const double max_time_dominance_pruning_;
-    mutable utils::LogProxy log_;
+    mutable downward::utils::LogProxy log_;
 
 public:
     ProbabilityAwarePDBHeuristicFactory(
         std::shared_ptr<pdbs::PatternCollectionGenerator> generator,
         double max_time_dominance_pruning,
-        utils::Verbosity verbosity);
+       downward::utils::Verbosity verbosity);
 
     std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,

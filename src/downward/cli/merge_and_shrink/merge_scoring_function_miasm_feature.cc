@@ -9,6 +9,7 @@
 
 using namespace std;
 
+using namespace downward::utils;
 using namespace downward::cli::plugins;
 
 using downward::cli::merge_and_shrink::
@@ -18,7 +19,7 @@ using downward::cli::merge_and_shrink::
 
 using downward::cli::merge_and_shrink::handle_shrink_limit_options_defaults;
 
-using namespace merge_and_shrink;
+using namespace downward::merge_and_shrink;
 
 namespace {
 
@@ -47,7 +48,7 @@ public:
             "scoring function is called dyn-MIASM (nowadays also called "
             "sbMIASM "
             "for score-based MIASM) and is described in the following paper:" +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Silvan Sievers", "Martin Wehrle", "Malte Helmert"},
                 "An Analysis of Merge Strategies for Merge-and-Shrink "
                 "Heuristics",
@@ -112,7 +113,7 @@ public:
     }
 
     virtual shared_ptr<MergeScoringFunctionMIASM>
-    create_component(const Options& opts, const utils::Context& context)
+    create_component(const Options& opts, const Context& context)
         const override
     {
         Options options_copy(opts);

@@ -295,8 +295,8 @@ class HeuristicSearchAlgorithm
     using HSBase = typename HeuristicSearchAlgorithm::HeuristicSearchBase;
 
 public:
-    using TransitionTailType = HSBase::TransitionTailType;
-    using AlgorithmValueType = HSBase::AlgorithmValueType;
+    using TransitionTailType = typename HSBase::TransitionTailType;
+    using AlgorithmValueType = typename HSBase::AlgorithmValueType;
 
 protected:
     using PolicyType = typename AlgorithmBase::PolicyType;

@@ -5,7 +5,7 @@
 
 using namespace std;
 
-namespace utils {
+namespace downward::utils {
 static string t2t_escape(const string& s)
 {
     return "\"\"" + s + "\"\"";

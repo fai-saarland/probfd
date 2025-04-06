@@ -27,12 +27,14 @@ class StateRankingFunction {
 
 public:
     StateRankingFunction() = default;
-    
+
     /**
      * @brief Constructs the ranking function for a projection specified by a
      * given pattern and the task's variables.
      */
-    StateRankingFunction(const VariablesProxy& variables, Pattern pattern);
+    StateRankingFunction(
+        const downward::VariablesProxy& variables,
+        Pattern pattern);
 
     /**
      * @brief Get the number of abstract states.
@@ -83,7 +85,7 @@ public:
      * \f$i \in \{1, \dots, k\}\f$.
      */
     [[nodiscard]]
-    StateRank get_abstract_rank(const State& state) const;
+    StateRank get_abstract_rank(const downward::State& state) const;
 
     /**
      * @brief Ranks a projection fact by multiplying the ranking coefficient
@@ -155,12 +157,12 @@ public:
 };
 
 class StateRankToString {
-    const VariablesProxy variables_;
+    const downward::VariablesProxy variables_;
     const StateRankingFunction& state_mapper_;
 
 public:
     explicit StateRankToString(
-        VariablesProxy variables,
+        downward::VariablesProxy variables,
         const StateRankingFunction& state_mapper);
 
     std::string operator()(StateRank state) const;

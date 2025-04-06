@@ -2,6 +2,8 @@
 
 using namespace std;
 
+namespace downward {
+
 const int EvaluationResult::INFTY = numeric_limits<int>::max();
 
 EvaluationResult::EvaluationResult()
@@ -49,3 +51,5 @@ void EvaluationResult::set_count_evaluation(bool count_eval)
 {
     count_evaluation = count_eval;
 }
+
+} // namespace downward

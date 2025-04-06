@@ -4,10 +4,11 @@
 #include "downward/utils/system.h"
 #include "downward/utils/timer.h"
 
-
 #include <iostream>
 
 using namespace std;
+
+namespace downward {
 
 SearchStatistics::SearchStatistics(utils::LogProxy& log)
     : log(log)
@@ -61,9 +62,7 @@ void SearchStatistics::print_checkpoint_line(int g) const
 void SearchStatistics::print_basic_statistics() const
 {
     log << evaluated_states << " evaluated, " << expanded_states << " expanded";
-    if (reopened_states > 0) {
-        log << ", " << reopened_states << " reopened";
-    }
+    if (reopened_states > 0) { log << ", " << reopened_states << " reopened"; }
 }
 
 void SearchStatistics::print_detailed_statistics() const
@@ -86,3 +85,5 @@ void SearchStatistics::print_detailed_statistics() const
             << " state(s)." << endl;
     }
 }
+
+} // namespace downward

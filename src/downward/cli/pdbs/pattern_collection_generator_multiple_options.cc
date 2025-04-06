@@ -105,7 +105,16 @@ void add_multiple_options_to_feature(plugins::Feature& feature)
     add_generator_options_to_feature(feature);
 }
 
-tuple<int, int, double, double, double, double, bool, int, ::utils::Verbosity>
+tuple<
+    int,
+    int,
+    double,
+    double,
+    double,
+    double,
+    bool,
+    int,
+    downward::utils::Verbosity>
 get_multiple_arguments_from_options(const plugins::Options& opts)
 {
     return tuple_cat(

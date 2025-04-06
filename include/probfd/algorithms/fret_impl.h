@@ -202,7 +202,7 @@ Interval FRET<NestedAlgorithm, GreedyGraphGenerator>::solve(
     ProgressReport& progress,
     double max_time)
 {
-    utils::CountdownTimer timer(max_time);
+    downward::utils::CountdownTimer timer(max_time);
 
     progress.register_print([&](std::ostream& out) {
         out << "fret=" << statistics_.iterations
@@ -229,7 +229,7 @@ Interval FRET<NestedAlgorithm, GreedyGraphGenerator>::heuristic_search(
     QHeuristic& heuristic,
     ParamType<QState> state,
     ProgressReport& progress,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
 #if defined(EXPENSIVE_STATISTICS)
     TimerScope scoped(statistics_.heuristic_search);
@@ -249,7 +249,7 @@ template <
 bool FRET<NestedAlgorithm, GreedyGraphGenerator>::find_and_remove_traps(
     QuotientSystem& quotient,
     ParamType<QState> state,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     using namespace internal;
 

@@ -3,7 +3,7 @@
 #include "downward/operator_counting/constraint_generator.h"
 
 using namespace std;
-using namespace operator_counting;
+using namespace downward::operator_counting;
 
 using namespace downward::cli::plugins;
 

@@ -16,7 +16,7 @@
 #include <vector>
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 }
 
@@ -43,7 +43,7 @@ struct ECDStatistics {
 
     unsigned long long recursions = 0;
 
-    utils::Timer time;
+    downward::utils::Timer time;
 
     void print(std::ostream& out) const;
 };
@@ -189,13 +189,13 @@ private:
     void find_and_decompose_sccs(
         QSystem& sys,
         unsigned limit,
-        utils::CountdownTimer& timer,
+        downward::utils::CountdownTimer& timer,
         auto&... mdp_and_h);
 
     bool push_successor(
         ExpansionInfo& e,
         StackInfo& s,
-        utils::CountdownTimer& timer,
+        downward::utils::CountdownTimer& timer,
         auto&... mdp_and_h);
 
     template <bool RootIteration>
@@ -203,9 +203,12 @@ private:
         QSystem& sys,
         ExpansionInfo& e,
         StackInfo& s,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
-    void decompose(QSystem& sys, unsigned start, utils::CountdownTimer& timer);
+    void decompose(
+        QSystem& sys,
+        unsigned start,
+        downward::utils::CountdownTimer& timer);
 };
 
 } // namespace probfd::preprocessing

@@ -14,7 +14,7 @@
 
 using namespace std;
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 SplitSelector::SplitSelector(
     const shared_ptr<AbstractTask>& task,
     PickSplit pick)

@@ -2,6 +2,8 @@
 
 #include "probfd/pdbs/pattern_collection_generator.h"
 
+using namespace downward;
+
 namespace probfd::pdbs {
 
 PatternCollectionGenerator::PatternCollectionGenerator(

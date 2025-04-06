@@ -4,12 +4,12 @@
 #include <tuple>
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 enum class Verbosity;
 }
 
 namespace probfd::cli::pdbs {
-using PatternCollectionGeneratorArgs = std::tuple<utils::Verbosity>;
+using PatternCollectionGeneratorArgs = std::tuple<downward::utils::Verbosity>;
 } // namespace probfd::cli::pdbs
 
 #endif

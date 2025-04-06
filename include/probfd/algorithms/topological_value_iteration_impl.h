@@ -243,7 +243,7 @@ Interval TopologicalValueIteration<State, Action, UseInterval>::solve(
     double max_time,
     MapPolicy* policy)
 {
-    utils::CountdownTimer timer(max_time);
+    downward::utils::CountdownTimer timer(max_time);
 
     StateInfo& iinfo = state_information_[init_state_id];
     AlgorithmValueType& init_value = value_store[init_state_id];
@@ -379,7 +379,7 @@ bool TopologicalValueIteration<State, Action, UseInterval>::successor_loop(
     MDPType& mdp,
     DFSExplorationState& explore,
     ValueStore& value_store,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     do {
         assert(!explore.stack_info.nconv_qs.empty());
@@ -416,7 +416,7 @@ template <typename State, typename Action, bool UseInterval>
 void TopologicalValueIteration<State, Action, UseInterval>::scc_found(
     auto scc,
     MapPolicy* policy,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     assert(!scc.empty());
 

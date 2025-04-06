@@ -23,6 +23,9 @@
 #include <limits>
 #include <utility>
 
+using namespace downward;
+using namespace downward::lp;
+
 namespace probfd::algorithms::i2dual {
 
 void I2Dual::Statistics::print(std::ostream& out) const
@@ -89,7 +92,7 @@ I2Dual::I2Dual(
     std::shared_ptr<FDRCostFunction> task_cost_function,
     bool hpom_enabled,
     bool incremental_updates,
-    lp::LPSolverType solver_type,
+    LPSolverType solver_type,
     double fp_epsilon)
     : task_proxy_(*task)
     , task_cost_function_(std::move(task_cost_function))
@@ -112,14 +115,14 @@ Interval I2Dual::solve(
     ProgressReport progress,
     double max_time)
 {
-    utils::CountdownTimer timer(max_time);
+    downward::utils::CountdownTimer timer(max_time);
 
     statistics_ = Statistics();
 
     std::cout << "Initializing I2-Dual..." << std::endl;
 
     if (hpom_enabled_) {
-        ::task_properties::verify_no_axioms(task_proxy_);
+        downward::task_properties::verify_no_axioms(task_proxy_);
         probfd::task_properties::verify_no_conditional_effects(task_proxy_);
     }
 
@@ -139,8 +142,8 @@ Interval I2Dual::solve(
     const double infinity = lp_solver_.get_infinity();
 
     // Data structures for refining LP
-    lp::LPVariable dummy_variable(0, infinity, 0);
-    lp::LPConstraint dummy_constraint(-infinity, 0);
+    LPVariable dummy_variable(0, infinity, 0);
+    LPConstraint dummy_constraint(-infinity, 0);
     std::vector<int> var_constraint_ids;
     std::vector<double> var_constraint_coefs;
     std::vector<double> obj_coef(next_lp_var_, 0);
@@ -339,10 +342,10 @@ bool I2Dual::evaluate_state(
 void I2Dual::prepare_lp()
 {
     // setup empty LP
-    lp::LinearProgram lp(
-        lp::LPObjectiveSense::MAXIMIZE,
-        named_vector::NamedVector<lp::LPVariable>(),
-        named_vector::NamedVector<lp::LPConstraint>(),
+    LinearProgram lp(
+        LPObjectiveSense::MAXIMIZE,
+        downward::named_vector::NamedVector<LPVariable>(),
+        downward::named_vector::NamedVector<LPConstraint>(),
         lp_solver_.get_infinity());
 
     prepare_hpom(lp);
@@ -354,7 +357,7 @@ void I2Dual::prepare_lp()
     lp_solver_.load_problem(lp);
 }
 
-void I2Dual::prepare_hpom(lp::LinearProgram& lp)
+void I2Dual::prepare_hpom(LinearProgram& lp)
 {
     if (!hpom_enabled_) {
         return;
@@ -421,11 +424,11 @@ void I2Dual::update_hpom_constraints_frontier(
 void I2Dual::remove_fringe_state_from_hpom(
     const State& state,
     const IDualData& data,
-    named_vector::NamedVector<lp::LPConstraint>& constraints) const
+    downward::named_vector::NamedVector<LPConstraint>& constraints) const
 {
     for (VariableProxy var : task_proxy_.get_variables()) {
         const int val = state[var].get_value();
-        lp::LPConstraint& c = constraints[offset_[var.get_id()] + val];
+        LPConstraint& c = constraints[offset_[var.get_id()] + val];
         for (const auto& om : data.incoming) {
             c.remove(om.second);
         }
@@ -435,11 +438,11 @@ void I2Dual::remove_fringe_state_from_hpom(
 void I2Dual::add_fringe_state_to_hpom(
     const State& state,
     const IDualData& data,
-    named_vector::NamedVector<lp::LPConstraint>& constraints) const
+    downward::named_vector::NamedVector<LPConstraint>& constraints) const
 {
     for (VariableProxy var : task_proxy_.get_variables()) {
         const int val = state[var].get_value();
-        lp::LPConstraint& c = constraints[offset_[var.get_id()] + val];
+        LPConstraint& c = constraints[offset_[var.get_id()] + val];
         for (const auto& om : data.incoming) {
             c.insert(om.second, om.first);
         }

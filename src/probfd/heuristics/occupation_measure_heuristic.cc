@@ -5,6 +5,7 @@
 #include "downward/utils/logging.h"
 
 using namespace std;
+using namespace downward;
 using namespace probfd::occupation_measures;
 
 namespace probfd::heuristics {

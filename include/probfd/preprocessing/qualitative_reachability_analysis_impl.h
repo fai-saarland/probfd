@@ -153,7 +153,7 @@ void QualitativeReachabilityAnalysis<State, Action>::run_analysis(
 {
     assert(expansion_queue_.empty());
 
-    utils::CountdownTimer timer(max_time);
+    downward::utils::CountdownTimer timer(max_time);
 
     const StateID init_id = mdp.get_state_id(source_state);
     push_state(init_id, state_infos_[init_id]);
@@ -269,7 +269,7 @@ template <typename State, typename Action>
 bool QualitativeReachabilityAnalysis<State, Action>::push_successor(
     MDPType& mdp,
     ExpansionInfo& exp_info,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     do {
         timer.throw_if_expired();
@@ -313,7 +313,7 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
     std::output_iterator<StateID> auto dead_out,
     std::output_iterator<StateID> auto unsolvable_out,
     std::output_iterator<StateID> auto solvable_out,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     class Partition {
         std::vector<std::vector<int>::iterator> scc_index_to_local;
@@ -406,7 +406,7 @@ void QualitativeReachabilityAnalysis<State, Action>::scc_found(
             solvable_beg = solvable_exits_beg;
         }
 
-        bool is_unsolvable(int s)
+        bool is_unsolvable(int s) const
         {
             return scc_index_to_local[s] < solvable_beg;
         }

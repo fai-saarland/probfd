@@ -7,8 +7,8 @@
 #include "downward/utils/logging.h"
 
 using namespace std;
-using namespace ff_heuristic;
-using namespace utils;
+using namespace downward::ff_heuristic;
+using namespace downward::utils;
 
 using namespace downward::cli::plugins;
 
@@ -17,7 +17,8 @@ using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
 
-class FFHeuristicFeature : public TypedFeature<Evaluator, FFHeuristic> {
+class FFHeuristicFeature
+    : public TypedFeature<downward::Evaluator, FFHeuristic> {
 public:
     FFHeuristicFeature()
         : TypedFeature("ff")

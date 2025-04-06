@@ -11,7 +11,7 @@
 
 using namespace std;
 
-namespace utils {
+namespace downward::utils {
 /*
   NOTE: When adding more options to Log, make sure to adapt the if block in
   get_log_from_options below to test for *all* default values used for

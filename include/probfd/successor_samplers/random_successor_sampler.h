@@ -6,7 +6,7 @@
 #include <memory>
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
@@ -14,13 +14,13 @@ namespace probfd::successor_samplers {
 
 template <typename Action>
 class RandomSuccessorSampler : public algorithms::SuccessorSampler<Action> {
-    std::shared_ptr<utils::RandomNumberGenerator> rng_;
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng_;
 
 public:
     explicit RandomSuccessorSampler(int random_seed);
 
     explicit RandomSuccessorSampler(
-        std::shared_ptr<utils::RandomNumberGenerator> rng);
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng);
 
 protected:
     StateID sample(

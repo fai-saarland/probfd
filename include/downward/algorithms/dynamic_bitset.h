@@ -12,7 +12,7 @@
   Poor man's version of boost::dynamic_bitset, mostly copied from there.
 */
 
-namespace dynamic_bitset {
+namespace downward::dynamic_bitset {
 template <typename Block = unsigned int>
 class DynamicBitset {
     static_assert(

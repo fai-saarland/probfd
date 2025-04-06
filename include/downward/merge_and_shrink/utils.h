@@ -6,11 +6,11 @@
 #include <memory>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 class FactoredTransitionSystem;
 class ShrinkStrategy;
 class TransitionSystem;

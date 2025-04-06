@@ -6,11 +6,11 @@
 #include <memory>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 /* A base class for bucket-based shrink strategies.
 
    A bucket-based strategy partitions the states into an ordered

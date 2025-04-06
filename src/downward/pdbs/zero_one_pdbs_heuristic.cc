@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 static ZeroOnePDBs get_zero_one_pdbs_from_generator(
     const shared_ptr<AbstractTask>& task,
     const shared_ptr<PatternCollectionGenerator>& pattern_generator)

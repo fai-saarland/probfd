@@ -7,8 +7,8 @@
 #include "downward/utils/logging.h"
 
 using namespace std;
-using namespace goal_count_heuristic;
-using namespace utils;
+using namespace downward::goal_count_heuristic;
+using namespace downward::utils;
 
 using namespace downward::cli::plugins;
 
@@ -18,7 +18,7 @@ using downward::cli::get_heuristic_arguments_from_options;
 namespace {
 
 class GoalCountHeuristicFeature
-    : public TypedFeature<Evaluator, GoalCountHeuristic> {
+    : public TypedFeature<downward::Evaluator, GoalCountHeuristic> {
 public:
     GoalCountHeuristicFeature()
         : TypedFeature("goalcount")

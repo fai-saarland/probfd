@@ -18,7 +18,7 @@
 
 using namespace std;
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 Abstraction::Abstraction(
     const shared_ptr<AbstractTask>& task,
     utils::LogProxy& log)

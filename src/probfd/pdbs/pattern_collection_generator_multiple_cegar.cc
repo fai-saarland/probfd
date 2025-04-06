@@ -13,6 +13,7 @@
 #include "downward/utils/countdown_timer.h"
 
 using namespace std;
+using namespace downward;
 
 namespace probfd::pdbs {
 

@@ -12,9 +12,9 @@
 #include <vector>
 
 using namespace std;
-using namespace domain_transition_graph;
+using namespace downward::domain_transition_graph;
 
-namespace cg_heuristic {
+namespace downward::cg_heuristic {
 CGHeuristic::CGHeuristic(
     int max_cache_size,
     const shared_ptr<AbstractTask>& transform,

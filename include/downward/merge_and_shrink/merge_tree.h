@@ -4,12 +4,12 @@
 #include <memory>
 #include <utility>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
 }
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 extern const int UNINITIALIZED;
 
 /*

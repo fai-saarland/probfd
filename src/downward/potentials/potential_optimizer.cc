@@ -11,9 +11,9 @@
 #include <unordered_map>
 
 using namespace std;
-using utils::ExitCode;
+using downward::utils::ExitCode;
 
-namespace potentials {
+namespace downward::potentials {
 static int get_undefined_value(VariableProxy var)
 {
     return var.get_domain_size();

@@ -23,7 +23,7 @@ class ProbabilisticCausalGraph;
 namespace probfd::pdbs {
 
 class PatternCollectionGeneratorSystematic : public PatternCollectionGenerator {
-    using PatternSet = utils::HashSet<Pattern>;
+    using PatternSet = downward::utils::HashSet<Pattern>;
 
     const size_t max_pattern_size;
     const bool only_interesting_patterns;
@@ -32,7 +32,7 @@ public:
     PatternCollectionGeneratorSystematic(
         int pattern_max_size,
         bool only_interesting_patterns,
-        utils::Verbosity verbosity);
+        downward::utils::Verbosity verbosity);
 
     PatternCollectionInformation generate(
         const std::shared_ptr<ProbabilisticTask>& task,

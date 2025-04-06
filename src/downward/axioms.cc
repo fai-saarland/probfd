@@ -11,6 +11,8 @@
 
 using namespace std;
 
+namespace downward {
+
 AxiomEvaluator::AxiomEvaluator(const PlanningTaskProxy& task_proxy)
 {
     task_has_axioms = task_properties::has_axioms(task_proxy);
@@ -168,3 +170,5 @@ void AxiomEvaluator::evaluate(vector<int>& state)
 }
 
 PerTaskInformation<AxiomEvaluator> g_axiom_evaluators;
+
+} // namespace downward

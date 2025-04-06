@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 MergeStrategyStateless::MergeStrategyStateless(
     const FactoredTransitionSystem& fts,
     const shared_ptr<MergeSelector>& merge_selector)

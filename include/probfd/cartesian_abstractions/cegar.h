@@ -9,7 +9,7 @@
 #include <vector>
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 class Timer;
 } // namespace utils
 
@@ -58,7 +58,7 @@ class CEGAR {
     const std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory_;
     const std::shared_ptr<SplitSelectorFactory> split_selector_factory_;
 
-    mutable utils::LogProxy log_;
+    mutable downward::utils::LogProxy log_;
 
 public:
     CEGAR(
@@ -67,7 +67,7 @@ public:
         double max_time,
         std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory,
         std::shared_ptr<SplitSelectorFactory> split_selector_factory,
-        utils::LogProxy log);
+        downward::utils::LogProxy log);
 
     ~CEGAR();
 
@@ -92,7 +92,7 @@ private:
         RefinementHierarchy& refinement_hierarchy,
         CartesianAbstraction& abstraction,
         CartesianHeuristic& heuristic,
-        utils::Timer& timer);
+        downward::utils::Timer& timer);
 
     void refine_abstraction(
         FlawGenerator& flaw_generator,
@@ -101,7 +101,7 @@ private:
         CartesianAbstraction& abstraction,
         CartesianHeuristic& heuristic,
         const Flaw& flaw,
-        utils::Timer& timer);
+        downward::utils::Timer& timer);
 
     void refine_abstraction(
         FlawGenerator& flaw_generator,

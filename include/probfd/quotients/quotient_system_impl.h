@@ -258,11 +258,11 @@ void QuotientSystem<State, Action>::generate_applicable_actions(
 
                 assert(aops.size() == info->total_num_outer_acts_);
             },
-            [&](ParamType<State> state) {
+            [&](ParamType<State> s) {
                 std::vector<Action> orig;
-                mdp_.generate_applicable_actions(state, orig);
+                mdp_.generate_applicable_actions(s, orig);
 
-                const StateID state_id = mdp_.get_state_id(state);
+                const StateID state_id = mdp_.get_state_id(s);
                 aops.reserve(orig.size());
 
                 for (const Action& a : orig) {
@@ -308,27 +308,27 @@ void QuotientSystem<State, Action>::generate_all_transitions(
 
                 auto aop = info->aops_.begin();
 
-                for (const auto& info : info->state_infos_) {
-                    const auto outers_end = aop + info.num_outer_acts;
+                for (const auto& sinfo : info->state_infos_) {
+                    const auto outers_end = aop + sinfo.num_outer_acts;
                     for (; aop != outers_end; ++aop) {
                         const QAction& a =
-                            aops.emplace_back(info.state_id, *aop);
+                            aops.emplace_back(sinfo.state_id, *aop);
                         generate_action_transitions(
                             state,
                             a,
                             successor_dists.emplace_back());
                     }
-                    aop += info.num_inner_acts; // Skip inner actions
+                    aop += sinfo.num_inner_acts; // Skip inner actions
                 }
 
                 assert(aops.size() == info->total_num_outer_acts_);
                 assert(successor_dists.size() == info->total_num_outer_acts_);
             },
-            [&](ParamType<State> state) {
+            [&](ParamType<State> s) {
                 std::vector<Action> orig_a;
-                mdp_.generate_applicable_actions(state, orig_a);
+                mdp_.generate_applicable_actions(s, orig_a);
 
-                const StateID state_id = mdp_.get_state_id(state);
+                const StateID state_id = mdp_.get_state_id(s);
                 aops.reserve(orig_a.size());
                 successor_dists.reserve(orig_a.size());
 
@@ -337,7 +337,7 @@ void QuotientSystem<State, Action>::generate_all_transitions(
                     auto& dist = successor_dists.emplace_back();
 
                     SuccessorDistribution orig;
-                    mdp_.generate_action_transitions(state, oa, orig);
+                    mdp_.generate_action_transitions(s, oa, orig);
 
                     for (const auto& [succ_id, probability] :
                          orig.non_source_successor_dist) {
@@ -378,11 +378,11 @@ void QuotientSystem<State, Action>::generate_all_transitions(
 
                 assert(transitions.size() == info->total_num_outer_acts_);
             },
-            [&](ParamType<State> state) {
+            [&](ParamType<State> s) {
                 std::vector<Action> orig_a;
-                mdp_.generate_applicable_actions(state, orig_a);
+                mdp_.generate_applicable_actions(s, orig_a);
 
-                const StateID state_id = mdp_.get_state_id(state);
+                const StateID state_id = mdp_.get_state_id(s);
                 transitions.reserve(orig_a.size());
 
                 for (Action a : orig_a) {
@@ -390,7 +390,7 @@ void QuotientSystem<State, Action>::generate_all_transitions(
                     QTransitionTail& t = transitions.emplace_back(qa);
 
                     SuccessorDistribution orig;
-                    mdp_.generate_action_transitions(state, a, orig);
+                    mdp_.generate_action_transitions(s, a, orig);
 
                     for (const auto& [succ_id, probability] :
                          orig.non_source_successor_dist) {
@@ -450,9 +450,8 @@ auto QuotientSystem<State, Action>::translate_state(ParamType<State> s) const
     -> QState
 {
     StateID id = mdp_.get_state_id(s);
-    const auto* info = get_quotient_info(get_masked_state_id(id));
 
-    if (info) {
+    if (const auto* info = get_quotient_info(get_masked_state_id(id))) {
         return QState(mdp_, info);
     }
 
@@ -533,9 +532,9 @@ void QuotientSystem<State, Action>::build_quotient(
         is_goal = is_goal || repr_term.is_goal_state();
     }
 
-    for (const auto& entry : submdp) {
-        const StateID state_id = get<0>(entry);
-        const auto& aops = get<1>(entry);
+    for (const auto& e : submdp) {
+        const StateID state_id = get<0>(e);
+        const auto& aops = get<1>(e);
 
         // Already handled.
         if (state_id == rid) {
@@ -649,9 +648,9 @@ void QuotientSystem<State, Action>::build_new_quotient(
         qinfo.total_num_outer_acts_ += b.num_outer_acts;
     }
 
-    for (const auto& entry : submdp) {
-        const StateID state_id = get<0>(entry);
-        const auto& aops = get<1>(entry);
+    for (const auto& e : submdp) {
+        const StateID state_id = get<0>(e);
+        const auto& aops = get<1>(e);
 
         // Already handled.
         if (state_id == rid) {

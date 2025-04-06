@@ -1,6 +1,7 @@
 #ifndef OPERATOR_COST_H
 #define OPERATOR_COST_H
 
+namespace downward {
 class AxiomOrOperatorProxy;
 
 enum OperatorCost : unsigned short {
@@ -14,5 +15,6 @@ int get_adjusted_action_cost(
     const AxiomOrOperatorProxy& op,
     OperatorCost cost_type,
     bool is_unit_cost);
+}
 
 #endif

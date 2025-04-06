@@ -9,6 +9,7 @@
 #include "downward/cli/plugins/plugin.h"
 
 using namespace std;
+using namespace downward;
 using namespace downward::cli::plugins;
 using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;

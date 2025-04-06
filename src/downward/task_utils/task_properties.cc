@@ -9,9 +9,9 @@
 #include <limits>
 
 using namespace std;
-using utils::ExitCode;
+using downward::utils::ExitCode;
 
-namespace task_properties {
+namespace downward::task_properties {
 
 bool is_unit_cost(const TaskProxy& task)
 {

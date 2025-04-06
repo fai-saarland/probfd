@@ -28,7 +28,7 @@ template <typename T>
 class Distribution;
 
 template <typename T>
-void swap(Distribution<T>& left, Distribution<T>& right);
+void swap(Distribution<T>& left, Distribution<T>& right) noexcept;
 
 /**
  * @brief A convenience class that represents a finite probability
@@ -99,7 +99,7 @@ public:
     void normalize(value_t scale);
     void normalize();
 
-    auto sample(utils::RandomNumberGenerator& rng);
+    auto sample(downward::utils::RandomNumberGenerator& rng);
 
     iterator erase(iterator it);
     iterator erase(iterator it, iterator last);
@@ -123,7 +123,7 @@ public:
     friend auto
     operator<=>(const Distribution<T>&, const Distribution<T>&) = default;
 
-    friend void swap<T>(Distribution<T>& left, Distribution<T>& right);
+    friend void swap<T>(Distribution<T>& left, Distribution<T>& right) noexcept;
 };
 
 template <std::ranges::input_range R>

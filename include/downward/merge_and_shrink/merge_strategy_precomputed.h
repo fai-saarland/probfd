@@ -5,7 +5,7 @@
 
 #include <memory>
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 class MergeTree;
 class MergeStrategyPrecomputed : public MergeStrategy {
     std::unique_ptr<MergeTree> merge_tree;

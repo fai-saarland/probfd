@@ -8,7 +8,7 @@
 
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
@@ -114,12 +114,12 @@ public:
     bool apply_abstraction(
         int index,
         const StateEquivalenceRelation& state_equivalence_relation,
-        utils::LogProxy& log);
+        downward::utils::LogProxy& log);
 
     /*
       Merge the two factors at index1 and index2.
     */
-    MergeResult merge(int index1, int index2, utils::LogProxy& log);
+    MergeResult merge(int index1, int index2, downward::utils::LogProxy& log);
 
     /*
       Extract the factor at the given index, rendering the FTS invalid.
@@ -178,9 +178,9 @@ public:
     FTSConstIterator begin() const { return FTSConstIterator(*this, false); }
     FTSConstIterator end() const { return FTSConstIterator(*this, true); }
 
-    void statistics(int index, utils::LogProxy& log) const;
-    void dump(int index, utils::LogProxy& log) const;
-    void dump(utils::LogProxy& log) const;
+    void statistics(int index, downward::utils::LogProxy& log) const;
+    void dump(int index, downward::utils::LogProxy& log) const;
+    void dump(downward::utils::LogProxy& log) const;
 
 private:
     /*

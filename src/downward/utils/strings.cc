@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace utils {
+namespace downward::utils {
 void lstrip(string& s)
 {
     s.erase(s.begin(), find_if(s.begin(), s.end(), [](int ch) {

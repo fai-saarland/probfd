@@ -6,6 +6,7 @@
 
 #include "probfd/heuristics/gzocp_heuristic.h"
 
+using namespace downward;
 using namespace probfd;
 using namespace probfd::pdbs;
 using namespace probfd::heuristics;
@@ -37,7 +38,7 @@ public:
             "patterns",
             "The pattern generation algorithm to construct the projections.",
             "classical_generator(generator=systematic(pattern_max_size=2))");
-        add_option<GZOCPHeuristic::OrderingStrategy>(
+        add_option<GZOCPHeuristicFactory::OrderingStrategy>(
             "order",
             "The order in which the projections are considered.",
             "random");
@@ -51,7 +52,7 @@ public:
     {
         return make_shared_from_arg_tuples<GZOCPHeuristicFactory>(
             opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"),
-            opts.get<GZOCPHeuristic::OrderingStrategy>("order"),
+            opts.get<GZOCPHeuristicFactory::OrderingStrategy>("order"),
             get_rng_arguments_from_options(opts),
             get_task_dependent_heuristic_arguments_from_options(opts));
     }
@@ -59,7 +60,7 @@ public:
 
 FeaturePlugin<GZOCPHeuristicFactoryFeature> _plugin;
 
-TypedEnumPlugin<GZOCPHeuristic::OrderingStrategy> _enum_plugin(
+TypedEnumPlugin<GZOCPHeuristicFactory::OrderingStrategy> _enum_plugin(
     {{"random", "the order is random"},
      {"size_asc", "orders the PDBs by increasing size"},
      {"size_desc", "orders the PDBs by decreasing size"},

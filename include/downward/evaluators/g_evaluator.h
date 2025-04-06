@@ -3,7 +3,7 @@
 
 #include "downward/evaluator.h"
 
-namespace g_evaluator {
+namespace downward::g_evaluator {
 class GEvaluator : public Evaluator {
 public:
     GEvaluator(const std::string& description, utils::Verbosity verbosity);

@@ -3,7 +3,7 @@
 
 #include <vector>
 
-namespace sccs {
+namespace downward::sccs {
 /*
   This function implements Tarjan's algorithm for finding the strongly
   connected components of a directed graph. The runtime is O(n + m) for a

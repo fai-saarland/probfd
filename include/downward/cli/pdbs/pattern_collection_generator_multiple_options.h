@@ -3,7 +3,7 @@
 
 #include <tuple>
 
-namespace utils {
+namespace downward::utils {
 enum class Verbosity;
 }
 

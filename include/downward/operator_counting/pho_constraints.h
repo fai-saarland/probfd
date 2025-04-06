@@ -9,11 +9,11 @@
 
 #include <memory>
 
-namespace pdbs {
+namespace downward::pdbs {
 class PatternCollectionGenerator;
 }
 
-namespace operator_counting {
+namespace downward::operator_counting {
 class PhOConstraints : public ConstraintGenerator {
     std::shared_ptr<pdbs::PatternCollectionGenerator> pattern_generator;
 

@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <cassert>
 
+using namespace downward;
+
 namespace probfd {
 
 ProbabilisticEffectConditionsProxy::ProbabilisticEffectConditionsProxy(

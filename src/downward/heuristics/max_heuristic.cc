@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace max_heuristic {
+namespace downward::max_heuristic {
 /*
   TODO: At the time of this writing, this shares huge amounts of code
         with h^add, and the two should be refactored so that the

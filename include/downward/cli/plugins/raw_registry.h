@@ -1,7 +1,7 @@
 #ifndef PLUGINS_RAW_REGISTRY_H
 #define PLUGINS_RAW_REGISTRY_H
 
-#include "registry_types.h"
+#include "downward/cli/plugins/registry_types.h"
 
 #include <typeindex>
 #include <vector>

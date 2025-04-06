@@ -14,11 +14,11 @@
   can be one of the bottlenecks in our code.)
 */
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 class TransitionSystem;
 
 class Distances {

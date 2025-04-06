@@ -33,7 +33,7 @@ struct SuccessorDistribution {
                non_source_successor_dist.empty();
     }
 
-    auto sample(utils::RandomNumberGenerator& rng) const
+    auto sample(downward::utils::RandomNumberGenerator& rng) const
     {
         assert(!non_source_successor_dist.empty());
 

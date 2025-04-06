@@ -11,7 +11,7 @@
 #include <utility>
 #include <vector>
 
-namespace enforced_hill_climbing_search {
+namespace downward::enforced_hill_climbing_search {
 enum class PreferredUsage { PRUNE_BY_PREFERRED, RANK_PREFERRED_FIRST };
 
 /*

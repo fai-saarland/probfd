@@ -5,11 +5,11 @@
 
 #include "downward/task_utils/variable_order_finder.h"
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 class MergeTreeFactoryLinear : public MergeTreeFactory {
     variable_order_finder::VariableOrderType variable_order_type;
     std::shared_ptr<utils::RandomNumberGenerator> rng;

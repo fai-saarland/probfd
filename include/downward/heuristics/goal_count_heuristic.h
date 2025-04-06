@@ -3,7 +3,7 @@
 
 #include "downward/heuristic.h"
 
-namespace goal_count_heuristic {
+namespace downward::goal_count_heuristic {
 class GoalCountHeuristic : public Heuristic {
 protected:
     virtual int compute_heuristic(const State& ancestor_state) override;

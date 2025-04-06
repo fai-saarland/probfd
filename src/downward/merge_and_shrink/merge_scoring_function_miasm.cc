@@ -12,7 +12,7 @@
 
 using namespace std;
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 MergeScoringFunctionMIASM::MergeScoringFunctionMIASM(
     shared_ptr<ShrinkStrategy> shrink_strategy,
     int max_states,

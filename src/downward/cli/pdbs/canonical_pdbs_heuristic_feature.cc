@@ -7,8 +7,8 @@
 #include "downward/pdbs/canonical_pdbs_heuristic.h"
 
 using namespace std;
-using namespace utils;
-using namespace pdbs;
+using namespace downward::utils;
+using namespace downward::pdbs;
 
 using namespace downward::cli::plugins;
 
@@ -21,7 +21,7 @@ using downward::cli::pdbs::get_canonical_pdbs_arguments_from_options;
 namespace {
 
 class CanonicalPDBsHeuristicFeature
-    : public TypedFeature<Evaluator, CanonicalPDBsHeuristic> {
+    : public TypedFeature<downward::Evaluator, CanonicalPDBsHeuristic> {
 public:
     CanonicalPDBsHeuristicFeature()
         : TypedFeature("cpdbs")

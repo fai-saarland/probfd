@@ -12,9 +12,11 @@
 #include <vector>
 
 // Forward Declarations
+namespace downward {
 class VariablesProxy;
+}
 
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 class LogProxy;
 class RandomNumberGenerator;
@@ -43,7 +45,7 @@ class CEGAR {
     const value_t convergence_epsilon;
 
     // Random number generator
-    const std::shared_ptr<utils::RandomNumberGenerator> rng_;
+    const std::shared_ptr<downward::utils::RandomNumberGenerator> rng_;
 
     // Flaw finding strategy
     const std::shared_ptr<FlawFindingStrategy> flaw_strategy_;
@@ -72,8 +74,8 @@ class CEGAR {
 public:
     CEGAR(
         value_t convergence_epsilon,
-        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy,
+        const std::shared_ptr<downward::utils::RandomNumberGenerator>& rng,
+        std::shared_ptr<FlawFindingStrategy> flaw_strategy,
         bool wildcard,
         int max_pdb_size,
         int max_collection_size,
@@ -88,24 +90,24 @@ public:
         ProjectionCollection& projections,
         PPDBCollection& pdbs,
         double max_time,
-        utils::LogProxy log);
+        downward::utils::LogProxy log);
 
 private:
     void generate_trivial_solution_collection(
         ProbabilisticTaskProxy task_proxy,
         std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
-        utils::CountdownTimer& timer,
-        utils::LogProxy log);
+        downward::utils::CountdownTimer& timer,
+        downward::utils::LogProxy log);
 
     std::vector<PDBInfo>::iterator get_flaws(
         ProbabilisticTaskProxy task_proxy,
         std::vector<Flaw>& flaws,
         std::vector<int>& flaw_offsets,
-        utils::CountdownTimer& timer,
-        utils::LogProxy log);
+        downward::utils::CountdownTimer& timer,
+        downward::utils::LogProxy log);
 
     bool can_add_variable_to_pattern(
-        const VariablesProxy& variables,
+        const downward::VariablesProxy& variables,
         std::vector<PDBInfo>::iterator info_it,
         int var) const;
 
@@ -118,31 +120,31 @@ private:
         std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         const heuristics::BlindEvaluator<StateRank>& h,
         int var,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     void add_variable_to_pattern(
         ProbabilisticTaskProxy task_proxy,
         std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         std::vector<PDBInfo>::iterator info_it,
         int var,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     void merge_patterns(
         ProbabilisticTaskProxy task_proxy,
         std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
         std::vector<PDBInfo>::iterator info_it1,
         std::vector<PDBInfo>::iterator info_it2,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     void refine(
         ProbabilisticTaskProxy task_proxy,
         const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
         const std::vector<Flaw>& flaws,
         const std::vector<int>& flaw_offsets,
-        utils::CountdownTimer& timer,
-        utils::LogProxy log);
+        downward::utils::CountdownTimer& timer,
+        downward::utils::LogProxy log);
 
-    void print_collection(utils::LogProxy log) const;
+    void print_collection(downward::utils::LogProxy log) const;
 };
 
 } // namespace probfd::pdbs::cegar

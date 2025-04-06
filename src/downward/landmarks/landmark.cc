@@ -2,7 +2,7 @@
 
 using namespace std;
 
-namespace landmarks {
+namespace downward::landmarks {
 bool Landmark::is_true_in_state(const State& state) const
 {
     if (disjunctive) {

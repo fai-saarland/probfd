@@ -1,8 +1,10 @@
 #ifndef PROBFD_FDR_TYPES_H
 #define PROBFD_FDR_TYPES_H
 
+namespace downward {
 class State;
 class OperatorID;
+} // namespace downward
 
 namespace probfd {
 
@@ -30,25 +32,27 @@ template <typename>
 class Heuristic;
 
 /// Type alias for state spaces in FDR.
-using FDRStateSpace = StateSpace<State, OperatorID>;
+using FDRStateSpace = StateSpace<downward::State, downward::OperatorID>;
 
 /// Type alias for cost functions for MDPs in FDR.
-using FDRCostFunction = SimpleCostFunction<State, OperatorID>;
+using FDRCostFunction =
+    SimpleCostFunction<downward::State, downward::OperatorID>;
 
 /// Type alias for simple cost functions for MDPs in FDR.
-using FDRSimpleCostFunction = SimpleCostFunction<State, OperatorID>;
+using FDRSimpleCostFunction =
+    SimpleCostFunction<downward::State, downward::OperatorID>;
 
 /// Type alias for MDPs with states in FDR.
-using FDRMDP = MDP<State, OperatorID>;
+using FDRMDP = MDP<downward::State, downward::OperatorID>;
 
 /// Type alias for simple MDPs with states in FDR.
-using FDRSimpleMDP = SimpleMDP<State, OperatorID>;
+using FDRSimpleMDP = SimpleMDP<downward::State, downward::OperatorID>;
 
 /// Type alias for evaluators for states in FDR.
-using FDREvaluator = Heuristic<State>;
+using FDREvaluator = Heuristic<downward::State>;
 
 // Type alias for search algorithms for MDPs in FDR.
-using FDRMDPAlgorithm = MDPAlgorithm<State, OperatorID>;
+using FDRMDPAlgorithm = MDPAlgorithm<downward::State, downward::OperatorID>;
 
 } // namespace probfd
 

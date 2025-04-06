@@ -6,9 +6,11 @@
 #include <memory>
 #include <vector>
 
+namespace downward {
 class TaskProxy;
+}
 
-namespace pdbs {
+namespace downward::pdbs {
 using VariableAdditivity = std::vector<std::vector<bool>>;
 
 extern VariableAdditivity compute_additive_vars(const TaskProxy& task_proxy);

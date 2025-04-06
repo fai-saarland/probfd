@@ -6,6 +6,7 @@
 
 #include "downward/utils/markup.h"
 
+using namespace downward;
 using namespace probfd::pdbs;
 
 using namespace downward::cli::plugins;

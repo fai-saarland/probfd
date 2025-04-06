@@ -8,7 +8,7 @@
 #include "downward/utils/timer.h"
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 }
 
@@ -36,7 +36,7 @@ struct Statistics {
     unsigned long long check_and_solve_bellman_backups = 0;
     unsigned long long traps = 0;
     unsigned long long trial_length = 0;
-    utils::Timer trap_timer = utils::Timer(true);
+    downward::utils::Timer trap_timer = downward::utils::Timer(false);
 
     void print(std::ostream& out) const;
     void register_report(ProgressReport& report) const;
@@ -84,7 +84,7 @@ class TALRTDPImpl
               UseInterval>> {
     using Base = typename TALRTDPImpl::HeuristicSearchBase;
 
-    using AlgorithmValueType = Base::AlgorithmValueType;
+    using AlgorithmValueType = typename Base::AlgorithmValueType;
 
     using QuotientSystem = quotients::QuotientSystem<State, Action>;
     using QState = quotients::QuotientState<State, Action>;
@@ -193,18 +193,18 @@ private:
         QuotientSystem& quotient,
         QHeuristic& heuristic,
         StateID start_state,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     bool check_and_solve(
         QuotientSystem& quotient,
         QHeuristic& heuristic,
         StateID state_id,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     bool push_successor(
         QuotientSystem& quotient,
         DFSExplorationState& einfo,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     void push(StateID state);
 

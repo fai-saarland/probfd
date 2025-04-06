@@ -14,7 +14,7 @@
 
 using namespace std;
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 MergeScoringFunctionTotalOrder::MergeScoringFunctionTotalOrder(
     AtomicTSOrder atomic_ts_order,
     ProductTSOrder product_ts_order,

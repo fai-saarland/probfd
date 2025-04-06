@@ -17,8 +17,8 @@
 #include "downward/utils/rng.h"
 
 using namespace std;
-using namespace cartesian_abstractions;
-using namespace utils;
+using namespace downward::cartesian_abstractions;
+using namespace downward::utils;
 
 using namespace downward::cli;
 using namespace downward::cli::plugins;

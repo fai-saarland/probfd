@@ -7,6 +7,8 @@
 
 using namespace std;
 
+namespace downward {
+
 Evaluator::Evaluator(
     bool use_for_reporting_minima,
     bool use_for_boosting,
@@ -83,3 +85,5 @@ int Evaluator::get_cached_estimate(const State&) const
 {
     ABORT("Called get_cached_estimate when estimate is not cached.");
 }
+
+} // namespace downward

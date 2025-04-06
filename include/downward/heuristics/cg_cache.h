@@ -5,15 +5,15 @@
 
 #include <vector>
 
-namespace domain_transition_graph {
+namespace downward::domain_transition_graph {
 struct ValueTransitionLabel;
 }
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
-namespace cg_heuristic {
+namespace downward::cg_heuristic {
 class CGCache {
     TaskProxy task_proxy;
     std::vector<std::vector<int>> cache;

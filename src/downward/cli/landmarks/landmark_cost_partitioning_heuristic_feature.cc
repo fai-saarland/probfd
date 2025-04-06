@@ -9,7 +9,7 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace landmarks;
+using namespace downward::landmarks;
 
 using namespace downward::cli::plugins;
 
@@ -22,7 +22,9 @@ using downward::cli::lp::get_lp_solver_arguments_from_options;
 namespace {
 
 class LandmarkCostPartitioningHeuristicFeature
-    : public TypedFeature<Evaluator, LandmarkCostPartitioningHeuristic> {
+    : public TypedFeature<
+          downward::Evaluator,
+          LandmarkCostPartitioningHeuristic> {
 public:
     LandmarkCostPartitioningHeuristicFeature()
         : TypedFeature("landmark_cost_partitioning")
@@ -31,7 +33,7 @@ public:
         document_synopsis(
             "Formerly known as the admissible landmark heuristic.\n"
             "See the papers" +
-            utils::format_conference_reference(
+            downward::utils::format_conference_reference(
                 {"Erez Karpas", "Carmel Domshlak"},
                 "Cost-Optimal Planning with Landmarks",
                 "https://www.ijcai.org/Proceedings/09/Papers/288.pdf",
@@ -41,7 +43,7 @@ public:
                 "AAAI Press",
                 "2009") +
             "and" +
-            utils::format_conference_reference(
+            downward::utils::format_conference_reference(
                 {"Emil Keyder and Silvia Richter and Malte Helmert"},
                 "Sound and Complete Landmarks for And/Or Graphs",
                 "https://ai.dmi.unibas.ch/papers/keyder-et-al-ecai2010.pdf",
@@ -110,7 +112,8 @@ public:
     }
 
     virtual shared_ptr<LandmarkCostPartitioningHeuristic>
-    create_component(const Options& opts, const utils::Context&) const override
+    create_component(const Options& opts, const downward::utils::Context&)
+        const override
     {
         return make_shared_from_arg_tuples<LandmarkCostPartitioningHeuristic>(
             get_landmark_heuristic_arguments_from_options(opts),

@@ -8,7 +8,7 @@
 #include <memory>
 #include <utility>
 
-namespace utils {
+namespace downward::utils {
 enum class Verbosity;
 class RandomNumberGenerator;
 } // namespace utils
@@ -20,7 +20,7 @@ using PatternCollectionGeneratorMultipleAdditionalArgs =
 
 using PatternCollectionGeneratorMultipleArgs = TupleCatType<
     PatternCollectionGeneratorMultipleAdditionalArgs,
-    std::tuple<std::shared_ptr<utils::RandomNumberGenerator>>,
+    std::tuple<std::shared_ptr<downward::utils::RandomNumberGenerator>>,
     PatternCollectionGeneratorArgs>;
 
 } // namespace probfd::cli::pdbs

@@ -8,7 +8,9 @@
 
 #include <type_traits>
 
+namespace downward {
 class OperatorID;
+}
 
 namespace probfd {
 
@@ -21,7 +23,7 @@ template <typename T>
 constexpr bool enable_pass_by_value<T> = true;
 
 template <>
-inline constexpr bool enable_pass_by_value<OperatorID> = true;
+inline constexpr bool enable_pass_by_value<downward::OperatorID> = true;
 
 }
 

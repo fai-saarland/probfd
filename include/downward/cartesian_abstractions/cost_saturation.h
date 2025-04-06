@@ -7,14 +7,14 @@
 #include <memory>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 class Duration;
 class RandomNumberGenerator;
 class LogProxy;
 } // namespace utils
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 class CartesianHeuristicFunction;
 class SubtaskGenerator;
 

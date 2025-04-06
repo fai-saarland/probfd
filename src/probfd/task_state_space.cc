@@ -11,6 +11,8 @@
 
 #include <iostream>
 
+using namespace downward;
+
 namespace probfd {
 
 void TaskStateSpace::Statistics::print(std::ostream& out) const

@@ -8,6 +8,7 @@
 
 #include <unordered_map>
 
+namespace downward {
 class Evaluator;
 class SearchStatistics;
 
@@ -121,5 +122,7 @@ public:
     const std::vector<OperatorID>& get_preferred_operators(Evaluator* eval);
     bool get_calculate_preferred() const;
 };
+
+}
 
 #endif

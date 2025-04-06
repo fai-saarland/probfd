@@ -4,10 +4,10 @@
 #include <memory>
 #include <utility>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
-} // namespace utils
+} // namespace downward::utils
 
 namespace probfd::merge_and_shrink {
 
@@ -39,7 +39,8 @@ struct MergeTreeNode {
     MergeTreeNode* get_parent_of_ts_index(int index);
     int compute_num_internal_nodes() const;
     void
-    inorder(int offset, int current_indentation, utils::LogProxy& log) const;
+    inorder(int offset, int current_indentation, downward::utils::LogProxy& log)
+        const;
 
     bool is_leaf() const { return !left_child && !right_child; }
 
@@ -77,7 +78,7 @@ struct MergeTreeNode {
 */
 class MergeTree {
     MergeTreeNode* root;
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
     UpdateOption update_option;
     /*
       Find the two parents (can be the same) of the given indices. The first
@@ -91,7 +92,7 @@ class MergeTree {
 public:
     MergeTree(
         MergeTreeNode* root,
-        const std::shared_ptr<utils::RandomNumberGenerator>& rng,
+        const std::shared_ptr<downward::utils::RandomNumberGenerator>& rng,
         UpdateOption update_option);
 
     ~MergeTree();
@@ -110,7 +111,9 @@ public:
     // NOTE: this performs the "inverted" inorder_traversal, i.e. from right
     // to left, so that the printed tree matches the correct left-to-right
     // order.
-    void inorder_traversal(int indentation_offset, utils::LogProxy& log) const;
+    void
+    inorder_traversal(int indentation_offset, downward::utils::LogProxy& log)
+        const;
 };
 
 } // namespace probfd::merge_and_shrink

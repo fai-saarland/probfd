@@ -9,13 +9,13 @@ class Feature;
 class Options;
 } // namespace downward::cli::plugins
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 class LabelReduction;
 class MergeStrategyFactory;
 class ShrinkStrategy;
 } // namespace merge_and_shrink
 
-namespace utils {
+namespace downward::utils {
 class Context;
 }
 
@@ -24,9 +24,9 @@ namespace downward::cli::merge_and_shrink {
 extern void
 add_merge_and_shrink_algorithm_options_to_feature(plugins::Feature& feature);
 std::tuple<
-    std::shared_ptr<::merge_and_shrink::MergeStrategyFactory>,
-    std::shared_ptr<::merge_and_shrink::ShrinkStrategy>,
-    std::shared_ptr<::merge_and_shrink::LabelReduction>,
+    std::shared_ptr<downward::merge_and_shrink::MergeStrategyFactory>,
+    std::shared_ptr<downward::merge_and_shrink::ShrinkStrategy>,
+    std::shared_ptr<downward::merge_and_shrink::LabelReduction>,
     bool,
     bool,
     int,

@@ -9,8 +9,8 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace utils;
-using namespace epsilon_greedy_open_list;
+using namespace downward::utils;
+using namespace downward::epsilon_greedy_open_list;
 
 using namespace downward::cli::plugins;
 
@@ -23,7 +23,9 @@ using downward::cli::utils::get_rng_arguments_from_options;
 namespace {
 
 class EpsilonGreedyOpenListFeature
-    : public TypedFeature<OpenListFactory, EpsilonGreedyOpenListFactory> {
+    : public TypedFeature<
+          downward::OpenListFactory,
+          EpsilonGreedyOpenListFactory> {
 public:
     EpsilonGreedyOpenListFeature()
         : TypedFeature("epsilon_greedy")
@@ -33,7 +35,7 @@ public:
             "Chooses an entry uniformly randomly with probability "
             "'epsilon', otherwise it returns the minimum entry. "
             "The algorithm is based on" +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Richard Valenzano",
                  "Nathan R. Sturtevant",
                  "Jonathan Schaeffer",
@@ -48,7 +50,7 @@ public:
                 "AAAI Press",
                 "2014"));
 
-        add_option<shared_ptr<Evaluator>>("eval", "evaluator");
+        add_option<shared_ptr<downward::Evaluator>>("eval", "evaluator");
         add_option<double>(
             "epsilon",
             "probability for choosing the next entry randomly",
@@ -62,7 +64,7 @@ public:
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<EpsilonGreedyOpenListFactory>(
-            opts.get<shared_ptr<Evaluator>>("eval"),
+            opts.get<shared_ptr<downward::Evaluator>>("eval"),
             opts.get<double>("epsilon"),
             get_rng_arguments_from_options(opts),
             get_open_list_arguments_from_options(opts));

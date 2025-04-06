@@ -6,7 +6,7 @@
 
 #include <memory>
 
-namespace pdbs {
+namespace downward::pdbs {
 class PatternCollectionGeneratorManual : public PatternCollectionGenerator {
     std::shared_ptr<PatternCollection> patterns;
 

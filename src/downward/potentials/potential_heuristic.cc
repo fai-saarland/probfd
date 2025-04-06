@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace potentials {
+namespace downward::potentials {
 PotentialHeuristic::PotentialHeuristic(
     unique_ptr<PotentialFunction> function,
     const shared_ptr<AbstractTask>& transform,

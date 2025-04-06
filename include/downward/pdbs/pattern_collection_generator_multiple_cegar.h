@@ -3,7 +3,7 @@
 
 #include "downward/pdbs/pattern_collection_generator_multiple.h"
 
-namespace pdbs {
+namespace downward::pdbs {
 class PatternCollectionGeneratorMultipleCegar
     : public PatternCollectionGeneratorMultiple {
     const bool use_wildcard_plans;

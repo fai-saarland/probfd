@@ -20,11 +20,11 @@ namespace probfd::pdbs {
 
 class PatternCollectionGenerator {
 protected:
-    mutable utils::LogProxy log_;
+    mutable downward::utils::LogProxy log_;
 
 public:
-    explicit PatternCollectionGenerator(utils::Verbosity verbosity);
-    explicit PatternCollectionGenerator(utils::LogProxy log);
+    explicit PatternCollectionGenerator(downward::utils::Verbosity verbosity);
+    explicit PatternCollectionGenerator(downward::utils::LogProxy log);
     virtual ~PatternCollectionGenerator() = default;
 
     virtual PatternCollectionInformation generate(

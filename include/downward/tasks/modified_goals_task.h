@@ -5,7 +5,7 @@
 
 #include <vector>
 
-namespace extra_tasks {
+namespace downward::extra_tasks {
 class ModifiedGoalsTask : public tasks::DelegatingTask {
     const std::vector<FactPair> goals;
 

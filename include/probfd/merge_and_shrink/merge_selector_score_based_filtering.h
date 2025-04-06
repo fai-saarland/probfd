@@ -32,7 +32,8 @@ public:
 protected:
     std::string name() const override;
 
-    void dump_selector_specific_options(utils::LogProxy& log) const override;
+    void dump_selector_specific_options(
+        downward::utils::LogProxy& log) const override;
 };
 
 } // namespace probfd::merge_and_shrink

@@ -13,7 +13,7 @@
 
 using namespace std;
 
-namespace utils {
+namespace downward::utils {
 ostream& operator<<(ostream& os, const Duration& time)
 {
     os << static_cast<double>(time) << "s";

@@ -19,7 +19,7 @@
 
 using namespace std;
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 static bool
 compare_sccs_increasing(const vector<int>& lhs, const vector<int>& rhs)
 {

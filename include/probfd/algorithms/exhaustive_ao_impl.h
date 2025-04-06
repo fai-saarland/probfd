@@ -26,7 +26,7 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
     ProgressReport& progress,
     double max_time)
 {
-    utils::CountdownTimer timer(max_time);
+    downward::utils::CountdownTimer timer(max_time);
 
     StateID initstateid = mdp.get_state_id(initial_state);
     const auto& state_info = this->state_infos_[initstateid];

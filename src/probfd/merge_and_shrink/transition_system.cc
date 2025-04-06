@@ -20,6 +20,8 @@
 #include <unordered_set>
 
 using namespace std;
+using namespace downward;
+
 using utils::ExitCode;
 
 namespace probfd::merge_and_shrink {

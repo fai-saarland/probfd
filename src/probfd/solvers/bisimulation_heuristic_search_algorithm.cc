@@ -20,6 +20,8 @@
 
 #include "downward/utils/timer.h"
 
+using namespace downward;
+
 namespace probfd::solvers {
 
 void BisimulationTimer::print(std::ostream& out) const

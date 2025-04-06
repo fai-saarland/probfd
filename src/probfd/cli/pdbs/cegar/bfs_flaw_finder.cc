@@ -2,6 +2,7 @@
 
 #include "downward/cli/plugins/plugin.h"
 
+using namespace downward;
 using namespace probfd::pdbs::cegar;
 
 using namespace downward::cli::plugins;

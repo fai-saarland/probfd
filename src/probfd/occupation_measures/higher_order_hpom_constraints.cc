@@ -17,6 +17,8 @@
 #include <memory>
 #include <utility>
 
+using namespace downward;
+
 namespace probfd::occupation_measures {
 
 static bool next_pattern(std::size_t num_variables, std::vector<int>& pattern)

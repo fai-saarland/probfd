@@ -11,16 +11,16 @@
 #include <set>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 class RandomNumberGenerator;
 } // namespace utils
 
-namespace sampling {
+namespace downward::sampling {
 class RandomWalkSampler;
 }
 
-namespace pdbs {
+namespace downward::pdbs {
 class IncrementalCanonicalPDBs;
 class PatternDatabase;
 

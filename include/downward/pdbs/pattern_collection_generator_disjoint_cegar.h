@@ -3,11 +3,11 @@
 
 #include "downward/pdbs/pattern_generator.h"
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
-namespace pdbs {
+namespace downward::pdbs {
 /*
   This pattern collection generator uses the CEGAR algorithm to compute a
   disjoint pattern collection for the given task. See cegar.h for more details.

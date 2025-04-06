@@ -10,12 +10,12 @@
 #include <memory>
 #include <string>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
 } // namespace utils
 
-namespace pdbs {
+namespace downward::pdbs {
 class PatternCollectionInformation;
 class PatternInformation;
 

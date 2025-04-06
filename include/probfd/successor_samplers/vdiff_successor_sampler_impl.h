@@ -14,14 +14,14 @@ template <typename Action>
 VDiffSuccessorSampler<Action>::VDiffSuccessorSampler(
     int random_seed,
     bool prefer_large_gaps)
-    : rng_(std::make_shared<utils::RandomNumberGenerator>(random_seed))
+    : rng_(std::make_shared<downward::utils::RandomNumberGenerator>(random_seed))
     , prefer_large_gaps_(prefer_large_gaps)
 {
 }
 
 template <typename Action>
 VDiffSuccessorSampler<Action>::VDiffSuccessorSampler(
-    std::shared_ptr<utils::RandomNumberGenerator> rng,
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng,
     bool prefer_large_gaps)
     : rng_(std::move(rng))
     , prefer_large_gaps_(prefer_large_gaps)

@@ -27,7 +27,7 @@ struct BisimulationTimer {
 class BisimulationBasedHeuristicSearchAlgorithm : public FDRMDPAlgorithm {
 protected:
     using QState = bisimulation::QuotientState;
-    using QAction = OperatorID;
+    using QAction = downward::OperatorID;
 
     const std::shared_ptr<ProbabilisticTask> task_;
     const std::shared_ptr<FDRCostFunction> task_cost_function_;
@@ -48,7 +48,7 @@ public:
     std::unique_ptr<PolicyType> compute_policy(
         FDRMDP&,
         FDREvaluator&,
-        const State&,
+        const downward::State&,
         ProgressReport progress,
         double max_time) override;
 

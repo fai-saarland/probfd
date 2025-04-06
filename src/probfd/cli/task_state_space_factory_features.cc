@@ -6,19 +6,19 @@
 #include "probfd/task_state_space_factory.h"
 
 using namespace probfd;
-
-using namespace utils;
+using namespace downward;
+using namespace downward::utils;
 
 using namespace downward::cli::plugins;
 
 namespace {
 
 class DefaultTaskStateSpaceFactory : public TaskStateSpaceFactory {
-    std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators;
+    std::vector<std::shared_ptr<Evaluator>> path_dependent_evaluators;
 
 public:
-    DefaultTaskStateSpaceFactory(
-        std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators)
+    explicit DefaultTaskStateSpaceFactory(
+        std::vector<std::shared_ptr<Evaluator>> path_dependent_evaluators)
         : path_dependent_evaluators(std::move(path_dependent_evaluators))
     {
     }
@@ -34,11 +34,11 @@ public:
 };
 
 class CachingTaskStateSpaceFactory : public TaskStateSpaceFactory {
-    std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators;
+    std::vector<std::shared_ptr<Evaluator>> path_dependent_evaluators;
 
 public:
     CachingTaskStateSpaceFactory(
-        std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators)
+        std::vector<std::shared_ptr<Evaluator>> path_dependent_evaluators)
         : path_dependent_evaluators(std::move(path_dependent_evaluators))
     {
     }
@@ -60,7 +60,7 @@ public:
         : TypedFeature("default_state_space")
     {
         document_synopsis("Default task state space implementation.");
-        add_list_option<std::shared_ptr<::Evaluator>>(
+        add_list_option<std::shared_ptr<Evaluator>>(
             "path_dependent_evaluators",
             "A list of path-dependent classical planning evaluators to inform "
             "of "
@@ -72,7 +72,7 @@ public:
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<DefaultTaskStateSpaceFactory>(
-            opts.get_list<std::shared_ptr<::Evaluator>>(
+            opts.get_list<std::shared_ptr<Evaluator>>(
                 "path_dependent_evaluators"));
     }
 };
@@ -85,7 +85,7 @@ public:
     {
         document_synopsis(
             "Task state space implementation with transition cache.");
-        add_list_option<std::shared_ptr<::Evaluator>>(
+        add_list_option<std::shared_ptr<Evaluator>>(
             "path_dependent_evaluators",
             "A list of path-dependent classical planning evaluators to inform "
             "of "
@@ -97,7 +97,7 @@ public:
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<CachingTaskStateSpaceFactory>(
-            opts.get_list<std::shared_ptr<::Evaluator>>(
+            opts.get_list<std::shared_ptr<Evaluator>>(
                 "path_dependent_evaluators"));
     }
 };

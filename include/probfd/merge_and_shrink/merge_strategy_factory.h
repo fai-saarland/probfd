@@ -19,10 +19,10 @@ namespace probfd::merge_and_shrink {
 
 class MergeStrategyFactory {
 protected:
-    mutable utils::LogProxy log;
+    mutable downward::utils::LogProxy log;
 
 public:
-    explicit MergeStrategyFactory(utils::Verbosity verbosity);
+    explicit MergeStrategyFactory(downward::utils::Verbosity verbosity);
 
     virtual ~MergeStrategyFactory() = default;
 

@@ -15,7 +15,7 @@
 #include <vector>
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 }
 
@@ -130,7 +130,7 @@ class TopologicalValueIteration : public IterativeMDPAlgorithm<State, Action> {
 
     struct DFSExplorationState {
         // Exploration State
-        std::vector<Action> aops;         // Remaining unexpanded operators
+        std::vector<Action> aops;             // Remaining unexpanded operators
         SuccessorDistribution successor_dist; // Currently expanded transition
         Distribution<StateID>::const_iterator successor; // Current successor
 
@@ -246,12 +246,15 @@ private:
         MDPType& mdp,
         DFSExplorationState& explore,
         ValueStore& value_store,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     /**
      * Handle the new SCC and perform value iteration on it.
      */
-    void scc_found(auto scc, MapPolicy* policy, utils::CountdownTimer& timer);
+    void scc_found(
+        auto scc,
+        MapPolicy* policy,
+        downward::utils::CountdownTimer& timer);
 };
 
 } // namespace probfd::algorithms::topological_vi

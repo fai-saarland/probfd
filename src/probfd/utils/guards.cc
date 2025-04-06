@@ -4,7 +4,7 @@
 
 namespace probfd {
 
-TimerScope::TimerScope(utils::Timer& timer)
+TimerScope::TimerScope(downward::utils::Timer& timer)
     : timer_(timer)
 {
     timer.resume();

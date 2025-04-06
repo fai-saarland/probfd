@@ -5,8 +5,8 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace utils;
-using namespace operator_counting;
+using namespace downward::utils;
+using namespace downward::operator_counting;
 
 using namespace downward::cli::plugins;
 
@@ -28,7 +28,7 @@ public:
             "value "
             "for the state is computed, all temporary constraints are removed "
             "again. For details, see" +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Florian Pommerening",
                  "Gabriele Roeger",
                  "Malte Helmert",
@@ -41,7 +41,7 @@ public:
                 "226-234",
                 "AAAI Press",
                 "2014") +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Blai Bonet"},
                 "An admissible heuristic for SAS+ planning obtained from the"
                 " state equation",

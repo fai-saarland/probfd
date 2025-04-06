@@ -3,13 +3,15 @@
 
 #include "downward/pdbs/types.h"
 
+namespace downward {
 class TaskProxy;
+}
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
-namespace pdbs {
+namespace downward::pdbs {
 extern void validate_and_normalize_pattern(
     const TaskProxy& task_proxy,
     Pattern& pattern,

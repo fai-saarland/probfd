@@ -5,14 +5,16 @@
 
 #include <memory>
 
+namespace downward {
 class TaskProxy;
+}
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
 } // namespace utils
 
-namespace pdbs {
+namespace downward::pdbs {
 /*
   This function computes a pattern for the given task. Starting with the given
   goal variable, the algorithm executes a random walk on the causal graph. In

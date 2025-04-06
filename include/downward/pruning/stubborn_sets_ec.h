@@ -3,7 +3,7 @@
 
 #include "downward/pruning/stubborn_sets_action_centric.h"
 
-namespace stubborn_sets_ec {
+namespace downward::stubborn_sets_ec {
 class StubbornSetsEC : public stubborn_sets::StubbornSetsActionCentric {
 private:
     std::vector<std::vector<std::vector<bool>>> reachability_map;

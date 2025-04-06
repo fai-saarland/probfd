@@ -8,6 +8,7 @@
 #include "probfd/task_heuristic_factory.h"
 
 using namespace std;
+using namespace downward;
 using namespace probfd::merge_and_shrink;
 
 namespace probfd::heuristics {
@@ -29,6 +30,11 @@ FactorDistances::FactorDistances(
 {
     compute_goal_distances(labels, ts, distance_table);
 }
+
+FactorDistances::~FactorDistances() = default;
+FactorDistances::FactorDistances(FactorDistances&&) noexcept = default;
+FactorDistances&
+FactorDistances::operator=(FactorDistances&&) noexcept = default;
 
 value_t FactorDistances::lookup_distance(const State& state) const
 {

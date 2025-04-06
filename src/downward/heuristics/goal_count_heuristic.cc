@@ -6,7 +6,7 @@
 
 using namespace std;
 
-namespace goal_count_heuristic {
+namespace downward::goal_count_heuristic {
 GoalCountHeuristic::GoalCountHeuristic(
     const shared_ptr<AbstractTask>& transform,
     bool cache_estimates,

@@ -5,6 +5,7 @@
 
 #include <memory>
 
+namespace downward {
 class OpenListFactory {
 public:
     OpenListFactory() = default;
@@ -24,5 +25,6 @@ public:
     template <typename T>
     std::unique_ptr<OpenList<T>> create_open_list();
 };
+}
 
 #endif

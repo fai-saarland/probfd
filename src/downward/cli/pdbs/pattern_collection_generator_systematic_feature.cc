@@ -8,8 +8,8 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace utils;
-using namespace pdbs;
+using namespace downward::utils;
+using namespace downward::pdbs;
 
 using namespace downward::cli::pdbs;
 using namespace downward::cli::plugins;
@@ -29,7 +29,7 @@ public:
             "Generates all (interesting) patterns with up to pattern_max_size "
             "variables. "
             "For details, see" +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Florian Pommerening", "Gabriele Roeger", "Malte Helmert"},
                 "Getting the Most Out of Pattern Databases for Classical "
                 "Planning",

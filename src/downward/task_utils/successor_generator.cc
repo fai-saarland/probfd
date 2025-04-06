@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace successor_generator {
+namespace downward::successor_generator {
 SuccessorGenerator::SuccessorGenerator(const PlanningTaskProxy& task_proxy)
     : root(SuccessorGeneratorFactory(task_proxy).create())
 {

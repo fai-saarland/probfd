@@ -9,7 +9,8 @@
 #include "downward/utils/system.h"
 
 using namespace std;
-using namespace potentials;
+using namespace downward;
+using namespace downward::potentials;
 
 using namespace downward::cli::potentials;
 using namespace downward::cli::plugins;

@@ -12,7 +12,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 PatternCollectionGeneratorMultiple::PatternCollectionGeneratorMultiple(
     int max_pdb_size,
     int max_collection_size,

@@ -7,11 +7,13 @@
 #include <memory>
 #include <vector>
 
+namespace downward {
 class Evaluator;
 class PruningMethod;
 class OpenListFactory;
+}
 
-namespace eager_search {
+namespace downward::eager_search {
 class EagerSearch : public SearchAlgorithm {
     const bool reopen_closed_nodes;
 

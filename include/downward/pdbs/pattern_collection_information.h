@@ -7,11 +7,11 @@
 
 #include <memory>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
-namespace pdbs {
+namespace downward::pdbs {
 /*
   This class contains everything we know about a pattern collection. It will
   always contain patterns, but can also contain the computed PDBs and maximal

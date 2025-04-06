@@ -8,8 +8,8 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace landmarks;
-using namespace utils;
+using namespace downward::landmarks;
+using namespace downward::utils;
 
 using namespace downward::cli::plugins;
 
@@ -27,7 +27,7 @@ public:
         document_title("HPS Orders");
         document_synopsis(
             "Adds reasonable orders described in the following paper" +
-            utils::format_journal_reference(
+            format_journal_reference(
                 {"Jörg Hoffmann", "Julie Porteous", "Laura Sebastia"},
                 "Ordered Landmarks in Planning",
                 "https://jair.org/index.php/jair/article/view/10390/24882",

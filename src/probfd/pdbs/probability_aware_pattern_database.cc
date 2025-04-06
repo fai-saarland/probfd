@@ -16,6 +16,8 @@
 #include <limits>
 #include <utility>
 
+using namespace downward;
+
 namespace probfd::pdbs {
 
 static void compute_distances(

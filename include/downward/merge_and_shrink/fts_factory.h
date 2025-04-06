@@ -11,13 +11,15 @@
   merge-and-shrink should not need to know about planning task concepts.
 */
 
+namespace downward {
 class TaskProxy;
+}
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 class FactoredTransitionSystem;
 
 extern FactoredTransitionSystem create_factored_transition_system(

@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 /*
   Iterator class for Labels.
 

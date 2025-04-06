@@ -10,7 +10,7 @@
 #include <vector>
 
 using namespace std;
-using namespace merge_and_shrink;
+using namespace downward::merge_and_shrink;
 
 using namespace downward::cli::plugins;
 

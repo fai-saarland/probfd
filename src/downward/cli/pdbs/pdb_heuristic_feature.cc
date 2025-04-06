@@ -5,8 +5,8 @@
 #include "downward/pdbs/pdb_heuristic.h"
 
 using namespace std;
-using namespace utils;
-using namespace pdbs;
+using namespace downward::utils;
+using namespace downward::pdbs;
 
 using namespace downward::cli::plugins;
 
@@ -15,7 +15,8 @@ using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
 
-class PDBHeuristicFeature : public TypedFeature<Evaluator, PDBHeuristic> {
+class PDBHeuristicFeature
+    : public TypedFeature<downward::Evaluator, PDBHeuristic> {
 public:
     PDBHeuristicFeature()
         : TypedFeature("pdb")

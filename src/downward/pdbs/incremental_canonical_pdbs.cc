@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 IncrementalCanonicalPDBs::IncrementalCanonicalPDBs(
     const TaskProxy& task_proxy,
     const PatternCollection& intitial_patterns)

@@ -3,7 +3,7 @@
 
 #include "downward/open_list_factory.h"
 
-namespace alternation_open_list {
+namespace downward::alternation_open_list {
 class AlternationOpenListFactory : public OpenListFactory {
     std::vector<std::shared_ptr<OpenListFactory>> sublists;
     int boost;

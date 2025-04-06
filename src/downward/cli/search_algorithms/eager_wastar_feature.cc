@@ -6,14 +6,16 @@
 #include "downward/search_algorithms/search_common.h"
 
 using namespace std;
-using namespace downward::cli::eager_search;
+using namespace downward;
+using namespace downward::eager_search;
 
+using namespace downward::cli::eager_search;
 using namespace downward::cli::plugins;
 
 namespace {
 
 class EagerWAstarSearchFeature
-    : public TypedFeature<SearchAlgorithm, eager_search::EagerSearch> {
+    : public TypedFeature<SearchAlgorithm, EagerSearch> {
 public:
     EagerWAstarSearchFeature()
         : TypedFeature("eager_wastar")
@@ -45,10 +47,10 @@ public:
             "is **not** equivalent to\n```\n--search astar(h())\n```\n");
     }
 
-    virtual shared_ptr<eager_search::EagerSearch>
+    virtual shared_ptr<EagerSearch>
     create_component(const Options& opts, const utils::Context&) const override
     {
-        return make_shared_from_arg_tuples<eager_search::EagerSearch>(
+        return make_shared_from_arg_tuples<EagerSearch>(
             search_common::create_wastar_open_list_factory(
                 opts.get_list<shared_ptr<Evaluator>>("evals"),
                 opts.get_list<shared_ptr<Evaluator>>("preferred"),

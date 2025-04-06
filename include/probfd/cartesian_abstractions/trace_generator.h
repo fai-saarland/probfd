@@ -10,7 +10,7 @@
 #include <ostream>
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 }
 
@@ -41,7 +41,7 @@ public:
         CartesianAbstraction& abstraction,
         int init_id,
         CartesianHeuristic& heuristic,
-        utils::CountdownTimer& timer) = 0;
+        downward::utils::CountdownTimer& timer) = 0;
 
     virtual void notify_split() = 0;
 };

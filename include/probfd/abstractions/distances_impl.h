@@ -28,7 +28,7 @@ void compute_value_table(
 {
     using namespace algorithms::ta_topological_vi;
 
-    utils::CountdownTimer timer(max_time);
+    downward::utils::CountdownTimer timer(max_time);
 
     TATopologicalValueIteration<State, Action> vi(10e-5, value_table.size());
     vi.solve(
@@ -39,9 +39,9 @@ void compute_value_table(
         timer.get_remaining_time());
 
 #if !defined(NDEBUG) && (defined(HAS_CPLEX) || defined(HAS_SOPLEX))
-    lp::LPSolverType lp_solver_type;
+    downward::lp::LPSolverType lp_solver_type;
 #if defined(HAS_CPLEX)
-    lp_solver_type = lp::LPSolverType::CPLEX;
+    lp_solver_type = downward::lp::LPSolverType::CPLEX;
 #else
     // lp_solver_type = lp::LPSolverType::SOPLEX;
 #endif

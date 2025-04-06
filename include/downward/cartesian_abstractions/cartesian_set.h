@@ -6,7 +6,7 @@
 #include <ostream>
 #include <vector>
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 using Bitset = dynamic_bitset::DynamicBitset<unsigned short>;
 
 /*

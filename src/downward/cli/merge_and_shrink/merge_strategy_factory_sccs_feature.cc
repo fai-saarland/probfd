@@ -8,8 +8,8 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace merge_and_shrink;
-using namespace utils;
+using namespace downward::merge_and_shrink;
+using namespace downward::utils;
 
 using namespace downward::cli::plugins;
 
@@ -29,7 +29,7 @@ public:
         document_synopsis(
             "This merge strategy implements the algorithm described in the "
             "paper " +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Silvan Sievers", "Martin Wehrle", "Malte Helmert"},
                 "An Analysis of Merge Strategies for Merge-and-Shrink "
                 "Heuristics",

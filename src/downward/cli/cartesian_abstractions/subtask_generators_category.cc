@@ -2,7 +2,7 @@
 
 #include "downward/cartesian_abstractions/subtask_generators.h"
 
-using namespace cartesian_abstractions;
+using namespace downward::cartesian_abstractions;
 
 using namespace downward::cli::plugins;
 

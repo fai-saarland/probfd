@@ -5,7 +5,7 @@
 #include "downward/pdbs/canonical_pdbs_heuristic.h"
 
 using namespace std;
-using namespace pdbs;
+using namespace downward::pdbs;
 
 namespace downward::cli::pdbs {
 

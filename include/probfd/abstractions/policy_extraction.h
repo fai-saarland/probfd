@@ -8,7 +8,7 @@
 #include <memory>
 #include <span>
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
@@ -32,7 +32,7 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_optimal_projection_policy(
     std::span<const value_t> value_table,
     ParamType<State> initial_state,
     value_t greedy_epsilon,
-    utils::RandomNumberGenerator& rng,
+    downward::utils::RandomNumberGenerator& rng,
     bool wildcard);
 
 /**
@@ -49,7 +49,7 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_greedy_projection_policy(
     std::span<const value_t> value_table,
     ParamType<State> initial_state,
     value_t greedy_epsilon,
-    utils::RandomNumberGenerator& rng,
+    downward::utils::RandomNumberGenerator& rng,
     bool wildcard);
 
 } // namespace probfd

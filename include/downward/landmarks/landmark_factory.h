@@ -13,9 +13,11 @@
 #include <unordered_set>
 #include <vector>
 
+namespace downward {
 class TaskProxy;
+}
 
-namespace landmarks {
+namespace downward::landmarks {
 /*
   TODO: Change order to private -> protected -> public
    (omitted so far to minimize diff)

@@ -123,7 +123,7 @@ private:
         MDPType& mdp,
         HeuristicType& heuristic,
         ParamType<State> state,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     template <typename ValueStoreT, typename SetLike, typename SetLike2>
     Interval mysolve(
@@ -134,7 +134,7 @@ private:
         SetLike& dead_ends,
         SetLike2& one_states,
         QSystem& sys,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 };
 
 } // namespace probfd::algorithms::interval_iteration

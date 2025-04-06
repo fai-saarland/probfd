@@ -6,6 +6,7 @@
 #include <compare>
 #include <iostream>
 
+namespace downward {
 /*
   OperatorIDs are used to define an operator that belongs to a given
   planning task. These IDs are meant to be compact and efficient to use.
@@ -44,8 +45,9 @@ public:
 };
 
 std::ostream& operator<<(std::ostream& os, OperatorID id);
+}
 
-namespace utils {
+namespace downward::utils {
 inline void feed(HashState& hash_state, OperatorID id)
 {
     feed(hash_state, id.hash());

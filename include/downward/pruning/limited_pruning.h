@@ -3,7 +3,7 @@
 
 #include "downward/pruning_method.h"
 
-namespace limited_pruning {
+namespace downward::limited_pruning {
 class LimitedPruning : public PruningMethod {
     std::shared_ptr<PruningMethod> pruning_method;
     const double min_required_pruning_ratio;

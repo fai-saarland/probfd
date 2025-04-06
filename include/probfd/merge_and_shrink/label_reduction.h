@@ -4,11 +4,11 @@
 #include <memory>
 #include <vector>
 
-namespace equivalence_relation {
+namespace downward::equivalence_relation {
 class EquivalenceRelation;
 }
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
 } // namespace utils
@@ -56,7 +56,7 @@ class LabelReduction {
     bool lr_before_merging;
     LabelReductionMethod lr_method;
     LabelReductionSystemOrder lr_system_order;
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
 
     bool initialized() const;
 
@@ -74,9 +74,9 @@ public:
         int merge_index_left,
         int merge_index_right,
         FactoredTransitionSystem& fts,
-        utils::LogProxy& log) const;
+        downward::utils::LogProxy& log) const;
 
-    void dump_options(utils::LogProxy& log) const;
+    void dump_options(downward::utils::LogProxy& log) const;
 
     bool reduce_before_shrinking() const { return lr_before_shrinking; }
     bool reduce_before_merging() const { return lr_before_merging; }

@@ -1,7 +1,7 @@
 #ifndef UTILS_MEMORY_H
 #define UTILS_MEMORY_H
 
-namespace utils {
+namespace downward::utils {
 
 /*
   Reserve some memory that we can release and be able to continue

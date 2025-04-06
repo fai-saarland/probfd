@@ -19,7 +19,7 @@
 #include <string>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
@@ -206,7 +206,7 @@ public:
         const Labels& labels,
         const TransitionSystem& ts1,
         const TransitionSystem& ts2,
-        utils::LogProxy& log);
+        downward::utils::LogProxy& log);
 
     /*
       Applies the given state equivalence relation to the transition system.
@@ -219,7 +219,7 @@ public:
         const Labels& labels,
         const StateEquivalenceRelation& state_equivalence_relation,
         const std::vector<int>& abstraction_mapping,
-        utils::LogProxy& log);
+        downward::utils::LogProxy& log);
 
     /*
       Applies the given label mapping, mapping old to new label numbers.
@@ -249,9 +249,9 @@ public:
     */
     std::string tag() const;
 
-    void dump_statistics(utils::LogProxy& log) const;
-    void dump_dot_graph(utils::LogProxy& log) const;
-    void dump_labels_and_transitions(utils::LogProxy& log) const;
+    void dump_statistics(downward::utils::LogProxy& log) const;
+    void dump_dot_graph(downward::utils::LogProxy& log) const;
+    void dump_labels_and_transitions(downward::utils::LogProxy& log) const;
 
     friend std::ostream&
     operator<<(std::ostream& os, const TransitionSystem& ts);

@@ -3,7 +3,7 @@
 
 #include <tuple>
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 enum class UpdateOption;
 }
 
@@ -16,7 +16,7 @@ namespace downward::cli::merge_and_shrink {
 
 void add_merge_tree_options_to_feature(plugins::Feature& feature);
 
-std::tuple<int, ::merge_and_shrink::UpdateOption>
+std::tuple<int, downward::merge_and_shrink::UpdateOption>
 get_merge_tree_arguments_from_options(const plugins::Options& opts);
 
 } // namespace downward::cli::merge_and_shrink

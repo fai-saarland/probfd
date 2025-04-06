@@ -3,7 +3,7 @@
 
 #include <tuple>
 
-namespace utils {
+namespace downward::utils {
 enum class Verbosity;
 }
 
@@ -15,7 +15,7 @@ class Options;
 namespace downward::cli::utils {
 
 extern void add_log_options_to_feature(plugins::Feature& feature);
-extern std::tuple<::utils::Verbosity>
+extern std::tuple<downward::utils::Verbosity>
 get_log_arguments_from_options(const plugins::Options& opts);
 
 } // namespace downward::cli::utils

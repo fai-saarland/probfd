@@ -7,8 +7,8 @@
 #include "downward/utils/logging.h"
 
 using namespace std;
-using namespace cea_heuristic;
-using namespace utils;
+using namespace downward::cea_heuristic;
+using namespace downward::utils;
 
 using namespace downward::cli::plugins;
 
@@ -18,7 +18,9 @@ using downward::cli::get_heuristic_arguments_from_options;
 namespace {
 
 class ContextEnhancedAdditiveHeuristicFeature
-    : public TypedFeature<Evaluator, ContextEnhancedAdditiveHeuristic> {
+    : public TypedFeature<
+          downward::Evaluator,
+          ContextEnhancedAdditiveHeuristic> {
 public:
     ContextEnhancedAdditiveHeuristicFeature()
         : TypedFeature("cea")

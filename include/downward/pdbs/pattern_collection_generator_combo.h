@@ -3,7 +3,7 @@
 
 #include "downward/pdbs/pattern_generator.h"
 
-namespace pdbs {
+namespace downward::pdbs {
 /* Take one large pattern and then single-variable patterns for
    all goal variables that are not in the large pattern. */
 class PatternCollectionGeneratorCombo : public PatternCollectionGenerator {

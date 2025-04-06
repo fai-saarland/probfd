@@ -13,8 +13,8 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace utils;
-using namespace pdbs;
+using namespace downward::utils;
+using namespace downward::pdbs;
 
 using namespace downward::cli::pdbs;
 using namespace downward::cli::plugins;
@@ -80,8 +80,9 @@ public:
     create_component(const Options& opts, const Context& context) const override
     {
         if (opts.get<int>("min_improvement") > opts.get<int>("num_samples")) {
-            context.error("Minimum improvement must not be higher than number "
-                          "of samples");
+            context.error(
+                "Minimum improvement must not be higher than number "
+                "of samples");
         }
 
         return make_shared_from_arg_tuples<
@@ -91,7 +92,8 @@ public:
     }
 };
 
-class IPDBFeature : public TypedFeature<Evaluator, CanonicalPDBsHeuristic> {
+class IPDBFeature
+    : public TypedFeature<downward::Evaluator, CanonicalPDBsHeuristic> {
 public:
     IPDBFeature()
         : TypedFeature("ipdb")
@@ -138,8 +140,9 @@ public:
     create_component(const Options& opts, const Context& context) const override
     {
         if (opts.get<int>("min_improvement") > opts.get<int>("num_samples")) {
-            context.error("Minimum improvement must not be higher than number "
-                          "of samples");
+            context.error(
+                "Minimum improvement must not be higher than number "
+                "of samples");
         }
 
         shared_ptr<PatternCollectionGeneratorHillclimbing> pgh =

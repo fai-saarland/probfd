@@ -26,7 +26,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 /* Since this exception class is only used for control flow and thus has no need
    for an error message, we use a standalone class instead of inheriting from
    utils::Exception. */

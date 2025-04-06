@@ -18,7 +18,7 @@
 
 using namespace std;
 
-namespace eager_search {
+namespace downward::eager_search {
 EagerSearch::EagerSearch(
     const shared_ptr<OpenListFactory>& open,
     bool reopen_closed,

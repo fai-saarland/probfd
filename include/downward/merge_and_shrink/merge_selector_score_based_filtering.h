@@ -6,7 +6,7 @@
 #include <memory>
 #include <vector>
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 class MergeScoringFunction;
 class MergeSelectorScoreBasedFiltering : public MergeSelector {
     std::vector<std::shared_ptr<MergeScoringFunction>> merge_scoring_functions;

@@ -7,15 +7,15 @@
 #include <unordered_map>
 #include <vector>
 
-namespace cea_heuristic {
+namespace downward::cea_heuristic {
 class ContextEnhancedAdditiveHeuristic;
 }
 
-namespace cg_heuristic {
+namespace downward::cg_heuristic {
 class CGHeuristic;
 }
 
-namespace domain_transition_graph {
+namespace downward::domain_transition_graph {
 struct LocalAssignment;
 struct ValueNode;
 struct ValueTransition;

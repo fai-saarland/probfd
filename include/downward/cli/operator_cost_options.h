@@ -3,7 +3,9 @@
 
 #include <tuple>
 
+namespace downward {
 enum OperatorCost : unsigned short;
+}
 
 namespace downward::cli::plugins {
 class Feature;

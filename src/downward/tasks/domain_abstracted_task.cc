@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace extra_tasks {
+namespace downward::extra_tasks {
 /*
   If we need the same functionality again in another task, we can move this to
   actract_task.h. We should then document that this method is only supposed to

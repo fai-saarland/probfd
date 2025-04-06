@@ -5,7 +5,7 @@
 
 #include "downward/task_proxy.h"
 
-namespace stubborn_sets {
+namespace downward::stubborn_sets {
 inline FactPair find_unsatisfied_condition(
     const std::vector<FactPair>& conditions,
     const State& state);

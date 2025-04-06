@@ -3,6 +3,7 @@
 
 #include <memory>
 
+namespace downward {
 class SearchAlgorithm;
 
 class SearchAlgorithmFactory {
@@ -11,5 +12,6 @@ public:
 
     virtual std::unique_ptr<SearchAlgorithm> create_algorithm() = 0;
 };
+}
 
 #endif

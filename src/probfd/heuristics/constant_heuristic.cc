@@ -2,6 +2,8 @@
 
 #include "probfd/probabilistic_task.h"
 
+using namespace downward;
+
 namespace probfd::heuristics {
 
 std::unique_ptr<FDREvaluator> BlindEvaluatorFactory::create_evaluator(

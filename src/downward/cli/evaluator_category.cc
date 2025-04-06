@@ -8,7 +8,8 @@ using namespace downward::cli;
 
 namespace {
 
-class EvaluatorCategoryPlugin : public plugins::TypedCategoryPlugin<Evaluator> {
+class EvaluatorCategoryPlugin
+    : public plugins::TypedCategoryPlugin<downward::Evaluator> {
 public:
     EvaluatorCategoryPlugin()
         : TypedCategoryPlugin("Heuristic")

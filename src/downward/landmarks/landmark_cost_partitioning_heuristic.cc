@@ -12,7 +12,7 @@
 
 using namespace std;
 
-namespace landmarks {
+namespace downward::landmarks {
 LandmarkCostPartitioningHeuristic::LandmarkCostPartitioningHeuristic(
     const shared_ptr<LandmarkFactory>& lm_factory,
     bool pref,

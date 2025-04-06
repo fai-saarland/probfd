@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace utils {
+namespace downward::utils {
 Exception::Exception(const string& msg)
     : msg(msg)
 {

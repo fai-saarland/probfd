@@ -12,7 +12,9 @@
 #include <vector>
 
 // Forward Declarations
+namespace downward {
 struct FactPair;
+}
 
 namespace probfd {
 template <typename>
@@ -49,7 +51,7 @@ public:
     void insert(
         const AssignmentEnumerator& ranking_function,
         ProjectionOperator op,
-        const std::vector<FactPair>& progression_preconditions,
+        const std::vector<downward::FactPair>& progression_preconditions,
         FDRSimpleCostFunction* task_cost_function);
 
     /**

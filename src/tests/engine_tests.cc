@@ -21,6 +21,7 @@
 
 #include <memory>
 
+using namespace downward;
 using namespace probfd;
 using namespace tests;
 

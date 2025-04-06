@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <functional>
 
+namespace downward {
 class PlanningTask;
 
 /*
@@ -27,8 +28,9 @@ public:
 
     std::uint64_t hash() const { return value; }
 };
+}
 
-namespace utils {
+namespace downward::utils {
 inline void feed(HashState& hash_state, TaskID id)
 {
     feed(hash_state, id.hash());

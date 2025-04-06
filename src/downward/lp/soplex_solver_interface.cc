@@ -13,7 +13,7 @@
 using namespace std;
 using namespace soplex;
 
-namespace lp {
+namespace downward::lp {
 static int get_obj_sense(LPObjectiveSense sense)
 {
     if (sense == LPObjectiveSense::MINIMIZE) {

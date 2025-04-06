@@ -8,6 +8,8 @@
 
 using namespace std;
 
+namespace downward {
+
 EvaluationContext::EvaluationContext(
     const EvaluatorCache& cache,
     const State& state,
@@ -132,3 +134,5 @@ bool EvaluationContext::get_calculate_preferred() const
 {
     return calculate_preferred;
 }
+
+} // namespace downward

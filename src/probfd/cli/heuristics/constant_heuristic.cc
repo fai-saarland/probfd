@@ -2,6 +2,7 @@
 
 #include "probfd/heuristics/constant_heuristic.h"
 
+using namespace downward;
 using namespace utils;
 
 using namespace probfd;

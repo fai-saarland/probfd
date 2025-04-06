@@ -10,11 +10,11 @@
 #include <memory>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 class AbstractState;
 class RefinementHierarchy;
 class TransitionSystem;

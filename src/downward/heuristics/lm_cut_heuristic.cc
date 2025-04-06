@@ -11,7 +11,7 @@
 
 using namespace std;
 
-namespace lm_cut_heuristic {
+namespace downward::lm_cut_heuristic {
 LandmarkCutHeuristic::LandmarkCutHeuristic(
     const shared_ptr<AbstractTask>& transform,
     bool cache_estimates,

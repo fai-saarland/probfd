@@ -14,7 +14,7 @@
 
 using namespace std;
 
-namespace epsilon_greedy_open_list {
+namespace downward::epsilon_greedy_open_list {
 template <class Entry>
 class EpsilonGreedyOpenList : public OpenList<Entry> {
     shared_ptr<utils::RandomNumberGenerator> rng;

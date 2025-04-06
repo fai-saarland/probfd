@@ -6,12 +6,14 @@
 
 #include <vector>
 
+namespace downward {
 struct FactPair;
 class OperatorProxy;
 class State;
 class TaskProxy;
+}
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 class Node;
 
 /*

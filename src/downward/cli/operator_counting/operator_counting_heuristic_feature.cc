@@ -9,8 +9,8 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace utils;
-using namespace operator_counting;
+using namespace downward::utils;
+using namespace downward::operator_counting;
 
 using namespace downward::cli::plugins;
 
@@ -23,7 +23,7 @@ using downward::cli::lp::get_lp_solver_arguments_from_options;
 namespace {
 
 class OperatorCountingHeuristicFeature
-    : public TypedFeature<Evaluator, OperatorCountingHeuristic> {
+    : public TypedFeature<downward::Evaluator, OperatorCountingHeuristic> {
 public:
     OperatorCountingHeuristicFeature()
         : TypedFeature("operatorcounting")
@@ -42,7 +42,7 @@ public:
             "to "
             "some operator-counting constraints is an admissible heuristic. "
             "For details, see" +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Florian Pommerening",
                  "Gabriele Roeger",
                  "Malte Helmert",

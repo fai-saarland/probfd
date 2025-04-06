@@ -12,7 +12,7 @@
 #include <utility>
 #include <vector>
 
-namespace int_hash_set {
+namespace downward::int_hash_set {
 /*
   Hash set for storing non-negative integer keys.
 

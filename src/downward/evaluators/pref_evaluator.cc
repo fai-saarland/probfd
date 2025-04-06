@@ -5,7 +5,7 @@
 
 using namespace std;
 
-namespace pref_evaluator {
+namespace downward::pref_evaluator {
 PrefEvaluator::PrefEvaluator(
     const string& description,
     utils::Verbosity verbosity)

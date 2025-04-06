@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 MergeStrategyFactoryPrecomputed::MergeStrategyFactoryPrecomputed(
     const shared_ptr<MergeTreeFactory>& merge_tree,
     utils::Verbosity verbosity)

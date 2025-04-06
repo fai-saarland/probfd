@@ -8,7 +8,7 @@
 #include <cassert>
 #include <vector>
 
-namespace ordered_set {
+namespace downward::ordered_set {
 /*
   Combine vector and unordered_set to store a set of elements, ordered
   by insertion time.

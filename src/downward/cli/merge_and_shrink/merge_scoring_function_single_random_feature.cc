@@ -7,8 +7,8 @@
 #include "downward/utils/logging.h"
 
 using namespace std;
-using namespace merge_and_shrink;
-using namespace utils;
+using namespace downward::merge_and_shrink;
+using namespace downward::utils;
 
 using namespace downward::cli::plugins;
 

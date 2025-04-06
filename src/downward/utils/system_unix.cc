@@ -41,7 +41,7 @@
 
 using namespace std;
 
-namespace utils {
+namespace downward::utils {
 static void write_reentrant(int filedescr, const char* message, int len)
 {
     while (len > 0) {

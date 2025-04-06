@@ -9,7 +9,7 @@
 #include <memory>
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 }
 
@@ -52,7 +52,7 @@ public:
         CartesianAbstraction& abstraction,
         const AbstractState* init_id,
         CartesianHeuristic& heuristic,
-        utils::CountdownTimer& time_limit) override;
+        downward::utils::CountdownTimer& time_limit) override;
 };
 
 } // namespace probfd::cartesian_abstractions

@@ -6,7 +6,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 class AbstractState;
 struct Transition;
 

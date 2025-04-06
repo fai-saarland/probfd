@@ -11,6 +11,7 @@
 #include <iostream>
 #include <unordered_map>
 
+namespace downward {
 /*
   PerStateInformation is used to associate information with states.
   PerStateInformation<Entry> logically behaves somewhat like an unordered map
@@ -176,5 +177,6 @@ public:
         }
     }
 };
+}
 
 #endif

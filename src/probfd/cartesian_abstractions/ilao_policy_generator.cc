@@ -35,7 +35,7 @@ unique_ptr<Solution> ILAOPolicyGenerator::find_solution(
     CartesianAbstraction& abstraction,
     const AbstractState* state,
     CartesianHeuristic& heuristic,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     // TODO: ideally, this object should not be recreated each time, in
     // particular the storage for the search state. Needs some way to clear

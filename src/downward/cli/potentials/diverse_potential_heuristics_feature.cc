@@ -11,7 +11,8 @@
 #include "downward/utils/logging.h"
 
 using namespace std;
-using namespace potentials;
+using namespace downward::utils;
+using namespace downward::potentials;
 
 using namespace downward::cli::plugins;
 using namespace downward::cli::potentials;
@@ -20,7 +21,7 @@ using namespace downward::cli::utils;
 namespace {
 
 class DiversePotentialMaxHeuristicFeature
-    : public TypedFeature<Evaluator, PotentialMaxHeuristic> {
+    : public TypedFeature<downward::Evaluator, PotentialMaxHeuristic> {
 public:
     DiversePotentialMaxHeuristicFeature()
         : TypedFeature("diverse_potentials")
@@ -46,22 +47,22 @@ public:
     }
 
     virtual shared_ptr<PotentialMaxHeuristic>
-    create_component(const Options& opts, const utils::Context&) const override
+    create_component(const Options& opts, const Context&) const override
     {
         return make_shared<PotentialMaxHeuristic>(
             DiversePotentialHeuristics(
                 opts.get<int>("num_samples"),
                 opts.get<int>("max_num_heuristics"),
                 opts.get<double>("max_potential"),
-                opts.get<lp::LPSolverType>("lpsolver"),
-                opts.get<shared_ptr<AbstractTask>>("transform"),
+                opts.get<downward::lp::LPSolverType>("lpsolver"),
+                opts.get<shared_ptr<downward::AbstractTask>>("transform"),
                 opts.get<int>("random_seed"),
-                opts.get<utils::Verbosity>("verbosity"))
+                opts.get<Verbosity>("verbosity"))
                 .find_functions(),
-            opts.get<shared_ptr<AbstractTask>>("transform"),
+            opts.get<shared_ptr<downward::AbstractTask>>("transform"),
             opts.get<bool>("cache_estimates"),
             opts.get<string>("description"),
-            opts.get<utils::Verbosity>("verbosity"));
+            opts.get<Verbosity>("verbosity"));
     }
 };
 

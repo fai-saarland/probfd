@@ -5,7 +5,7 @@
 
 using namespace std;
 
-namespace sum_evaluator {
+namespace downward::sum_evaluator {
 SumEvaluator::SumEvaluator(
     const vector<shared_ptr<Evaluator>>& evals,
     const string& description,

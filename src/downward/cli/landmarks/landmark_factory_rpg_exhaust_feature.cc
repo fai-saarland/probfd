@@ -5,14 +5,14 @@
 #include "downward/landmarks/landmark_factory_rpg_exhaust.h"
 
 using namespace std;
-using namespace utils;
+using namespace downward::utils;
 
 using namespace downward::cli::plugins;
 
 using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 using downward::cli::landmarks::get_landmark_factory_arguments_from_options;
 
-namespace landmarks {
+namespace downward::landmarks {
 
 class LandmarkFactoryRpgExhaustFeature
     : public TypedFeature<LandmarkFactory, LandmarkFactoryRpgExhaust> {

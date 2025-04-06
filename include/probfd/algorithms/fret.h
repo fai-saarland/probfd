@@ -17,7 +17,7 @@
 #include <type_traits>
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 }
 
@@ -184,12 +184,12 @@ private:
         QHeuristic& heuristic,
         ParamType<QState> state,
         ProgressReport& progress,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     bool find_and_remove_traps(
         QuotientSystem& quotient,
         ParamType<QState> state,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     bool push(
         QuotientSystem& quotient,

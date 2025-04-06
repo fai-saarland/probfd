@@ -7,7 +7,7 @@
 // The MSVC standard library defines this...
 #undef IN
 
-namespace utils {
+namespace downward::utils {
 class Context;
 }
 

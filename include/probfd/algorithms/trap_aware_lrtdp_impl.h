@@ -76,7 +76,7 @@ Interval TALRTDPImpl<State, Action, UseInterval>::solve_quotient(
     ProgressReport& progress,
     double max_time)
 {
-    utils::CountdownTimer timer(max_time);
+    downward::utils::CountdownTimer timer(max_time);
 
     Base::initialize_initial_state(quotient, heuristic, state);
 
@@ -113,7 +113,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::trial(
     QuotientSystem& quotient,
     QHeuristic& heuristic,
     StateID start_state,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     using enum TrialTerminationCondition;
 
@@ -228,7 +228,7 @@ bool TALRTDPImpl<State, Action, UseInterval>::check_and_solve(
     QuotientSystem& quotient,
     QHeuristic& heuristic,
     StateID init_state_id,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     assert(!this->current_trial_.empty());
 
@@ -328,7 +328,7 @@ template <typename State, typename Action, bool UseInterval>
 bool TALRTDPImpl<State, Action, UseInterval>::push_successor(
     QuotientSystem& quotient,
     DFSExplorationState& einfo,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     do {
         timer.throw_if_expired();

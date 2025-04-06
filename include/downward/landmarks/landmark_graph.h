@@ -16,7 +16,7 @@
 #include <unordered_set>
 #include <vector>
 
-namespace landmarks {
+namespace downward::landmarks {
 enum class EdgeType {
     /*
       NOTE: The code relies on the fact that larger numbers are stronger in the

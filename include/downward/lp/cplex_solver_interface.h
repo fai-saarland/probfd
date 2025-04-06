@@ -12,7 +12,7 @@
 
 #include <span>
 
-namespace lp {
+namespace downward::lp {
 template <typename T>
 static T* to_cplex_array(std::vector<T>& v)
 {

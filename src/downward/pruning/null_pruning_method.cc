@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace null_pruning_method {
+namespace downward::null_pruning_method {
 
 NullPruningMethod::NullPruningMethod(utils::Verbosity verbosity)
     : PruningMethod(verbosity)

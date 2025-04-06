@@ -12,6 +12,8 @@
 
 using namespace std;
 
+using namespace downward;
+
 namespace probfd::extra_tasks {
 
 DomainAbstractedTask::DomainAbstractedTask(

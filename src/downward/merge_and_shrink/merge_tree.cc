@@ -9,7 +9,7 @@
 
 using namespace std;
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 const int UNINITIALIZED = -1;
 
 MergeTreeNode::MergeTreeNode(const MergeTreeNode& other)

@@ -52,7 +52,7 @@ void add_admissible_potentials_options_to_feature(
 
 tuple<
     double,
-    ::lp::LPSolverType,
+    downward::lp::LPSolverType,
     shared_ptr<AbstractTask>,
     bool,
     string,

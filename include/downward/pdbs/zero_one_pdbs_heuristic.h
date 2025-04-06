@@ -6,7 +6,7 @@
 
 #include "downward/heuristic.h"
 
-namespace pdbs {
+namespace downward::pdbs {
 class PatternDatabase;
 
 class ZeroOnePDBsHeuristic : public Heuristic {

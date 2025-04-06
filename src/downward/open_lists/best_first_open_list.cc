@@ -11,7 +11,7 @@
 
 using namespace std;
 
-namespace standard_scalar_open_list {
+namespace downward::standard_scalar_open_list {
 template <class Entry>
 class BestFirstOpenList : public OpenList<Entry> {
     typedef deque<Entry> Bucket;

@@ -68,7 +68,7 @@ void add_search_algorithm_options_to_feature(
     utils::add_log_options_to_feature(feature);
 }
 
-tuple<OperatorCost, int, double, string, ::utils::Verbosity>
+tuple<OperatorCost, int, double, string, downward::utils::Verbosity>
 get_search_algorithm_arguments_from_options(const plugins::Options& opts)
 {
     return tuple_cat(

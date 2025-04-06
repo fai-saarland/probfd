@@ -22,6 +22,7 @@
 
 #include "downward/utils/rng_options.h"
 
+using namespace downward;
 using namespace utils;
 
 using namespace probfd;

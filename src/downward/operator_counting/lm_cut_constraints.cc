@@ -11,7 +11,7 @@
 
 using namespace std;
 
-namespace operator_counting {
+namespace downward::operator_counting {
 
 LMCutConstraints::LMCutConstraints() = default;
 LMCutConstraints::~LMCutConstraints() = default;

@@ -9,7 +9,7 @@
 
 using namespace std;
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 vector<pair<int, int>> MergeSelector::compute_merge_candidates(
     const FactoredTransitionSystem& fts,
     const vector<int>& indices_subset) const

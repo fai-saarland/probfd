@@ -12,6 +12,7 @@
 #include <memory>
 #include <string>
 
+using namespace downward;
 using namespace utils;
 
 using namespace probfd;

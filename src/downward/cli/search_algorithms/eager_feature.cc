@@ -6,13 +6,16 @@
 #include "downward/search_algorithms/search_common.h"
 
 using namespace std;
+using namespace downward;
+using namespace downward::eager_search;
+
 using namespace downward::cli::eager_search;
 using namespace downward::cli::plugins;
 
 namespace {
 
 class EagerSearchFeature
-    : public TypedFeature<SearchAlgorithm, eager_search::EagerSearch> {
+    : public TypedFeature<SearchAlgorithm, EagerSearch> {
 public:
     EagerSearchFeature()
         : TypedFeature("eager")
@@ -35,10 +38,10 @@ public:
         add_eager_search_options_to_feature(*this, "eager");
     }
 
-    virtual shared_ptr<eager_search::EagerSearch>
+    virtual shared_ptr<EagerSearch>
     create_component(const Options& opts, const utils::Context&) const override
     {
-        return make_shared_from_arg_tuples<eager_search::EagerSearch>(
+        return make_shared_from_arg_tuples<EagerSearch>(
             opts.get<shared_ptr<OpenListFactory>>("open"),
             opts.get<bool>("reopen_closed"),
             opts.get<shared_ptr<Evaluator>>("f_eval", nullptr),

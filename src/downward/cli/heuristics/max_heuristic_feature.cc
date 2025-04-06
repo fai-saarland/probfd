@@ -5,8 +5,8 @@
 #include "downward/heuristics/max_heuristic.h"
 
 using namespace std;
-using namespace max_heuristic;
-using namespace utils;
+using namespace downward::max_heuristic;
+using namespace downward::utils;
 
 using namespace downward::cli::plugins;
 
@@ -15,7 +15,8 @@ using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
 
-class HSPMaxHeuristicFeature : public TypedFeature<Evaluator, HSPMaxHeuristic> {
+class HSPMaxHeuristicFeature
+    : public TypedFeature<downward::Evaluator, HSPMaxHeuristic> {
 public:
     HSPMaxHeuristicFeature()
         : TypedFeature("hmax")

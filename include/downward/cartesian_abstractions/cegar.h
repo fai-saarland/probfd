@@ -10,12 +10,12 @@
 
 #include <memory>
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 class LogProxy;
 } // namespace utils
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 class Abstraction;
 struct Flaw;
 

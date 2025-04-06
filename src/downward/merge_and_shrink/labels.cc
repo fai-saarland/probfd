@@ -11,7 +11,7 @@
 
 using namespace std;
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 LabelsConstIterator::LabelsConstIterator(
     const vector<int>& label_costs,
     vector<int>::const_iterator it)

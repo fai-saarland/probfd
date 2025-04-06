@@ -15,15 +15,13 @@
 #include <utility>
 
 using namespace std;
-
-namespace utils {
-class Context;
-}
+using namespace downward;
+using namespace downward::utils;
 
 namespace probfd::cartesian_abstractions {
 
 SplitSelectorRandom::SplitSelectorRandom(
-    std::shared_ptr<utils::RandomNumberGenerator> rng)
+    std::shared_ptr<RandomNumberGenerator> rng)
     : rng_(std::move(rng))
 {
 }

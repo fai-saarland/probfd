@@ -27,13 +27,14 @@
 #include <vector>
 
 using namespace std;
+using namespace downward;
 
 namespace probfd::cartesian_abstractions {
 
 namespace {
 class SortFactsByIncreasingHaddValues {
     // Can't store as unique_ptr since the class needs copy-constructor.
-    shared_ptr<::additive_heuristic::AdditiveHeuristic> hadd;
+    shared_ptr<additive_heuristic::AdditiveHeuristic> hadd;
 
     int get_cost(const FactPair& fact)
     {

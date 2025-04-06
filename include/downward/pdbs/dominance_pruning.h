@@ -12,11 +12,11 @@
 #include <cassert>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
-namespace pdbs {
+namespace downward::pdbs {
 class Pruner {
     /*
       Algorithm for pruning dominated patterns.

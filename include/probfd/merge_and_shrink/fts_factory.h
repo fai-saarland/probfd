@@ -11,7 +11,7 @@
   should not need to know about planning task concepts.
 */
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
@@ -27,7 +27,7 @@ namespace probfd::merge_and_shrink {
 
 extern FactoredTransitionSystem create_factored_transition_system(
     const ProbabilisticTaskProxy& task_proxy,
-    utils::LogProxy& log);
+    downward::utils::LogProxy& log);
 
 } // namespace probfd::merge_and_shrink
 

@@ -9,7 +9,7 @@
 
 using namespace std;
 
-namespace potentials {
+namespace downward::potentials {
 vector<State> sample_without_dead_end_detection(
     PotentialOptimizer& optimizer,
     int num_samples,

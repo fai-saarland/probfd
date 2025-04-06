@@ -4,9 +4,11 @@
 #include <memory>
 #include <vector>
 
+namespace downward {
 class PlanningTaskProxy;
+}
 
-namespace successor_generator {
+namespace downward::successor_generator {
 class GeneratorBase;
 
 using GeneratorPtr = std::unique_ptr<GeneratorBase>;

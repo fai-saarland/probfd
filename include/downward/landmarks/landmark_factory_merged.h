@@ -5,7 +5,7 @@
 
 #include <vector>
 
-namespace landmarks {
+namespace downward::landmarks {
 class LandmarkFactoryMerged : public LandmarkFactory {
     std::vector<std::shared_ptr<LandmarkFactory>> lm_factories;
 

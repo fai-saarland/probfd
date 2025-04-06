@@ -6,12 +6,12 @@
 #include <set>
 #include <unordered_set>
 
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 class RandomNumberGenerator;
 } // namespace utils
 
-namespace pdbs {
+namespace downward::pdbs {
 /*
   This pattern collection generator is a general framework for computing a
   pattern collection for a given planning task. It is an abstract base class

@@ -8,7 +8,7 @@
 #include <memory>
 #include <vector>
 
-namespace operator_counting {
+namespace downward::operator_counting {
 class ConstraintGenerator;
 
 class OperatorCountingHeuristic : public Heuristic {

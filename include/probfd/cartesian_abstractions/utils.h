@@ -13,7 +13,7 @@
 #include <vector>
 
 // Forward Declarations
-namespace additive_heuristic {
+namespace downward::additive_heuristic {
 class AdditiveHeuristic;
 }
 
@@ -32,7 +32,7 @@ CartesianSet get_cartesian_set(
     const ConditionsProxy& conditions)
 {
     CartesianSet cartesian_set(domain_sizes);
-    for (FactProxy condition : conditions) {
+    for (downward::FactProxy condition : conditions) {
         cartesian_set.set_single_value(
             condition.get_variable().get_id(),
             condition.get_value());
@@ -40,7 +40,7 @@ CartesianSet get_cartesian_set(
     return cartesian_set;
 }
 
-extern std::unique_ptr<additive_heuristic::AdditiveHeuristic>
+extern std::unique_ptr<downward::additive_heuristic::AdditiveHeuristic>
 create_additive_heuristic(const std::shared_ptr<ProbabilisticTask>& task);
 
 /*
@@ -48,9 +48,9 @@ create_additive_heuristic(const std::shared_ptr<ProbabilisticTask>& task);
   can be reached in the delete-relaxation before 'fact' is reached the first
   time, plus 'fact' itself.
 */
-extern utils::HashSet<FactPair> get_relaxed_possible_before(
+extern downward::utils::HashSet<downward::FactPair> get_relaxed_possible_before(
     const ProbabilisticTaskProxy& task,
-    const FactPair& fact);
+    const downward::FactPair& fact);
 
 } // namespace probfd::cartesian_abstractions
 

@@ -15,10 +15,11 @@ class FactoredTransitionSystem;
 
 namespace probfd::heuristics {
 
-struct FactorDistances {
+class FactorDistances {
     std::unique_ptr<merge_and_shrink::FactoredMapping> factored_mapping;
     std::vector<value_t> distance_table;
 
+public:
     FactorDistances(
         std::unique_ptr<merge_and_shrink::FactoredMapping> factored_mapping,
         merge_and_shrink::Distances& distances);
@@ -28,7 +29,12 @@ struct FactorDistances {
         const merge_and_shrink::Labels& labels,
         const merge_and_shrink::TransitionSystem& ts);
 
-    value_t lookup_distance(const State& state) const;
+    ~FactorDistances();
+
+    FactorDistances(FactorDistances&&) noexcept;
+    FactorDistances& operator=(FactorDistances&&) noexcept;
+
+    value_t lookup_distance(const downward::State& state) const;
 };
 
 class MergeAndShrinkHeuristic final : public FDREvaluator {
@@ -41,7 +47,7 @@ public:
 
     ~MergeAndShrinkHeuristic() override;
 
-    value_t evaluate(const State& state) const override;
+    value_t evaluate(const downward::State& state) const override;
 };
 
 } // namespace probfd::heuristics

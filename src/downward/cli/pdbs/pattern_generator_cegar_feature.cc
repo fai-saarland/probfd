@@ -11,8 +11,8 @@
 #include "downward/utils/logging.h"
 
 using namespace std;
-using namespace utils;
-using namespace pdbs;
+using namespace downward::utils;
+using namespace downward::pdbs;
 
 using namespace downward::cli::pdbs;
 using namespace downward::cli::plugins;

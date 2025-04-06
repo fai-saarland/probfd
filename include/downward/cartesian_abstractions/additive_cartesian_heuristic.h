@@ -5,7 +5,7 @@
 
 #include <vector>
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 class CartesianHeuristicFunction;
 class SubtaskGenerator;
 enum class PickSplit;

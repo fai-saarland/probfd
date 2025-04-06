@@ -12,7 +12,7 @@
 
 using namespace std;
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 MergeStrategySCCs::MergeStrategySCCs(
     const FactoredTransitionSystem& fts,
     const shared_ptr<MergeSelector>& merge_selector,

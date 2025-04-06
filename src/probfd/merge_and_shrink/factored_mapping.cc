@@ -11,6 +11,7 @@
 #include <numeric>
 
 using namespace std;
+using namespace downward;
 
 namespace probfd::merge_and_shrink {
 
@@ -56,7 +57,7 @@ int FactoredMappingAtomic::get_abstract_state(const State& state) const
 
 bool FactoredMappingAtomic::is_total() const
 {
-    return !utils::contains(lookup_table, PRUNED_STATE);
+    return !std::ranges::contains(lookup_table, PRUNED_STATE);
 }
 
 void FactoredMappingAtomic::dump(utils::LogProxy& log) const
@@ -92,7 +93,7 @@ int FactoredMappingMerge::get_abstract_state(const State& state) const
 
 bool FactoredMappingMerge::is_total() const
 {
-    return !utils::contains(lookup_table, PRUNED_STATE) &&
+    return !std::ranges::contains(lookup_table, PRUNED_STATE) &&
            left_child->is_total() && right_child->is_total();
 }
 

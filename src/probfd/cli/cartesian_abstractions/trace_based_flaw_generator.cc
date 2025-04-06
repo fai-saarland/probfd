@@ -2,6 +2,7 @@
 
 #include "probfd/cartesian_abstractions/trace_based_flaw_generator.h"
 
+using namespace downward;
 using namespace utils;
 
 using namespace probfd::cartesian_abstractions;

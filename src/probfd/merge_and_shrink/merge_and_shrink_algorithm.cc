@@ -31,9 +31,9 @@
 #include <iostream>
 #include <string>
 
-using utils::ExitCode;
-
 using namespace std;
+using namespace downward;
+using utils::ExitCode;
 
 namespace probfd::merge_and_shrink {
 

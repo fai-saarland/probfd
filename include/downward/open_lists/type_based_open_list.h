@@ -22,7 +22,7 @@
     Remove entry            O(m)        O(1)        # both use swap+pop
 */
 
-namespace type_based_open_list {
+namespace downward::type_based_open_list {
 class TypeBasedOpenListFactory : public OpenListFactory {
     std::vector<std::shared_ptr<Evaluator>> evaluators;
     int random_seed;

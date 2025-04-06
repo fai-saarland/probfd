@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace operator_counting {
+namespace downward::operator_counting {
 StateEquationConstraints::StateEquationConstraints(utils::Verbosity verbosity)
     : log(utils::get_log_for_verbosity(verbosity))
 {

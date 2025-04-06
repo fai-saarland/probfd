@@ -5,14 +5,16 @@
 #include <string>
 #include <vector>
 
+namespace downward {
 class TaskProxy;
+}
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
 } // namespace utils
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 class FactoredTransitionSystem;
 class MergeTree;
 enum class UpdateOption;

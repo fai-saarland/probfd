@@ -7,15 +7,17 @@
 #include <unordered_map>
 #include <vector>
 
+namespace downward {
 class AbstractTask;
 struct FactPair;
+}
 
-namespace landmarks {
+namespace downward::landmarks {
 class LandmarkGraph;
 class LandmarkNode;
 } // namespace landmarks
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 using VarToValues = std::unordered_map<int, std::vector<int>>;
 
 extern std::shared_ptr<landmarks::LandmarkGraph>

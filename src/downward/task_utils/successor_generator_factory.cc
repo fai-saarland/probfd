@@ -55,7 +55,7 @@ using namespace std;
   by a begin and end index into the overall operator sequence.
 */
 
-namespace successor_generator {
+namespace downward::successor_generator {
 struct OperatorRange {
     int begin;
     int end;

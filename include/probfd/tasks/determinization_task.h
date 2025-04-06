@@ -24,7 +24,7 @@ namespace probfd::tasks {
  * that induces the deterministic operator. Essentially, every probabilistic
  * outcome can be chosen at will.
  */
-class DeterminizationTask final : public AbstractTask {
+class DeterminizationTask final : public downward::AbstractTask {
     std::shared_ptr<ProbabilisticTask> parent_task_;
 
     std::vector<std::pair<int, int>> det_to_prob_index_;
@@ -35,7 +35,7 @@ public:
     explicit DeterminizationTask(
         std::shared_ptr<ProbabilisticTask> parent_task);
 
-    ~DeterminizationTask() final = default;
+    ~DeterminizationTask() override = default;
 
     int get_num_variables() const final;
 
@@ -47,10 +47,11 @@ public:
 
     int get_variable_default_axiom_value(int var) const final;
 
-    std::string get_fact_name(const FactPair& fact) const final;
+    std::string get_fact_name(const downward::FactPair& fact) const final;
 
-    bool
-    are_facts_mutex(const FactPair& fact1, const FactPair& fact2) const final;
+    bool are_facts_mutex(
+        const downward::FactPair& fact1,
+        const downward::FactPair& fact2) const final;
 
     int get_num_axioms() const final;
 
@@ -58,18 +59,20 @@ public:
 
     int get_num_axiom_preconditions(int index) const final;
 
-    FactPair get_axiom_precondition(int op_index, int fact_index) const final;
+    downward::FactPair
+    get_axiom_precondition(int op_index, int fact_index) const final;
 
     int get_num_axiom_effects(int op_index) const final;
 
     int
     get_num_axiom_effect_conditions(int op_index, int eff_index) const final;
 
-    FactPair
+    downward::FactPair
     get_axiom_effect_condition(int op_index, int eff_index, int cond_index)
         const final;
 
-    FactPair get_axiom_effect(int op_index, int eff_index) const final;
+    downward::FactPair
+    get_axiom_effect(int op_index, int eff_index) const final;
 
     int get_operator_cost(int index) const final;
 
@@ -79,7 +82,7 @@ public:
 
     int get_num_operator_preconditions(int index) const final;
 
-    FactPair
+    downward::FactPair
     get_operator_precondition(int op_index, int fact_index) const final;
 
     int get_num_operator_effects(int op_index) const final;
@@ -87,15 +90,16 @@ public:
     int
     get_num_operator_effect_conditions(int op_index, int eff_index) const final;
 
-    FactPair
+    downward::FactPair
     get_operator_effect_condition(int op_index, int eff_index, int cond_index)
         const final;
 
-    FactPair get_operator_effect(int op_index, int eff_index) const final;
+    downward::FactPair
+    get_operator_effect(int op_index, int eff_index) const final;
 
     int get_num_goals() const final;
 
-    FactPair get_goal_fact(int index) const final;
+    downward::FactPair get_goal_fact(int index) const final;
 
     std::vector<int> get_initial_state_values() const final;
 

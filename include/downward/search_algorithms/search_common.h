@@ -23,10 +23,12 @@
 
 #include "downward/utils/logging.h"
 
+namespace downward {
 class Evaluator;
 class OpenListFactory;
+}
 
-namespace search_common {
+namespace downward::search_common {
 
 /*
   Create open list factory for the eager_greedy or lazy_greedy plugins.

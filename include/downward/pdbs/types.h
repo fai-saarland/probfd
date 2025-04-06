@@ -4,7 +4,7 @@
 #include <memory>
 #include <vector>
 
-namespace pdbs {
+namespace downward::pdbs {
 class PatternDatabase;
 using Pattern = std::vector<int>;
 using PatternCollection = std::vector<Pattern>;

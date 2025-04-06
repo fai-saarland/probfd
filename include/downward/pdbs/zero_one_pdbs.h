@@ -3,14 +3,16 @@
 
 #include "downward/pdbs/types.h"
 
+namespace downward {
 class State;
 class TaskProxy;
+}
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
-namespace pdbs {
+namespace downward::pdbs {
 class ZeroOnePDBs {
     PDBCollection pattern_databases;
 

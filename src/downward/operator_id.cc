@@ -4,6 +4,8 @@
 
 using namespace std;
 
+namespace downward {
+
 ostream& operator<<(ostream& os, OperatorID id)
 {
     os << "op" << id.get_index();
@@ -11,3 +13,5 @@ ostream& operator<<(ostream& os, OperatorID id)
 }
 
 const OperatorID OperatorID::no_operator = OperatorID(-1);
+
+} // namespace downward

@@ -12,9 +12,11 @@
 #include <vector>
 
 // Forward Declarations
+namespace downward {
 class VariablesProxy;
+}
 
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 class LogProxy;
 class RandomNumberGenerator;
@@ -42,13 +44,13 @@ extern void run_cegar_loop(
     ProbabilisticTaskProxy task_proxy,
     std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
     value_t convergence_epsilon,
-    cegar::FlawFindingStrategy& flaw_strategy,
+    FlawFindingStrategy& flaw_strategy,
     std::unordered_set<int> blacklisted_variables,
     int max_pdb_size,
-    utils::RandomNumberGenerator& rng,
+    downward::utils::RandomNumberGenerator& rng,
     bool wildcard,
     double max_time,
-    utils::LogProxy log);
+    downward::utils::LogProxy log);
 
 } // namespace probfd::pdbs::cegar
 

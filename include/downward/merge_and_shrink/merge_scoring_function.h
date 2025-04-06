@@ -4,13 +4,15 @@
 #include <string>
 #include <vector>
 
+namespace downward {
 class TaskProxy;
+}
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 class FactoredTransitionSystem;
 class MergeScoringFunction {
     virtual std::string name() const = 0;

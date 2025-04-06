@@ -13,6 +13,7 @@
 
 #include <algorithm>
 
+using namespace downward;
 using namespace probfd::pdbs;
 
 namespace probfd::heuristics {

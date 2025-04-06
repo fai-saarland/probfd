@@ -17,7 +17,7 @@
 namespace probfd::pdbs::cegar {
 
 class BFSFlawFinder : public FlawFindingStrategy {
-    std::deque<State> open_;
+    std::deque<downward::State> open_;
     storage::PerStateStorage<bool> closed_;
 
     const int max_search_states_;
@@ -32,7 +32,7 @@ public:
         const ProjectionMultiPolicy& policy,
         std::vector<Flaw>& flaws,
         const std::function<bool(const Flaw&)>& notify_flaw,
-        utils::CountdownTimer& timer) override;
+        downward::utils::CountdownTimer& timer) override;
 
     std::string get_name() override;
 };

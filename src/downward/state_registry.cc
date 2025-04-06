@@ -7,6 +7,8 @@
 
 using namespace std;
 
+namespace downward {
+
 StateRegistry::StateRegistry(const PlanningTaskProxy& task_proxy)
     : task_proxy(task_proxy)
     , state_packer(task_properties::g_state_packers[task_proxy])
@@ -30,9 +32,7 @@ StateID StateRegistry::insert_id_or_pop_state()
     StateID id(state_data_pool.size() - 1);
     pair<int, bool> result = registered_states.insert(id.value);
     bool is_new_entry = result.second;
-    if (!is_new_entry) {
-        state_data_pool.pop_back();
-    }
+    if (!is_new_entry) { state_data_pool.pop_back(); }
     assert(
         registered_states.size() == static_cast<int>(state_data_pool.size()));
     return StateID(result.first);
@@ -139,3 +139,5 @@ void StateRegistry::print_statistics(utils::LogProxy& log) const
     log << "Number of registered states: " << size() << endl;
     registered_states.print_statistics(log);
 }
+
+} // namespace downward

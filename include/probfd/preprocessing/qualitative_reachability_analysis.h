@@ -35,7 +35,7 @@ struct QRStatistics {
     unsigned long long sccsk_dead = 0;
     unsigned long long ones = 0;
 
-    utils::Timer time;
+    downward::utils::Timer time;
 
     void print(std::ostream& out) const;
 };
@@ -116,7 +116,7 @@ class QualitativeReachabilityAnalysis {
         std::vector<Action> aops;         // Remaining unexpanded operators
         SuccessorDistribution successor_dist; // Currently expanded transition
         // Next state to expand
-        typename Distribution<StateID>::const_iterator successor;
+        Distribution<StateID>::const_iterator successor;
 
         explicit ExpansionInfo(
             StateID state_id,
@@ -166,14 +166,14 @@ private:
     bool push_successor(
         MDPType& mdp,
         ExpansionInfo& e,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     void scc_found(
         unsigned int stack_idx,
         std::output_iterator<StateID> auto dead_out,
         std::output_iterator<StateID> auto unsolvable_out,
         std::output_iterator<StateID> auto solvable_out,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 };
 
 } // namespace probfd::preprocessing

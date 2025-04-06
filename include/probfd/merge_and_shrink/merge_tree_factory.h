@@ -6,7 +6,7 @@
 #include <tuple>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
 } // namespace utils
@@ -26,7 +26,7 @@ namespace probfd::merge_and_shrink {
 
 class MergeTreeFactory {
 protected:
-    std::shared_ptr<utils::RandomNumberGenerator> rng;
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng;
     UpdateOption update_option;
 
 public:
@@ -34,7 +34,7 @@ public:
 
     virtual ~MergeTreeFactory() = default;
 
-    void dump_options(utils::LogProxy& log) const;
+    void dump_options(downward::utils::LogProxy& log) const;
 
     // Compute a merge tree for the given entire task.
     virtual std::unique_ptr<MergeTree>
@@ -53,7 +53,7 @@ public:
 protected:
     virtual std::string name() const = 0;
 
-    virtual void dump_tree_specific_options(utils::LogProxy&) const {}
+    virtual void dump_tree_specific_options(downward::utils::LogProxy&) const {}
 };
 
 } // namespace probfd::merge_and_shrink

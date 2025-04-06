@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace utils {
+namespace downward::utils {
 // Base class for custom exception types.
 class Exception {
 protected:
@@ -18,6 +18,6 @@ public:
 };
 
 struct TimeoutException {};
-}
+} // namespace downward::utils
 
 #endif

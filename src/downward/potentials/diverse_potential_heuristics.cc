@@ -11,7 +11,7 @@
 
 using namespace std;
 
-namespace potentials {
+namespace downward::potentials {
 
 DiversePotentialHeuristics::DiversePotentialHeuristics(
     int num_samples,

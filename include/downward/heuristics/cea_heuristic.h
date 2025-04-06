@@ -9,9 +9,11 @@
 
 #include <vector>
 
+namespace downward {
 class State;
+}
 
-namespace cea_heuristic {
+namespace downward::cea_heuristic {
 struct LocalProblem;
 struct LocalProblemNode;
 struct LocalTransition;

@@ -3,7 +3,7 @@
 
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
@@ -24,8 +24,9 @@ class ProbabilisticCausalGraph {
     IntRelation successors;
     IntRelation predecessors;
 
-    void
-    dump(const ProbabilisticTaskProxy& task_proxy, utils::LogProxy& log) const;
+    void dump(
+        const ProbabilisticTaskProxy& task_proxy,
+        downward::utils::LogProxy& log) const;
 
 public:
     /* Use the factory function get_causal_graph to create causal graphs

@@ -12,7 +12,7 @@
 
 using namespace std;
 
-namespace landmarks {
+namespace downward::landmarks {
 static bool are_dead_ends_reliable(
     const shared_ptr<LandmarkFactory>& lm_factory,
     const TaskProxy& task_proxy)

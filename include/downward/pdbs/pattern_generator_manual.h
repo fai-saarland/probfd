@@ -4,7 +4,7 @@
 #include "downward/pdbs/pattern_generator.h"
 #include "downward/pdbs/types.h"
 
-namespace pdbs {
+namespace downward::pdbs {
 class PatternGeneratorManual : public PatternGenerator {
     Pattern pattern;
 

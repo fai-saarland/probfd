@@ -20,7 +20,7 @@ class ProjectionOperator {
 
 public:
     /// The operator ID of the task-level operator inducing this operator.
-    OperatorID operator_id;
+    downward::OperatorID operator_id;
 
 private:
     // Implementation detail. Like in the classical implementation, each
@@ -34,7 +34,7 @@ public:
         requires(std::convertible_to<
                     std::ranges::range_reference_t<R>,
                     ItemProbabilityPair<int>>)
-    explicit ProjectionOperator(OperatorID id, R&& distr)
+    explicit ProjectionOperator(downward::OperatorID id, R&& distr)
         : operator_id(id)
         , outcome_offsets_(std::from_range, std::forward<R>(distr))
     {
@@ -44,7 +44,10 @@ public:
         requires(std::convertible_to<
                     std::ranges::range_reference_t<R>,
                     ItemProbabilityPair<int>>)
-    explicit ProjectionOperator(OperatorID id, R&& distr, NoNormalizeTagType)
+    explicit ProjectionOperator(
+        downward::OperatorID id,
+        R&& distr,
+        NoNormalizeTagType)
         : operator_id(id)
         , outcome_offsets_(
               std::from_range,

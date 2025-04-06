@@ -11,7 +11,7 @@
 #include <vector>
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 class LogProxy;
 } // namespace utils
@@ -35,7 +35,7 @@ public:
     ~SCPHeuristic() override;
 
 protected:
-    value_t evaluate(const State& state) const override;
+    value_t evaluate(const downward::State& state) const override;
 };
 
 class SCPHeuristicFactory final : public TaskHeuristicFactory {
@@ -47,7 +47,7 @@ private:
         pattern_collection_generator_;
     const OrderingStrategy ordering_;
     const int random_seed_;
-    const utils::Verbosity verbosity_;
+    const downward::utils::Verbosity verbosity_;
 
 public:
     SCPHeuristicFactory(
@@ -55,7 +55,7 @@ public:
             pattern_collection_generator,
         OrderingStrategy ordering,
         int random_seed,
-        utils::Verbosity verbosity);
+        downward::utils::Verbosity verbosity);
 
     std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,

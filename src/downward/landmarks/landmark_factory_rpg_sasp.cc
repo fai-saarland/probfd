@@ -13,9 +13,9 @@
 #include <cassert>
 
 using namespace std;
-using utils::ExitCode;
+using downward::utils::ExitCode;
 
-namespace landmarks {
+namespace downward::landmarks {
 LandmarkFactoryRpgSasp::LandmarkFactoryRpgSasp(
     bool disjunctive_landmarks, bool use_orders, utils::Verbosity verbosity)
     : LandmarkFactoryRelaxation(verbosity)

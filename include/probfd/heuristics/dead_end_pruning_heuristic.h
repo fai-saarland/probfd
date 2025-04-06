@@ -9,8 +9,10 @@
 #include <memory>
 
 // Forward Declarations
+namespace downward {
 class State;
 class Evaluator;
+}
 
 namespace probfd::heuristics {
 
@@ -22,7 +24,7 @@ namespace probfd::heuristics {
  * safe.
  */
 class DeadEndPruningHeuristic final : public FDREvaluator {
-    const std::shared_ptr<::Evaluator> pruning_function_;
+    const std::shared_ptr<downward::Evaluator> pruning_function_;
     const value_t dead_end_value_;
 
 public:
@@ -34,21 +36,21 @@ public:
      * dead-ends according to the classical heuristic.
      */
     DeadEndPruningHeuristic(
-        std::shared_ptr<::Evaluator> pruning_function,
+        std::shared_ptr<downward::Evaluator> pruning_function,
         value_t dead_end_value);
 
     [[nodiscard]]
-    value_t evaluate(const State& state) const override;
+    value_t evaluate(const downward::State& state) const override;
 
     void print_statistics() const override;
 };
 
 class DeadEndPruningHeuristicFactory final : public TaskHeuristicFactory {
-    const std::shared_ptr<::Evaluator> evaluator_;
+    const std::shared_ptr<downward::Evaluator> evaluator_;
 
 public:
     explicit DeadEndPruningHeuristicFactory(
-        std::shared_ptr<::Evaluator> evaluator);
+        std::shared_ptr<downward::Evaluator> evaluator);
 
     std::unique_ptr<FDREvaluator> create_evaluator(
         std::shared_ptr<ProbabilisticTask> task,

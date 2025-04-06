@@ -35,7 +35,7 @@ class MultiPolicy {
 public:
     virtual ~MultiPolicy() = default;
 
-    /// Retrives the actions and their optimal state value intervals specified
+    /// Retrieves the actions and their optimal state value intervals specified
     /// by the policy for a given state.
     virtual std::vector<PolicyDecision<Action>>
     get_decisions(const State& state) const = 0;

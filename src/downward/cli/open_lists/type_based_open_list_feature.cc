@@ -9,8 +9,8 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace utils;
-using namespace type_based_open_list;
+using namespace downward::utils;
+using namespace downward::type_based_open_list;
 
 using namespace downward::cli::plugins;
 
@@ -23,7 +23,7 @@ using downward::cli::utils::get_rng_arguments_from_options;
 namespace {
 
 class TypeBasedOpenListFeature
-    : public TypedFeature<OpenListFactory, TypeBasedOpenListFactory> {
+    : public TypedFeature<downward::OpenListFactory, TypeBasedOpenListFactory> {
 public:
     TypeBasedOpenListFeature()
         : TypedFeature("type_based")
@@ -36,7 +36,7 @@ public:
             "random and one of the contained entries is selected "
             "uniformly randomly. "
             "The algorithm is based on" +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Fan Xie", "Martin Mueller", "Robert Holte", "Tatsuya Imai"},
                 "Type-Based Exploration with Multiple Search Queues for"
                 " Satisficing Planning",
@@ -48,7 +48,7 @@ public:
                 "AAAI Press",
                 "2014"));
 
-        add_list_option<shared_ptr<Evaluator>>(
+        add_list_option<shared_ptr<downward::Evaluator>>(
             "evaluators",
             "Evaluators used to determine the bucket for each entry.");
         add_rng_options_to_feature(*this);
@@ -57,12 +57,12 @@ public:
     virtual shared_ptr<TypeBasedOpenListFactory>
     create_component(const Options& opts, const Context& context) const override
     {
-        verify_list_non_empty<shared_ptr<Evaluator>>(
+        verify_list_non_empty<shared_ptr<downward::Evaluator>>(
             context,
             opts,
             "evaluators");
         return make_shared_from_arg_tuples<TypeBasedOpenListFactory>(
-            opts.get_list<shared_ptr<Evaluator>>("evaluators"),
+            opts.get_list<shared_ptr<downward::Evaluator>>("evaluators"),
             get_rng_arguments_from_options(opts));
     }
 };

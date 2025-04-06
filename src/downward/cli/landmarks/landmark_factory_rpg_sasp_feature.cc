@@ -5,8 +5,8 @@
 #include "downward/landmarks/landmark_factory_rpg_sasp.h"
 
 using namespace std;
-using namespace landmarks;
-using namespace utils;
+using namespace downward::landmarks;
+using namespace downward::utils;
 
 using namespace downward::cli::plugins;
 

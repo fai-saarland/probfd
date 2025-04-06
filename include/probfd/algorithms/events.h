@@ -2,24 +2,26 @@
 #ifndef MS_EVENTS_H
 #define MS_EVENTS_H
 
+namespace downward {
 class State;
+}
 
 namespace probfd::algorithms {
 
 struct StateExpansion {
-    const State& state;
+    const downward::State& state;
 };
 
 struct GoalStateExpansion {
-    const State& state;
+    const downward::State& state;
 };
 
 struct TerminalStateExpansion {
-    const State& state;
+    const downward::State& state;
 };
 
 struct PruneStateExpansion {
-    const State& state;
+    const downward::State& state;
 };
 
 struct AlgorithmStarted {

@@ -5,6 +5,8 @@
 
 #include "downward/utils/logging.h"
 
+using namespace downward;
+
 namespace probfd::merge_and_shrink {
 
 StateEquivalenceRelation PruneStrategyAlive::compute_pruning_abstraction(

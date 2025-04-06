@@ -15,7 +15,7 @@ template <std::ranges::input_range R>
 std::ranges::iterator_t<R> weighted_select(
     R&& range,
     value_t total_weight,
-    utils::RandomNumberGenerator& rng)
+    downward::utils::RandomNumberGenerator& rng)
 {
     const value_t r = total_weight * rng.random();
 

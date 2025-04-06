@@ -10,14 +10,14 @@ RandomTiebreaker<State, Action>::RandomTiebreaker(
     int random_seed)
     : RandomTiebreaker(
           stable_policy,
-          std::make_shared<utils::RandomNumberGenerator>(random_seed))
+          std::make_shared<downward::utils::RandomNumberGenerator>(random_seed))
 {
 }
 
 template <typename State, typename Action>
 RandomTiebreaker<State, Action>::RandomTiebreaker(
     bool stable_policy,
-    std::shared_ptr<utils::RandomNumberGenerator> rng)
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng)
     : RandomTiebreaker::StablePolicyPicker(stable_policy)
     , rng_(std::move(rng))
 {

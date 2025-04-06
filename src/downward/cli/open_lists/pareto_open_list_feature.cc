@@ -9,7 +9,8 @@
 #include "downward/utils/memory.h"
 
 using namespace std;
-using namespace pareto_open_list;
+using namespace downward::utils;
+using namespace downward::pareto_open_list;
 
 using namespace downward::cli::plugins;
 
@@ -22,7 +23,7 @@ using downward::cli::utils::get_rng_arguments_from_options;
 namespace {
 
 class ParetoOpenListFeature
-    : public TypedFeature<OpenListFactory, ParetoOpenListFactory> {
+    : public TypedFeature<downward::OpenListFactory, ParetoOpenListFactory> {
 public:
     ParetoOpenListFeature()
         : TypedFeature("pareto")
@@ -32,7 +33,7 @@ public:
             "Selects one of the Pareto-optimal (regarding the sub-evaluators) "
             "entries for removal.");
 
-        add_list_option<shared_ptr<Evaluator>>("evals", "evaluators");
+        add_list_option<shared_ptr<downward::Evaluator>>("evals", "evaluators");
         add_option<bool>(
             "state_uniform_selection",
             "When removing an entry, we select a non-dominated bucket "
@@ -45,10 +46,10 @@ public:
     }
 
     virtual shared_ptr<ParetoOpenListFactory>
-    create_component(const Options& opts, const utils::Context&) const override
+    create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<ParetoOpenListFactory>(
-            opts.get_list<shared_ptr<Evaluator>>("evals"),
+            opts.get_list<shared_ptr<downward::Evaluator>>("evals"),
             opts.get<bool>("state_uniform_selection"),
             get_rng_arguments_from_options(opts),
             get_open_list_arguments_from_options(opts));

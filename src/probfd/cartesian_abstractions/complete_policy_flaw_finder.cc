@@ -29,6 +29,7 @@
 
 using namespace std;
 using namespace std::views;
+using namespace downward;
 
 namespace probfd::cartesian_abstractions {
 
@@ -50,7 +51,7 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
     StateRegistry registry(task_proxy);
 
     struct QueueItem {
-        ::StateID state_id;
+        downward::StateID state_id;
         const AbstractState* abstract_state;
     };
 
@@ -75,7 +76,7 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
         if (!decision) {
             assert(abstraction.get_goals().contains(abstract_state->get_id()));
 
-            if (!::task_properties::is_goal_state(task_proxy, state)) {
+            if (!downward::task_properties::is_goal_state(task_proxy, state)) {
                 if (log.is_at_least_debug()) log << "Goal test failed." << endl;
                 state.unpack();
                 return Flaw(

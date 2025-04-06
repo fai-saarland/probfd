@@ -19,7 +19,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 PatternCollectionGeneratorGenetic::PatternCollectionGeneratorGenetic(
     int pdb_max_size,
     int num_collections,

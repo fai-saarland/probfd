@@ -25,6 +25,8 @@
 #include <set>
 #include <utility>
 
+using namespace downward;
+
 namespace probfd::occupation_measures {
 
 namespace {

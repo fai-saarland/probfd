@@ -13,12 +13,12 @@
 #include <vector>
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 class RandomNumberGenerator;
 } // namespace utils
 
-namespace dynamic_bitset {
+namespace downward::dynamic_bitset {
 template <typename>
 class DynamicBitset;
 }
@@ -40,7 +40,7 @@ namespace probfd::pdbs {
 // Implementation of the pattern generation algorithm by Haslum et al.
 class PatternCollectionGeneratorHillclimbing
     : public PatternCollectionGenerator {
-    using DynamicBitset = dynamic_bitset::DynamicBitset<uint64_t>;
+    using DynamicBitset = downward::dynamic_bitset::DynamicBitset<uint64_t>;
 
     struct Sample;
     class IncrementalPPDBs;
@@ -56,7 +56,7 @@ class PatternCollectionGeneratorHillclimbing
     // minimal improvement required for hill climbing to continue search
     const int min_improvement_;
     const double max_time_;
-    std::shared_ptr<utils::RandomNumberGenerator> rng_;
+    std::shared_ptr<downward::utils::RandomNumberGenerator> rng_;
 
     // maximum size of the PDB search space
     int remaining_states_;
@@ -76,7 +76,7 @@ class PatternCollectionGeneratorHillclimbing
     unsigned int generate_candidate_pdbs(
         const ProbabilisticTaskProxy& task_proxy,
         const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
-        utils::CountdownTimer& hill_climbing_timer,
+        downward::utils::CountdownTimer& hill_climbing_timer,
         const std::vector<std::vector<int>>& relevant_neighbours,
         const ProbabilityAwarePatternDatabase& pdb,
         std::set<DynamicBitset>& generated_patterns,
@@ -93,7 +93,7 @@ class PatternCollectionGeneratorHillclimbing
       a sample state, thus totalling exactly num_samples of sample states.
     */
     void sample_states(
-        utils::CountdownTimer& hill_climbing_timer,
+        downward::utils::CountdownTimer& hill_climbing_timer,
         IncrementalPPDBs& current_pdbs,
         const sampling::RandomWalkSampler& sampler,
         value_t init_h,
@@ -106,7 +106,7 @@ class PatternCollectionGeneratorHillclimbing
       the index of the best pdb in candidate_pdbs.
     */
     std::pair<int, int> find_best_improving_pdb(
-        utils::CountdownTimer& hill_climbing_timer,
+        downward::utils::CountdownTimer& hill_climbing_timer,
         IncrementalPPDBs& current_pdbs,
         const std::vector<Sample>& samples,
         PPDBCollection& candidate_pdbs,
@@ -150,8 +150,8 @@ public:
         int min_improvement,
         double max_time,
         int search_space_max_size,
-        std::shared_ptr<utils::RandomNumberGenerator> rng,
-        utils::Verbosity verbosity);
+        std::shared_ptr<downward::utils::RandomNumberGenerator> rng,
+        downward::utils::Verbosity verbosity);
 
     ~PatternCollectionGeneratorHillclimbing() override;
 

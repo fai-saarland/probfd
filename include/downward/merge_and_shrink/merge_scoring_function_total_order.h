@@ -5,11 +5,11 @@
 
 #include <memory>
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 enum class AtomicTSOrder { REVERSE_LEVEL, LEVEL, RANDOM };
 enum class ProductTSOrder { OLD_TO_NEW, NEW_TO_OLD, RANDOM };
 

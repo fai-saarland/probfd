@@ -9,7 +9,7 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace landmarks;
+using namespace downward::landmarks;
 
 namespace downward::cli::landmarks {
 

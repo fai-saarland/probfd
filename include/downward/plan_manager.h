@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+namespace downward {
+
 class OperatorID;
 class TaskProxy;
 
@@ -30,5 +32,6 @@ public:
 };
 
 extern int calculate_plan_cost(const Plan &plan, const TaskProxy &task_proxy);
+}
 
 #endif

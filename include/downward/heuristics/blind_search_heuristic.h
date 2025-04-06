@@ -3,7 +3,7 @@
 
 #include "downward/heuristic.h"
 
-namespace blind_search_heuristic {
+namespace downward::blind_search_heuristic {
 class BlindSearchHeuristic : public Heuristic {
     int min_operator_cost;
 

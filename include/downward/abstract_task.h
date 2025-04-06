@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+namespace downward {
 struct FactPair {
     int var;
     int value;
@@ -32,8 +33,9 @@ struct FactPair {
 };
 
 std::ostream& operator<<(std::ostream& os, const FactPair& fact_pair);
+}
 
-namespace utils {
+namespace downward::utils {
 inline void feed(HashState& hash_state, const FactPair& fact)
 {
     feed(hash_state, fact.var);
@@ -41,6 +43,7 @@ inline void feed(HashState& hash_state, const FactPair& fact)
 }
 } // namespace utils
 
+namespace downward {
 class PlanningTask : public subscriber::SubscriberService<PlanningTask> {
 public:
     virtual int get_num_variables() const = 0;
@@ -113,5 +116,6 @@ public:
         const = 0;
     virtual FactPair get_operator_effect(int op_index, int eff_index) const = 0;
 };
+}
 
 #endif

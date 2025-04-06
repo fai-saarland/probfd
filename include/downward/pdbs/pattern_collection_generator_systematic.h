@@ -11,13 +11,15 @@
 #include <unordered_set>
 #include <vector>
 
+namespace downward {
 class TaskProxy;
+}
 
-namespace causal_graph {
+namespace downward::causal_graph {
 class CausalGraph;
 }
 
-namespace pdbs {
+namespace downward::pdbs {
 class CanonicalPDBsHeuristic;
 
 // Invariant: patterns are always sorted.

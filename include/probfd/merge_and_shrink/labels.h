@@ -10,7 +10,7 @@
 #include <ranges>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
@@ -77,7 +77,7 @@ public:
                    [](const auto& p) { return std::get<1>(p).cost != -1_vt; });
     }
 
-    void dump_labels(utils::LogProxy log) const;
+    void dump_labels(downward::utils::LogProxy log) const;
 
     friend std::unique_ptr<json::JsonObject> to_json(const Labels& labels);
 };

@@ -10,7 +10,8 @@
 #include "downward/utils/markup.h"
 
 using namespace std;
-using namespace pdbs;
+using namespace downward::utils;
+using namespace downward::pdbs;
 
 using namespace downward::cli::pdbs;
 
@@ -45,7 +46,7 @@ public:
             "collections. "
             "Pattern collections with higher mean heuristic estimates are more "
             "likely selected for the next generation." +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Stefan Edelkamp"},
                 "Automated Creation of Pattern Database Search Heuristics",
                 "http://www.springerlink.com/content/20613345434608x1/",
@@ -138,7 +139,7 @@ public:
     }
 
     virtual shared_ptr<PatternCollectionGeneratorGenetic>
-    create_component(const Options& opts, const utils::Context&) const override
+    create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<PatternCollectionGeneratorGenetic>(
             opts.get<int>("pdb_max_size"),

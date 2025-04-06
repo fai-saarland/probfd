@@ -7,13 +7,15 @@
 
 #include <set>
 
+namespace downward {
 class TaskProxy;
+}
 
-namespace lp {
+namespace downward::lp {
 class LPConstraint;
 }
 
-namespace operator_counting {
+namespace downward::operator_counting {
 /* A proposition is an atom of the form Var = Val. It stores the index of the
    constraint representing it in the LP */
 struct Proposition {

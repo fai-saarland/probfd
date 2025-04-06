@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace weighted_evaluator {
+namespace downward::weighted_evaluator {
 
 WeightedEvaluator::WeightedEvaluator(
     const shared_ptr<Evaluator>& eval,

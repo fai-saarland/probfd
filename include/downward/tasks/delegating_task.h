@@ -8,7 +8,7 @@
 #include <utility>
 #include <vector>
 
-namespace tasks {
+namespace downward::tasks {
 /*
   Task transformation that delegates all calls to the corresponding methods of
   the parent task. You should inherit from this class instead of AbstractTask

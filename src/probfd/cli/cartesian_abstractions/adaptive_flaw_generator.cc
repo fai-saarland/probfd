@@ -2,6 +2,7 @@
 
 #include "downward/cli/plugins/plugin.h"
 
+using namespace downward;
 using namespace utils;
 
 using namespace downward::cli::plugins;

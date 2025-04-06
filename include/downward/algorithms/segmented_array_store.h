@@ -3,7 +3,7 @@
 #include <cassert>
 #include <vector>
 
-namespace segmented_array_store {
+namespace downward::segmented_array_store {
 
 template <std::size_t SEGMENT_SIZE = 16384>
 class SegmentedArrayStore {

@@ -5,7 +5,7 @@
 
 #include <memory>
 
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 }
 
@@ -45,25 +45,28 @@ class MergeAndShrinkAlgorithm {
     long starting_peak_memory;
 
     void
-    report_peak_memory_delta(utils::LogProxy log, bool final = false) const;
-
-    void dump_options(utils::LogProxy log) const;
-
-    void warn_on_unusual_options(utils::LogProxy log) const;
-
-    bool
-    ran_out_of_time(const utils::CountdownTimer& timer, utils::LogProxy log)
+    report_peak_memory_delta(downward::utils::LogProxy log, bool final = false)
         const;
 
-    void statistics(utils::LogProxy log, int maximum_intermediate_size) const;
+    void dump_options(downward::utils::LogProxy log) const;
+
+    void warn_on_unusual_options(downward::utils::LogProxy log) const;
+
+    bool ran_out_of_time(
+        const downward::utils::CountdownTimer& timer,
+        downward::utils::LogProxy log) const;
+
+    void
+    statistics(downward::utils::LogProxy log, int maximum_intermediate_size)
+        const;
 
     void main_loop(
         FactoredTransitionSystem& fts,
         MergeStrategy& merge_strategy,
         bool compute_liveness,
         bool compute_goal_distances,
-        const utils::CountdownTimer& timer,
-        utils::LogProxy log);
+        const downward::utils::CountdownTimer& timer,
+        downward::utils::LogProxy log);
 
 public:
     MergeAndShrinkAlgorithm(
@@ -78,7 +81,7 @@ public:
 
     FactoredTransitionSystem build_factored_transition_system(
         std::shared_ptr<ProbabilisticTask>& task,
-        utils::LogProxy log);
+        downward::utils::LogProxy log);
 };
 
 } // namespace probfd::merge_and_shrink

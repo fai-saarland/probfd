@@ -4,19 +4,21 @@
 #include <memory>
 #include <vector>
 
+namespace downward {
 class AbstractTask;
 struct FactPair;
+}
 
-namespace landmarks {
+namespace downward::landmarks {
 class LandmarkNode;
 }
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 class LogProxy;
 } // namespace utils
 
-namespace cartesian_abstractions {
+namespace downward::cartesian_abstractions {
 using Facts = std::vector<FactPair>;
 using SharedTasks = std::vector<std::shared_ptr<AbstractTask>>;
 

@@ -15,6 +15,9 @@
 
 using namespace std;
 namespace vws = std::views;
+
+using namespace downward;
+
 using utils::ExitCode;
 
 namespace probfd::task_properties {

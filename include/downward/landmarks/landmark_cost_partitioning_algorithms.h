@@ -8,9 +8,11 @@
 #include <unordered_set>
 #include <vector>
 
+namespace downward {
 class OperatorsProxy;
+}
 
-namespace landmarks {
+namespace downward::landmarks {
 class Landmark;
 class LandmarkGraph;
 class LandmarkNode;

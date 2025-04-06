@@ -4,6 +4,8 @@
 
 #include "downward/task_proxy.h"
 
+using namespace downward;
+
 namespace probfd::pdbs::cegar {
 
 namespace {
@@ -18,9 +20,8 @@ bool collect_flaws_(
 
     // Collect all non-satisfied goal fact variables.
     for (const FactProxy fact : facts) {
-        const auto& [var, val] = fact.get_pair();
-
-        if (state[var].get_value() != val) {
+        if (const auto& [var, val] = fact.get_pair();
+            state[var].get_value() != val) {
             Flaw flaw(var, is_precondition);
             if (accept_flaw(flaw)) {
                 flaws_found = true;

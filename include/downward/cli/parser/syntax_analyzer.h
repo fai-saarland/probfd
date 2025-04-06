@@ -1,7 +1,7 @@
 #ifndef PARSER_SYNTAX_ANALYZER_H
 #define PARSER_SYNTAX_ANALYZER_H
 
-#include "abstract_syntax_tree.h"
+#include "downward/cli/parser/abstract_syntax_tree.h"
 
 namespace downward::cli::parser {
 class TokenStream;

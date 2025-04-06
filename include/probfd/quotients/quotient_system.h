@@ -131,7 +131,8 @@ class QuotientSystem
     using MDPType = MDP<State, Action>;
 
     std::unordered_map<StateID::size_type, QuotientInformationType> quotients_;
-    segmented_vector::SegmentedVector<StateID::size_type> quotient_ids_;
+    downward::segmented_vector::SegmentedVector<StateID::size_type>
+        quotient_ids_;
     MDPType& mdp_;
 
     // MASK: bitmask used to obtain the quotient state id, if it exists

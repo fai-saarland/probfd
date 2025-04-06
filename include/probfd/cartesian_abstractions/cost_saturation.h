@@ -10,9 +10,11 @@
 #include <vector>
 
 // Forward Declarations
+namespace downward {
 class State;
+}
 
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 class Duration;
 } // namespace utils
@@ -46,7 +48,7 @@ class CostSaturation {
     const int max_non_looping_transitions_;
     const double max_time_;
     const bool use_general_costs_;
-    mutable utils::LogProxy log_;
+    mutable downward::utils::LogProxy log_;
 
     std::vector<CartesianHeuristicFunction> heuristic_functions_;
     std::vector<value_t> remaining_costs_;
@@ -58,12 +60,12 @@ class CostSaturation {
     void reduce_remaining_costs(const std::vector<value_t>& saturated_costs);
     std::shared_ptr<ProbabilisticTask>
     get_remaining_costs_task(std::shared_ptr<ProbabilisticTask>& parent) const;
-    bool state_is_dead_end(const State& state) const;
+    bool state_is_dead_end(const downward::State& state) const;
     void build_abstractions(
         const std::vector<std::shared_ptr<ProbabilisticTask>>& subtasks,
-        const utils::CountdownTimer& timer,
+        const downward::utils::CountdownTimer& timer,
         std::function<bool()> should_abort);
-    void print_statistics(utils::Duration init_time) const;
+    void print_statistics(downward::utils::Duration init_time) const;
 
 public:
     CostSaturation(
@@ -75,7 +77,7 @@ public:
         int max_non_looping_transitions,
         double max_time,
         bool use_general_costs,
-        utils::LogProxy log);
+        downward::utils::LogProxy log);
 
     ~CostSaturation();
 

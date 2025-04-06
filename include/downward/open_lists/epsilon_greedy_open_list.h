@@ -40,7 +40,7 @@
     there could be only one bucket).
 */
 
-namespace epsilon_greedy_open_list {
+namespace downward::epsilon_greedy_open_list {
 class EpsilonGreedyOpenListFactory : public OpenListFactory {
     std::shared_ptr<Evaluator> eval;
     double epsilon;

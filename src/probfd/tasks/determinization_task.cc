@@ -6,6 +6,8 @@
 
 #include <cassert>
 
+using namespace downward;
+
 namespace probfd::tasks {
 
 DeterminizationTask::DeterminizationTask(

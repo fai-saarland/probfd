@@ -7,6 +7,8 @@
 
 using namespace std;
 
+using namespace downward;
+
 namespace probfd::successor_generator {
 
 ProbabilisticSuccessorGenerator::ProbabilisticSuccessorGenerator(

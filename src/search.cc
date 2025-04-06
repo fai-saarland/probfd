@@ -28,10 +28,11 @@
 #include <argparse/argparse.hpp>
 
 using namespace std;
+using namespace downward::utils;
 using namespace downward::cli::parser;
 using namespace downward::cli::plugins;
 
-using utils::ExitCode;
+using downward::utils::ExitCode;
 
 namespace probfd {
 
@@ -42,13 +43,13 @@ static string replace_old_style_predefinitions(
     ostringstream new_search_argument;
 
     for (const auto& predefinition_kv : predefinitions) {
-        vector<string> predefinition = utils::split(predefinition_kv, "=", 1);
+        vector<string> predefinition = split(predefinition_kv, "=", 1);
         if (predefinition.size() < 2)
             throw std::invalid_argument(
                 "predefinition expects format 'key=definition'");
         string key = predefinition[0];
         string definition = predefinition[1];
-        if (!utils::is_alpha_numeric(key))
+        if (!is_alpha_numeric(key))
             throw std::invalid_argument(
                 "predefinition key has to be alphanumeric: '" + key + "'");
         new_search_argument << "let(" << key << "," << definition << ",";
@@ -74,14 +75,14 @@ static int search(argparse::ArgumentParser& parser)
                 replace_old_style_predefinitions(search_arg, predefinitions);
         } catch (const std::invalid_argument& err) {
             std::cerr << err.what() << std::endl;
-            return static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR);
+            return static_cast<int>(ExitCode::SEARCH_INPUT_ERROR);
         }
 
         std::cout << "Using translated search string: " << search_arg
                   << std::endl;
     }
 
-    utils::register_event_handlers();
+    register_event_handlers();
 
     shared_ptr<TaskSolverFactory> solver_factory;
 
@@ -99,14 +100,14 @@ static int search(argparse::ArgumentParser& parser)
                 "Search argument \"{}\" is of type {}, not TaskSolverFactory.",
                 search_arg,
                 constructed.type().name());
-            return static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR);
+            return static_cast<int>(ExitCode::SEARCH_INPUT_ERROR);
         }
-    } catch (const utils::ContextError& e) {
+    } catch (const ContextError& e) {
         std::cerr << e.get_message() << std::endl;
-        return static_cast<int>(utils::ExitCode::SEARCH_INPUT_ERROR);
+        return static_cast<int>(ExitCode::SEARCH_INPUT_ERROR);
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
-        return static_cast<int>(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+        return static_cast<int>(ExitCode::SEARCH_CRITICAL_ERROR);
     }
 
     std::shared_ptr<ProbabilisticTask> input_task = run_time_logged(
@@ -118,18 +119,18 @@ static int search(argparse::ArgumentParser& parser)
     std::unique_ptr<SolverInterface> solver =
         solver_factory->create(input_task);
 
-    utils::g_search_timer.resume();
+    g_search_timer.resume();
     bool found_solution = solver->solve(max_time);
-    utils::g_search_timer.stop();
-    utils::g_timer.stop();
+    g_search_timer.stop();
+    g_timer.stop();
 
     solver->print_statistics();
-    std::cout << "Search time: " << utils::g_search_timer << endl;
-    std::cout << "Total time: " << utils::g_timer << endl;
+    std::cout << "Search time: " << g_search_timer << endl;
+    std::cout << "Total time: " << g_timer << endl;
 
     ExitCode exitcode = found_solution ? ExitCode::SUCCESS
                                        : ExitCode::SEARCH_UNSOLVED_INCOMPLETE;
-    utils::report_exit_code_reentrant(exitcode);
+    report_exit_code_reentrant(exitcode);
     return static_cast<int>(exitcode);
 }
 

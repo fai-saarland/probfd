@@ -120,13 +120,13 @@ protected:
         MDPType& mdp,
         std::vector<TransitionTail<Action>>& transitions,
         StateInfo& state_info,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
     void backpropagate_update_order(
         StateID tip,
         StateInfo& info,
         unsigned update_order,
-        utils::CountdownTimer& timer);
+        downward::utils::CountdownTimer& timer);
 
 private:
     void push_parents_to_queue(StateInfo& info);

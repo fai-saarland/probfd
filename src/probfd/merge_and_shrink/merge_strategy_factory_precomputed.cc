@@ -5,6 +5,7 @@
 #include "probfd/merge_and_shrink/merge_tree_factory.h"
 
 using namespace std;
+using namespace downward;
 
 namespace probfd::merge_and_shrink {
 

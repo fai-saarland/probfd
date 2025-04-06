@@ -27,18 +27,14 @@ struct resizing_vector : public std::vector<T, Alloc> {
 
     typename std::vector<T, Alloc>::reference operator[](StateID idx)
     {
-        if (idx >= this->size()) {
-            this->resize(idx + 1, default_value_);
-        }
+        if (idx >= this->size()) { this->resize(idx + 1, default_value_); }
         return std::vector<T, Alloc>::operator[](idx);
     }
 
     typename std::vector<T, Alloc>::const_reference
     operator[](StateID idx) const
     {
-        if (idx >= this->size()) {
-            return default_value_;
-        }
+        if (idx >= this->size()) { return default_value_; }
         return std::vector<T, Alloc>::operator[](idx);
     }
 
@@ -48,33 +44,29 @@ private:
 
 template <class Element, class Allocator = std::allocator<Element>>
 class PerStateStorage
-    : public segmented_vector::SegmentedVector<Element, Allocator> {
+    : public downward::segmented_vector::SegmentedVector<Element, Allocator> {
     Element default_value_;
 
 public:
     explicit PerStateStorage(
         const Element& default_value = Element(),
         const Allocator& alloc = Allocator())
-        : segmented_vector::SegmentedVector<Element>(alloc)
+        : downward::segmented_vector::SegmentedVector<Element>(alloc)
         , default_value_(default_value)
     {
     }
 
     Element& operator[](size_t index)
     {
-        if (index >= this->size()) {
-            this->resize(index + 1, default_value_);
-        }
-        return segmented_vector::SegmentedVector<Element, Allocator>::
+        if (index >= this->size()) { this->resize(index + 1, default_value_); }
+        return downward::segmented_vector::SegmentedVector<Element, Allocator>::
         operator[](index);
     }
 
     const Element& operator[](size_t index) const
     {
-        if (index >= this->size()) {
-            return default_value_;
-        }
-        return segmented_vector::SegmentedVector<Element, Allocator>::
+        if (index >= this->size()) { return default_value_; }
+        return downward::segmented_vector::SegmentedVector<Element, Allocator>::
         operator[](index);
     }
 

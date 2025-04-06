@@ -62,7 +62,7 @@ Interval HeuristicDepthFirstSearch<State, Action, UseInterval>::do_solve(
     ProgressReport& progress,
     double max_time)
 {
-    utils::CountdownTimer timer(max_time);
+    downward::utils::CountdownTimer timer(max_time);
 
     const StateID stateid = mdp.get_state_id(state);
     const StateInfo& state_info = this->state_infos_[stateid];
@@ -94,7 +94,7 @@ void HeuristicDepthFirstSearch<State, Action, UseInterval>::
         HeuristicType& heuristic,
         StateID stateid,
         ProgressReport& progress,
-        utils::CountdownTimer& timer)
+        downward::utils::CountdownTimer& timer)
 {
     bool terminate;
     do {
@@ -114,7 +114,7 @@ void HeuristicDepthFirstSearch<State, Action, UseInterval>::
         HeuristicType& heuristic,
         StateID stateid,
         ProgressReport& progress,
-        utils::CountdownTimer& timer)
+        downward::utils::CountdownTimer& timer)
 {
     bool terminate;
     do {
@@ -130,7 +130,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::policy_exploration(
     MDP& mdp,
     HeuristicType& heuristic,
     StateID state,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     assert(visited_states_.empty());
 
@@ -253,7 +253,7 @@ bool HeuristicDepthFirstSearch<State, Action, UseInterval>::push_successor(
     MDP& mdp,
     DFSExplorationState& einfo,
     StateInfo& sinfo,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     using namespace internal;
 
@@ -370,7 +370,7 @@ template <typename State, typename Action, bool UseInterval>
 bool HeuristicDepthFirstSearch<State, Action, UseInterval>::value_iteration(
     MDP& mdp,
     const std::ranges::input_range auto& range,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     ++statistics_.convergence_value_iterations;
 
@@ -390,7 +390,7 @@ std::pair<bool, bool>
 HeuristicDepthFirstSearch<State, Action, UseInterval>::vi_step(
     MDP& mdp,
     const std::ranges::input_range auto& range,
-    utils::CountdownTimer& timer)
+    downward::utils::CountdownTimer& timer)
 {
     bool values_not_conv = false;
     bool policy_not_conv = false;

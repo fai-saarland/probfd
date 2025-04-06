@@ -11,7 +11,7 @@
 
 using namespace std;
 
-namespace operator_counting {
+namespace downward::operator_counting {
 class VEGraph {
     struct Node {
         vector<FactPair> predecessors;

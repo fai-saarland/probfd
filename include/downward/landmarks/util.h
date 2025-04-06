@@ -4,15 +4,17 @@
 #include <unordered_map>
 #include <vector>
 
+namespace downward {
 class AxiomOrOperatorProxy;
 class OperatorProxy;
 class TaskProxy;
+}
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
-namespace landmarks {
+namespace downward::landmarks {
 class Landmark;
 class LandmarkNode;
 class LandmarkGraph;

@@ -6,7 +6,7 @@
 
 #include "downward/heuristic.h"
 
-namespace pdbs {
+namespace downward::pdbs {
 
 // Implements the canonical heuristic function.
 class CanonicalPDBsHeuristic : public Heuristic {

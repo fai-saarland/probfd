@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 extern void lstrip(std::string& s);
 extern void rstrip(std::string& s);
 extern void strip(std::string& s);
@@ -40,5 +40,5 @@ std::string join(const Collection& collection, const std::string& delimiter)
 }
 
 extern bool is_alpha_numeric(const std::string& s);
-} // namespace utils
+} // namespace downward::utils
 #endif

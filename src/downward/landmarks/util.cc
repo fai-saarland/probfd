@@ -10,7 +10,7 @@
 
 using namespace std;
 
-namespace landmarks {
+namespace downward::landmarks {
 static bool _possibly_fires(
     const EffectConditionsProxy& conditions,
     const vector<vector<bool>>& reached)

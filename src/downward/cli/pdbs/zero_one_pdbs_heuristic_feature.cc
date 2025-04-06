@@ -5,8 +5,8 @@
 #include "downward/pdbs/zero_one_pdbs_heuristic.h"
 
 using namespace std;
-using namespace utils;
-using namespace pdbs;
+using namespace downward::utils;
+using namespace downward::pdbs;
 
 using namespace downward::cli::plugins;
 
@@ -16,7 +16,7 @@ using downward::cli::get_heuristic_arguments_from_options;
 namespace {
 
 class ZeroOnePDBsHeuristicFeature
-    : public TypedFeature<Evaluator, ZeroOnePDBsHeuristic> {
+    : public TypedFeature<downward::Evaluator, ZeroOnePDBsHeuristic> {
 public:
     ZeroOnePDBsHeuristicFeature()
         : TypedFeature("zopdbs")

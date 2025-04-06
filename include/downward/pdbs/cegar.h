@@ -8,12 +8,12 @@
 #include <memory>
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
 } // namespace utils
 
-namespace pdbs {
+namespace downward::pdbs {
 /*
   This function implements the CEGAR algorithm for computing disjoint pattern
   collections.

@@ -8,6 +8,8 @@
 
 #include <iostream>
 
+using namespace downward;
+
 namespace probfd::solvers {
 
 AlgorithmAdaptor::AlgorithmAdaptor(std::unique_ptr<FDRMDPAlgorithm> algorithm)

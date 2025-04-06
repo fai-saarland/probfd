@@ -2,7 +2,7 @@
 
 #include "downward/pdbs/pattern_generator.h"
 
-using namespace pdbs;
+using namespace downward::pdbs;
 
 using namespace downward::cli::plugins;
 

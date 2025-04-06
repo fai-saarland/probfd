@@ -2,6 +2,8 @@
 
 #include <utility>
 
+using namespace downward;
+
 namespace probfd::pdbs {
 
 PatternGenerator::PatternGenerator(utils::Verbosity verbosity)

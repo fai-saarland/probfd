@@ -10,13 +10,15 @@
 #include <memory>
 #include <string>
 
+namespace downward {
 class AbstractTask;
+}
 
-namespace utils {
+namespace downward::utils {
 class RandomNumberGenerator;
 }
 
-namespace pdbs {
+namespace downward::pdbs {
 class PatternCollectionGenerator {
     virtual std::string name() const = 0;
     virtual PatternCollectionInformation

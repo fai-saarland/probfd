@@ -12,6 +12,7 @@
 #include <ranges>
 
 using namespace std;
+using namespace downward;
 
 namespace probfd::merge_and_shrink {
 

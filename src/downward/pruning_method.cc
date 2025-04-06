@@ -8,6 +8,8 @@
 
 using namespace std;
 
+namespace downward {
+
 PruningMethod::PruningMethod(utils::Verbosity verbosity)
     : timer(false)
     , log(utils::get_log_for_verbosity(verbosity))
@@ -33,16 +35,12 @@ void PruningMethod::prune_operators(
       measurements induce a significant overhead, up to 30% for configurations
       like blind search. See issue1042 and issue1058.
     */
-    if (log.is_at_least_verbose()) {
-        timer.resume();
-    }
+    if (log.is_at_least_verbose()) { timer.resume(); }
     int num_ops_before_pruning = op_ids.size();
     prune(state, op_ids);
     num_successors_before_pruning += num_ops_before_pruning;
     num_successors_after_pruning += op_ids.size();
-    if (log.is_at_least_verbose()) {
-        timer.stop();
-    }
+    if (log.is_at_least_verbose()) { timer.stop(); }
 }
 
 void PruningMethod::print_statistics() const
@@ -63,3 +61,5 @@ void PruningMethod::print_statistics() const
         }
     }
 }
+
+} // namespace downward

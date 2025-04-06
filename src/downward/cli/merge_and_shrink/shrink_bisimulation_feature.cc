@@ -7,9 +7,10 @@
 
 using namespace std;
 
+using namespace downward::utils;
 using namespace downward::cli::plugins;
 
-using namespace merge_and_shrink;
+using namespace downward::merge_and_shrink;
 
 namespace {
 
@@ -23,7 +24,7 @@ public:
         document_synopsis(
             "This shrink strategy implements the algorithm described in"
             " the paper:" +
-            utils::format_conference_reference(
+            format_conference_reference(
                 {"Raz Nissim", "Joerg Hoffmann", "Malte Helmert"},
                 "Computing Perfect Heuristics in Polynomial Time: On "
                 "Bisimulation"
@@ -71,7 +72,7 @@ public:
     }
 
     virtual shared_ptr<ShrinkBisimulation>
-    create_component(const Options& opts, const utils::Context&) const override
+    create_component(const Options& opts, const Context&) const override
     {
         return make_shared<ShrinkBisimulation>(
             opts.get<bool>("greedy"),

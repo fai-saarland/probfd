@@ -8,7 +8,7 @@
 #include <memory>
 #include <optional>
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 class ShrinkStrategy;
 class MergeScoringFunctionMIASM : public MergeScoringFunction {
     const bool use_caching;

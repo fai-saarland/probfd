@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 bool are_patterns_additive(
     const Pattern& pattern1,
     const Pattern& pattern2,

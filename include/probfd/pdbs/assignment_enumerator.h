@@ -20,15 +20,13 @@ class AssignmentEnumerator {
 
 public:
     /**
-     * @brief Constructs the enumeration function for empty assignments.
-     */
-    AssignmentEnumerator();
-
-    /**
      * @brief Constructs the enumeration function for assignments with the
      * given domains.
      */
-    explicit AssignmentEnumerator(const auto& domain_sizes)
+    template <std::ranges::input_range R>
+        requires std::integral<std::ranges::range_reference_t<R>>
+    explicit AssignmentEnumerator(
+        const R& domain_sizes = std::views::empty<int>)
         : var_infos_(domain_sizes.size())
     {
         using namespace std::views;

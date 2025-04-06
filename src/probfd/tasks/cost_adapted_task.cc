@@ -10,6 +10,8 @@
 
 using namespace std;
 
+using namespace downward;
+
 namespace probfd::tasks {
 
 CostAdaptedTask::CostAdaptedTask(

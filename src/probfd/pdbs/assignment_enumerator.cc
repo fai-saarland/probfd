@@ -4,11 +4,6 @@
 
 namespace probfd::pdbs {
 
-AssignmentEnumerator::AssignmentEnumerator()
-    : num_assignments_(1)
-{
-}
-
 unsigned AssignmentEnumerator::num_assignments() const
 {
     return num_assignments_;

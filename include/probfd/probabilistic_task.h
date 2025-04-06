@@ -16,7 +16,7 @@ namespace probfd {
  *
  * @see ProbabilisticTaskProxy
  */
-class ProbabilisticTask : public PlanningTask {
+class ProbabilisticTask : public downward::PlanningTask {
 public:
     /// Get the cost of terminating in a goal state.
     virtual value_t get_goal_termination_cost() const = 0;
@@ -48,7 +48,7 @@ public:
 
     /// Get the effect with index \p eff_index of the outcome with index
     /// \p outcome_index of the probabilistic operator with index \p op_index.
-    virtual FactPair
+    virtual downward::FactPair
     get_operator_outcome_effect(int op_index, int outcome_index, int eff_index)
         const = 0;
 
@@ -62,7 +62,7 @@ public:
 
     /// Get the number of effect conditions for the effects with given index of
     /// outcome with given index of the probabilistic operator with given index.
-    virtual FactPair get_operator_outcome_effect_condition(
+    virtual downward::FactPair get_operator_outcome_effect_condition(
         int op_index,
         int outcome_index,
         int eff_index,

@@ -25,12 +25,12 @@ struct StateID {
     {
     }
 
-    StateID(::StateID id)
+    StateID(downward::StateID id)
         : id(id.get_value())
     {
     }
 
-    operator ::StateID() const { return ::StateID(id); }
+    operator downward::StateID() const { return downward::StateID(id); }
 
     operator size_type() const { return id; }
 
@@ -44,7 +44,7 @@ inline constexpr bool enable_pass_by_value<StateID> = true;
 
 template <>
 struct std::hash<probfd::StateID> {
-    size_t operator()(const probfd::StateID& sid) const
+    size_t operator()(const probfd::StateID& sid) const noexcept
     {
         return hash<probfd::StateID::size_type>()(sid);
     }

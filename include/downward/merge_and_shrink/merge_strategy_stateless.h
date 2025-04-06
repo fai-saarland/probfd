@@ -5,7 +5,7 @@
 
 #include <memory>
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 class MergeSelector;
 class MergeStrategyStateless : public MergeStrategy {
     const std::shared_ptr<MergeSelector> merge_selector;

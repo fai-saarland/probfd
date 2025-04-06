@@ -5,7 +5,7 @@
 
 #include <vector>
 
-namespace utils {
+namespace downward::utils {
 class LogProxy;
 }
 
@@ -56,7 +56,7 @@ extern bool shrink_before_merge_step(
     int max_states_before_merge,
     int shrink_threshold_before_merge,
     const ShrinkStrategy& shrink_strategy,
-    utils::LogProxy& log);
+    downward::utils::LogProxy& log);
 
 /*
   Compute the abstraction mapping based on the given state equivalence

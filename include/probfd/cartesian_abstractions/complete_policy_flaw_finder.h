@@ -9,7 +9,7 @@
 #include <vector>
 
 // Forward Declarations
-namespace utils {
+namespace downward::utils {
 class CountdownTimer;
 class LogProxy;
 } // namespace utils
@@ -35,8 +35,8 @@ public:
         const std::vector<int>& domain_sizes,
         CartesianAbstraction& abstraction,
         Solution& policy,
-        utils::LogProxy& log,
-        utils::CountdownTimer& timer) override;
+        downward::utils::LogProxy& log,
+        downward::utils::CountdownTimer& timer) override;
 };
 
 } // namespace probfd::cartesian_abstractions

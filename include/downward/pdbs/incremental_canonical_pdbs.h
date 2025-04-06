@@ -9,7 +9,7 @@
 
 #include <memory>
 
-namespace pdbs {
+namespace downward::pdbs {
 class IncrementalCanonicalPDBs {
     TaskProxy task_proxy;
 

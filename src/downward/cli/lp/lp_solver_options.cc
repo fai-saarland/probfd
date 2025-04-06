@@ -5,7 +5,7 @@
 #include "downward/lp/lp_solver.h"
 
 using namespace std;
-using namespace lp;
+using namespace downward::lp;
 
 namespace downward::cli::lp {
 

@@ -39,7 +39,7 @@ class MDPSolver : public TaskSolverFactory {
     const std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory_;
     const std::shared_ptr<TaskHeuristicFactory> heuristic_factory_;
 
-    mutable utils::LogProxy log_;
+    mutable downward::utils::LogProxy log_;
 
     const std::string policy_filename;
     const bool print_fact_names;
@@ -55,7 +55,7 @@ public:
         std::shared_ptr<StatisticalMDPAlgorithmFactory> algorithm_factory,
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
-        utils::Verbosity verbosity,
+        downward::utils::Verbosity verbosity,
         std::string policy_filename,
         bool print_fact_names,
         std::optional<value_t> report_epsilon,

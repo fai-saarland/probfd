@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-namespace plugins {
+namespace downward::plugins {
 class Options;
 }
 

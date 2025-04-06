@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace pdbs {
+namespace downward::pdbs {
 PatternCollectionGeneratorMultipleCegar::
     PatternCollectionGeneratorMultipleCegar(
         bool use_wildcard_plans,

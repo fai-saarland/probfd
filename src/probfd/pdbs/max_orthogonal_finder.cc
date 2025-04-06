@@ -6,6 +6,8 @@
 
 #include "downward/pdbs/pattern_cliques.h"
 
+using namespace downward;
+
 namespace probfd::pdbs {
 
 MaxOrthogonalityFinderBase::MaxOrthogonalityFinderBase(

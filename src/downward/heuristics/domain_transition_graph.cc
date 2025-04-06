@@ -9,7 +9,7 @@
 
 using namespace std;
 
-namespace domain_transition_graph {
+namespace downward::domain_transition_graph {
 DTGFactory::DTGFactory(
     const TaskProxy& task_proxy,
     bool collect_transition_side_effects,

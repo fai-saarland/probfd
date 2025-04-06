@@ -11,13 +11,13 @@
 
 using namespace std;
 
+namespace downward {
+
 int calculate_plan_cost(const Plan& plan, const TaskProxy& task_proxy)
 {
     OperatorsProxy operators = task_proxy.get_operators();
     int plan_cost = 0;
-    for (OperatorID op_id : plan) {
-        plan_cost += operators[op_id].get_cost();
-    }
+    for (OperatorID op_id : plan) { plan_cost += operators[op_id].get_cost(); }
     return plan_cost;
 }
 
@@ -78,3 +78,5 @@ void PlanManager::save_plan(
     utils::g_log << "Plan cost: " << plan_cost << endl;
     ++num_previously_generated_plans;
 }
+
+} // namespace myNamespace

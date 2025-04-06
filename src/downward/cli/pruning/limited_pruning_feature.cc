@@ -7,7 +7,8 @@
 #include "downward/utils/logging.h"
 
 using namespace std;
-using namespace limited_pruning;
+using namespace downward::limited_pruning;
+using namespace downward::utils;
 
 using namespace downward::cli;
 using namespace downward::cli::plugins;
@@ -15,7 +16,7 @@ using namespace downward::cli::plugins;
 namespace {
 
 class LimitedPruningFeature
-    : public TypedFeature<PruningMethod, LimitedPruning> {
+    : public TypedFeature<downward::PruningMethod, LimitedPruning> {
 public:
     LimitedPruningFeature()
         : TypedFeature("limited_pruning")
@@ -31,7 +32,7 @@ public:
             "all "
             "previous expansions.");
 
-        add_option<shared_ptr<PruningMethod>>(
+        add_option<shared_ptr<downward::PruningMethod>>(
             "pruning",
             "the underlying pruning method to be applied");
         add_option<double>(
@@ -58,10 +59,10 @@ public:
     }
 
     virtual shared_ptr<LimitedPruning>
-    create_component(const Options& opts, const utils::Context&) const override
+    create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<LimitedPruning>(
-            opts.get<shared_ptr<PruningMethod>>("pruning"),
+            opts.get<shared_ptr<downward::PruningMethod>>("pruning"),
             opts.get<double>("min_required_pruning_ratio"),
             opts.get<int>("expansions_before_checking_pruning_ratio"),
             get_pruning_arguments_from_options(opts));

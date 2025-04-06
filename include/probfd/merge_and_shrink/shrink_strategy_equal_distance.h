@@ -29,12 +29,14 @@ public:
     ShrinkStrategyEqualDistance(int random_seed, Priority high_low);
 
     bool requires_liveness() const override { return false; }
+
     bool requires_goal_distances() const override { return true; }
 
 protected:
     std::string name() const override;
 
-    void dump_strategy_specific_options(utils::LogProxy& log) const override;
+    void dump_strategy_specific_options(
+        downward::utils::LogProxy& log) const override;
 
     std::vector<Bucket> partition_into_buckets(
         const TransitionSystem& ts,

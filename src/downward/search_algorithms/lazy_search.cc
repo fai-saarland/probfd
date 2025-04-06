@@ -16,7 +16,7 @@
 
 using namespace std;
 
-namespace lazy_search {
+namespace downward::lazy_search {
 LazySearch::LazySearch(
     const shared_ptr<OpenListFactory>& open,
     bool reopen_closed,

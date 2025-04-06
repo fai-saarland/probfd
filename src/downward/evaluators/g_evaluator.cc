@@ -5,7 +5,7 @@
 
 using namespace std;
 
-namespace g_evaluator {
+namespace downward::g_evaluator {
 GEvaluator::GEvaluator(const string& description, utils::Verbosity verbosity)
     : Evaluator(false, false, false, description, verbosity)
 {

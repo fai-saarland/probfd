@@ -14,7 +14,7 @@
 
 using namespace std;
 
-namespace merge_and_shrink {
+namespace downward::merge_and_shrink {
 pair<int, int> compute_shrink_sizes(
     int size1,
     int size2,

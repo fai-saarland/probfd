@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace lm_cut_heuristic {
+namespace downward::lm_cut_heuristic {
 // construction and destruction
 LandmarkCutLandmarks::LandmarkCutLandmarks(const TaskProxy& task_proxy)
 {

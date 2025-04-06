@@ -6,7 +6,7 @@
 
 using namespace std;
 
-namespace utils {
+namespace downward::utils {
 bool is_product_within_limit(int factor1, int factor2, int limit)
 {
     assert(factor1 >= 0);

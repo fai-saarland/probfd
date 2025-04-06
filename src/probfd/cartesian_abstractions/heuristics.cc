@@ -15,7 +15,7 @@ value_t CartesianHeuristic::evaluate(int state) const
 
 value_t CartesianHeuristic::get_h_value(int state) const
 {
-    assert(utils::in_bounds(state, h_values_));
+    assert(downward::utils::in_bounds(state, h_values_));
     return h_values_[state];
 }
 

@@ -9,7 +9,7 @@
 
 using namespace std;
 
-namespace hm_heuristic {
+namespace downward::hm_heuristic {
 HMHeuristic::HMHeuristic(
     int m,
     const shared_ptr<AbstractTask>& transform,

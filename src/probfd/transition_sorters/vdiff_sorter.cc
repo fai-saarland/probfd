@@ -11,6 +11,8 @@
 #include <ranges>
 #include <utility>
 
+using namespace downward;
+
 namespace probfd::transition_sorters {
 
 VDiffSorter::VDiffSorter(value_t favor_large_gaps)
