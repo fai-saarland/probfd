@@ -1,8 +1,11 @@
 #ifndef PROBFD_HEURISTICS_UCP_HEURISTIC_H
 #define PROBFD_HEURISTICS_UCP_HEURISTIC_H
 
-#include "probfd/heuristics/task_dependent_heuristic.h"
+#include "probfd/fdr_types.h"
+#include "probfd/heuristic.h"
 #include "probfd/task_heuristic_factory.h"
+
+#include "downward/utils/logging.h"
 
 #include <memory>
 #include <vector>
@@ -14,16 +17,14 @@ class PatternCollectionGenerator;
 
 namespace probfd::heuristics {
 
-class UCPHeuristic final : public TaskDependentHeuristic {
+class UCPHeuristic final : public FDREvaluator {
     const value_t termination_cost_;
-    std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs_;
+    const std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs_;
 
 public:
     UCPHeuristic(
-        std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function,
-        downward::utils::LogProxy log,
-        std::shared_ptr<pdbs::PatternCollectionGenerator> generator);
+        value_t termination_cost,
+        std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs);
 
     ~UCPHeuristic() override;
 

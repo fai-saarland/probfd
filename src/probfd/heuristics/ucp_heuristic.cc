@@ -18,7 +18,7 @@ using namespace probfd::pdbs;
 namespace probfd::heuristics {
 
 namespace {
-class UniformTaskCostFunction : public FDRSimpleCostFunction {
+class UniformTaskCostFunction final : public FDRSimpleCostFunction {
     ProbabilisticTaskProxy task_proxy;
     std::vector<value_t> costs;
 
@@ -48,10 +48,7 @@ public:
         return ::task_properties::is_goal_state(task_proxy, state);
     }
 
-    value_t get_goal_termination_cost() const override
-    {
-        return 0_vt;
-    }
+    value_t get_goal_termination_cost() const override { return 0_vt; }
 
     value_t get_non_goal_termination_cost() const override
     {
@@ -61,37 +58,11 @@ public:
 } // namespace
 
 UCPHeuristic::UCPHeuristic(
-    std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<FDRCostFunction> task_cost_function,
-    utils::LogProxy log,
-    std::shared_ptr<PatternCollectionGenerator> generator)
-    : TaskDependentHeuristic(task, std::move(log))
-    , termination_cost_(task_cost_function->get_non_goal_termination_cost())
+    value_t termination_cost,
+    std::vector<ProbabilityAwarePatternDatabase> pdbs)
+    : termination_cost_(termination_cost)
+    , pdbs_(std::move(pdbs))
 {
-    auto pattern_collection_info =
-        generator->generate(task, task_cost_function);
-
-    const auto& patterns = pattern_collection_info.get_patterns();
-
-    const size_t num_abstractions = patterns.size();
-
-    pdbs_.reserve(num_abstractions);
-
-    auto task_costs = std::make_shared<UniformTaskCostFunction>(
-        task_proxy_,
-        num_abstractions);
-
-    const State& initial_state = task_proxy_.get_initial_state();
-
-    heuristics::BlindEvaluator<StateRank> h(
-        task_proxy_.get_operators(),
-        *task_cost_function);
-
-    for (const Pattern& pattern : patterns) {
-        auto& pdb = pdbs_.emplace_back(task_proxy_.get_variables(), pattern);
-        const StateRank init_rank = pdb.get_abstract_state(initial_state);
-        compute_distances(pdb, task_proxy_, task_costs, init_rank, h);
-    }
 }
 
 UCPHeuristic::~UCPHeuristic() = default;
@@ -103,9 +74,7 @@ value_t UCPHeuristic::evaluate(const State& state) const
     for (const auto& pdb : pdbs_) {
         const value_t estimate = pdb.lookup_estimate(state);
 
-        if (estimate == termination_cost_) {
-            return estimate;
-        }
+        if (estimate == termination_cost_) { return estimate; }
 
         value += estimate;
     }
@@ -125,11 +94,36 @@ std::unique_ptr<FDREvaluator> UCPHeuristicFactory::create_evaluator(
     std::shared_ptr<ProbabilisticTask> task,
     std::shared_ptr<FDRCostFunction> task_cost_function)
 {
+    ProbabilisticTaskProxy task_proxy(*task);
+
+    const auto pattern_collection_info =
+        pattern_collection_generator_->generate(task, task_cost_function);
+
+    const auto& patterns = pattern_collection_info.get_patterns();
+
+    const size_t num_abstractions = patterns.size();
+
+    std::vector<ProbabilityAwarePatternDatabase> pdbs;
+    pdbs.reserve(num_abstractions);
+
+    const auto task_costs =
+        std::make_shared<UniformTaskCostFunction>(task_proxy, num_abstractions);
+
+    const State& initial_state = task_proxy.get_initial_state();
+
+    const BlindEvaluator<StateRank> h(
+        task_proxy.get_operators(),
+        *task_cost_function);
+
+    for (const Pattern& pattern : patterns) {
+        auto& pdb = pdbs.emplace_back(task_proxy.get_variables(), pattern);
+        const StateRank init_rank = pdb.get_abstract_state(initial_state);
+        compute_distances(pdb, task_proxy, task_costs, init_rank, h);
+    }
+
     return std::make_unique<UCPHeuristic>(
-        task,
-        task_cost_function,
-        utils::get_log_for_verbosity(verbosity_),
-        pattern_collection_generator_);
+        task_cost_function->get_non_goal_termination_cost(),
+        std::move(pdbs));
 }
 
 } // namespace probfd::heuristics
