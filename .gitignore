@@ -23,6 +23,7 @@ sas_policy
 
 # Aliases
 misc/aliases.json
+misc/definitions.json
 
 # Translator output
 output.psas

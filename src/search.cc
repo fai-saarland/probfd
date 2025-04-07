@@ -15,6 +15,7 @@
 #include "downward/utils/logging.h"
 #include "downward/utils/strings.h"
 #include "downward/utils/system.h"
+#include "probfd/json/json.h"
 
 #include <any>
 #include <charconv>
@@ -36,26 +37,32 @@ using downward::utils::ExitCode;
 
 namespace probfd {
 
-static string replace_old_style_predefinitions(
-    const std::string& old_search_argument,
-    const std::vector<std::string>& predefinitions)
+template <std::ranges::input_range R>
+    requires std::convertible_to<
+        std::ranges::range_value_t<R>,
+        std::pair<std::string, std::string>>
+static string
+insert_definitions(const std::string& old_search_argument, R&& predefinitions)
 {
-    ostringstream new_search_argument;
+    auto it = std::ranges::begin(predefinitions);
+    const auto end = std::ranges::end(predefinitions);
 
-    for (const auto& predefinition_kv : predefinitions) {
-        vector<string> predefinition = split(predefinition_kv, "=", 1);
-        if (predefinition.size() < 2)
-            throw std::invalid_argument(
-                "predefinition expects format 'key=definition'");
-        string key = predefinition[0];
-        string definition = predefinition[1];
-        if (!is_alpha_numeric(key))
-            throw std::invalid_argument(
-                "predefinition key has to be alphanumeric: '" + key + "'");
-        new_search_argument << "let " << definition << " as " << key << " in ";
+    if (it == end) return old_search_argument;
+
+    ostringstream new_search_argument;
+    new_search_argument << "let ";
+
+    {
+        const auto& [key, definition] = *it;
+        new_search_argument << definition << " as " << key;
     }
 
-    new_search_argument << old_search_argument;
+    for (++it; it != end; ++it) {
+        const auto& [key, definition] = *it;
+        new_search_argument << ", " << definition << " as " << key;
+    }
+
+    new_search_argument << " in " << old_search_argument;
 
     return new_search_argument.str();
 }
@@ -66,19 +73,18 @@ static int search(argparse::ArgumentParser& parser)
 
     std::string search_arg = parser.get("algorithm");
 
-    auto predefinitions = parser.get<std::vector<std::string>>("predefinition");
-
-    if (!predefinitions.empty()) {
+    if (auto definitions_file = parser.present("--definitions-file")) {
+        std::ifstream fs(*definitions_file);
         try {
-            search_arg =
-                replace_old_style_predefinitions(search_arg, predefinitions);
-        } catch (const std::invalid_argument& err) {
-            std::cerr << err.what() << std::endl;
+            auto defs = json::read<std::map<std::string, std::string>>(fs);
+            search_arg = insert_definitions(search_arg, defs);
+        } catch (std::invalid_argument& e) {
+            std::println(
+                "Could not read definitions from {}: {}",
+                *definitions_file,
+                e.what());
             return static_cast<int>(ExitCode::SEARCH_INPUT_ERROR);
         }
-
-        std::cout << "Using translated search string: " << search_arg
-                  << std::endl;
     }
 
     register_event_handlers();
@@ -86,6 +92,7 @@ static int search(argparse::ArgumentParser& parser)
     shared_ptr<TaskSolverFactory> solver_factory;
 
     try {
+        std::println(std::cout, "Using search string: '{}'", search_arg);
         TokenStream tokens = split_tokens(search_arg);
         ASTNodePtr parsed = parse(tokens);
         DecoratedASTNodePtr decorated = parsed->decorate();
@@ -151,12 +158,13 @@ void add_search_subcommand(argparse::ArgumentParser& arg_parser)
         .default_value(std::numeric_limits<double>::infinity())
         .scan<'g', double>(0.0);
 
-    search_parser.add_argument("--predefinition")
+    search_parser.add_argument("--definitions-file")
         .help(
-            "[Deprecated] Feature predefinition. The options --landmarks, "
-            "--evaluator and --heuristic are aliases for this option.")
-        .append()
-        .metavar("FEATURE_STRING");
+            "Path to a file in JSON format containing feature definitions. "
+            "These definitions will be converted into a let expressions "
+            "containing the search string as its body.")
+        .filepath()
+        .metavar("FILEPATH");
 
     search_parser.add_argument("--ignore-unused-definitions")
         .help(

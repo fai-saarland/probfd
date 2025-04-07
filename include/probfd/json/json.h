@@ -13,6 +13,7 @@
 #include <iostream>
 #include <list>
 #include <map>
+#include <probfd/concepts.h>
 #include <ranges>
 #include <unordered_map>
 #include <utility>
@@ -44,7 +45,20 @@ public:
     virtual void print(std::ostream& os, int indent) = 0;
 };
 
+template <typename T, typename It>
+class JsonObjectView;
+
 class JsonObject : public JsonElement {
+public:
+    using iterator =
+        std::map<std::string, std::unique_ptr<JsonElement>>::iterator;
+    using const_iterator =
+        std::map<std::string, std::unique_ptr<JsonElement>>::const_iterator;
+
+    template <typename T>
+    using read_view_t = JsonObjectView<T, const_iterator>;
+
+private:
     std::map<std::string, std::unique_ptr<JsonElement>> members;
 
 public:
@@ -73,6 +87,17 @@ public:
     template <typename T>
     T read(const std::string& s) const;
 
+    template <typename T>
+    read_view_t<T> read_view() const;
+
+    iterator begin() { return members.begin(); }
+
+    iterator end() { return members.end(); }
+
+    const_iterator begin() const { return members.begin(); }
+
+    const_iterator end() const { return members.end(); }
+
     void print(std::ostream& os, int indent) override;
 };
 
@@ -100,9 +125,7 @@ public:
     {
         using E = std::ranges::range_reference_t<R>;
 
-        for (E&& elem : range) {
-            elements.push_back(std::forward<E>(elem));
-        }
+        for (E&& elem : range) { elements.push_back(std::forward<E>(elem)); }
     }
 
     template <typename... T>
@@ -122,9 +145,11 @@ public:
     read_view_t<T> read_view() const;
 
     iterator begin() { return elements.begin(); }
+
     iterator end() { return elements.end(); }
 
     const_iterator begin() const { return elements.begin(); }
+
     const_iterator end() const { return elements.end(); }
 };
 
@@ -163,16 +188,67 @@ public:
     }
 
     auto begin() { return JsonArrayIterator(array.begin()); }
+
     auto end() { return JsonArrayIterator(array.end()); }
 
     auto begin() const { return JsonArrayIterator(array.begin()); }
+
     auto end() const { return JsonArrayIterator(array.end()); }
+};
+
+template <typename T, typename It>
+class JsonObjectView {
+    class JsonObjectIterator {
+        It it;
+
+    public:
+        using value_type = std::pair<std::string, std::remove_reference_t<T>>;
+        using reference = std::pair<std::string, T>;
+        using difference_type = std::ptrdiff_t;
+        using iterator_category = std::input_iterator_tag;
+
+        JsonObjectIterator() = default;
+
+        explicit JsonObjectIterator(It it);
+
+        std::pair<std::string, T> operator*() const;
+
+        JsonObjectIterator& operator++();
+
+        void operator++(int) { ++*this; }
+
+        friend bool operator==(
+            const JsonObjectIterator& left,
+            const JsonObjectIterator& right) = default;
+    };
+
+    const JsonObject& object;
+
+public:
+    explicit JsonObjectView(const JsonObject& object)
+        : object(object)
+    {
+    }
+
+    auto begin() { return JsonObjectIterator(object.begin()); }
+
+    auto end() { return JsonObjectIterator(object.end()); }
+
+    auto begin() const { return JsonObjectIterator(object.begin()); }
+
+    auto end() const { return JsonObjectIterator(object.end()); }
 };
 
 template <typename T>
 auto JsonArray::read_view() const -> read_view_t<T>
 {
     return JsonArrayView<T, const_iterator>(*this);
+}
+
+template <typename T>
+auto JsonObject::read_view() const -> read_view_t<T>
+{
+    return JsonObjectView<T, const_iterator>(*this);
 }
 
 struct JsonString final : JsonElement {
@@ -272,6 +348,27 @@ auto JsonArrayView<T, It>::JsonArrayIterator::operator++() -> JsonArrayIterator&
     return *this;
 }
 
+template <typename T, typename It>
+JsonObjectView<T, It>::JsonObjectIterator::JsonObjectIterator(It it)
+    : it(std::move(it))
+{
+}
+
+template <typename T, typename It>
+std::pair<std::string, T>
+JsonObjectView<T, It>::JsonObjectIterator::operator*() const
+{
+    return {it->first, json::read<T>(*it->second)};
+}
+
+template <typename T, typename It>
+auto JsonObjectView<T, It>::JsonObjectIterator::operator++()
+    -> JsonObjectIterator&
+{
+    ++it;
+    return *this;
+}
+
 template <typename T>
 T JsonArray::read(std::size_t index) const
 {
@@ -310,6 +407,19 @@ concept Container =
             JsonArray::read_view_t<std::ranges::range_value_t<R>>>,
         std::ranges::iterator_t<
             JsonArray::read_view_t<std::ranges::range_value_t<R>>>>;
+
+template <typename R>
+concept PairContainer =
+    std::ranges::input_range<R> && PairLike<std::ranges::range_value_t<R>> &&
+    std::convertible_to<
+        std::tuple_element_t<0, std::ranges::range_value_t<R>>,
+        std::string> &&
+    std::constructible_from<
+        R,
+        std::ranges::iterator_t<JsonObject::read_view_t<
+            std::tuple_element_t<1, std::ranges::range_value_t<R>>>>,
+        std::ranges::iterator_t<JsonObject::read_view_t<
+            std::tuple_element_t<1, std::ranges::range_value_t<R>>>>>;
 
 template <typename T>
 concept JsonObjectReadable = std::constructible_from<T, JsonObject&>;
@@ -365,6 +475,15 @@ T read(const JsonElement& element)
     } else if constexpr (JsonObjectReadable<T>) {
         if (element.id == JsonElement::ElementID::OBJECT) {
             return T(static_cast<const JsonObject&>(element));
+        }
+
+        throw std::invalid_argument("Could not read user-defined object.");
+    } else if constexpr (PairContainer<T>) {
+        if (element.id == JsonElement::ElementID::OBJECT) {
+            const auto& object = static_cast<const JsonObject&>(element);
+            auto view = object.read_view<
+                std::tuple_element_t<1, std::ranges::range_value_t<T>>>();
+            return T(view.begin(), view.end());
         }
 
         throw std::invalid_argument("Could not read user-defined object.");
@@ -582,6 +701,7 @@ template <typename K, typename V, typename C, typename A>
 constexpr bool enable_json_object<std::unordered_map<K, V, C, A>> = true;
 
 static_assert(Container<std::vector<int>>);
+static_assert(PairContainer<std::map<std::string, std::string>>);
 
 } // namespace probfd::json
 
