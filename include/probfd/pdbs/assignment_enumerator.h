@@ -23,8 +23,8 @@ public:
      * @brief Constructs the enumeration function for assignments with the
      * given domains.
      */
-    template <std::ranges::input_range R>
-        requires std::integral<std::ranges::range_reference_t<R>>
+    template <std::ranges::input_range R = std::ranges::empty_view<int>>
+        requires std::integral<std::ranges::range_value_t<R>>
     explicit AssignmentEnumerator(
         const R& domain_sizes = std::views::empty<int>)
         : var_infos_(domain_sizes.size())
