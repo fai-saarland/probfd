@@ -25,6 +25,11 @@ AdditiveCartesianHeuristic::AdditiveCartesianHeuristic(
 {
 }
 
+AdditiveCartesianHeuristic::AdditiveCartesianHeuristic(
+    AdditiveCartesianHeuristic&&) noexcept = default;
+
+AdditiveCartesianHeuristic::~AdditiveCartesianHeuristic() = default;
+
 value_t AdditiveCartesianHeuristic::evaluate(const State& state) const
 {
     value_t sum_h = 0;

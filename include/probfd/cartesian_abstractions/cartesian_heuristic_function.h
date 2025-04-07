@@ -32,7 +32,12 @@ public:
         std::vector<value_t>&& h_values);
 
     CartesianHeuristicFunction(const CartesianHeuristicFunction&) = delete;
-    CartesianHeuristicFunction(CartesianHeuristicFunction&&) = default;
+    CartesianHeuristicFunction(CartesianHeuristicFunction&&) noexcept;
+
+    CartesianHeuristicFunction&
+    operator=(const CartesianHeuristicFunction&) = delete;
+    CartesianHeuristicFunction&
+    operator=(CartesianHeuristicFunction&&) noexcept;
 
     ~CartesianHeuristicFunction();
 

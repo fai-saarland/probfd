@@ -20,6 +20,12 @@ CartesianHeuristicFunction::CartesianHeuristicFunction(
 {
 }
 
+CartesianHeuristicFunction::CartesianHeuristicFunction(
+    CartesianHeuristicFunction&&) noexcept = default;
+
+CartesianHeuristicFunction& CartesianHeuristicFunction::operator=(
+    CartesianHeuristicFunction&&) noexcept = default;
+
 CartesianHeuristicFunction::~CartesianHeuristicFunction() = default;
 
 value_t CartesianHeuristicFunction::get_value(const State& state) const

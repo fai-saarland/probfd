@@ -25,13 +25,17 @@ namespace probfd::heuristics {
   summing all of their values.
 */
 class AdditiveCartesianHeuristic final : public FDREvaluator {
-    const std::vector<cartesian_abstractions::CartesianHeuristicFunction>
+    std::vector<cartesian_abstractions::CartesianHeuristicFunction>
         heuristic_functions_;
 
 public:
     explicit AdditiveCartesianHeuristic(
         std::vector<cartesian_abstractions::CartesianHeuristicFunction>
             heuristic_functions);
+
+    AdditiveCartesianHeuristic(AdditiveCartesianHeuristic&&) noexcept;
+
+    ~AdditiveCartesianHeuristic() override;
 
 protected:
     value_t evaluate(const downward::State& ancestor_state) const override;
