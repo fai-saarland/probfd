@@ -5,6 +5,8 @@
 #include "probfd/fdr_types.h"
 #include "probfd/heuristic.h"
 
+#include <memory>
+
 namespace probfd::merge_and_shrink {
 class Distances;
 class Labels;
