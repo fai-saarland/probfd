@@ -10,8 +10,15 @@ namespace probfd::json {
 
 namespace {
 
+template <typename...>
+struct AllSameHelper : std::true_type {};
+
 template <typename H, typename... T>
-concept AllSame = (std::same_as<H, T> && ...);
+struct AllSameHelper<H, T...>
+    : std::bool_constant<(std::is_same_v<H, T> && ...)> {};
+
+template <typename... T>
+concept AllSame = AllSameHelper<T...>::value;
 
 template <typename... Ts>
     requires AllSame<std::decay_t<Ts>...>
@@ -32,9 +39,7 @@ constexpr auto concat_strings(Ts&&... args)
         constexpr auto count =
             (sizeof(arg) - sizeof(charType)) / sizeof(charType);
 
-        for (size_t i = 0; i < count; ++i) {
-            result[pos++] = arg[i];
-        }
+        for (size_t i = 0; i < count; ++i) { result[pos++] = arg[i]; }
     };
 
     (detail_concat(args), ...);
@@ -55,6 +60,7 @@ struct ConstString {
     }
 
     consteval ConstString() {}
+
     consteval ConstString(const char (&new_str)[N])
     {
         if (new_str[N - 1] != '\0') abort();
