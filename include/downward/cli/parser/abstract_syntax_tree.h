@@ -14,20 +14,26 @@
 namespace downward::plugins {
 struct ArgumentInfo;
 class Type;
-} // namespace plugins
+} // namespace downward::plugins
 
 namespace downward::cli::parser {
 class DecorateContext;
+
+struct TypedDecoratedAstNodePtr {
+    DecoratedASTNodePtr ast_node;
+    const plugins::Type* type;
+};
 
 class ASTNode {
 public:
     virtual ~ASTNode() = default;
 
     DecoratedASTNodePtr decorate() const;
-    virtual DecoratedASTNodePtr decorate(DecorateContext& context) const = 0;
+    virtual TypedDecoratedAstNodePtr
+    decorate(DecorateContext& context) const = 0;
     virtual void dump(std::string indent = "+") const = 0;
-    virtual const plugins::Type& get_type(DecorateContext& context) const = 0;
 };
+
 using ASTNodePtr = std::unique_ptr<ASTNode>;
 
 class LetNode : public ASTNode {
@@ -39,9 +45,8 @@ public:
         std::vector<std::pair<std::string, ASTNodePtr>> variable_definitions,
         ASTNodePtr nested_value);
 
-    DecoratedASTNodePtr decorate(DecorateContext& context) const override;
+    TypedDecoratedAstNodePtr decorate(DecorateContext& context) const override;
     void dump(std::string indent) const override;
-    const plugins::Type& get_type(DecorateContext& context) const override;
 };
 
 class FunctionCallNode : public ASTNode {
@@ -52,11 +57,12 @@ class FunctionCallNode : public ASTNode {
 
     using CollectedArguments =
         std::unordered_map<std::string, FunctionArgument>;
-    bool collect_argument(
-        const ASTNode& arg,
+
+    static bool collect_argument(
+        ASTNode& arg,
         const plugins::ArgumentInfo& arg_info,
         DecorateContext& context,
-        CollectedArguments& arguments) const;
+        CollectedArguments& arguments);
     void collect_keyword_arguments(
         const std::vector<plugins::ArgumentInfo>& argument_infos,
         DecorateContext& context,
@@ -65,10 +71,10 @@ class FunctionCallNode : public ASTNode {
         const std::vector<plugins::ArgumentInfo>& argument_infos,
         DecorateContext& context,
         CollectedArguments& arguments) const;
-    void collect_default_values(
+    static void collect_default_values(
         const std::vector<plugins::ArgumentInfo>& argument_infos,
         DecorateContext& context,
-        CollectedArguments& arguments) const;
+        CollectedArguments& arguments);
 
 public:
     FunctionCallNode(
@@ -76,9 +82,8 @@ public:
         std::vector<ASTNodePtr>&& positional_arguments,
         std::unordered_map<std::string, ASTNodePtr>&& keyword_arguments,
         const std::string& unparsed_config);
-    DecoratedASTNodePtr decorate(DecorateContext& context) const override;
+    TypedDecoratedAstNodePtr decorate(DecorateContext& context) const override;
     void dump(std::string indent) const override;
-    const plugins::Type& get_type(DecorateContext& context) const override;
 };
 
 class ListNode : public ASTNode {
@@ -86,11 +91,8 @@ class ListNode : public ASTNode {
 
 public:
     explicit ListNode(std::vector<ASTNodePtr>&& elements);
-    DecoratedASTNodePtr decorate(DecorateContext& context) const override;
+    TypedDecoratedAstNodePtr decorate(DecorateContext& context) const override;
     void dump(std::string indent) const override;
-    const plugins::Type*
-    get_common_element_type(DecorateContext& context) const;
-    const plugins::Type& get_type(DecorateContext& context) const override;
 };
 
 class LiteralNode : public ASTNode {
@@ -98,9 +100,8 @@ class LiteralNode : public ASTNode {
 
 public:
     explicit LiteralNode(const Token& value);
-    DecoratedASTNodePtr decorate(DecorateContext& context) const override;
+    TypedDecoratedAstNodePtr decorate(DecorateContext& context) const override;
     void dump(std::string indent) const override;
-    const plugins::Type& get_type(DecorateContext& context) const override;
 };
 } // namespace downward::cli::parser
 #endif

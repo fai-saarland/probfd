@@ -80,6 +80,12 @@ vector<LazyValue> LazyValue::construct_lazy_list()
     return elements;
 }
 
+void DecoratedASTNode::prune_unused_definitions()
+{
+    std::vector<VariableDefinition> defs;
+    prune_unused_definitions(defs);
+}
+
 std::any DecoratedASTNode::construct() const
 {
     ConstructContext context;
@@ -119,18 +125,33 @@ bool FunctionArgument::is_lazily_constructed() const
 }
 
 DecoratedLetNode::DecoratedLetNode(
-    std::vector<std::pair<std::string, DecoratedASTNodePtr>>
-        decorated_variable_definitions,
+    std::vector<VariableDefinition> decorated_variable_definitions,
     DecoratedASTNodePtr nested_value)
     : decorated_variable_definitions(move(decorated_variable_definitions))
     , nested_value(move(nested_value))
 {
 }
 
+void DecoratedLetNode::prune_unused_definitions(
+    std::vector<VariableDefinition>& defs)
+{
+    auto [it, end] = std::ranges::remove_if(
+        decorated_variable_definitions,
+        [](const auto& def) { return def.usages.empty(); });
+
+    defs.insert(
+        defs.end(),
+        std::make_move_iterator(it),
+        std::make_move_iterator(end));
+    decorated_variable_definitions.erase(it, end);
+
+    nested_value->prune_unused_definitions(defs);
+}
+
 std::any DecoratedLetNode::construct(ConstructContext& context) const
 {
     utils::TraceBlock block(context, "Constructing let-expression");
-    for (const auto& [variable_name, variable_definition] :
+    for (const auto& [variable_name, variable_definition, _] :
          decorated_variable_definitions) {
         utils::TraceBlock block(
             context,
@@ -145,7 +166,7 @@ std::any DecoratedLetNode::construct(ConstructContext& context) const
         result = nested_value->construct(context);
     }
 
-    for (const auto& [variable_name, variable_definition] :
+    for (const auto& [variable_name, variable_definition, _] :
          decorated_variable_definitions) {
         context.remove_variable(variable_name);
     }
@@ -157,7 +178,7 @@ void DecoratedLetNode::dump(string indent) const
 {
     cout << indent << "LET:";
     indent = "| " + indent;
-    for (const auto& [variable_name, variable_definition] :
+    for (const auto& [variable_name, variable_definition, _] :
          decorated_variable_definitions) {
         cout << variable_name << " = " << endl;
         variable_definition->dump(indent);
@@ -203,9 +224,7 @@ void DecoratedFunctionCallNode::dump(string indent) const
          << feature->get_type().name() << ")" << endl;
     indent = "| " + indent;
     cout << indent << "ARGUMENTS:" << endl;
-    for (const FunctionArgument& arg : arguments) {
-        arg.dump("| " + indent);
-    }
+    for (const FunctionArgument& arg : arguments) { arg.dump("| " + indent); }
 }
 
 DecoratedListNode::DecoratedListNode(vector<DecoratedASTNodePtr>&& elements)
@@ -237,23 +256,26 @@ void DecoratedListNode::dump(string indent) const
     }
 }
 
-VariableNode::VariableNode(const string& name)
-    : name(name)
+VariableNode::VariableNode(const VariableDefinition& definition)
+    : definition(&definition)
 {
 }
 
 std::any VariableNode::construct(ConstructContext& context) const
 {
-    utils::TraceBlock block(context, "Looking up variable '" + name + "'");
-    if (!context.has_variable(name)) {
-        context.error("Variable '" + name + "' is not defined.");
+    utils::TraceBlock block(
+        context,
+        "Looking up variable '" + definition->variable_name + "'");
+    if (!context.has_variable(definition->variable_name)) {
+        context.error(
+            "Variable '" + definition->variable_name + "' is not defined.");
     }
-    return context.get_variable(name);
+    return context.get_variable(definition->variable_name);
 }
 
 void VariableNode::dump(string indent) const
 {
-    cout << indent << "VAR: " << name << endl;
+    cout << indent << "VAR: " << definition->variable_name << endl;
 }
 
 BoolLiteralNode::BoolLiteralNode(const string& value)
@@ -541,9 +563,7 @@ std::any CheckBoundsNode::construct(ConstructContext& context) const
                 "Bounds are only supported for arguments of type int or "
                 "double.");
         }
-        if (!bounds_satisfied) {
-            context.error("Value is not in bounds.");
-        }
+        if (!bounds_satisfied) { context.error("Value is not in bounds."); }
     }
     return v;
 }
@@ -568,10 +588,11 @@ FunctionArgument::FunctionArgument(const FunctionArgument& other)
 DecoratedLetNode::DecoratedLetNode(const DecoratedLetNode& other)
     : nested_value(other.nested_value->clone())
 {
-    for (const auto& [name, nested_value] :
+    for (const auto& [name, nested_value, _] :
          other.decorated_variable_definitions) {
         decorated_variable_definitions.emplace_back(
-            std::make_pair(name, nested_value->clone()));
+            name,
+            nested_value->clone());
     }
 }
 
@@ -621,14 +642,9 @@ shared_ptr<DecoratedASTNode> DecoratedListNode::clone_shared() const
     return make_shared<DecoratedListNode>(*this);
 }
 
-VariableNode::VariableNode(const VariableNode& other)
-    : name(other.name)
-{
-}
-
 unique_ptr<DecoratedASTNode> VariableNode::clone() const
 {
-    return std::make_unique<VariableNode>(*this);
+    return std::make_unique<VariableNode>(*definition);
 }
 
 shared_ptr<DecoratedASTNode> VariableNode::clone_shared() const

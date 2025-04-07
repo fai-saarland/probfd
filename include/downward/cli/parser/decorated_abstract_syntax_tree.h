@@ -28,10 +28,26 @@ public:
     std::any get_variable(const std::string& name) const;
 };
 
+class DecoratedASTNode;
+using DecoratedASTNodePtr = std::unique_ptr<DecoratedASTNode>;
+
+class VariableNode;
+
+struct VariableDefinition {
+    std::string variable_name;
+    DecoratedASTNodePtr variable_expression;
+    std::vector<const VariableNode*> usages;
+};
+
 class DecoratedASTNode {
 public:
     virtual ~DecoratedASTNode() = default;
+
+    void prune_unused_definitions();
     std::any construct() const;
+
+    virtual void prune_unused_definitions(std::vector<VariableDefinition>&) {}
+
     virtual std::any construct(ConstructContext& context) const = 0;
     virtual void dump(std::string indent = "+") const = 0;
 
@@ -40,6 +56,7 @@ public:
     virtual std::unique_ptr<DecoratedASTNode> clone() const = 0;
     virtual std::shared_ptr<DecoratedASTNode> clone_shared() const = 0;
 };
+
 using DecoratedASTNodePtr = std::unique_ptr<DecoratedASTNode>;
 
 class LazyValue {
@@ -86,16 +103,16 @@ public:
 };
 
 class DecoratedLetNode : public DecoratedASTNode {
-    std::vector<std::pair<std::string, DecoratedASTNodePtr>>
-        decorated_variable_definitions;
+    std::vector<VariableDefinition> decorated_variable_definitions;
     DecoratedASTNodePtr nested_value;
 
 public:
     DecoratedLetNode(
-    std::vector<std::pair<std::string, DecoratedASTNodePtr>>
-    decorated_variable_definitions,
+        std::vector<VariableDefinition> decorated_variable_definitions,
         DecoratedASTNodePtr nested_value);
 
+    void
+    prune_unused_definitions(std::vector<VariableDefinition>& defs) override;
     std::any construct(ConstructContext& context) const override;
     void dump(std::string indent) const override;
 
@@ -141,6 +158,7 @@ public:
     virtual std::unique_ptr<DecoratedASTNode> clone() const override;
     virtual std::shared_ptr<DecoratedASTNode> clone_shared() const override;
     DecoratedListNode(const DecoratedListNode& other);
+
     const std::vector<DecoratedASTNodePtr>& get_elements() const
     {
         return elements;
@@ -148,10 +166,10 @@ public:
 };
 
 class VariableNode : public DecoratedASTNode {
-    std::string name;
+    const VariableDefinition* definition;
 
 public:
-    VariableNode(const std::string& name);
+    explicit VariableNode(const VariableDefinition& definition);
 
     std::any construct(ConstructContext& context) const override;
     void dump(std::string indent) const override;
@@ -160,7 +178,6 @@ public:
     // necessary.
     virtual std::unique_ptr<DecoratedASTNode> clone() const override;
     virtual std::shared_ptr<DecoratedASTNode> clone_shared() const override;
-    VariableNode(const VariableNode& other);
 };
 
 class BoolLiteralNode : public DecoratedASTNode {

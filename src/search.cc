@@ -52,11 +52,10 @@ static string replace_old_style_predefinitions(
         if (!is_alpha_numeric(key))
             throw std::invalid_argument(
                 "predefinition key has to be alphanumeric: '" + key + "'");
-        new_search_argument << "let(" << key << "," << definition << ",";
+        new_search_argument << "let " << definition << " as " << key << " in ";
     }
 
-    new_search_argument << old_search_argument
-                        << string(predefinitions.size(), ')');
+    new_search_argument << old_search_argument;
 
     return new_search_argument.str();
 }
@@ -90,6 +89,10 @@ static int search(argparse::ArgumentParser& parser)
         TokenStream tokens = split_tokens(search_arg);
         ASTNodePtr parsed = parse(tokens);
         DecoratedASTNodePtr decorated = parsed->decorate();
+        if (parser.get<bool>("--ignore-unused-definitions")) {
+            std::vector<VariableDefinition> unused_defs;
+            decorated->prune_unused_definitions(unused_defs);
+        }
         std::any constructed = decorated->construct();
         try {
             solver_factory =
@@ -149,14 +152,24 @@ void add_search_subcommand(argparse::ArgumentParser& arg_parser)
         .scan<'g', double>(0.0);
 
     search_parser.add_argument("--predefinition")
-        .help("[Deprecated] Feature predefinition. The options --landmarks, "
-              "--evaluator and --heuristic are aliases for this option.")
+        .help(
+            "[Deprecated] Feature predefinition. The options --landmarks, "
+            "--evaluator and --heuristic are aliases for this option.")
         .append()
         .metavar("FEATURE_STRING");
 
+    search_parser.add_argument("--ignore-unused-definitions")
+        .help(
+            "If true, unused definitions in let expressions of the search "
+            "string are ignored and the corresponding component will not be "
+            "constructed.")
+        .flag()
+        .default_value(true);
+
     search_parser.add_argument("algorithm")
-        .help("The search algorithm factory. For available options, see "
-              "--list-features TaskSolverFactory.")
+        .help(
+            "The search algorithm factory. For available options, see "
+            "--list-features TaskSolverFactory.")
         .required();
 
     search_parser.add_argument("sas_file")
