@@ -68,8 +68,9 @@ int Type::get_enum_index(const string&, utils::Context&) const
 
 const EnumInfo& Type::get_documented_enum_values() const
 {
-    ABORT("Used Type::get_documented_enum_values on a type that does not "
-          "support it.");
+    ABORT(
+        "Used Type::get_documented_enum_values on a type that does not "
+        "support it.");
 }
 
 bool Type::is_symbol_type() const
@@ -280,9 +281,7 @@ string EnumType::name() const
 size_t EnumType::get_hash() const
 {
     size_t hash_value = 0;
-    for (const string& value : values) {
-        hash_value ^= hash<string>()(value);
-    }
+    for (const string& value : values) { hash_value ^= hash<string>()(value); }
     return hash_value;
 }
 
@@ -378,8 +377,24 @@ template <typename T>
 void TypeRegistry::insert_basic_type()
 {
     type_index type = typeid(T);
-    registered_types[type] =
-        std::make_unique<BasicType>(type, typeid(T).name());
+
+    std::string name;
+
+    if constexpr (std::same_as<T, bool>) {
+        name = "bool";
+    } else if constexpr (std::same_as<T, float>) {
+        name = "float";
+    } else if constexpr (std::same_as<T, double>) {
+        name = "double";
+    } else if constexpr (std::same_as<T, int>) {
+        name = "int";
+    } else if constexpr (std::same_as<T, std::string>) {
+        name = "string";
+    } else {
+        name = type.name();
+    }
+
+    registered_types[type] = std::make_unique<BasicType>(type, name);
 }
 
 const FeatureType&
@@ -430,9 +445,7 @@ const ListType& TypeRegistry::create_list_type(const Type& element_type)
 
 const Type& TypeRegistry::get_nonlist_type(type_index type) const
 {
-    if (!registered_types.count(type)) {
-        return NO_TYPE;
-    }
+    if (!registered_types.count(type)) { return NO_TYPE; }
     return *registered_types.at(type);
 }
 } // namespace downward::cli::plugins
