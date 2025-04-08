@@ -229,7 +229,7 @@ void add_search_subcommand(argparse::ArgumentParser& arg_parser)
             "expression ppdbs() of type TaskHeuristicFactory "
             "(see also 'list-features ppdbs'). "
             "Evaluates to a TaskSolverFactory that will create an instance of "
-            "the iLAO* algorithm to the solve the input task, which will use "
+            "the iLAO* algorithm to solve the input task, which will use "
             "the heuristic for the task that is constructed with the "
             "TaskHeuristicFactory bound to h, here a probabilistic PDB "
             "heuristic (see also 'list-features ilao'.")
