@@ -161,7 +161,7 @@ void add_search_subcommand(argparse::ArgumentParser& arg_parser)
     search_parser.add_argument("--definitions-file")
         .help(
             "Path to a file in JSON format containing feature definitions. "
-            "These definitions will be converted into a let expressions "
+            "These definitions will be converted into a let expression "
             "containing the search string as its body.")
         .filepath()
         .metavar("FILEPATH");
