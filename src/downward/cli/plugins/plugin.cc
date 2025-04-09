@@ -128,11 +128,6 @@ string CategoryPlugin::get_synopsis() const
     return synopsis;
 }
 
-bool CategoryPlugin::supports_variable_binding() const
-{
-    return can_be_bound_to_variable;
-}
-
 void CategoryPlugin::document_synopsis(const string& synopsis)
 {
     this->synopsis = synopsis;

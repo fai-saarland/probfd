@@ -31,11 +31,6 @@ bool Type::is_feature_type() const
     return false;
 }
 
-bool Type::supports_variable_binding() const
-{
-    return false;
-}
-
 string Type::get_synopsis() const
 {
     ABORT("Used Type::get_synopsis on a type that does not support it.");
@@ -125,12 +120,10 @@ size_t BasicType::get_hash() const
 FeatureType::FeatureType(
     type_index pointer_type,
     const string& type_name,
-    const string& synopsis,
-    bool supports_variable_binding)
+    const string& synopsis)
     : pointer_type(pointer_type)
     , type_name(type_name)
     , synopsis(synopsis)
-    , can_be_bound_to_variable(supports_variable_binding)
 {
 }
 
@@ -143,11 +136,6 @@ bool FeatureType::operator==(const Type& other) const
 bool FeatureType::is_feature_type() const
 {
     return true;
-}
-
-bool FeatureType::supports_variable_binding() const
-{
-    return can_be_bound_to_variable;
 }
 
 string FeatureType::get_synopsis() const
@@ -410,8 +398,7 @@ TypeRegistry::create_feature_type(const CategoryPlugin& plugin)
     unique_ptr<FeatureType> type_ptr = std::make_unique<FeatureType>(
         plugin.get_pointer_type(),
         plugin.get_category_name(),
-        plugin.get_synopsis(),
-        plugin.supports_variable_binding());
+        plugin.get_synopsis());
     const FeatureType& type_ref = *type_ptr;
     registered_types[type] = move(type_ptr);
     return type_ref;

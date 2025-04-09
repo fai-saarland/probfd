@@ -34,8 +34,7 @@ protected:
         const std::map<std::string, std::vector<const Feature*>>& subcategories)
         const = 0;
     virtual void print_category_synopsis(
-        const std::string& synopsis,
-        bool supports_variable_binding) const = 0;
+        const std::string& synopsis) const = 0;
     virtual void print_category_footer() const = 0;
 
 public:
@@ -60,8 +59,7 @@ protected:
         const std::map<std::string, std::vector<const Feature*>>&)
         const override;
     virtual void print_category_synopsis(
-        const std::string& synopsis,
-        bool supports_variable_binding) const override;
+        const std::string& synopsis) const override;
     virtual void print_category_footer() const override;
 
 public:
@@ -84,8 +82,7 @@ protected:
         const std::map<std::string, std::vector<const Feature*>>&)
         const override;
     virtual void print_category_synopsis(
-        const std::string& synopsis,
-        bool supports_variable_binding) const override;
+        const std::string& synopsis) const override;
     virtual void print_category_footer() const override;
 
 public:

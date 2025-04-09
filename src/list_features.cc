@@ -297,19 +297,9 @@ protected:
     }
 
     void print_category_synopsis(
-        const string& synopsis,
-        bool supports_variable_binding) const override
+        const string& synopsis) const override
     {
         if (print_all && !synopsis.empty()) { os << synopsis << endl; }
-        if (supports_variable_binding) {
-            os << endl
-               << "This feature type can be bound to variables using "
-               << "``let(variable_name, variable_definition, expression)"
-               << "`` where ``expression`` can use ``variable_name``. "
-               << "Predefinitions using ``--evaluator``, ``--heuristic``, and "
-               << "``--landmarks`` are automatically transformed into ``let``-"
-               << "expressions but are deprecated." << endl;
-        }
     }
 
     void print_category_footer() const override {}

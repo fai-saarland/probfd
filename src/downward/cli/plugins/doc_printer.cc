@@ -64,9 +64,7 @@ void DocPrinter::print_category(const FeatureType& type, bool recursive) const
     }
 
     print_category_header(type, subcategories);
-    print_category_synopsis(
-        type.get_synopsis(),
-        type.supports_variable_binding());
+    print_category_synopsis(type.get_synopsis());
 
     if (recursive) {
         /*
@@ -219,20 +217,10 @@ void Txt2TagsPrinter::print_category_header(
 }
 
 void Txt2TagsPrinter::print_category_synopsis(
-    const string& synopsis,
-    bool supports_variable_binding) const
+    const string& synopsis) const
 {
     if (!synopsis.empty()) {
         os << synopsis << endl;
-    }
-    if (supports_variable_binding) {
-        os << endl
-           << "This feature type can be bound to variables using "
-           << "``let(variable_name, variable_definition, expression)"
-           << "`` where ``expression`` can use ``variable_name``. "
-           << "Predefinitions using ``--evaluator``, ``--heuristic``, and "
-           << "``--landmarks`` are automatically transformed into ``let``-"
-           << "expressions but are deprecated." << endl;
     }
 }
 
@@ -336,20 +324,10 @@ void PlainPrinter::print_category_header(
 }
 
 void PlainPrinter::print_category_synopsis(
-    const string& synopsis,
-    bool supports_variable_binding) const
+    const string& synopsis) const
 {
     if (print_all && !synopsis.empty()) {
         os << synopsis << endl;
-    }
-    if (supports_variable_binding) {
-        os << endl
-           << "This feature type can be bound to variables using "
-           << "``let(variable_name, variable_definition, expression)"
-           << "`` where ``expression`` can use ``variable_name``. "
-           << "Predefinitions using ``--evaluator``, ``--heuristic``, and "
-           << "``--landmarks`` are automatically transformed into ``let``-"
-           << "expressions but are deprecated." << endl;
     }
 }
 

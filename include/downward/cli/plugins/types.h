@@ -33,7 +33,6 @@ public:
     virtual const std::type_index& get_basic_type_index() const;
 
     virtual bool is_feature_type() const;
-    virtual bool supports_variable_binding() const;
     virtual std::string get_synopsis() const;
 
     virtual bool is_list_type() const;
@@ -71,17 +70,14 @@ class FeatureType : public Type {
     std::type_index pointer_type;
     std::string type_name;
     std::string synopsis;
-    bool can_be_bound_to_variable;
 
 public:
     FeatureType(
         std::type_index pointer_type,
         const std::string& type_name,
-        const std::string& synopsis,
-        bool supports_variable_binding);
+        const std::string& synopsis);
     virtual bool operator==(const Type& other) const override;
     virtual bool is_feature_type() const override;
-    virtual bool supports_variable_binding() const override;
     virtual std::string get_synopsis() const override;
     virtual std::string name() const override;
     virtual size_t get_hash() const override;

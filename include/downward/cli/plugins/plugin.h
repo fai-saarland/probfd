@@ -219,7 +219,6 @@ public:
     std::string get_category_name() const;
     std::string get_class_name() const;
     std::string get_synopsis() const;
-    bool supports_variable_binding() const;
 };
 
 template <typename T>

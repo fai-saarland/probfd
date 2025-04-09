@@ -118,12 +118,6 @@ TypedDecoratedAstNodePtr LetNode::decorate(DecorateContext& context) const
             variable_name,
             std::move(ast_node));
 
-        if (!type->supports_variable_binding()) {
-            context.error(
-                "The value of variable '" + variable_name +
-                "' is not permitted to be assigned to a variable.");
-        }
-
         context.add_variable(variable_name, *type, definition);
     }
 
