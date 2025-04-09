@@ -108,6 +108,7 @@ TypedDecoratedAstNodePtr LetNode::decorate(DecorateContext& context) const
             utils::join(variable_definitions | views::keys, ", "));
 
     std::vector<VariableDefinition> decorated_variable_definitions;
+    decorated_variable_definitions.reserve(variable_definitions.size());
 
     for (const auto& [variable_name, variable_definition] :
          variable_definitions) {
@@ -229,11 +230,15 @@ bool FunctionCallNode::collect_argument(
             move(decorated_min_node),
             move(decorated_max_node));
     }
-    FunctionArgument function_arg(
-        key,
-        move(decorated_arg),
-        arg_info.lazy_construction);
-    arguments.insert({key, move(function_arg)});
+
+    arguments.emplace(
+        std::piecewise_construct,
+        std::forward_as_tuple(key),
+        std::forward_as_tuple(
+            key,
+            move(decorated_arg),
+            arg_info.lazy_construction));
+
     return true;
 }
 
@@ -378,8 +383,10 @@ FunctionCallNode::decorate(DecorateContext& context) const
     collect_default_values(argument_infos, context, arguments_by_key);
 
     vector<FunctionArgument> arguments;
-    for (auto& key_and_arg : arguments_by_key) {
-        arguments.push_back(move(key_and_arg.second));
+    arguments.reserve(arguments_by_key.size());
+
+    for (auto& val : arguments_by_key | views::values) {
+        arguments.push_back(move(val));
     }
 
     return {
