@@ -92,15 +92,37 @@ static int search(argparse::ArgumentParser& parser)
     shared_ptr<TaskSolverFactory> solver_factory;
 
     try {
-        std::println(std::cout, "Using search string: '{}'", search_arg);
         TokenStream tokens = split_tokens(search_arg);
         ASTNodePtr parsed = parse(tokens);
         DecoratedASTNodePtr decorated = parsed->decorate();
+
         if (parser.get<bool>("--ignore-unused-definitions")) {
             std::vector<VariableDefinition> unused_defs;
             decorated->prune_unused_definitions(unused_defs);
+
+            if (!unused_defs.empty()) {
+                std::cout
+                    << "Removed unused variables from feature expression: ";
+
+                {
+                    const auto var_name = unused_defs.front().variable_name;
+                    std::print(std::cout, "{}", var_name);
+                }
+
+                for (const auto& def : unused_defs | std::views::drop(1)) {
+                    std::print(std::cout, ", {}", def.variable_name);
+                }
+
+                std::println(std::cout);
+            }
         }
+
+        std::cout << "Constructing solver from feature expression:\n";
+        decorated->print(std::cout, 4, false);
+        std::println(std::cout);
+
         std::any constructed = decorated->construct();
+
         try {
             solver_factory =
                 std::any_cast<shared_ptr<TaskSolverFactory>>(constructed);

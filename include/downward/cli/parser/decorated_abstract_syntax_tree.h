@@ -36,7 +36,14 @@ class VariableNode;
 struct VariableDefinition {
     std::string variable_name;
     DecoratedASTNodePtr variable_expression;
-    std::vector<const VariableNode*> usages;
+    std::vector<VariableNode*> usages;
+
+    VariableDefinition(
+        std::string variable_name,
+        DecoratedASTNodePtr variable_expression);
+
+    VariableDefinition(VariableDefinition&& other) noexcept;
+    VariableDefinition& operator=(VariableDefinition&& other) noexcept;
 };
 
 class DecoratedASTNode {
@@ -48,7 +55,10 @@ public:
 
     virtual void prune_unused_definitions(std::vector<VariableDefinition>&) {}
 
+    virtual void remove_variable_usages() {}
+
     virtual std::any construct(ConstructContext& context) const = 0;
+    virtual void print(std::ostream& out, std::size_t indent, bool print_default_args) const = 0;
     virtual void dump(std::string indent = "+") const = 0;
 
     // TODO: This is here only for the iterated search. Once we switch to
@@ -81,6 +91,7 @@ public:
 class FunctionArgument {
     std::string key;
     DecoratedASTNodePtr value;
+    bool is_default;
 
     // TODO: This is here only for the iterated search. Once we switch to
     // builders, we won't need it any more.
@@ -90,16 +101,20 @@ public:
     FunctionArgument(
         const std::string& key,
         DecoratedASTNodePtr value,
+        bool is_default,
         bool lazy_construction);
 
     std::string get_key() const;
+    DecoratedASTNode& get_value();
     const DecoratedASTNode& get_value() const;
+    bool is_default_argument() const;
     void dump(const std::string& indent) const;
 
     // TODO: This is here only for the iterated search. Once we switch to
     // builders, we won't need it any more.
     bool is_lazily_constructed() const;
     FunctionArgument(const FunctionArgument& other);
+    FunctionArgument(FunctionArgument&& other) = default;
 };
 
 class DecoratedLetNode : public DecoratedASTNode {
@@ -113,13 +128,16 @@ public:
 
     void
     prune_unused_definitions(std::vector<VariableDefinition>& defs) override;
+    void remove_variable_usages() override;
+
     std::any construct(ConstructContext& context) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be
     // necessary.
-    virtual std::unique_ptr<DecoratedASTNode> clone() const override;
-    virtual std::shared_ptr<DecoratedASTNode> clone_shared() const override;
+    std::unique_ptr<DecoratedASTNode> clone() const override;
+    std::shared_ptr<DecoratedASTNode> clone_shared() const override;
     DecoratedLetNode(const DecoratedLetNode& other);
 };
 
@@ -134,13 +152,16 @@ public:
         std::vector<FunctionArgument>&& arguments,
         const std::string& unparsed_config);
 
+    void remove_variable_usages() override;
+
     std::any construct(ConstructContext& context) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be
     // necessary.
-    virtual std::unique_ptr<DecoratedASTNode> clone() const override;
-    virtual std::shared_ptr<DecoratedASTNode> clone_shared() const override;
+    std::unique_ptr<DecoratedASTNode> clone() const override;
+    std::shared_ptr<DecoratedASTNode> clone_shared() const override;
     DecoratedFunctionCallNode(const DecoratedFunctionCallNode& other);
 };
 
@@ -148,15 +169,18 @@ class DecoratedListNode : public DecoratedASTNode {
     std::vector<DecoratedASTNodePtr> elements;
 
 public:
-    DecoratedListNode(std::vector<DecoratedASTNodePtr>&& elements);
+    explicit DecoratedListNode(std::vector<DecoratedASTNodePtr>&& elements);
+
+    void remove_variable_usages() override;
 
     std::any construct(ConstructContext& context) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be
     // necessary.
-    virtual std::unique_ptr<DecoratedASTNode> clone() const override;
-    virtual std::shared_ptr<DecoratedASTNode> clone_shared() const override;
+    std::unique_ptr<DecoratedASTNode> clone() const override;
+    std::shared_ptr<DecoratedASTNode> clone_shared() const override;
     DecoratedListNode(const DecoratedListNode& other);
 
     const std::vector<DecoratedASTNodePtr>& get_elements() const
@@ -166,33 +190,39 @@ public:
 };
 
 class VariableNode : public DecoratedASTNode {
-    const VariableDefinition* definition;
+    friend VariableDefinition;
+
+    VariableDefinition* definition;
 
 public:
-    explicit VariableNode(const VariableDefinition& definition);
+    explicit VariableNode(VariableDefinition& definition);
+
+    void remove_variable_usages() override;
 
     std::any construct(ConstructContext& context) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be
     // necessary.
-    virtual std::unique_ptr<DecoratedASTNode> clone() const override;
-    virtual std::shared_ptr<DecoratedASTNode> clone_shared() const override;
+    std::unique_ptr<DecoratedASTNode> clone() const override;
+    std::shared_ptr<DecoratedASTNode> clone_shared() const override;
 };
 
 class BoolLiteralNode : public DecoratedASTNode {
     std::string value;
 
 public:
-    BoolLiteralNode(const std::string& value);
+    explicit BoolLiteralNode(const std::string& value);
 
     std::any construct(ConstructContext& context) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be
     // necessary.
-    virtual std::unique_ptr<DecoratedASTNode> clone() const override;
-    virtual std::shared_ptr<DecoratedASTNode> clone_shared() const override;
+    std::unique_ptr<DecoratedASTNode> clone() const override;
+    std::shared_ptr<DecoratedASTNode> clone_shared() const override;
     BoolLiteralNode(const BoolLiteralNode& other);
 };
 
@@ -200,15 +230,16 @@ class StringLiteralNode : public DecoratedASTNode {
     std::string value;
 
 public:
-    StringLiteralNode(const std::string& value);
+    explicit StringLiteralNode(const std::string& value);
 
     std::any construct(ConstructContext& context) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be
     // necessary.
-    virtual std::unique_ptr<DecoratedASTNode> clone() const override;
-    virtual std::shared_ptr<DecoratedASTNode> clone_shared() const override;
+    std::unique_ptr<DecoratedASTNode> clone() const override;
+    std::shared_ptr<DecoratedASTNode> clone_shared() const override;
     StringLiteralNode(const StringLiteralNode& other);
 };
 
@@ -216,15 +247,16 @@ class IntLiteralNode : public DecoratedASTNode {
     std::string value;
 
 public:
-    IntLiteralNode(const std::string& value);
+    explicit IntLiteralNode(const std::string& value);
 
     std::any construct(ConstructContext& context) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be
     // necessary.
-    virtual std::unique_ptr<DecoratedASTNode> clone() const override;
-    virtual std::shared_ptr<DecoratedASTNode> clone_shared() const override;
+    std::unique_ptr<DecoratedASTNode> clone() const override;
+    std::shared_ptr<DecoratedASTNode> clone_shared() const override;
     IntLiteralNode(const IntLiteralNode& other);
 };
 
@@ -232,15 +264,16 @@ class FloatLiteralNode : public DecoratedASTNode {
     std::string value;
 
 public:
-    FloatLiteralNode(const std::string& value);
+    explicit FloatLiteralNode(const std::string& value);
 
     std::any construct(ConstructContext& context) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be
     // necessary.
-    virtual std::unique_ptr<DecoratedASTNode> clone() const override;
-    virtual std::shared_ptr<DecoratedASTNode> clone_shared() const override;
+    std::unique_ptr<DecoratedASTNode> clone() const override;
+    std::shared_ptr<DecoratedASTNode> clone_shared() const override;
     FloatLiteralNode(const FloatLiteralNode& other);
 };
 
@@ -248,15 +281,16 @@ class SymbolNode : public DecoratedASTNode {
     std::string value;
 
 public:
-    SymbolNode(const std::string& value);
+    explicit SymbolNode(const std::string& value);
 
     std::any construct(ConstructContext& context) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be
     // necessary.
-    virtual std::unique_ptr<DecoratedASTNode> clone() const override;
-    virtual std::shared_ptr<DecoratedASTNode> clone_shared() const override;
+    std::unique_ptr<DecoratedASTNode> clone() const override;
+    std::shared_ptr<DecoratedASTNode> clone_shared() const override;
     SymbolNode(const SymbolNode& other);
 };
 
@@ -271,13 +305,16 @@ public:
         const plugins::Type& from_type,
         const plugins::Type& to_type);
 
+    void remove_variable_usages() override;
+
     std::any construct(ConstructContext& context) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be
     // necessary.
-    virtual std::unique_ptr<DecoratedASTNode> clone() const override;
-    virtual std::shared_ptr<DecoratedASTNode> clone_shared() const override;
+    std::unique_ptr<DecoratedASTNode> clone() const override;
+    std::shared_ptr<DecoratedASTNode> clone_shared() const override;
     ConvertNode(const ConvertNode& other);
 };
 
@@ -293,12 +330,13 @@ public:
         DecoratedASTNodePtr max_value);
 
     std::any construct(ConstructContext& context) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be
     // necessary.
-    virtual std::unique_ptr<DecoratedASTNode> clone() const override;
-    virtual std::shared_ptr<DecoratedASTNode> clone_shared() const override;
+    std::unique_ptr<DecoratedASTNode> clone() const override;
+    std::shared_ptr<DecoratedASTNode> clone_shared() const override;
     CheckBoundsNode(const CheckBoundsNode& other);
 };
 } // namespace downward::cli::parser

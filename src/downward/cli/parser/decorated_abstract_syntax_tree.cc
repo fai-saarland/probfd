@@ -8,6 +8,7 @@
 #include "downward/utils/memory.h"
 
 #include <any>
+#include <functional>
 #include <limits>
 #include <ranges>
 
@@ -80,6 +81,34 @@ vector<LazyValue> LazyValue::construct_lazy_list()
     return elements;
 }
 
+VariableDefinition::VariableDefinition(
+    std::string variable_name,
+    DecoratedASTNodePtr variable_expression)
+    : variable_name(std::move(variable_name))
+    , variable_expression(std::move(variable_expression))
+{
+}
+
+VariableDefinition::VariableDefinition(VariableDefinition&& other) noexcept
+    : variable_name(std::move(other.variable_name))
+    , variable_expression(std::move(other.variable_expression))
+    , usages(std::move(other.usages))
+{
+    for (VariableNode* u : usages) { u->definition = this; }
+}
+
+VariableDefinition&
+VariableDefinition::operator=(VariableDefinition&& other) noexcept
+{
+    variable_name = std::move(other.variable_name);
+    variable_expression = std::move(other.variable_expression);
+    usages = std::move(other.usages);
+
+    for (VariableNode* u : usages) { u->definition = this; }
+
+    return *this;
+}
+
 void DecoratedASTNode::prune_unused_definitions()
 {
     std::vector<VariableDefinition> defs;
@@ -96,9 +125,11 @@ std::any DecoratedASTNode::construct() const
 FunctionArgument::FunctionArgument(
     const string& key,
     DecoratedASTNodePtr value,
+    bool is_default,
     bool lazy_construction)
     : key(key)
     , value(move(value))
+    , is_default(is_default)
     , lazy_construction(lazy_construction)
 {
 }
@@ -108,9 +139,19 @@ string FunctionArgument::get_key() const
     return key;
 }
 
+DecoratedASTNode& FunctionArgument::get_value()
+{
+    return *value;
+}
+
 const DecoratedASTNode& FunctionArgument::get_value() const
 {
     return *value;
+}
+
+bool FunctionArgument::is_default_argument() const
+{
+    return is_default;
 }
 
 void FunctionArgument::dump(const string& indent) const
@@ -135,17 +176,31 @@ DecoratedLetNode::DecoratedLetNode(
 void DecoratedLetNode::prune_unused_definitions(
     std::vector<VariableDefinition>& defs)
 {
-    auto [it, end] = std::ranges::remove_if(
+    nested_value->prune_unused_definitions(defs);
+
+    for (auto& def : std::views::reverse(decorated_variable_definitions)) {
+        if (def.usages.empty()) {
+            def.variable_expression->remove_variable_usages();
+        }
+    }
+
+    auto [beg, end] = std::ranges::stable_partition(
         decorated_variable_definitions,
-        [](const auto& def) { return def.usages.empty(); });
+        [](const auto& def) { return !def.usages.empty(); });
 
     defs.insert(
         defs.end(),
-        std::make_move_iterator(it),
+        std::make_move_iterator(beg),
         std::make_move_iterator(end));
-    decorated_variable_definitions.erase(it, end);
 
-    nested_value->prune_unused_definitions(defs);
+    decorated_variable_definitions.erase(beg, end);
+}
+
+void DecoratedLetNode::remove_variable_usages()
+{
+    for (auto& def : decorated_variable_definitions) {
+        def.variable_expression->remove_variable_usages();
+    }
 }
 
 std::any DecoratedLetNode::construct(ConstructContext& context) const
@@ -174,6 +229,35 @@ std::any DecoratedLetNode::construct(ConstructContext& context) const
     return result;
 }
 
+void DecoratedLetNode::print(
+    std::ostream& out,
+    std::size_t indent,
+    bool print_default_args) const
+{
+    std::println(out, "{:>{}}", "let", indent + 3);
+
+    if (!decorated_variable_definitions.empty()) {
+        {
+            const auto& [variable_name, variable_definition, _] =
+                decorated_variable_definitions.front();
+            variable_definition->print(out, indent + 4, print_default_args);
+            std::print(out, " as {}", variable_name);
+        }
+
+        for (const auto& [variable_name, variable_definition, _] :
+             decorated_variable_definitions | std::views::drop(1)) {
+            std::println(out, ",");
+            variable_definition->print(out, indent + 4, print_default_args);
+            std::print(out, " as {}", variable_name);
+        }
+    }
+
+    std::println(out);
+    std::println(out, "{:>{}}", "in", indent + 2);
+
+    nested_value->print(out, indent + 4, print_default_args);
+}
+
 void DecoratedLetNode::dump(string indent) const
 {
     cout << indent << "LET:";
@@ -197,6 +281,11 @@ DecoratedFunctionCallNode::DecoratedFunctionCallNode(
 {
 }
 
+void DecoratedFunctionCallNode::remove_variable_usages()
+{
+    for (auto& arg : arguments) { arg.get_value().remove_variable_usages(); }
+}
+
 std::any DecoratedFunctionCallNode::construct(ConstructContext& context) const
 {
     utils::TraceBlock block(
@@ -218,6 +307,41 @@ std::any DecoratedFunctionCallNode::construct(ConstructContext& context) const
     return feature->construct(opts, context);
 }
 
+void DecoratedFunctionCallNode::print(
+    std::ostream& out,
+    std::size_t indent,
+    bool print_default_args) const
+{
+    std::print(
+        out,
+        "{:>{}}(",
+        feature->get_key(),
+        indent + feature->get_key().size());
+
+    auto filter =
+        print_default_args
+            ? static_cast<std::function<bool(const FunctionArgument&)>>(
+                  [](const auto&) { return true; })
+            : [](const FunctionArgument& arg) {
+                  return !arg.is_default_argument();
+              };
+
+    if (auto args = arguments | std::views::filter(filter); !args.empty()) {
+        {
+            const FunctionArgument& arg = args.front();
+            std::print(out, "{}=", arg.get_key());
+            arg.get_value().print(out, 0, print_default_args);
+        }
+
+        for (const FunctionArgument& arg : args | std::views::drop(1)) {
+            std::print(out, ", {}=", arg.get_key());
+            arg.get_value().print(out, 0, print_default_args);
+        }
+    }
+
+    std::print(out, ")");
+}
+
 void DecoratedFunctionCallNode::dump(string indent) const
 {
     cout << indent << "FUNC:" << feature->get_title() << " (returns "
@@ -230,6 +354,11 @@ void DecoratedFunctionCallNode::dump(string indent) const
 DecoratedListNode::DecoratedListNode(vector<DecoratedASTNodePtr>&& elements)
     : elements(move(elements))
 {
+}
+
+void DecoratedListNode::remove_variable_usages()
+{
+    for (const auto& el : elements) { el->remove_variable_usages(); }
 }
 
 std::any DecoratedListNode::construct(ConstructContext& context) const
@@ -247,6 +376,28 @@ std::any DecoratedListNode::construct(ConstructContext& context) const
     return result;
 }
 
+void DecoratedListNode::print(
+    std::ostream& out,
+    std::size_t indent,
+    bool print_default_args) const
+{
+    std::print(out, "{:>{}}", "[", indent + 1);
+
+    if (!elements.empty()) {
+        {
+            const auto& el = elements.front();
+            el->print(out, 0, print_default_args);
+        }
+
+        for (const auto& el : elements | std::views::drop(1)) {
+            std::print(out, ", ");
+            el->print(out, 0, print_default_args);
+        }
+    }
+
+    std::print(out, "]");
+}
+
 void DecoratedListNode::dump(string indent) const
 {
     cout << indent << "LIST:" << endl;
@@ -256,9 +407,16 @@ void DecoratedListNode::dump(string indent) const
     }
 }
 
-VariableNode::VariableNode(const VariableDefinition& definition)
+VariableNode::VariableNode(VariableDefinition& definition)
     : definition(&definition)
 {
+}
+
+void VariableNode::remove_variable_usages()
+{
+    const auto it = std::ranges::find(definition->usages, this);
+    assert(it != definition->usages.end());
+    definition->usages.erase(it);
 }
 
 std::any VariableNode::construct(ConstructContext& context) const
@@ -271,6 +429,15 @@ std::any VariableNode::construct(ConstructContext& context) const
             "Variable '" + definition->variable_name + "' is not defined.");
     }
     return context.get_variable(definition->variable_name);
+}
+
+void VariableNode::print(std::ostream& out, std::size_t indent, bool) const
+{
+    std::print(
+        out,
+        "{:>{}}",
+        definition->variable_name,
+        indent + definition->variable_name.size());
 }
 
 void VariableNode::dump(string indent) const
@@ -297,6 +464,12 @@ std::any BoolLiteralNode::construct(ConstructContext& context) const
             " (this should have been caught before constructing this node).");
     }
     return x;
+}
+
+void BoolLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
+{
+    std::print(out, "{}", std::string(indent, ' '));
+    std::print(out, "{}", value);
 }
 
 void BoolLiteralNode::dump(string indent) const
@@ -343,6 +516,11 @@ std::any StringLiteralNode::construct(ConstructContext& context) const
         }
     }
     return result;
+}
+
+void StringLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
+{
+    std::print(out, "{:>{}}", value, indent + value.size());
 }
 
 void StringLiteralNode::dump(string indent) const
@@ -410,6 +588,12 @@ std::any IntLiteralNode::construct(ConstructContext& context) const
     return x * factor;
 }
 
+void IntLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
+{
+    std::print(out, "{}", std::string(indent, ' '));
+    std::print(out, "{}", value);
+}
+
 void IntLiteralNode::dump(string indent) const
 {
     cout << indent << "INT: " << value << endl;
@@ -442,6 +626,12 @@ std::any FloatLiteralNode::construct(ConstructContext& context) const
     }
 }
 
+void FloatLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
+{
+    std::print(out, "{}", std::string(indent, ' '));
+    std::print(out, "{}", value);
+}
+
 void FloatLiteralNode::dump(string indent) const
 {
     cout << indent << "FLOAT: " << value << endl;
@@ -457,6 +647,12 @@ std::any SymbolNode::construct(ConstructContext&) const
     return std::any(value);
 }
 
+void SymbolNode::print(std::ostream& out, std::size_t indent, bool) const
+{
+    std::print(out, "{}", std::string(indent, ' '));
+    std::print(out, "{}", value);
+}
+
 void SymbolNode::dump(string indent) const
 {
     cout << indent << "SYMBOL: " << value << endl;
@@ -470,6 +666,11 @@ ConvertNode::ConvertNode(
     , from_type(from_type)
     , to_type(to_type)
 {
+}
+
+void ConvertNode::remove_variable_usages()
+{
+    value->remove_variable_usages();
 }
 
 std::any ConvertNode::construct(ConstructContext& context) const
@@ -494,6 +695,14 @@ std::any ConvertNode::construct(ConstructContext& context) const
             plugins::convert(constructed_value, from_type, to_type, context);
     }
     return converted_value;
+}
+
+void ConvertNode::print(
+    std::ostream& out,
+    std::size_t indent,
+    bool print_default_args) const
+{
+    value->print(out, indent, print_default_args);
 }
 
 void ConvertNode::dump(string indent) const
@@ -568,6 +777,14 @@ std::any CheckBoundsNode::construct(ConstructContext& context) const
     return v;
 }
 
+void CheckBoundsNode::print(
+    std::ostream& out,
+    std::size_t indent,
+    bool print_default_args) const
+{
+    value->print(out, indent, print_default_args);
+}
+
 void CheckBoundsNode::dump(string indent) const
 {
     cout << indent << "CHECK-BOUNDS: " << endl;
@@ -581,6 +798,7 @@ void CheckBoundsNode::dump(string indent) const
 FunctionArgument::FunctionArgument(const FunctionArgument& other)
     : key(other.key)
     , value(other.value->clone())
+    , is_default(other.is_default)
     , lazy_construction(other.lazy_construction)
 {
 }

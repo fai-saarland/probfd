@@ -202,7 +202,8 @@ bool FunctionCallNode::collect_argument(
     ASTNode& arg,
     const plugins::ArgumentInfo& arg_info,
     DecorateContext& context,
-    CollectedArguments& arguments)
+    CollectedArguments& arguments,
+    bool is_default)
 {
     string key = arg_info.key;
     if (arguments.count(key)) { return false; }
@@ -237,6 +238,7 @@ bool FunctionCallNode::collect_argument(
         std::forward_as_tuple(
             key,
             move(decorated_arg),
+            is_default,
             arg_info.lazy_construction));
 
     return true;
@@ -268,7 +270,7 @@ void FunctionCallNode::collect_keyword_arguments(
             context.error(message.str());
         }
         const plugins::ArgumentInfo& arg_info = argument_infos_by_key.at(key);
-        bool success = collect_argument(arg, arg_info, context, arguments);
+        bool success = collect_argument(arg, arg_info, context, arguments, false);
         if (!success) {
             ABORT(
                 "Multiple keyword definitions using the same key '" + key +
@@ -321,7 +323,7 @@ void FunctionCallNode::collect_positional_arguments(
             context,
             "Checking the " + to_string(i + 1) + ". positional argument (" +
                 arg_info.key + ")");
-        bool success = collect_argument(arg, arg_info, context, arguments);
+        bool success = collect_argument(arg, arg_info, context, arguments, false);
         if (!success) {
             ostringstream message;
             message << "The argument '" << arg_info.key
@@ -352,7 +354,7 @@ void FunctionCallNode::collect_default_values(
                     arg = parse_ast_node(arg_info.default_value, context);
                 }
                 bool success =
-                    collect_argument(*arg, arg_info, context, arguments);
+                    collect_argument(*arg, arg_info, context, arguments, true);
                 if (!success) {
                     ABORT(
                         "Default argument for '" + key + "' set although " +

@@ -62,7 +62,8 @@ class FunctionCallNode : public ASTNode {
         ASTNode& arg,
         const plugins::ArgumentInfo& arg_info,
         DecorateContext& context,
-        CollectedArguments& arguments);
+        CollectedArguments& arguments,
+        bool is_default);
     void collect_keyword_arguments(
         const std::vector<plugins::ArgumentInfo>& argument_infos,
         DecorateContext& context,
