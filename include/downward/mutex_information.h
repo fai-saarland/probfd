@@ -1,10 +1,7 @@
 #ifndef DOWNWARD_MUTEXES_H
 #define DOWNWARD_MUTEXES_H
 
-#include <memory>
-
 namespace downward {
-class AbstractTask;
 struct FactPair;
 }
 
