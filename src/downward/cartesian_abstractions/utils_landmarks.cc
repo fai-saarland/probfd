@@ -23,7 +23,7 @@ static FactPair get_fact(const Landmark& landmark)
 
 shared_ptr<LandmarkGraph> get_landmark_graph(
     const shared_ptr<AbstractTask>& task,
-    std::shared_ptr<MutexFactory> mutex_factory)
+    std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory)
 {
     LandmarkFactoryHM lm_graph_factory(
         std::move(mutex_factory),

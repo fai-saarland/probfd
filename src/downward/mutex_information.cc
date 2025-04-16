@@ -1,4 +1,4 @@
-#include "downward/mutexes.h"
+#include "downward/mutex_information.h"
 
 #include "downward/abstract_task.h"
 

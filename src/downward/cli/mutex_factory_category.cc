@@ -1,6 +1,7 @@
 #include "downward/cli/plugins/plugin.h"
 
-#include "downward/mutexes.h"
+#include "downward/mutex_information.h"
+#include "downward/task_dependent_factory.h"
 
 #include <filesystem>
 
@@ -13,7 +14,8 @@ using namespace downward::cli::plugins;
 namespace {
 
 class MutexFactoryCategoryPlugin
-    : public plugins::TypedCategoryPlugin<MutexFactory> {
+    : public plugins::TypedCategoryPlugin<
+          TaskDependentFactory<MutexInformation>> {
 public:
     MutexFactoryCategoryPlugin()
         : TypedCategoryPlugin("MutexFactory")

@@ -2,6 +2,8 @@
 
 #include "downward/cli/landmarks/landmark_factory_options.h"
 
+#include "downward/task_dependent_factory.h"
+
 #include "downward/landmarks/landmark_factory_h_m.h"
 
 #include "downward/utils/logging.h"
@@ -36,7 +38,7 @@ public:
             "m",
             "subset size (if unsure, use the default of 2)",
             "2");
-        add_option<std::shared_ptr<MutexFactory>>(
+        add_option<std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
             "mutexes",
             "factory for mutexes");
         add_option<bool>(
@@ -55,7 +57,7 @@ public:
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<LandmarkFactoryHM>(
-            opts.get<std::shared_ptr<MutexFactory>>("mutexes"),
+            opts.get<std::shared_ptr<TaskDependentFactory<MutexInformation>>>("mutexes"),
             opts.get<int>("m"),
             opts.get<bool>("conjunctive_landmarks"),
             get_use_orders_arguments_from_options(opts),

@@ -1,10 +1,11 @@
 #ifndef LANDMARKS_LANDMARK_FACTORY_H_M_H
 #define LANDMARKS_LANDMARK_FACTORY_H_M_H
 
+#include "downward/task_dependent_factory_fwd.h"
+
 #include "downward/landmarks/landmark_factory.h"
 
 namespace downward {
-class MutexFactory;
 class MutexInformation;
 }
 
@@ -114,7 +115,7 @@ class LandmarkFactoryHM : public LandmarkFactory {
     print_fluentset(const VariablesProxy& variables, const FluentSet& fs) const;
     void print_pm_op(const VariablesProxy& variables, const PMOp& op) const;
 
-    std::shared_ptr<MutexFactory> mutex_factory;
+    std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory;
 
     const int m_;
     const bool conjunctive_landmarks;
@@ -195,7 +196,7 @@ class LandmarkFactoryHM : public LandmarkFactory {
 
 public:
     LandmarkFactoryHM(
-        std::shared_ptr<MutexFactory> mutex_factory,
+        std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory,
         int m,
         bool conjunctive_landmarks,
         bool use_orders,

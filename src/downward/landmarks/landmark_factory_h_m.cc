@@ -4,7 +4,8 @@
 #include "downward/landmarks/landmark.h"
 
 #include "downward/abstract_task.h"
-#include "downward/mutexes.h"
+#include "downward/mutex_information.h"
+#include "downward/task_dependent_factory.h"
 
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/collections.h"
@@ -125,9 +126,7 @@ void LandmarkFactoryHM::get_m_sets_(
         return;
     }
     if (current_var == num_variables) {
-        if (num_included != 0) {
-            subsets.push_back(current);
-        }
+        if (num_included != 0) { subsets.push_back(current); }
         return;
     }
     // include a value of current_var in the set
@@ -182,9 +181,7 @@ void LandmarkFactoryHM::get_m_sets_of_set(
     }
 
     if (current_var_index == static_cast<int>(superset.size())) {
-        if (num_included != 0) {
-            subsets.push_back(current);
-        }
+        if (num_included != 0) { subsets.push_back(current); }
         return;
     }
 
@@ -408,9 +405,7 @@ void LandmarkFactoryHM::get_m_sets(
     const State& state)
 {
     FluentSet state_fluents;
-    for (FactProxy fact : state) {
-        state_fluents.push_back(fact.get_pair());
-    }
+    for (FactProxy fact : state) { state_fluents.push_back(fact.get_pair()); }
     get_m_sets(task_proxy, mutexes, m, subsets, state_fluents);
 }
 
@@ -727,7 +722,7 @@ bool LandmarkFactoryHM::interesting(
 }
 
 LandmarkFactoryHM::LandmarkFactoryHM(
-    std::shared_ptr<MutexFactory> mutex_factory,
+    std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory,
     int m,
     bool conjunctive_landmarks,
     bool use_orders,
@@ -744,9 +739,7 @@ void LandmarkFactoryHM::initialize(
     const TaskProxy& task_proxy,
     const MutexInformation& mutexes)
 {
-    if (log.is_at_least_normal()) {
-        log << "h^m landmarks m=" << m_ << endl;
-    }
+    if (log.is_at_least_normal()) { log << "h^m landmarks m=" << m_ << endl; }
     if (!task_proxy.get_axioms().empty()) {
         cerr << "h^m landmarks don't support axioms" << endl;
         utils::exit_with(ExitCode::SEARCH_UNSUPPORTED);
@@ -798,9 +791,7 @@ void LandmarkFactoryHM::calc_achievers(
     const MutexInformation& mutexes)
 {
     assert(!achievers_calculated);
-    if (log.is_at_least_normal()) {
-        log << "Calculating achievers." << endl;
-    }
+    if (log.is_at_least_normal()) { log << "Calculating achievers." << endl; }
 
     OperatorsProxy operators = task_proxy.get_operators();
     VariablesProxy variables = task_proxy.get_variables();
@@ -832,9 +823,7 @@ void LandmarkFactoryHM::calc_achievers(
                         break;
                     }
                 }
-                if (is_mutex) {
-                    break;
-                }
+                if (is_mutex) { break; }
                 for (const FactPair& fluent : pre) {
                     // we know that lm_val is not added by the operator
                     // so if it incompatible with the pc, this can't be an
@@ -844,9 +833,7 @@ void LandmarkFactoryHM::calc_achievers(
                         break;
                     }
                 }
-                if (is_mutex) {
-                    break;
-                }
+                if (is_mutex) { break; }
             }
             if (j == landmark.facts.size()) {
                 // not inconsistent with any of the other landmark fluents
@@ -879,9 +866,7 @@ void LandmarkFactoryHM::propagate_pm_fact(
     for (const FactPair& info : h_m_table_[factindex].pc_for) {
         // a pc for the action itself
         if (info.value == -1) {
-            if (newly_discovered) {
-                --unsat_pc_count_[info.var].first;
-            }
+            if (newly_discovered) { --unsat_pc_count_[info.var].first; }
             // add to queue if unsatcount at 0
             if (unsat_pc_count_[info.var].first == 0) {
                 // create empty set or clear prev entries -- signals do all
@@ -968,9 +953,7 @@ void LandmarkFactoryHM::compute_h_m_landmarks(
                 union_with(local_landmarks, h_m_table_[*it].landmarks);
                 insert_into(local_landmarks, *it);
 
-                if (use_orders) {
-                    insert_into(local_necessary, *it);
-                }
+                if (use_orders) { insert_into(local_necessary, *it); }
             }
 
             for (it = action.eff.begin(); it != action.eff.end(); ++it) {
@@ -1047,9 +1030,7 @@ void LandmarkFactoryHM::compute_h_m_landmarks(
         }
         ++level;
     }
-    if (log.is_at_least_normal()) {
-        log << "h^m landmarks computed." << endl;
-    }
+    if (log.is_at_least_normal()) { log << "h^m landmarks computed." << endl; }
 }
 
 void LandmarkFactoryHM::compute_noop_landmarks(
@@ -1081,9 +1062,7 @@ void LandmarkFactoryHM::compute_noop_landmarks(
         union_with(cn_landmarks, h_m_table_[pm_fluent].landmarks);
         insert_into(cn_landmarks, pm_fluent);
 
-        if (use_orders) {
-            insert_into(cn_necessary, pm_fluent);
-        }
+        if (use_orders) { insert_into(cn_necessary, pm_fluent); }
     }
 
     // go to the beginning of the effects section
@@ -1113,9 +1092,7 @@ void LandmarkFactoryHM::compute_noop_landmarks(
         } else {
             h_m_table_[pm_fluent].level = level;
             h_m_table_[pm_fluent].landmarks = cn_landmarks;
-            if (use_orders) {
-                h_m_table_[pm_fluent].necessary = cn_necessary;
-            }
+            if (use_orders) { h_m_table_[pm_fluent].necessary = cn_necessary; }
             insert_into(h_m_table_[pm_fluent].first_achievers, op_index);
             propagate_pm_fact(pm_fluent, true, next_trigger);
         }
@@ -1140,7 +1117,7 @@ void LandmarkFactoryHM::add_lm_node(int set_index, bool goal)
 
 void LandmarkFactoryHM::generate_landmarks(const shared_ptr<AbstractTask>& task)
 {
-    const auto mutexes = mutex_factory->compute_mutexes(task);
+    const auto mutexes = mutex_factory->create_object(task);
 
     TaskProxy task_proxy(*task);
     initialize(task_proxy, *mutexes);
@@ -1179,9 +1156,7 @@ void LandmarkFactoryHM::generate_landmarks(const shared_ptr<AbstractTask>& task)
         add_lm_node(set_index, true);
     }
     // now make remaining lm nodes
-    for (int lm : all_lms) {
-        add_lm_node(lm, false);
-    }
+    for (int lm : all_lms) { add_lm_node(lm, false); }
     if (use_orders) {
         // do reduction of graph
         // if f2 is landmark for f1, subtract landmark set of f2 from that of f1
@@ -1229,4 +1204,4 @@ bool LandmarkFactoryHM::supports_conditional_effects() const
     return false;
 }
 
-} // namespace landmarks
+} // namespace downward::landmarks

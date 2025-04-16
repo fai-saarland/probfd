@@ -156,7 +156,7 @@ SharedTasks GoalDecomposition::get_subtasks(
 }
 
 LandmarkDecomposition::LandmarkDecomposition(
-    std::shared_ptr<MutexFactory> mutex_factory,
+    std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory,
     FactOrder order,
     int random_seed,
     bool combine_facts)

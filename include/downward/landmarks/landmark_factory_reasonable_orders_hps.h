@@ -1,17 +1,18 @@
 #ifndef LANDMARKS_LANDMARK_FACTORY_REASONABLE_ORDERS_HPS_H
 #define LANDMARKS_LANDMARK_FACTORY_REASONABLE_ORDERS_HPS_H
 
+#include "downward/task_dependent_factory_fwd.h"
+
 #include "downward/landmarks/landmark_factory.h"
 
 namespace downward {
-class MutexFactory;
 class MutexInformation;
 }
 
 namespace downward::landmarks {
 class LandmarkFactoryReasonableOrdersHPS : public LandmarkFactory {
     std::shared_ptr<LandmarkFactory> lm_factory;
-    std::shared_ptr<MutexFactory> mutex_factory;
+    std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory;
 
     virtual void
     generate_landmarks(const std::shared_ptr<AbstractTask>& task) override;
@@ -35,7 +36,7 @@ class LandmarkFactoryReasonableOrdersHPS : public LandmarkFactory {
 public:
     LandmarkFactoryReasonableOrdersHPS(
         const std::shared_ptr<LandmarkFactory>& lm_factory,
-        std::shared_ptr<MutexFactory> mutex_factory,
+        std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory,
         utils::Verbosity verbosity);
 
     virtual bool supports_conditional_effects() const override;

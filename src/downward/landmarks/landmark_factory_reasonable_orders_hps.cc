@@ -8,13 +8,16 @@
 #include "downward/utils/logging.h"
 #include "downward/utils/markup.h"
 
-#include "downward/mutexes.h"
+#include "downward/mutex_information.h"
+
+#include <downward/task_dependent_factory.h>
 
 using namespace std;
+
 namespace downward::landmarks {
 LandmarkFactoryReasonableOrdersHPS::LandmarkFactoryReasonableOrdersHPS(
     const shared_ptr<LandmarkFactory>& lm_factory,
-    std::shared_ptr<MutexFactory> mutex_factory,
+    std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory,
     utils::Verbosity verbosity)
     : LandmarkFactory(verbosity)
     , lm_factory(lm_factory)
@@ -25,8 +28,7 @@ LandmarkFactoryReasonableOrdersHPS::LandmarkFactoryReasonableOrdersHPS(
 void LandmarkFactoryReasonableOrdersHPS::generate_landmarks(
     const shared_ptr<AbstractTask>& task)
 {
-    std::shared_ptr<MutexInformation> mutexes =
-        mutex_factory->compute_mutexes(task);
+    std::shared_ptr mutexes = mutex_factory->create_object(task);
 
     if (log.is_at_least_normal()) {
         log << "Building a landmark graph with reasonable orders." << endl;
@@ -393,4 +395,4 @@ bool LandmarkFactoryReasonableOrdersHPS::supports_conditional_effects() const
     return lm_factory->supports_conditional_effects();
 }
 
-} // namespace landmarks
+} // namespace downward::landmarks

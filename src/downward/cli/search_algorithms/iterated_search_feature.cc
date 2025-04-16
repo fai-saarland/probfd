@@ -4,7 +4,8 @@
 
 #include "downward/search_algorithms/iterated_search.h"
 
-#include "downward/search_algorithm_factory.h"
+#include "downward/search_algorithm.h"
+#include "downward/task_dependent_factory.h"
 
 #include "downward/utils/logging.h"
 
@@ -76,7 +77,8 @@ public:
     create_component(const Options& options, const utils::Context& context)
         const override
     {
-        verify_list_non_empty<std::shared_ptr<SearchAlgorithmFactory>>(
+        verify_list_non_empty<
+            std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>(
             context,
             options,
             "algorithm_configs");
@@ -87,7 +89,8 @@ public:
             options.get<double>("max_time"),
             options.get_unparsed_config(),
             options.get<utils::Verbosity>("verbosity"),
-            options.get_list<std::shared_ptr<SearchAlgorithmFactory>>(
+            options.get_list<
+                std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>(
                 "algorithm_configs"),
             options.get<bool>("pass_bound"),
             options.get<bool>("repeat_last"),

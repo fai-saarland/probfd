@@ -115,8 +115,7 @@ static shared_ptr<ProbabilisticTask> build_domain_abstracted_task(
     const landmarks::LandmarkNode* node)
 {
     extra_tasks::VarToGroups value_groups;
-    for (auto& pair :
-         ::cartesian_abstractions::get_prev_landmarks(node)) {
+    for (auto& pair : ::cartesian_abstractions::get_prev_landmarks(node)) {
         int var = pair.first;
         vector<int>& group = pair.second;
         if (group.size() >= 2) value_groups[var].push_back(group);
@@ -171,7 +170,7 @@ SharedTasks GoalDecomposition::get_subtasks(
 }
 
 LandmarkDecomposition::LandmarkDecomposition(
-    std::shared_ptr<MutexFactory> mutex_factory,
+    std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory,
     FactOrder order,
     bool combine_facts,
     int random_seed)

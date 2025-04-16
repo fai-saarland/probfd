@@ -1,6 +1,6 @@
 #include "downward/search_algorithms/iterated_search.h"
 
-#include "downward/search_algorithm_factory.h"
+#include "downward/task_dependent_factory.h"
 
 #include "downward/utils/logging.h"
 
@@ -16,7 +16,8 @@ IteratedSearch::IteratedSearch(
     double max_time,
     std::string description,
     utils::Verbosity verbosity,
-    std::vector<std::shared_ptr<SearchAlgorithmFactory>> algorithm_configs,
+    std::vector<std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>
+        algorithm_configs,
     bool pass_bound,
     bool repeat_last,
     bool continue_on_fail,
@@ -44,10 +45,8 @@ IteratedSearch::~IteratedSearch() = default;
 shared_ptr<SearchAlgorithm>
 IteratedSearch::get_search_algorithm(int algorithm_configs_index)
 {
-    std::shared_ptr<SearchAlgorithmFactory>& algorithm_factory =
-        algorithm_configs[algorithm_configs_index];
-    shared_ptr<SearchAlgorithm> algorithm =
-        algorithm_factory->create_algorithm();
+    auto& algorithm_factory = algorithm_configs[algorithm_configs_index];
+    shared_ptr algorithm = algorithm_factory->create_object(task);
     log << "Starting search: " << algorithm->get_description() << endl;
     return algorithm;
 }
@@ -76,9 +75,7 @@ shared_ptr<SearchAlgorithm> IteratedSearch::create_current_phase()
 SearchStatus IteratedSearch::step()
 {
     shared_ptr<SearchAlgorithm> current_search = create_current_phase();
-    if (!current_search) {
-        return found_solution() ? SOLVED : FAILED;
-    }
+    if (!current_search) { return found_solution() ? SOLVED : FAILED; }
     if (pass_bound && best_bound < current_search->get_bound()) {
         current_search->set_bound(best_bound);
     }
@@ -148,4 +145,4 @@ void IteratedSearch::save_plan_if_necessary()
     // each successful search iteration.
 }
 
-} // namespace iterated_search
+} // namespace downward::iterated_search

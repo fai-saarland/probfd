@@ -109,8 +109,8 @@ FromFileMutexFactory::FromFileMutexFactory(std::string filename)
 {
 }
 
-std::shared_ptr<MutexInformation>
-FromFileMutexFactory::compute_mutexes(const std::shared_ptr<AbstractTask>& task)
+std::unique_ptr<MutexInformation>
+FromFileMutexFactory::create_object(const std::shared_ptr<AbstractTask>& task)
 {
     std::fstream file(filename);
     VariablesProxy variables(*task);

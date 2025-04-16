@@ -1,15 +1,18 @@
 #ifndef CEGAR_SUBTASK_GENERATORS_H
 #define CEGAR_SUBTASK_GENERATORS_H
 
+#include "downward/task_dependent_factory_fwd.h"
+
 #include "downward/cartesian_abstractions/types.h"
 
+#include <downward/task_dependent_factory.h>
 #include <memory>
 #include <vector>
 
 namespace downward {
+class MutexInformation;
 class AbstractTask;
 struct FactPair;
-class MutexFactory;
 
 class StateMapping;
 class InverseOperatorMapping;
@@ -75,7 +78,7 @@ public:
   focussing on a single landmark fact.
 */
 class LandmarkDecomposition : public SubtaskGenerator {
-    std::shared_ptr<MutexFactory> mutex_factory;
+    std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory;
     FactOrder fact_order;
     bool combine_facts;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
@@ -88,7 +91,7 @@ class LandmarkDecomposition : public SubtaskGenerator {
 
 public:
     explicit LandmarkDecomposition(
-        std::shared_ptr<MutexFactory> mutex_factory,
+        std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory,
         FactOrder order,
         int random_seed,
         bool combine_facts);

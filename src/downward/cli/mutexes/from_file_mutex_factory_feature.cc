@@ -13,7 +13,7 @@ using namespace downward::cli::plugins;
 namespace {
 
 class FromFileMutexFactoryFeature
-    : public TypedFeature<MutexFactory, FromFileMutexFactory> {
+    : public TypedFeature<TaskDependentFactory<MutexInformation>, FromFileMutexFactory> {
 public:
     FromFileMutexFactoryFeature()
         : TypedFeature("mutexes_from_file")

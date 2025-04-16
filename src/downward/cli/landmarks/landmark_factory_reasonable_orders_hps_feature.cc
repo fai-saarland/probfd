@@ -2,6 +2,8 @@
 
 #include "downward/cli/landmarks/landmark_factory_options.h"
 
+#include "downward/task_dependent_factory.h"
+
 #include "downward/landmarks/landmark_factory_reasonable_orders_hps.h"
 
 #include "downward/utils/logging.h"
@@ -50,7 +52,7 @@ public:
             "decided to remove them in issue1089.");
 
         add_option<shared_ptr<LandmarkFactory>>("lm_factory");
-        add_option<std::shared_ptr<MutexFactory>>(
+        add_option<std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
             "mutexes",
             "factory for mutexes");
         add_landmark_factory_options_to_feature(*this);
@@ -66,7 +68,7 @@ public:
     {
         return make_shared_from_arg_tuples<LandmarkFactoryReasonableOrdersHPS>(
             opts.get<shared_ptr<LandmarkFactory>>("lm_factory"),
-            opts.get<std::shared_ptr<MutexFactory>>("mutexes"),
+            opts.get<std::shared_ptr<TaskDependentFactory<MutexInformation>>>("mutexes"),
             get_landmark_factory_arguments_from_options(opts));
     }
 };

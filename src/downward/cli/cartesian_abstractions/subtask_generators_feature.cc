@@ -2,19 +2,13 @@
 
 #include "downward/cli/utils/rng_options.h"
 
+#include "downward/task_dependent_factory.h"
+
 #include "downward/cartesian_abstractions/subtask_generators.h"
-#include "downward/cartesian_abstractions/utils.h"
 
 #include "downward/heuristics/additive_heuristic.h"
 
-#include "downward/landmarks/landmark_graph.h"
-
-#include "downward/task_utils/task_properties.h"
-
-#include "downward/tasks/modified_goals_task.h"
-
 #include "downward/utils/logging.h"
-#include "downward/utils/rng.h"
 
 using namespace std;
 using namespace downward;
@@ -89,7 +83,7 @@ public:
     LandmarkDecompositionFeature()
         : TypedFeature("landmarks")
     {
-        add_option<std::shared_ptr<MutexFactory>>(
+        add_option<std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
             "mutexes",
             "factory for mutexes",
             "mutexes_from_file(\"output.mutexes\")");
@@ -104,7 +98,7 @@ public:
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<LandmarkDecomposition>(
-            opts.get<std::shared_ptr<MutexFactory>>("mutexes"),
+            opts.get<std::shared_ptr<TaskDependentFactory<MutexInformation>>>("mutexes"),
             get_fact_order_arguments_from_options(opts),
             opts.get<bool>("combine_facts"));
     }

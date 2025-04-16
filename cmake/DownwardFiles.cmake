@@ -9,7 +9,7 @@ create_library(
         downward/evaluator
         downward/evaluator_cache
         downward/heuristic
-        downward/mutexes
+        downward/mutex_information
         downward/open_list
         downward/open_list_factory
         downward/operator_cost

@@ -2,18 +2,16 @@
 #define SEARCH_ALGORITHMS_ITERATED_SEARCH_H
 
 #include "downward/search_algorithm.h"
+#include "downward/task_dependent_factory_fwd.h"
 
 #include <memory>
 #include <vector>
 
-namespace downward {
-class SearchAlgorithmFactory;
-}
-
 namespace downward::iterated_search {
 
 class IteratedSearch : public SearchAlgorithm {
-    std::vector<std::shared_ptr<SearchAlgorithmFactory>> algorithm_configs;
+    std::vector<std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>
+        algorithm_configs;
 
     bool pass_bound;
     bool repeat_last_phase;
@@ -39,7 +37,8 @@ public:
         double max_time,
         std::string description,
         utils::Verbosity verbosity,
-        std::vector<std::shared_ptr<SearchAlgorithmFactory>> algorithm_configs,
+        std::vector<std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>
+            algorithm_configs,
         bool pass_bound,
         bool repeat_last,
         bool continue_on_fail,
@@ -50,6 +49,6 @@ public:
     virtual void save_plan_if_necessary() override;
     virtual void print_statistics() const override;
 };
-} // namespace iterated_search
+} // namespace downward::iterated_search
 
 #endif
