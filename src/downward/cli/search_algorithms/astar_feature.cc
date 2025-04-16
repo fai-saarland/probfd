@@ -1,4 +1,5 @@
 #include "downward/cli/plugins/plugin.h"
+#include "downward/open_list_factory.h"
 
 #include "downward/cli/search_algorithms/eager_search_options.h"
 
@@ -61,7 +62,7 @@ public:
                 opts.get<utils::Verbosity>("verbosity"));
 
         return make_shared_from_arg_tuples<EagerSearch>(
-            open,
+            open->create_state_open_list(),
             true,
             f_eval,
             vector<shared_ptr<Evaluator>>{},

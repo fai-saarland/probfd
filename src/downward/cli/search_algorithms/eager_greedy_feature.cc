@@ -1,4 +1,5 @@
 #include "downward/cli/plugins/plugin.h"
+#include "downward/open_list_factory.h"
 
 #include "downward/cli/search_algorithms/eager_search_options.h"
 
@@ -86,7 +87,7 @@ public:
             opts.get<int>("boost"));
 
         return make_shared_from_arg_tuples<eager_search::EagerSearch>(
-            std::move(open),
+            open->create_state_open_list(),
             false,
             nullptr,
             opts.get_list<shared_ptr<Evaluator>>("preferred"),

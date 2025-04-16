@@ -2,6 +2,8 @@
 
 #include "downward/cli/search_algorithms/eager_search_options.h"
 
+#include "downward/open_list_factory.h"
+
 #include "downward/search_algorithms/eager_search.h"
 #include "downward/search_algorithms/search_common.h"
 
@@ -58,7 +60,7 @@ public:
             opts.get<utils::Verbosity>("verbosity"));
 
         return make_shared_from_arg_tuples<EagerSearch>(
-            std::move(open),
+            open->create_state_open_list(),
             opts.get<bool>("reopen_closed"),
             nullptr,
             opts.get_list<shared_ptr<Evaluator>>("preferred"),

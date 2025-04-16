@@ -20,12 +20,12 @@ using namespace std;
 
 namespace downward::eager_search {
 EagerSearch::EagerSearch(
-    const shared_ptr<OpenListFactory>& open,
+    unique_ptr<StateOpenList> open,
     bool reopen_closed,
-    const shared_ptr<Evaluator>& f_eval,
-    const vector<shared_ptr<Evaluator>>& preferred,
-    const shared_ptr<Evaluator>& lazy_evaluator,
-    const shared_ptr<PruningMethod>& pruning,
+    shared_ptr<Evaluator> f_eval,
+    vector<shared_ptr<Evaluator>> preferred,
+    shared_ptr<Evaluator> lazy_evaluator,
+    shared_ptr<PruningMethod> pruning,
     OperatorCost cost_type,
     int bound,
     double max_time,
@@ -33,11 +33,11 @@ EagerSearch::EagerSearch(
     utils::Verbosity verbosity)
     : SearchAlgorithm(cost_type, bound, max_time, description, verbosity)
     , reopen_closed_nodes(reopen_closed)
-    , open_list(open->create_state_open_list())
-    , f_evaluator(f_eval) // default nullptr
-    , preferred_operator_evaluators(preferred)
-    , lazy_evaluator(lazy_evaluator) // default nullptr
-    , pruning_method(pruning)
+    , open_list(std::move(open))
+    , f_evaluator(std::move(f_eval)) // default nullptr
+    , preferred_operator_evaluators(std::move(preferred))
+    , lazy_evaluator(std::move(lazy_evaluator)) // default nullptr
+    , pruning_method(std::move(pruning))
 {
     if (lazy_evaluator && !lazy_evaluator->does_cache_estimates()) {
         cerr << "lazy_evaluator must cache its estimates" << endl;

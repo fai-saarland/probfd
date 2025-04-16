@@ -1,4 +1,5 @@
 #include "downward/cli/plugins/plugin.h"
+#include "downward/open_list_factory.h"
 
 #include "downward/cli/search_algorithms/eager_search_options.h"
 
@@ -14,8 +15,7 @@ using namespace downward::cli::plugins;
 
 namespace {
 
-class EagerSearchFeature
-    : public TypedFeature<SearchAlgorithm, EagerSearch> {
+class EagerSearchFeature : public TypedFeature<SearchAlgorithm, EagerSearch> {
 public:
     EagerSearchFeature()
         : TypedFeature("eager")
@@ -42,7 +42,8 @@ public:
     create_component(const Options& opts, const utils::Context&) const override
     {
         return make_shared_from_arg_tuples<EagerSearch>(
-            opts.get<shared_ptr<OpenListFactory>>("open"),
+            opts.get<shared_ptr<OpenListFactory>>("open")
+                ->create_state_open_list(),
             opts.get<bool>("reopen_closed"),
             opts.get<shared_ptr<Evaluator>>("f_eval", nullptr),
             opts.get_list<shared_ptr<Evaluator>>("preferred"),

@@ -10,7 +10,6 @@
 namespace downward {
 class Evaluator;
 class PruningMethod;
-class OpenListFactory;
 }
 
 namespace downward::eager_search {
@@ -36,12 +35,12 @@ protected:
 
 public:
     explicit EagerSearch(
-        const std::shared_ptr<OpenListFactory>& open,
+        std::unique_ptr<StateOpenList> open,
         bool reopen_closed,
-        const std::shared_ptr<Evaluator>& f_eval,
-        const std::vector<std::shared_ptr<Evaluator>>& preferred,
-        const std::shared_ptr<Evaluator>& lazy_evaluator,
-        const std::shared_ptr<PruningMethod>& pruning,
+        std::shared_ptr<Evaluator> f_eval,
+        std::vector<std::shared_ptr<Evaluator>> preferred,
+        std::shared_ptr<Evaluator> lazy_evaluator,
+        std::shared_ptr<PruningMethod> pruning,
         OperatorCost cost_type,
         int bound,
         double max_time,
