@@ -50,16 +50,19 @@ public:
     virtual shared_ptr<EagerSearch>
     create_component(const Options& opts, const utils::Context&) const override
     {
-        return make_shared_from_arg_tuples<EagerSearch>(
-            search_common::create_wastar_open_list_factory(
-                opts.get_list<shared_ptr<Evaluator>>("evals"),
-                opts.get_list<shared_ptr<Evaluator>>("preferred"),
-                opts.get<int>("boost"),
-                opts.get<int>("w"),
-                opts.get<utils::Verbosity>("verbosity")),
-            opts.get<bool>("reopen_closed"),
-            opts.get<shared_ptr<Evaluator>>("f_eval", nullptr),
+        auto open = search_common::create_wastar_open_list_factory(
+            opts.get_list<shared_ptr<Evaluator>>("evals"),
             opts.get_list<shared_ptr<Evaluator>>("preferred"),
+            opts.get<int>("boost"),
+            opts.get<int>("w"),
+            opts.get<utils::Verbosity>("verbosity"));
+
+        return make_shared_from_arg_tuples<EagerSearch>(
+            std::move(open),
+            opts.get<bool>("reopen_closed"),
+            nullptr,
+            opts.get_list<shared_ptr<Evaluator>>("preferred"),
+            nullptr,
             get_eager_search_arguments_from_options(opts));
     }
 };

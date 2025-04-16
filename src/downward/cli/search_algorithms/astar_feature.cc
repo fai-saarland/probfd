@@ -55,21 +55,18 @@ public:
     virtual shared_ptr<EagerSearch>
     create_component(const Options& opts, const utils::Context&) const override
     {
-        Options options_copy(opts);
-        auto temp = search_common::create_astar_open_list_factory_and_f_eval(
-            opts.get<shared_ptr<Evaluator>>("eval"),
-            opts.get<utils::Verbosity>("verbosity"));
-        options_copy.set("open", temp.first);
-        options_copy.set("f_eval", temp.second);
-        options_copy.set("reopen_closed", true);
-        vector<shared_ptr<Evaluator>> preferred_list;
-        options_copy.set("preferred", preferred_list);
+        auto [open, f_eval] =
+            search_common::create_astar_open_list_factory_and_f_eval(
+                opts.get<shared_ptr<Evaluator>>("eval"),
+                opts.get<utils::Verbosity>("verbosity"));
+
         return make_shared_from_arg_tuples<EagerSearch>(
-            options_copy.get<shared_ptr<OpenListFactory>>("open"),
-            options_copy.get<bool>("reopen_closed"),
-            options_copy.get<shared_ptr<Evaluator>>("f_eval", nullptr),
-            options_copy.get_list<shared_ptr<Evaluator>>("preferred"),
-            get_eager_search_arguments_from_options(options_copy));
+            open,
+            true,
+            f_eval,
+            vector<shared_ptr<Evaluator>>{},
+            opts.get<shared_ptr<Evaluator>>("lazy_evaluator", nullptr),
+            get_eager_search_arguments_from_options(opts));
     }
 };
 
