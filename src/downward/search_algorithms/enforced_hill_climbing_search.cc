@@ -66,7 +66,12 @@ EnforcedHillClimbingSearch::EnforcedHillClimbingSearch(
     double max_time,
     const string& description,
     utils::Verbosity verbosity)
-    : SearchAlgorithm(cost_type, bound, max_time, description, verbosity)
+    : IterativeSearchAlgorithm(
+          cost_type,
+          bound,
+          max_time,
+          description,
+          verbosity)
     , evaluator(h)
     , preferred_operator_evaluators(preferred)
     , preferred_usage(preferred_usage)
@@ -249,9 +254,7 @@ SearchStatus EnforcedHillClimbingSearch::ehc()
 
             if (h < current_eval_context.get_evaluator_value(evaluator.get())) {
                 ++num_ehc_phases;
-                if (d_counts.count(d) == 0) {
-                    d_counts[d] = make_pair(0, 0);
-                }
+                if (d_counts.count(d) == 0) { d_counts[d] = make_pair(0, 0); }
                 pair<int, int>& d_pair = d_counts[d];
                 d_pair.first += 1;
                 d_pair.second += statistics.get_expanded() - last_num_expanded;
@@ -290,4 +293,4 @@ void EnforcedHillClimbingSearch::print_statistics() const
     }
 }
 
-} // namespace enforced_hill_climbing_search
+} // namespace downward::enforced_hill_climbing_search

@@ -31,7 +31,12 @@ EagerSearch::EagerSearch(
     double max_time,
     const string& description,
     utils::Verbosity verbosity)
-    : SearchAlgorithm(cost_type, bound, max_time, description, verbosity)
+    : IterativeSearchAlgorithm(
+          cost_type,
+          bound,
+          max_time,
+          description,
+          verbosity)
     , reopen_closed_nodes(reopen_closed)
     , open_list(std::move(open))
     , f_evaluator(std::move(f_eval)) // default nullptr
@@ -69,9 +74,7 @@ void EagerSearch::initialize()
       They are usually also used in the open list and will hence already be
       included, but we want to be sure.
     */
-    if (f_evaluator) {
-        f_evaluator->get_path_dependent_evaluators(evals);
-    }
+    if (f_evaluator) { f_evaluator->get_path_dependent_evaluators(evals); }
 
     /*
       Collect path-dependent evaluators that are used in the lazy_evaluator
@@ -331,4 +334,4 @@ void EagerSearch::update_f_value_statistics(EvaluationContext& eval_context)
     }
 }
 
-} // namespace eager_search
+} // namespace downward::eager_search

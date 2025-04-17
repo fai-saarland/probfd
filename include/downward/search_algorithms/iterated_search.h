@@ -9,7 +9,7 @@
 
 namespace downward::iterated_search {
 
-class IteratedSearch : public SearchAlgorithm {
+class IteratedSearch : public IterativeSearchAlgorithm<IteratedSearch> {
     std::vector<std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>
         algorithm_configs;
 
@@ -22,13 +22,6 @@ class IteratedSearch : public SearchAlgorithm {
     bool last_phase_found_solution;
     int best_bound;
     bool iterated_found_solution;
-
-    std::shared_ptr<SearchAlgorithm>
-    get_search_algorithm(int algorithm_configs_index);
-    std::shared_ptr<SearchAlgorithm> create_current_phase();
-    SearchStatus step_return_value();
-
-    virtual SearchStatus step() override;
 
 public:
     IteratedSearch(
@@ -48,6 +41,18 @@ public:
 
     virtual void save_plan_if_necessary() override;
     virtual void print_statistics() const override;
+
+private:
+    std::shared_ptr<SearchAlgorithm>
+    get_search_algorithm(int algorithm_configs_index);
+
+    std::shared_ptr<SearchAlgorithm> create_current_phase();
+
+    SearchStatus step_return_value();
+
+    friend class IterativeSearchAlgorithm;
+
+    SearchStatus step();
 };
 } // namespace downward::iterated_search
 

@@ -50,7 +50,6 @@ SearchAlgorithm::SearchAlgorithm(
     const string& description,
     utils::Verbosity verbosity)
     : description(description)
-    , status(IN_PROGRESS)
     , solution_found(false)
     , task(tasks::g_root_task)
     , task_proxy(*task)
@@ -80,11 +79,6 @@ bool SearchAlgorithm::found_solution() const
     return solution_found;
 }
 
-SearchStatus SearchAlgorithm::get_status() const
-{
-    return status;
-}
-
 const Plan& SearchAlgorithm::get_plan() const
 {
     assert(solution_found);
@@ -95,22 +89,6 @@ void SearchAlgorithm::set_plan(const Plan& p)
 {
     solution_found = true;
     plan = p;
-}
-
-void SearchAlgorithm::search()
-{
-    initialize();
-    utils::CountdownTimer timer(max_time);
-    while (status == IN_PROGRESS) {
-        status = step();
-        if (timer.is_expired()) {
-            log << "Time limit reached. Abort search." << endl;
-            status = TIMEOUT;
-            break;
-        }
-    }
-    // TODO: Revise when and which search times are logged.
-    log << "Actual search time: " << timer.get_elapsed_time() << endl;
 }
 
 bool SearchAlgorithm::check_goal_and_set_plan(const State& state)

@@ -22,7 +22,7 @@ IteratedSearch::IteratedSearch(
     bool repeat_last,
     bool continue_on_fail,
     bool continue_on_solve)
-    : SearchAlgorithm(
+    : IterativeSearchAlgorithm(
           operator_cost,
           bound,
           max_time,

@@ -1,4 +1,5 @@
 #include "downward/cli/plugins/plugin.h"
+#include "downward/open_list_factory.h"
 
 #include "downward/cli/search_algorithm_options.h"
 
@@ -87,11 +88,13 @@ public:
     virtual shared_ptr<LazySearch>
     create_component(const Options& opts, const utils::Context&) const override
     {
+        auto factory = search_common::create_greedy_open_list_factory(
+            opts.get_list<shared_ptr<Evaluator>>("evals"),
+            opts.get_list<shared_ptr<Evaluator>>("preferred"),
+            opts.get<int>("boost"));
+
         return make_shared_from_arg_tuples<LazySearch>(
-            search_common::create_greedy_open_list_factory(
-                opts.get_list<shared_ptr<Evaluator>>("evals"),
-                opts.get_list<shared_ptr<Evaluator>>("preferred"),
-                opts.get<int>("boost")),
+            factory->create_edge_open_list(),
             opts.get<bool>("reopen_closed"),
             opts.get_list<shared_ptr<Evaluator>>("preferred"),
             get_successors_order_arguments_from_options(opts),

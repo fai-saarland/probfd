@@ -21,7 +21,8 @@ enum class PreferredUsage { PRUNE_BY_PREFERRED, RANK_PREFERRED_FIRST };
   an eager one. We hypothesize that both versions need to evaluate and store
   the same states anyways.
 */
-class EnforcedHillClimbingSearch : public SearchAlgorithm {
+class EnforcedHillClimbingSearch
+    : public IterativeSearchAlgorithm<EnforcedHillClimbingSearch> {
     std::unique_ptr<EdgeOpenList> open_list;
 
     std::shared_ptr<Evaluator> evaluator;
@@ -38,19 +39,6 @@ class EnforcedHillClimbingSearch : public SearchAlgorithm {
     int num_ehc_phases;
     int last_num_expanded;
 
-    void insert_successor_into_open_list(
-        const EvaluationContext& eval_context,
-        int parent_g,
-        OperatorID op_id,
-        bool preferred);
-    void expand(EvaluationContext& eval_context);
-    void reach_state(const State& parent, OperatorID op_id, const State& state);
-    SearchStatus ehc();
-
-protected:
-    virtual void initialize() override;
-    virtual SearchStatus step() override;
-
 public:
     EnforcedHillClimbingSearch(
         const std::shared_ptr<Evaluator>& h,
@@ -63,7 +51,22 @@ public:
         utils::Verbosity verbosity);
 
     virtual void print_statistics() const override;
+
+private:
+    friend class IterativeSearchAlgorithm;
+
+    void insert_successor_into_open_list(
+        const EvaluationContext& eval_context,
+        int parent_g,
+        OperatorID op_id,
+        bool preferred);
+    void expand(EvaluationContext& eval_context);
+    void reach_state(const State& parent, OperatorID op_id, const State& state);
+    SearchStatus ehc();
+
+    void initialize();
+    SearchStatus step();
 };
-} // namespace enforced_hill_climbing_search
+} // namespace downward::enforced_hill_climbing_search
 
 #endif

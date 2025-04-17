@@ -13,7 +13,7 @@ class PruningMethod;
 }
 
 namespace downward::eager_search {
-class EagerSearch : public SearchAlgorithm {
+class EagerSearch : public IterativeSearchAlgorithm<EagerSearch> {
     const bool reopen_closed_nodes;
 
     std::unique_ptr<StateOpenList> open_list;
@@ -24,14 +24,6 @@ class EagerSearch : public SearchAlgorithm {
     std::shared_ptr<Evaluator> lazy_evaluator;
 
     std::shared_ptr<PruningMethod> pruning_method;
-
-    void start_f_value_statistics(EvaluationContext& eval_context);
-    void update_f_value_statistics(EvaluationContext& eval_context);
-    void reward_progress();
-
-protected:
-    virtual void initialize() override;
-    virtual SearchStatus step() override;
 
 public:
     explicit EagerSearch(
@@ -50,6 +42,16 @@ public:
     virtual void print_statistics() const override;
 
     void dump_search_space() const;
+
+private:
+    void start_f_value_statistics(EvaluationContext& eval_context);
+    void update_f_value_statistics(EvaluationContext& eval_context);
+    void reward_progress();
+
+    friend class IterativeSearchAlgorithm;
+
+    void initialize();
+    SearchStatus step();
 };
 
 } // namespace eager_search

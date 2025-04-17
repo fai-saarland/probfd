@@ -2,6 +2,8 @@
 
 #include "downward/cli/search_algorithm_options.h"
 
+#include "downward/open_list_factory.h"
+
 #include "downward/search_algorithms/lazy_search.h"
 #include "downward/search_algorithms/search_common.h"
 
@@ -17,8 +19,7 @@ using downward::cli::get_successors_order_arguments_from_options;
 
 namespace {
 
-class LazySearchFeature
-    : public TypedFeature<SearchAlgorithm, LazySearch> {
+class LazySearchFeature : public TypedFeature<SearchAlgorithm, LazySearch> {
 public:
     LazySearchFeature()
         : TypedFeature("lazy")
@@ -40,7 +41,8 @@ public:
     create_component(const Options& opts, const utils::Context&) const override
     {
         return make_shared_from_arg_tuples<LazySearch>(
-            opts.get<shared_ptr<OpenListFactory>>("open"),
+            opts.get<shared_ptr<OpenListFactory>>("open")
+                ->create_edge_open_list(),
             opts.get<bool>("reopen_closed"),
             opts.get_list<shared_ptr<Evaluator>>("preferred"),
             get_successors_order_arguments_from_options(opts),

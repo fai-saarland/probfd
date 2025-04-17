@@ -19,7 +19,7 @@ class OpenListFactory;
 }
 
 namespace downward::lazy_search {
-class LazySearch : public SearchAlgorithm {
+class LazySearch : public IterativeSearchAlgorithm<LazySearch> {
 protected:
     std::unique_ptr<EdgeOpenList> open_list;
 
@@ -40,22 +40,11 @@ protected:
     int current_real_g;
     EvaluationContext current_eval_context;
 
-    virtual void initialize() override;
-    virtual SearchStatus step() override;
-
-    void generate_successors();
-    SearchStatus fetch_next_state();
-
-    void reward_progress();
-
-    std::vector<OperatorID> get_successor_operators(
-        const ordered_set::OrderedSet<OperatorID>& preferred_operators) const;
-
 public:
     LazySearch(
-        const std::shared_ptr<OpenListFactory>& open,
+        std::unique_ptr<EdgeOpenList> open,
         bool reopen_closed,
-        const std::vector<std::shared_ptr<Evaluator>>& evaluators,
+        std::vector<std::shared_ptr<Evaluator>> evaluators,
         bool randomize_successors,
         bool preferred_successors_first,
         int random_seed,
@@ -66,6 +55,20 @@ public:
         utils::Verbosity verbosity);
 
     virtual void print_statistics() const override;
+
+private:
+    friend class IterativeSearchAlgorithm;
+
+    void initialize();
+    SearchStatus step();
+
+    void generate_successors();
+    SearchStatus fetch_next_state();
+
+    void reward_progress();
+
+    std::vector<OperatorID> get_successor_operators(
+        const ordered_set::OrderedSet<OperatorID>& preferred_operators) const;
 };
 } // namespace lazy_search
 

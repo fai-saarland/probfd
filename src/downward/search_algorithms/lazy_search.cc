@@ -18,9 +18,9 @@ using namespace std;
 
 namespace downward::lazy_search {
 LazySearch::LazySearch(
-    const shared_ptr<OpenListFactory>& open,
+    std::unique_ptr<EdgeOpenList> open,
     bool reopen_closed,
-    const vector<shared_ptr<Evaluator>>& preferred,
+    vector<shared_ptr<Evaluator>> preferred,
     bool randomize_successors,
     bool preferred_successors_first,
     int random_seed,
@@ -29,13 +29,13 @@ LazySearch::LazySearch(
     double max_time,
     const string& description,
     utils::Verbosity verbosity)
-    : SearchAlgorithm(cost_type, bound, max_time, description, verbosity)
-    , open_list(open->create_edge_open_list())
+    : IterativeSearchAlgorithm(cost_type, bound, max_time, description, verbosity)
+    , open_list(std::move(open))
     , reopen_closed_nodes(reopen_closed)
     , randomize_successors(randomize_successors)
     , preferred_successors_first(preferred_successors_first)
     , rng(utils::get_rng(random_seed))
-    , preferred_operator_evaluators(preferred)
+    , preferred_operator_evaluators(std::move(preferred))
     , current_state(state_registry.get_initial_state())
     , current_predecessor_id(StateID::no_state)
     , current_operator_id(OperatorID::no_operator)
