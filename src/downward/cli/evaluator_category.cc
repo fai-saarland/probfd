@@ -1,6 +1,7 @@
 #include "downward/cli/plugins/plugin.h"
 
 #include "downward/evaluator.h"
+#include "downward/task_dependent_factory.h"
 
 using namespace std;
 
@@ -9,7 +10,8 @@ using namespace downward::cli;
 namespace {
 
 class EvaluatorCategoryPlugin
-    : public plugins::TypedCategoryPlugin<downward::Evaluator> {
+    : public plugins::TypedCategoryPlugin<
+          downward::TaskDependentFactory<downward::Evaluator>> {
 public:
     EvaluatorCategoryPlugin()
         : TypedCategoryPlugin("Heuristic")

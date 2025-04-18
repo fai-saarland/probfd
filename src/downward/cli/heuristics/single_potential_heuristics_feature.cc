@@ -10,6 +10,7 @@
 
 #include "downward/tasks/root_task.h"
 
+#include "downward/task_dependent_factory.h"
 #include "downward/task_transformation.h"
 
 using namespace std;
@@ -45,8 +46,59 @@ unique_ptr<PotentialFunction> create_potential_function(
     return optimizer.get_potential_function();
 }
 
+class PotentialHeuristicFactory : public TaskDependentFactory<Evaluator> {
+    std::shared_ptr<TaskTransformation> transformation;
+    bool cache_estimates;
+    std::string description;
+    utils::Verbosity verbosity;
+    double max_potential;
+    lp::LPSolverType lp_solver;
+    OptimizeFor mode;
+
+public:
+    PotentialHeuristicFactory(
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity,
+        double max_potential,
+        lp::LPSolverType lp_solver,
+        OptimizeFor mode)
+        : transformation(std::move(transformation))
+        , cache_estimates(cache_estimates)
+        , description(std::move(description))
+        , verbosity(verbosity)
+        , max_potential(max_potential)
+        , lp_solver(lp_solver)
+        , mode(mode)
+    {
+    }
+
+    unique_ptr<Evaluator>
+    create_object(const std::shared_ptr<AbstractTask>& task) override
+    {
+        auto transformation_result = transformation->transform(task);
+
+        auto function = create_potential_function(
+            transformation_result.transformed_task,
+            lp_solver,
+            max_potential,
+            mode);
+
+        return std::make_unique<PotentialHeuristic>(
+            std::move(function),
+            task,
+            std::move(transformation_result),
+            cache_estimates,
+            description,
+            verbosity);
+    }
+};
+
 class InitialStatePotentialHeuristicFeature
-    : public TypedFeature<Evaluator, PotentialHeuristic> {
+    : public TypedFeature<
+          TaskDependentFactory<Evaluator>,
+          PotentialHeuristicFactory> {
 public:
     InitialStatePotentialHeuristicFeature()
         : TypedFeature("initial_state_potential")
@@ -60,31 +112,24 @@ public:
             "initial_state_potential");
     }
 
-    virtual shared_ptr<PotentialHeuristic>
+    shared_ptr<PotentialHeuristicFactory>
     create_component(const Options& opts, const utils::Context&) const override
     {
-        auto original_task = tasks::g_root_task;
-        auto transformation =
-            opts.get<shared_ptr<TaskTransformation>>("transform");
-
-        auto transformation_result = transformation->transform(original_task);
-
-        return make_shared<PotentialHeuristic>(
-            create_potential_function(
-                transformation_result.transformed_task,
-                opts.get<lp::LPSolverType>("lpsolver"),
-                opts.get<double>("max_potential"),
-                OptimizeFor::INITIAL_STATE),
-            original_task,
-            transformation_result,
+        return make_shared<PotentialHeuristicFactory>(
+            opts.get<shared_ptr<TaskTransformation>>("transform"),
             opts.get<bool>("cache_estimates"),
             opts.get<string>("description"),
-            opts.get<utils::Verbosity>("verbosity"));
+            opts.get<utils::Verbosity>("verbosity"),
+            opts.get<double>("max_potential"),
+            opts.get<lp::LPSolverType>("lpsolver"),
+            OptimizeFor::INITIAL_STATE);
     }
 };
 
 class AllStatesPotentialHeuristicFeature
-    : public TypedFeature<Evaluator, PotentialHeuristic> {
+    : public TypedFeature<
+          TaskDependentFactory<Evaluator>,
+          PotentialHeuristicFactory> {
 public:
     AllStatesPotentialHeuristicFeature()
         : TypedFeature("all_states_potential")
@@ -98,26 +143,17 @@ public:
             "all_states_potential");
     }
 
-    virtual shared_ptr<PotentialHeuristic>
+    shared_ptr<PotentialHeuristicFactory>
     create_component(const Options& opts, const utils::Context&) const override
     {
-        auto original_task = tasks::g_root_task;
-        auto transformation =
-            opts.get<shared_ptr<TaskTransformation>>("transform");
-
-        auto transformation_result = transformation->transform(original_task);
-
-        return make_shared<PotentialHeuristic>(
-            create_potential_function(
-                transformation_result.transformed_task,
-                opts.get<lp::LPSolverType>("lpsolver"),
-                opts.get<double>("max_potential"),
-                OptimizeFor::ALL_STATES),
-            original_task,
-            transformation_result,
+        return make_shared<PotentialHeuristicFactory>(
+            opts.get<shared_ptr<TaskTransformation>>("transform"),
             opts.get<bool>("cache_estimates"),
             opts.get<string>("description"),
-            opts.get<utils::Verbosity>("verbosity"));
+            opts.get<utils::Verbosity>("verbosity"),
+            opts.get<double>("max_potential"),
+            opts.get<lp::LPSolverType>("lpsolver"),
+            OptimizeFor::ALL_STATES);
     }
 };
 

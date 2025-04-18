@@ -11,6 +11,7 @@ using namespace std;
 namespace downward::iterated_search {
 
 IteratedSearch::IteratedSearch(
+    std::shared_ptr<AbstractTask> task,
     OperatorCost operator_cost,
     int bound,
     double max_time,
@@ -23,6 +24,7 @@ IteratedSearch::IteratedSearch(
     bool continue_on_fail,
     bool continue_on_solve)
     : IterativeSearchAlgorithm(
+          std::move(task),
           operator_cost,
           bound,
           max_time,

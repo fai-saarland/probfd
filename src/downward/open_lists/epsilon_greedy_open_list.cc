@@ -2,6 +2,7 @@
 
 #include "downward/evaluator.h"
 #include "downward/open_list.h"
+#include "downward/task_dependent_factory.h"
 
 #include "downward/utils/collections.h"
 #include "downward/utils/markup.h"
@@ -23,6 +24,7 @@ class EpsilonGreedyOpenList : public OpenList<Entry> {
         int id;
         int h;
         Entry entry;
+
         HeapNode(int id, int h, const Entry& entry)
             : id(id)
             , h(h)
@@ -69,9 +71,7 @@ static void adjust_heap_up(vector<HeapNode>& heap, size_t pos)
     assert(utils::in_bounds(pos, heap));
     while (pos != 0) {
         size_t parent_pos = (pos - 1) / 2;
-        if (heap[pos] > heap[parent_pos]) {
-            break;
-        }
+        if (heap[pos] > heap[parent_pos]) { break; }
         swap(heap[pos], heap[parent_pos]);
         pos = parent_pos;
     }
@@ -157,33 +157,35 @@ void EpsilonGreedyOpenList<Entry>::clear()
 }
 
 EpsilonGreedyOpenListFactory::EpsilonGreedyOpenListFactory(
-    const shared_ptr<Evaluator>& eval,
+    const std::shared_ptr<TaskDependentFactory<Evaluator>>& eval_factory,
     double epsilon,
     int random_seed,
     bool pref_only)
-    : eval(eval)
+    : eval_factory(eval_factory)
     , epsilon(epsilon)
     , random_seed(random_seed)
     , pref_only(pref_only)
 {
 }
 
-unique_ptr<StateOpenList> EpsilonGreedyOpenListFactory::create_state_open_list()
+unique_ptr<StateOpenList> EpsilonGreedyOpenListFactory::create_state_open_list(
+    const std::shared_ptr<AbstractTask>& task)
 {
     return std::make_unique<EpsilonGreedyOpenList<StateOpenListEntry>>(
-        eval,
+        eval_factory->create_object(task),
         epsilon,
         random_seed,
         pref_only);
 }
 
-unique_ptr<EdgeOpenList> EpsilonGreedyOpenListFactory::create_edge_open_list()
+unique_ptr<EdgeOpenList> EpsilonGreedyOpenListFactory::create_edge_open_list(
+    const std::shared_ptr<AbstractTask>& task)
 {
     return std::make_unique<EpsilonGreedyOpenList<EdgeOpenListEntry>>(
-        eval,
+        eval_factory->create_object(task),
         epsilon,
         random_seed,
         pref_only);
 }
 
-} // namespace epsilon_greedy_open_list
+} // namespace downward::epsilon_greedy_open_list

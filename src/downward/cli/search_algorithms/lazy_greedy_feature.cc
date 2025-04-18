@@ -6,6 +6,9 @@
 #include "downward/search_algorithms/lazy_search.h"
 #include "downward/search_algorithms/search_common.h"
 
+#include "downward/evaluator.h"
+#include "downward/task_dependent_factory.h"
+
 using namespace std;
 using namespace downward;
 using namespace downward::lazy_search;
@@ -18,10 +21,91 @@ using downward::cli::get_successors_order_arguments_from_options;
 
 namespace {
 
-const string DEFAULT_LAZY_BOOST = "1000";
+static constexpr string DEFAULT_LAZY_BOOST = "1000";
+
+class LazyGreedySearchFactory : public TaskDependentFactory<SearchAlgorithm> {
+    OperatorCost cost_type;
+    int bound;
+    double max_time;
+    const std::string& description;
+    utils::Verbosity verbosity;
+    bool reopen_closed;
+    bool randomize_successors;
+    bool preferred_successors_first;
+    int random_seed;
+    vector<shared_ptr<TaskDependentFactory<Evaluator>>> eval_factories;
+    vector<shared_ptr<TaskDependentFactory<Evaluator>>> preferred_factories;
+    int boost;
+
+public:
+    explicit LazyGreedySearchFactory(
+        OperatorCost cost_type,
+        int bound,
+        double max_time,
+        const std::string& description,
+        utils::Verbosity verbosity,
+        bool reopen_closed,
+        bool randomize_successors,
+        bool preferred_successors_first,
+        int random_seed,
+        vector<shared_ptr<TaskDependentFactory<Evaluator>>> eval_factories,
+        vector<shared_ptr<TaskDependentFactory<Evaluator>>> preferred_factories,
+        int boost)
+        : cost_type(cost_type)
+        , bound(bound)
+        , max_time(max_time)
+        , description(description)
+        , verbosity(verbosity)
+        , reopen_closed(reopen_closed)
+        , randomize_successors(randomize_successors)
+        , preferred_successors_first(preferred_successors_first)
+        , random_seed(random_seed)
+        , eval_factories(std::move(eval_factories))
+        , preferred_factories(std::move(preferred_factories))
+        , boost(boost)
+    {
+    }
+
+    unique_ptr<SearchAlgorithm>
+    create_object(const std::shared_ptr<AbstractTask>& task) override
+    {
+        std::vector<std::shared_ptr<Evaluator>> evals;
+
+        for (auto& eval_factory : eval_factories) {
+            evals.emplace_back(eval_factory->create_object(task));
+        }
+
+        std::vector<std::shared_ptr<Evaluator>> preferred;
+
+        for (auto& preferred_factory : preferred_factories) {
+            preferred.emplace_back(preferred_factory->create_object(task));
+        }
+
+        auto open = search_common::create_greedy_edge_open_list(
+            evals,
+            !preferred.empty(),
+            boost);
+
+        return std::make_unique<LazySearch>(
+            std::move(open),
+            reopen_closed,
+            std::move(preferred),
+            randomize_successors,
+            preferred_successors_first,
+            random_seed,
+            task,
+            cost_type,
+            bound,
+            max_time,
+            description,
+            verbosity);
+    }
+};
 
 class LazyGreedySearchFeature
-    : public TypedFeature<SearchAlgorithm, LazySearch> {
+    : public TypedFeature<
+          TaskDependentFactory<SearchAlgorithm>,
+          LazyGreedySearchFactory> {
 public:
     LazyGreedySearchFeature()
         : TypedFeature("lazy_greedy")
@@ -29,14 +113,16 @@ public:
         document_title("Greedy search (lazy)");
         document_synopsis("");
 
-        add_list_option<shared_ptr<Evaluator>>("evals", "evaluators");
+        add_list_option<shared_ptr<TaskDependentFactory<Evaluator>>>(
+            "evals",
+            "evaluators");
         add_option<int>(
             "boost",
             "boost value for alternation queues that are restricted "
             "to preferred operator nodes",
             DEFAULT_LAZY_BOOST);
         add_option<bool>("reopen_closed", "reopen closed nodes", "false");
-        add_list_option<shared_ptr<Evaluator>>(
+        add_list_option<shared_ptr<TaskDependentFactory<Evaluator>>>(
             "preferred",
             "use preferred operators of these evaluators",
             "[]");
@@ -85,20 +171,17 @@ public:
             true);
     }
 
-    virtual shared_ptr<LazySearch>
+    shared_ptr<LazyGreedySearchFactory>
     create_component(const Options& opts, const utils::Context&) const override
     {
-        auto factory = search_common::create_greedy_open_list_factory(
-            opts.get_list<shared_ptr<Evaluator>>("evals"),
-            opts.get_list<shared_ptr<Evaluator>>("preferred"),
-            opts.get<int>("boost"));
-
-        return make_shared_from_arg_tuples<LazySearch>(
-            factory->create_edge_open_list(),
+        return make_shared_from_arg_tuples<LazyGreedySearchFactory>(
+            get_search_algorithm_arguments_from_options(opts),
             opts.get<bool>("reopen_closed"),
-            opts.get_list<shared_ptr<Evaluator>>("preferred"),
             get_successors_order_arguments_from_options(opts),
-            get_search_algorithm_arguments_from_options(opts));
+            opts.get_list<shared_ptr<TaskDependentFactory<Evaluator>>>("evals"),
+            opts.get_list<shared_ptr<TaskDependentFactory<Evaluator>>>(
+                "preferred"),
+            opts.get<int>("boost"));
     }
 };
 

@@ -33,6 +33,7 @@ public:
         std::vector<std::shared_ptr<Evaluator>> preferred,
         std::shared_ptr<Evaluator> lazy_evaluator,
         std::shared_ptr<PruningMethod> pruning,
+        std::shared_ptr<AbstractTask> task,
         OperatorCost cost_type,
         int bound,
         double max_time,

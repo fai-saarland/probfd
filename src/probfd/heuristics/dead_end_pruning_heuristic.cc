@@ -1,15 +1,17 @@
 #include "probfd/heuristics/dead_end_pruning_heuristic.h"
 
-#include "probfd/task_heuristic_factory.h"
+#include "probfd/tasks/determinization_task.h"
 
 #include "probfd/cost_function.h"
 #include "probfd/heuristic.h"
+#include "probfd/task_heuristic_factory.h"
 
 #include "downward/utils/system.h"
 
 #include "downward/evaluation_context.h"
 #include "downward/evaluation_result.h"
 #include "downward/evaluator.h"
+#include "downward/task_dependent_factory.h"
 
 #include <iostream>
 #include <utility>
@@ -45,17 +47,18 @@ void DeadEndPruningHeuristic::print_statistics() const
 }
 
 DeadEndPruningHeuristicFactory::DeadEndPruningHeuristicFactory(
-    std::shared_ptr<Evaluator> evaluator)
-    : evaluator_(std::move(evaluator))
+    std::shared_ptr<TaskDependentFactory<Evaluator>> evaluator_factory)
+    : evaluator_factory_(std::move(evaluator_factory))
 {
 }
 
 std::unique_ptr<FDREvaluator> DeadEndPruningHeuristicFactory::create_heuristic(
-    std::shared_ptr<ProbabilisticTask>,
+    std::shared_ptr<ProbabilisticTask> task,
     std::shared_ptr<FDRCostFunction> task_cost_function)
 {
     return std::make_unique<DeadEndPruningHeuristic>(
-        evaluator_,
+        evaluator_factory_->create_object(
+            std::make_shared<tasks::DeterminizationTask>(task)),
         task_cost_function->get_non_goal_termination_cost());
 }
 

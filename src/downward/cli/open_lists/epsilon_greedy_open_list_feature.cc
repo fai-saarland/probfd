@@ -8,6 +8,8 @@
 
 #include "downward/utils/markup.h"
 
+#include <downward/task_dependent_factory.h>
+
 using namespace std;
 using namespace downward::utils;
 using namespace downward::epsilon_greedy_open_list;
@@ -50,7 +52,10 @@ public:
                 "AAAI Press",
                 "2014"));
 
-        add_option<shared_ptr<downward::Evaluator>>("eval", "evaluator");
+        add_option<
+            shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
+            "eval",
+            "evaluator");
         add_option<double>(
             "epsilon",
             "probability for choosing the next entry randomly",
@@ -64,7 +69,8 @@ public:
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<EpsilonGreedyOpenListFactory>(
-            opts.get<shared_ptr<downward::Evaluator>>("eval"),
+            opts.get<shared_ptr<
+                downward::TaskDependentFactory<downward::Evaluator>>>("eval"),
             opts.get<double>("epsilon"),
             get_rng_arguments_from_options(opts),
             get_open_list_arguments_from_options(opts));

@@ -10,6 +10,7 @@
 
 #include <cassert>
 #include <deque>
+#include <downward/task_dependent_factory.h>
 #include <set>
 #include <unordered_map>
 #include <utility>
@@ -234,33 +235,47 @@ bool ParetoOpenList<Entry>::is_reliable_dead_end(
 }
 
 ParetoOpenListFactory::ParetoOpenListFactory(
-    const vector<shared_ptr<Evaluator>>& evals,
+    const vector<shared_ptr<TaskDependentFactory<Evaluator>>>& eval_factories,
     bool state_uniform_selection,
     int random_seed,
     bool pref_only)
-    : evals(evals)
+    : eval_factories(eval_factories)
     , state_uniform_selection(state_uniform_selection)
     , random_seed(random_seed)
     , pref_only(pref_only)
 {
 }
 
-unique_ptr<StateOpenList> ParetoOpenListFactory::create_state_open_list()
+unique_ptr<StateOpenList> ParetoOpenListFactory::create_state_open_list(
+    const std::shared_ptr<AbstractTask>& task)
 {
+    std::vector<std::shared_ptr<Evaluator>> evals;
+
+    for (auto& factory : eval_factories) {
+        evals.emplace_back(factory->create_object(task));
+    }
+
     return std::make_unique<ParetoOpenList<StateOpenListEntry>>(
-        evals,
+        std::move(evals),
         state_uniform_selection,
         random_seed,
         pref_only);
 }
 
-unique_ptr<EdgeOpenList> ParetoOpenListFactory::create_edge_open_list()
+unique_ptr<EdgeOpenList> ParetoOpenListFactory::create_edge_open_list(
+    const std::shared_ptr<AbstractTask>& task)
 {
+    std::vector<std::shared_ptr<Evaluator>> evals;
+
+    for (auto& factory : eval_factories) {
+        evals.emplace_back(factory->create_object(task));
+    }
+
     return std::make_unique<ParetoOpenList<EdgeOpenListEntry>>(
-        evals,
+        std::move(evals),
         state_uniform_selection,
         random_seed,
         pref_only);
 }
 
-} // namespace pareto_open_list
+} // namespace downward::pareto_open_list

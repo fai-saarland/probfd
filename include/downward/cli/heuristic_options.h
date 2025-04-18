@@ -26,7 +26,6 @@ extern void add_heuristic_options_to_feature(
     const std::string& description);
 
 extern std::tuple<
-    std::shared_ptr<AbstractTask>,
     std::shared_ptr<TaskTransformation>,
     bool,
     std::string,

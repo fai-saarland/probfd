@@ -8,7 +8,11 @@
 
 #include "downward/utils/markup.h"
 
+#include "downward/task_dependent_factory.h"
+#include "downward/task_transformation.h"
+
 using namespace std;
+using namespace downward;
 using namespace downward::utils;
 
 using namespace downward::cli::plugins;
@@ -27,8 +31,78 @@ using namespace downward::merge_and_shrink;
 
 namespace {
 
+class MergeAndShrinkHeuristicFactory : public TaskDependentFactory<Evaluator> {
+    std::shared_ptr<TaskTransformation> transformation;
+    bool cache_estimates;
+    std::string description;
+    utils::Verbosity verbosity;
+    shared_ptr<MergeStrategyFactory> merge_strategy;
+    shared_ptr<ShrinkStrategy> shrink_strategy;
+    shared_ptr<LabelReduction> label_reduction;
+    bool prune_unreachable_states;
+    bool prune_irrelevant_states;
+    int max_states;
+    int max_states_before_merge;
+    int threshold_before_merge;
+    double main_loop_max_time;
+
+public:
+    MergeAndShrinkHeuristicFactory(
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity,
+        shared_ptr<MergeStrategyFactory> merge_strategy,
+        shared_ptr<ShrinkStrategy> shrink_strategy,
+        shared_ptr<LabelReduction> label_reduction,
+        bool prune_unreachable_states,
+        bool prune_irrelevant_states,
+        int max_states,
+        int max_states_before_merge,
+        int threshold_before_merge,
+        double main_loop_max_time)
+        : transformation(std::move(transformation))
+        , cache_estimates(cache_estimates)
+        , description(std::move(description))
+        , verbosity(verbosity)
+        , merge_strategy(std::move(merge_strategy))
+        , shrink_strategy(std::move(shrink_strategy))
+        , label_reduction(std::move(label_reduction))
+        , prune_unreachable_states(prune_unreachable_states)
+        , prune_irrelevant_states(prune_irrelevant_states)
+        , max_states(max_states)
+        , max_states_before_merge(max_states_before_merge)
+        , threshold_before_merge(threshold_before_merge)
+        , main_loop_max_time(main_loop_max_time)
+    {
+    }
+
+    unique_ptr<Evaluator>
+    create_object(const std::shared_ptr<AbstractTask>& task) override
+    {
+        auto transformation_result = transformation->transform(task);
+        return std::make_unique<MergeAndShrinkHeuristic>(
+            merge_strategy,
+            shrink_strategy,
+            label_reduction,
+            prune_unreachable_states,
+            prune_irrelevant_states,
+            max_states,
+            max_states_before_merge,
+            threshold_before_merge,
+            main_loop_max_time,
+            task,
+            std::move(transformation_result),
+            cache_estimates,
+            description,
+            verbosity);
+    }
+};
+
 class MergeAndShrinkHeuristicFeature
-    : public TypedFeature<downward::Evaluator, MergeAndShrinkHeuristic> {
+    : public TypedFeature<
+          TaskDependentFactory<Evaluator>,
+          MergeAndShrinkHeuristicFactory> {
 public:
     MergeAndShrinkHeuristicFeature()
         : TypedFeature("merge_and_shrink")
@@ -160,17 +234,18 @@ public:
         document_property("preferred operators", "no");
     }
 
-    virtual shared_ptr<MergeAndShrinkHeuristic>
+    shared_ptr<MergeAndShrinkHeuristicFactory>
     create_component(const Options& opts, const Context& context) const override
     {
         Options options_copy(opts);
         handle_shrink_limit_options_defaults(options_copy, context);
-        return make_shared_from_arg_tuples<MergeAndShrinkHeuristic>(
-            get_merge_and_shrink_algorithm_arguments_from_options(options_copy),
-            get_heuristic_arguments_from_options(options_copy));
+        return make_shared_from_arg_tuples<MergeAndShrinkHeuristicFactory>(
+            get_heuristic_arguments_from_options(options_copy),
+            get_merge_and_shrink_algorithm_arguments_from_options(
+                options_copy));
     }
 };
 
 FeaturePlugin<MergeAndShrinkHeuristicFeature> _plugin;
 
-}
+} // namespace

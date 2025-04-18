@@ -6,7 +6,11 @@
 
 #include "downward/utils/markup.h"
 
+#include "downward/task_dependent_factory.h"
+#include "downward/task_transformation.h"
+
 using namespace std;
+using namespace downward;
 using namespace downward::landmarks;
 using namespace downward::utils;
 
@@ -17,8 +21,62 @@ using downward::cli::landmarks::get_landmark_heuristic_arguments_from_options;
 
 namespace {
 
+class LandmarkSumHeuristicFactory : public TaskDependentFactory<Evaluator> {
+    std::shared_ptr<TaskTransformation> transformation;
+    bool cache_estimates;
+    std::string description;
+    utils::Verbosity verbosity;
+    shared_ptr<LandmarkFactory> landmark_factory;
+    bool pref;
+    bool prog_goal;
+    bool prog_gn;
+    bool prog_r;
+
+public:
+    LandmarkSumHeuristicFactory(
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity,
+        shared_ptr<LandmarkFactory> landmark_factory,
+        bool pref,
+        bool prog_goal,
+        bool prog_gn,
+        bool prog_r)
+        : transformation(std::move(transformation))
+        , cache_estimates(cache_estimates)
+        , description(std::move(description))
+        , verbosity(verbosity)
+        , landmark_factory(std::move(landmark_factory))
+        , pref(pref)
+        , prog_goal(prog_goal)
+        , prog_gn(prog_gn)
+        , prog_r(prog_r)
+    {
+    }
+
+    unique_ptr<Evaluator>
+    create_object(const std::shared_ptr<AbstractTask>& task) override
+    {
+        auto transformation_result = transformation->transform(task);
+        return std::make_unique<LandmarkSumHeuristic>(
+            landmark_factory,
+            pref,
+            prog_goal,
+            prog_gn,
+            prog_r,
+            task,
+            std::move(transformation_result),
+            cache_estimates,
+            description,
+            verbosity);
+    }
+};
+
 class LandmarkSumHeuristicFeature
-    : public TypedFeature<downward::Evaluator, LandmarkSumHeuristic> {
+    : public TypedFeature<
+          TaskDependentFactory<Evaluator>,
+          LandmarkSumHeuristicFactory> {
 public:
     LandmarkSumHeuristicFeature()
         : TypedFeature("landmark_sum")
@@ -42,7 +100,7 @@ public:
                 {"Silvia Richter", "Matthias Westphal"},
                 "The LAMA Planner: Guiding Cost-Based Anytime Planning with "
                 "Landmarks",
-                "http://www.aaai.org/Papers/JAIR/Vol39/JAIR-3903.pdf",
+                "https://www.aaai.org/Papers/JAIR/Vol39/JAIR-3903.pdf",
                 "Journal of Artificial Intelligence Research",
                 "39",
                 "127-177",
@@ -108,10 +166,10 @@ public:
             "not supporting them");
     }
 
-    virtual shared_ptr<LandmarkSumHeuristic>
+    shared_ptr<LandmarkSumHeuristicFactory>
     create_component(const Options& opts, const Context&) const override
     {
-        return make_shared_from_arg_tuples<LandmarkSumHeuristic>(
+        return make_shared_from_arg_tuples<LandmarkSumHeuristicFactory>(
             get_landmark_heuristic_arguments_from_options(opts));
     }
 };

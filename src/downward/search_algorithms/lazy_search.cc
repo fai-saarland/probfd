@@ -24,12 +24,19 @@ LazySearch::LazySearch(
     bool randomize_successors,
     bool preferred_successors_first,
     int random_seed,
+    std::shared_ptr<AbstractTask> task,
     OperatorCost cost_type,
     int bound,
     double max_time,
     const string& description,
     utils::Verbosity verbosity)
-    : IterativeSearchAlgorithm(cost_type, bound, max_time, description, verbosity)
+    : IterativeSearchAlgorithm(
+          std::move(task),
+          cost_type,
+          bound,
+          max_time,
+          description,
+          verbosity)
     , open_list(std::move(open))
     , reopen_closed_nodes(reopen_closed)
     , randomize_successors(randomize_successors)
@@ -80,9 +87,7 @@ vector<OperatorID> LazySearch::get_successor_operators(
         current_state,
         applicable_operators);
 
-    if (randomize_successors) {
-        rng->shuffle(applicable_operators);
-    }
+    if (randomize_successors) { rng->shuffle(applicable_operators); }
 
     if (preferred_successors_first) {
         ordered_set::OrderedSet<OperatorID> successor_operators;
@@ -108,9 +113,7 @@ void LazySearch::generate_successors()
             preferred_operator_evaluator.get(),
             preferred_operators);
     }
-    if (randomize_successors) {
-        preferred_operators.shuffle(*rng);
-    }
+    if (randomize_successors) { preferred_operators.shuffle(*rng); }
 
     vector<OperatorID> successor_operators =
         get_successor_operators(preferred_operators);
@@ -259,4 +262,4 @@ void LazySearch::print_statistics() const
     statistics.print_detailed_statistics();
     search_space.print_statistics();
 }
-} // namespace lazy_search
+} // namespace downward::lazy_search

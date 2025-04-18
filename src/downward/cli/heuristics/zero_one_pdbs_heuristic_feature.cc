@@ -4,7 +4,11 @@
 
 #include "downward/pdbs/zero_one_pdbs_heuristic.h"
 
+#include "downward/task_dependent_factory.h"
+#include "downward/task_transformation.h"
+
 using namespace std;
+using namespace downward;
 using namespace downward::utils;
 using namespace downward::pdbs;
 
@@ -15,8 +19,47 @@ using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
 
+class ZOPDBsHeuristicFactory : public TaskDependentFactory<Evaluator> {
+    std::shared_ptr<TaskTransformation> transformation;
+    bool cache_estimates;
+    std::string description;
+    utils::Verbosity verbosity;
+    std::shared_ptr<PatternCollectionGenerator> generator;
+
+public:
+    ZOPDBsHeuristicFactory(
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity,
+        std::shared_ptr<PatternCollectionGenerator> generator)
+        : transformation(std::move(transformation))
+        , cache_estimates(cache_estimates)
+        , description(std::move(description))
+        , verbosity(verbosity)
+        , generator(std::move(generator))
+    {
+    }
+
+    unique_ptr<Evaluator>
+    create_object(const std::shared_ptr<AbstractTask>& task) override
+    {
+        auto transformation_result = transformation->transform(task);
+
+        return std::make_unique<ZeroOnePDBsHeuristic>(
+            std::move(generator),
+            task,
+            std::move(transformation_result),
+            cache_estimates,
+            description,
+            verbosity);
+    }
+};
+
 class ZeroOnePDBsHeuristicFeature
-    : public TypedFeature<downward::Evaluator, ZeroOnePDBsHeuristic> {
+    : public TypedFeature<
+          TaskDependentFactory<Evaluator>,
+          ZOPDBsHeuristicFactory> {
 public:
     ZeroOnePDBsHeuristicFeature()
         : TypedFeature("zopdbs")
@@ -56,12 +99,12 @@ public:
         document_property("preferred operators", "no");
     }
 
-    virtual shared_ptr<ZeroOnePDBsHeuristic>
+    shared_ptr<ZOPDBsHeuristicFactory>
     create_component(const Options& opts, const Context&) const override
     {
-        return make_shared_from_arg_tuples<ZeroOnePDBsHeuristic>(
-            opts.get<shared_ptr<PatternCollectionGenerator>>("patterns"),
-            get_heuristic_arguments_from_options(opts));
+        return make_shared_from_arg_tuples<ZOPDBsHeuristicFactory>(
+            get_heuristic_arguments_from_options(opts),
+            opts.get<shared_ptr<PatternCollectionGenerator>>("patterns"));
     }
 };
 

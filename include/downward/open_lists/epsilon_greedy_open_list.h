@@ -2,6 +2,7 @@
 #define OPEN_LISTS_EPSILON_GREEDY_OPEN_LIST_H
 
 #include "downward/open_list_factory.h"
+#include "downward/task_dependent_factory_fwd.h"
 
 /*
     Epsilon-greedy open list based on Valenzano et al. (ICAPS 2014).
@@ -42,21 +43,24 @@
 
 namespace downward::epsilon_greedy_open_list {
 class EpsilonGreedyOpenListFactory : public OpenListFactory {
-    std::shared_ptr<Evaluator> eval;
+    std::shared_ptr<TaskDependentFactory<Evaluator>> eval_factory;
     double epsilon;
     int random_seed;
     bool pref_only;
 
 public:
     EpsilonGreedyOpenListFactory(
-        const std::shared_ptr<Evaluator>& eval,
+        const std::shared_ptr<TaskDependentFactory<Evaluator>>& eval_factory,
         double epsilon,
         int random_seed,
         bool pref_only);
 
-    virtual std::unique_ptr<StateOpenList> create_state_open_list() override;
-    virtual std::unique_ptr<EdgeOpenList> create_edge_open_list() override;
+    std::unique_ptr<StateOpenList>
+    create_state_open_list(const std::shared_ptr<AbstractTask>& task) override;
+
+    std::unique_ptr<EdgeOpenList>
+    create_edge_open_list(const std::shared_ptr<AbstractTask>& task) override;
 };
-} // namespace epsilon_greedy_open_list
+} // namespace downward::epsilon_greedy_open_list
 
 #endif

@@ -58,6 +58,7 @@ protected:
 
 public:
     SearchAlgorithm(
+        std::shared_ptr<AbstractTask> task,
         OperatorCost cost_type,
         int bound,
         double max_time,

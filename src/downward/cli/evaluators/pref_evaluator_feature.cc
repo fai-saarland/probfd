@@ -6,7 +6,10 @@
 
 #include "downward/utils/logging.h"
 
+#include "downward/task_dependent_factory.h"
+
 using namespace std;
+using namespace downward;
 using namespace downward::pref_evaluator;
 using namespace downward::utils;
 
@@ -17,8 +20,28 @@ using downward::cli::get_evaluator_arguments_from_options;
 
 namespace {
 
+class PrefEvaluatorFactory : public TaskDependentFactory<Evaluator> {
+    std::string description;
+    Verbosity verbosity;
+
+public:
+    PrefEvaluatorFactory(std::string description, Verbosity verbosity)
+        : description(std::move(description))
+        , verbosity(verbosity)
+    {
+    }
+
+    unique_ptr<Evaluator>
+    create_object(const std::shared_ptr<AbstractTask>&) override
+    {
+        return std::make_unique<PrefEvaluator>(description, verbosity);
+    }
+};
+
 class PrefEvaluatorFeature
-    : public TypedFeature<downward::Evaluator, PrefEvaluator> {
+    : public TypedFeature<
+          TaskDependentFactory<Evaluator>,
+          PrefEvaluatorFactory> {
 public:
     PrefEvaluatorFeature()
         : TypedFeature("pref")
@@ -30,10 +53,10 @@ public:
         add_evaluator_options_to_feature(*this, "pref");
     }
 
-    virtual shared_ptr<PrefEvaluator>
+    shared_ptr<PrefEvaluatorFactory>
     create_component(const Options& opts, const Context&) const override
     {
-        return make_shared_from_arg_tuples<PrefEvaluator>(
+        return make_shared_from_arg_tuples<PrefEvaluatorFactory>(
             get_evaluator_arguments_from_options(opts));
     }
 };

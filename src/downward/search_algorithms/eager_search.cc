@@ -26,12 +26,14 @@ EagerSearch::EagerSearch(
     vector<shared_ptr<Evaluator>> preferred,
     shared_ptr<Evaluator> lazy_evaluator,
     shared_ptr<PruningMethod> pruning,
+    std::shared_ptr<AbstractTask> task,
     OperatorCost cost_type,
     int bound,
     double max_time,
     const string& description,
     utils::Verbosity verbosity)
     : IterativeSearchAlgorithm(
+          std::move(task),
           cost_type,
           bound,
           max_time,

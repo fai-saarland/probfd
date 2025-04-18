@@ -8,6 +8,8 @@
 
 #include "downward/utils/memory.h"
 
+#include "downward/task_dependent_factory.h"
+
 using namespace std;
 using namespace downward::utils;
 using namespace downward::pareto_open_list;
@@ -33,7 +35,10 @@ public:
             "Selects one of the Pareto-optimal (regarding the sub-evaluators) "
             "entries for removal.");
 
-        add_list_option<shared_ptr<downward::Evaluator>>("evals", "evaluators");
+        add_list_option<
+            shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
+            "evals",
+            "evaluators");
         add_option<bool>(
             "state_uniform_selection",
             "When removing an entry, we select a non-dominated bucket "
@@ -49,7 +54,8 @@ public:
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<ParetoOpenListFactory>(
-            opts.get_list<shared_ptr<downward::Evaluator>>("evals"),
+            opts.get_list<shared_ptr<
+                downward::TaskDependentFactory<downward::Evaluator>>>("evals"),
             opts.get<bool>("state_uniform_selection"),
             get_rng_arguments_from_options(opts),
             get_open_list_arguments_from_options(opts));

@@ -145,18 +145,6 @@ create_library(
 )
 
 create_library(
-    NAME search_algorithm_category
-    HELP "Search algorithm category"
-    SOURCES
-        downward/cli/search_algorithm_category
-    DEPENDS
-        plugins
-        core_sources
-    TARGET
-        probfd
-)
-
-create_library(
     NAME search_algorithm_factory_category
     HELP "Search algorithm factory category"
     SOURCES
@@ -800,7 +788,7 @@ create_library(
     NAME operator_counting_heuristic_feature
     HELP "Operator-counting heuristic feature"
     SOURCES
-        downward/cli/operator_counting/operator_counting_heuristic_feature
+        downward/cli/heuristics/operator_counting_heuristic_feature
     DEPENDS
         plugins
         heuristic_options
@@ -884,7 +872,7 @@ create_library(
     NAME diverse_potential_heuristics_feature
     HELP "Sample-based potential heuristics feature"
     SOURCES
-        downward/cli/potentials/diverse_potential_heuristics_feature
+        downward/cli/heuristics/diverse_potential_heuristics_feature
     DEPENDS
         plugins
         potential_options
@@ -899,7 +887,7 @@ create_library(
     NAME sample_based_potential_heuristics_feature
     HELP "Sample-based potential heuristics feature"
     SOURCES
-        downward/cli/potentials/sample_based_potential_heuristics_feature
+        downward/cli/heuristics/sample_based_potential_heuristics_feature
     DEPENDS
         plugins
         potential_options
@@ -914,7 +902,7 @@ create_library(
     NAME single_potential_heuristics_feature
     HELP "Single potential heuristics feature"
     SOURCES
-        downward/cli/potentials/single_potential_heuristics_feature
+        downward/cli/heuristics/single_potential_heuristics_feature
     DEPENDS
         plugins
         potential_options
@@ -959,7 +947,7 @@ create_library(
     NAME additive_cartesian_heuristic_feature
     HELP "Additive cartesian heuristic feature"
     SOURCES
-        downward/cli/cartesian_abstractions/additive_cartesian_heuristic_feature
+        downward/cli/heuristics/additive_cartesian_heuristic_feature
     DEPENDS
         plugins
         heuristic_options
@@ -986,7 +974,7 @@ create_library(
     NAME landmark_cost_partitioning_heuristic_feature
     HELP "Landmark cost-partitioning heuristic feature"
     SOURCES
-        downward/cli/landmarks/landmark_cost_partitioning_heuristic_feature
+        downward/cli/heuristics/landmark_cost_partitioning_heuristic_feature
     DEPENDS
         plugins
         landmark_heuristic_options
@@ -1001,7 +989,7 @@ create_library(
     NAME landmark_sum_heuristic_feature
     HELP "Landmark sum heuristic feature"
     SOURCES
-        downward/cli/landmarks/landmark_sum_heuristic_feature
+        downward/cli/heuristics/landmark_sum_heuristic_feature
     DEPENDS
         plugins
         landmark_heuristic_options
@@ -1134,7 +1122,7 @@ create_library(
     NAME merge_and_shrink_heuristic_feature
     HELP "Merge-and-shrink heuristic feature"
     SOURCES
-        downward/cli/merge_and_shrink/merge_and_shrink_heuristic_feature
+        downward/cli/heuristics/merge_and_shrink_heuristic_feature
     DEPENDS
         plugins
         merge_and_shrink_algorithm_options
@@ -1414,12 +1402,29 @@ create_library(
     NAME canonical_pdbs_heuristic_feature
     HELP "Canoncial PDBs heuristic feature"
     SOURCES
-        downward/cli/pdbs/canonical_pdbs_heuristic_feature
+        downward/cli/heuristics/canonical_pdbs_heuristic_feature
     DEPENDS
         plugins
         heuristic_options
         canonical_pdbs_heuristic_options
         pdbs
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME ipdbs_heuristic_feature
+    HELP "Canoncial PDBs heuristic feature"
+    SOURCES
+        downward/cli/heuristics/ipdbs_heuristic_feature
+    DEPENDS
+        plugins
+        heuristic_options
+        canonical_pdbs_heuristic_options
+        pdbs
+        pattern_collection_generator_hillclimbing_options
+        pattern_generator_options
+        utils
     TARGET
         probfd
 )
@@ -1670,7 +1675,7 @@ create_library(
     NAME pdb_heuristic_feature
     HELP "PDB heuristic feature"
     SOURCES
-        downward/cli/pdbs/pdb_heuristic_feature
+        downward/cli/heuristics/pdb_heuristic_feature
     DEPENDS
         plugins
         heuristic_options
@@ -1714,7 +1719,7 @@ create_library(
     NAME zero_one_pdbs_heuristic_feature
     HELP "Zero-one PDB heuristic feature"
     SOURCES
-        downward/cli/pdbs/zero_one_pdbs_heuristic_feature
+        downward/cli/heuristics/zero_one_pdbs_heuristic_feature
     DEPENDS
         plugins
         heuristic_options

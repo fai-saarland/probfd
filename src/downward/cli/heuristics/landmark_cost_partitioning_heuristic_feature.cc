@@ -8,7 +8,11 @@
 
 #include "downward/utils/markup.h"
 
+#include "downward/task_dependent_factory.h"
+#include "downward/task_transformation.h"
+
 using namespace std;
+using namespace downward;
 using namespace downward::landmarks;
 
 using namespace downward::cli::plugins;
@@ -21,10 +25,75 @@ using downward::cli::lp::get_lp_solver_arguments_from_options;
 
 namespace {
 
+class LandmarkCostPartitioningHeuristicFactory
+    : public TaskDependentFactory<Evaluator> {
+    std::shared_ptr<TaskTransformation> transformation;
+    bool cache_estimates;
+    std::string description;
+    utils::Verbosity verbosity;
+    shared_ptr<LandmarkFactory> landmark_factory;
+    bool pref;
+    bool prog_goal;
+    bool prog_gn;
+    bool prog_r;
+    CostPartitioningMethod cost_partitioning_method;
+    bool alm;
+    lp::LPSolverType lp_solver_type;
+
+public:
+    LandmarkCostPartitioningHeuristicFactory(
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity,
+        shared_ptr<LandmarkFactory> landmark_factory,
+        bool pref,
+        bool prog_goal,
+        bool prog_gn,
+        bool prog_r,
+        CostPartitioningMethod cost_partitioning_method,
+        bool alm,
+        lp::LPSolverType lp_solver_type)
+        : transformation(std::move(transformation))
+        , cache_estimates(cache_estimates)
+        , description(std::move(description))
+        , verbosity(verbosity)
+        , landmark_factory(std::move(landmark_factory))
+        , pref(pref)
+        , prog_goal(prog_goal)
+        , prog_gn(prog_gn)
+        , prog_r(prog_r)
+        , cost_partitioning_method(cost_partitioning_method)
+        , alm(alm)
+        , lp_solver_type(lp_solver_type)
+    {
+    }
+
+    unique_ptr<Evaluator>
+    create_object(const std::shared_ptr<AbstractTask>& task) override
+    {
+        auto transformation_result = transformation->transform(task);
+        return std::make_unique<LandmarkCostPartitioningHeuristic>(
+            landmark_factory,
+            pref,
+            prog_goal,
+            prog_gn,
+            prog_r,
+            task,
+            std::move(transformation_result),
+            cache_estimates,
+            description,
+            verbosity,
+            cost_partitioning_method,
+            alm,
+            lp_solver_type);
+    }
+};
+
 class LandmarkCostPartitioningHeuristicFeature
     : public TypedFeature<
-          downward::Evaluator,
-          LandmarkCostPartitioningHeuristic> {
+          TaskDependentFactory<Evaluator>,
+          LandmarkCostPartitioningHeuristicFactory> {
 public:
     LandmarkCostPartitioningHeuristicFeature()
         : TypedFeature("landmark_cost_partitioning")
@@ -111,11 +180,11 @@ public:
         document_property("safe", "yes");
     }
 
-    virtual shared_ptr<LandmarkCostPartitioningHeuristic>
-    create_component(const Options& opts, const downward::utils::Context&)
-        const override
+    shared_ptr<LandmarkCostPartitioningHeuristicFactory>
+    create_component(const Options& opts, const utils::Context&) const override
     {
-        return make_shared_from_arg_tuples<LandmarkCostPartitioningHeuristic>(
+        return make_shared_from_arg_tuples<
+            LandmarkCostPartitioningHeuristicFactory>(
             get_landmark_heuristic_arguments_from_options(opts),
             opts.get<CostPartitioningMethod>("cost_partitioning"),
             opts.get<bool>("alm"),

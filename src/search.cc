@@ -10,6 +10,7 @@
 
 #include "probfd/utils/timed.h"
 
+#include "probfd/probabilistic_task.h"
 #include "probfd/solver_interface.h"
 
 #include "downward/utils/logging.h"
@@ -145,7 +146,7 @@ static int search(argparse::ArgumentParser& parser)
     std::shared_ptr<ProbabilisticTask> input_task = run_time_logged(
         std::cout,
         "Reading input task...",
-        probfd::tasks::read_root_tasks_from_file,
+        probfd::tasks::read_sas_task_from_file,
         parser.get("sas_file"));
 
     std::unique_ptr<SolverInterface> solver =

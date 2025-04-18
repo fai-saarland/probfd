@@ -44,6 +44,7 @@ public:
         const std::shared_ptr<Evaluator>& h,
         PreferredUsage preferred_usage,
         const std::vector<std::shared_ptr<Evaluator>>& preferred,
+        std::shared_ptr<AbstractTask> task,
         OperatorCost cost_type,
         int bound,
         double max_time,

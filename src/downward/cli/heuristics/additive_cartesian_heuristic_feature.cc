@@ -12,6 +12,9 @@
 #include "downward/utils/markup.h"
 #include "downward/utils/rng_options.h"
 
+#include "downward/task_dependent_factory.h"
+#include "downward/task_transformation.h"
+
 using namespace std;
 using namespace downward;
 using namespace downward::cartesian_abstractions;
@@ -25,8 +28,71 @@ using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 
+class AdditiveCartesianHeuristicFactory
+    : public TaskDependentFactory<Evaluator> {
+    std::shared_ptr<TaskTransformation> transformation;
+    bool cache_estimates;
+    std::string description;
+    Verbosity verbosity;
+    std::vector<std::shared_ptr<SubtaskGenerator>> subtasks;
+    int max_states;
+    int max_transitions;
+    double max_time;
+    PickSplit pick;
+    bool use_general_costs;
+    int random_seed;
+
+public:
+    AdditiveCartesianHeuristicFactory(
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        Verbosity verbosity,
+        std::vector<std::shared_ptr<SubtaskGenerator>> subtasks,
+        int max_states,
+        int max_transitions,
+        double max_time,
+        PickSplit pick,
+        bool use_general_costs,
+        int random_seed)
+        : transformation(std::move(transformation))
+        , cache_estimates(cache_estimates)
+        , description(std::move(description))
+        , verbosity(verbosity)
+        , subtasks(std::move(subtasks))
+        , max_states(max_states)
+        , max_transitions(max_transitions)
+        , max_time(max_time)
+        , pick(pick)
+        , use_general_costs(use_general_costs)
+        , random_seed(random_seed)
+    {
+    }
+
+    unique_ptr<Evaluator>
+    create_object(const std::shared_ptr<AbstractTask>& task) override
+    {
+        auto transformation_result = transformation->transform(task);
+        return std::make_unique<AdditiveCartesianHeuristic>(
+            std::move(subtasks),
+            max_states,
+            max_transitions,
+            max_time,
+            pick,
+            use_general_costs,
+            random_seed,
+            task,
+            std::move(transformation_result),
+            cache_estimates,
+            description,
+            verbosity);
+    }
+};
+
 class AdditiveCartesianHeuristicFeature
-    : public TypedFeature<Evaluator, AdditiveCartesianHeuristic> {
+    : public TypedFeature<
+          TaskDependentFactory<Evaluator>,
+          AdditiveCartesianHeuristicFactory> {
 public:
     AdditiveCartesianHeuristicFeature()
         : TypedFeature("cegar")
@@ -108,18 +174,18 @@ public:
         document_property("preferred operators", "no");
     }
 
-    virtual shared_ptr<AdditiveCartesianHeuristic>
+    shared_ptr<AdditiveCartesianHeuristicFactory>
     create_component(const Options& opts, const Context&) const override
     {
-        return make_shared_from_arg_tuples<AdditiveCartesianHeuristic>(
+        return make_shared_from_arg_tuples<AdditiveCartesianHeuristicFactory>(
+            get_heuristic_arguments_from_options(opts),
             opts.get_list<shared_ptr<SubtaskGenerator>>("subtasks"),
             opts.get<int>("max_states"),
             opts.get<int>("max_transitions"),
             opts.get<double>("max_time"),
             opts.get<PickSplit>("pick"),
             opts.get<bool>("use_general_costs"),
-            get_rng_arguments_from_options(opts),
-            get_heuristic_arguments_from_options(opts));
+            get_rng_arguments_from_options(opts));
     }
 };
 

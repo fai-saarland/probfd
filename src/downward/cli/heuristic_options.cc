@@ -29,7 +29,6 @@ void add_heuristic_options_to_feature(
 }
 
 tuple<
-    shared_ptr<AbstractTask>,
     shared_ptr<TaskTransformation>,
     bool,
     string,
@@ -38,7 +37,6 @@ get_heuristic_arguments_from_options(const plugins::Options& opts)
 {
     return tuple_cat(
         make_tuple(
-            tasks::g_root_task,
             opts.get<shared_ptr<TaskTransformation>>("transform"),
             opts.get<bool>("cache_estimates")),
         get_evaluator_arguments_from_options(opts));

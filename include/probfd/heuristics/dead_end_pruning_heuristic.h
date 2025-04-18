@@ -6,13 +6,15 @@
 #include "probfd/task_heuristic_factory.h"
 #include "probfd/value_type.h"
 
+#include "downward/task_dependent_factory_fwd.h"
+
 #include <memory>
 
 // Forward Declarations
 namespace downward {
 class State;
 class Evaluator;
-}
+} // namespace downward
 
 namespace probfd::heuristics {
 
@@ -46,11 +48,13 @@ public:
 };
 
 class DeadEndPruningHeuristicFactory final : public TaskHeuristicFactory {
-    const std::shared_ptr<downward::Evaluator> evaluator_;
+    const std::shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>
+        evaluator_factory_;
 
 public:
     explicit DeadEndPruningHeuristicFactory(
-        std::shared_ptr<downward::Evaluator> evaluator);
+        std::shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>
+            evaluator_factory);
 
     std::unique_ptr<FDREvaluator> create_heuristic(
         std::shared_ptr<ProbabilisticTask> task,

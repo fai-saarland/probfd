@@ -8,7 +8,11 @@
 
 #include "downward/utils/markup.h"
 
+#include "downward/task_dependent_factory.h"
+#include "downward/task_transformation.h"
+
 using namespace std;
+using namespace downward;
 using namespace downward::utils;
 using namespace downward::operator_counting;
 
@@ -22,8 +26,55 @@ using downward::cli::lp::get_lp_solver_arguments_from_options;
 
 namespace {
 
+class OperatorCountingHeuristicFactory
+    : public TaskDependentFactory<Evaluator> {
+    std::shared_ptr<TaskTransformation> transformation;
+    bool cache_estimates;
+    std::string description;
+    utils::Verbosity verbosity;
+    std::vector<std::shared_ptr<ConstraintGenerator>> constraint_generators;
+    bool use_integer_operator_counts;
+    lp::LPSolverType lp_solver;
+
+public:
+    OperatorCountingHeuristicFactory(
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity,
+        std::vector<std::shared_ptr<ConstraintGenerator>> constraint_generators,
+        bool use_integer_operator_counts,
+        lp::LPSolverType lp_solver)
+        : transformation(std::move(transformation))
+        , cache_estimates(cache_estimates)
+        , description(std::move(description))
+        , verbosity(verbosity)
+        , constraint_generators(std::move(constraint_generators))
+        , use_integer_operator_counts(use_integer_operator_counts)
+        , lp_solver(lp_solver)
+    {
+    }
+
+    unique_ptr<Evaluator>
+    create_object(const std::shared_ptr<AbstractTask>& task) override
+    {
+        auto transformation_result = transformation->transform(task);
+        return std::make_unique<OperatorCountingHeuristic>(
+            constraint_generators,
+            use_integer_operator_counts,
+            lp_solver,
+            task,
+            std::move(transformation_result),
+            cache_estimates,
+            description,
+            verbosity);
+    }
+};
+
 class OperatorCountingHeuristicFeature
-    : public TypedFeature<downward::Evaluator, OperatorCountingHeuristic> {
+    : public TypedFeature<
+          TaskDependentFactory<Evaluator>,
+          OperatorCountingHeuristicFactory> {
 public:
     OperatorCountingHeuristicFeature()
         : TypedFeature("operatorcounting")
@@ -93,19 +144,19 @@ public:
         document_property("preferred operators", "no");
     }
 
-    virtual shared_ptr<OperatorCountingHeuristic>
+    virtual shared_ptr<OperatorCountingHeuristicFactory>
     create_component(const Options& opts, const Context& context) const override
     {
         verify_list_non_empty<shared_ptr<ConstraintGenerator>>(
             context,
             opts,
             "constraint_generators");
-        return make_shared_from_arg_tuples<OperatorCountingHeuristic>(
+        return make_shared_from_arg_tuples<OperatorCountingHeuristicFactory>(
+            get_heuristic_arguments_from_options(opts),
             opts.get_list<shared_ptr<ConstraintGenerator>>(
                 "constraint_generators"),
             opts.get<bool>("use_integer_operator_counts"),
-            get_lp_solver_arguments_from_options(opts),
-            get_heuristic_arguments_from_options(opts));
+            get_lp_solver_arguments_from_options(opts));
     }
 };
 

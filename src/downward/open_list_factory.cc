@@ -5,15 +5,17 @@ using namespace std;
 namespace downward {
 
 template <>
-unique_ptr<StateOpenList> OpenListFactory::create_open_list()
+unique_ptr<StateOpenList>
+OpenListFactory::create_open_list(const std::shared_ptr<AbstractTask>& task)
 {
-    return create_state_open_list();
+    return create_state_open_list(task);
 }
 
 template <>
-unique_ptr<EdgeOpenList> OpenListFactory::create_open_list()
+unique_ptr<EdgeOpenList>
+OpenListFactory::create_open_list(const std::shared_ptr<AbstractTask>& task)
 {
-    return create_edge_open_list();
+    return create_edge_open_list(task);
 }
 
 } // namespace downward

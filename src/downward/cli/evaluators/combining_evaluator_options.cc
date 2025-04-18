@@ -24,12 +24,16 @@ void add_combining_evaluator_options_to_feature(
     add_evaluator_options_to_feature(feature, description);
 }
 
-tuple<vector<shared_ptr<Evaluator>>, const string, utils::Verbosity>
+tuple<
+    const string,
+    utils::Verbosity,
+    vector<shared_ptr<TaskDependentFactory<Evaluator>>>>
 get_combining_evaluator_arguments_from_options(const Options& opts)
 {
     return tuple_cat(
-        make_tuple(opts.get_list<shared_ptr<Evaluator>>("evals")),
-        get_evaluator_arguments_from_options(opts));
+        get_evaluator_arguments_from_options(opts),
+        make_tuple(opts.get_list<shared_ptr<TaskDependentFactory<Evaluator>>>(
+            "evals")));
 }
 
 } // namespace downward::cli::combining_evaluator

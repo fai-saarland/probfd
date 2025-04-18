@@ -6,6 +6,9 @@
 #include "downward/search_algorithms/eager_search.h"
 #include "downward/search_algorithms/search_common.h"
 
+#include "downward/evaluator.h"
+#include "downward/task_dependent_factory.h"
+
 using namespace std;
 using namespace downward;
 
@@ -14,8 +17,82 @@ using namespace downward::cli::plugins;
 
 namespace {
 
+class EagerGreedySearchFactory : public TaskDependentFactory<SearchAlgorithm> {
+    std::vector<shared_ptr<TaskDependentFactory<Evaluator>>> eval_factories;
+    std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>
+        preferred_factories;
+    int boost;
+    std::shared_ptr<PruningMethod> pruning;
+    OperatorCost cost_type;
+    int bound;
+    double max_time;
+    const std::string& description;
+    utils::Verbosity verbosity;
+
+public:
+    explicit EagerGreedySearchFactory(
+        std::vector<shared_ptr<TaskDependentFactory<Evaluator>>> eval_factories,
+        std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>
+            preferred_factories,
+        int boost,
+        std::shared_ptr<PruningMethod> pruning,
+        OperatorCost cost_type,
+        int bound,
+        double max_time,
+        const std::string& description,
+        utils::Verbosity verbosity)
+        : eval_factories(std::move(eval_factories))
+        , preferred_factories(std::move(preferred_factories))
+        , boost(boost)
+        , pruning(pruning)
+        , cost_type(cost_type)
+        , bound(bound)
+        , max_time(max_time)
+        , description(description)
+        , verbosity(verbosity)
+    {
+    }
+
+    unique_ptr<SearchAlgorithm>
+    create_object(const std::shared_ptr<AbstractTask>& task) override
+    {
+        std::vector<std::shared_ptr<Evaluator>> evals;
+
+        for (auto& eval_factory : eval_factories) {
+            evals.emplace_back(eval_factory->create_object(task));
+        }
+
+        std::vector<std::shared_ptr<Evaluator>> preferred;
+
+        for (auto& preferred_factory : preferred_factories) {
+            preferred.emplace_back(preferred_factory->create_object(task));
+        }
+
+        auto open = search_common::create_greedy_state_open_list(
+            evals,
+            !preferred.empty(),
+            boost);
+
+        return std::make_unique<eager_search::EagerSearch>(
+            std::move(open),
+            false,
+            nullptr,
+            std::move(preferred),
+            nullptr,
+            pruning,
+            task,
+            cost_type,
+            bound,
+            max_time,
+            description,
+            verbosity);
+    }
+};
+
 class EagerGreedySearchFeature
-    : public TypedFeature<SearchAlgorithm, eager_search::EagerSearch> {
+    : public TypedFeature<
+          TaskDependentFactory<SearchAlgorithm>,
+          EagerGreedySearchFactory> {
 public:
     EagerGreedySearchFeature()
         : TypedFeature("eager_greedy")
@@ -23,8 +100,10 @@ public:
         document_title("Greedy search (eager)");
         document_synopsis("");
 
-        add_list_option<shared_ptr<Evaluator>>("evals", "evaluators");
-        add_list_option<shared_ptr<Evaluator>>(
+        add_list_option<shared_ptr<TaskDependentFactory<Evaluator>>>(
+            "evals",
+            "evaluators");
+        add_list_option<shared_ptr<TaskDependentFactory<Evaluator>>>(
             "preferred",
             "use preferred operators of these evaluators",
             "[]");
@@ -75,23 +154,17 @@ public:
             true);
     }
 
-    virtual shared_ptr<eager_search::EagerSearch>
+    shared_ptr<EagerGreedySearchFactory>
     create_component(const Options& opts, const utils::Context& context)
         const override
     {
         verify_list_non_empty<shared_ptr<Evaluator>>(context, opts, "evals");
 
-        auto open = search_common::create_greedy_open_list_factory(
-            opts.get_list<shared_ptr<Evaluator>>("evals"),
-            opts.get_list<shared_ptr<Evaluator>>("preferred"),
-            opts.get<int>("boost"));
-
-        return make_shared_from_arg_tuples<eager_search::EagerSearch>(
-            open->create_state_open_list(),
-            false,
-            nullptr,
-            opts.get_list<shared_ptr<Evaluator>>("preferred"),
-            nullptr,
+        return make_shared_from_arg_tuples<EagerGreedySearchFactory>(
+            opts.get_list<shared_ptr<TaskDependentFactory<Evaluator>>>("evals"),
+            opts.get_list<shared_ptr<TaskDependentFactory<Evaluator>>>(
+                "preferred"),
+            opts.get<int>("boost"),
             get_eager_search_arguments_from_options(opts));
     }
 };

@@ -25,6 +25,7 @@ class IteratedSearch : public IterativeSearchAlgorithm<IteratedSearch> {
 
 public:
     IteratedSearch(
+        std::shared_ptr<AbstractTask> task,
         OperatorCost operator_cost,
         int bound,
         double max_time,

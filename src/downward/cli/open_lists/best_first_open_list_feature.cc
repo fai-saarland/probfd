@@ -6,6 +6,8 @@
 
 #include "downward/utils/memory.h"
 
+#include "downward/task_dependent_factory.h"
+
 using namespace std;
 using namespace downward::standard_scalar_open_list;
 using namespace downward::utils;
@@ -27,7 +29,10 @@ public:
         document_synopsis(
             "Open list that uses a single evaluator and FIFO tiebreaking.");
 
-        add_option<shared_ptr<downward::Evaluator>>("eval", "evaluator");
+        add_option<
+            shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
+            "eval",
+            "evaluator");
         add_open_list_options_to_feature(*this);
 
         document_note(
@@ -46,7 +51,8 @@ public:
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<BestFirstOpenListFactory>(
-            opts.get<shared_ptr<downward::Evaluator>>("eval"),
+            opts.get<shared_ptr<
+                downward::TaskDependentFactory<downward::Evaluator>>>("eval"),
             get_open_list_arguments_from_options(opts));
     }
 };

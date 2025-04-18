@@ -1,11 +1,13 @@
 #include "downward/tasks/root_task.h"
 
+#include "downward/abstract_task.h"
 #include "downward/state_registry.h"
 
 #include "downward/utils/collections.h"
 #include "downward/utils/timer.h"
 
 #include <cassert>
+#include <iostream>
 #include <memory>
 #include <set>
 #include <vector>
@@ -14,9 +16,8 @@ using namespace std;
 using downward::utils::ExitCode;
 
 namespace downward::tasks {
-static const auto PRE_FILE_VERSION = "3";
-static const auto PRE_FILE_PROB_VERSION = "3P";
-shared_ptr<AbstractTask> g_root_task = nullptr;
+static constexpr auto PRE_FILE_VERSION = "3";
+static constexpr auto PRE_FILE_PROB_VERSION = "3P";
 
 struct ExplicitVariable {
     int domain_size;
@@ -122,9 +123,7 @@ static void check_facts(
     const vector<FactPair>& facts,
     const vector<ExplicitVariable>& variables)
 {
-    for (FactPair fact : facts) {
-        check_fact(fact, variables);
-    }
+    for (FactPair fact : facts) { check_fact(fact, variables); }
 }
 
 static void check_facts(
@@ -194,9 +193,7 @@ void ExplicitOperator::read_pre_post(istream& in)
     vector<FactPair> conditions = read_facts(in);
     int var, value_pre, value_post;
     in >> var >> value_pre >> value_post;
-    if (value_pre != -1) {
-        preconditions.emplace_back(var, value_pre);
-    }
+    if (value_pre != -1) { preconditions.emplace_back(var, value_pre); }
     effects.emplace_back(var, value_post, std::move(conditions));
 }
 
@@ -214,9 +211,7 @@ ExplicitOperator::ExplicitOperator(
         int count;
         in >> count;
         effects.reserve(count);
-        for (int i = 0; i < count; ++i) {
-            read_pre_post(in);
-        }
+        for (int i = 0; i < count; ++i) { read_pre_post(in); }
 
         int op_cost;
         in >> op_cost;
@@ -261,9 +256,7 @@ static vector<ExplicitVariable> read_variables(istream& in)
     in >> count;
     vector<ExplicitVariable> variables;
     variables.reserve(count);
-    for (int i = 0; i < count; ++i) {
-        variables.emplace_back(in);
-    }
+    for (int i = 0; i < count; ++i) { variables.emplace_back(in); }
     return variables;
 }
 
@@ -328,15 +321,11 @@ RootTask::RootTask(istream& in)
     variables_ = read_variables(in);
     int num_variables = variables_.size();
 
-    if (std::isdigit(in.peek())) {
-        skip_mutexes(in);
-    }
+    if (std::isdigit(in.peek())) { skip_mutexes(in); }
 
     initial_state_values_.resize(num_variables);
     check_magic(in, "begin_state");
-    for (int i = 0; i < num_variables; ++i) {
-        in >> initial_state_values_[i];
-    }
+    for (int i = 0; i < num_variables; ++i) { in >> initial_state_values_[i]; }
     check_magic(in, "end_state");
 
     for (int i = 0; i < num_variables; ++i) {
@@ -532,10 +521,9 @@ vector<int> RootTask::get_initial_state_values() const
     return initial_state_values_;
 }
 
-void read_root_task(istream& in)
+std::unique_ptr<AbstractTask> read_root_task(istream& in)
 {
-    assert(!g_root_task);
-    g_root_task = make_shared<RootTask>(in);
+    return make_unique<RootTask>(in);
 }
 
-} // namespace tasks
+} // namespace downward::tasks

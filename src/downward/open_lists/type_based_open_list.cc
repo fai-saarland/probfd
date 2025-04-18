@@ -152,18 +152,20 @@ TypeBasedOpenListFactory::TypeBasedOpenListFactory(
 {
 }
 
-unique_ptr<StateOpenList> TypeBasedOpenListFactory::create_state_open_list()
+unique_ptr<StateOpenList> TypeBasedOpenListFactory::create_state_open_list(
+    const std::shared_ptr<AbstractTask>&)
 {
     return std::make_unique<TypeBasedOpenList<StateOpenListEntry>>(
         evaluators,
         random_seed);
 }
 
-unique_ptr<EdgeOpenList> TypeBasedOpenListFactory::create_edge_open_list()
+unique_ptr<EdgeOpenList> TypeBasedOpenListFactory::create_edge_open_list(
+    const std::shared_ptr<AbstractTask>&)
 {
     return std::make_unique<TypeBasedOpenList<EdgeOpenListEntry>>(
         evaluators,
         random_seed);
 }
 
-} // namespace type_based_open_list
+} // namespace downward::type_based_open_list

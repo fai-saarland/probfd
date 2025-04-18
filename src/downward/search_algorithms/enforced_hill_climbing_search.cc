@@ -20,7 +20,7 @@ namespace downward::enforced_hill_climbing_search {
 using GEval = g_evaluator::GEvaluator;
 using PrefEval = pref_evaluator::PrefEvaluator;
 
-static shared_ptr<OpenListFactory> create_ehc_open_list_factory(
+static unique_ptr<EdgeOpenList> create_ehc_open_list(
     utils::Verbosity verbosity,
     bool use_preferred,
     PreferredUsage preferred_usage)
@@ -35,7 +35,8 @@ static shared_ptr<OpenListFactory> create_ehc_open_list_factory(
 
     if (!use_preferred ||
         preferred_usage == PreferredUsage::PRUNE_BY_PREFERRED) {
-        return make_shared<standard_scalar_open_list::BestFirstOpenListFactory>(
+        return make_unique<
+            standard_scalar_open_list::BestFirstOpenList<EdgeOpenListEntry>>(
             g_evaluator,
             false);
     } else {
@@ -50,8 +51,9 @@ static shared_ptr<OpenListFactory> create_ehc_open_list_factory(
         vector<shared_ptr<Evaluator>> evals = {
             g_evaluator,
             make_shared<PrefEval>("ehc.pref_eval", verbosity)};
-        return make_shared<tiebreaking_open_list::TieBreakingOpenListFactory>(
-            evals,
+        return make_unique<
+            tiebreaking_open_list::TieBreakingOpenList<EdgeOpenListEntry>>(
+            std::move(evals),
             false,
             true);
     }
@@ -61,12 +63,14 @@ EnforcedHillClimbingSearch::EnforcedHillClimbingSearch(
     const shared_ptr<Evaluator>& h,
     PreferredUsage preferred_usage,
     const vector<shared_ptr<Evaluator>>& preferred,
+    std::shared_ptr<AbstractTask> task,
     OperatorCost cost_type,
     int bound,
     double max_time,
     const string& description,
     utils::Verbosity verbosity)
     : IterativeSearchAlgorithm(
+          std::move(task),
           cost_type,
           bound,
           max_time,
@@ -94,9 +98,7 @@ EnforcedHillClimbingSearch::EnforcedHillClimbingSearch(
                         preferred_operator_evaluators.end(),
                         evaluator) != preferred_operator_evaluators.end();
 
-    open_list =
-        create_ehc_open_list_factory(verbosity, use_preferred, preferred_usage)
-            ->create_edge_open_list();
+    open_list = create_ehc_open_list(verbosity, use_preferred, preferred_usage);
 }
 
 void EnforcedHillClimbingSearch::reach_state(

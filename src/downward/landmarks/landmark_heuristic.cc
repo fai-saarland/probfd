@@ -61,7 +61,7 @@ void LandmarkHeuristic::initialize(
       CostAdaptedTask *of the root task*, but there is currently no good
       way to do this, so we use this incomplete, slightly less safe test.
     */
-    if (transformed_task != tasks::g_root_task &&
+    if (transformed_task != original_task &&
         dynamic_cast<tasks::CostAdaptedTask*>(transformed_task.get()) ==
             nullptr) {
         cerr << "The landmark heuristics currently only support "

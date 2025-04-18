@@ -2,18 +2,16 @@
 
 #include "downward/cli/heuristic_options.h"
 
-#include "downward/heuristics/goal_count_heuristic.h"
-
-#include "downward/utils/logging.h"
+#include "downward/pdbs/pdb_heuristic.h"
 
 #include "downward/task_dependent_factory.h"
 #include "downward/task_transformation.h"
 
 using namespace std;
-using namespace downward::goal_count_heuristic;
-using namespace downward::utils;
-
 using namespace downward;
+using namespace downward::utils;
+using namespace downward::pdbs;
+
 using namespace downward::cli::plugins;
 
 using downward::cli::add_heuristic_options_to_feature;
@@ -21,22 +19,25 @@ using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
 
-class GoalCountHeuristicFactory : public TaskDependentFactory<Evaluator> {
+class PDBHeuristicFactory : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
     bool cache_estimates;
     std::string description;
     utils::Verbosity verbosity;
+    std::shared_ptr<PatternGenerator> generator;
 
 public:
-    GoalCountHeuristicFactory(
+    PDBHeuristicFactory(
         shared_ptr<TaskTransformation> transformation,
         bool cache_estimates,
         string description,
-        utils::Verbosity verbosity)
+        utils::Verbosity verbosity,
+        std::shared_ptr<PatternGenerator> generator)
         : transformation(std::move(transformation))
         , cache_estimates(cache_estimates)
         , description(std::move(description))
         , verbosity(verbosity)
+        , generator(std::move(generator))
     {
     }
 
@@ -44,7 +45,9 @@ public:
     create_object(const std::shared_ptr<AbstractTask>& task) override
     {
         auto transformation_result = transformation->transform(task);
-        return std::make_unique<GoalCountHeuristic>(
+
+        return std::make_unique<PDBHeuristic>(
+            std::move(generator),
             task,
             std::move(transformation_result),
             cache_estimates,
@@ -53,36 +56,43 @@ public:
     }
 };
 
-class GoalCountHeuristicFeature
+class PDBHeuristicFeature
     : public TypedFeature<
           TaskDependentFactory<Evaluator>,
-          GoalCountHeuristicFactory> {
+          PDBHeuristicFactory> {
 public:
-    GoalCountHeuristicFeature()
-        : TypedFeature("goalcount")
+    PDBHeuristicFeature()
+        : TypedFeature("pdb")
     {
-        document_title("Goal count heuristic");
+        document_subcategory("heuristics_pdb");
+        document_title("Pattern database heuristic");
+        document_synopsis("TODO");
 
-        add_heuristic_options_to_feature(*this, "goalcount");
+        add_option<shared_ptr<PatternGenerator>>(
+            "pattern",
+            "pattern generation method",
+            "greedy()");
+        add_heuristic_options_to_feature(*this, "pdb");
 
-        document_language_support("action costs", "ignored by design");
-        document_language_support("conditional effects", "supported");
-        document_language_support("axioms", "supported");
+        document_language_support("action costs", "supported");
+        document_language_support("conditional effects", "not supported");
+        document_language_support("axioms", "not supported");
 
-        document_property("admissible", "no");
-        document_property("consistent", "no");
+        document_property("admissible", "yes");
+        document_property("consistent", "yes");
         document_property("safe", "yes");
         document_property("preferred operators", "no");
     }
 
-    shared_ptr<GoalCountHeuristicFactory>
+    shared_ptr<PDBHeuristicFactory>
     create_component(const Options& opts, const Context&) const override
     {
-        return make_shared_from_arg_tuples<GoalCountHeuristicFactory>(
-            get_heuristic_arguments_from_options(opts));
+        return make_shared_from_arg_tuples<PDBHeuristicFactory>(
+            get_heuristic_arguments_from_options(opts),
+            opts.get<shared_ptr<PatternGenerator>>("pattern"));
     }
 };
 
-FeaturePlugin<GoalCountHeuristicFeature> _plugin;
+FeaturePlugin<PDBHeuristicFeature> _plugin;
 
 } // namespace

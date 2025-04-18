@@ -25,13 +25,16 @@
 
 namespace downward {
 class Evaluator;
-class OpenListFactory;
-}
+class StateID;
+class OperatorID;
+template <typename>
+class OpenList;
+} // namespace downward
 
 namespace downward::search_common {
 
 /*
-  Create open list factory for the eager_greedy or lazy_greedy plugins.
+  Create open list for the eager_greedy or lazy_greedy plugins.
 
   This is usually an alternation open list with:
   - one sublist for each evaluator, considering all successors
@@ -42,9 +45,15 @@ namespace downward::search_common {
   for the alternation open list, then that sublist is returned
   directly.
 */
-extern std::shared_ptr<OpenListFactory> create_greedy_open_list_factory(
+extern std::unique_ptr<OpenList<StateID>> create_greedy_state_open_list(
     const std::vector<std::shared_ptr<Evaluator>>& evals,
-    const std::vector<std::shared_ptr<Evaluator>>& preferred_evaluators,
+    bool preferred_evaluators,
+    int boost);
+
+extern std::unique_ptr<OpenList<std::pair<StateID, OperatorID>>>
+create_greedy_edge_open_list(
+    const std::vector<std::shared_ptr<Evaluator>>& evals,
+    bool preferred_evaluators,
     int boost);
 
 /*
@@ -54,9 +63,17 @@ extern std::shared_ptr<OpenListFactory> create_greedy_open_list_factory(
   documentation there), except that the open lists use evalators based
   on g + w * h rather than using h directly.
 */
-extern std::shared_ptr<OpenListFactory> create_wastar_open_list_factory(
+extern std::unique_ptr<OpenList<StateID>> create_wastar_state_open_list(
     const std::vector<std::shared_ptr<Evaluator>>& base_evals,
-    const std::vector<std::shared_ptr<Evaluator>>& preferred,
+    bool preferred,
+    int boost,
+    int weight,
+    utils::Verbosity verbosity);
+
+extern std::unique_ptr<OpenList<std::pair<StateID, OperatorID>>>
+create_wastar_edge_open_list(
+    const std::vector<std::shared_ptr<Evaluator>>& base_evals,
+    bool preferred,
     int boost,
     int weight,
     utils::Verbosity verbosity);
@@ -69,10 +86,10 @@ extern std::shared_ptr<OpenListFactory> create_wastar_open_list_factory(
   ordered primarily on g + h and secondarily on h.
 */
 extern std::
-    pair<std::shared_ptr<OpenListFactory>, const std::shared_ptr<Evaluator>>
-    create_astar_open_list_factory_and_f_eval(
+    pair<std::unique_ptr<OpenList<StateID>>, const std::shared_ptr<Evaluator>>
+    create_astar_open_list_and_f_eval(
         const std::shared_ptr<Evaluator>& h_eval,
         utils::Verbosity verbosity);
-} // namespace search_common
+} // namespace downward::search_common
 
 #endif

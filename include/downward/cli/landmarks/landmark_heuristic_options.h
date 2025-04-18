@@ -8,7 +8,7 @@
 namespace downward {
 class AbstractTask;
 class TaskTransformation;
-}
+} // namespace downward
 
 namespace downward::utils {
 enum class Verbosity;
@@ -30,16 +30,15 @@ extern void add_landmark_heuristic_options_to_feature(
     const std::string& description);
 
 extern std::tuple<
+    std::shared_ptr<TaskTransformation>,
+    bool,
+    std::string,
+    utils::Verbosity,
     std::shared_ptr<downward::landmarks::LandmarkFactory>,
     bool,
     bool,
     bool,
-    bool,
-    std::shared_ptr<AbstractTask>,
-    std::shared_ptr<TaskTransformation>,
-    bool,
-    std::string,
-    utils::Verbosity>
+    bool>
 get_landmark_heuristic_arguments_from_options(const plugins::Options& opts);
 
 } // namespace downward::cli::landmarks

@@ -14,6 +14,7 @@
 #include <cassert>
 #include <compare>
 #include <fstream>
+#include <iostream>
 #include <memory>
 #include <numeric>
 #include <set>
@@ -226,9 +227,7 @@ void check_facts(
     const vector<FactPair>& facts,
     const vector<ExplicitVariable>& variables)
 {
-    for (FactPair fact : facts) {
-        check_fact(fact, variables);
-    }
+    for (FactPair fact : facts) { check_fact(fact, variables); }
 }
 
 void check_facts(
@@ -416,9 +415,7 @@ ProbabilisticOperator::ProbabilisticOperator(
     }
 
     // Read each outcome
-    for (int i = 0; i < num_outcomes; ++i) {
-        outcomes.emplace_back(in);
-    }
+    for (int i = 0; i < num_outcomes; ++i) { outcomes.emplace_back(in); }
 
     // Read cost
     std::string cost_text;
@@ -446,9 +443,7 @@ ExplicitAxiom::ExplicitAxiom(std::istream& in)
     int count;
     in >> count;
     effects.reserve(count);
-    for (int i = 0; i < count; ++i) {
-        read_pre_post(in);
-    }
+    for (int i = 0; i < count; ++i) { read_pre_post(in); }
     check_magic(in, "end_rule");
 }
 
@@ -457,9 +452,7 @@ void ExplicitAxiom::read_pre_post(std::istream& in)
     vector<FactPair> conditions = read_facts(in);
     int var, pre, value_post;
     in >> var >> pre >> value_post;
-    if (pre != -1) {
-        preconditions.emplace_back(var, pre);
-    }
+    if (pre != -1) { preconditions.emplace_back(var, pre); }
     effects.emplace_back(var, value_post, std::move(conditions));
 }
 
@@ -503,9 +496,7 @@ vector<ExplicitVariable> read_variables(std::istream& in)
     in >> count;
     vector<ExplicitVariable> variables;
     variables.reserve(count);
-    for (int i = 0; i < count; ++i) {
-        variables.emplace_back(in);
-    }
+    for (int i = 0; i < count; ++i) { variables.emplace_back(in); }
     return variables;
 }
 
@@ -585,15 +576,11 @@ RootTask::RootTask(std::istream& in)
     variables = read_variables(in);
     int num_variables = variables.size();
 
-    if (std::isdigit(in.peek())) {
-        skip_mutexes(in);
-    }
+    if (std::isdigit(in.peek())) { skip_mutexes(in); }
 
     initial_state_values.resize(num_variables);
     check_magic(in, "begin_state");
-    for (int i = 0; i < num_variables; ++i) {
-        in >> initial_state_values[i];
-    }
+    for (int i = 0; i < num_variables; ++i) { in >> initial_state_values[i]; }
     check_magic(in, "end_state");
 
     for (int i = 0; i < num_variables; ++i) {
@@ -869,18 +856,10 @@ read_sas_task(const std::filesystem::path& filepath)
     return read_sas_task(input_file);
 }
 
-std::shared_ptr<ProbabilisticTask> read_root_tasks(std::istream& in)
+std::unique_ptr<ProbabilisticTask>
+read_sas_task_from_file(const std::filesystem::path& filepath)
 {
-    std::shared_ptr<ProbabilisticTask> input_task = read_sas_task(in);
-    ::tasks::g_root_task = std::make_shared<DeterminizationTask>(input_task);
-    return input_task;
-}
-
-std::shared_ptr<ProbabilisticTask>
-read_root_tasks_from_file(const std::filesystem::path& filepath)
-{
-    std::fstream input_file(filepath);
-    return read_root_tasks(input_file);
+    return read_sas_task(filepath);
 }
 
 } // namespace probfd::tasks

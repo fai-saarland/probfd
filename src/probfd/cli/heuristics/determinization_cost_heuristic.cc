@@ -2,6 +2,8 @@
 
 #include "probfd/heuristics/determinization_cost_heuristic.h"
 
+#include <downward/task_dependent_factory.h>
+
 using namespace downward;
 using namespace utils;
 
@@ -21,12 +23,13 @@ public:
         : TypedFeature("det")
     {
         document_title("Determinization-based Heuristic");
-        document_synopsis("This heuristic returns the estimate of a classical "
-                          "planning heuristic evaluated on the all-outcomes "
-                          "determinization of the planning task.");
+        document_synopsis(
+            "This heuristic returns the estimate of a classical "
+            "planning heuristic evaluated on the all-outcomes "
+            "determinization of the planning task.");
 
-        add_option<std::shared_ptr<::Evaluator>>(
-            "evaluator",
+        add_option<std::shared_ptr<TaskDependentFactory<Evaluator>>>(
+            "heuristic",
             "The classical planning heuristic.");
     }
 
@@ -34,7 +37,8 @@ public:
     create_component(const Options& options, const Context&) const override
     {
         return std::make_shared<DeterminizationCostHeuristicFactory>(
-            options.get<std::shared_ptr<::Evaluator>>("evaluator"));
+            options.get<std::shared_ptr<TaskDependentFactory<Evaluator>>>(
+                "heuristic"));
     }
 };
 

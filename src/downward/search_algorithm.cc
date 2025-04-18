@@ -44,6 +44,7 @@ get_successor_generator(const TaskProxy& task_proxy, utils::LogProxy& log)
 }
 
 SearchAlgorithm::SearchAlgorithm(
+    std::shared_ptr<AbstractTask> task,
     OperatorCost cost_type,
     int bound,
     double max_time,
@@ -51,7 +52,7 @@ SearchAlgorithm::SearchAlgorithm(
     utils::Verbosity verbosity)
     : description(description)
     , solution_found(false)
-    , task(tasks::g_root_task)
+    , task(std::move(task))
     , task_proxy(*task)
     , log(utils::get_log_for_verbosity(verbosity))
     , state_registry(task_proxy)

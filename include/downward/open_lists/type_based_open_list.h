@@ -32,9 +32,12 @@ public:
         const std::vector<std::shared_ptr<Evaluator>>& evaluators,
         int random_seed);
 
-    virtual std::unique_ptr<StateOpenList> create_state_open_list() override;
-    virtual std::unique_ptr<EdgeOpenList> create_edge_open_list() override;
+    virtual std::unique_ptr<StateOpenList>
+    create_state_open_list(const std::shared_ptr<AbstractTask>& task) override;
+
+    virtual std::unique_ptr<EdgeOpenList>
+    create_edge_open_list(const std::shared_ptr<AbstractTask>& task) override;
 };
-} // namespace type_based_open_list
+} // namespace downward::type_based_open_list
 
 #endif

@@ -6,7 +6,11 @@
 
 #include "downward/utils/logging.h"
 
+#include "downward/task_dependent_factory.h"
+#include "downward/task_transformation.h"
+
 using namespace std;
+using namespace downward;
 using namespace downward::hm_heuristic;
 using namespace downward::utils;
 
@@ -17,8 +21,44 @@ using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
 
+class HMHeuristicFactory : public TaskDependentFactory<Evaluator> {
+    std::shared_ptr<TaskTransformation> transformation;
+    bool cache_estimates;
+    std::string description;
+    utils::Verbosity verbosity;
+    int m;
+
+public:
+    HMHeuristicFactory(
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity,
+        int m)
+        : transformation(std::move(transformation))
+        , cache_estimates(cache_estimates)
+        , description(std::move(description))
+        , verbosity(verbosity)
+        , m(m)
+    {
+    }
+
+    unique_ptr<Evaluator>
+    create_object(const std::shared_ptr<AbstractTask>& task) override
+    {
+        auto transformation_result = transformation->transform(task);
+        return std::make_unique<HMHeuristic>(
+            m,
+            task,
+            std::move(transformation_result),
+            cache_estimates,
+            description,
+            verbosity);
+    }
+};
+
 class HMHeuristicFeature
-    : public TypedFeature<downward::Evaluator, HMHeuristic> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>, HMHeuristicFactory> {
 public:
     HMHeuristicFeature()
         : TypedFeature("hm")
@@ -44,12 +84,12 @@ public:
         document_property("preferred operators", "no");
     }
 
-    virtual shared_ptr<HMHeuristic>
+    shared_ptr<HMHeuristicFactory>
     create_component(const Options& opts, const Context&) const override
     {
-        return make_shared_from_arg_tuples<HMHeuristic>(
-            opts.get<int>("m"),
-            get_heuristic_arguments_from_options(opts));
+        return make_shared_from_arg_tuples<HMHeuristicFactory>(
+            get_heuristic_arguments_from_options(opts),
+            opts.get<int>("m"));
     }
 };
 
