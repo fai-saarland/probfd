@@ -297,11 +297,6 @@ std::string BlocksworldTask::get_fact_name(const FactPair& fact) const
     return variables[fact.var].fact_names[fact.value];
 }
 
-bool BlocksworldTask::are_facts_mutex(const FactPair&, const FactPair&) const
-{
-    return false;
-}
-
 int BlocksworldTask::get_num_axioms() const
 {
     return 0;
@@ -376,18 +371,6 @@ FactPair BlocksworldTask::get_goal_fact(int index) const
 std::vector<int> BlocksworldTask::get_initial_state_values() const
 {
     return initial_state;
-}
-
-void BlocksworldTask::convert_ancestor_state_values(
-    std::vector<int>&,
-    const PlanningTask*) const
-{
-    abort();
-}
-
-int BlocksworldTask::convert_operator_index(int, const PlanningTask*) const
-{
-    abort();
 }
 
 value_t BlocksworldTask::get_operator_cost(int index) const
