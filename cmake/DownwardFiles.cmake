@@ -3,6 +3,7 @@ create_library(
     HELP "Core source files"
     SOURCES
         downward/abstract_task
+        downward/axiom_evaluator
         downward/axioms
         downward/evaluation_context
         downward/evaluation_result
