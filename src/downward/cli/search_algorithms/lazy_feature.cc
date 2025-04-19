@@ -2,8 +2,6 @@
 
 #include "downward/cli/search_algorithm_options.h"
 
-#include "downward/open_list_factory.h"
-
 #include "downward/search_algorithms/lazy_search.h"
 #include "downward/search_algorithms/search_common.h"
 
@@ -28,7 +26,7 @@ class LazySearchFactory : public TaskDependentFactory<SearchAlgorithm> {
     double max_time;
     const std::string& description;
     utils::Verbosity verbosity;
-    shared_ptr<OpenListFactory> open_list_factory;
+    shared_ptr<TaskDependentFactory<EdgeOpenList>> open_list_factory;
     bool reopen_closed;
     vector<shared_ptr<TaskDependentFactory<Evaluator>>> preferred_factories;
     bool randomize_successors;
@@ -42,7 +40,7 @@ public:
         double max_time,
         const std::string& description,
         utils::Verbosity verbosity,
-        shared_ptr<OpenListFactory> open_list_factory,
+        shared_ptr<TaskDependentFactory<EdgeOpenList>> open_list_factory,
         bool reopen_closed,
         vector<shared_ptr<TaskDependentFactory<Evaluator>>> preferred_factories,
         bool randomize_successors,
@@ -72,7 +70,7 @@ public:
         }
 
         return std::make_unique<LazySearch>(
-            open_list_factory->create_edge_open_list(task),
+            open_list_factory->create_object(task),
             reopen_closed,
             std::move(preferred),
             randomize_successors,
@@ -98,7 +96,9 @@ public:
         document_title("Lazy best-first search");
         document_synopsis("");
 
-        add_option<shared_ptr<OpenListFactory>>("open", "open list");
+        add_option<shared_ptr<TaskDependentFactory<EdgeOpenList>>>(
+            "open",
+            "open list");
         add_option<bool>("reopen_closed", "reopen closed nodes", "false");
         add_list_option<shared_ptr<TaskDependentFactory<Evaluator>>>(
             "preferred",
@@ -113,7 +113,7 @@ public:
     {
         return make_shared_from_arg_tuples<LazySearchFactory>(
             get_search_algorithm_arguments_from_options(opts),
-            opts.get<shared_ptr<OpenListFactory>>("open"),
+            opts.get<shared_ptr<TaskDependentFactory<EdgeOpenList>>>("open"),
             opts.get<bool>("reopen_closed"),
             opts.get_list<shared_ptr<TaskDependentFactory<Evaluator>>>(
                 "preferred"),

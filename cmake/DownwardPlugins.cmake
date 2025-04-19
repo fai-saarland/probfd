@@ -177,7 +177,6 @@ create_library(
         downward/cli/open_lists/alternation_open_list_feature
     DEPENDS
         plugins
-        alternation_open_list
     TARGET
         probfd
 )
@@ -190,7 +189,6 @@ create_library(
     DEPENDS
         plugins
         open_list_options
-        best_first_open_list
         utils
     TARGET
         probfd
@@ -205,7 +203,6 @@ create_library(
         plugins
         open_list_options
         rng_options
-        epsilon_greedy_open_list
         utils
     TARGET
         probfd
@@ -220,7 +217,6 @@ create_library(
         plugins
         open_list_options
         rng_options
-        pareto_open_list
         utils
     TARGET
         probfd
@@ -234,7 +230,6 @@ create_library(
     DEPENDS
         plugins
         open_list_options
-        tiebreaking_open_list
         utils
     TARGET
         probfd
@@ -249,7 +244,6 @@ create_library(
         plugins
         open_list_options
         rng_options
-        type_based_open_list
         utils
     TARGET
         probfd

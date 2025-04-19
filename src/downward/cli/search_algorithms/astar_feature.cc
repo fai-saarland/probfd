@@ -1,5 +1,4 @@
 #include "downward/cli/plugins/plugin.h"
-#include "downward/open_list_factory.h"
 
 #include "downward/cli/search_algorithms/eager_search_options.h"
 

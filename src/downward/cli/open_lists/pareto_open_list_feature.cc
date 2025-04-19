@@ -24,22 +24,26 @@ using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 
+template <typename T>
 class ParetoOpenListFeature
-    : public TypedFeature<downward::OpenListFactory, ParetoOpenListFactory> {
+    : public TypedFeature<
+          downward::TaskDependentFactory<downward::OpenList<T>>,
+          ParetoOpenListFactory<T>> {
 public:
     ParetoOpenListFeature()
-        : TypedFeature("pareto")
+        requires(std::same_as<T, downward::StateOpenListEntry>)
+        : ParetoOpenListFeature::TypedFeature("state_pareto")
     {
-        document_title("Pareto open list");
-        document_synopsis(
+        this->document_title("Pareto state open list");
+        this->document_synopsis(
             "Selects one of the Pareto-optimal (regarding the sub-evaluators) "
             "entries for removal.");
 
-        add_list_option<
+        this->template add_list_option<
             shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
             "evals",
             "evaluators");
-        add_option<bool>(
+        this->template add_option<bool>(
             "state_uniform_selection",
             "When removing an entry, we select a non-dominated bucket "
             "and return its oldest entry. If this option is false, we select "
@@ -50,10 +54,34 @@ public:
         add_open_list_options_to_feature(*this);
     }
 
-    virtual shared_ptr<ParetoOpenListFactory>
+    ParetoOpenListFeature()
+        requires(std::same_as<T, downward::EdgeOpenListEntry>)
+        : ParetoOpenListFeature::TypedFeature("edge_pareto")
+    {
+        this->document_title("Pareto edge open list");
+        this->document_synopsis(
+            "Selects one of the Pareto-optimal (regarding the sub-evaluators) "
+            "entries for removal.");
+
+        this->template add_list_option<
+            shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
+            "evals",
+            "evaluators");
+        this->template add_option<bool>(
+            "state_uniform_selection",
+            "When removing an entry, we select a non-dominated bucket "
+            "and return its oldest entry. If this option is false, we select "
+            "uniformly from the non-dominated buckets; if the option is true, "
+            "we weight the buckets with the number of entries.",
+            "false");
+        add_rng_options_to_feature(*this);
+        add_open_list_options_to_feature(*this);
+    }
+
+    shared_ptr<ParetoOpenListFactory<T>>
     create_component(const Options& opts, const Context&) const override
     {
-        return make_shared_from_arg_tuples<ParetoOpenListFactory>(
+        return make_shared_from_arg_tuples<ParetoOpenListFactory<T>>(
             opts.get_list<shared_ptr<
                 downward::TaskDependentFactory<downward::Evaluator>>>("evals"),
             opts.get<bool>("state_uniform_selection"),
@@ -62,6 +90,7 @@ public:
     }
 };
 
-FeaturePlugin<ParetoOpenListFeature> _plugin;
+FeaturePlugin<ParetoOpenListFeature<downward::StateOpenListEntry>> _plugin;
+FeaturePlugin<ParetoOpenListFeature<downward::EdgeOpenListEntry>> _plugin2;
 
 } // namespace

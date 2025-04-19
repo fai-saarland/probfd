@@ -1,7 +1,7 @@
 #ifndef OPEN_LISTS_BEST_FIRST_OPEN_LIST_H
 #define OPEN_LISTS_BEST_FIRST_OPEN_LIST_H
 
-#include "downward/open_list_factory.h"
+#include "downward/open_list.h"
 
 #include "downward/evaluator.h"
 #include "downward/task_dependent_factory.h"
@@ -117,20 +117,27 @@ bool BestFirstOpenList<Entry>::is_reliable_dead_end(
     return is_dead_end(eval_context) && evaluator->dead_ends_are_reliable();
 }
 
-class BestFirstOpenListFactory : public OpenListFactory {
+template <typename T>
+class BestFirstOpenListFactory : public TaskDependentFactory<OpenList<T>> {
     std::shared_ptr<TaskDependentFactory<Evaluator>> eval_factory;
     bool pref_only;
 
 public:
     BestFirstOpenListFactory(
         const std::shared_ptr<TaskDependentFactory<Evaluator>>& eval_factory,
-        bool pref_only);
+        bool pref_only)
+        : eval_factory(std::move(eval_factory))
+        , pref_only(pref_only)
+    {
+    }
 
-    virtual std::unique_ptr<StateOpenList>
-    create_state_open_list(const std::shared_ptr<AbstractTask>& task) override;
-
-    virtual std::unique_ptr<EdgeOpenList>
-    create_edge_open_list(const std::shared_ptr<AbstractTask>& task) override;
+    std::unique_ptr<OpenList<T>>
+    create_object(const std::shared_ptr<AbstractTask>& task) override
+    {
+        return std::make_unique<BestFirstOpenList<T>>(
+            eval_factory->create_object(task),
+            pref_only);
+    }
 };
 } // namespace downward::standard_scalar_open_list
 

@@ -11,7 +11,6 @@ create_library(
         downward/heuristic
         downward/mutex_information
         downward/open_list
-        downward/open_list_factory
         downward/operator_cost
         downward/operator_id
         downward/per_state_array
@@ -81,48 +80,6 @@ create_library(
     HELP "Mutex factory that reads them from a file"
     SOURCES
         downward/mutexes/from_file_mutex_factory
-)
-
-create_library(
-    NAME alternation_open_list
-    HELP "Open list that alternates between underlying open lists in a round-robin manner"
-    SOURCES
-        downward/open_lists/alternation_open_list
-)
-
-create_library(
-    NAME best_first_open_list
-    HELP "Open list that selects the best element according to a single evaluation function"
-    SOURCES
-        downward/open_lists/best_first_open_list
-)
-
-create_library(
-    NAME epsilon_greedy_open_list
-    HELP "Open list that chooses an entry randomly with probability epsilon"
-    SOURCES
-        downward/open_lists/epsilon_greedy_open_list
-)
-
-create_library(
-    NAME pareto_open_list
-    HELP "Pareto open list"
-    SOURCES
-        downward/open_lists/pareto_open_list
-)
-
-create_library(
-    NAME tiebreaking_open_list
-    HELP "Tiebreaking open list"
-    SOURCES
-        downward/open_lists/tiebreaking_open_list
-)
-
-create_library(
-    NAME type_based_open_list
-    HELP "Type-based open list"
-    SOURCES
-        downward/open_lists/type_based_open_list
 )
 
 create_library(
@@ -322,9 +279,6 @@ create_library(
     SOURCES
         downward/search_algorithms/search_common
     DEPENDS
-        alternation_open_list
-        best_first_open_list
-        tiebreaking_open_list
         g_evaluator
         sum_evaluator
         weighted_evaluator

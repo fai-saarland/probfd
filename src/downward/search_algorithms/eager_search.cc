@@ -2,7 +2,7 @@
 
 #include "downward/evaluation_context.h"
 #include "downward/evaluator.h"
-#include "downward/open_list_factory.h"
+#include "downward/open_list.h"
 #include "downward/pruning_method.h"
 
 #include "downward/algorithms/ordered_set.h"

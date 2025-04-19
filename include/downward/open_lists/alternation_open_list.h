@@ -1,7 +1,8 @@
 #ifndef OPEN_LISTS_ALTERNATION_OPEN_LIST_H
 #define OPEN_LISTS_ALTERNATION_OPEN_LIST_H
 
-#include "downward/open_list_factory.h"
+#include "downward/open_list.h"
+#include "downward/task_dependent_factory.h"
 
 #include <memory>
 #include <set>
@@ -122,20 +123,33 @@ bool AlternationOpenList<Entry>::is_reliable_dead_end(
     return false;
 }
 
-class AlternationOpenListFactory : public OpenListFactory {
-    std::vector<std::shared_ptr<OpenListFactory>> sublists;
+template <typename T>
+class AlternationOpenListFactory : public TaskDependentFactory<OpenList<T>> {
+    std::vector<std::shared_ptr<TaskDependentFactory<OpenList<T>>>> sublists;
     int boost;
 
 public:
     AlternationOpenListFactory(
-        const std::vector<std::shared_ptr<OpenListFactory>>& sublists,
-        int boost);
+        const std::vector<std::shared_ptr<TaskDependentFactory<OpenList<T>>>>&
+            sublists,
+        int boost)
+        : sublists(sublists)
+        , boost(boost)
+    {
+    }
 
-    virtual std::unique_ptr<StateOpenList>
-    create_state_open_list(const std::shared_ptr<AbstractTask>& task) override;
+    std::unique_ptr<OpenList<T>>
+    create_object(const std::shared_ptr<AbstractTask>& task) override
+    {
+        std::vector<std::unique_ptr<OpenList<T>>> open_lists;
+        open_lists.reserve(sublists.size());
+        for (const auto& factory : sublists)
+            open_lists.push_back(factory->create_object(task));
 
-    virtual std::unique_ptr<EdgeOpenList>
-    create_edge_open_list(const std::shared_ptr<AbstractTask>& task) override;
+        return std::make_unique<AlternationOpenList<T>>(
+            std::move(open_lists),
+            boost);
+    }
 };
 } // namespace downward::alternation_open_list
 

@@ -1,5 +1,4 @@
 #include "downward/cli/plugins/plugin.h"
-#include "downward/open_list_factory.h"
 
 #include "downward/cli/search_algorithms/eager_search_options.h"
 
@@ -19,10 +18,11 @@ using namespace downward::cli::plugins;
 namespace {
 
 class EagerSearchFactory : public TaskDependentFactory<SearchAlgorithm> {
-    std::shared_ptr<OpenListFactory> open_list_factory;
+    std::shared_ptr<TaskDependentFactory<StateOpenList>> open_list_factory;
     bool reopen_closed;
     std::shared_ptr<TaskDependentFactory<Evaluator>> f_eval_factory;
-    std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>> preferred_factories;
+    std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>>
+        preferred_factories;
     std::shared_ptr<PruningMethod> pruning;
     OperatorCost cost_type;
     int bound;
@@ -32,10 +32,11 @@ class EagerSearchFactory : public TaskDependentFactory<SearchAlgorithm> {
 
 public:
     explicit EagerSearchFactory(
-        std::shared_ptr<OpenListFactory> open_list_factory,
+        std::shared_ptr<TaskDependentFactory<StateOpenList>> open_list_factory,
         bool reopen_closed,
         std::shared_ptr<TaskDependentFactory<Evaluator>> f_eval_factory,
-        std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>> preferred_factories,
+        std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>>
+            preferred_factories,
         std::shared_ptr<PruningMethod> pruning,
         OperatorCost cost_type,
         int bound,
@@ -65,7 +66,7 @@ public:
         }
 
         return std::make_unique<EagerSearch>(
-            open_list_factory->create_state_open_list(task),
+            open_list_factory->create_object(task),
             reopen_closed,
             f_eval_factory ? f_eval_factory->create_object(task) : nullptr,
             std::move(preferred),
@@ -91,7 +92,9 @@ public:
         document_title("Eager best-first search");
         document_synopsis("");
 
-        add_option<shared_ptr<OpenListFactory>>("open", "open list");
+        add_option<shared_ptr<TaskDependentFactory<StateOpenList>>>(
+            "open",
+            "open list");
         add_option<bool>("reopen_closed", "reopen closed nodes", "false");
         add_option<shared_ptr<TaskDependentFactory<Evaluator>>>(
             "f_eval",
@@ -110,7 +113,7 @@ public:
     create_component(const Options& opts, const utils::Context&) const override
     {
         return make_shared_from_arg_tuples<EagerSearchFactory>(
-            opts.get<shared_ptr<OpenListFactory>>("open"),
+            opts.get<shared_ptr<TaskDependentFactory<StateOpenList>>>("open"),
             opts.get<bool>("reopen_closed"),
             opts.get<shared_ptr<TaskDependentFactory<Evaluator>>>(
                 "f_eval",

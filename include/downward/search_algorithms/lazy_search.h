@@ -14,10 +14,6 @@
 #include <memory>
 #include <vector>
 
-namespace downward {
-class OpenListFactory;
-}
-
 namespace downward::lazy_search {
 class LazySearch : public IterativeSearchAlgorithm<LazySearch> {
 protected:

@@ -1,6 +1,6 @@
 #include "downward/search_algorithms/search_common.h"
 
-#include "downward/open_list_factory.h"
+#include "downward/open_list.h"
 
 #include "downward/evaluators/g_evaluator.h"
 #include "downward/evaluators/sum_evaluator.h"

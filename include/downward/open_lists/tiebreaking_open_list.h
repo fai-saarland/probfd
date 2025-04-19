@@ -2,9 +2,10 @@
 #define OPEN_LISTS_TIEBREAKING_OPEN_LIST_H
 
 #include "downward/evaluator.h"
-#include "downward/open_list_factory.h"
+#include "downward/open_list.h"
 
 #include <deque>
+#include <downward/task_dependent_factory.h>
 #include <map>
 #include <set>
 #include <vector>
@@ -146,7 +147,8 @@ bool TieBreakingOpenList<Entry>::is_reliable_dead_end(
     return false;
 }
 
-class TieBreakingOpenListFactory : public OpenListFactory {
+template <typename T>
+class TieBreakingOpenListFactory : public TaskDependentFactory<OpenList<T>> {
     std::vector<std::shared_ptr<Evaluator>> evals;
     bool unsafe_pruning;
     bool pref_only;
@@ -155,13 +157,21 @@ public:
     TieBreakingOpenListFactory(
         const std::vector<std::shared_ptr<Evaluator>>& evals,
         bool unsafe_pruning,
-        bool pref_only);
+        bool pref_only)
+        : evals(evals)
+        , unsafe_pruning(unsafe_pruning)
+        , pref_only(pref_only)
+    {
+    }
 
-    virtual std::unique_ptr<StateOpenList>
-    create_state_open_list(const std::shared_ptr<AbstractTask>& task) override;
-
-    virtual std::unique_ptr<EdgeOpenList>
-    create_edge_open_list(const std::shared_ptr<AbstractTask>& task) override;
+    std::unique_ptr<OpenList<T>>
+    create_object(const std::shared_ptr<AbstractTask>& task) override
+    {
+        return std::make_unique<TieBreakingOpenList<T>>(
+            evals,
+            unsafe_pruning,
+            pref_only);
+    }
 };
 } // namespace downward::tiebreaking_open_list
 
