@@ -23,7 +23,7 @@ using downward::cli::get_successors_order_arguments_from_options;
 
 namespace {
 
-constexpr string DEFAULT_LAZY_BOOST = "1000";
+constexpr auto DEFAULT_LAZY_BOOST = "1000";
 
 class LazyWAstarSearchFactory : public TaskDependentFactory<SearchAlgorithm> {
     OperatorCost cost_type;
