@@ -161,7 +161,7 @@ public:
         return *this;
     }
 
-    reference operator[](difference_type n) const { return *(this + n); }
+    reference operator[](difference_type n) const { return *(*this + n); }
 
     ProxyIterator<T>& operator+=(difference_type n)
     {
