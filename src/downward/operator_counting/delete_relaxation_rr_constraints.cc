@@ -564,11 +564,11 @@ bool DeleteRelaxationRRConstraints::update_constraints(
     }
     last_state.clear();
     // Set new bounds.
-    for (FactProxy f : state) {
-        con_id = get_constraint_id(f.get_pair());
+    for (FactPair f : state | as_fact_pair_set) {
+        con_id = get_constraint_id(f);
         lp_solver.set_constraint_lower_bound(con_id, 1);
         lp_solver.set_constraint_upper_bound(con_id, 1);
-        last_state.push_back(f.get_pair());
+        last_state.push_back(f);
     }
     return false;
 }

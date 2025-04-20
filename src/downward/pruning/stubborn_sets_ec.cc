@@ -19,7 +19,7 @@ static inline bool is_v_applicable(
 {
     int precondition_on_var = preconditions[op_no][var];
     return precondition_on_var == -1 ||
-           precondition_on_var == state[var].get_value();
+           precondition_on_var == state[var];
 }
 
 static vector<StubbornDTG> build_dtgs(TaskProxy task_proxy)
@@ -179,7 +179,7 @@ void StubbornSetsEC::compute_active_operators(const State& state)
 
         for (const FactPair& precondition : sorted_op_preconditions[op_no]) {
             int var_id = precondition.var;
-            int current_value = state[var_id].get_value();
+            int current_value = state[var_id];
             const vector<bool>& reachable_values =
                 reachability_map[var_id][current_value];
             if (!reachable_values[precondition.value]) {
@@ -291,7 +291,7 @@ void StubbornSetsEC::apply_s5(int op_no, const State& state)
     // Find a violated state variable and check if stubborn contains a writer
     // for this variable.
     for (const FactPair& pre : sorted_op_preconditions[op_no]) {
-        if (state[pre.var].get_value() != pre.value && written_vars[pre.var]) {
+        if (state[pre.var] != pre.value && written_vars[pre.var]) {
             if (!nes_computed[pre.var][pre.value]) {
                 add_nes_for_fact(pre, state);
             }

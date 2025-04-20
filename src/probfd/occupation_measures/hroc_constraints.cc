@@ -150,7 +150,7 @@ void HROCGenerator::update_constraints(const State& state, lp::LPSolver& solver)
 {
     // Set outflow of 1 for all state facts
     for (std::size_t var = 0; var < state.size(); ++var) {
-        const int c_index = ncc_offsets_[var] + state[var].get_value();
+        const int c_index = ncc_offsets_[var] + state[var];
         solver.set_constraint_lower_bound(c_index, -1.0);
     }
 }
@@ -159,7 +159,7 @@ void HROCGenerator::reset_constraints(const State& state, lp::LPSolver& solver)
 {
     // Reset the coefficients to zero
     for (std::size_t var = 0; var < state.size(); ++var) {
-        const int c_index = ncc_offsets_[var] + state[var].get_value();
+        const int c_index = ncc_offsets_[var] + state[var];
         solver.set_constraint_lower_bound(c_index, 0.0);
     }
 }

@@ -29,7 +29,8 @@ struct Flaw {
         const AbstractState& current_abstract_state,
         CartesianSet&& desired_cartesian_set);
 
-    std::vector<Split> get_possible_splits() const;
+    std::vector<Split>
+    get_possible_splits(const downward::VariablesProxy& variables) const;
 };
 
 } // namespace probfd::cartesian_abstractions

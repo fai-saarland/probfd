@@ -49,7 +49,7 @@ int GoalCountHeuristic::compute_heuristic(const State& ancestor_state)
 
     for (FactProxy goal : task_proxy.get_goals()) {
         const VariableProxy var = goal.get_variable();
-        if (state[var] != goal) {
+        if (state[var] != goal.get_value()) {
             ++unsatisfied_goal_count;
         }
     }

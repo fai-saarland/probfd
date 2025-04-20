@@ -10,6 +10,8 @@
 
 #include "downward/transformations/identity_transformation.h"
 
+#include <ranges>
+
 using namespace downward;
 
 using namespace std;
@@ -35,7 +37,7 @@ static bool operator_applicable(
     const utils::HashSet<FactPair>& facts)
 {
     return std::ranges::all_of(
-        op.get_preconditions() | views::transform(&FactProxy::get_pair),
+        op.get_preconditions() | std::views::transform(&FactProxy::get_pair),
         [&](const FactPair& precondition) {
             return facts.contains(precondition);
         });
@@ -47,7 +49,7 @@ static bool outcome_can_achieve_fact(
 {
     return std::ranges::any_of(
         outcome.get_effects() |
-            views::transform(&ProbabilisticEffectProxy::get_fact),
+            std::views::transform(&ProbabilisticEffectProxy::get_fact),
         [&](FactProxy effect) { return effect.get_pair() == fact; });
 }
 
@@ -58,8 +60,8 @@ static utils::HashSet<FactPair> compute_possibly_before_facts(
     utils::HashSet<FactPair> pb_facts;
 
     // Add facts from initial state.
-    for (FactProxy fact : task.get_initial_state())
-        pb_facts.insert(fact.get_pair());
+    for (FactPair fact : task.get_initial_state() | as_fact_pair_set)
+        pb_facts.insert(fact);
 
     // Until no more facts can be added:
     size_t last_num_reached = 0;

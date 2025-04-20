@@ -405,7 +405,9 @@ void LandmarkFactoryHM::get_m_sets(
     const State& state)
 {
     FluentSet state_fluents;
-    for (FactProxy fact : state) { state_fluents.push_back(fact.get_pair()); }
+    for (FactPair fact : state | as_fact_pair_set) {
+        state_fluents.push_back(fact);
+    }
     get_m_sets(task_proxy, mutexes, m, subsets, state_fluents);
 }
 

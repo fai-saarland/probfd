@@ -427,7 +427,7 @@ void I2Dual::remove_fringe_state_from_hpom(
     downward::named_vector::NamedVector<LPConstraint>& constraints) const
 {
     for (VariableProxy var : task_proxy_.get_variables()) {
-        const int val = state[var].get_value();
+        const int val = state[var];
         LPConstraint& c = constraints[offset_[var.get_id()] + val];
         for (const auto& om : data.incoming) {
             c.remove(om.second);
@@ -441,7 +441,7 @@ void I2Dual::add_fringe_state_to_hpom(
     downward::named_vector::NamedVector<LPConstraint>& constraints) const
 {
     for (VariableProxy var : task_proxy_.get_variables()) {
-        const int val = state[var].get_value();
+        const int val = state[var];
         LPConstraint& c = constraints[offset_[var.get_id()] + val];
         for (const auto& om : data.incoming) {
             c.insert(om.second, om.first);

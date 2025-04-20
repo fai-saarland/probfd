@@ -64,7 +64,7 @@ remove_initial_state_facts(const PlanningTaskProxy& task_proxy, Facts& facts)
 {
     State initial_state = task_proxy.get_initial_state();
     std::erase_if(facts, [&](FactPair fact) {
-        return initial_state[fact.var].get_value() == fact.value;
+        return initial_state[fact.var] == fact.value;
     });
 }
 

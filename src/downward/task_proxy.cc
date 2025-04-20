@@ -12,13 +12,29 @@ using namespace std;
 
 namespace downward {
 
+State OperatorProxy::get_unregistered_successor(
+    const State& state) const
+{
+    const PlanningTaskProxy task_proxy(*task);
+    assert(task_properties::is_applicable(*this, state));
+    return state.get_unregistered_successor(task_proxy, get_effects());
+}
+
+void apply_axioms(
+    const PlanningTaskProxy& task_proxy,
+    std::vector<int>& values)
+{
+    if (task_proxy.get_axioms().size() > 0) {
+        AxiomEvaluator& axiom_evaluator = g_axiom_evaluators[task_proxy];
+        axiom_evaluator.evaluate(values);
+    }
+}
+
 State::State(
-    const PlanningTask& task,
     const StateRegistry& registry,
     StateID id,
     const PackedStateBin* buffer)
-    : task(&task)
-    , registry(&registry)
+    : registry(&registry)
     , id(id)
     , buffer(buffer)
     , values(nullptr)
@@ -27,47 +43,30 @@ State::State(
 {
     assert(id != StateID::no_state);
     assert(buffer);
-    assert(num_variables == task.get_num_variables());
 }
 
 State::State(
-    const PlanningTask& task,
     const StateRegistry& registry,
     StateID id,
     const PackedStateBin* buffer,
     vector<int>&& values)
-    : State(task, registry, id, buffer)
+    : State(registry, id, buffer)
 {
     assert(num_variables == static_cast<int>(values.size()));
     this->values = make_shared<vector<int>>(std::move(values));
 }
 
-State::State(const PlanningTask& task, vector<int>&& values)
-    : task(&task)
-    , registry(nullptr)
+State::State(vector<int>&& values)
+    : registry(nullptr)
     , id(StateID::no_state)
     , buffer(nullptr)
     , values(make_shared<vector<int>>(std::move(values)))
     , state_packer(nullptr)
     , num_variables(this->values->size())
 {
-    assert(num_variables == task.get_num_variables());
 }
 
-State State::get_unregistered_successor(const OperatorProxy& op) const
-{
-    assert(task_properties::is_applicable(op, *this));
-    return get_unregistered_successor(op.get_effects());
-}
 
-void State::apply_axioms(std::vector<int>& values) const
-{
-    if (task->get_num_axioms() > 0) {
-        AxiomEvaluator& axiom_evaluator =
-            g_axiom_evaluators[PlanningTaskProxy(*task)];
-        axiom_evaluator.evaluate(values);
-    }
-}
 
 const causal_graph::CausalGraph& TaskProxy::get_causal_graph() const
 {

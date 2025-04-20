@@ -116,9 +116,7 @@ void Exploration::setup_exploration_queue(
 
     // Reset reachability information.
     for (auto& propositions_for_variable : propositions) {
-        for (auto& prop : propositions_for_variable) {
-            prop.reached = false;
-        }
+        for (auto& prop : propositions_for_variable) { prop.reached = false; }
     }
 
     for (const FactPair& fact : excluded_props) {
@@ -126,12 +124,9 @@ void Exploration::setup_exploration_queue(
     }
 
     // Set facts that are true in the current state and not excluded as reached.
-    for (FactProxy fact : state) {
-        Proposition* init_prop =
-            &propositions[fact.get_variable().get_id()][fact.get_value()];
-        if (!init_prop->excluded) {
-            enqueue_if_necessary(init_prop);
-        }
+    for (FactPair fact : state | as_fact_pair_set) {
+        Proposition* init_prop = &propositions[fact.var][fact.value];
+        if (!init_prop->excluded) { enqueue_if_necessary(init_prop); }
     }
 
     /*
@@ -239,4 +234,4 @@ vector<vector<bool>> Exploration::compute_relaxed_reachability(
     }
     return reached;
 }
-} // namespace landmarks
+} // namespace downward::landmarks

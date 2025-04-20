@@ -130,6 +130,11 @@ public:
     /// Get the probability of this outcome.
     [[nodiscard]]
     value_t get_probability() const;
+
+    /// Get the successor state for this outcome.
+    [[nodiscard]]
+    downward::State
+    get_unregistered_successor(const downward::State& state) const;
 };
 
 /// Proxy class used to inspect the list of probabilistic outcomes of a
@@ -206,6 +211,8 @@ public:
 bool does_fire(
     const ProbabilisticEffectProxy& effect,
     const downward::State& state);
+
+static_assert(downward::OperatorLike<ProbabilisticOutcomeProxy>);
 
 } // namespace probfd
 

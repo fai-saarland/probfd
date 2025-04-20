@@ -243,8 +243,7 @@ public:
                 state_packer.set(buffer, i, new_values[i]);
             }
             downward::StateID id = insert_id_or_pop_state();
-            return task_proxy
-                .create_state(*this, id, buffer, std::move(new_values));
+            return State(*this, id, buffer, std::move(new_values));
         } else {
             for (auto effect : effects) {
                 if (does_fire(effect, predecessor)) {
@@ -256,7 +255,7 @@ public:
                 }
             }
             downward::StateID id = insert_id_or_pop_state();
-            return task_proxy.create_state(*this, id, buffer);
+            return State(*this, id, buffer);
         }
     }
 

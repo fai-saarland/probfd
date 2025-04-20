@@ -87,7 +87,7 @@ int CGHeuristic::compute_heuristic(const State& ancestor_state)
     for (FactProxy goal : task_proxy.get_goals()) {
         const VariableProxy var = goal.get_variable();
         int var_no = var.get_id();
-        int from = state[var_no].get_value(), to = goal.get_value();
+        int from = state[var_no], to = goal.get_value();
         DomainTransitionGraph* dtg = transition_graphs[var_no].get();
         int cost_for_goal = get_transition_cost(state, dtg, from, to);
         if (cost_for_goal == numeric_limits<int>::max()) {
@@ -144,8 +144,7 @@ int CGHeuristic::get_transition_cost(
         start->reached_by = nullptr;
         start->children_state.resize(dtg->local_to_global_child.size());
         for (size_t i = 0; i < dtg->local_to_global_child.size(); ++i) {
-            start->children_state[i] =
-                state[dtg->local_to_global_child[i]].get_value();
+            start->children_state[i] = state[dtg->local_to_global_child[i]];
         }
 
         // Initialize Heap for Dijkstra's algorithm.
@@ -271,7 +270,7 @@ void CGHeuristic::mark_helpful_transitions(
     int to)
 {
     int var_no = dtg->var;
-    int from = state[var_no].get_value();
+    int from = state[var_no];
     if (from == to) return;
 
     /*
@@ -333,4 +332,4 @@ void CGHeuristic::mark_helpful_transitions(
     }
 }
 
-} // namespace cg_heuristic
+} // namespace downward::cg_heuristic

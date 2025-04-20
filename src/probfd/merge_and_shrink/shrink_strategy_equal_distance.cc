@@ -71,11 +71,12 @@ ShrinkStrategyEqualDistance::ordered_buckets_use_map(
     buckets.reserve(states_by_h.size());
 
     if (h_start == ShrinkStrategyEqualDistance::Priority::HIGH) {
-        for (auto& bucket : views::reverse(views::values(states_by_h))) {
+        for (auto& bucket :
+             std::views::reverse(std::views::values(states_by_h))) {
             buckets.emplace_back(std::move(bucket));
         }
     } else {
-        for (auto& bucket : views::values(states_by_h)) {
+        for (auto& bucket : std::views::values(states_by_h)) {
             buckets.emplace_back(std::move(bucket));
         }
     }

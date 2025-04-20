@@ -122,7 +122,7 @@ LandmarkFactoryZhuGivan::build_relaxed_plan_graph_with_labels(
         current_prop_layer[var_id].resize(var.get_domain_size());
 
         // label nodes from initial state
-        int value = initial_state[var].get_value();
+        int value = initial_state[var];
         current_prop_layer[var_id][value].labels.emplace(var_id, value);
 
         triggered.insert(

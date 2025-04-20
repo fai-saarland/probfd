@@ -38,7 +38,7 @@ LandmarkCutLandmarks::LandmarkCutLandmarks(const TaskProxy& task_proxy)
     // Build artificial goal proposition and operator.
     vector<RelaxedProposition*> goal_op_pre, goal_op_eff;
     for (FactProxy goal : task_proxy.get_goals()) {
-        goal_op_pre.push_back(get_proposition(goal));
+        goal_op_pre.push_back(get_proposition(goal.get_pair()));
     }
     goal_op_eff.push_back(&artificial_goal);
     /* Use the invalid operator ID -1 so accessing
@@ -59,10 +59,10 @@ void LandmarkCutLandmarks::build_relaxed_operator(const OperatorProxy& op)
     vector<RelaxedProposition*> precondition;
     vector<RelaxedProposition*> effects;
     for (FactProxy pre : op.get_preconditions()) {
-        precondition.push_back(get_proposition(pre));
+        precondition.push_back(get_proposition(pre.get_pair()));
     }
     for (EffectProxy eff : op.get_effects()) {
-        effects.push_back(get_proposition(eff.get_fact()));
+        effects.push_back(get_proposition(eff.get_fact().get_pair()));
     }
     add_relaxed_operator(
         std::move(precondition),
@@ -87,11 +87,9 @@ void LandmarkCutLandmarks::add_relaxed_operator(
     relaxed_operators.push_back(relaxed_op);
 }
 
-RelaxedProposition* LandmarkCutLandmarks::get_proposition(const FactProxy& fact)
+RelaxedProposition* LandmarkCutLandmarks::get_proposition(const FactPair& fact)
 {
-    int var_id = fact.get_variable().get_id();
-    int val = fact.get_value();
-    return &propositions[var_id][val];
+    return &propositions[fact.var][fact.value];
 }
 
 // heuristic computation
@@ -117,7 +115,7 @@ void LandmarkCutLandmarks::setup_exploration_queue()
 
 void LandmarkCutLandmarks::setup_exploration_queue_state(const State& state)
 {
-    for (FactProxy init_fact : state) {
+    for (FactPair init_fact : state | as_fact_pair_set) {
         enqueue_if_necessary(get_proposition(init_fact), 0);
     }
     enqueue_if_necessary(&artificial_precondition, 0);
@@ -206,7 +204,7 @@ void LandmarkCutLandmarks::second_exploration(
     artificial_precondition.status = BEFORE_GOAL_ZONE;
     second_exploration_queue.push_back(&artificial_precondition);
 
-    for (FactProxy init_fact : state) {
+    for (FactPair init_fact : state | as_fact_pair_set) {
         RelaxedProposition* init_prop = get_proposition(init_fact);
         init_prop->status = BEFORE_GOAL_ZONE;
         second_exploration_queue.push_back(init_prop);

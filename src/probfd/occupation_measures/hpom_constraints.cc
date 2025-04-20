@@ -83,7 +83,7 @@ void HPOMGenerator::update_constraints(const State& state, lp::LPSolver& solver)
 {
     // Set to initial state in LP
     for (size_t var = 0; var < state.size(); ++var) {
-        const std::size_t index = offset_[var] + state[var].get_value();
+        const std::size_t index = offset_[var] + state[var];
         solver.set_constraint_upper_bound(index, 1.0);
     }
 }
@@ -91,7 +91,7 @@ void HPOMGenerator::update_constraints(const State& state, lp::LPSolver& solver)
 void HPOMGenerator::reset_constraints(const State& state, lp::LPSolver& solver)
 {
     for (size_t var = 0; var < state.size(); ++var) {
-        const std::size_t index = offset_[var] + state[var].get_value();
+        const std::size_t index = offset_[var] + state[var];
         solver.set_constraint_upper_bound(index, 0.0);
     }
 }

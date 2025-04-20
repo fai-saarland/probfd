@@ -123,20 +123,19 @@ void print_variable_statistics(const PlanningTaskProxy& task_proxy)
                  << endl;
 }
 
-void dump_pddl(const State& state)
+void dump_pddl(const PlanningTaskProxy& task_proxy, const State& state)
 {
-    for (FactProxy fact : state) {
-        string fact_name = fact.get_name();
+    for (FactPair fact : state | as_fact_pair_set) {
+        string fact_name = task_proxy.get_fact_proxy(fact).get_name();
         if (fact_name != "<none of those>") utils::g_log << fact_name << endl;
     }
 }
 
-void dump_fdr(const State& state)
+void dump_fdr(const VariablesProxy& variables, const State& state)
 {
-    for (FactProxy fact : state) {
-        VariableProxy var = fact.get_variable();
+    for (VariableProxy var : variables) {
         utils::g_log << "  #" << var.get_id() << " [" << var.get_name()
-                     << "] -> " << fact.get_value() << endl;
+                     << "] -> " << state[var] << endl;
     }
 }
 
@@ -173,9 +172,9 @@ void dump_task(const TaskProxy& task_proxy)
     }
     State initial_state = task_proxy.get_initial_state();
     utils::g_log << "Initial state (PDDL):" << endl;
-    dump_pddl(initial_state);
+    dump_pddl(task_proxy, initial_state);
     utils::g_log << "Initial state (FDR):" << endl;
-    dump_fdr(initial_state);
+    dump_fdr(task_proxy.get_variables(), initial_state);
     dump_goals(task_proxy.get_goals());
 }
 

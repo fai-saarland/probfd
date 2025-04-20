@@ -53,7 +53,7 @@ struct Flaw {
         assert(current_abstract_state.includes(this->concrete_state));
     }
 
-    vector<Split> get_possible_splits() const
+    vector<Split> get_possible_splits(const VariablesProxy& variables) const
     {
         vector<Split> splits;
         /*
@@ -63,11 +63,11 @@ struct Flaw {
           the desired abstract state are the "wanted" ones, i.e., the ones that
           we want to split off.
         */
-        for (FactProxy wanted_fact_proxy : concrete_state) {
-            FactPair fact = wanted_fact_proxy.get_pair();
-            if (!desired_cartesian_set.test(fact.var, fact.value)) {
-                VariableProxy var = wanted_fact_proxy.get_variable();
-                int var_id = var.get_id();
+        for (VariableProxy var : variables) {
+            const int var_id = var.get_id();
+            const int state_value = concrete_state[var.get_id()];
+
+            if (!desired_cartesian_set.test(var_id, state_value)) {
                 vector<int> wanted;
                 for (int value = 0; value < var.get_domain_size(); ++value) {
                     if (current_abstract_state.contains(var_id, value) &&
@@ -93,7 +93,7 @@ CEGAR::CEGAR(
     utils::RandomNumberGenerator& rng,
     utils::LogProxy& log)
     : task_proxy(*task)
-    , domain_sizes(get_domain_sizes(task_proxy))
+    , domain_sizes(get_domain_sizes(task_proxy.get_variables()))
     , max_states(max_states)
     , max_non_looping_transitions(max_non_looping_transitions)
     , split_selector(task, pick)
@@ -135,15 +135,15 @@ void CEGAR::separate_facts_unreachable_before_goal()
     assert(abstraction->get_num_states() == 1);
     assert(task_proxy.get_goals().size() == 1);
     FactProxy goal = task_proxy.get_goals()[0];
-    utils::HashSet<FactProxy> reachable_facts =
+    utils::HashSet<FactPair> reachable_facts =
         get_relaxed_possible_before(task_proxy, goal);
     for (VariableProxy var : task_proxy.get_variables()) {
         if (!may_keep_refining()) break;
         int var_id = var.get_id();
         vector<int> unreachable_values;
         for (int value = 0; value < var.get_domain_size(); ++value) {
-            FactProxy fact = var.get_fact(value);
-            if (reachable_facts.count(fact) == 0)
+            FactPair fact(var_id, value);
+            if (!reachable_facts.contains(fact))
                 unreachable_values.push_back(value);
         }
         if (!unreachable_values.empty())
@@ -170,9 +170,7 @@ bool CEGAR::may_keep_refining() const
         }
         return false;
     } else if (timer.is_expired()) {
-        if (log.is_at_least_normal()) {
-            log << "Reached time limit." << endl;
-        }
+        if (log.is_at_least_normal()) { log << "Reached time limit." << endl; }
         return false;
     } else if (!utils::extra_memory_padding_is_reserved()) {
         if (log.is_at_least_normal()) {
@@ -227,7 +225,8 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
         refine_timer.resume();
         const AbstractState& abstract_state = flaw->current_abstract_state;
         int state_id = abstract_state.get_id();
-        vector<Split> splits = flaw->get_possible_splits();
+        vector<Split> splits =
+            flaw->get_possible_splits(task_proxy.get_variables());
         const Split& split =
             split_selector.pick_split(abstract_state, splits, rng);
         auto new_state_ids =
@@ -318,4 +317,4 @@ void CEGAR::print_statistics()
         log << endl;
     }
 }
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions

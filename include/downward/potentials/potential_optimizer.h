@@ -46,7 +46,7 @@ class PotentialOptimizer {
     std::vector<std::vector<int>> lp_var_ids;
     std::vector<std::vector<double>> fact_potentials;
 
-    int get_lp_var_id(const FactProxy& fact) const;
+    int get_lp_var_id(const FactPair& fact) const;
     void initialize();
     void construct_lp();
     void solve_and_extract();

@@ -4,6 +4,7 @@
 #include "probfd/task_utils/causal_graph.h"
 
 #include "probfd/probabilistic_task.h"
+#include "probfd/task_utils/task_properties.h"
 
 #include <algorithm>
 #include <cassert>
@@ -133,6 +134,13 @@ value_t ProbabilisticOutcomeProxy::get_probability() const
     return task_->get_operator_outcome_probability(op_index_, outcome_index_);
 }
 
+State ProbabilisticOutcomeProxy::get_unregistered_successor(
+    const State& state) const
+{
+    const PlanningTaskProxy task_proxy(*task_);
+    return state.get_unregistered_successor(task_proxy, get_effects());
+}
+
 ProbabilisticOutcomesProxy::ProbabilisticOutcomesProxy(
     const ProbabilisticTask& task,
     int op_index)
@@ -225,7 +233,7 @@ bool does_fire(const ProbabilisticEffectProxy& effect, const State& state)
     return std::ranges::all_of(
         effect.get_conditions(),
         [&](FactProxy condition) {
-            return state[condition.get_variable()] == condition;
+            return state[condition.get_variable()] == condition.get_value();
         });
 }
 

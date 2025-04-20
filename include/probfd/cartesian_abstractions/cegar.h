@@ -9,6 +9,10 @@
 #include <vector>
 
 // Forward Declarations
+namespace downward {
+class VariablesProxy;
+}
+
 namespace downward::utils {
 class Timer;
 } // namespace utils
@@ -95,6 +99,7 @@ private:
         downward::utils::Timer& timer);
 
     void refine_abstraction(
+        const downward::VariablesProxy& variables,
         FlawGenerator& flaw_generator,
         SplitSelector& split_selector,
         RefinementHierarchy& refinement_hierarchy,

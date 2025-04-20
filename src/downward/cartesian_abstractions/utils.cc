@@ -14,10 +14,10 @@ namespace downward::cartesian_abstractions {
 
 static bool operator_applicable(
     const OperatorProxy& op,
-    const utils::HashSet<FactProxy>& facts)
+    const utils::HashSet<FactPair>& facts)
 {
     for (FactProxy precondition : op.get_preconditions()) {
-        if (facts.count(precondition) == 0) return false;
+        if (!facts.contains(precondition.get_pair())) return false;
     }
     return true;
 }
@@ -31,13 +31,14 @@ operator_achieves_fact(const OperatorProxy& op, const FactProxy& fact)
     return false;
 }
 
-static utils::HashSet<FactProxy>
+static utils::HashSet<FactPair>
 compute_possibly_before_facts(const TaskProxy& task, const FactProxy& last_fact)
 {
-    utils::HashSet<FactProxy> pb_facts;
+    utils::HashSet<FactPair> pb_facts;
 
     // Add facts from initial state.
-    for (FactProxy fact : task.get_initial_state()) pb_facts.insert(fact);
+    for (FactPair fact : task.get_initial_state() | as_fact_pair_set)
+        pb_facts.insert(fact);
 
     // Until no more facts can be added:
     size_t last_num_reached = 0;
@@ -57,7 +58,7 @@ compute_possibly_before_facts(const TaskProxy& task, const FactProxy& last_fact)
             // Add all facts that are achieved by an applicable operator.
             if (operator_applicable(op, pb_facts)) {
                 for (EffectProxy effect : op.get_effects()) {
-                    pb_facts.insert(effect.get_fact());
+                    pb_facts.insert(effect.get_fact().get_pair());
                 }
             }
         }
@@ -65,20 +66,20 @@ compute_possibly_before_facts(const TaskProxy& task, const FactProxy& last_fact)
     return pb_facts;
 }
 
-utils::HashSet<FactProxy>
+utils::HashSet<FactPair>
 get_relaxed_possible_before(const TaskProxy& task, const FactProxy& fact)
 {
-    utils::HashSet<FactProxy> reachable_facts =
+    utils::HashSet<FactPair> reachable_facts =
         compute_possibly_before_facts(task, fact);
-    reachable_facts.insert(fact);
+    reachable_facts.insert(fact.get_pair());
     return reachable_facts;
 }
 
-vector<int> get_domain_sizes(const PlanningTaskProxy& task)
+vector<int> get_domain_sizes(const VariablesProxy& variables)
 {
     vector<int> domain_sizes;
-    for (VariableProxy var : task.get_variables())
+    for (VariableProxy var : variables)
         domain_sizes.push_back(var.get_domain_size());
     return domain_sizes;
 }
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions

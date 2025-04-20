@@ -17,7 +17,9 @@ using downward::utils::ExitCode;
 
 namespace downward::landmarks {
 LandmarkFactoryRpgSasp::LandmarkFactoryRpgSasp(
-    bool disjunctive_landmarks, bool use_orders, utils::Verbosity verbosity)
+    bool disjunctive_landmarks,
+    bool use_orders,
+    utils::Verbosity verbosity)
     : LandmarkFactoryRelaxation(verbosity)
     , disjunctive_landmarks(disjunctive_landmarks)
     , use_orders(use_orders)
@@ -107,8 +109,8 @@ void LandmarkFactoryRpgSasp::get_greedy_preconditions_for_lm(
             effect_fact.get_variable().get_domain_size() == 2) {
             for (const FactPair& lm_fact : landmark.facts) {
                 if (lm_fact.var == var_id &&
-                    initial_state[var_id].get_value() != lm_fact.value) {
-                    result.emplace(var_id, initial_state[var_id].get_value());
+                    initial_state[var_id] != lm_fact.value) {
+                    result.emplace(var_id, initial_state[var_id]);
                     break;
                 }
             }
@@ -181,9 +183,7 @@ void LandmarkFactoryRpgSasp::found_simple_lm_and_order(
         // Remove all pointers to disj_lm from internal data structures (i.e.,
         // the list of open landmarks and forward orders)
         auto it = find(open_landmarks.begin(), open_landmarks.end(), disj_lm);
-        if (it != open_landmarks.end()) {
-            open_landmarks.erase(it);
-        }
+        if (it != open_landmarks.end()) { open_landmarks.erase(it); }
         forward_orders.erase(disj_lm);
 
         // Retrieve incoming edges from disj_lm
@@ -223,9 +223,7 @@ void LandmarkFactoryRpgSasp::found_disj_lm_and_order(
     FactPair lm_prop = FactPair::no_fact;
     State initial_state = task_proxy.get_initial_state();
     for (const FactPair& lm : a) {
-        if (initial_state[lm.var].get_value() == lm.value) {
-            return;
-        }
+        if (initial_state[lm.var] == lm.value) { return; }
         if (lm_graph->contains_simple_landmark(lm)) {
             // Propositions in this disj. LM exist already as simple LMs.
             simple_lm_exists = true;
@@ -503,13 +501,9 @@ void LandmarkFactoryRpgSasp::generate_relaxed_landmarks(
     }
     add_lm_forward_orders();
 
-    if (!disjunctive_landmarks) {
-        discard_disjunctive_landmarks();
-    }
+    if (!disjunctive_landmarks) { discard_disjunctive_landmarks(); }
 
-    if (!use_orders) {
-        discard_all_orderings();
-    }
+    if (!use_orders) { discard_all_orderings(); }
 }
 
 void LandmarkFactoryRpgSasp::approximate_lookahead_orders(
@@ -560,7 +554,11 @@ void LandmarkFactoryRpgSasp::approximate_lookahead_orders(
               If that value is crucial for achieving the LM from the
               initial state, we have found a new landmark.
             */
-            if (!domain_connectivity(initial_state, lm_fact, exclude))
+            if (!domain_connectivity(
+                    variables,
+                    initial_state,
+                    lm_fact,
+                    exclude))
                 found_simple_lm_and_order(
                     FactPair(lm_fact.var, value),
                     *lmp,
@@ -569,6 +567,7 @@ void LandmarkFactoryRpgSasp::approximate_lookahead_orders(
 }
 
 bool LandmarkFactoryRpgSasp::domain_connectivity(
+    const VariablesProxy& variables,
     const State& initial_state,
     const FactPair& landmark,
     const unordered_set<int>& exclude)
@@ -581,21 +580,18 @@ bool LandmarkFactoryRpgSasp::domain_connectivity(
       to the LM).
     */
     int var = landmark.var;
-    assert(
-        landmark.value !=
-        initial_state[var].get_value()); // no initial state landmarks
+    int domain_size = variables[var].get_domain_size();
+    assert(landmark.value != initial_state[var]); // no initial state landmarks
     // The value that we want to achieve must not be excluded:
     assert(exclude.find(landmark.value) == exclude.end());
     // If the value in the initial state is excluded, we won't achieve our goal
     // value:
-    if (exclude.find(initial_state[var].get_value()) != exclude.end())
-        return false;
+    if (exclude.find(initial_state[var]) != exclude.end()) return false;
     list<int> open;
-    unordered_set<int> closed(
-        initial_state[var].get_variable().get_domain_size());
+    unordered_set<int> closed(domain_size);
     closed = exclude;
-    open.push_back(initial_state[var].get_value());
-    closed.insert(initial_state[var].get_value());
+    open.push_back(initial_state[var]);
+    closed.insert(initial_state[var]);
     const vector<unordered_set<int>>& successors = dtg_successors[var];
     while (closed.find(landmark.value) == closed.end()) {
         if (open.empty()) // landmark not in closed and nothing more to insert
@@ -695,4 +691,4 @@ bool LandmarkFactoryRpgSasp::supports_conditional_effects() const
     return true;
 }
 
-} // namespace landmarks
+} // namespace downward::landmarks

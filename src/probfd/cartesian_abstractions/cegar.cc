@@ -69,8 +69,9 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
     }
 
     const ProbabilisticTaskProxy task_proxy(*task);
+    const VariablesProxy variables = task_proxy.get_variables();
     const std::vector<int> domain_sizes(
-        ::cartesian_abstractions::get_domain_sizes(task_proxy));
+        ::cartesian_abstractions::get_domain_sizes(variables));
 
     std::unique_ptr<FlawGenerator> flaw_generator =
         flaw_generator_factory_->create_flaw_generator();
@@ -139,6 +140,7 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
             }
 
             refine_abstraction(
+                variables,
                 *flaw_generator,
                 *split_selector,
                 *refinement_hierarchy,
@@ -247,6 +249,7 @@ void CEGAR::separate_facts_unreachable_before_goal(
 }
 
 void CEGAR::refine_abstraction(
+    const VariablesProxy& variables,
     FlawGenerator& flaw_generator,
     SplitSelector& split_selector,
     RefinementHierarchy& refinement_hierarchy,
@@ -257,7 +260,7 @@ void CEGAR::refine_abstraction(
 {
     TimerScope scope(timer);
     const AbstractState& abstract_state = flaw.current_abstract_state;
-    vector<Split> splits = flaw.get_possible_splits();
+    vector<Split> splits = flaw.get_possible_splits(variables);
     const auto& [var, wanted] =
         split_selector.pick_split(abstract_state, splits);
     refine_abstraction(

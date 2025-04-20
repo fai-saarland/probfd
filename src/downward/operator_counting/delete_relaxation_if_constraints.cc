@@ -280,13 +280,11 @@ bool DeleteRelaxationIFConstraints::update_constraints(
     }
     last_state.clear();
     // Set new bounds.
-    for (FactProxy f : state) {
-        lp_solver.set_constraint_lower_bound(
-            get_constraint_id(f.get_pair()),
-            -1);
-        last_state.push_back(f.get_pair());
+    for (FactPair f : state | as_fact_pair_set) {
+        lp_solver.set_constraint_lower_bound(get_constraint_id(f), -1);
+        last_state.push_back(f);
     }
     return false;
 }
 
-} // namespace operator_counting
+} // namespace downward::operator_counting

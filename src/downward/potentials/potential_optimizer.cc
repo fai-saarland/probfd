@@ -60,13 +60,11 @@ void PotentialOptimizer::optimize_for_state(const State& state)
     optimize_for_samples({state});
 }
 
-int PotentialOptimizer::get_lp_var_id(const FactProxy& fact) const
+int PotentialOptimizer::get_lp_var_id(const FactPair& fact) const
 {
-    int var_id = fact.get_variable().get_id();
-    int value = fact.get_value();
-    assert(utils::in_bounds(var_id, lp_var_ids));
-    assert(utils::in_bounds(value, lp_var_ids[var_id]));
-    return lp_var_ids[var_id][value];
+    assert(utils::in_bounds(fact.var, lp_var_ids));
+    assert(utils::in_bounds(fact.value, lp_var_ids[fact.var]));
+    return lp_var_ids[fact.var][fact.value];
 }
 
 void PotentialOptimizer::optimize_for_all_states()
@@ -77,7 +75,7 @@ void PotentialOptimizer::optimize_for_all_states()
     }
     vector<double> coefficients(num_lp_vars, 0.0);
     for (FactProxy fact : task_proxy.get_variables().get_facts()) {
-        coefficients[get_lp_var_id(fact)] =
+        coefficients[get_lp_var_id(fact.get_pair())] =
             1.0 / fact.get_variable().get_domain_size();
     }
     lp_solver.set_objective_coefficients(coefficients);
@@ -91,7 +89,7 @@ void PotentialOptimizer::optimize_for_samples(const vector<State>& samples)
 {
     vector<double> coefficients(num_lp_vars, 0.0);
     for (const State& state : samples) {
-        for (FactProxy fact : state) {
+        for (FactPair fact : state | as_fact_pair_set) {
             coefficients[get_lp_var_id(fact)] += 1.0;
         }
     }
@@ -218,7 +216,7 @@ void PotentialOptimizer::extract_lp_solution()
     const vector<double> solution = lp_solver.extract_solution();
     for (FactProxy fact : task_proxy.get_variables().get_facts()) {
         fact_potentials[fact.get_variable().get_id()][fact.get_value()] =
-            solution[get_lp_var_id(fact)];
+            solution[get_lp_var_id(fact.get_pair())];
     }
 }
 

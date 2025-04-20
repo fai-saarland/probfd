@@ -2,6 +2,7 @@
 #define DOWNWARD_TASK_PROXY_H
 
 #include "downward/abstract_task.h"
+#include "downward/axioms.h"
 #include "downward/operator_id.h"
 #include "downward/state_id.h"
 #include "downward/task_id.h"
@@ -10,6 +11,9 @@
 #include "downward/utils/collections.h"
 #include "downward/utils/hash.h"
 #include "downward/utils/system.h"
+
+#include "probfd/views/convert.h"
+#include "probfd/views/enumerate.h"
 
 #include <cassert>
 #include <compare>
@@ -44,7 +48,7 @@ class PlanningTaskProxy;
 class TaskProxy;
 class VariableProxy;
 class VariablesProxy;
-}
+} // namespace downward
 
 namespace downward::causal_graph {
 class CausalGraph;
@@ -800,6 +804,8 @@ public:
     {
         return static_cast<const AbstractTask*>(task)->get_operator_cost(index);
     }
+
+    State get_unregistered_successor(const State& state) const;
 };
 
 class AxiomOrOperatorProxy {
@@ -954,7 +960,15 @@ public:
 };
 
 template <typename Effect>
-bool does_fire(const EffectProxy& effect, const State& state);
+bool does_fire(const Effect& effect, const State& state);
+
+extern void
+apply_axioms(const PlanningTaskProxy& task_proxy, std::vector<int>& values);
+
+template <typename T>
+concept OperatorLike = requires(const T& op, const State& state) {
+    { op.get_unregistered_successor(state) } -> std::same_as<State>;
+};
 
 class State : public ProxyCollection<State> {
     /*
@@ -967,7 +981,6 @@ class State : public ProxyCollection<State> {
       a 4-byte gap at the end of the object. But it would probably be nice to
       have fewer attributes regardless.
     */
-    const PlanningTask* task;
     const StateRegistry* registry;
     StateID id;
     const PackedStateBin* buffer;
@@ -988,33 +1001,33 @@ class State : public ProxyCollection<State> {
 public:
     // Construct a registered state with only packed data.
     State(
-        const PlanningTask& task,
         const StateRegistry& registry,
         StateID id,
         const PackedStateBin* buffer);
+
     // Construct a registered state with packed and unpacked data.
     State(
-        const PlanningTask& task,
         const StateRegistry& registry,
         StateID id,
         const PackedStateBin* buffer,
         std::vector<int>&& values);
-    // Construct a state with only unpacked data.
-    State(const PlanningTask& task, std::vector<int>&& values);
 
-    bool operator==(const State& other) const;
+    // Construct a state with only unpacked data.
+    explicit State(std::vector<int>&& values);
 
     /* Generate unpacked data if it is not available yet. Calling the function
        on a state that already has unpacked data has no effect. */
     void unpack() const;
 
     std::size_t size() const;
-    FactProxy operator[](std::size_t var_id) const;
-    FactProxy operator[](VariableProxy var) const;
+
+    int operator[](std::size_t var_id) const;
+    int operator[](VariableProxy var) const;
 
     /* Return a pointer to the registry in which this state is registered.
        If the state is not registered, return nullptr. */
     const StateRegistry* get_registry() const;
+
     /* Return the ID of the state within its registry. If the state is not
        registered, return StateID::no_state. */
     StateID get_id() const;
@@ -1028,18 +1041,16 @@ public:
        not have them (unregistered states) is an error. */
     const PackedStateBin* get_buffer() const;
 
-    /*
-      Create a successor state with the given operator. The operator is assumed
-      to be applicable and the precondition is not checked. This will create an
-      unpacked, unregistered successor. If you need registered successors, use
-      the methods of StateRegistry.
-      Using this method on states without unpacked values is an error. Use
-      unpack() to ensure the data exists.
-    */
-    State get_unregistered_successor(const OperatorProxy& op) const;
+    template <OperatorLike O>
+    State get_unregistered_successor(const O& op) const
+    {
+        return op.get_unregistered_successor(*this);
+    }
 
     template <typename Effects>
-    State get_unregistered_successor(const Effects& effects) const
+    State get_unregistered_successor(
+        const PlanningTaskProxy& task_proxy,
+        const Effects& effects) const
     {
         assert(values);
         std::vector<int> new_values = get_unpacked_values();
@@ -1051,13 +1062,34 @@ public:
             }
         }
 
-        this->apply_axioms(new_values);
-        return State(*task, std::move(new_values));
+        apply_axioms(task_proxy, new_values);
+        return State(std::move(new_values));
     }
 
-private:
-    void apply_axioms(std::vector<int>& values) const;
+    friend bool operator==(const State& left, const State& right);
 };
+
+class StateEnumerateFn
+    : public std::ranges::range_adaptor_closure<StateEnumerateFn> {
+public:
+    [[nodiscard]]
+    auto operator()(const State& state) const
+        noexcept(noexcept(probfd::views::enumerate_view{state}))
+    {
+        return probfd::views::enumerate_view{state};
+    }
+
+    auto operator()(State&& state) const
+        noexcept(noexcept(probfd::views::enumerate_view{std::move(state)}))
+    {
+        return probfd::views::enumerate_view{std::move(state)};
+    }
+};
+
+inline constexpr auto as_fact_pair_set =
+    StateEnumerateFn{} |
+    // std::views::transform([](const auto& p) { return FactPair(p);});
+    probfd::views::convert<FactPair>;
 
 namespace utils {
 inline void feed(HashState& hash_state, const State& state)
@@ -1093,6 +1125,11 @@ public:
 
     TaskID get_id() const { return TaskID(task); }
 
+    FactProxy get_fact_proxy(FactPair fact) const
+    {
+        return FactProxy(*task, fact);
+    }
+
     VariablesProxy get_variables() const { return VariablesProxy(*task); }
 
     PartialOperatorsProxy get_partial_operators() const
@@ -1104,33 +1141,9 @@ public:
 
     GoalsProxy get_goals() const { return GoalsProxy(*task); }
 
-    State create_state(std::vector<int>&& state_values) const
-    {
-        return State(*task, std::move(state_values));
-    }
-
-    // This method is meant to be called only by the state registry.
-    State create_state(
-        const StateRegistry& registry,
-        StateID id,
-        const PackedStateBin* buffer) const
-    {
-        return State(*task, registry, id, buffer);
-    }
-
-    // This method is meant to be called only by the state registry.
-    State create_state(
-        const StateRegistry& registry,
-        StateID id,
-        const PackedStateBin* buffer,
-        std::vector<int>&& state_values) const
-    {
-        return State(*task, registry, id, buffer, std::move(state_values));
-    }
-
     State get_initial_state() const
     {
-        return create_state(task->get_initial_state_values());
+        return State(task->get_initial_state_values());
     }
 
     explicit operator TaskProxy() const;
@@ -1175,32 +1188,32 @@ inline VariableProxy FactProxy::get_variable() const
 }
 
 template <typename Effect>
-inline bool does_fire(const Effect& effect, const State& state)
+bool does_fire(const Effect& effect, const State& state)
 {
     for (FactProxy condition : effect.get_conditions()) {
-        if (state[condition.get_variable()] != condition) return false;
+        if (state[condition.get_variable()] != condition.get_value())
+            return false;
     }
     return true;
 }
 
-inline bool State::operator==(const State& other) const
+inline bool operator==(const State& left, const State& right)
 {
-    assert(task == other.task);
-    if (registry != other.registry) {
+    if (left.registry != right.registry) {
         std::cerr << "Comparing registered states with unregistered states "
                   << "or registered states from different registries is "
                   << "treated as an error because it is likely not "
                   << "intentional." << std::endl;
         utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
-    if (registry) {
+    if (left.registry) {
         // Both states are registered and from the same registry.
-        return id == other.id;
+        return left.id == right.id;
     } else {
         // Both states are unregistered.
-        assert(values);
-        assert(other.values);
-        return *values == *other.values;
+        assert(left.values);
+        assert(right.values);
+        return *left.values == *right.values;
     }
 }
 
@@ -1231,19 +1244,19 @@ inline std::size_t State::size() const
     return num_variables;
 }
 
-inline FactProxy State::operator[](std::size_t var_id) const
+inline int State::operator[](std::size_t var_id) const
 {
     assert(var_id < size());
     if (values) {
-        return FactProxy(*task, var_id, (*values)[var_id]);
+        return (*values)[var_id];
     } else {
         assert(buffer);
         assert(state_packer);
-        return FactProxy(*task, var_id, state_packer->get(buffer, var_id));
+        return state_packer->get(buffer, var_id);
     }
 }
 
-inline FactProxy State::operator[](VariableProxy var) const
+inline int State::operator[](VariableProxy var) const
 {
     return (*this)[var.get_id()];
 }
@@ -1283,6 +1296,9 @@ inline const std::vector<int>& State::get_unpacked_values() const
     }
     return *values;
 }
-}
+
+static_assert(downward::OperatorLike<OperatorProxy>);
+
+} // namespace downward
 
 #endif // DOWNWARD_TASK_PROXY_H

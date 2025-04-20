@@ -87,11 +87,8 @@ bool AbstractState::domain_subsets_intersect(
 
 bool AbstractState::includes(const State& concrete_state) const
 {
-    for (FactProxy fact : concrete_state) {
-        if (!cartesian_set_.test(
-                fact.get_variable().get_id(),
-                fact.get_value()))
-            return false;
+    for (const auto [var, value] : concrete_state | as_fact_pair_set) {
+        if (!cartesian_set_.test(var, value)) return false;
     }
     return true;
 }

@@ -30,7 +30,8 @@ static bool is_one(value_t value)
 bool is_applicable(const ProbabilisticOperatorProxy& op, const State& state)
 {
     for (FactProxy precondition : op.get_preconditions()) {
-        if (state[precondition.get_variable()] != precondition) return false;
+        if (state[precondition.get_variable()] != precondition.get_value())
+            return false;
     }
     return true;
 }
@@ -124,7 +125,6 @@ value_t get_min_operator_cost(const ProbabilisticOperatorsProxy& ops)
     return min_cost;
 }
 
-
 int get_num_total_effects(const ProbabilisticTaskProxy& task_proxy)
 {
     int num_effects = 0;
@@ -162,9 +162,9 @@ void dump_probabilistic_task_(
     }
     State initial_state = task_proxy.get_initial_state();
     os << "Initial state (PDDL):" << endl;
-    ::task_properties::dump_pddl(initial_state);
+    ::task_properties::dump_pddl(task_proxy, initial_state);
     os << "Initial state (FDR):" << endl;
-    ::task_properties::dump_fdr(initial_state);
+    ::task_properties::dump_fdr(task_proxy.get_variables(), initial_state);
     ::task_properties::dump_goals(task_proxy.get_goals());
 }
 

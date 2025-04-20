@@ -64,8 +64,7 @@ void MergeAndShrinkRepresentationLeaf::apply_abstraction_to_lookup_table(
 
 int MergeAndShrinkRepresentationLeaf::get_value(const State& state) const
 {
-    int value = state[var_id].get_value();
-    return lookup_table[value];
+    return lookup_table[state[var_id]];
 }
 
 bool MergeAndShrinkRepresentationLeaf::is_total() const

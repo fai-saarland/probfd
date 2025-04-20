@@ -128,7 +128,7 @@ void SearchNode::dump(const TaskProxy& task_proxy, utils::LogProxy& log) const
 {
     if (log.is_at_least_debug()) {
         log << state.get_id() << ": ";
-        task_properties::dump_fdr(state);
+        task_properties::dump_fdr(task_proxy.get_variables(), state);
         if (info.creating_operator != OperatorID::no_operator) {
             OperatorsProxy operators = task_proxy.get_operators();
             OperatorProxy op = operators[info.creating_operator.get_index()];
@@ -178,7 +178,7 @@ void SearchSpace::dump(const TaskProxy& task_proxy) const
         State state = state_registry.lookup_state(id);
         const SearchNodeInfo& node_info = search_node_infos[state];
         log << id << ": ";
-        task_properties::dump_fdr(state);
+        task_properties::dump_fdr(task_proxy.get_variables(), state);
         if (node_info.creating_operator != OperatorID::no_operator &&
             node_info.parent_state_id != StateID::no_state) {
             OperatorProxy op =

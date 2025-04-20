@@ -7,8 +7,10 @@
 #include "downward/tasks/root_task.h"
 
 #include "downward/utils/collections.h"
+#include "downward/utils/system.h"
 
 #include "downward/axioms.h"
+#include "downward/per_task_information.h"
 
 #include <algorithm>
 #include <cassert>
@@ -614,7 +616,7 @@ RootTask::RootTask(std::istream& in)
       assumes that this task is completely constructed.
     */
     AxiomEvaluator& axiom_evaluator =
-        g_axiom_evaluators[PlanningTaskProxy(*this)];
+        downward::g_axiom_evaluators[PlanningTaskProxy(*this)];
     axiom_evaluator.evaluate(initial_state_values);
 }
 

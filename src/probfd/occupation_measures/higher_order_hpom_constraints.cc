@@ -138,7 +138,7 @@ int HigherOrderHPOMGenerator::PatternInfo::to_id(
     int id = 0;
 
     for (size_t i = 0; i != pattern.size(); ++i) {
-        id += multipliers[i] * state[pattern[i]].get_value();
+        id += multipliers[i] * state[pattern[i]];
     }
 
     return id;

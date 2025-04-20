@@ -41,13 +41,13 @@ StateID StateRegistry::insert_id_or_pop_state()
 State StateRegistry::lookup_state(StateID id) const
 {
     const PackedStateBin* buffer = state_data_pool[id.value];
-    return task_proxy.create_state(*this, id, buffer);
+    return State(*this, id, buffer);
 }
 
 State StateRegistry::lookup_state(StateID id, vector<int>&& state_values) const
 {
     const PackedStateBin* buffer = state_data_pool[id.value];
-    return task_proxy.create_state(*this, id, buffer, std::move(state_values));
+    return State(*this, id, buffer, std::move(state_values));
 }
 
 const State& StateRegistry::get_initial_state()
@@ -60,7 +60,7 @@ const State& StateRegistry::get_initial_state()
 
         State initial_state = task_proxy.get_initial_state();
         for (size_t i = 0; i < initial_state.size(); ++i) {
-            state_packer.set(buffer.get(), i, initial_state[i].get_value());
+            state_packer.set(buffer.get(), i, initial_state[i]);
         }
         state_data_pool.push_back(buffer.get());
         StateID id = insert_id_or_pop_state();

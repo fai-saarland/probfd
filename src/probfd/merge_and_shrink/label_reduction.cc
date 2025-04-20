@@ -95,7 +95,7 @@ static void compute_label_mapping(
         }
 
         for (auto& equivalent_labels :
-             cost_to_equivalent_labels | views::values) {
+             cost_to_equivalent_labels | std::views::values) {
             if (equivalent_labels.size() > 1) {
                 // Labels have to be sorted for LocalLabelInfo.
                 ranges::sort(equivalent_labels);

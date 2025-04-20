@@ -59,6 +59,7 @@ class LandmarkFactoryRpgSasp : public LandmarkFactoryRelaxation {
         const std::vector<std::vector<bool>>& reached,
         LandmarkNode* lmp);
     bool domain_connectivity(
+        const VariablesProxy& variables,
         const State& initial_state,
         const FactPair& landmark,
         const std::unordered_set<int>& exclude);
@@ -75,6 +76,6 @@ public:
 
     virtual bool supports_conditional_effects() const override;
 };
-} // namespace landmarks
+} // namespace downward::landmarks
 
 #endif

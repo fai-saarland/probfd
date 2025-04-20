@@ -29,7 +29,8 @@ Abstraction::Abstraction(
     , refinement_hierarchy(std::make_unique<RefinementHierarchy>())
     , log(log)
 {
-    initialize_trivial_abstraction(get_domain_sizes(TaskProxy(*task)));
+    initialize_trivial_abstraction(
+        get_domain_sizes(TaskProxy(*task).get_variables()));
 }
 
 Abstraction::~Abstraction()
@@ -70,9 +71,7 @@ unique_ptr<RefinementHierarchy> Abstraction::extract_refinement_hierarchy()
 void Abstraction::mark_all_states_as_goals()
 {
     goals.clear();
-    for (auto& state : states) {
-        goals.insert(state->get_id());
-    }
+    for (auto& state : states) { goals.insert(state->get_id()); }
 }
 
 void Abstraction::initialize_trivial_abstraction(
@@ -136,12 +135,8 @@ pair<int, int> Abstraction::refine(
     }
     if (goals.count(v_id)) {
         goals.erase(v_id);
-        if (v1->includes(goal_facts)) {
-            goals.insert(v1_id);
-        }
-        if (v2->includes(goal_facts)) {
-            goals.insert(v2_id);
-        }
+        if (v1->includes(goal_facts)) { goals.insert(v1_id); }
+        if (v2->includes(goal_facts)) { goals.insert(v2_id); }
         if (log.is_at_least_debug()) {
             log << "Goal states: " << goals.size() << endl;
         }
@@ -164,4 +159,4 @@ void Abstraction::print_statistics() const
         transition_system->print_statistics(log);
     }
 }
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions

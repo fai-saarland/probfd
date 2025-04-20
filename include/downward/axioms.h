@@ -2,9 +2,11 @@
 #define AXIOMS_H
 
 #include "downward/axiom_evaluator.h"
-#include "downward/per_task_information.h"
 
 namespace downward {
+
+template <class Entry>
+class PerTaskInformation;
 
 extern PerTaskInformation<AxiomEvaluator> g_axiom_evaluators;
 

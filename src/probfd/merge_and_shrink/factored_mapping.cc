@@ -52,7 +52,7 @@ FactoredMappingAtomic::FactoredMappingAtomic(int var_id, int domain_size)
 
 int FactoredMappingAtomic::get_abstract_state(const State& state) const
 {
-    return lookup_table[state[var_id].get_value()];
+    return lookup_table[state[var_id]];
 }
 
 bool FactoredMappingAtomic::is_total() const

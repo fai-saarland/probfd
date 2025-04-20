@@ -12,6 +12,7 @@
 
 namespace downward {
 class AbstractTask;
+struct FactPair;
 }
 
 namespace downward::additive_heuristic {
@@ -25,10 +26,10 @@ namespace downward::cartesian_abstractions {
   can be reached in the delete-relaxation before 'fact' is reached the first
   time, plus 'fact' itself.
 */
-extern utils::HashSet<FactProxy>
+extern utils::HashSet<FactPair>
 get_relaxed_possible_before(const TaskProxy& task, const FactProxy& fact);
 
-extern std::vector<int> get_domain_sizes(const PlanningTaskProxy& task);
+extern std::vector<int> get_domain_sizes(const VariablesProxy& variables);
 } // namespace cartesian_abstractions
 
 /*

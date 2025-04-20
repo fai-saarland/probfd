@@ -68,7 +68,7 @@ class LandmarkCutLandmarks {
         std::vector<RelaxedProposition*>&& effects,
         int op_id,
         int base_cost);
-    RelaxedProposition* get_proposition(const FactProxy& fact);
+    RelaxedProposition* get_proposition(const FactPair& fact);
     void setup_exploration_queue();
     void setup_exploration_queue_state(const State& state);
     void first_exploration(const State& state);

@@ -66,7 +66,7 @@ int HMHeuristic::compute_heuristic(const State& ancestor_state)
     if (task_properties::is_goal_state(task_proxy, state)) {
         return 0;
     } else {
-        Tuple s_tup = task_properties::get_fact_pairs(state);
+        Tuple s_tup = task_properties::get_fact_pairs(state | as_fact_pair_set);
 
         init_hm_table(s_tup);
         update_hm_table();

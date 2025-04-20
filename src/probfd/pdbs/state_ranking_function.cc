@@ -42,7 +42,7 @@ StateRank StateRankingFunction::get_abstract_rank(const State& state) const
 {
     StateRank res = 0;
     for (size_t i = 0; i != pattern_.size(); ++i) {
-        res += rank_fact(i, state[pattern_[i]].get_value());
+        res += rank_fact(i, state[pattern_[i]]);
     }
     return res;
 }

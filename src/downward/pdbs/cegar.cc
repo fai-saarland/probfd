@@ -379,7 +379,7 @@ bool CEGAR::get_flaws_for_pattern(
     vector<int> current_state = concrete_init.get_unpacked_values();
     FlawList new_flaws = apply_plan(collection_index, current_state);
     if (new_flaws.empty()) {
-        State final_state(*task, std::move(current_state));
+        State final_state(std::move(current_state));
         if (task_properties::is_goal_state(task_proxy, final_state)) {
             if (log.is_at_least_verbose()) {
                 log << "plan led to a concrete goal state: ";
@@ -406,8 +406,8 @@ bool CEGAR::get_flaws_for_pattern(
             bool raise_goal_flaw = false;
             for (const FactPair& goal : goals) {
                 int goal_var_id = goal.var;
-                if (final_state[goal_var_id].get_value() != goal.value &&
-                    !blacklisted_variables.count(goal_var_id)) {
+                if (final_state[goal_var_id] != goal.value &&
+                    !blacklisted_variables.contains(goal_var_id)) {
                     flaws.emplace_back(collection_index, goal_var_id);
                     raise_goal_flaw = true;
                 }

@@ -109,7 +109,7 @@ protected:
     }
 
     PropID get_prop_id(int var, int value) const;
-    PropID get_prop_id(const FactProxy& fact) const;
+    PropID get_prop_id(const FactPair& fact) const;
 
     Proposition* get_proposition(PropID prop_id)
     {

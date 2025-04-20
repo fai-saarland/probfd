@@ -64,9 +64,7 @@ static State sample_state_with_random_walk(
             current_state,
             applicable_operators);
         // If there are no applicable operators, do not walk further.
-        if (applicable_operators.empty()) {
-            break;
-        }
+        if (applicable_operators.empty()) { break; }
 
         OperatorID random_op_id = *rng.choose(applicable_operators);
         ProbabilisticOperatorProxy random_op = operators[random_op_id];
@@ -76,8 +74,8 @@ static State sample_state_with_random_walk(
             if (r < 0.0) {
                 assert(
                     task_properties::is_applicable(random_op, current_state));
-                current_state = current_state.get_unregistered_successor(
-                    outcome.get_effects());
+                current_state =
+                    current_state.get_unregistered_successor(outcome);
                 /* If current state is a dead end, then restart the random walk
                    with the initial state. */
                 if (is_dead_end(current_state)) {

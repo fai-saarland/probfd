@@ -97,7 +97,7 @@ void FTSFactory::initialize_transition_system_data(int max_num_labels)
         TransitionSystemData& ts_data = transition_system_data_by_var[var_id];
         ts_data.incorporated_variables.push_back(var_id);
         ts_data.label_to_local_label.resize(max_num_labels, -1);
-        ts_data.init_state = initial_state[var_id].get_value();
+        ts_data.init_state = initial_state[var_id];
 
         if (goals_it != goals_end && (*goals_it).var == var_id) {
             ts_data.goal_states.resize(range, false);

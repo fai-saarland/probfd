@@ -81,9 +81,7 @@ LocalLabelInfo::LocalLabelInfo(const json::JsonObject& object)
 void LocalLabelInfo::add_label(int label, value_t label_cost)
 {
     label_group.push_back(label);
-    if (label_cost != -1) {
-        cost = min(cost, label_cost);
-    }
+    if (label_cost != -1) { cost = min(cost, label_cost); }
     assert(is_consistent());
 }
 
@@ -316,7 +314,8 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
 
                     const int src = src1 + src2 * ts1_size;
                     std::vector<int> targets;
-                    for (const auto [t1, t2] : views::zip(targets1, targets2)) {
+                    for (const auto [t1, t2] :
+                         std::views::zip(targets1, targets2)) {
                         targets.push_back(t1 + t2 * ts1_size);
                     }
                     new_transitions.emplace_back(src, std::move(targets));
@@ -750,9 +749,7 @@ std::ostream& operator<<(std::ostream& os, const TransitionSystem& ts)
 
     auto&& label_infos = ts.label_infos();
     os << "Local Label Transitions:\n";
-    for (auto&& elem : label_infos) {
-        os << "  " << elem << '\n';
-    }
+    for (auto&& elem : label_infos) { os << "  " << elem << '\n'; }
 
     return os << "Number of states: " << ts.get_size() << '\n'
               << "Initial State: " << ts.init_state << '\n'

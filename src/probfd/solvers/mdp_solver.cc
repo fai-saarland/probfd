@@ -54,9 +54,7 @@ void print_policy(
 
         auto decision = policy.get_decision(state);
 
-        if (!decision) {
-            continue;
-        }
+        if (!decision) { continue; }
 
         state_printer(state, out);
         out << " -> ";
@@ -71,9 +69,7 @@ void print_policy(
 
         for (const StateID succ_id :
              successor_dist.non_source_successor_dist.support()) {
-            if (visited.insert(succ_id).second) {
-                queue.push_back(succ_id);
-            }
+            if (visited.insert(succ_id).second) { queue.push_back(succ_id); }
         }
     } while (!queue.empty());
 }
@@ -165,8 +161,8 @@ public:
                     max_time);
             total_timer.stop();
 
-            std::cout << "Finished after " << total_timer()
-                      << " [t=" << g_timer << "]" << std::endl;
+            std::cout << "Finished after " << total_timer() << " [t=" << g_timer
+                      << "]" << std::endl;
 
             std::cout << std::endl;
 
@@ -181,16 +177,15 @@ public:
                                        const State& state,
                                        std::ostream& out) {
                     if (print_fact_names) {
-                        out << state[0].get_name();
-                        for (const FactProxy& fact : state | views::drop(1)) {
-                            out << ", " << fact.get_name();
+                        out << task->get_fact_name({0, state[0]});
+                        for (int i = 1; i != task->get_num_variables(); ++i) {
+                            out << ", " << task->get_fact_name({i, state[i]});
                         }
                     } else {
-                        out << "{ " << state[0].get_variable().get_id()
-                            << " -> " << state[0].get_value();
+                        out << "{ " << 0 << " -> " << state[0];
 
-                        for (const FactProxy& fact : state | views::drop(1)) {
-                            const auto [var, val] = fact.get_pair();
+                        for (const auto [var, val] :
+                             state | as_fact_pair_set | std::views::drop(1)) {
                             out << ", " << var << " -> " << val;
                         }
                         out << " }";

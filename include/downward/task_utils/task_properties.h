@@ -10,7 +10,8 @@ namespace downward::task_properties {
 inline bool is_applicable(const AxiomOrOperatorProxy& op, const State& state)
 {
     for (FactProxy precondition : op.get_preconditions()) {
-        if (state[precondition.get_variable()] != precondition) return false;
+        if (state[precondition.get_variable()] != precondition.get_value())
+            return false;
     }
     return true;
 }
@@ -18,7 +19,8 @@ inline bool is_applicable(const AxiomOrOperatorProxy& op, const State& state)
 inline bool is_applicable(const PartialOperatorProxy& op, const State& state)
 {
     for (FactProxy precondition : op.get_preconditions()) {
-        if (state[precondition.get_variable()] != precondition) return false;
+        if (state[precondition.get_variable()] != precondition.get_value())
+            return false;
     }
     return true;
 }
@@ -26,7 +28,7 @@ inline bool is_applicable(const PartialOperatorProxy& op, const State& state)
 inline bool is_goal_state(const PlanningTaskProxy& task, const State& state)
 {
     for (FactProxy goal : task.get_goals()) {
-        if (state[goal.get_variable()] != goal) return false;
+        if (state[goal.get_variable()] != goal.get_value()) return false;
     }
     return true;
 }
@@ -74,24 +76,37 @@ extern int get_num_facts(const PlanningTaskProxy& task_proxy);
 */
 extern int get_num_total_effects(const TaskProxy& task_proxy);
 
-template <class FactProxyCollection>
+template <std::ranges::input_range FactProxyCollection>
+    requires std::convertible_to<
+        FactProxy,
+        std::ranges::range_reference_t<FactProxyCollection>>
 std::vector<FactPair> get_fact_pairs(const FactProxyCollection& facts)
 {
     std::vector<FactPair> fact_pairs;
     fact_pairs.reserve(facts.size());
-    for (FactProxy fact : facts) {
-        fact_pairs.push_back(fact.get_pair());
-    }
+    for (FactProxy fact : facts) { fact_pairs.push_back(fact.get_pair()); }
+    return fact_pairs;
+}
+
+template <std::ranges::input_range FactPairCollection>
+    requires std::convertible_to<
+        FactPair,
+        std::ranges::range_reference_t<FactPairCollection>>
+std::vector<FactPair> get_fact_pairs(const FactPairCollection& facts)
+{
+    std::vector<FactPair> fact_pairs;
+    fact_pairs.reserve(facts.size());
+    for (FactPair fact : facts) { fact_pairs.push_back(fact); }
     return fact_pairs;
 }
 
 extern void print_variable_statistics(const PlanningTaskProxy& task_proxy);
-extern void dump_pddl(const State& state);
-extern void dump_fdr(const State& state);
+extern void dump_pddl(const PlanningTaskProxy& task_proxy, const State& state);
+extern void dump_fdr(const VariablesProxy& variables, const State& state);
 extern void dump_goals(const GoalsProxy& goals);
 extern void dump_task(const TaskProxy& task_proxy);
 
 extern PerTaskInformation<int_packer::IntPacker> g_state_packers;
-} // namespace task_properties
+} // namespace downward::task_properties
 
 #endif

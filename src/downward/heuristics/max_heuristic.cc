@@ -75,7 +75,7 @@ void HSPMaxHeuristic::setup_exploration_queue()
 
 void HSPMaxHeuristic::setup_exploration_queue_state(const State& state)
 {
-    for (FactProxy fact : state) {
+    for (FactPair fact : state | as_fact_pair_set) {
         PropID init_prop = get_prop_id(fact);
         enqueue_if_necessary(init_prop, 0);
     }

@@ -107,7 +107,7 @@ RelaxationHeuristic::RelaxationHeuristic(
     GoalsProxy goals = task_proxy.get_goals();
     goal_propositions.reserve(goals.size());
     for (FactProxy goal : goals) {
-        PropID prop_id = get_prop_id(goal);
+        PropID prop_id = get_prop_id(goal.get_pair());
         propositions[prop_id].is_goal = true;
         goal_propositions.push_back(prop_id);
     }
@@ -155,9 +155,9 @@ PropID RelaxationHeuristic::get_prop_id(int var, int value) const
     return proposition_offsets[var] + value;
 }
 
-PropID RelaxationHeuristic::get_prop_id(const FactProxy& fact) const
+PropID RelaxationHeuristic::get_prop_id(const FactPair& fact) const
 {
-    return get_prop_id(fact.get_variable().get_id(), fact.get_value());
+    return get_prop_id(fact.var, fact.value);
 }
 
 const Proposition*
@@ -184,14 +184,14 @@ void RelaxationHeuristic::build_unary_operators(const AxiomOrOperatorProxy& op)
     PreconditionsProxy preconditions = op.get_preconditions();
     precondition_props.reserve(preconditions.size());
     for (FactProxy precondition : preconditions) {
-        precondition_props.push_back(get_prop_id(precondition));
+        precondition_props.push_back(get_prop_id(precondition.get_pair()));
     }
     for (EffectProxy effect : op.get_effects()) {
-        PropID effect_prop = get_prop_id(effect.get_fact());
+        PropID effect_prop = get_prop_id(effect.get_fact().get_pair());
         EffectConditionsProxy eff_conds = effect.get_conditions();
         precondition_props.reserve(preconditions.size() + eff_conds.size());
         for (FactProxy eff_cond : eff_conds) {
-            precondition_props.push_back(get_prop_id(eff_cond));
+            precondition_props.push_back(get_prop_id(eff_cond.get_pair()));
         }
 
         // The sort-unique can eventually go away. See issue497.
