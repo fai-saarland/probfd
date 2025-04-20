@@ -350,30 +350,6 @@ public:
         assert(index < get_domain_size());
         return FactProxy(*task, id, index);
     }
-
-    bool is_derived() const
-    {
-        int axiom_layer = task->get_variable_axiom_layer(id);
-        return axiom_layer != -1;
-    }
-
-    int get_axiom_layer() const
-    {
-        int axiom_layer = task->get_variable_axiom_layer(id);
-        /*
-          This should only be called for derived variables.
-          Non-derived variables have axiom_layer == -1.
-          Use var.is_derived() to check.
-        */
-        assert(axiom_layer >= 0);
-        return axiom_layer;
-    }
-
-    int get_default_axiom_value() const
-    {
-        assert(is_derived());
-        return task->get_variable_default_axiom_value(id);
-    }
 };
 
 class VariablesProxy : public ProxyCollection<VariablesProxy> {
@@ -737,8 +713,6 @@ public:
         return index == other.index;
     }
 
-    bool operator!=(const AxiomProxy& other) const { return !(*this == other); }
-
     AxiomPreconditionsProxy get_preconditions() const
     {
         return AxiomPreconditionsProxy(*task, index);
@@ -884,6 +858,45 @@ public:
     explicit AxiomsProxy(const PlanningTask& task)
         : task(&task)
     {
+    }
+
+    bool is_derived(int var) const
+    {
+        int axiom_layer = task->get_variable_axiom_layer(var);
+        return axiom_layer != -1;
+    }
+
+    bool is_derived(VariableProxy var) const
+    {
+        return is_derived(var.get_id());
+    }
+
+    int get_axiom_layer(int var) const
+    {
+        int axiom_layer = task->get_variable_axiom_layer(var);
+        /*
+          This should only be called for derived variables.
+          Non-derived variables have axiom_layer == -1.
+          Use var.is_derived() to check.
+        */
+        assert(axiom_layer >= 0);
+        return axiom_layer;
+    }
+
+    int get_axiom_layer(VariableProxy var) const
+    {
+        return get_axiom_layer(var.get_id());
+    }
+
+    int get_default_axiom_value(int var) const
+    {
+        assert(is_derived(var));
+        return task->get_variable_default_axiom_value(var);
+    }
+
+    int get_default_axiom_value(VariableProxy var) const
+    {
+        return get_default_axiom_value(var.get_id());
     }
 
     std::size_t size() const { return task->get_num_axioms(); }

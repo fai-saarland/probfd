@@ -35,14 +35,14 @@ void LandmarkFactoryRelaxation::calc_achievers(
     Exploration& exploration)
 {
     assert(!achievers_calculated);
-    VariablesProxy variables = task_proxy.get_variables();
+    AxiomsProxy axioms = task_proxy.get_axioms();
     for (auto& lm_node : lm_graph->get_nodes()) {
         Landmark& landmark = lm_node->get_landmark();
         for (const FactPair& lm_fact : landmark.facts) {
             const vector<int>& ops = get_operators_including_eff(lm_fact);
             landmark.possible_achievers.insert(ops.begin(), ops.end());
 
-            if (variables[lm_fact.var].is_derived()) landmark.is_derived = true;
+            if (axioms.is_derived(lm_fact.var)) landmark.is_derived = true;
         }
 
         vector<vector<bool>> reached =

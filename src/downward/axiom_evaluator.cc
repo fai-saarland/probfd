@@ -36,8 +36,7 @@ AxiomEvaluator::AxiomEvaluator(const PlanningTaskProxy& task_proxy)
             FactPair effect = cond_effect.get_fact().get_pair();
             int num_conditions = cond_effect.get_conditions().size();
             // Ignore axioms which set the variable to its default value.
-            if (effect.value !=
-                variables[effect.var].get_default_axiom_value()) {
+            if (effect.value != axioms.get_default_axiom_value(effect.var)) {
                 AxiomLiteral* eff_literal =
                     &axiom_literals[effect.var][effect.value];
                 axiom_id_to_position[axiom.get_id()] = rules.size();
@@ -67,18 +66,18 @@ AxiomEvaluator::AxiomEvaluator(const PlanningTaskProxy& task_proxy)
         // Initialize negation-by-failure information
         int last_layer = -1;
         for (VariableProxy var : variables) {
-            if (var.is_derived()) {
-                last_layer = max(last_layer, var.get_axiom_layer());
+            if (axioms.is_derived(var.get_id())) {
+                last_layer = max(last_layer, axioms.get_axiom_layer(var));
             }
         }
         nbf_info_by_layer.resize(last_layer + 1);
 
         for (VariableProxy var : variables) {
-            if (var.is_derived()) {
-                int layer = var.get_axiom_layer();
+            if (axioms.is_derived(var)) {
+                int layer = axioms.get_axiom_layer(var);
                 if (layer != last_layer) {
                     int var_id = var.get_id();
-                    int nbf_value = var.get_default_axiom_value();
+                    int nbf_value = axioms.get_default_axiom_value(var);
                     AxiomLiteral* nbf_literal =
                         &axiom_literals[var_id][nbf_value];
                     nbf_info_by_layer[layer].emplace_back(var_id, nbf_literal);
@@ -88,8 +87,9 @@ AxiomEvaluator::AxiomEvaluator(const PlanningTaskProxy& task_proxy)
 
         default_values.reserve(variables.size());
         for (VariableProxy var : variables) {
-            if (var.is_derived())
-                default_values.emplace_back(var.get_default_axiom_value());
+            if (axioms.is_derived(var))
+                default_values.emplace_back(
+                    axioms.get_default_axiom_value(var));
             else
                 default_values.emplace_back(-1);
         }
