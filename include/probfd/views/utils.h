@@ -10,7 +10,7 @@ namespace detail {
 template <bool Const, typename Tp>
 using maybe_const_t = std::conditional_t<Const, const Tp, Tp>;
 
-}
+} // namespace detail
 
 template <typename _Range>
 concept simple_view =
@@ -34,6 +34,9 @@ template <bool Const, typename... Vs>
 concept all_forward =
     (std::ranges::forward_range<detail::maybe_const_t<Const, Vs>> && ...);
 
-}
+template <std::ranges::viewable_range _Rng>
+using all_t = decltype(std::views::all(std::declval<_Rng>()));
+
+} // namespace probfd::views
 
 #endif
