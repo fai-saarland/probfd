@@ -4,6 +4,7 @@
 #include "downward/abstract_task.h"
 #include "downward/axioms.h"
 #include "downward/operator_id.h"
+#include "downward/proxy_collection.h"
 #include "downward/state_id.h"
 #include "downward/task_id.h"
 
@@ -57,192 +58,13 @@ class CausalGraph;
 namespace downward {
 using PackedStateBin = int_packer::IntPacker::Bin;
 
-/*
-  Overview of the task interface.
-
-  The task interface is divided into two parts: a set of proxy classes
-  for accessing task information (TaskProxy, OperatorProxy, etc.) and
-  task implementations (subclasses of AbstractTask). Each proxy class
-  knows which AbstractTask it belongs to and uses its methods to retrieve
-  information about the task. RootTask is the AbstractTask that
-  encapsulates the unmodified original task that the planner received
-  as input.
-
-  Example code for creating a new task object and accessing its operators:
-
-      TaskProxy task_proxy(*g_root_task());
-      for (OperatorProxy op : task->get_operators())
-          utils::g_log << op.get_name() << endl;
-
-  Since proxy classes only store a reference to the AbstractTask and
-  some indices, they can be copied cheaply.
-
-  In addition to the lightweight proxy classes, the task interface
-  consists of the State class, which is used to hold state information
-  for TaskProxy tasks. The State class contains packed or unpacked state data
-  and shares the ownership with its copies, so it is cheap to copy but
-  expensive to create. If performance is absolutely critical, the values of a
-  state can be unpacked and accessed as a vector<int>.
-
-  For now, heuristics work with a TaskProxy that can represent a transformed
-  view of the original task. The search algorithms work on the unmodified root
-  task. We therefore need to do two conversions between the search and the
-  heuristics: converting states of the root task to states of the task used in
-  the heuristic computation and converting operators of the task used by the
-  heuristic to operators of the task used by the search for reporting preferred
-  operators.
-  These conversions are done by the Heuristic base class with
-  Heuristic::convert_ancestor_state() and Heuristic::set_preferred().
-
-      int FantasyHeuristic::compute_heuristic(const State &ancestor_state) {
-          State state = convert_ancestor_state(ancestor_state);
-          set_preferred(task->get_operators()[42]);
-          int sum = 0;
-          for (FactProxy fact : state)
-              sum += fact.get_value();
-          return sum;
-      }
-
-  For helper functions that work on task related objects, please see the
-  task_properties.h module.
-*/
-
-template <typename T>
-concept SizedSubscriptable = requires(const T c, std::size_t s) {
-    c.operator[](s);
-    { c.size() } -> std::convertible_to<std::size_t>;
-};
-
-template <SizedSubscriptable T>
-class ProxyIterator {
-    /* We store a pointer to collection instead of a reference
-       because iterators have to be copy assignable. */
-    const T* collection;
-    std::size_t pos;
-
-public:
-    using iterator_category = std::random_access_iterator_tag;
-    using value_type =
-        typename std::remove_cvref_t<decltype(std::declval<T>().operator[](
-            0U))>;
-    using difference_type = int;
-    using pointer = const value_type*;
-    using reference = value_type;
-
-    ProxyIterator() = default;
-
-    ProxyIterator(const T& collection, std::size_t pos)
-        : collection(&collection)
-        , pos(pos)
-    {
-    }
-
-    reference operator*() const { return (*collection)[pos]; }
-
-    ProxyIterator<T> operator++(int)
-    {
-        auto r = *this;
-        ++(*this);
-        return r;
-    }
-
-    ProxyIterator<T> operator--(int)
-    {
-        auto r = *this;
-        --(*this);
-        return r;
-    }
-
-    ProxyIterator<T>& operator++()
-    {
-        ++pos;
-        return *this;
-    }
-
-    ProxyIterator<T>& operator--()
-    {
-        --pos;
-        return *this;
-    }
-
-    reference operator[](difference_type n) const { return *(*this + n); }
-
-    ProxyIterator<T>& operator+=(difference_type n)
-    {
-        pos += n;
-        return *this;
-    }
-
-    ProxyIterator<T>& operator-=(difference_type n)
-    {
-        pos -= n;
-        return *this;
-    }
-
-    friend ProxyIterator<T>
-    operator+(const ProxyIterator<T>& lhs, difference_type rhs)
-    {
-        return ProxyIterator<T>(*lhs.collection, lhs.pos + rhs);
-    }
-
-    friend ProxyIterator<T>
-    operator+(difference_type lhs, const ProxyIterator<T>& rhs)
-    {
-        return ProxyIterator<T>(*rhs.collection, rhs.pos + lhs);
-    }
-
-    friend ProxyIterator<T>
-    operator-(const ProxyIterator<T>& lhs, difference_type rhs)
-    {
-        return ProxyIterator<T>(*lhs.collection, lhs.pos - rhs);
-    }
-
-    friend difference_type
-    operator-(const ProxyIterator<T>& lhs, const ProxyIterator<T>& rhs)
-    {
-        return lhs.pos - rhs.pos;
-    }
-
-    friend bool
-    operator==(const ProxyIterator<T>& lhs, const ProxyIterator<T>& rhs)
-    {
-        assert(lhs.collection == rhs.collection);
-        return lhs.pos == rhs.pos;
-    }
-
-    friend auto
-    operator<=>(const ProxyIterator<T>& lhs, const ProxyIterator<T>& rhs)
-    {
-        assert(lhs.collection == rhs.collection);
-        return lhs.pos <=> rhs.pos;
-    }
-};
-
-template <typename T>
-class ProxyCollection : public std::ranges::view_interface<ProxyCollection<T>> {
-public:
-    auto begin() const
-    {
-        static_assert(std::random_access_iterator<ProxyIterator<T>>);
-        return ProxyIterator<T>(*static_cast<const T*>(this), 0);
-    }
-
-    auto end() const
-    {
-        static_assert(std::random_access_iterator<ProxyIterator<T>>);
-        return ProxyIterator<T>(*static_cast<const T*>(this), size());
-    }
-
-    std::size_t size() const { return static_cast<const T*>(this)->size(); }
-};
-
 class FactProxy {
-    const PlanningTask* task;
+    const VariableSpace* task;
     FactPair fact;
 
 public:
-    FactProxy(const PlanningTask& task, int var_id, int value);
-    FactProxy(const PlanningTask& task, const FactPair& fact);
+    FactProxy(const VariableSpace& task, int var_id, int value);
+    FactProxy(const VariableSpace& task, const FactPair& fact);
 
     ~FactProxy() = default;
 
@@ -254,45 +76,10 @@ public:
 
     std::string get_name() const { return task->get_fact_name(fact); }
 
-    bool operator==(const FactProxy& other) const
+    friend bool operator==(const FactProxy& left, const FactProxy& right)
     {
-        assert(task == other.task);
-        return fact == other.fact;
-    }
-};
-
-class FactsProxyIterator {
-    const PlanningTask* task;
-    int var_id;
-    int value;
-
-public:
-    FactsProxyIterator(const PlanningTask& task, int var_id, int value)
-        : task(&task)
-        , var_id(var_id)
-        , value(value)
-    {
-    }
-
-    FactProxy operator*() const { return FactProxy(*task, var_id, value); }
-
-    FactsProxyIterator& operator++()
-    {
-        assert(var_id < task->get_num_variables());
-        int num_facts = task->get_variable_domain_size(var_id);
-        assert(value < num_facts);
-        ++value;
-        if (value == num_facts) {
-            ++var_id;
-            value = 0;
-        }
-        return *this;
-    }
-
-    bool operator==(const FactsProxyIterator& other) const
-    {
-        assert(task == other.task);
-        return var_id == other.var_id && value == other.value;
+        assert(left.task == right.task);
+        return left.fact == right.fact;
     }
 };
 
@@ -306,93 +93,315 @@ public:
   order of increasing value for each variable.
 */
 class FactsProxy {
-    const PlanningTask* task;
+    class FactsProxyIterator {
+        const VariableSpace* task;
+        int var_id;
+        int value;
+
+    public:
+        FactsProxyIterator(const VariableSpace& task, int var_id, int value)
+            : task(&task)
+            , var_id(var_id)
+            , value(value)
+        {
+        }
+
+        FactProxy operator*() const { return FactProxy(*task, var_id, value); }
+
+        FactsProxyIterator& operator++()
+        {
+            assert(var_id < task->get_num_variables());
+            int num_facts = task->get_variable_domain_size(var_id);
+            assert(value < num_facts);
+            ++value;
+            if (value == num_facts) {
+                ++var_id;
+                value = 0;
+            }
+            return *this;
+        }
+
+        friend bool operator==(
+            const FactsProxyIterator& left,
+            const FactsProxyIterator& right)
+        {
+            assert(left.task == right.task);
+            return left.var_id == right.var_id && left.value == right.value;
+        }
+    };
+
+    const VariableSpace* var_space;
 
 public:
-    explicit FactsProxy(const PlanningTask& task)
-        : task(&task)
+    explicit FactsProxy(const VariableSpace& var_space)
+        : var_space(&var_space)
     {
     }
 
-    FactsProxyIterator begin() const { return FactsProxyIterator(*task, 0, 0); }
+    FactsProxyIterator begin() const
+    {
+        return FactsProxyIterator(*var_space, 0, 0);
+    }
 
     FactsProxyIterator end() const
     {
-        return FactsProxyIterator(*task, task->get_num_variables(), 0);
+        return FactsProxyIterator(
+            *var_space,
+            var_space->get_num_variables(),
+            0);
     }
 };
 
 class VariableProxy {
-    const PlanningTask* task;
+    const VariableSpace* var_space;
     int id;
 
 public:
-    VariableProxy(const PlanningTask& task, int id)
-        : task(&task)
+    VariableProxy(const VariableSpace& var_space, int id)
+        : var_space(&var_space)
         , id(id)
     {
     }
 
-    bool operator==(const VariableProxy& other) const
-    {
-        assert(task == other.task);
-        return id == other.id;
-    }
-
     int get_id() const { return id; }
 
-    std::string get_name() const { return task->get_variable_name(id); }
+    std::string get_name() const { return var_space->get_variable_name(id); }
 
-    int get_domain_size() const { return task->get_variable_domain_size(id); }
+    int get_domain_size() const
+    {
+        return var_space->get_variable_domain_size(id);
+    }
 
     FactProxy get_fact(int index) const
     {
         assert(index < get_domain_size());
-        return FactProxy(*task, id, index);
+        return FactProxy(*var_space, id, index);
+    }
+
+    friend bool
+    operator==(const VariableProxy& left, const VariableProxy& right)
+    {
+        assert(left.var_space == right.var_space);
+        return left.id == right.id;
     }
 };
 
 class VariablesProxy : public ProxyCollection<VariablesProxy> {
-    const PlanningTask* task;
+    const VariableSpace* var_space;
 
 public:
-    explicit VariablesProxy(const PlanningTask& task)
-        : task(&task)
+    explicit VariablesProxy(const PlanningTask& var_space)
+        : var_space(&var_space)
     {
     }
 
-    std::size_t size() const { return task->get_num_variables(); }
+    std::size_t size() const { return var_space->get_num_variables(); }
 
     VariableProxy operator[](std::size_t index) const
     {
         assert(index < size());
-        return VariableProxy(*task, index);
+        return VariableProxy(*var_space, index);
     }
 
-    FactsProxy get_facts() const { return FactsProxy(*task); }
+    FactsProxy get_facts() const { return FactsProxy(*var_space); }
 };
 
 class AxiomPreconditionsProxy
     : public ProxyCollection<AxiomPreconditionsProxy> {
-    const PlanningTask* task;
+    const AxiomSpace* axiom_space;
     int axiom_index;
 
 public:
-    AxiomPreconditionsProxy(const PlanningTask& task, int axiom_index)
-        : task(&task)
+    AxiomPreconditionsProxy(const AxiomSpace& axiom_space, int axiom_index)
+        : axiom_space(&axiom_space)
         , axiom_index(axiom_index)
     {
     }
 
     std::size_t size() const
     {
-        return task->get_num_axiom_preconditions(axiom_index);
+        return axiom_space->get_num_axiom_preconditions(axiom_index);
     }
 
     FactPair operator[](std::size_t fact_index) const
     {
         assert(fact_index < size());
-        return task->get_axiom_precondition(axiom_index, fact_index);
+        return axiom_space->get_axiom_precondition(axiom_index, fact_index);
+    }
+};
+
+class AxiomEffectConditionsProxy
+    : public ProxyCollection<AxiomEffectConditionsProxy> {
+    const AxiomSpace* axiom_space;
+    int axiom_index;
+    int eff_index;
+
+public:
+    AxiomEffectConditionsProxy(
+        const AxiomSpace& axiom_space,
+        int axiom_index,
+        int eff_index)
+        : axiom_space(&axiom_space)
+        , axiom_index(axiom_index)
+        , eff_index(eff_index)
+    {
+    }
+
+    std::size_t size() const
+    {
+        return axiom_space->get_num_axiom_effect_conditions(
+            axiom_index,
+            eff_index);
+    }
+
+    FactPair operator[](std::size_t index) const
+    {
+        assert(index < size());
+        return axiom_space->get_axiom_effect_condition(
+            axiom_index,
+            eff_index,
+            index);
+    }
+};
+
+class AxiomEffectProxy {
+    const AxiomSpace* axiom_space;
+    int axiom_index;
+    int eff_index;
+
+public:
+    AxiomEffectProxy(
+        const AxiomSpace& axiom_space,
+        int axiom_index,
+        int eff_index)
+        : axiom_space(&axiom_space)
+        , axiom_index(axiom_index)
+        , eff_index(eff_index)
+    {
+    }
+
+    AxiomEffectConditionsProxy get_conditions() const
+    {
+        return AxiomEffectConditionsProxy(*axiom_space, axiom_index, eff_index);
+    }
+
+    FactPair get_fact() const
+    {
+        return axiom_space->get_axiom_effect(axiom_index, eff_index);
+    }
+};
+
+class AxiomEffectsProxy : public ProxyCollection<AxiomEffectsProxy> {
+    const AxiomSpace* axiom_space;
+    int op_index;
+
+public:
+    AxiomEffectsProxy(const AxiomSpace& axiom_space, int op_index)
+        : axiom_space(&axiom_space)
+        , op_index(op_index)
+    {
+    }
+
+    std::size_t size() const
+    {
+        return axiom_space->get_num_axiom_effects(op_index);
+    }
+
+    AxiomEffectProxy operator[](std::size_t eff_index) const
+    {
+        assert(eff_index < size());
+        return AxiomEffectProxy(*axiom_space, op_index, eff_index);
+    }
+};
+
+class AxiomProxy {
+    const AxiomSpace* axiom_space;
+    int index;
+
+public:
+    AxiomProxy(const AxiomSpace& axiom_space, int index)
+        : axiom_space(&axiom_space)
+        , index(index)
+    {
+    }
+
+    AxiomPreconditionsProxy get_preconditions() const
+    {
+        return AxiomPreconditionsProxy(*axiom_space, index);
+    }
+
+    AxiomEffectsProxy get_effects() const
+    {
+        return AxiomEffectsProxy(*axiom_space, index);
+    }
+
+    int get_cost() const { return 0; }
+
+    std::string get_name() const { return axiom_space->get_axiom_name(index); }
+
+    int get_id() const { return index; }
+
+    friend bool operator==(const AxiomProxy& left, const AxiomProxy& right)
+    {
+        assert(left.axiom_space == right.axiom_space);
+        return left.index == right.index;
+    }
+};
+
+class AxiomsProxy : public ProxyCollection<AxiomsProxy> {
+    const AxiomSpace* axiom_space;
+
+public:
+    explicit AxiomsProxy(const AxiomSpace& axiom_space)
+        : axiom_space(&axiom_space)
+    {
+    }
+
+    bool is_derived(int var) const
+    {
+        int axiom_layer = axiom_space->get_variable_axiom_layer(var);
+        return axiom_layer != -1;
+    }
+
+    bool is_derived(VariableProxy var) const
+    {
+        return is_derived(var.get_id());
+    }
+
+    int get_axiom_layer(int var) const
+    {
+        int axiom_layer = axiom_space->get_variable_axiom_layer(var);
+        /*
+          This should only be called for derived variables.
+          Non-derived variables have axiom_layer == -1.
+          Use var.is_derived() to check.
+        */
+        assert(axiom_layer >= 0);
+        return axiom_layer;
+    }
+
+    int get_axiom_layer(VariableProxy var) const
+    {
+        return get_axiom_layer(var.get_id());
+    }
+
+    int get_default_axiom_value(int var) const
+    {
+        assert(is_derived(var));
+        return axiom_space->get_variable_default_axiom_value(var);
+    }
+
+    int get_default_axiom_value(VariableProxy var) const
+    {
+        return get_default_axiom_value(var.get_id());
+    }
+
+    std::size_t size() const { return axiom_space->get_num_axioms(); }
+
+    AxiomProxy operator[](std::size_t index) const
+    {
+        assert(index < size());
+        return AxiomProxy(*axiom_space, index);
     }
 };
 
@@ -417,64 +426,6 @@ public:
     {
         assert(fact_index < size());
         return task->get_operator_precondition(op_index, fact_index);
-    }
-};
-
-class PreconditionsProxy : public ProxyCollection<PreconditionsProxy> {
-    std::variant<AxiomPreconditionsProxy, OperatorPreconditionsProxy> proxy;
-
-public:
-    PreconditionsProxy(AxiomPreconditionsProxy proxy)
-        : proxy(proxy)
-    {
-    }
-
-    PreconditionsProxy(OperatorPreconditionsProxy proxy)
-        : proxy(proxy)
-    {
-    }
-
-    std::size_t size() const
-    {
-        return std::visit([](const auto& arg) { return arg.size(); }, proxy);
-    }
-
-    FactPair operator[](std::size_t fact_index) const
-    {
-        return std::visit(
-            [fact_index](const auto& arg) {
-                return arg.operator[](fact_index);
-            },
-            proxy);
-    }
-};
-
-class AxiomEffectConditionsProxy
-    : public ProxyCollection<AxiomEffectConditionsProxy> {
-    const PlanningTask* task;
-    int axiom_index;
-    int eff_index;
-
-public:
-    AxiomEffectConditionsProxy(
-        const PlanningTask& task,
-        int axiom_index,
-        int eff_index)
-        : task(&task)
-        , axiom_index(axiom_index)
-        , eff_index(eff_index)
-    {
-    }
-
-    std::size_t size() const
-    {
-        return task->get_num_axiom_effect_conditions(axiom_index, eff_index);
-    }
-
-    FactPair operator[](std::size_t index) const
-    {
-        assert(index < size());
-        return task->get_axiom_effect_condition(axiom_index, eff_index, index);
     }
 };
 
@@ -507,60 +458,6 @@ public:
     }
 };
 
-class EffectConditionsProxy : public ProxyCollection<EffectConditionsProxy> {
-    std::variant<AxiomEffectConditionsProxy, OperatorEffectConditionsProxy>
-        proxy;
-
-public:
-    EffectConditionsProxy(AxiomEffectConditionsProxy proxy)
-        : proxy(proxy)
-    {
-    }
-
-    EffectConditionsProxy(OperatorEffectConditionsProxy proxy)
-        : proxy(proxy)
-    {
-    }
-
-    std::size_t size() const
-    {
-        return std::visit([](const auto& arg) { return arg.size(); }, proxy);
-    }
-
-    FactPair operator[](std::size_t fact_index) const
-    {
-        return std::visit(
-            [fact_index](const auto& arg) {
-                return arg.operator[](fact_index);
-            },
-            proxy);
-    }
-};
-
-class AxiomEffectProxy {
-    const PlanningTask* task;
-    int axiom_index;
-    int eff_index;
-
-public:
-    AxiomEffectProxy(const PlanningTask& task, int axiom_index, int eff_index)
-        : task(&task)
-        , axiom_index(axiom_index)
-        , eff_index(eff_index)
-    {
-    }
-
-    AxiomEffectConditionsProxy get_conditions() const
-    {
-        return AxiomEffectConditionsProxy(*task, axiom_index, eff_index);
-    }
-
-    FactPair get_fact() const
-    {
-        return task->get_axiom_effect(axiom_index, eff_index);
-    }
-};
-
 class OperatorEffectProxy {
     const AbstractTask* task;
     int op_index;
@@ -585,57 +482,6 @@ public:
     }
 };
 
-class EffectProxy {
-    std::variant<AxiomEffectProxy, OperatorEffectProxy> proxy;
-
-public:
-    EffectProxy(AxiomEffectProxy proxy)
-        : proxy(proxy)
-    {
-    }
-
-    EffectProxy(OperatorEffectProxy proxy)
-        : proxy(proxy)
-    {
-    }
-
-    EffectConditionsProxy get_conditions() const
-    {
-        return std::visit(
-            [](const auto& arg) {
-                return EffectConditionsProxy(arg.get_conditions());
-            },
-            proxy);
-    }
-
-    FactPair get_fact() const
-    {
-        return std::visit(
-            [](const auto& arg) { return arg.get_fact(); },
-            proxy);
-    }
-};
-
-class AxiomEffectsProxy : public ProxyCollection<AxiomEffectsProxy> {
-    const PlanningTask* task;
-    int op_index;
-
-public:
-    AxiomEffectsProxy(const PlanningTask& task, int op_index)
-        : task(&task)
-        , op_index(op_index)
-    {
-    }
-
-    std::size_t size() const { return task->get_num_axiom_effects(op_index); }
-
-    AxiomEffectProxy operator[](std::size_t eff_index) const
-    {
-        assert(eff_index < size());
-        return AxiomEffectProxy(*task, op_index, eff_index);
-    }
-};
-
 class OperatorEffectsProxy : public ProxyCollection<OperatorEffectsProxy> {
     const AbstractTask* task;
     int op_index;
@@ -657,69 +503,6 @@ public:
         assert(eff_index < size());
         return OperatorEffectProxy(*task, op_index, eff_index);
     }
-};
-
-class EffectsProxy : public ProxyCollection<EffectsProxy> {
-    std::variant<AxiomEffectsProxy, OperatorEffectsProxy> proxy;
-
-public:
-    EffectsProxy(AxiomEffectsProxy proxy)
-        : proxy(proxy)
-    {
-    }
-
-    EffectsProxy(OperatorEffectsProxy proxy)
-        : proxy(proxy)
-    {
-    }
-
-    std::size_t size() const
-    {
-        return std::visit([](const auto& arg) { return arg.size(); }, proxy);
-    }
-
-    EffectProxy operator[](std::size_t eff_index) const
-    {
-        return std::visit(
-            [eff_index](const auto& arg) {
-                return EffectProxy(arg.operator[](eff_index));
-            },
-            proxy);
-    }
-};
-
-class AxiomProxy {
-    const PlanningTask* task;
-    int index;
-
-public:
-    AxiomProxy(const PlanningTask& task, int index)
-        : task(&task)
-        , index(index)
-    {
-    }
-
-    bool operator==(const AxiomProxy& other) const
-    {
-        assert(task == other.task);
-        return index == other.index;
-    }
-
-    AxiomPreconditionsProxy get_preconditions() const
-    {
-        return AxiomPreconditionsProxy(*task, index);
-    }
-
-    AxiomEffectsProxy get_effects() const
-    {
-        return AxiomEffectsProxy(*task, index);
-    }
-
-    int get_cost() const { return 0; }
-
-    std::string get_name() const { return task->get_axiom_name(index); }
-
-    int get_id() const { return index; }
 };
 
 class PartialOperatorProxy {
@@ -774,132 +557,6 @@ public:
     State get_unregistered_successor(const State& state) const;
 };
 
-class AxiomOrOperatorProxy {
-    std::variant<AxiomProxy, OperatorProxy> proxy;
-
-public:
-    AxiomOrOperatorProxy(AxiomProxy proxy)
-        : proxy(proxy)
-    {
-    }
-
-    AxiomOrOperatorProxy(OperatorProxy proxy)
-        : proxy(proxy)
-    {
-    }
-
-    operator AxiomProxy() const
-    {
-        assert(is_axiom());
-        return std::get<AxiomProxy>(proxy);
-    }
-
-    operator OperatorProxy() const
-    {
-        assert(!is_axiom());
-        return std::get<OperatorProxy>(proxy);
-    }
-
-    bool is_axiom() const { return proxy.index() == 0; }
-
-    bool operator==(const AxiomOrOperatorProxy& other) const
-    {
-        return proxy == other.proxy;
-    }
-
-    PreconditionsProxy get_preconditions() const
-    {
-        return std::visit(
-            [](const auto& arg) {
-                return PreconditionsProxy(arg.get_preconditions());
-            },
-            proxy);
-    }
-
-    EffectsProxy get_effects() const
-    {
-        return std::visit(
-            [](const auto& arg) { return EffectsProxy(arg.get_effects()); },
-            proxy);
-    }
-
-    int get_cost() const
-    {
-        return std::visit(
-            [](const auto& arg) { return arg.get_cost(); },
-            proxy);
-    }
-
-    std::string get_name() const
-    {
-        return std::visit(
-            [](const auto& arg) { return arg.get_name(); },
-            proxy);
-    }
-
-    int get_id() const
-    {
-        return std::visit([](const auto& arg) { return arg.get_id(); }, proxy);
-    }
-};
-
-class AxiomsProxy : public ProxyCollection<AxiomsProxy> {
-    const PlanningTask* task;
-
-public:
-    explicit AxiomsProxy(const PlanningTask& task)
-        : task(&task)
-    {
-    }
-
-    bool is_derived(int var) const
-    {
-        int axiom_layer = task->get_variable_axiom_layer(var);
-        return axiom_layer != -1;
-    }
-
-    bool is_derived(VariableProxy var) const
-    {
-        return is_derived(var.get_id());
-    }
-
-    int get_axiom_layer(int var) const
-    {
-        int axiom_layer = task->get_variable_axiom_layer(var);
-        /*
-          This should only be called for derived variables.
-          Non-derived variables have axiom_layer == -1.
-          Use var.is_derived() to check.
-        */
-        assert(axiom_layer >= 0);
-        return axiom_layer;
-    }
-
-    int get_axiom_layer(VariableProxy var) const
-    {
-        return get_axiom_layer(var.get_id());
-    }
-
-    int get_default_axiom_value(int var) const
-    {
-        assert(is_derived(var));
-        return task->get_variable_default_axiom_value(var);
-    }
-
-    int get_default_axiom_value(VariableProxy var) const
-    {
-        return get_default_axiom_value(var.get_id());
-    }
-
-    std::size_t size() const { return task->get_num_axioms(); }
-
-    AxiomProxy operator[](std::size_t index) const
-    {
-        assert(index < size());
-        return AxiomProxy(*task, index);
-    }
-};
-
 class OperatorsProxy : public ProxyCollection<OperatorsProxy> {
     const AbstractTask* task;
 
@@ -943,6 +600,196 @@ public:
     PartialOperatorProxy operator[](OperatorID id) const
     {
         return (*this)[id.get_index()];
+    }
+};
+
+class PreconditionsProxy : public ProxyCollection<PreconditionsProxy> {
+    std::variant<AxiomPreconditionsProxy, OperatorPreconditionsProxy> proxy;
+
+public:
+    PreconditionsProxy(AxiomPreconditionsProxy proxy)
+        : proxy(proxy)
+    {
+    }
+
+    PreconditionsProxy(OperatorPreconditionsProxy proxy)
+        : proxy(proxy)
+    {
+    }
+
+    std::size_t size() const
+    {
+        return std::visit([](const auto& arg) { return arg.size(); }, proxy);
+    }
+
+    FactPair operator[](std::size_t fact_index) const
+    {
+        return std::visit(
+            [fact_index](const auto& arg) {
+                return arg.operator[](fact_index);
+            },
+            proxy);
+    }
+};
+
+class EffectConditionsProxy : public ProxyCollection<EffectConditionsProxy> {
+    std::variant<AxiomEffectConditionsProxy, OperatorEffectConditionsProxy>
+        proxy;
+
+public:
+    EffectConditionsProxy(AxiomEffectConditionsProxy proxy)
+        : proxy(proxy)
+    {
+    }
+
+    EffectConditionsProxy(OperatorEffectConditionsProxy proxy)
+        : proxy(proxy)
+    {
+    }
+
+    std::size_t size() const
+    {
+        return std::visit([](const auto& arg) { return arg.size(); }, proxy);
+    }
+
+    FactPair operator[](std::size_t fact_index) const
+    {
+        return std::visit(
+            [fact_index](const auto& arg) {
+                return arg.operator[](fact_index);
+            },
+            proxy);
+    }
+};
+
+class EffectProxy {
+    std::variant<AxiomEffectProxy, OperatorEffectProxy> proxy;
+
+public:
+    EffectProxy(AxiomEffectProxy proxy)
+        : proxy(proxy)
+    {
+    }
+
+    EffectProxy(OperatorEffectProxy proxy)
+        : proxy(proxy)
+    {
+    }
+
+    EffectConditionsProxy get_conditions() const
+    {
+        return std::visit(
+            [](const auto& arg) {
+                return EffectConditionsProxy(arg.get_conditions());
+            },
+            proxy);
+    }
+
+    FactPair get_fact() const
+    {
+        return std::visit(
+            [](const auto& arg) { return arg.get_fact(); },
+            proxy);
+    }
+};
+
+class EffectsProxy : public ProxyCollection<EffectsProxy> {
+    std::variant<AxiomEffectsProxy, OperatorEffectsProxy> proxy;
+
+public:
+    EffectsProxy(AxiomEffectsProxy proxy)
+        : proxy(proxy)
+    {
+    }
+
+    EffectsProxy(OperatorEffectsProxy proxy)
+        : proxy(proxy)
+    {
+    }
+
+    std::size_t size() const
+    {
+        return std::visit([](const auto& arg) { return arg.size(); }, proxy);
+    }
+
+    EffectProxy operator[](std::size_t eff_index) const
+    {
+        return std::visit(
+            [eff_index](const auto& arg) {
+                return EffectProxy(arg.operator[](eff_index));
+            },
+            proxy);
+    }
+};
+
+class AxiomOrOperatorProxy {
+    std::variant<AxiomProxy, OperatorProxy> proxy;
+
+public:
+    AxiomOrOperatorProxy(AxiomProxy proxy)
+        : proxy(proxy)
+    {
+    }
+
+    AxiomOrOperatorProxy(OperatorProxy proxy)
+        : proxy(proxy)
+    {
+    }
+
+    operator AxiomProxy() const
+    {
+        assert(is_axiom());
+        return std::get<AxiomProxy>(proxy);
+    }
+
+    operator OperatorProxy() const
+    {
+        assert(!is_axiom());
+        return std::get<OperatorProxy>(proxy);
+    }
+
+    bool is_axiom() const { return proxy.index() == 0; }
+
+    PreconditionsProxy get_preconditions() const
+    {
+        return std::visit(
+            [](const auto& arg) {
+                return PreconditionsProxy(arg.get_preconditions());
+            },
+            proxy);
+    }
+
+    EffectsProxy get_effects() const
+    {
+        return std::visit(
+            [](const auto& arg) { return EffectsProxy(arg.get_effects()); },
+            proxy);
+    }
+
+    int get_cost() const
+    {
+        return std::visit(
+            [](const auto& arg) { return arg.get_cost(); },
+            proxy);
+    }
+
+    std::string get_name() const
+    {
+        return std::visit(
+            [](const auto& arg) { return arg.get_name(); },
+            proxy);
+    }
+
+    int get_id() const
+    {
+        return std::visit([](const auto& arg) { return arg.get_id(); }, proxy);
+    }
+
+    friend bool operator==(
+        const AxiomOrOperatorProxy& left,
+        const AxiomOrOperatorProxy& right)
+    {
+        return left.proxy == right.proxy;
     }
 };
 
@@ -1174,7 +1021,7 @@ inline PlanningTaskProxy::operator TaskProxy() const
     return TaskProxy(*static_cast<const AbstractTask*>(task));
 }
 
-inline FactProxy::FactProxy(const PlanningTask& task, const FactPair& fact)
+inline FactProxy::FactProxy(const VariableSpace& task, const FactPair& fact)
     : task(&task)
     , fact(fact)
 {
@@ -1182,7 +1029,7 @@ inline FactProxy::FactProxy(const PlanningTask& task, const FactPair& fact)
     assert(fact.value >= 0 && fact.value < get_variable().get_domain_size());
 }
 
-inline FactProxy::FactProxy(const PlanningTask& task, int var_id, int value)
+inline FactProxy::FactProxy(const VariableSpace& task, int var_id, int value)
     : FactProxy(task, FactPair(var_id, value))
 {
 }

@@ -12,6 +12,7 @@
 #include <cassert>
 #include <compare>
 #include <functional>
+#include <ranges>
 #include <span>
 #include <tuple>
 
@@ -25,14 +26,13 @@ namespace {
 
 struct Outcome {
     ProbabilisticEffectsProxy proxy;
-    std::pair<
-        ProxyIterator<ProbabilisticEffectsProxy>,
-        ProxyIterator<ProbabilisticEffectsProxy>>
+    std::ranges::subrange<
+        std::ranges::iterator_t<ProxyCollection<ProbabilisticEffectsProxy>>>
         effect_range;
 
     explicit Outcome(ProbabilisticOutcomeProxy outcome)
         : proxy(outcome.get_effects())
-        , effect_range(proxy.begin(), proxy.end())
+        , effect_range(proxy)
     {
     }
 };
@@ -283,9 +283,7 @@ ProjectionStateSpace::ProjectionStateSpace(
             }
 
             if (++goal_it == goal_end) {
-                while (v < num_variables) {
-                    non_goal_vars.push_back(v++);
-                }
+                while (v < num_variables) { non_goal_vars.push_back(v++); }
                 break;
             }
         }
