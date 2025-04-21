@@ -154,11 +154,8 @@ void PatternCollectionGeneratorSystematic::build_sga_patterns(
     */
 
     // Build goal patterns.
-    for (FactProxy goal : task_proxy.get_goals()) {
-        int var_id = goal.get_variable().get_id();
-        Pattern goal_pattern;
-        goal_pattern.push_back(var_id);
-        enqueue_pattern_if_new(goal_pattern);
+    for (FactPair goal : task_proxy.get_goals()) {
+        enqueue_pattern_if_new({goal.var});
     }
 
     /*

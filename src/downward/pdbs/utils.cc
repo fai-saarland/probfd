@@ -63,8 +63,8 @@ vector<int> get_non_goal_variables(const TaskProxy& task_proxy)
     size_t num_vars = task_proxy.get_variables().size();
     GoalsProxy goals = task_proxy.get_goals();
     vector<bool> is_goal(num_vars, false);
-    for (FactProxy goal : goals) {
-        is_goal[goal.get_variable().get_id()] = true;
+    for (FactPair goal : goals) {
+        is_goal[goal.var] = true;
     }
 
     vector<int> non_goal_variables;

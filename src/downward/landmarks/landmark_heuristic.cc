@@ -189,7 +189,7 @@ bool LandmarkHeuristic::operator_is_preferred(
         if (!does_fire(effect, state)) {
             continue;
         }
-        const FactPair fact_pair = effect.get_fact().get_pair();
+        const FactPair fact_pair = effect.get_fact();
         if (landmarks_achieved_by_fact.contains(fact_pair)) {
             for (const int id : landmarks_achieved_by_fact[fact_pair]) {
                 if (future.test(id)) {

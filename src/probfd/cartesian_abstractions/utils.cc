@@ -37,7 +37,7 @@ static bool operator_applicable(
     const utils::HashSet<FactPair>& facts)
 {
     return std::ranges::all_of(
-        op.get_preconditions() | std::views::transform(&FactProxy::get_pair),
+        op.get_preconditions(),
         [&](const FactPair& precondition) {
             return facts.contains(precondition);
         });
@@ -47,10 +47,10 @@ static bool outcome_can_achieve_fact(
     const ProbabilisticOutcomeProxy& outcome,
     const FactPair& fact)
 {
-    return std::ranges::any_of(
+    return std::ranges::contains(
         outcome.get_effects() |
             std::views::transform(&ProbabilisticEffectProxy::get_fact),
-        [&](FactProxy effect) { return effect.get_pair() == fact; });
+        fact);
 }
 
 static utils::HashSet<FactPair> compute_possibly_before_facts(
@@ -83,7 +83,7 @@ static utils::HashSet<FactPair> compute_possibly_before_facts(
                 // Add all facts that are achieved by an applicable
                 // operator.
                 for (ProbabilisticEffectProxy effect : outcome.get_effects()) {
-                    pb_facts.insert(effect.get_fact().get_pair());
+                    pb_facts.insert(effect.get_fact());
                 }
             }
         }

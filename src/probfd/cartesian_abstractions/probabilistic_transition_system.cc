@@ -50,11 +50,11 @@ get_postconditions_per_outcome(const ProbabilisticOperatorProxy& op)
     for (auto outcome : outcomes) {
         // Use map to obtain sorted postconditions.
         map<int, int> var_to_post;
-        for (FactProxy fact : op.get_preconditions()) {
-            var_to_post[fact.get_variable().get_id()] = fact.get_value();
+        for (const auto [var, value] : op.get_preconditions()) {
+            var_to_post[var] = value;
         }
         for (auto effect : outcome.get_effects()) {
-            FactPair fact = effect.get_fact().get_pair();
+            FactPair fact = effect.get_fact();
             var_to_post[fact.var] = fact.value;
         }
         vector<FactPair>& outcome_postconditions =
@@ -156,9 +156,7 @@ void ProbabilisticTransitionSystem::construct_trivial_abstraction(
     enlarge_vectors_by_one();
     assert(get_num_states() == 1);
 
-    for (const auto& op : ops) {
-        loops_[0].emplace_back(op.get_id());
-    }
+    for (const auto& op : ops) { loops_[0].emplace_back(op.get_id()); }
 
     num_loops_ += ops.size();
 }
@@ -298,13 +296,9 @@ void ProbabilisticTransitionSystem::rewire_incoming_transitions(
 
             assert(v1_possible || v2_possible);
 
-            if (v1_possible) {
-                incoming_[v1_id].push_back(transition);
-            }
+            if (v1_possible) { incoming_[v1_id].push_back(transition); }
 
-            if (v2_possible) {
-                incoming_[v2_id].push_back(transition);
-            }
+            if (v2_possible) { incoming_[v2_id].push_back(transition); }
         }
     }
 }

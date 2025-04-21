@@ -79,9 +79,7 @@ static void compute_eff_pre_neighbors(
     }
 
     // Remove elements of pattern.
-    for (int var : pattern) {
-        candidates.erase(var);
-    }
+    for (int var : pattern) { candidates.erase(var); }
 
     result.assign(candidates.begin(), candidates.end());
 }
@@ -161,11 +159,8 @@ void PatternCollectionGeneratorSystematic::build_sga_patterns(
     */
 
     // Build goal patterns.
-    for (FactProxy goal : task_proxy.get_goals()) {
-        int var_id = goal.get_variable().get_id();
-        Pattern goal_pattern;
-        goal_pattern.push_back(var_id);
-        enqueue_pattern_if_new(goal_pattern, patterns, pattern_set);
+    for (FactPair goal : task_proxy.get_goals()) {
+        enqueue_pattern_if_new({goal.var}, patterns, pattern_set);
     }
 
     /*

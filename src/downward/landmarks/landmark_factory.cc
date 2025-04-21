@@ -93,9 +93,9 @@ bool LandmarkFactory::is_landmark_precondition(
 {
     /* Test whether the landmark is used by the operator as a precondition.
     A disjunctive landmarks is used if one of its disjuncts is used. */
-    for (FactProxy pre : op.get_preconditions()) {
+    for (FactPair pre : op.get_preconditions()) {
         for (const FactPair& lm_fact : landmark.facts) {
-            if (pre.get_pair() == lm_fact) return true;
+            if (pre == lm_fact) return true;
         }
     }
     return false;
@@ -135,9 +135,7 @@ void LandmarkFactory::edge_add(
 
 void LandmarkFactory::discard_all_orderings()
 {
-    if (log.is_at_least_normal()) {
-        log << "Removing all orderings." << endl;
-    }
+    if (log.is_at_least_normal()) { log << "Removing all orderings." << endl; }
     for (auto& node : lm_graph->get_nodes()) {
         node->children.clear();
         node->parents.clear();
@@ -158,21 +156,19 @@ void LandmarkFactory::generate_operators_lookups(const TaskProxy& task_proxy)
     for (OperatorProxy op : operators) {
         const EffectsProxy effects = op.get_effects();
         for (EffectProxy effect : effects) {
-            const FactProxy effect_fact = effect.get_fact();
-            operators_eff_lookup[effect_fact.get_variable().get_id()]
-                                [effect_fact.get_value()]
-                                    .push_back(get_operator_or_axiom_id(op));
+            const FactPair effect_fact = effect.get_fact();
+            operators_eff_lookup[effect_fact.var][effect_fact.value].push_back(
+                get_operator_or_axiom_id(op));
         }
     }
     for (AxiomProxy axiom : task_proxy.get_axioms()) {
         const EffectsProxy effects = axiom.get_effects();
         for (EffectProxy effect : effects) {
-            const FactProxy effect_fact = effect.get_fact();
-            operators_eff_lookup[effect_fact.get_variable().get_id()]
-                                [effect_fact.get_value()]
-                                    .push_back(get_operator_or_axiom_id(axiom));
+            const FactPair effect_fact = effect.get_fact();
+            operators_eff_lookup[effect_fact.var][effect_fact.value].push_back(
+                get_operator_or_axiom_id(axiom));
         }
     }
 }
 
-} // namespace landmarks
+} // namespace downward::landmarks

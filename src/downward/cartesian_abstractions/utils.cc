@@ -16,14 +16,14 @@ static bool operator_applicable(
     const OperatorProxy& op,
     const utils::HashSet<FactPair>& facts)
 {
-    for (FactProxy precondition : op.get_preconditions()) {
-        if (!facts.contains(precondition.get_pair())) return false;
+    for (FactPair precondition : op.get_preconditions()) {
+        if (!facts.contains(precondition)) return false;
     }
     return true;
 }
 
 static bool
-operator_achieves_fact(const OperatorProxy& op, const FactProxy& fact)
+operator_achieves_fact(const OperatorProxy& op, FactPair fact)
 {
     for (EffectProxy effect : op.get_effects()) {
         if (effect.get_fact() == fact) return true;
@@ -32,7 +32,7 @@ operator_achieves_fact(const OperatorProxy& op, const FactProxy& fact)
 }
 
 static utils::HashSet<FactPair>
-compute_possibly_before_facts(const TaskProxy& task, const FactProxy& last_fact)
+compute_possibly_before_facts(const TaskProxy& task, FactPair last_fact)
 {
     utils::HashSet<FactPair> pb_facts;
 
@@ -58,7 +58,7 @@ compute_possibly_before_facts(const TaskProxy& task, const FactProxy& last_fact)
             // Add all facts that are achieved by an applicable operator.
             if (operator_applicable(op, pb_facts)) {
                 for (EffectProxy effect : op.get_effects()) {
-                    pb_facts.insert(effect.get_fact().get_pair());
+                    pb_facts.insert(effect.get_fact());
                 }
             }
         }
@@ -67,11 +67,11 @@ compute_possibly_before_facts(const TaskProxy& task, const FactProxy& last_fact)
 }
 
 utils::HashSet<FactPair>
-get_relaxed_possible_before(const TaskProxy& task, const FactProxy& fact)
+get_relaxed_possible_before(const TaskProxy& task, FactPair fact)
 {
     utils::HashSet<FactPair> reachable_facts =
         compute_possibly_before_facts(task, fact);
-    reachable_facts.insert(fact.get_pair());
+    reachable_facts.insert(fact);
     return reachable_facts;
 }
 

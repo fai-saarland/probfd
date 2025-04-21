@@ -106,8 +106,8 @@ RelaxationHeuristic::RelaxationHeuristic(
     // Build goal propositions.
     GoalsProxy goals = task_proxy.get_goals();
     goal_propositions.reserve(goals.size());
-    for (FactProxy goal : goals) {
-        PropID prop_id = get_prop_id(goal.get_pair());
+    for (FactPair goal : goals) {
+        PropID prop_id = get_prop_id(goal);
         propositions[prop_id].is_goal = true;
         goal_propositions.push_back(prop_id);
     }
@@ -183,15 +183,15 @@ void RelaxationHeuristic::build_unary_operators(const AxiomOrOperatorProxy& op)
     vector<PropID> precondition_props;
     PreconditionsProxy preconditions = op.get_preconditions();
     precondition_props.reserve(preconditions.size());
-    for (FactProxy precondition : preconditions) {
-        precondition_props.push_back(get_prop_id(precondition.get_pair()));
+    for (FactPair precondition : preconditions) {
+        precondition_props.push_back(get_prop_id(precondition));
     }
     for (EffectProxy effect : op.get_effects()) {
-        PropID effect_prop = get_prop_id(effect.get_fact().get_pair());
+        PropID effect_prop = get_prop_id(effect.get_fact());
         EffectConditionsProxy eff_conds = effect.get_conditions();
         precondition_props.reserve(preconditions.size() + eff_conds.size());
-        for (FactProxy eff_cond : eff_conds) {
-            precondition_props.push_back(get_prop_id(eff_cond.get_pair()));
+        for (FactPair eff_cond : eff_conds) {
+            precondition_props.push_back(get_prop_id(eff_cond));
         }
 
         // The sort-unique can eventually go away. See issue497.

@@ -37,32 +37,30 @@ void LandmarkFactoryRpgSasp::build_dtg_successors(const TaskProxy& task_proxy)
     for (OperatorProxy op : task_proxy.get_operators()) {
         // build map for precondition
         unordered_map<int, int> precondition_map;
-        for (FactProxy precondition : op.get_preconditions())
-            precondition_map[precondition.get_variable().get_id()] =
-                precondition.get_value();
+        for (const auto [var, value] : op.get_preconditions())
+            precondition_map[var] = value;
 
         for (EffectProxy effect : op.get_effects()) {
             // build map for effect condition
             unordered_map<int, int> eff_condition;
-            for (FactProxy effect_condition : effect.get_conditions())
-                eff_condition[effect_condition.get_variable().get_id()] =
-                    effect_condition.get_value();
+            for (const auto [var, value] : effect.get_conditions())
+                eff_condition[var] = value;
 
             // whenever the operator can change the value of a variable from pre
             // to post, we insert post into dtg_successors[var_id][pre]
-            FactProxy effect_fact = effect.get_fact();
-            int var_id = effect_fact.get_variable().get_id();
-            int post = effect_fact.get_value();
-            if (precondition_map.count(var_id)) {
+            FactPair effect_fact = effect.get_fact();
+            int var_id = effect_fact.var;
+            int post = effect_fact.value;
+            if (precondition_map.contains(var_id)) {
                 int pre = precondition_map[var_id];
-                if (eff_condition.count(var_id) && eff_condition[var_id] != pre)
+                if (eff_condition.contains(var_id) && eff_condition[var_id] != pre)
                     continue; // confliction pre- and effect condition
                 add_dtg_successor(var_id, pre, post);
             } else {
-                if (eff_condition.count(var_id)) {
+                if (eff_condition.contains(var_id)) {
                     add_dtg_successor(var_id, eff_condition[var_id], post);
                 } else {
-                    int dom_size = effect_fact.get_variable().get_domain_size();
+                    int dom_size = variables[var_id].get_domain_size();
                     for (int pre = 0; pre < dom_size; ++pre)
                         add_dtg_successor(var_id, pre, post);
                 }
@@ -86,14 +84,14 @@ void LandmarkFactoryRpgSasp::get_greedy_preconditions_for_lm(
     // takes into account operator preconditions, but only reports those effect
     // conditions that are true for ALL effects achieving the LM.
 
+    const auto variables = task_proxy.get_variables();
+
     vector<bool> has_precondition_on_var(
         task_proxy.get_variables().size(),
         false);
-    for (FactProxy precondition : op.get_preconditions()) {
-        result.emplace(
-            precondition.get_variable().get_id(),
-            precondition.get_value());
-        has_precondition_on_var[precondition.get_variable().get_id()] = true;
+    for (const auto [var, value] : op.get_preconditions()) {
+        result.emplace(var, value);
+        has_precondition_on_var[var] = true;
     }
 
     // If there is an effect but no precondition on a variable v with domain
@@ -103,10 +101,10 @@ void LandmarkFactoryRpgSasp::get_greedy_preconditions_for_lm(
     State initial_state = task_proxy.get_initial_state();
     EffectsProxy effects = op.get_effects();
     for (EffectProxy effect : effects) {
-        FactProxy effect_fact = effect.get_fact();
-        int var_id = effect_fact.get_variable().get_id();
+        FactPair effect_fact = effect.get_fact();
+        int var_id = effect_fact.var;
         if (!has_precondition_on_var[var_id] &&
-            effect_fact.get_variable().get_domain_size() == 2) {
+            variables[var_id].get_domain_size() == 2) {
             for (const FactPair& lm_fact : landmark.facts) {
                 if (lm_fact.var == var_id &&
                     initial_state[var_id] != lm_fact.value) {
@@ -120,9 +118,9 @@ void LandmarkFactoryRpgSasp::get_greedy_preconditions_for_lm(
     // Check for lmp in conditional effects
     set<int> lm_props_achievable;
     for (EffectProxy effect : effects) {
-        FactProxy effect_fact = effect.get_fact();
+        FactPair effect_fact = effect.get_fact();
         for (size_t j = 0; j < landmark.facts.size(); ++j)
-            if (landmark.facts[j] == effect_fact.get_pair())
+            if (landmark.facts[j] == effect_fact)
                 lm_props_achievable.insert(j);
     }
     // Intersect effect conditions of all effects that can achieve lmp
@@ -130,20 +128,18 @@ void LandmarkFactoryRpgSasp::get_greedy_preconditions_for_lm(
     bool init = true;
     for (int lm_prop : lm_props_achievable) {
         for (EffectProxy effect : effects) {
-            FactProxy effect_fact = effect.get_fact();
+            FactPair effect_fact = effect.get_fact();
             if (!init && intersection.empty()) break;
             unordered_map<int, int> current_cond;
-            if (landmark.facts[lm_prop] == effect_fact.get_pair()) {
+            if (landmark.facts[lm_prop] == effect_fact) {
                 EffectConditionsProxy effect_conditions =
                     effect.get_conditions();
                 if (effect_conditions.empty()) {
                     intersection.clear();
                     break;
                 } else {
-                    for (FactProxy effect_condition : effect_conditions)
-                        current_cond.emplace(
-                            effect_condition.get_variable().get_id(),
-                            effect_condition.get_value());
+                    for (const auto [var, value] : effect_conditions)
+                        current_cond.emplace(var, value);
                 }
             }
             if (init) {
@@ -433,8 +429,8 @@ void LandmarkFactoryRpgSasp::generate_relaxed_landmarks(
     build_dtg_successors(task_proxy);
     build_disjunction_classes(task_proxy);
 
-    for (FactProxy goal : task_proxy.get_goals()) {
-        Landmark landmark({goal.get_pair()}, false, false, true);
+    for (FactPair goal : task_proxy.get_goals()) {
+        Landmark landmark({goal}, false, false, true);
         LandmarkNode& lm_node = lm_graph->add_landmark(std::move(landmark));
         open_landmarks.push_back(&lm_node);
     }

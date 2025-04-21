@@ -34,8 +34,8 @@ void LandmarkFactoryRpgExhaust::generate_relaxed_landmarks(
     }
 
     // insert goal landmarks and mark them as goals
-    for (FactProxy goal : task_proxy.get_goals()) {
-        Landmark landmark({goal.get_pair()}, false, false, true);
+    for (FactPair goal : task_proxy.get_goals()) {
+        Landmark landmark({goal}, false, false, true);
         lm_graph->add_landmark(std::move(landmark));
     }
     // test all other possible facts

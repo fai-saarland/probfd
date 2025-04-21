@@ -37,13 +37,14 @@ class DTGFactory {
 
     void allocate_graphs_and_nodes(DTGs& dtgs);
     void initialize_index_structures(int num_dtgs);
-    void create_transitions(DTGs& dtgs);
+    void create_transitions(DTGs& dtgs, const VariablesProxy& variables);
     void process_effect(
+        const VariablesProxy& variables,
         const EffectProxy& eff,
         const AxiomOrOperatorProxy& op,
         DTGs& dtgs);
     void update_transition_condition(
-        const FactProxy& fact,
+        const FactPair& fact,
         DomainTransitionGraph* dtg,
         std::vector<LocalAssignment>& condition);
     void extend_global_to_local_mapping_if_necessary(
@@ -155,6 +156,6 @@ class DomainTransitionGraph {
 public:
     DomainTransitionGraph(int var_index, int node_count);
 };
-} // namespace domain_transition_graph
+} // namespace downward::domain_transition_graph
 
 #endif

@@ -33,7 +33,7 @@ public:
 
             for (const ProbabilisticEffectProxy& effect :
                  outcome.get_effects()) {
-                const auto& [var, val] = effect.get_fact().get_pair();
+                const auto& [var, val] = effect.get_fact();
 
                 if (std::ranges::contains(pattern, var)) {
                     projected_effects.emplace_back(var, val);
@@ -162,7 +162,7 @@ std::vector<std::vector<bool>> compute_prob_orthogonal_vars(
 
         for (const ProbabilisticOutcomeProxy& outcome : outcomes) {
             for (const auto& effect : outcome.get_effects()) {
-                const int new_var = effect.get_fact().get_variable().get_id();
+                const int new_var = effect.get_fact().var;
                 if (affected_vars.insert(new_var).second) {
                     are_orthogonal[new_var][new_var] = false;
                     for (const int old_var : affected_vars) {

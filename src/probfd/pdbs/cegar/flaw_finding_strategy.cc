@@ -19,8 +19,8 @@ bool collect_flaws_(
     bool flaws_found = false;
 
     // Collect all non-satisfied goal fact variables.
-    for (const FactProxy fact : facts) {
-        if (const auto& [var, val] = fact.get_pair(); state[var] != val) {
+    for (const auto& [var, val] : facts) {
+        if (state[var] != val) {
             Flaw flaw(var, is_precondition);
             if (accept_flaw(flaw)) {
                 flaws_found = true;

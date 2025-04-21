@@ -105,9 +105,8 @@ void PatternCollectionGeneratorGenetic::remove_irrelevant_variables(
     unordered_set<int> in_pruned_pattern;
 
     vector<int> vars_to_check;
-    for (FactProxy goal : task_proxy.get_goals()) {
-        int var_id = goal.get_variable().get_id();
-        if (in_original_pattern.count(var_id)) {
+    for (FactPair goal : task_proxy.get_goals()) {
+        if (int var_id = goal.var; in_original_pattern.contains(var_id)) {
             // Goals are causally relevant.
             vars_to_check.push_back(var_id);
             in_pruned_pattern.insert(var_id);
@@ -127,8 +126,8 @@ void PatternCollectionGeneratorGenetic::remove_irrelevant_variables(
         const vector<int>& rel = cg.get_eff_to_pre(var);
         for (size_t i = 0; i < rel.size(); ++i) {
             int var_no = rel[i];
-            if (in_original_pattern.count(var_no) &&
-                !in_pruned_pattern.count(var_no)) {
+            if (in_original_pattern.contains(var_no) &&
+                !in_pruned_pattern.contains(var_no)) {
                 // Parents of relevant variables are causally relevant.
                 vars_to_check.push_back(var_no);
                 in_pruned_pattern.insert(var_no);

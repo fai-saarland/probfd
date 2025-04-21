@@ -40,9 +40,7 @@ static bool next_pattern(std::size_t num_variables, std::vector<int>& pattern)
         }
     }
 
-    if (idx == -1) {
-        overflow = true;
-    }
+    if (idx == -1) { overflow = true; }
 
     for (++idx; idx < static_cast<int>(pattern.size()); ++idx) {
         pattern[idx] = base++;
@@ -117,9 +115,7 @@ int HigherOrderHPOMGenerator::PatternInfo::get_updated_id(
     const std::vector<int>& state,
     const std::vector<int>& pstate) const
 {
-    if (pstate.empty()) {
-        return get_state_id(state);
-    }
+    if (pstate.empty()) { return get_state_id(state); }
 
     int res = 0;
 
@@ -213,8 +209,8 @@ void HigherOrderHPOMGenerator::initialize_constraints(
 
     std::vector<int> the_goal(num_variables, -1);
 
-    for (const FactProxy goal_fact : task_proxy.get_goals()) {
-        the_goal[goal_fact.get_variable().get_id()] = goal_fact.get_value();
+    for (const auto [var, value] : task_proxy.get_goals()) {
+        the_goal[var] = value;
     }
 
     // Build flow contraint coefficients for dummy goal action
@@ -253,8 +249,8 @@ void HigherOrderHPOMGenerator::initialize_constraints(
         // Get dense precondition
         std::vector<int> pre(num_variables, -1);
 
-        for (const FactProxy fact : op.get_preconditions()) {
-            pre[fact.get_variable().get_id()] = fact.get_value();
+        for (const auto [var, value] : op.get_preconditions()) {
+            pre[var] = value;
         }
 
         // For tying constraints, contains lp variable ranges of projections
@@ -288,7 +284,7 @@ void HigherOrderHPOMGenerator::initialize_constraints(
 
                     for (const auto effect_proxy : outcome.get_effects()) {
                         const auto& [eff_var, eff_val] =
-                            effect_proxy.get_fact().get_pair();
+                            effect_proxy.get_fact();
                         effects[eff_var] = eff_val;
                     }
 
@@ -301,15 +297,11 @@ void HigherOrderHPOMGenerator::initialize_constraints(
 
                     auto [it, inserted] = transitions.emplace(id, -probability);
 
-                    if (!inserted) {
-                        it->second -= probability;
-                    }
+                    if (!inserted) { it->second -= probability; }
                 }
 
                 // Pure self loop check
-                if (transitions.size() == 1) {
-                    continue;
-                }
+                if (transitions.size() == 1) { continue; }
 
                 for (const auto& [succ_id, prob] : transitions) {
                     assert(succ_id == astate_id || prob < 0.0_vt);

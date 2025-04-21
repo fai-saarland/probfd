@@ -15,9 +15,8 @@ static bool _possibly_fires(
     const EffectConditionsProxy& conditions,
     const vector<vector<bool>>& reached)
 {
-    for (FactProxy cond : conditions)
-        if (!reached[cond.get_variable().get_id()][cond.get_value()])
-            return false;
+    for (const auto [var, value] : conditions)
+        if (!reached[var][value]) return false;
     return true;
 }
 
@@ -47,17 +46,16 @@ bool possibly_reaches_lm(
     // Test whether all preconditions of o can be reached
     // Otherwise, operator is not applicable
     PreconditionsProxy preconditions = op.get_preconditions();
-    for (FactProxy pre : preconditions)
-        if (!reached[pre.get_variable().get_id()][pre.get_value()])
-            return false;
+    for (const auto [var, value] : preconditions)
+        if (!reached[var][value]) return false;
 
     // Go through all effects of o and check whether one can reach a
     // proposition in lmp
     for (EffectProxy effect : op.get_effects()) {
-        FactProxy effect_fact = effect.get_fact();
-        assert(!reached[effect_fact.get_variable().get_id()].empty());
+        FactPair effect_fact = effect.get_fact();
+        assert(!reached[effect_fact.var].empty());
         for (const FactPair& fact : landmark.facts) {
-            if (effect_fact.get_pair() == fact) {
+            if (effect_fact == fact) {
                 if (_possibly_fires(effect.get_conditions(), reached))
                     return true;
                 break;
@@ -117,9 +115,7 @@ static void dump_node(
         if (landmark.is_true_in_state(task_proxy.get_initial_state())) {
             cout << ", style=bold";
         }
-        if (landmark.is_true_in_goal) {
-            cout << ", style=filled";
-        }
+        if (landmark.is_true_in_goal) { cout << ", style=filled"; }
         cout << "];\n";
     }
 }
@@ -159,4 +155,4 @@ void dump_landmark_graph(
         log << "Landmark graph end." << endl;
     }
 }
-} // namespace landmarks
+} // namespace downward::landmarks

@@ -92,7 +92,7 @@ State StateRegistry::get_successor_state(
         vector<int> new_values = predecessor.get_unpacked_values();
         for (EffectProxy effect : op.get_effects()) {
             if (does_fire(effect, predecessor)) {
-                FactPair effect_pair = effect.get_fact().get_pair();
+                FactPair effect_pair = effect.get_fact();
                 new_values[effect_pair.var] = effect_pair.value;
             }
         }
@@ -110,7 +110,7 @@ State StateRegistry::get_successor_state(
     } else {
         for (EffectProxy effect : op.get_effects()) {
             if (does_fire(effect, predecessor)) {
-                FactPair effect_pair = effect.get_fact().get_pair();
+                FactPair effect_pair = effect.get_fact();
                 state_packer.set(buffer, effect_pair.var, effect_pair.value);
             }
         }

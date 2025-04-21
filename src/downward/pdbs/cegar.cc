@@ -177,8 +177,8 @@ CEGAR::CEGAR(
 #ifndef NDEBUG
     for (const FactPair& goal : goals) {
         bool is_goal = false;
-        for (FactProxy task_goal : task_proxy.get_goals()) {
-            if (goal == task_goal.get_pair()) {
+        for (FactPair task_goal : task_proxy.get_goals()) {
+            if (goal == task_goal) {
                 is_goal = true;
                 break;
             }
@@ -287,7 +287,7 @@ static void apply_op_to_state(vector<int>& state, const OperatorProxy& op)
 {
     for (EffectProxy effect : op.get_effects()) {
         assert(effect.get_conditions().empty());
-        FactPair effect_fact = effect.get_fact().get_pair();
+        FactPair effect_fact = effect.get_fact();
         state[effect_fact.var] = effect_fact.value;
     }
 }
@@ -298,15 +298,13 @@ FlawList CEGAR::get_violated_preconditions(
     const vector<int>& current_state) const
 {
     FlawList flaws;
-    for (FactProxy precondition : op.get_preconditions()) {
-        int var_id = precondition.get_variable().get_id();
-
+    for (const auto [var_id, value] : op.get_preconditions()) {
         // Ignore blacklisted variables.
-        if (blacklisted_variables.count(var_id)) {
+        if (blacklisted_variables.contains(var_id)) {
             continue;
         }
 
-        if (current_state[var_id] != precondition.get_value()) {
+        if (current_state[var_id] != value) {
             flaws.emplace_back(collection_index, var_id);
         }
     }

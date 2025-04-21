@@ -70,8 +70,8 @@ bool LandmarkFactoryRelaxation::relaxed_task_solvable(
         exclude.facts,
         use_unary_relaxation);
 
-    for (FactProxy goal : task_proxy.get_goals()) {
-        if (!reached[goal.get_variable().get_id()][goal.get_value()]) {
+    for (const auto [var, value] : task_proxy.get_goals()) {
+        if (!reached[var][value]) {
             return false;
         }
     }

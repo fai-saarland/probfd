@@ -125,10 +125,9 @@ class VEGraph {
             nodes[var.get_id()].resize(var.get_domain_size());
         }
         for (OperatorProxy op : task_proxy.get_operators()) {
-            for (FactProxy pre_proxy : op.get_preconditions()) {
-                FactPair pre = pre_proxy.get_pair();
+            for (FactPair pre : op.get_preconditions()) {
                 for (EffectProxy eff_proxy : op.get_effects()) {
-                    FactPair eff = eff_proxy.get_fact().get_pair();
+                    FactPair eff = eff_proxy.get_fact();
                     if (pre != eff) {
                         add_edge(pre, eff);
                     }
@@ -227,11 +226,6 @@ DeleteRelaxationRRConstraints::create_auxiliary_variables(
         int num_values = var.get_domain_size();
         for (int value = 0; value < num_values; ++value) {
             variables.emplace_back(0, 1, 0, use_integer_vars);
-#ifndef NDEBUG
-            variables.set_name(
-                variables.size() - 1,
-                "f_" + var.get_name() + "_" + var.get_fact(value).get_name());
-#endif
         }
     }
 
@@ -239,15 +233,9 @@ DeleteRelaxationRRConstraints::create_auxiliary_variables(
     lp_var_ids.fpa_ids.resize(ops.size());
     for (OperatorProxy op : ops) {
         for (EffectProxy eff_proxy : op.get_effects()) {
-            FactPair eff = eff_proxy.get_fact().get_pair();
+            FactPair eff = eff_proxy.get_fact();
             lp_var_ids.fpa_ids[op.get_id()][eff] = variables.size();
             variables.emplace_back(0, 1, 0, use_integer_vars);
-#ifndef NDEBUG
-            variables.set_name(
-                variables.size() - 1,
-                "f_" + eff_proxy.get_fact().get_name() + "_achieved_by_" +
-                    op.get_name());
-#endif
         }
     }
     return lp_var_ids;
@@ -337,7 +325,7 @@ void DeleteRelaxationRRConstraints::create_constraints(
     }
     for (OperatorProxy op : ops) {
         for (EffectProxy eff_proxy : op.get_effects()) {
-            FactPair eff = eff_proxy.get_fact().get_pair();
+            FactPair eff = eff_proxy.get_fact();
             lp::LPConstraint& constraint = constraints[get_constraint_id(eff)];
             constraint.insert(lp_var_ids.id_of_fpa(eff, op), -1);
         }
@@ -358,9 +346,8 @@ void DeleteRelaxationRRConstraints::create_constraints(
     utils::HashMap<pair<FactPair, FactPair>, int> constraint3_ids;
     for (OperatorProxy op : ops) {
         for (EffectProxy eff_proxy : op.get_effects()) {
-            FactPair eff = eff_proxy.get_fact().get_pair();
-            for (FactProxy pre_proxy : op.get_preconditions()) {
-                FactPair pre = pre_proxy.get_pair();
+            FactPair eff = eff_proxy.get_fact();
+            for (FactPair pre : op.get_preconditions()) {
                 if (pre == eff) {
                     continue;
                 }
@@ -387,8 +374,8 @@ void DeleteRelaxationRRConstraints::create_constraints(
       would be to replace all occurrences of f_p with 1 in all other constraints
       but this would be more complicated.
     */
-    for (FactProxy goal : task_proxy.get_goals()) {
-        variables[lp_var_ids.id_of_fp(goal.get_pair())].lower_bound = 1;
+    for (FactPair goal : task_proxy.get_goals()) {
+        variables[lp_var_ids.id_of_fp(goal)].lower_bound = 1;
     }
 
     /*
@@ -402,7 +389,7 @@ void DeleteRelaxationRRConstraints::create_constraints(
     */
     for (OperatorProxy op : ops) {
         for (EffectProxy eff_proxy : op.get_effects()) {
-            FactPair eff = eff_proxy.get_fact().get_pair();
+            FactPair eff = eff_proxy.get_fact();
             lp::LPConstraint constraint(0, infinity);
             constraint.insert(lp_var_ids.id_of_fpa(eff, op), -1);
             constraint.insert(op.get_id(), 1);
@@ -428,10 +415,9 @@ void DeleteRelaxationRRConstraints::create_constraints_ve(
       particular p_i) must be achieved earlier than p_j.
     */
     for (OperatorProxy op : ops) {
-        for (FactProxy pre_proxy : op.get_preconditions()) {
-            FactPair pre = pre_proxy.get_pair();
+        for (FactPair pre : op.get_preconditions()) {
             for (EffectProxy eff_proxy : op.get_effects()) {
-                FactPair eff = eff_proxy.get_fact().get_pair();
+                FactPair eff = eff_proxy.get_fact();
                 lp::LPConstraint constraint(0, infinity);
                 constraint.insert(lp_var_ids.id_of_e(make_pair(pre, eff)), 1);
                 constraint.insert(lp_var_ids.id_of_fpa(eff, op), -1);
@@ -498,10 +484,9 @@ void DeleteRelaxationRRConstraints::create_constraints_tl(
     }
 
     for (OperatorProxy op : task_proxy.get_operators()) {
-        for (FactProxy pre_proxy : op.get_preconditions()) {
-            FactPair pre = pre_proxy.get_pair();
+        for (FactPair pre : op.get_preconditions()) {
             for (EffectProxy eff_proxy : op.get_effects()) {
-                FactPair eff = eff_proxy.get_fact().get_pair();
+                FactPair eff = eff_proxy.get_fact();
                 if (pre == eff) {
                     // Prevail conditions are compiled away in the paper.
                     continue;

@@ -29,9 +29,8 @@ static bool is_one(value_t value)
 
 bool is_applicable(const ProbabilisticOperatorProxy& op, const State& state)
 {
-    for (FactProxy precondition : op.get_preconditions()) {
-        if (state[precondition.get_variable()] != precondition.get_value())
-            return false;
+    for (const auto [var, value] : op.get_preconditions()) {
+        if (state[var] != value) return false;
     }
     return true;
 }
@@ -164,8 +163,8 @@ void dump_probabilistic_task_(
     os << "Initial state (PDDL):" << endl;
     ::task_properties::dump_pddl(task_proxy, initial_state);
     os << "Initial state (FDR):" << endl;
-    ::task_properties::dump_fdr(task_proxy.get_variables(), initial_state);
-    ::task_properties::dump_goals(task_proxy.get_goals());
+    ::task_properties::dump_fdr(variables, initial_state);
+    ::task_properties::dump_goals(variables, task_proxy.get_goals());
 }
 
 } // namespace

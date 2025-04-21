@@ -50,7 +50,7 @@ std::vector<std::vector<value_t>> get_transition_probs_explicit(
         const value_t prob = out.get_probability();
 
         for (const ProbabilisticEffectProxy effect : out.get_effects()) {
-            const auto [var, val] = effect.get_fact().get_pair();
+            const auto [var, val] = effect.get_fact();
 
             possibly_updated.insert(var);
             auto& probs = p[var];

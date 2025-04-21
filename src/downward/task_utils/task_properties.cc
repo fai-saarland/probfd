@@ -139,12 +139,12 @@ void dump_fdr(const VariablesProxy& variables, const State& state)
     }
 }
 
-void dump_goals(const GoalsProxy& goals)
+void dump_goals(const VariablesProxy& variables, const GoalsProxy& goals)
 {
     utils::g_log << "Goal conditions:" << endl;
-    for (FactProxy goal : goals) {
-        utils::g_log << "  " << goal.get_variable().get_name() << ": "
-                     << goal.get_value() << endl;
+    for (const auto [var_id, value] : goals) {
+        auto var = variables[var_id];
+        utils::g_log << "  " << var.get_name() << ": " << value << endl;
     }
 }
 
@@ -174,8 +174,8 @@ void dump_task(const TaskProxy& task_proxy)
     utils::g_log << "Initial state (PDDL):" << endl;
     dump_pddl(task_proxy, initial_state);
     utils::g_log << "Initial state (FDR):" << endl;
-    dump_fdr(task_proxy.get_variables(), initial_state);
-    dump_goals(task_proxy.get_goals());
+    dump_fdr(variables, initial_state);
+    dump_goals(variables, task_proxy.get_goals());
 }
 
 PerTaskInformation<int_packer::IntPacker>
@@ -188,4 +188,4 @@ PerTaskInformation<int_packer::IntPacker>
         }
         return std::make_unique<int_packer::IntPacker>(variable_ranges);
     });
-} // namespace task_properties
+} // namespace downward::task_properties

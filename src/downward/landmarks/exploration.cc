@@ -67,14 +67,14 @@ void Exploration::build_unary_operators(const AxiomOrOperatorProxy& op)
     vector<Proposition*> precondition;
     vector<FactPair> precondition_facts1;
 
-    for (FactProxy pre : op.get_preconditions()) {
-        precondition_facts1.push_back(pre.get_pair());
+    for (FactPair pre : op.get_preconditions()) {
+        precondition_facts1.push_back(pre);
     }
     for (EffectProxy effect : op.get_effects()) {
         vector<FactPair> precondition_facts2(precondition_facts1);
         EffectConditionsProxy effect_conditions = effect.get_conditions();
-        for (FactProxy effect_condition : effect_conditions) {
-            precondition_facts2.push_back(effect_condition.get_pair());
+        for (FactPair effect_condition : effect_conditions) {
+            precondition_facts2.push_back(effect_condition);
         }
 
         sort(precondition_facts2.begin(), precondition_facts2.end());
@@ -83,7 +83,7 @@ void Exploration::build_unary_operators(const AxiomOrOperatorProxy& op)
             precondition.push_back(
                 &propositions[precondition_fact.var][precondition_fact.value]);
 
-        auto [var, value] = effect.get_fact().get_pair();
+        auto [var, value] = effect.get_fact();
         Proposition* effect_proposition = &propositions[var][value];
         int op_or_axiom_id = get_operator_or_axiom_id(op);
         unary_operators.emplace_back(
@@ -146,7 +146,7 @@ void Exploration::setup_exploration_queue(
     if (!use_unary_relaxation) {
         for (OperatorProxy op : task_proxy.get_operators()) {
             for (EffectProxy effect : op.get_effects()) {
-                auto [var, value] = effect.get_fact().get_pair();
+                auto [var, value] = effect.get_fact();
                 if (effect.get_conditions().empty() &&
                     propositions[var][value].excluded) {
                     excluded_op_ids.insert(op.get_id());

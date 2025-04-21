@@ -290,8 +290,8 @@ build_sorted_precondition(const PartialOperatorProxy& op)
 {
     vector<FactPair> precond;
     precond.reserve(op.get_preconditions().size());
-    for (FactProxy pre : op.get_preconditions())
-        precond.emplace_back(pre.get_pair());
+    for (FactPair pre : op.get_preconditions())
+        precond.emplace_back(pre);
     // Preconditions must be sorted by variable.
     sort(precond.begin(), precond.end());
     return precond;

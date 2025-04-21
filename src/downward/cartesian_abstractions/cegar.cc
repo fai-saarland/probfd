@@ -27,10 +27,8 @@ static CartesianSet get_cartesian_set(
     const ConditionsProxy& conditions)
 {
     CartesianSet cartesian_set(domain_sizes);
-    for (FactProxy condition : conditions) {
-        cartesian_set.set_single_value(
-            condition.get_variable().get_id(),
-            condition.get_value());
+    for (const auto [var, value] : conditions) {
+        cartesian_set.set_single_value(var, value);
     }
     return cartesian_set;
 }
@@ -134,7 +132,7 @@ void CEGAR::separate_facts_unreachable_before_goal()
     assert(abstraction->get_goals().size() == 1);
     assert(abstraction->get_num_states() == 1);
     assert(task_proxy.get_goals().size() == 1);
-    FactProxy goal = task_proxy.get_goals()[0];
+    FactPair goal = task_proxy.get_goals()[0];
     utils::HashSet<FactPair> reachable_facts =
         get_relaxed_possible_before(task_proxy, goal);
     for (VariableProxy var : task_proxy.get_variables()) {

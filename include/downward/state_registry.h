@@ -119,6 +119,7 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
         const segmented_vector::SegmentedArrayVector<PackedStateBin>&
             state_data_pool;
         int state_size;
+
         StateIDSemanticHash(
             const segmented_vector::SegmentedArrayVector<PackedStateBin>&
                 state_data_pool,
@@ -132,9 +133,7 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
         {
             const PackedStateBin* data = state_data_pool[id];
             utils::HashState hash_state;
-            for (int i = 0; i < state_size; ++i) {
-                hash_state.feed(data[i]);
-            }
+            for (int i = 0; i < state_size; ++i) { hash_state.feed(data[i]); }
             return hash_state.get_hash32();
         }
     };
@@ -143,6 +142,7 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
         const segmented_vector::SegmentedArrayVector<PackedStateBin>&
             state_data_pool;
         int state_size;
+
         StateIDSemanticEqual(
             const segmented_vector::SegmentedArrayVector<PackedStateBin>&
                 state_data_pool,
@@ -234,7 +234,7 @@ public:
             std::vector<int> new_values = predecessor.get_unpacked_values();
             for (auto effect : effects) {
                 if (does_fire(effect, predecessor)) {
-                    FactPair effect_pair = effect.get_fact().get_pair();
+                    FactPair effect_pair = effect.get_fact();
                     new_values[effect_pair.var] = effect_pair.value;
                 }
             }
@@ -247,7 +247,7 @@ public:
         } else {
             for (auto effect : effects) {
                 if (does_fire(effect, predecessor)) {
-                    FactPair effect_pair = effect.get_fact().get_pair();
+                    FactPair effect_pair = effect.get_fact();
                     state_packer.set(
                         buffer,
                         effect_pair.var,
@@ -324,6 +324,6 @@ public:
 
     const_iterator end() const { return const_iterator(*this, size()); }
 };
-}
+} // namespace downward
 
 #endif // DOWNWARD_STATE_REGISTRY_H

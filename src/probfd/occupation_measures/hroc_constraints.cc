@@ -85,9 +85,8 @@ void HROCGenerator::initialize_constraints(
         lp_variables.emplace_back(1, 1, 0);
     }
 
-    for (const FactProxy goal_fact : task_proxy.get_goals()) {
-        const std::size_t off = ncc_offsets_[goal_fact.get_variable().get_id()];
-        constraints[off + goal_fact.get_value()].insert(0, -1);
+    for (const auto [var, value] : task_proxy.get_goals()) {
+        constraints[ncc_offsets_[var] + value].insert(0, -1);
     }
 
     for (const ProbabilisticOperatorProxy op : task_proxy.get_operators()) {
@@ -114,9 +113,9 @@ void HROCGenerator::initialize_constraints(
             lp_variables.emplace_back(0, inf, cost);
 
             for (const auto& effect : outcome.get_effects()) {
-                const FactProxy fact = effect.get_fact();
-                const int var = fact.get_variable().get_id();
-                const int val = fact.get_value();
+                const FactPair fact = effect.get_fact();
+                const int var = fact.var;
+                const int val = fact.value;
 
                 auto* var_constraints = &constraints[0] + ncc_offsets_[var];
 

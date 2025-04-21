@@ -84,17 +84,14 @@ int CGHeuristic::compute_heuristic(const State& ancestor_state)
     setup_domain_transition_graphs();
 
     int heuristic = 0;
-    for (FactProxy goal : task_proxy.get_goals()) {
-        const VariableProxy var = goal.get_variable();
-        int var_no = var.get_id();
-        int from = state[var_no], to = goal.get_value();
-        DomainTransitionGraph* dtg = transition_graphs[var_no].get();
-        int cost_for_goal = get_transition_cost(state, dtg, from, to);
+    for (const auto [var, value] : task_proxy.get_goals()) {
+        DomainTransitionGraph* dtg = transition_graphs[var].get();
+        int cost_for_goal = get_transition_cost(state, dtg, state[var], value);
         if (cost_for_goal == numeric_limits<int>::max()) {
             return DEAD_END;
         } else {
             heuristic += cost_for_goal;
-            mark_helpful_transitions(state, dtg, to);
+            mark_helpful_transitions(state, dtg, value);
         }
     }
     return heuristic;

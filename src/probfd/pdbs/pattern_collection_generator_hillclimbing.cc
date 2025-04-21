@@ -35,8 +35,8 @@ static std::vector<int> get_goal_variables(const PlanningTaskProxy& task_proxy)
     std::vector<int> goal_vars;
     GoalsProxy goals = task_proxy.get_goals();
     goal_vars.reserve(goals.size());
-    for (FactProxy goal : goals) {
-        goal_vars.push_back(goal.get_variable().get_id());
+    for (FactPair goal : goals) {
+        goal_vars.push_back(goal.var);
     }
     assert(utils::is_sorted_unique(goal_vars));
     return goal_vars;

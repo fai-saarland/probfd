@@ -32,10 +32,8 @@ CartesianSet get_cartesian_set(
     const ConditionsProxy& conditions)
 {
     CartesianSet cartesian_set(domain_sizes);
-    for (downward::FactProxy condition : conditions) {
-        cartesian_set.set_single_value(
-            condition.get_variable().get_id(),
-            condition.get_value());
+    for (const auto [var, value] : conditions) {
+        cartesian_set.set_single_value(var, value);
     }
     return cartesian_set;
 }

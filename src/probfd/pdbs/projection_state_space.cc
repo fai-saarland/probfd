@@ -100,7 +100,7 @@ static void compute_projection_operator_info(
                 for (; out_it != out_end; ++out_it, ++out_info_it) {
                     auto& [eff_it, eff_end] = out_it->effect_range;
                     while (eff_it != eff_end) {
-                        FactPair eff_fact = (*eff_it).get_fact().get_pair();
+                        FactPair eff_fact = (*eff_it).get_fact();
 
                         // Skip effect on var not in patterm
                         if (eff_fact.var < var) {
@@ -131,7 +131,7 @@ static void compute_projection_operator_info(
                 break;
             }
 
-            FactPair pre_fact = (*it).get_pair();
+            FactPair pre_fact = *it;
 
             // Skip precondition on var not in patterm
             if (pre_fact.var < var) {
@@ -141,7 +141,7 @@ static void compute_projection_operator_info(
 
             if (pre_fact.var > var) goto no_precondition;
 
-            int pre_val = (*it).get_value();
+            int pre_val = (*it).value;
             precondition.emplace_back(i, pre_val);
 
             auto out_it = outcomes.begin();
@@ -151,7 +151,7 @@ static void compute_projection_operator_info(
             for (; out_it != out_end; ++out_it, ++out_info_it) {
                 auto& [eff_it, eff_end] = out_it->effect_range;
                 while (eff_it != eff_end) {
-                    FactPair eff_fact = (*eff_it).get_fact().get_pair();
+                    FactPair eff_fact = (*eff_it).get_fact();
 
                     // Skip effect on var not in patterm
                     if (eff_fact.var < var) {
@@ -272,14 +272,14 @@ ProjectionStateSpace::ProjectionStateSpace(
 
     for (int v = 0; v != num_variables;) {
         const int p_var = pattern[v];
-        const FactProxy goal_fact = *goal_it;
-        const int g_var = goal_fact.get_variable().get_id();
+        const FactPair goal_fact = *goal_it;
+        const int g_var = goal_fact.var;
 
         if (p_var < g_var) {
             non_goal_vars.push_back(v++);
         } else {
             if (p_var == g_var) {
-                base += ranking_function.rank_fact(v++, goal_fact.get_value());
+                base += ranking_function.rank_fact(v++, goal_fact.value);
             }
 
             if (++goal_it == goal_end) {

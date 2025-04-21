@@ -36,7 +36,7 @@ void get_affected_vars(
 {
     for (const ProbabilisticOutcomeProxy& outcome : op.get_outcomes()) {
         for (const auto& effect : outcome.get_effects()) {
-            *it = effect.get_fact().get_variable().get_id();
+            *it = effect.get_fact().var;
         }
     }
 }

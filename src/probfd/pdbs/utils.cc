@@ -40,7 +40,7 @@ std::vector<int> get_goals_in_random_order(
     std::vector<int> goals;
 
     for (const auto fact : task_proxy.get_goals()) {
-        goals.push_back(fact.get_variable().get_id());
+        goals.push_back(fact.var);
     }
 
     rng.shuffle(goals);

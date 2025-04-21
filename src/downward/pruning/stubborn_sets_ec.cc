@@ -18,8 +18,7 @@ static inline bool is_v_applicable(
     vector<vector<int>>& preconditions)
 {
     int precondition_on_var = preconditions[op_no][var];
-    return precondition_on_var == -1 ||
-           precondition_on_var == state[var];
+    return precondition_on_var == -1 || precondition_on_var == state[var];
 }
 
 static vector<StubbornDTG> build_dtgs(TaskProxy task_proxy)
@@ -37,30 +36,30 @@ static vector<StubbornDTG> build_dtgs(TaskProxy task_proxy)
       from the usual DTG definition.
      */
 
+    const auto variables = task_proxy.get_variables();
+
     // Create the empty DTG nodes.
-    vector<StubbornDTG> dtgs = utils::map_vector<StubbornDTG>(
-        task_proxy.get_variables(),
-        [](const VariableProxy& var) {
+    vector<StubbornDTG> dtgs =
+        utils::map_vector<StubbornDTG>(variables, [](const VariableProxy& var) {
             return StubbornDTG(var.get_domain_size());
         });
 
     // Add DTG arcs.
     for (OperatorProxy op : task_proxy.get_operators()) {
         unordered_map<int, int> preconditions;
-        for (FactProxy pre : op.get_preconditions()) {
-            preconditions[pre.get_variable().get_id()] = pre.get_value();
+        for (const auto [var, value] : op.get_preconditions()) {
+            preconditions[var] = value;
         }
         for (EffectProxy effect : op.get_effects()) {
-            FactProxy fact = effect.get_fact();
-            VariableProxy var = fact.get_variable();
-            int var_id = var.get_id();
-            int eff_val = fact.get_value();
+            FactPair fact = effect.get_fact();
+            int var_id = fact.var;
+            int eff_val = fact.value;
             int pre_val =
                 utils::get_value_or_default(preconditions, var_id, -1);
 
             StubbornDTG& dtg = dtgs[var_id];
             if (pre_val == -1) {
-                int num_values = var.get_domain_size();
+                int num_values = variables[var_id].get_domain_size();
                 for (int value = 0; value < num_values; ++value) {
                     dtg[value].push_back(eff_val);
                 }
@@ -144,9 +143,8 @@ void StubbornSetsEC::compute_operator_preconditions(const TaskProxy& task_proxy)
         task_proxy.get_operators(),
         [&](const OperatorProxy& op) {
             vector<int> preconditions_on_var(num_variables, -1);
-            for (FactProxy precondition : op.get_preconditions()) {
-                FactPair fact = precondition.get_pair();
-                preconditions_on_var[fact.var] = fact.value;
+            for (const auto [var, value] : op.get_preconditions()) {
+                preconditions_on_var[var] = value;
             }
             return preconditions_on_var;
         });
@@ -188,9 +186,7 @@ void StubbornSetsEC::compute_active_operators(const State& state)
             }
         }
 
-        if (all_preconditions_are_active) {
-            active_ops[op_no] = true;
-        }
+        if (all_preconditions_are_active) { active_ops[op_no] = true; }
     }
 }
 
@@ -202,9 +198,7 @@ const vector<int>& StubbornSetsEC::get_conflicting_and_disabling(int op1_no)
             if (op1_no != op2_no) {
                 bool conflict = can_conflict(op1_no, op2_no);
                 bool disable = can_disable(op2_no, op1_no);
-                if (conflict || disable) {
-                    result.push_back(op2_no);
-                }
+                if (conflict || disable) { result.push_back(op2_no); }
             }
         }
         result.shrink_to_fit();
@@ -363,4 +357,4 @@ void StubbornSetsEC::handle_stubborn_operator(const State& state, int op_no)
     }
 }
 
-} // namespace stubborn_sets_ec
+} // namespace downward::stubborn_sets_ec

@@ -37,8 +37,8 @@ LandmarkCutLandmarks::LandmarkCutLandmarks(const TaskProxy& task_proxy)
 
     // Build artificial goal proposition and operator.
     vector<RelaxedProposition*> goal_op_pre, goal_op_eff;
-    for (FactProxy goal : task_proxy.get_goals()) {
-        goal_op_pre.push_back(get_proposition(goal.get_pair()));
+    for (FactPair goal : task_proxy.get_goals()) {
+        goal_op_pre.push_back(get_proposition(goal));
     }
     goal_op_eff.push_back(&artificial_goal);
     /* Use the invalid operator ID -1 so accessing
@@ -58,11 +58,11 @@ void LandmarkCutLandmarks::build_relaxed_operator(const OperatorProxy& op)
 {
     vector<RelaxedProposition*> precondition;
     vector<RelaxedProposition*> effects;
-    for (FactProxy pre : op.get_preconditions()) {
-        precondition.push_back(get_proposition(pre.get_pair()));
+    for (FactPair pre : op.get_preconditions()) {
+        precondition.push_back(get_proposition(pre));
     }
     for (EffectProxy eff : op.get_effects()) {
-        effects.push_back(get_proposition(eff.get_fact().get_pair()));
+        effects.push_back(get_proposition(eff.get_fact()));
     }
     add_relaxed_operator(
         std::move(precondition),

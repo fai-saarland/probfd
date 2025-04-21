@@ -42,9 +42,7 @@ void StubbornSets::compute_sorted_operators(const TaskProxy& task_proxy)
         [](const OperatorProxy& op) {
             return utils::sorted<FactPair>(utils::map_vector<FactPair>(
                 op.get_effects(),
-                [](const EffectProxy& eff) {
-                    return eff.get_fact().get_pair();
-                }));
+                [](const EffectProxy& eff) { return eff.get_fact(); }));
         });
 }
 
@@ -58,7 +56,7 @@ void StubbornSets::compute_achievers(const TaskProxy& task_proxy)
 
     for (const OperatorProxy op : task_proxy.get_operators()) {
         for (const EffectProxy effect : op.get_effects()) {
-            FactPair fact = effect.get_fact().get_pair();
+            FactPair fact = effect.get_fact();
             achievers[fact.var][fact.value].push_back(op.get_id());
         }
     }
@@ -81,4 +79,4 @@ void StubbornSets::prune(const State& state, vector<OperatorID>& op_ids)
     }
     op_ids.swap(remaining_op_ids);
 }
-} // namespace stubborn_sets
+} // namespace downward::stubborn_sets

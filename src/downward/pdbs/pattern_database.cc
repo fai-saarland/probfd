@@ -195,13 +195,13 @@ void PatternDatabase::build_abstract_operators(
     vector<bool> has_precond_and_effect_on_var(num_vars, false);
     vector<bool> has_precondition_on_var(num_vars, false);
 
-    for (FactProxy pre : op.get_preconditions())
-        has_precondition_on_var[pre.get_variable().get_id()] = true;
+    for (FactPair pre : op.get_preconditions())
+        has_precondition_on_var[pre.var] = true;
 
     for (EffectProxy eff : op.get_effects()) {
-        int var_id = eff.get_fact().get_variable().get_id();
+        int var_id = eff.get_fact().var;
         int pattern_var_id = variable_to_index[var_id];
-        int val = eff.get_fact().get_value();
+        int val = eff.get_fact().value;
         if (pattern_var_id != -1) {
             if (has_precondition_on_var[var_id]) {
                 has_precond_and_effect_on_var[var_id] = true;
@@ -211,15 +211,13 @@ void PatternDatabase::build_abstract_operators(
             }
         }
     }
-    for (FactProxy pre : op.get_preconditions()) {
-        int var_id = pre.get_variable().get_id();
-        int pattern_var_id = variable_to_index[var_id];
-        int val = pre.get_value();
+    for (const auto [var, value] : op.get_preconditions()) {
+        int pattern_var_id = variable_to_index[var];
         if (pattern_var_id != -1) { // variable occurs in pattern
-            if (has_precond_and_effect_on_var[var_id]) {
-                pre_pairs.emplace_back(pattern_var_id, val);
+            if (has_precond_and_effect_on_var[var]) {
+                pre_pairs.emplace_back(pattern_var_id, value);
             } else {
-                prev_pairs.emplace_back(pattern_var_id, val);
+                prev_pairs.emplace_back(pattern_var_id, value);
             }
         }
     }
@@ -274,11 +272,9 @@ void PatternDatabase::create_pdb(
 
     // compute abstract goal var-val pairs
     vector<FactPair> abstract_goals;
-    for (FactProxy goal : task_proxy.get_goals()) {
-        int var_id = goal.get_variable().get_id();
-        int val = goal.get_value();
-        if (variable_to_index[var_id] != -1) {
-            abstract_goals.emplace_back(variable_to_index[var_id], val);
+    for (const auto [var, value] : task_proxy.get_goals()) {
+        if (variable_to_index[var] != -1) {
+            abstract_goals.emplace_back(variable_to_index[var], value);
         }
     }
 
@@ -452,7 +448,7 @@ double PatternDatabase::compute_mean_finite_h() const
 bool PatternDatabase::is_operator_relevant(const OperatorProxy& op) const
 {
     for (EffectProxy effect : op.get_effects()) {
-        int var_id = effect.get_fact().get_variable().get_id();
+        int var_id = effect.get_fact().var;
         if (binary_search(pattern.begin(), pattern.end(), var_id)) {
             return true;
         }

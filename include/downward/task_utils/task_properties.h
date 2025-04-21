@@ -9,26 +9,24 @@
 namespace downward::task_properties {
 inline bool is_applicable(const AxiomOrOperatorProxy& op, const State& state)
 {
-    for (FactProxy precondition : op.get_preconditions()) {
-        if (state[precondition.get_variable()] != precondition.get_value())
-            return false;
+    for (const auto [var, value] : op.get_preconditions()) {
+        if (state[var] != value) return false;
     }
     return true;
 }
 
 inline bool is_applicable(const PartialOperatorProxy& op, const State& state)
 {
-    for (FactProxy precondition : op.get_preconditions()) {
-        if (state[precondition.get_variable()] != precondition.get_value())
-            return false;
+    for (const auto [var, value] : op.get_preconditions()) {
+        if (state[var] != value) return false;
     }
     return true;
 }
 
 inline bool is_goal_state(const PlanningTaskProxy& task, const State& state)
 {
-    for (FactProxy goal : task.get_goals()) {
-        if (state[goal.get_variable()] != goal.get_value()) return false;
+    for (const auto [var, value] : task.get_goals()) {
+        if (state[var] != value) return false;
     }
     return true;
 }
@@ -103,7 +101,8 @@ std::vector<FactPair> get_fact_pairs(const FactPairCollection& facts)
 extern void print_variable_statistics(const PlanningTaskProxy& task_proxy);
 extern void dump_pddl(const PlanningTaskProxy& task_proxy, const State& state);
 extern void dump_fdr(const VariablesProxy& variables, const State& state);
-extern void dump_goals(const GoalsProxy& goals);
+extern void
+dump_goals(const VariablesProxy& variables, const GoalsProxy& goals);
 extern void dump_task(const TaskProxy& task_proxy);
 
 extern PerTaskInformation<int_packer::IntPacker> g_state_packers;

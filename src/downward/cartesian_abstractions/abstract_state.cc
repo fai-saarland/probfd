@@ -65,12 +65,10 @@ CartesianSet AbstractState::regress(const OperatorProxy& op) const
 {
     CartesianSet regression = cartesian_set;
     for (EffectProxy effect : op.get_effects()) {
-        int var_id = effect.get_fact().get_variable().get_id();
-        regression.add_all(var_id);
+        regression.add_all(effect.get_fact().var);
     }
-    for (FactProxy precondition : op.get_preconditions()) {
-        int var_id = precondition.get_variable().get_id();
-        regression.set_single_value(var_id, precondition.get_value());
+    for (const auto [var, value] : op.get_preconditions()) {
+        regression.set_single_value(var, value);
     }
     return regression;
 }

@@ -155,8 +155,8 @@ void DeleteRelaxationIFConstraints::create_constraints(
       constraint).
           R_f = 1 for all goal facts f.
     */
-    for (FactProxy goal : task_proxy.get_goals()) {
-        variables[get_var_fact_reached(goal.get_pair())].lower_bound = 1;
+    for (FactPair goal : task_proxy.get_goals()) {
+        variables[get_var_fact_reached(goal)].lower_bound = 1;
     }
 
     /*
@@ -181,7 +181,7 @@ void DeleteRelaxationIFConstraints::create_constraints(
     }
     for (OperatorProxy op : ops) {
         for (EffectProxy eff : op.get_effects()) {
-            FactPair f = eff.get_fact().get_pair();
+            FactPair f = eff.get_fact();
             lp::LPConstraint& constraint = constraints[get_constraint_id(f)];
             constraint.insert(get_var_first_achiever(op, f), 1);
         }
@@ -193,7 +193,7 @@ void DeleteRelaxationIFConstraints::create_constraints(
     */
     for (OperatorProxy op : ops) {
         for (EffectProxy eff : op.get_effects()) {
-            FactPair f = eff.get_fact().get_pair();
+            FactPair f = eff.get_fact();
             lp::LPConstraint constraint(0, infinity);
             constraint.insert(get_var_op_used(op), 1);
             constraint.insert(get_var_first_achiever(op, f), -1);
@@ -206,9 +206,9 @@ void DeleteRelaxationIFConstraints::create_constraints(
           R_f >= U_o for each operator o and each of its preconditions f.
     */
     for (OperatorProxy op : ops) {
-        for (FactProxy f : op.get_preconditions()) {
+        for (FactPair f : op.get_preconditions()) {
             lp::LPConstraint constraint(0, infinity);
-            constraint.insert(get_var_fact_reached(f.get_pair()), 1);
+            constraint.insert(get_var_fact_reached(f), 1);
             constraint.insert(get_var_op_used(op), -1);
             constraints.push_back(constraint);
         }
@@ -220,10 +220,10 @@ void DeleteRelaxationIFConstraints::create_constraints(
               T_f <= T_o for each operator o and each of its preconditions f.
         */
         for (OperatorProxy op : ops) {
-            for (FactProxy f : op.get_preconditions()) {
+            for (FactPair f : op.get_preconditions()) {
                 lp::LPConstraint constraint(0, infinity);
                 constraint.insert(get_var_op_time(op), 1);
-                constraint.insert(get_var_fact_time(f.get_pair()), -1);
+                constraint.insert(get_var_fact_time(f), -1);
                 constraints.push_back(constraint);
             }
         }
@@ -239,7 +239,7 @@ void DeleteRelaxationIFConstraints::create_constraints(
         int M = ops.size() + 1;
         for (OperatorProxy op : ops) {
             for (EffectProxy eff : op.get_effects()) {
-                FactPair f = eff.get_fact().get_pair();
+                FactPair f = eff.get_fact();
                 lp::LPConstraint constraint(1 - M, infinity);
                 constraint.insert(get_var_fact_time(f), 1);
                 constraint.insert(get_var_op_time(op), -1);

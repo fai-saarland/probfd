@@ -177,7 +177,7 @@ bool LandmarkFactoryReasonableOrdersHPS::interferes(
                     trivially_conditioned_effects);
                 unordered_map<int, int> next_eff;
                 for (EffectProxy effect : effects) {
-                    FactPair effect_fact = effect.get_fact().get_pair();
+                    FactPair effect_fact = effect.get_fact();
                     if (effect.get_conditions().empty() &&
                         effect_fact.var != lm_fact_a.var) {
                         next_eff.emplace(effect_fact.var, effect_fact.value);
@@ -288,9 +288,9 @@ bool LandmarkFactoryReasonableOrdersHPS::effect_always_happens(
     map<int, pair<int, vector<FactPair>>> effect_conditions_by_variable;
     for (EffectProxy effect : effects) {
         EffectConditionsProxy effect_conditions = effect.get_conditions();
-        FactProxy effect_fact = effect.get_fact();
-        int var_id = effect_fact.get_variable().get_id();
-        int value = effect_fact.get_value();
+        FactPair effect_fact = effect.get_fact();
+        int var_id = effect_fact.var;
+        int value = effect_fact.value;
         if (effect_conditions.empty() ||
             nogood_effect_vars.find(var_id) != nogood_effect_vars.end()) {
             // Var has no condition or can take on different values, skipping
@@ -316,10 +316,10 @@ bool LandmarkFactoryReasonableOrdersHPS::effect_always_happens(
                 effect_conditions_by_variable.end() &&
             effect_conditions_by_variable.find(var_id)->second.first == value) {
             // We have seen this effect before, adding conditions
-            for (FactProxy effect_condition : effect_conditions) {
+            for (FactPair effect_condition : effect_conditions) {
                 vector<FactPair>& vec =
                     effect_conditions_by_variable.find(var_id)->second.second;
-                vec.push_back(effect_condition.get_pair());
+                vec.push_back(effect_condition);
             }
         } else {
             // We have not seen this effect before, making new effect entry
@@ -327,8 +327,8 @@ bool LandmarkFactoryReasonableOrdersHPS::effect_always_happens(
                 effect_conditions_by_variable
                     .emplace(var_id, make_pair(value, vector<FactPair>()))
                     .first->second.second;
-            for (FactProxy effect_condition : effect_conditions) {
-                vec.push_back(effect_condition.get_pair());
+            for (FactPair effect_condition : effect_conditions) {
+                vec.push_back(effect_condition);
             }
         }
     }

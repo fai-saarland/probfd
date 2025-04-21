@@ -68,14 +68,12 @@ ProbabilisticEffectProxy::get_conditions() const
         eff_index_);
 }
 
-FactProxy ProbabilisticEffectProxy::get_fact() const
+FactPair ProbabilisticEffectProxy::get_fact() const
 {
-    return FactProxy(
-        *task_,
-        task_->get_operator_outcome_effect(
-            op_index_,
-            outcome_index_,
-            eff_index_));
+    return task_->get_operator_outcome_effect(
+        op_index_,
+        outcome_index_,
+        eff_index_);
 }
 
 ProbabilisticEffectsProxy::ProbabilisticEffectsProxy(

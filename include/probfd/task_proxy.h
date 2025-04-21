@@ -76,7 +76,7 @@ public:
 
     /// Get a proxy for the established fact of the probabilistic effect.
     [[nodiscard]]
-    downward::FactProxy get_fact() const;
+    downward::FactPair get_fact() const;
 };
 
 /// Proxy class used to inspect the list of probabilistic effects of a

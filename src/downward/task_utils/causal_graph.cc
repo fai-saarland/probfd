@@ -138,10 +138,10 @@ struct CausalGraphBuilder {
         EffectsProxy effects = op.get_effects();
 
         // Handle pre->eff links from preconditions.
-        for (FactProxy pre : op.get_preconditions()) {
-            int pre_var_id = pre.get_variable().get_id();
+        for (FactPair pre : op.get_preconditions()) {
+            int pre_var_id = pre.var;
             for (EffectProxy eff : effects) {
-                int eff_var_id = eff.get_fact().get_variable().get_id();
+                int eff_var_id = eff.get_fact().var;
                 if (pre_var_id != eff_var_id)
                     handle_pre_eff_arc(pre_var_id, eff_var_id);
             }
@@ -149,10 +149,9 @@ struct CausalGraphBuilder {
 
         // Handle pre->eff links from effect conditions.
         for (EffectProxy eff : effects) {
-            VariableProxy eff_var = eff.get_fact().get_variable();
-            int eff_var_id = eff_var.get_id();
-            for (FactProxy pre : eff.get_conditions()) {
-                int pre_var_id = pre.get_variable().get_id();
+            int eff_var_id = eff.get_fact().var;
+            for (FactPair pre : eff.get_conditions()) {
+                int pre_var_id = pre.var;
                 if (pre_var_id != eff_var_id)
                     handle_pre_eff_arc(pre_var_id, eff_var_id);
             }
@@ -160,9 +159,9 @@ struct CausalGraphBuilder {
 
         // Handle eff->eff links.
         for (size_t i = 0; i < effects.size(); ++i) {
-            int eff1_var_id = effects[i].get_fact().get_variable().get_id();
+            int eff1_var_id = effects[i].get_fact().var;
             for (size_t j = i + 1; j < effects.size(); ++j) {
-                int eff2_var_id = effects[j].get_fact().get_variable().get_id();
+                int eff2_var_id = effects[j].get_fact().var;
                 if (eff1_var_id != eff2_var_id)
                     handle_eff_eff_edge(eff1_var_id, eff2_var_id);
             }

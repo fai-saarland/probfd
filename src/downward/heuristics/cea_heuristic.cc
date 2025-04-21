@@ -179,15 +179,15 @@ LocalProblem* ContextEnhancedAdditiveHeuristic::build_problem_for_goal() const
     GoalsProxy goals_proxy = task_proxy.get_goals();
 
     problem->context_variables = new vector<int>;
-    for (FactProxy goal : goals_proxy)
-        problem->context_variables->push_back(goal.get_variable().get_id());
+    for (FactPair goal : goals_proxy)
+        problem->context_variables->push_back(goal.var);
 
     for (size_t value = 0; value < 2; ++value)
         problem->nodes.push_back(LocalProblemNode(problem, goals_proxy.size()));
 
     vector<LocalAssignment> goals;
     for (size_t goal_no = 0; goal_no < goals_proxy.size(); ++goal_no) {
-        int goal_value = goals_proxy[goal_no].get_value();
+        int goal_value = goals_proxy[goal_no].value;
         goals.push_back(LocalAssignment(goal_no, goal_value));
     }
     vector<LocalAssignment> no_effects;

@@ -442,14 +442,14 @@ get_operator_postcondition(int num_vars, const OperatorProxy& op)
     vector<bool> has_effect_on_var(num_vars, false);
 
     for (EffectProxy effect : effects) {
-        FactProxy effect_fact = effect.get_fact();
-        postconditions.push_back(effect_fact.get_pair());
-        has_effect_on_var[effect_fact.get_variable().get_id()] = true;
+        FactPair effect_fact = effect.get_fact();
+        postconditions.push_back(effect_fact);
+        has_effect_on_var[effect_fact.var] = true;
     }
 
-    for (FactProxy precondition : op.get_preconditions()) {
-        if (!has_effect_on_var[precondition.get_variable().get_id()])
-            postconditions.push_back(precondition.get_pair());
+    for (FactPair precondition : op.get_preconditions()) {
+        if (!has_effect_on_var[precondition.var])
+            postconditions.push_back(precondition);
     }
 
     sort(postconditions.begin(), postconditions.end());

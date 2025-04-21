@@ -40,10 +40,9 @@ PatternCollectionInformation PatternCollectionGeneratorCombo::compute_patterns(
     set<int> used_vars(large_pattern.begin(), large_pattern.end());
     patterns->push_back(std::move(large_pattern));
 
-    for (FactProxy goal : task_proxy.get_goals()) {
-        int goal_var_id = goal.get_variable().get_id();
-        if (!used_vars.count(goal_var_id)) {
-            patterns->emplace_back(1, goal_var_id);
+    for (FactPair goal : task_proxy.get_goals()) {
+        if (const int goal_var = goal.var; !used_vars.contains(goal_var)) {
+            patterns->emplace_back(1, goal_var);
         }
     }
 
@@ -51,4 +50,4 @@ PatternCollectionInformation PatternCollectionGeneratorCombo::compute_patterns(
     return pci;
 }
 
-} // namespace pdbs
+} // namespace downward::pdbs

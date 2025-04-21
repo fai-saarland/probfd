@@ -389,12 +389,10 @@ public:
         return task->get_num_axiom_preconditions(axiom_index);
     }
 
-    FactProxy operator[](std::size_t fact_index) const
+    FactPair operator[](std::size_t fact_index) const
     {
         assert(fact_index < size());
-        return FactProxy(
-            *task,
-            task->get_axiom_precondition(axiom_index, fact_index));
+        return task->get_axiom_precondition(axiom_index, fact_index);
     }
 };
 
@@ -415,12 +413,10 @@ public:
         return task->get_num_operator_preconditions(op_index);
     }
 
-    FactProxy operator[](std::size_t fact_index) const
+    FactPair operator[](std::size_t fact_index) const
     {
         assert(fact_index < size());
-        return FactProxy(
-            *task,
-            task->get_operator_precondition(op_index, fact_index));
+        return task->get_operator_precondition(op_index, fact_index);
     }
 };
 
@@ -443,7 +439,7 @@ public:
         return std::visit([](const auto& arg) { return arg.size(); }, proxy);
     }
 
-    FactProxy operator[](std::size_t fact_index) const
+    FactPair operator[](std::size_t fact_index) const
     {
         return std::visit(
             [fact_index](const auto& arg) {
@@ -475,12 +471,10 @@ public:
         return task->get_num_axiom_effect_conditions(axiom_index, eff_index);
     }
 
-    FactProxy operator[](std::size_t index) const
+    FactPair operator[](std::size_t index) const
     {
         assert(index < size());
-        return FactProxy(
-            *task,
-            task->get_axiom_effect_condition(axiom_index, eff_index, index));
+        return task->get_axiom_effect_condition(axiom_index, eff_index, index);
     }
 };
 
@@ -506,12 +500,10 @@ public:
         return task->get_num_operator_effect_conditions(op_index, eff_index);
     }
 
-    FactProxy operator[](std::size_t index) const
+    FactPair operator[](std::size_t index) const
     {
         assert(index < size());
-        return FactProxy(
-            *task,
-            task->get_operator_effect_condition(op_index, eff_index, index));
+        return task->get_operator_effect_condition(op_index, eff_index, index);
     }
 };
 
@@ -535,7 +527,7 @@ public:
         return std::visit([](const auto& arg) { return arg.size(); }, proxy);
     }
 
-    FactProxy operator[](std::size_t fact_index) const
+    FactPair operator[](std::size_t fact_index) const
     {
         return std::visit(
             [fact_index](const auto& arg) {
@@ -563,9 +555,9 @@ public:
         return AxiomEffectConditionsProxy(*task, axiom_index, eff_index);
     }
 
-    FactProxy get_fact() const
+    FactPair get_fact() const
     {
-        return FactProxy(*task, task->get_axiom_effect(axiom_index, eff_index));
+        return task->get_axiom_effect(axiom_index, eff_index);
     }
 };
 
@@ -587,9 +579,9 @@ public:
         return OperatorEffectConditionsProxy(*task, op_index, eff_index);
     }
 
-    FactProxy get_fact() const
+    FactPair get_fact() const
     {
-        return FactProxy(*task, task->get_operator_effect(op_index, eff_index));
+        return task->get_operator_effect(op_index, eff_index);
     }
 };
 
@@ -616,7 +608,7 @@ public:
             proxy);
     }
 
-    FactProxy get_fact() const
+    FactPair get_fact() const
     {
         return std::visit(
             [](const auto& arg) { return arg.get_fact(); },
@@ -965,10 +957,10 @@ public:
 
     std::size_t size() const { return task->get_num_goals(); }
 
-    FactProxy operator[](std::size_t index) const
+    FactPair operator[](std::size_t index) const
     {
         assert(index < size());
-        return FactProxy(*task, task->get_goal_fact(index));
+        return task->get_goal_fact(index);
     }
 };
 
@@ -1070,7 +1062,7 @@ public:
 
         for (const auto effect : effects) {
             if (does_fire(effect, *this)) {
-                FactPair effect_fact = effect.get_fact().get_pair();
+                FactPair effect_fact = effect.get_fact();
                 new_values[effect_fact.var] = effect_fact.value;
             }
         }
@@ -1203,9 +1195,8 @@ inline VariableProxy FactProxy::get_variable() const
 template <typename Effect>
 bool does_fire(const Effect& effect, const State& state)
 {
-    for (FactProxy condition : effect.get_conditions()) {
-        if (state[condition.get_variable()] != condition.get_value())
-            return false;
+    for (const auto [var, value] : effect.get_conditions()) {
+        if (state[var] != value) return false;
     }
     return true;
 }

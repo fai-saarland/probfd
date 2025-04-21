@@ -35,15 +35,14 @@ void StateEquationConstraints::build_propositions(const TaskProxy& task_proxy)
     for (size_t op_id = 0; op_id < ops.size(); ++op_id) {
         const OperatorProxy& op = ops[op_id];
         vector<int> precondition(vars.size(), -1);
-        for (FactProxy condition : op.get_preconditions()) {
-            int pre_var_id = condition.get_variable().get_id();
-            precondition[pre_var_id] = condition.get_value();
+        for (const auto [var, value] : op.get_preconditions()) {
+            precondition[var] = value;
         }
         for (EffectProxy effect_proxy : op.get_effects()) {
-            FactProxy effect = effect_proxy.get_fact();
-            int var = effect.get_variable().get_id();
+            FactPair effect = effect_proxy.get_fact();
+            int var = effect.var;
             int pre = precondition[var];
-            int post = effect.get_value();
+            int post = effect.value;
             assert(post != -1);
             assert(pre != post);
 
@@ -97,8 +96,8 @@ void StateEquationConstraints::initialize_constraints(
     // Initialize goal state.
     VariablesProxy variables = task_proxy.get_variables();
     goal_state = vector<int>(variables.size(), numeric_limits<int>::max());
-    for (FactProxy goal : task_proxy.get_goals()) {
-        goal_state[goal.get_variable().get_id()] = goal.get_value();
+    for (const auto [var, value] : task_proxy.get_goals()) {
+        goal_state[var] = value;
     }
 }
 

@@ -27,21 +27,9 @@ namespace downward::cartesian_abstractions {
   time, plus 'fact' itself.
 */
 extern utils::HashSet<FactPair>
-get_relaxed_possible_before(const TaskProxy& task, const FactProxy& fact);
+get_relaxed_possible_before(const TaskProxy& task, FactPair fact);
 
 extern std::vector<int> get_domain_sizes(const VariablesProxy& variables);
 } // namespace cartesian_abstractions
-
-/*
-  TODO: Our proxy classes are meant to be temporary objects and as such
-  shouldn't be stored in containers. Once we find a way to avoid
-  storing them in containers, we should remove this hashing function.
-*/
-namespace downward::utils {
-inline void feed(HashState& hash_state, const FactProxy& fact)
-{
-    feed(hash_state, fact.get_pair());
-}
-} // namespace utils
 
 #endif

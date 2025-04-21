@@ -37,8 +37,8 @@ static vector<int> get_goal_variables(const TaskProxy& task_proxy)
     vector<int> goal_vars;
     GoalsProxy goals = task_proxy.get_goals();
     goal_vars.reserve(goals.size());
-    for (FactProxy goal : goals) {
-        goal_vars.push_back(goal.get_variable().get_id());
+    for (FactPair goal : goals) {
+        goal_vars.push_back(goal.var);
     }
     assert(utils::is_sorted_unique(goal_vars));
     return goal_vars;
@@ -480,9 +480,8 @@ PatternCollectionGeneratorHillclimbing::compute_patterns(
 
     // Generate initial collection: a pattern for each goal variable.
     PatternCollection initial_pattern_collection;
-    for (FactProxy goal : task_proxy.get_goals()) {
-        int goal_var_id = goal.get_variable().get_id();
-        initial_pattern_collection.emplace_back(1, goal_var_id);
+    for (FactPair goal : task_proxy.get_goals()) {
+        initial_pattern_collection.emplace_back(1, goal.var);
     }
     current_pdbs = std::make_unique<IncrementalCanonicalPDBs>(
         task_proxy,

@@ -33,11 +33,11 @@ static vector<FactPair> get_postconditions(const OperatorProxy& op)
 {
     // Use map to obtain sorted postconditions.
     map<int, int> var_to_post;
-    for (FactProxy fact : op.get_preconditions()) {
-        var_to_post[fact.get_variable().get_id()] = fact.get_value();
+    for (const auto [var, value] : op.get_preconditions()) {
+        var_to_post[var] = value;
     }
     for (EffectProxy effect : op.get_effects()) {
-        FactPair fact = effect.get_fact().get_pair();
+        FactPair fact = effect.get_fact();
         var_to_post[fact.var] = fact.value;
     }
     vector<FactPair> postconditions;

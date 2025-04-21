@@ -33,7 +33,7 @@ AxiomEvaluator::AxiomEvaluator(const PlanningTaskProxy& task_proxy)
         for (AxiomProxy axiom : axioms) {
             assert(axiom.get_effects().size() == 1);
             EffectProxy cond_effect = axiom.get_effects()[0];
-            FactPair effect = cond_effect.get_fact().get_pair();
+            FactPair effect = cond_effect.get_fact();
             int num_conditions = cond_effect.get_conditions().size();
             // Ignore axioms which set the variable to its default value.
             if (effect.value != axioms.get_default_axiom_value(effect.var)) {
@@ -54,9 +54,7 @@ AxiomEvaluator::AxiomEvaluator(const PlanningTaskProxy& task_proxy)
             int position = axiom_id_to_position[axiom.get_id()];
             if (position != -1) {
                 EffectProxy effect = axiom.get_effects()[0];
-                for (FactProxy condition : effect.get_conditions()) {
-                    int var_id = condition.get_variable().get_id();
-                    int val = condition.get_value();
+                for (const auto [var_id, val] : effect.get_conditions()) {
                     AxiomRule* rule = &rules[position];
                     axiom_literals[var_id][val].condition_of.push_back(rule);
                 }

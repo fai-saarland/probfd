@@ -49,9 +49,8 @@ void StubbornSetsAtomCentric::compute_consumers(const TaskProxy& task_proxy)
 
     for (OperatorProxy op : task_proxy.get_operators()) {
         int op_id = op.get_id();
-        for (FactProxy fact_proxy : op.get_preconditions()) {
-            FactPair fact = fact_proxy.get_pair();
-            consumers[fact.var][fact.value].push_back(op_id);
+        for (const auto [var, value] : op.get_preconditions()) {
+            consumers[var][value].push_back(op_id);
         }
     }
 

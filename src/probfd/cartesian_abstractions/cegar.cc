@@ -221,7 +221,7 @@ void CEGAR::separate_facts_unreachable_before_goal(
     assert(abstraction.get_num_states() == 1);
     assert(task_proxy.get_goals().size() == 1);
 
-    FactPair goal = task_proxy.get_goals()[0].get_pair();
+    FactPair goal = task_proxy.get_goals()[0];
     HashSet<FactPair> reachable_facts =
         get_relaxed_possible_before(task_proxy, goal);
     for (VariableProxy var : task_proxy.get_variables()) {

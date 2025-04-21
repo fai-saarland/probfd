@@ -84,9 +84,8 @@ void FTSFactory::initialize_transition_system_data(int max_num_labels)
     const GoalsProxy goals = task_proxy.get_goals();
     const State initial_state = task_proxy.get_initial_state();
 
-    auto goal_facts = goals | std::views::transform(&FactProxy::get_pair);
-    auto goals_it = goal_facts.begin();
-    const auto goals_end = goal_facts.end();
+    auto goals_it = goals.begin();
+    const auto goals_end = goals.end();
 
     transition_system_data_by_var.resize(variables.size());
 
@@ -144,12 +143,11 @@ void FTSFactory::build_transitions_for_operator(ProbabilisticOperatorProxy op)
             auto outcome_effects = outcomes[e].get_effects();
             if (auto& [eff_id, num_effs] = outcome_effects_it[e];
                 eff_id != num_effs &&
-                outcome_effects[eff_id].get_fact().get_variable().get_id() ==
-                    var_id) {
+                outcome_effects[eff_id].get_fact().var == var_id) {
                 // Has an effect on this variable
                 for (const int src : std::views::iota(0, range)) {
                     var_transitions[src].targets[e] =
-                        outcome_effects[eff_id].get_fact().get_value();
+                        outcome_effects[eff_id].get_fact().value;
                 }
                 ++eff_id;
             } else {
@@ -170,10 +168,8 @@ void FTSFactory::build_transitions_for_operator(ProbabilisticOperatorProxy op)
 
     int var_id = 0;
     for (; precondition_it != precondition_end; ++precondition_it, ++var_id) {
-        const auto [pre_var, pre_val] = (*precondition_it).get_pair();
-        for (; pre_var != var_id; ++var_id) {
-            on_no_precondition(var_id);
-        }
+        const auto [pre_var, pre_val] = *precondition_it;
+        for (; pre_var != var_id; ++var_id) { on_no_precondition(var_id); }
 
         // Has a precondition on this variable
         vector<Transition> var_transitions;
@@ -185,10 +181,9 @@ void FTSFactory::build_transitions_for_operator(ProbabilisticOperatorProxy op)
             auto outcome_effects = outcomes[e].get_effects();
             if (auto& [eff_id, num_effs] = outcome_effects_it[e];
                 eff_id != num_effs &&
-                outcome_effects[eff_id].get_fact().get_variable().get_id() ==
-                    var_id) {
+                outcome_effects[eff_id].get_fact().var == var_id) {
                 // Has an effect on this variable
-                targets[e] = outcome_effects[eff_id].get_fact().get_value();
+                targets[e] = outcome_effects[eff_id].get_fact().value;
                 ++eff_id;
             } else {
                 // Has no effect on this variable
@@ -206,9 +201,7 @@ void FTSFactory::build_transitions_for_operator(ProbabilisticOperatorProxy op)
             label_cost);
     }
 
-    for (; var_id != num_variables; ++var_id) {
-        on_no_precondition(var_id);
-    }
+    for (; var_id != num_variables; ++var_id) { on_no_precondition(var_id); }
 }
 
 void FTSFactory::build_transitions(const Labels& labels)
@@ -233,9 +226,10 @@ void FTSFactory::build_transitions(const Labels& labels)
             return std::tie(
                        left->get_probabilities(labels),
                        left->get_transitions()) <=>
-                   std::tie(
-                       right->get_probabilities(labels),
-                       right->get_transitions()) < 0;
+                       std::tie(
+                           right->get_probabilities(labels),
+                           right->get_transitions()) <
+                   0;
         };
 
         std::set<LocalLabelInfo*, decltype(cmp)> duplicates(cmp);

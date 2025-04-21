@@ -104,9 +104,7 @@ void HMHeuristic::update_hm_table()
                     update_hm_entry(partial_eff, c1 + op.get_cost());
 
                     int eff_size = partial_eff.size();
-                    if (eff_size < m) {
-                        extend_tuple(partial_eff, op);
-                    }
+                    if (eff_size < m) { extend_tuple(partial_eff, op); }
                 }
             }
         }
@@ -169,9 +167,7 @@ int HMHeuristic::eval(const Tuple& t) const
         assert(hm_table.count(tuple) == 1);
 
         int h = hm_table.at(tuple);
-        if (h > max) {
-            max = h;
-        }
+        if (h > max) { max = h; }
     }
     return max;
 }
@@ -198,9 +194,7 @@ int HMHeuristic::check_tuple_in_tuple(
                 break;
             }
         }
-        if (!found) {
-            return numeric_limits<int>::max();
-        }
+        if (!found) { return numeric_limits<int>::max(); }
     }
     return 0;
 }
@@ -217,7 +211,7 @@ HMHeuristic::Tuple HMHeuristic::get_operator_eff(const OperatorProxy& op) const
 {
     Tuple effects;
     for (EffectProxy eff : op.get_effects()) {
-        effects.push_back(eff.get_fact().get_pair());
+        effects.push_back(eff.get_fact());
     }
     sort(effects.begin(), effects.end());
     return effects;
@@ -229,10 +223,8 @@ bool HMHeuristic::contradict_effect_of(
     int val) const
 {
     for (EffectProxy eff : op.get_effects()) {
-        FactProxy fact = eff.get_fact();
-        if (fact.get_variable().get_id() == var && fact.get_value() != val) {
-            return true;
-        }
+        FactPair fact = eff.get_fact();
+        if (fact.var == var && fact.value != val) { return true; }
     }
     return false;
 }
@@ -252,9 +244,7 @@ void HMHeuristic::generate_all_tuples_aux(int var, int sz, const Tuple& base)
             Tuple tuple(base);
             tuple.emplace_back(i, j);
             hm_table[tuple] = 0;
-            if (sz > 1) {
-                generate_all_tuples_aux(i + 1, sz - 1, tuple);
-            }
+            if (sz > 1) { generate_all_tuples_aux(i + 1, sz - 1, tuple); }
         }
     }
 }
@@ -304,4 +294,4 @@ void HMHeuristic::dump_table() const
     }
 }
 
-} // namespace hm_heuristic
+} // namespace downward::hm_heuristic
