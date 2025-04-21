@@ -16,16 +16,15 @@ namespace probfd {
  *
  * @see ProbabilisticTaskProxy
  */
-class ProbabilisticTask : public downward::PlanningTask {
+class ProbabilisticTask
+    : public downward::PlanningTask
+    , public downward::OperatorCostFunction<value_t> {
 public:
     /// Get the cost of terminating in a goal state.
     virtual value_t get_goal_termination_cost() const = 0;
 
     /// Get the cost of terminating in a non-goal state.
     virtual value_t get_non_goal_termination_cost() const = 0;
-
-    /// Get the cost of the probabilistic operator with index \p op_index.
-    virtual value_t get_operator_cost(int op_index) const = 0;
 
     /// Get the number of probabilistic outcomes of the probabilistic operator
     /// with index \p op_index.

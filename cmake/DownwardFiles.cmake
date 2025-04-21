@@ -9,6 +9,7 @@ create_library(
         downward/evaluation_result
         downward/evaluator
         downward/evaluator_cache
+        downward/fact_pair
         downward/heuristic
         downward/mutex_information
         downward/open_list

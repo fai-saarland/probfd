@@ -794,20 +794,20 @@ public:
 };
 
 class GoalsProxy : public ProxyCollection<GoalsProxy> {
-    const PlanningTask* task;
+    const GoalFactList* goal_fact_list;
 
 public:
-    explicit GoalsProxy(const PlanningTask& task)
-        : task(&task)
+    explicit GoalsProxy(const GoalFactList& goal_fact_list)
+        : goal_fact_list(&goal_fact_list)
     {
     }
 
-    std::size_t size() const { return task->get_num_goals(); }
+    std::size_t size() const { return goal_fact_list->get_num_goals(); }
 
     FactPair operator[](std::size_t index) const
     {
         assert(index < size());
-        return task->get_goal_fact(index);
+        return goal_fact_list->get_goal_fact(index);
     }
 };
 
