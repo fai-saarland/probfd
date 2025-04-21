@@ -4,13 +4,13 @@
 #include "downward/axiom_space.h"
 #include "downward/fact_pair.h"
 #include "downward/goal_fact_list.h"
+#include "downward/initial_state_values.h"
 #include "downward/operator_cost_function.h"
 #include "downward/variable_space.h"
 
 #include "downward/algorithms/subscriber.h"
 
 #include <string>
-#include <vector>
 
 namespace downward {
 
@@ -18,15 +18,14 @@ class PlanningTask
     : public subscriber::SubscriberService<PlanningTask>
     , public VariableSpace
     , public AxiomSpace
-    , public GoalFactList {
+    , public GoalFactList
+    , public InitialStateValues {
 public:
     virtual std::string get_operator_name(int index) const = 0;
     virtual int get_num_operators() const = 0;
     virtual int get_num_operator_preconditions(int index) const = 0;
     virtual FactPair
     get_operator_precondition(int op_index, int fact_index) const = 0;
-
-    virtual std::vector<int> get_initial_state_values() const = 0;
 };
 
 class AbstractTask
