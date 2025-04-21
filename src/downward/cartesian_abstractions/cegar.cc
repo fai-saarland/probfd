@@ -91,6 +91,7 @@ CEGAR::CEGAR(
     utils::RandomNumberGenerator& rng,
     utils::LogProxy& log)
     : task_proxy(*task)
+    , axiom_evaluator(g_axiom_evaluators[task_proxy])
     , domain_sizes(get_domain_sizes(task_proxy.get_variables()))
     , max_states(max_states)
     , max_non_looping_transitions(max_non_looping_transitions)
@@ -273,7 +274,7 @@ unique_ptr<Flaw> CEGAR::find_flaw(const Solution& solution)
                 log << "  Move to " << *next_abstract_state << " with "
                     << op.get_name() << endl;
             State next_concrete_state =
-                concrete_state.get_unregistered_successor(op);
+                concrete_state.get_unregistered_successor(axiom_evaluator, op);
             if (!next_abstract_state->includes(next_concrete_state)) {
                 if (log.is_at_least_debug()) log << "  Paths deviate." << endl;
                 return std::make_unique<Flaw>(

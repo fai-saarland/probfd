@@ -33,17 +33,14 @@ std::size_t ProbabilisticEffectConditionsProxy::size() const
         eff_index_);
 }
 
-FactProxy
-ProbabilisticEffectConditionsProxy::operator[](std::size_t index) const
+FactPair ProbabilisticEffectConditionsProxy::operator[](std::size_t index) const
 {
     assert(index < size());
-    return FactProxy(
-        *task_,
-        task_->get_operator_outcome_effect_condition(
-            op_index_,
-            outcome_index_,
-            eff_index_,
-            static_cast<int>(index)));
+    return task_->get_operator_outcome_effect_condition(
+        op_index_,
+        outcome_index_,
+        eff_index_,
+        static_cast<int>(index));
 }
 
 ProbabilisticEffectProxy::ProbabilisticEffectProxy(
@@ -133,10 +130,10 @@ value_t ProbabilisticOutcomeProxy::get_probability() const
 }
 
 State ProbabilisticOutcomeProxy::get_unregistered_successor(
-    const State& state) const
+    const State& state,
+    AxiomEvaluator& axiom_evaluator) const
 {
-    const PlanningTaskProxy task_proxy(*task_);
-    return state.get_unregistered_successor(task_proxy, get_effects());
+    return state.get_unregistered_successor(axiom_evaluator, get_effects());
 }
 
 ProbabilisticOutcomesProxy::ProbabilisticOutcomesProxy(
@@ -224,15 +221,6 @@ ProbabilisticTaskProxy::get_causal_graph() const
 {
     return causal_graph::get_causal_graph(
         static_cast<const ProbabilisticTask*>(task));
-}
-
-bool does_fire(const ProbabilisticEffectProxy& effect, const State& state)
-{
-    return std::ranges::all_of(
-        effect.get_conditions(),
-        [&](FactProxy condition) {
-            return state[condition.get_variable()] == condition.get_value();
-        });
 }
 
 } // namespace probfd

@@ -6,6 +6,8 @@
 
 #include "probfd/task_utils/task_properties.h"
 
+#include "downward/per_task_information.h"
+
 #include "downward/utils/memory.h"
 #include "downward/utils/rng.h"
 
@@ -18,6 +20,7 @@ using namespace probfd::successor_generator;
 namespace probfd::sampling {
 
 static State sample_state_with_random_walk(
+    AxiomEvaluator& axiom_evaluator,
     const ProbabilisticOperatorsProxy& operators,
     const State& initial_state,
     const ProbabilisticSuccessorGenerator& successor_generator,
@@ -74,8 +77,9 @@ static State sample_state_with_random_walk(
             if (r < 0.0) {
                 assert(
                     task_properties::is_applicable(random_op, current_state));
-                current_state =
-                    current_state.get_unregistered_successor(outcome);
+                current_state = current_state.get_unregistered_successor(
+                    axiom_evaluator,
+                    outcome);
                 /* If current state is a dead end, then restart the random walk
                    with the initial state. */
                 if (is_dead_end(current_state)) {
@@ -96,6 +100,7 @@ RandomWalkSampler::RandomWalkSampler(
     const ProbabilisticTaskProxy& task_proxy,
     utils::RandomNumberGenerator& rng)
     : operators(task_proxy.get_operators())
+    , axiom_evaluator(g_axiom_evaluators[task_proxy])
     , successor_generator(
           std::make_unique<
               successor_generator::ProbabilisticSuccessorGenerator>(task_proxy))
@@ -113,6 +118,7 @@ State RandomWalkSampler::sample_state(
     const std::function<bool(const State&)>& is_dead_end) const
 {
     return sample_state_with_random_walk(
+        axiom_evaluator,
         operators,
         initial_state,
         *successor_generator,

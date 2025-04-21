@@ -13,21 +13,11 @@ using namespace std;
 namespace downward {
 
 State OperatorProxy::get_unregistered_successor(
-    const State& state) const
+    const State& state,
+    AxiomEvaluator& axiom_evaluator) const
 {
-    const PlanningTaskProxy task_proxy(*task);
     assert(task_properties::is_applicable(*this, state));
-    return state.get_unregistered_successor(task_proxy, get_effects());
-}
-
-void apply_axioms(
-    const PlanningTaskProxy& task_proxy,
-    std::vector<int>& values)
-{
-    if (task_proxy.get_axioms().size() > 0) {
-        AxiomEvaluator& axiom_evaluator = g_axiom_evaluators[task_proxy];
-        axiom_evaluator.evaluate(values);
-    }
+    return state.get_unregistered_successor(axiom_evaluator, get_effects());
 }
 
 State::State(
@@ -65,8 +55,6 @@ State::State(vector<int>&& values)
     , num_variables(this->values->size())
 {
 }
-
-
 
 const causal_graph::CausalGraph& TaskProxy::get_causal_graph() const
 {

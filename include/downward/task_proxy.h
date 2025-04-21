@@ -554,7 +554,9 @@ public:
         return static_cast<const AbstractTask*>(task)->get_operator_cost(index);
     }
 
-    State get_unregistered_successor(const State& state) const;
+    State get_unregistered_successor(
+        const State& state,
+        AxiomEvaluator& axiom_evaluator) const;
 };
 
 class OperatorsProxy : public ProxyCollection<OperatorsProxy> {
@@ -811,16 +813,41 @@ public:
     }
 };
 
-template <typename Effect>
-bool does_fire(const Effect& effect, const State& state);
-
 extern void
 apply_axioms(const PlanningTaskProxy& task_proxy, std::vector<int>& values);
 
 template <typename T>
-concept OperatorLike = requires(const T& op, const State& state) {
-    { op.get_unregistered_successor(state) } -> std::same_as<State>;
-};
+concept OperatorLike =
+    requires(const T& op, const State& state, AxiomEvaluator& axiom_evaluator) {
+        {
+            op.get_unregistered_successor(state, axiom_evaluator)
+        } -> std::same_as<State>;
+    };
+
+template <std::ranges::input_range FactRange, typename StateLike>
+bool all_facts_true(const FactRange& facts, const StateLike& state)
+    requires std::
+        convertible_to<std::ranges::range_reference_t<FactRange>, FactPair>
+{
+    for (const auto [var, value] : facts) {
+        if (state[var] != value) return false;
+    }
+    return true;
+}
+
+template <typename ConditionalEffects, typename StateLike>
+void apply_conditional_effects(
+    const ConditionalEffects& effects,
+    const StateLike& condition_state,
+    std::vector<int>& values)
+{
+    for (const auto effect : effects) {
+        if (all_facts_true(effect.get_conditions(), condition_state)) {
+            const auto [var, value] = effect.get_fact();
+            values[var] = value;
+        }
+    }
+}
 
 class State : public ProxyCollection<State> {
     /*
@@ -894,27 +921,22 @@ public:
     const PackedStateBin* get_buffer() const;
 
     template <OperatorLike O>
-    State get_unregistered_successor(const O& op) const
+    State
+    get_unregistered_successor(AxiomEvaluator& axiom_evaluator, const O& op)
+        const
     {
-        return op.get_unregistered_successor(*this);
+        return op.get_unregistered_successor(*this, axiom_evaluator);
     }
 
-    template <typename Effects>
+    template <typename ConditionalEffects>
     State get_unregistered_successor(
-        const PlanningTaskProxy& task_proxy,
-        const Effects& effects) const
+        AxiomEvaluator& axiom_evaluator,
+        const ConditionalEffects& effects) const
     {
         assert(values);
         std::vector<int> new_values = get_unpacked_values();
-
-        for (const auto effect : effects) {
-            if (does_fire(effect, *this)) {
-                FactPair effect_fact = effect.get_fact();
-                new_values[effect_fact.var] = effect_fact.value;
-            }
-        }
-
-        apply_axioms(task_proxy, new_values);
+        apply_conditional_effects(effects, *this, new_values);
+        axiom_evaluator.evaluate(new_values);
         return State(std::move(new_values));
     }
 
@@ -1037,15 +1059,6 @@ inline FactProxy::FactProxy(const VariableSpace& task, int var_id, int value)
 inline VariableProxy FactProxy::get_variable() const
 {
     return VariableProxy(*task, fact.var);
-}
-
-template <typename Effect>
-bool does_fire(const Effect& effect, const State& state)
-{
-    for (const auto [var, value] : effect.get_conditions()) {
-        if (state[var] != value) return false;
-    }
-    return true;
 }
 
 inline bool operator==(const State& left, const State& right)

@@ -126,8 +126,8 @@ struct ProbabilisticCausalGraphBuilder {
             int pre_var_id = pre.var;
             for (auto outcome : outcomes) {
                 for (ProbabilisticEffectProxy eff : outcome.get_effects()) {
-                    int eff_var_id = eff.get_fact().var;
-                    if (pre_var_id != eff_var_id)
+                    if (const int eff_var_id = eff.get_fact().var;
+                        pre_var_id != eff_var_id)
                         handle_pre_eff_arc(pre_var_id, eff_var_id);
                 }
             }
@@ -140,9 +140,9 @@ struct ProbabilisticCausalGraphBuilder {
             for (ProbabilisticEffectProxy eff : outcome.get_effects()) {
                 int eff_var_id = eff.get_fact().var;
                 eff_vars.insert(eff_var_id);
-                for (FactProxy pre : eff.get_conditions()) {
-                    int pre_var_id = pre.get_variable().get_id();
-                    if (pre_var_id != eff_var_id)
+                for (FactPair pre : eff.get_conditions()) {
+                    if (const int pre_var_id = pre.var;
+                        pre_var_id != eff_var_id)
                         handle_pre_eff_arc(pre_var_id, eff_var_id);
                 }
             }

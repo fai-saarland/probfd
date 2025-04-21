@@ -12,6 +12,7 @@ using namespace std;
 
 namespace downward::sampling {
 static State sample_state_with_random_walk(
+    AxiomEvaluator& axiom_evaluator,
     const OperatorsProxy& operators,
     const State& initial_state,
     const successor_generator::SuccessorGenerator& successor_generator,
@@ -62,7 +63,9 @@ static State sample_state_with_random_walk(
             OperatorID random_op_id = *rng.choose(applicable_operators);
             OperatorProxy random_op = operators[random_op_id];
             assert(task_properties::is_applicable(random_op, current_state));
-            current_state = current_state.get_unregistered_successor(random_op);
+            current_state = current_state.get_unregistered_successor(
+                axiom_evaluator,
+                random_op);
             /* If current state is a dead end, then restart the random walk
                with the initial state. */
             if (is_dead_end(current_state)) {
@@ -77,7 +80,8 @@ static State sample_state_with_random_walk(
 RandomWalkSampler::RandomWalkSampler(
     const TaskProxy& task_proxy,
     utils::RandomNumberGenerator& rng)
-    : operators(task_proxy.get_operators())
+    : axiom_evaluator(g_axiom_evaluators[task_proxy])
+    , operators(task_proxy.get_operators())
     , successor_generator(
           std::make_unique<successor_generator::SuccessorGenerator>(task_proxy))
     , initial_state(task_proxy.get_initial_state())
@@ -96,6 +100,7 @@ State RandomWalkSampler::sample_state(
     const DeadEndDetector& is_dead_end) const
 {
     return sample_state_with_random_walk(
+        axiom_evaluator,
         operators,
         initial_state,
         *successor_generator,
@@ -104,4 +109,4 @@ State RandomWalkSampler::sample_state(
         rng,
         is_dead_end);
 }
-} // namespace sampling
+} // namespace downward::sampling

@@ -89,6 +89,8 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
 {
     TimerScope scope(find_flaw_timer_);
 
+    AxiomEvaluator& axiom_evaluator = g_axiom_evaluators[task_proxy];
+
     if (log.is_at_least_debug()) log << "Check solution:" << endl;
 
     const AbstractState* abstract_state = &abstraction.get_initial_state();
@@ -110,7 +112,9 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
                     << op.get_name() << endl;
             const auto outcome = op.get_outcomes()[step.eff_id];
             State next_concrete_state =
-                concrete_state.get_unregistered_successor(outcome);
+                concrete_state.get_unregistered_successor(
+                    axiom_evaluator,
+                    outcome);
             if (!next_abstract_state->includes(next_concrete_state)) {
                 if (log.is_at_least_debug()) log << "  Paths deviate." << endl;
                 return Flaw(

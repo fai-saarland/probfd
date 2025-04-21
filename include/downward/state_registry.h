@@ -232,12 +232,7 @@ public:
         if (task_properties::has_axioms(task_proxy)) {
             predecessor.unpack();
             std::vector<int> new_values = predecessor.get_unpacked_values();
-            for (auto effect : effects) {
-                if (does_fire(effect, predecessor)) {
-                    FactPair effect_pair = effect.get_fact();
-                    new_values[effect_pair.var] = effect_pair.value;
-                }
-            }
+            apply_conditional_effects(effects, predecessor, new_values);
             axiom_evaluator.evaluate(new_values);
             for (size_t i = 0; i < new_values.size(); ++i) {
                 state_packer.set(buffer, i, new_values[i]);
@@ -245,8 +240,8 @@ public:
             downward::StateID id = insert_id_or_pop_state();
             return State(*this, id, buffer, std::move(new_values));
         } else {
-            for (auto effect : effects) {
-                if (does_fire(effect, predecessor)) {
+            for (const auto effect : effects) {
+                if (all_facts_true(effect.get_conditions(), predecessor)) {
                     FactPair effect_pair = effect.get_fact();
                     state_packer.set(
                         buffer,

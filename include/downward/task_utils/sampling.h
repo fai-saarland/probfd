@@ -25,6 +25,7 @@ namespace downward::sampling {
   Sample states with random walks.
 */
 class RandomWalkSampler {
+    AxiomEvaluator& axiom_evaluator;
     const OperatorsProxy operators;
     const std::unique_ptr<successor_generator::SuccessorGenerator>
         successor_generator;

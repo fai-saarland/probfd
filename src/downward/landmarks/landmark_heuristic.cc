@@ -186,7 +186,7 @@ void LandmarkHeuristic::compute_landmarks_achieved_by_fact() {
 bool LandmarkHeuristic::operator_is_preferred(
     const OperatorProxy &op, const State &state, ConstBitsetView &future) {
     for (EffectProxy effect : op.get_effects()) {
-        if (!does_fire(effect, state)) {
+        if (!all_facts_true(effect.get_conditions(), state)) {
             continue;
         }
         const FactPair fact_pair = effect.get_fact();

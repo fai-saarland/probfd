@@ -29,6 +29,7 @@ struct Flaw;
 */
 class CEGAR {
     const TaskProxy task_proxy;
+    AxiomEvaluator& axiom_evaluator;
     const std::vector<int> domain_sizes;
     const int max_states;
     const int max_non_looping_transitions;

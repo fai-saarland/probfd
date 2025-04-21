@@ -22,6 +22,7 @@ namespace probfd::sampling {
 */
 class RandomWalkSampler {
     const ProbabilisticOperatorsProxy operators;
+    downward::AxiomEvaluator& axiom_evaluator;
     const std::unique_ptr<successor_generator::ProbabilisticSuccessorGenerator>
         successor_generator;
     const downward::State initial_state;

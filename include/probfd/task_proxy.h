@@ -52,7 +52,7 @@ public:
     std::size_t size() const;
 
     /// Accesses a specific effect condition by its list index.
-    downward::FactProxy operator[](std::size_t index) const;
+    downward::FactPair operator[](std::size_t index) const;
 };
 
 /// Proxy class used to inspect a probabilistic effect of a probabilistic
@@ -133,8 +133,9 @@ public:
 
     /// Get the successor state for this outcome.
     [[nodiscard]]
-    downward::State
-    get_unregistered_successor(const downward::State& state) const;
+    downward::State get_unregistered_successor(
+        const downward::State& state,
+        downward::AxiomEvaluator& axiom_evaluator) const;
 };
 
 /// Proxy class used to inspect the list of probabilistic outcomes of a
@@ -206,13 +207,6 @@ public:
 
     const causal_graph::ProbabilisticCausalGraph& get_causal_graph() const;
 };
-
-/// Checks if the conditions of a probabilistic effect are fulfilled in a state.
-bool does_fire(
-    const ProbabilisticEffectProxy& effect,
-    const downward::State& state);
-
-static_assert(downward::OperatorLike<ProbabilisticOutcomeProxy>);
 
 } // namespace probfd
 
