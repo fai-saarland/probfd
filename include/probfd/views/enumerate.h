@@ -323,7 +323,7 @@ private:
                     detail::maybe_const_t<_OtherConst, View>>>
         [[nodiscard]]
         constexpr bool _Equal(const _Iterator<_OtherConst>& _It) const
-            noexcept(noexcept(std::_Fake_copy_init<bool>(_It._Current == _End)))
+            noexcept(noexcept(_It._Current == _End))
         {
             return _It._Current == _End;
         }
