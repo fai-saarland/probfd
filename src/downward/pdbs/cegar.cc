@@ -76,7 +76,6 @@ class CEGAR {
     const bool use_wildcard_plans;
     utils::LogProxy& log;
     shared_ptr<utils::RandomNumberGenerator> rng;
-    const shared_ptr<AbstractTask>& task;
     const TaskProxy task_proxy;
     const vector<FactPair>& goals;
     unordered_set<int> blacklisted_variables;
@@ -168,7 +167,6 @@ CEGAR::CEGAR(
     , use_wildcard_plans(use_wildcard_plans)
     , log(log)
     , rng(rng)
-    , task(task)
     , task_proxy(*task)
     , goals(goals)
     , blacklisted_variables(std::move(blacklisted_variables))
