@@ -4,7 +4,7 @@
 #include "probfd/pdbs/state_ranking_function.h"
 
 #include "probfd/cost_function.h"
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 #include "probfd/transition_tail.h"
 
 #include "downward/utils/countdown_timer.h"
@@ -179,20 +179,20 @@ static void compute_projection_operator_info(
 }
 
 ProjectionStateSpace::ProjectionStateSpace(
-    ProbabilisticTaskProxy task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    std::shared_ptr<ProbabilisticTask> task,
     const StateRankingFunction& ranking_function,
     bool operator_pruning,
     double max_time)
-    : match_tree_(task_proxy.get_operators().size())
-    , parent_cost_function_(std::move(task_cost_function))
+    : match_tree_(task->get_operators().size())
+    , parent_cost_function_(std::move(task))
+    , parent_term_function_(std::move(task))
     , goal_state_flags_(ranking_function.num_states(), false)
 {
     utils::CountdownTimer timer(max_time);
 
     const Pattern& pattern = ranking_function.get_pattern();
 
-    const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
+    const ProbabilisticOperatorsProxy operators = task->get_operators();
 
     // Generate the abstract operators for each probabilistic operator
     for (const ProbabilisticOperatorProxy& op : operators) {
@@ -258,7 +258,7 @@ ProjectionStateSpace::ProjectionStateSpace(
         } while (next_precondition(operator_info.missing_info, precondition));
     }
 
-    const GoalsProxy task_goals = task_proxy.get_goals();
+    const GoalsProxy task_goals = task->get_goals();
 
     std::vector<int> non_goal_vars;
     StateRank base(0);
@@ -353,17 +353,18 @@ bool ProjectionStateSpace::is_goal(StateRank state) const
 
 value_t ProjectionStateSpace::get_goal_termination_cost() const
 {
-    return parent_cost_function_->get_goal_termination_cost();
+    return parent_term_function_->get_goal_termination_cost();
 }
 
 value_t ProjectionStateSpace::get_non_goal_termination_cost() const
 {
-    return parent_cost_function_->get_non_goal_termination_cost();
+    return parent_term_function_->get_non_goal_termination_cost();
 }
 
 value_t ProjectionStateSpace::get_action_cost(const ProjectionOperator* op)
 {
-    return parent_cost_function_->get_action_cost(op->operator_id);
+    return parent_cost_function_->get_operator_cost(
+        op->operator_id.get_index());
 }
 
 } // namespace probfd::pdbs

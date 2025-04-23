@@ -34,7 +34,7 @@ public:
     virtual std::vector<double> compute_scores(
         const FactoredTransitionSystem& fts,
         const std::vector<std::pair<int, int>>& merge_candidates) override;
-    virtual void initialize(const TaskProxy& task_proxy) override;
+    virtual void initialize(const AbstractTask& task) override;
 
     virtual bool requires_init_distances() const override { return true; }
 

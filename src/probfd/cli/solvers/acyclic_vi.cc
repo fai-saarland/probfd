@@ -8,7 +8,7 @@
 #include "probfd/algorithms/acyclic_value_iteration.h"
 
 #include "downward/operator_id.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <memory>
 #include <string>
@@ -50,8 +50,11 @@ public:
     }
 
     void handleEvent(const StateExpansion&) { ++state_expansions; }
+
     void handleEvent(const GoalStateExpansion&) { ++goal_states; }
+
     void handleEvent(const TerminalStateExpansion&) { ++terminal_states; }
+
     void handleEvent(const PruneStateExpansion&) { ++pruned_states; }
 
     void print_statistics(std::ostream& out) const
@@ -70,9 +73,8 @@ public:
         return "acyclic_value_iteration";
     }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
-        const std::shared_ptr<ProbabilisticTask>&,
-        const std::shared_ptr<FDRCostFunction>&) override
+    std::unique_ptr<StatisticalMDPAlgorithm>
+    create_algorithm(const std::shared_ptr<ProbabilisticTask>&) override
     {
         return std::make_unique<AcyclicVIWithStatistics>();
     }

@@ -9,7 +9,7 @@
 namespace downward {
 class OperatorID;
 class State;
-class PlanningTaskProxy;
+class PlanningTask;
 }
 
 namespace downward::successor_generator {
@@ -19,7 +19,7 @@ class SuccessorGenerator {
     std::unique_ptr<GeneratorBase> root;
 
 public:
-    explicit SuccessorGenerator(const PlanningTaskProxy& task_proxy);
+    explicit SuccessorGenerator(const PlanningTask& task);
     /*
       We cannot use the default destructor (implicitly or explicitly)
       here because GeneratorBase is a forward declaration and the

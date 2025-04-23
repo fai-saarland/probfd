@@ -7,6 +7,8 @@
 #include "downward/utils/hash.h"
 #include "downward/utils/logging.h"
 
+#include "downward/axiom_utils.h"
+
 #include <algorithm>
 #include <cassert>
 #include <limits>
@@ -24,15 +26,15 @@ namespace downward::landmarks {
 */
 
 // Construction and destruction
-Exploration::Exploration(const TaskProxy& task_proxy, utils::LogProxy& log)
-    : task_proxy(task_proxy)
+Exploration::Exploration(const AbstractTask& task, utils::LogProxy& log)
+    : task(task)
 {
     if (log.is_at_least_normal()) {
         log << "Initializing Exploration..." << endl;
     }
 
     // Build propositions.
-    for (VariableProxy var : task_proxy.get_variables()) {
+    for (VariableProxy var : task.get_variables()) {
         int var_id = var.get_id();
         propositions.push_back(vector<Proposition>(var.get_domain_size()));
         for (int value = 0; value < var.get_domain_size(); ++value) {
@@ -46,8 +48,8 @@ Exploration::Exploration(const TaskProxy& task_proxy, utils::LogProxy& log)
       building it; meaning a resize would invalidate all references.
     */
     int num_unary_ops = 0;
-    OperatorsProxy operators = task_proxy.get_operators();
-    AxiomsProxy axioms = task_proxy.get_axioms();
+    OperatorsProxy operators = task.get_operators();
+    AxiomsProxy axioms = task.get_axioms();
     for (OperatorProxy op : operators) {
         num_unary_ops += op.get_effects().size();
     }
@@ -70,9 +72,9 @@ void Exploration::build_unary_operators(const AxiomOrOperatorProxy& op)
     for (FactPair pre : op.get_preconditions()) {
         precondition_facts1.push_back(pre);
     }
-    for (EffectProxy effect : op.get_effects()) {
+    for (auto effect : op.get_effects()) {
         vector<FactPair> precondition_facts2(precondition_facts1);
-        EffectConditionsProxy effect_conditions = effect.get_conditions();
+        auto effect_conditions = effect.get_conditions();
         for (FactPair effect_condition : effect_conditions) {
             precondition_facts2.push_back(effect_condition);
         }
@@ -144,7 +146,7 @@ void Exploration::setup_exploration_queue(
     */
     unordered_set<int> excluded_op_ids;
     if (!use_unary_relaxation) {
-        for (OperatorProxy op : task_proxy.get_operators()) {
+        for (OperatorProxy op : task.get_operators()) {
             for (EffectProxy effect : op.get_effects()) {
                 auto [var, value] = effect.get_fact();
                 if (effect.get_conditions().empty() &&
@@ -216,7 +218,7 @@ vector<vector<bool>> Exploration::compute_relaxed_reachability(
     bool use_unary_relaxation)
 {
     setup_exploration_queue(
-        task_proxy.get_initial_state(),
+        task.get_initial_state(),
         excluded_props,
         use_unary_relaxation);
     relaxed_exploration();

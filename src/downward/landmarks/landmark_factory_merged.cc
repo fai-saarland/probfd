@@ -5,6 +5,7 @@
 
 #include "downward/utils/logging.h"
 
+#include <algorithm>
 #include <set>
 
 using namespace std;
@@ -95,9 +96,8 @@ void LandmarkFactoryMerged::generate_landmarks(
                   request (e.g., heuristics that consider orders might want to
                   keep all landmarks).
                 */
-                bool exists = any_of(
-                    landmark.facts.begin(),
-                    landmark.facts.end(),
+                bool exists = std::ranges::any_of(
+                    landmark.facts,
                     [&](const FactPair& lm_fact) {
                         return lm_graph->contains_landmark(lm_fact);
                     });

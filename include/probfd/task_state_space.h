@@ -6,13 +6,12 @@
 #include "probfd/fdr_types.h"
 #include "probfd/mdp.h"
 #include "probfd/state_id.h"
-#include "probfd/task_proxy.h"
 #include "probfd/value_type.h"
 
 #include "downward/utils/logging.h"
 
+#include "downward/state.h"
 #include "downward/state_registry.h"
-#include "downward/task_proxy.h"
 
 #include <cstddef>
 #include <memory>
@@ -51,7 +50,7 @@ protected:
         void print(std::ostream& out) const;
     };
 
-    ProbabilisticTaskProxy task_proxy_;
+    std::shared_ptr<ProbabilisticTask> task_;
     downward::StateRegistry state_registry_;
     successor_generator::ProbabilisticSuccessorGenerator gen_;
 

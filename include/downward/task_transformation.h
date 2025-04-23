@@ -6,7 +6,6 @@
 
 namespace downward {
 class AbstractTask;
-class PlanningTask;
 class State;
 class OperatorID;
 }
@@ -27,9 +26,7 @@ public:
     virtual void
     convert_ancestor_state_values(std::vector<int>& values) const = 0;
 
-    State convert_ancestor_state(
-        const State& ancestor_state,
-        const PlanningTask& transformed_task) const;
+    State convert_ancestor_state(const State& ancestor_state) const;
 };
 
 class InverseOperatorMapping {

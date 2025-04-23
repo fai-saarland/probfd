@@ -2,7 +2,8 @@
 
 #include "downward/task_utils/successor_generator_internals.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/state.h"
 
 #include "downward/utils/collections.h"
 #include "downward/utils/memory.h"
@@ -160,8 +161,8 @@ public:
 };
 
 SuccessorGeneratorFactory::SuccessorGeneratorFactory(
-    const PlanningTaskProxy& task_proxy)
-    : task_proxy(task_proxy)
+    const PlanningTask& task)
+    : task(task)
 {
 }
 
@@ -206,7 +207,7 @@ GeneratorPtr SuccessorGeneratorFactory::construct_switch(
     int switch_var_id,
     ValuesAndGenerators values_and_generators) const
 {
-    VariablesProxy variables = task_proxy.get_variables();
+    VariablesProxy variables = task.get_variables();
     int var_domain = variables[switch_var_id].get_domain_size();
     int num_children = values_and_generators.size();
 
@@ -299,7 +300,7 @@ build_sorted_precondition(const PartialOperatorProxy& op)
 
 GeneratorPtr SuccessorGeneratorFactory::create()
 {
-    PartialOperatorsProxy operators = task_proxy.get_partial_operators();
+    PartialOperatorsProxy operators = task.get_partial_operators();
     operator_infos.reserve(operators.size());
     for (PartialOperatorProxy op : operators) {
         operator_infos.emplace_back(

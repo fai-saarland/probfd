@@ -10,14 +10,16 @@ using namespace std;
 
 namespace downward::lm_cut_heuristic {
 // construction and destruction
-LandmarkCutLandmarks::LandmarkCutLandmarks(const TaskProxy& task_proxy)
+LandmarkCutLandmarks::LandmarkCutLandmarks(
+    const std::shared_ptr<AbstractTask>& task)
+    : cost_function(task)
 {
-    task_properties::verify_no_axioms(task_proxy);
-    task_properties::verify_no_conditional_effects(task_proxy);
+    task_properties::verify_no_axioms(*task);
+    task_properties::verify_no_conditional_effects(*task);
 
     // Build propositions.
     num_propositions = 2; // artificial goal and artificial precondition
-    VariablesProxy variables = task_proxy.get_variables();
+    VariablesProxy variables = task->get_variables();
     propositions.resize(variables.size());
     for (FactProxy fact : variables.get_facts()) {
         int var_id = fact.get_variable().get_id();
@@ -26,7 +28,7 @@ LandmarkCutLandmarks::LandmarkCutLandmarks(const TaskProxy& task_proxy)
     }
 
     // Build relaxed operators for operators and axioms.
-    for (OperatorProxy op : task_proxy.get_operators())
+    for (OperatorProxy op : task->get_operators())
         build_relaxed_operator(op);
 
     // Simplify relaxed operators.
@@ -37,7 +39,7 @@ LandmarkCutLandmarks::LandmarkCutLandmarks(const TaskProxy& task_proxy)
 
     // Build artificial goal proposition and operator.
     vector<RelaxedProposition*> goal_op_pre, goal_op_eff;
-    for (FactPair goal : task_proxy.get_goals()) {
+    for (FactPair goal : task->get_goals()) {
         goal_op_pre.push_back(get_proposition(goal));
     }
     goal_op_eff.push_back(&artificial_goal);
@@ -61,14 +63,14 @@ void LandmarkCutLandmarks::build_relaxed_operator(const OperatorProxy& op)
     for (FactPair pre : op.get_preconditions()) {
         precondition.push_back(get_proposition(pre));
     }
-    for (EffectProxy eff : op.get_effects()) {
+    for (auto eff : op.get_effects()) {
         effects.push_back(get_proposition(eff.get_fact()));
     }
     add_relaxed_operator(
         std::move(precondition),
         std::move(effects),
         op.get_id(),
-        op.get_cost());
+        cost_function->get_operator_cost(op.get_id()));
 }
 
 void LandmarkCutLandmarks::add_relaxed_operator(
@@ -98,9 +100,7 @@ void LandmarkCutLandmarks::setup_exploration_queue()
     priority_queue.clear();
 
     for (auto& var_props : propositions) {
-        for (RelaxedProposition& prop : var_props) {
-            prop.status = UNREACHED;
-        }
+        for (RelaxedProposition& prop : var_props) { prop.status = UNREACHED; }
     }
 
     artificial_goal.status = UNREACHED;
@@ -289,9 +289,7 @@ bool LandmarkCutLandmarks::compute_landmarks(
     const CostCallback& cost_callback,
     const LandmarkCallback& landmark_callback)
 {
-    for (RelaxedOperator& op : relaxed_operators) {
-        op.cost = op.base_cost;
-    }
+    for (RelaxedOperator& op : relaxed_operators) { op.cost = op.base_cost; }
     // The following three variables could be declared inside the loop
     // ("second_exploration_queue" even inside second_exploration),
     // but having them here saves reallocations and hence provides a
@@ -312,9 +310,7 @@ bool LandmarkCutLandmarks::compute_landmarks(
         for (RelaxedOperator* op : cut) cut_cost = min(cut_cost, op->cost);
         for (RelaxedOperator* op : cut) op->cost -= cut_cost;
 
-        if (cost_callback) {
-            cost_callback(cut_cost);
-        }
+        if (cost_callback) { cost_callback(cut_cost); }
         if (landmark_callback) {
             landmark.clear();
             for (RelaxedOperator* op : cut) {
@@ -344,4 +340,4 @@ bool LandmarkCutLandmarks::compute_landmarks(
     }
     return false;
 }
-} // namespace lm_cut_heuristic
+} // namespace downward::lm_cut_heuristic

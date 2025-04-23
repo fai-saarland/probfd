@@ -2,7 +2,7 @@
 
 #include "probfd/tasks/determinization_task.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/heuristics/additive_heuristic.h"
 
@@ -54,7 +54,7 @@ static bool outcome_can_achieve_fact(
 }
 
 static utils::HashSet<FactPair> compute_possibly_before_facts(
-    const ProbabilisticTaskProxy& task,
+    const ProbabilisticTask& task,
     const FactPair& last_fact)
 {
     utils::HashSet<FactPair> pb_facts;
@@ -92,7 +92,7 @@ static utils::HashSet<FactPair> compute_possibly_before_facts(
 }
 
 utils::HashSet<FactPair> get_relaxed_possible_before(
-    const ProbabilisticTaskProxy& task,
+    const ProbabilisticTask& task,
     const FactPair& fact)
 {
     utils::HashSet<FactPair> reachable_facts =

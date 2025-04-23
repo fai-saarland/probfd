@@ -18,7 +18,7 @@
 #include "probfd/quotients/quotient_system.h"
 
 #include "downward/operator_id.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/utils/rng_options.h"
 

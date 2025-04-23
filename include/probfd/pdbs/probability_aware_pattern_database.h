@@ -13,7 +13,7 @@
 #include <vector>
 
 namespace probfd {
-class ProbabilisticTaskProxy;
+class ProbabilisticTask;
 }
 
 namespace probfd::pdbs {
@@ -96,9 +96,7 @@ void compute_distances(
  * pattern database.
  *
  * @param pdb The pattern database to populate the goal distances for.
- * @param task_proxy The planning task on which the abstraction is applied.
- * @param task_cost_function The cost function with respect to which goal
- * distances are computed.
+ * @param task The planning task on which the abstraction is applied.
  * @param abstract_initial_state Initial state that specifies the reachability
  * of each state. Goal distances of abstract states unreachable from this state
  * are left untouched.
@@ -108,8 +106,7 @@ void compute_distances(
  */
 void compute_distances(
     ProbabilityAwarePatternDatabase& pdb,
-    const ProbabilisticTaskProxy& task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    std::shared_ptr<ProbabilisticTask> task,
     StateRank abstract_initial_state,
     const Heuristic<StateRank>& heuristic,
     bool operator_pruning = true,

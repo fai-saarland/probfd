@@ -26,8 +26,9 @@ HMHeuristic::HMHeuristic(
           description,
           verbosity)
     , m(m)
-    , has_cond_effects(task_properties::has_conditional_effects(task_proxy))
-    , goals(task_properties::get_fact_pairs(task_proxy.get_goals()))
+    , has_cond_effects(
+          task_properties::has_conditional_effects(*transformed_task))
+    , goals(task_properties::get_fact_pairs(transformed_task->get_goals()))
 {
     if (log.is_at_least_normal()) {
         log << "Using h^" << m << "." << endl;
@@ -57,13 +58,13 @@ HMHeuristic::HMHeuristic(
 
 bool HMHeuristic::dead_ends_are_reliable() const
 {
-    return !task_properties::has_axioms(task_proxy) && !has_cond_effects;
+    return !task_properties::has_axioms(*transformed_task) && !has_cond_effects;
 }
 
 int HMHeuristic::compute_heuristic(const State& ancestor_state)
 {
     State state = convert_ancestor_state(ancestor_state);
-    if (task_properties::is_goal_state(task_proxy, state)) {
+    if (task_properties::is_goal_state(*transformed_task, state)) {
         return 0;
     } else {
         Tuple s_tup = task_properties::get_fact_pairs(state | as_fact_pair_set);
@@ -92,7 +93,7 @@ void HMHeuristic::update_hm_table()
     do {
         was_updated = false;
 
-        for (OperatorProxy op : task_proxy.get_operators()) {
+        for (OperatorProxy op : transformed_task->get_operators()) {
             Tuple pre = get_operator_pre(op);
 
             int c1 = eval(pre);
@@ -101,7 +102,9 @@ void HMHeuristic::update_hm_table()
                 vector<Tuple> partial_effs;
                 generate_all_partial_tuples(eff, partial_effs);
                 for (Tuple& partial_eff : partial_effs) {
-                    update_hm_entry(partial_eff, c1 + op.get_cost());
+                    update_hm_entry(
+                        partial_eff,
+                        c1 + transformed_task->get_operator_cost(op.get_id()));
 
                     int eff_size = partial_eff.size();
                     if (eff_size < m) { extend_tuple(partial_eff, op); }
@@ -151,7 +154,9 @@ void HMHeuristic::extend_tuple(const Tuple& t, const OperatorProxy& op)
             if (is_valid) {
                 int c2 = eval(pre);
                 if (c2 != numeric_limits<int>::max()) {
-                    update_hm_entry(tuple, c2 + op.get_cost());
+                    update_hm_entry(
+                        tuple,
+                        c2 + transformed_task->get_operator_cost(op.get_id()));
                 }
             }
         }
@@ -237,9 +242,10 @@ void HMHeuristic::generate_all_tuples()
 
 void HMHeuristic::generate_all_tuples_aux(int var, int sz, const Tuple& base)
 {
-    int num_variables = task_proxy.get_variables().size();
+    int num_variables = transformed_task->get_variables().size();
     for (int i = var; i < num_variables; ++i) {
-        int domain_size = task_proxy.get_variables()[i].get_domain_size();
+        int domain_size =
+            transformed_task->get_variables()[i].get_domain_size();
         for (int j = 0; j < domain_size; ++j) {
             Tuple tuple(base);
             tuple.emplace_back(i, j);

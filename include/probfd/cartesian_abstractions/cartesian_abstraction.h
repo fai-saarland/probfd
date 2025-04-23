@@ -12,7 +12,7 @@
 #include "downward/utils/logging.h"
 
 #include "downward/abstract_task.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <memory>
 #include <utility>
@@ -58,7 +58,7 @@ class CartesianAbstraction
 
 public:
     CartesianAbstraction(
-        const ProbabilisticTaskProxy& task,
+        const ProbabilisticTask& task,
         std::vector<value_t> operator_costs,
         downward::utils::LogProxy log);
     ~CartesianAbstraction() override;

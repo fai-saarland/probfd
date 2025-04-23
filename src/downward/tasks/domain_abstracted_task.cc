@@ -10,8 +10,7 @@ namespace downward::extra_tasks {
 /*
   If we need the same functionality again in another task, we can move this to
   actract_task.h. We should then document that this method is only supposed to
-  be used from within AbstractTasks. More high-level users should use
-  has_conditional_effects(TaskProxy) from task_tools.h instead.
+  be used from within AbstractTasks.
 */
 static bool has_conditional_effects(const AbstractTask& task)
 {

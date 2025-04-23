@@ -27,9 +27,8 @@ public:
     explicit PatternCollectionGenerator(downward::utils::LogProxy log);
     virtual ~PatternCollectionGenerator() = default;
 
-    virtual PatternCollectionInformation generate(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) = 0;
+    virtual PatternCollectionInformation
+    generate(const std::shared_ptr<ProbabilisticTask>& task) = 0;
 };
 
 } // namespace probfd::pdbs

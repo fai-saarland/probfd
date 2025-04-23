@@ -25,13 +25,13 @@ namespace downward {
 class PruningMethod;
 
 static successor_generator::SuccessorGenerator&
-get_successor_generator(const TaskProxy& task_proxy, utils::LogProxy& log)
+get_successor_generator(const AbstractTask& task, utils::LogProxy& log)
 {
     log << "Building successor generator..." << flush;
     int peak_memory_before = utils::get_peak_memory_in_kb();
     utils::Timer successor_generator_timer;
     successor_generator::SuccessorGenerator& successor_generator =
-        successor_generator::g_successor_generators[task_proxy];
+        successor_generator::g_successor_generators[task];
     successor_generator_timer.stop();
     log << "done!" << endl;
     int peak_memory_after = utils::get_peak_memory_in_kb();
@@ -53,22 +53,21 @@ SearchAlgorithm::SearchAlgorithm(
     : description(description)
     , solution_found(false)
     , task(std::move(task))
-    , task_proxy(*task)
     , log(utils::get_log_for_verbosity(verbosity))
-    , state_registry(task_proxy)
-    , successor_generator(get_successor_generator(task_proxy, log))
+    , state_registry(*task)
+    , successor_generator(get_successor_generator(*task, log))
     , search_space(state_registry, log)
     , statistics(log)
     , bound(bound)
     , cost_type(cost_type)
-    , is_unit_cost(task_properties::is_unit_cost(task_proxy))
+    , is_unit_cost(task_properties::is_unit_cost(task->get_operators(), *task))
     , max_time(max_time)
 {
     if (bound < 0) {
         cerr << "error: negative cost bound " << bound << endl;
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
-    task_properties::print_variable_statistics(task_proxy);
+    task_properties::print_variable_statistics(*task);
 }
 
 SearchAlgorithm::~SearchAlgorithm()
@@ -94,7 +93,7 @@ void SearchAlgorithm::set_plan(const Plan& p)
 
 bool SearchAlgorithm::check_goal_and_set_plan(const State& state)
 {
-    if (task_properties::is_goal_state(task_proxy, state)) {
+    if (task_properties::is_goal_state(*task, state)) {
         log << "Solution found!" << endl;
         Plan plan;
         search_space.trace_path(state, plan);
@@ -106,12 +105,16 @@ bool SearchAlgorithm::check_goal_and_set_plan(const State& state)
 
 void SearchAlgorithm::save_plan_if_necessary()
 {
-    if (found_solution()) { plan_manager.save_plan(get_plan(), task_proxy); }
+    if (found_solution()) {
+        plan_manager.save_plan(get_plan(), task->get_operators(), *task);
+    }
 }
 
-int SearchAlgorithm::get_adjusted_cost(const OperatorProxy& op) const
+int SearchAlgorithm::get_adjusted_cost(
+    const OperatorProxy& op,
+    const OperatorIntCostFunction& cost_function) const
 {
-    return get_adjusted_action_cost(op, cost_type, is_unit_cost);
+    return get_adjusted_action_cost(op, cost_function, cost_type, is_unit_cost);
 }
 
 void print_initial_evaluator_values(const EvaluationContext& eval_context)

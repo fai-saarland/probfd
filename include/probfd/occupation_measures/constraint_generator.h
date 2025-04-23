@@ -33,7 +33,6 @@ public:
     */
     virtual void initialize_constraints(
         const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function,
         downward::lp::LinearProgram& lp) = 0;
 
     /*
@@ -62,8 +61,7 @@ public:
     virtual ~ConstraintGeneratorFactory() = default;
 
     virtual std::unique_ptr<ConstraintGenerator> construct_constraint_generator(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) = 0;
+        const std::shared_ptr<ProbabilisticTask>& task) = 0;
 };
 
 } // namespace probfd::occupation_measures

@@ -6,8 +6,6 @@
 
 #include "probfd/tasks/determinization_task.h"
 
-#include "probfd/task_proxy.h"
-
 #include <algorithm>
 
 using namespace std;
@@ -28,10 +26,9 @@ unique_ptr<MergeTree> MergeTreeFactoryLinear::compute_merge_tree(
     std::shared_ptr<ProbabilisticTask>& task)
 {
     const tasks::DeterminizationTask determinization(task);
-    const TaskProxy task_proxy(determinization);
 
     variable_order_finder::VariableOrderFinder vof(
-        task_proxy,
+        determinization,
         variable_order_type,
         rng);
 
@@ -51,14 +48,13 @@ unique_ptr<MergeTree> MergeTreeFactoryLinear::compute_merge_tree(
     const vector<int>& indices_subset)
 {
     const tasks::DeterminizationTask determinization(task);
-    const TaskProxy task_proxy(determinization);
 
     /*
       Compute a mapping from state variables to transition system indices
       that contain those variables. Also set all indices not contained in
       indices_subset to "used".
     */
-    const int num_vars = task_proxy.get_variables().size();
+    const int num_vars = determinization.get_variables().size();
     const int num_ts = fts.get_size();
 
     vector var_to_ts_index(num_vars, -1);
@@ -82,7 +78,7 @@ unique_ptr<MergeTree> MergeTreeFactoryLinear::compute_merge_tree(
      to "used" above.
     */
     variable_order_finder::VariableOrderFinder vof(
-        task_proxy,
+        determinization,
         variable_order_type,
         rng);
 

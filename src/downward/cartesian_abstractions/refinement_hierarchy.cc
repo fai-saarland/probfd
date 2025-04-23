@@ -1,6 +1,6 @@
 #include "downward/cartesian_abstractions/refinement_hierarchy.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 using namespace std;
 

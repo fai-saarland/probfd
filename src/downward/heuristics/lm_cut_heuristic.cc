@@ -2,7 +2,7 @@
 
 #include "downward/heuristics/lm_cut_landmarks.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/utils/logging.h"
 #include "downward/utils/memory.h"
@@ -26,7 +26,7 @@ LandmarkCutHeuristic::LandmarkCutHeuristic(
           cache_estimates,
           description,
           verbosity)
-    , landmark_generator(std::make_unique<LandmarkCutLandmarks>(task_proxy))
+    , landmark_generator(std::make_unique<LandmarkCutLandmarks>(transformed_task))
 {
     if (log.is_at_least_normal()) {
         log << "Initializing landmark cut heuristic..." << endl;

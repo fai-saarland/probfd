@@ -1,10 +1,14 @@
 #ifndef TASK_UTILS_VARIABLE_ORDER_FINDER_H
 #define TASK_UTILS_VARIABLE_ORDER_FINDER_H
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <memory>
 #include <vector>
+
+namespace downward {
+class AbstractTask;
+}
 
 namespace downward::utils {
 class LogProxy;
@@ -31,7 +35,7 @@ extern void dump_variable_order_type(
   task lives at least as long as the variable order finder.
 */
 class VariableOrderFinder {
-    TaskProxy task_proxy;
+    const AbstractTask& task;
     const VariableOrderType variable_order_type;
     std::vector<int> selected_vars;
     std::vector<int> remaining_vars;
@@ -42,7 +46,7 @@ class VariableOrderFinder {
 
 public:
     VariableOrderFinder(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         VariableOrderType variable_order_type,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng = nullptr);
     ~VariableOrderFinder() = default;

@@ -2,7 +2,8 @@
 
 #include "downward/pdbs/pattern_database.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/state.h"
 
 #include "downward/utils/logging.h"
 
@@ -15,19 +16,20 @@ using namespace std;
 
 namespace downward::pdbs {
 ZeroOnePDBs::ZeroOnePDBs(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     const PatternCollection& patterns)
 {
     vector<int> remaining_operator_costs;
-    OperatorsProxy operators = task_proxy.get_operators();
+    OperatorsProxy operators = task.get_operators();
     remaining_operator_costs.reserve(operators.size());
     for (OperatorProxy op : operators)
-        remaining_operator_costs.push_back(op.get_cost());
+        remaining_operator_costs.push_back(
+            task.get_operator_cost(op.get_id()));
 
     pattern_databases.reserve(patterns.size());
     for (const Pattern& pattern : patterns) {
         shared_ptr<PatternDatabase> pdb = make_shared<PatternDatabase>(
-            task_proxy,
+            task,
             pattern,
             remaining_operator_costs);
 
@@ -76,4 +78,4 @@ void ZeroOnePDBs::dump(utils::LogProxy& log) const
         }
     }
 }
-} // namespace pdbs
+} // namespace downward::pdbs

@@ -7,7 +7,7 @@
 #include <vector>
 
 namespace probfd {
-class ProbabilisticTaskProxy;
+class ProbabilisticTask;
 }
 
 namespace probfd::pdbs {
@@ -17,7 +17,7 @@ class MaxOrthogonalityFinderBase : public SubCollectionFinder {
 
 public:
     explicit MaxOrthogonalityFinderBase(
-        const ProbabilisticTaskProxy& task_proxy);
+        const ProbabilisticTask& task);
 
     std::vector<PatternSubCollection>
     compute_subcollections(const PatternCollection&) override;

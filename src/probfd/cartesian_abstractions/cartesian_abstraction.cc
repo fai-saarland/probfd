@@ -5,7 +5,7 @@
 #include "probfd/cartesian_abstractions/probabilistic_transition_system.h"
 
 #include "probfd/distribution.h"
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 #include "probfd/transition_tail.h"
 
 #include "downward/cartesian_abstractions/refinement_hierarchy.h"
@@ -23,7 +23,7 @@ using namespace downward;
 namespace probfd::cartesian_abstractions {
 
 namespace {
-vector<int> get_domain_sizes(const PlanningTaskProxy& task)
+vector<int> get_domain_sizes(const PlanningTask& task)
 {
     vector<int> domain_sizes;
     for (VariableProxy var : task.get_variables())
@@ -33,17 +33,18 @@ vector<int> get_domain_sizes(const PlanningTaskProxy& task)
 } // namespace
 
 CartesianAbstraction::CartesianAbstraction(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTask& task,
     std::vector<value_t> operator_costs,
     utils::LogProxy log)
-    : transition_system_(std::make_unique<ProbabilisticTransitionSystem>(
-          task_proxy.get_operators()))
-    , concrete_initial_state_(task_proxy.get_initial_state())
-    , goal_facts_(::task_properties::get_fact_pairs(task_proxy.get_goals()))
+    : transition_system_(
+          std::make_unique<ProbabilisticTransitionSystem>(
+              task.get_operators()))
+    , concrete_initial_state_(task.get_initial_state())
+    , goal_facts_(::task_properties::get_fact_pairs(task.get_goals()))
     , operator_costs_(std::move(operator_costs))
     , log_(std::move(log))
 {
-    initialize_trivial_abstraction(get_domain_sizes(task_proxy));
+    initialize_trivial_abstraction(get_domain_sizes(task));
 }
 
 CartesianAbstraction::~CartesianAbstraction() = default;
@@ -164,9 +165,7 @@ CartesianAbstraction::get_transition_system() const
 void CartesianAbstraction::mark_all_states_as_goals()
 {
     goals_.clear();
-    for (auto& state : states_) {
-        goals_.insert(state->get_id());
-    }
+    for (auto& state : states_) { goals_.insert(state->get_id()); }
 }
 
 void CartesianAbstraction::initialize_trivial_abstraction(
@@ -238,12 +237,8 @@ pair<int, int> CartesianAbstraction::refine(
     }
     if (goals_.count(v1_id)) {
         goals_.erase(v1_id);
-        if (v1->includes(goal_facts_)) {
-            goals_.insert(v1_id);
-        }
-        if (v2->includes(goal_facts_)) {
-            goals_.insert(v2_id);
-        }
+        if (v1->includes(goal_facts_)) { goals_.insert(v1_id); }
+        if (v2->includes(goal_facts_)) { goals_.insert(v2_id); }
         if (log_.is_at_least_debug()) {
             log_ << "Goal states: " << goals_.size() << endl;
         }

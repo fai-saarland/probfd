@@ -538,10 +538,9 @@ inline constexpr Enumerate_fn enumerate;
 
 } // namespace probfd::views
 
-namespace std::ranges {
 template <class Rng>
-constexpr bool enable_borrowed_range<probfd::views::enumerate_view<Rng>> =
-    enable_borrowed_range<Rng>;
-}
+constexpr bool
+    std::ranges::enable_borrowed_range<probfd::views::enumerate_view<Rng>> =
+        std::ranges::enable_borrowed_range<Rng>;
 
 #endif

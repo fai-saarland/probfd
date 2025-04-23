@@ -24,21 +24,21 @@ static void add_indices_to_constraint(
     }
 }
 
-void StateEquationConstraints::build_propositions(const TaskProxy& task_proxy)
+void StateEquationConstraints::build_propositions(const AbstractTask& task)
 {
-    VariablesProxy vars = task_proxy.get_variables();
+    VariablesProxy vars = task.get_variables();
     propositions.reserve(vars.size());
     for (VariableProxy var : vars) {
         propositions.push_back(vector<Proposition>(var.get_domain_size()));
     }
-    OperatorsProxy ops = task_proxy.get_operators();
+    OperatorsProxy ops = task.get_operators();
     for (size_t op_id = 0; op_id < ops.size(); ++op_id) {
         const OperatorProxy& op = ops[op_id];
         vector<int> precondition(vars.size(), -1);
         for (const auto [var, value] : op.get_preconditions()) {
             precondition[var] = value;
         }
-        for (EffectProxy effect_proxy : op.get_effects()) {
+        for (auto effect_proxy : op.get_effects()) {
             FactPair effect = effect_proxy.get_fact();
             int var = effect.var;
             int pre = precondition[var];
@@ -87,16 +87,15 @@ void StateEquationConstraints::initialize_constraints(
     if (log.is_at_least_normal()) {
         log << "Initializing constraints from state equation." << endl;
     }
-    TaskProxy task_proxy(*task);
-    task_properties::verify_no_axioms(task_proxy);
-    task_properties::verify_no_conditional_effects(task_proxy);
-    build_propositions(task_proxy);
+    task_properties::verify_no_axioms(*task);
+    task_properties::verify_no_conditional_effects(*task);
+    build_propositions(*task);
     add_constraints(lp.get_constraints(), lp.get_infinity());
 
     // Initialize goal state.
-    VariablesProxy variables = task_proxy.get_variables();
+    VariablesProxy variables = task->get_variables();
     goal_state = vector<int>(variables.size(), numeric_limits<int>::max());
-    for (const auto [var, value] : task_proxy.get_goals()) {
+    for (const auto [var, value] : task->get_goals()) {
         goal_state[var] = value;
     }
 }

@@ -90,7 +90,7 @@ void LandmarkHeuristic::initialize(
            task in cases where it's compatible. See issue564. */
         successor_generator =
             std::make_unique<successor_generator::SuccessorGenerator>(
-                task_proxy);
+                *transformed_task);
     }
 }
 
@@ -161,10 +161,11 @@ void LandmarkHeuristic::compute_landmark_graph(
     }
 }
 
-void LandmarkHeuristic::compute_landmarks_achieved_by_fact() {
-    for (const auto &node : lm_graph->get_nodes()) {
+void LandmarkHeuristic::compute_landmarks_achieved_by_fact()
+{
+    for (const auto& node : lm_graph->get_nodes()) {
         const int id = node->get_id();
-        const Landmark &lm = node->get_landmark();
+        const Landmark& lm = node->get_landmark();
         if (lm.conjunctive) {
             /*
               TODO: We currently have no way to declare operators preferred
@@ -173,7 +174,7 @@ void LandmarkHeuristic::compute_landmarks_achieved_by_fact() {
             */
             continue;
         }
-        for (const auto &fact_pair : lm.facts) {
+        for (const auto& fact_pair : lm.facts) {
             if (landmarks_achieved_by_fact.contains(fact_pair)) {
                 landmarks_achieved_by_fact[fact_pair].insert(id);
             } else {
@@ -184,17 +185,16 @@ void LandmarkHeuristic::compute_landmarks_achieved_by_fact() {
 }
 
 bool LandmarkHeuristic::operator_is_preferred(
-    const OperatorProxy &op, const State &state, ConstBitsetView &future) {
+    const OperatorProxy& op,
+    const State& state,
+    ConstBitsetView& future)
+{
     for (EffectProxy effect : op.get_effects()) {
-        if (!all_facts_true(effect.get_conditions(), state)) {
-            continue;
-        }
+        if (!all_facts_true(effect.get_conditions(), state)) { continue; }
         const FactPair fact_pair = effect.get_fact();
         if (landmarks_achieved_by_fact.contains(fact_pair)) {
             for (const int id : landmarks_achieved_by_fact[fact_pair]) {
-                if (future.test(id)) {
-                    return true;
-                }
+                if (future.test(id)) { return true; }
             }
         }
     }
@@ -211,10 +211,8 @@ void LandmarkHeuristic::generate_preferred_operators(
     successor_generator->generate_applicable_ops(state, applicable_operators);
 
     for (const OperatorID op_id : applicable_operators) {
-        const OperatorProxy &op = task_proxy.get_operators()[op_id];
-        if (operator_is_preferred(op, state, future)) {
-            set_preferred(op);
-        }
+        const OperatorProxy& op = transformed_task->get_operators()[op_id];
+        if (operator_is_preferred(op, state, future)) { set_preferred(op); }
     }
 }
 
@@ -272,4 +270,4 @@ void LandmarkHeuristic::notify_state_transition(
     }
 }
 
-} // namespace landmarks
+} // namespace downward::landmarks

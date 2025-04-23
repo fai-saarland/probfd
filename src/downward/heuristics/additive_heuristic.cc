@@ -158,7 +158,8 @@ void AdditiveHeuristic::mark_preferred_operators(
             int operator_no = unary_op->operator_no;
             if (is_preferred && operator_no != -1) {
                 // This is not an axiom.
-                OperatorProxy op = task_proxy.get_operators()[operator_no];
+                OperatorProxy op =
+                    transformed_task->get_operators()[operator_no];
                 assert(task_properties::is_applicable(op, state));
                 set_preferred(op);
             }
@@ -199,4 +200,4 @@ void AdditiveHeuristic::compute_heuristic_for_cegar(const State& ancestor_state)
     compute_add_and_ff(state);
 }
 
-} // namespace additive_heuristic
+} // namespace downward::additive_heuristic

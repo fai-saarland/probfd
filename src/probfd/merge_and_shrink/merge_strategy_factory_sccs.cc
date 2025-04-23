@@ -7,7 +7,7 @@
 
 #include "probfd/task_utils/causal_graph.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/algorithms/sccs.h"
 
@@ -49,9 +49,7 @@ unique_ptr<MergeStrategy> MergeStrategyFactorySCCs::compute_merge_strategy(
     std::shared_ptr<ProbabilisticTask>& task,
     const FactoredTransitionSystem& fts)
 {
-    ProbabilisticTaskProxy task_proxy(*task);
-
-    VariablesProxy vars = task_proxy.get_variables();
+    VariablesProxy vars = task->get_variables();
     int num_vars = vars.size();
 
     // Compute SCCs of the causal graph.
@@ -59,7 +57,7 @@ unique_ptr<MergeStrategy> MergeStrategyFactorySCCs::compute_merge_strategy(
     cg.reserve(num_vars);
     for (VariableProxy var : vars) {
         const vector<int>& successors =
-            task_proxy.get_causal_graph().get_successors(var.get_id());
+            task->get_causal_graph().get_successors(var.get_id());
         cg.push_back(successors);
     }
     vector<vector<int>> sccs(sccs::compute_maximal_sccs(cg));
@@ -106,7 +104,7 @@ unique_ptr<MergeStrategy> MergeStrategyFactorySCCs::compute_merge_strategy(
     }
 
     if (merge_selector) {
-        merge_selector->initialize(task_proxy);
+        merge_selector->initialize(*task);
     }
 
     return std::make_unique<MergeStrategySCCs>(

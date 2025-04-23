@@ -40,7 +40,7 @@ public:
         std::vector<std::unique_ptr<FlawGenerator>> generators);
 
     std::optional<Flaw> generate_flaw(
-        const ProbabilisticTaskProxy& task_proxy,
+        const ProbabilisticTask& task,
         const std::vector<int>& domain_sizes,
         CartesianAbstraction& abstraction,
         const AbstractState* init_id,

@@ -4,7 +4,7 @@
 #include "downward/pdbs/pattern_generator.h"
 #include "downward/pdbs/types.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <cstdlib>
 #include <memory>
@@ -53,7 +53,7 @@ class PatternCollectionGeneratorHillclimbing
       The method returns the size of the largest PDB added to candidate_pdbs.
     */
     int generate_candidate_pdbs(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const std::vector<std::vector<int>>& relevant_neighbours,
         const PatternDatabase& pdb,
         std::set<Pattern>& generated_patterns,
@@ -119,7 +119,7 @@ class PatternCollectionGeneratorHillclimbing
       Storing the PDBs has the only purpose to avoid re-computation of the same
       PDBs. This is quite a large time gain, but may use a lot of memory.
     */
-    void hill_climbing(const TaskProxy& task_proxy);
+    void hill_climbing(const AbstractTask& task);
 
     virtual std::string name() const override;
 

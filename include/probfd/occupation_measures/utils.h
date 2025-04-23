@@ -4,7 +4,7 @@
 #include <ranges>
 #include <vector>
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 namespace probfd::occupation_measures {
 

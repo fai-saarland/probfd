@@ -1,6 +1,9 @@
 #include "downward/pruning/stubborn_sets_ec.h"
 
+#include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
+
+#include "downward/abstract_task.h"
 
 #include <cassert>
 #include <unordered_map>
@@ -21,7 +24,7 @@ static inline bool is_v_applicable(
     return precondition_on_var == -1 || precondition_on_var == state[var];
 }
 
-static vector<StubbornDTG> build_dtgs(TaskProxy task_proxy)
+static vector<StubbornDTG> build_dtgs(const AbstractTask& task)
 {
     /*
       NOTE: Code lifted and adapted from M&S atomic abstraction code.
@@ -36,7 +39,7 @@ static vector<StubbornDTG> build_dtgs(TaskProxy task_proxy)
       from the usual DTG definition.
      */
 
-    const auto variables = task_proxy.get_variables();
+    const auto variables = task.get_variables();
 
     // Create the empty DTG nodes.
     vector<StubbornDTG> dtgs =
@@ -45,12 +48,12 @@ static vector<StubbornDTG> build_dtgs(TaskProxy task_proxy)
         });
 
     // Add DTG arcs.
-    for (OperatorProxy op : task_proxy.get_operators()) {
+    for (OperatorProxy op : task.get_operators()) {
         unordered_map<int, int> preconditions;
         for (const auto [var, value] : op.get_preconditions()) {
             preconditions[var] = value;
         }
-        for (EffectProxy effect : op.get_effects()) {
+        for (auto effect : op.get_effects()) {
             FactPair fact = effect.get_fact();
             int var_id = fact.var;
             int eff_val = fact.value;
@@ -116,8 +119,7 @@ StubbornSetsEC::StubbornSetsEC(utils::Verbosity verbosity)
 void StubbornSetsEC::initialize(const shared_ptr<AbstractTask>& task)
 {
     StubbornSets::initialize(task);
-    TaskProxy task_proxy(*task);
-    VariablesProxy variables = task_proxy.get_variables();
+    VariablesProxy variables = task->get_variables();
     written_vars.assign(variables.size(), false);
     nes_computed = utils::map_vector<vector<bool>>(
         variables,
@@ -125,8 +127,8 @@ void StubbornSetsEC::initialize(const shared_ptr<AbstractTask>& task)
             return vector<bool>(var.get_domain_size(), false);
         });
     active_ops.assign(num_operators, false);
-    compute_operator_preconditions(task_proxy);
-    build_reachability_map(task_proxy);
+    compute_operator_preconditions(*task);
+    build_reachability_map(*task);
 
     conflicting_and_disabling.resize(num_operators);
     conflicting_and_disabling_computed.resize(num_operators, false);
@@ -136,11 +138,12 @@ void StubbornSetsEC::initialize(const shared_ptr<AbstractTask>& task)
     log << "pruning method: stubborn sets ec" << endl;
 }
 
-void StubbornSetsEC::compute_operator_preconditions(const TaskProxy& task_proxy)
+void StubbornSetsEC::compute_operator_preconditions(
+    const AbstractTask& task)
 {
-    int num_variables = task_proxy.get_variables().size();
+    int num_variables = task.get_variables().size();
     op_preconditions_on_var = utils::map_vector<vector<int>>(
-        task_proxy.get_operators(),
+        task.get_operators(),
         [&](const OperatorProxy& op) {
             vector<int> preconditions_on_var(num_variables, -1);
             for (const auto [var, value] : op.get_preconditions()) {
@@ -150,11 +153,11 @@ void StubbornSetsEC::compute_operator_preconditions(const TaskProxy& task_proxy)
         });
 }
 
-void StubbornSetsEC::build_reachability_map(const TaskProxy& task_proxy)
+void StubbornSetsEC::build_reachability_map(const AbstractTask& task)
 {
-    vector<StubbornDTG> dtgs = build_dtgs(task_proxy);
+    vector<StubbornDTG> dtgs = build_dtgs(task);
     reachability_map = utils::map_vector<vector<vector<bool>>>(
-        task_proxy.get_variables(),
+        task.get_variables(),
         [&](const VariableProxy& var) {
             StubbornDTG& dtg = dtgs[var.get_id()];
             int num_values = var.get_domain_size();

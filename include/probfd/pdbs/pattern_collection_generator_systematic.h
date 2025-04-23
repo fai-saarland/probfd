@@ -34,9 +34,8 @@ public:
         bool only_interesting_patterns,
         downward::utils::Verbosity verbosity);
 
-    PatternCollectionInformation generate(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
+    PatternCollectionInformation
+    generate(const std::shared_ptr<ProbabilisticTask>& task) override;
 
 private:
     void enqueue_pattern_if_new(
@@ -45,15 +44,15 @@ private:
         PatternSet& pattern_set);
 
     void build_sga_patterns(
-        const ProbabilisticTaskProxy& task_proxy,
+        const ProbabilisticTask& task,
         const causal_graph::ProbabilisticCausalGraph& cg,
         PatternCollection& patterns,
         PatternSet& pattern_set);
     void build_patterns(
-        const ProbabilisticTaskProxy& task_proxy,
+        const ProbabilisticTask& task,
         PatternCollection& patterns);
     void build_patterns_naive(
-        const ProbabilisticTaskProxy& task_proxy,
+        const ProbabilisticTask& task,
         PatternCollection& patterns);
 };
 

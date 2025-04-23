@@ -8,6 +8,8 @@
 
 #include "probfd/utils/graph_visualization.h"
 
+#include "probfd/probabilistic_task.h"
+
 #include "downward/utils/rng.h"
 
 #include <algorithm>
@@ -34,12 +36,12 @@ Pattern extended_pattern(const Pattern& pattern, int add_var)
 }
 
 std::vector<int> get_goals_in_random_order(
-    ProbabilisticTaskProxy task_proxy,
+    const ProbabilisticTask& task,
     utils::RandomNumberGenerator& rng)
 {
     std::vector<int> goals;
 
-    for (const auto fact : task_proxy.get_goals()) {
+    for (const auto fact : task.get_goals()) {
         goals.push_back(fact.var);
     }
 
@@ -49,14 +51,14 @@ std::vector<int> get_goals_in_random_order(
 }
 
 void dump_graphviz(
-    ProbabilisticTaskProxy task_proxy,
+    const ProbabilisticTask& task,
     ProjectionStateSpace& mdp,
     const ProbabilityAwarePatternDatabase& pdb,
     StateRank initial_state,
     std::ostream& out,
     bool transition_labels)
 {
-    ProjectionOperatorToString op_names(task_proxy);
+    ProjectionOperatorToString op_names(task);
 
     auto sts = [&pdb, &mdp](StateRank x) {
         std::ostringstream out;

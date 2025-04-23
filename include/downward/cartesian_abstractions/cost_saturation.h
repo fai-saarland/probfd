@@ -5,6 +5,7 @@
 #include "downward/cartesian_abstractions/split_selector.h"
 #include "downward/cartesian_abstractions/types.h"
 
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -42,7 +43,7 @@ class CostSaturation {
     int num_states;
     int num_non_looping_transitions;
 
-    void reset(const TaskProxy& task_proxy);
+    void reset(const AbstractTask& task);
     void reduce_remaining_costs(const std::vector<int>& saturated_costs);
     std::shared_ptr<AbstractTask>
     get_remaining_costs_task(std::shared_ptr<AbstractTask>& parent) const;

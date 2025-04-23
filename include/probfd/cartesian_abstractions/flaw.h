@@ -5,7 +5,7 @@
 
 #include "downward/cartesian_abstractions/cartesian_set.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <vector>
 

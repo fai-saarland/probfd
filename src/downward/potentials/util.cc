@@ -16,11 +16,10 @@ vector<State> sample_without_dead_end_detection(
     utils::RandomNumberGenerator& rng)
 {
     const shared_ptr<AbstractTask> task = optimizer.get_task();
-    const TaskProxy task_proxy(*task);
-    State initial_state = task_proxy.get_initial_state();
+    State initial_state = task->get_initial_state();
     optimizer.optimize_for_state(initial_state);
     int init_h = optimizer.get_potential_function()->get_value(initial_state);
-    sampling::RandomWalkSampler sampler(task_proxy, rng);
+    sampling::RandomWalkSampler sampler(*task, rng);
     vector<State> samples;
     samples.reserve(num_samples);
     for (int i = 0; i < num_samples; ++i) {

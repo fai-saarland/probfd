@@ -6,7 +6,7 @@
 
 namespace downward {
 
-class PlanningTaskProxy;
+class PlanningTask;
 
 class AxiomEvaluator {
     struct AxiomRule;
@@ -70,7 +70,7 @@ class AxiomEvaluator {
     void evaluate_aux(Values& values, const Accessor& accessor);
 
 public:
-    explicit AxiomEvaluator(const PlanningTaskProxy& task_proxy);
+    explicit AxiomEvaluator(const PlanningTask& task);
 
     void evaluate(std::vector<int>& state);
 };

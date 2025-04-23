@@ -11,7 +11,7 @@
 namespace downward {
 class State;
 class OperatorID;
-}
+} // namespace downward
 
 namespace probfd {
 class ProgressReport;
@@ -64,9 +64,8 @@ public:
     /**
      * @brief Factory method a new instance of the encapsulated MDP algorithm.
      */
-    virtual std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) = 0;
+    virtual std::unique_ptr<StatisticalMDPAlgorithm>
+    create_algorithm(const std::shared_ptr<ProbabilisticTask>& task) = 0;
 
     /**
      * @brief Returns the name of the MDP algorithm returned by the factory.
@@ -92,6 +91,6 @@ public:
     virtual void print_statistics(std::ostream&) const override;
 };
 
-}
+} // namespace probfd::solvers
 
 #endif // PROBFD_SOLVERS_STATISTICAL_MDP_ALGORITHM_H

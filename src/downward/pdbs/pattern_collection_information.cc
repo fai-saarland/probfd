@@ -4,29 +4,27 @@
 #include "downward/pdbs/pattern_database.h"
 #include "downward/pdbs/validation.h"
 
+#include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/timer.h"
 
-#include <algorithm>
 #include <cassert>
-#include <unordered_set>
-#include <utility>
 
 using namespace std;
 
 namespace downward::pdbs {
 PatternCollectionInformation::PatternCollectionInformation(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     const shared_ptr<PatternCollection>& patterns,
     utils::LogProxy& log)
-    : task_proxy(task_proxy)
+    : task(task)
     , patterns(patterns)
     , pdbs(nullptr)
     , pattern_cliques(nullptr)
     , log(log)
 {
     assert(patterns);
-    validate_and_normalize_patterns(task_proxy, *patterns, log);
+    validate_and_normalize_patterns(task, *patterns, log);
 }
 
 bool PatternCollectionInformation::information_is_valid() const
@@ -68,7 +66,7 @@ void PatternCollectionInformation::create_pdbs_if_missing()
         pdbs = make_shared<PDBCollection>();
         for (const Pattern& pattern : *patterns) {
             shared_ptr<PatternDatabase> pdb =
-                make_shared<PatternDatabase>(task_proxy, pattern);
+                make_shared<PatternDatabase>(task, pattern);
             pdbs->push_back(pdb);
         }
         if (log.is_at_least_normal()) {
@@ -86,7 +84,7 @@ void PatternCollectionInformation::create_pattern_cliques_if_missing()
             log << "Computing pattern cliques for pattern collection..."
                 << endl;
         }
-        VariableAdditivity are_additive = compute_additive_vars(task_proxy);
+        VariableAdditivity are_additive = compute_additive_vars(task);
         pattern_cliques = compute_pattern_cliques(*patterns, are_additive);
         if (log.is_at_least_normal()) {
             log << "Done computing pattern cliques for pattern collection: "

@@ -1,8 +1,6 @@
 #ifndef PROBFD_CARTESIAN_ABSTRACTIONS_SPLIT_SELECTOR_H
 #define PROBFD_CARTESIAN_ABSTRACTIONS_SPLIT_SELECTOR_H
 
-#include "probfd/task_proxy.h"
-
 #include <cassert>
 #include <limits>
 #include <memory>
@@ -19,6 +17,10 @@ class AdditiveHeuristic;
 
 namespace downward::utils {
 class RandomNumberGenerator;
+}
+
+namespace probfd {
+class ProbabilisticTask;
 }
 
 namespace probfd::cartesian_abstractions {
@@ -99,12 +101,12 @@ public:
 // Refinement: - (remaining_values / original_domain_size)
 class SplitSelectorRefinedness
     : public RateBasedSplitSelector<SplitSelectorRefinedness> {
-    const ProbabilisticTaskProxy task_proxy_;
+    const std::shared_ptr<ProbabilisticTask> task_;
     const double factor_;
 
 public:
     SplitSelectorRefinedness(
-        const std::shared_ptr<ProbabilisticTask>& task,
+        std::shared_ptr<ProbabilisticTask> task,
         double factor);
 
     [[nodiscard]]
@@ -114,7 +116,6 @@ public:
 // Compare the h^add(s_0) values of the facts.
 class SplitSelectorHAdd {
     const std::shared_ptr<downward::PlanningTask> task_;
-    const ProbabilisticTaskProxy task_proxy_;
     std::unique_ptr<downward::additive_heuristic::AdditiveHeuristic>
         additive_heuristic_;
 

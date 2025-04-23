@@ -4,12 +4,13 @@
 #include "downward/task_utils/successor_generator_internals.h"
 
 #include "downward/abstract_task.h"
+#include "downward/state.h"
 
 using namespace std;
 
 namespace downward::successor_generator {
-SuccessorGenerator::SuccessorGenerator(const PlanningTaskProxy& task_proxy)
-    : root(SuccessorGeneratorFactory(task_proxy).create())
+SuccessorGenerator::SuccessorGenerator(const PlanningTask& task)
+    : root(SuccessorGeneratorFactory(task).create())
 {
 }
 

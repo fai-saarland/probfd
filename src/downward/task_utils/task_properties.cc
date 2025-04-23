@@ -13,20 +13,22 @@ using downward::utils::ExitCode;
 
 namespace downward::task_properties {
 
-bool is_unit_cost(const TaskProxy& task)
+bool is_unit_cost(
+    const PartialOperatorsProxy& operators,
+    const OperatorIntCostFunction& cost_function)
 {
-    for (OperatorProxy op : task.get_operators()) {
-        if (op.get_cost() != 1) return false;
+    for (const auto op : operators) {
+        if (cost_function.get_operator_cost(op.get_id()) != 1) return false;
     }
     return true;
 }
 
-bool has_axioms(const PlanningTaskProxy& task)
+bool has_axioms(const PlanningTask& task)
 {
     return !task.get_axioms().empty();
 }
 
-void verify_no_axioms(const PlanningTaskProxy& task)
+void verify_no_axioms(const PlanningTask& task)
 {
     if (has_axioms(task)) {
         cerr << "This configuration does not support axioms!" << endl
@@ -35,22 +37,22 @@ void verify_no_axioms(const PlanningTaskProxy& task)
     }
 }
 
-static int get_first_conditional_effects_op_id(const TaskProxy& task)
+static int get_first_conditional_effects_op_id(const AbstractTask& task)
 {
     for (OperatorProxy op : task.get_operators()) {
-        for (EffectProxy effect : op.get_effects()) {
+        for (auto effect : op.get_effects()) {
             if (!effect.get_conditions().empty()) return op.get_id();
         }
     }
     return -1;
 }
 
-bool has_conditional_effects(const TaskProxy& task)
+bool has_conditional_effects(const AbstractTask& task)
 {
     return get_first_conditional_effects_op_id(task) != -1;
 }
 
-void verify_no_conditional_effects(const TaskProxy& task)
+void verify_no_conditional_effects(const AbstractTask& task)
 {
     int op_id = get_first_conditional_effects_op_id(task);
     if (op_id != -1) {
@@ -62,57 +64,63 @@ void verify_no_conditional_effects(const TaskProxy& task)
     }
 }
 
-vector<int> get_operator_costs(const TaskProxy& task_proxy)
+vector<int> get_operator_costs(
+    const PartialOperatorsProxy& operators,
+    const OperatorIntCostFunction& cost_function)
 {
     vector<int> costs;
-    OperatorsProxy operators = task_proxy.get_operators();
     costs.reserve(operators.size());
-    for (OperatorProxy op : operators) costs.push_back(op.get_cost());
+    for (const auto op : operators)
+        costs.push_back(cost_function.get_operator_cost(op.get_id()));
     return costs;
 }
 
-double get_average_operator_cost(const TaskProxy& task_proxy)
+double get_average_operator_cost(
+    const PartialOperatorsProxy& operators,
+    const OperatorIntCostFunction& cost_function)
 {
     double average_operator_cost = 0;
-    for (OperatorProxy op : task_proxy.get_operators()) {
-        average_operator_cost += op.get_cost();
+    for (const auto op : operators) {
+        average_operator_cost += cost_function.get_operator_cost(op.get_id());
     }
-    average_operator_cost /= task_proxy.get_operators().size();
+    average_operator_cost /= operators.size();
     return average_operator_cost;
 }
 
-int get_min_operator_cost(const TaskProxy& task_proxy)
+int get_min_operator_cost(
+    const PartialOperatorsProxy& operators,
+    const OperatorIntCostFunction& cost_function)
 {
     int min_cost = numeric_limits<int>::max();
-    for (OperatorProxy op : task_proxy.get_operators()) {
-        min_cost = min(min_cost, op.get_cost());
+    for (const auto op : operators) {
+        min_cost = min(min_cost, cost_function.get_operator_cost(op.get_id()));
     }
     return min_cost;
 }
 
-int get_num_facts(const PlanningTaskProxy& task_proxy)
+int get_num_facts(const PlanningTask& task)
 {
     int num_facts = 0;
-    for (VariableProxy var : task_proxy.get_variables())
+    for (VariableProxy var : task.get_variables())
         num_facts += var.get_domain_size();
     return num_facts;
 }
 
-int get_num_total_effects(const TaskProxy& task_proxy)
+int get_num_total_effects(const AbstractTask& task)
 {
     int num_effects = 0;
-    for (OperatorProxy op : task_proxy.get_operators())
+    for (OperatorProxy op : task.get_operators())
         num_effects += op.get_effects().size();
-    num_effects += task_proxy.get_axioms().size();
+    num_effects += task.get_axioms().size();
     return num_effects;
 }
 
-void print_variable_statistics(const PlanningTaskProxy& task_proxy)
+void print_variable_statistics(const PlanningTask& task)
 {
-    const int_packer::IntPacker& state_packer = g_state_packers[task_proxy];
+    const int_packer::IntPacker& state_packer = g_state_packers[task];
 
     int num_facts = 0;
-    VariablesProxy variables = task_proxy.get_variables();
+    VariablesProxy variables = task.get_variables();
     for (VariableProxy var : variables) num_facts += var.get_domain_size();
 
     utils::g_log << "Variables: " << variables.size() << endl;
@@ -123,10 +131,10 @@ void print_variable_statistics(const PlanningTaskProxy& task_proxy)
                  << endl;
 }
 
-void dump_pddl(const PlanningTaskProxy& task_proxy, const State& state)
+void dump_pddl(const PlanningTask& task, const State& state)
 {
     for (FactPair fact : state | as_fact_pair_set) {
-        string fact_name = task_proxy.get_fact_proxy(fact).get_name();
+        string fact_name = task.get_fact_proxy(fact).get_name();
         if (fact_name != "<none of those>") utils::g_log << fact_name << endl;
     }
 }
@@ -148,19 +156,23 @@ void dump_goals(const VariablesProxy& variables, const GoalsProxy& goals)
     }
 }
 
-void dump_task(const TaskProxy& task_proxy)
+void dump_task(const AbstractTask& task)
 {
-    OperatorsProxy operators = task_proxy.get_operators();
+    OperatorsProxy operators = task.get_operators();
     int min_action_cost = numeric_limits<int>::max();
     int max_action_cost = 0;
+
     for (OperatorProxy op : operators) {
-        min_action_cost = min(min_action_cost, op.get_cost());
-        max_action_cost = max(max_action_cost, op.get_cost());
+        min_action_cost =
+            min(min_action_cost, task.get_operator_cost(op.get_id()));
+        max_action_cost =
+            max(max_action_cost, task.get_operator_cost(op.get_id()));
     }
+
     utils::g_log << "Min action cost: " << min_action_cost << endl;
     utils::g_log << "Max action cost: " << max_action_cost << endl;
 
-    VariablesProxy variables = task_proxy.get_variables();
+    VariablesProxy variables = task.get_variables();
     utils::g_log << "Variables (" << variables.size() << "):" << endl;
     for (VariableProxy var : variables) {
         utils::g_log << "  " << var.get_name() << " (range "
@@ -170,17 +182,18 @@ void dump_task(const TaskProxy& task_proxy)
                          << var.get_fact(val).get_name() << endl;
         }
     }
-    State initial_state = task_proxy.get_initial_state();
+
+    State initial_state = task.get_initial_state();
     utils::g_log << "Initial state (PDDL):" << endl;
-    dump_pddl(task_proxy, initial_state);
+    dump_pddl(task, initial_state);
     utils::g_log << "Initial state (FDR):" << endl;
     dump_fdr(variables, initial_state);
-    dump_goals(variables, task_proxy.get_goals());
+    dump_goals(variables, task.get_goals());
 }
 
 PerTaskInformation<int_packer::IntPacker>
-    g_state_packers([](const PlanningTaskProxy& task_proxy) {
-        VariablesProxy variables = task_proxy.get_variables();
+    g_state_packers([](const PlanningTask& task) {
+        VariablesProxy variables = task.get_variables();
         vector<int> variable_ranges;
         variable_ranges.reserve(variables.size());
         for (VariableProxy var : variables) {

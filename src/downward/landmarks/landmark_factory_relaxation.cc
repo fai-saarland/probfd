@@ -5,6 +5,8 @@
 
 #include "downward/task_utils/task_properties.h"
 
+#include "downward/axiom_utils.h"
+
 using namespace std;
 
 namespace downward::landmarks {
@@ -16,26 +18,25 @@ LandmarkFactoryRelaxation::LandmarkFactoryRelaxation(utils::Verbosity verbosity)
 void LandmarkFactoryRelaxation::generate_landmarks(
     const shared_ptr<AbstractTask>& task)
 {
-    TaskProxy task_proxy(*task);
-    Exploration exploration(task_proxy, log);
+    Exploration exploration(*task, log);
     generate_relaxed_landmarks(task, exploration);
-    postprocess(task_proxy, exploration);
+    postprocess(*task, exploration);
 }
 
 void LandmarkFactoryRelaxation::postprocess(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     Exploration& exploration)
 {
     lm_graph->set_landmark_ids();
-    calc_achievers(task_proxy, exploration);
+    calc_achievers(task, exploration);
 }
 
 void LandmarkFactoryRelaxation::calc_achievers(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     Exploration& exploration)
 {
     assert(!achievers_calculated);
-    AxiomsProxy axioms = task_proxy.get_axioms();
+    AxiomsProxy axioms = task.get_axioms();
     for (auto& lm_node : lm_graph->get_nodes()) {
         Landmark& landmark = lm_node->get_landmark();
         for (const FactPair& lm_fact : landmark.facts) {
@@ -49,8 +50,7 @@ void LandmarkFactoryRelaxation::calc_achievers(
             exploration.compute_relaxed_reachability(landmark.facts, false);
 
         for (int op_or_axom_id : landmark.possible_achievers) {
-            AxiomOrOperatorProxy op =
-                get_operator_or_axiom(task_proxy, op_or_axom_id);
+            auto op = get_operator_or_axiom(task, op_or_axom_id);
 
             if (possibly_reaches_lm(op, reached, landmark)) {
                 landmark.first_achievers.insert(op_or_axom_id);
@@ -61,7 +61,7 @@ void LandmarkFactoryRelaxation::calc_achievers(
 }
 
 bool LandmarkFactoryRelaxation::relaxed_task_solvable(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     Exploration& exploration,
     const Landmark& exclude,
     const bool use_unary_relaxation) const
@@ -70,12 +70,10 @@ bool LandmarkFactoryRelaxation::relaxed_task_solvable(
         exclude.facts,
         use_unary_relaxation);
 
-    for (const auto [var, value] : task_proxy.get_goals()) {
-        if (!reached[var][value]) {
-            return false;
-        }
+    for (const auto [var, value] : task.get_goals()) {
+        if (!reached[var][value]) { return false; }
     }
     return true;
 }
 
-} // namespace landmarks
+} // namespace downward::landmarks

@@ -1,6 +1,6 @@
 #include "downward/potentials/potential_function.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/utils/collections.h"
 

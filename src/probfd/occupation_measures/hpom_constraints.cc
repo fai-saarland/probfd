@@ -6,7 +6,6 @@
 
 #include "probfd/cost_function.h"
 #include "probfd/probabilistic_task.h"
-#include "probfd/task_proxy.h"
 #include "probfd/value_type.h"
 
 #include "downward/lp/lp_solver.h"
@@ -18,7 +17,7 @@
 #include "downward/utils/system.h"
 #include "downward/utils/timer.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <iostream>
 #include <memory>
@@ -65,16 +64,13 @@ std::vector<std::vector<value_t>> get_transition_probs_explicit(
 
 void HPOMGenerator::initialize_constraints(
     const std::shared_ptr<ProbabilisticTask>& task,
-    const std::shared_ptr<FDRCostFunction>& task_cost_function,
     lp::LinearProgram& lp)
 {
     std::cout << "Initializing HPOM LP constraints..." << std::endl;
 
     utils::Timer timer;
 
-    ProbabilisticTaskProxy task_proxy(*task);
-
-    generate_hpom_lp(task_proxy, *task_cost_function, lp, offset_);
+    generate_hpom_lp(*task, lp, offset_);
 
     std::cout << "Finished HPOM LP setup after " << timer << std::endl;
 }
@@ -97,13 +93,11 @@ void HPOMGenerator::reset_constraints(const State& state, lp::LPSolver& solver)
 }
 
 void HPOMGenerator::generate_hpom_lp(
-    const ProbabilisticTaskProxy& task_proxy,
-    const FDRCostFunction& task_cost_function,
+    const ProbabilisticTask& task,
     lp::LinearProgram& lp,
     std::vector<int>& offset_)
 {
-    const value_t term_cost =
-        task_cost_function.get_non_goal_termination_cost();
+    const value_t term_cost = task.get_non_goal_termination_cost();
 
     if (term_cost != INFINITE_VALUE && term_cost != 1_vt) {
         std::cerr << "Termination costs beyond 1 (MaxProb) and +infinity (SSP) "
@@ -111,16 +105,15 @@ void HPOMGenerator::generate_hpom_lp(
         utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
     }
 
-    const bool maxprob =
-        task_cost_function.get_non_goal_termination_cost() == 1_vt;
+    const bool maxprob = task.get_non_goal_termination_cost() == 1_vt;
 
-    ::task_properties::verify_no_axioms(task_proxy);
-    task_properties::verify_no_conditional_effects(task_proxy);
+    ::task_properties::verify_no_axioms(task);
+    task_properties::verify_no_conditional_effects(task);
 
     auto& lp_variables = lp.get_variables();
     auto& constraints = lp.get_constraints();
 
-    const VariablesProxy variables = task_proxy.get_variables();
+    const VariablesProxy variables = task.get_variables();
 
     const std::size_t num_variables = variables.size();
     const double inf = lp.get_infinity();
@@ -144,7 +137,7 @@ void HPOMGenerator::generate_hpom_lp(
     lp_variables.emplace_back(maxprob ? 0 : 1, 1, maxprob ? -1 : 0);
 
     std::vector<int> the_goal =
-        pasmt_to_vector(task_proxy.get_goals(), num_variables);
+        pasmt_to_vector(task.get_goals(), num_variables);
 
     // Build flow contraint coefficients for dummy goal action
     for (const VariableProxy var : variables) {
@@ -169,8 +162,9 @@ void HPOMGenerator::generate_hpom_lp(
     }
 
     // Now ordinary actions
-    for (const ProbabilisticOperatorProxy& op : task_proxy.get_operators()) {
-        const auto cost = maxprob ? 0 : op.get_cost();
+    for (const ProbabilisticOperatorProxy& op : task.get_operators()) {
+        const auto cost =
+            maxprob ? 0 : task.get_operator_cost(op.get_id());
 
         // Get dense precondition
         const std::vector<int> pre =
@@ -209,9 +203,7 @@ void HPOMGenerator::generate_hpom_lp(
                         if (j == i) continue;
 
                         const value_t prob = tr_probs[j];
-                        if (prob > 0_vt) {
-                            flow[j].insert(lpvar, -prob);
-                        }
+                        if (prob > 0_vt) { flow[j].insert(lpvar, -prob); }
                     }
                 }
             } else {
@@ -230,9 +222,7 @@ void HPOMGenerator::generate_hpom_lp(
                     if (j == i) continue;
 
                     const value_t prob = tr_probs[j];
-                    if (prob > 0) {
-                        flow[j].insert(lpvar, -prob);
-                    }
+                    if (prob > 0) { flow[j].insert(lpvar, -prob); }
                 }
             }
 
@@ -269,8 +259,7 @@ void HPOMGenerator::generate_hpom_lp(
 
 std::unique_ptr<ConstraintGenerator>
 HPOMGeneratorFactory::construct_constraint_generator(
-    const std::shared_ptr<ProbabilisticTask>&,
-    const std::shared_ptr<FDRCostFunction>&)
+    const std::shared_ptr<ProbabilisticTask>&)
 {
     return std::unique_ptr<HPOMGenerator>();
 }

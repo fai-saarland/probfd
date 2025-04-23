@@ -5,7 +5,8 @@
 #include "downward/merge_and_shrink/merge_tree_factory.h"
 #include "downward/merge_and_shrink/transition_system.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/state.h"
 
 #include "downward/algorithms/sccs.h"
 
@@ -43,10 +44,10 @@ MergeStrategyFactorySCCs::MergeStrategyFactorySCCs(
 }
 
 unique_ptr<MergeStrategy> MergeStrategyFactorySCCs::compute_merge_strategy(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     const FactoredTransitionSystem& fts)
 {
-    VariablesProxy vars = task_proxy.get_variables();
+    VariablesProxy vars = task.get_variables();
     int num_vars = vars.size();
 
     // Compute SCCs of the causal graph.
@@ -54,7 +55,7 @@ unique_ptr<MergeStrategy> MergeStrategyFactorySCCs::compute_merge_strategy(
     cg.reserve(num_vars);
     for (VariableProxy var : vars) {
         const vector<int>& successors =
-            task_proxy.get_causal_graph().get_successors(var.get_id());
+            task.get_causal_graph().get_successors(var.get_id());
         cg.push_back(successors);
     }
     vector<vector<int>> sccs(sccs::compute_maximal_sccs(cg));
@@ -101,7 +102,7 @@ unique_ptr<MergeStrategy> MergeStrategyFactorySCCs::compute_merge_strategy(
     }
 
     if (merge_selector) {
-        merge_selector->initialize(task_proxy);
+        merge_selector->initialize(task);
     }
 
     return std::make_unique<MergeStrategySCCs>(

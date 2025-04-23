@@ -2,8 +2,9 @@
 
 #include "probfd/task_utils/probabilistic_successor_generator_internals.h"
 
+#include "downward/abstract_task.h"
 #include "downward/operator_id.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/utils/collections.h"
 
@@ -186,8 +187,8 @@ public:
 };
 
 ProbabilisticSuccessorGeneratorFactory::ProbabilisticSuccessorGeneratorFactory(
-    const PlanningTaskProxy& task_proxy)
-    : task_proxy_(task_proxy)
+    const PlanningTask& task)
+    : task_(task)
 {
 }
 
@@ -235,7 +236,7 @@ GeneratorPtr ProbabilisticSuccessorGeneratorFactory::construct_switch(
     int switch_var_id,
     ValuesAndGenerators values_and_generators) const
 {
-    VariablesProxy variables = task_proxy_.get_variables();
+    VariablesProxy variables = task_.get_variables();
     int var_domain = variables[switch_var_id].get_domain_size();
     int num_children = values_and_generators.size();
 
@@ -319,8 +320,7 @@ build_sorted_precondition(const PartialOperatorProxy& op)
 {
     vector<FactPair> precond;
     precond.reserve(op.get_preconditions().size());
-    for (FactPair pre : op.get_preconditions())
-        precond.emplace_back(pre);
+    for (FactPair pre : op.get_preconditions()) precond.emplace_back(pre);
     // Preconditions must be sorted by variable.
     sort(precond.begin(), precond.end());
     return precond;
@@ -328,7 +328,7 @@ build_sorted_precondition(const PartialOperatorProxy& op)
 
 GeneratorPtr ProbabilisticSuccessorGeneratorFactory::create()
 {
-    PartialOperatorsProxy operators = task_proxy_.get_partial_operators();
+    PartialOperatorsProxy operators = task_.get_partial_operators();
     operator_infos_.reserve(operators.size());
     for (PartialOperatorProxy op : operators) {
         operator_infos_.emplace_back(

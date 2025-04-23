@@ -54,18 +54,15 @@ class BisimulationSolver : public SolverInterface {
     using QAction = OperatorID;
 
     std::shared_ptr<ProbabilisticTask> task;
-    std::shared_ptr<FDRCostFunction> task_cost_function;
     std::unique_ptr<MDPAlgorithm<QState, QAction>> solver;
     std::string algorithm_name;
 
 public:
     BisimulationSolver(
         std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function,
         std::unique_ptr<MDPAlgorithm<QState, QAction>> solver,
         std::string algorithm_name)
         : task(std::move(task))
-        , task_cost_function(std::move(task_cost_function))
         , solver(std::move(solver))
         , algorithm_name(std::move(algorithm_name))
     {
@@ -76,21 +73,18 @@ public:
         std::shared_ptr determinization =
             std::make_shared<tasks::DeterminizationTask>(task);
 
-        TaskProxy det_task_proxy(*determinization);
-
         auto [transition_system, state_mapping, distances] = run_time_logged(
             std::cout,
             "Computing all-outcomes determinization bisimulation...",
             bisimulation::compute_bisimulation_on_determinization,
-            det_task_proxy);
+            *determinization);
 
-        ProbabilisticTaskProxy task_proxy(*task);
-        State initial = task_proxy.get_initial_state();
+        State initial = task->get_initial_state();
         initial.unpack();
 
         if (!transition_system->is_solvable(*distances)) {
             std::cout << "Initial state recognized as unsolvable!" << std::endl;
-            const auto cost = task_cost_function->get_termination_cost(initial);
+            const auto cost = task->get_non_goal_termination_cost();
             print_analysis_result(Interval(cost));
             std::cout << std::endl;
             return false;
@@ -105,7 +99,6 @@ public:
             [&]() {
                 return bisimulation::BisimilarStateSpace(
                     task,
-                    task_cost_function,
                     *transition_system);
             });
 
@@ -127,9 +120,7 @@ public:
             "Running " + algorithm_name + " on the bisimulation...",
             [&]() {
                 ProbabilisticOperatorsProxy ops(*task);
-                heuristics::BlindEvaluator<QState> blind(
-                    ops,
-                    *task_cost_function);
+                heuristics::BlindEvaluator<QState> blind(ops, *task, *task);
                 ProgressReport progress;
 
                 return solver->compute_policy(
@@ -147,7 +138,10 @@ public:
         const Interval val =
             d.has_value()
                 ? d->q_value_interval
-                : Interval(task_cost_function->get_termination_cost(initial));
+                : Interval(
+                      downward::task_properties::is_goal_state(*task, initial)
+                          ? task->get_goal_termination_cost()
+                          : task->get_non_goal_termination_cost());
 
         print_analysis_result(val);
 
@@ -190,13 +184,11 @@ public:
                                 : "bisimulation value iteration");
     }
 
-    virtual std::unique_ptr<SolverInterface>
-    create(const std::shared_ptr<ProbabilisticTask>& task)
+    std::unique_ptr<SolverInterface>
+    create(const std::shared_ptr<ProbabilisticTask>& task) override
     {
         using namespace algorithms::interval_iteration;
         using namespace algorithms::topological_vi;
-
-        auto task_cost_function = std::make_shared<TaskCostFunction>(task);
 
         std::unique_ptr<MDPAlgorithm<QState, QAction>> solver;
 
@@ -214,7 +206,6 @@ public:
 
         return std::make_unique<BisimulationSolver>(
             task,
-            std::move(task_cost_function),
             std::move(solver),
             get_algorithm_name());
     }

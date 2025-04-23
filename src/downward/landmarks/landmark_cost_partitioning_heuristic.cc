@@ -76,19 +76,19 @@ LandmarkCostPartitioningHeuristic::LandmarkCostPartitioningHeuristic(
 {
 }
 
-LandmarkCostPartitioningHeuristic::~LandmarkCostPartitioningHeuristic()
-    = default;
+LandmarkCostPartitioningHeuristic::~LandmarkCostPartitioningHeuristic() =
+    default;
 
 void LandmarkCostPartitioningHeuristic::check_unsupported_features(
     const shared_ptr<LandmarkFactory>& lm_factory)
 {
-    if (task_properties::has_axioms(task_proxy)) {
+    if (task_properties::has_axioms(*transformed_task)) {
         cerr << "Cost partitioning does not support axioms." << endl;
         utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
     }
 
     if (!lm_factory->supports_conditional_effects() &&
-        task_properties::has_conditional_effects(task_proxy)) {
+        task_properties::has_conditional_effects(*transformed_task)) {
         cerr << "Conditional effects not supported by the landmark "
              << "generation method." << endl;
         utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
@@ -103,13 +103,17 @@ void LandmarkCostPartitioningHeuristic::set_cost_partitioning_algorithm(
     if (cost_partitioning == CostPartitioningMethod::OPTIMAL) {
         cost_partitioning_algorithm =
             std::make_unique<OptimalCostPartitioningAlgorithm>(
-                task_properties::get_operator_costs(task_proxy),
+                task_properties::get_operator_costs(
+                    transformed_task->get_operators(),
+                    *transformed_task),
                 *lm_graph,
                 lpsolver);
     } else if (cost_partitioning == CostPartitioningMethod::UNIFORM) {
         cost_partitioning_algorithm =
             std::make_unique<UniformCostPartitioningAlgorithm>(
-                task_properties::get_operator_costs(task_proxy),
+                task_properties::get_operator_costs(
+                    transformed_task->get_operators(),
+                    *transformed_task),
                 *lm_graph,
                 alm);
     } else {
@@ -138,4 +142,4 @@ bool LandmarkCostPartitioningHeuristic::dead_ends_are_reliable() const
     return true;
 }
 
-} // namespace landmarks
+} // namespace downward::landmarks

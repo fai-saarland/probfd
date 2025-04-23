@@ -5,7 +5,6 @@
 
 #include "probfd/fdr_types.h"
 #include "probfd/progress_report.h"
-#include "probfd/task_proxy.h"
 #include "probfd/task_state_space.h"
 
 #include "downward/utils/logging.h"

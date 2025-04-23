@@ -5,8 +5,8 @@
 
 namespace downward {
 class State;
-class TaskProxy;
-}
+class AbstractTask;
+} // namespace downward
 
 namespace downward::utils {
 class LogProxy;
@@ -17,7 +17,9 @@ class ZeroOnePDBs {
     PDBCollection pattern_databases;
 
 public:
-    ZeroOnePDBs(const TaskProxy& task_proxy, const PatternCollection& patterns);
+    ZeroOnePDBs(
+        const AbstractTask& task,
+        const PatternCollection& patterns);
     ~ZeroOnePDBs() = default;
 
     int get_value(const State& state) const;
@@ -32,6 +34,6 @@ public:
     double compute_approx_mean_finite_h() const;
     void dump(utils::LogProxy& log) const;
 };
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

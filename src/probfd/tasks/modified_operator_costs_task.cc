@@ -1,6 +1,7 @@
 #include "probfd/tasks/modified_operator_costs_task.h"
 
 #include <cassert>
+#include <ranges>
 #include <utility>
 
 using namespace std;
@@ -26,6 +27,15 @@ value_t ModifiedOperatorCostsTask::get_operator_cost(int index) const
 void ModifiedOperatorCostsTask::set_operator_cost(int index, value_t cost)
 {
     operator_costs_[index] = cost;
+}
+
+void ModifiedOperatorCostsTask::decrease_costs(const std::vector<value_t>& by)
+{
+    assert(by.size() == operator_costs_.size());
+
+    for (const auto& [val, dec] : std::views::zip(operator_costs_, by)) {
+        val -= dec;
+    }
 }
 
 } // namespace probfd::extra_tasks

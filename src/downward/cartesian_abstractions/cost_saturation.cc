@@ -112,14 +112,12 @@ vector<CartesianHeuristicFunction> CostSaturation::generate_heuristic_functions(
 
     utils::CountdownTimer timer(max_time);
 
-    TaskProxy task_proxy(*task);
+    task_properties::verify_no_axioms(*task);
+    task_properties::verify_no_conditional_effects(*task);
 
-    task_properties::verify_no_axioms(task_proxy);
-    task_properties::verify_no_conditional_effects(task_proxy);
+    reset(*task);
 
-    reset(task_proxy);
-
-    State initial_state = TaskProxy(*task).get_initial_state();
+    State initial_state = task->get_initial_state();
 
     function<bool()> should_abort = [&]() {
         return num_states >= max_states ||
@@ -146,9 +144,11 @@ vector<CartesianHeuristicFunction> CostSaturation::generate_heuristic_functions(
     return functions;
 }
 
-void CostSaturation::reset(const TaskProxy& task_proxy)
+void CostSaturation::reset(const AbstractTask& task)
 {
-    remaining_costs = task_properties::get_operator_costs(task_proxy);
+    remaining_costs = task_properties::get_operator_costs(
+        task.get_operators(),
+        task);
     num_abstractions = 0;
     num_states = 0;
 }
@@ -219,8 +219,9 @@ void CostSaturation::build_abstractions(
             abstraction->get_transition_system().get_num_non_loops();
         assert(num_states <= max_states);
 
-        vector<int> costs =
-            task_properties::get_operator_costs(TaskProxy(*subtask));
+        vector<int> costs = task_properties::get_operator_costs(
+            subtask->get_operators(),
+            *subtask);
         vector<int> init_distances = compute_distances(
             abstraction->get_transition_system().get_outgoing_transitions(),
             costs,
@@ -262,4 +263,4 @@ void CostSaturation::print_statistics(utils::Duration init_time) const
         log << endl;
     }
 }
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions

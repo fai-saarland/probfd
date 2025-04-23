@@ -5,7 +5,7 @@ namespace probfd::pdbs {
 
 std::unique_ptr<SubCollectionFinder>
 FullyAdditiveFinderFactory::create_subcollection_finder(
-    const ProbabilisticTaskProxy&)
+    const ProbabilisticTask&)
 {
     return std::make_unique<FullyAdditiveFinder>();
 }

@@ -32,8 +32,8 @@ OperatorCountingHeuristic::OperatorCountingHeuristic(
     lp_solver.set_mip_gap(0);
     named_vector::NamedVector<lp::LPVariable> variables;
     double infinity = lp_solver.get_infinity();
-    for (OperatorProxy op : task_proxy.get_operators()) {
-        int op_cost = op.get_cost();
+    for (OperatorProxy op : transformed_task->get_operators()) {
+        int op_cost = transformed_task->get_operator_cost(op.get_id());
         variables.push_back(
             lp::LPVariable(0, infinity, op_cost, use_integer_operator_counts));
 #ifndef NDEBUG

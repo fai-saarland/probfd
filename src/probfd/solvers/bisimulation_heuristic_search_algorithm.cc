@@ -12,8 +12,6 @@
 
 #include "probfd/utils/not_implemented.h"
 
-#include "probfd/task_proxy.h"
-
 #include "downward/merge_and_shrink/factored_transition_system.h"
 #include "downward/merge_and_shrink/merge_and_shrink_representation.h"
 #include "downward/merge_and_shrink/transition_system.h"
@@ -34,11 +32,9 @@ void BisimulationTimer::print(std::ostream& out) const
 BisimulationBasedHeuristicSearchAlgorithm ::
     BisimulationBasedHeuristicSearchAlgorithm(
         std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function,
         std::string algorithm_name,
         std::shared_ptr<MDPAlgorithm<QState, QAction>> algorithm)
     : task_(std::move(task))
-    , task_cost_function_(std::move(task_cost_function))
     , algorithm_name_(std::move(algorithm_name))
     , algorithm_(std::move(algorithm))
 {
@@ -81,15 +77,11 @@ auto BisimulationBasedHeuristicSearchAlgorithm::compute_policy(
 
     std::cout << "Building bisimulation..." << std::endl;
 
-    ProbabilisticTaskProxy task_proxy(*task_);
-
     std::shared_ptr determinization =
         std::make_shared<tasks::DeterminizationTask>(task_);
 
-    TaskProxy det_task_proxy(*determinization);
-
     auto [transition_system, state_mapping, distances] =
-        bisimulation::compute_bisimulation_on_determinization(det_task_proxy);
+        bisimulation::compute_bisimulation_on_determinization(*determinization);
 
     std::cout << "Done." << std::endl;
 
@@ -98,14 +90,13 @@ auto BisimulationBasedHeuristicSearchAlgorithm::compute_policy(
         return std::make_unique<policies::EmptyPolicy<State, OperatorID>>();
     }
 
-    State initial = task_proxy.get_initial_state();
+    State initial = task_->get_initial_state();
     initial.unpack();
     const auto initial_state =
         bisimulation::QuotientState(state_mapping->get_value(initial));
 
     bisimulation::BisimilarStateSpace state_space(
         task_,
-        task_cost_function_,
         *transition_system);
 
     stats_.time = timer();
@@ -119,7 +110,7 @@ auto BisimulationBasedHeuristicSearchAlgorithm::compute_policy(
     std::cout << std::endl;
 
     ProbabilisticOperatorsProxy ops(*task_);
-    heuristics::BlindEvaluator<QState> heuristic(ops, *task_cost_function_);
+    heuristics::BlindEvaluator<QState> heuristic(ops, *task_, *task_);
 
     std::cout << "Running " << algorithm_name_ << "..." << std::endl;
     auto pi = algorithm_->compute_policy(

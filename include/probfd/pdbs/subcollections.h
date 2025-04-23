@@ -6,17 +6,17 @@
 #include <vector>
 
 namespace probfd {
-class ProbabilisticTaskProxy;
+class ProbabilisticTask;
 }
 
 namespace probfd::pdbs {
 
 std::vector<std::vector<bool>> compute_prob_orthogonal_vars(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTask& task,
     bool ignore_deterministic = false);
 
 std::vector<std::vector<int>> build_compatibility_graph_orthogonality(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTask& task,
     const PatternCollection& patterns,
     bool ignore_deterministic = false);
 

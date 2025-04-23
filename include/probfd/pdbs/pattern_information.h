@@ -6,7 +6,6 @@
 #include "probfd/heuristics/constant_heuristic.h"
 
 #include "probfd/fdr_types.h"
-#include "probfd/task_proxy.h"
 
 #include <memory>
 
@@ -15,8 +14,7 @@ namespace probfd::pdbs {
 struct ProbabilityAwarePatternDatabase;
 
 class PatternInformation {
-    ProbabilisticTaskProxy task_proxy_;
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function_;
+    std::shared_ptr<ProbabilisticTask> task_;
     Pattern pattern_;
     std::shared_ptr<ProbabilityAwarePatternDatabase> pdb_;
 
@@ -30,16 +28,15 @@ class PatternInformation {
 
 public:
     PatternInformation(
-        ProbabilisticTaskProxy task_proxy,
-        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+        std::shared_ptr<ProbabilisticTask> task,
         Pattern pattern);
 
     void set_pdb(const std::shared_ptr<ProbabilityAwarePatternDatabase>& pdb);
 
     [[nodiscard]]
-    ProbabilisticTaskProxy get_task_proxy() const
+    const ProbabilisticTask& get_task() const
     {
-        return task_proxy_;
+        return *task_;
     }
 
     [[nodiscard]]

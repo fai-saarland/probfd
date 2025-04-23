@@ -9,9 +9,9 @@ using namespace std;
 
 namespace downward::pdbs {
 IncrementalCanonicalPDBs::IncrementalCanonicalPDBs(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     const PatternCollection& intitial_patterns)
-    : task_proxy(task_proxy)
+    : task(task)
     , patterns(make_shared<PatternCollection>(
           intitial_patterns.begin(),
           intitial_patterns.end()))
@@ -21,14 +21,14 @@ IncrementalCanonicalPDBs::IncrementalCanonicalPDBs(
 {
     pattern_databases->reserve(patterns->size());
     for (const Pattern& pattern : *patterns) add_pdb_for_pattern(pattern);
-    are_additive = compute_additive_vars(task_proxy);
+    are_additive = compute_additive_vars(task);
     recompute_pattern_cliques();
 }
 
 void IncrementalCanonicalPDBs::add_pdb_for_pattern(const Pattern& pattern)
 {
     pattern_databases->push_back(
-        make_shared<PatternDatabase>(task_proxy, pattern));
+        make_shared<PatternDatabase>(task, pattern));
     size += pattern_databases->back()->get_size();
 }
 
@@ -75,7 +75,7 @@ PatternCollectionInformation
 IncrementalCanonicalPDBs::get_pattern_collection_information(
     utils::LogProxy& log) const
 {
-    PatternCollectionInformation result(task_proxy, patterns, log);
+    PatternCollectionInformation result(task, patterns, log);
     result.set_pdbs(pattern_databases);
     result.set_pattern_cliques(pattern_cliques);
     return result;

@@ -3,7 +3,8 @@
 #include "downward/pdbs/pattern_generator_greedy.h"
 #include "downward/pdbs/validation.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/state.h"
 
 #include "downward/utils/logging.h"
 
@@ -31,7 +32,6 @@ string PatternCollectionGeneratorCombo::name() const
 PatternCollectionInformation PatternCollectionGeneratorCombo::compute_patterns(
     const shared_ptr<AbstractTask>& task)
 {
-    TaskProxy task_proxy(*task);
     shared_ptr<PatternCollection> patterns = make_shared<PatternCollection>();
 
     PatternGeneratorGreedy large_pattern_generator(max_states, verbosity);
@@ -40,13 +40,13 @@ PatternCollectionInformation PatternCollectionGeneratorCombo::compute_patterns(
     set<int> used_vars(large_pattern.begin(), large_pattern.end());
     patterns->push_back(std::move(large_pattern));
 
-    for (FactPair goal : task_proxy.get_goals()) {
+    for (FactPair goal : task->get_goals()) {
         if (const int goal_var = goal.var; !used_vars.contains(goal_var)) {
             patterns->emplace_back(1, goal_var);
         }
     }
 
-    PatternCollectionInformation pci(task_proxy, patterns, log);
+    PatternCollectionInformation pci(*task, patterns, log);
     return pci;
 }
 

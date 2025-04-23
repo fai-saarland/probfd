@@ -10,7 +10,7 @@
 namespace probfd::occupation_measures {
 class ConstraintGenerator;
 class ConstraintGeneratorFactory;
-}
+} // namespace probfd::occupation_measures
 
 namespace probfd::heuristics {
 
@@ -29,7 +29,6 @@ protected:
 public:
     OccupationMeasureHeuristic(
         std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function,
         downward::utils::LogProxy log,
         downward::lp::LPSolverType solver_type,
         std::shared_ptr<occupation_measures::ConstraintGenerator>
@@ -53,9 +52,8 @@ public:
         const std::shared_ptr<occupation_measures::ConstraintGeneratorFactory>&
             constraint_generator_factory);
 
-    std::unique_ptr<FDREvaluator> create_heuristic(
-        std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function) override;
+    std::unique_ptr<FDREvaluator>
+    create_heuristic(std::shared_ptr<ProbabilisticTask> task) override;
 };
 
 } // namespace probfd::heuristics

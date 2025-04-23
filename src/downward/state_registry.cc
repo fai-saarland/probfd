@@ -1,7 +1,7 @@
 #include "downward/state_registry.h"
 
 #include "downward/per_state_information.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/utils/logging.h"
 
@@ -9,11 +9,11 @@ using namespace std;
 
 namespace downward {
 
-StateRegistry::StateRegistry(const PlanningTaskProxy& task_proxy)
-    : task_proxy(task_proxy)
-    , state_packer(task_properties::g_state_packers[task_proxy])
-    , axiom_evaluator(g_axiom_evaluators[task_proxy])
-    , num_variables(task_proxy.get_variables().size())
+StateRegistry::StateRegistry(const PlanningTask& task)
+    : task(task)
+    , state_packer(task_properties::g_state_packers[task])
+    , axiom_evaluator(g_axiom_evaluators[task])
+    , num_variables(task.get_variables().size())
     , state_data_pool(get_bins_per_state())
     , registered_states(
           StateIDSemanticHash(state_data_pool, get_bins_per_state()),
@@ -58,7 +58,7 @@ const State& StateRegistry::get_initial_state()
         // Avoid garbage values in half-full bins.
         fill_n(buffer.get(), num_bins, 0);
 
-        State initial_state = task_proxy.get_initial_state();
+        State initial_state = task.get_initial_state();
         for (size_t i = 0; i < initial_state.size(); ++i) {
             state_packer.set(buffer.get(), i, initial_state[i]);
         }
@@ -87,7 +87,7 @@ State StateRegistry::get_successor_state(
     PackedStateBin* buffer = state_data_pool[state_data_pool.size() - 1];
     /* Experiments for issue348 showed that for tasks with axioms it's faster
        to compute successor states using unpacked data. */
-    if (task_properties::has_axioms(task_proxy)) {
+    if (task_properties::has_axioms(task)) {
         predecessor.unpack();
         vector<int> new_values = predecessor.get_unpacked_values();
         apply_conditional_effects(op.get_effects(), predecessor, new_values);

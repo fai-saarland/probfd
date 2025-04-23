@@ -39,7 +39,7 @@ static CanonicalPDBs get_canonical_pdbs(
         pattern_collection_info.get_pattern_cliques();
 
     if (max_time_dominance_pruning > 0.0) {
-        int num_variables = TaskProxy(*task).get_variables().size();
+        int num_variables = task->get_variables().size();
         /*
           NOTE: Dominance pruning could also be computed without having access
           to the PDBs, but since we want to delete patterns, we also want to

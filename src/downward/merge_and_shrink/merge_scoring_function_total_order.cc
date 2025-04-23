@@ -3,12 +3,13 @@
 #include "downward/merge_and_shrink/factored_transition_system.h"
 #include "downward/merge_and_shrink/transition_system.h"
 
-#include "downward/task_proxy.h"
-
 #include "downward/utils/logging.h"
 
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
+
+#include "downward/abstract_task.h"
+#include "downward/state.h"
 
 #include <cassert>
 
@@ -60,10 +61,10 @@ vector<double> MergeScoringFunctionTotalOrder::compute_scores(
     return scores;
 }
 
-void MergeScoringFunctionTotalOrder::initialize(const TaskProxy& task_proxy)
+void MergeScoringFunctionTotalOrder::initialize(const AbstractTask& task)
 {
     initialized = true;
-    int num_variables = task_proxy.get_variables().size();
+    int num_variables = task.get_variables().size();
     int max_transition_system_count = num_variables * 2 - 1;
     vector<int> transition_system_order;
     transition_system_order.reserve(max_transition_system_count);

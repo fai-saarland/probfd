@@ -612,11 +612,10 @@ RootTask::RootTask(std::istream& in)
     }
 
     /*
-      HACK: We use a TaskProxy to access g_axiom_evaluators here which
+      HACK: We use access g_axiom_evaluators here which
       assumes that this task is completely constructed.
     */
-    AxiomEvaluator& axiom_evaluator =
-        downward::g_axiom_evaluators[PlanningTaskProxy(*this)];
+    AxiomEvaluator& axiom_evaluator = downward::g_axiom_evaluators[*this];
     axiom_evaluator.evaluate(initial_state_values);
 }
 

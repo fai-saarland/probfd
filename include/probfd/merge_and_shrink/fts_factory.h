@@ -16,7 +16,7 @@ class LogProxy;
 }
 
 namespace probfd {
-class ProbabilisticTaskProxy;
+class ProbabilisticTask;
 }
 
 namespace probfd::merge_and_shrink {
@@ -26,7 +26,7 @@ class FactoredTransitionSystem;
 namespace probfd::merge_and_shrink {
 
 extern FactoredTransitionSystem create_factored_transition_system(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTask& task,
     downward::utils::LogProxy& log);
 
 } // namespace probfd::merge_and_shrink

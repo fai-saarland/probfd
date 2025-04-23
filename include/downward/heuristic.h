@@ -4,7 +4,7 @@
 #include "downward/evaluator.h"
 #include "downward/operator_id.h"
 #include "downward/per_state_information.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/algorithms/ordered_set.h"
 
@@ -12,7 +12,7 @@
 #include <vector>
 
 namespace downward {
-class TaskProxy;
+class AbstractTask;
 class StateMapping;
 class InverseOperatorMapping;
 struct TaskTransformationResult;
@@ -62,8 +62,6 @@ protected:
     const std::shared_ptr<AbstractTask> transformed_task;
     const std::shared_ptr<StateMapping> state_mapping;
     const std::shared_ptr<InverseOperatorMapping> inv_operator_mapping;
-    // Use task_proxy to access task information.
-    TaskProxy task_proxy;
 
     enum { DEAD_END = -1, NO_VALUE = -2 };
 

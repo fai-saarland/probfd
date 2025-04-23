@@ -13,7 +13,7 @@ namespace downward::utils {
 class RandomNumberGenerator;
 class LogProxy;
 enum class Verbosity;
-} // namespace utils
+} // namespace downward::utils
 
 namespace probfd::pdbs {
 struct ProbabilityAwarePatternDatabase;
@@ -61,9 +61,8 @@ public:
         int random_seed,
         downward::utils::Verbosity verbosity);
 
-    std::unique_ptr<FDREvaluator> create_heuristic(
-        std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function) override;
+    std::unique_ptr<FDREvaluator>
+    create_heuristic(std::shared_ptr<ProbabilisticTask> task) override;
 };
 
 } // namespace probfd::heuristics

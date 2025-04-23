@@ -5,7 +5,7 @@
 
 #include "probfd/task_utils/causal_graph.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/utils/logging.h"
 
@@ -135,7 +135,7 @@ void PatternCollectionGeneratorSystematic::enqueue_pattern_if_new(
 }
 
 void PatternCollectionGeneratorSystematic::build_sga_patterns(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTask& task,
     const causal_graph::ProbabilisticCausalGraph& cg,
     PatternCollection& patterns,
     PatternSet& pattern_set)
@@ -159,7 +159,7 @@ void PatternCollectionGeneratorSystematic::build_sga_patterns(
     */
 
     // Build goal patterns.
-    for (FactPair goal : task_proxy.get_goals()) {
+    for (FactPair goal : task.get_goals()) {
         enqueue_pattern_if_new({goal.var}, patterns, pattern_set);
     }
 
@@ -189,19 +189,19 @@ void PatternCollectionGeneratorSystematic::build_sga_patterns(
 }
 
 void PatternCollectionGeneratorSystematic::build_patterns(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTask& task,
     PatternCollection& patterns)
 {
     PatternSet pattern_set;
 
-    int num_variables = task_proxy.get_variables().size();
+    int num_variables = task.get_variables().size();
     const causal_graph::ProbabilisticCausalGraph& cg =
-        task_proxy.get_causal_graph();
+        task.get_causal_graph();
 
     // Generate SGA (single-goal-ancestor) patterns.
     // They are generated into the patterns variable,
     // so we swap them from there.
-    build_sga_patterns(task_proxy, cg, patterns, pattern_set);
+    build_sga_patterns(task, cg, patterns, pattern_set);
     PatternCollection sga_patterns;
     patterns.swap(sga_patterns);
 
@@ -261,10 +261,10 @@ void PatternCollectionGeneratorSystematic::build_patterns(
 }
 
 void PatternCollectionGeneratorSystematic::build_patterns_naive(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTask& task,
     PatternCollection& patterns)
 {
-    int num_variables = task_proxy.get_variables().size();
+    int num_variables = task.get_variables().size();
     PatternCollection current_patterns(1);
     PatternCollection next_patterns;
     for (size_t i = 0; i < max_pattern_size; ++i) {
@@ -288,23 +288,20 @@ void PatternCollectionGeneratorSystematic::build_patterns_naive(
 }
 
 PatternCollectionInformation PatternCollectionGeneratorSystematic::generate(
-    const shared_ptr<ProbabilisticTask>& task,
-    const std::shared_ptr<FDRCostFunction>& task_cost_function)
+    const shared_ptr<ProbabilisticTask>& task)
 {
-    ProbabilisticTaskProxy task_proxy(*task);
     PatternCollection patterns;
 
     if (only_interesting_patterns) {
-        build_patterns(task_proxy, patterns);
+        build_patterns(*task, patterns);
     } else {
-        build_patterns_naive(task_proxy, patterns);
+        build_patterns_naive(*task, patterns);
     }
 
     return PatternCollectionInformation(
-        task_proxy,
-        task_cost_function,
+        task,
         std::move(patterns),
-        std::make_shared<AdditiveMaxOrthogonalityFinder>(task_proxy));
+        std::make_shared<AdditiveMaxOrthogonalityFinder>(*task));
 }
 
 } // namespace probfd::pdbs

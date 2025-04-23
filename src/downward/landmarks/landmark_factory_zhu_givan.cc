@@ -4,7 +4,9 @@
 #include "downward/landmarks/landmark_graph.h"
 #include "downward/landmarks/util.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/axiom_utils.h"
+#include "downward/state.h"
 
 #include "downward/utils/logging.h"
 
@@ -27,23 +29,22 @@ void LandmarkFactoryZhuGivan::generate_relaxed_landmarks(
     const shared_ptr<AbstractTask>& task,
     Exploration&)
 {
-    TaskProxy task_proxy(*task);
     if (log.is_at_least_normal()) {
         log << "Generating landmarks using Zhu/Givan label propagation" << endl;
     }
 
-    compute_triggers(task_proxy);
+    compute_triggers(*task);
 
     PropositionLayer last_prop_layer =
-        build_relaxed_plan_graph_with_labels(task_proxy);
+        build_relaxed_plan_graph_with_labels(*task);
 
-    extract_landmarks(task_proxy, last_prop_layer);
+    extract_landmarks(*task, last_prop_layer);
 
     if (!use_orders) { discard_all_orderings(); }
 }
 
 void LandmarkFactoryZhuGivan::extract_landmarks(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     const PropositionLayer& last_prop_layer)
 {
     /*
@@ -52,7 +53,7 @@ void LandmarkFactoryZhuGivan::extract_landmarks(
       the landmark will have no achievers, the heuristic can detect the
       initial state as a dead-end.
      */
-    for (FactPair goal : task_proxy.get_goals()) {
+    for (FactPair goal : task.get_goals()) {
         if (!last_prop_layer[goal.var][goal.value].reached()) {
             if (log.is_at_least_normal()) {
                 log << "Problem not solvable, even if relaxed." << endl;
@@ -63,9 +64,9 @@ void LandmarkFactoryZhuGivan::extract_landmarks(
         }
     }
 
-    State initial_state = task_proxy.get_initial_state();
+    State initial_state = task.get_initial_state();
     // insert goal landmarks and mark them as goals
-    for (FactPair goal_lm : task_proxy.get_goals()) {
+    for (FactPair goal_lm : task.get_goals()) {
         LandmarkNode* lm_node;
         if (lm_graph->contains_simple_landmark(goal_lm)) {
             lm_node = &lm_graph->get_simple_landmark(goal_lm);
@@ -101,17 +102,17 @@ void LandmarkFactoryZhuGivan::extract_landmarks(
 
 LandmarkFactoryZhuGivan::PropositionLayer
 LandmarkFactoryZhuGivan::build_relaxed_plan_graph_with_labels(
-    const TaskProxy& task_proxy) const
+    const AbstractTask& task) const
 {
     assert(!triggers.empty());
 
     PropositionLayer current_prop_layer;
     unordered_set<int> triggered(
-        task_proxy.get_operators().size() + task_proxy.get_axioms().size());
+        task.get_operators().size() + task.get_axioms().size());
 
     // set initial layer
-    State initial_state = task_proxy.get_initial_state();
-    VariablesProxy variables = task_proxy.get_variables();
+    State initial_state = task.get_initial_state();
+    VariablesProxy variables = task.get_variables();
     current_prop_layer.resize(variables.size());
     for (VariableProxy var : variables) {
         int var_id = var.get_id();
@@ -139,7 +140,7 @@ LandmarkFactoryZhuGivan::build_relaxed_plan_graph_with_labels(
         changes = false;
         for (int op_or_axiom_id : triggered) {
             AxiomOrOperatorProxy op =
-                get_operator_or_axiom(task_proxy, op_or_axiom_id);
+                get_operator_or_axiom(task, op_or_axiom_id);
             if (operator_applicable(op, current_prop_layer)) {
                 lm_set changed = apply_operator_and_propagate_labels(
                     op,
@@ -287,21 +288,21 @@ lm_set LandmarkFactoryZhuGivan::apply_operator_and_propagate_labels(
     return result;
 }
 
-void LandmarkFactoryZhuGivan::compute_triggers(const TaskProxy& task_proxy)
+void LandmarkFactoryZhuGivan::compute_triggers(const AbstractTask& task)
 {
     assert(triggers.empty());
 
     // initialize empty triggers
-    VariablesProxy variables = task_proxy.get_variables();
+    VariablesProxy variables = task.get_variables();
     triggers.resize(variables.size());
     for (size_t i = 0; i < variables.size(); ++i)
         triggers[i].resize(variables[i].get_domain_size());
 
     // compute triggers
-    for (OperatorProxy op : task_proxy.get_operators()) {
+    for (OperatorProxy op : task.get_operators()) {
         add_operator_to_triggers(op);
     }
-    for (AxiomProxy axiom : task_proxy.get_axioms()) {
+    for (AxiomProxy axiom : task.get_axioms()) {
         add_operator_to_triggers(axiom);
     }
 }

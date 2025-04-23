@@ -1,6 +1,7 @@
 #include "downward/pdbs/random_pattern.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/state.h"
 
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/logging.h"
@@ -30,7 +31,7 @@ Pattern generate_random_pattern(
     double max_time,
     utils::LogProxy& log,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     int goal_variable,
     vector<vector<int>>& cg_neighbors)
 {
@@ -38,7 +39,7 @@ Pattern generate_random_pattern(
     int current_var = goal_variable;
     unordered_set<int> visited_vars;
     visited_vars.insert(current_var);
-    VariablesProxy variables = task_proxy.get_variables();
+    VariablesProxy variables = task.get_variables();
     int pdb_size = variables[current_var].get_domain_size();
     while (!time_limit_reached(timer, log)) {
         rng->shuffle(cg_neighbors[current_var]);

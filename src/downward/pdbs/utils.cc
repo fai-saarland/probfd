@@ -4,11 +4,10 @@
 #include "downward/pdbs/pattern_database.h"
 #include "downward/pdbs/pattern_information.h"
 
-#include "downward/task_proxy.h"
-
 #include "downward/task_utils/causal_graph.h"
 #include "downward/task_utils/task_properties.h"
 
+#include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/math.h"
 #include "downward/utils/rng.h"
@@ -18,11 +17,11 @@
 using namespace std;
 
 namespace downward::pdbs {
-int compute_pdb_size(const TaskProxy& task_proxy, const Pattern& pattern)
+int compute_pdb_size(const AbstractTask& task, const Pattern& pattern)
 {
     int size = 1;
     for (int var : pattern) {
-        int domain_size = task_proxy.get_variables()[var].get_domain_size();
+        int domain_size = task.get_variables()[var].get_domain_size();
         if (utils::is_product_within_limit(
                 size,
                 domain_size,
@@ -38,30 +37,30 @@ int compute_pdb_size(const TaskProxy& task_proxy, const Pattern& pattern)
 }
 
 int compute_total_pdb_size(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     const PatternCollection& pattern_collection)
 {
     int size = 0;
     for (const Pattern& pattern : pattern_collection) {
-        size += compute_pdb_size(task_proxy, pattern);
+        size += compute_pdb_size(task, pattern);
     }
     return size;
 }
 
 vector<FactPair> get_goals_in_random_order(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     utils::RandomNumberGenerator& rng)
 {
     vector<FactPair> goals =
-        task_properties::get_fact_pairs(task_proxy.get_goals());
+        task_properties::get_fact_pairs(task.get_goals());
     rng.shuffle(goals);
     return goals;
 }
 
-vector<int> get_non_goal_variables(const TaskProxy& task_proxy)
+vector<int> get_non_goal_variables(const AbstractTask& task)
 {
-    size_t num_vars = task_proxy.get_variables().size();
-    GoalsProxy goals = task_proxy.get_goals();
+    size_t num_vars = task.get_variables().size();
+    GoalsProxy goals = task.get_goals();
     vector<bool> is_goal(num_vars, false);
     for (FactPair goal : goals) {
         is_goal[goal.var] = true;
@@ -80,8 +79,7 @@ vector<int> get_non_goal_variables(const TaskProxy& task_proxy)
 vector<vector<int>>
 compute_cg_neighbors(const shared_ptr<AbstractTask>& task, bool bidirectional)
 {
-    TaskProxy task_proxy(*task);
-    int num_vars = task_proxy.get_variables().size();
+    int num_vars = task->get_variables().size();
     const causal_graph::CausalGraph& cg =
         causal_graph::get_causal_graph(task.get());
     vector<vector<int>> cg_neighbors(num_vars);
@@ -100,7 +98,7 @@ compute_cg_neighbors(const shared_ptr<AbstractTask>& task, bool bidirectional)
 }
 
 PatternCollectionInformation get_pattern_collection_info(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     const shared_ptr<PDBCollection>& pdbs,
     utils::LogProxy& log)
 {
@@ -109,7 +107,7 @@ PatternCollectionInformation get_pattern_collection_info(
     for (const shared_ptr<PatternDatabase>& pdb : *pdbs) {
         patterns->push_back(pdb->get_pattern());
     }
-    PatternCollectionInformation result(task_proxy, patterns, log);
+    PatternCollectionInformation result(task, patterns, log);
     result.set_pdbs(pdbs);
     return result;
 }
@@ -125,7 +123,7 @@ void dump_pattern_generation_statistics(
         log << identifier << " pattern: " << pattern << endl;
         log << identifier << " number of variables: " << pattern.size() << endl;
         log << identifier << " PDB size: "
-            << compute_pdb_size(pattern_info.get_task_proxy(), pattern) << endl;
+            << compute_pdb_size(pattern_info.get_task(), pattern) << endl;
         log << identifier << " computation time: " << runtime << endl;
     }
 }
@@ -141,7 +139,7 @@ void dump_pattern_collection_generation_statistics(
         log << identifier
             << " number of patterns: " << pattern_collection.size() << endl;
         log << identifier << " total PDB size: "
-            << compute_total_pdb_size(pci.get_task_proxy(), pattern_collection)
+            << compute_total_pdb_size(pci.get_task(), pattern_collection)
             << endl;
         log << identifier << " computation time: " << runtime << endl;
     }

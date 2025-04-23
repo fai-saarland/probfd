@@ -15,7 +15,7 @@ class LogProxy;
 } // namespace utils
 
 namespace probfd {
-class ProbabilisticTaskProxy;
+class ProbabilisticTask;
 }
 
 namespace probfd::cartesian_abstractions {
@@ -31,7 +31,7 @@ public:
     explicit CompletePolicyFlawFinder(int max_search_states);
 
     std::optional<Flaw> find_flaw(
-        const ProbabilisticTaskProxy& task_proxy,
+        const ProbabilisticTask& task,
         const std::vector<int>& domain_sizes,
         CartesianAbstraction& abstraction,
         Solution& policy,

@@ -1,6 +1,7 @@
 #include "downward/operator_counting/delete_relaxation_if_constraints.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/state.h"
 
 #include "downward/lp/lp_solver.h"
 
@@ -67,12 +68,12 @@ int DeleteRelaxationIFConstraints::get_constraint_id(FactPair f)
 }
 
 void DeleteRelaxationIFConstraints::create_auxiliary_variables(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     LPVariables& variables)
 {
-    OperatorsProxy ops = task_proxy.get_operators();
+    OperatorsProxy ops = task.get_operators();
     int num_ops = ops.size();
-    VariablesProxy vars = task_proxy.get_variables();
+    VariablesProxy vars = task.get_variables();
     int num_vars = vars.size();
 
     // op_used
@@ -141,21 +142,21 @@ void DeleteRelaxationIFConstraints::create_auxiliary_variables(
 }
 
 void DeleteRelaxationIFConstraints::create_constraints(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     lp::LinearProgram& lp)
 {
     LPVariables& variables = lp.get_variables();
     LPConstraints& constraints = lp.get_constraints();
     double infinity = lp.get_infinity();
-    OperatorsProxy ops = task_proxy.get_operators();
-    VariablesProxy vars = task_proxy.get_variables();
+    OperatorsProxy ops = task.get_operators();
+    VariablesProxy vars = task.get_variables();
 
     /*
       All goal facts must be reached (handled in variable bound instead of
       constraint).
           R_f = 1 for all goal facts f.
     */
-    for (FactPair goal : task_proxy.get_goals()) {
+    for (FactPair goal : task.get_goals()) {
         variables[get_var_fact_reached(goal)].lower_bound = 1;
     }
 
@@ -180,7 +181,7 @@ void DeleteRelaxationIFConstraints::create_constraints(
         }
     }
     for (OperatorProxy op : ops) {
-        for (EffectProxy eff : op.get_effects()) {
+        for (auto eff : op.get_effects()) {
             FactPair f = eff.get_fact();
             lp::LPConstraint& constraint = constraints[get_constraint_id(f)];
             constraint.insert(get_var_first_achiever(op, f), 1);
@@ -192,7 +193,7 @@ void DeleteRelaxationIFConstraints::create_constraints(
           U_o >= F_{o,f} for each operator o and each of its effects f.
     */
     for (OperatorProxy op : ops) {
-        for (EffectProxy eff : op.get_effects()) {
+        for (auto eff : op.get_effects()) {
             FactPair f = eff.get_fact();
             lp::LPConstraint constraint(0, infinity);
             constraint.insert(get_var_op_used(op), 1);
@@ -238,7 +239,7 @@ void DeleteRelaxationIFConstraints::create_constraints(
         */
         int M = ops.size() + 1;
         for (OperatorProxy op : ops) {
-            for (EffectProxy eff : op.get_effects()) {
+            for (auto eff : op.get_effects()) {
                 FactPair f = eff.get_fact();
                 lp::LPConstraint constraint(1 - M, infinity);
                 constraint.insert(get_var_fact_time(f), 1);
@@ -265,9 +266,8 @@ void DeleteRelaxationIFConstraints::initialize_constraints(
     const shared_ptr<AbstractTask>& task,
     lp::LinearProgram& lp)
 {
-    TaskProxy task_proxy(*task);
-    create_auxiliary_variables(task_proxy, lp.get_variables());
-    create_constraints(task_proxy, lp);
+    create_auxiliary_variables(*task, lp.get_variables());
+    create_constraints(*task, lp);
 }
 
 bool DeleteRelaxationIFConstraints::update_constraints(

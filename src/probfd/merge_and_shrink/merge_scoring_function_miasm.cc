@@ -1,14 +1,14 @@
 #include "probfd/merge_and_shrink/merge_scoring_function_miasm.h"
 
 #include "probfd/merge_and_shrink/distances.h"
+#include "probfd/merge_and_shrink/factored_transition_system.h"
 #include "probfd/merge_and_shrink/merge_scoring_function_miasm_utils.h"
 #include "probfd/merge_and_shrink/shrink_strategy.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/utils/logging.h"
-#include "probfd/merge_and_shrink/factored_transition_system.h"
 
 using namespace std;
 using namespace downward;
@@ -65,9 +65,7 @@ vector<double> MergeScoringFunctionMIASM::compute_scores(
         int alive_states_count = 0;
 
         for (int state = 0; state < num_states; ++state) {
-            if (distances.is_alive(state)) {
-                ++alive_states_count;
-            }
+            if (distances.is_alive(state)) { ++alive_states_count; }
         }
 
         /*
@@ -88,11 +86,10 @@ vector<double> MergeScoringFunctionMIASM::compute_scores(
     return scores;
 }
 
-void MergeScoringFunctionMIASM::initialize(
-    const ProbabilisticTaskProxy& task_proxy)
+void MergeScoringFunctionMIASM::initialize(const ProbabilisticTask& task)
 {
     initialized = true;
-    const int num_variables = task_proxy.get_variables().size();
+    const int num_variables = task.get_variables().size();
     const int max_factor_index = 2 * num_variables - 1;
     cached_scores_by_merge_candidate_indices.resize(
         max_factor_index,

@@ -13,8 +13,10 @@ protected:
     /* Test whether the relaxed planning task is solvable without
        achieving the excluded landmark. */
     bool relaxed_task_solvable(
-        const TaskProxy &task_proxy, Exploration &exploration,
-        const Landmark &exclude, bool use_unary_relaxation) const;
+        const AbstractTask& task,
+        Exploration& exploration,
+        const Landmark& exclude,
+        bool use_unary_relaxation) const;
 
 private:
     void generate_landmarks(const std::shared_ptr<AbstractTask>& task) override;
@@ -22,10 +24,11 @@ private:
     virtual void generate_relaxed_landmarks(
         const std::shared_ptr<AbstractTask>& task,
         Exploration& exploration) = 0;
-    void postprocess(const TaskProxy& task_proxy, Exploration& exploration);
+    void postprocess(const AbstractTask& task, Exploration& exploration);
 
-    void calc_achievers(const TaskProxy& task_proxy, Exploration& exploration);
+    void
+    calc_achievers(const AbstractTask& task, Exploration& exploration);
 };
-} // namespace landmarks
+} // namespace downward::landmarks
 
 #endif

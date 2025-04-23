@@ -3,7 +3,7 @@
 #include "probfd/task_utils/probabilistic_successor_generator_factory.h"
 #include "probfd/task_utils/probabilistic_successor_generator_internals.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 using namespace std;
 
@@ -12,8 +12,8 @@ using namespace downward;
 namespace probfd::successor_generator {
 
 ProbabilisticSuccessorGenerator::ProbabilisticSuccessorGenerator(
-    const PlanningTaskProxy& task_proxy)
-    : root_(ProbabilisticSuccessorGeneratorFactory(task_proxy).create())
+    const PlanningTask& task)
+    : root_(ProbabilisticSuccessorGeneratorFactory(task).create())
 {
 }
 

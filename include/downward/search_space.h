@@ -10,7 +10,7 @@
 namespace downward {
 class OperatorProxy;
 class State;
-class TaskProxy;
+class AbstractTask;
 }
 
 namespace downward::utils {
@@ -39,19 +39,22 @@ public:
     void open(
         const SearchNode& parent_node,
         const OperatorProxy& parent_op,
+        const OperatorIntCostFunction& cost_function,
         int adjusted_cost);
     void reopen(
         const SearchNode& parent_node,
         const OperatorProxy& parent_op,
+        const OperatorIntCostFunction& cost_function,
         int adjusted_cost);
     void update_parent(
         const SearchNode& parent_node,
         const OperatorProxy& parent_op,
+        const OperatorIntCostFunction& cost_function,
         int adjusted_cost);
     void close();
     void mark_as_dead_end();
 
-    void dump(const TaskProxy& task_proxy, utils::LogProxy& log) const;
+    void dump(const AbstractTask& task, utils::LogProxy& log) const;
 };
 
 class SearchSpace {
@@ -67,7 +70,7 @@ public:
     void
     trace_path(const State& goal_state, std::vector<OperatorID>& path) const;
 
-    void dump(const TaskProxy& task_proxy) const;
+    void dump(const AbstractTask& task) const;
     void print_statistics() const;
 };
 }

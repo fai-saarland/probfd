@@ -9,7 +9,7 @@ class LogProxy;
 }
 
 namespace probfd {
-class ProbabilisticTaskProxy;
+class ProbabilisticTask;
 }
 
 namespace probfd::merge_and_shrink {
@@ -26,7 +26,7 @@ public:
         const FactoredTransitionSystem& fts,
         const std::vector<int>& indices_subset = std::vector<int>()) const = 0;
 
-    virtual void initialize(const ProbabilisticTaskProxy& task_proxy) = 0;
+    virtual void initialize(const ProbabilisticTask& task) = 0;
 
     void dump_options(downward::utils::LogProxy& log) const;
 

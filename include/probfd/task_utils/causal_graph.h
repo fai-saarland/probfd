@@ -9,7 +9,6 @@ class LogProxy;
 
 namespace probfd {
 class ProbabilisticTask;
-class ProbabilisticTaskProxy;
 } // namespace probfd
 
 namespace probfd::causal_graph {
@@ -25,13 +24,13 @@ class ProbabilisticCausalGraph {
     IntRelation predecessors;
 
     void dump(
-        const ProbabilisticTaskProxy& task_proxy,
+        const ProbabilisticTask& task,
         downward::utils::LogProxy& log) const;
 
 public:
     /* Use the factory function get_causal_graph to create causal graphs
        to avoid creating more than one causal graph per AbstractTask. */
-    explicit ProbabilisticCausalGraph(const ProbabilisticTaskProxy& task_proxy);
+    explicit ProbabilisticCausalGraph(const ProbabilisticTask& task);
 
     /*
       All below methods querying neighbors (of some sort or other) of

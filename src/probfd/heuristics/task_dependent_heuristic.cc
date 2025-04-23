@@ -10,7 +10,6 @@ TaskDependentHeuristic::TaskDependentHeuristic(
     std::shared_ptr<ProbabilisticTask> task,
     utils::LogProxy log)
     : task_(task)
-    , task_proxy_(*task)
     , log_(std::move(log))
 {
 }

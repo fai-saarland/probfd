@@ -1,7 +1,7 @@
 #ifndef CEGAR_UTILS_H
 #define CEGAR_UTILS_H
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/utils/hash.h"
 
@@ -27,7 +27,7 @@ namespace downward::cartesian_abstractions {
   time, plus 'fact' itself.
 */
 extern utils::HashSet<FactPair>
-get_relaxed_possible_before(const TaskProxy& task, FactPair fact);
+get_relaxed_possible_before(const AbstractTask& task, FactPair fact);
 
 extern std::vector<int> get_domain_sizes(const VariablesProxy& variables);
 } // namespace cartesian_abstractions

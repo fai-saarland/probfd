@@ -1,8 +1,9 @@
 #include "downward/task_utils/sampling.h"
 
+#include "downward/axioms.h"
 #include "downward/task_utils/successor_generator.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/memory.h"
@@ -78,15 +79,17 @@ static State sample_state_with_random_walk(
 }
 
 RandomWalkSampler::RandomWalkSampler(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     utils::RandomNumberGenerator& rng)
-    : axiom_evaluator(g_axiom_evaluators[task_proxy])
-    , operators(task_proxy.get_operators())
+    : axiom_evaluator(g_axiom_evaluators[task])
+    , operators(task.get_operators())
     , successor_generator(
-          std::make_unique<successor_generator::SuccessorGenerator>(task_proxy))
-    , initial_state(task_proxy.get_initial_state())
+          std::make_unique<successor_generator::SuccessorGenerator>(task))
+    , initial_state(task.get_initial_state())
     , average_operator_costs(
-          task_properties::get_average_operator_cost(task_proxy))
+          task_properties::get_average_operator_cost(
+              task.get_operators(),
+              task))
     , rng(rng)
 {
 }

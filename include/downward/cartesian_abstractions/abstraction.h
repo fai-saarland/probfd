@@ -3,7 +3,7 @@
 
 #include "downward/cartesian_abstractions/types.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/utils/collections.h"
 

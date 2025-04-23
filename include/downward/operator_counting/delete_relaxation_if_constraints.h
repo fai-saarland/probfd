@@ -3,9 +3,13 @@
 
 #include "downward/operator_counting/constraint_generator.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <memory>
+
+namespace downward {
+class OperatorProxy;
+}
 
 namespace downward::lp {
 class LPConstraint;
@@ -56,9 +60,9 @@ class DeleteRelaxationIFConstraints : public ConstraintGenerator {
     int get_constraint_id(FactPair f);
 
     void create_auxiliary_variables(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         LPVariables& variables);
-    void create_constraints(const TaskProxy& task_proxy, lp::LinearProgram& lp);
+    void create_constraints(const AbstractTask& task, lp::LinearProgram& lp);
 
 public:
     explicit DeleteRelaxationIFConstraints(

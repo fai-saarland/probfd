@@ -4,10 +4,9 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "probfd/task_proxy.h"
-
 #include "downward/task_utils/task_properties.h"
 
+#include "downward/utils/collections.h"
 #include "downward/utils/system.h"
 
 #include <cassert>
@@ -51,11 +50,10 @@ DomainAbstractedTaskFactory::DomainAbstractedTaskFactory(
     const shared_ptr<ProbabilisticTask>& parent,
     const VarToGroups& value_groups)
 {
-    ProbabilisticTaskProxy parent_proxy(*parent);
-    if (::task_properties::has_axioms(parent_proxy)) {
+    if (::task_properties::has_axioms(*parent)) {
         ABORT("DomainAbstractedTask doesn't support axioms.");
     }
-    if (task_properties::has_conditional_effects(parent_proxy)) {
+    if (task_properties::has_conditional_effects(*parent)) {
         ABORT("DomainAbstractedTask doesn't support conditional effects.");
     }
 

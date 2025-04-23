@@ -7,7 +7,7 @@
 
 #include "probfd/abstractions/distances.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/abstract_task.h"
 #include "downward/utils/countdown_timer.h"
@@ -57,8 +57,7 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
     int max_pdb_size,
     double max_time,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
-    const ProbabilisticTaskProxy& task_proxy,
-    const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
+    const std::shared_ptr<ProbabilisticTask>& task,
     const FactPair& goal,
     unordered_set<int>&& blacklisted_variables)
 {
@@ -66,25 +65,24 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
 
     // Start with a solution of the trivial abstraction
     ProjectionTransformation transformation(
-        task_proxy,
-        task_cost_function,
+        task,
         {goal.var},
         false,
         timer.get_remaining_time());
 
     compute_value_table(
         *transformation.projection,
-        transformation.pdb.get_abstract_state(task_proxy.get_initial_state()),
+        transformation.pdb.get_abstract_state(task->get_initial_state()),
         heuristics::BlindEvaluator<StateRank>(
-            task_proxy.get_operators(),
-            *task_cost_function),
+            task->get_operators(),
+            *task,
+            *task),
         transformation.pdb.value_table,
         timer.get_remaining_time());
 
     run_cegar_loop(
         transformation,
-        task_proxy,
-        task_cost_function,
+        task,
         convergence_epsilon_,
         *flaw_strategy_,
         std::move(blacklisted_variables),

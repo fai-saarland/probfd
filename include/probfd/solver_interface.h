@@ -4,7 +4,7 @@
 #include "probfd/value_type.h"
 
 #include "downward/operator_id.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <iosfwd>
 #include <memory>

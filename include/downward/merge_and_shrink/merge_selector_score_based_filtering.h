@@ -24,7 +24,7 @@ public:
         const FactoredTransitionSystem& fts,
         const std::vector<int>& indices_subset =
             std::vector<int>()) const override;
-    virtual void initialize(const TaskProxy& task_proxy) override;
+    virtual void initialize(const AbstractTask& task) override;
     virtual bool requires_init_distances() const override;
     virtual bool requires_goal_distances() const override;
 };

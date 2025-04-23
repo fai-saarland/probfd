@@ -1,7 +1,7 @@
 #include "downward/mutexes/from_file_mutex_factory.h"
 
 #include "downward/abstract_task.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/utils/collections.h"
 #include "downward/utils/system.h"

@@ -3,10 +3,13 @@
 #include "downward/pdbs/pattern_database.h"
 #include "downward/pdbs/utils.h"
 
+#include "downward/utils/collections.h"
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
+
+#include "downward/fact_pair.h"
 
 #include <vector>
 
@@ -76,9 +79,7 @@ PatternCollectionGeneratorMultiple::get_blacklisted_variables(
         if (log.is_at_least_debug()) {
             log << "blacklisting " << blacklist_size << " out of "
                 << non_goal_variables.size() << " non-goal variables: ";
-            for (int var : blacklisted_variables) {
-                log << var << ", ";
-            }
+            for (int var : blacklisted_variables) { log << var << ", "; }
             log << endl;
         }
     }
@@ -128,9 +129,7 @@ bool PatternCollectionGeneratorMultiple::time_limit_reached(
     const utils::CountdownTimer& timer) const
 {
     if (timer.is_expired()) {
-        if (log.is_at_least_normal()) {
-            log << "time limit reached" << endl;
-        }
+        if (log.is_at_least_normal()) { log << "time limit reached" << endl; }
         return true;
     }
     return false;
@@ -187,20 +186,17 @@ PatternCollectionGeneratorMultiple::compute_patterns(
             << enable_blacklist_on_stagnation << endl;
     }
 
-    TaskProxy task_proxy(*task);
     utils::CountdownTimer timer(total_max_time);
 
     // Store the set of goals in random order.
-    vector<FactPair> goals = get_goals_in_random_order(task_proxy, *rng);
+    vector<FactPair> goals = get_goals_in_random_order(*task, *rng);
 
     // Store the non-goal variables for potential blacklisting.
-    vector<int> non_goal_variables = get_non_goal_variables(task_proxy);
+    vector<int> non_goal_variables = get_non_goal_variables(*task);
 
     if (log.is_at_least_debug()) {
         log << "goal variables: ";
-        for (FactPair goal : goals) {
-            log << goal.var << ", ";
-        }
+        for (FactPair goal : goals) { log << goal.var << ", "; }
         log << endl;
         log << "non-goal variables: " << non_goal_variables << endl;
     }
@@ -251,7 +247,7 @@ PatternCollectionGeneratorMultiple::compute_patterns(
     }
 
     PatternCollectionInformation result =
-        get_pattern_collection_info(task_proxy, generated_pdbs, log);
+        get_pattern_collection_info(*task, generated_pdbs, log);
     if (log.is_at_least_normal()) {
         log << name() << " number of iterations: " << num_iterations << endl;
         log << name() << " average time per generator: "
@@ -260,4 +256,4 @@ PatternCollectionGeneratorMultiple::compute_patterns(
     return result;
 }
 
-} // namespace pdbs
+} // namespace downward::pdbs

@@ -57,7 +57,7 @@ MergeAndShrinkHeuristic::MergeAndShrinkHeuristic(
         main_loop_max_time,
         verbosity);
     FactoredTransitionSystem fts =
-        algorithm.build_factored_transition_system(task_proxy);
+        algorithm.build_factored_transition_system(*transformed_task);
     extract_factors(fts);
     log << "Done initializing merge-and-shrink heuristic." << endl << endl;
 }

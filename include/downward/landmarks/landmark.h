@@ -1,7 +1,7 @@
 #ifndef LANDMARKS_LANDMARK_H
 #define LANDMARKS_LANDMARK_H
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <unordered_set>
 

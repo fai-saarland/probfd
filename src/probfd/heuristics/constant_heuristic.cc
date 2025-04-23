@@ -6,12 +6,13 @@ using namespace downward;
 
 namespace probfd::heuristics {
 
-std::unique_ptr<FDREvaluator> BlindEvaluatorFactory::create_heuristic(
-    std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<FDRCostFunction> cost_function)
+std::unique_ptr<FDREvaluator>
+BlindEvaluatorFactory::create_heuristic(std::shared_ptr<ProbabilisticTask> task)
 {
-    ProbabilisticOperatorsProxy ops(*task);
-    return std::make_unique<BlindEvaluator<State>>(ops, *cost_function);
+    return std::make_unique<BlindEvaluator<State>>(
+        task->get_operators(),
+        *task,
+        *task);
 }
 
 } // namespace probfd::heuristics

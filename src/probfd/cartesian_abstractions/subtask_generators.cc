@@ -7,7 +7,6 @@
 #include "probfd/cartesian_abstractions/utils.h"
 
 #include "probfd/probabilistic_task.h"
-#include "probfd/task_proxy.h"
 
 #include "downward/cartesian_abstractions/utils_landmarks.h"
 
@@ -22,7 +21,7 @@
 
 #include "downward/transformations/identity_transformation.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <algorithm>
 #include <iostream>
@@ -48,8 +47,7 @@ public:
         const shared_ptr<ProbabilisticTask>& task)
         : hadd(create_additive_heuristic(task))
     {
-        PlanningTaskProxy task_proxy(*task);
-        hadd->compute_heuristic_for_cegar(task_proxy.get_initial_state());
+        hadd->compute_heuristic_for_cegar(task->get_initial_state());
     }
 
     bool operator()(const FactPair& a, const FactPair& b)
@@ -60,9 +58,9 @@ public:
 } // namespace
 
 static void
-remove_initial_state_facts(const PlanningTaskProxy& task_proxy, Facts& facts)
+remove_initial_state_facts(const PlanningTask& task, Facts& facts)
 {
-    State initial_state = task_proxy.get_initial_state();
+    State initial_state = task.get_initial_state();
     std::erase_if(facts, [&](FactPair fact) {
         return initial_state[fact.var] == fact.value;
     });
@@ -102,8 +100,7 @@ static Facts filter_and_order_facts(
     utils::RandomNumberGenerator& rng,
     utils::LogProxy& log)
 {
-    ProbabilisticTaskProxy task_proxy(*task);
-    remove_initial_state_facts(task_proxy, facts);
+    remove_initial_state_facts(*task, facts);
     order_facts(task, fact_order, facts, rng, log);
     return facts;
 }
@@ -154,9 +151,8 @@ SharedTasks GoalDecomposition::get_subtasks(
     utils::LogProxy& log) const
 {
     SharedTasks subtasks;
-    ProbabilisticTaskProxy task_proxy(*task);
     Facts goal_facts =
-        ::task_properties::get_fact_pairs(task_proxy.get_goals());
+        ::task_properties::get_fact_pairs(task->get_goals());
     filter_and_order_facts(task, fact_order_, goal_facts, *rng_, log);
     for (const FactPair& goal : goal_facts) {
         shared_ptr<ProbabilisticTask> subtask =

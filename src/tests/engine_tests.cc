@@ -12,7 +12,6 @@
 #include "probfd/quotients/quotient_system.h"
 
 #include "probfd/task_cost_function.h"
-#include "probfd/task_proxy.h"
 #include "probfd/task_state_space.h"
 
 #include "tests/tasks/blocksworld.h"

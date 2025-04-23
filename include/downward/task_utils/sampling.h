@@ -1,12 +1,14 @@
 #ifndef TASK_UTILS_SAMPLING_H
 #define TASK_UTILS_SAMPLING_H
 
-#include "downward/task_proxy.h"
+#include "downward/classical_operator_space.h"
+#include "downward/state.h"
 
 #include <functional>
 #include <memory>
 
 namespace downward {
+class AbstractTask;
 class State;
 }
 
@@ -35,7 +37,7 @@ class RandomWalkSampler {
 
 public:
     RandomWalkSampler(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         utils::RandomNumberGenerator& rng);
     ~RandomWalkSampler();
 

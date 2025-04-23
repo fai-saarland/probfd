@@ -6,7 +6,7 @@
 #include <memory>
 
 namespace downward {
-class TaskProxy;
+class AbstractTask;
 }
 
 namespace downward::utils {
@@ -49,7 +49,8 @@ class MergeAndShrinkAlgorithm {
     void warn_on_unusual_options() const;
     bool ran_out_of_time(const utils::CountdownTimer& timer) const;
     void statistics(int maximum_intermediate_size) const;
-    void main_loop(FactoredTransitionSystem& fts, const TaskProxy& task_proxy);
+    void
+    main_loop(FactoredTransitionSystem& fts, const AbstractTask& task);
 
 public:
     MergeAndShrinkAlgorithm(
@@ -64,9 +65,9 @@ public:
         double main_loop_max_time,
         utils::Verbosity verbosity);
     FactoredTransitionSystem
-    build_factored_transition_system(const TaskProxy& task_proxy);
+    build_factored_transition_system(const AbstractTask& task);
 };
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink
 
 #endif

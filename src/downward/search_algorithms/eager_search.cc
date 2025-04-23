@@ -210,8 +210,9 @@ SearchStatus EagerSearch::step()
     }
 
     for (OperatorID op_id : applicable_ops) {
-        OperatorProxy op = task_proxy.get_operators()[op_id];
-        if ((node->get_real_g() + op.get_cost()) >= bound) continue;
+        OperatorProxy op = task->get_operators()[op_id];
+        if (node->get_real_g() + task->get_operator_cost(op.get_id()) >= bound)
+            continue;
 
         State succ_state = state_registry.get_successor_state(s, op);
         statistics.inc_generated();
@@ -233,7 +234,7 @@ SearchStatus EagerSearch::step()
             // Careful: succ_node.get_g() is not available here yet,
             // hence the stupid computation of succ_g.
             // TODO: Make this less fragile.
-            int succ_g = node->get_g() + get_adjusted_cost(op);
+            int succ_g = node->get_g() + get_adjusted_cost(op, *task);
 
             EvaluationContext succ_eval_context(
                 succ_state,
@@ -247,14 +248,15 @@ SearchStatus EagerSearch::step()
                 statistics.inc_dead_ends();
                 continue;
             }
-            succ_node.open(*node, op, get_adjusted_cost(op));
+            succ_node.open(*node, op, *task, get_adjusted_cost(op, *task));
 
             open_list->insert(succ_eval_context, succ_state.get_id());
             if (search_progress.check_progress(succ_eval_context)) {
                 statistics.print_checkpoint_line(succ_node.get_g());
                 reward_progress();
             }
-        } else if (succ_node.get_g() > node->get_g() + get_adjusted_cost(op)) {
+        } else if (
+            succ_node.get_g() > node->get_g() + get_adjusted_cost(op, *task)) {
             // We found a new cheapest path to an open or closed state.
             if (reopen_closed_nodes) {
                 if (succ_node.is_closed()) {
@@ -267,7 +269,8 @@ SearchStatus EagerSearch::step()
                     */
                     statistics.inc_reopened();
                 }
-                succ_node.reopen(*node, op, get_adjusted_cost(op));
+                succ_node
+                    .reopen(*node, op, *task, get_adjusted_cost(op, *task));
 
                 EvaluationContext succ_eval_context(
                     succ_state,
@@ -297,7 +300,11 @@ SearchStatus EagerSearch::step()
                 // If we do not reopen closed nodes, we just update the parent
                 // pointers. Note that this could cause an incompatibility
                 // between the g-value and the actual path that is traced back.
-                succ_node.update_parent(*node, op, get_adjusted_cost(op));
+                succ_node.update_parent(
+                    *node,
+                    op,
+                    *task,
+                    get_adjusted_cost(op, *task));
             }
         }
     }
@@ -314,7 +321,7 @@ void EagerSearch::reward_progress()
 
 void EagerSearch::dump_search_space() const
 {
-    search_space.dump(task_proxy);
+    search_space.dump(*task);
 }
 
 void EagerSearch::start_f_value_statistics(EvaluationContext& eval_context)

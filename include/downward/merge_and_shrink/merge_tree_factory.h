@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace downward {
-class TaskProxy;
+class AbstractTask;
 }
 
 namespace downward::utils {
@@ -32,11 +32,11 @@ public:
     void dump_options(utils::LogProxy& log) const;
     // Compute a merge tree for the given entire task.
     virtual std::unique_ptr<MergeTree>
-    compute_merge_tree(const TaskProxy& task_proxy) = 0;
+    compute_merge_tree(const AbstractTask& task) = 0;
     /* Compute a merge tree for the given current factored transition,
        system, possibly for a subset of indices. */
     virtual std::unique_ptr<MergeTree> compute_merge_tree(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const FactoredTransitionSystem& fts,
         const std::vector<int>& indices_subset);
     virtual bool requires_init_distances() const = 0;

@@ -149,8 +149,8 @@ void EnforcedHillClimbingSearch::insert_successor_into_open_list(
     OperatorID op_id,
     bool preferred)
 {
-    OperatorProxy op = task_proxy.get_operators()[op_id];
-    int succ_g = parent_g + get_adjusted_cost(op);
+    OperatorProxy op = task->get_operators()[op_id];
+    int succ_g = parent_g + get_adjusted_cost(op, *task);
     const State& state = eval_context.get_state();
     EdgeOpenListEntry entry = make_pair(state.get_id(), op_id);
     EvaluationContext new_eval_context(
@@ -224,16 +224,19 @@ SearchStatus EnforcedHillClimbingSearch::ehc()
         EdgeOpenListEntry entry = open_list->remove_min();
         StateID parent_state_id = entry.first;
         OperatorID last_op_id = entry.second;
-        OperatorProxy last_op = task_proxy.get_operators()[last_op_id];
+        OperatorProxy last_op = task->get_operators()[last_op_id];
 
         State parent_state = state_registry.lookup_state(parent_state_id);
         SearchNode parent_node = search_space.get_node(parent_state);
 
         // d: distance from initial node in this EHC phase
         int d = parent_node.get_g() - current_phase_start_g +
-                get_adjusted_cost(last_op);
+                get_adjusted_cost(last_op, *task);
 
-        if (parent_node.get_real_g() + last_op.get_cost() >= bound) continue;
+        if (parent_node.get_real_g() +
+                task->get_operator_cost(last_op.get_id()) >=
+            bound)
+            continue;
 
         State state = state_registry.get_successor_state(parent_state, last_op);
         statistics.inc_generated();
@@ -252,7 +255,11 @@ SearchStatus EnforcedHillClimbingSearch::ehc()
             }
 
             int h = eval_context.get_evaluator_value(evaluator.get());
-            node.open(parent_node, last_op, get_adjusted_cost(last_op));
+            node.open(
+                parent_node,
+                last_op,
+                *task,
+                get_adjusted_cost(last_op, *task));
 
             if (h < current_eval_context.get_evaluator_value(evaluator.get())) {
                 ++num_ehc_phases;

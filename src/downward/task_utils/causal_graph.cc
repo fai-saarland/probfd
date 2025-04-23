@@ -1,6 +1,8 @@
 #include "downward/task_utils/causal_graph.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/axiom_utils.h"
+#include "downward/state.h"
 
 #include "downward/utils/logging.h"
 #include "downward/utils/memory.h"
@@ -169,15 +171,15 @@ struct CausalGraphBuilder {
     }
 };
 
-CausalGraph::CausalGraph(const TaskProxy& task_proxy)
+CausalGraph::CausalGraph(const AbstractTask& task)
 {
-    int num_variables = task_proxy.get_variables().size();
+    int num_variables = task.get_variables().size();
     CausalGraphBuilder cg_builder(num_variables);
 
-    for (OperatorProxy op : task_proxy.get_operators())
+    for (OperatorProxy op : task.get_operators())
         cg_builder.handle_operator(op);
 
-    for (AxiomProxy op : task_proxy.get_axioms())
+    for (AxiomProxy op : task.get_axioms())
         cg_builder.handle_operator(op);
 
     cg_builder.pre_eff_builder.compute_relation(pre_to_eff);
@@ -192,10 +194,10 @@ CausalGraph::~CausalGraph()
 {
 }
 
-void CausalGraph::dump(const TaskProxy& task_proxy) const
+void CausalGraph::dump(const AbstractTask& task) const
 {
     utils::g_log << "Causal graph: " << endl;
-    for (VariableProxy var : task_proxy.get_variables()) {
+    for (VariableProxy var : task.get_variables()) {
         int var_id = var.get_id();
         utils::g_log << "#" << var_id << " [" << var.get_name() << "]:" << endl
                      << "    pre->eff arcs: " << pre_to_eff[var_id] << endl
@@ -208,11 +210,10 @@ void CausalGraph::dump(const TaskProxy& task_proxy) const
 
 const CausalGraph& get_causal_graph(const AbstractTask* task)
 {
-    if (causal_graph_cache.count(task) == 0) {
-        TaskProxy task_proxy(*task);
+    if (!causal_graph_cache.contains(task)) {
         causal_graph_cache.insert(
-            make_pair(task, std::make_unique<CausalGraph>(task_proxy)));
+            make_pair(task, std::make_unique<CausalGraph>(*task)));
     }
     return *causal_graph_cache[task];
 }
-} // namespace causal_graph
+} // namespace downward::causal_graph

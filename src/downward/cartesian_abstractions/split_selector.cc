@@ -21,7 +21,6 @@ SplitSelector::SplitSelector(
     const shared_ptr<AbstractTask>& task,
     PickSplit pick)
     : task(task)
-    , task_proxy(*task)
     , pick(pick)
 {
     if (pick == PickSplit::MIN_HADD || pick == PickSplit::MAX_HADD) {
@@ -35,7 +34,7 @@ SplitSelector::SplitSelector(
                 "h^add within CEGAR abstractions",
                 utils::Verbosity::SILENT);
         additive_heuristic->compute_heuristic_for_cegar(
-            task_proxy.get_initial_state());
+            task->get_initial_state());
     }
 }
 
@@ -56,7 +55,7 @@ int SplitSelector::get_num_unwanted_values(
 double
 SplitSelector::get_refinedness(const AbstractState& state, int var_id) const
 {
-    double all_values = task_proxy.get_variables()[var_id].get_domain_size();
+    double all_values = task->get_variables()[var_id].get_domain_size();
     assert(all_values >= 2);
     double remaining_values = state.count(var_id);
     assert(2 <= remaining_values && remaining_values <= all_values);
@@ -79,9 +78,7 @@ int SplitSelector::get_min_hadd_value(int var_id, const vector<int>& values)
     int min_hadd = numeric_limits<int>::max();
     for (int value : values) {
         const int hadd = get_hadd_value(var_id, value);
-        if (hadd < min_hadd) {
-            min_hadd = hadd;
-        }
+        if (hadd < min_hadd) { min_hadd = hadd; }
     }
     return min_hadd;
 }
@@ -92,9 +89,7 @@ int SplitSelector::get_max_hadd_value(int var_id, const vector<int>& values)
     int max_hadd = -1;
     for (int value : values) {
         const int hadd = get_hadd_value(var_id, value);
-        if (hadd > max_hadd) {
-            max_hadd = hadd;
-        }
+        if (hadd > max_hadd) { max_hadd = hadd; }
     }
     return max_hadd;
 }
@@ -136,13 +131,9 @@ const Split& SplitSelector::pick_split(
 {
     assert(!splits.empty());
 
-    if (splits.size() == 1) {
-        return splits[0];
-    }
+    if (splits.size() == 1) { return splits[0]; }
 
-    if (pick == PickSplit::RANDOM) {
-        return *rng.choose(splits);
-    }
+    if (pick == PickSplit::RANDOM) { return *rng.choose(splits); }
 
     double max_rating = numeric_limits<double>::lowest();
     const Split* selected_split = nullptr;
@@ -156,4 +147,4 @@ const Split& SplitSelector::pick_split(
     assert(selected_split);
     return *selected_split;
 }
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions

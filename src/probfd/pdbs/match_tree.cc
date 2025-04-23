@@ -66,7 +66,7 @@ void MatchTree::insert(
     const AssignmentEnumerator& enumerator,
     ProjectionOperator op,
     const vector<FactPair>& progression_preconditions,
-    FDRSimpleCostFunction* task_cost_function)
+    downward::OperatorCostFunction<value_t>* cost_function)
 {
     std::unique_ptr<Node>* node = &root_;
     auto precondition_it = progression_preconditions.begin();
@@ -118,12 +118,14 @@ void MatchTree::insert(
 
     // If a cost function is passed, merge equivalent operators and take
     // the minimum cost.
-    if (task_cost_function) {
-        const auto cost = task_cost_function->get_action_cost(op.operator_id);
+    if (cost_function) {
+        const auto cost =
+            cost_function->get_operator_cost(op.operator_id.get_index());
         for (std::size_t op_id : (*node)->applicable_operator_ids) {
             ProjectionOperator& other = projection_operators_[op_id];
             if (!are_equivalent(op, other)) continue;
-            if (cost >= task_cost_function->get_action_cost(other.operator_id))
+            if (cost >=
+                cost_function->get_operator_cost(other.operator_id.get_index()))
                 return;
             other.operator_id = op.operator_id;
         }

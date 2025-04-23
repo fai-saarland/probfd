@@ -7,6 +7,7 @@
 
 namespace downward {
 class MutexInformation;
+class EffectsProxy;
 }
 
 namespace downward::landmarks {
@@ -18,10 +19,10 @@ class LandmarkFactoryReasonableOrdersHPS : public LandmarkFactory {
     generate_landmarks(const std::shared_ptr<AbstractTask>& task) override;
 
     void approximate_reasonable_orders(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const MutexInformation& mutexes);
     bool interferes(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const MutexInformation& mutexes,
         const Landmark& landmark_a,
         const Landmark& landmark_b) const;

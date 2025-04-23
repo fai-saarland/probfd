@@ -48,7 +48,7 @@ public:
     ~SamplingFlawFinder() override;
 
     bool apply_policy(
-        const ProbabilisticTaskProxy& task_proxy,
+        const ProbabilisticTask& task,
         const StateRankingFunction& state_ranking_function,
         const ProjectionStateSpace& mdp,
         const ProjectionMultiPolicy& policy,

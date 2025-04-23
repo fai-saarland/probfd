@@ -2,6 +2,8 @@
 
 #include "downward/task_utils/task_properties.h"
 
+#include "downward/utils/collections.h"
+
 using namespace std;
 
 namespace downward::stubborn_sets {
@@ -14,21 +16,20 @@ StubbornSets::StubbornSets(utils::Verbosity verbosity)
 void StubbornSets::initialize(const shared_ptr<AbstractTask>& task)
 {
     PruningMethod::initialize(task);
-    TaskProxy task_proxy(*task);
-    task_properties::verify_no_axioms(task_proxy);
-    task_properties::verify_no_conditional_effects(task_proxy);
+    task_properties::verify_no_axioms(*task);
+    task_properties::verify_no_conditional_effects(*task);
 
-    num_operators = task_proxy.get_operators().size();
+    num_operators = task->get_operators().size();
     sorted_goals = utils::sorted<FactPair>(
-        task_properties::get_fact_pairs(task_proxy.get_goals()));
+        task_properties::get_fact_pairs(task->get_goals()));
 
-    compute_sorted_operators(task_proxy);
-    compute_achievers(task_proxy);
+    compute_sorted_operators(*task);
+    compute_achievers(*task);
 }
 
-void StubbornSets::compute_sorted_operators(const TaskProxy& task_proxy)
+void StubbornSets::compute_sorted_operators(const AbstractTask& task)
 {
-    OperatorsProxy operators = task_proxy.get_operators();
+    OperatorsProxy operators = task.get_operators();
 
     sorted_op_preconditions = utils::map_vector<vector<FactPair>>(
         operators,
@@ -42,20 +43,20 @@ void StubbornSets::compute_sorted_operators(const TaskProxy& task_proxy)
         [](const OperatorProxy& op) {
             return utils::sorted<FactPair>(utils::map_vector<FactPair>(
                 op.get_effects(),
-                [](const EffectProxy& eff) { return eff.get_fact(); }));
+                [](const auto& eff) { return eff.get_fact(); }));
         });
 }
 
-void StubbornSets::compute_achievers(const TaskProxy& task_proxy)
+void StubbornSets::compute_achievers(const AbstractTask& task)
 {
     achievers = utils::map_vector<vector<vector<int>>>(
-        task_proxy.get_variables(),
+        task.get_variables(),
         [](const VariableProxy& var) {
             return vector<vector<int>>(var.get_domain_size());
         });
 
-    for (const OperatorProxy op : task_proxy.get_operators()) {
-        for (const EffectProxy effect : op.get_effects()) {
+    for (const OperatorProxy op : task.get_operators()) {
+        for (const auto effect : op.get_effects()) {
             FactPair fact = effect.get_fact();
             achievers[fact.var][fact.value].push_back(op.get_id());
         }

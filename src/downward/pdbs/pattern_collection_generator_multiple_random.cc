@@ -3,7 +3,8 @@
 #include "downward/pdbs/random_pattern.h"
 #include "downward/pdbs/utils.h"
 
-#include "downward/task_proxy.h"
+#include "downward/fact_pair.h"
+#include "downward/state.h"
 
 #include "downward/utils/logging.h"
 
@@ -65,11 +66,11 @@ PatternInformation PatternCollectionGeneratorMultipleRandom::compute_pattern(
         max_time,
         silent_log,
         rng,
-        TaskProxy(*task),
+        *task,
         goal.var,
         cg_neighbors);
 
-    PatternInformation result(TaskProxy(*task), std::move(pattern), log);
+    PatternInformation result(*task, std::move(pattern), log);
     return result;
 }
 

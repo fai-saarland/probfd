@@ -23,9 +23,8 @@ public:
     {
     }
 
-    std::unique_ptr<TaskStateSpace> create_state_space(
-        std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction>) override
+    std::unique_ptr<TaskStateSpace>
+    create_state_space(std::shared_ptr<ProbabilisticTask> task) override
     {
         return std::make_unique<TaskStateSpace>(
             task,
@@ -43,9 +42,8 @@ public:
     {
     }
 
-    std::unique_ptr<TaskStateSpace> create_state_space(
-        std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction>) override
+    std::unique_ptr<TaskStateSpace>
+    create_state_space(std::shared_ptr<ProbabilisticTask> task) override
     {
         return std::make_unique<CachingTaskStateSpace>(
             task,

@@ -1,6 +1,7 @@
 #include "downward/axiom_evaluator.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/state.h"
 
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/memory.h"
@@ -15,12 +16,12 @@ using namespace std;
 
 namespace downward {
 
-AxiomEvaluator::AxiomEvaluator(const PlanningTaskProxy& task_proxy)
+AxiomEvaluator::AxiomEvaluator(const PlanningTask& task)
 {
-    task_has_axioms = task_properties::has_axioms(task_proxy);
+    task_has_axioms = task_properties::has_axioms(task);
     if (task_has_axioms) {
-        VariablesProxy variables = task_proxy.get_variables();
-        AxiomsProxy axioms = task_proxy.get_axioms();
+        VariablesProxy variables = task.get_variables();
+        AxiomsProxy axioms = task.get_axioms();
 
         // Initialize literals
         for (VariableProxy var : variables)

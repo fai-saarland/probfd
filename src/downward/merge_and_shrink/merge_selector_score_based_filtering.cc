@@ -21,16 +21,12 @@ static vector<pair<int, int>> get_remaining_candidates(
     assert(merge_candidates.size() == scores.size());
     double best_score = INF;
     for (double score : scores) {
-        if (score < best_score) {
-            best_score = score;
-        }
+        if (score < best_score) { best_score = score; }
     }
 
     vector<pair<int, int>> result;
     for (size_t i = 0; i < scores.size(); ++i) {
-        if (scores[i] == best_score) {
-            result.push_back(merge_candidates[i]);
-        }
+        if (scores[i] == best_score) { result.push_back(merge_candidates[i]); }
     }
     return result;
 }
@@ -47,9 +43,7 @@ pair<int, int> MergeSelectorScoreBasedFiltering::select_merge(
         vector<double> scores =
             scoring_function->compute_scores(fts, merge_candidates);
         merge_candidates = get_remaining_candidates(merge_candidates, scores);
-        if (merge_candidates.size() == 1) {
-            break;
-        }
+        if (merge_candidates.size() == 1) { break; }
     }
 
     if (merge_candidates.size() > 1) {
@@ -63,11 +57,12 @@ pair<int, int> MergeSelectorScoreBasedFiltering::select_merge(
     return merge_candidates.front();
 }
 
-void MergeSelectorScoreBasedFiltering::initialize(const TaskProxy& task_proxy)
+void MergeSelectorScoreBasedFiltering::initialize(
+    const AbstractTask& task)
 {
     for (shared_ptr<MergeScoringFunction>& scoring_function :
          merge_scoring_functions) {
-        scoring_function->initialize(task_proxy);
+        scoring_function->initialize(task);
     }
 }
 
@@ -91,9 +86,7 @@ bool MergeSelectorScoreBasedFiltering::requires_init_distances() const
 {
     for (const shared_ptr<MergeScoringFunction>& scoring_function :
          merge_scoring_functions) {
-        if (scoring_function->requires_init_distances()) {
-            return true;
-        }
+        if (scoring_function->requires_init_distances()) { return true; }
     }
     return false;
 }
@@ -102,11 +95,9 @@ bool MergeSelectorScoreBasedFiltering::requires_goal_distances() const
 {
     for (const shared_ptr<MergeScoringFunction>& scoring_function :
          merge_scoring_functions) {
-        if (scoring_function->requires_goal_distances()) {
-            return true;
-        }
+        if (scoring_function->requires_goal_distances()) { return true; }
     }
     return false;
 }
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

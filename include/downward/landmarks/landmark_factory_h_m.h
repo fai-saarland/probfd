@@ -17,9 +17,7 @@ std::ostream& operator<<(std::ostream& os, const FluentSet& fs);
 struct FluentSetComparer {
     bool operator()(const FluentSet& fs1, const FluentSet& fs2) const
     {
-        if (fs1.size() != fs2.size()) {
-            return fs1.size() < fs2.size();
-        }
+        if (fs1.size() != fs2.size()) { return fs1.size() < fs2.size(); }
         for (size_t i = 0; i < fs1.size(); ++i) {
             if (fs1[i] != fs2[i]) return fs1[i] < fs2[i];
         }
@@ -70,7 +68,7 @@ class LandmarkFactoryHM : public LandmarkFactory {
     generate_landmarks(const std::shared_ptr<AbstractTask>& task) override;
 
     void compute_h_m_landmarks(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const MutexInformation& mutexes);
     void compute_noop_landmarks(
         int op_index,
@@ -89,26 +87,28 @@ class LandmarkFactoryHM : public LandmarkFactory {
         const MutexInformation& mutexes,
         const FluentSet& fs1,
         const FluentSet& fs2);
-    void
-    build_pm_ops(const TaskProxy& task_proxy, const MutexInformation& mutexes);
+    void build_pm_ops(
+        const AbstractTask& task,
+        const MutexInformation& mutexes);
     bool interesting(
         const MutexInformation& mutexes,
         const FactPair& fact1,
         const FactPair& fact2) const;
 
-    void
-    postprocess(const TaskProxy& task_proxy, const MutexInformation& mutexes);
+    void postprocess(
+        const AbstractTask& task,
+        const MutexInformation& mutexes);
 
     void discard_conjunctive_landmarks();
 
     void calc_achievers(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const MutexInformation& mutexes);
 
     void add_lm_node(int set_index, bool goal = false);
 
     void
-    initialize(const TaskProxy& task_proxy, const MutexInformation& mutexes);
+    initialize(const AbstractTask& task, const MutexInformation& mutexes);
     void free_unneeded_memory();
 
     void
@@ -132,7 +132,7 @@ class LandmarkFactoryHM : public LandmarkFactory {
     std::vector<std::pair<int, std::vector<int>>> unsat_pc_count_;
 
     void get_m_sets_(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const MutexInformation& mutexes,
         int m,
         int num_included,
@@ -141,7 +141,7 @@ class LandmarkFactoryHM : public LandmarkFactory {
         std::vector<FluentSet>& subsets);
 
     void get_m_sets_of_set(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const MutexInformation& mutexes,
         int m,
         int num_included,
@@ -151,7 +151,7 @@ class LandmarkFactoryHM : public LandmarkFactory {
         const FluentSet& superset);
 
     void get_split_m_sets(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const MutexInformation& mutexes,
         int m,
         int ss1_num_included,
@@ -164,27 +164,27 @@ class LandmarkFactoryHM : public LandmarkFactory {
         const FluentSet& superset2);
 
     void get_m_sets(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const MutexInformation& mutexes,
         int m,
         std::vector<FluentSet>& subsets);
 
     void get_m_sets(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const MutexInformation& mutexes,
         int m,
         std::vector<FluentSet>& subsets,
         const FluentSet& superset);
 
     void get_m_sets(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const MutexInformation& mutexes,
         int m,
         std::vector<FluentSet>& subsets,
         const State& state);
 
     void get_split_m_sets(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const MutexInformation& mutexes,
         int m,
         std::vector<FluentSet>& subsets,
@@ -204,6 +204,6 @@ public:
 
     virtual bool supports_conditional_effects() const override;
 };
-} // namespace landmarks
+} // namespace downward::landmarks
 
 #endif // LANDMARKS_LANDMARK_FACTORY_H_M_H

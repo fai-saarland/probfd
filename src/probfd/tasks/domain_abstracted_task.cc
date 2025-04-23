@@ -2,8 +2,6 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "probfd/task_proxy.h"
-
 #include "downward/utils/collections.h"
 #include "downward/utils/system.h"
 
@@ -33,8 +31,7 @@ DomainAbstractedTask::DomainAbstractedTask(
     if (parent->get_num_axioms() > 0) {
         ABORT("DomainAbstractedTask doesn't support axioms.");
     }
-    if (task_properties::has_conditional_effects(
-            ProbabilisticTaskProxy(*parent))) {
+    if (task_properties::has_conditional_effects(*parent)) {
         ABORT("DomainAbstractedTask doesn't support conditional effects.");
     }
 }

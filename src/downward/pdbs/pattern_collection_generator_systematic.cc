@@ -2,7 +2,8 @@
 
 #include "downward/pdbs/validation.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/state.h"
 
 #include "downward/task_utils/causal_graph.h"
 
@@ -132,7 +133,7 @@ void PatternCollectionGeneratorSystematic::enqueue_pattern_if_new(
 }
 
 void PatternCollectionGeneratorSystematic::build_sga_patterns(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     const causal_graph::CausalGraph& cg)
 {
     assert(max_pattern_size >= 1);
@@ -154,7 +155,7 @@ void PatternCollectionGeneratorSystematic::build_sga_patterns(
     */
 
     // Build goal patterns.
-    for (FactPair goal : task_proxy.get_goals()) {
+    for (FactPair goal : task.get_goals()) {
         enqueue_pattern_if_new({goal.var});
     }
 
@@ -184,15 +185,15 @@ void PatternCollectionGeneratorSystematic::build_sga_patterns(
 }
 
 void PatternCollectionGeneratorSystematic::build_patterns(
-    const TaskProxy& task_proxy)
+    const AbstractTask& task)
 {
-    int num_variables = task_proxy.get_variables().size();
-    const causal_graph::CausalGraph& cg = task_proxy.get_causal_graph();
+    int num_variables = task.get_variables().size();
+    const causal_graph::CausalGraph& cg = task.get_causal_graph();
 
     // Generate SGA (single-goal-ancestor) patterns.
     // They are generated into the patterns variable,
     // so we swap them from there.
-    build_sga_patterns(task_proxy, cg);
+    build_sga_patterns(task, cg);
     PatternCollection sga_patterns;
     patterns->swap(sga_patterns);
 
@@ -251,9 +252,9 @@ void PatternCollectionGeneratorSystematic::build_patterns(
 }
 
 void PatternCollectionGeneratorSystematic::build_patterns_naive(
-    const TaskProxy& task_proxy)
+    const AbstractTask& task)
 {
-    int num_variables = task_proxy.get_variables().size();
+    int num_variables = task.get_variables().size();
     PatternCollection current_patterns(1);
     PatternCollection next_patterns;
     for (size_t i = 0; i < max_pattern_size; ++i) {
@@ -285,15 +286,14 @@ PatternCollectionInformation
 PatternCollectionGeneratorSystematic::compute_patterns(
     const shared_ptr<AbstractTask>& task)
 {
-    TaskProxy task_proxy(*task);
     patterns = make_shared<PatternCollection>();
     pattern_set.clear();
     if (only_interesting_patterns) {
-        build_patterns(task_proxy);
+        build_patterns(*task);
     } else {
-        build_patterns_naive(task_proxy);
+        build_patterns_naive(*task);
     }
-    return PatternCollectionInformation(task_proxy, patterns, log);
+    return PatternCollectionInformation(*task, patterns, log);
 }
 
 } // namespace pdbs

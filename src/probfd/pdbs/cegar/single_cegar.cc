@@ -12,7 +12,7 @@
 #include "probfd/abstractions/policy_extraction.h"
 
 #include "probfd/multi_policy.h"
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/logging.h"
@@ -52,8 +52,7 @@ public:
 
     void run_cegar_loop(
         ProjectionTransformation& transformation,
-        ProbabilisticTaskProxy task_proxy,
-        const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
+        const std::shared_ptr<ProbabilisticTask>& task,
         utils::RandomNumberGenerator& rng,
         double max_time,
         utils::LogProxy log);
@@ -61,7 +60,7 @@ public:
 private:
     bool get_flaws(
         ProjectionTransformation& transformation,
-        ProbabilisticTaskProxy task_proxy,
+        const std::shared_ptr<ProbabilisticTask>& task,
         std::vector<Flaw>& flaws,
         const State& initial_state,
         utils::RandomNumberGenerator& rng,
@@ -70,8 +69,7 @@ private:
 
     void refine(
         ProjectionTransformation& transformation,
-        ProbabilisticTaskProxy task_proxy,
-        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+        const std::shared_ptr<ProbabilisticTask>& task,
         const std::vector<Flaw>& flaws,
         utils::RandomNumberGenerator& rng,
         utils::CountdownTimer& timer,
@@ -94,7 +92,7 @@ SingleCEGAR::SingleCEGAR(
 
 bool SingleCEGAR::get_flaws(
     ProjectionTransformation& transformation,
-    ProbabilisticTaskProxy task_proxy,
+    const std::shared_ptr<ProbabilisticTask>& task,
     std::vector<Flaw>& flaws,
     const State& initial_state,
     utils::RandomNumberGenerator& rng,
@@ -127,7 +125,7 @@ bool SingleCEGAR::get_flaws(
 
         if (!utils::is_product_within_limit(
                 pdb.num_states(),
-                task_proxy.get_variables()[var].get_domain_size(),
+                task->get_variables()[var].get_domain_size(),
                 max_pdb_size_)) {
             if (log.is_at_least_verbose()) {
                 log << "ignoring flaw on var " << var
@@ -145,7 +143,7 @@ bool SingleCEGAR::get_flaws(
     // would not work for the concrete task.
     // We always start with the initial state.
     const bool executable = flaw_strategy_.apply_policy(
-        task_proxy,
+        *task,
         pdb.ranking_function,
         *projection,
         *policy,
@@ -185,8 +183,7 @@ bool SingleCEGAR::get_flaws(
 
 void SingleCEGAR::refine(
     ProjectionTransformation& transformation,
-    ProbabilisticTaskProxy task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    const std::shared_ptr<ProbabilisticTask>& task,
     const std::vector<Flaw>& flaws,
     utils::RandomNumberGenerator& rng,
     utils::CountdownTimer& timer,
@@ -218,7 +215,7 @@ void SingleCEGAR::refine(
     // a single new pattern.
     assert(utils::is_product_within_limit(
         pdb.num_states(),
-        task_proxy.get_variables()[flaw_var].get_domain_size(),
+        task->get_variables()[flaw_var].get_domain_size(),
         max_pdb_size_));
 
     if (log.is_at_least_verbose()) {
@@ -229,8 +226,7 @@ void SingleCEGAR::refine(
     std::vector<value_t> prev_distances = std::move(pdb.value_table);
 
     transformation = ProjectionTransformation(
-        task_proxy,
-        std::move(task_cost_function),
+        task,
         extended_pattern(pdb.get_pattern(), flaw_var),
         false,
         timer.get_remaining_time());
@@ -239,7 +235,7 @@ void SingleCEGAR::refine(
 
     compute_value_table(
         *projection,
-        pdb.get_abstract_state(task_proxy.get_initial_state()),
+        pdb.get_abstract_state(task->get_initial_state()),
         h,
         pdb.value_table,
         timer.get_remaining_time());
@@ -247,8 +243,7 @@ void SingleCEGAR::refine(
 
 void SingleCEGAR::run_cegar_loop(
     ProjectionTransformation& transformation,
-    ProbabilisticTaskProxy task_proxy,
-    const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
+    const std::shared_ptr<ProbabilisticTask>& task,
     utils::RandomNumberGenerator& rng,
     double max_time,
     utils::LogProxy log)
@@ -268,7 +263,7 @@ void SingleCEGAR::run_cegar_loop(
 
     utils::CountdownTimer timer(max_time);
 
-    State initial_state = task_proxy.get_initial_state();
+    State initial_state = task->get_initial_state();
 
     if (log.is_at_least_normal()) {
         log << "SingleCEGAR initial collection: "
@@ -292,7 +287,7 @@ void SingleCEGAR::run_cegar_loop(
 
             if (!get_flaws(
                     transformation,
-                    task_proxy,
+                    task,
                     flaws,
                     initial_state,
                     rng,
@@ -306,8 +301,7 @@ void SingleCEGAR::run_cegar_loop(
             // such that said flaw does not occur again
             refine(
                 transformation,
-                task_proxy,
-                task_cost_function,
+                task,
                 flaws,
                 rng,
                 timer,
@@ -338,8 +332,7 @@ void SingleCEGAR::run_cegar_loop(
 
 void run_cegar_loop(
     ProjectionTransformation& transformation,
-    ProbabilisticTaskProxy task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    const std::shared_ptr<ProbabilisticTask>& task,
     value_t convergence_epsilon,
     cegar::FlawFindingStrategy& flaw_strategy,
     std::unordered_set<int> blacklisted_variables,
@@ -358,8 +351,7 @@ void run_cegar_loop(
 
     single_cegar.run_cegar_loop(
         transformation,
-        task_proxy,
-        std::move(task_cost_function),
+        task,
         rng,
         max_time,
         std::move(log));

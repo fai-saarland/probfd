@@ -16,9 +16,8 @@ class TaskStateSpaceFactory {
 public:
     virtual ~TaskStateSpaceFactory() = default;
 
-    virtual std::unique_ptr<TaskStateSpace> create_state_space(
-        std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function) = 0;
+    virtual std::unique_ptr<TaskStateSpace>
+    create_state_space(std::shared_ptr<ProbabilisticTask> task) = 0;
 };
 
 } // namespace probfd

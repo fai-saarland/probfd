@@ -2,7 +2,7 @@
 
 #include "probfd/pdbs/state_ranking_function.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 #include "tests/tasks/blocksworld.h"
 
 using namespace downward;
@@ -15,8 +15,7 @@ TEST(PDBTests, test_ranking_function_empty_pattern)
 {
     BlocksworldTask task(3, {{1, 0}, {2}}, {{1}, {2, 0}});
 
-    ProbabilisticTaskProxy task_proxy(task);
-    VariablesProxy variables = task_proxy.get_variables();
+    VariablesProxy variables = task.get_variables();
 
     StateRankingFunction ranking_function(variables, {});
     ASSERT_EQ(ranking_function.num_states(), 1);
@@ -37,8 +36,7 @@ TEST(PDBTests, test_ranking_function_one_variable)
 {
     BlocksworldTask task(3, {{1, 0}, {2}}, {{1}, {2, 0}});
 
-    ProbabilisticTaskProxy task_proxy(task);
-    VariablesProxy variables = task_proxy.get_variables();
+    VariablesProxy variables = task.get_variables();
 
     StateRankingFunction ranking_function(variables, {task.get_clear_var(0)});
     ASSERT_EQ(ranking_function.num_states(), 2);
@@ -59,8 +57,7 @@ TEST(PDBTests, test_ranking_function_two_variables)
 {
     BlocksworldTask task(3, {{1, 0}, {2}}, {{1}, {2, 0}});
 
-    ProbabilisticTaskProxy task_proxy(task);
-    VariablesProxy variables = task_proxy.get_variables();
+    VariablesProxy variables = task.get_variables();
 
     StateRankingFunction ranking_function(
         variables,
@@ -83,8 +80,7 @@ TEST(PDBTests, test_ranking_function_all_variables)
 {
     BlocksworldTask task(3, {{1, 0}, {2}}, {{1}, {2, 0}});
 
-    ProbabilisticTaskProxy task_proxy(task);
-    VariablesProxy variables = task_proxy.get_variables();
+    VariablesProxy variables = task.get_variables();
 
     StateRankingFunction ranking_function(
         variables,

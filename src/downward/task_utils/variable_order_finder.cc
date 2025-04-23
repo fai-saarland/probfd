@@ -5,6 +5,8 @@
 #include "downward/utils/rng.h"
 #include "downward/utils/system.h"
 
+#include "downward/abstract_task.h"
+
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
@@ -15,13 +17,13 @@ using downward::utils::ExitCode;
 
 namespace downward::variable_order_finder {
 VariableOrderFinder::VariableOrderFinder(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     VariableOrderType variable_order_type,
     const shared_ptr<utils::RandomNumberGenerator>& rng)
-    : task_proxy(task_proxy)
+    : task(task)
     , variable_order_type(variable_order_type)
 {
-    int var_count = task_proxy.get_variables().size();
+    int var_count = task.get_variables().size();
     if (variable_order_type == REVERSE_LEVEL) {
         for (int i = 0; i < var_count; ++i) remaining_vars.push_back(i);
     } else {
@@ -40,7 +42,7 @@ VariableOrderFinder::VariableOrderFinder(
 
     is_causal_predecessor.resize(var_count, false);
     is_goal_variable.resize(var_count, false);
-    for (FactPair goal : task_proxy.get_goals())
+    for (FactPair goal : task.get_goals())
         is_goal_variable[goal.var] = true;
 }
 
@@ -49,7 +51,7 @@ void VariableOrderFinder::select_next(int position, int var_no)
     assert(remaining_vars[position] == var_no);
     remaining_vars.erase(remaining_vars.begin() + position);
     selected_vars.push_back(var_no);
-    const causal_graph::CausalGraph& cg = task_proxy.get_causal_graph();
+    const causal_graph::CausalGraph& cg = task.get_causal_graph();
     const vector<int>& new_vars = cg.get_eff_to_pre(var_no);
     for (int new_var : new_vars) is_causal_predecessor[new_var] = true;
 }

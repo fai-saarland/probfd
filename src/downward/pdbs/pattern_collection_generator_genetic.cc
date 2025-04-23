@@ -2,7 +2,8 @@
 
 #include "downward/pdbs/zero_one_pdbs.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/state.h"
 
 #include "downward/task_utils/causal_graph.h"
 
@@ -99,13 +100,11 @@ Pattern PatternCollectionGeneratorGenetic::transform_to_pattern_normal_form(
 void PatternCollectionGeneratorGenetic::remove_irrelevant_variables(
     Pattern& pattern) const
 {
-    TaskProxy task_proxy(*task);
-
     unordered_set<int> in_original_pattern(pattern.begin(), pattern.end());
     unordered_set<int> in_pruned_pattern;
 
     vector<int> vars_to_check;
-    for (FactPair goal : task_proxy.get_goals()) {
+    for (FactPair goal : task->get_goals()) {
         if (int var_id = goal.var; in_original_pattern.contains(var_id)) {
             // Goals are causally relevant.
             vars_to_check.push_back(var_id);
@@ -121,7 +120,7 @@ void PatternCollectionGeneratorGenetic::remove_irrelevant_variables(
           there is a pre->eff arc from the variable to a relevant variable.
           Note that there is no point in considering eff->eff arcs here.
         */
-        const causal_graph::CausalGraph& cg = task_proxy.get_causal_graph();
+        const causal_graph::CausalGraph& cg = task->get_causal_graph();
 
         const vector<int>& rel = cg.get_eff_to_pre(var);
         for (size_t i = 0; i < rel.size(); ++i) {
@@ -143,8 +142,7 @@ bool PatternCollectionGeneratorGenetic::is_pattern_too_large(
     const Pattern& pattern) const
 {
     // Test if the pattern respects the memory limit.
-    TaskProxy task_proxy(*task);
-    VariablesProxy variables = task_proxy.get_variables();
+    VariablesProxy variables = task->get_variables();
     int mem = 1;
     for (size_t i = 0; i < pattern.size(); ++i) {
         VariableProxy var = variables[pattern[i]];
@@ -170,7 +168,6 @@ bool PatternCollectionGeneratorGenetic::mark_used_variables(
 
 void PatternCollectionGeneratorGenetic::evaluate(vector<double>& fitness_values)
 {
-    TaskProxy task_proxy(*task);
     for (size_t i = 0; i < pattern_collections.size(); ++i) {
         const auto& collection = pattern_collections[i];
         if (log.is_at_least_debug()) {
@@ -179,7 +176,7 @@ void PatternCollectionGeneratorGenetic::evaluate(vector<double>& fitness_values)
         }
         double fitness = 0;
         bool pattern_valid = true;
-        vector<bool> variables_used(task_proxy.get_variables().size(), false);
+        vector<bool> variables_used(task->get_variables().size(), false);
         shared_ptr<PatternCollection> pattern_collection =
             make_shared<PatternCollection>();
         pattern_collection->reserve(collection.size());
@@ -214,7 +211,7 @@ void PatternCollectionGeneratorGenetic::evaluate(vector<double>& fitness_values)
         } else {
             /* Generate the pattern collection heuristic and get its fitness
                value. */
-            ZeroOnePDBs zero_one_pdbs(task_proxy, *pattern_collection);
+            ZeroOnePDBs zero_one_pdbs(*task, *pattern_collection);
             fitness = zero_one_pdbs.compute_approx_mean_finite_h();
             // Update the best heuristic found so far.
             if (fitness > best_fitness) {
@@ -231,8 +228,7 @@ void PatternCollectionGeneratorGenetic::evaluate(vector<double>& fitness_values)
 
 void PatternCollectionGeneratorGenetic::bin_packing()
 {
-    TaskProxy task_proxy(*task);
-    VariablesProxy variables = task_proxy.get_variables();
+    VariablesProxy variables = task->get_variables();
 
     vector<int> variable_ids;
     variable_ids.reserve(variables.size());
@@ -310,9 +306,8 @@ PatternCollectionGeneratorGenetic::compute_patterns(
     task = task_;
     genetic_algorithm();
 
-    TaskProxy task_proxy(*task);
     assert(best_patterns);
-    return PatternCollectionInformation(task_proxy, best_patterns, log);
+    return PatternCollectionInformation(*task, best_patterns, log);
 }
 
 } // namespace pdbs

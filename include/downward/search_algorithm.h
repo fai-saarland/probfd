@@ -7,8 +7,8 @@
 #include "downward/search_progress.h"
 #include "downward/search_space.h"
 #include "downward/search_statistics.h"
+#include "downward/state.h"
 #include "downward/state_registry.h"
-#include "downward/task_proxy.h"
 
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/logging.h"
@@ -37,8 +37,6 @@ protected:
     // Hold a reference to the task implementation and pass it to objects
     // that need it.
     const std::shared_ptr<AbstractTask> task;
-    // Use task_proxy to access task information.
-    TaskProxy task_proxy;
 
     mutable utils::LogProxy log;
     PlanManager plan_manager;
@@ -54,7 +52,9 @@ protected:
 
     void set_plan(const Plan& plan);
     bool check_goal_and_set_plan(const State& state);
-    int get_adjusted_cost(const OperatorProxy& op) const;
+    int get_adjusted_cost(
+        const OperatorProxy& op,
+        const OperatorIntCostFunction& cost_function) const;
 
 public:
     SearchAlgorithm(

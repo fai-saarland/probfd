@@ -13,15 +13,13 @@
 
 #include "probfd/tasks/modified_operator_costs_task.h"
 
-#include "probfd/task_proxy.h"
-
 #include "downward/task_utils/task_properties.h"
 
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/memory.h"
 #include "downward/utils/timer.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <cassert>
 #include <ostream>
@@ -130,14 +128,12 @@ vector<CartesianHeuristicFunction> CostSaturation::generate_heuristic_functions(
 
     utils::CountdownTimer timer(max_time_);
 
-    ProbabilisticTaskProxy task_proxy(*task);
+    ::task_properties::verify_no_axioms(*task);
+    task_properties::verify_no_conditional_effects(*task);
 
-    ::task_properties::verify_no_axioms(task_proxy);
-    task_properties::verify_no_conditional_effects(task_proxy);
+    reset(*task);
 
-    reset(task_proxy);
-
-    State initial_state = ProbabilisticTaskProxy(*task).get_initial_state();
+    State initial_state = task->get_initial_state();
 
     function<bool()> should_abort = [&]() {
         return num_states_ >= max_states_ ||
@@ -164,9 +160,9 @@ vector<CartesianHeuristicFunction> CostSaturation::generate_heuristic_functions(
     return functions;
 }
 
-void CostSaturation::reset(const ProbabilisticTaskProxy& task_proxy)
+void CostSaturation::reset(const ProbabilisticTask& task)
 {
-    remaining_costs_ = task_properties::get_operator_costs(task_proxy);
+    remaining_costs_ = task_properties::get_operator_costs(task);
     num_abstractions_ = 0;
     num_states_ = 0;
 }

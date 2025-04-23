@@ -3,11 +3,15 @@
 
 #include "downward/operator_counting/constraint_generator.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 #include "downward/utils/hash.h"
 
 #include <memory>
 #include <vector>
+
+namespace downward {
+class OperatorProxy;
+}
 
 namespace downward::lp {
 class LPConstraint;
@@ -79,28 +83,28 @@ class DeleteRelaxationRRConstraints : public ConstraintGenerator {
     int get_constraint_id(FactPair f) const;
 
     LPVariableIDs create_auxiliary_variables(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         LPVariables& variables) const;
     void create_auxiliary_variables_ve(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const VEGraph& ve_graph,
         LPVariables& variables,
         LPVariableIDs& lp_var_ids) const;
     void create_auxiliary_variables_tl(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         LPVariables& variables,
         LPVariableIDs& lp_var_ids) const;
     void create_constraints(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const LPVariableIDs& lp_var_ids,
         lp::LinearProgram& lp);
     void create_constraints_ve(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const VEGraph& ve_graph,
         const LPVariableIDs& lp_var_ids,
         lp::LinearProgram& lp);
     void create_constraints_tl(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const LPVariableIDs& lp_var_ids,
         lp::LinearProgram& lp);
 

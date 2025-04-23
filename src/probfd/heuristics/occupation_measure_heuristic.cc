@@ -2,6 +2,8 @@
 
 #include "probfd/occupation_measures/constraint_generator.h"
 
+#include "probfd/probabilistic_task.h"
+
 #include "downward/utils/logging.h"
 
 using namespace std;
@@ -12,7 +14,6 @@ namespace probfd::heuristics {
 
 OccupationMeasureHeuristic::OccupationMeasureHeuristic(
     std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<FDRCostFunction> task_cost_function,
     utils::LogProxy log,
     lp::LPSolverType solver_type,
     std::shared_ptr<ConstraintGenerator> constraint_generator)
@@ -25,7 +26,7 @@ OccupationMeasureHeuristic::OccupationMeasureHeuristic(
         named_vector::NamedVector<lp::LPConstraint>(),
         lp_solver_.get_infinity());
 
-    constraint_generator_->initialize_constraints(task, task_cost_function, lp);
+    constraint_generator_->initialize_constraints(task, lp);
 
     lp_solver_.load_problem(lp);
 }
@@ -53,17 +54,14 @@ OccupationMeasureHeuristicFactory::OccupationMeasureHeuristicFactory(
 
 std::unique_ptr<FDREvaluator>
 OccupationMeasureHeuristicFactory::create_heuristic(
-    std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<FDRCostFunction> task_cost_function)
+    std::shared_ptr<ProbabilisticTask> task)
 {
     auto constraints =
         constraint_generator_factory_->construct_constraint_generator(
-            task,
-            task_cost_function);
+            task);
 
     return std::make_unique<OccupationMeasureHeuristic>(
         std::move(task),
-        std::move(task_cost_function),
         utils::get_log_for_verbosity(verbosity_),
         lp_solver_type_,
         std::move(constraints));

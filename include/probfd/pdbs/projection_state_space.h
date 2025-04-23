@@ -13,7 +13,8 @@
 namespace probfd {
 template <typename>
 class Distribution;
-class ProbabilisticTaskProxy;
+class ProbabilisticTask;
+class TerminationCosts;
 } // namespace probfd
 
 namespace probfd::pdbs {
@@ -28,13 +29,14 @@ namespace probfd::pdbs {
 class ProjectionStateSpace
     : public SimpleMDP<StateRank, const ProjectionOperator*> {
     MatchTree match_tree_;
-    std::shared_ptr<FDRSimpleCostFunction> parent_cost_function_;
+    std::shared_ptr<downward::OperatorCostFunction<value_t>>
+        parent_cost_function_;
+    std::shared_ptr<TerminationCosts> parent_term_function_;
     std::vector<bool> goal_state_flags_;
 
 public:
     ProjectionStateSpace(
-        ProbabilisticTaskProxy task_proxy,
-        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+        std::shared_ptr<ProbabilisticTask> task,
         const StateRankingFunction& ranking_function,
         bool operator_pruning = true,
         double max_time = std::numeric_limits<double>::infinity());

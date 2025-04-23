@@ -14,7 +14,7 @@ class RandomNumberGenerator;
 } // namespace utils
 
 namespace probfd {
-class ProbabilisticTaskProxy;
+class ProbabilisticTask;
 }
 
 namespace probfd::merge_and_shrink {
@@ -68,7 +68,7 @@ public:
         LabelReductionSystemOrder system_order,
         int random_seed);
 
-    void initialize(const ProbabilisticTaskProxy& task_proxy);
+    void initialize(const ProbabilisticTask& task);
 
     bool reduce(
         int merge_index_left,

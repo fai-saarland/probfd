@@ -42,14 +42,12 @@ public:
 
     std::string get_heuristic_search_name() const override { return "aostar"; }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) override
+    std::unique_ptr<StatisticalMDPAlgorithm>
+    create_algorithm(const std::shared_ptr<ProbabilisticTask>& task) override
     {
         return std::make_unique<AlgorithmAdaptor>(
             this->template create_heuristic_search_algorithm<AOStar>(
                 task,
-                task_cost_function,
                 successor_sampler_));
     }
 };

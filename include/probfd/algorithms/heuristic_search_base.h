@@ -26,8 +26,10 @@ template <typename>
 class Distribution;
 template <typename>
 struct TransitionTail;
-template <typename, typename>
-class CostFunction;
+template <typename>
+class ActionCostFunction;
+template <typename>
+class TerminationCostFunction;
 } // namespace probfd
 
 namespace probfd::algorithms {
@@ -80,6 +82,7 @@ class StateInfos : public StateProperties {
 
 public:
     StateInfo& operator[](StateID sid) { return state_infos_[sid]; }
+
     const StateInfo& operator[](StateID sid) const { return state_infos_[sid]; }
 
     value_t lookup_value(StateID state_id) override
@@ -120,7 +123,8 @@ public:
 
 protected:
     using MDPType = MDP<State, Action>;
-    using CostFunctionType = CostFunction<State, Action>;
+    using ActionCostFunctionType = ActionCostFunction<Action>;
+    using TerminationCostFunctionType = TerminationCostFunction<State>;
     using HeuristicType = Heuristic<State>;
     using TransitionTailType = TransitionTail<Action>;
 
@@ -169,6 +173,16 @@ public:
     AlgorithmValueType compute_bellman(
         ParamType<State> source_state,
         const std::vector<TransitionTailType>& transition_tails,
+        ActionCostFunctionType& action_cost_function,
+        TerminationCostFunctionType& term_cost_function) const;
+
+    template <typename CostFunctionType>
+        requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
+                 std::
+                     derived_from<CostFunctionType, TerminationCostFunctionType>
+    AlgorithmValueType compute_bellman(
+        ParamType<State> source_state,
+        const std::vector<TransitionTailType>& transition_tails,
         CostFunctionType& cost_function) const;
 
     /**
@@ -190,6 +204,17 @@ public:
      * Note that all Q-value lower bounds will match the minimal Q-value lower
      * bound.
      */
+    AlgorithmValueType compute_bellman_and_greedy(
+        ParamType<State> source_state,
+        std::vector<TransitionTailType>& transition_tails,
+        ActionCostFunctionType& action_cost_function,
+        TerminationCostFunctionType& term_cost_function,
+        std::vector<AlgorithmValueType>& qvalues) const;
+
+    template <typename CostFunctionType>
+        requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
+                 std::
+                     derived_from<CostFunctionType, TerminationCostFunctionType>
     AlgorithmValueType compute_bellman_and_greedy(
         ParamType<State> source_state,
         std::vector<TransitionTailType>& transition_tails,
@@ -263,11 +288,11 @@ private:
 
     AlgorithmValueType compute_qvalue(
         const TransitionTailType& transition_tail,
-        CostFunctionType& cost_function) const;
+        ActionCostFunctionType& action_cost_function) const;
 
     AlgorithmValueType compute_q_values(
         std::vector<TransitionTailType>& transition_tails,
-        CostFunctionType& cost_function,
+        ActionCostFunctionType& action_cost_function,
         std::vector<AlgorithmValueType>& qvalues) const;
 
     AlgorithmValueType filter_greedy_transitions(

@@ -2,7 +2,8 @@
 
 #include "downward/landmarks/landmark.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/state.h"
 
 #include "downward/utils/logging.h"
 
@@ -27,26 +28,25 @@ void LandmarkFactoryRpgExhaust::generate_relaxed_landmarks(
     const shared_ptr<AbstractTask>& task,
     Exploration& exploration)
 {
-    TaskProxy task_proxy(*task);
     if (log.is_at_least_normal()) {
         log << "Generating landmarks by testing all facts with RPG method"
             << endl;
     }
 
     // insert goal landmarks and mark them as goals
-    for (FactPair goal : task_proxy.get_goals()) {
+    for (FactPair goal : task->get_goals()) {
         Landmark landmark({goal}, false, false, true);
         lm_graph->add_landmark(std::move(landmark));
     }
     // test all other possible facts
-    State initial_state = task_proxy.get_initial_state();
-    for (VariableProxy var : task_proxy.get_variables()) {
+    State initial_state = task->get_initial_state();
+    for (VariableProxy var : task->get_variables()) {
         for (int value = 0; value < var.get_domain_size(); ++value) {
             const FactPair lm(var.get_id(), value);
             if (!lm_graph->contains_simple_landmark(lm)) {
                 Landmark landmark({lm}, false, false);
                 if (!relaxed_task_solvable(
-                        task_proxy,
+                        *task,
                         exploration,
                         landmark,
                         use_unary_relaxation)) {

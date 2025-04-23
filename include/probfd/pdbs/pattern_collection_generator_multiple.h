@@ -19,7 +19,7 @@ struct FactPair;
 namespace downward::utils {
 class CountdownTimer;
 class RandomNumberGenerator;
-} // namespace utils
+} // namespace downward::utils
 
 namespace probfd {
 class ProbabilisticTaskProxy;
@@ -53,14 +53,12 @@ class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
         int max_pdb_size,
         double max_time,
         const std::shared_ptr<downward::utils::RandomNumberGenerator>& rng,
-        const ProbabilisticTaskProxy& task_proxy,
-        const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
+        const std::shared_ptr<ProbabilisticTask>& task,
         const downward::FactPair& goal,
         std::unordered_set<int>&& blacklisted_variables) = 0;
 
-    PatternCollectionInformation generate(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
+    PatternCollectionInformation
+    generate(const std::shared_ptr<ProbabilisticTask>& task) override;
 
 public:
     explicit PatternCollectionGeneratorMultiple(

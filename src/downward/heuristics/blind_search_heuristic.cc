@@ -24,7 +24,10 @@ BlindSearchHeuristic::BlindSearchHeuristic(
           cache_estimates,
           description,
           verbosity)
-    , min_operator_cost(task_properties::get_min_operator_cost(task_proxy))
+    , min_operator_cost(
+          task_properties::get_min_operator_cost(
+              transformed_task->get_operators(),
+              *transformed_task))
 {
     if (log.is_at_least_normal()) {
         log << "Initializing blind search heuristic..." << endl;
@@ -49,10 +52,10 @@ BlindSearchHeuristic::BlindSearchHeuristic(
 int BlindSearchHeuristic::compute_heuristic(const State& ancestor_state)
 {
     State state = convert_ancestor_state(ancestor_state);
-    if (task_properties::is_goal_state(task_proxy, state))
+    if (task_properties::is_goal_state(*transformed_task, state))
         return 0;
     else
         return min_operator_cost;
 }
 
-} // namespace blind_search_heuristic
+} // namespace downward::blind_search_heuristic

@@ -1,7 +1,7 @@
 #ifndef PER_TASK_INFORMATION_H
 #define PER_TASK_INFORMATION_H
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
 
 #include "downward/algorithms/subscriber.h"
 
@@ -26,13 +26,11 @@ class PerTaskInformation : public subscriber::Subscriber<PlanningTask> {
     /*
       EntryConstructor is the type of a function that can create objects for
       a given task if the PerTaskInformation is accessed for a task that has no
-      associated entry yet. It receives a TaskProxy instead of the AbstractTask
-      because AbstractTask is an internal implementation detail as far as other
-      classes are concerned. It should return a unique_ptr to the newly created
+      associated entry yet. It should return a unique_ptr to the newly created
       object.
     */
     using EntryConstructor =
-        std::function<std::unique_ptr<Entry>(const PlanningTaskProxy&)>;
+        std::function<std::unique_ptr<Entry>(const PlanningTask&)>;
     EntryConstructor entry_constructor;
     utils::HashMap<TaskID, std::unique_ptr<Entry>> entries;
 
@@ -43,8 +41,8 @@ public:
       PlanningTaskProxy parameter.
     */
     PerTaskInformation()
-        : entry_constructor([](const PlanningTaskProxy& task_proxy) {
-            return std::make_unique<Entry>(task_proxy);
+        : entry_constructor([](const PlanningTask& task) {
+            return std::make_unique<Entry>(task);
         })
     {
     }
@@ -54,23 +52,23 @@ public:
     {
     }
 
-    Entry& operator[](const PlanningTaskProxy& task_proxy)
+    Entry& operator[](const PlanningTask& task)
     {
-        TaskID id = task_proxy.get_id();
+        TaskID id = task.get_id();
         const auto& it = entries.find(id);
         if (it == entries.end()) {
-            entries[id] = entry_constructor(task_proxy);
-            task_proxy.subscribe_to_task_destruction(this);
+            entries[id] = entry_constructor(task);
+            task.subscribe(this);
         }
         return *entries[id];
     }
 
     virtual void notify_service_destroyed(const PlanningTask* task) override
     {
-        TaskID id = PlanningTaskProxy(*task).get_id();
+        TaskID id = task->get_id();
         entries.erase(id);
     }
 };
-}
+} // namespace downward
 
 #endif // PER_TASK_INFORMATION_H

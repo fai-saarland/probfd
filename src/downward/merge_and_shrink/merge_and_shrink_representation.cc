@@ -3,7 +3,7 @@
 #include "downward/merge_and_shrink/distances.h"
 #include "downward/merge_and_shrink/types.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/utils/logging.h"
 

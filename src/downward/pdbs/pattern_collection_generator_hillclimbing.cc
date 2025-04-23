@@ -32,14 +32,12 @@ namespace downward::pdbs {
    utils::Exception. */
 class HillClimbingTimeout {};
 
-static vector<int> get_goal_variables(const TaskProxy& task_proxy)
+static vector<int> get_goal_variables(const AbstractTask& task)
 {
     vector<int> goal_vars;
-    GoalsProxy goals = task_proxy.get_goals();
+    GoalsProxy goals = task.get_goals();
     goal_vars.reserve(goals.size());
-    for (FactPair goal : goals) {
-        goal_vars.push_back(goal.var);
-    }
+    for (FactPair goal : goals) { goal_vars.push_back(goal.var); }
     assert(utils::is_sorted_unique(goal_vars));
     return goal_vars;
 }
@@ -76,14 +74,14 @@ static vector<int> get_goal_variables(const TaskProxy& task_proxy)
   2. for a given neighbour variable already in the pattern.
 */
 static vector<vector<int>>
-compute_relevant_neighbours(const TaskProxy& task_proxy)
+compute_relevant_neighbours(const AbstractTask& task)
 {
     const causal_graph::CausalGraph& causal_graph =
-        task_proxy.get_causal_graph();
-    const vector<int> goal_vars = get_goal_variables(task_proxy);
+        task.get_causal_graph();
+    const vector<int> goal_vars = get_goal_variables(task);
 
     vector<vector<int>> connected_vars_by_variable;
-    VariablesProxy variables = task_proxy.get_variables();
+    VariablesProxy variables = task.get_variables();
     connected_vars_by_variable.reserve(variables.size());
     for (VariableProxy var : variables) {
         int var_id = var.get_id();
@@ -142,7 +140,7 @@ PatternCollectionGeneratorHillclimbing::
     ~PatternCollectionGeneratorHillclimbing() = default;
 
 int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     const vector<vector<int>>& relevant_neighbours,
     const PatternDatabase& pdb,
     set<Pattern>& generated_patterns,
@@ -165,7 +163,7 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
             back_inserter(relevant_vars));
 
         for (int rel_var_id : relevant_vars) {
-            VariableProxy rel_var = task_proxy.get_variables()[rel_var_id];
+            VariableProxy rel_var = task.get_variables()[rel_var_id];
             int rel_var_size = rel_var.get_domain_size();
             if (utils::is_product_within_limit(
                     pdb_size,
@@ -182,7 +180,7 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
                     */
                     generated_patterns.insert(new_pattern);
                     candidate_pdbs.push_back(
-                        make_shared<PatternDatabase>(task_proxy, new_pattern));
+                        make_shared<PatternDatabase>(task, new_pattern));
                     max_pdb_size =
                         max(max_pdb_size, candidate_pdbs.back()->get_size());
                 }
@@ -207,9 +205,7 @@ void PatternCollectionGeneratorHillclimbing::sample_states(
             sampler.sample_state(init_h, [this](const State& state) {
                 return current_pdbs->is_dead_end(state);
             }));
-        if (hill_climbing_timer->is_expired()) {
-            throw HillClimbingTimeout();
-        }
+        if (hill_climbing_timer->is_expired()) { throw HillClimbingTimeout(); }
     }
 }
 
@@ -298,9 +294,7 @@ bool PatternCollectionGeneratorHillclimbing::is_heuristic_improved(
     // h_pattern: h-value of the new pattern
     int h_pattern = pdb.get_value(sample_data);
 
-    if (h_pattern == numeric_limits<int>::max()) {
-        return true;
-    }
+    if (h_pattern == numeric_limits<int>::max()) { return true; }
 
     // h_collection: h-value of the current collection heuristic
     if (h_collection == numeric_limits<int>::max()) return false;
@@ -329,17 +323,20 @@ bool PatternCollectionGeneratorHillclimbing::is_heuristic_improved(
 }
 
 void PatternCollectionGeneratorHillclimbing::hill_climbing(
-    const TaskProxy& task_proxy)
+    const AbstractTask& task)
 {
     hill_climbing_timer = new utils::CountdownTimer(max_time);
 
     if (log.is_at_least_normal()) {
         log << "Average operator cost: "
-            << task_properties::get_average_operator_cost(task_proxy) << endl;
+            << task_properties::get_average_operator_cost(
+                   task.get_operators(),
+                   task)
+            << endl;
     }
 
     const vector<vector<int>> relevant_neighbours =
-        compute_relevant_neighbours(task_proxy);
+        compute_relevant_neighbours(task);
 
     // Candidate patterns generated so far (used to avoid duplicates).
     set<Pattern> generated_patterns;
@@ -351,7 +348,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
     for (const shared_ptr<PatternDatabase>& current_pdb :
          *(current_pdbs->get_pattern_databases())) {
         int new_max_pdb_size = generate_candidate_pdbs(
-            task_proxy,
+            task,
             relevant_neighbours,
             *current_pdb,
             generated_patterns,
@@ -368,9 +365,9 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
     }
 
     int num_iterations = 0;
-    State initial_state = task_proxy.get_initial_state();
+    State initial_state = task.get_initial_state();
 
-    sampling::RandomWalkSampler sampler(task_proxy, *rng);
+    sampling::RandomWalkSampler sampler(task, *rng);
     vector<State> samples;
     vector<int> samples_h_values;
 
@@ -431,7 +428,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
 
             // Generate candidate patterns and PDBs for next iteration.
             int new_max_pdb_size = generate_candidate_pdbs(
-                task_proxy,
+                task,
                 relevant_neighbours,
                 *best_pdb,
                 generated_patterns,
@@ -475,27 +472,26 @@ PatternCollectionInformation
 PatternCollectionGeneratorHillclimbing::compute_patterns(
     const shared_ptr<AbstractTask>& task)
 {
-    TaskProxy task_proxy(*task);
     utils::Timer timer;
 
     // Generate initial collection: a pattern for each goal variable.
     PatternCollection initial_pattern_collection;
-    for (FactPair goal : task_proxy.get_goals()) {
+    for (FactPair goal : task->get_goals()) {
         initial_pattern_collection.emplace_back(1, goal.var);
     }
     current_pdbs = std::make_unique<IncrementalCanonicalPDBs>(
-        task_proxy,
+        *task,
         initial_pattern_collection);
     if (log.is_at_least_normal()) {
         log << "Done calculating initial pattern collection: " << timer << endl;
     }
 
-    State initial_state = task_proxy.get_initial_state();
+    State initial_state = task->get_initial_state();
     if (!current_pdbs->is_dead_end(initial_state) && max_time > 0) {
-        hill_climbing(task_proxy);
+        hill_climbing(*task);
     }
 
     return current_pdbs->get_pattern_collection_information(log);
 }
 
-} // namespace pdbs
+} // namespace downward::pdbs

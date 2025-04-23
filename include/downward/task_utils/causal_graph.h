@@ -55,7 +55,6 @@ namespace downward {
 typedef std::vector<std::vector<int>> IntRelation;
 
 class AbstractTask;
-class TaskProxy;
 }
 
 namespace downward::causal_graph {
@@ -71,7 +70,7 @@ class CausalGraph {
     // TODO remove
     void dump() const;
 
-    void dump(const TaskProxy& task_proxy) const;
+    void dump(const AbstractTask& task) const;
 
 public:
     // TODO remove
@@ -79,7 +78,7 @@ public:
 
     /* Use the factory function get_causal_graph to create causal graphs
        to avoid creating more than one causal graph per AbstractTask. */
-    explicit CausalGraph(const TaskProxy& task_proxy);
+    explicit CausalGraph(const AbstractTask& task);
 
     ~CausalGraph();
 

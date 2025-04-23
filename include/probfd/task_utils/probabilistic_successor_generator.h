@@ -8,7 +8,7 @@
 namespace downward {
 class OperatorID;
 class State;
-class PlanningTaskProxy;
+class PlanningTask;
 }
 
 namespace probfd {
@@ -27,7 +27,7 @@ class ProbabilisticSuccessorGenerator {
 
 public:
     explicit ProbabilisticSuccessorGenerator(
-        const downward::PlanningTaskProxy& task_proxy);
+        const downward::PlanningTask& task);
     /*
       We cannot use the default destructor (implicitly or explicitly)
       here because GeneratorBase is a forward declaration and the

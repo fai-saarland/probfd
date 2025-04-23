@@ -7,10 +7,14 @@
 #include "probfd/pdbs/saturation.h"
 #include "probfd/pdbs/trivial_finder.h"
 
+#include "probfd/tasks/modified_operator_costs_task.h"
+
 #include "probfd/cost_function.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/task_utils/task_properties.h"
 
+#include "downward/utils/collections.h"
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/rng.h"
 
@@ -26,96 +30,30 @@ using namespace downward;
 namespace probfd::pdbs {
 
 namespace {
-
 vector<FactPair> get_goals_in_random_order(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTask& task,
     utils::RandomNumberGenerator& rng)
 {
     vector<FactPair> goals =
-        downward::task_properties::get_fact_pairs(task_proxy.get_goals());
+        downward::task_properties::get_fact_pairs(task.get_goals());
     rng.shuffle(goals);
     return goals;
 }
 
-vector<int> get_non_goal_variables(const ProbabilisticTaskProxy& task_proxy)
+vector<int> get_non_goal_variables(const ProbabilisticTask& task)
 {
-    size_t num_vars = task_proxy.get_variables().size();
-    GoalsProxy goals = task_proxy.get_goals();
+    size_t num_vars = task.get_variables().size();
+    GoalsProxy goals = task.get_goals();
     vector<bool> is_goal(num_vars, false);
-    for (FactPair goal : goals) {
-        is_goal[goal.var] = true;
-    }
+    for (FactPair goal : goals) { is_goal[goal.var] = true; }
 
     vector<int> non_goal_variables;
     non_goal_variables.reserve(num_vars - goals.size());
     for (int var_id = 0; var_id < static_cast<int>(num_vars); ++var_id) {
-        if (!is_goal[var_id]) {
-            non_goal_variables.push_back(var_id);
-        }
+        if (!is_goal[var_id]) { non_goal_variables.push_back(var_id); }
     }
     return non_goal_variables;
 }
-
-class ExplicitTaskCostFunction : public FDRSimpleCostFunction {
-    const ProbabilisticTaskProxy& task_proxy;
-    std::vector<value_t> costs;
-    const value_t goal_termination;
-    const value_t non_goal_termination;
-
-public:
-    ExplicitTaskCostFunction(
-        const ProbabilisticTaskProxy& task_proxy,
-        FDRSimpleCostFunction& cost_function)
-        : task_proxy(task_proxy)
-        , goal_termination(cost_function.get_goal_termination_cost())
-        , non_goal_termination(cost_function.get_non_goal_termination_cost())
-    {
-        const auto operators = task_proxy.get_operators();
-        costs.reserve(operators.size());
-
-        for (const ProbabilisticOperatorProxy op : operators) {
-            costs.push_back(
-                cost_function.get_action_cost(OperatorID(op.get_id())));
-        }
-    }
-
-    value_t get_action_cost(OperatorID op_id) override
-    {
-        return costs[op_id.get_index()];
-    }
-
-    [[nodiscard]]
-    bool is_goal(const State& state) const override
-    {
-        return ::task_properties::is_goal_state(task_proxy, state);
-    }
-
-    [[nodiscard]]
-    value_t get_goal_termination_cost() const override
-    {
-        return goal_termination;
-    }
-
-    [[nodiscard]]
-    value_t get_non_goal_termination_cost() const override
-    {
-        return non_goal_termination;
-    }
-
-    void update_costs(const std::vector<value_t>& saturated_costs)
-    {
-        for (size_t i = 0; i != costs.size(); ++i) {
-            costs[i] -= saturated_costs[i];
-            assert(!is_approx_less(costs[i], 0.0_vt, 0.0001));
-
-            // Avoid floating point imprecision. The PDB implementation is not
-            // stable with respect to action costs very close to zero.
-            if (is_approx_equal(costs[i], 0.0_vt, 0.0001)) {
-                costs[i] = 0.0_vt;
-            }
-        }
-    }
-};
 
 } // namespace
 
@@ -167,17 +105,14 @@ bool PatternCollectionGeneratorMultiple::time_limit_reached(
     const utils::CountdownTimer& timer) const
 {
     if (timer.is_expired()) {
-        if (log_.is_at_least_normal()) {
-            log_ << "time limit reached" << endl;
-        }
+        if (log_.is_at_least_normal()) { log_ << "time limit reached" << endl; }
         return true;
     }
     return false;
 }
 
 PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
-    const shared_ptr<ProbabilisticTask>& task,
-    const std::shared_ptr<FDRCostFunction>& task_cost_function)
+    const shared_ptr<ProbabilisticTask>& task)
 {
     if (log_.is_at_least_normal()) {
         log_ << "max pdb size: " << max_pdb_size_ << endl;
@@ -190,24 +125,23 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
              << enable_blacklist_on_stagnation_ << endl;
     }
 
-    ProbabilisticTaskProxy task_proxy(*task);
-    auto cost_function = std::make_shared<ExplicitTaskCostFunction>(
-        task_proxy,
-        *task_cost_function);
+    std::vector<value_t> costs(task->get_num_operators());
+
+    for (const auto op : task->get_operators()) {
+        costs[op.get_id()] = task->get_operator_cost(op.get_id());
+    }
 
     utils::CountdownTimer timer(total_max_time_);
 
     // Store the set of goals in random order.
-    vector<FactPair> goals = get_goals_in_random_order(task_proxy, *rng_);
+    vector<FactPair> goals = get_goals_in_random_order(*task, *rng_);
 
     // Store the non-goal variables for potential blacklisting.
-    vector<int> non_goal_variables = get_non_goal_variables(task_proxy);
+    vector<int> non_goal_variables = get_non_goal_variables(*task);
 
     if (log_.is_at_least_debug()) {
         log_ << "goal variables: ";
-        for (FactPair goal : goals) {
-            log_ << goal.var << ", ";
-        }
+        for (FactPair goal : goals) { log_ << goal.var << ", "; }
         log_ << endl;
         log_ << "non-goal variables: " << non_goal_variables << endl;
     }
@@ -221,7 +155,12 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
     bool blacklisting = false;
     double time_point_of_last_new_pattern = 0.0;
     int remaining_collection_size = max_collection_size_;
-    std::vector<value_t> saturated_costs(task_proxy.get_operators().size());
+
+    auto adapted = std::make_shared<extra_tasks::ModifiedOperatorCostsTask>(
+        task,
+        std::move(costs));
+
+    std::vector<value_t> saturated_costs(task->get_operators().size());
 
     while (true) {
         // Check if blacklisting should be started.
@@ -256,9 +195,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
             if (log_.is_at_least_debug()) {
                 log_ << "blacklisting " << blacklist_size << " out of "
                      << non_goal_variables.size() << " non-goal variables: ";
-                for (int var : blacklisted_variables) {
-                    log_ << var << ", ";
-                }
+                for (int var : blacklisted_variables) { log_ << var << ", "; }
                 log_ << endl;
             }
         }
@@ -272,8 +209,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
             remaining_pdb_size,
             remaining_time,
             rng_,
-            task_proxy,
-            cost_function,
+            adapted,
             goals[goal_index],
             std::move(blacklisted_variables));
 
@@ -288,7 +224,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
                     *state_space,
                     pdb.value_table,
                     saturated_costs);
-                cost_function->update_costs(saturated_costs);
+                adapted->decrease_costs(saturated_costs);
             }
 
             /*
@@ -355,12 +291,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
         finder = std::make_shared<TrivialFinder>();
     }
 
-    PatternCollectionInformation result(
-        task_proxy,
-        task_cost_function,
-        patterns,
-        finder);
-
+    PatternCollectionInformation result(task, patterns, finder);
     result.set_pdbs(generated_pdbs);
 
     if (log_.is_at_least_normal()) {

@@ -23,7 +23,7 @@ FFHeuristic::FFHeuristic(
           cache_estimates,
           description,
           verbosity)
-    , relaxed_plan(task_proxy.get_operators().size(), false)
+    , relaxed_plan(transformed_task->get_operators().size(), false)
 {
     if (log.is_at_least_normal()) {
         log << "Initializing FF heuristic..." << endl;
@@ -67,7 +67,8 @@ void FFHeuristic::mark_preferred_operators_and_relaxed_plan(
                 // This is not an axiom.
                 relaxed_plan[operator_no] = true;
                 if (is_preferred) {
-                    OperatorProxy op = task_proxy.get_operators()[operator_no];
+                    OperatorProxy op =
+                        transformed_task->get_operators()[operator_no];
                     assert(task_properties::is_applicable(op, state));
                     set_preferred(op);
                 }
@@ -90,10 +91,10 @@ int FFHeuristic::compute_heuristic(const State& ancestor_state)
     for (size_t op_no = 0; op_no < relaxed_plan.size(); ++op_no) {
         if (relaxed_plan[op_no]) {
             relaxed_plan[op_no] = false; // Clean up for next computation.
-            h_ff += task_proxy.get_operators()[op_no].get_cost();
+            h_ff += transformed_task->get_operator_cost(op_no);
         }
     }
     return h_ff;
 }
 
-} // namespace ff_heuristic
+} // namespace downward::ff_heuristic

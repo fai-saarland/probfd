@@ -20,9 +20,8 @@ void LMCutConstraints::initialize_constraints(
     const shared_ptr<AbstractTask>& task,
     lp::LinearProgram&)
 {
-    TaskProxy task_proxy(*task);
     landmark_generator =
-        std::make_unique<lm_cut_heuristic::LandmarkCutLandmarks>(task_proxy);
+        std::make_unique<lm_cut_heuristic::LandmarkCutLandmarks>(task);
 }
 
 bool LMCutConstraints::update_constraints(
@@ -39,9 +38,7 @@ bool LMCutConstraints::update_constraints(
         [&](const vector<int>& op_ids, int /*cost*/) {
             constraints.emplace_back(1.0, infinity);
             lp::LPConstraint& landmark_constraint = constraints.back();
-            for (int op_id : op_ids) {
-                landmark_constraint.insert(op_id, 1.0);
-            }
+            for (int op_id : op_ids) { landmark_constraint.insert(op_id, 1.0); }
         });
 
     if (dead_end) {
@@ -52,4 +49,4 @@ bool LMCutConstraints::update_constraints(
     }
 }
 
-} // namespace operator_counting
+} // namespace downward::operator_counting

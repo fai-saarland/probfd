@@ -4,7 +4,7 @@
 #include "downward/cartesian_abstractions/abstract_search.h"
 #include "downward/cartesian_abstractions/split_selector.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/utils/countdown_timer.h"
 
@@ -28,7 +28,7 @@ struct Flaw;
   spurious solutions.
 */
 class CEGAR {
-    const TaskProxy task_proxy;
+    const AbstractTask& task;
     AxiomEvaluator& axiom_evaluator;
     const std::vector<int> domain_sizes;
     const int max_states;

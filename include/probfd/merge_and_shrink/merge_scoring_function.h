@@ -9,7 +9,7 @@ class LogProxy;
 }
 
 namespace probfd {
-class ProbabilisticTaskProxy;
+class ProbabilisticTask;
 }
 
 namespace probfd::merge_and_shrink {
@@ -40,7 +40,7 @@ public:
     virtual bool requires_goal_distances() const = 0;
 
     // Overriding methods must set initialized to true.
-    virtual void initialize(const ProbabilisticTaskProxy&)
+    virtual void initialize(const ProbabilisticTask&)
     {
         initialized = true;
     }

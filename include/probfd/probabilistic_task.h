@@ -1,9 +1,16 @@
 #ifndef PROBFD_PROBABILISTIC_TASK_H
 #define PROBFD_PROBABILISTIC_TASK_H
 
-#include "downward/abstract_task.h" // IWYU pragma: export
+#include "downward/abstract_task.h"
+#include "downward/operator_cost_function.h"
 
-#include "probfd/value_type.h"
+#include "probfd/probabilistic_operator_space.h"
+#include "probfd/termination_costs.h"
+
+
+namespace probfd::causal_graph {
+class ProbabilisticCausalGraph;
+}
 
 namespace probfd {
 
@@ -18,54 +25,11 @@ namespace probfd {
  */
 class ProbabilisticTask
     : public downward::PlanningTask
-    , public downward::OperatorCostFunction<value_t> {
+    , public ProbabilisticOperatorSpace
+    , public downward::OperatorCostFunction<value_t>
+    , public TerminationCosts {
 public:
-    /// Get the cost of terminating in a goal state.
-    virtual value_t get_goal_termination_cost() const = 0;
-
-    /// Get the cost of terminating in a non-goal state.
-    virtual value_t get_non_goal_termination_cost() const = 0;
-
-    /// Get the number of probabilistic outcomes of the probabilistic operator
-    /// with index \p op_index.
-    virtual int get_num_operator_outcomes(int op_index) const = 0;
-
-    /// Get the probabilistic outcome probability of the outcome with index
-    /// \p outcome_index of the probabilistic operator with index \p op_index.
-    virtual value_t
-    get_operator_outcome_probability(int op_index, int outcome_index) const = 0;
-
-    /// Get the global outcome index for the outcome with index \p outcome_index
-    /// of the probabilistic operator with index \p op_index.
-    virtual int
-    get_operator_outcome_id(int op_index, int outcome_index) const = 0;
-
-    /// Get the number of effects of the outcome with index \p outcome_index of
-    /// the probabilistic operator with index \p op_index.
-    virtual int
-    get_num_operator_outcome_effects(int op_index, int outcome_index) const = 0;
-
-    /// Get the effect with index \p eff_index of the outcome with index
-    /// \p outcome_index of the probabilistic operator with index \p op_index.
-    virtual downward::FactPair
-    get_operator_outcome_effect(int op_index, int outcome_index, int eff_index)
-        const = 0;
-
-    /// Get the number of effect conditions for the effect with index
-    /// \p eff_index of the outcome with index \p outcome_index of the
-    /// probabilistic operator with index \p op_index.
-    virtual int get_num_operator_outcome_effect_conditions(
-        int op_index,
-        int outcome_index,
-        int eff_index) const = 0;
-
-    /// Get the number of effect conditions for the effects with given index of
-    /// outcome with given index of the probabilistic operator with given index.
-    virtual downward::FactPair get_operator_outcome_effect_condition(
-        int op_index,
-        int outcome_index,
-        int eff_index,
-        int cond_index) const = 0;
+    const causal_graph::ProbabilisticCausalGraph& get_causal_graph() const;
 };
 
 } // namespace probfd

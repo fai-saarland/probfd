@@ -11,7 +11,7 @@
 // Forward Declarations
 namespace downward {
 class State;
-class PreconditionsProxy;
+class OperatorPreconditionsProxy;
 class GoalsProxy;
 }
 
@@ -20,7 +20,7 @@ class CountdownTimer;
 }
 
 namespace probfd {
-class ProbabilisticTaskProxy;
+class ProbabilisticTask;
 }
 
 namespace probfd::pdbs {
@@ -41,7 +41,7 @@ public:
     // Note that the output flaw list might be empty regardless since only
     // remaining goals are added to the list for goal violations.
     virtual bool apply_policy(
-        const ProbabilisticTaskProxy& task_proxy,
+        const ProbabilisticTask& task,
         const StateRankingFunction& state_ranking_function,
         const ProjectionStateSpace& mdp,
         const ProjectionMultiPolicy& policy,
@@ -53,7 +53,7 @@ public:
 };
 
 bool collect_flaws(
-    downward::PreconditionsProxy facts,
+    downward::OperatorPreconditionsProxy facts,
     const downward::State& state,
     std::vector<Flaw>& flaws,
     const std::function<bool(const Flaw&)>& accept_flaw);

@@ -5,7 +5,7 @@
 #include <vector>
 
 namespace downward {
-class TaskProxy;
+class AbstractTask;
 }
 
 namespace downward::utils {
@@ -31,7 +31,7 @@ public:
     virtual bool requires_goal_distances() const = 0;
 
     // Overriding methods must set initialized to true.
-    virtual void initialize(const TaskProxy &) {
+    virtual void initialize(const AbstractTask &) {
         initialized = true;
     }
 

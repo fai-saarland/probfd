@@ -80,7 +80,7 @@ void AbstractOperator::dump(
 }
 
 PatternDatabase::PatternDatabase(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     const Pattern& pattern,
     const vector<int>& operator_costs,
     bool compute_plan,
@@ -88,11 +88,11 @@ PatternDatabase::PatternDatabase(
     bool compute_wildcard_plan)
     : pattern(pattern)
 {
-    task_properties::verify_no_axioms(task_proxy);
-    task_properties::verify_no_conditional_effects(task_proxy);
+    task_properties::verify_no_axioms(task);
+    task_properties::verify_no_conditional_effects(task);
     assert(
         operator_costs.empty() ||
-        operator_costs.size() == task_proxy.get_operators().size());
+        operator_costs.size() == task.get_operators().size());
     assert(utils::is_sorted_unique(pattern));
 
     utils::Timer timer;
@@ -100,7 +100,7 @@ PatternDatabase::PatternDatabase(
     num_states = 1;
     for (int pattern_var_id : pattern) {
         hash_multipliers.push_back(num_states);
-        VariableProxy var = task_proxy.get_variables()[pattern_var_id];
+        VariableProxy var = task.get_variables()[pattern_var_id];
         if (utils::is_product_within_limit(
                 num_states,
                 var.get_domain_size(),
@@ -113,7 +113,7 @@ PatternDatabase::PatternDatabase(
         }
     }
     create_pdb(
-        task_proxy,
+        task,
         operator_costs,
         compute_plan,
         rng,
@@ -198,7 +198,7 @@ void PatternDatabase::build_abstract_operators(
     for (FactPair pre : op.get_preconditions())
         has_precondition_on_var[pre.var] = true;
 
-    for (EffectProxy eff : op.get_effects()) {
+    for (auto eff : op.get_effects()) {
         int var_id = eff.get_fact().var;
         int pattern_var_id = variable_to_index[var_id];
         int val = eff.get_fact().value;
@@ -234,13 +234,13 @@ void PatternDatabase::build_abstract_operators(
 }
 
 void PatternDatabase::create_pdb(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     const vector<int>& operator_costs,
     bool compute_plan,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     bool compute_wildcard_plan)
 {
-    VariablesProxy variables = task_proxy.get_variables();
+    VariablesProxy variables = task.get_variables();
     vector<int> variable_to_index(variables.size(), -1);
     for (size_t i = 0; i < pattern.size(); ++i) {
         variable_to_index[pattern[i]] = i;
@@ -248,10 +248,10 @@ void PatternDatabase::create_pdb(
 
     // compute all abstract operators
     vector<AbstractOperator> operators;
-    for (OperatorProxy op : task_proxy.get_operators()) {
+    for (OperatorProxy op : task.get_operators()) {
         int op_cost;
         if (operator_costs.empty()) {
-            op_cost = op.get_cost();
+            op_cost = task.get_operator_cost(op.get_id());
         } else {
             op_cost = operator_costs[op.get_id()];
         }
@@ -264,7 +264,7 @@ void PatternDatabase::create_pdb(
     }
 
     // build the match tree
-    MatchTree match_tree(task_proxy, pattern, hash_multipliers);
+    MatchTree match_tree(task, pattern, hash_multipliers);
     for (size_t op_id = 0; op_id < operators.size(); ++op_id) {
         const AbstractOperator& op = operators[op_id];
         match_tree.insert(op_id, op.get_regression_preconditions());
@@ -272,7 +272,7 @@ void PatternDatabase::create_pdb(
 
     // compute abstract goal var-val pairs
     vector<FactPair> abstract_goals;
-    for (const auto [var, value] : task_proxy.get_goals()) {
+    for (const auto [var, value] : task.get_goals()) {
         if (variable_to_index[var] != -1) {
             abstract_goals.emplace_back(variable_to_index[var], value);
         }
@@ -348,7 +348,7 @@ void PatternDatabase::create_pdb(
           is biased by the number of operators leading to the same successor
           from the given state.
         */
-        State initial_state = task_proxy.get_initial_state();
+        State initial_state = task.get_initial_state();
         initial_state.unpack();
         int current_state = hash_index(initial_state.get_unpacked_values());
         if (distances[current_state] != numeric_limits<int>::max()) {
@@ -447,7 +447,7 @@ double PatternDatabase::compute_mean_finite_h() const
 
 bool PatternDatabase::is_operator_relevant(const OperatorProxy& op) const
 {
-    for (EffectProxy effect : op.get_effects()) {
+    for (auto effect : op.get_effects()) {
         int var_id = effect.get_fact().var;
         if (binary_search(pattern.begin(), pattern.end(), var_id)) {
             return true;

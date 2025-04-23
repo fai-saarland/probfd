@@ -28,17 +28,15 @@ enum class OptimizeFor {
 };
 
 unique_ptr<PotentialFunction> create_potential_function(
-    const shared_ptr<AbstractTask>& transform,
+    const shared_ptr<AbstractTask>& task,
     lp::LPSolverType lpsolver,
     double max_potential,
     OptimizeFor opt_func)
 {
-    PotentialOptimizer optimizer(transform, lpsolver, max_potential);
-    const AbstractTask& task = *transform;
-    TaskProxy task_proxy(task);
+    PotentialOptimizer optimizer(task, lpsolver, max_potential);
     switch (opt_func) {
     case OptimizeFor::INITIAL_STATE:
-        optimizer.optimize_for_state(task_proxy.get_initial_state());
+        optimizer.optimize_for_state(task->get_initial_state());
         break;
     case OptimizeFor::ALL_STATES: optimizer.optimize_for_all_states(); break;
     default: ABORT("Unkown optimization function");

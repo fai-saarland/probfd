@@ -4,7 +4,7 @@
 #include "probfd/pdbs/assignment_enumerator.h"
 #include "probfd/pdbs/types.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <span>
 #include <string>

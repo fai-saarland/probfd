@@ -3,10 +3,9 @@
 #include "probfd/merge_and_shrink/distances.h"
 #include "probfd/merge_and_shrink/types.h"
 
-#include "probfd/task_proxy.h"
-
 #include "downward/utils/logging.h"
 
+#include <algorithm>
 #include <cassert>
 #include <numeric>
 

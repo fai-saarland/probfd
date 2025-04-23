@@ -86,8 +86,7 @@ public:
         utils::Verbosity verbosity);
 
     std::unique_ptr<FDREvaluator> create_heuristic(
-        std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function) override;
+        std::shared_ptr<ProbabilisticTask> task) override;
 };
 
 MergeAndShrinkHeuristicFactory::MergeAndShrinkHeuristicFactory(
@@ -114,8 +113,7 @@ MergeAndShrinkHeuristicFactory::MergeAndShrinkHeuristicFactory(
 }
 
 std::unique_ptr<FDREvaluator> MergeAndShrinkHeuristicFactory::create_heuristic(
-    std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<FDRCostFunction>)
+    std::shared_ptr<ProbabilisticTask> task)
 {
     FactoredTransitionSystem fts =
         algorithm.build_factored_transition_system(task, log_);

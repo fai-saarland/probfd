@@ -32,7 +32,7 @@ void MergeTreeFactory::dump_options(utils::LogProxy& log) const
 }
 
 unique_ptr<MergeTree> MergeTreeFactory::compute_merge_tree(
-    const TaskProxy&,
+    const AbstractTask&,
     const FactoredTransitionSystem&,
     const vector<int>&)
 {

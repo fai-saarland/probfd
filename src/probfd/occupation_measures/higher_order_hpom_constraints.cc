@@ -147,11 +147,9 @@ HigherOrderHPOMGenerator::HigherOrderHPOMGenerator(int projection_size)
 
 void HigherOrderHPOMGenerator::initialize_constraints(
     const std::shared_ptr<ProbabilisticTask>& task,
-    const std::shared_ptr<FDRCostFunction>& task_cost_function,
     lp::LinearProgram& lp)
 {
-    const value_t term_cost =
-        task_cost_function->get_non_goal_termination_cost();
+    const value_t term_cost = task->get_non_goal_termination_cost();
 
     if (term_cost != INFINITE_VALUE && term_cost != 1_vt) {
         std::cerr
@@ -160,15 +158,13 @@ void HigherOrderHPOMGenerator::initialize_constraints(
         utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
     }
 
-    const bool maxprob =
-        task_cost_function->get_non_goal_termination_cost() == 1_vt;
+    const bool maxprob = task->get_non_goal_termination_cost() == 1_vt;
 
-    ProbabilisticTaskProxy task_proxy(*task);
-    const VariablesProxy variables = task_proxy.get_variables();
+    const VariablesProxy variables = task->get_variables();
     const std::size_t num_variables = variables.size();
 
-    ::task_properties::verify_no_axioms(task_proxy);
-    task_properties::verify_no_conditional_effects(task_proxy);
+    ::task_properties::verify_no_axioms(*task);
+    task_properties::verify_no_conditional_effects(*task);
 
     std::cout << "Initializing HO-HPOM LP constraints..." << std::endl;
 
@@ -209,9 +205,7 @@ void HigherOrderHPOMGenerator::initialize_constraints(
 
     std::vector<int> the_goal(num_variables, -1);
 
-    for (const auto [var, value] : task_proxy.get_goals()) {
-        the_goal[var] = value;
-    }
+    for (const auto [var, value] : task->get_goals()) { the_goal[var] = value; }
 
     // Build flow contraint coefficients for dummy goal action
     {
@@ -240,11 +234,11 @@ void HigherOrderHPOMGenerator::initialize_constraints(
         } while (next_pattern(num_variables, pattern));
     }
 
-    const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
+    const ProbabilisticOperatorsProxy operators = task->get_operators();
 
     // Now ordinary actions
     for (const ProbabilisticOperatorProxy op : operators) {
-        const auto cost = maxprob ? 0 : op.get_cost();
+        const auto cost = maxprob ? 0 : task->get_operator_cost(op.get_id());
 
         // Get dense precondition
         std::vector<int> pre(num_variables, -1);
@@ -379,8 +373,7 @@ HigherOrderHPOMGeneratorFactory::HigherOrderHPOMGeneratorFactory(
 
 std::unique_ptr<ConstraintGenerator>
 HigherOrderHPOMGeneratorFactory::construct_constraint_generator(
-    const std::shared_ptr<ProbabilisticTask>&,
-    const std::shared_ptr<FDRCostFunction>&)
+    const std::shared_ptr<ProbabilisticTask>&)
 {
     return std::make_unique<HigherOrderHPOMGenerator>(projection_size_);
 }

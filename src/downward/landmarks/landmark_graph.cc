@@ -4,6 +4,7 @@
 
 #include "downward/utils/memory.h"
 
+#include <algorithm>
 #include <cassert>
 #include <list>
 #include <set>
@@ -98,12 +99,10 @@ bool LandmarkGraph::contains_landmark(const FactPair& lm) const
 LandmarkNode& LandmarkGraph::add_landmark(Landmark&& landmark)
 {
     assert(
-        landmark.conjunctive || all_of(
-                                    landmark.facts.begin(),
-                                    landmark.facts.end(),
-                                    [&](const FactPair& lm_fact) {
-                                        return !contains_landmark(lm_fact);
-                                    }));
+        landmark.conjunctive ||
+        std::ranges::none_of(landmark.facts, [&](const FactPair& lm_fact) {
+            return contains_landmark(lm_fact);
+        }));
     unique_ptr<LandmarkNode> new_node =
         std::make_unique<LandmarkNode>(std::move(landmark));
     LandmarkNode* new_node_p = new_node.get();
@@ -184,4 +183,4 @@ void LandmarkGraph::set_landmark_ids()
         ++id;
     }
 }
-} // namespace landmarks
+} // namespace downward::landmarks

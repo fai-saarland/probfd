@@ -11,7 +11,7 @@
 
 #include "probfd/distribution.h"
 #include "probfd/multi_policy.h"
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/utils/countdown_timer.h"
 
@@ -37,7 +37,7 @@ SamplingFlawFinder::SamplingFlawFinder(
 SamplingFlawFinder::~SamplingFlawFinder() = default;
 
 bool SamplingFlawFinder::apply_policy(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTask& task,
     const StateRankingFunction& state_ranking_function,
     const ProjectionStateSpace& mdp,
     const ProjectionMultiPolicy& policy,
@@ -53,11 +53,11 @@ bool SamplingFlawFinder::apply_policy(
         einfos_.clear();
     });
 
-    StateRegistry registry(task_proxy);
+    StateRegistry registry(task);
     stk_.push_back(registry.get_initial_state());
 
-    const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
-    const GoalsProxy goals = task_proxy.get_goals();
+    const ProbabilisticOperatorsProxy operators = task.get_operators();
+    const GoalsProxy goals = task.get_goals();
 
     for (;;) {
         const State* current = &stk_.back();

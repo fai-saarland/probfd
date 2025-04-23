@@ -6,11 +6,11 @@
 #include "downward/landmarks/util.h"
 
 #include "downward/utils/logging.h"
-#include "downward/utils/markup.h"
 
+#include "downward/abstract_task.h"
+#include "downward/axiom_utils.h"
 #include "downward/mutex_information.h"
-
-#include <downward/task_dependent_factory.h>
+#include "downward/task_dependent_factory.h"
 
 using namespace std;
 
@@ -37,19 +37,18 @@ void LandmarkFactoryReasonableOrdersHPS::generate_landmarks(
     lm_graph = lm_factory->compute_lm_graph(task);
     achievers_calculated = lm_factory->achievers_are_calculated();
 
-    TaskProxy task_proxy(*task);
     if (log.is_at_least_normal()) {
         log << "approx. reasonable orders" << endl;
     }
-    approximate_reasonable_orders(task_proxy, *mutexes);
+    approximate_reasonable_orders(*task, *mutexes);
     if (log.is_at_least_normal()) {
         log << "approx. obedient reasonable orders" << endl;
     }
-    approximate_reasonable_orders(task_proxy, *mutexes);
+    approximate_reasonable_orders(*task, *mutexes);
 }
 
 void LandmarkFactoryReasonableOrdersHPS::approximate_reasonable_orders(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     const MutexInformation& mutexes)
 {
     /*
@@ -63,8 +62,8 @@ void LandmarkFactoryReasonableOrdersHPS::approximate_reasonable_orders(
       predecessors of parent can be ordered reasonably before node_p if
       they interfere with node_p.
     */
-    State initial_state = task_proxy.get_initial_state();
-    int variables_size = task_proxy.get_variables().size();
+    State initial_state = task.get_initial_state();
+    int variables_size = task.get_variables().size();
     for (auto& node_p : lm_graph->get_nodes()) {
         const Landmark& landmark = node_p->get_landmark();
         if (landmark.disjunctive) continue;
@@ -73,7 +72,7 @@ void LandmarkFactoryReasonableOrdersHPS::approximate_reasonable_orders(
             for (auto& node2_p : lm_graph->get_nodes()) {
                 const Landmark& landmark2 = node2_p->get_landmark();
                 if (landmark == landmark2 || landmark2.disjunctive) continue;
-                if (interferes(task_proxy, mutexes, landmark2, landmark)) {
+                if (interferes(task, mutexes, landmark2, landmark)) {
                     edge_add(*node2_p, *node_p, EdgeType::REASONABLE);
                 }
             }
@@ -106,7 +105,7 @@ void LandmarkFactoryReasonableOrdersHPS::approximate_reasonable_orders(
             for (LandmarkNode* node2_p : interesting_nodes) {
                 const Landmark& landmark2 = node2_p->get_landmark();
                 if (landmark == landmark2 || landmark2.disjunctive) continue;
-                if (interferes(task_proxy, mutexes, landmark2, landmark)) {
+                if (interferes(task, mutexes, landmark2, landmark)) {
                     edge_add(*node2_p, *node_p, EdgeType::REASONABLE);
                 }
             }
@@ -115,7 +114,7 @@ void LandmarkFactoryReasonableOrdersHPS::approximate_reasonable_orders(
 }
 
 bool LandmarkFactoryReasonableOrdersHPS::interferes(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     const MutexInformation& mutexes,
     const Landmark& landmark_a,
     const Landmark& landmark_b) const
@@ -133,7 +132,7 @@ bool LandmarkFactoryReasonableOrdersHPS::interferes(
     assert(landmark_a != landmark_b);
     assert(!landmark_a.disjunctive && !landmark_b.disjunctive);
 
-    VariablesProxy variables = task_proxy.get_variables();
+    VariablesProxy variables = task.get_variables();
     for (const FactPair& lm_fact_b : landmark_b.facts) {
         for (const FactPair& lm_fact_a : landmark_a.facts) {
             if (lm_fact_a == lm_fact_b) {
@@ -168,7 +167,7 @@ bool LandmarkFactoryReasonableOrdersHPS::interferes(
                 // always be true. We test for a simple kind of these trivial
                 // conditions here.)
                 EffectsProxy effects =
-                    get_operator_or_axiom(task_proxy, op_or_axiom_id)
+                    get_operator_or_axiom(task, op_or_axiom_id)
                         .get_effects();
                 set<FactPair> trivially_conditioned_effects;
                 bool trivial_conditioned_effects_found = effect_always_happens(

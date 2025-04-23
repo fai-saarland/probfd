@@ -45,14 +45,12 @@ public:
     }
 
     std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) override
+        const std::shared_ptr<ProbabilisticTask>& task) override
     {
         return std::make_unique<AlgorithmAdaptor>(
             this->template create_heuristic_search_algorithm<
                 algorithms::exhaustive_ao::ExhaustiveAOSearch>(
                 task,
-                task_cost_function,
                 open_list_));
     }
 };

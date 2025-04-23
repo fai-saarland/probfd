@@ -4,7 +4,7 @@
 #include "probfd/merge_and_shrink/labels.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/algorithms/equivalence_relation.h"
 
@@ -51,13 +51,13 @@ bool LabelReduction::initialized() const
     return !transition_system_order.empty();
 }
 
-void LabelReduction::initialize(const ProbabilisticTaskProxy& task_proxy)
+void LabelReduction::initialize(const ProbabilisticTask& task)
 {
     assert(!initialized());
 
     // Compute the transition system order.
     const int max_transition_system_count =
-        task_proxy.get_variables().size() * 2 - 1;
+        task.get_variables().size() * 2 - 1;
     transition_system_order.reserve(max_transition_system_count);
 
     if (lr_system_order == LabelReductionSystemOrder::REGULAR ||
@@ -108,9 +108,7 @@ static void compute_label_mapping(
                 ++next_new_label;
             }
 
-            if (!equivalent_labels.empty()) {
-                ++num_labels_after_reduction;
-            }
+            if (!equivalent_labels.empty()) { ++num_labels_after_reduction; }
         }
     }
 
@@ -274,14 +272,10 @@ bool LabelReduction::reduce(
         }
 
         ++tso_index;
-        if (tso_index == transition_system_order.size()) {
-            tso_index = 0;
-        }
+        if (tso_index == transition_system_order.size()) { tso_index = 0; }
         while (transition_system_order[tso_index] >= num_transition_systems) {
             ++tso_index;
-            if (tso_index == transition_system_order.size()) {
-                tso_index = 0;
-            }
+            if (tso_index == transition_system_order.size()) { tso_index = 0; }
         }
     }
     return reduced;

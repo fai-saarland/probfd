@@ -3,7 +3,7 @@
 #include "probfd/merge_and_shrink/factored_transition_system.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
@@ -65,11 +65,11 @@ vector<double> MergeScoringFunctionTotalOrder::compute_scores(
 }
 
 void MergeScoringFunctionTotalOrder::initialize(
-    const ProbabilisticTaskProxy& task_proxy)
+    const ProbabilisticTask& task)
 {
     initialized = true;
 
-    const int num_variables = task_proxy.get_variables().size();
+    const int num_variables = task.get_variables().size();
     const int max_transition_system_count = num_variables * 2 - 1;
     vector<int> transition_system_order;
     transition_system_order.reserve(max_transition_system_count);
@@ -77,9 +77,7 @@ void MergeScoringFunctionTotalOrder::initialize(
     // Compute the order in which atomic transition systems are considered
     vector<int> atomic_tso;
     atomic_tso.reserve(num_variables);
-    for (int i = 0; i < num_variables; ++i) {
-        atomic_tso.push_back(i);
-    }
+    for (int i = 0; i < num_variables; ++i) { atomic_tso.push_back(i); }
 
     if (atomic_ts_order == AtomicTSOrder::LEVEL) {
         ranges::reverse(atomic_tso);

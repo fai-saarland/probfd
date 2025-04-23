@@ -46,8 +46,7 @@ public:
               "h^add within CEGAR abstractions",
               utils::Verbosity::SILENT))
     {
-        TaskProxy task_proxy(*task);
-        hadd->compute_heuristic_for_cegar(task_proxy.get_initial_state());
+        hadd->compute_heuristic_for_cegar(task->get_initial_state());
     }
 
     bool operator()(const FactPair& a, const FactPair& b)
@@ -57,9 +56,9 @@ public:
 };
 
 static void
-remove_initial_state_facts(const TaskProxy& task_proxy, Facts& facts)
+remove_initial_state_facts(const AbstractTask& task, Facts& facts)
 {
-    State initial_state = task_proxy.get_initial_state();
+    State initial_state = task.get_initial_state();
     facts.erase(
         remove_if(
             facts.begin(),
@@ -104,8 +103,7 @@ static Facts filter_and_order_facts(
     utils::RandomNumberGenerator& rng,
     utils::LogProxy& log)
 {
-    TaskProxy task_proxy(*task);
-    remove_initial_state_facts(task_proxy, facts);
+    remove_initial_state_facts(*task, facts);
     order_facts(task, fact_order, facts, rng, log);
     return facts;
 }
@@ -141,8 +139,7 @@ SharedTasks GoalDecomposition::get_subtasks(
     utils::LogProxy& log) const
 {
     SharedTasks subtasks;
-    TaskProxy task_proxy(*task);
-    Facts goal_facts = task_properties::get_fact_pairs(task_proxy.get_goals());
+    Facts goal_facts = task_properties::get_fact_pairs(task->get_goals());
     filter_and_order_facts(task, fact_order, goal_facts, *rng, log);
     for (const FactPair& goal : goal_facts) {
         shared_ptr<AbstractTask> subtask =

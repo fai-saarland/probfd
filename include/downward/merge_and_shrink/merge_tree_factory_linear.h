@@ -25,9 +25,9 @@ public:
         int random_seed,
         UpdateOption update_option);
     virtual std::unique_ptr<MergeTree>
-    compute_merge_tree(const TaskProxy& task_proxy) override;
+    compute_merge_tree(const AbstractTask& task) override;
     virtual std::unique_ptr<MergeTree> compute_merge_tree(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const FactoredTransitionSystem& fts,
         const std::vector<int>& indices_subset) override;
 

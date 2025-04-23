@@ -45,20 +45,53 @@ public:
 };
 
 /**
- * @brief The interface specifying action and state termination costs, aswell as
- * the goal states of a state space.
+ * @brief The interface specifying action costs.
  *
- * This interface communicates the action and termination costs and the goal
- * states of a state space to the MDP algorithms. Users must implement the
- * public methods
- * `get_termination_info(const State& state)` and
- * `get_action_cost(const Action& action)`.
+ * This interface communicates the action costs of a state space to the MDP
+ * algorithms.
+ * Users must implement the public method
+ * `value_t get_action_cost(ParamType<Action> action)`.
  *
  * Example
  * =======
  *
  * ```
-class MaxProbCostFunction : public CostFunction<State, OperatorID>
+class MaxProbActionCostFunction : public ActionCostFunction<OperatorID>
+{
+protected:
+    value_t get_action_cost(OperatorID) override
+    {
+        // Actions have no cost.
+        return 0;
+    }
+};
+ * ```
+ *
+ * @tparam Action - The action type of the underlying MDP model.
+ */
+template <typename Action>
+class ActionCostFunction {
+public:
+    virtual ~ActionCostFunction() = default;
+    /**
+     * @brief Gets the cost of an action.
+     */
+    virtual value_t get_action_cost(ParamType<Action> action) = 0;
+};
+
+/**
+ * @brief The interface specifying state termination costs of an MDP.
+ *
+ * This interface communicates the termination costs of a state space to the
+ * MDP algorithms.
+ * Users must implement the public method
+ * `get_termination_info(ParamType<State> state)`.
+ *
+ * Example
+ * =======
+ *
+ * ```
+class MaxProbTerminationCostFunction : public TerminationCostFunction<State>
 {
 protected:
     TerminationInfo get_termination_info(const State& state) override
@@ -68,22 +101,15 @@ protected:
         // Terminate with -1 in goal states, 0 otherwise.
         return TerminationInfo(is_goal, is_goal ? -1.0_vt : 0.0_vt);
     }
-
-    value_t get_action_cost(OperatorID) override
-    {
-        // Actions have no cost.
-        return 0;
-    }
 };
  * ```
  *
  * @tparam State - The state type of the underlying MDP model.
- * @tparam Action - The action type of the underlying MDP model.
  */
-template <typename State, typename Action>
-class CostFunction {
+template <typename State>
+class TerminationCostFunction {
 public:
-    virtual ~CostFunction() = default;
+    virtual ~TerminationCostFunction() = default;
 
     /**
      * @brief Returns the cost to terminate in a given state and checks whether
@@ -94,11 +120,6 @@ public:
     virtual TerminationInfo get_termination_info(ParamType<State> state) = 0;
 
     /**
-     * @brief Gets the cost of an action.
-     */
-    virtual value_t get_action_cost(ParamType<Action> action) = 0;
-
-    /**
      * @brief Returns the cost to terminate in a given state.
      */
     value_t get_termination_cost(ParamType<State> state)
@@ -107,8 +128,8 @@ public:
     }
 };
 
-template <typename State, typename Action>
-class SimpleCostFunction : public CostFunction<State, Action> {
+template <typename State>
+class SimpleTerminationCostFunction : public TerminationCostFunction<State> {
 public:
     /**
      * @brief Get the termination cost info of the input state.

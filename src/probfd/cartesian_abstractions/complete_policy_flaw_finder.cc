@@ -8,7 +8,7 @@
 #include "probfd/storage/per_state_storage.h"
 
 #include "probfd/policy.h"
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/state_registry.h"
 
@@ -18,8 +18,8 @@
 #include "downward/utils/logging.h"
 #include "downward/utils/memory.h"
 
+#include "downward/state.h"
 #include "downward/state_id.h"
-#include "downward/task_proxy.h"
 
 #include <cassert>
 #include <deque>
@@ -39,16 +39,16 @@ CompletePolicyFlawFinder::CompletePolicyFlawFinder(int max_search_states)
 }
 
 optional<Flaw> CompletePolicyFlawFinder::find_flaw(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTask& task,
     const std::vector<int>& domain_sizes,
     CartesianAbstraction& abstraction,
     Solution& policy,
     utils::LogProxy& log,
     utils::CountdownTimer& timer)
 {
-    const auto operators = task_proxy.get_operators();
+    const auto operators = task.get_operators();
 
-    StateRegistry registry(task_proxy);
+    StateRegistry registry(task);
 
     struct QueueItem {
         downward::StateID state_id;
@@ -76,13 +76,13 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
         if (!decision) {
             assert(abstraction.get_goals().contains(abstract_state->get_id()));
 
-            if (!downward::task_properties::is_goal_state(task_proxy, state)) {
+            if (!downward::task_properties::is_goal_state(task, state)) {
                 if (log.is_at_least_debug()) log << "Goal test failed." << endl;
                 state.unpack();
                 return Flaw(
                     std::move(state),
                     *abstract_state,
-                    get_cartesian_set(domain_sizes, task_proxy.get_goals()));
+                    get_cartesian_set(domain_sizes, task.get_goals()));
             }
             continue;
         }

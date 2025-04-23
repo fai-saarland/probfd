@@ -3,10 +3,16 @@
 
 #include "downward/pdbs/types.h"
 
-#include "downward/task_proxy.h"
+#include "downward/operator_id.h"
+#include "downward/state.h"
 
 #include <utility>
 #include <vector>
+
+namespace downward {
+class AbstractTask;
+class OperatorProxy;
+}
 
 namespace downward::utils {
 class LogProxy;
@@ -141,7 +147,7 @@ class PatternDatabase {
       cost partitioning. If left empty, default operator costs are used.
     */
     void create_pdb(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const std::vector<int>& operator_costs,
         bool compute_plan,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
@@ -181,7 +187,7 @@ public:
        optimal plan. Otherwise, compute a simple plan (a sequence of operators).
     */
     PatternDatabase(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const Pattern& pattern,
         const std::vector<int>& operator_costs = std::vector<int>(),
         bool compute_plan = false,

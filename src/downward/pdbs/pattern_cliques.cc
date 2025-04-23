@@ -2,7 +2,8 @@
 
 #include "downward/pdbs/pattern_database.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/state.h"
 
 #include "downward/algorithms/max_cliques.h"
 
@@ -24,15 +25,15 @@ bool are_patterns_additive(
     return true;
 }
 
-VariableAdditivity compute_additive_vars(const TaskProxy& task_proxy)
+VariableAdditivity compute_additive_vars(const AbstractTask& task)
 {
     VariableAdditivity are_additive;
-    int num_vars = task_proxy.get_variables().size();
+    int num_vars = task.get_variables().size();
     are_additive.resize(num_vars, vector<bool>(num_vars, true));
-    for (OperatorProxy op : task_proxy.get_operators()) {
-        for (EffectProxy e1 : op.get_effects()) {
+    for (OperatorProxy op : task.get_operators()) {
+        for (auto e1 : op.get_effects()) {
             int e1_var_id = e1.get_fact().var;
-            for (EffectProxy e2 : op.get_effects()) {
+            for (auto e2 : op.get_effects()) {
                 int e2_var_id = e2.get_fact().var;
                 are_additive[e1_var_id][e2_var_id] = false;
             }

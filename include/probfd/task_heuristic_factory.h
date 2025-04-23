@@ -16,8 +16,7 @@ public:
     virtual ~TaskHeuristicFactory() = default;
 
     virtual std::unique_ptr<FDREvaluator> create_heuristic(
-        std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function) = 0;
+        std::shared_ptr<ProbabilisticTask> task) = 0;
 };
 
 } // namespace probfd

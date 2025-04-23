@@ -6,7 +6,7 @@ create_library(
 
         # Tasks
         probfd/probabilistic_task
-        probfd/task_proxy
+        probfd/probabilistic_operator_space
 
         probfd/task_utils/task_properties
 

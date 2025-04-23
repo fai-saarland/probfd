@@ -340,11 +340,10 @@ RootTask::RootTask(istream& in)
        have reached the end of "in". */
 
     /*
-      HACK: We use a TaskProxy to access g_axiom_evaluators here which assumes
+      HACK: We use access g_axiom_evaluators here which assumes
       that this task is completely constructed.
     */
-    AxiomEvaluator& axiom_evaluator =
-        g_axiom_evaluators[PlanningTaskProxy(*this)];
+    AxiomEvaluator& axiom_evaluator = g_axiom_evaluators[*this];
     axiom_evaluator.evaluate(initial_state_values_);
 }
 

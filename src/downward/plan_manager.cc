@@ -1,6 +1,6 @@
 #include "downward/plan_manager.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/logging.h"
@@ -13,11 +13,14 @@ using namespace std;
 
 namespace downward {
 
-int calculate_plan_cost(const Plan& plan, const TaskProxy& task_proxy)
+int calculate_plan_cost(
+    const Plan& plan,
+    const OperatorIntCostFunction& cost_function)
 {
-    OperatorsProxy operators = task_proxy.get_operators();
     int plan_cost = 0;
-    for (OperatorID op_id : plan) { plan_cost += operators[op_id].get_cost(); }
+    for (OperatorID op_id : plan) {
+        plan_cost += cost_function.get_operator_cost(op_id.get_index());
+    }
     return plan_cost;
 }
 
@@ -47,7 +50,8 @@ void PlanManager::set_is_part_of_anytime_portfolio(
 
 void PlanManager::save_plan(
     const Plan& plan,
-    const TaskProxy& task_proxy,
+    const PartialOperatorsProxy& operators,
+    const OperatorIntCostFunction& cost_function,
     bool generates_multiple_plan_files)
 {
     ostringstream filename;
@@ -63,14 +67,15 @@ void PlanManager::save_plan(
         cerr << "Failed to open plan file: " << filename.str() << endl;
         utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
     }
-    OperatorsProxy operators = task_proxy.get_operators();
+
     for (OperatorID op_id : plan) {
         cout << operators[op_id].get_name() << " ("
-             << operators[op_id].get_cost() << ")" << endl;
+             << cost_function.get_operator_cost(op_id.get_index()) << ")"
+             << endl;
         outfile << "(" << operators[op_id].get_name() << ")" << endl;
     }
-    int plan_cost = calculate_plan_cost(plan, task_proxy);
-    bool is_unit_cost = task_properties::is_unit_cost(task_proxy);
+    int plan_cost = calculate_plan_cost(plan, cost_function);
+    bool is_unit_cost = task_properties::is_unit_cost(operators, cost_function);
     outfile << "; cost = " << plan_cost << " ("
             << (is_unit_cost ? "unit cost" : "general cost") << ")" << endl;
     outfile.close();
@@ -79,4 +84,4 @@ void PlanManager::save_plan(
     ++num_previously_generated_plans;
 }
 
-} // namespace myNamespace
+} // namespace downward

@@ -1,5 +1,5 @@
 #include "tests/tasks/blocksworld.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <format>
 #include <set>

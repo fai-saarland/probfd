@@ -1,11 +1,11 @@
 #include "probfd/task_utils/sampling.h"
 
 #include "probfd/task_utils/probabilistic_successor_generator.h"
-
-#include "probfd/task_proxy.h"
-
 #include "probfd/task_utils/task_properties.h"
 
+#include "probfd/probabilistic_task.h"
+
+#include "downward/axioms.h"
 #include "downward/per_task_information.h"
 
 #include "downward/utils/memory.h"
@@ -97,16 +97,16 @@ static State sample_state_with_random_walk(
 }
 
 RandomWalkSampler::RandomWalkSampler(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTask& task,
     utils::RandomNumberGenerator& rng)
-    : operators(task_proxy.get_operators())
-    , axiom_evaluator(g_axiom_evaluators[task_proxy])
+    : operators(task.get_operators())
+    , axiom_evaluator(g_axiom_evaluators[task])
     , successor_generator(
           std::make_unique<
-              successor_generator::ProbabilisticSuccessorGenerator>(task_proxy))
-    , initial_state(task_proxy.get_initial_state())
+              successor_generator::ProbabilisticSuccessorGenerator>(task))
+    , initial_state(task.get_initial_state())
     , average_operator_costs(
-          task_properties::get_average_operator_cost(task_proxy))
+          task_properties::get_average_operator_cost(task))
     , rng(rng)
 {
 }

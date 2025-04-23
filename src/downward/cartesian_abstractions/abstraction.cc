@@ -23,14 +23,13 @@ Abstraction::Abstraction(
     const shared_ptr<AbstractTask>& task,
     utils::LogProxy& log)
     : transition_system(
-          std::make_unique<TransitionSystem>(TaskProxy(*task).get_operators()))
-    , concrete_initial_state(TaskProxy(*task).get_initial_state())
-    , goal_facts(task_properties::get_fact_pairs(TaskProxy(*task).get_goals()))
+          std::make_unique<TransitionSystem>(task->get_operators()))
+    , concrete_initial_state(task->get_initial_state())
+    , goal_facts(task_properties::get_fact_pairs(task->get_goals()))
     , refinement_hierarchy(std::make_unique<RefinementHierarchy>())
     , log(log)
 {
-    initialize_trivial_abstraction(
-        get_domain_sizes(TaskProxy(*task).get_variables()));
+    initialize_trivial_abstraction(get_domain_sizes(task->get_variables()));
 }
 
 Abstraction::~Abstraction()

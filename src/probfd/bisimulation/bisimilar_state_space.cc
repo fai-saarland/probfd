@@ -20,7 +20,7 @@
 
 #include "downward/utils/logging.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <cassert>
 #include <limits>
@@ -41,18 +41,15 @@ static constexpr const int BUCKET_SIZE = 1024 * 64;
 
 BisimilarStateSpace::BisimilarStateSpace(
     std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<FDRCostFunction> task_cost_function,
     const TransitionSystem& transition_system)
     : task_(std::move(task))
-    , task_cost_function_(std::move(task_cost_function))
     , num_cached_transitions_(0)
     , transitions_(transition_system.get_size() + 1)
     , goal_flags_(transition_system.get_size() + 1, false)
 {
     int dead_end_state = transition_system.get_size();
 
-    ProbabilisticTaskProxy task_proxy(*task_);
-    ProbabilisticOperatorsProxy prob_operators = task_proxy.get_operators();
+    ProbabilisticOperatorsProxy prob_operators = task_->get_operators();
 
     std::vector<std::pair<OperatorID, unsigned>> det_to_prob_op;
     for (unsigned p_op_id = 0; p_op_id < prob_operators.size(); ++p_op_id) {
@@ -137,8 +134,7 @@ void BisimilarStateSpace::generate_action_transitions(
     OperatorID a,
     SuccessorDistribution& successor_dist)
 {
-    ProbabilisticTaskProxy task_proxy(*task_);
-    const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
+    const ProbabilisticOperatorsProxy operators = task_->get_operators();
 
     const auto& transitions = transitions_[std::to_underlying(state)];
 
@@ -166,7 +162,7 @@ void BisimilarStateSpace::generate_all_transitions(
     std::vector<OperatorID>& aops,
     std::vector<SuccessorDistribution>& successor_dists)
 {
-    const ProbabilisticOperatorsProxy operators(*task_);
+    const ProbabilisticOperatorsProxy operators = task_->get_operators();
 
     const auto& cache = transitions_[std::to_underlying(state)];
     aops.reserve(cache.size());
@@ -222,14 +218,14 @@ TerminationInfo BisimilarStateSpace::get_termination_info(QuotientState s)
 {
     return is_goal_state(s)
                ? TerminationInfo::from_goal(
-                     task_cost_function_->get_goal_termination_cost())
+                     task_->get_goal_termination_cost())
                : TerminationInfo::from_non_goal(
-                     task_cost_function_->get_non_goal_termination_cost());
+                     task_->get_non_goal_termination_cost());
 }
 
 value_t BisimilarStateSpace::get_action_cost(OperatorID op_id)
 {
-    return task_cost_function_->get_action_cost(op_id);
+    return task_->get_operator_cost(op_id.get_index());
 }
 
 bool BisimilarStateSpace::is_goal_state(QuotientState s) const
@@ -248,7 +244,7 @@ unsigned BisimilarStateSpace::num_transitions() const
 }
 
 merge_and_shrink::Factor
-compute_bisimulation_on_determinization(const TaskProxy& det_task_proxy)
+compute_bisimulation_on_determinization(const AbstractTask& det_task)
 {
     // Construct a linear merge tree
     auto linear_merge_tree_factory = std::make_shared<MergeTreeFactoryLinear>(
@@ -279,7 +275,7 @@ compute_bisimulation_on_determinization(const TaskProxy& det_task_proxy)
         utils::Verbosity::SILENT);
 
     FactoredTransitionSystem fts =
-        mns_algorithm.build_factored_transition_system(det_task_proxy);
+        mns_algorithm.build_factored_transition_system(det_task);
 
     assert(fts.get_num_active_entries() == 1);
 

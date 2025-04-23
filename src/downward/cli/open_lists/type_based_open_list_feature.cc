@@ -30,7 +30,7 @@ class TypeBasedOpenListFeature
 public:
     TypeBasedOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
-        : TypeBasedOpenListFeature::TypedFeature("type_based")
+        : TypeBasedOpenListFeature::TypedFeature("state_type_based")
     {
         this->document_title("Type-based state open list");
         this->document_synopsis(
@@ -60,7 +60,7 @@ public:
 
     TypeBasedOpenListFeature()
         requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : TypeBasedOpenListFeature::TypedFeature("type_based")
+        : TypeBasedOpenListFeature::TypedFeature("edge_type_based")
     {
         this->document_title("Type-based edge open list");
         this->document_synopsis(

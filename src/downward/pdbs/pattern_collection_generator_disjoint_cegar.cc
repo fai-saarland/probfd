@@ -36,8 +36,7 @@ PatternCollectionGeneratorDisjointCegar::compute_patterns(
     const shared_ptr<AbstractTask>& task)
 {
     // Store the set of goals in random order.
-    TaskProxy task_proxy(*task);
-    vector<FactPair> goals = get_goals_in_random_order(task_proxy, *rng);
+    vector<FactPair> goals = get_goals_in_random_order(*task, *rng);
 
     return generate_pattern_collection_with_cegar(
         max_pdb_size,

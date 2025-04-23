@@ -6,30 +6,38 @@ using namespace downward;
 
 namespace probfd {
 
-TaskCostFunction::TaskCostFunction(std::shared_ptr<ProbabilisticTask> task)
-    : task_(std::move(task))
+TaskTerminationCostFunction::TaskTerminationCostFunction(
+    std::shared_ptr<GoalFactList> goals,
+    std::shared_ptr<TerminationCosts> costs)
+    : goals_(std::move(goals))
+    , costs_(std::move(costs))
 {
 }
 
-bool TaskCostFunction::is_goal(const State& state) const
+bool TaskTerminationCostFunction::is_goal(const State& state) const
 {
-    ProbabilisticTaskProxy proxy(*task_);
-    return downward::task_properties::is_goal_state(proxy, state);
+    return downward::task_properties::is_goal_state(*goals_, state);
 }
 
-value_t TaskCostFunction::get_goal_termination_cost() const
+value_t TaskTerminationCostFunction::get_goal_termination_cost() const
 {
-    return task_->get_goal_termination_cost();
+    return costs_->get_goal_termination_cost();
 }
 
-value_t TaskCostFunction::get_non_goal_termination_cost() const
+value_t TaskTerminationCostFunction::get_non_goal_termination_cost() const
 {
-    return task_->get_non_goal_termination_cost();
+    return costs_->get_non_goal_termination_cost();
 }
 
-value_t TaskCostFunction::get_action_cost(OperatorID action)
+TaskActionCostFunction::TaskActionCostFunction(
+    std::shared_ptr<OperatorCostFunction<value_t>> op_cost_function)
+    : op_cost_function_(std::move(op_cost_function))
 {
-    return task_->get_operator_cost(action.get_index());
+}
+
+value_t TaskActionCostFunction::get_action_cost(OperatorID action)
+{
+    return op_cost_function_->get_operator_cost(action.get_index());
 }
 
 } // namespace probfd

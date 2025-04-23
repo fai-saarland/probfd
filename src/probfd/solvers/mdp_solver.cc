@@ -99,7 +99,6 @@ MDPSolver::~MDPSolver() = default;
 
 class Solver : public SolverInterface {
     std::shared_ptr<ProbabilisticTask> task;
-    std::shared_ptr<FDRCostFunction> task_cost_function;
 
     std::unique_ptr<StatisticalMDPAlgorithm> algorithm;
     std::unique_ptr<TaskStateSpace> state_space;
@@ -113,7 +112,6 @@ class Solver : public SolverInterface {
 public:
     Solver(
         std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function,
         std::unique_ptr<StatisticalMDPAlgorithm> algorithm,
         std::unique_ptr<TaskStateSpace> state_space,
         std::shared_ptr<FDREvaluator> heuristic,
@@ -123,7 +121,6 @@ public:
         std::optional<value_t> report_epsilon,
         bool report_enabled)
         : task(std::move(task))
-        , task_cost_function(std::move(task_cost_function))
         , algorithm(std::move(algorithm))
         , state_space(std::move(state_space))
         , heuristic(std::move(heuristic))
@@ -148,9 +145,14 @@ public:
             Timer total_timer;
 
             const State& initial_state = state_space->get_initial_state();
-            CompositeMDP<State, OperatorID> mdp{
+
+            TaskActionCostFunction action_cost_function(task);
+            TaskTerminationCostFunction term_cost_function(task, task);
+
+            CompositeMDP mdp{
                 *state_space,
-                *task_cost_function};
+                action_cost_function,
+                term_cost_function};
 
             std::unique_ptr<Policy<State, OperatorID>> policy =
                 algorithm->compute_policy(
@@ -231,35 +233,29 @@ public:
 std::unique_ptr<SolverInterface>
 MDPSolver::create(const std::shared_ptr<ProbabilisticTask>& task)
 {
-    auto task_cost_function = std::make_shared<TaskCostFunction>(task);
-
     std::unique_ptr<StatisticalMDPAlgorithm> algorithm = run_time_logged(
         std::cout,
         "Constructing algorithm...",
         &StatisticalMDPAlgorithmFactory::create_algorithm,
         *algorithm_factory_,
-        task,
-        task_cost_function);
+        task);
 
     std::unique_ptr<TaskStateSpace> state_space = run_time_logged(
         std::cout,
         "Constructing state space...",
         &TaskStateSpaceFactory::create_state_space,
         *task_state_space_factory_,
-        task,
-        task_cost_function);
+        task);
 
     std::shared_ptr<FDREvaluator> heuristic = run_time_logged(
         std::cout,
         "Constructing heuristic...",
         &TaskHeuristicFactory::create_heuristic,
         *heuristic_factory_,
-        task,
-        task_cost_function);
+        task);
 
     return std::make_unique<Solver>(
         task,
-        std::move(task_cost_function),
         std::move(algorithm),
         std::move(state_space),
         std::move(heuristic),

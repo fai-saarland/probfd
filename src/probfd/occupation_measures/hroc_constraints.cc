@@ -6,7 +6,6 @@
 
 #include "probfd/cost_function.h"
 #include "probfd/probabilistic_task.h"
-#include "probfd/task_proxy.h"
 #include "probfd/value_type.h"
 
 #include "downward/algorithms/named_vector.h"
@@ -18,7 +17,7 @@
 #include "downward/utils/system.h"
 #include "downward/utils/timer.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <cassert>
 #include <iostream>
@@ -30,11 +29,9 @@ namespace probfd::occupation_measures {
 
 void HROCGenerator::initialize_constraints(
     const std::shared_ptr<ProbabilisticTask>& task,
-    const std::shared_ptr<FDRCostFunction>& task_cost_function,
     lp::LinearProgram& lp)
 {
-    const value_t term_cost =
-        task_cost_function->get_non_goal_termination_cost();
+    const value_t term_cost = task->get_non_goal_termination_cost();
 
     if (term_cost != INFINITE_VALUE && term_cost != 1_vt) {
         std::cerr << "Termination costs beyond 1 (MaxProb) and +infinity (SSP) "
@@ -42,12 +39,10 @@ void HROCGenerator::initialize_constraints(
         utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
     }
 
-    const bool maxprob =
-        task_cost_function->get_non_goal_termination_cost() == 1_vt;
+    const bool maxprob = task->get_non_goal_termination_cost() == 1_vt;
 
-    ProbabilisticTaskProxy task_proxy(*task);
-    ::task_properties::verify_no_axioms(task_proxy);
-    task_properties::verify_no_conditional_effects(task_proxy);
+    ::task_properties::verify_no_axioms(*task);
+    task_properties::verify_no_conditional_effects(*task);
 
     std::cout << "Initializing regrouped operator counting heuristic..."
               << std::endl;
@@ -56,7 +51,7 @@ void HROCGenerator::initialize_constraints(
 
     // Construct LP...
 
-    const VariablesProxy variables = task_proxy.get_variables();
+    const VariablesProxy variables = task->get_variables();
 
     const std::size_t num_variables = variables.size();
 
@@ -85,12 +80,13 @@ void HROCGenerator::initialize_constraints(
         lp_variables.emplace_back(1, 1, 0);
     }
 
-    for (const auto [var, value] : task_proxy.get_goals()) {
+    for (const auto [var, value] : task->get_goals()) {
         constraints[ncc_offsets_[var] + value].insert(0, -1);
     }
 
-    for (const ProbabilisticOperatorProxy op : task_proxy.get_operators()) {
-        const value_t cost = maxprob ? 0_vt : op.get_cost();
+    for (const ProbabilisticOperatorProxy op : task->get_operators()) {
+        const value_t cost =
+            maxprob ? 0_vt : task->get_operator_cost(op.get_id());
 
         const ProbabilisticOutcomesProxy outcomes = op.get_outcomes();
 
@@ -131,9 +127,7 @@ void HROCGenerator::initialize_constraints(
             }
 
             // Skip first variable for regrouping constraints
-            if (i == 0) {
-                continue;
-            }
+            if (i == 0) { continue; }
 
             // Set up regrouping constraint coefficients
             auto& rg_constraint = constraints.emplace_back(0, 0);
@@ -165,8 +159,7 @@ void HROCGenerator::reset_constraints(const State& state, lp::LPSolver& solver)
 
 std::unique_ptr<ConstraintGenerator>
 HROCGeneratorFactory::construct_constraint_generator(
-    const std::shared_ptr<ProbabilisticTask>&,
-    const std::shared_ptr<FDRCostFunction>&)
+    const std::shared_ptr<ProbabilisticTask>&)
 {
     return std::unique_ptr<HROCGenerator>();
 }

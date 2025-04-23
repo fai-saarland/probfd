@@ -20,8 +20,8 @@ private:
     void
     get_disabled_vars(int op1_no, int op2_no, std::vector<int>& disabled_vars)
         const;
-    void build_reachability_map(const TaskProxy& task_proxy);
-    void compute_operator_preconditions(const TaskProxy& task_proxy);
+    void build_reachability_map(const AbstractTask& task);
+    void compute_operator_preconditions(const AbstractTask& task);
     const std::vector<int>& get_conflicting_and_disabling(int op1_no);
     const std::vector<int>& get_disabled(int op1_no);
     void add_conflicting_and_disabling(int op_no, const State& state);

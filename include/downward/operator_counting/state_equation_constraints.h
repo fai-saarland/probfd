@@ -8,7 +8,7 @@
 #include <set>
 
 namespace downward {
-class TaskProxy;
+class AbstractTask;
 }
 
 namespace downward::lp {
@@ -37,7 +37,7 @@ class StateEquationConstraints : public ConstraintGenerator {
     // Map goal variables to their goal value and other variables to max int.
     std::vector<int> goal_state;
 
-    void build_propositions(const TaskProxy& task_proxy);
+    void build_propositions(const AbstractTask& task);
     void add_constraints(
         named_vector::NamedVector<lp::LPConstraint>& constraints,
         double infinity);

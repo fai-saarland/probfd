@@ -2,6 +2,8 @@
 
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 
+#include "probfd/probabilistic_task.h"
+
 #include <cassert>
 #include <utility>
 #include <vector>
@@ -12,13 +14,11 @@ using namespace downward;
 namespace probfd::pdbs {
 
 PatternInformation::PatternInformation(
-    ProbabilisticTaskProxy task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    std::shared_ptr<ProbabilisticTask> task,
     Pattern pattern)
-    : task_proxy_(task_proxy)
-    , task_cost_function_(std::move(task_cost_function))
+    : task_(task)
     , pattern_(std::move(pattern))
-    , h(task_proxy_.get_operators(), *task_cost_function_)
+    , h(task->get_operators(), *task, *task)
 
 {
 }
@@ -32,11 +32,11 @@ void PatternInformation::create_pdb_if_missing()
 {
     if (!pdb_) {
         pdb_ = make_shared<ProbabilityAwarePatternDatabase>(
-            task_proxy_.get_variables(),
+            task_->get_variables(),
             pattern_);
         const StateRank istate =
-            pdb_->get_abstract_state(task_proxy_.get_initial_state());
-        compute_distances(*pdb_, task_proxy_, task_cost_function_, istate, h);
+            pdb_->get_abstract_state(task_->get_initial_state());
+        compute_distances(*pdb_, task_, istate, h);
     }
 }
 

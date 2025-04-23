@@ -91,7 +91,7 @@ private:
         simplifies the implementation.
     */
     void separate_facts_unreachable_before_goal(
-        ProbabilisticTaskProxy task_proxy,
+        const ProbabilisticTask& task,
         FlawGenerator& flaw_generator,
         RefinementHierarchy& refinement_hierarchy,
         CartesianAbstraction& abstraction,

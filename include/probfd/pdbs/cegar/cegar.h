@@ -23,7 +23,7 @@ class RandomNumberGenerator;
 } // namespace utils
 
 namespace probfd {
-class ProbabilisticTaskProxy;
+class ProbabilisticTask;
 }
 
 namespace probfd::heuristics {
@@ -85,8 +85,7 @@ public:
     ~CEGAR();
 
     void generate_pdbs(
-        ProbabilisticTaskProxy task_proxy,
-        const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
+        std::shared_ptr<ProbabilisticTask> task,
         ProjectionCollection& projections,
         PPDBCollection& pdbs,
         double max_time,
@@ -94,13 +93,12 @@ public:
 
 private:
     void generate_trivial_solution_collection(
-        ProbabilisticTaskProxy task_proxy,
-        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+        std::shared_ptr<ProbabilisticTask> task,
         downward::utils::CountdownTimer& timer,
         downward::utils::LogProxy log);
 
     std::vector<PDBInfo>::iterator get_flaws(
-        ProbabilisticTaskProxy task_proxy,
+        const ProbabilisticTask& task,
         std::vector<Flaw>& flaws,
         std::vector<int>& flaw_offsets,
         downward::utils::CountdownTimer& timer,
@@ -116,29 +114,25 @@ private:
         std::vector<PDBInfo>::iterator info_it2) const;
 
     void add_pattern_for_var(
-        ProbabilisticTaskProxy task_proxy,
-        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+        std::shared_ptr<ProbabilisticTask> task,
         const heuristics::BlindEvaluator<StateRank>& h,
         int var,
         downward::utils::CountdownTimer& timer);
 
     void add_variable_to_pattern(
-        ProbabilisticTaskProxy task_proxy,
-        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+        std::shared_ptr<ProbabilisticTask> task,
         std::vector<PDBInfo>::iterator info_it,
         int var,
         downward::utils::CountdownTimer& timer);
 
     void merge_patterns(
-        ProbabilisticTaskProxy task_proxy,
-        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+        std::shared_ptr<ProbabilisticTask> task,
         std::vector<PDBInfo>::iterator info_it1,
         std::vector<PDBInfo>::iterator info_it2,
         downward::utils::CountdownTimer& timer);
 
     void refine(
-        ProbabilisticTaskProxy task_proxy,
-        const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
+        std::shared_ptr<ProbabilisticTask> task,
         const std::vector<Flaw>& flaws,
         const std::vector<int>& flaw_offsets,
         downward::utils::CountdownTimer& timer,

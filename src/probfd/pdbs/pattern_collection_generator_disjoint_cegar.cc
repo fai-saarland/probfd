@@ -7,8 +7,6 @@
 #include "probfd/pdbs/subcollection_finder_factory.h"
 #include "probfd/pdbs/utils.h"
 
-#include "probfd/task_proxy.h"
-
 #include <utility>
 #include <vector>
 
@@ -46,16 +44,12 @@ PatternCollectionGeneratorDisjointCegar::
 }
 
 PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
-    const std::shared_ptr<ProbabilisticTask>& task,
-    const std::shared_ptr<FDRCostFunction>& task_cost_function)
+    const std::shared_ptr<ProbabilisticTask>& task)
 {
     // Store the set of goals in random order.
-    ProbabilisticTaskProxy task_proxy(*task);
-    vector<int> goals = get_goals_in_random_order(task_proxy, *rng_);
+    vector<int> goals = get_goals_in_random_order(*task, *rng_);
 
-    if (single_goal_) {
-        goals.erase(goals.begin() + 1, goals.end());
-    }
+    if (single_goal_) { goals.erase(goals.begin() + 1, goals.end()); }
 
     CEGAR cegar(
         convergence_epsilon_,
@@ -69,26 +63,17 @@ PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(
     ProjectionCollection projections;
     PPDBCollection pdbs;
 
-    cegar.generate_pdbs(
-        task_proxy,
-        task_cost_function,
-        projections,
-        pdbs,
-        max_time_,
-        log_);
+    cegar.generate_pdbs(task, projections, pdbs, max_time_, log_);
 
     PatternCollection patterns;
 
-    for (const auto& pdb : pdbs) {
-        patterns.push_back(pdb->get_pattern());
-    }
+    for (const auto& pdb : pdbs) { patterns.push_back(pdb->get_pattern()); }
 
     std::shared_ptr<SubCollectionFinder> subcollection_finder =
-        subcollection_finder_factory_->create_subcollection_finder(task_proxy);
+        subcollection_finder_factory_->create_subcollection_finder(*task);
 
     PatternCollectionInformation pattern_collection_information(
-        task_proxy,
-        task_cost_function,
+        task,
         patterns,
         subcollection_finder);
     pattern_collection_information.set_pdbs(pdbs);

@@ -4,6 +4,7 @@
 #include "probfd/pdbs/trivial_finder.h"
 
 #include "probfd/cost_function.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/pdbs/pattern_collection_information.h"
 #include "downward/pdbs/pattern_database.h"
@@ -21,64 +22,55 @@ using namespace downward;
 namespace probfd::pdbs {
 
 PatternCollectionInformation::PatternCollectionInformation(
-    const ProbabilisticTaskProxy& arg_task_proxy,
-    std::shared_ptr<FDRCostFunction> arg_task_cost_function,
+    std::shared_ptr<ProbabilisticTask> task,
     downward::pdbs::PatternCollectionInformation det_info,
     shared_ptr<SubCollectionFinder> arg_subcollection_finder)
-    : task_proxy_(arg_task_proxy)
-    , task_cost_function_(std::move(arg_task_cost_function))
+    : task_(task)
     , patterns_(*det_info.get_patterns())
     , subcollection_finder_(std::move(arg_subcollection_finder))
-    , h(task_proxy_.get_operators(), *task_cost_function_)
+    , h(task_->get_operators(), *task_, *task_)
 
 {
     auto pdbs = det_info.get_pdbs();
 
-    if (!pdbs) {
-        return;
-    }
+    if (!pdbs) { return; }
 
     for (size_t i = 0; i != pdbs->size(); ++i) {
         auto& dpdb = *(*pdbs)[i];
         auto& pdb = pdbs_.emplace_back(
             std::make_shared<ProbabilityAwarePatternDatabase>(
-                task_proxy_.get_variables(),
+                task_->get_variables(),
                 dpdb.get_pattern()));
 
         const StateRankEvaluator& h =
-            task_cost_function_->get_non_goal_termination_cost() ==
-                    INFINITE_VALUE
+            task_->get_non_goal_termination_cost() == INFINITE_VALUE
                 ? static_cast<const StateRankEvaluator&>(PDBEvaluator(dpdb))
                 : static_cast<const StateRankEvaluator&>(
                       DeadendPDBEvaluator(dpdb));
         const StateRank istate =
-            pdb->get_abstract_state(task_proxy_.get_initial_state());
-        compute_distances(*pdb, task_proxy_, task_cost_function_, istate, h);
+            pdb->get_abstract_state(task_->get_initial_state());
+        compute_distances(*pdb, task_, istate, h);
     }
 }
 
 PatternCollectionInformation::PatternCollectionInformation(
-    const ProbabilisticTaskProxy& task_proxy,
-    std::shared_ptr<FDRCostFunction> task_cost_function,
+    std::shared_ptr<ProbabilisticTask> task,
     PatternCollection patterns)
     : PatternCollectionInformation(
-          task_proxy,
-          std::move(task_cost_function),
+          task,
           std::move(patterns),
           make_shared<TrivialFinder>())
 {
 }
 
 PatternCollectionInformation::PatternCollectionInformation(
-    const ProbabilisticTaskProxy& task_proxy,
-    std::shared_ptr<FDRCostFunction> task_cost_function,
+    std::shared_ptr<ProbabilisticTask> task,
     PatternCollection patterns,
     shared_ptr<SubCollectionFinder> subcollection_finder)
-    : task_proxy_(task_proxy)
-    , task_cost_function_(std::move(task_cost_function))
+    : task_(task)
     , patterns_(std::move(patterns))
     , subcollection_finder_(std::move(subcollection_finder))
-    , h(task_proxy_.get_operators(), *task_cost_function_)
+    , h(task->get_operators(), *task_, *task_)
 {
     assert(this->subcollection_finder_);
     // validate_and_normalize_patterns(*patterns);
@@ -94,16 +86,11 @@ void PatternCollectionInformation::create_pdbs_if_missing()
         for (const Pattern& pattern : patterns_) {
             auto& pdb = pdbs_.emplace_back(
                 std::make_unique<ProbabilityAwarePatternDatabase>(
-                    task_proxy_.get_variables(),
+                    task_->get_variables(),
                     pattern));
             const StateRank istate =
-                pdb->get_abstract_state(task_proxy_.get_initial_state());
-            compute_distances(
-                *pdb,
-                task_proxy_,
-                task_cost_function_,
-                istate,
-                h);
+                pdb->get_abstract_state(task_->get_initial_state());
+            compute_distances(*pdb, task_, istate, h);
         }
         cout << "Done computing PDBs for pattern collection: " << timer << endl;
     }

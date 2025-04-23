@@ -70,10 +70,10 @@ pair<int, int> MergeSelectorScoreBasedFiltering::select_merge(
 }
 
 void MergeSelectorScoreBasedFiltering::initialize(
-    const ProbabilisticTaskProxy& task_proxy)
+    const ProbabilisticTask& task)
 {
     for (const auto& scoring_function : merge_scoring_functions) {
-        scoring_function->initialize(task_proxy);
+        scoring_function->initialize(task);
     }
 }
 

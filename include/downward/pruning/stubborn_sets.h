@@ -3,7 +3,8 @@
 
 #include "downward/pruning_method.h"
 
-#include "downward/task_proxy.h"
+#include "downward/fact_pair.h"
+#include "downward/state.h"
 
 namespace downward::stubborn_sets {
 inline FactPair find_unsatisfied_condition(
@@ -11,8 +12,8 @@ inline FactPair find_unsatisfied_condition(
     const State& state);
 
 class StubbornSets : public PruningMethod {
-    void compute_sorted_operators(const TaskProxy& task_proxy);
-    void compute_achievers(const TaskProxy& task_proxy);
+    void compute_sorted_operators(const AbstractTask& task);
+    void compute_achievers(const AbstractTask& task);
     virtual void
     prune(const State& state, std::vector<OperatorID>& op_ids) override;
 

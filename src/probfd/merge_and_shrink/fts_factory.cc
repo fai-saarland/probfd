@@ -8,7 +8,7 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 #include "probfd/value_type.h"
 
 #include "downward/utils/collections.h"
@@ -27,7 +27,7 @@ namespace probfd::merge_and_shrink {
 namespace {
 
 class FTSFactory {
-    const ProbabilisticTaskProxy& task_proxy;
+    const ProbabilisticTask& task;
 
     struct TransitionSystemData {
         struct LabelGroupCost {
@@ -61,7 +61,7 @@ class FTSFactory {
     void build_transitions(const Labels& labels);
 
 public:
-    explicit FTSFactory(const ProbabilisticTaskProxy& task_proxy);
+    explicit FTSFactory(const ProbabilisticTask& task);
 
     /*
       Note: create() may only be called once. We don't worry about
@@ -72,17 +72,17 @@ public:
 
 } // namespace
 
-FTSFactory::FTSFactory(const ProbabilisticTaskProxy& task_proxy)
-    : task_proxy(task_proxy)
+FTSFactory::FTSFactory(const ProbabilisticTask& task)
+    : task(task)
 {
-    assert(!task_properties::has_conditional_effects(task_proxy));
+    assert(!task_properties::has_conditional_effects(task));
 }
 
 void FTSFactory::initialize_transition_system_data(int max_num_labels)
 {
-    const VariablesProxy variables = task_proxy.get_variables();
-    const GoalsProxy goals = task_proxy.get_goals();
-    const State initial_state = task_proxy.get_initial_state();
+    const VariablesProxy variables = task.get_variables();
+    const GoalsProxy goals = task.get_goals();
+    const State initial_state = task.get_initial_state();
 
     auto goals_it = goals.begin();
     const auto goals_end = goals.end();
@@ -111,9 +111,9 @@ void FTSFactory::initialize_transition_system_data(int max_num_labels)
 void FTSFactory::build_transitions_for_operator(ProbabilisticOperatorProxy op)
 {
     const int label = op.get_id();
-    const value_t label_cost = op.get_cost();
+    const value_t label_cost = task.get_operator_cost(op.get_id());
 
-    const VariablesProxy variables = task_proxy.get_variables();
+    const VariablesProxy variables = task.get_variables();
     const int num_variables = variables.size();
 
     const auto preconditions = op.get_preconditions();
@@ -211,7 +211,7 @@ void FTSFactory::build_transitions(const Labels& labels)
         transitions of locally equivalent labels for a given variable.
       - Computes relevant operator information as a side effect.
     */
-    for (const ProbabilisticOperatorProxy op : task_proxy.get_operators())
+    for (const ProbabilisticOperatorProxy op : task.get_operators())
         build_transitions_for_operator(op);
 
     /*
@@ -264,12 +264,12 @@ FactoredTransitionSystem FTSFactory::create(utils::LogProxy& log)
         log << "Building atomic transition systems... " << endl;
     }
 
-    Labels labels(task_proxy.get_operators());
+    Labels labels(task.get_operators(), task);
 
     initialize_transition_system_data(labels.get_max_num_labels());
     build_transitions(labels);
 
-    const VariablesProxy variables = task_proxy.get_variables();
+    const VariablesProxy variables = task.get_variables();
     const int num_variables = static_cast<int>(variables.size());
     assert(num_variables >= 1);
 
@@ -297,10 +297,10 @@ FactoredTransitionSystem FTSFactory::create(utils::LogProxy& log)
 }
 
 FactoredTransitionSystem create_factored_transition_system(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTask& task,
     utils::LogProxy& log)
 {
-    return FTSFactory(task_proxy).create(log);
+    return FTSFactory(task).create(log);
 }
 
 } // namespace probfd::merge_and_shrink

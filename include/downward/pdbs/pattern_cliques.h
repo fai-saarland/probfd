@@ -7,13 +7,13 @@
 #include <vector>
 
 namespace downward {
-class TaskProxy;
+class AbstractTask;
 }
 
 namespace downward::pdbs {
 using VariableAdditivity = std::vector<std::vector<bool>>;
 
-extern VariableAdditivity compute_additive_vars(const TaskProxy& task_proxy);
+extern VariableAdditivity compute_additive_vars(const AbstractTask& task);
 
 /* Returns true iff the two patterns are additive i.e. there is no operator
    which affects variables in pattern one as well as in pattern two. */

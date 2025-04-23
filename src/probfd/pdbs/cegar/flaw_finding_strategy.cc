@@ -2,7 +2,9 @@
 
 #include "probfd/pdbs/cegar/flaw.h"
 
-#include "downward/task_proxy.h"
+#include "downward/classical_operator_space.h"
+#include "downward/goal_fact_list.h"
+#include "downward/state.h"
 
 using namespace downward;
 
@@ -34,7 +36,7 @@ bool collect_flaws_(
 } // namespace
 
 bool collect_flaws(
-    PreconditionsProxy facts,
+    OperatorPreconditionsProxy facts,
     const State& state,
     std::vector<Flaw>& flaws,
     const std::function<bool(const Flaw&)>& accept_flaw)

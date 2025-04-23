@@ -12,7 +12,7 @@
 #include <vector>
 
 namespace downward {
-class TaskProxy;
+class AbstractTask;
 }
 
 namespace downward::causal_graph {
@@ -42,10 +42,10 @@ class PatternCollectionGeneratorSystematic : public PatternCollectionGenerator {
         std::vector<int>& result) const;
 
     void build_sga_patterns(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const causal_graph::CausalGraph& cg);
-    void build_patterns(const TaskProxy& task_proxy);
-    void build_patterns_naive(const TaskProxy& task_proxy);
+    void build_patterns(const AbstractTask& task);
+    void build_patterns_naive(const AbstractTask& task);
     virtual std::string name() const override;
     virtual PatternCollectionInformation
     compute_patterns(const std::shared_ptr<AbstractTask>& task) override;

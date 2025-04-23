@@ -7,7 +7,7 @@
 #include <string>
 
 namespace downward {
-class TaskProxy;
+class AbstractTask;
 }
 
 namespace downward::merge_and_shrink {
@@ -26,7 +26,7 @@ public:
     virtual ~MergeStrategyFactory() = default;
     void dump_options() const;
     virtual std::unique_ptr<MergeStrategy> compute_merge_strategy(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const FactoredTransitionSystem& fts) = 0;
     virtual bool requires_init_distances() const = 0;
     virtual bool requires_goal_distances() const = 0;

@@ -14,8 +14,6 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "probfd/task_proxy.h"
-
 #include "probfd/utils/guards.h"
 
 #include "downward/task_utils/task_properties.h"
@@ -228,9 +226,7 @@ void MergeAndShrinkAlgorithm::main_loop(
         // Choose next transition systems to merge
         const auto [merge_index1, merge_index2] = merge_strategy.get_next();
 
-        if (ran_out_of_time(timer)) {
-            break;
-        }
+        if (ran_out_of_time(timer)) { break; }
 
         assert(merge_index1 != merge_index2);
         if (log.is_at_least_normal()) {
@@ -252,9 +248,7 @@ void MergeAndShrinkAlgorithm::main_loop(
             }
         }
 
-        if (ran_out_of_time(timer)) {
-            break;
-        }
+        if (ran_out_of_time(timer)) { break; }
 
         // Shrinking
         const bool shrunk = shrink_before_merge_step(
@@ -270,9 +264,7 @@ void MergeAndShrinkAlgorithm::main_loop(
             log_main_loop_progress("after shrinking");
         }
 
-        if (ran_out_of_time(timer)) {
-            break;
-        }
+        if (ran_out_of_time(timer)) { break; }
 
         // Label reduction (before merging)
         if (label_reduction && label_reduction->reduce_before_merging()) {
@@ -283,9 +275,7 @@ void MergeAndShrinkAlgorithm::main_loop(
             }
         }
 
-        if (ran_out_of_time(timer)) {
-            break;
-        }
+        if (ran_out_of_time(timer)) { break; }
 
         // Merging
         auto&& [left_factor, right_factor, factor, merged_index] =
@@ -343,9 +333,7 @@ void MergeAndShrinkAlgorithm::main_loop(
             log_main_loop_progress("after merging");
         }
 
-        if (ran_out_of_time(timer)) {
-            break;
-        }
+        if (ran_out_of_time(timer)) { break; }
 
         // Pruning
         if (prune_strategy) {
@@ -390,17 +378,11 @@ void MergeAndShrinkAlgorithm::main_loop(
             break;
         }
 
-        if (ran_out_of_time(timer)) {
-            break;
-        }
+        if (ran_out_of_time(timer)) { break; }
 
         // End-of-iteration output.
-        if (log.is_at_least_verbose()) {
-            report_peak_memory_delta(log);
-        }
-        if (log.is_at_least_normal()) {
-            log << endl;
-        }
+        if (log.is_at_least_verbose()) { report_peak_memory_delta(log); }
+        if (log.is_at_least_normal()) { log << endl; }
     }
 
     log << "End of merge-and-shrink algorithm, statistics:" << endl;
@@ -414,10 +396,8 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     std::shared_ptr<ProbabilisticTask>& task,
     utils::LogProxy log)
 {
-    const ProbabilisticTaskProxy task_proxy(*task);
-
-    ::task_properties::verify_no_axioms(task_proxy);
-    task_properties::verify_no_conditional_effects(task_proxy);
+    ::task_properties::verify_no_axioms(*task);
+    task_properties::verify_no_conditional_effects(*task);
 
     if (starting_peak_memory) {
         cerr << "Calling build_factored_transition_system twice is not "
@@ -435,7 +415,7 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     log << endl;
 
     FactoredTransitionSystem fts =
-        create_factored_transition_system(task_proxy, log);
+        create_factored_transition_system(*task, log);
 
     if (log.is_at_least_normal()) {
         log_progress(timer, "after computation of atomic factors", log);
@@ -520,9 +500,7 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
         }
     }
 
-    if (label_reduction) {
-        label_reduction->initialize(task_proxy);
-    }
+    if (label_reduction) { label_reduction->initialize(*task); }
 
     const unique_ptr<MergeStrategy> merge_strategy =
         merge_strategy_factory->compute_merge_strategy(task, fts);

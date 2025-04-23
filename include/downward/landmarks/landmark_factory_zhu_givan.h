@@ -9,6 +9,11 @@
 #include <utility>
 #include <vector>
 
+namespace downward {
+class AxiomOrOperatorProxy;
+class EffectConditionsProxy;
+}
+
 namespace downward::landmarks {
 using lm_set = utils::HashSet<FactPair>;
 
@@ -32,7 +37,7 @@ class LandmarkFactoryZhuGivan : public LandmarkFactoryRelaxation {
     // labels on some proposition, after proposition (i,j) has changed
     std::vector<std::vector<std::vector<int>>> triggers;
 
-    void compute_triggers(const TaskProxy& task_proxy);
+    void compute_triggers(const AbstractTask& task);
 
     // Note: must include operators that only have conditional effects
     std::vector<int> operators_without_preconditions;
@@ -69,12 +74,12 @@ class LandmarkFactoryZhuGivan : public LandmarkFactoryRelaxation {
     // Relaxed exploration, returns the last proposition layer
     // (the fixpoint) with labels
     PropositionLayer
-    build_relaxed_plan_graph_with_labels(const TaskProxy& task_proxy) const;
+    build_relaxed_plan_graph_with_labels(const AbstractTask& task) const;
 
     // Extract landmarks from last proposition layer and add them to the
     // landmarks graph
     void extract_landmarks(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const PropositionLayer& last_prop_layer);
 
     // Link operators to its propositions in trigger list.

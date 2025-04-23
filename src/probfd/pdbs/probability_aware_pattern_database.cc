@@ -6,7 +6,6 @@
 #include "probfd/abstractions/distances.h"
 
 #include "probfd/cost_function.h"
-#include "probfd/task_proxy.h"
 
 #include "downward/pdbs/pattern_database.h"
 
@@ -23,8 +22,7 @@ namespace probfd::pdbs {
 static void compute_distances(
     std::span<value_t> value_table,
     const StateRankingFunction& ranking_function,
-    const ProbabilisticTaskProxy& task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    std::shared_ptr<ProbabilisticTask> task,
     StateRank abstract_initial_state,
     const Heuristic<StateRank>& heuristic,
     bool operator_pruning,
@@ -33,8 +31,7 @@ static void compute_distances(
     utils::CountdownTimer timer(max_time);
 
     ProjectionStateSpace mdp(
-        task_proxy,
-        std::move(task_cost_function),
+        task,
         ranking_function,
         operator_pruning,
         timer.get_remaining_time());
@@ -65,8 +62,7 @@ void compute_distances(
 
 void compute_distances(
     ProbabilityAwarePatternDatabase& pdb,
-    const ProbabilisticTaskProxy& task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    std::shared_ptr<ProbabilisticTask> task,
     StateRank abstract_initial_state,
     const Heuristic<StateRank>& heuristic,
     bool operator_pruning,
@@ -75,8 +71,7 @@ void compute_distances(
     compute_distances(
         pdb.value_table,
         pdb.ranking_function,
-        task_proxy,
-        std::move(task_cost_function),
+        task,
         abstract_initial_state,
         heuristic,
         operator_pruning,

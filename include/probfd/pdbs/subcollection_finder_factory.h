@@ -5,7 +5,7 @@
 
 // Forward Declarations
 namespace probfd {
-class ProbabilisticTaskProxy;
+class ProbabilisticTask;
 }
 
 namespace probfd::pdbs {
@@ -18,7 +18,7 @@ public:
     virtual ~SubCollectionFinderFactory() = default;
 
     virtual std::unique_ptr<SubCollectionFinder>
-    create_subcollection_finder(const ProbabilisticTaskProxy& task_proxy) = 0;
+    create_subcollection_finder(const ProbabilisticTask& task) = 0;
 };
 
 } // namespace probfd::pdbs

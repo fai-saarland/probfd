@@ -7,7 +7,7 @@
 namespace downward {
 class AxiomOrOperatorProxy;
 class OperatorProxy;
-class TaskProxy;
+class AbstractTask;
 }
 
 namespace downward::utils {
@@ -29,11 +29,11 @@ extern bool possibly_reaches_lm(
     const Landmark& landmark);
 
 extern AxiomOrOperatorProxy
-get_operator_or_axiom(const TaskProxy& task_proxy, int op_or_axiom_id);
+get_operator_or_axiom(const AbstractTask& task, int op_or_axiom_id);
 extern int get_operator_or_axiom_id(const AxiomOrOperatorProxy &op);
 
 extern void dump_landmark_graph(
-    const TaskProxy &task_proxy,
+    const AbstractTask &task,
     const LandmarkGraph &graph,
     utils::LogProxy &log);
 }

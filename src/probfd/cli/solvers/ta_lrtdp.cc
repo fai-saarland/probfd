@@ -50,16 +50,15 @@ public:
     }
 
     std::string get_algorithm_name() const override { return "talrtdp"; }
+
     std::string get_heuristic_search_name() const override { return ""; }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) override
+    std::unique_ptr<StatisticalMDPAlgorithm>
+    create_algorithm(const std::shared_ptr<ProbabilisticTask>& task) override
     {
         return std::make_unique<AlgorithmAdaptor>(
             this->template create_search_algorithm<TALRTDP>(
                 task,
-                task_cost_function,
                 stop_consistent_,
                 reexpand_traps_,
                 successor_sampler_));

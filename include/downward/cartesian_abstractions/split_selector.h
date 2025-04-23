@@ -1,10 +1,14 @@
 #ifndef CEGAR_SPLIT_SELECTOR_H
 #define CEGAR_SPLIT_SELECTOR_H
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <memory>
 #include <vector>
+
+namespace downward {
+class AbstractTask;
+}
 
 namespace downward::additive_heuristic {
 class AdditiveHeuristic;
@@ -47,7 +51,6 @@ struct Split {
 */
 class SplitSelector {
     const std::shared_ptr<AbstractTask> task;
-    const TaskProxy task_proxy;
     std::unique_ptr<additive_heuristic::AdditiveHeuristic> additive_heuristic;
 
     const PickSplit pick;

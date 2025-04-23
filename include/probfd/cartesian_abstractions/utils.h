@@ -7,7 +7,7 @@
 
 #include "downward/utils/hash.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <memory>
 #include <vector>
@@ -18,7 +18,6 @@ class AdditiveHeuristic;
 }
 
 namespace probfd {
-class ProbabilisticTaskProxy;
 class ProbabilisticTask;
 } // namespace probfd
 
@@ -47,7 +46,7 @@ create_additive_heuristic(const std::shared_ptr<ProbabilisticTask>& task);
   time, plus 'fact' itself.
 */
 extern downward::utils::HashSet<downward::FactPair> get_relaxed_possible_before(
-    const ProbabilisticTaskProxy& task,
+    const ProbabilisticTask& task,
     const downward::FactPair& fact);
 
 } // namespace probfd::cartesian_abstractions

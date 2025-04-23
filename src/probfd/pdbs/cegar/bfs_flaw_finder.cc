@@ -7,7 +7,7 @@
 #include "probfd/pdbs/projection_state_space.h"
 
 #include "probfd/multi_policy.h"
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 
 #include "probfd/utils/guards.h"
 
@@ -32,7 +32,7 @@ BFSFlawFinder::BFSFlawFinder(int max_search_states)
 }
 
 bool BFSFlawFinder::apply_policy(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTask& task,
     const StateRankingFunction& state_ranking_function,
     const ProjectionStateSpace& mdp,
     const ProjectionMultiPolicy& policy,
@@ -48,7 +48,7 @@ bool BFSFlawFinder::apply_policy(
         closed_.clear();
     });
 
-    StateRegistry registry(task_proxy);
+    StateRegistry registry(task);
 
     {
         const State& init = registry.get_initial_state();
@@ -56,8 +56,8 @@ bool BFSFlawFinder::apply_policy(
         closed_[init.get_id()] = true;
     }
 
-    const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
-    const GoalsProxy goals = task_proxy.get_goals();
+    const ProbabilisticOperatorsProxy operators = task.get_operators();
+    const GoalsProxy goals = task.get_goals();
 
     do {
         timer.throw_if_expired();

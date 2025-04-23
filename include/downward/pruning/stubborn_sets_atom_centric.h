@@ -40,7 +40,7 @@ class StubbornSetsAtomCentric : public stubborn_sets::StubbornSets {
     std::vector<FactPair> producer_queue;
     std::vector<FactPair> consumer_queue;
 
-    void compute_consumers(const TaskProxy& task_proxy);
+    void compute_consumers(const AbstractTask& task);
     bool operator_is_applicable(int op, const State& state) const;
     void enqueue_producers(const FactPair& fact);
     void enqueue_consumers(const FactPair& fact);

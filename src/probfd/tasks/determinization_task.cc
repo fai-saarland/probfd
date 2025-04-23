@@ -2,8 +2,6 @@
 
 #include "probfd/probabilistic_task.h"
 
-#include "probfd/task_proxy.h"
-
 #include <cassert>
 
 using namespace downward;
@@ -14,9 +12,7 @@ DeterminizationTask::DeterminizationTask(
     std::shared_ptr<ProbabilisticTask> parent_task)
     : parent_task_(std::move(parent_task))
 {
-    ProbabilisticTaskProxy proxy(*parent_task_);
-
-    for (ProbabilisticOperatorProxy op_proxy : proxy.get_operators()) {
+    for (ProbabilisticOperatorProxy op_proxy : parent_task->get_operators()) {
         const int num_outcomes = op_proxy.get_outcomes().size();
         for (int j = 0; j != num_outcomes; ++j) {
             det_to_prob_index_.emplace_back(op_proxy.get_id(), j);

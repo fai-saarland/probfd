@@ -1,11 +1,14 @@
 #include "downward/operator_counting/pho_constraints.h"
 
 #include "downward/lp/lp_solver.h"
+
 #include "downward/pdbs/pattern_database.h"
 #include "downward/pdbs/pattern_generator.h"
 #include "downward/pdbs/utils.h"
 
 #include "downward/utils/markup.h"
+
+#include "downward/abstract_task.h"
 
 #include <cassert>
 #include <limits>
@@ -36,16 +39,17 @@ void PhOConstraints::initialize_constraints(
     */
     pdbs = pattern_collection_info.get_pdbs();
     pattern_generator = nullptr;
-    TaskProxy task_proxy(*task);
     named_vector::NamedVector<lp::LPConstraint>& constraints =
         lp.get_constraints();
     constraint_offset = constraints.size();
     for (const shared_ptr<pdbs::PatternDatabase>& pdb : *pdbs) {
         constraints.emplace_back(0, lp.get_infinity());
         lp::LPConstraint& constraint = constraints.back();
-        for (OperatorProxy op : task_proxy.get_operators()) {
+        for (OperatorProxy op : task->get_operators()) {
             if (pdb->is_operator_relevant(op)) {
-                constraint.insert(op.get_id(), op.get_cost());
+                constraint.insert(
+                    op.get_id(),
+                    task->get_operator_cost(op.get_id()));
             }
         }
     }
@@ -60,12 +64,10 @@ bool PhOConstraints::update_constraints(
         int constraint_id = constraint_offset + i;
         shared_ptr<pdbs::PatternDatabase> pdb = (*pdbs)[i];
         int h = pdb->get_value(state.get_unpacked_values());
-        if (h == numeric_limits<int>::max()) {
-            return true;
-        }
+        if (h == numeric_limits<int>::max()) { return true; }
         lp_solver.set_constraint_lower_bound(constraint_id, h);
     }
     return false;
 }
 
-} // namespace operator_counting
+} // namespace downward::operator_counting

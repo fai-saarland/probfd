@@ -6,12 +6,13 @@
 #include "probfd/solvers/statistical_mdp_algorithm.h"
 
 #include "probfd/algorithms/exhaustive_dfs.h"
-
 #include "probfd/algorithms/fdr_types.h"
 #include "probfd/algorithms/transition_sorter.h"
 
+#include "probfd/probabilistic_task.h"
+
 #include "downward/operator_id.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <memory>
 #include <string>
@@ -54,16 +55,13 @@ public:
 
     std::string get_algorithm_name() const override { return "exhaustive_dfs"; }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
-        const std::shared_ptr<ProbabilisticTask>&,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) override
+    std::unique_ptr<StatisticalMDPAlgorithm>
+    create_algorithm(const std::shared_ptr<ProbabilisticTask>& task) override
     {
         using Algorithm = ExhaustiveDepthFirstSearch<State, OperatorID, false>;
         using Algorithm2 = ExhaustiveDepthFirstSearch<State, OperatorID, true>;
 
-        Interval cost_bound(
-            0_vt,
-            task_cost_function->get_non_goal_termination_cost());
+        Interval cost_bound(0_vt, task->get_non_goal_termination_cost());
 
         if (dual_bounds_) {
             return std::make_unique<AlgorithmAdaptor>(

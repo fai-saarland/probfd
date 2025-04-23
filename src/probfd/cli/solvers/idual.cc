@@ -12,7 +12,7 @@
 #include "downward/lp/lp_solver.h"
 
 #include "downward/operator_id.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <memory>
 #include <string>
@@ -44,9 +44,8 @@ public:
 
     std::string get_algorithm_name() const override { return "idual"; }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
-        const std::shared_ptr<ProbabilisticTask>&,
-        const std::shared_ptr<FDRCostFunction>&) override
+    std::unique_ptr<StatisticalMDPAlgorithm>
+    create_algorithm(const std::shared_ptr<ProbabilisticTask>&) override
     {
         using IDualAlgorithm = algorithms::idual::IDual<State, OperatorID>;
 

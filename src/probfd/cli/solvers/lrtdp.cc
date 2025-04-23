@@ -47,14 +47,12 @@ public:
 
     std::string get_heuristic_search_name() const override { return "lrtdp"; }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) override
+    std::unique_ptr<StatisticalMDPAlgorithm>
+    create_algorithm(const std::shared_ptr<ProbabilisticTask>& task) override
     {
         return std::make_unique<AlgorithmAdaptor>(
             this->template create_heuristic_search_algorithm<LRTDP>(
                 task,
-                task_cost_function,
                 trial_termination_,
                 successor_sampler_));
     }

@@ -35,7 +35,6 @@ class HROCGenerator : public ConstraintGenerator {
 public:
     void initialize_constraints(
         const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function,
         downward::lp::LinearProgram& lp) final;
 
     void update_constraints(
@@ -49,8 +48,7 @@ public:
 class HROCGeneratorFactory : public ConstraintGeneratorFactory {
 public:
     std::unique_ptr<ConstraintGenerator> construct_constraint_generator(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
+        const std::shared_ptr<ProbabilisticTask>& task) override;
 };
 
 } // namespace probfd::occupation_measures

@@ -5,6 +5,8 @@
 
 #include "downward/utils/logging.h"
 
+#include "downward/fact_pair.h"
+
 #include <list>
 #include <map>
 #include <memory>
@@ -14,7 +16,8 @@
 #include <vector>
 
 namespace downward {
-class TaskProxy;
+class AbstractTask;
+class OperatorProxy;
 }
 
 namespace downward::landmarks {
@@ -60,7 +63,7 @@ private:
 
     virtual void
     generate_landmarks(const std::shared_ptr<AbstractTask>& task) = 0;
-    void generate_operators_lookups(const TaskProxy& task_proxy);
+    void generate_operators_lookups(const AbstractTask& task);
 };
 
 } // namespace landmarks

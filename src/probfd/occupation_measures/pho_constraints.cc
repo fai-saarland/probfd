@@ -29,11 +29,9 @@ PHOGenerator::PHOGenerator(pdbs::PPDBCollection pdbs)
 
 void PHOGenerator::initialize_constraints(
     const std::shared_ptr<ProbabilisticTask>& task,
-    const std::shared_ptr<FDRCostFunction>&,
     lp::LinearProgram& lp)
 {
-    ProbabilisticTaskProxy task_proxy(*task);
-    const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
+    const ProbabilisticOperatorsProxy operators = task->get_operators();
 
     const double lp_infinity = lp.get_infinity();
 
@@ -85,10 +83,9 @@ PHOGeneratorFactory::PHOGeneratorFactory(
 
 std::unique_ptr<ConstraintGenerator>
 PHOGeneratorFactory::construct_constraint_generator(
-    const std::shared_ptr<ProbabilisticTask>& task,
-    const std::shared_ptr<FDRCostFunction>& task_cost_function)
+    const std::shared_ptr<ProbabilisticTask>& task)
 {
-    auto r = generator_->generate(task, task_cost_function);
+    auto r = generator_->generate(task);
     return std::make_unique<PHOGenerator>(r.get_pdbs());
 }
 

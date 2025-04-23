@@ -1,9 +1,8 @@
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/axioms.h"
 #include "downward/state_registry.h"
 
-#include "downward/task_utils/causal_graph.h"
 #include "downward/task_utils/task_properties.h"
 
 #include <iostream>
@@ -11,14 +10,6 @@
 using namespace std;
 
 namespace downward {
-
-State OperatorProxy::get_unregistered_successor(
-    const State& state,
-    AxiomEvaluator& axiom_evaluator) const
-{
-    assert(task_properties::is_applicable(*this, state));
-    return state.get_unregistered_successor(axiom_evaluator, get_effects());
-}
 
 State::State(
     const StateRegistry& registry,
@@ -54,12 +45,6 @@ State::State(vector<int>&& values)
     , state_packer(nullptr)
     , num_variables(this->values->size())
 {
-}
-
-const causal_graph::CausalGraph& TaskProxy::get_causal_graph() const
-{
-    return causal_graph::get_causal_graph(
-        static_cast<const AbstractTask*>(task));
 }
 
 } // namespace downward

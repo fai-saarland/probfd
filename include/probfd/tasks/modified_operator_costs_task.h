@@ -21,6 +21,8 @@ public:
 
     value_t get_operator_cost(int index) const override;
     void set_operator_cost(int index, value_t cost);
+
+    void decrease_costs(const std::vector<value_t>& by);
 };
 
 } // namespace probfd::extra_tasks

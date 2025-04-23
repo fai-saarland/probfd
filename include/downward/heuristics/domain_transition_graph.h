@@ -1,7 +1,9 @@
 #ifndef HEURISTICS_DOMAIN_TRANSITION_GRAPH_H
 #define HEURISTICS_DOMAIN_TRANSITION_GRAPH_H
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/axiom_utils.h"
+#include "downward/state.h"
 
 #include <cassert>
 #include <unordered_map>
@@ -28,7 +30,8 @@ class DomainTransitionGraph;
 
 class DTGFactory {
     using DTGs = std::vector<std::unique_ptr<DomainTransitionGraph>>;
-    const TaskProxy& task_proxy;
+    const OperatorIntCostFunction& cost_function;
+    const AbstractTask& task;
     bool collect_transition_side_effects;
     std::function<bool(int, int)> pruning_condition;
 
@@ -65,7 +68,7 @@ class DTGFactory {
 
 public:
     DTGFactory(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         bool collect_transition_side_effects,
         const std::function<bool(int, int)>& pruning_condition);
 
@@ -114,7 +117,7 @@ struct ValueTransition {
     {
     }
 
-    void simplify(const TaskProxy& task_proxy);
+    void simplify(const AbstractTask& task);
 };
 
 struct ValueNode {

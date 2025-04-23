@@ -8,7 +8,7 @@
 #include "probfd/algorithms/topological_value_iteration.h"
 
 #include "downward/operator_id.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <memory>
 #include <string>
@@ -40,9 +40,8 @@ public:
         return "topological_value_iteration";
     }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
-        const std::shared_ptr<ProbabilisticTask>&,
-        const std::shared_ptr<FDRCostFunction>&) override
+    std::unique_ptr<StatisticalMDPAlgorithm>
+    create_algorithm(const std::shared_ptr<ProbabilisticTask>&) override
     {
         return std::make_unique<AlgorithmAdaptor>(
             std::make_unique<TopologicalValueIteration<State, OperatorID>>(

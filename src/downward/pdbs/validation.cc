@@ -1,6 +1,7 @@
 #include "downward/pdbs/validation.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/state.h"
 
 #include "downward/utils/logging.h"
 #include "downward/utils/system.h"
@@ -13,7 +14,7 @@ using downward::utils::ExitCode;
 
 namespace downward::pdbs {
 void validate_and_normalize_pattern(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     Pattern& pattern,
     utils::LogProxy& log)
 {
@@ -36,7 +37,7 @@ void validate_and_normalize_pattern(
             cerr << "Variable number too low in pattern" << endl;
             utils::exit_with(ExitCode::SEARCH_CRITICAL_ERROR);
         }
-        int num_variables = task_proxy.get_variables().size();
+        int num_variables = task.get_variables().size();
         if (pattern.back() >= num_variables) {
             cerr << "Variable number too high in pattern" << endl;
             utils::exit_with(ExitCode::SEARCH_CRITICAL_ERROR);
@@ -45,7 +46,7 @@ void validate_and_normalize_pattern(
 }
 
 void validate_and_normalize_patterns(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     PatternCollection& patterns,
     utils::LogProxy& log)
 {
@@ -54,7 +55,7 @@ void validate_and_normalize_patterns(
       - Warn if duplicate patterns exist.
     */
     for (Pattern& pattern : patterns)
-        validate_and_normalize_pattern(task_proxy, pattern, log);
+        validate_and_normalize_pattern(task, pattern, log);
     PatternCollection sorted_patterns(patterns);
     sort(sorted_patterns.begin(), sorted_patterns.end());
     auto it = unique(sorted_patterns.begin(), sorted_patterns.end());

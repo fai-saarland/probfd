@@ -10,7 +10,7 @@ namespace downward {
 struct FactPair;
 class OperatorProxy;
 class State;
-class TaskProxy;
+class AbstractTask;
 }
 
 namespace downward::cartesian_abstractions {

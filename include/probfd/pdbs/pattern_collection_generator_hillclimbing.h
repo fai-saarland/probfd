@@ -16,7 +16,7 @@
 namespace downward::utils {
 class CountdownTimer;
 class RandomNumberGenerator;
-} // namespace utils
+} // namespace downward::utils
 
 namespace downward::dynamic_bitset {
 template <typename>
@@ -24,7 +24,7 @@ class DynamicBitset;
 }
 
 namespace probfd {
-class ProbabilisticTaskProxy;
+class ProbabilisticTask;
 }
 
 namespace probfd::sampling {
@@ -74,8 +74,7 @@ class PatternCollectionGeneratorHillclimbing
       The method returns the size of the largest PDB added to candidate_pdbs.
     */
     unsigned int generate_candidate_pdbs(
-        const ProbabilisticTaskProxy& task_proxy,
-        const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
+        std::shared_ptr<ProbabilisticTask> task,
         downward::utils::CountdownTimer& hill_climbing_timer,
         const std::vector<std::vector<int>>& relevant_neighbours,
         const ProbabilityAwarePatternDatabase& pdb,
@@ -135,8 +134,7 @@ class PatternCollectionGeneratorHillclimbing
       PDBs. This is quite a large time gain, but may use a lot of memory.
     */
     void hill_climbing(
-        const ProbabilisticTaskProxy& task_proxy,
-        const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
+        std::shared_ptr<ProbabilisticTask> task,
         IncrementalPPDBs& current_pdbs);
 
 public:
@@ -161,9 +159,8 @@ public:
       variable) may break the maximum collection size limit, if the latter is
       set too small or if there are many goal variables with a large domain.
     */
-    PatternCollectionInformation generate(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
+    PatternCollectionInformation
+    generate(const std::shared_ptr<ProbabilisticTask>& task) override;
 };
 
 } // namespace probfd::pdbs

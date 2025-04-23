@@ -1,8 +1,10 @@
 #ifndef PROBFD_TASK_UTILS_SAMPLING_H
 #define PROBFD_TASK_UTILS_SAMPLING_H
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_operator_space.h"
 #include "probfd/value_type.h"
+
+#include "downward/state.h"
 
 #include <functional>
 #include <memory>
@@ -11,6 +13,9 @@ namespace downward::utils {
 class RandomNumberGenerator;
 }
 
+namespace probfd {
+class ProbabilisticTask;
+}
 
 namespace probfd::successor_generator {
 class ProbabilisticSuccessorGenerator;
@@ -31,7 +36,7 @@ class RandomWalkSampler {
 
 public:
     RandomWalkSampler(
-        const ProbabilisticTaskProxy& task_proxy,
+        const ProbabilisticTask& task,
         downward::utils::RandomNumberGenerator& rng);
     ~RandomWalkSampler();
 

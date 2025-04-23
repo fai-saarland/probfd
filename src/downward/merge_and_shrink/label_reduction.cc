@@ -5,7 +5,8 @@
 #include "downward/merge_and_shrink/transition_system.h"
 #include "downward/merge_and_shrink/types.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/state.h"
 
 #include "downward/algorithms/equivalence_relation.h"
 
@@ -42,13 +43,13 @@ bool LabelReduction::initialized() const
     return !transition_system_order.empty();
 }
 
-void LabelReduction::initialize(const TaskProxy& task_proxy)
+void LabelReduction::initialize(const AbstractTask& task)
 {
     assert(!initialized());
 
     // Compute the transition system order.
     size_t max_transition_system_count =
-        task_proxy.get_variables().size() * 2 - 1;
+        task.get_variables().size() * 2 - 1;
     transition_system_order.reserve(max_transition_system_count);
     if (lr_system_order == LabelReductionSystemOrder::REGULAR ||
         lr_system_order == LabelReductionSystemOrder::RANDOM) {

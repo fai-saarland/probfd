@@ -1,13 +1,13 @@
 #include "probfd/task_utils/causal_graph.h"
 
 #include "probfd/probabilistic_task.h"
-#include "probfd/task_proxy.h"
 
 #include "downward/utils/logging.h"
 
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <set>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -163,7 +163,7 @@ struct ProbabilisticCausalGraphBuilder {
         // Handle pre->eff links from preconditions.
         for (FactPair pre : op.get_preconditions()) {
             int pre_var_id = pre.var;
-            for (EffectProxy eff : effects) {
+            for (auto eff : effects) {
                 int eff_var_id = eff.get_fact().var;
                 if (pre_var_id != eff_var_id)
                     handle_pre_eff_arc(pre_var_id, eff_var_id);
@@ -171,7 +171,7 @@ struct ProbabilisticCausalGraphBuilder {
         }
 
         // Handle pre->eff links from effect conditions.
-        for (EffectProxy eff : effects) {
+        for (auto eff : effects) {
             int eff_var_id = eff.get_fact().var;
             for (FactPair pre : eff.get_conditions()) {
                 int pre_var_id = pre.var;
@@ -193,15 +193,15 @@ struct ProbabilisticCausalGraphBuilder {
 };
 
 ProbabilisticCausalGraph::ProbabilisticCausalGraph(
-    const ProbabilisticTaskProxy& task_proxy)
+    const ProbabilisticTask& task)
 {
-    int num_variables = task_proxy.get_variables().size();
+    int num_variables = task.get_variables().size();
     ProbabilisticCausalGraphBuilder cg_builder(num_variables);
 
-    for (ProbabilisticOperatorProxy op : task_proxy.get_operators())
+    for (ProbabilisticOperatorProxy op : task.get_operators())
         cg_builder.handle_operator(op);
 
-    for (AxiomProxy op : task_proxy.get_axioms())
+    for (AxiomProxy op : task.get_axioms())
         cg_builder.handle_operator(op);
 
     cg_builder.pre_eff_builder.compute_relation(pre_to_eff);
@@ -213,11 +213,11 @@ ProbabilisticCausalGraph::ProbabilisticCausalGraph(
 }
 
 void ProbabilisticCausalGraph::dump(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTask& task,
     utils::LogProxy& log) const
 {
     log << "Causal graph: " << endl;
-    for (VariableProxy var : task_proxy.get_variables()) {
+    for (VariableProxy var : task.get_variables()) {
         int var_id = var.get_id();
         log << "#" << var_id << " [" << var.get_name() << "]:" << endl
             << "    pre->eff arcs: " << pre_to_eff[var_id] << endl
@@ -230,11 +230,10 @@ void ProbabilisticCausalGraph::dump(
 
 const ProbabilisticCausalGraph& get_causal_graph(const ProbabilisticTask* task)
 {
-    if (causal_graph_cache.count(task) == 0) {
-        ProbabilisticTaskProxy task_proxy(*task);
+    if (!causal_graph_cache.contains(task)) {
         causal_graph_cache.insert(make_pair(
             task,
-            std::make_unique<ProbabilisticCausalGraph>(task_proxy)));
+            std::make_unique<ProbabilisticCausalGraph>(*task)));
     }
     return *causal_graph_cache[task];
 }

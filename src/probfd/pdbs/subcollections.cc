@@ -2,7 +2,7 @@
 
 #include "downward/pdbs/pattern_cliques.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 #include "probfd/value_type.h"
 
 #include <algorithm>
@@ -142,16 +142,16 @@ struct Permutation {
 } // namespace
 
 std::vector<std::vector<bool>> compute_prob_orthogonal_vars(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTask& task,
     bool ignore_deterministic)
 {
-    const size_t num_vars = task_proxy.get_variables().size();
+    const size_t num_vars = task.get_variables().size();
 
     std::vector<std::vector<bool>> are_orthogonal(
         num_vars,
         std::vector<bool>(num_vars, true));
 
-    for (const ProbabilisticOperatorProxy& op : task_proxy.get_operators()) {
+    for (const ProbabilisticOperatorProxy& op : task.get_operators()) {
         const ProbabilisticOutcomesProxy outcomes = op.get_outcomes();
 
         if (ignore_deterministic && outcomes.size() == 1) {
@@ -179,13 +179,13 @@ std::vector<std::vector<bool>> compute_prob_orthogonal_vars(
 }
 
 std::vector<std::vector<int>> build_compatibility_graph_orthogonality(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTask& task,
     const PatternCollection& patterns,
     bool ignore_deterministic)
 {
     return build_compatibility_graph_orthogonality(
         patterns,
-        compute_prob_orthogonal_vars(task_proxy, ignore_deterministic));
+        compute_prob_orthogonal_vars(task, ignore_deterministic));
 }
 
 std::vector<std::vector<int>> build_compatibility_graph_orthogonality(

@@ -24,19 +24,18 @@ PotentialOptimizer::PotentialOptimizer(
     lp::LPSolverType lpsolver,
     double max_potential)
     : task(transform)
-    , task_proxy(*task)
     , lp_solver(lpsolver)
     , max_potential(max_potential)
     , num_lp_vars(0)
 {
-    task_properties::verify_no_axioms(task_proxy);
-    task_properties::verify_no_conditional_effects(task_proxy);
+    task_properties::verify_no_axioms(*task);
+    task_properties::verify_no_conditional_effects(*task);
     initialize();
 }
 
 void PotentialOptimizer::initialize()
 {
-    VariablesProxy vars = task_proxy.get_variables();
+    VariablesProxy vars = task->get_variables();
     lp_var_ids.resize(vars.size());
     fact_potentials.resize(vars.size());
     for (VariableProxy var : vars) {
@@ -74,7 +73,7 @@ void PotentialOptimizer::optimize_for_all_states()
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
     vector<double> coefficients(num_lp_vars, 0.0);
-    for (FactProxy fact : task_proxy.get_variables().get_facts()) {
+    for (FactProxy fact : task->get_variables().get_facts()) {
         coefficients[get_lp_var_id(fact.get_pair())] =
             1.0 / fact.get_variable().get_domain_size();
     }
@@ -112,7 +111,7 @@ void PotentialOptimizer::construct_lp()
     double infinity = lp_solver.get_infinity();
     double upper_bound = (potentials_are_bounded() ? max_potential : infinity);
 
-    const auto variables = task_proxy.get_variables();
+    const auto variables = task->get_variables();
 
     named_vector::NamedVector<lp::LPVariable> lp_variables;
     lp_variables.reserve(num_lp_vars);
@@ -122,7 +121,7 @@ void PotentialOptimizer::construct_lp()
     }
 
     named_vector::NamedVector<lp::LPConstraint> lp_constraints;
-    for (OperatorProxy op : task_proxy.get_operators()) {
+    for (OperatorProxy op : task->get_operators()) {
         // Create constraint:
         // Sum_{V in vars(eff(o))} (P_{V=pre(o)[V]} - P_{V=eff(o)[V]}) <=
         // cost(o)
@@ -130,9 +129,11 @@ void PotentialOptimizer::construct_lp()
         for (const auto [var, value] : op.get_preconditions()) {
             var_to_precondition[var] = value;
         }
-        lp::LPConstraint constraint(-infinity, op.get_cost());
+        lp::LPConstraint constraint(
+            -infinity,
+            task->get_operator_cost(op.get_id()));
         vector<pair<int, int>> coefficients;
-        for (EffectProxy effect : op.get_effects()) {
+        for (auto effect : op.get_effects()) {
             int var_id = effect.get_fact().var;
 
             // Set pre to pre(op) if defined, otherwise to u = |dom(var)|.
@@ -160,9 +161,7 @@ void PotentialOptimizer::construct_lp()
     /* Create full goal state. Use value |dom(V)| as "undefined" value
        for variables V undefined in the goal. */
     vector<int> goal(variables.size(), -1);
-    for (const auto [var, value] : task_proxy.get_goals()) {
-        goal[var] = value;
-    }
+    for (const auto [var, value] : task->get_goals()) { goal[var] = value; }
     for (VariableProxy var : variables) {
         if (goal[var.get_id()] == -1)
             goal[var.get_id()] = get_undefined_value(var);
@@ -206,16 +205,14 @@ void PotentialOptimizer::construct_lp()
 void PotentialOptimizer::solve_and_extract()
 {
     lp_solver.solve();
-    if (has_optimal_solution()) {
-        extract_lp_solution();
-    }
+    if (has_optimal_solution()) { extract_lp_solution(); }
 }
 
 void PotentialOptimizer::extract_lp_solution()
 {
     assert(has_optimal_solution());
     const vector<double> solution = lp_solver.extract_solution();
-    for (FactProxy fact : task_proxy.get_variables().get_facts()) {
+    for (FactProxy fact : task->get_variables().get_facts()) {
         fact_potentials[fact.get_variable().get_id()][fact.get_value()] =
             solution[get_lp_var_id(fact.get_pair())];
     }
@@ -226,4 +223,4 @@ unique_ptr<PotentialFunction> PotentialOptimizer::get_potential_function() const
     assert(has_optimal_solution());
     return std::make_unique<PotentialFunction>(fact_potentials);
 }
-} // namespace potentials
+} // namespace downward::potentials

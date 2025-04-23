@@ -1,10 +1,8 @@
+#include "probfd/probabilistic_operator_space.h"
 
-#include "probfd/task_proxy.h"
-
-#include "probfd/task_utils/causal_graph.h"
-
-#include "probfd/probabilistic_task.h"
 #include "probfd/task_utils/task_properties.h"
+
+#include "downward/fact_pair.h"
 
 #include <algorithm>
 #include <cassert>
@@ -14,11 +12,11 @@ using namespace downward;
 namespace probfd {
 
 ProbabilisticEffectConditionsProxy::ProbabilisticEffectConditionsProxy(
-    const ProbabilisticTask& task,
+    const ProbabilisticOperatorSpace& op_space,
     int op_index,
     int outcome_index,
     int eff_index)
-    : task_(&task)
+    : op_space_(&op_space)
     , op_index_(op_index)
     , outcome_index_(outcome_index)
     , eff_index_(eff_index)
@@ -27,7 +25,7 @@ ProbabilisticEffectConditionsProxy::ProbabilisticEffectConditionsProxy(
 
 std::size_t ProbabilisticEffectConditionsProxy::size() const
 {
-    return task_->get_num_operator_outcome_effect_conditions(
+    return op_space_->get_num_operator_outcome_effect_conditions(
         op_index_,
         outcome_index_,
         eff_index_);
@@ -36,7 +34,7 @@ std::size_t ProbabilisticEffectConditionsProxy::size() const
 FactPair ProbabilisticEffectConditionsProxy::operator[](std::size_t index) const
 {
     assert(index < size());
-    return task_->get_operator_outcome_effect_condition(
+    return op_space_->get_operator_outcome_effect_condition(
         op_index_,
         outcome_index_,
         eff_index_,
@@ -44,11 +42,11 @@ FactPair ProbabilisticEffectConditionsProxy::operator[](std::size_t index) const
 }
 
 ProbabilisticEffectProxy::ProbabilisticEffectProxy(
-    const ProbabilisticTask& task,
+    const ProbabilisticOperatorSpace& op_space,
     int op_index,
     int outcome_index,
     int eff_index)
-    : task_(&task)
+    : op_space_(&op_space)
     , op_index_(op_index)
     , outcome_index_(outcome_index)
     , eff_index_(eff_index)
@@ -59,7 +57,7 @@ ProbabilisticEffectConditionsProxy
 ProbabilisticEffectProxy::get_conditions() const
 {
     return ProbabilisticEffectConditionsProxy(
-        *task_,
+        *op_space_,
         op_index_,
         outcome_index_,
         eff_index_);
@@ -67,17 +65,17 @@ ProbabilisticEffectProxy::get_conditions() const
 
 FactPair ProbabilisticEffectProxy::get_fact() const
 {
-    return task_->get_operator_outcome_effect(
+    return op_space_->get_operator_outcome_effect(
         op_index_,
         outcome_index_,
         eff_index_);
 }
 
 ProbabilisticEffectsProxy::ProbabilisticEffectsProxy(
-    const ProbabilisticTask& task,
+    const ProbabilisticOperatorSpace& op_space,
     int op_index,
     int outcome_index)
-    : task_(&task)
+    : op_space_(&op_space)
     , op_index_(op_index)
     , outcome_index_(outcome_index)
 {
@@ -85,7 +83,9 @@ ProbabilisticEffectsProxy::ProbabilisticEffectsProxy(
 
 std::size_t ProbabilisticEffectsProxy::size() const
 {
-    return task_->get_num_operator_outcome_effects(op_index_, outcome_index_);
+    return op_space_->get_num_operator_outcome_effects(
+        op_index_,
+        outcome_index_);
 }
 
 ProbabilisticEffectProxy
@@ -93,17 +93,17 @@ ProbabilisticEffectsProxy::operator[](std::size_t eff_index) const
 {
     assert(eff_index < size());
     return ProbabilisticEffectProxy(
-        *task_,
+        *op_space_,
         op_index_,
         outcome_index_,
         eff_index);
 }
 
 ProbabilisticOutcomeProxy::ProbabilisticOutcomeProxy(
-    const ProbabilisticTask& task,
+    const ProbabilisticOperatorSpace& op_space,
     int op_index,
     int outcome_index)
-    : task_(&task)
+    : op_space_(&op_space)
     , op_index_(op_index)
     , outcome_index_(outcome_index)
 {
@@ -111,22 +111,24 @@ ProbabilisticOutcomeProxy::ProbabilisticOutcomeProxy(
 
 int ProbabilisticOutcomeProxy::get_determinization_id() const
 {
-    return task_->get_operator_outcome_id(op_index_, outcome_index_);
+    return op_space_->get_operator_outcome_id(op_index_, outcome_index_);
 }
 
 ProbabilisticOperatorProxy ProbabilisticOutcomeProxy::get_operator() const
 {
-    return ProbabilisticOperatorProxy(*task_, op_index_);
+    return ProbabilisticOperatorProxy(*op_space_, op_index_);
 }
 
 ProbabilisticEffectsProxy ProbabilisticOutcomeProxy::get_effects() const
 {
-    return ProbabilisticEffectsProxy(*task_, op_index_, outcome_index_);
+    return ProbabilisticEffectsProxy(*op_space_, op_index_, outcome_index_);
 }
 
 value_t ProbabilisticOutcomeProxy::get_probability() const
 {
-    return task_->get_operator_outcome_probability(op_index_, outcome_index_);
+    return op_space_->get_operator_outcome_probability(
+        op_index_,
+        outcome_index_);
 }
 
 State ProbabilisticOutcomeProxy::get_unregistered_successor(
@@ -137,66 +139,82 @@ State ProbabilisticOutcomeProxy::get_unregistered_successor(
 }
 
 ProbabilisticOutcomesProxy::ProbabilisticOutcomesProxy(
-    const ProbabilisticTask& task,
+    const ProbabilisticOperatorSpace& op_space,
     int op_index)
-    : task_(&task)
+    : op_space_(&op_space)
     , op_index_(op_index)
 {
 }
 
 ProbabilisticOperatorProxy ProbabilisticOutcomesProxy::get_operator() const
 {
-    return ProbabilisticOperatorProxy(*task_, op_index_);
+    return ProbabilisticOperatorProxy(*op_space_, op_index_);
 }
 
 std::size_t ProbabilisticOutcomesProxy::size() const
 {
-    return task_->get_num_operator_outcomes(op_index_);
+    return op_space_->get_num_operator_outcomes(op_index_);
 }
 
 ProbabilisticOutcomeProxy
 ProbabilisticOutcomesProxy::operator[](std::size_t eff_index) const
 {
     assert(eff_index < size());
-    return ProbabilisticOutcomeProxy(*task_, op_index_, eff_index);
+    return ProbabilisticOutcomeProxy(*op_space_, op_index_, eff_index);
 }
 
 ProbabilisticOperatorProxy::ProbabilisticOperatorProxy(
-    const ProbabilisticTask& task,
+    const ProbabilisticOperatorSpace& op_space,
     int index)
-    : PartialOperatorProxy(task, index)
+    : op_space_(&op_space)
+    , index_(index)
 {
+}
+
+OperatorPreconditionsProxy ProbabilisticOperatorProxy::get_preconditions() const
+{
+    return OperatorPreconditionsProxy(*op_space_, index_);
 }
 
 ProbabilisticOutcomesProxy ProbabilisticOperatorProxy::get_outcomes() const
 {
-    return ProbabilisticOutcomesProxy(
-        *static_cast<const ProbabilisticTask*>(task),
-        index);
+    return ProbabilisticOutcomesProxy(*op_space_, index_);
 }
 
-value_t ProbabilisticOperatorProxy::get_cost() const
+std::string ProbabilisticOperatorProxy::get_name() const
 {
-    return static_cast<const ProbabilisticTask*>(task)->get_operator_cost(
-        index);
+    return op_space_->get_operator_name(index_);
+}
+
+int ProbabilisticOperatorProxy::get_id() const
+{
+    return index_;
+}
+
+bool operator==(
+    const ProbabilisticOperatorProxy& left,
+    const ProbabilisticOperatorProxy& right)
+{
+    assert(left.op_space_ == right.op_space_);
+    return left.index_ == right.index_;
 }
 
 ProbabilisticOperatorsProxy::ProbabilisticOperatorsProxy(
-    const ProbabilisticTask& task)
-    : task_(&task)
+    const ProbabilisticOperatorSpace& op_space)
+    : op_space_(&op_space)
 {
 }
 
 std::size_t ProbabilisticOperatorsProxy::size() const
 {
-    return task_->get_num_operators();
+    return op_space_->get_num_operators();
 }
 
 ProbabilisticOperatorProxy
 ProbabilisticOperatorsProxy::operator[](std::size_t index) const
 {
     assert(index < size());
-    return ProbabilisticOperatorProxy(*task_, index);
+    return ProbabilisticOperatorProxy(*op_space_, index);
 }
 
 ProbabilisticOperatorProxy
@@ -205,22 +223,9 @@ ProbabilisticOperatorsProxy::operator[](OperatorID id) const
     return (*this)[id.get_index()];
 }
 
-ProbabilisticTaskProxy::ProbabilisticTaskProxy(const ProbabilisticTask& task)
-    : PlanningTaskProxy(task)
+ProbabilisticOperatorsProxy ProbabilisticOperatorSpace::get_operators() const
 {
-}
-
-ProbabilisticOperatorsProxy ProbabilisticTaskProxy::get_operators() const
-{
-    return ProbabilisticOperatorsProxy(
-        *static_cast<const ProbabilisticTask*>(task));
-}
-
-const causal_graph::ProbabilisticCausalGraph&
-ProbabilisticTaskProxy::get_causal_graph() const
-{
-    return causal_graph::get_causal_graph(
-        static_cast<const ProbabilisticTask*>(task));
+    return ProbabilisticOperatorsProxy(*this);
 }
 
 } // namespace probfd

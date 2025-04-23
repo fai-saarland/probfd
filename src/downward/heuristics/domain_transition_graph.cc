@@ -11,10 +11,11 @@ using namespace std;
 
 namespace downward::domain_transition_graph {
 DTGFactory::DTGFactory(
-    const TaskProxy& task_proxy,
+    const AbstractTask& task,
     bool collect_transition_side_effects,
     const function<bool(int, int)>& pruning_condition)
-    : task_proxy(task_proxy)
+    : cost_function(task)
+    , task(task)
     , collect_transition_side_effects(collect_transition_side_effects)
     , pruning_condition(pruning_condition)
 {
@@ -26,7 +27,7 @@ DTGFactory::DTGs DTGFactory::build_dtgs()
 
     allocate_graphs_and_nodes(dtgs);
     initialize_index_structures(dtgs.size());
-    create_transitions(dtgs, task_proxy.get_variables());
+    create_transitions(dtgs, task.get_variables());
     simplify_transitions(dtgs);
     if (collect_transition_side_effects) collect_all_side_effects(dtgs);
     return dtgs;
@@ -34,7 +35,7 @@ DTGFactory::DTGs DTGFactory::build_dtgs()
 
 void DTGFactory::allocate_graphs_and_nodes(DTGs& dtgs)
 {
-    VariablesProxy variables = task_proxy.get_variables();
+    VariablesProxy variables = task.get_variables();
     dtgs.resize(variables.size());
     for (VariableProxy var : variables) {
         int var_id = var.get_id();
@@ -53,10 +54,10 @@ void DTGFactory::initialize_index_structures(int num_dtgs)
 
 void DTGFactory::create_transitions(DTGs& dtgs, const VariablesProxy& variables)
 {
-    for (OperatorProxy op : task_proxy.get_operators())
+    for (OperatorProxy op : task.get_operators())
         for (EffectProxy eff : op.get_effects())
             process_effect(variables, eff, op, dtgs);
-    for (AxiomProxy ax : task_proxy.get_axioms())
+    for (AxiomProxy ax : task.get_axioms())
         for (EffectProxy eff : ax.get_effects())
             process_effect(variables, eff, ax, dtgs);
 }
@@ -250,8 +251,8 @@ void DTGFactory::simplify_transitions(DTGs& dtgs)
 AxiomOrOperatorProxy
 DTGFactory::get_op_for_label(const ValueTransitionLabel& label)
 {
-    if (label.is_axiom) return task_proxy.get_axioms()[label.op_id];
-    return task_proxy.get_operators()[label.op_id];
+    if (label.is_axiom) return task.get_axioms()[label.op_id];
+    return task.get_operators()[label.op_id];
 }
 
 void DTGFactory::simplify_labels(vector<ValueTransitionLabel>& labels)
@@ -301,7 +302,8 @@ void DTGFactory::simplify_labels(vector<ValueTransitionLabel>& labels)
                     const ValueTransitionLabel& f_label =
                         old_labels[found->second];
                     AxiomOrOperatorProxy f_op = get_op_for_label(f_label);
-                    if (op.get_cost() >= f_op.get_cost()) {
+                    if (cost_function.get_operator_cost(op.get_id()) >=
+                        cost_function.get_operator_cost(f_op.get_id())) {
                         /* TODO: Depending on how clever we want to
                            be, we could prune based on the *adjusted*
                            cost for the respective heuristic instead.

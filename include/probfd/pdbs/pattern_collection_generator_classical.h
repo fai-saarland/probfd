@@ -34,9 +34,8 @@ public:
         std::shared_ptr<SubCollectionFinderFactory> finder_factory,
         downward::utils::Verbosity verbosity);
 
-    PatternCollectionInformation generate(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
+    PatternCollectionInformation
+    generate(const std::shared_ptr<ProbabilisticTask>& task) override;
 };
 
 } // namespace probfd::pdbs

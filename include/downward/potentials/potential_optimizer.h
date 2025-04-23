@@ -1,12 +1,16 @@
 #ifndef POTENTIALS_POTENTIAL_OPTIMIZER_H
 #define POTENTIALS_POTENTIAL_OPTIMIZER_H
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/lp/lp_solver.h"
 
 #include <memory>
 #include <vector>
+
+namespace downward {
+class AbstractTask;
+}
 
 namespace downward::potentials {
 class PotentialFunction;
@@ -39,7 +43,6 @@ class PotentialFunction;
 */
 class PotentialOptimizer {
     std::shared_ptr<AbstractTask> task;
-    TaskProxy task_proxy;
     lp::LPSolver lp_solver;
     const double max_potential;
     int num_lp_vars;

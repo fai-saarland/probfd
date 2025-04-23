@@ -66,8 +66,7 @@ AdditiveCartesianHeuristicFactory::AdditiveCartesianHeuristicFactory(
 
 std::unique_ptr<FDREvaluator>
 AdditiveCartesianHeuristicFactory::create_heuristic(
-    std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<FDRCostFunction>)
+    std::shared_ptr<ProbabilisticTask> task)
 {
     if (log_.is_at_least_normal()) {
         log_ << "Initializing additive Cartesian heuristic..." << endl;

@@ -11,6 +11,8 @@ public:
     virtual CostType get_operator_cost(int index) const = 0;
 };
 
+using OperatorIntCostFunction = OperatorCostFunction<int>;
+
 } // namespace downward
 
 #endif

@@ -1,6 +1,6 @@
 #include "probfd/task_utils/probabilistic_successor_generator_internals.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "probfd/task_state_space.h"
 #include "probfd/transition_tail.h"

@@ -32,9 +32,9 @@ SplitSelectorUnwanted::SplitSelectorUnwanted(int factor)
 }
 
 SplitSelectorRefinedness::SplitSelectorRefinedness(
-    const std::shared_ptr<ProbabilisticTask>& task,
+    std::shared_ptr<ProbabilisticTask> task,
     double factor)
-    : task_proxy_(*task)
+    : task_(task)
     , factor_(factor)
 {
 }
@@ -42,11 +42,10 @@ SplitSelectorRefinedness::SplitSelectorRefinedness(
 SplitSelectorHAdd::SplitSelectorHAdd(
     const std::shared_ptr<ProbabilisticTask>& task)
     : task_(task)
-    , task_proxy_(*task)
     , additive_heuristic_(create_additive_heuristic(task))
 {
     additive_heuristic_->compute_heuristic_for_cegar(
-        task_proxy_.get_initial_state());
+        task_->get_initial_state());
 }
 
 SplitSelectorHAdd::~SplitSelectorHAdd() = default;
@@ -69,9 +68,7 @@ const Split& SplitSelectorRandom::pick_split(
 {
     assert(!splits.empty());
 
-    if (splits.size() == 1) {
-        return splits[0];
-    }
+    if (splits.size() == 1) { return splits[0]; }
 
     return *rng_->choose(splits);
 }
@@ -91,7 +88,7 @@ double SplitSelectorRefinedness::rate_split(
     const Split& split) const
 {
     const int var_id = split.var_id;
-    double all_values = task_proxy_.get_variables()[var_id].get_domain_size();
+    double all_values = task_->get_variables()[var_id].get_domain_size();
     assert(all_values >= 2);
     double remaining_values = state.count(var_id);
     assert(2 <= remaining_values && remaining_values <= all_values);
@@ -115,9 +112,7 @@ int SplitSelectorMinHAdd::get_min_hadd_value(
     int min_hadd = numeric_limits<int>::max();
     for (int value : values) {
         const int hadd = get_hadd_value(var_id, value);
-        if (hadd < min_hadd) {
-            min_hadd = hadd;
-        }
+        if (hadd < min_hadd) { min_hadd = hadd; }
     }
     return min_hadd;
 }
@@ -129,9 +124,7 @@ int SplitSelectorMaxHAdd::get_max_hadd_value(
     int max_hadd = -1;
     for (int value : values) {
         const int hadd = get_hadd_value(var_id, value);
-        if (hadd > max_hadd) {
-            max_hadd = hadd;
-        }
+        if (hadd > max_hadd) { max_hadd = hadd; }
     }
     return max_hadd;
 }

@@ -23,7 +23,7 @@ class RandomNumberGenerator;
 } // namespace utils
 
 namespace probfd {
-class ProbabilisticTaskProxy;
+class ProbabilisticTask;
 }
 
 namespace probfd::pdbs {
@@ -41,8 +41,7 @@ namespace probfd::pdbs::cegar {
 
 extern void run_cegar_loop(
     ProjectionTransformation& transformation,
-    ProbabilisticTaskProxy task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    const std::shared_ptr<ProbabilisticTask>& task,
     value_t convergence_epsilon,
     FlawFindingStrategy& flaw_strategy,
     std::unordered_set<int> blacklisted_variables,

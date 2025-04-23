@@ -2,19 +2,18 @@
 #include "probfd/cartesian_abstractions/abstract_state.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include "downward/utils/logging.h"
 
 #include "downward/task_utils/task_properties.h"
 
 #include "downward/abstract_task.h"
-#include "downward/task_proxy.h"
 
 #include <algorithm>
 #include <cassert>
 #include <map>
-
+#include <ranges>
 #include <ostream>
 #include <type_traits>
 #include <unordered_set>
@@ -33,7 +32,7 @@ get_preconditions_by_operator(const ProbabilisticOperatorsProxy& ops)
     for (auto op : ops) {
         vector<FactPair> preconditions =
             ::task_properties::get_fact_pairs(op.get_preconditions());
-        sort(preconditions.begin(), preconditions.end());
+        std::ranges::sort(preconditions);
         preconditions_by_operator.push_back(std::move(preconditions));
     }
     return preconditions_by_operator;
@@ -97,7 +96,8 @@ static vector<vector<value_t>> get_probabilities_by_operator_and_outcome(
 
 static int lookup_value(const vector<FactPair>& facts, int var)
 {
-    assert(is_sorted(facts.begin(), facts.end()));
+    assert(std::ranges::is_sorted(facts));
+
     for (const FactPair& fact : facts) {
         if (fact.var == var) {
             return fact.value;
@@ -105,6 +105,7 @@ static int lookup_value(const vector<FactPair>& facts, int var)
             return UNDEFINED;
         }
     }
+
     return UNDEFINED;
 }
 

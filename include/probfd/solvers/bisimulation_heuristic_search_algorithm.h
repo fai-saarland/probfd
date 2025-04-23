@@ -10,7 +10,6 @@
 #include "probfd/quotients/quotient_system.h"
 
 #include "probfd/mdp_algorithm.h"
-#include "probfd/task_proxy.h"
 
 #include "downward/utils/timer.h"
 
@@ -30,7 +29,6 @@ protected:
     using QAction = downward::OperatorID;
 
     const std::shared_ptr<ProbabilisticTask> task_;
-    const std::shared_ptr<FDRCostFunction> task_cost_function_;
 
     const std::string algorithm_name_;
 
@@ -41,7 +39,6 @@ protected:
 public:
     BisimulationBasedHeuristicSearchAlgorithm(
         std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function,
         std::string algorithm_name,
         std::shared_ptr<MDPAlgorithm<QState, QAction>> algorithm);
 

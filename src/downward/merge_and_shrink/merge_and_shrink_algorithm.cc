@@ -194,7 +194,7 @@ bool MergeAndShrinkAlgorithm::ran_out_of_time(
 
 void MergeAndShrinkAlgorithm::main_loop(
     FactoredTransitionSystem& fts,
-    const TaskProxy& task_proxy)
+    const AbstractTask& task)
 {
     utils::CountdownTimer timer(main_loop_max_time);
     if (log.is_at_least_normal()) {
@@ -215,10 +215,10 @@ void MergeAndShrinkAlgorithm::main_loop(
     }
 
     if (label_reduction) {
-        label_reduction->initialize(task_proxy);
+        label_reduction->initialize(task);
     }
     unique_ptr<MergeStrategy> merge_strategy =
-        merge_strategy_factory->compute_merge_strategy(task_proxy, fts);
+        merge_strategy_factory->compute_merge_strategy(task, fts);
     merge_strategy_factory = nullptr;
 
     auto log_main_loop_progress = [&timer, this](const string& msg) {
@@ -362,7 +362,7 @@ void MergeAndShrinkAlgorithm::main_loop(
 
 FactoredTransitionSystem
 MergeAndShrinkAlgorithm::build_factored_transition_system(
-    const TaskProxy& task_proxy)
+    const AbstractTask& task)
 {
     if (starting_peak_memory) {
         cerr << "Calling build_factored_transition_system twice is not "
@@ -377,7 +377,7 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
         log << "Running merge-and-shrink algorithm..." << endl;
     }
 
-    task_properties::verify_no_axioms(task_proxy);
+    task_properties::verify_no_axioms(task);
     dump_options();
     warn_on_unusual_options();
 
@@ -394,7 +394,7 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
         merge_strategy_factory->requires_goal_distances() ||
         prune_irrelevant_states;
     FactoredTransitionSystem fts = create_factored_transition_system(
-        task_proxy,
+        task,
         compute_init_distances,
         compute_goal_distances,
         log);
@@ -435,7 +435,7 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     }
 
     if (!unsolvable && main_loop_max_time > 0) {
-        main_loop(fts, task_proxy);
+        main_loop(fts, task);
     }
 
     if (log.is_at_least_normal()) {

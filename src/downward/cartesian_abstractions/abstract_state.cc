@@ -3,11 +3,9 @@
 #include "downward/cartesian_abstractions/refinement_hierarchy.h"
 #include "downward/cartesian_abstractions/utils.h"
 
-#include "downward/utils/memory.h"
+#include "downward/classical_operator_space.h"
 
-#include <algorithm>
 #include <cassert>
-#include <unordered_set>
 
 using namespace std;
 
@@ -64,7 +62,7 @@ AbstractState::split_domain(int var, const vector<int>& wanted) const
 CartesianSet AbstractState::regress(const OperatorProxy& op) const
 {
     CartesianSet regression = cartesian_set;
-    for (EffectProxy effect : op.get_effects()) {
+    for (auto effect : op.get_effects()) {
         regression.add_all(effect.get_fact().var);
     }
     for (const auto [var, value] : op.get_preconditions()) {

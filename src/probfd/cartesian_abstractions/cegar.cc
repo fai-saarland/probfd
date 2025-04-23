@@ -14,7 +14,6 @@
 #include "probfd/utils/guards.h"
 
 #include "probfd/probabilistic_task.h"
-#include "probfd/task_proxy.h"
 
 #include "downward/cartesian_abstractions/refinement_hierarchy.h"
 #include "downward/cartesian_abstractions/utils.h"
@@ -25,7 +24,7 @@
 #include "downward/utils/memory.h"
 #include "downward/utils/timer.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <cassert>
 #include <iostream>
@@ -68,8 +67,7 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
              << max_non_looping_transitions_ << endl;
     }
 
-    const ProbabilisticTaskProxy task_proxy(*task);
-    const VariablesProxy variables = task_proxy.get_variables();
+    const VariablesProxy variables = task->get_variables();
     const std::vector<int> domain_sizes(
         ::cartesian_abstractions::get_domain_sizes(variables));
 
@@ -86,8 +84,8 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
     std::unique_ptr<RefinementHierarchy> refinement_hierarchy(
         new RefinementHierarchy());
     std::unique_ptr<CartesianAbstraction> abstraction(new CartesianAbstraction(
-        task_proxy,
-        task_properties::get_operator_costs(task_proxy),
+        *task,
+        task_properties::get_operator_costs(*task),
         log_));
     std::unique_ptr<CartesianHeuristic> heuristic(new CartesianHeuristic());
 
@@ -100,9 +98,9 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
       unreachable facts, but calling it unconditionally for subtasks
       with one goal doesn't hurt and simplifies the implementation.
     */
-    if (task_proxy.get_goals().size() == 1) {
+    if (task->get_goals().size() == 1) {
         separate_facts_unreachable_before_goal(
-            task_proxy,
+            *task,
             *flaw_generator,
             *refinement_hierarchy,
             *abstraction,
@@ -115,7 +113,7 @@ CEGAR::run_refinement_loop(const shared_ptr<ProbabilisticTask>& task)
             timer.throw_if_expired();
 
             std::optional flaw = flaw_generator->generate_flaw(
-                task_proxy,
+                *task,
                 domain_sizes,
                 *abstraction,
                 &abstraction->get_initial_state(),
@@ -210,7 +208,7 @@ bool CEGAR::may_keep_refining(const CartesianAbstraction& abstraction) const
 }
 
 void CEGAR::separate_facts_unreachable_before_goal(
-    ProbabilisticTaskProxy task_proxy,
+    const ProbabilisticTask& task,
     FlawGenerator& flaw_generator,
     RefinementHierarchy& refinement_hierarchy,
     CartesianAbstraction& abstraction,
@@ -219,12 +217,12 @@ void CEGAR::separate_facts_unreachable_before_goal(
 {
     assert(abstraction.get_goals().size() == 1);
     assert(abstraction.get_num_states() == 1);
-    assert(task_proxy.get_goals().size() == 1);
+    assert(task.get_goals().size() == 1);
 
-    FactPair goal = task_proxy.get_goals()[0];
+    FactPair goal = task.get_goals()[0];
     HashSet<FactPair> reachable_facts =
-        get_relaxed_possible_before(task_proxy, goal);
-    for (VariableProxy var : task_proxy.get_variables()) {
+        get_relaxed_possible_before(task, goal);
+    for (VariableProxy var : task.get_variables()) {
         if (!may_keep_refining(abstraction)) break;
         int var_id = var.get_id();
         vector<int> unreachable_values;

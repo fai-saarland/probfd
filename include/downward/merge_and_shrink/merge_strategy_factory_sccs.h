@@ -27,7 +27,7 @@ public:
         const std::shared_ptr<MergeSelector>& merge_selector,
         utils::Verbosity verbosity);
     virtual std::unique_ptr<MergeStrategy> compute_merge_strategy(
-        const TaskProxy& task_proxy,
+        const AbstractTask& task,
         const FactoredTransitionSystem& fts) override;
     virtual bool requires_init_distances() const override;
     virtual bool requires_goal_distances() const override;

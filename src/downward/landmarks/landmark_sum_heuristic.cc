@@ -17,14 +17,12 @@ using namespace std;
 namespace downward::landmarks {
 static bool are_dead_ends_reliable(
     const shared_ptr<LandmarkFactory>& lm_factory,
-    const TaskProxy& task_proxy)
+    const AbstractTask& task)
 {
-    if (task_properties::has_axioms(task_proxy)) {
-        return false;
-    }
+    if (task_properties::has_axioms(task)) { return false; }
 
     if (!lm_factory->supports_conditional_effects() &&
-        task_properties::has_conditional_effects(task_proxy)) {
+        task_properties::has_conditional_effects(task)) {
         return false;
     }
 
@@ -49,7 +47,7 @@ LandmarkSumHeuristic::LandmarkSumHeuristic(
           cache_estimates,
           description,
           verbosity)
-    , dead_ends_reliable(are_dead_ends_reliable(lm_factory, task_proxy))
+    , dead_ends_reliable(are_dead_ends_reliable(lm_factory, *transformed_task))
 {
     if (log.is_at_least_normal()) {
         log << "Initializing landmark sum heuristic..." << endl;
@@ -88,8 +86,9 @@ int LandmarkSumHeuristic::get_min_cost_of_achievers(
 {
     int min_cost = numeric_limits<int>::max();
     for (int id : achievers) {
-        OperatorProxy op = get_operator_or_axiom(task_proxy, id);
-        min_cost = min(min_cost, op.get_cost());
+        OperatorProxy op = get_operator_or_axiom(*transformed_task, id);
+        min_cost =
+            min(min_cost, transformed_task->get_operator_cost(op.get_id()));
     }
     return min_cost;
 }
@@ -109,7 +108,9 @@ void LandmarkSumHeuristic::compute_landmark_costs()
       in the achiever vector, we instead just compute the minimum cost
       over all operators and use this cost for all derived landmarks.
     */
-    int min_operator_cost = task_properties::get_min_operator_cost(task_proxy);
+    int min_operator_cost = task_properties::get_min_operator_cost(
+        transformed_task->get_partial_operators(),
+        *transformed_task);
     min_first_achiever_costs.reserve(lm_graph->get_num_landmarks());
     min_possible_achiever_costs.reserve(lm_graph->get_num_landmarks());
     for (auto& node : lm_graph->get_nodes()) {
@@ -154,4 +155,4 @@ bool LandmarkSumHeuristic::dead_ends_are_reliable() const
     return dead_ends_reliable;
 }
 
-} // namespace landmarks
+} // namespace downward::landmarks

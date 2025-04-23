@@ -8,10 +8,10 @@
 
 #include "probfd/utils/guards.h"
 
-#include "probfd/progress_report.h"
-
 #include "probfd/heuristic.h"
 #include "probfd/mdp.h"
+#include "probfd/probabilistic_task.h"
+#include "probfd/progress_report.h"
 
 #include "downward/task_utils/task_properties.h"
 
@@ -56,11 +56,13 @@ struct I2Dual::IDualData {
     {
         return status == NEW;
     }
+
     [[nodiscard]]
     bool is_terminal() const
     {
         return status == TERMINAL;
     }
+
     [[nodiscard]]
     bool is_frontier() const
     {
@@ -89,19 +91,19 @@ struct I2Dual::IDualData {
 
 I2Dual::I2Dual(
     std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<FDRCostFunction> task_cost_function,
     bool hpom_enabled,
     bool incremental_updates,
     LPSolverType solver_type,
     double fp_epsilon)
-    : task_proxy_(*task)
-    , task_cost_function_(std::move(task_cost_function))
+    : task_(*task)
     , hpom_enabled_(hpom_enabled)
     , incremental_hpom_updates_(incremental_updates)
     , lp_solver_(solver_type)
     , fp_epsilon_(fp_epsilon)
 {
 }
+
+I2Dual::~I2Dual() = default;
 
 void I2Dual::print_statistics(std::ostream& out) const
 {
@@ -122,8 +124,8 @@ Interval I2Dual::solve(
     std::cout << "Initializing I2-Dual..." << std::endl;
 
     if (hpom_enabled_) {
-        downward::task_properties::verify_no_axioms(task_proxy_);
-        probfd::task_properties::verify_no_conditional_effects(task_proxy_);
+        downward::task_properties::verify_no_axioms(task_);
+        probfd::task_properties::verify_no_conditional_effects(task_);
     }
 
     storage::PerStateStorage<IDualData> idual_data;
@@ -205,9 +207,7 @@ Interval I2Dual::solve(
 
                 mdp.generate_action_transitions(state, act, succs_);
 
-                if (succs_.non_source_probability == 0) {
-                    continue;
-                }
+                if (succs_.non_source_probability == 0) { continue; }
 
                 ClearGuard _guard(var_constraint_ids, var_constraint_coefs);
 
@@ -359,14 +359,11 @@ void I2Dual::prepare_lp()
 
 void I2Dual::prepare_hpom(LinearProgram& lp)
 {
-    if (!hpom_enabled_) {
-        return;
-    }
+    if (!hpom_enabled_) { return; }
 
     TimerScope scope(statistics_.hpom_timer);
     occupation_measures::HPOMGenerator::generate_hpom_lp(
-        task_proxy_,
-        *task_cost_function_,
+        task_,
         lp,
         offset_);
 
@@ -381,9 +378,7 @@ void I2Dual::update_hpom_constraints_expanded(
     storage::PerStateStorage<IDualData>& data,
     const std::vector<StateID>& expanded)
 {
-    if (!hpom_enabled_ || !incremental_hpom_updates_) {
-        return;
-    }
+    if (!hpom_enabled_ || !incremental_hpom_updates_) { return; }
 
     if (hpom_initialized_) {
         TimerScope scope(statistics_.hpom_timer);
@@ -404,9 +399,7 @@ void I2Dual::update_hpom_constraints_frontier(
     const std::vector<StateID>& frontier,
     const unsigned start)
 {
-    if (!hpom_enabled_) {
-        return;
-    }
+    if (!hpom_enabled_) { return; }
 
     TimerScope scope(statistics_.hpom_timer);
 
@@ -426,12 +419,10 @@ void I2Dual::remove_fringe_state_from_hpom(
     const IDualData& data,
     downward::named_vector::NamedVector<LPConstraint>& constraints) const
 {
-    for (VariableProxy var : task_proxy_.get_variables()) {
+    for (VariableProxy var : task_.get_variables()) {
         const int val = state[var];
         LPConstraint& c = constraints[offset_[var.get_id()] + val];
-        for (const auto& om : data.incoming) {
-            c.remove(om.second);
-        }
+        for (const auto& om : data.incoming) { c.remove(om.second); }
     }
 }
 
@@ -440,12 +431,10 @@ void I2Dual::add_fringe_state_to_hpom(
     const IDualData& data,
     downward::named_vector::NamedVector<LPConstraint>& constraints) const
 {
-    for (VariableProxy var : task_proxy_.get_variables()) {
+    for (VariableProxy var : task_.get_variables()) {
         const int val = state[var];
         LPConstraint& c = constraints[offset_[var.get_id()] + val];
-        for (const auto& om : data.incoming) {
-            c.insert(om.second, om.first);
-        }
+        for (const auto& om : data.incoming) { c.insert(om.second, om.first); }
     }
 }
 

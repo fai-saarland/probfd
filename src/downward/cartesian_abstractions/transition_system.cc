@@ -4,10 +4,12 @@
 #include "downward/cartesian_abstractions/transition.h"
 #include "downward/cartesian_abstractions/utils.h"
 
-#include "downward/task_proxy.h"
-
 #include "downward/task_utils/task_properties.h"
+
+#include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
+
+#include "downward/state.h"
 
 #include <algorithm>
 #include <map>

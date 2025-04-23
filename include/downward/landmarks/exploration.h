@@ -3,13 +3,18 @@
 
 #include "downward/landmarks/util.h"
 
-#include "downward/task_proxy.h"
+#include "downward/fact_pair.h"
+#include "downward/state.h"
 
 #include "downward/algorithms/priority_queues.h"
 
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+namespace downward {
+class AbstractTask;
+}
 
 namespace downward::utils {
 class LogProxy;
@@ -56,7 +61,7 @@ struct UnaryOperator {
 };
 
 class Exploration {
-    TaskProxy task_proxy;
+    const AbstractTask& task;
 
     std::vector<UnaryOperator> unary_operators;
     std::vector<std::vector<Proposition>> propositions;
@@ -71,7 +76,7 @@ class Exploration {
     void enqueue_if_necessary(Proposition* prop);
 
 public:
-    Exploration(const TaskProxy& task_proxy, utils::LogProxy& log);
+    Exploration(const AbstractTask& task, utils::LogProxy& log);
 
     /*
       Computes the reachability of each proposition when excluding

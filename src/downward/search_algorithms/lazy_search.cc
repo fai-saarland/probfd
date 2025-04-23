@@ -119,9 +119,9 @@ void LazySearch::generate_successors()
     statistics.inc_generated(successor_operators.size());
 
     for (OperatorID op_id : successor_operators) {
-        OperatorProxy op = task_proxy.get_operators()[op_id];
-        int new_g = current_g + get_adjusted_cost(op);
-        int new_real_g = current_real_g + op.get_cost();
+        OperatorProxy op = task->get_operators()[op_id];
+        int new_g = current_g + get_adjusted_cost(op, *task);
+        int new_real_g = current_real_g + task->get_operator_cost(op.get_id());
         bool is_preferred = preferred_operators.contains(op_id);
         if (new_real_g < bound) {
             EvaluationContext new_eval_context(
@@ -150,7 +150,7 @@ SearchStatus LazySearch::fetch_next_state()
     State current_predecessor =
         state_registry.lookup_state(current_predecessor_id);
     OperatorProxy current_operator =
-        task_proxy.get_operators()[current_operator_id];
+        task->get_operators()[current_operator_id];
     assert(
         task_properties::is_applicable(current_operator, current_predecessor));
     current_state = state_registry.get_successor_state(
@@ -158,8 +158,9 @@ SearchStatus LazySearch::fetch_next_state()
         current_operator);
 
     SearchNode pred_node = search_space.get_node(current_predecessor);
-    current_g = pred_node.get_g() + get_adjusted_cost(current_operator);
-    current_real_g = pred_node.get_real_g() + current_operator.get_cost();
+    current_g = pred_node.get_g() + get_adjusted_cost(current_operator, *task);
+    current_real_g = pred_node.get_real_g() +
+                     task->get_operator_cost(current_operator.get_id());
 
     /*
       Note: We mark the node in current_eval_context as "preferred"
@@ -217,18 +218,20 @@ SearchStatus LazySearch::step()
                     state_registry.lookup_state(current_predecessor_id);
                 SearchNode parent_node = search_space.get_node(parent_state);
                 OperatorProxy current_operator =
-                    task_proxy.get_operators()[current_operator_id];
+                    task->get_operators()[current_operator_id];
                 if (reopen) {
                     node.reopen(
                         parent_node,
                         current_operator,
-                        get_adjusted_cost(current_operator));
+                        *task,
+                        get_adjusted_cost(current_operator, *task));
                     statistics.inc_reopened();
                 } else {
                     node.open(
                         parent_node,
                         current_operator,
-                        get_adjusted_cost(current_operator));
+                        *task,
+                        get_adjusted_cost(current_operator, *task));
                 }
             }
             node.close();

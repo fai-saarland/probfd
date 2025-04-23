@@ -14,14 +14,19 @@ CostAdaptedTask::CostAdaptedTask(
     OperatorCost cost_type)
     : DelegatingTask(parent)
     , cost_type(cost_type)
-    , parent_is_unit_cost(task_properties::is_unit_cost(TaskProxy(*parent)))
+    , parent_is_unit_cost(
+          task_properties::is_unit_cost(parent->get_operators(), *parent))
 {
 }
 
 int CostAdaptedTask::get_operator_cost(int index) const
 {
     OperatorProxy op(*parent, index);
-    return get_adjusted_action_cost(op, cost_type, parent_is_unit_cost);
+    return get_adjusted_action_cost(
+        op,
+        *parent,
+        cost_type,
+        parent_is_unit_cost);
 }
 
-} // namespace tasks
+} // namespace downward::tasks

@@ -13,8 +13,6 @@
 
 #include "probfd/merge_and_shrink/label_reduction.h"
 
-#include "probfd/task_proxy.h"
-
 #include "probfd/json/json.h"
 
 #include "probfd/task_cost_function.h"
@@ -38,10 +36,8 @@ TEST(MnSTests, test_atomic_fts)
 {
     BlocksworldTask task(1, {{0}}, {{0}});
 
-    ProbabilisticTaskProxy task_proxy(task);
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
-    FactoredTransitionSystem fts =
-        create_factored_transition_system(task_proxy, log);
+    FactoredTransitionSystem fts = create_factored_transition_system(task, log);
 
     ASSERT_EQ(fts.get_size(), task.get_num_variables())
         << "Unexpected number of atomic factors!";
@@ -62,10 +58,8 @@ TEST(MnSTests, test_atomic_fts2)
 {
     BlocksworldTask task(2, {{0, 1}}, {{0, 1}});
 
-    ProbabilisticTaskProxy task_proxy(task);
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
-    FactoredTransitionSystem fts =
-        create_factored_transition_system(task_proxy, log);
+    FactoredTransitionSystem fts = create_factored_transition_system(task, log);
 
     ASSERT_EQ(fts.get_size(), task.get_num_variables())
         << "Unexpected number of atomic factors!";
@@ -86,10 +80,8 @@ TEST(MnSTests, test_atomic_fts3)
 {
     BlocksworldTask task(3, {{0, 1, 2}}, {{0, 1, 2}});
 
-    ProbabilisticTaskProxy task_proxy(task);
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
-    FactoredTransitionSystem fts =
-        create_factored_transition_system(task_proxy, log);
+    FactoredTransitionSystem fts = create_factored_transition_system(task, log);
 
     ASSERT_EQ(fts.get_size(), task.get_num_variables())
         << "Unexpected number of atomic factors!";
@@ -131,10 +123,8 @@ TEST(MnSTests, test_merge2)
 {
     BlocksworldTask task(3, {{0, 1, 2}}, {{0, 1, 2}});
 
-    ProbabilisticTaskProxy task_proxy(task);
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
-    FactoredTransitionSystem fts =
-        create_factored_transition_system(task_proxy, log);
+    FactoredTransitionSystem fts = create_factored_transition_system(task, log);
 
     ASSERT_EQ(fts.get_size(), task.get_num_variables())
         << "Unexpected number of atomic factors!";
@@ -433,10 +423,8 @@ TEST(MnSTests, test_label_reduction)
 {
     BlocksworldTask task(2, {{0, 1}}, {{0, 1}}, 1, 1, 1, 1);
 
-    ProbabilisticTaskProxy task_proxy(task);
     utils::LogProxy log(std::make_shared<utils::Log>(utils::Verbosity::SILENT));
-    FactoredTransitionSystem fts =
-        create_factored_transition_system(task_proxy, log);
+    FactoredTransitionSystem fts = create_factored_transition_system(task, log);
 
     int index =
         fts.merge(
@@ -457,7 +445,7 @@ TEST(MnSTests, test_label_reduction)
         LabelReductionSystemOrder::REGULAR,
         42);
 
-    label_reduction.initialize(task_proxy);
+    label_reduction.initialize(task);
 
     auto& ts = fts.get_transition_system(index);
     std::vector old_distances(ts.get_size(), -INFINITE_VALUE);

@@ -33,16 +33,20 @@ CGHeuristic::CGHeuristic(
     , cache_hits(0)
     , cache_misses(0)
     , helpful_transition_extraction_counter(0)
-    , min_action_cost(task_properties::get_min_operator_cost(task_proxy))
+    , min_action_cost(
+          task_properties::get_min_operator_cost(
+              transformed_task->get_operators(),
+              *transformed_task))
 {
     if (log.is_at_least_normal()) {
         log << "Initializing causal graph heuristic..." << endl;
     }
 
     if (max_cache_size > 0)
-        cache = std::make_unique<CGCache>(task_proxy, max_cache_size, log);
+        cache =
+            std::make_unique<CGCache>(*transformed_task, max_cache_size, log);
 
-    unsigned int num_vars = task_proxy.get_variables().size();
+    unsigned int num_vars = transformed_task->get_variables().size();
     prio_queues.reserve(num_vars);
     for (size_t i = 0; i < num_vars; ++i)
         prio_queues.push_back(std::make_unique<ValueNodeQueue>());
@@ -50,7 +54,7 @@ CGHeuristic::CGHeuristic(
     function<bool(int, int)> pruning_condition = [](int dtg_var, int cond_var) {
         return dtg_var <= cond_var;
     };
-    DTGFactory factory(task_proxy, false, pruning_condition);
+    DTGFactory factory(*transformed_task, false, pruning_condition);
     transition_graphs = factory.build_dtgs();
 }
 
@@ -84,7 +88,7 @@ int CGHeuristic::compute_heuristic(const State& ancestor_state)
     setup_domain_transition_graphs();
 
     int heuristic = 0;
-    for (const auto [var, value] : task_proxy.get_goals()) {
+    for (const auto [var, value] : transformed_task->get_goals()) {
         DomainTransitionGraph* dtg = transition_graphs[var].get();
         int cost_for_goal = get_transition_cost(state, dtg, state[var], value);
         if (cost_for_goal == numeric_limits<int>::max()) {
@@ -180,10 +184,13 @@ int CGHeuristic::get_transition_cost(
                     AxiomOrOperatorProxy op =
                         label.is_axiom
                             ? AxiomOrOperatorProxy(
-                                  task_proxy.get_axioms()[label.op_id])
+                                  transformed_task->get_axioms()[label.op_id])
                             : AxiomOrOperatorProxy(
-                                  task_proxy.get_operators()[label.op_id]);
-                    int new_distance = source_distance + op.get_cost();
+                                  transformed_task
+                                      ->get_operators()[label.op_id]);
+                    int new_distance =
+                        source_distance +
+                        transformed_task->get_operator_cost(op.get_id());
                     for (LocalAssignment& assignment : label.precond) {
                         if (new_distance >= *target_distance_ptr)
                             break; // We already know this isn't an improved
@@ -310,10 +317,12 @@ void CGHeuristic::mark_helpful_transitions(
 
     AxiomOrOperatorProxy op =
         helpful->is_axiom
-            ? AxiomOrOperatorProxy(task_proxy.get_axioms()[helpful->op_id])
-            : AxiomOrOperatorProxy(task_proxy.get_operators()[helpful->op_id]);
-    if (cost == op.get_cost() && !op.is_axiom() &&
-        task_properties::is_applicable(op, state)) {
+            ? AxiomOrOperatorProxy(
+                  transformed_task->get_axioms()[helpful->op_id])
+            : AxiomOrOperatorProxy(
+                  transformed_task->get_operators()[helpful->op_id]);
+    if (cost == transformed_task->get_operator_cost(op.get_id()) &&
+        !op.is_axiom() && task_properties::is_applicable(op, state)) {
         // Transition immediately applicable, all preconditions true.
         set_preferred(static_cast<OperatorProxy>(op));
     } else {

@@ -5,7 +5,7 @@
 #include <vector>
 
 namespace downward {
-class TaskProxy;
+class AbstractTask;
 }
 
 namespace downward::utils {
@@ -27,7 +27,7 @@ public:
     virtual std::pair<int, int> select_merge(
         const FactoredTransitionSystem &fts,
         const std::vector<int> &indices_subset = std::vector<int>()) const = 0;
-    virtual void initialize(const TaskProxy &task_proxy) = 0;
+    virtual void initialize(const AbstractTask &task) = 0;
     void dump_options(utils::LogProxy &log) const;
     virtual bool requires_init_distances() const = 0;
     virtual bool requires_goal_distances() const = 0;

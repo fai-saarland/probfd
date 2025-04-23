@@ -4,10 +4,11 @@
 #include "downward/landmarks/landmark_graph.h"
 #include "downward/landmarks/util.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/classical_operator_space.h"
+#include "downward/axiom_utils.h"
 
 #include "downward/utils/logging.h"
-#include "downward/utils/memory.h"
 #include "downward/utils/timer.h"
 
 #include <fstream>
@@ -37,11 +38,6 @@ LandmarkFactory::LandmarkFactory(utils::Verbosity verbosity)
 
   This solution remains temporary as long as the question of when and
   how to reuse landmark graphs is open.
-
-  As all heuristics will work on task transformations in the future,
-  this function will also get access to a TaskProxy. Then we need to
-  ensure that the TaskProxy used by the Exploration object is the same
-  as the TaskProxy object passed to this function.
 */
 shared_ptr<LandmarkGraph>
 LandmarkFactory::compute_lm_graph(const shared_ptr<AbstractTask>& task)
@@ -60,8 +56,7 @@ LandmarkFactory::compute_lm_graph(const shared_ptr<AbstractTask>& task)
 
     lm_graph = make_shared<LandmarkGraph>();
 
-    TaskProxy task_proxy(*task);
-    generate_operators_lookups(task_proxy);
+    generate_operators_lookups(*task);
     generate_landmarks(task);
 
     if (log.is_at_least_normal()) {
@@ -82,7 +77,7 @@ LandmarkFactory::compute_lm_graph(const shared_ptr<AbstractTask>& task)
     }
 
     if (log.is_at_least_debug()) {
-        dump_landmark_graph(task_proxy, *lm_graph, log);
+        dump_landmark_graph(*task, *lm_graph, log);
     }
     return lm_graph;
 }
@@ -142,28 +137,28 @@ void LandmarkFactory::discard_all_orderings()
     }
 }
 
-void LandmarkFactory::generate_operators_lookups(const TaskProxy& task_proxy)
+void LandmarkFactory::generate_operators_lookups(const AbstractTask& task)
 {
     /* Build datastructures for efficient landmark computation. Map propositions
     to the operators that achieve them or have them as preconditions */
 
-    VariablesProxy variables = task_proxy.get_variables();
+    VariablesProxy variables = task.get_variables();
     operators_eff_lookup.resize(variables.size());
     for (VariableProxy var : variables) {
         operators_eff_lookup[var.get_id()].resize(var.get_domain_size());
     }
-    OperatorsProxy operators = task_proxy.get_operators();
+    OperatorsProxy operators = task.get_operators();
     for (OperatorProxy op : operators) {
-        const EffectsProxy effects = op.get_effects();
-        for (EffectProxy effect : effects) {
+        const auto effects = op.get_effects();
+        for (auto effect : effects) {
             const FactPair effect_fact = effect.get_fact();
             operators_eff_lookup[effect_fact.var][effect_fact.value].push_back(
                 get_operator_or_axiom_id(op));
         }
     }
-    for (AxiomProxy axiom : task_proxy.get_axioms()) {
-        const EffectsProxy effects = axiom.get_effects();
-        for (EffectProxy effect : effects) {
+    for (auto axiom : task.get_axioms()) {
+        const auto effects = axiom.get_effects();
+        for (auto effect : effects) {
             const FactPair effect_fact = effect.get_fact();
             operators_eff_lookup[effect_fact.var][effect_fact.value].push_back(
                 get_operator_or_axiom_id(axiom));

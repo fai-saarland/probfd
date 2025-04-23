@@ -1,9 +1,9 @@
 #include "probfd/cartesian_abstractions/abstract_state.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include "downward/abstract_task.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <cassert>
 #include <ostream>

@@ -1,7 +1,7 @@
 #include "probfd/task_state_space.h"
 
 #include "probfd/distribution.h"
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 #include "probfd/transition_tail.h"
 #include "probfd/type_traits.h"
 
@@ -30,9 +30,9 @@ void TaskStateSpace::Statistics::print(std::ostream& out) const
 TaskStateSpace::TaskStateSpace(
     std::shared_ptr<ProbabilisticTask> task,
     std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators)
-    : task_proxy_(*task)
-    , state_registry_(task_proxy_)
-    , gen_(task_proxy_)
+    : task_(std::move(task))
+    , state_registry_(*task_)
+    , gen_(*task_)
     , notify_(std::move(path_dependent_evaluators))
 {
 }
@@ -116,7 +116,7 @@ void TaskStateSpace::compute_successor_dist(
     OperatorID op_id,
     SuccessorDistribution& successor_dist)
 {
-    const ProbabilisticOperatorProxy op = task_proxy_.get_operators()[op_id];
+    const ProbabilisticOperatorProxy op = task_->get_operators()[op_id];
     const auto outcomes = op.get_outcomes();
     const size_t num_outcomes = outcomes.size();
     successor_dist.non_source_successor_dist.reserve(num_outcomes);

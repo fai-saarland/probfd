@@ -48,16 +48,12 @@ ProbabilityAwarePDBHeuristicFactory::ProbabilityAwarePDBHeuristicFactory(
 
 std::unique_ptr<FDREvaluator>
 ProbabilityAwarePDBHeuristicFactory::create_heuristic(
-    std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<FDRCostFunction> task_cost_function)
+    std::shared_ptr<ProbabilisticTask> task)
 {
-    const ProbabilisticTaskProxy task_proxy(*task);
-
     const utils::Timer construction_timer;
 
     const utils::Timer generator_timer;
-    auto pattern_collection_info =
-        generator_->generate(task, task_cost_function);
+    auto pattern_collection_info = generator_->generate(task);
     const double generator_time = generator_timer();
 
     std::vector<Pattern> patterns = pattern_collection_info.get_patterns();
@@ -77,7 +73,7 @@ ProbabilityAwarePDBHeuristicFactory::create_heuristic(
             patterns,
             pdbs,
             subcollections,
-            static_cast<int>(task_proxy.get_variables().size()),
+            static_cast<int>(task->get_variables().size()),
             max_time_dominance_pruning_,
             log_);
 
@@ -143,7 +139,7 @@ ProbabilityAwarePDBHeuristicFactory::create_heuristic(
         std::move(pdbs),
         std::move(subcollections),
         std::move(subcollection_finder),
-        task_cost_function->get_non_goal_termination_cost());
+        task->get_non_goal_termination_cost());
 }
 
 } // namespace probfd::heuristics

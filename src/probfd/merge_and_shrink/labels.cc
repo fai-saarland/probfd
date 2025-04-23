@@ -1,14 +1,16 @@
 #include "probfd/merge_and_shrink/labels.h"
 
+#include "downward/utils/collections.h"
 #include "probfd/algorithms/types.h"
 
-#include "probfd/task_proxy.h"
-
 #include "probfd/json/json.h"
+
+#include "probfd/probabilistic_operator_space.h"
 
 #include "downward/utils/logging.h"
 
 #include <cassert>
+#include <downward/operator_cost_function.h>
 #include <ranges>
 
 using namespace std;
@@ -22,8 +24,8 @@ LabelInfo::LabelInfo(const json::JsonObject& object)
 {
 }
 
-LabelInfo::LabelInfo(ProbabilisticOperatorProxy op)
-    : cost(op.get_cost())
+LabelInfo::LabelInfo(value_t cost, ProbabilisticOperatorProxy op)
+    : cost(cost)
 {
     for (ProbabilisticOutcomeProxy outcome : op.get_outcomes()) {
         probabilities.push_back(outcome.get_probability());
@@ -62,7 +64,9 @@ Labels::Labels(
 {
 }
 
-Labels::Labels(ProbabilisticOperatorsProxy operators)
+Labels::Labels(
+    ProbabilisticOperatorsProxy operators,
+    const downward::OperatorCostFunction<value_t>& cost_function)
 {
     const int num_ops = operators.size();
 
@@ -70,7 +74,9 @@ Labels::Labels(ProbabilisticOperatorsProxy operators)
         max_num_labels = 2 * num_ops - 1;
         label_infos.reserve(max_num_labels);
         for (const ProbabilisticOperatorProxy op : operators) {
-            label_infos.emplace_back(op);
+            label_infos.emplace_back(
+                cost_function.get_operator_cost(op.get_id()),
+                op);
         }
     } else {
         max_num_labels = 0;
@@ -112,9 +118,7 @@ void Labels::reduce_labels(const vector<int>& old_labels)
 
         assert(probabilities == new_label_probabilities);
 
-        if (cost < new_label_cost) {
-            new_label_cost = cost;
-        }
+        if (cost < new_label_cost) { new_label_cost = cost; }
 
         cost = -1_vt;
         utils::release_vector_memory(probabilities);

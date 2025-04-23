@@ -5,12 +5,15 @@ create_library(
         downward/abstract_task
         downward/axiom_evaluator
         downward/axioms
+        downward/axiom_space
+        downward/classical_operator_space
         downward/evaluation_context
         downward/evaluation_result
         downward/evaluator
         downward/evaluator_cache
         downward/fact_pair
         downward/heuristic
+        downward/initial_state_values
         downward/mutex_information
         downward/open_list
         downward/operator_cost
@@ -28,8 +31,8 @@ create_library(
         downward/search_statistics
         downward/state_id
         downward/state_registry
+        downward/state
         downward/task_id
-        downward/task_proxy
         downward/task_transformation
     DEPENDS
         causal_graph

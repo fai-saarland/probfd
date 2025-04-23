@@ -3,7 +3,6 @@
 #include "probfd/tasks/root_task.h"
 
 #include "probfd/probabilistic_task.h"
-#include "probfd/task_proxy.h"
 
 #include "probfd/cartesian_abstractions/cartesian_abstraction.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition_system.h"
@@ -28,10 +27,9 @@ TEST(CartesianTests, test_probabilistic_transition_system)
 {
     std::fstream file("resources/gripper_example.psas");
     std::shared_ptr<ProbabilisticTask> task = tasks::read_sas_task(file);
-    const ProbabilisticTaskProxy task_proxy(*task);
 
     RefinementHierarchy refinement_hierarchy;
-    CartesianAbstraction abs(task_proxy, {}, utils::g_log);
+    CartesianAbstraction abs(*task, {}, utils::g_log);
 
     ASSERT_EQ(
         get_num_transitions(abs.get_transition_system()),
@@ -58,10 +56,9 @@ TEST(CartesianTests, test_probabilistic_transition_system2)
 {
     std::fstream file("resources/pblocksworld_example.psas");
     std::shared_ptr<ProbabilisticTask> task = tasks::read_sas_task(file);
-    const ProbabilisticTaskProxy task_proxy(*task);
 
     RefinementHierarchy refinement_hierarchy;
-    CartesianAbstraction abs(task_proxy, {}, utils::g_log);
+    CartesianAbstraction abs(*task, {}, utils::g_log);
 
     ASSERT_EQ(abs.get_num_states(), 1);
     ASSERT_EQ(

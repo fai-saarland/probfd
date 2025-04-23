@@ -11,7 +11,7 @@
 
 // Forward Declarations
 namespace probfd {
-class ProbabilisticTaskProxy;
+class ProbabilisticTask;
 }
 
 namespace probfd::pdbs {
@@ -27,8 +27,7 @@ struct ProjectionTransformation {
     // Constructs the transformation's abstraction mapping and state space,
     // and allocates the J* value table, initially filled with NaNs.
     ProjectionTransformation(
-        ProbabilisticTaskProxy task_proxy,
-        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+        std::shared_ptr<ProbabilisticTask> task,
         Pattern pattern,
         bool operator_pruning = true,
         double max_time = std::numeric_limits<double>::infinity());

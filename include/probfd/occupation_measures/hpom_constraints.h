@@ -20,7 +20,6 @@ class LinearProgram;
 
 namespace probfd {
 class ProbabilisticTask;
-class ProbabilisticTaskProxy;
 } // namespace probfd
 
 namespace probfd::occupation_measures {
@@ -36,7 +35,6 @@ class HPOMGenerator : public ConstraintGenerator {
 public:
     void initialize_constraints(
         const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function,
         downward::lp::LinearProgram& lp) final;
 
     void update_constraints(
@@ -47,8 +45,7 @@ public:
         downward::lp::LPSolver& solver) final;
 
     static void generate_hpom_lp(
-        const ProbabilisticTaskProxy& task_proxy,
-        const FDRCostFunction& task_cost_function,
+        const ProbabilisticTask& task,
         downward::lp::LinearProgram& lp,
         std::vector<int>& offsets);
 };
@@ -56,8 +53,7 @@ public:
 class HPOMGeneratorFactory : public ConstraintGeneratorFactory {
 public:
     std::unique_ptr<ConstraintGenerator> construct_constraint_generator(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
+        const std::shared_ptr<ProbabilisticTask>& task) override;
 };
 
 } // namespace probfd::occupation_measures

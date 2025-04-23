@@ -3,11 +3,12 @@
 
 #include "downward/evaluator.h"
 #include "downward/open_list.h"
+#include "downward/task_dependent_factory.h"
 
+#include "downward/utils/collections.h"
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
 
-#include <downward/task_dependent_factory.h>
 #include <memory>
 #include <set>
 #include <utility>
