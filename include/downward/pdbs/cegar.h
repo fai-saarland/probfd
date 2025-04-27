@@ -38,7 +38,7 @@ extern PatternCollectionInformation generate_pattern_collection_with_cegar(
     bool use_wildcard_plans,
     utils::LogProxy& log,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-    const std::shared_ptr<AbstractTask>& task,
+    const SharedAbstractTask& task,
     const std::vector<FactPair>& goals,
     std::unordered_set<int>&& blacklisted_variables =
         std::unordered_set<int>());
@@ -54,7 +54,7 @@ extern PatternInformation generate_pattern_with_cegar(
     bool use_wildcard_plans,
     utils::LogProxy& log,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-    const std::shared_ptr<AbstractTask>& task,
+    const SharedAbstractTask& task,
     const FactPair& goal,
     std::unordered_set<int>&& blacklisted_variables =
         std::unordered_set<int>());

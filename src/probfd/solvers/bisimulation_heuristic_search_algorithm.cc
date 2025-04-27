@@ -1,5 +1,6 @@
 #include "probfd/solvers/bisimulation_heuristic_search_algorithm.h"
 
+#include "downward/initial_state_values.h"
 #include "probfd/algorithms/open_list.h"
 
 #include "probfd/heuristics/constant_heuristic.h"
@@ -31,7 +32,7 @@ void BisimulationTimer::print(std::ostream& out) const
 
 BisimulationBasedHeuristicSearchAlgorithm ::
     BisimulationBasedHeuristicSearchAlgorithm(
-        std::shared_ptr<ProbabilisticTask> task,
+        SharedProbabilisticTask task,
         std::string algorithm_name,
         std::shared_ptr<MDPAlgorithm<QState, QAction>> algorithm)
     : task_(std::move(task))
@@ -40,7 +41,7 @@ BisimulationBasedHeuristicSearchAlgorithm ::
 {
 }
 
-class BisimulationPolicy : public Policy<State, OperatorID> {
+class BisimulationPolicy final : public Policy<State, OperatorID> {
     std::unique_ptr<merge_and_shrink::MergeAndShrinkRepresentation>
         state_mapping;
 
@@ -77,11 +78,12 @@ auto BisimulationBasedHeuristicSearchAlgorithm::compute_policy(
 
     std::cout << "Building bisimulation..." << std::endl;
 
-    std::shared_ptr determinization =
-        std::make_shared<tasks::DeterminizationTask>(task_);
+    SharedAbstractTask determinization =
+        probfd::tasks::create_determinization_task(task_);
 
     auto [transition_system, state_mapping, distances] =
-        bisimulation::compute_bisimulation_on_determinization(*determinization);
+        bisimulation::compute_bisimulation_on_determinization(
+            to_refs(determinization));
 
     std::cout << "Done." << std::endl;
 
@@ -90,14 +92,15 @@ auto BisimulationBasedHeuristicSearchAlgorithm::compute_policy(
         return std::make_unique<policies::EmptyPolicy<State, OperatorID>>();
     }
 
-    State initial = task_->get_initial_state();
-    initial.unpack();
-    const auto initial_state =
-        bisimulation::QuotientState(state_mapping->get_value(initial));
+    const auto& init_vals = get_init(task_);
 
-    bisimulation::BisimilarStateSpace state_space(
-        task_,
-        *transition_system);
+    State initial = init_vals.get_initial_state();
+    initial.unpack();
+
+    const auto initial_state = static_cast<bisimulation::QuotientState>(
+        state_mapping->get_value(initial));
+
+    bisimulation::BisimilarStateSpace state_space(task_, *transition_system);
 
     stats_.time = timer();
     stats_.states = state_space.num_bisimilar_states();
@@ -109,8 +112,15 @@ auto BisimulationBasedHeuristicSearchAlgorithm::compute_policy(
               << state_space.num_transitions() << " transitions." << std::endl;
     std::cout << std::endl;
 
-    ProbabilisticOperatorsProxy ops(*task_);
-    heuristics::BlindEvaluator<QState> heuristic(ops, *task_, *task_);
+    const auto& operators = get_operators(task_);
+    const auto& cost_function =
+        get_cost_function(task_);
+    const auto& termination_costs = get_termination_costs(task_);
+
+    heuristics::BlindEvaluator<QState> heuristic(
+        operators,
+        cost_function,
+        termination_costs);
 
     std::cout << "Running " << algorithm_name_ << "..." << std::endl;
     auto pi = algorithm_->compute_policy(

@@ -9,6 +9,8 @@
 
 #include "downward/tasks/root_task.h"
 
+#include "downward/operator_cost_function.h"
+
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
@@ -42,7 +44,7 @@ UnaryOperator::UnaryOperator(
 }
 
 RelaxationHeuristic::RelaxationHeuristic(
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
     const std::string& description,
@@ -59,7 +61,7 @@ RelaxationHeuristic::RelaxationHeuristic(
 }
 
 RelaxationHeuristic::RelaxationHeuristic(
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
     const std::string& description,
@@ -74,8 +76,8 @@ RelaxationHeuristic::RelaxationHeuristic(
 }
 
 RelaxationHeuristic::RelaxationHeuristic(
-    std::shared_ptr<AbstractTask> original_task,
-    std::shared_ptr<AbstractTask> transformed_task,
+    SharedAbstractTask original_task,
+    SharedAbstractTask transformed_task,
     std::shared_ptr<StateMapping> state_mapping,
     std::shared_ptr<InverseOperatorMapping> inv_operator_mapping,
     bool cache_estimates,
@@ -90,23 +92,27 @@ RelaxationHeuristic::RelaxationHeuristic(
           description,
           verbosity)
 {
+    const auto& [variables, axioms, operators, goals] = slice_shared<
+        VariableSpace,
+        AxiomSpace,
+        ClassicalOperatorSpace,
+        GoalFactList>(this->transformed_task);
+
     // Build propositions.
-    propositions.resize(task_properties::get_num_facts(*transformed_task));
+    propositions.resize(task_properties::get_num_facts(*variables));
 
     // Build proposition offsets.
-    VariablesProxy variables = transformed_task->get_variables();
-    proposition_offsets.reserve(variables.size());
+    proposition_offsets.reserve(variables->size());
     PropID offset = 0;
-    for (VariableProxy var : variables) {
+    for (VariableProxy var : *variables) {
         proposition_offsets.push_back(offset);
         offset += var.get_domain_size();
     }
     assert(offset == static_cast<int>(propositions.size()));
 
     // Build goal propositions.
-    GoalsProxy goals = transformed_task->get_goals();
-    goal_propositions.reserve(goals.size());
-    for (FactPair goal : goals) {
+    goal_propositions.reserve(goals->size());
+    for (FactPair goal : *goals) {
         PropID prop_id = get_prop_id(goal);
         propositions[prop_id].is_goal = true;
         goal_propositions.push_back(prop_id);
@@ -114,11 +120,9 @@ RelaxationHeuristic::RelaxationHeuristic(
 
     // Build unary operators for operators and axioms.
     unary_operators.reserve(
-        task_properties::get_num_total_effects(*transformed_task));
-    for (OperatorProxy op : transformed_task->get_operators())
-        build_unary_operators(op);
-    for (AxiomProxy axiom : transformed_task->get_axioms())
-        build_unary_operators(axiom);
+        task_properties::get_num_total_effects(*axioms, *operators));
+    for (OperatorProxy op : *operators) build_unary_operators(op);
+    for (AxiomProxy axiom : *axioms) build_unary_operators(axiom);
 
     // Simplify unary operators.
     utils::Timer simplify_timer;
@@ -148,7 +152,8 @@ RelaxationHeuristic::RelaxationHeuristic(
 
 bool RelaxationHeuristic::dead_ends_are_reliable() const
 {
-    return !task_properties::has_axioms(*transformed_task);
+    return !task_properties::has_axioms(
+        get_axioms(transformed_task));
 }
 
 PropID RelaxationHeuristic::get_prop_id(int var, int value) const
@@ -179,8 +184,11 @@ Proposition* RelaxationHeuristic::get_proposition(const FactProxy& fact)
 
 void RelaxationHeuristic::build_unary_operators(const AxiomOrOperatorProxy& op)
 {
+    const auto& cost_function =
+        get_shared_cost_function(transformed_task);
+
     int op_no = op.is_axiom() ? -1 : op.get_id();
-    int base_cost = transformed_task->get_operator_cost(op.get_id());
+    int base_cost = cost_function->get_operator_cost(op.get_id());
     vector<PropID> precondition_props;
     PreconditionsProxy preconditions = op.get_preconditions();
     precondition_props.reserve(preconditions.size());

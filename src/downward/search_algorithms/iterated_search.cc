@@ -11,7 +11,7 @@ using namespace std;
 namespace downward::iterated_search {
 
 IteratedSearch::IteratedSearch(
-    std::shared_ptr<AbstractTask> task,
+    SharedAbstractTask task,
     OperatorCost operator_cost,
     int bound,
     double max_time,
@@ -88,11 +88,15 @@ SearchStatus IteratedSearch::step()
     last_phase_found_solution = current_search->found_solution();
     if (last_phase_found_solution) {
         iterated_found_solution = true;
+
+        const auto [operators, cost_function] =
+            slice_shared<ClassicalOperatorSpace, OperatorIntCostFunction>(task);
+
         Plan found_plan = current_search->get_plan();
-        int plan_cost = calculate_plan_cost(found_plan, *task);
+        int plan_cost = calculate_plan_cost(found_plan, *cost_function);
         if (plan_cost < best_bound) {
             plan_manager
-                .save_plan(found_plan, task->get_operators(), *task, true);
+                .save_plan(found_plan, *operators, *cost_function, true);
             best_bound = plan_cost;
             set_plan(found_plan);
         }

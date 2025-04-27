@@ -1,6 +1,8 @@
 #ifndef PROBFD_MERGE_AND_SHRINK_MERGE_TREE_FACTORY_H
 #define PROBFD_MERGE_AND_SHRINK_MERGE_TREE_FACTORY_H
 
+#include "probfd/probabilistic_task.h"
+
 #include <memory>
 #include <string>
 #include <tuple>
@@ -10,11 +12,6 @@ namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
 } // namespace utils
-
-namespace probfd {
-class ProbabilisticTask;
-class ProbabilisticTaskProxy;
-}
 
 namespace probfd::merge_and_shrink {
 class FactoredTransitionSystem;
@@ -38,12 +35,12 @@ public:
 
     // Compute a merge tree for the given entire task.
     virtual std::unique_ptr<MergeTree>
-    compute_merge_tree(std::shared_ptr<ProbabilisticTask>& task) = 0;
+    compute_merge_tree(const SharedProbabilisticTask& task) = 0;
 
     /* Compute a merge tree for the given current factored transition,
        system, possibly for a subset of indices. */
     virtual std::unique_ptr<MergeTree> compute_merge_tree(
-        std::shared_ptr<ProbabilisticTask>& task,
+        const SharedProbabilisticTask& task,
         const FactoredTransitionSystem& fts,
         const std::vector<int>& indices_subset);
 

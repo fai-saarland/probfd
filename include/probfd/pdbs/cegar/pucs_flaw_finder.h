@@ -39,7 +39,8 @@ public:
     explicit PUCSFlawFinder(int max_search_states);
 
     bool apply_policy(
-        const ProbabilisticTask& task,
+        const ProbabilisticTaskTuple& task,
+        const downward::State& initial_state,
         const StateRankingFunction& state_ranking_function,
         const ProjectionStateSpace& mdp,
         const ProjectionMultiPolicy& policy,

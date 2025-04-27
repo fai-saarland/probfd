@@ -17,7 +17,7 @@ LMCutConstraints::LMCutConstraints() = default;
 LMCutConstraints::~LMCutConstraints() = default;
 
 void LMCutConstraints::initialize_constraints(
-    const shared_ptr<AbstractTask>& task,
+    const SharedAbstractTask& task,
     lp::LinearProgram&)
 {
     landmark_generator =

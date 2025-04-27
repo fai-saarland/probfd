@@ -10,8 +10,7 @@
 namespace downward {
 class OperatorProxy;
 class State;
-class AbstractTask;
-}
+} // namespace downward
 
 namespace downward::utils {
 class LogProxy;
@@ -54,7 +53,10 @@ public:
     void close();
     void mark_as_dead_end();
 
-    void dump(const AbstractTask& task, utils::LogProxy& log) const;
+    void dump(
+        const VariableSpace& variables,
+        const OperatorSpace& operators,
+        utils::LogProxy& log) const;
 };
 
 class SearchSpace {
@@ -70,9 +72,9 @@ public:
     void
     trace_path(const State& goal_state, std::vector<OperatorID>& path) const;
 
-    void dump(const AbstractTask& task) const;
+    void dump(const AbstractTaskTuple& task) const;
     void print_statistics() const;
 };
-}
+} // namespace downward
 
 #endif

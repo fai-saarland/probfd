@@ -31,7 +31,7 @@ public:
     explicit PHOGenerator(pdbs::PPDBCollection pdbs);
 
     void initialize_constraints(
-        const std::shared_ptr<ProbabilisticTask>& task,
+        const SharedProbabilisticTask& task,
         downward::lp::LinearProgram& lp) final;
 
     void update_constraints(
@@ -50,7 +50,7 @@ public:
         std::shared_ptr<pdbs::PatternCollectionGenerator> generator);
 
     std::unique_ptr<ConstraintGenerator> construct_constraint_generator(
-        const std::shared_ptr<ProbabilisticTask>& task) override;
+        const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::occupation_measures

@@ -19,12 +19,7 @@ class State;
 namespace downward::utils {
 class CountdownTimer;
 class Duration;
-} // namespace utils
-
-namespace probfd {
-class ProbabilisticTaskProxy;
-class ProbabilisticTask;
-} // namespace probfd
+} // namespace downward::utils
 
 namespace probfd::cartesian_abstractions {
 class CartesianHeuristicFunction;
@@ -58,10 +53,13 @@ class CostSaturation {
     int num_states_;
     int num_non_looping_transitions_;
 
-    void reset(const ProbabilisticTask& task);
+    void reset(
+        const ProbabilisticOperatorSpace& operators,
+        const downward::OperatorCostFunction<value_t>& cost_function);
+
     void reduce_remaining_costs(const std::vector<value_t>& saturated_costs);
-    std::shared_ptr<ProbabilisticTask>
-    get_remaining_costs_task(std::shared_ptr<ProbabilisticTask>& parent) const;
+    SharedProbabilisticTask
+    get_remaining_costs_task(const SharedProbabilisticTask& parent) const;
     bool state_is_dead_end(const downward::State& state) const;
     void build_abstractions(
         const SharedTasks& subtasks,
@@ -83,8 +81,8 @@ public:
 
     ~CostSaturation();
 
-    std::vector<CartesianHeuristicFunction> generate_heuristic_functions(
-        const std::shared_ptr<ProbabilisticTask>& task);
+    std::vector<CartesianHeuristicFunction>
+    generate_heuristic_functions(const SharedProbabilisticTask& task);
 };
 
 } // namespace probfd::cartesian_abstractions

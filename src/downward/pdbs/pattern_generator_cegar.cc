@@ -34,9 +34,10 @@ string PatternGeneratorCEGAR::name() const
 }
 
 PatternInformation
-PatternGeneratorCEGAR::compute_pattern(const shared_ptr<AbstractTask>& task)
+PatternGeneratorCEGAR::compute_pattern(const SharedAbstractTask& task)
 {
-    vector<FactPair> goals = get_goals_in_random_order(*task, *rng);
+    vector<FactPair> goals =
+        get_goals_in_random_order(get_goal(task), *rng);
     return generate_pattern_with_cegar(
         max_pdb_size,
         max_time,
@@ -47,4 +48,4 @@ PatternGeneratorCEGAR::compute_pattern(const shared_ptr<AbstractTask>& task)
         goals[0]);
 }
 
-} // namespace pdbs
+} // namespace downward::pdbs

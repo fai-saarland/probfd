@@ -45,7 +45,7 @@ public:
     std::string get_algorithm_name() const override { return "idual"; }
 
     std::unique_ptr<StatisticalMDPAlgorithm>
-    create_algorithm(const std::shared_ptr<ProbabilisticTask>&) override
+    create_algorithm(const SharedProbabilisticTask&) override
     {
         using IDualAlgorithm = algorithms::idual::IDual<State, OperatorID>;
 

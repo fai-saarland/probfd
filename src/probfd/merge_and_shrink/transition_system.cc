@@ -264,7 +264,7 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
           l is dead in T1 only and l' is dead in T2 only, so they are not
           locally equivalent in either of the components).
     */
-    map<std::vector<value_t>, std::vector<int>> dead_labels;
+    std::map<std::vector<value_t>, std::vector<int>> dead_labels;
     for (const LocalLabelInfo& local_label_info : ts1.label_infos()) {
         const LabelGroup& group1 = local_label_info.get_label_group();
         const vector<Transition>& transitions1 =
@@ -275,7 +275,7 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
 
         // Distribute the labels of this group among the "buckets"
         // corresponding to the groups of ts2.
-        map<int, vector<int>> buckets;
+        std::map<int, vector<int>> buckets;
         for (int label : group1) {
             int ts_local_label2 = ts2.label_to_local_label[label];
             buckets[ts_local_label2].push_back(label);

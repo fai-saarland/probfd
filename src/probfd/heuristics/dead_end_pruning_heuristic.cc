@@ -5,6 +5,7 @@
 #include "probfd/heuristic.h"
 #include "probfd/probabilistic_task.h"
 #include "probfd/task_heuristic_factory.h"
+#include "probfd/termination_costs.h"
 
 #include "downward/utils/system.h"
 
@@ -53,12 +54,12 @@ DeadEndPruningHeuristicFactory::DeadEndPruningHeuristicFactory(
 }
 
 std::unique_ptr<FDREvaluator> DeadEndPruningHeuristicFactory::create_heuristic(
-    std::shared_ptr<ProbabilisticTask> task)
+    const SharedProbabilisticTask& task)
 {
     return std::make_unique<DeadEndPruningHeuristic>(
         evaluator_factory_->create_object(
-            std::make_shared<tasks::DeterminizationTask>(task)),
-        task->get_non_goal_termination_cost());
+            tasks::create_determinization_task(task)),
+        get_shared_termination_costs(task)->get_non_goal_termination_cost());
 }
 
 } // namespace probfd::heuristics

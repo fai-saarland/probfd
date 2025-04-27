@@ -63,7 +63,7 @@ EnforcedHillClimbingSearch::EnforcedHillClimbingSearch(
     const shared_ptr<Evaluator>& h,
     PreferredUsage preferred_usage,
     const vector<shared_ptr<Evaluator>>& preferred,
-    std::shared_ptr<AbstractTask> task,
+    SharedAbstractTask task,
     OperatorCost cost_type,
     int bound,
     double max_time,
@@ -93,11 +93,7 @@ EnforcedHillClimbingSearch::EnforcedHillClimbingSearch(
     for (Evaluator* evaluator : path_dependent_evaluators) {
         evaluator->notify_initial_state(initial_state);
     }
-    use_preferred = find(
-                        preferred_operator_evaluators.begin(),
-                        preferred_operator_evaluators.end(),
-                        evaluator) != preferred_operator_evaluators.end();
-
+    use_preferred = ranges::contains(preferred_operator_evaluators, evaluator);
     open_list = create_ehc_open_list(verbosity, use_preferred, preferred_usage);
 }
 
@@ -149,8 +145,11 @@ void EnforcedHillClimbingSearch::insert_successor_into_open_list(
     OperatorID op_id,
     bool preferred)
 {
-    OperatorProxy op = task->get_operators()[op_id];
-    int succ_g = parent_g + get_adjusted_cost(op, *task);
+    const auto& [operators, cost_function] = to_refs(
+        slice_shared<ClassicalOperatorSpace, OperatorIntCostFunction>(task));
+
+    OperatorProxy op = operators[op_id];
+    int succ_g = parent_g + get_adjusted_cost(op, cost_function);
     const State& state = eval_context.get_state();
     EdgeOpenListEntry entry = make_pair(state.get_id(), op_id);
     EvaluationContext new_eval_context(
@@ -220,21 +219,24 @@ SearchStatus EnforcedHillClimbingSearch::step()
 
 SearchStatus EnforcedHillClimbingSearch::ehc()
 {
+    const auto& [operators, cost_function] = to_refs(
+        slice_shared<ClassicalOperatorSpace, OperatorIntCostFunction>(task));
+
     while (!open_list->empty()) {
         EdgeOpenListEntry entry = open_list->remove_min();
         StateID parent_state_id = entry.first;
         OperatorID last_op_id = entry.second;
-        OperatorProxy last_op = task->get_operators()[last_op_id];
+        OperatorProxy last_op = operators[last_op_id];
 
         State parent_state = state_registry.lookup_state(parent_state_id);
         SearchNode parent_node = search_space.get_node(parent_state);
 
         // d: distance from initial node in this EHC phase
         int d = parent_node.get_g() - current_phase_start_g +
-                get_adjusted_cost(last_op, *task);
+                get_adjusted_cost(last_op, cost_function);
 
         if (parent_node.get_real_g() +
-                task->get_operator_cost(last_op.get_id()) >=
+                cost_function.get_operator_cost(last_op.get_id()) >=
             bound)
             continue;
 
@@ -258,12 +260,12 @@ SearchStatus EnforcedHillClimbingSearch::ehc()
             node.open(
                 parent_node,
                 last_op,
-                *task,
-                get_adjusted_cost(last_op, *task));
+                cost_function,
+                get_adjusted_cost(last_op, cost_function));
 
             if (h < current_eval_context.get_evaluator_value(evaluator.get())) {
                 ++num_ehc_phases;
-                if (d_counts.count(d) == 0) { d_counts[d] = make_pair(0, 0); }
+                if (!d_counts.contains(d)) { d_counts[d] = make_pair(0, 0); }
                 pair<int, int>& d_pair = d_counts[d];
                 d_pair.first += 1;
                 d_pair.second += statistics.get_expanded() - last_num_expanded;

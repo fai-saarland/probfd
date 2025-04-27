@@ -9,8 +9,10 @@
 using namespace std;
 
 namespace downward::successor_generator {
-SuccessorGenerator::SuccessorGenerator(const PlanningTask& task)
-    : root(SuccessorGeneratorFactory(task).create())
+SuccessorGenerator::SuccessorGenerator(
+    const VariableSpace& variables,
+    const OperatorSpace& operators)
+    : root(SuccessorGeneratorFactory(variables, operators).create())
 {
 }
 
@@ -24,5 +26,6 @@ void SuccessorGenerator::generate_applicable_ops(
     root->generate_applicable_ops(state.get_unpacked_values(), applicable_ops);
 }
 
-PerTaskInformation<SuccessorGenerator> g_successor_generators;
-} // namespace successor_generator
+PerComponentInformation<SuccessorGenerator, VariableSpace, OperatorSpace>
+    g_successor_generators;
+} // namespace downward::successor_generator

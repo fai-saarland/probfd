@@ -132,7 +132,7 @@ public:
     }
 
     std::unique_ptr<OpenList<T>>
-    create_object(const std::shared_ptr<AbstractTask>& task) override
+    create_object(const SharedAbstractTask& task) override
     {
         return std::make_unique<BestFirstOpenList<T>>(
             eval_factory->create_object(task),

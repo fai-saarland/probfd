@@ -23,12 +23,12 @@ MergeTreeFactoryLinear::MergeTreeFactoryLinear(
 }
 
 unique_ptr<MergeTree> MergeTreeFactoryLinear::compute_merge_tree(
-    std::shared_ptr<ProbabilisticTask>& task)
+    const SharedProbabilisticTask& task)
 {
-    const tasks::DeterminizationTask determinization(task);
+    const auto determinization = tasks::create_determinization_task(task);
 
     variable_order_finder::VariableOrderFinder vof(
-        determinization,
+        to_refs(determinization),
         variable_order_type,
         rng);
 
@@ -43,18 +43,19 @@ unique_ptr<MergeTree> MergeTreeFactoryLinear::compute_merge_tree(
 }
 
 unique_ptr<MergeTree> MergeTreeFactoryLinear::compute_merge_tree(
-    std::shared_ptr<ProbabilisticTask>& task,
+    const SharedProbabilisticTask& task,
     const FactoredTransitionSystem& fts,
     const vector<int>& indices_subset)
 {
-    const tasks::DeterminizationTask determinization(task);
+    const auto determinization = tasks::create_determinization_task(task);
 
+    const auto& variables = get_variables(determinization);
     /*
       Compute a mapping from state variables to transition system indices
       that contain those variables. Also set all indices not contained in
       indices_subset to "used".
     */
-    const int num_vars = determinization.get_variables().size();
+    const int num_vars = variables.size();
     const int num_ts = fts.get_size();
 
     vector var_to_ts_index(num_vars, -1);
@@ -78,7 +79,7 @@ unique_ptr<MergeTree> MergeTreeFactoryLinear::compute_merge_tree(
      to "used" above.
     */
     variable_order_finder::VariableOrderFinder vof(
-        determinization,
+        to_refs(determinization),
         variable_order_type,
         rng);
 

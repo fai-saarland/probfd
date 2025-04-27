@@ -1,5 +1,7 @@
 #include "downward/potentials/potential_optimizer.h"
 
+#include "downward/operator_cost_function.h"
+#include "downward/operator_cost_function_fwd.h"
 #include "downward/potentials/potential_function.h"
 
 #include "downward/task_utils/task_properties.h"
@@ -20,7 +22,7 @@ static int get_undefined_value(VariableProxy var)
 }
 
 PotentialOptimizer::PotentialOptimizer(
-    const shared_ptr<AbstractTask>& transform,
+    const SharedAbstractTask& transform,
     lp::LPSolverType lpsolver,
     double max_potential)
     : task(transform)
@@ -28,17 +30,19 @@ PotentialOptimizer::PotentialOptimizer(
     , max_potential(max_potential)
     , num_lp_vars(0)
 {
-    task_properties::verify_no_axioms(*task);
-    task_properties::verify_no_conditional_effects(*task);
+    task_properties::verify_no_axioms(get_axioms(task));
+    task_properties::verify_no_conditional_effects(
+        get_operators(task));
     initialize();
 }
 
 void PotentialOptimizer::initialize()
 {
-    VariablesProxy vars = task->get_variables();
-    lp_var_ids.resize(vars.size());
-    fact_potentials.resize(vars.size());
-    for (VariableProxy var : vars) {
+    const auto& variables = get_variables(task);
+
+    lp_var_ids.resize(variables.size());
+    fact_potentials.resize(variables.size());
+    for (VariableProxy var : variables) {
         // Add LP variable for "undefined" value.
         lp_var_ids[var.get_id()].resize(var.get_domain_size() + 1);
         for (int val = 0; val < var.get_domain_size() + 1; ++val) {
@@ -72,8 +76,11 @@ void PotentialOptimizer::optimize_for_all_states()
         cerr << "Potentials must be bounded for all-states LP." << endl;
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
+
+    const auto& variables = get_variables(task);
+    
     vector<double> coefficients(num_lp_vars, 0.0);
-    for (FactProxy fact : task->get_variables().get_facts()) {
+    for (FactProxy fact : variables.get_facts()) {
         coefficients[get_lp_var_id(fact.get_pair())] =
             1.0 / fact.get_variable().get_domain_size();
     }
@@ -96,7 +103,7 @@ void PotentialOptimizer::optimize_for_samples(const vector<State>& samples)
     solve_and_extract();
 }
 
-shared_ptr<AbstractTask> PotentialOptimizer::get_task() const
+const SharedAbstractTask& PotentialOptimizer::get_task() const
 {
     return task;
 }
@@ -111,7 +118,10 @@ void PotentialOptimizer::construct_lp()
     double infinity = lp_solver.get_infinity();
     double upper_bound = (potentials_are_bounded() ? max_potential : infinity);
 
-    const auto variables = task->get_variables();
+    const auto& variables = get_variables(task);
+    const auto& operators = get_operators(task);
+    const auto& cost_function = get_cost_function(task);
+    const auto& goals = get_goal(task);
 
     named_vector::NamedVector<lp::LPVariable> lp_variables;
     lp_variables.reserve(num_lp_vars);
@@ -121,7 +131,7 @@ void PotentialOptimizer::construct_lp()
     }
 
     named_vector::NamedVector<lp::LPConstraint> lp_constraints;
-    for (OperatorProxy op : task->get_operators()) {
+    for (OperatorProxy op : operators) {
         // Create constraint:
         // Sum_{V in vars(eff(o))} (P_{V=pre(o)[V]} - P_{V=eff(o)[V]}) <=
         // cost(o)
@@ -131,7 +141,7 @@ void PotentialOptimizer::construct_lp()
         }
         lp::LPConstraint constraint(
             -infinity,
-            task->get_operator_cost(op.get_id()));
+            cost_function.get_operator_cost(op.get_id()));
         vector<pair<int, int>> coefficients;
         for (auto effect : op.get_effects()) {
             int var_id = effect.get_fact().var;
@@ -152,7 +162,7 @@ void PotentialOptimizer::construct_lp()
             coefficients.emplace_back(pre_lp, 1);
             coefficients.emplace_back(post_lp, -1);
         }
-        sort(coefficients.begin(), coefficients.end());
+        ranges::sort(coefficients);
         for (const auto& coeff : coefficients)
             constraint.insert(coeff.first, coeff.second);
         lp_constraints.push_back(constraint);
@@ -161,7 +171,7 @@ void PotentialOptimizer::construct_lp()
     /* Create full goal state. Use value |dom(V)| as "undefined" value
        for variables V undefined in the goal. */
     vector<int> goal(variables.size(), -1);
-    for (const auto [var, value] : task->get_goals()) { goal[var] = value; }
+    for (const auto [var, value] : goals) { goal[var] = value; }
     for (VariableProxy var : variables) {
         if (goal[var.get_id()] == -1)
             goal[var.get_id()] = get_undefined_value(var);
@@ -210,9 +220,11 @@ void PotentialOptimizer::solve_and_extract()
 
 void PotentialOptimizer::extract_lp_solution()
 {
+    const auto& variables = get_variables(task);
+
     assert(has_optimal_solution());
     const vector<double> solution = lp_solver.extract_solution();
-    for (FactProxy fact : task->get_variables().get_facts()) {
+    for (FactProxy fact : variables.get_facts()) {
         fact_potentials[fact.get_variable().get_id()][fact.get_value()] =
             solution[get_lp_var_id(fact.get_pair())];
     }

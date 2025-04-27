@@ -10,10 +10,6 @@
 #include <memory>
 #include <string>
 
-namespace downward {
-class AbstractTask;
-}
-
 namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
@@ -24,15 +20,19 @@ class PatternCollectionInformation;
 class PatternInformation;
 
 extern int
-compute_pdb_size(const AbstractTask& task, const Pattern& pattern);
+compute_pdb_size(const VariableSpace& variables, const Pattern& pattern);
+
 extern int compute_total_pdb_size(
-    const AbstractTask& task,
+    const VariableSpace& variables,
     const PatternCollection& pattern_collection);
 
 extern std::vector<FactPair> get_goals_in_random_order(
-    const AbstractTask& task,
+    const GoalFactList& goals,
     utils::RandomNumberGenerator& rng);
-extern std::vector<int> get_non_goal_variables(const AbstractTask& task);
+
+extern std::vector<int> get_non_goal_variables(
+    const VariableSpace& variables,
+    const GoalFactList& goals);
 
 /*
   Compute the causal graph neighbors for each variable of the task. If
@@ -41,11 +41,11 @@ extern std::vector<int> get_non_goal_variables(const AbstractTask& task);
   undirected graph and also successors of variables are considered neighbors.
 */
 extern std::vector<std::vector<int>> compute_cg_neighbors(
-    const std::shared_ptr<AbstractTask>& task,
+    const SharedAbstractTask& task,
     bool bidirectional);
 
 extern PatternCollectionInformation get_pattern_collection_info(
-    const AbstractTask& task,
+    const AbstractTaskTuple& task,
     const std::shared_ptr<PDBCollection>& pdbs,
     utils::LogProxy& log);
 

@@ -30,7 +30,7 @@ public:
         std::shared_ptr<MergeSelector> merge_selector);
 
     std::unique_ptr<MergeStrategy> compute_merge_strategy(
-        std::shared_ptr<ProbabilisticTask>& task,
+        const SharedProbabilisticTask& task,
         const FactoredTransitionSystem& fts) override;
 
     bool requires_liveness() const override;

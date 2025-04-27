@@ -1,5 +1,6 @@
 #include "downward/pdbs/pattern_collection_generator_hillclimbing.h"
 
+#include "downward/initial_state_values.h"
 #include "downward/pdbs/canonical_pdbs_heuristic.h"
 #include "downward/pdbs/incremental_canonical_pdbs.h"
 #include "downward/pdbs/pattern_database.h"
@@ -32,10 +33,9 @@ namespace downward::pdbs {
    utils::Exception. */
 class HillClimbingTimeout {};
 
-static vector<int> get_goal_variables(const AbstractTask& task)
+static vector<int> get_goal_variables(const GoalFactList& goals)
 {
     vector<int> goal_vars;
-    GoalsProxy goals = task.get_goals();
     goal_vars.reserve(goals.size());
     for (FactPair goal : goals) { goal_vars.push_back(goal.var); }
     assert(utils::is_sorted_unique(goal_vars));
@@ -73,16 +73,16 @@ static vector<int> get_goal_variables(const AbstractTask& task)
   This method precomputes all variables which satisfy conditions 1. or
   2. for a given neighbour variable already in the pattern.
 */
-static vector<vector<int>>
-compute_relevant_neighbours(const AbstractTask& task)
+static vector<vector<int>> compute_relevant_neighbours(
+    const VariableSpace& variables,
+    const GoalFactList& goals,
+    const causal_graph::CausalGraph& causal_graph)
 {
-    const causal_graph::CausalGraph& causal_graph =
-        task.get_causal_graph();
-    const vector<int> goal_vars = get_goal_variables(task);
+    const vector<int> goal_vars = get_goal_variables(goals);
 
     vector<vector<int>> connected_vars_by_variable;
-    VariablesProxy variables = task.get_variables();
     connected_vars_by_variable.reserve(variables.size());
+
     for (VariableProxy var : variables) {
         int var_id = var.get_id();
 
@@ -95,20 +95,16 @@ compute_relevant_neighbours(const AbstractTask& task)
         const vector<int>& causal_graph_successors =
             causal_graph.get_successors(var_id);
         vector<int> goal_variable_successors;
-        set_intersection(
-            causal_graph_successors.begin(),
-            causal_graph_successors.end(),
-            goal_vars.begin(),
-            goal_vars.end(),
+        ranges::set_intersection(
+            causal_graph_successors,
+            goal_vars,
             back_inserter(goal_variable_successors));
 
         // Combine relevant goal and non-goal variables.
         vector<int> relevant_neighbours;
-        set_union(
-            pre_to_eff_predecessors.begin(),
-            pre_to_eff_predecessors.end(),
-            goal_variable_successors.begin(),
-            goal_variable_successors.end(),
+        ranges::set_union(
+            pre_to_eff_predecessors,
+            goal_variable_successors,
             back_inserter(relevant_neighbours));
 
         connected_vars_by_variable.push_back(std::move(relevant_neighbours));
@@ -140,7 +136,7 @@ PatternCollectionGeneratorHillclimbing::
     ~PatternCollectionGeneratorHillclimbing() = default;
 
 int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
-    const AbstractTask& task,
+    const AbstractTaskTuple& task,
     const vector<vector<int>>& relevant_neighbours,
     const PatternDatabase& pdb,
     set<Pattern>& generated_patterns,
@@ -149,21 +145,22 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
     const Pattern& pattern = pdb.get_pattern();
     int pdb_size = pdb.get_size();
     int max_pdb_size = 0;
+
+    const auto& variables = get_variables(task);
+
     for (int pattern_var : pattern) {
         assert(utils::in_bounds(pattern_var, relevant_neighbours));
         const vector<int>& connected_vars = relevant_neighbours[pattern_var];
 
         // Only use variables which are not already in the pattern.
         vector<int> relevant_vars;
-        set_difference(
-            connected_vars.begin(),
-            connected_vars.end(),
-            pattern.begin(),
-            pattern.end(),
+        ranges::set_difference(
+            connected_vars,
+            pattern,
             back_inserter(relevant_vars));
 
         for (int rel_var_id : relevant_vars) {
-            VariableProxy rel_var = task.get_variables()[rel_var_id];
+            VariableProxy rel_var = variables[rel_var_id];
             int rel_var_size = rel_var.get_domain_size();
             if (utils::is_product_within_limit(
                     pdb_size,
@@ -171,8 +168,8 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
                     pdb_max_size)) {
                 Pattern new_pattern(pattern);
                 new_pattern.push_back(rel_var_id);
-                sort(new_pattern.begin(), new_pattern.end());
-                if (!generated_patterns.count(new_pattern)) {
+                ranges::sort(new_pattern);
+                if (!generated_patterns.contains(new_pattern)) {
                     /*
                       If we haven't seen this pattern before, generate a PDB
                       for it and add it to candidate_pdbs if its size does not
@@ -195,14 +192,17 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
 void PatternCollectionGeneratorHillclimbing::sample_states(
     const sampling::RandomWalkSampler& sampler,
     int init_h,
+    const State& initial_state,
     vector<State>& samples)
 {
     assert(samples.empty());
 
     samples.reserve(num_samples);
     for (int i = 0; i < num_samples; ++i) {
-        samples.push_back(
-            sampler.sample_state(init_h, [this](const State& state) {
+        samples.push_back(sampler.sample_state(
+            init_h,
+            initial_state,
+            [this](const State& state) {
                 return current_pdbs->is_dead_end(state);
             }));
         if (hill_climbing_timer->is_expired()) { throw HillClimbingTimeout(); }
@@ -323,20 +323,30 @@ bool PatternCollectionGeneratorHillclimbing::is_heuristic_improved(
 }
 
 void PatternCollectionGeneratorHillclimbing::hill_climbing(
-    const AbstractTask& task)
+    const AbstractTaskTuple& task,
+    const State& initial_state)
 {
     hill_climbing_timer = new utils::CountdownTimer(max_time);
+
+    const auto& variables = get_variables(task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
+    const auto& goals = get_goal(task);
+    const auto& cost_function = get_cost_function(task);
 
     if (log.is_at_least_normal()) {
         log << "Average operator cost: "
             << task_properties::get_average_operator_cost(
-                   task.get_operators(),
-                   task)
+                   operators,
+                   cost_function)
             << endl;
     }
 
+    const causal_graph::CausalGraph& causal_graph =
+        causal_graph::get_causal_graph(task);
+
     const vector<vector<int>> relevant_neighbours =
-        compute_relevant_neighbours(task);
+        compute_relevant_neighbours(variables, goals, causal_graph);
 
     // Candidate patterns generated so far (used to avoid duplicates).
     set<Pattern> generated_patterns;
@@ -365,9 +375,12 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
     }
 
     int num_iterations = 0;
-    State initial_state = task.get_initial_state();
 
-    sampling::RandomWalkSampler sampler(task, *rng);
+    AxiomEvaluator& evaluator = g_axiom_evaluators[variables, axioms];
+
+    sampling::RandomWalkSampler
+        sampler(evaluator, variables, operators, cost_function, *rng);
+
     vector<State> samples;
     vector<int> samples_h_values;
 
@@ -392,7 +405,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
 
             samples.clear();
             samples_h_values.clear();
-            sample_states(sampler, init_h, samples);
+            sample_states(sampler, init_h, initial_state, samples);
             for (const State& sample : samples) {
                 samples_h_values.push_back(current_pdbs->get_value(sample));
             }
@@ -470,25 +483,28 @@ string PatternCollectionGeneratorHillclimbing::name() const
 
 PatternCollectionInformation
 PatternCollectionGeneratorHillclimbing::compute_patterns(
-    const shared_ptr<AbstractTask>& task)
+    const SharedAbstractTask& task)
 {
     utils::Timer timer;
 
+    const auto& goals = get_goal(task);
+    const auto& init_vals = get_init(task);
+
     // Generate initial collection: a pattern for each goal variable.
     PatternCollection initial_pattern_collection;
-    for (FactPair goal : task->get_goals()) {
+    for (FactPair goal : goals) {
         initial_pattern_collection.emplace_back(1, goal.var);
     }
     current_pdbs = std::make_unique<IncrementalCanonicalPDBs>(
-        *task,
+        to_refs(task),
         initial_pattern_collection);
     if (log.is_at_least_normal()) {
         log << "Done calculating initial pattern collection: " << timer << endl;
     }
 
-    State initial_state = task->get_initial_state();
+    State initial_state = init_vals.get_initial_state();
     if (!current_pdbs->is_dead_end(initial_state) && max_time > 0) {
-        hill_climbing(*task);
+        hill_climbing(to_refs(task), initial_state);
     }
 
     return current_pdbs->get_pattern_collection_information(log);

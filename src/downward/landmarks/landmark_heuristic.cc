@@ -15,7 +15,7 @@ using namespace std;
 namespace downward::landmarks {
 LandmarkHeuristic::LandmarkHeuristic(
     bool use_preferred_operators,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
@@ -33,7 +33,7 @@ LandmarkHeuristic::LandmarkHeuristic(
 
 LandmarkHeuristic::LandmarkHeuristic(
     bool use_preferred_operators,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
     const std::string& description,
@@ -56,14 +56,18 @@ void LandmarkHeuristic::initialize(
     bool prog_gn,
     bool prog_r)
 {
-    /*
-      Actually, we should test if this is the root task or a
-      CostAdaptedTask *of the root task*, but there is currently no good
-      way to do this, so we use this incomplete, slightly less safe test.
-    */
-    if (transformed_task != original_task &&
-        dynamic_cast<tasks::CostAdaptedTask*>(transformed_task.get()) ==
-            nullptr) {
+    if (slice_shared<
+            VariableSpace,
+            AxiomSpace,
+            ClassicalOperatorSpace,
+            GoalFactList,
+            InitialStateValues>(original_task) !=
+        slice_shared<
+            VariableSpace,
+            AxiomSpace,
+            ClassicalOperatorSpace,
+            GoalFactList,
+            InitialStateValues>(transformed_task)) {
         cerr << "The landmark heuristics currently only support "
              << "task transformations that modify the operator costs. "
              << "See issues 845 and 686 for details." << endl;
@@ -90,7 +94,8 @@ void LandmarkHeuristic::initialize(
            task in cases where it's compatible. See issue564. */
         successor_generator =
             std::make_unique<successor_generator::SuccessorGenerator>(
-                *transformed_task);
+                get_variables(transformed_task),
+                get_operators(transformed_task));
     }
 }
 
@@ -210,8 +215,11 @@ void LandmarkHeuristic::generate_preferred_operators(
     vector<OperatorID> applicable_operators;
     successor_generator->generate_applicable_ops(state, applicable_operators);
 
+    const auto& operators =
+        get_operators(transformed_task);
+
     for (const OperatorID op_id : applicable_operators) {
-        const OperatorProxy& op = transformed_task->get_operators()[op_id];
+        const OperatorProxy& op = operators[op_id];
         if (operator_is_preferred(op, state, future)) { set_preferred(op); }
     }
 }

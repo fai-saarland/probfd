@@ -36,22 +36,23 @@ string PatternGeneratorRandom::name() const
 }
 
 PatternInformation
-PatternGeneratorRandom::compute_pattern(const shared_ptr<AbstractTask>& task)
+PatternGeneratorRandom::compute_pattern(const SharedAbstractTask& task)
 {
     vector<vector<int>> cg_neighbors =
         compute_cg_neighbors(task, bidirectional);
-    vector<FactPair> goals = get_goals_in_random_order(*task, *rng);
+    vector<FactPair> goals =
+        get_goals_in_random_order(get_goal(task), *rng);
 
     Pattern pattern = generate_random_pattern(
         max_pdb_size,
         max_time,
         log,
         rng,
-        *task,
+        get_variables(task),
         goals[0].var,
         cg_neighbors);
 
-    return PatternInformation(*task, pattern, log);
+    return PatternInformation(to_refs(task), pattern, log);
 }
 
-} // namespace pdbs
+} // namespace downward::pdbs

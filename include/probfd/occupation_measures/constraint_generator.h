@@ -2,6 +2,7 @@
 #define PROBFD_OCCUPATION_MEASURES_CONSTRAINT_GENERATOR_H
 
 #include "probfd/fdr_types.h"
+#include "probfd/probabilistic_task.h"
 
 #include <iosfwd>
 #include <memory>
@@ -16,10 +17,6 @@ class LinearProgram;
 class LPSolver;
 } // namespace downward::lp
 
-namespace probfd {
-class ProbabilisticTask;
-} // namespace probfd
-
 /// Namespace dedicated to occupation measure heuristic base classes
 namespace probfd::occupation_measures {
 
@@ -32,7 +29,7 @@ public:
       constraints and perform other initialization.
     */
     virtual void initialize_constraints(
-        const std::shared_ptr<ProbabilisticTask>& task,
+        const SharedProbabilisticTask& task,
         downward::lp::LinearProgram& lp) = 0;
 
     /*
@@ -60,8 +57,8 @@ class ConstraintGeneratorFactory {
 public:
     virtual ~ConstraintGeneratorFactory() = default;
 
-    virtual std::unique_ptr<ConstraintGenerator> construct_constraint_generator(
-        const std::shared_ptr<ProbabilisticTask>& task) = 0;
+    virtual std::unique_ptr<ConstraintGenerator>
+    construct_constraint_generator(const SharedProbabilisticTask& task) = 0;
 };
 
 } // namespace probfd::occupation_measures

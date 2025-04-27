@@ -28,7 +28,7 @@ protected:
 
 public:
     OccupationMeasureHeuristic(
-        std::shared_ptr<ProbabilisticTask> task,
+        SharedProbabilisticTask task,
         downward::utils::LogProxy log,
         downward::lp::LPSolverType solver_type,
         std::shared_ptr<occupation_measures::ConstraintGenerator>
@@ -53,7 +53,7 @@ public:
             constraint_generator_factory);
 
     std::unique_ptr<FDREvaluator>
-    create_heuristic(std::shared_ptr<ProbabilisticTask> task) override;
+    create_heuristic(const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::heuristics

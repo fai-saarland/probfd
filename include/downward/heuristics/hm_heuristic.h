@@ -59,12 +59,12 @@ class HMHeuristic : public Heuristic {
     void dump_table() const;
 
 protected:
-    virtual int compute_heuristic(const State& ancestor_state) override;
+    int compute_heuristic(const State& ancestor_state) override;
 
 public:
     HMHeuristic(
         int m,
-        std::shared_ptr<AbstractTask> original_task,
+        SharedAbstractTask original_task,
         TaskTransformationResult transformation_result,
         bool cache_estimates,
         const std::string& description,
@@ -72,13 +72,13 @@ public:
 
     HMHeuristic(
         int m,
-        std::shared_ptr<AbstractTask> original_task,
+        SharedAbstractTask original_task,
         const std::shared_ptr<TaskTransformation>& transformation,
         bool cache_estimates,
         const std::string& description,
         utils::Verbosity verbosity);
 
-    virtual bool dead_ends_are_reliable() const override;
+    bool dead_ends_are_reliable() const override;
 };
 } // namespace hm_heuristic
 

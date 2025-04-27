@@ -10,10 +10,6 @@
 #include <vector>
 
 // Forward Declarations
-namespace probfd {
-class ProbabilisticTask;
-}
-
 namespace probfd::pdbs {
 class ProjectionStateSpace;
 }
@@ -27,7 +23,7 @@ struct ProjectionTransformation {
     // Constructs the transformation's abstraction mapping and state space,
     // and allocates the J* value table, initially filled with NaNs.
     ProjectionTransformation(
-        std::shared_ptr<ProbabilisticTask> task,
+        SharedProbabilisticTask task,
         Pattern pattern,
         bool operator_pruning = true,
         double max_time = std::numeric_limits<double>::infinity());

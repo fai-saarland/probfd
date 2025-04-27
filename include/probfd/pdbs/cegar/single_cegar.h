@@ -5,6 +5,7 @@
 #include "probfd/pdbs/types.h"
 
 #include "probfd/fdr_types.h"
+#include "probfd/probabilistic_task.h"
 #include "probfd/value_type.h"
 
 #include <memory>
@@ -13,7 +14,7 @@
 
 // Forward Declarations
 namespace downward {
-class VariablesProxy;
+class VariableSpace;
 }
 
 namespace downward::utils {
@@ -21,10 +22,6 @@ class CountdownTimer;
 class LogProxy;
 class RandomNumberGenerator;
 } // namespace utils
-
-namespace probfd {
-class ProbabilisticTask;
-}
 
 namespace probfd::pdbs {
 class ProjectionStateSpace;
@@ -41,7 +38,8 @@ namespace probfd::pdbs::cegar {
 
 extern void run_cegar_loop(
     ProjectionTransformation& transformation,
-    const std::shared_ptr<ProbabilisticTask>& task,
+    const SharedProbabilisticTask& task,
+    const downward::State& initial_state,
     value_t convergence_epsilon,
     FlawFindingStrategy& flaw_strategy,
     std::unordered_set<int> blacklisted_variables,

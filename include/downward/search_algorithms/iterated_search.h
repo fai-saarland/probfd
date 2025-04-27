@@ -25,7 +25,7 @@ class IteratedSearch : public IterativeSearchAlgorithm<IteratedSearch> {
 
 public:
     IteratedSearch(
-        std::shared_ptr<AbstractTask> task,
+        SharedAbstractTask task,
         OperatorCost operator_cost,
         int bound,
         double max_time,
@@ -40,8 +40,8 @@ public:
 
     ~IteratedSearch() override;
 
-    virtual void save_plan_if_necessary() override;
-    virtual void print_statistics() const override;
+    void save_plan_if_necessary() override;
+    void print_statistics() const override;
 
 private:
     std::shared_ptr<SearchAlgorithm>

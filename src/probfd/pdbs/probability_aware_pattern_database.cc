@@ -22,7 +22,7 @@ namespace probfd::pdbs {
 static void compute_distances(
     std::span<value_t> value_table,
     const StateRankingFunction& ranking_function,
-    std::shared_ptr<ProbabilisticTask> task,
+    SharedProbabilisticTask task,
     StateRank abstract_initial_state,
     const Heuristic<StateRank>& heuristic,
     bool operator_pruning,
@@ -62,7 +62,7 @@ void compute_distances(
 
 void compute_distances(
     ProbabilityAwarePatternDatabase& pdb,
-    std::shared_ptr<ProbabilisticTask> task,
+    SharedProbabilisticTask task,
     StateRank abstract_initial_state,
     const Heuristic<StateRank>& heuristic,
     bool operator_pruning,
@@ -79,7 +79,7 @@ void compute_distances(
 }
 
 ProbabilityAwarePatternDatabase::ProbabilityAwarePatternDatabase(
-    const VariablesProxy& variables,
+    const VariableSpace& variables,
     Pattern pattern)
     : ranking_function(variables, std::move(pattern))
     , value_table(

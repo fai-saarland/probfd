@@ -13,9 +13,12 @@ struct FactPair;
 
 namespace downward {
 
-class PartialOperatorsProxy;
+class OperatorPreconditionsProxy;
+class PartialOperatorProxy;
 
-class OperatorSpace {
+class OperatorSpace
+    : public ProxyCollectionTag
+    , public std::ranges::view_interface<OperatorSpace> {
 public:
     virtual ~OperatorSpace() = default;
 
@@ -25,11 +28,15 @@ public:
     virtual FactPair
     get_operator_precondition(int op_index, int fact_index) const = 0;
 
-    PartialOperatorsProxy get_partial_operators() const;
+    std::size_t size() const { return this->get_num_operators(); }
+
+    PartialOperatorProxy operator[](std::size_t index) const;
+    PartialOperatorProxy operator[](OperatorID id) const;
 };
 
 class OperatorPreconditionsProxy
-    : public ProxyCollection<OperatorPreconditionsProxy> {
+    : public ProxyCollectionTag
+    , public std::ranges::view_interface<OperatorPreconditionsProxy> {
 protected:
     const OperatorSpace* op_space;
     int op_index;
@@ -82,32 +89,15 @@ public:
     }
 };
 
-class PartialOperatorsProxy : public ProxyCollection<PartialOperatorsProxy> {
-    const OperatorSpace* op_space;
-
-public:
-    explicit PartialOperatorsProxy(const OperatorSpace& op_space)
-        : op_space(&op_space)
-    {
-    }
-
-    std::size_t size() const { return op_space->get_num_operators(); }
-
-    PartialOperatorProxy operator[](std::size_t index) const
-    {
-        assert(index < size());
-        return PartialOperatorProxy(*op_space, index);
-    }
-
-    PartialOperatorProxy operator[](OperatorID id) const
-    {
-        return (*this)[id.get_index()];
-    }
-};
-
-inline PartialOperatorsProxy OperatorSpace::get_partial_operators() const
+inline PartialOperatorProxy OperatorSpace::operator[](std::size_t index) const
 {
-    return PartialOperatorsProxy(*this);
+    assert(index < size());
+    return PartialOperatorProxy(*this, index);
+}
+
+inline PartialOperatorProxy OperatorSpace::operator[](OperatorID id) const
+{
+    return (*this)[id.get_index()];
 }
 
 } // namespace downward

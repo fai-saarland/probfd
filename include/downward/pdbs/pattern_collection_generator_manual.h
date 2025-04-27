@@ -10,15 +10,15 @@ namespace downward::pdbs {
 class PatternCollectionGeneratorManual : public PatternCollectionGenerator {
     std::shared_ptr<PatternCollection> patterns;
 
-    virtual std::string name() const override;
-    virtual PatternCollectionInformation
-    compute_patterns(const std::shared_ptr<AbstractTask>& task) override;
+    std::string name() const override;
+    PatternCollectionInformation
+    compute_patterns(const SharedAbstractTask& task) override;
 
 public:
     explicit PatternCollectionGeneratorManual(
         const std::vector<Pattern>& patterns,
         utils::Verbosity verbosity);
 };
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

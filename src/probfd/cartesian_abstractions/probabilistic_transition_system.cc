@@ -25,7 +25,7 @@ using namespace downward;
 namespace probfd::cartesian_abstractions {
 
 static vector<vector<FactPair>>
-get_preconditions_by_operator(const ProbabilisticOperatorsProxy& ops)
+get_preconditions_by_operator(const ProbabilisticOperatorSpace& ops)
 {
     vector<vector<FactPair>> preconditions_by_operator;
     preconditions_by_operator.reserve(ops.size());
@@ -48,7 +48,7 @@ get_postconditions_per_outcome(const ProbabilisticOperatorProxy& op)
 
     for (auto outcome : outcomes) {
         // Use map to obtain sorted postconditions.
-        map<int, int> var_to_post;
+        std::map<int, int> var_to_post;
         for (const auto [var, value] : op.get_preconditions()) {
             var_to_post[var] = value;
         }
@@ -68,7 +68,7 @@ get_postconditions_per_outcome(const ProbabilisticOperatorProxy& op)
 
 static vector<vector<vector<FactPair>>>
 get_postconditions_by_operator_and_outcome(
-    const ProbabilisticOperatorsProxy& ops)
+    const ProbabilisticOperatorSpace& ops)
 {
     vector<vector<vector<FactPair>>> postconditions;
     postconditions.reserve(ops.size());
@@ -79,7 +79,7 @@ get_postconditions_by_operator_and_outcome(
 }
 
 static vector<vector<value_t>> get_probabilities_by_operator_and_outcome(
-    const ProbabilisticOperatorsProxy& ops)
+    const ProbabilisticOperatorSpace& ops)
 {
     vector<vector<value_t>> probabilities;
     probabilities.reserve(ops.size());
@@ -110,7 +110,7 @@ static int lookup_value(const vector<FactPair>& facts, int var)
 }
 
 ProbabilisticTransitionSystem::ProbabilisticTransitionSystem(
-    const ProbabilisticOperatorsProxy& ops)
+    const ProbabilisticOperatorSpace& ops)
     : preconditions_by_operator_(get_preconditions_by_operator(ops))
     , postconditions_by_operator_and_outcome_(
           get_postconditions_by_operator_and_outcome(ops))
@@ -151,7 +151,7 @@ void ProbabilisticTransitionSystem::enlarge_vectors_by_one()
 }
 
 void ProbabilisticTransitionSystem::construct_trivial_abstraction(
-    const ProbabilisticOperatorsProxy& ops)
+    const ProbabilisticOperatorSpace& ops)
 {
     assert(get_num_states() == 0);
     enlarge_vectors_by_one();

@@ -16,13 +16,12 @@ using namespace std;
 
 namespace downward {
 
-AxiomEvaluator::AxiomEvaluator(const PlanningTask& task)
+AxiomEvaluator::AxiomEvaluator(
+    const VariableSpace& variables,
+    const AxiomSpace& axioms)
 {
-    task_has_axioms = task_properties::has_axioms(task);
+    task_has_axioms = task_properties::has_axioms(axioms);
     if (task_has_axioms) {
-        VariablesProxy variables = task.get_variables();
-        AxiomsProxy axioms = task.get_axioms();
-
         // Initialize literals
         for (VariableProxy var : variables)
             axiom_literals.emplace_back(var.get_domain_size());
@@ -30,7 +29,7 @@ AxiomEvaluator::AxiomEvaluator(const PlanningTask& task)
         // Initialize rules
         // Since we are skipping some axioms, we cannot access them through
         // their id position directly.
-        vector<int> axiom_id_to_position(axioms.size(), -1);
+        vector<int> axiom_id_to_position(axioms.get_num_axioms(), -1);
         for (AxiomProxy axiom : axioms) {
             assert(axiom.get_effects().size() == 1);
             EffectProxy cond_effect = axiom.get_effects()[0];

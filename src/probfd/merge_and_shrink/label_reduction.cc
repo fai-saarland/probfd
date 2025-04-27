@@ -1,5 +1,6 @@
 #include "probfd/merge_and_shrink/label_reduction.h"
 
+#include "downward/variable_space.h"
 #include "probfd/merge_and_shrink/factored_transition_system.h"
 #include "probfd/merge_and_shrink/labels.h"
 #include "probfd/merge_and_shrink/transition_system.h"
@@ -51,13 +52,14 @@ bool LabelReduction::initialized() const
     return !transition_system_order.empty();
 }
 
-void LabelReduction::initialize(const ProbabilisticTask& task)
+void LabelReduction::initialize(const ProbabilisticTaskTuple& task)
 {
     assert(!initialized());
 
+    const VariableSpace& variables = get_variables(task);
+
     // Compute the transition system order.
-    const int max_transition_system_count =
-        task.get_variables().size() * 2 - 1;
+    const int max_transition_system_count = variables.size() * 2 - 1;
     transition_system_order.reserve(max_transition_system_count);
 
     if (lr_system_order == LabelReductionSystemOrder::REGULAR ||
@@ -86,7 +88,7 @@ static void compute_label_mapping(
     int num_labels_after_reduction = 0;
 
     for (const equivalence_relation::Block& block : relation) {
-        map<value_t, vector<int>> cost_to_equivalent_labels;
+        std::map<value_t, vector<int>> cost_to_equivalent_labels;
         for (int label : block) {
             assert(label < next_new_label);
             value_t cost = labels.get_label_cost(label);
@@ -136,7 +138,7 @@ compute_combinable_equivalence_relation(
     const int num_labels = labels.get_num_active_labels();
 
     vector<int> all_active_labels;
-    map<std::vector<value_t>, vector<int>> probvec_to_labels;
+    std::map<std::vector<value_t>, vector<int>> probvec_to_labels;
     all_active_labels.reserve(num_labels);
 
     for (int label : labels.get_active_labels() | std::views::keys) {

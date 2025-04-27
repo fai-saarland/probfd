@@ -1,6 +1,9 @@
 #include "probfd/task_cost_function.h"
 
 #include "probfd/probabilistic_task.h"
+#include "probfd/termination_costs.h"
+
+#include "downward/operator_cost_function.h"
 
 using namespace downward;
 

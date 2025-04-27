@@ -19,7 +19,7 @@ namespace probfd::cartesian_abstractions {
 
 CartesianHeuristicFunction::CartesianHeuristicFunction(
     std::shared_ptr<StateMapping> state_mapping,
-    std::shared_ptr<ProbabilisticTask> task,
+    SharedProbabilisticTask task,
     unique_ptr<RefinementHierarchy>&& hierarchy,
     vector<value_t>&& h_values)
     : state_mapping_(std::move(state_mapping))

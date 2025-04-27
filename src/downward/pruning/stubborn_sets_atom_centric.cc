@@ -3,6 +3,7 @@
 #include "downward/utils/logging.h"
 
 #include "downward/abstract_task.h"
+#include "downward/classical_operator_space.h"
 
 #include <algorithm>
 #include <limits>
@@ -20,15 +21,19 @@ StubbornSetsAtomCentric::StubbornSetsAtomCentric(
 {
 }
 
-void StubbornSetsAtomCentric::initialize(const shared_ptr<AbstractTask>& task)
+void StubbornSetsAtomCentric::initialize(const SharedAbstractTask& task)
 {
     StubbornSets::initialize(task);
     log << "pruning method: atom-centric stubborn sets" << endl;
 
-    int num_variables = task->get_variables().size();
+    const auto& [variables, operators] =
+        slice_shared<VariableSpace, ClassicalOperatorSpace>(task);
+
+    int num_variables = variables->get_num_variables();
     marked_producers.reserve(num_variables);
     marked_consumers.reserve(num_variables);
-    for (VariableProxy var : task->get_variables()) {
+
+    for (VariableProxy var : *variables) {
         marked_producers.emplace_back(var.get_domain_size(), false);
         marked_consumers.emplace_back(var.get_domain_size(), false);
     }
@@ -38,17 +43,19 @@ void StubbornSetsAtomCentric::initialize(const shared_ptr<AbstractTask>& task)
         marked_consumer_variables.resize(num_variables, MARKED_VALUES_NONE);
     }
 
-    compute_consumers(*task);
+    compute_consumers(*variables, *operators);
 }
 
-void StubbornSetsAtomCentric::compute_consumers(const AbstractTask& task)
+void StubbornSetsAtomCentric::compute_consumers(
+    const VariableSpace& variables,
+    const OperatorSpace& operators)
 {
-    consumers.reserve(task.get_variables().size());
-    for (VariableProxy var : task.get_variables()) {
+    consumers.reserve(variables.size());
+    for (VariableProxy var : variables) {
         consumers.emplace_back(var.get_domain_size());
     }
 
-    for (OperatorProxy op : task.get_operators()) {
+    for (const auto op : operators) {
         int op_id = op.get_id();
         for (const auto [var, value] : op.get_preconditions()) {
             consumers[var][value].push_back(op_id);

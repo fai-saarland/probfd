@@ -1,24 +1,27 @@
 #ifndef AXIOM_EVALUATOR_H
 #define AXIOM_EVALUATOR_H
 
+#include "downward/abstract_task.h"
+
 #include <memory>
 #include <vector>
 
 namespace downward {
 
-class PlanningTask;
-
 class AxiomEvaluator {
     struct AxiomRule;
+
     struct AxiomLiteral {
         std::vector<AxiomRule*> condition_of;
     };
+
     struct AxiomRule {
         int condition_count;
         int unsatisfied_conditions;
         int effect_var;
         int effect_val;
         AxiomLiteral* effect_literal;
+
         AxiomRule(
             int cond_count,
             int eff_var,
@@ -32,9 +35,11 @@ class AxiomEvaluator {
         {
         }
     };
+
     struct NegationByFailureInfo {
         int var_no;
         AxiomLiteral* literal;
+
         NegationByFailureInfo(int var, AxiomLiteral* lit)
             : var_no(var)
             , literal(lit)
@@ -70,11 +75,13 @@ class AxiomEvaluator {
     void evaluate_aux(Values& values, const Accessor& accessor);
 
 public:
-    explicit AxiomEvaluator(const PlanningTask& task);
+    explicit AxiomEvaluator(
+        const VariableSpace& variables,
+        const AxiomSpace& axioms);
 
     void evaluate(std::vector<int>& state);
 };
 
-}
+} // namespace downward
 
 #endif

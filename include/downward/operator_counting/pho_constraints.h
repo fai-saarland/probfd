@@ -24,12 +24,13 @@ public:
     explicit PhOConstraints(
         const std::shared_ptr<pdbs::PatternCollectionGenerator>& patterns);
 
-    virtual void initialize_constraints(
-        const std::shared_ptr<AbstractTask>& task,
+    void initialize_constraints(
+        const SharedAbstractTask& task,
         lp::LinearProgram& lp) override;
-    virtual bool
+
+    bool
     update_constraints(const State& state, lp::LPSolver& lp_solver) override;
 };
-} // namespace operator_counting
+} // namespace downward::operator_counting
 
 #endif

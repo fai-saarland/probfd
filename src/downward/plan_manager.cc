@@ -1,5 +1,7 @@
 #include "downward/plan_manager.h"
 
+#include "downward/operator_space.h"
+#include "downward/operator_cost_function.h"
 #include "downward/state.h"
 
 #include "downward/task_utils/task_properties.h"
@@ -50,7 +52,7 @@ void PlanManager::set_is_part_of_anytime_portfolio(
 
 void PlanManager::save_plan(
     const Plan& plan,
-    const PartialOperatorsProxy& operators,
+    const OperatorSpace& operators,
     const OperatorIntCostFunction& cost_function,
     bool generates_multiple_plan_files)
 {

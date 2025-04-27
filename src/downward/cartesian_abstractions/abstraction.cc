@@ -20,16 +20,18 @@ using namespace std;
 
 namespace downward::cartesian_abstractions {
 Abstraction::Abstraction(
-    const shared_ptr<AbstractTask>& task,
+    const VariableSpace& variables,
+    const ClassicalOperatorSpace& operators,
+    std::vector<FactPair> goal_facts,
+    const State& initial_state,
     utils::LogProxy& log)
-    : transition_system(
-          std::make_unique<TransitionSystem>(task->get_operators()))
-    , concrete_initial_state(task->get_initial_state())
-    , goal_facts(task_properties::get_fact_pairs(task->get_goals()))
+    : transition_system(std::make_unique<TransitionSystem>(operators))
+    , concrete_initial_state(initial_state)
+    , goal_facts(goal_facts)
     , refinement_hierarchy(std::make_unique<RefinementHierarchy>())
     , log(log)
 {
-    initialize_trivial_abstraction(get_domain_sizes(task->get_variables()));
+    initialize_trivial_abstraction(get_domain_sizes(variables));
 }
 
 Abstraction::~Abstraction()

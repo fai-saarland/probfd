@@ -1,8 +1,11 @@
 #include "probfd/task_utils/causal_graph.h"
 
+#include "downward/axiom_space.h"
+#include "downward/variable_space.h"
 #include "probfd/probabilistic_task.h"
 
 #include "downward/utils/logging.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include <algorithm>
 #include <cassert>
@@ -17,8 +20,11 @@ using namespace downward;
 
 namespace probfd::causal_graph {
 
-static std::unordered_map<
-    const ProbabilisticTask*,
+static utils::HashMap<
+    std::tuple<
+        const VariableSpace*,
+        const AxiomSpace*,
+        const ProbabilisticOperatorSpace*>,
     std::unique_ptr<ProbabilisticCausalGraph>>
     causal_graph_cache;
 
@@ -193,16 +199,17 @@ struct ProbabilisticCausalGraphBuilder {
 };
 
 ProbabilisticCausalGraph::ProbabilisticCausalGraph(
-    const ProbabilisticTask& task)
+    const VariableSpace& variables,
+    const AxiomSpace& axioms,
+    const ProbabilisticOperatorSpace& operators)
 {
-    int num_variables = task.get_variables().size();
+    int num_variables = variables.size();
     ProbabilisticCausalGraphBuilder cg_builder(num_variables);
 
-    for (ProbabilisticOperatorProxy op : task.get_operators())
+    for (ProbabilisticOperatorProxy op : operators)
         cg_builder.handle_operator(op);
 
-    for (AxiomProxy op : task.get_axioms())
-        cg_builder.handle_operator(op);
+    for (AxiomProxy op : axioms) cg_builder.handle_operator(op);
 
     cg_builder.pre_eff_builder.compute_relation(pre_to_eff);
     cg_builder.eff_pre_builder.compute_relation(eff_to_pre);
@@ -213,11 +220,11 @@ ProbabilisticCausalGraph::ProbabilisticCausalGraph(
 }
 
 void ProbabilisticCausalGraph::dump(
-    const ProbabilisticTask& task,
+    const VariableSpace& variables,
     utils::LogProxy& log) const
 {
     log << "Causal graph: " << endl;
-    for (VariableProxy var : task.get_variables()) {
+    for (VariableProxy var : variables) {
         int var_id = var.get_id();
         log << "#" << var_id << " [" << var.get_name() << "]:" << endl
             << "    pre->eff arcs: " << pre_to_eff[var_id] << endl
@@ -228,14 +235,24 @@ void ProbabilisticCausalGraph::dump(
     }
 }
 
-const ProbabilisticCausalGraph& get_causal_graph(const ProbabilisticTask* task)
+const ProbabilisticCausalGraph& get_causal_graph(
+    const VariableSpace& variables,
+    const AxiomSpace& axioms,
+    const ProbabilisticOperatorSpace& operators)
 {
-    if (!causal_graph_cache.contains(task)) {
-        causal_graph_cache.insert(make_pair(
-            task,
-            std::make_unique<ProbabilisticCausalGraph>(*task)));
+    const std::tuple entry =
+        map(std::forward_as_tuple(variables, axioms, operators),
+            [](auto&& arg) { return &arg; });
+
+    if (!causal_graph_cache.contains(entry)) {
+        causal_graph_cache.emplace(
+            entry,
+            std::make_unique<ProbabilisticCausalGraph>(
+                variables,
+                axioms,
+                operators));
     }
-    return *causal_graph_cache[task];
+    return *causal_graph_cache[entry];
 }
 
 } // namespace probfd::causal_graph

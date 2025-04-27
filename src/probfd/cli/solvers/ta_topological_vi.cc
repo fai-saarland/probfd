@@ -35,7 +35,7 @@ public:
     }
 
     std::unique_ptr<StatisticalMDPAlgorithm>
-    create_algorithm(const std::shared_ptr<ProbabilisticTask>&) override
+    create_algorithm(const SharedProbabilisticTask&) override
     {
         using TVIAlgorithm = algorithms::ta_topological_vi::
             TATopologicalValueIteration<State, OperatorID>;

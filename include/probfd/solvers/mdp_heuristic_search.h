@@ -133,7 +133,7 @@ public:
 
     template <template <typename, typename, bool> class S, typename... Args>
     std::unique_ptr<MDPAlgorithm<State, Action>> create_search_algorithm(
-        const std::shared_ptr<ProbabilisticTask>&,
+        const SharedProbabilisticTask&,
         Args&&... args)
     {
         return construct<
@@ -180,7 +180,7 @@ public:
     template <template <typename, typename, bool> class HS, typename... Args>
     std::unique_ptr<MDPAlgorithm<State, Action>>
     create_heuristic_search_algorithm(
-        const std::shared_ptr<ProbabilisticTask>&,
+        const SharedProbabilisticTask&,
         Args&&... args)
     {
         return construct<
@@ -227,7 +227,7 @@ public:
     template <template <typename, typename, bool> class HS, typename... Args>
     std::unique_ptr<MDPAlgorithm<State, Action>>
     create_heuristic_search_algorithm(
-        const std::shared_ptr<ProbabilisticTask>&,
+        const SharedProbabilisticTask&,
         Args&&... args)
     {
         return construct<
@@ -267,7 +267,7 @@ public:
 
     template <template <typename, typename, bool> class HS, typename... Args>
     std::unique_ptr<FDRMDPAlgorithm> create_heuristic_search_algorithm(
-        const std::shared_ptr<ProbabilisticTask>& task,
+        const SharedProbabilisticTask& task,
         Args&&... args)
     {
         return std::make_unique<BisimulationBasedHeuristicSearchAlgorithm>(

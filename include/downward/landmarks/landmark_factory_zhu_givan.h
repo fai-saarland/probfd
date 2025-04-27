@@ -12,7 +12,7 @@
 namespace downward {
 class AxiomOrOperatorProxy;
 class EffectConditionsProxy;
-}
+} // namespace downward
 
 namespace downward::landmarks {
 using lm_set = utils::HashSet<FactPair>;
@@ -21,6 +21,7 @@ class LandmarkFactoryZhuGivan : public LandmarkFactoryRelaxation {
     class plan_graph_node {
     public:
         lm_set labels;
+
         inline bool reached() const
         {
             // NOTE: nodes are always labeled with itself,
@@ -37,7 +38,10 @@ class LandmarkFactoryZhuGivan : public LandmarkFactoryRelaxation {
     // labels on some proposition, after proposition (i,j) has changed
     std::vector<std::vector<std::vector<int>>> triggers;
 
-    void compute_triggers(const AbstractTask& task);
+    void compute_triggers(
+        const VariableSpace& variables,
+        const AxiomSpace& axioms,
+        const ClassicalOperatorSpace& operators);
 
     // Note: must include operators that only have conditional effects
     std::vector<int> operators_without_preconditions;
@@ -73,27 +77,30 @@ class LandmarkFactoryZhuGivan : public LandmarkFactoryRelaxation {
 
     // Relaxed exploration, returns the last proposition layer
     // (the fixpoint) with labels
-    PropositionLayer
-    build_relaxed_plan_graph_with_labels(const AbstractTask& task) const;
+    PropositionLayer build_relaxed_plan_graph_with_labels(
+        const VariableSpace& variables,
+        const AxiomSpace& axioms,
+        const ClassicalOperatorSpace& operators,
+        const State& initial_state) const;
 
     // Extract landmarks from last proposition layer and add them to the
     // landmarks graph
     void extract_landmarks(
-        const AbstractTask& task,
-        const PropositionLayer& last_prop_layer);
+        const GoalFactList& goals,
+        const PropositionLayer& last_prop_layer) const;
 
     // Link operators to its propositions in trigger list.
     void add_operator_to_triggers(const AxiomOrOperatorProxy& op);
 
-    virtual void generate_relaxed_landmarks(
-        const std::shared_ptr<AbstractTask>& task,
+    void generate_relaxed_landmarks(
+        const SharedAbstractTask& task,
         Exploration& exploration) override;
 
 public:
     LandmarkFactoryZhuGivan(bool use_orders, utils::Verbosity verbosity);
 
-    virtual bool supports_conditional_effects() const override;
+    bool supports_conditional_effects() const override;
 };
-} // namespace landmarks
+} // namespace downward::landmarks
 
 #endif

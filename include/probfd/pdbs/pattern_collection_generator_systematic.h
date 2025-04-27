@@ -11,11 +11,6 @@
 #include <unordered_set>
 #include <vector>
 
-namespace probfd {
-class ProbabilisticTaskProxy;
-class ProbabilisticTask;
-} // namespace probfd
-
 namespace probfd::causal_graph {
 class ProbabilisticCausalGraph;
 }
@@ -35,7 +30,7 @@ public:
         downward::utils::Verbosity verbosity);
 
     PatternCollectionInformation
-    generate(const std::shared_ptr<ProbabilisticTask>& task) override;
+    generate(const SharedProbabilisticTask& task) override;
 
 private:
     void enqueue_pattern_if_new(
@@ -44,16 +39,21 @@ private:
         PatternSet& pattern_set);
 
     void build_sga_patterns(
-        const ProbabilisticTask& task,
+        const downward::GoalFactList& goals,
         const causal_graph::ProbabilisticCausalGraph& cg,
         PatternCollection& patterns,
         PatternSet& pattern_set);
+
     void build_patterns(
-        const ProbabilisticTask& task,
+        const downward::VariableSpace& variables,
+        const downward::AxiomSpace& axioms,
+        const ProbabilisticOperatorSpace& operators,
+        const downward::GoalFactList& goals,
         PatternCollection& patterns);
+
     void build_patterns_naive(
-        const ProbabilisticTask& task,
-        PatternCollection& patterns);
+        const downward::VariableSpace& variables,
+        PatternCollection& patterns) const;
 };
 
 } // namespace probfd::pdbs

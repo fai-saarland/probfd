@@ -11,7 +11,7 @@ NullPruningMethod::NullPruningMethod(utils::Verbosity verbosity)
 {
 }
 
-void NullPruningMethod::initialize(const shared_ptr<AbstractTask>& task)
+void NullPruningMethod::initialize(const SharedAbstractTask& task)
 {
     PruningMethod::initialize(task);
     log << "pruning method: none" << endl;

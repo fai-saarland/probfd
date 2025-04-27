@@ -16,8 +16,8 @@ using namespace std;
 namespace downward {
 
 Heuristic::Heuristic(
-    std::shared_ptr<AbstractTask> original_task,
-    std::shared_ptr<AbstractTask> transformed_task,
+    SharedAbstractTask original_task,
+    SharedAbstractTask transformed_task,
     std::shared_ptr<StateMapping> state_mapping,
     std::shared_ptr<InverseOperatorMapping> inv_operator_mapping,
     bool cache_estimates,
@@ -35,7 +35,7 @@ Heuristic::Heuristic(
 }
 
 Heuristic::Heuristic(
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
     const std::string& description,
@@ -53,7 +53,7 @@ Heuristic::Heuristic(
 }
 
 Heuristic::Heuristic(
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation> transformation,
     bool cache_estimates,
     const std::string& description,
@@ -119,8 +119,8 @@ EvaluationResult Heuristic::compute_result(EvaluationContext& eval_context)
     }
 
 #ifndef NDEBUG
-    PartialOperatorsProxy global_operators =
-        original_task->get_partial_operators();
+    const auto& global_operators =
+        get_operators(original_task);
     if (heuristic != EvaluationResult::INFTY) {
         for (OperatorID op_id : preferred_operators)
             assert(

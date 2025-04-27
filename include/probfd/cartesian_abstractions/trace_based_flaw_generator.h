@@ -42,7 +42,7 @@ class TraceBasedFlawGenerator : public FlawGenerator {
         downward::utils::CountdownTimer& timer);
 
     std::optional<Flaw> find_flaw(
-        const ProbabilisticTask& task,
+        const ProbabilisticTaskTuple& task,
         const std::vector<int>& domain_sizes,
         const Trace& solution,
         CartesianAbstraction& abstraction,
@@ -54,7 +54,7 @@ public:
     ~TraceBasedFlawGenerator() override;
 
     std::optional<Flaw> generate_flaw(
-        const ProbabilisticTask& task,
+        const ProbabilisticTaskTuple& task,
         const std::vector<int>& domain_sizes,
         CartesianAbstraction& abstraction,
         const AbstractState* init_id,

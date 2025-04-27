@@ -1,5 +1,6 @@
 #include "probfd/heuristics/constant_heuristic.h"
 
+#include "probfd/probabilistic_operator_space.h"
 #include "probfd/probabilistic_task.h"
 
 using namespace downward;
@@ -7,12 +8,12 @@ using namespace downward;
 namespace probfd::heuristics {
 
 std::unique_ptr<FDREvaluator>
-BlindEvaluatorFactory::create_heuristic(std::shared_ptr<ProbabilisticTask> task)
+BlindEvaluatorFactory::create_heuristic(const SharedProbabilisticTask& task)
 {
     return std::make_unique<BlindEvaluator<State>>(
-        task->get_operators(),
-        *task,
-        *task);
+        get_operators(task),
+        get_cost_function(task),
+        get_termination_costs(task));
 }
 
 } // namespace probfd::heuristics

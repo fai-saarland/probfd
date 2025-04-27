@@ -9,7 +9,7 @@
 namespace downward::utils {
 class CountdownTimer;
 class RandomNumberGenerator;
-} // namespace utils
+} // namespace downward::utils
 
 namespace downward::pdbs {
 /*
@@ -56,17 +56,17 @@ class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
     bool time_limit_reached(const utils::CountdownTimer& timer) const;
     bool check_for_stagnation(const utils::CountdownTimer& timer);
     virtual std::string id() const = 0;
-    virtual void initialize(const std::shared_ptr<AbstractTask>& task) = 0;
+    virtual void initialize(const SharedAbstractTask& task) = 0;
     virtual PatternInformation compute_pattern(
         int max_pdb_size,
         double max_time,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        const std::shared_ptr<AbstractTask>& task,
+        const SharedAbstractTask& task,
         const FactPair& goal,
         std::unordered_set<int>&& blacklisted_variables) = 0;
-    virtual std::string name() const override;
-    virtual PatternCollectionInformation
-    compute_patterns(const std::shared_ptr<AbstractTask>& task) override;
+    std::string name() const override;
+    PatternCollectionInformation
+    compute_patterns(const SharedAbstractTask& task) override;
 
 public:
     PatternCollectionGeneratorMultiple(
@@ -81,6 +81,6 @@ public:
         utils::Verbosity verbosity);
 };
 
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

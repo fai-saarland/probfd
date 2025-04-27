@@ -1,5 +1,6 @@
 #include "probfd/cartesian_abstractions/complete_policy_flaw_finder.h"
 
+#include "downward/initial_state_values.h"
 #include "probfd/cartesian_abstractions/abstract_state.h"
 #include "probfd/cartesian_abstractions/cartesian_abstraction.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition.h"
@@ -20,6 +21,7 @@
 
 #include "downward/state.h"
 #include "downward/state_id.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include <cassert>
 #include <deque>
@@ -39,16 +41,20 @@ CompletePolicyFlawFinder::CompletePolicyFlawFinder(int max_search_states)
 }
 
 optional<Flaw> CompletePolicyFlawFinder::find_flaw(
-    const ProbabilisticTask& task,
+    const ProbabilisticTaskTuple& task,
     const std::vector<int>& domain_sizes,
     CartesianAbstraction& abstraction,
     Solution& policy,
     utils::LogProxy& log,
     utils::CountdownTimer& timer)
 {
-    const auto operators = task.get_operators();
+    const auto& variables = get_variables(task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
+    const auto& goals = get_goal(task);
+    const auto& init_vals = get_init(task);
 
-    StateRegistry registry(task);
+    StateRegistry registry(variables, axioms, init_vals.get_initial_state());
 
     struct QueueItem {
         downward::StateID state_id;
@@ -76,13 +82,13 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
         if (!decision) {
             assert(abstraction.get_goals().contains(abstract_state->get_id()));
 
-            if (!downward::task_properties::is_goal_state(task, state)) {
+            if (!downward::task_properties::is_goal_state(goals, state)) {
                 if (log.is_at_least_debug()) log << "Goal test failed." << endl;
                 state.unpack();
                 return Flaw(
                     std::move(state),
                     *abstract_state,
-                    get_cartesian_set(domain_sizes, task.get_goals()));
+                    get_cartesian_set(domain_sizes, goals));
             }
             continue;
         }

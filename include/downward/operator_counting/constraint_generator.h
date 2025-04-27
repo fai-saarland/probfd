@@ -1,13 +1,14 @@
 #ifndef OPERATOR_COUNTING_CONSTRAINT_GENERATOR_H
 #define OPERATOR_COUNTING_CONSTRAINT_GENERATOR_H
 
+#include "downward/abstract_task.h"
+
 #include <memory>
 #include <vector>
 
 #include "downward/algorithms/named_vector.h"
 
 namespace downward {
-class AbstractTask;
 class State;
 }
 
@@ -40,7 +41,7 @@ public:
       constraints and perform other initialization.
     */
     virtual void initialize_constraints(
-        const std::shared_ptr<AbstractTask>& task,
+        const SharedAbstractTask& task,
         lp::LinearProgram& lp);
 
     /*

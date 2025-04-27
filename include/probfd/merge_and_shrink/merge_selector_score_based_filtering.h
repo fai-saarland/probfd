@@ -24,7 +24,7 @@ public:
         const std::vector<int>& indices_subset =
             std::vector<int>()) const override;
 
-    void initialize(const ProbabilisticTask& task) override;
+    void initialize(const ProbabilisticTaskTuple& task) override;
 
     bool requires_liveness() const override;
     bool requires_goal_distances() const override;

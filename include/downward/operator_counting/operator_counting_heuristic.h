@@ -16,7 +16,7 @@ class OperatorCountingHeuristic : public Heuristic {
     lp::LPSolver lp_solver;
 
 protected:
-    virtual int compute_heuristic(const State& ancestor_state) override;
+    int compute_heuristic(const State& ancestor_state) override;
 
 public:
     OperatorCountingHeuristic(
@@ -24,7 +24,7 @@ public:
             constraint_generators,
         bool use_integer_operator_counts,
         lp::LPSolverType lpsolver,
-        std::shared_ptr<AbstractTask> original_task,
+        SharedAbstractTask original_task,
         TaskTransformationResult transformation_result,
         bool cache_estimates,
         const std::string& description,
@@ -35,7 +35,7 @@ public:
             constraint_generators,
         bool use_integer_operator_counts,
         lp::LPSolverType lpsolver,
-        std::shared_ptr<AbstractTask> original_task,
+        SharedAbstractTask original_task,
         const std::shared_ptr<TaskTransformation>& transformation,
         bool cache_estimates,
         const std::string& description,

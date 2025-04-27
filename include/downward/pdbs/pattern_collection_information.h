@@ -7,10 +7,6 @@
 
 #include <memory>
 
-namespace downward {
-class AbstractTask;
-}
-
 namespace downward::utils {
 class LogProxy;
 }
@@ -29,7 +25,7 @@ namespace downward::pdbs {
   as an interface for ownership transfer rather than sharing it.
 */
 class PatternCollectionInformation {
-    const AbstractTask& task;
+    AbstractTaskTuple task;
     std::shared_ptr<PatternCollection> patterns;
     std::shared_ptr<PDBCollection> pdbs;
     std::shared_ptr<std::vector<PatternClique>> pattern_cliques;
@@ -42,7 +38,7 @@ class PatternCollectionInformation {
 
 public:
     PatternCollectionInformation(
-        const AbstractTask& task,
+        const AbstractTaskTuple& task,
         const std::shared_ptr<PatternCollection>& patterns,
         utils::LogProxy& log);
     ~PatternCollectionInformation() = default;
@@ -51,7 +47,7 @@ public:
     void set_pattern_cliques(
         const std::shared_ptr<std::vector<PatternClique>>& pattern_cliques);
 
-    const AbstractTask& get_task() const { return task; }
+    const AbstractTaskTuple& get_task() const { return task; }
 
     std::shared_ptr<PatternCollection> get_patterns() const;
     std::shared_ptr<PDBCollection> get_pdbs();

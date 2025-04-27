@@ -1,6 +1,7 @@
 #ifndef UTILS_HASH_H
 #define UTILS_HASH_H
 
+#include <array>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -315,6 +316,14 @@ void feed_iterable(HashState& hash_state, T begin, T end)
 
 template <typename... T>
 void feed(HashState& hash_state, const std::tuple<T...>& t)
+{
+    std::apply(
+        [&](auto&&... element) { ((feed(hash_state, element)), ...); },
+        t);
+}
+
+template <typename T, std::size_t N>
+void feed(HashState& hash_state, const std::array<T, N>& t)
 {
     std::apply(
         [&](auto&&... element) { ((feed(hash_state, element)), ...); },

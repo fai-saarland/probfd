@@ -5,6 +5,7 @@
 
 #include "downward/utils/logging.h"
 
+#include "downward/abstract_task.h"
 #include "downward/fact_pair.h"
 
 #include <list>
@@ -16,22 +17,27 @@
 #include <vector>
 
 namespace downward {
-class AbstractTask;
 class OperatorProxy;
 }
 
 namespace downward::landmarks {
-/*
-  TODO: Change order to private -> protected -> public
-   (omitted so far to minimize diff)
-*/
+
 class LandmarkFactory {
+    AbstractTaskPtrTuple lm_graph_task;
+    std::vector<std::vector<std::vector<int>>> operators_eff_lookup;
+
+protected:
+    mutable utils::LogProxy log;
+    std::shared_ptr<LandmarkGraph> lm_graph;
+    bool achievers_calculated = false;
+
 public:
-    virtual ~LandmarkFactory() = default;
     LandmarkFactory(const LandmarkFactory&) = delete;
 
+    virtual ~LandmarkFactory() = default;
+
     std::shared_ptr<LandmarkGraph>
-    compute_lm_graph(const std::shared_ptr<AbstractTask>& task);
+    compute_lm_graph(const SharedAbstractTask& task);
 
     virtual bool supports_conditional_effects() const = 0;
 
@@ -39,13 +45,10 @@ public:
 
 protected:
     explicit LandmarkFactory(utils::Verbosity verbosity);
-    mutable utils::LogProxy log;
-    std::shared_ptr<LandmarkGraph> lm_graph;
-    bool achievers_calculated = false;
 
-    void edge_add(LandmarkNode& from, LandmarkNode& to, EdgeType type);
+    void edge_add(LandmarkNode& from, LandmarkNode& to, EdgeType type) const;
 
-    void discard_all_orderings();
+    void discard_all_orderings() const;
 
     bool
     is_landmark_precondition(const OperatorProxy& op, const Landmark& landmark)
@@ -58,14 +61,14 @@ protected:
     }
 
 private:
-    AbstractTask* lm_graph_task;
-    std::vector<std::vector<std::vector<int>>> operators_eff_lookup;
+    virtual void generate_landmarks(const SharedAbstractTask& task) = 0;
 
-    virtual void
-    generate_landmarks(const std::shared_ptr<AbstractTask>& task) = 0;
-    void generate_operators_lookups(const AbstractTask& task);
+    void generate_operators_lookups(
+        const VariableSpace& variables,
+        const AxiomSpace& axioms,
+        const ClassicalOperatorSpace& operators);
 };
 
-} // namespace landmarks
+} // namespace downward::landmarks
 
 #endif

@@ -8,6 +8,7 @@
 
 #include "probfd/utils/guards.h"
 
+#include "probfd/probabilistic_operator_space.h"
 #include "probfd/probabilistic_task.h"
 
 #include "downward/cartesian_abstractions/cartesian_set.h"
@@ -19,6 +20,7 @@
 #include "downward/utils/memory.h"
 
 #include "downward/axioms.h"
+#include "downward/initial_state_values.h"
 #include "downward/state.h"
 
 #include <cassert>
@@ -50,7 +52,7 @@ std::unique_ptr<Trace> TraceBasedFlawGenerator::find_trace(
 }
 
 optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
-    const ProbabilisticTask& task,
+    const ProbabilisticTaskTuple& task,
     const std::vector<int>& domain_sizes,
     CartesianAbstraction& abstraction,
     const AbstractState* init,
@@ -81,7 +83,7 @@ optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
 }
 
 optional<Flaw> TraceBasedFlawGenerator::find_flaw(
-    const ProbabilisticTask& task,
+    const ProbabilisticTaskTuple& task,
     const std::vector<int>& domain_sizes,
     const Trace& solution,
     CartesianAbstraction& abstraction,
@@ -90,12 +92,19 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
 {
     TimerScope scope(find_flaw_timer_);
 
-    AxiomEvaluator& axiom_evaluator = g_axiom_evaluators[task];
+    const auto& variables = get_variables(task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
+    const auto& goals = get_goal(task);
+    const auto& init_vals = get_init(task);
+
+    State concrete_state = init_vals.get_initial_state();
+
+    AxiomEvaluator& axiom_evaluator = g_axiom_evaluators[variables, axioms];
 
     if (log.is_at_least_debug()) log << "Check solution:" << endl;
 
     const AbstractState* abstract_state = &abstraction.get_initial_state();
-    State concrete_state = task.get_initial_state();
     assert(abstract_state->includes(concrete_state));
 
     if (log.is_at_least_debug())
@@ -104,7 +113,7 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
     for (const TransitionOutcome& step : solution) {
         timer.throw_if_expired();
         if (!utils::extra_memory_padding_is_reserved()) break;
-        ProbabilisticOperatorProxy op = task.get_operators()[step.op_id];
+        ProbabilisticOperatorProxy op = operators[step.op_id];
         const AbstractState* next_abstract_state =
             &abstraction.get_abstract_state(step.target_id);
         if (::task_properties::is_applicable(op, concrete_state)) {
@@ -136,7 +145,7 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
     }
 
     assert(abstraction.get_goals().contains(abstract_state->get_id()));
-    if (::task_properties::is_goal_state(task, concrete_state)) {
+    if (::task_properties::is_goal_state(goals, concrete_state)) {
         // We found a concrete solution.
         return std::nullopt;
     }
@@ -145,7 +154,7 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
     return Flaw(
         std::move(concrete_state),
         *abstract_state,
-        get_cartesian_set(domain_sizes, task.get_goals()));
+        get_cartesian_set(domain_sizes, goals));
 }
 
 void TraceBasedFlawGenerator::notify_split()

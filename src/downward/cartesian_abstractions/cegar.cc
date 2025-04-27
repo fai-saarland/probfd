@@ -14,9 +14,11 @@
 
 #include "downward/abstract_task.h"
 #include "downward/axioms.h"
+#include "downward/initial_state_values.h"
 
 #include <algorithm>
 #include <cassert>
+#include <downward/operator_cost_function_fwd.h>
 #include <iostream>
 #include <unordered_map>
 
@@ -55,7 +57,7 @@ struct Flaw {
         assert(current_abstract_state.includes(this->concrete_state));
     }
 
-    vector<Split> get_possible_splits(const VariablesProxy& variables) const
+    vector<Split> get_possible_splits(const VariableSpace& variables) const
     {
         vector<Split> splits;
         /*
@@ -87,22 +89,32 @@ struct Flaw {
 };
 
 CEGAR::CEGAR(
-    const shared_ptr<AbstractTask>& task,
+    SharedAbstractTask task,
     int max_states,
     int max_non_looping_transitions,
     double max_time,
     PickSplit pick,
     utils::RandomNumberGenerator& rng,
     utils::LogProxy& log)
-    : task(*task)
-    , axiom_evaluator(g_axiom_evaluators[*task])
-    , domain_sizes(get_domain_sizes(task->get_variables()))
+    : task_(to_refs(task))
+    , axiom_evaluator(
+          g_axiom_evaluators
+              [get_variables(task_), get_axioms(task_)])
+    , domain_sizes(get_domain_sizes(get_variables(task_)))
     , max_states(max_states)
     , max_non_looping_transitions(max_non_looping_transitions)
-    , split_selector(task, pick)
-    , abstraction(std::make_unique<Abstraction>(task, log))
+    , split_selector(std::move(task), pick)
+    , abstraction(
+          std::make_unique<Abstraction>(
+              get_variables(task_),
+              get_operators(task_),
+              task_properties::get_fact_pairs(get_goal(task_)),
+              get_init(task_).get_initial_state(),
+              log))
     , abstract_search(
-          task_properties::get_operator_costs(task->get_operators(), *task))
+          task_properties::get_operator_costs(
+              get_operators(task_),
+              get_cost_function(task_)))
     , timer(max_time)
     , log(log)
 {
@@ -135,13 +147,23 @@ unique_ptr<Abstraction> CEGAR::extract_abstraction()
 
 void CEGAR::separate_facts_unreachable_before_goal()
 {
+    const auto& [variables, operators, goals, init_vals] = slice<
+        VariableSpace&,
+        ClassicalOperatorSpace&,
+        GoalFactList&,
+        InitialStateValues&>(task_);
+
     assert(abstraction->get_goals().size() == 1);
     assert(abstraction->get_num_states() == 1);
-    assert(task.get_goals().size() == 1);
-    FactPair goal = task.get_goals()[0];
-    utils::HashSet<FactPair> reachable_facts =
-        get_relaxed_possible_before(task, goal);
-    for (VariableProxy var : task.get_variables()) {
+
+    assert(goals.size() == 1);
+
+    FactPair goal = goals[0];
+    utils::HashSet<FactPair> reachable_facts = get_relaxed_possible_before(
+        operators,
+        init_vals.get_initial_state(),
+        goal);
+    for (VariableProxy var : variables) {
         if (!may_keep_refining()) break;
         int var_id = var.get_id();
         vector<int> unreachable_values;
@@ -187,6 +209,8 @@ bool CEGAR::may_keep_refining() const
 
 void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
 {
+    const auto [variables, goals] = slice<VariableSpace&, GoalFactList&>(task_);
+
     /*
       For landmark tasks we have to map all states in which the
       landmark might have been achieved to arbitrary abstract goal
@@ -194,9 +218,7 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
       unreachable facts, but calling it unconditionally for subtasks
       with one goal doesn't hurt and simplifies the implementation.
     */
-    if (task.get_goals().size() == 1) {
-        separate_facts_unreachable_before_goal();
-    }
+    if (goals.size() == 1) { separate_facts_unreachable_before_goal(); }
 
     utils::Timer find_trace_timer(false);
     utils::Timer find_flaw_timer(false);
@@ -229,7 +251,7 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
         refine_timer.resume();
         const AbstractState& abstract_state = flaw->current_abstract_state;
         int state_id = abstract_state.get_id();
-        vector<Split> splits = flaw->get_possible_splits(task.get_variables());
+        vector<Split> splits = flaw->get_possible_splits(variables);
         const Split& split =
             split_selector.pick_split(abstract_state, splits, rng);
         auto new_state_ids =
@@ -259,10 +281,14 @@ void CEGAR::refinement_loop(utils::RandomNumberGenerator& rng)
 
 unique_ptr<Flaw> CEGAR::find_flaw(const Solution& solution)
 {
+    const auto& [operators, goals, init_vals] =
+        slice<ClassicalOperatorSpace&, GoalFactList&, InitialStateValues&>(
+            task_);
+
     if (log.is_at_least_debug()) log << "Check solution:" << endl;
 
     const AbstractState* abstract_state = &abstraction->get_initial_state();
-    State concrete_state = task.get_initial_state();
+    State concrete_state = init_vals.get_initial_state();
     assert(abstract_state->includes(concrete_state));
 
     if (log.is_at_least_debug())
@@ -270,7 +296,7 @@ unique_ptr<Flaw> CEGAR::find_flaw(const Solution& solution)
 
     for (const Transition& step : solution) {
         if (!utils::extra_memory_padding_is_reserved()) break;
-        OperatorProxy op = task.get_operators()[step.op_id];
+        OperatorProxy op = operators[step.op_id];
         const AbstractState* next_abstract_state =
             &abstraction->get_state(step.target_id);
         if (task_properties::is_applicable(op, concrete_state)) {
@@ -298,7 +324,7 @@ unique_ptr<Flaw> CEGAR::find_flaw(const Solution& solution)
         }
     }
     assert(abstraction->get_goals().count(abstract_state->get_id()));
-    if (task_properties::is_goal_state(task, concrete_state)) {
+    if (task_properties::is_goal_state(goals, concrete_state)) {
         // We found a concrete solution.
         return nullptr;
     } else {
@@ -306,7 +332,7 @@ unique_ptr<Flaw> CEGAR::find_flaw(const Solution& solution)
         return std::make_unique<Flaw>(
             std::move(concrete_state),
             *abstract_state,
-            get_cartesian_set(domain_sizes, task.get_goals()));
+            get_cartesian_set(domain_sizes, goals));
     }
 }
 

@@ -30,7 +30,7 @@ public:
     }
 
     unique_ptr<Evaluator>
-    create_object(const std::shared_ptr<AbstractTask>&) override
+    create_object(const SharedAbstractTask&) override
     {
         return std::make_unique<GEvaluator>(description, verbosity);
     }

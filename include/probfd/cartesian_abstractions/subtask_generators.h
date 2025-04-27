@@ -23,10 +23,6 @@ class RandomNumberGenerator;
 class LogProxy;
 } // namespace downward::utils
 
-namespace probfd {
-class ProbabilisticTask;
-}
-
 namespace probfd::cartesian_abstractions {
 
 using Facts = std::vector<downward::FactPair>;
@@ -39,7 +35,7 @@ enum class FactOrder { ORIGINAL, RANDOM, HADD_UP, HADD_DOWN };
 class SubtaskGenerator {
 public:
     virtual SharedTasks get_subtasks(
-        const std::shared_ptr<ProbabilisticTask>& task,
+        const SharedProbabilisticTask& task,
         downward::utils::LogProxy& log) const = 0;
     virtual ~SubtaskGenerator() = default;
 };
@@ -54,7 +50,7 @@ public:
     explicit TaskDuplicator(int copies);
 
     SharedTasks get_subtasks(
-        const std::shared_ptr<ProbabilisticTask>& task,
+        const SharedProbabilisticTask& task,
         downward::utils::LogProxy& log) const override;
 };
 
@@ -69,7 +65,7 @@ public:
     explicit GoalDecomposition(FactOrder order, int random_seed);
 
     SharedTasks get_subtasks(
-        const std::shared_ptr<ProbabilisticTask>& task,
+        const SharedProbabilisticTask& task,
         downward::utils::LogProxy& log) const override;
 };
 
@@ -93,7 +89,7 @@ public:
         int random_seed);
 
     SharedTasks get_subtasks(
-        const std::shared_ptr<ProbabilisticTask>& task,
+        const SharedProbabilisticTask& task,
         downward::utils::LogProxy& log) const override;
 };
 

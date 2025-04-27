@@ -17,6 +17,7 @@
 #include "downward/utils/collections.h"
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/rng.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include <cassert>
 #include <ostream>
@@ -31,19 +32,20 @@ namespace probfd::pdbs {
 
 namespace {
 vector<FactPair> get_goals_in_random_order(
-    const ProbabilisticTask& task,
+    const GoalFactList& goals,
     utils::RandomNumberGenerator& rng)
 {
-    vector<FactPair> goals =
-        downward::task_properties::get_fact_pairs(task.get_goals());
-    rng.shuffle(goals);
-    return goals;
+    vector<FactPair> goal_facts =
+        downward::task_properties::get_fact_pairs(goals);
+    rng.shuffle(goal_facts);
+    return goal_facts;
 }
 
-vector<int> get_non_goal_variables(const ProbabilisticTask& task)
+vector<int> get_non_goal_variables(
+    const VariableSpace& variables,
+    const GoalFactList& goals)
 {
-    size_t num_vars = task.get_variables().size();
-    GoalsProxy goals = task.get_goals();
+    size_t num_vars = variables.size();
     vector<bool> is_goal(num_vars, false);
     for (FactPair goal : goals) { is_goal[goal.var] = true; }
 
@@ -112,7 +114,7 @@ bool PatternCollectionGeneratorMultiple::time_limit_reached(
 }
 
 PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
-    const shared_ptr<ProbabilisticTask>& task)
+    const SharedProbabilisticTask& task)
 {
     if (log_.is_at_least_normal()) {
         log_ << "max pdb size: " << max_pdb_size_ << endl;
@@ -125,19 +127,25 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
              << enable_blacklist_on_stagnation_ << endl;
     }
 
-    std::vector<value_t> costs(task->get_num_operators());
+    const auto& variables = get_variables(task);
+    const auto& operators = get_operators(task);
+    const auto& goals = get_goal(task);
+    const auto& cost_function =
+        get_cost_function(task);
 
-    for (const auto op : task->get_operators()) {
-        costs[op.get_id()] = task->get_operator_cost(op.get_id());
+    std::vector<value_t> costs(operators.get_num_operators());
+
+    for (const auto op : operators) {
+        costs[op.get_id()] = cost_function.get_operator_cost(op.get_id());
     }
 
     utils::CountdownTimer timer(total_max_time_);
 
     // Store the set of goals in random order.
-    vector<FactPair> goals = get_goals_in_random_order(*task, *rng_);
+    vector<FactPair> goal_facts = get_goals_in_random_order(goals, *rng_);
 
     // Store the non-goal variables for potential blacklisting.
-    vector<int> non_goal_variables = get_non_goal_variables(*task);
+    vector<int> non_goal_variables = get_non_goal_variables(variables, goals);
 
     if (log_.is_at_least_debug()) {
         log_ << "goal variables: ";
@@ -156,11 +164,13 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
     double time_point_of_last_new_pattern = 0.0;
     int remaining_collection_size = max_collection_size_;
 
-    auto adapted = std::make_shared<extra_tasks::ModifiedOperatorCostsTask>(
-        task,
-        std::move(costs));
+    auto adapted_cost_function =
+        std::make_shared<extra_tasks::VectorProbabilisticOperatorCostFunction>(
+            std::move(costs));
 
-    std::vector<value_t> saturated_costs(task->get_operators().size());
+    auto adapted = replace(task, adapted_cost_function);
+
+    std::vector<value_t> saturated_costs(operators.get_num_operators());
 
     while (true) {
         // Check if blacklisting should be started.
@@ -224,7 +234,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
                     *state_space,
                     pdb.value_table,
                     saturated_costs);
-                adapted->decrease_costs(saturated_costs);
+                adapted_cost_function->decrease_costs(saturated_costs);
             }
 
             /*

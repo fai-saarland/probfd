@@ -3,12 +3,15 @@
 #include "probfd/cartesian_abstractions/abstract_state.h"
 #include "probfd/cartesian_abstractions/utils.h"
 
+#include "probfd/probabilistic_operator_space.h"
 #include "probfd/probabilistic_task.h"
 
 #include "downward/heuristics/additive_heuristic.h"
 
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
+
+#include "downward/initial_state_values.h"
 
 #include <cassert>
 #include <limits>
@@ -32,32 +35,29 @@ SplitSelectorUnwanted::SplitSelectorUnwanted(int factor)
 }
 
 SplitSelectorRefinedness::SplitSelectorRefinedness(
-    std::shared_ptr<ProbabilisticTask> task,
+    SharedProbabilisticTask task,
     double factor)
     : task_(task)
     , factor_(factor)
 {
 }
 
-SplitSelectorHAdd::SplitSelectorHAdd(
-    const std::shared_ptr<ProbabilisticTask>& task)
-    : task_(task)
+SplitSelectorHAdd::SplitSelectorHAdd(const SharedProbabilisticTask& task)
+    : task_{get_shared_variables(task), get_shared_axioms(task), get_shared_operators(task), get_shared_goal(task), get_shared_init(task)}
     , additive_heuristic_(create_additive_heuristic(task))
 {
-    additive_heuristic_->compute_heuristic_for_cegar(
-        task_->get_initial_state());
+    const State& state = get_init(task_).get_initial_state();
+    additive_heuristic_->compute_heuristic_for_cegar(state);
 }
 
 SplitSelectorHAdd::~SplitSelectorHAdd() = default;
 
-SplitSelectorMinHAdd::SplitSelectorMinHAdd(
-    const std::shared_ptr<ProbabilisticTask>& task)
+SplitSelectorMinHAdd::SplitSelectorMinHAdd(const SharedProbabilisticTask& task)
     : SplitSelectorHAdd(task)
 {
 }
 
-SplitSelectorMaxHAdd::SplitSelectorMaxHAdd(
-    const std::shared_ptr<ProbabilisticTask>& task)
+SplitSelectorMaxHAdd::SplitSelectorMaxHAdd(const SharedProbabilisticTask& task)
     : SplitSelectorHAdd(task)
 {
 }
@@ -87,8 +87,10 @@ double SplitSelectorRefinedness::rate_split(
     const AbstractState& state,
     const Split& split) const
 {
+    const VariableSpace& variables = get_variables(task_);
+
     const int var_id = split.var_id;
-    double all_values = task_->get_variables()[var_id].get_domain_size();
+    double all_values = variables[var_id].get_domain_size();
     assert(all_values >= 2);
     double remaining_values = state.count(var_id);
     assert(2 <= remaining_values && remaining_values <= all_values);
@@ -149,49 +151,49 @@ SplitSelectorRandomFactory::SplitSelectorRandomFactory(
 
 std::unique_ptr<SplitSelector>
 SplitSelectorRandomFactory::create_split_selector(
-    const std::shared_ptr<ProbabilisticTask>&)
+    const SharedProbabilisticTask&)
 {
     return std::make_unique<SplitSelectorRandom>(rng_);
 }
 
 std::unique_ptr<SplitSelector>
 SplitSelectorMinUnwantedFactory::create_split_selector(
-    const std::shared_ptr<ProbabilisticTask>&)
+    const SharedProbabilisticTask&)
 {
     return std::make_unique<SplitSelectorUnwanted>(-1);
 }
 
 std::unique_ptr<SplitSelector>
 SplitSelectorMaxUnwantedFactory::create_split_selector(
-    const std::shared_ptr<ProbabilisticTask>&)
+    const SharedProbabilisticTask&)
 {
     return std::make_unique<SplitSelectorUnwanted>(1);
 }
 
 std::unique_ptr<SplitSelector>
 SplitSelectorMinRefinedFactory::create_split_selector(
-    const std::shared_ptr<ProbabilisticTask>& task)
+    const SharedProbabilisticTask& task)
 {
     return std::make_unique<SplitSelectorRefinedness>(task, -1);
 }
 
 std::unique_ptr<SplitSelector>
 SplitSelectorMaxRefinedFactory::create_split_selector(
-    const std::shared_ptr<ProbabilisticTask>& task)
+    const SharedProbabilisticTask& task)
 {
     return std::make_unique<SplitSelectorRefinedness>(task, 1);
 }
 
 std::unique_ptr<SplitSelector>
 SplitSelectorMinHAddFactory::create_split_selector(
-    const std::shared_ptr<ProbabilisticTask>& task)
+    const SharedProbabilisticTask& task)
 {
     return std::make_unique<SplitSelectorMinHAdd>(task);
 }
 
 std::unique_ptr<SplitSelector>
 SplitSelectorMaxHAddFactory::create_split_selector(
-    const std::shared_ptr<ProbabilisticTask>& task)
+    const SharedProbabilisticTask& task)
 {
     return std::make_unique<SplitSelectorMaxHAdd>(task);
 }

@@ -15,14 +15,13 @@ class DomainAbstraction : public StateMapping {
 public:
     explicit DomainAbstraction(std::vector<std::vector<int>> value_map);
 
-    virtual void
-    convert_ancestor_state_values(std::vector<int>& values) const override;
+    void convert_ancestor_state_values(std::vector<int>& values) const override;
 
     int get_abstract_value(const FactPair& fact) const;
 
     FactPair get_abstract_fact(const FactPair& fact) const;
 };
 
-}
+} // namespace downward
 
 #endif

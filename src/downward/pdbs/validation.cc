@@ -14,7 +14,7 @@ using downward::utils::ExitCode;
 
 namespace downward::pdbs {
 void validate_and_normalize_pattern(
-    const AbstractTask& task,
+    const VariableSpace& variables,
     Pattern& pattern,
     utils::LogProxy& log)
 {
@@ -37,7 +37,7 @@ void validate_and_normalize_pattern(
             cerr << "Variable number too low in pattern" << endl;
             utils::exit_with(ExitCode::SEARCH_CRITICAL_ERROR);
         }
-        int num_variables = task.get_variables().size();
+        int num_variables = variables.size();
         if (pattern.back() >= num_variables) {
             cerr << "Variable number too high in pattern" << endl;
             utils::exit_with(ExitCode::SEARCH_CRITICAL_ERROR);
@@ -46,7 +46,7 @@ void validate_and_normalize_pattern(
 }
 
 void validate_and_normalize_patterns(
-    const AbstractTask& task,
+    const VariableSpace& variables,
     PatternCollection& patterns,
     utils::LogProxy& log)
 {
@@ -55,7 +55,7 @@ void validate_and_normalize_patterns(
       - Warn if duplicate patterns exist.
     */
     for (Pattern& pattern : patterns)
-        validate_and_normalize_pattern(task, pattern, log);
+        validate_and_normalize_pattern(variables, pattern, log);
     PatternCollection sorted_patterns(patterns);
     sort(sorted_patterns.begin(), sorted_patterns.end());
     auto it = unique(sorted_patterns.begin(), sorted_patterns.end());

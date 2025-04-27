@@ -2,6 +2,7 @@
 
 #include "downward/cartesian_abstractions/utils.h"
 #include "downward/cartesian_abstractions/utils_landmarks.h"
+#include "downward/initial_state_values.h"
 
 #include "downward/heuristics/additive_heuristic.h"
 #include "downward/landmarks/landmark_graph.h"
@@ -29,24 +30,25 @@ class SortFactsByIncreasingHaddValues {
     // Can't store as unique_ptr since the class needs copy-constructor.
     shared_ptr<additive_heuristic::AdditiveHeuristic> hadd;
 
-    int get_cost(const FactPair& fact)
+    int get_cost(const FactPair& fact) const
     {
         return hadd->get_cost_for_cegar(fact.var, fact.value);
     }
 
 public:
-    explicit SortFactsByIncreasingHaddValues(
-        const shared_ptr<AbstractTask>& task)
-        : hadd(std::make_unique<additive_heuristic::AdditiveHeuristic>(
-              task,
-              task,
-              std::make_shared<IdentityStateMapping>(),
-              std::make_shared<IdentityOperatorMapping>(),
-              false,
-              "h^add within CEGAR abstractions",
-              utils::Verbosity::SILENT))
+    explicit SortFactsByIncreasingHaddValues(const SharedAbstractTask& task)
+        : hadd(
+              std::make_unique<additive_heuristic::AdditiveHeuristic>(
+                  task,
+                  task,
+                  std::make_shared<IdentityStateMapping>(),
+                  std::make_shared<IdentityOperatorMapping>(),
+                  false,
+                  "h^add within CEGAR abstractions",
+                  utils::Verbosity::SILENT))
     {
-        hadd->compute_heuristic_for_cegar(task->get_initial_state());
+        const State state = get_shared_init(task)->get_initial_state();
+        hadd->compute_heuristic_for_cegar(state);
     }
 
     bool operator()(const FactPair& a, const FactPair& b)
@@ -55,22 +57,15 @@ public:
     }
 };
 
-static void
-remove_initial_state_facts(const AbstractTask& task, Facts& facts)
+static void remove_initial_state_facts(const State& initial_state, Facts& facts)
 {
-    State initial_state = task.get_initial_state();
-    facts.erase(
-        remove_if(
-            facts.begin(),
-            facts.end(),
-            [&](FactPair fact) {
-                return initial_state[fact.var] == fact.value;
-            }),
-        facts.end());
+    std::erase_if(facts, [&](FactPair fact) {
+        return initial_state[fact.var] == fact.value;
+    });
 }
 
 static void order_facts(
-    const shared_ptr<AbstractTask>& task,
+    const SharedAbstractTask& task,
     FactOrder fact_order,
     vector<FactPair>& facts,
     utils::RandomNumberGenerator& rng,
@@ -86,9 +81,8 @@ static void order_facts(
     case FactOrder::RANDOM: rng.shuffle(facts); break;
     case FactOrder::HADD_UP:
     case FactOrder::HADD_DOWN:
-        sort(facts.begin(), facts.end(), SortFactsByIncreasingHaddValues(task));
-        if (fact_order == FactOrder::HADD_DOWN)
-            reverse(facts.begin(), facts.end());
+        ranges::sort(facts, SortFactsByIncreasingHaddValues(task));
+        if (fact_order == FactOrder::HADD_DOWN) ranges::reverse(facts);
         break;
     default:
         cerr << "Invalid task order: " << static_cast<int>(fact_order) << endl;
@@ -97,13 +91,13 @@ static void order_facts(
 }
 
 static Facts filter_and_order_facts(
-    const shared_ptr<AbstractTask>& task,
+    const SharedAbstractTask& task,
     FactOrder fact_order,
     Facts& facts,
     utils::RandomNumberGenerator& rng,
     utils::LogProxy& log)
 {
-    remove_initial_state_facts(*task, facts);
+    remove_initial_state_facts(get_init(task).get_initial_state(), facts);
     order_facts(task, fact_order, facts, rng, log);
     return facts;
 }
@@ -113,9 +107,9 @@ TaskDuplicator::TaskDuplicator(int copies)
 {
 }
 
-SharedTasks TaskDuplicator::get_subtasks(
-    const shared_ptr<AbstractTask>& task,
-    utils::LogProxy&) const
+SharedTasks
+TaskDuplicator::get_subtasks(const SharedAbstractTask& task, utils::LogProxy&)
+    const
 {
     SharedTasks subtasks;
     subtasks.reserve(num_copies);
@@ -135,15 +129,18 @@ GoalDecomposition::GoalDecomposition(FactOrder order, int random_seed)
 }
 
 SharedTasks GoalDecomposition::get_subtasks(
-    const shared_ptr<AbstractTask>& task,
+    const SharedAbstractTask& task,
     utils::LogProxy& log) const
 {
+    const auto goals = get_shared_goal(task);
+
     SharedTasks subtasks;
-    Facts goal_facts = task_properties::get_fact_pairs(task->get_goals());
+    Facts goal_facts = task_properties::get_fact_pairs(*goals);
     filter_and_order_facts(task, fact_order, goal_facts, *rng, log);
     for (const FactPair& goal : goal_facts) {
-        shared_ptr<AbstractTask> subtask =
-            make_shared<extra_tasks::ModifiedGoalsTask>(task, Facts{goal});
+        SharedAbstractTask subtask = replace(
+            task,
+            make_shared<extra_tasks::ModifiedGoalFacts>(Facts{goal}));
         subtasks.emplace_back(
             subtask,
             std::make_shared<IdentityStateMapping>(),
@@ -164,8 +161,8 @@ LandmarkDecomposition::LandmarkDecomposition(
 {
 }
 
-shared_ptr<AbstractTask> LandmarkDecomposition::build_domain_abstracted_task(
-    const shared_ptr<AbstractTask>& parent,
+SharedAbstractTask LandmarkDecomposition::build_domain_abstracted_task(
+    const SharedAbstractTask& parent,
     const landmarks::LandmarkNode* node) const
 {
     assert(combine_facts);
@@ -179,19 +176,23 @@ shared_ptr<AbstractTask> LandmarkDecomposition::build_domain_abstracted_task(
 }
 
 SharedTasks LandmarkDecomposition::get_subtasks(
-    const shared_ptr<AbstractTask>& task,
+    const SharedAbstractTask& task,
     utils::LogProxy& log) const
 {
+    const auto goals = get_shared_goal(task);
+
     SharedTasks subtasks;
     const shared_ptr<landmarks::LandmarkGraph> landmark_graph =
         get_landmark_graph(task, mutex_factory);
     utils::HashMap<FactPair, landmarks::LandmarkNode*> fact_to_landmark_map =
-    get_fact_to_landmark_map(landmark_graph);
+        get_fact_to_landmark_map(landmark_graph);
     Facts landmark_facts = get_fact_landmarks(*landmark_graph);
     filter_and_order_facts(task, fact_order, landmark_facts, *rng, log);
     for (const FactPair& landmark : landmark_facts) {
-        shared_ptr<AbstractTask> subtask =
-            make_shared<extra_tasks::ModifiedGoalsTask>(task, Facts{landmark});
+        SharedAbstractTask subtask = replace(
+            task,
+            make_shared<extra_tasks::ModifiedGoalFacts>(Facts{landmark}));
+
         if (combine_facts) {
             subtask = build_domain_abstracted_task(
                 subtask,
@@ -205,4 +206,4 @@ SharedTasks LandmarkDecomposition::get_subtasks(
     return subtasks;
 }
 
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions

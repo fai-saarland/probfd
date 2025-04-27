@@ -4,6 +4,8 @@
 #include "downward/landmarks/landmark_factory.h"
 #include "downward/landmarks/landmark_status_manager.h"
 #include "downward/landmarks/util.h"
+#include "downward/operator_cost_function.h"
+#include "downward/operator_cost_function_fwd.h"
 
 #include "downward/task_utils/successor_generator.h"
 #include "downward/task_utils/task_properties.h"
@@ -17,12 +19,13 @@ using namespace std;
 namespace downward::landmarks {
 static bool are_dead_ends_reliable(
     const shared_ptr<LandmarkFactory>& lm_factory,
-    const AbstractTask& task)
+    const AxiomSpace& axioms,
+    const ClassicalOperatorSpace& operators)
 {
-    if (task_properties::has_axioms(task)) { return false; }
+    if (task_properties::has_axioms(axioms)) { return false; }
 
     if (!lm_factory->supports_conditional_effects() &&
-        task_properties::has_conditional_effects(task)) {
+        task_properties::has_conditional_effects(operators)) {
         return false;
     }
 
@@ -35,7 +38,7 @@ LandmarkSumHeuristic::LandmarkSumHeuristic(
     bool prog_goal,
     bool prog_gn,
     bool prog_r,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
@@ -47,7 +50,10 @@ LandmarkSumHeuristic::LandmarkSumHeuristic(
           cache_estimates,
           description,
           verbosity)
-    , dead_ends_reliable(are_dead_ends_reliable(lm_factory, *transformed_task))
+    , dead_ends_reliable(are_dead_ends_reliable(
+          lm_factory,
+          get_axioms(transformed_task),
+          get_operators(transformed_task)))
 {
     if (log.is_at_least_normal()) {
         log << "Initializing landmark sum heuristic..." << endl;
@@ -62,7 +68,7 @@ LandmarkSumHeuristic::LandmarkSumHeuristic(
     bool prog_goal,
     bool prog_gn,
     bool prog_r,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
     const std::string& description,
@@ -84,17 +90,27 @@ LandmarkSumHeuristic::LandmarkSumHeuristic(
 int LandmarkSumHeuristic::get_min_cost_of_achievers(
     const unordered_set<int>& achievers) const
 {
+    const auto& axioms = get_axioms(transformed_task);
+    const auto& operators =
+        get_operators(transformed_task);
+    const auto& cost_function =
+        get_cost_function(transformed_task);
+
     int min_cost = numeric_limits<int>::max();
     for (int id : achievers) {
-        OperatorProxy op = get_operator_or_axiom(*transformed_task, id);
-        min_cost =
-            min(min_cost, transformed_task->get_operator_cost(op.get_id()));
+        OperatorProxy op = get_operator_or_axiom(axioms, operators, id);
+        min_cost = min(min_cost, cost_function.get_operator_cost(op.get_id()));
     }
     return min_cost;
 }
 
 void LandmarkSumHeuristic::compute_landmark_costs()
 {
+    const auto& operators =
+        get_operators(transformed_task);
+    const auto& cost_function =
+        get_cost_function(transformed_task);
+
     /*
       This function runs under the assumption that landmark node IDs go
       from 0 to the number of landmarks - 1, therefore the entry in
@@ -108,9 +124,8 @@ void LandmarkSumHeuristic::compute_landmark_costs()
       in the achiever vector, we instead just compute the minimum cost
       over all operators and use this cost for all derived landmarks.
     */
-    int min_operator_cost = task_properties::get_min_operator_cost(
-        transformed_task->get_partial_operators(),
-        *transformed_task);
+    int min_operator_cost =
+        task_properties::get_min_operator_cost(operators, cost_function);
     min_first_achiever_costs.reserve(lm_graph->get_num_landmarks());
     min_possible_achiever_costs.reserve(lm_graph->get_num_landmarks());
     for (auto& node : lm_graph->get_nodes()) {

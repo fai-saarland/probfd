@@ -13,13 +13,12 @@ namespace downward {
 PruningMethod::PruningMethod(utils::Verbosity verbosity)
     : timer(false)
     , log(utils::get_log_for_verbosity(verbosity))
-    , task(nullptr)
+    , task({nullptr, nullptr, nullptr, nullptr, nullptr, nullptr})
 {
 }
 
-void PruningMethod::initialize(const shared_ptr<AbstractTask>& task_)
+void PruningMethod::initialize(const SharedAbstractTask& task_)
 {
-    assert(!task);
     task = task_;
     num_successors_before_pruning = 0;
     num_successors_after_pruning = 0;
@@ -29,7 +28,8 @@ void PruningMethod::prune_operators(
     const State& state,
     vector<OperatorID>& op_ids)
 {
-    assert(!task_properties::is_goal_state(*task, state));
+    assert(
+        !task_properties::is_goal_state(get_goal(task), state));
     /*
       We only measure time with verbose verbosity level because time
       measurements induce a significant overhead, up to 30% for configurations

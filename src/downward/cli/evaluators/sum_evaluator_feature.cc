@@ -40,7 +40,7 @@ public:
     }
 
     unique_ptr<Evaluator>
-    create_object(const std::shared_ptr<AbstractTask>& task) override
+    create_object(const SharedAbstractTask& task) override
     {
         std::vector<std::shared_ptr<Evaluator>> evaluators;
 

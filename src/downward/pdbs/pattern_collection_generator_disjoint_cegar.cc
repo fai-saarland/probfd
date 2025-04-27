@@ -33,10 +33,11 @@ string PatternCollectionGeneratorDisjointCegar::name() const
 
 PatternCollectionInformation
 PatternCollectionGeneratorDisjointCegar::compute_patterns(
-    const shared_ptr<AbstractTask>& task)
+    const SharedAbstractTask& task)
 {
     // Store the set of goals in random order.
-    vector<FactPair> goals = get_goals_in_random_order(*task, *rng);
+    vector<FactPair> goals =
+        get_goals_in_random_order(get_goal(task), *rng);
 
     return generate_pattern_collection_with_cegar(
         max_pdb_size,
@@ -49,4 +50,4 @@ PatternCollectionGeneratorDisjointCegar::compute_patterns(
         std::move(goals));
 }
 
-} // namespace pdbs
+} // namespace downward::pdbs

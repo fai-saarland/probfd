@@ -177,13 +177,14 @@ public:
         TerminationCostFunctionType& term_cost_function) const;
 
     template <typename CostFunctionType>
-        requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
-                 std::
-                     derived_from<CostFunctionType, TerminationCostFunctionType>
     AlgorithmValueType compute_bellman(
         ParamType<State> source_state,
         const std::vector<TransitionTailType>& transition_tails,
-        CostFunctionType& cost_function) const;
+        CostFunctionType& cost_function) const
+        requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
+                 std::
+                     derived_from<CostFunctionType, TerminationCostFunctionType>
+    ;
 
     /**
      * @brief Computes the Bellman operator value for a state, as well as all
@@ -212,14 +213,15 @@ public:
         std::vector<AlgorithmValueType>& qvalues) const;
 
     template <typename CostFunctionType>
-        requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
-                 std::
-                     derived_from<CostFunctionType, TerminationCostFunctionType>
     AlgorithmValueType compute_bellman_and_greedy(
         ParamType<State> source_state,
         std::vector<TransitionTailType>& transition_tails,
         CostFunctionType& cost_function,
-        std::vector<AlgorithmValueType>& qvalues) const;
+        std::vector<AlgorithmValueType>& qvalues) const
+        requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
+                 std::
+                     derived_from<CostFunctionType, TerminationCostFunctionType>
+    ;
 
     /**
      * @brief Selects a greedy transition from the given list of greedy

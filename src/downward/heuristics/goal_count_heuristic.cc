@@ -10,7 +10,7 @@ using namespace std;
 
 namespace downward::goal_count_heuristic {
 GoalCountHeuristic::GoalCountHeuristic(
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
@@ -28,7 +28,7 @@ GoalCountHeuristic::GoalCountHeuristic(
 }
 
 GoalCountHeuristic::GoalCountHeuristic(
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
     const std::string& description,
@@ -47,12 +47,11 @@ int GoalCountHeuristic::compute_heuristic(const State& ancestor_state)
     State state = convert_ancestor_state(ancestor_state);
     int unsatisfied_goal_count = 0;
 
-    for (const auto [var, value] : transformed_task->get_goals()) {
-        if (state[var] != value) {
-            ++unsatisfied_goal_count;
-        }
+    for (const auto [var, value] :
+         get_goal(transformed_task)) {
+        if (state[var] != value) { ++unsatisfied_goal_count; }
     }
     return unsatisfied_goal_count;
 }
 
-} // namespace goal_count_heuristic
+} // namespace downward::goal_count_heuristic

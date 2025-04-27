@@ -9,7 +9,7 @@ class NullPruningMethod : public PruningMethod {
 
 public:
     explicit NullPruningMethod(utils::Verbosity verbosity);
-    virtual void initialize(const std::shared_ptr<AbstractTask>&) override;
+    virtual void initialize(const SharedAbstractTask&) override;
     virtual void print_statistics() const override {}
 };
 } // namespace null_pruning_method

@@ -8,13 +8,13 @@ class PatternCollectionGeneratorMultipleCegar
     : public PatternCollectionGeneratorMultiple {
     const bool use_wildcard_plans;
 
-    virtual std::string id() const override;
-    virtual void initialize(const std::shared_ptr<AbstractTask>&) override {}
-    virtual PatternInformation compute_pattern(
+    std::string id() const override;
+    void initialize(const SharedAbstractTask&) override {}
+    PatternInformation compute_pattern(
         int max_pdb_size,
         double max_time,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-        const std::shared_ptr<AbstractTask>& task,
+        const SharedAbstractTask& task,
         const FactPair& goal,
         std::unordered_set<int>&& blacklisted_variables) override;
 

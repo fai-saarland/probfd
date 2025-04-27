@@ -4,10 +4,12 @@
 
 #include "downward/task_utils/task_properties.h"
 
+#include "downward/initial_state_values.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/system.h"
 
 #include "downward/operator_cost_function.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include <algorithm>
 #include <iostream>
@@ -35,34 +37,50 @@ bool is_applicable(const ProbabilisticOperatorProxy& op, const State& state)
 
 value_t get_adjusted_action_cost(
     const ProbabilisticOperatorProxy& op,
-    const downward::OperatorCostFunction<value_t>& cost_function,
+    const OperatorCostFunction<value_t>& cost_function,
     OperatorCost cost_type,
     bool is_unit_cost)
 {
+    return get_adjusted_action_cost(
+        op.get_id(),
+        cost_function,
+        cost_type,
+        is_unit_cost);
+}
+
+value_t get_adjusted_action_cost(
+    int op_index,
+    const downward::OperatorCostFunction<value_t>& cost_function,
+    downward::OperatorCost cost_type,
+    bool is_unit_cost)
+{
     switch (cost_type) {
-    case NORMAL: return cost_function.get_operator_cost(op.get_id());
+    case NORMAL: return cost_function.get_operator_cost(op_index);
     case ONE: return 1_vt;
     case PLUSONE:
         if (is_unit_cost)
             return 1_vt;
         else
-            return cost_function.get_operator_cost(op.get_id()) + 1_vt;
+            return cost_function.get_operator_cost(op_index) + 1_vt;
     default: ABORT("Unknown cost type");
     }
 }
 
-bool is_unit_cost(const ProbabilisticTask& task)
+bool is_unit_cost(
+    const ProbabilisticOperatorSpace& operators,
+    const OperatorCostFunction<value_t>& cost_function)
 {
-    for (const auto op : task.get_operators()) {
-        if (task.get_operator_cost(op.get_id()) != 1_vt) return false;
+    for (const auto op : operators) {
+        if (cost_function.get_operator_cost(op.get_id()) != 1_vt) return false;
     }
 
     return true;
 }
 
-static int get_first_conditional_effects_op_id(const ProbabilisticTask& task)
+static int
+get_first_conditional_effects_op_id(const ProbabilisticOperatorSpace& operators)
 {
-    for (ProbabilisticOperatorProxy op : task.get_operators()) {
+    for (ProbabilisticOperatorProxy op : operators) {
         for (ProbabilisticOutcomeProxy outcome : op.get_outcomes()) {
             for (ProbabilisticEffectProxy effect : outcome.get_effects()) {
                 if (!effect.get_conditions().empty()) return op.get_id();
@@ -72,16 +90,16 @@ static int get_first_conditional_effects_op_id(const ProbabilisticTask& task)
     return -1;
 }
 
-bool has_conditional_effects(const ProbabilisticTask& task)
+bool has_conditional_effects(const ProbabilisticOperatorSpace& operators)
 {
-    return get_first_conditional_effects_op_id(task) != -1;
+    return get_first_conditional_effects_op_id(operators) != -1;
 }
 
-void verify_no_conditional_effects(const ProbabilisticTask& task)
+void verify_no_conditional_effects(const ProbabilisticOperatorSpace& operators)
 {
-    int op_id = get_first_conditional_effects_op_id(task);
+    int op_id = get_first_conditional_effects_op_id(operators);
     if (op_id != -1) {
-        ProbabilisticOperatorProxy op = task.get_operators()[op_id];
+        ProbabilisticOperatorProxy op = operators[op_id];
         cerr << "This configuration does not support conditional effects "
              << "(operator " << op.get_name() << ")!" << endl
              << "Terminating." << endl;
@@ -89,69 +107,71 @@ void verify_no_conditional_effects(const ProbabilisticTask& task)
     }
 }
 
-vector<value_t> get_operator_costs(const ProbabilisticTask& task)
+vector<value_t> get_operator_costs(
+    const ProbabilisticOperatorSpace& operators,
+    const OperatorCostFunction<value_t>& cost_function)
 {
     vector<value_t> costs;
-    ProbabilisticOperatorsProxy operators = task.get_operators();
     costs.reserve(operators.size());
     for (ProbabilisticOperatorProxy op : operators)
-        costs.push_back(task.get_operator_cost(op.get_id()));
+        costs.push_back(cost_function.get_operator_cost(op.get_id()));
     return costs;
 }
 
-value_t get_average_operator_cost(const ProbabilisticTask& task)
+value_t get_average_operator_cost(
+    const ProbabilisticOperatorSpace& operators,
+    const OperatorCostFunction<value_t>& cost_function)
 {
     value_t average_operator_cost = 0;
-    for (ProbabilisticOperatorProxy op : task.get_operators()) {
-        average_operator_cost += task.get_operator_cost(op.get_id());
+    for (ProbabilisticOperatorProxy op : operators) {
+        average_operator_cost += cost_function.get_operator_cost(op.get_id());
     }
-    return average_operator_cost /
-           static_cast<value_t>(task.get_operators().size());
-}
-
-value_t get_min_operator_cost(const ProbabilisticTask& task)
-{
-    return get_min_operator_cost(task.get_operators(), task);
+    return average_operator_cost / static_cast<value_t>(operators.size());
 }
 
 value_t get_min_operator_cost(
-    const ProbabilisticOperatorsProxy& ops,
+    const ProbabilisticOperatorSpace& operators,
     const OperatorCostFunction<value_t>& cost_function)
 {
     value_t min_cost = INFINITE_VALUE;
-    for (ProbabilisticOperatorProxy op : ops) {
+    for (ProbabilisticOperatorProxy op : operators) {
         min_cost = min(min_cost, cost_function.get_operator_cost(op.get_id()));
     }
     return min_cost;
 }
 
-int get_num_total_effects(const ProbabilisticTask& task)
+int get_num_total_effects(
+    const AxiomSpace& axioms,
+    const ProbabilisticOperatorSpace& operators)
 {
     int num_effects = 0;
-    for (ProbabilisticOperatorProxy op : task.get_operators())
+    for (ProbabilisticOperatorProxy op : operators)
         for (ProbabilisticOutcomeProxy outcome : op.get_outcomes())
             num_effects += outcome.get_effects().size();
-    num_effects += task.get_axioms().size();
+    num_effects += axioms.size();
     return num_effects;
 }
 
 namespace {
 
-void dump_probabilistic_task_(const ProbabilisticTask& task, auto& os)
+void dump_probabilistic_task_(const ProbabilisticTaskTuple& task, auto& os)
 {
-    ProbabilisticOperatorsProxy operators = task.get_operators();
+    const auto& [variables, axioms, operators, goals, init_vals, cost_function, _] =
+        task;
+
     value_t min_action_cost = numeric_limits<int>::max();
     value_t max_action_cost = 0;
+
     for (ProbabilisticOperatorProxy op : operators) {
         min_action_cost =
-            min(min_action_cost, task.get_operator_cost(op.get_id()));
+            min(min_action_cost, cost_function.get_operator_cost(op.get_id()));
         max_action_cost =
-            max(max_action_cost, task.get_operator_cost(op.get_id()));
+            max(max_action_cost, cost_function.get_operator_cost(op.get_id()));
     }
+
     os << "Min action cost: " << min_action_cost << endl;
     os << "Max action cost: " << max_action_cost << endl;
 
-    VariablesProxy variables = task.get_variables();
     os << "Variables (" << variables.size() << "):" << endl;
     for (VariableProxy var : variables) {
         os << "  " << var.get_name() << " (range " << var.get_domain_size()
@@ -160,25 +180,25 @@ void dump_probabilistic_task_(const ProbabilisticTask& task, auto& os)
             os << "    " << val << ": " << var.get_fact(val).get_name() << endl;
         }
     }
-    State initial_state = task.get_initial_state();
+    State initial_state = init_vals.get_initial_state();
     os << "Initial state (PDDL):" << endl;
-    ::task_properties::dump_pddl(task, initial_state);
+    ::task_properties::dump_pddl(variables, initial_state);
     os << "Initial state (FDR):" << endl;
     ::task_properties::dump_fdr(variables, initial_state);
-    ::task_properties::dump_goals(variables, task.get_goals());
+    ::task_properties::dump_goals(variables, goals);
 }
 
 } // namespace
 
 void dump_probabilistic_task(
-    const ProbabilisticTask& task,
+    const ProbabilisticTaskTuple& task,
     utils::LogProxy& log)
 {
     dump_probabilistic_task_(task, log);
 }
 
 void dump_probabilistic_task(
-    const ProbabilisticTask& task,
+    const ProbabilisticTaskTuple& task,
     std::ostream& os)
 {
     dump_probabilistic_task_(task, os);

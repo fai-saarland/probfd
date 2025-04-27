@@ -10,7 +10,11 @@
 
 #include "probfd/probabilistic_task.h"
 
+#include "probfd/probabilistic_operator_space.h"
+
 #include "downward/utils/rng.h"
+
+#include "downward/goal_fact_list.h"
 
 #include <algorithm>
 #include <cassert>
@@ -36,29 +40,29 @@ Pattern extended_pattern(const Pattern& pattern, int add_var)
 }
 
 std::vector<int> get_goals_in_random_order(
-    const ProbabilisticTask& task,
+    const GoalFactList& goals,
     utils::RandomNumberGenerator& rng)
 {
-    std::vector<int> goals;
+    std::vector<int> goal_facts;
 
-    for (const auto fact : task.get_goals()) {
-        goals.push_back(fact.var);
+    for (const auto fact : goals) {
+        goal_facts.push_back(fact.var);
     }
 
-    rng.shuffle(goals);
+    rng.shuffle(goal_facts);
 
-    return goals;
+    return goal_facts;
 }
 
 void dump_graphviz(
-    const ProbabilisticTask& task,
+    const ProbabilisticOperatorSpace& operators,
     ProjectionStateSpace& mdp,
     const ProbabilityAwarePatternDatabase& pdb,
     StateRank initial_state,
     std::ostream& out,
     bool transition_labels)
 {
-    ProjectionOperatorToString op_names(task);
+    ProjectionOperatorToString op_names(operators);
 
     auto sts = [&pdb, &mdp](StateRank x) {
         std::ostringstream out;

@@ -65,7 +65,7 @@ Labels::Labels(
 }
 
 Labels::Labels(
-    ProbabilisticOperatorsProxy operators,
+    const ProbabilisticOperatorSpace& operators,
     const downward::OperatorCostFunction<value_t>& cost_function)
 {
     const int num_ops = operators.size();

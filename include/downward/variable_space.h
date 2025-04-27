@@ -3,15 +3,19 @@
 
 #include "downward/fact_pair.h"
 
+#include "downward/proxy_collection.h"
+
 #include <string>
 
 namespace downward {
 
 class VariableProxy;
-class VariablesProxy;
 class FactProxy;
+class FactsProxy;
 
-class VariableSpace {
+class VariableSpace
+    : public ProxyCollectionTag
+    , public std::ranges::view_interface<VariableSpace> {
 public:
     virtual ~VariableSpace() = default;
 
@@ -21,7 +25,11 @@ public:
     virtual std::string get_variable_name(int var) const = 0;
     virtual std::string get_fact_name(const FactPair& fact) const = 0;
 
-    VariablesProxy get_variables() const;
+    std::size_t size() const { return this->get_num_variables(); }
+
+    VariableProxy operator[](std::size_t index) const;
+
+    FactsProxy get_facts() const;
 
     FactProxy get_fact_proxy(FactPair fact) const;
 };
@@ -160,25 +168,16 @@ public:
     }
 };
 
-class VariablesProxy : public ProxyCollection<VariablesProxy> {
-    const VariableSpace* var_space;
+inline VariableProxy VariableSpace::operator[](std::size_t index) const
+{
+    assert(index < size());
+    return VariableProxy(*this, index);
+}
 
-public:
-    explicit VariablesProxy(const VariableSpace& var_space)
-        : var_space(&var_space)
-    {
-    }
-
-    std::size_t size() const { return var_space->get_num_variables(); }
-
-    VariableProxy operator[](std::size_t index) const
-    {
-        assert(index < size());
-        return VariableProxy(*var_space, index);
-    }
-
-    FactsProxy get_facts() const { return FactsProxy(*var_space); }
-};
+inline FactsProxy VariableSpace::get_facts() const
+{
+    return FactsProxy(*this);
+}
 
 inline FactProxy::FactProxy(
     const VariableSpace& var_space,
@@ -201,11 +200,6 @@ inline FactProxy::FactProxy(
 inline VariableProxy FactProxy::get_variable() const
 {
     return VariableProxy(*var_space, fact.var);
-}
-
-inline VariablesProxy VariableSpace::get_variables() const
-{
-    return VariablesProxy(*this);
 }
 
 inline FactProxy VariableSpace::get_fact_proxy(FactPair fact) const

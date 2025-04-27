@@ -43,7 +43,7 @@ PatternInformation PatternCollectionGeneratorMultipleCegar::compute_pattern(
     int max_pdb_size,
     double max_time,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
-    const shared_ptr<AbstractTask>& task,
+    const SharedAbstractTask& task,
     const FactPair& goal,
     unordered_set<int>&& blacklisted_variables)
 {

@@ -1,15 +1,18 @@
 #ifndef PROBFD_TASK_UTILS_CAUSAL_GRAPH_H
 #define PROBFD_TASK_UTILS_CAUSAL_GRAPH_H
 
+#include "probfd/probabilistic_task.h"
+
 #include <vector>
+
+namespace downward {
+class VariableSpace;
+class AxiomSpace;
+} // namespace downward
 
 namespace downward::utils {
 class LogProxy;
 }
-
-namespace probfd {
-class ProbabilisticTask;
-} // namespace probfd
 
 namespace probfd::causal_graph {
 
@@ -24,13 +27,16 @@ class ProbabilisticCausalGraph {
     IntRelation predecessors;
 
     void dump(
-        const ProbabilisticTask& task,
+        const downward::VariableSpace& variables,
         downward::utils::LogProxy& log) const;
 
 public:
     /* Use the factory function get_causal_graph to create causal graphs
        to avoid creating more than one causal graph per AbstractTask. */
-    explicit ProbabilisticCausalGraph(const ProbabilisticTask& task);
+    ProbabilisticCausalGraph(
+        const downward::VariableSpace& variables,
+        const downward::AxiomSpace& axioms,
+        const ProbabilisticOperatorSpace& operators);
 
     /*
       All below methods querying neighbors (of some sort or other) of
@@ -90,8 +96,10 @@ public:
 
 /* Create or retrieve a causal graph from cache. If causal graphs are created
    with this function, we build at most one causal graph per AbstractTask. */
-extern const ProbabilisticCausalGraph&
-get_causal_graph(const ProbabilisticTask* task);
+extern const ProbabilisticCausalGraph& get_causal_graph(
+    const downward::VariableSpace& variables,
+    const downward::AxiomSpace& axioms,
+    const ProbabilisticOperatorSpace& operators);
 
 } // namespace probfd::causal_graph
 

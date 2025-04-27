@@ -13,7 +13,7 @@ class PDBHeuristic : public Heuristic {
     std::shared_ptr<PatternDatabase> pdb;
 
 protected:
-    virtual int compute_heuristic(const State& ancestor_state) override;
+    int compute_heuristic(const State& ancestor_state) override;
 
 public:
     /*
@@ -28,7 +28,7 @@ public:
     */
     PDBHeuristic(
         const std::shared_ptr<PatternGenerator>& pattern_generator,
-        std::shared_ptr<AbstractTask> original_task,
+        SharedAbstractTask original_task,
         TaskTransformationResult transformation_result,
         bool cache_estimates,
         const std::string& description,
@@ -36,7 +36,7 @@ public:
 
     PDBHeuristic(
         const std::shared_ptr<PatternGenerator>& pattern_generator,
-        std::shared_ptr<AbstractTask> original_task,
+        SharedAbstractTask original_task,
         const std::shared_ptr<TaskTransformation>& transformation,
         bool cache_estimates,
         const std::string& description,

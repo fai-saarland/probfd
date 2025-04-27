@@ -46,11 +46,11 @@ DeterminizationCostHeuristicFactory::DeterminizationCostHeuristicFactory(
 
 std::unique_ptr<FDREvaluator>
 DeterminizationCostHeuristicFactory::create_heuristic(
-    std::shared_ptr<ProbabilisticTask> task)
+    const SharedProbabilisticTask& task)
 {
     return std::make_unique<DeterminizationCostHeuristic>(
         evaluator_factory_->create_object(
-            std::make_shared<tasks::DeterminizationTask>(task)));
+            tasks::create_determinization_task(task)));
 }
 
 } // namespace probfd::heuristics

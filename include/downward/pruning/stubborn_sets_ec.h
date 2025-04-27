@@ -5,7 +5,6 @@
 
 namespace downward::stubborn_sets_ec {
 class StubbornSetsEC : public stubborn_sets::StubbornSetsActionCentric {
-private:
     std::vector<std::vector<std::vector<bool>>> reachability_map;
     std::vector<std::vector<int>> op_preconditions_on_var;
     std::vector<bool> active_ops;
@@ -20,8 +19,12 @@ private:
     void
     get_disabled_vars(int op1_no, int op2_no, std::vector<int>& disabled_vars)
         const;
-    void build_reachability_map(const AbstractTask& task);
-    void compute_operator_preconditions(const AbstractTask& task);
+    void build_reachability_map(
+        const VariableSpace& variables,
+        const ClassicalOperatorSpace& operators);
+    void compute_operator_preconditions(
+        const VariableSpace& variables,
+        const OperatorSpace& operators);
     const std::vector<int>& get_conflicting_and_disabling(int op1_no);
     const std::vector<int>& get_disabled(int op1_no);
     void add_conflicting_and_disabling(int op_no, const State& state);
@@ -33,13 +36,14 @@ private:
     void apply_s5(int op_no, const State& state);
 
 protected:
-    virtual void initialize_stubborn_set(const State& state) override;
-    virtual void
-    handle_stubborn_operator(const State& state, int op_no) override;
+    void initialize_stubborn_set(const State& state) override;
+
+    void handle_stubborn_operator(const State& state, int op_no) override;
 
 public:
     explicit StubbornSetsEC(utils::Verbosity verbosity);
-    virtual void initialize(const std::shared_ptr<AbstractTask>& task) override;
+
+    void initialize(const SharedAbstractTask& task) override;
 };
-} // namespace stubborn_sets_ec
+} // namespace downward::stubborn_sets_ec
 #endif

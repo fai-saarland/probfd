@@ -10,9 +10,9 @@ class PatternCollectionGeneratorCombo : public PatternCollectionGenerator {
     int max_states;
     utils::Verbosity verbosity;
 
-    virtual std::string name() const override;
-    virtual PatternCollectionInformation
-    compute_patterns(const std::shared_ptr<AbstractTask>& task) override;
+    std::string name() const override;
+    PatternCollectionInformation
+    compute_patterns(const SharedAbstractTask& task) override;
 
 public:
     PatternCollectionGeneratorCombo(int max_states, utils::Verbosity verbosity);

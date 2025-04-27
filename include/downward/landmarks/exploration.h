@@ -12,10 +12,6 @@
 #include <unordered_set>
 #include <vector>
 
-namespace downward {
-class AbstractTask;
-}
-
 namespace downward::utils {
 class LogProxy;
 }
@@ -47,6 +43,7 @@ struct UnaryOperator {
 
     int unsatisfied_preconditions;
     bool excluded;
+
     UnaryOperator(
         const std::vector<Proposition*>& preconditions,
         Proposition* eff,
@@ -61,7 +58,9 @@ struct UnaryOperator {
 };
 
 class Exploration {
-    const AbstractTask& task;
+    const VariableSpace& variables;
+    const AxiomSpace& axioms;
+    const ClassicalOperatorSpace& operators;
 
     std::vector<UnaryOperator> unary_operators;
     std::vector<std::vector<Proposition>> propositions;
@@ -76,7 +75,11 @@ class Exploration {
     void enqueue_if_necessary(Proposition* prop);
 
 public:
-    Exploration(const AbstractTask& task, utils::LogProxy& log);
+    Exploration(
+        const VariableSpace& variables,
+        const AxiomSpace& axioms,
+        const ClassicalOperatorSpace& operators,
+        utils::LogProxy& log);
 
     /*
       Computes the reachability of each proposition when excluding
@@ -89,8 +92,9 @@ public:
     */
     std::vector<std::vector<bool>> compute_relaxed_reachability(
         const std::vector<FactPair>& excluded_props,
+        const State& state,
         bool use_unary_relaxation);
 };
-} // namespace landmarks
+} // namespace downward::landmarks
 
 #endif

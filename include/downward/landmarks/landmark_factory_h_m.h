@@ -64,11 +64,11 @@ using FluentSetToIntMap = std::map<FluentSet, int, FluentSetComparer>;
 class LandmarkFactoryHM : public LandmarkFactory {
     using TriggerSet = std::unordered_map<int, std::set<int>>;
 
-    virtual void
-    generate_landmarks(const std::shared_ptr<AbstractTask>& task) override;
+    void generate_landmarks(const SharedAbstractTask& task) override;
 
     void compute_h_m_landmarks(
-        const AbstractTask& task,
+        const VariableSpace& variables,
+        const State& initial_state,
         const MutexInformation& mutexes);
     void compute_noop_landmarks(
         int op_index,
@@ -87,33 +87,38 @@ class LandmarkFactoryHM : public LandmarkFactory {
         const MutexInformation& mutexes,
         const FluentSet& fs1,
         const FluentSet& fs2);
+
     void build_pm_ops(
-        const AbstractTask& task,
+        const VariableSpace& variables,
+        const ClassicalOperatorSpace& operators,
         const MutexInformation& mutexes);
+
     bool interesting(
         const MutexInformation& mutexes,
         const FactPair& fact1,
         const FactPair& fact2) const;
 
     void postprocess(
-        const AbstractTask& task,
+        const VariableSpace& variables,
+        const ClassicalOperatorSpace& operators,
         const MutexInformation& mutexes);
 
     void discard_conjunctive_landmarks();
 
     void calc_achievers(
-        const AbstractTask& task,
+        const VariableSpace& variables,
+        const ClassicalOperatorSpace& operators,
         const MutexInformation& mutexes);
 
     void add_lm_node(int set_index, bool goal = false);
 
     void
-    initialize(const AbstractTask& task, const MutexInformation& mutexes);
+    initialize(const AbstractTaskTuple& task, const MutexInformation& mutexes);
     void free_unneeded_memory();
 
     void
-    print_fluentset(const VariablesProxy& variables, const FluentSet& fs) const;
-    void print_pm_op(const VariablesProxy& variables, const PMOp& op) const;
+    print_fluentset(const VariableSpace& variables, const FluentSet& fs) const;
+    void print_pm_op(const VariableSpace& variables, const PMOp& op) const;
 
     std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory;
 
@@ -132,7 +137,7 @@ class LandmarkFactoryHM : public LandmarkFactory {
     std::vector<std::pair<int, std::vector<int>>> unsat_pc_count_;
 
     void get_m_sets_(
-        const AbstractTask& task,
+        const VariableSpace& variables,
         const MutexInformation& mutexes,
         int m,
         int num_included,
@@ -141,7 +146,7 @@ class LandmarkFactoryHM : public LandmarkFactory {
         std::vector<FluentSet>& subsets);
 
     void get_m_sets_of_set(
-        const AbstractTask& task,
+        const VariableSpace& variables,
         const MutexInformation& mutexes,
         int m,
         int num_included,
@@ -151,7 +156,7 @@ class LandmarkFactoryHM : public LandmarkFactory {
         const FluentSet& superset);
 
     void get_split_m_sets(
-        const AbstractTask& task,
+        const VariableSpace& variables,
         const MutexInformation& mutexes,
         int m,
         int ss1_num_included,
@@ -164,34 +169,34 @@ class LandmarkFactoryHM : public LandmarkFactory {
         const FluentSet& superset2);
 
     void get_m_sets(
-        const AbstractTask& task,
+        const VariableSpace& variables,
         const MutexInformation& mutexes,
         int m,
         std::vector<FluentSet>& subsets);
 
     void get_m_sets(
-        const AbstractTask& task,
+        const VariableSpace& variables,
         const MutexInformation& mutexes,
         int m,
         std::vector<FluentSet>& subsets,
         const FluentSet& superset);
 
     void get_m_sets(
-        const AbstractTask& task,
+        const VariableSpace& variables,
         const MutexInformation& mutexes,
         int m,
         std::vector<FluentSet>& subsets,
         const State& state);
 
     void get_split_m_sets(
-        const AbstractTask& task,
+        const VariableSpace& variables,
         const MutexInformation& mutexes,
         int m,
         std::vector<FluentSet>& subsets,
         const FluentSet& superset1,
         const FluentSet& superset2);
     void
-    print_proposition(const VariablesProxy& variables, const FactPair& fluent)
+    print_proposition(const VariableSpace& variables, const FactPair& fluent)
         const;
 
 public:

@@ -168,7 +168,10 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
     using StateIDSet =
         int_hash_set::IntHashSet<StateIDSemanticHash, StateIDSemanticEqual>;
 
-    const PlanningTask& task;
+    const VariableSpace& variables;
+    const AxiomSpace& axioms;
+    const State init_state;
+
     const int_packer::IntPacker& state_packer;
     AxiomEvaluator& axiom_evaluator;
     const int num_variables;
@@ -182,9 +185,15 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
     int get_bins_per_state() const;
 
 public:
-    explicit StateRegistry(const PlanningTask& task);
+    explicit StateRegistry(
+        const VariableSpace& variables,
+        const AxiomSpace& axioms,
+        const InitialStateValues& init_values);
 
-    const PlanningTask& get_task() const { return task; }
+    explicit StateRegistry(
+        const VariableSpace& variables,
+        const AxiomSpace& axioms,
+        const State& initial_state);
 
     int get_num_variables() const { return num_variables; }
 
@@ -229,7 +238,7 @@ public:
         PackedStateBin* buffer = state_data_pool[state_data_pool.size() - 1];
         /* Experiments for issue348 showed that for tasks with axioms it's
            faster to compute successor states using unpacked data. */
-        if (task_properties::has_axioms(task)) {
+        if (task_properties::has_axioms(axioms)) {
             predecessor.unpack();
             std::vector<int> new_values = predecessor.get_unpacked_values();
             apply_conditional_effects(effects, predecessor, new_values);

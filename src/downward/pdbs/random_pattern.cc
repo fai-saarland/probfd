@@ -31,7 +31,7 @@ Pattern generate_random_pattern(
     double max_time,
     utils::LogProxy& log,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
-    const AbstractTask& task,
+    const VariableSpace& variables,
     int goal_variable,
     vector<vector<int>>& cg_neighbors)
 {
@@ -39,7 +39,7 @@ Pattern generate_random_pattern(
     int current_var = goal_variable;
     unordered_set<int> visited_vars;
     visited_vars.insert(current_var);
-    VariablesProxy variables = task.get_variables();
+
     int pdb_size = variables[current_var].get_domain_size();
     while (!time_limit_reached(timer, log)) {
         rng->shuffle(cg_neighbors[current_var]);

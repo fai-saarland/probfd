@@ -18,6 +18,8 @@
 #include "downward/utils/timer.h"
 
 #include "downward/state.h"
+#include "probfd/probabilistic_operator_space.h"
+#include "probfd/termination_costs.h"
 
 #include <iostream>
 #include <memory>
@@ -32,7 +34,7 @@ namespace {
 
 // Compute an explicit transition probability matrix
 std::vector<std::vector<value_t>> get_transition_probs_explicit(
-    const VariablesProxy& variables,
+    const VariableSpace& variables,
     const ProbabilisticOperatorProxy& op_proxy,
     std::set<int>& possibly_updated)
 {
@@ -63,14 +65,14 @@ std::vector<std::vector<value_t>> get_transition_probs_explicit(
 } // namespace
 
 void HPOMGenerator::initialize_constraints(
-    const std::shared_ptr<ProbabilisticTask>& task,
+    const SharedProbabilisticTask& task,
     lp::LinearProgram& lp)
 {
     std::cout << "Initializing HPOM LP constraints..." << std::endl;
 
     utils::Timer timer;
 
-    generate_hpom_lp(*task, lp, offset_);
+    generate_hpom_lp(to_refs(task), lp, offset_);
 
     std::cout << "Finished HPOM LP setup after " << timer << std::endl;
 }
@@ -93,11 +95,18 @@ void HPOMGenerator::reset_constraints(const State& state, lp::LPSolver& solver)
 }
 
 void HPOMGenerator::generate_hpom_lp(
-    const ProbabilisticTask& task,
+    const ProbabilisticTaskTuple& task,
     lp::LinearProgram& lp,
     std::vector<int>& offset_)
 {
-    const value_t term_cost = task.get_non_goal_termination_cost();
+    const auto& variables = get_variables(task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
+    const auto& goals = get_goal(task);
+    const auto& cost_function = get<OperatorCostFunction<value_t>&>(task);
+    const auto& term_costs = get_termination_costs(task);
+
+    const value_t term_cost = term_costs.get_non_goal_termination_cost();
 
     if (term_cost != INFINITE_VALUE && term_cost != 1_vt) {
         std::cerr << "Termination costs beyond 1 (MaxProb) and +infinity (SSP) "
@@ -105,15 +114,13 @@ void HPOMGenerator::generate_hpom_lp(
         utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
     }
 
-    const bool maxprob = task.get_non_goal_termination_cost() == 1_vt;
+    const bool maxprob = term_costs.get_non_goal_termination_cost() == 1_vt;
 
-    ::task_properties::verify_no_axioms(task);
-    task_properties::verify_no_conditional_effects(task);
+    ::task_properties::verify_no_axioms(axioms);
+    task_properties::verify_no_conditional_effects(operators);
 
     auto& lp_variables = lp.get_variables();
     auto& constraints = lp.get_constraints();
-
-    const VariablesProxy variables = task.get_variables();
 
     const std::size_t num_variables = variables.size();
     const double inf = lp.get_infinity();
@@ -136,8 +143,7 @@ void HPOMGenerator::generate_hpom_lp(
     // Maximized in MaxProb, must be constant 1 for SSPs
     lp_variables.emplace_back(maxprob ? 0 : 1, 1, maxprob ? -1 : 0);
 
-    std::vector<int> the_goal =
-        pasmt_to_vector(task.get_goals(), num_variables);
+    std::vector<int> the_goal = pasmt_to_vector(goals, num_variables);
 
     // Build flow contraint coefficients for dummy goal action
     for (const VariableProxy var : variables) {
@@ -162,9 +168,9 @@ void HPOMGenerator::generate_hpom_lp(
     }
 
     // Now ordinary actions
-    for (const ProbabilisticOperatorProxy& op : task.get_operators()) {
+    for (const ProbabilisticOperatorProxy& op : operators) {
         const auto cost =
-            maxprob ? 0 : task.get_operator_cost(op.get_id());
+            maxprob ? 0 : cost_function.get_operator_cost(op.get_id());
 
         // Get dense precondition
         const std::vector<int> pre =
@@ -259,7 +265,7 @@ void HPOMGenerator::generate_hpom_lp(
 
 std::unique_ptr<ConstraintGenerator>
 HPOMGeneratorFactory::construct_constraint_generator(
-    const std::shared_ptr<ProbabilisticTask>&)
+    const SharedProbabilisticTask&)
 {
     return std::unique_ptr<HPOMGenerator>();
 }

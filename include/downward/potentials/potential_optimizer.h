@@ -8,10 +8,6 @@
 #include <memory>
 #include <vector>
 
-namespace downward {
-class AbstractTask;
-}
-
 namespace downward::potentials {
 class PotentialFunction;
 
@@ -42,7 +38,7 @@ class PotentialFunction;
   ICAPS 2015.
 */
 class PotentialOptimizer {
-    std::shared_ptr<AbstractTask> task;
+    SharedAbstractTask task;
     lp::LPSolver lp_solver;
     const double max_potential;
     int num_lp_vars;
@@ -57,12 +53,12 @@ class PotentialOptimizer {
 
 public:
     PotentialOptimizer(
-        const std::shared_ptr<AbstractTask>& transform,
+        const SharedAbstractTask& transform,
         lp::LPSolverType lpsolver,
         double max_potential);
     ~PotentialOptimizer() = default;
 
-    std::shared_ptr<AbstractTask> get_task() const;
+    const SharedAbstractTask& get_task() const;
     bool potentials_are_bounded() const;
 
     void optimize_for_state(const State& state);

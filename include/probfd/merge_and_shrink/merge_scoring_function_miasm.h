@@ -36,7 +36,7 @@ public:
         const FactoredTransitionSystem& fts,
         const std::vector<std::pair<int, int>>& merge_candidates) override;
 
-    void initialize(const ProbabilisticTask& task) override;
+    void initialize(const ProbabilisticTaskTuple& task) override;
 
     bool requires_liveness() const override { return true; }
 

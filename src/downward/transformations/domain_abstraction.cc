@@ -1,6 +1,7 @@
 #include "downward/transformations/domain_abstraction.h"
 
-#include "downward/abstract_task.h"
+#include "downward/fact_pair.h"
+
 #include "downward/utils/collections.h"
 
 namespace downward {

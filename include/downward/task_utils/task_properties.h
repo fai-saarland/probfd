@@ -2,10 +2,16 @@
 #define TASK_UTILS_TASK_PROPERTIES_H
 
 #include "downward/axiom_utils.h"
+#include "downward/goal_fact_list.h"
 #include "downward/per_task_information.h"
 #include "downward/state.h"
 
 #include "downward/algorithms/int_packer.h"
+
+namespace downward {
+template <typename>
+class OperatorCostFunction;
+}
 
 namespace downward::task_properties {
 
@@ -35,7 +41,7 @@ inline bool is_applicable(const PartialOperatorProxy& op, const State& state)
 
 inline bool is_goal_state(const GoalFactList& goals, const State& state)
 {
-    for (const auto [var, value] : goals.get_goals()) {
+    for (const auto [var, value] : goals) {
         if (state[var] != value) return false;
     }
     return true;
@@ -47,50 +53,54 @@ inline bool is_goal_state(const GoalFactList& goals, const State& state)
   Runtime: O(n), where n is the number of operators.
 */
 extern bool is_unit_cost(
-    const PartialOperatorsProxy& operators,
-    const OperatorIntCostFunction& cost_function);
+    const OperatorSpace& operators,
+    const OperatorCostFunction<int>& cost_function);
 
 // Runtime: O(1)
-extern bool has_axioms(const PlanningTask& task);
+extern bool has_axioms(const AxiomSpace& axiom_space);
 
 /*
   Report an error and exit with ExitCode::UNSUPPORTED if the task has axioms.
   Runtime: O(1)
 */
-extern void verify_no_axioms(const PlanningTask& task);
+extern void verify_no_axioms(const AxiomSpace& task);
 
 // Runtime: O(n), where n is the number of operators.
-extern bool has_conditional_effects(const AbstractTask& task);
+extern bool has_conditional_effects(const ClassicalOperatorSpace& task);
 
 /*
   Report an error and exit with ExitCode::UNSUPPORTED if the task has
   conditional effects.
   Runtime: O(n), where n is the number of operators.
 */
-extern void verify_no_conditional_effects(const AbstractTask& task);
+extern void verify_no_conditional_effects(const ClassicalOperatorSpace& task);
 
 extern std::vector<int> get_operator_costs(
-    const PartialOperatorsProxy& operators,
-    const OperatorIntCostFunction& cost_function);
+    const OperatorSpace& operators,
+    const OperatorCostFunction<int>& cost_function);
+
 extern double get_average_operator_cost(
-    const PartialOperatorsProxy& operators,
-    const OperatorIntCostFunction& cost_function);
+    const OperatorSpace& operators,
+    const OperatorCostFunction<int>& cost_function);
+
 extern int get_min_operator_cost(
-    const PartialOperatorsProxy& operators,
-    const OperatorIntCostFunction& cost_function);
+    const OperatorSpace& operators,
+    const OperatorCostFunction<int>& cost_function);
 
 /*
   Return the number of facts of the task.
   Runtime: O(n), where n is the number of state variables.
 */
-extern int get_num_facts(const PlanningTask& task);
+extern int get_num_facts(const VariableSpace& var_space);
 
 /*
   Return the total number of effects of the task, including the
   effects of axioms.
   Runtime: O(n), where n is the number of operators and axioms.
 */
-extern int get_num_total_effects(const AbstractTask& task);
+extern int get_num_total_effects(
+    const AxiomSpace& axioms,
+    const ClassicalOperatorSpace& task);
 
 template <std::ranges::input_range FactProxyCollection>
     requires std::convertible_to<
@@ -116,14 +126,18 @@ std::vector<FactPair> get_fact_pairs(const FactPairCollection& facts)
     return fact_pairs;
 }
 
-extern void print_variable_statistics(const PlanningTask& task);
-extern void dump_pddl(const PlanningTask& task, const State& state);
-extern void dump_fdr(const VariablesProxy& variables, const State& state);
-extern void
-dump_goals(const VariablesProxy& variables, const GoalsProxy& goals);
-extern void dump_task(const AbstractTask& task);
+extern void print_variable_statistics(
+    const VariableSpace& variables,
+    const int_packer::IntPacker& state_packer);
 
-extern PerTaskInformation<int_packer::IntPacker> g_state_packers;
+extern void dump_pddl(const VariableSpace& variables, const State& state);
+extern void dump_fdr(const VariableSpace& variables, const State& state);
+extern void
+dump_goals(const VariableSpace& variables, const GoalFactList& goals);
+extern void dump_task(const AbstractTaskTuple& task);
+
+extern PerComponentInformation<int_packer::IntPacker, VariableSpace>
+    g_state_packers;
 } // namespace downward::task_properties
 
 #endif

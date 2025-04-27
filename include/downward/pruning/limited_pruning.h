@@ -11,8 +11,7 @@ class LimitedPruning : public PruningMethod {
     int num_pruning_calls;
     bool is_pruning_disabled;
 
-    virtual void
-    prune(const State& state, std::vector<OperatorID>& op_ids) override;
+    void prune(const State& state, std::vector<OperatorID>& op_ids) override;
 
 public:
     explicit LimitedPruning(
@@ -20,8 +19,9 @@ public:
         double min_required_pruning_ratio,
         int expansions_before_checking_pruning_ratio,
         utils::Verbosity verbosity);
-    virtual void initialize(const std::shared_ptr<AbstractTask>&) override;
+
+    void initialize(const SharedAbstractTask&) override;
 };
-} // namespace limited_pruning
+} // namespace downward::limited_pruning
 
 #endif

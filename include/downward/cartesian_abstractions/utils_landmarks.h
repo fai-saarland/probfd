@@ -1,6 +1,7 @@
 #ifndef CEGAR_UTILS_LANDMARKS_H
 #define CEGAR_UTILS_LANDMARKS_H
 
+#include "downward/abstract_task.h"
 #include "downward/task_dependent_factory_fwd.h"
 
 #include "downward/utils/hash.h"
@@ -10,7 +11,6 @@
 #include <vector>
 
 namespace downward {
-class AbstractTask;
 struct FactPair;
 class MutexInformation;
 }
@@ -24,7 +24,7 @@ namespace downward::cartesian_abstractions {
 using VarToValues = std::unordered_map<int, std::vector<int>>;
 
 extern std::shared_ptr<landmarks::LandmarkGraph> get_landmark_graph(
-    const std::shared_ptr<AbstractTask>& task,
+    const SharedAbstractTask& task,
     std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory);
 extern std::vector<FactPair>
 get_fact_landmarks(const landmarks::LandmarkGraph& graph);

@@ -14,7 +14,7 @@ class OperatorProxy;
 namespace downward::lp {
 class LPConstraint;
 struct LPVariable;
-} // namespace lp
+} // namespace downward::lp
 
 namespace downward::operator_counting {
 using LPConstraints = named_vector::NamedVector<lp::LPConstraint>;
@@ -52,29 +52,36 @@ class DeleteRelaxationIFConstraints : public ConstraintGenerator {
        this makes it faster to unset the bounds when the state changes. */
     std::vector<FactPair> last_state;
 
-    int get_var_op_used(const OperatorProxy& op);
-    int get_var_fact_reached(FactPair f);
-    int get_var_first_achiever(const OperatorProxy& op, FactPair f);
-    int get_var_op_time(const OperatorProxy& op);
-    int get_var_fact_time(FactPair f);
-    int get_constraint_id(FactPair f);
+    int get_var_op_used(const OperatorProxy& op) const;
+    int get_var_fact_reached(FactPair f) const;
+    int get_var_first_achiever(const OperatorProxy& op, FactPair f) const;
+    int get_var_op_time(const OperatorProxy& op) const;
+    int get_var_fact_time(FactPair f) const;
+    int get_constraint_id(FactPair f) const;
 
     void create_auxiliary_variables(
-        const AbstractTask& task,
-        LPVariables& variables);
-    void create_constraints(const AbstractTask& task, lp::LinearProgram& lp);
+        const VariableSpace& variables,
+        const ClassicalOperatorSpace& operators,
+        LPVariables& lp_variables);
+
+    void create_constraints(
+        const VariableSpace& variables,
+        const ClassicalOperatorSpace& operators,
+        const GoalFactList& goals,
+        lp::LinearProgram& lp);
 
 public:
     explicit DeleteRelaxationIFConstraints(
         bool use_time_vars,
         bool use_integer_vars);
 
-    virtual void initialize_constraints(
-        const std::shared_ptr<AbstractTask>& task,
+    void initialize_constraints(
+        const SharedAbstractTask& task,
         lp::LinearProgram& lp) override;
-    virtual bool
+
+    bool
     update_constraints(const State& state, lp::LPSolver& lp_solver) override;
 };
-} // namespace operator_counting
+} // namespace downward::operator_counting
 
 #endif

@@ -14,10 +14,6 @@ class CountdownTimer;
 class LogProxy;
 } // namespace utils
 
-namespace probfd {
-class ProbabilisticTask;
-}
-
 namespace probfd::cartesian_abstractions {
 class CartesianAbstraction;
 }
@@ -31,7 +27,7 @@ public:
     explicit CompletePolicyFlawFinder(int max_search_states);
 
     std::optional<Flaw> find_flaw(
-        const ProbabilisticTask& task,
+        const ProbabilisticTaskTuple& task,
         const std::vector<int>& domain_sizes,
         CartesianAbstraction& abstraction,
         Solution& policy,

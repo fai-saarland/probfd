@@ -31,7 +31,7 @@ AdaptiveFlawGenerator::AdaptiveFlawGenerator(
 }
 
 std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
-    const ProbabilisticTask& task,
+    const ProbabilisticTaskTuple& task,
     const std::vector<int>& domain_sizes,
     CartesianAbstraction& abstraction,
     const AbstractState* init_id,
@@ -67,9 +67,7 @@ void AdaptiveFlawGenerator::notify_split()
 
 void AdaptiveFlawGenerator::print_statistics(LogProxy& log)
 {
-    for (auto& gen : generators_) {
-        gen->print_statistics(log);
-    }
+    for (auto& gen : generators_) { gen->print_statistics(log); }
 }
 
 AdaptiveFlawGeneratorFactory::AdaptiveFlawGeneratorFactory(

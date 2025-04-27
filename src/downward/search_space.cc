@@ -131,15 +131,16 @@ void SearchNode::mark_as_dead_end()
     info.status = SearchNodeInfo::DEAD_END;
 }
 
-void SearchNode::dump(const AbstractTask& task, utils::LogProxy& log)
-    const
+void SearchNode::dump(
+    const VariableSpace& variables,
+    const OperatorSpace& operators,
+    utils::LogProxy& log) const
 {
     if (log.is_at_least_debug()) {
         log << state.get_id() << ": ";
-        task_properties::dump_fdr(task.get_variables(), state);
+        task_properties::dump_fdr(variables, state);
         if (info.creating_operator != OperatorID::no_operator) {
-            OperatorsProxy operators = task.get_operators();
-            OperatorProxy op = operators[info.creating_operator.get_index()];
+            auto op = operators[info.creating_operator.get_index()];
             log << " created by " << op.get_name() << " from "
                 << info.parent_state_id << endl;
         } else {
@@ -177,20 +178,21 @@ void SearchSpace::trace_path(const State& goal_state, vector<OperatorID>& path)
     reverse(path.begin(), path.end());
 }
 
-void SearchSpace::dump(const AbstractTask& task) const
+void SearchSpace::dump(const AbstractTaskTuple& task) const
 {
-    OperatorsProxy operators = task.get_operators();
+    const auto [variables, operators] =
+        slice<VariableSpace&, ClassicalOperatorSpace&>(task);
+
     for (StateID id : state_registry) {
         /* The body duplicates SearchNode::dump() but we cannot create
            a search node without discarding the const qualifier. */
         State state = state_registry.lookup_state(id);
         const SearchNodeInfo& node_info = search_node_infos[state];
         log << id << ": ";
-        task_properties::dump_fdr(task.get_variables(), state);
+        task_properties::dump_fdr(variables, state);
         if (node_info.creating_operator != OperatorID::no_operator &&
             node_info.parent_state_id != StateID::no_state) {
-            OperatorProxy op =
-                operators[node_info.creating_operator.get_index()];
+            auto op = operators[node_info.creating_operator.get_index()];
             log << " created by " << op.get_name() << " from "
                 << node_info.parent_state_id << endl;
         } else {

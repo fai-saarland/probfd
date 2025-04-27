@@ -52,4 +52,16 @@ int get_adjusted_action_cost(
         is_unit_cost);
 }
 
+int get_adjusted_action_cost(
+    int operator_id,
+    const OperatorIntCostFunction& cost_function,
+    OperatorCost cost_type,
+    bool is_unit_cost)
+{
+    return get_adjusted_action_cost(
+        cost_function.get_operator_cost(operator_id),
+        cost_type,
+        is_unit_cost);
+}
+
 } // namespace downward

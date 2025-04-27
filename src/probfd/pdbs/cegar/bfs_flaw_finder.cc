@@ -14,6 +14,7 @@
 #include "downward/utils/countdown_timer.h"
 
 #include "downward/state_registry.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include <cassert>
 #include <utility>
@@ -32,7 +33,8 @@ BFSFlawFinder::BFSFlawFinder(int max_search_states)
 }
 
 bool BFSFlawFinder::apply_policy(
-    const ProbabilisticTask& task,
+    const ProbabilisticTaskTuple& task,
+    const downward::State& initial_state,
     const StateRankingFunction& state_ranking_function,
     const ProjectionStateSpace& mdp,
     const ProjectionMultiPolicy& policy,
@@ -42,22 +44,24 @@ bool BFSFlawFinder::apply_policy(
 {
     assert(open_.empty() && closed_.empty());
 
+    const auto& variables = get_variables(task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
+    const auto& goals = get_goal(task);
+
     // Exception safety due to TimeoutException
     scope_exit guard([&] {
         open_.clear();
         closed_.clear();
     });
 
-    StateRegistry registry(task);
+    StateRegistry registry(variables, axioms, initial_state);
 
     {
         const State& init = registry.get_initial_state();
         open_.push_back(init);
         closed_[init.get_id()] = true;
     }
-
-    const ProbabilisticOperatorsProxy operators = task.get_operators();
-    const GoalsProxy goals = task.get_goals();
 
     do {
         timer.throw_if_expired();

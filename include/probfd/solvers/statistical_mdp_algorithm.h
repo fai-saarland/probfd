@@ -3,6 +3,7 @@
 
 #include "probfd/aliases.h"
 #include "probfd/fdr_types.h"
+#include "probfd/probabilistic_task.h"
 
 #include <iosfwd>
 #include <memory>
@@ -15,8 +16,6 @@ class OperatorID;
 
 namespace probfd {
 class ProgressReport;
-
-class ProbabilisticTask;
 class TaskHeuristicFactory;
 class TaskStateSpaceFactory;
 
@@ -65,7 +64,7 @@ public:
      * @brief Factory method a new instance of the encapsulated MDP algorithm.
      */
     virtual std::unique_ptr<StatisticalMDPAlgorithm>
-    create_algorithm(const std::shared_ptr<ProbabilisticTask>& task) = 0;
+    create_algorithm(const SharedProbabilisticTask& task) = 0;
 
     /**
      * @brief Returns the name of the MDP algorithm returned by the factory.
@@ -81,14 +80,14 @@ public:
 
     ~AlgorithmAdaptor() override;
 
-    virtual std::unique_ptr<PolicyType> compute_policy(
+    std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
         HeuristicType& heuristic,
         ParamType<downward::State> state,
         ProgressReport progress,
         double max_time) override;
 
-    virtual void print_statistics(std::ostream&) const override;
+    void print_statistics(std::ostream&) const override;
 };
 
 } // namespace probfd::solvers

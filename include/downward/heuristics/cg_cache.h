@@ -1,12 +1,13 @@
 #ifndef HEURISTICS_CG_CACHE_H
 #define HEURISTICS_CG_CACHE_H
 
+#include "downward/abstract_task.h"
 #include "downward/state.h"
 
 #include <vector>
 
-namespace downward {
-class AbstractTask;
+namespace downward::causal_graph {
+class CausalGraph;
 }
 
 namespace downward::domain_transition_graph {
@@ -19,7 +20,8 @@ class LogProxy;
 
 namespace downward::cg_heuristic {
 class CGCache {
-    const AbstractTask& task;
+    const VariableSpace& variables;
+
     std::vector<std::vector<int>> cache;
     std::vector<std::vector<domain_transition_graph::ValueTransitionLabel*>>
         helpful_transition_cache;
@@ -35,7 +37,8 @@ public:
     static const int NOT_COMPUTED = -2;
 
     CGCache(
-        const AbstractTask& task,
+        const causal_graph::CausalGraph& cg,
+        const VariableSpace& variables,
         int max_cache_size,
         utils::LogProxy& log);
 

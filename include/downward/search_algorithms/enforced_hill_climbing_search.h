@@ -44,14 +44,14 @@ public:
         const std::shared_ptr<Evaluator>& h,
         PreferredUsage preferred_usage,
         const std::vector<std::shared_ptr<Evaluator>>& preferred,
-        std::shared_ptr<AbstractTask> task,
+        SharedAbstractTask task,
         OperatorCost cost_type,
         int bound,
         double max_time,
         const std::string& description,
         utils::Verbosity verbosity);
 
-    virtual void print_statistics() const override;
+    void print_statistics() const override;
 
 private:
     friend class IterativeSearchAlgorithm;

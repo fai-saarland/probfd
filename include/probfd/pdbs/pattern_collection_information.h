@@ -27,7 +27,7 @@ namespace probfd::pdbs {
   as an interface for ownership transfer rather than sharing it.
 */
 class PatternCollectionInformation {
-    std::shared_ptr<ProbabilisticTask> task_;
+    SharedProbabilisticTask task_;
 
     PatternCollection patterns_;
     PPDBCollection pdbs_;
@@ -43,16 +43,16 @@ class PatternCollectionInformation {
 
 public:
     PatternCollectionInformation(
-        std::shared_ptr<ProbabilisticTask> task_,
+        SharedProbabilisticTask task,
         downward::pdbs::PatternCollectionInformation det_info,
         std::shared_ptr<SubCollectionFinder> subcollection_finder);
 
     PatternCollectionInformation(
-        std::shared_ptr<ProbabilisticTask> task_,
+        SharedProbabilisticTask task,
         PatternCollection patterns);
 
     PatternCollectionInformation(
-        std::shared_ptr<ProbabilisticTask> task_,
+        SharedProbabilisticTask task,
         PatternCollection patterns,
         std::shared_ptr<SubCollectionFinder> subcollection_finder);
 

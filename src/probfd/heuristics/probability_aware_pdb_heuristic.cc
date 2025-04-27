@@ -48,7 +48,7 @@ ProbabilityAwarePDBHeuristicFactory::ProbabilityAwarePDBHeuristicFactory(
 
 std::unique_ptr<FDREvaluator>
 ProbabilityAwarePDBHeuristicFactory::create_heuristic(
-    std::shared_ptr<ProbabilisticTask> task)
+    const SharedProbabilisticTask& task)
 {
     const utils::Timer construction_timer;
 
@@ -67,13 +67,15 @@ ProbabilityAwarePDBHeuristicFactory::create_heuristic(
     double dominance_pruning_time = 0.0;
 
     if (max_time_dominance_pruning_ > 0.0) {
+        const auto& variables = get_variables(task);
+
         const utils::Timer timer;
 
         ::pdbs::prune_dominated_cliques(
             patterns,
             pdbs,
             subcollections,
-            static_cast<int>(task->get_variables().size()),
+            static_cast<int>(variables.size()),
             max_time_dominance_pruning_,
             log_);
 
@@ -135,11 +137,13 @@ ProbabilityAwarePDBHeuristicFactory::create_heuristic(
              << "  Total construction time: " << construction_time << "s\n";
     }
 
+    const auto& term_costs = get_termination_costs(task);
+
     return std::make_unique<ProbabilityAwarePDBHeuristic>(
         std::move(pdbs),
         std::move(subcollections),
         std::move(subcollection_finder),
-        task->get_non_goal_termination_cost());
+        term_costs.get_non_goal_termination_cost());
 }
 
 } // namespace probfd::heuristics

@@ -24,7 +24,7 @@ namespace downward::max_heuristic {
 
 // construction and destruction
 HSPMaxHeuristic::HSPMaxHeuristic(
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
@@ -42,7 +42,7 @@ HSPMaxHeuristic::HSPMaxHeuristic(
 }
 
 HSPMaxHeuristic::HSPMaxHeuristic(
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
     const std::string& description,

@@ -1,12 +1,8 @@
 #include "downward/cartesian_abstractions/utils.h"
 
 #include "downward/heuristics/additive_heuristic.h"
-#include "downward/utils/logging.h"
-#include "downward/utils/memory.h"
 
-#include <algorithm>
-#include <cassert>
-#include <unordered_map>
+#include "downward/state.h"
 
 using namespace std;
 
@@ -22,8 +18,7 @@ static bool operator_applicable(
     return true;
 }
 
-static bool
-operator_achieves_fact(const OperatorProxy& op, FactPair fact)
+static bool operator_achieves_fact(const OperatorProxy& op, FactPair fact)
 {
     for (auto effect : op.get_effects()) {
         if (effect.get_fact() == fact) return true;
@@ -31,14 +26,15 @@ operator_achieves_fact(const OperatorProxy& op, FactPair fact)
     return false;
 }
 
-static utils::HashSet<FactPair>
-compute_possibly_before_facts(const AbstractTask& task, FactPair last_fact)
+static utils::HashSet<FactPair> compute_possibly_before_facts(
+    const ClassicalOperatorSpace& operators,
+    const State& state,
+    FactPair last_fact)
 {
     utils::HashSet<FactPair> pb_facts;
 
     // Add facts from initial state.
-    for (FactPair fact : task.get_initial_state() | as_fact_pair_set)
-        pb_facts.insert(fact);
+    for (FactPair fact : state | as_fact_pair_set) pb_facts.insert(fact);
 
     // Until no more facts can be added:
     size_t last_num_reached = 0;
@@ -52,7 +48,7 @@ compute_possibly_before_facts(const AbstractTask& task, FactPair last_fact)
     */
     while (last_num_reached != pb_facts.size()) {
         last_num_reached = pb_facts.size();
-        for (OperatorProxy op : task.get_operators()) {
+        for (OperatorProxy op : operators) {
             // Ignore operators that achieve last_fact.
             if (operator_achieves_fact(op, last_fact)) continue;
             // Add all facts that are achieved by an applicable operator.
@@ -66,16 +62,18 @@ compute_possibly_before_facts(const AbstractTask& task, FactPair last_fact)
     return pb_facts;
 }
 
-utils::HashSet<FactPair>
-get_relaxed_possible_before(const AbstractTask& task, FactPair fact)
+utils::HashSet<FactPair> get_relaxed_possible_before(
+    const ClassicalOperatorSpace& operators,
+    const State& state,
+    FactPair fact)
 {
     utils::HashSet<FactPair> reachable_facts =
-        compute_possibly_before_facts(task, fact);
+        compute_possibly_before_facts(operators, state, fact);
     reachable_facts.insert(fact);
     return reachable_facts;
 }
 
-vector<int> get_domain_sizes(const VariablesProxy& variables)
+vector<int> get_domain_sizes(const VariableSpace& variables)
 {
     vector<int> domain_sizes;
     for (VariableProxy var : variables)

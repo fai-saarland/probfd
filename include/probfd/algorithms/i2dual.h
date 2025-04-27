@@ -5,6 +5,7 @@
 
 #include "probfd/fdr_types.h"
 #include "probfd/mdp_algorithm.h"
+#include "probfd/probabilistic_task.h"
 #include "probfd/transition_tail.h"
 #include "probfd/value_type.h"
 
@@ -20,7 +21,6 @@
 
 namespace probfd {
 class ProgressReport;
-class ProbabilisticTask;
 }
 
 namespace probfd::algorithms::i2dual {
@@ -44,7 +44,7 @@ class I2Dual : public MDPAlgorithm<downward::State, downward::OperatorID> {
         void print(std::ostream& out) const;
     };
 
-    const ProbabilisticTask& task_;
+    ProbabilisticTaskTuple task_;
 
     const bool hpom_enabled_;
     const bool incremental_hpom_updates_;
@@ -70,13 +70,13 @@ class I2Dual : public MDPAlgorithm<downward::State, downward::OperatorID> {
 
 public:
     I2Dual(
-        std::shared_ptr<ProbabilisticTask> task,
+        SharedProbabilisticTask task,
         bool hpom_enabled,
         bool incremental_updates,
         downward::lp::LPSolverType solver_type,
         double fp_precision = 0.0001);
 
-    ~I2Dual();
+    ~I2Dual() override;
 
     void print_statistics(std::ostream& out) const override;
 

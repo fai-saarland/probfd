@@ -19,22 +19,21 @@ static void add_indices_to_constraint(
     const set<int>& indices,
     double coefficient)
 {
-    for (int index : indices) {
-        constraint.insert(index, coefficient);
-    }
+    for (int index : indices) { constraint.insert(index, coefficient); }
 }
 
-void StateEquationConstraints::build_propositions(const AbstractTask& task)
+void StateEquationConstraints::build_propositions(
+    const VariableSpace& variables,
+    const ClassicalOperatorSpace& operators)
 {
-    VariablesProxy vars = task.get_variables();
-    propositions.reserve(vars.size());
-    for (VariableProxy var : vars) {
+    propositions.reserve(variables.size());
+    for (VariableProxy var : variables) {
         propositions.push_back(vector<Proposition>(var.get_domain_size()));
     }
-    OperatorsProxy ops = task.get_operators();
-    for (size_t op_id = 0; op_id < ops.size(); ++op_id) {
-        const OperatorProxy& op = ops[op_id];
-        vector<int> precondition(vars.size(), -1);
+
+    for (size_t op_id = 0; op_id < operators.size(); ++op_id) {
+        const OperatorProxy& op = operators[op_id];
+        vector<int> precondition(variables.size(), -1);
         for (const auto [var, value] : op.get_preconditions()) {
             precondition[var] = value;
         }
@@ -81,23 +80,29 @@ void StateEquationConstraints::add_constraints(
 }
 
 void StateEquationConstraints::initialize_constraints(
-    const shared_ptr<AbstractTask>& task,
+    const SharedAbstractTask& task,
     lp::LinearProgram& lp)
 {
     if (log.is_at_least_normal()) {
         log << "Initializing constraints from state equation." << endl;
     }
-    task_properties::verify_no_axioms(*task);
-    task_properties::verify_no_conditional_effects(*task);
-    build_propositions(*task);
+
+    const auto& [variables, axioms, operators, goals] = to_refs(
+        slice_shared<
+            VariableSpace,
+            AxiomSpace,
+            ClassicalOperatorSpace,
+            GoalFactList>(task));
+
+    task_properties::verify_no_axioms(axioms);
+    task_properties::verify_no_conditional_effects(operators);
+
+    build_propositions(variables, operators);
     add_constraints(lp.get_constraints(), lp.get_infinity());
 
     // Initialize goal state.
-    VariablesProxy variables = task->get_variables();
     goal_state = vector<int>(variables.size(), numeric_limits<int>::max());
-    for (const auto [var, value] : task->get_goals()) {
-        goal_state[var] = value;
-    }
+    for (const auto [var, value] : goals) { goal_state[var] = value; }
 }
 
 bool StateEquationConstraints::update_constraints(
@@ -114,14 +119,10 @@ bool StateEquationConstraints::update_constraints(
                 double lower_bound = 0;
                 /* If we consider the current value of var, there must be an
                    additional consumer. */
-                if (state[var] == value) {
-                    --lower_bound;
-                }
+                if (state[var] == value) { --lower_bound; }
                 /* If we consider the goal value of var, there must be an
                    additional producer. */
-                if (goal_state[var] == value) {
-                    ++lower_bound;
-                }
+                if (goal_state[var] == value) { ++lower_bound; }
                 lp_solver.set_constraint_lower_bound(
                     prop.constraint_index,
                     lower_bound);
@@ -131,4 +132,4 @@ bool StateEquationConstraints::update_constraints(
     return false;
 }
 
-} // namespace operator_counting
+} // namespace downward::operator_counting

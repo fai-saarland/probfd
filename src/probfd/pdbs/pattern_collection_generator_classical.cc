@@ -24,10 +24,10 @@ PatternCollectionGeneratorClassical::PatternCollectionGeneratorClassical(
 }
 
 PatternCollectionInformation PatternCollectionGeneratorClassical::generate(
-    const std::shared_ptr<ProbabilisticTask>& task)
+    const SharedProbabilisticTask& task)
 {
-    auto determinization = std::make_shared<tasks::DeterminizationTask>(task);
-    auto finder = finder_factory_->create_subcollection_finder(*task);
+    auto determinization = tasks::create_determinization_task(task);
+    auto finder = finder_factory_->create_subcollection_finder(task);
 
     return PatternCollectionInformation(
         task,

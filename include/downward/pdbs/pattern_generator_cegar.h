@@ -14,9 +14,8 @@ class PatternGeneratorCEGAR : public PatternGenerator {
     const bool use_wildcard_plans;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
-    virtual std::string name() const override;
-    virtual PatternInformation
-    compute_pattern(const std::shared_ptr<AbstractTask>& task) override;
+    std::string name() const override;
+    PatternInformation compute_pattern(const SharedAbstractTask& task) override;
 
 public:
     PatternGeneratorCEGAR(
@@ -26,6 +25,6 @@ public:
         int random_seed,
         utils::Verbosity verbosity);
 };
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

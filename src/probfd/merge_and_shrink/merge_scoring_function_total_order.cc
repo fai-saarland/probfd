@@ -1,5 +1,6 @@
 #include "probfd/merge_and_shrink/merge_scoring_function_total_order.h"
 
+#include "downward/variable_space.h"
 #include "probfd/merge_and_shrink/factored_transition_system.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
@@ -65,11 +66,13 @@ vector<double> MergeScoringFunctionTotalOrder::compute_scores(
 }
 
 void MergeScoringFunctionTotalOrder::initialize(
-    const ProbabilisticTask& task)
+    const ProbabilisticTaskTuple& task)
 {
     initialized = true;
 
-    const int num_variables = task.get_variables().size();
+    const auto& variables = get_variables(task);
+
+    const int num_variables = variables.size();
     const int max_transition_system_count = num_variables * 2 - 1;
     vector<int> transition_system_order;
     transition_system_order.reserve(max_transition_system_count);

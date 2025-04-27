@@ -7,10 +7,6 @@
 
 #include <memory>
 
-namespace downward {
-class AbstractTask;
-}
-
 namespace downward::utils {
 class LogProxy;
 }
@@ -28,7 +24,7 @@ namespace downward::pdbs {
   ownership transfer, from the generator to the user.
 */
 class PatternInformation {
-    const AbstractTask& task;
+    AbstractTaskTuple task;
     Pattern pattern;
     std::shared_ptr<PatternDatabase> pdb;
 
@@ -38,13 +34,13 @@ class PatternInformation {
 
 public:
     PatternInformation(
-        const AbstractTask& task,
+        const AbstractTaskTuple& task,
         Pattern pattern,
         utils::LogProxy& log);
 
     void set_pdb(const std::shared_ptr<PatternDatabase>& pdb);
 
-    const AbstractTask& get_task() const { return task; }
+    const AbstractTaskTuple& get_task() const { return task; }
 
     const Pattern& get_pattern() const;
     std::shared_ptr<PatternDatabase> get_pdb();

@@ -1,40 +1,54 @@
 #ifndef TASK_ID_H
 #define TASK_ID_H
 
+#include "downward/abstract_task.h"
+
 #include "downward/utils/hash.h"
 
+#include <array>
 #include <cstdint>
 #include <functional>
 
 namespace downward {
-class PlanningTask;
+
+class TaskID;
+
+namespace utils {
+void feed(HashState& hash_state, TaskID id);
+}
 
 /*
   A TaskID uniquely identifies a task (for unordered_maps and comparison)
   without publicly exposing the internal AbstractTask pointer.
 */
 class TaskID {
-    const std::uintptr_t value;
+    const std::array<std::uintptr_t, std::tuple_size_v<PlanningTaskTuple>>
+        value;
 
 public:
-    explicit TaskID(const PlanningTask* task)
-        : value(reinterpret_cast<uintptr_t>(task))
+    explicit TaskID(const PlanningTaskTuple& task)
+        : value(to_array(
+              std::apply(
+                  [](auto&&... t) {
+                      return std::make_tuple(
+                          reinterpret_cast<uintptr_t>(&t)...);
+                  },
+                  task)))
     {
     }
 
-    bool operator==(const TaskID& other) const { return value == other.value; }
+    friend bool operator==(const TaskID& left, const TaskID& right)
+    {
+        return left.value == right.value;
+    }
 
-    bool operator!=(const TaskID& other) const { return !(*this == other); }
-
-    std::uint64_t hash() const { return value; }
+    friend void utils::feed(utils::HashState& hash_state, TaskID id);
 };
-}
+} // namespace downward
 
-namespace downward::utils {
-inline void feed(HashState& hash_state, TaskID id)
+inline void downward::utils::feed(HashState& hash_state, TaskID id)
 {
-    feed(hash_state, id.hash());
+    feed(hash_state, id.value);
 }
-} // namespace utils
 
 #endif

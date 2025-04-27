@@ -15,6 +15,7 @@
 #include "downward/utils/countdown_timer.h"
 
 #include "downward/state_registry.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include <cassert>
 
@@ -30,7 +31,8 @@ PUCSFlawFinder::PUCSFlawFinder(int max_search_states)
 }
 
 bool PUCSFlawFinder::apply_policy(
-    const ProbabilisticTask& task,
+    const ProbabilisticTaskTuple& task,
+    const State& initial_state,
     const StateRankingFunction& state_ranking_function,
     const ProjectionStateSpace& mdp,
     const ProjectionMultiPolicy& policy,
@@ -40,22 +42,24 @@ bool PUCSFlawFinder::apply_policy(
 {
     assert(pq_.empty() && probabilities_.empty());
 
+    const auto& variables = get_variables(task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
+    const auto& goals = get_goal(task);
+
     // Exception safety due to TimeoutException
     scope_exit guard([&] {
         pq_.clear();
         probabilities_.clear();
     });
 
-    StateRegistry registry(task);
+    StateRegistry registry(variables, axioms, initial_state);
 
     {
         const State& init = registry.get_initial_state();
         pq_.push(1.0, init);
         probabilities_[StateID(init.get_id())].path_probability = 1.0;
     }
-
-    const ProbabilisticOperatorsProxy operators = task.get_operators();
-    const GoalsProxy goals = task.get_goals();
 
     do {
         timer.throw_if_expired();

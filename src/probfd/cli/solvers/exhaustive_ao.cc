@@ -45,7 +45,7 @@ public:
     }
 
     std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
-        const std::shared_ptr<ProbabilisticTask>& task) override
+        const SharedProbabilisticTask& task) override
     {
         return std::make_unique<AlgorithmAdaptor>(
             this->template create_heuristic_search_algorithm<

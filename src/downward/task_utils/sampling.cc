@@ -1,20 +1,22 @@
 #include "downward/task_utils/sampling.h"
 
-#include "downward/axioms.h"
+#include "downward/axiom_evaluator.h"
+#include "downward/initial_state_values.h"
 #include "downward/task_utils/successor_generator.h"
 
 #include "downward/state.h"
 
 #include "downward/task_utils/task_properties.h"
-#include "downward/utils/memory.h"
 #include "downward/utils/rng.h"
+
+#include <downward/operator_cost_function_fwd.h>
 
 using namespace std;
 
 namespace downward::sampling {
 static State sample_state_with_random_walk(
     AxiomEvaluator& axiom_evaluator,
-    const OperatorsProxy& operators,
+    const ClassicalOperatorSpace& operators,
     const State& initial_state,
     const successor_generator::SuccessorGenerator& successor_generator,
     int init_h,
@@ -79,17 +81,19 @@ static State sample_state_with_random_walk(
 }
 
 RandomWalkSampler::RandomWalkSampler(
-    const AbstractTask& task,
+    AxiomEvaluator& axiom_evaluator,
+    const VariableSpace& variables,
+    const ClassicalOperatorSpace& operators,
+    const OperatorIntCostFunction& cost_function,
     utils::RandomNumberGenerator& rng)
-    : axiom_evaluator(g_axiom_evaluators[task])
-    , operators(task.get_operators())
+    : axiom_evaluator(axiom_evaluator)
+    , operators(operators)
     , successor_generator(
-          std::make_unique<successor_generator::SuccessorGenerator>(task))
-    , initial_state(task.get_initial_state())
+          std::make_unique<successor_generator::SuccessorGenerator>(variables, operators))
     , average_operator_costs(
           task_properties::get_average_operator_cost(
-              task.get_operators(),
-              task))
+              operators,
+              cost_function))
     , rng(rng)
 {
 }
@@ -100,6 +104,7 @@ RandomWalkSampler::~RandomWalkSampler()
 
 State RandomWalkSampler::sample_state(
     int init_h,
+    const State& initial_state,
     const DeadEndDetector& is_dead_end) const
 {
     return sample_state_with_random_walk(

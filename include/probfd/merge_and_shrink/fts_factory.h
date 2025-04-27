@@ -1,6 +1,8 @@
 #ifndef PROBFD_MERGE_AND_SHRINK_FTS_FACTORY_H
 #define PROBFD_MERGE_AND_SHRINK_FTS_FACTORY_H
 
+#include "probfd/probabilistic_task.h"
+
 /*
   Factory for factored transition systems.
 
@@ -15,10 +17,6 @@ namespace downward::utils {
 class LogProxy;
 }
 
-namespace probfd {
-class ProbabilisticTask;
-}
-
 namespace probfd::merge_and_shrink {
 class FactoredTransitionSystem;
 }
@@ -26,7 +24,7 @@ class FactoredTransitionSystem;
 namespace probfd::merge_and_shrink {
 
 extern FactoredTransitionSystem create_factored_transition_system(
-    const ProbabilisticTask& task,
+    const ProbabilisticTaskTuple& task,
     downward::utils::LogProxy& log);
 
 } // namespace probfd::merge_and_shrink

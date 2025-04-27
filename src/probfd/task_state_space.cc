@@ -8,6 +8,7 @@
 #include "downward/evaluator.h"
 #include "downward/operator_id.h"
 #include "downward/state_id.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include <iostream>
 
@@ -28,11 +29,14 @@ void TaskStateSpace::Statistics::print(std::ostream& out) const
 }
 
 TaskStateSpace::TaskStateSpace(
-    std::shared_ptr<ProbabilisticTask> task,
+    const VariableSpace& variables,
+    const AxiomSpace& axioms,
+    std::shared_ptr<ProbabilisticOperatorSpace> operators,
+    const InitialStateValues& initial_values,
     std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators)
-    : task_(std::move(task))
-    , state_registry_(*task_)
-    , gen_(*task_)
+    : operators_(std::move(operators))
+    , state_registry_(variables, axioms, initial_values)
+    , gen_(variables, *this->operators_)
     , notify_(std::move(path_dependent_evaluators))
 {
 }
@@ -116,7 +120,8 @@ void TaskStateSpace::compute_successor_dist(
     OperatorID op_id,
     SuccessorDistribution& successor_dist)
 {
-    const ProbabilisticOperatorProxy op = task_->get_operators()[op_id];
+    const auto& op = (*operators_)[op_id];
+
     const auto outcomes = op.get_outcomes();
     const size_t num_outcomes = outcomes.size();
     successor_dist.non_source_successor_dist.reserve(num_outcomes);

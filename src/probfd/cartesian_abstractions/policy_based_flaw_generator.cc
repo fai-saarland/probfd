@@ -41,7 +41,7 @@ unique_ptr<Solution> PolicyBasedFlawGenerator::find_solution(
 }
 
 optional<Flaw> PolicyBasedFlawGenerator::find_flaw(
-    const ProbabilisticTask& task,
+    const ProbabilisticTaskTuple& task,
     const std::vector<int>& domain_sizes,
     CartesianAbstraction& abstraction,
     Solution& solution,
@@ -59,7 +59,7 @@ optional<Flaw> PolicyBasedFlawGenerator::find_flaw(
 }
 
 std::optional<Flaw> PolicyBasedFlawGenerator::generate_flaw(
-    const ProbabilisticTask& task,
+    const ProbabilisticTaskTuple& task,
     const std::vector<int>& domain_sizes,
     CartesianAbstraction& abstraction,
     const AbstractState* init,

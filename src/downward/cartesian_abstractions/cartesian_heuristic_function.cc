@@ -13,7 +13,7 @@ using namespace std;
 namespace downward::cartesian_abstractions {
 CartesianHeuristicFunction::CartesianHeuristicFunction(
     std::shared_ptr<StateMapping> state_mapping,
-    std::shared_ptr<AbstractTask> transformed_task,
+    SharedAbstractTask transformed_task,
     unique_ptr<RefinementHierarchy>&& hierarchy,
     vector<int>&& h_values)
     : state_mapping(std::move(state_mapping))

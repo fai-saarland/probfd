@@ -44,14 +44,14 @@ public:
         bool randomize_successors,
         bool preferred_successors_first,
         int random_seed,
-        std::shared_ptr<AbstractTask> task,
+        SharedAbstractTask task,
         OperatorCost cost_type,
         int bound,
         double max_time,
         const std::string& description,
         utils::Verbosity verbosity);
 
-    virtual void print_statistics() const override;
+    void print_statistics() const override;
 
 private:
     friend class IterativeSearchAlgorithm;

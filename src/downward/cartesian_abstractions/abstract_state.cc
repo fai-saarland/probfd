@@ -4,6 +4,7 @@
 #include "downward/cartesian_abstractions/utils.h"
 
 #include "downward/classical_operator_space.h"
+#include "downward/state.h"
 
 #include <cassert>
 

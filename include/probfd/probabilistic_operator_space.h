@@ -1,7 +1,7 @@
 #ifndef PROBFD_PROBABILISTIC_OPERATOR_SPACE_H
 #define PROBFD_PROBABILISTIC_OPERATOR_SPACE_H
 
-#include "downward/operator_space.h" // IWYU pragma: export
+#include "downward/operator_space.h"
 #include "downward/proxy_collection.h"
 
 #include "probfd/value_type.h"
@@ -10,12 +10,17 @@ namespace downward {
 class State;
 class AxiomEvaluator;
 class OperatorPreconditionsProxy;
-}
+} // namespace downward
 
 namespace probfd {
-
+class ProbabilisticOperatorSpace;
 class ProbabilisticOperatorProxy;
-class ProbabilisticOperatorsProxy;
+class ProbabilisticEffectConditionsProxy;
+class ProbabilisticEffectsProxy;
+class ProbabilisticOutcomesProxy;
+} // namespace probfd
+
+namespace probfd {
 
 /**
  * @brief Represents a probabilistic planning op_space with axioms and
@@ -27,7 +32,12 @@ class ProbabilisticOperatorsProxy;
  *
  * @see ProbabilisticOperatorSpaceProxy
  */
-class ProbabilisticOperatorSpace : public virtual downward::OperatorSpace {
+class ProbabilisticOperatorSpace
+    : public downward::OperatorSpace
+    , public std::ranges::view_interface<ProbabilisticOperatorSpace> {
+    using OperatorSpace::size;
+    using OperatorSpace::operator[];
+
 public:
     /// Get the number of probabilistic outcomes of the probabilistic operator
     /// with index \p op_index.
@@ -70,16 +80,18 @@ public:
         int eff_index,
         int cond_index) const = 0;
 
-    /// Returns a proxy for the list of probabilistic operators.
-    [[nodiscard]]
-    ProbabilisticOperatorsProxy get_operators() const;
+    std::size_t size() const { return this->get_num_operators(); }
+
+    ProbabilisticOperatorProxy operator[](std::size_t index) const;
+    ProbabilisticOperatorProxy operator[](downward::OperatorID id) const;
 };
 
 /// Proxy class used to inspect the list of effect conditions of a conditional
 /// effect of a probabilistic operator. Can be used as a range of FactProxies,
 /// one for each effect condition.
 class ProbabilisticEffectConditionsProxy
-    : public downward::ProxyCollection<ProbabilisticEffectConditionsProxy> {
+    : public downward::ProxyCollectionTag
+    , public std::ranges::view_interface<ProbabilisticEffectConditionsProxy> {
     const ProbabilisticOperatorSpace* op_space_;
 
     int op_index_;
@@ -129,7 +141,8 @@ public:
 /// probabilistic operator. Can be used as a range of
 /// ProbabilisticEffectProxies, one for each probabilistic effect.
 class ProbabilisticEffectsProxy
-    : public downward::ProxyCollection<ProbabilisticEffectsProxy> {
+    : public downward::ProxyCollectionTag
+    , public std::ranges::view_interface<ProbabilisticEffectsProxy> {
     const ProbabilisticOperatorSpace* op_space_;
     int op_index_;
     int outcome_index_;
@@ -188,7 +201,8 @@ public:
 /// probabilistic operator. Can be used as a range of
 /// ProbabilisticOutcomeProxies, one for each probabilistic outcome.
 class ProbabilisticOutcomesProxy
-    : public downward::ProxyCollection<ProbabilisticOutcomesProxy> {
+    : public downward::ProxyCollectionTag
+    , public std::ranges::view_interface<ProbabilisticOutcomesProxy> {
     const ProbabilisticOperatorSpace* op_space_;
     int op_index_;
 
@@ -221,7 +235,7 @@ public:
 
     operator downward::PartialOperatorProxy() const
     {
-        return  downward::PartialOperatorProxy(*op_space_, index_);
+        return downward::PartialOperatorProxy(*op_space_, index_);
     }
 
     downward::OperatorPreconditionsProxy get_preconditions() const;
@@ -239,27 +253,17 @@ public:
         const ProbabilisticOperatorProxy& right);
 };
 
-/// Proxy class used to inspect a list of probabilistic operators of a
-/// probabilistic op_space. Can be used as a range of
-/// ProbabilisticOperatorProxies, one for each probabilistic operator.
-class ProbabilisticOperatorsProxy
-    : public downward::ProxyCollection<ProbabilisticOperatorsProxy> {
-    const ProbabilisticOperatorSpace* op_space_;
+inline ProbabilisticOperatorProxy
+ProbabilisticOperatorSpace::operator[](std::size_t index) const
+{
+    return ProbabilisticOperatorProxy(*this, index);
+}
 
-public:
-    explicit ProbabilisticOperatorsProxy(
-        const ProbabilisticOperatorSpace& op_space);
-
-    /// Returns the number of probabilistic operators in the list.
-    [[nodiscard]]
-    std::size_t size() const;
-
-    /// Get a proxy for a specific probabilistic operator by list index.
-    ProbabilisticOperatorProxy operator[](std::size_t index) const;
-
-    /// Get a proxy for a specific probabilistic operator by operator id.
-    ProbabilisticOperatorProxy operator[](downward::OperatorID id) const;
-};
+inline ProbabilisticOperatorProxy
+ProbabilisticOperatorSpace::operator[](downward::OperatorID id) const
+{
+    return (*this)[id.get_index()];
+}
 
 } // namespace probfd
 

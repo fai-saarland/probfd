@@ -1,15 +1,13 @@
 #ifndef PROBFD_MERGE_AND_SHRINK_MERGE_SELECTOR_H
 #define PROBFD_MERGE_AND_SHRINK_MERGE_SELECTOR_H
 
+#include "probfd/probabilistic_task.h"
+
 #include <string>
 #include <vector>
 
 namespace downward::utils {
 class LogProxy;
-}
-
-namespace probfd {
-class ProbabilisticTask;
 }
 
 namespace probfd::merge_and_shrink {
@@ -26,7 +24,7 @@ public:
         const FactoredTransitionSystem& fts,
         const std::vector<int>& indices_subset = std::vector<int>()) const = 0;
 
-    virtual void initialize(const ProbabilisticTask& task) = 0;
+    virtual void initialize(const ProbabilisticTaskTuple& task) = 0;
 
     void dump_options(downward::utils::LogProxy& log) const;
 

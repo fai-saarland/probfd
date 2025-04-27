@@ -86,8 +86,8 @@ std::vector<ElemTo> map_vector(const Collection& collection, MapFunc map_func)
     std::vector<ElemTo> transformed;
     transformed.reserve(collection.size());
     std::transform(
-        std::begin(collection),
-        std::end(collection),
+        std::ranges::begin(collection),
+        std::ranges::end(collection),
         std::back_inserter(transformed),
         map_func);
     return transformed;

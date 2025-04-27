@@ -6,6 +6,7 @@
 
 #include "probfd/fdr_types.h"
 #include "probfd/mdp.h"
+#include "probfd/probabilistic_task.h"
 
 #include <limits>
 #include <vector>
@@ -13,7 +14,6 @@
 namespace probfd {
 template <typename>
 class Distribution;
-class ProbabilisticTask;
 class TerminationCosts;
 } // namespace probfd
 
@@ -36,7 +36,7 @@ class ProjectionStateSpace
 
 public:
     ProjectionStateSpace(
-        std::shared_ptr<ProbabilisticTask> task,
+        SharedProbabilisticTask task,
         const StateRankingFunction& ranking_function,
         bool operator_pruning = true,
         double max_time = std::numeric_limits<double>::infinity());

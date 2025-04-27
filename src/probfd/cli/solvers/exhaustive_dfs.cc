@@ -13,6 +13,7 @@
 
 #include "downward/operator_id.h"
 #include "downward/state.h"
+#include "probfd/termination_costs.h"
 
 #include <memory>
 #include <string>
@@ -56,12 +57,14 @@ public:
     std::string get_algorithm_name() const override { return "exhaustive_dfs"; }
 
     std::unique_ptr<StatisticalMDPAlgorithm>
-    create_algorithm(const std::shared_ptr<ProbabilisticTask>& task) override
+    create_algorithm(const SharedProbabilisticTask& task) override
     {
         using Algorithm = ExhaustiveDepthFirstSearch<State, OperatorID, false>;
         using Algorithm2 = ExhaustiveDepthFirstSearch<State, OperatorID, true>;
 
-        Interval cost_bound(0_vt, task->get_non_goal_termination_cost());
+        const auto& term_costs = get_shared_termination_costs(task);
+
+        Interval cost_bound(0_vt, term_costs->get_non_goal_termination_cost());
 
         if (dual_bounds_) {
             return std::make_unique<AlgorithmAdaptor>(

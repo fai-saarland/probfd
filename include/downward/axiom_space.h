@@ -8,10 +8,15 @@
 
 namespace downward {
 
-class AxiomsProxy;
+class AxiomProxy;
 class VariableProxy;
+class AxiomPreconditionsProxy;
+class AxiomEffectConditionsProxy;
+class AxiomEffectsProxy;
 
-class AxiomSpace {
+class AxiomSpace
+    : public ProxyCollectionTag
+    , public std::ranges::view_interface<AxiomSpace> {
 public:
     virtual ~AxiomSpace() = default;
 
@@ -30,11 +35,42 @@ public:
         const = 0;
     virtual FactPair get_axiom_effect(int op_index, int eff_index) const = 0;
 
-    AxiomsProxy get_axioms() const;
+    bool is_derived(int var) const
+    {
+        int axiom_layer = this->get_variable_axiom_layer(var);
+        return axiom_layer != -1;
+    }
+
+    int get_axiom_layer(int var) const
+    {
+        int axiom_layer = this->get_variable_axiom_layer(var);
+        /*
+          This should only be called for derived variables.
+          Non-derived variables have axiom_layer == -1.
+          Use var.is_derived() to check.
+        */
+        assert(axiom_layer >= 0);
+        return axiom_layer;
+    }
+
+    int get_default_axiom_value(int var) const
+    {
+        assert(is_derived(var));
+        return this->get_variable_default_axiom_value(var);
+    }
+
+    bool is_derived(VariableProxy var) const;
+    int get_axiom_layer(VariableProxy var) const;
+    int get_default_axiom_value(VariableProxy var) const;
+
+    AxiomProxy operator[](std::size_t index) const;
+
+    std::size_t size() const { return this->get_num_axioms(); }
 };
 
 class AxiomPreconditionsProxy
-    : public ProxyCollection<AxiomPreconditionsProxy> {
+    : public ProxyCollectionTag
+    , public std::ranges::view_interface<AxiomPreconditionsProxy> {
     const AxiomSpace* axiom_space;
     int axiom_index;
 
@@ -58,7 +94,8 @@ public:
 };
 
 class AxiomEffectConditionsProxy
-    : public ProxyCollection<AxiomEffectConditionsProxy> {
+    : public ProxyCollectionTag
+    , public std::ranges::view_interface<AxiomEffectConditionsProxy> {
     const AxiomSpace* axiom_space;
     int axiom_index;
     int eff_index;
@@ -118,7 +155,9 @@ public:
     }
 };
 
-class AxiomEffectsProxy : public ProxyCollection<AxiomEffectsProxy> {
+class AxiomEffectsProxy
+    : public ProxyCollectionTag
+    , public std::ranges::view_interface<AxiomEffectsProxy> {
     const AxiomSpace* axiom_space;
     int op_index;
 
@@ -173,55 +212,10 @@ public:
     }
 };
 
-class AxiomsProxy : public ProxyCollection<AxiomsProxy> {
-    const AxiomSpace* axiom_space;
-
-public:
-    explicit AxiomsProxy(const AxiomSpace& axiom_space)
-        : axiom_space(&axiom_space)
-    {
-    }
-
-    bool is_derived(int var) const
-    {
-        int axiom_layer = axiom_space->get_variable_axiom_layer(var);
-        return axiom_layer != -1;
-    }
-
-    int get_axiom_layer(int var) const
-    {
-        int axiom_layer = axiom_space->get_variable_axiom_layer(var);
-        /*
-          This should only be called for derived variables.
-          Non-derived variables have axiom_layer == -1.
-          Use var.is_derived() to check.
-        */
-        assert(axiom_layer >= 0);
-        return axiom_layer;
-    }
-
-    int get_default_axiom_value(int var) const
-    {
-        assert(is_derived(var));
-        return axiom_space->get_variable_default_axiom_value(var);
-    }
-
-    bool is_derived(VariableProxy var) const;
-    int get_axiom_layer(VariableProxy var) const;
-    int get_default_axiom_value(VariableProxy var) const;
-
-    std::size_t size() const { return axiom_space->get_num_axioms(); }
-
-    AxiomProxy operator[](std::size_t index) const
-    {
-        assert(index < size());
-        return AxiomProxy(*axiom_space, index);
-    }
-};
-
-inline AxiomsProxy AxiomSpace::get_axioms() const
+inline AxiomProxy AxiomSpace::operator[](std::size_t index) const
 {
-    return AxiomsProxy(*this);
+    assert(index < size());
+    return AxiomProxy(*this, index);
 }
 
 } // namespace downward

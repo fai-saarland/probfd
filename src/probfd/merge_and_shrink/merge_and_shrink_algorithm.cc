@@ -393,11 +393,14 @@ void MergeAndShrinkAlgorithm::main_loop(
 
 FactoredTransitionSystem
 MergeAndShrinkAlgorithm::build_factored_transition_system(
-    std::shared_ptr<ProbabilisticTask>& task,
+    const SharedProbabilisticTask& task,
     utils::LogProxy log)
 {
-    ::task_properties::verify_no_axioms(*task);
-    task_properties::verify_no_conditional_effects(*task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
+
+    ::task_properties::verify_no_axioms(axioms);
+    task_properties::verify_no_conditional_effects(operators);
 
     if (starting_peak_memory) {
         cerr << "Calling build_factored_transition_system twice is not "
@@ -415,7 +418,7 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     log << endl;
 
     FactoredTransitionSystem fts =
-        create_factored_transition_system(*task, log);
+        create_factored_transition_system(to_refs(task), log);
 
     if (log.is_at_least_normal()) {
         log_progress(timer, "after computation of atomic factors", log);
@@ -500,7 +503,7 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
         }
     }
 
-    if (label_reduction) { label_reduction->initialize(*task); }
+    if (label_reduction) { label_reduction->initialize(to_refs(task)); }
 
     const unique_ptr<MergeStrategy> merge_strategy =
         merge_strategy_factory->compute_merge_strategy(task, fts);

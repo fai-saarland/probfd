@@ -1,14 +1,12 @@
 #ifndef CEGAR_SPLIT_SELECTOR_H
 #define CEGAR_SPLIT_SELECTOR_H
 
+#include "downward/abstract_task.h"
 #include "downward/state.h"
 
 #include <memory>
 #include <vector>
 
-namespace downward {
-class AbstractTask;
-}
 
 namespace downward::additive_heuristic {
 class AdditiveHeuristic;
@@ -50,7 +48,7 @@ struct Split {
   Select split in case there are multiple possible splits.
 */
 class SplitSelector {
-    const std::shared_ptr<AbstractTask> task;
+    SharedAbstractTask task;
     std::unique_ptr<additive_heuristic::AdditiveHeuristic> additive_heuristic;
 
     const PickSplit pick;
@@ -65,7 +63,7 @@ class SplitSelector {
     double rate_split(const AbstractState& state, const Split& split) const;
 
 public:
-    SplitSelector(const std::shared_ptr<AbstractTask>& task, PickSplit pick);
+    SplitSelector(SharedAbstractTask task, PickSplit pick);
     ~SplitSelector();
 
     const Split& pick_split(

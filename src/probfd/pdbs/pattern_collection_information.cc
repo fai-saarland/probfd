@@ -7,6 +7,8 @@
 #include "probfd/probabilistic_task.h"
 
 #include "downward/pdbs/pattern_collection_information.h"
+
+#include "downward/initial_state_values.h"
 #include "downward/pdbs/pattern_database.h"
 
 #include "downward/utils/collections.h"
@@ -22,15 +24,21 @@ using namespace downward;
 namespace probfd::pdbs {
 
 PatternCollectionInformation::PatternCollectionInformation(
-    std::shared_ptr<ProbabilisticTask> task,
+    SharedProbabilisticTask task,
     downward::pdbs::PatternCollectionInformation det_info,
     shared_ptr<SubCollectionFinder> arg_subcollection_finder)
-    : task_(task)
+    : task_(std::move(task))
     , patterns_(*det_info.get_patterns())
     , subcollection_finder_(std::move(arg_subcollection_finder))
-    , h(task_->get_operators(), *task_, *task_)
+    , h(get_operators(task_),
+        get_cost_function(task_),
+        get_termination_costs(task))
 
 {
+    const auto& variables = get_variables(task_);
+    const auto& init_vals = get_init(task_);
+    const auto& term_costs = get_termination_costs(task_);
+
     auto pdbs = det_info.get_pdbs();
 
     if (!pdbs) { return; }
@@ -39,22 +47,22 @@ PatternCollectionInformation::PatternCollectionInformation(
         auto& dpdb = *(*pdbs)[i];
         auto& pdb = pdbs_.emplace_back(
             std::make_shared<ProbabilityAwarePatternDatabase>(
-                task_->get_variables(),
+                variables,
                 dpdb.get_pattern()));
 
         const StateRankEvaluator& h =
-            task_->get_non_goal_termination_cost() == INFINITE_VALUE
+            term_costs.get_non_goal_termination_cost() == INFINITE_VALUE
                 ? static_cast<const StateRankEvaluator&>(PDBEvaluator(dpdb))
                 : static_cast<const StateRankEvaluator&>(
                       DeadendPDBEvaluator(dpdb));
         const StateRank istate =
-            pdb->get_abstract_state(task_->get_initial_state());
+            pdb->get_abstract_state(init_vals.get_initial_state());
         compute_distances(*pdb, task_, istate, h);
     }
 }
 
 PatternCollectionInformation::PatternCollectionInformation(
-    std::shared_ptr<ProbabilisticTask> task,
+    SharedProbabilisticTask task,
     PatternCollection patterns)
     : PatternCollectionInformation(
           task,
@@ -64,13 +72,15 @@ PatternCollectionInformation::PatternCollectionInformation(
 }
 
 PatternCollectionInformation::PatternCollectionInformation(
-    std::shared_ptr<ProbabilisticTask> task,
+    SharedProbabilisticTask task,
     PatternCollection patterns,
     shared_ptr<SubCollectionFinder> subcollection_finder)
     : task_(task)
     , patterns_(std::move(patterns))
     , subcollection_finder_(std::move(subcollection_finder))
-    , h(task->get_operators(), *task_, *task_)
+    , h(get_operators(task_),
+        get_cost_function(task_),
+        get_termination_costs(task))
 {
     assert(this->subcollection_finder_);
     // validate_and_normalize_patterns(*patterns);
@@ -78,6 +88,9 @@ PatternCollectionInformation::PatternCollectionInformation(
 
 void PatternCollectionInformation::create_pdbs_if_missing()
 {
+    const auto& variables = get_variables(task_);
+    const auto& init_vals = get_init(task_);
+
     if (pdbs_.size() != patterns_.size()) {
         assert(pdbs_.empty());
 
@@ -86,10 +99,10 @@ void PatternCollectionInformation::create_pdbs_if_missing()
         for (const Pattern& pattern : patterns_) {
             auto& pdb = pdbs_.emplace_back(
                 std::make_unique<ProbabilityAwarePatternDatabase>(
-                    task_->get_variables(),
+                    variables,
                     pattern));
             const StateRank istate =
-                pdb->get_abstract_state(task_->get_initial_state());
+                pdb->get_abstract_state(init_vals.get_initial_state());
             compute_distances(*pdb, task_, istate, h);
         }
         cout << "Done computing PDBs for pattern collection: " << timer << endl;

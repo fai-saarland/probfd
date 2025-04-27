@@ -9,26 +9,28 @@ using namespace std;
 
 namespace downward::pdbs {
 IncrementalCanonicalPDBs::IncrementalCanonicalPDBs(
-    const AbstractTask& task,
+    const AbstractTaskTuple& task,
     const PatternCollection& intitial_patterns)
     : task(task)
-    , patterns(make_shared<PatternCollection>(
-          intitial_patterns.begin(),
-          intitial_patterns.end()))
+    , patterns(
+          make_shared<PatternCollection>(
+              intitial_patterns.begin(),
+              intitial_patterns.end()))
     , pattern_databases(make_shared<PDBCollection>())
     , pattern_cliques(nullptr)
     , size(0)
 {
     pattern_databases->reserve(patterns->size());
     for (const Pattern& pattern : *patterns) add_pdb_for_pattern(pattern);
-    are_additive = compute_additive_vars(task);
+    are_additive = compute_additive_vars(
+        get_variables(task),
+        get_operators(task));
     recompute_pattern_cliques();
 }
 
 void IncrementalCanonicalPDBs::add_pdb_for_pattern(const Pattern& pattern)
 {
-    pattern_databases->push_back(
-        make_shared<PatternDatabase>(task, pattern));
+    pattern_databases->push_back(make_shared<PatternDatabase>(task, pattern));
     size += pattern_databases->back()->get_size();
 }
 
@@ -80,4 +82,4 @@ IncrementalCanonicalPDBs::get_pattern_collection_information(
     result.set_pattern_cliques(pattern_cliques);
     return result;
 }
-} // namespace pdbs
+} // namespace downward::pdbs

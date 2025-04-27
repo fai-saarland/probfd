@@ -12,7 +12,6 @@
 #include <vector>
 
 namespace downward {
-class AbstractTask;
 class OperatorProxy;
 }
 
@@ -103,7 +102,7 @@ public:
     using CostCallback = std::function<void(int)>;
     using LandmarkCallback = std::function<void(const Landmark&, int)>;
 
-    LandmarkCutLandmarks(const std::shared_ptr<AbstractTask>& task);
+    explicit LandmarkCutLandmarks(const SharedAbstractTask& task);
 
     /*
       Compute LM-cut landmarks for the given state.

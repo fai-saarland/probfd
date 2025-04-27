@@ -49,7 +49,7 @@ public:
     }
 
     unique_ptr<SearchAlgorithm>
-    create_object(const std::shared_ptr<AbstractTask>& task) override
+    create_object(const SharedAbstractTask& task) override
     {
         auto eval = eval_factory->create_object(task);
 

@@ -16,7 +16,7 @@ using namespace std;
 
 namespace downward::pdbs {
 static CanonicalPDBs get_canonical_pdbs(
-    const shared_ptr<AbstractTask>& task,
+    const SharedAbstractTask& task,
     const shared_ptr<PatternCollectionGenerator>& pattern_generator,
     double max_time_dominance_pruning,
     utils::LogProxy& log)
@@ -37,9 +37,11 @@ static CanonicalPDBs get_canonical_pdbs(
     shared_ptr<PDBCollection> pdbs = pattern_collection_info.get_pdbs();
     shared_ptr<vector<PatternClique>> pattern_cliques =
         pattern_collection_info.get_pattern_cliques();
+    
+    const auto& variables = get_variables(task);
 
     if (max_time_dominance_pruning > 0.0) {
-        int num_variables = task->get_variables().size();
+        int num_variables = variables.size();
         /*
           NOTE: Dominance pruning could also be computed without having access
           to the PDBs, but since we want to delete patterns, we also want to
@@ -69,7 +71,7 @@ static CanonicalPDBs get_canonical_pdbs(
 CanonicalPDBsHeuristic::CanonicalPDBsHeuristic(
     const shared_ptr<PatternCollectionGenerator>& patterns,
     double max_time_dominance_pruning,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
@@ -91,7 +93,7 @@ CanonicalPDBsHeuristic::CanonicalPDBsHeuristic(
 CanonicalPDBsHeuristic::CanonicalPDBsHeuristic(
     const std::shared_ptr<PatternCollectionGenerator>& patterns,
     double max_time_dominance_pruning,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
     const std::string& description,

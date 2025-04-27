@@ -1,6 +1,8 @@
 #ifndef PROBFD_TASK_STATE_SPACE_H
 #define PROBFD_TASK_STATE_SPACE_H
 
+#include "cartesian_abstractions/probabilistic_transition_system.h"
+#include "probabilistic_task.h"
 #include "probfd/task_utils/probabilistic_successor_generator.h"
 
 #include "probfd/fdr_types.h"
@@ -26,7 +28,6 @@ class Evaluator;
 namespace probfd {
 template <typename>
 class Distribution;
-class ProbabilisticTask;
 } // namespace probfd
 
 namespace probfd {
@@ -50,7 +51,7 @@ protected:
         void print(std::ostream& out) const;
     };
 
-    std::shared_ptr<ProbabilisticTask> task_;
+    std::shared_ptr<ProbabilisticOperatorSpace> operators_;
     downward::StateRegistry state_registry_;
     successor_generator::ProbabilisticSuccessorGenerator gen_;
 
@@ -60,7 +61,10 @@ protected:
 
 public:
     explicit TaskStateSpace(
-        std::shared_ptr<ProbabilisticTask> task,
+        const downward::VariableSpace& variables,
+        const downward::AxiomSpace& axioms,
+        std::shared_ptr<ProbabilisticOperatorSpace> operators,
+        const downward::InitialStateValues& initial_values,
         std::vector<std::shared_ptr<downward::Evaluator>>
             path_dependent_evaluators = {});
 

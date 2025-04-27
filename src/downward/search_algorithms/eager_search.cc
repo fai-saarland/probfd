@@ -26,7 +26,7 @@ EagerSearch::EagerSearch(
     vector<shared_ptr<Evaluator>> preferred,
     shared_ptr<Evaluator> lazy_evaluator,
     shared_ptr<PruningMethod> pruning,
-    std::shared_ptr<AbstractTask> task,
+    SharedAbstractTask task,
     OperatorCost cost_type,
     int bound,
     double max_time,
@@ -209,9 +209,13 @@ SearchStatus EagerSearch::step()
             preferred_operators);
     }
 
+    const auto [operators, cost_function] = to_refs(
+        slice_shared<ClassicalOperatorSpace, OperatorIntCostFunction>(task));
+
     for (OperatorID op_id : applicable_ops) {
-        OperatorProxy op = task->get_operators()[op_id];
-        if (node->get_real_g() + task->get_operator_cost(op.get_id()) >= bound)
+        OperatorProxy op = operators[op_id];
+        if (node->get_real_g() + cost_function.get_operator_cost(op.get_id()) >=
+            bound)
             continue;
 
         State succ_state = state_registry.get_successor_state(s, op);
@@ -234,7 +238,7 @@ SearchStatus EagerSearch::step()
             // Careful: succ_node.get_g() is not available here yet,
             // hence the stupid computation of succ_g.
             // TODO: Make this less fragile.
-            int succ_g = node->get_g() + get_adjusted_cost(op, *task);
+            int succ_g = node->get_g() + get_adjusted_cost(op, cost_function);
 
             EvaluationContext succ_eval_context(
                 succ_state,
@@ -248,7 +252,11 @@ SearchStatus EagerSearch::step()
                 statistics.inc_dead_ends();
                 continue;
             }
-            succ_node.open(*node, op, *task, get_adjusted_cost(op, *task));
+            succ_node.open(
+                *node,
+                op,
+                cost_function,
+                get_adjusted_cost(op, cost_function));
 
             open_list->insert(succ_eval_context, succ_state.get_id());
             if (search_progress.check_progress(succ_eval_context)) {
@@ -256,7 +264,8 @@ SearchStatus EagerSearch::step()
                 reward_progress();
             }
         } else if (
-            succ_node.get_g() > node->get_g() + get_adjusted_cost(op, *task)) {
+            succ_node.get_g() >
+            node->get_g() + get_adjusted_cost(op, cost_function)) {
             // We found a new cheapest path to an open or closed state.
             if (reopen_closed_nodes) {
                 if (succ_node.is_closed()) {
@@ -269,8 +278,11 @@ SearchStatus EagerSearch::step()
                     */
                     statistics.inc_reopened();
                 }
-                succ_node
-                    .reopen(*node, op, *task, get_adjusted_cost(op, *task));
+                succ_node.reopen(
+                    *node,
+                    op,
+                    cost_function,
+                    get_adjusted_cost(op, cost_function));
 
                 EvaluationContext succ_eval_context(
                     succ_state,
@@ -303,8 +315,8 @@ SearchStatus EagerSearch::step()
                 succ_node.update_parent(
                     *node,
                     op,
-                    *task,
-                    get_adjusted_cost(op, *task));
+                    cost_function,
+                    get_adjusted_cost(op, cost_function));
             }
         }
     }
@@ -321,7 +333,7 @@ void EagerSearch::reward_progress()
 
 void EagerSearch::dump_search_space() const
 {
-    search_space.dump(*task);
+    search_space.dump(to_refs(task));
 }
 
 void EagerSearch::start_f_value_statistics(EvaluationContext& eval_context)

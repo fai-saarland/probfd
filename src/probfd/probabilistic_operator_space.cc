@@ -199,33 +199,4 @@ bool operator==(
     return left.index_ == right.index_;
 }
 
-ProbabilisticOperatorsProxy::ProbabilisticOperatorsProxy(
-    const ProbabilisticOperatorSpace& op_space)
-    : op_space_(&op_space)
-{
-}
-
-std::size_t ProbabilisticOperatorsProxy::size() const
-{
-    return op_space_->get_num_operators();
-}
-
-ProbabilisticOperatorProxy
-ProbabilisticOperatorsProxy::operator[](std::size_t index) const
-{
-    assert(index < size());
-    return ProbabilisticOperatorProxy(*op_space_, index);
-}
-
-ProbabilisticOperatorProxy
-ProbabilisticOperatorsProxy::operator[](OperatorID id) const
-{
-    return (*this)[id.get_index()];
-}
-
-ProbabilisticOperatorsProxy ProbabilisticOperatorSpace::get_operators() const
-{
-    return ProbabilisticOperatorsProxy(*this);
-}
-
 } // namespace probfd

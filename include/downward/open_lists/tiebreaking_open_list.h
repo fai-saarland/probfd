@@ -165,7 +165,7 @@ public:
     }
 
     std::unique_ptr<OpenList<T>>
-    create_object(const std::shared_ptr<AbstractTask>&) override
+    create_object(const SharedAbstractTask&) override
     {
         return std::make_unique<TieBreakingOpenList<T>>(
             evals,

@@ -6,6 +6,7 @@
 #include "probfd/cost_function.h"
 #include "probfd/heuristic.h"
 #include "probfd/task_heuristic_factory.h"
+#include "probfd/termination_costs.h"
 #include "probfd/type_traits.h"
 #include "probfd/value_type.h"
 
@@ -44,7 +45,7 @@ public:
      * @brief Construct with constant estimate \p value .
      */
     BlindEvaluator(
-        const ProbabilisticOperatorsProxy& operators,
+        const ProbabilisticOperatorSpace& operators,
         const downward::OperatorCostFunction<value_t>& cost_function,
         const TerminationCosts& termination_costs)
         : ConstantEvaluator<State>(
@@ -62,7 +63,7 @@ public:
 class BlindEvaluatorFactory : public TaskHeuristicFactory {
 public:
     std::unique_ptr<FDREvaluator>
-    create_heuristic(std::shared_ptr<ProbabilisticTask> task) override;
+    create_heuristic(const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::heuristics

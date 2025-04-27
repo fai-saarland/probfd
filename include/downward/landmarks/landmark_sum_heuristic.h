@@ -23,7 +23,7 @@ public:
         bool prog_goal,
         bool prog_gn,
         bool prog_r,
-        std::shared_ptr<AbstractTask> original_task,
+        SharedAbstractTask original_task,
         TaskTransformationResult transformation_result,
         bool cache_estimates,
         const std::string& description,
@@ -35,13 +35,13 @@ public:
         bool prog_goal,
         bool prog_gn,
         bool prog_r,
-        std::shared_ptr<AbstractTask> original_task,
+        SharedAbstractTask original_task,
         const std::shared_ptr<TaskTransformation>& transformation,
         bool cache_estimates,
         const std::string& description,
         utils::Verbosity verbosity);
 
-    virtual bool dead_ends_are_reliable() const override;
+    bool dead_ends_are_reliable() const override;
 };
 } // namespace landmarks
 

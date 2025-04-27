@@ -89,10 +89,12 @@ vector<double> MergeScoringFunctionMIASM::compute_scores(
     return scores;
 }
 
-void MergeScoringFunctionMIASM::initialize(const AbstractTask& task)
+void MergeScoringFunctionMIASM::initialize(const AbstractTaskTuple& task)
 {
+    const auto& variables = get_variables(task);
+
     initialized = true;
-    int num_variables = task.get_variables().size();
+    int num_variables = variables.size();
     int max_factor_index = 2 * num_variables - 1;
     cached_scores_by_merge_candidate_indices.resize(
         max_factor_index,
@@ -112,4 +114,4 @@ string MergeScoringFunctionMIASM::name() const
     return "miasm";
 }
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

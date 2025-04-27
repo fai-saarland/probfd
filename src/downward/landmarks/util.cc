@@ -68,13 +68,15 @@ bool possibly_reaches_lm(
     return false;
 }
 
-AxiomOrOperatorProxy
-get_operator_or_axiom(const AbstractTask& task, int op_or_axiom_id)
+AxiomOrOperatorProxy get_operator_or_axiom(
+    const AxiomSpace& axioms,
+    const ClassicalOperatorSpace& operators,
+    int op_or_axiom_id)
 {
     if (op_or_axiom_id < 0) {
-        return task.get_axioms()[-op_or_axiom_id - 1];
+        return axioms[-op_or_axiom_id - 1];
     } else {
-        return task.get_operators()[op_or_axiom_id];
+        return operators[op_or_axiom_id];
     }
 }
 
@@ -93,7 +95,8 @@ int get_operator_or_axiom_id(const AxiomOrOperatorProxy& op)
   at least, but without the time and memory stamps.
 */
 static void dump_node(
-    const AbstractTask& task,
+    const VariableSpace& variables,
+    const State& initial_state,
     const LandmarkNode& node,
     utils::LogProxy& log)
 {
@@ -101,7 +104,7 @@ static void dump_node(
         cout << "  lm" << node.get_id() << " [label=\"";
         bool first = true;
         const Landmark& landmark = node.get_landmark();
-        for (FactPair fact : landmark.facts) {
+        for (const FactPair fact : landmark.facts) {
             if (!first) {
                 if (landmark.disjunctive) {
                     cout << " | ";
@@ -110,11 +113,11 @@ static void dump_node(
                 }
             }
             first = false;
-            VariableProxy var = task.get_variables()[fact.var];
+            VariableProxy var = variables[fact.var];
             cout << var.get_fact(fact.value).get_name();
         }
         cout << "\"";
-        if (landmark.is_true_in_state(task.get_initial_state())) {
+        if (landmark.is_true_in_state(initial_state)) {
             cout << ", style=bold";
         }
         if (landmark.is_true_in_goal) { cout << ", style=filled"; }
@@ -137,7 +140,8 @@ static void dump_edge(int from, int to, EdgeType edge, utils::LogProxy& log)
 }
 
 void dump_landmark_graph(
-    const AbstractTask& task,
+    const VariableSpace& variables,
+    const State& initial_state,
     const LandmarkGraph& graph,
     utils::LogProxy& log)
 {
@@ -146,7 +150,7 @@ void dump_landmark_graph(
 
         cout << "digraph G {\n";
         for (const unique_ptr<LandmarkNode>& node : graph.get_nodes()) {
-            dump_node(task, *node, log);
+            dump_node(variables, initial_state, *node, log);
             for (const auto& child : node->children) {
                 const LandmarkNode* child_node = child.first;
                 const EdgeType& edge = child.second;

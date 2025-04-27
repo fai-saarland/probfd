@@ -22,7 +22,7 @@ static FactPair get_fact(const Landmark& landmark)
 }
 
 shared_ptr<LandmarkGraph> get_landmark_graph(
-    const shared_ptr<AbstractTask>& task,
+    const SharedAbstractTask& task,
     std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory)
 {
     LandmarkFactoryHM lm_graph_factory(
@@ -43,7 +43,7 @@ vector<FactPair> get_fact_landmarks(const LandmarkGraph& graph)
     for (auto& node : nodes) {
         facts.push_back(get_fact(node->get_landmark()));
     }
-    sort(facts.begin(), facts.end());
+    ranges::sort(facts);
     return facts;
 }
 
@@ -51,10 +51,12 @@ utils::HashMap<FactPair, LandmarkNode*>
 get_fact_to_landmark_map(const shared_ptr<LandmarkGraph>& graph)
 {
     const LandmarkGraph::Nodes& nodes = graph->get_nodes();
+
     // All landmarks are simple, i.e., each has exactly one fact.
-    assert(all_of(nodes.begin(), nodes.end(), [](auto& node) {
+    assert(ranges::all_of(nodes, [](auto& node) {
         return node->get_landmark().facts.size() == 1;
     }));
+
     utils::HashMap<FactPair, landmarks::LandmarkNode*> fact_to_landmark_map;
     for (auto& node : nodes) {
         const FactPair& fact = node->get_landmark().facts[0];
@@ -68,19 +70,17 @@ VarToValues get_prev_landmarks(const LandmarkNode* node)
     VarToValues groups;
     vector<const LandmarkNode*> open;
     unordered_set<const LandmarkNode*> closed;
-    for (const auto& parent_and_edge : node->parents) {
-        const LandmarkNode* parent = parent_and_edge.first;
+    for (const auto& parent : node->parents | views::keys) {
         open.push_back(parent);
     }
     while (!open.empty()) {
         const LandmarkNode* ancestor = open.back();
         open.pop_back();
-        if (closed.find(ancestor) != closed.end()) continue;
+        if (closed.contains(ancestor)) continue;
         closed.insert(ancestor);
         FactPair ancestor_fact = get_fact(ancestor->get_landmark());
         groups[ancestor_fact.var].push_back(ancestor_fact.value);
-        for (const auto& parent_and_edge : ancestor->parents) {
-            const LandmarkNode* parent = parent_and_edge.first;
+        for (const auto& parent : ancestor->parents | views::keys) {
             open.push_back(parent);
         }
     }

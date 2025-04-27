@@ -1,5 +1,6 @@
 #include "probfd/cartesian_abstractions/cartesian_abstraction.h"
 
+#include "downward/initial_state_values.h"
 #include "probfd/cartesian_abstractions/abstract_state.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition_system.h"
@@ -23,28 +24,29 @@ using namespace downward;
 namespace probfd::cartesian_abstractions {
 
 namespace {
-vector<int> get_domain_sizes(const PlanningTask& task)
+vector<int> get_domain_sizes(const VariableSpace& variables)
 {
     vector<int> domain_sizes;
-    for (VariableProxy var : task.get_variables())
+    for (VariableProxy var : variables)
         domain_sizes.push_back(var.get_domain_size());
     return domain_sizes;
 }
 } // namespace
 
 CartesianAbstraction::CartesianAbstraction(
-    const ProbabilisticTask& task,
+    const ProbabilisticTaskTuple& task,
     std::vector<value_t> operator_costs,
     utils::LogProxy log)
     : transition_system_(
           std::make_unique<ProbabilisticTransitionSystem>(
-              task.get_operators()))
-    , concrete_initial_state_(task.get_initial_state())
-    , goal_facts_(::task_properties::get_fact_pairs(task.get_goals()))
+              get_operators(task)))
+    , concrete_initial_state_(
+          get_init(task).get_initial_state())
+    , goal_facts_(::task_properties::get_fact_pairs(get_goal(task)))
     , operator_costs_(std::move(operator_costs))
     , log_(std::move(log))
 {
-    initialize_trivial_abstraction(get_domain_sizes(task));
+    initialize_trivial_abstraction(get_domain_sizes(get_variables(task)));
 }
 
 CartesianAbstraction::~CartesianAbstraction() = default;

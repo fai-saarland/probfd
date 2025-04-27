@@ -5,8 +5,9 @@
 #include <vector>
 
 namespace downward {
-class PlanningTask;
-}
+class VariableSpace;
+class OperatorSpace;
+} // namespace downward
 
 namespace downward::successor_generator {
 class GeneratorBase;
@@ -19,7 +20,8 @@ class OperatorInfo;
 class SuccessorGeneratorFactory {
     using ValuesAndGenerators = std::vector<std::pair<int, GeneratorPtr>>;
 
-    const PlanningTask& task;
+    const VariableSpace& variables;
+    const OperatorSpace& operators;
     std::vector<OperatorInfo> operator_infos;
 
     GeneratorPtr construct_fork(std::vector<GeneratorPtr> nodes) const;
@@ -30,11 +32,13 @@ class SuccessorGeneratorFactory {
     GeneratorPtr construct_recursive(int depth, OperatorRange range) const;
 
 public:
-    explicit SuccessorGeneratorFactory(const PlanningTask& task);
+    explicit SuccessorGeneratorFactory(
+        const VariableSpace& variables,
+        const OperatorSpace& operators);
     // Destructor cannot be implicit because OperatorInfo is forward-declared.
     ~SuccessorGeneratorFactory();
     GeneratorPtr create();
 };
-} // namespace successor_generator
+} // namespace downward::successor_generator
 
 #endif

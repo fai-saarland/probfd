@@ -45,7 +45,7 @@ LandmarkFactoryMerged::get_matching_landmark(const Landmark& landmark) const
 }
 
 void LandmarkFactoryMerged::generate_landmarks(
-    const shared_ptr<AbstractTask>& task)
+    const SharedAbstractTask& task)
 {
     if (log.is_at_least_normal()) {
         log << "Merging " << lm_factories.size() << " landmark graphs" << endl;

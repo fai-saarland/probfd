@@ -42,7 +42,7 @@ public:
     }
 
     unique_ptr<Evaluator>
-    create_object(const std::shared_ptr<AbstractTask>& task) override
+    create_object(const SharedAbstractTask& task) override
     {
         auto transformation_result = transformation->transform(task);
         return std::make_unique<ContextEnhancedAdditiveHeuristic>(

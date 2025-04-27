@@ -18,10 +18,6 @@ class LPSolver;
 class LinearProgram;
 } // namespace downward::lp
 
-namespace probfd {
-class ProbabilisticTask;
-} // namespace probfd
-
 namespace probfd::occupation_measures {
 
 /**
@@ -34,7 +30,7 @@ class HPOMGenerator : public ConstraintGenerator {
 
 public:
     void initialize_constraints(
-        const std::shared_ptr<ProbabilisticTask>& task,
+        const SharedProbabilisticTask& task,
         downward::lp::LinearProgram& lp) final;
 
     void update_constraints(
@@ -45,7 +41,7 @@ public:
         downward::lp::LPSolver& solver) final;
 
     static void generate_hpom_lp(
-        const ProbabilisticTask& task,
+        const ProbabilisticTaskTuple& task,
         downward::lp::LinearProgram& lp,
         std::vector<int>& offsets);
 };
@@ -53,7 +49,7 @@ public:
 class HPOMGeneratorFactory : public ConstraintGeneratorFactory {
 public:
     std::unique_ptr<ConstraintGenerator> construct_constraint_generator(
-        const std::shared_ptr<ProbabilisticTask>& task) override;
+        const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::occupation_measures

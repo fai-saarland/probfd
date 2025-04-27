@@ -9,27 +9,30 @@
 using namespace std;
 
 namespace downward::lm_cut_heuristic {
-// construction and destruction
-LandmarkCutLandmarks::LandmarkCutLandmarks(
-    const std::shared_ptr<AbstractTask>& task)
-    : cost_function(task)
+
+LandmarkCutLandmarks::LandmarkCutLandmarks(const SharedAbstractTask& task)
+    : cost_function(get_shared_cost_function(task))
 {
-    task_properties::verify_no_axioms(*task);
-    task_properties::verify_no_conditional_effects(*task);
+    const auto& [variables, axioms, operators, goals] = slice_shared<
+        VariableSpace,
+        AxiomSpace,
+        ClassicalOperatorSpace,
+        GoalFactList>(task);
+
+    task_properties::verify_no_axioms(*axioms);
+    task_properties::verify_no_conditional_effects(*operators);
 
     // Build propositions.
     num_propositions = 2; // artificial goal and artificial precondition
-    VariablesProxy variables = task->get_variables();
-    propositions.resize(variables.size());
-    for (FactProxy fact : variables.get_facts()) {
+    propositions.resize(variables->size());
+    for (FactProxy fact : variables->get_facts()) {
         int var_id = fact.get_variable().get_id();
         propositions[var_id].push_back(RelaxedProposition());
         ++num_propositions;
     }
 
     // Build relaxed operators for operators and axioms.
-    for (OperatorProxy op : task->get_operators())
-        build_relaxed_operator(op);
+    for (OperatorProxy op : *operators) build_relaxed_operator(op);
 
     // Simplify relaxed operators.
     // simplify();
@@ -39,7 +42,7 @@ LandmarkCutLandmarks::LandmarkCutLandmarks(
 
     // Build artificial goal proposition and operator.
     vector<RelaxedProposition*> goal_op_pre, goal_op_eff;
-    for (FactPair goal : task->get_goals()) {
+    for (FactPair goal : *goals) {
         goal_op_pre.push_back(get_proposition(goal));
     }
     goal_op_eff.push_back(&artificial_goal);

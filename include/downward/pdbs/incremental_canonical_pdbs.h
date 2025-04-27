@@ -11,7 +11,7 @@
 
 namespace downward::pdbs {
 class IncrementalCanonicalPDBs {
-    const AbstractTask& task;
+    AbstractTaskTuple task;
 
     std::shared_ptr<PatternCollection> patterns;
     std::shared_ptr<PDBCollection> pattern_databases;
@@ -30,7 +30,7 @@ class IncrementalCanonicalPDBs {
 
 public:
     IncrementalCanonicalPDBs(
-        const AbstractTask& task,
+        const AbstractTaskTuple& task,
         const PatternCollection& intitial_patterns);
     virtual ~IncrementalCanonicalPDBs() = default;
 

@@ -5,8 +5,9 @@
 #include "downward/landmarks/util.h"
 
 #include "downward/abstract_task.h"
-#include "downward/classical_operator_space.h"
 #include "downward/axiom_utils.h"
+#include "downward/classical_operator_space.h"
+#include "downward/initial_state_values.h"
 
 #include "downward/utils/logging.h"
 #include "downward/utils/timer.h"
@@ -17,6 +18,7 @@
 using namespace std;
 
 namespace downward::landmarks {
+
 LandmarkFactory::LandmarkFactory(utils::Verbosity verbosity)
     : log(utils::get_log_for_verbosity(verbosity))
     , lm_graph(nullptr)
@@ -40,10 +42,10 @@ LandmarkFactory::LandmarkFactory(utils::Verbosity verbosity)
   how to reuse landmark graphs is open.
 */
 shared_ptr<LandmarkGraph>
-LandmarkFactory::compute_lm_graph(const shared_ptr<AbstractTask>& task)
+LandmarkFactory::compute_lm_graph(const SharedAbstractTask& task)
 {
     if (lm_graph) {
-        if (lm_graph_task != task.get()) {
+        if (lm_graph_task != map(task, [](auto& p) { return p.get(); })) {
             cerr << "LandmarkFactory was asked to compute landmark graphs for "
                  << "two different tasks. This is currently not supported."
                  << endl;
@@ -51,12 +53,19 @@ LandmarkFactory::compute_lm_graph(const shared_ptr<AbstractTask>& task)
         }
         return lm_graph;
     }
-    lm_graph_task = task.get();
+
+    const auto& [variables, axioms, operators, init_vals] = slice_shared<
+        VariableSpace,
+        AxiomSpace,
+        ClassicalOperatorSpace,
+        InitialStateValues>(task);
+
+    lm_graph_task = map(to_refs(task), [](auto& t) { return &t; });
     utils::Timer lm_generation_timer;
 
     lm_graph = make_shared<LandmarkGraph>();
 
-    generate_operators_lookups(*task);
+    generate_operators_lookups(*variables, *axioms, *operators);
     generate_landmarks(task);
 
     if (log.is_at_least_normal()) {
@@ -77,7 +86,11 @@ LandmarkFactory::compute_lm_graph(const shared_ptr<AbstractTask>& task)
     }
 
     if (log.is_at_least_debug()) {
-        dump_landmark_graph(*task, *lm_graph, log);
+        dump_landmark_graph(
+            *variables,
+            init_vals->get_initial_state(),
+            *lm_graph,
+            log);
     }
     return lm_graph;
 }
@@ -99,36 +112,35 @@ bool LandmarkFactory::is_landmark_precondition(
 void LandmarkFactory::edge_add(
     LandmarkNode& from,
     LandmarkNode& to,
-    EdgeType type)
+    EdgeType type) const
 {
     /* Adds an edge in the landmarks graph. If an edge between the same
        landmarks is already present, the stronger edge type wins. */
     assert(&from != &to);
 
     // If edge already exists, remove if weaker
-    if (from.children.find(&to) != from.children.end() &&
-        from.children.find(&to)->second < type) {
+    if (from.children.contains(&to) && from.children.find(&to)->second < type) {
         from.children.erase(&to);
-        assert(to.parents.find(&from) != to.parents.end());
+        assert(to.parents.contains(&from));
         to.parents.erase(&from);
 
-        assert(to.parents.find(&from) == to.parents.end());
-        assert(from.children.find(&to) == from.children.end());
+        assert(!to.parents.contains(&from));
+        assert(!from.children.contains(&to));
     }
     // If edge does not exist (or has just been removed), insert
-    if (from.children.find(&to) == from.children.end()) {
-        assert(to.parents.find(&from) == to.parents.end());
+    if (!from.children.contains(&to)) {
+        assert(!to.parents.contains(&from));
         from.children.emplace(&to, type);
         to.parents.emplace(&from, type);
         if (log.is_at_least_debug()) {
             log << "added parent with address " << &from << endl;
         }
     }
-    assert(from.children.find(&to) != from.children.end());
-    assert(to.parents.find(&from) != to.parents.end());
+    assert(from.children.contains(&to));
+    assert(to.parents.contains(&from));
 }
 
-void LandmarkFactory::discard_all_orderings()
+void LandmarkFactory::discard_all_orderings() const
 {
     if (log.is_at_least_normal()) { log << "Removing all orderings." << endl; }
     for (auto& node : lm_graph->get_nodes()) {
@@ -137,17 +149,19 @@ void LandmarkFactory::discard_all_orderings()
     }
 }
 
-void LandmarkFactory::generate_operators_lookups(const AbstractTask& task)
+void LandmarkFactory::generate_operators_lookups(
+    const VariableSpace& variables,
+    const AxiomSpace& axioms,
+    const ClassicalOperatorSpace& operators)
 {
     /* Build datastructures for efficient landmark computation. Map propositions
     to the operators that achieve them or have them as preconditions */
 
-    VariablesProxy variables = task.get_variables();
     operators_eff_lookup.resize(variables.size());
     for (VariableProxy var : variables) {
         operators_eff_lookup[var.get_id()].resize(var.get_domain_size());
     }
-    OperatorsProxy operators = task.get_operators();
+
     for (OperatorProxy op : operators) {
         const auto effects = op.get_effects();
         for (auto effect : effects) {
@@ -156,7 +170,8 @@ void LandmarkFactory::generate_operators_lookups(const AbstractTask& task)
                 get_operator_or_axiom_id(op));
         }
     }
-    for (auto axiom : task.get_axioms()) {
+
+    for (auto axiom : axioms) {
         const auto effects = axiom.get_effects();
         for (auto effect : effects) {
             const FactPair effect_fact = effect.get_fact();

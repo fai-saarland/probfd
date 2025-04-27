@@ -42,7 +42,7 @@ ShrinkStrategyEqualDistance::ordered_buckets_use_map(
     const TransitionSystem& ts,
     const Distances& distances) const
 {
-    map<value_t, Bucket> states_by_h;
+    std::map<value_t, Bucket> states_by_h;
 
     for (int state = 0; state < ts.get_size(); ++state) {
         value_t h = distances.get_goal_distance(state);

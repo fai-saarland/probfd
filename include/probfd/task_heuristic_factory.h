@@ -2,12 +2,9 @@
 #define PROBFD_TASK_HEURISTIC_FACTORY_H
 
 #include "probfd/fdr_types.h"
+#include "probfd/probabilistic_task.h"
 
 #include <memory>
-
-namespace probfd {
-class ProbabilisticTask;
-}
 
 namespace probfd {
 
@@ -16,7 +13,7 @@ public:
     virtual ~TaskHeuristicFactory() = default;
 
     virtual std::unique_ptr<FDREvaluator> create_heuristic(
-        std::shared_ptr<ProbabilisticTask> task) = 0;
+        const SharedProbabilisticTask& task) = 0;
 };
 
 } // namespace probfd

@@ -61,7 +61,7 @@ protected:
 public:
     LandmarkHeuristic(
         bool use_preferred_operators,
-        std::shared_ptr<AbstractTask> original_task,
+        SharedAbstractTask original_task,
         TaskTransformationResult transformation_result,
         bool cache_estimates,
         const std::string& description,
@@ -69,7 +69,7 @@ public:
 
     LandmarkHeuristic(
         bool use_preferred_operators,
-        std::shared_ptr<AbstractTask> original_task,
+        SharedAbstractTask original_task,
         const std::shared_ptr<TaskTransformation>& transformation,
         bool cache_estimates,
         const std::string& description,

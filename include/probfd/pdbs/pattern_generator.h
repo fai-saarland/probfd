@@ -2,14 +2,11 @@
 #define PROBFD_PDBS_PATTERN_GENERATOR_H
 
 #include "downward/utils/logging.h"
+#include "probfd/probabilistic_task.h"
 
 #include <memory>
 
 // Forward Declarations
-namespace probfd {
-class ProbabilisticTask;
-}
-
 namespace probfd::pdbs {
 class PatternInformation;
 }
@@ -27,7 +24,7 @@ public:
     virtual ~PatternGenerator() = default;
 
     virtual PatternInformation
-    generate(const std::shared_ptr<ProbabilisticTask>& task) = 0;
+    generate(const SharedProbabilisticTask& task) = 0;
 };
 
 } // namespace probfd::pdbs

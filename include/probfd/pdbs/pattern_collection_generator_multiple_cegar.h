@@ -23,7 +23,7 @@ class PatternCollectionGeneratorMultipleCegar
         int max_pdb_size,
         double max_time,
         const std::shared_ptr<downward::utils::RandomNumberGenerator>& rng,
-        const std::shared_ptr<ProbabilisticTask>& task,
+        const SharedProbabilisticTask& task,
         const downward::FactPair& goal,
         std::unordered_set<int>&& blacklisted_variables) override;
 

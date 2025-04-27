@@ -21,9 +21,8 @@ class MergeScoringFunctionTotalOrder : public MergeScoringFunction {
     std::shared_ptr<utils::RandomNumberGenerator> rng;
     std::vector<std::pair<int, int>> merge_candidate_order;
 
-    virtual std::string name() const override;
-    virtual void
-    dump_function_specific_options(utils::LogProxy& log) const override;
+    std::string name() const override;
+    void dump_function_specific_options(utils::LogProxy& log) const override;
 
 public:
     explicit MergeScoringFunctionTotalOrder(
@@ -31,15 +30,17 @@ public:
         ProductTSOrder product_ts_order,
         bool atomic_before_product,
         int random_seed);
-    virtual std::vector<double> compute_scores(
+
+    std::vector<double> compute_scores(
         const FactoredTransitionSystem& fts,
         const std::vector<std::pair<int, int>>& merge_candidates) override;
-    virtual void initialize(const AbstractTask& task) override;
 
-    virtual bool requires_init_distances() const override { return false; }
+    void initialize(const AbstractTaskTuple& task) override;
 
-    virtual bool requires_goal_distances() const override { return false; }
+    bool requires_init_distances() const override { return false; }
+
+    bool requires_goal_distances() const override { return false; }
 };
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink
 
 #endif

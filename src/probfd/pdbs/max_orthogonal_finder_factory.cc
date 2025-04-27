@@ -5,16 +5,20 @@ namespace probfd::pdbs {
 
 std::unique_ptr<SubCollectionFinder>
 AdditiveMaxOrthogonalityFinderFactory::create_subcollection_finder(
-    const ProbabilisticTask& task)
+    const SharedProbabilisticTask& task)
 {
-    return std::make_unique<AdditiveMaxOrthogonalityFinder>(task);
+    return std::make_unique<AdditiveMaxOrthogonalityFinder>(
+        get_variables(task),
+        get_operators(task));
 }
 
 std::unique_ptr<SubCollectionFinder>
 MultiplicativeMaxOrthogonalityFinderFactory::create_subcollection_finder(
-    const ProbabilisticTask& task)
+    const SharedProbabilisticTask& task)
 {
-    return std::make_unique<MultiplicativeMaxOrthogonalityFinder>(task);
+    return std::make_unique<MultiplicativeMaxOrthogonalityFinder>(
+        get_variables(task),
+        get_operators(task));
 }
 
 } // namespace probfd::pdbs

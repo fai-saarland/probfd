@@ -1,11 +1,12 @@
 #ifndef PDBS_ZERO_ONE_PDBS_H
 #define PDBS_ZERO_ONE_PDBS_H
 
+#include "downward/abstract_task.h"
+
 #include "downward/pdbs/types.h"
 
 namespace downward {
 class State;
-class AbstractTask;
 } // namespace downward
 
 namespace downward::utils {
@@ -18,8 +19,9 @@ class ZeroOnePDBs {
 
 public:
     ZeroOnePDBs(
-        const AbstractTask& task,
+        const AbstractTaskTuple& task,
         const PatternCollection& patterns);
+
     ~ZeroOnePDBs() = default;
 
     int get_value(const State& state) const;

@@ -12,7 +12,7 @@ PatternCollectionGenerator::PatternCollectionGenerator(
 }
 
 PatternCollectionInformation
-PatternCollectionGenerator::generate(const shared_ptr<AbstractTask>& task)
+PatternCollectionGenerator::generate(const SharedAbstractTask& task)
 {
     if (log.is_at_least_normal()) {
         log << "Generating patterns using: " << name() << endl;
@@ -29,7 +29,7 @@ PatternGenerator::PatternGenerator(utils::Verbosity verbosity)
 }
 
 PatternInformation
-PatternGenerator::generate(const shared_ptr<AbstractTask>& task)
+PatternGenerator::generate(const SharedAbstractTask& task)
 {
     if (log.is_at_least_normal()) {
         log << "Generating pattern using: " << name() << endl;

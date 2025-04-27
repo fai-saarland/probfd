@@ -4,6 +4,7 @@
 
 #include "downward/abstract_task.h"
 #include "downward/operator_id.h"
+#include "downward/operator_space.h"
 #include "downward/state.h"
 
 #include "downward/utils/collections.h"
@@ -187,8 +188,10 @@ public:
 };
 
 ProbabilisticSuccessorGeneratorFactory::ProbabilisticSuccessorGeneratorFactory(
-    const PlanningTask& task)
-    : task_(task)
+    const VariableSpace& variables,
+    const OperatorSpace& operators)
+    : variables_(variables)
+    , operators_(operators)
 {
 }
 
@@ -236,8 +239,7 @@ GeneratorPtr ProbabilisticSuccessorGeneratorFactory::construct_switch(
     int switch_var_id,
     ValuesAndGenerators values_and_generators) const
 {
-    VariablesProxy variables = task_.get_variables();
-    int var_domain = variables[switch_var_id].get_domain_size();
+    int var_domain = variables_[switch_var_id].get_domain_size();
     int num_children = values_and_generators.size();
 
     assert(num_children > 0);
@@ -328,9 +330,8 @@ build_sorted_precondition(const PartialOperatorProxy& op)
 
 GeneratorPtr ProbabilisticSuccessorGeneratorFactory::create()
 {
-    PartialOperatorsProxy operators = task_.get_partial_operators();
-    operator_infos_.reserve(operators.size());
-    for (PartialOperatorProxy op : operators) {
+    operator_infos_.reserve(operators_.size());
+    for (PartialOperatorProxy op : operators_) {
         operator_infos_.emplace_back(
             OperatorID(op.get_id()),
             build_sorted_precondition(op));

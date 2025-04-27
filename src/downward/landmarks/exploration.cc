@@ -26,15 +26,21 @@ namespace downward::landmarks {
 */
 
 // Construction and destruction
-Exploration::Exploration(const AbstractTask& task, utils::LogProxy& log)
-    : task(task)
+Exploration::Exploration(
+    const VariableSpace& variables,
+    const AxiomSpace& axioms,
+    const ClassicalOperatorSpace& operators,
+    utils::LogProxy& log)
+    : variables(variables)
+    , axioms(axioms)
+    , operators(operators)
 {
     if (log.is_at_least_normal()) {
         log << "Initializing Exploration..." << endl;
     }
 
     // Build propositions.
-    for (VariableProxy var : task.get_variables()) {
+    for (VariableProxy var : variables) {
         int var_id = var.get_id();
         propositions.push_back(vector<Proposition>(var.get_domain_size()));
         for (int value = 0; value < var.get_domain_size(); ++value) {
@@ -48,8 +54,7 @@ Exploration::Exploration(const AbstractTask& task, utils::LogProxy& log)
       building it; meaning a resize would invalidate all references.
     */
     int num_unary_ops = 0;
-    OperatorsProxy operators = task.get_operators();
-    AxiomsProxy axioms = task.get_axioms();
+
     for (OperatorProxy op : operators) {
         num_unary_ops += op.get_effects().size();
     }
@@ -146,7 +151,7 @@ void Exploration::setup_exploration_queue(
     */
     unordered_set<int> excluded_op_ids;
     if (!use_unary_relaxation) {
-        for (OperatorProxy op : task.get_operators()) {
+        for (OperatorProxy op : operators) {
             for (EffectProxy effect : op.get_effects()) {
                 auto [var, value] = effect.get_fact();
                 if (effect.get_conditions().empty() &&
@@ -215,12 +220,10 @@ void Exploration::enqueue_if_necessary(Proposition* prop)
 
 vector<vector<bool>> Exploration::compute_relaxed_reachability(
     const vector<FactPair>& excluded_props,
+    const State& state,
     bool use_unary_relaxation)
 {
-    setup_exploration_queue(
-        task.get_initial_state(),
-        excluded_props,
-        use_unary_relaxation);
+    setup_exploration_queue(state, excluded_props, use_unary_relaxation);
     relaxed_exploration();
 
     // Bundle reachability information into the return data structure.

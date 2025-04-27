@@ -18,6 +18,7 @@
 #include "downward/utils/timer.h"
 
 #include "downward/utils/exceptions.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include <deque>
 #include <fstream>
@@ -98,7 +99,7 @@ MDPSolver::MDPSolver(
 MDPSolver::~MDPSolver() = default;
 
 class Solver : public SolverInterface {
-    std::shared_ptr<ProbabilisticTask> task;
+    SharedProbabilisticTask task;
 
     std::unique_ptr<StatisticalMDPAlgorithm> algorithm;
     std::unique_ptr<TaskStateSpace> state_space;
@@ -111,7 +112,7 @@ class Solver : public SolverInterface {
 
 public:
     Solver(
-        std::shared_ptr<ProbabilisticTask> task,
+        SharedProbabilisticTask task,
         std::unique_ptr<StatisticalMDPAlgorithm> algorithm,
         std::unique_ptr<TaskStateSpace> state_space,
         std::shared_ptr<FDREvaluator> heuristic,
@@ -146,8 +147,12 @@ public:
 
             const State& initial_state = state_space->get_initial_state();
 
-            TaskActionCostFunction action_cost_function(task);
-            TaskTerminationCostFunction term_cost_function(task, task);
+            TaskActionCostFunction action_cost_function(
+                get_shared_cost_function(task));
+
+            TaskTerminationCostFunction term_cost_function(
+                get_shared_goal(task),
+                get_shared_termination_costs(task));
 
             CompositeMDP mdp{
                 *state_space,
@@ -174,14 +179,20 @@ public:
                 print_analysis_result(
                     policy->get_decision(initial_state)->q_value_interval);
 
+                const auto& variables = get_variables(task);
+                const auto& operators =
+                    get_operators(task);
+
                 std::ofstream out(policy_filename);
-                auto print_state = [this](
+                auto print_state = [this, &variables](
                                        const State& state,
                                        std::ostream& out) {
                     if (print_fact_names) {
-                        out << task->get_fact_name({0, state[0]});
-                        for (int i = 1; i != task->get_num_variables(); ++i) {
-                            out << ", " << task->get_fact_name({i, state[i]});
+                        out << variables.get_fact_name({0, state[0]});
+                        for (int i = 1; i != variables.get_num_variables();
+                             ++i) {
+                            out << ", "
+                                << variables.get_fact_name({i, state[i]});
                         }
                     } else {
                         out << "{ " << 0 << " -> " << state[0];
@@ -194,10 +205,11 @@ public:
                     }
                 };
 
-                auto print_action =
-                    [this](const OperatorID& op_id, std::ostream& out) {
-                        out << this->task->get_operator_name(op_id.get_index());
-                    };
+                auto print_action = [this, &operators](
+                                        const OperatorID& op_id,
+                                        std::ostream& out) {
+                    out << operators.get_operator_name(op_id.get_index());
+                };
 
                 print_policy(
                     out,
@@ -231,7 +243,7 @@ public:
 };
 
 std::unique_ptr<SolverInterface>
-MDPSolver::create(const std::shared_ptr<ProbabilisticTask>& task)
+MDPSolver::create(const SharedProbabilisticTask& task)
 {
     std::unique_ptr<StatisticalMDPAlgorithm> algorithm = run_time_logged(
         std::cout,

@@ -1,13 +1,11 @@
 #ifndef MERGE_AND_SHRINK_MERGE_AND_SHRINK_ALGORITHM_H
 #define MERGE_AND_SHRINK_MERGE_AND_SHRINK_ALGORITHM_H
 
+#include "downward/abstract_task.h"
+
 #include "downward/utils/logging.h"
 
 #include <memory>
-
-namespace downward {
-class AbstractTask;
-}
 
 namespace downward::utils {
 class CountdownTimer;
@@ -50,7 +48,7 @@ class MergeAndShrinkAlgorithm {
     bool ran_out_of_time(const utils::CountdownTimer& timer) const;
     void statistics(int maximum_intermediate_size) const;
     void
-    main_loop(FactoredTransitionSystem& fts, const AbstractTask& task);
+    main_loop(FactoredTransitionSystem& fts, const AbstractTaskTuple& task);
 
 public:
     MergeAndShrinkAlgorithm(
@@ -64,8 +62,9 @@ public:
         int threshold_before_merge,
         double main_loop_max_time,
         utils::Verbosity verbosity);
+
     FactoredTransitionSystem
-    build_factored_transition_system(const AbstractTask& task);
+    build_factored_transition_system(const AbstractTaskTuple& task);
 };
 
 } // namespace downward::merge_and_shrink

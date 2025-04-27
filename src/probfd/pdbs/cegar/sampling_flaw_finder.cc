@@ -16,6 +16,7 @@
 #include "downward/utils/countdown_timer.h"
 
 #include "downward/state_registry.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include <cassert>
 #include <utility>
@@ -37,7 +38,8 @@ SamplingFlawFinder::SamplingFlawFinder(
 SamplingFlawFinder::~SamplingFlawFinder() = default;
 
 bool SamplingFlawFinder::apply_policy(
-    const ProbabilisticTask& task,
+    const ProbabilisticTaskTuple& task,
+    const State& initial_state,
     const StateRankingFunction& state_ranking_function,
     const ProjectionStateSpace& mdp,
     const ProjectionMultiPolicy& policy,
@@ -47,17 +49,19 @@ bool SamplingFlawFinder::apply_policy(
 {
     assert(stk_.empty() && einfos_.empty());
 
+    const auto& variables = get_variables(task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
+    const auto& goals = get_goal(task);
+
     // Exception safety due to TimeoutException
     scope_exit guard([&] {
         stk_.clear();
         einfos_.clear();
     });
 
-    StateRegistry registry(task);
+    StateRegistry registry(variables, axioms, initial_state);
     stk_.push_back(registry.get_initial_state());
-
-    const ProbabilisticOperatorsProxy operators = task.get_operators();
-    const GoalsProxy goals = task.get_goals();
 
     for (;;) {
         const State* current = &stk_.back();

@@ -173,7 +173,7 @@ string PatternCollectionGeneratorMultiple::name() const
 
 PatternCollectionInformation
 PatternCollectionGeneratorMultiple::compute_patterns(
-    const shared_ptr<AbstractTask>& task)
+    const SharedAbstractTask& task)
 {
     if (log.is_at_least_normal()) {
         log << "max pdb size: " << max_pdb_size << endl;
@@ -188,15 +188,18 @@ PatternCollectionGeneratorMultiple::compute_patterns(
 
     utils::CountdownTimer timer(total_max_time);
 
+    const auto& [variables, goals] =
+        to_refs(slice_shared<VariableSpace, GoalFactList>(task));
+
     // Store the set of goals in random order.
-    vector<FactPair> goals = get_goals_in_random_order(*task, *rng);
+    vector<FactPair> goal_facts = get_goals_in_random_order(goals, *rng);
 
     // Store the non-goal variables for potential blacklisting.
-    vector<int> non_goal_variables = get_non_goal_variables(*task);
+    vector<int> non_goal_variables = get_non_goal_variables(variables, goals);
 
     if (log.is_at_least_debug()) {
         log << "goal variables: ";
-        for (FactPair goal : goals) { log << goal.var << ", "; }
+        for (FactPair goal : goal_facts) { log << goal.var << ", "; }
         log << endl;
         log << "non-goal variables: " << non_goal_variables << endl;
     }
@@ -227,7 +230,7 @@ PatternCollectionGeneratorMultiple::compute_patterns(
             remaining_time,
             pattern_computation_rng,
             task,
-            goals[goal_index],
+            goal_facts[goal_index],
             std::move(blacklisted_variables));
         handle_generated_pattern(
             std::move(pattern_info),
@@ -242,12 +245,12 @@ PatternCollectionGeneratorMultiple::compute_patterns(
 
         ++num_iterations;
         ++goal_index;
-        goal_index = goal_index % goals.size();
-        assert(utils::in_bounds(goal_index, goals));
+        goal_index = goal_index % goal_facts.size();
+        assert(utils::in_bounds(goal_index, goal_facts));
     }
 
     PatternCollectionInformation result =
-        get_pattern_collection_info(*task, generated_pdbs, log);
+        get_pattern_collection_info(to_refs(task), generated_pdbs, log);
     if (log.is_at_least_normal()) {
         log << name() << " number of iterations: " << num_iterations << endl;
         log << name() << " average time per generator: "

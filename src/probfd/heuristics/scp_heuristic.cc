@@ -1,5 +1,6 @@
 #include "probfd/heuristics/scp_heuristic.h"
 
+#include "downward/initial_state_values.h"
 #include "probfd/pdbs/pattern_collection_generator.h"
 #include "probfd/pdbs/pattern_collection_information.h"
 #include "probfd/pdbs/probability_aware_pattern_database.h"
@@ -13,6 +14,7 @@
 #include "downward/utils/rng_options.h"
 
 #include "downward/task_utils/task_properties.h"
+#include "probfd/probabilistic_operator_space.h"
 #include "probfd/tasks/modified_operator_costs_task.h"
 
 #include <algorithm>
@@ -37,7 +39,7 @@ SCPHeuristicFactory::SCPHeuristicFactory(
 }
 
 std::unique_ptr<FDREvaluator>
-SCPHeuristicFactory::create_heuristic(std::shared_ptr<ProbabilisticTask> task)
+SCPHeuristicFactory::create_heuristic(const SharedProbabilisticTask& task)
 {
     auto pattern_collection_info =
         pattern_collection_generator_->generate(task);
@@ -65,28 +67,36 @@ SCPHeuristicFactory::create_heuristic(std::shared_ptr<ProbabilisticTask> task)
     default: break;
     }
 
-    const size_t num_operators = task->get_operators().size();
+    const auto& variables = get_variables(task);
+    const auto& operators = get_operators(task);
+    const auto& init_vals = get_init(task);
+    const auto& cost_function =
+        get_cost_function(task);
+    const auto& term_costs = get_termination_costs(task);
+
+    const size_t num_operators = operators.size();
 
     std::vector<value_t> saturated_costs(num_operators);
 
-    const State& initial_state = task->get_initial_state();
+    const State& initial_state = init_vals.get_initial_state();
 
     std::vector<value_t> costs;
-    const auto operators = task->get_operators();
     costs.reserve(operators.size());
 
     for (const ProbabilisticOperatorProxy op : operators) {
-        costs.push_back(task->get_operator_cost(op.get_id()));
+        costs.push_back(cost_function.get_operator_cost(op.get_id()));
     }
 
-    auto adapted = std::make_shared<extra_tasks::ModifiedOperatorCostsTask>(
-        task,
-        std::move(costs));
+    auto running_cost_function =
+        std::make_shared<extra_tasks::VectorProbabilisticOperatorCostFunction>(
+            std::move(costs));
 
-    BlindEvaluator<StateRank> h(task->get_operators(), *task, *task);
+    auto adapted = replace(task, running_cost_function);
+
+    BlindEvaluator<StateRank> h(operators, *running_cost_function, term_costs);
 
     for (const Pattern& pattern : patterns) {
-        auto& pdb = pdbs.emplace_back(task->get_variables(), pattern);
+        auto& pdb = pdbs.emplace_back(variables, pattern);
 
         ProjectionStateSpace state_space(adapted, pdb.ranking_function, false);
 
@@ -99,22 +109,22 @@ SCPHeuristicFactory::create_heuristic(std::shared_ptr<ProbabilisticTask> task)
         compute_saturated_costs(state_space, pdb.value_table, saturated_costs);
 
         for (size_t i = 0; i != num_operators; ++i) {
-            const auto new_cost =
-                adapted->get_operator_cost(i) - saturated_costs[i];
+            const auto new_cost = (*running_cost_function)[i] -
+                                  saturated_costs[i];
             assert(!is_approx_less(new_cost, 0.0_vt, 0.0001));
 
             // Avoid floating point imprecision. The PDB implementation is not
             // stable with respect to action costs very close to zero.
             if (is_approx_equal(new_cost, 0.0_vt, 0.0001)) {
-                adapted->set_operator_cost(i, 0.0_vt);
+                (*running_cost_function)[i] = 0.0_vt;
             } else {
-                adapted->set_operator_cost(i, new_cost);
+                (*running_cost_function)[i] = new_cost;
             }
         }
     }
 
     return std::make_unique<SCPHeuristic>(
-        task->get_non_goal_termination_cost(),
+        term_costs.get_non_goal_termination_cost(),
         std::move(pdbs));
 }
 

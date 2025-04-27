@@ -41,7 +41,7 @@ public:
     }
 
     std::unique_ptr<StatisticalMDPAlgorithm>
-    create_algorithm(const std::shared_ptr<ProbabilisticTask>&) override
+    create_algorithm(const SharedProbabilisticTask&) override
     {
         return std::make_unique<AlgorithmAdaptor>(
             std::make_unique<IntervalIteration<State, OperatorID>>(

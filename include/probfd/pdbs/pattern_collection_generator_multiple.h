@@ -21,10 +21,6 @@ class CountdownTimer;
 class RandomNumberGenerator;
 } // namespace downward::utils
 
-namespace probfd {
-class ProbabilisticTaskProxy;
-}
-
 namespace probfd::pdbs {
 class ProjectionStateSpace;
 struct ProbabilityAwarePatternDatabase;
@@ -53,12 +49,12 @@ class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
         int max_pdb_size,
         double max_time,
         const std::shared_ptr<downward::utils::RandomNumberGenerator>& rng,
-        const std::shared_ptr<ProbabilisticTask>& task,
+        const SharedProbabilisticTask& task,
         const downward::FactPair& goal,
         std::unordered_set<int>&& blacklisted_variables) = 0;
 
     PatternCollectionInformation
-    generate(const std::shared_ptr<ProbabilisticTask>& task) override;
+    generate(const SharedProbabilisticTask& task) override;
 
 public:
     explicit PatternCollectionGeneratorMultiple(

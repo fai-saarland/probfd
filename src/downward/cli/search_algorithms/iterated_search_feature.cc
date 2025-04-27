@@ -59,7 +59,7 @@ public:
     }
 
     unique_ptr<SearchAlgorithm>
-    create_object(const std::shared_ptr<AbstractTask>& task) override
+    create_object(const SharedAbstractTask& task) override
     {
         return std::make_unique<IteratedSearch>(
             task,

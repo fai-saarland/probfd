@@ -4,6 +4,7 @@
 #include "downward/utils/logging.h"
 
 #include "downward/abstract_task.h"
+#include "downward/classical_operator_space.h"
 
 #include <cassert>
 #include <unordered_map>
@@ -24,7 +25,9 @@ static inline bool is_v_applicable(
     return precondition_on_var == -1 || precondition_on_var == state[var];
 }
 
-static vector<StubbornDTG> build_dtgs(const AbstractTask& task)
+static vector<StubbornDTG> build_dtgs(
+    const VariableSpace& variables,
+    const ClassicalOperatorSpace& operators)
 {
     /*
       NOTE: Code lifted and adapted from M&S atomic abstraction code.
@@ -39,8 +42,6 @@ static vector<StubbornDTG> build_dtgs(const AbstractTask& task)
       from the usual DTG definition.
      */
 
-    const auto variables = task.get_variables();
-
     // Create the empty DTG nodes.
     vector<StubbornDTG> dtgs =
         utils::map_vector<StubbornDTG>(variables, [](const VariableProxy& var) {
@@ -48,7 +49,7 @@ static vector<StubbornDTG> build_dtgs(const AbstractTask& task)
         });
 
     // Add DTG arcs.
-    for (OperatorProxy op : task.get_operators()) {
+    for (const auto op : operators) {
         unordered_map<int, int> preconditions;
         for (const auto [var, value] : op.get_preconditions()) {
             preconditions[var] = value;
@@ -116,19 +117,22 @@ StubbornSetsEC::StubbornSetsEC(utils::Verbosity verbosity)
 {
 }
 
-void StubbornSetsEC::initialize(const shared_ptr<AbstractTask>& task)
+void StubbornSetsEC::initialize(const SharedAbstractTask& task)
 {
     StubbornSets::initialize(task);
-    VariablesProxy variables = task->get_variables();
-    written_vars.assign(variables.size(), false);
+
+    const auto [variables, operators] =
+        slice_shared<VariableSpace, ClassicalOperatorSpace>(task);
+
+    written_vars.assign(variables->get_num_variables(), false);
     nes_computed = utils::map_vector<vector<bool>>(
-        variables,
+        *variables,
         [](const VariableProxy& var) {
             return vector<bool>(var.get_domain_size(), false);
         });
     active_ops.assign(num_operators, false);
-    compute_operator_preconditions(*task);
-    build_reachability_map(*task);
+    compute_operator_preconditions(*variables, *operators);
+    build_reachability_map(*variables, *operators);
 
     conflicting_and_disabling.resize(num_operators);
     conflicting_and_disabling_computed.resize(num_operators, false);
@@ -139,12 +143,12 @@ void StubbornSetsEC::initialize(const shared_ptr<AbstractTask>& task)
 }
 
 void StubbornSetsEC::compute_operator_preconditions(
-    const AbstractTask& task)
+    const VariableSpace& variables,
+    const OperatorSpace& operators)
 {
-    int num_variables = task.get_variables().size();
-    op_preconditions_on_var = utils::map_vector<vector<int>>(
-        task.get_operators(),
-        [&](const OperatorProxy& op) {
+    int num_variables = variables.size();
+    op_preconditions_on_var =
+        utils::map_vector<vector<int>>(operators, [&](const auto& op) {
             vector<int> preconditions_on_var(num_variables, -1);
             for (const auto [var, value] : op.get_preconditions()) {
                 preconditions_on_var[var] = value;
@@ -153,11 +157,13 @@ void StubbornSetsEC::compute_operator_preconditions(
         });
 }
 
-void StubbornSetsEC::build_reachability_map(const AbstractTask& task)
+void StubbornSetsEC::build_reachability_map(
+    const VariableSpace& variables,
+    const ClassicalOperatorSpace& operators)
 {
-    vector<StubbornDTG> dtgs = build_dtgs(task);
+    vector<StubbornDTG> dtgs = build_dtgs(variables, operators);
     reachability_map = utils::map_vector<vector<vector<bool>>>(
-        task.get_variables(),
+        variables,
         [&](const VariableProxy& var) {
             StubbornDTG& dtg = dtgs[var.get_id()];
             int num_values = var.get_domain_size();

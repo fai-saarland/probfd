@@ -4,6 +4,7 @@
 #include "probfd/pdbs/types.h"
 
 #include "probfd/fdr_types.h"
+#include "probfd/probabilistic_task.h"
 #include "probfd/value_type.h"
 
 #include <memory>
@@ -13,7 +14,7 @@
 
 // Forward Declarations
 namespace downward {
-class VariablesProxy;
+class VariableSpace;
 }
 
 namespace downward::utils {
@@ -21,10 +22,6 @@ class CountdownTimer;
 class LogProxy;
 class RandomNumberGenerator;
 } // namespace utils
-
-namespace probfd {
-class ProbabilisticTask;
-}
 
 namespace probfd::heuristics {
 template <typename State>
@@ -85,7 +82,8 @@ public:
     ~CEGAR();
 
     void generate_pdbs(
-        std::shared_ptr<ProbabilisticTask> task,
+        const SharedProbabilisticTask& task,
+        const downward::State& initial_state,
         ProjectionCollection& projections,
         PPDBCollection& pdbs,
         double max_time,
@@ -93,19 +91,21 @@ public:
 
 private:
     void generate_trivial_solution_collection(
-        std::shared_ptr<ProbabilisticTask> task,
+        const SharedProbabilisticTask& task,
+        const downward::State& initial_state,
         downward::utils::CountdownTimer& timer,
         downward::utils::LogProxy log);
 
     std::vector<PDBInfo>::iterator get_flaws(
-        const ProbabilisticTask& task,
+        const ProbabilisticTaskTuple& task,
+        const downward::State& initial_state,
         std::vector<Flaw>& flaws,
         std::vector<int>& flaw_offsets,
         downward::utils::CountdownTimer& timer,
         downward::utils::LogProxy log);
 
     bool can_add_variable_to_pattern(
-        const downward::VariablesProxy& variables,
+        const downward::VariableSpace& variables,
         std::vector<PDBInfo>::iterator info_it,
         int var) const;
 
@@ -114,28 +114,32 @@ private:
         std::vector<PDBInfo>::iterator info_it2) const;
 
     void add_pattern_for_var(
-        std::shared_ptr<ProbabilisticTask> task,
+        const SharedProbabilisticTask& task,
+        const downward::State& initial_state,
         const heuristics::BlindEvaluator<StateRank>& h,
         int var,
         downward::utils::CountdownTimer& timer);
 
     void add_variable_to_pattern(
-        std::shared_ptr<ProbabilisticTask> task,
+        const SharedProbabilisticTask& task,
+        const downward::State& initial_state,
         std::vector<PDBInfo>::iterator info_it,
         int var,
-        downward::utils::CountdownTimer& timer);
+        const downward::utils::CountdownTimer& timer);
 
     void merge_patterns(
-        std::shared_ptr<ProbabilisticTask> task,
+        const SharedProbabilisticTask& task,
+        const downward::State& initial_state,
         std::vector<PDBInfo>::iterator info_it1,
         std::vector<PDBInfo>::iterator info_it2,
-        downward::utils::CountdownTimer& timer);
+        const downward::utils::CountdownTimer& timer);
 
     void refine(
-        std::shared_ptr<ProbabilisticTask> task,
+        const SharedProbabilisticTask& task,
+        const downward::State& initial_state,
         const std::vector<Flaw>& flaws,
         const std::vector<int>& flaw_offsets,
-        downward::utils::CountdownTimer& timer,
+        const downward::utils::CountdownTimer& timer,
         downward::utils::LogProxy log);
 
     void print_collection(downward::utils::LogProxy log) const;

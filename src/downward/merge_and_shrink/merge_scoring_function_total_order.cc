@@ -38,18 +38,15 @@ vector<double> MergeScoringFunctionTotalOrder::compute_scores(
     scores.reserve(merge_candidates.size());
     for (size_t candidate_index = 0; candidate_index < merge_candidates.size();
          ++candidate_index) {
-        pair<int, int> merge_candidate = merge_candidates[candidate_index];
-        int ts_index1 = merge_candidate.first;
-        int ts_index2 = merge_candidate.second;
+        const auto [ts_index1, ts_index2] = merge_candidates[candidate_index];
+
         for (size_t merge_candidate_order_index = 0;
              merge_candidate_order_index < merge_candidate_order.size();
              ++merge_candidate_order_index) {
-            pair<int, int> other_candidate =
+            const auto [fst, snd] =
                 merge_candidate_order[merge_candidate_order_index];
-            if ((other_candidate.first == ts_index1 &&
-                 other_candidate.second == ts_index2) ||
-                (other_candidate.second == ts_index1 &&
-                 other_candidate.first == ts_index2)) {
+            if ((fst == ts_index1 && snd == ts_index2) ||
+                (snd == ts_index1 && fst == ts_index2)) {
                 // use the index in the merge candidate order as score
                 scores.push_back(merge_candidate_order_index);
                 break;
@@ -61,22 +58,22 @@ vector<double> MergeScoringFunctionTotalOrder::compute_scores(
     return scores;
 }
 
-void MergeScoringFunctionTotalOrder::initialize(const AbstractTask& task)
+void MergeScoringFunctionTotalOrder::initialize(const AbstractTaskTuple& task)
 {
+    const auto& variables = get_variables(task);
+
     initialized = true;
-    int num_variables = task.get_variables().size();
-    int max_transition_system_count = num_variables * 2 - 1;
+    const int num_variables = variables.size();
+    const int max_transition_system_count = num_variables * 2 - 1;
     vector<int> transition_system_order;
     transition_system_order.reserve(max_transition_system_count);
 
     // Compute the order in which atomic transition systems are considered
     vector<int> atomic_tso;
     atomic_tso.reserve(num_variables);
-    for (int i = 0; i < num_variables; ++i) {
-        atomic_tso.push_back(i);
-    }
+    for (int i = 0; i < num_variables; ++i) { atomic_tso.push_back(i); }
     if (atomic_ts_order == AtomicTSOrder::LEVEL) {
-        reverse(atomic_tso.begin(), atomic_tso.end());
+        ranges::reverse(atomic_tso);
     } else if (atomic_ts_order == AtomicTSOrder::RANDOM) {
         rng->shuffle(atomic_tso);
     }
@@ -87,7 +84,7 @@ void MergeScoringFunctionTotalOrder::initialize(const AbstractTask& task)
         product_tso.push_back(i);
     }
     if (product_ts_order == ProductTSOrder::NEW_TO_OLD) {
-        reverse(product_tso.begin(), product_tso.end());
+        ranges::reverse(product_tso);
     } else if (product_ts_order == ProductTSOrder::RANDOM) {
         rng->shuffle(product_tso);
     }
@@ -157,4 +154,4 @@ void MergeScoringFunctionTotalOrder::dump_function_specific_options(
     }
 }
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

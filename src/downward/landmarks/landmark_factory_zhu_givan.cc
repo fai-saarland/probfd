@@ -6,6 +6,8 @@
 
 #include "downward/abstract_task.h"
 #include "downward/axiom_utils.h"
+#include "downward/goal_fact_list.h"
+#include "downward/initial_state_values.h"
 #include "downward/state.h"
 
 #include "downward/utils/logging.h"
@@ -26,26 +28,39 @@ LandmarkFactoryZhuGivan::LandmarkFactoryZhuGivan(
 }
 
 void LandmarkFactoryZhuGivan::generate_relaxed_landmarks(
-    const shared_ptr<AbstractTask>& task,
+    const SharedAbstractTask& task,
     Exploration&)
 {
     if (log.is_at_least_normal()) {
         log << "Generating landmarks using Zhu/Givan label propagation" << endl;
     }
 
-    compute_triggers(*task);
+    const auto& [variables, axioms, operators, goals, init_vals] = to_refs(
+        slice_shared<
+            VariableSpace,
+            AxiomSpace,
+            ClassicalOperatorSpace,
+            GoalFactList,
+            InitialStateValues>(task));
 
-    PropositionLayer last_prop_layer =
-        build_relaxed_plan_graph_with_labels(*task);
+    compute_triggers(variables, axioms, operators);
 
-    extract_landmarks(*task, last_prop_layer);
+    const State initial_state = init_vals.get_initial_state();
+
+    PropositionLayer last_prop_layer = build_relaxed_plan_graph_with_labels(
+        variables,
+        axioms,
+        operators,
+        initial_state);
+
+    extract_landmarks(goals, last_prop_layer);
 
     if (!use_orders) { discard_all_orderings(); }
 }
 
 void LandmarkFactoryZhuGivan::extract_landmarks(
-    const AbstractTask& task,
-    const PropositionLayer& last_prop_layer)
+    const GoalFactList& goals,
+    const PropositionLayer& last_prop_layer) const
 {
     /*
       We first check if at least one of the goal facts is relaxed unreachable.
@@ -53,7 +68,7 @@ void LandmarkFactoryZhuGivan::extract_landmarks(
       the landmark will have no achievers, the heuristic can detect the
       initial state as a dead-end.
      */
-    for (FactPair goal : task.get_goals()) {
+    for (FactPair goal : goals) {
         if (!last_prop_layer[goal.var][goal.value].reached()) {
             if (log.is_at_least_normal()) {
                 log << "Problem not solvable, even if relaxed." << endl;
@@ -64,9 +79,8 @@ void LandmarkFactoryZhuGivan::extract_landmarks(
         }
     }
 
-    State initial_state = task.get_initial_state();
     // insert goal landmarks and mark them as goals
-    for (FactPair goal_lm : task.get_goals()) {
+    for (FactPair goal_lm : goals) {
         LandmarkNode* lm_node;
         if (lm_graph->contains_simple_landmark(goal_lm)) {
             lm_node = &lm_graph->get_simple_landmark(goal_lm);
@@ -93,8 +107,8 @@ void LandmarkFactoryZhuGivan::extract_landmarks(
                 node = &lm_graph->get_simple_landmark(lm);
             }
             // Add order: lm ->_{nat} lm
-            assert(node->parents.find(lm_node) == node->parents.end());
-            assert(lm_node->children.find(node) == lm_node->children.end());
+            assert(!node->parents.contains(lm_node));
+            assert(!lm_node->children.contains(node));
             edge_add(*node, *lm_node, EdgeType::NATURAL);
         }
     }
@@ -102,17 +116,17 @@ void LandmarkFactoryZhuGivan::extract_landmarks(
 
 LandmarkFactoryZhuGivan::PropositionLayer
 LandmarkFactoryZhuGivan::build_relaxed_plan_graph_with_labels(
-    const AbstractTask& task) const
+    const VariableSpace& variables,
+    const AxiomSpace& axioms,
+    const ClassicalOperatorSpace& operators,
+    const State& initial_state) const
 {
     assert(!triggers.empty());
 
     PropositionLayer current_prop_layer;
-    unordered_set<int> triggered(
-        task.get_operators().size() + task.get_axioms().size());
+    unordered_set<int> triggered(operators.size() + axioms.size());
 
     // set initial layer
-    State initial_state = task.get_initial_state();
-    VariablesProxy variables = task.get_variables();
     current_prop_layer.resize(variables.size());
     for (VariableProxy var : variables) {
         int var_id = var.get_id();
@@ -140,7 +154,7 @@ LandmarkFactoryZhuGivan::build_relaxed_plan_graph_with_labels(
         changes = false;
         for (int op_or_axiom_id : triggered) {
             AxiomOrOperatorProxy op =
-                get_operator_or_axiom(task, op_or_axiom_id);
+                get_operator_or_axiom(axioms, operators, op_or_axiom_id);
             if (operator_applicable(op, current_prop_layer)) {
                 lm_set changed = apply_operator_and_propagate_labels(
                     op,
@@ -198,8 +212,8 @@ static lm_set _intersection(const lm_set& a, const lm_set& b)
 
     lm_set result;
 
-    for (lm_set::const_iterator it = a.begin(); it != a.end(); ++it)
-        if (b.find(*it) != b.end()) result.insert(*it);
+    for (auto it = a.begin(); it != a.end(); ++it)
+        if (b.contains(*it)) result.insert(*it);
     return result;
 }
 
@@ -288,23 +302,21 @@ lm_set LandmarkFactoryZhuGivan::apply_operator_and_propagate_labels(
     return result;
 }
 
-void LandmarkFactoryZhuGivan::compute_triggers(const AbstractTask& task)
+void LandmarkFactoryZhuGivan::compute_triggers(
+    const VariableSpace& variables,
+    const AxiomSpace& axioms,
+    const ClassicalOperatorSpace& operators)
 {
     assert(triggers.empty());
 
     // initialize empty triggers
-    VariablesProxy variables = task.get_variables();
     triggers.resize(variables.size());
     for (size_t i = 0; i < variables.size(); ++i)
         triggers[i].resize(variables[i].get_domain_size());
 
     // compute triggers
-    for (OperatorProxy op : task.get_operators()) {
-        add_operator_to_triggers(op);
-    }
-    for (AxiomProxy axiom : task.get_axioms()) {
-        add_operator_to_triggers(axiom);
-    }
+    for (OperatorProxy op : operators) { add_operator_to_triggers(op); }
+    for (AxiomProxy axiom : axioms) { add_operator_to_triggers(axiom); }
 }
 
 void LandmarkFactoryZhuGivan::add_operator_to_triggers(

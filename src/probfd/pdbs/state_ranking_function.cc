@@ -9,7 +9,7 @@ using namespace downward;
 namespace probfd::pdbs {
 
 StateRankingFunction::StateRankingFunction(
-    const VariablesProxy& variables,
+    const VariableSpace& variables,
     Pattern pattern)
     : pattern_(std::move(pattern))
     , enumerator_(pattern_ | std::views::transform([&](int var) {
@@ -80,7 +80,7 @@ int StateRankingFunction::get_domain_size(int var) const
 }
 
 StateRankToString::StateRankToString(
-    VariablesProxy variables,
+    const VariableSpace& variables,
     const StateRankingFunction& state_mapper)
     : variables_(variables)
     , state_mapper_(state_mapper)

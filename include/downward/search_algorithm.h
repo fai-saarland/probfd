@@ -36,7 +36,7 @@ class SearchAlgorithm {
 protected:
     // Hold a reference to the task implementation and pass it to objects
     // that need it.
-    const std::shared_ptr<AbstractTask> task;
+    const SharedAbstractTask task;
 
     mutable utils::LogProxy log;
     PlanManager plan_manager;
@@ -58,7 +58,7 @@ protected:
 
 public:
     SearchAlgorithm(
-        std::shared_ptr<AbstractTask> task,
+        SharedAbstractTask task,
         OperatorCost cost_type,
         int bound,
         double max_time,

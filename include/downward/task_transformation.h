@@ -1,11 +1,12 @@
 #ifndef TASK_TRANSFORMATION_H
 #define TASK_TRANSFORMATION_H
 
+#include "downward/abstract_task.h"
+
 #include <memory>
 #include <vector>
 
 namespace downward {
-class AbstractTask;
 class State;
 class OperatorID;
 }
@@ -43,7 +44,7 @@ public:
 };
 
 struct TaskTransformationResult {
-    std::shared_ptr<AbstractTask> transformed_task;
+    SharedAbstractTask transformed_task;
     std::shared_ptr<StateMapping> state_mapping;
     std::shared_ptr<InverseOperatorMapping> inv_operator_mapping;
 };
@@ -53,7 +54,7 @@ public:
     virtual ~TaskTransformation() = default;
 
     virtual TaskTransformationResult
-    transform(const std::shared_ptr<AbstractTask>& original_task) = 0;
+    transform(const SharedAbstractTask& original_task) = 0;
 };
 
 }

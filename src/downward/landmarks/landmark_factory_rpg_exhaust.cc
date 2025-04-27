@@ -3,6 +3,8 @@
 #include "downward/landmarks/landmark.h"
 
 #include "downward/abstract_task.h"
+#include "downward/goal_fact_list.h"
+#include "downward/initial_state_values.h"
 #include "downward/state.h"
 
 #include "downward/utils/logging.h"
@@ -25,28 +27,34 @@ LandmarkFactoryRpgExhaust::LandmarkFactoryRpgExhaust(
 }
 
 void LandmarkFactoryRpgExhaust::generate_relaxed_landmarks(
-    const shared_ptr<AbstractTask>& task,
+    const SharedAbstractTask& task,
     Exploration& exploration)
 {
+    const auto& [variables, goals, init_vals] = to_refs(
+        slice_shared<VariableSpace, GoalFactList, InitialStateValues>(task));
+
     if (log.is_at_least_normal()) {
         log << "Generating landmarks by testing all facts with RPG method"
             << endl;
     }
 
     // insert goal landmarks and mark them as goals
-    for (FactPair goal : task->get_goals()) {
+    for (FactPair goal : goals) {
         Landmark landmark({goal}, false, false, true);
         lm_graph->add_landmark(std::move(landmark));
     }
+
     // test all other possible facts
-    State initial_state = task->get_initial_state();
-    for (VariableProxy var : task->get_variables()) {
+    const State initial_state = init_vals.get_initial_state();
+
+    for (VariableProxy var : variables) {
         for (int value = 0; value < var.get_domain_size(); ++value) {
             const FactPair lm(var.get_id(), value);
             if (!lm_graph->contains_simple_landmark(lm)) {
                 Landmark landmark({lm}, false, false);
                 if (!relaxed_task_solvable(
-                        *task,
+                        goals,
+                        initial_state,
                         exploration,
                         landmark,
                         use_unary_relaxation)) {
@@ -62,4 +70,4 @@ bool LandmarkFactoryRpgExhaust::supports_conditional_effects() const
     return false;
 }
 
-} // namespace landmarks
+} // namespace downward::landmarks

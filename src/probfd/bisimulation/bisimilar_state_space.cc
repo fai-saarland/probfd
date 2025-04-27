@@ -21,6 +21,8 @@
 #include "downward/utils/logging.h"
 
 #include "downward/state.h"
+#include "probfd/probabilistic_operator_space.h"
+#include "probfd/termination_costs.h"
 
 #include <cassert>
 #include <limits>
@@ -37,10 +39,10 @@ class ProbabilisticTask;
 
 namespace bisimulation {
 
-static constexpr const int BUCKET_SIZE = 1024 * 64;
+static constexpr int BUCKET_SIZE = 1024 * 64;
 
 BisimilarStateSpace::BisimilarStateSpace(
-    std::shared_ptr<ProbabilisticTask> task,
+    SharedProbabilisticTask task,
     const TransitionSystem& transition_system)
     : task_(std::move(task))
     , num_cached_transitions_(0)
@@ -49,7 +51,7 @@ BisimilarStateSpace::BisimilarStateSpace(
 {
     int dead_end_state = transition_system.get_size();
 
-    ProbabilisticOperatorsProxy prob_operators = task_->get_operators();
+    const auto& prob_operators = get_operators(task_);
 
     std::vector<std::pair<OperatorID, unsigned>> det_to_prob_op;
     for (unsigned p_op_id = 0; p_op_id < prob_operators.size(); ++p_op_id) {
@@ -124,9 +126,7 @@ void BisimilarStateSpace::generate_applicable_actions(
 {
     const auto& cache = transitions_[std::to_underlying(state)];
     result.reserve(cache.size());
-    for (const auto& t : cache) {
-        result.emplace_back(t.op_id);
-    }
+    for (const auto& t : cache) { result.emplace_back(t.op_id); }
 }
 
 void BisimilarStateSpace::generate_action_transitions(
@@ -134,7 +134,7 @@ void BisimilarStateSpace::generate_action_transitions(
     OperatorID a,
     SuccessorDistribution& successor_dist)
 {
-    const ProbabilisticOperatorsProxy operators = task_->get_operators();
+    const auto& operators = get_operators(task_);
 
     const auto& transitions = transitions_[std::to_underlying(state)];
 
@@ -162,7 +162,7 @@ void BisimilarStateSpace::generate_all_transitions(
     std::vector<OperatorID>& aops,
     std::vector<SuccessorDistribution>& successor_dists)
 {
-    const ProbabilisticOperatorsProxy operators = task_->get_operators();
+    const auto& operators = get_operators(task_);
 
     const auto& cache = transitions_[std::to_underlying(state)];
     aops.reserve(cache.size());
@@ -191,7 +191,7 @@ void BisimilarStateSpace::generate_all_transitions(
     QuotientState state,
     std::vector<TransitionTailType>& transitions)
 {
-    const ProbabilisticOperatorsProxy operators(*task_);
+    const auto& operators = get_operators(task_);
 
     const auto& cache = transitions_[std::to_underlying(state)];
     transitions.reserve(cache.size());
@@ -216,16 +216,19 @@ void BisimilarStateSpace::generate_all_transitions(
 
 TerminationInfo BisimilarStateSpace::get_termination_info(QuotientState s)
 {
-    return is_goal_state(s)
-               ? TerminationInfo::from_goal(
-                     task_->get_goal_termination_cost())
-               : TerminationInfo::from_non_goal(
-                     task_->get_non_goal_termination_cost());
+    const auto& term_costs = get_termination_costs(task_);
+
+    return is_goal_state(s) ? TerminationInfo::from_goal(
+                                  term_costs.get_goal_termination_cost())
+                            : TerminationInfo::from_non_goal(
+                                  term_costs.get_non_goal_termination_cost());
 }
 
 value_t BisimilarStateSpace::get_action_cost(OperatorID op_id)
 {
-    return task_->get_operator_cost(op_id.get_index());
+    const auto& cost_function =
+        get_cost_function(task_);
+    return cost_function.get_operator_cost(op_id.get_index());
 }
 
 bool BisimilarStateSpace::is_goal_state(QuotientState s) const
@@ -244,7 +247,7 @@ unsigned BisimilarStateSpace::num_transitions() const
 }
 
 merge_and_shrink::Factor
-compute_bisimulation_on_determinization(const AbstractTask& det_task)
+compute_bisimulation_on_determinization(const AbstractTaskTuple& det_task)
 {
     // Construct a linear merge tree
     auto linear_merge_tree_factory = std::make_shared<MergeTreeFactoryLinear>(

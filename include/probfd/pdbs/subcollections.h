@@ -3,20 +3,20 @@
 
 #include "probfd/pdbs/types.h"
 
-#include <vector>
+#include "probfd/probabilistic_task.h"
 
-namespace probfd {
-class ProbabilisticTask;
-}
+#include <vector>
 
 namespace probfd::pdbs {
 
 std::vector<std::vector<bool>> compute_prob_orthogonal_vars(
-    const ProbabilisticTask& task,
+    const downward::VariableSpace& variables,
+    const ProbabilisticOperatorSpace& operators,
     bool ignore_deterministic = false);
 
 std::vector<std::vector<int>> build_compatibility_graph_orthogonality(
-    const ProbabilisticTask& task,
+    const downward::VariableSpace& variables,
+    const ProbabilisticOperatorSpace& operators,
     const PatternCollection& patterns,
     bool ignore_deterministic = false);
 

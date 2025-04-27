@@ -49,7 +49,7 @@ public:
         downward::utils::Verbosity verbosity);
 
     PatternCollectionInformation generate(
-        const std::shared_ptr<ProbabilisticTask>& task) override;
+        const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::pdbs

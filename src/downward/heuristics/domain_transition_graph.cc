@@ -3,6 +3,8 @@
 #include "downward/utils/hash.h"
 #include "downward/utils/memory.h"
 
+#include "downward/operator_cost_function.h"
+
 #include <algorithm>
 #include <cassert>
 #include <iostream>
@@ -10,12 +12,18 @@
 using namespace std;
 
 namespace downward::domain_transition_graph {
+
 DTGFactory::DTGFactory(
-    const AbstractTask& task,
+    const VariableSpace& variables,
+    const AxiomSpace& axioms,
+    const ClassicalOperatorSpace& operators,
+    const OperatorIntCostFunction& cost_function,
     bool collect_transition_side_effects,
     const function<bool(int, int)>& pruning_condition)
-    : cost_function(task)
-    , task(task)
+    : variables(variables)
+    , axioms(axioms)
+    , operators(operators)
+    , cost_function(cost_function)
     , collect_transition_side_effects(collect_transition_side_effects)
     , pruning_condition(pruning_condition)
 {
@@ -27,7 +35,7 @@ DTGFactory::DTGs DTGFactory::build_dtgs()
 
     allocate_graphs_and_nodes(dtgs);
     initialize_index_structures(dtgs.size());
-    create_transitions(dtgs, task.get_variables());
+    create_transitions(dtgs, variables);
     simplify_transitions(dtgs);
     if (collect_transition_side_effects) collect_all_side_effects(dtgs);
     return dtgs;
@@ -35,7 +43,6 @@ DTGFactory::DTGs DTGFactory::build_dtgs()
 
 void DTGFactory::allocate_graphs_and_nodes(DTGs& dtgs)
 {
-    VariablesProxy variables = task.get_variables();
     dtgs.resize(variables.size());
     for (VariableProxy var : variables) {
         int var_id = var.get_id();
@@ -52,18 +59,18 @@ void DTGFactory::initialize_index_structures(int num_dtgs)
     global_to_local_var.resize(num_dtgs);
 }
 
-void DTGFactory::create_transitions(DTGs& dtgs, const VariablesProxy& variables)
+void DTGFactory::create_transitions(DTGs& dtgs, const VariableSpace& variables)
 {
-    for (OperatorProxy op : task.get_operators())
+    for (OperatorProxy op : operators)
         for (EffectProxy eff : op.get_effects())
             process_effect(variables, eff, op, dtgs);
-    for (AxiomProxy ax : task.get_axioms())
+    for (AxiomProxy ax : axioms)
         for (EffectProxy eff : ax.get_effects())
             process_effect(variables, eff, ax, dtgs);
 }
 
 void DTGFactory::process_effect(
-    const VariablesProxy& variables,
+    const VariableSpace& variables,
     const EffectProxy& eff,
     const AxiomOrOperatorProxy& op,
     DTGs& dtgs)
@@ -251,8 +258,8 @@ void DTGFactory::simplify_transitions(DTGs& dtgs)
 AxiomOrOperatorProxy
 DTGFactory::get_op_for_label(const ValueTransitionLabel& label)
 {
-    if (label.is_axiom) return task.get_axioms()[label.op_id];
-    return task.get_operators()[label.op_id];
+    if (label.is_axiom) return axioms[label.op_id];
+    return operators[label.op_id];
 }
 
 void DTGFactory::simplify_labels(vector<ValueTransitionLabel>& labels)
@@ -278,7 +285,7 @@ void DTGFactory::simplify_labels(vector<ValueTransitionLabel>& labels)
         HashKey key;
         for (LocalAssignment& assign : labels[i].precond)
             key.emplace_back(assign.local_var, assign.value);
-        sort(key.begin(), key.end());
+        ranges::sort(key);
         label_index[key] = i;
     }
 

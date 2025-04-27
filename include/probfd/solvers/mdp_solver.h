@@ -14,7 +14,6 @@
 
 // Forward Declarations
 namespace probfd {
-class ProbabilisticTask;
 class TaskHeuristicFactory;
 class TaskStateSpaceFactory;
 
@@ -63,7 +62,7 @@ public:
     ~MDPSolver() override;
 
     std::unique_ptr<SolverInterface>
-    create(const std::shared_ptr<ProbabilisticTask>& task) override;
+    create(const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::solvers

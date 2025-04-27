@@ -11,10 +11,6 @@
 #include <unordered_set>
 #include <vector>
 
-namespace downward {
-class AbstractTask;
-}
-
 namespace downward::causal_graph {
 class CausalGraph;
 }
@@ -42,13 +38,13 @@ class PatternCollectionGeneratorSystematic : public PatternCollectionGenerator {
         std::vector<int>& result) const;
 
     void build_sga_patterns(
-        const AbstractTask& task,
+        const GoalFactList& goals,
         const causal_graph::CausalGraph& cg);
-    void build_patterns(const AbstractTask& task);
-    void build_patterns_naive(const AbstractTask& task);
-    virtual std::string name() const override;
-    virtual PatternCollectionInformation
-    compute_patterns(const std::shared_ptr<AbstractTask>& task) override;
+    void build_patterns(const AbstractTaskTuple& task);
+    void build_patterns_naive(const VariableSpace& variables) const;
+    std::string name() const override;
+    PatternCollectionInformation
+    compute_patterns(const SharedAbstractTask& task) override;
 
 public:
     PatternCollectionGeneratorSystematic(
@@ -56,6 +52,6 @@ public:
         bool only_interesting_patterns,
         utils::Verbosity verbosity);
 };
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

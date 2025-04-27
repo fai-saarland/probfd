@@ -1,15 +1,15 @@
 #ifndef PLAN_MANAGER_H
 #define PLAN_MANAGER_H
 
-#include "operator_cost_function.h"
+#include "operator_cost_function_fwd.h"
 
 #include <string>
 #include <vector>
 
 namespace downward {
 
+class OperatorSpace;
 class OperatorID;
-class PartialOperatorsProxy;
 
 using Plan = std::vector<OperatorID>;
 
@@ -31,7 +31,7 @@ public:
     */
     void save_plan(
         const Plan& plan,
-        const PartialOperatorsProxy& operators,
+        const OperatorSpace& operators,
         const OperatorIntCostFunction& cost_function,
         bool generates_multiple_plan_files = false);
 };

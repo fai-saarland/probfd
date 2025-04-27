@@ -28,7 +28,7 @@ protected:
     using QState = bisimulation::QuotientState;
     using QAction = downward::OperatorID;
 
-    const std::shared_ptr<ProbabilisticTask> task_;
+    const SharedProbabilisticTask task_;
 
     const std::string algorithm_name_;
 
@@ -38,7 +38,7 @@ protected:
 
 public:
     BisimulationBasedHeuristicSearchAlgorithm(
-        std::shared_ptr<ProbabilisticTask> task,
+        SharedProbabilisticTask task,
         std::string algorithm_name,
         std::shared_ptr<MDPAlgorithm<QState, QAction>> algorithm);
 

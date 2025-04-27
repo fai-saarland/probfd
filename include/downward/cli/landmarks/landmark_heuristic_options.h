@@ -6,7 +6,6 @@
 #include <tuple>
 
 namespace downward {
-class AbstractTask;
 class TaskTransformation;
 } // namespace downward
 

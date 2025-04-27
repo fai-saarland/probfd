@@ -25,12 +25,12 @@ string PatternCollectionGeneratorManual::name() const
 }
 
 PatternCollectionInformation PatternCollectionGeneratorManual::compute_patterns(
-    const shared_ptr<AbstractTask>& task)
+    const SharedAbstractTask& task)
 {
     if (log.is_at_least_normal()) {
         log << "Manual pattern collection: " << *patterns << endl;
     }
-    return PatternCollectionInformation(*task, patterns, log);
+    return PatternCollectionInformation(to_refs(task), patterns, log);
 }
 
 } // namespace pdbs

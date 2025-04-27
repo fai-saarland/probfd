@@ -1,6 +1,8 @@
 #ifndef TASK_UTILS_CAUSAL_GRAPH_H
 #define TASK_UTILS_CAUSAL_GRAPH_H
 
+#include "downward/abstract_task.h"
+
 /*
   TODO: Perform some memory profiling on this class.
 
@@ -53,8 +55,6 @@
 
 namespace downward {
 typedef std::vector<std::vector<int>> IntRelation;
-
-class AbstractTask;
 }
 
 namespace downward::causal_graph {
@@ -67,18 +67,13 @@ class CausalGraph {
     IntRelation successors;
     IntRelation predecessors;
 
-    // TODO remove
-    void dump() const;
-
-    void dump(const AbstractTask& task) const;
-
 public:
-    // TODO remove
-    CausalGraph();
-
     /* Use the factory function get_causal_graph to create causal graphs
        to avoid creating more than one causal graph per AbstractTask. */
-    explicit CausalGraph(const AbstractTask& task);
+    CausalGraph(
+        const VariableSpace& variables,
+        const AxiomSpace& axioms,
+        const ClassicalOperatorSpace& operators);
 
     ~CausalGraph();
 
@@ -131,10 +126,14 @@ public:
     {
         return predecessors;
     }
+
+private:
+    void dump(const VariableSpace& variables) const;
 };
 
 /* Create or retrieve a causal graph from cache. If causal graphs are created
    with this function, we build at most one causal graph per AbstractTask. */
-extern const CausalGraph& get_causal_graph(const AbstractTask* task);
-} // namespace causal_graph
+extern const CausalGraph& get_causal_graph(const AbstractTaskTuple& task);
+
+} // namespace downward::causal_graph
 #endif

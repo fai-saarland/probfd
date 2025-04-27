@@ -10,6 +10,7 @@
 #include "probfd/probabilistic_task.h"
 
 #include "downward/abstract_task.h"
+#include "downward/initial_state_values.h"
 #include "downward/utils/countdown_timer.h"
 
 using namespace std;
@@ -57,7 +58,7 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
     int max_pdb_size,
     double max_time,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
-    const std::shared_ptr<ProbabilisticTask>& task,
+    const SharedProbabilisticTask& task,
     const FactPair& goal,
     unordered_set<int>&& blacklisted_variables)
 {
@@ -70,19 +71,26 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
         false,
         timer.get_remaining_time());
 
+    const auto& operators = get_operators(task);
+    const auto& cost_function = get_cost_function(task);
+    const auto& term_costs = get_termination_costs(task);
+
+    const State initial_state = get_init(task).get_initial_state();
+
     compute_value_table(
         *transformation.projection,
-        transformation.pdb.get_abstract_state(task->get_initial_state()),
+        transformation.pdb.get_abstract_state(initial_state),
         heuristics::BlindEvaluator<StateRank>(
-            task->get_operators(),
-            *task,
-            *task),
+            operators,
+            cost_function,
+            term_costs),
         transformation.pdb.value_table,
         timer.get_remaining_time());
 
     run_cegar_loop(
         transformation,
         task,
+        initial_state,
         convergence_epsilon_,
         *flaw_strategy_,
         std::move(blacklisted_variables),

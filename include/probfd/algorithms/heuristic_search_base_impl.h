@@ -93,12 +93,12 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
 
 template <typename State, typename Action, typename StateInfoT>
 template <typename CostFunctionType>
-    requires std::derived_from<CostFunctionType, ActionCostFunction<Action>> &&
-             std::derived_from<CostFunctionType, TerminationCostFunction<State>>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
     ParamType<State> source_state,
     const std::vector<TransitionTailType>& transition_tails,
     CostFunctionType& cost_function) const -> AlgorithmValueType
+    requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
+             std::derived_from<CostFunctionType, TerminationCostFunctionType>
 {
     return this->compute_bellman(
         source_state,
@@ -143,13 +143,13 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
 
 template <typename State, typename Action, typename StateInfoT>
 template <typename CostFunctionType>
-    requires std::derived_from<CostFunctionType, ActionCostFunction<Action>> &&
-             std::derived_from<CostFunctionType, TerminationCostFunction<State>>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
     ParamType<State> source_state,
     std::vector<TransitionTailType>& transition_tails,
     CostFunctionType& cost_function,
     std::vector<AlgorithmValueType>& qvalues) const -> AlgorithmValueType
+    requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
+             std::derived_from<CostFunctionType, TerminationCostFunctionType>
 {
     return compute_bellman_and_greedy(
         source_state,

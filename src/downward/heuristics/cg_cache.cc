@@ -1,9 +1,10 @@
 #include "downward/heuristics/cg_cache.h"
 
-#include "downward/abstract_task.h"
+#include "downward/variable_space.h"
 #include "downward/state.h"
 
 #include "downward/task_utils/causal_graph.h"
+
 #include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/math.h"
@@ -19,17 +20,17 @@ namespace downward::cg_heuristic {
 const int CGCache::NOT_COMPUTED;
 
 CGCache::CGCache(
-    const AbstractTask& task,
+    const causal_graph::CausalGraph& cg,
+    const VariableSpace& variables,
     int max_cache_size,
     utils::LogProxy& log)
-    : task(task)
+    : variables(variables)
 {
     if (log.is_at_least_normal()) {
         log << "Initializing heuristic cache... " << flush;
     }
 
-    int var_count = task.get_variables().size();
-    const causal_graph::CausalGraph& cg = task.get_causal_graph();
+    int var_count = variables.size();
 
     // Compute inverted causal graph.
     depends_on.resize(var_count);
@@ -90,7 +91,6 @@ int CGCache::compute_required_cache_size(
       too large.
     */
 
-    VariablesProxy variables = task.get_variables();
     int var_domain = variables[var_id].get_domain_size();
     if (!utils::is_product_within_limit(
             var_domain,
@@ -130,10 +130,10 @@ int CGCache::get_index(int var, const State& state, int from_val, int to_val)
     assert(is_cached(var));
     assert(from_val != to_val);
     int index = from_val;
-    int multiplier = task.get_variables()[var].get_domain_size();
+    int multiplier = variables[var].get_domain_size();
     for (int dep_var : depends_on[var]) {
         index += state[dep_var] * multiplier;
-        multiplier *= task.get_variables()[dep_var].get_domain_size();
+        multiplier *= variables[dep_var].get_domain_size();
     }
     if (to_val > from_val) --to_val;
     index += to_val * multiplier;

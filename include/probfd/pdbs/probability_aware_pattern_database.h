@@ -12,10 +12,6 @@
 #include <limits>
 #include <vector>
 
-namespace probfd {
-class ProbabilisticTask;
-}
-
 namespace probfd::pdbs {
 class ProjectionStateSpace;
 }
@@ -45,7 +41,7 @@ struct ProbabilityAwarePatternDatabase {
      * number of abstract states and is filled with NaNs.
      */
     ProbabilityAwarePatternDatabase(
-        const downward::VariablesProxy& variables,
+        const downward::VariableSpace& variables,
         Pattern pattern);
 
     /// Get the pattern of the pattern database.
@@ -106,7 +102,7 @@ void compute_distances(
  */
 void compute_distances(
     ProbabilityAwarePatternDatabase& pdb,
-    std::shared_ptr<ProbabilisticTask> task,
+    SharedProbabilisticTask task,
     StateRank abstract_initial_state,
     const Heuristic<StateRank>& heuristic,
     bool operator_pruning = true,

@@ -1,5 +1,8 @@
 #include "downward/pdbs/pattern_database.h"
 
+#include "downward/initial_state_values.h"
+#include "downward/operator_cost_function.h"
+#include "downward/operator_cost_function_fwd.h"
 #include "downward/pdbs/match_tree.h"
 
 #include "downward/algorithms/priority_queues.h"
@@ -37,7 +40,7 @@ AbstractOperator::AbstractOperator(
         eff_pairs.begin(),
         eff_pairs.end());
     // Sort preconditions for MatchTree construction.
-    sort(regression_preconditions.begin(), regression_preconditions.end());
+    ranges::sort(regression_preconditions);
     for (size_t i = 1; i < regression_preconditions.size(); ++i) {
         assert(
             regression_preconditions[i].var !=
@@ -62,7 +65,7 @@ AbstractOperator::~AbstractOperator()
 
 void AbstractOperator::dump(
     const Pattern& pattern,
-    const VariablesProxy& variables,
+    const VariableSpace& variables,
     utils::LogProxy& log) const
 {
     if (log.is_at_least_debug()) {
@@ -80,7 +83,7 @@ void AbstractOperator::dump(
 }
 
 PatternDatabase::PatternDatabase(
-    const AbstractTask& task,
+    const AbstractTaskTuple& task,
     const Pattern& pattern,
     const vector<int>& operator_costs,
     bool compute_plan,
@@ -88,11 +91,16 @@ PatternDatabase::PatternDatabase(
     bool compute_wildcard_plan)
     : pattern(pattern)
 {
-    task_properties::verify_no_axioms(task);
-    task_properties::verify_no_conditional_effects(task);
-    assert(
-        operator_costs.empty() ||
-        operator_costs.size() == task.get_operators().size());
+    const auto& [variables, axioms, operators, goals] = slice<
+        VariableSpace&,
+        AxiomSpace&,
+        ClassicalOperatorSpace&,
+        GoalFactList&>(task);
+
+    task_properties::verify_no_axioms(axioms);
+    task_properties::verify_no_conditional_effects(operators);
+
+    assert(operator_costs.empty() || operator_costs.size() == operators.size());
     assert(utils::is_sorted_unique(pattern));
 
     utils::Timer timer;
@@ -100,7 +108,7 @@ PatternDatabase::PatternDatabase(
     num_states = 1;
     for (int pattern_var_id : pattern) {
         hash_multipliers.push_back(num_states);
-        VariableProxy var = task.get_variables()[pattern_var_id];
+        VariableProxy var = variables[pattern_var_id];
         if (utils::is_product_within_limit(
                 num_states,
                 var.get_domain_size(),
@@ -112,12 +120,8 @@ PatternDatabase::PatternDatabase(
             utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
         }
     }
-    create_pdb(
-        task,
-        operator_costs,
-        compute_plan,
-        rng,
-        compute_wildcard_plan);
+
+    create_pdb(task, operator_costs, compute_plan, rng, compute_wildcard_plan);
 }
 
 void PatternDatabase::multiply_out(
@@ -127,7 +131,7 @@ void PatternDatabase::multiply_out(
     vector<FactPair>& pre_pairs,
     vector<FactPair>& eff_pairs,
     const vector<FactPair>& effects_without_pre,
-    const VariablesProxy& variables,
+    const VariableSpace& variables,
     int concrete_op_id,
     vector<AbstractOperator>& operators)
 {
@@ -179,7 +183,7 @@ void PatternDatabase::build_abstract_operators(
     const OperatorProxy& op,
     int cost,
     const vector<int>& variable_to_index,
-    const VariablesProxy& variables,
+    const VariableSpace& variables,
     vector<AbstractOperator>& operators)
 {
     // All variable value pairs that are a prevail condition
@@ -234,24 +238,30 @@ void PatternDatabase::build_abstract_operators(
 }
 
 void PatternDatabase::create_pdb(
-    const AbstractTask& task,
+    const AbstractTaskTuple& task,
     const vector<int>& operator_costs,
     bool compute_plan,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     bool compute_wildcard_plan)
 {
-    VariablesProxy variables = task.get_variables();
+    const auto& [variables, operators, goals, init_vals, cost_function] = slice<
+        VariableSpace&,
+        ClassicalOperatorSpace&,
+        GoalFactList&,
+        InitialStateValues&,
+        OperatorIntCostFunction&>(task);
+
     vector<int> variable_to_index(variables.size(), -1);
     for (size_t i = 0; i < pattern.size(); ++i) {
         variable_to_index[pattern[i]] = i;
     }
 
     // compute all abstract operators
-    vector<AbstractOperator> operators;
-    for (OperatorProxy op : task.get_operators()) {
+    vector<AbstractOperator> abs_operators;
+    for (OperatorProxy op : operators) {
         int op_cost;
         if (operator_costs.empty()) {
-            op_cost = task.get_operator_cost(op.get_id());
+            op_cost = cost_function.get_operator_cost(op.get_id());
         } else {
             op_cost = operator_costs[op.get_id()];
         }
@@ -260,19 +270,19 @@ void PatternDatabase::create_pdb(
             op_cost,
             variable_to_index,
             variables,
-            operators);
+            abs_operators);
     }
 
     // build the match tree
-    MatchTree match_tree(task, pattern, hash_multipliers);
+    MatchTree match_tree(variables, pattern, hash_multipliers);
     for (size_t op_id = 0; op_id < operators.size(); ++op_id) {
-        const AbstractOperator& op = operators[op_id];
+        const AbstractOperator& op = abs_operators[op_id];
         match_tree.insert(op_id, op.get_regression_preconditions());
     }
 
     // compute abstract goal var-val pairs
     vector<FactPair> abstract_goals;
-    for (const auto [var, value] : task.get_goals()) {
+    for (const auto [var, value] : goals) {
         if (variable_to_index[var] != -1) {
             abstract_goals.emplace_back(variable_to_index[var], value);
         }
@@ -311,9 +321,7 @@ void PatternDatabase::create_pdb(
         pair<int, int> node = pq.pop();
         int distance = node.first;
         int state_index = node.second;
-        if (distance > distances[state_index]) {
-            continue;
-        }
+        if (distance > distances[state_index]) { continue; }
 
         // regress abstract_state
         vector<int> applicable_operator_ids;
@@ -321,15 +329,13 @@ void PatternDatabase::create_pdb(
             state_index,
             applicable_operator_ids);
         for (int op_id : applicable_operator_ids) {
-            const AbstractOperator& op = operators[op_id];
+            const AbstractOperator& op = abs_operators[op_id];
             int predecessor = state_index + op.get_hash_effect();
             int alternative_cost = distances[state_index] + op.get_cost();
             if (alternative_cost < distances[predecessor]) {
                 distances[predecessor] = alternative_cost;
                 pq.push(alternative_cost, predecessor);
-                if (compute_plan) {
-                    generating_op_ids[predecessor] = op_id;
-                }
+                if (compute_plan) { generating_op_ids[predecessor] = op_id; }
             }
         }
     }
@@ -348,14 +354,14 @@ void PatternDatabase::create_pdb(
           is biased by the number of operators leading to the same successor
           from the given state.
         */
-        State initial_state = task.get_initial_state();
+        State initial_state = init_vals.get_initial_state();
         initial_state.unpack();
         int current_state = hash_index(initial_state.get_unpacked_values());
         if (distances[current_state] != numeric_limits<int>::max()) {
             while (!is_goal_state(current_state, abstract_goals, variables)) {
                 int op_id = generating_op_ids[current_state];
                 assert(op_id != -1);
-                const AbstractOperator& op = operators[op_id];
+                const AbstractOperator& op = abs_operators[op_id];
                 int successor_state = current_state - op.get_hash_effect();
 
                 // Compute equivalent ops
@@ -366,7 +372,7 @@ void PatternDatabase::create_pdb(
                     applicable_operator_ids);
                 for (int applicable_op_id : applicable_operator_ids) {
                     const AbstractOperator& applicable_op =
-                        operators[applicable_op_id];
+                        abs_operators[applicable_op_id];
                     int predecessor =
                         successor_state + applicable_op.get_hash_effect();
                     if (predecessor == current_state &&
@@ -394,7 +400,7 @@ void PatternDatabase::create_pdb(
 bool PatternDatabase::is_goal_state(
     int state_index,
     const vector<FactPair>& abstract_goals,
-    const VariablesProxy& variables) const
+    const VariableSpace& variables) const
 {
     for (const FactPair& abstract_goal : abstract_goals) {
         int pattern_var_id = abstract_goal.var;
@@ -402,9 +408,7 @@ bool PatternDatabase::is_goal_state(
         VariableProxy var = variables[var_id];
         int temp = state_index / hash_multipliers[pattern_var_id];
         int val = temp % var.get_domain_size();
-        if (val != abstract_goal.value) {
-            return false;
-        }
+        if (val != abstract_goal.value) { return false; }
     }
     return true;
 }
@@ -455,4 +459,4 @@ bool PatternDatabase::is_operator_relevant(const OperatorProxy& op) const
     }
     return false;
 }
-} // namespace pdbs
+} // namespace downward::pdbs

@@ -9,7 +9,7 @@
 #include <string>
 
 namespace probfd {
-class ProbabilisticTask;
+class ProbabilisticOperatorSpace;
 }
 
 /// Namespace dedicated to probabilistic pattern databases.
@@ -71,10 +71,10 @@ public:
  * @brief Helper class to convert projection operators to strings.
  */
 class ProjectionOperatorToString {
-    const ProbabilisticTask& task_;
+    const ProbabilisticOperatorSpace& operators_;
 
 public:
-    explicit ProjectionOperatorToString(const ProbabilisticTask& task);
+    explicit ProjectionOperatorToString(const ProbabilisticOperatorSpace& operators);
     std::string operator()(const ProjectionOperator* op) const;
 };
 

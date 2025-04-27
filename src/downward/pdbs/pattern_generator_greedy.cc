@@ -29,13 +29,14 @@ string PatternGeneratorGreedy::name() const
 }
 
 PatternInformation
-PatternGeneratorGreedy::compute_pattern(const shared_ptr<AbstractTask>& task)
+PatternGeneratorGreedy::compute_pattern(const SharedAbstractTask& task)
 {
+    const auto& variables = get_variables(task);
+
     Pattern pattern;
     variable_order_finder::VariableOrderFinder order(
-        *task,
+        to_refs(task),
         variable_order_finder::GOAL_CG_LEVEL);
-    VariablesProxy variables = task->get_variables();
 
     int size = 1;
     while (true) {
@@ -51,7 +52,7 @@ PatternGeneratorGreedy::compute_pattern(const shared_ptr<AbstractTask>& task)
         size *= next_var_size;
     }
 
-    return PatternInformation(*task, std::move(pattern), log);
+    return PatternInformation(to_refs(task), std::move(pattern), log);
 }
 
 } // namespace downward::pdbs

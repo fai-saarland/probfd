@@ -1,6 +1,7 @@
 #ifndef PROBFD_SOLVER_INTERFACE_H
 #define PROBFD_SOLVER_INTERFACE_H
 
+#include "probfd/probabilistic_task.h"
 #include "probfd/value_type.h"
 
 #include "downward/operator_id.h"
@@ -11,8 +12,6 @@
 
 // Forward Declarations
 namespace probfd {
-class ProbabilisticTask;
-
 struct Interval;
 } // namespace probfd
 
@@ -37,7 +36,7 @@ public:
     virtual ~TaskSolverFactory() = default;
 
     virtual std::unique_ptr<SolverInterface>
-    create(const std::shared_ptr<ProbabilisticTask>& task) = 0;
+    create(const SharedProbabilisticTask& task) = 0;
 };
 
 } // namespace probfd

@@ -7,6 +7,7 @@
 #include "probfd/transition_tail.h"
 
 #include "downward/abstract_task.h"
+#include "downward/operator_cost_function.h"
 
 #include <cassert>
 #include <ostream>
@@ -66,7 +67,7 @@ void MatchTree::insert(
     const AssignmentEnumerator& enumerator,
     ProjectionOperator op,
     const vector<FactPair>& progression_preconditions,
-    downward::OperatorCostFunction<value_t>* cost_function)
+    OperatorCostFunction<value_t>* cost_function)
 {
     std::unique_ptr<Node>* node = &root_;
     auto precondition_it = progression_preconditions.begin();

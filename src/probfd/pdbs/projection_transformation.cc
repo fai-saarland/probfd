@@ -7,13 +7,13 @@
 namespace probfd::pdbs {
 
 ProjectionTransformation::ProjectionTransformation(
-    std::shared_ptr<ProbabilisticTask> task,
+    SharedProbabilisticTask task,
     Pattern pattern,
     bool operator_pruning,
     double max_time)
-    : pdb(task->get_variables(), std::move(pattern))
+    : pdb(get_variables(task), std::move(pattern))
     , projection(std::make_unique<ProjectionStateSpace>(
-          task,
+          std::move(task),
           pdb.ranking_function,
           operator_pruning,
           max_time))

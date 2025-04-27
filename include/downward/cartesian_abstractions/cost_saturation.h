@@ -5,6 +5,8 @@
 #include "downward/cartesian_abstractions/split_selector.h"
 #include "downward/cartesian_abstractions/types.h"
 
+#include "downward/operator_cost_function_fwd.h"
+
 #include <functional>
 #include <memory>
 #include <vector>
@@ -43,10 +45,10 @@ class CostSaturation {
     int num_states;
     int num_non_looping_transitions;
 
-    void reset(const AbstractTask& task);
+    void reset(const AbstractTaskTuple& task);
     void reduce_remaining_costs(const std::vector<int>& saturated_costs);
-    std::shared_ptr<AbstractTask>
-    get_remaining_costs_task(std::shared_ptr<AbstractTask>& parent) const;
+    SharedAbstractTask
+    get_remaining_costs_task(const SharedAbstractTask& parent) const;
     bool state_is_dead_end(const State& state) const;
     void build_abstractions(
         const SharedTasks& subtasks,
@@ -67,7 +69,7 @@ public:
         utils::LogProxy& log);
 
     std::vector<CartesianHeuristicFunction>
-    generate_heuristic_functions(const std::shared_ptr<AbstractTask>& task);
+    generate_heuristic_functions(const SharedAbstractTask& task);
 };
 } // namespace cartesian_abstractions
 

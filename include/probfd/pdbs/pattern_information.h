@@ -14,7 +14,7 @@ namespace probfd::pdbs {
 struct ProbabilityAwarePatternDatabase;
 
 class PatternInformation {
-    std::shared_ptr<ProbabilisticTask> task_;
+    SharedProbabilisticTask task_;
     Pattern pattern_;
     std::shared_ptr<ProbabilityAwarePatternDatabase> pdb_;
 
@@ -28,15 +28,15 @@ class PatternInformation {
 
 public:
     PatternInformation(
-        std::shared_ptr<ProbabilisticTask> task,
+        SharedProbabilisticTask task,
         Pattern pattern);
 
     void set_pdb(const std::shared_ptr<ProbabilityAwarePatternDatabase>& pdb);
 
     [[nodiscard]]
-    const ProbabilisticTask& get_task() const
+    const SharedProbabilisticTask& get_task() const
     {
-        return *task_;
+        return task_;
     }
 
     [[nodiscard]]

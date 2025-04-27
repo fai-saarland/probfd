@@ -3,11 +3,19 @@
 
 #include "downward/abstract_task.h"
 #include "downward/axiom_utils.h"
+#include "downward/operator_cost_function_fwd.h"
 #include "downward/state.h"
 
 #include <cassert>
+#include <functional>
 #include <unordered_map>
 #include <vector>
+
+namespace downward {
+class VariableSpace;
+class AxiomSpace;
+class ClassicalOperatorSpace;
+} // namespace downward
 
 namespace downward::cea_heuristic {
 class ContextEnhancedAdditiveHeuristic;
@@ -30,8 +38,12 @@ class DomainTransitionGraph;
 
 class DTGFactory {
     using DTGs = std::vector<std::unique_ptr<DomainTransitionGraph>>;
+
+    const VariableSpace& variables;
+    const AxiomSpace& axioms;
+    const ClassicalOperatorSpace& operators;
     const OperatorIntCostFunction& cost_function;
-    const AbstractTask& task;
+
     bool collect_transition_side_effects;
     std::function<bool(int, int)> pruning_condition;
 
@@ -40,9 +52,9 @@ class DTGFactory {
 
     void allocate_graphs_and_nodes(DTGs& dtgs);
     void initialize_index_structures(int num_dtgs);
-    void create_transitions(DTGs& dtgs, const VariablesProxy& variables);
+    void create_transitions(DTGs& dtgs, const VariableSpace& variables);
     void process_effect(
-        const VariablesProxy& variables,
+        const VariableSpace& variables,
         const EffectProxy& eff,
         const AxiomOrOperatorProxy& op,
         DTGs& dtgs);
@@ -68,7 +80,10 @@ class DTGFactory {
 
 public:
     DTGFactory(
-        const AbstractTask& task,
+        const VariableSpace& variables,
+        const AxiomSpace& axioms,
+        const ClassicalOperatorSpace& operators,
+        const OperatorIntCostFunction& cost_function,
         bool collect_transition_side_effects,
         const std::function<bool(int, int)>& pruning_condition);
 
@@ -116,8 +131,6 @@ struct ValueTransition {
         : target(targ)
     {
     }
-
-    void simplify(const AbstractTask& task);
 };
 
 struct ValueNode {

@@ -8,10 +8,6 @@
 #include <cstddef>
 #include <vector>
 
-namespace downward {
-class AbstractTask;
-}
-
 namespace downward::utils {
 class LogProxy;
 }
@@ -26,7 +22,7 @@ namespace downward::pdbs {
 */
 
 class MatchTree {
-    const AbstractTask& task;
+    const VariableSpace& variables;
     struct Node;
     // See PatternDatabase for documentation on pattern and hash_multipliers.
     Pattern pattern;
@@ -46,9 +42,10 @@ class MatchTree {
 public:
     // Initialize an empty match tree.
     MatchTree(
-        const AbstractTask& task,
+        const VariableSpace& variables,
         const Pattern& pattern,
         const std::vector<int>& hash_multipliers);
+
     ~MatchTree();
     /* Insert an abstract operator into the match tree, creating or
        enlarging it. */

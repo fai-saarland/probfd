@@ -21,7 +21,7 @@ namespace probfd::sampling {
 
 static State sample_state_with_random_walk(
     AxiomEvaluator& axiom_evaluator,
-    const ProbabilisticOperatorsProxy& operators,
+    const ProbabilisticOperatorSpace& operators,
     const State& initial_state,
     const ProbabilisticSuccessorGenerator& successor_generator,
     value_t init_h,
@@ -97,16 +97,18 @@ static State sample_state_with_random_walk(
 }
 
 RandomWalkSampler::RandomWalkSampler(
-    const ProbabilisticTask& task,
+    const VariableSpace& variables,
+    const ProbabilisticOperatorSpace& operators,
+    const OperatorCostFunction<value_t>& cost_function,
+    AxiomEvaluator& evaluator,
     utils::RandomNumberGenerator& rng)
-    : operators(task.get_operators())
-    , axiom_evaluator(g_axiom_evaluators[task])
+    : operators(operators)
+    , axiom_evaluator(evaluator)
     , successor_generator(
           std::make_unique<
-              successor_generator::ProbabilisticSuccessorGenerator>(task))
-    , initial_state(task.get_initial_state())
+              successor_generator::ProbabilisticSuccessorGenerator>(variables, operators))
     , average_operator_costs(
-          task_properties::get_average_operator_cost(task))
+          task_properties::get_average_operator_cost(operators, cost_function))
     , rng(rng)
 {
 }
@@ -115,6 +117,7 @@ RandomWalkSampler::~RandomWalkSampler() = default;
 
 State RandomWalkSampler::sample_state(
     value_t init_h,
+    const State& initial_state,
     const std::function<bool(const State&)>& is_dead_end) const
 {
     return sample_state_with_random_walk(

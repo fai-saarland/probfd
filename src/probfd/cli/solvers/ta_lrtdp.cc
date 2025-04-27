@@ -54,7 +54,7 @@ public:
     std::string get_heuristic_search_name() const override { return ""; }
 
     std::unique_ptr<StatisticalMDPAlgorithm>
-    create_algorithm(const std::shared_ptr<ProbabilisticTask>& task) override
+    create_algorithm(const SharedProbabilisticTask& task) override
     {
         return std::make_unique<AlgorithmAdaptor>(
             this->template create_search_algorithm<TALRTDP>(

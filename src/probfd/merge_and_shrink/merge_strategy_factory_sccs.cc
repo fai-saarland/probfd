@@ -1,5 +1,6 @@
 #include "probfd/merge_and_shrink/merge_strategy_factory_sccs.h"
 
+#include "downward/variable_space.h"
 #include "probfd/merge_and_shrink/merge_selector.h"
 #include "probfd/merge_and_shrink/merge_strategy_sccs.h"
 #include "probfd/merge_and_shrink/merge_tree_factory.h"
@@ -10,6 +11,7 @@
 #include "probfd/probabilistic_task.h"
 
 #include "downward/algorithms/sccs.h"
+#include "downward/task_utils/causal_graph.h"
 
 #include "downward/utils/logging.h"
 
@@ -46,18 +48,22 @@ MergeStrategyFactorySCCs::MergeStrategyFactorySCCs(
 }
 
 unique_ptr<MergeStrategy> MergeStrategyFactorySCCs::compute_merge_strategy(
-    std::shared_ptr<ProbabilisticTask>& task,
+    const SharedProbabilisticTask& task,
     const FactoredTransitionSystem& fts)
 {
-    VariablesProxy vars = task->get_variables();
-    int num_vars = vars.size();
+    const auto& variables = get_variables(task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
+
+    const auto& cgraph = causal_graph::get_causal_graph(variables, axioms, operators);
+
+    int num_vars = variables.size();
 
     // Compute SCCs of the causal graph.
     vector<vector<int>> cg;
     cg.reserve(num_vars);
-    for (VariableProxy var : vars) {
-        const vector<int>& successors =
-            task->get_causal_graph().get_successors(var.get_id());
+    for (VariableProxy var : variables) {
+        const vector<int>& successors = cgraph.get_successors(var.get_id());
         cg.push_back(successors);
     }
     vector<vector<int>> sccs(sccs::compute_maximal_sccs(cg));
@@ -87,13 +93,9 @@ unique_ptr<MergeStrategy> MergeStrategyFactorySCCs::compute_merge_strategy(
     vector<int> indices_of_merged_sccs;
     indices_of_merged_sccs.reserve(sccs.size());
     for (const vector<int>& scc : sccs) {
-        if (log.is_at_least_normal()) {
-            log << scc << endl;
-        }
+        if (log.is_at_least_normal()) { log << scc << endl; }
         int scc_size = scc.size();
-        if (scc_size != 1) {
-            non_singleton_cg_sccs.push_back(scc);
-        }
+        if (scc_size != 1) { non_singleton_cg_sccs.push_back(scc); }
     }
     if (log.is_at_least_normal() && sccs.size() == 1) {
         log << "Only one single SCC" << endl;
@@ -103,9 +105,7 @@ unique_ptr<MergeStrategy> MergeStrategyFactorySCCs::compute_merge_strategy(
         assert(non_singleton_cg_sccs.empty());
     }
 
-    if (merge_selector) {
-        merge_selector->initialize(*task);
-    }
+    if (merge_selector) { merge_selector->initialize(to_refs(task)); }
 
     return std::make_unique<MergeStrategySCCs>(
         fts,
@@ -148,12 +148,8 @@ void MergeStrategyFactorySCCs::dump_strategy_specific_options() const
         log << endl;
 
         log << "Merge strategy for merging within sccs: " << endl;
-        if (merge_tree_factory) {
-            merge_tree_factory->dump_options(log);
-        }
-        if (merge_selector) {
-            merge_selector->dump_options(log);
-        }
+        if (merge_tree_factory) { merge_tree_factory->dump_options(log); }
+        if (merge_selector) { merge_selector->dump_options(log); }
     }
 }
 

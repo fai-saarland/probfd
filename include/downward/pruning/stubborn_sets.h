@@ -12,8 +12,10 @@ inline FactPair find_unsatisfied_condition(
     const State& state);
 
 class StubbornSets : public PruningMethod {
-    void compute_sorted_operators(const AbstractTask& task);
-    void compute_achievers(const AbstractTask& task);
+    void compute_sorted_operators(const ClassicalOperatorSpace& operators);
+    void compute_achievers(
+        const VariableSpace& variable,
+        const ClassicalOperatorSpace& operators);
     virtual void
     prune(const State& state, std::vector<OperatorID>& op_ids) override;
 
@@ -63,7 +65,8 @@ protected:
 
 public:
     explicit StubbornSets(utils::Verbosity verbosity);
-    virtual void initialize(const std::shared_ptr<AbstractTask>& task) override;
+
+    void initialize(const SharedAbstractTask& task) override;
 };
 
 // Return the first unsatified condition, or FactPair::no_fact if there is none.
@@ -72,11 +75,10 @@ inline FactPair find_unsatisfied_condition(
     const State& state)
 {
     for (const FactPair& condition : conditions) {
-        if (state[condition.var] != condition.value)
-            return condition;
+        if (state[condition.var] != condition.value) return condition;
     }
     return FactPair::no_fact;
 }
-} // namespace stubborn_sets
+} // namespace downward::stubborn_sets
 
 #endif

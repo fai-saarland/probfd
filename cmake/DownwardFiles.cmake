@@ -6,23 +6,30 @@ create_library(
         downward/axiom_evaluator
         downward/axioms
         downward/axiom_space
+        downward/axiom_utils
         downward/classical_operator_space
         downward/evaluation_context
         downward/evaluation_result
         downward/evaluator
         downward/evaluator_cache
         downward/fact_pair
+        downward/goal_fact_list
         downward/heuristic
         downward/initial_state_values
         downward/mutex_information
         downward/open_list
         downward/operator_cost
+        downward/operator_cost_function
+        downward/operator_cost_function_fwd
         downward/operator_id
+        downward/operator_space
         downward/per_state_array
         downward/per_state_bitset
         downward/per_state_information
         downward/per_task_information
+        downward/planning_task
         downward/plan_manager
+        downward/proxy_collection
         downward/pruning_method
         downward/search_algorithm
         downward/search_node_info
@@ -33,7 +40,11 @@ create_library(
         downward/state_registry
         downward/state
         downward/task_id
+        downward/task_dependent_factory
+        downward/task_dependent_factory_fwd
         downward/task_transformation
+        downward/tuple_utils
+        downward/variable_space
     DEPENDS
         causal_graph
         int_hash_set
@@ -477,7 +488,6 @@ create_library(
     HELP "Core task transformations"
     SOURCES
         downward/tasks/cost_adapted_task
-        downward/tasks/delegating_task
         downward/tasks/root_task
         downward/transformations/identity_task_transformation
     CORE_LIBRARY

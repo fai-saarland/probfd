@@ -102,7 +102,7 @@ static int initialize_groups(
        unsolvable.
     */
 
-    map<value_t, int> h_to_group;
+    std::map<value_t, int> h_to_group;
     int num_groups = 1; // Group 0 is for goal states.
 
     for (int state = 0; state < ts.get_size(); ++state) {

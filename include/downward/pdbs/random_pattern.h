@@ -6,7 +6,7 @@
 #include <memory>
 
 namespace downward {
-class AbstractTask;
+class VariableSpace;
 }
 
 namespace downward::utils {
@@ -27,7 +27,7 @@ extern Pattern generate_random_pattern(
     double max_time,
     utils::LogProxy& log,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-    const AbstractTask& task,
+    const VariableSpace& variables,
     int goal_variable,
     std::vector<std::vector<int>>& cg_neighbors);
 

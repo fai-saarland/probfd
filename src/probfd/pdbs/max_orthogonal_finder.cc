@@ -11,8 +11,10 @@ using namespace downward;
 namespace probfd::pdbs {
 
 MaxOrthogonalityFinderBase::MaxOrthogonalityFinderBase(
-    const ProbabilisticTask& task)
-    : var_orthogonality_(compute_prob_orthogonal_vars(task, false))
+    const VariableSpace& variables,
+    const ProbabilisticOperatorSpace& operators)
+    : var_orthogonality_(
+          compute_prob_orthogonal_vars(variables, operators, false))
 {
 }
 

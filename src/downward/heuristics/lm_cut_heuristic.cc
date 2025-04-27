@@ -15,7 +15,7 @@ using namespace std;
 
 namespace downward::lm_cut_heuristic {
 LandmarkCutHeuristic::LandmarkCutHeuristic(
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
@@ -34,7 +34,7 @@ LandmarkCutHeuristic::LandmarkCutHeuristic(
 }
 
 LandmarkCutHeuristic::LandmarkCutHeuristic(
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
     const std::string& description,

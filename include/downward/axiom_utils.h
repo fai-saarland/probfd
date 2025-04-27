@@ -6,9 +6,17 @@
 #include "downward/axiom_space.h"
 #include "downward/classical_operator_space.h"
 
+#include <variant>
+
 namespace downward {
 
-class PreconditionsProxy : public ProxyCollection<PreconditionsProxy> {
+class PreconditionsProxy;
+class EffectConditionsProxy;
+class EffectsProxy;
+
+class PreconditionsProxy
+    : public ProxyCollectionTag
+    , public std::ranges::view_interface<PreconditionsProxy> {
     std::variant<AxiomPreconditionsProxy, OperatorPreconditionsProxy> proxy;
 
 public:
@@ -37,7 +45,9 @@ public:
     }
 };
 
-class EffectConditionsProxy : public ProxyCollection<EffectConditionsProxy> {
+class EffectConditionsProxy
+    : public ProxyCollectionTag
+    , public std::ranges::view_interface<EffectConditionsProxy> {
     std::variant<AxiomEffectConditionsProxy, OperatorEffectConditionsProxy>
         proxy;
 
@@ -98,7 +108,9 @@ public:
     }
 };
 
-class EffectsProxy : public ProxyCollection<EffectsProxy> {
+class EffectsProxy
+    : public ProxyCollectionTag
+    , public std::ranges::view_interface<EffectsProxy> {
     std::variant<AxiomEffectsProxy, OperatorEffectsProxy> proxy;
 
 public:
@@ -190,6 +202,6 @@ public:
         return left.proxy == right.proxy;
     }
 };
-}
+} // namespace downward
 
 #endif

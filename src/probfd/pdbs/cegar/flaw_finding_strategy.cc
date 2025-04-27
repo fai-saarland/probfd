@@ -45,7 +45,7 @@ bool collect_flaws(
 }
 
 bool collect_flaws(
-    GoalsProxy facts,
+    const GoalFactList& facts,
     const State& state,
     std::vector<Flaw>& flaws,
     const std::function<bool(const Flaw&)>& accept_flaw)

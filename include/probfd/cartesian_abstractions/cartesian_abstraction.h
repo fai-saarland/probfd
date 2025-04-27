@@ -20,7 +20,6 @@
 
 // Forward Declarations
 namespace probfd {
-class ProbabilisticTaskProxy;
 template <typename>
 class Distribution;
 } // namespace probfd
@@ -58,7 +57,7 @@ class CartesianAbstraction
 
 public:
     CartesianAbstraction(
-        const ProbabilisticTask& task,
+        const ProbabilisticTaskTuple& task,
         std::vector<value_t> operator_costs,
         downward::utils::LogProxy log);
     ~CartesianAbstraction() override;

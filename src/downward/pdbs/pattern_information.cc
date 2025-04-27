@@ -9,14 +9,17 @@ using namespace std;
 
 namespace downward::pdbs {
 PatternInformation::PatternInformation(
-    const AbstractTask& task,
+    const AbstractTaskTuple& task,
     Pattern pattern,
     utils::LogProxy& log)
     : task(task)
     , pattern(std::move(pattern))
     , pdb(nullptr)
 {
-    validate_and_normalize_pattern(task, this->pattern, log);
+    validate_and_normalize_pattern(
+        get_variables(task),
+        this->pattern,
+        log);
 }
 
 bool PatternInformation::information_is_valid() const
@@ -26,9 +29,7 @@ bool PatternInformation::information_is_valid() const
 
 void PatternInformation::create_pdb_if_missing()
 {
-    if (!pdb) {
-        pdb = make_shared<PatternDatabase>(task, pattern);
-    }
+    if (!pdb) { pdb = make_shared<PatternDatabase>(task, pattern); }
 }
 
 void PatternInformation::set_pdb(const shared_ptr<PatternDatabase>& pdb_)
@@ -47,4 +48,4 @@ shared_ptr<PatternDatabase> PatternInformation::get_pdb()
     create_pdb_if_missing();
     return pdb;
 }
-} // namespace pdbs
+} // namespace downward::pdbs

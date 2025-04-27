@@ -1,6 +1,7 @@
 #ifndef PRUNING_METHOD_H
 #define PRUNING_METHOD_H
 
+#include "downward/abstract_task.h"
 #include "downward/operator_id.h"
 
 #include "downward/utils/logging.h"
@@ -10,7 +11,6 @@
 #include <vector>
 
 namespace downward {
-class AbstractTask;
 class State;
 
 namespace limited_pruning {
@@ -25,17 +25,17 @@ class PruningMethod {
 
 protected:
     mutable utils::LogProxy log;
-    std::shared_ptr<AbstractTask> task;
+    SharedAbstractTask task;
     long num_successors_before_pruning;
     long num_successors_after_pruning;
 
 public:
     explicit PruningMethod(utils::Verbosity verbosity);
     virtual ~PruningMethod() = default;
-    virtual void initialize(const std::shared_ptr<AbstractTask>& task);
+    virtual void initialize(const SharedAbstractTask& task);
     void prune_operators(const State& state, std::vector<OperatorID>& op_ids);
     virtual void print_statistics() const;
 };
-}
+} // namespace downward
 
 #endif

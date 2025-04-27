@@ -9,6 +9,7 @@
 #include "downward/utils/collections.h"
 
 #include "downward/lp/lp_solver.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include <iterator>
 #include <set>
@@ -28,10 +29,10 @@ PHOGenerator::PHOGenerator(pdbs::PPDBCollection pdbs)
 }
 
 void PHOGenerator::initialize_constraints(
-    const std::shared_ptr<ProbabilisticTask>& task,
+    const SharedProbabilisticTask& task,
     lp::LinearProgram& lp)
 {
-    const ProbabilisticOperatorsProxy operators = task->get_operators();
+    const auto& operators = get_operators(task);
 
     const double lp_infinity = lp.get_infinity();
 
@@ -83,7 +84,7 @@ PHOGeneratorFactory::PHOGeneratorFactory(
 
 std::unique_ptr<ConstraintGenerator>
 PHOGeneratorFactory::construct_constraint_generator(
-    const std::shared_ptr<ProbabilisticTask>& task)
+    const SharedProbabilisticTask& task)
 {
     auto r = generator_->generate(task);
     return std::make_unique<PHOGenerator>(r.get_pdbs());

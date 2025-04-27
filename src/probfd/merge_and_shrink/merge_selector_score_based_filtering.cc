@@ -70,7 +70,7 @@ pair<int, int> MergeSelectorScoreBasedFiltering::select_merge(
 }
 
 void MergeSelectorScoreBasedFiltering::initialize(
-    const ProbabilisticTask& task)
+    const ProbabilisticTaskTuple& task)
 {
     for (const auto& scoring_function : merge_scoring_functions) {
         scoring_function->initialize(task);

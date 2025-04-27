@@ -28,7 +28,7 @@ struct Flaw;
   spurious solutions.
 */
 class CEGAR {
-    const AbstractTask& task;
+    AbstractTaskTuple task_;
     AxiomEvaluator& axiom_evaluator;
     const std::vector<int> domain_sizes;
     const int max_states;
@@ -66,7 +66,7 @@ class CEGAR {
 
 public:
     CEGAR(
-        const std::shared_ptr<AbstractTask>& task,
+        SharedAbstractTask task,
         int max_states,
         int max_non_looping_transitions,
         double max_time,

@@ -13,49 +13,57 @@ StubbornSets::StubbornSets(utils::Verbosity verbosity)
 {
 }
 
-void StubbornSets::initialize(const shared_ptr<AbstractTask>& task)
+void StubbornSets::initialize(const SharedAbstractTask& task)
 {
+    const auto& [variables, axioms, operators, goals] = slice_shared<
+        VariableSpace,
+        AxiomSpace,
+        ClassicalOperatorSpace,
+        GoalFactList>(task);
+
+    task_properties::verify_no_axioms(*axioms);
+    task_properties::verify_no_conditional_effects(*operators);
+
     PruningMethod::initialize(task);
-    task_properties::verify_no_axioms(*task);
-    task_properties::verify_no_conditional_effects(*task);
 
-    num_operators = task->get_operators().size();
-    sorted_goals = utils::sorted<FactPair>(
-        task_properties::get_fact_pairs(task->get_goals()));
+    num_operators = operators->size();
+    sorted_goals =
+        utils::sorted<FactPair>(task_properties::get_fact_pairs(*goals));
 
-    compute_sorted_operators(*task);
-    compute_achievers(*task);
+    compute_sorted_operators(*operators);
+    compute_achievers(*variables, *operators);
 }
 
-void StubbornSets::compute_sorted_operators(const AbstractTask& task)
+void StubbornSets::compute_sorted_operators(
+    const ClassicalOperatorSpace& operators)
 {
-    OperatorsProxy operators = task.get_operators();
-
     sorted_op_preconditions = utils::map_vector<vector<FactPair>>(
         operators,
-        [](const OperatorProxy& op) {
+        [](const auto& op) {
             return utils::sorted<FactPair>(
                 task_properties::get_fact_pairs(op.get_preconditions()));
         });
 
     sorted_op_effects = utils::map_vector<vector<FactPair>>(
         operators,
-        [](const OperatorProxy& op) {
+        [](const auto& op) {
             return utils::sorted<FactPair>(utils::map_vector<FactPair>(
                 op.get_effects(),
                 [](const auto& eff) { return eff.get_fact(); }));
         });
 }
 
-void StubbornSets::compute_achievers(const AbstractTask& task)
+void StubbornSets::compute_achievers(
+    const VariableSpace& variables,
+    const ClassicalOperatorSpace& operators)
 {
     achievers = utils::map_vector<vector<vector<int>>>(
-        task.get_variables(),
+        variables,
         [](const VariableProxy& var) {
             return vector<vector<int>>(var.get_domain_size());
         });
 
-    for (const OperatorProxy op : task.get_operators()) {
+    for (const OperatorProxy op : operators) {
         for (const auto effect : op.get_effects()) {
             FactPair fact = effect.get_fact();
             achievers[fact.var][fact.value].push_back(op.get_id());

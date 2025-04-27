@@ -3,6 +3,7 @@
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/logging.h"
 
+#include "downward/operator_cost_function.h"
 #include "downward/task_transformation.h"
 
 #include <cassert>
@@ -14,7 +15,7 @@ using namespace std;
 namespace downward::hm_heuristic {
 HMHeuristic::HMHeuristic(
     int m,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
@@ -27,8 +28,11 @@ HMHeuristic::HMHeuristic(
           verbosity)
     , m(m)
     , has_cond_effects(
-          task_properties::has_conditional_effects(*transformed_task))
-    , goals(task_properties::get_fact_pairs(transformed_task->get_goals()))
+          task_properties::has_conditional_effects(
+              get_operators(this->transformed_task)))
+    , goals(
+          task_properties::get_fact_pairs(
+              get_goal(this->transformed_task)))
 {
     if (log.is_at_least_normal()) {
         log << "Using h^" << m << "." << endl;
@@ -41,7 +45,7 @@ HMHeuristic::HMHeuristic(
 
 HMHeuristic::HMHeuristic(
     int m,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
     const std::string& description,
@@ -58,13 +62,17 @@ HMHeuristic::HMHeuristic(
 
 bool HMHeuristic::dead_ends_are_reliable() const
 {
-    return !task_properties::has_axioms(*transformed_task) && !has_cond_effects;
+    return !task_properties::has_axioms(
+               get_axioms(transformed_task)) &&
+           !has_cond_effects;
 }
 
 int HMHeuristic::compute_heuristic(const State& ancestor_state)
 {
     State state = convert_ancestor_state(ancestor_state);
-    if (task_properties::is_goal_state(*transformed_task, state)) {
+    if (task_properties::is_goal_state(
+            get_goal(transformed_task),
+            state)) {
         return 0;
     } else {
         Tuple s_tup = task_properties::get_fact_pairs(state | as_fact_pair_set);
@@ -90,10 +98,14 @@ void HMHeuristic::init_hm_table(const Tuple& t)
 
 void HMHeuristic::update_hm_table()
 {
+    const auto [operators, cost_function] =
+        slice_shared<ClassicalOperatorSpace, OperatorIntCostFunction>(
+            transformed_task);
+
     do {
         was_updated = false;
 
-        for (OperatorProxy op : transformed_task->get_operators()) {
+        for (OperatorProxy op : *operators) {
             Tuple pre = get_operator_pre(op);
 
             int c1 = eval(pre);
@@ -104,7 +116,7 @@ void HMHeuristic::update_hm_table()
                 for (Tuple& partial_eff : partial_effs) {
                     update_hm_entry(
                         partial_eff,
-                        c1 + transformed_task->get_operator_cost(op.get_id()));
+                        c1 + cost_function->get_operator_cost(op.get_id()));
 
                     int eff_size = partial_eff.size();
                     if (eff_size < m) { extend_tuple(partial_eff, op); }
@@ -116,8 +128,10 @@ void HMHeuristic::update_hm_table()
 
 void HMHeuristic::extend_tuple(const Tuple& t, const OperatorProxy& op)
 {
-    for (auto& hm_ent : hm_table) {
-        const Tuple& tuple = hm_ent.first;
+    const auto& cost_function =
+        get_cost_function(this->transformed_task);
+
+    for (const auto& tuple : hm_table | views::keys) {
         bool contradict = false;
         for (const FactPair& fact : tuple) {
             if (contradict_effect_of(op, fact.var, fact.value)) {
@@ -131,20 +145,20 @@ void HMHeuristic::extend_tuple(const Tuple& t, const OperatorProxy& op)
 
             Tuple others;
             for (const FactPair& fact : tuple) {
-                if (find(t.begin(), t.end(), fact) == t.end()) {
+                if (ranges::find(t, fact) == t.end()) {
                     others.push_back(fact);
-                    if (find(pre.begin(), pre.end(), fact) == pre.end()) {
+                    if (ranges::find(pre, fact) == pre.end()) {
                         pre.push_back(fact);
                     }
                 }
             }
 
-            sort(pre.begin(), pre.end());
+            ranges::sort(pre);
 
             set<int> vars;
             bool is_valid = true;
             for (const FactPair& fact : pre) {
-                if (vars.count(fact.var) != 0) {
+                if (vars.contains(fact.var)) {
                     is_valid = false;
                     break;
                 }
@@ -156,7 +170,7 @@ void HMHeuristic::extend_tuple(const Tuple& t, const OperatorProxy& op)
                 if (c2 != numeric_limits<int>::max()) {
                     update_hm_entry(
                         tuple,
-                        c2 + transformed_task->get_operator_cost(op.get_id()));
+                        c2 + cost_function.get_operator_cost(op.get_id()));
                 }
             }
         }
@@ -242,10 +256,11 @@ void HMHeuristic::generate_all_tuples()
 
 void HMHeuristic::generate_all_tuples_aux(int var, int sz, const Tuple& base)
 {
-    int num_variables = transformed_task->get_variables().size();
+    const auto& variables = get_variables(transformed_task);
+
+    int num_variables = variables.size();
     for (int i = var; i < num_variables; ++i) {
-        int domain_size =
-            transformed_task->get_variables()[i].get_domain_size();
+        int domain_size = variables[i].get_domain_size();
         for (int j = 0; j < domain_size; ++j) {
             Tuple tuple(base);
             tuple.emplace_back(i, j);

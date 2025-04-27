@@ -90,12 +90,12 @@ struct I2Dual::IDualData {
 };
 
 I2Dual::I2Dual(
-    std::shared_ptr<ProbabilisticTask> task,
+    SharedProbabilisticTask task,
     bool hpom_enabled,
     bool incremental_updates,
     LPSolverType solver_type,
     double fp_epsilon)
-    : task_(*task)
+    : task_(to_refs(task))
     , hpom_enabled_(hpom_enabled)
     , incremental_hpom_updates_(incremental_updates)
     , lp_solver_(solver_type)
@@ -123,9 +123,12 @@ Interval I2Dual::solve(
 
     std::cout << "Initializing I2-Dual..." << std::endl;
 
+    const auto& axioms = get_axioms(task_);
+    const auto& operators = get_operators(task_);
+
     if (hpom_enabled_) {
-        downward::task_properties::verify_no_axioms(task_);
-        probfd::task_properties::verify_no_conditional_effects(task_);
+        downward::task_properties::verify_no_axioms(axioms);
+        probfd::task_properties::verify_no_conditional_effects(operators);
     }
 
     storage::PerStateStorage<IDualData> idual_data;
@@ -419,7 +422,9 @@ void I2Dual::remove_fringe_state_from_hpom(
     const IDualData& data,
     downward::named_vector::NamedVector<LPConstraint>& constraints) const
 {
-    for (VariableProxy var : task_.get_variables()) {
+    const auto& variables = get_variables(task_);
+
+    for (VariableProxy var : variables) {
         const int val = state[var];
         LPConstraint& c = constraints[offset_[var.get_id()] + val];
         for (const auto& om : data.incoming) { c.remove(om.second); }
@@ -431,7 +436,9 @@ void I2Dual::add_fringe_state_to_hpom(
     const IDualData& data,
     downward::named_vector::NamedVector<LPConstraint>& constraints) const
 {
-    for (VariableProxy var : task_.get_variables()) {
+    const auto& variables = get_variables(task_);
+
+    for (VariableProxy var : variables) {
         const int val = state[var];
         LPConstraint& c = constraints[offset_[var.get_id()] + val];
         for (const auto& om : data.incoming) { c.insert(om.second, om.first); }

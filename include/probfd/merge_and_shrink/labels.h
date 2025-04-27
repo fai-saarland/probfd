@@ -20,8 +20,8 @@ class LogProxy;
 }
 
 namespace probfd {
+class ProbabilisticOperatorSpace;
 class ProbabilisticOperatorProxy;
-class ProbabilisticOperatorsProxy;
 } // namespace probfd
 
 namespace probfd::merge_and_shrink {
@@ -55,7 +55,7 @@ public:
     explicit Labels(const json::JsonObject& object);
 
     explicit Labels(
-        ProbabilisticOperatorsProxy operators,
+        const ProbabilisticOperatorSpace& operators,
         const downward::OperatorCostFunction<value_t>& cost_function);
 
     Labels(

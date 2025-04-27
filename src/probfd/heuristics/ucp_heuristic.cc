@@ -1,5 +1,6 @@
 #include "probfd/heuristics/ucp_heuristic.h"
 
+#include "downward/initial_state_values.h"
 #include "probfd/pdbs/pattern_collection_generator.h"
 #include "probfd/pdbs/pattern_collection_information.h"
 #include "probfd/pdbs/probability_aware_pattern_database.h"
@@ -11,6 +12,7 @@
 #include "probfd/value_type.h"
 
 #include "downward/task_utils/task_properties.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include <utility>
 
@@ -53,7 +55,7 @@ UCPHeuristicFactory::UCPHeuristicFactory(
 }
 
 std::unique_ptr<FDREvaluator>
-UCPHeuristicFactory::create_heuristic(std::shared_ptr<ProbabilisticTask> task)
+UCPHeuristicFactory::create_heuristic(const SharedProbabilisticTask& task)
 {
     const auto pattern_collection_info =
         pattern_collection_generator_->generate(task);
@@ -65,31 +67,43 @@ UCPHeuristicFactory::create_heuristic(std::shared_ptr<ProbabilisticTask> task)
     std::vector<ProbabilityAwarePatternDatabase> pdbs;
     pdbs.reserve(num_abstractions);
 
-    std::vector<value_t> costs;
-    costs.reserve(task->get_num_operators());
+    const auto& variables = get_variables(task);
+    const auto& operators = get_operators(task);
+    const auto& init_vals = get_init(task);
+    const auto& cost_function =
+        get_cost_function(task);
+    const auto& term_costs = get_termination_costs(task);
 
-    for (const ProbabilisticOperatorProxy op : task->get_operators()) {
+    std::vector<value_t> costs;
+    costs.reserve(operators.get_num_operators());
+
+    for (const ProbabilisticOperatorProxy op : operators) {
         costs.push_back(
-            task->get_operator_cost(op.get_id()) /
+            cost_function.get_operator_cost(op.get_id()) /
             static_cast<value_t>(num_abstractions));
     }
 
-    auto adapted = std::make_shared<extra_tasks::ModifiedOperatorCostsTask>(
-        task,
-        std::move(costs));
+    auto uniform_cost_function =
+        std::make_shared<extra_tasks::VectorProbabilisticOperatorCostFunction>(
+            std::move(costs));
 
-    const State& initial_state = task->get_initial_state();
+    auto adapted = replace(task, uniform_cost_function);
 
-    const BlindEvaluator<StateRank> h(task->get_operators(), *task, *task);
+    const State& initial_state = init_vals.get_initial_state();
+
+    const BlindEvaluator<StateRank> h(
+        operators,
+        *uniform_cost_function,
+        term_costs);
 
     for (const Pattern& pattern : patterns) {
-        auto& pdb = pdbs.emplace_back(task->get_variables(), pattern);
+        auto& pdb = pdbs.emplace_back(variables, pattern);
         const StateRank init_rank = pdb.get_abstract_state(initial_state);
         compute_distances(pdb, adapted, init_rank, h);
     }
 
     return std::make_unique<UCPHeuristic>(
-        task->get_non_goal_termination_cost(),
+        term_costs.get_non_goal_termination_cost(),
         std::move(pdbs));
 }
 

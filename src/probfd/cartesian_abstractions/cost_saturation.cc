@@ -1,5 +1,6 @@
 #include "probfd/cartesian_abstractions/cost_saturation.h"
 
+#include "downward/initial_state_values.h"
 #include "probfd/abstractions/distances.h"
 
 #include "probfd/cartesian_abstractions/cartesian_abstraction.h"
@@ -121,19 +122,24 @@ CostSaturation::CostSaturation(
 CostSaturation::~CostSaturation() = default;
 
 vector<CartesianHeuristicFunction> CostSaturation::generate_heuristic_functions(
-    const shared_ptr<ProbabilisticTask>& task)
+    const SharedProbabilisticTask& task)
 {
     // For simplicity this is a member object. Make sure it is in a valid state.
     assert(heuristic_functions_.empty());
 
     utils::CountdownTimer timer(max_time_);
 
-    ::task_properties::verify_no_axioms(*task);
-    task_properties::verify_no_conditional_effects(*task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
+    const auto& init_vals = get_init(task);
+    const auto& cost_function = get_cost_function(task);
 
-    reset(*task);
+    ::task_properties::verify_no_axioms(axioms);
+    task_properties::verify_no_conditional_effects(operators);
 
-    State initial_state = task->get_initial_state();
+    reset(operators, cost_function);
+
+    State initial_state = init_vals.get_initial_state();
 
     function<bool()> should_abort = [&]() {
         return num_states_ >= max_states_ ||
@@ -160,9 +166,12 @@ vector<CartesianHeuristicFunction> CostSaturation::generate_heuristic_functions(
     return functions;
 }
 
-void CostSaturation::reset(const ProbabilisticTask& task)
+void CostSaturation::reset(
+    const ProbabilisticOperatorSpace& operators,
+    const OperatorCostFunction<value_t>& cost_function)
 {
-    remaining_costs_ = task_properties::get_operator_costs(task);
+    remaining_costs_ =
+        task_properties::get_operator_costs(operators, cost_function);
     num_abstractions_ = 0;
     num_states_ = 0;
 }
@@ -190,13 +199,13 @@ void CostSaturation::reduce_remaining_costs(
     }
 }
 
-shared_ptr<ProbabilisticTask> CostSaturation::get_remaining_costs_task(
-    shared_ptr<ProbabilisticTask>& parent) const
+SharedProbabilisticTask CostSaturation::get_remaining_costs_task(
+    const SharedProbabilisticTask& parent) const
 {
-    vector<value_t> costs = remaining_costs_;
-    return make_shared<extra_tasks::ModifiedOperatorCostsTask>(
+    return replace(
         parent,
-        std::move(costs));
+        make_shared<extra_tasks::VectorProbabilisticOperatorCostFunction>(
+            remaining_costs_));
 }
 
 bool CostSaturation::state_is_dead_end(const State& state) const

@@ -1,22 +1,45 @@
 #ifndef TASKS_MODIFIED_OPERATOR_COSTS_TASK_H
 #define TASKS_MODIFIED_OPERATOR_COSTS_TASK_H
 
-#include "downward/tasks/delegating_task.h"
+#include "downward/operator_cost_function.h"
 
+#include <ranges>
 #include <vector>
 
 namespace downward::extra_tasks {
-class ModifiedOperatorCostsTask : public tasks::DelegatingTask {
-    const std::vector<int> operator_costs;
+
+template <typename CostType>
+class VectorOperatorCostFunction : public OperatorCostFunction<CostType> {
+    std::vector<CostType> operator_costs;
 
 public:
-    ModifiedOperatorCostsTask(
-        const std::shared_ptr<AbstractTask>& parent,
-        std::vector<int>&& costs);
-    virtual ~ModifiedOperatorCostsTask() override = default;
+    explicit VectorOperatorCostFunction(std::vector<CostType> costs)
+        : operator_costs(std::move(costs))
+    {
+    }
 
-    virtual int get_operator_cost(int index) const override;
+    CostType get_operator_cost(int index) const override
+    {
+        return operator_costs[index];
+    }
+
+    CostType& operator[](int index) { return operator_costs[index]; }
+
+    const CostType& operator[](int index) const
+    {
+        return operator_costs[index];
+    }
+
+    void decrease_costs(std::span<const CostType> costs)
+    {
+        for (auto&& [cost, dec] : std::views::zip(operator_costs, costs)) {
+            cost -= dec;
+        }
+    }
 };
-} // namespace extra_tasks
+
+using VectorOperatorIntCostFunction = VectorOperatorCostFunction<int>;
+
+} // namespace downward::extra_tasks
 
 #endif

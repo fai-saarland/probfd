@@ -32,7 +32,7 @@ MergeAndShrinkHeuristic::MergeAndShrinkHeuristic(
     int max_states_before_merge,
     int threshold_before_merge,
     double main_loop_max_time,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
@@ -57,7 +57,7 @@ MergeAndShrinkHeuristic::MergeAndShrinkHeuristic(
         main_loop_max_time,
         verbosity);
     FactoredTransitionSystem fts =
-        algorithm.build_factored_transition_system(*transformed_task);
+        algorithm.build_factored_transition_system(to_refs(transformed_task));
     extract_factors(fts);
     log << "Done initializing merge-and-shrink heuristic." << endl << endl;
 }
@@ -72,7 +72,7 @@ MergeAndShrinkHeuristic::MergeAndShrinkHeuristic(
     int max_states_before_merge,
     int threshold_before_merge,
     double main_loop_max_time,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
     const std::string& description,

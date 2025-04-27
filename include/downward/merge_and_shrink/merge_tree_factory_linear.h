@@ -15,26 +15,27 @@ class MergeTreeFactoryLinear : public MergeTreeFactory {
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
 protected:
-    virtual std::string name() const override;
-    virtual void
-    dump_tree_specific_options(utils::LogProxy& log) const override;
+    std::string name() const override;
+    void dump_tree_specific_options(utils::LogProxy& log) const override;
 
 public:
     MergeTreeFactoryLinear(
         variable_order_finder::VariableOrderType variable_order,
         int random_seed,
         UpdateOption update_option);
-    virtual std::unique_ptr<MergeTree>
-    compute_merge_tree(const AbstractTask& task) override;
-    virtual std::unique_ptr<MergeTree> compute_merge_tree(
-        const AbstractTask& task,
+
+    std::unique_ptr<MergeTree>
+    compute_merge_tree(const AbstractTaskTuple& task) override;
+
+    std::unique_ptr<MergeTree> compute_merge_tree(
+        const AbstractTaskTuple& task,
         const FactoredTransitionSystem& fts,
         const std::vector<int>& indices_subset) override;
 
-    virtual bool requires_init_distances() const override { return false; }
+    bool requires_init_distances() const override { return false; }
 
-    virtual bool requires_goal_distances() const override { return false; }
+    bool requires_goal_distances() const override { return false; }
 };
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink
 
 #endif

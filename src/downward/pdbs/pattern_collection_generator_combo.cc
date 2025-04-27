@@ -4,6 +4,7 @@
 #include "downward/pdbs/validation.h"
 
 #include "downward/abstract_task.h"
+#include "downward/goal_fact_list.h"
 #include "downward/state.h"
 
 #include "downward/utils/logging.h"
@@ -30,7 +31,7 @@ string PatternCollectionGeneratorCombo::name() const
 }
 
 PatternCollectionInformation PatternCollectionGeneratorCombo::compute_patterns(
-    const shared_ptr<AbstractTask>& task)
+    const SharedAbstractTask& task)
 {
     shared_ptr<PatternCollection> patterns = make_shared<PatternCollection>();
 
@@ -40,13 +41,15 @@ PatternCollectionInformation PatternCollectionGeneratorCombo::compute_patterns(
     set<int> used_vars(large_pattern.begin(), large_pattern.end());
     patterns->push_back(std::move(large_pattern));
 
-    for (FactPair goal : task->get_goals()) {
+    const auto& goals = get_goal(task);
+
+    for (FactPair goal : goals) {
         if (const int goal_var = goal.var; !used_vars.contains(goal_var)) {
             patterns->emplace_back(1, goal_var);
         }
     }
 
-    PatternCollectionInformation pci(*task, patterns, log);
+    PatternCollectionInformation pci(to_refs(task), patterns, log);
     return pci;
 }
 

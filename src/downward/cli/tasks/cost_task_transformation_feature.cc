@@ -8,6 +8,7 @@
 #include "downward/transformations/identity_transformation.h"
 
 #include "downward/task_transformation.h"
+#include "probfd/tasks/cost_adapted_task.h"
 
 using namespace std;
 using namespace downward;
@@ -24,16 +25,20 @@ class CostAdaptedTaskTransformation : public TaskTransformation {
     OperatorCost cost_type;
 
 public:
-    CostAdaptedTaskTransformation(OperatorCost cost_type)
+    explicit CostAdaptedTaskTransformation(OperatorCost cost_type)
         : cost_type(cost_type)
     {
     }
 
-    TaskTransformationResult
-    transform(const std::shared_ptr<AbstractTask>& original_task)
+    TaskTransformationResult transform(const SharedAbstractTask& original_task)
     {
         return {
-            std::make_shared<CostAdaptedTask>(original_task, cost_type),
+            replace(
+                original_task,
+                std::make_shared<AdaptedOperatorIntCostFunction>(
+                    get_operators(original_task),
+                    get_shared_cost_function(original_task),
+                    cost_type)),
             std::make_shared<IdentityStateMapping>(),
             std::make_shared<IdentityOperatorMapping>()};
     }

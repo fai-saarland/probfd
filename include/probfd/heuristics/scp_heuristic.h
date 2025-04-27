@@ -58,7 +58,7 @@ public:
         downward::utils::Verbosity verbosity);
 
     std::unique_ptr<FDREvaluator>
-    create_heuristic(std::shared_ptr<ProbabilisticTask> task) override;
+    create_heuristic(const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::heuristics

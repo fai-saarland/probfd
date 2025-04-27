@@ -12,8 +12,9 @@ using namespace downward;
 namespace probfd::successor_generator {
 
 ProbabilisticSuccessorGenerator::ProbabilisticSuccessorGenerator(
-    const PlanningTask& task)
-    : root_(ProbabilisticSuccessorGeneratorFactory(task).create())
+    const VariableSpace& variables,
+    const OperatorSpace& operators)
+    : root_(ProbabilisticSuccessorGeneratorFactory(variables, operators).create())
 {
 }
 

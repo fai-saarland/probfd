@@ -5,9 +5,9 @@
 
 #include "probfd/fdr_types.h"
 #include "probfd/mdp.h"
-
 #include "probfd/state_id.h"
 #include "probfd/value_type.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/algorithms/segmented_vector.h"
 
@@ -18,10 +18,6 @@
 #include <vector>
 
 // Forward Declarations
-namespace downward {
-class AbstractTask;
-}
-
 namespace downward::merge_and_shrink {
 class Distances;
 class FactoredTransitionSystem;
@@ -32,7 +28,6 @@ struct Factor;
 namespace probfd {
 template <typename>
 class Distribution;
-class ProbabilisticTask;
 } // namespace probfd
 
 namespace probfd::bisimulation {
@@ -43,7 +38,7 @@ class BisimilarStateSpace : public MDP<QuotientState, downward::OperatorID> {
         int* successors;
     };
 
-    std::shared_ptr<ProbabilisticTask> task_;
+    SharedProbabilisticTask task_;
 
     unsigned num_cached_transitions_ = 0;
     downward::segmented_vector::SegmentedVector<std::vector<CachedTransition>>
@@ -56,7 +51,7 @@ class BisimilarStateSpace : public MDP<QuotientState, downward::OperatorID> {
 
 public:
     BisimilarStateSpace(
-        std::shared_ptr<ProbabilisticTask> task,
+        SharedProbabilisticTask task,
         const downward::merge_and_shrink::TransitionSystem& transition_system);
 
     ~BisimilarStateSpace() override;
@@ -98,7 +93,7 @@ public:
 };
 
 downward::merge_and_shrink::Factor compute_bisimulation_on_determinization(
-    const downward::AbstractTask& det_task);
+    const downward::AbstractTaskTuple& det_task);
 
 } // namespace probfd::bisimulation
 

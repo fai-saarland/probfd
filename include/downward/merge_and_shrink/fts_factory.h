@@ -1,6 +1,8 @@
 #ifndef MERGE_AND_SHRINK_FTS_FACTORY_H
 #define MERGE_AND_SHRINK_FTS_FACTORY_H
 
+#include "downward/abstract_task.h"
+
 /*
   Factory for factored transition systems.
 
@@ -11,10 +13,6 @@
   merge-and-shrink should not need to know about planning task concepts.
 */
 
-namespace downward {
-class AbstractTask;
-}
-
 namespace downward::utils {
 class LogProxy;
 }
@@ -23,7 +21,7 @@ namespace downward::merge_and_shrink {
 class FactoredTransitionSystem;
 
 extern FactoredTransitionSystem create_factored_transition_system(
-    const AbstractTask &task,
+    const AbstractTaskTuple& task,
     bool compute_init_distances,
     bool compute_goal_distances,
     utils::LogProxy &log);

@@ -2,8 +2,8 @@
 
 #include "downward/task_utils/successor_generator_internals.h"
 
-#include "downward/abstract_task.h"
 #include "downward/state.h"
+#include "downward/operator_space.h"
 
 #include "downward/utils/collections.h"
 #include "downward/utils/memory.h"
@@ -161,8 +161,10 @@ public:
 };
 
 SuccessorGeneratorFactory::SuccessorGeneratorFactory(
-    const PlanningTask& task)
-    : task(task)
+    const VariableSpace& variables,
+    const OperatorSpace& operators)
+    : variables(variables)
+    , operators(operators)
 {
 }
 
@@ -207,7 +209,6 @@ GeneratorPtr SuccessorGeneratorFactory::construct_switch(
     int switch_var_id,
     ValuesAndGenerators values_and_generators) const
 {
-    VariablesProxy variables = task.get_variables();
     int var_domain = variables[switch_var_id].get_domain_size();
     int num_children = values_and_generators.size();
 
@@ -291,8 +292,7 @@ build_sorted_precondition(const PartialOperatorProxy& op)
 {
     vector<FactPair> precond;
     precond.reserve(op.get_preconditions().size());
-    for (FactPair pre : op.get_preconditions())
-        precond.emplace_back(pre);
+    for (FactPair pre : op.get_preconditions()) precond.emplace_back(pre);
     // Preconditions must be sorted by variable.
     sort(precond.begin(), precond.end());
     return precond;
@@ -300,7 +300,6 @@ build_sorted_precondition(const PartialOperatorProxy& op)
 
 GeneratorPtr SuccessorGeneratorFactory::create()
 {
-    PartialOperatorsProxy operators = task.get_partial_operators();
     operator_infos.reserve(operators.size());
     for (PartialOperatorProxy op : operators) {
         operator_infos.emplace_back(
@@ -316,4 +315,4 @@ GeneratorPtr SuccessorGeneratorFactory::create()
     operator_infos.clear();
     return root;
 }
-} // namespace successor_generator
+} // namespace downward::successor_generator

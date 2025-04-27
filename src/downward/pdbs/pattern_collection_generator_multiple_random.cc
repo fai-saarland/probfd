@@ -45,7 +45,7 @@ string PatternCollectionGeneratorMultipleRandom::id() const
 }
 
 void PatternCollectionGeneratorMultipleRandom::initialize(
-    const shared_ptr<AbstractTask>& task)
+    const SharedAbstractTask& task)
 {
     // Compute CG neighbors once. They are shuffled when used.
     cg_neighbors = compute_cg_neighbors(task, bidirectional);
@@ -55,7 +55,7 @@ PatternInformation PatternCollectionGeneratorMultipleRandom::compute_pattern(
     int max_pdb_size,
     double max_time,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
-    const shared_ptr<AbstractTask>& task,
+    const SharedAbstractTask& task,
     const FactPair& goal,
     unordered_set<int>&&)
 {
@@ -66,11 +66,11 @@ PatternInformation PatternCollectionGeneratorMultipleRandom::compute_pattern(
         max_time,
         silent_log,
         rng,
-        *task,
+        get_variables(task),
         goal.var,
         cg_neighbors);
 
-    PatternInformation result(*task, std::move(pattern), log);
+    PatternInformation result(to_refs(task), std::move(pattern), log);
     return result;
 }
 

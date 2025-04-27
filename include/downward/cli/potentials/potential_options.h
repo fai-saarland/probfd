@@ -7,7 +7,6 @@
 #include <string>
 
 namespace downward {
-class AbstractTask;
 class TaskTransformation;
 
 enum class LPSolverType;

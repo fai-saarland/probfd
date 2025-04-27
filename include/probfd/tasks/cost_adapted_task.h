@@ -1,39 +1,14 @@
 #ifndef PROBFD_TASKS_COST_ADAPTED_TASK_H
 #define PROBFD_TASKS_COST_ADAPTED_TASK_H
 
-#include "probfd/tasks/delegating_task.h" // IWYU pragma: export
+#include "probfd/aliases.h"
 
-#include "probfd/value_type.h"
-
-#include "downward/operator_cost.h"
-
-#include <memory>
+#include "downward/tasks/cost_adapted_task.h"
 
 namespace probfd::tasks {
 
-/*
-  Task transformation that changes operator costs. If the parent task assigns
-  costs 'c' to an operator, its adjusted costs, depending on the value of the
-  cost_type option, are:
-
-    NORMAL:  c
-    ONE:     1
-    PLUSONE: 1, if all operators have cost 1 in the parent task, else c + 1
-
-  Regardless of the cost_type value, axioms will always keep their original
-  cost, which is 0 by default.
-*/
-class CostAdaptedTask : public DelegatingTask {
-    const downward::OperatorCost cost_type_;
-    const bool parent_is_unit_cost_;
-
-public:
-    CostAdaptedTask(
-        const std::shared_ptr<ProbabilisticTask>& parent,
-        downward::OperatorCost cost_type);
-
-    value_t get_operator_cost(int index) const override;
-};
+using CostAdaptedProbabilisticCostFunction =
+    downward::tasks::AdaptedOperatorCostFunction<value_t>;
 
 } // namespace probfd::tasks
 

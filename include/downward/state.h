@@ -40,7 +40,7 @@ concept OperatorLike =
     };
 
 extern void
-apply_axioms(const PlanningTask& task, std::vector<int>& values);
+apply_axioms(const AxiomSpace& axiom_space, std::vector<int>& values);
 
 template <std::ranges::input_range FactRange, typename StateLike>
 bool all_facts_true(const FactRange& facts, const StateLike& state)
@@ -67,7 +67,9 @@ void apply_conditional_effects(
     }
 }
 
-class State : public ProxyCollection<State> {
+class State
+    : public ProxyCollectionTag
+    , public std::ranges::view_interface<State> {
     /*
       TODO: We want to try out two things:
         1. having StateID and num_variables next to each other, so that they

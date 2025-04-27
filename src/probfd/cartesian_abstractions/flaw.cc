@@ -24,7 +24,7 @@ Flaw::Flaw(
     assert(current_abstract_state.includes(this->concrete_state));
 }
 
-vector<Split> Flaw::get_possible_splits(const VariablesProxy& variables) const
+vector<Split> Flaw::get_possible_splits(const VariableSpace& variables) const
 {
     vector<Split> splits;
     /*

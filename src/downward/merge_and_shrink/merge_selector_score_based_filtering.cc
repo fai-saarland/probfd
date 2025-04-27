@@ -20,7 +20,7 @@ static vector<pair<int, int>> get_remaining_candidates(
 {
     assert(merge_candidates.size() == scores.size());
     double best_score = INF;
-    for (double score : scores) {
+    for (const double score : scores) {
         if (score < best_score) { best_score = score; }
     }
 
@@ -57,11 +57,9 @@ pair<int, int> MergeSelectorScoreBasedFiltering::select_merge(
     return merge_candidates.front();
 }
 
-void MergeSelectorScoreBasedFiltering::initialize(
-    const AbstractTask& task)
+void MergeSelectorScoreBasedFiltering::initialize(const AbstractTaskTuple& task)
 {
-    for (shared_ptr<MergeScoringFunction>& scoring_function :
-         merge_scoring_functions) {
+    for (const auto& scoring_function : merge_scoring_functions) {
         scoring_function->initialize(task);
     }
 }

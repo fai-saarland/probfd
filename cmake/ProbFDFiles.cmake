@@ -72,7 +72,6 @@ create_library(
     SOURCES
         probfd/tasks/cost_adapted_task
         probfd/tasks/determinization_task
-        probfd/tasks/delegating_task
         probfd/tasks/root_task
     DEPENDS
         probfd_core
@@ -83,7 +82,6 @@ create_library(
     SOURCES
         probfd/tasks/domain_abstracted_task
         probfd/tasks/domain_abstracted_task_factory
-        probfd/tasks/modified_goals_task
         probfd/tasks/modified_operator_costs_task
     DEPENDS
         core_probabilistic_tasks

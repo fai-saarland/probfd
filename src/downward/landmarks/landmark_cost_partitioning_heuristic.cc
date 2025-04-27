@@ -3,6 +3,7 @@
 #include "downward/landmarks/landmark_cost_partitioning_algorithms.h"
 #include "downward/landmarks/landmark_factory.h"
 #include "downward/landmarks/landmark_status_manager.h"
+#include "downward/operator_cost_function_fwd.h"
 
 #include "downward/task_utils/successor_generator.h"
 #include "downward/task_utils/task_properties.h"
@@ -21,7 +22,7 @@ LandmarkCostPartitioningHeuristic::LandmarkCostPartitioningHeuristic(
     bool prog_goal,
     bool prog_gn,
     bool prog_r,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
@@ -51,7 +52,7 @@ LandmarkCostPartitioningHeuristic::LandmarkCostPartitioningHeuristic(
     bool prog_goal,
     bool prog_gn,
     bool prog_r,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
     const std::string& description,
@@ -82,13 +83,17 @@ LandmarkCostPartitioningHeuristic::~LandmarkCostPartitioningHeuristic() =
 void LandmarkCostPartitioningHeuristic::check_unsupported_features(
     const shared_ptr<LandmarkFactory>& lm_factory)
 {
-    if (task_properties::has_axioms(*transformed_task)) {
+    const auto& axioms = get_axioms(transformed_task);
+    const auto& operators =
+        get_operators(transformed_task);
+
+    if (task_properties::has_axioms(axioms)) {
         cerr << "Cost partitioning does not support axioms." << endl;
         utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
     }
 
     if (!lm_factory->supports_conditional_effects() &&
-        task_properties::has_conditional_effects(*transformed_task)) {
+        task_properties::has_conditional_effects(operators)) {
         cerr << "Conditional effects not supported by the landmark "
              << "generation method." << endl;
         utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
@@ -100,20 +105,21 @@ void LandmarkCostPartitioningHeuristic::set_cost_partitioning_algorithm(
     lp::LPSolverType lpsolver,
     bool alm)
 {
+    const auto& operators =
+        get_operators(transformed_task);
+    const auto& cost_function =
+        get_cost_function(transformed_task);
+
     if (cost_partitioning == CostPartitioningMethod::OPTIMAL) {
         cost_partitioning_algorithm =
             std::make_unique<OptimalCostPartitioningAlgorithm>(
-                task_properties::get_operator_costs(
-                    transformed_task->get_operators(),
-                    *transformed_task),
+                task_properties::get_operator_costs(operators, cost_function),
                 *lm_graph,
                 lpsolver);
     } else if (cost_partitioning == CostPartitioningMethod::UNIFORM) {
         cost_partitioning_algorithm =
             std::make_unique<UniformCostPartitioningAlgorithm>(
-                task_properties::get_operator_costs(
-                    transformed_task->get_operators(),
-                    *transformed_task),
+                task_properties::get_operator_costs(operators, cost_function),
                 *lm_graph,
                 alm);
     } else {

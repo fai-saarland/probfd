@@ -23,8 +23,8 @@ class LogProxy;
 }
 
 namespace probfd {
-class ProbabilisticTask;
-}
+class ProbabilisticOperatorProxy;
+} // namespace probfd
 
 namespace probfd::task_properties {
 
@@ -35,11 +35,9 @@ namespace probfd::task_properties {
  * mentioning this variable.
  * The order in which affected variables are output is unspecified.
  */
-void get_affected_vars(
-    const ProbabilisticOperatorProxy& op,
-    std::output_iterator<int> auto it)
+void get_affected_vars(const auto& op, std::output_iterator<int> auto it)
 {
-    for (const ProbabilisticOutcomeProxy& outcome : op.get_outcomes()) {
+    for (const auto& outcome : op.get_outcomes()) {
         for (const auto& effect : outcome.get_effects()) {
             *it = effect.get_fact().var;
         }
@@ -59,26 +57,35 @@ extern value_t get_adjusted_action_cost(
     downward::OperatorCost cost_type,
     bool is_unit_cost);
 
+extern value_t get_adjusted_action_cost(
+    int op_index,
+    const downward::OperatorCostFunction<value_t>& cost_function,
+    downward::OperatorCost cost_type,
+    bool is_unit_cost);
+
 /**
  * @brief Checks if all operators have cost 1.0 (exact fp equality).
  *
  * Runtime: O(n), where n is the number of probabilistic operators.
  */
-extern bool is_unit_cost(const ProbabilisticTask& task);
+extern bool is_unit_cost(
+    const ProbabilisticOperatorSpace& task,
+    const downward::OperatorCostFunction<value_t>& cost_function);
 
 /**
  * @brief Checks if conditional effects exist.
  *
  * Runtime: O(n), where n is the number of effects.
  */
-extern bool has_conditional_effects(const ProbabilisticTask& task);
+extern bool has_conditional_effects(const ProbabilisticOperatorSpace& ops);
 
 /**
  * @brief Throws ExitCode::UNSUPPORTED if conditional effects exist.
  *
  * Runtime: O(n), where n is the number of effects.
  */
-extern void verify_no_conditional_effects(const ProbabilisticTask& task);
+extern void
+verify_no_conditional_effects(const ProbabilisticOperatorSpace& ops);
 
 /**
  * @brief Returns the operator costs of a task as a vector of costs sorted by
@@ -86,22 +93,18 @@ extern void verify_no_conditional_effects(const ProbabilisticTask& task);
  *
  * Runtime: O(n), where n is the number of operators.
  */
-extern std::vector<value_t>
-get_operator_costs(const ProbabilisticTask& task);
+extern std::vector<value_t> get_operator_costs(
+    const ProbabilisticOperatorSpace& ops,
+    const downward::OperatorCostFunction<value_t>& cost_function);
 
 /**
  * @brief Returns the average operator cost of a task among all operators.
  *
  * Runtime: O(n), where n is the number of operators.
  */
-extern value_t get_average_operator_cost(const ProbabilisticTask& task);
-
-/**
- * @brief Returns the minimum operator cost of a task among all operators.
- *
- * Runtime: O(n), where n is the number of operators.
- */
-extern value_t get_min_operator_cost(const ProbabilisticTask& task);
+extern value_t get_average_operator_cost(
+    const ProbabilisticOperatorSpace& ops,
+    const downward::OperatorCostFunction<value_t>& cost_function);
 
 /**
  * @brief Returns the minimum operator cost of an operator space among all
@@ -110,7 +113,7 @@ extern value_t get_min_operator_cost(const ProbabilisticTask& task);
  * Runtime: O(n), where n is the number of operators.
  */
 extern value_t get_min_operator_cost(
-    const ProbabilisticOperatorsProxy& ops,
+    const ProbabilisticOperatorSpace& ops,
     const downward::OperatorCostFunction<value_t>& cost_function);
 
 /**
@@ -120,20 +123,20 @@ extern value_t get_min_operator_cost(
  * Runtime: O(m + n), where m is the number of axioms and n is the total
  * number of operator effects.
  */
-extern int get_num_total_effects(const ProbabilisticTask& task);
+extern int get_num_total_effects(const ProbabilisticOperatorSpace& ops);
 
 /**
  * @brief Dumps a probabilistic task to a given log.
  */
 extern void dump_probabilistic_task(
-    const ProbabilisticTask& task,
+    const ProbabilisticTaskTuple& task,
     downward::utils::LogProxy& log);
 
 /**
  * @brief Dumps a probabilistic task to a given output stream.
  */
 extern void
-dump_probabilistic_task(const ProbabilisticTask& task, std::ostream& os);
+dump_probabilistic_task(const ProbabilisticTaskTuple& task, std::ostream& os);
 
 } // namespace probfd::task_properties
 

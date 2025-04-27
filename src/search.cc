@@ -10,8 +10,16 @@
 
 #include "probfd/utils/timed.h"
 
+#include "probfd/probabilistic_operator_space.h"
+#include "probfd/termination_costs.h"
 #include "probfd/probabilistic_task.h"
 #include "probfd/solver_interface.h"
+
+#include "downward/axiom_space.h"
+#include "downward/goal_fact_list.h"
+#include "downward/initial_state_values.h"
+#include "downward/operator_cost_function.h"
+#include "downward/variable_space.h"
 
 #include "downward/utils/logging.h"
 #include "downward/utils/strings.h"
@@ -143,7 +151,7 @@ static int search(argparse::ArgumentParser& parser)
         return static_cast<int>(ExitCode::SEARCH_CRITICAL_ERROR);
     }
 
-    std::shared_ptr<ProbabilisticTask> input_task = run_time_logged(
+    SharedProbabilisticTask input_task = run_time_logged(
         std::cout,
         "Reading input task...",
         probfd::tasks::read_sas_task_from_file,

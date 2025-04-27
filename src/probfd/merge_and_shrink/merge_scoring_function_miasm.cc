@@ -86,10 +86,12 @@ vector<double> MergeScoringFunctionMIASM::compute_scores(
     return scores;
 }
 
-void MergeScoringFunctionMIASM::initialize(const ProbabilisticTask& task)
+void MergeScoringFunctionMIASM::initialize(const ProbabilisticTaskTuple& task)
 {
+    const auto& variables = get_variables(task);
+
     initialized = true;
-    const int num_variables = task.get_variables().size();
+    const int num_variables = variables.size();
     const int max_factor_index = 2 * num_variables - 1;
     cached_scores_by_merge_candidate_indices.resize(
         max_factor_index,

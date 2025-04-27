@@ -14,9 +14,8 @@ class PatternGeneratorRandom : public PatternGenerator {
     const bool bidirectional;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
-    virtual std::string name() const override;
-    virtual PatternInformation
-    compute_pattern(const std::shared_ptr<AbstractTask>& task) override;
+    std::string name() const override;
+    PatternInformation compute_pattern(const SharedAbstractTask& task) override;
 
 public:
     PatternGeneratorRandom(
@@ -26,6 +25,6 @@ public:
         int random_seed,
         utils::Verbosity verbosity);
 };
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

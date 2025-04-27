@@ -194,7 +194,7 @@ bool MergeAndShrinkAlgorithm::ran_out_of_time(
 
 void MergeAndShrinkAlgorithm::main_loop(
     FactoredTransitionSystem& fts,
-    const AbstractTask& task)
+    const AbstractTaskTuple& task)
 {
     utils::CountdownTimer timer(main_loop_max_time);
     if (log.is_at_least_normal()) {
@@ -215,7 +215,7 @@ void MergeAndShrinkAlgorithm::main_loop(
     }
 
     if (label_reduction) {
-        label_reduction->initialize(task);
+        label_reduction->initialize(get_variables(task));
     }
     unique_ptr<MergeStrategy> merge_strategy =
         merge_strategy_factory->compute_merge_strategy(task, fts);
@@ -362,7 +362,7 @@ void MergeAndShrinkAlgorithm::main_loop(
 
 FactoredTransitionSystem
 MergeAndShrinkAlgorithm::build_factored_transition_system(
-    const AbstractTask& task)
+    const AbstractTaskTuple& task)
 {
     if (starting_peak_memory) {
         cerr << "Calling build_factored_transition_system twice is not "
@@ -377,7 +377,7 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
         log << "Running merge-and-shrink algorithm..." << endl;
     }
 
-    task_properties::verify_no_axioms(task);
+    task_properties::verify_no_axioms(get_axioms(task));
     dump_options();
     warn_on_unusual_options();
 

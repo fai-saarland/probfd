@@ -11,7 +11,6 @@
 
 namespace downward {
 class MutexInformation;
-class AbstractTask;
 struct FactPair;
 
 class StateMapping;
@@ -39,7 +38,7 @@ enum class FactOrder { ORIGINAL, RANDOM, HADD_UP, HADD_DOWN };
 class SubtaskGenerator {
 public:
     virtual SharedTasks get_subtasks(
-        const std::shared_ptr<AbstractTask>& task,
+        const SharedAbstractTask& task,
         utils::LogProxy& log) const = 0;
     virtual ~SubtaskGenerator() = default;
 };
@@ -53,8 +52,8 @@ class TaskDuplicator : public SubtaskGenerator {
 public:
     explicit TaskDuplicator(int copies);
 
-    virtual SharedTasks get_subtasks(
-        const std::shared_ptr<AbstractTask>& task,
+    SharedTasks get_subtasks(
+        const SharedAbstractTask& task,
         utils::LogProxy& log) const override;
 };
 
@@ -68,8 +67,8 @@ class GoalDecomposition : public SubtaskGenerator {
 public:
     explicit GoalDecomposition(FactOrder order, int random_seed);
 
-    virtual SharedTasks get_subtasks(
-        const std::shared_ptr<AbstractTask>& task,
+    SharedTasks get_subtasks(
+        const SharedAbstractTask& task,
         utils::LogProxy& log) const override;
 };
 
@@ -85,8 +84,8 @@ class LandmarkDecomposition : public SubtaskGenerator {
 
     /* Perform domain abstraction by combining facts that have to be
        achieved before a given landmark can be made true. */
-    std::shared_ptr<AbstractTask> build_domain_abstracted_task(
-        const std::shared_ptr<AbstractTask>& parent,
+    SharedAbstractTask build_domain_abstracted_task(
+        const SharedAbstractTask& parent,
         const landmarks::LandmarkNode *node) const;
 
 public:
@@ -96,8 +95,8 @@ public:
         int random_seed,
         bool combine_facts);
 
-    virtual SharedTasks get_subtasks(
-        const std::shared_ptr<AbstractTask>& task,
+    SharedTasks get_subtasks(
+        const SharedAbstractTask& task,
         utils::LogProxy& log) const override;
 };
 } // namespace cartesian_abstractions

@@ -6,6 +6,7 @@
 #include "downward/task_utils/task_properties.h"
 
 #include "downward/axiom_utils.h"
+#include "downward/initial_state_values.h"
 
 using namespace std;
 
@@ -16,15 +17,17 @@ LandmarkFactoryRelaxation::LandmarkFactoryRelaxation(utils::Verbosity verbosity)
 }
 
 void LandmarkFactoryRelaxation::generate_landmarks(
-    const shared_ptr<AbstractTask>& task)
+    const SharedAbstractTask& task)
 {
-    Exploration exploration(*task, log);
+    const auto& [variables, axioms, operators] = to_refs(
+        slice_shared<VariableSpace, AxiomSpace, ClassicalOperatorSpace>(task));
+    Exploration exploration(variables, axioms, operators, log);
     generate_relaxed_landmarks(task, exploration);
-    postprocess(*task, exploration);
+    postprocess(to_refs(task), exploration);
 }
 
 void LandmarkFactoryRelaxation::postprocess(
-    const AbstractTask& task,
+    const AbstractTaskTuple& task,
     Exploration& exploration)
 {
     lm_graph->set_landmark_ids();
@@ -32,11 +35,14 @@ void LandmarkFactoryRelaxation::postprocess(
 }
 
 void LandmarkFactoryRelaxation::calc_achievers(
-    const AbstractTask& task,
+    const AbstractTaskTuple& task,
     Exploration& exploration)
 {
+    const auto& [axioms, operators, init_vals] =
+        slice<AxiomSpace&, ClassicalOperatorSpace&, InitialStateValues&>(task);
+
     assert(!achievers_calculated);
-    AxiomsProxy axioms = task.get_axioms();
+
     for (auto& lm_node : lm_graph->get_nodes()) {
         Landmark& landmark = lm_node->get_landmark();
         for (const FactPair& lm_fact : landmark.facts) {
@@ -46,11 +52,13 @@ void LandmarkFactoryRelaxation::calc_achievers(
             if (axioms.is_derived(lm_fact.var)) landmark.is_derived = true;
         }
 
-        vector<vector<bool>> reached =
-            exploration.compute_relaxed_reachability(landmark.facts, false);
+        vector<vector<bool>> reached = exploration.compute_relaxed_reachability(
+            landmark.facts,
+            init_vals.get_initial_state(),
+            false);
 
         for (int op_or_axom_id : landmark.possible_achievers) {
-            auto op = get_operator_or_axiom(task, op_or_axom_id);
+            auto op = get_operator_or_axiom(axioms, operators, op_or_axom_id);
 
             if (possibly_reaches_lm(op, reached, landmark)) {
                 landmark.first_achievers.insert(op_or_axom_id);
@@ -61,16 +69,18 @@ void LandmarkFactoryRelaxation::calc_achievers(
 }
 
 bool LandmarkFactoryRelaxation::relaxed_task_solvable(
-    const AbstractTask& task,
+    const GoalFactList& goals,
+    const State& state,
     Exploration& exploration,
     const Landmark& exclude,
     const bool use_unary_relaxation) const
 {
     vector<vector<bool>> reached = exploration.compute_relaxed_reachability(
         exclude.facts,
+        state,
         use_unary_relaxation);
 
-    for (const auto [var, value] : task.get_goals()) {
+    for (const auto [var, value] : goals) {
         if (!reached[var][value]) { return false; }
     }
     return true;

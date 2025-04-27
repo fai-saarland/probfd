@@ -9,6 +9,7 @@
 #include "downward/utils/logging.h"
 
 #include "downward/transformations/identity_transformation.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include <ranges>
 
@@ -19,9 +20,9 @@ using namespace std;
 namespace probfd::cartesian_abstractions {
 
 unique_ptr<additive_heuristic::AdditiveHeuristic>
-create_additive_heuristic(const shared_ptr<ProbabilisticTask>& task)
+create_additive_heuristic(const SharedProbabilisticTask& task)
 {
-    auto det = std::make_shared<tasks::DeterminizationTask>(task);
+    auto det = tasks::create_determinization_task(task);
     return std::make_unique<additive_heuristic::AdditiveHeuristic>(
         det,
         det,
@@ -54,13 +55,14 @@ static bool outcome_can_achieve_fact(
 }
 
 static utils::HashSet<FactPair> compute_possibly_before_facts(
-    const ProbabilisticTask& task,
+    const ProbabilisticOperatorSpace& operators,
+    const State& initial_state,
     const FactPair& last_fact)
 {
     utils::HashSet<FactPair> pb_facts;
 
     // Add facts from initial state.
-    for (FactPair fact : task.get_initial_state() | as_fact_pair_set)
+    for (FactPair fact : initial_state | as_fact_pair_set)
         pb_facts.insert(fact);
 
     // Until no more facts can be added:
@@ -75,7 +77,7 @@ static utils::HashSet<FactPair> compute_possibly_before_facts(
     */
     while (last_num_reached != pb_facts.size()) {
         last_num_reached = pb_facts.size();
-        for (ProbabilisticOperatorProxy op : task.get_operators()) {
+        for (ProbabilisticOperatorProxy op : operators) {
             if (!operator_applicable(op, pb_facts)) continue;
             for (const auto outcome : op.get_outcomes()) {
                 // Ignore outcomes that achieve last_fact.
@@ -92,11 +94,12 @@ static utils::HashSet<FactPair> compute_possibly_before_facts(
 }
 
 utils::HashSet<FactPair> get_relaxed_possible_before(
-    const ProbabilisticTask& task,
+    const ProbabilisticOperatorSpace& operators,
+    const State& state,
     const FactPair& fact)
 {
     utils::HashSet<FactPair> reachable_facts =
-        compute_possibly_before_facts(task, fact);
+        compute_possibly_before_facts(operators, state, fact);
     reachable_facts.insert(fact);
     return reachable_facts;
 }

@@ -56,8 +56,8 @@ public:
         std::shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>
             evaluator_factory);
 
-    std::unique_ptr<FDREvaluator> create_heuristic(
-        std::shared_ptr<ProbabilisticTask> task) override;
+    std::unique_ptr<FDREvaluator>
+    create_heuristic(const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::heuristics

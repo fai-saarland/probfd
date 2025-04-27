@@ -2,7 +2,9 @@
 
 #include "probfd/tasks/root_task.h"
 
+#include "probfd/probabilistic_operator_space.h"
 #include "probfd/probabilistic_task.h"
+#include "probfd/termination_costs.h"
 
 #include "probfd/cartesian_abstractions/cartesian_abstraction.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition_system.h"
@@ -11,6 +13,11 @@
 #include "downward/cartesian_abstractions/refinement_hierarchy.h"
 
 #include "downward/utils/logging.h"
+
+#include "downward/axiom_space.h"
+#include "downward/goal_fact_list.h"
+#include "downward/initial_state_values.h"
+#include "downward/operator_cost_function.h"
 
 #include <fstream>
 
@@ -26,14 +33,14 @@ static size_t get_num_transitions(const ProbabilisticTransitionSystem& ts)
 TEST(CartesianTests, test_probabilistic_transition_system)
 {
     std::fstream file("resources/gripper_example.psas");
-    std::shared_ptr<ProbabilisticTask> task = tasks::read_sas_task(file);
+    SharedProbabilisticTask task = tasks::read_sas_task(file);
 
     RefinementHierarchy refinement_hierarchy;
-    CartesianAbstraction abs(*task, {}, utils::g_log);
+    CartesianAbstraction abs(to_refs(task), {}, utils::g_log);
 
     ASSERT_EQ(
         get_num_transitions(abs.get_transition_system()),
-        task->get_num_operators());
+        get_shared_operators(task)->get_num_operators());
 
     abs.refine(refinement_hierarchy, abs.get_abstract_state(0), 1, {1});
     ASSERT_EQ(abs.get_num_states(), 2);
@@ -55,15 +62,15 @@ TEST(CartesianTests, test_probabilistic_transition_system)
 TEST(CartesianTests, test_probabilistic_transition_system2)
 {
     std::fstream file("resources/pblocksworld_example.psas");
-    std::shared_ptr<ProbabilisticTask> task = tasks::read_sas_task(file);
+    SharedProbabilisticTask task = tasks::read_sas_task(file);
 
     RefinementHierarchy refinement_hierarchy;
-    CartesianAbstraction abs(*task, {}, utils::g_log);
+    CartesianAbstraction abs(to_refs(task), {}, utils::g_log);
 
     ASSERT_EQ(abs.get_num_states(), 1);
     ASSERT_EQ(
         get_num_transitions(abs.get_transition_system()),
-        task->get_num_operators());
+        get_shared_operators(task)->get_num_operators());
 
     abs.refine(refinement_hierarchy, abs.get_abstract_state(0), 4, {1});
     ASSERT_EQ(abs.get_num_states(), 2);

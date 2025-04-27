@@ -1,13 +1,14 @@
 #ifndef CEGAR_TYPES_H
 #define CEGAR_TYPES_H
 
+#include "downward/abstract_task.h"
+
 #include <limits>
 #include <memory>
 #include <unordered_set>
 #include <vector>
 
 namespace downward {
-class AbstractTask;
 class StateMapping;
 class InverseOperatorMapping;
 }
@@ -28,7 +29,7 @@ const int UNDEFINED = -1;
 const int INF = std::numeric_limits<int>::max();
 
 using SharedTasks = std::vector<std::tuple<
-    std::shared_ptr<AbstractTask>,
+    SharedAbstractTask,
     std::shared_ptr<StateMapping>,
     std::shared_ptr<InverseOperatorMapping>>>;
 

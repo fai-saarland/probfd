@@ -2,6 +2,7 @@
 
 #include "downward/cartesian_abstractions/abstract_state.h"
 #include "downward/cartesian_abstractions/utils.h"
+#include "downward/initial_state_values.h"
 
 #include "downward/heuristics/additive_heuristic.h"
 
@@ -17,24 +18,22 @@
 using namespace std;
 
 namespace downward::cartesian_abstractions {
-SplitSelector::SplitSelector(
-    const shared_ptr<AbstractTask>& task,
-    PickSplit pick)
-    : task(task)
+SplitSelector::SplitSelector(SharedAbstractTask task, PickSplit pick)
+    : task(std::move(task))
     , pick(pick)
 {
     if (pick == PickSplit::MIN_HADD || pick == PickSplit::MAX_HADD) {
         additive_heuristic =
             std::make_unique<additive_heuristic::AdditiveHeuristic>(
-                task,
-                task,
+                this->task,
+                this->task,
                 std::make_shared<IdentityStateMapping>(),
                 std::make_shared<IdentityOperatorMapping>(),
                 false,
                 "h^add within CEGAR abstractions",
                 utils::Verbosity::SILENT);
         additive_heuristic->compute_heuristic_for_cegar(
-            task->get_initial_state());
+            get_init(this->task).get_initial_state());
     }
 }
 
@@ -55,7 +54,8 @@ int SplitSelector::get_num_unwanted_values(
 double
 SplitSelector::get_refinedness(const AbstractState& state, int var_id) const
 {
-    double all_values = task->get_variables()[var_id].get_domain_size();
+    const auto& variables = get_variables(this->task);
+    double all_values = variables[var_id].get_domain_size();
     assert(all_values >= 2);
     double remaining_values = state.count(var_id);
     assert(2 <= remaining_values && remaining_values <= all_values);

@@ -3,6 +3,7 @@
 #include "downward/pdbs/validation.h"
 
 #include "downward/abstract_task.h"
+#include "downward/goal_fact_list.h"
 #include "downward/state.h"
 
 #include "downward/task_utils/causal_graph.h"
@@ -77,9 +78,7 @@ void PatternCollectionGeneratorSystematic::compute_eff_pre_neighbors(
     }
 
     // Remove elements of pattern.
-    for (int var : pattern) {
-        candidates.erase(var);
-    }
+    for (int var : pattern) { candidates.erase(var); }
 
     result.assign(candidates.begin(), candidates.end());
 }
@@ -133,7 +132,7 @@ void PatternCollectionGeneratorSystematic::enqueue_pattern_if_new(
 }
 
 void PatternCollectionGeneratorSystematic::build_sga_patterns(
-    const AbstractTask& task,
+    const GoalFactList& goals,
     const causal_graph::CausalGraph& cg)
 {
     assert(max_pattern_size >= 1);
@@ -155,7 +154,7 @@ void PatternCollectionGeneratorSystematic::build_sga_patterns(
     */
 
     // Build goal patterns.
-    for (FactPair goal : task.get_goals()) {
+    for (FactPair goal : goals) {
         enqueue_pattern_if_new({goal.var});
     }
 
@@ -175,7 +174,7 @@ void PatternCollectionGeneratorSystematic::build_sga_patterns(
         for (int neighbor_var_id : neighbors) {
             Pattern new_pattern(pattern);
             new_pattern.push_back(neighbor_var_id);
-            sort(new_pattern.begin(), new_pattern.end());
+            ranges::sort(new_pattern);
 
             enqueue_pattern_if_new(new_pattern);
         }
@@ -185,15 +184,17 @@ void PatternCollectionGeneratorSystematic::build_sga_patterns(
 }
 
 void PatternCollectionGeneratorSystematic::build_patterns(
-    const AbstractTask& task)
+    const AbstractTaskTuple& task)
 {
-    int num_variables = task.get_variables().size();
-    const causal_graph::CausalGraph& cg = task.get_causal_graph();
+    const auto& variables = get_variables(task);
+
+    int num_variables = variables.size();
+    const causal_graph::CausalGraph& cg = causal_graph::get_causal_graph(task);
 
     // Generate SGA (single-goal-ancestor) patterns.
     // They are generated into the patterns variable,
     // so we swap them from there.
-    build_sga_patterns(task, cg);
+    build_sga_patterns(get_goal(task), cg);
     PatternCollection sga_patterns;
     patterns->swap(sga_patterns);
 
@@ -252,9 +253,9 @@ void PatternCollectionGeneratorSystematic::build_patterns(
 }
 
 void PatternCollectionGeneratorSystematic::build_patterns_naive(
-    const AbstractTask& task)
+    const VariableSpace& variables) const
 {
-    int num_variables = task.get_variables().size();
+    int num_variables = variables.size();
     PatternCollection current_patterns(1);
     PatternCollection next_patterns;
     for (size_t i = 0; i < max_pattern_size; ++i) {
@@ -284,16 +285,16 @@ string PatternCollectionGeneratorSystematic::name() const
 
 PatternCollectionInformation
 PatternCollectionGeneratorSystematic::compute_patterns(
-    const shared_ptr<AbstractTask>& task)
+    const SharedAbstractTask& task)
 {
     patterns = make_shared<PatternCollection>();
     pattern_set.clear();
     if (only_interesting_patterns) {
-        build_patterns(*task);
+        build_patterns(to_refs(task));
     } else {
-        build_patterns_naive(*task);
+        build_patterns_naive(get_variables(task));
     }
-    return PatternCollectionInformation(*task, patterns, log);
+    return PatternCollectionInformation(to_refs(task), patterns, log);
 }
 
-} // namespace pdbs
+} // namespace downward::pdbs

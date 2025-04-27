@@ -10,17 +10,12 @@
 
 // Forward Declarations
 namespace downward {
-class VariablesProxy;
+class VariableSpace;
 }
 
 namespace downward::utils {
 class Timer;
 } // namespace utils
-
-namespace probfd {
-class ProbabilisticTask;
-class ProbabilisticTaskProxy;
-} // namespace probfd
 
 namespace probfd::cartesian_abstractions {
 class AbstractState;
@@ -77,7 +72,7 @@ public:
 
     // Build abstraction.
     CEGARResult
-    run_refinement_loop(const std::shared_ptr<ProbabilisticTask>& task);
+    run_refinement_loop(const SharedProbabilisticTask& task);
 
 private:
     bool may_keep_refining(const CartesianAbstraction& abstraction) const;
@@ -91,7 +86,7 @@ private:
         simplifies the implementation.
     */
     void separate_facts_unreachable_before_goal(
-        const ProbabilisticTask& task,
+        const ProbabilisticTaskTuple& task,
         FlawGenerator& flaw_generator,
         RefinementHierarchy& refinement_hierarchy,
         CartesianAbstraction& abstraction,
@@ -99,7 +94,7 @@ private:
         downward::utils::Timer& timer);
 
     void refine_abstraction(
-        const downward::VariablesProxy& variables,
+        const downward::VariableSpace& variables,
         FlawGenerator& flaw_generator,
         SplitSelector& split_selector,
         RefinementHierarchy& refinement_hierarchy,

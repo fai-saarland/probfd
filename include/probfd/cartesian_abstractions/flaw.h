@@ -30,7 +30,7 @@ struct Flaw {
         CartesianSet&& desired_cartesian_set);
 
     std::vector<Split>
-    get_possible_splits(const downward::VariablesProxy& variables) const;
+    get_possible_splits(const downward::VariableSpace& variables) const;
 };
 
 } // namespace probfd::cartesian_abstractions

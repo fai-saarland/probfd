@@ -36,7 +36,7 @@ void MergeTreeFactory::dump_options(utils::LogProxy& log) const
 }
 
 unique_ptr<MergeTree> MergeTreeFactory::compute_merge_tree(
-    std::shared_ptr<ProbabilisticTask>&,
+    const SharedProbabilisticTask&,
     const FactoredTransitionSystem&,
     const vector<int>&)
 {

@@ -24,53 +24,72 @@ class LandmarkFactoryRpgSasp : public LandmarkFactoryRelaxation {
     // domain transition graph for the variable
     std::vector<std::vector<std::unordered_set<int>>> dtg_successors;
 
-    void build_dtg_successors(const AbstractTask& task);
+    void build_dtg_successors(
+        const VariableSpace& variables,
+        const ClassicalOperatorSpace& operators);
+
     void add_dtg_successor(int var_id, int pre, int post);
+
     void find_forward_orders(
-        const VariablesProxy& variables,
+        const VariableSpace& variables,
         const std::vector<std::vector<bool>>& reached,
         LandmarkNode* lm_node);
+
     void add_lm_forward_orders();
 
     void get_greedy_preconditions_for_lm(
-        const AbstractTask& task,
+        const VariableSpace& variables,
+        const State& initial_state,
         const Landmark& landmark,
         const AxiomOrOperatorProxy& op,
         std::unordered_map<int, int>& result) const;
+
     void compute_shared_preconditions(
-        const AbstractTask& task,
+        const VariableSpace& variables,
+        const AxiomSpace& axioms,
+        const ClassicalOperatorSpace& operators,
+        const State& initial_state,
         std::unordered_map<int, int>& shared_pre,
-        std::vector<std::vector<bool>>& reached,
-        const Landmark& landmark);
+        const std::vector<std::vector<bool>>& reached,
+        const Landmark& landmark) const;
+
     void compute_disjunctive_preconditions(
-        const AbstractTask& task,
+        const VariableSpace& variables,
+        const AxiomSpace& axioms,
+        const ClassicalOperatorSpace& operators,
+        const State& initial_state,
         std::vector<std::set<FactPair>>& disjunctive_pre,
         std::vector<std::vector<bool>>& reached,
-        const Landmark& landmark);
+        const Landmark& landmark) const;
 
-    virtual void generate_relaxed_landmarks(
-        const std::shared_ptr<AbstractTask>& task,
+    void generate_relaxed_landmarks(
+        const SharedAbstractTask& task,
         Exploration& exploration) override;
+
     void
     found_simple_lm_and_order(const FactPair& a, LandmarkNode& b, EdgeType t);
+
     void found_disj_lm_and_order(
-        const AbstractTask& task,
+        const State& state,
         const std::set<FactPair>& a,
         LandmarkNode& b,
         EdgeType t);
+
     void approximate_lookahead_orders(
-        const AbstractTask& task,
+        const VariableSpace& variables,
+        const State& initial_state,
         const std::vector<std::vector<bool>>& reached,
         LandmarkNode* lmp);
+
     bool domain_connectivity(
-        const VariablesProxy& variables,
+        const VariableSpace& variables,
         const State& initial_state,
         const FactPair& landmark,
-        const std::unordered_set<int>& exclude);
+        const std::unordered_set<int>& exclude) const;
 
-    void build_disjunction_classes(const AbstractTask& task);
+    void build_disjunction_classes(const VariableSpace& variables);
 
-    void discard_disjunctive_landmarks();
+    void discard_disjunctive_landmarks() const;
 
 public:
     LandmarkFactoryRpgSasp(
@@ -78,7 +97,7 @@ public:
         bool use_orders,
         utils::Verbosity verbosity);
 
-    virtual bool supports_conditional_effects() const override;
+    bool supports_conditional_effects() const override;
 };
 } // namespace downward::landmarks
 

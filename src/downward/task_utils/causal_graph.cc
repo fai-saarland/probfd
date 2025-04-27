@@ -30,7 +30,10 @@ using namespace std;
 */
 
 namespace downward::causal_graph {
-static unordered_map<const AbstractTask*, unique_ptr<CausalGraph>>
+
+static utils::HashMap<
+    std::tuple<VariableSpace*, AxiomSpace*, ClassicalOperatorSpace*>,
+    unique_ptr<CausalGraph>>
     causal_graph_cache;
 
 /*
@@ -171,16 +174,17 @@ struct CausalGraphBuilder {
     }
 };
 
-CausalGraph::CausalGraph(const AbstractTask& task)
+CausalGraph::CausalGraph(
+    const VariableSpace& variables,
+    const AxiomSpace& axioms,
+    const ClassicalOperatorSpace& operators)
 {
-    int num_variables = task.get_variables().size();
+    int num_variables = variables.size();
     CausalGraphBuilder cg_builder(num_variables);
 
-    for (OperatorProxy op : task.get_operators())
-        cg_builder.handle_operator(op);
+    for (OperatorProxy op : operators) cg_builder.handle_operator(op);
 
-    for (AxiomProxy op : task.get_axioms())
-        cg_builder.handle_operator(op);
+    for (AxiomProxy op : axioms) cg_builder.handle_operator(op);
 
     cg_builder.pre_eff_builder.compute_relation(pre_to_eff);
     cg_builder.eff_pre_builder.compute_relation(eff_to_pre);
@@ -194,10 +198,10 @@ CausalGraph::~CausalGraph()
 {
 }
 
-void CausalGraph::dump(const AbstractTask& task) const
+void CausalGraph::dump(const VariableSpace& variables) const
 {
     utils::g_log << "Causal graph: " << endl;
-    for (VariableProxy var : task.get_variables()) {
+    for (VariableProxy var : variables) {
         int var_id = var.get_id();
         utils::g_log << "#" << var_id << " [" << var.get_name() << "]:" << endl
                      << "    pre->eff arcs: " << pre_to_eff[var_id] << endl
@@ -208,12 +212,17 @@ void CausalGraph::dump(const AbstractTask& task) const
     }
 }
 
-const CausalGraph& get_causal_graph(const AbstractTask* task)
+const CausalGraph& get_causal_graph(const AbstractTaskTuple& task)
 {
-    if (!causal_graph_cache.contains(task)) {
-        causal_graph_cache.insert(
-            make_pair(task, std::make_unique<CausalGraph>(*task)));
+    auto [variables, axioms, operators] =
+        slice<VariableSpace&, AxiomSpace&, ClassicalOperatorSpace&>(task);
+    auto ptrs = std::make_tuple(&variables, &axioms, &operators);
+
+    if (!causal_graph_cache.contains(ptrs)) {
+        causal_graph_cache.insert(make_pair(
+            ptrs,
+            std::make_unique<CausalGraph>(variables, axioms, operators)));
     }
-    return *causal_graph_cache[task];
+    return *causal_graph_cache[ptrs];
 }
 } // namespace downward::causal_graph

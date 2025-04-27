@@ -1,9 +1,13 @@
 #include "probfd/pdbs/subcollections.h"
 
-#include "downward/pdbs/pattern_cliques.h"
-
+#include "probfd/probabilistic_operator_space.h"
 #include "probfd/probabilistic_task.h"
 #include "probfd/value_type.h"
+
+#include "downward/pdbs/pattern_cliques.h"
+
+#include "downward/fact_pair.h"
+#include "downward/variable_space.h"
 
 #include <algorithm>
 #include <iterator>
@@ -63,20 +67,20 @@ public:
     {
         return effects_to_probs.size() > 1;
     }
+
     [[nodiscard]]
     bool is_pseudo_deterministic() const
     {
         if (effects_to_probs.size() == 2) {
             auto it = effects_to_probs.cbegin();
-            if (it->first.empty() || (++it)->first.empty()) {
-                return true;
-            }
+            if (it->first.empty() || (++it)->first.empty()) { return true; }
         }
 
         return false;
     }
 
     auto begin() { return effects_to_probs.begin(); }
+
     auto end() { return effects_to_probs.end(); }
 
     [[nodiscard]]
@@ -84,6 +88,7 @@ public:
     {
         return effects_to_probs.begin();
     }
+
     [[nodiscard]]
     auto end() const
     {
@@ -136,27 +141,27 @@ struct Permutation {
     }
 
     T& operator[](int i) { return values[i]; }
+
     const T& operator[](int i) const { return values[i]; }
 };
 
 } // namespace
 
 std::vector<std::vector<bool>> compute_prob_orthogonal_vars(
-    const ProbabilisticTask& task,
+    const VariableSpace& variables,
+    const ProbabilisticOperatorSpace& operators,
     bool ignore_deterministic)
 {
-    const size_t num_vars = task.get_variables().size();
+    const size_t num_vars = variables.size();
 
     std::vector<std::vector<bool>> are_orthogonal(
         num_vars,
         std::vector<bool>(num_vars, true));
 
-    for (const ProbabilisticOperatorProxy& op : task.get_operators()) {
+    for (const ProbabilisticOperatorProxy& op : operators) {
         const ProbabilisticOutcomesProxy outcomes = op.get_outcomes();
 
-        if (ignore_deterministic && outcomes.size() == 1) {
-            continue;
-        }
+        if (ignore_deterministic && outcomes.size() == 1) { continue; }
 
         std::unordered_set<int> affected_vars;
 
@@ -179,13 +184,17 @@ std::vector<std::vector<bool>> compute_prob_orthogonal_vars(
 }
 
 std::vector<std::vector<int>> build_compatibility_graph_orthogonality(
-    const ProbabilisticTask& task,
+    const VariableSpace& variables,
+    const ProbabilisticOperatorSpace& operators,
     const PatternCollection& patterns,
     bool ignore_deterministic)
 {
     return build_compatibility_graph_orthogonality(
         patterns,
-        compute_prob_orthogonal_vars(task, ignore_deterministic));
+        compute_prob_orthogonal_vars(
+            variables,
+            operators,
+            ignore_deterministic));
 }
 
 std::vector<std::vector<int>> build_compatibility_graph_orthogonality(

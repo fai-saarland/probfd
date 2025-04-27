@@ -24,7 +24,7 @@ static vector<CartesianHeuristicFunction> generate_heuristic_functions(
     PickSplit pick,
     bool use_general_costs,
     int random_seed,
-    const shared_ptr<AbstractTask>& transform,
+    const SharedAbstractTask& transform,
     utils::LogProxy& log)
 {
     if (log.is_at_least_normal()) {
@@ -51,7 +51,7 @@ AdditiveCartesianHeuristic::AdditiveCartesianHeuristic(
     PickSplit pick,
     bool use_general_costs,
     int random_seed,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
@@ -83,7 +83,7 @@ AdditiveCartesianHeuristic::AdditiveCartesianHeuristic(
     PickSplit pick,
     bool use_general_costs,
     int random_seed,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
     const std::string& description,

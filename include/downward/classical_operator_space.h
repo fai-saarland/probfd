@@ -10,14 +10,21 @@
 namespace downward {
 struct FactPair;
 class State;
-}
+} // namespace downward
 
 namespace downward {
 
 class AxiomEvaluator;
-class OperatorsProxy;
+class OperatorProxy;
+class OperatorEffectsProxy;
+class OperatorEffectConditionsProxy;
 
-class ClassicalOperatorSpace : public virtual OperatorSpace {
+class ClassicalOperatorSpace
+    : public OperatorSpace
+    , public std::ranges::view_interface<ClassicalOperatorSpace> {
+    using OperatorSpace::size;
+    using OperatorSpace::operator[];
+
 public:
     virtual int get_num_operator_effects(int op_index) const = 0;
     virtual int
@@ -27,11 +34,15 @@ public:
         const = 0;
     virtual FactPair get_operator_effect(int op_index, int eff_index) const = 0;
 
-    OperatorsProxy get_operators() const;
+    std::size_t size() const { return this->get_num_operators(); }
+
+    OperatorProxy operator[](std::size_t index) const;
+    OperatorProxy operator[](OperatorID id) const;
 };
 
 class OperatorEffectConditionsProxy
-    : public ProxyCollection<OperatorEffectConditionsProxy> {
+    : public ProxyCollectionTag
+    , public std::ranges::view_interface<OperatorEffectConditionsProxy> {
     const ClassicalOperatorSpace* op_space;
     int op_index;
     int eff_index;
@@ -91,7 +102,9 @@ public:
     }
 };
 
-class OperatorEffectsProxy : public ProxyCollection<OperatorEffectsProxy> {
+class OperatorEffectsProxy
+    : public ProxyCollectionTag
+    , public std::ranges::view_interface<OperatorEffectsProxy> {
     const ClassicalOperatorSpace* op_space;
     int op_index;
 
@@ -156,37 +169,15 @@ public:
     }
 };
 
-class OperatorsProxy : public ProxyCollection<OperatorsProxy> {
-    const ClassicalOperatorSpace* op_space;
-
-public:
-    explicit OperatorsProxy(const ClassicalOperatorSpace& op_space)
-        : op_space(&op_space)
-    {
-    }
-
-    std::size_t size() const { return op_space->get_num_operators(); }
-
-    OperatorProxy operator[](std::size_t index) const
-    {
-        assert(index < size());
-        return OperatorProxy(*op_space, index);
-    }
-
-    OperatorProxy operator[](OperatorID id) const
-    {
-        return (*this)[id.get_index()];
-    }
-
-    operator PartialOperatorsProxy()
-    {
-        return PartialOperatorsProxy(*op_space);
-    }
-};
-
-inline OperatorsProxy ClassicalOperatorSpace::get_operators() const
+inline OperatorProxy ClassicalOperatorSpace::operator[](std::size_t index) const
 {
-    return OperatorsProxy(*this);
+    assert(index < size());
+    return OperatorProxy(*this, index);
+}
+
+inline OperatorProxy ClassicalOperatorSpace::operator[](OperatorID id) const
+{
+    return (*this)[id.get_index()];
 }
 
 } // namespace downward
