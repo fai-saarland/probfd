@@ -43,7 +43,7 @@ public:
                  std::is_default_constructible_v<PrType>)
     = default;
 
-    template <PairLike P>
+    template <downward::PairLike P>
         requires(std::is_constructible_v<T, std::tuple_element_t<0, P>> &&
                  std::is_constructible_v<PrType, std::tuple_element_t<1, P>>)
     explicit(

@@ -11,20 +11,19 @@
 namespace probfd::successor_samplers {
 
 template <std::ranges::input_range R>
-    requires Specialization<std::ranges::range_value_t<R>, ItemProbabilityPair>
-std::ranges::iterator_t<R> weighted_select(
-    R&& range,
-    value_t total_weight,
-    downward::utils::RandomNumberGenerator& rng)
+    requires downward::
+        Specialization<std::ranges::range_value_t<R>, ItemProbabilityPair>
+    std::ranges::iterator_t<R> weighted_select(
+        R&& range,
+        value_t total_weight,
+        downward::utils::RandomNumberGenerator& rng)
 {
     const value_t r = total_weight * rng.random();
 
     auto it = std::ranges::begin(range);
     value_t s = it->probability;
 
-    while (s <= r) {
-        s += (++it)->probability;
-    }
+    while (s <= r) { s += (++it)->probability; }
 
     return it;
 }

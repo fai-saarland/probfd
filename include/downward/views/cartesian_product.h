@@ -1,5 +1,5 @@
-#ifndef PROBFD_CARTESIAN_PRODUCT_H
-#define PROBFD_CARTESIAN_PRODUCT_H
+#ifndef DOWNWARD_CARTESIAN_PRODUCT_H
+#define DOWNWARD_CARTESIAN_PRODUCT_H
 
 #include <version>
 
@@ -7,19 +7,19 @@
 
 #include <ranges>
 
-namespace probfd::views {
+namespace downward::views {
 inline constexpr auto cartesian_product = std::views::cartesian_product;
 }
 
 #else
 
-#include "probfd/views/utils.h"
+#include "downward/views/utils.h"
 
 #include <ranges>
 #include <tuple>
 #include <type_traits>
 
-namespace probfd::views {
+namespace downward::views {
 
 template <std::ranges::viewable_range Range>
 using all_t = decltype(std::views::all(std::declval<Range>()));
@@ -545,8 +545,8 @@ struct CartesianProduct
 
 inline constexpr detail::CartesianProduct cartesian_product;
 
-} // namespace probfd::views
+} // namespace downward::views
 
 #endif
 
-#endif // PROBFD_CARTESIAN_PRODUCT_H
+#endif // downward_CARTESIAN_PRODUCT_H

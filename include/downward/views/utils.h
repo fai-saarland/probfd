@@ -1,9 +1,10 @@
-#ifndef PROBFD_VIEWS_UTILS_H
-#define PROBFD_VIEWS_UTILS_H
+#ifndef DOWNWARD_VIEWS_UTILS_H
+#define DOWNWARD_VIEWS_UTILS_H
 
+#include <ranges>
 #include <type_traits>
 
-namespace probfd::views {
+namespace downward::views {
 namespace detail {
 
 // Alias for a type that is conditionally const.
@@ -37,6 +38,6 @@ concept all_forward =
 template <std::ranges::viewable_range _Rng>
 using all_t = decltype(std::views::all(std::declval<_Rng>()));
 
-} // namespace probfd::views
+} // namespace downward::views
 
 #endif

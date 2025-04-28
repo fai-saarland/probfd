@@ -3,7 +3,7 @@
 
 #include "downward/utils/hash.h"
 
-#include "probfd/concepts.h"
+#include "downward/concepts.h"
 
 #include <compare>
 #include <concepts>
@@ -22,7 +22,7 @@ struct FactPair {
     {
     }
 
-    template <probfd::PairLike P>
+    template <PairLike P>
         requires(std::convertible_to<std::tuple_element_t<0, P>, int> &&
                  std::convertible_to<std::tuple_element_t<1, P>, int>)
     explicit(false) FactPair(P pair)

@@ -131,7 +131,7 @@ bool Distribution<T>::is_dirac() const
 }
 
 template <typename T>
-template <InvocableRV<value_t, T> RandomVariable>
+template <downward::InvocableRV<value_t, T> RandomVariable>
 value_t Distribution<T>::expectation(RandomVariable&& rv) const
 {
     value_t ex = 0_vt;
@@ -143,7 +143,7 @@ value_t Distribution<T>::expectation(RandomVariable&& rv) const
 }
 
 template <typename T>
-template <SubscriptableRV<value_t, T> RandomVariable>
+template <downward::SubscriptableRV<value_t, T> RandomVariable>
 value_t Distribution<T>::expectation(RandomVariable&& rv) const
 {
     value_t ex = 0_vt;

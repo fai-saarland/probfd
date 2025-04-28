@@ -8,6 +8,7 @@ create_library(
         downward/axiom_space
         downward/axiom_utils
         downward/classical_operator_space
+        downward/concepts
         downward/evaluation_context
         downward/evaluation_result
         downward/evaluator

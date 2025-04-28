@@ -70,7 +70,7 @@ VarToValues get_prev_landmarks(const LandmarkNode* node)
     VarToValues groups;
     vector<const LandmarkNode*> open;
     unordered_set<const LandmarkNode*> closed;
-    for (const auto& parent : node->parents | views::keys) {
+    for (const auto& parent : node->parents | std::views::keys) {
         open.push_back(parent);
     }
     while (!open.empty()) {
@@ -80,7 +80,7 @@ VarToValues get_prev_landmarks(const LandmarkNode* node)
         closed.insert(ancestor);
         FactPair ancestor_fact = get_fact(ancestor->get_landmark());
         groups[ancestor_fact.var].push_back(ancestor_fact.value);
-        for (const auto& parent : ancestor->parents | views::keys) {
+        for (const auto& parent : ancestor->parents | std::views::keys) {
             open.push_back(parent);
         }
     }

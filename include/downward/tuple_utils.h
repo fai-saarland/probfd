@@ -1,10 +1,11 @@
 #ifndef DOWNWARD_TUPLE_UTILS_H
 #define DOWNWARD_TUPLE_UTILS_H
 
+#include "downward/concepts.h"
+
 #include <concepts>
 #include <memory>
 #include <optional>
-#include <probfd/concepts.h>
 #include <utility>
 
 namespace downward {

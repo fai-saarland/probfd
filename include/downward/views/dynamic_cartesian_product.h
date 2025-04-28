@@ -1,8 +1,8 @@
-#ifndef PROBFD_DYNAMIC_CARTESIAN_PRODUCT_H
-#define PROBFD_DYNAMIC_CARTESIAN_PRODUCT_H
+#ifndef DOWNWARD_DYNAMIC_CARTESIAN_PRODUCT_H
+#define DOWNWARD_DYNAMIC_CARTESIAN_PRODUCT_H
 
-#include "probfd/views/fold.h"
-#include "probfd/views/utils.h"
+#include "downward/views/fold.h"
+#include "downward/views/utils.h"
 
 #include <algorithm>
 #include <ranges>
@@ -10,7 +10,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace probfd::views {
+namespace downward::views {
 
 template <std::ranges::viewable_range Range>
 using all_t = decltype(std::views::all(std::declval<Range>()));
@@ -684,10 +684,10 @@ using wrap_ref_t = typename wrap_ref<T>::type;
 
 inline constexpr detail::DynamicCartesianProduct dynamic_cartesian_product;
 
-} // namespace probfd::views
+} // namespace downward::views
 
 template <typename T>
-constexpr bool std::ranges::enable_borrowed_range<probfd::views::array<T>> =
+constexpr bool std::ranges::enable_borrowed_range<downward::views::array<T>> =
     true;
 
 template <
@@ -698,12 +698,12 @@ template <
     template <class>
     class UQual>
 struct std::basic_common_reference<
-    probfd::views::array<T>,
-    probfd::views::array<U>,
+    downward::views::array<T>,
+    downward::views::array<U>,
     TQual,
     UQual> {
-    using type = probfd::views::array<probfd::views::detail::wrap_ref_t<
+    using type = downward::views::array<downward::views::detail::wrap_ref_t<
         std::common_reference_t<TQual<T>, UQual<U>>>>;
 };
 
-#endif // PROBFD_DYNAMIC_CARTESIAN_PRODUCT_H
+#endif // DOWNWARD_DYNAMIC_CARTESIAN_PRODUCT_H

@@ -1,5 +1,5 @@
-#ifndef PROBFD_CONCAT_H
-#define PROBFD_CONCAT_H
+#ifndef DOWNWARD_CONCAT_H
+#define DOWNWARD_CONCAT_H
 
 #include <version>
 
@@ -7,20 +7,20 @@
 
 #include <ranges>
 
-namespace probfd::views {
+namespace downward::views {
 inline constexpr auto concat = std::views::concat;
 }
 
 #else
 
-#include "probfd/views/utils.h"
+#include "downward/views/utils.h"
 
 #include <iterator>
 #include <ranges>
 #include <utility>
 #include <variant>
 
-namespace probfd::views {
+namespace downward::views {
 
 namespace detail {
 
@@ -654,7 +654,7 @@ struct Concat : public std::ranges::range_adaptor_closure<Concat> {
 
 inline constexpr Concat concat;
 
-} // namespace probfd::views
+} // namespace downward::views
 
 #endif
 

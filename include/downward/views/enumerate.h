@@ -3,17 +3,17 @@
 // Copyright (c) 2025 ProbFD contributors.
 //
 
-#ifndef PROBFD_VIEWS_ENUMERATE_H
-#define PROBFD_VIEWS_ENUMERATE_H
+#ifndef DOWNWARD_VIEWS_ENUMERATE_H
+#define DOWNWARD_VIEWS_ENUMERATE_H
 
-#include "probfd/views/utils.h"
+#include "downward/views/utils.h"
 
 #include <compare>
 #include <concepts>
 #include <ranges>
 #include <type_traits>
 
-namespace probfd::views {
+namespace downward::views {
 
 template <class _Rng>
 concept Range_with_movable_references =
@@ -536,11 +536,11 @@ public:
 
 inline constexpr Enumerate_fn enumerate;
 
-} // namespace probfd::views
+} // namespace downward::views
 
 template <class Rng>
 constexpr bool
-    std::ranges::enable_borrowed_range<probfd::views::enumerate_view<Rng>> =
+    std::ranges::enable_borrowed_range<downward::views::enumerate_view<Rng>> =
         std::ranges::enable_borrowed_range<Rng>;
 
 #endif

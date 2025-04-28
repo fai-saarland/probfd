@@ -11,8 +11,8 @@
 #include "downward/utils/hash.h"
 #include "downward/utils/system.h"
 
-#include "probfd/views/convert.h"
-#include "probfd/views/enumerate.h"
+#include "downward/views/convert.h"
+#include "downward/views/enumerate.h"
 
 #include <cassert>
 #include <compare>
@@ -79,10 +79,7 @@ void apply_conditional_effects(
     }
 }
 
-template <
-    typename ConditionalEffects,
-    typename StateLike,
-    typename F>
+template <typename ConditionalEffects, typename StateLike, typename F>
     requires std::invocable<F, FactPair>
 void apply_conditional_effects(
     const ConditionalEffects& effects,
@@ -197,22 +194,22 @@ class StateEnumerateFn
 public:
     [[nodiscard]]
     auto operator()(const State& state) const
-        noexcept(noexcept(probfd::views::enumerate_view{state}))
+        noexcept(noexcept(downward::views::enumerate_view{state}))
     {
-        return probfd::views::enumerate_view{state};
+        return downward::views::enumerate_view{state};
     }
 
     auto operator()(State&& state) const
-        noexcept(noexcept(probfd::views::enumerate_view{std::move(state)}))
+        noexcept(noexcept(downward::views::enumerate_view{std::move(state)}))
     {
-        return probfd::views::enumerate_view{std::move(state)};
+        return downward::views::enumerate_view{std::move(state)};
     }
 };
 
 inline constexpr auto as_fact_pair_set =
     StateEnumerateFn{} |
     // std::views::transform([](const auto& p) { return FactPair(p);});
-    probfd::views::convert<FactPair>;
+    downward::views::convert<FactPair>;
 
 namespace utils {
 inline void feed(HashState& hash_state, const State& state)

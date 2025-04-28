@@ -1,14 +1,14 @@
-#ifndef PROBFD_CONVERT_H
-#define PROBFD_CONVERT_H
+#ifndef DOWNWARD_CONVERT_H
+#define DOWNWARD_CONVERT_H
 
-#include "probfd/views/utils.h"
+#include "downward/views/utils.h"
 
 #include <concepts>
 #include <ranges>
 #include <tuple>
 #include <type_traits>
 
-namespace probfd::views {
+namespace downward::views {
 
 template <std::ranges::input_range Vw, typename T>
     requires std::ranges::view<Vw> &&
@@ -473,6 +473,6 @@ struct convert_fn : public std::ranges::range_adaptor_closure<convert_fn<T>> {
 template <typename T>
 inline constexpr detail::convert_fn<T> convert;
 
-} // namespace probfd::views
+} // namespace downward::views
 
 #endif

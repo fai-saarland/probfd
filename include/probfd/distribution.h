@@ -90,10 +90,10 @@ public:
     bool is_dirac(const T& t) const;
     bool is_dirac() const;
 
-    template <InvocableRV<value_t, T> RandomVariable>
+    template <downward::InvocableRV<value_t, T> RandomVariable>
     value_t expectation(RandomVariable&& rv) const;
 
-    template <SubscriptableRV<value_t, T> RandomVariable>
+    template <downward::SubscriptableRV<value_t, T> RandomVariable>
     value_t expectation(RandomVariable&& rv) const;
 
     void normalize(value_t scale);
@@ -127,7 +127,9 @@ public:
 };
 
 template <std::ranges::input_range R>
-    requires(Specialization<std::ranges::range_value_t<R>, ItemProbabilityPair>)
+    requires(downward::Specialization<
+             std::ranges::range_value_t<R>,
+             ItemProbabilityPair>)
 Distribution(std::from_range_t, R&&)
     -> Distribution<std::tuple_element_t<0, std::ranges::range_value_t<R>>>;
 

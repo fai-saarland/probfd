@@ -12,7 +12,7 @@ class MDPAlgorithm;
 
 namespace detail {
 template <typename T>
-    requires Specialization<T, MDPAlgorithm>
+    requires downward::Specialization<T, MDPAlgorithm>
 struct TypesOfS;
 
 template <typename State, typename Action>
@@ -24,12 +24,12 @@ struct TypesOfS<MDPAlgorithm<State, Action>> {
 } // namespace detail
 
 /// The state type used by a specialization of MDPAlgorithm.
-template <DerivedFromSpecializationOf<MDPAlgorithm> T>
+template <downward::DerivedFromSpecializationOf<MDPAlgorithm> T>
 using StateTypeOf =
     typename detail::TypesOfS<typename T::MDPAlgorithm>::state_type;
 
 /// The action type used by a specialization of MDPAlgorithm.
-template <DerivedFromSpecializationOf<MDPAlgorithm> T>
+template <downward::DerivedFromSpecializationOf<MDPAlgorithm> T>
 using ActionTypeOf =
     typename detail::TypesOfS<typename T::MDPAlgorithm>::action_type;
 

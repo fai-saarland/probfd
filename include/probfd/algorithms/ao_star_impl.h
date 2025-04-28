@@ -6,8 +6,6 @@
 
 #include "probfd/algorithms/successor_sampler.h"
 
-#include "probfd/views/concat.h"
-
 #include "probfd/progress_report.h"
 
 #include "downward/utils/countdown_timer.h"

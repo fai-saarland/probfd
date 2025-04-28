@@ -1,5 +1,5 @@
-#ifndef PROBFD_VIEWS_FOLD_H
-#define PROBFD_VIEWS_FOLD_H
+#ifndef DOWNWARD_VIEWS_FOLD_H
+#define DOWNWARD_VIEWS_FOLD_H
 
 #include <version>
 
@@ -7,7 +7,7 @@
 
 #include <algorithm>
 
-namespace probfd::views {
+namespace downward::views {
 inline constexpr auto fold_left = std::ranges::fold_left;
 }
 
@@ -16,7 +16,7 @@ inline constexpr auto fold_left = std::ranges::fold_left;
 #include <algorithm>
 #include <iterator>
 
-namespace probfd::views {
+namespace downward::views {
 namespace detail {
 template <typename Fp>
 class flipped {

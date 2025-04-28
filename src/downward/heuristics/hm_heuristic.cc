@@ -131,7 +131,7 @@ void HMHeuristic::extend_tuple(const Tuple& t, const OperatorProxy& op)
     const auto& cost_function =
         get_cost_function(this->transformed_task);
 
-    for (const auto& tuple : hm_table | views::keys) {
+    for (const auto& tuple : hm_table | std::views::keys) {
         bool contradict = false;
         for (const FactPair& fact : tuple) {
             if (contradict_effect_of(op, fact.var, fact.value)) {

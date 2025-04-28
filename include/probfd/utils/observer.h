@@ -29,7 +29,7 @@ private:
     std::tuple<ObserverList<Events>...> observers;
 
 protected:
-    template <MemberOf<Events...> Event>
+    template <downward::MemberOf<Events...> Event>
     void notifyEvent(const Event& event)
     {
         for (auto& observer : std::get<ObserverList<Event>>(this->observers)) {
@@ -38,7 +38,7 @@ protected:
     }
 
     template <typename... ForEvents>
-        requires(MemberOf<ForEvents, Events...> && ...)
+        requires(downward::MemberOf<ForEvents, Events...> && ...)
     void notifyEvents(const ForEvents&... events)
     {
         (this->notifyEvent(events), ...);
@@ -59,7 +59,7 @@ public:
     }
 
     template <typename... ForEvents>
-        requires(MemberOf<ForEvents, Events...> && ...)
+        requires(downward::MemberOf<ForEvents, Events...> && ...)
     void registerObserver(EventHandlerFor<ForEvents...> auto& observer)
     {
         (std::get<ObserverList<ForEvents>>(this->observers)
@@ -71,7 +71,7 @@ public:
 
     template <typename... ForEvents, typename F>
         requires(
-            (MemberOf<ForEvents, Events...> && ...) &&
+            (downward::MemberOf<ForEvents, Events...> && ...) &&
             !EventHandlerFor<F, ForEvents...> &&
             (std::constructible_from<EventCallback<ForEvents>, F &&> && ...))
     void registerObserver(F&& f)
@@ -81,13 +81,13 @@ public:
          ...);
     }
 
-    template <MemberOf<Events...> Event>
+    template <downward::MemberOf<Events...> Event>
     void registerObserver(const EventCallback<Event>& observer)
     {
         std::get<ObserverList<Event>>(this->observers).push_back(observer);
     }
 
-    template <MemberOf<Events...> Event>
+    template <downward::MemberOf<Events...> Event>
     void registerObserver(EventCallback<Event>&& observer)
     {
         std::get<ObserverList<Event>>(this->observers)

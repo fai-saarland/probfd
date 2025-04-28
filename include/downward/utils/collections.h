@@ -201,7 +201,6 @@ bool have_common_element(const Range1& range1, const Range2& range2)
         std::end(range2));
 }
 
-// The following are used by probfd
 template <typename T, typename A>
 std::vector<T, A>
 merge_sorted(const std::vector<T, A>& left, const std::vector<T, A>& right)
