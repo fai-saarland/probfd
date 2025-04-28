@@ -94,7 +94,7 @@ AxiomEvaluator::AxiomEvaluator(
     }
 }
 
-void AxiomEvaluator::evaluate(vector<int>& state)
+void AxiomEvaluator::evaluate(vector<int>& state) const
 {
     if (!task_has_axioms) return;
 
@@ -109,7 +109,7 @@ void AxiomEvaluator::evaluate(vector<int>& state)
         }
     }
 
-    for (AxiomRule& rule : rules) {
+    for (const AxiomRule& rule : rules) {
         rule.unsatisfied_conditions = rule.condition_count;
 
         /*

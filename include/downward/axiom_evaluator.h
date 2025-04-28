@@ -16,8 +16,9 @@ class AxiomEvaluator {
     };
 
     struct AxiomRule {
+        mutable int unsatisfied_conditions;
+
         int condition_count;
-        int unsatisfied_conditions;
         int effect_var;
         int effect_val;
         AxiomLiteral* effect_literal;
@@ -27,8 +28,8 @@ class AxiomEvaluator {
             int eff_var,
             int eff_val,
             AxiomLiteral* eff_literal)
-            : condition_count(cond_count)
-            , unsatisfied_conditions(cond_count)
+            : unsatisfied_conditions(cond_count)
+            , condition_count(cond_count)
             , effect_var(eff_var)
             , effect_val(eff_val)
             , effect_literal(eff_literal)
@@ -69,17 +70,14 @@ class AxiomEvaluator {
       The queue is an instance variable rather than a local variable
       to reduce reallocation effort. See issue420.
     */
-    std::vector<const AxiomLiteral*> queue;
-
-    template <typename Values, typename Accessor>
-    void evaluate_aux(Values& values, const Accessor& accessor);
+    mutable std::vector<const AxiomLiteral*> queue;
 
 public:
     explicit AxiomEvaluator(
         const VariableSpace& variables,
         const AxiomSpace& axioms);
 
-    void evaluate(std::vector<int>& state);
+    void evaluate(std::vector<int>& state) const;
 };
 
 } // namespace downward
