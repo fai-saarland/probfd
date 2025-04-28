@@ -9,7 +9,6 @@
 namespace downward {
 class OperatorID;
 class State;
-class PlanningTask;
 } // namespace downward
 
 namespace downward::successor_generator {
