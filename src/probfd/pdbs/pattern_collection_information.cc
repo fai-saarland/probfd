@@ -32,7 +32,7 @@ PatternCollectionInformation::PatternCollectionInformation(
     , subcollection_finder_(std::move(arg_subcollection_finder))
     , h(get_operators(task_),
         get_cost_function(task_),
-        get_termination_costs(task))
+        get_termination_costs(task_))
 
 {
     const auto& variables = get_variables(task_);
