@@ -12,7 +12,7 @@
 /// This namespace contains heuristic implementations.
 namespace probfd::heuristics {
 
-class TaskDependentHeuristic : public FDREvaluator {
+class TaskDependentHeuristic : public FDRHeuristic {
 protected:
     SharedProbabilisticTask task_;
     mutable downward::utils::LogProxy log_;

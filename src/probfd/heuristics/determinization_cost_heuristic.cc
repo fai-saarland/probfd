@@ -39,13 +39,14 @@ void DeterminizationCostHeuristic::print_statistics() const
 }
 
 DeterminizationCostHeuristicFactory::DeterminizationCostHeuristicFactory(
-    std::shared_ptr<TaskDependentFactory<Evaluator>> evaluator_factory)
+    std::shared_ptr<downward::TaskDependentFactory<Evaluator>>
+        evaluator_factory)
     : evaluator_factory_(std::move(evaluator_factory))
 {
 }
 
-std::unique_ptr<FDREvaluator>
-DeterminizationCostHeuristicFactory::create_heuristic(
+std::unique_ptr<FDRHeuristic>
+DeterminizationCostHeuristicFactory::create_object(
     const SharedProbabilisticTask& task)
 {
     return std::make_unique<DeterminizationCostHeuristic>(

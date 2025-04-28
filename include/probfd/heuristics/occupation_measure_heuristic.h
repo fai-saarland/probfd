@@ -52,8 +52,8 @@ public:
         const std::shared_ptr<occupation_measures::ConstraintGeneratorFactory>&
             constraint_generator_factory);
 
-    std::unique_ptr<FDREvaluator>
-    create_heuristic(const SharedProbabilisticTask& task) override;
+    std::unique_ptr<FDRHeuristic>
+    create_object(const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::heuristics

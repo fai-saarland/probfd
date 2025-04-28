@@ -64,8 +64,8 @@ AdditiveCartesianHeuristicFactory::AdditiveCartesianHeuristicFactory(
 {
 }
 
-std::unique_ptr<FDREvaluator>
-AdditiveCartesianHeuristicFactory::create_heuristic(
+std::unique_ptr<FDRHeuristic>
+AdditiveCartesianHeuristicFactory::create_object(
     const SharedProbabilisticTask& task)
 {
     if (log_.is_at_least_normal()) {

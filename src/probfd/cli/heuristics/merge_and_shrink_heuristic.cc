@@ -85,7 +85,7 @@ public:
         double main_loop_max_time,
         utils::Verbosity verbosity);
 
-    std::unique_ptr<FDREvaluator> create_heuristic(
+    std::unique_ptr<FDRHeuristic> create_object(
         const SharedProbabilisticTask& task) override;
 };
 
@@ -112,7 +112,7 @@ MergeAndShrinkHeuristicFactory::MergeAndShrinkHeuristicFactory(
 {
 }
 
-std::unique_ptr<FDREvaluator> MergeAndShrinkHeuristicFactory::create_heuristic(
+std::unique_ptr<FDRHeuristic> MergeAndShrinkHeuristicFactory::create_object(
     const SharedProbabilisticTask& task)
 {
     FactoredTransitionSystem fts =

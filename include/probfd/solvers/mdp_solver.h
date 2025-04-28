@@ -5,7 +5,9 @@
 
 #include "probfd/fdr_types.h"
 #include "probfd/progress_report.h"
+#include "probfd/task_heuristic_factory_fwd.h"
 #include "probfd/task_state_space.h"
+#include "probfd/task_state_space_factory_fwd.h"
 
 #include "downward/utils/logging.h"
 
@@ -14,9 +16,6 @@
 
 // Forward Declarations
 namespace probfd {
-class TaskHeuristicFactory;
-class TaskStateSpaceFactory;
-
 template <typename, typename>
 class Policy;
 } // namespace probfd

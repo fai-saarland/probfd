@@ -24,7 +24,7 @@ public:
     }
 
     std::unique_ptr<TaskStateSpace>
-    create_state_space(const SharedProbabilisticTask& task) override
+    create_object(const SharedProbabilisticTask& task) override
     {
         return std::make_unique<TaskStateSpace>(
             get_variables(task),
@@ -46,7 +46,7 @@ public:
     }
 
     std::unique_ptr<TaskStateSpace>
-    create_state_space(const SharedProbabilisticTask& task) override
+    create_object(const SharedProbabilisticTask& task) override
     {
         return std::make_unique<CachingTaskStateSpace>(
             get_variables(task),

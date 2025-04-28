@@ -28,7 +28,7 @@ public:
             "if h(s) is infinity in the all-outcomes determinization. "
             "Otherwise, the heuristic value is 0.");
 
-        add_option<std::shared_ptr<TaskDependentFactory<Evaluator>>>(
+        add_option<std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>(
             "evaluator");
     }
 
@@ -37,7 +37,8 @@ protected:
     create_component(const Options& options, const Context&) const override
     {
         return std::make_shared<DeadEndPruningHeuristicFactory>(
-            options.get<std::shared_ptr<TaskDependentFactory<Evaluator>>>(
+            options.get<
+                std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>(
                 "evaluator"));
     }
 };

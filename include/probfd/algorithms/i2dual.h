@@ -82,7 +82,7 @@ public:
 
     Interval solve(
         FDRMDP& mdp,
-        FDREvaluator& heuristic,
+        FDRHeuristic& heuristic,
         const downward::State& initial_state,
         ProgressReport progress,
         double max_time);
@@ -97,7 +97,7 @@ public:
 private:
     bool evaluate_state(
         FDRMDP& mdp,
-        FDREvaluator& heuristic,
+        FDRHeuristic& heuristic,
         const downward::State& state,
         IDualData& data);
 

@@ -4,6 +4,8 @@
 #include "probfd/aliases.h"
 #include "probfd/fdr_types.h"
 #include "probfd/probabilistic_task.h"
+#include "probfd/task_heuristic_factory_fwd.h"
+#include "probfd/task_state_space_factory_fwd.h"
 
 #include <iosfwd>
 #include <memory>
@@ -16,8 +18,6 @@ class OperatorID;
 
 namespace probfd {
 class ProgressReport;
-class TaskHeuristicFactory;
-class TaskStateSpaceFactory;
 
 template <typename, typename>
 class MDP;

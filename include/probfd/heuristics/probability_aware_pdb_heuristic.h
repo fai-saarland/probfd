@@ -27,7 +27,7 @@ namespace probfd::heuristics {
  * specified by the configuration of the pattern collection generation
  * algorithm.
  */
-class ProbabilityAwarePDBHeuristic final : public FDREvaluator {
+class ProbabilityAwarePDBHeuristic final : public FDRHeuristic {
     const pdbs::PPDBCollection pdbs_;
     const std::vector<pdbs::PatternSubCollection> subcollections_;
     const std::shared_ptr<pdbs::SubCollectionFinder> subcollection_finder_;
@@ -55,8 +55,8 @@ public:
         double max_time_dominance_pruning,
         downward::utils::Verbosity verbosity);
 
-    std::unique_ptr<FDREvaluator>
-    create_heuristic(const SharedProbabilisticTask& task) override;
+    std::unique_ptr<FDRHeuristic>
+    create_object(const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::heuristics

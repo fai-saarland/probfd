@@ -38,8 +38,8 @@ SCPHeuristicFactory::SCPHeuristicFactory(
 {
 }
 
-std::unique_ptr<FDREvaluator>
-SCPHeuristicFactory::create_heuristic(const SharedProbabilisticTask& task)
+std::unique_ptr<FDRHeuristic>
+SCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
 {
     auto pattern_collection_info =
         pattern_collection_generator_->generate(task);

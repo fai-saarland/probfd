@@ -54,8 +54,8 @@ UCPHeuristicFactory::UCPHeuristicFactory(
 {
 }
 
-std::unique_ptr<FDREvaluator>
-UCPHeuristicFactory::create_heuristic(const SharedProbabilisticTask& task)
+std::unique_ptr<FDRHeuristic>
+UCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
 {
     const auto pattern_collection_info =
         pattern_collection_generator_->generate(task);

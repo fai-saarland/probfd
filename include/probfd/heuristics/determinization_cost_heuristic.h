@@ -26,7 +26,7 @@ namespace probfd::heuristics {
  * @note If the underlying classical heuristic is admissible/consistent, this
  * heuristic is also admissible/heuristic.
  */
-class DeterminizationCostHeuristic final : public FDREvaluator {
+class DeterminizationCostHeuristic final : public FDRHeuristic {
     const std::shared_ptr<downward::Evaluator> evaluator_;
 
 public:
@@ -56,8 +56,8 @@ public:
         std::shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>
             evaluator_factory);
 
-    std::unique_ptr<FDREvaluator>
-    create_heuristic(const SharedProbabilisticTask& task) override;
+    std::unique_ptr<FDRHeuristic>
+    create_object(const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::heuristics

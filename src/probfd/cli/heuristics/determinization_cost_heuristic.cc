@@ -28,7 +28,7 @@ public:
             "planning heuristic evaluated on the all-outcomes "
             "determinization of the planning task.");
 
-        add_option<std::shared_ptr<TaskDependentFactory<Evaluator>>>(
+        add_option<std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>(
             "heuristic",
             "The classical planning heuristic.");
     }
@@ -37,7 +37,8 @@ public:
     create_component(const Options& options, const Context&) const override
     {
         return std::make_shared<DeterminizationCostHeuristicFactory>(
-            options.get<std::shared_ptr<TaskDependentFactory<Evaluator>>>(
+            options.get<
+                std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>(
                 "heuristic"));
     }
 };

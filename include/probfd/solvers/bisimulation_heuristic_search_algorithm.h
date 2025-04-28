@@ -44,7 +44,7 @@ public:
 
     std::unique_ptr<PolicyType> compute_policy(
         FDRMDP&,
-        FDREvaluator&,
+        FDRHeuristic&,
         const downward::State&,
         ProgressReport progress,
         double max_time) override;

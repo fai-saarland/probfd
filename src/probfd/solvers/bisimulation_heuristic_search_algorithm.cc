@@ -69,7 +69,7 @@ public:
 
 auto BisimulationBasedHeuristicSearchAlgorithm::compute_policy(
     FDRMDP&,
-    FDREvaluator&,
+    FDRHeuristic&,
     const State&,
     ProgressReport progress,
     double max_time) -> std::unique_ptr<PolicyType>

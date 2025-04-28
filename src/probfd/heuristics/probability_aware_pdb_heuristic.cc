@@ -46,8 +46,8 @@ ProbabilityAwarePDBHeuristicFactory::ProbabilityAwarePDBHeuristicFactory(
 {
 }
 
-std::unique_ptr<FDREvaluator>
-ProbabilityAwarePDBHeuristicFactory::create_heuristic(
+std::unique_ptr<FDRHeuristic>
+ProbabilityAwarePDBHeuristicFactory::create_object(
     const SharedProbabilisticTask& task)
 {
     const utils::Timer construction_timer;

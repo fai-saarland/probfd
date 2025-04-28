@@ -23,7 +23,7 @@ class PatternCollectionGenerator;
 
 namespace probfd::heuristics {
 
-class SCPHeuristic final : public FDREvaluator {
+class SCPHeuristic final : public FDRHeuristic {
     const value_t termination_cost_;
     const std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs_;
 
@@ -57,8 +57,8 @@ public:
         int random_seed,
         downward::utils::Verbosity verbosity);
 
-    std::unique_ptr<FDREvaluator>
-    create_heuristic(const SharedProbabilisticTask& task) override;
+    std::unique_ptr<FDRHeuristic>
+    create_object(const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::heuristics

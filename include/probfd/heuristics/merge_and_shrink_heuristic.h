@@ -39,7 +39,7 @@ public:
     value_t lookup_distance(const downward::State& state) const;
 };
 
-class MergeAndShrinkHeuristic final : public FDREvaluator {
+class MergeAndShrinkHeuristic final : public FDRHeuristic {
     // The final merge-and-shrink representations, storing goal distances.
     std::vector<FactorDistances> factor_distances_;
 

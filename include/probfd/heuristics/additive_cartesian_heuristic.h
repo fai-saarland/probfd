@@ -24,7 +24,7 @@ namespace probfd::heuristics {
   Store CartesianHeuristicFunctions and compute overall heuristic by
   summing all of their values.
 */
-class AdditiveCartesianHeuristic final : public FDREvaluator {
+class AdditiveCartesianHeuristic final : public FDRHeuristic {
     std::vector<cartesian_abstractions::CartesianHeuristicFunction>
         heuristic_functions_;
 
@@ -69,7 +69,7 @@ public:
         bool use_general_costs,
         downward::utils::Verbosity verbosity);
 
-    std::unique_ptr<FDREvaluator> create_heuristic(
+    std::unique_ptr<FDRHeuristic> create_object(
         const SharedProbabilisticTask& task) override;
 };
 

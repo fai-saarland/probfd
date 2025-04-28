@@ -3,6 +3,9 @@
 
 #include "probfd/aliases.h"
 
+#include "probfd/task_heuristic_factory_fwd.h"
+#include "probfd/task_state_space_factory_fwd.h"
+
 #include <memory>
 #include <optional>
 #include <string>
@@ -17,11 +20,6 @@ class Evaluator;
 namespace downward::utils {
 enum class Verbosity;
 }
-
-namespace probfd {
-class TaskStateSpaceFactory;
-class TaskHeuristicFactory;
-} // namespace probfd
 
 namespace probfd::solvers {
 class StatisticalMDPAlgorithmFactory;

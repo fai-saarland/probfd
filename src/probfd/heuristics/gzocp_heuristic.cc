@@ -109,8 +109,8 @@ GZOCPHeuristicFactory::GZOCPHeuristicFactory(
 {
 }
 
-std::unique_ptr<FDREvaluator>
-GZOCPHeuristicFactory::create_heuristic(const SharedProbabilisticTask& task)
+std::unique_ptr<FDRHeuristic>
+GZOCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
 {
     auto pattern_collection_info =
         pattern_collection_generator_->generate(task);

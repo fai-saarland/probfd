@@ -52,8 +52,8 @@ OccupationMeasureHeuristicFactory::OccupationMeasureHeuristicFactory(
 {
 }
 
-std::unique_ptr<FDREvaluator>
-OccupationMeasureHeuristicFactory::create_heuristic(
+std::unique_ptr<FDRHeuristic>
+OccupationMeasureHeuristicFactory::create_object(
     const SharedProbabilisticTask& task)
 {
     auto constraints =

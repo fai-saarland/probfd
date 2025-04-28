@@ -103,7 +103,7 @@ class Solver : public SolverInterface {
 
     std::unique_ptr<StatisticalMDPAlgorithm> algorithm;
     std::unique_ptr<TaskStateSpace> state_space;
-    const std::shared_ptr<FDREvaluator> heuristic;
+    const std::shared_ptr<FDRHeuristic> heuristic;
     std::string algorithm_name;
     std::string policy_filename;
     bool print_fact_names;
@@ -115,7 +115,7 @@ public:
         SharedProbabilisticTask task,
         std::unique_ptr<StatisticalMDPAlgorithm> algorithm,
         std::unique_ptr<TaskStateSpace> state_space,
-        std::shared_ptr<FDREvaluator> heuristic,
+        std::shared_ptr<FDRHeuristic> heuristic,
         std::string algorithm_name,
         std::string policy_filename,
         bool print_fact_names,
@@ -253,14 +253,14 @@ MDPSolver::create(const SharedProbabilisticTask& task)
     std::unique_ptr<TaskStateSpace> state_space = run_time_logged(
         std::cout,
         "Constructing state space...",
-        &TaskStateSpaceFactory::create_state_space,
+        &TaskStateSpaceFactory::create_object,
         *task_state_space_factory_,
         task);
 
-    std::shared_ptr<FDREvaluator> heuristic = run_time_logged(
+    std::shared_ptr<FDRHeuristic> heuristic = run_time_logged(
         std::cout,
         "Constructing heuristic...",
-        &TaskHeuristicFactory::create_heuristic,
+        &TaskHeuristicFactory::create_object,
         *heuristic_factory_,
         task);
 

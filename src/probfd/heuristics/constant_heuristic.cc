@@ -7,8 +7,8 @@ using namespace downward;
 
 namespace probfd::heuristics {
 
-std::unique_ptr<FDREvaluator>
-BlindEvaluatorFactory::create_heuristic(const SharedProbabilisticTask& task)
+std::unique_ptr<FDRHeuristic>
+BlindEvaluatorFactory::create_object(const SharedProbabilisticTask& task)
 {
     return std::make_unique<BlindEvaluator<State>>(
         get_operators(task),
