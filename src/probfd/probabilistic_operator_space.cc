@@ -3,6 +3,7 @@
 #include "probfd/task_utils/task_properties.h"
 
 #include "downward/fact_pair.h"
+#include "downward/state_registry.h"
 
 #include <algorithm>
 #include <cassert>
@@ -136,6 +137,13 @@ State ProbabilisticOutcomeProxy::get_unregistered_successor(
     AxiomEvaluator& axiom_evaluator) const
 {
     return state.get_unregistered_successor(axiom_evaluator, get_effects());
+}
+
+State ProbabilisticOutcomeProxy::get_registered_successor(
+    const State& state,
+    StateRegistry& registry) const
+{
+    return registry.get_successor_state(state, get_effects());
 }
 
 ProbabilisticOutcomesProxy::ProbabilisticOutcomesProxy(

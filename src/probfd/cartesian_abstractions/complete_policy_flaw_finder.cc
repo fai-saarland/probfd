@@ -54,7 +54,10 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
     const auto& goals = get_goal(task);
     const auto& init_vals = get_init(task);
 
-    StateRegistry registry(variables, axioms, init_vals.get_initial_state());
+    StateRegistry registry(
+        task_properties::g_state_packers[variables],
+        g_axiom_evaluators[variables, axioms],
+        init_vals.get_initial_state());
 
     struct QueueItem {
         downward::StateID state_id;

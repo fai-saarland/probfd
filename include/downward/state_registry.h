@@ -114,6 +114,14 @@ class IntPacker;
 namespace downward {
 using PackedStateBin = int_packer::IntPacker::Bin;
 
+class StateRegistry;
+
+template <typename T>
+concept RegistryOperatorLike =
+    requires(const T& op, const State& state, StateRegistry& registry) {
+        { op.get_registered_successor(state, registry) } -> std::same_as<State>;
+    };
+
 class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
     struct StateIDSemanticHash {
         const segmented_vector::SegmentedArrayVector<PackedStateBin>&
@@ -168,11 +176,10 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
     using StateIDSet =
         int_hash_set::IntHashSet<StateIDSemanticHash, StateIDSemanticEqual>;
 
-    const AxiomSpace& axioms;
-    const State init_state;
-
     const int_packer::IntPacker& state_packer;
     const AxiomEvaluator& axiom_evaluator;
+
+    const State init_state;
 
     segmented_vector::SegmentedArrayVector<PackedStateBin> state_data_pool;
     StateIDSet registered_states;
@@ -184,13 +191,13 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
 
 public:
     explicit StateRegistry(
-        const VariableSpace& variables,
-        const AxiomSpace& axioms,
+        const int_packer::IntPacker& state_packer,
+        const AxiomEvaluator& axiom_evaluator,
         const InitialStateValues& init_values);
 
     explicit StateRegistry(
-        const VariableSpace& variables,
-        const AxiomSpace& axioms,
+        const int_packer::IntPacker& state_packer,
+        const AxiomEvaluator& axiom_evaluator,
         const State& initial_state);
 
     int get_num_variables() const { return state_packer.get_num_variables(); }
@@ -198,6 +205,13 @@ public:
     const int_packer::IntPacker& get_state_packer() const
     {
         return state_packer;
+    }
+
+    void reset()
+    {
+        state_data_pool.clear();
+        registered_states.clear();
+        cached_initial_state.reset();
     }
 
     /*
@@ -226,17 +240,22 @@ public:
       registers it if this was not done before. This is an expensive operation
       as it includes duplicate checking.
     */
-    State
-    get_successor_state(const State& predecessor, const OperatorProxy& op);
+    template <RegistryOperatorLike OperatorType>
+    State get_successor_state(const State& predecessor, const OperatorType& op)
+    {
+        return op.get_registered_successor(predecessor, *this);
+    }
 
-    template <typename Effects>
-    State get_successor_state(const State& predecessor, const Effects& effects)
+    template <typename ConditionalEffects>
+    State get_successor_state(
+        const State& predecessor,
+        const ConditionalEffects& effects)
     {
         state_data_pool.push_back(predecessor.get_buffer());
         PackedStateBin* buffer = state_data_pool[state_data_pool.size() - 1];
         /* Experiments for issue348 showed that for tasks with axioms it's
            faster to compute successor states using unpacked data. */
-        if (task_properties::has_axioms(axioms)) {
+        if (axiom_evaluator.has_axioms()) {
             predecessor.unpack();
             std::vector<int> new_values = predecessor.get_unpacked_values();
             apply_conditional_effects(effects, predecessor, new_values);
@@ -247,15 +266,13 @@ public:
             downward::StateID id = insert_id_or_pop_state();
             return State(*this, id, buffer, std::move(new_values));
         } else {
-            for (const auto effect : effects) {
-                if (all_facts_true(effect.get_conditions(), predecessor)) {
-                    FactPair effect_pair = effect.get_fact();
-                    state_packer.set(
-                        buffer,
-                        effect_pair.var,
-                        effect_pair.value);
-                }
-            }
+            apply_conditional_effects(
+                effects,
+                predecessor,
+                [&](const FactPair& fact) {
+                    state_packer.set(buffer, fact.var, fact.value);
+                });
+
             downward::StateID id = insert_id_or_pop_state();
             return State(*this, id, buffer);
         }

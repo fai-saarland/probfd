@@ -8,6 +8,7 @@
 
 namespace downward {
 class State;
+class StateRegistry;
 class AxiomEvaluator;
 class OperatorPreconditionsProxy;
 } // namespace downward
@@ -195,6 +196,11 @@ public:
     downward::State get_unregistered_successor(
         const downward::State& state,
         downward::AxiomEvaluator& axiom_evaluator) const;
+
+    /// Get the registered successor state for this outcome.
+    downward::State get_registered_successor(
+        const downward::State& state,
+        downward::StateRegistry& registry) const;
 };
 
 /// Proxy class used to inspect the list of probabilistic outcomes of a

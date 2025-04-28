@@ -35,7 +35,10 @@ TaskStateSpace::TaskStateSpace(
     const InitialStateValues& initial_values,
     std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators)
     : operators_(std::move(operators))
-    , state_registry_(variables, axioms, initial_values)
+    , state_registry_(
+          task_properties::g_state_packers[variables],
+          g_axiom_evaluators[variables, axioms],
+          initial_values)
     , gen_(variables, *this->operators_)
     , notify_(std::move(path_dependent_evaluators))
 {

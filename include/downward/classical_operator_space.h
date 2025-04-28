@@ -12,6 +12,7 @@
 namespace downward {
 struct FactPair;
 class State;
+class StateRegistry;
 } // namespace downward
 
 namespace downward {
@@ -163,6 +164,9 @@ public:
     State get_unregistered_successor(
         const State& state,
         AxiomEvaluator& axiom_evaluator) const;
+
+    State
+    get_registered_successor(const State& state, StateRegistry& registry) const;
 
     friend bool
     operator==(const OperatorProxy& left, const OperatorProxy& right)

@@ -60,7 +60,11 @@ bool SamplingFlawFinder::apply_policy(
         einfos_.clear();
     });
 
-    StateRegistry registry(variables, axioms, initial_state);
+    StateRegistry registry(
+        downward::task_properties::g_state_packers[variables],
+        g_axiom_evaluators[variables, axioms],
+        initial_state);
+
     stk_.push_back(registry.get_initial_state());
 
     for (;;) {
@@ -151,9 +155,7 @@ bool SamplingFlawFinder::apply_policy(
             do {
                 stk_.pop_back();
 
-                if (stk_.empty()) {
-                    return true;
-                }
+                if (stk_.empty()) { return true; }
 
                 current = &stk_.back();
                 einfo = &einfos_[StateID(current->get_id())];

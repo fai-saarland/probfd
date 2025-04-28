@@ -11,13 +11,12 @@ using namespace std;
 namespace downward {
 
 StateRegistry::StateRegistry(
-    const VariableSpace& variables,
-    const AxiomSpace& axioms,
+    const int_packer::IntPacker& state_packer,
+    const AxiomEvaluator& axiom_evaluator,
     const InitialStateValues& init_values)
-    : axioms(axioms)
+    : state_packer(state_packer)
+    , axiom_evaluator(axiom_evaluator)
     , init_state(init_values.get_initial_state())
-    , state_packer(task_properties::g_state_packers[variables])
-    , axiom_evaluator(g_axiom_evaluators[variables, axioms])
     , state_data_pool(get_bins_per_state())
     , registered_states(
           StateIDSemanticHash(state_data_pool, get_bins_per_state()),
@@ -26,13 +25,12 @@ StateRegistry::StateRegistry(
 }
 
 StateRegistry::StateRegistry(
-    const VariableSpace& variables,
-    const AxiomSpace& axioms,
+    const int_packer::IntPacker& state_packer,
+    const AxiomEvaluator& axiom_evaluator,
     const State& init_state)
-    : axioms(axioms)
+    : state_packer(state_packer)
+    , axiom_evaluator(axiom_evaluator)
     , init_state(init_state)
-    , state_packer(task_properties::g_state_packers[variables])
-    , axiom_evaluator(g_axiom_evaluators[variables, axioms])
     , state_data_pool(get_bins_per_state())
     , registered_states(
           StateIDSemanticHash(state_data_pool, get_bins_per_state()),
@@ -85,56 +83,6 @@ const State& StateRegistry::get_initial_state()
         cached_initial_state = std::make_unique<State>(lookup_state(id));
     }
     return *cached_initial_state;
-}
-
-// TODO it would be nice to move the actual state creation (and operator
-// application)
-//      out of the StateRegistry. This could for example be done by global
-//      functions operating on state buffers (PackedStateBin *).
-State StateRegistry::get_successor_state(
-    const State& predecessor,
-    const OperatorProxy& op)
-{
-    state_data_pool.push_back(predecessor.get_buffer());
-    /*
-      TODO: ideally, we would not modify state_data_pool here and in
-      insert_id_or_pop_state, but only at one place, to avoid errors like
-      buffer becoming a dangling pointer. This used to be a bug before being
-      fixed in https://issues.fast-downward.org/issue1115.
-    */
-    PackedStateBin* buffer = state_data_pool[state_data_pool.size() - 1];
-    /* Experiments for issue348 showed that for tasks with axioms it's faster
-       to compute successor states using unpacked data. */
-    if (task_properties::has_axioms(axioms)) {
-        predecessor.unpack();
-        vector<int> new_values = predecessor.get_unpacked_values();
-        apply_conditional_effects(op.get_effects(), predecessor, new_values);
-        axiom_evaluator.evaluate(new_values);
-        for (size_t i = 0; i < new_values.size(); ++i) {
-            state_packer.set(buffer, i, new_values[i]);
-        }
-
-        /*
-          NOTE: insert_id_or_pop_state possibly invalidates buffer, hence
-          we use lookup_state to retrieve the state using the correct buffer.
-        */
-        StateID id = insert_id_or_pop_state();
-        return lookup_state(id, move(new_values));
-    } else {
-        for (EffectProxy effect : op.get_effects()) {
-            if (all_facts_true(effect.get_conditions(), predecessor)) {
-                FactPair effect_pair = effect.get_fact();
-                state_packer.set(buffer, effect_pair.var, effect_pair.value);
-            }
-        }
-
-        /*
-          NOTE: insert_id_or_pop_state possibly invalidates buffer, hence
-          we use lookup_state to retrieve the state using the correct buffer.
-        */
-        StateID id = insert_id_or_pop_state();
-        return lookup_state(id);
-    }
 }
 
 int StateRegistry::get_bins_per_state() const

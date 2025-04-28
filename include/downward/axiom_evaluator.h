@@ -78,6 +78,8 @@ public:
         const AxiomSpace& axioms);
 
     void evaluate(std::vector<int>& state) const;
+
+    bool has_axioms() const { return task_has_axioms; }
 };
 
 } // namespace downward

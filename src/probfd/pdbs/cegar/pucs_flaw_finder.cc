@@ -53,7 +53,10 @@ bool PUCSFlawFinder::apply_policy(
         probabilities_.clear();
     });
 
-    StateRegistry registry(variables, axioms, initial_state);
+    StateRegistry registry(
+        downward::task_properties::g_state_packers[variables],
+        g_axiom_evaluators[variables, axioms],
+        initial_state);
 
     {
         const State& init = registry.get_initial_state();

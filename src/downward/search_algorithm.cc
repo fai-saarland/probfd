@@ -57,8 +57,8 @@ SearchAlgorithm::SearchAlgorithm(
     , task(std::move(task))
     , log(utils::get_log_for_verbosity(verbosity))
     , state_registry(
-          get_variables(this->task),
-          get_axioms(this->task),
+          task_properties::g_state_packers[get_variables(this->task)],
+          g_axiom_evaluators[get_variables(this->task), get_axioms(this->task)],
           get_init(this->task))
     , successor_generator(get_successor_generator(
           get_variables(this->task),
@@ -108,9 +108,7 @@ void SearchAlgorithm::set_plan(const Plan& p)
 
 bool SearchAlgorithm::check_goal_and_set_plan(const State& state)
 {
-    if (task_properties::is_goal_state(
-            get_goal(task),
-            state)) {
+    if (task_properties::is_goal_state(get_goal(task), state)) {
         log << "Solution found!" << endl;
         Plan plan;
         search_space.trace_path(state, plan);

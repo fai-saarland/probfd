@@ -53,6 +53,18 @@ bool all_facts_true(const FactRange& facts, const StateLike& state)
     return true;
 }
 
+template <std::ranges::input_range FactRange, typename F>
+    requires std::invocable<F, FactPair>
+bool all_facts_true(const FactRange& facts, F&& check_fact)
+    requires std::
+        convertible_to<std::ranges::range_reference_t<FactRange>, FactPair>
+{
+    for (const FactPair fact : facts) {
+        if (std::invoke(std::forward<F>(check_fact), fact)) return false;
+    }
+    return true;
+}
+
 template <typename ConditionalEffects, typename StateLike>
 void apply_conditional_effects(
     const ConditionalEffects& effects,
@@ -63,6 +75,23 @@ void apply_conditional_effects(
         if (all_facts_true(effect.get_conditions(), condition_state)) {
             const auto [var, value] = effect.get_fact();
             values[var] = value;
+        }
+    }
+}
+
+template <
+    typename ConditionalEffects,
+    typename StateLike,
+    typename F>
+    requires std::invocable<F, FactPair>
+void apply_conditional_effects(
+    const ConditionalEffects& effects,
+    const StateLike& condition_state,
+    F&& set_fact)
+{
+    for (const auto effect : effects) {
+        if (all_facts_true(effect.get_conditions(), condition_state)) {
+            std::invoke(std::forward<F>(set_fact), effect.get_fact());
         }
     }
 }

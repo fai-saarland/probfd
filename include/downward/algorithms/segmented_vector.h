@@ -463,6 +463,21 @@ public:
             push_back(entry);
         }
     }
+
+    void clear()
+    {
+        for (size_t i = 0; i < the_size; ++i) {
+            for (size_t offset = 0; offset < elements_per_array; ++offset) {
+                ATraits::destroy(element_allocator, operator[](i) + offset);
+            }
+        }
+        for (size_t i = 0; i < segments.size(); ++i) {
+            element_allocator.deallocate(segments[i], elements_per_segment);
+        }
+
+        segments.clear();
+        the_size = 0;
+    }
 };
 } // namespace segmented_vector
 

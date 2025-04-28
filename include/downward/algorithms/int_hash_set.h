@@ -119,9 +119,7 @@ class IntHashSet {
         num_entries = 0;
         buckets.resize(new_capacity);
         for (const Bucket& bucket : old_buckets) {
-            if (bucket.full()) {
-                insert(bucket.key, bucket.hash);
-            }
+            if (bucket.full()) { insert(bucket.key, bucket.hash); }
         }
         (void)num_entries_before;
         assert(num_entries == num_entries_before);
@@ -175,9 +173,7 @@ class IntHashSet {
     {
         assert(num_entries < capacity());
         assert(utils::in_bounds(index, buckets));
-        while (buckets[index].full()) {
-            index = get_bucket(index + 1);
-        }
+        while (buckets[index].full()) { index = get_bucket(index + 1); }
         return index;
     }
 
@@ -222,9 +218,7 @@ class IntHashSet {
         }
 
         assert(num_entries <= capacity());
-        if (num_entries == capacity()) {
-            enlarge();
-        }
+        if (num_entries == capacity()) { enlarge(); }
         assert(num_entries < capacity());
 
         // Compute ideal bucket.
@@ -284,6 +278,14 @@ public:
     {
     }
 
+    void clear()
+    {
+        buckets.clear();
+        buckets.emplace_back();
+        num_entries = 0;
+        num_resizes = 0;
+    }
+
     int size() const { return num_entries; }
 
     /*
@@ -310,9 +312,7 @@ public:
             } else {
                 log << "_";
             }
-            if (i < num_buckets - 1) {
-                log << ", ";
-            }
+            if (i < num_buckets - 1) { log << ", "; }
         }
         log << "]" << std::endl;
     }
@@ -334,6 +334,6 @@ const int IntHashSet<Hasher, Equal>::MAX_DISTANCE;
 
 template <typename Hasher, typename Equal>
 const unsigned int IntHashSet<Hasher, Equal>::MAX_BUCKETS;
-} // namespace int_hash_set
+} // namespace downward::int_hash_set
 
 #endif
