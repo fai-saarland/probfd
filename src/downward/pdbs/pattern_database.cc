@@ -138,13 +138,13 @@ void PatternDatabase::multiply_out(
     if (pos == static_cast<int>(effects_without_pre.size())) {
         // All effects without precondition have been checked: insert op.
         if (!eff_pairs.empty()) {
-            operators.push_back(AbstractOperator(
+            operators.emplace_back(
                 prev_pairs,
                 pre_pairs,
                 eff_pairs,
                 cost,
                 hash_multipliers,
-                concrete_op_id));
+                concrete_op_id);
         }
     } else {
         // For each possible value for the current variable, build an
@@ -275,7 +275,7 @@ void PatternDatabase::create_pdb(
 
     // build the match tree
     MatchTree match_tree(variables, pattern, hash_multipliers);
-    for (size_t op_id = 0; op_id < operators.size(); ++op_id) {
+    for (size_t op_id = 0; op_id < abs_operators.size(); ++op_id) {
         const AbstractOperator& op = abs_operators[op_id];
         match_tree.insert(op_id, op.get_regression_preconditions());
     }
