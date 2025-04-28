@@ -1,6 +1,8 @@
 #ifndef AXIOM_SPACE_H
 #define AXIOM_SPACE_H
 
+#include "downward/algorithms/subscriber.h"
+
 #include "downward/fact_pair.h"
 #include "downward/proxy_collection.h"
 
@@ -16,10 +18,9 @@ class AxiomEffectsProxy;
 
 class AxiomSpace
     : public ProxyCollectionTag
+    , public subscriber::SubscriberService<AxiomSpace>
     , public std::ranges::view_interface<AxiomSpace> {
 public:
-    virtual ~AxiomSpace() = default;
-
     virtual int get_variable_axiom_layer(int var) const = 0;
     virtual int get_variable_default_axiom_value(int var) const = 0;
     virtual int get_num_axioms() const = 0;

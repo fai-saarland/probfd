@@ -168,7 +168,6 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
     using StateIDSet =
         int_hash_set::IntHashSet<StateIDSemanticHash, StateIDSemanticEqual>;
 
-    const VariableSpace& variables;
     const AxiomSpace& axioms;
     const State init_state;
 

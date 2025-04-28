@@ -1,6 +1,8 @@
 #ifndef GOAL_FACT_LIST_H
 #define GOAL_FACT_LIST_H
 
+#include "downward/algorithms/subscriber.h"
+
 #include "downward/fact_pair.h"
 #include "downward/proxy_collection.h"
 
@@ -8,6 +10,7 @@ namespace downward {
 
 class GoalFactList
     : public ProxyCollectionTag
+    , public subscriber::SubscriberService<GoalFactList>
     , public std::ranges::view_interface<GoalFactList> {
 public:
     virtual ~GoalFactList() = default;

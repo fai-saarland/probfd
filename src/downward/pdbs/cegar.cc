@@ -79,7 +79,7 @@ class CEGAR {
     const bool use_wildcard_plans;
     utils::LogProxy& log;
     shared_ptr<utils::RandomNumberGenerator> rng;
-    const AbstractTaskTuple& task;
+    AbstractTaskTuple task;
     const vector<FactPair>& goal_facts;
     unordered_set<int> blacklisted_variables;
 

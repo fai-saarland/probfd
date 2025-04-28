@@ -1,6 +1,8 @@
 #ifndef VARIABLE_SPACE_H
 #define VARIABLE_SPACE_H
 
+#include "downward/algorithms/subscriber.h"
+
 #include "downward/fact_pair.h"
 
 #include "downward/proxy_collection.h"
@@ -15,10 +17,9 @@ class FactsProxy;
 
 class VariableSpace
     : public ProxyCollectionTag
+    , public subscriber::SubscriberService<VariableSpace>
     , public std::ranges::view_interface<VariableSpace> {
 public:
-    virtual ~VariableSpace() = default;
-
     virtual int get_num_variables() const = 0;
     virtual int get_variable_domain_size(int var) const = 0;
 

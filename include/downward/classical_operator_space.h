@@ -1,6 +1,8 @@
 #ifndef CLASSICAL_OPERATOR_SPACE_H
 #define CLASSICAL_OPERATOR_SPACE_H
 
+#include "downward/algorithms/subscriber.h"
+
 #include "downward/fact_pair.h"
 #include "downward/operator_space.h"
 #include "downward/proxy_collection.h"
@@ -21,6 +23,7 @@ class OperatorEffectConditionsProxy;
 
 class ClassicalOperatorSpace
     : public OperatorSpace
+    , public subscriber::SubscriberService<ClassicalOperatorSpace>
     , public std::ranges::view_interface<ClassicalOperatorSpace> {
     using OperatorSpace::size;
     using OperatorSpace::operator[];

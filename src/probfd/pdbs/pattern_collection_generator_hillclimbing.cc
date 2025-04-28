@@ -1,6 +1,7 @@
 #include "probfd/pdbs/pattern_collection_generator_hillclimbing.h"
 
 #include "downward/axioms.h"
+#include "downward/axiom_space.h"
 #include "downward/goal_fact_list.h"
 #include "downward/initial_state_values.h"
 #include "downward/per_task_information.h"

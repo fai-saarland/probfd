@@ -1,7 +1,7 @@
 #ifndef PROBFD_TASK_UTILS_SAMPLING_H
 #define PROBFD_TASK_UTILS_SAMPLING_H
 
-#include "Probfd/probabilistic_task.h"
+#include "probfd/probabilistic_task.h"
 #include "probfd/probabilistic_operator_space.h"
 #include "probfd/value_type.h"
 

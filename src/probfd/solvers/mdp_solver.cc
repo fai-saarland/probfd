@@ -180,8 +180,7 @@ public:
                     policy->get_decision(initial_state)->q_value_interval);
 
                 const auto& variables = get_variables(task);
-                const auto& operators =
-                    get_operators(task);
+                const auto& operators = get_operators(task);
 
                 std::ofstream out(policy_filename);
                 auto print_state = [this, &variables](
@@ -205,11 +204,10 @@ public:
                     }
                 };
 
-                auto print_action = [this, &operators](
-                                        const OperatorID& op_id,
-                                        std::ostream& out) {
-                    out << operators.get_operator_name(op_id.get_index());
-                };
+                auto print_action =
+                    [&operators](const OperatorID& op_id, std::ostream& out) {
+                        out << operators.get_operator_name(op_id.get_index());
+                    };
 
                 print_policy(
                     out,

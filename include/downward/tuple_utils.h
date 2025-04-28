@@ -189,7 +189,7 @@ constexpr auto replace(TupleLike&& t, U&&... u)
 }
 
 template <typename TupleLike, typename F>
-constexpr auto map(TupleLike&& t, F&& f)
+constexpr auto map_tuple(TupleLike&& t, F&& f)
 {
     return std::apply(
         [f = std::forward<F>(f)](auto&&... x) {

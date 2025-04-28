@@ -359,7 +359,7 @@ read_axioms(istream& in, const vector<ExplicitVariable>& variables)
         axioms.emplace_back(in);
         check_facts(axioms.back(), variables);
     }
-    return std::move(axioms);
+    return axioms;
 }
 
 static OperatorInfo read_actions(

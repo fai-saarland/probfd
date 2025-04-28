@@ -45,7 +45,7 @@ shared_ptr<LandmarkGraph>
 LandmarkFactory::compute_lm_graph(const SharedAbstractTask& task)
 {
     if (lm_graph) {
-        if (lm_graph_task != map(task, [](auto& p) { return p.get(); })) {
+        if (lm_graph_task != map_tuple(task, [](auto& p) { return p.get(); })) {
             cerr << "LandmarkFactory was asked to compute landmark graphs for "
                  << "two different tasks. This is currently not supported."
                  << endl;
@@ -60,7 +60,7 @@ LandmarkFactory::compute_lm_graph(const SharedAbstractTask& task)
         ClassicalOperatorSpace,
         InitialStateValues>(task);
 
-    lm_graph_task = map(to_refs(task), [](auto& t) { return &t; });
+    lm_graph_task = map_tuple(to_refs(task), [](auto& t) { return &t; });
     utils::Timer lm_generation_timer;
 
     lm_graph = make_shared<LandmarkGraph>();

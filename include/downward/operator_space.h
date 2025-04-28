@@ -1,6 +1,8 @@
 #ifndef OPERATOR_SPACE_H
 #define OPERATOR_SPACE_H
 
+#include "downward/algorithms/subscriber.h"
+
 #include "downward/fact_pair.h"
 #include "downward/operator_id.h"
 #include "downward/proxy_collection.h"
@@ -18,10 +20,9 @@ class PartialOperatorProxy;
 
 class OperatorSpace
     : public ProxyCollectionTag
+    , public subscriber::SubscriberService<OperatorSpace>
     , public std::ranges::view_interface<OperatorSpace> {
 public:
-    virtual ~OperatorSpace() = default;
-
     virtual std::string get_operator_name(int index) const = 0;
     virtual int get_num_operators() const = 0;
     virtual int get_num_operator_preconditions(int index) const = 0;
