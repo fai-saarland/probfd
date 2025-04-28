@@ -18,7 +18,6 @@ StateRegistry::StateRegistry(
     , init_state(init_values.get_initial_state())
     , state_packer(task_properties::g_state_packers[variables])
     , axiom_evaluator(g_axiom_evaluators[variables, axioms])
-    , num_variables(variables.get_num_variables())
     , state_data_pool(get_bins_per_state())
     , registered_states(
           StateIDSemanticHash(state_data_pool, get_bins_per_state()),
@@ -34,7 +33,6 @@ StateRegistry::StateRegistry(
     , init_state(init_state)
     , state_packer(task_properties::g_state_packers[variables])
     , axiom_evaluator(g_axiom_evaluators[variables, axioms])
-    , num_variables(variables.get_num_variables())
     , state_data_pool(get_bins_per_state())
     , registered_states(
           StateIDSemanticHash(state_data_pool, get_bins_per_state()),

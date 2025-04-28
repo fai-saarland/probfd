@@ -172,8 +172,7 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
     const State init_state;
 
     const int_packer::IntPacker& state_packer;
-    AxiomEvaluator& axiom_evaluator;
-    const int num_variables;
+    const AxiomEvaluator& axiom_evaluator;
 
     segmented_vector::SegmentedArrayVector<PackedStateBin> state_data_pool;
     StateIDSet registered_states;
@@ -194,7 +193,7 @@ public:
         const AxiomSpace& axioms,
         const State& initial_state);
 
-    int get_num_variables() const { return num_variables; }
+    int get_num_variables() const { return state_packer.get_num_variables(); }
 
     const int_packer::IntPacker& get_state_packer() const
     {

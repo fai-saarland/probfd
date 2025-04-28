@@ -158,4 +158,10 @@ int IntPacker::pack_one_bin(
         ++num_vars_in_bin;
     }
 }
-} // namespace int_packer
+
+std::size_t IntPacker::get_num_variables() const
+{
+    return var_infos.size();
+}
+
+} // namespace downward::int_packer
