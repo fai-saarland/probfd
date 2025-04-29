@@ -30,7 +30,7 @@ TEST(CartesianTests, test_probabilistic_transition_system)
     std::shared_ptr<ProbabilisticTask> task = tasks::read_sas_task(file);
     const ProbabilisticTaskProxy task_proxy(*task);
 
-    RefinementHierarchy refinement_hierarchy(task);
+    RefinementHierarchy refinement_hierarchy;
     CartesianAbstraction abs(task_proxy, {}, utils::g_log);
 
     ASSERT_EQ(
@@ -60,7 +60,7 @@ TEST(CartesianTests, test_probabilistic_transition_system2)
     std::shared_ptr<ProbabilisticTask> task = tasks::read_sas_task(file);
     const ProbabilisticTaskProxy task_proxy(*task);
 
-    RefinementHierarchy refinement_hierarchy(task);
+    RefinementHierarchy refinement_hierarchy;
     CartesianAbstraction abs(task_proxy, {}, utils::g_log);
 
     ASSERT_EQ(abs.get_num_states(), 1);

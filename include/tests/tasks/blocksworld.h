@@ -68,9 +68,6 @@ public:
 
     std::string get_fact_name(const downward::FactPair& fact) const override;
 
-    bool are_facts_mutex(const downward::FactPair&, const downward::FactPair&)
-        const override;
-
     int get_num_axioms() const override;
 
     std::string get_axiom_name(int) const override;
@@ -101,11 +98,6 @@ public:
     downward::FactPair get_goal_fact(int index) const override;
 
     std::vector<int> get_initial_state_values() const override;
-
-    void convert_ancestor_state_values(std::vector<int>&, const PlanningTask*)
-        const override;
-
-    int convert_operator_index(int, const PlanningTask*) const override;
 
     probfd::value_t get_operator_cost(int index) const override;
 
