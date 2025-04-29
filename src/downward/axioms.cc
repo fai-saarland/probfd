@@ -1,6 +1,8 @@
 #include "downward/axioms.h"
 
 #include "downward/axiom_evaluator.h"
+#include "downward/axiom_space.h"
+#include "downward/variable_space.h"
 
 #include "downward/per_task_information.h"
 

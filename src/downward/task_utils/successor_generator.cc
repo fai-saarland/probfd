@@ -4,7 +4,9 @@
 #include "downward/task_utils/successor_generator_internals.h"
 
 #include "downward/abstract_task.h"
+#include "downward/operator_space.h"
 #include "downward/state.h"
+#include "downward/variable_space.h"
 
 using namespace std;
 
