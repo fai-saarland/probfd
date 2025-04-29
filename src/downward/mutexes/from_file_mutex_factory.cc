@@ -1,5 +1,7 @@
 #include "downward/mutexes/from_file_mutex_factory.h"
 
+#include "downward/mutex_information.h"
+
 #include "downward/abstract_task.h"
 #include "downward/state.h"
 
@@ -7,6 +9,7 @@
 #include "downward/utils/system.h"
 
 #include <fstream>
+#include <memory>
 #include <set>
 #include <vector>
 
@@ -34,7 +37,7 @@ class ExplicitMutexInformation : public MutexInformation {
     std::vector<std::vector<std::set<FactPair>>> mutexes_;
 
 public:
-    ExplicitMutexInformation(std::istream& in, const VariablesProxy& variables);
+    ExplicitMutexInformation(std::istream& in, const VariableSpace& variables);
 
     bool are_facts_mutex(const FactPair& fact1, const FactPair& fact2)
         const override;
@@ -42,7 +45,7 @@ public:
 
 ExplicitMutexInformation::ExplicitMutexInformation(
     std::istream& in,
-    const VariablesProxy& variables)
+    const VariableSpace& variables)
     : mutexes_(variables.size())
 {
     for (size_t i = 0; i < variables.size(); ++i)
@@ -110,11 +113,12 @@ FromFileMutexFactory::FromFileMutexFactory(std::string filename)
 }
 
 std::unique_ptr<MutexInformation>
-FromFileMutexFactory::create_object(const std::shared_ptr<AbstractTask>& task)
+FromFileMutexFactory::create_object(const SharedAbstractTask& task)
 {
     std::fstream file(filename);
-    VariablesProxy variables(*task);
-    return std::make_shared<ExplicitMutexInformation>(file, variables);
+    return std::make_unique<ExplicitMutexInformation>(
+        file,
+        get_variables(task));
 }
 
 }

@@ -7,6 +7,7 @@
 #include "downward/variable_space.h"
 
 #include <string>
+#include <memory>
 #include <vector>
 
 namespace downward {

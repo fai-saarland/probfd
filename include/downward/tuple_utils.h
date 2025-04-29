@@ -73,7 +73,7 @@ struct occurences;
 
 template <std::size_t i, template <typename, typename> typename C, typename T>
 struct occurences<i, C, T> {
-    static constexpr std::index_sequence<> value;
+    static constexpr std::index_sequence<> value = {};
     using type = decltype(value);
 };
 

@@ -215,15 +215,13 @@ void SingleCEGAR::refine(
         log << "on " << flaw_var << endl;
     }
 
-    const auto& variables = get_variables(task);
-
     // flaw_var is not yet in the collection
     // Note on precondition violations: flaw_var may be a goal variable but
     // nevertheless is added to the pattern causing the flaw and not to
     // a single new pattern.
     assert(utils::is_product_within_limit(
         pdb.num_states(),
-        variables[flaw_var].get_domain_size(),
+        get_variables(task)[flaw_var].get_domain_size(),
         max_pdb_size_));
 
     if (log.is_at_least_verbose()) {

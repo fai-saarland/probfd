@@ -14,6 +14,8 @@
 
 // Forward Declarations
 namespace downward {
+class AxiomSpace;
+
 template <typename>
 class OperatorCostFunction;
 }
@@ -123,7 +125,9 @@ extern value_t get_min_operator_cost(
  * Runtime: O(m + n), where m is the number of axioms and n is the total
  * number of operator effects.
  */
-extern int get_num_total_effects(const ProbabilisticOperatorSpace& ops);
+extern int get_num_total_effects(
+    const downward::AxiomSpace& axioms,
+    const ProbabilisticOperatorSpace& operators);
 
 /**
  * @brief Dumps a probabilistic task to a given log.
