@@ -240,9 +240,13 @@ const ProbabilisticCausalGraph& get_causal_graph(
     const AxiomSpace& axioms,
     const ProbabilisticOperatorSpace& operators)
 {
-    const std::tuple entry = map_tuple(
-        std::forward_as_tuple(variables, axioms, operators),
-        [](auto&& arg) { return &arg; });
+    const std::tuple<
+        const VariableSpace*,
+        const AxiomSpace*,
+        const ProbabilisticOperatorSpace*>
+        entry = map_tuple(
+            std::forward_as_tuple(variables, axioms, operators),
+            [](auto&& arg) { return &arg; });
 
     if (!causal_graph_cache.contains(entry)) {
         causal_graph_cache.emplace(
