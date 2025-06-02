@@ -168,7 +168,7 @@ std::unique_ptr<ConstraintGenerator>
 HROCGeneratorFactory::construct_constraint_generator(
     const SharedProbabilisticTask&)
 {
-    return std::unique_ptr<HROCGenerator>();
+    return std::make_unique<HROCGenerator>();
 }
 
 } // namespace probfd::occupation_measures
