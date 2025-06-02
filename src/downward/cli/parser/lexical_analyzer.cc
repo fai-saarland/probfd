@@ -41,8 +41,8 @@ static vector<pair<TokenType, regex>> construct_token_type_expressions()
         {TokenType::FLOAT,
          R"([+-]?(((\d*\.\d+|\d+\.)(e[+-]?\d+|[kmg]\b)?)|\d+e[+-]?\d+))"},
         {TokenType::INTEGER, R"([+-]?(infinity|\d+([kmg]\b)?))"},
-        {TokenType::IN, R"(in)"},
-        {TokenType::AS, R"(as)"},
+        {TokenType::IN, R"(in(?![a-z0-9]))"},
+        {TokenType::AS, R"(as(?![a-z0-9]))"},
         /*
           Identifiers have to be parsed last to prevent reserved words (
           'infinity', 'true', 'false', and 'let') from being recognized as
