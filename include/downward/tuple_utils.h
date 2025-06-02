@@ -196,7 +196,7 @@ constexpr auto map_tuple(TupleLike&& t, F&& f)
         [f = std::forward<F>(f)](auto&&... x) {
             return std::forward_as_tuple(f(x)...);
         },
-        t);
+        std::forward<TupleLike>(t));
 }
 
 template <auto F, typename TupleLike>
