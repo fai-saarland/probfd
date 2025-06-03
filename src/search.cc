@@ -122,13 +122,13 @@ static int search(argparse::ArgumentParser& parser)
                     std::print(std::cout, ", {}", def.variable_name);
                 }
 
-                std::println(std::cout);
+                std::println(std::cout, "");
             }
         }
 
         std::cout << "Constructing solver from feature expression:\n";
         decorated->print(std::cout, 4, false);
-        std::println(std::cout);
+        std::println(std::cout, "");
 
         std::any constructed = decorated->construct();
 
