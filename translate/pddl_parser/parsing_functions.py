@@ -940,7 +940,14 @@ def parse_task_pddl(
             yield parse_condition(context, goal[1], type_dict, predicate_dict)
 
         prev, iterator = tee(iterator)
-        goal_reward = next(iterator)
+        
+        try:
+            goal_reward = next(iterator)
+        except StopIteration:
+            context.error(
+                "Missing metric definition.",
+                syntax=SYNTAX_METRIC)
+            
         if check_named_block(goal_reward, [":goal-reward"]):
             if not has_reward_fluent:
                 context.error("Goal reward construct requires :rewards "
