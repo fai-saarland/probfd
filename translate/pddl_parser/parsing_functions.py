@@ -416,7 +416,7 @@ def add_effects(tmp_effect, result):
 def parse_probability(context, text):
     probability = Fraction(text)
 
-    if probability <= 0 or probability > 1:
+    if probability < 0 or probability > 1:
         context.error("Expected probability between zero and one", probability)
 
     return probability
@@ -516,8 +516,11 @@ def parse_effect(context, alist, type_dict, predicate_dict, has_reward_fluent):
             probability = parse_probability(context, pair[0])
             effect = parse_effect(context, pair[1], type_dict,
                                   predicate_dict, has_reward_fluent)
-            remaining_probability -= probability
-            outcomes.append((probability, effect))
+            
+            if probability > 0:
+                # TODO should we discard at parsing phase already?
+                remaining_probability -= probability
+                outcomes.append((probability, effect))
 
         if remaining_probability < 0:
             context.error(
