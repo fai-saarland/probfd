@@ -42,7 +42,7 @@ void JsonObject::print(std::ostream& os, int indent)
         element->print(os, indent + 4);
     }
 
-    std::println(os);
+    std::println(os, "");
 
     if (indent == 0) {
         std::print(os, "}}");
@@ -81,7 +81,7 @@ void JsonArray::print(std::ostream& os, int indent)
         element->print(os, indent + 4);
     }
 
-    std::println(os);
+    std::println(os, "");
 
     if (indent == 0) {
         std::print(os, "]");

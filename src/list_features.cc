@@ -293,7 +293,7 @@ protected:
             }
         }
 
-        std::println(os);
+        std::println(os, "");
     }
 
     void print_category_synopsis(
