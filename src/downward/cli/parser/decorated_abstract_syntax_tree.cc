@@ -252,8 +252,7 @@ void DecoratedLetNode::print(
         }
     }
 
-    std::println(out);
-    std::println(out, "{:>{}}", "in", indent + 2);
+    std::println(out, "\n{:>{}}", "in", indent + 2);
 
     nested_value->print(out, indent + 4, print_default_args);
 }
