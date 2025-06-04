@@ -1,9 +1,11 @@
 #! /usr/bin/env python3
 
 import copy
+import itertools
 from collections import defaultdict
 
 import pddl
+from translate import options
 
 
 # Copied from insantiate
@@ -180,6 +182,43 @@ def all_conditions(task):
 # variables of <forall(vars, phi)>.
 
 def remove_universal_quantifiers(task):
+    if options.enumerate_forall:
+        objs = get_objects_by_type(task.objects, task.types)
+        def recurse(condition):
+            # Uses new_axioms_by_condition and type_map from surrounding scope.
+            if isinstance(condition, pddl.UniversalCondition):
+                args = []
+                domains = []
+                for arg in condition.parameters:
+                    args.append(arg)
+                    domains.append(objs[arg.type_name])
+                parts = []
+                for values in itertools.product(*domains):
+                    var_mapping = {args[i].name: values[i] for i in range(len(args))}
+                    parts.extend([recurse(part.partial_instantiate(var_mapping)) for part in condition.parts])
+                return pddl.Conjunction(parts)
+            else:
+                new_parts = [recurse(part) for part in condition.parts]
+                return condition.change_parts(new_parts)
+
+        for action in task.actions:
+            proxy = PreconditionProxy(action)
+            if proxy.condition.has_universal_part():
+                proxy.set(recurse(proxy.condition).simplified())
+        proxy = GoalConditionProxy(task)
+        if proxy.condition.has_universal_part():
+            proxy.set(recurse(proxy.condition).simplified())
+
+        def proxies():
+            for action in task.actions:
+                for effect in action.effects:
+                    yield EffectConditionProxy(action, effect)
+            for axiom in task.axioms:
+                yield AxiomConditionProxy(axiom)
+    else:
+        def proxies():
+            return all_conditions(task)
+
     def recurse(condition):
         # Uses new_axioms_by_condition and type_map from surrounding scope.
         if isinstance(condition, pddl.UniversalCondition):
@@ -199,7 +238,7 @@ def remove_universal_quantifiers(task):
             return condition.change_parts(new_parts)
 
     new_axioms_by_condition = {}
-    for proxy in tuple(all_conditions(task)):
+    for proxy in tuple(proxies()):
         # Cannot use generator because we add new axioms on the fly.
         if proxy.condition.has_universal_part():
             type_map = proxy.get_type_map()
