@@ -211,8 +211,9 @@ def remove_universal_quantifiers(task):
 
         def proxies():
             for action in task.actions:
-                for effect in action.effects:
-                    yield EffectConditionProxy(action, effect)
+                for _, effects in action.outcomes:
+                    for effect in effects:
+                            yield EffectConditionProxy(action, effect)
             for axiom in task.axioms:
                 yield AxiomConditionProxy(axiom)
     else:
