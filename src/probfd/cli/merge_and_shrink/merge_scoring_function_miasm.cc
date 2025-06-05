@@ -116,11 +116,11 @@ public:
         handle_shrink_limit_options_defaults(options_copy, context);
 
         return make_shared<MergeScoringFunctionMIASM>(
-            options.get<bool>("use_caching"),
-            options.get<shared_ptr<ShrinkStrategy>>("shrink_strategy"),
-            options.get<int>("max_states"),
-            options.get<int>("max_states_before_merge"),
-            options.get<int>("threshold_before_merge"));
+            options_copy.get<bool>("use_caching"),
+            options_copy.get<shared_ptr<ShrinkStrategy>>("shrink_strategy"),
+            options_copy.get<int>("max_states"),
+            options_copy.get<int>("max_states_before_merge"),
+            options_copy.get<int>("threshold_before_merge"));
     }
 };
 
