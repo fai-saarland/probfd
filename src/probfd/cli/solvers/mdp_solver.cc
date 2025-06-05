@@ -50,6 +50,10 @@ void add_base_solver_options_except_algorithm_to_feature(Feature& feature)
         "written.",
         "\"sas_policy\"");
     feature.add_option<bool>(
+        "discard_policy",
+        "Whether to skip writing the policy to disk.",
+        "false");
+    feature.add_option<bool>(
         "print_fact_names",
         "Determines the way in which state facts are written to the policy "
         "output file. If true, they are printed using the fact names of the "
@@ -87,7 +91,9 @@ get_base_solver_args_no_algorithm_from_options(const Options& options)
             options.get<std::shared_ptr<TaskHeuristicFactory>>("heuristic")),
         get_log_arguments_from_options(options),
         std::make_tuple(
-            options.get<std::string>("policy_file"),
+            options.get<bool>("discard_policy")
+                ? std::nullopt
+                : std::optional(options.get<std::string>("policy_file")),
             options.get<bool>("print_fact_names"),
             options.contains("report_epsilon")
                 ? std::optional<value_t>(options.get<value_t>("report_epsilon"))

@@ -81,7 +81,7 @@ MDPSolver::MDPSolver(
     std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
     std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
     Verbosity verbosity,
-    std::string policy_filename,
+    std::optional<std::string> policy_filename,
     bool print_fact_names,
     std::optional<value_t> report_epsilon,
     bool report_enabled)
@@ -105,7 +105,7 @@ class Solver : public SolverInterface {
     std::unique_ptr<TaskStateSpace> state_space;
     const std::shared_ptr<FDRHeuristic> heuristic;
     std::string algorithm_name;
-    std::string policy_filename;
+    std::optional<std::string> policy_filename;
     bool print_fact_names;
 
     ProgressReport progress;
@@ -117,7 +117,7 @@ public:
         std::unique_ptr<TaskStateSpace> state_space,
         std::shared_ptr<FDRHeuristic> heuristic,
         std::string algorithm_name,
-        std::string policy_filename,
+        std::optional<std::string> policy_filename,
         bool print_fact_names,
         std::optional<value_t> report_epsilon,
         bool report_enabled)
@@ -182,40 +182,44 @@ public:
                 const auto& variables = get_variables(task);
                 const auto& operators = get_operators(task);
 
-                std::ofstream out(policy_filename);
-                auto print_state = [this, &variables](
-                                       const State& state,
-                                       std::ostream& out) {
-                    if (print_fact_names) {
-                        out << variables.get_fact_name({0, state[0]});
-                        for (int i = 1; i != variables.get_num_variables();
-                             ++i) {
-                            out << ", "
-                                << variables.get_fact_name({i, state[i]});
-                        }
-                    } else {
-                        out << "{ " << 0 << " -> " << state[0];
+                if (policy_filename) {
+                    std::ofstream out(*policy_filename);
+                    auto print_state = [this, &variables](
+                                           const State& state,
+                                           std::ostream& out) {
+                        if (print_fact_names) {
+                            out << variables.get_fact_name({0, state[0]});
+                            for (int i = 1; i != variables.get_num_variables();
+                                 ++i) {
+                                out << ", "
+                                    << variables.get_fact_name({i, state[i]});
+                            }
+                        } else {
+                            out << "{ " << 0 << " -> " << state[0];
 
-                        for (const auto [var, val] :
-                             state | as_fact_pair_set | std::views::drop(1)) {
-                            out << ", " << var << " -> " << val;
+                            for (const auto [var, val] :
+                                 state | as_fact_pair_set |
+                                     std::views::drop(1)) {
+                                out << ", " << var << " -> " << val;
+                            }
+                            out << " }";
                         }
-                        out << " }";
-                    }
-                };
+                    };
 
-                auto print_action =
-                    [&operators](const OperatorID& op_id, std::ostream& out) {
+                    auto print_action = [&operators](
+                                            const OperatorID& op_id,
+                                            std::ostream& out) {
                         out << operators.get_operator_name(op_id.get_index());
                     };
 
-                print_policy(
-                    out,
-                    print_state,
-                    print_action,
-                    *policy,
-                    mdp,
-                    initial_state);
+                    print_policy(
+                        out,
+                        print_state,
+                        print_action,
+                        *policy,
+                        mdp,
+                        initial_state);
+                }
             }
 
             std::cout << std::endl;

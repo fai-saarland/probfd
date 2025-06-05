@@ -31,7 +31,7 @@ using MDPSolverNoAlgorithmArgs = std::tuple<
     std::shared_ptr<probfd::TaskStateSpaceFactory>,
     std::shared_ptr<probfd::TaskHeuristicFactory>,
     downward::utils::Verbosity,
-    std::string,
+    std::optional<std::string>,
     bool,
     std::optional<probfd::value_t>,
     bool>;
