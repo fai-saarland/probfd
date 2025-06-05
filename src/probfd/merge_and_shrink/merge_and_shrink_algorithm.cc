@@ -439,6 +439,21 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
         merge_strategy_factory->requires_goal_distances() ||
         prune_strategy->requires_goal_distances();
 
+    // Restore the invariant that distances are computed.
+    if (compute_goal_distances) {
+        for (int index : fts) {
+            fts.get_distances(index).compute_distances(
+                fts.get_labels(),
+                fts.get_transition_system(index),
+                compute_liveness,
+                log,
+                heuristics::BlindEvaluator<int>(
+                    get_operators(task),
+                    get_cost_function(task),
+                    get_termination_costs(task)));
+        }
+    }
+
     /*
       Prune all atomic factors according to the chosen options. Stop early if
       one factor is unsolvable.
@@ -459,29 +474,26 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
 
         for (int index = 0; index < fts.get_size(); ++index) {
             assert(fts.is_active(index));
-            if (prune_strategy) {
-                auto& ts = fts.get_transition_system(index);
-                auto& distances = fts.get_distances(index);
 
-                auto pruning_relation =
-                    prune_strategy->compute_pruning_abstraction(
-                        fts.get_transition_system(index),
-                        fts.get_distances(index),
-                        log);
-                const bool pruned_factor =
-                    fts.apply_abstraction(index, pruning_relation, log);
+            auto& ts = fts.get_transition_system(index);
+            auto& distances = fts.get_distances(index);
 
-                if (compute_goal_distances) {
-                    distances.apply_abstraction(
-                        fts.get_labels(),
-                        ts,
-                        pruning_relation,
-                        compute_liveness,
-                        log);
-                }
+            auto pruning_relation =
+                prune_strategy->compute_pruning_abstraction(ts, distances, log);
+            const bool pruned_factor =
+                fts.apply_abstraction(index, pruning_relation, log);
 
-                pruned = pruned || pruned_factor;
+            if (compute_goal_distances) {
+                distances.apply_abstraction(
+                    fts.get_labels(),
+                    ts,
+                    pruning_relation,
+                    compute_liveness,
+                    log);
             }
+
+            pruned = pruned || pruned_factor;
+
             if (!fts.is_factor_solvable(index)) {
                 log << "Atomic FTS is unsolvable, stopping computation."
                     << endl;

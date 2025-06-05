@@ -190,9 +190,7 @@ void Distances::compute_distances(
       states.
     */
 
-    if (log.is_at_least_verbose()) {
-        log << transition_system.tag();
-    }
+    if (log.is_at_least_verbose()) { log << transition_system.tag(); }
 
     const int num_states = transition_system.get_size();
 
@@ -207,9 +205,7 @@ void Distances::compute_distances(
 
     if (log.is_at_least_verbose()) {
         log << "computing ";
-        if (compute_liveness) {
-            log << "liveness and ";
-        }
+        if (compute_liveness) { log << "liveness and "; }
         log << "goal distances" << endl;
     }
 
@@ -239,19 +235,21 @@ void Distances::apply_abstraction(
     bool compute_liveness,
     utils::LogProxy& log)
 {
-    assert(
-        !compute_liveness ||
-        (is_liveness_computed() &&
-         state_equivalence_relation.size() < liveness.size()));
     assert(are_goal_distances_computed());
-    assert(state_equivalence_relation.size() < goal_distances.size());
+    assert(!compute_liveness || is_liveness_computed());
+
+    assert(!is_liveness_computed() || liveness.size() == goal_distances.size());
+
+    assert(state_equivalence_relation.size() <= goal_distances.size());
 
     const int new_num_states = state_equivalence_relation.size();
+
+    // identity transformation, nothing to recompute
+    if (new_num_states == goal_distances.size()) { return; }
+
     vector<bool> new_liveness;
     vector new_goal_distances(new_num_states, DISTANCE_UNKNOWN);
-    if (compute_liveness) {
-        new_liveness.resize(new_num_states, false);
-    }
+    if (compute_liveness) { new_liveness.resize(new_num_states, false); }
 
     bool recompute_goal_distances = false;
     bool recompute_liveness = false;
@@ -344,9 +342,7 @@ void Distances::dump(utils::LogProxy& log) const
             log << "Init distances: ";
             for (size_t i = 0; i < liveness.size(); ++i) {
                 log << i << ": " << liveness[i];
-                if (i != liveness.size() - 1) {
-                    log << ", ";
-                }
+                if (i != liveness.size() - 1) { log << ", "; }
             }
             log << endl;
         }
@@ -354,9 +350,7 @@ void Distances::dump(utils::LogProxy& log) const
             log << "Goal distances: ";
             for (size_t i = 0; i < goal_distances.size(); ++i) {
                 log << i << ": " << goal_distances[i] << ", ";
-                if (i != goal_distances.size() - 1) {
-                    log << ", ";
-                }
+                if (i != goal_distances.size() - 1) { log << ", "; }
             }
             log << endl;
         }
