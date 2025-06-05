@@ -242,7 +242,7 @@ void Distances::apply_abstraction(
 
     assert(state_equivalence_relation.size() <= goal_distances.size());
 
-    const int new_num_states = state_equivalence_relation.size();
+    const std::size_t new_num_states = state_equivalence_relation.size();
 
     // identity transformation, nothing to recompute
     if (new_num_states == goal_distances.size()) { return; }
@@ -254,7 +254,7 @@ void Distances::apply_abstraction(
     bool recompute_goal_distances = false;
     bool recompute_liveness = false;
 
-    for (int new_state = 0; new_state < new_num_states; ++new_state) {
+    for (std::size_t new_state = 0; new_state < new_num_states; ++new_state) {
         const auto& state_eqv_class = state_equivalence_relation[new_state];
         assert(!state_eqv_class.empty());
 
