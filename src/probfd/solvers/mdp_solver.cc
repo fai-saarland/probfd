@@ -176,8 +176,15 @@ public:
             if (policy) {
                 using namespace std;
 
-                print_analysis_result(
-                    policy->get_decision(initial_state)->q_value_interval);
+                Interval value;
+
+                if (const auto d = policy->get_decision(initial_state)) {
+                    value = d->q_value_interval;
+                } else {
+                    value = Interval(INFINITE_VALUE);
+                }
+
+                print_analysis_result(value);
 
                 const auto& variables = get_variables(task);
                 const auto& operators = get_operators(task);
