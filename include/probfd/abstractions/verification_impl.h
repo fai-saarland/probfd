@@ -10,6 +10,7 @@
 #include "downward/lp/lp_solver.h"
 
 #include <cmath>
+#include <numeric>
 #include <ranges>
 
 namespace probfd {
@@ -30,12 +31,18 @@ void verify(
 
     const std::size_t num_states = value_table.size();
 
+    std::vector<int> unsolvable_states;
+
     for (std::size_t i = 0; i != num_states; ++i) {
         const State state = mdp.get_state(i);
         const auto term_info = mdp.get_termination_info(state);
         const value_t term_cost = term_info.get_cost();
 
         const auto value = value_table[i];
+
+        if (value == INFINITE_VALUE) {
+            unsolvable_states.push_back(i);
+        }
 
         variables.emplace_back(
             -inf,
@@ -68,6 +75,15 @@ void verify(
         }
     }
 
+    // Add extra state connected to unsolvable states.
+    variables.emplace_back(-inf, inf, 0_vt);
+
+    for (int state : unsolvable_states) {
+        auto& constr = constraints.emplace_back(-inf, 0);
+        constr.insert(state, -1.0);
+        constr.insert(num_states, 1.0);
+    }
+
     solver.load_problem(
         LinearProgram(
             LPObjectiveSense::MAXIMIZE,
@@ -97,6 +113,18 @@ void verify(
             assert(is_approx_equal(value, solution[s], 0.001));
         }
     }
+
+    // Now check unsolvable states.
+    // If the LP is unbounded, all unsolvable states are actually unsolvable.
+    // If not, one of them has to be solvable.
+    for (std::size_t i = 0; i != num_states; ++i) {
+        solver.set_objective_coefficient(num_states, 0.0);
+    }
+
+    solver.set_objective_coefficient(num_states, 1.0);
+    solver.solve();
+
+    assert (!solver.has_optimal_solution() && solver.is_unbounded());
 }
 
 } // namespace probfd
