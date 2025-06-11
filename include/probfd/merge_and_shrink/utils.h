@@ -56,6 +56,8 @@ extern bool shrink_before_merge_step(
     int max_states_before_merge,
     int shrink_threshold_before_merge,
     const ShrinkStrategy& shrink_strategy,
+    bool compute_goal_distances,
+    bool compute_liveness,
     downward::utils::LogProxy& log);
 
 /*

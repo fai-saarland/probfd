@@ -259,6 +259,8 @@ void MergeAndShrinkAlgorithm::main_loop(
             max_states_before_merge,
             shrink_threshold_before_merge,
             *shrink_strategy,
+            compute_goal_distances,
+            compute_liveness,
             log);
         if (log.is_at_least_normal() && shrunk) {
             log_main_loop_progress("after shrinking");
@@ -342,17 +344,12 @@ void MergeAndShrinkAlgorithm::main_loop(
                 fts.get_distances(merged_index),
                 log);
 
-            const bool pruned =
-                fts.apply_abstraction(merged_index, pruning_relation, log);
-
-            if (compute_goal_distances) {
-                factor.distances->apply_abstraction(
-                    fts.get_labels(),
-                    *factor.transition_system,
-                    pruning_relation,
-                    compute_liveness,
-                    log);
-            }
+            const bool pruned = fts.apply_abstraction(
+                merged_index,
+                pruning_relation,
+                compute_goal_distances,
+                compute_liveness,
+                log);
 
             if (log.is_at_least_normal() && pruned) {
                 if (log.is_at_least_verbose()) {
@@ -480,17 +477,12 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
 
             auto pruning_relation =
                 prune_strategy->compute_pruning_abstraction(ts, distances, log);
-            const bool pruned_factor =
-                fts.apply_abstraction(index, pruning_relation, log);
-
-            if (compute_goal_distances) {
-                distances.apply_abstraction(
-                    fts.get_labels(),
-                    ts,
-                    pruning_relation,
-                    compute_liveness,
-                    log);
-            }
+            const bool pruned_factor = fts.apply_abstraction(
+                index,
+                pruning_relation,
+                compute_goal_distances,
+                compute_liveness,
+                log);
 
             pruned = pruned || pruned_factor;
 

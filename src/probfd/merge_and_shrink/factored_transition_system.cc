@@ -124,6 +124,8 @@ void FactoredTransitionSystem::apply_label_mapping(
 bool FactoredTransitionSystem::apply_abstraction(
     int index,
     const StateEquivalenceRelation& state_equivalence_relation,
+    bool do_compute_goal_distances,
+    bool do_compute_liveness,
     utils::LogProxy& log)
 {
     assert(is_component_valid(index));
@@ -144,6 +146,15 @@ bool FactoredTransitionSystem::apply_abstraction(
         abstraction_mapping,
         log);
     fm->apply_abstraction(abstraction_mapping);
+
+    if (do_compute_goal_distances) {
+        distances->apply_abstraction(
+            labels,
+            *ts,
+            state_equivalence_relation,
+            do_compute_liveness,
+            log);
+    }
 
     /* If distances need to be recomputed, this already happened in the
        Distances object. */
@@ -213,9 +224,7 @@ void FactoredTransitionSystem::dump(int index, utils::LogProxy& log) const
 void FactoredTransitionSystem::dump(utils::LogProxy& log) const
 {
     if (log.is_at_least_debug()) {
-        for (const int index : *this) {
-            dump(index, log);
-        }
+        for (const int index : *this) { dump(index, log); }
     }
 }
 
@@ -231,14 +240,10 @@ bool FactoredTransitionSystem::is_factor_trivial(int index) const
     assert(is_component_valid(index));
     const Factor& factor = factors[index];
 
-    if (!factor.factored_mapping->is_total()) {
-        return false;
-    }
+    if (!factor.factored_mapping->is_total()) { return false; }
     const TransitionSystem& ts = *factor.transition_system;
     for (int state = 0; state < ts.get_size(); ++state) {
-        if (!ts.is_goal_state(state)) {
-            return false;
-        }
+        if (!ts.is_goal_state(state)) { return false; }
     }
     return true;
 }

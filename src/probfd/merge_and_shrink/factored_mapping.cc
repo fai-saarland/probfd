@@ -123,9 +123,13 @@ void FactoredMappingMerge::dump(utils::LogProxy& log) const
 
 std::pair<int, int> FactoredMappingMerge::get_children_states(int state) const
 {
-    return {
-        state % left_child->get_num_abstract_states(),
-        state / left_child->get_num_abstract_states()};
+    const auto it = std::ranges::find(lookup_table, state);
+    assert(it != lookup_table.end());
+    const auto index = std::distance(lookup_table.begin(), it);
+
+    const auto left = index % left_child->get_num_abstract_states();
+    const auto right = index / left_child->get_num_abstract_states();
+    return {left, right};
 }
 
 } // namespace probfd::merge_and_shrink

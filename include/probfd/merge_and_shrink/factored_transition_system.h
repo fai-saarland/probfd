@@ -114,6 +114,8 @@ public:
     bool apply_abstraction(
         int index,
         const StateEquivalenceRelation& state_equivalence_relation,
+        bool do_compute_goal_distances,
+        bool do_compute_liveness,
         downward::utils::LogProxy& log);
 
     /*
