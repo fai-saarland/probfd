@@ -72,7 +72,7 @@ unique_ptr<Evaluator> create_wastar_eval(
     int weight,
     const shared_ptr<Evaluator>& h_eval)
 {
-    if (weight == 0) { return std::move(g_eval); }
+    if (weight == 0) { return g_eval; }
     shared_ptr<Evaluator> w_h_eval = nullptr;
     if (weight == 1) {
         w_h_eval = h_eval;
