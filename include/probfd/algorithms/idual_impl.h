@@ -31,9 +31,7 @@ inline unsigned ValueGroup::get_id(value_t val)
 {
     values_.push_back(val);
     auto it = indices_.insert(values_.size() - 1);
-    if (!it.second) {
-        values_.pop_back();
-    }
+    if (!it.second) { values_.pop_back(); }
 
     return *it.first;
 }
@@ -154,9 +152,7 @@ auto IDual<State, Action>::compute_policy(
             ++i;
         }
 
-        if (actions == 0) {
-            back_queue.push_back(state_id);
-        }
+        if (actions == 0) { back_queue.push_back(state_id); }
     } while (!queue.empty());
 
     // Now do the backwards exploration and extract a deterministic policy.
@@ -209,9 +205,7 @@ Interval IDual<State, Action>::solve(
         // initialize lp
         const TerminationInfo term = mdp.get_termination_info(initial_state);
 
-        if (term.is_goal_state()) {
-            return Interval(0_vt);
-        }
+        if (term.is_goal_state()) { return Interval(0_vt); }
 
         const value_t term_cost = term.get_cost();
         const value_t estimate = heuristic.evaluate(initial_state);
@@ -219,6 +213,8 @@ Interval IDual<State, Action>::solve(
         assert(estimate <= term_cost);
 
         if (estimate == term_cost) {
+            state_infos_[mdp.get_state_id(initial_state)].status =
+                PerStateInfo::TERMINAL;
             return Interval(estimate);
         }
 
@@ -227,12 +223,11 @@ Interval IDual<State, Action>::solve(
 
         vars.emplace_back(-inf, estimate, 1.0);
 
-        lp_solver_.load_problem(
-            LinearProgram(
-                LPObjectiveSense::MAXIMIZE,
-                std::move(vars),
-                std::move(constraints),
-                inf));
+        lp_solver_.load_problem(LinearProgram(
+            LPObjectiveSense::MAXIMIZE,
+            std::move(vars),
+            std::move(constraints),
+            inf));
         prev_state = mdp.get_state_id(initial_state);
         PerStateInfo& info = state_infos_[prev_state];
         info.var_idx = 0;
@@ -270,9 +265,7 @@ Interval IDual<State, Action>::solve(
 
             lp_solver_.set_variable_upper_bound(var_id, t_cost);
 
-            if (term_info.is_goal_state()) {
-                continue;
-            }
+            if (term_info.is_goal_state()) { continue; }
 
             ClearGuard _(transitions);
             mdp.generate_all_transitions(state, transitions);
