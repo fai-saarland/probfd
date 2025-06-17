@@ -118,7 +118,7 @@ void verify(
     // If the LP is unbounded, all unsolvable states are actually unsolvable.
     // If not, one of them has to be solvable.
     for (std::size_t i = 0; i != num_states; ++i) {
-        solver.set_objective_coefficient(num_states, 0.0);
+        solver.set_objective_coefficient(i, 0.0);
     }
 
     solver.set_objective_coefficient(num_states, 1.0);
