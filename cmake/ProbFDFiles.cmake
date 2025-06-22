@@ -365,6 +365,7 @@ create_library(
         probfd/merge_and_shrink/merge_tree
         probfd/merge_and_shrink/merge_tree_factory
         probfd/merge_and_shrink/merge_tree_factory_linear
+        probfd/merge_and_shrink/merge_tree_factory_manual
         probfd/merge_and_shrink/shrink_strategy
         probfd/merge_and_shrink/shrink_strategy_bucket_based
         probfd/merge_and_shrink/shrink_strategy_equal_distance

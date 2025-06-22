@@ -773,6 +773,21 @@ create_library(
 )
 
 create_library(
+    NAME pmerge_tree_factory_manual
+    HELP "Enables manual linear merge tree factory plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/merge_tree_factory_manual
+    DEPENDS
+        pmerge_tree_factory_category
+        pmerge_tree_factory_options
+        pa_merge_and_shrink
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
     NAME pshrink_strategy_category
     HELP "Enables shrink strategy category plugin"
     SOURCES
