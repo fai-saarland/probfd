@@ -314,6 +314,8 @@ void Distances::apply_abstraction(
         return;
     }
 
+    goal_distances = std::move(new_goal_distances);
+
     if (recompute_liveness) {
         // J* preserving, but not alive preserving -> recompute
         if (log.is_at_least_verbose()) {
@@ -332,7 +334,6 @@ void Distances::apply_abstraction(
     }
 
     liveness = std::move(new_liveness);
-    goal_distances = std::move(new_goal_distances);
 }
 
 void Distances::dump(utils::LogProxy& log) const
