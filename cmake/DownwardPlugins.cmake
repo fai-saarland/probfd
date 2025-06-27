@@ -54,6 +54,11 @@ create_library(
     HELP "Mutex factory that reads them from a file plugin"
     SOURCES
         downward/cli/mutexes/from_file_mutex_factory_feature
+    DEPENDS
+        plugins
+        from_file_mutex_factory
+    TARGET
+        probfd
 )
 
 create_library(
