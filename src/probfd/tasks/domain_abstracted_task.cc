@@ -21,7 +21,7 @@ DomainAbstractedProbabilisticOperatorSpace::
     : parent(std::move(parent))
     , domain_abstraction(std::move(domain_abstraction))
 {
-    if (task_properties::has_conditional_effects(*parent)) {
+    if (task_properties::has_conditional_effects(*this->parent)) {
         ABORT(
             "DomainAbstractedProbabilisticOperatorSpace doesn't support "
             "conditional effects.");
