@@ -108,6 +108,18 @@ template <class T, template <class...> class U>
 concept DerivedFromSpecializationOf =
     requires(const T& t) { detail::DerivedFromSpecializationImpl<U>(t); };
 
+template <template <typename...> typename C, typename... T>
+struct PartiallySpecialized {
+    template <typename... U>
+    struct type : C<T..., U...> {};
+};
+
+template <template <typename> typename TypePredicate, typename... Types>
+concept AnyOf = (TypePredicate<Types>::value || ...);
+
+template <template <typename> typename TypePredicate, typename... Types>
+concept AllOf = (TypePredicate<Types>::value && ...);
+
 } // namespace probfd
 
 #endif

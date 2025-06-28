@@ -42,12 +42,6 @@ constexpr std::tuple<T...> slice(TupleLike&& t)
 
 namespace detail {
 
-template <template <typename...> typename C, typename... T>
-struct partially_specialized {
-    template <typename... U>
-    struct type : C<T..., U...> {};
-};
-
 template <std::integral I, I... ints, I... ints2>
 constexpr std::integer_sequence<I, ints..., ints2...> concat_sequences(
     std::integer_sequence<I, ints...> = {},
@@ -116,12 +110,12 @@ constexpr std::size_t get_first_match_idx =
 
 template <typename T, typename... U>
 constexpr std::size_t num_occurences =
-    num_matches<partially_specialized<std::is_same, T>::template type, U...>;
+    num_matches<PartiallySpecialized<std::is_same, T>::template type, U...>;
 
 template <std::size_t i, typename T, typename... U>
     requires(i < num_occurences<T, U...>)
 constexpr std::size_t get_occurence_idx = get_match_idx<
-    partially_specialized<std::is_same, T>::template type,
+    PartiallySpecialized<std::is_same, T>::template type,
     i,
     U...>;
 
@@ -133,29 +127,22 @@ template <typename S, typename T>
 struct inv_is_convertible : std::is_convertible<T, S> {};
 
 template <typename S, typename T>
-struct is_constructible : std::is_constructible<S, T> {};
-
-template <typename S, typename T>
 struct inv_is_constructible : std::is_constructible<T, S> {};
 
-template <template <typename> typename TypePredicate, typename... Types>
-constexpr bool any_of = (TypePredicate<Types>::value || ...);
-
-template <template <typename> typename TypePredicate, typename... Types>
-constexpr bool all_of = (TypePredicate<Types>::value && ...);
-
 template <std::size_t t_index, typename TupleLike, typename... U>
-constexpr auto get_el(TupleLike&& mt, U&&... mu) -> decltype(auto)
+constexpr auto
+get_el([[maybe_unused]] TupleLike&& mt, [[maybe_unused]] U&&... mu)
+    -> decltype(auto)
 {
     using R = typename std::remove_cvref_t<TupleLike>;
     using S = std::tuple_element_t<t_index, R>;
 
     if constexpr (has_match<
-                      partially_specialized<std::is_constructible, S>::
+                      PartiallySpecialized<std::is_constructible, S>::
                           template type,
                       U...>) {
         constexpr std::size_t index = get_first_match_idx<
-            partially_specialized<std::is_constructible, S>::template type,
+            PartiallySpecialized<std::is_constructible, S>::template type,
             U...>;
         return std::get<index>(std::forward_as_tuple(mu...));
     } else {
@@ -169,8 +156,8 @@ constexpr auto replace(std::index_sequence<indices...>, TupleLike&& t, U&&... u)
     using R = std::remove_cvref_t<TupleLike>;
 
     static_assert(
-        (any_of<
-             partially_specialized<inv_is_constructible, U>::template type,
+        (AnyOf<
+             PartiallySpecialized<inv_is_constructible, U>::template type,
              std::tuple_element_t<indices, R>...> &&
          ...));
 
