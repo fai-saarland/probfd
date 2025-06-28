@@ -12,7 +12,7 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "probfd/tasks/modified_operator_costs_task.h"
+#include "probfd/tasks/range_operator_cost_function.h"
 
 #include "downward/task_utils/task_properties.h"
 
@@ -199,15 +199,6 @@ void CostSaturation::reduce_remaining_costs(
     }
 }
 
-SharedProbabilisticTask CostSaturation::get_remaining_costs_task(
-    const SharedProbabilisticTask& parent) const
-{
-    return replace(
-        parent,
-        make_shared<extra_tasks::VectorProbabilisticOperatorCostFunction>(
-            remaining_costs_));
-}
-
 bool CostSaturation::state_is_dead_end(const State& state) const
 {
     return std::ranges::any_of(heuristic_functions_, [&](const auto& function) {
@@ -220,9 +211,11 @@ void CostSaturation::build_abstractions(
     const utils::CountdownTimer& timer,
     function<bool()> should_abort)
 {
+    auto cf = downward::extra_tasks::make_shared_range_cf(remaining_costs_);
     int rem_subtasks = static_cast<int>(subtasks.size());
+
     for (auto [subtask, state_mapping, _] : subtasks) {
-        subtask = get_remaining_costs_task(subtask);
+        subtask = replace(subtask, cf);
 
         assert(num_states_ < max_states_);
         CEGAR cegar(

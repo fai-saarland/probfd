@@ -58,8 +58,6 @@ class CostSaturation {
         const downward::OperatorCostFunction<value_t>& cost_function);
 
     void reduce_remaining_costs(const std::vector<value_t>& saturated_costs);
-    SharedProbabilisticTask
-    get_remaining_costs_task(const SharedProbabilisticTask& parent) const;
     bool state_is_dead_end(const downward::State& state) const;
     void build_abstractions(
         const SharedTasks& subtasks,

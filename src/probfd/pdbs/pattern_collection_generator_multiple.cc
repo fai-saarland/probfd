@@ -7,7 +7,7 @@
 #include "probfd/pdbs/saturation.h"
 #include "probfd/pdbs/trivial_finder.h"
 
-#include "probfd/tasks/modified_operator_costs_task.h"
+#include "probfd/tasks/range_operator_cost_function.h"
 
 #include "probfd/cost_function.h"
 #include "probfd/probabilistic_task.h"

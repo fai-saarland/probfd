@@ -15,7 +15,7 @@
 
 #include "downward/task_utils/task_properties.h"
 #include "probfd/probabilistic_operator_space.h"
-#include "probfd/tasks/modified_operator_costs_task.h"
+#include "probfd/tasks/range_operator_cost_function.h"
 
 #include <algorithm>
 #include <cassert>

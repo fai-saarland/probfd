@@ -12,7 +12,7 @@
 
 #include "downward/task_utils/task_properties.h"
 
-#include "downward/tasks/modified_operator_costs_task.h"
+#include "downward/tasks/range_operator_cost_function.h"
 
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/logging.h"
@@ -33,7 +33,7 @@ namespace downward::cartesian_abstractions {
   blocks of memory. It is for this reason that we require such a large
   amount of memory padding.
 */
-static const int memory_padding_in_mb = 75;
+static constexpr int memory_padding_in_mb = 75;
 
 static vector<int> compute_saturated_costs(
     const TransitionSystem& transition_system,

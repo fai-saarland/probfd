@@ -6,7 +6,7 @@
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 #include "probfd/pdbs/projection_state_space.h"
 
-#include "probfd/tasks/modified_operator_costs_task.h"
+#include "probfd/tasks/range_operator_cost_function.h"
 
 #include "probfd/probabilistic_task.h"
 #include "probfd/value_type.h"

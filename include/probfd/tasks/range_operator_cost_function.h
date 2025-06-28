@@ -3,7 +3,7 @@
 
 #include "probfd/value_type.h"
 
-#include "downward/tasks/modified_operator_costs_task.h"
+#include "downward/tasks/range_operator_cost_function.h"
 
 namespace probfd::extra_tasks {
 
