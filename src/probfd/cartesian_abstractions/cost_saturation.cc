@@ -192,7 +192,7 @@ void CostSaturation::reduce_remaining_costs(
 
         // Remaining costs can become negative due to floating point imprecision
         if (remaining < 0.0_vt) {
-            is_approx_equal(remaining, 0.0_vt, 0.001);
+            assert(is_approx_equal(remaining, 0.0_vt, 0.001));
             remaining = 0.0_vt;
         }
         assert(remaining >= 0);
@@ -246,7 +246,7 @@ void CostSaturation::build_abstractions(
 
         vector<value_t> goal_distances(
             abstraction->get_num_states(),
-            INFINITE_VALUE);
+            std::numeric_limits<value_t>::quiet_NaN());
         compute_value_table(
             *abstraction,
             abstraction->get_initial_state().get_id(),
