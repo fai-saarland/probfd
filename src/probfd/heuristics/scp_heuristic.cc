@@ -70,8 +70,7 @@ SCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
     const auto& variables = get_variables(task);
     const auto& operators = get_operators(task);
     const auto& init_vals = get_init(task);
-    const auto& cost_function =
-        get_cost_function(task);
+    const auto& cost_function = get_cost_function(task);
     const auto& term_costs = get_termination_costs(task);
 
     const size_t num_operators = operators.size();
@@ -88,8 +87,7 @@ SCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
     }
 
     auto running_cost_function =
-        std::make_shared<extra_tasks::VectorProbabilisticOperatorCostFunction>(
-            std::move(costs));
+        downward::extra_tasks::make_shared_range_cf(std::move(costs));
 
     auto adapted = replace(task, running_cost_function);
 
@@ -109,8 +107,8 @@ SCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
         compute_saturated_costs(state_space, pdb.value_table, saturated_costs);
 
         for (size_t i = 0; i != num_operators; ++i) {
-            const auto new_cost = (*running_cost_function)[i] -
-                                  saturated_costs[i];
+            const auto new_cost =
+                (*running_cost_function)[i] - saturated_costs[i];
             assert(!is_approx_less(new_cost, 0.0_vt, 0.0001));
 
             // Avoid floating point imprecision. The PDB implementation is not

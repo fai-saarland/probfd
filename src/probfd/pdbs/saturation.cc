@@ -48,8 +48,11 @@ void compute_saturated_costs(
                 h_succ += prob * succ_val;
             }
 
-            saturated_costs[oid] =
-                std::max(saturated_costs[oid], value - h_succ);
+            {
+                const auto diff =
+                    successor_dist.non_source_probability * value - h_succ;
+                saturated_costs[oid] = std::max(saturated_costs[oid], diff);
+            }
 
         next_operator:;
         }
