@@ -144,6 +144,25 @@ constexpr bool any_of = (TypePredicate<Types>::value || ...);
 template <template <typename> typename TypePredicate, typename... Types>
 constexpr bool all_of = (TypePredicate<Types>::value && ...);
 
+template <std::size_t t_index, typename TupleLike, typename... U>
+constexpr auto get_el(TupleLike&& mt, U&&... mu) -> decltype(auto)
+{
+    using R = typename std::remove_cvref_t<TupleLike>;
+    using S = std::tuple_element_t<t_index, R>;
+
+    if constexpr (has_match<
+                      partially_specialized<std::is_constructible, S>::
+                          template type,
+                      U...>) {
+        constexpr std::size_t index = get_first_match_idx<
+            partially_specialized<std::is_constructible, S>::template type,
+            U...>;
+        return std::get<index>(std::forward_as_tuple(mu...));
+    } else {
+        return std::get<S>(std::forward<TupleLike>(mt));
+    }
+}
+
 template <typename... U, typename TupleLike, std::size_t... indices>
 constexpr auto replace(std::index_sequence<indices...>, TupleLike&& t, U&&... u)
 {
@@ -155,26 +174,8 @@ constexpr auto replace(std::index_sequence<indices...>, TupleLike&& t, U&&... u)
              std::tuple_element_t<indices, R>...> &&
          ...));
 
-    constexpr auto get_el =
-        []<std::size_t t_index>(TupleLike&& mt, U&&... mu) -> decltype(auto) {
-        using S = std::tuple_element_t<t_index, R>;
-
-        if constexpr (has_match<
-                          partially_specialized<is_constructible, S>::
-                              template type,
-                          U...>) {
-            constexpr std::size_t index = get_first_match_idx<
-                partially_specialized<is_constructible, S>::template type,
-                U...>;
-            return std::get<index>(std::forward_as_tuple(mu...));
-        } else {
-            return std::get<S>(std::forward<TupleLike>(mt));
-        }
-    };
-
-    return R(get_el.template operator()<indices>(
-        std::forward<TupleLike>(t),
-        std::forward<U>(u)...)...);
+    return R(
+        get_el<indices>(std::forward<TupleLike>(t), std::forward<U>(u)...)...);
 }
 
 } // namespace detail
