@@ -42,6 +42,12 @@ constexpr std::tuple<T...> slice(TupleLike&& t)
 
 namespace detail {
 
+template <template <typename...> typename C, typename... T>
+struct partially_specialized {
+    template <typename... U>
+    struct type : C<T..., U...> {};
+};
+
 template <std::integral I, I... ints, I... ints2>
 constexpr std::integer_sequence<I, ints..., ints2...> concat_sequences(
     std::integer_sequence<I, ints...> = {},
@@ -57,73 +63,67 @@ constexpr auto nth(std::integer_sequence<I, first, ints...> = {})
     if constexpr (n == 0) {
         return first;
     } else {
-        return concat_sequences<n - 1>(std::integer_sequence<I, ints...>{});
+        return nth<n - 1>(std::integer_sequence<I, ints...>{});
     }
 }
 
 template <std::size_t n, std::integral I>
 constexpr auto nth(std::integer_sequence<I>) = delete;
 
-template <
-    std::size_t i,
-    template <typename, typename> typename C,
-    typename T,
-    typename... U>
+template <std::size_t i, template <typename> typename C, typename... U>
 struct occurences;
 
-template <std::size_t i, template <typename, typename> typename C, typename T>
-struct occurences<i, C, T> {
+template <std::size_t i, template <typename> typename C>
+struct occurences<i, C> {
     static constexpr std::index_sequence<> value = {};
     using type = decltype(value);
 };
 
 template <
     std::size_t i,
-    template <typename, typename> typename C,
-    typename T,
+    template <typename> typename C,
     typename S,
     typename... U>
-struct occurences<i, C, T, S, U...> {
+struct occurences<i, C, S, U...> {
     static constexpr auto select()
     {
-        if constexpr (C<S, T>::value) {
+        if constexpr (C<S>::value) {
             return concat_sequences(std::index_sequence<i>{}, rec);
         } else {
             return rec;
         }
     }
 
-    static constexpr auto rec = occurences<i + 1, C, T, U...>::value;
+    static constexpr auto rec = occurences<i + 1, C, U...>::value;
     static constexpr auto value = select();
     using type = decltype(value);
 };
 
-template <template <typename, typename> typename C, typename T, typename... U>
-constexpr std::size_t num_matches = occurences<0, C, T, U...>::value.size();
+template <template <typename> typename C, typename... U>
+constexpr std::size_t num_matches = occurences<0, C, U...>::value.size();
 
-template <template <typename, typename> typename C, typename T, typename... U>
-constexpr std::size_t has_match = occurences<0, C, T, U...>::value.size() != 0;
+template <template <typename> typename C, typename... U>
+constexpr std::size_t has_match = occurences<0, C, U...>::value.size() != 0;
 
-template <
-    template <typename, typename> typename C,
-    std::size_t i,
-    typename T,
-    typename... U>
-    requires(i < num_matches<C, T, U...>)
-constexpr std::size_t get_match_idx = nth<i>(occurences<0, C, T, U...>::value);
+template <template <typename> typename C, std::size_t i, typename... U>
+    requires(i < num_matches<C, U...>)
+constexpr std::size_t get_match_idx = nth<i>(occurences<0, C, U...>::value);
 
-template <template <typename, typename> typename C, typename T, typename... U>
-    requires(num_matches<C, T, U...> > 0)
+template <template <typename> typename C, typename... U>
+    requires(num_matches<C, U...> > 0)
 constexpr std::size_t get_first_match_idx =
-    nth<0>(occurences<0, C, T, U...>::value);
+    nth<0>(occurences<0, C, U...>::value);
 
 template <typename T, typename... U>
-constexpr std::size_t num_occurences = num_matches<std::is_same, T, U...>;
+constexpr std::size_t num_occurences =
+    num_matches<partially_specialized<std::is_same, T>::template type, U...>;
 
 template <std::size_t i, typename T, typename... U>
     requires(i < num_occurences<T, U...>)
-constexpr std::size_t get_occurence_idx =
-    get_match_idx<std::is_same, i, T, U...>;
+constexpr std::size_t get_occurence_idx = get_match_idx<
+    partially_specialized<std::is_same, T>::template type,
+    i,
+    U...>;
 
 template <typename T, typename... U>
     requires(num_occurences<T, U...> == 1)
@@ -138,41 +138,41 @@ struct is_constructible : std::is_constructible<S, T> {};
 template <typename S, typename T>
 struct inv_is_constructible : std::is_constructible<T, S> {};
 
-template <template <typename, typename> typename C, typename U, typename... T>
-constexpr bool any_of = (C<U, T>::value || ...);
+template <template <typename> typename TypePredicate, typename... Types>
+constexpr bool any_of = (TypePredicate<Types>::value || ...);
 
-template <template <typename, typename> typename C, typename U, typename... T>
-constexpr bool all_of = (C<U, T>::value && ...);
+template <template <typename> typename TypePredicate, typename... Types>
+constexpr bool all_of = (TypePredicate<Types>::value && ...);
 
 template <typename... U, typename TupleLike, std::size_t... indices>
 constexpr auto replace(std::index_sequence<indices...>, TupleLike&& t, U&&... u)
 {
-    static_assert((
-        any_of<
-            inv_is_constructible,
-            U,
-            std::tuple_element_t<indices, std::remove_cvref_t<TupleLike>>...> &&
-        ...));
-
     using R = std::remove_cvref_t<TupleLike>;
 
-    constexpr auto get_el = []<std::size_t t_index>(
-                                std::index_sequence<t_index>,
-                                TupleLike&& mt,
-                                U&&... mu) -> decltype(auto) {
+    static_assert(
+        (any_of<
+             partially_specialized<inv_is_constructible, U>::template type,
+             std::tuple_element_t<indices, R>...> &&
+         ...));
+
+    constexpr auto get_el =
+        []<std::size_t t_index>(TupleLike&& mt, U&&... mu) -> decltype(auto) {
         using S = std::tuple_element_t<t_index, R>;
 
-        if constexpr (has_match<is_constructible, S, U...>) {
-            constexpr std::optional<std::size_t> index =
-                get_first_match_idx<is_constructible, S, U...>;
+        if constexpr (has_match<
+                          partially_specialized<is_constructible, S>::
+                              template type,
+                          U...>) {
+            constexpr std::size_t index = get_first_match_idx<
+                partially_specialized<is_constructible, S>::template type,
+                U...>;
             return std::get<index>(std::forward_as_tuple(mu...));
         } else {
             return std::get<S>(std::forward<TupleLike>(mt));
         }
     };
 
-    return R(get_el(
-        std::index_sequence<indices>{},
+    return R(get_el.template operator()<indices>(
         std::forward<TupleLike>(t),
         std::forward<U>(u)...)...);
 }
