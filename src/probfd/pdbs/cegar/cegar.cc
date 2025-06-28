@@ -694,7 +694,7 @@ void CEGAR::generate_pdbs(
 
     std::vector<Flaw> flaws;
     std::vector<int> flaw_offsets(pdb_infos_.size(), 0);
-    std::vector<PDBInfo>::iterator solution_it;
+    std::vector<PDBInfo>::iterator solution_it = unsolved_end;
 
     // main loop of the algorithm
     int refinement_counter = 1;
