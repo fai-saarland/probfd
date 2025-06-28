@@ -130,8 +130,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
     const auto& variables = get_variables(task);
     const auto& operators = get_operators(task);
     const auto& goals = get_goal(task);
-    const auto& cost_function =
-        get_cost_function(task);
+    const auto& cost_function = get_cost_function(task);
 
     std::vector<value_t> costs(operators.get_num_operators());
 
@@ -165,8 +164,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
     int remaining_collection_size = max_collection_size_;
 
     auto adapted_cost_function =
-        std::make_shared<extra_tasks::VectorProbabilisticOperatorCostFunction>(
-            std::move(costs));
+        downward::extra_tasks::make_shared_range_cf(std::move(costs));
 
     auto adapted = replace(task, adapted_cost_function);
 
@@ -234,7 +232,15 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
                     *state_space,
                     pdb.value_table,
                     saturated_costs);
-                adapted_cost_function->decrease_costs(saturated_costs);
+
+                for (auto&& [cost, dec] :
+                     std::views::zip(*adapted_cost_function, saturated_costs)) {
+                    cost -= dec;
+
+                    if (is_approx_equal(cost, 0_vt, 0.001)) { cost = 0_vt; }
+
+                    assert(cost >= 0_vt);
+                }
             }
 
             /*

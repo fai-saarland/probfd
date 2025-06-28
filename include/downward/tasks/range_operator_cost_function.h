@@ -47,16 +47,11 @@ public:
         return operator_costs[index];
     }
 
-    template <std::ranges::random_access_range Range2>
-        requires std::same_as<
-            std::ranges::range_value_t<Range>,
-            std::ranges::range_value_t<Range2>>
-    void decrease_costs(Range2&& costs)
-    {
-        for (auto&& [cost, dec] : std::views::zip(operator_costs, costs)) {
-            cost -= dec;
-        }
-    }
+    auto begin() { return std::ranges::begin(operator_costs); }
+    auto end() { return std::ranges::end(operator_costs); }
+
+    auto begin() const { return std::ranges::begin(operator_costs); }
+    auto end() const { return std::ranges::end(operator_costs); }
 };
 
 template <typename Range>
