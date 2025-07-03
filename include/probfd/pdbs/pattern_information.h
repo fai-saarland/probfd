@@ -19,7 +19,7 @@ class PatternInformation {
     std::shared_ptr<ProbabilityAwarePatternDatabase> pdb_;
 
     // for creation if missing
-    heuristics::BlindEvaluator<StateRank> h;
+    heuristics::BlindHeuristic<StateRank> h;
 
     void create_pdb_if_missing();
 

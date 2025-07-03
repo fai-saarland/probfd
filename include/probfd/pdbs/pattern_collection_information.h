@@ -36,7 +36,7 @@ class PatternCollectionInformation {
     std::shared_ptr<SubCollectionFinder> subcollection_finder_;
 
     // for creation if missing
-    heuristics::BlindEvaluator<StateRank> h;
+    heuristics::BlindHeuristic<StateRank> h;
 
     void create_pdbs_if_missing();
     void create_pattern_cliques_if_missing();

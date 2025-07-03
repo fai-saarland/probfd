@@ -16,14 +16,14 @@ namespace probfd::heuristics {
  * @brief Returns a constant estimate for each state.
  */
 template <typename State>
-class ConstantEvaluator : public Heuristic<State> {
+class ConstantHeuristic : public Heuristic<State> {
     const value_t value_;
 
 public:
     /**
      * @brief Construct with constant estimate \p value .
      */
-    explicit ConstantEvaluator(value_t value)
+    explicit ConstantHeuristic(value_t value)
         : value_(value)
     {
     }
@@ -39,16 +39,16 @@ public:
  * @brief Returns an estimate of zero for each state.
  */
 template <typename State>
-class BlindEvaluator : public ConstantEvaluator<State> {
+class BlindHeuristic : public ConstantHeuristic<State> {
 public:
     /**
      * @brief Construct with constant estimate \p value .
      */
-    BlindEvaluator(
+    BlindHeuristic(
         const ProbabilisticOperatorSpace& operators,
         const downward::OperatorCostFunction<value_t>& cost_function,
         const TerminationCosts& termination_costs)
-        : ConstantEvaluator<State>(
+        : ConstantHeuristic<State>(
               task_properties::get_min_operator_cost(
                   operators,
                   cost_function) >= 0_vt

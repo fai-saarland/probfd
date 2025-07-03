@@ -125,7 +125,7 @@ public:
             std::cout,
             "Running " + algorithm_name + " on the bisimulation...",
             [&]() {
-                heuristics::BlindEvaluator<QState> blind(
+                heuristics::BlindHeuristic<QState> blind(
                     operators,
                     cost_function,
                     term_costs);

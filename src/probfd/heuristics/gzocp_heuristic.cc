@@ -151,7 +151,7 @@ GZOCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
 
     auto adapted = replace(task, gzo_cost_function);
 
-    BlindEvaluator<StateRank> h(operators, *gzo_cost_function, term_costs);
+    BlindHeuristic<StateRank> h(operators, *gzo_cost_function, term_costs);
 
     for (const Pattern& pattern : patterns) {
         auto& pdb = pdbs.emplace_back(variables, pattern);

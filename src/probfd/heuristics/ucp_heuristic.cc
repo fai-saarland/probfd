@@ -91,7 +91,7 @@ UCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
 
     const State& initial_state = init_vals.get_initial_state();
 
-    const BlindEvaluator<StateRank> h(
+    const BlindHeuristic<StateRank> h(
         operators,
         *uniform_cost_function,
         term_costs);

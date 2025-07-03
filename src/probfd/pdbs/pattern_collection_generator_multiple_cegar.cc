@@ -80,7 +80,7 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
     compute_value_table(
         *transformation.projection,
         transformation.pdb.get_abstract_state(initial_state),
-        heuristics::BlindEvaluator<StateRank>(
+        heuristics::BlindHeuristic<StateRank>(
             operators,
             cost_function,
             term_costs),

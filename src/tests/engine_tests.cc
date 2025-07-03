@@ -140,7 +140,7 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
 
     ProgressReport report(0.0_vt, std::cout, false);
 
-    heuristics::BlindEvaluator<State> heuristic(
+    heuristics::BlindHeuristic<State> heuristic(
         *operators,
         *cost_function,
         *term_costs);
@@ -210,7 +210,7 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
 
     ProgressReport report(0.0_vt, std::cout, false);
 
-    heuristics::BlindEvaluator<State> heuristic(
+    heuristics::BlindHeuristic<State> heuristic(
         *operators,
         *cost_function,
         *term_costs);

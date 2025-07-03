@@ -136,7 +136,7 @@ class PatternCollectionGeneratorHillclimbing::IncrementalPPDBs {
 
     std::shared_ptr<SubCollectionFinder> subcollection_finder;
 
-    heuristics::BlindEvaluator<StateRank> h;
+    heuristics::BlindHeuristic<StateRank> h;
 
     // The sum of all abstract state sizes of all pdbs in the collection.
     long long size;

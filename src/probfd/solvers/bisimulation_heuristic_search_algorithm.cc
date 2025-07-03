@@ -117,7 +117,7 @@ auto BisimulationBasedHeuristicSearchAlgorithm::compute_policy(
         get_cost_function(task_);
     const auto& termination_costs = get_termination_costs(task_);
 
-    heuristics::BlindEvaluator<QState> heuristic(
+    heuristics::BlindHeuristic<QState> heuristic(
         operators,
         cost_function,
         termination_costs);

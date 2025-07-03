@@ -48,7 +48,7 @@ public:
         SharedProbabilisticTask task,
         Pattern pattern,
         const State& initial_state,
-        const heuristics::BlindEvaluator<StateRank>& h,
+        const heuristics::BlindHeuristic<StateRank>& h,
         value_t greedy_epsilon,
         utils::RandomNumberGenerator& rng,
         bool wildcard,
@@ -102,7 +102,7 @@ CEGAR::PDBInfo::PDBInfo(
     SharedProbabilisticTask task,
     Pattern pattern,
     const State& initial_state,
-    const heuristics::BlindEvaluator<StateRank>& h,
+    const heuristics::BlindHeuristic<StateRank>& h,
     value_t greedy_epsilon,
     utils::RandomNumberGenerator& rng,
     bool wildcard,
@@ -336,7 +336,7 @@ void CEGAR::generate_trivial_solution_collection(
         get_cost_function(task);
     const auto& term_costs = get_termination_costs(task);
 
-    heuristics::BlindEvaluator<StateRank> h(
+    heuristics::BlindHeuristic<StateRank> h(
         operators,
         cost_function,
         term_costs);
@@ -486,7 +486,7 @@ bool CEGAR::can_merge_patterns(
 void CEGAR::add_pattern_for_var(
     const SharedProbabilisticTask& task,
     const State& initial_state,
-    const heuristics::BlindEvaluator<StateRank>& h,
+    const heuristics::BlindHeuristic<StateRank>& h,
     int var,
     utils::CountdownTimer& timer)
 {

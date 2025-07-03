@@ -444,7 +444,7 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
                 fts.get_transition_system(index),
                 compute_liveness,
                 log,
-                heuristics::BlindEvaluator<int>(
+                heuristics::BlindHeuristic<int>(
                     get_operators(task),
                     get_cost_function(task),
                     get_termination_costs(task)));

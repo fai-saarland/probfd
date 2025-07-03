@@ -10,7 +10,7 @@ namespace probfd::heuristics {
 std::unique_ptr<FDRHeuristic>
 BlindEvaluatorFactory::create_object(const SharedProbabilisticTask& task)
 {
-    return std::make_unique<BlindEvaluator<State>>(
+    return std::make_unique<BlindHeuristic<State>>(
         get_operators(task),
         get_cost_function(task),
         get_termination_costs(task));

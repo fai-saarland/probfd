@@ -91,7 +91,7 @@ SCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
 
     auto adapted = replace(task, running_cost_function);
 
-    BlindEvaluator<StateRank> h(operators, *running_cost_function, term_costs);
+    BlindHeuristic<StateRank> h(operators, *running_cost_function, term_costs);
 
     for (const Pattern& pattern : patterns) {
         auto& pdb = pdbs.emplace_back(variables, pattern);

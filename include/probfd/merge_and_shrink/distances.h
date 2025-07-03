@@ -68,7 +68,7 @@ public:
         bool compute_liveness,
         downward::utils::LogProxy& log,
         const Heuristic<int>& heuristic =
-            heuristics::ConstantEvaluator<int>(0_vt));
+            heuristics::ConstantHeuristic<int>(0_vt));
 
     /*
       Update distances according to the given abstraction. If the abstraction
@@ -102,7 +102,7 @@ void compute_goal_distances(
     const Labels& labels,
     const TransitionSystem& transition_system,
     std::span<value_t> distances,
-    const Heuristic<int>& heuristic = heuristics::ConstantEvaluator<int>(0_vt));
+    const Heuristic<int>& heuristic = heuristics::ConstantHeuristic<int>(0_vt));
 
 } // namespace probfd::merge_and_shrink
 

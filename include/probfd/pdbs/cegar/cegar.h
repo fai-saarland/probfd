@@ -25,7 +25,7 @@ class RandomNumberGenerator;
 
 namespace probfd::heuristics {
 template <typename State>
-class BlindEvaluator;
+class BlindHeuristic;
 }
 
 namespace probfd::pdbs::cegar {
@@ -116,7 +116,7 @@ private:
     void add_pattern_for_var(
         const SharedProbabilisticTask& task,
         const downward::State& initial_state,
-        const heuristics::BlindEvaluator<StateRank>& h,
+        const heuristics::BlindHeuristic<StateRank>& h,
         int var,
         downward::utils::CountdownTimer& timer);
 
