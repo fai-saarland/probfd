@@ -57,6 +57,8 @@ void verify(
         for (const Action& op : aops) {
             const value_t cost = mdp.get_action_cost(op);
 
+            if (cost == INFINITE_VALUE) continue;
+
             SuccessorDistribution successor_dist;
             mdp.generate_action_transitions(i, op, successor_dist);
 
