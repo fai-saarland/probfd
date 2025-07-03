@@ -109,6 +109,8 @@ class TATopologicalValueIteration
 
         template <typename ValueStore>
         AlgorithmValueType compute_q_value(ValueStore& value_store) const;
+
+        friend auto operator<=>(const QValueInfo&, const QValueInfo&) = default;
     };
 
     struct DFSExplorationState {
@@ -154,22 +156,6 @@ class TATopologicalValueIteration
         ItemProbabilityPair<StateID> get_current_successor();
     };
 
-    struct cmp_qval_info {
-        bool operator()(const QValueInfo& left, const QValueInfo& right) const
-        {
-            return std::ranges::lexicographical_compare(
-                left.scc_successors,
-                right.scc_successors,
-                [](const auto& left, const auto& right) {
-                    return left.item < right.item ||
-                           (left.item == right.item && is_approx_less(
-                                                           left.probability,
-                                                           right.probability,
-                                                           0.0001));
-                });
-        }
-    };
-
     struct StackInfo {
         StateID state_id;
 
@@ -183,7 +169,7 @@ class TATopologicalValueIteration
 
         // Q value structs for transitions belonging to the scc,
         // but not to an end component.
-        std::set<QValueInfo, cmp_qval_info> non_ec_transitions;
+        std::set<QValueInfo> non_ec_transitions;
 
         // Q value structs for transitions currently assumed to belong
         // to an end component within the current scc.
