@@ -12,9 +12,10 @@ value_t SubCollectionFinder::evaluate(
     const PPDBCollection& database,
     const std::vector<PatternSubCollection>& subcollections,
     const State& state,
+    value_t cost_lower_bound,
     value_t termination_cost)
 {
-    if (database.empty()) return -INFINITE_VALUE;
+    if (database.empty()) return cost_lower_bound;
 
     // Get pattern estimates
     std::vector<value_t> estimates(database.size());
@@ -34,7 +35,7 @@ value_t SubCollectionFinder::evaluate(
     return std::transform_reduce(
         subcollections.begin(),
         subcollections.end(),
-        -INFINITE_VALUE,
+        cost_lower_bound,
         [](const auto left, const auto right) { return std::max(left, right); },
         transformer);
 }

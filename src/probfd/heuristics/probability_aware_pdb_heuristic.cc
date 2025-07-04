@@ -22,18 +22,24 @@ ProbabilityAwarePDBHeuristic::ProbabilityAwarePDBHeuristic(
     PPDBCollection pdbs,
     std::vector<PatternSubCollection> subcollections,
     std::shared_ptr<SubCollectionFinder> subcollection_finder,
+    value_t cost_lower_bound,
     value_t termination_cost)
     : pdbs_(std::move(pdbs))
     , subcollections_(std::move(subcollections))
     , subcollection_finder_(std::move(subcollection_finder))
+    , cost_lower_bound_(cost_lower_bound)
     , termination_cost_(termination_cost)
 {
 }
 
 value_t ProbabilityAwarePDBHeuristic::evaluate(const State& state) const
 {
-    return subcollection_finder_
-        ->evaluate(pdbs_, subcollections_, state, termination_cost_);
+    return subcollection_finder_->evaluate(
+        pdbs_,
+        subcollections_,
+        state,
+        cost_lower_bound_,
+        termination_cost_);
 }
 
 ProbabilityAwarePDBHeuristicFactory::ProbabilityAwarePDBHeuristicFactory(
@@ -137,12 +143,18 @@ ProbabilityAwarePDBHeuristicFactory::create_object(
              << "  Total construction time: " << construction_time << "s\n";
     }
 
+    const auto& operators = get_operators(task);
+    const auto& cost_function = get_cost_function(task);
     const auto& term_costs = get_termination_costs(task);
 
     return std::make_unique<ProbabilityAwarePDBHeuristic>(
         std::move(pdbs),
         std::move(subcollections),
         std::move(subcollection_finder),
+        task_properties::get_cost_lower_bound(
+            operators,
+            cost_function,
+            term_costs),
         term_costs.get_non_goal_termination_cost());
 }
 

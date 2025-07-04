@@ -48,14 +48,10 @@ public:
         const ProbabilisticOperatorSpace& operators,
         const downward::OperatorCostFunction<value_t>& cost_function,
         const TerminationCosts& termination_costs)
-        : ConstantHeuristic<State>(
-              task_properties::get_min_operator_cost(
-                  operators,
-                  cost_function) >= 0_vt
-                  ? std::min(
-                        termination_costs.get_goal_termination_cost(),
-                        termination_costs.get_non_goal_termination_cost())
-                  : -INFINITE_VALUE)
+        : ConstantHeuristic<State>(task_properties::get_cost_lower_bound(
+              operators,
+              cost_function,
+              termination_costs))
     {
     }
 };

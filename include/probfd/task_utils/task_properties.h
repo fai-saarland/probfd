@@ -26,6 +26,7 @@ class LogProxy;
 
 namespace probfd {
 class ProbabilisticOperatorProxy;
+class TerminationCosts;
 } // namespace probfd
 
 namespace probfd::task_properties {
@@ -117,6 +118,16 @@ extern value_t get_average_operator_cost(
 extern value_t get_min_operator_cost(
     const ProbabilisticOperatorSpace& ops,
     const downward::OperatorCostFunction<value_t>& cost_function);
+
+/**
+ * @brief Returns a trivial lower bound on the expected cost-to-goal.
+ *
+ * Runtime: O(n), where n is the number of operators.
+ */
+value_t get_cost_lower_bound(
+    const ProbabilisticOperatorSpace& operators,
+    const downward::OperatorCostFunction<value_t>& cost_function,
+    const TerminationCosts& termination_costs);
 
 /**
  * @brief Return the total number of effects of the task, including the

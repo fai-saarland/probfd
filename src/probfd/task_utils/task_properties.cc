@@ -10,6 +10,7 @@
 
 #include "downward/operator_cost_function.h"
 #include "probfd/probabilistic_operator_space.h"
+#include "probfd/termination_costs.h"
 
 #include <algorithm>
 #include <iostream>
@@ -138,6 +139,19 @@ value_t get_min_operator_cost(
         min_cost = min(min_cost, cost_function.get_operator_cost(op.get_id()));
     }
     return min_cost;
+}
+
+value_t get_cost_lower_bound(
+    const ProbabilisticOperatorSpace& operators,
+    const OperatorCostFunction<value_t>& cost_function,
+    const TerminationCosts& termination_costs) {
+    return get_min_operator_cost(
+                  operators,
+                  cost_function) >= 0_vt
+                  ? std::min(
+                        termination_costs.get_goal_termination_cost(),
+                        termination_costs.get_non_goal_termination_cost())
+                  : -INFINITE_VALUE;
 }
 
 int get_num_total_effects(
