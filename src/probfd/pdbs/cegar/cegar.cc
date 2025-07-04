@@ -520,7 +520,7 @@ void CEGAR::add_variable_to_pattern(
     remaining_size_ += pdb.num_states();
 
     // compute new solution
-    info = PDBInfo(
+    PDBInfo new_info(
         task,
         pdb,
         var,
@@ -529,6 +529,8 @@ void CEGAR::add_variable_to_pattern(
         *rng_,
         wildcard_,
         timer);
+
+    info = std::move(new_info);
 
     // update collection size
     remaining_size_ -= info.get_pdb().num_states();
@@ -564,7 +566,7 @@ void CEGAR::merge_patterns(
     remaining_size_ += pdb_size1 + pdb_size2;
 
     // compute merge solution
-    solution1 = PDBInfo(
+    PDBInfo new_info(
         task,
         pdb1,
         pdb2,
@@ -573,6 +575,8 @@ void CEGAR::merge_patterns(
         *rng_,
         wildcard_,
         timer);
+
+    solution1 = std::move(new_info);
 
     solution2.release();
 
