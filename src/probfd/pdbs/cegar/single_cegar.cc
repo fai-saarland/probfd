@@ -118,6 +118,7 @@ bool SingleCEGAR::get_flaws(
     if (!projection->is_goal(init_state_rank) &&
         policy->get_decisions(init_state_rank).empty()) {
         log << "SingleCEGAR: Problem unsolvable" << endl;
+        log << "SingleCEGAR: Unsolvable pattern:" << pdb.get_pattern() << endl;
         utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
     }
 
@@ -219,32 +220,36 @@ void SingleCEGAR::refine(
     // Note on precondition violations: flaw_var may be a goal variable but
     // nevertheless is added to the pattern causing the flaw and not to
     // a single new pattern.
-    assert(utils::is_product_within_limit(
-        pdb.num_states(),
-        get_variables(task)[flaw_var].get_domain_size(),
-        max_pdb_size_));
+    assert(
+        utils::is_product_within_limit(
+            pdb.num_states(),
+            get_variables(task)[flaw_var].get_domain_size(),
+            max_pdb_size_));
 
     if (log.is_at_least_verbose()) {
         log << "SingleCEGAR: add it to the pattern" << endl;
     }
 
     // compute new solution
-    std::vector<value_t> prev_distances = std::move(pdb.value_table);
-
-    transformation = ProjectionTransformation(
+    ProjectionTransformation new_transformation(
         task,
         extended_pattern(pdb.get_pattern(), flaw_var),
         false,
         timer.get_remaining_time());
 
-    IncrementalPPDBEvaluator h(prev_distances, pdb.ranking_function, flaw_var);
+    IncrementalPPDBEvaluator h(
+        pdb.value_table,
+        new_transformation.pdb.ranking_function,
+        flaw_var);
 
     compute_value_table(
-        *projection,
-        pdb.get_abstract_state(initial_state),
+        *new_transformation.projection,
+        new_transformation.pdb.get_abstract_state(initial_state),
         h,
-        pdb.value_table,
+        new_transformation.pdb.value_table,
         timer.get_remaining_time());
+
+    transformation = std::move(new_transformation);
 }
 
 void SingleCEGAR::run_cegar_loop(
@@ -264,9 +269,7 @@ void SingleCEGAR::run_cegar_loop(
             << "  blacklisted variables: " << blacklisted_variables_ << endl;
     }
 
-    if (log.is_at_least_normal()) {
-        log << endl;
-    }
+    if (log.is_at_least_normal()) { log << endl; }
 
     utils::CountdownTimer timer(max_time);
 
@@ -274,9 +277,7 @@ void SingleCEGAR::run_cegar_loop(
         log << "SingleCEGAR initial collection: "
             << transformation.pdb.get_pattern();
 
-        if (log.is_at_least_verbose()) {
-            log << endl;
-        }
+        if (log.is_at_least_verbose()) { log << endl; }
     }
 
     std::vector<Flaw> flaws;
@@ -304,14 +305,7 @@ void SingleCEGAR::run_cegar_loop(
 
             // if there was a flaw, then refine the abstraction
             // such that said flaw does not occur again
-            refine(
-                transformation,
-                task,
-                initial_state,
-                flaws,
-                rng,
-                timer,
-                log);
+            refine(transformation, task, initial_state, flaws, rng, timer, log);
 
             ++refinement_counter;
             flaws.clear();

@@ -170,127 +170,140 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
 
     std::vector<value_t> saturated_costs(operators.get_num_operators());
 
-    while (true) {
-        // Check if blacklisting should be started.
-        if (!blacklisting &&
-            timer.get_elapsed_time() > blacklisting_start_time_) {
-            blacklisting = true;
-            /*
-              Also treat this time point as having seen a new pattern to avoid
-              stopping due to stagnation right after enabling blacklisting.
-            */
-            time_point_of_last_new_pattern = timer.get_elapsed_time();
-            if (log_.is_at_least_normal()) {
-                log_ << "given percentage of total time limit "
-                     << "exhausted; enabling blacklisting." << endl;
-            }
-        }
-
-        // Get blacklisted variables
-        unordered_set<int> blacklisted_variables;
-        if (blacklisting && !non_goal_variables.empty()) {
-            /*
-              Randomize the number of non-goal variables for blacklisting.
-              We want to choose at least 1 non-goal variable, so we pick a
-              random value in the range [1, |non-goal variables|].
-            */
-            int blacklist_size = rng_->random(non_goal_variables.size());
-            ++blacklist_size;
-            rng_->shuffle(non_goal_variables);
-            blacklisted_variables.insert(
-                non_goal_variables.begin(),
-                non_goal_variables.begin() + blacklist_size);
-            if (log_.is_at_least_debug()) {
-                log_ << "blacklisting " << blacklist_size << " out of "
-                     << non_goal_variables.size() << " non-goal variables: ";
-                for (int var : blacklisted_variables) { log_ << var << ", "; }
-                log_ << endl;
-            }
-        }
-
-        int remaining_pdb_size = min(remaining_collection_size, max_pdb_size_);
-        double remaining_time =
-            min(static_cast<double>(timer.get_remaining_time()),
-                pattern_generation_max_time_);
-
-        auto [pdb, state_space] = compute_pattern(
-            remaining_pdb_size,
-            remaining_time,
-            rng_,
-            adapted,
-            goals[goal_index],
-            std::move(blacklisted_variables));
-
-        const Pattern& pattern = pdb.get_pattern();
-        if (log_.is_at_least_debug()) {
-            log_ << "generated PDB with pattern " << pattern << endl;
-        }
-
-        if (generated_patterns.insert(pattern).second) {
-            if (use_saturated_costs_) {
-                compute_saturated_costs(
-                    *state_space,
-                    pdb.value_table,
-                    saturated_costs);
-
-                for (auto&& [cost, dec] :
-                     std::views::zip(*adapted_cost_function, saturated_costs)) {
-                    cost -= dec;
-
-                    if (is_approx_equal(cost, 0_vt, 0.001)) { cost = 0_vt; }
-
-                    assert(cost >= 0_vt);
-                }
-            }
-
-            /*
-              compute_pattern generated a new pattern. Create/retrieve
-              corresponding PDB, update collection size and reset
-              time_point_of_last_new_pattern.
-            */
-            time_point_of_last_new_pattern = timer.get_elapsed_time();
-            remaining_collection_size -= pdb.num_states();
-            generated_pdbs.emplace_back(
-                std::make_unique<ProbabilityAwarePatternDatabase>(
-                    std::move(pdb)));
-        }
-
-        if (collection_size_limit_reached(remaining_collection_size) ||
-            time_limit_reached(timer)) {
-            break;
-        }
-
-        // Test if no new pattern was generated for longer than
-        // stagnation_limit.
-        if (timer.get_elapsed_time() - time_point_of_last_new_pattern >
-            stagnation_limit_) {
-            if (enable_blacklist_on_stagnation_) {
-                if (blacklisting) {
-                    if (log_.is_at_least_normal()) {
-                        log_ << "stagnation limit reached "
-                             << "despite blacklisting, terminating" << endl;
-                    }
-                    break;
-                } else {
-                    if (log_.is_at_least_normal()) {
-                        log_ << "stagnation limit reached, "
-                             << "enabling blacklisting" << endl;
-                    }
-                    blacklisting = true;
-                    time_point_of_last_new_pattern = timer.get_elapsed_time();
-                }
-            } else {
+    try {
+        while (true) {
+            // Check if blacklisting should be started.
+            if (!blacklisting &&
+                timer.get_elapsed_time() > blacklisting_start_time_) {
+                blacklisting = true;
+                /*
+                  Also treat this time point as having seen a new pattern to
+                  avoid stopping due to stagnation right after enabling
+                  blacklisting.
+                */
+                time_point_of_last_new_pattern = timer.get_elapsed_time();
                 if (log_.is_at_least_normal()) {
-                    log_ << "stagnation limit reached, terminating" << endl;
+                    log_ << "given percentage of total time limit "
+                         << "exhausted; enabling blacklisting." << endl;
+                }
+            }
+
+            // Get blacklisted variables
+            unordered_set<int> blacklisted_variables;
+            if (blacklisting && !non_goal_variables.empty()) {
+                /*
+                  Randomize the number of non-goal variables for blacklisting.
+                  We want to choose at least 1 non-goal variable, so we pick a
+                  random value in the range [1, |non-goal variables|].
+                */
+                int blacklist_size = rng_->random(non_goal_variables.size());
+                ++blacklist_size;
+                rng_->shuffle(non_goal_variables);
+                blacklisted_variables.insert(
+                    non_goal_variables.begin(),
+                    non_goal_variables.begin() + blacklist_size);
+                if (log_.is_at_least_debug()) {
+                    log_ << "blacklisting " << blacklist_size << " out of "
+                         << non_goal_variables.size()
+                         << " non-goal variables: ";
+                    for (int var : blacklisted_variables) {
+                        log_ << var << ", ";
+                    }
+                    log_ << endl;
+                }
+            }
+
+            int remaining_pdb_size =
+                min(remaining_collection_size, max_pdb_size_);
+            double remaining_time =
+                min(static_cast<double>(timer.get_remaining_time()),
+                    pattern_generation_max_time_);
+
+            auto [pdb, state_space] = compute_pattern(
+                remaining_pdb_size,
+                remaining_time,
+                rng_,
+                adapted,
+                goals[goal_index],
+                std::move(blacklisted_variables));
+
+            const Pattern& pattern = pdb.get_pattern();
+            if (log_.is_at_least_debug()) {
+                log_ << "generated PDB with pattern " << pattern << endl;
+            }
+
+            if (generated_patterns.insert(pattern).second) {
+                if (use_saturated_costs_) {
+                    compute_saturated_costs(
+                        *state_space,
+                        pdb.value_table,
+                        saturated_costs);
+
+                    for (auto&& [cost, dec] : std::views::zip(
+                             *adapted_cost_function,
+                             saturated_costs)) {
+                        assert(!is_approx_greater(dec, cost, 0.001));
+                        cost = std::max(0_vt, cost - dec);
+                    }
+                }
+
+                /*
+                  compute_pattern generated a new pattern. Create/retrieve
+                  corresponding PDB, update collection size and reset
+                  time_point_of_last_new_pattern.
+                */
+                time_point_of_last_new_pattern = timer.get_elapsed_time();
+                remaining_collection_size -= pdb.num_states();
+                generated_pdbs.emplace_back(
+                    std::make_unique<ProbabilityAwarePatternDatabase>(
+                        std::move(pdb)));
+            }
+
+            if (collection_size_limit_reached(remaining_collection_size) ||
+                time_limit_reached(timer)) {
+                if (log_.is_at_least_normal()) {
+                    log_ << "time limit reached" << endl;
                 }
                 break;
             }
-        }
 
-        ++num_iterations;
-        ++goal_index;
-        goal_index = goal_index % goals.size();
-        assert(utils::in_bounds(goal_index, goals));
+            // Test if no new pattern was generated for longer than
+            // stagnation_limit.
+            if (timer.get_elapsed_time() - time_point_of_last_new_pattern >
+                stagnation_limit_) {
+                if (enable_blacklist_on_stagnation_) {
+                    if (blacklisting) {
+                        if (log_.is_at_least_normal()) {
+                            log_ << "stagnation limit reached "
+                                 << "despite blacklisting, terminating" << endl;
+                        }
+                        break;
+                    } else {
+                        if (log_.is_at_least_normal()) {
+                            log_ << "stagnation limit reached, "
+                                 << "enabling blacklisting" << endl;
+                        }
+                        blacklisting = true;
+                        time_point_of_last_new_pattern =
+                            timer.get_elapsed_time();
+                    }
+                } else {
+                    if (log_.is_at_least_normal()) {
+                        log_ << "stagnation limit reached, terminating" << endl;
+                    }
+                    break;
+                }
+            }
+
+            ++num_iterations;
+            ++goal_index;
+            goal_index = goal_index % goals.size();
+            assert(utils::in_bounds(goal_index, goals));
+        }
+    } catch (const utils::TimeoutException&) {
+        if (log_.is_at_least_normal()) {
+            log_ << "time limit reached" << endl;
+        }
     }
 
     PatternCollection patterns;
