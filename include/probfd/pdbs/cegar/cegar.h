@@ -138,7 +138,7 @@ private:
         const SharedProbabilisticTask& task,
         const downward::State& initial_state,
         const std::vector<Flaw>& flaws,
-        const std::vector<int>& flaw_offsets,
+        std::vector<int>& flaw_offsets,
         const downward::utils::CountdownTimer& timer,
         downward::utils::LogProxy log);
 

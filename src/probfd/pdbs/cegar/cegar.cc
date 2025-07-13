@@ -612,7 +612,7 @@ void CEGAR::refine(
     const SharedProbabilisticTask& task,
     const State& initial_state,
     const std::vector<Flaw>& flaws,
-    const std::vector<int>& flaw_offsets,
+    std::vector<int>& flaw_offsets,
     const utils::CountdownTimer& timer,
     utils::LogProxy log)
 {
@@ -622,9 +622,10 @@ void CEGAR::refine(
     int random_flaw_index = rng_->random(flaws.size());
     const Flaw& flaw = flaws[random_flaw_index];
 
-    int solution_index = std::distance(
-        flaw_offsets.begin(),
-        std::ranges::upper_bound(flaw_offsets, random_flaw_index));
+    auto fit = std::ranges::upper_bound(flaw_offsets, random_flaw_index);
+    assert(fit != flaw_offsets.end());
+
+    int solution_index = std::distance(flaw_offsets.begin(), fit);
     auto solution_it = std::next(pdb_infos_.begin(), solution_index);
     int var = flaw.variable;
 
@@ -655,6 +656,7 @@ void CEGAR::refine(
         }
 
         merge_patterns(task, initial_state, solution_it, other_it, timer);
+        flaw_offsets.pop_back();
         return;
     }
 
