@@ -23,6 +23,7 @@
 #include "downward/state.h"
 
 #include <cassert>
+#include <ranges>
 #include <ostream>
 #include <utility>
 
@@ -180,23 +181,22 @@ void CostSaturation::reduce_remaining_costs(
     const vector<value_t>& saturated_costs)
 {
     assert(remaining_costs_.size() == saturated_costs.size());
-    for (size_t i = 0; i < remaining_costs_.size(); ++i) {
-        value_t& remaining = remaining_costs_[i];
-        const value_t& saturated = saturated_costs[i];
+
+    for (auto&& [remaining, saturated] :
+         std::views::zip(remaining_costs_, saturated_costs)) {
         assert(!is_approx_greater(saturated, remaining, 0.001));
         /* Since we ignore transitions from states s with h(s)=INFINITE_VALUE,
            all saturated costs (h(s)-h(s')) are finite or -INFINITE_VALUE. */
         assert(saturated != INFINITE_VALUE);
 
         remaining -= saturated;
-
-        // Remaining costs can become negative due to floating point imprecision
-        if (remaining < 0.0_vt) {
-            assert(is_approx_equal(remaining, 0.0_vt, 0.001));
-            remaining = 0.0_vt;
-        }
-        assert(remaining >= 0);
     }
+
+    // Guard against tolerance issues
+    std::ranges::replace_if(
+        remaining_costs_,
+        [](value_t cost) { return is_approx_equal(0_vt, cost, 0.001); },
+        0_vt);
 }
 
 bool CostSaturation::state_is_dead_end(const State& state) const
