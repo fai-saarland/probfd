@@ -85,7 +85,8 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
             cost_function,
             term_costs),
         transformation.pdb.value_table,
-        timer.get_remaining_time());
+        timer.get_remaining_time(),
+        10e-8);
 
     run_cegar_loop(
         transformation,

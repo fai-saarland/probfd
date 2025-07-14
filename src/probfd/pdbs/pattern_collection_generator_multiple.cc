@@ -164,7 +164,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
     int remaining_collection_size = max_collection_size_;
 
     auto adapted_cost_function =
-        downward::extra_tasks::make_shared_range_cf(std::move(costs));
+        downward::extra_tasks::make_shared_range_cf(costs);
 
     auto adapted = replace(task, adapted_cost_function);
 

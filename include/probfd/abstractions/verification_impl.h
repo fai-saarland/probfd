@@ -12,8 +12,21 @@
 #include <cmath>
 #include <numeric>
 #include <ranges>
+#include <print>
 
 namespace probfd {
+
+static void assert_near(value_t value, value_t expected, value_t tolerance) {
+    if (!is_approx_equal(value, expected, 0.001)) {
+        std::println(
+            std::cerr,
+            "{} differs from expected value {} by more than {}!",
+            value,
+            expected,
+            tolerance);
+        abort();
+    }
+}
 
 template <typename State, typename Action>
 void verify(
@@ -112,7 +125,7 @@ void verify(
     for (StateID s = 0; s.id != num_states; ++s.id) {
         const auto value = value_table[s];
         if (value != INFINITE_VALUE && !std::isnan(value)) {
-            assert(is_approx_equal(value, solution[s], 0.001));
+            assert_near(value, solution[s], 0.001);
         }
     }
 

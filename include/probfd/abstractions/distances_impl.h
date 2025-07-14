@@ -24,13 +24,14 @@ void compute_value_table(
     ParamType<State> initial_state,
     const Heuristic<State>& heuristic,
     std::span<value_t> value_table,
-    double max_time)
+    double max_time,
+    double epsilon)
 {
     using namespace algorithms::ta_topological_vi;
 
     downward::utils::CountdownTimer timer(max_time);
 
-    TATopologicalValueIteration<State, Action> vi(10e-5, value_table.size());
+    TATopologicalValueIteration<State, Action> vi(epsilon, value_table.size());
     vi.solve(
         mdp,
         heuristic,

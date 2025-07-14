@@ -29,7 +29,8 @@ void compute_value_table(
     ParamType<State> initial_state,
     const Heuristic<State>& heuristic,
     std::span<value_t> value_table,
-    double max_time = std::numeric_limits<double>::infinity());
+    double max_time = std::numeric_limits<double>::infinity(),
+    value_t epsilon = 10e-5);
 
 } // namespace probfd
 

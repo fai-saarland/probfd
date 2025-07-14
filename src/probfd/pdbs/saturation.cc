@@ -4,6 +4,7 @@
 #include "probfd/pdbs/projection_state_space.h"
 #include "probfd/transition_tail.h"
 
+#include <algorithm>
 #include <vector>
 
 namespace probfd::pdbs {
@@ -57,6 +58,11 @@ void compute_saturated_costs(
         next_operator:;
         }
     }
+
+    std::ranges::replace_if(
+        saturated_costs,
+        [](value_t cost) { return is_approx_equal(0_vt, cost, 0.001); },
+        0_vt);
 }
 
 } // namespace probfd::pdbs
