@@ -23,13 +23,13 @@ constexpr value_t double_to_value(double d)
 }
 
 /// User-defined floating-point literals for state values.
-constexpr value_t operator"" _vt(long double value)
+constexpr value_t operator""_vt(long double value)
 {
     return double_to_value(static_cast<double>(value));
 }
 
 /// User-defined integer literals for state values.
-constexpr value_t operator"" _vt(unsigned long long value)
+constexpr value_t operator""_vt(unsigned long long value)
 {
     return double_to_value(static_cast<double>(value));
 }
