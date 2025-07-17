@@ -24,7 +24,7 @@ MergeTreeFactoryManual::MergeTreeFactoryManual(
 }
 
 unique_ptr<MergeTree>
-MergeTreeFactoryManual::compute_merge_tree(const SharedProbabilisticTask& task)
+MergeTreeFactoryManual::compute_merge_tree(const SharedProbabilisticTask&)
 {
     auto* root = new MergeTreeNode(linear_order.front());
 
