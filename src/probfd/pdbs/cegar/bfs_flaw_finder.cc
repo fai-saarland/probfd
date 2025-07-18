@@ -122,7 +122,7 @@ bool BFSFlawFinder::apply_policy(
             }
 
             // Insert all flaws of all operators
-            flaws.insert(flaws.end(), local_flaws.begin(), local_flaws.end());
+            flaws.append_range(local_flaws);
 
             return false;
         }

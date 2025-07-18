@@ -74,13 +74,9 @@ void MergeScoringFunctionTotalOrder::initialize(
 
     const int num_variables = variables.size();
     const int max_transition_system_count = num_variables * 2 - 1;
-    vector<int> transition_system_order;
-    transition_system_order.reserve(max_transition_system_count);
 
     // Compute the order in which atomic transition systems are considered
-    vector<int> atomic_tso;
-    atomic_tso.reserve(num_variables);
-    for (int i = 0; i < num_variables; ++i) { atomic_tso.push_back(i); }
+    vector<int> atomic_tso(std::from_range, std::views::iota(0, num_variables));
 
     if (atomic_ts_order == AtomicTSOrder::LEVEL) {
         ranges::reverse(atomic_tso);
@@ -89,10 +85,9 @@ void MergeScoringFunctionTotalOrder::initialize(
     }
 
     // Compute the order in which product transition systems are considered
-    vector<int> product_tso;
-    for (int i = num_variables; i < max_transition_system_count; ++i) {
-        product_tso.push_back(i);
-    }
+    vector<int> product_tso(
+        std::from_range,
+        std::views::iota(num_variables, max_transition_system_count));
 
     if (product_ts_order == ProductTSOrder::NEW_TO_OLD) {
         ranges::reverse(product_tso);
@@ -100,25 +95,16 @@ void MergeScoringFunctionTotalOrder::initialize(
         rng->shuffle(product_tso);
     }
 
+    vector<int> transition_system_order;
+    transition_system_order.reserve(max_transition_system_count);
+
     // Put the orders in the correct order
     if (atomic_before_product) {
-        transition_system_order.insert(
-            transition_system_order.end(),
-            atomic_tso.begin(),
-            atomic_tso.end());
-        transition_system_order.insert(
-            transition_system_order.end(),
-            product_tso.begin(),
-            product_tso.end());
+        transition_system_order.append_range(atomic_tso);
+        transition_system_order.append_range(product_tso);
     } else {
-        transition_system_order.insert(
-            transition_system_order.end(),
-            product_tso.begin(),
-            product_tso.end());
-        transition_system_order.insert(
-            transition_system_order.end(),
-            atomic_tso.begin(),
-            atomic_tso.end());
+        transition_system_order.append_range(product_tso);
+        transition_system_order.append_range(atomic_tso);
     }
 
     merge_candidate_order.reserve(

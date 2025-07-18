@@ -32,9 +32,9 @@ Pattern extended_pattern(const Pattern& pattern, int add_var)
     Pattern added;
     added.reserve(pattern.size() + 1);
     const auto it = std::ranges::upper_bound(pattern, add_var);
-    added.insert(added.end(), pattern.begin(), it);
+    added.append_range(std::ranges::subrange(pattern.begin(), it));
     added.emplace_back(add_var);
-    added.insert(added.end(), it, pattern.end());
+    added.append_range(std::ranges::subrange(it, pattern.end()));
 
     return added;
 }

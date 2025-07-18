@@ -25,7 +25,6 @@ namespace probfd::extra_tasks {
 namespace {
 
 class DomainAbstractedTaskFactory {
-private:
     vector<int> domain_size;
     vector<int> initial_state_values;
     vector<FactPair> goal_facts;
@@ -112,12 +111,11 @@ DomainAbstractedTaskFactory::DomainAbstractedTaskFactory(
             std::move(domain_size),
             std::move(fact_names),
             domain_abstraction),
-        std::make_shared<
-            DomainAbstractedProbabilisticOperatorSpace>(
+        std::make_shared<DomainAbstractedProbabilisticOperatorSpace>(
             get_shared_operators(parent),
             domain_abstraction),
         std::make_shared<downward::extra_tasks::DomainAbstractedGoal>(
-           std::move(goal_facts)),
+            std::move(goal_facts)),
         std::make_shared<
             downward::extra_tasks::DomainAbstractedInitialStateValues>(
             std::move(initial_state_values)));
@@ -149,7 +147,7 @@ void DomainAbstractedTaskFactory::combine_values(
 
     for (const ValueGroup& group : groups) {
         combined_fact_names.push_back(get_combined_fact_name(var, group));
-        groups_union.insert(group.begin(), group.end());
+        groups_union.insert_range(group);
 
 #ifndef NDEBUG
         num_merged_values += group.size();
@@ -162,7 +160,7 @@ void DomainAbstractedTaskFactory::combine_values(
 
     // Move all facts that are not part of groups to the front.
     for (int before = 0; before < domain_size[var]; ++before) {
-        if (groups_union.count(before) == 0) {
+        if (!groups_union.contains(before)) {
             value_map[var][before] = next_free_pos;
             fact_names[var][next_free_pos] = std::move(fact_names[var][before]);
             ++next_free_pos;
@@ -174,7 +172,9 @@ void DomainAbstractedTaskFactory::combine_values(
     // Add new facts for merged groups.
     for (size_t group_id = 0; group_id < groups.size(); ++group_id) {
         const ValueGroup& group = groups[group_id];
-        for (int before : group) { value_map[var][before] = next_free_pos; }
+        for (const int before : group) {
+            value_map[var][before] = next_free_pos;
+        }
         assert(utils::in_bounds(next_free_pos, fact_names[var]));
         fact_names[var][next_free_pos] =
             std::move(combined_fact_names[group_id]);

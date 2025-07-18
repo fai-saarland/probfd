@@ -38,10 +38,8 @@ CartesianAbstraction::CartesianAbstraction(
     std::vector<value_t> operator_costs,
     utils::LogProxy log)
     : transition_system_(
-          std::make_unique<ProbabilisticTransitionSystem>(
-              get_operators(task)))
-    , concrete_initial_state_(
-          get_init(task).get_initial_state())
+          std::make_unique<ProbabilisticTransitionSystem>(get_operators(task)))
+    , concrete_initial_state_(get_init(task).get_initial_state())
     , goal_facts_(::task_properties::get_fact_pairs(get_goal(task)))
     , operator_costs_(std::move(operator_costs))
     , log_(std::move(log))
@@ -166,8 +164,12 @@ CartesianAbstraction::get_transition_system() const
 
 void CartesianAbstraction::mark_all_states_as_goals()
 {
+    constexpr auto get_id = [](const auto& state) {
+        return state->get_id();
+    };
+
     goals_.clear();
-    for (auto& state : states_) { goals_.insert(state->get_id()); }
+    goals_.insert_range(states_ | std::views::transform(get_id));
 }
 
 void CartesianAbstraction::initialize_trivial_abstraction(
@@ -237,12 +239,12 @@ pair<int, int> CartesianAbstraction::refine(
                  << get_state(init_id_) << endl;
         }
     }
-    if (goals_.count(v1_id)) {
-        goals_.erase(v1_id);
+    if (const auto it = goals_.find(v1_id); it != goals_.end()) {
+        goals_.erase(it);
         if (v1->includes(goal_facts_)) { goals_.insert(v1_id); }
         if (v2->includes(goal_facts_)) { goals_.insert(v2_id); }
         if (log_.is_at_least_debug()) {
-            log_ << "Goal states: " << goals_.size() << endl;
+            log_.println("Goal states: {}", goals_.size());
         }
     }
 
@@ -258,8 +260,8 @@ pair<int, int> CartesianAbstraction::refine(
 void CartesianAbstraction::print_statistics() const
 {
     if (log_.is_at_least_normal()) {
-        log_ << "States: " << get_num_states() << endl;
-        log_ << "Goal states: " << goals_.size() << endl;
+        log_.println("States: {}", get_num_states());
+        log_.println("Goal states: {}", goals_.size());
         transition_system_->print_statistics(log_);
     }
 }

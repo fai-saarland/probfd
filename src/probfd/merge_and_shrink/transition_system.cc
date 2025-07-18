@@ -127,10 +127,8 @@ void LocalLabelInfo::merge_local_label_info(LocalLabelInfo& local_label_info)
     assert(is_consistent());
     assert(local_label_info.is_consistent());
     assert(transitions == local_label_info.transitions);
-    label_group.insert(
-        label_group.end(),
-        make_move_iterator(local_label_info.label_group.begin()),
-        make_move_iterator(local_label_info.label_group.end()));
+    label_group.append_range(
+        std::views::as_rvalue(local_label_info.label_group));
     cost = min(cost, local_label_info.cost);
     local_label_info.deactivate();
     ranges::sort(label_group);
@@ -296,11 +294,7 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
                 ts2.local_label_infos[local_label2].get_transitions();
 
             if (transitions1.empty() || transitions2.empty()) {
-                auto& dead_group = dead_labels[probabilities1];
-                dead_group.insert(
-                    dead_group.end(),
-                    new_labels.begin(),
-                    new_labels.end());
+                dead_labels[probabilities1].append_range(new_labels);
                 continue;
             }
 
@@ -549,13 +543,8 @@ void TransitionSystem::apply_label_reduction(
 
                 if (seen_local_labels.insert(old_local_label).second) {
                     auto& local_info = local_label_infos[old_local_label];
-                    const auto& transitions = local_info.get_transitions();
-                    // assert(probabilities == local_info.get_probabilities());
-
-                    new_label_transitions.insert(
-                        new_label_transitions.end(),
-                        transitions.begin(),
-                        transitions.end());
+                    new_label_transitions.append_range(
+                        local_info.get_transitions());
                 }
                 local_label_to_old_labels[old_local_label].push_back(old_label);
                 // Reset (for consistency only, old labels are never accessed).

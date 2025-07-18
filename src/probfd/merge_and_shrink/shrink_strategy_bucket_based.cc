@@ -61,10 +61,7 @@ StateEquivalenceRelation ShrinkStrategyBucketBased::compute_abstraction(
                 }
             }
             StateEquivalenceClass& group = equiv_relation.back();
-            group.insert_after(
-                group.before_begin(),
-                bucket.begin(),
-                bucket.end());
+            group.insert_range_after(group.before_begin(), bucket);
         } else {
             // Complicated case: must combine until bucket budget is met.
             // First create singleton groups.
@@ -79,9 +76,7 @@ StateEquivalenceRelation ShrinkStrategyBucketBased::compute_abstraction(
             while (static_cast<int>(groups.size()) > budget_for_this_bucket) {
                 auto it1 = rng->choose(groups);
                 auto it2 = it1;
-                while (it1 == it2) {
-                    it2 = rng->choose(groups);
-                }
+                while (it1 == it2) { it2 = rng->choose(groups); }
                 it1->splice_after(it1->before_begin(), *it2);
                 swap(*it2, groups.back());
                 assert(groups.back().empty());
@@ -99,7 +94,8 @@ StateEquivalenceRelation ShrinkStrategyBucketBased::compute_abstraction(
     return equiv_relation;
 }
 
-StateEquivalenceRelation ShrinkStrategyBucketBased::compute_equivalence_relation(
+StateEquivalenceRelation
+ShrinkStrategyBucketBased::compute_equivalence_relation(
     const Labels&,
     const TransitionSystem& ts,
     const Distances& distances,

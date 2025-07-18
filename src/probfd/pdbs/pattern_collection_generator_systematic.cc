@@ -78,8 +78,7 @@ static void compute_eff_pre_neighbors(
 
     // Compute neighbors.
     for (int var : pattern) {
-        const vector<int>& neighbors = cg.get_eff_to_pre(var);
-        candidates.insert(neighbors.begin(), neighbors.end());
+        candidates.insert_range(cg.get_eff_to_pre(var));
     }
 
     // Remove elements of pattern.
@@ -114,8 +113,7 @@ static void compute_connection_points(
 
     // Handle rule 1.
     for (int var : pattern) {
-        const vector<int>& succ = cg.get_successors(var);
-        candidates.insert(succ.begin(), succ.end());
+        candidates.insert_range(cg.get_successors(var));
     }
 
     // Handle rules 2 and 3.

@@ -135,14 +135,14 @@ public:
         return *this;
     }
 
-    template <typename Char, typename... Args>
-    void print(std::basic_format_string<Char, Args...> text, Args&&... args)
+    template <typename... Args>
+    void print(std::format_string<Args...> text, Args&&... args)
     {
         log->print(text, std::forward<Args>(args)...);
     }
 
-    template <typename Char, typename... Args>
-    void println(std::basic_format_string<Char, Args...> text, Args&&... args)
+    template <typename... Args>
+    void println(std::format_string<Args...> text, Args&&... args)
     {
         log->println(text, std::forward<Args>(args)...);
     }
