@@ -11,8 +11,10 @@
 
 #include <algorithm>
 #include <cassert>
+#include <format>
 #include <iostream>
 #include <numeric>
+#include <print>
 #include <ranges>
 #include <sstream>
 #include <string>
@@ -150,9 +152,14 @@ bool LocalLabelInfo::is_consistent() const
 
 std::ostream& operator<<(std::ostream& out, const LocalLabelInfo& label_info)
 {
-    return out << "Labels: " << label_info.get_label_group()
-               << ", Cost: " << label_info.get_cost()
-               << ", Transitions: " << label_info.get_transitions();
+    std::print(
+        out,
+        "Labels: {}, Cost: {}, Transitions: {}",
+        label_info.get_label_group(),
+        label_info.get_cost(),
+        label_info.get_transitions());
+
+    return out;
 }
 
 std::unique_ptr<json::JsonObject> to_json(const LocalLabelInfo& info)
@@ -640,8 +647,11 @@ void TransitionSystem::dump_label_mapping(
     out << "local to label mapping: ";
     for (size_t local_label = 0; local_label < local_label_infos.size();
          ++local_label) {
-        out << local_label << ": "
-            << local_label_infos[local_label].get_label_group() << ", ";
+        std::print(
+            out,
+            "{}: {}, ",
+            local_label,
+            local_label_infos[local_label].get_label_group());
     }
     out << endl;
 }
@@ -664,9 +674,9 @@ int TransitionSystem::compute_total_transitions() const
 
 string TransitionSystem::tag() const
 {
-    std::stringstream ss;
-    ss << "Transition system with variables " << incorporated_variables << ": ";
-    return ss.str();
+    return std::format(
+        "Transition system with variables {}: ",
+        incorporated_variables);
 }
 
 void TransitionSystem::dump_statistics(utils::LogProxy& log) const
@@ -744,16 +754,18 @@ void TransitionSystem::dump_labels_and_transitions(utils::LogProxy& log) const
 
 std::ostream& operator<<(std::ostream& os, const TransitionSystem& ts)
 {
-    os << "Incorporated Variables: " << ts.incorporated_variables << '\n'
-       << "Local label mapping: " << ts.label_to_local_label << '\n';
+    std::println(os, "Incorporated Variables: {}", ts.incorporated_variables);
+    std::println("Local label mapping: {}", ts.label_to_local_label);
 
     auto&& label_infos = ts.label_infos();
     os << "Local Label Transitions:\n";
     for (auto&& elem : label_infos) { os << "  " << elem << '\n'; }
 
-    return os << "Number of states: " << ts.get_size() << '\n'
-              << "Initial State: " << ts.init_state << '\n'
-              << "Goal states: " << ts.goal_states;
+    std::println("Number of states: {}", ts.get_size());
+    std::println("Initial State: {}", ts.init_state);
+    std::print("Goal states: {}", ts.goal_states);
+
+    return os;
 }
 
 std::unique_ptr<json::JsonObject> to_json(const TransitionSystem& ts)

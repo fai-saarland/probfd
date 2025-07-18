@@ -220,18 +220,4 @@ public:
 extern void trace_memory(const std::string& msg = "");
 } // namespace utils
 
-namespace std {
-template <class T>
-ostream& operator<<(ostream& stream, const vector<T>& vec)
-{
-    stream << "[";
-    for (size_t i = 0; i < vec.size(); ++i) {
-        if (i != 0) stream << ", ";
-        stream << vec[i];
-    }
-    stream << "]";
-    return stream;
-}
-} // namespace std
-
 #endif

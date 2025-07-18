@@ -37,13 +37,16 @@ template <>
 struct std::formatter<probfd::merge_and_shrink::Transition> {
     constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
 
-    auto format(
-        const probfd::merge_and_shrink::Transition& t,
-        std::format_context& ctx) const
+    template <typename FormatContext>
+    auto
+    format(const probfd::merge_and_shrink::Transition& t, FormatContext& ctx)
+        const
     {
         return std::format_to(ctx.out(), "{} -> ({:n})", t.src, t.targets);
     }
 };
+
+static_assert(std::formattable<probfd::merge_and_shrink::Transition, char>);
 #endif
 
 #endif

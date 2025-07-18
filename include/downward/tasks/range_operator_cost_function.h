@@ -42,15 +42,20 @@ public:
         return operator_costs[index];
     }
 
-    std::ranges::range_const_reference_t<Range> operator[](int index) const
+    std::common_reference_t<
+        const std::iter_value_t<std::ranges::iterator_t<Range>>&&,
+        std::iter_reference_t<std::ranges::iterator_t<Range>>>
+    operator[](int index) const
     {
         return operator_costs[index];
     }
 
     auto begin() { return std::ranges::begin(operator_costs); }
+
     auto end() { return std::ranges::end(operator_costs); }
 
     auto begin() const { return std::ranges::begin(operator_costs); }
+
     auto end() const { return std::ranges::end(operator_costs); }
 };
 

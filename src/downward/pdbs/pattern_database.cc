@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <limits>
+#include <print>
 #include <string>
 #include <vector>
 
@@ -115,8 +116,10 @@ PatternDatabase::PatternDatabase(
                 numeric_limits<int>::max())) {
             num_states *= var.get_domain_size();
         } else {
-            cerr << "Given pattern is too large! (Overflow occured): " << endl;
-            cerr << pattern << endl;
+            std::println(
+                cerr,
+                "Given pattern is too large! (Overflow occured): {}",
+                pattern);
             utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
         }
     }

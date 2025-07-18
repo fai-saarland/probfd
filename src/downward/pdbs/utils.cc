@@ -15,6 +15,7 @@
 #include "downward/goal_fact_list.h"
 
 #include <limits>
+#include <print>
 
 using namespace std;
 
@@ -30,8 +31,10 @@ int compute_pdb_size(const VariableSpace& variables, const Pattern& pattern)
                 numeric_limits<int>::max())) {
             size *= domain_size;
         } else {
-            cerr << "Given pattern is too large! (Overflow occurred): " << endl;
-            cerr << pattern << endl;
+            std::println(
+                cerr,
+                "Given pattern is too large! (Overflow occured): {}",
+                pattern);
             utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
         }
     }
@@ -122,9 +125,7 @@ void dump_pattern_generation_statistics(
         log << identifier << " pattern: " << pattern << endl;
         log << identifier << " number of variables: " << pattern.size() << endl;
         log << identifier << " PDB size: "
-            << compute_pdb_size(
-                   get_variables(pattern_info.get_task()),
-                   pattern)
+            << compute_pdb_size(get_variables(pattern_info.get_task()), pattern)
             << endl;
         log << identifier << " computation time: " << runtime << endl;
     }

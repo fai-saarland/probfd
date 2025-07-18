@@ -28,6 +28,7 @@
 #include <cassert>
 #include <iostream>
 #include <iterator>
+#include <print>
 #include <utility>
 
 using namespace downward;
@@ -603,8 +604,11 @@ PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
         }
 
         if (log_.is_at_least_verbose() && count > 0) {
-            std::cout << "pattern: " << candidate_pdbs[i]->get_pattern()
-                      << " - improvement: " << count << std::endl;
+            std::println(
+                std::cout,
+                "pattern: {} - improvement: {}",
+                candidate_pdbs[i]->get_pattern(),
+                count);
         }
     }
 
@@ -739,7 +743,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
             if (log_.is_at_least_verbose()) {
                 std::cout << "found a better pattern with improvement "
                           << improvement << std::endl;
-                std::cout << "pattern: " << best_pattern << std::endl;
+                std::println(std::cout, "pattern: {}", best_pattern);
             }
 
             current_pdbs.add_pdb(best_pdb);
