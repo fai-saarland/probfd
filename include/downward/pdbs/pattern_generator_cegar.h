@@ -10,7 +10,7 @@ class RandomNumberGenerator;
 namespace downward::pdbs {
 class PatternGeneratorCEGAR : public PatternGenerator {
     const int max_pdb_size;
-    const double max_time;
+    const utils::Duration max_time;
     const bool use_wildcard_plans;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
@@ -20,7 +20,7 @@ class PatternGeneratorCEGAR : public PatternGenerator {
 public:
     PatternGeneratorCEGAR(
         int max_pdb_size,
-        double max_time,
+        utils::Duration max_time,
         bool use_wildcard_plans,
         int random_seed,
         utils::Verbosity verbosity);

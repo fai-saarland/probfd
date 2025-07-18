@@ -21,7 +21,7 @@ class PatternCollectionGeneratorMultipleCegar
 
     ProjectionTransformation compute_pattern(
         int max_pdb_size,
-        double max_time,
+        downward::utils::Duration max_time,
         const std::shared_ptr<downward::utils::RandomNumberGenerator>& rng,
         const SharedProbabilisticTask& task,
         const downward::FactPair& goal,
@@ -34,9 +34,9 @@ public:
         bool use_wildcard_policies,
         int max_pdb_size,
         int max_collection_size,
-        double pattern_generation_max_time,
-        double total_max_time,
-        double stagnation_limit,
+        downward::utils::Duration pattern_generation_max_time,
+        downward::utils::Duration total_max_time,
+        downward::utils::Duration stagnation_limit,
         double blacklist_trigger_percentage,
         bool enable_blacklist_on_stagnation,
         bool use_saturated_costs,

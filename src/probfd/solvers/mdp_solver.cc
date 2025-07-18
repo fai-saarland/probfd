@@ -132,12 +132,12 @@ public:
     {
     }
 
-    bool solve(double max_time) override
+    bool solve(Duration max_time) override
     {
         std::cout << "Running MDP algorithm " << algorithm_name;
 
-        if (max_time != std::numeric_limits<double>::infinity()) {
-            std::cout << " with a time limit of " << max_time << " seconds.";
+        if (max_time != Duration::max()) {
+            std::cout << " with a time limit of " << max_time << ".";
         }
 
         std::cout << " without a time limit." << std::endl;

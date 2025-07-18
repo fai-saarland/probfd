@@ -291,7 +291,7 @@ public:
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport progress,
-        double max_time) override;
+        downward::utils::Duration max_time) override;
 
     void print_statistics(std::ostream& out) const override;
 
@@ -313,7 +313,7 @@ public:
         const HeuristicType& heuristic,
         StateID init_state_id,
         auto& value_store,
-        double max_time = std::numeric_limits<double>::infinity());
+        downward::utils::Duration max_time = downward::utils::Duration::max());
 
 private:
     Interval solve(
@@ -321,7 +321,7 @@ private:
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport,
-        double max_time);
+        downward::utils::Duration max_time);
 
     /**
      * Pushes a state onto the exploration queue and stack.

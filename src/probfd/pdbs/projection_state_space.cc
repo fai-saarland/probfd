@@ -187,7 +187,7 @@ ProjectionStateSpace::ProjectionStateSpace(
     SharedProbabilisticTask task,
     const StateRankingFunction& ranking_function,
     bool operator_pruning,
-    double max_time)
+    utils::Duration max_time)
     : match_tree_(get_shared_operators(task)->size())
     , parent_cost_function_(get_shared_cost_function(task))
     , parent_term_function_(get_shared_termination_costs(task))

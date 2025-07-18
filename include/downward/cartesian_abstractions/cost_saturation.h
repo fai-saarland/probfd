@@ -6,6 +6,7 @@
 #include "downward/cartesian_abstractions/types.h"
 
 #include "downward/operator_cost_function_fwd.h"
+#include "downward/utils/timer.h"
 
 #include <functional>
 #include <memory>
@@ -13,7 +14,6 @@
 
 namespace downward::utils {
 class CountdownTimer;
-class Duration;
 class RandomNumberGenerator;
 class LogProxy;
 } // namespace utils

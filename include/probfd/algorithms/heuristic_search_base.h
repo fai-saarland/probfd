@@ -344,14 +344,14 @@ public:
         HeuristicType& h,
         ParamType<State> state,
         ProgressReport progress,
-        double max_time);
+        downward::utils::Duration max_time);
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
         HeuristicType& h,
         ParamType<State> state,
         ProgressReport progress,
-        double max_time) final;
+        downward::utils::Duration max_time) final;
 
     void print_statistics(std::ostream& out) const final;
 
@@ -365,7 +365,7 @@ public:
         HeuristicType& h,
         ParamType<State> state,
         ProgressReport& progress,
-        double max_time) = 0;
+        downward::utils::Duration max_time) = 0;
 
     /**
      * @brief Prints additional statistics to the output stream.

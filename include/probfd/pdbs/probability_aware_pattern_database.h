@@ -9,6 +9,8 @@
 
 #include "probfd/fdr_types.h"
 
+#include "downward/utils/timer.h"
+
 #include <limits>
 #include <vector>
 
@@ -85,7 +87,7 @@ void compute_distances(
     ProjectionStateSpace& mdp,
     StateRank abstract_initial_state,
     const Heuristic<StateRank>& heuristic,
-    double max_time = std::numeric_limits<double>::infinity());
+    downward::utils::Duration max_time = downward::utils::Duration::max());
 
 /**
  * @brief Computes the goal distances for all reachable abstract states of a
@@ -106,7 +108,7 @@ void compute_distances(
     StateRank abstract_initial_state,
     const Heuristic<StateRank>& heuristic,
     bool operator_pruning = true,
-    double max_time = std::numeric_limits<double>::infinity());
+    downward::utils::Duration max_time = downward::utils::Duration::max());
 
 } // namespace probfd::pdbs
 

@@ -31,10 +31,10 @@ namespace downward::pdbs {
 */
 class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
     const int max_pdb_size;
-    const double pattern_generation_max_time;
-    const double total_max_time;
-    const double stagnation_limit;
-    const double blacklisting_start_time;
+    const utils::Duration pattern_generation_max_time;
+    const utils::Duration total_max_time;
+    const utils::Duration stagnation_limit;
+    const utils::Duration blacklisting_start_duration;
     const bool enable_blacklist_on_stagnation;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
     const int random_seed;
@@ -42,7 +42,7 @@ class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
     // Variables used in the main loop.
     int remaining_collection_size;
     bool blacklisting;
-    double time_point_of_last_new_pattern;
+    utils::Duration time_point_of_last_new_pattern;
 
     void check_blacklist_trigger_timer(const utils::CountdownTimer& timer);
     std::unordered_set<int>
@@ -59,7 +59,7 @@ class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
     virtual void initialize(const SharedAbstractTask& task) = 0;
     virtual PatternInformation compute_pattern(
         int max_pdb_size,
-        double max_time,
+        utils::Duration max_time,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
         const SharedAbstractTask& task,
         const FactPair& goal,
@@ -72,9 +72,9 @@ public:
     PatternCollectionGeneratorMultiple(
         int max_pdb_size,
         int max_collection_size,
-        double pattern_generation_max_time,
-        double total_max_time,
-        double stagnation_limit,
+        utils::Duration pattern_generation_max_time,
+        utils::Duration total_max_time,
+        utils::Duration stagnation_limit,
         double blacklist_trigger_percentage,
         bool enable_blacklist_on_stagnation,
         int random_seed,

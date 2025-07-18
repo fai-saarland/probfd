@@ -25,7 +25,7 @@ namespace downward::cli::plugins {
   Enums are stored as ints, so we have to extract them as such and cast the
   int into the enum types afterwards.
 */
-template <typename ValueType, typename = void>
+template <typename ValueType>
 struct OptionsAnyCaster {
     static ValueType cast(const std::any& operand)
     {
@@ -34,9 +34,8 @@ struct OptionsAnyCaster {
 };
 
 template <typename ValueType>
-struct OptionsAnyCaster<
-    ValueType,
-    typename std::enable_if<std::is_enum<ValueType>::value>::type> {
+    requires std::is_enum_v<ValueType>
+struct OptionsAnyCaster<ValueType> {
     static ValueType cast(const std::any& operand)
     {
         // Enums set within the code (options.set()) are already the right
@@ -46,6 +45,21 @@ struct OptionsAnyCaster<
         }
         // ... otherwise (Enums set over the command line) they are ints.
         return static_cast<ValueType>(std::any_cast<int>(operand));
+    }
+};
+
+template <typename Rep, typename Period>
+struct OptionsAnyCaster<std::chrono::duration<Rep, Period>> {
+    static std::chrono::duration<Rep, Period> cast(const std::any& operand)
+    {
+        // Enums set within the code (options.set()) are already the right
+        // ValueType...
+        if (operand.type() == typeid(std::chrono::duration<Rep, Period>)) {
+            return std::any_cast<std::chrono::duration<Rep, Period>>(operand);
+        }
+        // ... otherwise (Enums set over the command line) they are ints.
+        return static_cast<std::chrono::duration<Rep, Period>>(
+            std::any_cast<Rep>(operand));
     }
 };
 
@@ -99,7 +113,7 @@ public:
                 " (type: " + typeid(T).name() + ")");
         }
         try {
-            T result = OptionsAnyCaster<T, void>::cast(it->second);
+            T result = OptionsAnyCaster<T>::cast(it->second);
             return result;
         } catch (const std::bad_any_cast&) {
             ABORT(

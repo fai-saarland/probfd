@@ -10,7 +10,7 @@ class RandomNumberGenerator;
 namespace downward::pdbs {
 class PatternGeneratorRandom : public PatternGenerator {
     const int max_pdb_size;
-    const double max_time;
+    const utils::Duration max_time;
     const bool bidirectional;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
@@ -20,7 +20,7 @@ class PatternGeneratorRandom : public PatternGenerator {
 public:
     PatternGeneratorRandom(
         int max_pdb_size,
-        double max_time,
+        utils::Duration max_time,
         bool bidirectional,
         int random_seed,
         utils::Verbosity verbosity);

@@ -5,6 +5,8 @@
 #include "downward/pdbs/pattern_database.h"
 #include "downward/pdbs/pattern_information.h"
 
+#include "downward/utils/timer.h"
+
 #include <memory>
 #include <vector>
 
@@ -34,7 +36,7 @@ namespace downward::pdbs {
 extern PatternCollectionInformation generate_pattern_collection_with_cegar(
     int max_pdb_size,
     int max_collection_size,
-    double max_time,
+    utils::Duration max_time,
     bool use_wildcard_plans,
     utils::LogProxy& log,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
@@ -50,7 +52,7 @@ extern PatternCollectionInformation generate_pattern_collection_with_cegar(
 */
 extern PatternInformation generate_pattern_with_cegar(
     int max_pdb_size,
-    double max_time,
+    utils::Duration max_time,
     bool use_wildcard_plans,
     utils::LogProxy& log,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,

@@ -13,7 +13,7 @@ PatternCollectionGeneratorDisjointCegar::
     PatternCollectionGeneratorDisjointCegar(
         int max_pdb_size,
         int max_collection_size,
-        double max_time,
+        utils::Duration max_time,
         bool use_wildcard_plans,
         int random_seed,
         utils::Verbosity verbosity)

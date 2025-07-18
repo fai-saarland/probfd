@@ -24,7 +24,7 @@ auto AlgorithmAdaptor::compute_policy(
     HeuristicType& heuristic,
     ParamType<State> state,
     ProgressReport progress,
-    double max_time) -> std::unique_ptr<PolicyType>
+    utils::Duration max_time) -> std::unique_ptr<PolicyType>
 {
     return algorithm->compute_policy(mdp, heuristic, state, progress, max_time);
 }

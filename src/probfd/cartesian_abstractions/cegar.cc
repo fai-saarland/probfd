@@ -43,7 +43,7 @@ CEGARResult::~CEGARResult() = default;
 CEGAR::CEGAR(
     int max_states,
     int max_non_looping_transitions,
-    double max_time,
+    downward::utils::Duration max_time,
     std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory,
     std::shared_ptr<SplitSelectorFactory> split_selector_factory,
     LogProxy log)

@@ -18,7 +18,7 @@ namespace downward::pdbs {
 static CanonicalPDBs get_canonical_pdbs(
     const SharedAbstractTask& task,
     const shared_ptr<PatternCollectionGenerator>& pattern_generator,
-    double max_time_dominance_pruning,
+    utils::Duration max_time_dominance_pruning,
     utils::LogProxy& log)
 {
     utils::Timer timer;
@@ -40,7 +40,7 @@ static CanonicalPDBs get_canonical_pdbs(
     
     const auto& variables = get_variables(task);
 
-    if (max_time_dominance_pruning > 0.0) {
+    if (max_time_dominance_pruning > utils::Duration::zero()) {
         int num_variables = variables.size();
         /*
           NOTE: Dominance pruning could also be computed without having access
@@ -70,7 +70,7 @@ static CanonicalPDBs get_canonical_pdbs(
 
 CanonicalPDBsHeuristic::CanonicalPDBsHeuristic(
     const shared_ptr<PatternCollectionGenerator>& patterns,
-    double max_time_dominance_pruning,
+    utils::Duration max_time_dominance_pruning,
     SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
@@ -92,7 +92,7 @@ CanonicalPDBsHeuristic::CanonicalPDBsHeuristic(
 
 CanonicalPDBsHeuristic::CanonicalPDBsHeuristic(
     const std::shared_ptr<PatternCollectionGenerator>& patterns,
-    double max_time_dominance_pruning,
+    utils::Duration max_time_dominance_pruning,
     SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,

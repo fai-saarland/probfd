@@ -78,7 +78,7 @@ insert_definitions(const std::string& old_search_argument, R&& predefinitions)
 
 static int search(argparse::ArgumentParser& parser)
 {
-    const double max_time = parser.get<double>("--max-search-time");
+    const Duration max_time(parser.get<double>("--max-search-time"));
 
     std::string search_arg = parser.get("algorithm");
 

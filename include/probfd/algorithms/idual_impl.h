@@ -51,7 +51,7 @@ Interval IDual<State, Action>::solve(
     HeuristicType& heuristic,
     ParamType<State> initial_state,
     ProgressReport progress,
-    double max_time)
+    downward::utils::Duration max_time)
 {
     std::vector<double> primal_solution;
     std::vector<double> dual_solution;
@@ -71,7 +71,7 @@ auto IDual<State, Action>::compute_policy(
     HeuristicType& heuristic,
     ParamType<State> initial_state,
     ProgressReport progress,
-    double max_time) -> std::unique_ptr<PolicyType>
+    downward::utils::Duration max_time) -> std::unique_ptr<PolicyType>
 {
     std::vector<double> primal_solution;
     std::vector<double> dual_solution;
@@ -186,7 +186,7 @@ Interval IDual<State, Action>::solve(
     HeuristicType& heuristic,
     ParamType<State> initial_state,
     ProgressReport progress,
-    double max_time,
+    downward::utils::Duration max_time,
     std::vector<double>& primal_solution,
     std::vector<double>& dual_solution)
 {

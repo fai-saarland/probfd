@@ -72,7 +72,7 @@ auto BisimulationBasedHeuristicSearchAlgorithm::compute_policy(
     FDRHeuristic&,
     const State&,
     ProgressReport progress,
-    double max_time) -> std::unique_ptr<PolicyType>
+    downward::utils::Duration max_time) -> std::unique_ptr<PolicyType>
 {
     utils::Timer timer;
 

@@ -28,7 +28,7 @@ time_limit_reached(const utils::CountdownTimer& timer, utils::LogProxy& log)
 
 Pattern generate_random_pattern(
     int max_pdb_size,
-    double max_time,
+    utils::Duration max_time,
     utils::LogProxy& log,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     const VariableSpace& variables,

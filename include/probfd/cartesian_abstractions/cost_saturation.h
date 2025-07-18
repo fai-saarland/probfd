@@ -18,7 +18,6 @@ class State;
 
 namespace downward::utils {
 class CountdownTimer;
-class Duration;
 } // namespace downward::utils
 
 namespace probfd::cartesian_abstractions {

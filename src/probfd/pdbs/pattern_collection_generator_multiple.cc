@@ -62,9 +62,9 @@ vector<int> get_non_goal_variables(
 PatternCollectionGeneratorMultiple::PatternCollectionGeneratorMultiple(
     int max_pdb_size,
     int max_collection_size,
-    double pattern_generation_max_time,
-    double total_max_time,
-    double stagnation_limit,
+    utils::Duration pattern_generation_max_time,
+    utils::Duration total_max_time,
+    utils::Duration stagnation_limit,
     double blacklist_trigger_percentage,
     bool enable_blacklist_on_stagnation,
     bool use_saturated_costs,
@@ -160,7 +160,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
     int num_iterations = 0;
     int goal_index = 0;
     bool blacklisting = false;
-    double time_point_of_last_new_pattern = 0.0;
+    downward::utils::Duration time_point_of_last_new_pattern = 0s;
     int remaining_collection_size = max_collection_size_;
 
     auto adapted_cost_function =
@@ -215,9 +215,8 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
 
             int remaining_pdb_size =
                 min(remaining_collection_size, max_pdb_size_);
-            double remaining_time =
-                min(static_cast<double>(timer.get_remaining_time()),
-                    pattern_generation_max_time_);
+            utils::Duration remaining_time =
+                min(timer.get_remaining_time(), pattern_generation_max_time_);
 
             auto [pdb, state_space] = compute_pattern(
                 remaining_pdb_size,
@@ -301,9 +300,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
             assert(utils::in_bounds(goal_index, goals));
         }
     } catch (const utils::TimeoutException&) {
-        if (log_.is_at_least_normal()) {
-            log_ << "time limit reached" << endl;
-        }
+        if (log_.is_at_least_normal()) { log_ << "time limit reached" << endl; }
     }
 
     PatternCollection patterns;

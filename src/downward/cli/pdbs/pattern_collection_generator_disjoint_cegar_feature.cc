@@ -80,7 +80,7 @@ public:
             PatternCollectionGeneratorDisjointCegar>(
             opts.get<int>("max_pdb_size"),
             opts.get<int>("max_collection_size"),
-            opts.get<double>("max_time"),
+            opts.get<Duration>("max_time"),
             get_cegar_wildcard_arguments_from_options(opts),
             get_rng_arguments_from_options(opts),
             get_generator_arguments_from_options(opts));

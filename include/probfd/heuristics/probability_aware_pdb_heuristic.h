@@ -48,13 +48,13 @@ public:
 
 class ProbabilityAwarePDBHeuristicFactory final : public TaskHeuristicFactory {
     const std::shared_ptr<pdbs::PatternCollectionGenerator> generator_;
-    const double max_time_dominance_pruning_;
+    const downward::utils::Duration max_time_dominance_pruning_;
     mutable downward::utils::LogProxy log_;
 
 public:
     ProbabilityAwarePDBHeuristicFactory(
         std::shared_ptr<pdbs::PatternCollectionGenerator> generator,
-        double max_time_dominance_pruning,
+        downward::utils::Duration max_time_dominance_pruning,
         downward::utils::Verbosity verbosity);
 
     std::unique_ptr<FDRHeuristic>

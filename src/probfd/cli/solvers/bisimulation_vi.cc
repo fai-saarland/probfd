@@ -41,7 +41,7 @@ namespace {
 
 void print_bisimulation_stats(
     std::ostream& out,
-    double time,
+    utils::Duration time,
     unsigned states,
     unsigned transitions)
 {
@@ -69,7 +69,7 @@ public:
     {
     }
 
-    bool solve(double max_time) override
+    bool solve(downward::utils::Duration max_time) override
     {
         auto determinization = tasks::create_determinization_task(task);
 

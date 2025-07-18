@@ -7,6 +7,8 @@
 #include "probfd/progress_report.h"
 #include "probfd/type_traits.h"
 
+#include "downward/utils/timer.h"
+
 #include <limits>
 #include <memory>
 
@@ -46,7 +48,7 @@ public:
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport progress,
-        double max_time) = 0;
+        downward::utils::Duration max_time) = 0;
 
     /**
      * @brief Prints algorithm statistics to the specified output stream.

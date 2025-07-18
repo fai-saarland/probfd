@@ -43,7 +43,7 @@ public:
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport progress,
-        double max_time)
+        Duration max_time)
     {
         return algorithm
             .compute_policy(mdp, heuristic, state, progress, max_time);

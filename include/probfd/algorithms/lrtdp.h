@@ -174,7 +174,7 @@ protected:
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport& progress,
-        double max_time) override;
+        downward::utils::Duration max_time) override;
 
     void print_additional_statistics(std::ostream& out) const override;
 

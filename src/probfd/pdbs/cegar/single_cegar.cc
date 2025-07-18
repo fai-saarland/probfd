@@ -55,7 +55,7 @@ public:
         const SharedProbabilisticTask& task,
         const State& initial_state,
         utils::RandomNumberGenerator& rng,
-        double max_time,
+        utils::Duration max_time,
         utils::LogProxy log);
 
 private:
@@ -257,7 +257,7 @@ void SingleCEGAR::run_cegar_loop(
     const SharedProbabilisticTask& task,
     const State& initial_state,
     utils::RandomNumberGenerator& rng,
-    double max_time,
+    utils::Duration max_time,
     utils::LogProxy log)
 {
     if (log.is_at_least_normal()) {
@@ -340,7 +340,7 @@ void run_cegar_loop(
     int max_pdb_size,
     utils::RandomNumberGenerator& rng,
     bool wildcard,
-    double max_time,
+    utils::Duration max_time,
     utils::LogProxy log)
 {
     SingleCEGAR single_cegar(

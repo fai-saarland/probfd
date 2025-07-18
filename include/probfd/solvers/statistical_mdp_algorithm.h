@@ -7,6 +7,8 @@
 #include "probfd/task_heuristic_factory_fwd.h"
 #include "probfd/task_state_space_factory_fwd.h"
 
+#include "downward/utils/timer.h"
+
 #include <iosfwd>
 #include <memory>
 
@@ -48,7 +50,7 @@ public:
         HeuristicType& heuristic,
         ParamType<downward::State> state,
         ProgressReport progress,
-        double max_time) = 0;
+        downward::utils::Duration max_time) = 0;
 
     /**
      * @brief Prints algorithm statistics to the specified output stream.
@@ -85,7 +87,7 @@ public:
         HeuristicType& heuristic,
         ParamType<downward::State> state,
         ProgressReport progress,
-        double max_time) override;
+        downward::utils::Duration max_time) override;
 
     void print_statistics(std::ostream&) const override;
 };

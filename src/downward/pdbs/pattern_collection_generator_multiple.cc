@@ -19,9 +19,9 @@ namespace downward::pdbs {
 PatternCollectionGeneratorMultiple::PatternCollectionGeneratorMultiple(
     int max_pdb_size,
     int max_collection_size,
-    double pattern_generation_max_time,
-    double total_max_time,
-    double stagnation_limit,
+    utils::Duration pattern_generation_max_time,
+    utils::Duration total_max_time,
+    utils::Duration stagnation_limit,
     double blacklist_trigger_percentage,
     bool enable_blacklist_on_stagnation,
     int random_seed,
@@ -31,7 +31,7 @@ PatternCollectionGeneratorMultiple::PatternCollectionGeneratorMultiple(
     , pattern_generation_max_time(pattern_generation_max_time)
     , total_max_time(total_max_time)
     , stagnation_limit(stagnation_limit)
-    , blacklisting_start_time(total_max_time * blacklist_trigger_percentage)
+    , blacklisting_start_duration(total_max_time * blacklist_trigger_percentage)
     , enable_blacklist_on_stagnation(enable_blacklist_on_stagnation)
     , rng(utils::get_rng(random_seed))
     , random_seed(random_seed)
@@ -45,7 +45,8 @@ void PatternCollectionGeneratorMultiple::check_blacklist_trigger_timer(
     const utils::CountdownTimer& timer)
 {
     // Check if blacklisting should be started.
-    if (!blacklisting && timer.get_elapsed_time() > blacklisting_start_time) {
+    if (!blacklisting &&
+        timer.get_elapsed_time() > blacklisting_start_duration) {
         blacklisting = true;
         /*
           Also treat this time point as having seen a new pattern to avoid
@@ -181,7 +182,7 @@ PatternCollectionGeneratorMultiple::compute_patterns(
         log << "max time: " << total_max_time << endl;
         log << "stagnation time limit: " << stagnation_limit << endl;
         log << "timer after which blacklisting is enabled: "
-            << blacklisting_start_time << endl;
+            << blacklisting_start_duration << endl;
         log << "enable blacklisting after stagnation: "
             << enable_blacklist_on_stagnation << endl;
     }
@@ -221,9 +222,8 @@ PatternCollectionGeneratorMultiple::compute_patterns(
             get_blacklisted_variables(non_goal_variables);
 
         int remaining_pdb_size = min(remaining_collection_size, max_pdb_size);
-        double remaining_time =
-            min(static_cast<double>(timer.get_remaining_time()),
-                pattern_generation_max_time);
+        utils::Duration remaining_time =
+            min(timer.get_remaining_time(), pattern_generation_max_time);
 
         PatternInformation pattern_info = compute_pattern(
             remaining_pdb_size,

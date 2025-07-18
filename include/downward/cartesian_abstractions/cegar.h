@@ -69,7 +69,7 @@ public:
         SharedAbstractTask task,
         int max_states,
         int max_non_looping_transitions,
-        double max_time,
+        utils::Duration max_time,
         PickSplit pick,
         utils::RandomNumberGenerator& rng,
         utils::LogProxy& log);

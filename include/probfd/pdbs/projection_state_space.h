@@ -1,6 +1,7 @@
 #ifndef PROBFD_PDBS_PROJECTION_STATE_SPACE_H
 #define PROBFD_PDBS_PROJECTION_STATE_SPACE_H
 
+#include "downward/utils/timer.h"
 #include "probfd/pdbs/match_tree.h"
 #include "probfd/pdbs/types.h"
 
@@ -39,7 +40,7 @@ public:
         SharedProbabilisticTask task,
         const StateRankingFunction& ranking_function,
         bool operator_pruning = true,
-        double max_time = std::numeric_limits<double>::infinity());
+        downward::utils::Duration max_time = downward::utils::Duration::max());
 
     StateID get_state_id(StateRank state) override;
 

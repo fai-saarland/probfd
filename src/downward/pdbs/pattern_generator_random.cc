@@ -18,7 +18,7 @@ using namespace std;
 namespace downward::pdbs {
 PatternGeneratorRandom::PatternGeneratorRandom(
     int max_pdb_size,
-    double max_time,
+    utils::Duration max_time,
     bool bidirectional,
     int random_seed,
     utils::Verbosity verbosity)

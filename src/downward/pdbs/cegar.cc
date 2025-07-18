@@ -75,7 +75,7 @@ using FlawList = vector<Flaw>;
 class CEGAR {
     const int max_pdb_size;
     const int max_collection_size;
-    const double max_time;
+    const utils::Duration max_time;
     const bool use_wildcard_plans;
     utils::LogProxy& log;
     shared_ptr<utils::RandomNumberGenerator> rng;
@@ -152,7 +152,7 @@ public:
     CEGAR(
         int max_pdb_size,
         int max_collection_size,
-        double max_time,
+        utils::Duration max_time,
         bool use_wildcard_plans,
         utils::LogProxy& log,
         const shared_ptr<utils::RandomNumberGenerator>& rng,
@@ -165,7 +165,7 @@ public:
 CEGAR::CEGAR(
     int max_pdb_size,
     int max_collection_size,
-    double max_time,
+    utils::Duration max_time,
     bool use_wildcard_plans,
     utils::LogProxy& log,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
@@ -703,7 +703,7 @@ PatternCollectionInformation CEGAR::compute_pattern_collection()
 PatternCollectionInformation generate_pattern_collection_with_cegar(
     int max_pdb_size,
     int max_collection_size,
-    double max_time,
+    utils::Duration max_time,
     bool use_wildcard_plans,
     utils::LogProxy& log,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
@@ -726,7 +726,7 @@ PatternCollectionInformation generate_pattern_collection_with_cegar(
 
 PatternInformation generate_pattern_with_cegar(
     int max_pdb_size,
-    double max_time,
+    utils::Duration max_time,
     bool use_wildcard_plans,
     utils::LogProxy& log,
     const shared_ptr<utils::RandomNumberGenerator>& rng,

@@ -74,7 +74,7 @@ Interval TALRTDPImpl<State, Action, UseInterval>::solve_quotient(
     QHeuristic& heuristic,
     ParamType<QState> state,
     ProgressReport& progress,
-    double max_time)
+    downward::utils::Duration max_time)
 {
     downward::utils::CountdownTimer timer(max_time);
 
@@ -500,7 +500,7 @@ auto TALRTDP<State, Action, UseInterval>::compute_policy(
     HeuristicType& heuristic,
     ParamType<State> state,
     ProgressReport progress,
-    double max_time) -> std::unique_ptr<PolicyType>
+    downward::utils::Duration max_time) -> std::unique_ptr<PolicyType>
 {
     QuotientSystem quotient(mdp);
     quotients::QuotientMaxHeuristic<State, Action> qheuristic(heuristic);

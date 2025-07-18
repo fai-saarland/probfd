@@ -91,21 +91,21 @@ class IDual : public MDPAlgorithm<State, Action> {
 public:
     explicit IDual(
         downward::lp::LPSolverType solver_type,
-        const double fp_epsilon = 0.0001);
+        double fp_epsilon = 0.0001);
 
     Interval solve(
         MDPType& mdp,
         HeuristicType& heuristic,
         ParamType<State> initial_state,
         ProgressReport progress,
-        double max_time);
+        downward::utils::Duration max_time);
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
         HeuristicType& heuristic,
         ParamType<State> initial_state,
         ProgressReport progress,
-        double max_time) override;
+        downward::utils::Duration max_time) override;
 
 private:
     Interval solve(
@@ -113,7 +113,7 @@ private:
         HeuristicType& heuristic,
         ParamType<State> initial_state,
         ProgressReport progress,
-        double max_time,
+        downward::utils::Duration max_time,
         std::vector<double>& primal_solution,
         std::vector<double>& dual_solution);
 };

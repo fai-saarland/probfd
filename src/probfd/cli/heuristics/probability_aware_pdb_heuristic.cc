@@ -49,7 +49,7 @@ public:
     {
         return make_shared_from_arg_tuples<ProbabilityAwarePDBHeuristicFactory>(
             opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"),
-            opts.get<double>("max_time_dominance_pruning"),
+            opts.get<utils::Duration>("max_time_dominance_pruning"),
             get_task_dependent_heuristic_arguments_from_options(opts));
     }
 };

@@ -41,7 +41,7 @@ Interval LRTDP<State, Action, UseInterval>::do_solve(
     HeuristicType& heuristic,
     ParamType<State> state,
     ProgressReport& progress,
-    double max_time)
+    downward::utils::Duration max_time)
 {
     downward::utils::CountdownTimer timer(max_time);
 

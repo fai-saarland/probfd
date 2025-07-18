@@ -10,7 +10,7 @@ ProjectionTransformation::ProjectionTransformation(
     SharedProbabilisticTask task,
     Pattern pattern,
     bool operator_pruning,
-    double max_time)
+    downward::utils::Duration max_time)
     : pdb(get_variables(task), std::move(pattern))
     , projection(std::make_unique<ProjectionStateSpace>(
           std::move(task),

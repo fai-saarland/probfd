@@ -192,7 +192,7 @@ public:
         QHeuristic& heuristic,
         ParamType<QState> qstate,
         ProgressReport& progress,
-        double max_time);
+        downward::utils::Duration max_time);
 
     void print_statistics(std::ostream& out) const;
 
@@ -289,7 +289,7 @@ public:
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport progress,
-        double max_time) override;
+        downward::utils::Duration max_time) override;
 
     void print_statistics(std::ostream& out) const override;
 

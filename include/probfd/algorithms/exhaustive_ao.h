@@ -73,7 +73,7 @@ protected:
         HeuristicType& heuristic,
         ParamType<State> initial_state,
         ProgressReport& progress,
-        double max_time) override;
+        downward::utils::Duration max_time) override;
 
 private:
     bool update_value_check_solved(

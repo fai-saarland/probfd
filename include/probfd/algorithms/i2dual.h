@@ -92,7 +92,7 @@ public:
         HeuristicType& heuristic,
         const downward::State& initial_state,
         ProgressReport progress,
-        double max_time) override;
+        downward::utils::Duration max_time) override;
 
 private:
     bool evaluate_state(

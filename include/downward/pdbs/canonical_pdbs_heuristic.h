@@ -18,7 +18,7 @@ protected:
 public:
     CanonicalPDBsHeuristic(
         const std::shared_ptr<PatternCollectionGenerator>& patterns,
-        double max_time_dominance_pruning,
+        utils::Duration max_time_dominance_pruning,
         SharedAbstractTask original_task,
         TaskTransformationResult transformation_result,
         bool cache_estimates,
@@ -27,7 +27,7 @@ public:
 
     CanonicalPDBsHeuristic(
         const std::shared_ptr<PatternCollectionGenerator>& patterns,
-        double max_time_dominance_pruning,
+        utils::Duration max_time_dominance_pruning,
         SharedAbstractTask original_task,
         const std::shared_ptr<TaskTransformation>& transformation,
         bool cache_estimates,

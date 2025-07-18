@@ -172,7 +172,7 @@ extern void prune_dominated_cliques(
     std::vector<T>& pdbs,
     std::vector<PatternClique>& pattern_cliques,
     int num_variables,
-    double max_time,
+    utils::Duration max_time,
     utils::LogProxy& log)
 {
     utils::CountdownTimer timer(max_time);

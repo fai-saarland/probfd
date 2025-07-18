@@ -111,7 +111,7 @@ void add_hillclimbing_options_to_feature(Feature& feature)
     add_rng_options_to_feature(feature);
 }
 
-tuple<int, int, int, int, double, int>
+tuple<int, int, int, int, Duration, int>
 get_hillclimbing_arguments_from_options(const Options& opts)
 {
     return tuple_cat(
@@ -120,7 +120,7 @@ get_hillclimbing_arguments_from_options(const Options& opts)
             opts.get<int>("collection_max_size"),
             opts.get<int>("num_samples"),
             opts.get<int>("min_improvement"),
-            opts.get<double>("max_time")),
+            opts.get<Duration>("max_time")),
         get_rng_arguments_from_options(opts));
 }
 

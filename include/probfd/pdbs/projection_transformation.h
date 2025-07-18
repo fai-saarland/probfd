@@ -1,6 +1,7 @@
 #ifndef PROBFD_PDBS_PROJECTION_TRANSFORMATION_H
 #define PROBFD_PDBS_PROJECTION_TRANSFORMATION_H
 
+#include "downward/utils/timer.h"
 #include "probfd/pdbs/probability_aware_pattern_database.h"
 #include "probfd/pdbs/types.h"
 
@@ -26,7 +27,7 @@ struct ProjectionTransformation {
         SharedProbabilisticTask task,
         Pattern pattern,
         bool operator_pruning = true,
-        double max_time = std::numeric_limits<double>::infinity());
+        downward::utils::Duration max_time = downward::utils::Duration::max());
 
     ProjectionTransformation(ProjectionTransformation&&) noexcept;
     ProjectionTransformation& operator=(ProjectionTransformation&&) noexcept;

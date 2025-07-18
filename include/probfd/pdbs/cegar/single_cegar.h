@@ -8,6 +8,8 @@
 #include "probfd/probabilistic_task.h"
 #include "probfd/value_type.h"
 
+#include "downward/utils/timer.h"
+
 #include <memory>
 #include <unordered_set>
 #include <vector>
@@ -46,7 +48,7 @@ extern void run_cegar_loop(
     int max_pdb_size,
     downward::utils::RandomNumberGenerator& rng,
     bool wildcard,
-    double max_time,
+    downward::utils::Duration max_time,
     downward::utils::LogProxy log);
 
 } // namespace probfd::pdbs::cegar
