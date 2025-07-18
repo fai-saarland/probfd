@@ -59,6 +59,23 @@ public:
         return *this;
     }
 
+    template <typename Char, typename... Args>
+    void print(std::basic_format_string<Char, Args...> text, Args&&... args)
+    {
+        std::print(stream, text, std::forward<Args>(args)...);
+    }
+
+    template <typename Char, typename... Args>
+    void println(std::basic_format_string<Char, Args...> text, Args&&... args)
+    {
+        std::println(stream, text, std::forward<Args>(args)...);
+    }
+
+    void println()
+    {
+        std::println(stream);
+    }
+
     Verbosity get_verbosity() const { return verbosity; }
 };
 
@@ -116,6 +133,23 @@ public:
     {
         (*log) << f;
         return *this;
+    }
+
+    template <typename Char, typename... Args>
+    void print(std::basic_format_string<Char, Args...> text, Args&&... args)
+    {
+        log->print(text, std::forward<Args>(args)...);
+    }
+
+    template <typename Char, typename... Args>
+    void println(std::basic_format_string<Char, Args...> text, Args&&... args)
+    {
+        log->println(text, std::forward<Args>(args)...);
+    }
+
+    void println()
+    {
+        log->println();
     }
 
     bool is_at_least_normal() const

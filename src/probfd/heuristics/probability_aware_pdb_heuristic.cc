@@ -121,8 +121,8 @@ ProbabilityAwarePDBHeuristicFactory::create_object(
             static_cast<double>(total_subcollections_size) /
             static_cast<double>(subcollections.size());
 
-        log_ << "\n"
-             << "Pattern Databases Statistics:\n"
+        log_.println();
+        log_ << "Pattern Databases Statistics:\n"
              << "  Total number of PDBs: " << pdbs.size() << "\n"
              << "  Total number of variables: " << variables << "\n"
              << "  Total number of abstract states: " << abstract_states << "\n"
