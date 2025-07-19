@@ -171,7 +171,7 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
         heuristic,
         state_space.get_initial_state(),
         report,
-        std::numeric_limits<double>::infinity());
+        utils::Duration::max());
 
     std::optional<PolicyDecision<OperatorID>> decision =
         policy->get_decision(state_space.get_initial_state());
@@ -247,7 +247,7 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
         heuristic,
         state_space.get_initial_state(),
         report,
-        std::numeric_limits<double>::infinity());
+        utils::Duration::max());
 
     std::optional<PolicyDecision<OperatorID>> decision =
         policy->get_decision(state_space.get_initial_state());
