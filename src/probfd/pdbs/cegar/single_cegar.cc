@@ -117,8 +117,8 @@ bool SingleCEGAR::get_flaws(
     // abort here if no abstract solution could be found
     if (!projection->is_goal(init_state_rank) &&
         policy->get_decisions(init_state_rank).empty()) {
-        log << "SingleCEGAR: Problem unsolvable" << endl;
-        log << "SingleCEGAR: Unsolvable pattern:" << pdb.get_pattern() << endl;
+        log.println("SingleCEGAR: Problem unsolvable");
+        log.println("SingleCEGAR: Unsolvable pattern: {}", pdb.get_pattern());
         utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
     }
 
@@ -133,8 +133,10 @@ bool SingleCEGAR::get_flaws(
                 variables[var].get_domain_size(),
                 max_pdb_size_)) {
             if (log.is_at_least_verbose()) {
-                log << "ignoring flaw on var " << var
-                    << " due to size limit, blacklisting..." << endl;
+                log.println(
+                    "ignoring flaw on var {} due to size limit, "
+                    "blacklisting...",
+                    var);
             }
 
             blacklisted_variables_.insert(var);
@@ -171,13 +173,13 @@ bool SingleCEGAR::get_flaws(
                  * tests for empty blacklists.
                  */
 
-                log << "SingleCEGAR: Task solved during computation of "
-                       "abstract policies."
-                    << endl;
+                log.println(
+                    "SingleCEGAR: Task solved during computation of "
+                    "abstract policies.");
             } else {
-                log << "SingleCEGAR: Flaw list empty. No further refinements "
-                       "possible."
-                    << endl;
+                log.println(
+                    "SingleCEGAR: Flaw list empty. No further refinements "
+                    "possible.");
             }
         }
 
@@ -206,14 +208,11 @@ void SingleCEGAR::refine(
     int flaw_var = flaw.variable;
 
     if (log.is_at_least_verbose()) {
-        log << "SingleCEGAR: chosen flaw: pattern " << pdb.get_pattern();
-        log << " with a violated";
-        if (flaw.is_precondition) {
-            log << " precondition ";
-        } else {
-            log << " goal ";
-        }
-        log << "on " << flaw_var << endl;
+        log.println(
+            "SingleCEGAR: chosen flaw: pattern {} with a violated {} on {}",
+            pdb.get_pattern(),
+            flaw.is_precondition ? "precondition" : "goal",
+            flaw_var);
     }
 
     // flaw_var is not yet in the collection
@@ -227,7 +226,7 @@ void SingleCEGAR::refine(
             max_pdb_size_));
 
     if (log.is_at_least_verbose()) {
-        log << "SingleCEGAR: add it to the pattern" << endl;
+        log.println("SingleCEGAR: add it to the pattern");
     }
 
     // compute new solution
@@ -261,23 +260,30 @@ void SingleCEGAR::run_cegar_loop(
     utils::LogProxy log)
 {
     if (log.is_at_least_normal()) {
-        log << "SingleCEGAR options: \n"
-            << "  flaw strategy: " << flaw_strategy_.get_name() << "\n"
-            << "  max pdb size: " << max_pdb_size_ << "\n"
-            << "  max time: " << max_time << "\n"
-            << "  wildcard plans: " << std::boolalpha << wildcard_ << "\n"
-            << "  blacklisted variables: " << blacklisted_variables_ << endl;
+        log.println(
+            "SingleCEGAR options:\n"
+            "  flaw strategy: {}\n"
+            "  max pdb size: {}\n"
+            "  max time: {}\n"
+            "  wildcard plans: {}\n"
+            "  blacklisted variables: {}",
+            flaw_strategy_.get_name(),
+            max_pdb_size_,
+            max_time,
+            wildcard_,
+            blacklisted_variables_);
     }
 
-    if (log.is_at_least_normal()) { log << endl; }
+    if (log.is_at_least_normal()) { log.println(); }
 
     utils::CountdownTimer timer(max_time);
 
     if (log.is_at_least_normal()) {
-        log << "SingleCEGAR initial collection: "
-            << transformation.pdb.get_pattern();
+        log.println(
+            "SingleCEGAR initial collection: {}",
+            transformation.pdb.get_pattern());
 
-        if (log.is_at_least_verbose()) { log << endl; }
+        if (log.is_at_least_verbose()) { log.println(); }
     }
 
     std::vector<Flaw> flaws;
@@ -288,7 +294,7 @@ void SingleCEGAR::run_cegar_loop(
     try {
         for (;;) {
             if (log.is_at_least_verbose()) {
-                log << "iteration #" << refinement_counter << endl;
+                log.println("iteration #{}", refinement_counter);
             }
 
             if (!get_flaws(
@@ -311,20 +317,25 @@ void SingleCEGAR::run_cegar_loop(
             flaws.clear();
 
             if (log.is_at_least_verbose()) {
-                log << "SingleCEGAR: current pattern: "
-                    << transformation.pdb.get_pattern() << endl;
+                log.println(
+                    "SingleCEGAR: current pattern: {}",
+                    transformation.pdb.get_pattern());
             }
         }
     } catch (utils::TimeoutException&) {
         if (log.is_at_least_normal()) {
-            log << "SingleCEGAR: Time limit reached." << endl;
+            log.println("SingleCEGAR: Time limit reached.");
         }
     }
 
     if (log.is_at_least_normal()) {
-        log << "\nSingleCEGAR statistics:\n"
-            << "  computation time: " << timer.get_elapsed_time() << "\n"
-            << "  number of iterations: " << refinement_counter << endl;
+        log.println(
+            "\n"
+            "SingleCEGAR statistics:\n"
+            "  computation time: {}\n"
+            "  number of iterations: {}",
+            timer.get_elapsed_time(),
+            refinement_counter);
     }
 }
 

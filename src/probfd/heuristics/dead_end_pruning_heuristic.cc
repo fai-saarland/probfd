@@ -28,9 +28,10 @@ DeadEndPruningHeuristic::DeadEndPruningHeuristic(
     , dead_end_value_(dead_end_value)
 {
     if (!pruning_function_->dead_ends_are_reliable()) {
-        std::cerr << "Dead end pruning heuristic was constructed with an "
-                     "evaluator that has unreliable dead ends!"
-                  << std::endl;
+        std::println(
+            std::cerr,
+            "Dead end pruning heuristic was constructed with an "
+            "evaluator that has unreliable dead ends!");
         utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
     }
 }

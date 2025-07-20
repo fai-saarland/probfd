@@ -6,6 +6,7 @@
 #include "probfd/value_type.h"
 
 #include "downward/utils/rng.h"
+#include "downward/views/convert.h"
 
 #include <algorithm>
 #include <cassert>
@@ -134,6 +135,35 @@ Distribution(std::from_range_t, R&&)
     -> Distribution<std::tuple_element_t<0, std::ranges::range_value_t<R>>>;
 
 } // namespace probfd
+
+template <typename T, typename Char>
+    requires std::formattable<T, Char>
+struct std::formatter<probfd::Distribution<T>, Char> {
+    std::range_formatter<std::pair<T, probfd::value_t>, Char> underlying_;
+
+    constexpr formatter()
+    {
+        underlying_.underlying().set_brackets("", "");
+        underlying_.underlying().set_separator(" -> ");
+        underlying_.set_brackets("{", "}");
+        underlying_.set_separator(",");
+    }
+
+    template <class ParseContext>
+    constexpr typename ParseContext::iterator parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+
+    template <class FmtContext>
+    typename FmtContext::iterator
+    format(const probfd::Distribution<T>& p, FmtContext& ctx) const
+    {
+        return underlying_.format(
+            p | downward::views::convert<std::pair<T, probfd::value_t>>,
+            ctx);
+    }
+};
 
 #include "probfd/distribution-impl.h"
 

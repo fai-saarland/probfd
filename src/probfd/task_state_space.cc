@@ -18,14 +18,21 @@ namespace probfd {
 
 void TaskStateSpace::Statistics::print(std::ostream& out) const
 {
-    out << "  Applicable operators: " << generated_operators << " generated, "
-        << computed_operators << " computed, " << aops_generator_calls
-        << " generator calls." << std::endl;
-    out << "  Generated " << generated_states
-        << " successor state(s): " << computed_successors << " computed, "
-        << single_transition_generator_calls << " single-transition calls, "
-        << all_transitions_generator_calls << " all-transitions calls."
-        << std::endl;
+    println(
+        out,
+        "  Applicable operators: {} generated, {} computed, {} generator "
+        "calls.",
+        generated_operators,
+        computed_operators,
+        aops_generator_calls);
+    println(
+        out,
+        "  Generated {} successor state(s): {} computed, {} single-transition "
+        "calls, {} all-transitions calls.",
+        generated_states,
+        computed_successors,
+        single_transition_generator_calls,
+        all_transitions_generator_calls);
 }
 
 TaskStateSpace::TaskStateSpace(
@@ -113,8 +120,7 @@ size_t TaskStateSpace::get_num_registered_states() const
 
 void TaskStateSpace::print_statistics(std::ostream& out) const
 {
-    out << "  Registered state(s): " << get_num_registered_states()
-        << std::endl;
+    println(out, "  Registered state(s): {}", get_num_registered_states());
     statistics_.print(out);
 }
 

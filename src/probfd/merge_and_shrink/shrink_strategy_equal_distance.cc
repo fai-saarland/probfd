@@ -93,8 +93,9 @@ void ShrinkStrategyEqualDistance::dump_strategy_specific_options(
     utils::LogProxy& log) const
 {
     if (log.is_at_least_normal()) {
-        log << "Prefer shrinking high or low h states: "
-            << (h_start == Priority::HIGH ? "high" : "low") << endl;
+        log.println(
+            "Prefer shrinking high or low h states: {}",
+            h_start == Priority::HIGH ? "high" : "low");
     }
 }
 

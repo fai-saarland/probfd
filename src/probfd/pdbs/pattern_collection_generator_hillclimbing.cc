@@ -420,7 +420,7 @@ unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
     using namespace utils;
 
     if (log_.is_at_least_verbose()) {
-        std::cout << "Generating pattern neighborhood..." << std::endl;
+        log_.println("Generating pattern neighborhood...");
     }
 
     const auto& variables = get_variables(task);
@@ -451,10 +451,10 @@ unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
                 ++num_rejected_;
 
                 if (log_.is_at_least_verbose()) {
-                    std::cout << "Skipping neighboring pattern for variable "
-                              << rel_var_id
-                              << " because its PDB would exceed size limits."
-                              << std::endl;
+                    log_.println(
+                        "Skipping neighboring pattern for variable {} because "
+                        "its PDB would exceed size limits.",
+                        rel_var_id);
                 }
 
                 continue;
@@ -468,18 +468,19 @@ unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
 
             if (!generated_patterns.insert(bitset).second) {
                 if (log_.is_at_least_verbose()) {
-                    std::cout << "Skipping neighboring pattern for variable "
-                              << rel_var_id << " because it already exists."
-                              << std::endl;
+                    log_.println(
+                        "Skipping neighboring pattern for variable {} because "
+                        "it already exists.",
+                        rel_var_id);
                 }
 
                 continue;
             }
 
             if (log_.is_at_least_verbose()) {
-                std::cout
-                    << "Generating neighboring PDB for pattern with variable "
-                    << rel_var_id << std::endl;
+                log_.println(
+                    "Generating neighboring PDB for pattern with variable {}",
+                    rel_var_id);
             }
 
             /*
@@ -668,7 +669,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
           duplicates and patterns are sorted.
         */
         if (log_.is_at_least_normal()) {
-            std::cout << "Done calculating initial candidate PDBs" << std::endl;
+            log_.println("Done calculating initial candidate PDBs");
         }
 
         sampling::RandomWalkSampler sampler(
@@ -690,17 +691,17 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
             const bool initial_dead = init_h == termination_cost;
 
             if (log_.is_at_least_verbose()) {
-                std::cout << "current collection size is "
-                          << current_pdbs.get_size() << "\n"
-                          << "current search space size is "
-                          << max_search_space_size - remaining_states_
-                          << "\ncurrent initial h value: ";
+                log_.print(
+                    "current collection size is {}\n"
+                    "current search space size is {}\n"
+                    "current initial h value: ",
+                    current_pdbs.get_size(),
+                    max_search_space_size - remaining_states_);
 
                 if (initial_dead) {
-                    std::cout << "infinite => stopping hill climbing"
-                              << std::endl;
+                    log_.println("infinite => stopping hill climbing");
                 } else {
-                    std::cout << init_h << std::endl;
+                    log_.println("{}", init_h);
                 }
             }
 
@@ -727,9 +728,8 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
 
             if (improvement < min_improvement_) {
                 if (log_.is_at_least_verbose()) {
-                    std::cout << "Improvement below threshold."
-                                 "Stop hill climbing."
-                              << std::endl;
+                    log_.println(
+                        "Improvement below threshold. Stop hill climbing.");
                 }
 
                 break;
@@ -741,8 +741,9 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
             const Pattern& best_pattern = best_pdb->get_pattern();
 
             if (log_.is_at_least_verbose()) {
-                std::cout << "found a better pattern with improvement "
-                          << improvement << std::endl;
+                log_.println(
+                    "found a better pattern with improvement {}",
+                    improvement);
                 std::println(std::cout, "pattern: {}", best_pattern);
             }
 
@@ -764,27 +765,31 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
             candidate_pdbs[best_pdb_index] = nullptr;
 
             if (log_.is_at_least_verbose()) {
-                std::cout << "Hill climbing time so far: "
-                          << hill_climbing_timer.get_elapsed_time()
-                          << std::endl;
+                log_.println(
+                    "Hill climbing time so far: {}",
+                    hill_climbing_timer.get_elapsed_time());
             }
         }
     } catch (utils::TimeoutException&) {
         if (log_.is_at_least_normal()) {
-            std::cout << "Time limit reached. Abort hill climbing."
-                      << std::endl;
+            log_.println("Time limit reached. Abort hill climbing.");
         }
     }
 
     if (log_.is_at_least_normal()) {
-        log_ << "\n"
-             << "Hill Climbing Generator Statistics:" << "\n  Iterations: "
-             << num_iterations
-             << "\n  Generated patterns: " << generated_patterns.size()
-             << "\n  Rejected patterns: " << num_rejected_
-             << "\n  Maximum candidate PDB size: " << max_pdb_size
-             << "\n  Time: " << hill_climbing_timer.get_elapsed_time() << "s"
-             << std::endl;
+        log_.println(
+            "\n"
+            "Hill Climbing Generator Statistics:\n"
+            "  Iterations: {}\n"
+            "  Generated patterns: {}\n"
+            "  Rejected patterns: {}\n"
+            "  Maximum candidate PDB size: {}\n"
+            "  Time: {}",
+            num_iterations,
+            generated_patterns.size(),
+            num_rejected_,
+            max_pdb_size,
+            hill_climbing_timer.get_elapsed_time());
     }
 }
 
@@ -794,8 +799,8 @@ PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(
     utils::Timer timer;
 
     if (log_.is_at_least_normal()) {
-        std::cout << "Generating patterns using the hill climbing generator..."
-                  << std::endl;
+        log_.println(
+            "Generating patterns using the hill climbing generator...");
     }
 
     // Generate initial collection
@@ -808,8 +813,9 @@ PatternCollectionInformation PatternCollectionGeneratorHillclimbing::generate(
     IncrementalPPDBs current_pdbs(task, collection, subcollection_finder);
 
     if (log_.is_at_least_normal()) {
-        std::cout << "Done calculating initial pattern collection: " << timer
-                  << std::endl;
+        log_.println(
+            "Done calculating initial pattern collection: {}",
+            timer());
     }
 
     const auto& operators = get_operators(task);

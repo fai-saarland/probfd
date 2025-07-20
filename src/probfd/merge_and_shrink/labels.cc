@@ -132,12 +132,15 @@ void Labels::reduce_labels(const vector<int>& old_labels)
 
 void Labels::dump_labels(utils::LogProxy log) const
 {
-    log << "active labels:" << endl;
+    log.println("active labels:");
     for (size_t label = 0; label < label_infos.size(); ++label) {
         if (const auto& [cost, probabilities] = label_infos[label];
             cost != -1_vt) {
-            log << "label " << label << ", cost " << cost << ", probabilities "
-                << probabilities << endl;
+            log.println(
+                "label {}, cost {}, probabilities {}",
+                label,
+                cost,
+                probabilities);
         }
     }
 }

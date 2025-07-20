@@ -45,8 +45,8 @@ vector<pair<int, int>> MergeSelector::compute_merge_candidates(
 void MergeSelector::dump_options(utils::LogProxy& log) const
 {
     if (log.is_at_least_normal()) {
-        log << "Merge selector options:" << endl;
-        log << "Name: " << name() << endl;
+        log.println("Merge selector options:");
+        log.println("Name: {}", name());
         dump_selector_specific_options(log);
     }
 }

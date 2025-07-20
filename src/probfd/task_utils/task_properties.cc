@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <iostream>
 #include <limits>
+#include <print>
 #include <ranges>
 #include <unordered_map>
 #include <utility>
@@ -100,10 +101,11 @@ void verify_no_conditional_effects(const ProbabilisticOperatorSpace& operators)
 {
     int op_id = get_first_conditional_effects_op_id(operators);
     if (op_id != -1) {
-        ProbabilisticOperatorProxy op = operators[op_id];
-        cerr << "This configuration does not support conditional effects "
-             << "(operator " << op.get_name() << ")!" << endl
-             << "Terminating." << endl;
+        println(
+            cerr,
+            "This configuration does not support conditional effects (operator "
+            "{})! Terminating.",
+            operators[op_id].get_name());
         utils::exit_with(ExitCode::SEARCH_UNSUPPORTED);
     }
 }
@@ -144,14 +146,13 @@ value_t get_min_operator_cost(
 value_t get_cost_lower_bound(
     const ProbabilisticOperatorSpace& operators,
     const OperatorCostFunction<value_t>& cost_function,
-    const TerminationCosts& termination_costs) {
-    return get_min_operator_cost(
-                  operators,
-                  cost_function) >= 0_vt
-                  ? std::min(
-                        termination_costs.get_goal_termination_cost(),
-                        termination_costs.get_non_goal_termination_cost())
-                  : -INFINITE_VALUE;
+    const TerminationCosts& termination_costs)
+{
+    return get_min_operator_cost(operators, cost_function) >= 0_vt
+               ? std::min(
+                     termination_costs.get_goal_termination_cost(),
+                     termination_costs.get_non_goal_termination_cost())
+               : -INFINITE_VALUE;
 }
 
 int get_num_total_effects(
@@ -183,21 +184,20 @@ void dump_probabilistic_task_(const ProbabilisticTaskTuple& task, auto& os)
             max(max_action_cost, cost_function.get_operator_cost(op.get_id()));
     }
 
-    os << "Min action cost: " << min_action_cost << endl;
-    os << "Max action cost: " << max_action_cost << endl;
+    println(os, "Min action cost: {}", min_action_cost);
+    println(os, "Max action cost: {}", max_action_cost);
 
-    os << "Variables (" << variables.size() << "):" << endl;
+    println(os, "Variables ({}):", variables.size());
     for (VariableProxy var : variables) {
-        os << "  " << var.get_name() << " (range " << var.get_domain_size()
-           << ")" << endl;
+        println(os, "  {} (range {})", var.get_name(), var.get_domain_size());
         for (int val = 0; val < var.get_domain_size(); ++val) {
-            os << "    " << val << ": " << var.get_fact(val).get_name() << endl;
+            println(os, "    {}: {}", val, var.get_fact(val).get_name());
         }
     }
     State initial_state = init_vals.get_initial_state();
-    os << "Initial state (PDDL):" << endl;
+    println(os, "Initial state (PDDL):");
     ::task_properties::dump_pddl(variables, initial_state);
-    os << "Initial state (FDR):" << endl;
+    println(os, "Initial state (FDR):");
     ::task_properties::dump_fdr(variables, initial_state);
     ::task_properties::dump_goals(variables, goals);
 }

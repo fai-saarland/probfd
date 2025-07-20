@@ -30,8 +30,8 @@ StateEquivalenceRelation PruneStrategyAlive::compute_pruning_abstraction(
     }
 
     if (log.is_at_least_verbose() && non_alive > 0) {
-        log << ts.tag() << "pruned: " << non_alive << " non-alive states"
-            << std::endl;
+        log.print(ts.tag());
+        log.println("pruned: {} non-alive states", non_alive);
     }
 
     return state_equivalence_relation;

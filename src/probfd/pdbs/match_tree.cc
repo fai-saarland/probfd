@@ -221,38 +221,47 @@ void MatchTree::dump_recursive(std::ostream& out, Node* node) const
 {
     if (!node) {
         // Node is the root node.
-        out << "Empty MatchTree" << endl;
+        println(out, "Empty MatchTree");
         return;
     }
-    out << endl;
-    out << "node->var_id = " << node->var_id << endl;
-    out << "Number of applicable operators at this node: "
-        << node->applicable_operator_ids.size() << endl;
+    println(out);
+    println(out, "node->var_id = {}", node->var_id);
+    println(
+        out,
+        "Number of applicable operators at this node: {}",
+        node->applicable_operator_ids.size());
     for (const size_t op_index : node->applicable_operator_ids) {
-        out << "ProjectionOperator #" << op_index << endl;
+        println(out, "ProjectionOperator #{}", op_index);
     }
     if (node->is_leaf_node()) {
-        out << "leaf node." << endl;
+        println(out, "leaf node.");
         assert(node->successors.empty());
         assert(!node->star_successor);
     } else {
         for (int val = 0; val < node->var_domain_size; ++val) {
             if (node->successors[val]) {
-                out << "recursive call for child with value " << val << endl;
+                println(out, "recursive call for child with value {}", val);
                 dump_recursive(out, node->successors[val].get());
-                out << "back from recursive call (for successors[" << val
-                    << "]) to node with var_id = " << node->var_id << endl;
+                println(
+                    out,
+                    "back from recursive call (for successors[{}]) to node "
+                    "with var_id = {}",
+                    val,
+                    node->var_id);
             } else {
-                out << "no child for value " << val << endl;
+                println(out, "no child for value {}", val);
             }
         }
         if (node->star_successor) {
-            out << "recursive call for star_successor" << endl;
+            println(out, "recursive call for star_successor");
             dump_recursive(out, node->star_successor.get());
-            out << "back from recursive call (for star_successor) "
-                << "to node with var_id = " << node->var_id << endl;
+            println(
+                out,
+                "back from recursive call (for star_successor) "
+                "to node with var_id = {}",
+                node->var_id);
         } else {
-            out << "no star_successor" << endl;
+            println(out, "no star_successor");
         }
     }
 }

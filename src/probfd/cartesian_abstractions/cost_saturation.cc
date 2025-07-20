@@ -23,8 +23,8 @@
 #include "downward/state.h"
 
 #include <cassert>
-#include <ranges>
 #include <ostream>
+#include <ranges>
 #include <utility>
 
 using namespace std;
@@ -267,14 +267,16 @@ void CostSaturation::build_abstractions(
 void CostSaturation::print_statistics(utils::Duration init_time) const
 {
     if (log_.is_at_least_normal()) {
-        log_ << "Done initializing additive Cartesian heuristic" << endl;
-        log_ << "Time for initializing additive Cartesian heuristic: "
-             << init_time << endl;
-        log_ << "Cartesian abstractions built: " << num_abstractions_ << endl;
-        log_ << "Cartesian states: " << num_states_ << endl;
-        log_ << "Total number of non-looping transitions: "
-             << num_non_looping_transitions_ << endl;
-        log_ << endl;
+        log_.println("Done initializing additive Cartesian heuristic");
+        log_.println(
+            "Time for initializing additive Cartesian heuristic: {}",
+            init_time);
+        log_.println("Cartesian abstractions built: {}", num_abstractions_);
+        log_.println("Cartesian states: {}", num_states_);
+        log_.println(
+            "Total number of non-looping transitions: {}",
+            num_non_looping_transitions_);
+        log_.println();
     }
 }
 

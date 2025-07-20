@@ -86,7 +86,7 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
             assert(abstraction.get_goals().contains(abstract_state->get_id()));
 
             if (!downward::task_properties::is_goal_state(goals, state)) {
-                if (log.is_at_least_debug()) log << "Goal test failed." << endl;
+                if (log.is_at_least_debug()) log.println("Goal test failed.");
                 state.unpack();
                 return Flaw(
                     std::move(state),
@@ -102,7 +102,7 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
         // Check for operator applicability
         if (!task_properties::is_applicable(op, state)) {
             if (log.is_at_least_debug())
-                log << "Operator not applicable: " << op.get_name() << endl;
+                log.println("Operator not applicable: {}", op.get_name());
             state.unpack();
             return Flaw(
                 std::move(state),
@@ -119,8 +119,8 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
 
             if (static_cast<int>(registry.size()) > max_search_states_) {
                 if (log.is_at_least_normal()) {
-                    log << "Reached maximal number of flaw search states."
-                        << endl;
+                    log.println(
+                        "Reached maximal number of flaw search states.");
                 }
                 return std::nullopt;
             }
@@ -128,7 +128,7 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
             const auto* next_abstract = &abstraction.get_abstract_state(abs_t);
 
             if (!next_abstract->includes(next_concrete)) {
-                if (log.is_at_least_debug()) log << "  Paths deviate." << endl;
+                if (log.is_at_least_debug()) log.println("  Paths deviate.");
                 state.unpack();
                 return Flaw(
                     std::move(state),
@@ -147,7 +147,7 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
 
     // We found a concrete policy.
     if (log.is_at_least_normal()) {
-        log << "Found concrete solution during refinement." << endl;
+        log.println("Found concrete solution during refinement.");
     }
 
     return std::nullopt;

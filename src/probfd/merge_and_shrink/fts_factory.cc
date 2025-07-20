@@ -278,7 +278,7 @@ void FTSFactory::build_transitions(const Labels& labels)
 FactoredTransitionSystem FTSFactory::create(utils::LogProxy& log)
 {
     if (log.is_at_least_normal()) {
-        log << "Building atomic transition systems... " << endl;
+        log.println("Building atomic transition systems... ");
     }
 
     const auto& variables = get_variables(task);

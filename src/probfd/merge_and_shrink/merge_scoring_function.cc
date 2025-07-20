@@ -10,8 +10,8 @@ namespace probfd::merge_and_shrink {
 void MergeScoringFunction::dump_options(utils::LogProxy& log) const
 {
     if (log.is_at_least_normal()) {
-        log << "Merge scoring function:" << endl;
-        log << "Name: " << name() << endl;
+        log.println("Merge scoring function:");
+        log.println("Name: {}", name());
         dump_function_specific_options(log);
     }
 }

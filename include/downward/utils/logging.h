@@ -49,6 +49,7 @@ public:
     }
 
     using manip_function = std::ostream& (*)(std::ostream&);
+
     Log& operator<<(manip_function f)
     {
         if (f == static_cast<manip_function>(&std::endl)) {
@@ -71,10 +72,7 @@ public:
         std::println(stream, text, std::forward<Args>(args)...);
     }
 
-    void println()
-    {
-        std::println(stream);
-    }
+    void println() { std::println(stream); }
 
     Verbosity get_verbosity() const { return verbosity; }
 };
@@ -129,6 +127,7 @@ public:
     }
 
     using manip_function = std::ostream& (*)(std::ostream&);
+
     LogProxy& operator<<(manip_function f)
     {
         (*log) << f;
@@ -147,10 +146,11 @@ public:
         log->println(text, std::forward<Args>(args)...);
     }
 
-    void println()
-    {
-        log->println();
-    }
+    void println() { log->println(); }
+
+    void print(std::string_view s) { *log << s; }
+
+    void println(std::string_view s) { *log << s << "\n"; }
 
     bool is_at_least_normal() const
     {
@@ -191,6 +191,33 @@ public:
         return stream;
     }
 };
+
+template <typename... Args>
+void print(LogProxy& log, std::format_string<Args...> text, Args&&... args)
+{
+    log.print(text, std::forward<Args>(args)...);
+}
+
+template <typename... Args>
+void println(LogProxy& log, std::format_string<Args...> text, Args&&... args)
+{
+    log.println(text, std::forward<Args>(args)...);
+}
+
+inline void println(LogProxy& log)
+{
+    log.println();
+}
+
+inline void print(LogProxy& log, std::string_view s)
+{
+    log << s;
+}
+
+inline void println(LogProxy& log, std::string_view s)
+{
+    log << s << "\n";
+}
 
 /*
   In the long term, this should not be global anymore. Instead, local LogProxy
@@ -252,6 +279,6 @@ public:
 };
 
 extern void trace_memory(const std::string& msg = "");
-} // namespace utils
+} // namespace downward::utils
 
 #endif

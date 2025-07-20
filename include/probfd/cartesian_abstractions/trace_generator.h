@@ -6,6 +6,7 @@
 
 #include <compare>
 #include <deque>
+#include <format>
 #include <memory>
 #include <ostream>
 
@@ -28,9 +29,6 @@ struct TransitionOutcome {
 
     friend auto
     operator<=>(const TransitionOutcome&, const TransitionOutcome&) = default;
-
-    friend std::ostream&
-    operator<<(std::ostream& os, const TransitionOutcome& t);
 };
 
 class TraceGenerator {
@@ -47,5 +45,26 @@ public:
 };
 
 } // namespace probfd::cartesian_abstractions
+
+template <>
+struct std::formatter<probfd::cartesian_abstractions::TransitionOutcome> {
+    std::formatter<std::tuple<int, int, int>> underlying_;
+
+    template <class ParseContext>
+    constexpr typename ParseContext::iterator parse(ParseContext& ctx)
+    {
+        return underlying_.parse(ctx);
+    }
+
+    template <class FmtContext>
+    typename FmtContext::iterator format(
+        const probfd::cartesian_abstractions::TransitionOutcome& t,
+        FmtContext& ctx) const
+    {
+        return underlying_.format(
+            std::make_tuple(t.op_id, t.eff_id, t.target_id),
+            ctx);
+    }
+};
 
 #endif // PROBFD_CARTESIAN_ABSTRACTIONS_TRACE_GENERATOR_H

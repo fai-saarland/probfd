@@ -86,4 +86,4 @@ ostream& operator<<(ostream& os, const CartesianSet& cartesian_set)
     }
     return os << ">";
 }
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions

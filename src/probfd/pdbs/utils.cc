@@ -45,9 +45,7 @@ std::vector<int> get_goals_in_random_order(
 {
     std::vector<int> goal_facts;
 
-    for (const auto fact : goals) {
-        goal_facts.push_back(fact.var);
-    }
+    for (const auto fact : goals) { goal_facts.push_back(fact.var); }
 
     rng.shuffle(goal_facts);
 
@@ -64,24 +62,11 @@ void dump_graphviz(
 {
     ProjectionOperatorToString op_names(operators);
 
-    auto sts = [&pdb, &mdp](StateRank x) {
-        std::ostringstream out;
-        out.precision(3);
-
+    auto sts = [&pdb](StateRank x) {
         const value_t value = pdb.lookup_estimate(x);
         const std::string value_text =
-            value != INFINITE_VALUE ? std::to_string(value) : "&infin";
-
-        out << x << "\\n"
-            << "h = " << value_text;
-
-        if (value == mdp.get_non_goal_termination_cost()) {
-            out << "(dead)";
-        }
-
-        out << std::endl;
-
-        return out.str();
+            value != INFINITE_VALUE ? std::format("{:.3f}", value) : "&infin";
+        return std::format("{}\\nh = {}", x, value_text);
     };
 
     auto ats = [=](const ProjectionOperator* const& op) {

@@ -52,7 +52,9 @@ std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
 
         if (flaw) return flaw;
 
-        log << "Switching to the next flaw generator." << std::endl;
+        if (log.is_at_least_normal()) {
+            log.println("Switching to the next flaw generator.");
+        }
     }
 
     return std::nullopt;

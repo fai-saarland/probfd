@@ -55,7 +55,8 @@ unique_ptr<MergeStrategy> MergeStrategyFactorySCCs::compute_merge_strategy(
     const auto& axioms = get_axioms(task);
     const auto& operators = get_operators(task);
 
-    const auto& cgraph = causal_graph::get_causal_graph(variables, axioms, operators);
+    const auto& cgraph =
+        causal_graph::get_causal_graph(variables, axioms, operators);
 
     int num_vars = variables.size();
 
@@ -85,23 +86,21 @@ unique_ptr<MergeStrategy> MergeStrategyFactorySCCs::compute_merge_strategy(
         break;
     }
 
-    if (log.is_at_least_normal()) {
-        log << "SCCs of the causal graph:" << endl;
-    }
+    if (log.is_at_least_normal()) { log.println("SCCs of the causal graph:"); }
 
     vector<vector<int>> non_singleton_cg_sccs;
     vector<int> indices_of_merged_sccs;
     indices_of_merged_sccs.reserve(sccs.size());
     for (const vector<int>& scc : sccs) {
-        if (log.is_at_least_normal()) { log << scc << endl; }
+        if (log.is_at_least_normal()) { log.println("{}", scc); }
         int scc_size = scc.size();
         if (scc_size != 1) { non_singleton_cg_sccs.push_back(scc); }
     }
     if (log.is_at_least_normal() && sccs.size() == 1) {
-        log << "Only one single SCC" << endl;
+        log.println("Only one single SCC");
     }
     if (log.is_at_least_normal() && static_cast<int>(sccs.size()) == num_vars) {
-        log << "Only singleton SCCs" << endl;
+        log.println("Only singleton SCCs");
         assert(non_singleton_cg_sccs.empty());
     }
 
@@ -136,18 +135,18 @@ bool MergeStrategyFactorySCCs::requires_goal_distances() const
 void MergeStrategyFactorySCCs::dump_strategy_specific_options() const
 {
     if (log.is_at_least_normal()) {
-        log << "Merge order of sccs: ";
+        log.print("Merge order of sccs: ");
         switch (order_of_sccs) {
-        case OrderOfSCCs::TOPOLOGICAL: log << "topological"; break;
+        case OrderOfSCCs::TOPOLOGICAL: log.print("topological"); break;
         case OrderOfSCCs::REVERSE_TOPOLOGICAL:
-            log << "reverse topological";
+            log.print("reverse topological");
             break;
-        case OrderOfSCCs::DECREASING: log << "decreasing"; break;
-        case OrderOfSCCs::INCREASING: log << "increasing"; break;
+        case OrderOfSCCs::DECREASING: log.print("decreasing"); break;
+        case OrderOfSCCs::INCREASING: log.print("increasing"); break;
         }
-        log << endl;
+        log.println();
 
-        log << "Merge strategy for merging within sccs: " << endl;
+        log.println("Merge strategy for merging within sccs: ");
         if (merge_tree_factory) { merge_tree_factory->dump_options(log); }
         if (merge_selector) { merge_selector->dump_options(log); }
     }

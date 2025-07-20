@@ -17,6 +17,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <print>
 #include <utility>
 
 using namespace downward;
@@ -155,16 +156,16 @@ void HigherOrderHPOMGenerator::initialize_constraints(
     const auto& axioms = get_axioms(task);
     const auto& operators = get_operators(task);
     const auto& goals = get_goal(task);
-    const auto& cost_function =
-        get_cost_function(task);
+    const auto& cost_function = get_cost_function(task);
     const auto& term_costs = get_termination_costs(task);
 
     const value_t term_cost = term_costs.get_non_goal_termination_cost();
 
     if (term_cost != INFINITE_VALUE && term_cost != 1_vt) {
-        std::cerr
-            << "Termination costs beyond 1 (MaxProb) and +infinity (SSP) "
-               "currently unsupported in higher-order hpom implementation.";
+        std::println(
+            std::cerr,
+            "Termination costs beyond 1 (MaxProb) and +infinity (SSP) "
+            "currently unsupported in higher-order hpom implementation.");
         utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
     }
 
@@ -174,8 +175,7 @@ void HigherOrderHPOMGenerator::initialize_constraints(
 
     ::task_properties::verify_no_axioms(axioms);
     task_properties::verify_no_conditional_effects(operators);
-
-    std::cout << "Initializing HO-HPOM LP constraints..." << std::endl;
+    std::println(std::cout, "Initializing HO-HPOM LP constraints...");
 
     utils::Timer timer;
 
@@ -340,7 +340,7 @@ void HigherOrderHPOMGenerator::initialize_constraints(
         }
     }
 
-    std::cout << "Finished HO-POM LP setup after " << timer << std::endl;
+    std::println(std::cout, "Finished HO-POM LP setup after {}", timer());
 }
 
 void HigherOrderHPOMGenerator::update_constraints(

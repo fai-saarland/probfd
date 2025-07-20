@@ -292,13 +292,17 @@ public:
 void check_fact(const FactPair& fact, const vector<ExplicitVariable>& variables)
 {
     if (!utils::in_bounds(fact.var, variables)) {
-        cerr << "Invalid variable id: " << fact.var << endl;
+        println(cerr, "Invalid variable id: {}", fact.var);
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
 
     if (fact.value < 0 || fact.value >= variables[fact.var].domain_size) {
-        cerr << "Invalid value for variable " << fact.var << ": " << fact.value
-             << endl;
+        println(
+            cerr,
+            "Invalid value for variable {}: {}",
+            fact.var,
+            fact.value);
+
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
 }
@@ -342,8 +346,11 @@ void check_facts(
     }
 
     if (total_prob.numerator != total_prob.denominator) {
-        cerr << "Total outcome probabilities must sum up to one. Sum was: "
-             << total_prob.numerator << "/" << total_prob.denominator << endl;
+        println(
+            cerr,
+            "Total outcome probabilities must sum up to one. Sum was: {}/{}",
+            total_prob.numerator,
+            total_prob.denominator);
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
 }
@@ -353,12 +360,16 @@ void check_magic(std::istream& in, const string& magic)
     string word;
     in >> word;
     if (word != magic) {
-        cerr << "Failed to match magic word '" << magic << "'." << endl
-             << "Got '" << word << "'." << endl;
+        println(
+            cerr,
+            "Failed to match magic word '{}'.\nGot '{}'.",
+            magic,
+            word);
         if (magic == "begin_version") {
-            cerr << "Possible cause: you are running the planner "
-                 << "on a translator output file from " << endl
-                 << "an older version." << endl;
+            println(
+                cerr,
+                "Possible cause: you are running the planner on a translator "
+                "output file from an older version.");
         }
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
@@ -419,7 +430,7 @@ ProbabilisticOutcome::ProbabilisticOutcome(std::istream& in)
         fractional_probability.denominator = std::stoi(denominator);
 
         if (fractional_probability.denominator < 0) {
-            cerr << "Read probability with denominator of zero: " << p << endl;
+            println(cerr, "Read probability with denominator of zero: {}", p);
             utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
         }
     }
@@ -431,12 +442,12 @@ ProbabilisticOutcome::ProbabilisticOutcome(std::istream& in)
     }
 
     if (fractional_probability.numerator < 0) {
-        cerr << "Probability must be grater than zero: " << p << endl;
+        println(cerr, "Probability must be grater than zero: {}", p);
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
 
     if (fractional_probability.numerator > fractional_probability.denominator) {
-        cerr << "Probability must be less or equal to one: " << p << endl;
+        println(cerr, "Probability must be less or equal to one: {}", p);
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
 
@@ -490,8 +501,11 @@ ProbabilisticOperator::ProbabilisticOperator(
     total_num_outcomes += num_outcomes;
 
     if (num_outcomes < 1) {
-        std::cerr << "Input file specifies " << num_outcomes
-                  << " outcomes for operator " << name << std::endl;
+        println(
+            std::cerr,
+            "Input file specifies {} outcomes for operator {}",
+            num_outcomes,
+            name);
         utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
     }
 
@@ -544,9 +558,11 @@ void read_and_verify_version(std::istream& in)
     in >> version;
     check_magic(in, "end_version");
     if (version != PRE_FILE_PROB_VERSION) {
-        cerr << "Expected translator output file version "
-             << PRE_FILE_PROB_VERSION << ", got " << version << "." << endl
-             << "Exiting." << endl;
+        println(
+            cerr,
+            "Expected translator output file version {}, got {}. Exiting.",
+            PRE_FILE_PROB_VERSION,
+            version);
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
 }
@@ -598,7 +614,7 @@ vector<FactPair> read_goal(std::istream& in)
     vector<FactPair> goals = read_facts(in);
     check_magic(in, "end_goal");
     if (goals.empty()) {
-        cerr << "Task has no goal condition!" << endl;
+        println(cerr, "Task has no goal condition!");
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
     return goals;

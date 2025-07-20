@@ -4,6 +4,8 @@
 #include "probfd/fdr_types.h"
 #include "probfd/probabilistic_task.h"
 
+#include "downward/utils/logging.h"
+
 #include <iosfwd>
 #include <memory>
 

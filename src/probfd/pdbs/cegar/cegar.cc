@@ -295,30 +295,13 @@ CEGAR::~CEGAR() = default;
 
 void CEGAR::print_collection(utils::LogProxy log) const
 {
-    log << "Unsolved patterns: [";
+    auto unsolved_infos = subrange(pdb_infos_.begin(), unsolved_end);
+    auto solved_infos = subrange(unsolved_end, solved_end);
 
-    auto unsolved_infos =
-        std::ranges::subrange(pdb_infos_.begin(), unsolved_end);
-
-    if (!unsolved_infos.empty()) {
-        log << unsolved_infos.front().get_pattern();
-        for (const auto& info : unsolved_infos | std::views::drop(1)) {
-            log << ", " << info.get_pattern();
-        }
-    }
-
-    log << "], Solved patterns: [";
-
-    auto solved_infos = std::ranges::subrange(unsolved_end, solved_end);
-
-    if (!solved_infos.empty()) {
-        log << solved_infos.front().get_pattern();
-        for (const auto& info : solved_infos | std::views::drop(1)) {
-            log << ", " << info.get_pattern();
-        }
-    }
-
-    log << "]" << endl;
+    log.println(
+        "Unsolved patterns: {}, Solved patterns: {}",
+        unsolved_infos | std::views::transform(&PDBInfo::get_pattern),
+        solved_infos | std::views::transform(&PDBInfo::get_pattern));
 }
 
 void CEGAR::generate_trivial_solution_collection(
@@ -332,8 +315,7 @@ void CEGAR::generate_trivial_solution_collection(
     pdb_infos_.reserve(goals_.size());
 
     const auto& operators = get_operators(task);
-    const auto& cost_function =
-        get_cost_function(task);
+    const auto& cost_function = get_cost_function(task);
     const auto& term_costs = get_termination_costs(task);
 
     heuristics::BlindHeuristic<StateRank> h(
@@ -349,10 +331,10 @@ void CEGAR::generate_trivial_solution_collection(
     solved_end = pdb_infos_.end();
 
     if (log.is_at_least_normal()) {
-        log << "CEGAR initial collection: ";
+        log.print("CEGAR initial collection: ");
         print_collection(log);
 
-        if (log.is_at_least_verbose()) { log << endl; }
+        if (log.is_at_least_verbose()) { log.println(); }
     }
 }
 
@@ -381,8 +363,10 @@ auto CEGAR::get_flaws(
                  !can_merge_patterns(info_it, it->second)) ||
                 !can_add_variable_to_pattern(variables, info_it, var)) {
                 if (log.is_at_least_verbose()) {
-                    log << "ignoring flaw on var " << var
-                        << " due to size limits, blacklisting..." << endl;
+                    log.println(
+                        "ignoring flaw on var {} due to size limits, "
+                        "blacklisting...",
+                        var);
                 }
 
                 blacklisted_variables_.insert(var);
@@ -425,10 +409,12 @@ auto CEGAR::get_flaws(
             --unsolved_end;
 
             if (log.is_at_least_verbose()) {
-                log << "CEGAR: Marking pattern as solved: "
-                    << info_it->get_pattern() << std::endl;
-                log << "CEGAR: Remaining unsolved patterns: "
-                    << unsolved_end - pdb_infos_.begin() << std::endl;
+                log.println(
+                    "CEGAR: Marking pattern as solved: {}",
+                    info_it->get_pattern());
+                log.println(
+                    "CEGAR: Remaining unsolved patterns: {}",
+                    unsolved_end - pdb_infos_.begin());
             }
 
             if (info_it != unsolved_end) {
@@ -630,15 +616,11 @@ void CEGAR::refine(
     int var = flaw.variable;
 
     if (log.is_at_least_verbose()) {
-        log << "CEGAR: chosen flaw: pattern "
-            << pdb_infos_[solution_index].get_pattern();
-        log << " with a violated";
-        if (flaw.is_precondition) {
-            log << " precondition ";
-        } else {
-            log << " goal ";
-        }
-        log << "on " << var << endl;
+        log.println(
+            "CEGAR: chosen flaw: pattern {} with a violated {} on {}",
+            pdb_infos_[solution_index].get_pattern(),
+            flaw.is_precondition ? "precondition" : "goal",
+            var);
     }
 
     const auto it = variable_to_info_.find(var);
@@ -650,9 +632,11 @@ void CEGAR::refine(
         assert(can_merge_patterns(solution_it, other_it));
 
         if (log.is_at_least_verbose()) {
-            log << "CEGAR: var " << var << " is already in pattern "
-                << other_it->get_pattern() << endl;
-            log << "CEGAR: merge the two patterns" << endl;
+            log.println(
+                "CEGAR: var {} is already in pattern {}",
+                var,
+                other_it->get_pattern());
+            log.println("CEGAR: merge the two patterns");
         }
 
         merge_patterns(task, initial_state, solution_it, other_it, timer);
@@ -665,8 +649,8 @@ void CEGAR::refine(
     // nevertheless is added to the pattern causing the flaw and not to
     // a single new pattern.
     if (log.is_at_least_verbose()) {
-        log << "CEGAR: var " << var << " is not in the collection yet" << endl;
-        log << "CEGAR: add it to the pattern" << endl;
+        log.println("CEGAR: var {} is not in the collection yet", var);
+        log.println("CEGAR: add it to the pattern");
     }
 
     add_variable_to_pattern(task, initial_state, solution_it, var, timer);
@@ -681,17 +665,17 @@ void CEGAR::generate_pdbs(
     utils::LogProxy log)
 {
     if (log.is_at_least_normal()) {
-        log << "CEGAR options: \n"
-            << "  flaw strategy: " << flaw_strategy_->get_name() << "\n"
-            << "  max pdb size: " << max_pdb_size_ << "\n"
-            << "  max collection size: " << max_collection_size_ << "\n"
-            << "  max time: " << max_time << "\n"
-            << "  wildcard plans: " << std::boolalpha << wildcard_ << "\n"
-            << "  goal variables: " << goals_ << "\n"
-            << "  blacklisted variables: " << blacklisted_variables_ << endl;
+        log.println("CEGAR options:");
+        log.println("  flaw strategy: {}", flaw_strategy_->get_name());
+        log.println("  max pdb size: {}", max_pdb_size_);
+        log.println("  max collection size: {}", max_collection_size_);
+        log.println("  max time: {}", max_time);
+        log.println("  wildcard plans: {}", wildcard_);
+        log.println("  goal variables: {}", goals_);
+        log.println("  blacklisted variables: {}", blacklisted_variables_);
     }
 
-    if (log.is_at_least_normal()) { log << endl; }
+    if (log.is_at_least_normal()) { log.println(); }
 
     utils::CountdownTimer timer(max_time);
 
@@ -708,7 +692,7 @@ void CEGAR::generate_pdbs(
     try {
         for (;;) {
             if (log.is_at_least_verbose()) {
-                log << "iteration #" << refinement_counter << endl;
+                log.println("iteration #{}", refinement_counter);
             }
 
             solution_it = get_flaws(
@@ -726,15 +710,18 @@ void CEGAR::generate_pdbs(
                     assert(blacklisted_variables_.empty());
 
                     if (log.is_at_least_verbose()) {
-                        const auto cost = info.get_policy_cost(initial_state);
-                        log << "CEGAR: Task solved during computation of "
-                               "abstract policies.\n"
-                            << "CEGAR: Cost of policy: " << cost << endl;
+                        log.println(
+                            "CEGAR: Task solved during computation of "
+                            "abstract policies.");
+                        log.println(
+                            "CEGAR: Cost of policy: {}",
+                            info.get_policy_cost(initial_state));
                     }
                 } else {
                     if (log.is_at_least_verbose()) {
-                        log << "CEGAR: Flaw list empty. "
-                            << "No further refinements possible." << endl;
+                        log.println(
+                            "CEGAR: Flaw list empty. No further refinements "
+                            "possible.");
                     }
                 }
 
@@ -751,21 +738,22 @@ void CEGAR::generate_pdbs(
             flaws.clear();
 
             if (log.is_at_least_verbose()) {
-                log << "CEGAR: current collection size: "
-                    << max_collection_size_ - remaining_size_ << endl;
-                log << "CEGAR: current collection: ";
+                log.println(
+                    "CEGAR: current collection size: {}",
+                    max_collection_size_ - remaining_size_);
+                log.print("CEGAR: current collection: ");
                 print_collection(log);
             }
 
-            if (log.is_at_least_verbose()) { log << endl; }
+            if (log.is_at_least_verbose()) { log.println(); }
         }
     } catch (utils::TimeoutException&) {
         if (log.is_at_least_normal()) {
-            log << "CEGAR: Time limit reached." << endl;
+            log.println("CEGAR: Time limit reached.");
         }
     }
 
-    if (log.is_at_least_normal()) { log << endl; }
+    if (log.is_at_least_normal()) { log.println(); }
 
     if (solution_it != unsolved_end) {
         auto& info = *solution_it;
@@ -780,14 +768,18 @@ void CEGAR::generate_pdbs(
     }
 
     if (log.is_at_least_normal()) {
-        log << "CEGAR statistics:\n"
-            << "  computation time: " << timer.get_elapsed_time() << "\n"
-            << "  number of iterations: " << refinement_counter
-            << "\n"
-            // << "  final collection: " << *patterns << "\n"
-            << "  final collection number of PDBs: " << pdbs.size() << "\n"
-            << "  final collection summed PDB sizes: "
-            << max_collection_size_ - remaining_size_ << endl;
+        log.println(
+            "CEGAR statistics:\n"
+            "  computation time: {}\n"
+            "  number of iterations: {}\n"
+            // "  final collection: {}\n"
+            "  final collection number of PDBs: {}\n"
+            "  final collection summed PDB sizes: {}",
+            timer.get_elapsed_time(),
+            refinement_counter,
+            //*patterns,
+            pdbs.size(),
+            max_collection_size_ - remaining_size_);
     }
 }
 

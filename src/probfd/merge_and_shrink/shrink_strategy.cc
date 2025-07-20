@@ -10,8 +10,8 @@ namespace probfd::merge_and_shrink {
 void ShrinkStrategy::dump_options(utils::LogProxy& log) const
 {
     if (log.is_at_least_normal()) {
-        log << "Shrink strategy options: " << endl;
-        log << "Type: " << name() << endl;
+        log.println("Shrink strategy options:");
+        log.println("Type: {}", name());
         dump_strategy_specific_options(log);
     }
 }

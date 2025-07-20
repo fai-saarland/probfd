@@ -25,9 +25,14 @@ namespace probfd::solvers {
 
 void BisimulationTimer::print(std::ostream& out) const
 {
-    out << "  Bisimulation time: " << time << std::endl;
-    out << "  Bisimilar states: " << states << std::endl;
-    out << "  Transitions in bisimulation: " << transitions << std::endl;
+    println(
+        out,
+        "  Bisimulation time: {}\n"
+        "  Bisimilar states: {}\n"
+        "  Transitions in bisimulation: {}",
+        time,
+        states,
+        transitions);
 }
 
 BisimulationBasedHeuristicSearchAlgorithm ::
@@ -76,7 +81,7 @@ auto BisimulationBasedHeuristicSearchAlgorithm::compute_policy(
 {
     utils::Timer timer;
 
-    std::cout << "Building bisimulation..." << std::endl;
+    std::println(std::cout, "Building bisimulation...");
 
     SharedAbstractTask determinization =
         probfd::tasks::create_determinization_task(task_);
@@ -85,10 +90,10 @@ auto BisimulationBasedHeuristicSearchAlgorithm::compute_policy(
         bisimulation::compute_bisimulation_on_determinization(
             to_refs(determinization));
 
-    std::cout << "Done." << std::endl;
+    std::println(std::cout, "Done.");
 
     if (!transition_system->is_solvable(*distances)) {
-        std::cout << "Initial state recognized as unsolvable!" << std::endl;
+        println(std::cout, "Initial state recognized as unsolvable!");
         return std::make_unique<policies::EmptyPolicy<State, OperatorID>>();
     }
 
@@ -106,15 +111,16 @@ auto BisimulationBasedHeuristicSearchAlgorithm::compute_policy(
     stats_.states = state_space.num_bisimilar_states();
     stats_.transitions = state_space.num_transitions();
 
-    std::cout << "Bisimulation built after " << stats_.time << std::endl;
-    std::cout << "Bisimilar state space contains "
-              << state_space.num_bisimilar_states() << " states and "
-              << state_space.num_transitions() << " transitions." << std::endl;
-    std::cout << std::endl;
+    println(
+        std::cout,
+        "Bisimulation built after {}\n"
+        "Bisimilar state space contains {} states and {} transitions.",
+        stats_.time,
+        state_space.num_bisimilar_states(),
+        state_space.num_transitions());
 
     const auto& operators = get_operators(task_);
-    const auto& cost_function =
-        get_cost_function(task_);
+    const auto& cost_function = get_cost_function(task_);
     const auto& termination_costs = get_termination_costs(task_);
 
     heuristics::BlindHeuristic<QState> heuristic(
@@ -122,7 +128,8 @@ auto BisimulationBasedHeuristicSearchAlgorithm::compute_policy(
         cost_function,
         termination_costs);
 
-    std::cout << "Running " << algorithm_name_ << "..." << std::endl;
+    println(std::cout, "Running {}...", algorithm_name_);
+
     auto pi = algorithm_->compute_policy(
         state_space,
         heuristic,
@@ -140,8 +147,8 @@ void BisimulationBasedHeuristicSearchAlgorithm::print_statistics(
 {
     stats_.print(out);
 
-    out << std::endl;
-    out << "Algorithm " << algorithm_name_ << " statistics:" << std::endl;
+    println(out);
+    println(out, "Algorithm {} statistics:", algorithm_name_);
     algorithm_->print_statistics(out);
 }
 

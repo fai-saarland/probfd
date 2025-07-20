@@ -102,8 +102,10 @@ static void compute_label_mapping(
                 // Labels have to be sorted for LocalLabelInfo.
                 ranges::sort(equivalent_labels);
                 if (log.is_at_least_debug()) {
-                    log << "Reducing labels " << equivalent_labels << " to "
-                        << next_new_label << endl;
+                    log.println(
+                        "Reducing labels {} to {}",
+                        equivalent_labels,
+                        next_new_label);
                 }
                 label_mapping.push_back(
                     make_pair(next_new_label, equivalent_labels));
@@ -117,8 +119,10 @@ static void compute_label_mapping(
     if (const int number_reduced_labels =
             num_labels - num_labels_after_reduction;
         log.is_at_least_verbose() && number_reduced_labels > 0) {
-        log << "Label reduction: " << num_labels << " labels, "
-            << num_labels_after_reduction << " after reduction" << endl;
+        log.println(
+            "Label reduction: {} labels, {} after reduction",
+            num_labels,
+            num_labels_after_reduction);
     }
 }
 
@@ -286,34 +290,40 @@ bool LabelReduction::reduce(
 void LabelReduction::dump_options(utils::LogProxy& log) const
 {
     if (log.is_at_least_normal()) {
-        log << "Label reduction options:" << endl;
-        log << "Before merging: "
-            << (lr_before_merging ? "enabled" : "disabled") << endl;
-        log << "Before shrinking: "
-            << (lr_before_shrinking ? "enabled" : "disabled") << endl;
-        log << "Method: ";
+        log.println("Label reduction options:");
+        log.println(
+            "Before merging: {}",
+            lr_before_merging ? "enabled" : "disabled");
+        log.println(
+            "Before shrinking: {}",
+            lr_before_shrinking ? "enabled" : "disabled");
+        log.print("Method: ");
         switch (lr_method) {
         case LabelReductionMethod::TWO_TRANSITION_SYSTEMS:
-            log << "two transition systems (which will be merged next)";
+            log.print("two transition systems (which will be merged next)");
             break;
         case LabelReductionMethod::ALL_TRANSITION_SYSTEMS:
-            log << "all transition systems";
+            log.print("all transition systems");
             break;
         case LabelReductionMethod::ALL_TRANSITION_SYSTEMS_WITH_FIXPOINT:
-            log << "all transition systems with fixpoint computation";
+            log.print("all transition systems with fixpoint computation");
             break;
         }
-        log << endl;
+        log.println();
         if (lr_method == LabelReductionMethod::ALL_TRANSITION_SYSTEMS ||
             lr_method ==
                 LabelReductionMethod::ALL_TRANSITION_SYSTEMS_WITH_FIXPOINT) {
-            log << "System order: ";
+            log.print("System order: ");
             switch (lr_system_order) {
-            case LabelReductionSystemOrder::REGULAR: log << "regular"; break;
-            case LabelReductionSystemOrder::REVERSE: log << "reversed"; break;
-            case LabelReductionSystemOrder::RANDOM: log << "random"; break;
+            case LabelReductionSystemOrder::REGULAR:
+                log.print("regular");
+                break;
+            case LabelReductionSystemOrder::REVERSE:
+                log.print("reversed");
+                break;
+            case LabelReductionSystemOrder::RANDOM: log.print("random"); break;
             }
-            log << endl;
+            log.println();
         }
     }
 }

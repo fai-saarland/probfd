@@ -5,6 +5,7 @@
 
 #include "downward/cartesian_abstractions/cartesian_set.h"
 
+#include <format>
 #include <iosfwd>
 #include <memory>
 #include <utility>
@@ -14,7 +15,7 @@
 namespace downward {
 struct FactPair;
 class State;
-}
+} // namespace downward
 
 namespace probfd {
 class ProbabilisticOperatorProxy;
@@ -34,6 +35,9 @@ class AbstractState {
     NodeID node_id_;
 
     CartesianSet cartesian_set_;
+
+    template <typename T, typename Char>
+    friend struct std::formatter;
 
 public:
     AbstractState(int state_id, NodeID node_id, CartesianSet&& cartesian_set);
@@ -91,5 +95,26 @@ public:
 };
 
 } // namespace probfd::cartesian_abstractions
+
+template <typename Char>
+struct std::formatter<probfd::cartesian_abstractions::AbstractState, Char> {
+    template <class ParseContext>
+    constexpr typename ParseContext::iterator parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+
+    template <class FmtContext>
+    typename FmtContext::iterator format(
+        const probfd::cartesian_abstractions::AbstractState& state,
+        FmtContext& ctx) const
+    {
+        return std::format_to(
+            ctx.out(),
+            "#{} {}",
+            state.get_id(),
+            state.cartesian_set_);
+    }
+};
 
 #endif // PROBFD_CARTESIAN_ABSTRACTIONS_ABSTRACT_STATE_H

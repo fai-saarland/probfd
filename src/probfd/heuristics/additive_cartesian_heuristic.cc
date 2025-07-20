@@ -69,7 +69,7 @@ AdditiveCartesianHeuristicFactory::create_object(
     const SharedProbabilisticTask& task)
 {
     if (log_.is_at_least_normal()) {
-        log_ << "Initializing additive Cartesian heuristic..." << endl;
+        log_.println("Initializing additive Cartesian heuristic...");
     }
 
     CostSaturation cost_saturation(

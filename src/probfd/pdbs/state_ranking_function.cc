@@ -91,20 +91,15 @@ std::string StateRankToString::operator()(StateRank state) const
 {
     using namespace std::views;
 
-    std::ostringstream out;
-
     const Pattern& pattern = state_mapper_.get_pattern();
     std::vector<int> values = state_mapper_.unrank(state);
 
-    if (pattern.empty()) return "";
+    auto fact_pairs_view = zip(pattern, values) | views::convert<FactPair>;
 
-    out << variables_[pattern.front()].get_fact(values.front()).get_name();
+    auto get_fact_name =
+        std::bind_front(&VariableSpace::get_fact_name, std::ref(variables_));
 
-    for (const auto [var, val] : zip(pattern, values) | drop(1)) {
-        out << ", " << variables_[var].get_fact(val).get_name();
-    }
-
-    return out.str();
+    return std::format("{:n}", fact_pairs_view | transform(get_fact_name));
 }
 
 } // namespace probfd::pdbs

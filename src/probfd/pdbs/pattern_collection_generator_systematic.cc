@@ -228,7 +228,7 @@ void PatternCollectionGeneratorSystematic::build_patterns(
         enqueue_pattern_if_new(pattern, patterns, pattern_set);
 
     if (log_.is_at_least_normal()) {
-        log_ << "Found " << sga_patterns.size() << " SGA patterns." << endl;
+        log_.println("Found {} SGA patterns.", sga_patterns.size());
     }
 
     /*
@@ -261,7 +261,7 @@ void PatternCollectionGeneratorSystematic::build_patterns(
 
     pattern_set.clear();
     if (log_.is_at_least_normal()) {
-        log_ << "Found " << patterns.size() << " interesting patterns." << endl;
+        log_.println("Found {} interesting patterns.", patterns.size());
     }
 }
 
@@ -288,7 +288,7 @@ void PatternCollectionGeneratorSystematic::build_patterns_naive(
     }
 
     if (log_.is_at_least_normal()) {
-        log_ << "Found " << patterns.size() << " patterns." << endl;
+        log_.println("Found {} patterns.", patterns.size());
     }
 }
 

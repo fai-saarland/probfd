@@ -5,6 +5,7 @@
 #include <cassert>
 #include <compare>
 #include <limits>
+#include <ranges>
 #include <tuple>
 #include <vector>
 
@@ -130,6 +131,13 @@ public:
         return true;
     }
 
+    constexpr auto set_indices() const
+    {
+        return std::views::iota(0U, num_bits) |
+               std::views::filter(
+                   [&](std::integral auto i) { return test(i); });
+    }
+
     friend bool operator<(
         const DynamicBitset<Block>& left,
         const DynamicBitset<Block>& right)
@@ -153,7 +161,7 @@ const Block DynamicBitset<Block>::zeros = Block(0);
 template <typename Block>
 // MSVC's bitwise negation always returns a signed type.
 const Block DynamicBitset<Block>::ones = Block(~Block(0));
-} // namespace dynamic_bitset
+} // namespace downward::dynamic_bitset
 
 /*
 This source file was derived from the boost::dynamic_bitset library

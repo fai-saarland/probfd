@@ -12,17 +12,11 @@
 
 #include <cassert>
 #include <deque>
-#include <ostream>
 
 using namespace std;
 using namespace downward;
 
 namespace probfd::cartesian_abstractions {
-
-std::ostream& operator<<(std::ostream& os, const TransitionOutcome& t)
-{
-    return os << "[" << t.op_id << "," << t.eff_id << "," << t.target_id << "]";
-}
 
 class AStarTraceGenerator::AbstractSearchInfo {
     value_t g = INFINITE_VALUE;

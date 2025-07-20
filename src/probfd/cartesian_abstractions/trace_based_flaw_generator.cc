@@ -65,7 +65,7 @@ optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
 
     if (!solution) {
         if (log.is_at_least_normal()) {
-            log << "Abstract task is unsolvable." << endl;
+            log.println("Abstract task is unsolvable.");
         }
 
         return std::nullopt;
@@ -75,8 +75,7 @@ optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
         find_flaw(task, domain_sizes, *solution, abstraction, log, timer);
 
     if (!flaw && log.is_at_least_normal()) {
-        log << "Found a plan without a flaw in the determinized problem."
-            << endl;
+        log.println("Found a plan without a flaw in the determinized problem.");
     }
 
     return flaw;
@@ -102,13 +101,13 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
 
     AxiomEvaluator& axiom_evaluator = g_axiom_evaluators[variables, axioms];
 
-    if (log.is_at_least_debug()) log << "Check solution:" << endl;
+    if (log.is_at_least_debug()) log.println("Check solution:");
 
     const AbstractState* abstract_state = &abstraction.get_initial_state();
     assert(abstract_state->includes(concrete_state));
 
     if (log.is_at_least_debug())
-        log << "  Initial abstract state: " << *abstract_state << endl;
+        log.println("  Initial abstract state: {}", *abstract_state);
 
     for (const TransitionOutcome& step : solution) {
         timer.throw_if_expired();
@@ -118,15 +117,17 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
             &abstraction.get_abstract_state(step.target_id);
         if (::task_properties::is_applicable(op, concrete_state)) {
             if (log.is_at_least_debug())
-                log << "  Move to " << *next_abstract_state << " with "
-                    << op.get_name() << endl;
+                log.println(
+                    "  Move to {} with {}",
+                    *next_abstract_state,
+                    op.get_name());
             const auto outcome = op.get_outcomes()[step.eff_id];
             State next_concrete_state =
                 concrete_state.get_unregistered_successor(
                     axiom_evaluator,
                     outcome);
             if (!next_abstract_state->includes(next_concrete_state)) {
-                if (log.is_at_least_debug()) log << "  Paths deviate." << endl;
+                if (log.is_at_least_debug()) log.println("  Paths deviate.");
                 return Flaw(
                     std::move(concrete_state),
                     *abstract_state,
@@ -136,7 +137,7 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
             concrete_state = std::move(next_concrete_state);
         } else {
             if (log.is_at_least_debug())
-                log << "  Operator not applicable: " << op.get_name() << endl;
+                log.println("  Operator not applicable: {}", op.get_name());
             return Flaw(
                 std::move(concrete_state),
                 *abstract_state,
@@ -150,7 +151,7 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
         return std::nullopt;
     }
 
-    if (log.is_at_least_debug()) log << "  Goal test failed." << endl;
+    if (log.is_at_least_debug()) log.println("  Goal test failed.");
     return Flaw(
         std::move(concrete_state),
         *abstract_state,
@@ -165,9 +166,10 @@ void TraceBasedFlawGenerator::notify_split()
 void TraceBasedFlawGenerator::print_statistics(utils::LogProxy& log)
 {
     if (log.is_at_least_normal()) {
-        log << "Time for finding abstract traces: " << find_trace_timer_
-            << endl;
-        log << "Time for finding trace flaws: " << find_flaw_timer_ << endl;
+        log.println(
+            "Time for finding abstract traces: {}",
+            find_trace_timer_());
+        log.println("Time for finding trace flaws: {}", find_flaw_timer_());
     }
 }
 

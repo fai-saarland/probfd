@@ -223,15 +223,23 @@ void ProbabilisticCausalGraph::dump(
     const VariableSpace& variables,
     utils::LogProxy& log) const
 {
-    log << "Causal graph: " << endl;
+    log.println("Causal graph:");
     for (VariableProxy var : variables) {
         int var_id = var.get_id();
-        log << "#" << var_id << " [" << var.get_name() << "]:" << endl
-            << "    pre->eff arcs: " << pre_to_eff[var_id] << endl
-            << "    eff->pre arcs: " << eff_to_pre[var_id] << endl
-            << "    eff->eff arcs: " << eff_to_eff[var_id] << endl
-            << "    successors: " << successors[var_id] << endl
-            << "    predecessors: " << predecessors[var_id] << endl;
+        log.println(
+            "#{} [{}]:\n"
+            "    pre->eff arcs: {}\n"
+            "    eff->pre arcs: {}\n"
+            "    eff->eff arcs: {}\n"
+            "    successors: {}\n"
+            "    predecessors: {}",
+            var_id,
+            var.get_name(),
+            pre_to_eff[var_id],
+            eff_to_pre[var_id],
+            eff_to_eff[var_id],
+            successors[var_id],
+            predecessors[var_id]);
     }
 }
 

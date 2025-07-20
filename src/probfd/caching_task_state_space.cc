@@ -146,8 +146,7 @@ void CachingTaskStateSpace::generate_all_transitions(
 void CachingTaskStateSpace::print_statistics(std::ostream& out) const
 {
     TaskStateSpace::print_statistics(out);
-    out << "  Stored arrays in bytes: " << cache_data_.size_in_bytes()
-        << std::endl;
+    println(out, "  Stored arrays in bytes: {}", cache_data_.size_in_bytes());
 }
 
 void CachingTaskStateSpace::compute_successor_states(

@@ -13,8 +13,8 @@ MergeStrategyFactory::MergeStrategyFactory(utils::Verbosity verbosity)
 void MergeStrategyFactory::dump_options() const
 {
     if (log.is_at_least_normal()) {
-        log << "Merge strategy options:" << endl;
-        log << "Type: " << name() << endl;
+        log.println("Merge strategy options:");
+        log.println("Type: {}", name());
         dump_strategy_specific_options();
     }
 }

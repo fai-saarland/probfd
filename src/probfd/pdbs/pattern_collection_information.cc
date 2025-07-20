@@ -12,6 +12,7 @@
 #include "downward/pdbs/pattern_database.h"
 
 #include "downward/utils/collections.h"
+#include "downward/utils/logging.h"
 #include "downward/utils/timer.h"
 
 #include <cassert>
@@ -94,8 +95,11 @@ void PatternCollectionInformation::create_pdbs_if_missing()
     if (pdbs_.size() != patterns_.size()) {
         assert(pdbs_.empty());
 
+            println(std::cout, "Computing PDBs for pattern collection...");
+
+
         utils::Timer timer;
-        cout << "Computing PDBs for pattern collection..." << endl;
+
         for (const Pattern& pattern : patterns_) {
             auto& pdb = pdbs_.emplace_back(
                 std::make_unique<ProbabilityAwarePatternDatabase>(
@@ -105,19 +109,33 @@ void PatternCollectionInformation::create_pdbs_if_missing()
                 pdb->get_abstract_state(init_vals.get_initial_state());
             compute_distances(*pdb, task_, istate, h);
         }
-        cout << "Done computing PDBs for pattern collection: " << timer << endl;
+
+        timer.stop();
+
+            println(std::cout, "PDBs for pattern collection: {}",
+                timer());
+
     }
 }
 
 void PatternCollectionInformation::create_pattern_cliques_if_missing()
 {
     if (subcollections_.empty()) {
+        println(
+            std::cout,
+            "Computing pattern cliques for pattern collection...");
+
         utils::Timer timer;
-        cout << "Computing pattern cliques for pattern collection..." << endl;
+
         subcollections_ =
             subcollection_finder_->compute_subcollections(patterns_);
-        cout << "Done computing pattern cliques for pattern collection: "
-             << timer << endl;
+
+        timer.stop();
+
+        println(
+            std::cout,
+            "Done computing pattern cliques for pattern collection: {}",
+            timer());
     }
 }
 

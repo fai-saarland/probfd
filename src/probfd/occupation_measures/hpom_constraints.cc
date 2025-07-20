@@ -68,13 +68,13 @@ void HPOMGenerator::initialize_constraints(
     const SharedProbabilisticTask& task,
     lp::LinearProgram& lp)
 {
-    std::cout << "Initializing HPOM LP constraints..." << std::endl;
+    std::println(std::cout, "Initializing HPOM LP constraints...");
 
     utils::Timer timer;
 
     generate_hpom_lp(to_refs(task), lp, offset_);
 
-    std::cout << "Finished HPOM LP setup after " << timer << std::endl;
+    std::println(std::cout, "Finished HPOM LP setup after {}", timer());
 }
 
 void HPOMGenerator::update_constraints(const State& state, lp::LPSolver& solver)
@@ -109,8 +109,10 @@ void HPOMGenerator::generate_hpom_lp(
     const value_t term_cost = term_costs.get_non_goal_termination_cost();
 
     if (term_cost != INFINITE_VALUE && term_cost != 1_vt) {
-        std::cerr << "Termination costs beyond 1 (MaxProb) and +infinity (SSP) "
-                     "currently unsupported in hpom implementation.";
+        std::println(
+            std::cerr,
+            "Termination costs beyond 1 (MaxProb) and +infinity (SSP) "
+            "currently unsupported in hpom implementation.");
         utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
     }
 

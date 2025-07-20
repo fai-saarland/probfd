@@ -62,16 +62,16 @@ CEGAR::~CEGAR() = default;
 CEGARResult CEGAR::run_refinement_loop(const SharedProbabilisticTask& task)
 {
     if (log_.is_at_least_normal()) {
-        log_ << "Start building abstraction." << endl;
-        log_ << "Maximum number of abstract states: " << max_states_ << endl;
-        log_ << "Maximum number of abstract transitions: "
-             << max_non_looping_transitions_ << endl;
+        log_.println("Start building abstraction.");
+        log_.println("Maximum number of abstract states: {}", max_states_);
+        log_.println(
+            "Maximum number of abstract transitions: {}",
+            max_non_looping_transitions_);
     }
 
     const auto& variables = get_variables(task);
     const auto& operators = get_operators(task);
-    const auto& cost_function =
-        get_cost_function(task);
+    const auto& cost_function = get_cost_function(task);
     const auto& goals = get_goal(task);
 
     const std::vector<int> domain_sizes(
@@ -130,16 +130,16 @@ CEGARResult CEGAR::run_refinement_loop(const SharedProbabilisticTask& task)
 
             if (!extra_memory_padding_is_reserved()) {
                 if (log_.is_at_least_normal()) {
-                    log_ << "Reached memory limit during flaw search." << endl;
+                    log_.println("Reached memory limit during flaw search.");
                 }
                 break;
             }
 
             if (!flaw) {
                 if (log_.is_at_least_normal()) {
-                    log_ << "Failed to generate a flaw. Stopping refinement "
-                            "loop."
-                         << endl;
+                    log_.println(
+                        "Failed to generate a flaw. Stopping refinement "
+                        "loop.");
                 }
                 break;
             }
@@ -156,32 +156,32 @@ CEGARResult CEGAR::run_refinement_loop(const SharedProbabilisticTask& task)
 
             if (log_.is_at_least_verbose() &&
                 abstraction->get_num_states() % 1000 == 0) {
-                log_ << abstraction->get_num_states() << "/" << max_states_
-                     << " states, "
-                     << abstraction->get_transition_system().get_num_non_loops()
-                     << "/" << max_non_looping_transitions_ << " transitions"
-                     << endl;
+                log_.println(
+                    "{}/{} states, {}/{} transitions",
+                    abstraction->get_num_states(),
+                    max_states_,
+                    abstraction->get_transition_system().get_num_non_loops(),
+                    max_non_looping_transitions_);
             }
         }
     } catch (TimeoutException&) {
         // NOTE: The time limit is not checked during abstraction refinement,
         // although this may be an expensive operation, since it cannot be
         // interrupted without corrupting the abstraction.
-        if (log_.is_at_least_normal()) {
-            log_ << "Reached time limit." << endl;
-        }
+        if (log_.is_at_least_normal()) { log_.println("Reached time limit."); }
     }
 
     flaw_generator->print_statistics(log_);
 
     if (log_.is_at_least_normal()) {
-        log_ << "Time for splitting states: " << refine_timer << endl;
+        log_.println("Time for splitting states: {}", refine_timer());
     }
 
     if (log_.is_at_least_normal()) {
-        log_ << "Done building abstraction." << endl;
-        log_ << "Time for building abstraction: " << timer.get_elapsed_time()
-             << endl;
+        log_.println("Done building abstraction.");
+        log_.println(
+            "Time for building abstraction: {}",
+            timer.get_elapsed_time());
         abstraction->print_statistics();
     }
 
@@ -195,19 +195,19 @@ bool CEGAR::may_keep_refining(const CartesianAbstraction& abstraction) const
 {
     if (abstraction.get_num_states() >= max_states_) {
         if (log_.is_at_least_normal()) {
-            log_ << "Reached maximum number of states." << endl;
+            log_.println("Reached maximum number of states.");
         }
         return false;
     } else if (
         abstraction.get_transition_system().get_num_non_loops() >=
         max_non_looping_transitions_) {
         if (log_.is_at_least_normal()) {
-            log_ << "Reached maximum number of transitions." << endl;
+            log_.println("Reached maximum number of transitions.");
         }
         return false;
     } else if (!extra_memory_padding_is_reserved()) {
         if (log_.is_at_least_normal()) {
-            log_ << "Reached memory limit." << endl;
+            log_.println("Reached memory limit.");
         }
         return false;
     }

@@ -96,7 +96,7 @@ bool PatternCollectionGeneratorMultiple::collection_size_limit_reached(
           variable.
         */
         if (log_.is_at_least_normal()) {
-            log_ << "collection size limit reached" << endl;
+            log_.println("collection size limit reached");
         }
         return true;
     }
@@ -107,7 +107,7 @@ bool PatternCollectionGeneratorMultiple::time_limit_reached(
     const utils::CountdownTimer& timer) const
 {
     if (timer.is_expired()) {
-        if (log_.is_at_least_normal()) { log_ << "time limit reached" << endl; }
+        if (log_.is_at_least_normal()) { log_.println("time limit reached"); }
         return true;
     }
     return false;
@@ -117,14 +117,16 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
     const SharedProbabilisticTask& task)
 {
     if (log_.is_at_least_normal()) {
-        log_ << "max pdb size: " << max_pdb_size_ << endl;
-        log_ << "max collection size: " << max_collection_size_ << endl;
-        log_ << "max time: " << total_max_time_ << endl;
-        log_ << "stagnation time limit: " << stagnation_limit_ << endl;
-        log_ << "timer after which blacklisting is enabled: "
-             << blacklisting_start_time_ << endl;
-        log_ << "enable blacklisting after stagnation: "
-             << enable_blacklist_on_stagnation_ << endl;
+        log_.println("max pdb size: {}", max_pdb_size_);
+        log_.println("max collection size: {}", max_collection_size_);
+        log_.println("max time: {}", total_max_time_);
+        log_.println("stagnation time limit: {}", stagnation_limit_);
+        log_.println(
+            "timer after which blacklisting is enabled: {}",
+            blacklisting_start_time_);
+        log_.println(
+            "enable blacklisting after stagnation: {}",
+            enable_blacklist_on_stagnation_);
     }
 
     const auto& variables = get_variables(task);
@@ -147,10 +149,10 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
     vector<int> non_goal_variables = get_non_goal_variables(variables, goals);
 
     if (log_.is_at_least_debug()) {
-        log_ << "goal variables: ";
-        for (FactPair goal : goals) { log_ << goal.var << ", "; }
-        log_ << endl;
-        log_ << "non-goal variables: " << non_goal_variables << endl;
+        log_.println(
+            "goal variables: {}",
+            goals | std::views::transform(&FactPair::var));
+        log_.println("non-goal variables: {}", non_goal_variables);
     }
 
     // Collect all unique patterns and their PDBs.
@@ -183,8 +185,9 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
                 */
                 time_point_of_last_new_pattern = timer.get_elapsed_time();
                 if (log_.is_at_least_normal()) {
-                    log_ << "given percentage of total time limit "
-                         << "exhausted; enabling blacklisting." << endl;
+                    log_.println(
+                        "given percentage of total time limit exhausted; "
+                        "enabling blacklisting.");
                 }
             }
 
@@ -203,13 +206,11 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
                     non_goal_variables.begin(),
                     non_goal_variables.begin() + blacklist_size);
                 if (log_.is_at_least_debug()) {
-                    log_ << "blacklisting " << blacklist_size << " out of "
-                         << non_goal_variables.size()
-                         << " non-goal variables: ";
-                    for (int var : blacklisted_variables) {
-                        log_ << var << ", ";
-                    }
-                    log_ << endl;
+                    log_.println(
+                        "blacklisting {} out of {} non-goal variables: {}",
+                        blacklist_size,
+                        non_goal_variables.size(),
+                        blacklisted_variables);
                 }
             }
 
@@ -228,7 +229,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
 
             const Pattern& pattern = pdb.get_pattern();
             if (log_.is_at_least_debug()) {
-                log_ << "generated PDB with pattern " << pattern << endl;
+                log_.println("generated PDB with pattern {}", pattern);
             }
 
             if (generated_patterns.insert(pattern).second) {
@@ -261,7 +262,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
             if (collection_size_limit_reached(remaining_collection_size) ||
                 time_limit_reached(timer)) {
                 if (log_.is_at_least_normal()) {
-                    log_ << "time limit reached" << endl;
+                    log_.println("time limit reached");
                 }
                 break;
             }
@@ -273,14 +274,16 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
                 if (enable_blacklist_on_stagnation_) {
                     if (blacklisting) {
                         if (log_.is_at_least_normal()) {
-                            log_ << "stagnation limit reached "
-                                 << "despite blacklisting, terminating" << endl;
+                            log_.println(
+                                "stagnation limit reached despite "
+                                "blacklisting, terminating");
                         }
                         break;
                     } else {
                         if (log_.is_at_least_normal()) {
-                            log_ << "stagnation limit reached, "
-                                 << "enabling blacklisting" << endl;
+                            log_.println(
+                                "stagnation limit reached, enabling "
+                                "blacklisting");
                         }
                         blacklisting = true;
                         time_point_of_last_new_pattern =
@@ -288,7 +291,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
                     }
                 } else {
                     if (log_.is_at_least_normal()) {
-                        log_ << "stagnation limit reached, terminating" << endl;
+                        log_.println("stagnation limit reached, terminating");
                     }
                     break;
                 }
@@ -300,7 +303,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
             assert(utils::in_bounds(goal_index, goals));
         }
     } catch (const utils::TimeoutException&) {
-        if (log_.is_at_least_normal()) { log_ << "time limit reached" << endl; }
+        if (log_.is_at_least_normal()) { log_.println("time limit reached"); }
     }
 
     PatternCollection patterns;
@@ -321,10 +324,14 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
     result.set_pdbs(generated_pdbs);
 
     if (log_.is_at_least_normal()) {
-        log_ << implementation_name_
-             << " number of iterations: " << num_iterations << endl;
-        log_ << implementation_name_ << " average time per generator: "
-             << timer.get_elapsed_time() / num_iterations << endl;
+        log_.println(
+            "{} number of iterations: {}",
+            implementation_name_,
+            num_iterations);
+        log_.println(
+            "{} average time per generator: {}",
+            implementation_name_,
+            timer.get_elapsed_time() / num_iterations);
     }
 
     return result;

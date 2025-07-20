@@ -21,17 +21,17 @@ MergeTreeFactory::MergeTreeFactory(int random_seed, UpdateOption update_option)
 
 void MergeTreeFactory::dump_options(utils::LogProxy& log) const
 {
-    log << "Merge tree options: " << endl;
-    log << "Type: " << name() << endl;
-    log << "Update option: ";
+    log.println("Merge tree options: {}");
+    log.println("Type: {}", name());
+    log.print("Update option: {}");
 
     switch (update_option) {
-    case UpdateOption::USE_FIRST: log << "use first"; break;
-    case UpdateOption::USE_SECOND: log << "use second"; break;
-    case UpdateOption::USE_RANDOM: log << "use random"; break;
+    case UpdateOption::USE_FIRST: log.print("use first"); break;
+    case UpdateOption::USE_SECOND: log.print("use second"); break;
+    case UpdateOption::USE_RANDOM: log.print("use random"); break;
     }
 
-    log << endl;
+    log.println();
     dump_tree_specific_options(log);
 }
 
@@ -40,9 +40,10 @@ unique_ptr<MergeTree> MergeTreeFactory::compute_merge_tree(
     const FactoredTransitionSystem&,
     const vector<int>&)
 {
-    cerr << "This merge tree does not support being computed on a subset "
-            "of indices for a given factored transition system!"
-         << endl;
+    std::println(
+        cerr,
+        "This merge tree does not support being computed on a subset "
+        "of indices for a given factored transition system!");
     exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
 }
 

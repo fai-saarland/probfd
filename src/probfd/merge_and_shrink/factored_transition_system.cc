@@ -74,7 +74,7 @@ void FactoredTransitionSystem::assert_index_valid(int index) const
 {
     assert(utils::in_bounds(index, factors));
     if (!factors[index].is_valid()) {
-        cerr << "Factor at index is in an inconsistent state!" << endl;
+        std::println(cerr, "Factor at index is in an inconsistent state!");
         utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
 }

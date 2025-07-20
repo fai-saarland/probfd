@@ -139,9 +139,9 @@ void MergeTreeNode::inorder(
         right_child->inorder(offset, current_indentation + offset, log);
     }
     for (int i = 0; i < current_indentation; ++i) {
-        log << " ";
+        log.print(" ");
     }
-    log << ts_index << endl;
+    log.println("{}", ts_index);
     if (left_child) {
         left_child->inorder(offset, current_indentation + offset, log);
     }
@@ -331,7 +331,7 @@ int MergeTree::compute_num_internal_nodes() const
 void MergeTree::inorder_traversal(int indentation_offset, utils::LogProxy& log)
     const
 {
-    log << "Merge tree, read from left to right (90° rotated tree): " << endl;
+    log.println("Merge tree, read from left to right (90° rotated tree): ");
     return root->inorder(indentation_offset, 0, log);
 }
 

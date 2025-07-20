@@ -102,7 +102,7 @@ void MergeScoringFunctionMIASM::dump_function_specific_options(
     utils::LogProxy& log) const
 {
     if (log.is_at_least_normal()) {
-        log << "Use caching: " << (use_caching ? "yes" : "no") << endl;
+        log.println("Use caching: {}", use_caching ? "yes" : "no");
     }
 }
 

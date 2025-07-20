@@ -18,6 +18,7 @@
 #include "downward/goal_fact_list.h"
 #include "downward/initial_state_values.h"
 #include "downward/operator_cost_function.h"
+#include "probfd/distribution.h"
 
 #include <fstream>
 
@@ -79,4 +80,21 @@ TEST(CartesianTests, test_probabilistic_transition_system2)
     abs.refine(refinement_hierarchy, abs.get_abstract_state(1), 2, {1, 2, 3});
     ASSERT_EQ(abs.get_num_states(), 3);
     ASSERT_EQ(get_num_transitions(abs.get_transition_system()), 34);
+}
+
+TEST(CartesianTests, test_format)
+{
+    CartesianSet c({4, 5, 6});
+    c.set_single_value(0, 2);
+    c.set_single_value(1, 2);
+    c.set_single_value(2, 3);
+
+    std::println(std::cout, "{}", c);
+
+    probfd::Distribution<int> d;
+    d.add_probability(6, 0.5);
+    d.add_probability(42, 0.25);
+    d.add_probability(7, 0.25);
+
+    std::println(std::cout, "{}", d);
 }

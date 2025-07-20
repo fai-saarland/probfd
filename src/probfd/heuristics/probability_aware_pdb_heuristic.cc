@@ -122,27 +122,32 @@ ProbabilityAwarePDBHeuristicFactory::create_object(
             static_cast<double>(subcollections.size());
 
         log_.println();
-        log_ << "Pattern Databases Statistics:\n"
-             << "  Total number of PDBs: " << pdbs.size() << "\n"
-             << "  Total number of variables: " << variables << "\n"
-             << "  Total number of abstract states: " << abstract_states << "\n"
-             << "  Average number of variables per PDB: " << avg_variables
-             << "\n"
-             << "  Average number of abstract states per PDB: "
-             << avg_abstract_states << "\n"
-
-             << "  Largest pattern size: " << largest_pattern << "\n"
-
-             << "  Total number of subcollections: " << subcollections.size()
-             << "\n"
-             << "  Total number of subcollection PDBs: "
-             << total_subcollections_size << "\n"
-             << "  Average size of subcollection PDBs: "
-             << avg_subcollection_size << "\n"
-
-             << "  Generator time: " << generator_time << "\n"
-             << "  Dominance pruning time: " << dominance_pruning_time << "\n"
-             << "  Total construction time: " << construction_time << "\n";
+        log_.println(
+            "Pattern Databases Statistics:\n"
+            "  Total number of PDBs: {}\n"
+            "  Total number of variables: {}\n"
+            "  Total number of abstract states: {}\n"
+            "  Average number of variables per PDB: {}\n"
+            "  Average number of abstract states per PDB: {}\n"
+            "  Largest pattern size: {}\n"
+            "  Total number of subcollections: {}\n"
+            "  Total number of subcollection PDBs: {}\n"
+            "  Average size of subcollection PDBs: {}\n"
+            "  Generator time: {}\n"
+            "  Dominance pruning time: {}\n"
+            "  Total construction time: {}",
+            pdbs.size(),
+            variables,
+            abstract_states,
+            avg_variables,
+            avg_abstract_states,
+            largest_pattern,
+            subcollections.size(),
+            total_subcollections_size,
+            avg_subcollection_size,
+            generator_time,
+            dominance_pruning_time,
+            construction_time);
     }
 
     const auto& operators = get_operators(task);

@@ -128,27 +128,27 @@ void MergeScoringFunctionTotalOrder::dump_function_specific_options(
     utils::LogProxy& log) const
 {
     if (log.is_at_least_normal()) {
-        log << "Atomic transition system order: ";
+        log.print("Atomic transition system order: ");
         switch (atomic_ts_order) {
-        case AtomicTSOrder::REVERSE_LEVEL: log << "reverse level"; break;
-        case AtomicTSOrder::LEVEL: log << "level"; break;
-        case AtomicTSOrder::RANDOM: log << "random"; break;
+        case AtomicTSOrder::REVERSE_LEVEL: log.print("reverse level"); break;
+        case AtomicTSOrder::LEVEL: log.print("level"); break;
+        case AtomicTSOrder::RANDOM: log.print("random"); break;
         }
-        log << endl;
+        log.println();
 
-        log << "Product transition system order: ";
+        log.print("Product transition system order: ");
         switch (product_ts_order) {
-        case ProductTSOrder::OLD_TO_NEW: log << "old to new"; break;
-        case ProductTSOrder::NEW_TO_OLD: log << "new to old"; break;
-        case ProductTSOrder::RANDOM: log << "random"; break;
+        case ProductTSOrder::OLD_TO_NEW: log.print("old to new"); break;
+        case ProductTSOrder::NEW_TO_OLD: log.print("new to old"); break;
+        case ProductTSOrder::RANDOM: log.print("random"); break;
         }
-        log << endl;
+        log.println();
 
-        log << "Consider "
-            << (atomic_before_product ? "atomic before product"
-                                      : "product before atomic")
-            << " transition systems" << endl;
-        log << "Random seed: " << random_seed << endl;
+        log.println(
+            "Consider {} transition systems",
+            atomic_before_product ? "atomic before product"
+                                  : "product before atomic");
+        log.println("Random seed: {}", random_seed);
     }
 }
 

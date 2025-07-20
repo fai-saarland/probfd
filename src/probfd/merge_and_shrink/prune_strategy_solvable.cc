@@ -30,8 +30,8 @@ StateEquivalenceRelation PruneStrategySolvable::compute_pruning_abstraction(
     }
 
     if (log.is_at_least_verbose() && unsolvable > 0) {
-        log << ts.tag() << "pruned: " << unsolvable << " unsolvable states"
-            << std::endl;
+        log.print(ts.tag());
+        log.println("pruned: {} unsolvable states", unsolvable);
     }
 
     return state_equivalence_relation;

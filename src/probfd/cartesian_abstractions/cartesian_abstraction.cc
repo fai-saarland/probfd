@@ -164,9 +164,7 @@ CartesianAbstraction::get_transition_system() const
 
 void CartesianAbstraction::mark_all_states_as_goals()
 {
-    constexpr auto get_id = [](const auto& state) {
-        return state->get_id();
-    };
+    constexpr auto get_id = [](const auto& state) { return state->get_id(); };
 
     goals_.clear();
     goals_.insert_range(states_ | std::views::transform(get_id));
@@ -189,8 +187,11 @@ pair<int, int> CartesianAbstraction::refine(
     const std::vector<int>& wanted)
 {
     if (log_.is_at_least_debug())
-        log_ << "Refine " << abstract_state << " for " << split_var << "="
-             << wanted << endl;
+        log_.println(
+            "Refine {} for {} = {{{:n}}}",
+            abstract_state,
+            split_var,
+            wanted);
 
     int v_id = abstract_state.get_id();
     // Reuse state ID from obsolete parent to obtain consecutive IDs.
@@ -235,8 +236,10 @@ pair<int, int> CartesianAbstraction::refine(
             init_id_ = v2_id;
         }
         if (log_.is_at_least_debug()) {
-            log_ << "New init state #" << init_id_ << ": "
-                 << get_state(init_id_) << endl;
+            log_.println(
+                "New init state #{}: {}",
+                init_id_,
+                get_state(init_id_));
         }
     }
     if (const auto it = goals_.find(v1_id); it != goals_.end()) {

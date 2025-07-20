@@ -37,15 +37,16 @@ void HROCGenerator::initialize_constraints(
     const auto& axioms = get_axioms(task);
     const auto& operators = get_operators(task);
     const auto& goals = get_goal(task);
-    const auto& cost_function =
-        get_cost_function(task);
+    const auto& cost_function = get_cost_function(task);
     const auto& term_costs = get_termination_costs(task);
 
     const value_t term_cost = term_costs.get_non_goal_termination_cost();
 
     if (term_cost != INFINITE_VALUE && term_cost != 1_vt) {
-        std::cerr << "Termination costs beyond 1 (MaxProb) and +infinity (SSP) "
-                     "currently unsupported in hroc implementation.";
+        std::println(
+            std::cerr,
+            "Termination costs beyond 1 (MaxProb) and +infinity (SSP) "
+            "currently unsupported in hroc implementation.");
         utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
     }
 
@@ -54,8 +55,9 @@ void HROCGenerator::initialize_constraints(
     ::task_properties::verify_no_axioms(axioms);
     task_properties::verify_no_conditional_effects(operators);
 
-    std::cout << "Initializing regrouped operator counting heuristic..."
-              << std::endl;
+    std::println(
+        std::cout,
+        "Initializing regrouped operator counting heuristic...");
 
     utils::Timer timer;
 
@@ -143,7 +145,7 @@ void HROCGenerator::initialize_constraints(
         }
     }
 
-    std::cout << "Finished ROC LP setup after " << timer << std::endl;
+    std::println(std::cout, "Finished ROC LP setup after {}", timer());
 }
 
 void HROCGenerator::update_constraints(const State& state, lp::LPSolver& solver)

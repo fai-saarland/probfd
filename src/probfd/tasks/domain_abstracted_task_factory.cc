@@ -125,13 +125,13 @@ string DomainAbstractedTaskFactory::get_combined_fact_name(
     int var,
     const ValueGroup& values) const
 {
-    ostringstream name;
-    string sep;
-    for (int value : values) {
-        name << sep << fact_names[var][value];
-        sep = " OR ";
-    }
-    return name.str();
+    auto get_fact_name = [&names = fact_names[var]](int value) {
+        return names[value];
+    };
+
+    return std::format(
+        "{{{:n}}}",
+        values | std::views::transform(get_fact_name));
 }
 
 void DomainAbstractedTaskFactory::combine_values(

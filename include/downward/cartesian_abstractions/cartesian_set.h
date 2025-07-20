@@ -3,7 +3,9 @@
 
 #include "downward/algorithms/dynamic_bitset.h"
 
+#include <format>
 #include <ostream>
+#include <ranges>
 #include <vector>
 
 namespace downward::cartesian_abstractions {
@@ -15,6 +17,9 @@ using Bitset = dynamic_bitset::DynamicBitset<unsigned short>;
   The underlying data structure is a vector of bitsets.
 */
 class CartesianSet {
+    template <typename T, typename Char>
+    friend struct std::formatter;
+
     std::vector<Bitset> domain_subsets;
 
 public:
@@ -35,6 +40,40 @@ public:
     friend std::ostream&
     operator<<(std::ostream& os, const CartesianSet& cartesian_set);
 };
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions
+
+template <typename Char>
+struct std::formatter<downward::cartesian_abstractions::CartesianSet, Char> {
+    using R = decltype(std::declval<downward::cartesian_abstractions::Bitset>()
+                           .set_indices());
+
+    std::range_formatter<R, Char> underlying_;
+
+    constexpr formatter()
+    {
+        underlying_.set_brackets("", "");
+        underlying_.set_separator(" x ");
+        underlying_.underlying().set_brackets("{", "}");
+        underlying_.underlying().set_separator(",");
+    }
+
+    template <class ParseContext>
+    constexpr typename ParseContext::iterator parse(ParseContext& ctx)
+    {
+        return underlying_.parse(ctx);
+    }
+
+    template <class FmtContext>
+    typename FmtContext::iterator format(
+        const downward::cartesian_abstractions::CartesianSet& t,
+        FmtContext& ctx) const
+    {
+        return underlying_.format(
+            t.domain_subsets |
+                std::views::transform(
+                    &downward::cartesian_abstractions::Bitset::set_indices),
+            ctx);
+    }
+};
 
 #endif

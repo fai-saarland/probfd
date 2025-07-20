@@ -27,16 +27,12 @@ static vector<pair<int, int>> get_remaining_candidates(
 
     double best_score = std::numeric_limits<double>::infinity();
     for (const double score : scores) {
-        if (score < best_score) {
-            best_score = score;
-        }
+        if (score < best_score) { best_score = score; }
     }
 
     vector<pair<int, int>> result;
     for (size_t i = 0; i < scores.size(); ++i) {
-        if (scores[i] == best_score) {
-            result.push_back(merge_candidates[i]);
-        }
+        if (scores[i] == best_score) { result.push_back(merge_candidates[i]); }
     }
 
     return result;
@@ -53,16 +49,15 @@ pair<int, int> MergeSelectorScoreBasedFiltering::select_merge(
         vector<double> scores =
             scoring_function->compute_scores(fts, merge_candidates);
         merge_candidates = get_remaining_candidates(merge_candidates, scores);
-        if (merge_candidates.size() == 1) {
-            break;
-        }
+        if (merge_candidates.size() == 1) { break; }
     }
 
     if (merge_candidates.size() > 1) {
-        cerr << "More than one merge candidate remained after computing all "
-                "scores! Did you forget to include a uniquely tie-breaking "
-                "scoring function, e.g. total_order or single_random?"
-             << endl;
+        std::println(
+            cerr,
+            "More than one merge candidate remained after computing all "
+            "scores! Did you forget to include a uniquely tie-breaking "
+            "scoring function, e.g. total_order or single_random?");
         exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
 
@@ -95,9 +90,7 @@ void MergeSelectorScoreBasedFiltering::dump_selector_specific_options(
 bool MergeSelectorScoreBasedFiltering::requires_liveness() const
 {
     for (const auto& scoring_function : merge_scoring_functions) {
-        if (scoring_function->requires_liveness()) {
-            return true;
-        }
+        if (scoring_function->requires_liveness()) { return true; }
     }
     return false;
 }
@@ -105,9 +98,7 @@ bool MergeSelectorScoreBasedFiltering::requires_liveness() const
 bool MergeSelectorScoreBasedFiltering::requires_goal_distances() const
 {
     for (const auto& scoring_function : merge_scoring_functions) {
-        if (scoring_function->requires_goal_distances()) {
-            return true;
-        }
+        if (scoring_function->requires_goal_distances()) { return true; }
     }
     return false;
 }

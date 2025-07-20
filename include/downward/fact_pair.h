@@ -7,8 +7,9 @@
 
 #include <compare>
 #include <concepts>
-#include <type_traits>
+#include <format>
 #include <iosfwd>
+#include <type_traits>
 #include <utility>
 
 namespace downward {
@@ -51,5 +52,36 @@ inline void feed(HashState& hash_state, const FactPair& fact)
     feed(hash_state, fact.value);
 }
 } // namespace downward::utils
+
+template <typename Char>
+struct std::formatter<downward::FactPair, Char> {
+    std::formatter<std::pair<int, int>> underlying_;
+
+    template <class ParseContext>
+    constexpr typename ParseContext::iterator parse(ParseContext& ctx)
+    {
+        if (*ctx.begin() == 'a') {
+            underlying_.set_brackets("", "");
+            underlying_.set_separator(" -> ");
+
+            if (auto it = std::next(ctx.begin()); *it == '}') {
+                return it;
+            }
+
+            throw std::format_error("expected '}' after 'a'!");
+        }
+
+        return underlying_.parse(ctx);
+    }
+
+    template <class FmtContext>
+    typename FmtContext::iterator
+    format(const downward::FactPair& fact_pair, FmtContext& ctx) const
+    {
+        return underlying_.format(
+            std::make_pair(fact_pair.var, fact_pair.value),
+            ctx);
+    }
+};
 
 #endif

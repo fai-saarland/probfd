@@ -56,8 +56,7 @@ StateEquivalenceRelation ShrinkStrategyBucketBased::compute_abstraction(
                     equiv_relation.push_back(StateEquivalenceClass());
                 if (show_combine_buckets_warning) {
                     show_combine_buckets_warning = false;
-                    log << "Very small node limit, must combine buckets."
-                        << endl;
+                    log.println("Very small node limit, must combine buckets.");
                 }
             }
             StateEquivalenceClass& group = equiv_relation.back();

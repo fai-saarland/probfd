@@ -73,7 +73,7 @@ static void order_facts(
     utils::LogProxy& log)
 {
     if (log.is_at_least_verbose()) {
-        log << "Sort " << facts.size() << " facts" << endl;
+        log.println("Sort {} facts", facts.size());
     }
     switch (fact_order) {
     case FactOrder::ORIGINAL:
@@ -86,7 +86,10 @@ static void order_facts(
         if (fact_order == FactOrder::HADD_DOWN) ranges::reverse(facts);
         break;
     default:
-        cerr << "Invalid task order: " << static_cast<int>(fact_order) << endl;
+        std::println(
+            cerr,
+            "Invalid task order: {}",
+            static_cast<int>(fact_order));
         utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
     }
 }

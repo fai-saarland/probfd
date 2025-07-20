@@ -190,13 +190,13 @@ void Distances::compute_distances(
       states.
     */
 
-    if (log.is_at_least_verbose()) { log << transition_system.tag(); }
+    if (log.is_at_least_verbose()) { log.print(transition_system.tag()); }
 
     const int num_states = transition_system.get_size();
 
     if (num_states == 0) {
         if (log.is_at_least_verbose()) {
-            log << "empty transition system, no distances to compute" << endl;
+            log.println("empty transition system, no distances to compute");
         }
         liveness_computed = true;
         goal_distances_computed = true;
@@ -204,9 +204,9 @@ void Distances::compute_distances(
     }
 
     if (log.is_at_least_verbose()) {
-        log << "computing ";
-        if (compute_liveness) { log << "liveness and "; }
-        log << "goal distances" << endl;
+        log.print("computing ");
+        if (compute_liveness) { log.print("liveness and "); }
+        log.println("goal distances");
     }
 
     goal_distances.resize(num_states);
@@ -303,8 +303,8 @@ void Distances::apply_abstraction(
     if (recompute_goal_distances) {
         // Not J*-preserving -> recompute
         if (log.is_at_least_verbose()) {
-            log << transition_system.tag()
-                << "simplification was not J*-preserving!" << endl;
+            log.print(transition_system.tag());
+            log.println("simplification was not J*-preserving!");
         }
         liveness.clear();
         goal_distances.clear();
@@ -319,8 +319,8 @@ void Distances::apply_abstraction(
     if (recompute_liveness) {
         // J* preserving, but not alive preserving -> recompute
         if (log.is_at_least_verbose()) {
-            log << transition_system.tag()
-                << "simplification was not alive-preserving!" << endl;
+            log.print(transition_system.tag());
+            log.println("simplification was not alive-preserving!");
         }
         const int num_states = transition_system.get_size();
         liveness.resize(num_states);
@@ -339,21 +339,9 @@ void Distances::apply_abstraction(
 void Distances::dump(utils::LogProxy& log) const
 {
     if (log.is_at_least_debug()) {
-        if (is_liveness_computed()) {
-            log << "Init distances: ";
-            for (size_t i = 0; i < liveness.size(); ++i) {
-                log << i << ": " << liveness[i];
-                if (i != liveness.size() - 1) { log << ", "; }
-            }
-            log << endl;
-        }
+        if (is_liveness_computed()) { log.println("Liveness: {}", liveness); }
         if (are_goal_distances_computed()) {
-            log << "Goal distances: ";
-            for (size_t i = 0; i < goal_distances.size(); ++i) {
-                log << i << ": " << goal_distances[i] << ", ";
-                if (i != goal_distances.size() - 1) { log << ", "; }
-            }
-            log << endl;
+            log.println("Goal Distances: {}", goal_distances);
         }
     }
 }
@@ -363,16 +351,16 @@ void Distances::statistics(
     utils::LogProxy& log) const
 {
     if (log.is_at_least_verbose()) {
-        log << transition_system.tag();
+        log.print(transition_system.tag());
         if (!are_goal_distances_computed()) {
-            log << "goal distances not computed";
+            log.println("goal distances not computed");
         } else if (transition_system.is_solvable(*this)) {
-            log << "init h="
-                << get_goal_distance(transition_system.get_init_state());
+            log.println(
+                "init h={}",
+                get_goal_distance(transition_system.get_init_state()));
         } else {
-            log << "transition system is unsolvable";
+            log.println("transition system is unsolvable");
         }
-        log << endl;
     }
 }
 

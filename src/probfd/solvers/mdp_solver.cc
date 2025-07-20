@@ -34,21 +34,21 @@ namespace probfd::solvers {
 namespace {
 void print_policy(
     std::ostream& out,
-    std::function<void(const State&, std::ostream&)> state_printer,
-    std::function<void(const OperatorID&, std::ostream&)> action_printer,
+    std::function<std::string(const State&)> state_fmt,
+    std::function<std::string(const OperatorID&)> action_fmt,
     const Policy<State, OperatorID>& policy,
     MDP<State, OperatorID>& mdp,
     const State& initial_state)
 {
-    const StateID initial_state_id = mdp.get_state_id(initial_state);
+    const probfd::StateID initial_state_id = mdp.get_state_id(initial_state);
 
-    std::deque<StateID> queue;
-    std::set<StateID> visited;
+    std::deque<probfd::StateID> queue;
+    std::set<probfd::StateID> visited;
     queue.push_back(initial_state_id);
     visited.insert(initial_state_id);
 
     do {
-        const StateID state_id = queue.front();
+        const probfd::StateID state_id = queue.front();
         queue.pop_front();
 
         const State state = mdp.get_state(state_id);
@@ -57,10 +57,11 @@ void print_policy(
 
         if (!decision) { continue; }
 
-        state_printer(state, out);
-        out << " -> ";
-        action_printer(decision->action, out);
-        out << '\n';
+        println(
+            out,
+            "{} -> {}\n",
+            state_fmt(state),
+            action_fmt(decision->action));
 
         SuccessorDistribution successor_dist;
         mdp.generate_action_transitions(
@@ -68,7 +69,7 @@ void print_policy(
             decision->action,
             successor_dist);
 
-        for (const StateID succ_id :
+        for (const probfd::StateID succ_id :
              successor_dist.non_source_successor_dist.support()) {
             if (visited.insert(succ_id).second) { queue.push_back(succ_id); }
         }
@@ -134,13 +135,13 @@ public:
 
     bool solve(Duration max_time) override
     {
-        std::cout << "Running MDP algorithm " << algorithm_name;
+        print(std::cout, "Running MDP algorithm {}", algorithm_name);
 
         if (max_time != Duration::max()) {
-            std::cout << " with a time limit of " << max_time << ".";
+            println(std::cout, " with a time limit of {}.", max_time);
         }
 
-        std::cout << " without a time limit." << std::endl;
+        println(std::cout, " without a time limit.");
 
         try {
             Timer total_timer;
@@ -168,10 +169,11 @@ public:
                     max_time);
             total_timer.stop();
 
-            std::cout << "Finished after " << total_timer() << " [t=" << g_timer
-                      << "]" << std::endl;
-
-            std::cout << std::endl;
+            println(
+                std::cout,
+                "Finished after {} [t={}]\n",
+                total_timer(),
+                g_timer());
 
             if (policy) {
                 using namespace std;
@@ -191,32 +193,24 @@ public:
 
                 if (policy_filename) {
                     std::ofstream out(*policy_filename);
-                    auto print_state = [this, &variables](
-                                           const State& state,
-                                           std::ostream& out) {
-                        if (print_fact_names) {
-                            out << variables.get_fact_name({0, state[0]});
-                            for (int i = 1; i != variables.get_num_variables();
-                                 ++i) {
-                                out << ", "
-                                    << variables.get_fact_name({i, state[i]});
-                            }
-                        } else {
-                            out << "{ " << 0 << " -> " << state[0];
+                    auto print_state = [this, &variables](const State& state) {
+                        const auto fact_set = as_fact_pair_set(state);
 
-                            for (const auto [var, val] :
-                                 state | as_fact_pair_set |
-                                     std::views::drop(1)) {
-                                out << ", " << var << " -> " << val;
-                            }
-                            out << " }";
+                        if (print_fact_names) {
+                            auto get_fact_name = std::bind_front(
+                                &VariableSpace::get_fact_name,
+                                std::ref(variables));
+                            return std::format(
+                                "{:n}",
+                                fact_set |
+                                    std::views::transform(get_fact_name));
+                        } else {
+                            return std::format("{::a}", fact_set);
                         }
                     };
 
-                    auto print_action = [&operators](
-                                            const OperatorID& op_id,
-                                            std::ostream& out) {
-                        out << operators.get_operator_name(op_id.get_index());
+                    auto print_action = [&operators](const OperatorID& op_id) {
+                        return operators.get_operator_name(op_id.get_index());
                     };
 
                     print_policy(
@@ -229,22 +223,17 @@ public:
                 }
             }
 
-            std::cout << std::endl;
-            std::cout << "State space interface statistics:" << std::endl;
+            println(std::cout, "\nState space interface statistics:");
             state_space->print_statistics(std::cout);
 
-            std::cout << std::endl;
-            std::cout << "Algorithm " << algorithm_name
-                      << " statistics:" << std::endl;
-            std::cout << "  Actual solver time: " << total_timer << std::endl;
+            println(std::cout, "\nAlgorithm {} statistics:", algorithm_name);
+            println(std::cout, "  Actual solver time: {}", total_timer());
             algorithm->print_statistics(std::cout);
-
             heuristic->print_statistics();
 
             return policy != nullptr;
         } catch (TimeoutException&) {
-            std::cout << "Time limit reached. Analysis was aborted."
-                      << std::endl;
+            println(std::cout, "Time limit reached. Analysis was aborted.");
         }
 
         return false;
