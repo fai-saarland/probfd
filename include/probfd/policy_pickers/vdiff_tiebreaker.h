@@ -8,10 +8,10 @@ namespace probfd::policy_pickers {
 template <typename State, typename Action>
 class VDiffTiebreaker
     : public StablePolicyPicker<State, Action, VDiffTiebreaker<State, Action>> {
-    const value_t favor_large_gaps_;
+    const value_t factor_;
 
 public:
-    explicit VDiffTiebreaker(bool stable_policy, value_t favor_large_gaps);
+    explicit VDiffTiebreaker(bool stable_policy, bool favor_large_gaps);
 
     int pick_index(
         MDP<State, Action>& mdp,

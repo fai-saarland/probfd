@@ -17,22 +17,6 @@ using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 
-void add_fact_order_options(Feature& feature)
-{
-    feature.add_option<FactOrder>(
-        "order",
-        "ordering of goal or landmark facts",
-        "hadd_down");
-    add_rng_options_to_feature(feature);
-}
-
-auto get_fact_order_arguments_from_options(const Options& opts)
-{
-    return std::tuple_cat(
-        std::make_tuple(opts.get<FactOrder>("order")),
-        get_rng_arguments_from_options(opts));
-}
-
 class TaskDuplicatorFeature
     : public TypedFeature<SubtaskGenerator, TaskDuplicator> {
 public:
@@ -60,14 +44,19 @@ public:
     GoalDecompositionFeature()
         : TypedFeature("pcegar_goals")
     {
-        add_fact_order_options(*this);
+        add_option<FactOrder>(
+            "order",
+            "ordering of goal or landmark facts",
+            "hadd_down");
+        add_rng_options_to_feature(*this);
     }
 
     std::shared_ptr<GoalDecomposition>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<GoalDecomposition>(
-            get_fact_order_arguments_from_options(opts));
+            opts.get<FactOrder>("order"),
+            get_rng_arguments_from_options(opts));
     }
 };
 
@@ -81,11 +70,16 @@ public:
             "mutexes",
             "factory for mutexes",
             "mutexes_from_file(\"output.mutexes\")");
-        add_fact_order_options(*this);
+        add_option<FactOrder>(
+            "order",
+            "ordering of goal or landmark facts",
+            "hadd_down");
+        add_rng_options_to_feature(*this);
         add_option<bool>(
             "combine_facts",
             "combine landmark facts with domain abstraction",
             "true");
+        add_rng_options_to_feature(*this);
     }
 
     std::shared_ptr<LandmarkDecomposition>
@@ -94,8 +88,9 @@ public:
         return make_shared_from_arg_tuples<LandmarkDecomposition>(
             opts.get<std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
                 "mutexes"),
-            get_fact_order_arguments_from_options(opts),
-            opts.get<bool>("combine_facts"));
+            opts.get<FactOrder>("order"),
+            opts.get<bool>("combine_facts"),
+            get_rng_arguments_from_options(opts));
     }
 };
 
