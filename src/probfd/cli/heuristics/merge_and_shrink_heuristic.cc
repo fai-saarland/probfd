@@ -82,7 +82,7 @@ public:
         int max_states,
         int max_states_before_merge,
         int threshold_before_merge,
-        double main_loop_max_time,
+        utils::Duration main_loop_max_time,
         utils::Verbosity verbosity);
 
     std::unique_ptr<FDRHeuristic> create_object(
@@ -97,7 +97,7 @@ MergeAndShrinkHeuristicFactory::MergeAndShrinkHeuristicFactory(
     int max_states,
     int max_states_before_merge,
     int threshold_before_merge,
-    double main_loop_max_time,
+    utils::Duration main_loop_max_time,
     utils::Verbosity verbosity)
     : algorithm(
           std::move(merge_strategy),

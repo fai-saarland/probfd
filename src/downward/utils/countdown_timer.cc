@@ -6,10 +6,6 @@
 using namespace std;
 
 namespace downward::utils {
-CountdownTimer::CountdownTimer(double max_time)
-    : max_time(max_time)
-{
-}
 
 CountdownTimer::CountdownTimer(Duration max_time)
     : max_time(max_time)

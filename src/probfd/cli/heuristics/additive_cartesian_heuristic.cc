@@ -59,7 +59,7 @@ public:
             " all abstractions",
             "1M",
             Bounds("0", "infinity"));
-        add_option<double>(
+        add_option<utils::Duration>(
             "max_time",
             "maximum time in seconds for building abstractions",
             "infinity",
@@ -82,7 +82,7 @@ public:
                 "split_selector_factory"),
             opts.get<int>("max_states"),
             opts.get<int>("max_transitions"),
-            opts.get<double>("max_time"),
+            opts.get<utils::Duration>("max_time"),
             opts.get<bool>("use_general_costs"),
             get_task_dependent_heuristic_arguments_from_options(opts));
     }

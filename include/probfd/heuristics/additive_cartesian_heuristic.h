@@ -50,7 +50,7 @@ class AdditiveCartesianHeuristicFactory final : public TaskHeuristicFactory {
         split_selector_factory;
     const int max_states;
     const int max_transitions;
-    const double max_time;
+    const downward::utils::Duration max_time;
     const bool use_general_costs;
 
     mutable downward::utils::LogProxy log_;
@@ -65,7 +65,7 @@ public:
             split_selector_factory,
         int max_states,
         int max_transitions,
-        double max_time,
+        downward::utils::Duration max_time,
         bool use_general_costs,
         downward::utils::Verbosity verbosity);
 

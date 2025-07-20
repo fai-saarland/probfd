@@ -274,7 +274,7 @@ compute_bisimulation_on_determinization(const AbstractTaskTuple& det_task)
         std::numeric_limits<int>::max(),
         std::numeric_limits<int>::max(),
         std::numeric_limits<int>::max(),
-        std::numeric_limits<double>::infinity(),
+        utils::Duration::max(),
         utils::Verbosity::SILENT);
 
     FactoredTransitionSystem fts =

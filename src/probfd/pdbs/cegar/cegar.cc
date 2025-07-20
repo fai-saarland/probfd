@@ -661,7 +661,7 @@ void CEGAR::generate_pdbs(
     const State& initial_state,
     ProjectionCollection& projections,
     PPDBCollection& pdbs,
-    double max_time,
+    utils::Duration max_time,
     utils::LogProxy log)
 {
     if (log.is_at_least_normal()) {

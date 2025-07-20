@@ -51,7 +51,7 @@ class PatternCollectionGeneratorHillclimbing final
     const int num_samples_;
     // minimal improvement required for hill climbing to continue search
     const int min_improvement_;
-    const double max_time_;
+    const downward::utils::Duration max_time_;
     std::shared_ptr<downward::utils::RandomNumberGenerator> rng_;
 
     // maximum size of the PDB search space
@@ -147,7 +147,7 @@ public:
         int collection_max_size,
         int num_samples,
         int min_improvement,
-        double max_time,
+        downward::utils::Duration max_time,
         int search_space_max_size,
         std::shared_ptr<downward::utils::RandomNumberGenerator> rng,
         downward::utils::Verbosity verbosity);

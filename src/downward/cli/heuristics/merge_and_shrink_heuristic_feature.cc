@@ -44,7 +44,7 @@ class MergeAndShrinkHeuristicFactory : public TaskDependentFactory<Evaluator> {
     int max_states;
     int max_states_before_merge;
     int threshold_before_merge;
-    double main_loop_max_time;
+    utils::Duration main_loop_max_time;
 
 public:
     MergeAndShrinkHeuristicFactory(
@@ -60,7 +60,7 @@ public:
         int max_states,
         int max_states_before_merge,
         int threshold_before_merge,
-        double main_loop_max_time)
+        utils::Duration main_loop_max_time)
         : transformation(std::move(transformation))
         , cache_estimates(cache_estimates)
         , description(std::move(description))

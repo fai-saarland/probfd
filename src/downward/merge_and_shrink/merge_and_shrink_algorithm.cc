@@ -46,7 +46,7 @@ MergeAndShrinkAlgorithm::MergeAndShrinkAlgorithm(
     int max_states,
     int max_states_before_merge,
     int threshold_before_merge,
-    double main_loop_max_time,
+    utils::Duration main_loop_max_time,
     utils::Verbosity verbosity)
     : merge_strategy_factory(merge_strategy)
     , shrink_strategy(shrink_strategy)
@@ -199,7 +199,7 @@ void MergeAndShrinkAlgorithm::main_loop(
     utils::CountdownTimer timer(main_loop_max_time);
     if (log.is_at_least_normal()) {
         log << "Starting main loop ";
-        if (main_loop_max_time == numeric_limits<double>::infinity()) {
+        if (main_loop_max_time == utils::Duration::max()) {
             log << "without a time limit." << endl;
         } else {
             log << "with a time limit of " << main_loop_max_time << "s."
@@ -434,7 +434,7 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
         log << endl;
     }
 
-    if (!unsolvable && main_loop_max_time > 0) {
+    if (!unsolvable && main_loop_max_time != utils::Duration::zero()) {
         main_loop(fts, task);
     }
 

@@ -25,7 +25,7 @@ PatternCollectionGeneratorDisjointCegar::
         bool single_goal,
         int max_pdb_size,
         int max_collection_size,
-        double max_time,
+        utils::Duration max_time,
         std::shared_ptr<utils::RandomNumberGenerator> rng,
         const std::shared_ptr<SubCollectionFinderFactory>&
             subcollection_finder_factory,

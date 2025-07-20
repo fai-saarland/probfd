@@ -67,7 +67,7 @@ public:
             "as the next pattern collection ",
             "10",
             Bounds("1", "infinity"));
-        add_option<double>(
+        add_option<utils::Duration>(
             "max_time",
             "maximum time in seconds for improving the initial pattern "
             "collection via hill climbing. If set to 0, no hill climbing "
@@ -85,8 +85,9 @@ public:
     create_component(const Options& opts, const Context& context) const override
     {
         if (opts.get<int>("min_improvement") > opts.get<int>("num_samples")) {
-            context.error("Minimum improvement must not be higher than number "
-                          "of samples");
+            context.error(
+                "Minimum improvement must not be higher than number "
+                "of samples");
         }
 
         return make_shared_from_arg_tuples<
@@ -97,10 +98,10 @@ public:
                 "subcollection_finder_factory"),
             opts.get<int>("pdb_max_size"),
             opts.get<int>("collection_max_size"),
-            opts.get<int>("search_space_max_size"),
             opts.get<int>("num_samples"),
             opts.get<int>("min_improvement"),
-            opts.get<double>("max_time"),
+            opts.get<utils::Duration>("max_time"),
+            opts.get<int>("search_space_max_size"),
             get_rng(std::get<0>(get_rng_arguments_from_options(opts))),
             get_pattern_collection_generator_arguments_from_options(opts));
     }

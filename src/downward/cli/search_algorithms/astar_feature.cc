@@ -23,7 +23,7 @@ class AStarFactory : public TaskDependentFactory<SearchAlgorithm> {
     std::shared_ptr<PruningMethod> pruning;
     OperatorCost cost_type;
     int bound;
-    double max_time;
+    utils::Duration max_time;
     const std::string& description;
     utils::Verbosity verbosity;
 
@@ -34,7 +34,7 @@ public:
         std::shared_ptr<PruningMethod> pruning,
         OperatorCost cost_type,
         int bound,
-        double max_time,
+        utils::Duration max_time,
         const std::string& description,
         utils::Verbosity verbosity)
         : eval_factory(std::move(eval_factory))

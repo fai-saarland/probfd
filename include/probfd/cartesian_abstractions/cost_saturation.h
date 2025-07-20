@@ -42,7 +42,7 @@ class CostSaturation {
     const std::shared_ptr<SplitSelectorFactory> split_selector_factory_;
     const int max_states_;
     const int max_non_looping_transitions_;
-    const double max_time_;
+    const downward::utils::Duration max_time_;
     const bool use_general_costs_;
     mutable downward::utils::LogProxy log_;
 
@@ -72,7 +72,7 @@ public:
         std::shared_ptr<SplitSelectorFactory> split_selector_factory,
         int max_states,
         int max_non_looping_transitions,
-        double max_time,
+        downward::utils::Duration max_time,
         bool use_general_costs,
         downward::utils::LogProxy log);
 

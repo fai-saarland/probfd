@@ -33,7 +33,7 @@ class CostSaturation {
     const std::vector<std::shared_ptr<SubtaskGenerator>> subtask_generators;
     const int max_states;
     const int max_non_looping_transitions;
-    const double max_time;
+    const utils::Duration max_time;
     const PickSplit pick_split;
     const bool use_general_costs;
     utils::RandomNumberGenerator& rng;
@@ -62,7 +62,7 @@ public:
             subtask_generators,
         int max_states,
         int max_non_looping_transitions,
-        double max_time,
+        utils::Duration max_time,
         PickSplit pick_split,
         bool use_general_costs,
         utils::RandomNumberGenerator& rng,

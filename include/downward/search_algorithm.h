@@ -48,7 +48,7 @@ protected:
     int bound;
     OperatorCost cost_type;
     bool is_unit_cost;
-    double max_time;
+    utils::Duration max_time;
 
     void set_plan(const Plan& plan);
     bool check_goal_and_set_plan(const State& state);
@@ -61,7 +61,7 @@ public:
         SharedAbstractTask task,
         OperatorCost cost_type,
         int bound,
-        double max_time,
+        utils::Duration max_time,
         const std::string& description,
         utils::Verbosity verbosity);
 

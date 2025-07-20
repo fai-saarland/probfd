@@ -26,7 +26,7 @@ class EagerSearchFactory : public TaskDependentFactory<SearchAlgorithm> {
     std::shared_ptr<PruningMethod> pruning;
     OperatorCost cost_type;
     int bound;
-    double max_time;
+    utils::Duration max_time;
     const std::string& description;
     utils::Verbosity verbosity;
 
@@ -40,7 +40,7 @@ public:
         std::shared_ptr<PruningMethod> pruning,
         OperatorCost cost_type,
         int bound,
-        double max_time,
+        utils::Duration max_time,
         const std::string& description,
         utils::Verbosity verbosity)
         : open_list_factory(std::move(open_list_factory))

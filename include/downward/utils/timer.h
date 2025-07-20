@@ -9,24 +9,21 @@ namespace downward::utils {
 using Duration = std::chrono::duration<double>;
 
 class Timer {
-    std::chrono::time_point<
-        std::chrono::high_resolution_clock,
-        std::chrono::duration<double>>
+    std::chrono::time_point<std::chrono::high_resolution_clock, Duration>
         last_start_clock;
-    std::chrono::duration<double> collected_time;
+    Duration collected_time;
     bool stopped;
 
-    std::chrono::time_point<
-        std::chrono::high_resolution_clock,
-        std::chrono::duration<double>> current_clock() const;
+    std::chrono::time_point<std::chrono::high_resolution_clock, Duration>
+    current_clock() const;
 
 public:
     explicit Timer(bool start = true);
 
-    std::chrono::duration<double> operator()() const;
-    std::chrono::duration<double> stop();
+    Duration operator()() const;
+    Duration stop();
     void resume();
-    std::chrono::duration<double> reset();
+    Duration reset();
 };
 
 std::ostream& operator<<(std::ostream& os, const Timer& timer);

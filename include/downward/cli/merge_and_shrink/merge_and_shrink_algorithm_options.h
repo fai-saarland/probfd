@@ -1,6 +1,8 @@
 #ifndef DOWNWARD_PLUGINS_MERGE_AND_SHRINK_MERGE_AND_SHRINK_ALGORITHM_H
 #define DOWNWARD_PLUGINS_MERGE_AND_SHRINK_MERGE_AND_SHRINK_ALGORITHM_H
 
+#include "downward/utils/timer.h"
+
 #include <memory>
 #include <tuple>
 
@@ -32,7 +34,7 @@ std::tuple<
     int,
     int,
     int,
-    double>
+    downward::utils::Duration>
 get_merge_and_shrink_algorithm_arguments_from_options(
     const plugins::Options& opts);
 

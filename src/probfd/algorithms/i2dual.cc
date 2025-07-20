@@ -115,7 +115,7 @@ Interval I2Dual::solve(
     FDRHeuristic& heuristic,
     const State& initial_state,
     ProgressReport progress,
-    double max_time)
+    utils::Duration max_time)
 {
     downward::utils::CountdownTimer timer(max_time);
 

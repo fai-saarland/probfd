@@ -28,7 +28,7 @@ class EnforcedHillClimbingSearchFactory
     vector<shared_ptr<TaskDependentFactory<Evaluator>>> preferred_factories;
     OperatorCost cost_type;
     int bound;
-    double max_time;
+    utils::Duration max_time;
     const std::string& description;
     utils::Verbosity verbosity;
 
@@ -39,7 +39,7 @@ public:
         vector<shared_ptr<TaskDependentFactory<Evaluator>>> preferred_factories,
         OperatorCost cost_type,
         int bound,
-        double max_time,
+        utils::Duration max_time,
         const std::string& description,
         utils::Verbosity verbosity)
         : h_factory(std::move(h_factory))

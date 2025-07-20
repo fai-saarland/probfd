@@ -29,7 +29,7 @@ class PatternCollectionGeneratorDisjointCegar
     const bool single_goal_;
     const int max_pdb_size_;
     const int max_collection_size_;
-    const double max_time_;
+    const downward::utils::Duration max_time_;
     std::shared_ptr<downward::utils::RandomNumberGenerator> rng_;
     std::shared_ptr<SubCollectionFinderFactory> subcollection_finder_factory_;
     std::shared_ptr<cegar::FlawFindingStrategy> flaw_strategy_;
@@ -41,7 +41,7 @@ public:
         bool single_goal,
         int max_pdb_size,
         int max_collection_size,
-        double max_time,
+        downward::utils::Duration max_time,
         std::shared_ptr<downward::utils::RandomNumberGenerator> rng,
         const std::shared_ptr<SubCollectionFinderFactory>&
             subcollection_finder_factory,

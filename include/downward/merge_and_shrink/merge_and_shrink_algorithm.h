@@ -38,7 +38,7 @@ class MergeAndShrinkAlgorithm {
     const bool prune_irrelevant_states;
 
     mutable utils::LogProxy log;
-    const double main_loop_max_time;
+    const utils::Duration main_loop_max_time;
 
     long starting_peak_memory;
 
@@ -60,7 +60,7 @@ public:
         int max_states,
         int max_states_before_merge,
         int threshold_before_merge,
-        double main_loop_max_time,
+        utils::Duration main_loop_max_time,
         utils::Verbosity verbosity);
 
     FactoredTransitionSystem

@@ -85,7 +85,7 @@ public:
         FDRHeuristic& heuristic,
         const downward::State& initial_state,
         ProgressReport progress,
-        double max_time);
+        downward::utils::Duration max_time);
 
     std::unique_ptr<PolicyType> compute_policy(
         FDRMDP& mdp,

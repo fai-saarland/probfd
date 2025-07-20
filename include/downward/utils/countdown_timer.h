@@ -10,7 +10,6 @@ class CountdownTimer {
     Duration max_time;
 
 public:
-    explicit CountdownTimer(double max_time);
     explicit CountdownTimer(Duration max_time);
     ~CountdownTimer();
 

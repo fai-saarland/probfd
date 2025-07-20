@@ -29,7 +29,7 @@ EagerSearch::EagerSearch(
     SharedAbstractTask task,
     OperatorCost cost_type,
     int bound,
-    double max_time,
+    utils::Duration max_time,
     const string& description,
     utils::Verbosity verbosity)
     : IterativeSearchAlgorithm(

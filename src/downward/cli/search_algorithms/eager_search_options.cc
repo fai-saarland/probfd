@@ -31,7 +31,7 @@ tuple<
     shared_ptr<PruningMethod>,
     OperatorCost,
     int,
-    double,
+    downward::utils::Duration,
     string,
     utils::Verbosity>
 get_eager_search_arguments_from_options(const plugins::Options& opts)
