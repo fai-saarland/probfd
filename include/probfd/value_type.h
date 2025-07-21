@@ -43,6 +43,9 @@ bool is_approx_less(value_t v1, value_t v2, value_t epsilon);
 /// Equivalent to \f$v_1 - v_2 > \epsilon\f$
 bool is_approx_greater(value_t v1, value_t v2, value_t epsilon);
 
+/// Equivalent to \f$|v| \leq \epsilon\f$
+bool is_approx_zero(value_t v, value_t epsilon);
+
 } // namespace probfd
 
 #endif // PROBFD_VALUE_TYPE_H
