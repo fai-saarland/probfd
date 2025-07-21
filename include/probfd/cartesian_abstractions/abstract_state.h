@@ -117,4 +117,8 @@ struct std::formatter<probfd::cartesian_abstractions::AbstractState, Char> {
     }
 };
 
+static_assert(
+    std::formattable<probfd::cartesian_abstractions::AbstractState, char>);
+
+
 #endif // PROBFD_CARTESIAN_ABSTRACTIONS_ABSTRACT_STATE_H

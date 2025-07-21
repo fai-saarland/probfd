@@ -32,7 +32,6 @@ struct Transition {
 
 } // namespace probfd::merge_and_shrink
 
-#ifdef __cpp_lib_format_ranges
 template <>
 struct std::formatter<probfd::merge_and_shrink::Transition> {
     constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
@@ -47,6 +46,5 @@ struct std::formatter<probfd::merge_and_shrink::Transition> {
 };
 
 static_assert(std::formattable<probfd::merge_and_shrink::Transition, char>);
-#endif
 
 #endif

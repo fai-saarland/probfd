@@ -44,8 +44,7 @@ public:
 
 template <typename Char>
 struct std::formatter<downward::cartesian_abstractions::CartesianSet, Char> {
-    using R = decltype(std::declval<downward::cartesian_abstractions::Bitset>()
-                           .set_indices());
+    using R = downward::cartesian_abstractions::Bitset;
 
     std::range_formatter<R, Char> underlying_;
 
@@ -53,8 +52,6 @@ struct std::formatter<downward::cartesian_abstractions::CartesianSet, Char> {
     {
         underlying_.set_brackets("", "");
         underlying_.set_separator(" x ");
-        underlying_.underlying().set_brackets("{", "}");
-        underlying_.underlying().set_separator(",");
     }
 
     template <class ParseContext>
@@ -67,12 +64,8 @@ struct std::formatter<downward::cartesian_abstractions::CartesianSet, Char> {
     typename FmtContext::iterator format(
         const downward::cartesian_abstractions::CartesianSet& t,
         FmtContext& ctx) const
-    {
-        return underlying_.format(
-            t.domain_subsets |
-                std::views::transform(
-                    &downward::cartesian_abstractions::Bitset::set_indices),
-            ctx);
+    {        
+        return underlying_.format(t.domain_subsets, ctx);
     }
 };
 

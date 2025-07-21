@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cassert>
 #include <compare>
+#include <format>
 #include <limits>
 #include <ranges>
 #include <tuple>
@@ -162,6 +163,31 @@ template <typename Block>
 // MSVC's bitwise negation always returns a signed type.
 const Block DynamicBitset<Block>::ones = Block(~Block(0));
 } // namespace downward::dynamic_bitset
+
+template <typename Block, typename Char>
+struct std::formatter<downward::dynamic_bitset::DynamicBitset<Block>, Char> {
+    std::range_formatter<unsigned int, Char> underlying_;
+
+    constexpr formatter()
+    {
+        underlying_.set_brackets("{", "}");
+        underlying_.set_separator(",");
+    }
+
+    template <class ParseContext>
+    constexpr typename ParseContext::iterator parse(ParseContext& ctx)
+    {
+        return underlying_.parse(ctx);
+    }
+
+    template <class FmtContext>
+    typename FmtContext::iterator format(
+        const downward::dynamic_bitset::DynamicBitset<Block>& bs,
+        FmtContext& ctx) const
+    {        
+        return underlying_.format(bs.set_indices(), ctx);
+    }
+};
 
 /*
 This source file was derived from the boost::dynamic_bitset library
