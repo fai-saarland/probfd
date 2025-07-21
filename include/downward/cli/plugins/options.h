@@ -48,18 +48,12 @@ struct OptionsAnyCaster<ValueType> {
     }
 };
 
-template <typename Rep, typename Period>
-struct OptionsAnyCaster<std::chrono::duration<Rep, Period>> {
-    static std::chrono::duration<Rep, Period> cast(const std::any& operand)
+template <>
+struct OptionsAnyCaster<std::chrono::duration<double>> {
+    static std::chrono::duration<double> cast(const std::any& operand)
     {
-        // Enums set within the code (options.set()) are already the right
-        // ValueType...
-        if (operand.type() == typeid(std::chrono::duration<Rep, Period>)) {
-            return std::any_cast<std::chrono::duration<Rep, Period>>(operand);
-        }
-        // ... otherwise (Enums set over the command line) they are ints.
-        return static_cast<std::chrono::duration<Rep, Period>>(
-            std::any_cast<Rep>(operand));
+        return static_cast<std::chrono::duration<double>>(
+            std::any_cast<double>(operand));
     }
 };
 

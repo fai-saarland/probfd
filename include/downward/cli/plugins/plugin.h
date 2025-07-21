@@ -282,10 +282,15 @@ void Feature::add_option(
     const Bounds& bounds,
     bool lazy_construction)
 {
+    using U = std::conditional_t<
+        std::is_same_v<T, std::chrono::duration<double>>,
+        double,
+        T>;
+
     arguments.emplace_back(
         key,
         help,
-        TypeRegistry::instance()->get_type<T>(),
+        TypeRegistry::instance()->get_type<U>(),
         default_value,
         bounds,
         lazy_construction);
@@ -298,7 +303,12 @@ void Feature::add_list_option(
     const std::string& default_value,
     bool lazy_construction)
 {
-    add_option<std::vector<T>>(
+    using U = std::conditional_t<
+        std::is_same_v<T, std::chrono::duration<double>>,
+        double,
+        T>;
+
+    add_option<std::vector<U>>(
         key,
         help,
         default_value,

@@ -360,7 +360,6 @@ TypeRegistry::TypeRegistry()
     insert_basic_type<string>();
     insert_basic_type<int>();
     insert_basic_type<double>();
-    insert_basic_type<std::chrono::duration<double>>();
 }
 
 template <typename T>
@@ -380,8 +379,6 @@ void TypeRegistry::insert_basic_type()
         name = "int";
     } else if constexpr (std::same_as<T, std::string>) {
         name = "string";
-    } else if constexpr (std::same_as<T, std::chrono::duration<double>>) {
-        name = "seconds";
     } else {
         name = type.name();
     }
