@@ -153,7 +153,7 @@ public:
         std::output_iterator<StateID> auto dead_out,
         std::output_iterator<StateID> auto unsolvable_out,
         std::output_iterator<StateID> auto solvable_out,
-        double max_time = std::numeric_limits<double>::infinity());
+        downward::utils::Duration max_time = downward::utils::Duration::max());
 
 private:
     void push_state(StateID state_id, StateInfo& state_info);
