@@ -79,7 +79,6 @@ public:
             "combine_facts",
             "combine landmark facts with domain abstraction",
             "true");
-        add_rng_options_to_feature(*this);
     }
 
     std::shared_ptr<LandmarkDecomposition>
