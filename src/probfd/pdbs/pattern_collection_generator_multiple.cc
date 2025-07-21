@@ -242,8 +242,10 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
                     for (auto&& [cost, dec] : std::views::zip(
                              *adapted_cost_function,
                              saturated_costs)) {
-                        assert(!is_approx_greater(dec, cost, 0.001));
-                        cost = std::max(0_vt, cost - dec);
+                        assert(!is_approx_greater(dec, cost, 10e-5));
+                        auto rem = cost - dec;
+                        if (is_approx_zero(rem, 10e-5)) rem = 0_vt;
+                        cost = rem;
                     }
                 }
 
