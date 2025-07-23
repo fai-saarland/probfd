@@ -110,10 +110,9 @@ optional<Flaw> CompletePolicyFlawFinder::find_flaw(
                 get_cartesian_set(domain_sizes, op.get_preconditions()));
         }
 
-        const auto& targets = transition->target_ids;
-
         // Generate successors and check for matching abstract states
-        for (const auto [outcome, abs_t] : zip(op.get_outcomes(), targets)) {
+        for (const auto& targets = transition->target_ids;
+             const auto [outcome, abs_t] : zip(op.get_outcomes(), targets)) {
             State next_concrete =
                 registry.get_successor_state(state, outcome.get_effects());
 

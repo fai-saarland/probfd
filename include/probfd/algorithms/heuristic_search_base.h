@@ -66,8 +66,8 @@ struct Statistics {
     bool initial_state_found_terminal = false;
 
 #if defined(EXPENSIVE_STATISTICS)
-    utils::Timer update_time = utils::Timer(true);
-    utils::Timer policy_selection_time = utils::Timer(true);
+    utils::Timer update_time = utils::Timer(false);
+    utils::Timer policy_selection_time = utils::Timer(false);
 #endif
 
     /**

@@ -31,9 +31,9 @@ struct Statistics {
     unsigned long long traps = 0;
 
 #if defined(EXPENSIVE_STATISTICS)
-    utils::Timer heuristic_search = utils::Timer(true);
-    utils::Timer trap_identification = utils::Timer(true);
-    utils::Timer trap_removal = utils::Timer(true);
+    utils::Timer heuristic_search = utils::Timer(false);
+    utils::Timer trap_identification = utils::Timer(false);
+    utils::Timer trap_removal = utils::Timer(false);
 #endif
 
     void print(std::ostream& out) const;

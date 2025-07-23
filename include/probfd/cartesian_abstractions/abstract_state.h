@@ -5,9 +5,11 @@
 
 #include "downward/cartesian_abstractions/cartesian_set.h"
 
+#include <concepts>
 #include <format>
 #include <iosfwd>
 #include <memory>
+#include <ranges>
 #include <utility>
 #include <vector>
 
@@ -90,8 +92,16 @@ public:
     operator<<(std::ostream& os, const AbstractState& state);
 
     // Create the initial, unrefined abstract state.
+    template <std::ranges::input_range R>
+        requires std::same_as<std::ranges::range_value_t<R>, int>
     static std::unique_ptr<AbstractState>
-    get_trivial_abstract_state(const std::vector<int>& domain_sizes);
+    get_trivial_abstract_state(const R& domain_sizes)
+    {
+        return std::make_unique<AbstractState>(
+            0,
+            0,
+            CartesianSet(domain_sizes));
+    }
 };
 
 } // namespace probfd::cartesian_abstractions
@@ -119,6 +129,5 @@ struct std::formatter<probfd::cartesian_abstractions::AbstractState, Char> {
 
 static_assert(
     std::formattable<probfd::cartesian_abstractions::AbstractState, char>);
-
 
 #endif // PROBFD_CARTESIAN_ABSTRACTIONS_ABSTRACT_STATE_H

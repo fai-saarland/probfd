@@ -155,6 +155,11 @@ public:
         return var_space->get_variable_domain_size(id);
     }
 
+    auto domain() const
+    {
+        return std::views::iota(0, get_domain_size());
+    }
+
     FactProxy get_fact(int index) const
     {
         assert(index < get_domain_size());

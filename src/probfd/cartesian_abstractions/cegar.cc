@@ -77,9 +77,9 @@ CEGARResult CEGAR::run_refinement_loop(const SharedProbabilisticTask& task)
     const std::vector<int> domain_sizes(
         ::cartesian_abstractions::get_domain_sizes(variables));
 
-    std::unique_ptr<FlawGenerator> flaw_generator =
+    const auto flaw_generator =
         flaw_generator_factory_->create_flaw_generator();
-    std::unique_ptr<SplitSelector> split_selector =
+    const auto split_selector =
         split_selector_factory_->create_split_selector(task);
 
     // Limit the time for building the abstraction.
@@ -96,7 +96,7 @@ CEGARResult CEGAR::run_refinement_loop(const SharedProbabilisticTask& task)
 
     auto heuristic = std::make_unique<CartesianHeuristic>();
 
-    Timer refine_timer(true);
+    Timer refine_timer(false);
 
     /*
       For landmark tasks we have to map all states in which the
@@ -231,21 +231,24 @@ void CEGAR::separate_facts_unreachable_before_goal(
     assert(abstraction.get_num_states() == 1);
     assert(goals.size() == 1);
 
-    FactPair goal = goals[0];
     HashSet<FactPair> reachable_facts = get_relaxed_possible_before(
         operators,
         init_vals.get_initial_state(),
-        goal);
+        goals[0]);
 
     for (VariableProxy var : variables) {
         if (!may_keep_refining(abstraction)) break;
+
         int var_id = var.get_id();
-        vector<int> unreachable_values;
-        for (int value = 0; value < var.get_domain_size(); ++value) {
-            FactPair fact = var.get_fact(value).get_pair();
-            if (!reachable_facts.contains(fact))
-                unreachable_values.push_back(value);
-        }
+
+        const auto unreachable = [&, var_id](int d) {
+            return !reachable_facts.contains({var_id, d});
+        };
+
+        vector<int> unreachable_values(
+            std::from_range,
+            var.domain() | std::views::filter(unreachable));
+
         if (!unreachable_values.empty()) {
             TimerScope scope(timer);
             refine_abstraction(

@@ -120,10 +120,4 @@ std::ostream& operator<<(std::ostream& os, const AbstractState& state)
     return os << "#" << state.get_id() << state.cartesian_set_;
 }
 
-unique_ptr<AbstractState>
-AbstractState::get_trivial_abstract_state(const vector<int>& domain_sizes)
-{
-    return std::make_unique<AbstractState>(0, 0, CartesianSet(domain_sizes));
-}
-
 } // namespace probfd::cartesian_abstractions

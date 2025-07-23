@@ -23,16 +23,6 @@ using namespace downward;
 
 namespace probfd::cartesian_abstractions {
 
-namespace {
-vector<int> get_domain_sizes(const VariableSpace& variables)
-{
-    vector<int> domain_sizes;
-    for (VariableProxy var : variables)
-        domain_sizes.push_back(var.get_domain_size());
-    return domain_sizes;
-}
-} // namespace
-
 CartesianAbstraction::CartesianAbstraction(
     const ProbabilisticTaskTuple& task,
     std::vector<value_t> operator_costs,
@@ -44,7 +34,9 @@ CartesianAbstraction::CartesianAbstraction(
     , operator_costs_(std::move(operator_costs))
     , log_(std::move(log))
 {
-    initialize_trivial_abstraction(get_domain_sizes(get_variables(task)));
+    initialize_trivial_abstraction(
+        get_variables(task) |
+        std::views::transform(&VariableProxy::get_domain_size));
 }
 
 CartesianAbstraction::~CartesianAbstraction() = default;
@@ -63,10 +55,7 @@ void CartesianAbstraction::generate_applicable_actions(
     int state,
     std::vector<const ProbabilisticTransition*>& result)
 {
-    for (const auto* t :
-         transition_system_->get_outgoing_transitions()[state]) {
-        result.push_back(t);
-    }
+    result.append_range(transition_system_->get_outgoing_transitions()[state]);
 }
 
 void CartesianAbstraction::generate_action_transitions(
@@ -170,8 +159,9 @@ void CartesianAbstraction::mark_all_states_as_goals()
     goals_.insert_range(states_ | std::views::transform(get_id));
 }
 
-void CartesianAbstraction::initialize_trivial_abstraction(
-    const vector<int>& domain_sizes)
+template <std::ranges::input_range R>
+    requires std::same_as<std::ranges::range_value_t<R>, int>
+void CartesianAbstraction::initialize_trivial_abstraction(const R& domain_sizes)
 {
     unique_ptr<AbstractState> init_state =
         AbstractState::get_trivial_abstract_state(domain_sizes);
@@ -199,26 +189,17 @@ pair<int, int> CartesianAbstraction::refine(
     int v2_id = get_num_states();
 
     // Update refinement hierarchy.
-    pair<NodeID, NodeID> node_ids = refinement_hierarchy.split(
+    auto [node1, node2] = refinement_hierarchy.split(
         abstract_state.get_node_id(),
         split_var,
         wanted,
         v1_id,
         v2_id);
 
-    pair<
-        cartesian_abstractions::CartesianSet,
-        cartesian_abstractions::CartesianSet>
-        cartesian_sets = abstract_state.split_domain(split_var, wanted);
+    auto [c1, c2] = abstract_state.split_domain(split_var, wanted);
 
-    unique_ptr v1 = std::make_unique<AbstractState>(
-        v1_id,
-        node_ids.first,
-        std::move(cartesian_sets.first));
-    unique_ptr v2 = std::make_unique<AbstractState>(
-        v2_id,
-        node_ids.second,
-        std::move(cartesian_sets.second));
+    auto v1 = std::make_unique<AbstractState>(v1_id, node1, std::move(c1));
+    auto v2 = std::make_unique<AbstractState>(v2_id, node2, std::move(c2));
 
     assert(abstract_state.includes(*v1));
     assert(abstract_state.includes(*v2));
@@ -235,6 +216,7 @@ pair<int, int> CartesianAbstraction::refine(
             assert(v2->includes(concrete_initial_state_));
             init_id_ = v2_id;
         }
+
         if (log_.is_at_least_debug()) {
             log_.println(
                 "New init state #{}: {}",
@@ -242,10 +224,12 @@ pair<int, int> CartesianAbstraction::refine(
                 get_state(init_id_));
         }
     }
+
     if (const auto it = goals_.find(v1_id); it != goals_.end()) {
         goals_.erase(it);
         if (v1->includes(goal_facts_)) { goals_.insert(v1_id); }
         if (v2->includes(goal_facts_)) { goals_.insert(v2_id); }
+
         if (log_.is_at_least_debug()) {
             log_.println("Goal states: {}", goals_.size());
         }
@@ -253,8 +237,9 @@ pair<int, int> CartesianAbstraction::refine(
 
     transition_system_->rewire(states_, *v1, *v2, split_var);
 
-    states_[v1_id] = std::move(v1);
     assert(static_cast<int>(states_.size()) == v2_id);
+
+    states_[v1_id] = std::move(v1);
     states_.push_back(std::move(v2));
 
     return {v1_id, v2_id};

@@ -53,7 +53,9 @@ class CartesianAbstraction
 
     mutable downward::utils::LogProxy log_;
 
-    void initialize_trivial_abstraction(const std::vector<int>& domain_sizes);
+    template <std::ranges::input_range R>
+        requires std::same_as<std::ranges::range_value_t<R>, int>
+    void initialize_trivial_abstraction(const R& domain_sizes);
 
 public:
     CartesianAbstraction(

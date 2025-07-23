@@ -96,7 +96,7 @@ public:
             return false;
         }
 
-        utils::Timer state_space_timer(true);
+        utils::Timer state_space_timer(false);
 
         auto state_space = run_time_logged(
             state_space_timer,
@@ -118,7 +118,7 @@ public:
         const auto initial_state =
             QuotientState(state_mapping->get_value(initial));
 
-        utils::Timer vi_timer(true);
+        utils::Timer vi_timer(false);
 
         auto policy = run_time_logged(
             vi_timer,

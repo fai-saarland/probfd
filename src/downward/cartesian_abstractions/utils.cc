@@ -4,6 +4,8 @@
 
 #include "downward/state.h"
 
+#include <ranges>
+
 using namespace std;
 
 namespace downward::cartesian_abstractions {
@@ -75,9 +77,7 @@ utils::HashSet<FactPair> get_relaxed_possible_before(
 
 vector<int> get_domain_sizes(const VariableSpace& variables)
 {
-    vector<int> domain_sizes;
-    for (VariableProxy var : variables)
-        domain_sizes.push_back(var.get_domain_size());
-    return domain_sizes;
+    return variables | std::views::transform(&VariableProxy::get_domain_size) |
+           std::ranges::to<std::vector>();
 }
 } // namespace downward::cartesian_abstractions

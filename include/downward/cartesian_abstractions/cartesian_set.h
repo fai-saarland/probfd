@@ -3,6 +3,7 @@
 
 #include "downward/algorithms/dynamic_bitset.h"
 
+#include <concepts>
 #include <format>
 #include <ostream>
 #include <ranges>
@@ -23,7 +24,17 @@ class CartesianSet {
     std::vector<Bitset> domain_subsets;
 
 public:
-    explicit CartesianSet(const std::vector<int>& domain_sizes);
+    template <std::ranges::input_range R>
+        requires std::same_as<std::ranges::range_value_t<R>, int>
+    explicit CartesianSet(const R& domain_sizes)
+    {
+        domain_subsets.reserve(domain_sizes.size());
+        for (int domain_size : domain_sizes) {
+            Bitset domain(domain_size);
+            domain.set();
+            domain_subsets.push_back(std::move(domain));
+        }
+    }
 
     void add(int var, int value);
     void set_single_value(int var, int value);
@@ -64,7 +75,7 @@ struct std::formatter<downward::cartesian_abstractions::CartesianSet, Char> {
     typename FmtContext::iterator format(
         const downward::cartesian_abstractions::CartesianSet& t,
         FmtContext& ctx) const
-    {        
+    {
         return underlying_.format(t.domain_subsets, ctx);
     }
 };

@@ -29,9 +29,9 @@ class I2Dual : public MDPAlgorithm<downward::State, downward::OperatorID> {
     struct IDualData;
 
     struct Statistics {
-        downward::utils::Timer idual_timer = downward::utils::Timer(true);
-        downward::utils::Timer lp_solver_timer = downward::utils::Timer(true);
-        downward::utils::Timer hpom_timer = downward::utils::Timer(true);
+        downward::utils::Timer idual_timer = downward::utils::Timer(false);
+        downward::utils::Timer lp_solver_timer = downward::utils::Timer(false);
+        downward::utils::Timer hpom_timer = downward::utils::Timer(false);
 
         unsigned long long iterations = 0;
         unsigned long long expansions = 0;
