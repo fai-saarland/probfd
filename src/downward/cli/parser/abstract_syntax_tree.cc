@@ -231,7 +231,6 @@ bool FunctionCallNode::collect_argument(
         std::piecewise_construct,
         std::forward_as_tuple(key),
         std::forward_as_tuple(
-            key,
             move(decorated_arg),
             is_default,
             arg_info.lazy_construction));
@@ -381,10 +380,10 @@ FunctionCallNode::decorate(DecorateContext& context) const
     collect_positional_arguments(argument_infos, context, arguments_by_key);
     collect_default_values(argument_infos, context, arguments_by_key);
 
-    vector<FunctionArgument> arguments;
+    vector<std::pair<std::string, FunctionArgument>> arguments;
     arguments.reserve(arguments_by_key.size());
 
-    for (auto& val : arguments_by_key | views::values) {
+    for (auto& val : arguments_by_key) {
         arguments.push_back(move(val));
     }
 

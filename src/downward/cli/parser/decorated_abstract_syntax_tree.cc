@@ -123,20 +123,13 @@ std::any DecoratedASTNode::construct() const
 }
 
 FunctionArgument::FunctionArgument(
-    const string& key,
     DecoratedASTNodePtr value,
     bool is_default,
     bool lazy_construction)
-    : key(key)
-    , value(move(value))
+    : value(move(value))
     , is_default(is_default)
     , lazy_construction(lazy_construction)
 {
-}
-
-string FunctionArgument::get_key() const
-{
-    return key;
 }
 
 DecoratedASTNode& FunctionArgument::get_value()
@@ -156,7 +149,6 @@ bool FunctionArgument::is_default_argument() const
 
 void FunctionArgument::dump(const string& indent) const
 {
-    cout << indent << key << " = " << endl;
     value->dump("| " + indent);
 }
 
@@ -273,7 +265,7 @@ void DecoratedLetNode::dump(string indent) const
 
 DecoratedFunctionCallNode::DecoratedFunctionCallNode(
     const shared_ptr<const plugins::Feature>& feature,
-    vector<FunctionArgument>&& arguments,
+    vector<std::pair<std::string, FunctionArgument>>&& arguments,
     const string& unparsed_config)
     : feature(feature)
     , arguments(move(arguments))
@@ -283,7 +275,9 @@ DecoratedFunctionCallNode::DecoratedFunctionCallNode(
 
 void DecoratedFunctionCallNode::remove_variable_usages()
 {
-    for (auto& arg : arguments) { arg.get_value().remove_variable_usages(); }
+    for (auto& arg : arguments | views::values) {
+        arg.get_value().remove_variable_usages();
+    }
 }
 
 std::any DecoratedFunctionCallNode::construct(ConstructContext& context) const
@@ -294,14 +288,12 @@ std::any DecoratedFunctionCallNode::construct(ConstructContext& context) const
             "': " + unparsed_config);
     plugins::Options opts;
     opts.set_unparsed_config(unparsed_config);
-    for (const FunctionArgument& arg : arguments) {
-        utils::TraceBlock block(
-            context,
-            "Constructing argument '" + arg.get_key() + "'");
+    for (const auto& [key, arg] : arguments) {
+        utils::TraceBlock block(context, "Constructing argument '" + key + "'");
         if (arg.is_lazily_constructed()) {
-            opts.set(arg.get_key(), LazyValue(arg.get_value(), context));
+            opts.set(key, LazyValue(arg.get_value(), context));
         } else {
-            opts.set(arg.get_key(), arg.get_value().construct(context));
+            opts.set(key, arg.get_value().construct(context));
         }
     }
     return feature->construct(opts, context);
@@ -320,21 +312,20 @@ void DecoratedFunctionCallNode::print(
 
     auto filter =
         print_default_args
-            ? static_cast<std::function<bool(const FunctionArgument&)>>(
+            ? static_cast<std::function<bool(
+                  const std::pair<std::string, FunctionArgument>&)>>(
                   [](const auto&) { return true; })
-            : [](const FunctionArgument& arg) {
-                  return !arg.is_default_argument();
-              };
+            : [](const auto& arg) { return !arg.second.is_default_argument(); };
 
     if (auto args = arguments | std::views::filter(filter); !args.empty()) {
         {
-            const FunctionArgument& arg = args.front();
-            std::print(out, "{}=", arg.get_key());
+            const auto& [key, arg] = args.front();
+            std::print(out, "{}=", key);
             arg.get_value().print(out, 0, print_default_args);
         }
 
-        for (const FunctionArgument& arg : args | std::views::drop(1)) {
-            std::print(out, ", {}=", arg.get_key());
+        for (const auto& [key, arg] : args | std::views::drop(1)) {
+            std::print(out, ", {}=", key);
             arg.get_value().print(out, 0, print_default_args);
         }
     }
@@ -348,7 +339,10 @@ void DecoratedFunctionCallNode::dump(string indent) const
          << feature->get_type().name() << ")" << endl;
     indent = "| " + indent;
     cout << indent << "ARGUMENTS:" << endl;
-    for (const FunctionArgument& arg : arguments) { arg.dump("| " + indent); }
+    for (const auto& [key, arg] : arguments) {
+        cout << "| " << indent << key << " = " << endl;
+        arg.dump("| " + indent);
+    }
 }
 
 DecoratedListNode::DecoratedListNode(vector<DecoratedASTNodePtr>&& elements)
@@ -796,8 +790,7 @@ void CheckBoundsNode::dump(string indent) const
 // We are keeping all copy functionality together because it should be removed
 // soon.
 FunctionArgument::FunctionArgument(const FunctionArgument& other)
-    : key(other.key)
-    , value(other.value->clone())
+    : value(other.value->clone())
     , is_default(other.is_default)
     , lazy_construction(other.lazy_construction)
 {
