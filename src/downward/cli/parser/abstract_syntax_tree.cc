@@ -25,13 +25,78 @@ struct TypedDefinition {
     VariableDefinition* definition;
 };
 
-class DecorateContext : public utils::Context {
-    const plugins::Registry registry;
+class Scope {
+    std::unique_ptr<Scope> parent = nullptr;
     unordered_map<string, TypedDefinition> variables;
 
 public:
-    explicit DecorateContext(const plugins::RawRegistry& raw_registry)
+    Scope() = default;
+
+    Scope(std::unique_ptr<Scope> parent)
+        : parent(std::move(parent))
+    {
+    }
+
+    std::unique_ptr<Scope>& get_parent() { return parent; }
+
+    void
+    insert(utils::Context& context, std::pair<string, TypedDefinition> pair)
+    {
+        if (!variables.insert(pair).second) {
+            context.error(
+                "Variable '" + pair.first +
+                "' is already defined in the current scope.");
+        }
+    }
+
+    bool has_variable(const string& name) const
+    {
+        return get_typed_definition(name) != nullptr;
+    }
+
+    TypedDefinition* get_typed_definition(const string& name)
+    {
+        auto it = variables.find(name);
+        if (it == variables.end()) {
+            return parent ? parent->get_typed_definition(name) : nullptr;
+        }
+
+        return &it->second;
+    }
+
+    const TypedDefinition* get_typed_definition(const string& name) const
+    {
+        auto it = variables.find(name);
+        if (it == variables.end()) {
+            return parent ? parent->get_typed_definition(name) : nullptr;
+        }
+
+        return &it->second;
+    }
+
+    const plugins::Type& get_variable_type(const string& name)
+    {
+        const auto* t = get_typed_definition(name);
+        assert(t);
+        return *t->type;
+    }
+
+    VariableDefinition& get_variable_definition(const string& name)
+    {
+        const auto* t = get_typed_definition(name);
+        assert(t);
+        return *t->definition;
+    }
+};
+
+class DecorateContext : public utils::Context {
+    const plugins::Registry registry;
+    std::unique_ptr<Scope> scope;
+
+public:
+    DecorateContext(const plugins::RawRegistry& raw_registry)
         : registry(raw_registry.construct_registry())
+        , scope(std::make_unique<Scope>())
     {
     }
 
@@ -40,32 +105,27 @@ public:
         const plugins::Type& type,
         VariableDefinition& definition)
     {
-        if (has_variable(name))
-            error(
-                "Variable '" + name +
-                "' is already defined in the "
-                "current scope. Shadowing variables is not supported.");
-        variables.insert({name, TypedDefinition{&type, &definition}});
+        scope->insert(*this, {name, TypedDefinition{&type, &definition}});
     }
-
-    void remove_variable(const string& name) { variables.erase(name); }
 
     bool has_variable(const string& name) const
     {
-        return variables.contains(name);
+        return scope->has_variable(name);
     }
 
-    const plugins::Type& get_variable_type(const string& name)
+    const plugins::Type& get_variable_type(const string& name) const
     {
-        assert(has_variable(name));
-        return *variables[name].type;
+        return scope->get_variable_type(name);
     }
 
-    VariableDefinition& get_variable_definition(const string& name)
+    VariableDefinition& get_variable_definition(const string& name) const
     {
-        assert(has_variable(name));
-        return *variables[name].definition;
+        return scope->get_variable_definition(name);
     }
+
+    void enter_scope() { scope = std::make_unique<Scope>(std::move(scope)); }
+
+    void leave_scope() { scope = std::move(scope->get_parent()); }
 
     const plugins::Registry& get_registry() const { return registry; }
 };
@@ -111,6 +171,8 @@ TypedDecoratedAstNodePtr LetNode::decorate(DecorateContext& context) const
     std::vector<VariableDefinition> decorated_variable_definitions;
     decorated_variable_definitions.reserve(variable_definitions.size());
 
+    context.enter_scope();
+
     for (const auto& [variable_name, variable_definition] :
          variable_definitions) {
         utils::TraceBlock block(context, "Check variable definition");
@@ -129,9 +191,7 @@ TypedDecoratedAstNodePtr LetNode::decorate(DecorateContext& context) const
         decorated_nested_value = nested_value->decorate(context);
     }
 
-    for (const auto& variable_name : variable_definitions | views::keys) {
-        context.remove_variable(variable_name);
-    }
+    context.leave_scope();
 
     return {
         std::make_unique<DecoratedLetNode>(
@@ -383,9 +443,7 @@ FunctionCallNode::decorate(DecorateContext& context) const
     vector<std::pair<std::string, FunctionArgument>> arguments;
     arguments.reserve(arguments_by_key.size());
 
-    for (auto& val : arguments_by_key) {
-        arguments.push_back(move(val));
-    }
+    for (auto& val : arguments_by_key) { arguments.push_back(move(val)); }
 
     return {
         std::make_unique<DecoratedFunctionCallNode>(
