@@ -31,7 +31,6 @@ public:
             "with h*(s) = infinity\n"
             " * **preferred operators:** this heuristic identifies "
             "preferred operators ");
-        allow_variable_binding();
     }
 };
 

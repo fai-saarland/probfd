@@ -14,7 +14,6 @@ public:
     TaskEvaluatorFactoryCategoryPlugin()
         : TypedCategoryPlugin("TaskHeuristicFactory")
     {
-        allow_variable_binding();
     }
 } _category_plugin;
 

@@ -193,16 +193,6 @@ class CategoryPlugin {
     */
     std::string synopsis;
 
-    /*
-      TODO: Currently, we do not support variable binding of all categories, so
-      variables can only be used for categories explicitly marked. This might
-      change once we fix the component interaction (issue559). If all feature
-      types can be bound to variables, we can probably get rid of this flag and
-      related code in CategoryPlugin, TypedCategoryPlugin, RawRegistry,
-      Registry, Parser, ...
-    */
-    bool can_be_bound_to_variable;
-
 public:
     CategoryPlugin(
         std::type_index pointer_type,
@@ -212,7 +202,6 @@ public:
     CategoryPlugin(const CategoryPlugin&) = delete;
 
     void document_synopsis(const std::string& synopsis);
-    void allow_variable_binding();
 
     std::type_index get_pointer_type() const;
     std::string get_category_name() const;

@@ -23,7 +23,6 @@ public:
         document_synopsis(
             "A mutex factory computes mutually exclusive facts for a given "
             "planning task.");
-        allow_variable_binding();
     }
 };
 

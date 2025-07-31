@@ -53,7 +53,6 @@ public:
             "This page describes how one can specify a new landmark factory "
             "instance. For re-using landmark factories, see "
             "OptionSyntax#Landmark_Predefinitions.");
-        allow_variable_binding();
     }
 } _category_plugin;
 

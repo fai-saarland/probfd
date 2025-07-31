@@ -103,7 +103,6 @@ CategoryPlugin::CategoryPlugin(
     : pointer_type(pointer_type)
     , class_name(class_name)
     , category_name(category_name)
-    , can_be_bound_to_variable(true)
 {
     RawRegistry::instance()->insert_category_plugin(*this);
 }
@@ -131,11 +130,6 @@ string CategoryPlugin::get_synopsis() const
 void CategoryPlugin::document_synopsis(const string& synopsis)
 {
     this->synopsis = synopsis;
-}
-
-void CategoryPlugin::allow_variable_binding()
-{
-    can_be_bound_to_variable = true;
 }
 
 SubcategoryPlugin::SubcategoryPlugin(const string& subcategory)
