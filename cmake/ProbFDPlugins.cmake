@@ -552,6 +552,19 @@ create_library(
 )
 
 create_library(
+    NAME plabel_reduction_feature
+    HELP "Enables exact label reduction plugin"
+    SOURCES
+        probfd/cli/merge_and_shrink/label_reduction_feature
+    DEPENDS
+        pa_merge_and_shrink
+        parser
+        plugins
+    TARGET
+        probfd
+)
+
+create_library(
     NAME pmerge_strategy_factory_category
     HELP "Enables merge strategy factory category plugin"
     SOURCES
