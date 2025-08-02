@@ -1,6 +1,9 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/heuristics/zero_one_pdbs_heuristic_feature.h"
 
-#include "downward/cli/heuristic_options.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "downward/cli/heuristics/heuristic_options.h"
 
 #include "downward/pdbs/zero_one_pdbs_heuristic.h"
 
@@ -18,7 +21,6 @@ using downward::cli::add_heuristic_options_to_feature;
 using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
-
 class ZOPDBsHeuristicFactory : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
     bool cache_estimates;
@@ -107,7 +109,13 @@ public:
             opts.get<shared_ptr<PatternCollectionGenerator>>("patterns"));
     }
 };
+}
 
-FeaturePlugin<ZeroOnePDBsHeuristicFeature> _plugin;
+namespace downward::cli::heuristics {
+
+void add_zero_one_pdbs_heuristic_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<ZeroOnePDBsHeuristicFeature>();
+}
 
 } // namespace

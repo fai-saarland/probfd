@@ -1,4 +1,7 @@
+#include "probfd/cli/cartesian_abstractions/subtask_generators.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -16,7 +19,6 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-
 class TaskDuplicatorFeature
     : public TypedFeature<SubtaskGenerator, TaskDuplicator> {
 public:
@@ -101,16 +103,24 @@ public:
     {
         document_synopsis("Subtask generator (used by the CEGAR heuristic).");
     }
-} _category_plugin;
+};
+}
 
-FeaturePlugin<TaskDuplicatorFeature> _plugin_original;
-FeaturePlugin<GoalDecompositionFeature> _plugin_goals;
-FeaturePlugin<LandmarkDecompositionFeature> _plugin_landmarks;
+namespace probfd::cli::cartesian_abstractions {
 
-TypedEnumPlugin<FactOrder> _enum_plugin(
-    {{"original", "according to their (internal) variable index"},
-     {"random", "according to a random permutation"},
-     {"hadd_up", "according to their h^add value, lowest first"},
-     {"hadd_down", "according to their h^add value, highest first "}});
+void add_subtask_generator_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_category_plugin<SubtaskGeneratorCategoryPlugin>();
+
+    raw_registry.insert_feature_plugin<TaskDuplicatorFeature>();
+    raw_registry.insert_feature_plugin<GoalDecompositionFeature>();
+    raw_registry.insert_feature_plugin<LandmarkDecompositionFeature>();
+
+    raw_registry.insert_enum_plugin<FactOrder>(
+        {{"original", "according to their (internal) variable index"},
+         {"random", "according to a random permutation"},
+         {"hadd_up", "according to their h^add value, lowest first"},
+         {"hadd_down", "according to their h^add value, highest first "}});
+}
 
 } // namespace

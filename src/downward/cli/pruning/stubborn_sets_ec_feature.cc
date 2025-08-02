@@ -1,6 +1,9 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/pruning/stubborn_sets_ec_feature.h"
 
-#include "downward/cli/pruning_method_options.h"
+#include "downward/cli/pruning/pruning_method_options.h"
+
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/pruning/stubborn_sets_ec.h"
 
@@ -12,8 +15,10 @@ using namespace std;
 using namespace downward::cli;
 using namespace downward::cli::plugins;
 
-namespace downward::stubborn_sets_ec {
+using namespace downward;
+using namespace downward::stubborn_sets_ec;
 
+namespace {
 class StubbornSetsECFeature
     : public TypedFeature<PruningMethod, StubbornSetsEC> {
 public:
@@ -58,7 +63,13 @@ public:
             get_pruning_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<StubbornSetsECFeature> _plugin;
+namespace downward::cli::pruning {
+
+void add_stubborn_sets_ec_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<StubbornSetsECFeature>();
+}
 
 } // namespace stubborn_sets_ec

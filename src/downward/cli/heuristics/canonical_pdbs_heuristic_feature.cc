@@ -1,10 +1,13 @@
-#include "../../../../include/downward/cli/plugins/plugin.h"
+#include "downward/cli/heuristics/canonical_pdbs_heuristic_feature.h"
 
-#include "../../../../include/downward/cli/heuristic_options.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
-#include "../../../../include/downward/cli/pdbs/canonical_pdbs_heuristic_options.h"
+#include "downward/cli/heuristics/heuristic_options.h"
 
-#include "../../../../include/downward/pdbs/canonical_pdbs_heuristic.h"
+#include "downward/cli/pdbs/canonical_pdbs_heuristic_options.h"
+
+#include "downward/pdbs/canonical_pdbs_heuristic.h"
 
 #include "downward/task_dependent_factory.h"
 #include "downward/task_transformation.h"
@@ -23,7 +26,6 @@ using downward::cli::pdbs::add_canonical_pdbs_options_to_feature;
 using downward::cli::pdbs::get_canonical_pdbs_arguments_from_options;
 
 namespace {
-
 class CanonicalPDBsHeuristicFactory : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
     bool cache_estimates;
@@ -110,7 +112,13 @@ public:
             get_canonical_pdbs_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<CanonicalPDBsHeuristicFeature> _plugin;
+namespace downward::cli::heuristics {
+
+void add_canonical_pdbs_heuristic_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<CanonicalPDBsHeuristicFeature>();
+}
 
 } // namespace

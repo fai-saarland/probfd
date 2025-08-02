@@ -1,4 +1,7 @@
+#include "probfd/cli/cartesian_abstractions/flaw_generator_category.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "probfd/cartesian_abstractions/flaw_generator.h"
 
@@ -7,7 +10,6 @@ using namespace downward::cli::plugins;
 using namespace probfd::cartesian_abstractions;
 
 namespace {
-
 class FlawGeneratorFactoryCategoryPlugin
     : public TypedCategoryPlugin<FlawGeneratorFactory> {
 public:
@@ -18,6 +20,14 @@ public:
                           "cartesian abstraction "
                           "refinement loop");
     }
-} _category_plugin;
+};
+}
+
+namespace probfd::cli::cartesian_abstractions {
+
+void add_flaw_generator_category(RawRegistry& raw_registry)
+{
+    raw_registry.insert_category_plugin<FlawGeneratorFactoryCategoryPlugin>();
+}
 
 } // namespace

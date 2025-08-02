@@ -1,4 +1,7 @@
+#include "downward/cli/heuristics/landmark_sum_heuristic_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/landmarks/landmark_heuristic_options.h"
 
@@ -20,7 +23,6 @@ using downward::cli::landmarks::add_landmark_heuristic_options_to_feature;
 using downward::cli::landmarks::get_landmark_heuristic_arguments_from_options;
 
 namespace {
-
 class LandmarkSumHeuristicFactory : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
     bool cache_estimates;
@@ -55,8 +57,7 @@ public:
     {
     }
 
-    unique_ptr<Evaluator>
-    create_object(const SharedAbstractTask& task) override
+    unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
     {
         auto transformation_result = transformation->transform(task);
         return std::make_unique<LandmarkSumHeuristic>(
@@ -173,7 +174,13 @@ public:
             get_landmark_heuristic_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<LandmarkSumHeuristicFeature> _plugin;
+namespace downward::cli::heuristics {
+
+void add_landmark_sum_heuristic_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<LandmarkSumHeuristicFeature>();
+}
 
 } // namespace

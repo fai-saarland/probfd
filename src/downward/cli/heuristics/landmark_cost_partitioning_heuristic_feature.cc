@@ -1,4 +1,7 @@
+#include "downward/cli/heuristics/landmark_cost_partitioning_heuristic_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/landmarks/landmark_heuristic_options.h"
 
@@ -24,7 +27,6 @@ using downward::cli::lp::add_lp_solver_option_to_feature;
 using downward::cli::lp::get_lp_solver_arguments_from_options;
 
 namespace {
-
 class LandmarkCostPartitioningHeuristicFactory
     : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
@@ -69,8 +71,7 @@ public:
     {
     }
 
-    unique_ptr<Evaluator>
-    create_object(const SharedAbstractTask& task) override
+    unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
     {
         auto transformation_result = transformation->transform(task);
         return std::make_unique<LandmarkCostPartitioningHeuristic>(
@@ -191,14 +192,21 @@ public:
             get_lp_solver_arguments_from_options(opts));
     }
 };
-
-FeaturePlugin<LandmarkCostPartitioningHeuristicFeature> _plugin;
-
-TypedEnumPlugin<CostPartitioningMethod> _enum_plugin({
-    {"optimal", "use optimal (LP-based) cost partitioning"},
-    {"uniform",
-     "partition operator costs uniformly among all landmarks "
-     "achieved by that operator"},
-});
-
 } // namespace
+
+namespace downward::cli::heuristics {
+
+void add_landmark_cost_partitioning_heuristic_feature(RawRegistry& raw_registry)
+{
+    raw_registry
+        .insert_feature_plugin<LandmarkCostPartitioningHeuristicFeature>();
+
+    raw_registry.insert_enum_plugin<CostPartitioningMethod>({
+        {"optimal", "use optimal (LP-based) cost partitioning"},
+        {"uniform",
+         "partition operator costs uniformly among all landmarks "
+         "achieved by that operator"},
+    });
+}
+
+} // namespace downward::cli::heuristics

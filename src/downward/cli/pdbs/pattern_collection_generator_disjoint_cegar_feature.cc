@@ -1,4 +1,7 @@
+#include "downward/cli/pdbs/pattern_collection_generator_disjoint_cegar_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -23,7 +26,6 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-
 class PatternCollectionGeneratorDisjointCegarFeature
     : public TypedFeature<
           PatternCollectionGenerator,
@@ -86,7 +88,14 @@ public:
             get_generator_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<PatternCollectionGeneratorDisjointCegarFeature> _plugin;
+namespace downward::cli::pdbs {
+
+void add_pattern_collection_generator_disjoint_cegar_feature(RawRegistry& raw_registry)
+{
+    raw_registry
+        .insert_feature_plugin<PatternCollectionGeneratorDisjointCegarFeature>();
+}
 
 } // namespace

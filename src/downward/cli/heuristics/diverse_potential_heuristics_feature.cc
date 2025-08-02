@@ -1,4 +1,7 @@
+#include "downward/cli/heuristics/diverse_potential_heuristics_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/potentials/potential_options.h"
 
@@ -25,7 +28,6 @@ using namespace downward::cli::potentials;
 using namespace downward::cli::utils;
 
 namespace {
-
 class DiversePotentialMaxHeuristicFactory
     : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
@@ -129,7 +131,13 @@ public:
             opts.get<int>("random_seed"));
     }
 };
+}
 
-FeaturePlugin<DiversePotentialMaxHeuristicFeature> _plugin;
+namespace downward::cli::heuristics {
+
+void add_diverse_potential_heuristics_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<DiversePotentialMaxHeuristicFeature>();
+}
 
 } // namespace

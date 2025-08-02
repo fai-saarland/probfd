@@ -30,8 +30,8 @@ class DecorateContext : public utils::Context {
     unordered_map<string, TypedDefinition> variables;
 
 public:
-    DecorateContext()
-        : registry(plugins::RawRegistry::instance()->construct_registry())
+    explicit DecorateContext(const plugins::RawRegistry& raw_registry)
+        : registry(raw_registry.construct_registry())
     {
     }
 
@@ -85,9 +85,10 @@ static ASTNodePtr parse_ast_node(const string& definition, DecorateContext&)
     return parse(tokens);
 }
 
-DecoratedASTNodePtr ASTNode::decorate() const
+DecoratedASTNodePtr
+ASTNode::decorate(const plugins::RawRegistry& raw_registry) const
 {
-    DecorateContext context;
+    DecorateContext context(raw_registry);
     utils::TraceBlock block(context, "Start semantic analysis");
     return decorate(context).ast_node;
 }
@@ -264,7 +265,8 @@ void FunctionCallNode::collect_keyword_arguments(
             context.error(message.str());
         }
         const plugins::ArgumentInfo& arg_info = argument_infos_by_key.at(key);
-        bool success = collect_argument(arg, arg_info, context, arguments, false);
+        bool success =
+            collect_argument(arg, arg_info, context, arguments, false);
         if (!success) {
             ABORT(
                 "Multiple keyword definitions using the same key '" + key +
@@ -317,7 +319,8 @@ void FunctionCallNode::collect_positional_arguments(
             context,
             "Checking the " + to_string(i + 1) + ". positional argument (" +
                 arg_info.key + ")");
-        bool success = collect_argument(arg, arg_info, context, arguments, false);
+        bool success =
+            collect_argument(arg, arg_info, context, arguments, false);
         if (!success) {
             ostringstream message;
             message << "The argument '" << arg_info.key

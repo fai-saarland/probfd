@@ -1,6 +1,9 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/heuristics/cea_heuristic_feature.h"
 
-#include "downward/cli/heuristic_options.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "downward/cli/heuristics/heuristic_options.h"
 
 #include "downward/heuristics/cea_heuristic.h"
 
@@ -20,7 +23,6 @@ using downward::cli::add_heuristic_options_to_feature;
 using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
-
 class ContextEnhancedAdditiveHeuristicFactory
     : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
@@ -41,8 +43,7 @@ public:
     {
     }
 
-    unique_ptr<Evaluator>
-    create_object(const SharedAbstractTask& task) override
+    unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
     {
         auto transformation_result = transformation->transform(task);
         return std::make_unique<ContextEnhancedAdditiveHeuristic>(
@@ -88,7 +89,14 @@ public:
             get_heuristic_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<ContextEnhancedAdditiveHeuristicFeature> _plugin;
+namespace downward::cli::heuristics {
+
+void add_cea_heuristic_feature(RawRegistry& raw_registry)
+{
+    raw_registry
+        .insert_feature_plugin<ContextEnhancedAdditiveHeuristicFeature>();
+}
 
 } // namespace

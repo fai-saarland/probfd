@@ -1,6 +1,8 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/search_algorithms/lazy_feature.h"
+#include "downward/cli/search_algorithms/search_algorithm_options.h"
 
-#include "downward/cli/search_algorithm_options.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/search_algorithms/lazy_search.h"
 #include "downward/search_algorithms/search_common.h"
@@ -19,7 +21,6 @@ using downward::cli::get_search_algorithm_arguments_from_options;
 using downward::cli::get_successors_order_arguments_from_options;
 
 namespace {
-
 class LazySearchFactory : public TaskDependentFactory<SearchAlgorithm> {
     OperatorCost cost_type;
     int bound;
@@ -120,7 +121,13 @@ public:
             get_successors_order_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<LazySearchFeature> _plugin;
+namespace downward::cli::search_algorithms {
+
+void add_lazy_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<LazySearchFeature>();
+}
 
 } // namespace

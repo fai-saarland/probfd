@@ -1,6 +1,9 @@
-#include "downward/cli/plugins/plugin.h"
+#include "probfd/cli/solvers/acyclic_vi.h"
 
-#include "probfd/cli/solvers/mdp_solver.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "probfd/cli/solvers/mdp_solver_options.h"
 
 #include "probfd/solvers/mdp_solver.h"
 #include "probfd/solvers/statistical_mdp_algorithm.h"
@@ -26,7 +29,6 @@ using namespace probfd::cli::solvers;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class AcyclicVIWithStatistics : public StatisticalMDPAlgorithm {
     AcyclicValueIteration<State, OperatorID> algorithm;
 
@@ -99,7 +101,13 @@ protected:
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
+}
 
-FeaturePlugin<AcyclicVISolverFeature> _plugin;
+namespace probfd::cli::solvers {
+
+void add_acyclic_value_iteration_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<AcyclicVISolverFeature>();
+}
 
 } // namespace

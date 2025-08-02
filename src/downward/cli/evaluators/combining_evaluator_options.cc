@@ -2,7 +2,7 @@
 
 #include "downward/cli/plugins/plugin.h"
 
-#include "downward/cli/evaluator_options.h"
+#include "downward/cli/evaluators/evaluator_options.h"
 
 #include "downward/utils/logging.h"
 

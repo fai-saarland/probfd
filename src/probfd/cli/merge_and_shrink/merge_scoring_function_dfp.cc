@@ -1,3 +1,8 @@
+#include "probfd/cli/merge_and_shrink/merge_scoring_function_dfp.h"
+
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
 #include "probfd/merge_and_shrink/merge_scoring_function_dfp.h"
 
 #include "probfd/merge_and_shrink/distances.h"
@@ -5,15 +10,12 @@
 
 #include "downward/utils/markup.h"
 
-#include "downward/cli/plugins/plugin.h"
-
 using namespace std;
 using namespace downward::cli::plugins;
 using namespace downward;
 using namespace probfd::merge_and_shrink;
 
 namespace {
-
 class MergeScoringFunctionDFPFeature
     : public TypedFeature<MergeScoringFunction, MergeScoringFunctionDFP> {
 public:
@@ -64,7 +66,13 @@ public:
         return make_shared<MergeScoringFunctionDFP>();
     }
 };
+}
 
-FeaturePlugin<MergeScoringFunctionDFPFeature> _plugin;
+namespace probfd::cli::merge_and_shrink {
+
+void add_merge_scoring_function_dfp_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<MergeScoringFunctionDFPFeature>();
+}
 
 } // namespace

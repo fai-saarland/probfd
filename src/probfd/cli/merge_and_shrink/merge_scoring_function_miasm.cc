@@ -1,3 +1,8 @@
+#include "probfd/cli/merge_and_shrink/merge_scoring_function_miasm.h"
+
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
 #include "probfd/merge_and_shrink/merge_scoring_function_miasm.h"
 
 #include "probfd/merge_and_shrink/distances.h"
@@ -9,8 +14,6 @@
 #include "downward/utils/logging.h"
 #include "downward/utils/markup.h"
 
-#include "downward/cli/plugins/plugin.h"
-
 using namespace std;
 using namespace downward::cli::plugins;
 using namespace downward;
@@ -18,7 +21,6 @@ using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
 namespace {
-
 class MergeScoringFunctionMIASMFeature
     : public TypedFeature<MergeScoringFunction, MergeScoringFunctionMIASM> {
 public:
@@ -123,7 +125,13 @@ public:
             options_copy.get<int>("threshold_before_merge"));
     }
 };
+}
 
-FeaturePlugin<MergeScoringFunctionMIASMFeature> _plugin;
+namespace probfd::cli::merge_and_shrink {
+
+void add_merge_scoring_function_miasm_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<MergeScoringFunctionMIASMFeature>();
+}
 
 }

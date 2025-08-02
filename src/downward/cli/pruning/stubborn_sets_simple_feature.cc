@@ -1,6 +1,9 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/pruning/stubborn_sets_simple_feature.h"
 
-#include "downward/cli/pruning_method_options.h"
+#include "downward/cli/pruning/pruning_method_options.h"
+
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/pruning/stubborn_sets_simple.h"
 
@@ -15,7 +18,6 @@ using namespace downward::cli;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class StubbornSetsSimpleFeature
     : public TypedFeature<downward::PruningMethod, StubbornSetsSimple> {
 public:
@@ -67,7 +69,13 @@ public:
             get_pruning_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<StubbornSetsSimpleFeature> _plugin;
+namespace downward::cli::pruning {
+
+void add_stubborn_sets_simple_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<StubbornSetsSimpleFeature>();
+}
 
 } // namespace

@@ -1,6 +1,9 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/heuristics/lm_cut_heuristic_feature.h"
 
-#include "downward/cli/heuristic_options.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "downward/cli/heuristics/heuristic_options.h"
 
 #include "downward/heuristics/lm_cut_heuristic.h"
 
@@ -20,7 +23,6 @@ using downward::cli::add_heuristic_options_to_feature;
 using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
-
 class LMCutHeuristicFactory : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
     bool cache_estimates;
@@ -82,7 +84,13 @@ public:
             get_heuristic_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<LandmarkCutHeuristicFeature> _plugin;
+namespace downward::cli::heuristics {
+
+void add_landmark_cut_heuristic_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<LandmarkCutHeuristicFeature>();
+}
 
 } // namespace

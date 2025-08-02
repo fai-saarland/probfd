@@ -1,6 +1,8 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/search_algorithms/lazy_greedy_feature.h"
+#include "downward/cli/search_algorithms/search_algorithm_options.h"
 
-#include "downward/cli/search_algorithm_options.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/search_algorithms/lazy_search.h"
 #include "downward/search_algorithms/search_common.h"
@@ -19,7 +21,6 @@ using downward::cli::get_search_algorithm_arguments_from_options;
 using downward::cli::get_successors_order_arguments_from_options;
 
 namespace {
-
 constexpr auto DEFAULT_LAZY_BOOST = "1000";
 
 class LazyGreedySearchFactory : public TaskDependentFactory<SearchAlgorithm> {
@@ -183,7 +184,13 @@ public:
             opts.get<int>("boost"));
     }
 };
+}
 
-FeaturePlugin<LazyGreedySearchFeature> _plugin;
+namespace downward::cli::search_algorithms {
+
+void add_lazy_greedy_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<LazyGreedySearchFeature>();
+}
 
 } // namespace

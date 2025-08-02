@@ -1,6 +1,8 @@
-#include "downward/cli/plugins/plugin.h"
-
+#include "downward/cli/search_algorithms/eager_wastar_feature.h"
 #include "downward/cli/search_algorithms/eager_search_options.h"
+
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/search_algorithms/eager_search.h"
 #include "downward/search_algorithms/search_common.h"
@@ -16,7 +18,6 @@ using namespace downward::cli::eager_search;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class EagerWAstarSearchFactory : public TaskDependentFactory<SearchAlgorithm> {
     std::vector<shared_ptr<TaskDependentFactory<Evaluator>>> eval_factories;
     std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>
@@ -147,7 +148,13 @@ public:
             get_eager_search_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<EagerWAstarSearchFeature> _plugin;
+namespace downward::cli::search_algorithms {
+
+void add_eager_wastar_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<EagerWAstarSearchFeature>();
+}
 
 } // namespace

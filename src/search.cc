@@ -3,6 +3,7 @@
 #include "downward/cli/parser/lexical_analyzer.h"
 #include "downward/cli/parser/syntax_analyzer.h"
 #include "downward/cli/parser/token_stream.h"
+#include "register_definitions.h"
 
 #include "downward/cli/plugins/raw_registry.h"
 
@@ -98,12 +99,15 @@ static int search(argparse::ArgumentParser& parser)
 
     register_event_handlers();
 
+    RawRegistry raw_registry;
+    register_definitions(raw_registry);
+
     shared_ptr<TaskSolverFactory> solver_factory;
 
     try {
         TokenStream tokens = split_tokens(search_arg);
         ASTNodePtr parsed = parse(tokens);
-        DecoratedASTNodePtr decorated = parsed->decorate();
+        DecoratedASTNodePtr decorated = parsed->decorate(raw_registry);
 
         if (parser.get<bool>("--ignore-unused-definitions")) {
             std::vector<VariableDefinition> unused_defs;

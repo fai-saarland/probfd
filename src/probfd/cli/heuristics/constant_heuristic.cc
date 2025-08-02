@@ -1,4 +1,7 @@
+#include "probfd/cli/heuristics/constant_heuristic.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "probfd/heuristics/constant_heuristic.h"
 
@@ -11,11 +14,10 @@ using namespace probfd::heuristics;
 using namespace downward::cli::plugins;
 
 namespace {
-
-class BlindEvaluatorFactoryFeature
-    : public TypedFeature<TaskHeuristicFactory, BlindEvaluatorFactory> {
+class BlindHeuristicFactoryFeature
+    : public TypedFeature<TaskHeuristicFactory, BlindHeuristicFactory> {
 public:
-    BlindEvaluatorFactoryFeature()
+    BlindHeuristicFactoryFeature()
         : TypedFeature("blind_heuristic")
     {
         document_title("Blind Heuristic");
@@ -24,13 +26,19 @@ public:
     }
 
     [[nodiscard]]
-    std::shared_ptr<BlindEvaluatorFactory>
+    std::shared_ptr<BlindHeuristicFactory>
     create_component(const Options&, const Context&) const override
     {
-        return std::make_shared<BlindEvaluatorFactory>();
+        return std::make_shared<BlindHeuristicFactory>();
     }
 };
+}
 
-FeaturePlugin<BlindEvaluatorFactoryFeature> _plugin;
+namespace probfd::cli::heuristics {
+
+void add_blind_heuristic_factory_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<BlindHeuristicFactoryFeature>();
+}
 
 } // namespace

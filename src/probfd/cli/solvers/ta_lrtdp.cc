@@ -1,9 +1,12 @@
+#include "probfd/cli/solvers/ta_lrtdp.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "probfd/cli/naming_conventions.h"
 
-#include "probfd/cli/solvers/mdp_heuristic_search.h"
-#include "probfd/cli/solvers/mdp_solver.h"
+#include "probfd/cli/solvers/mdp_heuristic_search_options.h"
+#include "probfd/cli/solvers/mdp_solver_options.h"
 
 #include "probfd/algorithms/successor_sampler.h"
 #include "probfd/algorithms/trap_aware_lrtdp.h"
@@ -26,7 +29,6 @@ using namespace probfd::cli::solvers;
 using namespace downward::cli::plugins;
 
 namespace {
-
 using QSuccessorSampler =
     SuccessorSampler<quotients::QuotientAction<OperatorID>>;
 
@@ -106,13 +108,19 @@ protected:
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
+}
 
-FeaturePlugin<TrapAwareLRTDPSolverFeature> _plugin;
+namespace probfd::cli::solvers {
 
-TypedEnumPlugin<TrialTerminationCondition> _enum_plugin(
-    {{"terminal", "Stop trials at terminal states"},
-     {"consistent", "Stop trials at epsilon consistent states"},
-     {"inconsistent", "Stop trials at epsilon inconsistent states"},
-     {"revisited", "Stop trials upon revisiting a state"}});
+void add_ta_lrtdp_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<TrapAwareLRTDPSolverFeature>();
+
+    raw_registry.insert_enum_plugin<TrialTerminationCondition>(
+        {{"terminal", "Stop trials at terminal states"},
+         {"consistent", "Stop trials at epsilon consistent states"},
+         {"inconsistent", "Stop trials at epsilon inconsistent states"},
+         {"revisited", "Stop trials upon revisiting a state"}});
+}
 
 } // namespace

@@ -4,7 +4,7 @@
 #include "probfd/fdr_types.h"
 #include "probfd/heuristic.h"
 #include "probfd/probabilistic_task.h"
-#include "probfd/task_heuristic_factory.h"
+#include "probfd/task_heuristic_factory_category.h"
 #include "probfd/value_type.h"
 
 #include "downward/task_dependent_factory_fwd.h"

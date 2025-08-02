@@ -1,3 +1,10 @@
+#include "probfd/cli/merge_and_shrink/merge_tree_factory_linear.h"
+
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "probfd/cli/merge_and_shrink/merge_tree_factory_options.h"
+
 #include "probfd/merge_and_shrink/merge_tree_factory_linear.h"
 
 #include "probfd/merge_and_shrink/factored_transition_system.h"
@@ -6,10 +13,6 @@
 
 #include "downward/utils/markup.h"
 
-#include "probfd/cli/merge_and_shrink/merge_tree_factory_options.h"
-
-#include "downward/cli/plugins/plugin.h"
-
 using namespace std;
 using namespace downward::cli::plugins;
 using namespace downward;
@@ -17,7 +20,6 @@ using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
 namespace {
-
 class MergeTreeFactoryLinearFeature
     : public TypedFeature<MergeTreeFactory, MergeTreeFactoryLinear> {
 public:
@@ -58,7 +60,13 @@ protected:
                 "variable_order"));
     }
 };
+}
 
-FeaturePlugin<MergeTreeFactoryLinearFeature> _plugin;
+namespace probfd::cli::merge_and_shrink {
+
+void add_merge_tree_factory_linear_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<MergeTreeFactoryLinearFeature>();
+}
 
 } // namespace

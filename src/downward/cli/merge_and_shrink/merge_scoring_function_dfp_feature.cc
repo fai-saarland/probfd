@@ -1,4 +1,7 @@
+#include "downward/cli/merge_and_shrink/merge_scoring_function_dfp_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/merge_and_shrink/merge_scoring_function_dfp.h"
 
@@ -11,7 +14,6 @@ using namespace downward::utils;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class MergeScoringFunctionDFPFeature
     : public TypedFeature<MergeScoringFunction, MergeScoringFunctionDFP> {
 public:
@@ -62,7 +64,13 @@ public:
         return make_shared<MergeScoringFunctionDFP>();
     }
 };
+}
 
-FeaturePlugin<MergeScoringFunctionDFPFeature> _plugin;
+namespace downward::cli::merge_and_shrink {
+
+void add_merge_scoring_function_dfp_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<MergeScoringFunctionDFPFeature>();
+}
 
 } // namespace

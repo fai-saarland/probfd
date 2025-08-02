@@ -1,6 +1,9 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/heuristics/operator_counting_heuristic_feature.h"
 
-#include "downward/cli/heuristic_options.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "downward/cli/heuristics/heuristic_options.h"
 
 #include "downward/cli/lp/lp_solver_options.h"
 
@@ -25,7 +28,6 @@ using downward::cli::lp::add_lp_solver_option_to_feature;
 using downward::cli::lp::get_lp_solver_arguments_from_options;
 
 namespace {
-
 class OperatorCountingHeuristicFactory
     : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
@@ -55,8 +57,7 @@ public:
     {
     }
 
-    unique_ptr<Evaluator>
-    create_object(const SharedAbstractTask& task) override
+    unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
     {
         auto transformation_result = transformation->transform(task);
         return std::make_unique<OperatorCountingHeuristic>(
@@ -159,7 +160,13 @@ public:
             get_lp_solver_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<OperatorCountingHeuristicFeature> _plugin;
+namespace downward::cli::heuristics {
+
+void add_operator_counting_heuristic_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<OperatorCountingHeuristicFeature>();
+}
 
 } // namespace

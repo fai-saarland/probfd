@@ -1,4 +1,7 @@
+#include "downward/cli/merge_and_shrink/merge_scoring_function_total_order_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -17,7 +20,6 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-
 class MergeScoringFunctionTotalOrderFeature
     : public TypedFeature<
           MergeScoringFunction,
@@ -84,18 +86,24 @@ public:
             get_rng_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<MergeScoringFunctionTotalOrderFeature> _plugin;
+namespace downward::cli::merge_and_shrink {
 
-TypedEnumPlugin<AtomicTSOrder> _atomic_ts_order_enum_plugin(
-    {{"reverse_level", "the variable order of Fast Downward"},
-     {"level", "opposite of reverse_level"},
-     {"random", "a randomized order"}});
+void add_merge_scoring_function_total_order_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<MergeScoringFunctionTotalOrderFeature>();
 
-TypedEnumPlugin<ProductTSOrder> _product_ts_order_enum_plugin(
-    {{"old_to_new",
-      "consider composite transition systems from oldest to most recent"},
-     {"new_to_old", "opposite of old_to_new"},
-     {"random", "a randomized order"}});
+    raw_registry.insert_enum_plugin<AtomicTSOrder>(
+        {{"reverse_level", "the variable order of Fast Downward"},
+         {"level", "opposite of reverse_level"},
+         {"random", "a randomized order"}});
+
+    raw_registry.insert_enum_plugin<ProductTSOrder>(
+        {{"old_to_new",
+          "consider composite transition systems from oldest to most recent"},
+         {"new_to_old", "opposite of old_to_new"},
+         {"random", "a randomized order"}});
+}
 
 } // namespace

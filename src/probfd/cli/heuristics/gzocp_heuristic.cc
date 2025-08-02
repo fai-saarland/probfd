@@ -1,4 +1,7 @@
+#include "probfd/cli/heuristics/gzocp_heuristic.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -19,7 +22,6 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-
 class GZOCPHeuristicFactoryFeature
     : public TypedFeature<TaskHeuristicFactory, GZOCPHeuristicFactory> {
 public:
@@ -57,14 +59,21 @@ public:
             get_task_dependent_heuristic_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<GZOCPHeuristicFactoryFeature> _plugin;
+namespace probfd::cli::heuristics {
 
-TypedEnumPlugin<GZOCPHeuristicFactory::OrderingStrategy> _enum_plugin(
-    {{"random", "the order is random"},
-     {"size_asc", "orders the PDBs by increasing size"},
-     {"size_desc", "orders the PDBs by decreasing size"},
-     {"inherit",
-      "inherits the order from the underlying pattern generation algorithm"}});
+void add_gzocp_heuristic_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<GZOCPHeuristicFactoryFeature>();
+
+    raw_registry.insert_enum_plugin<GZOCPHeuristicFactory::OrderingStrategy>(
+        {{"random", "the order is random"},
+         {"size_asc", "orders the PDBs by increasing size"},
+         {"size_desc", "orders the PDBs by decreasing size"},
+         {"inherit",
+          "inherits the order from the underlying pattern generation "
+          "algorithm"}});
+}
 
 } // namespace

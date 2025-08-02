@@ -1,8 +1,11 @@
+#include "probfd/cli/pdbs/pattern_collection_generator_hillclimbing.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
-#include "probfd/cli/pdbs/pattern_collection_generator.h"
+#include "probfd/cli/pdbs/pattern_collection_generator_options.h"
 
 #include "probfd/pdbs/pattern_collection_generator_hillclimbing.h"
 
@@ -20,7 +23,6 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-
 class PatternCollectionGeneratorHillclimbingFeature
     : public TypedFeature<
           PatternCollectionGenerator,
@@ -106,7 +108,15 @@ public:
             get_pattern_collection_generator_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<PatternCollectionGeneratorHillclimbingFeature> _plugin;
+namespace probfd::cli::pdbs {
+
+void add_pattern_collection_generator_hillclimbing_feature(
+    RawRegistry& raw_registry)
+{
+    raw_registry
+        .insert_feature_plugin<PatternCollectionGeneratorHillclimbingFeature>();
+}
 
 } // namespace

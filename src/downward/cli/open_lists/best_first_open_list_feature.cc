@@ -1,6 +1,7 @@
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
-#include "downward/cli/open_list_options.h"
+#include "downward/cli/open_lists/open_list_options.h"
 
 #include "downward/open_lists/best_first_open_list.h"
 
@@ -18,7 +19,6 @@ using downward::cli::add_open_list_options_to_feature;
 using downward::cli::get_open_list_arguments_from_options;
 
 namespace {
-
 template <typename T>
 class BestFirstOpenListFeature
     : public TypedFeature<
@@ -86,8 +86,16 @@ public:
             get_open_list_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<BestFirstOpenListFeature<downward::StateOpenListEntry>> _plugin;
-FeaturePlugin<BestFirstOpenListFeature<downward::EdgeOpenListEntry>> _plugin2;
+namespace downward::cli::open_lists {
+
+void add_best_first_open_list_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<
+        BestFirstOpenListFeature<downward::StateOpenListEntry>>();
+    raw_registry.insert_feature_plugin<
+        BestFirstOpenListFeature<downward::EdgeOpenListEntry>>();
+}
 
 } // namespace

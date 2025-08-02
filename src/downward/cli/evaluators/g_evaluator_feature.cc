@@ -1,6 +1,9 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/evaluators/g_evaluator_feature.h"
 
-#include "downward/cli/evaluator_options.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "downward/cli/evaluators/evaluator_options.h"
 
 #include "downward/evaluators/g_evaluator.h"
 
@@ -57,6 +60,13 @@ public:
     }
 };
 
-FeaturePlugin<GEvaluatorFeature> _plugin;
+}
+
+namespace downward::cli::evaluators {
+
+void add_g_evaluator_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<GEvaluatorFeature>();
+}
 
 } // namespace

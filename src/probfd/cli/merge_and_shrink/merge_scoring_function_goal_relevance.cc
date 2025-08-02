@@ -1,8 +1,11 @@
+#include "probfd/cli/merge_and_shrink/merge_scoring_function_goal_relevance.h"
+
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
 #include "probfd/merge_and_shrink/merge_scoring_function_goal_relevance.h"
 
 #include "probfd/merge_and_shrink/transition_system.h"
-
-#include "downward/cli/plugins/plugin.h"
 
 using namespace std;
 using namespace downward::cli::plugins;
@@ -10,7 +13,6 @@ using namespace downward;
 using namespace probfd::merge_and_shrink;
 
 namespace {
-
 class MergeScoringFunctionGoalRelevanceFeature
     : public TypedFeature<
           MergeScoringFunction,
@@ -35,7 +37,15 @@ public:
         return make_shared<MergeScoringFunctionGoalRelevance>();
     }
 };
+}
 
-FeaturePlugin<MergeScoringFunctionGoalRelevanceFeature> _plugin;
+namespace probfd::cli::merge_and_shrink {
+
+void add_merge_scoring_function_goal_relevance_feature(
+    RawRegistry& raw_registry)
+{
+    raw_registry
+        .insert_feature_plugin<MergeScoringFunctionGoalRelevanceFeature>();
+}
 
 } // namespace

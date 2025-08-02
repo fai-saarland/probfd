@@ -1,4 +1,7 @@
+#include "downward/cli/mutexes/from_file_mutex_factory_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/mutexes/from_file_mutex_factory.h"
 
@@ -11,7 +14,6 @@ using namespace downward::cli;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class FromFileMutexFactoryFeature
     : public TypedFeature<TaskDependentFactory<MutexInformation>, FromFileMutexFactory> {
 public:
@@ -37,7 +39,13 @@ public:
         return make_shared_from_arg_tuples<FromFileMutexFactory>(filename);
     }
 };
+}
 
-FeaturePlugin<FromFileMutexFactoryFeature> _plugin;
+namespace downward::cli::mutexes {
+
+void add_from_file_mutex_factory_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<FromFileMutexFactoryFeature>();
+}
 
 } // namespace

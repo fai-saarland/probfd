@@ -3,7 +3,7 @@
 #include "probfd/tasks/determinization_task.h"
 
 #include "probfd/heuristic.h"
-#include "probfd/task_heuristic_factory.h"
+#include "probfd/task_heuristic_factory_category.h"
 
 #include "downward/evaluation_context.h"
 #include "downward/evaluation_result.h"

@@ -1,6 +1,6 @@
 #include "downward/cli/potentials/potential_options.h"
 
-#include "downward/cli/heuristic_options.h"
+#include "downward/cli/heuristics/heuristic_options.h"
 
 #include "downward/cli/lp/lp_solver_options.h"
 #include "downward/cli/plugins/plugin.h"

@@ -31,6 +31,7 @@ public:
     virtual bool is_basic_type() const;
     virtual bool is_feature_type() const;
     virtual bool is_list_type() const;
+    virtual bool is_empty_list_type() const;
     virtual bool is_enum_type() const;
     virtual bool is_symbol_type() const;
 
@@ -94,6 +95,7 @@ class EmptyListType : public Type {
 public:
     bool operator==(const Type& other) const override;
     bool is_list_type() const override;
+    bool is_empty_list_type() const override;
     bool can_convert_into(const Type& other) const override;
     std::string name() const override;
     size_t get_hash() const override;

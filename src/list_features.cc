@@ -1,6 +1,7 @@
 #include "list_features.h"
 
 #include "downward/cli/parser/syntax_analyzer.h"
+#include "register_definitions.h"
 
 #include "downward/cli/plugins/doc_printer.h"
 #include "downward/cli/plugins/raw_registry.h"
@@ -309,7 +310,10 @@ protected:
 
 static int list_features(argparse::ArgumentParser& parser)
 {
-    Registry registry = RawRegistry::instance()->construct_registry();
+    RawRegistry raw_registry;
+    register_definitions(raw_registry);
+
+    Registry registry = raw_registry.construct_registry();
     unique_ptr<DocPrinter> doc_printer;
     if (parser.get<bool>("--txt2tags")) {
         doc_printer = std::make_unique<Txt2TagsPrinter>(cout, registry);

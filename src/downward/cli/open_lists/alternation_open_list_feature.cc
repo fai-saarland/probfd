@@ -1,4 +1,7 @@
+#include "downward/cli/open_lists/alternation_open_list_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/open_lists/alternation_open_list.h"
 
@@ -9,7 +12,6 @@ using namespace downward::alternation_open_list;
 using namespace downward::cli::plugins;
 
 namespace {
-
 template <typename T>
 class AlternationOpenListFeature
     : public TypedFeature<
@@ -67,8 +69,16 @@ public:
             opts.get<int>("boost"));
     }
 };
+}
 
-FeaturePlugin<AlternationOpenListFeature<downward::StateOpenListEntry>> _plugin;
-FeaturePlugin<AlternationOpenListFeature<downward::EdgeOpenListEntry>> _plugin2;
+namespace downward::cli::open_lists {
+
+void add_alternation_open_list_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<
+        AlternationOpenListFeature<downward::StateOpenListEntry>>();
+    raw_registry.insert_feature_plugin<
+        AlternationOpenListFeature<downward::EdgeOpenListEntry>>();
+}
 
 } // namespace

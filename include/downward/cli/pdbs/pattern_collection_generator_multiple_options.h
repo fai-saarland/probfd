@@ -1,6 +1,8 @@
 #ifndef DOWNWARD_PLUGINS_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_H
 #define DOWNWARD_PLUGINS_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_H
 
+#include "downward/utils/timer.h"
+
 #include <tuple>
 
 namespace downward::utils {

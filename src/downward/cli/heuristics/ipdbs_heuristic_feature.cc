@@ -1,6 +1,9 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/heuristics/ipdbs_heuristic_feature.h"
 
-#include "downward/cli/heuristic_options.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "downward/cli/heuristics/heuristic_options.h"
 
 #include "downward/cli/pdbs/canonical_pdbs_heuristic_options.h"
 #include "downward/cli/pdbs/pattern_collection_generator_hillclimbing_options.h"
@@ -27,7 +30,6 @@ using downward::cli::add_heuristic_options_to_feature;
 using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
-
 std::string paper_references()
 {
     return format_conference_reference(
@@ -189,7 +191,13 @@ public:
             opts.get<Duration>("max_time_dominance_pruning"));
     }
 };
+}
 
-FeaturePlugin<IPDBFeature> _plugin_ipdb;
+namespace downward::cli::heuristics {
+
+void add_ipdbs_heuristic_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<IPDBFeature>();
+}
 
 } // namespace

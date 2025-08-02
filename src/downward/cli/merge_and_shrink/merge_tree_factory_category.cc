@@ -1,4 +1,7 @@
+#include "downward/cli/merge_and_shrink/merge_tree_factory_category.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/merge_and_shrink/merge_tree_factory.h"
 
@@ -8,7 +11,6 @@ using namespace downward::merge_and_shrink;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class MergeTreeFactoryCategoryPlugin
     : public TypedCategoryPlugin<MergeTreeFactory> {
 public:
@@ -26,15 +28,23 @@ public:
             "strategies in "
             "'combined' merge strategies.");
     }
-} _category_plugin;
+};
+}
 
-TypedEnumPlugin<UpdateOption> _enum_plugin(
-    {{"use_first",
-      "the node representing the index that would have been merged earlier "
-      "survives"},
-     {"use_second",
-      "the node representing the index that would have been merged later "
-      "survives"},
-     {"use_random", "a random node (of the above two) survives"}});
+namespace downward::cli::merge_and_shrink {
+
+void add_merge_tree_factory_category(RawRegistry& raw_registry)
+{
+    raw_registry.insert_category_plugin<MergeTreeFactoryCategoryPlugin>();
+
+    raw_registry.insert_enum_plugin<UpdateOption>(
+        {{"use_first",
+          "the node representing the index that would have been merged earlier "
+          "survives"},
+         {"use_second",
+          "the node representing the index that would have been merged later "
+          "survives"},
+         {"use_random", "a random node (of the above two) survives"}});
+}
 
 } // namespace

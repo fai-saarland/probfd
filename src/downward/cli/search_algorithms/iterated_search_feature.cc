@@ -1,6 +1,8 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/search_algorithms/iterated_search_feature.h"
+#include "downward/cli/search_algorithms/search_algorithm_options.h"
 
-#include "downward/cli/search_algorithm_options.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/search_algorithms/iterated_search.h"
 
@@ -18,7 +20,6 @@ using namespace downward::cli::plugins;
 using downward::cli::add_search_algorithm_options_to_feature;
 
 namespace {
-
 class IteratedSearchFactory : public TaskDependentFactory<SearchAlgorithm> {
     OperatorCost cost_type;
     int bound;
@@ -157,7 +158,13 @@ public:
             options.get<bool>("continue_on_solve"));
     }
 };
+}
 
-FeaturePlugin<IteratedSearchFeature> _plugin;
+namespace downward::cli::search_algorithms {
+
+void add_iterated_search_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<IteratedSearchFeature>();
+}
 
 } // namespace

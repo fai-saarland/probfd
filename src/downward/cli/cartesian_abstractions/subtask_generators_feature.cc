@@ -1,4 +1,7 @@
+#include "downward/cli/cartesian_abstractions/subtask_generators_features.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -22,7 +25,6 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-
 void add_fact_order_option(Feature& feature)
 {
     feature.add_option<FactOrder>(
@@ -98,20 +100,27 @@ public:
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<LandmarkDecomposition>(
-            opts.get<std::shared_ptr<TaskDependentFactory<MutexInformation>>>("mutexes"),
+            opts.get<std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
+                "mutexes"),
             get_fact_order_arguments_from_options(opts),
             opts.get<bool>("combine_facts"));
     }
 };
+}
 
-FeaturePlugin<TaskDuplicatorFeature> _plugin_original;
-FeaturePlugin<GoalDecompositionFeature> _plugin_goals;
-FeaturePlugin<LandmarkDecompositionFeature> _plugin_landmarks;
+namespace downward::cli::cartesian_abstractions {
 
-TypedEnumPlugin<FactOrder> _enum_plugin(
-    {{"original", "according to their (internal) variable index"},
-     {"random", "according to a random permutation"},
-     {"hadd_up", "according to their h^add value, lowest first"},
-     {"hadd_down", "according to their h^add value, highest first "}});
+void add_subtask_generators_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<TaskDuplicatorFeature>();
+    raw_registry.insert_feature_plugin<GoalDecompositionFeature>();
+    raw_registry.insert_feature_plugin<LandmarkDecompositionFeature>();
+
+    raw_registry.insert_enum_plugin<FactOrder>(
+        {{"original", "according to their (internal) variable index"},
+         {"random", "according to a random permutation"},
+         {"hadd_up", "according to their h^add value, lowest first"},
+         {"hadd_down", "according to their h^add value, highest first "}});
+}
 
 } // namespace

@@ -1,4 +1,7 @@
+#include "downward/cli/evaluators/sum_evaluator_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/evaluators/combining_evaluator_options.h"
 
@@ -82,6 +85,13 @@ public:
     }
 };
 
-FeaturePlugin<SumEvaluatorFeature> _plugin;
+}
+
+namespace downward::cli::evaluators {
+
+void add_sum_evaluator_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<SumEvaluatorFeature>();
+}
 
 } // namespace

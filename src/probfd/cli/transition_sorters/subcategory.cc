@@ -1,4 +1,7 @@
+#include "probfd/cli/transition_sorters/subcategory.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "probfd/transition_sorters/vdiff_sorter.h"
 
@@ -11,7 +14,6 @@ using namespace probfd::transition_sorters;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class FDRTransitionSorterCategoryPlugin
     : public TypedCategoryPlugin<FDRTransitionSorter> {
 public:
@@ -19,7 +21,7 @@ public:
         : TypedCategoryPlugin("FDRTransitionSorter")
     {
     }
-} _category_plugin_collection;
+};
 
 class VDiffSorterFeature
     : public TypedFeature<FDRTransitionSorter, VDiffSorter> {
@@ -37,7 +39,14 @@ public:
             opts.get<bool>("prefer_large_gaps"));
     }
 };
+}
 
-FeaturePlugin<VDiffSorterFeature> _plugin_value_gap;
+namespace probfd::cli::transiton_sorters {
+
+void add_transition_sorter_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_category_plugin<FDRTransitionSorterCategoryPlugin>();
+    raw_registry.insert_feature_plugin<VDiffSorterFeature>();
+}
 
 } // namespace

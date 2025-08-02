@@ -1,6 +1,9 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/pdbs/pattern_generator_greedy_feature.h"
 
 #include "downward/cli/pdbs/pattern_generator_options.h"
+
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/pdbs/pattern_generator_greedy.h"
 
@@ -12,7 +15,6 @@ using namespace downward::cli::pdbs;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class PatternGeneratorGreedyFeature
     : public TypedFeature<PatternGenerator, PatternGeneratorGreedy> {
 public:
@@ -35,7 +37,13 @@ public:
             get_generator_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<PatternGeneratorGreedyFeature> _plugin;
+namespace downward::cli::pdbs {
+
+void add_pattern_generator_greedy_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<PatternGeneratorGreedyFeature>();
+}
 
 } // namespace

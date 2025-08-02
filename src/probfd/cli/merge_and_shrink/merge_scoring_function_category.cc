@@ -1,13 +1,13 @@
-#include "probfd/merge_and_shrink/merge_scoring_function.h"
-
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "probfd/merge_and_shrink/merge_scoring_function.h"
 
 using namespace std;
 using namespace downward::cli::plugins;
 using namespace probfd::merge_and_shrink;
 
 namespace {
-
 class MergeScoringFunctionCategoryPlugin
     : public TypedCategoryPlugin<MergeScoringFunction> {
 public:
@@ -25,6 +25,14 @@ public:
             "Scoring functions are currently only used within the score based "
             "filtering merge selector.");
     }
-} _category_plugin;
+};
+}
+
+namespace probfd::cli::merge_and_shrink {
+
+void add_merge_scoring_function_category(RawRegistry& raw_registry)
+{
+    raw_registry.insert_category_plugin<MergeScoringFunctionCategoryPlugin>();
+}
 
 } // namespace

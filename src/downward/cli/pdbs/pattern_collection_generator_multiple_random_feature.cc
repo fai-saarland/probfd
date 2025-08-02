@@ -1,8 +1,10 @@
-#include "downward/cli/plugins/plugin.h"
-
+#include "downward/cli/pdbs/pattern_collection_generator_multiple_random_feature.h"
 #include "downward/cli/pdbs/pattern_collection_generator_multiple_options.h"
 #include "downward/cli/pdbs/random_pattern_options.h"
 #include "downward/cli/pdbs/utils.h"
+
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/pdbs/pattern_collection_generator_multiple_random.h"
 
@@ -14,7 +16,6 @@ using namespace downward::cli::pdbs;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class PatternCollectionGeneratorMultipleRandomFeature
     : public TypedFeature<
           PatternCollectionGenerator,
@@ -50,7 +51,15 @@ public:
             get_multiple_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<PatternCollectionGeneratorMultipleRandomFeature> _plugin;
+namespace downward::cli::pdbs {
+
+void add_pattern_collection_generator_multiple_random_feature(
+    RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<
+        PatternCollectionGeneratorMultipleRandomFeature>();
+}
 
 } // namespace

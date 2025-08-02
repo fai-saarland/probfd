@@ -1,6 +1,9 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/evaluators/const_evaluator_feature.h"
 
-#include "downward/cli/evaluator_options.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "downward/cli/evaluators/evaluator_options.h"
 
 #include "downward/evaluators/const_evaluator.h"
 
@@ -19,7 +22,6 @@ using downward::cli::add_evaluator_options_to_feature;
 using downward::cli::get_evaluator_arguments_from_options;
 
 namespace {
-
 class ConstEvaluatorFactory : public TaskDependentFactory<Evaluator> {
     std::string description;
     Verbosity verbosity;
@@ -71,7 +73,13 @@ public:
             opts.get<int>("value"));
     }
 };
+}
 
-FeaturePlugin<ConstEvaluatorFeature> _plugin;
+namespace downward::cli::evaluators {
+
+void add_const_evaluator_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<ConstEvaluatorFeature>();
+}
 
 } // namespace

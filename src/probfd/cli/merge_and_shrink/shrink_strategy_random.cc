@@ -1,11 +1,14 @@
+#include "probfd/cli/merge_and_shrink/shrink_strategy_random.h"
+
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
 #include "probfd/merge_and_shrink/shrink_strategy_random.h"
 
 #include "probfd/merge_and_shrink/factored_transition_system.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
 #include "probfd/cli/merge_and_shrink/shrink_strategy_bucket_based_options.h"
-
-#include "downward/cli/plugins/plugin.h"
 
 using namespace std;
 using namespace downward;
@@ -14,7 +17,6 @@ using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
 namespace {
-
 class ShrinkRandomFeature
     : public TypedFeature<ShrinkStrategy, ShrinkStrategyRandom> {
 public:
@@ -37,7 +39,13 @@ protected:
             get_bucket_based_shrink_args_from_options(options));
     }
 };
+}
 
-FeaturePlugin<ShrinkRandomFeature> _plugin;
+namespace probfd::cli::merge_and_shrink {
+
+void add_shrink_strategy_random_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<ShrinkRandomFeature>();
+}
 
 } // namespace

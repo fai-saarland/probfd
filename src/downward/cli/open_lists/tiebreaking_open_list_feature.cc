@@ -1,6 +1,9 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/open_lists/tiebreaking_open_list_feature.h"
 
-#include "downward/cli/open_list_options.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "downward/cli/open_lists/open_list_options.h"
 
 #include "downward/open_lists/tiebreaking_open_list.h"
 
@@ -16,7 +19,6 @@ using downward::cli::add_open_list_options_to_feature;
 using downward::cli::get_open_list_arguments_from_options;
 
 namespace {
-
 template <typename T>
 class TieBreakingOpenListFeature
     : public TypedFeature<
@@ -72,8 +74,16 @@ public:
             get_open_list_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<TieBreakingOpenListFeature<downward::StateOpenListEntry>> _plugin;
-FeaturePlugin<TieBreakingOpenListFeature<downward::EdgeOpenListEntry>> _plugin2;
+namespace downward::cli::open_lists {
+
+void add_tiebreaking_open_list_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<
+        TieBreakingOpenListFeature<downward::StateOpenListEntry>>();
+    raw_registry.insert_feature_plugin<
+        TieBreakingOpenListFeature<downward::EdgeOpenListEntry>>();
+}
 
 } // namespace

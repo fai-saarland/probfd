@@ -1,8 +1,11 @@
+#include "probfd/cli/pdbs/pattern_collection_generator_classical.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/utils/logging_options.h"
 
-#include "probfd/cli/pdbs/pattern_collection_generator.h"
+#include "probfd/cli/pdbs/pattern_collection_generator_options.h"
 
 #include "probfd/pdbs/pattern_collection_generator_classical.h"
 
@@ -17,7 +20,6 @@ using namespace downward::cli::plugins;
 using downward::cli::utils::get_log_arguments_from_options;
 
 namespace {
-
 class PatternCollectionGeneratorClassicalFeature
     : public TypedFeature<
           PatternCollectionGenerator,
@@ -57,7 +59,15 @@ public:
             get_log_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<PatternCollectionGeneratorClassicalFeature> _plugin;
+namespace probfd::cli::pdbs {
+
+void add_pattern_collection_generator_classical_feature(
+    RawRegistry& raw_registry)
+{
+    raw_registry
+        .insert_feature_plugin<PatternCollectionGeneratorClassicalFeature>();
+}
 
 } // namespace

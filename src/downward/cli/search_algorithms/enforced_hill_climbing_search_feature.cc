@@ -1,6 +1,8 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/search_algorithms/enforced_hill_climbing_search_feature.h"
+#include "downward/cli/search_algorithms/search_algorithm_options.h"
 
-#include "downward/cli/search_algorithm_options.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/search_algorithms/enforced_hill_climbing_search.h"
 
@@ -20,7 +22,6 @@ using downward::cli::add_search_algorithm_options_to_feature;
 using downward::cli::get_search_algorithm_arguments_from_options;
 
 namespace {
-
 class EnforcedHillClimbingSearchFactory
     : public TaskDependentFactory<SearchAlgorithm> {
     shared_ptr<TaskDependentFactory<Evaluator>> h_factory;
@@ -111,14 +112,19 @@ public:
             get_search_algorithm_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<EnforcedHillClimbingSearchFeature> _plugin;
+namespace downward::cli::search_algorithms {
 
-TypedEnumPlugin<PreferredUsage> _enum_plugin(
-    {{"prune_by_preferred",
-      "prune successors achieved by non-preferred operators"},
-     {"rank_preferred_first",
-      "first insert successors achieved by preferred operators, "
-      "then those by non-preferred operators"}});
+void add_enforce_hill_climbing_search_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<EnforcedHillClimbingSearchFeature>();
+    raw_registry.insert_enum_plugin<PreferredUsage>(
+        {{"prune_by_preferred",
+          "prune successors achieved by non-preferred operators"},
+         {"rank_preferred_first",
+          "first insert successors achieved by preferred operators, "
+          "then those by non-preferred operators"}});
+}
 
 } // namespace

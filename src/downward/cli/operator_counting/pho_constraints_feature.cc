@@ -1,4 +1,7 @@
+#include "downward/cli/operator_counting/pho_constraints_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/operator_counting/pho_constraints.h"
 
@@ -12,7 +15,6 @@ using namespace downward::operator_counting;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class PhOConstraintsFeature
     : public TypedFeature<ConstraintGenerator, PhOConstraints> {
 public:
@@ -28,7 +30,7 @@ public:
                 {"Florian Pommerening", "Gabriele Roeger", "Malte Helmert"},
                 "Getting the Most Out of Pattern Databases for Classical "
                 "Planning",
-                "http://ijcai.org/papers13/Papers/IJCAI13-347.pdf",
+                "https://ijcai.org/papers13/Papers/IJCAI13-347.pdf",
                 "Proceedings of the Twenty-Third International Joint"
                 " Conference on Artificial Intelligence (IJCAI 2013)",
                 "2357-2364",
@@ -48,7 +50,13 @@ public:
             opts.get<shared_ptr<PatternCollectionGenerator>>("patterns"));
     }
 };
+}
 
-FeaturePlugin<PhOConstraintsFeature> _plugin;
+namespace downward::cli::operator_counting {
+
+void add_pho_constraints_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<PhOConstraintsFeature>();
+}
 
 } // namespace

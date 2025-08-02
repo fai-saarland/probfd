@@ -2,8 +2,8 @@ create_library(
     NAME probfd_core_plugin
     HELP "Enables core ProbFD plugin"
     SOURCES
-        probfd/cli/solver_interface
-        probfd/cli/task_heuristic_factory
+        probfd/cli/solvers/task_solver_factory_category
+        probfd/cli/heuristics/task_heuristic_factory_category
     DEPENDS
         probfd_core
         parser
@@ -57,7 +57,7 @@ create_library(
     NAME mdp_solver_options
     HELP "Enables plugin options for MDP solvers"
     SOURCES
-        probfd/cli/solvers/mdp_solver
+        probfd/cli/solvers/mdp_solver_options
         probfd/cli/solvers/statistical_mdp_algorithm_factory_category
     DEPENDS
         probfd_core
@@ -73,7 +73,7 @@ create_library(
     NAME mdp_heuristic_search_base_options
     HELP "Enables the mdp heuristic search core plugin options"
     SOURCES
-        probfd/cli/solvers/mdp_heuristic_search
+        probfd/cli/solvers/mdp_heuristic_search_options
     DEPENDS
         mdp_heuristic_search_base
         mdp_solver_options
@@ -289,13 +289,13 @@ create_library(
     NAME papdbs_pattern_generators_plugin
     HELP "Enables the base plugin for pattern collection generation for PPDBs"
     SOURCES
-        probfd/cli/pdbs/pattern_generator
         probfd/cli/pdbs/pattern_generator_category
-        probfd/cli/pdbs/pattern_collection_generator
+        probfd/cli/pdbs/pattern_generator_options
         probfd/cli/pdbs/pattern_collection_generator_category
-        probfd/cli/pdbs/pattern_collection_generator_multiple
+        probfd/cli/pdbs/pattern_collection_generator_options
+        probfd/cli/pdbs/pattern_collection_generator_multiple_options
 
-        probfd/cli/pdbs/subcollection_finder_factory
+        probfd/cli/pdbs/subcollection_finder_factory_category
         probfd/cli/pdbs/max_orthogonal_finder_factory
         probfd/cli/pdbs/trivial_finder_factory
         probfd/cli/pdbs/fully_additive_finder_factory
@@ -356,11 +356,11 @@ create_library(
     HELP "Enables the disjoint CEGAR pattern collection generator for PPDBs
     plugin"
     SOURCES
-        probfd/cli/pdbs/cegar_options
+        probfd/cli/pdbs/cegar/cegar_options
+        probfd/cli/pdbs/cegar/flaw_finding_strategy_category
         probfd/cli/pdbs/cegar/bfs_flaw_finder
         probfd/cli/pdbs/cegar/pucs_flaw_finder
         probfd/cli/pdbs/cegar/sampling_flaw_finder
-        probfd/cli/pdbs/cegar/flaw_finding_strategy
     DEPENDS
         papdbs_cegar
         papdbs_pattern_generators_plugin

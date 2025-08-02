@@ -1,13 +1,13 @@
+#include "probfd/cli/merge_and_shrink/shrink_strategy_probabilistic_bisimulation.h"
+
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
 #include "probfd/merge_and_shrink/shrink_strategy_probabilistic_bisimulation.h"
 
-#include "probfd/merge_and_shrink/distances.h"
-#include "probfd/merge_and_shrink/factored_transition_system.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
 #include "downward/utils/logging.h"
-#include "downward/utils/markup.h"
-
-#include "downward/cli/plugins/plugin.h"
 
 using namespace std;
 using namespace downward;
@@ -15,7 +15,6 @@ using namespace downward::cli::plugins;
 using namespace probfd::merge_and_shrink;
 
 namespace {
-
 class ShrinkProbabilisticBisimulationFeature
     : public TypedFeature<
           ShrinkStrategy,
@@ -53,13 +52,22 @@ protected:
             options.get<bool>("require_goal_distances"));
     }
 };
+}
 
-FeaturePlugin<ShrinkProbabilisticBisimulationFeature> _plugin;
+namespace probfd::cli::merge_and_shrink {
 
-TypedEnumPlugin<ShrinkStrategyProbabilisticBisimulation::AtLimit> _enum_plugin(
-    {{"return", "stop without refining the equivalence class further"},
-     {"use_up",
-      "continue refining the equivalence class until "
-      "the size limit is hit"}});
+void add_shrink_strategy_probabilistic_bisimulation_feature(
+    RawRegistry& raw_registry)
+{
+    raw_registry
+        .insert_feature_plugin<ShrinkProbabilisticBisimulationFeature>();
+
+    raw_registry
+        .insert_enum_plugin<ShrinkStrategyProbabilisticBisimulation::AtLimit>(
+            {{"return", "stop without refining the equivalence class further"},
+             {"use_up",
+              "continue refining the equivalence class until "
+              "the size limit is hit"}});
+}
 
 } // namespace

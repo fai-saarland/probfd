@@ -11,33 +11,13 @@
 using namespace std;
 
 namespace downward::cli::plugins {
-void RawRegistry::insert_category_plugin(const CategoryPlugin& category_plugin)
-{
-    category_plugins.push_back(&category_plugin);
-}
-
-void RawRegistry::insert_subcategory_plugin(
-    const SubcategoryPlugin& subcategory_plugin)
-{
-    subcategory_plugins.push_back(&subcategory_plugin);
-}
-
-void RawRegistry::insert_enum_plugin(const EnumPlugin& enum_plugin)
-{
-    enum_plugins.push_back(&enum_plugin);
-}
-
-void RawRegistry::insert_plugin(const Plugin& plugin)
-{
-    plugins.push_back(&plugin);
-}
 
 FeatureTypes RawRegistry::collect_types(vector<string>& errors) const
 {
     FeatureTypes feature_types;
     unordered_map<type_index, vector<string>> type_to_names;
 
-    for (const EnumPlugin* enum_plugin : enum_plugins) {
+    for (const auto& enum_plugin : enum_plugins) {
         vector<string>& names = type_to_names[enum_plugin->get_type()];
         if (names.empty()) {
             TypeRegistry::instance()->create_enum_type(*enum_plugin);
@@ -45,7 +25,7 @@ FeatureTypes RawRegistry::collect_types(vector<string>& errors) const
         names.push_back("EnumPlugin(" + enum_plugin->get_class_name() + ")");
     }
 
-    for (const CategoryPlugin* category_plugin : category_plugins) {
+    for (const auto& category_plugin : category_plugins) {
         vector<string>& names =
             type_to_names[category_plugin->get_pointer_type()];
         if (names.empty()) {
@@ -60,8 +40,7 @@ FeatureTypes RawRegistry::collect_types(vector<string>& errors) const
 
     // Check that each type index is only used once for either an enum or a
     // category.
-    for (const auto& pair : type_to_names) {
-        const vector<string>& names = pair.second;
+    for (const auto& names : type_to_names | views::values) {
         if (names.size() > 1) {
             errors.push_back(
                 "Multiple plugins are defined for the same type: " +
@@ -75,25 +54,23 @@ void RawRegistry::validate_category_names(vector<string>& errors) const
 {
     unordered_map<string, vector<string>> category_name_to_class_names;
     unordered_map<string, vector<string>> class_name_to_category_names;
-    for (const CategoryPlugin* category_plugin : category_plugins) {
+    for (const auto& category_plugin : category_plugins) {
         string class_name = category_plugin->get_class_name();
         string category_name = category_plugin->get_category_name();
         category_name_to_class_names[category_name].push_back(class_name);
         class_name_to_category_names[class_name].push_back(category_name);
     }
 
-    for (const auto& pair : category_name_to_class_names) {
-        const string& category_name = pair.first;
-        const vector<string>& class_names = pair.second;
+    for (const auto& [category_name, class_names] :
+         category_name_to_class_names) {
         if (class_names.size() > 1) {
             errors.push_back(
                 "Multiple CategoryPlugins have the name '" + category_name +
                 "': " + utils::join(class_names, ", ") + ".");
         }
     }
-    for (const auto& pair : class_name_to_category_names) {
-        const string& class_name = pair.first;
-        const vector<string>& category_names = pair.second;
+    for (const auto& [class_name, category_names] :
+         class_name_to_category_names) {
         if (category_names.size() > 1) {
             errors.push_back(
                 "Multiple CategoryPlugins are defined for the class '" +
@@ -108,16 +85,14 @@ RawRegistry::collect_subcategory_plugins(vector<string>& errors) const
     SubcategoryPlugins subcategory_plugin_map;
     unordered_map<string, int> occurrences;
 
-    for (const SubcategoryPlugin* subcategory_plugin : subcategory_plugins) {
+    for (const auto& subcategory_plugin : subcategory_plugins) {
         ++occurrences[subcategory_plugin->get_subcategory_name()];
         subcategory_plugin_map.emplace(
             subcategory_plugin->get_subcategory_name(),
-            subcategory_plugin);
+            subcategory_plugin.get());
     }
 
-    for (auto& item : occurrences) {
-        string subcategory = item.first;
-        int occurrence = item.second;
+    for (const auto& [subcategory, occurrence] : occurrences) {
         if (occurrence > 1) {
             errors.push_back(
                 "The SubcategoryPlugin '" + subcategory + "' is defined " +
@@ -133,7 +108,7 @@ Features RawRegistry::collect_features(
 {
     Features features;
     unordered_map<string, int> feature_key_occurrences;
-    for (const Plugin* plugin : plugins) {
+    for (const auto& plugin : plugins) {
         shared_ptr<Feature> feature = plugin->create_feature();
         string feature_key = feature->get_key();
         feature_key_occurrences[feature_key]++;
@@ -141,9 +116,7 @@ Features RawRegistry::collect_features(
     }
 
     // Check that feature_keys  are unique
-    for (const auto& pair : feature_key_occurrences) {
-        const string& feature_key = pair.first;
-        int occurrences = pair.second;
+    for (const auto& [feature_key, occurrences] : feature_key_occurrences) {
         if (occurrences > 1) {
             errors.push_back(
                 to_string(occurrences) + " Features are defined for the key '" +
@@ -152,13 +125,12 @@ Features RawRegistry::collect_features(
     }
 
     // Check that all subcategories used in features are defined
-    for (const auto& item : features) {
-        const string& feature_key = item.first;
-        const Feature& feature = *item.second;
-        string subcategory = feature.get_subcategory();
+    for (const auto& [feature_key, feature] : features) {
+        string subcategory = feature->get_subcategory();
 
-        if (!subcategory.empty() && !subcategory_plugins.count(subcategory)) {
-            const Type& type = feature.get_type();
+        if (!subcategory.empty() &&
+            !subcategory_plugins.contains(subcategory)) {
+            const Type& type = feature->get_type();
             errors.push_back(
                 "Missing SubcategoryPlugin '" + subcategory + "' for Plugin '" +
                 feature_key + "' of type " + type.name());
@@ -167,18 +139,15 @@ Features RawRegistry::collect_features(
 
     // Check that all types used in features are defined
     unordered_set<type_index> missing_types;
-    for (const auto& item : features) {
-        const string& feature_key = item.first;
-        const Feature& feature = *item.second;
-
-        const Type& type = feature.get_type();
+    for (const auto& [feature_key, feature] : features) {
+        const Type& type = feature->get_type();
         if (type == TypeRegistry::NO_TYPE) {
             errors.push_back(
                 "Missing Plugin for type of feature '" + feature_key + "'.");
         }
 
         unordered_map<string, int> parameter_occurrences;
-        for (const ArgumentInfo& arg_info : feature.get_arguments()) {
+        for (const ArgumentInfo& arg_info : feature->get_arguments()) {
             if (arg_info.type == TypeRegistry::NO_TYPE) {
                 errors.push_back(
                     "Missing Plugin for type of parameter '" + arg_info.key +
@@ -187,9 +156,8 @@ Features RawRegistry::collect_features(
             ++parameter_occurrences[arg_info.key];
         }
         // Check that parameters are unique
-        for (const auto& pair : parameter_occurrences) {
-            const string& parameter = pair.first;
-            int parameter_occurrence = pair.second;
+        for (const auto& [parameter, parameter_occurrence] :
+             parameter_occurrences) {
             if (parameter_occurrence > 1) {
                 errors.push_back(
                     "The parameter '" + parameter + "' in '" + feature_key +
@@ -212,11 +180,9 @@ Registry RawRegistry::construct_registry() const
     Features features = collect_features(subcategory_plugins, errors);
 
     if (!errors.empty()) {
-        sort(errors.begin(), errors.end());
+        ranges::sort(errors);
         cerr << "Internal registry error(s):" << endl;
-        for (const string& error : errors) {
-            cerr << error << endl;
-        }
+        for (const string& error : errors) { cerr << error << endl; }
         utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
     return Registry(

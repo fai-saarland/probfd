@@ -1,13 +1,15 @@
-#include "probfd/merge_and_shrink/shrink_strategy.h"
+#include "probfd/cli/merge_and_shrink/shrink_strategy_category.h"
 
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "probfd/merge_and_shrink/shrink_strategy.h"
 
 using namespace std;
 using namespace downward::cli::plugins;
 using namespace probfd::merge_and_shrink;
 
 namespace {
-
 class ShrinkStrategyCategoryPlugin
     : public TypedCategoryPlugin<ShrinkStrategy> {
 public:
@@ -18,6 +20,14 @@ public:
             "This page describes the various shrink strategies supported "
             "by the planner.");
     }
-} _category_plugin;
+};
+}
+
+namespace probfd::cli::merge_and_shrink {
+
+void add_shrink_strategy_category(RawRegistry& raw_registry)
+{
+    raw_registry.insert_category_plugin<ShrinkStrategyCategoryPlugin>();
+}
 
 } // namespace

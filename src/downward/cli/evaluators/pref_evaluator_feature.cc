@@ -1,6 +1,9 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/evaluators/pref_evaluator_feature.h"
 
-#include "downward/cli/evaluator_options.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "downward/cli/evaluators/evaluator_options.h"
 
 #include "downward/evaluators/pref_evaluator.h"
 
@@ -61,6 +64,13 @@ public:
     }
 };
 
-FeaturePlugin<PrefEvaluatorFeature> _plugin;
+}
+
+namespace downward::cli::evaluators {
+
+void add_pref_evaluator_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<PrefEvaluatorFeature>();
+}
 
 } // namespace

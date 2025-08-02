@@ -1,4 +1,7 @@
+#include "probfd/cli/heuristics/additive_cartesian_heuristic.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "probfd/cli/heuristics/task_dependent_heuristic_options.h"
 
@@ -14,7 +17,6 @@ using namespace probfd::cli::heuristics;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class AdditiveCartesianHeuristicFactoryFeature
     : public TypedFeature<
           TaskHeuristicFactory,
@@ -87,7 +89,13 @@ public:
             get_task_dependent_heuristic_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<AdditiveCartesianHeuristicFactoryFeature> _plugin;
+namespace probfd::cli::heuristics {
+
+void add_additive_cartesian_heuristic_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<AdditiveCartesianHeuristicFactoryFeature>();
+}
 
 } // namespace

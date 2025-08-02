@@ -1,4 +1,7 @@
+#include "downward/cli/merge_and_shrink/merge_tree_factory_linear_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/merge_and_shrink/merge_tree_options.h"
 
@@ -16,7 +19,6 @@ using downward::cli::merge_and_shrink::add_merge_tree_options_to_feature;
 using downward::cli::merge_and_shrink::get_merge_tree_arguments_from_options;
 
 namespace {
-
 class MergeTreeFactoryLinearFeature
     : public TypedFeature<MergeTreeFactory, MergeTreeFactoryLinear> {
 public:
@@ -55,11 +57,16 @@ public:
             get_merge_tree_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<MergeTreeFactoryLinearFeature> _plugin;
+namespace downward::cli::merge_and_shrink {
 
-TypedEnumPlugin<downward::variable_order_finder::VariableOrderType>
-    _enum_plugin(
+void add_merge_tree_factory_linear_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<MergeTreeFactoryLinearFeature>();
+
+    raw_registry.insert_enum_plugin<
+        downward::variable_order_finder::VariableOrderType>(
         {{"cg_goal_level",
           "variables are prioritized first if they have an arc to a previously "
           "added variable, second if their goal value is defined "
@@ -77,5 +84,6 @@ TypedEnumPlugin<downward::variable_order_finder::VariableOrderType>
           "variables are ordered according to their level in the causal graph"},
          {"reverse_level",
           "variables are ordered reverse to their level in the causal graph"}});
+}
 
 } // namespace

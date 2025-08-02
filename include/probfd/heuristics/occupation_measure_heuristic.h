@@ -2,7 +2,7 @@
 #define PROBFD_HEURISTICS_OCCUPATION_MEASURE_HEURISTIC_H
 
 #include "probfd/heuristics/lp_heuristic.h"
-#include "probfd/task_heuristic_factory.h"
+#include "probfd/task_heuristic_factory_category.h"
 
 #include <memory>
 

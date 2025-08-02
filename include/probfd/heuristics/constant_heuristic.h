@@ -5,7 +5,7 @@
 
 #include "probfd/cost_function.h"
 #include "probfd/heuristic.h"
-#include "probfd/task_heuristic_factory.h"
+#include "probfd/task_heuristic_factory_category.h"
 #include "probfd/termination_costs.h"
 #include "probfd/type_traits.h"
 #include "probfd/value_type.h"
@@ -56,7 +56,7 @@ public:
     }
 };
 
-class BlindEvaluatorFactory : public TaskHeuristicFactory {
+class BlindHeuristicFactory : public TaskHeuristicFactory {
 public:
     std::unique_ptr<FDRHeuristic>
     create_object(const SharedProbabilisticTask& task) override;

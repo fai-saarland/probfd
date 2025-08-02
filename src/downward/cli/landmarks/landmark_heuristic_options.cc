@@ -1,6 +1,6 @@
 #include "downward/cli/landmarks/landmark_heuristic_options.h"
 
-#include "downward/cli/heuristic_options.h"
+#include "downward/cli/heuristics/heuristic_options.h"
 
 #include "downward/cli/plugins/plugin.h"
 

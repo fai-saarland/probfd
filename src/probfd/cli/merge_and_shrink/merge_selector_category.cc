@@ -1,13 +1,15 @@
-#include "probfd/merge_and_shrink/merge_selector.h"
+#include "probfd/cli/merge_and_shrink/merge_selector_category.h"
 
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "probfd/merge_and_shrink/merge_selector.h"
 
 using namespace std;
 using namespace downward::cli::plugins;
 using namespace probfd::merge_and_shrink;
 
 namespace {
-
 class MergeSelectorCategoryPlugin
     : public TypedCategoryPlugin<MergeSelector> {
 public:
@@ -24,6 +26,14 @@ public:
             "'combined' "
             "merged strategies.");
     }
-} _category_plugin;
+};
+}
+
+namespace probfd::cli::merge_and_shrink {
+
+void add_merge_selector_category(RawRegistry& raw_registry)
+{
+    raw_registry.insert_category_plugin<MergeSelectorCategoryPlugin>();
+}
 
 }

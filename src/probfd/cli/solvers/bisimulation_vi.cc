@@ -1,5 +1,7 @@
+#include "probfd/cli/solvers/bisimulation_vi.h"
+
 #include "downward/cli/plugins/plugin.h"
-#include "downward/initial_state_values.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "probfd/solver_interface.h"
 
@@ -27,6 +29,8 @@
 
 #include "downward/utils/timer.h"
 
+#include "downward/initial_state_values.h"
+
 #include <iostream>
 #include <memory>
 #include <string>
@@ -38,7 +42,6 @@ using namespace probfd::bisimulation;
 using namespace downward::cli::plugins;
 
 namespace {
-
 void print_bisimulation_stats(
     std::ostream& out,
     utils::Duration time,
@@ -268,8 +271,14 @@ protected:
             true);
     }
 };
+}
 
-FeaturePlugin<BisimulationVISolverFeature> _plugin_bvi;
-FeaturePlugin<BisimulationIISolverFeature> _plugin_bii;
+namespace probfd::cli::solvers {
+
+void add_bisimulation_value_iteration_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<BisimulationVISolverFeature>();
+    raw_registry.insert_feature_plugin<BisimulationIISolverFeature>();
+}
 
 } // namespace

@@ -1,6 +1,9 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/evaluators/weighted_evaluator_feature.h"
 
-#include "downward/cli/evaluator_options.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "downward/cli/evaluators/evaluator_options.h"
 
 #include "downward/evaluators/weighted_evaluator.h"
 
@@ -81,6 +84,13 @@ public:
     }
 };
 
-FeaturePlugin<WeightedEvaluatorFeature> _plugin;
+}
+
+namespace downward::cli::evaluators {
+
+void add_weighted_evaluator_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<WeightedEvaluatorFeature>();
+}
 
 } // namespace

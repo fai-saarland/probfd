@@ -1,4 +1,7 @@
+#include "downward/cli/merge_and_shrink/merge_selector_category.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/merge_and_shrink/merge_selector.h"
 
@@ -8,7 +11,6 @@ using namespace downward::merge_and_shrink;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class MergeSelectorCategoryPlugin : public TypedCategoryPlugin<MergeSelector> {
 public:
     MergeSelectorCategoryPlugin()
@@ -24,6 +26,14 @@ public:
             "'combined' "
             "merged strategies.");
     }
-} _category_plugin;
+};
+}
+
+namespace downward::cli::merge_and_shrink {
+
+void add_merge_selector_category(RawRegistry& raw_registry)
+{
+    raw_registry.insert_category_plugin<MergeSelectorCategoryPlugin>();
+}
 
 } // namespace

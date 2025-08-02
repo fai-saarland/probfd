@@ -1,11 +1,13 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/pdbs/pattern_collection_generator_hillclimbing_feature.h"
 
 #include "downward/cli/pdbs/pattern_collection_generator_hillclimbing_options.h"
-
 #include "downward/cli/pdbs/canonical_pdbs_heuristic_options.h"
 #include "downward/cli/pdbs/pattern_generator_options.h"
 
-#include "downward/cli/heuristic_options.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "downward/cli/heuristics/heuristic_options.h"
 
 #include "downward/pdbs/canonical_pdbs_heuristic.h"
 #include "downward/pdbs/pattern_collection_generator_hillclimbing.h"
@@ -26,7 +28,6 @@ using downward::cli::add_heuristic_options_to_feature;
 using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
-
 std::string paper_references()
 {
     return format_conference_reference(
@@ -91,7 +92,14 @@ public:
             get_generator_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<PatternCollectionGeneratorHillclimbingFeature> _plugin;
+namespace downward::cli::pdbs {
+
+void add_pattern_collection_generator_hillclimbing_feature(RawRegistry& raw_registry)
+{
+    raw_registry
+        .insert_feature_plugin<PatternCollectionGeneratorHillclimbingFeature>();
+}
 
 } // namespace

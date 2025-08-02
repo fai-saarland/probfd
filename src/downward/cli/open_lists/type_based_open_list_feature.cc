@@ -1,6 +1,9 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/open_lists/type_based_open_list_feature.h"
 
-#include "downward/cli/open_list_options.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "downward/cli/open_lists/open_list_options.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -21,7 +24,6 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-
 template <typename T>
 class TypeBasedOpenListFeature
     : public TypedFeature<
@@ -100,8 +102,16 @@ public:
             get_rng_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<TypeBasedOpenListFeature<downward::StateOpenListEntry>> _plugin;
-FeaturePlugin<TypeBasedOpenListFeature<downward::EdgeOpenListEntry>> _plugin2;
+namespace downward::cli::open_lists {
+
+void add_type_based_open_list_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<
+        TypeBasedOpenListFeature<downward::StateOpenListEntry>>();
+    raw_registry.insert_feature_plugin<
+        TypeBasedOpenListFeature<downward::EdgeOpenListEntry>>();
+}
 
 } // namespace

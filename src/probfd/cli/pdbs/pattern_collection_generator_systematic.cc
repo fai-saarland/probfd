@@ -1,4 +1,7 @@
+#include "probfd/cli/pdbs/pattern_collection_generator_systematic.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/utils/logging_options.h"
 
@@ -15,7 +18,6 @@ using downward::cli::utils::add_log_options_to_feature;
 using downward::cli::utils::get_log_arguments_from_options;
 
 namespace {
-
 class PatternCollectionGeneratorSystematicFeature
     : public TypedFeature<
           PatternCollectionGenerator,
@@ -63,7 +65,15 @@ public:
             get_log_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<PatternCollectionGeneratorSystematicFeature> _;
+namespace probfd::cli::pdbs {
+
+void add_pattern_collection_generator_systematic_feature(
+    RawRegistry& raw_registry)
+{
+    raw_registry
+        .insert_feature_plugin<PatternCollectionGeneratorSystematicFeature>();
+}
 
 } // namespace

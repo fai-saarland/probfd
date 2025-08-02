@@ -1,4 +1,7 @@
+#include "probfd/cli/heuristics/dead_end_pruning_heuristic.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "probfd/heuristics/dead_end_pruning_heuristic.h"
 
@@ -11,7 +14,6 @@ using namespace probfd::heuristics;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class DeadEndPruningHeuristicFactoryFeature
     : public TypedFeature<
           TaskHeuristicFactory,
@@ -42,7 +44,13 @@ protected:
                 "evaluator"));
     }
 };
+}
 
-FeaturePlugin<DeadEndPruningHeuristicFactoryFeature> _plugin;
+namespace probfd::cli::heuristics {
+
+void add_dead_end_pruning_heuristic_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<DeadEndPruningHeuristicFactoryFeature>();
+}
 
 } // namespace

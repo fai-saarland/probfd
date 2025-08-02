@@ -1,8 +1,10 @@
-#include "probfd/caching_task_state_space.h"
-#include "probfd/task_state_space.h"
+#include "probfd/cli/task_state_space_factory_features.h"
 
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
+#include "probfd/caching_task_state_space.h"
+#include "probfd/task_state_space.h"
 #include "probfd/task_state_space_factory.h"
 
 using namespace probfd;
@@ -12,7 +14,6 @@ using namespace downward::utils;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class DefaultTaskStateSpaceFactory : public TaskStateSpaceFactory {
     std::vector<std::shared_ptr<Evaluator>> path_dependent_evaluators;
 
@@ -105,8 +106,14 @@ public:
                 "path_dependent_evaluators"));
     }
 };
+}
 
-FeaturePlugin<DefaultTaskStateSpaceFactoryFeature> _plugin;
-FeaturePlugin<CachingTaskStateSpaceFactoryFeature> _plugin2;
+namespace probfd::cli {
+
+void add_task_state_space_factory_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<DefaultTaskStateSpaceFactoryFeature>();
+    raw_registry.insert_feature_plugin<CachingTaskStateSpaceFactoryFeature>();
+}
 
 } // namespace

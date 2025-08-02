@@ -1,4 +1,7 @@
+#include "probfd/cli/heuristics/determinization_cost_heuristic.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "probfd/heuristics/determinization_cost_heuristic.h"
 
@@ -13,7 +16,6 @@ using namespace probfd::heuristics;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class DeterminizationHeuristicFactoryFeature
     : public TypedFeature<
           TaskHeuristicFactory,
@@ -42,7 +44,14 @@ public:
                 "heuristic"));
     }
 };
+}
 
-FeaturePlugin<DeterminizationHeuristicFactoryFeature> _plugin;
+namespace probfd::cli::heuristics {
+
+void add_determinization_cost_heuristic_feature(RawRegistry& raw_registry)
+{
+    raw_registry
+        .insert_feature_plugin<DeterminizationHeuristicFactoryFeature>();
+}
 
 } // namespace

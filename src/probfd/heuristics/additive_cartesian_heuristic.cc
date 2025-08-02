@@ -5,7 +5,7 @@
 #include "probfd/cartesian_abstractions/types.h"
 #include "probfd/cartesian_abstractions/utils.h"
 
-#include "probfd/task_heuristic_factory.h"
+#include "probfd/task_heuristic_factory_category.h"
 
 #include "downward/utils/logging.h"
 

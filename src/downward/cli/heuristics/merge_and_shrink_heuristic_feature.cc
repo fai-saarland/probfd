@@ -1,8 +1,11 @@
+#include "downward/cli/heuristics/merge_and_shrink_heuristic_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/merge_and_shrink/merge_and_shrink_algorithm_options.h"
 
-#include "downward/cli/heuristic_options.h"
+#include "downward/cli/heuristics/heuristic_options.h"
 
 #include "downward/merge_and_shrink/merge_and_shrink_heuristic.h"
 
@@ -30,7 +33,6 @@ using downward::cli::merge_and_shrink::handle_shrink_limit_options_defaults;
 using namespace downward::merge_and_shrink;
 
 namespace {
-
 class MergeAndShrinkHeuristicFactory : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
     bool cache_estimates;
@@ -245,7 +247,13 @@ public:
                 options_copy));
     }
 };
+}
 
-FeaturePlugin<MergeAndShrinkHeuristicFeature> _plugin;
+namespace downward::cli::heuristics {
+
+void add_merge_and_shrink_heuristic_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<MergeAndShrinkHeuristicFeature>();
+}
 
 } // namespace

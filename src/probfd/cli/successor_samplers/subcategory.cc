@@ -1,8 +1,10 @@
+#include "probfd/cli/successor_samplers/subcategory.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
-#include "probfd/cli/multi_feature_plugin.h"
 #include "probfd/cli/naming_conventions.h"
 
 #include "probfd/successor_samplers/arbitrary_sampler.h"
@@ -34,7 +36,6 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-
 template <template <typename> typename S, bool Fret>
 using Wrapper = std::conditional_t<
     Fret,
@@ -192,14 +193,19 @@ public:
             opts.get<bool>("prefer_large_gaps"));
     }
 };
+}
 
-MultiCategoryPlugin<SuccessorSamplerCategoryPlugin> _category_plugin;
+namespace probfd::cli::successor_samplers {
 
-MultiFeaturePlugin<ArbitrarySuccessorSamplerFeature> _plugin_arbitary;
-MultiFeaturePlugin<MostLikelySuccessorSamplerFeature> _plugin_most_likely;
-MultiFeaturePlugin<RandomSuccessorSamplerFeature> _plugin_random;
-MultiFeaturePlugin<UniformSuccessorSamplerFeature> _plugin_uniform_random;
-MultiFeaturePlugin<VBiasedSuccessorSamplerFeature> _plugin_vbiased;
-MultiFeaturePlugin<VDiffSuccessorSamplerFeature> _plugin_value_gap;
+void add_successor_sampler_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_category_plugins<SuccessorSamplerCategoryPlugin>();
+    raw_registry.insert_feature_plugins<ArbitrarySuccessorSamplerFeature>();
+    raw_registry.insert_feature_plugins<MostLikelySuccessorSamplerFeature>();
+    raw_registry.insert_feature_plugins<RandomSuccessorSamplerFeature>();
+    raw_registry.insert_feature_plugins<UniformSuccessorSamplerFeature>();
+    raw_registry.insert_feature_plugins<VBiasedSuccessorSamplerFeature>();
+    raw_registry.insert_feature_plugins<VDiffSuccessorSamplerFeature>();
+}
 
 } // namespace

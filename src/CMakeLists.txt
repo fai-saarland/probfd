@@ -50,7 +50,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(argparse)
 
 #add_executable(probfd downward/command_line.cc downward/planner.cc)
-add_executable(probfd planner.cc search.cc list_features.cc)
+add_executable(probfd planner.cc search.cc list_features.cc register_definitions.cc)
 target_link_libraries(probfd PUBLIC argparse)
 
 # On Windows we have to copy all DLLs next to the generated binary.

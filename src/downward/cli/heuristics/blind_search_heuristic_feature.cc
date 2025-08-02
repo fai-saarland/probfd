@@ -1,6 +1,9 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/heuristics/blind_search_heuristic_feature.h"
 
-#include "downward/cli/heuristic_options.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "downward/cli/heuristics/heuristic_options.h"
 
 #include "downward/heuristics/blind_search_heuristic.h"
 
@@ -20,7 +23,6 @@ using downward::cli::add_heuristic_options_to_feature;
 using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
-
 class BlindSearchHeuristicFactory : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
     bool cache_estimates;
@@ -85,7 +87,13 @@ public:
             get_heuristic_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<BlindSearchHeuristicFeature> _plugin;
+namespace downward::cli::heuristics {
+
+void add_blind_heuristic_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<BlindSearchHeuristicFeature>();
+}
 
 } // namespace

@@ -2,8 +2,8 @@
 
 #include "downward/cli/plugins/options.h"
 
-#include "downward/cli/open_list_options.h"
-#include "downward/cli/search_algorithm_options.h"
+#include "downward/cli/open_lists/open_list_options.h"
+#include "downward/cli/search_algorithms/search_algorithm_options.h"
 
 #include "downward/utils/logging.h"
 

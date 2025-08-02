@@ -1,4 +1,7 @@
+#include "downward/cli/heuristics/sample_based_potential_heuristics_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/potentials/potential_options.h"
 #include "downward/cli/utils/rng_options.h"
@@ -30,7 +33,6 @@ using namespace downward::cli::plugins;
 using namespace downward::cli::utils;
 
 namespace {
-
 class PotentialMaxHeuristicFactory : public TaskDependentFactory<Evaluator> {
     std::shared_ptr<TaskTransformation> transformation;
     bool cache_estimates;
@@ -65,8 +67,7 @@ public:
     {
     }
 
-    unique_ptr<Evaluator>
-    create_object(const SharedAbstractTask& task) override
+    unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
     {
         auto transformation_result = transformation->transform(task);
 
@@ -149,7 +150,14 @@ public:
             opts.get<int>("random_seed"));
     }
 };
+}
 
-FeaturePlugin<SampleBasedPotentialMaxHeuristicFeature> _plugin;
+namespace downward::cli::heuristics {
+
+void add_sample_based_potential_heuristics_feature(RawRegistry& raw_registry)
+{
+    raw_registry
+        .insert_feature_plugin<SampleBasedPotentialMaxHeuristicFeature>();
+}
 
 } // namespace

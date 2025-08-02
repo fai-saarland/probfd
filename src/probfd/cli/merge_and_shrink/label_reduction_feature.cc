@@ -1,3 +1,5 @@
+#include "probfd/cli/merge_and_shrink/label_reduction_feature.h"
+
 #include "probfd/merge_and_shrink/label_reduction.h"
 
 #include "downward/utils/logging.h"
@@ -6,6 +8,7 @@
 
 #include "downward/cli/plugins/options.h"
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -15,10 +18,9 @@ using namespace downward::cli::plugins;
 
 using utils::ExitCode;
 
-namespace probfd::merge_and_shrink {
+using namespace probfd::merge_and_shrink;
 
 namespace {
-
 class LabelReductionFeature
     : public TypedFeature<LabelReduction, LabelReduction> {
 public:
@@ -92,8 +94,6 @@ public:
     }
 };
 
-FeaturePlugin<LabelReductionFeature> _plugin;
-
 class LabelReductionCategoryPlugin
     : public TypedCategoryPlugin<LabelReduction> {
 public:
@@ -104,26 +104,34 @@ public:
             "This page describes the current single 'option' for "
             "label reduction.");
     }
-} _category_plugin;
+};
+}
 
-TypedEnumPlugin<LabelReductionMethod> _label_reduction_method_enum_plugin(
-    {{"two_transition_systems",
-      "compute the 'combinable relation' only for the two transition "
-      "systems being merged next"},
-     {"all_transition_systems",
-      "compute the 'combinable relation' for labels once for every "
-      "transition system and reduce labels"},
-     {"all_transition_systems_with_fixpoint",
-      "keep computing the 'combinable relation' for labels iteratively "
-      "for all transition systems until no more labels can be reduced"}});
+namespace probfd::cli::merge_and_shrink {
 
-TypedEnumPlugin<LabelReductionSystemOrder>
-    _label_reduction_system_order_enum_plugin(
+void add_label_reduction_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_category_plugin<LabelReductionCategoryPlugin>();
+
+    raw_registry.insert_feature_plugin<LabelReductionFeature>();
+
+    raw_registry.insert_enum_plugin<LabelReductionMethod>(
+        {{"two_transition_systems",
+          "compute the 'combinable relation' only for the two transition "
+          "systems being merged next"},
+         {"all_transition_systems",
+          "compute the 'combinable relation' for labels once for every "
+          "transition system and reduce labels"},
+         {"all_transition_systems_with_fixpoint",
+          "keep computing the 'combinable relation' for labels iteratively "
+          "for all transition systems until no more labels can be reduced"}});
+
+    raw_registry.insert_enum_plugin<LabelReductionSystemOrder>(
         {{"regular",
           "transition systems are considered in the order given in the planner "
           "input if atomic and in the order of their creation if composite."},
          {"reverse", "inverse of regular"},
          {"random", "random order"}});
-} // namespace
+}
 
-} // namespace probfd::merge_and_shrink
+} // namespace

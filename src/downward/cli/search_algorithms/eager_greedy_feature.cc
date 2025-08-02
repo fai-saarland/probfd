@@ -1,6 +1,8 @@
-#include "downward/cli/plugins/plugin.h"
-
+#include "downward/cli/search_algorithms/eager_greedy_feature.h"
 #include "downward/cli/search_algorithms/eager_search_options.h"
+
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/search_algorithms/eager_search.h"
 #include "downward/search_algorithms/search_common.h"
@@ -15,7 +17,6 @@ using namespace downward::cli::eager_search;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class EagerGreedySearchFactory : public TaskDependentFactory<SearchAlgorithm> {
     std::vector<shared_ptr<TaskDependentFactory<Evaluator>>> eval_factories;
     std::vector<shared_ptr<TaskDependentFactory<Evaluator>>>
@@ -167,7 +168,13 @@ public:
             get_eager_search_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<EagerGreedySearchFeature> _plugin;
+namespace downward::cli::search_algorithms {
+
+void add_eager_greedy_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<EagerGreedySearchFeature>();
+}
 
 } // namespace

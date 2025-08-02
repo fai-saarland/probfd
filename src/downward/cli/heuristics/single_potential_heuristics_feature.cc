@@ -1,5 +1,7 @@
+#include "downward/cli/heuristics/single_potential_heuristics_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
-#include "downward/initial_state_values.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/potentials/potential_options.h"
 
@@ -11,6 +13,7 @@
 
 #include "downward/tasks/root_task.h"
 
+#include "downward/initial_state_values.h"
 #include "downward/task_dependent_factory.h"
 #include "downward/task_transformation.h"
 
@@ -22,7 +25,6 @@ using namespace downward::cli::potentials;
 using namespace downward::cli::plugins;
 
 namespace {
-
 enum class OptimizeFor {
     INITIAL_STATE,
     ALL_STATES,
@@ -156,8 +158,14 @@ public:
             OptimizeFor::ALL_STATES);
     }
 };
+}
 
-FeaturePlugin<InitialStatePotentialHeuristicFeature> _plugin_istate;
-FeaturePlugin<AllStatesPotentialHeuristicFeature> _plugin_all_states;
+namespace downward::cli::heuristics {
+
+void add_single_potential_heuristics_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<InitialStatePotentialHeuristicFeature>();
+    raw_registry.insert_feature_plugin<AllStatesPotentialHeuristicFeature>();
+}
 
 } // namespace

@@ -1,4 +1,7 @@
+#include "probfd/cli/pdbs/cegar/sampling_flaw_finder.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -17,7 +20,6 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-
 class SamplingFlawFinderFeature
     : public TypedFeature<FlawFindingStrategy, SamplingFlawFinder> {
 public:
@@ -41,7 +43,13 @@ public:
             opts.get<int>("max_search_states"));
     }
 };
+}
 
-FeaturePlugin<SamplingFlawFinderFeature> _plugin;
+namespace probfd::cli::pdbs::cegar {
+
+void add_sampling_flaw_finder_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<SamplingFlawFinderFeature>();
+}
 
 } // namespace

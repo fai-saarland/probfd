@@ -1,4 +1,7 @@
+#include "downward/cli/operator_counting/state_equation_constraints_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/utils/logging_options.h"
 
@@ -17,7 +20,6 @@ using downward::cli::utils::add_log_options_to_feature;
 using downward::cli::utils::get_log_arguments_from_options;
 
 namespace {
-
 class StateEquationConstraintsFeature
     : public TypedFeature<ConstraintGenerator, StateEquationConstraints> {
 public:
@@ -39,7 +41,7 @@ public:
                  "Subbarao Kambhampati",
                  "Thomas Vossen"},
                 "An LP-based heuristic for optimal planning",
-                "http://link.springer.com/chapter/10.1007/978-3-540-74970-7_46",
+                "https://link.springer.com/chapter/10.1007/978-3-540-74970-7_46",
                 "Proceedings of the Thirteenth International Conference on"
                 " Principles and Practice of Constraint Programming (CP 2007)",
                 "651-665",
@@ -49,7 +51,7 @@ public:
                 {"Blai Bonet"},
                 "An admissible heuristic for SAS+ planning obtained from the"
                 " state equation",
-                "http://ijcai.org/papers13/Papers/IJCAI13-335.pdf",
+                "https://ijcai.org/papers13/Papers/IJCAI13-335.pdf",
                 "Proceedings of the Twenty-Third International Joint"
                 " Conference on Artificial Intelligence (IJCAI 2013)",
                 "2268-2274",
@@ -79,7 +81,13 @@ public:
             get_log_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<StateEquationConstraintsFeature> _plugin;
+namespace downward::cli::operator_counting {
+
+void add_state_equation_constraints_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<StateEquationConstraintsFeature>();
+}
 
 } // namespace

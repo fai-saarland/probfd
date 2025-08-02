@@ -27,6 +27,11 @@ bool Type::is_list_type() const
     return false;
 }
 
+bool Type::is_empty_list_type() const
+{
+    return false;
+}
+
 bool Type::is_enum_type() const
 {
     return false;
@@ -168,6 +173,11 @@ bool EmptyListType::is_list_type() const
     return true;
 }
 
+bool EmptyListType::is_empty_list_type() const
+{
+    return true;
+}
+
 bool EmptyListType::can_convert_into(const Type& other) const
 {
     return other.is_list_type();
@@ -288,6 +298,10 @@ std::any convert(
                 str_value,
                 context));
     } else if (from_type.is_list_type() && to_type.is_list_type()) {
+        if (from_type.is_empty_list_type()) {
+            return value;
+        }
+
         const Type& from_nested_type =
             static_cast<const ListType&>(from_type).get_nested_type();
         const Type& to_nested_type =
