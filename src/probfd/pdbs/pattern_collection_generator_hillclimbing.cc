@@ -493,7 +493,7 @@ unsigned int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
                     variables,
                     extended_pattern(pdb.get_pattern(), rel_var_id)));
 
-            IncrementalPPDBEvaluator h(
+            NonOwningIncrementalPPDBEvaluator h(
                 pdb.value_table,
                 new_pdb->ranking_function,
                 rel_var_id);

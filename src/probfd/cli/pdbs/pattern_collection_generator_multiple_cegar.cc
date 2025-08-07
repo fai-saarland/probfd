@@ -30,7 +30,7 @@ public:
         add_option<probfd::value_t>(
             "convergence_epsilon",
             "The tolerance for convergence checks.",
-            "10e-4");
+            "10e-8");
 
         add_option<std::shared_ptr<cegar::FlawFindingStrategy>>(
             "flaw_strategy",

@@ -71,22 +71,7 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
         false,
         timer.get_remaining_time());
 
-    const auto& operators = get_operators(task);
-    const auto& cost_function = get_cost_function(task);
-    const auto& term_costs = get_termination_costs(task);
-
     const State initial_state = get_init(task).get_initial_state();
-
-    compute_value_table(
-        *transformation.projection,
-        transformation.pdb.get_abstract_state(initial_state),
-        heuristics::BlindHeuristic<StateRank>(
-            operators,
-            cost_function,
-            term_costs),
-        transformation.pdb.value_table,
-        timer.get_remaining_time(),
-        10e-8);
 
     run_cegar_loop(
         transformation,

@@ -42,6 +42,20 @@ extern void run_cegar_loop(
     ProjectionTransformation& transformation,
     const SharedProbabilisticTask& task,
     const downward::State& initial_state,
+    std::shared_ptr<Heuristic<StateRank>> heuristic,
+    value_t convergence_epsilon,
+    FlawFindingStrategy& flaw_strategy,
+    std::unordered_set<int> blacklisted_variables,
+    int max_pdb_size,
+    downward::utils::RandomNumberGenerator& rng,
+    bool wildcard,
+    downward::utils::Duration max_time,
+    downward::utils::LogProxy log);
+
+extern void run_cegar_loop(
+    ProjectionTransformation& transformation,
+    const SharedProbabilisticTask& task,
+    const downward::State& initial_state,
     value_t convergence_epsilon,
     FlawFindingStrategy& flaw_strategy,
     std::unordered_set<int> blacklisted_variables,

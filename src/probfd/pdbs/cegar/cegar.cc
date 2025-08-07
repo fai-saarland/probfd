@@ -154,7 +154,7 @@ CEGAR::PDBInfo::PDBInfo(
               false,
               timer.get_remaining_time()))
 {
-    IncrementalPPDBEvaluator h(
+    NonOwningIncrementalPPDBEvaluator h(
         previous.value_table,
         pdb->ranking_function,
         add_var);
