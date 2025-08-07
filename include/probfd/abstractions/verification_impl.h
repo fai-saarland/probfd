@@ -16,7 +16,7 @@
 
 namespace probfd {
 
-static void assert_near(value_t value, value_t expected, value_t tolerance) {
+inline void assert_near(value_t value, value_t expected, value_t tolerance) {
     if (!is_approx_equal(value, expected, 0.001)) {
         std::println(
             std::cerr,
