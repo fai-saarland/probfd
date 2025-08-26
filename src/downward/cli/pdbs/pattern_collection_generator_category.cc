@@ -9,24 +9,14 @@ using namespace downward::pdbs;
 
 using namespace downward::cli::plugins;
 
-namespace {
-class PatternCollectionGeneratorCategoryPlugin
-    : public TypedCategoryPlugin<PatternCollectionGenerator> {
-public:
-    PatternCollectionGeneratorCategoryPlugin()
-        : TypedCategoryPlugin("PatternCollectionGenerator")
-    {
-        document_synopsis("Factory for pattern collections");
-    }
-};
-}
-
 namespace downward::cli::pdbs {
 
 void add_pattern_collection_generator_category(RawRegistry& raw_registry)
 {
-    raw_registry
-        .insert_category_plugin<PatternCollectionGeneratorCategoryPlugin>();
+    auto& category =
+        raw_registry.insert_category_plugin<PatternCollectionGenerator>(
+            "PatternCollectionGenerator");
+    category.document_synopsis("Factory for pattern collections");
 }
 
-} // namespace
+} // namespace downward::cli::pdbs

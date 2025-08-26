@@ -9,23 +9,12 @@ using namespace probfd::occupation_measures;
 
 using namespace downward::cli::plugins;
 
-namespace {
-class ConstraintGeneratorFactoryCategoryPlugin
-    : public TypedCategoryPlugin<ConstraintGenerator> {
-public:
-    ConstraintGeneratorFactoryCategoryPlugin()
-        : TypedCategoryPlugin("OMConstraintGeneratorFactory")
-    {
-    }
-};
-}
-
 namespace probfd::cli::occupation_measures {
 
 void add_constraint_generator_factory_category(RawRegistry& raw_registry)
 {
-    raw_registry
-        .insert_category_plugin<ConstraintGeneratorFactoryCategoryPlugin>();
+    raw_registry.insert_category_plugin<ConstraintGenerator>(
+        "OMConstraintGeneratorFactory");
 }
 
-} // namespace
+} // namespace probfd::cli::occupation_measures

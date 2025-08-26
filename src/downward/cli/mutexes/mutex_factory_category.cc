@@ -10,30 +10,18 @@
 
 using namespace std;
 
-using namespace downward;
-using namespace downward::cli;
-using namespace downward::cli::plugins;
-
-namespace {
-class MutexFactoryCategoryPlugin
-    : public plugins::TypedCategoryPlugin<
-          TaskDependentFactory<MutexInformation>> {
-public:
-    MutexFactoryCategoryPlugin()
-        : TypedCategoryPlugin("MutexFactory")
-    {
-        document_synopsis(
-            "A mutex factory computes mutually exclusive facts for a given "
-            "planning task.");
-    }
-};
-}
-
 namespace downward::cli::mutexes {
 
 void add_mutex_factory_category(plugins::RawRegistry& raw_registry)
 {
-    raw_registry.insert_category_plugin<MutexFactoryCategoryPlugin>();
+    auto& category =
+        raw_registry
+            .insert_category_plugin<TaskDependentFactory<MutexInformation>>(
+                "MutexFactory");
+
+    category.document_synopsis(
+        "A mutex factory computes mutually exclusive facts for a given "
+        "planning task.");
 }
 
-} // namespace
+} // namespace downward::cli::mutexes

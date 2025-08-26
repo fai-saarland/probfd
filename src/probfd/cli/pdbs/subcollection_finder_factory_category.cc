@@ -9,23 +9,12 @@ using namespace probfd::pdbs;
 
 using namespace downward::cli::plugins;
 
-namespace {
-class SubCollectionFinderFactoryCategoryPlugin
-    : public TypedCategoryPlugin<SubCollectionFinderFactory> {
-public:
-    SubCollectionFinderFactoryCategoryPlugin()
-        : TypedCategoryPlugin("SubCollectionFinderFactory")
-    {
-    }
-};
-}
-
 namespace probfd::cli::pdbs {
 
 void add_subcollection_finder_factory_category(RawRegistry& raw_registry)
 {
-    raw_registry
-        .insert_category_plugin<SubCollectionFinderFactoryCategoryPlugin>();
+    raw_registry.insert_category_plugin<SubCollectionFinderFactory>(
+        "SubCollectionFinderFactory");
 }
 
-} // namespace
+} // namespace probfd::cli::pdbs

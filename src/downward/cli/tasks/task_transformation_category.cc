@@ -5,27 +5,16 @@
 
 #include "downward/task_transformation.h"
 
-using namespace std;
 using namespace downward::cli::plugins;
-
-namespace {
-class TaskTransformationCategoryPlugin
-    : public TypedCategoryPlugin<downward::TaskTransformation> {
-public:
-    TaskTransformationCategoryPlugin()
-        : TypedCategoryPlugin("TaskTransformation")
-    {
-        // TODO: Replace empty string by synopsis for the wiki page.
-        document_synopsis("");
-    }
-};
-}
 
 namespace downward::cli::tasks {
 
 void add_task_transformation_category(RawRegistry& raw_registry)
 {
-    raw_registry.insert_category_plugin<TaskTransformationCategoryPlugin>();
+    auto& category = raw_registry.insert_category_plugin<TaskTransformation>("TaskTransformation");
+
+    // TODO: Replace empty string by synopsis for the wiki page.
+    category.document_synopsis("");
 }
 
 } // namespace

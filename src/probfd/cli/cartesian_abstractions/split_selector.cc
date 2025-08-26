@@ -20,17 +20,6 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-class SplitSelectorFactoryCategoryPlugin
-    : public TypedCategoryPlugin<SplitSelectorFactory> {
-public:
-    SplitSelectorFactoryCategoryPlugin()
-        : TypedCategoryPlugin("SplitSelectorFactory")
-    {
-        document_synopsis(
-            "Factory for split selection algorithms used in the "
-            "cartesian abstraction refinement loop");
-    }
-};
 
 class SplitSelectorRandomFactoryFeature
     : public TypedFeature<SplitSelectorFactory, SplitSelectorRandomFactory> {
@@ -172,13 +161,17 @@ public:
         return std::make_shared<SplitSelectorMaxHAddFactory>();
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::cartesian_abstractions {
 
 void add_split_selector_features(RawRegistry& raw_registry)
 {
-    raw_registry.insert_category_plugin<SplitSelectorFactoryCategoryPlugin>();
+    auto& category = raw_registry.insert_category_plugin<SplitSelectorFactory>(
+        "SplitSelectorFactory");
+    category.document_synopsis(
+        "Factory for split selection algorithms used in the "
+        "cartesian abstraction refinement loop");
 
     raw_registry.insert_feature_plugin<SplitSelectorRandomFactoryFeature>();
     raw_registry
@@ -191,4 +184,4 @@ void add_split_selector_features(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<SplitSelectorMaxHAddFactoryFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::cartesian_abstractions

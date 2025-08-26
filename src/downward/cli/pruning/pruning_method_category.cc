@@ -7,25 +7,14 @@
 
 using namespace std;
 
-using namespace downward::cli;
-
-namespace {
-class PruningMethodCategoryPlugin
-    : public plugins::TypedCategoryPlugin<downward::PruningMethod> {
-public:
-    PruningMethodCategoryPlugin()
-        : TypedCategoryPlugin("PruningMethod")
-    {
-        document_synopsis("Prune or reorder applicable operators.");
-    }
-};
-}
-
 namespace downward::cli::pruning {
 
 void add_pruning_method_category(plugins::RawRegistry& raw_registry)
 {
-    raw_registry.insert_category_plugin<PruningMethodCategoryPlugin>();
+    auto& category =
+        raw_registry.insert_category_plugin<PruningMethod>("PruningMethod");
+
+    category.document_synopsis("Prune or reorder applicable operators.");
 }
 
-} // namespace
+} // namespace downward::cli::pruning

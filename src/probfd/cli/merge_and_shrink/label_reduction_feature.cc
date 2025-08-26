@@ -94,24 +94,17 @@ public:
     }
 };
 
-class LabelReductionCategoryPlugin
-    : public TypedCategoryPlugin<LabelReduction> {
-public:
-    LabelReductionCategoryPlugin()
-        : TypedCategoryPlugin("PLabelReduction")
-    {
-        document_synopsis(
-            "This page describes the current single 'option' for "
-            "label reduction.");
-    }
-};
-}
+} // namespace
 
 namespace probfd::cli::merge_and_shrink {
 
 void add_label_reduction_features(RawRegistry& raw_registry)
 {
-    raw_registry.insert_category_plugin<LabelReductionCategoryPlugin>();
+    auto& category =
+        raw_registry.insert_category_plugin<LabelReduction>("PLabelReduction");
+    category.document_synopsis(
+        "This page describes the current single 'option' for "
+        "label reduction.");
 
     raw_registry.insert_feature_plugin<LabelReductionFeature>();
 
@@ -134,4 +127,4 @@ void add_label_reduction_features(RawRegistry& raw_registry)
          {"random", "random order"}});
 }
 
-} // namespace
+} // namespace probfd::cli::merge_and_shrink

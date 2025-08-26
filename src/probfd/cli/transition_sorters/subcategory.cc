@@ -14,14 +14,6 @@ using namespace probfd::transition_sorters;
 using namespace downward::cli::plugins;
 
 namespace {
-class FDRTransitionSorterCategoryPlugin
-    : public TypedCategoryPlugin<FDRTransitionSorter> {
-public:
-    FDRTransitionSorterCategoryPlugin()
-        : TypedCategoryPlugin("FDRTransitionSorter")
-    {
-    }
-};
 
 class VDiffSorterFeature
     : public TypedFeature<FDRTransitionSorter, VDiffSorter> {
@@ -45,7 +37,7 @@ namespace probfd::cli::transiton_sorters {
 
 void add_transition_sorter_features(RawRegistry& raw_registry)
 {
-    raw_registry.insert_category_plugin<FDRTransitionSorterCategoryPlugin>();
+    raw_registry.insert_category_plugin<FDRTransitionSorter>("FDRTransitionSorter");
     raw_registry.insert_feature_plugin<VDiffSorterFeature>();
 }
 

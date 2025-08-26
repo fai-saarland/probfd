@@ -51,17 +51,18 @@ public:
         subcategory_plugins.push_back(std::make_unique<T>());
     }
 
-    template <std::derived_from<CategoryPlugin> T>
-    void insert_category_plugin()
+    template <typename T>
+    CategoryPlugin& insert_category_plugin(std::string name)
     {
-        category_plugins.push_back(std::make_unique<T>());
+        return *category_plugins.emplace_back(
+            std::make_unique<TypedCategoryPlugin<T>>(std::move(name)));
     }
 
     template <template <bool...> typename T, bool... b>
     void insert_category_plugins()
     {
         if constexpr (instantiable<T, b...>) {
-            insert_category_plugin<T<b...>>();
+            category_plugins.push_back(std::make_unique<T<b...>>());
         } else {
             insert_category_plugins<T, b..., true>();
             insert_category_plugins<T, b..., false>();

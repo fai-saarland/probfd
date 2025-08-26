@@ -5,29 +5,17 @@
 
 #include "probfd/solver_interface.h"
 
-using namespace probfd;
-
 using namespace downward::cli::plugins;
-
-namespace {
-class TaskSolverFactoryCategoryPlugin
-    : public TypedCategoryPlugin<TaskSolverFactory> {
-public:
-    TaskSolverFactoryCategoryPlugin()
-        : TypedCategoryPlugin("TaskSolverFactory")
-    {
-        document_synopsis(
-            "Represents a factory that produces a generic planning problem "
-            "solver for a given probabilistic planning task.");
-    }
-};
-}
 
 namespace probfd::cli::solvers {
 
 void add_task_solver_factory_category(RawRegistry& raw_registry)
 {
-    raw_registry.insert_category_plugin<TaskSolverFactoryCategoryPlugin>();
+    auto& category = raw_registry.insert_category_plugin<TaskSolverFactory>(
+        "TaskSolverFactory");
+    category.document_synopsis(
+        "Represents a factory that produces a generic planning problem "
+        "solver for a given probabilistic planning task.");
 }
 
-} // namespace
+} // namespace probfd::cli::solvers

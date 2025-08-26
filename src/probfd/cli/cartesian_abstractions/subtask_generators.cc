@@ -95,22 +95,16 @@ public:
     }
 };
 
-class SubtaskGeneratorCategoryPlugin
-    : public TypedCategoryPlugin<SubtaskGenerator> {
-public:
-    SubtaskGeneratorCategoryPlugin()
-        : TypedCategoryPlugin("PSubtaskGenerator")
-    {
-        document_synopsis("Subtask generator (used by the CEGAR heuristic).");
-    }
-};
-}
+} // namespace
 
 namespace probfd::cli::cartesian_abstractions {
 
 void add_subtask_generator_features(RawRegistry& raw_registry)
 {
-    raw_registry.insert_category_plugin<SubtaskGeneratorCategoryPlugin>();
+    auto& category = raw_registry.insert_category_plugin<SubtaskGenerator>(
+        "PSubtaskGenerator");
+    category.document_synopsis(
+        "Subtask generator (used by the CEGAR heuristic).");
 
     raw_registry.insert_feature_plugin<TaskDuplicatorFeature>();
     raw_registry.insert_feature_plugin<GoalDecompositionFeature>();
@@ -123,4 +117,4 @@ void add_subtask_generator_features(RawRegistry& raw_registry)
          {"hadd_down", "according to their h^add value, highest first "}});
 }
 
-} // namespace
+} // namespace probfd::cli::cartesian_abstractions

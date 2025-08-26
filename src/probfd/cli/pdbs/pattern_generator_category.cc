@@ -9,25 +9,15 @@ using namespace probfd::pdbs;
 
 using namespace downward::cli::plugins;
 
-namespace {
-class PatternGeneratorCategoryPlugin
-    : public TypedCategoryPlugin<PatternGenerator> {
-public:
-    PatternGeneratorCategoryPlugin()
-        : TypedCategoryPlugin("PPDBPatternGenerator")
-    {
-        document_synopsis(
-            "Factory for a pattern and/or the corresponding "
-            "probability-aware PDB");
-    }
-};
-}
-
 namespace probfd::cli::pdbs {
 
 void add_pattern_generator_category(RawRegistry& raw_registry)
 {
-    raw_registry.insert_category_plugin<PatternGeneratorCategoryPlugin>();
+    auto& category = raw_registry.insert_category_plugin<PatternGenerator>(
+        "PPDBPatternGenerator");
+    category.document_synopsis(
+        "Factory for a pattern and/or the corresponding "
+        "probability-aware PDB");
 }
 
-} // namespace
+} // namespace probfd::cli::pdbs
