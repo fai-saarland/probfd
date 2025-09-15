@@ -23,8 +23,31 @@ You need a C++ 23 compiler, CMake, the Ninja build system and Python 3.
 **Linux:** On Debian/Ubuntu the following should install all dependencies:
 
 ```
-sudo apt install g++-14 cmake ninja-build python3
+sudo apt install g++-15 cmake ninja-build python3
 ```
+
+You need at least GCC 15.2 to build the planner. If this version is not available, you can also
+build it from source:
+
+```
+tar xzf gcc-15.2.0.tar.gz
+cd gcc-15.2.0
+./contrib/download_prerequisites
+cd ..
+mkdir objdir
+cd objdir
+$PWD/../gcc-15.2.0/configure --prefix=$HOME/gcc-15.2 --enable-languages=c,c++
+make -j $(nproc)
+make install
+```
+
+In this case, you have to set the compiler environment variables to the built binaries
+before configuring the build:
+```
+export CC=<installation dir>/bin/gcc
+export CXX=<installation dir>/bin/g++
+```
+
 
 **MacOS**: All dependencies can be installed via Homebrew:
 
