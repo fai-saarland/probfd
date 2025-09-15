@@ -16,8 +16,8 @@ using namespace std;
 namespace downward {
 
 Heuristic::Heuristic(
-    std::shared_ptr<AbstractTask> original_task,
-    std::shared_ptr<AbstractTask> transformed_task,
+    SharedAbstractTask original_task,
+    SharedAbstractTask transformed_task,
     std::shared_ptr<StateMapping> state_mapping,
     std::shared_ptr<InverseOperatorMapping> inv_operator_mapping,
     bool cache_estimates,
@@ -31,12 +31,11 @@ Heuristic::Heuristic(
     , transformed_task(std::move(transformed_task))
     , state_mapping(std::move(state_mapping))
     , inv_operator_mapping(std::move(inv_operator_mapping))
-    , task_proxy(*this->transformed_task)
 {
 }
 
 Heuristic::Heuristic(
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
     const std::string& description,
@@ -54,7 +53,7 @@ Heuristic::Heuristic(
 }
 
 Heuristic::Heuristic(
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation> transformation,
     bool cache_estimates,
     const std::string& description,
@@ -79,9 +78,7 @@ void Heuristic::set_preferred(const OperatorProxy& op)
 
 State Heuristic::convert_ancestor_state(const State& ancestor_state) const
 {
-    return state_mapping->convert_ancestor_state(
-        ancestor_state,
-        *transformed_task);
+    return state_mapping->convert_ancestor_state(ancestor_state);
 }
 
 EvaluationResult Heuristic::compute_result(EvaluationContext& eval_context)
@@ -122,9 +119,8 @@ EvaluationResult Heuristic::compute_result(EvaluationContext& eval_context)
     }
 
 #ifndef NDEBUG
-    PlanningTaskProxy global_task_proxy = state.get_task();
-    PartialOperatorsProxy global_operators =
-        global_task_proxy.get_partial_operators();
+    const auto& global_operators =
+        get_operators(original_task);
     if (heuristic != EvaluationResult::INFTY) {
         for (OperatorID op_id : preferred_operators)
             assert(

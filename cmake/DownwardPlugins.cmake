@@ -29,7 +29,7 @@ create_library(
     NAME core_categories
     HELP "Core categories"
     SOURCES
-        downward/cli/task_transformation_category
+        downward/cli/tasks/task_transformation_category
     DEPENDS
         plugins
         core_sources
@@ -41,7 +41,7 @@ create_library(
     NAME mutexes_factory_category
     HELP "Mutex Factory plugin category"
     SOURCES
-        downward/cli/mutex_factory_category
+        downward/cli/mutexes/mutex_factory_category
     DEPENDS
         plugins
         core_sources
@@ -54,13 +54,18 @@ create_library(
     HELP "Mutex factory that reads them from a file plugin"
     SOURCES
         downward/cli/mutexes/from_file_mutex_factory_feature
+    DEPENDS
+        plugins
+        from_file_mutex_factory
+    TARGET
+        probfd
 )
 
 create_library(
     NAME evaluator_category
     HELP "Evaluator plugin category"
     SOURCES
-        downward/cli/evaluator_category
+        downward/cli/evaluators/evaluator_category
     DEPENDS
         plugins
         core_sources
@@ -72,7 +77,7 @@ create_library(
     NAME evaluator_options
     HELP "Evaluator base options"
     SOURCES
-        downward/cli/evaluator_options
+        downward/cli/evaluators/evaluator_options
     DEPENDS
         plugins
         logging_options
@@ -83,7 +88,7 @@ create_library(
     NAME heuristic_options
     HELP "Heuristic base options"
     SOURCES
-        downward/cli/heuristic_options
+        downward/cli/heuristics/heuristic_options
     DEPENDS
         plugins
         evaluator_options
@@ -94,7 +99,7 @@ create_library(
     NAME open_list_factory_category
     HELP "Open list factory plugin category"
     SOURCES
-        downward/cli/open_list_factory_category
+        downward/cli/open_lists/open_list_factory_category
     DEPENDS
         plugins
         core_sources
@@ -106,9 +111,21 @@ create_library(
     NAME open_list_options
     HELP "Open list base options"
     SOURCES
-        downward/cli/open_list_options
+        downward/cli/open_lists/open_list_options
     DEPENDS
         plugins
+)
+
+create_library(
+    NAME operator_cost_category
+    HELP "Operator cost category"
+    SOURCES
+        downward/cli/operator_cost_category
+    DEPENDS
+        plugins
+        core_sources
+    TARGET
+        probfd
 )
 
 create_library(
@@ -119,13 +136,14 @@ create_library(
     DEPENDS
         plugins
         core_sources
+        operator_cost_category
 )
 
 create_library(
     NAME pruning_method_category
     HELP "Pruning method category"
     SOURCES
-        downward/cli/pruning_method_category
+        downward/cli/pruning/pruning_method_category
     DEPENDS
         plugins
         core_sources
@@ -137,7 +155,7 @@ create_library(
     NAME pruning_method_options
     HELP "Pruning method base options"
     SOURCES
-        downward/cli/pruning_method_options
+        downward/cli/pruning/pruning_method_options
     DEPENDS
         plugins
         utils
@@ -145,22 +163,10 @@ create_library(
 )
 
 create_library(
-    NAME search_algorithm_category
-    HELP "Search algorithm category"
-    SOURCES
-        downward/cli/search_algorithm_category
-    DEPENDS
-        plugins
-        core_sources
-    TARGET
-        probfd
-)
-
-create_library(
     NAME search_algorithm_factory_category
     HELP "Search algorithm factory category"
     SOURCES
-        downward/cli/search_algorithm_factory_category
+        downward/cli/search_algorithms/search_algorithm_factory_category
     DEPENDS
         plugins
         core_sources
@@ -172,7 +178,7 @@ create_library(
     NAME search_algorithm_options
     HELP "Search algorithm base options"
     SOURCES
-        downward/cli/search_algorithm_options
+        downward/cli/search_algorithms/search_algorithm_options
     DEPENDS
         plugins
         operator_cost_options
@@ -189,7 +195,6 @@ create_library(
         downward/cli/open_lists/alternation_open_list_feature
     DEPENDS
         plugins
-        alternation_open_list
     TARGET
         probfd
 )
@@ -202,7 +207,6 @@ create_library(
     DEPENDS
         plugins
         open_list_options
-        best_first_open_list
         utils
     TARGET
         probfd
@@ -217,7 +221,6 @@ create_library(
         plugins
         open_list_options
         rng_options
-        epsilon_greedy_open_list
         utils
     TARGET
         probfd
@@ -232,7 +235,6 @@ create_library(
         plugins
         open_list_options
         rng_options
-        pareto_open_list
         utils
     TARGET
         probfd
@@ -246,7 +248,6 @@ create_library(
     DEPENDS
         plugins
         open_list_options
-        tiebreaking_open_list
         utils
     TARGET
         probfd
@@ -261,7 +262,6 @@ create_library(
         plugins
         open_list_options
         rng_options
-        type_based_open_list
         utils
     TARGET
         probfd
@@ -583,13 +583,23 @@ create_library(
 )
 
 create_library(
+    NAME lp_solver_enum
+    HELP "LP solver options"
+    SOURCES
+        downward/cli/lp/lp_solver_enum
+    DEPENDS
+        plugins
+        lp_solver
+)
+
+create_library(
     NAME lp_solver_options
     HELP "LP solver options"
     SOURCES
         downward/cli/lp/lp_solver_options
     DEPENDS
         plugins
-        lp_solver
+        lp_solver_enum
 )
 
 create_library(
@@ -800,7 +810,7 @@ create_library(
     NAME operator_counting_heuristic_feature
     HELP "Operator-counting heuristic feature"
     SOURCES
-        downward/cli/operator_counting/operator_counting_heuristic_feature
+        downward/cli/heuristics/operator_counting_heuristic_feature
     DEPENDS
         plugins
         heuristic_options
@@ -839,6 +849,18 @@ create_library(
 )
 
 create_library(
+    NAME verbosity_enum
+    HELP "Verbosity enum plugin"
+    SOURCES
+    downward/cli/utils/verbosity_enum
+    DEPENDS
+        plugins
+        utils
+    TARGET
+        probfd
+)
+
+create_library(
     NAME logging_options
     HELP "Logging options"
     SOURCES
@@ -846,6 +868,7 @@ create_library(
     DEPENDS
         plugins
         utils
+        verbosity_enum
 )
 
 create_library(
@@ -884,7 +907,7 @@ create_library(
     NAME diverse_potential_heuristics_feature
     HELP "Sample-based potential heuristics feature"
     SOURCES
-        downward/cli/potentials/diverse_potential_heuristics_feature
+        downward/cli/heuristics/diverse_potential_heuristics_feature
     DEPENDS
         plugins
         potential_options
@@ -899,7 +922,7 @@ create_library(
     NAME sample_based_potential_heuristics_feature
     HELP "Sample-based potential heuristics feature"
     SOURCES
-        downward/cli/potentials/sample_based_potential_heuristics_feature
+        downward/cli/heuristics/sample_based_potential_heuristics_feature
     DEPENDS
         plugins
         potential_options
@@ -914,7 +937,7 @@ create_library(
     NAME single_potential_heuristics_feature
     HELP "Single potential heuristics feature"
     SOURCES
-        downward/cli/potentials/single_potential_heuristics_feature
+        downward/cli/heuristics/single_potential_heuristics_feature
     DEPENDS
         plugins
         potential_options
@@ -959,7 +982,7 @@ create_library(
     NAME additive_cartesian_heuristic_feature
     HELP "Additive cartesian heuristic feature"
     SOURCES
-        downward/cli/cartesian_abstractions/additive_cartesian_heuristic_feature
+        downward/cli/heuristics/additive_cartesian_heuristic_feature
     DEPENDS
         plugins
         heuristic_options
@@ -986,7 +1009,7 @@ create_library(
     NAME landmark_cost_partitioning_heuristic_feature
     HELP "Landmark cost-partitioning heuristic feature"
     SOURCES
-        downward/cli/landmarks/landmark_cost_partitioning_heuristic_feature
+        downward/cli/heuristics/landmark_cost_partitioning_heuristic_feature
     DEPENDS
         plugins
         landmark_heuristic_options
@@ -1001,12 +1024,25 @@ create_library(
     NAME landmark_sum_heuristic_feature
     HELP "Landmark sum heuristic feature"
     SOURCES
-        downward/cli/landmarks/landmark_sum_heuristic_feature
+        downward/cli/heuristics/landmark_sum_heuristic_feature
     DEPENDS
         plugins
         landmark_heuristic_options
         landmarks
         utils
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME landmark_factory_category
+    HELP "Landmark factory options"
+    SOURCES
+        downward/cli/landmarks/landmark_factory_category
+    DEPENDS
+        plugins
+        logging_options
+        landmarks
     TARGET
         probfd
 )
@@ -1019,7 +1055,7 @@ create_library(
     DEPENDS
         plugins
         logging_options
-        landmarks
+        landmark_factory_category
 )
 
 create_library(
@@ -1134,7 +1170,7 @@ create_library(
     NAME merge_and_shrink_heuristic_feature
     HELP "Merge-and-shrink heuristic feature"
     SOURCES
-        downward/cli/merge_and_shrink/merge_and_shrink_heuristic_feature
+        downward/cli/heuristics/merge_and_shrink_heuristic_feature
     DEPENDS
         plugins
         merge_and_shrink_algorithm_options
@@ -1414,12 +1450,29 @@ create_library(
     NAME canonical_pdbs_heuristic_feature
     HELP "Canoncial PDBs heuristic feature"
     SOURCES
-        downward/cli/pdbs/canonical_pdbs_heuristic_feature
+        downward/cli/heuristics/canonical_pdbs_heuristic_feature
     DEPENDS
         plugins
         heuristic_options
         canonical_pdbs_heuristic_options
         pdbs
+    TARGET
+        probfd
+)
+
+create_library(
+    NAME ipdbs_heuristic_feature
+    HELP "Canoncial PDBs heuristic feature"
+    SOURCES
+        downward/cli/heuristics/ipdbs_heuristic_feature
+    DEPENDS
+        plugins
+        heuristic_options
+        canonical_pdbs_heuristic_options
+        pdbs
+        pattern_collection_generator_hillclimbing_options
+        pattern_generator_options
+        utils
     TARGET
         probfd
 )
@@ -1600,6 +1653,18 @@ create_library(
 )
 
 create_library(
+    NAME pattern_collection_generator_category
+    HELP "Pattern collection generator category"
+    SOURCES
+        downward/cli/pdbs/pattern_collection_generator_category
+    DEPENDS
+        plugins
+        pdbs
+    TARGET
+        probfd
+)
+
+create_library(
     NAME pattern_generator_cegar_feature
     HELP "Pattern generator CEGAR feature"
     SOURCES
@@ -1664,13 +1729,15 @@ create_library(
         pdb_utils
         rng_options
         pdbs
+    TARGET
+        probfd
 )
 
 create_library(
     NAME pdb_heuristic_feature
     HELP "PDB heuristic feature"
     SOURCES
-        downward/cli/pdbs/pdb_heuristic_feature
+        downward/cli/heuristics/pdb_heuristic_feature
     DEPENDS
         plugins
         heuristic_options
@@ -1714,7 +1781,7 @@ create_library(
     NAME zero_one_pdbs_heuristic_feature
     HELP "Zero-one PDB heuristic feature"
     SOURCES
-        downward/cli/pdbs/zero_one_pdbs_heuristic_feature
+        downward/cli/heuristics/zero_one_pdbs_heuristic_feature
     DEPENDS
         plugins
         heuristic_options

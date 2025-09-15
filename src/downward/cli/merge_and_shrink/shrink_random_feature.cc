@@ -1,4 +1,7 @@
+#include "downward/cli/merge_and_shrink/shrink_random_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/merge_and_shrink/shrink_bucket_based_options.h"
 
@@ -14,7 +17,6 @@ using downward::cli::merge_and_shrink::add_shrink_bucket_options_to_feature;
 using downward::cli::merge_and_shrink::get_shrink_bucket_arguments_from_options;
 
 namespace {
-
 class ShrinkRandomFeature : public TypedFeature<ShrinkStrategy, ShrinkRandom> {
 public:
     ShrinkRandomFeature()
@@ -33,7 +35,13 @@ public:
             get_shrink_bucket_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<ShrinkRandomFeature> _plugin;
+namespace downward::cli::merge_and_shrink {
+
+void add_shrink_random_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<ShrinkRandomFeature>();
+}
 
 } // namespace

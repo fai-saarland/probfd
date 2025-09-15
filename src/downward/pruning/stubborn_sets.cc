@@ -2,6 +2,8 @@
 
 #include "downward/task_utils/task_properties.h"
 
+#include "downward/utils/collections.h"
+
 using namespace std;
 
 namespace downward::stubborn_sets {
@@ -11,54 +13,59 @@ StubbornSets::StubbornSets(utils::Verbosity verbosity)
 {
 }
 
-void StubbornSets::initialize(const shared_ptr<AbstractTask>& task)
+void StubbornSets::initialize(const SharedAbstractTask& task)
 {
+    const auto& [variables, axioms, operators, goals] = slice_shared<
+        VariableSpace,
+        AxiomSpace,
+        ClassicalOperatorSpace,
+        GoalFactList>(task);
+
+    task_properties::verify_no_axioms(*axioms);
+    task_properties::verify_no_conditional_effects(*operators);
+
     PruningMethod::initialize(task);
-    TaskProxy task_proxy(*task);
-    task_properties::verify_no_axioms(task_proxy);
-    task_properties::verify_no_conditional_effects(task_proxy);
 
-    num_operators = task_proxy.get_operators().size();
-    sorted_goals = utils::sorted<FactPair>(
-        task_properties::get_fact_pairs(task_proxy.get_goals()));
+    num_operators = operators->size();
+    sorted_goals =
+        utils::sorted<FactPair>(task_properties::get_fact_pairs(*goals));
 
-    compute_sorted_operators(task_proxy);
-    compute_achievers(task_proxy);
+    compute_sorted_operators(*operators);
+    compute_achievers(*variables, *operators);
 }
 
-void StubbornSets::compute_sorted_operators(const TaskProxy& task_proxy)
+void StubbornSets::compute_sorted_operators(
+    const ClassicalOperatorSpace& operators)
 {
-    OperatorsProxy operators = task_proxy.get_operators();
-
     sorted_op_preconditions = utils::map_vector<vector<FactPair>>(
         operators,
-        [](const OperatorProxy& op) {
+        [](const auto& op) {
             return utils::sorted<FactPair>(
                 task_properties::get_fact_pairs(op.get_preconditions()));
         });
 
     sorted_op_effects = utils::map_vector<vector<FactPair>>(
         operators,
-        [](const OperatorProxy& op) {
+        [](const auto& op) {
             return utils::sorted<FactPair>(utils::map_vector<FactPair>(
                 op.get_effects(),
-                [](const EffectProxy& eff) {
-                    return eff.get_fact().get_pair();
-                }));
+                [](const auto& eff) { return eff.get_fact(); }));
         });
 }
 
-void StubbornSets::compute_achievers(const TaskProxy& task_proxy)
+void StubbornSets::compute_achievers(
+    const VariableSpace& variables,
+    const ClassicalOperatorSpace& operators)
 {
     achievers = utils::map_vector<vector<vector<int>>>(
-        task_proxy.get_variables(),
+        variables,
         [](const VariableProxy& var) {
             return vector<vector<int>>(var.get_domain_size());
         });
 
-    for (const OperatorProxy op : task_proxy.get_operators()) {
-        for (const EffectProxy effect : op.get_effects()) {
-            FactPair fact = effect.get_fact().get_pair();
+    for (const OperatorProxy op : operators) {
+        for (const auto effect : op.get_effects()) {
+            FactPair fact = effect.get_fact();
             achievers[fact.var][fact.value].push_back(op.get_id());
         }
     }
@@ -81,4 +88,4 @@ void StubbornSets::prune(const State& state, vector<OperatorID>& op_ids)
     }
     op_ids.swap(remaining_op_ids);
 }
-} // namespace stubborn_sets
+} // namespace downward::stubborn_sets

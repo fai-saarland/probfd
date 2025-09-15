@@ -34,7 +34,7 @@ std::tuple<
     int,
     int,
     int,
-    double>
+    downward::utils::Duration>
 get_merge_and_shrink_algorithm_arguments_from_options(
     const downward::cli::plugins::Options& opts);
 

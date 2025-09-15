@@ -1,31 +1,29 @@
 #ifndef DOWNWARD_FROM_FILE_MUTEX_FACTORY_H
 #define DOWNWARD_FROM_FILE_MUTEX_FACTORY_H
 
-#include "downward/mutexes.h"
+#include "downward/abstract_task.h"
+#include "downward/task_dependent_factory.h"
 
 #include <memory>
 #include <set>
 #include <string>
-#include <vector>
 
 namespace downward {
-class AbstractTask;
-struct FactPair;
-class VariablesProxy;
+class MutexInformation;
 }
 
 namespace downward {
 
-class FromFileMutexFactory : public MutexFactory {
+class FromFileMutexFactory : public TaskDependentFactory<MutexInformation> {
     std::string filename;
 
 public:
     explicit FromFileMutexFactory(std::string filename);
 
-    std::shared_ptr<MutexInformation>
-    compute_mutexes(const std::shared_ptr<AbstractTask>& task) override;
+    std::unique_ptr<MutexInformation>
+    create_object(const SharedAbstractTask& task) override;
 };
 
-}
+} // namespace downward
 
 #endif

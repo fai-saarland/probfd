@@ -12,7 +12,8 @@ namespace probfd {
 template <typename State, typename Action>
 class MDP
     : public StateSpace<State, Action>
-    , public CostFunction<State, Action> {
+    , public ActionCostFunction<Action>
+    , public TerminationCostFunction<State> {
     /**
      * @brief Prints statistics, e.g. the number of queries made to the
      * interface.
@@ -51,13 +52,16 @@ struct CompositeMDP : public MDP<State, Action> {
     using TransitionTailType = TransitionTail<Action>;
 
     StateSpace<State, Action>& state_space;
-    CostFunction<State, Action>& cost_function;
+    ActionCostFunction<Action>& action_cost_function;
+    TerminationCostFunction<State>& termination_cost_function;
 
     CompositeMDP(
         StateSpace<State, Action>& state_space,
-        CostFunction<State, Action>& cost_function)
+        ActionCostFunction<Action>& action_cost_function,
+        TerminationCostFunction<State>& termination_cost_function)
         : state_space(state_space)
-        , cost_function(cost_function)
+        , action_cost_function(action_cost_function)
+        , termination_cost_function(termination_cost_function)
     {
     }
 
@@ -131,7 +135,7 @@ struct CompositeMDP : public MDP<State, Action> {
      */
     TerminationInfo get_termination_info(ParamType<State> state) final
     {
-        return cost_function.get_termination_info(state);
+        return termination_cost_function.get_termination_info(state);
     }
 
     /**
@@ -139,7 +143,7 @@ struct CompositeMDP : public MDP<State, Action> {
      */
     value_t get_action_cost(ParamType<Action> action) final
     {
-        return cost_function.get_action_cost(action);
+        return action_cost_function.get_action_cost(action);
     }
 };
 

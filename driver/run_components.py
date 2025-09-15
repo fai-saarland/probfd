@@ -37,8 +37,8 @@ def get_executable_from_path(path, rel_path):
 
         if not os.path.exists(abs_path):
             returncodes.exit_with_driver_input_error(
-                "Could not find planner executable at absolute or relative "
-                "path {path}.")
+                f"Could not find planner executable at absolute or relative "
+                f"path {path}.")
 
     return abs_path
 

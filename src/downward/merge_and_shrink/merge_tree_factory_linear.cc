@@ -4,7 +4,8 @@
 #include "downward/merge_and_shrink/merge_tree.h"
 #include "downward/merge_and_shrink/transition_system.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/state.h"
 
 #include "downward/utils/rng.h"
 
@@ -23,10 +24,10 @@ MergeTreeFactoryLinear::MergeTreeFactoryLinear(
 }
 
 unique_ptr<MergeTree>
-MergeTreeFactoryLinear::compute_merge_tree(const TaskProxy& task_proxy)
+MergeTreeFactoryLinear::compute_merge_tree(const AbstractTaskTuple& task)
 {
     variable_order_finder::VariableOrderFinder vof(
-        task_proxy,
+        task,
         variable_order_type,
         rng);
     MergeTreeNode* root = new MergeTreeNode(vof.next());
@@ -38,16 +39,18 @@ MergeTreeFactoryLinear::compute_merge_tree(const TaskProxy& task_proxy)
 }
 
 unique_ptr<MergeTree> MergeTreeFactoryLinear::compute_merge_tree(
-    const TaskProxy& task_proxy,
+    const AbstractTaskTuple& task,
     const FactoredTransitionSystem& fts,
     const vector<int>& indices_subset)
 {
+    const auto& variables = get_variables(task);
+
     /*
       Compute a mapping from state variables to transition system indices
       that contain those variables. Also set all indices not contained in
       indices_subset to "used".
     */
-    int num_vars = task_proxy.get_variables().size();
+    int num_vars = variables.size();
     int num_ts = fts.get_size();
     vector<int> var_to_ts_index(num_vars, -1);
     vector<bool> used_ts_indices(num_ts, true);
@@ -55,14 +58,10 @@ unique_ptr<MergeTree> MergeTreeFactoryLinear::compute_merge_tree(
         bool use_ts_index =
             find(indices_subset.begin(), indices_subset.end(), ts_index) !=
             indices_subset.end();
-        if (use_ts_index) {
-            used_ts_indices[ts_index] = false;
-        }
+        if (use_ts_index) { used_ts_indices[ts_index] = false; }
         const vector<int>& vars =
             fts.get_transition_system(ts_index).get_incorporated_variables();
-        for (int var : vars) {
-            var_to_ts_index[var] = ts_index;
-        }
+        for (int var : vars) { var_to_ts_index[var] = ts_index; }
     }
 
     /*
@@ -72,7 +71,7 @@ unique_ptr<MergeTree> MergeTreeFactoryLinear::compute_merge_tree(
      to "used" above.
     */
     variable_order_finder::VariableOrderFinder vof(
-        task_proxy,
+        task,
         variable_order_type,
         rng);
 
@@ -115,4 +114,4 @@ void MergeTreeFactoryLinear::dump_tree_specific_options(
     }
 }
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

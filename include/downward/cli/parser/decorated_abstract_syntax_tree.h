@@ -89,7 +89,6 @@ public:
 };
 
 class FunctionArgument {
-    std::string key;
     DecoratedASTNodePtr value;
     bool is_default;
 
@@ -99,12 +98,10 @@ class FunctionArgument {
 
 public:
     FunctionArgument(
-        const std::string& key,
         DecoratedASTNodePtr value,
         bool is_default,
         bool lazy_construction);
 
-    std::string get_key() const;
     DecoratedASTNode& get_value();
     const DecoratedASTNode& get_value() const;
     bool is_default_argument() const;
@@ -143,13 +140,13 @@ public:
 
 class DecoratedFunctionCallNode : public DecoratedASTNode {
     std::shared_ptr<const plugins::Feature> feature;
-    std::vector<FunctionArgument> arguments;
+    std::vector<std::pair<std::string, FunctionArgument>> arguments;
     std::string unparsed_config;
 
 public:
     DecoratedFunctionCallNode(
         const std::shared_ptr<const plugins::Feature>& feature,
-        std::vector<FunctionArgument>&& arguments,
+        std::vector<std::pair<std::string, FunctionArgument>>&& arguments,
         const std::string& unparsed_config);
 
     void remove_variable_usages() override;

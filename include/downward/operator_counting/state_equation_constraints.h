@@ -7,10 +7,6 @@
 
 #include <set>
 
-namespace downward {
-class TaskProxy;
-}
-
 namespace downward::lp {
 class LPConstraint;
 }
@@ -28,6 +24,7 @@ struct Proposition {
         : constraint_index(-1)
     {
     }
+
     ~Proposition() = default;
 };
 
@@ -37,19 +34,24 @@ class StateEquationConstraints : public ConstraintGenerator {
     // Map goal variables to their goal value and other variables to max int.
     std::vector<int> goal_state;
 
-    void build_propositions(const TaskProxy& task_proxy);
+    void build_propositions(
+        const VariableSpace& variables,
+        const ClassicalOperatorSpace& operators);
+
     void add_constraints(
         named_vector::NamedVector<lp::LPConstraint>& constraints,
         double infinity);
 
 public:
     explicit StateEquationConstraints(utils::Verbosity verbosity);
-    virtual void initialize_constraints(
-        const std::shared_ptr<AbstractTask>& task,
+
+    void initialize_constraints(
+        const SharedAbstractTask& task,
         lp::LinearProgram& lp) override;
-    virtual bool
+
+    bool
     update_constraints(const State& state, lp::LPSolver& lp_solver) override;
 };
-} // namespace operator_counting
+} // namespace downward::operator_counting
 
 #endif

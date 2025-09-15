@@ -20,7 +20,7 @@ namespace downward::enforced_hill_climbing_search {
 using GEval = g_evaluator::GEvaluator;
 using PrefEval = pref_evaluator::PrefEvaluator;
 
-static shared_ptr<OpenListFactory> create_ehc_open_list_factory(
+static unique_ptr<EdgeOpenList> create_ehc_open_list(
     utils::Verbosity verbosity,
     bool use_preferred,
     PreferredUsage preferred_usage)
@@ -35,7 +35,8 @@ static shared_ptr<OpenListFactory> create_ehc_open_list_factory(
 
     if (!use_preferred ||
         preferred_usage == PreferredUsage::PRUNE_BY_PREFERRED) {
-        return make_shared<standard_scalar_open_list::BestFirstOpenListFactory>(
+        return make_unique<
+            standard_scalar_open_list::BestFirstOpenList<EdgeOpenListEntry>>(
             g_evaluator,
             false);
     } else {
@@ -50,8 +51,9 @@ static shared_ptr<OpenListFactory> create_ehc_open_list_factory(
         vector<shared_ptr<Evaluator>> evals = {
             g_evaluator,
             make_shared<PrefEval>("ehc.pref_eval", verbosity)};
-        return make_shared<tiebreaking_open_list::TieBreakingOpenListFactory>(
-            evals,
+        return make_unique<
+            tiebreaking_open_list::TieBreakingOpenList<EdgeOpenListEntry>>(
+            std::move(evals),
             false,
             true);
     }
@@ -61,12 +63,19 @@ EnforcedHillClimbingSearch::EnforcedHillClimbingSearch(
     const shared_ptr<Evaluator>& h,
     PreferredUsage preferred_usage,
     const vector<shared_ptr<Evaluator>>& preferred,
+    SharedAbstractTask task,
     OperatorCost cost_type,
     int bound,
-    double max_time,
+    utils::Duration max_time,
     const string& description,
     utils::Verbosity verbosity)
-    : SearchAlgorithm(cost_type, bound, max_time, description, verbosity)
+    : IterativeSearchAlgorithm(
+          std::move(task),
+          cost_type,
+          bound,
+          max_time,
+          description,
+          verbosity)
     , evaluator(h)
     , preferred_operator_evaluators(preferred)
     , preferred_usage(preferred_usage)
@@ -84,14 +93,8 @@ EnforcedHillClimbingSearch::EnforcedHillClimbingSearch(
     for (Evaluator* evaluator : path_dependent_evaluators) {
         evaluator->notify_initial_state(initial_state);
     }
-    use_preferred = find(
-                        preferred_operator_evaluators.begin(),
-                        preferred_operator_evaluators.end(),
-                        evaluator) != preferred_operator_evaluators.end();
-
-    open_list =
-        create_ehc_open_list_factory(verbosity, use_preferred, preferred_usage)
-            ->create_edge_open_list();
+    use_preferred = ranges::contains(preferred_operator_evaluators, evaluator);
+    open_list = create_ehc_open_list(verbosity, use_preferred, preferred_usage);
 }
 
 void EnforcedHillClimbingSearch::reach_state(
@@ -142,8 +145,11 @@ void EnforcedHillClimbingSearch::insert_successor_into_open_list(
     OperatorID op_id,
     bool preferred)
 {
-    OperatorProxy op = task_proxy.get_operators()[op_id];
-    int succ_g = parent_g + get_adjusted_cost(op);
+    const auto& [operators, cost_function] = to_refs(
+        slice_shared<ClassicalOperatorSpace, OperatorIntCostFunction>(task));
+
+    OperatorProxy op = operators[op_id];
+    int succ_g = parent_g + get_adjusted_cost(op, cost_function);
     const State& state = eval_context.get_state();
     EdgeOpenListEntry entry = make_pair(state.get_id(), op_id);
     EvaluationContext new_eval_context(
@@ -213,20 +219,26 @@ SearchStatus EnforcedHillClimbingSearch::step()
 
 SearchStatus EnforcedHillClimbingSearch::ehc()
 {
+    const auto& [operators, cost_function] = to_refs(
+        slice_shared<ClassicalOperatorSpace, OperatorIntCostFunction>(task));
+
     while (!open_list->empty()) {
         EdgeOpenListEntry entry = open_list->remove_min();
         StateID parent_state_id = entry.first;
         OperatorID last_op_id = entry.second;
-        OperatorProxy last_op = task_proxy.get_operators()[last_op_id];
+        OperatorProxy last_op = operators[last_op_id];
 
         State parent_state = state_registry.lookup_state(parent_state_id);
         SearchNode parent_node = search_space.get_node(parent_state);
 
         // d: distance from initial node in this EHC phase
         int d = parent_node.get_g() - current_phase_start_g +
-                get_adjusted_cost(last_op);
+                get_adjusted_cost(last_op, cost_function);
 
-        if (parent_node.get_real_g() + last_op.get_cost() >= bound) continue;
+        if (parent_node.get_real_g() +
+                cost_function.get_operator_cost(last_op.get_id()) >=
+            bound)
+            continue;
 
         State state = state_registry.get_successor_state(parent_state, last_op);
         statistics.inc_generated();
@@ -245,13 +257,15 @@ SearchStatus EnforcedHillClimbingSearch::ehc()
             }
 
             int h = eval_context.get_evaluator_value(evaluator.get());
-            node.open(parent_node, last_op, get_adjusted_cost(last_op));
+            node.open(
+                parent_node,
+                last_op,
+                cost_function,
+                get_adjusted_cost(last_op, cost_function));
 
             if (h < current_eval_context.get_evaluator_value(evaluator.get())) {
                 ++num_ehc_phases;
-                if (d_counts.count(d) == 0) {
-                    d_counts[d] = make_pair(0, 0);
-                }
+                if (!d_counts.contains(d)) { d_counts[d] = make_pair(0, 0); }
                 pair<int, int>& d_pair = d_counts[d];
                 d_pair.first += 1;
                 d_pair.second += statistics.get_expanded() - last_num_expanded;
@@ -290,4 +304,4 @@ void EnforcedHillClimbingSearch::print_statistics() const
     }
 }
 
-} // namespace enforced_hill_climbing_search
+} // namespace downward::enforced_hill_climbing_search

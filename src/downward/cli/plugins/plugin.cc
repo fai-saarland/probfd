@@ -91,11 +91,6 @@ const vector<NoteInfo>& Feature::get_notes() const
     return notes;
 }
 
-Plugin::Plugin()
-{
-    RawRegistry::instance()->insert_plugin(*this);
-}
-
 CategoryPlugin::CategoryPlugin(
     type_index pointer_type,
     const string& class_name,
@@ -103,9 +98,7 @@ CategoryPlugin::CategoryPlugin(
     : pointer_type(pointer_type)
     , class_name(class_name)
     , category_name(category_name)
-    , can_be_bound_to_variable(true)
 {
-    RawRegistry::instance()->insert_category_plugin(*this);
 }
 
 type_index CategoryPlugin::get_pointer_type() const
@@ -133,15 +126,9 @@ void CategoryPlugin::document_synopsis(const string& synopsis)
     this->synopsis = synopsis;
 }
 
-void CategoryPlugin::allow_variable_binding()
-{
-    can_be_bound_to_variable = true;
-}
-
 SubcategoryPlugin::SubcategoryPlugin(const string& subcategory)
     : subcategory_name(subcategory)
 {
-    RawRegistry::instance()->insert_subcategory_plugin(*this);
 }
 
 void SubcategoryPlugin::document_title(const string& title)
@@ -177,7 +164,6 @@ EnumPlugin::EnumPlugin(
     , class_name(class_name)
     , enum_info(enum_values)
 {
-    RawRegistry::instance()->insert_enum_plugin(*this);
 }
 
 type_index EnumPlugin::get_type() const

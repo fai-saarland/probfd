@@ -2,6 +2,8 @@
 
 #include "downward/utils/logging.h"
 
+#include "downward/abstract_task.h"
+
 #include <cassert>
 #include <iostream>
 #include <utility>
@@ -68,10 +70,10 @@ bool MatchTree::Node::is_leaf_node() const
 }
 
 MatchTree::MatchTree(
-    const TaskProxy& task_proxy,
+    const VariableSpace& variables,
     const Pattern& pattern,
     const vector<int>& hash_multipliers)
-    : task_proxy(task_proxy)
+    : variables(variables)
     , pattern(pattern)
     , hash_multipliers(hash_multipliers)
     , root(nullptr)
@@ -102,7 +104,7 @@ void MatchTree::insert_recursive(
         const FactPair& fact = regression_preconditions[pre_index];
         int pattern_var_id = fact.var;
         int var_id = pattern[pattern_var_id];
-        VariableProxy var = task_proxy.get_variables()[var_id];
+        VariableProxy var = variables[var_id];
         int var_domain_size = var.get_domain_size();
 
         // Set up node correctly or insert a new node if necessary.

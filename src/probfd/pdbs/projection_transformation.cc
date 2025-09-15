@@ -2,20 +2,18 @@
 
 #include "probfd/pdbs/projection_state_space.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 
 namespace probfd::pdbs {
 
 ProjectionTransformation::ProjectionTransformation(
-    ProbabilisticTaskProxy task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    SharedProbabilisticTask task,
     Pattern pattern,
     bool operator_pruning,
-    double max_time)
-    : pdb(task_proxy.get_variables(), std::move(pattern))
+    downward::utils::Duration max_time)
+    : pdb(get_variables(task), std::move(pattern))
     , projection(std::make_unique<ProjectionStateSpace>(
-          task_proxy,
-          std::move(task_cost_function),
+          std::move(task),
           pdb.ranking_function,
           operator_pruning,
           max_time))

@@ -3,6 +3,11 @@
 
 #include "probfd/aliases.h"
 #include "probfd/fdr_types.h"
+#include "probfd/probabilistic_task.h"
+#include "probfd/task_heuristic_factory_fwd.h"
+#include "probfd/task_state_space_factory_fwd.h"
+
+#include "downward/utils/timer.h"
 
 #include <iosfwd>
 #include <memory>
@@ -11,14 +16,10 @@
 namespace downward {
 class State;
 class OperatorID;
-}
+} // namespace downward
 
 namespace probfd {
 class ProgressReport;
-
-class ProbabilisticTask;
-class TaskHeuristicFactory;
-class TaskStateSpaceFactory;
 
 template <typename, typename>
 class MDP;
@@ -49,7 +50,7 @@ public:
         HeuristicType& heuristic,
         ParamType<downward::State> state,
         ProgressReport progress,
-        double max_time) = 0;
+        downward::utils::Duration max_time) = 0;
 
     /**
      * @brief Prints algorithm statistics to the specified output stream.
@@ -64,9 +65,8 @@ public:
     /**
      * @brief Factory method a new instance of the encapsulated MDP algorithm.
      */
-    virtual std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) = 0;
+    virtual std::unique_ptr<StatisticalMDPAlgorithm>
+    create_algorithm(const SharedProbabilisticTask& task) = 0;
 
     /**
      * @brief Returns the name of the MDP algorithm returned by the factory.
@@ -82,16 +82,16 @@ public:
 
     ~AlgorithmAdaptor() override;
 
-    virtual std::unique_ptr<PolicyType> compute_policy(
+    std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
         HeuristicType& heuristic,
         ParamType<downward::State> state,
         ProgressReport progress,
-        double max_time) override;
+        downward::utils::Duration max_time) override;
 
-    virtual void print_statistics(std::ostream&) const override;
+    void print_statistics(std::ostream&) const override;
 };
 
-}
+} // namespace probfd::solvers
 
 #endif // PROBFD_SOLVERS_STATISTICAL_MDP_ALGORITHM_H

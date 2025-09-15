@@ -6,8 +6,6 @@
 
 #include "probfd/algorithms/successor_sampler.h"
 
-#include "probfd/views/concat.h"
-
 #include "probfd/progress_report.h"
 
 #include "downward/utils/countdown_timer.h"
@@ -33,7 +31,7 @@ Interval AOStar<State, Action, UseInterval>::do_solve(
     HeuristicType& heuristic,
     ParamType<State> initial_state,
     ProgressReport& progress,
-    double max_time)
+    downward::utils::Duration max_time)
 {
     using namespace std::views;
 

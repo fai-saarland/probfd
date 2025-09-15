@@ -20,16 +20,18 @@ using namespace std;
 
 namespace downward::cartesian_abstractions {
 Abstraction::Abstraction(
-    const shared_ptr<AbstractTask>& task,
+    const VariableSpace& variables,
+    const ClassicalOperatorSpace& operators,
+    std::vector<FactPair> goal_facts,
+    const State& initial_state,
     utils::LogProxy& log)
-    : transition_system(
-          std::make_unique<TransitionSystem>(TaskProxy(*task).get_operators()))
-    , concrete_initial_state(TaskProxy(*task).get_initial_state())
-    , goal_facts(task_properties::get_fact_pairs(TaskProxy(*task).get_goals()))
+    : transition_system(std::make_unique<TransitionSystem>(operators))
+    , concrete_initial_state(initial_state)
+    , goal_facts(goal_facts)
     , refinement_hierarchy(std::make_unique<RefinementHierarchy>())
     , log(log)
 {
-    initialize_trivial_abstraction(get_domain_sizes(TaskProxy(*task)));
+    initialize_trivial_abstraction(get_domain_sizes(variables));
 }
 
 Abstraction::~Abstraction()
@@ -70,9 +72,7 @@ unique_ptr<RefinementHierarchy> Abstraction::extract_refinement_hierarchy()
 void Abstraction::mark_all_states_as_goals()
 {
     goals.clear();
-    for (auto& state : states) {
-        goals.insert(state->get_id());
-    }
+    for (auto& state : states) { goals.insert(state->get_id()); }
 }
 
 void Abstraction::initialize_trivial_abstraction(
@@ -136,12 +136,8 @@ pair<int, int> Abstraction::refine(
     }
     if (goals.count(v_id)) {
         goals.erase(v_id);
-        if (v1->includes(goal_facts)) {
-            goals.insert(v1_id);
-        }
-        if (v2->includes(goal_facts)) {
-            goals.insert(v2_id);
-        }
+        if (v1->includes(goal_facts)) { goals.insert(v1_id); }
+        if (v2->includes(goal_facts)) { goals.insert(v2_id); }
         if (log.is_at_least_debug()) {
             log << "Goal states: " << goals.size() << endl;
         }
@@ -164,4 +160,4 @@ void Abstraction::print_statistics() const
         transition_system->print_statistics(log);
     }
 }
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions

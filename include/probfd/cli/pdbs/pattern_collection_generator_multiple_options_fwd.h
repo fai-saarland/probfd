@@ -5,18 +5,27 @@
 
 #include "probfd/aliases.h"
 
+#include "downward/utils/timer.h"
+
 #include <memory>
 #include <utility>
 
 namespace downward::utils {
 enum class Verbosity;
 class RandomNumberGenerator;
-} // namespace utils
+} // namespace downward::utils
 
 namespace probfd::cli::pdbs {
 
-using PatternCollectionGeneratorMultipleAdditionalArgs =
-    std::tuple<int, int, double, double, double, double, bool, bool>;
+using PatternCollectionGeneratorMultipleAdditionalArgs = std::tuple<
+    int,
+    int,
+    downward::utils::Duration,
+    downward::utils::Duration,
+    downward::utils::Duration,
+    double,
+    bool,
+    bool>;
 
 using PatternCollectionGeneratorMultipleArgs = TupleCatType<
     PatternCollectionGeneratorMultipleAdditionalArgs,

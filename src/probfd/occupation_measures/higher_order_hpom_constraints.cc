@@ -10,11 +10,14 @@
 #include "downward/lp/lp_solver.h"
 
 #include "downward/task_utils/task_properties.h"
+#include "probfd/probabilistic_operator_space.h"
+#include "probfd/termination_costs.h"
 
 #include <cassert>
 #include <iostream>
 #include <map>
 #include <memory>
+#include <print>
 #include <utility>
 
 using namespace downward;
@@ -40,9 +43,7 @@ static bool next_pattern(std::size_t num_variables, std::vector<int>& pattern)
         }
     }
 
-    if (idx == -1) {
-        overflow = true;
-    }
+    if (idx == -1) { overflow = true; }
 
     for (++idx; idx < static_cast<int>(pattern.size()); ++idx) {
         pattern[idx] = base++;
@@ -66,7 +67,7 @@ static std::vector<int> get_first_partial_state(
 }
 
 static bool next_partial_state(
-    const VariablesProxy& variables,
+    const VariableSpace& variables,
     std::vector<int>& pstate,
     const std::vector<int>& pattern,
     const std::vector<int>& pindices)
@@ -117,9 +118,7 @@ int HigherOrderHPOMGenerator::PatternInfo::get_updated_id(
     const std::vector<int>& state,
     const std::vector<int>& pstate) const
 {
-    if (pstate.empty()) {
-        return get_state_id(state);
-    }
+    if (pstate.empty()) { return get_state_id(state); }
 
     int res = 0;
 
@@ -138,7 +137,7 @@ int HigherOrderHPOMGenerator::PatternInfo::to_id(
     int id = 0;
 
     for (size_t i = 0; i != pattern.size(); ++i) {
-        id += multipliers[i] * state[pattern[i]].get_value();
+        id += multipliers[i] * state[pattern[i]];
     }
 
     return id;
@@ -150,31 +149,33 @@ HigherOrderHPOMGenerator::HigherOrderHPOMGenerator(int projection_size)
 }
 
 void HigherOrderHPOMGenerator::initialize_constraints(
-    const std::shared_ptr<ProbabilisticTask>& task,
-    const std::shared_ptr<FDRCostFunction>& task_cost_function,
+    const SharedProbabilisticTask& task,
     lp::LinearProgram& lp)
 {
-    const value_t term_cost =
-        task_cost_function->get_non_goal_termination_cost();
+    const auto& variables = get_variables(task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
+    const auto& goals = get_goal(task);
+    const auto& cost_function = get_cost_function(task);
+    const auto& term_costs = get_termination_costs(task);
+
+    const value_t term_cost = term_costs.get_non_goal_termination_cost();
 
     if (term_cost != INFINITE_VALUE && term_cost != 1_vt) {
-        std::cerr
-            << "Termination costs beyond 1 (MaxProb) and +infinity (SSP) "
-               "currently unsupported in higher-order hpom implementation.";
+        std::println(
+            std::cerr,
+            "Termination costs beyond 1 (MaxProb) and +infinity (SSP) "
+            "currently unsupported in higher-order hpom implementation.");
         utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
     }
 
-    const bool maxprob =
-        task_cost_function->get_non_goal_termination_cost() == 1_vt;
+    const bool maxprob = term_costs.get_non_goal_termination_cost() == 1_vt;
 
-    ProbabilisticTaskProxy task_proxy(*task);
-    const VariablesProxy variables = task_proxy.get_variables();
     const std::size_t num_variables = variables.size();
 
-    ::task_properties::verify_no_axioms(task_proxy);
-    task_properties::verify_no_conditional_effects(task_proxy);
-
-    std::cout << "Initializing HO-HPOM LP constraints..." << std::endl;
+    ::task_properties::verify_no_axioms(axioms);
+    task_properties::verify_no_conditional_effects(operators);
+    std::println(std::cout, "Initializing HO-HPOM LP constraints...");
 
     utils::Timer timer;
 
@@ -213,9 +214,7 @@ void HigherOrderHPOMGenerator::initialize_constraints(
 
     std::vector<int> the_goal(num_variables, -1);
 
-    for (const FactProxy goal_fact : task_proxy.get_goals()) {
-        the_goal[goal_fact.get_variable().get_id()] = goal_fact.get_value();
-    }
+    for (const auto [var, value] : goals) { the_goal[var] = value; }
 
     // Build flow contraint coefficients for dummy goal action
     {
@@ -244,17 +243,16 @@ void HigherOrderHPOMGenerator::initialize_constraints(
         } while (next_pattern(num_variables, pattern));
     }
 
-    const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
-
     // Now ordinary actions
     for (const ProbabilisticOperatorProxy op : operators) {
-        const auto cost = maxprob ? 0 : op.get_cost();
+        const auto cost =
+            maxprob ? 0 : cost_function.get_operator_cost(op.get_id());
 
         // Get dense precondition
         std::vector<int> pre(num_variables, -1);
 
-        for (const FactProxy fact : op.get_preconditions()) {
-            pre[fact.get_variable().get_id()] = fact.get_value();
+        for (const auto [var, value] : op.get_preconditions()) {
+            pre[var] = value;
         }
 
         // For tying constraints, contains lp variable ranges of projections
@@ -288,7 +286,7 @@ void HigherOrderHPOMGenerator::initialize_constraints(
 
                     for (const auto effect_proxy : outcome.get_effects()) {
                         const auto& [eff_var, eff_val] =
-                            effect_proxy.get_fact().get_pair();
+                            effect_proxy.get_fact();
                         effects[eff_var] = eff_val;
                     }
 
@@ -301,15 +299,11 @@ void HigherOrderHPOMGenerator::initialize_constraints(
 
                     auto [it, inserted] = transitions.emplace(id, -probability);
 
-                    if (!inserted) {
-                        it->second -= probability;
-                    }
+                    if (!inserted) { it->second -= probability; }
                 }
 
                 // Pure self loop check
-                if (transitions.size() == 1) {
-                    continue;
-                }
+                if (transitions.size() == 1) { continue; }
 
                 for (const auto& [succ_id, prob] : transitions) {
                     assert(succ_id == astate_id || prob < 0.0_vt);
@@ -346,7 +340,7 @@ void HigherOrderHPOMGenerator::initialize_constraints(
         }
     }
 
-    std::cout << "Finished HO-POM LP setup after " << timer << std::endl;
+    std::println(std::cout, "Finished HO-POM LP setup after {}", timer());
 }
 
 void HigherOrderHPOMGenerator::update_constraints(
@@ -387,8 +381,7 @@ HigherOrderHPOMGeneratorFactory::HigherOrderHPOMGeneratorFactory(
 
 std::unique_ptr<ConstraintGenerator>
 HigherOrderHPOMGeneratorFactory::construct_constraint_generator(
-    const std::shared_ptr<ProbabilisticTask>&,
-    const std::shared_ptr<FDRCostFunction>&)
+    const SharedProbabilisticTask&)
 {
     return std::make_unique<HigherOrderHPOMGenerator>(projection_size_);
 }

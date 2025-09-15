@@ -183,8 +183,6 @@ def translate_strips_operator(operator, dictionary, ranges, mutex_dict,
     if conditions is None:
         return []
 
-    assert len(conditions) == 1
-
     sas_operators = []
     for condition in conditions:
         op = translate_strips_operator_aux(operator, dictionary, ranges,
@@ -192,8 +190,6 @@ def translate_strips_operator(operator, dictionary, ranges, mutex_dict,
                                            implied_facts, condition)
         if op is not None:
             sas_operators.append(op)
-
-    assert len(sas_operators) <= 1
 
     return sas_operators
 

@@ -6,15 +6,18 @@
 #include "downward/landmarks/util.h"
 
 #include "downward/utils/logging.h"
-#include "downward/utils/markup.h"
 
-#include "downward/mutexes.h"
+#include "downward/abstract_task.h"
+#include "downward/axiom_utils.h"
+#include "downward/mutex_information.h"
+#include "downward/task_dependent_factory.h"
 
 using namespace std;
+
 namespace downward::landmarks {
 LandmarkFactoryReasonableOrdersHPS::LandmarkFactoryReasonableOrdersHPS(
     const shared_ptr<LandmarkFactory>& lm_factory,
-    std::shared_ptr<MutexFactory> mutex_factory,
+    std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory,
     utils::Verbosity verbosity)
     : LandmarkFactory(verbosity)
     , lm_factory(lm_factory)
@@ -23,10 +26,9 @@ LandmarkFactoryReasonableOrdersHPS::LandmarkFactoryReasonableOrdersHPS(
 }
 
 void LandmarkFactoryReasonableOrdersHPS::generate_landmarks(
-    const shared_ptr<AbstractTask>& task)
+    const SharedAbstractTask& task)
 {
-    std::shared_ptr<MutexInformation> mutexes =
-        mutex_factory->compute_mutexes(task);
+    std::shared_ptr mutexes = mutex_factory->create_object(task);
 
     if (log.is_at_least_normal()) {
         log << "Building a landmark graph with reasonable orders." << endl;
@@ -35,19 +37,26 @@ void LandmarkFactoryReasonableOrdersHPS::generate_landmarks(
     lm_graph = lm_factory->compute_lm_graph(task);
     achievers_calculated = lm_factory->achievers_are_calculated();
 
-    TaskProxy task_proxy(*task);
     if (log.is_at_least_normal()) {
         log << "approx. reasonable orders" << endl;
     }
-    approximate_reasonable_orders(task_proxy, *mutexes);
+
+    const auto& [variables, axioms, operators] = to_refs(
+        slice_shared<VariableSpace, AxiomSpace, ClassicalOperatorSpace>(task));
+
+    approximate_reasonable_orders(variables, axioms, operators, *mutexes);
+
     if (log.is_at_least_normal()) {
         log << "approx. obedient reasonable orders" << endl;
     }
-    approximate_reasonable_orders(task_proxy, *mutexes);
+
+    approximate_reasonable_orders(variables, axioms, operators, *mutexes);
 }
 
 void LandmarkFactoryReasonableOrdersHPS::approximate_reasonable_orders(
-    const TaskProxy& task_proxy,
+    const VariableSpace& variables,
+    const AxiomSpace& axioms,
+    const ClassicalOperatorSpace& operators,
     const MutexInformation& mutexes)
 {
     /*
@@ -61,8 +70,7 @@ void LandmarkFactoryReasonableOrdersHPS::approximate_reasonable_orders(
       predecessors of parent can be ordered reasonably before node_p if
       they interfere with node_p.
     */
-    State initial_state = task_proxy.get_initial_state();
-    int variables_size = task_proxy.get_variables().size();
+    int variables_size = variables.size();
     for (auto& node_p : lm_graph->get_nodes()) {
         const Landmark& landmark = node_p->get_landmark();
         if (landmark.disjunctive) continue;
@@ -71,7 +79,13 @@ void LandmarkFactoryReasonableOrdersHPS::approximate_reasonable_orders(
             for (auto& node2_p : lm_graph->get_nodes()) {
                 const Landmark& landmark2 = node2_p->get_landmark();
                 if (landmark == landmark2 || landmark2.disjunctive) continue;
-                if (interferes(task_proxy, mutexes, landmark2, landmark)) {
+                if (interferes(
+                        variables,
+                        axioms,
+                        operators,
+                        mutexes,
+                        landmark2,
+                        landmark)) {
                     edge_add(*node2_p, *node_p, EdgeType::REASONABLE);
                 }
             }
@@ -104,7 +118,13 @@ void LandmarkFactoryReasonableOrdersHPS::approximate_reasonable_orders(
             for (LandmarkNode* node2_p : interesting_nodes) {
                 const Landmark& landmark2 = node2_p->get_landmark();
                 if (landmark == landmark2 || landmark2.disjunctive) continue;
-                if (interferes(task_proxy, mutexes, landmark2, landmark)) {
+                if (interferes(
+                        variables,
+                        axioms,
+                        operators,
+                        mutexes,
+                        landmark2,
+                        landmark)) {
                     edge_add(*node2_p, *node_p, EdgeType::REASONABLE);
                 }
             }
@@ -113,7 +133,9 @@ void LandmarkFactoryReasonableOrdersHPS::approximate_reasonable_orders(
 }
 
 bool LandmarkFactoryReasonableOrdersHPS::interferes(
-    const TaskProxy& task_proxy,
+    const VariableSpace& variables,
+    const AxiomSpace& axioms,
+    const ClassicalOperatorSpace& operators,
     const MutexInformation& mutexes,
     const Landmark& landmark_a,
     const Landmark& landmark_b) const
@@ -131,7 +153,6 @@ bool LandmarkFactoryReasonableOrdersHPS::interferes(
     assert(landmark_a != landmark_b);
     assert(!landmark_a.disjunctive && !landmark_b.disjunctive);
 
-    VariablesProxy variables = task_proxy.get_variables();
     for (const FactPair& lm_fact_b : landmark_b.facts) {
         for (const FactPair& lm_fact_a : landmark_a.facts) {
             if (lm_fact_a == lm_fact_b) {
@@ -166,7 +187,7 @@ bool LandmarkFactoryReasonableOrdersHPS::interferes(
                 // always be true. We test for a simple kind of these trivial
                 // conditions here.)
                 EffectsProxy effects =
-                    get_operator_or_axiom(task_proxy, op_or_axiom_id)
+                    get_operator_or_axiom(axioms, operators, op_or_axiom_id)
                         .get_effects();
                 set<FactPair> trivially_conditioned_effects;
                 bool trivial_conditioned_effects_found = effect_always_happens(
@@ -175,7 +196,7 @@ bool LandmarkFactoryReasonableOrdersHPS::interferes(
                     trivially_conditioned_effects);
                 unordered_map<int, int> next_eff;
                 for (EffectProxy effect : effects) {
-                    FactPair effect_fact = effect.get_fact().get_pair();
+                    FactPair effect_fact = effect.get_fact();
                     if (effect.get_conditions().empty() &&
                         effect_fact.var != lm_fact_a.var) {
                         next_eff.emplace(effect_fact.var, effect_fact.value);
@@ -260,7 +281,7 @@ void LandmarkFactoryReasonableOrdersHPS::collect_ancestors(
 }
 
 bool LandmarkFactoryReasonableOrdersHPS::effect_always_happens(
-    const VariablesProxy& variables,
+    const VariableSpace& variables,
     const EffectsProxy& effects,
     set<FactPair>& eff) const
 {
@@ -283,12 +304,12 @@ bool LandmarkFactoryReasonableOrdersHPS::effect_always_happens(
     // they appear with
     set<int> effect_vars;
     set<int> nogood_effect_vars;
-    map<int, pair<int, vector<FactPair>>> effect_conditions_by_variable;
+    std::map<int, pair<int, vector<FactPair>>> effect_conditions_by_variable;
     for (EffectProxy effect : effects) {
         EffectConditionsProxy effect_conditions = effect.get_conditions();
-        FactProxy effect_fact = effect.get_fact();
-        int var_id = effect_fact.get_variable().get_id();
-        int value = effect_fact.get_value();
+        FactPair effect_fact = effect.get_fact();
+        int var_id = effect_fact.var;
+        int value = effect_fact.value;
         if (effect_conditions.empty() ||
             nogood_effect_vars.find(var_id) != nogood_effect_vars.end()) {
             // Var has no condition or can take on different values, skipping
@@ -314,10 +335,10 @@ bool LandmarkFactoryReasonableOrdersHPS::effect_always_happens(
                 effect_conditions_by_variable.end() &&
             effect_conditions_by_variable.find(var_id)->second.first == value) {
             // We have seen this effect before, adding conditions
-            for (FactProxy effect_condition : effect_conditions) {
+            for (FactPair effect_condition : effect_conditions) {
                 vector<FactPair>& vec =
                     effect_conditions_by_variable.find(var_id)->second.second;
-                vec.push_back(effect_condition.get_pair());
+                vec.push_back(effect_condition);
             }
         } else {
             // We have not seen this effect before, making new effect entry
@@ -325,8 +346,8 @@ bool LandmarkFactoryReasonableOrdersHPS::effect_always_happens(
                 effect_conditions_by_variable
                     .emplace(var_id, make_pair(value, vector<FactPair>()))
                     .first->second.second;
-            for (FactProxy effect_condition : effect_conditions) {
-                vec.push_back(effect_condition.get_pair());
+            for (FactPair effect_condition : effect_conditions) {
+                vec.push_back(effect_condition);
             }
         }
     }
@@ -341,7 +362,7 @@ bool LandmarkFactoryReasonableOrdersHPS::effect_always_happens(
         // ...go through all the conditions that the effect has, and map
         // condition variables to the set of values they take on (in
         // unique_conds)
-        map<int, set<int>> unique_conds;
+        std::map<int, set<int>> unique_conds;
         for (const FactPair& cond : effect_conditions.second.second) {
             if (unique_conds.find(cond.var) != unique_conds.end()) {
                 unique_conds.find(cond.var)->second.insert(cond.value);
@@ -393,4 +414,4 @@ bool LandmarkFactoryReasonableOrdersHPS::supports_conditional_effects() const
     return lm_factory->supports_conditional_effects();
 }
 
-} // namespace landmarks
+} // namespace downward::landmarks

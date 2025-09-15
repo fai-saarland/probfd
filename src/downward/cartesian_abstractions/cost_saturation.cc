@@ -8,9 +8,12 @@
 #include "downward/cartesian_abstractions/subtask_generators.h"
 #include "downward/cartesian_abstractions/transition_system.h"
 #include "downward/cartesian_abstractions/utils.h"
+#include "downward/initial_state_values.h"
 
 #include "downward/task_utils/task_properties.h"
-#include "downward/tasks/modified_operator_costs_task.h"
+
+#include "downward/tasks/range_operator_cost_function.h"
+
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/memory.h"
@@ -30,7 +33,7 @@ namespace downward::cartesian_abstractions {
   blocks of memory. It is for this reason that we require such a large
   amount of memory padding.
 */
-static const int memory_padding_in_mb = 75;
+static constexpr int memory_padding_in_mb = 75;
 
 static vector<int> compute_saturated_costs(
     const TransitionSystem& transition_system,
@@ -85,7 +88,7 @@ CostSaturation::CostSaturation(
     const vector<shared_ptr<SubtaskGenerator>>& subtask_generators,
     int max_states,
     int max_non_looping_transitions,
-    double max_time,
+    utils::Duration max_time,
     PickSplit pick_split,
     bool use_general_costs,
     utils::RandomNumberGenerator& rng,
@@ -104,22 +107,22 @@ CostSaturation::CostSaturation(
 {
 }
 
-vector<CartesianHeuristicFunction> CostSaturation::generate_heuristic_functions(
-    const shared_ptr<AbstractTask>& task)
+vector<CartesianHeuristicFunction>
+CostSaturation::generate_heuristic_functions(const SharedAbstractTask& task)
 {
     // For simplicity this is a member object. Make sure it is in a valid state.
     assert(heuristic_functions.empty());
 
     utils::CountdownTimer timer(max_time);
 
-    TaskProxy task_proxy(*task);
+    task_properties::verify_no_axioms(get_axioms(task));
+    task_properties::verify_no_conditional_effects(
+        get_operators(task));
 
-    task_properties::verify_no_axioms(task_proxy);
-    task_properties::verify_no_conditional_effects(task_proxy);
+    reset(to_refs(task));
 
-    reset(task_proxy);
-
-    State initial_state = TaskProxy(*task).get_initial_state();
+    State initial_state =
+        get_shared_init(task)->get_initial_state();
 
     function<bool()> should_abort = [&]() {
         return num_states >= max_states ||
@@ -146,9 +149,11 @@ vector<CartesianHeuristicFunction> CostSaturation::generate_heuristic_functions(
     return functions;
 }
 
-void CostSaturation::reset(const TaskProxy& task_proxy)
+void CostSaturation::reset(const AbstractTaskTuple& task)
 {
-    remaining_costs = task_properties::get_operator_costs(task_proxy);
+    remaining_costs = task_properties::get_operator_costs(
+        get_operators(task),
+        get_cost_function(task));
     num_abstractions = 0;
     num_states = 0;
 }
@@ -174,13 +179,13 @@ void CostSaturation::reduce_remaining_costs(const vector<int>& saturated_costs)
     }
 }
 
-shared_ptr<AbstractTask>
-CostSaturation::get_remaining_costs_task(shared_ptr<AbstractTask>& parent) const
+SharedAbstractTask
+CostSaturation::get_remaining_costs_task(const SharedAbstractTask& parent) const
 {
-    vector<int> costs = remaining_costs;
-    return make_shared<extra_tasks::ModifiedOperatorCostsTask>(
+    return replace(
         parent,
-        std::move(costs));
+        make_shared<extra_tasks::VectorOperatorIntCostFunction>(
+            remaining_costs));
 }
 
 bool CostSaturation::state_is_dead_end(const State& state) const
@@ -219,8 +224,9 @@ void CostSaturation::build_abstractions(
             abstraction->get_transition_system().get_num_non_loops();
         assert(num_states <= max_states);
 
-        vector<int> costs =
-            task_properties::get_operator_costs(TaskProxy(*subtask));
+        vector<int> costs = task_properties::get_operator_costs(
+            get_operators(subtask),
+            get_cost_function(subtask));
         vector<int> init_distances = compute_distances(
             abstraction->get_transition_system().get_outgoing_transitions(),
             costs,
@@ -262,4 +268,4 @@ void CostSaturation::print_statistics(utils::Duration init_time) const
         log << endl;
     }
 }
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions

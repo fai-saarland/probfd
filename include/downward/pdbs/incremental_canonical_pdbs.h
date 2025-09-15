@@ -5,13 +5,13 @@
 #include "downward/pdbs/pattern_collection_information.h"
 #include "downward/pdbs/types.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <memory>
 
 namespace downward::pdbs {
 class IncrementalCanonicalPDBs {
-    TaskProxy task_proxy;
+    AbstractTaskTuple task;
 
     std::shared_ptr<PatternCollection> patterns;
     std::shared_ptr<PDBCollection> pattern_databases;
@@ -30,7 +30,7 @@ class IncrementalCanonicalPDBs {
 
 public:
     IncrementalCanonicalPDBs(
-        const TaskProxy& task_proxy,
+        const AbstractTaskTuple& task,
         const PatternCollection& intitial_patterns);
     virtual ~IncrementalCanonicalPDBs() = default;
 

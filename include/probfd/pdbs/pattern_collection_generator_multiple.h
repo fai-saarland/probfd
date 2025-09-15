@@ -19,11 +19,7 @@ struct FactPair;
 namespace downward::utils {
 class CountdownTimer;
 class RandomNumberGenerator;
-} // namespace utils
-
-namespace probfd {
-class ProbabilisticTaskProxy;
-}
+} // namespace downward::utils
 
 namespace probfd::pdbs {
 class ProjectionStateSpace;
@@ -35,10 +31,10 @@ namespace probfd::pdbs {
 class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
     const int max_pdb_size_;
     const int max_collection_size_;
-    const double pattern_generation_max_time_;
-    const double total_max_time_;
-    const double stagnation_limit_;
-    const double blacklisting_start_time_;
+    const downward::utils::Duration pattern_generation_max_time_;
+    const downward::utils::Duration total_max_time_;
+    const downward::utils::Duration stagnation_limit_;
+    const downward::utils::Duration blacklisting_start_time_;
     const bool enable_blacklist_on_stagnation_;
     const bool use_saturated_costs_;
 
@@ -51,24 +47,22 @@ class PatternCollectionGeneratorMultiple : public PatternCollectionGenerator {
 
     virtual ProjectionTransformation compute_pattern(
         int max_pdb_size,
-        double max_time,
+        downward::utils::Duration max_time,
         const std::shared_ptr<downward::utils::RandomNumberGenerator>& rng,
-        const ProbabilisticTaskProxy& task_proxy,
-        const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
+        const SharedProbabilisticTask& task,
         const downward::FactPair& goal,
         std::unordered_set<int>&& blacklisted_variables) = 0;
 
-    PatternCollectionInformation generate(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
+    PatternCollectionInformation
+    generate(const SharedProbabilisticTask& task) override;
 
 public:
     explicit PatternCollectionGeneratorMultiple(
         int max_pdb_size,
         int max_collection_size,
-        double pattern_generation_max_time,
-        double total_max_time,
-        double stagnation_limit,
+        downward::utils::Duration pattern_generation_max_time,
+        downward::utils::Duration total_max_time,
+        downward::utils::Duration stagnation_limit,
         double blacklist_trigger_percentage,
         bool enable_blacklist_on_stagnation,
         bool use_saturated_costs,

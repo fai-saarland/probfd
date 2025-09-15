@@ -1,4 +1,7 @@
+#include "downward/cli/operator_counting/lm_cut_constraints_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/operator_counting/lm_cut_constraints.h"
 
@@ -11,7 +14,6 @@ using namespace downward::operator_counting;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class LMCutConstraintsFeature
     : public TypedFeature<ConstraintGenerator, LMCutConstraints> {
 public:
@@ -59,7 +61,13 @@ public:
         return make_shared<LMCutConstraints>();
     }
 };
+}
 
-FeaturePlugin<LMCutConstraintsFeature> _plugin;
+namespace downward::cli::operator_counting {
+
+void add_lm_cut_constraints_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<LMCutConstraintsFeature>();
+}
 
 } // namespace

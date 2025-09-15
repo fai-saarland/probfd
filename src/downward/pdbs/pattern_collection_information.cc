@@ -1,56 +1,47 @@
 #include "downward/pdbs/pattern_collection_information.h"
 
+#include "downward/classical_operator_space.h"
 #include "downward/pdbs/pattern_cliques.h"
 #include "downward/pdbs/pattern_database.h"
 #include "downward/pdbs/validation.h"
 
+#include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/timer.h"
 
-#include <algorithm>
 #include <cassert>
-#include <unordered_set>
-#include <utility>
 
 using namespace std;
 
 namespace downward::pdbs {
 PatternCollectionInformation::PatternCollectionInformation(
-    const TaskProxy& task_proxy,
+    const AbstractTaskTuple& task,
     const shared_ptr<PatternCollection>& patterns,
     utils::LogProxy& log)
-    : task_proxy(task_proxy)
+    : task(task)
     , patterns(patterns)
     , pdbs(nullptr)
     , pattern_cliques(nullptr)
     , log(log)
 {
     assert(patterns);
-    validate_and_normalize_patterns(task_proxy, *patterns, log);
+    validate_and_normalize_patterns(get_variables(task), *patterns, log);
 }
 
 bool PatternCollectionInformation::information_is_valid() const
 {
-    if (!patterns) {
-        return false;
-    }
+    if (!patterns) { return false; }
     int num_patterns = patterns->size();
     if (pdbs) {
-        if (patterns->size() != pdbs->size()) {
-            return false;
-        }
+        if (patterns->size() != pdbs->size()) { return false; }
         for (int i = 0; i < num_patterns; ++i) {
-            if ((*patterns)[i] != (*pdbs)[i]->get_pattern()) {
-                return false;
-            }
+            if ((*patterns)[i] != (*pdbs)[i]->get_pattern()) { return false; }
         }
     }
     if (pattern_cliques) {
         for (const PatternClique& clique : *pattern_cliques) {
             for (PatternID pattern_id : clique) {
-                if (!utils::in_bounds(pattern_id, *patterns)) {
-                    return false;
-                }
+                if (!utils::in_bounds(pattern_id, *patterns)) { return false; }
             }
         }
     }
@@ -68,7 +59,7 @@ void PatternCollectionInformation::create_pdbs_if_missing()
         pdbs = make_shared<PDBCollection>();
         for (const Pattern& pattern : *patterns) {
             shared_ptr<PatternDatabase> pdb =
-                make_shared<PatternDatabase>(task_proxy, pattern);
+                make_shared<PatternDatabase>(task, pattern);
             pdbs->push_back(pdb);
         }
         if (log.is_at_least_normal()) {
@@ -86,7 +77,9 @@ void PatternCollectionInformation::create_pattern_cliques_if_missing()
             log << "Computing pattern cliques for pattern collection..."
                 << endl;
         }
-        VariableAdditivity are_additive = compute_additive_vars(task_proxy);
+        const VariableAdditivity are_additive = compute_additive_vars(
+            get_variables(task),
+            get_operators(task));
         pattern_cliques = compute_pattern_cliques(*patterns, are_additive);
         if (log.is_at_least_normal()) {
             log << "Done computing pattern cliques for pattern collection: "
@@ -127,4 +120,4 @@ PatternCollectionInformation::get_pattern_cliques()
     create_pattern_cliques_if_missing();
     return pattern_cliques;
 }
-} // namespace pdbs
+} // namespace downward::pdbs

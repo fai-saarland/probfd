@@ -67,11 +67,8 @@ Transition::Transition(int src, std::vector<int> targets)
 
 std::ostream& operator<<(std::ostream& os, const Transition& transition)
 {
-    os << transition.src << " -> (" << transition.targets.front();
-    for (const int target : transition.targets | std::views::drop(1)) {
-        os << "," << target;
-    }
-    return os << ")";
+    std::print(os, "{} -> ({:n})", transition.src, transition.targets);
+    return os;
 }
 
 std::unique_ptr<json::JsonObject> to_json(const Transition& transition)

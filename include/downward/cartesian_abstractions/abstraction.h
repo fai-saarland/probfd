@@ -3,7 +3,7 @@
 
 #include "downward/cartesian_abstractions/types.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/utils/collections.h"
 
@@ -47,8 +47,12 @@ class Abstraction {
 
 public:
     Abstraction(
-        const std::shared_ptr<AbstractTask>& task,
+        const VariableSpace& variables,
+        const ClassicalOperatorSpace& operators,
+        std::vector<FactPair> goal_facts,
+        const State& initial_state,
         utils::LogProxy& log);
+
     ~Abstraction();
 
     Abstraction(const Abstraction&) = delete;
@@ -69,6 +73,6 @@ public:
 
     void print_statistics() const;
 };
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions
 
 #endif

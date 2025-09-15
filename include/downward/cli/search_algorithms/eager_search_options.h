@@ -1,6 +1,8 @@
 #ifndef DOWNWARD_PLUGINS_SEARCH_ALGORITHMS_EAGER_SEARCH_H
 #define DOWNWARD_PLUGINS_SEARCH_ALGORITHMS_EAGER_SEARCH_H
 
+#include "downward/utils/timer.h"
+
 #include <memory>
 #include <string>
 #include <tuple>
@@ -29,10 +31,9 @@ extern void add_eager_search_options_to_feature(
 
 extern std::tuple<
     std::shared_ptr<PruningMethod>,
-    std::shared_ptr<Evaluator>,
     OperatorCost,
     int,
-    double,
+    downward::utils::Duration,
     std::string,
     utils::Verbosity>
 get_eager_search_arguments_from_options(const plugins::Options& opts);

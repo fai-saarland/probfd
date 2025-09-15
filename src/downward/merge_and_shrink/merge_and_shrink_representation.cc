@@ -3,7 +3,7 @@
 #include "downward/merge_and_shrink/distances.h"
 #include "downward/merge_and_shrink/types.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/utils/logging.h"
 
@@ -64,8 +64,7 @@ void MergeAndShrinkRepresentationLeaf::apply_abstraction_to_lookup_table(
 
 int MergeAndShrinkRepresentationLeaf::get_value(const State& state) const
 {
-    int value = state[var_id].get_value();
-    return lookup_table[value];
+    return lookup_table[state[var_id]];
 }
 
 bool MergeAndShrinkRepresentationLeaf::is_total() const

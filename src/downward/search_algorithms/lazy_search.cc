@@ -1,7 +1,5 @@
 #include "downward/search_algorithms/lazy_search.h"
 
-#include "downward/open_list_factory.h"
-
 #include "downward/algorithms/ordered_set.h"
 
 #include "downward/task_utils/successor_generator.h"
@@ -18,24 +16,31 @@ using namespace std;
 
 namespace downward::lazy_search {
 LazySearch::LazySearch(
-    const shared_ptr<OpenListFactory>& open,
+    std::unique_ptr<EdgeOpenList> open,
     bool reopen_closed,
-    const vector<shared_ptr<Evaluator>>& preferred,
+    vector<shared_ptr<Evaluator>> preferred,
     bool randomize_successors,
     bool preferred_successors_first,
     int random_seed,
+    SharedAbstractTask task,
     OperatorCost cost_type,
     int bound,
-    double max_time,
+    utils::Duration max_time,
     const string& description,
     utils::Verbosity verbosity)
-    : SearchAlgorithm(cost_type, bound, max_time, description, verbosity)
-    , open_list(open->create_edge_open_list())
+    : IterativeSearchAlgorithm(
+          std::move(task),
+          cost_type,
+          bound,
+          max_time,
+          description,
+          verbosity)
+    , open_list(std::move(open))
     , reopen_closed_nodes(reopen_closed)
     , randomize_successors(randomize_successors)
     , preferred_successors_first(preferred_successors_first)
     , rng(utils::get_rng(random_seed))
-    , preferred_operator_evaluators(preferred)
+    , preferred_operator_evaluators(std::move(preferred))
     , current_state(state_registry.get_initial_state())
     , current_predecessor_id(StateID::no_state)
     , current_operator_id(OperatorID::no_operator)
@@ -80,9 +85,7 @@ vector<OperatorID> LazySearch::get_successor_operators(
         current_state,
         applicable_operators);
 
-    if (randomize_successors) {
-        rng->shuffle(applicable_operators);
-    }
+    if (randomize_successors) { rng->shuffle(applicable_operators); }
 
     if (preferred_successors_first) {
         ordered_set::OrderedSet<OperatorID> successor_operators;
@@ -108,19 +111,21 @@ void LazySearch::generate_successors()
             preferred_operator_evaluator.get(),
             preferred_operators);
     }
-    if (randomize_successors) {
-        preferred_operators.shuffle(*rng);
-    }
+    if (randomize_successors) { preferred_operators.shuffle(*rng); }
 
     vector<OperatorID> successor_operators =
         get_successor_operators(preferred_operators);
 
     statistics.inc_generated(successor_operators.size());
 
+    const auto& [operators, cost_function] = to_refs(
+        slice_shared<ClassicalOperatorSpace, OperatorIntCostFunction>(task));
+
     for (OperatorID op_id : successor_operators) {
-        OperatorProxy op = task_proxy.get_operators()[op_id];
-        int new_g = current_g + get_adjusted_cost(op);
-        int new_real_g = current_real_g + op.get_cost();
+        OperatorProxy op = operators[op_id];
+        int new_g = current_g + get_adjusted_cost(op, cost_function);
+        int new_real_g =
+            current_real_g + cost_function.get_operator_cost(op.get_id());
         bool is_preferred = preferred_operators.contains(op_id);
         if (new_real_g < bound) {
             EvaluationContext new_eval_context(
@@ -142,14 +147,16 @@ SearchStatus LazySearch::fetch_next_state()
         return FAILED;
     }
 
+    const auto& [operators, cost_function] = to_refs(
+        slice_shared<ClassicalOperatorSpace, OperatorIntCostFunction>(task));
+
     EdgeOpenListEntry next = open_list->remove_min();
 
     current_predecessor_id = next.first;
     current_operator_id = next.second;
     State current_predecessor =
         state_registry.lookup_state(current_predecessor_id);
-    OperatorProxy current_operator =
-        task_proxy.get_operators()[current_operator_id];
+    OperatorProxy current_operator = operators[current_operator_id];
     assert(
         task_properties::is_applicable(current_operator, current_predecessor));
     current_state = state_registry.get_successor_state(
@@ -157,8 +164,10 @@ SearchStatus LazySearch::fetch_next_state()
         current_operator);
 
     SearchNode pred_node = search_space.get_node(current_predecessor);
-    current_g = pred_node.get_g() + get_adjusted_cost(current_operator);
-    current_real_g = pred_node.get_real_g() + current_operator.get_cost();
+    current_g =
+        pred_node.get_g() + get_adjusted_cost(current_operator, cost_function);
+    current_real_g = pred_node.get_real_g() +
+                     cost_function.get_operator_cost(current_operator.get_id());
 
     /*
       Note: We mark the node in current_eval_context as "preferred"
@@ -206,6 +215,10 @@ SearchStatus LazySearch::step()
         }
         statistics.inc_evaluated_states();
         if (!open_list->is_dead_end(current_eval_context)) {
+            const auto& [operators, cost_function] = to_refs(
+                slice_shared<ClassicalOperatorSpace, OperatorIntCostFunction>(
+                    task));
+
             // TODO: Generalize code for using multiple evaluators.
             if (current_predecessor_id == StateID::no_state) {
                 node.open_initial();
@@ -215,19 +228,22 @@ SearchStatus LazySearch::step()
                 State parent_state =
                     state_registry.lookup_state(current_predecessor_id);
                 SearchNode parent_node = search_space.get_node(parent_state);
-                OperatorProxy current_operator =
-                    task_proxy.get_operators()[current_operator_id];
+                OperatorProxy current_operator = operators[current_operator_id];
+                const auto adj_cost =
+                    get_adjusted_cost(current_operator, cost_function);
                 if (reopen) {
                     node.reopen(
                         parent_node,
                         current_operator,
-                        get_adjusted_cost(current_operator));
+                        cost_function,
+                        adj_cost);
                     statistics.inc_reopened();
                 } else {
                     node.open(
                         parent_node,
                         current_operator,
-                        get_adjusted_cost(current_operator));
+                        cost_function,
+                        adj_cost);
                 }
             }
             node.close();
@@ -259,4 +275,4 @@ void LazySearch::print_statistics() const
     statistics.print_detailed_statistics();
     search_space.print_statistics();
 }
-} // namespace lazy_search
+} // namespace downward::lazy_search

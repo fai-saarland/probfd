@@ -12,7 +12,6 @@
 #include "probfd/quotients/quotient_system.h"
 
 #include "probfd/task_cost_function.h"
-#include "probfd/task_proxy.h"
 #include "probfd/task_state_space.h"
 
 #include "tests/tasks/blocksworld.h"
@@ -122,18 +121,31 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
 {
     using namespace algorithms::heuristic_depth_first_search;
 
-    std::shared_ptr<ProbabilisticTask> task(new BlocksworldTask(
-        6,
+    BlocksWorldFactIndex fact_index(6);
+    BlocksWorldOperatorIndex operator_index(fact_index);
+
+    auto task = create_probabilistic_blocksworld_task(
+        fact_index,
+        operator_index,
         {{1, 0}, {2}, {5, 4, 3}},
-        {{1, 4}, {5, 3, 2, 0}}));
+        {{1, 4}, {5, 3, 2, 0}});
+
+    const auto& variables = get_shared_variables(task);
+    const auto& axioms = get_shared_axioms(task);
+    const auto& operators = get_shared_operators(task);
+    const auto& goals = get_shared_goal(task);
+    const auto& init_vals = get_shared_init(task);
+    const auto& cost_function = get_shared_cost_function(task);
+    const auto& term_costs = get_shared_termination_costs(task);
 
     ProgressReport report(0.0_vt, std::cout, false);
-    auto cost_function = std::make_shared<TaskCostFunction>(task);
 
-    ProbabilisticOperatorsProxy ops(*task);
-    heuristics::BlindEvaluator<State> heuristic(ops, *cost_function);
+    heuristics::BlindHeuristic<State> heuristic(
+        *operators,
+        *cost_function,
+        *term_costs);
 
-    TaskStateSpace state_space(task);
+    TaskStateSpace state_space(*variables, *axioms, operators, *init_vals);
     auto policy_chooser = std::make_shared<
         policy_pickers::ArbitraryTiebreaker<State, OperatorID>>(true);
 
@@ -146,14 +158,20 @@ TEST(EngineTests, test_ilao_blocksworld_6_blocks)
         false,
         false);
 
-    CompositeMDP<State, OperatorID> mdp{state_space, *cost_function};
+    TaskActionCostFunction mdp_action_cost_function(cost_function);
+    TaskTerminationCostFunction mdp_term_cost_function(goals, term_costs);
+
+    CompositeMDP mdp{
+        state_space,
+        mdp_action_cost_function,
+        mdp_term_cost_function};
 
     auto policy = ilao.compute_policy(
         mdp,
         heuristic,
         state_space.get_initial_state(),
         report,
-        std::numeric_limits<double>::infinity());
+        utils::Duration::max());
 
     std::optional<PolicyDecision<OperatorID>> decision =
         policy->get_decision(state_space.get_initial_state());
@@ -173,18 +191,31 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
     using namespace algorithms::heuristic_depth_first_search;
     using namespace algorithms::fret;
 
-    std::shared_ptr<ProbabilisticTask> task(new BlocksworldTask(
-        6,
+    BlocksWorldFactIndex fact_index(6);
+    BlocksWorldOperatorIndex operator_index(fact_index);
+
+    auto task = create_probabilistic_blocksworld_task(
+        fact_index,
+        operator_index,
         {{1, 0}, {2}, {5, 4, 3}},
-        {{1, 4}, {5, 3, 2, 0}}));
+        {{1, 4}, {5, 3, 2, 0}});
+
+    const auto& variables = get_shared_variables(task);
+    const auto& axioms = get_shared_axioms(task);
+    const auto& operators = get_shared_operators(task);
+    const auto& goals = get_shared_goal(task);
+    const auto& init_vals = get_shared_init(task);
+    const auto& cost_function = get_shared_cost_function(task);
+    const auto& term_costs = get_shared_termination_costs(task);
 
     ProgressReport report(0.0_vt, std::cout, false);
-    auto cost_function = std::make_shared<TaskCostFunction>(task);
 
-    ProbabilisticOperatorsProxy ops(*task);
-    heuristics::BlindEvaluator<State> heuristic(ops, *cost_function);
+    heuristics::BlindHeuristic<State> heuristic(
+        *operators,
+        *cost_function,
+        *term_costs);
 
-    TaskStateSpace state_space(task);
+    TaskStateSpace state_space(*variables, *axioms, operators, *init_vals);
     auto policy_chooser = std::make_shared<policy_pickers::ArbitraryTiebreaker<
         quotients::QuotientState<State, OperatorID>,
         quotients::QuotientAction<OperatorID>>>(true);
@@ -203,14 +234,20 @@ TEST(EngineTests, test_fret_ilao_blocksworld_6_blocks)
         false,
         false);
 
-    CompositeMDP<State, OperatorID> mdp{state_space, *cost_function};
+    TaskActionCostFunction mdp_action_cost_function(cost_function);
+    TaskTerminationCostFunction mdp_term_cost_function(goals, term_costs);
+
+    CompositeMDP mdp{
+        state_space,
+        mdp_action_cost_function,
+        mdp_term_cost_function};
 
     auto policy = fret_ilao.compute_policy(
         mdp,
         heuristic,
         state_space.get_initial_state(),
         report,
-        std::numeric_limits<double>::infinity());
+        utils::Duration::max());
 
     std::optional<PolicyDecision<OperatorID>> decision =
         policy->get_decision(state_space.get_initial_state());

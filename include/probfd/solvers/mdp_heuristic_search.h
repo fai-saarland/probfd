@@ -17,7 +17,7 @@
 namespace downward {
 class State;
 class OperatorID;
-}
+} // namespace downward
 
 namespace probfd::quotients {
 template <typename, typename>
@@ -133,8 +133,7 @@ public:
 
     template <template <typename, typename, bool> class S, typename... Args>
     std::unique_ptr<MDPAlgorithm<State, Action>> create_search_algorithm(
-        const std::shared_ptr<ProbabilisticTask>&,
-        const std::shared_ptr<FDRCostFunction>&,
+        const SharedProbabilisticTask&,
         Args&&... args)
     {
         return construct<
@@ -181,8 +180,7 @@ public:
     template <template <typename, typename, bool> class HS, typename... Args>
     std::unique_ptr<MDPAlgorithm<State, Action>>
     create_heuristic_search_algorithm(
-        const std::shared_ptr<ProbabilisticTask>&,
-        const std::shared_ptr<FDRCostFunction>&,
+        const SharedProbabilisticTask&,
         Args&&... args)
     {
         return construct<
@@ -229,8 +227,7 @@ public:
     template <template <typename, typename, bool> class HS, typename... Args>
     std::unique_ptr<MDPAlgorithm<State, Action>>
     create_heuristic_search_algorithm(
-        const std::shared_ptr<ProbabilisticTask>&,
-        const std::shared_ptr<FDRCostFunction>&,
+        const SharedProbabilisticTask&,
         Args&&... args)
     {
         return construct<
@@ -270,17 +267,14 @@ public:
 
     template <template <typename, typename, bool> class HS, typename... Args>
     std::unique_ptr<FDRMDPAlgorithm> create_heuristic_search_algorithm(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function,
+        const SharedProbabilisticTask& task,
         Args&&... args)
     {
         return std::make_unique<BisimulationBasedHeuristicSearchAlgorithm>(
             task,
-            task_cost_function,
             this->get_heuristic_search_name(),
             Base::template create_heuristic_search_algorithm<HS>(
                 task,
-                task_cost_function,
                 std::forward<Args>(args)...));
     }
 };

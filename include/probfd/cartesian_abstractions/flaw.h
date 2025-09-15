@@ -5,7 +5,7 @@
 
 #include "downward/cartesian_abstractions/cartesian_set.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <vector>
 
@@ -29,7 +29,8 @@ struct Flaw {
         const AbstractState& current_abstract_state,
         CartesianSet&& desired_cartesian_set);
 
-    std::vector<Split> get_possible_splits() const;
+    std::vector<Split>
+    get_possible_splits(const downward::VariableSpace& variables) const;
 };
 
 } // namespace probfd::cartesian_abstractions

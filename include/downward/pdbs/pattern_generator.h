@@ -7,12 +7,10 @@
 
 #include "downward/utils/logging.h"
 
+#include "downward/abstract_task.h"
+
 #include <memory>
 #include <string>
-
-namespace downward {
-class AbstractTask;
-}
 
 namespace downward::utils {
 class RandomNumberGenerator;
@@ -22,7 +20,7 @@ namespace downward::pdbs {
 class PatternCollectionGenerator {
     virtual std::string name() const = 0;
     virtual PatternCollectionInformation
-    compute_patterns(const std::shared_ptr<AbstractTask>& task) = 0;
+    compute_patterns(const SharedAbstractTask& task) = 0;
 
 protected:
     mutable utils::LogProxy log;
@@ -32,13 +30,13 @@ public:
     virtual ~PatternCollectionGenerator() = default;
 
     PatternCollectionInformation
-    generate(const std::shared_ptr<AbstractTask>& task);
+    generate(const SharedAbstractTask& task);
 };
 
 class PatternGenerator {
     virtual std::string name() const = 0;
     virtual PatternInformation
-    compute_pattern(const std::shared_ptr<AbstractTask>& task) = 0;
+    compute_pattern(const SharedAbstractTask& task) = 0;
 
 protected:
     mutable utils::LogProxy log;
@@ -47,7 +45,7 @@ public:
     explicit PatternGenerator(utils::Verbosity verbosity);
     virtual ~PatternGenerator() = default;
 
-    PatternInformation generate(const std::shared_ptr<AbstractTask>& task);
+    PatternInformation generate(const SharedAbstractTask& task);
 };
 
 } // namespace pdbs

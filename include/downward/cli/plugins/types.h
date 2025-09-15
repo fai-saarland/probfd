@@ -27,23 +27,12 @@ public:
     virtual ~Type() = default;
 
     virtual bool operator==(const Type& other) const = 0;
-    bool operator!=(const Type& other) const;
 
     virtual bool is_basic_type() const;
-    virtual const std::type_index& get_basic_type_index() const;
-
     virtual bool is_feature_type() const;
-    virtual std::string get_synopsis() const;
-
     virtual bool is_list_type() const;
-    virtual bool has_nested_type() const;
-    virtual const Type& get_nested_type() const;
-
+    virtual bool is_empty_list_type() const;
     virtual bool is_enum_type() const;
-    virtual int
-    get_enum_index(const std::string&, downward::utils::Context&) const;
-    virtual const EnumInfo& get_documented_enum_values() const;
-
     virtual bool is_symbol_type() const;
 
     virtual bool can_convert_into(const Type& other) const;
@@ -58,12 +47,14 @@ class BasicType : public Type {
 
 public:
     explicit BasicType(std::type_index type, const std::string& class_name);
-    virtual bool operator==(const Type& other) const override;
-    virtual bool is_basic_type() const override;
-    virtual const std::type_index& get_basic_type_index() const override;
-    virtual bool can_convert_into(const Type& other) const override;
-    virtual std::string name() const override;
-    virtual size_t get_hash() const override;
+
+    bool operator==(const Type& other) const override;
+    bool is_basic_type() const override;
+    bool can_convert_into(const Type& other) const override;
+    std::string name() const override;
+    size_t get_hash() const override;
+
+    const std::type_index& get_basic_type_index() const;
 };
 
 class FeatureType : public Type {
@@ -76,11 +67,13 @@ public:
         std::type_index pointer_type,
         const std::string& type_name,
         const std::string& synopsis);
-    virtual bool operator==(const Type& other) const override;
-    virtual bool is_feature_type() const override;
-    virtual std::string get_synopsis() const override;
-    virtual std::string name() const override;
-    virtual size_t get_hash() const override;
+
+    bool operator==(const Type& other) const override;
+    bool is_feature_type() const override;
+    std::string name() const override;
+    size_t get_hash() const override;
+
+    std::string get_synopsis() const;
 };
 
 class ListType : public Type {
@@ -88,22 +81,24 @@ class ListType : public Type {
 
 public:
     ListType(const Type& nested_type);
-    virtual bool operator==(const Type& other) const override;
-    virtual bool is_list_type() const override;
-    virtual bool has_nested_type() const override;
-    virtual const Type& get_nested_type() const override;
-    virtual bool can_convert_into(const Type& other) const override;
-    virtual std::string name() const override;
-    virtual size_t get_hash() const override;
+
+    bool operator==(const Type& other) const override;
+    bool is_list_type() const override;
+    bool can_convert_into(const Type& other) const override;
+    std::string name() const override;
+    size_t get_hash() const override;
+
+    const Type& get_nested_type() const;
 };
 
 class EmptyListType : public Type {
 public:
-    virtual bool operator==(const Type& other) const override;
-    virtual bool is_list_type() const override;
-    virtual bool can_convert_into(const Type& other) const override;
-    virtual std::string name() const override;
-    virtual size_t get_hash() const override;
+    bool operator==(const Type& other) const override;
+    bool is_list_type() const override;
+    bool is_empty_list_type() const override;
+    bool can_convert_into(const Type& other) const override;
+    std::string name() const override;
+    size_t get_hash() const override;
 };
 
 class EnumType : public Type {
@@ -113,23 +108,27 @@ class EnumType : public Type {
 
 public:
     EnumType(std::type_index type, const EnumInfo& documented_values);
-    virtual bool operator==(const Type& other) const override;
-    virtual bool is_enum_type() const override;
-    virtual int
+
+    bool operator==(const Type& other) const override;
+    bool is_enum_type() const override;
+
+    std::string name() const override;
+    size_t get_hash() const override;
+
+    const EnumInfo& get_documented_enum_values() const;
+
+    int
     get_enum_index(const std::string& value, downward::utils::Context& context)
-        const override;
-    virtual const EnumInfo& get_documented_enum_values() const override;
-    virtual std::string name() const override;
-    virtual size_t get_hash() const override;
+        const;
 };
 
 class SymbolType : public Type {
 public:
-    virtual bool operator==(const Type& other) const override;
-    virtual bool is_symbol_type() const override;
+    bool operator==(const Type& other) const override;
+    bool is_symbol_type() const override;
     bool can_convert_into(const Type& other) const override;
-    virtual std::string name() const override;
-    virtual size_t get_hash() const override;
+    std::string name() const override;
+    size_t get_hash() const override;
 };
 
 class TypeRegistry {

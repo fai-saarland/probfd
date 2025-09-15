@@ -4,7 +4,7 @@
 #include "probfd/pdbs/assignment_enumerator.h"
 #include "probfd/pdbs/types.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <span>
 #include <string>
@@ -33,7 +33,7 @@ public:
      * given pattern and the task's variables.
      */
     StateRankingFunction(
-        const downward::VariablesProxy& variables,
+        const downward::VariableSpace& variables,
         Pattern pattern);
 
     /**
@@ -157,12 +157,12 @@ public:
 };
 
 class StateRankToString {
-    const downward::VariablesProxy variables_;
+    const downward::VariableSpace& variables_;
     const StateRankingFunction& state_mapper_;
 
 public:
     explicit StateRankToString(
-        downward::VariablesProxy variables,
+        const downward::VariableSpace& variables,
         const StateRankingFunction& state_mapper);
 
     std::string operator()(StateRank state) const;

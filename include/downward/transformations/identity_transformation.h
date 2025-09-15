@@ -18,7 +18,7 @@ public:
 class IdentityTaskTransformation : public TaskTransformation {
 public:
     TaskTransformationResult
-    transform(const std::shared_ptr<AbstractTask>& original_task) override;
+    transform(const SharedAbstractTask& original_task) override;
 };
 
 }

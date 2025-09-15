@@ -19,31 +19,29 @@ static void add_indices_to_constraint(
     const set<int>& indices,
     double coefficient)
 {
-    for (int index : indices) {
-        constraint.insert(index, coefficient);
-    }
+    for (int index : indices) { constraint.insert(index, coefficient); }
 }
 
-void StateEquationConstraints::build_propositions(const TaskProxy& task_proxy)
+void StateEquationConstraints::build_propositions(
+    const VariableSpace& variables,
+    const ClassicalOperatorSpace& operators)
 {
-    VariablesProxy vars = task_proxy.get_variables();
-    propositions.reserve(vars.size());
-    for (VariableProxy var : vars) {
+    propositions.reserve(variables.size());
+    for (VariableProxy var : variables) {
         propositions.push_back(vector<Proposition>(var.get_domain_size()));
     }
-    OperatorsProxy ops = task_proxy.get_operators();
-    for (size_t op_id = 0; op_id < ops.size(); ++op_id) {
-        const OperatorProxy& op = ops[op_id];
-        vector<int> precondition(vars.size(), -1);
-        for (FactProxy condition : op.get_preconditions()) {
-            int pre_var_id = condition.get_variable().get_id();
-            precondition[pre_var_id] = condition.get_value();
+
+    for (size_t op_id = 0; op_id < operators.size(); ++op_id) {
+        const OperatorProxy& op = operators[op_id];
+        vector<int> precondition(variables.size(), -1);
+        for (const auto [var, value] : op.get_preconditions()) {
+            precondition[var] = value;
         }
-        for (EffectProxy effect_proxy : op.get_effects()) {
-            FactProxy effect = effect_proxy.get_fact();
-            int var = effect.get_variable().get_id();
+        for (auto effect_proxy : op.get_effects()) {
+            FactPair effect = effect_proxy.get_fact();
+            int var = effect.var;
             int pre = precondition[var];
-            int post = effect.get_value();
+            int post = effect.value;
             assert(post != -1);
             assert(pre != post);
 
@@ -82,24 +80,29 @@ void StateEquationConstraints::add_constraints(
 }
 
 void StateEquationConstraints::initialize_constraints(
-    const shared_ptr<AbstractTask>& task,
+    const SharedAbstractTask& task,
     lp::LinearProgram& lp)
 {
     if (log.is_at_least_normal()) {
         log << "Initializing constraints from state equation." << endl;
     }
-    TaskProxy task_proxy(*task);
-    task_properties::verify_no_axioms(task_proxy);
-    task_properties::verify_no_conditional_effects(task_proxy);
-    build_propositions(task_proxy);
+
+    const auto& [variables, axioms, operators, goals] = to_refs(
+        slice_shared<
+            VariableSpace,
+            AxiomSpace,
+            ClassicalOperatorSpace,
+            GoalFactList>(task));
+
+    task_properties::verify_no_axioms(axioms);
+    task_properties::verify_no_conditional_effects(operators);
+
+    build_propositions(variables, operators);
     add_constraints(lp.get_constraints(), lp.get_infinity());
 
     // Initialize goal state.
-    VariablesProxy variables = task_proxy.get_variables();
     goal_state = vector<int>(variables.size(), numeric_limits<int>::max());
-    for (FactProxy goal : task_proxy.get_goals()) {
-        goal_state[goal.get_variable().get_id()] = goal.get_value();
-    }
+    for (const auto [var, value] : goals) { goal_state[var] = value; }
 }
 
 bool StateEquationConstraints::update_constraints(
@@ -116,14 +119,10 @@ bool StateEquationConstraints::update_constraints(
                 double lower_bound = 0;
                 /* If we consider the current value of var, there must be an
                    additional consumer. */
-                if (state[var].get_value() == value) {
-                    --lower_bound;
-                }
+                if (state[var] == value) { --lower_bound; }
                 /* If we consider the goal value of var, there must be an
                    additional producer. */
-                if (goal_state[var] == value) {
-                    ++lower_bound;
-                }
+                if (goal_state[var] == value) { ++lower_bound; }
                 lp_solver.set_constraint_lower_bound(
                     prop.constraint_index,
                     lower_bound);
@@ -133,4 +132,4 @@ bool StateEquationConstraints::update_constraints(
     return false;
 }
 
-} // namespace operator_counting
+} // namespace downward::operator_counting

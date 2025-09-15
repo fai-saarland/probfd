@@ -3,7 +3,7 @@
 #include "downward/pdbs/cegar.h"
 #include "downward/pdbs/utils.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
@@ -16,7 +16,7 @@ using namespace std;
 namespace downward::pdbs {
 PatternGeneratorCEGAR::PatternGeneratorCEGAR(
     int max_pdb_size,
-    double max_time,
+    utils::Duration max_time,
     bool use_wildcard_plans,
     int random_seed,
     utils::Verbosity verbosity)
@@ -34,10 +34,10 @@ string PatternGeneratorCEGAR::name() const
 }
 
 PatternInformation
-PatternGeneratorCEGAR::compute_pattern(const shared_ptr<AbstractTask>& task)
+PatternGeneratorCEGAR::compute_pattern(const SharedAbstractTask& task)
 {
-    TaskProxy task_proxy(*task);
-    vector<FactPair> goals = get_goals_in_random_order(task_proxy, *rng);
+    vector<FactPair> goals =
+        get_goals_in_random_order(get_goal(task), *rng);
     return generate_pattern_with_cegar(
         max_pdb_size,
         max_time,
@@ -48,4 +48,4 @@ PatternGeneratorCEGAR::compute_pattern(const shared_ptr<AbstractTask>& task)
         goals[0]);
 }
 
-} // namespace pdbs
+} // namespace downward::pdbs

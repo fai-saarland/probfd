@@ -1,6 +1,8 @@
 #ifndef PROBFD_CARTESIAN_ABSTRACTIONS_SUBTASK_GENERATORS_H
 #define PROBFD_CARTESIAN_ABSTRACTIONS_SUBTASK_GENERATORS_H
 
+#include "downward/task_dependent_factory_fwd.h"
+
 #include "probfd/cartesian_abstractions/types.h"
 
 #include <memory>
@@ -9,8 +11,8 @@
 // Forward Declarations
 namespace downward {
 struct FactPair;
-class MutexFactory;
-}
+class MutexInformation;
+} // namespace downward
 
 namespace downward::landmarks {
 class LandmarkGraph;
@@ -19,11 +21,7 @@ class LandmarkGraph;
 namespace downward::utils {
 class RandomNumberGenerator;
 class LogProxy;
-} // namespace utils
-
-namespace probfd {
-class ProbabilisticTask;
-}
+} // namespace downward::utils
 
 namespace probfd::cartesian_abstractions {
 
@@ -37,7 +35,7 @@ enum class FactOrder { ORIGINAL, RANDOM, HADD_UP, HADD_DOWN };
 class SubtaskGenerator {
 public:
     virtual SharedTasks get_subtasks(
-        const std::shared_ptr<ProbabilisticTask>& task,
+        const SharedProbabilisticTask& task,
         downward::utils::LogProxy& log) const = 0;
     virtual ~SubtaskGenerator() = default;
 };
@@ -52,7 +50,7 @@ public:
     explicit TaskDuplicator(int copies);
 
     SharedTasks get_subtasks(
-        const std::shared_ptr<ProbabilisticTask>& task,
+        const SharedProbabilisticTask& task,
         downward::utils::LogProxy& log) const override;
 };
 
@@ -67,7 +65,7 @@ public:
     explicit GoalDecomposition(FactOrder order, int random_seed);
 
     SharedTasks get_subtasks(
-        const std::shared_ptr<ProbabilisticTask>& task,
+        const SharedProbabilisticTask& task,
         downward::utils::LogProxy& log) const override;
 };
 
@@ -76,20 +74,22 @@ public:
   focussing on a single landmark fact.
 */
 class LandmarkDecomposition : public SubtaskGenerator {
-    std::shared_ptr<downward::MutexFactory> mutex_factory;
+    std::shared_ptr<downward::TaskDependentFactory<downward::MutexInformation>>
+        mutex_factory;
     FactOrder fact_order_;
     bool combine_facts_;
     std::shared_ptr<downward::utils::RandomNumberGenerator> rng_;
 
 public:
     explicit LandmarkDecomposition(
-        std::shared_ptr<downward::MutexFactory> mutex_factory,
+        std::shared_ptr<downward::TaskDependentFactory<
+            downward::MutexInformation>> mutex_factory,
         FactOrder order,
         bool combine_facts,
         int random_seed);
 
     SharedTasks get_subtasks(
-        const std::shared_ptr<ProbabilisticTask>& task,
+        const SharedProbabilisticTask& task,
         downward::utils::LogProxy& log) const override;
 };
 

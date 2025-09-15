@@ -4,7 +4,7 @@
 #include "downward/pdbs/pattern_generator.h"
 #include "downward/pdbs/types.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <cstdlib>
 #include <memory>
@@ -14,7 +14,7 @@
 namespace downward::utils {
 class CountdownTimer;
 class RandomNumberGenerator;
-} // namespace utils
+} // namespace downward::utils
 
 namespace downward::sampling {
 class RandomWalkSampler;
@@ -34,7 +34,7 @@ class PatternCollectionGeneratorHillclimbing
     const int num_samples;
     // minimal improvement required for hill climbing to continue search
     const int min_improvement;
-    const double max_time;
+    const utils::Duration max_time;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
     std::unique_ptr<IncrementalCanonicalPDBs> current_pdbs;
@@ -53,7 +53,7 @@ class PatternCollectionGeneratorHillclimbing
       The method returns the size of the largest PDB added to candidate_pdbs.
     */
     int generate_candidate_pdbs(
-        const TaskProxy& task_proxy,
+        const AbstractTaskTuple& task,
         const std::vector<std::vector<int>>& relevant_neighbours,
         const PatternDatabase& pdb,
         std::set<Pattern>& generated_patterns,
@@ -72,6 +72,7 @@ class PatternCollectionGeneratorHillclimbing
     void sample_states(
         const sampling::RandomWalkSampler& sampler,
         int init_h,
+        const State& initial_state,
         std::vector<State>& samples);
 
     /*
@@ -119,9 +120,10 @@ class PatternCollectionGeneratorHillclimbing
       Storing the PDBs has the only purpose to avoid re-computation of the same
       PDBs. This is quite a large time gain, but may use a lot of memory.
     */
-    void hill_climbing(const TaskProxy& task_proxy);
+    void
+    hill_climbing(const AbstractTaskTuple& task, const State& initial_state);
 
-    virtual std::string name() const override;
+    std::string name() const override;
 
     /*
       Runs the hill climbing algorithm. Note that the
@@ -129,8 +131,8 @@ class PatternCollectionGeneratorHillclimbing
       variable) may break the maximum collection size limit, if the latter is
       set too small or if there are many goal variables with a large domain.
     */
-    virtual PatternCollectionInformation
-    compute_patterns(const std::shared_ptr<AbstractTask>& task) override;
+    PatternCollectionInformation
+    compute_patterns(const SharedAbstractTask& task) override;
 
 public:
     PatternCollectionGeneratorHillclimbing(
@@ -138,13 +140,13 @@ public:
         int collection_max_size,
         int num_samples,
         int min_improvement,
-        double max_time,
+        utils::Duration max_time,
         int random_seed,
         utils::Verbosity verbosity);
 
     ~PatternCollectionGeneratorHillclimbing() override;
 };
 
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

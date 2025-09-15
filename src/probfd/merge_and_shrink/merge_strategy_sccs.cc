@@ -15,7 +15,7 @@ namespace probfd::merge_and_shrink {
 
 MergeStrategySCCs::MergeStrategySCCs(
     const FactoredTransitionSystem& fts,
-    std::shared_ptr<ProbabilisticTask> task,
+    SharedProbabilisticTask task,
     const shared_ptr<MergeTreeFactory>& merge_tree_factory,
     const shared_ptr<MergeSelector>& merge_selector,
     vector<vector<int>>&& non_singleton_cg_sccs)

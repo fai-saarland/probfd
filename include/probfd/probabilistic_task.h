@@ -1,73 +1,247 @@
 #ifndef PROBFD_PROBABILISTIC_TASK_H
 #define PROBFD_PROBABILISTIC_TASK_H
 
-#include "downward/abstract_task.h" // IWYU pragma: export
+#include "probfd/probabilistic_operator_cost_function_fwd.h"
 
-#include "probfd/value_type.h"
+#include "downward/abstract_task.h"
+
+namespace probfd {
+class ProbabilisticOperatorSpace;
+class TerminationCosts;
+} // namespace probfd
 
 namespace probfd {
 
-/**
- * @brief Represents a probabilistic planning task with axioms and conditional
- * effects.
- *
- * This class should not be used directly to access the information of a
- * probabilistic planning task. To this end, use ProbabilisticTaskProxy.
- *
- * @see ProbabilisticTaskProxy
- */
-class ProbabilisticTask : public downward::PlanningTask {
-public:
-    /// Get the cost of terminating in a goal state.
-    virtual value_t get_goal_termination_cost() const = 0;
+using ProbabilisticTaskTuple = std::tuple<
+    downward::VariableSpace&,
+    downward::AxiomSpace&,
+    ProbabilisticOperatorSpace&,
+    downward::GoalFactList&,
+    downward::InitialStateValues&,
+    ProbabilisticOperatorCostFunction&,
+    TerminationCosts&>;
 
-    /// Get the cost of terminating in a non-goal state.
-    virtual value_t get_non_goal_termination_cost() const = 0;
+using UniqueProbabilisticTask = std::tuple<
+    std::unique_ptr<downward::VariableSpace>,
+    std::unique_ptr<downward::AxiomSpace>,
+    std::unique_ptr<ProbabilisticOperatorSpace>,
+    std::unique_ptr<downward::GoalFactList>,
+    std::unique_ptr<downward::InitialStateValues>,
+    std::unique_ptr<ProbabilisticOperatorCostFunction>,
+    std::unique_ptr<TerminationCosts>>;
 
-    /// Get the cost of the probabilistic operator with index \p op_index.
-    virtual value_t get_operator_cost(int op_index) const = 0;
+using SharedProbabilisticTask = std::tuple<
+    std::shared_ptr<downward::VariableSpace>,
+    std::shared_ptr<downward::AxiomSpace>,
+    std::shared_ptr<ProbabilisticOperatorSpace>,
+    std::shared_ptr<downward::GoalFactList>,
+    std::shared_ptr<downward::InitialStateValues>,
+    std::shared_ptr<ProbabilisticOperatorCostFunction>,
+    std::shared_ptr<TerminationCosts>>;
 
-    /// Get the number of probabilistic outcomes of the probabilistic operator
-    /// with index \p op_index.
-    virtual int get_num_operator_outcomes(int op_index) const = 0;
+inline const downward::VariableSpace&
+get_variables(const ProbabilisticTaskTuple& task)
+{
+    return get<downward::VariableSpace&>(task);
+}
 
-    /// Get the probabilistic outcome probability of the outcome with index
-    /// \p outcome_index of the probabilistic operator with index \p op_index.
-    virtual value_t
-    get_operator_outcome_probability(int op_index, int outcome_index) const = 0;
+inline downward::VariableSpace& get_variables(ProbabilisticTaskTuple& task)
+{
+    return get<downward::VariableSpace&>(task);
+}
 
-    /// Get the global outcome index for the outcome with index \p outcome_index
-    /// of the probabilistic operator with index \p op_index.
-    virtual int
-    get_operator_outcome_id(int op_index, int outcome_index) const = 0;
+inline const downward::VariableSpace&
+get_variables(const UniqueProbabilisticTask& task)
+{
+    return *get_unique<downward::VariableSpace>(task);
+}
 
-    /// Get the number of effects of the outcome with index \p outcome_index of
-    /// the probabilistic operator with index \p op_index.
-    virtual int
-    get_num_operator_outcome_effects(int op_index, int outcome_index) const = 0;
+inline const downward::VariableSpace&
+get_variables(const SharedProbabilisticTask& task)
+{
+    return *get_shared<downward::VariableSpace>(task);
+}
 
-    /// Get the effect with index \p eff_index of the outcome with index
-    /// \p outcome_index of the probabilistic operator with index \p op_index.
-    virtual downward::FactPair
-    get_operator_outcome_effect(int op_index, int outcome_index, int eff_index)
-        const = 0;
+inline const std::shared_ptr<downward::VariableSpace>&
+get_shared_variables(const SharedProbabilisticTask& task)
+{
+    return get_shared<downward::VariableSpace>(task);
+}
 
-    /// Get the number of effect conditions for the effect with index
-    /// \p eff_index of the outcome with index \p outcome_index of the
-    /// probabilistic operator with index \p op_index.
-    virtual int get_num_operator_outcome_effect_conditions(
-        int op_index,
-        int outcome_index,
-        int eff_index) const = 0;
+inline const downward::AxiomSpace&
+get_axioms(const ProbabilisticTaskTuple& task)
+{
+    return get<downward::AxiomSpace&>(task);
+}
 
-    /// Get the number of effect conditions for the effects with given index of
-    /// outcome with given index of the probabilistic operator with given index.
-    virtual downward::FactPair get_operator_outcome_effect_condition(
-        int op_index,
-        int outcome_index,
-        int eff_index,
-        int cond_index) const = 0;
-};
+inline downward::AxiomSpace& get_axioms(ProbabilisticTaskTuple& task)
+{
+    return get<downward::AxiomSpace&>(task);
+}
+
+inline const downward::AxiomSpace&
+get_axioms(const UniqueProbabilisticTask& task)
+{
+    return *get_unique<downward::AxiomSpace>(task);
+}
+
+inline const downward::AxiomSpace&
+get_axioms(const SharedProbabilisticTask& task)
+{
+    return *get_shared<downward::AxiomSpace>(task);
+}
+
+inline const std::shared_ptr<downward::AxiomSpace>&
+get_shared_axioms(const SharedProbabilisticTask& task)
+{
+    return get_shared<downward::AxiomSpace>(task);
+}
+
+inline const ProbabilisticOperatorSpace&
+get_operators(const ProbabilisticTaskTuple& task)
+{
+    return get<ProbabilisticOperatorSpace&>(task);
+}
+
+inline ProbabilisticOperatorSpace& get_operators(ProbabilisticTaskTuple& task)
+{
+    return get<ProbabilisticOperatorSpace&>(task);
+}
+
+inline const ProbabilisticOperatorSpace&
+get_operators(const UniqueProbabilisticTask& task)
+{
+    return *get_unique<ProbabilisticOperatorSpace>(task);
+}
+
+inline const ProbabilisticOperatorSpace&
+get_operators(const SharedProbabilisticTask& task)
+{
+    return *get_shared<ProbabilisticOperatorSpace>(task);
+}
+
+inline const std::shared_ptr<ProbabilisticOperatorSpace>&
+get_shared_operators(const SharedProbabilisticTask& task)
+{
+    return get_shared<ProbabilisticOperatorSpace>(task);
+}
+
+inline const downward::InitialStateValues&
+get_init(const ProbabilisticTaskTuple& task)
+{
+    return get<downward::InitialStateValues&>(task);
+}
+
+inline downward::InitialStateValues& get_init(ProbabilisticTaskTuple& task)
+{
+    return get<downward::InitialStateValues&>(task);
+}
+
+inline const downward::InitialStateValues&
+get_init(const UniqueProbabilisticTask& task)
+{
+    return *get_unique<downward::InitialStateValues>(task);
+}
+
+inline const downward::InitialStateValues&
+get_init(const SharedProbabilisticTask& task)
+{
+    return *get_shared<downward::InitialStateValues>(task);
+}
+
+inline const std::shared_ptr<downward::InitialStateValues>&
+get_shared_init(const SharedProbabilisticTask& task)
+{
+    return get_shared<downward::InitialStateValues>(task);
+}
+
+inline const downward::GoalFactList&
+get_goal(const ProbabilisticTaskTuple& task)
+{
+    return get<downward::GoalFactList&>(task);
+}
+
+inline downward::GoalFactList& get_goal(ProbabilisticTaskTuple& task)
+{
+    return get<downward::GoalFactList&>(task);
+}
+
+inline const downward::GoalFactList&
+get_goal(const UniqueProbabilisticTask& task)
+{
+    return *get_unique<downward::GoalFactList>(task);
+}
+
+inline const downward::GoalFactList&
+get_goal(const SharedProbabilisticTask& task)
+{
+    return *get_shared<downward::GoalFactList>(task);
+}
+
+inline const std::shared_ptr<downward::GoalFactList>&
+get_shared_goal(const SharedProbabilisticTask& task)
+{
+    return get_shared<downward::GoalFactList>(task);
+}
+
+inline const ProbabilisticOperatorCostFunction&
+get_cost_function(const ProbabilisticTaskTuple& task)
+{
+    return get<ProbabilisticOperatorCostFunction&>(task);
+}
+
+inline ProbabilisticOperatorCostFunction&
+get_cost_function(ProbabilisticTaskTuple& task)
+{
+    return get<ProbabilisticOperatorCostFunction&>(task);
+}
+
+inline const ProbabilisticOperatorCostFunction&
+get_cost_function(const UniqueProbabilisticTask& task)
+{
+    return *get_unique<ProbabilisticOperatorCostFunction>(task);
+}
+
+inline const ProbabilisticOperatorCostFunction&
+get_cost_function(const SharedProbabilisticTask& task)
+{
+    return *get_shared<ProbabilisticOperatorCostFunction>(task);
+}
+
+inline const std::shared_ptr<ProbabilisticOperatorCostFunction>&
+get_shared_cost_function(const SharedProbabilisticTask& task)
+{
+    return get_shared<ProbabilisticOperatorCostFunction>(task);
+}
+
+inline const TerminationCosts&
+get_termination_costs(const ProbabilisticTaskTuple& task)
+{
+    return get<TerminationCosts&>(task);
+}
+
+inline TerminationCosts& get_termination_costs(ProbabilisticTaskTuple& task)
+{
+    return get<TerminationCosts&>(task);
+}
+
+inline const TerminationCosts&
+get_termination_costs(const UniqueProbabilisticTask& task)
+{
+    return *get_unique<TerminationCosts>(task);
+}
+
+inline const TerminationCosts&
+get_termination_costs(const SharedProbabilisticTask& task)
+{
+    return *get_shared<TerminationCosts>(task);
+}
+
+inline const std::shared_ptr<TerminationCosts>&
+get_shared_termination_costs(const SharedProbabilisticTask& task)
+{
+    return get_shared<TerminationCosts>(task);
+}
 
 } // namespace probfd
 

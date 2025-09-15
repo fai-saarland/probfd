@@ -1,6 +1,8 @@
 #ifndef DOWNWARD_PLUGINS_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_H
 #define DOWNWARD_PLUGINS_PDBS_PATTERN_COLLECTION_GENERATOR_MULTIPLE_H
 
+#include "downward/utils/timer.h"
+
 #include <tuple>
 
 namespace downward::utils {
@@ -19,9 +21,17 @@ extern void add_multiple_algorithm_implementation_notes_to_feature(
 
 extern void add_multiple_options_to_feature(plugins::Feature& feature);
 
-extern std::
-    tuple<int, int, double, double, double, double, bool, int, utils::Verbosity>
-    get_multiple_arguments_from_options(const plugins::Options& opts);
+extern std::tuple<
+    int,
+    int,
+    utils::Duration,
+    utils::Duration,
+    utils::Duration,
+    double,
+    bool,
+    int,
+    utils::Verbosity>
+get_multiple_arguments_from_options(const plugins::Options& opts);
 
 } // namespace downward::cli::pdbs
 

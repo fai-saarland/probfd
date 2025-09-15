@@ -1,17 +1,22 @@
-#include "downward/cli/plugins/plugin.h"
+#include "probfd/cli/solvers/exhaustive_dfs.h"
 
-#include "probfd/cli/solvers/mdp_solver.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "probfd/cli/solvers/mdp_solver_options.h"
 
 #include "probfd/solvers/mdp_solver.h"
 #include "probfd/solvers/statistical_mdp_algorithm.h"
 
 #include "probfd/algorithms/exhaustive_dfs.h"
-
 #include "probfd/algorithms/fdr_types.h"
 #include "probfd/algorithms/transition_sorter.h"
 
+#include "probfd/probabilistic_task.h"
+
 #include "downward/operator_id.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
+#include "probfd/termination_costs.h"
 
 #include <memory>
 #include <string>
@@ -27,7 +32,6 @@ using namespace probfd::cli::solvers;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class ExhaustiveDFSSolver : public StatisticalMDPAlgorithmFactory {
     const value_t convergence_epsilon_;
 
@@ -54,16 +58,15 @@ public:
 
     std::string get_algorithm_name() const override { return "exhaustive_dfs"; }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
-        const std::shared_ptr<ProbabilisticTask>&,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) override
+    std::unique_ptr<StatisticalMDPAlgorithm>
+    create_algorithm(const SharedProbabilisticTask& task) override
     {
         using Algorithm = ExhaustiveDepthFirstSearch<State, OperatorID, false>;
         using Algorithm2 = ExhaustiveDepthFirstSearch<State, OperatorID, true>;
 
-        Interval cost_bound(
-            0_vt,
-            task_cost_function->get_non_goal_termination_cost());
+        const auto& term_costs = get_shared_termination_costs(task);
+
+        Interval cost_bound(0_vt, term_costs->get_non_goal_termination_cost());
 
         if (dual_bounds_) {
             return std::make_unique<AlgorithmAdaptor>(
@@ -127,7 +130,13 @@ protected:
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
+}
 
-FeaturePlugin<ExhaustiveDFSSolverFeature> _plugin;
+namespace probfd::cli::solvers {
+
+void add_exhaustive_dfs_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<ExhaustiveDFSSolverFeature>();
+}
 
 } // namespace

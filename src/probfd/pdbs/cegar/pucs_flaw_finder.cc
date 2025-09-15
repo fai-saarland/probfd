@@ -10,11 +10,12 @@
 #include "probfd/utils/guards.h"
 
 #include "probfd/multi_policy.h"
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/utils/countdown_timer.h"
 
 #include "downward/state_registry.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include <cassert>
 
@@ -30,7 +31,8 @@ PUCSFlawFinder::PUCSFlawFinder(int max_search_states)
 }
 
 bool PUCSFlawFinder::apply_policy(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTaskTuple& task,
+    const State& initial_state,
     const StateRankingFunction& state_ranking_function,
     const ProjectionStateSpace& mdp,
     const ProjectionMultiPolicy& policy,
@@ -40,22 +42,27 @@ bool PUCSFlawFinder::apply_policy(
 {
     assert(pq_.empty() && probabilities_.empty());
 
+    const auto& variables = get_variables(task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
+    const auto& goals = get_goal(task);
+
     // Exception safety due to TimeoutException
     scope_exit guard([&] {
         pq_.clear();
         probabilities_.clear();
     });
 
-    StateRegistry registry(task_proxy);
+    StateRegistry registry(
+        downward::task_properties::g_state_packers[variables],
+        g_axiom_evaluators[variables, axioms],
+        initial_state);
 
     {
         const State& init = registry.get_initial_state();
         pq_.push(1.0, init);
         probabilities_[StateID(init.get_id())].path_probability = 1.0;
     }
-
-    const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
-    const GoalsProxy goals = task_proxy.get_goals();
 
     do {
         timer.throw_if_expired();
@@ -65,9 +72,7 @@ bool PUCSFlawFinder::apply_policy(
         assert(!info.expanded);
 
         // TODO remove this once we have a real priority queue...
-        if (path_probability < info.path_probability) {
-            continue;
-        }
+        if (path_probability < info.path_probability) { continue; }
 
         info.expanded = true;
 
@@ -126,7 +131,7 @@ bool PUCSFlawFinder::apply_policy(
         }
 
         // Insert all flaws of all operators
-        flaws.insert(flaws.end(), local_flaws.begin(), local_flaws.end());
+        flaws.append_range(local_flaws);
 
         return false;
 

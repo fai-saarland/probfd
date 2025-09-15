@@ -17,10 +17,10 @@ MergeStrategyFactoryStateless::MergeStrategyFactoryStateless(
 }
 
 unique_ptr<MergeStrategy> MergeStrategyFactoryStateless::compute_merge_strategy(
-    const TaskProxy& task_proxy,
+    const AbstractTaskTuple& task,
     const FactoredTransitionSystem& fts)
 {
-    merge_selector->initialize(task_proxy);
+    merge_selector->initialize(task);
     return std::make_unique<MergeStrategyStateless>(fts, merge_selector);
 }
 

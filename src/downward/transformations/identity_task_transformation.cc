@@ -13,7 +13,7 @@ int IdentityOperatorMapping::convert_operator_index(int index) const
 }
 
 TaskTransformationResult IdentityTaskTransformation::transform(
-    const std::shared_ptr<AbstractTask>& original_task)
+    const SharedAbstractTask& original_task)
 {
     return {
         original_task,

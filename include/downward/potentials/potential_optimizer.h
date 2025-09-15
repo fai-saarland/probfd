@@ -1,7 +1,7 @@
 #ifndef POTENTIALS_POTENTIAL_OPTIMIZER_H
 #define POTENTIALS_POTENTIAL_OPTIMIZER_H
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/lp/lp_solver.h"
 
@@ -38,15 +38,14 @@ class PotentialFunction;
   ICAPS 2015.
 */
 class PotentialOptimizer {
-    std::shared_ptr<AbstractTask> task;
-    TaskProxy task_proxy;
+    SharedAbstractTask task;
     lp::LPSolver lp_solver;
     const double max_potential;
     int num_lp_vars;
     std::vector<std::vector<int>> lp_var_ids;
     std::vector<std::vector<double>> fact_potentials;
 
-    int get_lp_var_id(const FactProxy& fact) const;
+    int get_lp_var_id(const FactPair& fact) const;
     void initialize();
     void construct_lp();
     void solve_and_extract();
@@ -54,12 +53,12 @@ class PotentialOptimizer {
 
 public:
     PotentialOptimizer(
-        const std::shared_ptr<AbstractTask>& transform,
+        const SharedAbstractTask& transform,
         lp::LPSolverType lpsolver,
         double max_potential);
     ~PotentialOptimizer() = default;
 
-    std::shared_ptr<AbstractTask> get_task() const;
+    const SharedAbstractTask& get_task() const;
     bool potentials_are_bounded() const;
 
     void optimize_for_state(const State& state);

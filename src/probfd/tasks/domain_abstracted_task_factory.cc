@@ -4,10 +4,10 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "probfd/task_proxy.h"
-
 #include "downward/task_utils/task_properties.h"
+#include "downward/tasks/domain_abstracted_task.h"
 
+#include "downward/utils/collections.h"
 #include "downward/utils/system.h"
 
 #include <cassert>
@@ -25,13 +25,12 @@ namespace probfd::extra_tasks {
 namespace {
 
 class DomainAbstractedTaskFactory {
-private:
     vector<int> domain_size;
     vector<int> initial_state_values;
-    vector<FactPair> goals;
+    vector<FactPair> goal_facts;
     vector<vector<string>> fact_names;
     vector<vector<int>> value_map;
-    shared_ptr<ProbabilisticTask> task;
+    SharedProbabilisticTask task;
 
     void combine_values(int var, const ValueGroups& groups);
     [[nodiscard]]
@@ -39,40 +38,42 @@ private:
 
 public:
     DomainAbstractedTaskFactory(
-        const shared_ptr<ProbabilisticTask>& parent,
+        const SharedProbabilisticTask& parent,
         const VarToGroups& value_groups);
     ~DomainAbstractedTaskFactory() = default;
 
     [[nodiscard]]
-    shared_ptr<ProbabilisticTask> get_task() const;
+    SharedProbabilisticTask get_task() const;
 };
 
 DomainAbstractedTaskFactory::DomainAbstractedTaskFactory(
-    const shared_ptr<ProbabilisticTask>& parent,
+    const SharedProbabilisticTask& parent,
     const VarToGroups& value_groups)
 {
-    ProbabilisticTaskProxy parent_proxy(*parent);
-    if (::task_properties::has_axioms(parent_proxy)) {
+    const auto& [variables, axioms, operators, goals, init_vals, cost_function, termination_costs] =
+        to_refs(parent);
+
+    if (::task_properties::has_axioms(axioms)) {
         ABORT("DomainAbstractedTask doesn't support axioms.");
     }
-    if (task_properties::has_conditional_effects(parent_proxy)) {
+    if (task_properties::has_conditional_effects(operators)) {
         ABORT("DomainAbstractedTask doesn't support conditional effects.");
     }
 
-    int num_vars = parent->get_num_variables();
+    int num_vars = variables.get_num_variables();
     domain_size.resize(num_vars);
-    initial_state_values = parent->get_initial_state_values();
+    initial_state_values = init_vals.get_initial_state_values();
     value_map.resize(num_vars);
     fact_names.resize(num_vars);
     for (int var = 0; var < num_vars; ++var) {
-        int num_values = parent->get_variable_domain_size(var);
+        int num_values = variables.get_variable_domain_size(var);
         domain_size[var] = num_values;
         value_map[var].resize(num_values);
         fact_names[var].resize(num_values);
         for (int value = 0; value < num_values; ++value) {
             value_map[var][value] = value;
             fact_names[var][value] =
-                parent->get_fact_name(FactPair(var, value));
+                variables.get_fact_name(FactPair(var, value));
         }
     }
 
@@ -96,30 +97,41 @@ DomainAbstractedTaskFactory::DomainAbstractedTaskFactory(
     }
 
     // Apply domain abstraction to goals.
-    for (FactPair& goal : goals) {
+    for (FactPair& goal : goal_facts) {
         goal.value = value_map[goal.var][goal.value];
     }
 
-    task = make_shared<DomainAbstractedTask>(
+    auto domain_abstraction =
+        make_shared<DomainAbstraction>(std::move(value_map));
+
+    task = replace(
         parent,
-        std::move(domain_size),
-        std::move(initial_state_values),
-        std::move(goals),
-        std::move(fact_names),
-        std::move(value_map));
+        std::make_shared<downward::extra_tasks::DomainAbstractedVariableSpace>(
+            get_shared_variables(parent),
+            std::move(domain_size),
+            std::move(fact_names),
+            domain_abstraction),
+        std::make_shared<DomainAbstractedProbabilisticOperatorSpace>(
+            get_shared_operators(parent),
+            domain_abstraction),
+        std::make_shared<downward::extra_tasks::DomainAbstractedGoal>(
+            std::move(goal_facts)),
+        std::make_shared<
+            downward::extra_tasks::DomainAbstractedInitialStateValues>(
+            std::move(initial_state_values)));
 }
 
 string DomainAbstractedTaskFactory::get_combined_fact_name(
     int var,
     const ValueGroup& values) const
 {
-    ostringstream name;
-    string sep;
-    for (int value : values) {
-        name << sep << fact_names[var][value];
-        sep = " OR ";
-    }
-    return name.str();
+    auto get_fact_name = [&names = fact_names[var]](int value) {
+        return names[value];
+    };
+
+    return std::format(
+        "{{{:n}}}",
+        values | std::views::transform(get_fact_name));
 }
 
 void DomainAbstractedTaskFactory::combine_values(
@@ -135,7 +147,7 @@ void DomainAbstractedTaskFactory::combine_values(
 
     for (const ValueGroup& group : groups) {
         combined_fact_names.push_back(get_combined_fact_name(var, group));
-        groups_union.insert(group.begin(), group.end());
+        groups_union.insert_range(group);
 
 #ifndef NDEBUG
         num_merged_values += group.size();
@@ -148,7 +160,7 @@ void DomainAbstractedTaskFactory::combine_values(
 
     // Move all facts that are not part of groups to the front.
     for (int before = 0; before < domain_size[var]; ++before) {
-        if (groups_union.count(before) == 0) {
+        if (!groups_union.contains(before)) {
             value_map[var][before] = next_free_pos;
             fact_names[var][next_free_pos] = std::move(fact_names[var][before]);
             ++next_free_pos;
@@ -160,7 +172,7 @@ void DomainAbstractedTaskFactory::combine_values(
     // Add new facts for merged groups.
     for (size_t group_id = 0; group_id < groups.size(); ++group_id) {
         const ValueGroup& group = groups[group_id];
-        for (int before : group) {
+        for (const int before : group) {
             value_map[var][before] = next_free_pos;
         }
         assert(utils::in_bounds(next_free_pos, fact_names[var]));
@@ -176,15 +188,15 @@ void DomainAbstractedTaskFactory::combine_values(
     domain_size[var] = new_domain_size;
 }
 
-shared_ptr<ProbabilisticTask> DomainAbstractedTaskFactory::get_task() const
+SharedProbabilisticTask DomainAbstractedTaskFactory::get_task() const
 {
     return task;
 }
 
 } // namespace
 
-std::shared_ptr<ProbabilisticTask> build_domain_abstracted_task(
-    const std::shared_ptr<ProbabilisticTask>& parent,
+SharedProbabilisticTask build_domain_abstracted_task(
+    const SharedProbabilisticTask& parent,
     const VarToGroups& value_groups)
 {
     return DomainAbstractedTaskFactory(parent, value_groups).get_task();

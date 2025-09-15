@@ -23,10 +23,4 @@ tuple<Verbosity> get_log_arguments_from_options(const plugins::Options& opts)
     return make_tuple<Verbosity>(opts.get<Verbosity>("verbosity"));
 }
 
-plugins::TypedEnumPlugin<Verbosity> _enum_plugin(
-    {{"silent", "only the most basic output"},
-     {"normal", "relevant information to monitor progress"},
-     {"verbose", "full output"},
-     {"debug", "like verbose with additional debug output"}});
-
 } // namespace downward::cli::utils

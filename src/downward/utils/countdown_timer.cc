@@ -6,7 +6,8 @@
 using namespace std;
 
 namespace downward::utils {
-CountdownTimer::CountdownTimer(double max_time)
+
+CountdownTimer::CountdownTimer(Duration max_time)
     : max_time(max_time)
 {
 }
@@ -22,15 +23,12 @@ bool CountdownTimer::is_expired() const
       output from "strace" (which otherwise reports the "times" system call
       millions of times.
     */
-    return max_time != numeric_limits<double>::infinity() &&
-           timer() >= max_time;
+    return max_time != Duration::max() && timer() >= max_time;
 }
 
 void CountdownTimer::throw_if_expired() const
 {
-    if (is_expired()) {
-        throw TimeoutException();
-    }
+    if (is_expired()) { throw TimeoutException(); }
 }
 
 Duration CountdownTimer::get_elapsed_time() const
@@ -42,9 +40,10 @@ Duration CountdownTimer::get_remaining_time() const
 {
     return Duration(max_time - get_elapsed_time());
 }
+
 ostream& operator<<(ostream& os, const CountdownTimer& cd_timer)
 {
     os << cd_timer.timer;
     return os;
 }
-} // namespace utils
+} // namespace downward::utils

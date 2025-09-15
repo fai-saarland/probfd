@@ -2,7 +2,7 @@
 
 #include "downward/pdbs/pattern_information.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/utils/logging.h"
 
@@ -25,9 +25,9 @@ string PatternGeneratorManual::name() const
 }
 
 PatternInformation
-PatternGeneratorManual::compute_pattern(const shared_ptr<AbstractTask>& task)
+PatternGeneratorManual::compute_pattern(const SharedAbstractTask& task)
 {
-    PatternInformation pattern_info(TaskProxy(*task), std::move(pattern), log);
+    PatternInformation pattern_info(to_refs(task), std::move(pattern), log);
     if (log.is_at_least_normal()) {
         log << "Manual pattern: " << pattern_info.get_pattern() << endl;
     }

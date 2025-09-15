@@ -1,6 +1,6 @@
 #include "downward/cli/potentials/potential_options.h"
 
-#include "downward/cli/heuristic_options.h"
+#include "downward/cli/heuristics/heuristic_options.h"
 
 #include "downward/cli/lp/lp_solver_options.h"
 #include "downward/cli/plugins/plugin.h"
@@ -53,7 +53,6 @@ void add_admissible_potentials_options_to_feature(
 tuple<
     double,
     downward::lp::LPSolverType,
-    shared_ptr<AbstractTask>,
     shared_ptr<TaskTransformation>,
     bool,
     string,

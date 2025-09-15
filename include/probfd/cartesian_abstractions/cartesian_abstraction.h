@@ -12,7 +12,7 @@
 #include "downward/utils/logging.h"
 
 #include "downward/abstract_task.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <memory>
 #include <utility>
@@ -20,7 +20,6 @@
 
 // Forward Declarations
 namespace probfd {
-class ProbabilisticTaskProxy;
 template <typename>
 class Distribution;
 } // namespace probfd
@@ -54,11 +53,13 @@ class CartesianAbstraction
 
     mutable downward::utils::LogProxy log_;
 
-    void initialize_trivial_abstraction(const std::vector<int>& domain_sizes);
+    template <std::ranges::input_range R>
+        requires std::same_as<std::ranges::range_value_t<R>, int>
+    void initialize_trivial_abstraction(const R& domain_sizes);
 
 public:
     CartesianAbstraction(
-        const ProbabilisticTaskProxy& task,
+        const ProbabilisticTaskTuple& task,
         std::vector<value_t> operator_costs,
         downward::utils::LogProxy log);
     ~CartesianAbstraction() override;

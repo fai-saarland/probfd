@@ -6,7 +6,7 @@
 #include "probfd/fdr_types.h"
 #include "probfd/heuristic.h"
 
-#include "probfd/task_heuristic_factory.h"
+#include "probfd/task_heuristic_factory_category.h"
 
 #include "downward/utils/logging.h"
 
@@ -27,11 +27,12 @@ namespace probfd::heuristics {
  * specified by the configuration of the pattern collection generation
  * algorithm.
  */
-class ProbabilityAwarePDBHeuristic final : public FDREvaluator {
+class ProbabilityAwarePDBHeuristic final : public FDRHeuristic {
     const pdbs::PPDBCollection pdbs_;
     const std::vector<pdbs::PatternSubCollection> subcollections_;
     const std::shared_ptr<pdbs::SubCollectionFinder> subcollection_finder_;
 
+    const value_t cost_lower_bound_;
     const value_t termination_cost_;
 
 public:
@@ -39,6 +40,7 @@ public:
         pdbs::PPDBCollection pdbs,
         std::vector<pdbs::PatternSubCollection> subcollections,
         std::shared_ptr<pdbs::SubCollectionFinder> subcollection_finder,
+        value_t cost_lower_bound,
         value_t termination_cost);
 
     value_t evaluate(const downward::State& state) const override;
@@ -46,18 +48,17 @@ public:
 
 class ProbabilityAwarePDBHeuristicFactory final : public TaskHeuristicFactory {
     const std::shared_ptr<pdbs::PatternCollectionGenerator> generator_;
-    const double max_time_dominance_pruning_;
+    const downward::utils::Duration max_time_dominance_pruning_;
     mutable downward::utils::LogProxy log_;
 
 public:
     ProbabilityAwarePDBHeuristicFactory(
         std::shared_ptr<pdbs::PatternCollectionGenerator> generator,
-        double max_time_dominance_pruning,
-       downward::utils::Verbosity verbosity);
+        downward::utils::Duration max_time_dominance_pruning,
+        downward::utils::Verbosity verbosity);
 
-    std::unique_ptr<FDREvaluator> create_heuristic(
-        std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function) override;
+    std::unique_ptr<FDRHeuristic>
+    create_object(const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::heuristics

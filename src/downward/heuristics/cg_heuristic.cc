@@ -3,9 +3,12 @@
 #include "downward/heuristics/cg_cache.h"
 #include "downward/heuristics/domain_transition_graph.h"
 
+#include "downward/task_utils/causal_graph.h"
 #include "downward/task_utils/task_properties.h"
+
 #include "downward/utils/logging.h"
 
+#include "downward/operator_cost_function.h"
 #include "downward/task_transformation.h"
 
 #include <algorithm>
@@ -19,7 +22,7 @@ using namespace downward::domain_transition_graph;
 namespace downward::cg_heuristic {
 CGHeuristic::CGHeuristic(
     int max_cache_size,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
@@ -33,16 +36,24 @@ CGHeuristic::CGHeuristic(
     , cache_hits(0)
     , cache_misses(0)
     , helpful_transition_extraction_counter(0)
-    , min_action_cost(task_properties::get_min_operator_cost(task_proxy))
+    , min_action_cost(
+          task_properties::get_min_operator_cost(
+              get_operators(transformed_task),
+              get_cost_function(transformed_task)))
 {
     if (log.is_at_least_normal()) {
         log << "Initializing causal graph heuristic..." << endl;
     }
 
-    if (max_cache_size > 0)
-        cache = std::make_unique<CGCache>(task_proxy, max_cache_size, log);
+    const auto& variables = get_variables(transformed_task);
 
-    unsigned int num_vars = task_proxy.get_variables().size();
+    if (max_cache_size > 0) {
+        const auto& cg =
+            causal_graph::get_causal_graph(to_refs(transformed_task));
+        cache = std::make_unique<CGCache>(cg, variables, max_cache_size, log);
+    }
+
+    unsigned int num_vars = variables.size();
     prio_queues.reserve(num_vars);
     for (size_t i = 0; i < num_vars; ++i)
         prio_queues.push_back(std::make_unique<ValueNodeQueue>());
@@ -50,13 +61,19 @@ CGHeuristic::CGHeuristic(
     function<bool(int, int)> pruning_condition = [](int dtg_var, int cond_var) {
         return dtg_var <= cond_var;
     };
-    DTGFactory factory(task_proxy, false, pruning_condition);
+    DTGFactory factory(
+        get_variables(transformed_task),
+        get_axioms(transformed_task),
+        get_operators(transformed_task),
+        get_cost_function(transformed_task),
+        false,
+        pruning_condition);
     transition_graphs = factory.build_dtgs();
 }
 
 CGHeuristic::CGHeuristic(
     int max_cache_size,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
     const std::string& description,
@@ -84,17 +101,15 @@ int CGHeuristic::compute_heuristic(const State& ancestor_state)
     setup_domain_transition_graphs();
 
     int heuristic = 0;
-    for (FactProxy goal : task_proxy.get_goals()) {
-        const VariableProxy var = goal.get_variable();
-        int var_no = var.get_id();
-        int from = state[var_no].get_value(), to = goal.get_value();
-        DomainTransitionGraph* dtg = transition_graphs[var_no].get();
-        int cost_for_goal = get_transition_cost(state, dtg, from, to);
+    for (const auto [var, value] :
+         get_goal(transformed_task)) {
+        DomainTransitionGraph* dtg = transition_graphs[var].get();
+        int cost_for_goal = get_transition_cost(state, dtg, state[var], value);
         if (cost_for_goal == numeric_limits<int>::max()) {
             return DEAD_END;
         } else {
             heuristic += cost_for_goal;
-            mark_helpful_transitions(state, dtg, to);
+            mark_helpful_transitions(state, dtg, value);
         }
     }
     return heuristic;
@@ -144,8 +159,7 @@ int CGHeuristic::get_transition_cost(
         start->reached_by = nullptr;
         start->children_state.resize(dtg->local_to_global_child.size());
         for (size_t i = 0; i < dtg->local_to_global_child.size(); ++i) {
-            start->children_state[i] =
-                state[dtg->local_to_global_child[i]].get_value();
+            start->children_state[i] = state[dtg->local_to_global_child[i]];
         }
 
         // Initialize Heap for Dijkstra's algorithm.
@@ -153,6 +167,12 @@ int CGHeuristic::get_transition_cost(
             *prio_queues[var_no];
         prio_queue.clear();
         prio_queue.push(0, start);
+
+        const auto& [axioms, operators, cost_function] = to_refs(
+            slice_shared<
+                AxiomSpace,
+                ClassicalOperatorSpace,
+                OperatorIntCostFunction>(transformed_task));
 
         // Dijkstra algorithm main loop.
         while (!prio_queue.empty()) {
@@ -183,11 +203,11 @@ int CGHeuristic::get_transition_cost(
                 for (ValueTransitionLabel& label : transition.labels) {
                     AxiomOrOperatorProxy op =
                         label.is_axiom
-                            ? AxiomOrOperatorProxy(
-                                  task_proxy.get_axioms()[label.op_id])
-                            : AxiomOrOperatorProxy(
-                                  task_proxy.get_operators()[label.op_id]);
-                    int new_distance = source_distance + op.get_cost();
+                            ? AxiomOrOperatorProxy(axioms[label.op_id])
+                            : AxiomOrOperatorProxy(operators[label.op_id]);
+                    int new_distance =
+                        source_distance +
+                        cost_function.get_operator_cost(op.get_id());
                     for (LocalAssignment& assignment : label.precond) {
                         if (new_distance >= *target_distance_ptr)
                             break; // We already know this isn't an improved
@@ -271,7 +291,7 @@ void CGHeuristic::mark_helpful_transitions(
     int to)
 {
     int var_no = dtg->var;
-    int from = state[var_no].get_value();
+    int from = state[var_no];
     if (from == to) return;
 
     /*
@@ -312,14 +332,19 @@ void CGHeuristic::mark_helpful_transitions(
         cost = start_node->distances[to];
     }
 
+    const auto& [axioms, operators, cost_function] = to_refs(
+        slice_shared<
+            AxiomSpace,
+            ClassicalOperatorSpace,
+            OperatorIntCostFunction>(transformed_task));
+
     AxiomOrOperatorProxy op =
-        helpful->is_axiom
-            ? AxiomOrOperatorProxy(task_proxy.get_axioms()[helpful->op_id])
-            : AxiomOrOperatorProxy(task_proxy.get_operators()[helpful->op_id]);
-    if (cost == op.get_cost() && !op.is_axiom() &&
-        task_properties::is_applicable(op, state)) {
+        helpful->is_axiom ? AxiomOrOperatorProxy(axioms[helpful->op_id])
+                          : AxiomOrOperatorProxy(operators[helpful->op_id]);
+    if (cost == cost_function.get_operator_cost(op.get_id()) &&
+        !op.is_axiom() && task_properties::is_applicable(op, state)) {
         // Transition immediately applicable, all preconditions true.
-        set_preferred(static_cast<OperatorProxy>(op));
+        set_preferred(op);
     } else {
         // Recursively compute helpful transitions for the precondition
         // variables.
@@ -333,4 +358,4 @@ void CGHeuristic::mark_helpful_transitions(
     }
 }
 
-} // namespace cg_heuristic
+} // namespace downward::cg_heuristic

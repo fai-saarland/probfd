@@ -1,5 +1,7 @@
 #include "downward/operator_counting/operator_counting_heuristic.h"
 
+#include "downward/operator_cost_function.h"
+#include "downward/operator_cost_function_fwd.h"
 #include "downward/operator_counting/constraint_generator.h"
 
 #include "downward/utils/markup.h"
@@ -15,7 +17,7 @@ OperatorCountingHeuristic::OperatorCountingHeuristic(
     const vector<shared_ptr<ConstraintGenerator>>& constraint_generators,
     bool use_integer_operator_counts,
     lp::LPSolverType lpsolver,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
@@ -29,11 +31,16 @@ OperatorCountingHeuristic::OperatorCountingHeuristic(
     , constraint_generators(constraint_generators)
     , lp_solver(lpsolver)
 {
+    const auto& operators =
+        get_operators(transformed_task);
+    const auto& cost_function =
+        get_cost_function(transformed_task);
+
     lp_solver.set_mip_gap(0);
     named_vector::NamedVector<lp::LPVariable> variables;
     double infinity = lp_solver.get_infinity();
-    for (OperatorProxy op : task_proxy.get_operators()) {
-        int op_cost = op.get_cost();
+    for (OperatorProxy op : operators) {
+        int op_cost = cost_function.get_operator_cost(op.get_id());
         variables.push_back(
             lp::LPVariable(0, infinity, op_cost, use_integer_operator_counts));
 #ifndef NDEBUG
@@ -56,7 +63,7 @@ OperatorCountingHeuristic::OperatorCountingHeuristic(
         constraint_generators,
     bool use_integer_operator_counts,
     lp::LPSolverType lpsolver,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
     const std::string& description,
@@ -97,4 +104,4 @@ int OperatorCountingHeuristic::compute_heuristic(const State& ancestor_state)
     return result;
 }
 
-} // namespace operator_counting
+} // namespace downward::operator_counting

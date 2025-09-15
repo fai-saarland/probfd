@@ -5,15 +5,6 @@
 using namespace std;
 
 namespace downward::cartesian_abstractions {
-CartesianSet::CartesianSet(const vector<int>& domain_sizes)
-{
-    domain_subsets.reserve(domain_sizes.size());
-    for (int domain_size : domain_sizes) {
-        Bitset domain(domain_size);
-        domain.set();
-        domain_subsets.push_back(std::move(domain));
-    }
-}
 
 void CartesianSet::add(int var, int value)
 {
@@ -86,4 +77,4 @@ ostream& operator<<(ostream& os, const CartesianSet& cartesian_set)
     }
     return os << ">";
 }
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions

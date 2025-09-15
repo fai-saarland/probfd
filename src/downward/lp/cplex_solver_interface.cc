@@ -50,18 +50,14 @@ template <typename Func, typename... Args>
 static void CPX_CALL(Func cpxfunc, CPXENVptr env, Args&&... args)
 {
     int status = cpxfunc(env, forward<Args>(args)...);
-    if (status) {
-        handle_cplex_error(env, status);
-    }
+    if (status) { handle_cplex_error(env, status); }
 }
 
 static CPXLPptr createProblem(CPXENVptr env, const string& name)
 {
     int status = 0;
     CPXLPptr problem = CPXcreateprob(env, &status, name.c_str());
-    if (status) {
-        handle_cplex_error(env, status);
-    }
+    if (status) { handle_cplex_error(env, status); }
     return problem;
 }
 
@@ -113,9 +109,7 @@ void CplexSolverInterface::CplexMatrix::assign_column_by_column(
     for (int row_index = 0; row_index < num_rows; ++row_index) {
         const vector<int>& vars = constraints[row_index].get_variables();
         num_nonzeros += vars.size();
-        for (int var : vars) {
-            ++counts[var];
-        }
+        for (int var : vars) { ++counts[var]; }
     }
     for (int var = 1; var < num_cols; ++var) {
         starts[var] = starts[var - 1] + counts[var - 1];
@@ -151,9 +145,7 @@ void CplexSolverInterface::CplexMatrix::assign_column_by_column(
       We shifted col_start[i] to the right once for every entry. Now we have to
       shift it back to recover its original value.
      */
-    for (int var = 0; var < num_cols; ++var) {
-        starts[var] -= counts[var];
-    }
+    for (int var = 0; var < num_cols; ++var) { starts[var] -= counts[var]; }
     assert(static_cast<int>(starts.size()) == num_cols);
     assert(static_cast<int>(counts.size()) == num_cols);
     assert(indices.size() == coefficients.size());
@@ -223,9 +215,7 @@ void CplexSolverInterface::CplexRowsInfo::assign(
     int num_rows = constraints.size();
     sense.resize(num_rows);
     rhs.resize(num_rows);
-    if (dense_range_values) {
-        range_values.resize(num_rows, 0);
-    }
+    if (dense_range_values) { range_values.resize(num_rows, 0); }
     for (int row_index = 0; row_index < num_rows; ++row_index) {
         const LPConstraint& constraint = constraints[row_index];
         double lb = constraint.get_lower_bound();
@@ -268,6 +258,11 @@ CplexSolverInterface::CplexSolverInterface()
         utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
     CPX_CALL(CPXsetintparam, env, CPX_PARAM_THREADS, 1);
+    CPX_CALL(
+        CPXsetintparam,
+        env,
+        CPX_PARAM_REDUCE,
+        CPX_PREREDUCE_NOPRIMALORDUAL);
     // TODO handle output, catch oom
 }
 
@@ -294,9 +289,7 @@ void CplexSolverInterface::change_constraint_bounds(
 {
     double current_lb = constraint_lower_bounds[index];
     double current_ub = constraint_upper_bounds[index];
-    if (current_lb == lb && current_ub == ub) {
-        return;
-    }
+    if (current_lb == lb && current_ub == ub) { return; }
     const auto& [sense, rhs, range] = bounds_to_sense_rhs_range(lb, ub);
 
     CPX_CALL(CPXchgsense, env, problem, 1, &index, &sense);
@@ -322,9 +315,7 @@ void CplexSolverInterface::change_constraint_bounds(
 
 void CplexSolverInterface::load_problem(const LinearProgram& lp)
 {
-    if (problem) {
-        freeProblem(env, &problem);
-    }
+    if (problem) { freeProblem(env, &problem); }
     problem = createProblem(env, "");
 
     const named_vector::NamedVector<LPVariable>& variables = lp.get_variables();
@@ -565,7 +556,13 @@ void CplexSolverInterface::print_failure_analysis() const
         break;
     case CPX_STAT_UNBOUNDED: cout << "LP/MIP is unbounded" << endl; break;
     case CPX_STAT_INFEASIBLE: cout << "LP is infeasible" << endl; break;
+    case CPX_STAT_INForUNBD:
+        cout << "LP is infeasible or unbounded" << endl;
+        break;
     case CPXMIP_INFEASIBLE: cout << "MIP is infeasible" << endl; break;
+    case CPXMIP_INForUNBD:
+        cout << "MIP is infeasibl ir unbounded" << endl;
+        break;
     default:
         cout << "Unexpected status after solving LP/MIP: " << status << endl;
     }
@@ -573,27 +570,21 @@ void CplexSolverInterface::print_failure_analysis() const
 
 bool CplexSolverInterface::is_infeasible() const
 {
-    if (is_trivially_unsolvable()) {
-        return true;
-    }
+    if (is_trivially_unsolvable()) { return true; }
     int status = CPXgetstat(env, problem);
     return status == CPX_STAT_INFEASIBLE || status == CPXMIP_INFEASIBLE;
 }
 
 bool CplexSolverInterface::is_unbounded() const
 {
-    if (is_trivially_unsolvable()) {
-        return false;
-    }
+    if (is_trivially_unsolvable()) { return false; }
     int status = CPXgetstat(env, problem);
     return status == CPX_STAT_UNBOUNDED;
 }
 
 bool CplexSolverInterface::has_optimal_solution() const
 {
-    if (is_trivially_unsolvable()) {
-        return false;
-    }
+    if (is_trivially_unsolvable()) { return false; }
     int status = CPXgetstat(env, problem);
     switch (status) {
     case CPX_STAT_OPTIMAL:
@@ -616,7 +607,9 @@ bool CplexSolverInterface::has_optimal_solution() const
     case CPX_STAT_OPTIMAL_INFEAS: return true;
     case CPX_STAT_UNBOUNDED:
     case CPX_STAT_INFEASIBLE:
+    case CPX_STAT_INForUNBD: return false;
     case CPXMIP_INFEASIBLE: return false;
+    case CPXMIP_INForUNBD: return false;
     default:
         cerr << "Unexpected status after solving LP/MIP: " << status << endl;
         utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
@@ -754,4 +747,4 @@ void CplexSolverInterface::add_constraint(
     constraint_upper_bounds.push_back(constraint.get_upper_bound());
 }
 
-} // namespace lp
+} // namespace downward::lp

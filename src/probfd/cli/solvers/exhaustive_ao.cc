@@ -1,14 +1,17 @@
+#include "probfd/cli/solvers/exhaustive_ao.h"
+
 #include "downward/cli/plugins/plugin.h"
 
-#include "probfd/cli/multi_feature_plugin.h"
 #include "probfd/cli/naming_conventions.h"
 
-#include "probfd/cli/solvers/mdp_heuristic_search.h"
-#include "probfd/cli/solvers/mdp_solver.h"
+#include "probfd/cli/solvers/mdp_heuristic_search_options.h"
+#include "probfd/cli/solvers/mdp_solver_options.h"
 
 #include "probfd/solvers/mdp_heuristic_search.h"
 
 #include "probfd/algorithms/exhaustive_ao.h"
+
+#include "downward/cli/plugins/raw_registry.h"
 
 #include <memory>
 #include <string>
@@ -24,7 +27,6 @@ using namespace probfd::cli::solvers;
 using namespace downward::cli::plugins;
 
 namespace {
-
 template <bool Bisimulation>
 class ExhaustiveAOSolver : public MDPHeuristicSearch<Bisimulation, false> {
     using OpenListType = OpenList<ActionType<Bisimulation, false>>;
@@ -45,14 +47,12 @@ public:
     }
 
     std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) override
+        const SharedProbabilisticTask& task) override
     {
         return std::make_unique<AlgorithmAdaptor>(
             this->template create_heuristic_search_algorithm<
                 algorithms::exhaustive_ao::ExhaustiveAOSearch>(
                 task,
-                task_cost_function,
                 open_list_));
     }
 };
@@ -90,7 +90,13 @@ protected:
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
+}
 
-MultiFeaturePlugin<ExhaustiveAOSolverFeature> _plugin;
+namespace probfd::cli::solvers {
+
+void add_exhaustive_ao_solver_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugins<ExhaustiveAOSolverFeature>();
+}
 
 } // namespace

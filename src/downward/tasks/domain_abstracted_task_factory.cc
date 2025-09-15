@@ -6,6 +6,9 @@
 
 #include "downward/task_utils/task_properties.h"
 
+#include "downward/utils/collections.h"
+#include "probfd/tasks/domain_abstracted_task.h"
+
 #include <sstream>
 #include <string>
 #include <unordered_set>
@@ -13,41 +16,45 @@
 using namespace std;
 
 namespace downward::extra_tasks {
+
 class DomainAbstractedTaskFactory {
-private:
     vector<int> domain_size;
     vector<int> initial_state_values;
-    vector<FactPair> goals;
+    vector<FactPair> goal_facts;
     vector<vector<string>> fact_names;
     vector<vector<int>> value_map;
-    shared_ptr<AbstractTask> task;
+    SharedAbstractTask task;
 
-    void initialize(const AbstractTask& parent);
+    void initialize(const AbstractTaskTuple& parent);
     void combine_values(int var, const ValueGroups& groups);
     string get_combined_fact_name(int var, const ValueGroup& values) const;
 
 public:
     DomainAbstractedTaskFactory(
-        const shared_ptr<AbstractTask>& parent,
+        const SharedAbstractTask& parent,
         const VarToGroups& value_groups);
     ~DomainAbstractedTaskFactory() = default;
 
-    shared_ptr<AbstractTask> get_task() const;
+    SharedAbstractTask get_task() &&;
 };
 
 DomainAbstractedTaskFactory::DomainAbstractedTaskFactory(
-    const shared_ptr<AbstractTask>& parent,
+    const SharedAbstractTask& parent,
     const VarToGroups& value_groups)
 {
-    TaskProxy parent_proxy(*parent);
-    if (task_properties::has_axioms(parent_proxy)) {
+    const auto& [variables, axioms, operators, goals, init_values, cost_function] =
+        parent;
+
+    if (task_properties::has_axioms(*axioms)) {
         ABORT("DomainAbstractedTask doesn't support axioms.");
     }
-    if (task_properties::has_conditional_effects(parent_proxy)) {
+
+    if (task_properties::has_conditional_effects(*operators)) {
         ABORT("DomainAbstractedTask doesn't support conditional effects.");
     }
 
-    initialize(*parent);
+    initialize(to_refs(parent));
+
     for (const auto& pair : value_groups) {
         int var = pair.first;
         const ValueGroups& groups = pair.second;
@@ -68,34 +75,48 @@ DomainAbstractedTaskFactory::DomainAbstractedTaskFactory(
     }
 
     // Apply domain abstraction to goals.
-    for (FactPair& goal : goals) {
+    for (FactPair& goal : goal_facts) {
         goal.value = value_map[goal.var][goal.value];
     }
 
-    task = make_shared<DomainAbstractedTask>(
-        parent,
-        std::move(domain_size),
-        std::move(initial_state_values),
-        std::move(goals),
-        std::move(fact_names),
-        std::make_shared<DomainAbstraction>(value_map));
+    const auto domain_abstraction =
+        std::make_shared<DomainAbstraction>(value_map);
+
+    task = std::forward_as_tuple(
+        std::make_unique<DomainAbstractedVariableSpace>(
+            variables,
+            std::move(domain_size),
+            std::move(fact_names),
+            domain_abstraction),
+        axioms,
+        std::make_unique<DomainAbstractedOperatorSpace>(
+            operators,
+            domain_abstraction),
+        std::make_unique<DomainAbstractedGoal>(std::move(goal_facts)),
+        std::make_unique<DomainAbstractedInitialStateValues>(
+            initial_state_values),
+        cost_function);
 }
 
-void DomainAbstractedTaskFactory::initialize(const AbstractTask& parent)
+void DomainAbstractedTaskFactory::initialize(const AbstractTaskTuple& parent)
 {
-    int num_vars = parent.get_num_variables();
+    const auto& [variables, init_values] =
+        slice<VariableSpace&, InitialStateValues&>(parent);
+
+    int num_vars = variables.get_num_variables();
     domain_size.resize(num_vars);
-    initial_state_values = parent.get_initial_state_values();
+    initial_state_values = init_values.get_initial_state_values();
     value_map.resize(num_vars);
     fact_names.resize(num_vars);
     for (int var = 0; var < num_vars; ++var) {
-        int num_values = parent.get_variable_domain_size(var);
+        int num_values = variables.get_variable_domain_size(var);
         domain_size[var] = num_values;
         value_map[var].resize(num_values);
         fact_names[var].resize(num_values);
         for (int value = 0; value < num_values; ++value) {
             value_map[var][value] = value;
-            fact_names[var][value] = parent.get_fact_name(FactPair(var, value));
+            fact_names[var][value] =
+                variables.get_fact_name(FactPair(var, value));
         }
     }
 }
@@ -144,9 +165,7 @@ void DomainAbstractedTaskFactory::combine_values(
     // Add new facts for merged groups.
     for (size_t group_id = 0; group_id < groups.size(); ++group_id) {
         const ValueGroup& group = groups[group_id];
-        for (int before : group) {
-            value_map[var][before] = next_free_pos;
-        }
+        for (int before : group) { value_map[var][before] = next_free_pos; }
         assert(utils::in_bounds(next_free_pos, fact_names[var]));
         fact_names[var][next_free_pos] =
             std::move(combined_fact_names[group_id]);
@@ -160,15 +179,15 @@ void DomainAbstractedTaskFactory::combine_values(
     domain_size[var] = new_domain_size;
 }
 
-shared_ptr<AbstractTask> DomainAbstractedTaskFactory::get_task() const
+SharedAbstractTask DomainAbstractedTaskFactory::get_task() &&
 {
-    return task;
+    return std::move(task);
 }
 
-shared_ptr<AbstractTask> build_domain_abstracted_task(
-    const shared_ptr<AbstractTask>& parent,
+SharedAbstractTask build_domain_abstracted_task(
+    const SharedAbstractTask& parent,
     const VarToGroups& value_groups)
 {
     return DomainAbstractedTaskFactory(parent, value_groups).get_task();
 }
-} // namespace extra_tasks
+} // namespace downward::extra_tasks

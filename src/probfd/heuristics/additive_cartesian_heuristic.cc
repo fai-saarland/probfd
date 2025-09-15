@@ -5,7 +5,7 @@
 #include "probfd/cartesian_abstractions/types.h"
 #include "probfd/cartesian_abstractions/utils.h"
 
-#include "probfd/task_heuristic_factory.h"
+#include "probfd/task_heuristic_factory_category.h"
 
 #include "downward/utils/logging.h"
 
@@ -50,7 +50,7 @@ AdditiveCartesianHeuristicFactory::AdditiveCartesianHeuristicFactory(
     shared_ptr<SplitSelectorFactory> split_selector_factory,
     int max_states,
     int max_transitions,
-    double max_time,
+    utils::Duration max_time,
     bool use_general_costs,
     utils::Verbosity verbosity)
     : subtask_generators(std::move(subtasks))
@@ -64,13 +64,12 @@ AdditiveCartesianHeuristicFactory::AdditiveCartesianHeuristicFactory(
 {
 }
 
-std::unique_ptr<FDREvaluator>
-AdditiveCartesianHeuristicFactory::create_heuristic(
-    std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<FDRCostFunction>)
+std::unique_ptr<FDRHeuristic>
+AdditiveCartesianHeuristicFactory::create_object(
+    const SharedProbabilisticTask& task)
 {
     if (log_.is_at_least_normal()) {
-        log_ << "Initializing additive Cartesian heuristic..." << endl;
+        log_.println("Initializing additive Cartesian heuristic...");
     }
 
     CostSaturation cost_saturation(

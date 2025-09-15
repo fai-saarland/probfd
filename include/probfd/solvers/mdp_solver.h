@@ -5,8 +5,9 @@
 
 #include "probfd/fdr_types.h"
 #include "probfd/progress_report.h"
-#include "probfd/task_proxy.h"
+#include "probfd/task_heuristic_factory_fwd.h"
 #include "probfd/task_state_space.h"
+#include "probfd/task_state_space_factory_fwd.h"
 
 #include "downward/utils/logging.h"
 
@@ -15,10 +16,6 @@
 
 // Forward Declarations
 namespace probfd {
-class ProbabilisticTask;
-class TaskHeuristicFactory;
-class TaskStateSpaceFactory;
-
 template <typename, typename>
 class Policy;
 } // namespace probfd
@@ -41,7 +38,7 @@ class MDPSolver : public TaskSolverFactory {
 
     mutable downward::utils::LogProxy log_;
 
-    const std::string policy_filename;
+    const std::optional<std::string> policy_filename;
     const bool print_fact_names;
 
     const std::optional<value_t> report_epsilon;
@@ -56,7 +53,7 @@ public:
         std::shared_ptr<TaskStateSpaceFactory> task_state_space_factory,
         std::shared_ptr<TaskHeuristicFactory> heuristic_factory,
         downward::utils::Verbosity verbosity,
-        std::string policy_filename,
+        std::optional<std::string> policy_filename,
         bool print_fact_names,
         std::optional<value_t> report_epsilon,
         bool report_enabled);
@@ -64,7 +61,7 @@ public:
     ~MDPSolver() override;
 
     std::unique_ptr<SolverInterface>
-    create(const std::shared_ptr<ProbabilisticTask>& task) override;
+    create(const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::solvers

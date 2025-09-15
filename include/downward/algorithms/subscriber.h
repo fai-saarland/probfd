@@ -34,9 +34,8 @@
   }
 */
 
-
 namespace downward::subscriber {
-template<typename T>
+template <typename T>
 class SubscriberService;
 
 /*
@@ -44,25 +43,27 @@ class SubscriberService;
   service is destroyed. The template parameter T should be the class of the
   SubscriberService (see usage example above).
 */
-template<typename T>
+template <typename T>
 class Subscriber {
     friend class SubscriberService<T>;
-    std::unordered_set<const SubscriberService<T> *> services;
-    virtual void notify_service_destroyed(const T *) = 0;
+    std::unordered_set<const SubscriberService<T>*> services;
+    virtual void notify_service_destroyed(const T*) = 0;
+
 public:
-    virtual ~Subscriber() {
+    virtual ~Subscriber()
+    {
         /*
           We have to copy the services because unsubscribing erases the
           current service during the iteration.
         */
-        std::unordered_set<const SubscriberService<T> *> services_copy(services);
-        for (const SubscriberService<T> *service : services_copy) {
+        std::unordered_set<const SubscriberService<T>*> services_copy(services);
+        for (const SubscriberService<T>* service : services_copy) {
             service->unsubscribe(this);
         }
     }
 };
 
-template<typename T>
+template <typename T>
 class SubscriberService {
     /*
       We make the set of subscribers mutable, which means that it is possible
@@ -73,33 +74,40 @@ class SubscriberService {
       argue the other way, too. We made this design decision because being able
       to subscribe to const objects is very useful in the planner.
     */
-    mutable std::unordered_set<Subscriber<T> *> subscribers;
+    mutable std::unordered_set<Subscriber<T>*> subscribers;
+
 public:
-    virtual ~SubscriberService() {
+    virtual ~SubscriberService()
+    {
         /*
           We have to copy the subscribers because unsubscribing erases the
           current subscriber during the iteration.
         */
-        std::unordered_set<Subscriber<T> *> subscribers_copy(subscribers);
-        for (Subscriber<T> *subscriber : subscribers_copy) {
-            subscriber->notify_service_destroyed(static_cast<T *>(this));
+        std::unordered_set<Subscriber<T>*> subscribers_copy(subscribers);
+        for (Subscriber<T>* subscriber : subscribers_copy) {
+            subscriber->notify_service_destroyed(static_cast<T*>(this));
             unsubscribe(subscriber);
         }
     }
 
-    void subscribe(Subscriber<T> *subscriber) const {
-        assert(subscribers.find(subscriber) == subscribers.end());
-        subscribers.insert(subscriber);
-        assert(subscriber->services.find(this) == subscriber->services.end());
-        subscriber->services.insert(this);
+    void subscribe(Subscriber<T>* subscriber) const
+    {
+        // assert(subscribers.find(subscriber) == subscribers.end());
+        const bool inserted = subscribers.insert(subscriber).second;
+        assert(
+            inserted ==
+            (subscriber->services.find(this) == subscriber->services.end()));
+
+        if (inserted) { subscriber->services.insert(this); }
     }
 
-    void unsubscribe(Subscriber<T> *subscriber) const {
+    void unsubscribe(Subscriber<T>* subscriber) const
+    {
         assert(subscribers.find(subscriber) != subscribers.end());
         subscribers.erase(subscriber);
         assert(subscriber->services.find(this) != subscriber->services.end());
         subscriber->services.erase(this);
     }
 };
-}
+} // namespace downward::subscriber
 #endif

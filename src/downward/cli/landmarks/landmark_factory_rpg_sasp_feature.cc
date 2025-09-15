@@ -1,4 +1,7 @@
+#include "downward/cli/landmarks/landmark_factory_rpg_sasp_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/landmarks/landmark_factory_options.h"
 
@@ -17,7 +20,6 @@ using downward::cli::landmarks::add_use_orders_option_to_feature;
 using downward::cli::landmarks::get_use_orders_arguments_from_options;
 
 namespace {
-
 class LandmarkFactoryRpgSaspFeature
     : public TypedFeature<LandmarkFactory, LandmarkFactoryRpgSasp> {
 public:
@@ -47,7 +49,13 @@ public:
             get_landmark_factory_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<LandmarkFactoryRpgSaspFeature> _plugin;
+namespace downward::cli::landmarks {
+
+void add_landmark_factory_rpg_sasp_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<LandmarkFactoryRpgSaspFeature>();
+}
 
 } // namespace

@@ -3,6 +3,9 @@
 
 #include "probfd/aliases.h"
 
+#include "probfd/task_heuristic_factory_fwd.h"
+#include "probfd/task_state_space_factory_fwd.h"
+
 #include <memory>
 #include <optional>
 #include <string>
@@ -18,11 +21,6 @@ namespace downward::utils {
 enum class Verbosity;
 }
 
-namespace probfd {
-class TaskStateSpaceFactory;
-class TaskHeuristicFactory;
-} // namespace probfd
-
 namespace probfd::solvers {
 class StatisticalMDPAlgorithmFactory;
 } // namespace probfd::solvers
@@ -33,7 +31,7 @@ using MDPSolverNoAlgorithmArgs = std::tuple<
     std::shared_ptr<probfd::TaskStateSpaceFactory>,
     std::shared_ptr<probfd::TaskHeuristicFactory>,
     downward::utils::Verbosity,
-    std::string,
+    std::optional<std::string>,
     bool,
     std::optional<probfd::value_t>,
     bool>;

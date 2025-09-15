@@ -1,16 +1,12 @@
 #ifndef LANDMARKS_LANDMARK_COST_PARTITIONING_ALGORITHMS_H
 #define LANDMARKS_LANDMARK_COST_PARTITIONING_ALGORITHMS_H
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/lp/lp_solver.h"
 
 #include <unordered_set>
 #include <vector>
-
-namespace downward {
-class OperatorsProxy;
-}
 
 namespace downward::landmarks {
 class Landmark;

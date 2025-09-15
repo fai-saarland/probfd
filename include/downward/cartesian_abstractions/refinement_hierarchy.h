@@ -10,7 +10,6 @@
 #include <vector>
 
 namespace downward {
-class PlanningTask;
 class State;
 }
 

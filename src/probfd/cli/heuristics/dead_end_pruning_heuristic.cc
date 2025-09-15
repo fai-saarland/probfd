@@ -1,4 +1,7 @@
+#include "probfd/cli/heuristics/dead_end_pruning_heuristic.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "probfd/heuristics/dead_end_pruning_heuristic.h"
 
@@ -11,7 +14,6 @@ using namespace probfd::heuristics;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class DeadEndPruningHeuristicFactoryFeature
     : public TypedFeature<
           TaskHeuristicFactory,
@@ -28,7 +30,8 @@ public:
             "if h(s) is infinity in the all-outcomes determinization. "
             "Otherwise, the heuristic value is 0.");
 
-        add_option<std::shared_ptr<Evaluator>>("evaluator");
+        add_option<std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>(
+            "evaluator");
     }
 
 protected:
@@ -36,10 +39,18 @@ protected:
     create_component(const Options& options, const Context&) const override
     {
         return std::make_shared<DeadEndPruningHeuristicFactory>(
-            options.get<std::shared_ptr<Evaluator>>("evaluator"));
+            options.get<
+                std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>(
+                "evaluator"));
     }
 };
+}
 
-FeaturePlugin<DeadEndPruningHeuristicFactoryFeature> _plugin;
+namespace probfd::cli::heuristics {
+
+void add_dead_end_pruning_heuristic_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<DeadEndPruningHeuristicFactoryFeature>();
+}
 
 } // namespace

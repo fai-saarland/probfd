@@ -72,10 +72,8 @@ value_t DeadendPDBEvaluator::evaluate(StateRank state) const
 }
 
 IncrementalPPDBEvaluator::IncrementalPPDBEvaluator(
-    const std::vector<value_t>& value_table,
     const StateRankingFunction& mapper,
     int add_var)
-    : value_table_(value_table)
 {
     const Pattern& pattern = mapper.get_pattern();
     auto it = std::ranges::lower_bound(pattern, add_var);
@@ -90,9 +88,22 @@ IncrementalPPDBEvaluator::IncrementalPPDBEvaluator(
             : mapper.num_states();
 }
 
-value_t IncrementalPPDBEvaluator::evaluate(StateRank state) const
+NonOwningIncrementalPPDBEvaluator::NonOwningIncrementalPPDBEvaluator(
+    const std::vector<value_t>& value_table,
+    const StateRankingFunction& mapper,
+    int add_var)
+    : IncrementalPPDBEvaluator(mapper, add_var)
+    , value_table_(value_table)
 {
-    return value_table_[to_parent_state(state)];
+}
+
+OwningIncrementalPPDBEvaluator::OwningIncrementalPPDBEvaluator(
+    std::vector<value_t> value_table,
+    const StateRankingFunction& mapper,
+    int add_var)
+    : IncrementalPPDBEvaluator(mapper, add_var)
+    , value_table_(std::move(value_table))
+{
 }
 
 StateRank IncrementalPPDBEvaluator::to_parent_state(StateRank rank) const
@@ -100,6 +111,16 @@ StateRank IncrementalPPDBEvaluator::to_parent_state(StateRank rank) const
     int left = rank % left_multiplier_;
     int right = rank - (rank % right_multiplier_);
     return StateRank(left + right / domain_size_);
+}
+
+value_t NonOwningIncrementalPPDBEvaluator::evaluate(StateRank state) const
+{
+    return value_table_[to_parent_state(state)];
+}
+
+value_t OwningIncrementalPPDBEvaluator::evaluate(StateRank state) const
+{
+    return value_table_[to_parent_state(state)];
 }
 
 MergeEvaluator::MergeEvaluator(

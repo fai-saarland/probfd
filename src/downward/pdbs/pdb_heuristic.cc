@@ -11,7 +11,7 @@ using namespace std;
 
 namespace downward::pdbs {
 static shared_ptr<PatternDatabase> get_pdb_from_generator(
-    const shared_ptr<AbstractTask>& task,
+    const SharedAbstractTask& task,
     const shared_ptr<PatternGenerator>& pattern_generator)
 {
     PatternInformation pattern_info = pattern_generator->generate(task);
@@ -20,7 +20,7 @@ static shared_ptr<PatternDatabase> get_pdb_from_generator(
 
 PDBHeuristic::PDBHeuristic(
     const shared_ptr<PatternGenerator>& pattern,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
@@ -37,7 +37,7 @@ PDBHeuristic::PDBHeuristic(
 
 PDBHeuristic::PDBHeuristic(
     const std::shared_ptr<PatternGenerator>& pattern_generator,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
     const std::string& description,

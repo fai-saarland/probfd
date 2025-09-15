@@ -9,7 +9,7 @@
 
 // Forward Declarations
 namespace downward {
-class VariablesProxy;
+class VariableSpace;
 }
 
 /// Namespace dedicated to occupation measure heuristics
@@ -51,8 +51,7 @@ public:
     explicit HigherOrderHPOMGenerator(int projection_size);
 
     void initialize_constraints(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function,
+        const SharedProbabilisticTask& task,
         downward::lp::LinearProgram& lp) final;
 
     void update_constraints(
@@ -75,8 +74,7 @@ public:
     explicit HigherOrderHPOMGeneratorFactory(int projection_size);
 
     std::unique_ptr<ConstraintGenerator> construct_constraint_generator(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) override;
+        const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::occupation_measures

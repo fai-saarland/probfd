@@ -1,6 +1,9 @@
-#include "downward/cli/plugins/plugin.h"
+#include "probfd/cli/solvers/topological_vi.h"
 
-#include "probfd/cli/solvers/mdp_solver.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "probfd/cli/solvers/mdp_solver_options.h"
 
 #include "probfd/solvers/mdp_solver.h"
 #include "probfd/solvers/statistical_mdp_algorithm.h"
@@ -8,7 +11,7 @@
 #include "probfd/algorithms/topological_value_iteration.h"
 
 #include "downward/operator_id.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <memory>
 #include <string>
@@ -25,7 +28,6 @@ using namespace probfd::cli::solvers;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class TopologicalVISolver : public StatisticalMDPAlgorithmFactory {
     const value_t convergence_epsilon_;
 
@@ -40,9 +42,8 @@ public:
         return "topological_value_iteration";
     }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
-        const std::shared_ptr<ProbabilisticTask>&,
-        const std::shared_ptr<FDRCostFunction>&) override
+    std::unique_ptr<StatisticalMDPAlgorithm>
+    create_algorithm(const SharedProbabilisticTask&) override
     {
         return std::make_unique<AlgorithmAdaptor>(
             std::make_unique<TopologicalValueIteration<State, OperatorID>>(
@@ -77,7 +78,13 @@ protected:
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
+}
 
-FeaturePlugin<TopologicalVISolverFeature> _plugin;
+namespace probfd::cli::solvers {
+
+void add_topological_value_iteration_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<TopologicalVISolverFeature>();
+}
 
 } // namespace

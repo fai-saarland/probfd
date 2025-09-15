@@ -3,7 +3,8 @@
 #include "downward/pdbs/random_pattern.h"
 #include "downward/pdbs/utils.h"
 
-#include "downward/task_proxy.h"
+#include "downward/fact_pair.h"
+#include "downward/state.h"
 
 #include "downward/utils/logging.h"
 
@@ -17,9 +18,9 @@ PatternCollectionGeneratorMultipleRandom::
         bool bidirectional,
         int max_pdb_size,
         int max_collection_size,
-        double pattern_generation_max_time,
-        double total_max_time,
-        double stagnation_limit,
+        utils::Duration pattern_generation_max_time,
+        utils::Duration total_max_time,
+        utils::Duration stagnation_limit,
         double blacklist_trigger_percentage,
         bool enable_blacklist_on_stagnation,
         int random_seed,
@@ -44,7 +45,7 @@ string PatternCollectionGeneratorMultipleRandom::id() const
 }
 
 void PatternCollectionGeneratorMultipleRandom::initialize(
-    const shared_ptr<AbstractTask>& task)
+    const SharedAbstractTask& task)
 {
     // Compute CG neighbors once. They are shuffled when used.
     cg_neighbors = compute_cg_neighbors(task, bidirectional);
@@ -52,9 +53,9 @@ void PatternCollectionGeneratorMultipleRandom::initialize(
 
 PatternInformation PatternCollectionGeneratorMultipleRandom::compute_pattern(
     int max_pdb_size,
-    double max_time,
+    utils::Duration max_time,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
-    const shared_ptr<AbstractTask>& task,
+    const SharedAbstractTask& task,
     const FactPair& goal,
     unordered_set<int>&&)
 {
@@ -65,11 +66,11 @@ PatternInformation PatternCollectionGeneratorMultipleRandom::compute_pattern(
         max_time,
         silent_log,
         rng,
-        TaskProxy(*task),
+        get_variables(task),
         goal.var,
         cg_neighbors);
 
-    PatternInformation result(TaskProxy(*task), std::move(pattern), log);
+    PatternInformation result(to_refs(task), std::move(pattern), log);
     return result;
 }
 

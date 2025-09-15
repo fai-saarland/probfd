@@ -1,18 +1,16 @@
 #ifndef MERGE_AND_SHRINK_MERGE_TREE_FACTORY_H
 #define MERGE_AND_SHRINK_MERGE_TREE_FACTORY_H
 
+#include "downward/abstract_task.h"
+
 #include <memory>
 #include <string>
 #include <vector>
 
-namespace downward {
-class TaskProxy;
-}
-
 namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
-} // namespace utils
+} // namespace downward::utils
 
 namespace downward::merge_and_shrink {
 class FactoredTransitionSystem;
@@ -24,25 +22,31 @@ protected:
     std::shared_ptr<utils::RandomNumberGenerator> rng;
     UpdateOption update_option;
     virtual std::string name() const = 0;
+
     virtual void dump_tree_specific_options(utils::LogProxy&) const {}
 
 public:
     MergeTreeFactory(int random_seed, UpdateOption update_option);
+
     virtual ~MergeTreeFactory() = default;
+
     void dump_options(utils::LogProxy& log) const;
+
     // Compute a merge tree for the given entire task.
     virtual std::unique_ptr<MergeTree>
-    compute_merge_tree(const TaskProxy& task_proxy) = 0;
+    compute_merge_tree(const AbstractTaskTuple& task) = 0;
+
     /* Compute a merge tree for the given current factored transition,
        system, possibly for a subset of indices. */
     virtual std::unique_ptr<MergeTree> compute_merge_tree(
-        const TaskProxy& task_proxy,
+        const AbstractTaskTuple& task,
         const FactoredTransitionSystem& fts,
         const std::vector<int>& indices_subset);
+
     virtual bool requires_init_distances() const = 0;
     virtual bool requires_goal_distances() const = 0;
 };
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink
 
 #endif

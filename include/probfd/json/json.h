@@ -410,7 +410,8 @@ concept Container =
 
 template <typename R>
 concept PairContainer =
-    std::ranges::input_range<R> && PairLike<std::ranges::range_value_t<R>> &&
+    std::ranges::input_range<R> &&
+    downward::PairLike<std::ranges::range_value_t<R>> &&
     std::convertible_to<
         std::tuple_element_t<0, std::ranges::range_value_t<R>>,
         std::string> &&

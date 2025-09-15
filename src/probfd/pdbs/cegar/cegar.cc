@@ -10,13 +10,13 @@
 #include "probfd/abstractions/policy_extraction.h"
 
 #include "probfd/multi_policy.h"
-#include "probfd/task_proxy.h"
 
 #include "downward/utils/collections.h"
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/math.h"
 #include "downward/utils/rng.h"
+#include "probfd/probabilistic_task.h"
 
 #include <cassert>
 #include <ostream>
@@ -45,37 +45,34 @@ class CEGAR::PDBInfo {
 
 public:
     PDBInfo(
-        ProbabilisticTaskProxy task_proxy,
-        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+        SharedProbabilisticTask task,
         Pattern pattern,
         const State& initial_state,
-        const heuristics::BlindEvaluator<StateRank>& h,
+        const heuristics::BlindHeuristic<StateRank>& h,
         value_t greedy_epsilon,
         utils::RandomNumberGenerator& rng,
         bool wildcard,
-        utils::CountdownTimer& timer);
+        const utils::CountdownTimer& timer);
 
     PDBInfo(
-        ProbabilisticTaskProxy task_proxy,
-        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+        SharedProbabilisticTask task,
         const ProbabilityAwarePatternDatabase& previous,
         int add_var,
         const State& initial_state,
         value_t greedy_epsilon,
         utils::RandomNumberGenerator& rng,
         bool wildcard,
-        utils::CountdownTimer& timer);
+        const utils::CountdownTimer& timer);
 
     PDBInfo(
-        ProbabilisticTaskProxy task_proxy,
-        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+        SharedProbabilisticTask task,
         const ProbabilityAwarePatternDatabase& merge_left,
         const ProbabilityAwarePatternDatabase& merge_right,
         const State& initial_state,
         value_t greedy_epsilon,
         utils::RandomNumberGenerator& rng,
         bool wildcard,
-        utils::CountdownTimer& timer);
+        const utils::CountdownTimer& timer);
 
     [[nodiscard]]
     const Pattern& get_pattern() const;
@@ -102,24 +99,23 @@ public:
 };
 
 CEGAR::PDBInfo::PDBInfo(
-    ProbabilisticTaskProxy task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    SharedProbabilisticTask task,
     Pattern pattern,
     const State& initial_state,
-    const heuristics::BlindEvaluator<StateRank>& h,
+    const heuristics::BlindHeuristic<StateRank>& h,
     value_t greedy_epsilon,
     utils::RandomNumberGenerator& rng,
     bool wildcard,
-    utils::CountdownTimer& timer)
+    const utils::CountdownTimer& timer)
     : pdb(std::make_unique<ProbabilityAwarePatternDatabase>(
-          task_proxy.get_variables(),
+          get_variables(task),
           std::move(pattern)))
-    , state_space(std::make_unique<ProjectionStateSpace>(
-          task_proxy,
-          std::move(task_cost_function),
-          pdb->ranking_function,
-          false,
-          timer.get_remaining_time()))
+    , state_space(
+          std::make_unique<ProjectionStateSpace>(
+              task,
+              pdb->ranking_function,
+              false,
+              timer.get_remaining_time()))
 {
     const StateRank abs_init = pdb->get_abstract_state(initial_state);
 
@@ -140,26 +136,25 @@ CEGAR::PDBInfo::PDBInfo(
 }
 
 CEGAR::PDBInfo::PDBInfo(
-    ProbabilisticTaskProxy task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    SharedProbabilisticTask task,
     const ProbabilityAwarePatternDatabase& previous,
     int add_var,
     const State& initial_state,
     value_t greedy_epsilon,
     utils::RandomNumberGenerator& rng,
     bool wildcard,
-    utils::CountdownTimer& timer)
+    const utils::CountdownTimer& timer)
     : pdb(std::make_unique<ProbabilityAwarePatternDatabase>(
-          task_proxy.get_variables(),
+          get_variables(task),
           extended_pattern(previous.get_pattern(), add_var)))
-    , state_space(std::make_unique<ProjectionStateSpace>(
-          task_proxy,
-          std::move(task_cost_function),
-          pdb->ranking_function,
-          false,
-          timer.get_remaining_time()))
+    , state_space(
+          std::make_unique<ProjectionStateSpace>(
+              task,
+              pdb->ranking_function,
+              false,
+              timer.get_remaining_time()))
 {
-    IncrementalPPDBEvaluator h(
+    NonOwningIncrementalPPDBEvaluator h(
         previous.value_table,
         pdb->ranking_function,
         add_var);
@@ -183,30 +178,31 @@ CEGAR::PDBInfo::PDBInfo(
 }
 
 CEGAR::PDBInfo::PDBInfo(
-    ProbabilisticTaskProxy task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    SharedProbabilisticTask task,
     const ProbabilityAwarePatternDatabase& left,
     const ProbabilityAwarePatternDatabase& right,
     const State& initial_state,
     value_t greedy_epsilon,
     utils::RandomNumberGenerator& rng,
     bool wildcard,
-    utils::CountdownTimer& timer)
+    const utils::CountdownTimer& timer)
     : pdb(std::make_unique<ProbabilityAwarePatternDatabase>(
-          task_proxy.get_variables(),
+          get_variables(task),
           utils::merge_sorted(left.get_pattern(), right.get_pattern())))
-    , state_space(std::make_unique<ProjectionStateSpace>(
-          task_proxy,
-          task_cost_function,
-          pdb->ranking_function,
-          false,
-          timer.get_remaining_time()))
+    , state_space(
+          std::make_unique<ProjectionStateSpace>(
+              task,
+              pdb->ranking_function,
+              false,
+              timer.get_remaining_time()))
 {
+    const auto& term_costs = get_termination_costs(task);
+
     MergeEvaluator h(
         pdb->ranking_function,
         left,
         right,
-        task_cost_function->get_non_goal_termination_cost());
+        term_costs.get_non_goal_termination_cost());
 
     const StateRank abs_init = pdb->get_abstract_state(initial_state);
 
@@ -299,35 +295,18 @@ CEGAR::~CEGAR() = default;
 
 void CEGAR::print_collection(utils::LogProxy log) const
 {
-    log << "Unsolved patterns: [";
+    auto unsolved_infos = subrange(pdb_infos_.begin(), unsolved_end);
+    auto solved_infos = subrange(unsolved_end, solved_end);
 
-    auto unsolved_infos =
-        std::ranges::subrange(pdb_infos_.begin(), unsolved_end);
-
-    if (!unsolved_infos.empty()) {
-        log << unsolved_infos.front().get_pattern();
-        for (const auto& info : unsolved_infos | std::views::drop(1)) {
-            log << ", " << info.get_pattern();
-        }
-    }
-
-    log << "], Solved patterns: [";
-
-    auto solved_infos = std::ranges::subrange(unsolved_end, solved_end);
-
-    if (!solved_infos.empty()) {
-        log << solved_infos.front().get_pattern();
-        for (const auto& info : solved_infos | std::views::drop(1)) {
-            log << ", " << info.get_pattern();
-        }
-    }
-
-    log << "]" << endl;
+    log.println(
+        "Unsolved patterns: {}, Solved patterns: {}",
+        unsolved_infos | std::views::transform(&PDBInfo::get_pattern),
+        solved_infos | std::views::transform(&PDBInfo::get_pattern));
 }
 
 void CEGAR::generate_trivial_solution_collection(
-    ProbabilisticTaskProxy task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    const SharedProbabilisticTask& task,
+    const State& initial_state,
     utils::CountdownTimer& timer,
     utils::LogProxy log)
 {
@@ -335,39 +314,40 @@ void CEGAR::generate_trivial_solution_collection(
 
     pdb_infos_.reserve(goals_.size());
 
-    heuristics::BlindEvaluator<StateRank> h(
-        task_proxy.get_operators(),
-        *task_cost_function);
+    const auto& operators = get_operators(task);
+    const auto& cost_function = get_cost_function(task);
+    const auto& term_costs = get_termination_costs(task);
+
+    heuristics::BlindHeuristic<StateRank> h(
+        operators,
+        cost_function,
+        term_costs);
 
     for (int var : goals_) {
-        add_pattern_for_var(
-            task_proxy,
-            std::move(task_cost_function),
-            h,
-            var,
-            timer);
+        add_pattern_for_var(task, initial_state, h, var, timer);
     }
 
     unsolved_end = pdb_infos_.end();
     solved_end = pdb_infos_.end();
 
     if (log.is_at_least_normal()) {
-        log << "CEGAR initial collection: ";
+        log.print("CEGAR initial collection: ");
         print_collection(log);
 
-        if (log.is_at_least_verbose()) {
-            log << endl;
-        }
+        if (log.is_at_least_verbose()) { log.println(); }
     }
 }
 
 auto CEGAR::get_flaws(
-    ProbabilisticTaskProxy task_proxy,
+    const ProbabilisticTaskTuple& task,
+    const State& initial_state,
     std::vector<Flaw>& flaws,
     std::vector<int>& flaw_offsets,
     utils::CountdownTimer& timer,
     utils::LogProxy log) -> std::vector<PDBInfo>::iterator
 {
+    const auto& variables = get_variables(task);
+
     auto info_it = pdb_infos_.begin();
     auto flaw_offset_it = flaw_offsets.begin();
 
@@ -381,13 +361,12 @@ auto CEGAR::get_flaws(
             const auto it = variable_to_info_.find(var);
             if ((it != variable_to_info_.end() &&
                  !can_merge_patterns(info_it, it->second)) ||
-                !can_add_variable_to_pattern(
-                    task_proxy.get_variables(),
-                    info_it,
-                    var)) {
+                !can_add_variable_to_pattern(variables, info_it, var)) {
                 if (log.is_at_least_verbose()) {
-                    log << "ignoring flaw on var " << var
-                        << " due to size limits, blacklisting..." << endl;
+                    log.println(
+                        "ignoring flaw on var {} due to size limits, "
+                        "blacklisting...",
+                        var);
                 }
 
                 blacklisted_variables_.insert(var);
@@ -400,7 +379,8 @@ auto CEGAR::get_flaws(
         const size_t num_flaws_before = flaws.size();
 
         const bool executable = flaw_strategy_->apply_policy(
-            task_proxy,
+            task,
+            initial_state,
             info.get_pdb().ranking_function,
             info.get_mdp(),
             info.get_policy(),
@@ -429,10 +409,12 @@ auto CEGAR::get_flaws(
             --unsolved_end;
 
             if (log.is_at_least_verbose()) {
-                log << "CEGAR: Marking pattern as solved: "
-                    << info_it->get_pattern() << std::endl;
-                log << "CEGAR: Remaining unsolved patterns: "
-                    << unsolved_end - pdb_infos_.begin() << std::endl;
+                log.println(
+                    "CEGAR: Marking pattern as solved: {}",
+                    info_it->get_pattern());
+                log.println(
+                    "CEGAR: Remaining unsolved patterns: {}",
+                    unsolved_end - pdb_infos_.begin());
             }
 
             if (info_it != unsolved_end) {
@@ -463,7 +445,7 @@ auto CEGAR::get_flaws(
 }
 
 bool CEGAR::can_add_variable_to_pattern(
-    const VariablesProxy& variables,
+    const VariableSpace& variables,
     std::vector<PDBInfo>::iterator info_it,
     int var) const
 {
@@ -488,18 +470,17 @@ bool CEGAR::can_merge_patterns(
 }
 
 void CEGAR::add_pattern_for_var(
-    ProbabilisticTaskProxy task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
-    const heuristics::BlindEvaluator<StateRank>& h,
+    const SharedProbabilisticTask& task,
+    const State& initial_state,
+    const heuristics::BlindHeuristic<StateRank>& h,
     int var,
     utils::CountdownTimer& timer)
 {
     auto info_it = pdb_infos_.emplace(
         pdb_infos_.end(),
-        task_proxy,
-        std::move(task_cost_function),
+        task,
         Pattern{var},
-        task_proxy.get_initial_state(),
+        initial_state,
         h,
         convergence_epsilon,
         *rng_,
@@ -511,11 +492,11 @@ void CEGAR::add_pattern_for_var(
 }
 
 void CEGAR::add_variable_to_pattern(
-    ProbabilisticTaskProxy task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    const SharedProbabilisticTask& task,
+    const State& initial_state,
     std::vector<PDBInfo>::iterator info_it,
     int var,
-    utils::CountdownTimer& timer)
+    const utils::CountdownTimer& timer)
 {
     PDBInfo& info = *info_it;
 
@@ -525,16 +506,17 @@ void CEGAR::add_variable_to_pattern(
     remaining_size_ += pdb.num_states();
 
     // compute new solution
-    info = PDBInfo(
-        task_proxy,
-        std::move(task_cost_function),
+    PDBInfo new_info(
+        task,
         pdb,
         var,
-        task_proxy.get_initial_state(),
+        initial_state,
         convergence_epsilon,
         *rng_,
         wildcard_,
         timer);
+
+    info = std::move(new_info);
 
     // update collection size
     remaining_size_ -= info.get_pdb().num_states();
@@ -544,11 +526,11 @@ void CEGAR::add_variable_to_pattern(
 }
 
 void CEGAR::merge_patterns(
-    ProbabilisticTaskProxy task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    const SharedProbabilisticTask& task,
+    const State& initial_state,
     std::vector<PDBInfo>::iterator info_it1,
     std::vector<PDBInfo>::iterator info_it2,
-    utils::CountdownTimer& timer)
+    const utils::CountdownTimer& timer)
 {
     // Merge pattern at index2 into pattern at index2
     PDBInfo& solution1 = *info_it1;
@@ -570,16 +552,17 @@ void CEGAR::merge_patterns(
     remaining_size_ += pdb_size1 + pdb_size2;
 
     // compute merge solution
-    solution1 = PDBInfo(
-        task_proxy,
-        std::move(task_cost_function),
+    PDBInfo new_info(
+        task,
         pdb1,
         pdb2,
-        task_proxy.get_initial_state(),
+        initial_state,
         convergence_epsilon,
         *rng_,
         wildcard_,
         timer);
+
+    solution1 = std::move(new_info);
 
     solution2.release();
 
@@ -612,11 +595,11 @@ void CEGAR::merge_patterns(
 }
 
 void CEGAR::refine(
-    ProbabilisticTaskProxy task_proxy,
-    const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
+    const SharedProbabilisticTask& task,
+    const State& initial_state,
     const std::vector<Flaw>& flaws,
-    const std::vector<int>& flaw_offsets,
-    utils::CountdownTimer& timer,
+    std::vector<int>& flaw_offsets,
+    const utils::CountdownTimer& timer,
     utils::LogProxy log)
 {
     assert(!flaws.empty());
@@ -625,22 +608,19 @@ void CEGAR::refine(
     int random_flaw_index = rng_->random(flaws.size());
     const Flaw& flaw = flaws[random_flaw_index];
 
-    int solution_index = std::distance(
-        flaw_offsets.begin(),
-        std::ranges::upper_bound(flaw_offsets, random_flaw_index));
+    auto fit = std::ranges::upper_bound(flaw_offsets, random_flaw_index);
+    assert(fit != flaw_offsets.end());
+
+    int solution_index = std::distance(flaw_offsets.begin(), fit);
     auto solution_it = std::next(pdb_infos_.begin(), solution_index);
     int var = flaw.variable;
 
     if (log.is_at_least_verbose()) {
-        log << "CEGAR: chosen flaw: pattern "
-            << pdb_infos_[solution_index].get_pattern();
-        log << " with a violated";
-        if (flaw.is_precondition) {
-            log << " precondition ";
-        } else {
-            log << " goal ";
-        }
-        log << "on " << var << endl;
+        log.println(
+            "CEGAR: chosen flaw: pattern {} with a violated {} on {}",
+            pdb_infos_[solution_index].get_pattern(),
+            flaw.is_precondition ? "precondition" : "goal",
+            var);
     }
 
     const auto it = variable_to_info_.find(var);
@@ -652,17 +632,15 @@ void CEGAR::refine(
         assert(can_merge_patterns(solution_it, other_it));
 
         if (log.is_at_least_verbose()) {
-            log << "CEGAR: var " << var << " is already in pattern "
-                << other_it->get_pattern() << endl;
-            log << "CEGAR: merge the two patterns" << endl;
+            log.println(
+                "CEGAR: var {} is already in pattern {}",
+                var,
+                other_it->get_pattern());
+            log.println("CEGAR: merge the two patterns");
         }
 
-        merge_patterns(
-            task_proxy,
-            task_cost_function,
-            solution_it,
-            other_it,
-            timer);
+        merge_patterns(task, initial_state, solution_it, other_it, timer);
+        flaw_offsets.pop_back();
         return;
     }
 
@@ -671,56 +649,42 @@ void CEGAR::refine(
     // nevertheless is added to the pattern causing the flaw and not to
     // a single new pattern.
     if (log.is_at_least_verbose()) {
-        log << "CEGAR: var " << var << " is not in the collection yet" << endl;
-        log << "CEGAR: add it to the pattern" << endl;
+        log.println("CEGAR: var {} is not in the collection yet", var);
+        log.println("CEGAR: add it to the pattern");
     }
 
-    add_variable_to_pattern(
-        task_proxy,
-        task_cost_function,
-        solution_it,
-        var,
-        timer);
+    add_variable_to_pattern(task, initial_state, solution_it, var, timer);
 }
 
 void CEGAR::generate_pdbs(
-    ProbabilisticTaskProxy task_proxy,
-    const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
+    const SharedProbabilisticTask& task,
+    const State& initial_state,
     ProjectionCollection& projections,
     PPDBCollection& pdbs,
-    double max_time,
+    utils::Duration max_time,
     utils::LogProxy log)
 {
     if (log.is_at_least_normal()) {
-        log << "CEGAR options: \n"
-            << "  flaw strategy: " << flaw_strategy_->get_name() << "\n"
-            << "  max pdb size: " << max_pdb_size_ << "\n"
-            << "  max collection size: " << max_collection_size_ << "\n"
-            << "  max time: " << max_time << "\n"
-            << "  wildcard plans: " << std::boolalpha << wildcard_ << "\n"
-            << "  goal variables: " << goals_ << "\n"
-            << "  blacklisted variables: " << blacklisted_variables_ << endl;
+        log.println("CEGAR options:");
+        log.println("  flaw strategy: {}", flaw_strategy_->get_name());
+        log.println("  max pdb size: {}", max_pdb_size_);
+        log.println("  max collection size: {}", max_collection_size_);
+        log.println("  max time: {}", max_time);
+        log.println("  wildcard plans: {}", wildcard_);
+        log.println("  goal variables: {}", goals_);
+        log.println("  blacklisted variables: {}", blacklisted_variables_);
     }
 
-    if (log.is_at_least_normal()) {
-        log << endl;
-    }
+    if (log.is_at_least_normal()) { log.println(); }
 
     utils::CountdownTimer timer(max_time);
 
     // Start with a solution of the trivial abstraction
-    generate_trivial_solution_collection(
-        task_proxy,
-        task_cost_function,
-        timer,
-        log);
-
-    const State initial_state = task_proxy.get_initial_state();
-    initial_state.unpack();
+    generate_trivial_solution_collection(task, initial_state, timer, log);
 
     std::vector<Flaw> flaws;
     std::vector<int> flaw_offsets(pdb_infos_.size(), 0);
-    std::vector<PDBInfo>::iterator solution_it;
+    std::vector<PDBInfo>::iterator solution_it = unsolved_end;
 
     // main loop of the algorithm
     int refinement_counter = 1;
@@ -728,11 +692,16 @@ void CEGAR::generate_pdbs(
     try {
         for (;;) {
             if (log.is_at_least_verbose()) {
-                log << "iteration #" << refinement_counter << endl;
+                log.println("iteration #{}", refinement_counter);
             }
 
-            solution_it =
-                get_flaws(task_proxy, flaws, flaw_offsets, timer, log);
+            solution_it = get_flaws(
+                to_refs(task),
+                initial_state,
+                flaws,
+                flaw_offsets,
+                timer,
+                log);
 
             if (flaws.empty()) {
                 if (solution_it != unsolved_end) {
@@ -741,15 +710,18 @@ void CEGAR::generate_pdbs(
                     assert(blacklisted_variables_.empty());
 
                     if (log.is_at_least_verbose()) {
-                        const auto cost = info.get_policy_cost(initial_state);
-                        log << "CEGAR: Task solved during computation of "
-                               "abstract policies.\n"
-                            << "CEGAR: Cost of policy: " << cost << endl;
+                        log.println(
+                            "CEGAR: Task solved during computation of "
+                            "abstract policies.");
+                        log.println(
+                            "CEGAR: Cost of policy: {}",
+                            info.get_policy_cost(initial_state));
                     }
                 } else {
                     if (log.is_at_least_verbose()) {
-                        log << "CEGAR: Flaw list empty. "
-                            << "No further refinements possible." << endl;
+                        log.println(
+                            "CEGAR: Flaw list empty. No further refinements "
+                            "possible.");
                     }
                 }
 
@@ -760,37 +732,28 @@ void CEGAR::generate_pdbs(
 
             // if there was a flaw, then refine the abstraction
             // such that said flaw does not occur again
-            refine(
-                task_proxy,
-                task_cost_function,
-                flaws,
-                flaw_offsets,
-                timer,
-                log);
+            refine(task, initial_state, flaws, flaw_offsets, timer, log);
 
             ++refinement_counter;
             flaws.clear();
 
             if (log.is_at_least_verbose()) {
-                log << "CEGAR: current collection size: "
-                    << max_collection_size_ - remaining_size_ << endl;
-                log << "CEGAR: current collection: ";
+                log.println(
+                    "CEGAR: current collection size: {}",
+                    max_collection_size_ - remaining_size_);
+                log.print("CEGAR: current collection: ");
                 print_collection(log);
             }
 
-            if (log.is_at_least_verbose()) {
-                log << endl;
-            }
+            if (log.is_at_least_verbose()) { log.println(); }
         }
     } catch (utils::TimeoutException&) {
         if (log.is_at_least_normal()) {
-            log << "CEGAR: Time limit reached." << endl;
+            log.println("CEGAR: Time limit reached.");
         }
     }
 
-    if (log.is_at_least_normal()) {
-        log << endl;
-    }
+    if (log.is_at_least_normal()) { log.println(); }
 
     if (solution_it != unsolved_end) {
         auto& info = *solution_it;
@@ -805,14 +768,18 @@ void CEGAR::generate_pdbs(
     }
 
     if (log.is_at_least_normal()) {
-        log << "CEGAR statistics:\n"
-            << "  computation time: " << timer.get_elapsed_time() << "\n"
-            << "  number of iterations: " << refinement_counter
-            << "\n"
-            // << "  final collection: " << *patterns << "\n"
-            << "  final collection number of PDBs: " << pdbs.size() << "\n"
-            << "  final collection summed PDB sizes: "
-            << max_collection_size_ - remaining_size_ << endl;
+        log.println(
+            "CEGAR statistics:\n"
+            "  computation time: {}\n"
+            "  number of iterations: {}\n"
+            // "  final collection: {}\n"
+            "  final collection number of PDBs: {}\n"
+            "  final collection summed PDB sizes: {}",
+            timer.get_elapsed_time(),
+            refinement_counter,
+            //*patterns,
+            pdbs.size(),
+            max_collection_size_ - remaining_size_);
     }
 }
 

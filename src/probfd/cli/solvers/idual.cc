@@ -1,8 +1,11 @@
+#include "probfd/cli/solvers/idual.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/lp/lp_solver_options.h"
 
-#include "probfd/cli/solvers/mdp_solver.h"
+#include "probfd/cli/solvers/mdp_solver_options.h"
 
 #include "probfd/solvers/mdp_solver.h"
 #include "probfd/solvers/statistical_mdp_algorithm.h"
@@ -12,7 +15,7 @@
 #include "downward/lp/lp_solver.h"
 
 #include "downward/operator_id.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <memory>
 #include <string>
@@ -30,7 +33,6 @@ using downward::cli::lp::add_lp_solver_option_to_feature;
 using downward::cli::lp::get_lp_solver_arguments_from_options;
 
 namespace {
-
 class IDualSolver : public StatisticalMDPAlgorithmFactory {
     const lp::LPSolverType solver_type_;
     const double fp_epsilon_;
@@ -44,9 +46,8 @@ public:
 
     std::string get_algorithm_name() const override { return "idual"; }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
-        const std::shared_ptr<ProbabilisticTask>&,
-        const std::shared_ptr<FDRCostFunction>&) override
+    std::unique_ptr<StatisticalMDPAlgorithm>
+    create_algorithm(const SharedProbabilisticTask&) override
     {
         using IDualAlgorithm = algorithms::idual::IDual<State, OperatorID>;
 
@@ -85,7 +86,13 @@ protected:
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
+}
 
-FeaturePlugin<IDualSolverFeature> _plugin;
+namespace probfd::cli::solvers {
+
+void add_idual_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<IDualSolverFeature>();
+}
 
 } // namespace

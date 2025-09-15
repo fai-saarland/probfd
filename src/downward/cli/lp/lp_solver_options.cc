@@ -29,8 +29,4 @@ get_lp_solver_arguments_from_options(const plugins::Options& opts)
     return make_tuple(opts.get<LPSolverType>("lpsolver"));
 }
 
-plugins::TypedEnumPlugin<LPSolverType> _enum_plugin(
-    {{"cplex", "commercial solver by IBM"},
-     {"soplex", "open source solver by ZIB"}});
-
 } // namespace downward::cli::lp

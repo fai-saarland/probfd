@@ -3,12 +3,13 @@
 
 #include "downward/landmarks/landmark.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/utils/hash.h"
 #include "downward/utils/memory.h"
 
 #include <cassert>
+#include <functional>
 #include <list>
 #include <map>
 #include <set>

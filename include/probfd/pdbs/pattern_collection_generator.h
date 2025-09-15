@@ -2,16 +2,13 @@
 #define PROBFD_PDBS_PATTERN_COLLECTION_GENERATOR_H
 
 #include "probfd/fdr_types.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/utils/logging.h"
 
 #include <memory>
 
 // Forward Declarations
-namespace probfd {
-class ProbabilisticTask;
-}
-
 namespace probfd::pdbs {
 class PatternCollectionInformation;
 }
@@ -27,9 +24,8 @@ public:
     explicit PatternCollectionGenerator(downward::utils::LogProxy log);
     virtual ~PatternCollectionGenerator() = default;
 
-    virtual PatternCollectionInformation generate(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) = 0;
+    virtual PatternCollectionInformation
+    generate(const SharedProbabilisticTask& task) = 0;
 };
 
 } // namespace probfd::pdbs

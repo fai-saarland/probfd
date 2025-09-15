@@ -4,33 +4,37 @@
 #include "downward/pdbs/pattern_database.h"
 #include "downward/pdbs/pattern_information.h"
 
-#include "downward/task_proxy.h"
-
 #include "downward/task_utils/causal_graph.h"
 #include "downward/task_utils/task_properties.h"
 
+#include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/math.h"
 #include "downward/utils/rng.h"
 
+#include "downward/goal_fact_list.h"
+
 #include <limits>
+#include <print>
 
 using namespace std;
 
 namespace downward::pdbs {
-int compute_pdb_size(const TaskProxy& task_proxy, const Pattern& pattern)
+int compute_pdb_size(const VariableSpace& variables, const Pattern& pattern)
 {
     int size = 1;
     for (int var : pattern) {
-        int domain_size = task_proxy.get_variables()[var].get_domain_size();
+        int domain_size = variables[var].get_domain_size();
         if (utils::is_product_within_limit(
                 size,
                 domain_size,
                 numeric_limits<int>::max())) {
             size *= domain_size;
         } else {
-            cerr << "Given pattern is too large! (Overflow occurred): " << endl;
-            cerr << pattern << endl;
+            std::println(
+                cerr,
+                "Given pattern is too large! (Overflow occured): {}",
+                pattern);
             utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
         }
     }
@@ -38,52 +42,48 @@ int compute_pdb_size(const TaskProxy& task_proxy, const Pattern& pattern)
 }
 
 int compute_total_pdb_size(
-    const TaskProxy& task_proxy,
+    const VariableSpace& variables,
     const PatternCollection& pattern_collection)
 {
     int size = 0;
     for (const Pattern& pattern : pattern_collection) {
-        size += compute_pdb_size(task_proxy, pattern);
+        size += compute_pdb_size(variables, pattern);
     }
     return size;
 }
 
 vector<FactPair> get_goals_in_random_order(
-    const TaskProxy& task_proxy,
+    const GoalFactList& goals,
     utils::RandomNumberGenerator& rng)
 {
-    vector<FactPair> goals =
-        task_properties::get_fact_pairs(task_proxy.get_goals());
-    rng.shuffle(goals);
-    return goals;
+    vector<FactPair> goal_facts = task_properties::get_fact_pairs(goals);
+    rng.shuffle(goal_facts);
+    return goal_facts;
 }
 
-vector<int> get_non_goal_variables(const TaskProxy& task_proxy)
+vector<int> get_non_goal_variables(
+    const VariableSpace& variables,
+    const GoalFactList& goals)
 {
-    size_t num_vars = task_proxy.get_variables().size();
-    GoalsProxy goals = task_proxy.get_goals();
+    size_t num_vars = variables.size();
     vector<bool> is_goal(num_vars, false);
-    for (FactProxy goal : goals) {
-        is_goal[goal.get_variable().get_id()] = true;
-    }
+    for (FactPair goal : goals) { is_goal[goal.var] = true; }
 
     vector<int> non_goal_variables;
     non_goal_variables.reserve(num_vars - goals.size());
     for (int var_id = 0; var_id < static_cast<int>(num_vars); ++var_id) {
-        if (!is_goal[var_id]) {
-            non_goal_variables.push_back(var_id);
-        }
+        if (!is_goal[var_id]) { non_goal_variables.push_back(var_id); }
     }
     return non_goal_variables;
 }
 
 vector<vector<int>>
-compute_cg_neighbors(const shared_ptr<AbstractTask>& task, bool bidirectional)
+compute_cg_neighbors(const SharedAbstractTask& task, bool bidirectional)
 {
-    TaskProxy task_proxy(*task);
-    int num_vars = task_proxy.get_variables().size();
-    const causal_graph::CausalGraph& cg =
-        causal_graph::get_causal_graph(task.get());
+    const auto& variables = get_variables(task);
+
+    int num_vars = variables.size();
+    const auto& cg = causal_graph::get_causal_graph(to_refs(task));
     vector<vector<int>> cg_neighbors(num_vars);
     for (int var_id = 0; var_id < num_vars; ++var_id) {
         cg_neighbors[var_id] = cg.get_predecessors(var_id);
@@ -100,7 +100,7 @@ compute_cg_neighbors(const shared_ptr<AbstractTask>& task, bool bidirectional)
 }
 
 PatternCollectionInformation get_pattern_collection_info(
-    const TaskProxy& task_proxy,
+    const AbstractTaskTuple& task,
     const shared_ptr<PDBCollection>& pdbs,
     utils::LogProxy& log)
 {
@@ -109,7 +109,7 @@ PatternCollectionInformation get_pattern_collection_info(
     for (const shared_ptr<PatternDatabase>& pdb : *pdbs) {
         patterns->push_back(pdb->get_pattern());
     }
-    PatternCollectionInformation result(task_proxy, patterns, log);
+    PatternCollectionInformation result(task, patterns, log);
     result.set_pdbs(pdbs);
     return result;
 }
@@ -125,7 +125,8 @@ void dump_pattern_generation_statistics(
         log << identifier << " pattern: " << pattern << endl;
         log << identifier << " number of variables: " << pattern.size() << endl;
         log << identifier << " PDB size: "
-            << compute_pdb_size(pattern_info.get_task_proxy(), pattern) << endl;
+            << compute_pdb_size(get_variables(pattern_info.get_task()), pattern)
+            << endl;
         log << identifier << " computation time: " << runtime << endl;
     }
 }
@@ -141,10 +142,12 @@ void dump_pattern_collection_generation_statistics(
         log << identifier
             << " number of patterns: " << pattern_collection.size() << endl;
         log << identifier << " total PDB size: "
-            << compute_total_pdb_size(pci.get_task_proxy(), pattern_collection)
+            << compute_total_pdb_size(
+                   get_variables(pci.get_task()),
+                   pattern_collection)
             << endl;
         log << identifier << " computation time: " << runtime << endl;
     }
 }
 
-} // namespace pdbs
+} // namespace downward::pdbs

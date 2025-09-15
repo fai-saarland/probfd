@@ -3,10 +3,13 @@
 #include "downward/pdbs/pattern_database.h"
 #include "downward/pdbs/utils.h"
 
+#include "downward/utils/collections.h"
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
+
+#include "downward/fact_pair.h"
 
 #include <vector>
 
@@ -16,9 +19,9 @@ namespace downward::pdbs {
 PatternCollectionGeneratorMultiple::PatternCollectionGeneratorMultiple(
     int max_pdb_size,
     int max_collection_size,
-    double pattern_generation_max_time,
-    double total_max_time,
-    double stagnation_limit,
+    utils::Duration pattern_generation_max_time,
+    utils::Duration total_max_time,
+    utils::Duration stagnation_limit,
     double blacklist_trigger_percentage,
     bool enable_blacklist_on_stagnation,
     int random_seed,
@@ -28,7 +31,7 @@ PatternCollectionGeneratorMultiple::PatternCollectionGeneratorMultiple(
     , pattern_generation_max_time(pattern_generation_max_time)
     , total_max_time(total_max_time)
     , stagnation_limit(stagnation_limit)
-    , blacklisting_start_time(total_max_time * blacklist_trigger_percentage)
+    , blacklisting_start_duration(total_max_time * blacklist_trigger_percentage)
     , enable_blacklist_on_stagnation(enable_blacklist_on_stagnation)
     , rng(utils::get_rng(random_seed))
     , random_seed(random_seed)
@@ -42,7 +45,8 @@ void PatternCollectionGeneratorMultiple::check_blacklist_trigger_timer(
     const utils::CountdownTimer& timer)
 {
     // Check if blacklisting should be started.
-    if (!blacklisting && timer.get_elapsed_time() > blacklisting_start_time) {
+    if (!blacklisting &&
+        timer.get_elapsed_time() > blacklisting_start_duration) {
         blacklisting = true;
         /*
           Also treat this time point as having seen a new pattern to avoid
@@ -76,9 +80,7 @@ PatternCollectionGeneratorMultiple::get_blacklisted_variables(
         if (log.is_at_least_debug()) {
             log << "blacklisting " << blacklist_size << " out of "
                 << non_goal_variables.size() << " non-goal variables: ";
-            for (int var : blacklisted_variables) {
-                log << var << ", ";
-            }
+            for (int var : blacklisted_variables) { log << var << ", "; }
             log << endl;
         }
     }
@@ -128,9 +130,7 @@ bool PatternCollectionGeneratorMultiple::time_limit_reached(
     const utils::CountdownTimer& timer) const
 {
     if (timer.is_expired()) {
-        if (log.is_at_least_normal()) {
-            log << "time limit reached" << endl;
-        }
+        if (log.is_at_least_normal()) { log << "time limit reached" << endl; }
         return true;
     }
     return false;
@@ -174,7 +174,7 @@ string PatternCollectionGeneratorMultiple::name() const
 
 PatternCollectionInformation
 PatternCollectionGeneratorMultiple::compute_patterns(
-    const shared_ptr<AbstractTask>& task)
+    const SharedAbstractTask& task)
 {
     if (log.is_at_least_normal()) {
         log << "max pdb size: " << max_pdb_size << endl;
@@ -182,25 +182,25 @@ PatternCollectionGeneratorMultiple::compute_patterns(
         log << "max time: " << total_max_time << endl;
         log << "stagnation time limit: " << stagnation_limit << endl;
         log << "timer after which blacklisting is enabled: "
-            << blacklisting_start_time << endl;
+            << blacklisting_start_duration << endl;
         log << "enable blacklisting after stagnation: "
             << enable_blacklist_on_stagnation << endl;
     }
 
-    TaskProxy task_proxy(*task);
     utils::CountdownTimer timer(total_max_time);
 
+    const auto& [variables, goals] =
+        to_refs(slice_shared<VariableSpace, GoalFactList>(task));
+
     // Store the set of goals in random order.
-    vector<FactPair> goals = get_goals_in_random_order(task_proxy, *rng);
+    vector<FactPair> goal_facts = get_goals_in_random_order(goals, *rng);
 
     // Store the non-goal variables for potential blacklisting.
-    vector<int> non_goal_variables = get_non_goal_variables(task_proxy);
+    vector<int> non_goal_variables = get_non_goal_variables(variables, goals);
 
     if (log.is_at_least_debug()) {
         log << "goal variables: ";
-        for (FactPair goal : goals) {
-            log << goal.var << ", ";
-        }
+        for (FactPair goal : goal_facts) { log << goal.var << ", "; }
         log << endl;
         log << "non-goal variables: " << non_goal_variables << endl;
     }
@@ -222,16 +222,15 @@ PatternCollectionGeneratorMultiple::compute_patterns(
             get_blacklisted_variables(non_goal_variables);
 
         int remaining_pdb_size = min(remaining_collection_size, max_pdb_size);
-        double remaining_time =
-            min(static_cast<double>(timer.get_remaining_time()),
-                pattern_generation_max_time);
+        utils::Duration remaining_time =
+            min(timer.get_remaining_time(), pattern_generation_max_time);
 
         PatternInformation pattern_info = compute_pattern(
             remaining_pdb_size,
             remaining_time,
             pattern_computation_rng,
             task,
-            goals[goal_index],
+            goal_facts[goal_index],
             std::move(blacklisted_variables));
         handle_generated_pattern(
             std::move(pattern_info),
@@ -246,12 +245,12 @@ PatternCollectionGeneratorMultiple::compute_patterns(
 
         ++num_iterations;
         ++goal_index;
-        goal_index = goal_index % goals.size();
-        assert(utils::in_bounds(goal_index, goals));
+        goal_index = goal_index % goal_facts.size();
+        assert(utils::in_bounds(goal_index, goal_facts));
     }
 
     PatternCollectionInformation result =
-        get_pattern_collection_info(task_proxy, generated_pdbs, log);
+        get_pattern_collection_info(to_refs(task), generated_pdbs, log);
     if (log.is_at_least_normal()) {
         log << name() << " number of iterations: " << num_iterations << endl;
         log << name() << " average time per generator: "
@@ -260,4 +259,4 @@ PatternCollectionGeneratorMultiple::compute_patterns(
     return result;
 }
 
-} // namespace pdbs
+} // namespace downward::pdbs

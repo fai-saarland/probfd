@@ -5,7 +5,10 @@
 #include "probfd/pdbs/types.h"
 
 #include "probfd/fdr_types.h"
+#include "probfd/probabilistic_task.h"
 #include "probfd/value_type.h"
+
+#include "downward/utils/timer.h"
 
 #include <memory>
 #include <unordered_set>
@@ -13,7 +16,7 @@
 
 // Forward Declarations
 namespace downward {
-class VariablesProxy;
+class VariableSpace;
 }
 
 namespace downward::utils {
@@ -21,10 +24,6 @@ class CountdownTimer;
 class LogProxy;
 class RandomNumberGenerator;
 } // namespace utils
-
-namespace probfd {
-class ProbabilisticTaskProxy;
-}
 
 namespace probfd::pdbs {
 class ProjectionStateSpace;
@@ -41,15 +40,29 @@ namespace probfd::pdbs::cegar {
 
 extern void run_cegar_loop(
     ProjectionTransformation& transformation,
-    ProbabilisticTaskProxy task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    const SharedProbabilisticTask& task,
+    const downward::State& initial_state,
+    std::shared_ptr<Heuristic<StateRank>> heuristic,
     value_t convergence_epsilon,
     FlawFindingStrategy& flaw_strategy,
     std::unordered_set<int> blacklisted_variables,
     int max_pdb_size,
     downward::utils::RandomNumberGenerator& rng,
     bool wildcard,
-    double max_time,
+    downward::utils::Duration max_time,
+    downward::utils::LogProxy log);
+
+extern void run_cegar_loop(
+    ProjectionTransformation& transformation,
+    const SharedProbabilisticTask& task,
+    const downward::State& initial_state,
+    value_t convergence_epsilon,
+    FlawFindingStrategy& flaw_strategy,
+    std::unordered_set<int> blacklisted_variables,
+    int max_pdb_size,
+    downward::utils::RandomNumberGenerator& rng,
+    bool wildcard,
+    downward::utils::Duration max_time,
     downward::utils::LogProxy log);
 
 } // namespace probfd::pdbs::cegar

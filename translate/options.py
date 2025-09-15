@@ -77,6 +77,11 @@ def parse_args():
         action="store_true",
         help="dump human-readable SAS+ representation of the task")
     argparser.add_argument(
+        "--enumerate-forall",
+        action="store_true",
+        default=False,
+        help="Tries to enumerate forall expression in preconditions")
+    argparser.add_argument(
         "--force-probabilistic",
         action="store_true",
         default=False,

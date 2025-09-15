@@ -1,6 +1,7 @@
 #include "list_features.h"
 
 #include "downward/cli/parser/syntax_analyzer.h"
+#include "register_definitions.h"
 
 #include "downward/cli/plugins/doc_printer.h"
 #include "downward/cli/plugins/raw_registry.h"
@@ -210,7 +211,8 @@ protected:
             const Type& arg_type = arg_info.type;
             if (!arg_type.is_enum_type()) continue;
 
-            for (const auto& expl : arg_type.get_documented_enum_values()) {
+            for (const auto& expl : static_cast<const EnumType&>(arg_type)
+                                        .get_documented_enum_values()) {
                 std::println(
                     os,
                     "{:>{}} {}: {}",
@@ -296,8 +298,7 @@ protected:
         std::println(os);
     }
 
-    void print_category_synopsis(
-        const string& synopsis) const override
+    void print_category_synopsis(const string& synopsis) const override
     {
         if (print_all && !synopsis.empty()) { os << synopsis << endl; }
     }
@@ -309,7 +310,10 @@ protected:
 
 static int list_features(argparse::ArgumentParser& parser)
 {
-    Registry registry = RawRegistry::instance()->construct_registry();
+    RawRegistry raw_registry;
+    register_definitions(raw_registry);
+
+    Registry registry = raw_registry.construct_registry();
     unique_ptr<DocPrinter> doc_printer;
     if (parser.get<bool>("--txt2tags")) {
         doc_printer = std::make_unique<Txt2TagsPrinter>(cout, registry);

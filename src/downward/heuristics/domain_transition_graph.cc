@@ -3,6 +3,8 @@
 #include "downward/utils/hash.h"
 #include "downward/utils/memory.h"
 
+#include "downward/operator_cost_function.h"
+
 #include <algorithm>
 #include <cassert>
 #include <iostream>
@@ -10,11 +12,18 @@
 using namespace std;
 
 namespace downward::domain_transition_graph {
+
 DTGFactory::DTGFactory(
-    const TaskProxy& task_proxy,
+    const VariableSpace& variables,
+    const AxiomSpace& axioms,
+    const ClassicalOperatorSpace& operators,
+    const OperatorIntCostFunction& cost_function,
     bool collect_transition_side_effects,
     const function<bool(int, int)>& pruning_condition)
-    : task_proxy(task_proxy)
+    : variables(variables)
+    , axioms(axioms)
+    , operators(operators)
+    , cost_function(cost_function)
     , collect_transition_side_effects(collect_transition_side_effects)
     , pruning_condition(pruning_condition)
 {
@@ -26,7 +35,7 @@ DTGFactory::DTGs DTGFactory::build_dtgs()
 
     allocate_graphs_and_nodes(dtgs);
     initialize_index_structures(dtgs.size());
-    create_transitions(dtgs);
+    create_transitions(dtgs, variables);
     simplify_transitions(dtgs);
     if (collect_transition_side_effects) collect_all_side_effects(dtgs);
     return dtgs;
@@ -34,7 +43,6 @@ DTGFactory::DTGs DTGFactory::build_dtgs()
 
 void DTGFactory::allocate_graphs_and_nodes(DTGs& dtgs)
 {
-    VariablesProxy variables = task_proxy.get_variables();
     dtgs.resize(variables.size());
     for (VariableProxy var : variables) {
         int var_id = var.get_id();
@@ -51,40 +59,43 @@ void DTGFactory::initialize_index_structures(int num_dtgs)
     global_to_local_var.resize(num_dtgs);
 }
 
-void DTGFactory::create_transitions(DTGs& dtgs)
+void DTGFactory::create_transitions(DTGs& dtgs, const VariableSpace& variables)
 {
-    for (OperatorProxy op : task_proxy.get_operators())
-        for (EffectProxy eff : op.get_effects()) process_effect(eff, op, dtgs);
-    for (AxiomProxy ax : task_proxy.get_axioms())
-        for (EffectProxy eff : ax.get_effects()) process_effect(eff, ax, dtgs);
+    for (OperatorProxy op : operators)
+        for (EffectProxy eff : op.get_effects())
+            process_effect(variables, eff, op, dtgs);
+    for (AxiomProxy ax : axioms)
+        for (EffectProxy eff : ax.get_effects())
+            process_effect(variables, eff, ax, dtgs);
 }
 
 void DTGFactory::process_effect(
+    const VariableSpace& variables,
     const EffectProxy& eff,
     const AxiomOrOperatorProxy& op,
     DTGs& dtgs)
 {
-    FactProxy fact = eff.get_fact();
-    int var_id = fact.get_variable().get_id();
+    FactPair fact = eff.get_fact();
+    int var_id = fact.var;
     DomainTransitionGraph* dtg = dtgs[var_id].get();
     int origin = -1;
-    int target = fact.get_value();
+    int target = fact.value;
     vector<LocalAssignment> transition_condition;
     vector<LocalAssignment> side_effect;
     unsigned int first_new_local_var = dtg->local_to_global_child.size();
-    for (FactProxy pre : op.get_preconditions()) {
-        if (pre.get_variable() == fact.get_variable())
-            origin = pre.get_value();
+    for (const FactPair pre : op.get_preconditions()) {
+        if (pre.var == var_id)
+            origin = pre.value;
         else
             update_transition_condition(pre, dtg, transition_condition);
     }
-    for (FactProxy cond : eff.get_conditions()) {
-        if (cond.get_variable() == fact.get_variable()) {
-            if (origin != -1 && cond.get_value() != origin) {
+    for (const FactPair cond : eff.get_conditions()) {
+        if (cond.var == var_id) {
+            if (origin != -1 && cond.value != origin) {
                 revert_new_local_vars(dtg, first_new_local_var);
                 return; // conflicting condition on effect variable
             }
-            origin = cond.get_value();
+            origin = cond.value;
         } else {
             update_transition_condition(cond, dtg, transition_condition);
         }
@@ -101,7 +112,7 @@ void DTGFactory::process_effect(
             transition_condition,
             side_effect));
     } else {
-        int domain_size = fact.get_variable().get_domain_size();
+        int domain_size = variables[var_id].get_domain_size();
         for (int origin2 = 0; origin2 < domain_size; ++origin2) {
             if (origin2 == target) continue;
             ValueTransition* trans = get_transition(origin2, target, dtg);
@@ -115,15 +126,15 @@ void DTGFactory::process_effect(
 }
 
 void DTGFactory::update_transition_condition(
-    const FactProxy& fact,
+    const FactPair& fact,
     DomainTransitionGraph* dtg,
     vector<LocalAssignment>& condition)
 {
-    int fact_var = fact.get_variable().get_id();
+    int fact_var = fact.var;
     if (!pruning_condition(dtg->var, fact_var)) {
         extend_global_to_local_mapping_if_necessary(dtg, fact_var);
         int local_var = global_to_local_var[dtg->var][fact_var];
-        condition.push_back(LocalAssignment(local_var, fact.get_value()));
+        condition.push_back(LocalAssignment(local_var, fact.value));
     }
 }
 
@@ -194,13 +205,13 @@ void DTGFactory::collect_side_effects(
         // collect operator precondition
         AxiomOrOperatorProxy op = get_op_for_label(label);
         unordered_map<int, int> pre_map;
-        for (FactProxy pre : op.get_preconditions())
-            pre_map[pre.get_variable().get_id()] = pre.get_value();
+        for (const auto [var, value] : op.get_preconditions())
+            pre_map[var] = value;
 
         // collect side effect from each operator effect
         vector<LocalAssignment> side_effects;
         for (EffectProxy eff : op.get_effects()) {
-            int var_no = eff.get_fact().get_variable().get_id();
+            int var_no = eff.get_fact().var;
             if (var_no == dtg->var || !glob_to_loc.count(var_no)) {
                 // This is either an effect on the variable we're
                 // building the DTG for, or an effect on a variable we
@@ -212,16 +223,15 @@ void DTGFactory::collect_side_effects(
             int pre = -1;
             auto pre_it = pre_map.find(var_no);
             if (pre_it != pre_map.end()) pre = pre_it->second;
-            int post = eff.get_fact().get_value();
+            int post = eff.get_fact().value;
 
             vector<FactPair> triggercond_pairs;
             if (pre != -1) triggercond_pairs.emplace_back(var_no, pre);
 
-            for (FactProxy condition : eff.get_conditions()) {
-                int c_var_id = condition.get_variable().get_id();
-                int c_val = condition.get_value();
+            for (const auto [c_var_id, c_val] : eff.get_conditions()) {
                 triggercond_pairs.emplace_back(c_var_id, c_val);
             }
+
             sort(triggercond_pairs.begin(), triggercond_pairs.end());
 
             if (includes(
@@ -248,8 +258,8 @@ void DTGFactory::simplify_transitions(DTGs& dtgs)
 AxiomOrOperatorProxy
 DTGFactory::get_op_for_label(const ValueTransitionLabel& label)
 {
-    if (label.is_axiom) return task_proxy.get_axioms()[label.op_id];
-    return task_proxy.get_operators()[label.op_id];
+    if (label.is_axiom) return axioms[label.op_id];
+    return operators[label.op_id];
 }
 
 void DTGFactory::simplify_labels(vector<ValueTransitionLabel>& labels)
@@ -275,7 +285,7 @@ void DTGFactory::simplify_labels(vector<ValueTransitionLabel>& labels)
         HashKey key;
         for (LocalAssignment& assign : labels[i].precond)
             key.emplace_back(assign.local_var, assign.value);
-        sort(key.begin(), key.end());
+        ranges::sort(key);
         label_index[key] = i;
     }
 
@@ -299,7 +309,8 @@ void DTGFactory::simplify_labels(vector<ValueTransitionLabel>& labels)
                     const ValueTransitionLabel& f_label =
                         old_labels[found->second];
                     AxiomOrOperatorProxy f_op = get_op_for_label(f_label);
-                    if (op.get_cost() >= f_op.get_cost()) {
+                    if (cost_function.get_operator_cost(op.get_id()) >=
+                        cost_function.get_operator_cost(f_op.get_id())) {
                         /* TODO: Depending on how clever we want to
                            be, we could prune based on the *adjusted*
                            cost for the respective heuristic instead.
@@ -325,4 +336,4 @@ DomainTransitionGraph::DomainTransitionGraph(int var_index, int node_count)
         nodes.push_back(ValueNode(this, value));
     last_helpful_transition_extraction_time = -1;
 }
-} // namespace domain_transition_graph
+} // namespace downward::domain_transition_graph

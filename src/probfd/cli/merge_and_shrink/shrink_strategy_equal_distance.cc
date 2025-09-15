@@ -1,12 +1,15 @@
+#include "probfd/cli/merge_and_shrink/shrink_strategy_equal_distance.h"
+
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "probfd/cli/merge_and_shrink/shrink_strategy_bucket_based_options.h"
+
 #include "probfd/merge_and_shrink/shrink_strategy_equal_distance.h"
 
 #include "probfd/merge_and_shrink/transition_system.h"
 
 #include "downward/utils/logging.h"
-
-#include "probfd/cli/merge_and_shrink/shrink_strategy_bucket_based_options.h"
-
-#include "downward/cli/plugins/plugin.h"
 
 using namespace std;
 using namespace downward;
@@ -15,7 +18,6 @@ using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
 namespace {
-
 class ShrinkStrategyEqualDistanceFeature
     : public TypedFeature<ShrinkStrategy, ShrinkStrategyEqualDistance> {
 public:
@@ -48,11 +50,17 @@ protected:
             options.get<ShrinkStrategyEqualDistance::Priority>("priority"));
     }
 };
+}
 
-FeaturePlugin<ShrinkStrategyEqualDistanceFeature> _plugin;
+namespace probfd::cli::merge_and_shrink {
 
-TypedEnumPlugin<ShrinkStrategyEqualDistance::Priority> _enum_plugin(
-    {{"high", "prefer shrinking states with high value"},
-     {"low", "prefer shrinking states with low value"}});
+void add_shrink_strategy_equal_distance_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<ShrinkStrategyEqualDistanceFeature>();
+
+    raw_registry.insert_enum_plugin<ShrinkStrategyEqualDistance::Priority>(
+        {{"high", "prefer shrinking states with high value"},
+         {"low", "prefer shrinking states with low value"}});
+}
 
 } // namespace

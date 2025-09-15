@@ -3,7 +3,10 @@
 
 #include "downward/algorithms/dynamic_bitset.h"
 
+#include <concepts>
+#include <format>
 #include <ostream>
+#include <ranges>
 #include <vector>
 
 namespace downward::cartesian_abstractions {
@@ -15,10 +18,23 @@ using Bitset = dynamic_bitset::DynamicBitset<unsigned short>;
   The underlying data structure is a vector of bitsets.
 */
 class CartesianSet {
+    template <typename T, typename Char>
+    friend struct std::formatter;
+
     std::vector<Bitset> domain_subsets;
 
 public:
-    explicit CartesianSet(const std::vector<int>& domain_sizes);
+    template <std::ranges::input_range R>
+        requires std::same_as<std::ranges::range_value_t<R>, int>
+    explicit CartesianSet(const R& domain_sizes)
+    {
+        domain_subsets.reserve(domain_sizes.size());
+        for (int domain_size : domain_sizes) {
+            Bitset domain(domain_size);
+            domain.set();
+            domain_subsets.push_back(std::move(domain));
+        }
+    }
 
     void add(int var, int value);
     void set_single_value(int var, int value);
@@ -35,6 +51,33 @@ public:
     friend std::ostream&
     operator<<(std::ostream& os, const CartesianSet& cartesian_set);
 };
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions
+
+template <typename Char>
+struct std::formatter<downward::cartesian_abstractions::CartesianSet, Char> {
+    using R = downward::cartesian_abstractions::Bitset;
+
+    std::range_formatter<R, Char> underlying_;
+
+    constexpr formatter()
+    {
+        underlying_.set_brackets("", "");
+        underlying_.set_separator(" x ");
+    }
+
+    template <class ParseContext>
+    constexpr typename ParseContext::iterator parse(ParseContext& ctx)
+    {
+        return underlying_.parse(ctx);
+    }
+
+    template <class FmtContext>
+    typename FmtContext::iterator format(
+        const downward::cartesian_abstractions::CartesianSet& t,
+        FmtContext& ctx) const
+    {
+        return underlying_.format(t.domain_subsets, ctx);
+    }
+};
 
 #endif

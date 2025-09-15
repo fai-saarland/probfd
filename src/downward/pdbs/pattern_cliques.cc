@@ -2,7 +2,9 @@
 
 #include "downward/pdbs/pattern_database.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/classical_operator_space.h"
+#include "downward/state.h"
 
 #include "downward/algorithms/max_cliques.h"
 
@@ -16,24 +18,24 @@ bool are_patterns_additive(
 {
     for (int v1 : pattern1) {
         for (int v2 : pattern2) {
-            if (!are_additive[v1][v2]) {
-                return false;
-            }
+            if (!are_additive[v1][v2]) { return false; }
         }
     }
     return true;
 }
 
-VariableAdditivity compute_additive_vars(const TaskProxy& task_proxy)
+VariableAdditivity compute_additive_vars(
+    const VariableSpace& variables,
+    const ClassicalOperatorSpace& operators)
 {
     VariableAdditivity are_additive;
-    int num_vars = task_proxy.get_variables().size();
+    int num_vars = variables.size();
     are_additive.resize(num_vars, vector<bool>(num_vars, true));
-    for (OperatorProxy op : task_proxy.get_operators()) {
-        for (EffectProxy e1 : op.get_effects()) {
-            for (EffectProxy e2 : op.get_effects()) {
-                int e1_var_id = e1.get_fact().get_variable().get_id();
-                int e2_var_id = e2.get_fact().get_variable().get_id();
+    for (OperatorProxy op : operators) {
+        for (auto e1 : op.get_effects()) {
+            int e1_var_id = e1.get_fact().var;
+            for (auto e2 : op.get_effects()) {
+                int e2_var_id = e2.get_fact().var;
                 are_additive[e1_var_id][e2_var_id] = false;
             }
         }
@@ -96,4 +98,4 @@ vector<PatternClique> compute_pattern_cliques_with_pattern(
     }
     return cliques_additive_with_pattern;
 }
-} // namespace pdbs
+} // namespace downward::pdbs

@@ -2,7 +2,9 @@
 
 #include "probfd/pdbs/cegar/flaw.h"
 
-#include "downward/task_proxy.h"
+#include "downward/classical_operator_space.h"
+#include "downward/goal_fact_list.h"
+#include "downward/state.h"
 
 using namespace downward;
 
@@ -19,9 +21,8 @@ bool collect_flaws_(
     bool flaws_found = false;
 
     // Collect all non-satisfied goal fact variables.
-    for (const FactProxy fact : facts) {
-        if (const auto& [var, val] = fact.get_pair();
-            state[var].get_value() != val) {
+    for (const auto& [var, val] : facts) {
+        if (state[var] != val) {
             Flaw flaw(var, is_precondition);
             if (accept_flaw(flaw)) {
                 flaws_found = true;
@@ -35,7 +36,7 @@ bool collect_flaws_(
 } // namespace
 
 bool collect_flaws(
-    PreconditionsProxy facts,
+    OperatorPreconditionsProxy facts,
     const State& state,
     std::vector<Flaw>& flaws,
     const std::function<bool(const Flaw&)>& accept_flaw)
@@ -44,7 +45,7 @@ bool collect_flaws(
 }
 
 bool collect_flaws(
-    GoalsProxy facts,
+    const GoalFactList& facts,
     const State& state,
     std::vector<Flaw>& flaws,
     const std::function<bool(const Flaw&)>& accept_flaw)

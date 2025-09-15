@@ -1,18 +1,19 @@
 #ifndef PROBFD_SOLVER_INTERFACE_H
 #define PROBFD_SOLVER_INTERFACE_H
 
+#include "probfd/probabilistic_task.h"
 #include "probfd/value_type.h"
 
 #include "downward/operator_id.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
+
+#include "downward/utils/timer.h"
 
 #include <iosfwd>
 #include <memory>
 
 // Forward Declarations
 namespace probfd {
-class ProbabilisticTask;
-
 struct Interval;
 } // namespace probfd
 
@@ -29,7 +30,7 @@ public:
 
     virtual void print_statistics() const {}
 
-    virtual bool solve(double max_time) = 0;
+    virtual bool solve(downward::utils::Duration max_time) = 0;
 };
 
 class TaskSolverFactory {
@@ -37,7 +38,7 @@ public:
     virtual ~TaskSolverFactory() = default;
 
     virtual std::unique_ptr<SolverInterface>
-    create(const std::shared_ptr<ProbabilisticTask>& task) = 0;
+    create(const SharedProbabilisticTask& task) = 0;
 };
 
 } // namespace probfd

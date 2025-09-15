@@ -1,5 +1,6 @@
 #include "probfd/merge_and_shrink/merge_strategy_factory_sccs.h"
 
+#include "downward/variable_space.h"
 #include "probfd/merge_and_shrink/merge_selector.h"
 #include "probfd/merge_and_shrink/merge_strategy_sccs.h"
 #include "probfd/merge_and_shrink/merge_tree_factory.h"
@@ -7,9 +8,10 @@
 
 #include "probfd/task_utils/causal_graph.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/algorithms/sccs.h"
+#include "downward/task_utils/causal_graph.h"
 
 #include "downward/utils/logging.h"
 
@@ -46,20 +48,23 @@ MergeStrategyFactorySCCs::MergeStrategyFactorySCCs(
 }
 
 unique_ptr<MergeStrategy> MergeStrategyFactorySCCs::compute_merge_strategy(
-    std::shared_ptr<ProbabilisticTask>& task,
+    const SharedProbabilisticTask& task,
     const FactoredTransitionSystem& fts)
 {
-    ProbabilisticTaskProxy task_proxy(*task);
+    const auto& variables = get_variables(task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
 
-    VariablesProxy vars = task_proxy.get_variables();
-    int num_vars = vars.size();
+    const auto& cgraph =
+        causal_graph::get_causal_graph(variables, axioms, operators);
+
+    int num_vars = variables.size();
 
     // Compute SCCs of the causal graph.
     vector<vector<int>> cg;
     cg.reserve(num_vars);
-    for (VariableProxy var : vars) {
-        const vector<int>& successors =
-            task_proxy.get_causal_graph().get_successors(var.get_id());
+    for (VariableProxy var : variables) {
+        const vector<int>& successors = cgraph.get_successors(var.get_id());
         cg.push_back(successors);
     }
     vector<vector<int>> sccs(sccs::compute_maximal_sccs(cg));
@@ -81,33 +86,25 @@ unique_ptr<MergeStrategy> MergeStrategyFactorySCCs::compute_merge_strategy(
         break;
     }
 
-    if (log.is_at_least_normal()) {
-        log << "SCCs of the causal graph:" << endl;
-    }
+    if (log.is_at_least_normal()) { log.println("SCCs of the causal graph:"); }
 
     vector<vector<int>> non_singleton_cg_sccs;
     vector<int> indices_of_merged_sccs;
     indices_of_merged_sccs.reserve(sccs.size());
     for (const vector<int>& scc : sccs) {
-        if (log.is_at_least_normal()) {
-            log << scc << endl;
-        }
+        if (log.is_at_least_normal()) { log.println("{}", scc); }
         int scc_size = scc.size();
-        if (scc_size != 1) {
-            non_singleton_cg_sccs.push_back(scc);
-        }
+        if (scc_size != 1) { non_singleton_cg_sccs.push_back(scc); }
     }
     if (log.is_at_least_normal() && sccs.size() == 1) {
-        log << "Only one single SCC" << endl;
+        log.println("Only one single SCC");
     }
     if (log.is_at_least_normal() && static_cast<int>(sccs.size()) == num_vars) {
-        log << "Only singleton SCCs" << endl;
+        log.println("Only singleton SCCs");
         assert(non_singleton_cg_sccs.empty());
     }
 
-    if (merge_selector) {
-        merge_selector->initialize(task_proxy);
-    }
+    if (merge_selector) { merge_selector->initialize(to_refs(task)); }
 
     return std::make_unique<MergeStrategySCCs>(
         fts,
@@ -138,24 +135,20 @@ bool MergeStrategyFactorySCCs::requires_goal_distances() const
 void MergeStrategyFactorySCCs::dump_strategy_specific_options() const
 {
     if (log.is_at_least_normal()) {
-        log << "Merge order of sccs: ";
+        log.print("Merge order of sccs: ");
         switch (order_of_sccs) {
-        case OrderOfSCCs::TOPOLOGICAL: log << "topological"; break;
+        case OrderOfSCCs::TOPOLOGICAL: log.print("topological"); break;
         case OrderOfSCCs::REVERSE_TOPOLOGICAL:
-            log << "reverse topological";
+            log.print("reverse topological");
             break;
-        case OrderOfSCCs::DECREASING: log << "decreasing"; break;
-        case OrderOfSCCs::INCREASING: log << "increasing"; break;
+        case OrderOfSCCs::DECREASING: log.print("decreasing"); break;
+        case OrderOfSCCs::INCREASING: log.print("increasing"); break;
         }
-        log << endl;
+        log.println();
 
-        log << "Merge strategy for merging within sccs: " << endl;
-        if (merge_tree_factory) {
-            merge_tree_factory->dump_options(log);
-        }
-        if (merge_selector) {
-            merge_selector->dump_options(log);
-        }
+        log.println("Merge strategy for merging within sccs: ");
+        if (merge_tree_factory) { merge_tree_factory->dump_options(log); }
+        if (merge_selector) { merge_selector->dump_options(log); }
     }
 }
 

@@ -7,10 +7,6 @@
 #include <memory>
 #include <vector>
 
-namespace downward {
-class AbstractTask;
-}
-
 namespace downward::utils {
 class RandomNumberGenerator;
 }
@@ -33,7 +29,7 @@ class PatternCollectionGeneratorGenetic : public PatternCollectionGenerator {
     const bool disjoint_patterns;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
-    std::shared_ptr<AbstractTask> task;
+    SharedAbstractTask task;
 
     // All current pattern collections.
     std::vector<std::vector<std::vector<bool>>> pattern_collections;
@@ -112,9 +108,9 @@ class PatternCollectionGeneratorGenetic : public PatternCollectionGenerator {
     */
     void genetic_algorithm();
 
-    virtual std::string name() const override;
-    virtual PatternCollectionInformation
-    compute_patterns(const std::shared_ptr<AbstractTask>& task) override;
+    std::string name() const override;
+    PatternCollectionInformation
+    compute_patterns(const SharedAbstractTask& task) override;
 
 public:
     PatternCollectionGeneratorGenetic(
@@ -126,6 +122,6 @@ public:
         int random_seed,
         utils::Verbosity verbosity);
 };
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

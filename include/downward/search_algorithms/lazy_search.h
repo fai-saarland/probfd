@@ -14,12 +14,8 @@
 #include <memory>
 #include <vector>
 
-namespace downward {
-class OpenListFactory;
-}
-
 namespace downward::lazy_search {
-class LazySearch : public SearchAlgorithm {
+class LazySearch : public IterativeSearchAlgorithm<LazySearch> {
 protected:
     std::unique_ptr<EdgeOpenList> open_list;
 
@@ -40,8 +36,28 @@ protected:
     int current_real_g;
     EvaluationContext current_eval_context;
 
-    virtual void initialize() override;
-    virtual SearchStatus step() override;
+public:
+    LazySearch(
+        std::unique_ptr<EdgeOpenList> open,
+        bool reopen_closed,
+        std::vector<std::shared_ptr<Evaluator>> evaluators,
+        bool randomize_successors,
+        bool preferred_successors_first,
+        int random_seed,
+        SharedAbstractTask task,
+        OperatorCost cost_type,
+        int bound,
+        utils::Duration max_time,
+        const std::string& description,
+        utils::Verbosity verbosity);
+
+    void print_statistics() const override;
+
+private:
+    friend class IterativeSearchAlgorithm;
+
+    void initialize();
+    SearchStatus step();
 
     void generate_successors();
     SearchStatus fetch_next_state();
@@ -50,22 +66,6 @@ protected:
 
     std::vector<OperatorID> get_successor_operators(
         const ordered_set::OrderedSet<OperatorID>& preferred_operators) const;
-
-public:
-    LazySearch(
-        const std::shared_ptr<OpenListFactory>& open,
-        bool reopen_closed,
-        const std::vector<std::shared_ptr<Evaluator>>& evaluators,
-        bool randomize_successors,
-        bool preferred_successors_first,
-        int random_seed,
-        OperatorCost cost_type,
-        int bound,
-        double max_time,
-        const std::string& description,
-        utils::Verbosity verbosity);
-
-    virtual void print_statistics() const override;
 };
 } // namespace lazy_search
 

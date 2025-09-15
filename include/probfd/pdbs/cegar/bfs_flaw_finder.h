@@ -7,7 +7,7 @@
 
 #include "probfd/storage/per_state_storage.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <deque>
 #include <string>
@@ -26,7 +26,8 @@ public:
     explicit BFSFlawFinder(int max_search_states);
 
     bool apply_policy(
-        const ProbabilisticTaskProxy& task_proxy,
+        const ProbabilisticTaskTuple& task,
+        const downward::State& initial_state,
         const StateRankingFunction& state_ranking_function,
         const ProjectionStateSpace& mdp,
         const ProjectionMultiPolicy& policy,

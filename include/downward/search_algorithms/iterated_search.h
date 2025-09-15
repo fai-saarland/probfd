@@ -2,18 +2,16 @@
 #define SEARCH_ALGORITHMS_ITERATED_SEARCH_H
 
 #include "downward/search_algorithm.h"
+#include "downward/task_dependent_factory_fwd.h"
 
 #include <memory>
 #include <vector>
 
-namespace downward {
-class SearchAlgorithmFactory;
-}
-
 namespace downward::iterated_search {
 
-class IteratedSearch : public SearchAlgorithm {
-    std::vector<std::shared_ptr<SearchAlgorithmFactory>> algorithm_configs;
+class IteratedSearch : public IterativeSearchAlgorithm<IteratedSearch> {
+    std::vector<std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>
+        algorithm_configs;
 
     bool pass_bound;
     bool repeat_last_phase;
@@ -25,21 +23,16 @@ class IteratedSearch : public SearchAlgorithm {
     int best_bound;
     bool iterated_found_solution;
 
-    std::shared_ptr<SearchAlgorithm>
-    get_search_algorithm(int algorithm_configs_index);
-    std::shared_ptr<SearchAlgorithm> create_current_phase();
-    SearchStatus step_return_value();
-
-    virtual SearchStatus step() override;
-
 public:
     IteratedSearch(
+        SharedAbstractTask task,
         OperatorCost operator_cost,
         int bound,
-        double max_time,
+        utils::Duration max_time,
         std::string description,
         utils::Verbosity verbosity,
-        std::vector<std::shared_ptr<SearchAlgorithmFactory>> algorithm_configs,
+        std::vector<std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>
+            algorithm_configs,
         bool pass_bound,
         bool repeat_last,
         bool continue_on_fail,
@@ -47,9 +40,21 @@ public:
 
     ~IteratedSearch() override;
 
-    virtual void save_plan_if_necessary() override;
-    virtual void print_statistics() const override;
+    void save_plan_if_necessary() override;
+    void print_statistics() const override;
+
+private:
+    std::shared_ptr<SearchAlgorithm>
+    get_search_algorithm(int algorithm_configs_index);
+
+    std::shared_ptr<SearchAlgorithm> create_current_phase();
+
+    SearchStatus step_return_value();
+
+    friend class IterativeSearchAlgorithm;
+
+    SearchStatus step();
 };
-} // namespace iterated_search
+} // namespace downward::iterated_search
 
 #endif

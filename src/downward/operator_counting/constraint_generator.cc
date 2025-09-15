@@ -4,7 +4,7 @@ using namespace std;
 
 namespace downward::operator_counting {
 void ConstraintGenerator::initialize_constraints(
-    const shared_ptr<AbstractTask>&,
+    const SharedAbstractTask&,
     lp::LinearProgram&)
 {
 }

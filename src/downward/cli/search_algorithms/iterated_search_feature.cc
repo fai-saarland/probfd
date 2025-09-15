@@ -1,10 +1,13 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/search_algorithms/iterated_search_feature.h"
+#include "downward/cli/search_algorithms/search_algorithm_options.h"
 
-#include "downward/cli/search_algorithm_options.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/search_algorithms/iterated_search.h"
 
-#include "downward/search_algorithm_factory.h"
+#include "downward/search_algorithm.h"
+#include "downward/task_dependent_factory.h"
 
 #include "downward/utils/logging.h"
 
@@ -17,9 +20,67 @@ using namespace downward::cli::plugins;
 using downward::cli::add_search_algorithm_options_to_feature;
 
 namespace {
+class IteratedSearchFactory : public TaskDependentFactory<SearchAlgorithm> {
+    OperatorCost cost_type;
+    int bound;
+    utils::Duration max_time;
+    std::string description;
+    utils::Verbosity verbosity;
+    std::vector<std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>
+        algorithm_configs;
+    bool pass_bound;
+    bool repeat_last;
+    bool continue_on_fail;
+    bool continue_on_solve;
+
+public:
+    explicit IteratedSearchFactory(
+        OperatorCost cost_type,
+        int bound,
+        utils::Duration max_time,
+        std::string description,
+        utils::Verbosity verbosity,
+        std::vector<std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>
+            algorithm_configs,
+        bool pass_bound,
+        bool repeat_last,
+        bool continue_on_fail,
+        bool continue_on_solve)
+        : cost_type(cost_type)
+        , bound(bound)
+        , max_time(max_time)
+        , description(std::move(description))
+        , verbosity(verbosity)
+        , algorithm_configs(std::move(algorithm_configs))
+        , pass_bound(pass_bound)
+        , repeat_last(repeat_last)
+        , continue_on_fail(continue_on_fail)
+        , continue_on_solve(continue_on_solve)
+    {
+    }
+
+    unique_ptr<SearchAlgorithm>
+    create_object(const SharedAbstractTask& task) override
+    {
+        return std::make_unique<IteratedSearch>(
+            task,
+            cost_type,
+            bound,
+            max_time,
+            description,
+            verbosity,
+            algorithm_configs,
+            pass_bound,
+            repeat_last,
+            continue_on_fail,
+            continue_on_solve);
+    }
+};
 
 class IteratedSearchFeature
-    : public TypedFeature<SearchAlgorithm, IteratedSearch> {
+    : public TypedFeature<
+          TaskDependentFactory<SearchAlgorithm>,
+          IteratedSearchFactory> {
 public:
     IteratedSearchFeature()
         : TypedFeature("iterated")
@@ -72,22 +133,24 @@ public:
             "```");
     }
 
-    virtual shared_ptr<IteratedSearch>
+    shared_ptr<IteratedSearchFactory>
     create_component(const Options& options, const utils::Context& context)
         const override
     {
-        verify_list_non_empty<std::shared_ptr<SearchAlgorithmFactory>>(
+        verify_list_non_empty<
+            std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>(
             context,
             options,
             "algorithm_configs");
 
-        return make_shared<IteratedSearch>(
+        return make_shared<IteratedSearchFactory>(
             options.get<OperatorCost>("cost_type"),
             options.get<int>("bound"),
-            options.get<double>("max_time"),
+            options.get<utils::Duration>("max_time"),
             options.get_unparsed_config(),
             options.get<utils::Verbosity>("verbosity"),
-            options.get_list<std::shared_ptr<SearchAlgorithmFactory>>(
+            options.get_list<
+                std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>(
                 "algorithm_configs"),
             options.get<bool>("pass_bound"),
             options.get<bool>("repeat_last"),
@@ -95,7 +158,13 @@ public:
             options.get<bool>("continue_on_solve"));
     }
 };
+}
 
-FeaturePlugin<IteratedSearchFeature> _plugin;
+namespace downward::cli::search_algorithms {
+
+void add_iterated_search_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<IteratedSearchFeature>();
+}
 
 } // namespace

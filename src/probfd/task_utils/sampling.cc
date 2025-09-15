@@ -1,10 +1,12 @@
 #include "probfd/task_utils/sampling.h"
 
 #include "probfd/task_utils/probabilistic_successor_generator.h"
-
-#include "probfd/task_proxy.h"
-
 #include "probfd/task_utils/task_properties.h"
+
+#include "probfd/probabilistic_task.h"
+
+#include "downward/axioms.h"
+#include "downward/per_task_information.h"
 
 #include "downward/utils/memory.h"
 #include "downward/utils/rng.h"
@@ -18,7 +20,8 @@ using namespace probfd::successor_generator;
 namespace probfd::sampling {
 
 static State sample_state_with_random_walk(
-    const ProbabilisticOperatorsProxy& operators,
+    AxiomEvaluator& axiom_evaluator,
+    const ProbabilisticOperatorSpace& operators,
     const State& initial_state,
     const ProbabilisticSuccessorGenerator& successor_generator,
     value_t init_h,
@@ -64,9 +67,7 @@ static State sample_state_with_random_walk(
             current_state,
             applicable_operators);
         // If there are no applicable operators, do not walk further.
-        if (applicable_operators.empty()) {
-            break;
-        }
+        if (applicable_operators.empty()) { break; }
 
         OperatorID random_op_id = *rng.choose(applicable_operators);
         ProbabilisticOperatorProxy random_op = operators[random_op_id];
@@ -77,7 +78,8 @@ static State sample_state_with_random_walk(
                 assert(
                     task_properties::is_applicable(random_op, current_state));
                 current_state = current_state.get_unregistered_successor(
-                    outcome.get_effects());
+                    axiom_evaluator,
+                    outcome);
                 /* If current state is a dead end, then restart the random walk
                    with the initial state. */
                 if (is_dead_end(current_state)) {
@@ -95,15 +97,18 @@ static State sample_state_with_random_walk(
 }
 
 RandomWalkSampler::RandomWalkSampler(
-    const ProbabilisticTaskProxy& task_proxy,
+    const VariableSpace& variables,
+    const ProbabilisticOperatorSpace& operators,
+    const OperatorCostFunction<value_t>& cost_function,
+    AxiomEvaluator& evaluator,
     utils::RandomNumberGenerator& rng)
-    : operators(task_proxy.get_operators())
+    : operators(operators)
+    , axiom_evaluator(evaluator)
     , successor_generator(
           std::make_unique<
-              successor_generator::ProbabilisticSuccessorGenerator>(task_proxy))
-    , initial_state(task_proxy.get_initial_state())
+              successor_generator::ProbabilisticSuccessorGenerator>(variables, operators))
     , average_operator_costs(
-          task_properties::get_average_operator_cost(task_proxy))
+          task_properties::get_average_operator_cost(operators, cost_function))
     , rng(rng)
 {
 }
@@ -112,9 +117,11 @@ RandomWalkSampler::~RandomWalkSampler() = default;
 
 State RandomWalkSampler::sample_state(
     value_t init_h,
+    const State& initial_state,
     const std::function<bool(const State&)>& is_dead_end) const
 {
     return sample_state_with_random_walk(
+        axiom_evaluator,
         operators,
         initial_state,
         *successor_generator,

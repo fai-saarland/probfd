@@ -87,7 +87,7 @@ Interval TADFHSImpl<State, Action, UseInterval>::solve_quotient(
     QHeuristic& heuristic,
     ParamType<QState> qstate,
     ProgressReport& progress,
-    double max_time)
+    downward::utils::Duration max_time)
 {
     downward::utils::CountdownTimer timer(max_time);
 
@@ -162,9 +162,7 @@ bool TADFHSImpl<State, Action, UseInterval>::advance(
 {
     using enum BacktrackingUpdateType;
 
-    if (einfo.next_successor()) {
-        return true;
-    }
+    if (einfo.next_successor()) { return true; }
 
     if (backtrack_update_type_ == SINGLE ||
         (backtrack_update_type_ == ON_DEMAND && !einfo.value_converged)) {
@@ -543,7 +541,7 @@ auto TADepthFirstHeuristicSearch<State, Action, UseInterval>::compute_policy(
     HeuristicType& heuristic,
     ParamType<State> state,
     ProgressReport progress,
-    double max_time) -> std::unique_ptr<PolicyType>
+    downward::utils::Duration max_time) -> std::unique_ptr<PolicyType>
 {
     QuotientSystem quotient(mdp);
     quotients::QuotientMaxHeuristic<State, Action> qheuristic(heuristic);
@@ -584,9 +582,7 @@ auto TADepthFirstHeuristicSearch<State, Action, UseInterval>::compute_policy(
         std::optional quotient_action = state_info.get_policy();
 
         // Terminal states have no policy decision.
-        if (!quotient_action) {
-            continue;
-        }
+        if (!quotient_action) { continue; }
 
         const Interval quotient_bound = as_interval(state_info.value);
 
@@ -647,9 +643,7 @@ auto TADepthFirstHeuristicSearch<State, Action, UseInterval>::compute_policy(
 
         for (const StateID succ_id :
              successor_dist.non_source_successor_dist.support()) {
-            if (visited.insert(succ_id).second) {
-                queue.push_back(succ_id);
-            }
+            if (visited.insert(succ_id).second) { queue.push_back(succ_id); }
         }
     } while (!queue.empty());
 

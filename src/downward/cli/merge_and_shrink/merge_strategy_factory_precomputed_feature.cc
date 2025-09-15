@@ -1,4 +1,7 @@
+#include "downward/cli/merge_and_shrink/merge_strategy_factory_precomputed_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/merge_and_shrink/merge_strategy_options.h"
 
@@ -15,7 +18,6 @@ using downward::cli::merge_and_shrink::
     get_merge_strategy_arguments_from_options;
 
 namespace {
-
 class MergeStrategyFactoryPrecomputedFeature
     : public TypedFeature<
           MergeStrategyFactory,
@@ -59,7 +61,14 @@ public:
             get_merge_strategy_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<MergeStrategyFactoryPrecomputedFeature> _plugin;
+namespace downward::cli::merge_and_shrink {
+
+void add_merge_strategy_factory_precomputed_feature(RawRegistry& raw_registry)
+{
+    raw_registry
+        .insert_feature_plugin<MergeStrategyFactoryPrecomputedFeature>();
+}
 
 } // namespace

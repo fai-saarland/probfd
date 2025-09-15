@@ -266,4 +266,26 @@ public:
 
 } // namespace probfd::merge_and_shrink
 
+template <>
+struct std::formatter<probfd::merge_and_shrink::LocalLabelInfo, char> {
+    template <class ParseContext>
+    constexpr typename ParseContext::iterator parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+
+    template <class FmtContext>
+    typename FmtContext::iterator format(
+        const probfd::merge_and_shrink::LocalLabelInfo& info,
+        FmtContext& ctx) const
+    {
+        return std::format_to(
+            ctx.out(),
+            "Labels: {}, Cost: {}, Transitions: {}",
+            info.get_label_group(),
+            info.get_cost(),
+            info.get_transitions());
+    }
+};
+
 #endif

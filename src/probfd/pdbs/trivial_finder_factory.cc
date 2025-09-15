@@ -4,7 +4,8 @@
 namespace probfd::pdbs {
 
 std::unique_ptr<SubCollectionFinder>
-TrivialFinderFactory::create_subcollection_finder(const ProbabilisticTaskProxy&)
+TrivialFinderFactory::create_subcollection_finder(
+    const SharedProbabilisticTask&)
 {
     return std::make_unique<TrivialFinder>();
 }

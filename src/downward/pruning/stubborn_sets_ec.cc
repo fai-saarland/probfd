@@ -1,6 +1,10 @@
 #include "downward/pruning/stubborn_sets_ec.h"
 
+#include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
+
+#include "downward/abstract_task.h"
+#include "downward/classical_operator_space.h"
 
 #include <cassert>
 #include <unordered_map>
@@ -18,11 +22,12 @@ static inline bool is_v_applicable(
     vector<vector<int>>& preconditions)
 {
     int precondition_on_var = preconditions[op_no][var];
-    return precondition_on_var == -1 ||
-           precondition_on_var == state[var].get_value();
+    return precondition_on_var == -1 || precondition_on_var == state[var];
 }
 
-static vector<StubbornDTG> build_dtgs(TaskProxy task_proxy)
+static vector<StubbornDTG> build_dtgs(
+    const VariableSpace& variables,
+    const ClassicalOperatorSpace& operators)
 {
     /*
       NOTE: Code lifted and adapted from M&S atomic abstraction code.
@@ -38,29 +43,27 @@ static vector<StubbornDTG> build_dtgs(TaskProxy task_proxy)
      */
 
     // Create the empty DTG nodes.
-    vector<StubbornDTG> dtgs = utils::map_vector<StubbornDTG>(
-        task_proxy.get_variables(),
-        [](const VariableProxy& var) {
+    vector<StubbornDTG> dtgs =
+        utils::map_vector<StubbornDTG>(variables, [](const VariableProxy& var) {
             return StubbornDTG(var.get_domain_size());
         });
 
     // Add DTG arcs.
-    for (OperatorProxy op : task_proxy.get_operators()) {
+    for (const auto op : operators) {
         unordered_map<int, int> preconditions;
-        for (FactProxy pre : op.get_preconditions()) {
-            preconditions[pre.get_variable().get_id()] = pre.get_value();
+        for (const auto [var, value] : op.get_preconditions()) {
+            preconditions[var] = value;
         }
-        for (EffectProxy effect : op.get_effects()) {
-            FactProxy fact = effect.get_fact();
-            VariableProxy var = fact.get_variable();
-            int var_id = var.get_id();
-            int eff_val = fact.get_value();
+        for (auto effect : op.get_effects()) {
+            FactPair fact = effect.get_fact();
+            int var_id = fact.var;
+            int eff_val = fact.value;
             int pre_val =
                 utils::get_value_or_default(preconditions, var_id, -1);
 
             StubbornDTG& dtg = dtgs[var_id];
             if (pre_val == -1) {
-                int num_values = var.get_domain_size();
+                int num_values = variables[var_id].get_domain_size();
                 for (int value = 0; value < num_values; ++value) {
                     dtg[value].push_back(eff_val);
                 }
@@ -114,20 +117,22 @@ StubbornSetsEC::StubbornSetsEC(utils::Verbosity verbosity)
 {
 }
 
-void StubbornSetsEC::initialize(const shared_ptr<AbstractTask>& task)
+void StubbornSetsEC::initialize(const SharedAbstractTask& task)
 {
     StubbornSets::initialize(task);
-    TaskProxy task_proxy(*task);
-    VariablesProxy variables = task_proxy.get_variables();
-    written_vars.assign(variables.size(), false);
+
+    const auto [variables, operators] =
+        slice_shared<VariableSpace, ClassicalOperatorSpace>(task);
+
+    written_vars.assign(variables->get_num_variables(), false);
     nes_computed = utils::map_vector<vector<bool>>(
-        variables,
+        *variables,
         [](const VariableProxy& var) {
             return vector<bool>(var.get_domain_size(), false);
         });
     active_ops.assign(num_operators, false);
-    compute_operator_preconditions(task_proxy);
-    build_reachability_map(task_proxy);
+    compute_operator_preconditions(*variables, *operators);
+    build_reachability_map(*variables, *operators);
 
     conflicting_and_disabling.resize(num_operators);
     conflicting_and_disabling_computed.resize(num_operators, false);
@@ -137,26 +142,28 @@ void StubbornSetsEC::initialize(const shared_ptr<AbstractTask>& task)
     log << "pruning method: stubborn sets ec" << endl;
 }
 
-void StubbornSetsEC::compute_operator_preconditions(const TaskProxy& task_proxy)
+void StubbornSetsEC::compute_operator_preconditions(
+    const VariableSpace& variables,
+    const OperatorSpace& operators)
 {
-    int num_variables = task_proxy.get_variables().size();
-    op_preconditions_on_var = utils::map_vector<vector<int>>(
-        task_proxy.get_operators(),
-        [&](const OperatorProxy& op) {
+    int num_variables = variables.size();
+    op_preconditions_on_var =
+        utils::map_vector<vector<int>>(operators, [&](const auto& op) {
             vector<int> preconditions_on_var(num_variables, -1);
-            for (FactProxy precondition : op.get_preconditions()) {
-                FactPair fact = precondition.get_pair();
-                preconditions_on_var[fact.var] = fact.value;
+            for (const auto [var, value] : op.get_preconditions()) {
+                preconditions_on_var[var] = value;
             }
             return preconditions_on_var;
         });
 }
 
-void StubbornSetsEC::build_reachability_map(const TaskProxy& task_proxy)
+void StubbornSetsEC::build_reachability_map(
+    const VariableSpace& variables,
+    const ClassicalOperatorSpace& operators)
 {
-    vector<StubbornDTG> dtgs = build_dtgs(task_proxy);
+    vector<StubbornDTG> dtgs = build_dtgs(variables, operators);
     reachability_map = utils::map_vector<vector<vector<bool>>>(
-        task_proxy.get_variables(),
+        variables,
         [&](const VariableProxy& var) {
             StubbornDTG& dtg = dtgs[var.get_id()];
             int num_values = var.get_domain_size();
@@ -179,7 +186,7 @@ void StubbornSetsEC::compute_active_operators(const State& state)
 
         for (const FactPair& precondition : sorted_op_preconditions[op_no]) {
             int var_id = precondition.var;
-            int current_value = state[var_id].get_value();
+            int current_value = state[var_id];
             const vector<bool>& reachable_values =
                 reachability_map[var_id][current_value];
             if (!reachable_values[precondition.value]) {
@@ -188,9 +195,7 @@ void StubbornSetsEC::compute_active_operators(const State& state)
             }
         }
 
-        if (all_preconditions_are_active) {
-            active_ops[op_no] = true;
-        }
+        if (all_preconditions_are_active) { active_ops[op_no] = true; }
     }
 }
 
@@ -202,9 +207,7 @@ const vector<int>& StubbornSetsEC::get_conflicting_and_disabling(int op1_no)
             if (op1_no != op2_no) {
                 bool conflict = can_conflict(op1_no, op2_no);
                 bool disable = can_disable(op2_no, op1_no);
-                if (conflict || disable) {
-                    result.push_back(op2_no);
-                }
+                if (conflict || disable) { result.push_back(op2_no); }
             }
         }
         result.shrink_to_fit();
@@ -291,7 +294,7 @@ void StubbornSetsEC::apply_s5(int op_no, const State& state)
     // Find a violated state variable and check if stubborn contains a writer
     // for this variable.
     for (const FactPair& pre : sorted_op_preconditions[op_no]) {
-        if (state[pre.var].get_value() != pre.value && written_vars[pre.var]) {
+        if (state[pre.var] != pre.value && written_vars[pre.var]) {
             if (!nes_computed[pre.var][pre.value]) {
                 add_nes_for_fact(pre, state);
             }
@@ -363,4 +366,4 @@ void StubbornSetsEC::handle_stubborn_operator(const State& state, int op_no)
     }
 }
 
-} // namespace stubborn_sets_ec
+} // namespace downward::stubborn_sets_ec

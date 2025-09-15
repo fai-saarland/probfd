@@ -7,11 +7,12 @@
 namespace downward::utils {
 class CountdownTimer {
     Timer timer;
-    double max_time;
+    Duration max_time;
 
 public:
-    explicit CountdownTimer(double max_time);
+    explicit CountdownTimer(Duration max_time);
     ~CountdownTimer();
+
     bool is_expired() const;
     void throw_if_expired() const;
     Duration get_elapsed_time() const;

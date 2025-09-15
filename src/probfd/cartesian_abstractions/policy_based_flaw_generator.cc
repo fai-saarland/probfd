@@ -41,7 +41,7 @@ unique_ptr<Solution> PolicyBasedFlawGenerator::find_solution(
 }
 
 optional<Flaw> PolicyBasedFlawGenerator::find_flaw(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTaskTuple& task,
     const std::vector<int>& domain_sizes,
     CartesianAbstraction& abstraction,
     Solution& solution,
@@ -49,17 +49,12 @@ optional<Flaw> PolicyBasedFlawGenerator::find_flaw(
     utils::CountdownTimer& timer)
 {
     TimerScope scope(find_flaw_timer_);
-    return policy_flaw_finder_->find_flaw(
-        task_proxy,
-        domain_sizes,
-        abstraction,
-        solution,
-        log,
-        timer);
+    return policy_flaw_finder_
+        ->find_flaw(task, domain_sizes, abstraction, solution, log, timer);
 }
 
 std::optional<Flaw> PolicyBasedFlawGenerator::generate_flaw(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTaskTuple& task,
     const std::vector<int>& domain_sizes,
     CartesianAbstraction& abstraction,
     const AbstractState* init,
@@ -72,17 +67,17 @@ std::optional<Flaw> PolicyBasedFlawGenerator::generate_flaw(
 
     if (!solution) {
         if (log.is_at_least_normal()) {
-            log << "Abstract task is unsolvable." << endl;
+            log.println("Abstract task is unsolvable.");
         }
 
         return std::nullopt;
     }
 
     optional<Flaw> flaw =
-        find_flaw(task_proxy, domain_sizes, abstraction, *solution, log, timer);
+        find_flaw(task, domain_sizes, abstraction, *solution, log, timer);
 
     if (!flaw && log.is_at_least_normal()) {
-        log << "Found a policy without a flaw." << endl;
+        log.println("Found a policy without a flaw.");
     }
 
     return flaw;
@@ -95,9 +90,10 @@ void PolicyBasedFlawGenerator::notify_split()
 void PolicyBasedFlawGenerator::print_statistics(utils::LogProxy& log)
 {
     if (log.is_at_least_normal()) {
-        log << "Time for finding abstract policies: " << find_policy_timer_
-            << endl;
-        log << "Time for finding policy flaws: " << find_flaw_timer_ << endl;
+        log.println(
+            "Time for finding abstract policies: {}",
+            find_policy_timer_());
+        log.println("Time for finding policy flaws: {}", find_flaw_timer_());
     }
 }
 

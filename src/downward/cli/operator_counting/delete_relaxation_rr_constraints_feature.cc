@@ -1,4 +1,7 @@
+#include "downward/cli/operator_counting/delete_relaxation_rr_constraints_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/operator_counting/delete_relaxation_rr_constraints.h"
 
@@ -13,7 +16,6 @@ using namespace downward::operator_counting;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class DeleteRelaxationRRConstraintsFeature
     : public TypedFeature<ConstraintGenerator, DeleteRelaxationRRConstraints> {
 public:
@@ -87,23 +89,30 @@ public:
             opts.get<bool>("use_integer_vars"));
     }
 };
+}
 
-FeaturePlugin<DeleteRelaxationRRConstraintsFeature> _plugin;
+namespace downward::cli::operator_counting {
 
-TypedEnumPlugin<AcyclicityType> _enum_plugin(
-    {{"time_labels",
-      "introduces MIP variables that encode the time at which each fact is "
-      "reached. Acyclicity is enforced with constraints that ensure that "
-      "preconditions of actions are reached before their effects."},
-     {"vertex_elimination",
-      "introduces binary variables based on vertex elimination. These "
-      "variables encode that one fact has to be reached before another "
-      "fact. Instead of adding such variables for every pair of states, "
-      "they are only added for a subset sufficient to ensure acyclicity. "
-      "Constraints enforce that preconditions of actions are reached before "
-      "their effects and that the assignment encodes a valid order."},
-     {"none",
-      "No acyclicity is enforced. The resulting heuristic is a relaxation "
-      "of the delete-relaxation heuristic."}});
+void add_delete_relaxation_rr_constraints_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<DeleteRelaxationRRConstraintsFeature>();
+
+    raw_registry.insert_enum_plugin<AcyclicityType>(
+        {{"time_labels",
+          "introduces MIP variables that encode the time at which each fact is "
+          "reached. Acyclicity is enforced with constraints that ensure that "
+          "preconditions of actions are reached before their effects."},
+         {"vertex_elimination",
+          "introduces binary variables based on vertex elimination. These "
+          "variables encode that one fact has to be reached before another "
+          "fact. Instead of adding such variables for every pair of states, "
+          "they are only added for a subset sufficient to ensure acyclicity. "
+          "Constraints enforce that preconditions of actions are reached "
+          "before "
+          "their effects and that the assignment encodes a valid order."},
+         {"none",
+          "No acyclicity is enforced. The resulting heuristic is a relaxation "
+          "of the delete-relaxation heuristic."}});
+}
 
 } // namespace

@@ -272,7 +272,7 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
     HeuristicType& heuristic,
     ParamType<State> state,
     ProgressReport,
-    double max_time)
+    downward::utils::Duration max_time)
 {
     storage::PerStateStorage<AlgorithmValueType> value_store;
     return this
@@ -295,16 +295,14 @@ TATopologicalValueIteration<State, Action, UseInterval>::get_statistics() const
 
 template <typename State, typename Action, bool UseInterval>
 TATopologicalValueIteration<State, Action, UseInterval>::
-    TATopologicalValueIteration(value_t epsilon)
+    TATopologicalValueIteration(
+        value_t epsilon,
+        std::size_t num_states_hint,
+        bool allow_pruning)
     : IterativeMDPAlgorithm<State, Action>(epsilon)
+    , allow_pruning_(allow_pruning)
 {
-}
-
-template <typename State, typename Action, bool UseInterval>
-TATopologicalValueIteration<State, Action, UseInterval>::
-    TATopologicalValueIteration(value_t epsilon, std::size_t num_states_hint)
-    : TATopologicalValueIteration(epsilon)
-{
+    if (num_states_hint == 0) return;
     dfs_stack_.reserve(num_states_hint);
     exploration_stack_ecd_.reserve(num_states_hint);
     stack_ecd_.reserve(num_states_hint);
@@ -318,11 +316,15 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
     const HeuristicType& heuristic,
     StateID init_state_id,
     auto& value_store,
-    double max_time)
+    downward::utils::Duration max_time)
 {
-    statistics_ = Statistics();
+    assert(dfs_stack_.empty());
+    assert(tarjan_stack_.empty());
+    assert(exploration_stack_ecd_.empty());
+    assert(stack_ecd_.empty());
+    assert(scc_.empty());
 
-    // scope_exit _([this] { statistics_.print(std::cout); });
+    statistics_ = Statistics();
 
     downward::utils::CountdownTimer timer(max_time);
 
@@ -414,7 +416,7 @@ auto TATopologicalValueIteration<State, Action, UseInterval>::compute_policy(
     HeuristicType&,
     ParamType<State>,
     ProgressReport,
-    double) -> std::unique_ptr<PolicyType>
+    downward::utils::Duration) -> std::unique_ptr<PolicyType>
 {
     not_implemented();
 }
@@ -521,7 +523,7 @@ bool TATopologicalValueIteration<State, Action, UseInterval>::initialize_state(
 
     if (state_term.is_goal_state()) {
         ++statistics_.goal_states;
-    } else if (estimate == t_cost) {
+    } else if (allow_pruning_ && estimate == t_cost) {
         ++statistics_.pruned;
         return false;
     }

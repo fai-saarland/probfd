@@ -11,14 +11,14 @@ class AdditiveMaxOrthogonalityFinderFactory
     : public SubCollectionFinderFactory {
 public:
     std::unique_ptr<SubCollectionFinder> create_subcollection_finder(
-        const ProbabilisticTaskProxy& task_proxy) override;
+        const SharedProbabilisticTask& task) override;
 };
 
 class MultiplicativeMaxOrthogonalityFinderFactory
     : public SubCollectionFinderFactory {
 public:
     std::unique_ptr<SubCollectionFinder> create_subcollection_finder(
-        const ProbabilisticTaskProxy& task_proxy) override;
+        const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::pdbs

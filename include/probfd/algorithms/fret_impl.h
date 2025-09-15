@@ -43,7 +43,7 @@ auto FRET<NestedAlgorithm, GreedyGraphGenerator>::compute_policy(
     HeuristicType& heuristic,
     ParamType<State> state,
     ProgressReport progress,
-    double max_time) -> std::unique_ptr<PolicyType>
+    downward::utils::Duration max_time) -> std::unique_ptr<PolicyType>
 {
     QuotientSystem quotient(mdp);
     quotients::QuotientMaxHeuristic<State, Action> qheuristic(heuristic);
@@ -170,7 +170,7 @@ Interval FRET<NestedAlgorithm, GreedyGraphGenerator>::solve(
     HeuristicType& heuristic,
     ParamType<State> state,
     ProgressReport progress,
-    double max_time)
+    downward::utils::Duration max_time)
 {
     QuotientSystem quotient(mdp);
     quotients::QuotientMaxHeuristic<State, Action> qheuristic(heuristic);
@@ -200,7 +200,7 @@ Interval FRET<NestedAlgorithm, GreedyGraphGenerator>::solve(
     QHeuristic& heuristic,
     ParamType<QState> state,
     ProgressReport& progress,
-    double max_time)
+    downward::utils::Duration max_time)
 {
     downward::utils::CountdownTimer timer(max_time);
 

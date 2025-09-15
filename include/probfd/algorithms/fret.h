@@ -31,9 +31,9 @@ struct Statistics {
     unsigned long long traps = 0;
 
 #if defined(EXPENSIVE_STATISTICS)
-    utils::Timer heuristic_search = utils::Timer(true);
-    utils::Timer trap_identification = utils::Timer(true);
-    utils::Timer trap_removal = utils::Timer(true);
+    utils::Timer heuristic_search = utils::Timer(false);
+    utils::Timer trap_identification = utils::Timer(false);
+    utils::Timer trap_removal = utils::Timer(false);
 #endif
 
     void print(std::ostream& out) const;
@@ -160,14 +160,14 @@ public:
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport progress,
-        double max_time) override;
+        downward::utils::Duration max_time) override;
 
     Interval solve(
         MDPType& mdp,
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport progress,
-        double max_time);
+        downward::utils::Duration max_time);
 
     void print_statistics(std::ostream& out) const override;
 
@@ -177,7 +177,7 @@ private:
         QHeuristic& heuristic,
         ParamType<QState> state,
         ProgressReport& progress,
-        double max_time);
+        downward::utils::Duration max_time);
 
     Interval heuristic_search(
         QuotientSystem& quotient,

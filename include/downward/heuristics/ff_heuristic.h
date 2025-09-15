@@ -32,18 +32,18 @@ class FFHeuristic : public additive_heuristic::AdditiveHeuristic {
         PropID goal_id);
 
 protected:
-    virtual int compute_heuristic(const State& ancestor_state) override;
+    int compute_heuristic(const State& ancestor_state) override;
 
 public:
     FFHeuristic(
-        std::shared_ptr<AbstractTask> original_task,
+        SharedAbstractTask original_task,
         TaskTransformationResult transformation_result,
         bool cache_estimates,
         const std::string& description,
         utils::Verbosity verbosity);
 
     FFHeuristic(
-        std::shared_ptr<AbstractTask> original_task,
+        SharedAbstractTask original_task,
         const std::shared_ptr<TaskTransformation>& transformation_result,
         bool cache_estimates,
         const std::string& description,

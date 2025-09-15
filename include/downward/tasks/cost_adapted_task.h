@@ -1,9 +1,17 @@
 #ifndef TASKS_COST_ADAPTED_TASK_H
 #define TASKS_COST_ADAPTED_TASK_H
 
-#include "downward/tasks/delegating_task.h"
+#include "downward/operator_cost_function.h"
 
 #include "downward/operator_cost.h"
+
+#include "downward/task_utils/task_properties.h"
+
+#include <memory>
+
+namespace downward {
+class OperatorSpace;
+}
 
 namespace downward::tasks {
 /*
@@ -18,18 +26,36 @@ namespace downward::tasks {
   Regardless of the cost_type value, axioms will always keep their original
   cost, which is 0 by default.
 */
-class CostAdaptedTask : public DelegatingTask {
+template <typename T>
+class AdaptedOperatorCostFunction : public OperatorCostFunction<T> {
+    std::shared_ptr<OperatorCostFunction<T>> parent;
     const OperatorCost cost_type;
     const bool parent_is_unit_cost;
 
 public:
-    CostAdaptedTask(
-        const std::shared_ptr<AbstractTask>& parent,
-        OperatorCost cost_type);
-    virtual ~CostAdaptedTask() override = default;
+    AdaptedOperatorCostFunction(
+        const OperatorSpace& operators,
+        std::shared_ptr<OperatorCostFunction<T>> parent,
+        OperatorCost cost_type)
+        : parent(std::move(parent))
+        , cost_type(cost_type)
+        , parent_is_unit_cost(
+              task_properties::is_unit_cost(operators, *this->parent))
+    {
+    }
 
-    virtual int get_operator_cost(int index) const override;
+    int get_operator_cost(int index) const override
+    {
+        return get_adjusted_action_cost(
+            index,
+            *parent,
+            cost_type,
+            parent_is_unit_cost);
+    }
 };
-} // namespace tasks
+
+using AdaptedOperatorIntCostFunction = AdaptedOperatorCostFunction<int>;
+
+} // namespace downward::tasks
 
 #endif

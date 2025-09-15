@@ -5,7 +5,7 @@
 #include <vector>
 
 namespace downward {
-class TaskProxy;
+class VariableSpace;
 }
 
 namespace downward::equivalence_relation {
@@ -76,7 +76,7 @@ public:
         LabelReductionMethod method,
         LabelReductionSystemOrder system_order,
         int random_seed);
-    void initialize(const TaskProxy& task_proxy);
+    void initialize(const VariableSpace& task);
     bool reduce(
         const std::pair<int, int>& next_merge,
         FactoredTransitionSystem& fts,

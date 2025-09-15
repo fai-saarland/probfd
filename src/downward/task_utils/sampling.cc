@@ -1,18 +1,22 @@
 #include "downward/task_utils/sampling.h"
 
+#include "downward/axiom_evaluator.h"
+#include "downward/initial_state_values.h"
 #include "downward/task_utils/successor_generator.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/task_utils/task_properties.h"
-#include "downward/utils/memory.h"
 #include "downward/utils/rng.h"
+
+#include <downward/operator_cost_function_fwd.h>
 
 using namespace std;
 
 namespace downward::sampling {
 static State sample_state_with_random_walk(
-    const OperatorsProxy& operators,
+    AxiomEvaluator& axiom_evaluator,
+    const ClassicalOperatorSpace& operators,
     const State& initial_state,
     const successor_generator::SuccessorGenerator& successor_generator,
     int init_h,
@@ -62,7 +66,9 @@ static State sample_state_with_random_walk(
             OperatorID random_op_id = *rng.choose(applicable_operators);
             OperatorProxy random_op = operators[random_op_id];
             assert(task_properties::is_applicable(random_op, current_state));
-            current_state = current_state.get_unregistered_successor(random_op);
+            current_state = current_state.get_unregistered_successor(
+                axiom_evaluator,
+                random_op);
             /* If current state is a dead end, then restart the random walk
                with the initial state. */
             if (is_dead_end(current_state)) {
@@ -75,14 +81,19 @@ static State sample_state_with_random_walk(
 }
 
 RandomWalkSampler::RandomWalkSampler(
-    const TaskProxy& task_proxy,
+    AxiomEvaluator& axiom_evaluator,
+    const VariableSpace& variables,
+    const ClassicalOperatorSpace& operators,
+    const OperatorIntCostFunction& cost_function,
     utils::RandomNumberGenerator& rng)
-    : operators(task_proxy.get_operators())
+    : axiom_evaluator(axiom_evaluator)
+    , operators(operators)
     , successor_generator(
-          std::make_unique<successor_generator::SuccessorGenerator>(task_proxy))
-    , initial_state(task_proxy.get_initial_state())
+          std::make_unique<successor_generator::SuccessorGenerator>(variables, operators))
     , average_operator_costs(
-          task_properties::get_average_operator_cost(task_proxy))
+          task_properties::get_average_operator_cost(
+              operators,
+              cost_function))
     , rng(rng)
 {
 }
@@ -93,9 +104,11 @@ RandomWalkSampler::~RandomWalkSampler()
 
 State RandomWalkSampler::sample_state(
     int init_h,
+    const State& initial_state,
     const DeadEndDetector& is_dead_end) const
 {
     return sample_state_with_random_walk(
+        axiom_evaluator,
         operators,
         initial_state,
         *successor_generator,
@@ -104,4 +117,4 @@ State RandomWalkSampler::sample_state(
         rng,
         is_dead_end);
 }
-} // namespace sampling
+} // namespace downward::sampling

@@ -1,17 +1,19 @@
 #include "probfd/pdbs/projection_operator.h"
 
+#include "probfd/probabilistic_operator_space.h"
+
 namespace probfd::pdbs {
 
 ProjectionOperatorToString::ProjectionOperatorToString(
-    ProbabilisticTaskProxy task_proxy)
-    : task_proxy_(task_proxy)
+    const ProbabilisticOperatorSpace& operators)
+    : operators_(operators)
 {
 }
 
 std::string
 ProjectionOperatorToString::operator()(const ProjectionOperator* op) const
 {
-    return task_proxy_.get_operators()[op->operator_id].get_name();
+    return operators_[op->operator_id].get_name();
 }
 
 } // namespace probfd::pdbs

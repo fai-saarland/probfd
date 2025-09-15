@@ -1,7 +1,10 @@
 #ifndef TASK_UTILS_SAMPLING_H
 #define TASK_UTILS_SAMPLING_H
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/classical_operator_space.h"
+#include "downward/operator_cost_function_fwd.h"
+#include "downward/state.h"
 
 #include <functional>
 #include <memory>
@@ -25,17 +28,21 @@ namespace downward::sampling {
   Sample states with random walks.
 */
 class RandomWalkSampler {
-    const OperatorsProxy operators;
+    AxiomEvaluator& axiom_evaluator;
+    const ClassicalOperatorSpace& operators;
     const std::unique_ptr<successor_generator::SuccessorGenerator>
         successor_generator;
-    const State initial_state;
     const double average_operator_costs;
     utils::RandomNumberGenerator& rng;
 
 public:
     RandomWalkSampler(
-        const TaskProxy& task_proxy,
+        AxiomEvaluator& axiom_evaluator,
+        const VariableSpace& variables,
+        const ClassicalOperatorSpace& operators,
+        const OperatorIntCostFunction& cost_function,
         utils::RandomNumberGenerator& rng);
+
     ~RandomWalkSampler();
 
     /*
@@ -51,10 +58,11 @@ public:
     */
     State sample_state(
         int init_h,
+        const State& initial_state,
         const DeadEndDetector& is_dead_end = [](const State&) {
             return false;
         }) const;
 };
-} // namespace sampling
+} // namespace downward::sampling
 
 #endif

@@ -1,6 +1,9 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/pruning/stubborn_sets_atom_centric_feature.h"
 
-#include "downward/cli/pruning_method_options.h"
+#include "downward/cli/pruning/pruning_method_options.h"
+
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/pruning/stubborn_sets_atom_centric.h"
 
@@ -15,7 +18,6 @@ using namespace downward::cli;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class StubbornSetsAtomCentricFeature
     : public TypedFeature<downward::PruningMethod, StubbornSetsAtomCentric> {
 public:
@@ -70,20 +72,27 @@ public:
             get_pruning_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<StubbornSetsAtomCentricFeature> _plugin;
+namespace downward::cli::pruning {
 
-TypedEnumPlugin<AtomSelectionStrategy> _enum_plugin(
-    {{"fast_downward",
-      "select the atom (v, d) with the variable v that comes first in the Fast "
-      "Downward variable ordering (which is based on the causal graph)"},
-     {"quick_skip",
-      "if possible, select an unsatisfied atom whose producers are already "
-      "marked"},
-     {"static_small",
-      "select the atom achieved by the fewest number of actions"},
-     {"dynamic_small",
-      "select the atom achieved by the fewest number of actions that are not "
-      "yet part of the stubborn set"}});
+void add_stubborn_sets_atom_centric_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<StubbornSetsAtomCentricFeature>();
+    raw_registry.insert_enum_plugin<AtomSelectionStrategy>(
+        {{"fast_downward",
+          "select the atom (v, d) with the variable v that comes first in the "
+          "Fast "
+          "Downward variable ordering (which is based on the causal graph)"},
+         {"quick_skip",
+          "if possible, select an unsatisfied atom whose producers are already "
+          "marked"},
+         {"static_small",
+          "select the atom achieved by the fewest number of actions"},
+         {"dynamic_small",
+          "select the atom achieved by the fewest number of actions that are "
+          "not "
+          "yet part of the stubborn set"}});
+}
 
 } // namespace

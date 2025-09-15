@@ -3,15 +3,20 @@
 
 #include "downward/pdbs/types.h"
 
-#include "downward/task_proxy.h"
+#include "downward/operator_id.h"
+#include "downward/state.h"
 
 #include <utility>
 #include <vector>
 
+namespace downward {
+class OperatorProxy;
+} // namespace downward
+
 namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
-} // namespace utils
+} // namespace downward::utils
 
 namespace downward::pdbs {
 class AbstractOperator {
@@ -77,9 +82,10 @@ public:
       the original concrete operator)
     */
     int get_cost() const { return cost; }
+
     void dump(
         const Pattern& pattern,
-        const VariablesProxy& variables,
+        const VariableSpace& variables,
         utils::LogProxy& log) const;
 };
 
@@ -116,7 +122,7 @@ class PatternDatabase {
         std::vector<FactPair>& pre_pairs,
         std::vector<FactPair>& eff_pairs,
         const std::vector<FactPair>& effects_without_pre,
-        const VariablesProxy& variables,
+        const VariableSpace& variables,
         int concrete_op_id,
         std::vector<AbstractOperator>& operators);
 
@@ -130,7 +136,7 @@ class PatternDatabase {
         const OperatorProxy& op,
         int cost,
         const std::vector<int>& variable_to_index,
-        const VariablesProxy& variables,
+        const VariableSpace& variables,
         std::vector<AbstractOperator>& operators);
 
     /*
@@ -141,7 +147,7 @@ class PatternDatabase {
       cost partitioning. If left empty, default operator costs are used.
     */
     void create_pdb(
-        const TaskProxy& task_proxy,
+        const AbstractTaskTuple& task,
         const std::vector<int>& operator_costs,
         bool compute_plan,
         const std::shared_ptr<utils::RandomNumberGenerator>& rng,
@@ -156,7 +162,7 @@ class PatternDatabase {
     bool is_goal_state(
         int state_index,
         const std::vector<FactPair>& abstract_goals,
-        const VariablesProxy& variables) const;
+        const VariableSpace& variables) const;
 
     /*
       The given concrete state is used to calculate the index of the
@@ -181,7 +187,7 @@ public:
        optimal plan. Otherwise, compute a simple plan (a sequence of operators).
     */
     PatternDatabase(
-        const TaskProxy& task_proxy,
+        const AbstractTaskTuple& task,
         const Pattern& pattern,
         const std::vector<int>& operator_costs = std::vector<int>(),
         bool compute_plan = false,
@@ -216,6 +222,6 @@ public:
     // Returns true iff op has an effect on a variable in the pattern.
     bool is_operator_relevant(const OperatorProxy& op) const;
 };
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

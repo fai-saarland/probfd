@@ -1,12 +1,19 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/heuristics/cea_heuristic_feature.h"
 
-#include "downward/cli/heuristic_options.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "downward/cli/heuristics/heuristic_options.h"
 
 #include "downward/heuristics/cea_heuristic.h"
 
 #include "downward/utils/logging.h"
 
+#include "downward/task_dependent_factory.h"
+#include "downward/task_transformation.h"
+
 using namespace std;
+using namespace downward;
 using namespace downward::cea_heuristic;
 using namespace downward::utils;
 
@@ -16,11 +23,42 @@ using downward::cli::add_heuristic_options_to_feature;
 using downward::cli::get_heuristic_arguments_from_options;
 
 namespace {
+class ContextEnhancedAdditiveHeuristicFactory
+    : public TaskDependentFactory<Evaluator> {
+    std::shared_ptr<TaskTransformation> transformation;
+    bool cache_estimates;
+    std::string description;
+    utils::Verbosity verbosity;
+
+public:
+    ContextEnhancedAdditiveHeuristicFactory(
+        shared_ptr<TaskTransformation> transformation,
+        bool cache_estimates,
+        string description,
+        utils::Verbosity verbosity)
+        : transformation(std::move(transformation))
+        , cache_estimates(cache_estimates)
+        , description(std::move(description))
+        , verbosity(verbosity)
+    {
+    }
+
+    unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
+    {
+        auto transformation_result = transformation->transform(task);
+        return std::make_unique<ContextEnhancedAdditiveHeuristic>(
+            task,
+            std::move(transformation_result),
+            cache_estimates,
+            description,
+            verbosity);
+    }
+};
 
 class ContextEnhancedAdditiveHeuristicFeature
     : public TypedFeature<
-          downward::Evaluator,
-          ContextEnhancedAdditiveHeuristic> {
+          TaskDependentFactory<Evaluator>,
+          ContextEnhancedAdditiveHeuristicFactory> {
 public:
     ContextEnhancedAdditiveHeuristicFeature()
         : TypedFeature("cea")
@@ -43,14 +81,22 @@ public:
         document_property("preferred operators", "yes");
     }
 
-    virtual shared_ptr<ContextEnhancedAdditiveHeuristic>
+    shared_ptr<ContextEnhancedAdditiveHeuristicFactory>
     create_component(const Options& opts, const Context&) const override
     {
-        return make_shared_from_arg_tuples<ContextEnhancedAdditiveHeuristic>(
+        return make_shared_from_arg_tuples<
+            ContextEnhancedAdditiveHeuristicFactory>(
             get_heuristic_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<ContextEnhancedAdditiveHeuristicFeature> _plugin;
+namespace downward::cli::heuristics {
+
+void add_cea_heuristic_feature(RawRegistry& raw_registry)
+{
+    raw_registry
+        .insert_feature_plugin<ContextEnhancedAdditiveHeuristicFeature>();
+}
 
 } // namespace

@@ -113,21 +113,21 @@ public:
         HeuristicType& heuristic,
         ParamType<State> initial_state,
         ProgressReport progress,
-        double max_time) override;
+        downward::utils::Duration max_time) override;
 
     Interval solve(
         MDPType& mdp,
         HeuristicType& heuristic,
         ParamType<State> initial_state,
         ProgressReport progress,
-        double max_time);
+        downward::utils::Duration max_time);
 
 private:
     Interval solve(
         MDPType& mdp,
         HeuristicType& heuristic,
         ParamType<State> initial_state,
-        double max_time,
+        downward::utils::Duration max_time,
         MapPolicy* policy);
 
     bool push_successor(

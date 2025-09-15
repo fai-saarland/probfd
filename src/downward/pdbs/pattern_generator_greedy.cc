@@ -2,7 +2,8 @@
 
 #include "downward/pdbs/pattern_information.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/state.h"
 
 #include "downward/task_utils/variable_order_finder.h"
 
@@ -28,14 +29,14 @@ string PatternGeneratorGreedy::name() const
 }
 
 PatternInformation
-PatternGeneratorGreedy::compute_pattern(const shared_ptr<AbstractTask>& task)
+PatternGeneratorGreedy::compute_pattern(const SharedAbstractTask& task)
 {
-    TaskProxy task_proxy(*task);
+    const auto& variables = get_variables(task);
+
     Pattern pattern;
     variable_order_finder::VariableOrderFinder order(
-        task_proxy,
+        to_refs(task),
         variable_order_finder::GOAL_CG_LEVEL);
-    VariablesProxy variables = task_proxy.get_variables();
 
     int size = 1;
     while (true) {
@@ -51,7 +52,7 @@ PatternGeneratorGreedy::compute_pattern(const shared_ptr<AbstractTask>& task)
         size *= next_var_size;
     }
 
-    return PatternInformation(task_proxy, std::move(pattern), log);
+    return PatternInformation(to_refs(task), std::move(pattern), log);
 }
 
-} // namespace pdbs
+} // namespace downward::pdbs

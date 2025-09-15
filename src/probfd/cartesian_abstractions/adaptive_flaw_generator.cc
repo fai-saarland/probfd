@@ -31,7 +31,7 @@ AdaptiveFlawGenerator::AdaptiveFlawGenerator(
 }
 
 std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTaskTuple& task,
     const std::vector<int>& domain_sizes,
     CartesianAbstraction& abstraction,
     const AbstractState* init_id,
@@ -42,7 +42,7 @@ std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
     while (current_generator_ != generators_.size()) {
         auto& generator = generators_[current_generator_];
         std::optional<Flaw> flaw = generator->generate_flaw(
-            task_proxy,
+            task,
             domain_sizes,
             abstraction,
             init_id,
@@ -52,7 +52,9 @@ std::optional<Flaw> AdaptiveFlawGenerator::generate_flaw(
 
         if (flaw) return flaw;
 
-        log << "Switching to the next flaw generator." << std::endl;
+        if (log.is_at_least_normal()) {
+            log.println("Switching to the next flaw generator.");
+        }
     }
 
     return std::nullopt;
@@ -67,9 +69,7 @@ void AdaptiveFlawGenerator::notify_split()
 
 void AdaptiveFlawGenerator::print_statistics(LogProxy& log)
 {
-    for (auto& gen : generators_) {
-        gen->print_statistics(log);
-    }
+    for (auto& gen : generators_) { gen->print_statistics(log); }
 }
 
 AdaptiveFlawGeneratorFactory::AdaptiveFlawGeneratorFactory(

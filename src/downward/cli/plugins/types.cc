@@ -4,26 +4,17 @@
 
 #include "downward/utils/strings.h"
 
+#include <chrono>
 #include <sstream>
 #include <typeindex>
 
 using namespace std;
 
 namespace downward::cli::plugins {
-bool Type::operator!=(const Type& other) const
-{
-    return !(*this == other);
-}
 
 bool Type::is_basic_type() const
 {
     return false;
-}
-
-const type_index& Type::get_basic_type_index() const
-{
-    ABORT(
-        "Used Type::get_basic_type_index on a type that does not support it.");
 }
 
 bool Type::is_feature_type() const
@@ -31,41 +22,19 @@ bool Type::is_feature_type() const
     return false;
 }
 
-string Type::get_synopsis() const
-{
-    ABORT("Used Type::get_synopsis on a type that does not support it.");
-}
-
 bool Type::is_list_type() const
 {
     return false;
 }
 
-bool Type::has_nested_type() const
+bool Type::is_empty_list_type() const
 {
     return false;
-}
-
-const Type& Type::get_nested_type() const
-{
-    ABORT("Used Type::get_nested_type on a type that does not support it.");
 }
 
 bool Type::is_enum_type() const
 {
     return false;
-}
-
-int Type::get_enum_index(const string&, utils::Context&) const
-{
-    ABORT("Used Type::get_enum_index on a type that does not support it.");
-}
-
-const EnumInfo& Type::get_documented_enum_values() const
-{
-    ABORT(
-        "Used Type::get_documented_enum_values on a type that does not "
-        "support it.");
 }
 
 bool Type::is_symbol_type() const
@@ -104,7 +73,8 @@ bool BasicType::can_convert_into(const Type& other) const
 {
     return Type::can_convert_into(other) ||
            (other.is_basic_type() && get_basic_type_index() == typeid(int) &&
-            other.get_basic_type_index() == typeid(double));
+            static_cast<const BasicType&>(other).get_basic_type_index() ==
+                typeid(double));
 }
 
 string BasicType::name() const
@@ -170,11 +140,6 @@ bool ListType::is_list_type() const
     return true;
 }
 
-bool ListType::has_nested_type() const
-{
-    return true;
-}
-
 const Type& ListType::get_nested_type() const
 {
     return nested_type;
@@ -182,8 +147,9 @@ const Type& ListType::get_nested_type() const
 
 bool ListType::can_convert_into(const Type& other) const
 {
-    return other.is_list_type() && other.has_nested_type() &&
-           nested_type.can_convert_into(other.get_nested_type());
+    return other.is_list_type() &&
+           nested_type.can_convert_into(
+               static_cast<const ListType&>(other).get_nested_type());
 }
 
 string ListType::name() const
@@ -203,6 +169,11 @@ bool EmptyListType::operator==(const Type& other) const
 }
 
 bool EmptyListType::is_list_type() const
+{
+    return true;
+}
+
+bool EmptyListType::is_empty_list_type() const
 {
     return true;
 }
@@ -308,9 +279,11 @@ std::any convert(
         return value;
     } else if (
         from_type.is_basic_type() &&
-        from_type.get_basic_type_index() == typeid(int) &&
+        static_cast<const BasicType&>(from_type).get_basic_type_index() ==
+            typeid(int) &&
         to_type.is_basic_type() &&
-        to_type.get_basic_type_index() == typeid(double)) {
+        static_cast<const BasicType&>(to_type).get_basic_type_index() ==
+            typeid(double)) {
         int int_value = any_cast<int>(value);
         if (int_value == numeric_limits<int>::max()) {
             return std::any(numeric_limits<double>::infinity());
@@ -320,33 +293,37 @@ std::any convert(
         return std::any(static_cast<double>(int_value));
     } else if (from_type.is_symbol_type() && to_type.is_enum_type()) {
         string str_value = any_cast<string>(value);
-        return std::any(to_type.get_enum_index(str_value, context));
-    } else if (
-        from_type.is_list_type() && !from_type.has_nested_type() &&
-        to_type.is_list_type()) {
-        /* A list without a specified type for its nested elements can be
-           interpreted as a list of any other type. */
-        return value;
-    } else if (
-        from_type.is_list_type() && from_type.has_nested_type() &&
-        to_type.is_list_type() && to_type.has_nested_type() &&
-        from_type.get_nested_type().can_convert_into(
-            to_type.get_nested_type())) {
-        const Type& from_nested_type = from_type.get_nested_type();
-        const Type& to_nested_type = to_type.get_nested_type();
-        const vector<std::any>& elements = any_cast<vector<std::any>>(value);
-        vector<std::any> converted_elements;
-        converted_elements.reserve(elements.size());
-        for (const std::any& element : elements) {
-            converted_elements.push_back(
-                convert(element, from_nested_type, to_nested_type, context));
+        return std::any(
+            static_cast<const EnumType&>(to_type).get_enum_index(
+                str_value,
+                context));
+    } else if (from_type.is_list_type() && to_type.is_list_type()) {
+        if (from_type.is_empty_list_type()) {
+            return value;
         }
-        return std::any(converted_elements);
-    } else {
-        ABORT(
-            "Cannot convert " + from_type.name() + " to " + to_type.name() +
-            ".");
+
+        const Type& from_nested_type =
+            static_cast<const ListType&>(from_type).get_nested_type();
+        const Type& to_nested_type =
+            static_cast<const ListType&>(to_type).get_nested_type();
+
+        if (from_nested_type.can_convert_into(to_nested_type)) {
+            const vector<std::any>& elements =
+                any_cast<vector<std::any>>(value);
+            vector<std::any> converted_elements;
+            converted_elements.reserve(elements.size());
+            for (const std::any& element : elements) {
+                converted_elements.push_back(convert(
+                    element,
+                    from_nested_type,
+                    to_nested_type,
+                    context));
+            }
+            return std::any(converted_elements);
+        }
     }
+
+    ABORT("Cannot convert " + from_type.name() + " to " + to_type.name() + ".");
 }
 
 SymbolType TypeRegistry::SYMBOL_TYPE;

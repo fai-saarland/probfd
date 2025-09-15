@@ -3,10 +3,9 @@
 #include "probfd/merge_and_shrink/distances.h"
 #include "probfd/merge_and_shrink/types.h"
 
-#include "probfd/task_proxy.h"
-
 #include "downward/utils/logging.h"
 
+#include <algorithm>
 #include <cassert>
 #include <numeric>
 
@@ -52,7 +51,7 @@ FactoredMappingAtomic::FactoredMappingAtomic(int var_id, int domain_size)
 
 int FactoredMappingAtomic::get_abstract_state(const State& state) const
 {
-    return lookup_table[state[var_id].get_value()];
+    return lookup_table[state[var_id]];
 }
 
 bool FactoredMappingAtomic::is_total() const
@@ -63,11 +62,7 @@ bool FactoredMappingAtomic::is_total() const
 void FactoredMappingAtomic::dump(utils::LogProxy& log) const
 {
     if (log.is_at_least_debug()) {
-        log << "abstract state lookup table (leaf): ";
-        for (const int value : lookup_table) {
-            log << value << ", ";
-        }
-        log << endl;
+        log.println("abstract state lookup table (leaf): {}", lookup_table);
     }
 }
 
@@ -100,7 +95,7 @@ bool FactoredMappingMerge::is_total() const
 void FactoredMappingMerge::dump(utils::LogProxy& log) const
 {
     if (log.is_at_least_debug()) {
-        log << "abstract state lookup table (merge): " << endl;
+        log.println("abstract state lookup table (merge): ");
 
         auto it = lookup_table.begin();
         const auto end = lookup_table.end();
@@ -108,25 +103,26 @@ void FactoredMappingMerge::dump(utils::LogProxy& log) const
         while (it != end) {
             auto sub_end = it + left_child->get_num_abstract_states();
             assert(it != sub_end);
-            log << *it;
-            for (++it; it != sub_end; ++it) {
-                log << ", " << *it;
-            }
-            log << endl;
+            log.println("{}", std::ranges::subrange(it, sub_end));
+            it = sub_end;
         }
 
-        log << "left child:" << endl;
+        log.println("left child:");
         left_child->dump(log);
-        log << "right child:" << endl;
+        log.println("right child:");
         right_child->dump(log);
     }
 }
 
 std::pair<int, int> FactoredMappingMerge::get_children_states(int state) const
 {
-    return {
-        state % left_child->get_num_abstract_states(),
-        state / left_child->get_num_abstract_states()};
+    const auto it = std::ranges::find(lookup_table, state);
+    assert(it != lookup_table.end());
+    const auto index = std::distance(lookup_table.begin(), it);
+
+    const auto left = index % left_child->get_num_abstract_states();
+    const auto right = index / left_child->get_num_abstract_states();
+    return {left, right};
 }
 
 } // namespace probfd::merge_and_shrink

@@ -7,13 +7,16 @@
 #include <vector>
 
 namespace downward {
-class TaskProxy;
-}
+class VariableSpace;
+class ClassicalOperatorSpace;
+} // namespace downward
 
 namespace downward::pdbs {
 using VariableAdditivity = std::vector<std::vector<bool>>;
 
-extern VariableAdditivity compute_additive_vars(const TaskProxy& task_proxy);
+extern VariableAdditivity compute_additive_vars(
+    const VariableSpace& variables,
+    const ClassicalOperatorSpace& operators);
 
 /* Returns true iff the two patterns are additive i.e. there is no operator
    which affects variables in pattern one as well as in pattern two. */
@@ -79,6 +82,6 @@ extern std::vector<PatternClique> compute_pattern_cliques_with_pattern(
     const std::vector<PatternClique>& known_pattern_cliques,
     const Pattern& new_pattern,
     const VariableAdditivity& are_additive);
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

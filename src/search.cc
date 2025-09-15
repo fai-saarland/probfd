@@ -3,6 +3,7 @@
 #include "downward/cli/parser/lexical_analyzer.h"
 #include "downward/cli/parser/syntax_analyzer.h"
 #include "downward/cli/parser/token_stream.h"
+#include "register_definitions.h"
 
 #include "downward/cli/plugins/raw_registry.h"
 
@@ -10,7 +11,16 @@
 
 #include "probfd/utils/timed.h"
 
+#include "probfd/probabilistic_operator_space.h"
+#include "probfd/termination_costs.h"
+#include "probfd/probabilistic_task.h"
 #include "probfd/solver_interface.h"
+
+#include "downward/axiom_space.h"
+#include "downward/goal_fact_list.h"
+#include "downward/initial_state_values.h"
+#include "downward/operator_cost_function.h"
+#include "downward/variable_space.h"
 
 #include "downward/utils/logging.h"
 #include "downward/utils/strings.h"
@@ -69,7 +79,7 @@ insert_definitions(const std::string& old_search_argument, R&& predefinitions)
 
 static int search(argparse::ArgumentParser& parser)
 {
-    const double max_time = parser.get<double>("--max-search-time");
+    const Duration max_time(parser.get<double>("--max-search-time"));
 
     std::string search_arg = parser.get("algorithm");
 
@@ -89,12 +99,15 @@ static int search(argparse::ArgumentParser& parser)
 
     register_event_handlers();
 
+    RawRegistry raw_registry;
+    register_definitions(raw_registry);
+
     shared_ptr<TaskSolverFactory> solver_factory;
 
     try {
         TokenStream tokens = split_tokens(search_arg);
         ASTNodePtr parsed = parse(tokens);
-        DecoratedASTNodePtr decorated = parsed->decorate();
+        DecoratedASTNodePtr decorated = parsed->decorate(raw_registry);
 
         if (parser.get<bool>("--ignore-unused-definitions")) {
             std::vector<VariableDefinition> unused_defs;
@@ -142,10 +155,10 @@ static int search(argparse::ArgumentParser& parser)
         return static_cast<int>(ExitCode::SEARCH_CRITICAL_ERROR);
     }
 
-    std::shared_ptr<ProbabilisticTask> input_task = run_time_logged(
+    SharedProbabilisticTask input_task = run_time_logged(
         std::cout,
         "Reading input task...",
-        probfd::tasks::read_root_tasks_from_file,
+        probfd::tasks::read_sas_task_from_file,
         parser.get("sas_file"));
 
     std::unique_ptr<SolverInterface> solver =

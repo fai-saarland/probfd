@@ -109,9 +109,7 @@ void DocPrinter::print_subcategory(
         }
         os << endl;
     }
-    for (const Feature* feature : features) {
-        print_feature(*feature);
-    }
+    for (const Feature* feature : features) { print_feature(*feature); }
 }
 
 void DocPrinter::print_feature(const Feature& feature) const
@@ -132,9 +130,7 @@ Txt2TagsPrinter::Txt2TagsPrinter(ostream& out, Registry& registry)
 void Txt2TagsPrinter::print_synopsis(const Feature& feature) const
 {
     string title = feature.get_title();
-    if (title.empty()) {
-        title = feature.get_key();
-    }
+    if (title.empty()) { title = feature.get_key(); }
     os << "== " << title << " ==" << endl;
     if (!feature.get_synopsis().empty()) os << feature.get_synopsis() << endl;
 }
@@ -167,7 +163,8 @@ void Txt2TagsPrinter::print_arguments(const Feature& feature) const
         os << "): " << arg_info.help << endl;
         if (arg_type.is_enum_type()) {
             for (const pair<string, string>& explanation :
-                 arg_type.get_documented_enum_values()) {
+                 static_cast<const EnumType&>(arg_type)
+                     .get_documented_enum_values()) {
                 os << " - ``" << explanation.first
                    << "``: " << explanation.second << endl;
             }
@@ -216,12 +213,9 @@ void Txt2TagsPrinter::print_category_header(
     os << ">>>>CATEGORY: " << type.name() << "<<<<" << endl;
 }
 
-void Txt2TagsPrinter::print_category_synopsis(
-    const string& synopsis) const
+void Txt2TagsPrinter::print_category_synopsis(const string& synopsis) const
 {
-    if (!synopsis.empty()) {
-        os << synopsis << endl;
-    }
+    if (!synopsis.empty()) { os << synopsis << endl; }
 }
 
 void Txt2TagsPrinter::print_category_footer() const
@@ -238,9 +232,7 @@ PlainPrinter::PlainPrinter(ostream& out, Registry& registry, bool print_all)
 void PlainPrinter::print_synopsis(const Feature& feature) const
 {
     string title = feature.get_title();
-    if (title.empty()) {
-        title = feature.get_key();
-    }
+    if (title.empty()) { title = feature.get_key(); }
     os << "== " << title << " ==" << endl;
     if (print_all && !feature.get_synopsis().empty()) {
         os << feature.get_synopsis() << endl;
@@ -272,7 +264,8 @@ void PlainPrinter::print_arguments(const Feature& feature) const
         const Type& arg_type = arg_info.type;
         if (arg_type.is_enum_type()) {
             for (const pair<string, string>& explanation :
-                 arg_type.get_documented_enum_values()) {
+                 static_cast<const EnumType&>(arg_type)
+                     .get_documented_enum_values()) {
                 os << " - " << explanation.first << ": " << explanation.second
                    << endl;
             }
@@ -323,12 +316,9 @@ void PlainPrinter::print_category_header(
     os << "Help for " << type.name() << endl << endl;
 }
 
-void PlainPrinter::print_category_synopsis(
-    const string& synopsis) const
+void PlainPrinter::print_category_synopsis(const string& synopsis) const
 {
-    if (print_all && !synopsis.empty()) {
-        os << synopsis << endl;
-    }
+    if (print_all && !synopsis.empty()) { os << synopsis << endl; }
 }
 
 void PlainPrinter::print_category_footer() const

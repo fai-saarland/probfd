@@ -86,8 +86,8 @@ std::vector<ElemTo> map_vector(const Collection& collection, MapFunc map_func)
     std::vector<ElemTo> transformed;
     transformed.reserve(collection.size());
     std::transform(
-        std::begin(collection),
-        std::end(collection),
+        std::ranges::begin(collection),
+        std::ranges::end(collection),
         std::back_inserter(transformed),
         map_func);
     return transformed;
@@ -201,7 +201,6 @@ bool have_common_element(const Range1& range1, const Range2& range2)
         std::end(range2));
 }
 
-// The following are used by probfd
 template <typename T, typename A>
 std::vector<T, A>
 merge_sorted(const std::vector<T, A>& left, const std::vector<T, A>& right)

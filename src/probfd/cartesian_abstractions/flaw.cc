@@ -24,7 +24,7 @@ Flaw::Flaw(
     assert(current_abstract_state.includes(this->concrete_state));
 }
 
-vector<Split> Flaw::get_possible_splits() const
+vector<Split> Flaw::get_possible_splits(const VariableSpace& variables) const
 {
     vector<Split> splits;
     /*
@@ -34,11 +34,10 @@ vector<Split> Flaw::get_possible_splits() const
       the desired abstract state are the "wanted" ones, i.e., the ones that
       we want to split off.
     */
-    for (FactProxy wanted_fact_proxy : concrete_state) {
-        FactPair fact = wanted_fact_proxy.get_pair();
-        if (!desired_cartesian_set.test(fact.var, fact.value)) {
-            VariableProxy var = wanted_fact_proxy.get_variable();
-            int var_id = var.get_id();
+    for (VariableProxy var : variables) {
+        int var_id = var.get_id();
+        int state_value = concrete_state[var_id];
+        if (!desired_cartesian_set.test(var_id, state_value)) {
             vector<int> wanted;
             for (int value = 0; value < var.get_domain_size(); ++value) {
                 if (current_abstract_state.contains(var_id, value) &&

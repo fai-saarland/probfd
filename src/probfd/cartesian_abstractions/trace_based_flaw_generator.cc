@@ -8,7 +8,8 @@
 
 #include "probfd/utils/guards.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_operator_space.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/cartesian_abstractions/cartesian_set.h"
 
@@ -18,7 +19,9 @@
 #include "downward/utils/logging.h"
 #include "downward/utils/memory.h"
 
-#include "downward/task_proxy.h"
+#include "downward/axioms.h"
+#include "downward/initial_state_values.h"
+#include "downward/state.h"
 
 #include <cassert>
 #include <deque>
@@ -49,7 +52,7 @@ std::unique_ptr<Trace> TraceBasedFlawGenerator::find_trace(
 }
 
 optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTaskTuple& task,
     const std::vector<int>& domain_sizes,
     CartesianAbstraction& abstraction,
     const AbstractState* init,
@@ -62,25 +65,24 @@ optional<Flaw> TraceBasedFlawGenerator::generate_flaw(
 
     if (!solution) {
         if (log.is_at_least_normal()) {
-            log << "Abstract task is unsolvable." << endl;
+            log.println("Abstract task is unsolvable.");
         }
 
         return std::nullopt;
     }
 
     optional<Flaw> flaw =
-        find_flaw(task_proxy, domain_sizes, *solution, abstraction, log, timer);
+        find_flaw(task, domain_sizes, *solution, abstraction, log, timer);
 
     if (!flaw && log.is_at_least_normal()) {
-        log << "Found a plan without a flaw in the determinized problem."
-            << endl;
+        log.println("Found a plan without a flaw in the determinized problem.");
     }
 
     return flaw;
 }
 
 optional<Flaw> TraceBasedFlawGenerator::find_flaw(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTaskTuple& task,
     const std::vector<int>& domain_sizes,
     const Trace& solution,
     CartesianAbstraction& abstraction,
@@ -89,31 +91,43 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
 {
     TimerScope scope(find_flaw_timer_);
 
-    if (log.is_at_least_debug()) log << "Check solution:" << endl;
+    const auto& variables = get_variables(task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
+    const auto& goals = get_goal(task);
+    const auto& init_vals = get_init(task);
+
+    State concrete_state = init_vals.get_initial_state();
+
+    AxiomEvaluator& axiom_evaluator = g_axiom_evaluators[variables, axioms];
+
+    if (log.is_at_least_debug()) log.println("Check solution:");
 
     const AbstractState* abstract_state = &abstraction.get_initial_state();
-    State concrete_state = task_proxy.get_initial_state();
     assert(abstract_state->includes(concrete_state));
 
     if (log.is_at_least_debug())
-        log << "  Initial abstract state: " << *abstract_state << endl;
+        log.println("  Initial abstract state: {}", *abstract_state);
 
     for (const TransitionOutcome& step : solution) {
         timer.throw_if_expired();
         if (!utils::extra_memory_padding_is_reserved()) break;
-        ProbabilisticOperatorProxy op = task_proxy.get_operators()[step.op_id];
+        ProbabilisticOperatorProxy op = operators[step.op_id];
         const AbstractState* next_abstract_state =
             &abstraction.get_abstract_state(step.target_id);
         if (::task_properties::is_applicable(op, concrete_state)) {
             if (log.is_at_least_debug())
-                log << "  Move to " << *next_abstract_state << " with "
-                    << op.get_name() << endl;
+                log.println(
+                    "  Move to {} with {}",
+                    *next_abstract_state,
+                    op.get_name());
             const auto outcome = op.get_outcomes()[step.eff_id];
             State next_concrete_state =
                 concrete_state.get_unregistered_successor(
-                    outcome.get_effects());
+                    axiom_evaluator,
+                    outcome);
             if (!next_abstract_state->includes(next_concrete_state)) {
-                if (log.is_at_least_debug()) log << "  Paths deviate." << endl;
+                if (log.is_at_least_debug()) log.println("  Paths deviate.");
                 return Flaw(
                     std::move(concrete_state),
                     *abstract_state,
@@ -123,7 +137,7 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
             concrete_state = std::move(next_concrete_state);
         } else {
             if (log.is_at_least_debug())
-                log << "  Operator not applicable: " << op.get_name() << endl;
+                log.println("  Operator not applicable: {}", op.get_name());
             return Flaw(
                 std::move(concrete_state),
                 *abstract_state,
@@ -132,16 +146,16 @@ optional<Flaw> TraceBasedFlawGenerator::find_flaw(
     }
 
     assert(abstraction.get_goals().contains(abstract_state->get_id()));
-    if (::task_properties::is_goal_state(task_proxy, concrete_state)) {
+    if (::task_properties::is_goal_state(goals, concrete_state)) {
         // We found a concrete solution.
         return std::nullopt;
     }
 
-    if (log.is_at_least_debug()) log << "  Goal test failed." << endl;
+    if (log.is_at_least_debug()) log.println("  Goal test failed.");
     return Flaw(
         std::move(concrete_state),
         *abstract_state,
-        get_cartesian_set(domain_sizes, task_proxy.get_goals()));
+        get_cartesian_set(domain_sizes, goals));
 }
 
 void TraceBasedFlawGenerator::notify_split()
@@ -152,9 +166,10 @@ void TraceBasedFlawGenerator::notify_split()
 void TraceBasedFlawGenerator::print_statistics(utils::LogProxy& log)
 {
     if (log.is_at_least_normal()) {
-        log << "Time for finding abstract traces: " << find_trace_timer_
-            << endl;
-        log << "Time for finding trace flaws: " << find_flaw_timer_ << endl;
+        log.println(
+            "Time for finding abstract traces: {}",
+            find_trace_timer_());
+        log.println("Time for finding trace flaws: {}", find_flaw_timer_());
     }
 }
 

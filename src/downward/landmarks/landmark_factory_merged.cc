@@ -5,6 +5,7 @@
 
 #include "downward/utils/logging.h"
 
+#include <algorithm>
 #include <set>
 
 using namespace std;
@@ -44,7 +45,7 @@ LandmarkFactoryMerged::get_matching_landmark(const Landmark& landmark) const
 }
 
 void LandmarkFactoryMerged::generate_landmarks(
-    const shared_ptr<AbstractTask>& task)
+    const SharedAbstractTask& task)
 {
     if (log.is_at_least_normal()) {
         log << "Merging " << lm_factories.size() << " landmark graphs" << endl;
@@ -95,9 +96,8 @@ void LandmarkFactoryMerged::generate_landmarks(
                   request (e.g., heuristics that consider orders might want to
                   keep all landmarks).
                 */
-                bool exists = any_of(
-                    landmark.facts.begin(),
-                    landmark.facts.end(),
+                bool exists = std::ranges::any_of(
+                    landmark.facts,
                     [&](const FactPair& lm_fact) {
                         return lm_graph->contains_landmark(lm_fact);
                     });

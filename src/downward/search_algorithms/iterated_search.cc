@@ -1,6 +1,6 @@
 #include "downward/search_algorithms/iterated_search.h"
 
-#include "downward/search_algorithm_factory.h"
+#include "downward/task_dependent_factory.h"
 
 #include "downward/utils/logging.h"
 
@@ -11,17 +11,20 @@ using namespace std;
 namespace downward::iterated_search {
 
 IteratedSearch::IteratedSearch(
+    SharedAbstractTask task,
     OperatorCost operator_cost,
     int bound,
-    double max_time,
+    utils::Duration max_time,
     std::string description,
     utils::Verbosity verbosity,
-    std::vector<std::shared_ptr<SearchAlgorithmFactory>> algorithm_configs,
+    std::vector<std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>
+        algorithm_configs,
     bool pass_bound,
     bool repeat_last,
     bool continue_on_fail,
     bool continue_on_solve)
-    : SearchAlgorithm(
+    : IterativeSearchAlgorithm(
+          std::move(task),
           operator_cost,
           bound,
           max_time,
@@ -44,10 +47,8 @@ IteratedSearch::~IteratedSearch() = default;
 shared_ptr<SearchAlgorithm>
 IteratedSearch::get_search_algorithm(int algorithm_configs_index)
 {
-    std::shared_ptr<SearchAlgorithmFactory>& algorithm_factory =
-        algorithm_configs[algorithm_configs_index];
-    shared_ptr<SearchAlgorithm> algorithm =
-        algorithm_factory->create_algorithm();
+    auto& algorithm_factory = algorithm_configs[algorithm_configs_index];
+    shared_ptr algorithm = algorithm_factory->create_object(task);
     log << "Starting search: " << algorithm->get_description() << endl;
     return algorithm;
 }
@@ -76,9 +77,7 @@ shared_ptr<SearchAlgorithm> IteratedSearch::create_current_phase()
 SearchStatus IteratedSearch::step()
 {
     shared_ptr<SearchAlgorithm> current_search = create_current_phase();
-    if (!current_search) {
-        return found_solution() ? SOLVED : FAILED;
-    }
+    if (!current_search) { return found_solution() ? SOLVED : FAILED; }
     if (pass_bound && best_bound < current_search->get_bound()) {
         current_search->set_bound(best_bound);
     }
@@ -86,15 +85,18 @@ SearchStatus IteratedSearch::step()
 
     current_search->search();
 
-    Plan found_plan;
-    int plan_cost = 0;
     last_phase_found_solution = current_search->found_solution();
     if (last_phase_found_solution) {
         iterated_found_solution = true;
-        found_plan = current_search->get_plan();
-        plan_cost = calculate_plan_cost(found_plan, task_proxy);
+
+        const auto [operators, cost_function] =
+            slice_shared<ClassicalOperatorSpace, OperatorIntCostFunction>(task);
+
+        Plan found_plan = current_search->get_plan();
+        int plan_cost = calculate_plan_cost(found_plan, *cost_function);
         if (plan_cost < best_bound) {
-            plan_manager.save_plan(found_plan, task_proxy, true);
+            plan_manager
+                .save_plan(found_plan, *operators, *cost_function, true);
             best_bound = plan_cost;
             set_plan(found_plan);
         }
@@ -148,4 +150,4 @@ void IteratedSearch::save_plan_if_necessary()
     // each successful search iteration.
 }
 
-} // namespace iterated_search
+} // namespace downward::iterated_search

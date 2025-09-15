@@ -1,15 +1,18 @@
 #include "probfd/heuristics/dead_end_pruning_heuristic.h"
 
-#include "probfd/task_heuristic_factory.h"
+#include "probfd/tasks/determinization_task.h"
 
-#include "probfd/cost_function.h"
 #include "probfd/heuristic.h"
+#include "probfd/probabilistic_task.h"
+#include "probfd/task_heuristic_factory_category.h"
+#include "probfd/termination_costs.h"
 
 #include "downward/utils/system.h"
 
 #include "downward/evaluation_context.h"
 #include "downward/evaluation_result.h"
 #include "downward/evaluator.h"
+#include "downward/task_dependent_factory.h"
 
 #include <iostream>
 #include <utility>
@@ -25,9 +28,10 @@ DeadEndPruningHeuristic::DeadEndPruningHeuristic(
     , dead_end_value_(dead_end_value)
 {
     if (!pruning_function_->dead_ends_are_reliable()) {
-        std::cerr << "Dead end pruning heuristic was constructed with an "
-                     "evaluator that has unreliable dead ends!"
-                  << std::endl;
+        std::println(
+            std::cerr,
+            "Dead end pruning heuristic was constructed with an "
+            "evaluator that has unreliable dead ends!");
         utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
     }
 }
@@ -45,18 +49,19 @@ void DeadEndPruningHeuristic::print_statistics() const
 }
 
 DeadEndPruningHeuristicFactory::DeadEndPruningHeuristicFactory(
-    std::shared_ptr<Evaluator> evaluator)
-    : evaluator_(std::move(evaluator))
+    std::shared_ptr<downward::TaskDependentFactory<Evaluator>>
+        evaluator_factory)
+    : evaluator_factory_(std::move(evaluator_factory))
 {
 }
 
-std::unique_ptr<FDREvaluator> DeadEndPruningHeuristicFactory::create_heuristic(
-    std::shared_ptr<ProbabilisticTask>,
-    std::shared_ptr<FDRCostFunction> task_cost_function)
+std::unique_ptr<FDRHeuristic> DeadEndPruningHeuristicFactory::create_object(
+    const SharedProbabilisticTask& task)
 {
     return std::make_unique<DeadEndPruningHeuristic>(
-        evaluator_,
-        task_cost_function->get_non_goal_termination_cost());
+        evaluator_factory_->create_object(
+            tasks::create_determinization_task(task)),
+        get_shared_termination_costs(task)->get_non_goal_termination_cost());
 }
 
 } // namespace probfd::heuristics

@@ -4,7 +4,7 @@
 #include "downward/evaluator.h"
 #include "downward/operator_id.h"
 #include "downward/per_state_information.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/algorithms/ordered_set.h"
 
@@ -12,7 +12,6 @@
 #include <vector>
 
 namespace downward {
-class TaskProxy;
 class StateMapping;
 class InverseOperatorMapping;
 struct TaskTransformationResult;
@@ -58,12 +57,10 @@ protected:
 
     // Hold a reference to the task implementation and pass it to objects that
     // need it.
-    const std::shared_ptr<AbstractTask> original_task;
-    const std::shared_ptr<AbstractTask> transformed_task;
+    const SharedAbstractTask original_task;
+    const SharedAbstractTask transformed_task;
     const std::shared_ptr<StateMapping> state_mapping;
     const std::shared_ptr<InverseOperatorMapping> inv_operator_mapping;
-    // Use task_proxy to access task information.
-    TaskProxy task_proxy;
 
     enum { DEAD_END = -1, NO_VALUE = -2 };
 
@@ -80,8 +77,8 @@ protected:
 
 public:
     Heuristic(
-        std::shared_ptr<AbstractTask> original_task,
-        std::shared_ptr<AbstractTask> transformed_task,
+        SharedAbstractTask original_task,
+        SharedAbstractTask transformed_task,
         std::shared_ptr<StateMapping> state_mapping,
         std::shared_ptr<InverseOperatorMapping> inv_operator_mapping,
         bool cache_estimates,
@@ -89,14 +86,14 @@ public:
         utils::Verbosity verbosity);
 
     Heuristic(
-        std::shared_ptr<AbstractTask> original_task,
+        SharedAbstractTask original_task,
         const std::shared_ptr<TaskTransformation> transformation,
         bool cache_estimates,
         const std::string& description,
         utils::Verbosity verbosity);
 
     Heuristic(
-        std::shared_ptr<AbstractTask> original_task,
+        SharedAbstractTask original_task,
         TaskTransformationResult transformation_result,
         bool cache_estimates,
         const std::string& description,

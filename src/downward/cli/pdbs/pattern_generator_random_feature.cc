@@ -1,8 +1,11 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/pdbs/pattern_generator_random_feature.h"
 
 #include "downward/cli/pdbs/pattern_generator_options.h"
 #include "downward/cli/pdbs/random_pattern_options.h"
 #include "downward/cli/pdbs/utils.h"
+
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -19,7 +22,6 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-
 class PatternGeneratorRandomFeature
     : public TypedFeature<PatternGenerator, PatternGeneratorRandom> {
 public:
@@ -43,7 +45,7 @@ public:
             "variable)",
             "1000000",
             Bounds("1", "infinity"));
-        add_option<double>(
+        add_option<downward::utils::Duration>(
             "max_time",
             "maximum time in seconds for the pattern generation",
             "infinity",
@@ -60,13 +62,20 @@ public:
     {
         return make_shared_from_arg_tuples<PatternGeneratorRandom>(
             opts.get<int>("max_pdb_size"),
-            opts.get<double>("max_time"),
+            opts.get<downward::utils::Duration>("max_time"),
             get_random_pattern_bidirectional_arguments_from_options(opts),
             get_rng_arguments_from_options(opts),
             get_generator_arguments_from_options(opts));
     }
 };
 
-FeaturePlugin<PatternGeneratorRandomFeature> _plugin;
+}
+
+namespace downward::cli::pdbs {
+
+void add_pattern_generator_random_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<PatternGeneratorRandomFeature>();
+}
 
 } // namespace

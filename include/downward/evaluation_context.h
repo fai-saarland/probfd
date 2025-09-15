@@ -4,7 +4,7 @@
 #include "downward/evaluation_result.h"
 #include "downward/evaluator_cache.h"
 #include "downward/operator_id.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <unordered_map>
 

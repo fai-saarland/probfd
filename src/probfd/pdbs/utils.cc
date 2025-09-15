@@ -8,7 +8,13 @@
 
 #include "probfd/utils/graph_visualization.h"
 
+#include "probfd/probabilistic_task.h"
+
+#include "probfd/probabilistic_operator_space.h"
+
 #include "downward/utils/rng.h"
+
+#include "downward/goal_fact_list.h"
 
 #include <algorithm>
 #include <cassert>
@@ -26,56 +32,41 @@ Pattern extended_pattern(const Pattern& pattern, int add_var)
     Pattern added;
     added.reserve(pattern.size() + 1);
     const auto it = std::ranges::upper_bound(pattern, add_var);
-    added.insert(added.end(), pattern.begin(), it);
+    added.append_range(std::ranges::subrange(pattern.begin(), it));
     added.emplace_back(add_var);
-    added.insert(added.end(), it, pattern.end());
+    added.append_range(std::ranges::subrange(it, pattern.end()));
 
     return added;
 }
 
 std::vector<int> get_goals_in_random_order(
-    ProbabilisticTaskProxy task_proxy,
+    const GoalFactList& goals,
     utils::RandomNumberGenerator& rng)
 {
-    std::vector<int> goals;
+    std::vector<int> goal_facts;
 
-    for (const auto fact : task_proxy.get_goals()) {
-        goals.push_back(fact.get_variable().get_id());
-    }
+    for (const auto fact : goals) { goal_facts.push_back(fact.var); }
 
-    rng.shuffle(goals);
+    rng.shuffle(goal_facts);
 
-    return goals;
+    return goal_facts;
 }
 
 void dump_graphviz(
-    ProbabilisticTaskProxy task_proxy,
+    const ProbabilisticOperatorSpace& operators,
     ProjectionStateSpace& mdp,
     const ProbabilityAwarePatternDatabase& pdb,
     StateRank initial_state,
     std::ostream& out,
     bool transition_labels)
 {
-    ProjectionOperatorToString op_names(task_proxy);
+    ProjectionOperatorToString op_names(operators);
 
-    auto sts = [&pdb, &mdp](StateRank x) {
-        std::ostringstream out;
-        out.precision(3);
-
+    auto sts = [&pdb](StateRank x) {
         const value_t value = pdb.lookup_estimate(x);
         const std::string value_text =
-            value != INFINITE_VALUE ? std::to_string(value) : "&infin";
-
-        out << x << "\\n"
-            << "h = " << value_text;
-
-        if (value == mdp.get_non_goal_termination_cost()) {
-            out << "(dead)";
-        }
-
-        out << std::endl;
-
-        return out.str();
+            value != INFINITE_VALUE ? std::format("{:.3f}", value) : "&infin";
+        return std::format("{}\\nh = {}", x, value_text);
     };
 
     auto ats = [=](const ProjectionOperator* const& op) {

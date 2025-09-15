@@ -4,7 +4,10 @@
 #include "probfd/pdbs/types.h"
 
 #include "probfd/fdr_types.h"
+#include "probfd/probabilistic_task.h"
 #include "probfd/value_type.h"
+
+#include "downward/utils/timer.h"
 
 #include <memory>
 #include <unordered_map>
@@ -13,7 +16,7 @@
 
 // Forward Declarations
 namespace downward {
-class VariablesProxy;
+class VariableSpace;
 }
 
 namespace downward::utils {
@@ -22,13 +25,9 @@ class LogProxy;
 class RandomNumberGenerator;
 } // namespace utils
 
-namespace probfd {
-class ProbabilisticTaskProxy;
-}
-
 namespace probfd::heuristics {
 template <typename State>
-class BlindEvaluator;
+class BlindHeuristic;
 }
 
 namespace probfd::pdbs::cegar {
@@ -85,29 +84,30 @@ public:
     ~CEGAR();
 
     void generate_pdbs(
-        ProbabilisticTaskProxy task_proxy,
-        const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
+        const SharedProbabilisticTask& task,
+        const downward::State& initial_state,
         ProjectionCollection& projections,
         PPDBCollection& pdbs,
-        double max_time,
+        downward::utils::Duration max_time,
         downward::utils::LogProxy log);
 
 private:
     void generate_trivial_solution_collection(
-        ProbabilisticTaskProxy task_proxy,
-        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+        const SharedProbabilisticTask& task,
+        const downward::State& initial_state,
         downward::utils::CountdownTimer& timer,
         downward::utils::LogProxy log);
 
     std::vector<PDBInfo>::iterator get_flaws(
-        ProbabilisticTaskProxy task_proxy,
+        const ProbabilisticTaskTuple& task,
+        const downward::State& initial_state,
         std::vector<Flaw>& flaws,
         std::vector<int>& flaw_offsets,
         downward::utils::CountdownTimer& timer,
         downward::utils::LogProxy log);
 
     bool can_add_variable_to_pattern(
-        const downward::VariablesProxy& variables,
+        const downward::VariableSpace& variables,
         std::vector<PDBInfo>::iterator info_it,
         int var) const;
 
@@ -116,32 +116,32 @@ private:
         std::vector<PDBInfo>::iterator info_it2) const;
 
     void add_pattern_for_var(
-        ProbabilisticTaskProxy task_proxy,
-        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
-        const heuristics::BlindEvaluator<StateRank>& h,
+        const SharedProbabilisticTask& task,
+        const downward::State& initial_state,
+        const heuristics::BlindHeuristic<StateRank>& h,
         int var,
         downward::utils::CountdownTimer& timer);
 
     void add_variable_to_pattern(
-        ProbabilisticTaskProxy task_proxy,
-        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+        const SharedProbabilisticTask& task,
+        const downward::State& initial_state,
         std::vector<PDBInfo>::iterator info_it,
         int var,
-        downward::utils::CountdownTimer& timer);
+        const downward::utils::CountdownTimer& timer);
 
     void merge_patterns(
-        ProbabilisticTaskProxy task_proxy,
-        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+        const SharedProbabilisticTask& task,
+        const downward::State& initial_state,
         std::vector<PDBInfo>::iterator info_it1,
         std::vector<PDBInfo>::iterator info_it2,
-        downward::utils::CountdownTimer& timer);
+        const downward::utils::CountdownTimer& timer);
 
     void refine(
-        ProbabilisticTaskProxy task_proxy,
-        const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
+        const SharedProbabilisticTask& task,
+        const downward::State& initial_state,
         const std::vector<Flaw>& flaws,
-        const std::vector<int>& flaw_offsets,
-        downward::utils::CountdownTimer& timer,
+        std::vector<int>& flaw_offsets,
+        const downward::utils::CountdownTimer& timer,
         downward::utils::LogProxy log);
 
     void print_collection(downward::utils::LogProxy log) const;

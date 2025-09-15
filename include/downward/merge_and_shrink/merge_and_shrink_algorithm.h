@@ -1,13 +1,11 @@
 #ifndef MERGE_AND_SHRINK_MERGE_AND_SHRINK_ALGORITHM_H
 #define MERGE_AND_SHRINK_MERGE_AND_SHRINK_ALGORITHM_H
 
+#include "downward/abstract_task.h"
+
 #include "downward/utils/logging.h"
 
 #include <memory>
-
-namespace downward {
-class TaskProxy;
-}
 
 namespace downward::utils {
 class CountdownTimer;
@@ -40,7 +38,7 @@ class MergeAndShrinkAlgorithm {
     const bool prune_irrelevant_states;
 
     mutable utils::LogProxy log;
-    const double main_loop_max_time;
+    const utils::Duration main_loop_max_time;
 
     long starting_peak_memory;
 
@@ -49,7 +47,8 @@ class MergeAndShrinkAlgorithm {
     void warn_on_unusual_options() const;
     bool ran_out_of_time(const utils::CountdownTimer& timer) const;
     void statistics(int maximum_intermediate_size) const;
-    void main_loop(FactoredTransitionSystem& fts, const TaskProxy& task_proxy);
+    void
+    main_loop(FactoredTransitionSystem& fts, const AbstractTaskTuple& task);
 
 public:
     MergeAndShrinkAlgorithm(
@@ -61,12 +60,13 @@ public:
         int max_states,
         int max_states_before_merge,
         int threshold_before_merge,
-        double main_loop_max_time,
+        utils::Duration main_loop_max_time,
         utils::Verbosity verbosity);
+
     FactoredTransitionSystem
-    build_factored_transition_system(const TaskProxy& task_proxy);
+    build_factored_transition_system(const AbstractTaskTuple& task);
 };
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink
 
 #endif

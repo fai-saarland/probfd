@@ -2,18 +2,28 @@
 #include "probfd/tasks/determinization_task.h"
 
 #include "probfd/probabilistic_task.h"
+#include "probfd/termination_costs.h"
 #include "probfd/value_type.h"
 
 #include "downward/tasks/root_task.h"
 
+#include "downward/axiom_evaluator.h"
 #include "downward/utils/collections.h"
+#include "downward/utils/system.h"
 
+#include "downward/axiom_space.h"
 #include "downward/axioms.h"
+#include "downward/goal_fact_list.h"
+#include "downward/initial_state_values.h"
+#include "downward/per_task_information.h"
+#include "downward/variable_space.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include <algorithm>
 #include <cassert>
 #include <compare>
 #include <fstream>
+#include <iostream>
 #include <memory>
 #include <numeric>
 #include <set>
@@ -37,36 +47,6 @@ enum Optimization : unsigned char {
     MAXIMIZE = 2
 };
 
-struct Metric {
-    Optimization optimization;
-    bool rewards;
-    std::optional<value_t> goal_reward;
-};
-
-struct ExplicitVariable {
-    int domain_size;
-    string name;
-    vector<string> fact_names;
-    int axiom_layer;
-    int axiom_default_value;
-
-    explicit ExplicitVariable(std::istream& in);
-};
-
-struct ConditionalEffect {
-    FactPair fact;
-    vector<FactPair> conditions;
-
-    ConditionalEffect(int var, int value, vector<FactPair>&& conditions);
-
-    friend bool
-    operator<(const ConditionalEffect& left, const ConditionalEffect& right)
-    {
-        return std::tie(left.fact, left.conditions) <
-               std::tie(right.fact, right.conditions);
-    }
-};
-
 struct Fraction {
     int numerator;
     int denominator;
@@ -87,6 +67,46 @@ Fraction operator+(const Fraction& left, const Fraction& right)
     return {numerator, lcm};
 }
 
+struct Metric {
+    Optimization optimization;
+    bool rewards;
+    std::optional<value_t> goal_reward;
+};
+
+struct ExplicitVariable {
+    int domain_size;
+    string name;
+    vector<string> fact_names;
+
+    explicit ExplicitVariable(std::istream& in, int& axiom_layer);
+};
+
+struct ExplicitVariableAxiomInfo {
+    int axiom_layer;
+    int axiom_default_value;
+};
+
+struct ExplicitEffect {
+    FactPair fact;
+    vector<FactPair> conditions;
+
+    ExplicitEffect(int var, int value, vector<FactPair>&& conditions);
+};
+
+struct ConditionalEffect {
+    FactPair fact;
+    vector<FactPair> conditions;
+
+    ConditionalEffect(int var, int value, vector<FactPair>&& conditions);
+
+    friend bool
+    operator<(const ConditionalEffect& left, const ConditionalEffect& right)
+    {
+        return std::tie(left.fact, left.conditions) <
+               std::tie(right.fact, right.conditions);
+    }
+};
+
 struct ProbabilisticOutcome {
     Fraction fractional_probability;
     value_t probability;
@@ -98,14 +118,14 @@ struct ProbabilisticOutcome {
 struct ProbabilisticOperator {
     vector<FactPair> preconditions;
     vector<ProbabilisticOutcome> outcomes;
-    value_t cost;
     string name;
     int outcomes_start_index;
 
     ProbabilisticOperator(
         std::istream& in,
         Optimization optimization,
-        int& total_num_outcomes);
+        int& total_num_outcomes,
+        value_t& cost);
 };
 
 struct ExplicitAxiom {
@@ -118,36 +138,70 @@ struct ExplicitAxiom {
     void read_pre_post(std::istream& in);
 };
 
-class RootTask : public ProbabilisticTask {
-    vector<ExplicitVariable> variables;
-    vector<ExplicitAxiom> axioms;
-    vector<ProbabilisticOperator> operators;
-    vector<int> initial_state_values;
-    vector<FactPair> goals;
-
-    value_t goal_termination_cost;
-    value_t non_goal_termination_cost;
+class RootVariableSpace : public VariableSpace {
+    vector<ExplicitVariable> variables_;
 
     const ExplicitVariable& get_variable(int var) const;
-    const ExplicitAxiom& get_axiom(int index) const;
-    const ProbabilisticOperator& get_operator(int index) const;
-    const ProbabilisticOutcome& get_outcome(int op_id, int outcome_index) const;
-    const ConditionalEffect& get_axiom_effect_(int op_id, int effect_id) const;
-    const ConditionalEffect&
-    get_operator_effect(int op_id, int outcome_index, int effect_id) const;
 
 public:
-    explicit RootTask(std::istream& in);
+    explicit RootVariableSpace(vector<ExplicitVariable> variables)
+        : variables_(std::move(variables))
+    {
+    }
 
     int get_num_variables() const override;
     string get_variable_name(int var) const override;
     int get_variable_domain_size(int var) const override;
+    string get_fact_name(const FactPair& fact) const override;
+};
+
+class RootInitialStateValues : public InitialStateValues {
+    vector<int> initial_state_values_;
+
+public:
+    explicit RootInitialStateValues(vector<int> initial_state_values)
+        : initial_state_values_(std::move(initial_state_values))
+    {
+    }
+
+    vector<int> get_initial_state_values() const override;
+};
+
+class RootGoal : public GoalFactList {
+    vector<FactPair> goals_;
+
+public:
+    explicit RootGoal(vector<FactPair> goals)
+        : goals_(std::move(goals))
+    {
+    }
+
+    int get_num_goals() const override;
+    FactPair get_goal_fact(int index) const override;
+};
+
+class RootAxiomSpace : public AxiomSpace {
+    vector<ExplicitVariableAxiomInfo> variables_infos_;
+    vector<ExplicitAxiom> axioms_;
+
+    const ConditionalEffect& get_axiom_effect_(int op_id, int effect_id) const;
+    const ExplicitAxiom& get_axiom(int index) const;
+
+public:
+    explicit RootAxiomSpace(
+        vector<ExplicitVariableAxiomInfo> variables_infos,
+        vector<ExplicitAxiom> axioms)
+        : variables_infos_(std::move(variables_infos))
+        , axioms_(std::move(axioms))
+    {
+    }
+
     int get_variable_axiom_layer(int var) const override;
     int get_variable_default_axiom_value(int var) const override;
-    string get_fact_name(const FactPair& fact) const override;
 
     int get_num_axioms() const override;
-    std::string get_axiom_name(int index) const override;
+
+    string get_axiom_name(int index) const override;
     int get_num_axiom_preconditions(int index) const override;
     FactPair
     get_axiom_precondition(int op_index, int fact_index) const override;
@@ -158,17 +212,29 @@ public:
     get_axiom_effect_condition(int op_index, int eff_index, int cond_index)
         const override;
     FactPair get_axiom_effect(int op_index, int eff_index) const override;
+};
+
+class RootOperatorSpace : public ProbabilisticOperatorSpace {
+    vector<ProbabilisticOperator> operators_;
+
+    const ExplicitEffect& get_effect(int op_id, int effect_id) const;
+    const ProbabilisticOperator& get_operator(int index) const;
+    const ProbabilisticOutcome& get_outcome(int op_id, int outcome_index) const;
+    const ConditionalEffect&
+    get_operator_effect(int op_id, int outcome_index, int effect_id) const;
+
+public:
+    explicit RootOperatorSpace(vector<ProbabilisticOperator> operators)
+        : operators_(std::move(operators))
+    {
+    }
 
     int get_num_operators() const override;
-    value_t get_operator_cost(int index) const override;
     string get_operator_name(int index) const override;
 
     int get_num_operator_preconditions(int index) const override;
     FactPair
     get_operator_precondition(int op_index, int fact_index) const override;
-
-    value_t get_goal_termination_cost() const override;
-    value_t get_non_goal_termination_cost() const override;
 
     int get_num_operator_outcomes(int index) const override;
 
@@ -192,32 +258,51 @@ public:
         int outcome_index,
         int eff_index,
         int cond_index) const override;
-
-    int get_num_goals() const override;
-    FactPair get_goal_fact(int index) const override;
-
-    vector<int> get_initial_state_values() const override;
 };
 
-class RootTaskCostFunction {
-    std::vector<value_t> operator_costs;
-    value_t termination_cost;
+class RootOperatorCostFunction : public OperatorCostFunction<value_t> {
+    vector<value_t> costs_;
 
 public:
-    value_t get_operator_cost(int index) const;
-    value_t get_non_goal_termination_cost() const;
+    explicit RootOperatorCostFunction(vector<value_t> costs)
+        : costs_(costs)
+    {
+    }
+
+    value_t get_operator_cost(int index) const override;
+};
+
+class RootTerminationCostFunction : public TerminationCosts {
+    value_t goal_termination_cost;
+    value_t non_goal_termination_cost;
+
+public:
+    explicit RootTerminationCostFunction(
+        value_t goal_termination_cost,
+        value_t non_goal_termination_cost)
+        : goal_termination_cost(goal_termination_cost)
+        , non_goal_termination_cost(non_goal_termination_cost)
+    {
+    }
+
+    value_t get_goal_termination_cost() const override;
+    value_t get_non_goal_termination_cost() const override;
 };
 
 void check_fact(const FactPair& fact, const vector<ExplicitVariable>& variables)
 {
     if (!utils::in_bounds(fact.var, variables)) {
-        cerr << "Invalid variable id: " << fact.var << endl;
+        println(cerr, "Invalid variable id: {}", fact.var);
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
 
     if (fact.value < 0 || fact.value >= variables[fact.var].domain_size) {
-        cerr << "Invalid value for variable " << fact.var << ": " << fact.value
-             << endl;
+        println(
+            cerr,
+            "Invalid value for variable {}: {}",
+            fact.var,
+            fact.value);
+
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
 }
@@ -226,9 +311,7 @@ void check_facts(
     const vector<FactPair>& facts,
     const vector<ExplicitVariable>& variables)
 {
-    for (FactPair fact : facts) {
-        check_fact(fact, variables);
-    }
+    for (FactPair fact : facts) { check_fact(fact, variables); }
 }
 
 void check_facts(
@@ -263,8 +346,11 @@ void check_facts(
     }
 
     if (total_prob.numerator != total_prob.denominator) {
-        cerr << "Total outcome probabilities must sum up to one. Sum was: "
-             << total_prob.numerator << "/" << total_prob.denominator << endl;
+        println(
+            cerr,
+            "Total outcome probabilities must sum up to one. Sum was: {}/{}",
+            total_prob.numerator,
+            total_prob.denominator);
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
 }
@@ -274,12 +360,16 @@ void check_magic(std::istream& in, const string& magic)
     string word;
     in >> word;
     if (word != magic) {
-        cerr << "Failed to match magic word '" << magic << "'." << endl
-             << "Got '" << word << "'." << endl;
+        println(
+            cerr,
+            "Failed to match magic word '{}'.\nGot '{}'.",
+            magic,
+            word);
         if (magic == "begin_version") {
-            cerr << "Possible cause: you are running the planner "
-                 << "on a translator output file from " << endl
-                 << "an older version." << endl;
+            println(
+                cerr,
+                "Possible cause: you are running the planner on a translator "
+                "output file from an older version.");
         }
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
@@ -299,7 +389,7 @@ vector<FactPair> read_facts(std::istream& in)
     return conditions;
 }
 
-ExplicitVariable::ExplicitVariable(std::istream& in)
+ExplicitVariable::ExplicitVariable(std::istream& in, int& axiom_layer)
 {
     check_magic(in, "begin_variable");
     in >> name;
@@ -340,7 +430,7 @@ ProbabilisticOutcome::ProbabilisticOutcome(std::istream& in)
         fractional_probability.denominator = std::stoi(denominator);
 
         if (fractional_probability.denominator < 0) {
-            cerr << "Read probability with denominator of zero: " << p << endl;
+            println(cerr, "Read probability with denominator of zero: {}", p);
             utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
         }
     }
@@ -352,12 +442,12 @@ ProbabilisticOutcome::ProbabilisticOutcome(std::istream& in)
     }
 
     if (fractional_probability.numerator < 0) {
-        cerr << "Probability must be grater than zero: " << p << endl;
+        println(cerr, "Probability must be grater than zero: {}", p);
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
 
     if (fractional_probability.numerator > fractional_probability.denominator) {
-        cerr << "Probability must be less or equal to one: " << p << endl;
+        println(cerr, "Probability must be less or equal to one: {}", p);
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
 
@@ -391,7 +481,8 @@ ProbabilisticOutcome::ProbabilisticOutcome(std::istream& in)
 ProbabilisticOperator::ProbabilisticOperator(
     std::istream& in,
     Optimization optimization,
-    int& total_num_outcomes)
+    int& total_num_outcomes,
+    value_t& cost)
     : outcomes_start_index(total_num_outcomes)
 {
     check_magic(in, "begin_operator");
@@ -410,15 +501,16 @@ ProbabilisticOperator::ProbabilisticOperator(
     total_num_outcomes += num_outcomes;
 
     if (num_outcomes < 1) {
-        std::cerr << "Input file specifies " << num_outcomes
-                  << " outcomes for operator " << name << std::endl;
+        println(
+            std::cerr,
+            "Input file specifies {} outcomes for operator {}",
+            num_outcomes,
+            name);
         utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
     }
 
     // Read each outcome
-    for (int i = 0; i < num_outcomes; ++i) {
-        outcomes.emplace_back(in);
-    }
+    for (int i = 0; i < num_outcomes; ++i) { outcomes.emplace_back(in); }
 
     // Read cost
     std::string cost_text;
@@ -426,14 +518,14 @@ ProbabilisticOperator::ProbabilisticOperator(
 
     if (optimization == Optimization::MINIMIZE_LENGTH) {
         // Ignore read value, set to 1
-        this->cost = 1;
+        cost = 1;
     } else {
         value_t weight = string_to_value(cost_text);
 
         // cast maximization objective to minimization objective
         if (optimization == Optimization::MAXIMIZE) weight = -weight;
 
-        this->cost = weight;
+        cost = weight;
     }
 
     check_magic(in, "end_operator");
@@ -446,9 +538,7 @@ ExplicitAxiom::ExplicitAxiom(std::istream& in)
     int count;
     in >> count;
     effects.reserve(count);
-    for (int i = 0; i < count; ++i) {
-        read_pre_post(in);
-    }
+    for (int i = 0; i < count; ++i) { read_pre_post(in); }
     check_magic(in, "end_rule");
 }
 
@@ -457,9 +547,7 @@ void ExplicitAxiom::read_pre_post(std::istream& in)
     vector<FactPair> conditions = read_facts(in);
     int var, pre, value_post;
     in >> var >> pre >> value_post;
-    if (pre != -1) {
-        preconditions.emplace_back(var, pre);
-    }
+    if (pre != -1) { preconditions.emplace_back(var, pre); }
     effects.emplace_back(var, value_post, std::move(conditions));
 }
 
@@ -470,9 +558,11 @@ void read_and_verify_version(std::istream& in)
     in >> version;
     check_magic(in, "end_version");
     if (version != PRE_FILE_PROB_VERSION) {
-        cerr << "Expected translator output file version "
-             << PRE_FILE_PROB_VERSION << ", got " << version << "." << endl
-             << "Exiting." << endl;
+        println(
+            cerr,
+            "Expected translator output file version {}, got {}. Exiting.",
+            PRE_FILE_PROB_VERSION,
+            version);
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
 }
@@ -497,15 +587,24 @@ Metric read_metric(std::istream& in)
         goal_reward};
 }
 
-vector<ExplicitVariable> read_variables(std::istream& in)
+struct VariableInfo {
+    vector<ExplicitVariable> domains;
+    vector<ExplicitVariableAxiomInfo> axiom_infos;
+};
+
+VariableInfo read_variables(std::istream& in)
 {
     int count;
     in >> count;
-    vector<ExplicitVariable> variables;
-    variables.reserve(count);
+    VariableInfo variables;
+    variables.domains.reserve(count);
+    variables.axiom_infos.reserve(count);
+
     for (int i = 0; i < count; ++i) {
-        variables.emplace_back(in);
+        auto& axiom_info = variables.axiom_infos.emplace_back();
+        variables.domains.emplace_back(in, axiom_info.axiom_layer);
     }
+
     return variables;
 }
 
@@ -515,7 +614,7 @@ vector<FactPair> read_goal(std::istream& in)
     vector<FactPair> goals = read_facts(in);
     check_magic(in, "end_goal");
     if (goals.empty()) {
-        cerr << "Task has no goal condition!" << endl;
+        println(cerr, "Task has no goal condition!");
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
     return goals;
@@ -535,22 +634,34 @@ read_axioms(std::istream& in, const vector<ExplicitVariable>& variables)
     return axioms;
 }
 
-vector<ProbabilisticOperator> read_probabilistic_operators(
+struct OperatorInfo {
+    std::vector<ProbabilisticOperator> operators;
+    std::vector<value_t> costs;
+};
+
+OperatorInfo read_probabilistic_operators(
     std::istream& in,
     Optimization optimization,
     const vector<ExplicitVariable>& variables)
 {
     int count;
     in >> count;
+
     vector<ProbabilisticOperator> actions;
+    vector<value_t> costs;
     actions.reserve(count);
+    costs.reserve(count);
+
     int total_num_outcomes = 0;
     for (int i = 0; i < count; ++i) {
-        auto& new_op =
-            actions.emplace_back(in, optimization, total_num_outcomes);
+        auto& new_op = actions.emplace_back(
+            in,
+            optimization,
+            total_num_outcomes,
+            costs.emplace_back());
         check_facts(new_op, variables);
     }
-    return actions;
+    return {std::move(actions), std::move(costs)};
 }
 
 static void skip_mutexes(std::istream& in)
@@ -578,35 +689,279 @@ static void skip_mutexes(std::istream& in)
     }
 }
 
-RootTask::RootTask(std::istream& in)
+const ExplicitVariable& RootVariableSpace::get_variable(int var) const
+{
+    assert(utils::in_bounds(var, variables_));
+    return variables_[var];
+}
+
+const ProbabilisticOutcome&
+RootOperatorSpace::get_outcome(int op_id, int outcome_index) const
+{
+    const ProbabilisticOperator& op = get_operator(op_id);
+    assert(utils::in_bounds(outcome_index, op.outcomes));
+    return op.outcomes[outcome_index];
+}
+
+const ConditionalEffect&
+RootAxiomSpace::get_axiom_effect_(int op_id, int effect_id) const
+{
+    const ExplicitAxiom& axiom = get_axiom(op_id);
+    assert(utils::in_bounds(effect_id, axiom.effects));
+    return axiom.effects[effect_id];
+}
+
+const ConditionalEffect& RootOperatorSpace::get_operator_effect(
+    int op_id,
+    int outcome_index,
+    int effect_id) const
+{
+    const ProbabilisticOutcome& outcome = get_outcome(op_id, outcome_index);
+    assert(utils::in_bounds(effect_id, outcome.effects));
+    return outcome.effects[effect_id];
+}
+
+const ExplicitAxiom& RootAxiomSpace::get_axiom(int index) const
+{
+    assert(utils::in_bounds(index, axioms_));
+    return axioms_[index];
+}
+
+const ProbabilisticOperator& RootOperatorSpace::get_operator(int index) const
+{
+    assert(utils::in_bounds(index, operators_));
+    return operators_[index];
+}
+
+int RootVariableSpace::get_num_variables() const
+{
+    return variables_.size();
+}
+
+string RootVariableSpace::get_variable_name(int var) const
+{
+    return get_variable(var).name;
+}
+
+int RootVariableSpace::get_variable_domain_size(int var) const
+{
+    return get_variable(var).domain_size;
+}
+
+int RootAxiomSpace::get_variable_axiom_layer(int var) const
+{
+    return variables_infos_[var].axiom_layer;
+}
+
+int RootAxiomSpace::get_variable_default_axiom_value(int var) const
+{
+    return variables_infos_[var].axiom_default_value;
+}
+
+string RootVariableSpace::get_fact_name(const FactPair& fact) const
+{
+    assert(utils::in_bounds(fact.value, get_variable(fact.var).fact_names));
+    return get_variable(fact.var).fact_names[fact.value];
+}
+
+int RootAxiomSpace::get_num_axioms() const
+{
+    return axioms_.size();
+}
+
+string RootAxiomSpace::get_axiom_name(int index) const
+{
+    return get_axiom(index).name;
+}
+
+int RootAxiomSpace::get_num_axiom_preconditions(int index) const
+{
+    return get_axiom(index).preconditions.size();
+}
+
+FactPair
+RootAxiomSpace::get_axiom_precondition(int op_index, int fact_index) const
+{
+    const ExplicitAxiom& axiom = get_axiom(op_index);
+    assert(utils::in_bounds(fact_index, axiom.preconditions));
+    return axiom.preconditions[fact_index];
+}
+
+int RootAxiomSpace::get_num_axiom_effects(int op_index) const
+{
+    return get_axiom(op_index).effects.size();
+}
+
+FactPair RootAxiomSpace::get_axiom_effect(int op_index, int eff_index) const
+{
+    return get_axiom_effect_(op_index, eff_index).fact;
+}
+
+int RootAxiomSpace::get_num_axiom_effect_conditions(int op_index, int eff_index)
+    const
+{
+    return get_axiom_effect_(op_index, eff_index).conditions.size();
+}
+
+FactPair RootAxiomSpace::get_axiom_effect_condition(
+    int op_index,
+    int eff_index,
+    int cond_index) const
+{
+    const ConditionalEffect& effect = get_axiom_effect_(op_index, eff_index);
+    assert(utils::in_bounds(cond_index, effect.conditions));
+    return effect.conditions[cond_index];
+}
+
+value_t RootOperatorCostFunction::get_operator_cost(int index) const
+{
+    return costs_[index];
+}
+
+int RootOperatorSpace::get_num_operators() const
+{
+    return operators_.size();
+}
+
+string RootOperatorSpace::get_operator_name(int index) const
+{
+    return get_operator(index).name;
+}
+
+int RootOperatorSpace::get_num_operator_preconditions(int index) const
+{
+    return get_operator(index).preconditions.size();
+}
+
+FactPair
+RootOperatorSpace::get_operator_precondition(int op_index, int fact_index) const
+{
+    const ProbabilisticOperator& op = get_operator(op_index);
+    assert(utils::in_bounds(fact_index, op.preconditions));
+    return op.preconditions[fact_index];
+}
+
+value_t RootTerminationCostFunction::get_goal_termination_cost() const
+{
+    return goal_termination_cost;
+}
+
+value_t RootTerminationCostFunction::get_non_goal_termination_cost() const
+{
+    return non_goal_termination_cost;
+}
+
+int RootOperatorSpace::get_num_operator_outcomes(int index) const
+{
+    return get_operator(index).outcomes.size();
+}
+
+value_t RootOperatorSpace::get_operator_outcome_probability(
+    int index,
+    int outcome_index) const
+{
+    return get_outcome(index, outcome_index).probability;
+}
+
+int RootOperatorSpace::get_operator_outcome_id(int index, int outcome_index)
+    const
+{
+    return get_operator(index).outcomes_start_index + outcome_index;
+}
+
+int RootOperatorSpace::get_num_operator_outcome_effects(
+    int op_index,
+    int outcome_index) const
+{
+    return get_outcome(op_index, outcome_index).effects.size();
+}
+
+FactPair RootOperatorSpace::get_operator_outcome_effect(
+    int op_index,
+    int outcome_index,
+    int eff_index) const
+{
+    return get_operator_effect(op_index, outcome_index, eff_index).fact;
+}
+
+int RootOperatorSpace::get_num_operator_outcome_effect_conditions(
+    int op_index,
+    int outcome_index,
+    int eff_index) const
+{
+    return get_operator_effect(op_index, outcome_index, eff_index)
+        .conditions.size();
+}
+
+FactPair RootOperatorSpace::get_operator_outcome_effect_condition(
+    int op_index,
+    int outcome_index,
+    int eff_index,
+    int cond_index) const
+{
+    const ConditionalEffect& effect =
+        get_operator_effect(op_index, outcome_index, eff_index);
+    assert(utils::in_bounds(cond_index, effect.conditions));
+    return effect.conditions[cond_index];
+}
+
+int RootGoal::get_num_goals() const
+{
+    return goals_.size();
+}
+
+FactPair RootGoal::get_goal_fact(int index) const
+{
+    assert(utils::in_bounds(index, goals_));
+    return goals_[index];
+}
+
+vector<int> RootInitialStateValues::get_initial_state_values() const
+{
+    return initial_state_values_;
+}
+
+} // namespace
+
+UniqueProbabilisticTask read_sas_task(std::istream& in)
 {
     read_and_verify_version(in);
     Metric metric = read_metric(in);
-    variables = read_variables(in);
-    int num_variables = variables.size();
+    auto variable_info = read_variables(in);
+    int num_variables = variable_info.domains.size();
 
-    if (std::isdigit(in.peek())) {
+    if (const int c = (in >> std::ws).peek(); std::isdigit(c)) {
         skip_mutexes(in);
     }
 
-    initial_state_values.resize(num_variables);
+    std::vector<int> initial_state;
+    initial_state.reserve(num_variables);
+
     check_magic(in, "begin_state");
     for (int i = 0; i < num_variables; ++i) {
-        in >> initial_state_values[i];
+        in >> initial_state.emplace_back();
     }
     check_magic(in, "end_state");
 
     for (int i = 0; i < num_variables; ++i) {
-        variables[i].axiom_default_value = initial_state_values[i];
+        variable_info.axiom_infos[i].axiom_default_value = initial_state[i];
     }
 
-    goals = read_goal(in);
-    check_facts(goals, variables);
-    operators =
-        read_probabilistic_operators(in, metric.optimization, variables);
-    axioms = read_axioms(in, variables);
+    auto goal_facts = read_goal(in);
+
+    check_facts(goal_facts, variable_info.domains);
+
+    auto action_info = read_probabilistic_operators(
+        in,
+        metric.optimization,
+        variable_info.domains);
+    auto axiom_info = read_axioms(in, variable_info.domains);
+
     /* TODO: We should be stricter here and verify that we
        have reached the end of "in". */
+
+    value_t goal_termination_cost;
+    value_t non_goal_termination_cost;
 
     if (metric.rewards) {
         assert(metric.goal_reward.has_value());
@@ -622,265 +977,56 @@ RootTask::RootTask(std::istream& in)
         non_goal_termination_cost = -non_goal_termination_cost;
     }
 
+    // Construct interfaces
+    auto variables =
+        std::make_unique<RootVariableSpace>(std::move(variable_info.domains));
+
+    auto axioms = std::make_unique<RootAxiomSpace>(
+        std::move(variable_info.axiom_infos),
+        std::move(axiom_info));
+
+    auto operators =
+        std::make_unique<RootOperatorSpace>(std::move(action_info.operators));
+
+    auto goals = std::make_unique<RootGoal>(std::move(goal_facts));
+    auto cost_function = std::make_unique<RootOperatorCostFunction>(
+        std::move(action_info.costs));
+
+    auto term_costs = std::make_unique<RootTerminationCostFunction>(
+        goal_termination_cost,
+        non_goal_termination_cost);
+
     /*
-      HACK: We use a TaskProxy to access g_axiom_evaluators here which
+      HACK: We use access g_axiom_evaluators here which
       assumes that this task is completely constructed.
     */
     AxiomEvaluator& axiom_evaluator =
-        g_axiom_evaluators[PlanningTaskProxy(*this)];
-    axiom_evaluator.evaluate(initial_state_values);
+        downward::g_axiom_evaluators[*variables, *axioms];
+    axiom_evaluator.evaluate(initial_state);
+
+    auto initial_state_values =
+        std::make_unique<RootInitialStateValues>(std::move(initial_state));
+
+    return std::forward_as_tuple(
+        std::move(variables),
+        std::move(axioms),
+        std::move(operators),
+        std::move(goals),
+        std::move(initial_state_values),
+        std::move(cost_function),
+        std::move(term_costs));
 }
 
-const ExplicitVariable& RootTask::get_variable(int var) const
-{
-    assert(utils::in_bounds(var, variables));
-    return variables[var];
-}
-
-const ProbabilisticOutcome&
-RootTask::get_outcome(int op_id, int outcome_index) const
-{
-    const ProbabilisticOperator& op = get_operator(op_id);
-    assert(utils::in_bounds(outcome_index, op.outcomes));
-    return op.outcomes[outcome_index];
-}
-
-const ConditionalEffect&
-RootTask::get_axiom_effect_(int op_id, int effect_id) const
-{
-    const ExplicitAxiom& axiom = get_axiom(op_id);
-    assert(utils::in_bounds(effect_id, axiom.effects));
-    return axiom.effects[effect_id];
-}
-
-const ConditionalEffect&
-RootTask::get_operator_effect(int op_id, int outcome_index, int effect_id) const
-{
-    const ProbabilisticOutcome& outcome = get_outcome(op_id, outcome_index);
-    assert(utils::in_bounds(effect_id, outcome.effects));
-    return outcome.effects[effect_id];
-}
-
-const ExplicitAxiom& RootTask::get_axiom(int index) const
-{
-    assert(utils::in_bounds(index, axioms));
-    return axioms[index];
-}
-
-const ProbabilisticOperator& RootTask::get_operator(int index) const
-{
-    assert(utils::in_bounds(index, operators));
-    return operators[index];
-}
-
-int RootTask::get_num_variables() const
-{
-    return variables.size();
-}
-
-string RootTask::get_variable_name(int var) const
-{
-    return get_variable(var).name;
-}
-
-int RootTask::get_variable_domain_size(int var) const
-{
-    return get_variable(var).domain_size;
-}
-
-int RootTask::get_variable_axiom_layer(int var) const
-{
-    return get_variable(var).axiom_layer;
-}
-
-int RootTask::get_variable_default_axiom_value(int var) const
-{
-    return get_variable(var).axiom_default_value;
-}
-
-string RootTask::get_fact_name(const FactPair& fact) const
-{
-    assert(utils::in_bounds(fact.value, get_variable(fact.var).fact_names));
-    return get_variable(fact.var).fact_names[fact.value];
-}
-
-int RootTask::get_num_axioms() const
-{
-    return axioms.size();
-}
-
-string RootTask::get_axiom_name(int index) const
-{
-    return get_axiom(index).name;
-}
-
-int RootTask::get_num_axiom_preconditions(int index) const
-{
-    return get_axiom(index).preconditions.size();
-}
-
-FactPair RootTask::get_axiom_precondition(int op_index, int fact_index) const
-{
-    const ExplicitAxiom& axiom = get_axiom(op_index);
-    assert(utils::in_bounds(fact_index, axiom.preconditions));
-    return axiom.preconditions[fact_index];
-}
-
-int RootTask::get_num_axiom_effects(int op_index) const
-{
-    return get_axiom(op_index).effects.size();
-}
-
-FactPair RootTask::get_axiom_effect(int op_index, int eff_index) const
-{
-    return get_axiom_effect_(op_index, eff_index).fact;
-}
-
-int RootTask::get_num_axiom_effect_conditions(int op_index, int eff_index) const
-{
-    return get_axiom_effect_(op_index, eff_index).conditions.size();
-}
-
-FactPair RootTask::get_axiom_effect_condition(
-    int op_index,
-    int eff_index,
-    int cond_index) const
-{
-    const ConditionalEffect& effect = get_axiom_effect_(op_index, eff_index);
-    assert(utils::in_bounds(cond_index, effect.conditions));
-    return effect.conditions[cond_index];
-}
-
-int RootTask::get_num_operators() const
-{
-    return operators.size();
-}
-
-value_t RootTask::get_operator_cost(int index) const
-{
-    return static_cast<value_t>(get_operator(index).cost);
-}
-
-string RootTask::get_operator_name(int index) const
-{
-    return get_operator(index).name;
-}
-
-int RootTask::get_num_operator_preconditions(int index) const
-{
-    return get_operator(index).preconditions.size();
-}
-
-FactPair RootTask::get_operator_precondition(int op_index, int fact_index) const
-{
-    const ProbabilisticOperator& op = get_operator(op_index);
-    assert(utils::in_bounds(fact_index, op.preconditions));
-    return op.preconditions[fact_index];
-}
-
-value_t RootTask::get_goal_termination_cost() const
-{
-    return goal_termination_cost;
-}
-
-value_t RootTask::get_non_goal_termination_cost() const
-{
-    return non_goal_termination_cost;
-}
-
-int RootTask::get_num_operator_outcomes(int index) const
-{
-    return get_operator(index).outcomes.size();
-}
-
-value_t
-RootTask::get_operator_outcome_probability(int index, int outcome_index) const
-{
-    return get_outcome(index, outcome_index).probability;
-}
-
-int RootTask::get_operator_outcome_id(int index, int outcome_index) const
-{
-    return get_operator(index).outcomes_start_index + outcome_index;
-}
-
-int RootTask::get_num_operator_outcome_effects(int op_index, int outcome_index)
-    const
-{
-    return get_outcome(op_index, outcome_index).effects.size();
-}
-
-FactPair RootTask::get_operator_outcome_effect(
-    int op_index,
-    int outcome_index,
-    int eff_index) const
-{
-    return get_operator_effect(op_index, outcome_index, eff_index).fact;
-}
-
-int RootTask::get_num_operator_outcome_effect_conditions(
-    int op_index,
-    int outcome_index,
-    int eff_index) const
-{
-    return get_operator_effect(op_index, outcome_index, eff_index)
-        .conditions.size();
-}
-
-FactPair RootTask::get_operator_outcome_effect_condition(
-    int op_index,
-    int outcome_index,
-    int eff_index,
-    int cond_index) const
-{
-    const ConditionalEffect& effect =
-        get_operator_effect(op_index, outcome_index, eff_index);
-    assert(utils::in_bounds(cond_index, effect.conditions));
-    return effect.conditions[cond_index];
-}
-
-int RootTask::get_num_goals() const
-{
-    return goals.size();
-}
-
-FactPair RootTask::get_goal_fact(int index) const
-{
-    assert(utils::in_bounds(index, goals));
-    return goals[index];
-}
-
-vector<int> RootTask::get_initial_state_values() const
-{
-    return initial_state_values;
-}
-
-} // namespace
-
-std::unique_ptr<ProbabilisticTask> read_sas_task(std::istream& in)
-{
-    return std::make_unique<RootTask>(in);
-}
-
-std::unique_ptr<ProbabilisticTask>
-read_sas_task(const std::filesystem::path& filepath)
+UniqueProbabilisticTask read_sas_task(const std::filesystem::path& filepath)
 {
     std::fstream input_file(filepath);
     return read_sas_task(input_file);
 }
 
-std::shared_ptr<ProbabilisticTask> read_root_tasks(std::istream& in)
+UniqueProbabilisticTask
+read_sas_task_from_file(const std::filesystem::path& filepath)
 {
-    std::shared_ptr<ProbabilisticTask> input_task = read_sas_task(in);
-    ::tasks::g_root_task = std::make_shared<DeterminizationTask>(input_task);
-    return input_task;
-}
-
-std::shared_ptr<ProbabilisticTask>
-read_root_tasks_from_file(const std::filesystem::path& filepath)
-{
-    std::fstream input_file(filepath);
-    return read_root_tasks(input_file);
+    return read_sas_task(filepath);
 }
 
 } // namespace probfd::tasks

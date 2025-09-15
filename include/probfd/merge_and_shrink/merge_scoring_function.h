@@ -1,15 +1,13 @@
 #ifndef PROBFD_MERGE_AND_SHRINK_MERGE_SCORING_FUNCTION_H
 #define PROBFD_MERGE_AND_SHRINK_MERGE_SCORING_FUNCTION_H
 
+#include "probfd/probabilistic_task.h"
+
 #include <string>
 #include <vector>
 
 namespace downward::utils {
 class LogProxy;
-}
-
-namespace probfd {
-class ProbabilisticTaskProxy;
 }
 
 namespace probfd::merge_and_shrink {
@@ -40,7 +38,7 @@ public:
     virtual bool requires_goal_distances() const = 0;
 
     // Overriding methods must set initialized to true.
-    virtual void initialize(const ProbabilisticTaskProxy&)
+    virtual void initialize(const ProbabilisticTaskTuple&)
     {
         initialized = true;
     }

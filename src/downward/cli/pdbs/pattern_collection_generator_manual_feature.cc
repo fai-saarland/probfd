@@ -1,4 +1,7 @@
+#include "downward/cli/pdbs/pattern_collection_generator_manual_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/pdbs/pattern_generator_options.h"
 
@@ -12,7 +15,6 @@ using namespace downward::cli::pdbs;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class PatternCollectionGeneratorManualFeature
     : public TypedFeature<
           PatternCollectionGenerator,
@@ -37,7 +39,14 @@ public:
             get_generator_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<PatternCollectionGeneratorManualFeature> _plugin;
+namespace downward::cli::pdbs {
+
+void add_pattern_collection_generator_manual_feature(RawRegistry& raw_registry)
+{
+    raw_registry
+        .insert_feature_plugin<PatternCollectionGeneratorManualFeature>();
+}
 
 } // namespace

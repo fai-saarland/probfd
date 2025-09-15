@@ -1,6 +1,9 @@
-#include "downward/cli/plugins/plugin.h"
+#include "probfd/cli/solvers/acyclic_vi.h"
 
-#include "probfd/cli/solvers/mdp_solver.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "probfd/cli/solvers/mdp_solver_options.h"
 
 #include "probfd/solvers/mdp_solver.h"
 #include "probfd/solvers/statistical_mdp_algorithm.h"
@@ -8,7 +11,7 @@
 #include "probfd/algorithms/acyclic_value_iteration.h"
 
 #include "downward/operator_id.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <memory>
 #include <string>
@@ -26,7 +29,6 @@ using namespace probfd::cli::solvers;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class AcyclicVIWithStatistics : public StatisticalMDPAlgorithm {
     AcyclicValueIteration<State, OperatorID> algorithm;
 
@@ -43,15 +45,18 @@ public:
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport progress,
-        double max_time)
+        Duration max_time)
     {
         return algorithm
             .compute_policy(mdp, heuristic, state, progress, max_time);
     }
 
     void handleEvent(const StateExpansion&) { ++state_expansions; }
+
     void handleEvent(const GoalStateExpansion&) { ++goal_states; }
+
     void handleEvent(const TerminalStateExpansion&) { ++terminal_states; }
+
     void handleEvent(const PruneStateExpansion&) { ++pruned_states; }
 
     void print_statistics(std::ostream& out) const
@@ -70,9 +75,8 @@ public:
         return "acyclic_value_iteration";
     }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
-        const std::shared_ptr<ProbabilisticTask>&,
-        const std::shared_ptr<FDRCostFunction>&) override
+    std::unique_ptr<StatisticalMDPAlgorithm>
+    create_algorithm(const SharedProbabilisticTask&) override
     {
         return std::make_unique<AcyclicVIWithStatistics>();
     }
@@ -97,7 +101,13 @@ protected:
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
+}
 
-FeaturePlugin<AcyclicVISolverFeature> _plugin;
+namespace probfd::cli::solvers {
+
+void add_acyclic_value_iteration_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<AcyclicVISolverFeature>();
+}
 
 } // namespace

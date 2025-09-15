@@ -1,25 +1,33 @@
 #ifndef PROBFD_TASK_UTILS_TASK_PROPERTIES_H
 #define PROBFD_TASK_UTILS_TASK_PROPERTIES_H
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 
 #include "probfd/value_type.h"
 
 #include "downward/operator_cost.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <iosfwd>
 #include <iterator>
 #include <vector>
 
 // Forward Declarations
+namespace downward {
+class AxiomSpace;
+
+template <typename>
+class OperatorCostFunction;
+}
+
 namespace downward::utils {
 class LogProxy;
 }
 
 namespace probfd {
-class ProbabilisticTask;
-}
+class ProbabilisticOperatorProxy;
+class TerminationCosts;
+} // namespace probfd
 
 namespace probfd::task_properties {
 
@@ -30,13 +38,11 @@ namespace probfd::task_properties {
  * mentioning this variable.
  * The order in which affected variables are output is unspecified.
  */
-void get_affected_vars(
-    const ProbabilisticOperatorProxy& op,
-    std::output_iterator<int> auto it)
+void get_affected_vars(const auto& op, std::output_iterator<int> auto it)
 {
-    for (const ProbabilisticOutcomeProxy& outcome : op.get_outcomes()) {
+    for (const auto& outcome : op.get_outcomes()) {
         for (const auto& effect : outcome.get_effects()) {
-            *it = effect.get_fact().get_variable().get_id();
+            *it = effect.get_fact().var;
         }
     }
 }
@@ -50,6 +56,13 @@ extern bool is_applicable(
 
 extern value_t get_adjusted_action_cost(
     const ProbabilisticOperatorProxy& op,
+    const downward::OperatorCostFunction<value_t>& cost_function,
+    downward::OperatorCost cost_type,
+    bool is_unit_cost);
+
+extern value_t get_adjusted_action_cost(
+    int op_index,
+    const downward::OperatorCostFunction<value_t>& cost_function,
     downward::OperatorCost cost_type,
     bool is_unit_cost);
 
@@ -58,21 +71,24 @@ extern value_t get_adjusted_action_cost(
  *
  * Runtime: O(n), where n is the number of probabilistic operators.
  */
-extern bool is_unit_cost(const ProbabilisticTaskProxy& task);
+extern bool is_unit_cost(
+    const ProbabilisticOperatorSpace& task,
+    const downward::OperatorCostFunction<value_t>& cost_function);
 
 /**
  * @brief Checks if conditional effects exist.
  *
  * Runtime: O(n), where n is the number of effects.
  */
-extern bool has_conditional_effects(const ProbabilisticTaskProxy& task);
+extern bool has_conditional_effects(const ProbabilisticOperatorSpace& ops);
 
 /**
  * @brief Throws ExitCode::UNSUPPORTED if conditional effects exist.
  *
  * Runtime: O(n), where n is the number of effects.
  */
-extern void verify_no_conditional_effects(const ProbabilisticTaskProxy& task);
+extern void
+verify_no_conditional_effects(const ProbabilisticOperatorSpace& ops);
 
 /**
  * @brief Returns the operator costs of a task as a vector of costs sorted by
@@ -80,23 +96,18 @@ extern void verify_no_conditional_effects(const ProbabilisticTaskProxy& task);
  *
  * Runtime: O(n), where n is the number of operators.
  */
-extern std::vector<value_t>
-get_operator_costs(const ProbabilisticTaskProxy& task_proxy);
+extern std::vector<value_t> get_operator_costs(
+    const ProbabilisticOperatorSpace& ops,
+    const downward::OperatorCostFunction<value_t>& cost_function);
 
 /**
  * @brief Returns the average operator cost of a task among all operators.
  *
  * Runtime: O(n), where n is the number of operators.
  */
-extern value_t
-get_average_operator_cost(const ProbabilisticTaskProxy& task_proxy);
-
-/**
- * @brief Returns the minimum operator cost of a task among all operators.
- *
- * Runtime: O(n), where n is the number of operators.
- */
-extern value_t get_min_operator_cost(const ProbabilisticTaskProxy& task_proxy);
+extern value_t get_average_operator_cost(
+    const ProbabilisticOperatorSpace& ops,
+    const downward::OperatorCostFunction<value_t>& cost_function);
 
 /**
  * @brief Returns the minimum operator cost of an operator space among all
@@ -104,7 +115,19 @@ extern value_t get_min_operator_cost(const ProbabilisticTaskProxy& task_proxy);
  *
  * Runtime: O(n), where n is the number of operators.
  */
-extern value_t get_min_operator_cost(const ProbabilisticOperatorsProxy& ops);
+extern value_t get_min_operator_cost(
+    const ProbabilisticOperatorSpace& ops,
+    const downward::OperatorCostFunction<value_t>& cost_function);
+
+/**
+ * @brief Returns a trivial lower bound on the expected cost-to-goal.
+ *
+ * Runtime: O(n), where n is the number of operators.
+ */
+value_t get_cost_lower_bound(
+    const ProbabilisticOperatorSpace& operators,
+    const downward::OperatorCostFunction<value_t>& cost_function,
+    const TerminationCosts& termination_costs);
 
 /**
  * @brief Return the total number of effects of the task, including the
@@ -113,21 +136,22 @@ extern value_t get_min_operator_cost(const ProbabilisticOperatorsProxy& ops);
  * Runtime: O(m + n), where m is the number of axioms and n is the total
  * number of operator effects.
  */
-extern int get_num_total_effects(const ProbabilisticTaskProxy& task_proxy);
+extern int get_num_total_effects(
+    const downward::AxiomSpace& axioms,
+    const ProbabilisticOperatorSpace& operators);
 
 /**
  * @brief Dumps a probabilistic task to a given log.
  */
 extern void dump_probabilistic_task(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTaskTuple& task,
     downward::utils::LogProxy& log);
 
 /**
  * @brief Dumps a probabilistic task to a given output stream.
  */
-extern void dump_probabilistic_task(
-    const ProbabilisticTaskProxy& task_proxy,
-    std::ostream& os);
+extern void
+dump_probabilistic_task(const ProbabilisticTaskTuple& task, std::ostream& os);
 
 } // namespace probfd::task_properties
 

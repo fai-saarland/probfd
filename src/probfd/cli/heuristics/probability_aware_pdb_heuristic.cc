@@ -1,4 +1,7 @@
+#include "probfd/cli/heuristics/probability_aware_pdb_heuristic.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "probfd/cli/heuristics/task_dependent_heuristic_options.h"
 
@@ -14,7 +17,6 @@ using namespace probfd::cli::heuristics;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class ProbabilityAwarePDBHeuristicFactoryFeature
     : public TypedFeature<
           TaskHeuristicFactory,
@@ -49,11 +51,17 @@ public:
     {
         return make_shared_from_arg_tuples<ProbabilityAwarePDBHeuristicFactory>(
             opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"),
-            opts.get<double>("max_time_dominance_pruning"),
+            opts.get<utils::Duration>("max_time_dominance_pruning"),
             get_task_dependent_heuristic_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<ProbabilityAwarePDBHeuristicFactoryFeature> _plugin;
+namespace probfd::cli::heuristics {
+
+void add_pdb_heuristic_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<ProbabilityAwarePDBHeuristicFactoryFeature>();
+}
 
 } // namespace

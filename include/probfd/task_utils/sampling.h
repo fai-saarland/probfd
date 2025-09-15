@@ -1,8 +1,11 @@
 #ifndef PROBFD_TASK_UTILS_SAMPLING_H
 #define PROBFD_TASK_UTILS_SAMPLING_H
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
+#include "probfd/probabilistic_operator_space.h"
 #include "probfd/value_type.h"
+
+#include "downward/state.h"
 
 #include <functional>
 #include <memory>
@@ -10,7 +13,6 @@
 namespace downward::utils {
 class RandomNumberGenerator;
 }
-
 
 namespace probfd::successor_generator {
 class ProbabilisticSuccessorGenerator;
@@ -21,17 +23,21 @@ namespace probfd::sampling {
   Sample states with random walks.
 */
 class RandomWalkSampler {
-    const ProbabilisticOperatorsProxy operators;
+    const ProbabilisticOperatorSpace& operators;
+    downward::AxiomEvaluator& axiom_evaluator;
     const std::unique_ptr<successor_generator::ProbabilisticSuccessorGenerator>
         successor_generator;
-    const downward::State initial_state;
     const double average_operator_costs;
     downward::utils::RandomNumberGenerator& rng;
 
 public:
     RandomWalkSampler(
-        const ProbabilisticTaskProxy& task_proxy,
+        const downward::VariableSpace& variables,
+        const ProbabilisticOperatorSpace& operators,
+        const downward::OperatorCostFunction<value_t>& cost_function,
+        downward::AxiomEvaluator& evaluator,
         downward::utils::RandomNumberGenerator& rng);
+
     ~RandomWalkSampler();
 
     /*
@@ -47,6 +53,7 @@ public:
     */
     downward::State sample_state(
         value_t init_h,
+        const downward::State& initial_state,
         const std::function<bool(const downward::State&)>& is_dead_end =
             [](const downward::State&) { return false; }) const;
 };

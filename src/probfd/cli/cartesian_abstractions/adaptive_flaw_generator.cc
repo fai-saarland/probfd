@@ -1,6 +1,9 @@
-#include "probfd/cartesian_abstractions/adaptive_flaw_generator.h"
+#include "probfd/cli/cartesian_abstractions/adaptive_flaw_generator.h"
 
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "probfd/cartesian_abstractions/adaptive_flaw_generator.h"
 
 using namespace downward;
 using namespace utils;
@@ -10,7 +13,6 @@ using namespace downward::cli::plugins;
 using namespace probfd::cartesian_abstractions;
 
 namespace {
-
 class AdaptiveFlawGeneratorFactoryFeature
     : public TypedFeature<FlawGeneratorFactory, AdaptiveFlawGeneratorFactory> {
 public:
@@ -19,7 +21,7 @@ public:
     {
         add_list_option<std::shared_ptr<FlawGeneratorFactory>>(
             "generators",
-            "The linear hierachy of flaw generators.",
+            "The linear hierarchy of flaw generators.",
             "[flaws_astar(), flaws_ilao()]");
     }
 
@@ -32,7 +34,13 @@ protected:
                 "generators"));
     }
 };
+}
 
-FeaturePlugin<AdaptiveFlawGeneratorFactoryFeature> _plugin;
+namespace probfd::cli::cartesian_abstractions {
+
+void add_adaptive_flaw_generator_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<AdaptiveFlawGeneratorFactoryFeature>();
+}
 
 } // namespace

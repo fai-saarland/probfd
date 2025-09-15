@@ -6,8 +6,12 @@
 #include <memory>
 #include <vector>
 
+namespace downward {
+class VariableSpace;
+}
+
 namespace probfd {
-class ProbabilisticTaskProxy;
+class ProbabilisticOperatorSpace;
 }
 
 namespace probfd::pdbs {
@@ -17,7 +21,8 @@ class MaxOrthogonalityFinderBase : public SubCollectionFinder {
 
 public:
     explicit MaxOrthogonalityFinderBase(
-        const ProbabilisticTaskProxy& task_proxy);
+        const downward::VariableSpace& variables,
+        const ProbabilisticOperatorSpace& operators);
 
     std::vector<PatternSubCollection>
     compute_subcollections(const PatternCollection&) override;

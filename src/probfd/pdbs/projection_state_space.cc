@@ -4,14 +4,21 @@
 #include "probfd/pdbs/state_ranking_function.h"
 
 #include "probfd/cost_function.h"
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 #include "probfd/transition_tail.h"
 
+#include "probfd/probabilistic_operator_space.h"
+#include "probfd/termination_costs.h"
+
 #include "downward/utils/countdown_timer.h"
+
+#include "downward/goal_fact_list.h"
+#include "downward/operator_cost_function.h"
 
 #include <cassert>
 #include <compare>
 #include <functional>
+#include <ranges>
 #include <span>
 #include <tuple>
 
@@ -25,14 +32,12 @@ namespace {
 
 struct Outcome {
     ProbabilisticEffectsProxy proxy;
-    std::pair<
-        ProxyIterator<ProbabilisticEffectsProxy>,
-        ProxyIterator<ProbabilisticEffectsProxy>>
+    std::ranges::subrange<std::ranges::iterator_t<ProbabilisticEffectsProxy>>
         effect_range;
 
     explicit Outcome(ProbabilisticOutcomeProxy outcome)
         : proxy(outcome.get_effects())
-        , effect_range(proxy.begin(), proxy.end())
+        , effect_range(proxy)
     {
     }
 };
@@ -79,8 +84,8 @@ static void compute_projection_operator_info(
     }
 
     auto op_preconditions = op.get_preconditions();
-    auto it = op_preconditions.begin();
-    auto end = op_preconditions.end();
+    auto it = std::ranges::begin(op_preconditions);
+    auto end = std::ranges::end(op_preconditions);
 
     const Pattern& pattern = ranking_function.get_pattern();
 
@@ -100,7 +105,7 @@ static void compute_projection_operator_info(
                 for (; out_it != out_end; ++out_it, ++out_info_it) {
                     auto& [eff_it, eff_end] = out_it->effect_range;
                     while (eff_it != eff_end) {
-                        FactPair eff_fact = (*eff_it).get_fact().get_pair();
+                        FactPair eff_fact = (*eff_it).get_fact();
 
                         // Skip effect on var not in patterm
                         if (eff_fact.var < var) {
@@ -131,7 +136,7 @@ static void compute_projection_operator_info(
                 break;
             }
 
-            FactPair pre_fact = (*it).get_pair();
+            FactPair pre_fact = *it;
 
             // Skip precondition on var not in patterm
             if (pre_fact.var < var) {
@@ -141,7 +146,7 @@ static void compute_projection_operator_info(
 
             if (pre_fact.var > var) goto no_precondition;
 
-            int pre_val = (*it).get_value();
+            int pre_val = (*it).value;
             precondition.emplace_back(i, pre_val);
 
             auto out_it = outcomes.begin();
@@ -151,7 +156,7 @@ static void compute_projection_operator_info(
             for (; out_it != out_end; ++out_it, ++out_info_it) {
                 auto& [eff_it, eff_end] = out_it->effect_range;
                 while (eff_it != eff_end) {
-                    FactPair eff_fact = (*eff_it).get_fact().get_pair();
+                    FactPair eff_fact = (*eff_it).get_fact();
 
                     // Skip effect on var not in patterm
                     if (eff_fact.var < var) {
@@ -179,20 +184,21 @@ static void compute_projection_operator_info(
 }
 
 ProjectionStateSpace::ProjectionStateSpace(
-    ProbabilisticTaskProxy task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    SharedProbabilisticTask task,
     const StateRankingFunction& ranking_function,
     bool operator_pruning,
-    double max_time)
-    : match_tree_(task_proxy.get_operators().size())
-    , parent_cost_function_(std::move(task_cost_function))
+    utils::Duration max_time)
+    : match_tree_(get_shared_operators(task)->size())
+    , parent_cost_function_(get_shared_cost_function(task))
+    , parent_term_function_(get_shared_termination_costs(task))
     , goal_state_flags_(ranking_function.num_states(), false)
 {
+    const auto& operators = get_operators(task);
+    const auto& goals = get_goal(task);
+
     utils::CountdownTimer timer(max_time);
 
     const Pattern& pattern = ranking_function.get_pattern();
-
-    const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
 
     // Generate the abstract operators for each probabilistic operator
     for (const ProbabilisticOperatorProxy& op : operators) {
@@ -258,8 +264,6 @@ ProjectionStateSpace::ProjectionStateSpace(
         } while (next_precondition(operator_info.missing_info, precondition));
     }
 
-    const GoalsProxy task_goals = task_proxy.get_goals();
-
     std::vector<int> non_goal_vars;
     StateRank base(0);
 
@@ -267,25 +271,23 @@ ProjectionStateSpace::ProjectionStateSpace(
     // and collect non-goal variables aswell.
     const int num_variables = static_cast<int>(pattern.size());
 
-    auto goal_it = task_goals.begin();
-    const auto goal_end = task_goals.end();
+    auto goal_it = std::ranges::begin(goals);
+    const auto goal_end = std::ranges::end(goals);
 
     for (int v = 0; v != num_variables;) {
         const int p_var = pattern[v];
-        const FactProxy goal_fact = *goal_it;
-        const int g_var = goal_fact.get_variable().get_id();
+        const FactPair goal_fact = *goal_it;
+        const int g_var = goal_fact.var;
 
         if (p_var < g_var) {
             non_goal_vars.push_back(v++);
         } else {
             if (p_var == g_var) {
-                base += ranking_function.rank_fact(v++, goal_fact.get_value());
+                base += ranking_function.rank_fact(v++, goal_fact.value);
             }
 
             if (++goal_it == goal_end) {
-                while (v < num_variables) {
-                    non_goal_vars.push_back(v++);
-                }
+                while (v < num_variables) { non_goal_vars.push_back(v++); }
                 break;
             }
         }
@@ -355,17 +357,18 @@ bool ProjectionStateSpace::is_goal(StateRank state) const
 
 value_t ProjectionStateSpace::get_goal_termination_cost() const
 {
-    return parent_cost_function_->get_goal_termination_cost();
+    return parent_term_function_->get_goal_termination_cost();
 }
 
 value_t ProjectionStateSpace::get_non_goal_termination_cost() const
 {
-    return parent_cost_function_->get_non_goal_termination_cost();
+    return parent_term_function_->get_non_goal_termination_cost();
 }
 
 value_t ProjectionStateSpace::get_action_cost(const ProjectionOperator* op)
 {
-    return parent_cost_function_->get_action_cost(op->operator_id);
+    return parent_cost_function_->get_operator_cost(
+        op->operator_id.get_index());
 }
 
 } // namespace probfd::pdbs

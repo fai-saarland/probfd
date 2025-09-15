@@ -21,10 +21,11 @@ void add_canonical_pdbs_options_to_feature(plugins::Feature& feature)
         plugins::Bounds("0.0", "infinity"));
 }
 
-tuple<double>
+tuple<utils::Duration>
 get_canonical_pdbs_arguments_from_options(const plugins::Options& opts)
 {
-    return make_tuple(opts.get<double>("max_time_dominance_pruning"));
+    return make_tuple(
+        opts.get<downward::utils::Duration>("max_time_dominance_pruning"));
 }
 
 } // namespace downward::cli::pdbs

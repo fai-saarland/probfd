@@ -2,7 +2,7 @@
 
 #include "probfd/pdbs/state_ranking_function.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 #include "tests/tasks/blocksworld.h"
 
 using namespace downward;
@@ -13,98 +13,129 @@ using namespace tests;
 
 TEST(PDBTests, test_ranking_function_empty_pattern)
 {
-    BlocksworldTask task(3, {{1, 0}, {2}}, {{1}, {2, 0}});
+    BlocksWorldFactIndex fact_index(3);
+    BlocksWorldOperatorIndex operator_index(fact_index);
 
-    ProbabilisticTaskProxy task_proxy(task);
-    VariablesProxy variables = task_proxy.get_variables();
+    auto task = create_probabilistic_blocksworld_task(
+        fact_index,
+        operator_index,
+        {{1, 0}, {2}},
+        {{1}, {2, 0}});
+
+    const auto& variables = get_variables(task);
 
     StateRankingFunction ranking_function(variables, {});
     ASSERT_EQ(ranking_function.num_states(), 1);
     ASSERT_EQ(ranking_function.num_vars(), 0);
 
-    State example_state = task.get_state(
-        {task.get_fact_is_block_clear(0, true),
-         task.get_fact_is_block_clear(1, true),
-         task.get_fact_is_block_clear(2, true),
-         task.get_fact_block_on_table(0),
-         task.get_fact_block_on_table(1),
-         task.get_fact_block_on_table(2),
-         task.get_fact_is_hand_empty(true)});
+    State example_state = fact_index.get_state(
+        {fact_index.get_fact_is_block_clear(0, true),
+         fact_index.get_fact_is_block_clear(1, true),
+         fact_index.get_fact_is_block_clear(2, true),
+         fact_index.get_fact_block_on_table(0),
+         fact_index.get_fact_block_on_table(1),
+         fact_index.get_fact_block_on_table(2),
+         fact_index.get_fact_is_hand_empty(true)});
+
     ASSERT_EQ(ranking_function.get_abstract_rank(example_state), 0);
 }
 
 TEST(PDBTests, test_ranking_function_one_variable)
 {
-    BlocksworldTask task(3, {{1, 0}, {2}}, {{1}, {2, 0}});
+    BlocksWorldFactIndex fact_index(3);
+    BlocksWorldOperatorIndex operator_index(fact_index);
 
-    ProbabilisticTaskProxy task_proxy(task);
-    VariablesProxy variables = task_proxy.get_variables();
+    auto task = create_probabilistic_blocksworld_task(
+        fact_index,
+        operator_index,
+        {{1, 0}, {2}},
+        {{1}, {2, 0}});
 
-    StateRankingFunction ranking_function(variables, {task.get_clear_var(0)});
+    const auto& variables = get_variables(task);
+
+    StateRankingFunction ranking_function(variables, {fact_index.get_clear_var(0)});
+
     ASSERT_EQ(ranking_function.num_states(), 2);
     ASSERT_EQ(ranking_function.num_vars(), 1);
 
-    State example_state = task.get_state(
-        {task.get_fact_is_block_clear(0, true),
-         task.get_fact_is_block_clear(1, true),
-         task.get_fact_is_block_clear(2, true),
-         task.get_fact_block_on_table(0),
-         task.get_fact_block_on_table(1),
-         task.get_fact_block_on_table(2),
-         task.get_fact_is_hand_empty(true)});
+    State example_state = fact_index.get_state(
+        {fact_index.get_fact_is_block_clear(0, true),
+         fact_index.get_fact_is_block_clear(1, true),
+         fact_index.get_fact_is_block_clear(2, true),
+         fact_index.get_fact_block_on_table(0),
+         fact_index.get_fact_block_on_table(1),
+         fact_index.get_fact_block_on_table(2),
+         fact_index.get_fact_is_hand_empty(true)});
+
     ASSERT_EQ(ranking_function.get_abstract_rank(example_state), 1);
 }
 
 TEST(PDBTests, test_ranking_function_two_variables)
 {
-    BlocksworldTask task(3, {{1, 0}, {2}}, {{1}, {2, 0}});
+    BlocksWorldFactIndex fact_index(3);
+    BlocksWorldOperatorIndex operator_index(fact_index);
 
-    ProbabilisticTaskProxy task_proxy(task);
-    VariablesProxy variables = task_proxy.get_variables();
+    auto task = create_probabilistic_blocksworld_task(
+        fact_index,
+        operator_index,
+        {{1, 0}, {2}},
+        {{1}, {2, 0}});
+
+    const auto& variables = get_variables(task);
 
     StateRankingFunction ranking_function(
         variables,
-        {task.get_clear_var(0), task.get_location_var(0)});
+        {fact_index.get_clear_var(0), fact_index.get_location_var(0)});
+
     ASSERT_EQ(ranking_function.num_states(), 10);
     ASSERT_EQ(ranking_function.num_vars(), 2);
 
-    State example_state = task.get_state(
-        {task.get_fact_is_block_clear(0, true),
-         task.get_fact_is_block_clear(1, true),
-         task.get_fact_is_block_clear(2, true),
-         task.get_fact_block_on_table(0),
-         task.get_fact_block_on_table(1),
-         task.get_fact_block_on_table(2),
-         task.get_fact_is_hand_empty(true)});
+    State example_state = fact_index.get_state(
+        {fact_index.get_fact_is_block_clear(0, true),
+         fact_index.get_fact_is_block_clear(1, true),
+         fact_index.get_fact_is_block_clear(2, true),
+         fact_index.get_fact_block_on_table(0),
+         fact_index.get_fact_block_on_table(1),
+         fact_index.get_fact_block_on_table(2),
+         fact_index.get_fact_is_hand_empty(true)});
+
     ASSERT_EQ(ranking_function.get_abstract_rank(example_state), 7);
 }
 
 TEST(PDBTests, test_ranking_function_all_variables)
 {
-    BlocksworldTask task(3, {{1, 0}, {2}}, {{1}, {2, 0}});
+    BlocksWorldFactIndex fact_index(3);
+    BlocksWorldOperatorIndex operator_index(fact_index);
 
-    ProbabilisticTaskProxy task_proxy(task);
-    VariablesProxy variables = task_proxy.get_variables();
+    auto task = create_probabilistic_blocksworld_task(
+        fact_index,
+        operator_index,
+        {{1, 0}, {2}},
+        {{1}, {2, 0}});
+
+    const auto& variables = get_variables(task);
 
     StateRankingFunction ranking_function(
         variables,
-        {task.get_clear_var(0),
-         task.get_clear_var(1),
-         task.get_clear_var(2),
-         task.get_location_var(0),
-         task.get_location_var(1),
-         task.get_location_var(2),
-         task.get_hand_var()});
+        {fact_index.get_clear_var(0),
+         fact_index.get_clear_var(1),
+         fact_index.get_clear_var(2),
+         fact_index.get_location_var(0),
+         fact_index.get_location_var(1),
+         fact_index.get_location_var(2),
+         fact_index.get_hand_var()});
+
     ASSERT_EQ(ranking_function.num_states(), 2000);
     ASSERT_EQ(ranking_function.num_vars(), 7);
 
-    State example_state = task.get_state(
-        {task.get_fact_is_block_clear(0, true),
-         task.get_fact_is_block_clear(1, true),
-         task.get_fact_is_block_clear(2, true),
-         task.get_fact_block_on_table(0),
-         task.get_fact_block_on_table(1),
-         task.get_fact_block_on_table(2),
-         task.get_fact_is_hand_empty(true)});
+    State example_state = fact_index.get_state(
+        {fact_index.get_fact_is_block_clear(0, true),
+         fact_index.get_fact_is_block_clear(1, true),
+         fact_index.get_fact_is_block_clear(2, true),
+         fact_index.get_fact_block_on_table(0),
+         fact_index.get_fact_block_on_table(1),
+         fact_index.get_fact_block_on_table(2),
+         fact_index.get_fact_is_hand_empty(true)});
+
     ASSERT_EQ(ranking_function.get_abstract_rank(example_state), 1751);
 }

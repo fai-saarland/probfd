@@ -5,8 +5,8 @@
 
 #include "probfd/cost_function.h"
 #include "probfd/heuristic.h"
-#include "probfd/task_heuristic_factory.h"
-#include "probfd/task_proxy.h"
+#include "probfd/task_heuristic_factory_category.h"
+#include "probfd/termination_costs.h"
 #include "probfd/type_traits.h"
 #include "probfd/value_type.h"
 
@@ -16,14 +16,14 @@ namespace probfd::heuristics {
  * @brief Returns a constant estimate for each state.
  */
 template <typename State>
-class ConstantEvaluator : public Heuristic<State> {
+class ConstantHeuristic : public Heuristic<State> {
     const value_t value_;
 
 public:
     /**
      * @brief Construct with constant estimate \p value .
      */
-    explicit ConstantEvaluator(value_t value)
+    explicit ConstantHeuristic(value_t value)
         : value_(value)
     {
     }
@@ -39,29 +39,27 @@ public:
  * @brief Returns an estimate of zero for each state.
  */
 template <typename State>
-class BlindEvaluator : public ConstantEvaluator<State> {
+class BlindHeuristic : public ConstantHeuristic<State> {
 public:
     /**
      * @brief Construct with constant estimate \p value .
      */
-    BlindEvaluator(
-        const ProbabilisticOperatorsProxy& operators,
-        const FDRCostFunction& cost_function)
-        : ConstantEvaluator<State>(
-              task_properties::get_min_operator_cost(operators) >= 0_vt
-                  ? std::min(
-                        cost_function.get_goal_termination_cost(),
-                        cost_function.get_non_goal_termination_cost())
-                  : -INFINITE_VALUE)
+    BlindHeuristic(
+        const ProbabilisticOperatorSpace& operators,
+        const downward::OperatorCostFunction<value_t>& cost_function,
+        const TerminationCosts& termination_costs)
+        : ConstantHeuristic<State>(task_properties::get_cost_lower_bound(
+              operators,
+              cost_function,
+              termination_costs))
     {
     }
 };
 
-class BlindEvaluatorFactory : public TaskHeuristicFactory {
+class BlindHeuristicFactory : public TaskHeuristicFactory {
 public:
-    std::unique_ptr<FDREvaluator> create_heuristic(
-        std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function) override;
+    std::unique_ptr<FDRHeuristic>
+    create_object(const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::heuristics

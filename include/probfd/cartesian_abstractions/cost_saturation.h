@@ -18,13 +18,7 @@ class State;
 
 namespace downward::utils {
 class CountdownTimer;
-class Duration;
-} // namespace utils
-
-namespace probfd {
-class ProbabilisticTaskProxy;
-class ProbabilisticTask;
-} // namespace probfd
+} // namespace downward::utils
 
 namespace probfd::cartesian_abstractions {
 class CartesianHeuristicFunction;
@@ -48,7 +42,7 @@ class CostSaturation {
     const std::shared_ptr<SplitSelectorFactory> split_selector_factory_;
     const int max_states_;
     const int max_non_looping_transitions_;
-    const double max_time_;
+    const downward::utils::Duration max_time_;
     const bool use_general_costs_;
     mutable downward::utils::LogProxy log_;
 
@@ -58,10 +52,11 @@ class CostSaturation {
     int num_states_;
     int num_non_looping_transitions_;
 
-    void reset(const ProbabilisticTaskProxy& task_proxy);
+    void reset(
+        const ProbabilisticOperatorSpace& operators,
+        const downward::OperatorCostFunction<value_t>& cost_function);
+
     void reduce_remaining_costs(const std::vector<value_t>& saturated_costs);
-    std::shared_ptr<ProbabilisticTask>
-    get_remaining_costs_task(std::shared_ptr<ProbabilisticTask>& parent) const;
     bool state_is_dead_end(const downward::State& state) const;
     void build_abstractions(
         const SharedTasks& subtasks,
@@ -77,14 +72,14 @@ public:
         std::shared_ptr<SplitSelectorFactory> split_selector_factory,
         int max_states,
         int max_non_looping_transitions,
-        double max_time,
+        downward::utils::Duration max_time,
         bool use_general_costs,
         downward::utils::LogProxy log);
 
     ~CostSaturation();
 
-    std::vector<CartesianHeuristicFunction> generate_heuristic_functions(
-        const std::shared_ptr<ProbabilisticTask>& task);
+    std::vector<CartesianHeuristicFunction>
+    generate_heuristic_functions(const SharedProbabilisticTask& task);
 };
 
 } // namespace probfd::cartesian_abstractions

@@ -7,7 +7,6 @@
 #include <string>
 
 namespace downward {
-class AbstractTask;
 class TaskTransformation;
 
 enum class LPSolverType;
@@ -33,7 +32,6 @@ void add_admissible_potentials_options_to_feature(
 std::tuple<
     double,
     lp::LPSolverType,
-    std::shared_ptr<AbstractTask>,
     std::shared_ptr<TaskTransformation>,
     bool,
     std::string,

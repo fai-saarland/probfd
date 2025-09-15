@@ -4,10 +4,12 @@
 #include "downward/cartesian_abstractions/transition.h"
 #include "downward/cartesian_abstractions/utils.h"
 
-#include "downward/task_proxy.h"
-
 #include "downward/task_utils/task_properties.h"
+
+#include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
+
+#include "downward/state.h"
 
 #include <algorithm>
 #include <map>
@@ -16,7 +18,7 @@ using namespace std;
 
 namespace downward::cartesian_abstractions {
 static vector<vector<FactPair>>
-get_preconditions_by_operator(const OperatorsProxy& ops)
+get_preconditions_by_operator(const ClassicalOperatorSpace& ops)
 {
     vector<vector<FactPair>> preconditions_by_operator;
     preconditions_by_operator.reserve(ops.size());
@@ -32,12 +34,12 @@ get_preconditions_by_operator(const OperatorsProxy& ops)
 static vector<FactPair> get_postconditions(const OperatorProxy& op)
 {
     // Use map to obtain sorted postconditions.
-    map<int, int> var_to_post;
-    for (FactProxy fact : op.get_preconditions()) {
-        var_to_post[fact.get_variable().get_id()] = fact.get_value();
+    std::map<int, int> var_to_post;
+    for (const auto [var, value] : op.get_preconditions()) {
+        var_to_post[var] = value;
     }
     for (EffectProxy effect : op.get_effects()) {
-        FactPair fact = effect.get_fact().get_pair();
+        FactPair fact = effect.get_fact();
         var_to_post[fact.var] = fact.value;
     }
     vector<FactPair> postconditions;
@@ -49,7 +51,7 @@ static vector<FactPair> get_postconditions(const OperatorProxy& op)
 }
 
 static vector<vector<FactPair>>
-get_postconditions_by_operator(const OperatorsProxy& ops)
+get_postconditions_by_operator(const ClassicalOperatorSpace& ops)
 {
     vector<vector<FactPair>> postconditions_by_operator;
     postconditions_by_operator.reserve(ops.size());
@@ -83,7 +85,7 @@ remove_transitions_with_given_target(Transitions& transitions, int state_id)
     transitions.erase(new_end, transitions.end());
 }
 
-TransitionSystem::TransitionSystem(const OperatorsProxy& ops)
+TransitionSystem::TransitionSystem(const ClassicalOperatorSpace& ops)
     : preconditions_by_operator(get_preconditions_by_operator(ops))
     , postconditions_by_operator(get_postconditions_by_operator(ops))
     , num_non_loops(0)

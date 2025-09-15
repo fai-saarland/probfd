@@ -7,13 +7,12 @@ namespace downward::pdbs {
 class PatternGeneratorGreedy : public PatternGenerator {
     const int max_states;
 
-    virtual std::string name() const override;
-    virtual PatternInformation
-    compute_pattern(const std::shared_ptr<AbstractTask>& task) override;
+    std::string name() const override;
+    PatternInformation compute_pattern(const SharedAbstractTask& task) override;
 
 public:
     PatternGeneratorGreedy(int max_states, utils::Verbosity verbosity);
 };
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

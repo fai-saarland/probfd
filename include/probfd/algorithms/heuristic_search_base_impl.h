@@ -15,6 +15,7 @@
 #include "probfd/transition_tail.h"
 
 #include "downward/utils/collections.h"
+#include "downward/utils/timer.h"
 
 #include <cassert>
 #include <deque>
@@ -71,27 +72,48 @@ template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
     ParamType<State> source_state,
     const std::vector<TransitionTailType>& transition_tails,
-    CostFunctionType& cost_function) const -> AlgorithmValueType
+    ActionCostFunction<Action>& action_cost_function,
+    TerminationCostFunction<State>& term_cost_function) const
+    -> AlgorithmValueType
 {
 #if defined(EXPENSIVE_STATISTICS)
     TimerScope scoped_upd_timer(statistics_.update_time);
 #endif
 
     AlgorithmValueType best_value(
-        cost_function.get_termination_cost(source_state));
+        term_cost_function.get_termination_cost(source_state));
 
     for (auto& transition_tail : transition_tails) {
-        set_min(best_value, compute_qvalue(transition_tail, cost_function));
+        set_min(
+            best_value,
+            compute_qvalue(transition_tail, action_cost_function));
     }
 
     return best_value;
 }
 
 template <typename State, typename Action, typename StateInfoT>
+template <typename CostFunctionType>
+auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman(
+    ParamType<State> source_state,
+    const std::vector<TransitionTailType>& transition_tails,
+    CostFunctionType& cost_function) const -> AlgorithmValueType
+    requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
+             std::derived_from<CostFunctionType, TerminationCostFunctionType>
+{
+    return this->compute_bellman(
+        source_state,
+        transition_tails,
+        cost_function,
+        cost_function);
+}
+
+template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
     ParamType<State> source_state,
     std::vector<TransitionTailType>& transition_tails,
-    CostFunctionType& cost_function,
+    ActionCostFunction<Action>& action_cost_function,
+    TerminationCostFunction<State>& term_cost_function,
     std::vector<AlgorithmValueType>& qvalues) const -> AlgorithmValueType
 {
 #if defined(EXPENSIVE_STATISTICS)
@@ -100,14 +122,14 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
 
     if (transition_tails.empty()) {
         return AlgorithmValueType(
-            cost_function.get_termination_cost(source_state));
+            term_cost_function.get_termination_cost(source_state));
     }
 
     AlgorithmValueType best_value =
-        compute_q_values(transition_tails, cost_function, qvalues);
+        compute_q_values(transition_tails, action_cost_function, qvalues);
 
     const value_t termination_cost =
-        cost_function.get_termination_cost(source_state);
+        term_cost_function.get_termination_cost(source_state);
 
     if (as_lower_bound(best_value) >= termination_cost) {
         transition_tails.clear();
@@ -118,6 +140,24 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
     filter_greedy_transitions(transition_tails, qvalues, best_value);
 
     return best_value;
+}
+
+template <typename State, typename Action, typename StateInfoT>
+template <typename CostFunctionType>
+auto HeuristicSearchBase<State, Action, StateInfoT>::compute_bellman_and_greedy(
+    ParamType<State> source_state,
+    std::vector<TransitionTailType>& transition_tails,
+    CostFunctionType& cost_function,
+    std::vector<AlgorithmValueType>& qvalues) const -> AlgorithmValueType
+    requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
+             std::derived_from<CostFunctionType, TerminationCostFunctionType>
+{
+    return compute_bellman_and_greedy(
+        source_state,
+        transition_tails,
+        cost_function,
+        cost_function,
+        qvalues);
 }
 
 template <typename State, typename Action, typename StateInfoT>
@@ -291,10 +331,11 @@ void HeuristicSearchBase<State, Action, StateInfoT>::initialize(
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_qvalue(
     const TransitionTailType& transition,
-    CostFunctionType& cost_function) const -> AlgorithmValueType
+    ActionCostFunction<Action>& action_cost_function) const
+    -> AlgorithmValueType
 {
     AlgorithmValueType t_value(
-        cost_function.get_action_cost(transition.action));
+        action_cost_function.get_action_cost(transition.action));
 
     for (const auto& [succ_id, prob] :
          transition.successor_dist.non_source_successor_dist) {
@@ -309,7 +350,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_qvalue(
 template <typename State, typename Action, typename StateInfoT>
 auto HeuristicSearchBase<State, Action, StateInfoT>::compute_q_values(
     std::vector<TransitionTailType>& transition_tails,
-    CostFunctionType& cost_function,
+    ActionCostFunction<Action>& action_cost_function,
     std::vector<AlgorithmValueType>& qvalues) const -> AlgorithmValueType
 {
     AlgorithmValueType best_value(INFINITE_VALUE);
@@ -317,7 +358,7 @@ auto HeuristicSearchBase<State, Action, StateInfoT>::compute_q_values(
     qvalues.reserve(transition_tails.size());
 
     for (const auto& transition : transition_tails) {
-        auto q = compute_qvalue(transition, cost_function);
+        auto q = compute_qvalue(transition, action_cost_function);
         set_min(best_value, q);
         qvalues.push_back(q);
     }
@@ -369,7 +410,7 @@ Interval HeuristicSearchAlgorithm<State, Action, StateInfoT>::solve(
     HeuristicType& h,
     ParamType<State> state,
     ProgressReport progress,
-    double max_time)
+    downward::utils::Duration max_time)
 {
     HSBase::initialize_initial_state(mdp, h, state);
     return this->do_solve(mdp, h, state, progress, max_time);
@@ -381,7 +422,7 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
     HeuristicType& h,
     ParamType<State> initial_state,
     ProgressReport progress,
-    double max_time) -> std::unique_ptr<PolicyType>
+    downward::utils::Duration max_time) -> std::unique_ptr<PolicyType>
 {
     this->solve(mdp, h, initial_state, progress, max_time);
 
@@ -430,9 +471,7 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
         }
 
         // Terminal states have no policy decision.
-        if (!action) {
-            continue;
-        }
+        if (!action) { continue; }
 
         const Interval bound = this->lookup_bounds(state_id);
 
@@ -446,9 +485,7 @@ auto HeuristicSearchAlgorithm<State, Action, StateInfoT>::compute_policy(
 
         for (const StateID succ_id :
              successor_dist.non_source_successor_dist.support()) {
-            if (visited.insert(succ_id).second) {
-                queue.push_back(succ_id);
-            }
+            if (visited.insert(succ_id).second) { queue.push_back(succ_id); }
         }
     } while (!queue.empty());
 

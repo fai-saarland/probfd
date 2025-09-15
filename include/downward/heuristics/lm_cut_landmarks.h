@@ -1,14 +1,19 @@
 #ifndef HEURISTICS_LM_CUT_LANDMARKS_H
 #define HEURISTICS_LM_CUT_LANDMARKS_H
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/algorithms/priority_queues.h"
 
 #include <cassert>
+#include <downward/operator_cost_function.h>
 #include <functional>
 #include <memory>
 #include <vector>
+
+namespace downward {
+class OperatorProxy;
+}
 
 namespace downward::lm_cut_heuristic {
 // TODO: Fix duplication with the other relaxation heuristics.
@@ -55,6 +60,7 @@ struct RelaxedProposition {
 };
 
 class LandmarkCutLandmarks {
+    std::shared_ptr<OperatorIntCostFunction> cost_function;
     std::vector<RelaxedOperator> relaxed_operators;
     std::vector<std::vector<RelaxedProposition>> propositions;
     RelaxedProposition artificial_precondition;
@@ -68,7 +74,7 @@ class LandmarkCutLandmarks {
         std::vector<RelaxedProposition*>&& effects,
         int op_id,
         int base_cost);
-    RelaxedProposition* get_proposition(const FactProxy& fact);
+    RelaxedProposition* get_proposition(const FactPair& fact);
     void setup_exploration_queue();
     void setup_exploration_queue_state(const State& state);
     void first_exploration(const State& state);
@@ -96,7 +102,7 @@ public:
     using CostCallback = std::function<void(int)>;
     using LandmarkCallback = std::function<void(const Landmark&, int)>;
 
-    LandmarkCutLandmarks(const TaskProxy& task_proxy);
+    explicit LandmarkCutLandmarks(const SharedAbstractTask& task);
 
     /*
       Compute LM-cut landmarks for the given state.

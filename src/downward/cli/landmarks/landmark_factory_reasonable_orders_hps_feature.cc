@@ -1,6 +1,11 @@
+#include "downward/cli/landmarks/landmark_factory_reasonable_orders_hps_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/landmarks/landmark_factory_options.h"
+
+#include "downward/task_dependent_factory.h"
 
 #include "downward/landmarks/landmark_factory_reasonable_orders_hps.h"
 
@@ -18,7 +23,6 @@ using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 using downward::cli::landmarks::get_landmark_factory_arguments_from_options;
 
 namespace {
-
 class LandmarkFactoryReasonableOrdersHPSFeature
     : public TypedFeature<LandmarkFactory, LandmarkFactoryReasonableOrdersHPS> {
 public:
@@ -50,7 +54,7 @@ public:
             "decided to remove them in issue1089.");
 
         add_option<shared_ptr<LandmarkFactory>>("lm_factory");
-        add_option<std::shared_ptr<MutexFactory>>(
+        add_option<std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
             "mutexes",
             "factory for mutexes");
         add_landmark_factory_options_to_feature(*this);
@@ -66,11 +70,20 @@ public:
     {
         return make_shared_from_arg_tuples<LandmarkFactoryReasonableOrdersHPS>(
             opts.get<shared_ptr<LandmarkFactory>>("lm_factory"),
-            opts.get<std::shared_ptr<MutexFactory>>("mutexes"),
+            opts.get<std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
+                "mutexes"),
             get_landmark_factory_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<LandmarkFactoryReasonableOrdersHPSFeature> _plugin;
+namespace downward::cli::landmarks {
+
+void add_landmark_factory_reasonable_orders_hps_feature(
+    RawRegistry& raw_registry)
+{
+    raw_registry
+        .insert_feature_plugin<LandmarkFactoryReasonableOrdersHPSFeature>();
+}
 
 } // namespace

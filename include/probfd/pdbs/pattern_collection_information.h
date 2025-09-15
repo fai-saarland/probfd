@@ -7,7 +7,6 @@
 #include "probfd/heuristics/constant_heuristic.h"
 
 #include "probfd/fdr_types.h"
-#include "probfd/task_proxy.h"
 
 #include <memory>
 #include <vector>
@@ -28,8 +27,7 @@ namespace probfd::pdbs {
   as an interface for ownership transfer rather than sharing it.
 */
 class PatternCollectionInformation {
-    ProbabilisticTaskProxy task_proxy_;
-    std::shared_ptr<FDRCostFunction> task_cost_function_;
+    SharedProbabilisticTask task_;
 
     PatternCollection patterns_;
     PPDBCollection pdbs_;
@@ -38,26 +36,23 @@ class PatternCollectionInformation {
     std::shared_ptr<SubCollectionFinder> subcollection_finder_;
 
     // for creation if missing
-    heuristics::BlindEvaluator<StateRank> h;
+    heuristics::BlindHeuristic<StateRank> h;
 
     void create_pdbs_if_missing();
     void create_pattern_cliques_if_missing();
 
 public:
     PatternCollectionInformation(
-        const ProbabilisticTaskProxy& task_proxy,
-        std::shared_ptr<FDRCostFunction> task_cost_function,
+        SharedProbabilisticTask task,
         downward::pdbs::PatternCollectionInformation det_info,
         std::shared_ptr<SubCollectionFinder> subcollection_finder);
 
     PatternCollectionInformation(
-        const ProbabilisticTaskProxy& task_proxy,
-        std::shared_ptr<FDRCostFunction> task_cost_function,
+        SharedProbabilisticTask task,
         PatternCollection patterns);
 
     PatternCollectionInformation(
-        const ProbabilisticTaskProxy& task_proxy,
-        std::shared_ptr<FDRCostFunction> task_cost_function,
+        SharedProbabilisticTask task,
         PatternCollection patterns,
         std::shared_ptr<SubCollectionFinder> subcollection_finder);
 

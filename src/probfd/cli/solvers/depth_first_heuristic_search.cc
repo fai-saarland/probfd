@@ -1,12 +1,15 @@
+#include "probfd/cli/solvers/depth_first_heuristic_search.h"
+
 #include "downward/cli/plugins/plugin.h"
 
-#include "probfd/cli/multi_feature_plugin.h"
 #include "probfd/cli/naming_conventions.h"
 
-#include "probfd/cli/solvers/mdp_heuristic_search.h"
-#include "probfd/cli/solvers/mdp_solver.h"
+#include "probfd/cli/solvers/mdp_heuristic_search_options.h"
+#include "probfd/cli/solvers/mdp_solver_options.h"
 
 #include "probfd/algorithms/depth_first_heuristic_search.h"
+
+#include "downward/cli/plugins/raw_registry.h"
 
 #include <memory>
 #include <string>
@@ -23,7 +26,6 @@ using namespace probfd::cli::solvers;
 using namespace downward::cli::plugins;
 
 namespace {
-
 template <bool Bisimulation, bool Fret>
 class DFHSSolver : public MDPHeuristicSearch<Bisimulation, Fret> {
     template <typename State, typename Action, bool Interval>
@@ -59,14 +61,12 @@ public:
 
     std::string get_heuristic_search_name() const override { return name_; }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) override
+    std::unique_ptr<StatisticalMDPAlgorithm>
+    create_algorithm(const SharedProbabilisticTask& task) override
     {
         return std::make_unique<AlgorithmAdaptor>(
             this->template create_heuristic_search_algorithm<Algorithm>(
                 task,
-                task_cost_function,
                 forward_updates_,
                 backward_updates_,
                 cutoff_tip_states_,
@@ -239,23 +239,34 @@ public:
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
+}
 
-MultiFeaturePlugin<DFHSSolverFeature> _plugin_dfhs;
-MultiFeaturePlugin<ILAOSolverFeature> _plugin_ilao;
-MultiFeaturePlugin<LILAOSolverFeature> _plugin_lilao;
-MultiFeaturePlugin<HDPSolverFeature> _plugin_hdp;
+namespace probfd::cli::solvers {
 
-TypedEnumPlugin<BacktrackingUpdateType> _enum_plugin(
-    {{"disabled",
-      "No update is performed when backtracking from a state during the dfs "
-      "exploration."},
-     {"on_demand",
-      "An update is performed when backtracking from a state during the dfs "
-      "exploration, but only if a previous forward update was made and did not "
-      "result in an epsilon-consistent value. Requires forward updates to be "
-      "enabled, or tip exploration cutoff to be disabled."},
-     {"single",
-      "An update is always performed when backtracking from a state during the "
-      "dfs exploration."}});
+void add_depth_first_heuristic_search_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugins<DFHSSolverFeature>();
+    raw_registry.insert_feature_plugins<ILAOSolverFeature>();
+    raw_registry.insert_feature_plugins<LILAOSolverFeature>();
+    raw_registry.insert_feature_plugins<HDPSolverFeature>();
+
+    raw_registry.insert_enum_plugin<BacktrackingUpdateType>(
+        {{"disabled",
+          "No update is performed when backtracking from a state during the "
+          "dfs "
+          "exploration."},
+         {"on_demand",
+          "An update is performed when backtracking from a state during the "
+          "dfs "
+          "exploration, but only if a previous forward update was made and did "
+          "not "
+          "result in an epsilon-consistent value. Requires forward updates to "
+          "be "
+          "enabled, or tip exploration cutoff to be disabled."},
+         {"single",
+          "An update is always performed when backtracking from a state during "
+          "the "
+          "dfs exploration."}});
+}
 
 } // namespace

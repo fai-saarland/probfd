@@ -14,10 +14,6 @@ class CountdownTimer;
 class LogProxy;
 } // namespace utils
 
-namespace probfd {
-class ProbabilisticTaskProxy;
-}
-
 namespace probfd::cartesian_abstractions {
 class CartesianAbstraction;
 class CartesianHeuristic;
@@ -30,7 +26,7 @@ public:
     virtual ~PolicyFlawFinder() = default;
 
     virtual std::optional<Flaw> find_flaw(
-        const ProbabilisticTaskProxy& task_proxy,
+        const ProbabilisticTaskTuple& task,
         const std::vector<int>& domain_sizes,
         CartesianAbstraction& abstraction,
         Solution& policy,

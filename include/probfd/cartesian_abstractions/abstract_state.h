@@ -5,8 +5,11 @@
 
 #include "downward/cartesian_abstractions/cartesian_set.h"
 
+#include <concepts>
+#include <format>
 #include <iosfwd>
 #include <memory>
+#include <ranges>
 #include <utility>
 #include <vector>
 
@@ -14,7 +17,7 @@
 namespace downward {
 struct FactPair;
 class State;
-}
+} // namespace downward
 
 namespace probfd {
 class ProbabilisticOperatorProxy;
@@ -34,6 +37,9 @@ class AbstractState {
     NodeID node_id_;
 
     CartesianSet cartesian_set_;
+
+    template <typename T, typename Char>
+    friend struct std::formatter;
 
 public:
     AbstractState(int state_id, NodeID node_id, CartesianSet&& cartesian_set);
@@ -86,10 +92,42 @@ public:
     operator<<(std::ostream& os, const AbstractState& state);
 
     // Create the initial, unrefined abstract state.
+    template <std::ranges::input_range R>
+        requires std::same_as<std::ranges::range_value_t<R>, int>
     static std::unique_ptr<AbstractState>
-    get_trivial_abstract_state(const std::vector<int>& domain_sizes);
+    get_trivial_abstract_state(const R& domain_sizes)
+    {
+        return std::make_unique<AbstractState>(
+            0,
+            0,
+            CartesianSet(domain_sizes));
+    }
 };
 
 } // namespace probfd::cartesian_abstractions
+
+template <typename Char>
+struct std::formatter<probfd::cartesian_abstractions::AbstractState, Char> {
+    template <class ParseContext>
+    constexpr typename ParseContext::iterator parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+
+    template <class FmtContext>
+    typename FmtContext::iterator format(
+        const probfd::cartesian_abstractions::AbstractState& state,
+        FmtContext& ctx) const
+    {
+        return std::format_to(
+            ctx.out(),
+            "#{} {}",
+            state.get_id(),
+            state.cartesian_set_);
+    }
+};
+
+static_assert(
+    std::formattable<probfd::cartesian_abstractions::AbstractState, char>);
 
 #endif // PROBFD_CARTESIAN_ABSTRACTIONS_ABSTRACT_STATE_H

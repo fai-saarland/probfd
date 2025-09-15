@@ -11,11 +11,12 @@
 
 #include "probfd/distribution.h"
 #include "probfd/multi_policy.h"
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/utils/countdown_timer.h"
 
 #include "downward/state_registry.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include <cassert>
 #include <utility>
@@ -37,7 +38,8 @@ SamplingFlawFinder::SamplingFlawFinder(
 SamplingFlawFinder::~SamplingFlawFinder() = default;
 
 bool SamplingFlawFinder::apply_policy(
-    const ProbabilisticTaskProxy& task_proxy,
+    const ProbabilisticTaskTuple& task,
+    const State& initial_state,
     const StateRankingFunction& state_ranking_function,
     const ProjectionStateSpace& mdp,
     const ProjectionMultiPolicy& policy,
@@ -47,17 +49,23 @@ bool SamplingFlawFinder::apply_policy(
 {
     assert(stk_.empty() && einfos_.empty());
 
+    const auto& variables = get_variables(task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
+    const auto& goals = get_goal(task);
+
     // Exception safety due to TimeoutException
     scope_exit guard([&] {
         stk_.clear();
         einfos_.clear();
     });
 
-    StateRegistry registry(task_proxy);
-    stk_.push_back(registry.get_initial_state());
+    StateRegistry registry(
+        downward::task_properties::g_state_packers[variables],
+        g_axiom_evaluators[variables, axioms],
+        initial_state);
 
-    const ProbabilisticOperatorsProxy operators = task_proxy.get_operators();
-    const GoalsProxy goals = task_proxy.get_goals();
+    stk_.push_back(registry.get_initial_state());
 
     for (;;) {
         const State* current = &stk_.back();
@@ -117,7 +125,7 @@ bool SamplingFlawFinder::apply_policy(
             }
 
             // Insert all flaws of all operators
-            flaws.insert(flaws.end(), local_flaws.begin(), local_flaws.end());
+            flaws.append_range(local_flaws);
 
             return false;
         }
@@ -147,9 +155,7 @@ bool SamplingFlawFinder::apply_policy(
             do {
                 stk_.pop_back();
 
-                if (stk_.empty()) {
-                    return true;
-                }
+                if (stk_.empty()) { return true; }
 
                 current = &stk_.back();
                 einfo = &einfos_[StateID(current->get_id())];

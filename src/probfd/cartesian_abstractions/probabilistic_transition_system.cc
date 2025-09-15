@@ -2,19 +2,18 @@
 #include "probfd/cartesian_abstractions/abstract_state.h"
 #include "probfd/cartesian_abstractions/probabilistic_transition.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include "downward/utils/logging.h"
 
 #include "downward/task_utils/task_properties.h"
 
 #include "downward/abstract_task.h"
-#include "downward/task_proxy.h"
 
 #include <algorithm>
 #include <cassert>
 #include <map>
-
+#include <ranges>
 #include <ostream>
 #include <type_traits>
 #include <unordered_set>
@@ -26,14 +25,14 @@ using namespace downward;
 namespace probfd::cartesian_abstractions {
 
 static vector<vector<FactPair>>
-get_preconditions_by_operator(const ProbabilisticOperatorsProxy& ops)
+get_preconditions_by_operator(const ProbabilisticOperatorSpace& ops)
 {
     vector<vector<FactPair>> preconditions_by_operator;
     preconditions_by_operator.reserve(ops.size());
     for (auto op : ops) {
         vector<FactPair> preconditions =
             ::task_properties::get_fact_pairs(op.get_preconditions());
-        sort(preconditions.begin(), preconditions.end());
+        std::ranges::sort(preconditions);
         preconditions_by_operator.push_back(std::move(preconditions));
     }
     return preconditions_by_operator;
@@ -49,12 +48,12 @@ get_postconditions_per_outcome(const ProbabilisticOperatorProxy& op)
 
     for (auto outcome : outcomes) {
         // Use map to obtain sorted postconditions.
-        map<int, int> var_to_post;
-        for (FactProxy fact : op.get_preconditions()) {
-            var_to_post[fact.get_variable().get_id()] = fact.get_value();
+        std::map<int, int> var_to_post;
+        for (const auto [var, value] : op.get_preconditions()) {
+            var_to_post[var] = value;
         }
         for (auto effect : outcome.get_effects()) {
-            FactPair fact = effect.get_fact().get_pair();
+            FactPair fact = effect.get_fact();
             var_to_post[fact.var] = fact.value;
         }
         vector<FactPair>& outcome_postconditions =
@@ -69,7 +68,7 @@ get_postconditions_per_outcome(const ProbabilisticOperatorProxy& op)
 
 static vector<vector<vector<FactPair>>>
 get_postconditions_by_operator_and_outcome(
-    const ProbabilisticOperatorsProxy& ops)
+    const ProbabilisticOperatorSpace& ops)
 {
     vector<vector<vector<FactPair>>> postconditions;
     postconditions.reserve(ops.size());
@@ -80,7 +79,7 @@ get_postconditions_by_operator_and_outcome(
 }
 
 static vector<vector<value_t>> get_probabilities_by_operator_and_outcome(
-    const ProbabilisticOperatorsProxy& ops)
+    const ProbabilisticOperatorSpace& ops)
 {
     vector<vector<value_t>> probabilities;
     probabilities.reserve(ops.size());
@@ -97,7 +96,8 @@ static vector<vector<value_t>> get_probabilities_by_operator_and_outcome(
 
 static int lookup_value(const vector<FactPair>& facts, int var)
 {
-    assert(is_sorted(facts.begin(), facts.end()));
+    assert(std::ranges::is_sorted(facts));
+
     for (const FactPair& fact : facts) {
         if (fact.var == var) {
             return fact.value;
@@ -105,11 +105,12 @@ static int lookup_value(const vector<FactPair>& facts, int var)
             return UNDEFINED;
         }
     }
+
     return UNDEFINED;
 }
 
 ProbabilisticTransitionSystem::ProbabilisticTransitionSystem(
-    const ProbabilisticOperatorsProxy& ops)
+    const ProbabilisticOperatorSpace& ops)
     : preconditions_by_operator_(get_preconditions_by_operator(ops))
     , postconditions_by_operator_and_outcome_(
           get_postconditions_by_operator_and_outcome(ops))
@@ -150,15 +151,13 @@ void ProbabilisticTransitionSystem::enlarge_vectors_by_one()
 }
 
 void ProbabilisticTransitionSystem::construct_trivial_abstraction(
-    const ProbabilisticOperatorsProxy& ops)
+    const ProbabilisticOperatorSpace& ops)
 {
     assert(get_num_states() == 0);
     enlarge_vectors_by_one();
     assert(get_num_states() == 1);
 
-    for (const auto& op : ops) {
-        loops_[0].emplace_back(op.get_id());
-    }
+    for (const auto& op : ops) { loops_[0].emplace_back(op.get_id()); }
 
     num_loops_ += ops.size();
 }
@@ -298,13 +297,9 @@ void ProbabilisticTransitionSystem::rewire_incoming_transitions(
 
             assert(v1_possible || v2_possible);
 
-            if (v1_possible) {
-                incoming_[v1_id].push_back(transition);
-            }
+            if (v1_possible) { incoming_[v1_id].push_back(transition); }
 
-            if (v2_possible) {
-                incoming_[v2_id].push_back(transition);
-            }
+            if (v2_possible) { incoming_[v2_id].push_back(transition); }
         }
     }
 }
@@ -570,8 +565,8 @@ int ProbabilisticTransitionSystem::get_num_loops() const
 void ProbabilisticTransitionSystem::print_statistics(utils::LogProxy& log) const
 {
     if (log.is_at_least_normal()) {
-        log << "Looping transitions: " << get_num_loops() << endl;
-        log << "Non-looping transitions: " << get_num_non_loops() << endl;
+        log.println("Looping transitions: {}", get_num_loops());
+        log.println("Non-looping transitions: {}", get_num_non_loops());
     }
 }
 

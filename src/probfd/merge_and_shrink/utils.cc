@@ -75,6 +75,8 @@ static bool shrink_factor(
     int new_size,
     int shrink_threshold_before_merge,
     const ShrinkStrategy& shrink_strategy,
+    bool compute_goal_distances,
+    bool compute_liveness,
     utils::LogProxy& log)
 {
     /*
@@ -93,7 +95,7 @@ static bool shrink_factor(
             log << ")" << endl;
         }
 
-        const Distances& distances = fts.get_distances(index);
+        Distances& distances = fts.get_distances(index);
         const StateEquivalenceRelation equivalence_relation =
             shrink_strategy.compute_equivalence_relation(
                 fts.get_labels(),
@@ -105,7 +107,12 @@ static bool shrink_factor(
         // TODO: We currently violate this; see issue250
         // assert(equivalence_relation.size() <= target_size);
 
-        return fts.apply_abstraction(index, equivalence_relation, log);
+        return fts.apply_abstraction(
+            index,
+            equivalence_relation,
+            compute_goal_distances,
+            compute_liveness,
+            log);
     }
     return false;
 }
@@ -118,6 +125,8 @@ bool shrink_before_merge_step(
     int max_states_before_merge,
     int shrink_threshold_before_merge,
     const ShrinkStrategy& shrink_strategy,
+    bool do_compute_goal_distances,
+    bool compute_liveness,
     utils::LogProxy& log)
 {
     /*
@@ -143,11 +152,11 @@ bool shrink_before_merge_step(
         left_size,
         shrink_threshold_before_merge,
         shrink_strategy,
+        do_compute_goal_distances,
+        compute_liveness,
         log);
 
-    if (shrunk1) {
-        fts.statistics(index1, log);
-    }
+    if (shrunk1) { fts.statistics(index1, log); }
 
     const bool shrunk2 = shrink_factor(
         fts,
@@ -155,11 +164,11 @@ bool shrink_before_merge_step(
         right_size,
         shrink_threshold_before_merge,
         shrink_strategy,
+        do_compute_goal_distances,
+        compute_liveness,
         log);
 
-    if (shrunk2) {
-        fts.statistics(index2, log);
-    }
+    if (shrunk2) { fts.statistics(index2, log); }
 
     return shrunk1 || shrunk2;
 }
@@ -187,9 +196,7 @@ bool is_goal_relevant(const TransitionSystem& ts)
 {
     const int num_states = ts.get_size();
     for (int state = 0; state < num_states; ++state) {
-        if (!ts.is_goal_state(state)) {
-            return true;
-        }
+        if (!ts.is_goal_state(state)) { return true; }
     }
 
     return false;

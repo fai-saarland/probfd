@@ -6,6 +6,7 @@
 #include "downward/task_utils/sampling.h"
 
 #include "downward/heuristic.h"
+#include "downward/initial_state_values.h"
 
 using namespace std;
 
@@ -15,18 +16,26 @@ vector<State> sample_without_dead_end_detection(
     int num_samples,
     utils::RandomNumberGenerator& rng)
 {
-    const shared_ptr<AbstractTask> task = optimizer.get_task();
-    const TaskProxy task_proxy(*task);
-    State initial_state = task_proxy.get_initial_state();
+    const SharedAbstractTask task = optimizer.get_task();
+
+    const auto& variables = get_variables(task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
+    const auto& init_vals = get_init(task);
+    const auto& cost_function = get_cost_function(task);
+
+    State initial_state = init_vals.get_initial_state();
     optimizer.optimize_for_state(initial_state);
     int init_h = optimizer.get_potential_function()->get_value(initial_state);
-    sampling::RandomWalkSampler sampler(task_proxy, rng);
+    AxiomEvaluator& evaluator = g_axiom_evaluators[variables, axioms];
+    sampling::RandomWalkSampler
+        sampler(evaluator, variables, operators, cost_function, rng);
     vector<State> samples;
     samples.reserve(num_samples);
     for (int i = 0; i < num_samples; ++i) {
-        samples.push_back(sampler.sample_state(init_h));
+        samples.push_back(sampler.sample_state(init_h, initial_state));
     }
     return samples;
 }
 
-} // namespace potentials
+} // namespace downward::potentials

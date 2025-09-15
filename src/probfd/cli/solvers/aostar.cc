@@ -1,10 +1,12 @@
-#include "downward/cli/plugins/plugin.h"
+#include "probfd/cli/solvers/aostar.h"
 
-#include "probfd/cli/multi_feature_plugin.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
 #include "probfd/cli/naming_conventions.h"
 
-#include "probfd/cli/solvers/mdp_heuristic_search.h"
-#include "probfd/cli/solvers/mdp_solver.h"
+#include "probfd/cli/solvers/mdp_heuristic_search_options.h"
+#include "probfd/cli/solvers/mdp_solver_options.h"
 
 #include "probfd/algorithms/ao_star.h"
 
@@ -25,7 +27,6 @@ using namespace probfd::cli::solvers;
 using namespace downward::cli::plugins;
 
 namespace {
-
 template <bool Bisimulation>
 class AOStarSolver : public MDPHeuristicSearch<Bisimulation, false> {
     using Sampler = SuccessorSampler<ActionType<Bisimulation, false>>;
@@ -42,14 +43,12 @@ public:
 
     std::string get_heuristic_search_name() const override { return "aostar"; }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) override
+    std::unique_ptr<StatisticalMDPAlgorithm>
+    create_algorithm(const SharedProbabilisticTask& task) override
     {
         return std::make_unique<AlgorithmAdaptor>(
             this->template create_heuristic_search_algorithm<AOStar>(
                 task,
-                task_cost_function,
                 successor_sampler_));
     }
 };
@@ -86,7 +85,13 @@ protected:
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
+}
 
-MultiFeaturePlugin<AOStarSolverFeature> _plugin;
+namespace probfd::cli::solvers {
+
+void add_aostar_solver_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugins<AOStarSolverFeature>();
+}
 
 } // namespace

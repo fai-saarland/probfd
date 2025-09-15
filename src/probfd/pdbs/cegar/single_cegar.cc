@@ -12,7 +12,7 @@
 #include "probfd/abstractions/policy_extraction.h"
 
 #include "probfd/multi_policy.h"
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/utils/countdown_timer.h"
 #include "downward/utils/logging.h"
@@ -52,26 +52,27 @@ public:
 
     void run_cegar_loop(
         ProjectionTransformation& transformation,
-        ProbabilisticTaskProxy task_proxy,
-        const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
+        const SharedProbabilisticTask& task,
+        const State& initial_state,
+        std::shared_ptr<Heuristic<StateRank>> heuristic,
         utils::RandomNumberGenerator& rng,
-        double max_time,
+        utils::Duration max_time,
         utils::LogProxy log);
 
 private:
     bool get_flaws(
         ProjectionTransformation& transformation,
-        ProbabilisticTaskProxy task_proxy,
+        const SharedProbabilisticTask& task,
         std::vector<Flaw>& flaws,
         const State& initial_state,
+        const Heuristic<StateRank>& heuristic,
         utils::RandomNumberGenerator& rng,
         utils::CountdownTimer& timer,
         utils::LogProxy log);
 
-    void refine(
+    std::unique_ptr<Heuristic<StateRank>> refine(
         ProjectionTransformation& transformation,
-        ProbabilisticTaskProxy task_proxy,
-        std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+        const SharedProbabilisticTask& task,
         const std::vector<Flaw>& flaws,
         utils::RandomNumberGenerator& rng,
         utils::CountdownTimer& timer,
@@ -94,32 +95,42 @@ SingleCEGAR::SingleCEGAR(
 
 bool SingleCEGAR::get_flaws(
     ProjectionTransformation& transformation,
-    ProbabilisticTaskProxy task_proxy,
+    const SharedProbabilisticTask& task,
     std::vector<Flaw>& flaws,
     const State& initial_state,
+    const Heuristic<StateRank>& heuristic,
     utils::RandomNumberGenerator& rng,
     utils::CountdownTimer& timer,
     utils::LogProxy log)
 {
     auto& [pdb, projection] = transformation;
 
-    StateRank init_state_rank = pdb.get_abstract_state(initial_state);
+    const StateRank init_state_rank = pdb.get_abstract_state(initial_state);
 
-    std::unique_ptr<ProjectionMultiPolicy> policy =
-        compute_optimal_projection_policy(
-            *projection,
-            pdb.value_table,
-            init_state_rank,
-            epsilon_,
-            rng,
-            wildcard_);
+    compute_value_table(
+        *projection,
+        init_state_rank,
+        heuristic,
+        pdb.value_table,
+        timer.get_remaining_time());
+
+    const auto policy = compute_optimal_projection_policy(
+        *projection,
+        pdb.value_table,
+        init_state_rank,
+        epsilon_,
+        rng,
+        wildcard_);
 
     // abort here if no abstract solution could be found
     if (!projection->is_goal(init_state_rank) &&
         policy->get_decisions(init_state_rank).empty()) {
-        log << "SingleCEGAR: Problem unsolvable" << endl;
+        log.println("SingleCEGAR: Problem unsolvable");
+        log.println("SingleCEGAR: Unsolvable pattern: {}", pdb.get_pattern());
         utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
     }
+
+    const auto& variables = get_variables(task);
 
     auto accept_flaw = [&](const Flaw& flaw) {
         int var = flaw.variable;
@@ -127,11 +138,13 @@ bool SingleCEGAR::get_flaws(
 
         if (!utils::is_product_within_limit(
                 pdb.num_states(),
-                task_proxy.get_variables()[var].get_domain_size(),
+                variables[var].get_domain_size(),
                 max_pdb_size_)) {
             if (log.is_at_least_verbose()) {
-                log << "ignoring flaw on var " << var
-                    << " due to size limit, blacklisting..." << endl;
+                log.println(
+                    "ignoring flaw on var {} due to size limit, "
+                    "blacklisting...",
+                    var);
             }
 
             blacklisted_variables_.insert(var);
@@ -145,7 +158,8 @@ bool SingleCEGAR::get_flaws(
     // would not work for the concrete task.
     // We always start with the initial state.
     const bool executable = flaw_strategy_.apply_policy(
-        task_proxy,
+        to_refs(task),
+        initial_state,
         pdb.ranking_function,
         *projection,
         *policy,
@@ -167,13 +181,13 @@ bool SingleCEGAR::get_flaws(
                  * tests for empty blacklists.
                  */
 
-                log << "SingleCEGAR: Task solved during computation of "
-                       "abstract policies."
-                    << endl;
+                log.println(
+                    "SingleCEGAR: Task solved during computation of "
+                    "abstract policies.");
             } else {
-                log << "SingleCEGAR: Flaw list empty. No further refinements "
-                       "possible."
-                    << endl;
+                log.println(
+                    "SingleCEGAR: Flaw list empty. No further refinements "
+                    "possible.");
             }
         }
 
@@ -183,10 +197,9 @@ bool SingleCEGAR::get_flaws(
     return true;
 }
 
-void SingleCEGAR::refine(
+std::unique_ptr<Heuristic<StateRank>> SingleCEGAR::refine(
     ProjectionTransformation& transformation,
-    ProbabilisticTaskProxy task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    const SharedProbabilisticTask& task,
     const std::vector<Flaw>& flaws,
     utils::RandomNumberGenerator& rng,
     utils::CountdownTimer& timer,
@@ -202,81 +215,76 @@ void SingleCEGAR::refine(
     int flaw_var = flaw.variable;
 
     if (log.is_at_least_verbose()) {
-        log << "SingleCEGAR: chosen flaw: pattern " << pdb.get_pattern();
-        log << " with a violated";
-        if (flaw.is_precondition) {
-            log << " precondition ";
-        } else {
-            log << " goal ";
-        }
-        log << "on " << flaw_var << endl;
+        log.println(
+            "SingleCEGAR: chosen flaw: pattern {} with a violated {} on {}",
+            pdb.get_pattern(),
+            flaw.is_precondition ? "precondition" : "goal",
+            flaw_var);
     }
 
     // flaw_var is not yet in the collection
     // Note on precondition violations: flaw_var may be a goal variable but
     // nevertheless is added to the pattern causing the flaw and not to
     // a single new pattern.
-    assert(utils::is_product_within_limit(
-        pdb.num_states(),
-        task_proxy.get_variables()[flaw_var].get_domain_size(),
-        max_pdb_size_));
+    assert(
+        utils::is_product_within_limit(
+            pdb.num_states(),
+            get_variables(task)[flaw_var].get_domain_size(),
+            max_pdb_size_));
 
     if (log.is_at_least_verbose()) {
-        log << "SingleCEGAR: add it to the pattern" << endl;
+        log.println("SingleCEGAR: add it to the pattern");
     }
 
     // compute new solution
-    std::vector<value_t> prev_distances = std::move(pdb.value_table);
+    auto old_distances = std::move(pdb.value_table);
 
     transformation = ProjectionTransformation(
-        task_proxy,
-        std::move(task_cost_function),
+        task,
         extended_pattern(pdb.get_pattern(), flaw_var),
         false,
         timer.get_remaining_time());
 
-    IncrementalPPDBEvaluator h(prev_distances, pdb.ranking_function, flaw_var);
-
-    compute_value_table(
-        *projection,
-        pdb.get_abstract_state(task_proxy.get_initial_state()),
-        h,
-        pdb.value_table,
-        timer.get_remaining_time());
+    return std::make_unique<OwningIncrementalPPDBEvaluator>(
+        std::move(old_distances),
+        pdb.ranking_function,
+        flaw_var);
 }
 
 void SingleCEGAR::run_cegar_loop(
     ProjectionTransformation& transformation,
-    ProbabilisticTaskProxy task_proxy,
-    const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
+    const SharedProbabilisticTask& task,
+    const State& initial_state,
+    std::shared_ptr<Heuristic<StateRank>> heuristic,
     utils::RandomNumberGenerator& rng,
-    double max_time,
+    utils::Duration max_time,
     utils::LogProxy log)
 {
     if (log.is_at_least_normal()) {
-        log << "SingleCEGAR options: \n"
-            << "  flaw strategy: " << flaw_strategy_.get_name() << "\n"
-            << "  max pdb size: " << max_pdb_size_ << "\n"
-            << "  max time: " << max_time << "\n"
-            << "  wildcard plans: " << std::boolalpha << wildcard_ << "\n"
-            << "  blacklisted variables: " << blacklisted_variables_ << endl;
+        log.println(
+            "SingleCEGAR options:\n"
+            "  flaw strategy: {}\n"
+            "  max pdb size: {}\n"
+            "  max time: {}\n"
+            "  wildcard plans: {}\n"
+            "  blacklisted variables: {}",
+            flaw_strategy_.get_name(),
+            max_pdb_size_,
+            max_time,
+            wildcard_,
+            blacklisted_variables_);
     }
 
-    if (log.is_at_least_normal()) {
-        log << endl;
-    }
+    if (log.is_at_least_normal()) { log.println(); }
 
     utils::CountdownTimer timer(max_time);
 
-    State initial_state = task_proxy.get_initial_state();
-
     if (log.is_at_least_normal()) {
-        log << "SingleCEGAR initial collection: "
-            << transformation.pdb.get_pattern();
+        log.println(
+            "SingleCEGAR initial collection: {}",
+            transformation.pdb.get_pattern());
 
-        if (log.is_at_least_verbose()) {
-            log << endl;
-        }
+        if (log.is_at_least_verbose()) { log.println(); }
     }
 
     std::vector<Flaw> flaws;
@@ -287,14 +295,15 @@ void SingleCEGAR::run_cegar_loop(
     try {
         for (;;) {
             if (log.is_at_least_verbose()) {
-                log << "iteration #" << refinement_counter << endl;
+                log.println("iteration #{}", refinement_counter);
             }
 
             if (!get_flaws(
                     transformation,
-                    task_proxy,
+                    task,
                     flaws,
                     initial_state,
+                    *heuristic,
                     rng,
                     timer,
                     log))
@@ -304,33 +313,31 @@ void SingleCEGAR::run_cegar_loop(
 
             // if there was a flaw, then refine the abstraction
             // such that said flaw does not occur again
-            refine(
-                transformation,
-                task_proxy,
-                task_cost_function,
-                flaws,
-                rng,
-                timer,
-                log);
+            heuristic = refine(transformation, task, flaws, rng, timer, log);
 
             ++refinement_counter;
             flaws.clear();
 
             if (log.is_at_least_verbose()) {
-                log << "SingleCEGAR: current pattern: "
-                    << transformation.pdb.get_pattern() << endl;
+                log.println(
+                    "SingleCEGAR: current pattern: {}",
+                    transformation.pdb.get_pattern());
             }
         }
     } catch (utils::TimeoutException&) {
         if (log.is_at_least_normal()) {
-            log << "SingleCEGAR: Time limit reached." << endl;
+            log.println("SingleCEGAR: Time limit reached.");
         }
     }
 
     if (log.is_at_least_normal()) {
-        log << "\nSingleCEGAR statistics:\n"
-            << "  computation time: " << timer.get_elapsed_time() << "\n"
-            << "  number of iterations: " << refinement_counter << endl;
+        log.println(
+            "\n"
+            "SingleCEGAR statistics:\n"
+            "  computation time: {}\n"
+            "  number of iterations: {}",
+            timer.get_elapsed_time(),
+            refinement_counter);
     }
 }
 
@@ -338,15 +345,16 @@ void SingleCEGAR::run_cegar_loop(
 
 void run_cegar_loop(
     ProjectionTransformation& transformation,
-    ProbabilisticTaskProxy task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    const SharedProbabilisticTask& task,
+    const State& initial_state,
+    std::shared_ptr<Heuristic<StateRank>> heuristic,
     value_t convergence_epsilon,
     cegar::FlawFindingStrategy& flaw_strategy,
     std::unordered_set<int> blacklisted_variables,
     int max_pdb_size,
     utils::RandomNumberGenerator& rng,
     bool wildcard,
-    double max_time,
+    utils::Duration max_time,
     utils::LogProxy log)
 {
     SingleCEGAR single_cegar(
@@ -358,11 +366,47 @@ void run_cegar_loop(
 
     single_cegar.run_cegar_loop(
         transformation,
-        task_proxy,
-        std::move(task_cost_function),
+        task,
+        initial_state,
+        std::move(heuristic),
         rng,
         max_time,
         std::move(log));
+}
+
+void run_cegar_loop(
+    ProjectionTransformation& transformation,
+    const SharedProbabilisticTask& task,
+    const State& initial_state,
+    value_t convergence_epsilon,
+    cegar::FlawFindingStrategy& flaw_strategy,
+    std::unordered_set<int> blacklisted_variables,
+    int max_pdb_size,
+    utils::RandomNumberGenerator& rng,
+    bool wildcard,
+    utils::Duration max_time,
+    utils::LogProxy log)
+{
+    const auto& operators = get_operators(task);
+    const auto& cost_function = get_cost_function(task);
+    const auto& term_costs = get_termination_costs(task);
+
+    run_cegar_loop(
+        transformation,
+        task,
+        initial_state,
+        std::make_unique<heuristics::BlindHeuristic<StateRank>>(
+            operators,
+            cost_function,
+            term_costs),
+        convergence_epsilon,
+        flaw_strategy,
+        blacklisted_variables,
+        max_pdb_size,
+        rng,
+        wildcard,
+        max_time,
+        log);
 }
 
 } // namespace probfd::pdbs::cegar

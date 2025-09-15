@@ -10,6 +10,7 @@
 #include "probfd/value_type.h"
 
 #include <compare>
+#include <format>
 #include <type_traits>
 #include <utility>
 
@@ -43,7 +44,7 @@ public:
                  std::is_default_constructible_v<PrType>)
     = default;
 
-    template <PairLike P>
+    template <downward::PairLike P>
         requires(std::is_constructible_v<T, std::tuple_element_t<0, P>> &&
                  std::is_constructible_v<PrType, std::tuple_element_t<1, P>>)
     explicit(
@@ -152,6 +153,26 @@ struct std::tuple_element<0, probfd::ItemProbabilityPair<T, F>> {
 template <typename T, typename F>
 struct std::tuple_element<1, probfd::ItemProbabilityPair<T, F>> {
     using type = F;
+};
+
+template <typename T, typename F, typename Char>
+    requires std::formattable<T, Char> && std::formattable<F, Char>
+struct std::formatter<probfd::ItemProbabilityPair<T, F>, Char> {
+    std::formatter<std::pair<F, T>, Char> underlying_;
+
+    template <class ParseContext>
+    constexpr typename ParseContext::iterator parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+
+    template <class FmtContext>
+    typename FmtContext::iterator format(
+        const probfd::ItemProbabilityPair<T, F> p,
+        FmtContext& ctx) const
+    {
+        return underlying_.format(ctx, std::make_pair(p.item, p.probability));
+    }
 };
 
 #endif // PROBFD_ITEM_PROBABILITY_PAIR_H

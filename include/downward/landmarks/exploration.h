@@ -3,7 +3,8 @@
 
 #include "downward/landmarks/util.h"
 
-#include "downward/task_proxy.h"
+#include "downward/fact_pair.h"
+#include "downward/state.h"
 
 #include "downward/algorithms/priority_queues.h"
 
@@ -42,6 +43,7 @@ struct UnaryOperator {
 
     int unsatisfied_preconditions;
     bool excluded;
+
     UnaryOperator(
         const std::vector<Proposition*>& preconditions,
         Proposition* eff,
@@ -56,7 +58,9 @@ struct UnaryOperator {
 };
 
 class Exploration {
-    TaskProxy task_proxy;
+    const VariableSpace& variables;
+    const AxiomSpace& axioms;
+    const ClassicalOperatorSpace& operators;
 
     std::vector<UnaryOperator> unary_operators;
     std::vector<std::vector<Proposition>> propositions;
@@ -71,7 +75,11 @@ class Exploration {
     void enqueue_if_necessary(Proposition* prop);
 
 public:
-    Exploration(const TaskProxy& task_proxy, utils::LogProxy& log);
+    Exploration(
+        const VariableSpace& variables,
+        const AxiomSpace& axioms,
+        const ClassicalOperatorSpace& operators,
+        utils::LogProxy& log);
 
     /*
       Computes the reachability of each proposition when excluding
@@ -84,8 +92,9 @@ public:
     */
     std::vector<std::vector<bool>> compute_relaxed_reachability(
         const std::vector<FactPair>& excluded_props,
+        const State& state,
         bool use_unary_relaxation);
 };
-} // namespace landmarks
+} // namespace downward::landmarks
 
 #endif

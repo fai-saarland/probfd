@@ -2,6 +2,7 @@
 #define PROBFD_CARTESIAN_ABSTRACTIONS_TYPES_H
 
 #include "downward/cartesian_abstractions/types.h"
+#include "probfd/probabilistic_task.h"
 
 #include <deque>
 #include <memory>
@@ -21,7 +22,6 @@ class RefinementHierarchy;
 namespace probfd {
 template <typename, typename>
 class Policy;
-class ProbabilisticTask;
 } // namespace probfd
 
 namespace probfd::cartesian_abstractions {
@@ -51,7 +51,7 @@ using Solution = Policy<int, const ProbabilisticTransition*>;
 static constexpr int UNDEFINED = -1;
 
 using SharedTasks = std::vector<std::tuple<
-    std::shared_ptr<ProbabilisticTask>,
+    SharedProbabilisticTask,
     std::shared_ptr<downward::StateMapping>,
     std::shared_ptr<downward::InverseOperatorMapping>>>;
 

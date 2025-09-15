@@ -1,13 +1,16 @@
 #include "probfd/task_utils/causal_graph.h"
 
+#include "downward/axiom_space.h"
+#include "downward/variable_space.h"
 #include "probfd/probabilistic_task.h"
-#include "probfd/task_proxy.h"
 
 #include "downward/utils/logging.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <set>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -17,8 +20,11 @@ using namespace downward;
 
 namespace probfd::causal_graph {
 
-static std::unordered_map<
-    const ProbabilisticTask*,
+static utils::HashMap<
+    std::tuple<
+        const VariableSpace*,
+        const AxiomSpace*,
+        const ProbabilisticOperatorSpace*>,
     std::unique_ptr<ProbabilisticCausalGraph>>
     causal_graph_cache;
 
@@ -122,12 +128,12 @@ struct ProbabilisticCausalGraphBuilder {
         auto outcomes = op.get_outcomes();
 
         // Handle pre->eff links from preconditions.
-        for (FactProxy pre : op.get_preconditions()) {
-            int pre_var_id = pre.get_variable().get_id();
+        for (FactPair pre : op.get_preconditions()) {
+            int pre_var_id = pre.var;
             for (auto outcome : outcomes) {
                 for (ProbabilisticEffectProxy eff : outcome.get_effects()) {
-                    int eff_var_id = eff.get_fact().get_variable().get_id();
-                    if (pre_var_id != eff_var_id)
+                    if (const int eff_var_id = eff.get_fact().var;
+                        pre_var_id != eff_var_id)
                         handle_pre_eff_arc(pre_var_id, eff_var_id);
                 }
             }
@@ -138,12 +144,11 @@ struct ProbabilisticCausalGraphBuilder {
         // Handle pre->eff links from effect conditions.
         for (auto outcome : outcomes) {
             for (ProbabilisticEffectProxy eff : outcome.get_effects()) {
-                VariableProxy eff_var = eff.get_fact().get_variable();
-                int eff_var_id = eff_var.get_id();
+                int eff_var_id = eff.get_fact().var;
                 eff_vars.insert(eff_var_id);
-                for (FactProxy pre : eff.get_conditions()) {
-                    int pre_var_id = pre.get_variable().get_id();
-                    if (pre_var_id != eff_var_id)
+                for (FactPair pre : eff.get_conditions()) {
+                    if (const int pre_var_id = pre.var;
+                        pre_var_id != eff_var_id)
                         handle_pre_eff_arc(pre_var_id, eff_var_id);
                 }
             }
@@ -162,21 +167,20 @@ struct ProbabilisticCausalGraphBuilder {
         auto effects = op.get_effects();
 
         // Handle pre->eff links from preconditions.
-        for (FactProxy pre : op.get_preconditions()) {
-            int pre_var_id = pre.get_variable().get_id();
-            for (EffectProxy eff : effects) {
-                int eff_var_id = eff.get_fact().get_variable().get_id();
+        for (FactPair pre : op.get_preconditions()) {
+            int pre_var_id = pre.var;
+            for (auto eff : effects) {
+                int eff_var_id = eff.get_fact().var;
                 if (pre_var_id != eff_var_id)
                     handle_pre_eff_arc(pre_var_id, eff_var_id);
             }
         }
 
         // Handle pre->eff links from effect conditions.
-        for (EffectProxy eff : effects) {
-            VariableProxy eff_var = eff.get_fact().get_variable();
-            int eff_var_id = eff_var.get_id();
-            for (FactProxy pre : eff.get_conditions()) {
-                int pre_var_id = pre.get_variable().get_id();
+        for (auto eff : effects) {
+            int eff_var_id = eff.get_fact().var;
+            for (FactPair pre : eff.get_conditions()) {
+                int pre_var_id = pre.var;
                 if (pre_var_id != eff_var_id)
                     handle_pre_eff_arc(pre_var_id, eff_var_id);
             }
@@ -184,9 +188,9 @@ struct ProbabilisticCausalGraphBuilder {
 
         // Handle eff->eff links.
         for (size_t i = 0; i < effects.size(); ++i) {
-            int eff1_var_id = effects[i].get_fact().get_variable().get_id();
+            int eff1_var_id = effects[i].get_fact().var;
             for (size_t j = i + 1; j < effects.size(); ++j) {
-                int eff2_var_id = effects[j].get_fact().get_variable().get_id();
+                int eff2_var_id = effects[j].get_fact().var;
                 if (eff1_var_id != eff2_var_id)
                     handle_eff_eff_edge(eff1_var_id, eff2_var_id);
             }
@@ -195,16 +199,17 @@ struct ProbabilisticCausalGraphBuilder {
 };
 
 ProbabilisticCausalGraph::ProbabilisticCausalGraph(
-    const ProbabilisticTaskProxy& task_proxy)
+    const VariableSpace& variables,
+    const AxiomSpace& axioms,
+    const ProbabilisticOperatorSpace& operators)
 {
-    int num_variables = task_proxy.get_variables().size();
+    int num_variables = variables.size();
     ProbabilisticCausalGraphBuilder cg_builder(num_variables);
 
-    for (ProbabilisticOperatorProxy op : task_proxy.get_operators())
+    for (ProbabilisticOperatorProxy op : operators)
         cg_builder.handle_operator(op);
 
-    for (AxiomProxy op : task_proxy.get_axioms())
-        cg_builder.handle_operator(op);
+    for (AxiomProxy op : axioms) cg_builder.handle_operator(op);
 
     cg_builder.pre_eff_builder.compute_relation(pre_to_eff);
     cg_builder.eff_pre_builder.compute_relation(eff_to_pre);
@@ -215,30 +220,51 @@ ProbabilisticCausalGraph::ProbabilisticCausalGraph(
 }
 
 void ProbabilisticCausalGraph::dump(
-    const ProbabilisticTaskProxy& task_proxy,
+    const VariableSpace& variables,
     utils::LogProxy& log) const
 {
-    log << "Causal graph: " << endl;
-    for (VariableProxy var : task_proxy.get_variables()) {
+    log.println("Causal graph:");
+    for (VariableProxy var : variables) {
         int var_id = var.get_id();
-        log << "#" << var_id << " [" << var.get_name() << "]:" << endl
-            << "    pre->eff arcs: " << pre_to_eff[var_id] << endl
-            << "    eff->pre arcs: " << eff_to_pre[var_id] << endl
-            << "    eff->eff arcs: " << eff_to_eff[var_id] << endl
-            << "    successors: " << successors[var_id] << endl
-            << "    predecessors: " << predecessors[var_id] << endl;
+        log.println(
+            "#{} [{}]:\n"
+            "    pre->eff arcs: {}\n"
+            "    eff->pre arcs: {}\n"
+            "    eff->eff arcs: {}\n"
+            "    successors: {}\n"
+            "    predecessors: {}",
+            var_id,
+            var.get_name(),
+            pre_to_eff[var_id],
+            eff_to_pre[var_id],
+            eff_to_eff[var_id],
+            successors[var_id],
+            predecessors[var_id]);
     }
 }
 
-const ProbabilisticCausalGraph& get_causal_graph(const ProbabilisticTask* task)
+const ProbabilisticCausalGraph& get_causal_graph(
+    const VariableSpace& variables,
+    const AxiomSpace& axioms,
+    const ProbabilisticOperatorSpace& operators)
 {
-    if (causal_graph_cache.count(task) == 0) {
-        ProbabilisticTaskProxy task_proxy(*task);
-        causal_graph_cache.insert(make_pair(
-            task,
-            std::make_unique<ProbabilisticCausalGraph>(task_proxy)));
+    const std::tuple<
+        const VariableSpace*,
+        const AxiomSpace*,
+        const ProbabilisticOperatorSpace*>
+        entry = map_tuple(
+            std::forward_as_tuple(variables, axioms, operators),
+            [](auto&& arg) { return &arg; });
+
+    if (!causal_graph_cache.contains(entry)) {
+        causal_graph_cache.emplace(
+            entry,
+            std::make_unique<ProbabilisticCausalGraph>(
+                variables,
+                axioms,
+                operators));
     }
-    return *causal_graph_cache[task];
+    return *causal_graph_cache[entry];
 }
 
 } // namespace probfd::causal_graph

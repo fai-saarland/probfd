@@ -40,7 +40,9 @@ class StubbornSetsAtomCentric : public stubborn_sets::StubbornSets {
     std::vector<FactPair> producer_queue;
     std::vector<FactPair> consumer_queue;
 
-    void compute_consumers(const TaskProxy& task_proxy);
+    void compute_consumers(
+        const VariableSpace& variables,
+        const OperatorSpace& operators);
     bool operator_is_applicable(int op, const State& state) const;
     void enqueue_producers(const FactPair& fact);
     void enqueue_consumers(const FactPair& fact);
@@ -51,15 +53,16 @@ class StubbornSetsAtomCentric : public stubborn_sets::StubbornSets {
     void enqueue_nes(int op, const State& state);
     void enqueue_interferers(int op);
     void handle_stubborn_operator(const State& state, int op);
-    virtual void compute_stubborn_set(const State& state) override;
+    void compute_stubborn_set(const State& state) override;
 
 public:
     explicit StubbornSetsAtomCentric(
         bool use_sibling_shortcut,
         AtomSelectionStrategy atom_selection_strategy,
         utils::Verbosity verbosity);
-    virtual void initialize(const std::shared_ptr<AbstractTask>& task) override;
+
+    void initialize(const SharedAbstractTask& task) override;
 };
-} // namespace stubborn_sets_atom_centric
+} // namespace downward::stubborn_sets_atom_centric
 
 #endif

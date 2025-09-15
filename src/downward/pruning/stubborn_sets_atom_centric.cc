@@ -2,6 +2,10 @@
 
 #include "downward/utils/logging.h"
 
+#include "downward/abstract_task.h"
+#include "downward/classical_operator_space.h"
+
+#include <algorithm>
 #include <limits>
 
 using namespace std;
@@ -17,17 +21,19 @@ StubbornSetsAtomCentric::StubbornSetsAtomCentric(
 {
 }
 
-void StubbornSetsAtomCentric::initialize(const shared_ptr<AbstractTask>& task)
+void StubbornSetsAtomCentric::initialize(const SharedAbstractTask& task)
 {
     StubbornSets::initialize(task);
     log << "pruning method: atom-centric stubborn sets" << endl;
 
-    TaskProxy task_proxy(*task);
+    const auto& [variables, operators] =
+        slice_shared<VariableSpace, ClassicalOperatorSpace>(task);
 
-    int num_variables = task_proxy.get_variables().size();
+    int num_variables = variables->get_num_variables();
     marked_producers.reserve(num_variables);
     marked_consumers.reserve(num_variables);
-    for (VariableProxy var : task_proxy.get_variables()) {
+
+    for (VariableProxy var : *variables) {
         marked_producers.emplace_back(var.get_domain_size(), false);
         marked_consumers.emplace_back(var.get_domain_size(), false);
     }
@@ -37,28 +43,27 @@ void StubbornSetsAtomCentric::initialize(const shared_ptr<AbstractTask>& task)
         marked_consumer_variables.resize(num_variables, MARKED_VALUES_NONE);
     }
 
-    compute_consumers(task_proxy);
+    compute_consumers(*variables, *operators);
 }
 
-void StubbornSetsAtomCentric::compute_consumers(const TaskProxy& task_proxy)
+void StubbornSetsAtomCentric::compute_consumers(
+    const VariableSpace& variables,
+    const OperatorSpace& operators)
 {
-    consumers.reserve(task_proxy.get_variables().size());
-    for (VariableProxy var : task_proxy.get_variables()) {
+    consumers.reserve(variables.size());
+    for (VariableProxy var : variables) {
         consumers.emplace_back(var.get_domain_size());
     }
 
-    for (OperatorProxy op : task_proxy.get_operators()) {
+    for (const auto op : operators) {
         int op_id = op.get_id();
-        for (FactProxy fact_proxy : op.get_preconditions()) {
-            FactPair fact = fact_proxy.get_pair();
-            consumers[fact.var][fact.value].push_back(op_id);
+        for (const auto [var, value] : op.get_preconditions()) {
+            consumers[var][value].push_back(op_id);
         }
     }
 
     for (auto& outer : consumers) {
-        for (auto& inner : outer) {
-            inner.shrink_to_fit();
-        }
+        for (auto& inner : outer) { inner.shrink_to_fit(); }
     }
 }
 
@@ -149,7 +154,7 @@ FactPair StubbornSetsAtomCentric::select_fact(
           choose it. Otherwise, choose the first unsatisfied fact.
         */
         for (const FactPair& condition : facts) {
-            if (state[condition.var].get_value() != condition.value) {
+            if (state[condition.var] != condition.value) {
                 if (marked_producers[condition.var][condition.value]) {
                     fact = condition;
                     break;
@@ -161,7 +166,7 @@ FactPair StubbornSetsAtomCentric::select_fact(
     } else if (atom_selection_strategy == AtomSelectionStrategy::STATIC_SMALL) {
         int min_count = numeric_limits<int>::max();
         for (const FactPair& condition : facts) {
-            if (state[condition.var].get_value() != condition.value) {
+            if (state[condition.var] != condition.value) {
                 int count = achievers[condition.var][condition.value].size();
                 if (count < min_count) {
                     fact = condition;
@@ -173,10 +178,10 @@ FactPair StubbornSetsAtomCentric::select_fact(
         atom_selection_strategy == AtomSelectionStrategy::DYNAMIC_SMALL) {
         int min_count = numeric_limits<int>::max();
         for (const FactPair& condition : facts) {
-            if (state[condition.var].get_value() != condition.value) {
+            if (state[condition.var] != condition.value) {
                 const vector<int>& ops =
                     achievers[condition.var][condition.value];
-                int count = count_if(ops.begin(), ops.end(), [&](int op) {
+                int count = std::ranges::count_if(ops, [&](int op) {
                     return !stubborn[op];
                 });
                 if (count < min_count) {
@@ -218,12 +223,8 @@ void StubbornSetsAtomCentric::compute_stubborn_set(const State& state)
     assert(producer_queue.empty());
     assert(consumer_queue.empty());
     // Reset data structures from previous call.
-    for (auto& facts : marked_producers) {
-        facts.assign(facts.size(), false);
-    }
-    for (auto& facts : marked_consumers) {
-        facts.assign(facts.size(), false);
-    }
+    for (auto& facts : marked_producers) { facts.assign(facts.size(), false); }
+    for (auto& facts : marked_consumers) { facts.assign(facts.size(), false); }
     if (use_sibling_shortcut) {
         int num_variables = state.size();
         marked_producer_variables.assign(num_variables, MARKED_VALUES_NONE);
@@ -265,4 +266,4 @@ void StubbornSetsAtomCentric::handle_stubborn_operator(
     }
 }
 
-} // namespace stubborn_sets_atom_centric
+} // namespace downward::stubborn_sets_atom_centric

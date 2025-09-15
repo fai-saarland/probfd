@@ -1,4 +1,7 @@
+#include "probfd/cli/cartesian_abstractions/split_selector.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -17,17 +20,6 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-
-class SplitSelectorFactoryCategoryPlugin
-    : public TypedCategoryPlugin<SplitSelectorFactory> {
-public:
-    SplitSelectorFactoryCategoryPlugin()
-        : TypedCategoryPlugin("SplitSelectorFactory")
-    {
-        document_synopsis("Factory for split selection algorithms used in the "
-                          "cartesian abstraction refinement loop");
-    }
-} _category_plugin;
 
 class SplitSelectorRandomFactoryFeature
     : public TypedFeature<SplitSelectorFactory, SplitSelectorRandomFactory> {
@@ -169,13 +161,27 @@ public:
         return std::make_shared<SplitSelectorMaxHAddFactory>();
     }
 };
-
-FeaturePlugin<SplitSelectorRandomFactoryFeature> _plugin;
-FeaturePlugin<SplitSelectorMinUnwantedFactoryFeature> _plugin2;
-FeaturePlugin<SplitSelectorMaxUnwantedFactoryFeature> _plugin3;
-FeaturePlugin<SplitSelectorMinRefinedFactoryFeature> _plugin4;
-FeaturePlugin<SplitSelectorMaxRefinedFactoryFeature> _plugin5;
-FeaturePlugin<SplitSelectorMinHAddFactoryFeature> _plugin6;
-FeaturePlugin<SplitSelectorMaxHAddFactoryFeature> _plugin7;
-
 } // namespace
+
+namespace probfd::cli::cartesian_abstractions {
+
+void add_split_selector_features(RawRegistry& raw_registry)
+{
+    auto& category = raw_registry.insert_category_plugin<SplitSelectorFactory>(
+        "SplitSelectorFactory");
+    category.document_synopsis(
+        "Factory for split selection algorithms used in the "
+        "cartesian abstraction refinement loop");
+
+    raw_registry.insert_feature_plugin<SplitSelectorRandomFactoryFeature>();
+    raw_registry
+        .insert_feature_plugin<SplitSelectorMinUnwantedFactoryFeature>();
+    raw_registry
+        .insert_feature_plugin<SplitSelectorMaxUnwantedFactoryFeature>();
+    raw_registry.insert_feature_plugin<SplitSelectorMinRefinedFactoryFeature>();
+    raw_registry.insert_feature_plugin<SplitSelectorMaxRefinedFactoryFeature>();
+    raw_registry.insert_feature_plugin<SplitSelectorMinHAddFactoryFeature>();
+    raw_registry.insert_feature_plugin<SplitSelectorMaxHAddFactoryFeature>();
+}
+
+} // namespace probfd::cli::cartesian_abstractions

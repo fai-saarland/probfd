@@ -1,4 +1,7 @@
+#include "downward/cli/merge_and_shrink/merge_strategy_factory_sccs_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/merge_and_shrink/merge_strategy_options.h"
 
@@ -18,7 +21,6 @@ using downward::cli::merge_and_shrink::
     get_merge_strategy_arguments_from_options;
 
 namespace {
-
 class MergeStrategyFactorySCCsFeature
     : public TypedFeature<MergeStrategyFactory, MergeStrategyFactorySCCs> {
 public:
@@ -69,18 +71,25 @@ public:
             get_merge_strategy_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<MergeStrategyFactorySCCsFeature> _plugin;
+namespace downward::cli::merge_and_shrink {
 
-TypedEnumPlugin<OrderOfSCCs> _enum_plugin(
-    {{"topological",
-      "according to the topological ordering of the directed graph "
-      "where each obtained SCC is a 'supervertex'"},
-     {"reverse_topological",
-      "according to the reverse topological ordering of the directed "
-      "graph where each obtained SCC is a 'supervertex'"},
-     {"decreasing", "biggest SCCs first, using 'topological' as tie-breaker"},
-     {"increasing",
-      "smallest SCCs first, using 'topological' as tie-breaker"}});
+void add_merge_strategy_factory_sccs_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<MergeStrategyFactorySCCsFeature>();
+
+    raw_registry.insert_enum_plugin<OrderOfSCCs>(
+        {{"topological",
+          "according to the topological ordering of the directed graph "
+          "where each obtained SCC is a 'supervertex'"},
+         {"reverse_topological",
+          "according to the reverse topological ordering of the directed "
+          "graph where each obtained SCC is a 'supervertex'"},
+         {"decreasing",
+          "biggest SCCs first, using 'topological' as tie-breaker"},
+         {"increasing",
+          "smallest SCCs first, using 'topological' as tie-breaker"}});
+}
 
 } // namespace

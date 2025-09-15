@@ -1,38 +1,25 @@
 #ifndef UTILS_TIMER_H
 #define UTILS_TIMER_H
 
-#include "downward/utils/system.h"
-
-#include <ostream>
+#include <chrono>
+#include <iosfwd>
 
 namespace downward::utils {
-class Duration {
-    double seconds;
 
-public:
-    explicit Duration(double seconds)
-        : seconds(seconds)
-    {
-    }
-    operator double() const { return seconds; }
-};
-
-std::ostream& operator<<(std::ostream& os, const Duration& time);
+using Duration = std::chrono::duration<double>;
 
 class Timer {
-    double last_start_clock;
-    double collected_time;
+    std::chrono::time_point<std::chrono::high_resolution_clock, Duration>
+        last_start_clock;
+    Duration collected_time;
     bool stopped;
-#if OPERATING_SYSTEM == WINDOWS
-    LARGE_INTEGER frequency;
-    LARGE_INTEGER start_ticks;
-#endif
 
-    double current_clock() const;
+    std::chrono::time_point<std::chrono::high_resolution_clock, Duration>
+    current_clock() const;
 
 public:
     explicit Timer(bool start = true);
-    ~Timer() = default;
+
     Duration operator()() const;
     Duration stop();
     void resume();
@@ -43,6 +30,6 @@ std::ostream& operator<<(std::ostream& os, const Timer& timer);
 
 extern Timer g_search_timer;
 extern Timer g_timer;
-} // namespace utils
+} // namespace downward::utils
 
 #endif

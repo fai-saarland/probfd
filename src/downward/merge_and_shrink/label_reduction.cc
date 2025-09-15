@@ -5,7 +5,8 @@
 #include "downward/merge_and_shrink/transition_system.h"
 #include "downward/merge_and_shrink/types.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/state.h"
 
 #include "downward/algorithms/equivalence_relation.h"
 
@@ -42,13 +43,12 @@ bool LabelReduction::initialized() const
     return !transition_system_order.empty();
 }
 
-void LabelReduction::initialize(const TaskProxy& task_proxy)
+void LabelReduction::initialize(const VariableSpace& variables)
 {
     assert(!initialized());
 
     // Compute the transition system order.
-    size_t max_transition_system_count =
-        task_proxy.get_variables().size() * 2 - 1;
+    size_t max_transition_system_count = variables.size() * 2 - 1;
     transition_system_order.reserve(max_transition_system_count);
     if (lr_system_order == LabelReductionSystemOrder::REGULAR ||
         lr_system_order == LabelReductionSystemOrder::RANDOM) {
@@ -96,9 +96,7 @@ void LabelReduction::compute_label_mapping(
                     make_pair(next_new_label, equivalent_labels));
                 ++next_new_label;
             }
-            if (!equivalent_labels.empty()) {
-                ++num_labels_after_reduction;
-            }
+            if (!equivalent_labels.empty()) { ++num_labels_after_reduction; }
         }
     }
     int number_reduced_labels = num_labels - num_labels_after_reduction;
@@ -124,9 +122,7 @@ LabelReduction::compute_combinable_equivalence_relation(
     int num_labels = labels.get_num_active_labels();
     vector<int> all_active_labels;
     all_active_labels.reserve(num_labels);
-    for (int label : labels) {
-        all_active_labels.push_back(label);
-    }
+    for (int label : labels) { all_active_labels.push_back(label); }
     equivalence_relation::EquivalenceRelation relation(all_active_labels);
 
     for (int index : fts) {
@@ -246,14 +242,10 @@ bool LabelReduction::reduce(
         }
 
         ++tso_index;
-        if (tso_index == transition_system_order.size()) {
-            tso_index = 0;
-        }
+        if (tso_index == transition_system_order.size()) { tso_index = 0; }
         while (transition_system_order[tso_index] >= num_transition_systems) {
             ++tso_index;
-            if (tso_index == transition_system_order.size()) {
-                tso_index = 0;
-            }
+            if (tso_index == transition_system_order.size()) { tso_index = 0; }
         }
     }
     return reduced;
@@ -294,4 +286,4 @@ void LabelReduction::dump_options(utils::LogProxy& log) const
     }
 }
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

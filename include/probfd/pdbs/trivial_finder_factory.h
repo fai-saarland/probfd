@@ -10,7 +10,7 @@ namespace probfd::pdbs {
 class TrivialFinderFactory : public SubCollectionFinderFactory {
 public:
     std::unique_ptr<SubCollectionFinder>
-    create_subcollection_finder(const ProbabilisticTaskProxy&) override;
+    create_subcollection_finder(const SharedProbabilisticTask&) override;
 };
 
 } // namespace probfd::pdbs

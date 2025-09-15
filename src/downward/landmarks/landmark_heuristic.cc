@@ -15,7 +15,7 @@ using namespace std;
 namespace downward::landmarks {
 LandmarkHeuristic::LandmarkHeuristic(
     bool use_preferred_operators,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
@@ -33,7 +33,7 @@ LandmarkHeuristic::LandmarkHeuristic(
 
 LandmarkHeuristic::LandmarkHeuristic(
     bool use_preferred_operators,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
     const std::string& description,
@@ -56,14 +56,18 @@ void LandmarkHeuristic::initialize(
     bool prog_gn,
     bool prog_r)
 {
-    /*
-      Actually, we should test if this is the root task or a
-      CostAdaptedTask *of the root task*, but there is currently no good
-      way to do this, so we use this incomplete, slightly less safe test.
-    */
-    if (transformed_task != tasks::g_root_task &&
-        dynamic_cast<tasks::CostAdaptedTask*>(transformed_task.get()) ==
-            nullptr) {
+    if (slice_shared<
+            VariableSpace,
+            AxiomSpace,
+            ClassicalOperatorSpace,
+            GoalFactList,
+            InitialStateValues>(original_task) !=
+        slice_shared<
+            VariableSpace,
+            AxiomSpace,
+            ClassicalOperatorSpace,
+            GoalFactList,
+            InitialStateValues>(transformed_task)) {
         cerr << "The landmark heuristics currently only support "
              << "task transformations that modify the operator costs. "
              << "See issues 845 and 686 for details." << endl;
@@ -90,7 +94,8 @@ void LandmarkHeuristic::initialize(
            task in cases where it's compatible. See issue564. */
         successor_generator =
             std::make_unique<successor_generator::SuccessorGenerator>(
-                task_proxy);
+                get_variables(transformed_task),
+                get_operators(transformed_task));
     }
 }
 
@@ -161,10 +166,11 @@ void LandmarkHeuristic::compute_landmark_graph(
     }
 }
 
-void LandmarkHeuristic::compute_landmarks_achieved_by_fact() {
-    for (const auto &node : lm_graph->get_nodes()) {
+void LandmarkHeuristic::compute_landmarks_achieved_by_fact()
+{
+    for (const auto& node : lm_graph->get_nodes()) {
         const int id = node->get_id();
-        const Landmark &lm = node->get_landmark();
+        const Landmark& lm = node->get_landmark();
         if (lm.conjunctive) {
             /*
               TODO: We currently have no way to declare operators preferred
@@ -173,7 +179,7 @@ void LandmarkHeuristic::compute_landmarks_achieved_by_fact() {
             */
             continue;
         }
-        for (const auto &fact_pair : lm.facts) {
+        for (const auto& fact_pair : lm.facts) {
             if (landmarks_achieved_by_fact.contains(fact_pair)) {
                 landmarks_achieved_by_fact[fact_pair].insert(id);
             } else {
@@ -184,17 +190,16 @@ void LandmarkHeuristic::compute_landmarks_achieved_by_fact() {
 }
 
 bool LandmarkHeuristic::operator_is_preferred(
-    const OperatorProxy &op, const State &state, ConstBitsetView &future) {
+    const OperatorProxy& op,
+    const State& state,
+    ConstBitsetView& future)
+{
     for (EffectProxy effect : op.get_effects()) {
-        if (!does_fire(effect, state)) {
-            continue;
-        }
-        const FactPair fact_pair = effect.get_fact().get_pair();
+        if (!all_facts_true(effect.get_conditions(), state)) { continue; }
+        const FactPair fact_pair = effect.get_fact();
         if (landmarks_achieved_by_fact.contains(fact_pair)) {
             for (const int id : landmarks_achieved_by_fact[fact_pair]) {
-                if (future.test(id)) {
-                    return true;
-                }
+                if (future.test(id)) { return true; }
             }
         }
     }
@@ -210,11 +215,12 @@ void LandmarkHeuristic::generate_preferred_operators(
     vector<OperatorID> applicable_operators;
     successor_generator->generate_applicable_ops(state, applicable_operators);
 
+    const auto& operators =
+        get_operators(transformed_task);
+
     for (const OperatorID op_id : applicable_operators) {
-        const OperatorProxy &op = task_proxy.get_operators()[op_id];
-        if (operator_is_preferred(op, state, future)) {
-            set_preferred(op);
-        }
+        const OperatorProxy& op = operators[op_id];
+        if (operator_is_preferred(op, state, future)) { set_preferred(op); }
     }
 }
 
@@ -272,4 +278,4 @@ void LandmarkHeuristic::notify_state_transition(
     }
 }
 
-} // namespace landmarks
+} // namespace downward::landmarks

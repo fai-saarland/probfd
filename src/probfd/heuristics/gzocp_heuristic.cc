@@ -1,5 +1,6 @@
 #include "probfd/heuristics/gzocp_heuristic.h"
 
+#include "downward/initial_state_values.h"
 #include "probfd/pdbs/pattern_collection_generator.h"
 #include "probfd/pdbs/pattern_collection_information.h"
 #include "probfd/pdbs/probability_aware_pattern_database.h"
@@ -7,10 +8,11 @@
 
 #include "probfd/task_utils/task_properties.h"
 
+#include "probfd/probabilistic_task.h"
 #include "probfd/value_type.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include "downward/utils/collections.h"
-
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
 
@@ -27,22 +29,22 @@ using namespace probfd::pdbs;
 namespace probfd::heuristics {
 
 namespace {
-class ExplicitTaskCostFunction final : public FDRSimpleCostFunction {
-    ProbabilisticTaskProxy task_proxy;
+
+class RunningCostFunction final
+    : public downward::OperatorCostFunction<value_t> {
     std::vector<value_t> costs;
     std::vector<std::set<int>> affected_vars;
 
 public:
-    explicit ExplicitTaskCostFunction(const ProbabilisticTaskProxy& task_proxy)
-        : task_proxy(task_proxy)
+    explicit RunningCostFunction(
+        const ProbabilisticOperatorSpace& operators,
+        const OperatorCostFunction<value_t>& cost_function)
     {
-        const auto operators = task_proxy.get_operators();
-
         costs.reserve(operators.size());
         affected_vars.reserve(operators.size());
 
         for (const ProbabilisticOperatorProxy op : operators) {
-            costs.push_back(op.get_cost());
+            costs.push_back(cost_function.get_operator_cost(op.get_id()));
             auto& var_set = affected_vars.emplace_back();
             task_properties::get_affected_vars(
                 op,
@@ -50,28 +52,7 @@ public:
         }
     }
 
-    value_t get_action_cost(OperatorID op) override
-    {
-        return costs[op.get_index()];
-    }
-
-    [[nodiscard]]
-    bool is_goal(const State& state) const override
-    {
-        return ::task_properties::is_goal_state(task_proxy, state);
-    }
-
-    [[nodiscard]]
-    value_t get_goal_termination_cost() const override
-    {
-        return 0_vt;
-    }
-
-    [[nodiscard]]
-    value_t get_non_goal_termination_cost() const override
-    {
-        return INFINITE_VALUE;
-    }
+    value_t get_operator_cost(int index) const override { return costs[index]; }
 
     void decrease_costs(const ProbabilityAwarePatternDatabase& pdb)
     {
@@ -80,15 +61,15 @@ public:
                 pdb.get_pattern(),
                 affected_vars[op_id]);
 
-            if (affects_pdb) {
-                costs[op_id] = 0;
-            }
+            if (affects_pdb) { costs[op_id] = 0; }
         }
     }
 
     value_t& operator[](size_t i) { return costs[i]; }
+
     const value_t& operator[](size_t i) const { return costs[i]; }
 };
+
 } // namespace
 
 GZOCPHeuristic::GZOCPHeuristic(
@@ -108,9 +89,7 @@ value_t GZOCPHeuristic::evaluate(const State& state) const
     for (const auto& pdb : pdbs_) {
         const value_t estimate = pdb.lookup_estimate(state);
 
-        if (estimate == termination_cost_) {
-            return estimate;
-        }
+        if (estimate == termination_cost_) { return estimate; }
 
         value += estimate;
     }
@@ -130,14 +109,11 @@ GZOCPHeuristicFactory::GZOCPHeuristicFactory(
 {
 }
 
-std::unique_ptr<FDREvaluator> GZOCPHeuristicFactory::create_heuristic(
-    std::shared_ptr<ProbabilisticTask> task,
-    std::shared_ptr<FDRCostFunction> task_cost_function)
+std::unique_ptr<FDRHeuristic>
+GZOCPHeuristicFactory::create_object(const SharedProbabilisticTask& task)
 {
-    ProbabilisticTaskProxy task_proxy(*task);
-
     auto pattern_collection_info =
-        pattern_collection_generator_->generate(task, task_cost_function);
+        pattern_collection_generator_->generate(task);
 
     auto patterns = pattern_collection_info.get_patterns();
 
@@ -161,33 +137,37 @@ std::unique_ptr<FDREvaluator> GZOCPHeuristicFactory::create_heuristic(
     default: break;
     }
 
-    auto task_costs = std::make_shared<ExplicitTaskCostFunction>(task_proxy);
+    const auto& variables = get_variables(task);
+    const auto& operators = get_operators(task);
+    const auto& init_vals = get_init(task);
+    const auto& cost_function =
+        get_cost_function(task);
+    const auto& term_costs = get_termination_costs(task);
 
-    const State& init_state = task_proxy.get_initial_state();
+    const State& init_state = init_vals.get_initial_state();
 
-    BlindEvaluator<StateRank> h(
-        task_proxy.get_operators(),
-        *task_cost_function);
+    const auto gzo_cost_function =
+        std::make_shared<RunningCostFunction>(operators, cost_function);
+
+    auto adapted = replace(task, gzo_cost_function);
+
+    BlindHeuristic<StateRank> h(operators, *gzo_cost_function, term_costs);
 
     for (const Pattern& pattern : patterns) {
-        auto& pdb = pdbs.emplace_back(task_proxy.get_variables(), pattern);
+        auto& pdb = pdbs.emplace_back(variables, pattern);
 
-        ProjectionStateSpace state_space(
-            task_proxy,
-            task_costs,
-            pdb.ranking_function,
-            false);
+        ProjectionStateSpace state_space(adapted, pdb.ranking_function, false);
 
         compute_distances(
             pdb,
             state_space,
             pdb.get_abstract_state(init_state),
             h);
-        task_costs->decrease_costs(pdb);
+        gzo_cost_function->decrease_costs(pdb);
     }
 
     return std::make_unique<GZOCPHeuristic>(
-        task_cost_function->get_non_goal_termination_cost(),
+        term_costs.get_non_goal_termination_cost(),
         std::move(pdbs));
 }
 

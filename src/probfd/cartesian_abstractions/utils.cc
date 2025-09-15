@@ -2,13 +2,16 @@
 
 #include "probfd/tasks/determinization_task.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/heuristics/additive_heuristic.h"
 
 #include "downward/utils/logging.h"
 
 #include "downward/transformations/identity_transformation.h"
+#include "probfd/probabilistic_operator_space.h"
+
+#include <ranges>
 
 using namespace downward;
 
@@ -17,9 +20,9 @@ using namespace std;
 namespace probfd::cartesian_abstractions {
 
 unique_ptr<additive_heuristic::AdditiveHeuristic>
-create_additive_heuristic(const shared_ptr<ProbabilisticTask>& task)
+create_additive_heuristic(const SharedProbabilisticTask& task)
 {
-    auto det = std::make_shared<tasks::DeterminizationTask>(task);
+    auto det = tasks::create_determinization_task(task);
     return std::make_unique<additive_heuristic::AdditiveHeuristic>(
         det,
         det,
@@ -35,7 +38,7 @@ static bool operator_applicable(
     const utils::HashSet<FactPair>& facts)
 {
     return std::ranges::all_of(
-        op.get_preconditions() | views::transform(&FactProxy::get_pair),
+        op.get_preconditions(),
         [&](const FactPair& precondition) {
             return facts.contains(precondition);
         });
@@ -45,21 +48,22 @@ static bool outcome_can_achieve_fact(
     const ProbabilisticOutcomeProxy& outcome,
     const FactPair& fact)
 {
-    return std::ranges::any_of(
+    return std::ranges::contains(
         outcome.get_effects() |
-            views::transform(&ProbabilisticEffectProxy::get_fact),
-        [&](FactProxy effect) { return effect.get_pair() == fact; });
+            std::views::transform(&ProbabilisticEffectProxy::get_fact),
+        fact);
 }
 
 static utils::HashSet<FactPair> compute_possibly_before_facts(
-    const ProbabilisticTaskProxy& task,
+    const ProbabilisticOperatorSpace& operators,
+    const State& initial_state,
     const FactPair& last_fact)
 {
     utils::HashSet<FactPair> pb_facts;
 
     // Add facts from initial state.
-    for (FactProxy fact : task.get_initial_state())
-        pb_facts.insert(fact.get_pair());
+    for (FactPair fact : initial_state | as_fact_pair_set)
+        pb_facts.insert(fact);
 
     // Until no more facts can be added:
     size_t last_num_reached = 0;
@@ -73,7 +77,7 @@ static utils::HashSet<FactPair> compute_possibly_before_facts(
     */
     while (last_num_reached != pb_facts.size()) {
         last_num_reached = pb_facts.size();
-        for (ProbabilisticOperatorProxy op : task.get_operators()) {
+        for (ProbabilisticOperatorProxy op : operators) {
             if (!operator_applicable(op, pb_facts)) continue;
             for (const auto outcome : op.get_outcomes()) {
                 // Ignore outcomes that achieve last_fact.
@@ -81,7 +85,7 @@ static utils::HashSet<FactPair> compute_possibly_before_facts(
                 // Add all facts that are achieved by an applicable
                 // operator.
                 for (ProbabilisticEffectProxy effect : outcome.get_effects()) {
-                    pb_facts.insert(effect.get_fact().get_pair());
+                    pb_facts.insert(effect.get_fact());
                 }
             }
         }
@@ -90,11 +94,12 @@ static utils::HashSet<FactPair> compute_possibly_before_facts(
 }
 
 utils::HashSet<FactPair> get_relaxed_possible_before(
-    const ProbabilisticTaskProxy& task,
+    const ProbabilisticOperatorSpace& operators,
+    const State& state,
     const FactPair& fact)
 {
     utils::HashSet<FactPair> reachable_facts =
-        compute_possibly_before_facts(task, fact);
+        compute_possibly_before_facts(operators, state, fact);
     reachable_facts.insert(fact);
     return reachable_facts;
 }

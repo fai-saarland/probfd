@@ -23,13 +23,13 @@ constexpr value_t double_to_value(double d)
 }
 
 /// User-defined floating-point literals for state values.
-constexpr value_t operator"" _vt(long double value)
+constexpr value_t operator""_vt(long double value)
 {
     return double_to_value(static_cast<double>(value));
 }
 
 /// User-defined integer literals for state values.
-constexpr value_t operator"" _vt(unsigned long long value)
+constexpr value_t operator""_vt(unsigned long long value)
 {
     return double_to_value(static_cast<double>(value));
 }
@@ -42,6 +42,9 @@ bool is_approx_less(value_t v1, value_t v2, value_t epsilon);
 
 /// Equivalent to \f$v_1 - v_2 > \epsilon\f$
 bool is_approx_greater(value_t v1, value_t v2, value_t epsilon);
+
+/// Equivalent to \f$|v| \leq \epsilon\f$
+bool is_approx_zero(value_t v, value_t epsilon);
 
 } // namespace probfd
 

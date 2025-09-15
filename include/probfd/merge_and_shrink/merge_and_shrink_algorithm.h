@@ -1,6 +1,8 @@
 #ifndef PROBFD_MERGE_AND_SHRINK_MERGE_AND_SHRINK_ALGORITHM_H
 #define PROBFD_MERGE_AND_SHRINK_MERGE_AND_SHRINK_ALGORITHM_H
 
+#include "probfd/probabilistic_task.h"
+
 #include "downward/utils/logging.h"
 
 #include <memory>
@@ -8,11 +10,6 @@
 namespace downward::utils {
 class CountdownTimer;
 }
-
-namespace probfd {
-class ProbabilisticTaskProxy;
-class ProbabilisticTask;
-} // namespace probfd
 
 namespace probfd::merge_and_shrink {
 class FactoredTransitionSystem;
@@ -40,7 +37,7 @@ class MergeAndShrinkAlgorithm {
        max_states and max_states_before_merge are not violated. */
     const int shrink_threshold_before_merge;
 
-    const double main_loop_max_time;
+    const downward::utils::Duration main_loop_max_time;
 
     long starting_peak_memory;
 
@@ -77,10 +74,10 @@ public:
         int max_states,
         int max_states_before_merge,
         int threshold_before_merge,
-        double main_loop_max_time);
+        downward::utils::Duration main_loop_max_time);
 
     FactoredTransitionSystem build_factored_transition_system(
-        std::shared_ptr<ProbabilisticTask>& task,
+        const SharedProbabilisticTask& task,
         downward::utils::LogProxy log);
 };
 

@@ -3,7 +3,7 @@
 
 #include "downward/pdbs/types.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <memory>
 
@@ -24,7 +24,7 @@ namespace downward::pdbs {
   ownership transfer, from the generator to the user.
 */
 class PatternInformation {
-    TaskProxy task_proxy;
+    AbstractTaskTuple task;
     Pattern pattern;
     std::shared_ptr<PatternDatabase> pdb;
 
@@ -34,13 +34,13 @@ class PatternInformation {
 
 public:
     PatternInformation(
-        const TaskProxy& task_proxy,
+        const AbstractTaskTuple& task,
         Pattern pattern,
         utils::LogProxy& log);
 
     void set_pdb(const std::shared_ptr<PatternDatabase>& pdb);
 
-    TaskProxy get_task_proxy() const { return task_proxy; }
+    const AbstractTaskTuple& get_task() const { return task; }
 
     const Pattern& get_pattern() const;
     std::shared_ptr<PatternDatabase> get_pdb();

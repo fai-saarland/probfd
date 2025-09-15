@@ -7,7 +7,7 @@
 
 #include "downward/utils/hash.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <memory>
 #include <vector>
@@ -16,11 +16,6 @@
 namespace downward::additive_heuristic {
 class AdditiveHeuristic;
 }
-
-namespace probfd {
-class ProbabilisticTaskProxy;
-class ProbabilisticTask;
-} // namespace probfd
 
 namespace probfd::cartesian_abstractions {
 
@@ -32,16 +27,14 @@ CartesianSet get_cartesian_set(
     const ConditionsProxy& conditions)
 {
     CartesianSet cartesian_set(domain_sizes);
-    for (downward::FactProxy condition : conditions) {
-        cartesian_set.set_single_value(
-            condition.get_variable().get_id(),
-            condition.get_value());
+    for (const auto [var, value] : conditions) {
+        cartesian_set.set_single_value(var, value);
     }
     return cartesian_set;
 }
 
 extern std::unique_ptr<downward::additive_heuristic::AdditiveHeuristic>
-create_additive_heuristic(const std::shared_ptr<ProbabilisticTask>& task);
+create_additive_heuristic(const SharedProbabilisticTask& task);
 
 /*
   The set of relaxed-reachable facts is the possibly-before set of facts that
@@ -49,7 +42,8 @@ create_additive_heuristic(const std::shared_ptr<ProbabilisticTask>& task);
   time, plus 'fact' itself.
 */
 extern downward::utils::HashSet<downward::FactPair> get_relaxed_possible_before(
-    const ProbabilisticTaskProxy& task,
+    const ProbabilisticOperatorSpace& operators,
+    const downward::State& state,
     const downward::FactPair& fact);
 
 } // namespace probfd::cartesian_abstractions

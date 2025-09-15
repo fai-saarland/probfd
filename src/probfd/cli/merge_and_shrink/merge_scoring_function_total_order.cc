@@ -1,3 +1,10 @@
+#include "probfd/cli/merge_and_shrink/merge_scoring_function_total_order.h"
+
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "downward/cli/utils/rng_options.h"
+
 #include "probfd/merge_and_shrink/merge_scoring_function_total_order.h"
 
 #include "probfd/merge_and_shrink/factored_transition_system.h"
@@ -7,16 +14,12 @@
 #include "downward/utils/markup.h"
 #include "downward/utils/rng_options.h"
 
-#include "downward/cli/plugins/plugin.h"
-#include "downward/cli/utils/rng_options.h"
-
 using namespace std;
 using namespace downward::cli::plugins;
 using namespace downward;
 using namespace probfd::merge_and_shrink;
 
 namespace {
-
 class MergeScoringFunctionTotalOrderFeature
     : public TypedFeature<
           MergeScoringFunction,
@@ -53,10 +56,10 @@ public:
             "reverse level/level (independently of the other options).");
 
         add_option<AtomicTSOrder>(
-        "atomic_ts_order",
-        "The order in which atomic transition systems are considered when "
-        "considering pairs of potential merges.",
-        "reverse_level");
+            "atomic_ts_order",
+            "The order in which atomic transition systems are considered when "
+            "considering pairs of potential merges.",
+            "reverse_level");
 
         add_option<ProductTSOrder>(
             "product_ts_order",
@@ -66,7 +69,8 @@ public:
 
         add_option<bool>(
             "atomic_before_product",
-            "Consider atomic transition systems before composite ones iff true.",
+            "Consider atomic transition systems before composite ones iff "
+            "true.",
             "false");
 
         downward::cli::utils::add_rng_options_to_feature(*this);
@@ -84,18 +88,24 @@ protected:
             downward::cli::utils::get_rng_arguments_from_options(options));
     }
 };
+}
 
-FeaturePlugin<MergeScoringFunctionTotalOrderFeature> _plugin;
+namespace probfd::cli::merge_and_shrink {
 
-TypedEnumPlugin<AtomicTSOrder> _atomic_ts_order_enum_plugin(
-    {{"reverse_level", "the variable order of Fast Downward"},
-     {"level", "opposite of reverse_level"},
-     {"random", "a randomized order"}});
+void add_merge_scoring_function_total_order_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<MergeScoringFunctionTotalOrderFeature>();
 
-TypedEnumPlugin<ProductTSOrder> _product_ts_order_enum_plugin(
-    {{"old_to_new",
-      "consider composite transition systems from oldest to most recent"},
-     {"new_to_old", "opposite of old_to_new"},
-     {"random", "a randomized order"}});
+    raw_registry.insert_enum_plugin<AtomicTSOrder>(
+        {{"reverse_level", "the variable order of Fast Downward"},
+         {"level", "opposite of reverse_level"},
+         {"random", "a randomized order"}});
+
+    raw_registry.insert_enum_plugin<ProductTSOrder>(
+        {{"old_to_new",
+          "consider composite transition systems from oldest to most recent"},
+         {"new_to_old", "opposite of old_to_new"},
+         {"random", "a randomized order"}});
+}
 
 } // namespace

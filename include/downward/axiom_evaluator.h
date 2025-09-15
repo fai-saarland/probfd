@@ -1,0 +1,87 @@
+#ifndef AXIOM_EVALUATOR_H
+#define AXIOM_EVALUATOR_H
+
+#include "downward/abstract_task.h"
+
+#include <memory>
+#include <vector>
+
+namespace downward {
+
+class AxiomEvaluator {
+    struct AxiomRule;
+
+    struct AxiomLiteral {
+        std::vector<AxiomRule*> condition_of;
+    };
+
+    struct AxiomRule {
+        mutable int unsatisfied_conditions;
+
+        int condition_count;
+        int effect_var;
+        int effect_val;
+        AxiomLiteral* effect_literal;
+
+        AxiomRule(
+            int cond_count,
+            int eff_var,
+            int eff_val,
+            AxiomLiteral* eff_literal)
+            : unsatisfied_conditions(cond_count)
+            , condition_count(cond_count)
+            , effect_var(eff_var)
+            , effect_val(eff_val)
+            , effect_literal(eff_literal)
+        {
+        }
+    };
+
+    struct NegationByFailureInfo {
+        int var_no;
+        AxiomLiteral* literal;
+
+        NegationByFailureInfo(int var, AxiomLiteral* lit)
+            : var_no(var)
+            , literal(lit)
+        {
+        }
+    };
+
+    bool task_has_axioms;
+
+    std::vector<std::vector<AxiomLiteral>> axiom_literals;
+    std::vector<AxiomRule> rules;
+    std::vector<std::vector<NegationByFailureInfo>> nbf_info_by_layer;
+    /*
+      default_values stores the default (negation by failure) values
+      for all derived variables, i.e., the value that a derived
+      variable holds by default if no derivation rule triggers.
+
+      This is indexed by variable number and set to -1 for non-derived
+      variables, so can also be used to test if a variable is derived.
+
+      We have our own copy of the data to avoid going through the task
+      interface in the time-critical evaluate method.
+    */
+    std::vector<int> default_values;
+
+    /*
+      The queue is an instance variable rather than a local variable
+      to reduce reallocation effort. See issue420.
+    */
+    mutable std::vector<const AxiomLiteral*> queue;
+
+public:
+    explicit AxiomEvaluator(
+        const VariableSpace& variables,
+        const AxiomSpace& axioms);
+
+    void evaluate(std::vector<int>& state) const;
+
+    bool has_axioms() const { return task_has_axioms; }
+};
+
+} // namespace downward
+
+#endif

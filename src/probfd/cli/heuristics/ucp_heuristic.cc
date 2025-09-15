@@ -1,4 +1,7 @@
+#include "probfd/cli/heuristics/ucp_heuristic.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "probfd/cli/heuristics/task_dependent_heuristic_options.h"
 
@@ -16,7 +19,6 @@ using namespace probfd::cli::heuristics;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class UCPHeuristicFactoryFeature
     : public TypedFeature<TaskHeuristicFactory, UCPHeuristicFactory> {
 public:
@@ -50,7 +52,13 @@ public:
             opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"));
     }
 };
+}
 
-FeaturePlugin<UCPHeuristicFactoryFeature> _plugin;
+namespace probfd::cli::heuristics {
+
+void add_ucp_heuristic_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<UCPHeuristicFactoryFeature>();
+}
 
 } // namespace

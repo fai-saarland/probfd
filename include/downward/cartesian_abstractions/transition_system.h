@@ -7,8 +7,8 @@
 
 namespace downward {
 struct FactPair;
-class OperatorsProxy;
-}
+class ClassicalOperatorSpace;
+} // namespace downward
 
 namespace downward::utils {
 class LogProxy;
@@ -62,7 +62,7 @@ class TransitionSystem {
         int var);
 
 public:
-    explicit TransitionSystem(const OperatorsProxy& ops);
+    explicit TransitionSystem(const ClassicalOperatorSpace& ops);
 
     // Update transition system after v has been split for var into v1 and v2.
     void rewire(
@@ -83,6 +83,6 @@ public:
 
     void print_statistics(utils::LogProxy& log) const;
 };
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions
 
 #endif

@@ -4,7 +4,8 @@
 #include "downward/pdbs/random_pattern.h"
 #include "downward/pdbs/utils.h"
 
-#include "downward/task_proxy.h"
+#include "downward/fact_pair.h"
+#include "downward/state.h"
 
 #include "downward/utils/logging.h"
 #include "downward/utils/rng.h"
@@ -17,7 +18,7 @@ using namespace std;
 namespace downward::pdbs {
 PatternGeneratorRandom::PatternGeneratorRandom(
     int max_pdb_size,
-    double max_time,
+    utils::Duration max_time,
     bool bidirectional,
     int random_seed,
     utils::Verbosity verbosity)
@@ -35,23 +36,23 @@ string PatternGeneratorRandom::name() const
 }
 
 PatternInformation
-PatternGeneratorRandom::compute_pattern(const shared_ptr<AbstractTask>& task)
+PatternGeneratorRandom::compute_pattern(const SharedAbstractTask& task)
 {
     vector<vector<int>> cg_neighbors =
         compute_cg_neighbors(task, bidirectional);
-    TaskProxy task_proxy(*task);
-    vector<FactPair> goals = get_goals_in_random_order(task_proxy, *rng);
+    vector<FactPair> goals =
+        get_goals_in_random_order(get_goal(task), *rng);
 
     Pattern pattern = generate_random_pattern(
         max_pdb_size,
         max_time,
         log,
         rng,
-        task_proxy,
+        get_variables(task),
         goals[0].var,
         cg_neighbors);
 
-    return PatternInformation(task_proxy, pattern, log);
+    return PatternInformation(to_refs(task), pattern, log);
 }
 
-} // namespace pdbs
+} // namespace downward::pdbs

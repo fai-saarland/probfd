@@ -114,11 +114,20 @@ class IntPacker;
 namespace downward {
 using PackedStateBin = int_packer::IntPacker::Bin;
 
+class StateRegistry;
+
+template <typename T>
+concept RegistryOperatorLike =
+    requires(const T& op, const State& state, StateRegistry& registry) {
+        { op.get_registered_successor(state, registry) } -> std::same_as<State>;
+    };
+
 class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
     struct StateIDSemanticHash {
         const segmented_vector::SegmentedArrayVector<PackedStateBin>&
             state_data_pool;
         int state_size;
+
         StateIDSemanticHash(
             const segmented_vector::SegmentedArrayVector<PackedStateBin>&
                 state_data_pool,
@@ -132,9 +141,7 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
         {
             const PackedStateBin* data = state_data_pool[id];
             utils::HashState hash_state;
-            for (int i = 0; i < state_size; ++i) {
-                hash_state.feed(data[i]);
-            }
+            for (int i = 0; i < state_size; ++i) { hash_state.feed(data[i]); }
             return hash_state.get_hash32();
         }
     };
@@ -143,6 +150,7 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
         const segmented_vector::SegmentedArrayVector<PackedStateBin>&
             state_data_pool;
         int state_size;
+
         StateIDSemanticEqual(
             const segmented_vector::SegmentedArrayVector<PackedStateBin>&
                 state_data_pool,
@@ -168,10 +176,10 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
     using StateIDSet =
         int_hash_set::IntHashSet<StateIDSemanticHash, StateIDSemanticEqual>;
 
-    PlanningTaskProxy task_proxy;
     const int_packer::IntPacker& state_packer;
-    AxiomEvaluator& axiom_evaluator;
-    const int num_variables;
+    const AxiomEvaluator& axiom_evaluator;
+
+    const State init_state;
 
     segmented_vector::SegmentedArrayVector<PackedStateBin> state_data_pool;
     StateIDSet registered_states;
@@ -182,15 +190,28 @@ class StateRegistry : public subscriber::SubscriberService<StateRegistry> {
     int get_bins_per_state() const;
 
 public:
-    explicit StateRegistry(const PlanningTaskProxy& task_proxy);
+    explicit StateRegistry(
+        const int_packer::IntPacker& state_packer,
+        const AxiomEvaluator& axiom_evaluator,
+        const InitialStateValues& init_values);
 
-    const PlanningTaskProxy& get_task_proxy() const { return task_proxy; }
+    explicit StateRegistry(
+        const int_packer::IntPacker& state_packer,
+        const AxiomEvaluator& axiom_evaluator,
+        const State& initial_state);
 
-    int get_num_variables() const { return num_variables; }
+    int get_num_variables() const { return state_packer.get_num_variables(); }
 
     const int_packer::IntPacker& get_state_packer() const
     {
         return state_packer;
+    }
+
+    void reset()
+    {
+        state_data_pool.clear();
+        registered_states.clear();
+        cached_initial_state.reset();
     }
 
     /*
@@ -219,44 +240,41 @@ public:
       registers it if this was not done before. This is an expensive operation
       as it includes duplicate checking.
     */
-    State
-    get_successor_state(const State& predecessor, const OperatorProxy& op);
+    template <RegistryOperatorLike OperatorType>
+    State get_successor_state(const State& predecessor, const OperatorType& op)
+    {
+        return op.get_registered_successor(predecessor, *this);
+    }
 
-    template <typename Effects>
-    State get_successor_state(const State& predecessor, const Effects& effects)
+    template <typename ConditionalEffects>
+    State get_successor_state(
+        const State& predecessor,
+        const ConditionalEffects& effects)
     {
         state_data_pool.push_back(predecessor.get_buffer());
         PackedStateBin* buffer = state_data_pool[state_data_pool.size() - 1];
         /* Experiments for issue348 showed that for tasks with axioms it's
            faster to compute successor states using unpacked data. */
-        if (task_properties::has_axioms(task_proxy)) {
+        if (axiom_evaluator.has_axioms()) {
             predecessor.unpack();
             std::vector<int> new_values = predecessor.get_unpacked_values();
-            for (auto effect : effects) {
-                if (does_fire(effect, predecessor)) {
-                    FactPair effect_pair = effect.get_fact().get_pair();
-                    new_values[effect_pair.var] = effect_pair.value;
-                }
-            }
+            apply_conditional_effects(effects, predecessor, new_values);
             axiom_evaluator.evaluate(new_values);
             for (size_t i = 0; i < new_values.size(); ++i) {
                 state_packer.set(buffer, i, new_values[i]);
             }
             downward::StateID id = insert_id_or_pop_state();
-            return task_proxy
-                .create_state(*this, id, buffer, std::move(new_values));
+            return State(*this, id, buffer, std::move(new_values));
         } else {
-            for (auto effect : effects) {
-                if (does_fire(effect, predecessor)) {
-                    FactPair effect_pair = effect.get_fact().get_pair();
-                    state_packer.set(
-                        buffer,
-                        effect_pair.var,
-                        effect_pair.value);
-                }
-            }
+            apply_conditional_effects(
+                effects,
+                predecessor,
+                [&](const FactPair& fact) {
+                    state_packer.set(buffer, fact.var, fact.value);
+                });
+
             downward::StateID id = insert_id_or_pop_state();
-            return task_proxy.create_state(*this, id, buffer);
+            return State(*this, id, buffer);
         }
     }
 
@@ -325,6 +343,6 @@ public:
 
     const_iterator end() const { return const_iterator(*this, size()); }
 };
-}
+} // namespace downward
 
 #endif // DOWNWARD_STATE_REGISTRY_H

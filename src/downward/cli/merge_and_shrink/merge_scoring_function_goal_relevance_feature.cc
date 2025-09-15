@@ -1,4 +1,7 @@
+#include "downward/cli/merge_and_shrink/merge_scoring_function_goal_relevance_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/merge_and_shrink/merge_scoring_function_goal_relevance.h"
 
@@ -9,7 +12,6 @@ using namespace downward::utils;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class MergeScoringFunctionGoalRelevanceFeature
     : public TypedFeature<
           MergeScoringFunction,
@@ -34,7 +36,15 @@ public:
         return make_shared<MergeScoringFunctionGoalRelevance>();
     }
 };
+}
 
-FeaturePlugin<MergeScoringFunctionGoalRelevanceFeature> _plugin;
+namespace downward::cli::merge_and_shrink {
+
+void add_merge_scoring_function_goal_relevance_feature(
+    RawRegistry& raw_registry)
+{
+    raw_registry
+        .insert_feature_plugin<MergeScoringFunctionGoalRelevanceFeature>();
+}
 
 } // namespace

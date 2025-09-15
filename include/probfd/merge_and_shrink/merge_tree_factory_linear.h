@@ -9,10 +9,6 @@ namespace downward::utils {
 class RandomNumberGenerator;
 }
 
-namespace probfd {
-class ProbabilisticTask;
-}
-
 namespace probfd::merge_and_shrink {
 
 class MergeTreeFactoryLinear : public MergeTreeFactory {
@@ -26,10 +22,10 @@ public:
         downward::variable_order_finder::VariableOrderType variable_order);
 
     std::unique_ptr<MergeTree>
-    compute_merge_tree(std::shared_ptr<ProbabilisticTask>& task) override;
+    compute_merge_tree(const SharedProbabilisticTask& task) override;
 
     std::unique_ptr<MergeTree> compute_merge_tree(
-        std::shared_ptr<ProbabilisticTask>& task,
+        const SharedProbabilisticTask& task,
         const FactoredTransitionSystem& fts,
         const std::vector<int>& indices_subset) override;
 

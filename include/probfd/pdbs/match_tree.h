@@ -1,7 +1,7 @@
 #ifndef PROBFD_PDBS_MATCH_TREE_H
 #define PROBFD_PDBS_MATCH_TREE_H
 
-#include "probfd/fdr_types.h"
+#include "probfd/aliases.h"
 
 #include "probfd/pdbs/types.h"
 
@@ -14,7 +14,9 @@
 // Forward Declarations
 namespace downward {
 struct FactPair;
-}
+template <typename>
+class OperatorCostFunction;
+} // namespace downward
 
 namespace probfd {
 template <typename>
@@ -52,7 +54,7 @@ public:
         const AssignmentEnumerator& ranking_function,
         ProjectionOperator op,
         const std::vector<downward::FactPair>& progression_preconditions,
-        FDRSimpleCostFunction* task_cost_function);
+        downward::OperatorCostFunction<value_t>* cost_function);
 
     /**
      * @brief Obtain the applicable prohjection operators for a given abstract

@@ -49,9 +49,7 @@ void ProgressReport::force_print()
 
 void ProgressReport::print()
 {
-    if (enabled_ && advance_values()) {
-        print_progress();
-    }
+    if (enabled_ && advance_values()) { print_progress(); }
 }
 
 void ProgressReport::print_progress()
@@ -70,9 +68,11 @@ void ProgressReport::print_progress()
             additional_informations_[i](out_);
         }
     }
-    out_ << ", t=" << utils::g_timer
-         << ", memory=" << utils::get_peak_memory_in_kb() << " KB]"
-         << "\n";
+    println(
+        out_,
+        ", t={}, memory={} KB]",
+        utils::g_timer(),
+        utils::get_peak_memory_in_kb());
 }
 
 bool ProgressReport::advance_values(bool force)

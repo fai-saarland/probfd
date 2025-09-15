@@ -1,8 +1,11 @@
-#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/pdbs/pattern_generator_cegar_feature.h"
 
 #include "downward/cli/pdbs/cegar_options.h"
 #include "downward/cli/pdbs/pattern_generator_options.h"
 #include "downward/cli/pdbs/utils.h"
+
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -21,7 +24,6 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-
 class PatternGeneratorCEGARFeature
     : public TypedFeature<PatternGenerator, PatternGeneratorCEGAR> {
 public:
@@ -61,13 +63,19 @@ public:
     {
         return make_shared_from_arg_tuples<PatternGeneratorCEGAR>(
             opts.get<int>("max_pdb_size"),
-            opts.get<double>("max_time"),
+            opts.get<Duration>("max_time"),
             get_cegar_wildcard_arguments_from_options(opts),
             get_rng_arguments_from_options(opts),
             get_generator_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<PatternGeneratorCEGARFeature> _plugin;
+namespace downward::cli::pdbs {
+
+void add_pattern_generator_cegar_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<PatternGeneratorCEGARFeature>();
+}
 
 } // namespace

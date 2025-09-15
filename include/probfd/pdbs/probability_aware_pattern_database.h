@@ -9,12 +9,10 @@
 
 #include "probfd/fdr_types.h"
 
+#include "downward/utils/timer.h"
+
 #include <limits>
 #include <vector>
-
-namespace probfd {
-class ProbabilisticTaskProxy;
-}
 
 namespace probfd::pdbs {
 class ProjectionStateSpace;
@@ -45,7 +43,7 @@ struct ProbabilityAwarePatternDatabase {
      * number of abstract states and is filled with NaNs.
      */
     ProbabilityAwarePatternDatabase(
-        const downward::VariablesProxy& variables,
+        const downward::VariableSpace& variables,
         Pattern pattern);
 
     /// Get the pattern of the pattern database.
@@ -89,16 +87,14 @@ void compute_distances(
     ProjectionStateSpace& mdp,
     StateRank abstract_initial_state,
     const Heuristic<StateRank>& heuristic,
-    double max_time = std::numeric_limits<double>::infinity());
+    downward::utils::Duration max_time = downward::utils::Duration::max());
 
 /**
  * @brief Computes the goal distances for all reachable abstract states of a
  * pattern database.
  *
  * @param pdb The pattern database to populate the goal distances for.
- * @param task_proxy The planning task on which the abstraction is applied.
- * @param task_cost_function The cost function with respect to which goal
- * distances are computed.
+ * @param task The planning task on which the abstraction is applied.
  * @param abstract_initial_state Initial state that specifies the reachability
  * of each state. Goal distances of abstract states unreachable from this state
  * are left untouched.
@@ -108,12 +104,11 @@ void compute_distances(
  */
 void compute_distances(
     ProbabilityAwarePatternDatabase& pdb,
-    const ProbabilisticTaskProxy& task_proxy,
-    std::shared_ptr<FDRSimpleCostFunction> task_cost_function,
+    SharedProbabilisticTask task,
     StateRank abstract_initial_state,
     const Heuristic<StateRank>& heuristic,
     bool operator_pruning = true,
-    double max_time = std::numeric_limits<double>::infinity());
+    downward::utils::Duration max_time = downward::utils::Duration::max());
 
 } // namespace probfd::pdbs
 

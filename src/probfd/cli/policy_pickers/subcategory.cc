@@ -1,8 +1,10 @@
+#include "probfd/cli/policy_pickers/subcategory.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
-#include "probfd/cli/multi_feature_plugin.h"
 #include "probfd/cli/naming_conventions.h"
 
 #include "probfd/policy_pickers/arbitrary_tiebreaker.h"
@@ -18,7 +20,7 @@
 #include "probfd/quotients/quotient_system.h"
 
 #include "downward/operator_id.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/utils/rng_options.h"
 
@@ -36,7 +38,6 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-
 template <
     template <typename, typename> typename S,
     bool Bisimulation,
@@ -163,13 +164,18 @@ public:
             opts.get<bool>("prefer_large_gaps"));
     }
 };
+}
 
-MultiCategoryPlugin<PolicyPickerCategoryPlugin> _category_plugin1;
+namespace probfd::cli::policy_pickers {
 
-FeaturePlugin<OperatorIDTieBreakerFeature> _plugin_operator_id;
+void add_policy_picker_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_category_plugins<PolicyPickerCategoryPlugin>();
 
-MultiFeaturePlugin<ArbitraryTieBreakerFeature> _plugin_arbitary;
-MultiFeaturePlugin<RandomTieBreakerFeature> _plugin_random;
-MultiFeaturePlugin<ValueGapTieBreakerFeature> _plugin_value_gap;
+    raw_registry.insert_feature_plugin<OperatorIDTieBreakerFeature>();
+    raw_registry.insert_feature_plugins<ArbitraryTieBreakerFeature>();
+    raw_registry.insert_feature_plugins<RandomTieBreakerFeature>();
+    raw_registry.insert_feature_plugins<ValueGapTieBreakerFeature>();
+}
 
 } // namespace

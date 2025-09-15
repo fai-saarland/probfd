@@ -25,13 +25,78 @@ struct TypedDefinition {
     VariableDefinition* definition;
 };
 
-class DecorateContext : public utils::Context {
-    const plugins::Registry registry;
+class Scope {
+    std::unique_ptr<Scope> parent = nullptr;
     unordered_map<string, TypedDefinition> variables;
 
 public:
-    DecorateContext()
-        : registry(plugins::RawRegistry::instance()->construct_registry())
+    Scope() = default;
+
+    Scope(std::unique_ptr<Scope> parent)
+        : parent(std::move(parent))
+    {
+    }
+
+    std::unique_ptr<Scope>& get_parent() { return parent; }
+
+    void
+    insert(utils::Context& context, std::pair<string, TypedDefinition> pair)
+    {
+        if (!variables.insert(pair).second) {
+            context.error(
+                "Variable '" + pair.first +
+                "' is already defined in the current scope.");
+        }
+    }
+
+    bool has_variable(const string& name) const
+    {
+        return get_typed_definition(name) != nullptr;
+    }
+
+    TypedDefinition* get_typed_definition(const string& name)
+    {
+        auto it = variables.find(name);
+        if (it == variables.end()) {
+            return parent ? parent->get_typed_definition(name) : nullptr;
+        }
+
+        return &it->second;
+    }
+
+    const TypedDefinition* get_typed_definition(const string& name) const
+    {
+        auto it = variables.find(name);
+        if (it == variables.end()) {
+            return parent ? parent->get_typed_definition(name) : nullptr;
+        }
+
+        return &it->second;
+    }
+
+    const plugins::Type& get_variable_type(const string& name)
+    {
+        const auto* t = get_typed_definition(name);
+        assert(t);
+        return *t->type;
+    }
+
+    VariableDefinition& get_variable_definition(const string& name)
+    {
+        const auto* t = get_typed_definition(name);
+        assert(t);
+        return *t->definition;
+    }
+};
+
+class DecorateContext : public utils::Context {
+    const plugins::Registry registry;
+    std::unique_ptr<Scope> scope;
+
+public:
+    DecorateContext(const plugins::RawRegistry& raw_registry)
+        : registry(raw_registry.construct_registry())
+        , scope(std::make_unique<Scope>())
     {
     }
 
@@ -40,32 +105,27 @@ public:
         const plugins::Type& type,
         VariableDefinition& definition)
     {
-        if (has_variable(name))
-            error(
-                "Variable '" + name +
-                "' is already defined in the "
-                "current scope. Shadowing variables is not supported.");
-        variables.insert({name, TypedDefinition{&type, &definition}});
+        scope->insert(*this, {name, TypedDefinition{&type, &definition}});
     }
-
-    void remove_variable(const string& name) { variables.erase(name); }
 
     bool has_variable(const string& name) const
     {
-        return variables.contains(name);
+        return scope->has_variable(name);
     }
 
-    const plugins::Type& get_variable_type(const string& name)
+    const plugins::Type& get_variable_type(const string& name) const
     {
-        assert(has_variable(name));
-        return *variables[name].type;
+        return scope->get_variable_type(name);
     }
 
-    VariableDefinition& get_variable_definition(const string& name)
+    VariableDefinition& get_variable_definition(const string& name) const
     {
-        assert(has_variable(name));
-        return *variables[name].definition;
+        return scope->get_variable_definition(name);
     }
+
+    void enter_scope() { scope = std::make_unique<Scope>(std::move(scope)); }
+
+    void leave_scope() { scope = std::move(scope->get_parent()); }
 
     const plugins::Registry& get_registry() const { return registry; }
 };
@@ -85,9 +145,10 @@ static ASTNodePtr parse_ast_node(const string& definition, DecorateContext&)
     return parse(tokens);
 }
 
-DecoratedASTNodePtr ASTNode::decorate() const
+DecoratedASTNodePtr
+ASTNode::decorate(const plugins::RawRegistry& raw_registry) const
 {
-    DecorateContext context;
+    DecorateContext context(raw_registry);
     utils::TraceBlock block(context, "Start semantic analysis");
     return decorate(context).ast_node;
 }
@@ -110,6 +171,8 @@ TypedDecoratedAstNodePtr LetNode::decorate(DecorateContext& context) const
     std::vector<VariableDefinition> decorated_variable_definitions;
     decorated_variable_definitions.reserve(variable_definitions.size());
 
+    context.enter_scope();
+
     for (const auto& [variable_name, variable_definition] :
          variable_definitions) {
         utils::TraceBlock block(context, "Check variable definition");
@@ -128,9 +191,7 @@ TypedDecoratedAstNodePtr LetNode::decorate(DecorateContext& context) const
         decorated_nested_value = nested_value->decorate(context);
     }
 
-    for (const auto& variable_name : variable_definitions | views::keys) {
-        context.remove_variable(variable_name);
-    }
+    context.leave_scope();
 
     return {
         std::make_unique<DecoratedLetNode>(
@@ -230,7 +291,6 @@ bool FunctionCallNode::collect_argument(
         std::piecewise_construct,
         std::forward_as_tuple(key),
         std::forward_as_tuple(
-            key,
             move(decorated_arg),
             is_default,
             arg_info.lazy_construction));
@@ -264,7 +324,8 @@ void FunctionCallNode::collect_keyword_arguments(
             context.error(message.str());
         }
         const plugins::ArgumentInfo& arg_info = argument_infos_by_key.at(key);
-        bool success = collect_argument(arg, arg_info, context, arguments, false);
+        bool success =
+            collect_argument(arg, arg_info, context, arguments, false);
         if (!success) {
             ABORT(
                 "Multiple keyword definitions using the same key '" + key +
@@ -317,7 +378,8 @@ void FunctionCallNode::collect_positional_arguments(
             context,
             "Checking the " + to_string(i + 1) + ". positional argument (" +
                 arg_info.key + ")");
-        bool success = collect_argument(arg, arg_info, context, arguments, false);
+        bool success =
+            collect_argument(arg, arg_info, context, arguments, false);
         if (!success) {
             ostringstream message;
             message << "The argument '" << arg_info.key
@@ -378,12 +440,10 @@ FunctionCallNode::decorate(DecorateContext& context) const
     collect_positional_arguments(argument_infos, context, arguments_by_key);
     collect_default_values(argument_infos, context, arguments_by_key);
 
-    vector<FunctionArgument> arguments;
+    vector<std::pair<std::string, FunctionArgument>> arguments;
     arguments.reserve(arguments_by_key.size());
 
-    for (auto& val : arguments_by_key | views::values) {
-        arguments.push_back(move(val));
-    }
+    for (auto& val : arguments_by_key) { arguments.push_back(move(val)); }
 
     return {
         std::make_unique<DecoratedFunctionCallNode>(

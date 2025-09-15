@@ -3,7 +3,7 @@
 
 #include "downward/pdbs/types.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <memory>
 
@@ -25,7 +25,7 @@ namespace downward::pdbs {
   as an interface for ownership transfer rather than sharing it.
 */
 class PatternCollectionInformation {
-    TaskProxy task_proxy;
+    AbstractTaskTuple task;
     std::shared_ptr<PatternCollection> patterns;
     std::shared_ptr<PDBCollection> pdbs;
     std::shared_ptr<std::vector<PatternClique>> pattern_cliques;
@@ -38,7 +38,7 @@ class PatternCollectionInformation {
 
 public:
     PatternCollectionInformation(
-        const TaskProxy& task_proxy,
+        const AbstractTaskTuple& task,
         const std::shared_ptr<PatternCollection>& patterns,
         utils::LogProxy& log);
     ~PatternCollectionInformation() = default;
@@ -47,7 +47,7 @@ public:
     void set_pattern_cliques(
         const std::shared_ptr<std::vector<PatternClique>>& pattern_cliques);
 
-    TaskProxy get_task_proxy() const { return task_proxy; }
+    const AbstractTaskTuple& get_task() const { return task; }
 
     std::shared_ptr<PatternCollection> get_patterns() const;
     std::shared_ptr<PDBCollection> get_pdbs();

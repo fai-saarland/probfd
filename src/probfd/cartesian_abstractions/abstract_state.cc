@@ -1,9 +1,9 @@
 #include "probfd/cartesian_abstractions/abstract_state.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include "downward/abstract_task.h"
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <cassert>
 #include <ostream>
@@ -68,12 +68,11 @@ CartesianSet AbstractState::regress(
 {
     CartesianSet regression = cartesian_set_;
     for (ProbabilisticEffectProxy effect : effects) {
-        int var_id = effect.get_fact().get_variable().get_id();
+        int var_id = effect.get_fact().var;
         regression.add_all(var_id);
     }
-    for (FactProxy precondition : op.get_preconditions()) {
-        int var_id = precondition.get_variable().get_id();
-        regression.set_single_value(var_id, precondition.get_value());
+    for (const auto [var, value] : op.get_preconditions()) {
+        regression.set_single_value(var, value);
     }
     return regression;
 }
@@ -87,11 +86,8 @@ bool AbstractState::domain_subsets_intersect(
 
 bool AbstractState::includes(const State& concrete_state) const
 {
-    for (FactProxy fact : concrete_state) {
-        if (!cartesian_set_.test(
-                fact.get_variable().get_id(),
-                fact.get_value()))
-            return false;
+    for (const auto [var, value] : concrete_state | as_fact_pair_set) {
+        if (!cartesian_set_.test(var, value)) return false;
     }
     return true;
 }
@@ -122,12 +118,6 @@ NodeID AbstractState::get_node_id() const
 std::ostream& operator<<(std::ostream& os, const AbstractState& state)
 {
     return os << "#" << state.get_id() << state.cartesian_set_;
-}
-
-unique_ptr<AbstractState>
-AbstractState::get_trivial_abstract_state(const vector<int>& domain_sizes)
-{
-    return std::make_unique<AbstractState>(0, 0, CartesianSet(domain_sizes));
 }
 
 } // namespace probfd::cartesian_abstractions

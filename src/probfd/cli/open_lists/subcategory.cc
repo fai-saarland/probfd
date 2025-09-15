@@ -1,6 +1,8 @@
-#include "downward/cli/plugins/plugin.h"
+#include "probfd/cli/open_lists/subcategory.h"
 
-#include "probfd/cli/multi_feature_plugin.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
 #include "probfd/cli/naming_conventions.h"
 
 #include "probfd/open_lists/fifo_open_list.h"
@@ -25,7 +27,6 @@ using namespace probfd::open_lists;
 using namespace downward::cli::plugins;
 
 namespace {
-
 template <template <typename> typename S, bool Fret>
 using Wrapped = std::conditional_t<
     Fret,
@@ -82,9 +83,15 @@ public:
         return std::make_shared<Wrapped<LifoOpenList, Fret>>();
     }
 };
+}
 
-MultiCategoryPlugin<ProbfdOpenListCategoryPlugin> _category_plugin;
-MultiFeaturePlugin<FifoOpenListFeature> _plugin_fifo;
-MultiFeaturePlugin<LifoOpenListFeature> _plugin_lifo;
+namespace probfd::cli::open_lists {
+
+void add_open_list_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_category_plugins<ProbfdOpenListCategoryPlugin>();
+    raw_registry.insert_feature_plugins<FifoOpenListFeature>();
+    raw_registry.insert_feature_plugins<LifoOpenListFeature>();
+}
 
 } // namespace

@@ -2,12 +2,15 @@
 #define PROBFD_PDBS_PROJECTION_OPERATOR_H
 
 #include "probfd/distribution.h"
-#include "probfd/task_proxy.h"
 
 #include "downward/operator_id.h"
 
 #include <ranges>
 #include <string>
+
+namespace probfd {
+class ProbabilisticOperatorSpace;
+}
 
 /// Namespace dedicated to probabilistic pattern databases.
 namespace probfd::pdbs {
@@ -68,10 +71,10 @@ public:
  * @brief Helper class to convert projection operators to strings.
  */
 class ProjectionOperatorToString {
-    ProbabilisticTaskProxy task_proxy_;
+    const ProbabilisticOperatorSpace& operators_;
 
 public:
-    explicit ProjectionOperatorToString(ProbabilisticTaskProxy task_proxy);
+    explicit ProjectionOperatorToString(const ProbabilisticOperatorSpace& operators);
     std::string operator()(const ProjectionOperator* op) const;
 };
 

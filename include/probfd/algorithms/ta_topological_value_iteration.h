@@ -109,6 +109,8 @@ class TATopologicalValueIteration
 
         template <typename ValueStore>
         AlgorithmValueType compute_q_value(ValueStore& value_store) const;
+
+        friend auto operator<=>(const QValueInfo&, const QValueInfo&) = default;
     };
 
     struct DFSExplorationState {
@@ -154,22 +156,6 @@ class TATopologicalValueIteration
         ItemProbabilityPair<StateID> get_current_successor();
     };
 
-    struct cmp_qval_info {
-        bool operator()(const QValueInfo& left, const QValueInfo& right) const
-        {
-            return std::ranges::lexicographical_compare(
-                left.scc_successors,
-                right.scc_successors,
-                [](const auto& left, const auto& right) {
-                    return left.item < right.item ||
-                           (left.item == right.item && is_approx_less(
-                                                           left.probability,
-                                                           right.probability,
-                                                           0.0001));
-                });
-        }
-    };
-
     struct StackInfo {
         StateID state_id;
 
@@ -183,7 +169,7 @@ class TATopologicalValueIteration
 
         // Q value structs for transitions belonging to the scc,
         // but not to an end component.
-        std::set<QValueInfo, cmp_qval_info> non_ec_transitions;
+        std::set<QValueInfo> non_ec_transitions;
 
         // Q value structs for transitions currently assumed to belong
         // to an end component within the current scc.
@@ -280,6 +266,8 @@ class TATopologicalValueIteration
         }
     };
 
+    const bool allow_pruning_;
+
     storage::PerStateStorage<StateInfo> state_information_;
     std::vector<DFSExplorationState> dfs_stack_;
     std::deque<StackInfo> tarjan_stack_;
@@ -293,16 +281,17 @@ class TATopologicalValueIteration
     Statistics statistics_;
 
 public:
-    explicit TATopologicalValueIteration(value_t epsilon);
-
-    TATopologicalValueIteration(value_t epsilon, std::size_t num_states_hint);
+    explicit TATopologicalValueIteration(
+        value_t epsilon,
+        std::size_t num_states_hint = 0,
+        bool allow_pruning = false);
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport progress,
-        double max_time) override;
+        downward::utils::Duration max_time) override;
 
     void print_statistics(std::ostream& out) const override;
 
@@ -324,7 +313,7 @@ public:
         const HeuristicType& heuristic,
         StateID init_state_id,
         auto& value_store,
-        double max_time = std::numeric_limits<double>::infinity());
+        downward::utils::Duration max_time = downward::utils::Duration::max());
 
 private:
     Interval solve(
@@ -332,7 +321,7 @@ private:
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport,
-        double max_time);
+        downward::utils::Duration max_time);
 
     /**
      * Pushes a state onto the exploration queue and stack.

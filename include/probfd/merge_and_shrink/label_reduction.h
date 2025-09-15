@@ -1,6 +1,8 @@
 #ifndef PROBFD_MERGE_AND_SHRINK_LABEL_REDUCTION_H
 #define PROBFD_MERGE_AND_SHRINK_LABEL_REDUCTION_H
 
+#include "probfd/probabilistic_task.h"
+
 #include <memory>
 #include <vector>
 
@@ -12,10 +14,6 @@ namespace downward::utils {
 class LogProxy;
 class RandomNumberGenerator;
 } // namespace utils
-
-namespace probfd {
-class ProbabilisticTaskProxy;
-}
 
 namespace probfd::merge_and_shrink {
 class FactoredTransitionSystem;
@@ -68,7 +66,7 @@ public:
         LabelReductionSystemOrder system_order,
         int random_seed);
 
-    void initialize(const ProbabilisticTaskProxy& task_proxy);
+    void initialize(const ProbabilisticTaskTuple& task);
 
     bool reduce(
         int merge_index_left,

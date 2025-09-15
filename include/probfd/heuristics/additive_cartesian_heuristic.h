@@ -3,7 +3,7 @@
 
 #include "probfd/fdr_types.h"
 #include "probfd/heuristic.h"
-#include "probfd/task_heuristic_factory.h"
+#include "probfd/task_heuristic_factory_category.h"
 
 #include "downward/utils/logging.h"
 
@@ -24,7 +24,7 @@ namespace probfd::heuristics {
   Store CartesianHeuristicFunctions and compute overall heuristic by
   summing all of their values.
 */
-class AdditiveCartesianHeuristic final : public FDREvaluator {
+class AdditiveCartesianHeuristic final : public FDRHeuristic {
     std::vector<cartesian_abstractions::CartesianHeuristicFunction>
         heuristic_functions_;
 
@@ -50,7 +50,7 @@ class AdditiveCartesianHeuristicFactory final : public TaskHeuristicFactory {
         split_selector_factory;
     const int max_states;
     const int max_transitions;
-    const double max_time;
+    const downward::utils::Duration max_time;
     const bool use_general_costs;
 
     mutable downward::utils::LogProxy log_;
@@ -65,13 +65,12 @@ public:
             split_selector_factory,
         int max_states,
         int max_transitions,
-        double max_time,
+        downward::utils::Duration max_time,
         bool use_general_costs,
         downward::utils::Verbosity verbosity);
 
-    std::unique_ptr<FDREvaluator> create_heuristic(
-        std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function) override;
+    std::unique_ptr<FDRHeuristic> create_object(
+        const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::heuristics

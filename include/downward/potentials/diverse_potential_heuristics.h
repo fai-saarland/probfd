@@ -55,7 +55,7 @@ public:
         int max_num_heuristics,
         double max_potential,
         lp::LPSolverType lpsolver,
-        const std::shared_ptr<AbstractTask>& transform,
+        const SharedAbstractTask& transform,
         int random_seed,
         utils::Verbosity verbosity);
     

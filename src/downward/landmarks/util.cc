@@ -3,7 +3,9 @@
 #include "downward/landmarks/landmark.h"
 #include "downward/landmarks/landmark_graph.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/axiom_utils.h"
+#include "downward/state.h"
 #include "downward/utils/logging.h"
 
 #include <limits>
@@ -15,9 +17,8 @@ static bool _possibly_fires(
     const EffectConditionsProxy& conditions,
     const vector<vector<bool>>& reached)
 {
-    for (FactProxy cond : conditions)
-        if (!reached[cond.get_variable().get_id()][cond.get_value()])
-            return false;
+    for (const auto [var, value] : conditions)
+        if (!reached[var][value]) return false;
     return true;
 }
 
@@ -47,17 +48,16 @@ bool possibly_reaches_lm(
     // Test whether all preconditions of o can be reached
     // Otherwise, operator is not applicable
     PreconditionsProxy preconditions = op.get_preconditions();
-    for (FactProxy pre : preconditions)
-        if (!reached[pre.get_variable().get_id()][pre.get_value()])
-            return false;
+    for (const auto [var, value] : preconditions)
+        if (!reached[var][value]) return false;
 
     // Go through all effects of o and check whether one can reach a
     // proposition in lmp
     for (EffectProxy effect : op.get_effects()) {
-        FactProxy effect_fact = effect.get_fact();
-        assert(!reached[effect_fact.get_variable().get_id()].empty());
+        FactPair effect_fact = effect.get_fact();
+        assert(!reached[effect_fact.var].empty());
         for (const FactPair& fact : landmark.facts) {
-            if (effect_fact.get_pair() == fact) {
+            if (effect_fact == fact) {
                 if (_possibly_fires(effect.get_conditions(), reached))
                     return true;
                 break;
@@ -68,13 +68,15 @@ bool possibly_reaches_lm(
     return false;
 }
 
-AxiomOrOperatorProxy
-get_operator_or_axiom(const TaskProxy& task_proxy, int op_or_axiom_id)
+AxiomOrOperatorProxy get_operator_or_axiom(
+    const AxiomSpace& axioms,
+    const ClassicalOperatorSpace& operators,
+    int op_or_axiom_id)
 {
     if (op_or_axiom_id < 0) {
-        return task_proxy.get_axioms()[-op_or_axiom_id - 1];
+        return axioms[-op_or_axiom_id - 1];
     } else {
-        return task_proxy.get_operators()[op_or_axiom_id];
+        return operators[op_or_axiom_id];
     }
 }
 
@@ -93,7 +95,8 @@ int get_operator_or_axiom_id(const AxiomOrOperatorProxy& op)
   at least, but without the time and memory stamps.
 */
 static void dump_node(
-    const TaskProxy& task_proxy,
+    const VariableSpace& variables,
+    const State& initial_state,
     const LandmarkNode& node,
     utils::LogProxy& log)
 {
@@ -101,7 +104,7 @@ static void dump_node(
         cout << "  lm" << node.get_id() << " [label=\"";
         bool first = true;
         const Landmark& landmark = node.get_landmark();
-        for (FactPair fact : landmark.facts) {
+        for (const FactPair fact : landmark.facts) {
             if (!first) {
                 if (landmark.disjunctive) {
                     cout << " | ";
@@ -110,16 +113,14 @@ static void dump_node(
                 }
             }
             first = false;
-            VariableProxy var = task_proxy.get_variables()[fact.var];
+            VariableProxy var = variables[fact.var];
             cout << var.get_fact(fact.value).get_name();
         }
         cout << "\"";
-        if (landmark.is_true_in_state(task_proxy.get_initial_state())) {
+        if (landmark.is_true_in_state(initial_state)) {
             cout << ", style=bold";
         }
-        if (landmark.is_true_in_goal) {
-            cout << ", style=filled";
-        }
+        if (landmark.is_true_in_goal) { cout << ", style=filled"; }
         cout << "];\n";
     }
 }
@@ -139,7 +140,8 @@ static void dump_edge(int from, int to, EdgeType edge, utils::LogProxy& log)
 }
 
 void dump_landmark_graph(
-    const TaskProxy& task_proxy,
+    const VariableSpace& variables,
+    const State& initial_state,
     const LandmarkGraph& graph,
     utils::LogProxy& log)
 {
@@ -148,7 +150,7 @@ void dump_landmark_graph(
 
         cout << "digraph G {\n";
         for (const unique_ptr<LandmarkNode>& node : graph.get_nodes()) {
-            dump_node(task_proxy, *node, log);
+            dump_node(variables, initial_state, *node, log);
             for (const auto& child : node->children) {
                 const LandmarkNode* child_node = child.first;
                 const EdgeType& edge = child.second;
@@ -159,4 +161,4 @@ void dump_landmark_graph(
         log << "Landmark graph end." << endl;
     }
 }
-} // namespace landmarks
+} // namespace downward::landmarks

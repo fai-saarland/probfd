@@ -3,12 +3,14 @@
 
 #include "downward/cli/parser/decorated_abstract_syntax_tree.h"
 #include "downward/cli/parser/token_stream.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include <cassert>
 #include <memory>
 #include <string>
 #include <typeindex>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace downward::plugins {
@@ -28,7 +30,8 @@ class ASTNode {
 public:
     virtual ~ASTNode() = default;
 
-    DecoratedASTNodePtr decorate() const;
+    DecoratedASTNodePtr
+    decorate(const plugins::RawRegistry& raw_registry) const;
     virtual TypedDecoratedAstNodePtr
     decorate(DecorateContext& context) const = 0;
     virtual void dump(std::string indent = "+") const = 0;

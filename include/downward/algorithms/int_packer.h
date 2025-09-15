@@ -43,6 +43,7 @@ public:
     void set(Bin *buffer, int var, int value) const;
 
     int get_num_bins() const { return num_bins; }
+    std::size_t get_num_variables() const;
 };
 }
 

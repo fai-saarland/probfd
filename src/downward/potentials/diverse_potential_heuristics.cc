@@ -18,7 +18,7 @@ DiversePotentialHeuristics::DiversePotentialHeuristics(
     int max_num_heuristics,
     double max_potential,
     lp::LPSolverType lpsolver,
-    const shared_ptr<AbstractTask>& transform,
+    const SharedAbstractTask& transform,
     int random_seed,
     utils::Verbosity verbosity)
     : optimizer(transform, lpsolver, max_potential)

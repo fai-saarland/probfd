@@ -8,20 +8,19 @@ using namespace std;
 
 namespace downward::pdbs {
 static ZeroOnePDBs get_zero_one_pdbs_from_generator(
-    const shared_ptr<AbstractTask>& task,
+    const SharedAbstractTask& task,
     const shared_ptr<PatternCollectionGenerator>& pattern_generator)
 {
     PatternCollectionInformation pattern_collection_info =
         pattern_generator->generate(task);
     shared_ptr<PatternCollection> patterns =
         pattern_collection_info.get_patterns();
-    TaskProxy task_proxy(*task);
-    return ZeroOnePDBs(task_proxy, *patterns);
+    return ZeroOnePDBs(to_refs(task), *patterns);
 }
 
 ZeroOnePDBsHeuristic::ZeroOnePDBsHeuristic(
     const shared_ptr<PatternCollectionGenerator>& patterns,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
@@ -39,7 +38,7 @@ ZeroOnePDBsHeuristic::ZeroOnePDBsHeuristic(
 
 ZeroOnePDBsHeuristic::ZeroOnePDBsHeuristic(
     const std::shared_ptr<PatternCollectionGenerator>& patterns,
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
     const std::string& name,

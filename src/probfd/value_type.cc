@@ -45,4 +45,10 @@ bool is_approx_greater(value_t v1, value_t v2, value_t tolerance)
     return v1 - tolerance > v2;
 }
 
+bool is_approx_zero(value_t v, value_t tolerance)
+{
+    assert(tolerance >= 0.0_vt);
+    return v == 0_vt || std::abs(v) <= tolerance;
+}
+
 } // namespace probfd

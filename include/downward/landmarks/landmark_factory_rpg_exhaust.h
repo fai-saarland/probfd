@@ -6,8 +6,9 @@
 namespace downward::landmarks {
 class LandmarkFactoryRpgExhaust : public LandmarkFactoryRelaxation {
     const bool use_unary_relaxation;
-    virtual void generate_relaxed_landmarks(
-        const std::shared_ptr<AbstractTask>& task,
+
+    void generate_relaxed_landmarks(
+        const SharedAbstractTask& task,
         Exploration& exploration) override;
 
 public:
@@ -15,7 +16,7 @@ public:
         bool use_unary_relaxation,
         utils::Verbosity verbosity);
 
-    virtual bool supports_conditional_effects() const override;
+    bool supports_conditional_effects() const override;
 };
 } // namespace landmarks
 

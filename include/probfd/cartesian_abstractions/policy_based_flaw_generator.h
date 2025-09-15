@@ -18,10 +18,6 @@ class CountdownTimer;
 class LogProxy;
 } // namespace utils
 
-namespace probfd {
-class ProbabilisticTaskProxy;
-}
-
 namespace probfd::cartesian_abstractions {
 class AbstractState;
 class CartesianAbstraction;
@@ -49,7 +45,7 @@ class PolicyBasedFlawGenerator : public FlawGenerator {
         downward::utils::CountdownTimer& timer);
 
     std::optional<Flaw> find_flaw(
-        const ProbabilisticTaskProxy& task_proxy,
+        const ProbabilisticTaskTuple& task,
         const std::vector<int>& domain_sizes,
         CartesianAbstraction& abstraction,
         Solution& solution,
@@ -64,7 +60,7 @@ public:
     ~PolicyBasedFlawGenerator() override;
 
     std::optional<Flaw> generate_flaw(
-        const ProbabilisticTaskProxy& task_proxy,
+        const ProbabilisticTaskTuple& task,
         const std::vector<int>& domain_sizes,
         CartesianAbstraction& abstraction,
         const AbstractState* init_id,

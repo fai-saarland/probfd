@@ -3,10 +3,7 @@
 
 #include "downward/cli/plugins/options.h"
 #include "downward/cli/plugins/plugin_info.h"
-#include "downward/cli/plugins/raw_registry.h"
 
-#include "downward/utils/strings.h"
-#include "downward/utils/system.h"
 #include "downward/utils/tuples.h"
 
 #include <any>
@@ -103,20 +100,20 @@ protected:
 };
 
 template <typename Constructed>
-using FeatureAuto = typename std::conditional<
-    std::is_constructible<Constructed, const Options&>::value,
+using FeatureAuto = std::conditional_t<
+    std::is_constructible_v<Constructed, const Options&>,
     FeatureWithDefault<Constructed>,
-    FeatureWithoutDefault<Constructed>>::type;
+    FeatureWithoutDefault<Constructed>>;
 
 template <typename Base, typename Constructed>
 class TypedFeature : public FeatureAuto<Constructed> {
     using BasePtr = std::shared_ptr<Base>;
     static_assert(
-        std::is_base_of<Base, Constructed>::value,
+        std::is_base_of_v<Base, Constructed>,
         "Constructed must derive from Base");
 
 public:
-    TypedFeature(const std::string& key)
+    explicit TypedFeature(const std::string& key)
         : FeatureAuto<Constructed>(
               TypeRegistry::instance()->get_type<BasePtr>(),
               key)
@@ -142,31 +139,27 @@ template <typename T, typename... Arguments>
 std::shared_ptr<T> make_shared_from_arg_tuples(Arguments... arguments)
 {
     return std::apply(
-        [](auto&&... flattened_args) {
-            return std::make_shared<T>(
-                std::forward<decltype(flattened_args)>(flattened_args)...);
-        },
+        []<typename... A>(A&&... flattened_args)
+            requires requires { T{flattened_args...}; }
+        { return std::make_shared<T>(std::forward<A>(flattened_args)...); },
         downward::utils::flatten_tuple(
             std::tuple<Arguments...>(std::forward<Arguments>(arguments)...)));
 }
 
 class Plugin {
+protected:
+    Plugin() = default;
+
 public:
-    Plugin();
     virtual ~Plugin() = default;
-    Plugin(const Plugin&) = delete;
+
     virtual std::shared_ptr<Feature> create_feature() const = 0;
 };
 
 template <typename T>
 class FeaturePlugin : public Plugin {
 public:
-    FeaturePlugin()
-        : Plugin()
-    {
-    }
-
-    virtual std::shared_ptr<Feature> create_feature() const override
+    std::shared_ptr<Feature> create_feature() const override
     {
         return std::make_shared<T>();
     }
@@ -194,26 +187,16 @@ class CategoryPlugin {
     */
     std::string synopsis;
 
-    /*
-      TODO: Currently, we do not support variable binding of all categories, so
-      variables can only be used for categories explicitly marked. This might
-      change once we fix the component interaction (issue559). If all feature
-      types can be bound to variables, we can probably get rid of this flag and
-      related code in CategoryPlugin, TypedCategoryPlugin, RawRegistry,
-      Registry, Parser, ...
-    */
-    bool can_be_bound_to_variable;
-
-public:
+protected:
     CategoryPlugin(
         std::type_index pointer_type,
         const std::string& class_name,
         const std::string& category_name);
+
+public:
     virtual ~CategoryPlugin() = default;
-    CategoryPlugin(const CategoryPlugin&) = delete;
 
     void document_synopsis(const std::string& synopsis);
-    void allow_variable_binding();
 
     std::type_index get_pointer_type() const;
     std::string get_category_name() const;
@@ -224,7 +207,7 @@ public:
 template <typename T>
 class TypedCategoryPlugin : public CategoryPlugin {
 public:
-    TypedCategoryPlugin(const std::string& category_name)
+    explicit TypedCategoryPlugin(const std::string& category_name)
         : CategoryPlugin(
               typeid(std::shared_ptr<T>),
               typeid(std::shared_ptr<T>).name(),
@@ -239,7 +222,7 @@ class SubcategoryPlugin {
     std::string synopsis;
 
 public:
-    SubcategoryPlugin(const std::string& subcategory);
+    explicit SubcategoryPlugin(const std::string& subcategory);
 
     void document_title(const std::string& title);
     void document_synopsis(const std::string& synopsis);
@@ -254,12 +237,13 @@ class EnumPlugin {
     std::string class_name;
     EnumInfo enum_info;
 
-public:
+protected:
     EnumPlugin(
         std::type_index type,
         const std::string& class_name,
         std::initializer_list<std::pair<std::string, std::string>> enum_values);
 
+public:
     std::type_index get_type() const;
     std::string get_class_name() const;
     const EnumInfo& get_enum_info() const;
@@ -283,10 +267,15 @@ void Feature::add_option(
     const Bounds& bounds,
     bool lazy_construction)
 {
+    using U = std::conditional_t<
+        std::is_same_v<T, std::chrono::duration<double>>,
+        double,
+        T>;
+
     arguments.emplace_back(
         key,
         help,
-        TypeRegistry::instance()->get_type<T>(),
+        TypeRegistry::instance()->get_type<U>(),
         default_value,
         bounds,
         lazy_construction);
@@ -299,7 +288,12 @@ void Feature::add_list_option(
     const std::string& default_value,
     bool lazy_construction)
 {
-    add_option<std::vector<T>>(
+    using U = std::conditional_t<
+        std::is_same_v<T, std::chrono::duration<double>>,
+        double,
+        T>;
+
+    add_option<std::vector<U>>(
         key,
         help,
         default_value,

@@ -2,7 +2,7 @@
 
 #include "downward/evaluation_context.h"
 #include "downward/evaluator.h"
-#include "downward/open_list_factory.h"
+#include "downward/open_list.h"
 #include "downward/pruning_method.h"
 
 #include "downward/algorithms/ordered_set.h"
@@ -20,24 +20,31 @@ using namespace std;
 
 namespace downward::eager_search {
 EagerSearch::EagerSearch(
-    const shared_ptr<OpenListFactory>& open,
+    unique_ptr<StateOpenList> open,
     bool reopen_closed,
-    const shared_ptr<Evaluator>& f_eval,
-    const vector<shared_ptr<Evaluator>>& preferred,
-    const shared_ptr<PruningMethod>& pruning,
-    const shared_ptr<Evaluator>& lazy_evaluator,
+    shared_ptr<Evaluator> f_eval,
+    vector<shared_ptr<Evaluator>> preferred,
+    shared_ptr<Evaluator> lazy_evaluator,
+    shared_ptr<PruningMethod> pruning,
+    SharedAbstractTask task,
     OperatorCost cost_type,
     int bound,
-    double max_time,
+    utils::Duration max_time,
     const string& description,
     utils::Verbosity verbosity)
-    : SearchAlgorithm(cost_type, bound, max_time, description, verbosity)
+    : IterativeSearchAlgorithm(
+          std::move(task),
+          cost_type,
+          bound,
+          max_time,
+          description,
+          verbosity)
     , reopen_closed_nodes(reopen_closed)
-    , open_list(open->create_state_open_list())
-    , f_evaluator(f_eval) // default nullptr
-    , preferred_operator_evaluators(preferred)
-    , lazy_evaluator(lazy_evaluator) // default nullptr
-    , pruning_method(pruning)
+    , open_list(std::move(open))
+    , f_evaluator(std::move(f_eval)) // default nullptr
+    , preferred_operator_evaluators(std::move(preferred))
+    , lazy_evaluator(std::move(lazy_evaluator)) // default nullptr
+    , pruning_method(std::move(pruning))
 {
     if (lazy_evaluator && !lazy_evaluator->does_cache_estimates()) {
         cerr << "lazy_evaluator must cache its estimates" << endl;
@@ -69,9 +76,7 @@ void EagerSearch::initialize()
       They are usually also used in the open list and will hence already be
       included, but we want to be sure.
     */
-    if (f_evaluator) {
-        f_evaluator->get_path_dependent_evaluators(evals);
-    }
+    if (f_evaluator) { f_evaluator->get_path_dependent_evaluators(evals); }
 
     /*
       Collect path-dependent evaluators that are used in the lazy_evaluator
@@ -204,9 +209,14 @@ SearchStatus EagerSearch::step()
             preferred_operators);
     }
 
+    const auto [operators, cost_function] = to_refs(
+        slice_shared<ClassicalOperatorSpace, OperatorIntCostFunction>(task));
+
     for (OperatorID op_id : applicable_ops) {
-        OperatorProxy op = task_proxy.get_operators()[op_id];
-        if ((node->get_real_g() + op.get_cost()) >= bound) continue;
+        OperatorProxy op = operators[op_id];
+        if (node->get_real_g() + cost_function.get_operator_cost(op.get_id()) >=
+            bound)
+            continue;
 
         State succ_state = state_registry.get_successor_state(s, op);
         statistics.inc_generated();
@@ -228,7 +238,7 @@ SearchStatus EagerSearch::step()
             // Careful: succ_node.get_g() is not available here yet,
             // hence the stupid computation of succ_g.
             // TODO: Make this less fragile.
-            int succ_g = node->get_g() + get_adjusted_cost(op);
+            int succ_g = node->get_g() + get_adjusted_cost(op, cost_function);
 
             EvaluationContext succ_eval_context(
                 succ_state,
@@ -242,14 +252,20 @@ SearchStatus EagerSearch::step()
                 statistics.inc_dead_ends();
                 continue;
             }
-            succ_node.open(*node, op, get_adjusted_cost(op));
+            succ_node.open(
+                *node,
+                op,
+                cost_function,
+                get_adjusted_cost(op, cost_function));
 
             open_list->insert(succ_eval_context, succ_state.get_id());
             if (search_progress.check_progress(succ_eval_context)) {
                 statistics.print_checkpoint_line(succ_node.get_g());
                 reward_progress();
             }
-        } else if (succ_node.get_g() > node->get_g() + get_adjusted_cost(op)) {
+        } else if (
+            succ_node.get_g() >
+            node->get_g() + get_adjusted_cost(op, cost_function)) {
             // We found a new cheapest path to an open or closed state.
             if (reopen_closed_nodes) {
                 if (succ_node.is_closed()) {
@@ -262,7 +278,11 @@ SearchStatus EagerSearch::step()
                     */
                     statistics.inc_reopened();
                 }
-                succ_node.reopen(*node, op, get_adjusted_cost(op));
+                succ_node.reopen(
+                    *node,
+                    op,
+                    cost_function,
+                    get_adjusted_cost(op, cost_function));
 
                 EvaluationContext succ_eval_context(
                     succ_state,
@@ -292,7 +312,11 @@ SearchStatus EagerSearch::step()
                 // If we do not reopen closed nodes, we just update the parent
                 // pointers. Note that this could cause an incompatibility
                 // between the g-value and the actual path that is traced back.
-                succ_node.update_parent(*node, op, get_adjusted_cost(op));
+                succ_node.update_parent(
+                    *node,
+                    op,
+                    cost_function,
+                    get_adjusted_cost(op, cost_function));
             }
         }
     }
@@ -309,7 +333,7 @@ void EagerSearch::reward_progress()
 
 void EagerSearch::dump_search_space() const
 {
-    search_space.dump(task_proxy);
+    search_space.dump(to_refs(task));
 }
 
 void EagerSearch::start_f_value_statistics(EvaluationContext& eval_context)
@@ -331,4 +355,4 @@ void EagerSearch::update_f_value_statistics(EvaluationContext& eval_context)
     }
 }
 
-} // namespace eager_search
+} // namespace downward::eager_search

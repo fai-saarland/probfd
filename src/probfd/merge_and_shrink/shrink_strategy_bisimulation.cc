@@ -61,20 +61,11 @@ struct Signature {
     void dump(utils::LogProxy& log) const
     {
         if (log.is_at_least_debug()) {
-            log << "Signature(group = " << group << ", state = " << state
-                << ", succ_sig = [";
-
-            auto it = succ_signature.begin();
-
-            if (const auto end = succ_signature.end(); it != end) {
-                log << "(" << it->first << "," << it->second << ")";
-
-                for (++it; it != end; ++it) {
-                    log << ", (" << it->first << "," << it->second << ")";
-                }
-            }
-
-            log << "])" << endl;
+            log.println(
+                "Signature(group = {}, state = {}, succ_sig = {})",
+                group,
+                state,
+                succ_signature);
         }
     }
 };
@@ -102,7 +93,7 @@ static int initialize_groups(
        unsolvable.
     */
 
-    map<value_t, int> h_to_group;
+    std::map<value_t, int> h_to_group;
     int num_groups = 1; // Group 0 is for goal states.
 
     for (int state = 0; state < ts.get_size(); ++state) {
@@ -154,9 +145,7 @@ static void compute_signatures(
             assert(signatures[src].state == src);
 
             std::vector<int> target_groups(targets.size());
-            for (int target : targets) {
-                target_groups.emplace_back(target);
-            }
+            for (int target : targets) { target_groups.emplace_back(target); }
             signatures[src].succ_signature.emplace(
                 label_group_counter,
                 target_groups);
@@ -171,7 +160,8 @@ static void compute_signatures(
     ranges::sort(signatures);
 }
 
-StateEquivalenceRelation ShrinkStrategyBisimulation::compute_equivalence_relation(
+StateEquivalenceRelation
+ShrinkStrategyBisimulation::compute_equivalence_relation(
     const Labels&,
     const TransitionSystem& ts,
     const Distances& distances,
@@ -217,9 +207,7 @@ StateEquivalenceRelation ShrinkStrategyBisimulation::compute_equivalence_relatio
                 }
             }
 
-            if (num_new_groups == 0) {
-                continue;
-            }
+            if (num_new_groups == 0) { continue; }
 
             if (at_limit == AtLimit::RETURN &&
                 num_groups + num_new_groups > target_size) {
@@ -277,15 +265,15 @@ void ShrinkStrategyBisimulation::dump_strategy_specific_options(
     utils::LogProxy& log) const
 {
     if (log.is_at_least_normal()) {
-        log << "At limit: ";
+        log.print("At limit: ");
         if (at_limit == AtLimit::RETURN) {
-            log << "return";
+            log.print("return");
         } else if (at_limit == AtLimit::USE_UP) {
-            log << "use up limit";
+            log.print("use up limit");
         } else {
             ABORT("Unknown setting for at_limit.");
         }
-        log << endl;
+        log.println();
     }
 }
 

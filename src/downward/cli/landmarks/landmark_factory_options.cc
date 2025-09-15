@@ -1,8 +1,8 @@
 #include "downward/cli/landmarks/landmark_factory_options.h"
 
-#include "downward/cli/utils/logging_options.h"
-
 #include "downward/cli/plugins/plugin.h"
+
+#include "downward/cli/utils/logging_options.h"
 
 #include "downward/landmarks/landmark_factory.h"
 
@@ -40,21 +40,5 @@ bool get_use_orders_arguments_from_options(const Options& opts)
 {
     return opts.get<bool>("use_orders");
 }
-
-class LandmarkFactoryCategoryPlugin
-    : public TypedCategoryPlugin<LandmarkFactory> {
-public:
-    LandmarkFactoryCategoryPlugin()
-        : TypedCategoryPlugin("LandmarkFactory")
-    {
-        document_synopsis(
-            "A landmark factory specification is either a newly created "
-            "instance or a landmark factory that has been defined previously. "
-            "This page describes how one can specify a new landmark factory "
-            "instance. For re-using landmark factories, see "
-            "OptionSyntax#Landmark_Predefinitions.");
-        allow_variable_binding();
-    }
-} _category_plugin;
 
 } // namespace downward::cli::landmarks

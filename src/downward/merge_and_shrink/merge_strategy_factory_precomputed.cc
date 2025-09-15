@@ -19,11 +19,11 @@ MergeStrategyFactoryPrecomputed::MergeStrategyFactoryPrecomputed(
 
 unique_ptr<MergeStrategy>
 MergeStrategyFactoryPrecomputed::compute_merge_strategy(
-    const TaskProxy& task_proxy,
+    const AbstractTaskTuple& task,
     const FactoredTransitionSystem& fts)
 {
     unique_ptr<MergeTree> merge_tree =
-        merge_tree_factory->compute_merge_tree(task_proxy);
+        merge_tree_factory->compute_merge_tree(task);
     return std::make_unique<MergeStrategyPrecomputed>(
         fts,
         std::move(merge_tree));

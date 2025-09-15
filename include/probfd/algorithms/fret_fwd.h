@@ -42,11 +42,11 @@ using RemoveQType = typename RemoveQTypeS<T>::type;
 
 template <typename T>
 concept QuotientHeuristicSearchAlgorithm =
-    DerivedFromSpecializationOf<
+    downward::DerivedFromSpecializationOf<
         T,
         heuristic_search::HeuristicSearchAlgorithm> &&
-    Specialization<StateTypeOf<T>, quotients::QuotientState> &&
-    Specialization<ActionTypeOf<T>, quotients::QuotientAction>;
+    downward::Specialization<StateTypeOf<T>, quotients::QuotientState> &&
+    downward::Specialization<ActionTypeOf<T>, quotients::QuotientAction>;
 
 template <
     QuotientHeuristicSearchAlgorithm NestedAlgorithm,

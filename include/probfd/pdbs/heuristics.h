@@ -42,24 +42,49 @@ public:
 };
 
 class IncrementalPPDBEvaluator : public StateRankEvaluator {
-    const std::vector<value_t>& value_table_;
-
     int left_multiplier_;
     int right_multiplier_;
     int domain_size_;
 
 public:
     explicit IncrementalPPDBEvaluator(
+        const StateRankingFunction& mapper,
+        int add_var);
+
+protected:
+    [[nodiscard]]
+    StateRank to_parent_state(StateRank state) const;
+};
+
+class NonOwningIncrementalPPDBEvaluator : public IncrementalPPDBEvaluator {
+    const std::vector<value_t>& value_table_;
+
+public:
+    explicit NonOwningIncrementalPPDBEvaluator(
         const std::vector<value_t>& value_table,
+        const StateRankingFunction& mapper,
+        int add_var);
+
+    explicit NonOwningIncrementalPPDBEvaluator(
+        std::vector<value_t>&& value_table,
+        const StateRankingFunction& mapper,
+        int add_var) = delete;
+
+    [[nodiscard]]
+    value_t evaluate(StateRank state) const override;
+};
+
+class OwningIncrementalPPDBEvaluator : public IncrementalPPDBEvaluator {
+    std::vector<value_t> value_table_;
+
+public:
+    explicit OwningIncrementalPPDBEvaluator(
+        std::vector<value_t> value_table,
         const StateRankingFunction& mapper,
         int add_var);
 
     [[nodiscard]]
     value_t evaluate(StateRank state) const override;
-
-private:
-    [[nodiscard]]
-    StateRank to_parent_state(StateRank state) const;
 };
 
 class MergeEvaluator : public StateRankEvaluator {

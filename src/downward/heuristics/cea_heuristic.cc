@@ -1,11 +1,13 @@
 #include "downward/heuristics/cea_heuristic.h"
 
 #include "downward/heuristics/domain_transition_graph.h"
+#include "downward/operator_cost.h"
 
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/logging.h"
 
 #include "downward/task_transformation.h"
+#include "probfd/pdbs/cegar/bfs_flaw_finder.h"
 
 #include <cassert>
 #include <limits>
@@ -137,6 +139,13 @@ ContextEnhancedAdditiveHeuristic::get_local_problem(int var_no, int value)
 LocalProblem*
 ContextEnhancedAdditiveHeuristic::build_problem_for_variable(int var_no) const
 {
+    const auto& [variables, axioms, operators, cost_function] = to_refs(
+        slice_shared<
+            VariableSpace,
+            AxiomSpace,
+            ClassicalOperatorSpace,
+            OperatorIntCostFunction>(transformed_task));
+
     LocalProblem* problem = new LocalProblem;
 
     DomainTransitionGraph* dtg = transition_graphs[var_no].get();
@@ -144,7 +153,7 @@ ContextEnhancedAdditiveHeuristic::build_problem_for_variable(int var_no) const
     problem->context_variables = &dtg->local_to_global_child;
 
     int num_parents = problem->context_variables->size();
-    size_t num_values = task_proxy.get_variables()[var_no].get_domain_size();
+    size_t num_values = variables[var_no].get_domain_size();
     problem->nodes.reserve(num_values);
     for (size_t value = 0; value < num_values; ++value)
         problem->nodes.push_back(LocalProblemNode(problem, num_parents));
@@ -160,11 +169,13 @@ ContextEnhancedAdditiveHeuristic::build_problem_for_variable(int var_no) const
             for (const ValueTransitionLabel& label : dtg_trans.labels) {
                 AxiomOrOperatorProxy op =
                     label.is_axiom
-                        ? AxiomOrOperatorProxy(
-                              task_proxy.get_axioms()[label.op_id])
-                        : AxiomOrOperatorProxy(
-                              task_proxy.get_operators()[label.op_id]);
-                LocalTransition trans(&node, &target, &label, op.get_cost());
+                        ? AxiomOrOperatorProxy(axioms[label.op_id])
+                        : AxiomOrOperatorProxy(operators[label.op_id]);
+                LocalTransition trans(
+                    &node,
+                    &target,
+                    &label,
+                    cost_function.get_operator_cost(op.get_id()));
                 node.outgoing_transitions.push_back(trans);
             }
         }
@@ -174,25 +185,23 @@ ContextEnhancedAdditiveHeuristic::build_problem_for_variable(int var_no) const
 
 LocalProblem* ContextEnhancedAdditiveHeuristic::build_problem_for_goal() const
 {
+    const auto& goals = get_goal(transformed_task);
     LocalProblem* problem = new LocalProblem;
 
-    GoalsProxy goals_proxy = task_proxy.get_goals();
-
     problem->context_variables = new vector<int>;
-    for (FactProxy goal : goals_proxy)
-        problem->context_variables->push_back(goal.get_variable().get_id());
+    for (FactPair goal : goals) problem->context_variables->push_back(goal.var);
 
     for (size_t value = 0; value < 2; ++value)
-        problem->nodes.push_back(LocalProblemNode(problem, goals_proxy.size()));
+        problem->nodes.push_back(LocalProblemNode(problem, goals.size()));
 
-    vector<LocalAssignment> goals;
-    for (size_t goal_no = 0; goal_no < goals_proxy.size(); ++goal_no) {
-        int goal_value = goals_proxy[goal_no].get_value();
-        goals.push_back(LocalAssignment(goal_no, goal_value));
+    vector<LocalAssignment> goal_assignments;
+    for (size_t goal_no = 0; goal_no < goals.size(); ++goal_no) {
+        int goal_value = goals[goal_no].value;
+        goal_assignments.push_back(LocalAssignment(goal_no, goal_value));
     }
     vector<LocalAssignment> no_effects;
-    ValueTransitionLabel* label =
-        new ValueTransitionLabel(0, true, goals, no_effects);
+    auto* label =
+        new ValueTransitionLabel(0, true, goal_assignments, no_effects);
     LocalTransition trans(&problem->nodes[0], &problem->nodes[1], label, 0);
     problem->nodes[0].outgoing_transitions.push_back(trans);
     return problem;
@@ -246,7 +255,7 @@ void ContextEnhancedAdditiveHeuristic::set_up_local_problem(
     LocalProblemNode* start = &problem->nodes[start_value];
     start->cost = 0;
     for (size_t i = 0; i < problem->context_variables->size(); ++i)
-        start->context[i] = state[(*problem->context_variables)[i]].get_value();
+        start->context[i] = state[(*problem->context_variables)[i]];
 
     add_to_heap(start);
 }
@@ -380,6 +389,9 @@ void ContextEnhancedAdditiveHeuristic::mark_helpful_transitions(
     LocalProblemNode* node,
     const State& state)
 {
+    const auto& [axioms, operators] = to_refs(
+        slice_shared<AxiomSpace, ClassicalOperatorSpace>(transformed_task));
+
     assert(node->cost >= 0 && node->cost < numeric_limits<int>::max());
     LocalTransition* first_on_path = node->reached_by;
     if (first_on_path) {
@@ -389,15 +401,13 @@ void ContextEnhancedAdditiveHeuristic::mark_helpful_transitions(
             // Transition possibly applicable.
             const ValueTransitionLabel& label = *first_on_path->label;
             AxiomOrOperatorProxy op =
-                label.is_axiom
-                    ? AxiomOrOperatorProxy(task_proxy.get_axioms()[label.op_id])
-                    : AxiomOrOperatorProxy(
-                          task_proxy.get_operators()[label.op_id]);
+                label.is_axiom ? AxiomOrOperatorProxy(axioms[label.op_id])
+                               : AxiomOrOperatorProxy(operators[label.op_id]);
             if (min_action_cost != 0 ||
                 task_properties::is_applicable(op, state)) {
                 // If there are no zero-cost actions, the target_cost/
                 // action_cost test above already guarantees applicability.
-                set_preferred(static_cast<OperatorProxy>(op));
+                set_preferred(op);
             }
         } else {
             // Recursively compute helpful transitions for preconditions.
@@ -406,11 +416,9 @@ void ContextEnhancedAdditiveHeuristic::mark_helpful_transitions(
                 int precond_value = assignment.value;
                 int local_var = assignment.local_var;
                 int precond_var_no = context_vars[local_var];
-                if (state[precond_var_no].get_value() == precond_value)
-                    continue;
-                LocalProblem* subproblem = get_local_problem(
-                    precond_var_no,
-                    state[precond_var_no].get_value());
+                if (state[precond_var_no] == precond_value) continue;
+                LocalProblem* subproblem =
+                    get_local_problem(precond_var_no, state[precond_var_no]);
                 LocalProblemNode* subnode = &subproblem->nodes[precond_value];
                 mark_helpful_transitions(subproblem, subnode, state);
             }
@@ -437,7 +445,7 @@ int ContextEnhancedAdditiveHeuristic::compute_heuristic(
 }
 
 ContextEnhancedAdditiveHeuristic::ContextEnhancedAdditiveHeuristic(
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
@@ -448,28 +456,39 @@ ContextEnhancedAdditiveHeuristic::ContextEnhancedAdditiveHeuristic(
           cache_estimates,
           description,
           verbosity)
-    , min_action_cost(task_properties::get_min_operator_cost(task_proxy))
+    , min_action_cost(
+          task_properties::get_min_operator_cost(
+              get_operators(transformed_task),
+              get_cost_function(transformed_task)))
 {
     if (log.is_at_least_normal()) {
         log << "Initializing context-enhanced additive heuristic..." << endl;
     }
 
-    DTGFactory factory(task_proxy, true, [](int, int) { return false; });
+    DTGFactory factory(
+        get_variables(transformed_task),
+        get_axioms(transformed_task),
+        get_operators(transformed_task),
+        get_cost_function(transformed_task),
+        true,
+        [](int, int) { return false; });
+
     transition_graphs = factory.build_dtgs();
 
     goal_problem = build_problem_for_goal();
     goal_node = &goal_problem->nodes[1];
 
-    VariablesProxy vars = task_proxy.get_variables();
-    local_problem_index.resize(vars.size());
-    for (VariableProxy var : vars)
+    const auto& variables = get_variables(transformed_task);
+
+    local_problem_index.resize(variables.size());
+    for (VariableProxy var : variables)
         local_problem_index[var.get_id()].resize(
             var.get_domain_size(),
             nullptr);
 }
 
 ContextEnhancedAdditiveHeuristic::ContextEnhancedAdditiveHeuristic(
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
     const string& description,
@@ -499,4 +518,4 @@ bool ContextEnhancedAdditiveHeuristic::dead_ends_are_reliable() const
     return false;
 }
 
-} // namespace cea_heuristic
+} // namespace downward::cea_heuristic

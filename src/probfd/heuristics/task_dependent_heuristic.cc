@@ -7,10 +7,9 @@ using namespace downward;
 namespace probfd::heuristics {
 
 TaskDependentHeuristic::TaskDependentHeuristic(
-    std::shared_ptr<ProbabilisticTask> task,
+    SharedProbabilisticTask task,
     utils::LogProxy log)
-    : task_(task)
-    , task_proxy_(*task)
+    : task_(std::move(task))
     , log_(std::move(log))
 {
 }

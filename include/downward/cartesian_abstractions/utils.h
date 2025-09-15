@@ -1,18 +1,18 @@
 #ifndef CEGAR_UTILS_H
 #define CEGAR_UTILS_H
 
-#include "downward/task_proxy.h"
-
 #include "downward/utils/hash.h"
 
-#include <memory>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
 namespace downward {
-class AbstractTask;
-}
+class VariableSpace;
+class ClassicalOperatorSpace;
+class State;
+struct FactPair;
+} // namespace downward
 
 namespace downward::additive_heuristic {
 class AdditiveHeuristic;
@@ -25,22 +25,12 @@ namespace downward::cartesian_abstractions {
   can be reached in the delete-relaxation before 'fact' is reached the first
   time, plus 'fact' itself.
 */
-extern utils::HashSet<FactProxy>
-get_relaxed_possible_before(const TaskProxy& task, const FactProxy& fact);
+extern utils::HashSet<FactPair> get_relaxed_possible_before(
+    const ClassicalOperatorSpace& operators,
+    const State& state,
+    FactPair fact);
 
-extern std::vector<int> get_domain_sizes(const PlanningTaskProxy& task);
-} // namespace cartesian_abstractions
-
-/*
-  TODO: Our proxy classes are meant to be temporary objects and as such
-  shouldn't be stored in containers. Once we find a way to avoid
-  storing them in containers, we should remove this hashing function.
-*/
-namespace downward::utils {
-inline void feed(HashState& hash_state, const FactProxy& fact)
-{
-    feed(hash_state, fact.get_pair());
-}
-} // namespace utils
+extern std::vector<int> get_domain_sizes(const VariableSpace& variables);
+} // namespace downward::cartesian_abstractions
 
 #endif

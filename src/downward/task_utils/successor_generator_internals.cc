@@ -1,6 +1,6 @@
 #include "downward/task_utils/successor_generator_internals.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <cassert>
 

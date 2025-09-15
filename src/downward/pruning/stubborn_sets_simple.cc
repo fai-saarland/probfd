@@ -10,9 +10,10 @@ StubbornSetsSimple::StubbornSetsSimple(utils::Verbosity verbosity)
 {
 }
 
-void StubbornSetsSimple::initialize(const shared_ptr<AbstractTask>& task)
+void StubbornSetsSimple::initialize(const SharedAbstractTask& task)
 {
     StubbornSets::initialize(task);
+
     interference_relation.resize(num_operators);
     interference_relation_computed.resize(num_operators, false);
     log << "pruning method: stubborn sets simple" << endl;

@@ -22,21 +22,6 @@ namespace probfd::merge_and_shrink {
 
 namespace {
 
-template <typename T>
-utils::LogProxy& operator<<(utils::LogProxy& os, const Distribution<T>& range)
-{
-    using std::views::drop;
-
-    if (range.empty()) return os;
-
-    const auto& first = *range.begin();
-    os << "{" << first.item << " -> " << first.probability;
-    for (const auto& e : range | drop(1)) {
-        os << ", " << e.item << " -> " << e.probability;
-    }
-    return os << "}";
-}
-
 /* A successor signature characterizes the behaviour of an abstract
    state in so far as bisimulation cares about it. States with
    identical successor signature are not distinguished by
@@ -77,19 +62,11 @@ struct Signature {
     void dump(utils::LogProxy& log) const
     {
         if (log.is_at_least_debug()) {
-            log << "Signature(group = " << group << ", state = " << state
-                << ", succ_sig = [";
-
-            auto it = succ_signature.begin();
-
-            if (const auto end = succ_signature.end(); it != end) {
-                log << "(" << it->first << "," << it->second << ")";
-
-                for (++it; it != end; ++it) {
-                    log << ", (" << it->first << "," << it->second << ")";
-                }
-            }
-            log << "])" << endl;
+            log.println(
+                "Signature(group = {}, state = {}, succ_sig = {})",
+                group,
+                state,
+                succ_signature);
         }
     }
 };
@@ -120,7 +97,7 @@ static int initialize_groups(
        unsolvable.
     */
 
-    map<value_t, int> h_to_group;
+    std::map<value_t, int> h_to_group;
     int num_groups = 1; // Group 0 is for goal states.
 
     for (int state = 0; state < ts.get_size(); ++state) {
@@ -241,9 +218,7 @@ ShrinkStrategyProbabilisticBisimulation::compute_equivalence_relation(
                 }
             }
 
-            if (num_new_groups == 0) {
-                continue;
-            }
+            if (num_new_groups == 0) { continue; }
 
             if (at_limit == AtLimit::RETURN &&
                 num_groups + num_new_groups > target_size) {
@@ -301,15 +276,15 @@ void ShrinkStrategyProbabilisticBisimulation::dump_strategy_specific_options(
     utils::LogProxy& log) const
 {
     if (log.is_at_least_normal()) {
-        log << "At limit: ";
+        log.print("At limit: ");
         if (at_limit == AtLimit::RETURN) {
-            log << "return";
+            log.print("return");
         } else if (at_limit == AtLimit::USE_UP) {
-            log << "use up limit";
+            log.print("use up limit");
         } else {
             ABORT("Unknown setting for at_limit.");
         }
-        log << endl;
+        log.println();
     }
 }
 

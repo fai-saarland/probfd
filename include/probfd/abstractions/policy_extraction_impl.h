@@ -62,16 +62,17 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_optimal_projection_policy(
             const value_t op_value =
                 mdp.get_action_cost(op) +
                 successor_dist.non_source_successor_dist.expectation(
-                    value_table) +
-                successor_dist.non_source_probability * value;
+                    value_table);
 
-            if (!is_approx_equal(value, op_value, greedy_epsilon)) continue;
+            if (!is_approx_equal(
+                    successor_dist.non_source_probability * value,
+                    op_value,
+                    greedy_epsilon))
+                continue;
 
             for (const StateID succ :
                  successor_dist.non_source_successor_dist.support()) {
-                if (closed.insert(succ).second) {
-                    open.push_back(succ);
-                }
+                if (closed.insert(succ).second) { open.push_back(succ); }
 
                 predecessors[succ].emplace_back(s, op);
             }
@@ -164,17 +165,13 @@ std::unique_ptr<MultiPolicy<State, Action>> compute_greedy_projection_policy(
 
         // Skip states in which termination is optimal
         const value_t term_cost = mdp.get_termination_info(state).get_cost();
-        if (value == term_cost) {
-            continue;
-        }
+        if (value == term_cost) { continue; }
 
         // Generate operators...
         std::vector<TransitionTail<Action>> transitions;
         mdp.generate_all_transitions(state, transitions);
 
-        if (transitions.empty()) {
-            continue;
-        }
+        if (transitions.empty()) { continue; }
 
         // Look at the (greedy) operators in random order.
         rng.shuffle(transitions);

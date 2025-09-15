@@ -8,7 +8,8 @@
 
 #include "downward/utils/logging.h"
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/state.h"
 
 using namespace std;
 
@@ -88,10 +89,12 @@ vector<double> MergeScoringFunctionMIASM::compute_scores(
     return scores;
 }
 
-void MergeScoringFunctionMIASM::initialize(const TaskProxy& task_proxy)
+void MergeScoringFunctionMIASM::initialize(const AbstractTaskTuple& task)
 {
+    const auto& variables = get_variables(task);
+
     initialized = true;
-    int num_variables = task_proxy.get_variables().size();
+    int num_variables = variables.size();
     int max_factor_index = 2 * num_variables - 1;
     cached_scores_by_merge_candidate_indices.resize(
         max_factor_index,
@@ -111,4 +114,4 @@ string MergeScoringFunctionMIASM::name() const
     return "miasm";
 }
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

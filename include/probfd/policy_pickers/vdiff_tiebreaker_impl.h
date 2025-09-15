@@ -9,9 +9,9 @@ namespace probfd::policy_pickers {
 template <typename State, typename Action>
 VDiffTiebreaker<State, Action>::VDiffTiebreaker(
     bool stable_policy,
-    value_t favor_large_gaps)
+    bool favor_large_gaps)
     : VDiffTiebreaker::StablePolicyPicker(stable_policy)
-    , favor_large_gaps_(favor_large_gaps)
+    , factor_(favor_large_gaps ? -1 : 1)
 {
 }
 
@@ -26,7 +26,7 @@ int VDiffTiebreaker<State, Action>::pick_index(
         greedy_transitions,
         {},
         [&properties,
-         factor = favor_large_gaps_](const TransitionTail<Action>& t) {
+         factor = factor_](const TransitionTail<Action>& t) {
             return t.successor_dist.non_source_successor_dist.expectation(
                 [&](StateID id) {
                     return factor * properties.lookup_bounds(id).length();

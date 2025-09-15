@@ -5,12 +5,15 @@
 #include "downward/cartesian_abstractions/split_selector.h"
 #include "downward/cartesian_abstractions/types.h"
 
+#include "downward/operator_cost_function_fwd.h"
+#include "downward/utils/timer.h"
+
+#include <functional>
 #include <memory>
 #include <vector>
 
 namespace downward::utils {
 class CountdownTimer;
-class Duration;
 class RandomNumberGenerator;
 class LogProxy;
 } // namespace utils
@@ -30,7 +33,7 @@ class CostSaturation {
     const std::vector<std::shared_ptr<SubtaskGenerator>> subtask_generators;
     const int max_states;
     const int max_non_looping_transitions;
-    const double max_time;
+    const utils::Duration max_time;
     const PickSplit pick_split;
     const bool use_general_costs;
     utils::RandomNumberGenerator& rng;
@@ -42,10 +45,10 @@ class CostSaturation {
     int num_states;
     int num_non_looping_transitions;
 
-    void reset(const TaskProxy& task_proxy);
+    void reset(const AbstractTaskTuple& task);
     void reduce_remaining_costs(const std::vector<int>& saturated_costs);
-    std::shared_ptr<AbstractTask>
-    get_remaining_costs_task(std::shared_ptr<AbstractTask>& parent) const;
+    SharedAbstractTask
+    get_remaining_costs_task(const SharedAbstractTask& parent) const;
     bool state_is_dead_end(const State& state) const;
     void build_abstractions(
         const SharedTasks& subtasks,
@@ -59,14 +62,14 @@ public:
             subtask_generators,
         int max_states,
         int max_non_looping_transitions,
-        double max_time,
+        utils::Duration max_time,
         PickSplit pick_split,
         bool use_general_costs,
         utils::RandomNumberGenerator& rng,
         utils::LogProxy& log);
 
     std::vector<CartesianHeuristicFunction>
-    generate_heuristic_functions(const std::shared_ptr<AbstractTask>& task);
+    generate_heuristic_functions(const SharedAbstractTask& task);
 };
 } // namespace cartesian_abstractions
 

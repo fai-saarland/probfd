@@ -10,14 +10,13 @@
 #include "probfd/quotients/quotient_system.h"
 
 #include "probfd/mdp_algorithm.h"
-#include "probfd/task_proxy.h"
 
 #include "downward/utils/timer.h"
 
 namespace probfd::solvers {
 
 struct BisimulationTimer {
-    double time = 0.0;
+    downward::utils::Duration time = downward::utils::Duration::zero();
     unsigned states = 0;
     unsigned transitions = 0;
 
@@ -29,8 +28,7 @@ protected:
     using QState = bisimulation::QuotientState;
     using QAction = downward::OperatorID;
 
-    const std::shared_ptr<ProbabilisticTask> task_;
-    const std::shared_ptr<FDRCostFunction> task_cost_function_;
+    const SharedProbabilisticTask task_;
 
     const std::string algorithm_name_;
 
@@ -40,17 +38,16 @@ protected:
 
 public:
     BisimulationBasedHeuristicSearchAlgorithm(
-        std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function,
+        SharedProbabilisticTask task,
         std::string algorithm_name,
         std::shared_ptr<MDPAlgorithm<QState, QAction>> algorithm);
 
     std::unique_ptr<PolicyType> compute_policy(
         FDRMDP&,
-        FDREvaluator&,
+        FDRHeuristic&,
         const downward::State&,
         ProgressReport progress,
-        double max_time) override;
+        downward::utils::Duration max_time) override;
 
     void print_statistics(std::ostream& out) const override;
 };

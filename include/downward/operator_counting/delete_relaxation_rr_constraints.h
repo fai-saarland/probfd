@@ -3,16 +3,20 @@
 
 #include "downward/operator_counting/constraint_generator.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 #include "downward/utils/hash.h"
 
 #include <memory>
 #include <vector>
 
+namespace downward {
+class OperatorProxy;
+}
+
 namespace downward::lp {
 class LPConstraint;
 struct LPVariable;
-} // namespace lp
+} // namespace downward::lp
 
 namespace downward::operator_counting {
 class VEGraph;
@@ -79,28 +83,36 @@ class DeleteRelaxationRRConstraints : public ConstraintGenerator {
     int get_constraint_id(FactPair f) const;
 
     LPVariableIDs create_auxiliary_variables(
-        const TaskProxy& task_proxy,
-        LPVariables& variables) const;
+        const VariableSpace& variables,
+        const ClassicalOperatorSpace& operators,
+        LPVariables& lp_variables) const;
+
     void create_auxiliary_variables_ve(
-        const TaskProxy& task_proxy,
         const VEGraph& ve_graph,
         LPVariables& variables,
         LPVariableIDs& lp_var_ids) const;
+
     void create_auxiliary_variables_tl(
-        const TaskProxy& task_proxy,
-        LPVariables& variables,
+        const VariableSpace& variables,
+        LPVariables& lp_variables,
         LPVariableIDs& lp_var_ids) const;
+
     void create_constraints(
-        const TaskProxy& task_proxy,
+        const VariableSpace& variables,
+        const ClassicalOperatorSpace& operators,
+        const GoalFactList& goals,
         const LPVariableIDs& lp_var_ids,
         lp::LinearProgram& lp);
+
     void create_constraints_ve(
-        const TaskProxy& task_proxy,
+        const ClassicalOperatorSpace& operators,
         const VEGraph& ve_graph,
         const LPVariableIDs& lp_var_ids,
         lp::LinearProgram& lp);
+
     void create_constraints_tl(
-        const TaskProxy& task_proxy,
+        const VariableSpace& variables,
+        const ClassicalOperatorSpace& operators,
         const LPVariableIDs& lp_var_ids,
         lp::LinearProgram& lp);
 
@@ -109,12 +121,13 @@ public:
         AcyclicityType acyclicity_type,
         bool use_integer_vars);
 
-    virtual void initialize_constraints(
-        const std::shared_ptr<AbstractTask>& task,
+    void initialize_constraints(
+        const SharedAbstractTask& task,
         lp::LinearProgram& lp) override;
-    virtual bool
+
+    bool
     update_constraints(const State& state, lp::LPSolver& lp_solver) override;
 };
-} // namespace operator_counting
+} // namespace downward::operator_counting
 
 #endif

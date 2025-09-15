@@ -3,7 +3,7 @@
 
 #include "probfd/fdr_types.h"
 #include "probfd/heuristic.h"
-#include "probfd/task_heuristic_factory.h"
+#include "probfd/task_heuristic_factory_category.h"
 
 #include <memory>
 #include <vector>
@@ -13,7 +13,7 @@ namespace downward::utils {
 class RandomNumberGenerator;
 class LogProxy;
 enum class Verbosity;
-} // namespace utils
+} // namespace downward::utils
 
 namespace probfd::pdbs {
 struct ProbabilityAwarePatternDatabase;
@@ -22,7 +22,7 @@ class PatternCollectionGenerator;
 
 namespace probfd::heuristics {
 
-class GZOCPHeuristic final : public FDREvaluator {
+class GZOCPHeuristic final : public FDRHeuristic {
     const value_t termination_cost_;
     const std::vector<pdbs::ProbabilityAwarePatternDatabase> pdbs_;
 
@@ -61,9 +61,8 @@ public:
         int random_seed,
         downward::utils::Verbosity verbosity);
 
-    std::unique_ptr<FDREvaluator> create_heuristic(
-        std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function) override;
+    std::unique_ptr<FDRHeuristic>
+    create_object(const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::heuristics

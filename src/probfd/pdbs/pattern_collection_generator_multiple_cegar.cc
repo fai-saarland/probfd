@@ -7,9 +7,10 @@
 
 #include "probfd/abstractions/distances.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/abstract_task.h"
+#include "downward/initial_state_values.h"
 #include "downward/utils/countdown_timer.h"
 
 using namespace std;
@@ -26,9 +27,9 @@ PatternCollectionGeneratorMultipleCegar::
         bool use_wildcard_policies,
         int max_pdb_size,
         int max_collection_size,
-        double pattern_generation_max_time,
-        double total_max_time,
-        double stagnation_limit,
+        utils::Duration pattern_generation_max_time,
+        utils::Duration total_max_time,
+        utils::Duration stagnation_limit,
         double blacklist_trigger_percentage,
         bool enable_blacklist_on_stagnation,
         bool use_saturated_costs,
@@ -55,10 +56,9 @@ PatternCollectionGeneratorMultipleCegar::
 ProjectionTransformation
 PatternCollectionGeneratorMultipleCegar::compute_pattern(
     int max_pdb_size,
-    double max_time,
+    utils::Duration max_time,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
-    const ProbabilisticTaskProxy& task_proxy,
-    const std::shared_ptr<FDRSimpleCostFunction>& task_cost_function,
+    const SharedProbabilisticTask& task,
     const FactPair& goal,
     unordered_set<int>&& blacklisted_variables)
 {
@@ -66,25 +66,17 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
 
     // Start with a solution of the trivial abstraction
     ProjectionTransformation transformation(
-        task_proxy,
-        task_cost_function,
+        task,
         {goal.var},
         false,
         timer.get_remaining_time());
 
-    compute_value_table(
-        *transformation.projection,
-        transformation.pdb.get_abstract_state(task_proxy.get_initial_state()),
-        heuristics::BlindEvaluator<StateRank>(
-            task_proxy.get_operators(),
-            *task_cost_function),
-        transformation.pdb.value_table,
-        timer.get_remaining_time());
+    const State initial_state = get_init(task).get_initial_state();
 
     run_cegar_loop(
         transformation,
-        task_proxy,
-        task_cost_function,
+        task,
+        initial_state,
         convergence_epsilon_,
         *flaw_strategy_,
         std::move(blacklisted_variables),

@@ -13,9 +13,9 @@ PatternCollectionGeneratorMultipleCegar::
         bool use_wildcard_plans,
         int max_pdb_size,
         int max_collection_size,
-        double pattern_generation_max_time,
-        double total_max_time,
-        double stagnation_limit,
+        utils::Duration pattern_generation_max_time,
+        utils::Duration total_max_time,
+        utils::Duration stagnation_limit,
         double blacklist_trigger_percentage,
         bool enable_blacklist_on_stagnation,
         int random_seed,
@@ -41,9 +41,9 @@ string PatternCollectionGeneratorMultipleCegar::id() const
 
 PatternInformation PatternCollectionGeneratorMultipleCegar::compute_pattern(
     int max_pdb_size,
-    double max_time,
+    utils::Duration max_time,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
-    const shared_ptr<AbstractTask>& task,
+    const SharedAbstractTask& task,
     const FactPair& goal,
     unordered_set<int>&& blacklisted_variables)
 {

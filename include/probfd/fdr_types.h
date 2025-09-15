@@ -49,7 +49,7 @@ using FDRMDP = MDP<downward::State, downward::OperatorID>;
 using FDRSimpleMDP = SimpleMDP<downward::State, downward::OperatorID>;
 
 /// Type alias for evaluators for states in FDR.
-using FDREvaluator = Heuristic<downward::State>;
+using FDRHeuristic = Heuristic<downward::State>;
 
 // Type alias for search algorithms for MDPs in FDR.
 using FDRMDPAlgorithm = MDPAlgorithm<downward::State, downward::OperatorID>;

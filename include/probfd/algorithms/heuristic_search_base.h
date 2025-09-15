@@ -26,8 +26,10 @@ template <typename>
 class Distribution;
 template <typename>
 struct TransitionTail;
-template <typename, typename>
-class CostFunction;
+template <typename>
+class ActionCostFunction;
+template <typename>
+class TerminationCostFunction;
 } // namespace probfd
 
 namespace probfd::algorithms {
@@ -64,8 +66,8 @@ struct Statistics {
     bool initial_state_found_terminal = false;
 
 #if defined(EXPENSIVE_STATISTICS)
-    utils::Timer update_time = utils::Timer(true);
-    utils::Timer policy_selection_time = utils::Timer(true);
+    utils::Timer update_time = utils::Timer(false);
+    utils::Timer policy_selection_time = utils::Timer(false);
 #endif
 
     /**
@@ -80,6 +82,7 @@ class StateInfos : public StateProperties {
 
 public:
     StateInfo& operator[](StateID sid) { return state_infos_[sid]; }
+
     const StateInfo& operator[](StateID sid) const { return state_infos_[sid]; }
 
     value_t lookup_value(StateID state_id) override
@@ -120,7 +123,8 @@ public:
 
 protected:
     using MDPType = MDP<State, Action>;
-    using CostFunctionType = CostFunction<State, Action>;
+    using ActionCostFunctionType = ActionCostFunction<Action>;
+    using TerminationCostFunctionType = TerminationCostFunction<State>;
     using HeuristicType = Heuristic<State>;
     using TransitionTailType = TransitionTail<Action>;
 
@@ -169,7 +173,18 @@ public:
     AlgorithmValueType compute_bellman(
         ParamType<State> source_state,
         const std::vector<TransitionTailType>& transition_tails,
-        CostFunctionType& cost_function) const;
+        ActionCostFunctionType& action_cost_function,
+        TerminationCostFunctionType& term_cost_function) const;
+
+    template <typename CostFunctionType>
+    AlgorithmValueType compute_bellman(
+        ParamType<State> source_state,
+        const std::vector<TransitionTailType>& transition_tails,
+        CostFunctionType& cost_function) const
+        requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
+                 std::
+                     derived_from<CostFunctionType, TerminationCostFunctionType>
+    ;
 
     /**
      * @brief Computes the Bellman operator value for a state, as well as all
@@ -193,8 +208,20 @@ public:
     AlgorithmValueType compute_bellman_and_greedy(
         ParamType<State> source_state,
         std::vector<TransitionTailType>& transition_tails,
-        CostFunctionType& cost_function,
+        ActionCostFunctionType& action_cost_function,
+        TerminationCostFunctionType& term_cost_function,
         std::vector<AlgorithmValueType>& qvalues) const;
+
+    template <typename CostFunctionType>
+    AlgorithmValueType compute_bellman_and_greedy(
+        ParamType<State> source_state,
+        std::vector<TransitionTailType>& transition_tails,
+        CostFunctionType& cost_function,
+        std::vector<AlgorithmValueType>& qvalues) const
+        requires std::derived_from<CostFunctionType, ActionCostFunctionType> &&
+                 std::
+                     derived_from<CostFunctionType, TerminationCostFunctionType>
+    ;
 
     /**
      * @brief Selects a greedy transition from the given list of greedy
@@ -263,11 +290,11 @@ private:
 
     AlgorithmValueType compute_qvalue(
         const TransitionTailType& transition_tail,
-        CostFunctionType& cost_function) const;
+        ActionCostFunctionType& action_cost_function) const;
 
     AlgorithmValueType compute_q_values(
         std::vector<TransitionTailType>& transition_tails,
-        CostFunctionType& cost_function,
+        ActionCostFunctionType& action_cost_function,
         std::vector<AlgorithmValueType>& qvalues) const;
 
     AlgorithmValueType filter_greedy_transitions(
@@ -317,14 +344,14 @@ public:
         HeuristicType& h,
         ParamType<State> state,
         ProgressReport progress,
-        double max_time);
+        downward::utils::Duration max_time);
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
         HeuristicType& h,
         ParamType<State> state,
         ProgressReport progress,
-        double max_time) final;
+        downward::utils::Duration max_time) final;
 
     void print_statistics(std::ostream& out) const final;
 
@@ -338,7 +365,7 @@ public:
         HeuristicType& h,
         ParamType<State> state,
         ProgressReport& progress,
-        double max_time) = 0;
+        downward::utils::Duration max_time) = 0;
 
     /**
      * @brief Prints additional statistics to the output stream.

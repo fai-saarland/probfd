@@ -1,4 +1,7 @@
+#include "probfd/cli/occupation_measures/subcategory.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/utils/logging_options.h"
 
@@ -13,7 +16,7 @@
 
 #include "probfd/pdbs/pattern_collection_generator.h"
 
-#include "probfd/task_heuristic_factory.h"
+#include "probfd/task_heuristic_factory_category.h"
 
 #include "downward/utils/markup.h"
 
@@ -37,7 +40,6 @@ using downward::cli::lp::add_lp_solver_option_to_feature;
 using downward::cli::lp::get_lp_solver_arguments_from_options;
 
 namespace {
-
 class HROCFactoryFeature
     : public TypedFeature<
           TaskHeuristicFactory,
@@ -206,10 +208,16 @@ public:
                     "patterns")));
     }
 };
+}
 
-FeaturePlugin<HROCFactoryFeature> _plugin_hroc;
-FeaturePlugin<HPOMFactoryFeature> _plugin_hpom;
-FeaturePlugin<HOHPOMFactoryFeature> _plugin_hohpom;
-FeaturePlugin<HPHOFactoryFeature> _plugin_hpho;
+namespace probfd::cli::occupation_measures {
+
+void add_occupation_measure_heuristics_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<HROCFactoryFeature>();
+    raw_registry.insert_feature_plugin<HPOMFactoryFeature>();
+    raw_registry.insert_feature_plugin<HOHPOMFactoryFeature>();
+    raw_registry.insert_feature_plugin<HPHOFactoryFeature>();
+}
 
 } // namespace

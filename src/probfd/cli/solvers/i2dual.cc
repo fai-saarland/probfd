@@ -1,8 +1,11 @@
+#include "probfd/cli/solvers/i2dual.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/lp/lp_solver_options.h"
 
-#include "probfd/cli/solvers/mdp_solver.h"
+#include "probfd/cli/solvers/mdp_solver_options.h"
 
 #include "probfd/solvers/mdp_solver.h"
 #include "probfd/solvers/statistical_mdp_algorithm.h"
@@ -25,7 +28,6 @@ using downward::cli::lp::add_lp_solver_option_to_feature;
 using downward::cli::lp::get_lp_solver_arguments_from_options;
 
 namespace {
-
 class I2DualSolver : public StatisticalMDPAlgorithmFactory {
     bool hpom_enabled_;
     bool incremental_hpom_updates_;
@@ -48,13 +50,11 @@ public:
     std::string get_algorithm_name() const override { return "i2dual"; }
 
     std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
-        const std::shared_ptr<ProbabilisticTask>& task,
-        const std::shared_ptr<FDRCostFunction>& task_cost_function) override
+        const SharedProbabilisticTask& task) override
     {
         return std::make_unique<AlgorithmAdaptor>(
             std::make_unique<algorithms::i2dual::I2Dual>(
                 task,
-                task_cost_function,
                 hpom_enabled_,
                 incremental_hpom_updates_,
                 solver_type_,
@@ -97,7 +97,13 @@ protected:
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
+}
 
-FeaturePlugin<I2DualSolverFeature> _plugin;
+namespace probfd::cli::solvers {
+
+void add_i2dual_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<I2DualSolverFeature>();
+}
 
 } // namespace

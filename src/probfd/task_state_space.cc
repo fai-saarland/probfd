@@ -1,13 +1,14 @@
 #include "probfd/task_state_space.h"
 
 #include "probfd/distribution.h"
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 #include "probfd/transition_tail.h"
 #include "probfd/type_traits.h"
 
 #include "downward/evaluator.h"
 #include "downward/operator_id.h"
 #include "downward/state_id.h"
+#include "probfd/probabilistic_operator_space.h"
 
 #include <iostream>
 
@@ -17,22 +18,35 @@ namespace probfd {
 
 void TaskStateSpace::Statistics::print(std::ostream& out) const
 {
-    out << "  Applicable operators: " << generated_operators << " generated, "
-        << computed_operators << " computed, " << aops_generator_calls
-        << " generator calls." << std::endl;
-    out << "  Generated " << generated_states
-        << " successor state(s): " << computed_successors << " computed, "
-        << single_transition_generator_calls << " single-transition calls, "
-        << all_transitions_generator_calls << " all-transitions calls."
-        << std::endl;
+    println(
+        out,
+        "  Applicable operators: {} generated, {} computed, {} generator "
+        "calls.",
+        generated_operators,
+        computed_operators,
+        aops_generator_calls);
+    println(
+        out,
+        "  Generated {} successor state(s): {} computed, {} single-transition "
+        "calls, {} all-transitions calls.",
+        generated_states,
+        computed_successors,
+        single_transition_generator_calls,
+        all_transitions_generator_calls);
 }
 
 TaskStateSpace::TaskStateSpace(
-    std::shared_ptr<ProbabilisticTask> task,
+    const VariableSpace& variables,
+    const AxiomSpace& axioms,
+    std::shared_ptr<ProbabilisticOperatorSpace> operators,
+    const InitialStateValues& initial_values,
     std::vector<std::shared_ptr<::Evaluator>> path_dependent_evaluators)
-    : task_proxy_(*task)
-    , state_registry_(task_proxy_)
-    , gen_(task_proxy_)
+    : operators_(std::move(operators))
+    , state_registry_(
+          task_properties::g_state_packers[variables],
+          g_axiom_evaluators[variables, axioms],
+          initial_values)
+    , gen_(variables, *this->operators_)
     , notify_(std::move(path_dependent_evaluators))
 {
 }
@@ -106,8 +120,7 @@ size_t TaskStateSpace::get_num_registered_states() const
 
 void TaskStateSpace::print_statistics(std::ostream& out) const
 {
-    out << "  Registered state(s): " << get_num_registered_states()
-        << std::endl;
+    println(out, "  Registered state(s): {}", get_num_registered_states());
     statistics_.print(out);
 }
 
@@ -116,7 +129,8 @@ void TaskStateSpace::compute_successor_dist(
     OperatorID op_id,
     SuccessorDistribution& successor_dist)
 {
-    const ProbabilisticOperatorProxy op = task_proxy_.get_operators()[op_id];
+    const auto& op = (*operators_)[op_id];
+
     const auto outcomes = op.get_outcomes();
     const size_t num_outcomes = outcomes.size();
     successor_dist.non_source_successor_dist.reserve(num_outcomes);

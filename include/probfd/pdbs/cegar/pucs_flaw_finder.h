@@ -11,7 +11,7 @@
 
 #include "downward/algorithms/priority_queues.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <string>
 #include <unordered_set>
@@ -39,7 +39,8 @@ public:
     explicit PUCSFlawFinder(int max_search_states);
 
     bool apply_policy(
-        const ProbabilisticTaskProxy& task_proxy,
+        const ProbabilisticTaskTuple& task,
+        const downward::State& initial_state,
         const StateRankingFunction& state_ranking_function,
         const ProjectionStateSpace& mdp,
         const ProjectionMultiPolicy& policy,

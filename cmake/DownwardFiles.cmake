@@ -3,22 +3,34 @@ create_library(
     HELP "Core source files"
     SOURCES
         downward/abstract_task
+        downward/axiom_evaluator
         downward/axioms
+        downward/axiom_space
+        downward/axiom_utils
+        downward/classical_operator_space
+        downward/concepts
         downward/evaluation_context
         downward/evaluation_result
         downward/evaluator
         downward/evaluator_cache
+        downward/fact_pair
+        downward/goal_fact_list
         downward/heuristic
-        downward/mutexes
+        downward/initial_state_values
+        downward/mutex_information
         downward/open_list
-        downward/open_list_factory
         downward/operator_cost
+        downward/operator_cost_function
+        downward/operator_cost_function_fwd
         downward/operator_id
+        downward/operator_space
         downward/per_state_array
         downward/per_state_bitset
         downward/per_state_information
         downward/per_task_information
+        downward/planning_task
         downward/plan_manager
+        downward/proxy_collection
         downward/pruning_method
         downward/search_algorithm
         downward/search_node_info
@@ -27,9 +39,13 @@ create_library(
         downward/search_statistics
         downward/state_id
         downward/state_registry
+        downward/state
         downward/task_id
-        downward/task_proxy
+        downward/task_dependent_factory
+        downward/task_dependent_factory_fwd
         downward/task_transformation
+        downward/tuple_utils
+        downward/variable_space
     DEPENDS
         causal_graph
         int_hash_set
@@ -81,48 +97,6 @@ create_library(
     HELP "Mutex factory that reads them from a file"
     SOURCES
         downward/mutexes/from_file_mutex_factory
-)
-
-create_library(
-    NAME alternation_open_list
-    HELP "Open list that alternates between underlying open lists in a round-robin manner"
-    SOURCES
-        downward/open_lists/alternation_open_list
-)
-
-create_library(
-    NAME best_first_open_list
-    HELP "Open list that selects the best element according to a single evaluation function"
-    SOURCES
-        downward/open_lists/best_first_open_list
-)
-
-create_library(
-    NAME epsilon_greedy_open_list
-    HELP "Open list that chooses an entry randomly with probability epsilon"
-    SOURCES
-        downward/open_lists/epsilon_greedy_open_list
-)
-
-create_library(
-    NAME pareto_open_list
-    HELP "Pareto open list"
-    SOURCES
-        downward/open_lists/pareto_open_list
-)
-
-create_library(
-    NAME tiebreaking_open_list
-    HELP "Tiebreaking open list"
-    SOURCES
-        downward/open_lists/tiebreaking_open_list
-)
-
-create_library(
-    NAME type_based_open_list
-    HELP "Type-based open list"
-    SOURCES
-        downward/open_lists/type_based_open_list
 )
 
 create_library(
@@ -322,9 +296,6 @@ create_library(
     SOURCES
         downward/search_algorithms/search_common
     DEPENDS
-        alternation_open_list
-        best_first_open_list
-        tiebreaking_open_list
         g_evaluator
         sum_evaluator
         weighted_evaluator
@@ -518,7 +489,6 @@ create_library(
     HELP "Core task transformations"
     SOURCES
         downward/tasks/cost_adapted_task
-        downward/tasks/delegating_task
         downward/tasks/root_task
         downward/transformations/identity_task_transformation
     CORE_LIBRARY

@@ -4,21 +4,17 @@
 #include "probfd/merge_and_shrink/labels.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
+
+#include "downward/variable_space.h"
 
 #include "downward/algorithms/equivalence_relation.h"
 
 #include "downward/utils/collections.h"
 #include "downward/utils/logging.h"
-#include "downward/utils/markup.h"
 #include "downward/utils/rng.h"
 #include "downward/utils/rng_options.h"
 #include "downward/utils/system.h"
-
-#include "downward/cli/plugins/options.h"
-#include "downward/cli/plugins/plugin.h"
-
-#include "downward/cli/utils/rng_options.h"
 
 #include <cassert>
 #include <iostream>
@@ -26,7 +22,6 @@
 
 using namespace std;
 using namespace downward;
-using namespace downward::cli::plugins;
 
 using utils::ExitCode;
 
@@ -51,13 +46,14 @@ bool LabelReduction::initialized() const
     return !transition_system_order.empty();
 }
 
-void LabelReduction::initialize(const ProbabilisticTaskProxy& task_proxy)
+void LabelReduction::initialize(const ProbabilisticTaskTuple& task)
 {
     assert(!initialized());
 
+    const VariableSpace& variables = get_variables(task);
+
     // Compute the transition system order.
-    const int max_transition_system_count =
-        task_proxy.get_variables().size() * 2 - 1;
+    const int max_transition_system_count = variables.size() * 2 - 1;
     transition_system_order.reserve(max_transition_system_count);
 
     if (lr_system_order == LabelReductionSystemOrder::REGULAR ||
@@ -86,7 +82,7 @@ static void compute_label_mapping(
     int num_labels_after_reduction = 0;
 
     for (const equivalence_relation::Block& block : relation) {
-        map<value_t, vector<int>> cost_to_equivalent_labels;
+        std::map<value_t, vector<int>> cost_to_equivalent_labels;
         for (int label : block) {
             assert(label < next_new_label);
             value_t cost = labels.get_label_cost(label);
@@ -95,30 +91,32 @@ static void compute_label_mapping(
         }
 
         for (auto& equivalent_labels :
-             cost_to_equivalent_labels | views::values) {
+             cost_to_equivalent_labels | std::views::values) {
             if (equivalent_labels.size() > 1) {
                 // Labels have to be sorted for LocalLabelInfo.
                 ranges::sort(equivalent_labels);
                 if (log.is_at_least_debug()) {
-                    log << "Reducing labels " << equivalent_labels << " to "
-                        << next_new_label << endl;
+                    log.println(
+                        "Reducing labels {} to {}",
+                        equivalent_labels,
+                        next_new_label);
                 }
                 label_mapping.push_back(
                     make_pair(next_new_label, equivalent_labels));
                 ++next_new_label;
             }
 
-            if (!equivalent_labels.empty()) {
-                ++num_labels_after_reduction;
-            }
+            if (!equivalent_labels.empty()) { ++num_labels_after_reduction; }
         }
     }
 
     if (const int number_reduced_labels =
             num_labels - num_labels_after_reduction;
         log.is_at_least_verbose() && number_reduced_labels > 0) {
-        log << "Label reduction: " << num_labels << " labels, "
-            << num_labels_after_reduction << " after reduction" << endl;
+        log.println(
+            "Label reduction: {} labels, {} after reduction",
+            num_labels,
+            num_labels_after_reduction);
     }
 }
 
@@ -138,7 +136,7 @@ compute_combinable_equivalence_relation(
     const int num_labels = labels.get_num_active_labels();
 
     vector<int> all_active_labels;
-    map<std::vector<value_t>, vector<int>> probvec_to_labels;
+    std::map<std::vector<value_t>, vector<int>> probvec_to_labels;
     all_active_labels.reserve(num_labels);
 
     for (int label : labels.get_active_labels() | std::views::keys) {
@@ -274,14 +272,10 @@ bool LabelReduction::reduce(
         }
 
         ++tso_index;
-        if (tso_index == transition_system_order.size()) {
-            tso_index = 0;
-        }
+        if (tso_index == transition_system_order.size()) { tso_index = 0; }
         while (transition_system_order[tso_index] >= num_transition_systems) {
             ++tso_index;
-            if (tso_index == transition_system_order.size()) {
-                tso_index = 0;
-            }
+            if (tso_index == transition_system_order.size()) { tso_index = 0; }
         }
     }
     return reduced;
@@ -290,145 +284,42 @@ bool LabelReduction::reduce(
 void LabelReduction::dump_options(utils::LogProxy& log) const
 {
     if (log.is_at_least_normal()) {
-        log << "Label reduction options:" << endl;
-        log << "Before merging: "
-            << (lr_before_merging ? "enabled" : "disabled") << endl;
-        log << "Before shrinking: "
-            << (lr_before_shrinking ? "enabled" : "disabled") << endl;
-        log << "Method: ";
+        log.println("Label reduction options:");
+        log.println(
+            "Before merging: {}",
+            lr_before_merging ? "enabled" : "disabled");
+        log.println(
+            "Before shrinking: {}",
+            lr_before_shrinking ? "enabled" : "disabled");
+        log.print("Method: ");
         switch (lr_method) {
         case LabelReductionMethod::TWO_TRANSITION_SYSTEMS:
-            log << "two transition systems (which will be merged next)";
+            log.print("two transition systems (which will be merged next)");
             break;
         case LabelReductionMethod::ALL_TRANSITION_SYSTEMS:
-            log << "all transition systems";
+            log.print("all transition systems");
             break;
         case LabelReductionMethod::ALL_TRANSITION_SYSTEMS_WITH_FIXPOINT:
-            log << "all transition systems with fixpoint computation";
+            log.print("all transition systems with fixpoint computation");
             break;
         }
-        log << endl;
+        log.println();
         if (lr_method == LabelReductionMethod::ALL_TRANSITION_SYSTEMS ||
             lr_method ==
                 LabelReductionMethod::ALL_TRANSITION_SYSTEMS_WITH_FIXPOINT) {
-            log << "System order: ";
+            log.print("System order: ");
             switch (lr_system_order) {
-            case LabelReductionSystemOrder::REGULAR: log << "regular"; break;
-            case LabelReductionSystemOrder::REVERSE: log << "reversed"; break;
-            case LabelReductionSystemOrder::RANDOM: log << "random"; break;
+            case LabelReductionSystemOrder::REGULAR:
+                log.print("regular");
+                break;
+            case LabelReductionSystemOrder::REVERSE:
+                log.print("reversed");
+                break;
+            case LabelReductionSystemOrder::RANDOM: log.print("random"); break;
             }
-            log << endl;
+            log.println();
         }
     }
 }
-
-namespace {
-
-class LabelReductionFeature
-    : public TypedFeature<LabelReduction, LabelReduction> {
-public:
-    LabelReductionFeature()
-        : TypedFeature("pexact")
-    {
-        document_title("Exact generalized label reduction");
-        document_synopsis(
-            "This class implements the exact generalized label reduction "
-            "described in the following paper:" +
-            utils::format_conference_reference(
-                {"Silvan Sievers", "Martin Wehrle", "Malte Helmert"},
-                "Generalized Label Reduction for Merge-and-Shrink Heuristics",
-                "https://ai.dmi.unibas.ch/papers/sievers-et-al-aaai2014.pdf",
-                "Proceedings of the 28th AAAI Conference on Artificial"
-                " Intelligence (AAAI 2014)",
-                "2358-2366",
-                "AAAI Press",
-                "2014"));
-
-        add_option<bool>(
-            "before_shrinking",
-            "apply label reduction before shrinking");
-        add_option<bool>(
-            "before_merging",
-            "apply label reduction before merging");
-
-        add_option<LabelReductionMethod>(
-            "method",
-            "Label reduction method. See the AAAI14 paper by "
-            "Sievers et al. for explanation of the default label "
-            "reduction method and the 'combinable relation' ."
-            "Also note that you must set at least one of the "
-            "options reduce_labels_before_shrinking or "
-            "reduce_labels_before_merging in order to use "
-            "the chosen label reduction configuration.",
-            "all_transition_systems_with_fixpoint");
-
-        add_option<LabelReductionSystemOrder>(
-            "system_order",
-            "Order of transition systems for the label reduction "
-            "methods that iterate over the set of all transition "
-            "systems. Only useful for the choices "
-            "all_transition_systems and "
-            "all_transition_systems_with_fixpoint for the option "
-            "label_reduction_method.",
-            "random");
-        // Add random_seed option.
-        downward::cli::utils::add_rng_options_to_feature(*this);
-    }
-
-    shared_ptr<LabelReduction>
-    create_component(const Options& options, const utils::Context& context)
-        const override
-    {
-        const bool lr_before_shrinking = options.get<bool>("before_shrinking");
-        const bool lr_before_merging = options.get<bool>("before_merging");
-
-        if (!lr_before_shrinking && !lr_before_merging) {
-            context.error(
-                "Please turn on at least one of the options "
-                "before_shrinking or before_merging!");
-        }
-
-        return make_shared_from_arg_tuples<LabelReduction>(
-            lr_before_shrinking,
-            lr_before_merging,
-            options.get<LabelReductionMethod>("method"),
-            options.get<LabelReductionSystemOrder>("system_order"),
-            downward::cli::utils::get_rng_arguments_from_options(options));
-    }
-};
-
-FeaturePlugin<LabelReductionFeature> _plugin;
-
-class LabelReductionCategoryPlugin
-    : public TypedCategoryPlugin<LabelReduction> {
-public:
-    LabelReductionCategoryPlugin()
-        : TypedCategoryPlugin("PLabelReduction")
-    {
-        document_synopsis(
-            "This page describes the current single 'option' for "
-            "label reduction.");
-    }
-} _category_plugin;
-
-TypedEnumPlugin<LabelReductionMethod> _label_reduction_method_enum_plugin(
-    {{"two_transition_systems",
-      "compute the 'combinable relation' only for the two transition "
-      "systems being merged next"},
-     {"all_transition_systems",
-      "compute the 'combinable relation' for labels once for every "
-      "transition system and reduce labels"},
-     {"all_transition_systems_with_fixpoint",
-      "keep computing the 'combinable relation' for labels iteratively "
-      "for all transition systems until no more labels can be reduced"}});
-
-TypedEnumPlugin<LabelReductionSystemOrder>
-    _label_reduction_system_order_enum_plugin(
-        {{"regular",
-          "transition systems are considered in the order given in the planner "
-          "input if atomic and in the order of their creation if composite."},
-         {"reverse", "inverse of regular"},
-         {"random", "random order"}});
-} // namespace
 
 } // namespace probfd::merge_and_shrink

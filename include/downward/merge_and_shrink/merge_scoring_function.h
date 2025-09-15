@@ -1,12 +1,10 @@
 #ifndef MERGE_AND_SHRINK_MERGE_SCORING_FUNCTION_H
 #define MERGE_AND_SHRINK_MERGE_SCORING_FUNCTION_H
 
+#include "downward/abstract_task.h"
+
 #include <string>
 #include <vector>
-
-namespace downward {
-class TaskProxy;
-}
 
 namespace downward::utils {
 class LogProxy;
@@ -31,7 +29,7 @@ public:
     virtual bool requires_goal_distances() const = 0;
 
     // Overriding methods must set initialized to true.
-    virtual void initialize(const TaskProxy &) {
+    virtual void initialize(const AbstractTaskTuple&) {
         initialized = true;
     }
 

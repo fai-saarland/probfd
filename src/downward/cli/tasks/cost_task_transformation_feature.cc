@@ -1,4 +1,7 @@
+#include "downward/cli/tasks/cost_task_transformation_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/operator_cost_options.h"
 
@@ -19,21 +22,24 @@ using downward::cli::add_cost_type_options_to_feature;
 using downward::cli::get_cost_type_arguments_from_options;
 
 namespace {
-
 class CostAdaptedTaskTransformation : public TaskTransformation {
     OperatorCost cost_type;
 
 public:
-    CostAdaptedTaskTransformation(OperatorCost cost_type)
+    explicit CostAdaptedTaskTransformation(OperatorCost cost_type)
         : cost_type(cost_type)
     {
     }
 
-    TaskTransformationResult
-    transform(const std::shared_ptr<AbstractTask>& original_task)
+    TaskTransformationResult transform(const SharedAbstractTask& original_task)
     {
         return {
-            std::make_shared<CostAdaptedTask>(original_task, cost_type),
+            replace(
+                original_task,
+                std::make_shared<AdaptedOperatorIntCostFunction>(
+                    get_operators(original_task),
+                    get_shared_cost_function(original_task),
+                    cost_type)),
             std::make_shared<IdentityStateMapping>(),
             std::make_shared<IdentityOperatorMapping>()};
     }
@@ -58,7 +64,13 @@ public:
             get_cost_type_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<CostAdaptedTaskTransformationFeature> _plugin;
+namespace downward::cli::tasks {
+
+void add_cost_task_transformation_features(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<CostAdaptedTaskTransformationFeature>();
+}
 
 } // namespace

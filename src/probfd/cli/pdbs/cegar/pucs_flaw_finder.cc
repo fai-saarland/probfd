@@ -1,4 +1,7 @@
+#include "probfd/cli/pdbs/cegar/pucs_flaw_finder.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "probfd/pdbs/cegar/pucs_flaw_finder.h"
 
@@ -10,7 +13,6 @@ using namespace probfd::pdbs::cegar;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class PUCSFlawFinderFeature
     : public TypedFeature<FlawFindingStrategy, PUCSFlawFinder> {
 public:
@@ -33,7 +35,13 @@ protected:
             options.get<int>("max_search_states"));
     }
 };
+}
 
-FeaturePlugin<PUCSFlawFinderFeature> _plugin;
+namespace probfd::cli::pdbs::cegar {
+
+void add_pucs_flaw_finder_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<PUCSFlawFinderFeature>();
+}
 
 } // namespace

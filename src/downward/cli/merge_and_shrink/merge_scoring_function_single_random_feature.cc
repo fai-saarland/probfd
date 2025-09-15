@@ -1,4 +1,7 @@
+#include "downward/cli/merge_and_shrink/merge_scoring_function_single_random_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -16,7 +19,6 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-
 class MergeScoringFunctionSingleRandomFeature
     : public TypedFeature<
           MergeScoringFunction,
@@ -26,9 +28,10 @@ public:
         : TypedFeature("single_random")
     {
         document_title("Single random");
-        document_synopsis("This scoring function assigns exactly one merge "
-                          "candidate a score of "
-                          "0, chosen randomly, and infinity to all others.");
+        document_synopsis(
+            "This scoring function assigns exactly one merge "
+            "candidate a score of "
+            "0, chosen randomly, and infinity to all others.");
 
         add_rng_options_to_feature(*this);
     }
@@ -40,7 +43,14 @@ public:
             get_rng_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<MergeScoringFunctionSingleRandomFeature> _plugin;
+namespace downward::cli::merge_and_shrink {
+
+void add_merge_scoring_function_single_random_feature(RawRegistry& raw_registry)
+{
+    raw_registry
+        .insert_feature_plugin<MergeScoringFunctionSingleRandomFeature>();
+}
 
 } // namespace

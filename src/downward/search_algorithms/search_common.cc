@@ -1,6 +1,6 @@
 #include "downward/search_algorithms/search_common.h"
 
-#include "downward/open_list_factory.h"
+#include "downward/open_list.h"
 
 #include "downward/evaluators/g_evaluator.h"
 #include "downward/evaluators/sum_evaluator.h"
@@ -19,50 +19,41 @@ using GEval = g_evaluator::GEvaluator;
 using SumEval = sum_evaluator::SumEvaluator;
 using WeightedEval = weighted_evaluator::WeightedEvaluator;
 
+namespace {
+
 /*
   Helper function for common code of create_greedy_open_list_factory
   and create_wastar_open_list_factory.
 */
-static shared_ptr<OpenListFactory> create_alternation_open_list_factory_aux(
+template <typename T>
+unique_ptr<OpenList<T>> create_alternation_open_list_aux(
     const vector<shared_ptr<Evaluator>>& evals,
-    const vector<shared_ptr<Evaluator>>& preferred_evaluators,
+    bool preferred_evaluators,
     int boost)
 {
-    if (evals.size() == 1 && preferred_evaluators.empty()) {
-        return make_shared<standard_scalar_open_list::BestFirstOpenListFactory>(
+    if (evals.size() == 1 && !preferred_evaluators) {
+        return make_unique<standard_scalar_open_list::BestFirstOpenList<T>>(
             evals[0],
             false);
     } else {
-        vector<shared_ptr<OpenListFactory>> subfactories;
-        for (const shared_ptr<Evaluator>& evaluator : evals) {
-            subfactories.push_back(
-                make_shared<
-                    standard_scalar_open_list::BestFirstOpenListFactory>(
-                    evaluator,
+        vector<unique_ptr<OpenList<T>>> sublists;
+        for (const auto& eval : evals) {
+            sublists.emplace_back(
+                make_unique<standard_scalar_open_list::BestFirstOpenList<T>>(
+                    eval,
                     false));
-            if (!preferred_evaluators.empty()) {
-                subfactories.push_back(
-                    make_shared<
-                        standard_scalar_open_list::BestFirstOpenListFactory>(
-                        evaluator,
+            if (preferred_evaluators) {
+                sublists.emplace_back(
+                    make_unique<
+                        standard_scalar_open_list::BestFirstOpenList<T>>(
+                        eval,
                         true));
             }
         }
-        return make_shared<alternation_open_list::AlternationOpenListFactory>(
-            subfactories,
+        return make_unique<alternation_open_list::AlternationOpenList<T>>(
+            std::move(sublists),
             boost);
     }
-}
-
-shared_ptr<OpenListFactory> create_greedy_open_list_factory(
-    const vector<shared_ptr<Evaluator>>& evals,
-    const vector<shared_ptr<Evaluator>>& preferred_evaluators,
-    int boost)
-{
-    return create_alternation_open_list_factory_aux(
-        evals,
-        preferred_evaluators,
-        boost);
 }
 
 /*
@@ -75,15 +66,13 @@ shared_ptr<OpenListFactory> create_greedy_open_list_factory(
   If w = 0, we omit the h-evaluator altogether:
   we use g instead of g + 0 * h.
 */
-static shared_ptr<Evaluator> create_wastar_eval(
+unique_ptr<Evaluator> create_wastar_eval(
     utils::Verbosity verbosity,
-    const shared_ptr<GEval>& g_eval,
+    unique_ptr<GEval> g_eval,
     int weight,
     const shared_ptr<Evaluator>& h_eval)
 {
-    if (weight == 0) {
-        return g_eval;
-    }
+    if (weight == 0) { return g_eval; }
     shared_ptr<Evaluator> w_h_eval = nullptr;
     if (weight == 1) {
         w_h_eval = h_eval;
@@ -94,30 +83,88 @@ static shared_ptr<Evaluator> create_wastar_eval(
             "wastar.w_h_eval",
             verbosity);
     }
-    return make_shared<SumEval>(
-        vector<shared_ptr<Evaluator>>({g_eval, w_h_eval}),
+    return std::make_unique<SumEval>(
+        vector<shared_ptr<Evaluator>>({std::move(g_eval), w_h_eval}),
         "wastar.eval",
         verbosity);
 }
 
-shared_ptr<OpenListFactory> create_wastar_open_list_factory(
+template <typename T>
+unique_ptr<OpenList<T>> create_wastar_open_list(
     const vector<shared_ptr<Evaluator>>& base_evals,
-    const vector<shared_ptr<Evaluator>>& preferred,
+    bool preferred,
     int boost,
     int weight,
     utils::Verbosity verbosity)
 {
-    shared_ptr<GEval> g_eval = make_shared<GEval>("wastar.g_eval", verbosity);
     vector<shared_ptr<Evaluator>> f_evals;
     f_evals.reserve(base_evals.size());
     for (const shared_ptr<Evaluator>& eval : base_evals)
-        f_evals.push_back(create_wastar_eval(verbosity, g_eval, weight, eval));
+        f_evals.push_back(create_wastar_eval(
+            verbosity,
+            make_unique<GEval>("wastar.g_eval", verbosity),
+            weight,
+            eval));
 
-    return create_alternation_open_list_factory_aux(f_evals, preferred, boost);
+    return create_alternation_open_list_aux<T>(f_evals, preferred, boost);
+}
+} // namespace
+
+unique_ptr<StateOpenList> create_greedy_state_open_list(
+    const vector<shared_ptr<Evaluator>>& evals,
+    bool preferred_evaluators,
+    int boost)
+{
+    return create_alternation_open_list_aux<StateOpenListEntry>(
+        evals,
+        preferred_evaluators,
+        boost);
 }
 
-pair<shared_ptr<OpenListFactory>, const shared_ptr<Evaluator>>
-create_astar_open_list_factory_and_f_eval(
+extern std::unique_ptr<OpenList<std::pair<StateID, OperatorID>>>
+create_greedy_edge_open_list(
+    const std::vector<std::shared_ptr<Evaluator>>& evals,
+    bool preferred_evaluators,
+    int boost)
+{
+    return create_alternation_open_list_aux<std::pair<StateID, OperatorID>>(
+        evals,
+        preferred_evaluators,
+        boost);
+}
+
+unique_ptr<StateOpenList> create_wastar_state_open_list(
+    const vector<shared_ptr<Evaluator>>& base_evals,
+    bool preferred,
+    int boost,
+    int weight,
+    utils::Verbosity verbosity)
+{
+    return create_wastar_open_list<StateOpenListEntry>(
+        base_evals,
+        preferred,
+        boost,
+        weight,
+        verbosity);
+}
+
+unique_ptr<EdgeOpenList> create_wastar_edge_open_list(
+    const vector<shared_ptr<Evaluator>>& base_evals,
+    bool preferred,
+    int boost,
+    int weight,
+    utils::Verbosity verbosity)
+{
+    return create_wastar_open_list<EdgeOpenListEntry>(
+        base_evals,
+        preferred,
+        boost,
+        weight,
+        verbosity);
+}
+
+pair<unique_ptr<StateOpenList>, const shared_ptr<Evaluator>>
+create_astar_open_list_and_f_eval(
     const shared_ptr<Evaluator>& h_eval,
     utils::Verbosity verbosity)
 {
@@ -128,11 +175,12 @@ create_astar_open_list_factory_and_f_eval(
         verbosity);
     vector<shared_ptr<Evaluator>> evals = {f, h_eval};
 
-    shared_ptr<OpenListFactory> open =
-        make_shared<tiebreaking_open_list::TieBreakingOpenListFactory>(
+    return {
+        make_unique<
+            tiebreaking_open_list::TieBreakingOpenList<StateOpenListEntry>>(
             evals,
             false,
-            false);
-    return make_pair(open, f);
+            false),
+        f};
 }
-} // namespace search_common
+} // namespace downward::search_common

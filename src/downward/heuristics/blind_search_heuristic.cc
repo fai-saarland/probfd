@@ -6,6 +6,7 @@
 #include "downward/task_transformation.h"
 
 #include <cstddef>
+#include <downward/operator_cost_function_fwd.h>
 #include <limits>
 #include <utility>
 
@@ -13,7 +14,7 @@ using namespace std;
 
 namespace downward::blind_search_heuristic {
 BlindSearchHeuristic::BlindSearchHeuristic(
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
@@ -24,7 +25,10 @@ BlindSearchHeuristic::BlindSearchHeuristic(
           cache_estimates,
           description,
           verbosity)
-    , min_operator_cost(task_properties::get_min_operator_cost(task_proxy))
+    , min_operator_cost(
+          task_properties::get_min_operator_cost(
+              get_operators(transformed_task),
+              get_cost_function(transformed_task)))
 {
     if (log.is_at_least_normal()) {
         log << "Initializing blind search heuristic..." << endl;
@@ -32,7 +36,7 @@ BlindSearchHeuristic::BlindSearchHeuristic(
 }
 
 BlindSearchHeuristic::BlindSearchHeuristic(
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
     const string& description,
@@ -49,10 +53,12 @@ BlindSearchHeuristic::BlindSearchHeuristic(
 int BlindSearchHeuristic::compute_heuristic(const State& ancestor_state)
 {
     State state = convert_ancestor_state(ancestor_state);
-    if (task_properties::is_goal_state(task_proxy, state))
+    if (task_properties::is_goal_state(
+            get_goal(transformed_task),
+            state))
         return 0;
     else
         return min_operator_cost;
 }
 
-} // namespace blind_search_heuristic
+} // namespace downward::blind_search_heuristic

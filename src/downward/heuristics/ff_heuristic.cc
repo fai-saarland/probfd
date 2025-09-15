@@ -3,6 +3,7 @@
 #include "downward/task_utils/task_properties.h"
 #include "downward/utils/logging.h"
 
+#include "downward/operator_cost_function.h"
 #include "downward/task_transformation.h"
 
 #include <cassert>
@@ -12,7 +13,7 @@ using namespace std;
 namespace downward::ff_heuristic {
 // construction and destruction
 FFHeuristic::FFHeuristic(
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     TaskTransformationResult transformation_result,
     bool cache_estimates,
     const string& description,
@@ -23,7 +24,9 @@ FFHeuristic::FFHeuristic(
           cache_estimates,
           description,
           verbosity)
-    , relaxed_plan(task_proxy.get_operators().size(), false)
+    , relaxed_plan(
+          get_shared_variables(this->transformed_task)->size(),
+          false)
 {
     if (log.is_at_least_normal()) {
         log << "Initializing FF heuristic..." << endl;
@@ -31,7 +34,7 @@ FFHeuristic::FFHeuristic(
 }
 
 FFHeuristic::FFHeuristic(
-    std::shared_ptr<AbstractTask> original_task,
+    SharedAbstractTask original_task,
     const std::shared_ptr<TaskTransformation>& transformation,
     bool cache_estimates,
     const std::string& description,
@@ -49,6 +52,9 @@ void FFHeuristic::mark_preferred_operators_and_relaxed_plan(
     const State& state,
     PropID goal_id)
 {
+    const auto& operators =
+        get_operators(this->transformed_task);
+
     Proposition* goal = get_proposition(goal_id);
     if (!goal->marked) { // Only consider each subgoal once.
         goal->marked = true;
@@ -67,7 +73,7 @@ void FFHeuristic::mark_preferred_operators_and_relaxed_plan(
                 // This is not an axiom.
                 relaxed_plan[operator_no] = true;
                 if (is_preferred) {
-                    OperatorProxy op = task_proxy.get_operators()[operator_no];
+                    OperatorProxy op = operators[operator_no];
                     assert(task_properties::is_applicable(op, state));
                     set_preferred(op);
                 }
@@ -86,14 +92,17 @@ int FFHeuristic::compute_heuristic(const State& ancestor_state)
     for (PropID goal_id : goal_propositions)
         mark_preferred_operators_and_relaxed_plan(state, goal_id);
 
+    const auto& cost_function =
+        get_shared_cost_function(this->transformed_task);
+
     int h_ff = 0;
     for (size_t op_no = 0; op_no < relaxed_plan.size(); ++op_no) {
         if (relaxed_plan[op_no]) {
             relaxed_plan[op_no] = false; // Clean up for next computation.
-            h_ff += task_proxy.get_operators()[op_no].get_cost();
+            h_ff += cost_function->get_operator_cost(op_no);
         }
     }
     return h_ff;
 }
 
-} // namespace ff_heuristic
+} // namespace downward::ff_heuristic

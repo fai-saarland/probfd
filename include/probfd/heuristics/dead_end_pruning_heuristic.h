@@ -3,8 +3,10 @@
 
 #include "probfd/fdr_types.h"
 #include "probfd/heuristic.h"
-#include "probfd/task_heuristic_factory.h"
+#include "probfd/task_heuristic_factory_category.h"
 #include "probfd/value_type.h"
+
+#include "downward/task_dependent_factory_fwd.h"
 
 #include <memory>
 
@@ -12,7 +14,7 @@
 namespace downward {
 class State;
 class Evaluator;
-}
+} // namespace downward
 
 namespace probfd::heuristics {
 
@@ -23,7 +25,7 @@ namespace probfd::heuristics {
  * @note If the underlying classical heuristic is safe, this heuristic is also
  * safe.
  */
-class DeadEndPruningHeuristic final : public FDREvaluator {
+class DeadEndPruningHeuristic final : public FDRHeuristic {
     const std::shared_ptr<downward::Evaluator> pruning_function_;
     const value_t dead_end_value_;
 
@@ -46,15 +48,16 @@ public:
 };
 
 class DeadEndPruningHeuristicFactory final : public TaskHeuristicFactory {
-    const std::shared_ptr<downward::Evaluator> evaluator_;
+    const std::shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>
+        evaluator_factory_;
 
 public:
     explicit DeadEndPruningHeuristicFactory(
-        std::shared_ptr<downward::Evaluator> evaluator);
+        std::shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>
+            evaluator_factory);
 
-    std::unique_ptr<FDREvaluator> create_heuristic(
-        std::shared_ptr<ProbabilisticTask> task,
-        std::shared_ptr<FDRCostFunction> task_cost_function) override;
+    std::unique_ptr<FDRHeuristic>
+    create_object(const SharedProbabilisticTask& task) override;
 };
 
 } // namespace probfd::heuristics

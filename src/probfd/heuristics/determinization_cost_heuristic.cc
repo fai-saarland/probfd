@@ -1,11 +1,14 @@
 #include "probfd/heuristics/determinization_cost_heuristic.h"
 
+#include "probfd/tasks/determinization_task.h"
+
 #include "probfd/heuristic.h"
-#include "probfd/task_heuristic_factory.h"
+#include "probfd/task_heuristic_factory_category.h"
 
 #include "downward/evaluation_context.h"
 #include "downward/evaluation_result.h"
 #include "downward/evaluator.h"
+#include "downward/task_dependent_factory.h"
 
 #include <utility>
 
@@ -36,17 +39,19 @@ void DeterminizationCostHeuristic::print_statistics() const
 }
 
 DeterminizationCostHeuristicFactory::DeterminizationCostHeuristicFactory(
-    std::shared_ptr<Evaluator> evaluator)
-    : evaluator_(std::move(evaluator))
+    std::shared_ptr<downward::TaskDependentFactory<Evaluator>>
+        evaluator_factory)
+    : evaluator_factory_(std::move(evaluator_factory))
 {
 }
 
-std::unique_ptr<FDREvaluator>
-DeterminizationCostHeuristicFactory::create_heuristic(
-    std::shared_ptr<ProbabilisticTask>,
-    std::shared_ptr<FDRCostFunction>)
+std::unique_ptr<FDRHeuristic>
+DeterminizationCostHeuristicFactory::create_object(
+    const SharedProbabilisticTask& task)
 {
-    return std::make_unique<DeterminizationCostHeuristic>(evaluator_);
+    return std::make_unique<DeterminizationCostHeuristic>(
+        evaluator_factory_->create_object(
+            tasks::create_determinization_task(task)));
 }
 
 } // namespace probfd::heuristics

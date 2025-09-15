@@ -3,7 +3,7 @@
 
 #include "probfd/fdr_types.h"
 #include "probfd/heuristic.h"
-#include "probfd/task_proxy.h"
+#include "probfd/probabilistic_task.h"
 
 #include "downward/utils/logging.h"
 
@@ -12,16 +12,14 @@
 /// This namespace contains heuristic implementations.
 namespace probfd::heuristics {
 
-class TaskDependentHeuristic : public FDREvaluator {
+class TaskDependentHeuristic : public FDRHeuristic {
 protected:
-    std::shared_ptr<ProbabilisticTask> task_;
-    ProbabilisticTaskProxy task_proxy_;
-
+    SharedProbabilisticTask task_;
     mutable downward::utils::LogProxy log_;
 
 public:
     TaskDependentHeuristic(
-        std::shared_ptr<ProbabilisticTask> task,
+        SharedProbabilisticTask task,
         downward::utils::LogProxy log);
 };
 

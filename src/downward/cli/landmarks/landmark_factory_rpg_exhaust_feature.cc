@@ -1,4 +1,7 @@
+#include "downward/cli/landmarks/landmark_factory_rpg_exhaust_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/landmarks/landmark_factory_options.h"
 
@@ -12,8 +15,9 @@ using namespace downward::cli::plugins;
 using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 using downward::cli::landmarks::get_landmark_factory_arguments_from_options;
 
-namespace downward::landmarks {
+using namespace downward::landmarks;
 
+namespace {
 class LandmarkFactoryRpgExhaustFeature
     : public TypedFeature<LandmarkFactory, LandmarkFactoryRpgExhaust> {
 public:
@@ -50,7 +54,13 @@ public:
             get_landmark_factory_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<LandmarkFactoryRpgExhaustFeature> _plugin;
+namespace downward::cli::landmarks {
 
-} // namespace landmarks
+void add_landmark_factory_rpg_exhaust_feature(RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<LandmarkFactoryRpgExhaustFeature>();
+}
+
+} // namespace downward::landmarks

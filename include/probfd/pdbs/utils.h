@@ -3,15 +3,17 @@
 
 #include "probfd/pdbs/types.h"
 
+#include "probfd/probabilistic_task.h"
+
 #include <iosfwd>
 #include <vector>
 
-namespace downward::utils {
-class RandomNumberGenerator;
+namespace downward {
+class GoalFactList;
 }
 
-namespace probfd {
-class ProbabilisticTaskProxy;
+namespace downward::utils {
+class RandomNumberGenerator;
 }
 
 namespace probfd::pdbs {
@@ -24,7 +26,7 @@ namespace probfd::pdbs {
 Pattern extended_pattern(const Pattern& pattern, int add_var);
 
 std::vector<int> get_goals_in_random_order(
-    ProbabilisticTaskProxy task_proxy,
+    const downward::GoalFactList& task,
     downward::utils::RandomNumberGenerator& rng);
 
 /**
@@ -32,7 +34,7 @@ std::vector<int> get_goals_in_random_order(
  * or without transition labels shown.
  */
 void dump_graphviz(
-    ProbabilisticTaskProxy task_proxy,
+    const ProbabilisticOperatorSpace& operators,
     ProjectionStateSpace& state_space,
     const ProbabilityAwarePatternDatabase& pdb,
     StateRank initial_state,

@@ -3,10 +3,12 @@
 
 #include "downward/pdbs/types.h"
 
+#include "downward/utils/timer.h"
+
 #include <memory>
 
 namespace downward {
-class TaskProxy;
+class VariableSpace;
 }
 
 namespace downward::utils {
@@ -24,10 +26,10 @@ namespace downward::pdbs {
 */
 extern Pattern generate_random_pattern(
     int max_pdb_size,
-    double max_time,
+    utils::Duration max_time,
     utils::LogProxy& log,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
-    const TaskProxy& task_proxy,
+    const VariableSpace& variables,
     int goal_variable,
     std::vector<std::vector<int>>& cg_neighbors);
 

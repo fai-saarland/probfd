@@ -1,11 +1,21 @@
 #ifndef HEURISTICS_DOMAIN_TRANSITION_GRAPH_H
 #define HEURISTICS_DOMAIN_TRANSITION_GRAPH_H
 
-#include "downward/task_proxy.h"
+#include "downward/abstract_task.h"
+#include "downward/axiom_utils.h"
+#include "downward/operator_cost_function_fwd.h"
+#include "downward/state.h"
 
 #include <cassert>
+#include <functional>
 #include <unordered_map>
 #include <vector>
+
+namespace downward {
+class VariableSpace;
+class AxiomSpace;
+class ClassicalOperatorSpace;
+} // namespace downward
 
 namespace downward::cea_heuristic {
 class ContextEnhancedAdditiveHeuristic;
@@ -28,7 +38,12 @@ class DomainTransitionGraph;
 
 class DTGFactory {
     using DTGs = std::vector<std::unique_ptr<DomainTransitionGraph>>;
-    const TaskProxy& task_proxy;
+
+    const VariableSpace& variables;
+    const AxiomSpace& axioms;
+    const ClassicalOperatorSpace& operators;
+    const OperatorIntCostFunction& cost_function;
+
     bool collect_transition_side_effects;
     std::function<bool(int, int)> pruning_condition;
 
@@ -37,13 +52,14 @@ class DTGFactory {
 
     void allocate_graphs_and_nodes(DTGs& dtgs);
     void initialize_index_structures(int num_dtgs);
-    void create_transitions(DTGs& dtgs);
+    void create_transitions(DTGs& dtgs, const VariableSpace& variables);
     void process_effect(
+        const VariableSpace& variables,
         const EffectProxy& eff,
         const AxiomOrOperatorProxy& op,
         DTGs& dtgs);
     void update_transition_condition(
-        const FactProxy& fact,
+        const FactPair& fact,
         DomainTransitionGraph* dtg,
         std::vector<LocalAssignment>& condition);
     void extend_global_to_local_mapping_if_necessary(
@@ -64,7 +80,10 @@ class DTGFactory {
 
 public:
     DTGFactory(
-        const TaskProxy& task_proxy,
+        const VariableSpace& variables,
+        const AxiomSpace& axioms,
+        const ClassicalOperatorSpace& operators,
+        const OperatorIntCostFunction& cost_function,
         bool collect_transition_side_effects,
         const std::function<bool(int, int)>& pruning_condition);
 
@@ -112,8 +131,6 @@ struct ValueTransition {
         : target(targ)
     {
     }
-
-    void simplify(const TaskProxy& task_proxy);
 };
 
 struct ValueNode {
@@ -155,6 +172,6 @@ class DomainTransitionGraph {
 public:
     DomainTransitionGraph(int var_index, int node_count);
 };
-} // namespace domain_transition_graph
+} // namespace downward::domain_transition_graph
 
 #endif

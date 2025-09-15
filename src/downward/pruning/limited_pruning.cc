@@ -20,7 +20,7 @@ LimitedPruning::LimitedPruning(
 {
 }
 
-void LimitedPruning::initialize(const shared_ptr<AbstractTask>& task)
+void LimitedPruning::initialize(const SharedAbstractTask& task)
 {
     PruningMethod::initialize(task);
     pruning_method->initialize(task);

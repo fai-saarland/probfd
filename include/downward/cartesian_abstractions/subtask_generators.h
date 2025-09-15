@@ -1,15 +1,17 @@
 #ifndef CEGAR_SUBTASK_GENERATORS_H
 #define CEGAR_SUBTASK_GENERATORS_H
 
+#include "downward/task_dependent_factory_fwd.h"
+
 #include "downward/cartesian_abstractions/types.h"
 
+#include <downward/task_dependent_factory.h>
 #include <memory>
 #include <vector>
 
 namespace downward {
-class AbstractTask;
+class MutexInformation;
 struct FactPair;
-class MutexFactory;
 
 class StateMapping;
 class InverseOperatorMapping;
@@ -36,7 +38,7 @@ enum class FactOrder { ORIGINAL, RANDOM, HADD_UP, HADD_DOWN };
 class SubtaskGenerator {
 public:
     virtual SharedTasks get_subtasks(
-        const std::shared_ptr<AbstractTask>& task,
+        const SharedAbstractTask& task,
         utils::LogProxy& log) const = 0;
     virtual ~SubtaskGenerator() = default;
 };
@@ -50,8 +52,8 @@ class TaskDuplicator : public SubtaskGenerator {
 public:
     explicit TaskDuplicator(int copies);
 
-    virtual SharedTasks get_subtasks(
-        const std::shared_ptr<AbstractTask>& task,
+    SharedTasks get_subtasks(
+        const SharedAbstractTask& task,
         utils::LogProxy& log) const override;
 };
 
@@ -65,8 +67,8 @@ class GoalDecomposition : public SubtaskGenerator {
 public:
     explicit GoalDecomposition(FactOrder order, int random_seed);
 
-    virtual SharedTasks get_subtasks(
-        const std::shared_ptr<AbstractTask>& task,
+    SharedTasks get_subtasks(
+        const SharedAbstractTask& task,
         utils::LogProxy& log) const override;
 };
 
@@ -75,26 +77,26 @@ public:
   focussing on a single landmark fact.
 */
 class LandmarkDecomposition : public SubtaskGenerator {
-    std::shared_ptr<MutexFactory> mutex_factory;
+    std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory;
     FactOrder fact_order;
     bool combine_facts;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
     /* Perform domain abstraction by combining facts that have to be
        achieved before a given landmark can be made true. */
-    std::shared_ptr<AbstractTask> build_domain_abstracted_task(
-        const std::shared_ptr<AbstractTask>& parent,
+    SharedAbstractTask build_domain_abstracted_task(
+        const SharedAbstractTask& parent,
         const landmarks::LandmarkNode *node) const;
 
 public:
     explicit LandmarkDecomposition(
-        std::shared_ptr<MutexFactory> mutex_factory,
+        std::shared_ptr<TaskDependentFactory<MutexInformation>> mutex_factory,
         FactOrder order,
         int random_seed,
         bool combine_facts);
 
-    virtual SharedTasks get_subtasks(
-        const std::shared_ptr<AbstractTask>& task,
+    SharedTasks get_subtasks(
+        const SharedAbstractTask& task,
         utils::LogProxy& log) const override;
 };
 } // namespace cartesian_abstractions

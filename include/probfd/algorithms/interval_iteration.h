@@ -97,14 +97,14 @@ public:
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport report,
-        double max_time);
+        downward::utils::Duration max_time);
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport report,
-        double max_time) override;
+        downward::utils::Duration max_time) override;
 
     void print_statistics(std::ostream& out) const override;
 
@@ -116,7 +116,7 @@ public:
         ValueStoreT& value_store,
         SetLike& dead_ends,
         SetLike2& one_states,
-        double max_time = std::numeric_limits<double>::infinity());
+        downward::utils::Duration max_time = downward::utils::Duration::max());
 
 private:
     std::unique_ptr<QSystem> create_quotient(

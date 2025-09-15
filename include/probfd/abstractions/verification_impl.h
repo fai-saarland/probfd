@@ -10,9 +10,23 @@
 #include "downward/lp/lp_solver.h"
 
 #include <cmath>
+#include <numeric>
 #include <ranges>
+#include <print>
 
 namespace probfd {
+
+inline void assert_near(value_t value, value_t expected, value_t tolerance) {
+    if (!is_approx_equal(value, expected, 0.001)) {
+        std::println(
+            std::cerr,
+            "{} differs from expected value {} by more than {}!",
+            value,
+            expected,
+            tolerance);
+        abort();
+    }
+}
 
 template <typename State, typename Action>
 void verify(
@@ -30,12 +44,18 @@ void verify(
 
     const std::size_t num_states = value_table.size();
 
+    std::vector<int> unsolvable_states;
+
     for (std::size_t i = 0; i != num_states; ++i) {
         const State state = mdp.get_state(i);
         const auto term_info = mdp.get_termination_info(state);
         const value_t term_cost = term_info.get_cost();
 
         const auto value = value_table[i];
+
+        if (value == INFINITE_VALUE) {
+            unsolvable_states.push_back(i);
+        }
 
         variables.emplace_back(
             -inf,
@@ -49,6 +69,8 @@ void verify(
         // Push successors
         for (const Action& op : aops) {
             const value_t cost = mdp.get_action_cost(op);
+
+            if (cost == INFINITE_VALUE) continue;
 
             SuccessorDistribution successor_dist;
             mdp.generate_action_transitions(i, op, successor_dist);
@@ -66,6 +88,15 @@ void verify(
 
             constr.insert(i, successor_dist.non_source_probability);
         }
+    }
+
+    // Add extra state connected to unsolvable states.
+    variables.emplace_back(-inf, inf, 0_vt);
+
+    for (int state : unsolvable_states) {
+        auto& constr = constraints.emplace_back(-inf, 0);
+        constr.insert(state, -1.0);
+        constr.insert(num_states, 1.0);
     }
 
     solver.load_problem(
@@ -94,9 +125,21 @@ void verify(
     for (StateID s = 0; s.id != num_states; ++s.id) {
         const auto value = value_table[s];
         if (value != INFINITE_VALUE && !std::isnan(value)) {
-            assert(is_approx_equal(value, solution[s], 0.001));
+            assert_near(value, solution[s], 0.001);
         }
     }
+
+    // Now check unsolvable states.
+    // If the LP is unbounded, all unsolvable states are actually unsolvable.
+    // If not, one of them has to be solvable.
+    for (std::size_t i = 0; i != num_states; ++i) {
+        solver.set_objective_coefficient(i, 0.0);
+    }
+
+    solver.set_objective_coefficient(num_states, 1.0);
+    solver.solve();
+
+    assert (!solver.has_optimal_solution() && solver.is_unbounded());
 }
 
 } // namespace probfd

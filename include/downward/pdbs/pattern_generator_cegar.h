@@ -10,22 +10,21 @@ class RandomNumberGenerator;
 namespace downward::pdbs {
 class PatternGeneratorCEGAR : public PatternGenerator {
     const int max_pdb_size;
-    const double max_time;
+    const utils::Duration max_time;
     const bool use_wildcard_plans;
     std::shared_ptr<utils::RandomNumberGenerator> rng;
 
-    virtual std::string name() const override;
-    virtual PatternInformation
-    compute_pattern(const std::shared_ptr<AbstractTask>& task) override;
+    std::string name() const override;
+    PatternInformation compute_pattern(const SharedAbstractTask& task) override;
 
 public:
     PatternGeneratorCEGAR(
         int max_pdb_size,
-        double max_time,
+        utils::Duration max_time,
         bool use_wildcard_plans,
         int random_seed,
         utils::Verbosity verbosity);
 };
-} // namespace pdbs
+} // namespace downward::pdbs
 
 #endif

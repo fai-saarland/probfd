@@ -26,7 +26,6 @@ class LogProxy;
 }
 
 namespace probfd {
-class ProbabilisticTask;
 struct SuccessorDistribution;
 } // namespace probfd
 
@@ -53,7 +52,10 @@ class CachingTaskStateSpace : public TaskStateSpace {
 
 public:
     explicit CachingTaskStateSpace(
-        std::shared_ptr<ProbabilisticTask> task,
+        const downward::VariableSpace& variables,
+        const downward::AxiomSpace& axioms,
+        std::shared_ptr<ProbabilisticOperatorSpace> operators,
+        const downward::InitialStateValues& initial_values,
         std::vector<std::shared_ptr<downward::Evaluator>>
             path_dependent_evaluators);
 

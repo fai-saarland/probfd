@@ -3,7 +3,7 @@
 
 #include "downward/pdbs/types.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <cstddef>
 #include <vector>
@@ -22,7 +22,7 @@ namespace downward::pdbs {
 */
 
 class MatchTree {
-    TaskProxy task_proxy;
+    const VariableSpace& variables;
     struct Node;
     // See PatternDatabase for documentation on pattern and hash_multipliers.
     Pattern pattern;
@@ -42,9 +42,10 @@ class MatchTree {
 public:
     // Initialize an empty match tree.
     MatchTree(
-        const TaskProxy& task_proxy,
+        const VariableSpace& variables,
         const Pattern& pattern,
         const std::vector<int>& hash_multipliers);
+
     ~MatchTree();
     /* Insert an abstract operator into the match tree, creating or
        enlarging it. */

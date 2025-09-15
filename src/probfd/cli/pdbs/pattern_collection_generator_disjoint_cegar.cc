@@ -1,10 +1,13 @@
+#include "probfd/cli/pdbs/pattern_collection_generator_disjoint_cegar.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/utils/logging_options.h"
 #include "downward/cli/utils/rng_options.h"
 
-#include "probfd/cli/pdbs/cegar_options.h"
-#include "probfd/cli/pdbs/pattern_collection_generator.h"
+#include "probfd/cli/pdbs/cegar/cegar_options.h"
+#include "probfd/cli/pdbs/pattern_collection_generator_options.h"
 
 #include "probfd/pdbs/pattern_collection_generator_disjoint_cegar.h"
 
@@ -15,6 +18,7 @@ using namespace std;
 using namespace downward;
 using namespace utils;
 
+using namespace probfd;
 using namespace probfd::pdbs;
 using namespace probfd::pdbs::cegar;
 
@@ -26,9 +30,11 @@ using downward::cli::utils::get_log_arguments_from_options;
 using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
-namespace probfd::cli::pdbs {
+using namespace probfd::cli::pdbs;
 
-static void
+namespace {
+
+void
 add_pattern_collection_generator_cegar_options_to_feature(Feature& feature)
 {
     feature.add_option<bool>(
@@ -47,7 +53,7 @@ add_pattern_collection_generator_cegar_options_to_feature(Feature& feature)
         "applied to initial goal variable pattern(s))",
         "infinity",
         Bounds("1", "infinity"));
-    feature.add_option<double>(
+    feature.add_option<utils::Duration>(
         "max_time",
         "maximum time in seconds for CEGAR pattern generation. "
         "This includes the creation of the initial PDB collection"
@@ -66,8 +72,6 @@ add_pattern_collection_generator_cegar_options_to_feature(Feature& feature)
     add_pattern_collection_generator_options_to_feature(feature);
     add_cegar_wildcard_option_to_feature(feature);
 }
-
-namespace {
 
 class PatternCollectionGeneratorDisjointCEGARFeature
     : public TypedFeature<
@@ -96,7 +100,7 @@ public:
             opts.get<bool>("single_goal"),
             opts.get<int>("max_pdb_size"),
             opts.get<int>("max_collection_size"),
-            opts.get<double>("max_time"),
+            opts.get<utils::Duration>("max_time"),
             get_rng(std::get<0>(get_rng_arguments_from_options(opts))),
             opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
                 "subcollection_finder_factory"),
@@ -104,9 +108,15 @@ public:
             get_pattern_collection_generator_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<PatternCollectionGeneratorDisjointCEGARFeature> _plugin;
+namespace probfd::cli::pdbs {
+
+void add_pattern_collection_generator_disjoint_cegar_feature(
+    RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<
+        PatternCollectionGeneratorDisjointCEGARFeature>();
+}
 
 } // namespace
-
-} // namespace probfd::cli::pdbs

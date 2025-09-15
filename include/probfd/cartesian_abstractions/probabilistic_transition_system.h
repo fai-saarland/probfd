@@ -19,10 +19,6 @@ namespace downward::utils {
 class LogProxy;
 }
 
-namespace probfd {
-class ProbabilisticOperatorsProxy;
-}
-
 namespace probfd::cartesian_abstractions {
 class AbstractState;
 } // namespace probfd::cartesian_abstractions
@@ -54,7 +50,7 @@ class ProbabilisticTransitionSystem {
     void enlarge_vectors_by_one();
 
     // Construct the trivial abstraction.
-    void construct_trivial_abstraction(const ProbabilisticOperatorsProxy& ops);
+    void construct_trivial_abstraction(const ProbabilisticOperatorSpace& ops);
 
     [[nodiscard]]
     int get_precondition_value(int op_id, int var) const;
@@ -84,7 +80,7 @@ class ProbabilisticTransitionSystem {
 
 public:
     explicit ProbabilisticTransitionSystem(
-        const ProbabilisticOperatorsProxy& ops);
+        const ProbabilisticOperatorSpace& ops);
 
     ~ProbabilisticTransitionSystem();
 

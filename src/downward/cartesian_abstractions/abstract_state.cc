@@ -3,11 +3,10 @@
 #include "downward/cartesian_abstractions/refinement_hierarchy.h"
 #include "downward/cartesian_abstractions/utils.h"
 
-#include "downward/utils/memory.h"
+#include "downward/classical_operator_space.h"
+#include "downward/state.h"
 
-#include <algorithm>
 #include <cassert>
-#include <unordered_set>
 
 using namespace std;
 
@@ -64,13 +63,11 @@ AbstractState::split_domain(int var, const vector<int>& wanted) const
 CartesianSet AbstractState::regress(const OperatorProxy& op) const
 {
     CartesianSet regression = cartesian_set;
-    for (EffectProxy effect : op.get_effects()) {
-        int var_id = effect.get_fact().get_variable().get_id();
-        regression.add_all(var_id);
+    for (auto effect : op.get_effects()) {
+        regression.add_all(effect.get_fact().var);
     }
-    for (FactProxy precondition : op.get_preconditions()) {
-        int var_id = precondition.get_variable().get_id();
-        regression.set_single_value(var_id, precondition.get_value());
+    for (const auto [var, value] : op.get_preconditions()) {
+        regression.set_single_value(var, value);
     }
     return regression;
 }
@@ -84,8 +81,8 @@ bool AbstractState::domain_subsets_intersect(
 
 bool AbstractState::includes(const State& concrete_state) const
 {
-    for (FactProxy fact : concrete_state) {
-        if (!cartesian_set.test(fact.get_variable().get_id(), fact.get_value()))
+    for (FactPair fact : concrete_state | as_fact_pair_set) {
+        if (!cartesian_set.test(fact.var, fact.value))
             return false;
     }
     return true;

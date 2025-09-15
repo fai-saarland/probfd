@@ -1,7 +1,10 @@
-#include "downward/cli/plugins/plugin.h"
+#include "probfd/cli/pdbs/pattern_collection_generator_multiple_cegar.h"
 
-#include "probfd/cli/pdbs/cegar_options.h"
-#include "probfd/cli/pdbs/pattern_collection_generator_multiple.h"
+#include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
+
+#include "probfd/cli/pdbs/cegar/cegar_options.h"
+#include "probfd/cli/pdbs/pattern_collection_generator_multiple_options.h"
 
 #include "probfd/pdbs/pattern_collection_generator_multiple_cegar.h"
 
@@ -16,7 +19,6 @@ using namespace probfd::pdbs::cegar;
 using namespace downward::cli::plugins;
 
 namespace {
-
 class PatternCollectionGeneratorMultipleCegarFeature
     : public TypedFeature<
           PatternCollectionGenerator,
@@ -28,7 +30,7 @@ public:
         add_option<probfd::value_t>(
             "convergence_epsilon",
             "The tolerance for convergence checks.",
-            "10e-4");
+            "10e-8");
 
         add_option<std::shared_ptr<cegar::FlawFindingStrategy>>(
             "flaw_strategy",
@@ -50,7 +52,15 @@ public:
             get_multiple_arguments_from_options(opts));
     }
 };
+}
 
-FeaturePlugin<PatternCollectionGeneratorMultipleCegarFeature> _plugin;
+namespace probfd::cli::pdbs {
+
+void add_pattern_collection_generator_multiple_cegar_feature(
+    RawRegistry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<
+        PatternCollectionGeneratorMultipleCegarFeature>();
+}
 
 } // namespace

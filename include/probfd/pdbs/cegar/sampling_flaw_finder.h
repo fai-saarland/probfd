@@ -22,10 +22,6 @@ namespace downward::utils {
 class RandomNumberGenerator;
 }
 
-namespace probfd {
-class ProbabilisticTaskProxy;
-}
-
 namespace probfd::pdbs::cegar {
 
 class SamplingFlawFinder : public FlawFindingStrategy {
@@ -48,7 +44,8 @@ public:
     ~SamplingFlawFinder() override;
 
     bool apply_policy(
-        const ProbabilisticTaskProxy& task_proxy,
+        const ProbabilisticTaskTuple& task,
+        const downward::State& initial_state,
         const StateRankingFunction& state_ranking_function,
         const ProjectionStateSpace& mdp,
         const ProjectionMultiPolicy& policy,

@@ -42,7 +42,7 @@ ShrinkStrategyEqualDistance::ordered_buckets_use_map(
     const TransitionSystem& ts,
     const Distances& distances) const
 {
-    map<value_t, Bucket> states_by_h;
+    std::map<value_t, Bucket> states_by_h;
 
     for (int state = 0; state < ts.get_size(); ++state) {
         value_t h = distances.get_goal_distance(state);
@@ -71,11 +71,12 @@ ShrinkStrategyEqualDistance::ordered_buckets_use_map(
     buckets.reserve(states_by_h.size());
 
     if (h_start == ShrinkStrategyEqualDistance::Priority::HIGH) {
-        for (auto& bucket : views::reverse(views::values(states_by_h))) {
+        for (auto& bucket :
+             std::views::reverse(std::views::values(states_by_h))) {
             buckets.emplace_back(std::move(bucket));
         }
     } else {
-        for (auto& bucket : views::values(states_by_h)) {
+        for (auto& bucket : std::views::values(states_by_h)) {
             buckets.emplace_back(std::move(bucket));
         }
     }
@@ -92,8 +93,9 @@ void ShrinkStrategyEqualDistance::dump_strategy_specific_options(
     utils::LogProxy& log) const
 {
     if (log.is_at_least_normal()) {
-        log << "Prefer shrinking high or low h states: "
-            << (h_start == Priority::HIGH ? "high" : "low") << endl;
+        log.println(
+            "Prefer shrinking high or low h states: {}",
+            h_start == Priority::HIGH ? "high" : "low");
     }
 }
 

@@ -1,4 +1,7 @@
+#include "downward/cli/merge_and_shrink/label_reduction_feature.h"
+
 #include "downward/cli/plugins/plugin.h"
+#include "downward/cli/plugins/raw_registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -19,7 +22,6 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-
 class LabelReductionFeature
     : public TypedFeature<LabelReduction, LabelReduction> {
 public:
@@ -77,8 +79,9 @@ public:
         bool lr_before_shrinking = opts.get<bool>("before_shrinking");
         bool lr_before_merging = opts.get<bool>("before_merging");
         if (!lr_before_shrinking && !lr_before_merging) {
-            context.error("Please turn on at least one of the options "
-                          "before_shrinking or before_merging!");
+            context.error(
+                "Please turn on at least one of the options "
+                "before_shrinking or before_merging!");
         }
         return make_shared_from_arg_tuples<LabelReduction>(
             opts.get<bool>("before_shrinking"),
@@ -88,36 +91,37 @@ public:
             get_rng_arguments_from_options(opts));
     }
 };
+} // namespace
 
-class LabelReductionCategoryPlugin
-    : public TypedCategoryPlugin<LabelReduction> {
-public:
-    LabelReductionCategoryPlugin()
-        : TypedCategoryPlugin("LabelReduction")
-    {
-        document_synopsis("This page describes the current single 'option' for "
-                          "label reduction.");
-    }
-} _category_plugin;
+namespace downward::cli::merge_and_shrink {
 
-FeaturePlugin<LabelReductionFeature> _plugin;
+void add_label_reduction_features(RawRegistry& raw_registry)
+{
+    auto& category =
+        raw_registry.insert_category_plugin<LabelReduction>("LabelReduction");
+    category.document_synopsis(
+        "This page describes the current single 'option' for "
+        "label reduction.");
 
-TypedEnumPlugin<LabelReductionMethod> _label_reduction_method_enum_plugin(
-    {{"two_transition_systems",
-      "compute the 'combinable relation' only for the two transition "
-      "systems being merged next"},
-     {"all_transition_systems",
-      "compute the 'combinable relation' for labels once for every "
-      "transition system and reduce labels"},
-     {"all_transition_systems_with_fixpoint",
-      "keep computing the 'combinable relation' for labels iteratively "
-      "for all transition systems until no more labels can be reduced"}});
+    raw_registry.insert_feature_plugin<LabelReductionFeature>();
 
-TypedEnumPlugin<LabelReductionSystemOrder>
-    _label_reduction_system_order_enum_plugin(
+    raw_registry.insert_enum_plugin<LabelReductionMethod>(
+        {{"two_transition_systems",
+          "compute the 'combinable relation' only for the two transition "
+          "systems being merged next"},
+         {"all_transition_systems",
+          "compute the 'combinable relation' for labels once for every "
+          "transition system and reduce labels"},
+         {"all_transition_systems_with_fixpoint",
+          "keep computing the 'combinable relation' for labels iteratively "
+          "for all transition systems until no more labels can be reduced"}});
+
+    raw_registry.insert_enum_plugin<LabelReductionSystemOrder>(
         {{"regular",
           "transition systems are considered in the order given in the planner "
           "input if atomic and in the order of their creation if composite."},
          {"reverse", "inverse of regular"},
          {"random", "random order"}});
-} // namespace
+}
+
+} // namespace downward::cli::merge_and_shrink

@@ -1,5 +1,6 @@
 #include "probfd/cartesian_abstractions/cost_saturation.h"
 
+#include "downward/initial_state_values.h"
 #include "probfd/abstractions/distances.h"
 
 #include "probfd/cartesian_abstractions/cartesian_abstraction.h"
@@ -11,9 +12,7 @@
 
 #include "probfd/task_utils/task_properties.h"
 
-#include "probfd/tasks/modified_operator_costs_task.h"
-
-#include "probfd/task_proxy.h"
+#include "probfd/tasks/range_operator_cost_function.h"
 
 #include "downward/task_utils/task_properties.h"
 
@@ -21,10 +20,11 @@
 #include "downward/utils/memory.h"
 #include "downward/utils/timer.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include <cassert>
 #include <ostream>
+#include <ranges>
 #include <utility>
 
 using namespace std;
@@ -103,7 +103,7 @@ CostSaturation::CostSaturation(
     shared_ptr<SplitSelectorFactory> split_selector_factory,
     int max_states,
     int max_non_looping_transitions,
-    double max_time,
+    downward::utils::Duration max_time,
     bool use_general_costs,
     utils::LogProxy log)
     : subtask_generators_(subtask_generators)
@@ -123,21 +123,24 @@ CostSaturation::CostSaturation(
 CostSaturation::~CostSaturation() = default;
 
 vector<CartesianHeuristicFunction> CostSaturation::generate_heuristic_functions(
-    const shared_ptr<ProbabilisticTask>& task)
+    const SharedProbabilisticTask& task)
 {
     // For simplicity this is a member object. Make sure it is in a valid state.
     assert(heuristic_functions_.empty());
 
     utils::CountdownTimer timer(max_time_);
 
-    ProbabilisticTaskProxy task_proxy(*task);
+    const auto& axioms = get_axioms(task);
+    const auto& operators = get_operators(task);
+    const auto& init_vals = get_init(task);
+    const auto& cost_function = get_cost_function(task);
 
-    ::task_properties::verify_no_axioms(task_proxy);
-    task_properties::verify_no_conditional_effects(task_proxy);
+    ::task_properties::verify_no_axioms(axioms);
+    task_properties::verify_no_conditional_effects(operators);
 
-    reset(task_proxy);
+    reset(operators, cost_function);
 
-    State initial_state = ProbabilisticTaskProxy(*task).get_initial_state();
+    State initial_state = init_vals.get_initial_state();
 
     function<bool()> should_abort = [&]() {
         return num_states_ >= max_states_ ||
@@ -164,9 +167,12 @@ vector<CartesianHeuristicFunction> CostSaturation::generate_heuristic_functions(
     return functions;
 }
 
-void CostSaturation::reset(const ProbabilisticTaskProxy& task_proxy)
+void CostSaturation::reset(
+    const ProbabilisticOperatorSpace& operators,
+    const OperatorCostFunction<value_t>& cost_function)
 {
-    remaining_costs_ = task_properties::get_operator_costs(task_proxy);
+    remaining_costs_ =
+        task_properties::get_operator_costs(operators, cost_function);
     num_abstractions_ = 0;
     num_states_ = 0;
 }
@@ -175,32 +181,22 @@ void CostSaturation::reduce_remaining_costs(
     const vector<value_t>& saturated_costs)
 {
     assert(remaining_costs_.size() == saturated_costs.size());
-    for (size_t i = 0; i < remaining_costs_.size(); ++i) {
-        value_t& remaining = remaining_costs_[i];
-        const value_t& saturated = saturated_costs[i];
+
+    for (auto&& [remaining, saturated] :
+         std::views::zip(remaining_costs_, saturated_costs)) {
         assert(!is_approx_greater(saturated, remaining, 0.001));
         /* Since we ignore transitions from states s with h(s)=INFINITE_VALUE,
            all saturated costs (h(s)-h(s')) are finite or -INFINITE_VALUE. */
         assert(saturated != INFINITE_VALUE);
 
         remaining -= saturated;
-
-        // Remaining costs can become negative due to floating point imprecision
-        if (remaining < 0.0_vt) {
-            is_approx_equal(remaining, 0.0_vt, 0.001);
-            remaining = 0.0_vt;
-        }
-        assert(remaining >= 0);
     }
-}
 
-shared_ptr<ProbabilisticTask> CostSaturation::get_remaining_costs_task(
-    shared_ptr<ProbabilisticTask>& parent) const
-{
-    vector<value_t> costs = remaining_costs_;
-    return make_shared<extra_tasks::ModifiedOperatorCostsTask>(
-        parent,
-        std::move(costs));
+    // Guard against tolerance issues
+    std::ranges::replace_if(
+        remaining_costs_,
+        [](value_t cost) { return is_approx_equal(0_vt, cost, 0.001); },
+        0_vt);
 }
 
 bool CostSaturation::state_is_dead_end(const State& state) const
@@ -215,9 +211,11 @@ void CostSaturation::build_abstractions(
     const utils::CountdownTimer& timer,
     function<bool()> should_abort)
 {
+    auto cf = downward::extra_tasks::make_shared_range_cf(remaining_costs_);
     int rem_subtasks = static_cast<int>(subtasks.size());
+
     for (auto [subtask, state_mapping, _] : subtasks) {
-        subtask = get_remaining_costs_task(subtask);
+        subtask = replace(subtask, cf);
 
         assert(num_states_ < max_states_);
         CEGAR cegar(
@@ -241,7 +239,7 @@ void CostSaturation::build_abstractions(
 
         vector<value_t> goal_distances(
             abstraction->get_num_states(),
-            INFINITE_VALUE);
+            std::numeric_limits<value_t>::quiet_NaN());
         compute_value_table(
             *abstraction,
             abstraction->get_initial_state().get_id(),
@@ -269,14 +267,16 @@ void CostSaturation::build_abstractions(
 void CostSaturation::print_statistics(utils::Duration init_time) const
 {
     if (log_.is_at_least_normal()) {
-        log_ << "Done initializing additive Cartesian heuristic" << endl;
-        log_ << "Time for initializing additive Cartesian heuristic: "
-             << init_time << endl;
-        log_ << "Cartesian abstractions built: " << num_abstractions_ << endl;
-        log_ << "Cartesian states: " << num_states_ << endl;
-        log_ << "Total number of non-looping transitions: "
-             << num_non_looping_transitions_ << endl;
-        log_ << endl;
+        log_.println("Done initializing additive Cartesian heuristic");
+        log_.println(
+            "Time for initializing additive Cartesian heuristic: {}",
+            init_time);
+        log_.println("Cartesian abstractions built: {}", num_abstractions_);
+        log_.println("Cartesian states: {}", num_states_);
+        log_.println(
+            "Total number of non-looping transitions: {}",
+            num_non_looping_transitions_);
+        log_.println();
     }
 }
 

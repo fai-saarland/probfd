@@ -2,7 +2,7 @@
 
 #include "downward/pdbs/validation.h"
 
-#include "downward/task_proxy.h"
+#include "downward/state.h"
 
 #include "downward/utils/logging.h"
 
@@ -25,13 +25,12 @@ string PatternCollectionGeneratorManual::name() const
 }
 
 PatternCollectionInformation PatternCollectionGeneratorManual::compute_patterns(
-    const shared_ptr<AbstractTask>& task)
+    const SharedAbstractTask& task)
 {
     if (log.is_at_least_normal()) {
         log << "Manual pattern collection: " << *patterns << endl;
     }
-    TaskProxy task_proxy(*task);
-    return PatternCollectionInformation(task_proxy, patterns, log);
+    return PatternCollectionInformation(to_refs(task), patterns, log);
 }
 
 } // namespace pdbs

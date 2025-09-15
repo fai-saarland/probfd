@@ -10,13 +10,18 @@
 #include <ranges>
 #include <vector>
 
+namespace downward {
+template <typename>
+class OperatorCostFunction;
+}
+
 namespace downward::utils {
 class LogProxy;
 }
 
 namespace probfd {
+class ProbabilisticOperatorSpace;
 class ProbabilisticOperatorProxy;
-class ProbabilisticOperatorsProxy;
 } // namespace probfd
 
 namespace probfd::merge_and_shrink {
@@ -26,7 +31,7 @@ struct LabelInfo {
     std::vector<value_t> probabilities;
 
     explicit LabelInfo(const json::JsonObject& object);
-    explicit LabelInfo(ProbabilisticOperatorProxy op);
+    LabelInfo(value_t cost, ProbabilisticOperatorProxy op);
     LabelInfo(value_t cost, std::vector<value_t> probabilities);
 
     friend std::unique_ptr<json::JsonObject> to_json(const LabelInfo& labels);
@@ -49,7 +54,9 @@ class Labels {
 public:
     explicit Labels(const json::JsonObject& object);
 
-    explicit Labels(ProbabilisticOperatorsProxy operators);
+    explicit Labels(
+        const ProbabilisticOperatorSpace& operators,
+        const downward::OperatorCostFunction<value_t>& cost_function);
 
     Labels(
         std::vector<LabelInfo> label_infos,
