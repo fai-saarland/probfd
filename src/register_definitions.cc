@@ -478,8 +478,8 @@ static void register_probfd_definitions(plugins::RawRegistry& raw_registry)
     probfd::cli::pdbs::add_pattern_generator_category(raw_registry);
     probfd::cli::pdbs::add_subcollection_finder_factory_category(raw_registry);
     probfd::cli::pdbs::add_trivial_finder_factory_feature(raw_registry);
-    probfd::cli::pdbs::cegar::add_bfs_flaw_finder_feature(raw_registry);
     probfd::cli::pdbs::cegar::add_flaw_finding_strategy_category(raw_registry);
+    probfd::cli::pdbs::cegar::add_bfs_flaw_finder_feature(raw_registry);
     probfd::cli::pdbs::cegar::add_pucs_flaw_finder_feature(raw_registry);
     probfd::cli::pdbs::cegar::add_sampling_flaw_finder_feature(raw_registry);
 
