@@ -159,7 +159,7 @@ static int search(argparse::ArgumentParser& parser)
         std::cout,
         "Reading input task...",
         probfd::tasks::read_sas_task_from_file,
-        parser.get("sas_file"));
+        parser.get("problem_file"));
 
     std::unique_ptr<SolverInterface> solver =
         solver_factory->create(input_task);
