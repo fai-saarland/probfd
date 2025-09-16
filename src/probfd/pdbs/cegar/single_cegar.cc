@@ -54,7 +54,6 @@ public:
         ProjectionTransformation& transformation,
         const SharedProbabilisticTask& task,
         const State& initial_state,
-        std::shared_ptr<Heuristic<StateRank>> heuristic,
         utils::RandomNumberGenerator& rng,
         utils::Duration max_time,
         utils::LogProxy log);
@@ -65,14 +64,14 @@ private:
         const SharedProbabilisticTask& task,
         std::vector<Flaw>& flaws,
         const State& initial_state,
-        const Heuristic<StateRank>& heuristic,
         utils::RandomNumberGenerator& rng,
         utils::CountdownTimer& timer,
         utils::LogProxy log);
 
-    std::unique_ptr<Heuristic<StateRank>> refine(
+    void refine(
         ProjectionTransformation& transformation,
         const SharedProbabilisticTask& task,
+        const State& initial_state,
         const std::vector<Flaw>& flaws,
         utils::RandomNumberGenerator& rng,
         utils::CountdownTimer& timer,
@@ -98,7 +97,6 @@ bool SingleCEGAR::get_flaws(
     const SharedProbabilisticTask& task,
     std::vector<Flaw>& flaws,
     const State& initial_state,
-    const Heuristic<StateRank>& heuristic,
     utils::RandomNumberGenerator& rng,
     utils::CountdownTimer& timer,
     utils::LogProxy log)
@@ -106,14 +104,6 @@ bool SingleCEGAR::get_flaws(
     auto& [pdb, projection] = transformation;
 
     const StateRank init_state_rank = pdb.get_abstract_state(initial_state);
-
-    compute_value_table(
-        *projection,
-        init_state_rank,
-        heuristic,
-        pdb.value_table,
-        timer.get_remaining_time(),
-        epsilon_);
 
     const auto policy = compute_optimal_projection_policy(
         *projection,
@@ -198,9 +188,10 @@ bool SingleCEGAR::get_flaws(
     return true;
 }
 
-std::unique_ptr<Heuristic<StateRank>> SingleCEGAR::refine(
+void SingleCEGAR::refine(
     ProjectionTransformation& transformation,
     const SharedProbabilisticTask& task,
+    const State& initial_state,
     const std::vector<Flaw>& flaws,
     utils::RandomNumberGenerator& rng,
     utils::CountdownTimer& timer,
@@ -238,25 +229,32 @@ std::unique_ptr<Heuristic<StateRank>> SingleCEGAR::refine(
     }
 
     // compute new solution
-    auto old_distances = std::move(pdb.value_table);
-
-    transformation = ProjectionTransformation(
+    ProjectionTransformation new_transformation(
         task,
         extended_pattern(pdb.get_pattern(), flaw_var),
         false,
         timer.get_remaining_time());
 
-    return std::make_unique<OwningIncrementalPPDBEvaluator>(
-        std::move(old_distances),
-        pdb.ranking_function,
+    NonOwningIncrementalPPDBEvaluator h(
+        pdb.value_table,
+        new_transformation.pdb.ranking_function,
         flaw_var);
+
+    compute_value_table(
+        *new_transformation.projection,
+        new_transformation.pdb.get_abstract_state(initial_state),
+        h,
+        new_transformation.pdb.value_table,
+        timer.get_remaining_time(),
+        epsilon_);
+
+    transformation = std::move(new_transformation);
 }
 
 void SingleCEGAR::run_cegar_loop(
     ProjectionTransformation& transformation,
     const SharedProbabilisticTask& task,
     const State& initial_state,
-    std::shared_ptr<Heuristic<StateRank>> heuristic,
     utils::RandomNumberGenerator& rng,
     utils::Duration max_time,
     utils::LogProxy log)
@@ -304,7 +302,6 @@ void SingleCEGAR::run_cegar_loop(
                     task,
                     flaws,
                     initial_state,
-                    *heuristic,
                     rng,
                     timer,
                     log))
@@ -314,7 +311,7 @@ void SingleCEGAR::run_cegar_loop(
 
             // if there was a flaw, then refine the abstraction
             // such that said flaw does not occur again
-            heuristic = refine(transformation, task, flaws, rng, timer, log);
+            refine(transformation, task, initial_state, flaws, rng, timer, log);
 
             ++refinement_counter;
             flaws.clear();
@@ -348,7 +345,6 @@ void run_cegar_loop(
     ProjectionTransformation& transformation,
     const SharedProbabilisticTask& task,
     const State& initial_state,
-    std::shared_ptr<Heuristic<StateRank>> heuristic,
     value_t convergence_epsilon,
     cegar::FlawFindingStrategy& flaw_strategy,
     std::unordered_set<int> blacklisted_variables,
@@ -369,45 +365,9 @@ void run_cegar_loop(
         transformation,
         task,
         initial_state,
-        std::move(heuristic),
         rng,
         max_time,
         std::move(log));
-}
-
-void run_cegar_loop(
-    ProjectionTransformation& transformation,
-    const SharedProbabilisticTask& task,
-    const State& initial_state,
-    value_t convergence_epsilon,
-    cegar::FlawFindingStrategy& flaw_strategy,
-    std::unordered_set<int> blacklisted_variables,
-    int max_pdb_size,
-    utils::RandomNumberGenerator& rng,
-    bool wildcard,
-    utils::Duration max_time,
-    utils::LogProxy log)
-{
-    const auto& operators = get_operators(task);
-    const auto& cost_function = get_cost_function(task);
-    const auto& term_costs = get_termination_costs(task);
-
-    run_cegar_loop(
-        transformation,
-        task,
-        initial_state,
-        std::make_unique<heuristics::BlindHeuristic<StateRank>>(
-            operators,
-            cost_function,
-            term_costs),
-        convergence_epsilon,
-        flaw_strategy,
-        blacklisted_variables,
-        max_pdb_size,
-        rng,
-        wildcard,
-        max_time,
-        log);
 }
 
 } // namespace probfd::pdbs::cegar
