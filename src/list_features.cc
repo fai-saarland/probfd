@@ -1,7 +1,8 @@
 #include "list_features.h"
 
-#include "downward/cli/parser/syntax_analyzer.h"
 #include "register_definitions.h"
+
+#include "downward/cli/parser/syntax_analyzer.h"
 
 #include "downward/cli/plugins/doc_printer.h"
 #include "downward/cli/plugins/raw_registry.h"
@@ -24,19 +25,6 @@ using namespace downward::cli::plugins;
 using downward::utils::ExitCode;
 
 static constexpr int MAX_LINE_WIDTH = 180;
-
-template <>
-struct std::formatter<downward::cli::plugins::Bounds> {
-    constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
-
-    template <typename FormatContext>
-    auto
-    format(const downward::cli::plugins::Bounds& bounds, FormatContext& ctx)
-        const
-    {
-        return std::format_to(ctx.out(), "[{}, {}]", bounds.min, bounds.max);
-    }
-};
 
 namespace probfd {
 
