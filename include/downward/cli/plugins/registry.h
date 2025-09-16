@@ -23,6 +23,19 @@ public:
     }
 };
 
+class MissingCategoryError : public std::runtime_error {
+public:
+    explicit MissingCategoryError(const std::string& message)
+        : runtime_error(message.c_str())
+    {
+    }
+
+    explicit MissingCategoryError(const char* message)
+        : runtime_error(message)
+    {
+    }
+};
+
 class MissingSubCategoryError : public std::runtime_error {
 public:
     explicit MissingSubCategoryError(const std::string& message)

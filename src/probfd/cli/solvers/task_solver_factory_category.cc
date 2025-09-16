@@ -15,7 +15,8 @@ void add_task_solver_factory_category(RawRegistry& raw_registry)
         "TaskSolverFactory");
     category.document_synopsis(
         "Represents a factory that produces a generic planning problem "
-        "solver for a given probabilistic planning task.");
+        "solver for a given probabilistic planning task. Expressions passed "
+        "to the search command must produce values of this type.");
 }
 
 } // namespace probfd::cli::solvers

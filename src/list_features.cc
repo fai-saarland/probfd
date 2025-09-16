@@ -109,23 +109,23 @@ public:
     }
 
 protected:
+    void print_header(const Feature& feature) const override
+    {
+        assert(!feature.get_key().empty());
+        std::println(os, "===== Variable {} =====", feature.get_key());
+    }
+
     void print_synopsis(const Feature& feature) const override
     {
-        string title = feature.get_title();
-        if (title.empty()) { title = feature.get_key(); }
-        os << "===== " << title << " =====" << endl;
-        if (print_all && !feature.get_synopsis().empty()) {
-            os << feature.get_synopsis() << endl;
+        if (const auto& syn = feature.get_synopsis(); !syn.empty()) {
+            std::println(os, "Description:\n{}\n", syn);
+        } else if (const auto& title = feature.get_title(); !title.empty()) {
+            std::println(os, "Description:\n{}\n", title);
         }
     }
 
     void print_usage(const Feature& feature) const override
     {
-        if (!feature.get_key().empty()) {
-            os << "Feature identifier(s):\n  " << feature.get_key() << "\n"
-               << std::endl;
-        }
-
         os << "Type:\n  ";
 
         const auto& args = feature.get_arguments();
@@ -133,23 +133,55 @@ protected:
         auto it = args.begin();
         const auto end = args.end();
 
+        os << "(";
+
+        bool has_optional = false;
+        // bool has_kw = false;
+
         if (it != end) {
             {
                 const ArgumentInfo& arg_info = *it;
                 os << arg_info.type.name();
+                if (arg_info.has_default()) {
+                    os << "*";
+                    has_optional = true;
+                }
+
+                /*if (const auto& key = arg_info.key; !key.empty()) {
+                    os << " [\"" << key << "\"]";
+                    has_kw = true;
+                }*/
             }
 
             for (++it; it != end; ++it) {
                 const ArgumentInfo& arg_info = *it;
-                if (arg_info.has_default()) { os << " ["; }
-                os << " x " << arg_info.type.name();
-                if (arg_info.has_default()) { os << " ]"; }
+                os << ", " << arg_info.type.name();
+                if (arg_info.has_default()) {
+                    os << "*";
+                    has_optional = true;
+                }
+
+                /*if (const auto& key = arg_info.key; !key.empty()) {
+                    os << " [\"" << key << "\"]";
+                    has_kw = true;
+                }*/
             }
-        } else {
-            os << "()";
         }
 
-        os << " -> " << feature.get_type().name() << "\n" << std::endl;
+        os << ") -> " << feature.get_type().name() << std::endl;
+
+        if (has_optional) {
+            os << "  The symbol '*' indicates an optional argument."
+               << std::endl;
+        }
+
+        /*if (has_kw) {
+            os << "  Argument names of keyword arguments are specified in "
+                  "brackets following the argument."
+               << std::endl;
+        }*/
+
+        os << endl;
     }
 
     void print_arguments(const Feature& feature) const override
@@ -159,7 +191,7 @@ protected:
             return;
         }
 
-        os << "Keyword arguments:\n";
+        os << "Arguments in positional order:\n";
 
         int max_width = 0;
 
@@ -264,30 +296,43 @@ protected:
         }
     }
 
-    void print_category_header(
-        const FeatureType& type,
+    void print_category_header(const FeatureType& type) const override
+    {
+        os << "##### Type " << type.name() << " #####\n\n";
+    }
+
+    void print_category_synopsis(const string& synopsis) const override
+    {
+        if (!synopsis.empty()) {
+            std::println(os, "Description:\n{}\n", synopsis);
+        } else {
+            std::println(os, "No description.\n");
+        }
+    }
+
+    void print_category_members(
+        const FeatureType&,
         const std::map<std::string, std::vector<const Feature*>>& subcategories)
         const override
     {
-        os << "##### Category " << type.name() << " #####\n\n";
-
         if (subcategories.empty()) {
-            os << "This category has no features.\n" << std::endl;
+            os << "This type has no members.\n" << std::endl;
             return;
         }
 
-        os << "Features:\n";
+        os << "Members:\n";
 
         std::size_t max_width = 0;
 
-        for (const auto& [subcategory, features] : subcategories) {
+        for (const auto& features : subcategories | views::values) {
             for (const auto& feature : features) {
-                const auto& name = feature->get_key();
-                if (name.size() > max_width) max_width = name.size();
+                if (const auto& name = feature->get_key();
+                    name.size() > max_width)
+                    max_width = name.size();
             }
         }
 
-        for (const auto& [subcategory, features] : subcategories) {
+        for (const auto& features : subcategories | views::values) {
             for (const auto& feature : features) {
                 const auto& name = feature->get_key();
                 const auto& synopsis = feature->get_title();
@@ -296,11 +341,6 @@ protected:
         }
 
         std::println(os);
-    }
-
-    void print_category_synopsis(const string& synopsis) const override
-    {
-        if (print_all && !synopsis.empty()) { os << synopsis << endl; }
     }
 
     void print_category_footer() const override {}
@@ -321,30 +361,21 @@ static int list_features(argparse::ArgumentParser& parser)
         doc_printer = std::make_unique<FeaturePrinter>(cout, registry);
     }
 
-    if (!parser.present("features") && !parser.present("type")) {
-        doc_printer->print_all();
-    } else {
-        if (auto categories =
-                parser.present<std::vector<std::string>>("type")) {
-            try {
-                for (const string& name : *categories) {
-                    doc_printer->print_category(name, parser.get<bool>("full"));
-                }
-            } catch (const MissingSubCategoryError& error) {
-                std::cerr << error.what() << std::endl;
-                return 1;
-            }
-        }
+    auto ids = parser.get<std::vector<std::string>>("identifiers");
 
-        if (auto features =
-                parser.present<std::vector<std::string>>("features")) {
-            for (const string& name : *features) {
-                try {
-                    doc_printer->print_feature(name);
-                } catch (const MissingFeatureError& error) {
-                    std::cerr << error.what() << std::endl;
-                    return 1;
-                }
+    for (const string& name : ids) {
+        try {
+            doc_printer->print_category(name, parser.get<bool>("full"));
+        } catch (const MissingCategoryError&) {
+            try {
+                doc_printer->print_feature(name);
+            } catch (const MissingFeatureError&) {
+                std::println(
+                    std::cerr,
+                    "Neither an expression type, nor a pre-definition "
+                    "named '{}' exists.",
+                    name);
+                return 1;
             }
         }
     }
@@ -358,32 +389,30 @@ void add_list_features_subcommand(argparse::ArgumentParser& arg_parser)
         arg_parser.emplace_subparser(
             std::forward_as_tuple(
                 "list-features",
-                "",
+                "0.0",
                 argparse::default_arguments::help),
             list_features);
+
     feature_list_parser.add_description(
-        "Lists available feature variable pre-definitions that can be used "
-        "in feature expressions. If no options are given, all "
-        "pre-definitions are listed.");
+        "Lists pre-defined variables and types of the expression language used "
+        "to specify the planning task solver."
+        "If no options are given, information for the root expression type "
+        "expected by the search command will be listed.");
 
     feature_list_parser.add_argument("--txt2tags")
-        .help("List feature variable pre-definitions in txt2tags format.")
+        .help("Emit output in txt2tags format.")
         .flag();
-    feature_list_parser.add_argument("--type")
-        .help(
-            "One or more types for which all pre-definitions that belong "
-            "to that type are to be listed.")
-        .nargs(argparse::nargs_pattern::at_least_one);
     feature_list_parser.add_argument("--full", "-f")
         .help(
-            "If specified, fulle detailed descriptions of all features of "
+            "If specified, full detailed descriptions of all members of "
             "all specified types will be listed explicitly as well.")
         .flag();
-    feature_list_parser.add_argument("features")
+    feature_list_parser.add_argument("identifiers")
         .help(
-            "Feature variable pre-definitions to list detailed "
-            "descriptions for.")
-        .remaining();
+            "One or more identifiers of pre-defined types or variables that "
+            "should be listed.")
+        .remaining()
+        .default_value(std::vector<std::string>({"TaskSolverFactory"}));
 }
 
 } // namespace probfd

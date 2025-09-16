@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <map>
+#include <regex>
 #include <string>
 #include <vector>
 
@@ -23,18 +24,23 @@ protected:
     std::ostream& os;
     const Registry& registry;
 
+    virtual void print_header(const Feature& plugin) const = 0;
     virtual void print_synopsis(const Feature& plugin) const = 0;
     virtual void print_usage(const Feature& plugin) const = 0;
     virtual void print_arguments(const Feature& plugin) const = 0;
     virtual void print_notes(const Feature& plugin) const = 0;
     virtual void print_language_features(const Feature& plugin) const = 0;
     virtual void print_properties(const Feature& plugin) const = 0;
-    virtual void print_category_header(
-        const FeatureType& type,
-        const std::map<std::string, std::vector<const Feature*>>& subcategories)
-        const = 0;
-    virtual void print_category_synopsis(
-        const std::string& synopsis) const = 0;
+
+    virtual void print_category_header(const FeatureType& type) const = 0;
+    virtual void print_category_synopsis(const std::string& synopsis) const = 0;
+
+    virtual void print_category_members(
+        const FeatureType&,
+        const std::map<std::string, std::vector<const Feature*>>&) const
+    {
+    }
+
     virtual void print_category_footer() const = 0;
 
 public:
@@ -48,18 +54,16 @@ public:
 
 class Txt2TagsPrinter : public DocPrinter {
 protected:
+    virtual void print_header(const Feature& plugin) const override;
     virtual void print_synopsis(const Feature& plugin) const override;
     virtual void print_usage(const Feature& plugin) const override;
     virtual void print_arguments(const Feature& plugin) const override;
     virtual void print_notes(const Feature& plugin) const override;
     virtual void print_language_features(const Feature& plugin) const override;
     virtual void print_properties(const Feature& plugin) const override;
-    virtual void print_category_header(
-        const FeatureType& type,
-        const std::map<std::string, std::vector<const Feature*>>&)
-        const override;
-    virtual void print_category_synopsis(
-        const std::string& synopsis) const override;
+    virtual void print_category_header(const FeatureType& type) const override;
+    virtual void
+    print_category_synopsis(const std::string& synopsis) const override;
     virtual void print_category_footer() const override;
 
 public:
@@ -71,18 +75,16 @@ class PlainPrinter : public DocPrinter {
     bool print_all;
 
 protected:
+    virtual void print_header(const Feature& plugin) const override;
     virtual void print_synopsis(const Feature& plugin) const override;
     virtual void print_usage(const Feature& plugin) const override;
     virtual void print_arguments(const Feature& plugin) const override;
     virtual void print_notes(const Feature& plugin) const override;
     virtual void print_language_features(const Feature& plugin) const override;
     virtual void print_properties(const Feature& plugin) const override;
-    virtual void print_category_header(
-        const FeatureType& type,
-        const std::map<std::string, std::vector<const Feature*>>&)
-        const override;
-    virtual void print_category_synopsis(
-        const std::string& synopsis) const override;
+    virtual void print_category_header(const FeatureType& type) const override;
+    virtual void
+    print_category_synopsis(const std::string& synopsis) const override;
     virtual void print_category_footer() const override;
 
 public:

@@ -12,9 +12,9 @@
 #include "probfd/utils/timed.h"
 
 #include "probfd/probabilistic_operator_space.h"
-#include "probfd/termination_costs.h"
 #include "probfd/probabilistic_task.h"
 #include "probfd/solver_interface.h"
+#include "probfd/termination_costs.h"
 
 #include "downward/axiom_space.h"
 #include "downward/goal_fact_list.h"
@@ -213,11 +213,11 @@ void add_search_subcommand(argparse::ArgumentParser& arg_parser)
 
     search_parser.add_argument("algorithm")
         .help(
-            "A feature expression evaluating to a search algorithm factory "
-            "(TaskSolverFactory). The factory will be invoked to construct a "
-            "solver for the input planning task which will be used to compute "
-            "a policy. "
-            "The expression grammar is according to the BNF:\n"
+            "A factory that produces a generic solver for the input planning "
+            "task. This generic solver will then be run after it was created, "
+            "which may for example output a policy.\n"
+            "The solver factory is expressed using a formal expression "
+            "language. The expression grammar is according to the BNF:\n"
             "\n"
             "EXPRESSION := LET_EXPRESSION | LIST_EXPRESSION | FUNCTION_CALL | "
             "IDENTIFIER | BOOLEAN | STRING | INTEGER | FLOAT\n"
@@ -259,28 +259,29 @@ void add_search_subcommand(argparse::ArgumentParser& arg_parser)
             "Identifiers can either be declared in let-expressions to be used "
             "within their body, pre-defined in a definitions file "
             "(see option --definitions-file) or are pre-defined by the planner "
-            "and designate a specific feature like a heuristic or solver "
-            "factory. All available pre-defined variables and their detailed "
-            "descriptions can be listed via the sub-command 'list-features' "
-            "(see 'list-features --help').\n"
-            "Please note that shadowing identifiers is not supported, i.e., it "
-            "is not possible to re-define the same symbol in a nested "
-            "let-expression or to shadow any of the available feature "
-            "pre-definitions.\n\n"
-            "Example: let ppdbs() as h in ilao(heuristic=h)\n"
+            "itself and designate a specific planner feature, e.g., a specific "
+            "solver factory implementation. All available pre-defined "
+            "variables and expression types can be listed via the sub-command "
+            "'list-features' (see 'list-features --help')."
+            "The root expression must have type 'TaskSolverFactory'.\n\n"
+            "Example:\nlet ppdbs() as h in ilao(heuristic=h)\n\n"
             "Declares a variable h that is bound to the result of the "
-            "expression ppdbs() of type TaskHeuristicFactory "
-            "(see also 'list-features ppdbs'). "
+            "expression ppdbs(). "
             "Evaluates to a TaskSolverFactory that will create an instance of "
             "the iLAO* algorithm to solve the input task, which will use "
             "the heuristic for the task that is constructed with the "
             "TaskHeuristicFactory bound to h, here a probabilistic PDB "
-            "heuristic (see also 'list-features ilao'.")
+            "heuristic (see also 'list-features TaskSolverFactory ilao ppdbs'.")
         .required()
         .metavar("FEATURE_EXPRESSION");
 
-    search_parser.add_argument("sas_file")
-        .help("The translated PPDDL planning problem file.")
+    search_parser.add_argument("problem_file")
+        .help(
+            "The problem file in probabilistic SAS+ format. Note that PPDDL "
+            "files are not directly supported. These must be translated into "
+            "the SAS+ format first using the translator. "
+            "See 'fast-downward.py --help' for more information on how to "
+            "invoke the translator before running the search component.")
         .required()
         .filepath();
 }

@@ -19,9 +19,8 @@ DocPrinter::DocPrinter(ostream& out, Registry& registry)
 void DocPrinter::print_all() const
 {
     FeatureTypes feature_types = registry.get_feature_types();
-    sort(
-        feature_types.begin(),
-        feature_types.end(),
+    ranges::sort(
+        feature_types,
         [](const FeatureType* t1, const FeatureType* t2) {
             return t1->name() < t2->name();
         });
@@ -33,13 +32,14 @@ void DocPrinter::print_all() const
 void DocPrinter::print_category(const string& name, bool recursive) const
 {
     FeatureTypes feature_types = registry.get_feature_types();
-    auto it = std::find_if(
-        feature_types.begin(),
-        feature_types.end(),
-        [&name](const FeatureType* t) { return t->name() == name; });
+    const auto it =
+        ranges::find_if(feature_types, [&name](const FeatureType* t) {
+            return t->name() == name;
+        });
 
     if (it == feature_types.end()) {
-        ABORT("could not find a category named '" + name + "' in the registry");
+        throw MissingCategoryError(
+            "could not find a category named '" + name + "' in the registry");
     }
 
     print_category(**it, recursive);
@@ -59,12 +59,13 @@ void DocPrinter::print_category(const FeatureType& type, bool recursive) const
         }
     }
 
-    for (auto& [name, features] : subcategories) {
+    for (auto& features : subcategories | views::values) {
         std::ranges::sort(features, {}, &Feature::get_key);
     }
 
-    print_category_header(type, subcategories);
+    print_category_header(type);
     print_category_synopsis(type.get_synopsis());
+    print_category_members(type, subcategories);
 
     if (recursive) {
         /*
@@ -80,15 +81,10 @@ void DocPrinter::print_category(const FeatureType& type, bool recursive) const
           groups in "core code" that may or may not be used by plug-ins, and if
           they are not used, they do not clutter the documentation.
          */
-        for (auto& pair : subcategories) {
-            string subcategory_name = pair.first;
-            vector<const Feature*>& features = pair.second;
-            sort(
-                features.begin(),
-                features.end(),
-                [](const Feature* p1, const Feature* p2) {
-                    return p1->get_key() < p2->get_key();
-                });
+        for (auto& [subcategory_name, features] : subcategories) {
+            ranges::sort(features, [](const Feature* p1, const Feature* p2) {
+                return p1->get_key() < p2->get_key();
+            });
             print_subcategory(subcategory_name, features);
         }
     }
@@ -114,6 +110,7 @@ void DocPrinter::print_subcategory(
 
 void DocPrinter::print_feature(const Feature& feature) const
 {
+    print_header(feature);
     print_synopsis(feature);
     print_usage(feature);
     print_arguments(feature);
@@ -127,11 +124,15 @@ Txt2TagsPrinter::Txt2TagsPrinter(ostream& out, Registry& registry)
 {
 }
 
-void Txt2TagsPrinter::print_synopsis(const Feature& feature) const
+void Txt2TagsPrinter::print_header(const Feature& feature) const
 {
     string title = feature.get_title();
     if (title.empty()) { title = feature.get_key(); }
     os << "== " << title << " ==" << endl;
+}
+
+void Txt2TagsPrinter::print_synopsis(const Feature& feature) const
+{
     if (!feature.get_synopsis().empty()) os << feature.get_synopsis() << endl;
 }
 
@@ -207,8 +208,7 @@ void Txt2TagsPrinter::print_properties(const Feature& feature) const
 }
 
 void Txt2TagsPrinter::print_category_header(
-    const FeatureType& type,
-    const std::map<std::string, std::vector<const Feature*>>&) const
+    const FeatureType& type) const
 {
     os << ">>>>CATEGORY: " << type.name() << "<<<<" << endl;
 }
@@ -229,11 +229,15 @@ PlainPrinter::PlainPrinter(ostream& out, Registry& registry, bool print_all)
 {
 }
 
-void PlainPrinter::print_synopsis(const Feature& feature) const
+void PlainPrinter::print_header(const Feature& feature) const
 {
     string title = feature.get_title();
     if (title.empty()) { title = feature.get_key(); }
     os << "== " << title << " ==" << endl;
+}
+
+void PlainPrinter::print_synopsis(const Feature& feature) const
+{
     if (print_all && !feature.get_synopsis().empty()) {
         os << feature.get_synopsis() << endl;
     }
@@ -310,15 +314,14 @@ void PlainPrinter::print_properties(const Feature& feature) const
 }
 
 void PlainPrinter::print_category_header(
-    const FeatureType& type,
-    const std::map<std::string, std::vector<const Feature*>>&) const
+    const FeatureType& type) const
 {
     os << "Help for " << type.name() << endl << endl;
 }
 
 void PlainPrinter::print_category_synopsis(const string& synopsis) const
 {
-    if (print_all && !synopsis.empty()) { os << synopsis << endl; }
+    if (!synopsis.empty()) { os << synopsis << endl; }
 }
 
 void PlainPrinter::print_category_footer() const
