@@ -112,7 +112,8 @@ bool SingleCEGAR::get_flaws(
         init_state_rank,
         heuristic,
         pdb.value_table,
-        timer.get_remaining_time());
+        timer.get_remaining_time(),
+        epsilon_);
 
     const auto policy = compute_optimal_projection_policy(
         *projection,
