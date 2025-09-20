@@ -78,45 +78,14 @@ public:
     const std::vector<NoteInfo>& get_notes() const;
 };
 
-template <typename Constructed>
-class FeatureWithDefault : public Feature {
-protected:
-    using Feature::Feature;
-
-    virtual std::shared_ptr<Constructed>
-    create_component(const Options& options, const downward::utils::Context&)
-        const
-    {
-        return std::make_shared<Constructed>(options);
-    }
-};
-
-template <typename Constructed>
-class FeatureWithoutDefault : public Feature {
-protected:
-    using Feature::Feature;
-    virtual std::shared_ptr<Constructed>
-    create_component(const Options&, const downward::utils::Context&) const = 0;
-};
-
-template <typename Constructed>
-using FeatureAuto = std::conditional_t<
-    std::is_constructible_v<Constructed, const Options&>,
-    FeatureWithDefault<Constructed>,
-    FeatureWithoutDefault<Constructed>>;
-
 template <typename Base, typename Constructed>
-class TypedFeature : public FeatureAuto<Constructed> {
+    requires std::derived_from<Constructed, Base>
+class TypedFeature : public Feature {
     using BasePtr = std::shared_ptr<Base>;
-    static_assert(
-        std::is_base_of_v<Base, Constructed>,
-        "Constructed must derive from Base");
 
 public:
     explicit TypedFeature(const std::string& key)
-        : FeatureAuto<Constructed>(
-              TypeRegistry::instance()->get_type<BasePtr>(),
-              key)
+        : Feature(TypeRegistry::instance()->get_type<BasePtr>(), key)
     {
     }
 
@@ -124,9 +93,11 @@ public:
     construct(const Options& options, const downward::utils::Context& context)
         const override
     {
-        std::shared_ptr<Base> ptr = this->create_component(options, context);
-        return std::any(ptr);
+        return {this->create_component(options, context)};
     }
+
+    virtual std::shared_ptr<Constructed>
+    create_component(const Options&, const downward::utils::Context&) const = 0;
 };
 
 /*
