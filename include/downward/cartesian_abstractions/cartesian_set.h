@@ -24,12 +24,12 @@ class CartesianSet {
     std::vector<Bitset> domain_subsets;
 
 public:
-    template <std::ranges::input_range R>
+    template <std::ranges::input_range R = std::initializer_list<int>>
         requires std::same_as<std::ranges::range_value_t<R>, int>
-    explicit CartesianSet(const R& domain_sizes)
+    explicit CartesianSet(R&& domain_sizes)
     {
         domain_subsets.reserve(domain_sizes.size());
-        for (int domain_size : domain_sizes) {
+        for (const int domain_size : domain_sizes) {
             Bitset domain(domain_size);
             domain.set();
             domain_subsets.push_back(std::move(domain));
