@@ -88,11 +88,10 @@ public:
     }
 };
 
-class ExhaustiveDFSSolverFeature
-    : public TypedFeature<TaskSolverFactory, MDPSolver> {
+class ExhaustiveDFSSolverFeature : public TypedFeature<TaskSolverFactory> {
 public:
     ExhaustiveDFSSolverFeature()
-        : TypedFeature<TaskSolverFactory, MDPSolver>("exhaustive_dfs")
+        : TypedFeature("exhaustive_dfs")
     {
         document_title("Exhaustive Depth-First Search");
 
@@ -114,7 +113,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<MDPSolver>
+    std::shared_ptr<TaskSolverFactory>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -130,7 +129,7 @@ protected:
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::solvers {
 
@@ -139,4 +138,4 @@ void add_exhaustive_dfs_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<ExhaustiveDFSSolverFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::solvers

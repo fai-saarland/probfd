@@ -29,8 +29,7 @@ namespace {
 template <typename T>
 class ParetoOpenListFeature
     : public TypedFeature<
-          downward::TaskDependentFactory<downward::OpenList<T>>,
-          ParetoOpenListFactory<T>> {
+          downward::TaskDependentFactory<downward::OpenList<T>>> {
 public:
     ParetoOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
@@ -80,7 +79,7 @@ public:
         add_open_list_options_to_feature(*this);
     }
 
-    shared_ptr<ParetoOpenListFactory<T>>
+    shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<ParetoOpenListFactory<T>>(
@@ -91,7 +90,7 @@ public:
             get_open_list_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::open_lists {
 
@@ -103,4 +102,4 @@ void add_pareto_open_list_features(RawRegistry& raw_registry)
         ParetoOpenListFeature<downward::EdgeOpenListEntry>>();
 }
 
-} // namespace
+} // namespace downward::cli::open_lists

@@ -17,7 +17,7 @@ using namespace downward::cli::plugins;
 
 namespace {
 class DeleteRelaxationRRConstraintsFeature
-    : public TypedFeature<ConstraintGenerator, DeleteRelaxationRRConstraints> {
+    : public TypedFeature<ConstraintGenerator> {
 public:
     DeleteRelaxationRRConstraintsFeature()
         : TypedFeature("delete_relaxation_rr_constraints")
@@ -81,7 +81,7 @@ public:
             "configuration, and some relaxations offer tighter bounds.\n");
     }
 
-    virtual std::shared_ptr<DeleteRelaxationRRConstraints>
+    virtual std::shared_ptr<ConstraintGenerator>
     create_component(const Options& opts, const Context&) const override
     {
         return std::make_shared<DeleteRelaxationRRConstraints>(
@@ -89,7 +89,7 @@ public:
             opts.get<bool>("use_integer_vars"));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::operator_counting {
 
@@ -115,4 +115,4 @@ void add_delete_relaxation_rr_constraints_feature(RawRegistry& raw_registry)
           "of the delete-relaxation heuristic."}});
 }
 
-} // namespace
+} // namespace downward::cli::operator_counting

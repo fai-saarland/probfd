@@ -1,7 +1,7 @@
 #include "downward/cli/pdbs/pattern_collection_generator_hillclimbing_feature.h"
 
-#include "downward/cli/pdbs/pattern_collection_generator_hillclimbing_options.h"
 #include "downward/cli/pdbs/canonical_pdbs_heuristic_options.h"
+#include "downward/cli/pdbs/pattern_collection_generator_hillclimbing_options.h"
 #include "downward/cli/pdbs/pattern_generator_options.h"
 
 #include "downward/cli/plugins/plugin.h"
@@ -59,9 +59,7 @@ std::string paper_references()
 }
 
 class PatternCollectionGeneratorHillclimbingFeature
-    : public TypedFeature<
-          PatternCollectionGenerator,
-          PatternCollectionGeneratorHillclimbing> {
+    : public TypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorHillclimbingFeature()
         : TypedFeature("hillclimbing")
@@ -77,7 +75,7 @@ public:
         add_generator_options_to_feature(*this);
     }
 
-    virtual shared_ptr<PatternCollectionGeneratorHillclimbing>
+    virtual shared_ptr<PatternCollectionGenerator>
     create_component(const Options& opts, const Context& context) const override
     {
         if (opts.get<int>("min_improvement") > opts.get<int>("num_samples")) {
@@ -92,14 +90,15 @@ public:
             get_generator_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::pdbs {
 
-void add_pattern_collection_generator_hillclimbing_feature(RawRegistry& raw_registry)
+void add_pattern_collection_generator_hillclimbing_feature(
+    RawRegistry& raw_registry)
 {
     raw_registry
         .insert_feature_plugin<PatternCollectionGeneratorHillclimbingFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::pdbs

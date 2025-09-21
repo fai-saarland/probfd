@@ -25,7 +25,7 @@ using namespace probfd::cli::merge_and_shrink;
 
 namespace {
 class MergeStrategyFactorySCCsFeature
-    : public TypedFeature<MergeStrategyFactory, MergeStrategyFactorySCCs> {
+    : public TypedFeature<MergeStrategyFactory> {
 public:
     MergeStrategyFactorySCCsFeature()
         : TypedFeature("pmerge_sccs")
@@ -73,7 +73,7 @@ public:
         add_merge_strategy_options_to_feature(*this);
     }
 
-    shared_ptr<MergeStrategyFactorySCCs>
+    shared_ptr<MergeStrategyFactory>
     create_component(const Options& options, const utils::Context& context)
         const override
     {
@@ -82,7 +82,7 @@ public:
             context.error(
                 "You have to specify exactly one of the options merge_tree "
                 "and merge_selector!");
-            }
+        }
 
         return make_shared_from_arg_tuples<MergeStrategyFactorySCCs>(
             downward::cli::utils::get_log_arguments_from_options(options),
@@ -91,7 +91,7 @@ public:
             options.get<shared_ptr<MergeSelector>>("merge_selector", nullptr));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::merge_and_shrink {
 
@@ -112,4 +112,4 @@ void add_merge_strategy_factory_sccs_feature(RawRegistry& raw_registry)
           "smallest SCCs first, using 'topological' as tie-breaker"}});
 }
 
-} // namespace
+} // namespace probfd::cli::merge_and_shrink

@@ -85,11 +85,10 @@ public:
     }
 };
 
-class TrapAwareDFHSSolverFeature
-    : public TypedFeature<TaskSolverFactory, MDPSolver> {
+class TrapAwareDFHSSolverFeature : public TypedFeature<TaskSolverFactory> {
 public:
     TrapAwareDFHSSolverFeature()
-        : TypedFeature<TaskSolverFactory, MDPSolver>("tadfhs")
+        : TypedFeature("tadfhs")
     {
         document_title("Trap-aware depth-first heuristic search family");
         document_synopsis(
@@ -129,7 +128,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<MDPSolver>
+    std::shared_ptr<TaskSolverFactory>
     create_component(const Options& options, const Context&) const override
     {
         return make_shared_from_arg_tuples<MDPSolver>(
@@ -146,11 +145,10 @@ protected:
     }
 };
 
-class TrapAwareILAOSolverFeature
-    : public TypedFeature<TaskSolverFactory, MDPSolver> {
+class TrapAwareILAOSolverFeature : public TypedFeature<TaskSolverFactory> {
 public:
     TrapAwareILAOSolverFeature()
-        : TypedFeature<TaskSolverFactory, MDPSolver>("tailao")
+        : TypedFeature("tailao")
     {
         document_title(
             "iLAO* variant of trap-aware depth-first heuristic search");
@@ -169,7 +167,7 @@ public:
         add_mdp_hs_base_options_to_feature<false, true>(*this);
     }
 
-    std::shared_ptr<MDPSolver>
+    std::shared_ptr<TaskSolverFactory>
     create_component(const Options& options, const Context&) const override
     {
         // opts_copy.set<std::string>("name", "ilao");
@@ -187,11 +185,10 @@ public:
     }
 };
 
-class TrapAwareLILAOSolverFeature
-    : public TypedFeature<TaskSolverFactory, MDPSolver> {
+class TrapAwareLILAOSolverFeature : public TypedFeature<TaskSolverFactory> {
 public:
     TrapAwareLILAOSolverFeature()
-        : TypedFeature<TaskSolverFactory, MDPSolver>("talilao")
+        : TypedFeature("talilao")
     {
         document_title(
             "Labelled iLAO* variant of trap-aware depth-first "
@@ -211,7 +208,7 @@ public:
         add_mdp_hs_base_options_to_feature<false, true>(*this);
     }
 
-    std::shared_ptr<MDPSolver>
+    std::shared_ptr<TaskSolverFactory>
     create_component(const Options& options, const Context&) const override
     {
         // opts_copy.set<std::string>("name", "lilao");
@@ -231,11 +228,10 @@ public:
     }
 };
 
-class TrapAwareHDPSolverFeature
-    : public TypedFeature<TaskSolverFactory, MDPSolver> {
+class TrapAwareHDPSolverFeature : public TypedFeature<TaskSolverFactory> {
 public:
     TrapAwareHDPSolverFeature()
-        : TypedFeature<TaskSolverFactory, MDPSolver>("tahdp")
+        : TypedFeature("tahdp")
     {
         document_title(
             "HDP variant of trap-aware depth-first heuristic search");
@@ -254,7 +250,7 @@ public:
         add_mdp_hs_base_options_to_feature<false, true>(*this);
     }
 
-    std::shared_ptr<MDPSolver>
+    std::shared_ptr<TaskSolverFactory>
     create_component(const Options& options, const Context&) const override
     {
         // opts_copy.set<std::string>("name", "hdp");
@@ -272,7 +268,7 @@ public:
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::solvers {
 
@@ -302,4 +298,4 @@ void add_ta_depth_first_heuristic_search_feature(RawRegistry& raw_registry)
           "dfs exploration."}});
 }
 
-} // namespace
+} // namespace probfd::cli::solvers

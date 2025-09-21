@@ -14,20 +14,20 @@ using namespace downward::cli::plugins;
 
 namespace {
 class AStarFlawGeneratorFactoryFeature
-    : public TypedFeature<FlawGeneratorFactory, AStarFlawGeneratorFactory> {
+    : public TypedFeature<FlawGeneratorFactory> {
 public:
     AStarFlawGeneratorFactoryFeature()
         : TypedFeature("flaws_astar")
     {
     }
 
-    std::shared_ptr<AStarFlawGeneratorFactory>
+    std::shared_ptr<FlawGeneratorFactory>
     create_component(const Options&, const Context&) const override
     {
         return std::make_shared<AStarFlawGeneratorFactory>();
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::cartesian_abstractions {
 
@@ -36,4 +36,4 @@ void add_astar_flaw_generator_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<AStarFlawGeneratorFactoryFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::cartesian_abstractions

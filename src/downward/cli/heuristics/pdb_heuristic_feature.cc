@@ -43,8 +43,7 @@ public:
     {
     }
 
-    unique_ptr<Evaluator>
-    create_object(const SharedAbstractTask& task) override
+    unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
     {
         auto transformation_result = transformation->transform(task);
 
@@ -59,9 +58,7 @@ public:
 };
 
 class PDBHeuristicFeature
-    : public TypedFeature<
-          TaskDependentFactory<Evaluator>,
-          PDBHeuristicFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     PDBHeuristicFeature()
         : TypedFeature("pdb")
@@ -86,7 +83,7 @@ public:
         document_property("preferred operators", "no");
     }
 
-    shared_ptr<PDBHeuristicFactory>
+    shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<PDBHeuristicFactory>(
@@ -94,7 +91,7 @@ public:
             opts.get<shared_ptr<PatternGenerator>>("pattern"));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::heuristics {
 
@@ -103,4 +100,4 @@ void add_pdb_heuristic_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<PDBHeuristicFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::heuristics

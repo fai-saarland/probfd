@@ -20,15 +20,15 @@ using downward::cli::landmarks::add_use_orders_option_to_feature;
 using downward::cli::landmarks::get_use_orders_arguments_from_options;
 
 namespace {
-class LandmarkFactoryRpgSaspFeature
-    : public TypedFeature<LandmarkFactory, LandmarkFactoryRpgSasp> {
+class LandmarkFactoryRpgSaspFeature : public TypedFeature<LandmarkFactory> {
 public:
     LandmarkFactoryRpgSaspFeature()
         : TypedFeature("lm_rhw")
     {
         document_title("RHW Landmarks");
-        document_synopsis("The landmark generation method introduced by "
-                          "Richter, Helmert and Westphal (AAAI 2008).");
+        document_synopsis(
+            "The landmark generation method introduced by "
+            "Richter, Helmert and Westphal (AAAI 2008).");
 
         add_option<bool>(
             "disjunctive_landmarks",
@@ -40,7 +40,7 @@ public:
         document_language_support("conditional_effects", "supported");
     }
 
-    virtual shared_ptr<LandmarkFactoryRpgSasp>
+    virtual shared_ptr<LandmarkFactory>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<LandmarkFactoryRpgSasp>(
@@ -49,7 +49,7 @@ public:
             get_landmark_factory_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::landmarks {
 
@@ -58,4 +58,4 @@ void add_landmark_factory_rpg_sasp_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<LandmarkFactoryRpgSaspFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::landmarks

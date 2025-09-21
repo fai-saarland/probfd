@@ -22,8 +22,7 @@ namespace {
 template <typename T>
 class TieBreakingOpenListFeature
     : public TypedFeature<
-          downward::TaskDependentFactory<downward::OpenList<T>>,
-          TieBreakingOpenListFactory<T>> {
+          downward::TaskDependentFactory<downward::OpenList<T>>> {
 public:
     TieBreakingOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
@@ -61,7 +60,7 @@ public:
         add_open_list_options_to_feature(*this);
     }
 
-    virtual shared_ptr<TieBreakingOpenListFactory<T>>
+    virtual shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
     create_component(const Options& opts, const Context& context) const override
     {
         verify_list_non_empty<shared_ptr<downward::Evaluator>>(
@@ -74,7 +73,7 @@ public:
             get_open_list_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::open_lists {
 
@@ -86,4 +85,4 @@ void add_tiebreaking_open_list_features(RawRegistry& raw_registry)
         TieBreakingOpenListFeature<downward::EdgeOpenListEntry>>();
 }
 
-} // namespace
+} // namespace downward::cli::open_lists

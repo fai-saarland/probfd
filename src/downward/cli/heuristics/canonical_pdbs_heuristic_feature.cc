@@ -51,8 +51,7 @@ public:
     {
     }
 
-    unique_ptr<Evaluator>
-    create_object(const SharedAbstractTask& task) override
+    unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
     {
         auto transformation_result = transformation->transform(task);
 
@@ -68,9 +67,7 @@ public:
 };
 
 class CanonicalPDBsHeuristicFeature
-    : public TypedFeature<
-          TaskDependentFactory<Evaluator>,
-          CanonicalPDBsHeuristicFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     CanonicalPDBsHeuristicFeature()
         : TypedFeature("cpdbs")
@@ -103,7 +100,7 @@ public:
         document_property("preferred operators", "no");
     }
 
-    shared_ptr<CanonicalPDBsHeuristicFactory>
+    shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<CanonicalPDBsHeuristicFactory>(
@@ -112,7 +109,7 @@ public:
             get_canonical_pdbs_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::heuristics {
 
@@ -121,4 +118,4 @@ void add_canonical_pdbs_heuristic_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<CanonicalPDBsHeuristicFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::heuristics

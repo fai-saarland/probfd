@@ -20,8 +20,7 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-class SamplingFlawFinderFeature
-    : public TypedFeature<FlawFindingStrategy, SamplingFlawFinder> {
+class SamplingFlawFinderFeature : public TypedFeature<FlawFindingStrategy> {
 public:
     SamplingFlawFinderFeature()
         : TypedFeature("sampling_flaw_finder")
@@ -35,7 +34,7 @@ public:
             Bounds("0", "infinity"));
     }
 
-    std::shared_ptr<SamplingFlawFinder>
+    std::shared_ptr<FlawFindingStrategy>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<SamplingFlawFinder>(
@@ -43,7 +42,7 @@ public:
             opts.get<int>("max_search_states"));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::pdbs::cegar {
 
@@ -52,4 +51,4 @@ void add_sampling_flaw_finder_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<SamplingFlawFinderFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::pdbs::cegar

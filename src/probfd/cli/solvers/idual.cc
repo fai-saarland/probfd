@@ -56,10 +56,10 @@ public:
     }
 };
 
-class IDualSolverFeature : public TypedFeature<TaskSolverFactory, MDPSolver> {
+class IDualSolverFeature : public TypedFeature<TaskSolverFactory> {
 public:
     IDualSolverFeature()
-        : TypedFeature<TaskSolverFactory, MDPSolver>("idual")
+        : TypedFeature("idual")
     {
         document_title("i-dual");
 
@@ -75,7 +75,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<MDPSolver>
+    std::shared_ptr<TaskSolverFactory>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -86,7 +86,7 @@ protected:
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::solvers {
 
@@ -95,4 +95,4 @@ void add_idual_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<IDualSolverFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::solvers

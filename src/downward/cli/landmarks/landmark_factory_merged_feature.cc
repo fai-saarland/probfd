@@ -19,8 +19,7 @@ using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 using downward::cli::landmarks::get_landmark_factory_arguments_from_options;
 
 namespace {
-class LandmarkFactoryMergedFeature
-    : public TypedFeature<LandmarkFactory, LandmarkFactoryMerged> {
+class LandmarkFactoryMergedFeature : public TypedFeature<LandmarkFactory> {
 public:
     LandmarkFactoryMergedFeature()
         : TypedFeature("lm_merged")
@@ -46,7 +45,7 @@ public:
             "supported if all components support them");
     }
 
-    virtual shared_ptr<LandmarkFactoryMerged>
+    virtual shared_ptr<LandmarkFactory>
     create_component(const Options& opts, const Context& context) const override
     {
         verify_list_non_empty<shared_ptr<LandmarkFactory>>(
@@ -58,7 +57,7 @@ public:
             get_landmark_factory_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::landmarks {
 
@@ -67,4 +66,4 @@ void add_landmark_factory_merged_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<LandmarkFactoryMergedFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::landmarks

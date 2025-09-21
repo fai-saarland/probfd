@@ -19,8 +19,7 @@ using namespace probfd::cli::heuristics;
 using namespace downward::cli::plugins;
 
 namespace {
-class UCPHeuristicFactoryFeature
-    : public TypedFeature<TaskHeuristicFactory, UCPHeuristicFactory> {
+class UCPHeuristicFactoryFeature : public TypedFeature<TaskHeuristicFactory> {
 public:
     UCPHeuristicFactoryFeature()
         : TypedFeature("ucp_heuristic")
@@ -44,7 +43,7 @@ public:
         add_task_dependent_heuristic_options_to_feature(*this);
     }
 
-    std::shared_ptr<UCPHeuristicFactory>
+    std::shared_ptr<TaskHeuristicFactory>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<UCPHeuristicFactory>(
@@ -52,7 +51,7 @@ public:
             opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::heuristics {
 
@@ -61,4 +60,4 @@ void add_ucp_heuristic_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<UCPHeuristicFactoryFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::heuristics

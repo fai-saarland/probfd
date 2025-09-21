@@ -222,12 +222,10 @@ public:
     }
 };
 
-class BisimulationVISolverFeature
-    : public TypedFeature<TaskSolverFactory, BisimulationIterationFactory> {
+class BisimulationVISolverFeature : public TypedFeature<TaskSolverFactory> {
 public:
     BisimulationVISolverFeature()
-        : TypedFeature<TaskSolverFactory, BisimulationIterationFactory>(
-              "bisimulation_vi")
+        : TypedFeature("bisimulation_vi")
     {
         document_title("Bisimulation Value Iteration");
 
@@ -238,7 +236,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<BisimulationIterationFactory>
+    std::shared_ptr<TaskSolverFactory>
     create_component(const Options& opts, const utils::Context&) const override
     {
         return std::make_shared<BisimulationIterationFactory>(
@@ -247,12 +245,10 @@ protected:
     }
 };
 
-class BisimulationIISolverFeature
-    : public TypedFeature<TaskSolverFactory, BisimulationIterationFactory> {
+class BisimulationIISolverFeature : public TypedFeature<TaskSolverFactory> {
 public:
     BisimulationIISolverFeature()
-        : TypedFeature<TaskSolverFactory, BisimulationIterationFactory>(
-              "bisimulation_ii")
+        : TypedFeature("bisimulation_ii")
     {
         document_title("Bisimulation Interval Iteration");
 
@@ -263,7 +259,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<BisimulationIterationFactory>
+    std::shared_ptr<TaskSolverFactory>
     create_component(const Options& opts, const utils::Context&) const override
     {
         return std::make_shared<BisimulationIterationFactory>(
@@ -271,7 +267,7 @@ protected:
             true);
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::solvers {
 
@@ -281,4 +277,4 @@ void add_bisimulation_value_iteration_features(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<BisimulationIISolverFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::solvers

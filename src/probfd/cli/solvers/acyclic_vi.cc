@@ -82,8 +82,7 @@ public:
     }
 };
 
-class AcyclicVISolverFeature
-    : public TypedFeature<TaskSolverFactory, MDPSolver> {
+class AcyclicVISolverFeature : public TypedFeature<TaskSolverFactory> {
 public:
     AcyclicVISolverFeature()
         : TypedFeature("acyclic_value_iteration")
@@ -93,7 +92,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<MDPSolver>
+    std::shared_ptr<TaskSolverFactory>
     create_component(const Options& options, const Context&) const override
     {
         return make_shared_from_arg_tuples<MDPSolver>(
@@ -101,7 +100,7 @@ protected:
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::solvers {
 
@@ -110,4 +109,4 @@ void add_acyclic_value_iteration_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<AcyclicVISolverFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::solvers

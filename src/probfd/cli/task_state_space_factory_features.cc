@@ -59,7 +59,7 @@ public:
 };
 
 class DefaultTaskStateSpaceFactoryFeature
-    : public TypedFeature<TaskStateSpaceFactory, DefaultTaskStateSpaceFactory> {
+    : public TypedFeature<TaskStateSpaceFactory> {
 public:
     DefaultTaskStateSpaceFactoryFeature()
         : TypedFeature("default_state_space")
@@ -73,7 +73,7 @@ public:
             "[]");
     }
 
-    std::shared_ptr<DefaultTaskStateSpaceFactory>
+    std::shared_ptr<TaskStateSpaceFactory>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<DefaultTaskStateSpaceFactory>(
@@ -83,7 +83,7 @@ public:
 };
 
 class CachingTaskStateSpaceFactoryFeature
-    : public TypedFeature<TaskStateSpaceFactory, CachingTaskStateSpaceFactory> {
+    : public TypedFeature<TaskStateSpaceFactory> {
 public:
     CachingTaskStateSpaceFactoryFeature()
         : TypedFeature("caching_state_space")
@@ -98,7 +98,7 @@ public:
             "[]");
     }
 
-    std::shared_ptr<CachingTaskStateSpaceFactory>
+    std::shared_ptr<TaskStateSpaceFactory>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<CachingTaskStateSpaceFactory>(
@@ -106,7 +106,7 @@ public:
                 "path_dependent_evaluators"));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli {
 
@@ -116,4 +116,4 @@ void add_task_state_space_factory_features(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<CachingTaskStateSpaceFactoryFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli

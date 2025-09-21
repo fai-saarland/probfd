@@ -22,8 +22,7 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-class GZOCPHeuristicFactoryFeature
-    : public TypedFeature<TaskHeuristicFactory, GZOCPHeuristicFactory> {
+class GZOCPHeuristicFactoryFeature : public TypedFeature<TaskHeuristicFactory> {
 public:
     GZOCPHeuristicFactoryFeature()
         : TypedFeature("gzocp_heuristic")
@@ -49,7 +48,7 @@ public:
         add_task_dependent_heuristic_options_to_feature(*this);
     }
 
-    std::shared_ptr<GZOCPHeuristicFactory>
+    std::shared_ptr<TaskHeuristicFactory>
     create_component(const Options& opts, const utils::Context&) const override
     {
         return make_shared_from_arg_tuples<GZOCPHeuristicFactory>(
@@ -59,7 +58,7 @@ public:
             get_task_dependent_heuristic_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::heuristics {
 
@@ -76,4 +75,4 @@ void add_gzocp_heuristic_feature(RawRegistry& raw_registry)
           "algorithm"}});
 }
 
-} // namespace
+} // namespace probfd::cli::heuristics

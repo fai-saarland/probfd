@@ -14,9 +14,7 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 class MergeScoringFunctionGoalRelevanceFeature
-    : public TypedFeature<
-          MergeScoringFunction,
-          MergeScoringFunctionGoalRelevance> {
+    : public TypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionGoalRelevanceFeature()
         : TypedFeature("pgoal_relevance")
@@ -31,13 +29,13 @@ public:
             "All other candidates get a score of positive infinity.");
     }
 
-    shared_ptr<MergeScoringFunctionGoalRelevance>
+    shared_ptr<MergeScoringFunction>
     create_component(const Options&, const utils::Context&) const override
     {
         return make_shared<MergeScoringFunctionGoalRelevance>();
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::merge_and_shrink {
 
@@ -48,4 +46,4 @@ void add_merge_scoring_function_goal_relevance_feature(
         .insert_feature_plugin<MergeScoringFunctionGoalRelevanceFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::merge_and_shrink

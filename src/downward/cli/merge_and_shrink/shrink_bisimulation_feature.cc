@@ -16,8 +16,7 @@ using namespace downward::cli::plugins;
 using namespace downward::merge_and_shrink;
 
 namespace {
-class ShrinkBisimulationFeature
-    : public TypedFeature<ShrinkStrategy, ShrinkBisimulation> {
+class ShrinkBisimulationFeature : public TypedFeature<ShrinkStrategy> {
 public:
     ShrinkBisimulationFeature()
         : TypedFeature("shrink_bisimulation")
@@ -73,7 +72,7 @@ public:
             "merging).");
     }
 
-    virtual shared_ptr<ShrinkBisimulation>
+    virtual shared_ptr<ShrinkStrategy>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared<ShrinkBisimulation>(
@@ -81,7 +80,7 @@ public:
             opts.get<AtLimit>("at_limit"));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::merge_and_shrink {
 
@@ -96,4 +95,4 @@ void add_shrink_bisimulation_feature(RawRegistry& raw_registry)
           "the size limit is hit"}});
 }
 
-} // namespace
+} // namespace downward::cli::merge_and_shrink

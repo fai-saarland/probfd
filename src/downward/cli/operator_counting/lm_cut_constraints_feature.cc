@@ -14,8 +14,7 @@ using namespace downward::operator_counting;
 using namespace downward::cli::plugins;
 
 namespace {
-class LMCutConstraintsFeature
-    : public TypedFeature<ConstraintGenerator, LMCutConstraints> {
+class LMCutConstraintsFeature : public TypedFeature<ConstraintGenerator> {
 public:
     LMCutConstraintsFeature()
         : TypedFeature("lmcut_constraints")
@@ -47,7 +46,7 @@ public:
                 {"Blai Bonet"},
                 "An admissible heuristic for SAS+ planning obtained from the"
                 " state equation",
-                "http://ijcai.org/papers13/Papers/IJCAI13-335.pdf",
+                "https://ijcai.org/papers13/Papers/IJCAI13-335.pdf",
                 "Proceedings of the Twenty-Third International Joint"
                 " Conference on Artificial Intelligence (IJCAI 2013)",
                 "2268-2274",
@@ -55,13 +54,13 @@ public:
                 "2013"));
     }
 
-    virtual shared_ptr<LMCutConstraints>
+    virtual shared_ptr<ConstraintGenerator>
     create_component(const Options&, const Context&) const override
     {
         return make_shared<LMCutConstraints>();
     }
 };
-}
+} // namespace
 
 namespace downward::cli::operator_counting {
 
@@ -70,4 +69,4 @@ void add_lm_cut_constraints_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<LMCutConstraintsFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::operator_counting

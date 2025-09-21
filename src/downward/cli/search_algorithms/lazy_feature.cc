@@ -87,9 +87,7 @@ public:
 };
 
 class LazySearchFeature
-    : public TypedFeature<
-          TaskDependentFactory<SearchAlgorithm>,
-          LazySearchFactory> {
+    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     LazySearchFeature()
         : TypedFeature("lazy")
@@ -109,7 +107,7 @@ public:
         add_search_algorithm_options_to_feature(*this, "lazy");
     }
 
-    shared_ptr<LazySearchFactory>
+    shared_ptr<TaskDependentFactory<SearchAlgorithm>>
     create_component(const Options& opts, const utils::Context&) const override
     {
         return make_shared_from_arg_tuples<LazySearchFactory>(
@@ -121,7 +119,7 @@ public:
             get_successors_order_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::search_algorithms {
 
@@ -130,4 +128,4 @@ void add_lazy_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<LazySearchFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::search_algorithms

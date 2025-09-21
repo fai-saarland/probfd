@@ -20,8 +20,7 @@ using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
 namespace {
-class MergeTreeFactoryLinearFeature
-    : public TypedFeature<MergeTreeFactory, MergeTreeFactoryLinear> {
+class MergeTreeFactoryLinearFeature : public TypedFeature<MergeTreeFactory> {
 public:
     MergeTreeFactoryLinearFeature()
         : TypedFeature("plinear")
@@ -50,7 +49,7 @@ public:
     }
 
 protected:
-    shared_ptr<MergeTreeFactoryLinear>
+    shared_ptr<MergeTreeFactory>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -60,7 +59,7 @@ protected:
                 "variable_order"));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::merge_and_shrink {
 
@@ -69,4 +68,4 @@ void add_merge_tree_factory_linear_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<MergeTreeFactoryLinearFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::merge_and_shrink

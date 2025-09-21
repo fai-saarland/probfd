@@ -18,8 +18,7 @@ using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
 namespace {
-class ShrinkStrategyEqualDistanceFeature
-    : public TypedFeature<ShrinkStrategy, ShrinkStrategyEqualDistance> {
+class ShrinkStrategyEqualDistanceFeature : public TypedFeature<ShrinkStrategy> {
 public:
     ShrinkStrategyEqualDistanceFeature()
         : TypedFeature("shrink_equal_distance")
@@ -41,7 +40,7 @@ public:
     }
 
 protected:
-    shared_ptr<ShrinkStrategyEqualDistance>
+    shared_ptr<ShrinkStrategy>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -50,7 +49,7 @@ protected:
             options.get<ShrinkStrategyEqualDistance::Priority>("priority"));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::merge_and_shrink {
 
@@ -63,4 +62,4 @@ void add_shrink_strategy_equal_distance_feature(RawRegistry& raw_registry)
          {"low", "prefer shrinking states with low value"}});
 }
 
-} // namespace
+} // namespace probfd::cli::merge_and_shrink

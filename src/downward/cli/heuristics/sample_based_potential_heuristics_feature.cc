@@ -106,9 +106,7 @@ public:
 };
 
 class SampleBasedPotentialMaxHeuristicFeature
-    : public TypedFeature<
-          TaskDependentFactory<Evaluator>,
-          PotentialMaxHeuristicFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     SampleBasedPotentialMaxHeuristicFeature()
         : TypedFeature("sample_based_potentials")
@@ -135,7 +133,7 @@ public:
         add_rng_options_to_feature(*this);
     }
 
-    shared_ptr<PotentialMaxHeuristicFactory>
+    shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared<PotentialMaxHeuristicFactory>(
@@ -150,7 +148,7 @@ public:
             opts.get<int>("random_seed"));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::heuristics {
 
@@ -160,4 +158,4 @@ void add_sample_based_potential_heuristics_feature(RawRegistry& raw_registry)
         .insert_feature_plugin<SampleBasedPotentialMaxHeuristicFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::heuristics

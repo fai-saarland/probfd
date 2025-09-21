@@ -100,8 +100,7 @@ public:
     {
     }
 
-    unique_ptr<Evaluator>
-    create_object(const SharedAbstractTask& task) override
+    unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
     {
         auto transformation_result = transformation->transform(task);
 
@@ -125,10 +124,7 @@ public:
     }
 };
 
-class IPDBFeature
-    : public TypedFeature<
-          TaskDependentFactory<Evaluator>,
-          IPDBsHeuristicFactory> {
+class IPDBFeature : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     IPDBFeature()
         : TypedFeature("ipdb")
@@ -171,7 +167,7 @@ public:
         document_property("preferred operators", "no");
     }
 
-    shared_ptr<IPDBsHeuristicFactory>
+    shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context& context) const override
     {
         if (opts.get<int>("min_improvement") > opts.get<int>("num_samples")) {
@@ -191,7 +187,7 @@ public:
             opts.get<Duration>("max_time_dominance_pruning"));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::heuristics {
 
@@ -200,4 +196,4 @@ void add_ipdbs_heuristic_features(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<IPDBFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::heuristics

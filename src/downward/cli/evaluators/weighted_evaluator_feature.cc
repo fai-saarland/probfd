@@ -42,8 +42,7 @@ public:
     {
     }
 
-    unique_ptr<Evaluator>
-    create_object(const SharedAbstractTask& task) override
+    unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
     {
         auto eval = eval_factory->create_object(task);
         return std::make_unique<WeightedEvaluator>(
@@ -55,9 +54,7 @@ public:
 };
 
 class WeightedEvaluatorFeature
-    : public TypedFeature<
-          TaskDependentFactory<Evaluator>,
-          WeightedEvaluatorFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     WeightedEvaluatorFeature()
         : TypedFeature("weight")
@@ -74,7 +71,7 @@ public:
         add_evaluator_options_to_feature(*this, "weight");
     }
 
-    shared_ptr<WeightedEvaluatorFactory>
+    shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<WeightedEvaluatorFactory>(
@@ -84,7 +81,7 @@ public:
     }
 };
 
-}
+} // namespace
 
 namespace downward::cli::evaluators {
 
@@ -93,4 +90,4 @@ void add_weighted_evaluator_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<WeightedEvaluatorFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::evaluators

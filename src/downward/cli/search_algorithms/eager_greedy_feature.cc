@@ -90,9 +90,7 @@ public:
 };
 
 class EagerGreedySearchFeature
-    : public TypedFeature<
-          TaskDependentFactory<SearchAlgorithm>,
-          EagerGreedySearchFactory> {
+    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     EagerGreedySearchFeature()
         : TypedFeature("eager_greedy")
@@ -154,7 +152,7 @@ public:
             true);
     }
 
-    shared_ptr<EagerGreedySearchFactory>
+    shared_ptr<TaskDependentFactory<SearchAlgorithm>>
     create_component(const Options& opts, const utils::Context& context)
         const override
     {
@@ -168,7 +166,7 @@ public:
             get_eager_search_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::search_algorithms {
 
@@ -177,4 +175,4 @@ void add_eager_greedy_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<EagerGreedySearchFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::search_algorithms

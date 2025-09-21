@@ -73,9 +73,7 @@ public:
 };
 
 class OperatorCountingHeuristicFeature
-    : public TypedFeature<
-          TaskDependentFactory<Evaluator>,
-          OperatorCountingHeuristicFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     OperatorCountingHeuristicFeature()
         : TypedFeature("operatorcounting")
@@ -145,7 +143,7 @@ public:
         document_property("preferred operators", "no");
     }
 
-    virtual shared_ptr<OperatorCountingHeuristicFactory>
+    virtual shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context& context) const override
     {
         verify_list_non_empty<shared_ptr<ConstraintGenerator>>(
@@ -160,7 +158,7 @@ public:
             get_lp_solver_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::heuristics {
 
@@ -169,4 +167,4 @@ void add_operator_counting_heuristic_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<OperatorCountingHeuristicFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::heuristics

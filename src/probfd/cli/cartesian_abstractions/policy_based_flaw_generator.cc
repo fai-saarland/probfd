@@ -14,7 +14,7 @@ using namespace probfd::cartesian_abstractions;
 
 namespace {
 class ILAOFlawGeneratorFactoryFeature
-    : public TypedFeature<FlawGeneratorFactory, ILAOFlawGeneratorFactory> {
+    : public TypedFeature<FlawGeneratorFactory> {
 public:
     ILAOFlawGeneratorFactoryFeature()
         : TypedFeature("flaws_ilao")
@@ -33,7 +33,7 @@ public:
             Bounds("1", "infinity"));
     }
 
-    std::shared_ptr<ILAOFlawGeneratorFactory>
+    std::shared_ptr<FlawGeneratorFactory>
     create_component(const Options& opts, const Context&) const override
     {
         return std::make_shared<ILAOFlawGeneratorFactory>(
@@ -41,7 +41,7 @@ public:
             opts.get<int>("max_search_states"));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::cartesian_abstractions {
 
@@ -50,4 +50,4 @@ void add_policy_based_flaw_generator_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<ILAOFlawGeneratorFactoryFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::cartesian_abstractions

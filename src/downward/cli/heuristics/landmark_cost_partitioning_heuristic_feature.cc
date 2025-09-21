@@ -92,9 +92,7 @@ public:
 };
 
 class LandmarkCostPartitioningHeuristicFeature
-    : public TypedFeature<
-          TaskDependentFactory<Evaluator>,
-          LandmarkCostPartitioningHeuristicFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     LandmarkCostPartitioningHeuristicFeature()
         : TypedFeature("landmark_cost_partitioning")
@@ -181,7 +179,7 @@ public:
         document_property("safe", "yes");
     }
 
-    shared_ptr<LandmarkCostPartitioningHeuristicFactory>
+    shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const utils::Context&) const override
     {
         return make_shared_from_arg_tuples<

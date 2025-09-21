@@ -58,9 +58,7 @@ public:
 
 template <bool Fret>
 class ArbitrarySuccessorSamplerFeature
-    : public TypedFeature<
-          SuccessorSampler<Fret>,
-          Wrapper<ArbitrarySuccessorSampler, Fret>> {
+    : public TypedFeature<SuccessorSampler<Fret>> {
 public:
     ArbitrarySuccessorSamplerFeature()
         : ArbitrarySuccessorSamplerFeature::TypedFeature(
@@ -70,7 +68,7 @@ public:
     }
 
     [[nodiscard]]
-    std::shared_ptr<Wrapper<ArbitrarySuccessorSampler, Fret>>
+    std::shared_ptr<SuccessorSampler<Fret>>
     create_component(const Options&, const Context&) const override
     {
         return std::make_shared<Wrapper<ArbitrarySuccessorSampler, Fret>>();
@@ -79,9 +77,7 @@ public:
 
 template <bool Fret>
 class MostLikelySuccessorSamplerFeature
-    : public TypedFeature<
-          SuccessorSampler<Fret>,
-          Wrapper<MostLikelySuccessorSampler, Fret>> {
+    : public TypedFeature<SuccessorSampler<Fret>> {
 public:
     MostLikelySuccessorSamplerFeature()
         : MostLikelySuccessorSamplerFeature::TypedFeature(
@@ -91,7 +87,7 @@ public:
     }
 
     [[nodiscard]]
-    std::shared_ptr<Wrapper<MostLikelySuccessorSampler, Fret>>
+    std::shared_ptr<SuccessorSampler<Fret>>
     create_component(const Options&, const Context&) const override
     {
         return std::make_shared<Wrapper<MostLikelySuccessorSampler, Fret>>();
@@ -100,11 +96,7 @@ public:
 
 template <bool Fret>
 class UniformSuccessorSamplerFeature
-    : public TypedFeature<
-          SuccessorSampler<Fret>,
-          Wrapper<UniformSuccessorSampler, Fret>> {
-    using R = Wrapper<UniformSuccessorSampler, Fret>;
-
+    : public TypedFeature<SuccessorSampler<Fret>> {
 public:
     UniformSuccessorSamplerFeature()
         : UniformSuccessorSamplerFeature::TypedFeature(
@@ -114,21 +106,18 @@ public:
         add_rng_options_to_feature(*this);
     }
 
-    std::shared_ptr<R>
+    std::shared_ptr<SuccessorSampler<Fret>>
     create_component(const Options& opts, const Context&) const override
     {
-        return make_shared_from_arg_tuples<R>(
+        return make_shared_from_arg_tuples<
+            Wrapper<UniformSuccessorSampler, Fret>>(
             get_rng_arguments_from_options(opts));
     }
 };
 
 template <bool Fret>
 class RandomSuccessorSamplerFeature
-    : public TypedFeature<
-          SuccessorSampler<Fret>,
-          Wrapper<RandomSuccessorSampler, Fret>> {
-    using R = Wrapper<RandomSuccessorSampler, Fret>;
-
+    : public TypedFeature<SuccessorSampler<Fret>> {
 public:
     RandomSuccessorSamplerFeature()
         : RandomSuccessorSamplerFeature::TypedFeature(
@@ -137,21 +126,18 @@ public:
         add_rng_options_to_feature(*this);
     }
 
-    std::shared_ptr<R>
+    std::shared_ptr<SuccessorSampler<Fret>>
     create_component(const Options& opts, const Context&) const override
     {
-        return make_shared_from_arg_tuples<R>(
+        return make_shared_from_arg_tuples<
+            Wrapper<RandomSuccessorSampler, Fret>>(
             get_rng_arguments_from_options(opts));
     }
 };
 
 template <bool Fret>
 class VBiasedSuccessorSamplerFeature
-    : public TypedFeature<
-          SuccessorSampler<Fret>,
-          Wrapper<VBiasedSuccessorSampler, Fret>> {
-    using R = Wrapper<VBiasedSuccessorSampler, Fret>;
-
+    : public TypedFeature<SuccessorSampler<Fret>> {
 public:
     VBiasedSuccessorSamplerFeature()
         : VBiasedSuccessorSamplerFeature::TypedFeature(
@@ -160,21 +146,18 @@ public:
         add_rng_options_to_feature(*this);
     }
 
-    std::shared_ptr<R>
+    std::shared_ptr<SuccessorSampler<Fret>>
     create_component(const Options& opts, const Context&) const override
     {
-        return make_shared_from_arg_tuples<R>(
+        return make_shared_from_arg_tuples<
+            Wrapper<VBiasedSuccessorSampler, Fret>>(
             get_rng_arguments_from_options(opts));
     }
 };
 
 template <bool Fret>
 class VDiffSuccessorSamplerFeature
-    : public TypedFeature<
-          SuccessorSampler<Fret>,
-          Wrapper<VDiffSuccessorSampler, Fret>> {
-    using R = Wrapper<VDiffSuccessorSampler, Fret>;
-
+    : public TypedFeature<SuccessorSampler<Fret>> {
 public:
     VDiffSuccessorSamplerFeature()
         : VDiffSuccessorSamplerFeature::TypedFeature(
@@ -185,15 +168,16 @@ public:
         this->template add_option<bool>("prefer_large_gaps", "", "true");
     }
 
-    std::shared_ptr<R>
+    std::shared_ptr<SuccessorSampler<Fret>>
     create_component(const Options& opts, const Context&) const override
     {
-        return make_shared_from_arg_tuples<R>(
+        return make_shared_from_arg_tuples<
+            Wrapper<VDiffSuccessorSampler, Fret>>(
             get_rng_arguments_from_options(opts),
             opts.get<bool>("prefer_large_gaps"));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::successor_samplers {
 
@@ -208,4 +192,4 @@ void add_successor_sampler_features(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugins<VDiffSuccessorSamplerFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::successor_samplers

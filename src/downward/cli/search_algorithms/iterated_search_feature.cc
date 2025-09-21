@@ -78,9 +78,7 @@ public:
 };
 
 class IteratedSearchFeature
-    : public TypedFeature<
-          TaskDependentFactory<SearchAlgorithm>,
-          IteratedSearchFactory> {
+    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     IteratedSearchFeature()
         : TypedFeature("iterated")
@@ -133,7 +131,7 @@ public:
             "```");
     }
 
-    shared_ptr<IteratedSearchFactory>
+    shared_ptr<TaskDependentFactory<SearchAlgorithm>>
     create_component(const Options& options, const utils::Context& context)
         const override
     {
@@ -158,7 +156,7 @@ public:
             options.get<bool>("continue_on_solve"));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::search_algorithms {
 
@@ -167,4 +165,4 @@ void add_iterated_search_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<IteratedSearchFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::search_algorithms

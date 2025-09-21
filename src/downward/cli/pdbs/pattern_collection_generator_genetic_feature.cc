@@ -28,9 +28,7 @@ using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 class PatternCollectionGeneratorGeneticFeature
-    : public TypedFeature<
-          PatternCollectionGenerator,
-          PatternCollectionGeneratorGenetic> {
+    : public TypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorGeneticFeature()
         : TypedFeature("genetic")
@@ -51,7 +49,7 @@ public:
             format_conference_reference(
                 {"Stefan Edelkamp"},
                 "Automated Creation of Pattern Database Search Heuristics",
-                "http://www.springerlink.com/content/20613345434608x1/",
+                "https://www.springerlink.com/content/20613345434608x1/",
                 "Proceedings of the 4th Workshop on Model Checking and "
                 "Artificial"
                 " Intelligence (!MoChArt 2006)",
@@ -140,7 +138,7 @@ public:
         document_language_support("axioms", "not supported");
     }
 
-    virtual shared_ptr<PatternCollectionGeneratorGenetic>
+    virtual shared_ptr<PatternCollectionGenerator>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<PatternCollectionGeneratorGenetic>(
@@ -153,7 +151,7 @@ public:
             get_generator_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::pdbs {
 
@@ -163,4 +161,4 @@ void add_pattern_collection_generator_genetic_feature(RawRegistry& raw_registry)
         .insert_feature_plugin<PatternCollectionGeneratorGeneticFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::pdbs

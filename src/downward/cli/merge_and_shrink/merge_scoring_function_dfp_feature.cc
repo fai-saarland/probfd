@@ -15,7 +15,7 @@ using namespace downward::cli::plugins;
 
 namespace {
 class MergeScoringFunctionDFPFeature
-    : public TypedFeature<MergeScoringFunction, MergeScoringFunctionDFP> {
+    : public TypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionDFPFeature()
         : TypedFeature("dfp")
@@ -58,13 +58,13 @@ public:
             "\n}}}");
     }
 
-    virtual shared_ptr<MergeScoringFunctionDFP>
+    virtual shared_ptr<MergeScoringFunction>
     create_component(const Options&, const Context&) const override
     {
         return make_shared<MergeScoringFunctionDFP>();
     }
 };
-}
+} // namespace
 
 namespace downward::cli::merge_and_shrink {
 
@@ -73,4 +73,4 @@ void add_merge_scoring_function_dfp_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<MergeScoringFunctionDFPFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::merge_and_shrink

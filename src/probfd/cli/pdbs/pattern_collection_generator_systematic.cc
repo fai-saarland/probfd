@@ -19,9 +19,7 @@ using downward::cli::utils::get_log_arguments_from_options;
 
 namespace {
 class PatternCollectionGeneratorSystematicFeature
-    : public TypedFeature<
-          PatternCollectionGenerator,
-          PatternCollectionGeneratorSystematic> {
+    : public TypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorSystematicFeature()
         : TypedFeature("psystematic")
@@ -55,7 +53,7 @@ public:
         add_log_options_to_feature(*this);
     }
 
-    std::shared_ptr<PatternCollectionGeneratorSystematic>
+    std::shared_ptr<PatternCollectionGenerator>
     create_component(const Options& opts, const utils::Context&) const override
     {
         return make_shared_from_arg_tuples<
@@ -65,7 +63,7 @@ public:
             get_log_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::pdbs {
 
@@ -76,4 +74,4 @@ void add_pattern_collection_generator_systematic_feature(
         .insert_feature_plugin<PatternCollectionGeneratorSystematicFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::pdbs

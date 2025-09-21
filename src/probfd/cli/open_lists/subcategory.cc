@@ -49,8 +49,7 @@ public:
 };
 
 template <bool Fret>
-class FifoOpenListFeature
-    : public TypedFeature<OpenList<Fret>, Wrapped<FifoOpenList, Fret>> {
+class FifoOpenListFeature : public TypedFeature<OpenList<Fret>> {
 public:
     FifoOpenListFeature()
         : FifoOpenListFeature::TypedFeature(
@@ -59,7 +58,7 @@ public:
     }
 
     [[nodiscard]]
-    std::shared_ptr<Wrapped<FifoOpenList, Fret>>
+    std::shared_ptr<OpenList<Fret>>
     create_component(const Options&, const utils::Context&) const override
     {
         return std::make_shared<Wrapped<FifoOpenList, Fret>>();
@@ -67,8 +66,7 @@ public:
 };
 
 template <bool Fret>
-class LifoOpenListFeature
-    : public TypedFeature<OpenList<Fret>, Wrapped<LifoOpenList, Fret>> {
+class LifoOpenListFeature : public TypedFeature<OpenList<Fret>> {
 public:
     LifoOpenListFeature()
         : LifoOpenListFeature::TypedFeature(
@@ -77,13 +75,13 @@ public:
     }
 
     [[nodiscard]]
-    std::shared_ptr<Wrapped<LifoOpenList, Fret>>
+    std::shared_ptr<OpenList<Fret>>
     create_component(const Options&, const utils::Context&) const override
     {
         return std::make_shared<Wrapped<LifoOpenList, Fret>>();
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::open_lists {
 
@@ -94,4 +92,4 @@ void add_open_list_features(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugins<LifoOpenListFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::open_lists

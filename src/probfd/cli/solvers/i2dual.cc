@@ -49,8 +49,8 @@ public:
 
     std::string get_algorithm_name() const override { return "i2dual"; }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
-        const SharedProbabilisticTask& task) override
+    std::unique_ptr<StatisticalMDPAlgorithm>
+    create_algorithm(const SharedProbabilisticTask& task) override
     {
         return std::make_unique<AlgorithmAdaptor>(
             std::make_unique<algorithms::i2dual::I2Dual>(
@@ -62,10 +62,10 @@ public:
     }
 };
 
-class I2DualSolverFeature : public TypedFeature<TaskSolverFactory, MDPSolver> {
+class I2DualSolverFeature : public TypedFeature<TaskSolverFactory> {
 public:
     I2DualSolverFeature()
-        : TypedFeature<TaskSolverFactory, MDPSolver>("i2dual")
+        : TypedFeature("i2dual")
     {
         document_title("i^2-dual");
 
@@ -84,7 +84,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<MDPSolver>
+    std::shared_ptr<TaskSolverFactory>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -97,7 +97,7 @@ protected:
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::solvers {
 
@@ -106,4 +106,4 @@ void add_i2dual_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<I2DualSolverFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::solvers

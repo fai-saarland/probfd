@@ -15,8 +15,7 @@ namespace {
 template <typename T>
 class AlternationOpenListFeature
     : public TypedFeature<
-          downward::TaskDependentFactory<downward::OpenList<T>>,
-          AlternationOpenListFactory<T>> {
+          downward::TaskDependentFactory<downward::OpenList<T>>> {
 public:
     AlternationOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
@@ -54,7 +53,7 @@ public:
             "0");
     }
 
-    virtual shared_ptr<AlternationOpenListFactory<T>>
+    virtual shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
     create_component(const Options& opts, const Context& context) const override
     {
         verify_list_non_empty<
@@ -69,7 +68,7 @@ public:
             opts.get<int>("boost"));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::open_lists {
 
@@ -81,4 +80,4 @@ void add_alternation_open_list_features(RawRegistry& raw_registry)
         AlternationOpenListFeature<downward::EdgeOpenListEntry>>();
 }
 
-} // namespace
+} // namespace downward::cli::open_lists

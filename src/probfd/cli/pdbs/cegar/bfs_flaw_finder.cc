@@ -12,8 +12,7 @@ using namespace probfd::pdbs::cegar;
 using namespace downward::cli::plugins;
 
 namespace {
-class BFSFlawFinderFeature
-    : public TypedFeature<FlawFindingStrategy, BFSFlawFinder> {
+class BFSFlawFinderFeature : public TypedFeature<FlawFindingStrategy> {
 public:
     BFSFlawFinderFeature()
         : TypedFeature("bfs_flaw_finder")
@@ -27,7 +26,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<BFSFlawFinder>
+    std::shared_ptr<FlawFindingStrategy>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -35,7 +34,7 @@ protected:
             options.get<int>("max_search_states"));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::pdbs::cegar {
 
@@ -44,4 +43,4 @@ void add_bfs_flaw_finder_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<BFSFlawFinderFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::pdbs::cegar

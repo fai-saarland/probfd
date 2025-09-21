@@ -19,9 +19,7 @@ using downward::cli::merge_and_shrink::
 
 namespace {
 class MergeStrategyFactoryPrecomputedFeature
-    : public TypedFeature<
-          MergeStrategyFactory,
-          MergeStrategyFactoryPrecomputed> {
+    : public TypedFeature<MergeStrategyFactory> {
 public:
     MergeStrategyFactoryPrecomputedFeature()
         : TypedFeature("merge_precomputed")
@@ -53,7 +51,7 @@ public:
             "\n}}}");
     }
 
-    virtual shared_ptr<MergeStrategyFactoryPrecomputed>
+    virtual shared_ptr<MergeStrategyFactory>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<MergeStrategyFactoryPrecomputed>(
@@ -61,7 +59,7 @@ public:
             get_merge_strategy_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::merge_and_shrink {
 
@@ -71,4 +69,4 @@ void add_merge_strategy_factory_precomputed_feature(RawRegistry& raw_registry)
         .insert_feature_plugin<MergeStrategyFactoryPrecomputedFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::merge_and_shrink

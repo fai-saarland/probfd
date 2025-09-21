@@ -91,9 +91,7 @@ public:
 };
 
 class AdditiveCartesianHeuristicFeature
-    : public TypedFeature<
-          TaskDependentFactory<Evaluator>,
-          AdditiveCartesianHeuristicFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     AdditiveCartesianHeuristicFeature()
         : TypedFeature("cegar")
@@ -175,7 +173,7 @@ public:
         document_property("preferred operators", "no");
     }
 
-    shared_ptr<AdditiveCartesianHeuristicFactory>
+    shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<AdditiveCartesianHeuristicFactory>(

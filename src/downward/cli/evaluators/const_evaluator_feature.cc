@@ -38,17 +38,14 @@ public:
     {
     }
 
-    unique_ptr<Evaluator>
-    create_object(const SharedAbstractTask&) override
+    unique_ptr<Evaluator> create_object(const SharedAbstractTask&) override
     {
         return std::make_unique<ConstEvaluator>(value, description, verbosity);
     }
 };
 
 class ConstEvaluatorFeature
-    : public TypedFeature<
-          TaskDependentFactory<Evaluator>,
-          ConstEvaluatorFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     ConstEvaluatorFeature()
         : TypedFeature("const")
@@ -65,7 +62,7 @@ public:
         add_evaluator_options_to_feature(*this, "const");
     }
 
-    shared_ptr<ConstEvaluatorFactory>
+    shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<ConstEvaluatorFactory>(
@@ -73,7 +70,7 @@ public:
             opts.get<int>("value"));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::evaluators {
 
@@ -82,4 +79,4 @@ void add_const_evaluator_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<ConstEvaluatorFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::evaluators

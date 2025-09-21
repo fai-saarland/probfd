@@ -14,16 +14,14 @@ using namespace downward::cli::plugins;
 
 namespace {
 class AdditiveMaxOrthogonalityFinderFactoryFeature
-    : public TypedFeature<
-          SubCollectionFinderFactory,
-          AdditiveMaxOrthogonalityFinderFactory> {
+    : public TypedFeature<SubCollectionFinderFactory> {
 public:
     AdditiveMaxOrthogonalityFinderFactoryFeature()
         : TypedFeature("additive_max_orthogonality_factory")
     {
     }
 
-    std::shared_ptr<AdditiveMaxOrthogonalityFinderFactory>
+    std::shared_ptr<SubCollectionFinderFactory>
     create_component(const Options&, const Context&) const override
     {
         return std::make_shared<AdditiveMaxOrthogonalityFinderFactory>();
@@ -31,22 +29,20 @@ public:
 };
 
 class MultiplicativeMaxOrthogonalityFinderFactoryFeature
-    : public TypedFeature<
-          SubCollectionFinderFactory,
-          MultiplicativeMaxOrthogonalityFinderFactory> {
+    : public TypedFeature<SubCollectionFinderFactory> {
 public:
     MultiplicativeMaxOrthogonalityFinderFactoryFeature()
         : TypedFeature("multiplicative_max_orthogonality_factory")
     {
     }
 
-    std::shared_ptr<MultiplicativeMaxOrthogonalityFinderFactory>
+    std::shared_ptr<SubCollectionFinderFactory>
     create_component(const Options&, const Context&) const override
     {
         return std::make_shared<MultiplicativeMaxOrthogonalityFinderFactory>();
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::pdbs {
 
@@ -58,4 +54,4 @@ void add_max_orthogonal_finder_factory_feature(RawRegistry& raw_registry)
         MultiplicativeMaxOrthogonalityFinderFactoryFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::pdbs

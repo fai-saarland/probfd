@@ -42,8 +42,7 @@ public:
     {
     }
 
-    unique_ptr<Evaluator>
-    create_object(const SharedAbstractTask& task) override
+    unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
     {
         auto transformation_result = transformation->transform(task);
         return std::make_unique<FFHeuristic>(
@@ -56,7 +55,7 @@ public:
 };
 
 class FFHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>, FFHeuristicFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     FFHeuristicFeature()
         : TypedFeature("ff")
@@ -79,14 +78,14 @@ public:
         document_property("preferred operators", "yes");
     }
 
-    shared_ptr<FFHeuristicFactory>
+    shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<FFHeuristicFactory>(
             get_heuristic_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::heuristics {
 
@@ -95,4 +94,4 @@ void add_ff_heuristic_features(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<FFHeuristicFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::heuristics

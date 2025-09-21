@@ -22,8 +22,7 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-class PatternGeneratorRandomFeature
-    : public TypedFeature<PatternGenerator, PatternGeneratorRandom> {
+class PatternGeneratorRandomFeature : public TypedFeature<PatternGenerator> {
 public:
     PatternGeneratorRandomFeature()
         : TypedFeature("random_pattern")
@@ -57,7 +56,7 @@ public:
         add_random_pattern_implementation_notes_to_feature(*this);
     }
 
-    virtual shared_ptr<PatternGeneratorRandom>
+    virtual shared_ptr<PatternGenerator>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<PatternGeneratorRandom>(
@@ -69,7 +68,7 @@ public:
     }
 };
 
-}
+} // namespace
 
 namespace downward::cli::pdbs {
 
@@ -78,4 +77,4 @@ void add_pattern_generator_random_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<PatternGeneratorRandomFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::pdbs

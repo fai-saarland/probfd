@@ -72,9 +72,7 @@ public:
 
 template <bool Bisimulation, bool Fret>
 class ArbitraryTieBreakerFeature
-    : public TypedFeature<
-          PolicyPicker<Bisimulation, Fret>,
-          Wrapper<ArbitraryTiebreaker, Bisimulation, Fret>> {
+    : public TypedFeature<PolicyPicker<Bisimulation, Fret>> {
     using R = Wrapper<ArbitraryTiebreaker, Bisimulation, Fret>;
 
 public:
@@ -86,15 +84,14 @@ public:
         this->template add_option<bool>("stable_policy", "", "true");
     }
 
-    std::shared_ptr<R>
+    std::shared_ptr<PolicyPicker<Bisimulation, Fret>>
     create_component(const Options& opts, const Context&) const override
     {
         return std::make_shared<R>(opts.get<bool>("stable_policy"));
     }
 };
 
-class OperatorIDTieBreakerFeature
-    : public TypedFeature<FDRPolicyPicker, OperatorIdTiebreaker> {
+class OperatorIDTieBreakerFeature : public TypedFeature<FDRPolicyPicker> {
 public:
     OperatorIDTieBreakerFeature()
         : TypedFeature("operator_id_policy_tiebreaker")
@@ -103,7 +100,7 @@ public:
         add_option<bool>("prefer_smaller", "", "true");
     }
 
-    std::shared_ptr<OperatorIdTiebreaker>
+    std::shared_ptr<FDRPolicyPicker>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<OperatorIdTiebreaker>(
@@ -114,9 +111,7 @@ public:
 
 template <bool Bisimulation, bool Fret>
 class RandomTieBreakerFeature
-    : public TypedFeature<
-          PolicyPicker<Bisimulation, Fret>,
-          Wrapper<RandomTiebreaker, Bisimulation, Fret>> {
+    : public TypedFeature<PolicyPicker<Bisimulation, Fret>> {
 
     using R = Wrapper<RandomTiebreaker, Bisimulation, Fret>;
 
@@ -130,7 +125,7 @@ public:
         add_rng_options_to_feature(*this);
     }
 
-    std::shared_ptr<R>
+    std::shared_ptr<PolicyPicker<Bisimulation, Fret>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<R>(
@@ -141,9 +136,7 @@ public:
 
 template <bool Bisimulation, bool Fret>
 class ValueGapTieBreakerFeature
-    : public TypedFeature<
-          PolicyPicker<Bisimulation, Fret>,
-          Wrapper<VDiffTiebreaker, Bisimulation, Fret>> {
+    : public TypedFeature<PolicyPicker<Bisimulation, Fret>> {
     using R = Wrapper<VDiffTiebreaker, Bisimulation, Fret>;
 
 public:
@@ -156,7 +149,7 @@ public:
         this->template add_option<bool>("prefer_large_gaps", "", "true");
     }
 
-    std::shared_ptr<R>
+    std::shared_ptr<PolicyPicker<Bisimulation, Fret>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<R>(
@@ -164,7 +157,7 @@ public:
             opts.get<bool>("prefer_large_gaps"));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::policy_pickers {
 
@@ -178,4 +171,4 @@ void add_policy_picker_features(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugins<ValueGapTieBreakerFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::policy_pickers

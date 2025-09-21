@@ -13,9 +13,7 @@ using namespace downward::cli::plugins;
 
 namespace {
 class MergeScoringFunctionGoalRelevanceFeature
-    : public TypedFeature<
-          MergeScoringFunction,
-          MergeScoringFunctionGoalRelevance> {
+    : public TypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionGoalRelevanceFeature()
         : TypedFeature("goal_relevance")
@@ -30,13 +28,13 @@ public:
             "All other candidates get a score of positive infinity.");
     }
 
-    virtual shared_ptr<MergeScoringFunctionGoalRelevance>
+    virtual shared_ptr<MergeScoringFunction>
     create_component(const Options&, const Context&) const override
     {
         return make_shared<MergeScoringFunctionGoalRelevance>();
     }
 };
-}
+} // namespace
 
 namespace downward::cli::merge_and_shrink {
 
@@ -47,4 +45,4 @@ void add_merge_scoring_function_goal_relevance_feature(
         .insert_feature_plugin<MergeScoringFunctionGoalRelevanceFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::merge_and_shrink

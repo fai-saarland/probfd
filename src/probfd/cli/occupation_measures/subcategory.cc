@@ -40,10 +40,7 @@ using downward::cli::lp::add_lp_solver_option_to_feature;
 using downward::cli::lp::get_lp_solver_arguments_from_options;
 
 namespace {
-class HROCFactoryFeature
-    : public TypedFeature<
-          TaskHeuristicFactory,
-          OccupationMeasureHeuristicFactory> {
+class HROCFactoryFeature : public TypedFeature<TaskHeuristicFactory> {
 public:
     HROCFactoryFeature()
         : TypedFeature("hroc")
@@ -71,7 +68,7 @@ public:
         add_lp_solver_option_to_feature(*this);
     }
 
-    std::shared_ptr<OccupationMeasureHeuristicFactory>
+    std::shared_ptr<TaskHeuristicFactory>
     create_component(const Options& options, const Context&) const override
     {
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
@@ -81,10 +78,7 @@ public:
     }
 };
 
-class HPOMFactoryFeature
-    : public TypedFeature<
-          TaskHeuristicFactory,
-          OccupationMeasureHeuristicFactory> {
+class HPOMFactoryFeature : public TypedFeature<TaskHeuristicFactory> {
 public:
     HPOMFactoryFeature()
         : TypedFeature("hpom")
@@ -114,7 +108,7 @@ public:
         add_lp_solver_option_to_feature(*this);
     }
 
-    std::shared_ptr<OccupationMeasureHeuristicFactory>
+    std::shared_ptr<TaskHeuristicFactory>
     create_component(const Options& options, const Context&) const override
     {
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
@@ -124,10 +118,7 @@ public:
     }
 };
 
-class HOHPOMFactoryFeature
-    : public TypedFeature<
-          TaskHeuristicFactory,
-          OccupationMeasureHeuristicFactory> {
+class HOHPOMFactoryFeature : public TypedFeature<TaskHeuristicFactory> {
 public:
     HOHPOMFactoryFeature()
         : TypedFeature("ho_hpom")
@@ -160,7 +151,7 @@ public:
         add_option<int>("projection_size", "The size of the projections", "1");
     }
 
-    std::shared_ptr<OccupationMeasureHeuristicFactory>
+    std::shared_ptr<TaskHeuristicFactory>
     create_component(const Options& options, const Context&) const override
     {
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
@@ -171,10 +162,7 @@ public:
     }
 };
 
-class HPHOFactoryFeature
-    : public TypedFeature<
-          TaskHeuristicFactory,
-          OccupationMeasureHeuristicFactory> {
+class HPHOFactoryFeature : public TypedFeature<TaskHeuristicFactory> {
 public:
     HPHOFactoryFeature()
         : TypedFeature("pho")
@@ -197,7 +185,7 @@ public:
             "det_adapter(generator=systematic(pattern_max_size=2))");
     }
 
-    std::shared_ptr<OccupationMeasureHeuristicFactory>
+    std::shared_ptr<TaskHeuristicFactory>
     create_component(const Options& options, const Context&) const override
     {
         return make_shared_from_arg_tuples<OccupationMeasureHeuristicFactory>(
@@ -208,7 +196,7 @@ public:
                     "patterns")));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::occupation_measures {
 
@@ -220,4 +208,4 @@ void add_occupation_measure_heuristics_features(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<HPHOFactoryFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::occupation_measures

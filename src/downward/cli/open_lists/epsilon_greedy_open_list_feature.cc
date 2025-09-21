@@ -29,8 +29,7 @@ namespace {
 template <typename T>
 class EpsilonGreedyOpenListFeature
     : public TypedFeature<
-          downward::TaskDependentFactory<downward::OpenList<T>>,
-          EpsilonGreedyOpenListFactory<T>> {
+          downward::TaskDependentFactory<downward::OpenList<T>>> {
 public:
     EpsilonGreedyOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
@@ -106,7 +105,7 @@ public:
         add_open_list_options_to_feature(*this);
     }
 
-    virtual shared_ptr<EpsilonGreedyOpenListFactory<T>>
+    virtual shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<EpsilonGreedyOpenListFactory<T>>(
@@ -117,7 +116,7 @@ public:
             get_open_list_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::open_lists {
 
@@ -129,4 +128,4 @@ void add_epsilon_greedy_open_list_features(RawRegistry& raw_registry)
         EpsilonGreedyOpenListFeature<downward::EdgeOpenListEntry>>();
 }
 
-} // namespace
+} // namespace downward::cli::open_lists

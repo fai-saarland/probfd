@@ -103,9 +103,7 @@ public:
 };
 
 class LazyGreedySearchFeature
-    : public TypedFeature<
-          TaskDependentFactory<SearchAlgorithm>,
-          LazyGreedySearchFactory> {
+    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     LazyGreedySearchFeature()
         : TypedFeature("lazy_greedy")
@@ -171,7 +169,7 @@ public:
             true);
     }
 
-    shared_ptr<LazyGreedySearchFactory>
+    shared_ptr<TaskDependentFactory<SearchAlgorithm>>
     create_component(const Options& opts, const utils::Context&) const override
     {
         return make_shared_from_arg_tuples<LazyGreedySearchFactory>(
@@ -184,7 +182,7 @@ public:
             opts.get<int>("boost"));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::search_algorithms {
 
@@ -193,4 +191,4 @@ void add_lazy_greedy_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<LazyGreedySearchFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::search_algorithms

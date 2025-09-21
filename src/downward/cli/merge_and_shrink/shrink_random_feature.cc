@@ -17,7 +17,7 @@ using downward::cli::merge_and_shrink::add_shrink_bucket_options_to_feature;
 using downward::cli::merge_and_shrink::get_shrink_bucket_arguments_from_options;
 
 namespace {
-class ShrinkRandomFeature : public TypedFeature<ShrinkStrategy, ShrinkRandom> {
+class ShrinkRandomFeature : public TypedFeature<ShrinkStrategy> {
 public:
     ShrinkRandomFeature()
         : TypedFeature("shrink_random")
@@ -28,14 +28,14 @@ public:
         add_shrink_bucket_options_to_feature(*this);
     }
 
-    virtual shared_ptr<ShrinkRandom>
+    virtual shared_ptr<ShrinkStrategy>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<ShrinkRandom>(
             get_shrink_bucket_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::merge_and_shrink {
 
@@ -44,4 +44,4 @@ void add_shrink_random_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<ShrinkRandomFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::merge_and_shrink

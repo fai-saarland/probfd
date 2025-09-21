@@ -16,9 +16,7 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 class MergeScoringFunctionSingleRandomFeature
-    : public TypedFeature<
-          MergeScoringFunction,
-          MergeScoringFunctionSingleRandom> {
+    : public TypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionSingleRandomFeature()
         : TypedFeature("psingle_random")
@@ -33,7 +31,7 @@ public:
     }
 
 protected:
-    shared_ptr<MergeScoringFunctionSingleRandom>
+    shared_ptr<MergeScoringFunction>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -41,7 +39,7 @@ protected:
             downward::cli::utils::get_rng_arguments_from_options(options));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::merge_and_shrink {
 
@@ -51,4 +49,4 @@ void add_merge_scoring_function_single_random_feature(RawRegistry& raw_registry)
         .insert_feature_plugin<MergeScoringFunctionSingleRandomFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::merge_and_shrink

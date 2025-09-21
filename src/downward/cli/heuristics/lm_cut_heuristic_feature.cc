@@ -42,8 +42,7 @@ public:
     {
     }
 
-    unique_ptr<Evaluator>
-    create_object(const SharedAbstractTask& task) override
+    unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
     {
         auto transformation_result = transformation->transform(task);
         return std::make_unique<LandmarkCutHeuristic>(
@@ -56,9 +55,7 @@ public:
 };
 
 class LandmarkCutHeuristicFeature
-    : public TypedFeature<
-          TaskDependentFactory<Evaluator>,
-          LMCutHeuristicFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     LandmarkCutHeuristicFeature()
         : TypedFeature("lmcut")
@@ -77,14 +74,14 @@ public:
         document_property("preferred operators", "no");
     }
 
-    virtual shared_ptr<LMCutHeuristicFactory>
+    virtual shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<LMCutHeuristicFactory>(
             get_heuristic_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::heuristics {
 
@@ -93,4 +90,4 @@ void add_landmark_cut_heuristic_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<LandmarkCutHeuristicFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::heuristics

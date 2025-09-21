@@ -16,9 +16,7 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 class ShrinkProbabilisticBisimulationFeature
-    : public TypedFeature<
-          ShrinkStrategy,
-          ShrinkStrategyProbabilisticBisimulation> {
+    : public TypedFeature<ShrinkStrategy> {
 public:
     ShrinkProbabilisticBisimulationFeature()
         : TypedFeature("pshrink_probabilistic_bisimulation")
@@ -41,7 +39,7 @@ public:
     }
 
 protected:
-    shared_ptr<ShrinkStrategyProbabilisticBisimulation>
+    shared_ptr<ShrinkStrategy>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -52,7 +50,7 @@ protected:
             options.get<bool>("require_goal_distances"));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::merge_and_shrink {
 
@@ -70,4 +68,4 @@ void add_shrink_strategy_probabilistic_bisimulation_feature(
               "the size limit is hit"}});
 }
 
-} // namespace
+} // namespace probfd::cli::merge_and_shrink

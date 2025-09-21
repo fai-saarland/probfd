@@ -22,7 +22,7 @@ using downward::cli::merge_and_shrink::
 
 namespace {
 class MergeStrategyFactorySCCsFeature
-    : public TypedFeature<MergeStrategyFactory, MergeStrategyFactorySCCs> {
+    : public TypedFeature<MergeStrategyFactory> {
 public:
     MergeStrategyFactorySCCsFeature()
         : TypedFeature("merge_sccs")
@@ -62,7 +62,7 @@ public:
         add_merge_strategy_options_to_feature(*this);
     }
 
-    virtual shared_ptr<MergeStrategyFactorySCCs>
+    virtual shared_ptr<MergeStrategyFactory>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<MergeStrategyFactorySCCs>(
@@ -71,7 +71,7 @@ public:
             get_merge_strategy_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::merge_and_shrink {
 
@@ -92,4 +92,4 @@ void add_merge_strategy_factory_sccs_feature(RawRegistry& raw_registry)
           "smallest SCCs first, using 'topological' as tie-breaker"}});
 }
 
-} // namespace
+} // namespace downward::cli::merge_and_shrink

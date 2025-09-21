@@ -41,8 +41,7 @@ tuple<FactOrder, int> get_fact_order_arguments_from_options(const Options& opts)
         get_rng_arguments_from_options(opts));
 }
 
-class TaskDuplicatorFeature
-    : public TypedFeature<SubtaskGenerator, TaskDuplicator> {
+class TaskDuplicatorFeature : public TypedFeature<SubtaskGenerator> {
 public:
     TaskDuplicatorFeature()
         : TypedFeature("original")
@@ -54,7 +53,7 @@ public:
             Bounds("1", "infinity"));
     }
 
-    virtual shared_ptr<TaskDuplicator>
+    virtual shared_ptr<SubtaskGenerator>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<TaskDuplicator>(
@@ -62,8 +61,7 @@ public:
     }
 };
 
-class GoalDecompositionFeature
-    : public TypedFeature<SubtaskGenerator, GoalDecomposition> {
+class GoalDecompositionFeature : public TypedFeature<SubtaskGenerator> {
 public:
     GoalDecompositionFeature()
         : TypedFeature("goals")
@@ -71,7 +69,7 @@ public:
         add_fact_order_option(*this);
     }
 
-    virtual shared_ptr<GoalDecomposition>
+    virtual shared_ptr<SubtaskGenerator>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<GoalDecomposition>(
@@ -79,8 +77,7 @@ public:
     }
 };
 
-class LandmarkDecompositionFeature
-    : public TypedFeature<SubtaskGenerator, LandmarkDecomposition> {
+class LandmarkDecompositionFeature : public TypedFeature<SubtaskGenerator> {
 public:
     LandmarkDecompositionFeature()
         : TypedFeature("landmarks")
@@ -96,7 +93,7 @@ public:
             "true");
     }
 
-    virtual shared_ptr<LandmarkDecomposition>
+    virtual shared_ptr<SubtaskGenerator>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<LandmarkDecomposition>(
@@ -106,7 +103,7 @@ public:
             opts.get<bool>("combine_facts"));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::cartesian_abstractions {
 
@@ -123,4 +120,4 @@ void add_subtask_generators_features(RawRegistry& raw_registry)
          {"hadd_down", "according to their h^add value, highest first "}});
 }
 
-} // namespace
+} // namespace downward::cli::cartesian_abstractions

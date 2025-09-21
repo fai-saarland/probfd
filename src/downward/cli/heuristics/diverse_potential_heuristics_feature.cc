@@ -8,8 +8,8 @@
 #include "downward/cli/utils/rng_options.h"
 
 #include "downward/potentials/diverse_potential_heuristics.h"
-#include "downward/potentials/potential_max_heuristic.h"
 #include "downward/potentials/potential_function.h"
+#include "downward/potentials/potential_max_heuristic.h"
 
 #include "downward/utils/logging.h"
 
@@ -63,8 +63,7 @@ public:
     {
     }
 
-    unique_ptr<Evaluator>
-    create_object(const SharedAbstractTask& task) override
+    unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
     {
         auto transformation_result = transformation->transform(task);
 
@@ -89,9 +88,7 @@ public:
 };
 
 class DiversePotentialMaxHeuristicFeature
-    : public TypedFeature<
-          TaskDependentFactory<Evaluator>,
-          DiversePotentialMaxHeuristicFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     DiversePotentialMaxHeuristicFeature()
         : TypedFeature("diverse_potentials")
@@ -116,7 +113,7 @@ public:
         add_rng_options_to_feature(*this);
     }
 
-    shared_ptr<DiversePotentialMaxHeuristicFactory>
+    shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared<DiversePotentialMaxHeuristicFactory>(
@@ -131,7 +128,7 @@ public:
             opts.get<int>("random_seed"));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::heuristics {
 
@@ -140,4 +137,4 @@ void add_diverse_potential_heuristics_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<DiversePotentialMaxHeuristicFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::heuristics

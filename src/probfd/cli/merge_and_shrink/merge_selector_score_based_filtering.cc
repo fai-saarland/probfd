@@ -14,7 +14,7 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 class MergeSelectorScoreBasedFilteringFeature
-    : public TypedFeature<MergeSelector, MergeSelectorScoreBasedFiltering> {
+    : public TypedFeature<MergeSelector> {
 public:
     MergeSelectorScoreBasedFilteringFeature()
         : TypedFeature("pscore_based_filtering")
@@ -34,7 +34,7 @@ public:
     }
 
 protected:
-    shared_ptr<MergeSelectorScoreBasedFiltering>
+    shared_ptr<MergeSelector>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -43,7 +43,7 @@ protected:
                 "scoring_functions"));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::merge_and_shrink {
 
@@ -53,4 +53,4 @@ void add_merge_selector_score_based_filtering_feature(RawRegistry& raw_registry)
         .insert_feature_plugin<MergeSelectorScoreBasedFilteringFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::merge_and_shrink

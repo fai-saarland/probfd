@@ -20,9 +20,7 @@ using namespace downward::cli::plugins;
 
 namespace {
 class PatternCollectionGeneratorMultipleCegarFeature
-    : public TypedFeature<
-          PatternCollectionGenerator,
-          PatternCollectionGeneratorMultipleCegar> {
+    : public TypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorMultipleCegarFeature()
         : TypedFeature("ppdbs_multiple_cegar")
@@ -40,7 +38,7 @@ public:
         add_multiple_options_to_feature(*this);
     }
 
-    std::shared_ptr<PatternCollectionGeneratorMultipleCegar>
+    std::shared_ptr<PatternCollectionGenerator>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<
@@ -52,7 +50,7 @@ public:
             get_multiple_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::pdbs {
 
@@ -63,4 +61,4 @@ void add_pattern_collection_generator_multiple_cegar_feature(
         PatternCollectionGeneratorMultipleCegarFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::pdbs

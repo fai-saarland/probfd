@@ -22,7 +22,7 @@ using downward::cli::utils::get_rng_arguments_from_options;
 namespace {
 
 class SplitSelectorRandomFactoryFeature
-    : public TypedFeature<SplitSelectorFactory, SplitSelectorRandomFactory> {
+    : public TypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorRandomFactoryFeature()
         : TypedFeature("random")
@@ -33,7 +33,7 @@ public:
         add_rng_options_to_feature(*this);
     }
 
-    std::shared_ptr<SplitSelectorRandomFactory>
+    std::shared_ptr<SplitSelectorFactory>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<SplitSelectorRandomFactory>(
@@ -42,9 +42,7 @@ public:
 };
 
 class SplitSelectorMinUnwantedFactoryFeature
-    : public TypedFeature<
-          SplitSelectorFactory,
-          SplitSelectorMinUnwantedFactory> {
+    : public TypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMinUnwantedFactoryFeature()
         : TypedFeature("min_unwanted")
@@ -55,7 +53,7 @@ public:
             "h-value will probably be raised) in the flaw state");
     }
 
-    std::shared_ptr<SplitSelectorMinUnwantedFactory>
+    std::shared_ptr<SplitSelectorFactory>
     create_component(const Options&, const Context&) const override
     {
         return std::make_shared<SplitSelectorMinUnwantedFactory>();
@@ -63,9 +61,7 @@ public:
 };
 
 class SplitSelectorMaxUnwantedFactoryFeature
-    : public TypedFeature<
-          SplitSelectorFactory,
-          SplitSelectorMaxUnwantedFactory> {
+    : public TypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMaxUnwantedFactoryFeature()
         : TypedFeature("max_unwanted")
@@ -76,7 +72,7 @@ public:
             "h-value will probably be raised) in the flaw state");
     }
 
-    std::shared_ptr<SplitSelectorMaxUnwantedFactory>
+    std::shared_ptr<SplitSelectorFactory>
     create_component(const Options&, const Context&) const override
     {
         return std::make_shared<SplitSelectorMaxUnwantedFactory>();
@@ -84,9 +80,7 @@ public:
 };
 
 class SplitSelectorMinRefinedFactoryFeature
-    : public TypedFeature<
-          SplitSelectorFactory,
-          SplitSelectorMinRefinedFactory> {
+    : public TypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMinRefinedFactoryFeature()
         : TypedFeature("min_refined")
@@ -97,7 +91,7 @@ public:
             "in the flaw state");
     }
 
-    std::shared_ptr<SplitSelectorMinRefinedFactory>
+    std::shared_ptr<SplitSelectorFactory>
     create_component(const Options&, const Context&) const override
     {
         return std::make_shared<SplitSelectorMinRefinedFactory>();
@@ -105,9 +99,7 @@ public:
 };
 
 class SplitSelectorMaxRefinedFactoryFeature
-    : public TypedFeature<
-          SplitSelectorFactory,
-          SplitSelectorMaxRefinedFactory> {
+    : public TypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMaxRefinedFactoryFeature()
         : TypedFeature("max_refined")
@@ -118,7 +110,7 @@ public:
             "in the flaw state");
     }
 
-    std::shared_ptr<SplitSelectorMaxRefinedFactory>
+    std::shared_ptr<SplitSelectorFactory>
     create_component(const Options&, const Context&) const override
     {
         return std::make_shared<SplitSelectorMaxRefinedFactory>();
@@ -126,7 +118,7 @@ public:
 };
 
 class SplitSelectorMinHAddFactoryFeature
-    : public TypedFeature<SplitSelectorFactory, SplitSelectorMinHAddFactory> {
+    : public TypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMinHAddFactoryFeature()
         : TypedFeature("min_hadd")
@@ -136,7 +128,7 @@ public:
             "over all facts that need to be removed from the flaw state");
     }
 
-    std::shared_ptr<SplitSelectorMinHAddFactory>
+    std::shared_ptr<SplitSelectorFactory>
     create_component(const Options&, const Context&) const override
     {
         return std::make_shared<SplitSelectorMinHAddFactory>();
@@ -144,7 +136,7 @@ public:
 };
 
 class SplitSelectorMaxHAddFactoryFeature
-    : public TypedFeature<SplitSelectorFactory, SplitSelectorMaxHAddFactory> {
+    : public TypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMaxHAddFactoryFeature()
         : TypedFeature("max_hadd")
@@ -155,7 +147,7 @@ public:
             "state");
     }
 
-    std::shared_ptr<SplitSelectorMaxHAddFactory>
+    std::shared_ptr<SplitSelectorFactory>
     create_component(const Options&, const Context&) const override
     {
         return std::make_shared<SplitSelectorMaxHAddFactory>();

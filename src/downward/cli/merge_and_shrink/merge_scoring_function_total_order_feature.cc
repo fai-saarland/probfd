@@ -21,9 +21,7 @@ using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 class MergeScoringFunctionTotalOrderFeature
-    : public TypedFeature<
-          MergeScoringFunction,
-          MergeScoringFunctionTotalOrder> {
+    : public TypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionTotalOrderFeature()
         : TypedFeature("total_order")
@@ -76,7 +74,7 @@ public:
         add_rng_options_to_feature(*this);
     }
 
-    virtual shared_ptr<MergeScoringFunctionTotalOrder>
+    virtual shared_ptr<MergeScoringFunction>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<MergeScoringFunctionTotalOrder>(
@@ -86,7 +84,7 @@ public:
             get_rng_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::merge_and_shrink {
 
@@ -106,4 +104,4 @@ void add_merge_scoring_function_total_order_feature(RawRegistry& raw_registry)
          {"random", "a randomized order"}});
 }
 
-} // namespace
+} // namespace downward::cli::merge_and_shrink

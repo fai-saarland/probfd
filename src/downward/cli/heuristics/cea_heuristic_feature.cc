@@ -56,9 +56,7 @@ public:
 };
 
 class ContextEnhancedAdditiveHeuristicFeature
-    : public TypedFeature<
-          TaskDependentFactory<Evaluator>,
-          ContextEnhancedAdditiveHeuristicFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     ContextEnhancedAdditiveHeuristicFeature()
         : TypedFeature("cea")
@@ -81,7 +79,7 @@ public:
         document_property("preferred operators", "yes");
     }
 
-    shared_ptr<ContextEnhancedAdditiveHeuristicFactory>
+    shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<
@@ -89,7 +87,7 @@ public:
             get_heuristic_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::heuristics {
 
@@ -99,4 +97,4 @@ void add_cea_heuristic_feature(RawRegistry& raw_registry)
         .insert_feature_plugin<ContextEnhancedAdditiveHeuristicFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::heuristics

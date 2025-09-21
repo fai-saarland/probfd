@@ -24,9 +24,7 @@ using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 class PatternCollectionGeneratorHillclimbingFeature
-    : public TypedFeature<
-          PatternCollectionGenerator,
-          PatternCollectionGeneratorHillclimbing> {
+    : public TypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorHillclimbingFeature()
         : TypedFeature("hillclimbing_probabilistic")
@@ -83,7 +81,7 @@ public:
         add_pattern_collection_generator_options_to_feature(*this);
     }
 
-    std::shared_ptr<PatternCollectionGeneratorHillclimbing>
+    std::shared_ptr<PatternCollectionGenerator>
     create_component(const Options& opts, const Context& context) const override
     {
         if (opts.get<int>("min_improvement") > opts.get<int>("num_samples")) {
@@ -108,7 +106,7 @@ public:
             get_pattern_collection_generator_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::pdbs {
 
@@ -119,4 +117,4 @@ void add_pattern_collection_generator_hillclimbing_feature(
         .insert_feature_plugin<PatternCollectionGeneratorHillclimbingFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::pdbs

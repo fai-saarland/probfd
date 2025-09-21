@@ -21,7 +21,7 @@ using downward::cli::utils::get_log_arguments_from_options;
 
 namespace {
 class StateEquationConstraintsFeature
-    : public TypedFeature<ConstraintGenerator, StateEquationConstraints> {
+    : public TypedFeature<ConstraintGenerator> {
 public:
     StateEquationConstraintsFeature()
         : TypedFeature("state_equation_constraints")
@@ -41,7 +41,8 @@ public:
                  "Subbarao Kambhampati",
                  "Thomas Vossen"},
                 "An LP-based heuristic for optimal planning",
-                "https://link.springer.com/chapter/10.1007/978-3-540-74970-7_46",
+                "https://link.springer.com/chapter/10.1007/"
+                "978-3-540-74970-7_46",
                 "Proceedings of the Thirteenth International Conference on"
                 " Principles and Practice of Constraint Programming (CP 2007)",
                 "651-665",
@@ -74,14 +75,14 @@ public:
         add_log_options_to_feature(*this);
     }
 
-    virtual shared_ptr<StateEquationConstraints>
+    virtual shared_ptr<ConstraintGenerator>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<StateEquationConstraints>(
             get_log_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::operator_counting {
 
@@ -90,4 +91,4 @@ void add_state_equation_constraints_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<StateEquationConstraintsFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::operator_counting

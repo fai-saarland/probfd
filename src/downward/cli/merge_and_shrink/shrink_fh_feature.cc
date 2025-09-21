@@ -20,7 +20,7 @@ using downward::cli::merge_and_shrink::add_shrink_bucket_options_to_feature;
 using downward::cli::merge_and_shrink::get_shrink_bucket_arguments_from_options;
 
 namespace {
-class ShrinkFHFeature : public TypedFeature<ShrinkStrategy, ShrinkFH> {
+class ShrinkFHFeature : public TypedFeature<ShrinkStrategy> {
 public:
     ShrinkFHFeature()
         : TypedFeature("shrink_fh")
@@ -83,7 +83,7 @@ public:
             "vector-based approach.");
     }
 
-    virtual shared_ptr<ShrinkFH>
+    virtual shared_ptr<ShrinkStrategy>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<ShrinkFH>(
@@ -92,7 +92,7 @@ public:
             get_shrink_bucket_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::merge_and_shrink {
 
@@ -105,4 +105,4 @@ void add_shrink_fh_feature(RawRegistry& raw_registry)
          {"low", "prefer shrinking states with low value"}});
 }
 
-} // namespace
+} // namespace downward::cli::merge_and_shrink

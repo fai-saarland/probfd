@@ -19,8 +19,7 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-class TaskDuplicatorFeature
-    : public TypedFeature<SubtaskGenerator, TaskDuplicator> {
+class TaskDuplicatorFeature : public TypedFeature<SubtaskGenerator> {
 public:
     TaskDuplicatorFeature()
         : TypedFeature("pcegar_original")
@@ -32,7 +31,7 @@ public:
             Bounds("1", "infinity"));
     }
 
-    std::shared_ptr<TaskDuplicator>
+    std::shared_ptr<SubtaskGenerator>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<TaskDuplicator>(
@@ -40,8 +39,7 @@ public:
     }
 };
 
-class GoalDecompositionFeature
-    : public TypedFeature<SubtaskGenerator, GoalDecomposition> {
+class GoalDecompositionFeature : public TypedFeature<SubtaskGenerator> {
 public:
     GoalDecompositionFeature()
         : TypedFeature("pcegar_goals")
@@ -53,7 +51,7 @@ public:
         add_rng_options_to_feature(*this);
     }
 
-    std::shared_ptr<GoalDecomposition>
+    std::shared_ptr<SubtaskGenerator>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<GoalDecomposition>(
@@ -62,8 +60,7 @@ public:
     }
 };
 
-class LandmarkDecompositionFeature
-    : public TypedFeature<SubtaskGenerator, LandmarkDecomposition> {
+class LandmarkDecompositionFeature : public TypedFeature<SubtaskGenerator> {
 public:
     LandmarkDecompositionFeature()
         : TypedFeature("pcegar_landmarks")
@@ -83,7 +80,7 @@ public:
             "true");
     }
 
-    std::shared_ptr<LandmarkDecomposition>
+    std::shared_ptr<SubtaskGenerator>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<LandmarkDecomposition>(

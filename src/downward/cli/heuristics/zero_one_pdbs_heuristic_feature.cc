@@ -43,8 +43,7 @@ public:
     {
     }
 
-    unique_ptr<Evaluator>
-    create_object(const SharedAbstractTask& task) override
+    unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
     {
         auto transformation_result = transformation->transform(task);
 
@@ -59,9 +58,7 @@ public:
 };
 
 class ZeroOnePDBsHeuristicFeature
-    : public TypedFeature<
-          TaskDependentFactory<Evaluator>,
-          ZOPDBsHeuristicFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     ZeroOnePDBsHeuristicFeature()
         : TypedFeature("zopdbs")
@@ -101,7 +98,7 @@ public:
         document_property("preferred operators", "no");
     }
 
-    shared_ptr<ZOPDBsHeuristicFactory>
+    shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<ZOPDBsHeuristicFactory>(
@@ -109,7 +106,7 @@ public:
             opts.get<shared_ptr<PatternCollectionGenerator>>("patterns"));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::heuristics {
 
@@ -118,4 +115,4 @@ void add_zero_one_pdbs_heuristic_features(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<ZeroOnePDBsHeuristicFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::heuristics

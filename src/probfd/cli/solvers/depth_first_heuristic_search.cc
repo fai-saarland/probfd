@@ -76,7 +76,7 @@ public:
 };
 
 template <bool Bisimulation, bool Fret>
-class DFHSSolverFeature : public TypedFeature<TaskSolverFactory, MDPSolver> {
+class DFHSSolverFeature : public TypedFeature<TaskSolverFactory> {
 public:
     DFHSSolverFeature()
         : DFHSSolverFeature::TypedFeature(
@@ -108,7 +108,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<MDPSolver>
+    std::shared_ptr<TaskSolverFactory>
     create_component(const Options& options, const utils::Context& context)
         const override
     {
@@ -151,7 +151,7 @@ protected:
 };
 
 template <bool Bisimulation, bool Fret>
-class ILAOSolverFeature : public TypedFeature<TaskSolverFactory, MDPSolver> {
+class ILAOSolverFeature : public TypedFeature<TaskSolverFactory> {
 public:
     ILAOSolverFeature()
         : ILAOSolverFeature::TypedFeature(
@@ -163,7 +163,7 @@ public:
         add_mdp_hs_options_to_feature<Bisimulation, Fret>(*this);
     }
 
-    std::shared_ptr<MDPSolver>
+    std::shared_ptr<TaskSolverFactory>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -181,7 +181,7 @@ public:
 };
 
 template <bool Bisimulation, bool Fret>
-class LILAOSolverFeature : public TypedFeature<TaskSolverFactory, MDPSolver> {
+class LILAOSolverFeature : public TypedFeature<TaskSolverFactory> {
 public:
     LILAOSolverFeature()
         : LILAOSolverFeature::TypedFeature(
@@ -193,7 +193,7 @@ public:
         add_mdp_hs_options_to_feature<Bisimulation, Fret>(*this);
     }
 
-    std::shared_ptr<MDPSolver>
+    std::shared_ptr<TaskSolverFactory>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -211,7 +211,7 @@ public:
 };
 
 template <bool Bisimulation, bool Fret>
-class HDPSolverFeature : public TypedFeature<TaskSolverFactory, MDPSolver> {
+class HDPSolverFeature : public TypedFeature<TaskSolverFactory> {
 public:
     HDPSolverFeature()
         : HDPSolverFeature::TypedFeature(
@@ -223,7 +223,7 @@ public:
         add_mdp_hs_options_to_feature<Bisimulation, Fret>(*this);
     }
 
-    std::shared_ptr<MDPSolver>
+    std::shared_ptr<TaskSolverFactory>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -239,7 +239,7 @@ public:
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::solvers {
 
@@ -269,4 +269,4 @@ void add_depth_first_heuristic_search_features(RawRegistry& raw_registry)
           "dfs exploration."}});
 }
 
-} // namespace
+} // namespace probfd::cli::solvers

@@ -79,8 +79,7 @@ public:
     {
     }
 
-    unique_ptr<Evaluator>
-    create_object(const SharedAbstractTask& task) override
+    unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
     {
         auto transformation_result = transformation->transform(task);
         return std::make_unique<MergeAndShrinkHeuristic>(
@@ -102,9 +101,7 @@ public:
 };
 
 class MergeAndShrinkHeuristicFeature
-    : public TypedFeature<
-          TaskDependentFactory<Evaluator>,
-          MergeAndShrinkHeuristicFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     MergeAndShrinkHeuristicFeature()
         : TypedFeature("merge_and_shrink")
@@ -236,7 +233,7 @@ public:
         document_property("preferred operators", "no");
     }
 
-    shared_ptr<MergeAndShrinkHeuristicFactory>
+    shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context& context) const override
     {
         Options options_copy(opts);
@@ -247,7 +244,7 @@ public:
                 options_copy));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::heuristics {
 
@@ -256,4 +253,4 @@ void add_merge_and_shrink_heuristic_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<MergeAndShrinkHeuristicFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::heuristics

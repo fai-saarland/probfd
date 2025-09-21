@@ -19,8 +19,7 @@ using downward::cli::merge_and_shrink::add_merge_tree_options_to_feature;
 using downward::cli::merge_and_shrink::get_merge_tree_arguments_from_options;
 
 namespace {
-class MergeTreeFactoryLinearFeature
-    : public TypedFeature<MergeTreeFactory, MergeTreeFactoryLinear> {
+class MergeTreeFactoryLinearFeature : public TypedFeature<MergeTreeFactory> {
 public:
     MergeTreeFactoryLinearFeature()
         : TypedFeature("linear")
@@ -48,7 +47,7 @@ public:
         add_merge_tree_options_to_feature(*this);
     }
 
-    virtual shared_ptr<MergeTreeFactoryLinear>
+    virtual shared_ptr<MergeTreeFactory>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<MergeTreeFactoryLinear>(
@@ -57,7 +56,7 @@ public:
             get_merge_tree_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::merge_and_shrink {
 
@@ -86,4 +85,4 @@ void add_merge_tree_factory_linear_feature(RawRegistry& raw_registry)
           "variables are ordered reverse to their level in the causal graph"}});
 }
 
-} // namespace
+} // namespace downward::cli::merge_and_shrink

@@ -19,8 +19,7 @@ using namespace downward;
 using namespace downward::stubborn_sets_ec;
 
 namespace {
-class StubbornSetsECFeature
-    : public TypedFeature<PruningMethod, StubbornSetsEC> {
+class StubbornSetsECFeature : public TypedFeature<PruningMethod> {
 public:
     StubbornSetsECFeature()
         : TypedFeature("stubborn_sets_ec")
@@ -56,14 +55,14 @@ public:
         add_pruning_options_to_feature(*this);
     }
 
-    virtual shared_ptr<StubbornSetsEC>
+    virtual shared_ptr<PruningMethod>
     create_component(const Options& opts, const utils::Context&) const override
     {
         return make_shared_from_arg_tuples<StubbornSetsEC>(
             get_pruning_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::pruning {
 
@@ -72,4 +71,4 @@ void add_stubborn_sets_ec_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<StubbornSetsECFeature>();
 }
 
-} // namespace stubborn_sets_ec
+} // namespace downward::cli::pruning

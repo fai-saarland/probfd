@@ -31,7 +31,8 @@ public:
     {
     }
 
-    TaskTransformationResult transform(const SharedAbstractTask& original_task)
+    TaskTransformationResult
+    transform(const SharedAbstractTask& original_task) override
     {
         return {
             replace(
@@ -46,7 +47,7 @@ public:
 };
 
 class CostAdaptedTaskTransformationFeature
-    : public TypedFeature<TaskTransformation, CostAdaptedTaskTransformation> {
+    : public TypedFeature<TaskTransformation> {
 public:
     CostAdaptedTaskTransformationFeature()
         : TypedFeature("adapt_costs")
@@ -57,14 +58,14 @@ public:
         add_cost_type_options_to_feature(*this);
     }
 
-    virtual shared_ptr<CostAdaptedTaskTransformation>
+    virtual shared_ptr<TaskTransformation>
     create_component(const Options& opts, const utils::Context&) const override
     {
         return make_shared_from_arg_tuples<CostAdaptedTaskTransformation>(
             get_cost_type_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::tasks {
 
@@ -73,4 +74,4 @@ void add_cost_task_transformation_features(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<CostAdaptedTaskTransformationFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::tasks

@@ -18,8 +18,7 @@ using downward::cli::landmarks::get_landmark_factory_arguments_from_options;
 using namespace downward::landmarks;
 
 namespace {
-class LandmarkFactoryRpgExhaustFeature
-    : public TypedFeature<LandmarkFactory, LandmarkFactoryRpgExhaust> {
+class LandmarkFactoryRpgExhaustFeature : public TypedFeature<LandmarkFactory> {
 public:
     LandmarkFactoryRpgExhaustFeature()
         : TypedFeature("lm_exhaust")
@@ -46,7 +45,7 @@ public:
             "ignored, i.e. not supported");
     }
 
-    virtual shared_ptr<LandmarkFactoryRpgExhaust>
+    virtual shared_ptr<LandmarkFactory>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<LandmarkFactoryRpgExhaust>(
@@ -54,7 +53,7 @@ public:
             get_landmark_factory_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::landmarks {
 
@@ -63,4 +62,4 @@ void add_landmark_factory_rpg_exhaust_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<LandmarkFactoryRpgExhaustFeature>();
 }
 
-} // namespace downward::landmarks
+} // namespace downward::cli::landmarks

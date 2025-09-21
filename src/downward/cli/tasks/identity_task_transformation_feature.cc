@@ -11,7 +11,7 @@ using namespace downward::cli::plugins;
 
 namespace {
 class IdentityTaskTransformationFeature
-    : public TypedFeature<TaskTransformation, IdentityTaskTransformation> {
+    : public TypedFeature<TaskTransformation> {
 public:
     IdentityTaskTransformationFeature()
         : TypedFeature("no_transform")
@@ -19,13 +19,13 @@ public:
     }
 
     [[nodiscard]]
-    shared_ptr<IdentityTaskTransformation>
+    shared_ptr<TaskTransformation>
     create_component(const Options&, const utils::Context&) const override
     {
         return std::make_shared<IdentityTaskTransformation>();
     }
 };
-}
+} // namespace
 
 namespace downward::cli::tasks {
 
@@ -34,4 +34,4 @@ void add_identity_task_transformation_features(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<IdentityTaskTransformationFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::tasks

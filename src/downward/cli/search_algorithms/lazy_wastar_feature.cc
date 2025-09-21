@@ -110,9 +110,7 @@ public:
 };
 
 class LazyWAstarSearchFeature
-    : public TypedFeature<
-          TaskDependentFactory<SearchAlgorithm>,
-          LazyWAstarSearchFactory> {
+    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     LazyWAstarSearchFeature()
         : TypedFeature("lazy_wastar")
@@ -184,7 +182,7 @@ public:
             true);
     }
 
-    shared_ptr<LazyWAstarSearchFactory>
+    shared_ptr<TaskDependentFactory<SearchAlgorithm>>
     create_component(const Options& opts, const utils::Context& context)
         const override
     {
@@ -201,7 +199,7 @@ public:
             opts.get<int>("w"));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::search_algorithms {
 
@@ -210,4 +208,4 @@ void add_lazy_wastar_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<LazyWAstarSearchFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::search_algorithms

@@ -54,13 +54,12 @@ public:
 };
 
 template <bool Bisimulation>
-class AOStarSolverFeature : public TypedFeature<TaskSolverFactory, MDPSolver> {
+class AOStarSolverFeature : public TypedFeature<TaskSolverFactory> {
     using Sampler = SuccessorSampler<ActionType<Bisimulation, false>>;
 
 public:
     AOStarSolverFeature()
-        : TypedFeature<TaskSolverFactory, MDPSolver>(
-              add_wrapper_algo_suffix<Bisimulation, false>("aostar"))
+        : TypedFeature(add_wrapper_algo_suffix<Bisimulation, false>("aostar"))
     {
         this->document_title("AO* algorithm");
 
@@ -75,7 +74,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<MDPSolver>
+    std::shared_ptr<TaskSolverFactory>
     create_component(const Options& options, const Context&) const override
     {
         return make_shared_from_arg_tuples<MDPSolver>(
@@ -85,7 +84,7 @@ protected:
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::solvers {
 
@@ -94,4 +93,4 @@ void add_aostar_solver_features(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugins<AOStarSolverFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::solvers

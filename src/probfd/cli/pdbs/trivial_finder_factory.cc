@@ -14,20 +14,20 @@ using namespace downward::cli::plugins;
 
 namespace {
 class TrivialFinderFactoryFeature
-    : public TypedFeature<SubCollectionFinderFactory, TrivialFinderFactory> {
+    : public TypedFeature<SubCollectionFinderFactory> {
 public:
     TrivialFinderFactoryFeature()
         : TypedFeature("finder_trivial_factory")
     {
     }
 
-    std::shared_ptr<TrivialFinderFactory>
+    std::shared_ptr<SubCollectionFinderFactory>
     create_component(const Options&, const Context&) const override
     {
         return std::make_shared<TrivialFinderFactory>();
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::pdbs {
 
@@ -36,4 +36,4 @@ void add_trivial_finder_factory_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<TrivialFinderFactoryFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::pdbs

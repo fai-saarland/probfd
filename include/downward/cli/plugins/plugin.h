@@ -19,11 +19,12 @@ class Context;
 namespace downward::cli::plugins {
 class Feature {
     const Type& type;
+    std::vector<ArgumentInfo> arguments;
+
     std::string key;
     std::string title;
     std::string synopsis;
     std::string subcategory;
-    std::vector<ArgumentInfo> arguments;
     std::vector<PropertyInfo> properties;
     std::vector<LanguageSupportInfo> language_support;
     std::vector<NoteInfo> notes;
@@ -78,10 +79,9 @@ public:
     const std::vector<NoteInfo>& get_notes() const;
 };
 
-template <typename Base, typename Constructed>
-    requires std::derived_from<Constructed, Base>
+template <typename ReturnType>
 class TypedFeature : public Feature {
-    using BasePtr = std::shared_ptr<Base>;
+    using BasePtr = std::shared_ptr<ReturnType>;
 
 public:
     explicit TypedFeature(const std::string& key)
@@ -96,7 +96,7 @@ public:
         return {this->create_component(options, context)};
     }
 
-    virtual std::shared_ptr<Constructed>
+    virtual std::shared_ptr<ReturnType>
     create_component(const Options&, const downward::utils::Context&) const = 0;
 };
 

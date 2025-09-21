@@ -77,9 +77,7 @@ public:
 };
 
 class EnforcedHillClimbingSearchFeature
-    : public TypedFeature<
-          TaskDependentFactory<SearchAlgorithm>,
-          EnforcedHillClimbingSearchFactory> {
+    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     EnforcedHillClimbingSearchFeature()
         : TypedFeature("ehc")
@@ -101,7 +99,7 @@ public:
         add_search_algorithm_options_to_feature(*this, "ehc");
     }
 
-    shared_ptr<EnforcedHillClimbingSearchFactory>
+    shared_ptr<TaskDependentFactory<SearchAlgorithm>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<EnforcedHillClimbingSearchFactory>(
@@ -112,7 +110,7 @@ public:
             get_search_algorithm_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::search_algorithms {
 
@@ -127,4 +125,4 @@ void add_enforce_hill_climbing_search_feature(RawRegistry& raw_registry)
           "then those by non-preferred operators"}});
 }
 
-} // namespace
+} // namespace downward::cli::search_algorithms

@@ -21,9 +21,7 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 class MergeScoringFunctionTotalOrderFeature
-    : public TypedFeature<
-          MergeScoringFunction,
-          MergeScoringFunctionTotalOrder> {
+    : public TypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionTotalOrderFeature()
         : TypedFeature("ptotal_order")
@@ -77,7 +75,7 @@ public:
     }
 
 protected:
-    shared_ptr<MergeScoringFunctionTotalOrder>
+    shared_ptr<MergeScoringFunction>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -88,7 +86,7 @@ protected:
             downward::cli::utils::get_rng_arguments_from_options(options));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::merge_and_shrink {
 
@@ -108,4 +106,4 @@ void add_merge_scoring_function_total_order_feature(RawRegistry& raw_registry)
          {"random", "a randomized order"}});
 }
 
-} // namespace
+} // namespace probfd::cli::merge_and_shrink

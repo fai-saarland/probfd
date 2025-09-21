@@ -40,8 +40,7 @@ public:
     {
     }
 
-    unique_ptr<Evaluator>
-    create_object(const SharedAbstractTask& task) override
+    unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
     {
         auto transformation_result = transformation->transform(task);
         return std::make_unique<HSPMaxHeuristic>(
@@ -54,9 +53,7 @@ public:
 };
 
 class HSPMaxHeuristicFeature
-    : public TypedFeature<
-          TaskDependentFactory<Evaluator>,
-          HMaxHeuristicFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     HSPMaxHeuristicFeature()
         : TypedFeature("hmax")
@@ -79,14 +76,14 @@ public:
         document_property("preferred operators", "no");
     }
 
-    shared_ptr<HMaxHeuristicFactory>
+    shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<HMaxHeuristicFactory>(
             get_heuristic_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::heuristics {
 
@@ -95,4 +92,4 @@ void add_max_heuristic_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<HSPMaxHeuristicFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::heuristics

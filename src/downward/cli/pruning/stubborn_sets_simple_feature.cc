@@ -18,8 +18,7 @@ using namespace downward::cli;
 using namespace downward::cli::plugins;
 
 namespace {
-class StubbornSetsSimpleFeature
-    : public TypedFeature<downward::PruningMethod, StubbornSetsSimple> {
+class StubbornSetsSimpleFeature : public TypedFeature<downward::PruningMethod> {
 public:
     StubbornSetsSimpleFeature()
         : TypedFeature("stubborn_sets_simple")
@@ -62,14 +61,14 @@ public:
         add_pruning_options_to_feature(*this);
     }
 
-    virtual shared_ptr<StubbornSetsSimple>
+    virtual shared_ptr<downward::PruningMethod>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<StubbornSetsSimple>(
             get_pruning_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::pruning {
 
@@ -78,4 +77,4 @@ void add_stubborn_sets_simple_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<StubbornSetsSimpleFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::pruning

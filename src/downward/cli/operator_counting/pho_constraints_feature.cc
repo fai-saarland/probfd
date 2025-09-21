@@ -15,8 +15,7 @@ using namespace downward::operator_counting;
 using namespace downward::cli::plugins;
 
 namespace {
-class PhOConstraintsFeature
-    : public TypedFeature<ConstraintGenerator, PhOConstraints> {
+class PhOConstraintsFeature : public TypedFeature<ConstraintGenerator> {
 public:
     PhOConstraintsFeature()
         : TypedFeature("pho_constraints")
@@ -43,14 +42,14 @@ public:
             "systematic(2)");
     }
 
-    virtual shared_ptr<PhOConstraints>
+    virtual shared_ptr<ConstraintGenerator>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<PhOConstraints>(
             opts.get<shared_ptr<PatternCollectionGenerator>>("patterns"));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::operator_counting {
 
@@ -59,4 +58,4 @@ void add_pho_constraints_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<PhOConstraintsFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::operator_counting

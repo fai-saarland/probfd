@@ -18,9 +18,7 @@ using downward::cli::pdbs::get_generator_arguments_from_options;
 
 namespace {
 class PatternCollectionGeneratorComboFeature
-    : public TypedFeature<
-          PatternCollectionGenerator,
-          PatternCollectionGeneratorCombo> {
+    : public TypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorComboFeature()
         : TypedFeature("combo")
@@ -33,7 +31,7 @@ public:
         add_generator_options_to_feature(*this);
     }
 
-    virtual shared_ptr<PatternCollectionGeneratorCombo>
+    virtual shared_ptr<PatternCollectionGenerator>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<PatternCollectionGeneratorCombo>(
@@ -41,7 +39,7 @@ public:
             get_generator_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::pdbs {
 
@@ -51,4 +49,4 @@ void add_pattern_collection_generator_combo_feature(RawRegistry& raw_registry)
         .insert_feature_plugin<PatternCollectionGeneratorComboFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::pdbs

@@ -44,8 +44,7 @@ public:
     {
     }
 
-    unique_ptr<Evaluator>
-    create_object(const SharedAbstractTask& task) override
+    unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
     {
         std::vector<std::shared_ptr<Evaluator>> evaluators;
 
@@ -61,9 +60,7 @@ public:
 };
 
 class MaxEvaluatorFeature
-    : public TypedFeature<
-          TaskDependentFactory<Evaluator>,
-          MaxEvaluatorFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     MaxEvaluatorFeature()
         : TypedFeature("max")
@@ -74,7 +71,7 @@ public:
         add_combining_evaluator_options_to_feature(*this, "max");
     }
 
-    shared_ptr<MaxEvaluatorFactory>
+    shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context& context) const override
     {
         verify_list_non_empty<shared_ptr<Evaluator>>(context, opts, "evals");
@@ -83,7 +80,7 @@ public:
     }
 };
 
-}
+} // namespace
 
 namespace downward::cli::evaluators {
 
@@ -92,4 +89,4 @@ void add_max_evaluator_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<MaxEvaluatorFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::evaluators

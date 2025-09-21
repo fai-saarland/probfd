@@ -17,8 +17,7 @@ using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
 namespace {
-class ShrinkRandomFeature
-    : public TypedFeature<ShrinkStrategy, ShrinkStrategyRandom> {
+class ShrinkRandomFeature : public TypedFeature<ShrinkStrategy> {
 public:
     ShrinkRandomFeature()
         : TypedFeature("pshrink_random")
@@ -31,7 +30,7 @@ public:
     }
 
 protected:
-    shared_ptr<ShrinkStrategyRandom>
+    shared_ptr<ShrinkStrategy>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -39,7 +38,7 @@ protected:
             get_bucket_based_shrink_args_from_options(options));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::merge_and_shrink {
 
@@ -48,4 +47,4 @@ void add_shrink_strategy_random_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<ShrinkRandomFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::merge_and_shrink

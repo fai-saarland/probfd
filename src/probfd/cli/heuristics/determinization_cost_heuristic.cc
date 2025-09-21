@@ -17,9 +17,7 @@ using namespace downward::cli::plugins;
 
 namespace {
 class DeterminizationHeuristicFactoryFeature
-    : public TypedFeature<
-          TaskHeuristicFactory,
-          DeterminizationCostHeuristicFactory> {
+    : public TypedFeature<TaskHeuristicFactory> {
 public:
     DeterminizationHeuristicFactoryFeature()
         : TypedFeature("det")
@@ -35,7 +33,7 @@ public:
             "The classical planning heuristic.");
     }
 
-    std::shared_ptr<DeterminizationCostHeuristicFactory>
+    std::shared_ptr<TaskHeuristicFactory>
     create_component(const Options& options, const Context&) const override
     {
         return std::make_shared<DeterminizationCostHeuristicFactory>(
@@ -44,7 +42,7 @@ public:
                 "heuristic"));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::heuristics {
 
@@ -54,4 +52,4 @@ void add_determinization_cost_heuristic_feature(RawRegistry& raw_registry)
         .insert_feature_plugin<DeterminizationHeuristicFactoryFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::heuristics

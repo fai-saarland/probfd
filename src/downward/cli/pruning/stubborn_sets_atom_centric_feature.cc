@@ -19,7 +19,7 @@ using namespace downward::cli::plugins;
 
 namespace {
 class StubbornSetsAtomCentricFeature
-    : public TypedFeature<downward::PruningMethod, StubbornSetsAtomCentric> {
+    : public TypedFeature<downward::PruningMethod> {
 public:
     StubbornSetsAtomCentricFeature()
         : TypedFeature("atom_centric_stubborn_sets")
@@ -63,7 +63,7 @@ public:
         add_pruning_options_to_feature(*this);
     }
 
-    virtual shared_ptr<StubbornSetsAtomCentric>
+    virtual shared_ptr<downward::PruningMethod>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<StubbornSetsAtomCentric>(
@@ -72,7 +72,7 @@ public:
             get_pruning_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::pruning {
 
@@ -95,4 +95,4 @@ void add_stubborn_sets_atom_centric_feature(RawRegistry& raw_registry)
           "yet part of the stubborn set"}});
 }
 
-} // namespace
+} // namespace downward::cli::pruning

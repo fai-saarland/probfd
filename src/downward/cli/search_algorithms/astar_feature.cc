@@ -80,7 +80,7 @@ public:
 };
 
 class AStarSearchFeature
-    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>, AStarFactory> {
+    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     AStarSearchFeature()
         : TypedFeature("astar")
@@ -120,7 +120,7 @@ public:
             true);
     }
 
-    shared_ptr<AStarFactory>
+    shared_ptr<TaskDependentFactory<SearchAlgorithm>>
     create_component(const Options& opts, const utils::Context&) const override
     {
         return make_shared_from_arg_tuples<AStarFactory>(
@@ -131,7 +131,7 @@ public:
             get_eager_search_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::search_algorithms {
 
@@ -140,4 +140,4 @@ void add_astar_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<AStarSearchFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::search_algorithms

@@ -20,9 +20,7 @@ using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 class MergeScoringFunctionSingleRandomFeature
-    : public TypedFeature<
-          MergeScoringFunction,
-          MergeScoringFunctionSingleRandom> {
+    : public TypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionSingleRandomFeature()
         : TypedFeature("single_random")
@@ -36,14 +34,14 @@ public:
         add_rng_options_to_feature(*this);
     }
 
-    virtual shared_ptr<MergeScoringFunctionSingleRandom>
+    virtual shared_ptr<MergeScoringFunction>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<MergeScoringFunctionSingleRandom>(
             get_rng_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::merge_and_shrink {
 
@@ -53,4 +51,4 @@ void add_merge_scoring_function_single_random_feature(RawRegistry& raw_registry)
         .insert_feature_plugin<MergeScoringFunctionSingleRandomFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::merge_and_shrink

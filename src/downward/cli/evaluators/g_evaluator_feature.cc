@@ -32,15 +32,13 @@ public:
     {
     }
 
-    unique_ptr<Evaluator>
-    create_object(const SharedAbstractTask&) override
+    unique_ptr<Evaluator> create_object(const SharedAbstractTask&) override
     {
         return std::make_unique<GEvaluator>(description, verbosity);
     }
 };
 
-class GEvaluatorFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>, GEvaluatorFactory> {
+class GEvaluatorFeature : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     GEvaluatorFeature()
         : TypedFeature("g")
@@ -52,7 +50,7 @@ public:
         add_evaluator_options_to_feature(*this, "g");
     }
 
-    virtual shared_ptr<GEvaluatorFactory>
+    virtual shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<GEvaluatorFactory>(
@@ -60,7 +58,7 @@ public:
     }
 };
 
-}
+} // namespace
 
 namespace downward::cli::evaluators {
 
@@ -69,4 +67,4 @@ void add_g_evaluator_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<GEvaluatorFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::evaluators

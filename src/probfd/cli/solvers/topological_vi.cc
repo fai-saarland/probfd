@@ -52,12 +52,10 @@ public:
     }
 };
 
-class TopologicalVISolverFeature
-    : public TypedFeature<TaskSolverFactory, MDPSolver> {
+class TopologicalVISolverFeature : public TypedFeature<TaskSolverFactory> {
 public:
     TopologicalVISolverFeature()
-        : TypedFeature<TaskSolverFactory, MDPSolver>(
-              "topological_value_iteration")
+        : TypedFeature("topological_value_iteration")
     {
         document_title("Topological Value Iteration");
         add_base_solver_options_except_algorithm_to_feature(*this);
@@ -69,7 +67,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<MDPSolver>
+    std::shared_ptr<TaskSolverFactory>
     create_component(const Options& options, const Context&) const override
     {
         return make_shared_from_arg_tuples<MDPSolver>(
@@ -78,7 +76,7 @@ protected:
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::solvers {
 
@@ -87,4 +85,4 @@ void add_topological_value_iteration_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<TopologicalVISolverFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::solvers

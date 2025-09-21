@@ -17,7 +17,7 @@ using namespace downward::cli::plugins;
 
 namespace {
 class DeleteRelaxationIFConstraintsFeature
-    : public TypedFeature<ConstraintGenerator, DeleteRelaxationIFConstraints> {
+    : public TypedFeature<ConstraintGenerator> {
 public:
     DeleteRelaxationIFConstraintsFeature()
         : TypedFeature("delete_relaxation_if_constraints")
@@ -82,7 +82,7 @@ public:
             "option {{{delete_relaxation_rr_constraints}}}.\n");
     }
 
-    virtual shared_ptr<DeleteRelaxationIFConstraints>
+    virtual shared_ptr<ConstraintGenerator>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared<DeleteRelaxationIFConstraints>(
@@ -90,7 +90,7 @@ public:
             opts.get<bool>("use_integer_vars"));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::operator_counting {
 
@@ -99,4 +99,4 @@ void add_delete_relaxation_if_constraints_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<DeleteRelaxationIFConstraintsFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::operator_counting

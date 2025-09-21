@@ -18,9 +18,7 @@ using namespace probfd::cli::merge_and_shrink;
 
 namespace {
 class MergeStrategyFactoryPrecomputedFeature
-    : public TypedFeature<
-          MergeStrategyFactory,
-          MergeStrategyFactoryPrecomputed> {
+    : public TypedFeature<MergeStrategyFactory> {
 public:
     MergeStrategyFactoryPrecomputedFeature()
         : TypedFeature("pmerge_precomputed")
@@ -54,7 +52,7 @@ public:
     }
 
 protected:
-    shared_ptr<MergeStrategyFactoryPrecomputed>
+    shared_ptr<MergeStrategyFactory>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -63,13 +61,14 @@ protected:
             options.get<shared_ptr<MergeTreeFactory>>("merge_tree"));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::merge_and_shrink {
 
 void add_merge_strategy_factory_precomputed_feature(RawRegistry& raw_registry)
 {
-    raw_registry.insert_feature_plugin<MergeStrategyFactoryPrecomputedFeature>();
+    raw_registry
+        .insert_feature_plugin<MergeStrategyFactoryPrecomputedFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::merge_and_shrink

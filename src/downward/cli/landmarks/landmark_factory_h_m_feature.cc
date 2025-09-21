@@ -25,16 +25,16 @@ using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 using downward::cli::landmarks::get_landmark_factory_arguments_from_options;
 
 namespace {
-class LandmarkFactoryHMFeature
-    : public TypedFeature<LandmarkFactory, LandmarkFactoryHM> {
+class LandmarkFactoryHMFeature : public TypedFeature<LandmarkFactory> {
 public:
     LandmarkFactoryHMFeature()
         : TypedFeature("lm_hm")
     {
         // document_group("");
         document_title("h^m Landmarks");
-        document_synopsis("The landmark generation method introduced by "
-                          "Keyder, Richter & Helmert (ECAI 2010).");
+        document_synopsis(
+            "The landmark generation method introduced by "
+            "Keyder, Richter & Helmert (ECAI 2010).");
 
         add_option<int>(
             "m",
@@ -55,18 +55,19 @@ public:
             "ignored, i.e. not supported");
     }
 
-    virtual shared_ptr<LandmarkFactoryHM>
+    virtual shared_ptr<LandmarkFactory>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<LandmarkFactoryHM>(
-            opts.get<std::shared_ptr<TaskDependentFactory<MutexInformation>>>("mutexes"),
+            opts.get<std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
+                "mutexes"),
             opts.get<int>("m"),
             opts.get<bool>("conjunctive_landmarks"),
             get_use_orders_arguments_from_options(opts),
             get_landmark_factory_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::landmarks {
 
@@ -75,4 +76,4 @@ void add_landmark_factory_hm_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<LandmarkFactoryHMFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::landmarks

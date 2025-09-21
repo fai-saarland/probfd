@@ -44,9 +44,9 @@ void extract_factor(
     if (auto&& [ts, fm, distances] = fts.extract_factor(index);
         distances->are_goal_distances_computed()) {
         factor_distances.emplace_back(std::move(fm), *distances);
-        } else {
-            factor_distances.emplace_back(std::move(fm), fts.get_labels(), *ts);
-        }
+    } else {
+        factor_distances.emplace_back(std::move(fm), fts.get_labels(), *ts);
+    }
 }
 
 bool extract_unsolvable_factor(
@@ -154,7 +154,7 @@ std::unique_ptr<FDRHeuristic> MergeAndShrinkHeuristicFactory::create_object(
 
             extract_factor(factor_distances, fts, index);
         }
-        }
+    }
 
     const int num_factors_kept = factor_distances.size();
     if (log_.is_at_least_normal()) {
@@ -168,9 +168,7 @@ std::unique_ptr<FDRHeuristic> MergeAndShrinkHeuristicFactory::create_object(
 }
 
 class MergeAndShrinkHeuristicFactoryFeature final
-    : public TypedFeature<
-          TaskHeuristicFactory,
-          MergeAndShrinkHeuristicFactory> {
+    : public TypedFeature<TaskHeuristicFactory> {
 public:
     MergeAndShrinkHeuristicFactoryFeature()
         : TypedFeature("pa_merge_and_shrink")
@@ -182,7 +180,7 @@ public:
         add_merge_and_shrink_algorithm_options_to_feature(*this);
     }
 
-    shared_ptr<MergeAndShrinkHeuristicFactory>
+    shared_ptr<TaskHeuristicFactory>
     create_component(const Options& options, const utils::Context& context)
         const override
     {
@@ -194,7 +192,7 @@ public:
             get_task_dependent_heuristic_arguments_from_options(options_copy));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::heuristics {
 
@@ -203,4 +201,4 @@ void add_merge_and_shrink_heuristic_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<MergeAndShrinkHeuristicFactoryFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::heuristics

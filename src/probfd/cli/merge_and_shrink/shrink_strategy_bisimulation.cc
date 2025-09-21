@@ -20,8 +20,7 @@ using namespace downward::cli::plugins;
 using namespace probfd::merge_and_shrink;
 
 namespace {
-class ShrinkBisimulationFeature
-    : public TypedFeature<ShrinkStrategy, ShrinkStrategyBisimulation> {
+class ShrinkBisimulationFeature : public TypedFeature<ShrinkStrategy> {
 public:
     ShrinkBisimulationFeature()
         : TypedFeature("pshrink_bisimulation")
@@ -55,7 +54,7 @@ public:
     }
 
 protected:
-    shared_ptr<ShrinkStrategyBisimulation>
+    shared_ptr<ShrinkStrategy>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -64,7 +63,7 @@ protected:
             options.get<bool>("require_goal_distances"));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::merge_and_shrink {
 
@@ -79,4 +78,4 @@ void add_shrink_strategy_bisimulation_feature(RawRegistry& raw_registry)
           "the size limit is hit"}});
 }
 
-} // namespace
+} // namespace probfd::cli::merge_and_shrink

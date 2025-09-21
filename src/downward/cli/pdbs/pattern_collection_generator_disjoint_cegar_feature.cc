@@ -27,9 +27,7 @@ using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 class PatternCollectionGeneratorDisjointCegarFeature
-    : public TypedFeature<
-          PatternCollectionGenerator,
-          PatternCollectionGeneratorDisjointCegar> {
+    : public TypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorDisjointCegarFeature()
         : TypedFeature("disjoint_cegar")
@@ -75,7 +73,7 @@ public:
         add_cegar_implementation_notes_to_feature(*this);
     }
 
-    virtual shared_ptr<PatternCollectionGeneratorDisjointCegar>
+    virtual shared_ptr<PatternCollectionGenerator>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<
@@ -88,14 +86,15 @@ public:
             get_generator_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::pdbs {
 
-void add_pattern_collection_generator_disjoint_cegar_feature(RawRegistry& raw_registry)
+void add_pattern_collection_generator_disjoint_cegar_feature(
+    RawRegistry& raw_registry)
 {
-    raw_registry
-        .insert_feature_plugin<PatternCollectionGeneratorDisjointCegarFeature>();
+    raw_registry.insert_feature_plugin<
+        PatternCollectionGeneratorDisjointCegarFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::pdbs

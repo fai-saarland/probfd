@@ -61,12 +61,12 @@ public:
 };
 
 template <bool Bisimulation, bool Fret>
-class LRTDPSolverFeature : public TypedFeature<TaskSolverFactory, MDPSolver> {
+class LRTDPSolverFeature : public TypedFeature<TaskSolverFactory> {
     using Sampler = SuccessorSampler<ActionType<Bisimulation, Fret>>;
 
 public:
     LRTDPSolverFeature()
-        : TypedFeature<TaskSolverFactory, MDPSolver>(
+        : TypedFeature(
               add_wrapper_algo_suffix<Bisimulation, Fret>("lrtdp"))
     {
         this->document_title("Labelled Real-Time Dynamic Programming");
@@ -87,7 +87,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<MDPSolver>
+    std::shared_ptr<TaskSolverFactory>
     create_component(const Options& options, const Context& context)
         const override
     {

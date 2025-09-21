@@ -16,7 +16,7 @@ using namespace downward::cli::plugins;
 namespace {
 
 class VDiffSorterFeature
-    : public TypedFeature<FDRTransitionSorter, VDiffSorter> {
+    : public TypedFeature<FDRTransitionSorter> {
 public:
     VDiffSorterFeature()
         : TypedFeature("value_gap_sort")
@@ -24,7 +24,7 @@ public:
         add_option<bool>("prefer_large_gaps", "", "false");
     }
 
-    std::shared_ptr<VDiffSorter>
+    std::shared_ptr<FDRTransitionSorter>
     create_component(const Options& opts, const Context&) const override
     {
         return std::make_shared<VDiffSorter>(

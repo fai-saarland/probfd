@@ -59,7 +59,7 @@ public:
 };
 
 class CGHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>, CGHeuristicFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     CGHeuristicFeature()
         : TypedFeature("cg")
@@ -88,7 +88,7 @@ public:
         document_property("preferred operators", "yes");
     }
 
-    shared_ptr<CGHeuristicFactory>
+    shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<CGHeuristicFactory>(
@@ -96,7 +96,7 @@ public:
             opts.get<int>("max_cache_size"));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::heuristics {
 
@@ -105,4 +105,4 @@ void add_cg_heuristic_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<CGHeuristicFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::heuristics

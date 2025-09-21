@@ -26,7 +26,7 @@ using namespace downward::merge_and_shrink;
 
 namespace {
 class MergeScoringFunctionMIASMFeature
-    : public TypedFeature<MergeScoringFunction, MergeScoringFunctionMIASM> {
+    : public TypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionMIASMFeature()
         : TypedFeature("sf_miasm")
@@ -114,9 +114,8 @@ public:
             "true");
     }
 
-    virtual shared_ptr<MergeScoringFunctionMIASM>
-    create_component(const Options& opts, const Context& context)
-        const override
+    virtual shared_ptr<MergeScoringFunction>
+    create_component(const Options& opts, const Context& context) const override
     {
         Options options_copy(opts);
         handle_shrink_limit_options_defaults(options_copy, context);
@@ -127,7 +126,7 @@ public:
             options_copy.get<bool>("use_caching"));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::merge_and_shrink {
 
@@ -136,4 +135,4 @@ void add_merge_scoring_function_miasm_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<MergeScoringFunctionMIASMFeature>();
 }
 
-}
+} // namespace downward::cli::merge_and_shrink

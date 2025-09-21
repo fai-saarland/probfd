@@ -46,8 +46,8 @@ public:
         return "exhaustive_ao";
     }
 
-    std::unique_ptr<StatisticalMDPAlgorithm> create_algorithm(
-        const SharedProbabilisticTask& task) override
+    std::unique_ptr<StatisticalMDPAlgorithm>
+    create_algorithm(const SharedProbabilisticTask& task) override
     {
         return std::make_unique<AlgorithmAdaptor>(
             this->template create_heuristic_search_algorithm<
@@ -58,13 +58,12 @@ public:
 };
 
 template <bool Bisimulation>
-class ExhaustiveAOSolverFeature
-    : public TypedFeature<TaskSolverFactory, MDPSolver> {
+class ExhaustiveAOSolverFeature : public TypedFeature<TaskSolverFactory> {
     using OpenListType = OpenList<ActionType<Bisimulation, false>>;
 
 public:
     ExhaustiveAOSolverFeature()
-        : TypedFeature<TaskSolverFactory, MDPSolver>(
+        : TypedFeature(
               add_wrapper_algo_suffix<Bisimulation, false>("exhaustive_ao"))
     {
         this->document_title("Exhaustive AO* algorithm");
@@ -79,7 +78,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<MDPSolver>
+    std::shared_ptr<TaskSolverFactory>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -90,7 +89,7 @@ protected:
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::solvers {
 
@@ -99,4 +98,4 @@ void add_exhaustive_ao_solver_features(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugins<ExhaustiveAOSolverFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::solvers

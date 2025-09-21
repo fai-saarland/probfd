@@ -34,8 +34,7 @@ using namespace probfd::cli::pdbs;
 
 namespace {
 
-void
-add_pattern_collection_generator_cegar_options_to_feature(Feature& feature)
+void add_pattern_collection_generator_cegar_options_to_feature(Feature& feature)
 {
     feature.add_option<bool>(
         "single_goal",
@@ -74,9 +73,7 @@ add_pattern_collection_generator_cegar_options_to_feature(Feature& feature)
 }
 
 class PatternCollectionGeneratorDisjointCEGARFeature
-    : public TypedFeature<
-          PatternCollectionGenerator,
-          PatternCollectionGeneratorDisjointCegar> {
+    : public TypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorDisjointCEGARFeature()
         : TypedFeature("ppdbs_disjoint_cegar")
@@ -90,7 +87,7 @@ public:
         add_rng_options_to_feature(*this);
     }
 
-    virtual shared_ptr<PatternCollectionGeneratorDisjointCegar>
+    virtual shared_ptr<PatternCollectionGenerator>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<
@@ -108,7 +105,7 @@ public:
             get_pattern_collection_generator_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::pdbs {
 
@@ -119,4 +116,4 @@ void add_pattern_collection_generator_disjoint_cegar_feature(
         PatternCollectionGeneratorDisjointCEGARFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::pdbs

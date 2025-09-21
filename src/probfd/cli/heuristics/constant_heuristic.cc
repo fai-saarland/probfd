@@ -14,8 +14,7 @@ using namespace probfd::heuristics;
 using namespace downward::cli::plugins;
 
 namespace {
-class BlindHeuristicFactoryFeature
-    : public TypedFeature<TaskHeuristicFactory, BlindHeuristicFactory> {
+class BlindHeuristicFactoryFeature : public TypedFeature<TaskHeuristicFactory> {
 public:
     BlindHeuristicFactoryFeature()
         : TypedFeature("blind_heuristic")
@@ -26,13 +25,13 @@ public:
     }
 
     [[nodiscard]]
-    std::shared_ptr<BlindHeuristicFactory>
+    std::shared_ptr<TaskHeuristicFactory>
     create_component(const Options&, const Context&) const override
     {
         return std::make_shared<BlindHeuristicFactory>();
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::heuristics {
 
@@ -41,4 +40,4 @@ void add_blind_heuristic_factory_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<BlindHeuristicFactoryFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::heuristics

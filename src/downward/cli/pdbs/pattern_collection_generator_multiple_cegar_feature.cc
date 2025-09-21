@@ -19,9 +19,7 @@ using namespace downward::cli::plugins;
 
 namespace {
 class PatternCollectionGeneratorMultipleCegarFeature
-    : public TypedFeature<
-          PatternCollectionGenerator,
-          PatternCollectionGeneratorMultipleCegar> {
+    : public TypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorMultipleCegarFeature()
         : TypedFeature("multiple_cegar")
@@ -45,7 +43,7 @@ public:
         add_multiple_algorithm_implementation_notes_to_feature(*this);
     }
 
-    virtual shared_ptr<PatternCollectionGeneratorMultipleCegar>
+    virtual shared_ptr<PatternCollectionGenerator>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<
@@ -54,14 +52,15 @@ public:
             get_multiple_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::pdbs {
 
-void add_pattern_collection_generator_multiple_cegar_feature(RawRegistry& raw_registry)
+void add_pattern_collection_generator_multiple_cegar_feature(
+    RawRegistry& raw_registry)
 {
-    raw_registry
-        .insert_feature_plugin<PatternCollectionGeneratorMultipleCegarFeature>();
+    raw_registry.insert_feature_plugin<
+        PatternCollectionGeneratorMultipleCegarFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::pdbs

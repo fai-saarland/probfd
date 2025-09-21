@@ -15,9 +15,7 @@ using namespace downward::cli::plugins;
 
 namespace {
 class DeadEndPruningHeuristicFactoryFeature
-    : public TypedFeature<
-          TaskHeuristicFactory,
-          DeadEndPruningHeuristicFactory> {
+    : public TypedFeature<TaskHeuristicFactory> {
 public:
     DeadEndPruningHeuristicFactoryFeature()
         : TypedFeature("prune_dead_ends")
@@ -35,7 +33,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<DeadEndPruningHeuristicFactory>
+    std::shared_ptr<TaskHeuristicFactory>
     create_component(const Options& options, const Context&) const override
     {
         return std::make_shared<DeadEndPruningHeuristicFactory>(
@@ -44,7 +42,7 @@ protected:
                 "evaluator"));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::heuristics {
 
@@ -53,4 +51,4 @@ void add_dead_end_pruning_heuristic_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<DeadEndPruningHeuristicFactoryFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::heuristics

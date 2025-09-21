@@ -24,7 +24,7 @@ using downward::cli::landmarks::get_landmark_factory_arguments_from_options;
 
 namespace {
 class LandmarkFactoryReasonableOrdersHPSFeature
-    : public TypedFeature<LandmarkFactory, LandmarkFactoryReasonableOrdersHPS> {
+    : public TypedFeature<LandmarkFactory> {
 public:
     LandmarkFactoryReasonableOrdersHPSFeature()
         : TypedFeature("lm_reasonable_orders_hps")
@@ -65,7 +65,7 @@ public:
             "supported if subcomponent supports them");
     }
 
-    virtual shared_ptr<LandmarkFactoryReasonableOrdersHPS>
+    virtual shared_ptr<LandmarkFactory>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<LandmarkFactoryReasonableOrdersHPS>(
@@ -75,7 +75,7 @@ public:
             get_landmark_factory_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::landmarks {
 
@@ -86,4 +86,4 @@ void add_landmark_factory_reasonable_orders_hps_feature(
         .insert_feature_plugin<LandmarkFactoryReasonableOrdersHPSFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::landmarks

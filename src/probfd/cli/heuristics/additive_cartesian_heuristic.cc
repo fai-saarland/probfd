@@ -18,9 +18,7 @@ using namespace downward::cli::plugins;
 
 namespace {
 class AdditiveCartesianHeuristicFactoryFeature
-    : public TypedFeature<
-          TaskHeuristicFactory,
-          AdditiveCartesianHeuristicFactory> {
+    : public TypedFeature<TaskHeuristicFactory> {
 public:
     AdditiveCartesianHeuristicFactoryFeature()
         : TypedFeature("pcegar")
@@ -73,7 +71,7 @@ public:
         add_task_dependent_heuristic_options_to_feature(*this);
     }
 
-    std::shared_ptr<AdditiveCartesianHeuristicFactory>
+    std::shared_ptr<TaskHeuristicFactory>
     create_component(const Options& opts, const utils::Context&) const override
     {
         return make_shared_from_arg_tuples<AdditiveCartesianHeuristicFactory>(
@@ -89,13 +87,14 @@ public:
             get_task_dependent_heuristic_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::heuristics {
 
 void add_additive_cartesian_heuristic_feature(RawRegistry& raw_registry)
 {
-    raw_registry.insert_feature_plugin<AdditiveCartesianHeuristicFactoryFeature>();
+    raw_registry
+        .insert_feature_plugin<AdditiveCartesianHeuristicFactoryFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::heuristics

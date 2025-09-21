@@ -99,9 +99,7 @@ public:
 };
 
 class EagerWAstarSearchFeature
-    : public TypedFeature<
-          TaskDependentFactory<SearchAlgorithm>,
-          EagerWAstarSearchFactory> {
+    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     EagerWAstarSearchFeature()
         : TypedFeature("eager_wastar")
@@ -135,7 +133,7 @@ public:
             "is **not** equivalent to\n```\n--search astar(h())\n```\n");
     }
 
-    shared_ptr<EagerWAstarSearchFactory>
+    shared_ptr<TaskDependentFactory<SearchAlgorithm>>
     create_component(const Options& opts, const utils::Context&) const override
     {
         return make_shared_from_arg_tuples<EagerWAstarSearchFactory>(
@@ -148,7 +146,7 @@ public:
             get_eager_search_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::search_algorithms {
 
@@ -157,4 +155,4 @@ void add_eager_wastar_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<EagerWAstarSearchFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::search_algorithms

@@ -27,8 +27,7 @@ namespace {
 template <typename T>
 class TypeBasedOpenListFeature
     : public TypedFeature<
-          downward::TaskDependentFactory<downward::OpenList<T>>,
-          TypeBasedOpenListFactory<T>> {
+          downward::TaskDependentFactory<downward::OpenList<T>>> {
 public:
     TypeBasedOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
@@ -90,7 +89,7 @@ public:
         add_rng_options_to_feature(*this);
     }
 
-    virtual shared_ptr<TypeBasedOpenListFactory<T>>
+    virtual shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
     create_component(const Options& opts, const Context& context) const override
     {
         verify_list_non_empty<shared_ptr<downward::Evaluator>>(
@@ -102,7 +101,7 @@ public:
             get_rng_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::open_lists {
 
@@ -114,4 +113,4 @@ void add_type_based_open_list_features(RawRegistry& raw_registry)
         TypeBasedOpenListFeature<downward::EdgeOpenListEntry>>();
 }
 
-} // namespace
+} // namespace downward::cli::open_lists

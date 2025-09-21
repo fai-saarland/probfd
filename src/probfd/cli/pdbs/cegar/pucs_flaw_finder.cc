@@ -13,8 +13,7 @@ using namespace probfd::pdbs::cegar;
 using namespace downward::cli::plugins;
 
 namespace {
-class PUCSFlawFinderFeature
-    : public TypedFeature<FlawFindingStrategy, PUCSFlawFinder> {
+class PUCSFlawFinderFeature : public TypedFeature<FlawFindingStrategy> {
 public:
     PUCSFlawFinderFeature()
         : TypedFeature("pucs_flaw_finder")
@@ -28,14 +27,14 @@ public:
     }
 
 protected:
-    std::shared_ptr<PUCSFlawFinder>
+    std::shared_ptr<FlawFindingStrategy>
     create_component(const Options& options, const Context&) const override
     {
         return std::make_shared<PUCSFlawFinder>(
             options.get<int>("max_search_states"));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::pdbs::cegar {
 
@@ -44,4 +43,4 @@ void add_pucs_flaw_finder_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<PUCSFlawFinderFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::pdbs::cegar

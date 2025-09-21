@@ -18,7 +18,7 @@ using namespace probfd::cli::merge_and_shrink;
 
 namespace {
 class MergeStrategyFactoryStatelessFeature
-    : public TypedFeature<MergeStrategyFactory, MergeStrategyFactoryStateless> {
+    : public TypedFeature<MergeStrategyFactory> {
 public:
     MergeStrategyFactoryStatelessFeature()
         : TypedFeature("pmerge_stateless")
@@ -58,7 +58,7 @@ public:
     }
 
 protected:
-    shared_ptr<MergeStrategyFactoryStateless>
+    shared_ptr<MergeStrategyFactory>
     create_component(const Options& options, const utils::Context&)
         const override
     {
@@ -67,7 +67,7 @@ protected:
             options.get<shared_ptr<MergeSelector>>("merge_selector"));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::merge_and_shrink {
 
@@ -76,4 +76,4 @@ void add_merge_strategy_factory_stateless_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<MergeStrategyFactoryStatelessFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::merge_and_shrink

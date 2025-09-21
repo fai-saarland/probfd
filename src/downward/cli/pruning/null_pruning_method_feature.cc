@@ -16,8 +16,7 @@ using namespace downward::cli;
 using namespace downward::cli::plugins;
 
 namespace {
-class NullPruningMethodFeature
-    : public TypedFeature<downward::PruningMethod, NullPruningMethod> {
+class NullPruningMethodFeature : public TypedFeature<downward::PruningMethod> {
 public:
     NullPruningMethodFeature()
         : TypedFeature("null")
@@ -32,7 +31,7 @@ public:
         add_pruning_options_to_feature(*this);
     }
 
-    virtual shared_ptr<NullPruningMethod>
+    virtual shared_ptr<downward::PruningMethod>
     create_component(const Options& opts, const downward::utils::Context&)
         const override
     {
@@ -40,7 +39,7 @@ public:
             get_pruning_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::pruning {
 
@@ -49,4 +48,4 @@ void add_null_pruning_method_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<NullPruningMethodFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::pruning

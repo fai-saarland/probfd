@@ -22,8 +22,7 @@ namespace {
 template <typename T>
 class BestFirstOpenListFeature
     : public TypedFeature<
-          downward::TaskDependentFactory<downward::OpenList<T>>,
-          BestFirstOpenListFactory<T>> {
+          downward::TaskDependentFactory<downward::OpenList<T>>> {
 public:
     BestFirstOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
@@ -77,7 +76,7 @@ public:
             "takes time O(log(n)), where n is the number of buckets.");
     }
 
-    shared_ptr<BestFirstOpenListFactory<T>>
+    shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<BestFirstOpenListFactory<T>>(
@@ -86,7 +85,7 @@ public:
             get_open_list_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::open_lists {
 
@@ -98,4 +97,4 @@ void add_best_first_open_list_features(RawRegistry& raw_registry)
         BestFirstOpenListFeature<downward::EdgeOpenListEntry>>();
 }
 
-} // namespace
+} // namespace downward::cli::open_lists

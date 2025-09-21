@@ -83,9 +83,7 @@ public:
 };
 
 class EagerSearchFeature
-    : public TypedFeature<
-          TaskDependentFactory<SearchAlgorithm>,
-          EagerSearchFactory> {
+    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     EagerSearchFeature()
         : TypedFeature("eager")
@@ -110,7 +108,7 @@ public:
         add_eager_search_options_to_feature(*this, "eager");
     }
 
-    shared_ptr<EagerSearchFactory>
+    shared_ptr<TaskDependentFactory<SearchAlgorithm>>
     create_component(const Options& opts, const utils::Context&) const override
     {
         return make_shared_from_arg_tuples<EagerSearchFactory>(
@@ -124,7 +122,7 @@ public:
             get_eager_search_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::search_algorithms {
 
@@ -133,4 +131,4 @@ void add_eager_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<EagerSearchFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::search_algorithms

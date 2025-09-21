@@ -18,9 +18,7 @@ using namespace downward::cli::plugins;
 
 namespace {
 class PatternCollectionGeneratorSystematicFeature
-    : public TypedFeature<
-          PatternCollectionGenerator,
-          PatternCollectionGeneratorSystematic> {
+    : public TypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorSystematicFeature()
         : TypedFeature("systematic")
@@ -55,7 +53,7 @@ public:
         add_generator_options_to_feature(*this);
     }
 
-    virtual shared_ptr<PatternCollectionGeneratorSystematic>
+    virtual shared_ptr<PatternCollectionGenerator>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<
@@ -65,7 +63,7 @@ public:
             get_generator_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::pdbs {
 
@@ -76,4 +74,4 @@ void add_pattern_collection_generator_systematic_feature(
         .insert_feature_plugin<PatternCollectionGeneratorSystematicFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::pdbs

@@ -42,8 +42,7 @@ public:
     {
     }
 
-    unique_ptr<Evaluator>
-    create_object(const SharedAbstractTask& task) override
+    unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
     {
         std::vector<std::shared_ptr<Evaluator>> evaluators;
 
@@ -59,9 +58,7 @@ public:
 };
 
 class SumEvaluatorFeature
-    : public TypedFeature<
-          TaskDependentFactory<Evaluator>,
-          SumEvaluatorFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     SumEvaluatorFeature()
         : TypedFeature("sum")
@@ -73,7 +70,7 @@ public:
         add_combining_evaluator_options_to_feature(*this, "sum");
     }
 
-    shared_ptr<SumEvaluatorFactory>
+    shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context& context) const override
     {
         verify_list_non_empty<shared_ptr<TaskDependentFactory<Evaluator>>>(
@@ -85,7 +82,7 @@ public:
     }
 };
 
-}
+} // namespace
 
 namespace downward::cli::evaluators {
 
@@ -94,4 +91,4 @@ void add_sum_evaluator_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<SumEvaluatorFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::evaluators

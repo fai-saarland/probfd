@@ -98,9 +98,7 @@ public:
 };
 
 class InitialStatePotentialHeuristicFeature
-    : public TypedFeature<
-          TaskDependentFactory<Evaluator>,
-          PotentialHeuristicFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     InitialStatePotentialHeuristicFeature()
         : TypedFeature("initial_state_potential")
@@ -114,7 +112,7 @@ public:
             "initial_state_potential");
     }
 
-    shared_ptr<PotentialHeuristicFactory>
+    shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const utils::Context&) const override
     {
         return make_shared<PotentialHeuristicFactory>(
@@ -129,9 +127,7 @@ public:
 };
 
 class AllStatesPotentialHeuristicFeature
-    : public TypedFeature<
-          TaskDependentFactory<Evaluator>,
-          PotentialHeuristicFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     AllStatesPotentialHeuristicFeature()
         : TypedFeature("all_states_potential")
@@ -145,7 +141,7 @@ public:
             "all_states_potential");
     }
 
-    shared_ptr<PotentialHeuristicFactory>
+    shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const utils::Context&) const override
     {
         return make_shared<PotentialHeuristicFactory>(
@@ -158,7 +154,7 @@ public:
             OptimizeFor::ALL_STATES);
     }
 };
-}
+} // namespace
 
 namespace downward::cli::heuristics {
 
@@ -168,4 +164,4 @@ void add_single_potential_heuristics_features(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<AllStatesPotentialHeuristicFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::heuristics

@@ -53,24 +53,23 @@ public:
     }
 };
 
-class IntervalIterationSolverFeature
-    : public TypedFeature<TaskSolverFactory, MDPSolver> {
+class IntervalIterationSolverFeature : public TypedFeature<TaskSolverFactory> {
 public:
     IntervalIterationSolverFeature()
-        : TypedFeature<TaskSolverFactory, MDPSolver>("interval_iteration")
+        : TypedFeature("interval_iteration")
     {
         document_title("Interval Iteration");
 
         add_base_solver_options_except_algorithm_to_feature(*this);
 
-        add_option<probfd::value_t>(
+        add_option<value_t>(
             "convergence_epsilon",
             "The tolerance for convergence checks.",
             "10e-4");
     }
 
 protected:
-    std::shared_ptr<MDPSolver>
+    std::shared_ptr<TaskSolverFactory>
     create_component(const Options& options, const Context&) const override
     {
         return make_shared_from_arg_tuples<MDPSolver>(
@@ -79,7 +78,7 @@ protected:
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::solvers {
 
@@ -88,4 +87,4 @@ void add_interval_iteration_solver_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<IntervalIterationSolverFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::solvers

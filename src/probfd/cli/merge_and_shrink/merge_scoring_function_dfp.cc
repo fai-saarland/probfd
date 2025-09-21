@@ -17,7 +17,7 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 class MergeScoringFunctionDFPFeature
-    : public TypedFeature<MergeScoringFunction, MergeScoringFunctionDFP> {
+    : public TypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionDFPFeature()
         : TypedFeature("pdfp")
@@ -60,13 +60,13 @@ public:
             "\n}}}");
     }
 
-    shared_ptr<MergeScoringFunctionDFP>
+    shared_ptr<MergeScoringFunction>
     create_component(const Options&, const utils::Context&) const override
     {
         return make_shared<MergeScoringFunctionDFP>();
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::merge_and_shrink {
 
@@ -75,4 +75,4 @@ void add_merge_scoring_function_dfp_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<MergeScoringFunctionDFPFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::merge_and_shrink

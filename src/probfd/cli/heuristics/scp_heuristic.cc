@@ -24,8 +24,7 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-class SCPHeuristicFactoryFeature
-    : public TypedFeature<TaskHeuristicFactory, SCPHeuristicFactory> {
+class SCPHeuristicFactoryFeature : public TypedFeature<TaskHeuristicFactory> {
 public:
     SCPHeuristicFactoryFeature()
         : TypedFeature("scp_heuristic")
@@ -61,7 +60,7 @@ public:
         add_task_dependent_heuristic_options_to_feature(*this);
     }
 
-    std::shared_ptr<SCPHeuristicFactory>
+    std::shared_ptr<TaskHeuristicFactory>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<SCPHeuristicFactory>(
@@ -71,7 +70,7 @@ public:
             get_task_dependent_heuristic_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::heuristics {
 
@@ -88,4 +87,4 @@ void add_scp_heuristic_feature(RawRegistry& raw_registry)
           "algorithm"}});
 }
 
-} // namespace
+} // namespace probfd::cli::heuristics

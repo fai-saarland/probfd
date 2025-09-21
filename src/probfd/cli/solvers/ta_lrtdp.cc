@@ -67,11 +67,10 @@ public:
     }
 };
 
-class TrapAwareLRTDPSolverFeature
-    : public TypedFeature<TaskSolverFactory, MDPSolver> {
+class TrapAwareLRTDPSolverFeature : public TypedFeature<TaskSolverFactory> {
 public:
     TrapAwareLRTDPSolverFeature()
-        : TypedFeature<TaskSolverFactory, MDPSolver>("talrtdp")
+        : TypedFeature("talrtdp")
     {
         document_title("Trap-aware LRTDP");
         document_synopsis(
@@ -95,7 +94,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<MDPSolver>
+    std::shared_ptr<TaskSolverFactory>
     create_component(const Options& options, const Context&) const override
     {
         return make_shared_from_arg_tuples<MDPSolver>(

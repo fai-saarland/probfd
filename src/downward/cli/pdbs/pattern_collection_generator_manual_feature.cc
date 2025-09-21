@@ -16,9 +16,7 @@ using namespace downward::cli::plugins;
 
 namespace {
 class PatternCollectionGeneratorManualFeature
-    : public TypedFeature<
-          PatternCollectionGenerator,
-          PatternCollectionGeneratorManual> {
+    : public TypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorManualFeature()
         : TypedFeature("manual_patterns")
@@ -31,7 +29,7 @@ public:
         add_generator_options_to_feature(*this);
     }
 
-    virtual shared_ptr<PatternCollectionGeneratorManual>
+    virtual shared_ptr<PatternCollectionGenerator>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<PatternCollectionGeneratorManual>(
@@ -39,7 +37,7 @@ public:
             get_generator_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::pdbs {
 
@@ -49,4 +47,4 @@ void add_pattern_collection_generator_manual_feature(RawRegistry& raw_registry)
         .insert_feature_plugin<PatternCollectionGeneratorManualFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::pdbs

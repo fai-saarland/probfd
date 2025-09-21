@@ -14,7 +14,7 @@ using namespace probfd::cartesian_abstractions;
 
 namespace {
 class AdaptiveFlawGeneratorFactoryFeature
-    : public TypedFeature<FlawGeneratorFactory, AdaptiveFlawGeneratorFactory> {
+    : public TypedFeature<FlawGeneratorFactory> {
 public:
     AdaptiveFlawGeneratorFactoryFeature()
         : TypedFeature("flaws_adaptive")
@@ -26,7 +26,7 @@ public:
     }
 
 protected:
-    std::shared_ptr<AdaptiveFlawGeneratorFactory>
+    std::shared_ptr<FlawGeneratorFactory>
     create_component(const Options& options, const Context&) const override
     {
         return std::make_shared<AdaptiveFlawGeneratorFactory>(
@@ -34,7 +34,7 @@ protected:
                 "generators"));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::cartesian_abstractions {
 
@@ -43,4 +43,4 @@ void add_adaptive_flaw_generator_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<AdaptiveFlawGeneratorFactoryFeature>();
 }
 
-} // namespace
+} // namespace probfd::cli::cartesian_abstractions

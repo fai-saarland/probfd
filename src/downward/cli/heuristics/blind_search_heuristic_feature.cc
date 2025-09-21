@@ -42,8 +42,7 @@ public:
     {
     }
 
-    unique_ptr<Evaluator>
-    create_object(const SharedAbstractTask& task) override
+    unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
     {
         auto transformation_result = transformation->transform(task);
         return std::make_unique<BlindSearchHeuristic>(
@@ -56,9 +55,7 @@ public:
 };
 
 class BlindSearchHeuristicFeature
-    : public TypedFeature<
-          TaskDependentFactory<Evaluator>,
-          BlindSearchHeuristicFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     BlindSearchHeuristicFeature()
         : TypedFeature("blind")
@@ -80,14 +77,14 @@ public:
         document_property("preferred operators", "no");
     }
 
-    shared_ptr<BlindSearchHeuristicFactory>
+    shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<BlindSearchHeuristicFactory>(
             get_heuristic_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::heuristics {
 
@@ -96,4 +93,4 @@ void add_blind_heuristic_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<BlindSearchHeuristicFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::heuristics

@@ -17,9 +17,7 @@ using namespace downward::cli::plugins;
 
 namespace {
 class PatternCollectionGeneratorMultipleRandomFeature
-    : public TypedFeature<
-          PatternCollectionGenerator,
-          PatternCollectionGeneratorMultipleRandom> {
+    : public TypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorMultipleRandomFeature()
         : TypedFeature("random_patterns")
@@ -42,7 +40,7 @@ public:
         add_multiple_algorithm_implementation_notes_to_feature(*this);
     }
 
-    virtual shared_ptr<PatternCollectionGeneratorMultipleRandom>
+    virtual shared_ptr<PatternCollectionGenerator>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<
@@ -51,7 +49,7 @@ public:
             get_multiple_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::pdbs {
 
@@ -62,4 +60,4 @@ void add_pattern_collection_generator_multiple_random_feature(
         PatternCollectionGeneratorMultipleRandomFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::pdbs

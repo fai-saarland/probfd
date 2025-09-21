@@ -18,7 +18,7 @@ using namespace downward::cli::plugins;
 
 namespace {
 class LimitedPruningFeature
-    : public TypedFeature<downward::PruningMethod, LimitedPruning> {
+    : public TypedFeature<downward::PruningMethod> {
 public:
     LimitedPruningFeature()
         : TypedFeature("limited_pruning")
@@ -60,7 +60,7 @@ public:
             "in an eager search such as astar.");
     }
 
-    virtual shared_ptr<LimitedPruning>
+    virtual shared_ptr<downward::PruningMethod>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<LimitedPruning>(

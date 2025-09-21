@@ -75,9 +75,7 @@ public:
 };
 
 class LandmarkSumHeuristicFeature
-    : public TypedFeature<
-          TaskDependentFactory<Evaluator>,
-          LandmarkSumHeuristicFactory> {
+    : public TypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     LandmarkSumHeuristicFeature()
         : TypedFeature("landmark_sum")
@@ -167,14 +165,14 @@ public:
             "not supporting them");
     }
 
-    shared_ptr<LandmarkSumHeuristicFactory>
+    shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<LandmarkSumHeuristicFactory>(
             get_landmark_heuristic_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::heuristics {
 
@@ -183,4 +181,4 @@ void add_landmark_sum_heuristic_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<LandmarkSumHeuristicFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::heuristics
