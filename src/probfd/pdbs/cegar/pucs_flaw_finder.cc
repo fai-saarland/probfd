@@ -64,6 +64,8 @@ bool PUCSFlawFinder::apply_policy(
         probabilities_[StateID(init.get_id())].path_probability = 1.0;
     }
 
+    bool any_flaw_suppressed = false;
+
     do {
         timer.throw_if_expired();
 
@@ -95,14 +97,20 @@ bool PUCSFlawFinder::apply_policy(
         std::vector<Flaw> local_flaws;
 
         for (const auto& decision : abs_decisions) {
-            const auto* abs_op = decision.action;
-            const auto op = operators[abs_op->operator_id];
+            const auto op = operators[decision.action->operator_id];
 
-            if (collect_flaws(
-                    op.get_preconditions(),
-                    current,
-                    local_flaws,
-                    accept_flaw)) {
+            const auto s = local_flaws.size();
+
+            const bool flaw_suppressed = collect_flaws(
+                op.get_preconditions(),
+                current,
+                local_flaws,
+                accept_flaw);
+
+            if (flaw_suppressed) { any_flaw_suppressed = true; }
+
+            // was a flaw added?
+            if (s != local_flaws.size()) {
                 continue; // Try next operator
             }
 
@@ -138,7 +146,7 @@ bool PUCSFlawFinder::apply_policy(
     continue_exploration:;
     } while (!pq_.empty());
 
-    return true;
+    return !any_flaw_suppressed;
 }
 
 std::string PUCSFlawFinder::get_name()

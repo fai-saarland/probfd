@@ -18,20 +18,21 @@ bool collect_flaws_(
     bool is_precondition,
     const std::function<bool(const Flaw&)>& accept_flaw)
 {
-    bool flaws_found = false;
+    bool flaws_ignored = false;
 
     // Collect all non-satisfied goal fact variables.
     for (const auto& [var, val] : facts) {
         if (state[var] != val) {
             Flaw flaw(var, is_precondition);
             if (accept_flaw(flaw)) {
-                flaws_found = true;
                 flaws.push_back(flaw);
+            } else {
+                flaws_ignored = true;
             }
         }
     }
 
-    return flaws_found;
+    return flaws_ignored;
 }
 } // namespace
 

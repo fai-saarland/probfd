@@ -38,7 +38,7 @@ class FlawFindingStrategy;
 
 namespace probfd::pdbs::cegar {
 
-extern void run_cegar_loop(
+extern std::unique_ptr<ProjectionMultiPolicy> run_cegar_loop(
     ProjectionTransformation& transformation,
     const SharedProbabilisticTask& task,
     const downward::State& initial_state,
@@ -52,7 +52,7 @@ extern void run_cegar_loop(
     downward::utils::Duration max_time,
     downward::utils::LogProxy log);
 
-extern void run_cegar_loop(
+extern std::unique_ptr<ProjectionMultiPolicy> run_cegar_loop(
     ProjectionTransformation& transformation,
     const SharedProbabilisticTask& task,
     const downward::State& initial_state,

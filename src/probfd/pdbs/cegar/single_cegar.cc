@@ -50,7 +50,7 @@ public:
         int max_pdb_size,
         std::unordered_set<int> blacklisted_variables = {});
 
-    void run_cegar_loop(
+    std::unique_ptr<ProjectionMultiPolicy> run_cegar_loop(
         ProjectionTransformation& transformation,
         const SharedProbabilisticTask& task,
         const State& initial_state,
@@ -59,7 +59,7 @@ public:
         utils::LogProxy log);
 
 private:
-    bool get_flaws(
+    std::unique_ptr<ProjectionMultiPolicy> get_flaws(
         ProjectionTransformation& transformation,
         const SharedProbabilisticTask& task,
         std::vector<Flaw>& flaws,
@@ -92,7 +92,7 @@ SingleCEGAR::SingleCEGAR(
 {
 }
 
-bool SingleCEGAR::get_flaws(
+std::unique_ptr<ProjectionMultiPolicy> SingleCEGAR::get_flaws(
     ProjectionTransformation& transformation,
     const SharedProbabilisticTask& task,
     std::vector<Flaw>& flaws,
@@ -105,21 +105,13 @@ bool SingleCEGAR::get_flaws(
 
     const StateRank init_state_rank = pdb.get_abstract_state(initial_state);
 
-    const auto policy = compute_optimal_projection_policy(
+    auto policy = compute_optimal_projection_policy(
         *projection,
         pdb.value_table,
         init_state_rank,
         epsilon_,
         rng,
         wildcard_);
-
-    // abort here if no abstract solution could be found
-    if (!projection->is_goal(init_state_rank) &&
-        policy->get_decisions(init_state_rank).empty()) {
-        log.println("SingleCEGAR: Problem unsolvable");
-        log.println("SingleCEGAR: Unsolvable pattern: {}", pdb.get_pattern());
-        utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
-    }
 
     const auto& variables = get_variables(task);
 
@@ -158,34 +150,9 @@ bool SingleCEGAR::get_flaws(
         accept_flaw,
         timer);
 
-    // Check for new flaws
-    if (flaws.empty()) {
-        // Check if policy is executable modulo blacklisting.
-        // Even if there are no flaws, there might be goal violations
-        // that did not make it into the flaw list.
-        if (log.is_at_least_verbose()) {
-            if (executable && blacklisted_variables_.empty()) {
-                /*
-                 * If there are no flaws, this does not guarantee that the
-                 * plan is valid in the concrete state space because we might
-                 * have ignored variables that have been blacklisted. Hence, the
-                 * tests for empty blacklists.
-                 */
+    if (executable) return policy;
 
-                log.println(
-                    "SingleCEGAR: Task solved during computation of "
-                    "abstract policies.");
-            } else {
-                log.println(
-                    "SingleCEGAR: Flaw list empty. No further refinements "
-                    "possible.");
-            }
-        }
-
-        return false;
-    }
-
-    return true;
+    return nullptr;
 }
 
 void SingleCEGAR::refine(
@@ -251,7 +218,7 @@ void SingleCEGAR::refine(
     transformation = std::move(new_transformation);
 }
 
-void SingleCEGAR::run_cegar_loop(
+std::unique_ptr<ProjectionMultiPolicy> SingleCEGAR::run_cegar_loop(
     ProjectionTransformation& transformation,
     const SharedProbabilisticTask& task,
     const State& initial_state,
@@ -291,21 +258,59 @@ void SingleCEGAR::run_cegar_loop(
     // main loop of the algorithm
     int refinement_counter = 1;
 
+    scope_exit exit([&] {
+        if (log.is_at_least_normal()) {
+            log.println(
+                "\n"
+                "SingleCEGAR statistics:\n"
+                "  computation time: {}\n"
+                "  number of iterations: {}",
+                timer.get_elapsed_time(),
+                refinement_counter);
+        }
+    });
+
     try {
         for (;;) {
             if (log.is_at_least_verbose()) {
                 log.println("iteration #{}", refinement_counter);
             }
 
-            if (!get_flaws(
-                    transformation,
-                    task,
-                    flaws,
-                    initial_state,
-                    rng,
-                    timer,
-                    log))
-                break;
+            auto policy = get_flaws(
+                transformation,
+                task,
+                flaws,
+                initial_state,
+                rng,
+                timer,
+                log);
+
+            // Check for new flaws
+            if (flaws.empty()) {
+                // Check if policy is executable modulo blacklisting.
+                // Even if there are no flaws, there might be goal violations
+                // that did not make it into the flaw list.
+                if (log.is_at_least_verbose()) {
+                    if (policy) {
+                        /*
+                         * If there are no flaws, this does not guarantee that
+                         * the plan is valid in the concrete state space because
+                         * we might have ignored variables that have been
+                         * blacklisted. Hence, the tests for empty blacklists.
+                         */
+
+                        log.println(
+                            "SingleCEGAR: Task solved during computation of "
+                            "abstract policies.");
+                    } else {
+                        log.println(
+                            "SingleCEGAR: Flaw list empty. No further "
+                            "refinements possible.");
+                    }
+                }
+
+                return policy;
+            }
 
             timer.throw_if_expired();
 
@@ -328,20 +333,12 @@ void SingleCEGAR::run_cegar_loop(
         }
     }
 
-    if (log.is_at_least_normal()) {
-        log.println(
-            "\n"
-            "SingleCEGAR statistics:\n"
-            "  computation time: {}\n"
-            "  number of iterations: {}",
-            timer.get_elapsed_time(),
-            refinement_counter);
-    }
+    return nullptr;
 }
 
 } // namespace
 
-void run_cegar_loop(
+std::unique_ptr<ProjectionMultiPolicy> run_cegar_loop(
     ProjectionTransformation& transformation,
     const SharedProbabilisticTask& task,
     const State& initial_state,
@@ -361,7 +358,7 @@ void run_cegar_loop(
         max_pdb_size,
         std::move(blacklisted_variables));
 
-    single_cegar.run_cegar_loop(
+    return single_cegar.run_cegar_loop(
         transformation,
         task,
         initial_state,

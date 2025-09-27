@@ -76,10 +76,12 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
     const auto& term_costs = get_termination_costs(task);
 
     const State initial_state = get_init(task).get_initial_state();
+    const auto pdb_init_state =
+        transformation.pdb.get_abstract_state(initial_state);
 
     compute_value_table(
         *transformation.projection,
-        transformation.pdb.get_abstract_state(initial_state),
+        pdb_init_state,
         heuristics::BlindHeuristic<StateRank>(
             operators,
             cost_function,
@@ -88,7 +90,7 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
         timer.get_remaining_time(),
         convergence_epsilon_);
 
-    run_cegar_loop(
+    auto policy = run_cegar_loop(
         transformation,
         task,
         initial_state,
@@ -100,6 +102,15 @@ PatternCollectionGeneratorMultipleCegar::compute_pattern(
         use_wildcard_policies_,
         max_time,
         log_);
+
+    // Unsolvability check
+    if (policy && policy->get_decisions(pdb_init_state).empty()) {
+        log_.println("SingleCEGAR: Problem unsolvable");
+        log_.println(
+            "SingleCEGAR: Unsolvable pattern: {}",
+            transformation.pdb.get_pattern());
+        utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
+    }
 
     return transformation;
 }
