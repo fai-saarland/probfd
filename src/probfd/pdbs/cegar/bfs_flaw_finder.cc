@@ -94,7 +94,7 @@ bool BFSFlawFinder::apply_policy(
                 if (collect_flaws(
                         op.get_preconditions(),
                         current,
-                        flaws,
+                        local_flaws,
                         accept_flaw)) {
                     continue; // Try next operator
                 }
