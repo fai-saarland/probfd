@@ -15,7 +15,7 @@
 #include "probfd/merge_and_shrink/merge_and_shrink_algorithm.h"
 #include "probfd/merge_and_shrink/transition_system.h"
 
-#include "probfd/task_heuristic_factory_category.h"
+#include "probfd/task_heuristic_factory.h"
 
 #include "downward/utils/logging.h"
 

@@ -9,7 +9,7 @@
 #include "probfd/policy.h"
 #include "probfd/probabilistic_task.h"
 #include "probfd/task_cost_function.h"
-#include "probfd/task_heuristic_factory_category.h"
+#include "probfd/task_heuristic_factory.h"
 #include "probfd/task_state_space_factory.h"
 #include "probfd/transition_tail.h"
 

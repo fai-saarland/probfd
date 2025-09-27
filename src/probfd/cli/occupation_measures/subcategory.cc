@@ -16,7 +16,7 @@
 
 #include "probfd/pdbs/pattern_collection_generator.h"
 
-#include "probfd/task_heuristic_factory_category.h"
+#include "probfd/task_heuristic_factory.h"
 
 #include "downward/utils/markup.h"
 

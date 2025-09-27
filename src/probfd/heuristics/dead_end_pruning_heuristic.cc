@@ -4,7 +4,7 @@
 
 #include "probfd/heuristic.h"
 #include "probfd/probabilistic_task.h"
-#include "probfd/task_heuristic_factory_category.h"
+#include "probfd/task_heuristic_factory.h"
 #include "probfd/termination_costs.h"
 
 #include "downward/utils/system.h"

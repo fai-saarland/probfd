@@ -3,7 +3,7 @@
 #include "downward/cli/plugins/plugin.h"
 #include "downward/cli/plugins/raw_registry.h"
 
-#include "probfd/task_heuristic_factory_category.h"
+#include "probfd/task_heuristic_factory.h"
 
 using namespace downward::cli::plugins;
 
