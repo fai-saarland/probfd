@@ -302,9 +302,9 @@ get_predicate_for_fact(const VariableSpace& variables, int var_no, int value)
     }
     size_t paren_pos = fact_name.find('(', predicate_pos);
     if (predicate_pos == 0 || paren_pos == string::npos) {
-        cerr << "error: cannot extract predicate from fact: " << fact_name
-             << endl;
-        utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
+        throw utils::InputError(
+            "error: cannot extract predicate from fact: {}",
+            fact_name);
     }
     return string(
         fact_name.begin() + predicate_pos,

@@ -26,7 +26,14 @@ namespace successor_generator {
 class SuccessorGenerator;
 }
 
-enum SearchStatus { IN_PROGRESS, TIMEOUT, FAILED, SOLVED };
+enum SearchStatus {
+    IN_PROGRESS,
+    TIMEOUT,
+    FAILED,
+    SOLVED,
+    UNSOLVABLE,
+    UNSOLVABLE_INCOMPLETE
+};
 
 class SearchAlgorithm {
     std::string description;
@@ -94,7 +101,10 @@ public:
 protected:
     void search() override
     {
-        static_cast<Derived&>(*this).initialize();
+        status = static_cast<Derived&>(*this).initialize();
+
+        if (status != IN_PROGRESS) { return; }
+
         utils::CountdownTimer timer(max_time);
         while (status == IN_PROGRESS) {
             status = static_cast<Derived&>(*this).step();
@@ -109,7 +119,7 @@ protected:
     }
 
 private:
-    void initialize() {}
+    SearchStatus initialize() { return IN_PROGRESS; }
 };
 
 /*

@@ -65,7 +65,7 @@ private:
     void reach_state(const State& parent, OperatorID op_id, const State& state);
     SearchStatus ehc();
 
-    void initialize();
+    SearchStatus initialize();
     SearchStatus step();
 };
 } // namespace downward::enforced_hill_climbing_search

@@ -109,19 +109,14 @@ PatternDatabase::PatternDatabase(
     num_states = 1;
     for (int pattern_var_id : pattern) {
         hash_multipliers.push_back(num_states);
-        VariableProxy var = variables[pattern_var_id];
-        if (utils::is_product_within_limit(
-                num_states,
-                var.get_domain_size(),
-                numeric_limits<int>::max())) {
-            num_states *= var.get_domain_size();
-        } else {
-            std::println(
-                cerr,
+        const auto dom_size = variables[pattern_var_id].get_domain_size();
+        if (!utils::is_product_within_limit(num_states, dom_size)) {
+            throw utils::OverflowError(
                 "Given pattern is too large! (Overflow occured): {}",
                 pattern);
-            utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
         }
+
+        num_states *= dom_size;
     }
 
     create_pdb(task, operator_costs, compute_plan, rng, compute_wildcard_plan);

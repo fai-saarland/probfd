@@ -54,7 +54,7 @@ LazySearch::LazySearch(
     */
 }
 
-void LazySearch::initialize()
+SearchStatus LazySearch::initialize()
 {
     log << "Conducting lazy best first search, (real) bound = " << bound
         << endl;
@@ -75,6 +75,8 @@ void LazySearch::initialize()
     for (Evaluator* evaluator : path_dependent_evaluators) {
         evaluator->notify_initial_state(initial_state);
     }
+
+    return IN_PROGRESS;
 }
 
 vector<OperatorID> LazySearch::get_successor_operators(

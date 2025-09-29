@@ -75,8 +75,7 @@ SearchAlgorithm::SearchAlgorithm(
     , max_time(max_time)
 {
     if (bound < 0) {
-        cerr << "error: negative cost bound " << bound << endl;
-        utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
+        throw utils::InputError("error: negative cost bound {}", bound);
     }
 
     const auto& variables = get_variables(this->task);

@@ -47,12 +47,11 @@ EagerSearch::EagerSearch(
     , pruning_method(std::move(pruning))
 {
     if (lazy_evaluator && !lazy_evaluator->does_cache_estimates()) {
-        cerr << "lazy_evaluator must cache its estimates" << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
+        throw utils::InputError("lazy_evaluator must cache its estimates");
     }
 }
 
-void EagerSearch::initialize()
+SearchStatus EagerSearch::initialize()
 {
     log << "Conducting best first search"
         << (reopen_closed_nodes ? " with" : " without")
@@ -116,6 +115,8 @@ void EagerSearch::initialize()
     print_initial_evaluator_values(eval_context);
 
     pruning_method->initialize(task);
+
+    return IN_PROGRESS;
 }
 
 void EagerSearch::print_statistics() const

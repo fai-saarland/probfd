@@ -85,8 +85,10 @@ static void order_facts(
         if (fact_order == FactOrder::HADD_DOWN) ranges::reverse(facts);
         break;
     default:
-        cerr << "Invalid task order: " << static_cast<int>(fact_order) << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
+        throw logic_error(
+            std::format(
+                "Invalid task order: {}",
+                static_cast<int>(fact_order)));
     }
 }
 

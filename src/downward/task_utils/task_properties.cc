@@ -35,9 +35,8 @@ bool has_axioms(const AxiomSpace& axiom_space)
 void verify_no_axioms(const AxiomSpace& axiom_space)
 {
     if (has_axioms(axiom_space)) {
-        cerr << "This configuration does not support axioms!" << endl
-             << "Terminating." << endl;
-        utils::exit_with(ExitCode::SEARCH_UNSUPPORTED);
+        throw utils::UnsupportedError(
+            "This configuration does not support axioms!");
     }
 }
 
@@ -59,13 +58,12 @@ bool has_conditional_effects(const ClassicalOperatorSpace& operators)
 
 void verify_no_conditional_effects(const ClassicalOperatorSpace& operators)
 {
-    int op_id = get_first_conditional_effects_op_id(operators);
-    if (op_id != -1) {
-        OperatorProxy op = operators[op_id];
-        cerr << "This configuration does not support conditional effects "
-             << "(operator " << op.get_name() << ")!" << endl
-             << "Terminating." << endl;
-        utils::exit_with(ExitCode::SEARCH_UNSUPPORTED);
+    if (const int op_id = get_first_conditional_effects_op_id(operators);
+        op_id != -1) {
+        throw utils::UnsupportedError(
+            "This configuration does not support conditional effects "
+            "(operator {})!",
+            operators[op_id].get_name());
     }
 }
 

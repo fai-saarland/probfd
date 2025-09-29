@@ -214,9 +214,7 @@ void MergeAndShrinkAlgorithm::main_loop(
         }
     }
 
-    if (label_reduction) {
-        label_reduction->initialize(get_variables(task));
-    }
+    if (label_reduction) { label_reduction->initialize(get_variables(task)); }
     unique_ptr<MergeStrategy> merge_strategy =
         merge_strategy_factory->compute_merge_strategy(task, fts);
     merge_strategy_factory = nullptr;
@@ -228,9 +226,7 @@ void MergeAndShrinkAlgorithm::main_loop(
     while (fts.get_num_active_entries() > 1) {
         // Choose next transition systems to merge
         pair<int, int> merge_indices = merge_strategy->get_next();
-        if (ran_out_of_time(timer)) {
-            break;
-        }
+        if (ran_out_of_time(timer)) { break; }
         int merge_index1 = merge_indices.first;
         int merge_index2 = merge_indices.second;
         assert(merge_index1 != merge_index2);
@@ -252,9 +248,7 @@ void MergeAndShrinkAlgorithm::main_loop(
             }
         }
 
-        if (ran_out_of_time(timer)) {
-            break;
-        }
+        if (ran_out_of_time(timer)) { break; }
 
         // Shrinking
         bool shrunk = shrink_before_merge_step(
@@ -270,9 +264,7 @@ void MergeAndShrinkAlgorithm::main_loop(
             log_main_loop_progress("after shrinking");
         }
 
-        if (ran_out_of_time(timer)) {
-            break;
-        }
+        if (ran_out_of_time(timer)) { break; }
 
         // Label reduction (before merging)
         if (label_reduction && label_reduction->reduce_before_merging()) {
@@ -282,9 +274,7 @@ void MergeAndShrinkAlgorithm::main_loop(
             }
         }
 
-        if (ran_out_of_time(timer)) {
-            break;
-        }
+        if (ran_out_of_time(timer)) { break; }
 
         // Merging
         int merged_index = fts.merge(merge_index1, merge_index2, log);
@@ -300,9 +290,7 @@ void MergeAndShrinkAlgorithm::main_loop(
             log_main_loop_progress("after merging");
         }
 
-        if (ran_out_of_time(timer)) {
-            break;
-        }
+        if (ran_out_of_time(timer)) { break; }
 
         // Pruning
         if (prune_unreachable_states || prune_irrelevant_states) {
@@ -336,17 +324,11 @@ void MergeAndShrinkAlgorithm::main_loop(
             break;
         }
 
-        if (ran_out_of_time(timer)) {
-            break;
-        }
+        if (ran_out_of_time(timer)) { break; }
 
         // End-of-iteration output.
-        if (log.is_at_least_verbose()) {
-            report_peak_memory_delta();
-        }
-        if (log.is_at_least_normal()) {
-            log << endl;
-        }
+        if (log.is_at_least_verbose()) { report_peak_memory_delta(); }
+        if (log.is_at_least_normal()) { log << endl; }
     }
 
     if (log.is_at_least_normal()) {
@@ -365,9 +347,8 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     const AbstractTaskTuple& task)
 {
     if (starting_peak_memory) {
-        cerr << "Calling build_factored_transition_system twice is not "
-             << "supported!" << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+        throw utils::CriticalError(
+            "Calling build_factored_transition_system twice is not supported!");
     }
     starting_peak_memory = utils::get_peak_memory_in_kb();
 
@@ -381,9 +362,7 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     dump_options();
     warn_on_unusual_options();
 
-    if (log.is_at_least_normal()) {
-        log << endl;
-    }
+    if (log.is_at_least_normal()) { log << endl; }
 
     const bool compute_init_distances =
         shrink_strategy->requires_init_distances() ||
@@ -448,4 +427,4 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     return fts;
 }
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

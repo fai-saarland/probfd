@@ -1,7 +1,7 @@
 #include "downward/plan_manager.h"
 
-#include "downward/operator_space.h"
 #include "downward/operator_cost_function.h"
+#include "downward/operator_space.h"
 #include "downward/state.h"
 
 #include "downward/task_utils/task_properties.h"
@@ -66,8 +66,7 @@ void PlanManager::save_plan(
     }
     ofstream outfile(filename.str());
     if (outfile.rdstate() & ofstream::failbit) {
-        cerr << "Failed to open plan file: " << filename.str() << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
+        throw utils::InputError("Failed to open plan file: {}", filename.str());
     }
 
     for (OperatorID op_id : plan) {

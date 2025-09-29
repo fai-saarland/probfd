@@ -20,15 +20,17 @@ static void check_magic(std::istream& in, const std::string& magic)
     std::string word;
     in >> word;
     if (word != magic) {
-        std::cerr << "Failed to match magic word '" << magic << "'."
-                  << std::endl
-                  << "Got '" << word << "'." << std::endl;
+        auto error = std::format(
+            "Failed to match magic word '{}'.\nGot '{}'.",
+            magic,
+            word);
+
         if (magic == "begin_version") {
-            std::cerr << "Possible cause: you are running the planner "
-                      << "on a translator output file from " << std::endl
-                      << "an older version." << std::endl;
+            error.append("\nPossible cause: you are running the planner on a "
+                         "translator output file from an older version.");
         }
-        exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
+
+        throw utils::InputError(error);
     }
 }
 
@@ -121,4 +123,4 @@ FromFileMutexFactory::create_object(const SharedAbstractTask& task)
         get_variables(task));
 }
 
-}
+} // namespace downward
