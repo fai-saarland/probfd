@@ -342,11 +342,8 @@ unique_ptr<TransitionSystem> TransitionSystem::merge(
 
             // Create the new transitions for this bucket
             vector<Transition> new_transitions;
-            if (transitions1.size() >
-                new_transitions.max_size() / transitions2.size())
-                utils::exit_with(ExitCode::SEARCH_OUT_OF_MEMORY);
-
             new_transitions.reserve(transitions1.size() * transitions2.size());
+
             for (const auto& [src1, targets1] : transitions1) {
                 for (const auto& [src2, targets2] : transitions2) {
                     assert(targets1.size() == targets2.size());

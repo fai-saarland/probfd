@@ -17,6 +17,7 @@
 #endif
 
 #include <iostream>
+#include <source_location>
 #include <stdlib.h>
 
 #define ABORT(msg)                                                             \
@@ -50,6 +51,61 @@ enum class ExitCode {
     SEARCH_UNIMPLEMENTED = 35
 };
 
+class InputError : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+
+    template <class... Args>
+    explicit InputError(std::format_string<Args...> fmt, Args&&... args)
+        : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
+    {
+    }
+};
+
+class OverflowError : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+
+    template <class... Args>
+    explicit OverflowError(std::format_string<Args...> fmt, Args&&... args)
+        : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
+    {
+    }
+};
+
+class CriticalError : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+
+    template <class... Args>
+    explicit CriticalError(std::format_string<Args...> fmt, Args&&... args)
+        : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
+    {
+    }
+};
+
+class UnsupportedError : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+
+    template <class... Args>
+    explicit UnsupportedError(std::format_string<Args...> fmt, Args&&... args)
+        : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
+    {
+    }
+};
+
+class UnimplementedError : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+
+    template <class... Args>
+    explicit UnimplementedError(std::format_string<Args...> fmt, Args&&... args)
+        : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
+    {
+    }
+};
+
 [[noreturn]]
 extern void exit_with(ExitCode returncode);
 [[noreturn]]
@@ -61,6 +117,6 @@ bool is_exit_code_error_reentrant(ExitCode exitcode);
 void register_event_handlers();
 void report_exit_code_reentrant(ExitCode exitcode);
 int get_process_id();
-} // namespace utils
+} // namespace downward::utils
 
 #endif

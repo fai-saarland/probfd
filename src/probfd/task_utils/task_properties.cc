@@ -101,12 +101,10 @@ void verify_no_conditional_effects(const ProbabilisticOperatorSpace& operators)
 {
     int op_id = get_first_conditional_effects_op_id(operators);
     if (op_id != -1) {
-        println(
-            cerr,
-            "This configuration does not support conditional effects (operator "
-            "{})! Terminating.",
+        throw utils::UnsupportedError(
+            "This configuration does not support conditional effects "
+            "(operator {})!",
             operators[op_id].get_name());
-        utils::exit_with(ExitCode::SEARCH_UNSUPPORTED);
     }
 }
 

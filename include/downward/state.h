@@ -231,11 +231,10 @@ inline void feed(HashState& hash_state, const State& state)
 inline bool operator==(const State& left, const State& right)
 {
     if (left.registry != right.registry) {
-        std::cerr << "Comparing registered states with unregistered states "
-                  << "or registered states from different registries is "
-                  << "treated as an error because it is likely not "
-                  << "intentional." << std::endl;
-        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+        throw utils::CriticalError(
+            "Comparing registered states with unregistered states or "
+            "registered states from different registries is treated as an "
+            "error because it is likely not intentional.");
     }
     if (left.registry) {
         // Both states are registered and from the same registry.
@@ -310,9 +309,9 @@ inline const PackedStateBin* State::get_buffer() const
       not costly, but the 'cerr <<' stuff might prevent inlining.
     */
     if (!buffer) {
-        std::cerr << "Accessing the packed values of an unregistered state is "
-                  << "treated as an error." << std::endl;
-        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+        throw utils::CriticalError(
+            "Accessing the packed values of an unregistered state is treated "
+            "as an error.");
     }
     return buffer;
 }
@@ -320,10 +319,9 @@ inline const PackedStateBin* State::get_buffer() const
 inline const std::vector<int>& State::get_unpacked_values() const
 {
     if (!values) {
-        std::cerr << "Accessing the unpacked values of a state without "
-                  << "unpacking them first is treated as an error. Please "
-                  << "use State::unpack first." << std::endl;
-        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+        throw utils::CriticalError(
+            "Accessing the unpacked values of a state without unpacking them "
+            "first is treated as an error. Please use State::unpack first.");
     }
     return *values;
 }

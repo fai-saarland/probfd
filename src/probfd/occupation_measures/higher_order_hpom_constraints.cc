@@ -162,11 +162,9 @@ void HigherOrderHPOMGenerator::initialize_constraints(
     const value_t term_cost = term_costs.get_non_goal_termination_cost();
 
     if (term_cost != INFINITE_VALUE && term_cost != 1_vt) {
-        std::println(
-            std::cerr,
+        throw utils::UnsupportedError(
             "Termination costs beyond 1 (MaxProb) and +infinity (SSP) "
             "currently unsupported in higher-order hpom implementation.");
-        utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
     }
 
     const bool maxprob = term_costs.get_non_goal_termination_cost() == 1_vt;

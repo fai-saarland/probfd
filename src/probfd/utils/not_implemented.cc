@@ -8,11 +8,9 @@ namespace probfd {
 
 void not_implemented(const std::source_location& source_location)
 {
-    println(
-        std::cerr,
+    throw utils::UnimplementedError(
         "Function {} is not implemented.",
         source_location.function_name());
-    utils::exit_with(utils::ExitCode::SEARCH_UNIMPLEMENTED);
 }
 
 } // namespace probfd

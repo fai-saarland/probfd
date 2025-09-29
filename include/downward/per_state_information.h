@@ -118,18 +118,16 @@ public:
 
     virtual ~PerStateInformation() override
     {
-        for (auto it : entries_by_registry) {
-            delete it.second;
-        }
+        for (auto it : entries_by_registry) { delete it.second; }
     }
 
     Entry& operator[](const State& state)
     {
         const StateRegistry* registry = state.get_registry();
         if (!registry) {
-            std::cerr << "Tried to access per-state information with an "
-                      << "unregistered state." << std::endl;
-            utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+            throw utils::CriticalError(
+                "Tried to access per-state information with an unregistered "
+                "state.");
         }
         segmented_vector::SegmentedVector<Entry>* entries =
             get_entries(registry);
@@ -147,22 +145,18 @@ public:
     {
         const StateRegistry* registry = state.get_registry();
         if (!registry) {
-            std::cerr << "Tried to access per-state information with an "
-                      << "unregistered state." << std::endl;
-            utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+            throw utils::CriticalError(
+                "Tried to access per-state information with an unregistered "
+                "state.");
         }
         const segmented_vector::SegmentedVector<Entry>* entries =
             get_entries(registry);
-        if (!entries) {
-            return default_value;
-        }
+        if (!entries) { return default_value; }
         int state_id = state.get_id().value;
         assert(state.get_id() != StateID::no_state);
         assert(utils::in_bounds(state_id, *registry));
         int num_entries = entries->size();
-        if (state_id >= num_entries) {
-            return default_value;
-        }
+        if (state_id >= num_entries) { return default_value; }
         return (*entries)[state_id];
     }
 
@@ -177,6 +171,6 @@ public:
         }
     }
 };
-}
+} // namespace downward
 
 #endif

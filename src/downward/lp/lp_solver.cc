@@ -39,9 +39,7 @@ void LPConstraint::insert(int index, double coefficient)
 double LPConstraint::remove(int index)
 {
     auto it = std::lower_bound(variables.begin(), variables.end(), index);
-    if (it == variables.end() || (*it) > index) {
-        return 0;
-    }
+    if (it == variables.end() || (*it) > index) { return 0; }
     variables.erase(it);
     unsigned i = std::distance(variables.begin(), it);
     const double res = coefficients[i];
@@ -52,12 +50,8 @@ double LPConstraint::remove(int index)
 ostream& LPConstraint::dump(ostream& stream, const LinearProgram* program) const
 {
     double infinity = numeric_limits<double>::infinity();
-    if (program) {
-        infinity = program->get_infinity();
-    }
-    if (lower_bound != -infinity) {
-        stream << lower_bound << " <= ";
-    }
+    if (program) { infinity = program->get_infinity(); }
+    if (lower_bound != -infinity) { stream << lower_bound << " <= "; }
     for (size_t i = 0; i < variables.size(); ++i) {
         if (i != 0) stream << " + ";
         int variable = variables[i];
@@ -153,12 +147,13 @@ LPSolver::LPSolver(LPSolverType solver_type)
     default: ABORT("Unknown LP solver type.");
     }
     if (!pimpl) {
-        cerr << "Tried to use LP solver " << missing_solver
-             << ", but the planner was compiled without support for it." << endl
-             << "See https://github.com/aibasel/downward/blob/main/BUILD.md\n"
-             << "to install " << missing_solver << " and use it in the planner."
-             << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+        throw utils::CriticalError(
+            std::format(
+                "Tried to use LP solver {0}, but the planner was compiled "
+                "without support for it.\n"
+                "See https://github.com/aibasel/downward/blob/main/BUILD.md "
+                "to install {0} and use it in the planner.",
+                missing_solver));
     }
 }
 
@@ -299,4 +294,4 @@ void LPSolver::add_constraint(
     pimpl->add_constraint(constraint, name);
 }
 
-} // namespace lp
+} // namespace downward::lp

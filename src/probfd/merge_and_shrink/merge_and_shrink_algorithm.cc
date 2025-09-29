@@ -377,10 +377,8 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     task_properties::verify_no_conditional_effects(operators);
 
     if (starting_peak_memory) {
-        println(
-            cerr,
+        throw utils::CriticalError(
             "Calling build_factored_transition_system twice is not supported!");
-        exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
     }
 
     starting_peak_memory = utils::get_peak_memory_in_kb();

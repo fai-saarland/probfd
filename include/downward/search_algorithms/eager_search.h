@@ -51,7 +51,7 @@ private:
 
     friend class IterativeSearchAlgorithm;
 
-    void initialize();
+    SearchStatus initialize();
     SearchStatus step();
 };
 

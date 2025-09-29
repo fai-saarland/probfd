@@ -25,18 +25,14 @@ int compute_pdb_size(const VariableSpace& variables, const Pattern& pattern)
     int size = 1;
     for (int var : pattern) {
         int domain_size = variables[var].get_domain_size();
-        if (utils::is_product_within_limit(
-                size,
-                domain_size,
-                numeric_limits<int>::max())) {
-            size *= domain_size;
-        } else {
-            std::println(
-                cerr,
+
+        if (!utils::is_product_within_limit(size, domain_size)) {
+            throw utils::OverflowError(
                 "Given pattern is too large! (Overflow occured): {}",
                 pattern);
-            utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
         }
+
+        size *= domain_size;
     }
     return size;
 }
