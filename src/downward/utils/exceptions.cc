@@ -1,22 +1,15 @@
 #include "downward/utils/exceptions.h"
 
 #include <iostream>
+#include <print>
 
 using namespace std;
 
 namespace downward::utils {
-Exception::Exception(const string& msg)
-    : msg(msg)
+
+void Exception::print(std::ostream& out) const
 {
+    std::print(out, "{}", this->what());
 }
 
-string Exception::get_message() const
-{
-    return msg;
-}
-
-void Exception::print() const
-{
-    cerr << msg << endl;
-}
 } // namespace utils

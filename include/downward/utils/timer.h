@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <iosfwd>
+#include <limits>
 
 namespace downward::utils {
 
@@ -29,5 +30,21 @@ public:
 std::ostream& operator<<(std::ostream& os, const Timer& timer);
 
 } // namespace downward::utils
+
+// Specialized so Duration::max() matches an infinite value.
+template <>
+struct std::chrono::duration_values<double> {
+    static constexpr double zero() noexcept { return 0.0; }
+
+    static constexpr double max() noexcept
+    {
+        return std::numeric_limits<double>::infinity();
+    }
+
+    static constexpr double min() noexcept
+    {
+        return -std::numeric_limits<double>::infinity();
+    }
+};
 
 #endif

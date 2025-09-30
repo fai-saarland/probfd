@@ -109,10 +109,11 @@ VariableDefinition::operator=(VariableDefinition&& other) noexcept
     return *this;
 }
 
-void DecoratedASTNode::prune_unused_definitions()
+std::vector<VariableDefinition> DecoratedASTNode::prune_unused_definitions()
 {
     std::vector<VariableDefinition> defs;
     prune_unused_definitions(defs);
+    return defs;
 }
 
 std::any DecoratedASTNode::construct() const
