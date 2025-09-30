@@ -56,9 +56,7 @@ void Labels::reduce_labels(const vector<int>& old_labels)
     int new_label_cost = INF;
     for (int old_label : old_labels) {
         int cost = get_label_cost(old_label);
-        if (cost < new_label_cost) {
-            new_label_cost = cost;
-        }
+        if (cost < new_label_cost) { new_label_cost = cost; }
         label_costs[old_label] = -1;
     }
     label_costs.push_back(new_label_cost);
@@ -72,14 +70,13 @@ int Labels::get_label_cost(int label) const
     return label_costs[label];
 }
 
-void Labels::dump_labels() const
+void Labels::dump_labels(utils::LogProxy log) const
 {
-    utils::g_log << "active labels:" << endl;
+    log << "active labels:" << endl;
     for (size_t label = 0; label < label_costs.size(); ++label) {
         if (label_costs[label] != -1) {
-            utils::g_log << "label " << label << ", cost " << label_costs[label]
-                         << endl;
+            log << "label " << label << ", cost " << label_costs[label] << endl;
         }
     }
 }
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

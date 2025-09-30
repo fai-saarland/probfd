@@ -165,12 +165,12 @@ int get_num_total_effects(
     return num_effects;
 }
 
-namespace {
-
-void dump_probabilistic_task_(const ProbabilisticTaskTuple& task, auto& os)
+void dump_probabilistic_task(
+    const ProbabilisticTaskTuple& task,
+    std::ostream& os)
 {
     const auto& [variables, axioms, operators, goals, init_vals, cost_function, _] =
-        task;
+    task;
 
     value_t min_action_cost = numeric_limits<int>::max();
     value_t max_action_cost = 0;
@@ -194,26 +194,10 @@ void dump_probabilistic_task_(const ProbabilisticTaskTuple& task, auto& os)
     }
     State initial_state = init_vals.get_initial_state();
     println(os, "Initial state (PDDL):");
-    ::task_properties::dump_pddl(variables, initial_state);
+    ::task_properties::dump_pddl(variables, initial_state, os);
     println(os, "Initial state (FDR):");
-    ::task_properties::dump_fdr(variables, initial_state);
-    ::task_properties::dump_goals(variables, goals);
-}
-
-} // namespace
-
-void dump_probabilistic_task(
-    const ProbabilisticTaskTuple& task,
-    utils::LogProxy& log)
-{
-    dump_probabilistic_task_(task, log);
-}
-
-void dump_probabilistic_task(
-    const ProbabilisticTaskTuple& task,
-    std::ostream& os)
-{
-    dump_probabilistic_task_(task, os);
+    ::task_properties::dump_fdr(variables, initial_state, os);
+    ::task_properties::dump_goals(variables, goals, os);
 }
 
 } // namespace probfd::task_properties

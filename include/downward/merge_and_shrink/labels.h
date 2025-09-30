@@ -4,6 +4,10 @@
 #include <memory>
 #include <vector>
 
+namespace downward::utils {
+class LogProxy;
+}
+
 namespace downward::merge_and_shrink {
 /*
   Iterator class for Labels.
@@ -57,7 +61,7 @@ public:
     Labels(std::vector<int>&& label_costs, int max_num_labels);
     void reduce_labels(const std::vector<int>& old_labels);
     int get_label_cost(int label) const;
-    void dump_labels() const;
+    void dump_labels(utils::LogProxy log) const;
 
     // The summed number of both inactive and active labels.
     int get_num_total_labels() const { return label_costs.size(); }
