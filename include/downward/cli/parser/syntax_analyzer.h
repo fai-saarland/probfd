@@ -7,5 +7,7 @@ namespace downward::cli::parser {
 class TokenStream;
 
 extern ASTNodePtr parse(TokenStream& tokens);
+extern ASTNodePtr tokenize_and_parse(const std::string& expression);
+
 } // namespace downward::cli::parser
 #endif
