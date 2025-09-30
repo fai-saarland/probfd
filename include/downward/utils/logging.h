@@ -214,14 +214,14 @@ inline void println(LogProxy& log, std::string_view s)
 extern LogProxy get_log_for_verbosity(const Verbosity& verbosity);
 extern LogProxy get_silent_log();
 
-class ContextError : public utils::Exception {
-public:
-    explicit ContextError(const std::string& msg);
+struct ContextError : utils::Exception {
+    using Exception::Exception;
 };
 
 class Context {
 protected:
-    static const std::string INDENT;
+    static constexpr std::string INDENT = "  ";
+
     size_t initial_stack_size =
         0; // TODO: Can be removed once we got rid of LazyValues
     std::vector<std::string> block_stack;

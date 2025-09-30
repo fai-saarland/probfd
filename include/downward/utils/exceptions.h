@@ -1,26 +1,23 @@
 #ifndef UTILS_EXCEPTIONS_H
 #define UTILS_EXCEPTIONS_H
 
+#include <iosfwd>
 #include <string>
 
 namespace downward::utils {
+
 // Base class for custom exception types.
-class Exception {
-protected:
-    const std::string msg;
-
+class Exception : public std::runtime_error {
 public:
-    explicit Exception(const std::string& msg);
-    virtual ~Exception() = default;
+    using runtime_error::runtime_error;
 
-    std::string get_message() const;
-    virtual void print() const;
+    virtual void print(std::ostream& out) const;
 };
 
 struct TimeoutException {};
 
-struct OutOfMemoryException : std::runtime_error {
-    using runtime_error::runtime_error;
+struct OutOfMemoryException : Exception {
+    using Exception::Exception;
 };
 
 } // namespace downward::utils

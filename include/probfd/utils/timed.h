@@ -15,17 +15,20 @@ class PrintingTimer {
     std::string print;
     std::ostream& out;
     bool same_line;
+    int precision;
 
 public:
     PrintingTimer(
         downward::utils::Timer& timer,
         std::string print,
         std::ostream& out,
-        bool same_line = true)
+        bool same_line = true,
+        int precision = 3)
         : timer(timer)
         , print(std::move(print))
         , out(out)
         , same_line(same_line)
+        , precision(precision)
     {
         if (same_line) {
             out << this->print << ' ' << std::flush;
@@ -36,14 +39,22 @@ public:
 
     ~PrintingTimer()
     {
-        if (!same_line) {
-            out << print << ' ';
-        }
+        if (!same_line) { out << print << ' '; }
+
+        const auto d = timer.stop();
 
         if (std::uncaught_exceptions() > 0) {
-            out << "Failed after " << timer.stop() << '.' << std::endl;
+            std::println(
+                out,
+                "Failed after {:.{}f} seconds.",
+                d.count(),
+                precision);
         } else {
-            out << "Finished after " << timer.stop() << '.' << std::endl;
+            std::println(
+                out,
+                "Finished after {:.{}f} seconds.",
+                d.count(),
+                precision);
         }
     }
 };
@@ -104,7 +115,6 @@ std::invoke_result_t<F, Args...> run_time_logged(
     PrintingTimer _(timer, print, out);
     return std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
 }
-
 
 }; // namespace probfd
 

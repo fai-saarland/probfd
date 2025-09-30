@@ -31,13 +31,6 @@ LogProxy get_silent_log()
     return utils::get_log_for_verbosity(utils::Verbosity::SILENT);
 }
 
-ContextError::ContextError(const string& msg)
-    : Exception(msg)
-{
-}
-
-const string Context::INDENT = "  ";
-
 Context::Context(const Context& context)
     : initial_stack_size(context.block_stack.size())
     , block_stack(context.block_stack)

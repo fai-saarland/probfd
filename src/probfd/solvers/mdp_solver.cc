@@ -111,6 +111,8 @@ class Solver : public SolverInterface {
 
     ProgressReport progress;
 
+    static constexpr int precision = 3;
+
 public:
     Solver(
         SharedProbabilisticTask task,
@@ -138,7 +140,11 @@ public:
         print(std::cout, "Running MDP algorithm {}", algorithm_name);
 
         if (max_time != Duration::max()) {
-            println(std::cout, " with a time limit of {}.", max_time);
+            println(
+                std::cout,
+                " with a time limit of {:.{}f} seconds.",
+                max_time.count(),
+                precision);
         }
 
         println(std::cout, " without a time limit.");
@@ -163,7 +169,11 @@ public:
             Timer search_timer;
 
             progress.register_print([&](std::ostream& out) {
-                std::print(out, "t={}", search_timer());
+                std::print(
+                    out,
+                    "t={:.{}f}s",
+                    search_timer().count(),
+                    precision);
             });
 
             progress.register_print([&](std::ostream& out) {
@@ -180,7 +190,11 @@ public:
 
             total_timer.stop();
 
-            println(std::cout, "Finished after {}\n", total_timer());
+            println(
+                std::cout,
+                "Finished after {:.{}f} seconds.\n",
+                total_timer().count(),
+                precision);
 
             if (policy) {
                 using namespace std;
@@ -234,7 +248,11 @@ public:
             state_space->print_statistics(std::cout);
 
             println(std::cout, "\nAlgorithm {} statistics:", algorithm_name);
-            println(std::cout, "  Actual solver time: {}", total_timer());
+            println(
+                std::cout,
+                "  Actual solver time: {:.{}}",
+                total_timer(),
+                precision);
             algorithm->print_statistics(std::cout);
             heuristic->print_statistics();
 
@@ -259,7 +277,7 @@ MDPSolver::create(const SharedProbabilisticTask& task)
 
     std::unique_ptr<TaskStateSpace> state_space = run_time_logged(
         std::cout,
-        "Constructing state space...",
+        "Constructing task state space generator...",
         &TaskStateSpaceFactory::create_object,
         *task_state_space_factory_,
         task);
