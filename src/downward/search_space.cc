@@ -138,7 +138,7 @@ void SearchNode::dump(
 {
     if (log.is_at_least_debug()) {
         log << state.get_id() << ": ";
-        task_properties::dump_fdr(variables, state);
+        task_properties::dump_fdr(variables, state, log);
         if (info.creating_operator != OperatorID::no_operator) {
             auto op = operators[info.creating_operator.get_index()];
             log << " created by " << op.get_name() << " from "
@@ -189,7 +189,7 @@ void SearchSpace::dump(const AbstractTaskTuple& task) const
         State state = state_registry.lookup_state(id);
         const SearchNodeInfo& node_info = search_node_infos[state];
         log << id << ": ";
-        task_properties::dump_fdr(variables, state);
+        task_properties::dump_fdr(variables, state, log);
         if (node_info.creating_operator != OperatorID::no_operator &&
             node_info.parent_state_id != StateID::no_state) {
             auto op = operators[node_info.creating_operator.get_index()];

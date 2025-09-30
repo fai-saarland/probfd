@@ -53,6 +53,10 @@
 
 #include <vector>
 
+namespace downward::utils {
+class LogProxy;
+}
+
 namespace downward {
 typedef std::vector<std::vector<int>> IntRelation;
 }
@@ -128,7 +132,7 @@ public:
     }
 
 private:
-    void dump(const VariableSpace& variables) const;
+    void dump(const VariableSpace& variables, utils::LogProxy log) const;
 };
 
 /* Create or retrieve a causal graph from cache. If causal graphs are created

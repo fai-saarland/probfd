@@ -652,12 +652,11 @@ bool CplexSolverInterface::has_temporary_constraints() const
     return num_permanent_constraints < get_num_constraints();
 }
 
-void CplexSolverInterface::print_statistics() const
+void CplexSolverInterface::print_statistics(std::ostream& out) const
 {
-    utils::g_log << "LP variables: " << get_num_variables() << endl;
-    utils::g_log << "LP constraints: " << get_num_constraints() << endl;
-    utils::g_log << "LP non-zero entries: " << CPXgetnumnz(env, problem)
-                 << endl;
+    std::println(out, "LP variables: {}", get_num_variables());
+    std::println(out, "LP constraints: {}", get_num_constraints());
+    std::println(out, "LP non-zero entries: {}", CPXgetnumnz(env, problem));
 }
 
 std::vector<double> CplexSolverInterface::extract_dual_solution() const

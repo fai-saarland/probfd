@@ -63,6 +63,8 @@ public:
     void println() { std::println(stream); }
 
     Verbosity get_verbosity() const { return verbosity; }
+
+    operator std::ostream&() const { return stream; }
 };
 
 template <typename T>
@@ -107,6 +109,8 @@ public:
         : log(log)
     {
     }
+
+    operator std::ostream&() const { return static_cast<std::ostream&>(*log); }
 
     LogProxy& operator<<(const Dumpable auto& elem)
     {
@@ -206,14 +210,6 @@ inline void println(LogProxy& log, std::string_view s)
 {
     log << s << "\n";
 }
-
-/*
-  In the long term, this should not be global anymore. Instead, local LogProxy
-  objects should be used everywhere. For classes constructed from the command
-  line, they are parsed from Options. For other classes and functions, they
-  must be passed in by the caller.
-*/
-extern LogProxy g_log;
 
 extern LogProxy get_log_for_verbosity(const Verbosity& verbosity);
 extern LogProxy get_silent_log();

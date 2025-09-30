@@ -7,6 +7,7 @@
 #include "downward/lp/soplex_solver_interface.h"
 #endif
 
+#include "downward/utils/logging.h"
 #include "downward/utils/system.h"
 
 using namespace std;
@@ -268,9 +269,9 @@ int LPSolver::has_temporary_constraints() const
     return pimpl->has_temporary_constraints();
 }
 
-void LPSolver::print_statistics() const
+void LPSolver::print_statistics(std::ostream& out) const
 {
-    pimpl->print_statistics();
+    pimpl->print_statistics(out);
 }
 
 std::vector<double> LPSolver::extract_dual_solution() const

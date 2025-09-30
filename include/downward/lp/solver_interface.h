@@ -10,6 +10,10 @@ template <typename T>
 class NamedVector;
 }
 
+namespace downward::utils {
+class LogProxy;
+}
+
 namespace downward::lp {
 class LinearProgram;
 struct LPVariable;
@@ -68,7 +72,7 @@ public:
     virtual int get_num_variables() const = 0;
     virtual int get_num_constraints() const = 0;
     virtual bool has_temporary_constraints() const = 0;
-    virtual void print_statistics() const = 0;
+    virtual void print_statistics(std::ostream& out) const = 0;
 
     virtual std::vector<double> extract_dual_solution() const = 0;
 

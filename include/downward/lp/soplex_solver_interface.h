@@ -63,7 +63,7 @@ public:
     virtual int get_num_variables() const override;
     virtual int get_num_constraints() const override;
     virtual bool has_temporary_constraints() const override;
-    virtual void print_statistics() const override;
+    virtual void print_statistics(std::ostream& out) const override;
 
     virtual std::vector<double> extract_dual_solution() const override;
 
