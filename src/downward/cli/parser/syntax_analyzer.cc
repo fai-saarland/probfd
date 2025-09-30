@@ -1,5 +1,6 @@
 #include "downward/cli/parser/syntax_analyzer.h"
 
+#include "downward/cli/parser/lexical_analyzer.h"
 #include "downward/cli/parser/token_stream.h"
 
 #include "downward/utils/logging.h"
@@ -307,4 +308,11 @@ ASTNodePtr parse(TokenStream& tokens)
     }
     return node;
 }
+
+ASTNodePtr tokenize_and_parse(const std::string& expression)
+{
+    TokenStream tokens = split_tokens(expression);
+    return parse(tokens);
+}
+
 } // namespace downward::cli::parser
