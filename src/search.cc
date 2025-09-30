@@ -48,12 +48,6 @@ using downward::utils::ExitCode;
 
 namespace probfd {
 
-static ASTNodePtr tokenize_and_parse(const std::string& expression)
-{
-    TokenStream tokens = split_tokens(expression);
-    return parse(tokens);
-}
-
 template <std::ranges::input_range R>
     requires std::convertible_to<
         std::ranges::range_value_t<R>,
