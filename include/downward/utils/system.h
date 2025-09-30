@@ -44,28 +44,6 @@ enum class ExitCode {
     SEARCH_UNIMPLEMENTED = 35
 };
 
-class InputError : public std::domain_error {
-public:
-    using std::domain_error::domain_error;
-
-    template <class... Args>
-    explicit InputError(std::format_string<Args...> fmt, Args&&... args)
-        : std::domain_error(std::format(fmt, std::forward<Args>(args)...))
-    {
-    }
-};
-
-class OverflowError : public std::overflow_error {
-public:
-    using std::overflow_error::overflow_error;
-
-    template <class... Args>
-    explicit OverflowError(std::format_string<Args...> fmt, Args&&... args)
-        : std::overflow_error(std::format(fmt, std::forward<Args>(args)...))
-    {
-    }
-};
-
 class CriticalError : public std::runtime_error {
 public:
     using std::runtime_error::runtime_error;
@@ -73,6 +51,17 @@ public:
     template <class... Args>
     explicit CriticalError(std::format_string<Args...> fmt, Args&&... args)
         : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
+    {
+    }
+};
+
+class InputError : public std::domain_error {
+public:
+    using std::domain_error::domain_error;
+
+    template <class... Args>
+    explicit InputError(std::format_string<Args...> fmt, Args&&... args)
+        : std::domain_error(std::format(fmt, std::forward<Args>(args)...))
     {
     }
 };
@@ -95,6 +84,17 @@ public:
     template <class... Args>
     explicit UnimplementedError(std::format_string<Args...> fmt, Args&&... args)
         : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
+    {
+    }
+};
+
+class OverflowError : public std::overflow_error {
+public:
+    using std::overflow_error::overflow_error;
+
+    template <class... Args>
+    explicit OverflowError(std::format_string<Args...> fmt, Args&&... args)
+        : std::overflow_error(std::format(fmt, std::forward<Args>(args)...))
     {
     }
 };
