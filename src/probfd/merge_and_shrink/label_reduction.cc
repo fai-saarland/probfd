@@ -225,7 +225,7 @@ bool LabelReduction::reduce(
         LabelReductionMethod::ALL_TRANSITION_SYSTEMS_WITH_FIXPOINT) {
         max_iterations = std::numeric_limits<int>::max();
     } else {
-        ABORT("unknown label reduction method");
+        throw utils::CriticalError("unknown label reduction method");
     }
 
     int num_unsuccessful_iterations = 0;

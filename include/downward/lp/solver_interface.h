@@ -17,7 +17,7 @@ class LPConstraint;
 
 class SolverInterface {
 public:
-    virtual ~SolverInterface() = default;
+    virtual ~SolverInterface() noexcept(false) = default;
 
     virtual void load_problem(const LinearProgram& lp) = 0;
     virtual void add_temporary_constraints(

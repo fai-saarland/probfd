@@ -503,7 +503,7 @@ void DeleteRelaxationRRConstraints::initialize_constraints(
     case AcyclicityType::NONE: {
         break;
     }
-    default: ABORT("Unknown AcyclicityType");
+    default: throw utils::CriticalError("Unknown AcyclicityType");
     }
 }
 

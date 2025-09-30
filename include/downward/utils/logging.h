@@ -25,25 +25,17 @@ enum class Verbosity { SILENT, NORMAL, VERBOSE, DEBUG };
 class Log {
     std::ostream& stream;
     const Verbosity verbosity;
-    bool line_has_started;
 
 public:
     explicit Log(Verbosity verbosity)
         : stream(std::cout)
         , verbosity(verbosity)
-        , line_has_started(false)
     {
     }
 
     template <typename T>
     Log& operator<<(const T& elem)
     {
-        if (!line_has_started) {
-            line_has_started = true;
-            stream << "[t=" << g_timer << ", " << get_peak_memory_in_kb()
-                   << " KB] ";
-        }
-
         stream << elem;
         return *this;
     }
@@ -52,10 +44,6 @@ public:
 
     Log& operator<<(manip_function f)
     {
-        if (f == static_cast<manip_function>(&std::endl)) {
-            line_has_started = false;
-        }
-
         stream << f;
         return *this;
     }
@@ -245,7 +233,7 @@ protected:
 public:
     explicit Context() = default;
     Context(const Context& context);
-    virtual ~Context();
+    virtual ~Context() noexcept(false);
     virtual std::string
     decorate_block_name(const std::string& block_name) const;
     void enter_block(const std::string& block_name);
@@ -257,18 +245,6 @@ public:
     virtual void warn(const std::string& message) const;
 };
 
-class MemoryContext : public Context {
-    // The following constants affect the formatting of output.
-    static const int MEM_FIELD_WIDTH = 7;
-    static const int TIME_FIELD_WIDTH = 7;
-
-public:
-    virtual std::string
-    decorate_block_name(const std::string& block_name) const override;
-};
-
-extern MemoryContext _memory_context;
-
 class TraceBlock {
     Context& context;
     std::string block_name;
@@ -278,7 +254,6 @@ public:
     ~TraceBlock();
 };
 
-extern void trace_memory(const std::string& msg = "");
 } // namespace downward::utils
 
 #endif

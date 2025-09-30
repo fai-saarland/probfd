@@ -324,13 +324,14 @@ void FunctionCallNode::collect_keyword_arguments(
             context.error(message.str());
         }
         const plugins::ArgumentInfo& arg_info = argument_infos_by_key.at(key);
-        bool success =
+        const bool success =
             collect_argument(arg, arg_info, context, arguments, false);
         if (!success) {
-            ABORT(
-                "Multiple keyword definitions using the same key '" + key +
-                "'. This should be impossible here because we " +
-                "sort by key earlier.");
+            throw utils::CriticalError(
+                "Multiple keyword definitions using the same key '{}'."
+                "This should be impossible here because we sort by key "
+                "earlier.",
+                key);
         }
     }
 }
@@ -409,12 +410,13 @@ void FunctionCallNode::collect_default_values(
                     utils::TraceBlock block(context, "Parsing default value");
                     arg = parse_ast_node(arg_info.default_value, context);
                 }
-                bool success =
+                const bool success =
                     collect_argument(*arg, arg_info, context, arguments, true);
                 if (!success) {
-                    ABORT(
-                        "Default argument for '" + key + "' set although " +
-                        "value for keyword exists. This should be impossible.");
+                    throw utils::CriticalError(
+                        "Default argument for '{}' set although "
+                        "value for keyword exists. This should be impossible.",
+                        key);
                 }
             } else if (!arg_info.is_optional()) {
                 context.error("Missing argument is mandatory!");
@@ -558,7 +560,8 @@ TypedDecoratedAstNodePtr LiteralNode::decorate(DecorateContext& context) const
     utils::TraceBlock block(context, "Checking Literal: " + value.content);
     if (context.has_variable(value.content)) {
         if (value.type != TokenType::IDENTIFIER) {
-            ABORT("A non-identifier token was defined as variable.");
+            throw utils::CriticalError(
+                "A non-identifier token was defined as variable.");
         }
         string variable_name = value.content;
         auto& def = context.get_variable_definition(variable_name);
@@ -589,9 +592,9 @@ TypedDecoratedAstNodePtr LiteralNode::decorate(DecorateContext& context) const
             std::make_unique<SymbolNode>(value.content),
             &plugins::TypeRegistry::SYMBOL_TYPE};
     default:
-        ABORT(
-            "LiteralNode has unexpected token type '" +
-            token_type_name(value.type) + "'.");
+        throw utils::CriticalError(
+            "LiteralNode has unexpected token type '{}'.",
+            token_type_name(value.type));
     }
 }
 

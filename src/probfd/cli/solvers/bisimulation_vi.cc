@@ -119,7 +119,7 @@ public:
                   << std::endl;
 
         const auto initial_state =
-            QuotientState(state_mapping->get_value(initial));
+            static_cast<QuotientState>(state_mapping->get_value(initial));
 
         utils::Timer vi_timer(false);
 
@@ -127,12 +127,23 @@ public:
             vi_timer,
             std::cout,
             "Running " + algorithm_name + " on the bisimulation...",
-            [&]() {
+            [&] {
                 heuristics::BlindHeuristic<QState> blind(
                     operators,
                     cost_function,
                     term_costs);
+
                 ProgressReport progress;
+                progress.register_print([&](std::ostream& out) {
+                    std::print(
+                        out,
+                        "memory={} KB",
+                        utils::get_peak_memory_in_kb());
+                });
+
+                progress.register_print([&](std::ostream& out) {
+                    std::print(out, "t={}", vi_timer());
+                });
 
                 return solver->compute_policy(
                     state_space,

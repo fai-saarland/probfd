@@ -267,7 +267,7 @@ CplexSolverInterface::CplexSolverInterface()
     // TODO handle output, catch oom
 }
 
-CplexSolverInterface::~CplexSolverInterface()
+CplexSolverInterface::~CplexSolverInterface() noexcept(false)
 {
     if (const int status = CPXcloseCPLEX(&env)) {
         throw utils::CriticalError(

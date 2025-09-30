@@ -144,7 +144,7 @@ LPSolver::LPSolver(LPSolverType solver_type)
         missing_solver = "SoPlex";
 #endif
         break;
-    default: ABORT("Unknown LP solver type.");
+    default: throw utils::CriticalError("Unknown LP solver type.");
     }
     if (!pimpl) {
         throw utils::CriticalError(

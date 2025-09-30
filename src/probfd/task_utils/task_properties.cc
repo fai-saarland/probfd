@@ -64,7 +64,7 @@ value_t get_adjusted_action_cost(
             return 1_vt;
         else
             return cost_function.get_operator_cost(op_index) + 1_vt;
-    default: ABORT("Unknown cost type");
+    default: throw utils::CriticalError("Unknown cost type");
     }
 }
 

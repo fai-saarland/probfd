@@ -20,13 +20,6 @@
 #include <source_location>
 #include <stdlib.h>
 
-#define ABORT(msg)                                                             \
-    ((std::cerr << "Critical error in file " << __FILE__ << ", line "          \
-                << __LINE__ << ": " << std::endl                               \
-                << (msg) << std::endl),                                        \
-     (abort()),                                                                \
-     (void)0)
-
 namespace downward::utils {
 enum class ExitCode {
     /*
@@ -51,24 +44,24 @@ enum class ExitCode {
     SEARCH_UNIMPLEMENTED = 35
 };
 
-class InputError : public std::runtime_error {
+class InputError : public std::domain_error {
 public:
-    using std::runtime_error::runtime_error;
+    using std::domain_error::domain_error;
 
     template <class... Args>
     explicit InputError(std::format_string<Args...> fmt, Args&&... args)
-        : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
+        : std::domain_error(std::format(fmt, std::forward<Args>(args)...))
     {
     }
 };
 
-class OverflowError : public std::runtime_error {
+class OverflowError : public std::overflow_error {
 public:
-    using std::runtime_error::runtime_error;
+    using std::overflow_error::overflow_error;
 
     template <class... Args>
     explicit OverflowError(std::format_string<Args...> fmt, Args&&... args)
-        : std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
+        : std::overflow_error(std::format(fmt, std::forward<Args>(args)...))
     {
     }
 };
@@ -106,8 +99,6 @@ public:
     }
 };
 
-[[noreturn]]
-extern void exit_with(ExitCode returncode);
 [[noreturn]]
 extern void exit_with_reentrant(ExitCode returncode);
 

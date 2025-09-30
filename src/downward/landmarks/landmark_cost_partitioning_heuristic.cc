@@ -120,7 +120,7 @@ void LandmarkCostPartitioningHeuristic::set_cost_partitioning_algorithm(
                 *lm_graph,
                 alm);
     } else {
-        ABORT("Unknown cost partitioning method");
+        throw utils::CriticalError("Unknown cost partitioning method");
     }
 }
 

@@ -288,7 +288,10 @@ parse_node(TokenStream& tokens, SyntaxAnalyzerContext& context)
         } else {
             return parse_literal(tokens, context);
         }
-    default: ABORT("Unknown token type '" + token_type_name(token.type) + "'.");
+    default:
+        throw utils::CriticalError(
+            "Unknown token type '{}'.",
+            token_type_name(token.type));
     }
 }
 
@@ -296,9 +299,7 @@ ASTNodePtr parse(TokenStream& tokens)
 {
     SyntaxAnalyzerContext context(tokens, 10);
     utils::TraceBlock block(context, "Start Syntactical Parsing");
-    if (!tokens.has_tokens(1)) {
-        context.error("Input is empty");
-    }
+    if (!tokens.has_tokens(1)) { context.error("Input is empty"); }
     ASTNodePtr node = parse_node(tokens, context);
     if (tokens.has_tokens(1)) {
         context.error(

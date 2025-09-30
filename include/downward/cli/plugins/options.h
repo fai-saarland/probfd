@@ -102,7 +102,7 @@ public:
     {
         const auto it = storage.find(key);
         if (it == storage.end()) {
-            ABORT(
+            throw downward::utils::CriticalError(
                 "Attempt to retrieve nonexisting object of name " + key +
                 " (type: " + typeid(T).name() + ")");
         }
@@ -110,7 +110,7 @@ public:
             T result = OptionsAnyCaster<T>::cast(it->second);
             return result;
         } catch (const std::bad_any_cast&) {
-            ABORT(
+            throw downward::utils::CriticalError(
                 "Invalid conversion while retrieving config options!\n" + key +
                 " is not of type " + typeid(T).name() + " but of type " +
                 it->second.type().name());

@@ -79,6 +79,8 @@ insert_definitions(const std::string& old_search_argument, R&& predefinitions)
 
 static int search(argparse::ArgumentParser& parser)
 {
+    Timer timer;
+
     const Duration max_time(parser.get<double>("--max-search-time"));
 
     std::string search_arg = parser.get("algorithm");
@@ -155,26 +157,45 @@ static int search(argparse::ArgumentParser& parser)
         return static_cast<int>(ExitCode::SEARCH_CRITICAL_ERROR);
     }
 
-    SharedProbabilisticTask input_task = run_time_logged(
-        std::cout,
-        "Reading input task...",
-        probfd::tasks::read_sas_task_from_file,
-        parser.get("problem_file"));
+    ExitCode exitcode;
 
-    std::unique_ptr<SolverInterface> solver =
-        solver_factory->create(input_task);
+    try {
+        try {
+            SharedProbabilisticTask input_task = run_time_logged(
+                std::cout,
+                "Reading input task...",
+                probfd::tasks::read_sas_task_from_file,
+                parser.get("problem_file"));
 
-    g_search_timer.resume();
-    bool found_solution = solver->solve(max_time);
-    g_search_timer.stop();
-    g_timer.stop();
+            std::unique_ptr<SolverInterface> solver =
+                solver_factory->create(input_task);
 
-    solver->print_statistics();
-    std::cout << "Search time: " << g_search_timer << endl;
-    std::cout << "Total time: " << g_timer << endl;
+            Timer search_timer;
+            bool found_solution = solver->solve(max_time);
+            search_timer.stop();
 
-    ExitCode exitcode = found_solution ? ExitCode::SUCCESS
-                                       : ExitCode::SEARCH_UNSOLVED_INCOMPLETE;
+            solver->print_statistics();
+            std::cout << "Search time: " << search_timer << endl;
+            std::cout << "Total time: " << timer << endl;
+
+            exitcode = found_solution ? ExitCode::SUCCESS
+                                      : ExitCode::SEARCH_UNSOLVED_INCOMPLETE;
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+            throw;
+        }
+    } catch (const InputError&) {
+        exitcode = ExitCode::SEARCH_INPUT_ERROR;
+    } catch (const CriticalError&) {
+        exitcode = ExitCode::SEARCH_CRITICAL_ERROR;
+    } catch (const UnsupportedError&) {
+        exitcode = ExitCode::SEARCH_UNSUPPORTED;
+    } catch (const UnimplementedError&) {
+        exitcode = ExitCode::SEARCH_UNIMPLEMENTED;
+    } catch (const std::exception&) {
+        exitcode = ExitCode::SEARCH_CRITICAL_ERROR;
+    }
+
     report_exit_code_reentrant(exitcode);
     return static_cast<int>(exitcode);
 }

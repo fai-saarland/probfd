@@ -54,7 +54,7 @@ void ProgressReport::print()
 
 void ProgressReport::print_progress()
 {
-    out_ << "[";
+    std::print(out_, "[");
     for (unsigned i = 0; i < bound_infos_.size(); i++) {
         const auto& info = bound_infos_[i];
         assert(info.last_printed.has_value());
@@ -68,11 +68,7 @@ void ProgressReport::print_progress()
             additional_informations_[i](out_);
         }
     }
-    println(
-        out_,
-        ", t={}, memory={} KB]",
-        utils::g_timer(),
-        utils::get_peak_memory_in_kb());
+    std::println(out_, "]");
 }
 
 bool ProgressReport::advance_values(bool force)
