@@ -184,7 +184,7 @@ private:
       The mapping label_to_local_label is consistent with local_label_infos.
     */
     bool is_label_mapping_consistent() const;
-    void dump_label_mapping() const;
+    void dump_label_mapping(std::ostream& out) const;
 
 public:
     TransitionSystem(

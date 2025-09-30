@@ -33,6 +33,7 @@ public:
         const Plan& plan,
         const OperatorSpace& operators,
         const OperatorIntCostFunction& cost_function,
+        int plan_cost,
         bool generates_multiple_plan_files = false);
 };
 

@@ -95,8 +95,14 @@ SearchStatus IteratedSearch::step()
         Plan found_plan = current_search->get_plan();
         int plan_cost = calculate_plan_cost(found_plan, *cost_function);
         if (plan_cost < best_bound) {
-            plan_manager
-                .save_plan(found_plan, *operators, *cost_function, true);
+            plan_manager.save_plan(
+                found_plan,
+                *operators,
+                *cost_function,
+                plan_cost,
+                true);
+            log.println("Plan length: {} step(s).", found_plan.size());
+            log.println("Plan cost: {}", plan_cost);
             best_bound = plan_cost;
             set_plan(found_plan);
         }

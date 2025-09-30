@@ -37,7 +37,7 @@ TEST(CartesianTests, test_probabilistic_transition_system)
     SharedProbabilisticTask task = tasks::read_sas_task(file);
 
     RefinementHierarchy refinement_hierarchy;
-    CartesianAbstraction abs(to_refs(task), {}, utils::g_log);
+    CartesianAbstraction abs(to_refs(task), {}, utils::get_silent_log());
 
     ASSERT_EQ(
         get_num_transitions(abs.get_transition_system()),
@@ -66,7 +66,7 @@ TEST(CartesianTests, test_probabilistic_transition_system2)
     SharedProbabilisticTask task = tasks::read_sas_task(file);
 
     RefinementHierarchy refinement_hierarchy;
-    CartesianAbstraction abs(to_refs(task), {}, utils::g_log);
+    CartesianAbstraction abs(to_refs(task), {}, utils::get_silent_log());
 
     ASSERT_EQ(abs.get_num_states(), 1);
     ASSERT_EQ(

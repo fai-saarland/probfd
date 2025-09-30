@@ -270,9 +270,9 @@ bool SoPlexSolverInterface::has_temporary_constraints() const
     return num_temporary_constraints > 0;
 }
 
-void SoPlexSolverInterface::print_statistics() const
+void SoPlexSolverInterface::print_statistics(std::ostream& out) const
 {
-    soplex.printStatistics(cout);
+    soplex.printStatistics(out);
 }
 
 std::vector<double> SoPlexSolverInterface::extract_dual_solution() const

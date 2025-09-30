@@ -20,10 +20,6 @@ template <typename>
 class OperatorCostFunction;
 }
 
-namespace downward::utils {
-class LogProxy;
-}
-
 namespace probfd {
 class ProbabilisticOperatorProxy;
 class TerminationCosts;
@@ -139,13 +135,6 @@ value_t get_cost_lower_bound(
 extern int get_num_total_effects(
     const downward::AxiomSpace& axioms,
     const ProbabilisticOperatorSpace& operators);
-
-/**
- * @brief Dumps a probabilistic task to a given log.
- */
-extern void dump_probabilistic_task(
-    const ProbabilisticTaskTuple& task,
-    downward::utils::LogProxy& log);
 
 /**
  * @brief Dumps a probabilistic task to a given output stream.

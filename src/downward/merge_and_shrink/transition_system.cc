@@ -28,9 +28,7 @@ ostream& operator<<(ostream& os, const Transition& trans)
 void LocalLabelInfo::add_label(int label, int label_cost)
 {
     label_group.push_back(label);
-    if (label_cost != -1) {
-        cost = min(cost, label_cost);
-    }
+    if (label_cost != -1) { cost = min(cost, label_cost); }
     assert(is_consistent());
 }
 
@@ -112,9 +110,7 @@ TransitionSystemConstIterator::TransitionSystemConstIterator(
 
 void TransitionSystemConstIterator::advance_to_next_valid_index()
 {
-    while (it != end_it && !it->is_active()) {
-        ++it;
-    }
+    while (it != end_it && !it->is_active()) { ++it; }
 }
 
 TransitionSystemConstIterator& TransitionSystemConstIterator::operator++()
@@ -560,7 +556,7 @@ bool TransitionSystem::is_label_mapping_consistent() const
 
         if (find(label_group.begin(), label_group.end(), label) ==
             label_group.end()) {
-            dump_label_mapping();
+            dump_label_mapping(cerr);
             cerr << "label " << label
                  << " is not part of the "
                     "local label it is mapped to"
@@ -574,7 +570,7 @@ bool TransitionSystem::is_label_mapping_consistent() const
         const LocalLabelInfo& local_label_info = local_label_infos[local_label];
         for (int label : local_label_info.get_label_group()) {
             if (label_to_local_label[label] != static_cast<int>(local_label)) {
-                dump_label_mapping();
+                dump_label_mapping(cerr);
                 cerr << "label " << label
                      << " is not mapped "
                         "to the local label it is part of"
@@ -586,28 +582,31 @@ bool TransitionSystem::is_label_mapping_consistent() const
     return true;
 }
 
-void TransitionSystem::dump_label_mapping() const
+void TransitionSystem::dump_label_mapping(std::ostream& out) const
 {
-    utils::g_log << "to local label mapping: ";
+    out << "to local label mapping: ";
     for (int label : labels) {
-        utils::g_log << label << " -> " << label_to_local_label[label] << ", ";
+        out << label << " -> " << label_to_local_label[label] << ", ";
     }
-    utils::g_log << endl;
-    utils::g_log << "local to label mapping: ";
-    for (size_t local_label = 0; local_label < local_label_infos.size();
-         ++local_label) {
-        utils::g_log << local_label << ": "
-                     << local_label_infos[local_label].get_label_group()
-                     << ", ";
+    out << endl;
+    out << "local to label mapping: ";
+    if (!local_label_infos.empty()) {
+        std::print(out, "{}: {}", 0, local_label_infos[0].get_label_group());
+        for (size_t local_label = 1; local_label < local_label_infos.size();
+             ++local_label) {
+            std::print(
+                out,
+                ", {}: {}",
+                local_label,
+                local_label_infos[local_label].get_label_group());
+        }
     }
-    utils::g_log << endl;
+    out << endl;
 }
 
 bool TransitionSystem::is_solvable(const Distances& distances) const
 {
-    if (init_state == PRUNED_STATE) {
-        return false;
-    }
+    if (init_state == PRUNED_STATE) { return false; }
     if (distances.are_goal_distances_computed() &&
         distances.get_goal_distance(init_state) == INF) {
         return false;
@@ -688,7 +687,7 @@ void TransitionSystem::dump_labels_and_transitions(utils::LogProxy& log) const
                 if (i != 0) log << ",";
                 log << src << " -> " << target;
             }
-            utils::g_log << "cost: " << local_label_info.get_cost() << endl;
+            log << "cost: " << local_label_info.get_cost() << endl;
         }
     }
 }
@@ -700,4 +699,4 @@ void TransitionSystem::statistics(utils::LogProxy& log) const
             << " arcs " << endl;
     }
 }
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

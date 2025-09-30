@@ -120,45 +120,54 @@ int get_num_total_effects(
 
 void print_variable_statistics(
     const VariableSpace& variables,
-    const int_packer::IntPacker& state_packer)
+    const int_packer::IntPacker& state_packer,
+    std::ostream& out)
 {
     int num_facts = 0;
     for (VariableProxy var : variables) num_facts += var.get_domain_size();
 
-    utils::g_log << "Variables: " << variables.size() << endl;
-    utils::g_log << "FactPairs: " << num_facts << endl;
-    utils::g_log << "Bytes per state: "
-                 << state_packer.get_num_bins() *
-                        sizeof(int_packer::IntPacker::Bin)
-                 << endl;
+    out << "Variables: " << variables.size() << endl;
+    out << "FactPairs: " << num_facts << endl;
+    out << "Bytes per state: "
+        << state_packer.get_num_bins() * sizeof(int_packer::IntPacker::Bin)
+        << endl;
 }
 
-void dump_pddl(const VariableSpace& variable_space, const State& state)
+void dump_pddl(
+    const VariableSpace& variable_space,
+    const State& state,
+    std::ostream& out)
 {
     for (FactPair fact : state | as_fact_pair_set) {
         string fact_name = variable_space.get_fact_proxy(fact).get_name();
-        if (fact_name != "<none of those>") utils::g_log << fact_name << endl;
+        if (fact_name != "<none of those>") out << fact_name << endl;
     }
 }
 
-void dump_fdr(const VariableSpace& variables, const State& state)
+void dump_fdr(
+    const VariableSpace& variables,
+    const State& state,
+    std::ostream& out)
 {
     for (VariableProxy var : variables) {
-        utils::g_log << "  #" << var.get_id() << " [" << var.get_name()
-                     << "] -> " << state[var] << endl;
+        out << "  #" << var.get_id() << " [" << var.get_name() << "] -> "
+            << state[var] << endl;
     }
 }
 
-void dump_goals(const VariableSpace& variables, const GoalFactList& goals)
+void dump_goals(
+    const VariableSpace& variables,
+    const GoalFactList& goals,
+    std::ostream& out)
 {
-    utils::g_log << "Goal conditions:" << endl;
+    out << "Goal conditions:" << endl;
     for (const auto [var_id, value] : goals) {
         auto var = variables[var_id];
-        utils::g_log << "  " << var.get_name() << ": " << value << endl;
+        out << "  " << var.get_name() << ": " << value << endl;
     }
 }
 
-void dump_task(const AbstractTaskTuple& task)
+void dump_task(const AbstractTaskTuple& task, std::ostream& out)
 {
     const auto& [variables, axioms, operators, goals, init_values, cost_function] =
         task;
@@ -173,25 +182,25 @@ void dump_task(const AbstractTaskTuple& task)
             max(max_action_cost, cost_function.get_operator_cost(op.get_id()));
     }
 
-    utils::g_log << "Min action cost: " << min_action_cost << endl;
-    utils::g_log << "Max action cost: " << max_action_cost << endl;
+    out << "Min action cost: " << min_action_cost << endl;
+    out << "Max action cost: " << max_action_cost << endl;
 
-    utils::g_log << "Variables (" << variables.size() << "):" << endl;
+    out << "Variables (" << variables.size() << "):" << endl;
     for (VariableProxy var : variables) {
-        utils::g_log << "  " << var.get_name() << " (range "
-                     << var.get_domain_size() << ")" << endl;
+        out << "  " << var.get_name() << " (range " << var.get_domain_size()
+            << ")" << endl;
         for (int val = 0; val < var.get_domain_size(); ++val) {
-            utils::g_log << "    " << val << ": "
-                         << var.get_fact(val).get_name() << endl;
+            out << "    " << val << ": " << var.get_fact(val).get_name()
+                << endl;
         }
     }
 
-    State initial_state = init_values.get_initial_state();
-    utils::g_log << "Initial state (PDDL):" << endl;
-    dump_pddl(variables, initial_state);
-    utils::g_log << "Initial state (FDR):" << endl;
-    dump_fdr(variables, initial_state);
-    dump_goals(variables, goals);
+    const State initial_state = init_values.get_initial_state();
+    out << "Initial state (PDDL):" << endl;
+    dump_pddl(variables, initial_state, out);
+    out << "Initial state (FDR):" << endl;
+    dump_fdr(variables, initial_state, out);
+    dump_goals(variables, goals, out);
 }
 
 PerComponentInformation<int_packer::IntPacker, VariableSpace>

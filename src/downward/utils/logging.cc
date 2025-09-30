@@ -20,8 +20,6 @@ namespace downward::utils {
 
 static shared_ptr<Log> global_log = make_shared<Log>(Verbosity::NORMAL);
 
-LogProxy g_log(global_log);
-
 LogProxy get_log_for_verbosity(const Verbosity& verbosity)
 {
     if (verbosity == Verbosity::NORMAL) { return LogProxy(global_log); }
@@ -96,7 +94,7 @@ void Context::error(const string& message) const
 
 void Context::warn(const string& message) const
 {
-    utils::g_log << str() << endl << endl << message;
+    std::cerr << str() << endl << endl << message;
 }
 
 TraceBlock::TraceBlock(Context& context, const string& block_name)

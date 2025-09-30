@@ -128,13 +128,23 @@ std::vector<FactPair> get_fact_pairs(const FactPairCollection& facts)
 
 extern void print_variable_statistics(
     const VariableSpace& variables,
-    const int_packer::IntPacker& state_packer);
+    const int_packer::IntPacker& state_packer,
+    std::ostream& out);
 
-extern void dump_pddl(const VariableSpace& variables, const State& state);
-extern void dump_fdr(const VariableSpace& variables, const State& state);
+extern void dump_pddl(
+    const VariableSpace& variables,
+    const State& state,
+    std::ostream& out);
+
 extern void
-dump_goals(const VariableSpace& variables, const GoalFactList& goals);
-extern void dump_task(const AbstractTaskTuple& task);
+dump_fdr(const VariableSpace& variables, const State& state, std::ostream& out);
+
+extern void dump_goals(
+    const VariableSpace& variables,
+    const GoalFactList& goals,
+    std::ostream& out);
+
+extern void dump_task(const AbstractTaskTuple& task, std::ostream& out);
 
 extern PerComponentInformation<int_packer::IntPacker, VariableSpace>
     g_state_packers;
