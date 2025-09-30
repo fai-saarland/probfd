@@ -49,11 +49,11 @@ void EquivalenceRelation::refine(const vector<int>& block)
     vector<BlockListIter> modified_blocks;
 
     for (int x : block) {
-        typename ElementPositionMap::iterator it_pos =
-            element_positions.find(x);
+        auto it_pos = element_positions.find(x);
         if (it_pos == element_positions.end()) {
-            ABORT("Element from given block not contained in equivalence "
-                  "relation.");
+            throw utils::CriticalError(
+                "Element from given block not contained in equivalence "
+                "relation.");
         }
 
         // Look up the block B containing x.
@@ -86,4 +86,4 @@ void EquivalenceRelation::refine(const vector<int>& block)
         }
     }
 }
-} // namespace equivalence_relation
+} // namespace downward::equivalence_relation

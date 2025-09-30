@@ -452,10 +452,10 @@ std::any BoolLiteralNode::construct(ConstructContext& context) const
     istringstream stream(value);
     bool x;
     if ((stream >> boolalpha >> x).fail()) {
-        ABORT(
-            "Could not parse bool constant '" + value +
-            "'"
-            " (this should have been caught before constructing this node).");
+        throw utils::CriticalError(
+            "Could not parse bool constant '{}'"
+            " (this should have been caught before constructing this node).",
+            value);
     }
     return x;
 }
@@ -482,7 +482,7 @@ std::any StringLiteralNode::construct(ConstructContext& context) const
         context,
         "Constructing string value from '" + value + "'");
     if (!(value.starts_with('"') && value.ends_with('"'))) {
-        ABORT(
+        throw utils::CriticalError(
             "String literal value is not enclosed in quotation marks"
             " (this should have been caught before constructing this node).");
     }
@@ -533,10 +533,10 @@ std::any IntLiteralNode::construct(ConstructContext& context) const
         context,
         "Constructing int value from '" + value + "'");
     if (value.empty()) {
-        ABORT(
-            "Empty value in int constant '" + value +
-            "'"
-            " (this should have been caught before constructing this node).");
+        throw utils::CriticalError(
+            "Empty value in int constant '{}'"
+            " (this should have been caught before constructing this node).",
+            value);
     } else if (value == "infinity") {
         return numeric_limits<int>::max();
     }
@@ -553,11 +553,11 @@ std::any IntLiteralNode::construct(ConstructContext& context) const
         } else if (suffix == 'g') {
             factor = 1000000000;
         } else {
-            ABORT(
-                "Invalid suffix in int constant '" + value +
-                "'"
+            throw utils::CriticalError(
+                "Invalid suffix in int constant '{}'"
                 " (this should have been caught before constructing this "
-                "node).");
+                "node).",
+                value);
         }
         prefix.pop_back();
     }
@@ -566,10 +566,10 @@ std::any IntLiteralNode::construct(ConstructContext& context) const
     int x;
     stream >> noskipws >> x;
     if (stream.fail() || !stream.eof()) {
-        ABORT(
-            "Could not parse int constant '" + value +
-            "'"
-            " (this should have been caught before constructing this node).");
+        throw utils::CriticalError(
+            "Could not parse int constant '{}'"
+            " (this should have been caught before constructing this node).",
+            value);
     }
 
     int min_int = numeric_limits<int>::min();
@@ -610,11 +610,11 @@ std::any FloatLiteralNode::construct(ConstructContext& context) const
         double x;
         stream >> noskipws >> x;
         if (stream.fail() || !stream.eof()) {
-            ABORT(
-                "Could not parse double constant '" + value +
-                "'"
+            throw utils::CriticalError(
+                "Could not parse double constant '{}"
                 " (this should have been caught before constructing this "
-                "node).");
+                "node).",
+                value);
         }
         return x;
     }
@@ -748,12 +748,13 @@ std::any CheckBoundsNode::construct(ConstructContext& context) const
         utils::TraceBlock block(context, "Checking bounds");
         const type_info& type = v.type();
         if (min.type() != type || max.type() != type) {
-            ABORT(
-                "Types of bounds (" + string(min.type().name()) + ", " +
-                max.type().name() + ") do not match type of value (" +
-                type.name() + ")" +
+            throw utils::CriticalError(
+                "Types of bounds ({}, {}) do not match type of value ({})"
                 " (this should have been caught before constructing this "
-                "node).");
+                "node).",
+                min.type().name(),
+                max.type().name(),
+                type.name());
         }
 
         bool bounds_satisfied = true;
@@ -762,7 +763,7 @@ std::any CheckBoundsNode::construct(ConstructContext& context) const
         } else if (type == typeid(double)) {
             bounds_satisfied = satisfies_bounds<double>(v, min, max);
         } else {
-            ABORT(
+            throw utils::CriticalError(
                 "Bounds are only supported for arguments of type int or "
                 "double.");
         }

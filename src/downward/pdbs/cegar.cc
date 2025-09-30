@@ -365,7 +365,7 @@ bool CEGAR::get_flaws_for_pattern(
     PatternInfo& pattern_info = *pattern_collection[collection_index];
     if (pattern_info.is_unsolvable()) {
         log << "task is unsolvable." << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_UNSOLVABLE);
+        return true;
     }
 
     vector<int> current_state = concrete_init.get_unpacked_values();

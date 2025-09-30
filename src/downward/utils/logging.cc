@@ -24,9 +24,7 @@ LogProxy g_log(global_log);
 
 LogProxy get_log_for_verbosity(const Verbosity& verbosity)
 {
-    if (verbosity == Verbosity::NORMAL) {
-        return LogProxy(global_log);
-    }
+    if (verbosity == Verbosity::NORMAL) { return LogProxy(global_log); }
     return LogProxy(make_shared<Log>(verbosity));
 }
 
@@ -48,11 +46,12 @@ Context::Context(const Context& context)
 {
 }
 
-Context::~Context()
+Context::~Context() noexcept(false)
 {
     if (block_stack.size() > initial_stack_size) {
         cerr << str() << endl;
-        ABORT("A context was destructed with an non-empty stack.");
+        throw utils::CriticalError(
+            "A context was destructed with an non-empty stack.");
     }
 }
 
@@ -70,10 +69,10 @@ void Context::leave_block(const string& block_name)
 {
     if (block_stack.empty() || block_stack.back() != block_name) {
         cerr << str() << endl;
-        ABORT(
-            "Tried to pop a block '" + block_name +
-            "' from an empty stack or the block to remove "
-            "is not on the top of the stack.");
+        throw utils::CriticalError(
+            "Tried to pop a block '{}' from an empty stack or the block to "
+            "remove is not on the top of the stack.",
+            block_name);
     }
     block_stack.pop_back();
 }
@@ -112,21 +111,4 @@ TraceBlock::~TraceBlock()
     context.leave_block(block_name);
 }
 
-MemoryContext _memory_context;
-
-string MemoryContext::decorate_block_name(const string& msg) const
-{
-    ostringstream decorated_msg;
-    decorated_msg << "[TRACE] " << setw(TIME_FIELD_WIDTH) << g_timer << " "
-                  << setw(MEM_FIELD_WIDTH) << get_peak_memory_in_kb() << " KB";
-    for (size_t i = 0; i < block_stack.size(); ++i) decorated_msg << INDENT;
-    decorated_msg << ' ' << msg << endl;
-    return decorated_msg.str();
-}
-
-void trace_memory(const string& msg)
-{
-    g_log << _memory_context.decorate_block_name(msg);
-}
-
-} // namespace utils
+} // namespace downward::utils

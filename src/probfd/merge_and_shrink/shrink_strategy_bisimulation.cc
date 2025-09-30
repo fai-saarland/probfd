@@ -271,7 +271,7 @@ void ShrinkStrategyBisimulation::dump_strategy_specific_options(
         } else if (at_limit == AtLimit::USE_UP) {
             log.print("use up limit");
         } else {
-            ABORT("Unknown setting for at_limit.");
+            throw utils::CriticalError("Unknown setting for at_limit.");
         }
         log.println();
     }

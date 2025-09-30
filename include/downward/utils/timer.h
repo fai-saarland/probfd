@@ -28,8 +28,6 @@ public:
 
 std::ostream& operator<<(std::ostream& os, const Timer& timer);
 
-extern Timer g_search_timer;
-extern Timer g_timer;
 } // namespace downward::utils
 
 #endif

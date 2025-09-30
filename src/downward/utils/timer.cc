@@ -84,6 +84,4 @@ ostream& operator<<(ostream& os, const Timer& timer)
     return os;
 }
 
-Timer g_search_timer(false);
-Timer g_timer;
 } // namespace downward::utils
