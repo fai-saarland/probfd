@@ -15,6 +15,17 @@
 using namespace std;
 
 namespace downward::cli::parser {
+
+class ConstructContext : public utils::Context {
+    std::unordered_map<std::string, std::any> variables;
+
+public:
+    void set_variable(const std::string& name, const std::any& value);
+    void remove_variable(const std::string& name);
+    bool has_variable(const std::string& name) const;
+    std::any get_variable(const std::string& name) const;
+};
+
 void ConstructContext::set_variable(const string& name, const std::any& value)
 {
     variables[name] = value;
@@ -731,80 +742,6 @@ void CheckBoundsNode::dump(string indent) const
     value->dump("| " + indent);
     min_value->dump("| " + indent);
     max_value->dump("| " + indent);
-}
-
-// We are keeping all copy functionality together because it should be removed
-// soon.
-FunctionArgument::FunctionArgument(const FunctionArgument& other)
-    : value(other.value->clone_unique())
-    , is_default(other.is_default)
-{
-}
-
-DecoratedLetNode::DecoratedLetNode(const DecoratedLetNode& other)
-    : nested_value(other.nested_value->clone_unique())
-{
-    for (const auto& [name, nested_value, _] :
-         other.decorated_variable_definitions) {
-        decorated_variable_definitions.emplace_back(
-            name,
-            nested_value->clone_unique());
-    }
-}
-
-DecoratedFunctionCallNode::DecoratedFunctionCallNode(
-    const DecoratedFunctionCallNode& other)
-    : feature(other.feature)
-    , arguments(other.arguments)
-    , unparsed_config(other.unparsed_config)
-{
-}
-
-DecoratedListNode::DecoratedListNode(const DecoratedListNode& other)
-{
-    elements.reserve(other.elements.size());
-    for (const DecoratedASTNodePtr& element : other.elements) {
-        elements.push_back(element->clone_unique());
-    }
-}
-
-BoolLiteralNode::BoolLiteralNode(const BoolLiteralNode& other)
-    : value(other.value)
-{
-}
-
-StringLiteralNode::StringLiteralNode(const StringLiteralNode& other)
-    : value(other.value)
-{
-}
-
-IntLiteralNode::IntLiteralNode(const IntLiteralNode& other)
-    : value(other.value)
-{
-}
-
-FloatLiteralNode::FloatLiteralNode(const FloatLiteralNode& other)
-    : value(other.value)
-{
-}
-
-SymbolNode::SymbolNode(const SymbolNode& other)
-    : value(other.value)
-{
-}
-
-ConvertNode::ConvertNode(const ConvertNode& other)
-    : value(other.value->clone_unique())
-    , from_type(other.from_type)
-    , to_type(other.to_type)
-{
-}
-
-CheckBoundsNode::CheckBoundsNode(const CheckBoundsNode& other)
-    : value(other.value->clone_unique())
-    , min_value(other.min_value->clone_unique())
-    , max_value(other.max_value->clone_unique())
-{
 }
 
 } // namespace downward::cli::parser
