@@ -12,7 +12,7 @@ class Options;
 
 namespace downward::utils {
 class Context;
-} // namespace utils
+} // namespace downward::utils
 
 namespace probfd::merge_and_shrink {
 class MergeStrategyFactory;
@@ -46,7 +46,9 @@ get_transition_system_size_limit_arguments_from_options(
     const downward::cli::plugins::Options& opts);
 
 extern void handle_shrink_limit_options_defaults(
-    downward::cli::plugins::Options& opts,
+    int& max_states,
+    int& max_states_before_merge,
+    int& threshold_before_merge,
     const downward::utils::Context& context);
 
 } // namespace probfd::cli::merge_and_shrink

@@ -236,12 +236,22 @@ public:
     shared_ptr<TaskDependentFactory<Evaluator>>
     create_component(const Options& opts, const Context& context) const override
     {
-        Options options_copy(opts);
-        handle_shrink_limit_options_defaults(options_copy, context);
+        auto mns_args =
+            get_merge_and_shrink_algorithm_arguments_from_options(opts);
+
+        int& max_states = std::get<5>(mns_args);
+        int& max_states_before_merge = std::get<6>(mns_args);
+        int& threshold = std::get<7>(mns_args);
+
+        handle_shrink_limit_options_defaults(
+            max_states,
+            max_states_before_merge,
+            threshold,
+            context);
+
         return make_shared_from_arg_tuples<MergeAndShrinkHeuristicFactory>(
-            get_heuristic_arguments_from_options(options_copy),
-            get_merge_and_shrink_algorithm_arguments_from_options(
-                options_copy));
+            get_heuristic_arguments_from_options(opts),
+            mns_args);
     }
 };
 } // namespace

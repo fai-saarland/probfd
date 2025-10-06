@@ -181,15 +181,25 @@ public:
     }
 
     shared_ptr<TaskHeuristicFactory>
-    create_component(const Options& options, const utils::Context& context)
+    create_component(const Options& opts, const utils::Context& context)
         const override
     {
-        Options options_copy(options);
-        handle_shrink_limit_options_defaults(options_copy, context);
+        auto mns_args =
+            get_merge_and_shrink_algorithm_arguments_from_options(opts);
+
+        int& max_states = std::get<4>(mns_args);
+        int& max_states_before_merge = std::get<5>(mns_args);
+        int& threshold = std::get<6>(mns_args);
+
+        handle_shrink_limit_options_defaults(
+            max_states,
+            max_states_before_merge,
+            threshold,
+            context);
 
         return make_shared_from_arg_tuples<MergeAndShrinkHeuristicFactory>(
-            get_merge_and_shrink_algorithm_arguments_from_options(options_copy),
-            get_task_dependent_heuristic_arguments_from_options(options_copy));
+            mns_args,
+            get_task_dependent_heuristic_arguments_from_options(opts));
     }
 };
 } // namespace

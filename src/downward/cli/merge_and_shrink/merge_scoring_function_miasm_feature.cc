@@ -117,13 +117,23 @@ public:
     virtual shared_ptr<MergeScoringFunction>
     create_component(const Options& opts, const Context& context) const override
     {
-        Options options_copy(opts);
-        handle_shrink_limit_options_defaults(options_copy, context);
+        auto size_limit_args =
+            get_transition_system_size_limit_arguments_from_options(opts);
+
+        int& max_states = std::get<0>(size_limit_args);
+        int& max_states_before_merge = std::get<1>(size_limit_args);
+        int& threshold = std::get<2>(size_limit_args);
+
+        handle_shrink_limit_options_defaults(
+            max_states,
+            max_states_before_merge,
+            threshold,
+            context);
+
         return make_shared_from_arg_tuples<MergeScoringFunctionMIASM>(
-            options_copy.get<shared_ptr<ShrinkStrategy>>("shrink_strategy"),
-            get_transition_system_size_limit_arguments_from_options(
-                options_copy),
-            options_copy.get<bool>("use_caching"));
+            opts.get<shared_ptr<ShrinkStrategy>>("shrink_strategy"),
+            size_limit_args,
+            opts.get<bool>("use_caching"));
     }
 };
 } // namespace
