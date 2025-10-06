@@ -118,7 +118,7 @@ bool SingleCEGAR::get_flaws(
         policy->get_decisions(init_state_rank).empty()) {
         log.println("SingleCEGAR: Problem unsolvable");
         log.println("SingleCEGAR: Unsolvable pattern: {}", pdb.get_pattern());
-        return true;
+        return false;
     }
 
     const auto& variables = get_variables(task);
