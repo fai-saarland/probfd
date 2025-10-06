@@ -33,13 +33,13 @@ public:
         const auto filename = opts.get<std::string>("file");
 
         if (!std::filesystem::exists(filename)) {
-            context.error("The mutex file " + filename + " does not exist!");
+            context.error("The mutex file {} does not exist!", filename);
         }
 
         return make_shared_from_arg_tuples<FromFileMutexFactory>(filename);
     }
 };
-}
+} // namespace
 
 namespace downward::cli::mutexes {
 
@@ -48,4 +48,4 @@ void add_from_file_mutex_factory_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<FromFileMutexFactoryFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::mutexes

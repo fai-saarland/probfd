@@ -89,8 +89,7 @@ public:
         add_list_option<shared_ptr<SearchAlgorithm>>(
             "algorithm_configs",
             "list of search algorithms for each phase",
-            "",
-            true);
+            "");
         add_option<bool>(
             "pass_bound",
             "use the bound of iterated search as a bound for its component "

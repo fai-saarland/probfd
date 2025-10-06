@@ -27,58 +27,13 @@ void ConstructContext::remove_variable(const string& name)
 
 bool ConstructContext::has_variable(const string& name) const
 {
-    return variables.count(name);
+    return variables.contains(name);
 }
 
 std::any ConstructContext::get_variable(const string& name) const
 {
     std::any variable = variables.at(name);
     return variable;
-}
-
-LazyValue::LazyValue(
-    const DecoratedASTNode& node,
-    const ConstructContext& context)
-    : context(context)
-    , node(node.clone())
-{
-}
-
-LazyValue::LazyValue(const LazyValue& other)
-    : context(other.context)
-    , node(other.node->clone())
-{
-}
-
-std::any LazyValue::construct_any() const
-{
-    ConstructContext clean_context = context;
-    utils::TraceBlock block(clean_context, "Delayed construction of LazyValue");
-    return node->construct(clean_context);
-}
-
-vector<LazyValue> LazyValue::construct_lazy_list()
-{
-    utils::TraceBlock block(context, "Delayed construction of a list");
-    const DecoratedListNode* list_node =
-        dynamic_cast<const DecoratedListNode*>(node.get());
-    if (!list_node) {
-        context.error(
-            "Delayed construction of a list failed because the parsed element "
-            "was no list.");
-    }
-
-    vector<LazyValue> elements;
-    elements.reserve(list_node->get_elements().size());
-    int elem = 1;
-    for (const DecoratedASTNodePtr& element : list_node->get_elements()) {
-        utils::TraceBlock(
-            context,
-            "Create LazyValue for " + to_string(elem) + ". list element");
-        elements.emplace_back(LazyValue(*element, context));
-        elem++;
-    }
-    return elements;
 }
 
 VariableDefinition::VariableDefinition(
@@ -125,11 +80,9 @@ std::any DecoratedASTNode::construct() const
 
 FunctionArgument::FunctionArgument(
     DecoratedASTNodePtr value,
-    bool is_default,
-    bool lazy_construction)
+    bool is_default)
     : value(move(value))
     , is_default(is_default)
-    , lazy_construction(lazy_construction)
 {
 }
 
@@ -151,11 +104,6 @@ bool FunctionArgument::is_default_argument() const
 void FunctionArgument::dump(const string& indent) const
 {
     value->dump("| " + indent);
-}
-
-bool FunctionArgument::is_lazily_constructed() const
-{
-    return lazy_construction;
 }
 
 DecoratedLetNode::DecoratedLetNode(
@@ -291,11 +239,7 @@ std::any DecoratedFunctionCallNode::construct(ConstructContext& context) const
     opts.set_unparsed_config(unparsed_config);
     for (const auto& [key, arg] : arguments) {
         utils::TraceBlock block(context, "Constructing argument '" + key + "'");
-        if (arg.is_lazily_constructed()) {
-            opts.set(key, LazyValue(arg.get_value(), context));
-        } else {
-            opts.set(key, arg.get_value().construct(context));
-        }
+        opts.set(key, arg.get_value().construct(context));
     }
     return feature->construct(opts, context);
 }
@@ -792,31 +736,20 @@ void CheckBoundsNode::dump(string indent) const
 // We are keeping all copy functionality together because it should be removed
 // soon.
 FunctionArgument::FunctionArgument(const FunctionArgument& other)
-    : value(other.value->clone())
+    : value(other.value->clone_unique())
     , is_default(other.is_default)
-    , lazy_construction(other.lazy_construction)
 {
 }
 
 DecoratedLetNode::DecoratedLetNode(const DecoratedLetNode& other)
-    : nested_value(other.nested_value->clone())
+    : nested_value(other.nested_value->clone_unique())
 {
     for (const auto& [name, nested_value, _] :
          other.decorated_variable_definitions) {
         decorated_variable_definitions.emplace_back(
             name,
-            nested_value->clone());
+            nested_value->clone_unique());
     }
-}
-
-shared_ptr<DecoratedASTNode> DecoratedLetNode::clone_shared() const
-{
-    return make_shared<DecoratedLetNode>(*this);
-}
-
-unique_ptr<DecoratedASTNode> DecoratedLetNode::clone() const
-{
-    return std::make_unique<DecoratedLetNode>(*this);
 }
 
 DecoratedFunctionCallNode::DecoratedFunctionCallNode(
@@ -827,42 +760,12 @@ DecoratedFunctionCallNode::DecoratedFunctionCallNode(
 {
 }
 
-shared_ptr<DecoratedASTNode> DecoratedFunctionCallNode::clone_shared() const
-{
-    return make_shared<DecoratedFunctionCallNode>(*this);
-}
-
-unique_ptr<DecoratedASTNode> DecoratedFunctionCallNode::clone() const
-{
-    return std::make_unique<DecoratedFunctionCallNode>(*this);
-}
-
 DecoratedListNode::DecoratedListNode(const DecoratedListNode& other)
 {
     elements.reserve(other.elements.size());
     for (const DecoratedASTNodePtr& element : other.elements) {
-        elements.push_back(element->clone());
+        elements.push_back(element->clone_unique());
     }
-}
-
-unique_ptr<DecoratedASTNode> DecoratedListNode::clone() const
-{
-    return std::make_unique<DecoratedListNode>(*this);
-}
-
-shared_ptr<DecoratedASTNode> DecoratedListNode::clone_shared() const
-{
-    return make_shared<DecoratedListNode>(*this);
-}
-
-unique_ptr<DecoratedASTNode> VariableNode::clone() const
-{
-    return std::make_unique<VariableNode>(*definition);
-}
-
-shared_ptr<DecoratedASTNode> VariableNode::clone_shared() const
-{
-    return make_shared<VariableNode>(*this);
 }
 
 BoolLiteralNode::BoolLiteralNode(const BoolLiteralNode& other)
@@ -870,29 +773,9 @@ BoolLiteralNode::BoolLiteralNode(const BoolLiteralNode& other)
 {
 }
 
-unique_ptr<DecoratedASTNode> BoolLiteralNode::clone() const
-{
-    return std::make_unique<BoolLiteralNode>(*this);
-}
-
-shared_ptr<DecoratedASTNode> BoolLiteralNode::clone_shared() const
-{
-    return make_shared<BoolLiteralNode>(*this);
-}
-
 StringLiteralNode::StringLiteralNode(const StringLiteralNode& other)
     : value(other.value)
 {
-}
-
-unique_ptr<DecoratedASTNode> StringLiteralNode::clone() const
-{
-    return std::make_unique<StringLiteralNode>(*this);
-}
-
-shared_ptr<DecoratedASTNode> StringLiteralNode::clone_shared() const
-{
-    return make_shared<StringLiteralNode>(*this);
 }
 
 IntLiteralNode::IntLiteralNode(const IntLiteralNode& other)
@@ -900,29 +783,9 @@ IntLiteralNode::IntLiteralNode(const IntLiteralNode& other)
 {
 }
 
-unique_ptr<DecoratedASTNode> IntLiteralNode::clone() const
-{
-    return std::make_unique<IntLiteralNode>(*this);
-}
-
-shared_ptr<DecoratedASTNode> IntLiteralNode::clone_shared() const
-{
-    return make_shared<IntLiteralNode>(*this);
-}
-
 FloatLiteralNode::FloatLiteralNode(const FloatLiteralNode& other)
     : value(other.value)
 {
-}
-
-unique_ptr<DecoratedASTNode> FloatLiteralNode::clone() const
-{
-    return std::make_unique<FloatLiteralNode>(*this);
-}
-
-shared_ptr<DecoratedASTNode> FloatLiteralNode::clone_shared() const
-{
-    return make_shared<FloatLiteralNode>(*this);
 }
 
 SymbolNode::SymbolNode(const SymbolNode& other)
@@ -930,47 +793,18 @@ SymbolNode::SymbolNode(const SymbolNode& other)
 {
 }
 
-unique_ptr<DecoratedASTNode> SymbolNode::clone() const
-{
-    return std::make_unique<SymbolNode>(*this);
-}
-
-shared_ptr<DecoratedASTNode> SymbolNode::clone_shared() const
-{
-    return make_shared<SymbolNode>(*this);
-}
-
 ConvertNode::ConvertNode(const ConvertNode& other)
-    : value(other.value->clone())
+    : value(other.value->clone_unique())
     , from_type(other.from_type)
     , to_type(other.to_type)
 {
 }
 
-unique_ptr<DecoratedASTNode> ConvertNode::clone() const
-{
-    return std::make_unique<ConvertNode>(*this);
-}
-
-shared_ptr<DecoratedASTNode> ConvertNode::clone_shared() const
-{
-    return make_shared<ConvertNode>(*this);
-}
-
 CheckBoundsNode::CheckBoundsNode(const CheckBoundsNode& other)
-    : value(other.value->clone())
-    , min_value(other.min_value->clone())
-    , max_value(other.max_value->clone())
+    : value(other.value->clone_unique())
+    , min_value(other.min_value->clone_unique())
+    , max_value(other.max_value->clone_unique())
 {
 }
 
-unique_ptr<DecoratedASTNode> CheckBoundsNode::clone() const
-{
-    return std::make_unique<CheckBoundsNode>(*this);
-}
-
-shared_ptr<DecoratedASTNode> CheckBoundsNode::clone_shared() const
-{
-    return make_shared<CheckBoundsNode>(*this);
-}
 } // namespace downward::cli::parser
