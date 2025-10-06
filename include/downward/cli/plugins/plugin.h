@@ -45,15 +45,13 @@ public:
         const std::string& key,
         const std::string& help = "",
         const std::string& default_value = "",
-        const Bounds& bounds = Bounds::unlimited(),
-        bool lazy_construction = false);
+        const Bounds& bounds = Bounds::unlimited());
 
     template <typename T>
     void add_list_option(
         const std::string& key,
         const std::string& help = "",
-        const std::string& default_value = "",
-        bool lazy_construction = false);
+        const std::string& default_value = "");
 
     void document_subcategory(const std::string& subcategory);
     void document_title(const std::string& title);
@@ -235,8 +233,7 @@ void Feature::add_option(
     const std::string& key,
     const std::string& help,
     const std::string& default_value,
-    const Bounds& bounds,
-    bool lazy_construction)
+    const Bounds& bounds)
 {
     using U = std::conditional_t<
         std::is_same_v<T, std::chrono::duration<double>>,
@@ -248,16 +245,14 @@ void Feature::add_option(
         help,
         TypeRegistry::instance()->get_type<U>(),
         default_value,
-        bounds,
-        lazy_construction);
+        bounds);
 }
 
 template <typename T>
 void Feature::add_list_option(
     const std::string& key,
     const std::string& help,
-    const std::string& default_value,
-    bool lazy_construction)
+    const std::string& default_value)
 {
     using U = std::conditional_t<
         std::is_same_v<T, std::chrono::duration<double>>,
@@ -268,8 +263,7 @@ void Feature::add_list_option(
         key,
         help,
         default_value,
-        Bounds::unlimited(),
-        lazy_construction);
+        Bounds::unlimited());
 }
 } // namespace downward::cli::plugins
 

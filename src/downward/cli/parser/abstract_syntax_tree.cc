@@ -292,8 +292,7 @@ bool FunctionCallNode::collect_argument(
         std::forward_as_tuple(key),
         std::forward_as_tuple(
             move(decorated_arg),
-            is_default,
-            arg_info.lazy_construction));
+            is_default));
 
     return true;
 }
