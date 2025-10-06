@@ -125,13 +125,11 @@ get_transition_system_size_limit_arguments_from_options(const Options& opts)
 }
 
 void handle_shrink_limit_options_defaults(
-    Options& opts,
+    int& max_states,
+    int& max_states_before_merge,
+    int& threshold_before_merge,
     const utils::Context& context)
 {
-    int max_states = opts.get<int>("max_states");
-    int max_states_before_merge = opts.get<int>("max_states_before_merge");
-    int threshold = opts.get<int>("threshold_before_merge");
-
     // If none of the two state limits has been set: set default limit.
     if (max_states == -1 && max_states_before_merge == -1) {
         max_states = 50000;
@@ -164,20 +162,14 @@ void handle_shrink_limit_options_defaults(
         context.error("Transition system size before merge must be at least 1");
     }
 
-    if (threshold == -1) {
-        threshold = max_states;
-    }
-    if (threshold < 1) {
+    if (threshold_before_merge == -1) { threshold_before_merge = max_states; }
+    if (threshold_before_merge < 1) {
         context.error("Threshold must be at least 1");
     }
-    if (threshold > max_states) {
+    if (threshold_before_merge > max_states) {
         context.warn("warning: threshold exceeds max_states, correcting");
-        threshold = max_states;
+        threshold_before_merge = max_states;
     }
-
-    opts.set<int>("max_states", max_states);
-    opts.set<int>("max_states_before_merge", max_states_before_merge);
-    opts.set<int>("threshold_before_merge", threshold);
 }
 
 } // namespace downward::cli::merge_and_shrink

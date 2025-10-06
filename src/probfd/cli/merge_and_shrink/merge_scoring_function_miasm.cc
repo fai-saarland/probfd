@@ -114,15 +114,23 @@ public:
     create_component(const Options& options, const utils::Context& context)
         const override
     {
-        Options options_copy(options);
-        handle_shrink_limit_options_defaults(options_copy, context);
+        auto size_args =
+            get_transition_system_size_limit_arguments_from_options(options);
 
-        return make_shared<MergeScoringFunctionMIASM>(
-            options_copy.get<bool>("use_caching"),
-            options_copy.get<shared_ptr<ShrinkStrategy>>("shrink_strategy"),
-            options_copy.get<int>("max_states"),
-            options_copy.get<int>("max_states_before_merge"),
-            options_copy.get<int>("threshold_before_merge"));
+        int& max_states = std::get<0>(size_args);
+        int& max_states_before_merge = std::get<1>(size_args);
+        int& threshold = std::get<2>(size_args);
+
+        handle_shrink_limit_options_defaults(
+            max_states,
+            max_states_before_merge,
+            threshold,
+            context);
+
+        return make_shared_from_arg_tuples<MergeScoringFunctionMIASM>(
+            options.get<bool>("use_caching"),
+            options.get<shared_ptr<ShrinkStrategy>>("shrink_strategy"),
+            size_args);
     }
 };
 } // namespace
