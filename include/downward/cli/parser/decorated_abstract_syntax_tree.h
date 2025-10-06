@@ -51,7 +51,7 @@ public:
     virtual void
     print(std::ostream& out, std::size_t indent, bool print_default_args)
         const = 0;
-    virtual void dump(std::string indent = "+") const = 0;
+    virtual void dump(std::ostream& out, std::string indent = "+") const = 0;
 };
 
 class FunctionArgument {
@@ -64,7 +64,7 @@ public:
     DecoratedASTNode& get_value();
     const DecoratedASTNode& get_value() const;
     bool is_default_argument() const;
-    void dump(const std::string& indent) const;
+    void dump(std::ostream& out, const std::string& indent) const;
 };
 
 class DecoratedLetNode : public DecoratedASTNode {
@@ -83,7 +83,7 @@ public:
     std::any construct(ConstructContext& context) const override;
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
-    void dump(std::string indent) const override;
+    void dump(std::ostream& out, std::string indent) const override;
 };
 
 class DecoratedFunctionCallNode : public DecoratedASTNode {
@@ -102,7 +102,7 @@ public:
     std::any construct(ConstructContext& context) const override;
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
-    void dump(std::string indent) const override;
+    void dump(std::ostream& out, std::string indent) const override;
 };
 
 class DecoratedListNode : public DecoratedASTNode {
@@ -116,7 +116,7 @@ public:
     std::any construct(ConstructContext& context) const override;
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
-    void dump(std::string indent) const override;
+    void dump(std::ostream& out, std::string indent) const override;
 
     const std::vector<DecoratedASTNodePtr>& get_elements() const
     {
@@ -137,7 +137,7 @@ public:
     std::any construct(ConstructContext& context) const override;
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
-    void dump(std::string indent) const override;
+    void dump(std::ostream& out, std::string indent) const override;
 };
 
 class BoolLiteralNode : public DecoratedASTNode {
@@ -149,7 +149,7 @@ public:
     std::any construct(ConstructContext& context) const override;
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
-    void dump(std::string indent) const override;
+    void dump(std::ostream& out, std::string indent) const override;
 };
 
 class StringLiteralNode : public DecoratedASTNode {
@@ -161,7 +161,7 @@ public:
     std::any construct(ConstructContext& context) const override;
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
-    void dump(std::string indent) const override;
+    void dump(std::ostream& out, std::string indent) const override;
 };
 
 class IntLiteralNode : public DecoratedASTNode {
@@ -173,7 +173,7 @@ public:
     std::any construct(ConstructContext& context) const override;
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
-    void dump(std::string indent) const override;
+    void dump(std::ostream& out, std::string indent) const override;
 };
 
 class FloatLiteralNode : public DecoratedASTNode {
@@ -185,7 +185,7 @@ public:
     std::any construct(ConstructContext& context) const override;
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
-    void dump(std::string indent) const override;
+    void dump(std::ostream& out, std::string indent) const override;
 };
 
 class SymbolNode : public DecoratedASTNode {
@@ -197,7 +197,7 @@ public:
     std::any construct(ConstructContext& context) const override;
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
-    void dump(std::string indent) const override;
+    void dump(std::ostream& out, std::string indent) const override;
 };
 
 class ConvertNode : public DecoratedASTNode {
@@ -216,7 +216,7 @@ public:
     std::any construct(ConstructContext& context) const override;
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
-    void dump(std::string indent) const override;
+    void dump(std::ostream& out, std::string indent) const override;
 };
 
 class CheckBoundsNode : public DecoratedASTNode {
@@ -233,7 +233,7 @@ public:
     std::any construct(ConstructContext& context) const override;
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
-    void dump(std::string indent) const override;
+    void dump(std::ostream& out, std::string indent) const override;
 };
 } // namespace downward::cli::parser
 #endif
