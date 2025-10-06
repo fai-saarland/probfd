@@ -64,12 +64,12 @@ struct OptionsAnyCaster<std::vector<T>> {
         if (operand.type() == typeid(std::vector<T>)) {
             return std::any_cast<std::vector<T>>(operand);
         }
-        // std::any_cast returns a copy here, not a reference.
-        const std::vector<std::any> any_elements =
-            std::any_cast<std::vector<std::any>>(operand);
+
+        const std::vector<std::any>* any_elements =
+            std::any_cast<std::vector<std::any>>(&operand);
         std::vector<T> result;
-        result.reserve(any_elements.size());
-        for (const std::any& element : any_elements) {
+        result.reserve(any_elements->size());
+        for (const std::any& element : *any_elements) {
             result.push_back(OptionsAnyCaster<T>::cast(element));
         }
         return result;
