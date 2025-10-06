@@ -44,7 +44,7 @@ unique_ptr<PotentialFunction> create_potential_function(
         break;
     }
     case OptimizeFor::ALL_STATES: optimizer.optimize_for_all_states(); break;
-    default: ABORT("Unkown optimization function");
+    default: throw utils::CriticalError("Unknown optimization function");
     }
     return optimizer.get_potential_function();
 }

@@ -84,19 +84,18 @@ void LandmarkCostPartitioningHeuristic::check_unsupported_features(
     const shared_ptr<LandmarkFactory>& lm_factory)
 {
     const auto& axioms = get_axioms(transformed_task);
-    const auto& operators =
-        get_operators(transformed_task);
+    const auto& operators = get_operators(transformed_task);
 
     if (task_properties::has_axioms(axioms)) {
-        cerr << "Cost partitioning does not support axioms." << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
+        throw utils::UnsupportedError(
+            "Cost partitioning does not support axioms.");
     }
 
     if (!lm_factory->supports_conditional_effects() &&
         task_properties::has_conditional_effects(operators)) {
-        cerr << "Conditional effects not supported by the landmark "
-             << "generation method." << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
+        throw utils::UnsupportedError(
+            "Conditional effects not supported by the landmark generation "
+            "method.");
     }
 }
 
@@ -105,10 +104,8 @@ void LandmarkCostPartitioningHeuristic::set_cost_partitioning_algorithm(
     lp::LPSolverType lpsolver,
     bool alm)
 {
-    const auto& operators =
-        get_operators(transformed_task);
-    const auto& cost_function =
-        get_cost_function(transformed_task);
+    const auto& operators = get_operators(transformed_task);
+    const auto& cost_function = get_cost_function(transformed_task);
 
     if (cost_partitioning == CostPartitioningMethod::OPTIMAL) {
         cost_partitioning_algorithm =
@@ -123,7 +120,7 @@ void LandmarkCostPartitioningHeuristic::set_cost_partitioning_algorithm(
                 *lm_graph,
                 alm);
     } else {
-        ABORT("Unknown cost partitioning method");
+        throw utils::CriticalError("Unknown cost partitioning method");
     }
 }
 

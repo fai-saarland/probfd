@@ -50,7 +50,7 @@ class DecoratedASTNode {
 public:
     virtual ~DecoratedASTNode() = default;
 
-    void prune_unused_definitions();
+    std::vector<VariableDefinition> prune_unused_definitions();
     std::any construct() const;
 
     virtual void prune_unused_definitions(std::vector<VariableDefinition>&) {}
@@ -58,7 +58,9 @@ public:
     virtual void remove_variable_usages() {}
 
     virtual std::any construct(ConstructContext& context) const = 0;
-    virtual void print(std::ostream& out, std::size_t indent, bool print_default_args) const = 0;
+    virtual void
+    print(std::ostream& out, std::size_t indent, bool print_default_args)
+        const = 0;
     virtual void dump(std::string indent = "+") const = 0;
 
     // TODO: This is here only for the iterated search. Once we switch to
@@ -128,7 +130,8 @@ public:
     void remove_variable_usages() override;
 
     std::any construct(ConstructContext& context) const override;
-    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args)
+        const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be
@@ -152,7 +155,8 @@ public:
     void remove_variable_usages() override;
 
     std::any construct(ConstructContext& context) const override;
-    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args)
+        const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be
@@ -171,7 +175,8 @@ public:
     void remove_variable_usages() override;
 
     std::any construct(ConstructContext& context) const override;
-    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args)
+        const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be
@@ -197,7 +202,8 @@ public:
     void remove_variable_usages() override;
 
     std::any construct(ConstructContext& context) const override;
-    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args)
+        const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be
@@ -213,7 +219,8 @@ public:
     explicit BoolLiteralNode(const std::string& value);
 
     std::any construct(ConstructContext& context) const override;
-    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args)
+        const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be
@@ -230,7 +237,8 @@ public:
     explicit StringLiteralNode(const std::string& value);
 
     std::any construct(ConstructContext& context) const override;
-    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args)
+        const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be
@@ -247,7 +255,8 @@ public:
     explicit IntLiteralNode(const std::string& value);
 
     std::any construct(ConstructContext& context) const override;
-    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args)
+        const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be
@@ -264,7 +273,8 @@ public:
     explicit FloatLiteralNode(const std::string& value);
 
     std::any construct(ConstructContext& context) const override;
-    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args)
+        const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be
@@ -281,7 +291,8 @@ public:
     explicit SymbolNode(const std::string& value);
 
     std::any construct(ConstructContext& context) const override;
-    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args)
+        const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be
@@ -305,7 +316,8 @@ public:
     void remove_variable_usages() override;
 
     std::any construct(ConstructContext& context) const override;
-    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args)
+        const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be
@@ -327,7 +339,8 @@ public:
         DecoratedASTNodePtr max_value);
 
     std::any construct(ConstructContext& context) const override;
-    void print(std::ostream& out, std::size_t indent, bool print_default_args) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args)
+        const override;
     void dump(std::string indent) const override;
 
     // TODO: once we get rid of lazy construction, this should no longer be

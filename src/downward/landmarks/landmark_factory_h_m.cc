@@ -731,8 +731,7 @@ void LandmarkFactoryHM::initialize(
     if (log.is_at_least_normal()) { log << "h^m landmarks m=" << m_ << endl; }
 
     if (task_properties::has_axioms(axioms)) {
-        cerr << "h^m landmarks don't support axioms" << endl;
-        utils::exit_with(ExitCode::SEARCH_UNSUPPORTED);
+        throw utils::UnsupportedError("h^m landmarks don't support axioms");
     }
     // Get all the m or less size subsets in the domain.
     vector<vector<FactPair>> msets;

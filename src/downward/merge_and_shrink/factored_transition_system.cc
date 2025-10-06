@@ -110,8 +110,9 @@ void FactoredTransitionSystem::assert_index_valid(int index) const
           distances[index]) &&
         !(!transition_systems[index] && !mas_representations[index] &&
           !distances[index])) {
-        cerr << "Factor at index is in an inconsistent state!" << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+        throw utils::CriticalError(
+            "Factor at index {} is in an inconsistent state!",
+            index);
     }
 }
 
@@ -132,9 +133,7 @@ bool FactoredTransitionSystem::is_component_valid(int index) const
 void FactoredTransitionSystem::assert_all_components_valid() const
 {
     for (size_t index = 0; index < transition_systems.size(); ++index) {
-        if (transition_systems[index]) {
-            assert(is_component_valid(index));
-        }
+        if (transition_systems[index]) { assert(is_component_valid(index)); }
     }
 }
 
@@ -201,11 +200,12 @@ int FactoredTransitionSystem::merge(
 {
     assert(is_component_valid(index1));
     assert(is_component_valid(index2));
-    transition_systems.push_back(TransitionSystem::merge(
-        *labels,
-        *transition_systems[index1],
-        *transition_systems[index2],
-        log));
+    transition_systems.push_back(
+        TransitionSystem::merge(
+            *labels,
+            *transition_systems[index1],
+            *transition_systems[index2],
+            log));
     distances[index1] = nullptr;
     distances[index2] = nullptr;
     transition_systems[index1] = nullptr;
@@ -249,14 +249,10 @@ bool FactoredTransitionSystem::is_factor_solvable(int index) const
 bool FactoredTransitionSystem::is_factor_trivial(int index) const
 {
     assert(is_component_valid(index));
-    if (!mas_representations[index]->is_total()) {
-        return false;
-    }
+    if (!mas_representations[index]->is_total()) { return false; }
     const TransitionSystem& ts = *transition_systems[index];
     for (int state = 0; state < ts.get_size(); ++state) {
-        if (!ts.is_goal_state(state)) {
-            return false;
-        }
+        if (!ts.is_goal_state(state)) { return false; }
     }
     return true;
 }
@@ -290,10 +286,8 @@ void FactoredTransitionSystem::dump(int index, utils::LogProxy& log) const
 void FactoredTransitionSystem::dump(utils::LogProxy& log) const
 {
     if (log.is_at_least_debug()) {
-        for (int index : *this) {
-            dump(index, log);
-        }
+        for (int index : *this) { dump(index, log); }
     }
 }
 
-} // namespace merge_and_shrink
+} // namespace downward::merge_and_shrink

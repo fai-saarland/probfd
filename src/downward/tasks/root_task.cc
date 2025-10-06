@@ -164,13 +164,13 @@ static void
 check_fact(const FactPair& fact, const vector<ExplicitVariable>& variables)
 {
     if (!utils::in_bounds(fact.var, variables)) {
-        cerr << "Invalid variable id: " << fact.var << endl;
-        utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
+        throw utils::InputError("Invalid variable id: {}", fact.var);
     }
     if (fact.value < 0 || fact.value >= variables[fact.var].domain_size) {
-        cerr << "Invalid value for variable " << fact.var << ": " << fact.value
-             << endl;
-        utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
+        throw utils::InputError(
+            "Invalid value for variable {}: {}",
+            fact.var,
+            fact.value);
     }
 }
 
@@ -195,15 +195,21 @@ static void check_magic(istream& in, const string& magic)
 {
     string word;
     in >> word;
+
     if (word != magic) {
-        cerr << "Failed to match magic word '" << magic << "'." << endl
-             << "Got '" << word << "'." << endl;
+        auto error = std::format(
+            "Failed to match magic word '{}'.\nGot '{}'.",
+            magic,
+            word);
+
         if (magic == "begin_version") {
-            cerr << "Possible cause: you are running the planner "
-                 << "on a translator output file from " << endl
-                 << "an older version." << endl;
+            error.append(
+                "\nPossible cause: you are running the planner "
+                "on a translator output file from "
+                "an older version.");
         }
-        utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
+
+        throw utils::InputError(std::move(error));
     }
 }
 
@@ -294,10 +300,10 @@ static void read_and_verify_version(istream& in)
     in >> version;
     check_magic(in, "end_version");
     if (version != PRE_FILE_VERSION && version != PRE_FILE_PROB_VERSION) {
-        cerr << "Expected translator output file version " << PRE_FILE_VERSION
-             << ", got " << version << "." << endl
-             << "Exiting." << endl;
-        utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
+        throw utils::InputError(
+            "Expected translator output file version {}, got {}.",
+            PRE_FILE_VERSION,
+            version);
     }
 }
 
@@ -337,8 +343,7 @@ static vector<FactPair> read_goal(istream& in)
     vector<FactPair> goals = read_facts(in);
     check_magic(in, "end_goal");
     if (goals.empty()) {
-        cerr << "Task has no goal condition!" << endl;
-        utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
+        throw utils::InputError("Task has no goal condition!");
     }
     return goals;
 }

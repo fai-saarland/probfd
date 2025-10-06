@@ -232,7 +232,7 @@ class CplexSolverInterface : public SolverInterface {
 
 public:
     CplexSolverInterface();
-    virtual ~CplexSolverInterface() override;
+    virtual ~CplexSolverInterface() noexcept(false) override;
 
     virtual void load_problem(const LinearProgram& lp) override;
     virtual void add_temporary_constraints(
@@ -259,7 +259,7 @@ public:
     virtual int get_num_variables() const override;
     virtual int get_num_constraints() const override;
     virtual bool has_temporary_constraints() const override;
-    virtual void print_statistics() const override;
+    virtual void print_statistics(std::ostream& out) const override;
 
     virtual std::vector<double> extract_dual_solution() const override;
 

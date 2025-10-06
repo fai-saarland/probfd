@@ -198,12 +198,12 @@ CausalGraph::~CausalGraph()
 {
 }
 
-void CausalGraph::dump(const VariableSpace& variables) const
+void CausalGraph::dump(const VariableSpace& variables, utils::LogProxy log) const
 {
-    utils::g_log << "Causal graph: " << endl;
+    log << "Causal graph: " << endl;
     for (VariableProxy var : variables) {
         int var_id = var.get_id();
-        utils::g_log << "#" << var_id << " [" << var.get_name() << "]:" << endl
+        log << "#" << var_id << " [" << var.get_name() << "]:" << endl
                      << "    pre->eff arcs: " << pre_to_eff[var_id] << endl
                      << "    eff->pre arcs: " << eff_to_pre[var_id] << endl
                      << "    eff->eff arcs: " << eff_to_eff[var_id] << endl

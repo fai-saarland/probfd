@@ -37,7 +37,7 @@ VariableOrderFinder::VariableOrderFinder(
     if (variable_order_type == CG_GOAL_RANDOM ||
         variable_order_type == RANDOM) {
         if (!rng) {
-            ABORT(
+            throw utils::InputError(
                 "No random number generator passed to VariableOrderFinder "
                 "although the chosen value for VariableOrderType relies on "
                 "randomization");
@@ -110,8 +110,8 @@ int VariableOrderFinder::next()
         select_next(0, var_no);
         return var_no;
     }
-    cerr << "Relevance analysis has not been performed." << endl;
-    utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
+
+    throw utils::InputError("Relevance analysis has not been performed.");
 }
 
 void dump_variable_order_type(
@@ -126,7 +126,7 @@ void dump_variable_order_type(
     case RANDOM: log << "random"; break;
     case LEVEL: log << "by level"; break;
     case REVERSE_LEVEL: log << "by reverse level"; break;
-    default: ABORT("Unknown variable order type.");
+    default: throw utils::CriticalError("Unknown variable order type.");
     }
     log << endl;
 }

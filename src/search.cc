@@ -26,6 +26,7 @@
 #include "downward/utils/strings.h"
 #include "downward/utils/system.h"
 #include "probfd/json/json.h"
+#include "probfd/utils/guards.h"
 
 #include <any>
 #include <charconv>
@@ -51,130 +52,150 @@ template <std::ranges::input_range R>
     requires std::convertible_to<
         std::ranges::range_value_t<R>,
         std::pair<std::string, std::string>>
-static string
-insert_definitions(const std::string& old_search_argument, R&& predefinitions)
+static ASTNodePtr construct_let(ASTNodePtr parsed, R&& predefinitions)
 {
-    auto it = std::ranges::begin(predefinitions);
-    const auto end = std::ranges::end(predefinitions);
+    if (std::ranges::empty(predefinitions)) return parsed;
 
-    if (it == end) return old_search_argument;
+    std::vector<std::pair<std::string, ASTNodePtr>> variable_definitions;
 
-    ostringstream new_search_argument;
-    new_search_argument << "let ";
-
-    {
-        const auto& [key, definition] = *it;
-        new_search_argument << definition << " as " << key;
+    for (const auto& [key, definition] : predefinitions) {
+        variable_definitions.emplace_back(key, tokenize_and_parse(definition));
     }
 
-    for (++it; it != end; ++it) {
-        const auto& [key, definition] = *it;
-        new_search_argument << ", " << definition << " as " << key;
-    }
-
-    new_search_argument << " in " << old_search_argument;
-
-    return new_search_argument.str();
+    return std::make_unique<LetNode>(
+        std::move(variable_definitions),
+        std::move(parsed));
 }
 
-static int search(argparse::ArgumentParser& parser)
+static ASTNodePtr
+insert_definitions(ASTNodePtr parsed, const std::string& definitions_file)
 {
-    const Duration max_time(parser.get<double>("--max-search-time"));
-
-    std::string search_arg = parser.get("algorithm");
-
-    if (auto definitions_file = parser.present("--definitions-file")) {
-        std::ifstream fs(*definitions_file);
-        try {
-            auto defs = json::read<std::map<std::string, std::string>>(fs);
-            search_arg = insert_definitions(search_arg, defs);
-        } catch (std::invalid_argument& e) {
-            std::println(
-                "Could not read definitions from {}: {}",
-                *definitions_file,
-                e.what());
-            return static_cast<int>(ExitCode::SEARCH_INPUT_ERROR);
-        }
+    std::ifstream fs(definitions_file);
+    try {
+        auto defs = json::read<std::map<std::string, std::string>>(fs);
+        parsed = construct_let(std::move(parsed), defs);
+    } catch (std::invalid_argument& e) {
+        throw InputError(
+            "Could not read definitions from {}:\n{}",
+            definitions_file,
+            e.what());
     }
 
+    return parsed;
+}
+
+static shared_ptr<TaskSolverFactory>
+construct_solver(const DecoratedASTNode& decorated)
+{
+    std::cout << "Constructing solver from feature expression:\n";
+    decorated.print(std::cout, 4, false);
+    std::println(std::cout);
+
+    std::any constructed = decorated.construct();
+
+    try {
+        return std::any_cast<shared_ptr<TaskSolverFactory>>(constructed);
+    } catch (const std::bad_any_cast&) {
+        throw InputError(
+            "Expression is of type {}, not TaskSolverFactory.",
+            constructed.type().name());
+    }
+}
+
+static auto construct_solver(argparse::ArgumentParser& parser)
+{
+    // Signal handler setup
     register_event_handlers();
 
+    // Parse search string
+    ASTNodePtr parsed = tokenize_and_parse(parser.get("algorithm"));
+
+    // Insert user-defined pre-definitions, if given
+    if (const auto definitions_file = parser.present("--definitions-file")) {
+        parsed = insert_definitions(std::move(parsed), *definitions_file);
+    }
+
+    // Register internal pre-definitions
     RawRegistry raw_registry;
     register_definitions(raw_registry);
 
-    shared_ptr<TaskSolverFactory> solver_factory;
+    // Type check
+    const DecoratedASTNodePtr decorated = parsed->decorate(raw_registry);
 
-    try {
-        TokenStream tokens = split_tokens(search_arg);
-        ASTNodePtr parsed = parse(tokens);
-        DecoratedASTNodePtr decorated = parsed->decorate(raw_registry);
-
-        if (parser.get<bool>("--ignore-unused-definitions")) {
-            std::vector<VariableDefinition> unused_defs;
-            decorated->prune_unused_definitions(unused_defs);
-
-            if (!unused_defs.empty()) {
-                std::cout
-                    << "Removed unused variables from feature expression: ";
-
-                {
-                    const auto var_name = unused_defs.front().variable_name;
-                    std::print(std::cout, "{}", var_name);
-                }
-
-                for (const auto& def : unused_defs | std::views::drop(1)) {
-                    std::print(std::cout, ", {}", def.variable_name);
-                }
-
-                std::println(std::cout);
-            }
-        }
-
-        std::cout << "Constructing solver from feature expression:\n";
-        decorated->print(std::cout, 4, false);
-        std::println(std::cout);
-
-        std::any constructed = decorated->construct();
-
-        try {
-            solver_factory =
-                std::any_cast<shared_ptr<TaskSolverFactory>>(constructed);
-        } catch (const std::bad_any_cast&) {
+    // Remove unused definitions if enabled
+    if (parser.get<bool>("--ignore-unused-definitions")) {
+        if (const auto defs = decorated->prune_unused_definitions();
+            !defs.empty()) {
             std::println(
-                std::cerr,
-                "Search argument \"{}\" is of type {}, not TaskSolverFactory.",
-                search_arg,
-                constructed.type().name());
-            return static_cast<int>(ExitCode::SEARCH_INPUT_ERROR);
+                std::cout,
+                "Removed unused variables from feature expression: {}",
+                defs | views::transform(&VariableDefinition::variable_name));
         }
-    } catch (const ContextError& e) {
-        std::cerr << e.get_message() << std::endl;
-        return static_cast<int>(ExitCode::SEARCH_INPUT_ERROR);
-    } catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
-        return static_cast<int>(ExitCode::SEARCH_CRITICAL_ERROR);
     }
 
-    SharedProbabilisticTask input_task = run_time_logged(
+    // Construct solver factory.
+    const auto solver_factory = construct_solver(*decorated);
+
+    // Read the input task.
+    const SharedProbabilisticTask input_task = run_time_logged(
         std::cout,
         "Reading input task...",
         probfd::tasks::read_sas_task_from_file,
         parser.get("problem_file"));
 
-    std::unique_ptr<SolverInterface> solver =
-        solver_factory->create(input_task);
+    // Create the solver from the input task and return it.
+    return solver_factory->create(input_task);
+}
 
-    g_search_timer.resume();
-    bool found_solution = solver->solve(max_time);
-    g_search_timer.stop();
-    g_timer.stop();
+static ExitCode run_solver(SolverInterface& solver, Duration max_time)
+{
+    // Print search time.
+    Timer timer;
+    scope_exit _([&] { std::println(cout, "Search time: {}", timer()); });
 
-    solver->print_statistics();
-    std::cout << "Search time: " << g_search_timer << endl;
-    std::cout << "Total time: " << g_timer << endl;
+    const bool found_solution = solver.solve(max_time);
+    timer.stop();
 
-    ExitCode exitcode = found_solution ? ExitCode::SUCCESS
-                                       : ExitCode::SEARCH_UNSOLVED_INCOMPLETE;
+    solver.print_statistics();
+
+    return found_solution ? ExitCode::SUCCESS
+                          : ExitCode::SEARCH_UNSOLVED_INCOMPLETE;
+}
+
+static int search(argparse::ArgumentParser& parser)
+{
+    // Print total time.
+    Timer timer;
+    scope_exit _([&] { println(cout, "Total time: {}", timer()); });
+
+    ExitCode exitcode;
+
+    try {
+        try {
+            const auto solver = construct_solver(parser);
+            exitcode = run_solver(
+                *solver,
+                static_cast<Duration>(parser.get<double>("--max-search-time")));
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+            throw;
+        }
+    } catch (const ContextError&) {
+        exitcode = ExitCode::SEARCH_INPUT_ERROR;
+    } catch (const InputError&) {
+        exitcode = ExitCode::SEARCH_INPUT_ERROR;
+    } catch (const CriticalError&) {
+        exitcode = ExitCode::SEARCH_CRITICAL_ERROR;
+    } catch (const UnsupportedError&) {
+        exitcode = ExitCode::SEARCH_UNSUPPORTED;
+    } catch (const UnimplementedError&) {
+        exitcode = ExitCode::SEARCH_UNIMPLEMENTED;
+    } catch (const std::exception&) {
+        exitcode = ExitCode::SEARCH_CRITICAL_ERROR;
+    }
+
+    std::println(std::cout, "");
+
     report_exit_code_reentrant(exitcode);
     return static_cast<int>(exitcode);
 }

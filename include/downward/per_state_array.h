@@ -18,6 +18,7 @@ public:
         , size_(size)
     {
     }
+
     ConstArrayView(const ConstArrayView<T>& other) = default;
 
     ConstArrayView<T>& operator=(const ConstArrayView<T>& other) = default;
@@ -42,6 +43,7 @@ public:
         , size_(size)
     {
     }
+
     ArrayView(const ArrayView<T>& other) = default;
 
     ArrayView<T>& operator=(const ArrayView<T>& other) = default;
@@ -138,18 +140,15 @@ public:
 
     virtual ~PerStateArray() override
     {
-        for (auto it : entry_arrays_by_registry) {
-            delete it.second;
-        }
+        for (auto it : entry_arrays_by_registry) { delete it.second; }
     }
 
     ArrayView<Element> operator[](const State& state)
     {
         const StateRegistry* registry = state.get_registry();
         if (!registry) {
-            std::cerr << "Tried to access per-state array with an unregistered "
-                      << "state." << std::endl;
-            utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+            throw utils::CriticalError(
+                "Tried to access per-state array with an unregistered state.");
         }
         segmented_vector::SegmentedArrayVector<Element>* entries =
             get_entries(registry);
@@ -167,23 +166,24 @@ public:
     {
         const StateRegistry* registry = state.get_registry();
         if (!registry) {
-            std::cerr << "Tried to access per-state array with an unregistered "
-                      << "state." << std::endl;
-            utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+            throw utils::CriticalError(
+                "Tried to access per-state array with an unregistered state.");
         }
         const segmented_vector::SegmentedArrayVector<Element>* entries =
             get_entries(registry);
         if (!entries) {
-            ABORT("PerStateArray::operator[] const tried to access "
-                  "non-existing entry.");
+            throw utils::CriticalError(
+                "PerStateArray::operator[] const tried to access "
+                "non-existing entry.");
         }
         int state_id = state.get_id().value;
         assert(state.get_id() != StateID::no_state);
         assert(utils::in_bounds(state_id, *registry));
         int num_entries = entries->size();
         if (state_id >= num_entries) {
-            ABORT("PerStateArray::operator[] const tried to access "
-                  "non-existing entry.");
+            throw utils::CriticalError(
+                "PerStateArray::operator[] const tried to access "
+                "non-existing entry.");
         }
         return ConstArrayView<Element>(
             (*entries)[state_id],
@@ -201,6 +201,6 @@ public:
         }
     }
 };
-}
+} // namespace downward
 
 #endif

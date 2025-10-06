@@ -75,14 +75,14 @@ SearchAlgorithm::SearchAlgorithm(
     , max_time(max_time)
 {
     if (bound < 0) {
-        cerr << "error: negative cost bound " << bound << endl;
-        utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
+        throw utils::InputError("error: negative cost bound {}", bound);
     }
 
     const auto& variables = get_variables(this->task);
     task_properties::print_variable_statistics(
         variables,
-        task_properties::g_state_packers[variables]);
+        task_properties::g_state_packers[variables],
+        log);
 }
 
 SearchAlgorithm::~SearchAlgorithm()
@@ -121,10 +121,15 @@ bool SearchAlgorithm::check_goal_and_set_plan(const State& state)
 void SearchAlgorithm::save_plan_if_necessary()
 {
     if (found_solution()) {
+        const int plan_cost =
+            calculate_plan_cost(plan, get_cost_function(task));
         plan_manager.save_plan(
             get_plan(),
             get_operators(task),
-            get_cost_function(task));
+            get_cost_function(task),
+            plan_cost);
+        log.println("Plan length: {} step(s).", plan.size());
+        log.println("Plan cost: {}", plan_cost);
     }
 }
 

@@ -10,6 +10,66 @@
 
 using namespace std;
 
+namespace {
+template <typename R, typename Char = char>
+struct join_view {
+    R range;
+    basic_string_view<Char> sep;
+
+    join_view(R range, basic_string_view<Char> s)
+        : range(std::move(range))
+        , sep(std::move(s))
+    {
+    }
+};
+
+template <typename R>
+join_view(R r, std::string c) -> join_view<std::views::all_t<R>>;
+
+} // namespace
+
+namespace std {
+template <typename R, typename Char>
+struct formatter<join_view<R, Char>, Char> {
+private:
+    using value_type = std::ranges::range_value_t<const R>;
+    using It = std::ranges::iterator_t<const R>;
+
+    std::formatter<std::remove_cvref_t<value_type>, Char> value_formatter_;
+
+public:
+    constexpr auto parse(std::basic_format_parse_context<Char>& ctx)
+        -> const Char*
+    {
+        return value_formatter_.parse(ctx);
+    }
+
+    template <typename FormatContext>
+    auto format(const join_view<R, Char>& value, FormatContext& ctx) const
+        -> decltype(ctx.out())
+    {
+        It it = std::ranges::begin(value.range);
+        auto out = ctx.out();
+        if (it == std::ranges::end(value.range)) return out;
+        out = value_formatter_.format(*it, ctx);
+        for (++it; it != std::ranges::end(value.range); ++it) {
+            out = std::copy(value.sep.begin(), value.sep.end(), out);
+            ctx.advance_to(out);
+            out = value_formatter_.format(*it, ctx);
+        }
+        return out;
+    }
+};
+
+/*
+template <typename It, typename Sentinel, typename Char>
+constexpr bool
+    enable_nonlocking_formatter_optimization<join_view<It, Sentinel, Char>>
+= true;
+*/
+
+} // namespace std
+
 namespace downward::cli::plugins {
 
 FeatureTypes RawRegistry::collect_types(vector<string>& errors) const
@@ -181,10 +241,12 @@ Registry RawRegistry::construct_registry() const
 
     if (!errors.empty()) {
         ranges::sort(errors);
-        cerr << "Internal registry error(s):" << endl;
-        for (const string& error : errors) { cerr << error << endl; }
-        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+        throw utils::CriticalError(
+            std::format(
+                "Internal registry error(s):\n{}",
+                join_view(std::move(errors), "\n")));
     }
+
     return Registry(
         move(feature_types),
         move(subcategory_plugins),

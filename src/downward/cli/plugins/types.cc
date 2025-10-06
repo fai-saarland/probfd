@@ -298,9 +298,7 @@ std::any convert(
                 str_value,
                 context));
     } else if (from_type.is_list_type() && to_type.is_list_type()) {
-        if (from_type.is_empty_list_type()) {
-            return value;
-        }
+        if (from_type.is_empty_list_type()) { return value; }
 
         const Type& from_nested_type =
             static_cast<const ListType&>(from_type).get_nested_type();
@@ -323,7 +321,10 @@ std::any convert(
         }
     }
 
-    ABORT("Cannot convert " + from_type.name() + " to " + to_type.name() + ".");
+    throw utils::CriticalError(
+        "Cannot convert {} to {}.",
+        from_type.name(),
+        to_type.name());
 }
 
 SymbolType TypeRegistry::SYMBOL_TYPE;
@@ -367,10 +368,11 @@ TypeRegistry::create_feature_type(const CategoryPlugin& plugin)
 {
     type_index type = plugin.get_pointer_type();
     if (registered_types.count(type)) {
-        ABORT(
-            "Creating the FeatureType '" + plugin.get_class_name() +
-            "' but the type '" + registered_types[type]->name() +
-            "' already exists and has the same type_index.");
+        throw utils::CriticalError(
+            "Creating the FeatureType '{}' but the type '{}' already exists "
+            "and has the same type_index.",
+            plugin.get_class_name(),
+            registered_types[type]->name());
     }
     unique_ptr<FeatureType> type_ptr = std::make_unique<FeatureType>(
         plugin.get_pointer_type(),
@@ -386,10 +388,11 @@ const EnumType& TypeRegistry::create_enum_type(const EnumPlugin& plugin)
     type_index type = plugin.get_type();
     const EnumInfo& values = plugin.get_enum_info();
     if (registered_types.count(type)) {
-        ABORT(
-            "Creating the EnumType '" + plugin.get_class_name() +
-            "' but the type '" + registered_types[type]->name() +
-            "' already exists and has the same type_index.");
+        throw utils::CriticalError(
+            "Creating the EnumType '{}' but the type '{}' already exists and "
+            "has the same type_index.",
+            plugin.get_class_name(),
+            registered_types[type]->name());
     }
     unique_ptr<EnumType> type_ptr = std::make_unique<EnumType>(type, values);
     const EnumType& type_ref = *type_ptr;

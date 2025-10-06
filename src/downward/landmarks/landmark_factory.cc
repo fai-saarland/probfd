@@ -46,10 +46,9 @@ LandmarkFactory::compute_lm_graph(const SharedAbstractTask& task)
 {
     if (lm_graph) {
         if (lm_graph_task != map_tuple(task, [](auto& p) { return p.get(); })) {
-            cerr << "LandmarkFactory was asked to compute landmark graphs for "
-                 << "two different tasks. This is currently not supported."
-                 << endl;
-            utils::exit_with(utils::ExitCode::SEARCH_UNSUPPORTED);
+            throw utils::UnsupportedError(
+                "LandmarkFactory was asked to compute landmark graphs for two "
+                "different tasks. This is currently not supported.");
         }
         return lm_graph;
     }

@@ -111,6 +111,8 @@ class Solver : public SolverInterface {
 
     ProgressReport progress;
 
+    static constexpr int precision = 3;
+
 public:
     Solver(
         SharedProbabilisticTask task,
@@ -138,7 +140,11 @@ public:
         print(std::cout, "Running MDP algorithm {}", algorithm_name);
 
         if (max_time != Duration::max()) {
-            println(std::cout, " with a time limit of {}.", max_time);
+            println(
+                std::cout,
+                " with a time limit of {:.{}f} seconds.",
+                max_time.count(),
+                precision);
         }
 
         println(std::cout, " without a time limit.");
@@ -160,6 +166,20 @@ public:
                 action_cost_function,
                 term_cost_function};
 
+            Timer search_timer;
+
+            progress.register_print([&](std::ostream& out) {
+                std::print(
+                    out,
+                    "t={:.{}f}s",
+                    search_timer().count(),
+                    precision);
+            });
+
+            progress.register_print([&](std::ostream& out) {
+                std::print(out, "memory={} KB", get_peak_memory_in_kb());
+            });
+
             std::unique_ptr<Policy<State, OperatorID>> policy =
                 algorithm->compute_policy(
                     mdp,
@@ -167,13 +187,14 @@ public:
                     initial_state,
                     progress,
                     max_time);
+
             total_timer.stop();
 
             println(
                 std::cout,
-                "Finished after {} [t={}]\n",
-                total_timer(),
-                g_timer());
+                "Finished after {:.{}f} seconds.\n",
+                total_timer().count(),
+                precision);
 
             if (policy) {
                 using namespace std;
@@ -227,12 +248,16 @@ public:
             state_space->print_statistics(std::cout);
 
             println(std::cout, "\nAlgorithm {} statistics:", algorithm_name);
-            println(std::cout, "  Actual solver time: {}", total_timer());
+            println(
+                std::cout,
+                "  Actual solver time: {:.{}}",
+                total_timer(),
+                precision);
             algorithm->print_statistics(std::cout);
             heuristic->print_statistics();
 
             return policy != nullptr;
-        } catch (TimeoutException&) {
+        } catch (const TimeoutException&) {
             println(std::cout, "Time limit reached. Analysis was aborted.");
         }
 
@@ -252,7 +277,7 @@ MDPSolver::create(const SharedProbabilisticTask& task)
 
     std::unique_ptr<TaskStateSpace> state_space = run_time_logged(
         std::cout,
-        "Constructing state space...",
+        "Constructing task state space generator...",
         &TaskStateSpaceFactory::create_object,
         *task_state_space_factory_,
         task);

@@ -107,7 +107,7 @@ void EnforcedHillClimbingSearch::reach_state(
     }
 }
 
-void EnforcedHillClimbingSearch::initialize()
+SearchStatus EnforcedHillClimbingSearch::initialize()
 {
     assert(evaluator);
     log << "Conducting enforced hill-climbing search, (real) bound = " << bound
@@ -127,16 +127,16 @@ void EnforcedHillClimbingSearch::initialize()
 
     if (dead_end) {
         log << "Initial state is a dead end, no solution" << endl;
-        if (evaluator->dead_ends_are_reliable())
-            utils::exit_with(ExitCode::SEARCH_UNSOLVABLE);
-        else
-            utils::exit_with(ExitCode::SEARCH_UNSOLVED_INCOMPLETE);
+        return evaluator->dead_ends_are_reliable() ? UNSOLVABLE
+                                                   : UNSOLVABLE_INCOMPLETE;
     }
 
     SearchNode node = search_space.get_node(current_eval_context.get_state());
     node.open_initial();
 
     current_phase_start_g = 0;
+
+    return IN_PROGRESS;
 }
 
 void EnforcedHillClimbingSearch::insert_successor_into_open_list(

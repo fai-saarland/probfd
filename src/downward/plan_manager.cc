@@ -1,7 +1,7 @@
 #include "downward/plan_manager.h"
 
-#include "downward/operator_space.h"
 #include "downward/operator_cost_function.h"
+#include "downward/operator_space.h"
 #include "downward/state.h"
 
 #include "downward/task_utils/task_properties.h"
@@ -54,6 +54,7 @@ void PlanManager::save_plan(
     const Plan& plan,
     const OperatorSpace& operators,
     const OperatorIntCostFunction& cost_function,
+    int plan_cost,
     bool generates_multiple_plan_files)
 {
     ostringstream filename;
@@ -66,8 +67,7 @@ void PlanManager::save_plan(
     }
     ofstream outfile(filename.str());
     if (outfile.rdstate() & ofstream::failbit) {
-        cerr << "Failed to open plan file: " << filename.str() << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
+        throw utils::InputError("Failed to open plan file: {}", filename.str());
     }
 
     for (OperatorID op_id : plan) {
@@ -76,13 +76,10 @@ void PlanManager::save_plan(
              << endl;
         outfile << "(" << operators[op_id].get_name() << ")" << endl;
     }
-    int plan_cost = calculate_plan_cost(plan, cost_function);
     bool is_unit_cost = task_properties::is_unit_cost(operators, cost_function);
     outfile << "; cost = " << plan_cost << " ("
             << (is_unit_cost ? "unit cost" : "general cost") << ")" << endl;
     outfile.close();
-    utils::g_log << "Plan length: " << plan.size() << " step(s)." << endl;
-    utils::g_log << "Plan cost: " << plan_cost << endl;
     ++num_previously_generated_plans;
 }
 

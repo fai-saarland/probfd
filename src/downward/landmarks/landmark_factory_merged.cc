@@ -38,14 +38,13 @@ LandmarkFactoryMerged::get_matching_landmark(const Landmark& landmark) const
         else
             return nullptr;
     } else if (landmark.conjunctive) {
-        cerr << "Don't know how to handle conjunctive landmarks yet" << endl;
-        utils::exit_with(ExitCode::SEARCH_UNSUPPORTED);
+        throw utils::UnsupportedError(
+            "Don't know how to handle conjunctive landmarks yet");
     }
     return nullptr;
 }
 
-void LandmarkFactoryMerged::generate_landmarks(
-    const SharedAbstractTask& task)
+void LandmarkFactoryMerged::generate_landmarks(const SharedAbstractTask& task)
 {
     if (log.is_at_least_normal()) {
         log << "Merging " << lm_factories.size() << " landmark graphs" << endl;
@@ -59,18 +58,15 @@ void LandmarkFactoryMerged::generate_landmarks(
         achievers_calculated &= lm_factory->achievers_are_calculated();
     }
 
-    if (log.is_at_least_normal()) {
-        log << "Adding simple landmarks" << endl;
-    }
+    if (log.is_at_least_normal()) { log << "Adding simple landmarks" << endl; }
     for (size_t i = 0; i < lm_graphs.size(); ++i) {
         const LandmarkGraph::Nodes& nodes = lm_graphs[i]->get_nodes();
         // TODO: loop over landmarks instead
         for (auto& lm_node : nodes) {
             const Landmark& landmark = lm_node->get_landmark();
             if (landmark.conjunctive) {
-                cerr << "Don't know how to handle conjunctive landmarks yet"
-                     << endl;
-                utils::exit_with(ExitCode::SEARCH_UNSUPPORTED);
+                throw utils::UnsupportedError(
+                    "Don't know how to handle conjunctive landmarks yet");
             } else if (landmark.disjunctive) {
                 continue;
             } else if (!lm_graph->contains_landmark(landmark.facts[0])) {
@@ -109,9 +105,7 @@ void LandmarkFactoryMerged::generate_landmarks(
         }
     }
 
-    if (log.is_at_least_normal()) {
-        log << "Adding orderings" << endl;
-    }
+    if (log.is_at_least_normal()) { log << "Adding orderings" << endl; }
     for (size_t i = 0; i < lm_graphs.size(); ++i) {
         const LandmarkGraph::Nodes& nodes = lm_graphs[i]->get_nodes();
         for (auto& from_orig : nodes) {
@@ -149,11 +143,9 @@ void LandmarkFactoryMerged::postprocess()
 bool LandmarkFactoryMerged::supports_conditional_effects() const
 {
     for (const shared_ptr<LandmarkFactory>& lm_factory : lm_factories) {
-        if (!lm_factory->supports_conditional_effects()) {
-            return false;
-        }
+        if (!lm_factory->supports_conditional_effects()) { return false; }
     }
     return true;
 }
 
-} // namespace landmarks
+} // namespace downward::landmarks

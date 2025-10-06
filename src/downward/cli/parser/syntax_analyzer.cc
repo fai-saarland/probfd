@@ -1,5 +1,6 @@
 #include "downward/cli/parser/syntax_analyzer.h"
 
+#include "downward/cli/parser/lexical_analyzer.h"
 #include "downward/cli/parser/token_stream.h"
 
 #include "downward/utils/logging.h"
@@ -288,7 +289,10 @@ parse_node(TokenStream& tokens, SyntaxAnalyzerContext& context)
         } else {
             return parse_literal(tokens, context);
         }
-    default: ABORT("Unknown token type '" + token_type_name(token.type) + "'.");
+    default:
+        throw utils::CriticalError(
+            "Unknown token type '{}'.",
+            token_type_name(token.type));
     }
 }
 
@@ -296,9 +300,7 @@ ASTNodePtr parse(TokenStream& tokens)
 {
     SyntaxAnalyzerContext context(tokens, 10);
     utils::TraceBlock block(context, "Start Syntactical Parsing");
-    if (!tokens.has_tokens(1)) {
-        context.error("Input is empty");
-    }
+    if (!tokens.has_tokens(1)) { context.error("Input is empty"); }
     ASTNodePtr node = parse_node(tokens, context);
     if (tokens.has_tokens(1)) {
         context.error(
@@ -307,4 +309,11 @@ ASTNodePtr parse(TokenStream& tokens)
     }
     return node;
 }
+
+ASTNodePtr tokenize_and_parse(const std::string& expression)
+{
+    TokenStream tokens = split_tokens(expression);
+    return parse(tokens);
+}
+
 } // namespace downward::cli::parser

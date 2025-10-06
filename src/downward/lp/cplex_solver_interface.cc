@@ -33,16 +33,17 @@ static void handle_cplex_error(CPXENVptr env, int error_code)
       below eventually. In that case there is nothing else we have to do.
     */
     if (error_code == CPXERR_NO_MEMORY) {
-        utils::exit_with(utils::ExitCode::SEARCH_OUT_OF_MEMORY);
+        throw utils::OutOfMemoryException("CPLEX ran out of memory");
     }
+
     char buffer[CPXMESSAGEBUFSIZE];
-    const char* error_string = CPXgeterrorstring(env, error_code, buffer);
-    if (error_string) {
-        cerr << error_string << endl;
-    } else {
-        cerr << "CPLEX error: Unknown error code " << error_code << endl;
+    if (const char* error_string = CPXgeterrorstring(env, error_code, buffer)) {
+        throw utils::CriticalError(error_string);
     }
-    utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+
+    throw utils::CriticalError(
+        "CPLEX error: Unknown error code {}",
+        error_code);
 }
 
 /* Make a call to a CPLEX API function checking its return status. */
@@ -253,9 +254,9 @@ CplexSolverInterface::CplexSolverInterface()
     int status = 0;
     env = CPXopenCPLEX(&status);
     if (status) {
-        cerr << "Could not construct CPLEX interface (error_code: " << status
-             << ")." << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+        throw utils::CriticalError(
+            "Could not construct CPLEX interface (error_code: {})",
+            status);
     }
     CPX_CALL(CPXsetintparam, env, CPX_PARAM_THREADS, 1);
     CPX_CALL(
@@ -266,13 +267,12 @@ CplexSolverInterface::CplexSolverInterface()
     // TODO handle output, catch oom
 }
 
-CplexSolverInterface::~CplexSolverInterface()
+CplexSolverInterface::~CplexSolverInterface() noexcept(false)
 {
-    int status = CPXcloseCPLEX(&env);
-    if (status) {
-        cerr << "Failed to close CPLEX interface (error_code: " << status
-             << ")." << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+    if (const int status = CPXcloseCPLEX(&env)) {
+        throw utils::CriticalError(
+            "Failed to close CPLEX interface (error_code: {}).",
+            status);
     }
 }
 
@@ -525,11 +525,12 @@ void CplexSolverInterface::solve()
 void CplexSolverInterface::write_lp(const string& filename) const
 {
     if (is_trivially_unsolvable()) {
-        cerr << "The LP has trivially unsatisfiable constraints that are not "
-             << "accurately represented in CPLEX. Writing it to a file would "
-             << "misrepresent the LP." << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+        throw utils::UnsupportedError(
+            "The LP has trivially unsatisfiable constraints that are not "
+            "accurately represented in CPLEX. Writing it to a file would "
+            "misrepresent the LP.");
     }
+
     // By not passing in a filetype, we let CPLEX infer it from the filename.
     static const char* filetype = nullptr;
     CPX_CALL(CPXwriteprob, env, problem, filename.c_str(), filetype);
@@ -611,8 +612,9 @@ bool CplexSolverInterface::has_optimal_solution() const
     case CPXMIP_INFEASIBLE: return false;
     case CPXMIP_INForUNBD: return false;
     default:
-        cerr << "Unexpected status after solving LP/MIP: " << status << endl;
-        utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+        throw utils::CriticalError(
+            "Unexpected status after solving LP/MIP: {}",
+            status);
     }
 }
 
@@ -650,12 +652,11 @@ bool CplexSolverInterface::has_temporary_constraints() const
     return num_permanent_constraints < get_num_constraints();
 }
 
-void CplexSolverInterface::print_statistics() const
+void CplexSolverInterface::print_statistics(std::ostream& out) const
 {
-    utils::g_log << "LP variables: " << get_num_variables() << endl;
-    utils::g_log << "LP constraints: " << get_num_constraints() << endl;
-    utils::g_log << "LP non-zero entries: " << CPXgetnumnz(env, problem)
-                 << endl;
+    std::println(out, "LP variables: {}", get_num_variables());
+    std::println(out, "LP constraints: {}", get_num_constraints());
+    std::println(out, "LP non-zero entries: {}", CPXgetnumnz(env, problem));
 }
 
 std::vector<double> CplexSolverInterface::extract_dual_solution() const

@@ -10,6 +10,10 @@
 #include <string_view>
 #include <vector>
 
+namespace downward::utils {
+class LogProxy;
+}
+
 namespace downward::lp {
 enum class LPSolverType { CPLEX, SOPLEX };
 
@@ -149,7 +153,7 @@ public:
     int get_num_variables() const;
     int get_num_constraints() const;
     int has_temporary_constraints() const;
-    void print_statistics() const;
+    void print_statistics(std::ostream& out) const;
 
     /**
      * These methods are not present in vanilla Fast Downward. They are needed

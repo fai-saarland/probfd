@@ -132,13 +132,11 @@ class IntHashSet {
         // Verify that the number of buckets is a power of 2.
         assert((num_buckets & (num_buckets - 1)) == 0);
         if (num_buckets > MAX_BUCKETS / 2) {
-            std::cerr << "IntHashSet surpassed maximum capacity. This means"
-                         " you either use IntHashSet for high-memory"
-                         " applications for which it was not designed, or there"
-                         " is an unexpectedly high number of hash collisions"
-                         " that should be investigated. Aborting."
-                      << std::endl;
-            utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+            throw utils::CriticalError(
+                "IntHashSet surpassed maximum capacity. This means you either "
+                "use IntHashSet for high-memory applications for which it was "
+                "not designed, or there is an unexpectedly high number of hash "
+                "collisions that should be investigated. Aborting.");
         }
         rehash(num_buckets * 2);
     }
