@@ -3,13 +3,10 @@
 using namespace std;
 
 namespace downward::cli::plugins {
-Options::Options()
-{
-}
 
 bool Options::contains(const string& key) const
 {
-    return storage.find(key) != storage.end();
+    return storage.contains(key);
 }
 
 const string& Options::get_unparsed_config() const

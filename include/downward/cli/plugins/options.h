@@ -82,9 +82,10 @@ class Options {
     std::string unparsed_config;
 
 public:
-    explicit Options();
+    Options() = default;
 
     Options(const Options& other) = delete;
+    Options& operator=(const Options& other) = delete;
 
     template <typename T>
     void set(const std::string& key, T value)
@@ -98,16 +99,19 @@ public:
         const auto it = storage.find(key);
         if (it == storage.end()) {
             throw downward::utils::CriticalError(
-                "Attempt to retrieve nonexisting object of name " + key +
-                " (type: " + typeid(T).name() + ")");
+                "Attempt to retrieve non-existing object of name {} (type: {})",
+                key,
+                typeid(T).name());
         }
         try {
             T result = OptionsAnyCaster<T>::cast(it->second);
             return result;
         } catch (const std::bad_any_cast&) {
             throw downward::utils::CriticalError(
-                "Invalid conversion while retrieving config options!\n" + key +
-                " is not of type " + typeid(T).name() + " but of type " +
+                "Invalid conversion while retrieving config options!\n"
+                "{} is not of type {} but of type {}",
+                key,
+                typeid(T).name(),
                 it->second.type().name());
         }
     }
@@ -115,7 +119,7 @@ public:
     template <typename T>
     T get(const std::string& key, const T& default_value) const
     {
-        if (storage.count(key))
+        if (storage.contains(key))
             return get<T>(key);
         else
             return default_value;
@@ -138,9 +142,8 @@ void verify_list_non_empty(
     const Options& opts,
     const std::string& key)
 {
-    std::vector<T> list = opts.get_list<T>(key);
-    if (list.empty()) {
-        context.error("List argument '" + key + "' has to be non-empty.");
+    if (std::vector<T> list = opts.get_list<T>(key); list.empty()) {
+        context.error("List argument '{}' has to be non-empty.", key);
     }
 }
 } // namespace downward::cli::plugins

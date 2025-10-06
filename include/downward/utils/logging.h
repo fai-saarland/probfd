@@ -239,6 +239,18 @@ public:
     [[noreturn]]
     virtual void error(const std::string& message) const;
     virtual void warn(const std::string& message) const;
+
+    template <typename... Args>
+    void error(std::format_string<Args...> text, Args&&... args) const
+    {
+        error(std::format(std::move(text), std::forward<Args...>(args...)));
+    }
+
+    template <typename... Args>
+    void warn(std::format_string<Args...> text, Args&&... args) const
+    {
+        warn(std::format(std::move(text), std::forward<Args...>(args...)));
+    }
 };
 
 class TraceBlock {
