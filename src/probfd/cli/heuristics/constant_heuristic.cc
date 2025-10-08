@@ -14,10 +14,10 @@ using namespace probfd::heuristics;
 using namespace downward::cli::plugins;
 
 namespace {
-class BlindHeuristicFactoryFeature : public TypedFeature<TaskHeuristicFactory> {
+class BlindHeuristicFactoryFeature : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     BlindHeuristicFactoryFeature()
-        : TypedFeature("blind_heuristic")
+        : SharedTypedFeature("blind_heuristic")
     {
         document_title("Blind Heuristic");
         document_synopsis(

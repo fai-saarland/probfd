@@ -10,10 +10,10 @@ using namespace downward;
 using namespace downward::cli::plugins;
 
 namespace {
-class PruneStrategyAliveFeature : public TypedFeature<PruneStrategy> {
+class PruneStrategyAliveFeature : public SharedTypedFeature<PruneStrategy> {
 public:
     PruneStrategyAliveFeature()
-        : TypedFeature("prune_alive")
+        : SharedTypedFeature("prune_alive")
     {
         document_title("Alive states prune strategy");
         document_synopsis("This prune strategy keeps only alive states.");

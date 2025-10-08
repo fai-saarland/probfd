@@ -16,10 +16,10 @@ using namespace downward::cli::plugins;
 using namespace downward::merge_and_shrink;
 
 namespace {
-class ShrinkBisimulationFeature : public TypedFeature<ShrinkStrategy> {
+class ShrinkBisimulationFeature : public SharedTypedFeature<ShrinkStrategy> {
 public:
     ShrinkBisimulationFeature()
-        : TypedFeature("shrink_bisimulation")
+        : SharedTypedFeature("shrink_bisimulation")
     {
         document_title("Bismulation based shrink strategy");
         document_synopsis(

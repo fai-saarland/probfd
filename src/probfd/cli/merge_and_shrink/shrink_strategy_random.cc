@@ -17,10 +17,10 @@ using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
 namespace {
-class ShrinkRandomFeature : public TypedFeature<ShrinkStrategy> {
+class ShrinkRandomFeature : public SharedTypedFeature<ShrinkStrategy> {
 public:
     ShrinkRandomFeature()
-        : TypedFeature("pshrink_random")
+        : SharedTypedFeature("pshrink_random")
     {
         document_title("Random Shrink Strategy");
         document_synopsis(

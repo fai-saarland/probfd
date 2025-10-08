@@ -15,10 +15,10 @@ using namespace downward::cli::pdbs;
 using namespace downward::cli::plugins;
 
 namespace {
-class PatternGeneratorManualFeature : public TypedFeature<PatternGenerator> {
+class PatternGeneratorManualFeature : public SharedTypedFeature<PatternGenerator> {
 public:
     PatternGeneratorManualFeature()
-        : TypedFeature("manual_pattern")
+        : SharedTypedFeature("manual_pattern")
     {
         add_list_option<int>(
             "pattern",

@@ -14,12 +14,12 @@ using namespace downward::cli::plugins;
 namespace {
 template <typename T>
 class AlternationOpenListFeature
-    : public TypedFeature<
+    : public SharedTypedFeature<
           downward::TaskDependentFactory<downward::OpenList<T>>> {
 public:
     AlternationOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
-        : AlternationOpenListFeature::TypedFeature("state_alt")
+        : AlternationOpenListFeature::SharedTypedFeature("state_alt")
     {
         this->document_title("Alternation state open list");
         this->document_synopsis("alternates between several open lists.");
@@ -37,7 +37,7 @@ public:
 
     AlternationOpenListFeature()
         requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : AlternationOpenListFeature::TypedFeature("edge_alt")
+        : AlternationOpenListFeature::SharedTypedFeature("edge_alt")
     {
         this->document_title("Alternation edge open list");
         this->document_synopsis("alternates between several open lists.");

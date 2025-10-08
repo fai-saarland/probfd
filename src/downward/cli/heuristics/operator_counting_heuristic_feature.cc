@@ -73,10 +73,10 @@ public:
 };
 
 class OperatorCountingHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     OperatorCountingHeuristicFeature()
-        : TypedFeature("operatorcounting")
+        : SharedTypedFeature("operatorcounting")
     {
         document_title("Operator-counting heuristic");
         document_synopsis(

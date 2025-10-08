@@ -25,10 +25,10 @@ using namespace probfd::cli::merge_and_shrink;
 
 namespace {
 class MergeStrategyFactorySCCsFeature
-    : public TypedFeature<MergeStrategyFactory> {
+    : public SharedTypedFeature<MergeStrategyFactory> {
 public:
     MergeStrategyFactorySCCsFeature()
-        : TypedFeature("pmerge_sccs")
+        : SharedTypedFeature("pmerge_sccs")
     {
         document_title("Merge strategy SSCs");
         document_synopsis(

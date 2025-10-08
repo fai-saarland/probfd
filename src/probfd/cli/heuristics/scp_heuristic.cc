@@ -24,10 +24,10 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-class SCPHeuristicFactoryFeature : public TypedFeature<TaskHeuristicFactory> {
+class SCPHeuristicFactoryFeature : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     SCPHeuristicFactoryFeature()
-        : TypedFeature("scp_heuristic")
+        : SharedTypedFeature("scp_heuristic")
     {
         document_title("Saturated Cost Partitioning Heuristic");
         document_synopsis(

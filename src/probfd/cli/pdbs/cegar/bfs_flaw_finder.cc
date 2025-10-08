@@ -12,10 +12,10 @@ using namespace probfd::pdbs::cegar;
 using namespace downward::cli::plugins;
 
 namespace {
-class BFSFlawFinderFeature : public TypedFeature<FlawFindingStrategy> {
+class BFSFlawFinderFeature : public SharedTypedFeature<FlawFindingStrategy> {
 public:
     BFSFlawFinderFeature()
-        : TypedFeature("bfs_flaw_finder")
+        : SharedTypedFeature("bfs_flaw_finder")
     {
         add_option<int>(
             "max_search_states",

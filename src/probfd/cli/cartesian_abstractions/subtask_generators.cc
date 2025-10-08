@@ -19,10 +19,10 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-class TaskDuplicatorFeature : public TypedFeature<SubtaskGenerator> {
+class TaskDuplicatorFeature : public SharedTypedFeature<SubtaskGenerator> {
 public:
     TaskDuplicatorFeature()
-        : TypedFeature("pcegar_original")
+        : SharedTypedFeature("pcegar_original")
     {
         add_option<int>(
             "copies",
@@ -39,10 +39,10 @@ public:
     }
 };
 
-class GoalDecompositionFeature : public TypedFeature<SubtaskGenerator> {
+class GoalDecompositionFeature : public SharedTypedFeature<SubtaskGenerator> {
 public:
     GoalDecompositionFeature()
-        : TypedFeature("pcegar_goals")
+        : SharedTypedFeature("pcegar_goals")
     {
         add_option<FactOrder>(
             "order",
@@ -60,10 +60,10 @@ public:
     }
 };
 
-class LandmarkDecompositionFeature : public TypedFeature<SubtaskGenerator> {
+class LandmarkDecompositionFeature : public SharedTypedFeature<SubtaskGenerator> {
 public:
     LandmarkDecompositionFeature()
-        : TypedFeature("pcegar_landmarks")
+        : SharedTypedFeature("pcegar_landmarks")
     {
         add_option<std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
             "mutexes",

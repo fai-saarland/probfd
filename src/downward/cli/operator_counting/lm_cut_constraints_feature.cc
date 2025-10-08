@@ -14,10 +14,10 @@ using namespace downward::operator_counting;
 using namespace downward::cli::plugins;
 
 namespace {
-class LMCutConstraintsFeature : public TypedFeature<ConstraintGenerator> {
+class LMCutConstraintsFeature : public SharedTypedFeature<ConstraintGenerator> {
 public:
     LMCutConstraintsFeature()
-        : TypedFeature("lmcut_constraints")
+        : SharedTypedFeature("lmcut_constraints")
     {
         document_title("LM-cut landmark constraints");
         document_synopsis(

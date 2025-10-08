@@ -20,10 +20,10 @@ using downward::cli::landmarks::add_use_orders_option_to_feature;
 using downward::cli::landmarks::get_use_orders_arguments_from_options;
 
 namespace {
-class LandmarkFactoryRpgSaspFeature : public TypedFeature<LandmarkFactory> {
+class LandmarkFactoryRpgSaspFeature : public SharedTypedFeature<LandmarkFactory> {
 public:
     LandmarkFactoryRpgSaspFeature()
-        : TypedFeature("lm_rhw")
+        : SharedTypedFeature("lm_rhw")
     {
         document_title("RHW Landmarks");
         document_synopsis(

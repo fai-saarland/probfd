@@ -21,12 +21,12 @@ using downward::cli::get_open_list_arguments_from_options;
 namespace {
 template <typename T>
 class BestFirstOpenListFeature
-    : public TypedFeature<
+    : public SharedTypedFeature<
           downward::TaskDependentFactory<downward::OpenList<T>>> {
 public:
     BestFirstOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
-        : BestFirstOpenListFeature::TypedFeature("state_single")
+        : BestFirstOpenListFeature::SharedTypedFeature("state_single")
     {
         this->document_title("Best-first state open list");
         this->document_synopsis(
@@ -52,7 +52,7 @@ public:
 
     BestFirstOpenListFeature()
         requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : BestFirstOpenListFeature::TypedFeature("edge_single")
+        : BestFirstOpenListFeature::SharedTypedFeature("edge_single")
     {
         this->document_title("Best-first edge open list");
         this->document_synopsis(

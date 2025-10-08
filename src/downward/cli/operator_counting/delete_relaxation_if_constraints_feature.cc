@@ -17,10 +17,10 @@ using namespace downward::cli::plugins;
 
 namespace {
 class DeleteRelaxationIFConstraintsFeature
-    : public TypedFeature<ConstraintGenerator> {
+    : public SharedTypedFeature<ConstraintGenerator> {
 public:
     DeleteRelaxationIFConstraintsFeature()
-        : TypedFeature("delete_relaxation_if_constraints")
+        : SharedTypedFeature("delete_relaxation_if_constraints")
     {
         document_title("Delete relaxation constraints");
         document_synopsis(

@@ -54,12 +54,12 @@ public:
 };
 
 template <bool Bisimulation>
-class AOStarSolverFeature : public TypedFeature<TaskSolverFactory> {
+class AOStarSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
     using Sampler = SuccessorSampler<ActionType<Bisimulation, false>>;
 
 public:
     AOStarSolverFeature()
-        : TypedFeature(add_wrapper_algo_suffix<Bisimulation, false>("aostar"))
+        : SharedTypedFeature(add_wrapper_algo_suffix<Bisimulation, false>("aostar"))
     {
         this->document_title("AO* algorithm");
 

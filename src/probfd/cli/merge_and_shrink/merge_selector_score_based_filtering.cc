@@ -14,10 +14,10 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 class MergeSelectorScoreBasedFilteringFeature
-    : public TypedFeature<MergeSelector> {
+    : public SharedTypedFeature<MergeSelector> {
 public:
     MergeSelectorScoreBasedFilteringFeature()
-        : TypedFeature("pscore_based_filtering")
+        : SharedTypedFeature("pscore_based_filtering")
     {
         document_title("Score based filtering merge selector");
         document_synopsis(

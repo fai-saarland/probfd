@@ -14,10 +14,10 @@ using namespace downward::cli::plugins;
 
 namespace {
 class TrivialFinderFactoryFeature
-    : public TypedFeature<SubCollectionFinderFactory> {
+    : public SharedTypedFeature<SubCollectionFinderFactory> {
 public:
     TrivialFinderFactoryFeature()
-        : TypedFeature("finder_trivial_factory")
+        : SharedTypedFeature("finder_trivial_factory")
     {
     }
 

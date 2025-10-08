@@ -16,10 +16,10 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 class ShrinkProbabilisticBisimulationFeature
-    : public TypedFeature<ShrinkStrategy> {
+    : public SharedTypedFeature<ShrinkStrategy> {
 public:
     ShrinkProbabilisticBisimulationFeature()
-        : TypedFeature("pshrink_probabilistic_bisimulation")
+        : SharedTypedFeature("pshrink_probabilistic_bisimulation")
     {
         document_title("Probabilistic Bisimulation-based shrink strategy");
         document_synopsis(

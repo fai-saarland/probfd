@@ -15,10 +15,10 @@ using namespace downward::cli::pdbs;
 using namespace downward::cli::plugins;
 
 namespace {
-class PatternGeneratorGreedyFeature : public TypedFeature<PatternGenerator> {
+class PatternGeneratorGreedyFeature : public SharedTypedFeature<PatternGenerator> {
 public:
     PatternGeneratorGreedyFeature()
-        : TypedFeature("greedy")
+        : SharedTypedFeature("greedy")
     {
         add_option<int>(
             "max_states",

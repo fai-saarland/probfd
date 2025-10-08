@@ -19,10 +19,10 @@ using namespace downward;
 using namespace downward::stubborn_sets_ec;
 
 namespace {
-class StubbornSetsECFeature : public TypedFeature<PruningMethod> {
+class StubbornSetsECFeature : public SharedTypedFeature<PruningMethod> {
 public:
     StubbornSetsECFeature()
-        : TypedFeature("stubborn_sets_ec")
+        : SharedTypedFeature("stubborn_sets_ec")
     {
         document_title("StubbornSetsEC");
         document_synopsis(

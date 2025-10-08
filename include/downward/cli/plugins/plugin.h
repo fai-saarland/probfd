@@ -79,11 +79,9 @@ public:
 
 template <typename ReturnType>
 class TypedFeature : public Feature {
-    using BasePtr = std::shared_ptr<ReturnType>;
-
 public:
     explicit TypedFeature(const std::string& key)
-        : Feature(TypeRegistry::instance()->get_type<BasePtr>(), key)
+        : Feature(TypeRegistry::instance()->get_type<ReturnType>(), key)
     {
     }
 
@@ -94,8 +92,14 @@ public:
         return {this->create_component(options, context)};
     }
 
-    virtual std::shared_ptr<ReturnType>
+    virtual ReturnType
     create_component(const Options&, const downward::utils::Context&) const = 0;
+};
+
+template <typename ReturnType>
+class SharedTypedFeature : public TypedFeature<std::shared_ptr<ReturnType>> {
+public:
+    using TypedFeature<std::shared_ptr<ReturnType>>::TypedFeature;
 };
 
 /*

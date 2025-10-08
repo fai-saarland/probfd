@@ -22,10 +22,10 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-class LabelReductionFeature : public TypedFeature<LabelReduction> {
+class LabelReductionFeature : public SharedTypedFeature<LabelReduction> {
 public:
     LabelReductionFeature()
-        : TypedFeature("exact")
+        : SharedTypedFeature("exact")
     {
         document_title("Exact generalized label reduction");
         document_synopsis(

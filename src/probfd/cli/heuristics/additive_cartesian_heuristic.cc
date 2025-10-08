@@ -18,10 +18,10 @@ using namespace downward::cli::plugins;
 
 namespace {
 class AdditiveCartesianHeuristicFactoryFeature
-    : public TypedFeature<TaskHeuristicFactory> {
+    : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     AdditiveCartesianHeuristicFactoryFeature()
-        : TypedFeature("pcegar")
+        : SharedTypedFeature("pcegar")
     {
         document_title("Additive Cartesian CEGAR heuristic");
 

@@ -58,10 +58,10 @@ public:
 };
 
 class ZeroOnePDBsHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     ZeroOnePDBsHeuristicFeature()
-        : TypedFeature("zopdbs")
+        : SharedTypedFeature("zopdbs")
     {
         document_subcategory("heuristics_pdb");
         document_title("Zero-One PDB");

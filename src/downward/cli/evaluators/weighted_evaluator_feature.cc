@@ -54,10 +54,10 @@ public:
 };
 
 class WeightedEvaluatorFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     WeightedEvaluatorFeature()
-        : TypedFeature("weight")
+        : SharedTypedFeature("weight")
     {
         document_subcategory("evaluators_basic");
         document_title("Weighted evaluator");

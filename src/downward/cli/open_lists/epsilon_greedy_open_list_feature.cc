@@ -28,12 +28,12 @@ using downward::cli::utils::get_rng_arguments_from_options;
 namespace {
 template <typename T>
 class EpsilonGreedyOpenListFeature
-    : public TypedFeature<
+    : public SharedTypedFeature<
           downward::TaskDependentFactory<downward::OpenList<T>>> {
 public:
     EpsilonGreedyOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
-        : EpsilonGreedyOpenListFeature::TypedFeature("state_epsilon_greedy")
+        : EpsilonGreedyOpenListFeature::SharedTypedFeature("state_epsilon_greedy")
     {
         this->document_title("Epsilon-greedy state open list");
         this->document_synopsis(
@@ -70,7 +70,7 @@ public:
 
     EpsilonGreedyOpenListFeature()
         requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : EpsilonGreedyOpenListFeature::TypedFeature("edge_epsilon_greedy")
+        : EpsilonGreedyOpenListFeature::SharedTypedFeature("edge_epsilon_greedy")
     {
         this->document_title("Epsilon-greedy edge open list");
         this->document_synopsis(

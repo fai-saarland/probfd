@@ -62,10 +62,10 @@ public:
     }
 };
 
-class I2DualSolverFeature : public TypedFeature<TaskSolverFactory> {
+class I2DualSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     I2DualSolverFeature()
-        : TypedFeature("i2dual")
+        : SharedTypedFeature("i2dual")
     {
         document_title("i^2-dual");
 

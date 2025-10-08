@@ -18,10 +18,10 @@ using namespace downward::cli;
 using namespace downward::cli::plugins;
 
 namespace {
-class StubbornSetsSimpleFeature : public TypedFeature<downward::PruningMethod> {
+class StubbornSetsSimpleFeature : public SharedTypedFeature<downward::PruningMethod> {
 public:
     StubbornSetsSimpleFeature()
-        : TypedFeature("stubborn_sets_simple")
+        : SharedTypedFeature("stubborn_sets_simple")
     {
         document_title("Stubborn sets simple");
         document_synopsis(

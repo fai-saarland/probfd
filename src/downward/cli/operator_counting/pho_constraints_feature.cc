@@ -15,10 +15,10 @@ using namespace downward::operator_counting;
 using namespace downward::cli::plugins;
 
 namespace {
-class PhOConstraintsFeature : public TypedFeature<ConstraintGenerator> {
+class PhOConstraintsFeature : public SharedTypedFeature<ConstraintGenerator> {
 public:
     PhOConstraintsFeature()
-        : TypedFeature("pho_constraints")
+        : SharedTypedFeature("pho_constraints")
     {
         document_title("Posthoc optimization constraints");
         document_synopsis(

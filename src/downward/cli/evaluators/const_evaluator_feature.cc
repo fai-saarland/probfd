@@ -45,10 +45,10 @@ public:
 };
 
 class ConstEvaluatorFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     ConstEvaluatorFeature()
-        : TypedFeature("const")
+        : SharedTypedFeature("const")
     {
         document_subcategory("evaluators_basic");
         document_title("Constant evaluator");

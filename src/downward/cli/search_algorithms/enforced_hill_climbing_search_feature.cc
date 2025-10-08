@@ -77,10 +77,10 @@ public:
 };
 
 class EnforcedHillClimbingSearchFeature
-    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
+    : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     EnforcedHillClimbingSearchFeature()
-        : TypedFeature("ehc")
+        : SharedTypedFeature("ehc")
     {
         document_title("Lazy enforced hill-climbing");
         document_synopsis("");

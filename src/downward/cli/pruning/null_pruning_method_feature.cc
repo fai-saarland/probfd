@@ -16,10 +16,10 @@ using namespace downward::cli;
 using namespace downward::cli::plugins;
 
 namespace {
-class NullPruningMethodFeature : public TypedFeature<downward::PruningMethod> {
+class NullPruningMethodFeature : public SharedTypedFeature<downward::PruningMethod> {
 public:
     NullPruningMethodFeature()
-        : TypedFeature("null")
+        : SharedTypedFeature("null")
     {
         // document_group("");
         document_title("No pruning");

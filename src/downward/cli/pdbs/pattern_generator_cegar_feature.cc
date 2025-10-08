@@ -24,10 +24,10 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-class PatternGeneratorCEGARFeature : public TypedFeature<PatternGenerator> {
+class PatternGeneratorCEGARFeature : public SharedTypedFeature<PatternGenerator> {
 public:
     PatternGeneratorCEGARFeature()
-        : TypedFeature("cegar_pattern")
+        : SharedTypedFeature("cegar_pattern")
     {
         document_title("CEGAR");
         document_synopsis(

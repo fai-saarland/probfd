@@ -46,10 +46,10 @@ public:
     }
 };
 
-class TATopologicalVISolverFeature : public TypedFeature<TaskSolverFactory> {
+class TATopologicalVISolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TATopologicalVISolverFeature()
-        : TypedFeature("ta_topological_value_iteration")
+        : SharedTypedFeature("ta_topological_value_iteration")
     {
         document_title("Trap-Aware Topological Value Iteration");
         add_base_solver_options_except_algorithm_to_feature(*this);

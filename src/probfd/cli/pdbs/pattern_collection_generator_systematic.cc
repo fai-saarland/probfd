@@ -19,10 +19,10 @@ using downward::cli::utils::get_log_arguments_from_options;
 
 namespace {
 class PatternCollectionGeneratorSystematicFeature
-    : public TypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorSystematicFeature()
-        : TypedFeature("psystematic")
+        : SharedTypedFeature("psystematic")
     {
         document_title("Systematically generated patterns");
         document_synopsis(

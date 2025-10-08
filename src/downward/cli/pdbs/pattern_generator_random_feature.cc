@@ -22,10 +22,10 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-class PatternGeneratorRandomFeature : public TypedFeature<PatternGenerator> {
+class PatternGeneratorRandomFeature : public SharedTypedFeature<PatternGenerator> {
 public:
     PatternGeneratorRandomFeature()
-        : TypedFeature("random_pattern")
+        : SharedTypedFeature("random_pattern")
     {
         document_title("Random Pattern");
         document_synopsis(

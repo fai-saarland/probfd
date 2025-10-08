@@ -20,10 +20,10 @@ using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
 namespace {
-class MergeTreeFactoryLinearFeature : public TypedFeature<MergeTreeFactory> {
+class MergeTreeFactoryLinearFeature : public SharedTypedFeature<MergeTreeFactory> {
 public:
     MergeTreeFactoryLinearFeature()
-        : TypedFeature("plinear")
+        : SharedTypedFeature("plinear")
     {
         document_title("Linear merge trees");
         document_synopsis(

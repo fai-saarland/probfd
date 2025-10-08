@@ -28,12 +28,12 @@ using downward::cli::utils::get_rng_arguments_from_options;
 namespace {
 template <typename T>
 class ParetoOpenListFeature
-    : public TypedFeature<
+    : public SharedTypedFeature<
           downward::TaskDependentFactory<downward::OpenList<T>>> {
 public:
     ParetoOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
-        : ParetoOpenListFeature::TypedFeature("state_pareto")
+        : ParetoOpenListFeature::SharedTypedFeature("state_pareto")
     {
         this->document_title("Pareto state open list");
         this->document_synopsis(
@@ -57,7 +57,7 @@ public:
 
     ParetoOpenListFeature()
         requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : ParetoOpenListFeature::TypedFeature("edge_pareto")
+        : ParetoOpenListFeature::SharedTypedFeature("edge_pareto")
     {
         this->document_title("Pareto edge open list");
         this->document_synopsis(

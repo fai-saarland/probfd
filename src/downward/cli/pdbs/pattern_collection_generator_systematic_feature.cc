@@ -18,10 +18,10 @@ using namespace downward::cli::plugins;
 
 namespace {
 class PatternCollectionGeneratorSystematicFeature
-    : public TypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorSystematicFeature()
-        : TypedFeature("systematic")
+        : SharedTypedFeature("systematic")
     {
         document_title("Systematically generated patterns");
         document_synopsis(

@@ -61,12 +61,12 @@ public:
 };
 
 template <bool Bisimulation, bool Fret>
-class LRTDPSolverFeature : public TypedFeature<TaskSolverFactory> {
+class LRTDPSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
     using Sampler = SuccessorSampler<ActionType<Bisimulation, Fret>>;
 
 public:
     LRTDPSolverFeature()
-        : TypedFeature(
+        : SharedTypedFeature(
               add_wrapper_algo_suffix<Bisimulation, Fret>("lrtdp"))
     {
         this->document_title("Labelled Real-Time Dynamic Programming");

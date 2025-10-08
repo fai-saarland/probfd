@@ -88,10 +88,10 @@ public:
     }
 };
 
-class ExhaustiveDFSSolverFeature : public TypedFeature<TaskSolverFactory> {
+class ExhaustiveDFSSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     ExhaustiveDFSSolverFeature()
-        : TypedFeature("exhaustive_dfs")
+        : SharedTypedFeature("exhaustive_dfs")
     {
         document_title("Exhaustive Depth-First Search");
 

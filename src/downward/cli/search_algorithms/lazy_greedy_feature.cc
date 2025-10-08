@@ -103,10 +103,10 @@ public:
 };
 
 class LazyGreedySearchFeature
-    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
+    : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     LazyGreedySearchFeature()
-        : TypedFeature("lazy_greedy")
+        : SharedTypedFeature("lazy_greedy")
     {
         document_title("Greedy search (lazy)");
         document_synopsis("");

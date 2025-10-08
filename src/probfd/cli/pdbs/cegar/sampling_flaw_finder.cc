@@ -20,10 +20,10 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-class SamplingFlawFinderFeature : public TypedFeature<FlawFindingStrategy> {
+class SamplingFlawFinderFeature : public SharedTypedFeature<FlawFindingStrategy> {
 public:
     SamplingFlawFinderFeature()
-        : TypedFeature("sampling_flaw_finder")
+        : SharedTypedFeature("sampling_flaw_finder")
     {
         add_rng_options_to_feature(*this);
         add_option<int>(

@@ -41,10 +41,10 @@ public:
 };
 
 class PrefEvaluatorFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     PrefEvaluatorFeature()
-        : TypedFeature("pref")
+        : SharedTypedFeature("pref")
     {
         document_subcategory("evaluators_basic");
         document_title("Preference evaluator");

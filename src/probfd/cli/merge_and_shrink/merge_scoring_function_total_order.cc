@@ -21,10 +21,10 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 class MergeScoringFunctionTotalOrderFeature
-    : public TypedFeature<MergeScoringFunction> {
+    : public SharedTypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionTotalOrderFeature()
-        : TypedFeature("ptotal_order")
+        : SharedTypedFeature("ptotal_order")
     {
         document_title("Total order");
         document_synopsis(

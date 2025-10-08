@@ -17,10 +17,10 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 class MergeScoringFunctionDFPFeature
-    : public TypedFeature<MergeScoringFunction> {
+    : public SharedTypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionDFPFeature()
-        : TypedFeature("pdfp")
+        : SharedTypedFeature("pdfp")
     {
         document_title("DFP scoring");
         document_synopsis(

@@ -20,10 +20,10 @@ using namespace downward::cli::plugins;
 using namespace probfd::merge_and_shrink;
 
 namespace {
-class ShrinkBisimulationFeature : public TypedFeature<ShrinkStrategy> {
+class ShrinkBisimulationFeature : public SharedTypedFeature<ShrinkStrategy> {
 public:
     ShrinkBisimulationFeature()
-        : TypedFeature("pshrink_bisimulation")
+        : SharedTypedFeature("pshrink_bisimulation")
     {
         document_title("Bismulation based shrink strategy");
         document_synopsis(

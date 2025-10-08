@@ -17,10 +17,10 @@ using downward::cli::merge_and_shrink::add_shrink_bucket_options_to_feature;
 using downward::cli::merge_and_shrink::get_shrink_bucket_arguments_from_options;
 
 namespace {
-class ShrinkRandomFeature : public TypedFeature<ShrinkStrategy> {
+class ShrinkRandomFeature : public SharedTypedFeature<ShrinkStrategy> {
 public:
     ShrinkRandomFeature()
-        : TypedFeature("shrink_random")
+        : SharedTypedFeature("shrink_random")
     {
         document_title("Random");
         document_synopsis("");

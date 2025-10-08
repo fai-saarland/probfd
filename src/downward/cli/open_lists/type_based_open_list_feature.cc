@@ -26,12 +26,12 @@ using downward::cli::utils::get_rng_arguments_from_options;
 namespace {
 template <typename T>
 class TypeBasedOpenListFeature
-    : public TypedFeature<
+    : public SharedTypedFeature<
           downward::TaskDependentFactory<downward::OpenList<T>>> {
 public:
     TypeBasedOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
-        : TypeBasedOpenListFeature::TypedFeature("state_type_based")
+        : TypeBasedOpenListFeature::SharedTypedFeature("state_type_based")
     {
         this->document_title("Type-based state open list");
         this->document_synopsis(
@@ -61,7 +61,7 @@ public:
 
     TypeBasedOpenListFeature()
         requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : TypeBasedOpenListFeature::TypedFeature("edge_type_based")
+        : TypeBasedOpenListFeature::SharedTypedFeature("edge_type_based")
     {
         this->document_title("Type-based edge open list");
         this->document_synopsis(

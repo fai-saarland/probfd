@@ -55,10 +55,10 @@ public:
 };
 
 class BlindSearchHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     BlindSearchHeuristicFeature()
-        : TypedFeature("blind")
+        : SharedTypedFeature("blind")
     {
         document_title("Blind heuristic");
         document_synopsis(

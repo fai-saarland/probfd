@@ -19,10 +19,10 @@ using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 using downward::cli::landmarks::get_landmark_factory_arguments_from_options;
 
 namespace {
-class LandmarkFactoryMergedFeature : public TypedFeature<LandmarkFactory> {
+class LandmarkFactoryMergedFeature : public SharedTypedFeature<LandmarkFactory> {
 public:
     LandmarkFactoryMergedFeature()
-        : TypedFeature("lm_merged")
+        : SharedTypedFeature("lm_merged")
     {
         document_title("Merged Landmarks");
         document_synopsis(

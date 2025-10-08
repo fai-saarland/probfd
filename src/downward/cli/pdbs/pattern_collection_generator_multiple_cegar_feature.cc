@@ -19,10 +19,10 @@ using namespace downward::cli::plugins;
 
 namespace {
 class PatternCollectionGeneratorMultipleCegarFeature
-    : public TypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorMultipleCegarFeature()
-        : TypedFeature("multiple_cegar")
+        : SharedTypedFeature("multiple_cegar")
     {
         document_title("Multiple CEGAR");
         document_synopsis(

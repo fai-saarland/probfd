@@ -41,10 +41,10 @@ tuple<FactOrder, int> get_fact_order_arguments_from_options(const Options& opts)
         get_rng_arguments_from_options(opts));
 }
 
-class TaskDuplicatorFeature : public TypedFeature<SubtaskGenerator> {
+class TaskDuplicatorFeature : public SharedTypedFeature<SubtaskGenerator> {
 public:
     TaskDuplicatorFeature()
-        : TypedFeature("original")
+        : SharedTypedFeature("original")
     {
         add_option<int>(
             "copies",
@@ -61,10 +61,10 @@ public:
     }
 };
 
-class GoalDecompositionFeature : public TypedFeature<SubtaskGenerator> {
+class GoalDecompositionFeature : public SharedTypedFeature<SubtaskGenerator> {
 public:
     GoalDecompositionFeature()
-        : TypedFeature("goals")
+        : SharedTypedFeature("goals")
     {
         add_fact_order_option(*this);
     }
@@ -77,10 +77,10 @@ public:
     }
 };
 
-class LandmarkDecompositionFeature : public TypedFeature<SubtaskGenerator> {
+class LandmarkDecompositionFeature : public SharedTypedFeature<SubtaskGenerator> {
 public:
     LandmarkDecompositionFeature()
-        : TypedFeature("landmarks")
+        : SharedTypedFeature("landmarks")
     {
         add_option<std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
             "mutexes",

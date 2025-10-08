@@ -53,10 +53,10 @@ public:
     }
 };
 
-class IntervalIterationSolverFeature : public TypedFeature<TaskSolverFactory> {
+class IntervalIterationSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     IntervalIterationSolverFeature()
-        : TypedFeature("interval_iteration")
+        : SharedTypedFeature("interval_iteration")
     {
         document_title("Interval Iteration");
 

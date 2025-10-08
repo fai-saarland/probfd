@@ -10,10 +10,10 @@ using namespace downward;
 using namespace downward::cli::plugins;
 
 namespace {
-class PruneStrategySolvableFeature : public TypedFeature<PruneStrategy> {
+class PruneStrategySolvableFeature : public SharedTypedFeature<PruneStrategy> {
 public:
     PruneStrategySolvableFeature()
-        : TypedFeature("prune_solvable")
+        : SharedTypedFeature("prune_solvable")
     {
         document_title("Solvable states prune strategy");
         document_synopsis("This prune strategy keeps only solvable states.");

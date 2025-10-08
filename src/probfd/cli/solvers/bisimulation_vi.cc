@@ -233,10 +233,10 @@ public:
     }
 };
 
-class BisimulationVISolverFeature : public TypedFeature<TaskSolverFactory> {
+class BisimulationVISolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     BisimulationVISolverFeature()
-        : TypedFeature("bisimulation_vi")
+        : SharedTypedFeature("bisimulation_vi")
     {
         document_title("Bisimulation Value Iteration");
 
@@ -256,10 +256,10 @@ protected:
     }
 };
 
-class BisimulationIISolverFeature : public TypedFeature<TaskSolverFactory> {
+class BisimulationIISolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     BisimulationIISolverFeature()
-        : TypedFeature("bisimulation_ii")
+        : SharedTypedFeature("bisimulation_ii")
     {
         document_title("Bisimulation Interval Iteration");
 

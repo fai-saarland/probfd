@@ -98,10 +98,10 @@ public:
 };
 
 class InitialStatePotentialHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     InitialStatePotentialHeuristicFeature()
-        : TypedFeature("initial_state_potential")
+        : SharedTypedFeature("initial_state_potential")
     {
         document_subcategory("heuristics_potentials");
         document_title("Potential heuristic optimized for initial state");
@@ -127,10 +127,10 @@ public:
 };
 
 class AllStatesPotentialHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     AllStatesPotentialHeuristicFeature()
-        : TypedFeature("all_states_potential")
+        : SharedTypedFeature("all_states_potential")
     {
         document_subcategory("heuristics_potentials");
         document_title("Potential heuristic optimized for all states");

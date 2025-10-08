@@ -21,10 +21,10 @@ using downward::cli::utils::get_log_arguments_from_options;
 
 namespace {
 class StateEquationConstraintsFeature
-    : public TypedFeature<ConstraintGenerator> {
+    : public SharedTypedFeature<ConstraintGenerator> {
 public:
     StateEquationConstraintsFeature()
-        : TypedFeature("state_equation_constraints")
+        : SharedTypedFeature("state_equation_constraints")
     {
         document_title("State equation constraints");
         document_synopsis(

@@ -14,10 +14,10 @@ using namespace probfd::cartesian_abstractions;
 
 namespace {
 class ILAOFlawGeneratorFactoryFeature
-    : public TypedFeature<FlawGeneratorFactory> {
+    : public SharedTypedFeature<FlawGeneratorFactory> {
 public:
     ILAOFlawGeneratorFactoryFeature()
-        : TypedFeature("flaws_ilao")
+        : SharedTypedFeature("flaws_ilao")
     {
         add_option<probfd::value_t>(
             "convergence_epsilon",

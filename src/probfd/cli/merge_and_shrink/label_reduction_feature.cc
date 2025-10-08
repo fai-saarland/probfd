@@ -22,10 +22,10 @@ using namespace probfd::merge_and_shrink;
 
 namespace {
 class LabelReductionFeature
-    : public TypedFeature<LabelReduction> {
+    : public SharedTypedFeature<LabelReduction> {
 public:
     LabelReductionFeature()
-        : TypedFeature("pexact")
+        : SharedTypedFeature("pexact")
     {
         document_title("Exact generalized label reduction");
         document_synopsis(
