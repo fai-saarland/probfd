@@ -84,7 +84,7 @@ protected:
     {
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<ExhaustiveAOSolver<Bisimulation>>(
-                options.get<std::shared_ptr<OpenListType>>("open_list"),
+                options.get_shared<OpenListType>("open_list"),
                 get_mdp_hs_args_from_options<Bisimulation, false>(options)),
             get_base_solver_args_no_algorithm_from_options(options));
     }

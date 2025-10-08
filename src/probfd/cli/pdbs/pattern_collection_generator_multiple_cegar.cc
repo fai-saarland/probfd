@@ -44,7 +44,7 @@ public:
         return make_shared_from_arg_tuples<
             PatternCollectionGeneratorMultipleCegar>(
             opts.get<probfd::value_t>("convergence_epsilon"),
-            opts.get<std::shared_ptr<cegar::FlawFindingStrategy>>(
+            opts.get_shared<cegar::FlawFindingStrategy>(
                 "flaw_strategy"),
             get_cegar_wildcard_arguments_from_options(opts),
             get_multiple_arguments_from_options(opts));

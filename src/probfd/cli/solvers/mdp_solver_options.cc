@@ -68,10 +68,10 @@ MDPSolverArgs get_base_solver_args_from_options(const Options& options)
 {
     return std::tuple_cat(
         std::make_tuple(
-            options.get<std::shared_ptr<StatisticalMDPAlgorithmFactory>>(
+            options.get_shared<StatisticalMDPAlgorithmFactory>(
                 "algorithm"),
-            options.get<std::shared_ptr<TaskStateSpaceFactory>>("state_space"),
-            options.get<std::shared_ptr<TaskHeuristicFactory>>("heuristic")),
+            options.get_shared<TaskStateSpaceFactory>("state_space"),
+            options.get_shared<TaskHeuristicFactory>("heuristic")),
         get_log_arguments_from_options(options),
         std::make_tuple(
             options.get<std::string>("policy_file"),
@@ -87,8 +87,8 @@ get_base_solver_args_no_algorithm_from_options(const Options& options)
 {
     return std::tuple_cat(
         std::make_tuple(
-            options.get<std::shared_ptr<TaskStateSpaceFactory>>("state_space"),
-            options.get<std::shared_ptr<TaskHeuristicFactory>>("heuristic")),
+            options.get_shared<TaskStateSpaceFactory>("state_space"),
+            options.get_shared<TaskHeuristicFactory>("heuristic")),
         get_log_arguments_from_options(options),
         std::make_tuple(
             options.get<bool>("discard_policy")

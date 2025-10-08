@@ -120,7 +120,7 @@ protected:
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<ExhaustiveDFSSolver>(
                 options.get<value_t>("convergence_epsilon"),
-                options.get<std::shared_ptr<FDRTransitionSorter>>(
+                options.get_shared<FDRTransitionSorter>(
                     "order",
                     nullptr),
                 options.get<bool>("dual_bounds"),

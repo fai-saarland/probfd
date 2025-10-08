@@ -84,7 +84,7 @@ public:
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<LandmarkDecomposition>(
-            opts.get<std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
+            opts.get_shared<TaskDependentFactory<MutexInformation>>(
                 "mutexes"),
             opts.get<FactOrder>("order"),
             opts.get<bool>("combine_facts"),

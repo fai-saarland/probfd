@@ -108,7 +108,7 @@ protected:
 
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<LRTDPSolver<Bisimulation, Fret>>(
-                options.get<std::shared_ptr<Sampler>>("successor_sampler"),
+                options.get_shared<Sampler>("successor_sampler"),
                 options.get<TrialTerminationCondition>("trial_termination"),
                 get_mdp_hs_args_from_options<Bisimulation, Fret>(options)),
             get_base_solver_args_no_algorithm_from_options(options));

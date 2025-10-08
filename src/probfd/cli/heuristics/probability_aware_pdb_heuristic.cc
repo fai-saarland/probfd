@@ -48,7 +48,7 @@ public:
     create_component(const Options& opts, const utils::Context&) const override
     {
         return make_shared_from_arg_tuples<ProbabilityAwarePDBHeuristicFactory>(
-            opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"),
+            opts.get_shared<PatternCollectionGenerator>("patterns"),
             opts.get<utils::Duration>("max_time_dominance_pruning"),
             get_task_dependent_heuristic_arguments_from_options(opts));
     }

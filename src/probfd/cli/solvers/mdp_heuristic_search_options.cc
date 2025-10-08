@@ -48,7 +48,7 @@ get_mdp_hs_base_args_from_options(const Options& options)
         std::make_tuple(
             options.get<value_t>("convergence_epsilon"),
             options.get<bool>("dual_bounds"),
-            options.get<std::shared_ptr<PolicyPickerType<Bisimulation, Fret>>>(
+            options.get_shared<PolicyPickerType<Bisimulation, Fret>>(
                 "policy")));
 }
 

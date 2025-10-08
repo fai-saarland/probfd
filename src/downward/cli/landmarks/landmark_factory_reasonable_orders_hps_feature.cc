@@ -70,7 +70,7 @@ public:
     {
         return make_shared_from_arg_tuples<LandmarkFactoryReasonableOrdersHPS>(
             opts.get<shared_ptr<LandmarkFactory>>("lm_factory"),
-            opts.get<std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
+            opts.get_shared<TaskDependentFactory<MutexInformation>>(
                 "mutexes"),
             get_landmark_factory_arguments_from_options(opts));
     }

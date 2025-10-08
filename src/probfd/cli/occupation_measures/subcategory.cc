@@ -192,7 +192,7 @@ public:
             get_log_arguments_from_options(options),
             get_lp_solver_arguments_from_options(options),
             std::make_shared<PHOGeneratorFactory>(
-                options.get<std::shared_ptr<PatternCollectionGenerator>>(
+                options.get_shared<PatternCollectionGenerator>(
                     "patterns")));
     }
 };

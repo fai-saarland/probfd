@@ -99,9 +99,9 @@ public:
             opts.get<int>("max_collection_size"),
             opts.get<utils::Duration>("max_time"),
             get_rng(std::get<0>(get_rng_arguments_from_options(opts))),
-            opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
+            opts.get_shared<SubCollectionFinderFactory>(
                 "subcollection_finder_factory"),
-            opts.get<std::shared_ptr<FlawFindingStrategy>>("flaw_strategy"),
+            opts.get_shared<FlawFindingStrategy>("flaw_strategy"),
             get_pattern_collection_generator_arguments_from_options(opts));
     }
 };
