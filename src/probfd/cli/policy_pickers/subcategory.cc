@@ -60,10 +60,10 @@ using PolicyPicker = Wrapper<algorithms::PolicyPicker, Bisimulation, Fret>;
 
 template <bool Bisimulation, bool Fret>
 class PolicyPickerCategoryPlugin
-    : public TypedCategoryPlugin<PolicyPicker<Bisimulation, Fret>> {
+    : public SharedTypedCategoryPlugin<PolicyPicker<Bisimulation, Fret>> {
 public:
     PolicyPickerCategoryPlugin()
-        : PolicyPickerCategoryPlugin::TypedCategoryPlugin(
+        : PolicyPickerCategoryPlugin::SharedTypedCategoryPlugin(
               add_mdp_type_to_category<Bisimulation, Fret>("PolicyPicker"))
     {
         this->document_synopsis("Tiebreaker for greedy actions.");

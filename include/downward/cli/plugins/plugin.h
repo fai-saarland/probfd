@@ -181,12 +181,16 @@ template <typename T>
 class TypedCategoryPlugin : public CategoryPlugin {
 public:
     explicit TypedCategoryPlugin(const std::string& category_name)
-        : CategoryPlugin(
-              typeid(std::shared_ptr<T>),
-              typeid(std::shared_ptr<T>).name(),
-              category_name)
+        : CategoryPlugin(typeid(T), typeid(T).name(), category_name)
     {
     }
+};
+
+template <typename T>
+class SharedTypedCategoryPlugin
+    : public TypedCategoryPlugin<std::shared_ptr<T>> {
+public:
+    using TypedCategoryPlugin<std::shared_ptr<T>>::TypedCategoryPlugin;
 };
 
 class SubcategoryPlugin {
@@ -263,11 +267,7 @@ void Feature::add_list_option(
         double,
         T>;
 
-    add_option<std::vector<U>>(
-        key,
-        help,
-        default_value,
-        Bounds::unlimited());
+    add_option<std::vector<U>>(key, help, default_value, Bounds::unlimited());
 }
 } // namespace downward::cli::plugins
 
