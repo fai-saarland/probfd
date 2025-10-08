@@ -48,7 +48,7 @@ public:
     {
         return make_shared_from_arg_tuples<UCPHeuristicFactory>(
             get_task_dependent_heuristic_arguments_from_options(opts),
-            opts.get<std::shared_ptr<PatternCollectionGenerator>>("patterns"));
+            opts.get_shared<PatternCollectionGenerator>("patterns"));
     }
 };
 } // namespace

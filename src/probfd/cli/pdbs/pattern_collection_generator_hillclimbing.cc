@@ -92,9 +92,9 @@ public:
 
         return make_shared_from_arg_tuples<
             PatternCollectionGeneratorHillclimbing>(
-            opts.get<std::shared_ptr<PatternCollectionGenerator>>(
+            opts.get_shared<PatternCollectionGenerator>(
                 "initial_generator"),
-            opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
+            opts.get_shared<SubCollectionFinderFactory>(
                 "subcollection_finder_factory"),
             opts.get<int>("pdb_max_size"),
             opts.get<int>("collection_max_size"),

@@ -133,7 +133,7 @@ protected:
     {
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
-                options.get<std::shared_ptr<QOpenList>>("open_list"),
+                options.get_shared<QOpenList>("open_list"),
                 options.get<bool>("fwup"),
                 options.get<BacktrackingUpdateType>("bwup"),
                 options.get<bool>("cutoff_tip"),
@@ -173,7 +173,7 @@ public:
         // opts_copy.set<std::string>("name", "ilao");
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
-                options.get<std::shared_ptr<QOpenList>>("open_list"),
+                options.get_shared<QOpenList>("open_list"),
                 false,
                 BacktrackingUpdateType::SINGLE,
                 true,
@@ -216,7 +216,7 @@ public:
 
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
-                options.get<std::shared_ptr<QOpenList>>("open_list"),
+                options.get_shared<QOpenList>("open_list"),
                 false,
                 BacktrackingUpdateType::SINGLE,
                 true,
@@ -257,7 +257,7 @@ public:
         // opts_copy.set<bool>("labeling", true);
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<TrapAwareDFHSSolver>(
-                options.get<std::shared_ptr<QOpenList>>("open_list"),
+                options.get_shared<QOpenList>("open_list"),
                 true,
                 BacktrackingUpdateType::ON_DEMAND,
                 false,

@@ -79,7 +79,7 @@ protected:
     {
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<AOStarSolver<Bisimulation>>(
-                options.get<std::shared_ptr<Sampler>>("successor_sampler"),
+                options.get_shared<Sampler>("successor_sampler"),
                 get_mdp_hs_args_from_options<Bisimulation, false>(options)),
             get_base_solver_args_no_algorithm_from_options(options));
     }
