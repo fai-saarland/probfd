@@ -2,6 +2,7 @@
 #define UTILS_EXCEPTIONS_H
 
 #include <iosfwd>
+#include <stdexcept>
 #include <string>
 
 namespace downward::utils {

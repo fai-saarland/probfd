@@ -39,7 +39,6 @@ private:
 
 public:
     constexpr auto parse(std::basic_format_parse_context<Char>& ctx)
-        -> const Char*
     {
         return value_formatter_.parse(ctx);
     }

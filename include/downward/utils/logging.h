@@ -220,7 +220,7 @@ struct ContextError : utils::Exception {
 
 class Context {
 protected:
-    static constexpr std::string INDENT = "  ";
+    static constexpr char INDENT[] = "  ";
 
     size_t initial_stack_size =
         0; // TODO: Can be removed once we got rid of LazyValues
