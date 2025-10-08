@@ -67,10 +67,10 @@ public:
 };
 
 class CanonicalPDBsHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     CanonicalPDBsHeuristicFeature()
-        : TypedFeature("cpdbs")
+        : SharedTypedFeature("cpdbs")
     {
         document_subcategory("heuristics_pdb");
         document_title("Canonical PDB");

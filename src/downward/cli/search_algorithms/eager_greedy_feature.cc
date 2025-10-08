@@ -90,10 +90,10 @@ public:
 };
 
 class EagerGreedySearchFeature
-    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
+    : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     EagerGreedySearchFeature()
-        : TypedFeature("eager_greedy")
+        : SharedTypedFeature("eager_greedy")
     {
         document_title("Greedy search (eager)");
         document_synopsis("");

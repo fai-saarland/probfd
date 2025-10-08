@@ -59,10 +59,10 @@ public:
 };
 
 class DefaultTaskStateSpaceFactoryFeature
-    : public TypedFeature<TaskStateSpaceFactory> {
+    : public SharedTypedFeature<TaskStateSpaceFactory> {
 public:
     DefaultTaskStateSpaceFactoryFeature()
-        : TypedFeature("default_state_space")
+        : SharedTypedFeature("default_state_space")
     {
         document_synopsis("Default task state space implementation.");
         add_list_option<std::shared_ptr<Evaluator>>(
@@ -83,10 +83,10 @@ public:
 };
 
 class CachingTaskStateSpaceFactoryFeature
-    : public TypedFeature<TaskStateSpaceFactory> {
+    : public SharedTypedFeature<TaskStateSpaceFactory> {
 public:
     CachingTaskStateSpaceFactoryFeature()
-        : TypedFeature("caching_state_space")
+        : SharedTypedFeature("caching_state_space")
     {
         document_synopsis(
             "Task state space implementation with transition cache.");

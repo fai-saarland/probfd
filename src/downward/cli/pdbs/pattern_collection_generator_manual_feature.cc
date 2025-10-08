@@ -16,10 +16,10 @@ using namespace downward::cli::plugins;
 
 namespace {
 class PatternCollectionGeneratorManualFeature
-    : public TypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorManualFeature()
-        : TypedFeature("manual_patterns")
+        : SharedTypedFeature("manual_patterns")
     {
         add_list_option<Pattern>(
             "patterns",

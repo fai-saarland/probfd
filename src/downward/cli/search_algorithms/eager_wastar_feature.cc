@@ -99,10 +99,10 @@ public:
 };
 
 class EagerWAstarSearchFeature
-    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
+    : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     EagerWAstarSearchFeature()
-        : TypedFeature("eager_wastar")
+        : SharedTypedFeature("eager_wastar")
     {
         document_title("Eager weighted A* search");
         document_synopsis("");

@@ -73,10 +73,10 @@ void add_pattern_collection_generator_cegar_options_to_feature(Feature& feature)
 }
 
 class PatternCollectionGeneratorDisjointCEGARFeature
-    : public TypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorDisjointCEGARFeature()
-        : TypedFeature("ppdbs_disjoint_cegar")
+        : SharedTypedFeature("ppdbs_disjoint_cegar")
     {
         add_option<value_t>(
             "convergence_epsilon",

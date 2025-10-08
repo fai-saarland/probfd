@@ -13,10 +13,10 @@ using namespace downward::cli::plugins;
 
 namespace {
 class MergeScoringFunctionGoalRelevanceFeature
-    : public TypedFeature<MergeScoringFunction> {
+    : public SharedTypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionGoalRelevanceFeature()
-        : TypedFeature("goal_relevance")
+        : SharedTypedFeature("goal_relevance")
     {
         document_title("Goal relevance scoring");
         document_synopsis(

@@ -26,10 +26,10 @@ using namespace downward::merge_and_shrink;
 
 namespace {
 class MergeScoringFunctionMIASMFeature
-    : public TypedFeature<MergeScoringFunction> {
+    : public SharedTypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionMIASMFeature()
-        : TypedFeature("sf_miasm")
+        : SharedTypedFeature("sf_miasm")
     {
         document_title("MIASM");
         document_synopsis(

@@ -49,10 +49,10 @@ public:
 };
 
 template <bool Fret>
-class FifoOpenListFeature : public TypedFeature<OpenList<Fret>> {
+class FifoOpenListFeature : public SharedTypedFeature<OpenList<Fret>> {
 public:
     FifoOpenListFeature()
-        : FifoOpenListFeature::TypedFeature(
+        : FifoOpenListFeature::SharedTypedFeature(
               add_mdp_type_to_option<false, Fret>("fifo_open_list"))
     {
     }
@@ -66,10 +66,10 @@ public:
 };
 
 template <bool Fret>
-class LifoOpenListFeature : public TypedFeature<OpenList<Fret>> {
+class LifoOpenListFeature : public SharedTypedFeature<OpenList<Fret>> {
 public:
     LifoOpenListFeature()
-        : LifoOpenListFeature::TypedFeature(
+        : LifoOpenListFeature::SharedTypedFeature(
               add_mdp_type_to_option<false, Fret>("lifo_open_list"))
     {
     }

@@ -19,10 +19,10 @@ using namespace downward::cli::plugins;
 
 namespace {
 class StubbornSetsAtomCentricFeature
-    : public TypedFeature<downward::PruningMethod> {
+    : public SharedTypedFeature<downward::PruningMethod> {
 public:
     StubbornSetsAtomCentricFeature()
-        : TypedFeature("atom_centric_stubborn_sets")
+        : SharedTypedFeature("atom_centric_stubborn_sets")
     {
         document_title("Atom-centric stubborn sets");
         document_synopsis(

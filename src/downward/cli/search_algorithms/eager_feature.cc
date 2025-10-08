@@ -83,10 +83,10 @@ public:
 };
 
 class EagerSearchFeature
-    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
+    : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     EagerSearchFeature()
-        : TypedFeature("eager")
+        : SharedTypedFeature("eager")
     {
         document_title("Eager best-first search");
         document_synopsis("");

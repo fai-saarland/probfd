@@ -18,10 +18,10 @@ using namespace probfd::cli::merge_and_shrink;
 
 namespace {
 class MergeStrategyFactoryPrecomputedFeature
-    : public TypedFeature<MergeStrategyFactory> {
+    : public SharedTypedFeature<MergeStrategyFactory> {
 public:
     MergeStrategyFactoryPrecomputedFeature()
-        : TypedFeature("pmerge_precomputed")
+        : SharedTypedFeature("pmerge_precomputed")
     {
         document_title("Precomputed merge strategy");
         document_synopsis(

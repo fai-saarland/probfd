@@ -22,10 +22,10 @@ using downward::cli::utils::get_rng_arguments_from_options;
 namespace {
 
 class SplitSelectorRandomFactoryFeature
-    : public TypedFeature<SplitSelectorFactory> {
+    : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorRandomFactoryFeature()
-        : TypedFeature("random")
+        : SharedTypedFeature("random")
     {
         document_synopsis(
             "select a random variable (among all eligible variables)");
@@ -42,10 +42,10 @@ public:
 };
 
 class SplitSelectorMinUnwantedFactoryFeature
-    : public TypedFeature<SplitSelectorFactory> {
+    : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMinUnwantedFactoryFeature()
-        : TypedFeature("min_unwanted")
+        : SharedTypedFeature("min_unwanted")
     {
         document_synopsis(
             "select an eligible variable which has the least unwanted values "
@@ -61,10 +61,10 @@ public:
 };
 
 class SplitSelectorMaxUnwantedFactoryFeature
-    : public TypedFeature<SplitSelectorFactory> {
+    : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMaxUnwantedFactoryFeature()
-        : TypedFeature("max_unwanted")
+        : SharedTypedFeature("max_unwanted")
     {
         document_synopsis(
             "select an eligible variable which has the most unwanted values "
@@ -80,10 +80,10 @@ public:
 };
 
 class SplitSelectorMinRefinedFactoryFeature
-    : public TypedFeature<SplitSelectorFactory> {
+    : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMinRefinedFactoryFeature()
-        : TypedFeature("min_refined")
+        : SharedTypedFeature("min_refined")
     {
         document_synopsis(
             "select an eligible variable which is the least refined "
@@ -99,10 +99,10 @@ public:
 };
 
 class SplitSelectorMaxRefinedFactoryFeature
-    : public TypedFeature<SplitSelectorFactory> {
+    : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMaxRefinedFactoryFeature()
-        : TypedFeature("max_refined")
+        : SharedTypedFeature("max_refined")
     {
         document_synopsis(
             "select an eligible variable which is the most refined "
@@ -118,10 +118,10 @@ public:
 };
 
 class SplitSelectorMinHAddFactoryFeature
-    : public TypedFeature<SplitSelectorFactory> {
+    : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMinHAddFactoryFeature()
-        : TypedFeature("min_hadd")
+        : SharedTypedFeature("min_hadd")
     {
         document_synopsis(
             "select an eligible variable with minimal h^add(s_0) value "
@@ -136,10 +136,10 @@ public:
 };
 
 class SplitSelectorMaxHAddFactoryFeature
-    : public TypedFeature<SplitSelectorFactory> {
+    : public SharedTypedFeature<SplitSelectorFactory> {
 public:
     SplitSelectorMaxHAddFactoryFeature()
-        : TypedFeature("max_hadd")
+        : SharedTypedFeature("max_hadd")
     {
         document_synopsis(
             "Select an eligible variable with maximal h^add(s_0) value "

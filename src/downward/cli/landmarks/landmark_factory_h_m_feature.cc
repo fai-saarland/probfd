@@ -25,10 +25,10 @@ using downward::cli::landmarks::add_landmark_factory_options_to_feature;
 using downward::cli::landmarks::get_landmark_factory_arguments_from_options;
 
 namespace {
-class LandmarkFactoryHMFeature : public TypedFeature<LandmarkFactory> {
+class LandmarkFactoryHMFeature : public SharedTypedFeature<LandmarkFactory> {
 public:
     LandmarkFactoryHMFeature()
-        : TypedFeature("lm_hm")
+        : SharedTypedFeature("lm_hm")
     {
         // document_group("");
         document_title("h^m Landmarks");

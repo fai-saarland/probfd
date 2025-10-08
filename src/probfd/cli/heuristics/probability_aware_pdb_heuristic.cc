@@ -18,10 +18,10 @@ using namespace downward::cli::plugins;
 
 namespace {
 class ProbabilityAwarePDBHeuristicFactoryFeature
-    : public TypedFeature<TaskHeuristicFactory> {
+    : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     ProbabilityAwarePDBHeuristicFactoryFeature()
-        : TypedFeature("ppdbs")
+        : SharedTypedFeature("ppdbs")
     {
         document_title("Probability-aware Pattern database heuristic");
         document_synopsis(

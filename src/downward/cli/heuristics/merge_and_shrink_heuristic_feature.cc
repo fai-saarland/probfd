@@ -101,10 +101,10 @@ public:
 };
 
 class MergeAndShrinkHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     MergeAndShrinkHeuristicFeature()
-        : TypedFeature("merge_and_shrink")
+        : SharedTypedFeature("merge_and_shrink")
     {
         document_title("Merge-and-shrink heuristic");
         document_synopsis(

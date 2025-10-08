@@ -55,10 +55,10 @@ public:
 };
 
 class LandmarkCutHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     LandmarkCutHeuristicFeature()
-        : TypedFeature("lmcut")
+        : SharedTypedFeature("lmcut")
     {
         document_title("Landmark-cut heuristic");
 

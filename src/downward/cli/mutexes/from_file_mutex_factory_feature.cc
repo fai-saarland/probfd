@@ -15,10 +15,10 @@ using namespace downward::cli::plugins;
 
 namespace {
 class FromFileMutexFactoryFeature
-    : public TypedFeature<TaskDependentFactory<MutexInformation>> {
+    : public SharedTypedFeature<TaskDependentFactory<MutexInformation>> {
 public:
     FromFileMutexFactoryFeature()
-        : TypedFeature("mutexes_from_file")
+        : SharedTypedFeature("mutexes_from_file")
     {
         document_title("Mutexes from a mutex file");
         document_synopsis("Produces pre-computed mutexes as read from a file.");

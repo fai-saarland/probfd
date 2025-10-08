@@ -19,10 +19,10 @@ using namespace probfd::cli::heuristics;
 using namespace downward::cli::plugins;
 
 namespace {
-class UCPHeuristicFactoryFeature : public TypedFeature<TaskHeuristicFactory> {
+class UCPHeuristicFactoryFeature : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     UCPHeuristicFactoryFeature()
-        : TypedFeature("ucp_heuristic")
+        : SharedTypedFeature("ucp_heuristic")
     {
         document_title("Uniform Cost Partitioning Heuristic");
         document_synopsis(

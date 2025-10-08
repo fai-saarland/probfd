@@ -58,12 +58,12 @@ public:
 };
 
 template <bool Bisimulation>
-class ExhaustiveAOSolverFeature : public TypedFeature<TaskSolverFactory> {
+class ExhaustiveAOSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
     using OpenListType = OpenList<ActionType<Bisimulation, false>>;
 
 public:
     ExhaustiveAOSolverFeature()
-        : TypedFeature(
+        : SharedTypedFeature(
               add_wrapper_algo_suffix<Bisimulation, false>("exhaustive_ao"))
     {
         this->document_title("Exhaustive AO* algorithm");

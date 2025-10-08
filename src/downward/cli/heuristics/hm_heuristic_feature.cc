@@ -59,10 +59,10 @@ public:
 };
 
 class HMHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     HMHeuristicFeature()
-        : TypedFeature("hm")
+        : SharedTypedFeature("hm")
     {
         document_title("h^m heuristic");
 

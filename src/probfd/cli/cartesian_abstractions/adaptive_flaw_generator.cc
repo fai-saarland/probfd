@@ -14,10 +14,10 @@ using namespace probfd::cartesian_abstractions;
 
 namespace {
 class AdaptiveFlawGeneratorFactoryFeature
-    : public TypedFeature<FlawGeneratorFactory> {
+    : public SharedTypedFeature<FlawGeneratorFactory> {
 public:
     AdaptiveFlawGeneratorFactoryFeature()
-        : TypedFeature("flaws_adaptive")
+        : SharedTypedFeature("flaws_adaptive")
     {
         add_list_option<std::shared_ptr<FlawGeneratorFactory>>(
             "generators",

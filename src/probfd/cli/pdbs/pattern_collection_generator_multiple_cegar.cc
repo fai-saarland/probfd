@@ -20,10 +20,10 @@ using namespace downward::cli::plugins;
 
 namespace {
 class PatternCollectionGeneratorMultipleCegarFeature
-    : public TypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorMultipleCegarFeature()
-        : TypedFeature("ppdbs_multiple_cegar")
+        : SharedTypedFeature("ppdbs_multiple_cegar")
     {
         add_option<probfd::value_t>(
             "convergence_epsilon",

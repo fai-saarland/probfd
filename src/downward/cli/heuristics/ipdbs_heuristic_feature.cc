@@ -124,10 +124,10 @@ public:
     }
 };
 
-class IPDBFeature : public TypedFeature<TaskDependentFactory<Evaluator>> {
+class IPDBFeature : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     IPDBFeature()
-        : TypedFeature("ipdb")
+        : SharedTypedFeature("ipdb")
     {
         document_subcategory("heuristics_pdb");
         document_title("iPDB");

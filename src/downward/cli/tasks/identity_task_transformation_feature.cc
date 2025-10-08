@@ -11,10 +11,10 @@ using namespace downward::cli::plugins;
 
 namespace {
 class IdentityTaskTransformationFeature
-    : public TypedFeature<TaskTransformation> {
+    : public SharedTypedFeature<TaskTransformation> {
 public:
     IdentityTaskTransformationFeature()
-        : TypedFeature("no_transform")
+        : SharedTypedFeature("no_transform")
     {
     }
 

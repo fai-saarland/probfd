@@ -58,10 +58,10 @@ public:
 };
 
 class PDBHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     PDBHeuristicFeature()
-        : TypedFeature("pdb")
+        : SharedTypedFeature("pdb")
     {
         document_subcategory("heuristics_pdb");
         document_title("Pattern database heuristic");

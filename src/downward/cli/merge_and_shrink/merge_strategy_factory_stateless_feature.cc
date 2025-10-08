@@ -19,10 +19,10 @@ using downward::cli::merge_and_shrink::
 
 namespace {
 class MergeStrategyFactoryStatelessFeature
-    : public TypedFeature<MergeStrategyFactory> {
+    : public SharedTypedFeature<MergeStrategyFactory> {
 public:
     MergeStrategyFactoryStatelessFeature()
-        : TypedFeature("merge_stateless")
+        : SharedTypedFeature("merge_stateless")
     {
         document_title("Stateless merge strategy");
         document_synopsis(

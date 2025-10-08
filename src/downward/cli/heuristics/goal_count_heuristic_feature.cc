@@ -55,10 +55,10 @@ public:
 };
 
 class GoalCountHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     GoalCountHeuristicFeature()
-        : TypedFeature("goalcount")
+        : SharedTypedFeature("goalcount")
     {
         document_title("Goal count heuristic");
 

@@ -15,10 +15,10 @@ using namespace downward::cli::plugins;
 
 namespace {
 class MergeScoringFunctionDFPFeature
-    : public TypedFeature<MergeScoringFunction> {
+    : public SharedTypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionDFPFeature()
-        : TypedFeature("dfp")
+        : SharedTypedFeature("dfp")
     {
         document_title("DFP scoring");
         document_synopsis(

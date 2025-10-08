@@ -76,10 +76,10 @@ public:
 };
 
 template <bool Bisimulation, bool Fret>
-class DFHSSolverFeature : public TypedFeature<TaskSolverFactory> {
+class DFHSSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     DFHSSolverFeature()
-        : DFHSSolverFeature::TypedFeature(
+        : DFHSSolverFeature::SharedTypedFeature(
               add_wrapper_algo_suffix<Bisimulation, Fret>("dfhs"))
     {
         this->document_title("Depth-first heuristic search family");
@@ -151,10 +151,10 @@ protected:
 };
 
 template <bool Bisimulation, bool Fret>
-class ILAOSolverFeature : public TypedFeature<TaskSolverFactory> {
+class ILAOSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     ILAOSolverFeature()
-        : ILAOSolverFeature::TypedFeature(
+        : ILAOSolverFeature::SharedTypedFeature(
               add_wrapper_algo_suffix<Bisimulation, Fret>("ilao"))
     {
         this->document_title("iLAO* variant of depth-first heuristic search");
@@ -181,10 +181,10 @@ public:
 };
 
 template <bool Bisimulation, bool Fret>
-class LILAOSolverFeature : public TypedFeature<TaskSolverFactory> {
+class LILAOSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     LILAOSolverFeature()
-        : LILAOSolverFeature::TypedFeature(
+        : LILAOSolverFeature::SharedTypedFeature(
               add_wrapper_algo_suffix<Bisimulation, Fret>("lilao"))
     {
         this->document_title("Labelled variant of iLAO*");
@@ -211,10 +211,10 @@ public:
 };
 
 template <bool Bisimulation, bool Fret>
-class HDPSolverFeature : public TypedFeature<TaskSolverFactory> {
+class HDPSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     HDPSolverFeature()
-        : HDPSolverFeature::TypedFeature(
+        : HDPSolverFeature::SharedTypedFeature(
               add_wrapper_algo_suffix<Bisimulation, Fret>("hdp"))
     {
         this->document_title("HDP variant of depth-first heuristic search");

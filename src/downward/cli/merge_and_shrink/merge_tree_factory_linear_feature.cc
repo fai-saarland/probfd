@@ -19,10 +19,10 @@ using downward::cli::merge_and_shrink::add_merge_tree_options_to_feature;
 using downward::cli::merge_and_shrink::get_merge_tree_arguments_from_options;
 
 namespace {
-class MergeTreeFactoryLinearFeature : public TypedFeature<MergeTreeFactory> {
+class MergeTreeFactoryLinearFeature : public SharedTypedFeature<MergeTreeFactory> {
 public:
     MergeTreeFactoryLinearFeature()
-        : TypedFeature("linear")
+        : SharedTypedFeature("linear")
     {
         document_title("Linear merge trees");
         document_synopsis(

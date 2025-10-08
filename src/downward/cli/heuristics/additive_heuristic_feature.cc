@@ -53,10 +53,10 @@ public:
 };
 
 class AdditiveHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     AdditiveHeuristicFeature()
-        : TypedFeature("add")
+        : SharedTypedFeature("add")
     {
         document_title("Additive heuristic");
 

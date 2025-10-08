@@ -24,10 +24,10 @@ using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
 class PatternCollectionGeneratorHillclimbingFeature
-    : public TypedFeature<PatternCollectionGenerator> {
+    : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorHillclimbingFeature()
-        : TypedFeature("hillclimbing_probabilistic")
+        : SharedTypedFeature("hillclimbing_probabilistic")
     {
         add_option<std::shared_ptr<PatternCollectionGenerator>>(
             "initial_generator",

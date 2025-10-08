@@ -91,10 +91,10 @@ public:
 };
 
 class AdditiveCartesianHeuristicFeature
-    : public TypedFeature<TaskDependentFactory<Evaluator>> {
+    : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     AdditiveCartesianHeuristicFeature()
-        : TypedFeature("cegar")
+        : SharedTypedFeature("cegar")
     {
         document_title("Additive CEGAR heuristic");
         document_synopsis(

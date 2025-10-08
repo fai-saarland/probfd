@@ -16,10 +16,10 @@ using namespace downward::cli::plugins;
 namespace {
 
 class VDiffSorterFeature
-    : public TypedFeature<FDRTransitionSorter> {
+    : public SharedTypedFeature<FDRTransitionSorter> {
 public:
     VDiffSorterFeature()
-        : TypedFeature("value_gap_sort")
+        : SharedTypedFeature("value_gap_sort")
     {
         add_option<bool>("prefer_large_gaps", "", "false");
     }

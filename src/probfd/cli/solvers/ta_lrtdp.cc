@@ -67,10 +67,10 @@ public:
     }
 };
 
-class TrapAwareLRTDPSolverFeature : public TypedFeature<TaskSolverFactory> {
+class TrapAwareLRTDPSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TrapAwareLRTDPSolverFeature()
-        : TypedFeature("talrtdp")
+        : SharedTypedFeature("talrtdp")
     {
         document_title("Trap-aware LRTDP");
         document_synopsis(

@@ -110,10 +110,10 @@ public:
 };
 
 class LazyWAstarSearchFeature
-    : public TypedFeature<TaskDependentFactory<SearchAlgorithm>> {
+    : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     LazyWAstarSearchFeature()
-        : TypedFeature("lazy_wastar")
+        : SharedTypedFeature("lazy_wastar")
     {
         document_title("(Weighted) A* search (lazy)");
         document_synopsis(
