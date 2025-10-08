@@ -50,9 +50,9 @@ public:
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<PatternCollectionGeneratorClassical>(
-            opts.get<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
+            opts.get_shared<::pdbs::PatternCollectionGenerator>(
                 "generator"),
-            opts.get<std::shared_ptr<SubCollectionFinderFactory>>(
+            opts.get_shared<SubCollectionFinderFactory>(
                 "subcollection_finder_factory"),
             get_log_arguments_from_options(opts));
     }

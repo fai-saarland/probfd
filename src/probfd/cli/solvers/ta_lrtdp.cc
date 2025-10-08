@@ -99,7 +99,7 @@ protected:
     {
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<TrapAwareLRTDPSolver>(
-                options.get<std::shared_ptr<QSuccessorSampler>>(
+                options.get_shared<QSuccessorSampler>(
                     "successor_sampler"),
                 options.get<TrialTerminationCondition>("terminate_trial"),
                 options.get<bool>("reexpand_traps"),

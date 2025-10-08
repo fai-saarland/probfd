@@ -94,6 +94,26 @@ public:
     }
 
     template <typename T>
+    std::shared_ptr<T> get_shared(const std::string& key) const
+    {
+        return get<std::shared_ptr<T>>(key);
+    }
+
+    template <typename T>
+    std::shared_ptr<T>
+    get_shared(const std::string& key, const std::shared_ptr<T>& default_value)
+        const
+    {
+        return get<std::shared_ptr<T>>(key, default_value);
+    }
+
+    template <typename T>
+    std::shared_ptr<T> get_shared(const std::string& key, std::nullptr_t) const
+    {
+        return get<std::shared_ptr<T>>(key, nullptr);
+    }
+
+    template <typename T>
     T get(const std::string& key) const
     {
         const auto it = storage.find(key);

@@ -76,9 +76,9 @@ public:
     {
         return make_shared_from_arg_tuples<AdditiveCartesianHeuristicFactory>(
             opts.get_list<std::shared_ptr<SubtaskGenerator>>("subtasks"),
-            opts.get<std::shared_ptr<FlawGeneratorFactory>>(
+            opts.get_shared<FlawGeneratorFactory>(
                 "flaw_generator_factory"),
-            opts.get<std::shared_ptr<SplitSelectorFactory>>(
+            opts.get_shared<SplitSelectorFactory>(
                 "split_selector_factory"),
             opts.get<int>("max_states"),
             opts.get<int>("max_transitions"),
