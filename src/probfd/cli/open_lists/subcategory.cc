@@ -38,10 +38,10 @@ using OpenList = Wrapped<OpenList, Fret>;
 
 template <bool Fret>
 class ProbfdOpenListCategoryPlugin
-    : public TypedCategoryPlugin<OpenList<Fret>> {
+    : public SharedTypedCategoryPlugin<OpenList<Fret>> {
 public:
     ProbfdOpenListCategoryPlugin()
-        : ProbfdOpenListCategoryPlugin::TypedCategoryPlugin(
+        : ProbfdOpenListCategoryPlugin::SharedTypedCategoryPlugin(
               add_mdp_type_to_category<false, Fret>("ProbFDOpenList"))
     {
         this->document_synopsis("Open list.");

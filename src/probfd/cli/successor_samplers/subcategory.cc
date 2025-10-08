@@ -47,10 +47,10 @@ using SuccessorSampler = Wrapper<algorithms::SuccessorSampler, Fret>;
 
 template <bool Fret>
 class SuccessorSamplerCategoryPlugin
-    : public TypedCategoryPlugin<SuccessorSampler<Fret>> {
+    : public SharedTypedCategoryPlugin<SuccessorSampler<Fret>> {
 public:
     SuccessorSamplerCategoryPlugin()
-        : TypedCategoryPlugin<SuccessorSampler<Fret>>(
+        : SharedTypedCategoryPlugin<SuccessorSampler<Fret>>(
               add_mdp_type_to_category<false, Fret>("SuccessorSampler"))
     {
     }
