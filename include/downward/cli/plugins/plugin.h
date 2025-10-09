@@ -53,6 +53,11 @@ public:
         const std::string& help = "",
         const std::string& default_value = "");
 
+    void add_duration(
+        const std::string& key,
+        const std::string& help = "",
+        const std::string& default_value = "");
+
     void document_subcategory(const std::string& subcategory);
     void document_title(const std::string& title);
     void document_synopsis(const std::string& note);
@@ -243,15 +248,10 @@ void Feature::add_option(
     const std::string& default_value,
     const Bounds& bounds)
 {
-    using U = std::conditional_t<
-        std::is_same_v<T, std::chrono::duration<double>>,
-        double,
-        T>;
-
     arguments.emplace_back(
         key,
         help,
-        TypeRegistry::instance()->get_type<U>(),
+        TypeRegistry::instance()->get_type<T>(),
         default_value,
         bounds);
 }
@@ -262,12 +262,7 @@ void Feature::add_list_option(
     const std::string& help,
     const std::string& default_value)
 {
-    using U = std::conditional_t<
-        std::is_same_v<T, std::chrono::duration<double>>,
-        double,
-        T>;
-
-    add_option<std::vector<U>>(key, help, default_value, Bounds::unlimited());
+    add_option<std::vector<T>>(key, help, default_value, Bounds::unlimited());
 }
 } // namespace downward::cli::plugins
 

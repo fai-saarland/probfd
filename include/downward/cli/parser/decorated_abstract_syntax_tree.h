@@ -188,6 +188,18 @@ public:
     void dump(std::ostream& out, std::string indent) const override;
 };
 
+class DurationLiteralNode : public DecoratedASTNode {
+    std::string value;
+
+public:
+    explicit DurationLiteralNode(std::string value);
+
+    std::any construct(ConstructContext& context) const override;
+    void print(std::ostream& out, std::size_t indent, bool print_default_args)
+        const override;
+    void dump(std::ostream& out, std::string indent) const override;
+};
+
 class SymbolNode : public DecoratedASTNode {
     std::string value;
 

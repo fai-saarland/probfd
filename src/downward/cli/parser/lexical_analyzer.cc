@@ -38,6 +38,8 @@ static vector<pair<TokenType, regex>> construct_token_type_expressions()
           parsed as one float token rather than an integer token '1' followed
           by a float token '.2'.
         */
+        {TokenType::DURATION,
+         R"((\d+([.]\d*)?(e[+-]?\d+)?|[.]\d+(e[+-]?\d+)?)(ns|us|ms|s|min|h)|infinite)"},
         {TokenType::FLOAT,
          R"([+-]?(((\d*\.\d+|\d+\.)(e[+-]?\d+|[kmg]\b)?)|\d+e[+-]?\d+))"},
         {TokenType::INTEGER, R"([+-]?(infinity|\d+([kmg]\b)?))"},
@@ -58,6 +60,7 @@ static vector<pair<TokenType, regex>> construct_token_type_expressions()
     }
     return token_type_expression;
 }
+
 static const vector<pair<TokenType, regex>> token_type_expressions =
     construct_token_type_expressions();
 

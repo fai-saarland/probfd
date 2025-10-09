@@ -57,6 +57,15 @@ public:
     const std::type_index& get_basic_type_index() const;
 };
 
+class DurationType : public Type {
+public:
+    bool operator==(const Type& other) const override;
+    bool is_basic_type() const override;
+    bool can_convert_into(const Type& other) const override;
+    std::string name() const override;
+    size_t get_hash() const override;
+};
+
 class FeatureType : public Type {
     std::type_index pointer_type;
     std::string type_name;

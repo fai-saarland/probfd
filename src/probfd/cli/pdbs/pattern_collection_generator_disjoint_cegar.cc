@@ -52,13 +52,12 @@ void add_pattern_collection_generator_cegar_options_to_feature(Feature& feature)
         "applied to initial goal variable pattern(s))",
         "infinity",
         Bounds("1", "infinity"));
-    feature.add_option<utils::Duration>(
+    feature.add_duration(
         "max_time",
         "maximum time in seconds for CEGAR pattern generation. "
         "This includes the creation of the initial PDB collection"
         " as well as the creation of the correlation matrix.",
-        "infinity",
-        Bounds("0.0", "infinity"));
+        "infinite");
     feature.add_option<std::shared_ptr<SubCollectionFinderFactory>>(
         "subcollection_finder_factory",
         "The subcollection finder factory.",

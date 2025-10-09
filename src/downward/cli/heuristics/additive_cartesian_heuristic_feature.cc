@@ -147,11 +147,10 @@ public:
             " all abstractions",
             "1M",
             Bounds("0", "infinity"));
-        add_option<Duration>(
+        add_duration(
             "max_time",
             "maximum time in seconds for building abstractions",
-            "infinity",
-            Bounds("0.0", "infinity"));
+            "infinite");
         add_option<PickSplit>(
             "pick",
             "how to choose on which variable to split the flaw state",
