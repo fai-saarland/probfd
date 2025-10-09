@@ -50,7 +50,7 @@ void add_search_algorithm_options_to_feature(
         "according to "
         "the real cost, regardless of the cost_type parameter",
         "infinity");
-    feature.add_option<downward::utils::Duration>(
+    feature.add_duration(
         "max_time",
         "maximum time in seconds the search is allowed to run for. The "
         "timeout is only checked after each complete search step "
@@ -60,7 +60,7 @@ void add_search_algorithm_options_to_feature(
         "experiments. Timed-out searches are treated as failed searches, "
         "just like incomplete search algorithms that exhaust their search "
         "space.",
-        "infinity");
+        "infinite");
     feature.add_option<string>(
         "description",
         "description used to identify search algorithm in logs",

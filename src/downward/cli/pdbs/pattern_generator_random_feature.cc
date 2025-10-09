@@ -44,11 +44,10 @@ public:
             "variable)",
             "1000000",
             Bounds("1", "infinity"));
-        add_option<downward::utils::Duration>(
+        add_duration(
             "max_time",
             "maximum time in seconds for the pattern generation",
-            "infinity",
-            Bounds("0.0", "infinity"));
+            "infinite");
         add_random_pattern_bidirectional_option_to_feature(*this);
         add_rng_options_to_feature(*this);
         add_generator_options_to_feature(*this);

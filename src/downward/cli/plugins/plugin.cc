@@ -11,6 +11,15 @@ Feature::Feature(const Type& type, const string& key)
 {
 }
 
+void Feature::add_duration(
+    const std::string& key,
+    const std::string& help,
+    const std::string& default_value)
+{
+    add_option<downward::utils::DynamicDuration>(key, help, default_value);
+}
+
+
 void Feature::document_subcategory(const string& subcategory)
 {
     this->subcategory = subcategory;
