@@ -115,6 +115,7 @@ string token_type_name(TokenType token_type)
     case TokenType::STRING: return "String";
     case TokenType::INTEGER: return "Integer";
     case TokenType::FLOAT: return "Float";
+    case TokenType::DURATION: return "Duration";
     case TokenType::IDENTIFIER: return "Identifier";
     default: throw utils::CriticalError("Unknown token type.");
     }

@@ -67,15 +67,14 @@ public:
             "as the next pattern collection ",
             "10",
             Bounds("1", "infinity"));
-        add_option<utils::Duration>(
+        add_duration(
             "max_time",
             "maximum time in seconds for improving the initial pattern "
             "collection via hill climbing. If set to 0, no hill climbing "
             "is performed at all. Note that this limit only affects hill "
             "climbing. Use max_time_dominance_pruning to limit the time "
             "spent for pruning dominated patterns.",
-            "infinity",
-            Bounds("0.0", "infinity"));
+            "infinite");
 
         add_rng_options_to_feature(*this);
         add_pattern_collection_generator_options_to_feature(*this);

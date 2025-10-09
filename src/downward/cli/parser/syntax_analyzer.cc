@@ -213,11 +213,12 @@ parse_function(TokenStream& tokens, SyntaxAnalyzerContext& context)
         unparsed_config);
 }
 
-static unordered_set<TokenType> literal_tokens{
+static const unordered_set<TokenType> literal_tokens{
     TokenType::BOOLEAN,
     TokenType::STRING,
     TokenType::INTEGER,
     TokenType::FLOAT,
+    TokenType::DURATION,
     TokenType::IDENTIFIER};
 
 static ASTNodePtr
@@ -225,7 +226,7 @@ parse_literal(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
     utils::TraceBlock block(context, "Parsing Literal");
     Token token = tokens.pop(context);
-    if (!literal_tokens.count(token.type)) {
+    if (!literal_tokens.contains(token.type)) {
         ostringstream message;
         message << "Token " << token << " cannot be parsed as literal";
         context.error(message.str());
@@ -250,24 +251,22 @@ parse_list(TokenStream& tokens, SyntaxAnalyzerContext& context)
     return std::make_unique<ListNode>(move(elements));
 }
 
-static vector<TokenType> parse_node_token_types = {
+static const vector<TokenType> parse_node_token_types = {
     TokenType::OPENING_BRACKET,
     TokenType::LET,
     TokenType::BOOLEAN,
     TokenType::STRING,
     TokenType::INTEGER,
     TokenType::FLOAT,
+    TokenType::DURATION,
     TokenType::IDENTIFIER};
 
 static ASTNodePtr
 parse_node(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
     utils::TraceBlock block(context, "Identify node type");
-    Token token = tokens.peek(context);
-    if (find(
-            parse_node_token_types.begin(),
-            parse_node_token_types.end(),
-            token.type) == parse_node_token_types.end()) {
+    const Token token = tokens.peek(context);
+    if (!ranges::contains(parse_node_token_types, token.type)) {
         ostringstream message;
         message << "Unexpected token '" << token
                 << "'. Expected any of the following token types: "
@@ -281,7 +280,8 @@ parse_node(TokenStream& tokens, SyntaxAnalyzerContext& context)
     case TokenType::BOOLEAN:
     case TokenType::STRING:
     case TokenType::INTEGER:
-    case TokenType::FLOAT: return parse_literal(tokens, context);
+    case TokenType::FLOAT:
+    case TokenType::DURATION: return parse_literal(tokens, context);
     case TokenType::IDENTIFIER:
         if (tokens.has_tokens(2) &&
             tokens.peek(context, 1).type == TokenType::OPENING_PARENTHESIS) {

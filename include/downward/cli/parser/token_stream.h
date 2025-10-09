@@ -27,6 +27,7 @@ enum class TokenType {
     STRING,
     INTEGER,
     FLOAT,
+    DURATION,
     IDENTIFIER
 };
 

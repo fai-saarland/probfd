@@ -259,6 +259,18 @@ class TraceBlock {
 
 public:
     explicit TraceBlock(Context& context, const std::string& block_name);
+
+    template <typename... Args>
+    TraceBlock(
+        Context& context,
+        std::format_string<Args...> text,
+        Args&&... args)
+        : TraceBlock(
+              context,
+              std::format(std::move(text), std::forward<Args>(args)...))
+    {
+    }
+
     ~TraceBlock();
 };
 

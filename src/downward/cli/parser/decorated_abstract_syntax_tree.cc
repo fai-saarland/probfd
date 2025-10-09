@@ -89,9 +89,7 @@ std::any DecoratedASTNode::construct() const
     return construct(context);
 }
 
-FunctionArgument::FunctionArgument(
-    DecoratedASTNodePtr value,
-    bool is_default)
+FunctionArgument::FunctionArgument(DecoratedASTNodePtr value, bool is_default)
     : value(move(value))
     , is_default(is_default)
 {
@@ -292,7 +290,7 @@ void DecoratedFunctionCallNode::print(
 void DecoratedFunctionCallNode::dump(std::ostream& out, string indent) const
 {
     out << indent << "FUNC:" << feature->get_title() << " (returns "
-         << feature->get_type().name() << ")" << endl;
+        << feature->get_type().name() << ")" << endl;
     indent = "| " + indent;
     out << indent << "ARGUMENTS:" << endl;
     for (const auto& [key, arg] : arguments) {
@@ -587,6 +585,80 @@ void FloatLiteralNode::dump(std::ostream& out, string indent) const
     out << indent << "FLOAT: " << value << endl;
 }
 
+DurationLiteralNode::DurationLiteralNode(string value)
+    : value(std::move(value))
+{
+}
+
+static const std::unordered_map<std::string, std::pair<int, int>> ratios = {
+    {"ns", {1, 1000000000}},
+    {"us", {1, 1000000}},
+    {"ms", {1, 1000}},
+    {"s", {1, 1}},
+    {"min", {60, 1}},
+    {"h", {3600, 1}}};
+
+std::any DurationLiteralNode::construct(ConstructContext& context) const
+{
+    utils::TraceBlock block(
+        context,
+        "Constructing duration value from '{}'",
+        value);
+
+    if (value == "infinite") {
+        return utils::DynamicDuration(std::chrono::seconds::max());
+    }
+
+    istringstream stream(value);
+    long double x;
+    stream >> noskipws >> x;
+    if (stream.fail()) {
+        throw utils::CriticalError(
+            "Could not parse double constant '{}'"
+            " (this should have been caught before constructing this node).",
+            value);
+    }
+
+    if (stream.eof()) {
+        throw utils::CriticalError(
+            "Missing duration suffix"
+            " (this should have been caught before constructing this node).");
+    }
+
+    std::string suffix;
+    stream >> noskipws >> suffix;
+    if (stream.fail() || !stream.eof()) {
+        throw utils::CriticalError(
+            "Could not parse duration suffix for '{}'"
+            " (this should have been caught before constructing this node).",
+            value);
+    }
+
+    auto it = ratios.find(suffix);
+    if (it == ratios.end()) {
+        throw utils::CriticalError(
+            "Unknown duration suffix '{}'"
+            " (this should have been caught before constructing this node).",
+            suffix);
+    }
+
+    const auto [num, denom] = it->second;
+
+    return utils::DynamicDuration{num, denom, x};
+}
+
+void DurationLiteralNode::print(std::ostream& out, std::size_t indent, bool)
+    const
+{
+    std::print(out, "{}", std::string(indent, ' '));
+    std::print(out, "{}", value);
+}
+
+void DurationLiteralNode::dump(std::ostream& out, string indent) const
+{
+    out << indent << "DURATION: " << value << endl;
+}
+
 SymbolNode::SymbolNode(const string& value)
     : value(value)
 {
@@ -657,8 +729,8 @@ void ConvertNode::print(
 
 void ConvertNode::dump(std::ostream& out, string indent) const
 {
-    out << indent << "CONVERT: " << from_type.name() << " to "
-         << to_type.name() << endl;
+    out << indent << "CONVERT: " << from_type.name() << " to " << to_type.name()
+        << endl;
     value->dump(out, "| " + indent);
 }
 

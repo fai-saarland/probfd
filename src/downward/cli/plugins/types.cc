@@ -87,6 +87,31 @@ size_t BasicType::get_hash() const
     return hash<type_index>()(type);
 }
 
+bool DurationType::operator==(const Type& other) const
+{
+    return dynamic_cast<const DurationType*>(&other) != nullptr;
+}
+
+bool DurationType::is_basic_type() const
+{
+    return false;
+}
+
+bool DurationType::can_convert_into(const Type& other) const
+{
+    return Type::can_convert_into(other) || *this == other;
+}
+
+string DurationType::name() const
+{
+    return "duration";
+}
+
+size_t DurationType::get_hash() const
+{
+    return hash<type_index>()(typeid(utils::DynamicDuration));
+}
+
 FeatureType::FeatureType(
     type_index pointer_type,
     const string& type_name,
@@ -337,6 +362,9 @@ TypeRegistry::TypeRegistry()
     insert_basic_type<string>();
     insert_basic_type<int>();
     insert_basic_type<double>();
+
+    registered_types[typeid(utils::DynamicDuration)] =
+        std::make_unique<DurationType>();
 }
 
 template <typename T>

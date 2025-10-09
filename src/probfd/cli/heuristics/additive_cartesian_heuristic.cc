@@ -59,11 +59,10 @@ public:
             " all abstractions",
             "1M",
             Bounds("0", "infinity"));
-        add_option<utils::Duration>(
+        add_duration(
             "max_time",
             "maximum time in seconds for building abstractions",
-            "infinity",
-            Bounds("0.0", "infinity"));
+            "infinite");
         add_option<bool>(
             "use_general_costs",
             "allow negative costs in cost partitioning",

@@ -33,6 +33,15 @@ struct OptionsAnyCaster {
     }
 };
 
+template <typename Rep, typename Period>
+struct OptionsAnyCaster<std::chrono::duration<Rep, Period>> {
+    static std::chrono::duration<Rep, Period> cast(const std::any& operand)
+    {
+        return static_cast<std::chrono::duration<Rep, Period>>(
+            std::any_cast<downward::utils::DynamicDuration>(operand));
+    }
+};
+
 template <typename ValueType>
     requires std::is_enum_v<ValueType>
 struct OptionsAnyCaster<ValueType> {
@@ -45,15 +54,6 @@ struct OptionsAnyCaster<ValueType> {
         }
         // ... otherwise (Enums set over the command line) they are ints.
         return static_cast<ValueType>(std::any_cast<int>(operand));
-    }
-};
-
-template <>
-struct OptionsAnyCaster<std::chrono::duration<double>> {
-    static std::chrono::duration<double> cast(const std::any& operand)
-    {
-        return static_cast<std::chrono::duration<double>>(
-            std::any_cast<double>(operand));
     }
 };
 

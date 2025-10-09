@@ -290,9 +290,7 @@ bool FunctionCallNode::collect_argument(
     arguments.emplace(
         std::piecewise_construct,
         std::forward_as_tuple(key),
-        std::forward_as_tuple(
-            move(decorated_arg),
-            is_default));
+        std::forward_as_tuple(move(decorated_arg), is_default));
 
     return true;
 }
@@ -586,6 +584,11 @@ TypedDecoratedAstNodePtr LiteralNode::decorate(DecorateContext& context) const
         return {
             std::make_unique<FloatLiteralNode>(value.content),
             &plugins::TypeRegistry::instance()->get_type<double>()};
+    case TokenType::DURATION:
+        return {
+            std::make_unique<DurationLiteralNode>(value.content),
+            &plugins::TypeRegistry::instance()
+                 ->get_type<utils::DynamicDuration>()};
     case TokenType::IDENTIFIER:
         return {
             std::make_unique<SymbolNode>(value.content),

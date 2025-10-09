@@ -51,7 +51,7 @@ void add_merge_and_shrink_algorithm_options_to_feature(Feature& feature)
 
     add_transition_system_size_limit_options_to_feature(feature);
 
-    feature.add_option<downward::utils::Duration>(
+    feature.add_duration(
         "main_loop_max_time",
         "A limit in seconds on the runtime of the main loop of the algorithm. "
         "If the limit is exceeded, the algorithm terminates, potentially "
@@ -59,8 +59,7 @@ void add_merge_and_shrink_algorithm_options_to_feature(Feature& feature)
         "note that the time limit is only checked between transformations "
         "of the main loop, but not during, so it can be exceeded if a "
         "transformation is runtime-intense.",
-        "infinity",
-        Bounds("0.0", "infinity"));
+        "infinite");
 }
 
 tuple<

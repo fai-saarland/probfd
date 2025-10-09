@@ -15,6 +15,13 @@ struct DynamicDuration {
     std::intmax_t denom;
     long double value;
 
+    DynamicDuration(std::intmax_t num, std::intmax_t denom, long double value)
+        : num(num)
+        , denom(denom)
+        , value(value)
+    {
+    }
+
     template <typename Rep, typename Period>
     DynamicDuration(std::chrono::duration<Rep, Period> d)
         : num(Period::num)
