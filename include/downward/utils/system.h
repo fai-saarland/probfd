@@ -16,6 +16,8 @@
 #include "downward/utils/system_unix.h"
 #endif
 
+#include "downward/utils/units.h"
+
 #include <iostream>
 #include <source_location>
 #include <stdlib.h>
@@ -102,7 +104,7 @@ public:
 [[noreturn]]
 extern void exit_with_reentrant(ExitCode returncode);
 
-int get_peak_memory_in_kb();
+Kilobytes get_peak_memory_in_kb();
 const char* get_exit_code_message_reentrant(ExitCode exitcode);
 bool is_exit_code_error_reentrant(ExitCode exitcode);
 void register_event_handlers();

@@ -21,23 +21,23 @@ void out_of_memory_handler()
 
 void signal_handler(int signal_number)
 {
-    cout << "Peak memory: " << get_peak_memory_in_kb() << " KB" << endl;
+    cout << "Peak memory: " << get_peak_memory_in_kb() << endl;
     cout << "caught signal " << signal_number << " -- exiting" << endl;
     raise(signal_number);
 }
 
-int get_peak_memory_in_kb()
+Kilobytes get_peak_memory_in_kb()
 {
     PROCESS_MEMORY_COUNTERS_EX pmc;
-    bool success = GetProcessMemoryInfo(
+    const bool success = GetProcessMemoryInfo(
         GetCurrentProcess(),
         reinterpret_cast<PROCESS_MEMORY_COUNTERS*>(&pmc),
         sizeof(pmc));
     if (!success) {
         cerr << "warning: could not determine peak memory" << endl;
-        return -1;
+        return Kilobytes{-1};
     }
-    return pmc.PeakPagefileUsage / 1024;
+    return bytesize_cast<Kilobytes>(Bytes(pmc.PeakPagefileUsage));
 }
 
 void register_event_handlers()
