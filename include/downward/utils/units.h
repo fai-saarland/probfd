@@ -8,68 +8,18 @@
 
 #include "downward/concepts.h"
 
+#include "downward/utils/string_literal.h"
+
 #include <numeric>
 #include <ratio>
 
-namespace downward {
+namespace downward::utils {
+
+/// Models specializations of std::ratio
 template <typename T>
 concept RatioType = SpecializationCTP<T, std::ratio>;
 
-template <size_t N>
-struct StringLiteral {
-    consteval StringLiteral(const char (&str)[N])
-    {
-        std::copy_n(str, N, value);
-    }
-
-    template <
-        size_t N1,
-        size_t N2,
-        std::size_t... indices1,
-        std::size_t... indices2>
-        requires(N1 + N2 == N)
-    consteval StringLiteral(
-        StringLiteral<N1> str1,
-        StringLiteral<N2> str2,
-        std::index_sequence<indices1...>,
-        std::index_sequence<indices2...>)
-        : StringLiteral({str1[indices1]..., str2[indices2]..., '\0'})
-    {
-    }
-
-    template <size_t N1, size_t N2>
-        requires(N1 + N2 == N)
-    consteval StringLiteral(StringLiteral<N1> str1, StringLiteral<N2> str2)
-        : StringLiteral(
-              str1,
-              str2,
-              std::make_index_sequence<N1 - 1>{},
-              std::make_index_sequence<N2>{})
-    {
-    }
-
-    consteval char operator[](size_t index) const { return value[index]; }
-
-    char value[N];
-};
-
-template <std::size_t N1, std::size_t N2>
-consteval StringLiteral<N1 + N2>
-concat(StringLiteral<N1> str1, StringLiteral<N2> str2)
-{
-    return StringLiteral<N1 + N2>(str1, str2);
-}
-
-template <std::size_t N1, std::size_t N2>
-consteval StringLiteral<N1 + N2>
-concat(const char (&str1)[N1], const char (&str2)[N2])
-{
-    return StringLiteral<N1 + N2>(StringLiteral(str1), StringLiteral(str2));
-}
-
-template <size_t N>
-StringLiteral(const char (&str)[N]) -> StringLiteral<N>;
-
+/// Custom ratio types
 using kibi = std::ratio<2LL << 10>;
 using mebi = std::ratio<2LL << 20>;
 using gibi = std::ratio<2LL << 30>;
@@ -77,78 +27,79 @@ using tebi = std::ratio<2LL << 40>;
 using pebi = std::ratio<2LL << 50>;
 using exbi = std::ratio<2LL << 60>;
 
-template <RatioType Period>
-struct BytesSymbolStruct {
+/// Specializations specify the unit suffix for the ratio.
+template <RatioType>
+struct BytesSuffixStruct {
     static_assert(false, "Undefined symbol");
 };
 
 template <>
-struct BytesSymbolStruct<std::ratio<1>> {
+struct BytesSuffixStruct<std::ratio<1>> {
     static constexpr StringLiteral value = "B";
 };
 
 template <>
-struct BytesSymbolStruct<std::kilo> {
+struct BytesSuffixStruct<std::kilo> {
     static constexpr StringLiteral value = "KB";
 };
 
 template <>
-struct BytesSymbolStruct<std::mega> {
+struct BytesSuffixStruct<std::mega> {
     static constexpr StringLiteral value = "MB";
 };
 
 template <>
-struct BytesSymbolStruct<std::giga> {
+struct BytesSuffixStruct<std::giga> {
     static constexpr StringLiteral value = "GB";
 };
 
 template <>
-struct BytesSymbolStruct<std::tera> {
+struct BytesSuffixStruct<std::tera> {
     static constexpr StringLiteral value = "TB";
 };
 
 template <>
-struct BytesSymbolStruct<std::peta> {
+struct BytesSuffixStruct<std::peta> {
     static constexpr StringLiteral value = "PB";
 };
 
 template <>
-struct BytesSymbolStruct<std::exa> {
+struct BytesSuffixStruct<std::exa> {
     static constexpr StringLiteral value = "EB";
 };
 
 template <>
-struct BytesSymbolStruct<kibi> {
+struct BytesSuffixStruct<kibi> {
     static constexpr StringLiteral value = "KiB";
 };
 
 template <>
-struct BytesSymbolStruct<mebi> {
+struct BytesSuffixStruct<mebi> {
     static constexpr StringLiteral value = "MiB";
 };
 
 template <>
-struct BytesSymbolStruct<gibi> {
+struct BytesSuffixStruct<gibi> {
     static constexpr StringLiteral value = "GiB";
 };
 
 template <>
-struct BytesSymbolStruct<tebi> {
+struct BytesSuffixStruct<tebi> {
     static constexpr StringLiteral value = "TiB";
 };
 
 template <>
-struct BytesSymbolStruct<pebi> {
+struct BytesSuffixStruct<pebi> {
     static constexpr StringLiteral value = "PiB";
 };
 
 template <>
-struct BytesSymbolStruct<exbi> {
+struct BytesSuffixStruct<exbi> {
     static constexpr StringLiteral value = "EiB";
 };
 
 template <RatioType Period>
-inline constexpr auto BytesSymbol = BytesSymbolStruct<Period>::value;
+inline constexpr auto BytesSuffix = BytesSuffixStruct<Period>::value;
 
 template <ArithmeticType Rep, RatioType Period>
 class unit {
@@ -157,7 +108,7 @@ class unit {
 public:
     using period = Period;
     using rep = Rep;
-    static constexpr auto symbol = BytesSymbol<Period>;
+    static constexpr auto symbol = BytesSuffix<Period>;
 
     explicit constexpr unit(Rep value)
         : value(value)
@@ -191,25 +142,25 @@ class ByteSize : public unit<Rep, Period> {
     // Inherit constructor
     using ByteSize::unit::unit;
 };
-} // namespace downward
+} // namespace downward::utils
 
 template <
     downward::ArithmeticType Rep1,
-    downward::RatioType Period1,
+    downward::utils::RatioType Period1,
     downward::ArithmeticType Rep2,
-    downward::RatioType Period2>
+    downward::utils::RatioType Period2>
 struct std::common_type<
-    downward::ByteSize<Rep1, Period1>,
-    downward::ByteSize<Rep2, Period2>> {
-    using type = downward::ByteSize<
+    downward::utils::ByteSize<Rep1, Period1>,
+    downward::utils::ByteSize<Rep2, Period2>> {
+    using type = downward::utils::ByteSize<
         std::common_type_t<Rep1, Rep2>,
         std::ratio<
             std::gcd(Period1::num, Period2::num),
             std::lcm(Period1::den, Period2::den)>>;
 };
 
-template <downward::ArithmeticType Rep, downward::RatioType Period>
-struct std::formatter<downward::ByteSize<Rep, Period>> {
+template <downward::ArithmeticType Rep, downward::utils::RatioType Period>
+struct std::formatter<downward::utils::ByteSize<Rep, Period>> {
     std::formatter<Rep> underlying_;
 
     template <class ParseContext>
@@ -220,16 +171,20 @@ struct std::formatter<downward::ByteSize<Rep, Period>> {
 
     template <class FmtContext>
     typename FmtContext::iterator
-    format(const downward::ByteSize<Rep, Period>& size, FmtContext& ctx) const
+    format(const downward::utils::ByteSize<Rep, Period>& size, FmtContext& ctx)
+        const
     {
         return std::format_to(
             ctx.out(),
-            downward::concat("{}", downward::BytesSymbol<Period>.value).value,
+            downward::utils::concat(
+                "{}",
+                downward::utils::BytesSuffix<Period>.value)
+                .value,
             size.count());
     }
 };
 
-namespace downward {
+namespace downward::utils {
 
 template <class Rep1, class Period1, class Rep2, class Period2>
 std::common_type_t<ByteSize<Rep1, Period1>, ByteSize<Rep2, Period2>> constexpr
