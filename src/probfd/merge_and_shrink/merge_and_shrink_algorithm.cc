@@ -74,7 +74,7 @@ void MergeAndShrinkAlgorithm::report_peak_memory_delta(
     else
         log.print("Current");
     log.println(
-        " peak memory increase of merge-and-shrink algorithm: {} KB",
+        " peak memory increase of merge-and-shrink algorithm: {}",
         utils::get_peak_memory_in_kb() - starting_peak_memory);
 }
 
@@ -376,7 +376,7 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
     ::task_properties::verify_no_axioms(axioms);
     task_properties::verify_no_conditional_effects(operators);
 
-    if (starting_peak_memory) {
+    if (starting_peak_memory.count() > 0) {
         throw utils::CriticalError(
             "Calling build_factored_transition_system twice is not supported!");
     }

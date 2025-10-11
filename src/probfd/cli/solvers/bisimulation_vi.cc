@@ -137,7 +137,7 @@ public:
                 progress.register_print([&](std::ostream& out) {
                     std::print(
                         out,
-                        "memory={} KB",
+                        "memory={}",
                         utils::get_peak_memory_in_kb());
                 });
 

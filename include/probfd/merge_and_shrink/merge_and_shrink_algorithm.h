@@ -39,7 +39,7 @@ class MergeAndShrinkAlgorithm {
 
     const downward::utils::Duration main_loop_max_time;
 
-    long starting_peak_memory;
+    downward::Kilobytes starting_peak_memory;
 
     void
     report_peak_memory_delta(downward::utils::LogProxy log, bool final = false)

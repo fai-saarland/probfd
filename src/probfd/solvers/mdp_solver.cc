@@ -177,7 +177,7 @@ public:
             });
 
             progress.register_print([&](std::ostream& out) {
-                std::print(out, "memory={} KB", get_peak_memory_in_kb());
+                std::print(out, "memory={}", get_peak_memory_in_kb());
             });
 
             std::unique_ptr<Policy<State, OperatorID>> policy =
