@@ -30,14 +30,14 @@ static successor_generator::SuccessorGenerator& get_successor_generator(
     utils::LogProxy& log)
 {
     log << "Building successor generator..." << flush;
-    Kilobytes peak_memory_before = utils::get_peak_memory_in_kb();
+    Kibibytes peak_memory_before = utils::get_peak_memory_in_kib();
     utils::Timer successor_generator_timer;
     successor_generator::SuccessorGenerator& successor_generator =
         successor_generator::g_successor_generators[variables, operators];
     successor_generator_timer.stop();
     log << "done!" << endl;
-    Kilobytes peak_memory_after = utils::get_peak_memory_in_kb();
-    Kilobytes memory_diff = peak_memory_after - peak_memory_before;
+    Kibibytes peak_memory_after = utils::get_peak_memory_in_kib();
+    Kibibytes memory_diff = peak_memory_after - peak_memory_before;
     log << "peak memory difference for successor generator creation: "
         << memory_diff << endl
         << "time for successor generation creation: "
