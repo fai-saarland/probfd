@@ -195,7 +195,7 @@ bool AcyclicValueIteration<State, Action>::push_successor(
         StateInfo& succ_info = state_infos_[succ_id];
 
         if (succ_info.status == StateInfo::ON_STACK) {
-            throw CriticalError("State space is not acyclic!");
+            throw downward::utils::CriticalError("State space is not acyclic!");
         }
 
         if (succ_info.status == StateInfo::NEW) {

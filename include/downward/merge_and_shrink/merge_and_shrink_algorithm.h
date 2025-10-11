@@ -40,7 +40,7 @@ class MergeAndShrinkAlgorithm {
     mutable utils::LogProxy log;
     const utils::Duration main_loop_max_time;
 
-    Kilobytes starting_peak_memory;
+    Kibibytes starting_peak_memory;
 
     void report_peak_memory_delta(bool final = false) const;
     void dump_options() const;
