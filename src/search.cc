@@ -180,15 +180,15 @@ static int search(argparse::ArgumentParser& parser)
             std::cerr << e.what() << std::endl;
             throw;
         }
-    } catch (const ContextError&) {
+    } catch (const downward::utils::ContextError&) {
         exitcode = ExitCode::SEARCH_INPUT_ERROR;
-    } catch (const InputError&) {
+    } catch (const downward::utils::InputError&) {
         exitcode = ExitCode::SEARCH_INPUT_ERROR;
-    } catch (const CriticalError&) {
+    } catch (const downward::utils::CriticalError&) {
         exitcode = ExitCode::SEARCH_CRITICAL_ERROR;
-    } catch (const UnsupportedError&) {
+    } catch (const downward::utils::UnsupportedError&) {
         exitcode = ExitCode::SEARCH_UNSUPPORTED;
-    } catch (const UnimplementedError&) {
+    } catch (const downward::utils::UnimplementedError&) {
         exitcode = ExitCode::SEARCH_UNIMPLEMENTED;
     } catch (const std::exception&) {
         exitcode = ExitCode::SEARCH_CRITICAL_ERROR;
