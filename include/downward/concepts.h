@@ -97,7 +97,7 @@ concept SpecializationCTP = detail::SpecializationHelperCTP<T, U>::value;
 /// This concept is satisfied if T is a specialization of a template V with the
 /// same template arguments as U that derived from U with the same template
 /// arguments.
-template <typename T, template <auto...> typename U>
+template <typename T, template <typename...> typename U>
 concept DerivedFromSpecialization =
     detail::DerivedFromSpecializationHelper<T, U>::value;
 

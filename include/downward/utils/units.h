@@ -10,6 +10,8 @@
 
 #include "downward/utils/string_literal.h"
 
+#include <chrono>
+#include <format>
 #include <numeric>
 #include <ratio>
 
@@ -85,7 +87,7 @@ public:
     template <std::derived_from<unit> T>
     friend std::ostream& operator<<(std::ostream& out, const T& u)
     {
-        return out << u.value << Suffix<T>.value;
+        return out << u.value << Suffix<T>.value.data();
     }
 };
 
@@ -188,19 +190,29 @@ constexpr To unit_cast(const U<Rep, Period>& dur) noexcept
 
 } // namespace downward::utils
 
-// std::common_type specialization for unit types
+namespace detail {
+template <downward::ArithmeticType Rep, downward::utils::RatioType Period>
+void DerivedFromUnitImpl(const downward::utils::unit<Rep, Period>&);
+}
+
+/// This concept is satisfied if T has exactly one public base class which is a
+/// specialization of unit.
+template <class T>
+concept DerivedFromUnit =
+    requires(const T& t) { detail::DerivedFromUnitImpl(t); };
+
+// std::common_type specialization for unit-derived types.
+// Instantiating this template with an incomplete type is undefined behaviour,
+// but so is instantiating the base template with incomplete types, so don't
+// do it.
 template <
     downward::ArithmeticType Rep1,
     downward::utils::RatioType Period1,
     downward::ArithmeticType Rep2,
     downward::utils::RatioType Period2,
     template <downward::ArithmeticType, downward::utils::RatioType> typename U>
-    requires std::derived_from<
-                 U<Rep1, Period1>,
-                 downward::utils::unit<Rep1, Period1>> &&
-             std::derived_from<
-                 U<Rep2, Period2>,
-                 downward::utils::unit<Rep2, Period2>>
+    requires DerivedFromUnit<U<Rep1, Period1>> &&
+             DerivedFromUnit<U<Rep2, Period2>>
 struct std::common_type<U<Rep1, Period1>, U<Rep2, Period2>> {
     using type =
         U<std::common_type_t<Rep1, Rep2>,
@@ -230,11 +242,14 @@ template <
     typename FmtContext::iterator
     format(const U<Rep, Period>& size, FmtContext& ctx) const
     {
-        return std::format_to(
-            ctx.out(),
-            downward::utils::concat("{}", downward::utils::Suffix<Base>.value)
-                .value,
-            size.count());
+        using downward::utils::string_literals::operator""_sl;
+
+        // "{}<suffix>"
+        // Needs to have a static address for std::format_string
+        static constexpr auto t =
+            downward::utils::concat("{}"_sl, downward::utils::Suffix<Base>);
+
+        return std::format_to(ctx.out(), t, size.count());
     }
 };
 
