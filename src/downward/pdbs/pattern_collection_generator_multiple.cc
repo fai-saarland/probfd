@@ -95,7 +95,7 @@ void PatternCollectionGeneratorMultiple::handle_generated_pattern(
 {
     const Pattern& pattern = pattern_info.get_pattern();
     if (log.is_at_least_debug()) {
-        log << "generated pattern " << pattern << endl;
+        log.println("generated pattern {}", pattern);
     }
     if (generated_patterns.insert(std::move(pattern)).second) {
         /*
@@ -199,10 +199,10 @@ PatternCollectionGeneratorMultiple::compute_patterns(
     vector<int> non_goal_variables = get_non_goal_variables(variables, goals);
 
     if (log.is_at_least_debug()) {
-        log << "goal variables: ";
-        for (FactPair goal : goal_facts) { log << goal.var << ", "; }
-        log << endl;
-        log << "non-goal variables: " << non_goal_variables << endl;
+        log.println(
+            "goal variables: {}",
+            goal_facts | std::views::transform(&FactPair::var));
+        log.println("non-goal variables: {}", non_goal_variables);
     }
 
     initialize(task);

@@ -89,8 +89,10 @@ void LabelReduction::compute_label_mapping(
                 // Labels have to be sorted for LocalLabelInfo.
                 sort(equivalent_labels.begin(), equivalent_labels.end());
                 if (log.is_at_least_debug()) {
-                    log << "Reducing labels " << equivalent_labels << " to "
-                        << next_new_label << endl;
+                    log.println(
+                        "Reducing labels {} to {}",
+                        equivalent_labels,
+                        next_new_label);
                 }
                 label_mapping.push_back(
                     make_pair(next_new_label, equivalent_labels));

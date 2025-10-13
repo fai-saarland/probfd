@@ -80,7 +80,7 @@ void ZeroOnePDBs::dump(utils::LogProxy& log) const
 {
     if (log.is_at_least_debug()) {
         for (const shared_ptr<PatternDatabase>& pdb : pattern_databases) {
-            log << pdb->get_pattern() << endl;
+            log.println("{}", pdb->get_pattern());
         }
     }
 }

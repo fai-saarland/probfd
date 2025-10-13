@@ -10,7 +10,7 @@ namespace downward {
 struct FactPair;
 class OperatorProxy;
 class State;
-}
+} // namespace downward
 
 namespace downward::cartesian_abstractions {
 class Node;
@@ -68,6 +68,23 @@ public:
     static std::unique_ptr<AbstractState>
     get_trivial_abstract_state(const std::vector<int>& domain_sizes);
 };
-} // namespace cartesian_abstractions
+} // namespace downward::cartesian_abstractions
+
+template <>
+struct std::formatter<downward::cartesian_abstractions::AbstractState> {
+    template <class ParseContext>
+    constexpr typename ParseContext::iterator parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+
+    template <class FmtContext>
+    typename FmtContext::iterator format(
+        const downward::cartesian_abstractions::AbstractState& state,
+        FmtContext& ctx) const
+    {
+        return std::format_to(ctx.out(), "{}", state.get_id());
+    }
+};
 
 #endif

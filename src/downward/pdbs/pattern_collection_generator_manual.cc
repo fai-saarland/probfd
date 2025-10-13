@@ -28,7 +28,7 @@ PatternCollectionInformation PatternCollectionGeneratorManual::compute_patterns(
     const SharedAbstractTask& task)
 {
     if (log.is_at_least_normal()) {
-        log << "Manual pattern collection: " << *patterns << endl;
+        log.println("Manual pattern collection: {}", *patterns);
     }
     return PatternCollectionInformation(to_refs(task), patterns, log);
 }

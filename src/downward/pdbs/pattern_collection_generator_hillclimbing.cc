@@ -275,8 +275,10 @@ pair<int, int> PatternCollectionGeneratorHillclimbing::find_best_improving_pdb(
             best_pdb_index = i;
         }
         if (count > 0 && log.is_at_least_verbose()) {
-            log << "pattern: " << candidate_pdbs[i]->get_pattern()
-                << " - improvement: " << count << endl;
+            log.println(
+                "pattern: {} - improvement: {}",
+                candidate_pdbs[i]->get_pattern(),
+                count);
         }
     }
 
@@ -434,7 +436,7 @@ void PatternCollectionGeneratorHillclimbing::hill_climbing(
                 log << "found a better pattern with improvement " << improvement
                     << endl;
                 if (log.is_at_least_verbose()) {
-                    log << "pattern: " << best_pattern << endl;
+                    log.println("pattern: {}", best_pattern);
                 }
             }
             current_pdbs->add_pdb(best_pdb);

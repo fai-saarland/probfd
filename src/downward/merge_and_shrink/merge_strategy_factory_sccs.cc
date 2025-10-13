@@ -87,7 +87,7 @@ unique_ptr<MergeStrategy> MergeStrategyFactorySCCs::compute_merge_strategy(
     vector<int> indices_of_merged_sccs;
     indices_of_merged_sccs.reserve(sccs.size());
     for (const vector<int>& scc : sccs) {
-        if (log.is_at_least_normal()) { log << scc << endl; }
+        if (log.is_at_least_normal()) { log.println("{}", scc); }
         if (const int scc_size = scc.size(); scc_size != 1) {
             non_singleton_cg_sccs.push_back(scc);
         }
