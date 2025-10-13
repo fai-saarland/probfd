@@ -16,7 +16,7 @@
 #include "downward/utils/system_unix.h"
 #endif
 
-#include "downward/utils/units.h"
+#include "downward/utils/byte_units.h"
 
 #include <iostream>
 #include <source_location>

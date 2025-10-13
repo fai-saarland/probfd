@@ -37,7 +37,7 @@ Kibibytes get_peak_memory_in_kib()
         cerr << "warning: could not determine peak memory" << endl;
         return Kibibytes{-1};
     }
-    return bytesize_cast<Kibibytes>(Bytes(pmc.PeakPagefileUsage));
+    return unit_cast<Kibibytes>(Bytes(pmc.PeakPagefileUsage));
 }
 
 void register_event_handlers()
