@@ -15,6 +15,9 @@ namespace downward::utils {
 // See add_log_options_to_feature for documentation.
 enum class Verbosity { SILENT, NORMAL, VERBOSE, DEBUG };
 
+template <typename T>
+concept StreamInsertable = requires(T t, std::ostream& out) { out << t; };
+
 /*
   Simple line-based logger that prepends time and peak memory info to each line
   of output. Lines should be eventually terminated by endl. Logs are written to
@@ -33,7 +36,7 @@ public:
     {
     }
 
-    template <typename T>
+    template <StreamInsertable T>
     Log& operator<<(const T& elem)
     {
         stream << elem;
@@ -67,25 +70,6 @@ public:
     operator std::ostream&() const { return stream; }
 };
 
-template <typename T>
-concept Dumpable = requires(T t, std::ostream& out) { out << t; };
-
-template <typename T>
-struct RecursivelyDumpableHelper : std::false_type {};
-
-template <std::ranges::input_range T>
-struct RecursivelyDumpableHelper<T>
-    : std::conditional_t<
-          !Dumpable<T>,
-          std::conditional_t<
-              !Dumpable<std::ranges::range_reference_t<T>>,
-              RecursivelyDumpableHelper<std::ranges::range_reference_t<T>>,
-              std::true_type>,
-          std::false_type> {};
-
-template <typename T>
-concept RecursivelyDumpable = RecursivelyDumpableHelper<T>::value;
-
 /*
   This class wraps Log which holds onto the used stream (currently hard-coded
   to be cout) and any further options for modifying output (currently only
@@ -101,7 +85,6 @@ concept RecursivelyDumpable = RecursivelyDumpableHelper<T>::value;
   are specified or a new instance if non-default options are specified.
 */
 class LogProxy {
-private:
     std::shared_ptr<Log> log;
 
 public:
@@ -112,7 +95,7 @@ public:
 
     operator std::ostream&() const { return static_cast<std::ostream&>(*log); }
 
-    LogProxy& operator<<(const Dumpable auto& elem)
+    LogProxy& operator<<(const StreamInsertable auto& elem)
     {
         (*log) << elem;
         return *this;
@@ -164,52 +147,7 @@ public:
     {
         return log->get_verbosity() != Verbosity::SILENT;
     }
-
-    template <typename T>
-    friend LogProxy& operator<<(LogProxy& stream, const T& range)
-        requires(RecursivelyDumpable<T>)
-    {
-        stream << "[";
-        auto it = std::ranges::begin(range);
-        auto end = std::ranges::end(range);
-        if (it != end) {
-            for (;;) {
-                stream << *it;
-                if (++it == end) break;
-                stream << ", ";
-            }
-        }
-        stream << "]";
-        return stream;
-    }
 };
-
-template <typename... Args>
-void print(LogProxy& log, std::format_string<Args...> text, Args&&... args)
-{
-    log.print(text, std::forward<Args>(args)...);
-}
-
-template <typename... Args>
-void println(LogProxy& log, std::format_string<Args...> text, Args&&... args)
-{
-    log.println(text, std::forward<Args>(args)...);
-}
-
-inline void println(LogProxy& log)
-{
-    log.println();
-}
-
-inline void print(LogProxy& log, std::string_view s)
-{
-    log << s;
-}
-
-inline void println(LogProxy& log, std::string_view s)
-{
-    log << s << "\n";
-}
 
 extern LogProxy get_log_for_verbosity(const Verbosity& verbosity);
 extern LogProxy get_silent_log();

@@ -91,7 +91,7 @@ pair<int, int> Abstraction::refine(
     const vector<int>& wanted)
 {
     if (log.is_at_least_debug())
-        log << "Refine " << state << " for " << var << "=" << wanted << endl;
+        log.println("Refine {} for {}={}", state, var, wanted);
 
     int v_id = state.get_id();
     // Reuse state ID from obsolete parent to obtain consecutive IDs.

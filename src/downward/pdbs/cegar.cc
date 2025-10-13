@@ -188,15 +188,11 @@ CEGAR::CEGAR(
 void CEGAR::print_collection() const
 {
     if (log.is_at_least_verbose()) {
-        log << "[";
-        for (size_t i = 0; i < pattern_collection.size(); ++i) {
-            const unique_ptr<PatternInfo>& pattern_info = pattern_collection[i];
-            if (pattern_info) {
-                log << pattern_info->get_pattern();
-                if (i != pattern_collection.size() - 1) { log << ", "; }
-            }
-        }
-        log << "]" << endl;
+        log.println("{}", pattern_collection | std::views::filter([](auto& p) {
+                              return p != nullptr;
+                          }) | std::views::transform([](const auto& p) {
+                              return p->get_pattern();
+                          }));
     }
 }
 
@@ -232,16 +228,16 @@ CEGAR::compute_pattern_info(Pattern&& pattern, const State& initial_state) const
         numeric_limits<int>::max()) {
         unsolvable = true;
         if (log.is_at_least_verbose()) {
-            log << "projection onto pattern " << pdb->get_pattern()
-                << " is unsolvable" << endl;
+            log.println(
+                "projection onto pattern {} is unsolvable",
+                pdb->get_pattern());
         }
     } else {
         const auto& operators = get_operators(task);
         const auto& cost_function = get_cost_function(task);
 
         if (log.is_at_least_verbose()) {
-            log << "##### Plan for pattern " << pdb->get_pattern() << " #####"
-                << endl;
+            log.println("##### Plan for pattern {} #####", pdb->get_pattern());
             int step = 1;
             for (const vector<OperatorID>& equivalent_ops : plan) {
                 log << "step #" << step << endl;
@@ -312,8 +308,9 @@ CEGAR::apply_plan(int collection_index, vector<int>& current_state) const
     PatternInfo& pattern_info = *pattern_collection[collection_index];
     const vector<vector<OperatorID>>& plan = pattern_info.get_plan();
     if (log.is_at_least_verbose()) {
-        log << "executing plan for pattern " << pattern_info.get_pattern()
-            << ": ";
+        log.print(
+            "executing plan for pattern {}: ",
+            pattern_info.get_pattern());
     }
 
     const auto& operators = get_operators(task);
@@ -530,9 +527,10 @@ void CEGAR::refine(const FlawList& flaws, const State& initial_state)
     const Flaw& flaw = *(rng->choose(flaws));
 
     if (log.is_at_least_verbose()) {
-        log << "chosen flaw: pattern "
-            << pattern_collection[flaw.collection_index]->get_pattern()
-            << " with a flaw on " << flaw.variable << endl;
+        log.println(
+            "chosen flaw: pattern {} with a flaw on {}",
+            pattern_collection[flaw.collection_index]->get_pattern(),
+            flaw.variable);
     }
 
     int collection_index = flaw.collection_index;
@@ -545,8 +543,10 @@ void CEGAR::refine(const FlawList& flaws, const State& initial_state)
         assert(other_index != collection_index);
         assert(pattern_collection[other_index] != nullptr);
         if (log.is_at_least_verbose()) {
-            log << "var" << var << " is already in pattern "
-                << pattern_collection[other_index]->get_pattern() << endl;
+            log.println(
+                "var {} is already in pattern {}",
+                var,
+                pattern_collection[other_index]->get_pattern());
         }
         if (can_merge_patterns(collection_index, other_index)) {
             if (log.is_at_least_verbose()) {

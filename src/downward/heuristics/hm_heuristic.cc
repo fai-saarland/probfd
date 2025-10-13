@@ -309,8 +309,8 @@ void HMHeuristic::generate_all_partial_tuples_aux(
 void HMHeuristic::dump_table() const
 {
     if (log.is_at_least_debug()) {
-        for (auto& hm_ent : hm_table) {
-            log << "h(" << hm_ent.first << ") = " << hm_ent.second << endl;
+        for (const auto& [s, val] : hm_table) {
+            log.println("h({}) = {}", s, val);
         }
     }
 }

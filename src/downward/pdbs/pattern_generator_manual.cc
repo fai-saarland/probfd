@@ -29,7 +29,7 @@ PatternGeneratorManual::compute_pattern(const SharedAbstractTask& task)
 {
     PatternInformation pattern_info(to_refs(task), std::move(pattern), log);
     if (log.is_at_least_normal()) {
-        log << "Manual pattern: " << pattern_info.get_pattern() << endl;
+        log.println("Manual pattern: {}", pattern_info.get_pattern());
     }
     return pattern_info;
 }

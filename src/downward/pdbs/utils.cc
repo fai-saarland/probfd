@@ -118,12 +118,13 @@ void dump_pattern_generation_statistics(
 {
     const Pattern& pattern = pattern_info.get_pattern();
     if (log.is_at_least_normal()) {
-        log << identifier << " pattern: " << pattern << endl;
-        log << identifier << " number of variables: " << pattern.size() << endl;
-        log << identifier << " PDB size: "
-            << compute_pdb_size(get_variables(pattern_info.get_task()), pattern)
-            << endl;
-        log << identifier << " computation time: " << runtime << endl;
+        log.println("{} pattern: {}", identifier, pattern);
+        log.println("{} number of variables: {}", identifier, pattern.size());
+        log.println(
+            "{} PDB size: {}",
+            identifier,
+            compute_pdb_size(get_variables(pattern_info.get_task()), pattern));
+        log.println("{} computation time: {}", identifier, runtime);
     }
 }
 

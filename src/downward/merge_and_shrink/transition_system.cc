@@ -677,8 +677,8 @@ void TransitionSystem::dump_labels_and_transitions(utils::LogProxy& log) const
         log << tag() << "transitions" << endl;
         for (const LocalLabelInfo& local_label_info : *this) {
             const LabelGroup& label_group = local_label_info.get_label_group();
-            log << "labels: " << label_group << endl;
-            log << "transitions: ";
+            log.println("labels: {}", label_group);
+            log.print("transitions: ");
             const vector<Transition>& transitions =
                 local_label_info.get_transitions();
             for (size_t i = 0; i < transitions.size(); ++i) {
