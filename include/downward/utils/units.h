@@ -242,7 +242,7 @@ template <
     typename FmtContext::iterator
     format(const U<Rep, Period>& size, FmtContext& ctx) const
     {
-        using downward::utils::string_literals::operator""_sl;
+        using namespace downward::utils::string_literals;
 
         // "{}<suffix>"
         // Needs to have a static address for std::format_string
