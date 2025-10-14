@@ -37,7 +37,7 @@ public:
 
     ~PrintingTimer()
     {
-        const downward::utils::Duration d = timer.stop();
+        const downward::utils::FSeconds d = timer.stop();
 
         if (std::uncaught_exceptions() > 0) {
             std::println(out, on_fail, d.count());
@@ -99,7 +99,7 @@ run_log_when_done(
 }
 
 template <typename F, typename... Args>
-std::pair<std::invoke_result_t<F, Args...>, downward::utils::Duration>
+std::pair<std::invoke_result_t<F, Args...>, downward::utils::FSeconds>
 run_log_time_r(std::ostream& out, F&& f, Args&&... args)
     requires std::invocable<F, Args...>
 {
@@ -111,7 +111,7 @@ run_log_time_r(std::ostream& out, F&& f, Args&&... args)
 template <typename F, typename... Args>
 std::pair<
     std::invoke_result_t<F, const downward::utils::Timer&, Args...>,
-    downward::utils::Duration>
+    downward::utils::FSeconds>
 run_log_time_r(std::ostream& out, F&& f, Args&&... args)
     requires std::invocable<F, const downward::utils::Timer&, Args...>
 {

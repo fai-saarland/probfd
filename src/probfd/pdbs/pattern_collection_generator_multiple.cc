@@ -63,9 +63,9 @@ vector<int> get_non_goal_variables(
 PatternCollectionGeneratorMultiple::PatternCollectionGeneratorMultiple(
     int max_pdb_size,
     int max_collection_size,
-    utils::Duration pattern_generation_max_time,
-    utils::Duration total_max_time,
-    utils::Duration stagnation_limit,
+    utils::FSeconds pattern_generation_max_time,
+    utils::FSeconds total_max_time,
+    utils::FSeconds stagnation_limit,
     double blacklist_trigger_percentage,
     bool enable_blacklist_on_stagnation,
     bool use_saturated_costs,
@@ -171,7 +171,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
     int num_iterations = 0;
     int goal_index = 0;
     bool blacklisting = false;
-    downward::utils::Duration time_point_of_last_new_pattern = 0s;
+    downward::utils::FSeconds time_point_of_last_new_pattern = 0s;
     int remaining_collection_size = max_collection_size_;
 
     auto adapted_cost_function =
@@ -225,7 +225,7 @@ PatternCollectionInformation PatternCollectionGeneratorMultiple::generate(
 
             int remaining_pdb_size =
                 min(remaining_collection_size, max_pdb_size_);
-            utils::Duration remaining_time =
+            utils::FSeconds remaining_time =
                 min(timer.get_remaining_time(), pattern_generation_max_time_);
 
             auto [pdb, state_space] = compute_pattern(

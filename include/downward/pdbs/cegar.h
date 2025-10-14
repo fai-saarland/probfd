@@ -36,7 +36,7 @@ namespace downward::pdbs {
 extern PatternCollectionInformation generate_pattern_collection_with_cegar(
     int max_pdb_size,
     int max_collection_size,
-    utils::Duration max_time,
+    utils::FSeconds max_time,
     bool use_wildcard_plans,
     utils::LogProxy& log,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
@@ -52,7 +52,7 @@ extern PatternCollectionInformation generate_pattern_collection_with_cegar(
 */
 extern PatternInformation generate_pattern_with_cegar(
     int max_pdb_size,
-    utils::Duration max_time,
+    utils::FSeconds max_time,
     bool use_wildcard_plans,
     utils::LogProxy& log,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,

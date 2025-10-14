@@ -24,7 +24,7 @@ Interval ExhaustiveAOSearch<State, Action, UseInterval>::do_solve(
     HeuristicType& heuristic,
     ParamType<State> initial_state,
     ProgressReport& progress,
-    downward::utils::Duration max_time)
+    downward::utils::FSeconds max_time)
 {
     downward::utils::CountdownTimer timer(max_time);
 

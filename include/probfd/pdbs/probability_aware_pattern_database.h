@@ -87,7 +87,7 @@ void compute_distances(
     ProjectionStateSpace& mdp,
     StateRank abstract_initial_state,
     const Heuristic<StateRank>& heuristic,
-    downward::utils::Duration max_time = downward::utils::Duration::max());
+    downward::utils::FSeconds max_time = downward::utils::FSeconds::max());
 
 /**
  * @brief Computes the goal distances for all reachable abstract states of a
@@ -108,7 +108,7 @@ void compute_distances(
     StateRank abstract_initial_state,
     const Heuristic<StateRank>& heuristic,
     bool operator_pruning = true,
-    downward::utils::Duration max_time = downward::utils::Duration::max());
+    downward::utils::FSeconds max_time = downward::utils::FSeconds::max());
 
 } // namespace probfd::pdbs
 

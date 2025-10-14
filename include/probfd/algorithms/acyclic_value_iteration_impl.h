@@ -119,7 +119,7 @@ auto AcyclicValueIteration<State, Action>::compute_policy(
     HeuristicType& heuristic,
     ParamType<State> initial_state,
     ProgressReport,
-    downward::utils::Duration max_time) -> std::unique_ptr<PolicyType>
+    downward::utils::FSeconds max_time) -> std::unique_ptr<PolicyType>
 {
     std::unique_ptr<MapPolicy> policy(new MapPolicy(&mdp));
     this->solve(mdp, heuristic, initial_state, max_time, policy.get());
@@ -132,7 +132,7 @@ Interval AcyclicValueIteration<State, Action>::solve(
     HeuristicType& heuristic,
     ParamType<State> initial_state,
     ProgressReport,
-    downward::utils::Duration max_time)
+    downward::utils::FSeconds max_time)
 {
     return solve(mdp, heuristic, initial_state, max_time, nullptr);
 }
@@ -142,7 +142,7 @@ Interval AcyclicValueIteration<State, Action>::solve(
     MDPType& mdp,
     HeuristicType& heuristic,
     ParamType<State> initial_state,
-    downward::utils::Duration max_time,
+    downward::utils::FSeconds max_time,
     MapPolicy* policy)
 {
     downward::utils::CountdownTimer timer(max_time);

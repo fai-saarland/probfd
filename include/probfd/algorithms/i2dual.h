@@ -85,14 +85,14 @@ public:
         FDRHeuristic& heuristic,
         const downward::State& initial_state,
         ProgressReport progress,
-        downward::utils::Duration max_time);
+        downward::utils::FSeconds max_time);
 
     std::unique_ptr<PolicyType> compute_policy(
         FDRMDP& mdp,
         HeuristicType& heuristic,
         const downward::State& initial_state,
         ProgressReport progress,
-        downward::utils::Duration max_time) override;
+        downward::utils::FSeconds max_time) override;
 
 private:
     bool evaluate_state(

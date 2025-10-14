@@ -30,7 +30,7 @@ public:
 
     virtual void print_statistics() const {}
 
-    virtual bool solve(downward::utils::Duration max_time) = 0;
+    virtual bool solve(downward::utils::FSeconds max_time) = 0;
 };
 
 class TaskSolverFactory {

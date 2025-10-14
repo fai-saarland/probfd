@@ -16,7 +16,7 @@ using namespace std;
 namespace downward::pdbs {
 PatternGeneratorCEGAR::PatternGeneratorCEGAR(
     int max_pdb_size,
-    utils::Duration max_time,
+    utils::FSeconds max_time,
     bool use_wildcard_plans,
     int random_seed,
     utils::Verbosity verbosity)

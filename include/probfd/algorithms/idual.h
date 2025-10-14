@@ -98,14 +98,14 @@ public:
         HeuristicType& heuristic,
         ParamType<State> initial_state,
         ProgressReport progress,
-        downward::utils::Duration max_time);
+        downward::utils::FSeconds max_time);
 
     std::unique_ptr<PolicyType> compute_policy(
         MDPType& mdp,
         HeuristicType& heuristic,
         ParamType<State> initial_state,
         ProgressReport progress,
-        downward::utils::Duration max_time) override;
+        downward::utils::FSeconds max_time) override;
 
 private:
     Interval solve(
@@ -113,7 +113,7 @@ private:
         HeuristicType& heuristic,
         ParamType<State> initial_state,
         ProgressReport progress,
-        downward::utils::Duration max_time,
+        downward::utils::FSeconds max_time,
         std::vector<double>& primal_solution,
         std::vector<double>& dual_solution);
 };

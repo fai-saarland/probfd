@@ -78,7 +78,7 @@ tuple<
     int,
     int,
     int,
-    downward::utils::Duration>
+    downward::utils::FSeconds>
 get_merge_and_shrink_algorithm_arguments_from_options(const Options& opts)
 {
     return tuple_cat(
@@ -89,7 +89,7 @@ get_merge_and_shrink_algorithm_arguments_from_options(const Options& opts)
             opts.get<bool>("prune_unreachable_states"),
             opts.get<bool>("prune_irrelevant_states")),
         get_transition_system_size_limit_arguments_from_options(opts),
-        make_tuple(opts.get<utils::Duration>("main_loop_max_time")));
+        make_tuple(opts.get<utils::FSeconds>("main_loop_max_time")));
 }
 
 void add_transition_system_size_limit_options_to_feature(Feature& feature)

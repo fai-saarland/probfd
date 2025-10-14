@@ -60,7 +60,7 @@ public:
     {
         return make_shared_from_arg_tuples<PatternGeneratorRandom>(
             opts.get<int>("max_pdb_size"),
-            opts.get<downward::utils::Duration>("max_time"),
+            opts.get<downward::utils::FSeconds>("max_time"),
             get_random_pattern_bidirectional_arguments_from_options(opts),
             get_rng_arguments_from_options(opts),
             get_generator_arguments_from_options(opts));

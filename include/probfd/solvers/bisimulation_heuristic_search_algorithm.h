@@ -16,7 +16,7 @@
 namespace probfd::solvers {
 
 struct BisimulationTimer {
-    downward::utils::Duration time = downward::utils::Duration::zero();
+    downward::utils::FSeconds time = downward::utils::FSeconds::zero();
     unsigned states = 0;
     unsigned transitions = 0;
 
@@ -47,7 +47,7 @@ public:
         FDRHeuristic&,
         const downward::State&,
         ProgressReport progress,
-        downward::utils::Duration max_time) override;
+        downward::utils::FSeconds max_time) override;
 
     void print_statistics(std::ostream& out) const override;
 };

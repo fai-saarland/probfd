@@ -159,7 +159,7 @@ static int search(argparse::ArgumentParser& parser)
                 "Search time: {:.3f}s\n",
                 &SolverInterface::solve,
                 solver,
-                static_cast<Duration>(parser.get<double>("--max-search-time")));
+                static_cast<FSeconds>(parser.get<double>("--max-search-time")));
 
             solver->print_statistics();
 

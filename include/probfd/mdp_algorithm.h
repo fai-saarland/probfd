@@ -48,7 +48,7 @@ public:
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport progress,
-        downward::utils::Duration max_time) = 0;
+        downward::utils::FSeconds max_time) = 0;
 
     /**
      * @brief Prints algorithm statistics to the specified output stream.

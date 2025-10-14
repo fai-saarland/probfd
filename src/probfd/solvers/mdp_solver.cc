@@ -135,11 +135,11 @@ public:
     {
     }
 
-    bool solve(Duration max_time) override
+    bool solve(FSeconds max_time) override
     {
         print(std::cout, "Running MDP algorithm {}", algorithm_name);
 
-        if (max_time != Duration::max()) {
+        if (max_time != FSeconds::max()) {
             println(
                 std::cout,
                 " with a time limit of {:.{}f} seconds.",

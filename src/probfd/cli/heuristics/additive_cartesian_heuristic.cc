@@ -81,7 +81,7 @@ public:
                 "split_selector_factory"),
             opts.get<int>("max_states"),
             opts.get<int>("max_transitions"),
-            opts.get<utils::Duration>("max_time"),
+            opts.get<utils::FSeconds>("max_time"),
             opts.get<bool>("use_general_costs"),
             get_task_dependent_heuristic_arguments_from_options(opts));
     }

@@ -32,7 +32,7 @@ class CanonicalPDBsHeuristicFactory : public TaskDependentFactory<Evaluator> {
     std::string description;
     utils::Verbosity verbosity;
     std::shared_ptr<PatternCollectionGenerator> generator;
-    Duration max_time_dominance_pruning;
+    FSeconds max_time_dominance_pruning;
 
 public:
     CanonicalPDBsHeuristicFactory(
@@ -41,7 +41,7 @@ public:
         string description,
         utils::Verbosity verbosity,
         std::shared_ptr<PatternCollectionGenerator> generator,
-        Duration max_time_dominance_pruning)
+        FSeconds max_time_dominance_pruning)
         : transformation(std::move(transformation))
         , cache_estimates(cache_estimates)
         , description(std::move(description))

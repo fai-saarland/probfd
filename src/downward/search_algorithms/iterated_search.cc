@@ -14,7 +14,7 @@ IteratedSearch::IteratedSearch(
     SharedAbstractTask task,
     OperatorCost operator_cost,
     int bound,
-    utils::Duration max_time,
+    utils::FSeconds max_time,
     std::string description,
     utils::Verbosity verbosity,
     std::vector<std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>
