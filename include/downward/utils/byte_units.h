@@ -11,37 +11,37 @@
 namespace downward::utils {
 
 template <ArithmeticType Rep, RatioType Period>
-class ByteSize : public unit<Rep, Period> {
+struct ByteSize : public unit<Rep, Period> {
     // Inherit constructor
     using ByteSize::unit::unit;
 };
 
-template <typename T>
+template <ArithmeticType T>
 using GBytes = ByteSize<T, std::ratio<1>>;
-template <typename T>
+template <ArithmeticType T>
 using GKilobytes = ByteSize<T, std::kilo>;
-template <typename T>
+template <ArithmeticType T>
 using GMegabytes = ByteSize<T, std::mega>;
-template <typename T>
+template <ArithmeticType T>
 using GGigabytes = ByteSize<T, std::giga>;
-template <typename T>
+template <ArithmeticType T>
 using GTerabytes = ByteSize<T, std::tera>;
-template <typename T>
+template <ArithmeticType T>
 using GPetabytes = ByteSize<T, std::peta>;
-template <typename T>
+template <ArithmeticType T>
 using GExabytes = ByteSize<T, std::exa>;
 
-template <typename T>
+template <ArithmeticType T>
 using GKibibytes = ByteSize<T, kibi>;
-template <typename T>
+template <ArithmeticType T>
 using GMebibytes = ByteSize<T, mebi>;
-template <typename T>
+template <ArithmeticType T>
 using GGibibytes = ByteSize<T, gibi>;
-template <typename T>
+template <ArithmeticType T>
 using GTebibytes = ByteSize<T, tebi>;
-template <typename T>
+template <ArithmeticType T>
 using GPebibytes = ByteSize<T, pebi>;
-template <typename T>
+template <ArithmeticType T>
 using GExbibytes = ByteSize<T, exbi>;
 
 using Bytes = GBytes<std::intmax_t>;
@@ -75,69 +75,43 @@ using FPebibytes = GPebibytes<long double>;
 using FExbibytes = GExbibytes<long double>;
 
 template <ArithmeticType T>
-struct SuffixStruct<GBytes<T>> {
-    static constexpr StringLiteral value = "B";
-};
+constexpr StringLiteral Suffix<GBytes<T>> = "B";
 
 template <ArithmeticType T>
-struct SuffixStruct<GKilobytes<T>> {
-    static constexpr StringLiteral value = "KB";
-};
+constexpr StringLiteral Suffix<GKilobytes<T>> = "KB";
 
 template <ArithmeticType T>
-struct SuffixStruct<GMegabytes<T>> {
-    static constexpr StringLiteral value = "MB";
-};
+constexpr StringLiteral Suffix<GMegabytes<T>> = "MB";
 
 template <ArithmeticType T>
-struct SuffixStruct<GGigabytes<T>> {
-    static constexpr StringLiteral value = "GB";
-};
+constexpr StringLiteral Suffix<GGigabytes<T>> = "GB";
 
 template <ArithmeticType T>
-struct SuffixStruct<GTerabytes<T>> {
-    static constexpr StringLiteral value = "TB";
-};
+constexpr StringLiteral Suffix<GTerabytes<T>> = "TB";
 
 template <ArithmeticType T>
-struct SuffixStruct<GPetabytes<T>> {
-    static constexpr StringLiteral value = "PB";
-};
+constexpr StringLiteral Suffix<GPetabytes<T>> = "PB";
 
 template <ArithmeticType T>
-struct SuffixStruct<GExabytes<T>> {
-    static constexpr StringLiteral value = "EB";
-};
+constexpr StringLiteral Suffix<GExabytes<T>> = "EB";
 
 template <ArithmeticType T>
-struct SuffixStruct<GKibibytes<T>> {
-    static constexpr StringLiteral value = "KiB";
-};
+constexpr StringLiteral Suffix<GKibibytes<T>> = "KiB";
 
 template <ArithmeticType T>
-struct SuffixStruct<GMebibytes<T>> {
-    static constexpr StringLiteral value = "MiB";
-};
+constexpr StringLiteral Suffix<GMebibytes<T>> = "MiB";
 
 template <ArithmeticType T>
-struct SuffixStruct<GGibibytes<T>> {
-    static constexpr StringLiteral value = "GiB";
-};
+constexpr StringLiteral Suffix<GGibibytes<T>> = "GiB";
 
 template <ArithmeticType T>
-struct SuffixStruct<GTebibytes<T>> {
-    static constexpr StringLiteral value = "TiB";
-};
+constexpr StringLiteral Suffix<GTebibytes<T>> = "TiB";
 
 template <ArithmeticType T>
-struct SuffixStruct<GPebibytes<T>> {
-    static constexpr StringLiteral value = "PiB";
-};
+constexpr StringLiteral Suffix<GPebibytes<T>> = "PiB";
 
 template <ArithmeticType T>
-struct SuffixStruct<GExbibytes<T>> {
-    static constexpr StringLiteral value = "EiB";
-};
+constexpr StringLiteral Suffix<GExbibytes<T>> = "EiB";
 
 namespace bytes_literals {
 

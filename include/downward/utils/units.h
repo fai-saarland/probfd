@@ -29,6 +29,9 @@ using exbi = std::ratio<2LL << 60>;
 template <typename T>
 concept RatioType = SpecializationCTP<T, std::ratio>;
 
+template <ArithmeticType Rep, RatioType Period>
+class unit;
+
 namespace detail {
 template <typename T, template <ArithmeticType, RatioType> typename U>
 struct SpecializationHelperUnit : std::false_type {};
@@ -39,35 +42,41 @@ template <
     template <ArithmeticType, RatioType> typename U>
 struct SpecializationHelperUnit<U<A, B>, U> : std::true_type {};
 
-template <typename T, template <ArithmeticType, RatioType> typename U>
-struct DerivedFromSpecializationHelperUnit : std::false_type {};
-
-template <
-    ArithmeticType A,
-    RatioType B,
-    template <ArithmeticType, RatioType> typename V,
-    template <ArithmeticType, RatioType> typename U>
-struct DerivedFromSpecializationHelperUnit<U<A, B>, V>
-    : std::bool_constant<std::derived_from<U<A, B>, V<A, B>>> {};
 } // namespace detail
 
-template <ArithmeticType Rep, RatioType Period>
-class unit;
-
-template <typename T>
-concept DerivedFromSpecializationUnit =
-    detail::DerivedFromSpecializationHelperUnit<T, unit>::value;
-
-/// Specializations specify the unit suffix for the unit type.
-template <DerivedFromSpecializationUnit T>
-struct SuffixStruct {
-    static_assert(false, "Undefined symbol");
+/// This concept is satisfied if T has exactly one public base class which is a
+/// specialization of unit.
+template <class T>
+concept DerivedFromUnit = requires(const T& t) {
+    []<ArithmeticType Rep, RatioType Period>(const unit<Rep, Period>&) {}(t);
 };
 
-/// StringLiteral suffix for the unit type.
-template <DerivedFromSpecializationUnit T>
-inline constexpr auto Suffix = SuffixStruct<T>::value;
+/// Gets the unit base class from which T derives.
+/// Makes use of the injected class name. Does not work if there is a type
+/// alias within T that hides unit.
+template <DerivedFromUnit T>
+    requires detail::SpecializationHelperUnit<typename T::unit, unit>::value
+using UnitBase = typename T::unit;
 
+template <DerivedFromUnit T>
+using Rep = typename UnitBase<T>::rep;
+
+template <DerivedFromUnit T>
+using Period = typename UnitBase<T>::period;
+
+/// Satisfied if T has exactly one public base class which is a specialization
+/// of unit and T can be constructed with a value of type Rep, where Rep is
+/// the first template parameter of the unit base class.
+template <class T>
+concept CorrectlyDerivedFromUnit =
+    DerivedFromUnit<T> && std::constructible_from<T, Rep<T>>;
+
+/// StringLiteral suffix for the unit type.
+template <CorrectlyDerivedFromUnit T>
+inline constexpr auto Suffix = T::suffix;
+
+/// Base class for unit types. Derived types must publicly inherit from this
+/// class and inherit the value constructor.
 template <ArithmeticType Rep, RatioType Period>
 class unit {
 protected:
@@ -90,6 +99,33 @@ public:
         return out << u.value << Suffix<T>.value.data();
     }
 };
+
+template <CorrectlyDerivedFromUnit T, ArithmeticType Rep>
+struct unit_values {
+    static constexpr Rep zero() { return Rep(0); }
+
+    static constexpr Rep min() { return std::numeric_limits<Rep>::min(); }
+
+    static constexpr Rep max() { return std::numeric_limits<Rep>::max(); }
+};
+
+template <CorrectlyDerivedFromUnit T>
+constexpr T zero_unit()
+{
+    return T(unit_values<T, Rep<T>>::zero());
+}
+
+template <CorrectlyDerivedFromUnit T>
+constexpr T min_unit()
+{
+    return T(unit_values<T, Rep<T>>::min());
+}
+
+template <CorrectlyDerivedFromUnit T>
+constexpr T max_unit()
+{
+    return T(unit_values<T, Rep<T>>::max());
+}
 
 // Arithmetic operators for unit types
 
@@ -190,17 +226,6 @@ constexpr To unit_cast(const U<Rep, Period>& dur) noexcept
 
 } // namespace downward::utils
 
-namespace detail {
-template <downward::ArithmeticType Rep, downward::utils::RatioType Period>
-void DerivedFromUnitImpl(const downward::utils::unit<Rep, Period>&);
-}
-
-/// This concept is satisfied if T has exactly one public base class which is a
-/// specialization of unit.
-template <class T>
-concept DerivedFromUnit =
-    requires(const T& t) { detail::DerivedFromUnitImpl(t); };
-
 // std::common_type specialization for unit-derived types.
 // Instantiating this template with an incomplete type is undefined behaviour,
 // but so is instantiating the base template with incomplete types, so don't
@@ -211,8 +236,8 @@ template <
     downward::ArithmeticType Rep2,
     downward::utils::RatioType Period2,
     template <downward::ArithmeticType, downward::utils::RatioType> typename U>
-    requires DerivedFromUnit<U<Rep1, Period1>> &&
-             DerivedFromUnit<U<Rep2, Period2>>
+    requires downward::utils::CorrectlyDerivedFromUnit<U<Rep1, Period1>> &&
+             downward::utils::CorrectlyDerivedFromUnit<U<Rep2, Period2>>
 struct std::common_type<U<Rep1, Period1>, U<Rep2, Period2>> {
     using type =
         U<std::common_type_t<Rep1, Rep2>,
