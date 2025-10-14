@@ -50,7 +50,7 @@ public:
         HeuristicType& heuristic,
         ParamType<downward::State> state,
         ProgressReport progress,
-        downward::utils::Duration max_time) = 0;
+        downward::utils::FSeconds max_time) = 0;
 
     /**
      * @brief Prints algorithm statistics to the specified output stream.
@@ -87,7 +87,7 @@ public:
         HeuristicType& heuristic,
         ParamType<downward::State> state,
         ProgressReport progress,
-        downward::utils::Duration max_time) override;
+        downward::utils::FSeconds max_time) override;
 
     void print_statistics(std::ostream&) const override;
 };

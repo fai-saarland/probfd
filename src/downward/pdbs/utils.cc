@@ -112,7 +112,7 @@ PatternCollectionInformation get_pattern_collection_info(
 
 void dump_pattern_generation_statistics(
     const string& identifier,
-    utils::Duration runtime,
+    utils::FSeconds runtime,
     const PatternInformation& pattern_info,
     utils::LogProxy& log)
 {
@@ -130,7 +130,7 @@ void dump_pattern_generation_statistics(
 
 void dump_pattern_collection_generation_statistics(
     const string& identifier,
-    utils::Duration runtime,
+    utils::FSeconds runtime,
     const PatternCollectionInformation& pci,
     utils::LogProxy& log)
 {

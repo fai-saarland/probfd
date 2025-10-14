@@ -26,7 +26,7 @@ namespace downward::pdbs {
 */
 extern Pattern generate_random_pattern(
     int max_pdb_size,
-    utils::Duration max_time,
+    utils::FSeconds max_time,
     utils::LogProxy& log,
     const std::shared_ptr<utils::RandomNumberGenerator>& rng,
     const VariableSpace& variables,

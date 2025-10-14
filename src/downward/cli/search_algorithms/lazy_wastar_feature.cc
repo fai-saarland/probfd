@@ -28,7 +28,7 @@ constexpr auto DEFAULT_LAZY_BOOST = "1000";
 class LazyWAstarSearchFactory : public TaskDependentFactory<SearchAlgorithm> {
     OperatorCost cost_type;
     int bound;
-    utils::Duration max_time;
+    utils::FSeconds max_time;
     const std::string& description;
     utils::Verbosity verbosity;
     bool reopen_closed;
@@ -44,7 +44,7 @@ public:
     explicit LazyWAstarSearchFactory(
         OperatorCost cost_type,
         int bound,
-        utils::Duration max_time,
+        utils::FSeconds max_time,
         const std::string& description,
         utils::Verbosity verbosity,
         bool reopen_closed,

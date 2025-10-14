@@ -19,9 +19,9 @@ namespace downward::pdbs {
 PatternCollectionGeneratorMultiple::PatternCollectionGeneratorMultiple(
     int max_pdb_size,
     int max_collection_size,
-    utils::Duration pattern_generation_max_time,
-    utils::Duration total_max_time,
-    utils::Duration stagnation_limit,
+    utils::FSeconds pattern_generation_max_time,
+    utils::FSeconds total_max_time,
+    utils::FSeconds stagnation_limit,
     double blacklist_trigger_percentage,
     bool enable_blacklist_on_stagnation,
     int random_seed,
@@ -222,7 +222,7 @@ PatternCollectionGeneratorMultiple::compute_patterns(
             get_blacklisted_variables(non_goal_variables);
 
         int remaining_pdb_size = min(remaining_collection_size, max_pdb_size);
-        utils::Duration remaining_time =
+        utils::FSeconds remaining_time =
             min(timer.get_remaining_time(), pattern_generation_max_time);
 
         PatternInformation pattern_info = compute_pattern(

@@ -14,7 +14,7 @@ namespace downward::cli::pdbs {
 
 void add_canonical_pdbs_options_to_feature(plugins::Feature& feature);
 
-std::tuple<utils::Duration>
+std::tuple<utils::FSeconds>
 get_canonical_pdbs_arguments_from_options(const plugins::Options& opts);
 
 } // namespace downward::cli::pdbs

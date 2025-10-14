@@ -115,7 +115,7 @@ Interval I2Dual::solve(
     FDRHeuristic& heuristic,
     const State& initial_state,
     ProgressReport progress,
-    utils::Duration max_time)
+    utils::FSeconds max_time)
 {
     downward::utils::CountdownTimer timer(max_time);
 
@@ -311,7 +311,7 @@ auto I2Dual::compute_policy(
     FDRHeuristic&,
     const State&,
     ProgressReport,
-    downward::utils::Duration) -> std::unique_ptr<PolicyType>
+    downward::utils::FSeconds) -> std::unique_ptr<PolicyType>
 {
     abort();
 }

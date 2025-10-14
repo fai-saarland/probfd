@@ -49,7 +49,7 @@ MergeAndShrinkAlgorithm::MergeAndShrinkAlgorithm(
     int max_states,
     int max_states_before_merge,
     int threshold_before_merge,
-    downward::utils::Duration main_loop_max_time)
+    downward::utils::FSeconds main_loop_max_time)
     : merge_strategy_factory(std::move(merge_strategy))
     , shrink_strategy(std::move(shrink_strategy))
     , label_reduction(std::move(label_reduction))
@@ -166,7 +166,7 @@ void MergeAndShrinkAlgorithm::main_loop(
 {
     if (log.is_at_least_normal()) {
         log.print("Starting main loop ");
-        if (main_loop_max_time == utils::Duration::max()) {
+        if (main_loop_max_time == utils::FSeconds::max()) {
             log.println("without a time limit.");
         } else {
             log.println("with a time limit of {}.", main_loop_max_time);
@@ -469,12 +469,12 @@ MergeAndShrinkAlgorithm::build_factored_transition_system(
         }
     }
 
-    if (main_loop_max_time == utils::Duration::zero()) return fts;
+    if (main_loop_max_time == utils::FSeconds::zero()) return fts;
 
     const utils::CountdownTimer loop_timer(main_loop_max_time);
     if (log.is_at_least_normal()) {
         log.print("Starting main loop ");
-        if (main_loop_max_time == utils::Duration::max()) {
+        if (main_loop_max_time == utils::FSeconds::max()) {
             log.println("without a time limit.");
         } else {
             log.println("with a time limit of {}s.", main_loop_max_time);

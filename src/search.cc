@@ -147,7 +147,7 @@ static auto construct_solver(argparse::ArgumentParser& parser)
     return solver_factory->create(input_task);
 }
 
-static ExitCode run_solver(SolverInterface& solver, Duration max_time)
+static ExitCode run_solver(SolverInterface& solver, FSeconds max_time)
 {
     // Print search time.
     Timer timer;
@@ -175,7 +175,7 @@ static int search(argparse::ArgumentParser& parser)
             const auto solver = construct_solver(parser);
             exitcode = run_solver(
                 *solver,
-                static_cast<Duration>(parser.get<double>("--max-search-time")));
+                static_cast<FSeconds>(parser.get<double>("--max-search-time")));
         } catch (const std::exception& e) {
             std::cerr << e.what() << std::endl;
             throw;

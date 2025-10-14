@@ -23,7 +23,7 @@ namespace {
 class IteratedSearchFactory : public TaskDependentFactory<SearchAlgorithm> {
     OperatorCost cost_type;
     int bound;
-    utils::Duration max_time;
+    utils::FSeconds max_time;
     std::string description;
     utils::Verbosity verbosity;
     std::vector<std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>
@@ -37,7 +37,7 @@ public:
     explicit IteratedSearchFactory(
         OperatorCost cost_type,
         int bound,
-        utils::Duration max_time,
+        utils::FSeconds max_time,
         std::string description,
         utils::Verbosity verbosity,
         std::vector<std::shared_ptr<TaskDependentFactory<SearchAlgorithm>>>
@@ -143,7 +143,7 @@ public:
         return make_shared<IteratedSearchFactory>(
             options.get<OperatorCost>("cost_type"),
             options.get<int>("bound"),
-            options.get<utils::Duration>("max_time"),
+            options.get<utils::FSeconds>("max_time"),
             options.get_unparsed_config(),
             options.get<utils::Verbosity>("verbosity"),
             options.get_list<

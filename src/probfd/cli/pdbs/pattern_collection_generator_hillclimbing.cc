@@ -99,7 +99,7 @@ public:
             opts.get<int>("collection_max_size"),
             opts.get<int>("num_samples"),
             opts.get<int>("min_improvement"),
-            opts.get<utils::Duration>("max_time"),
+            opts.get<utils::FSeconds>("max_time"),
             opts.get<int>("search_space_max_size"),
             get_rng(std::get<0>(get_rng_arguments_from_options(opts))),
             get_pattern_collection_generator_arguments_from_options(opts));

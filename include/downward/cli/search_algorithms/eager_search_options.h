@@ -33,7 +33,7 @@ extern std::tuple<
     std::shared_ptr<PruningMethod>,
     OperatorCost,
     int,
-    downward::utils::Duration,
+    downward::utils::FSeconds,
     std::string,
     utils::Verbosity>
 get_eager_search_arguments_from_options(const plugins::Options& opts);

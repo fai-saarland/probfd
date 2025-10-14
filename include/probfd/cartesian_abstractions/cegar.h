@@ -53,7 +53,7 @@ struct CEGARResult {
 class CEGAR {
     const int max_states_;
     const int max_non_looping_transitions_;
-    const downward::utils::Duration max_time_;
+    const downward::utils::FSeconds max_time_;
     const std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory_;
     const std::shared_ptr<SplitSelectorFactory> split_selector_factory_;
 
@@ -63,7 +63,7 @@ public:
     CEGAR(
         int max_states,
         int max_non_looping_transitions,
-        downward::utils::Duration max_time,
+        downward::utils::FSeconds max_time,
         std::shared_ptr<FlawGeneratorFactory> flaw_generator_factory,
         std::shared_ptr<SplitSelectorFactory> split_selector_factory,
         downward::utils::LogProxy log);

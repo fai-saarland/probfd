@@ -192,7 +192,7 @@ auto TopologicalValueIteration<State, Action, UseInterval>::compute_policy(
     HeuristicType& heuristic,
     ParamType<State> state,
     ProgressReport,
-    downward::utils::Duration max_time) -> std::unique_ptr<PolicyType>
+    downward::utils::FSeconds max_time) -> std::unique_ptr<PolicyType>
 {
     storage::PerStateStorage<AlgorithmValueType> value_store;
     auto policy = std::make_unique<MapPolicy>(&mdp);
@@ -212,7 +212,7 @@ Interval TopologicalValueIteration<State, Action, UseInterval>::solve(
     HeuristicType& heuristic,
     ParamType<State> state,
     ProgressReport,
-    downward::utils::Duration max_time)
+    downward::utils::FSeconds max_time)
 {
     storage::PerStateStorage<AlgorithmValueType> value_store;
     return this
@@ -240,7 +240,7 @@ Interval TopologicalValueIteration<State, Action, UseInterval>::solve(
     HeuristicType& heuristic,
     StateID init_state_id,
     ValueStore& value_store,
-    downward::utils::Duration max_time,
+    downward::utils::FSeconds max_time,
     MapPolicy* policy)
 {
     downward::utils::CountdownTimer timer(max_time);

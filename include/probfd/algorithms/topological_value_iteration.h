@@ -178,14 +178,14 @@ public:
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport,
-        downward::utils::Duration max_time) override;
+        downward::utils::FSeconds max_time) override;
 
     Interval solve(
         MDPType& mdp,
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport,
-        downward::utils::Duration max_time);
+        downward::utils::FSeconds max_time);
 
     void print_statistics(std::ostream& out) const override;
 
@@ -208,7 +208,7 @@ public:
         HeuristicType& heuristic,
         StateID init_state_id,
         ValueStore& value_store,
-        downward::utils::Duration max_time = downward::utils::Duration::max(),
+        downward::utils::FSeconds max_time = downward::utils::FSeconds::max(),
         MapPolicy* policy = nullptr);
 
 private:

@@ -49,7 +49,7 @@ extern std::unique_ptr<ProjectionMultiPolicy> run_cegar_loop(
     int max_pdb_size,
     downward::utils::RandomNumberGenerator& rng,
     bool wildcard,
-    downward::utils::Duration max_time,
+    downward::utils::FSeconds max_time,
     downward::utils::LogProxy log);
 
 extern std::unique_ptr<ProjectionMultiPolicy> run_cegar_loop(
@@ -62,7 +62,7 @@ extern std::unique_ptr<ProjectionMultiPolicy> run_cegar_loop(
     int max_pdb_size,
     downward::utils::RandomNumberGenerator& rng,
     bool wildcard,
-    downward::utils::Duration max_time,
+    downward::utils::FSeconds max_time,
     downward::utils::LogProxy log);
 
 } // namespace probfd::pdbs::cegar

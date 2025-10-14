@@ -55,7 +55,7 @@ public:
         const SharedProbabilisticTask& task,
         const State& initial_state,
         utils::RandomNumberGenerator& rng,
-        utils::Duration max_time,
+        utils::FSeconds max_time,
         utils::LogProxy log);
 
 private:
@@ -223,7 +223,7 @@ std::unique_ptr<ProjectionMultiPolicy> SingleCEGAR::run_cegar_loop(
     const SharedProbabilisticTask& task,
     const State& initial_state,
     utils::RandomNumberGenerator& rng,
-    utils::Duration max_time,
+    utils::FSeconds max_time,
     utils::LogProxy log)
 {
     if (log.is_at_least_normal()) {
@@ -348,7 +348,7 @@ std::unique_ptr<ProjectionMultiPolicy> run_cegar_loop(
     int max_pdb_size,
     utils::RandomNumberGenerator& rng,
     bool wildcard,
-    utils::Duration max_time,
+    utils::FSeconds max_time,
     utils::LogProxy log)
 {
     SingleCEGAR single_cegar(

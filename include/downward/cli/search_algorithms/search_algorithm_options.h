@@ -35,7 +35,7 @@ extern void add_search_algorithm_options_to_feature(
 extern std::tuple<
     OperatorCost,
     int,
-    downward::utils::Duration,
+    downward::utils::FSeconds,
     std::string,
     utils::Verbosity>
 get_search_algorithm_arguments_from_options(const plugins::Options& opts);

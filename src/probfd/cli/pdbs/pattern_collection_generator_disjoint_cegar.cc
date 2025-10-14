@@ -96,7 +96,7 @@ public:
             opts.get<bool>("single_goal"),
             opts.get<int>("max_pdb_size"),
             opts.get<int>("max_collection_size"),
-            opts.get<utils::Duration>("max_time"),
+            opts.get<utils::FSeconds>("max_time"),
             get_rng(std::get<0>(get_rng_arguments_from_options(opts))),
             opts.get_shared<SubCollectionFinderFactory>(
                 "subcollection_finder_factory"),

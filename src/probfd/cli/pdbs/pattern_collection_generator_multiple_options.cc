@@ -86,9 +86,9 @@ get_multiple_arguments_from_options(const Options& options)
         std::make_tuple(
             options.get<int>("max_pdb_size"),
             options.get<int>("max_collection_size"),
-            options.get<utils::Duration>("pattern_generation_max_time"),
-            options.get<utils::Duration>("total_max_time"),
-            options.get<utils::Duration>("stagnation_limit"),
+            options.get<utils::FSeconds>("pattern_generation_max_time"),
+            options.get<utils::FSeconds>("total_max_time"),
+            options.get<utils::FSeconds>("stagnation_limit"),
             options.get<double>("blacklist_trigger_percentage"),
             options.get<bool>("enable_blacklist_on_stagnation"),
             options.get<bool>("use_saturated_costs"),

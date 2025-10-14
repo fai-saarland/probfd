@@ -68,14 +68,14 @@ void add_search_algorithm_options_to_feature(
     utils::add_log_options_to_feature(feature);
 }
 
-tuple<OperatorCost, int, downward::utils::Duration, string, downward::utils::Verbosity>
+tuple<OperatorCost, int, downward::utils::FSeconds, string, downward::utils::Verbosity>
 get_search_algorithm_arguments_from_options(const plugins::Options& opts)
 {
     return tuple_cat(
         get_cost_type_arguments_from_options(opts),
         make_tuple(
             opts.get<int>("bound"),
-            opts.get<downward::utils::Duration>("max_time"),
+            opts.get<downward::utils::FSeconds>("max_time"),
             opts.get<string>("description")),
         utils::get_log_arguments_from_options(opts));
 }

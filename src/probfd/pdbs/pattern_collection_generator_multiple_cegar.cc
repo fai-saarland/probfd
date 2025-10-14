@@ -27,9 +27,9 @@ PatternCollectionGeneratorMultipleCegar::
         bool use_wildcard_policies,
         int max_pdb_size,
         int max_collection_size,
-        utils::Duration pattern_generation_max_time,
-        utils::Duration total_max_time,
-        utils::Duration stagnation_limit,
+        utils::FSeconds pattern_generation_max_time,
+        utils::FSeconds total_max_time,
+        utils::FSeconds stagnation_limit,
         double blacklist_trigger_percentage,
         bool enable_blacklist_on_stagnation,
         bool use_saturated_costs,
@@ -56,7 +56,7 @@ PatternCollectionGeneratorMultipleCegar::
 ProjectionTransformation
 PatternCollectionGeneratorMultipleCegar::compute_pattern(
     int max_pdb_size,
-    utils::Duration max_time,
+    utils::FSeconds max_time,
     const shared_ptr<utils::RandomNumberGenerator>& rng,
     const SharedProbabilisticTask& task,
     const FactPair& goal,

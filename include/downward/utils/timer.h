@@ -8,7 +8,15 @@
 
 namespace downward::utils {
 
-using Duration = std::chrono::duration<double>;
+template <typename T>
+using FDuration = std::chrono::duration<double, T>;
+
+using FHours = FDuration<std::ratio<60 * 60>>;
+using FMinutes = FDuration<std::ratio<60>>;
+using FSeconds = FDuration<std::ratio<1>>;
+using FMilliSeconds = FDuration<std::milli>;
+using FMicroSeconds = FDuration<std::micro>;
+using FNanoSeconds = FDuration<std::nano>;
 
 struct DynamicDuration {
     std::intmax_t num;
@@ -66,21 +74,21 @@ struct DynamicDuration {
 };
 
 class Timer {
-    std::chrono::time_point<std::chrono::high_resolution_clock, Duration>
+    std::chrono::time_point<std::chrono::high_resolution_clock, FSeconds>
         last_start_clock;
-    Duration collected_time;
+    FSeconds collected_time;
     bool stopped;
 
-    std::chrono::time_point<std::chrono::high_resolution_clock, Duration>
+    std::chrono::time_point<std::chrono::high_resolution_clock, FSeconds>
     current_clock() const;
 
 public:
     explicit Timer(bool start = true);
 
-    Duration operator()() const;
-    Duration stop();
+    FSeconds operator()() const;
+    FSeconds stop();
     void resume();
-    Duration reset();
+    FSeconds reset();
 };
 
 std::ostream& operator<<(std::ostream& os, const Timer& timer);

@@ -20,9 +20,9 @@ namespace probfd::cli::pdbs {
 using PatternCollectionGeneratorMultipleAdditionalArgs = std::tuple<
     int,
     int,
-    downward::utils::Duration,
-    downward::utils::Duration,
-    downward::utils::Duration,
+    downward::utils::FSeconds,
+    downward::utils::FSeconds,
+    downward::utils::FSeconds,
     double,
     bool,
     bool>;

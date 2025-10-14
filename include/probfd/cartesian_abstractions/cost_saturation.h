@@ -42,7 +42,7 @@ class CostSaturation {
     const std::shared_ptr<SplitSelectorFactory> split_selector_factory_;
     const int max_states_;
     const int max_non_looping_transitions_;
-    const downward::utils::Duration max_time_;
+    const downward::utils::FSeconds max_time_;
     const bool use_general_costs_;
     mutable downward::utils::LogProxy log_;
 
@@ -62,7 +62,7 @@ class CostSaturation {
         const SharedTasks& subtasks,
         const downward::utils::CountdownTimer& timer,
         std::function<bool()> should_abort);
-    void print_statistics(downward::utils::Duration init_time) const;
+    void print_statistics(downward::utils::FSeconds init_time) const;
 
 public:
     CostSaturation(
@@ -72,7 +72,7 @@ public:
         std::shared_ptr<SplitSelectorFactory> split_selector_factory,
         int max_states,
         int max_non_looping_transitions,
-        downward::utils::Duration max_time,
+        downward::utils::FSeconds max_time,
         bool use_general_costs,
         downward::utils::LogProxy log);
 

@@ -50,7 +50,7 @@ AdditiveCartesianHeuristicFactory::AdditiveCartesianHeuristicFactory(
     shared_ptr<SplitSelectorFactory> split_selector_factory,
     int max_states,
     int max_transitions,
-    utils::Duration max_time,
+    utils::FSeconds max_time,
     bool use_general_costs,
     utils::Verbosity verbosity)
     : subtask_generators(std::move(subtasks))

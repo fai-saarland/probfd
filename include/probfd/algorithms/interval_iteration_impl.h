@@ -32,7 +32,7 @@ Interval IntervalIteration<State, Action>::solve(
     HeuristicType& heuristic,
     ParamType<State> state,
     ProgressReport,
-    downward::utils::Duration max_time)
+    downward::utils::FSeconds max_time)
 {
     downward::utils::CountdownTimer timer(max_time);
     std::unique_ptr sys = create_quotient(mdp, heuristic, state, timer);
@@ -47,7 +47,7 @@ auto IntervalIteration<State, Action>::compute_policy(
     HeuristicType&,
     ParamType<State>,
     ProgressReport,
-    downward::utils::Duration) -> std::unique_ptr<PolicyType>
+    downward::utils::FSeconds) -> std::unique_ptr<PolicyType>
 {
     not_implemented();
 }
@@ -67,7 +67,7 @@ Interval IntervalIteration<State, Action>::solve(
     ValueStoreT& value_store,
     SetLike& dead_ends,
     SetLike2& one_states,
-    downward::utils::Duration max_time)
+    downward::utils::FSeconds max_time)
 {
     downward::utils::CountdownTimer timer(max_time);
 

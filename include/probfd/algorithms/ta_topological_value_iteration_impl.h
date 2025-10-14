@@ -272,7 +272,7 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
     HeuristicType& heuristic,
     ParamType<State> state,
     ProgressReport,
-    downward::utils::Duration max_time)
+    downward::utils::FSeconds max_time)
 {
     storage::PerStateStorage<AlgorithmValueType> value_store;
     return this
@@ -316,7 +316,7 @@ Interval TATopologicalValueIteration<State, Action, UseInterval>::solve(
     const HeuristicType& heuristic,
     StateID init_state_id,
     auto& value_store,
-    downward::utils::Duration max_time)
+    downward::utils::FSeconds max_time)
 {
     assert(dfs_stack_.empty());
     assert(tarjan_stack_.empty());
@@ -416,7 +416,7 @@ auto TATopologicalValueIteration<State, Action, UseInterval>::compute_policy(
     HeuristicType&,
     ParamType<State>,
     ProgressReport,
-    downward::utils::Duration) -> std::unique_ptr<PolicyType>
+    downward::utils::FSeconds) -> std::unique_ptr<PolicyType>
 {
     not_implemented();
 }
