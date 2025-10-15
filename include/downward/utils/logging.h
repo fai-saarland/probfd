@@ -15,6 +15,9 @@ namespace downward::utils {
 // See add_log_options_to_feature for documentation.
 enum class Verbosity { SILENT, NORMAL, VERBOSE, DEBUG };
 
+template <typename T>
+concept StreamInsertable = requires(T t, std::ostream& out) { out << t; };
+
 /*
   Simple line-based logger that prepends time and peak memory info to each line
   of output. Lines should be eventually terminated by endl. Logs are written to
@@ -33,7 +36,7 @@ public:
     {
     }
 
-    template <typename T>
+    template <StreamInsertable T>
     Log& operator<<(const T& elem)
     {
         stream << elem;
@@ -67,9 +70,6 @@ public:
     operator std::ostream&() const { return stream; }
 };
 
-template <typename T>
-concept Dumpable = requires(T t, std::ostream& out) { out << t; };
-
 /*
   This class wraps Log which holds onto the used stream (currently hard-coded
   to be cout) and any further options for modifying output (currently only
@@ -95,7 +95,7 @@ public:
 
     operator std::ostream&() const { return static_cast<std::ostream&>(*log); }
 
-    LogProxy& operator<<(const Dumpable auto& elem)
+    LogProxy& operator<<(const StreamInsertable auto& elem)
     {
         (*log) << elem;
         return *this;
