@@ -9,10 +9,12 @@
 
 #include <cassert>
 #include <deque>
+#include <format>
 #include <iomanip>
 #include <iostream>
 #include <map>
 #include <memory>
+#include <print>
 #include <ranges>
 #include <sstream>
 #include <vector>
@@ -184,9 +186,7 @@ public:
             emit_attribute(out, "rank", "same");
             out << "; ";
 
-            for (const auto* node : group) {
-                out << node->name_ << "; ";
-            }
+            for (const auto* node : group) { out << node->name_ << "; "; }
 
             out << "}\n";
         }
@@ -294,8 +294,13 @@ void dump_state_space_dot_graph(
         [](const State&) { return ""; },
     std::function<std::string(const Action&)> astr =
         [](const Action&) { return ""; },
-    bool expand_terminal = false)
+    bool expand_terminal = false,
+    int precision = 3)
 {
+    if (precision <= 0) {
+        throw std::domain_error("precision must be greater than 0");
+    }
+
     struct SearchInfo {
         StateID state_id;
         State state;
@@ -315,7 +320,6 @@ void dump_state_space_dot_graph(
     StateID istateid = mdp->get_state_id(initial_state);
     internal::GraphBuilder builder(istateid);
     std::stringstream ss;
-    ss << std::setprecision(3);
 
     std::deque<SearchInfo> open;
     open.emplace_back(istateid, initial_state, &builder.get_node(istateid));
@@ -343,9 +347,7 @@ void dump_state_space_dot_graph(
 
         open.pop_front();
 
-        if (!expand) {
-            continue;
-        }
+        if (!expand) { continue; }
 
         std::vector<TransitionTail<Action>> transitions;
         mdp->generate_all_transitions(state, transitions);
@@ -363,9 +365,9 @@ void dump_state_space_dot_graph(
         for (const auto& [act, successor_dist] : transitions) {
             const auto a_cost = mdp->get_action_cost(act);
             if (a_cost != 0_vt) {
-                ss << a_cost << "\\n";
+                std::print(ss, R"({:.{}f}\n)", a_cost, precision);
             }
-            ss << astr(act);
+            std::print(ss, "{}", astr(act));
             std::string label_text = ss.str();
             ss.str("");
 
@@ -423,9 +425,8 @@ void dump_state_space_dot_graph(
             interm_edge.set_attribute("label", label_text);
 
             for (const auto& [succ_node, prob] : successor_nodes) {
-                ss << prob;
-                std::string prob_text = ss.str();
-                ss.str("");
+                const std::string prob_text =
+                    std::format("{:.{}f}", prob, precision);
 
                 auto& edge = builder.create_edge(*intermediate, *succ_node);
                 edge.set_attribute("arrowhead", "vee");
