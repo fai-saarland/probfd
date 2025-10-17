@@ -76,9 +76,11 @@ public:
     {
         auto determinization = tasks::create_determinization_task(task);
 
-        auto [transition_system, state_mapping, distances] = run_time_logged(
+        std::print(
             std::cout,
-            "Computing all-outcomes determinization bisimulation...",
+            "Computing all-outcomes determinization bisimulation... ");
+        auto [transition_system, state_mapping, distances] = run_log_time(
+            std::cout,
             bisimulation::compute_bisimulation_on_determinization,
             to_refs(determinization));
 
@@ -99,13 +101,11 @@ public:
             return false;
         }
 
-        utils::Timer state_space_timer(false);
-
-        auto state_space = run_time_logged(
-            state_space_timer,
+        std::print(
             std::cout,
-            "Constructing bisimulation abstract state space...",
-            [&]() {
+            "Constructing bisimulation abstract state space... ");
+        auto [state_space, state_space_time] =
+            run_log_time_r(std::cout, [&](const utils::Timer&) {
                 return bisimulation::BisimilarStateSpace(
                     task,
                     *transition_system);
@@ -121,13 +121,12 @@ public:
         const auto initial_state =
             static_cast<QuotientState>(state_mapping->get_value(initial));
 
-        utils::Timer vi_timer(false);
-
-        auto policy = run_time_logged(
-            vi_timer,
+        std::print(
             std::cout,
-            "Running " + algorithm_name + " on the bisimulation...",
-            [&] {
+            "Running {} on the bisimulation...",
+            algorithm_name);
+        auto [policy, vi_time] =
+            run_log_time_r(std::cout, [&](const utils::Timer& vi_timer) {
                 heuristics::BlindHeuristic<QState> blind(
                     operators,
                     cost_function,
@@ -171,14 +170,14 @@ public:
         std::cout << "Bisimulation:" << std::endl;
         print_bisimulation_stats(
             std::cout,
-            state_space_timer(),
+            state_space_time,
             states,
             transitions);
 
         std::cout << std::endl;
         std::cout << "Algorithm " << algorithm_name
                   << " statistics:" << std::endl;
-        std::cout << "  Actual solver time: " << vi_timer() << std::endl;
+        std::cout << "  Actual solver time: " << vi_time << std::endl;
         solver->print_statistics(std::cout);
 
         return true;
@@ -233,7 +232,8 @@ public:
     }
 };
 
-class BisimulationVISolverFeature : public SharedTypedFeature<TaskSolverFactory> {
+class BisimulationVISolverFeature
+    : public SharedTypedFeature<TaskSolverFactory> {
 public:
     BisimulationVISolverFeature()
         : SharedTypedFeature("bisimulation_vi")
@@ -256,7 +256,8 @@ protected:
     }
 };
 
-class BisimulationIISolverFeature : public SharedTypedFeature<TaskSolverFactory> {
+class BisimulationIISolverFeature
+    : public SharedTypedFeature<TaskSolverFactory> {
 public:
     BisimulationIISolverFeature()
         : SharedTypedFeature("bisimulation_ii")

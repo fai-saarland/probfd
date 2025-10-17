@@ -54,6 +54,9 @@ public:
         SharedProbabilisticTask task,
         const downward::merge_and_shrink::TransitionSystem& transition_system);
 
+    BisimilarStateSpace(BisimilarStateSpace&&) noexcept;
+    BisimilarStateSpace& operator=(BisimilarStateSpace&&) noexcept;
+
     ~BisimilarStateSpace() override;
 
     StateID get_state_id(QuotientState state) override;

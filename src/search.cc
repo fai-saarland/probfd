@@ -137,9 +137,9 @@ static auto construct_solver(argparse::ArgumentParser& parser)
     const auto solver_factory = construct_solver(*decorated);
 
     // Read the input task.
-    const SharedProbabilisticTask input_task = run_time_logged(
+    std::print(std::cout, "Reading input task... ");
+    const SharedProbabilisticTask input_task = run_log_time(
         std::cout,
-        "Reading input task...",
         probfd::tasks::read_sas_task_from_file,
         parser.get("problem_file"));
 
@@ -147,37 +147,26 @@ static auto construct_solver(argparse::ArgumentParser& parser)
     return solver_factory->create(input_task);
 }
 
-static ExitCode run_solver(SolverInterface& solver, FSeconds max_time)
-{
-    // Print search time.
-    Timer timer;
-    scope_exit _([&] { std::println(cout, "Search time: {}", timer()); });
-
-    const bool found_solution = solver.solve(max_time);
-    timer.stop();
-
-    solver.print_statistics();
-
-    return found_solution ? ExitCode::SUCCESS
-                          : ExitCode::SEARCH_UNSOLVED_INCOMPLETE;
-}
-
 static int search(argparse::ArgumentParser& parser)
 {
-    // Print total time.
-    Timer timer;
-    scope_exit _([&] { println(cout, "Total time: {}", timer()); });
-
     ExitCode exitcode;
 
     try {
         try {
             const auto solver = construct_solver(parser);
-            exitcode = run_solver(
-                *solver,
+            const bool found_solution = run_log_when_done(
+                std::cout,
+                "Search time: {:.3f}s\n",
+                &SolverInterface::solve,
+                solver,
                 static_cast<FSeconds>(parser.get<double>("--max-search-time")));
+
+            solver->print_statistics();
+
+            exitcode = found_solution ? ExitCode::SUCCESS
+                                      : ExitCode::SEARCH_UNSOLVED_INCOMPLETE;
         } catch (const std::exception& e) {
-            std::cerr << e.what() << std::endl;
+            std::print(std::cerr, "{}", e.what());
             throw;
         }
     } catch (const downward::utils::ContextError&) {
@@ -193,8 +182,6 @@ static int search(argparse::ArgumentParser& parser)
     } catch (const std::exception&) {
         exitcode = ExitCode::SEARCH_CRITICAL_ERROR;
     }
-
-    std::println(std::cout, "");
 
     report_exit_code_reentrant(exitcode);
     return static_cast<int>(exitcode);

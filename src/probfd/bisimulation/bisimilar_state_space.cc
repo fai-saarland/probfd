@@ -108,6 +108,12 @@ BisimilarStateSpace::BisimilarStateSpace(
     }
 }
 
+BisimilarStateSpace::BisimilarStateSpace(BisimilarStateSpace&&) noexcept =
+    default;
+
+BisimilarStateSpace&
+BisimilarStateSpace::operator=(BisimilarStateSpace&&) noexcept = default;
+
 BisimilarStateSpace::~BisimilarStateSpace() = default;
 
 StateID BisimilarStateSpace::get_state_id(QuotientState s)
@@ -226,8 +232,7 @@ TerminationInfo BisimilarStateSpace::get_termination_info(QuotientState s)
 
 value_t BisimilarStateSpace::get_action_cost(OperatorID op_id)
 {
-    const auto& cost_function =
-        get_cost_function(task_);
+    const auto& cost_function = get_cost_function(task_);
     return cost_function.get_operator_cost(op_id.get_index());
 }
 

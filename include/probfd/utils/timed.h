@@ -11,109 +11,116 @@
 namespace probfd {
 
 class PrintingTimer {
-    downward::utils::Timer& timer;
-    std::string print;
     std::ostream& out;
-    bool same_line;
-    int precision;
+    std::format_string<double> on_fail;
+    std::format_string<double> on_success;
+
+    downward::utils::Timer timer;
 
 public:
-    PrintingTimer(
-        downward::utils::Timer& timer,
-        std::string print,
-        std::ostream& out,
-        bool same_line = true,
-        int precision = 3)
-        : timer(timer)
-        , print(std::move(print))
-        , out(out)
-        , same_line(same_line)
-        , precision(precision)
+    explicit PrintingTimer(std::ostream& out)
+        : out(out)
+        , on_fail("Failed after {:.3f} seconds.")
+        , on_success("Finished after {:.3f} seconds.")
     {
-        if (same_line) {
-            out << this->print << ' ' << std::flush;
-        } else {
-            out << this->print << std::endl;
-        }
+    }
+
+    PrintingTimer(
+        std::ostream& out,
+        std::format_string<double> on_fail,
+        std::format_string<double> on_success)
+        : out(out)
+        , on_fail(std::move(on_fail))
+        , on_success(std::move(on_success))
+    {
     }
 
     ~PrintingTimer()
     {
-        if (!same_line) { out << print << ' '; }
-
-        const auto d = timer.stop();
+        const downward::utils::FSeconds d = timer.stop();
 
         if (std::uncaught_exceptions() > 0) {
-            std::println(
-                out,
-                "Failed after {:.{}f} seconds.",
-                d.count(),
-                precision);
+            std::println(out, on_fail, d.count());
         } else {
-            std::println(
-                out,
-                "Finished after {:.{}f} seconds.",
-                d.count(),
-                precision);
+            std::println(out, on_success, d.count());
         }
     }
+
+    const downward::utils::Timer& get_timer() const { return timer; }
 };
 
 template <typename F, typename... Args>
-std::invoke_result_t<F, Args...> run_time_logged(
-    std::ostream& out,
-    const std::string& print,
-    bool same_line,
-    F&& f,
-    Args&&... args)
+std::invoke_result_t<F, Args...>
+run_log_time(std::ostream& out, F&& f, Args&&... args)
     requires std::invocable<F, Args...>
 {
-    downward::utils::Timer timer;
-    PrintingTimer _(timer, print, out, same_line);
+    PrintingTimer timer(out);
     return std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
 }
 
 template <typename F, typename... Args>
-std::invoke_result_t<F, Args...> run_time_logged(
-    std::ostream& out,
-    const std::string& print,
-    F&& f,
-    Args&&... args)
-    requires std::invocable<F, Args...>
+std::invoke_result_t<F, const downward::utils::Timer&, Args...>
+run_log_time(std::ostream& out, F&& f, Args&&... args)
+    requires std::invocable<F, const downward::utils::Timer&, Args...>
 {
-    return run_time_logged(
-        out,
-        print,
-        true,
+    PrintingTimer timer(out);
+    return std::invoke(
         std::forward<F>(f),
+        timer.get_timer(),
         std::forward<Args>(args)...);
 }
 
 template <typename F, typename... Args>
-std::invoke_result_t<F, Args...> run_time_logged(
-    downward::utils::Timer& timer,
+std::invoke_result_t<F, Args...> run_log_when_done(
     std::ostream& out,
-    const std::string& print,
-    bool same_line,
+    std::format_string<double> on_done,
     F&& f,
     Args&&... args)
     requires std::invocable<F, Args...>
 {
-    PrintingTimer _(timer, print, out, same_line);
+    PrintingTimer timer(out, on_done, on_done);
     return std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
 }
 
 template <typename F, typename... Args>
-std::invoke_result_t<F, Args...> run_time_logged(
-    downward::utils::Timer& timer,
+std::invoke_result_t<F, const downward::utils::Timer&, Args...>
+run_log_when_done(
     std::ostream& out,
-    const std::string& print,
+    std::format_string<double> on_done,
     F&& f,
     Args&&... args)
+    requires std::invocable<F, const downward::utils::Timer&, Args...>
+{
+    PrintingTimer timer(out, on_done, on_done);
+    return std::invoke(
+        std::forward<F>(f),
+        timer.get_timer(),
+        std::forward<Args>(args)...);
+}
+
+template <typename F, typename... Args>
+std::pair<std::invoke_result_t<F, Args...>, downward::utils::FSeconds>
+run_log_time_r(std::ostream& out, F&& f, Args&&... args)
     requires std::invocable<F, Args...>
 {
-    PrintingTimer _(timer, print, out);
-    return std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
+    PrintingTimer timer(out);
+    auto r = std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
+    return std::make_pair(r, timer.get_timer().operator()());
+}
+
+template <typename F, typename... Args>
+std::pair<
+    std::invoke_result_t<F, const downward::utils::Timer&, Args...>,
+    downward::utils::FSeconds>
+run_log_time_r(std::ostream& out, F&& f, Args&&... args)
+    requires std::invocable<F, const downward::utils::Timer&, Args...>
+{
+    PrintingTimer timer(out);
+    auto r = std::invoke(
+        std::forward<F>(f),
+        timer.get_timer(),
+        std::forward<Args>(args)...);
+    return std::make_pair(std::move(r), timer.get_timer().operator()());
 }
 
 }; // namespace probfd
