@@ -268,23 +268,23 @@ public:
 std::unique_ptr<SolverInterface>
 MDPSolver::create(const SharedProbabilisticTask& task)
 {
-    std::unique_ptr<StatisticalMDPAlgorithm> algorithm = run_time_logged(
+    std::print(std::cout, "Constructing MDP algorithm... ");
+    std::unique_ptr<StatisticalMDPAlgorithm> algorithm = run_log_time(
         std::cout,
-        "Constructing algorithm...",
         &StatisticalMDPAlgorithmFactory::create_algorithm,
         *algorithm_factory_,
         task);
 
-    std::unique_ptr<TaskStateSpace> state_space = run_time_logged(
+    std::print(std::cout, "Constructing task state space generator... ");
+    std::unique_ptr<TaskStateSpace> state_space = run_log_time(
         std::cout,
-        "Constructing task state space generator...",
         &TaskStateSpaceFactory::create_object,
         *task_state_space_factory_,
         task);
 
-    std::shared_ptr<FDRHeuristic> heuristic = run_time_logged(
+    std::print(std::cout, "Constructing heuristic... ");
+    std::shared_ptr<FDRHeuristic> heuristic = run_log_time(
         std::cout,
-        "Constructing heuristic...",
         &TaskHeuristicFactory::create_object,
         *heuristic_factory_,
         task);

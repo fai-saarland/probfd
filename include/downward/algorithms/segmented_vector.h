@@ -76,9 +76,6 @@ class SegmentedVector {
         segments.push_back(new_segment);
     }
 
-    SegmentedVector(const SegmentedVector<Entry>&) = delete;
-    SegmentedVector& operator=(const SegmentedVector<Entry>&) = delete;
-
     template <bool is_const>
     class sviterator {
         std::vector<Entry*>::iterator current_segment;
@@ -242,6 +239,12 @@ public:
     {
         add_segment();
     }
+
+    SegmentedVector(const SegmentedVector&) = delete;
+    SegmentedVector& operator=(const SegmentedVector&) = delete;
+
+    SegmentedVector(SegmentedVector&&) = default;
+    SegmentedVector& operator=(SegmentedVector&&) = default;
 
     ~SegmentedVector()
     {

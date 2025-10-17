@@ -2,6 +2,7 @@
 #include "search.h"
 
 #include "downward/utils/system.h"
+#include "probfd/utils/timed.h"
 
 #include <argparse/argparse.hpp>
 
@@ -44,7 +45,11 @@ int main(int argc, const char** argv)
 
     if (auto subcommand = prog.get_used_subcommand()) {
         auto& [subcommand_parser, main] = *subcommand;
-        return main(subcommand_parser);
+        return run_log_when_done(
+            std::cout,
+            "Total time: {:.3f}s",
+            main,
+            subcommand_parser);
     }
 
     std::cerr << prog;

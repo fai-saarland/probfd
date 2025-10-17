@@ -20,6 +20,7 @@
 #include "downward/state.h"
 #include "probfd/probabilistic_operator_space.h"
 #include "probfd/termination_costs.h"
+#include "probfd/utils/timed.h"
 
 #include <iostream>
 #include <memory>
@@ -68,13 +69,13 @@ void HPOMGenerator::initialize_constraints(
     const SharedProbabilisticTask& task,
     lp::LinearProgram& lp)
 {
-    std::println(std::cout, "Initializing HPOM LP constraints...");
-
-    utils::Timer timer;
-
-    generate_hpom_lp(to_refs(task), lp, offset_);
-
-    std::println(std::cout, "Finished HPOM LP setup after {}", timer());
+    std::print(std::cout, "Initializing HPOM LP constraints... ");
+    run_log_time(
+        std::cout,
+        &HPOMGenerator::generate_hpom_lp,
+        to_refs(task),
+        lp,
+        offset_);
 }
 
 void HPOMGenerator::update_constraints(const State& state, lp::LPSolver& solver)
