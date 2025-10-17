@@ -50,7 +50,6 @@ function(add_existing_sources_to_list _HEADERS_LIST_VAR _SOURCES_LIST_VAR)
 endfunction()
 
 function(create_library)
-    set(_OPTIONS CORE_LIBRARY)
     set(_ONE_VALUE_ARGS NAME HELP TARGET)
     set(_MULTI_VALUE_ARGS SOURCES DEPENDS)
     cmake_parse_arguments(_LIBRARY "${_OPTIONS}" "${_ONE_VALUE_ARGS}" "${_MULTI_VALUE_ARGS}" ${ARGN})

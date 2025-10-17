@@ -55,7 +55,6 @@ create_library(
         subscriber
         successor_generator
         task_properties
-    CORE_LIBRARY
 )
 
 create_library(
@@ -78,7 +77,6 @@ create_library(
         downward/utils/system_windows
         downward/utils/timer
         downward/utils/tuples
-    CORE_LIBRARY
 )
 
 # On Linux, find the rt library for clock_gettime().
@@ -491,7 +489,6 @@ create_library(
         downward/tasks/cost_adapted_task
         downward/tasks/root_task
         downward/transformations/identity_task_transformation
-    CORE_LIBRARY
 )
 
 create_library(
