@@ -160,10 +160,8 @@ void Txt2TagsPrinter::print_arguments(const Feature& feature) const
              feature.get_arguments(),
              feature.get_argument_docs())) {
         const Type& arg_type = arg_info.type;
-        os << "- //" << arg_info.key << "// (" << arg_type.name();
-        if (arg_info.bounds.has_bound())
-            os << " \"\"" << arg_info.bounds << "\"\"";
-        os << "): " << arg_help << endl;
+        os << "- //" << arg_info.key << "// (" << arg_type.name()
+           << "): " << arg_help << endl;
         if (arg_type.is_enum_type()) {
             for (const pair<string, string>& explanation :
                  static_cast<const EnumType&>(arg_type)
@@ -265,9 +263,8 @@ void PlainPrinter::print_arguments(const Feature& feature) const
     for (const auto& [arg_info, arg_help] : std::views::zip(
              feature.get_arguments(),
              feature.get_argument_docs())) {
-        os << " " << arg_info.key << " (" << arg_info.type.name();
-        if (arg_info.bounds.has_bound()) os << " " << arg_info.bounds;
-        os << "): " << arg_help << endl;
+        os << " " << arg_info.key << " (" << arg_info.type.name()
+           << "): " << arg_help << endl;
         const Type& arg_type = arg_info.type;
         if (arg_type.is_enum_type()) {
             for (const pair<string, string>& explanation :

@@ -65,6 +65,17 @@ public:
         , lp_solver(lp_solver)
         , random_seed(random_seed)
     {
+        if (num_samples < 0) {
+            throw std::domain_error("num_samples must be >= 0.");
+        }
+
+        if (num_heuristics < 0) {
+            throw std::domain_error("num_heuristics must be >= 0.");
+        }
+
+        if (max_potential < 0) {
+            throw std::domain_error("max_potential must be >= 0.");
+        }
     }
 
     unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
@@ -120,13 +131,11 @@ public:
         add_option<int>(
             "num_heuristics",
             "number of potential heuristics",
-            "1",
-            Bounds("0", "infinity"));
+            "1");
         add_option<int>(
             "num_samples",
             "Number of states to sample",
-            "1000",
-            Bounds("0", "infinity"));
+            "1000");
         add_admissible_potentials_options_to_feature(
             *this,
             "sample_based_potentials");

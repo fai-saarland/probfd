@@ -43,8 +43,7 @@ public:
         add_option<int>(
             "pattern_max_size",
             "max number of variables per pattern",
-            "1",
-            Bounds("1", "infinity"));
+            "1");
         add_option<bool>(
             "only_interesting_patterns",
             "Only consider the union of two disjoint patterns if the union has "

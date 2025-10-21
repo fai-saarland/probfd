@@ -38,6 +38,21 @@ PatternCollectionGeneratorGenetic::PatternCollectionGeneratorGenetic(
     , disjoint_patterns(disjoint)
     , rng(utils::get_rng(random_seed))
 {
+    if (pdb_max_size < 1) {
+        throw std::domain_error("pdb_max_size must be >= 1.");
+    }
+
+    if (num_collections < 1) {
+        throw std::domain_error("num_collections must be >= 1.");
+    }
+    if (num_episodes < 0) {
+        throw std::domain_error("num_episodes must be >= 0.");
+    }
+
+    if (mutation_probability < 0 || mutation_probability > 1) {
+        throw std::domain_error(
+            "mutation_probability must be in range [0, 1].");
+    }
 }
 
 void PatternCollectionGeneratorGenetic::select(

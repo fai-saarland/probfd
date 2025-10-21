@@ -8,6 +8,8 @@ namespace downward::utils {
 
 shared_ptr<RandomNumberGenerator> get_rng(int seed)
 {
+    if (seed < -1) { throw std::domain_error("random seed must be >= 1."); }
+
     if (seed == -1) {
         // Use an arbitrary default seed.
         static shared_ptr<utils::RandomNumberGenerator> rng =
@@ -17,4 +19,4 @@ shared_ptr<RandomNumberGenerator> get_rng(int seed)
         return make_shared<RandomNumberGenerator>(seed);
     }
 }
-} // namespace utils
+} // namespace downward::utils

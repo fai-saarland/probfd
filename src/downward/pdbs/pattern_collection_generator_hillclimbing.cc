@@ -130,6 +130,25 @@ PatternCollectionGeneratorHillclimbing::PatternCollectionGeneratorHillclimbing(
     , num_rejected(0)
     , hill_climbing_timer(nullptr)
 {
+    if (pdb_max_size < 1) {
+        throw std::domain_error("pdb_max_size must be >= 1.");
+    }
+
+    if (collection_max_size < 1) {
+        throw std::domain_error("collection_max_size must be >= 1.");
+    }
+
+    if (num_samples < 1) {
+        throw std::domain_error("num_samples must be >= 1.");
+    }
+
+    if (min_improvement < 1) {
+        throw std::domain_error("min_improvement must be >= 1.");
+    }
+
+    if (max_time.count() < 0) {
+        throw std::domain_error("max_time must be >= 0.");
+    }
 }
 
 PatternCollectionGeneratorHillclimbing::

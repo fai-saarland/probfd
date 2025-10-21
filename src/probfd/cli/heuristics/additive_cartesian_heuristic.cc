@@ -51,14 +51,12 @@ public:
         add_option<int>(
             "max_states",
             "maximum sum of abstract states over all abstractions",
-            "infinity",
-            Bounds("1", "infinity"));
+            "infinity");
         add_option<int>(
             "max_transitions",
             "maximum sum of real transitions (excluding self-loops) over "
             " all abstractions",
-            "1M",
-            Bounds("0", "infinity"));
+            "1M");
         add_duration(
             "max_time",
             "maximum time in seconds for building abstractions",

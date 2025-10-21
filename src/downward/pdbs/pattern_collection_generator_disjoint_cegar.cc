@@ -24,6 +24,17 @@ PatternCollectionGeneratorDisjointCegar::
     , use_wildcard_plans(use_wildcard_plans)
     , rng(utils::get_rng(random_seed))
 {
+    if (max_pdb_size < 1) {
+        throw std::domain_error("max_pdb_size must be >= 1.");
+    }
+
+    if (max_collection_size < 1) {
+        throw std::domain_error("max_collection_size must be >= 1.");
+    }
+
+    if (max_time.count() < 0) {
+        throw std::domain_error("max_time must be >= 0.");
+    }
 }
 
 string PatternCollectionGeneratorDisjointCegar::name() const

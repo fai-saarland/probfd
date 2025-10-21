@@ -260,20 +260,5 @@ public:
         const override;
 };
 
-class CheckBoundsNode : public DecoratedASTNode {
-    DecoratedASTNodePtr value;
-    DecoratedASTNodePtr min_value;
-    DecoratedASTNodePtr max_value;
-
-public:
-    CheckBoundsNode(
-        DecoratedASTNodePtr value,
-        DecoratedASTNodePtr min_value,
-        DecoratedASTNodePtr max_value);
-
-    std::any construct(ConstructContext& context) const override;
-    void print(std::ostream& out, std::size_t indent, bool print_default_args)
-        const override;
-};
 } // namespace downward::cli::parser
 #endif

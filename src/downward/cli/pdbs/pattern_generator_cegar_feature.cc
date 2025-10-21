@@ -43,13 +43,11 @@ public:
             "maximum number of states in the final pattern database (possibly "
             "ignored by a singleton pattern consisting of a single goal "
             "variable)",
-            "1000000",
-            Bounds("1", "infinity"));
+            "1000000");
         add_option<double>(
             "max_time",
             "maximum time in seconds for the pattern generation",
-            "infinity",
-            Bounds("0.0", "infinity"));
+            "infinity");
         add_cegar_wildcard_option_to_feature(*this);
         add_rng_options_to_feature(*this);
         add_generator_options_to_feature(*this);

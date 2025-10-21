@@ -1,15 +1,11 @@
 #ifndef PLUGINS_TYPES_H
 #define PLUGINS_TYPES_H
 
-#include "downward/cli/plugins/bounds.h"
 #include "downward/cli/plugins/registry_types.h"
-
-#include "downward/utils/strings.h"
 
 #include <algorithm>
 #include <any>
-#include <cassert>
-#include <limits>
+#include <format>
 #include <memory>
 #include <string>
 #include <typeindex>
@@ -48,14 +44,12 @@ struct ArgumentInfo {
     std::string key;
     const Type& type;
     std::string default_value;
-    Bounds bounds;
     static const std::string NO_DEFAULT;
 
     ArgumentInfo(
         const std::string& key,
         const Type& type,
-        const std::string& default_value,
-        const Bounds& bounds = Bounds::unlimited());
+        const std::string& default_value);
 
     bool is_optional() const;
     bool has_default() const;

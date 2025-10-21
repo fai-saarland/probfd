@@ -107,6 +107,7 @@ static Facts filter_and_order_facts(
 TaskDuplicator::TaskDuplicator(int copies)
     : num_copies(copies)
 {
+    if (num_copies < 1) { throw std::domain_error("num_copies must be >= 1."); }
 }
 
 SharedTasks

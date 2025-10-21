@@ -39,6 +39,30 @@ PatternCollectionGeneratorMultiple::PatternCollectionGeneratorMultiple(
     , blacklisting(false)
     , time_point_of_last_new_pattern(0.0)
 {
+    if (max_pdb_size < 1) {
+        throw std::domain_error("max_pdb_size must be >= 1.");
+    }
+
+    if (max_collection_size < 1) {
+        throw std::domain_error("max_collection_size must be >= 1.");
+    }
+
+    if (pattern_generation_max_time.count() < 0) {
+        throw std::domain_error("pattern_generation_max_time must be >= 1.");
+    }
+
+    if (total_max_time.count() < 0) {
+        throw std::domain_error("total_max_time must be >= 1.");
+    }
+
+    if (stagnation_limit.count() < 0) {
+        throw std::domain_error("stagnation_limit must be >= 1.");
+    }
+
+    if (blacklist_trigger_percentage < 0 || blacklist_trigger_percentage > 1) {
+        throw std::domain_error(
+            "blacklist_trigger_percentage must be in range [0, 1].");
+    }
 }
 
 void PatternCollectionGeneratorMultiple::check_blacklist_trigger_timer(

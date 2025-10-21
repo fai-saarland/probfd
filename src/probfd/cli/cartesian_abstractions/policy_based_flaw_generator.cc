@@ -29,8 +29,7 @@ public:
             "maximum number of concrete states allowed to be generated during "
             "flaw "
             "search before giving up",
-            "infinity",
-            Bounds("1", "infinity"));
+            "infinity");
     }
 
     std::shared_ptr<FlawGeneratorFactory>

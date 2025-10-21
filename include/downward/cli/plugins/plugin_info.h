@@ -1,7 +1,6 @@
 #ifndef PLUGINS_PLUGIN_INFO_H
 #define PLUGINS_PLUGIN_INFO_H
 
-#include "downward/cli/plugins/bounds.h"
 #include "downward/cli/plugins/types.h"
 
 #include <string>

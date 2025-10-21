@@ -44,8 +44,7 @@ void add_admissible_potentials_options_to_feature(
         "very high weights can cause numerical instability in the LP solver, "
         "while using very low weights limits the choice of potential "
         "heuristics. For details, see the ICAPS paper cited above.",
-        "1e8",
-        plugins::Bounds("0.0", "infinity"));
+        "1e8");
     downward::cli::lp::add_lp_solver_option_to_feature(feature);
     add_heuristic_options_to_feature(feature, description);
 }

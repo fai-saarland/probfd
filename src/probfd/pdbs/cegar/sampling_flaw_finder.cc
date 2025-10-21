@@ -33,6 +33,9 @@ SamplingFlawFinder::SamplingFlawFinder(
     : rng_(std::move(rng))
     , max_search_states_(max_search_states)
 {
+    if (max_search_states < 0) {
+        throw std::domain_error("max_search_states must be >= 0.");
+    }
 }
 
 SamplingFlawFinder::~SamplingFlawFinder() = default;

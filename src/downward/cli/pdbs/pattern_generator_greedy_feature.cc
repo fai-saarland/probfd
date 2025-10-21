@@ -23,8 +23,7 @@ public:
         add_option<int>(
             "max_states",
             "maximal number of abstract states in the pattern database.",
-            "1000000",
-            Bounds("1", "infinity"));
+            "1000000");
         add_generator_options_to_feature(*this);
     }
 

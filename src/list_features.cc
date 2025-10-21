@@ -186,17 +186,10 @@ protected:
         std::vector<std::string> arg_strings;
 
         for (const ArgumentInfo& arg_info : feature.get_arguments()) {
-            std::string* s;
+            std::string& s =
+                arg_strings.emplace_back(std::format("{:t}", arg_info));
 
-            if (arg_info.bounds.has_bound()) {
-                s = &arg_strings.emplace_back(
-                    std::format("{} : {}", arg_info.key, arg_info.bounds));
-            } else {
-                s = &arg_strings.emplace_back(
-                    std::format("{} : {}", arg_info.key, arg_info.type.name()));
-            }
-
-            if (const auto width = static_cast<int>(s->size());
+            if (const auto width = static_cast<int>(s.size());
                 width > max_width)
                 max_width = width;
         }
@@ -210,8 +203,7 @@ protected:
             std::stringstream ss;
             ss << arg_help;
 
-            if (!arg_help.empty() && arg_help.back() != '\n')
-                ss << " ";
+            if (!arg_help.empty() && arg_help.back() != '\n') ss << " ";
 
             if (arg_info.has_default()) {
                 std::print(ss, "[default: {}]", arg_info.default_value);

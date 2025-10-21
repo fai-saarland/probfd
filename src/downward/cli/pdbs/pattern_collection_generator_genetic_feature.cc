@@ -60,24 +60,20 @@ public:
         add_option<int>(
             "pdb_max_size",
             "maximal number of states per pattern database ",
-            "50000",
-            Bounds("1", "infinity"));
+            "50000");
         add_option<int>(
             "num_collections",
             "number of pattern collections to maintain in the genetic "
             "algorithm (population size)",
-            "5",
-            Bounds("1", "infinity"));
+            "5");
         add_option<int>(
             "num_episodes",
             "number of episodes for the genetic algorithm",
-            "30",
-            Bounds("0", "infinity"));
+            "30");
         add_option<double>(
             "mutation_probability",
             "probability for flipping a bit in the genetic algorithm",
-            "0.01",
-            Bounds("0.0", "1.0"));
+            "0.01");
         add_option<bool>(
             "disjoint",
             "consider a pattern collection invalid (giving it very low "

@@ -207,6 +207,9 @@ public:
         , random_seed(random_seed)
         , pref_only(pref_only)
     {
+        if (epsilon < 0.0 || epsilon > 1.0) {
+            throw std::domain_error("Epsilon value not in range [0.0, 1.0].");
+        }
     }
 
     std::unique_ptr<OpenList<T>>

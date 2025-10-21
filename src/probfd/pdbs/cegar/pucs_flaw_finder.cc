@@ -28,6 +28,9 @@ namespace probfd::pdbs::cegar {
 PUCSFlawFinder::PUCSFlawFinder(int max_search_states)
     : max_search_states_(max_search_states)
 {
+    if (max_search_states < 1) {
+        throw std::domain_error("max_search_states must be >= 1.");
+    }
 }
 
 bool PUCSFlawFinder::apply_policy(

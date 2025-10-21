@@ -97,21 +97,18 @@ void add_transition_system_size_limit_options_to_feature(Feature& feature)
     feature.add_option<int>(
         "max_states",
         "maximum transition system size allowed at any time point.",
-        "-1",
-        Bounds("-1", "infinity"));
+        "-1");
     feature.add_option<int>(
         "max_states_before_merge",
         "maximum transition system size allowed for two transition systems "
         "before being merged to form the synchronized product.",
-        "-1",
-        Bounds("-1", "infinity"));
+        "-1");
     feature.add_option<int>(
         "threshold_before_merge",
         "If a transition system, before being merged, surpasses this soft "
         "transition system size limit, the shrink strategy is called to "
         "possibly shrink the transition system.",
-        "-1",
-        Bounds("-1", "infinity"));
+        "-1");
 }
 
 tuple<int, int, int>
@@ -129,6 +126,18 @@ void handle_shrink_limit_options_defaults(
     int& threshold_before_merge,
     const utils::Context& context)
 {
+    if (max_states < -1) {
+        throw std::domain_error("num_samples must be >= -1.");
+    }
+
+    if (max_states_before_merge < -1) {
+        throw std::domain_error("num_heuristics must be >= -1.");
+    }
+
+    if (threshold_before_merge < -1) {
+        throw std::domain_error("max_potential must be >= -1.");
+    }
+
     // If none of the two state limits has been set: set default limit.
     if (max_states == -1 && max_states_before_merge == -1) {
         max_states = 50000;

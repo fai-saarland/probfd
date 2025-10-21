@@ -46,11 +46,7 @@ public:
     TaskDuplicatorFeature()
         : SharedTypedFeature("original")
     {
-        add_option<int>(
-            "copies",
-            "number of task copies",
-            "1",
-            Bounds("1", "infinity"));
+        add_option<int>("copies", "number of task copies", "1");
     }
 
     virtual shared_ptr<SubtaskGenerator>
@@ -77,7 +73,8 @@ public:
     }
 };
 
-class LandmarkDecompositionFeature : public SharedTypedFeature<SubtaskGenerator> {
+class LandmarkDecompositionFeature
+    : public SharedTypedFeature<SubtaskGenerator> {
 public:
     LandmarkDecompositionFeature()
         : SharedTypedFeature("landmarks")
@@ -97,8 +94,7 @@ public:
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<LandmarkDecomposition>(
-            opts.get_shared<TaskDependentFactory<MutexInformation>>(
-                "mutexes"),
+            opts.get_shared<TaskDependentFactory<MutexInformation>>("mutexes"),
             get_fact_order_arguments_from_options(opts),
             opts.get<bool>("combine_facts"));
     }

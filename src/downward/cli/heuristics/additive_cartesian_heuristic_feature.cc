@@ -69,6 +69,13 @@ public:
         , use_general_costs(use_general_costs)
         , random_seed(random_seed)
     {
+        if (max_states < 1) {
+            throw std::domain_error("max_states must be >= 1.");
+        }
+
+        if (max_transitions < 0) {
+            throw std::domain_error("max_transitions must be >= 0.");
+        }
     }
 
     unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
@@ -139,14 +146,12 @@ public:
         add_option<int>(
             "max_states",
             "maximum sum of abstract states over all abstractions",
-            "infinity",
-            Bounds("1", "infinity"));
+            "infinity");
         add_option<int>(
             "max_transitions",
             "maximum sum of real transitions (excluding self-loops) over "
             " all abstractions",
-            "1M",
-            Bounds("0", "infinity"));
+            "1M");
         add_duration(
             "max_time",
             "maximum time in seconds for building abstractions",

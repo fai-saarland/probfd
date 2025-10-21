@@ -1,6 +1,7 @@
 #ifndef PARSER_TOKEN_STREAM_H
 #define PARSER_TOKEN_STREAM_H
 
+#include <format>
 #include <string>
 #include <vector>
 
@@ -65,6 +66,7 @@ extern std::string token_type_name(TokenType token_type);
 extern std::ostream& operator<<(std::ostream& out, TokenType token_type);
 extern std::ostream& operator<<(std::ostream& out, const Token& token);
 } // namespace downward::cli::parser
+
 namespace std {
 template <>
 struct hash<downward::cli::parser::TokenType> {
@@ -73,5 +75,42 @@ struct hash<downward::cli::parser::TokenType> {
         return size_t(t);
     }
 };
+
+template <>
+struct formatter<downward::cli::parser::TokenType> {
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+
+    template <typename FormatContext>
+    auto
+    format(const downward::cli::parser::TokenType& t, FormatContext& ctx) const
+    {
+        return std::format_to(ctx.out(), "{}", token_type_name(t));
+    }
+};
+
+template <>
+struct formatter<downward::cli::parser::Token> {
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+
+    template <typename FormatContext>
+    auto
+    format(const downward::cli::parser::Token& token, FormatContext& ctx) const
+    {
+        return std::format_to(
+            ctx.out(),
+            "<Type: '{}', Value: '{}'>",
+            token.type,
+            token.content);
+    }
+};
+
 } // namespace std
 #endif

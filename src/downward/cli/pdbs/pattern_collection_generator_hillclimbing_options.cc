@@ -79,26 +79,22 @@ void add_hillclimbing_options_to_feature(Feature& feature)
     feature.add_option<int>(
         "pdb_max_size",
         "maximal number of states per pattern database ",
-        "2000000",
-        Bounds("1", "infinity"));
+        "2000000");
     feature.add_option<int>(
         "collection_max_size",
         "maximal number of states in the pattern collection",
-        "20000000",
-        Bounds("1", "infinity"));
+        "20000000");
     feature.add_option<int>(
         "num_samples",
         "number of samples (random states) on which to evaluate each "
         "candidate pattern collection",
-        "1000",
-        Bounds("1", "infinity"));
+        "1000");
     feature.add_option<int>(
         "min_improvement",
         "minimum number of samples on which a candidate pattern "
         "collection must improve on the current one to be considered "
         "as the next pattern collection ",
-        "10",
-        Bounds("1", "infinity"));
+        "10");
     feature.add_option<double>(
         "max_time",
         "maximum time in seconds for improving the initial pattern "
@@ -106,8 +102,7 @@ void add_hillclimbing_options_to_feature(Feature& feature)
         "is performed at all. Note that this limit only affects hill "
         "climbing. Use max_time_dominance_pruning to limit the time "
         "spent for pruning dominated patterns.",
-        "infinity",
-        Bounds("0.0", "infinity"));
+        "infinity");
     add_rng_options_to_feature(feature);
 }
 
