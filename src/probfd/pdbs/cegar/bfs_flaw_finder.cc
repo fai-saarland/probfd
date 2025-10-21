@@ -30,6 +30,9 @@ BFSFlawFinder::BFSFlawFinder(int max_search_states)
     : closed_(false)
     , max_search_states_(max_search_states)
 {
+    if (max_search_states < 1) {
+        throw std::domain_error("max_search_states must be >= 0.");
+    }
 }
 
 bool BFSFlawFinder::apply_policy(

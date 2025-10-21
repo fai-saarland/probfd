@@ -42,6 +42,17 @@ PatternCollectionGeneratorDisjointCegar::
     , subcollection_finder_factory_(subcollection_finder_factory)
     , flaw_strategy_(flaw_strategy)
 {
+    if (max_pdb_size < 1) {
+        throw std::domain_error("max_pdb_size must be >= 1.");
+    }
+
+    if (max_collection_size < 1) {
+        throw std::domain_error("max_collection_size must be >= 1.");
+    }
+
+    if (max_time.count() < 0) {
+        throw std::domain_error("max_time must be >= 0.");
+    }
 }
 
 PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::generate(

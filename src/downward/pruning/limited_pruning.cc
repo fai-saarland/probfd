@@ -18,6 +18,15 @@ LimitedPruning::LimitedPruning(
     , num_pruning_calls(0)
     , is_pruning_disabled(false)
 {
+    if (min_required_pruning_ratio < 0.0 || min_required_pruning_ratio > 1.0) {
+        throw std::domain_error(
+            "min_required_pruning_ratio not in range [0.0, 1.0].");
+    }
+
+    if (num_expansions_before_checking_pruning_ratio < 0) {
+        throw std::domain_error(
+            "min_required_pruning_ratio not >= 0.");
+    }
 }
 
 void LimitedPruning::initialize(const SharedAbstractTask& task)
@@ -29,9 +38,7 @@ void LimitedPruning::initialize(const SharedAbstractTask& task)
 
 void LimitedPruning::prune(const State& state, vector<OperatorID>& op_ids)
 {
-    if (is_pruning_disabled) {
-        return;
-    }
+    if (is_pruning_disabled) { return; }
     if (num_pruning_calls == num_expansions_before_checking_pruning_ratio &&
         min_required_pruning_ratio > 0.) {
         double pruning_ratio =
@@ -58,4 +65,4 @@ void LimitedPruning::prune(const State& state, vector<OperatorID>& op_ids)
     pruning_method->prune(state, op_ids);
 }
 
-} // namespace limited_pruning
+} // namespace downward::limited_pruning

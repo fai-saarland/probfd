@@ -42,13 +42,11 @@ public:
             "disable pruning if the pruning ratio is lower than this value "
             "after"
             " 'expansions_before_checking_pruning_ratio' expansions",
-            "0.2",
-            Bounds("0.0", "1.0"));
+            "0.2");
         add_option<int>(
             "expansions_before_checking_pruning_ratio",
             "number of expansions before deciding whether to disable pruning",
-            "1000",
-            Bounds("0", "infinity"));
+            "1000");
         add_pruning_options_to_feature(*this);
 
         document_note(

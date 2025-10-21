@@ -21,6 +21,10 @@ static CanonicalPDBs get_canonical_pdbs(
     utils::FSeconds max_time_dominance_pruning,
     utils::LogProxy& log)
 {
+    if (max_time_dominance_pruning.count() < 0) {
+        throw std::domain_error("max_time_dominance_pruning must be >= 0.");
+    }
+
     utils::Timer timer;
     if (log.is_at_least_normal()) {
         log << "Initializing canonical PDB heuristic..." << endl;

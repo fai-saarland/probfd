@@ -7,6 +7,7 @@
 #include "downward/utils/math.h"
 
 #include <any>
+#include <cassert>
 #include <functional>
 #include <limits>
 #include <ranges>
@@ -605,82 +606,6 @@ std::any ConvertNode::construct(ConstructContext& context) const
 }
 
 void ConvertNode::print(
-    std::ostream& out,
-    std::size_t indent,
-    bool print_default_args) const
-{
-    value->print(out, indent, print_default_args);
-}
-
-CheckBoundsNode::CheckBoundsNode(
-    DecoratedASTNodePtr value,
-    DecoratedASTNodePtr min_value,
-    DecoratedASTNodePtr max_value)
-    : value(move(value))
-    , min_value(move(min_value))
-    , max_value(move(max_value))
-{
-}
-
-template <typename T>
-static bool
-satisfies_bounds(const std::any& v_, const std::any& min_, const std::any& max_)
-{
-    T v = std::any_cast<T>(v_);
-    T min = std::any_cast<T>(min_);
-    T max = std::any_cast<T>(max_);
-    return (min <= v) && (v <= max);
-}
-
-std::any CheckBoundsNode::construct(ConstructContext& context) const
-{
-    utils::TraceBlock bblock(context, "Constructing value with bounds");
-
-    std::any v = [&] {
-        utils::TraceBlock block(context, "Constructing value");
-        return value->construct(context);
-    }();
-
-    const std::any min = [&] {
-        utils::TraceBlock block(context, "Constructing lower bound");
-        return min_value->construct(context);
-    }();
-
-    const std::any max = [&] {
-        utils::TraceBlock block(context, "Constructing upper bound");
-        return max_value->construct(context);
-    }();
-
-    {
-        utils::TraceBlock block(context, "Checking bounds");
-        const type_info& type = v.type();
-        if (min.type() != type || max.type() != type) {
-            throw utils::CriticalError(
-                "Types of bounds ({}, {}) do not match type of value ({})"
-                " (this should have been caught before constructing this "
-                "node).",
-                min.type().name(),
-                max.type().name(),
-                type.name());
-        }
-
-        bool bounds_satisfied;
-        if (type == typeid(int)) {
-            bounds_satisfied = satisfies_bounds<int>(v, min, max);
-        } else if (type == typeid(double)) {
-            bounds_satisfied = satisfies_bounds<double>(v, min, max);
-        } else {
-            throw utils::CriticalError(
-                "Bounds are only supported for arguments of type int or "
-                "double.");
-        }
-        if (!bounds_satisfied) { context.error("Value is not in bounds."); }
-    }
-
-    return v;
-}
-
-void CheckBoundsNode::print(
     std::ostream& out,
     std::size_t indent,
     bool print_default_args) const

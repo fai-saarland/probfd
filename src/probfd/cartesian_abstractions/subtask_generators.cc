@@ -123,6 +123,9 @@ static SharedProbabilisticTask build_domain_abstracted_task(
 TaskDuplicator::TaskDuplicator(int copies)
     : num_copies_(copies)
 {
+    if (copies < 1) {
+        throw std::domain_error("convergence_epsilon must be >= 1.");
+    }
 }
 
 SharedTasks TaskDuplicator::get_subtasks(

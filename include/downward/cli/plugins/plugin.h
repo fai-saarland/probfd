@@ -46,8 +46,7 @@ public:
     void add_option(
         const std::string& key,
         const std::string& help = "",
-        const std::string& default_value = "",
-        const Bounds& bounds = Bounds::unlimited());
+        const std::string& default_value = "");
 
     template <typename T>
     void add_list_option(
@@ -248,14 +247,12 @@ template <typename T>
 void Feature::add_option(
     const std::string& key,
     const std::string& help,
-    const std::string& default_value,
-    const Bounds& bounds)
+    const std::string& default_value)
 {
     arguments.emplace_back(
         key,
         TypeRegistry::instance()->get_type<T>(),
-        default_value,
-        bounds);
+        default_value);
     argument_docs.emplace_back(help);
 }
 
@@ -265,7 +262,7 @@ void Feature::add_list_option(
     const std::string& help,
     const std::string& default_value)
 {
-    add_option<std::vector<T>>(key, help, default_value, Bounds::unlimited());
+    add_option<std::vector<T>>(key, help, default_value);
 }
 } // namespace downward::cli::plugins
 

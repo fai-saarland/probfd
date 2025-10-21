@@ -43,6 +43,9 @@ public:
         , verbosity(verbosity)
         , m(m)
     {
+        if (m < 1) {
+            throw std::domain_error("m must be >= 1.");
+        }
     }
 
     unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
@@ -66,7 +69,7 @@ public:
     {
         document_title("h^m heuristic");
 
-        add_option<int>("m", "subset size", "2", Bounds("1", "infinity"));
+        add_option<int>("m", "subset size", "2");
         add_heuristic_options_to_feature(*this, "hm");
 
         document_language_support("action costs", "supported");

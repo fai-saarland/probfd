@@ -103,6 +103,13 @@ ILAOFlawGeneratorFactory::ILAOFlawGeneratorFactory(
     : convergence_epsilon_(convergence_epsilon)
     , max_search_states_(max_search_states)
 {
+    if (convergence_epsilon <= 0) {
+        throw std::domain_error("convergence_epsilon must be > 0.");
+    }
+
+    if (max_search_states < 0) {
+        throw std::domain_error("max_search_states must be >= 0.");
+    }
 }
 
 std::unique_ptr<FlawGenerator> ILAOFlawGeneratorFactory::create_flaw_generator()

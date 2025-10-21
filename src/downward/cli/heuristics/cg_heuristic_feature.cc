@@ -43,6 +43,9 @@ public:
         , verbosity(verbosity)
         , max_cache_size(max_cache_size)
     {
+        if (max_cache_size < 0) {
+            throw std::domain_error("max_cache_size must be >= 0.");
+        }
     }
 
     unique_ptr<Evaluator> create_object(const SharedAbstractTask& task) override
@@ -70,8 +73,7 @@ public:
             "max_cache_size",
             "maximum number of cached entries per variable (set to 0 to "
             "disable cache)",
-            "1000000",
-            Bounds("0", "infinity"));
+            "1000000");
         add_heuristic_options_to_feature(*this, "cg");
 
         document_language_support("action costs", "supported");

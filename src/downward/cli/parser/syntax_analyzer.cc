@@ -46,6 +46,12 @@ public:
             << message;
         throw utils::ContextError(str() + "\n\n" + message_with_tokens.str());
     }
+
+    template <typename... Args>
+    void error(format_string<Args...> fmt, Args&&... args) const
+    {
+        error(std::format(fmt, std::forward<Args>(args)...));
+    }
 };
 
 static ASTNodePtr parse_node(TokenStream& tokens, SyntaxAnalyzerContext&);
@@ -346,11 +352,11 @@ parse_node(TokenStream& tokens, SyntaxAnalyzerContext& context)
     utils::TraceBlock block(context, "Identify node type");
     const Token token = tokens.peek(context);
     if (!ranges::contains(parse_node_token_types, token.type)) {
-        ostringstream message;
-        message << "Unexpected token '" << token
-                << "'. Expected any of the following token types: "
-                << utils::join(parse_node_token_types, ", ");
-        context.error(message.str());
+        context.error(
+            "Unexpected token '{}'. "
+            "Expected any of the following token types: {}",
+            token,
+            parse_node_token_types);
     }
 
     switch (token.type) {

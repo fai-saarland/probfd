@@ -44,14 +44,12 @@ void add_pattern_collection_generator_cegar_options_to_feature(Feature& feature)
         "max_pdb_size",
         "maximum allowed number of states in a pdb (not applied to initial "
         "goal variable pattern(s))",
-        "1000000",
-        Bounds("1", "infinity"));
+        "1000000");
     feature.add_option<int>(
         "max_collection_size",
         "limit for the total number of PDB entries across all PDBs (not "
         "applied to initial goal variable pattern(s))",
-        "infinity",
-        Bounds("1", "infinity"));
+        "infinity");
     feature.add_duration(
         "max_time",
         "maximum time in seconds for CEGAR pattern generation. "

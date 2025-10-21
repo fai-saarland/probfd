@@ -17,8 +17,7 @@ void add_canonical_pdbs_options_to_feature(plugins::Feature& feature)
         "turns off dominance pruning. Dominance pruning excludes patterns "
         "and additive subsets that will never contribute to the heuristic "
         "value because there are dominating subsets in the collection.",
-        "infinity",
-        plugins::Bounds("0.0", "infinity"));
+        "infinity");
 }
 
 tuple<utils::FSeconds>

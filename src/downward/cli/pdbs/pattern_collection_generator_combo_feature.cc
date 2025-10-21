@@ -26,8 +26,7 @@ public:
         add_option<int>(
             "max_states",
             "maximum abstraction size for combo strategy",
-            "1000000",
-            Bounds("1", "infinity"));
+            "1000000");
         add_generator_options_to_feature(*this);
     }
 

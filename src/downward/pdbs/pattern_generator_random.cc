@@ -28,6 +28,9 @@ PatternGeneratorRandom::PatternGeneratorRandom(
     , bidirectional(bidirectional)
     , rng(utils::get_rng(random_seed))
 {
+    if (max_pdb_size < 1) {
+        throw std::domain_error("max_pdb_size must be >= 1.");
+    }
 }
 
 string PatternGeneratorRandom::name() const

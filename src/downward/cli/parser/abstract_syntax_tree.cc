@@ -10,6 +10,7 @@
 
 #include "downward/utils/logging.h"
 #include "downward/utils/math.h"
+#include "downward/utils/strings.h"
 
 #include <cassert>
 #include <set>
@@ -68,7 +69,6 @@ public:
         }
 
         return parent ? parent->get_typed_declaration(name) : nullptr;
-
     }
 
     const TypedDeclaration* get_typed_declaration(const string& name) const
@@ -383,27 +383,6 @@ bool FunctionCallNode::collect_argument(
     DecoratedASTNodePtr decorated_arg =
         decorate_and_convert(arg, arg_info.type, context, env);
 
-    if (arg_info.bounds.has_bound()) {
-        DecoratedASTNodePtr decorated_min_node;
-        {
-            utils::TraceBlock block(context, "Handling lower bound");
-            const ASTNodePtr min_node = parse_ast_node(arg_info.bounds.min);
-            decorated_min_node =
-                decorate_and_convert(*min_node, arg_info.type, context, env);
-        }
-        DecoratedASTNodePtr decorated_max_node;
-        {
-            utils::TraceBlock block(context, "Handling upper bound");
-            const ASTNodePtr max_node = parse_ast_node(arg_info.bounds.max);
-            decorated_max_node =
-                decorate_and_convert(*max_node, arg_info.type, context, env);
-        }
-        decorated_arg = std::make_unique<CheckBoundsNode>(
-            move(decorated_arg),
-            move(decorated_min_node),
-            move(decorated_max_node));
-    }
-
     arguments.emplace(
         std::piecewise_construct,
         std::forward_as_tuple(key),
@@ -657,8 +636,8 @@ ListNode::decorate(utils::Context& context, VariableEnvironment& env) const
             element_type_names.push_back(element_type->name());
         }
         context.error(
-            "List contains elements of different types: [" +
-            utils::join(element_type_names, ", ") + "].");
+            "List contains elements of different types: {}",
+            element_type_names);
     }
 
     for (size_t i = 0; i < elements.size(); i++) {

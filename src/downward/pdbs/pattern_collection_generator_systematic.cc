@@ -58,6 +58,9 @@ PatternCollectionGeneratorSystematic::PatternCollectionGeneratorSystematic(
     , max_pattern_size(pattern_max_size)
     , only_interesting_patterns(only_interesting_patterns)
 {
+    if (pattern_max_size < 1) {
+        throw std::domain_error("pattern_max_size must be >= 1.");
+    }
 }
 
 void PatternCollectionGeneratorSystematic::compute_eff_pre_neighbors(

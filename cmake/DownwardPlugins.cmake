@@ -3,7 +3,6 @@ create_library(
     HELP "Plugin definition"
     SOURCES
         downward/cli/plugins/any
-        downward/cli/plugins/bounds
         downward/cli/plugins/doc_printer
         downward/cli/plugins/options
         downward/cli/plugins/plugin

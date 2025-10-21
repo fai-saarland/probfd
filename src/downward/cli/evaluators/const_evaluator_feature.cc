@@ -36,6 +36,9 @@ public:
         , verbosity(verbosity)
         , value(value)
     {
+        if (value < 0) {
+            throw std::domain_error("constant value must be >= 0.");
+        }
     }
 
     unique_ptr<Evaluator> create_object(const SharedAbstractTask&) override
@@ -54,11 +57,7 @@ public:
         document_title("Constant evaluator");
         document_synopsis("Returns a constant value.");
 
-        add_option<int>(
-            "value",
-            "the constant value",
-            "1",
-            Bounds("0", "infinity"));
+        add_option<int>("value", "the constant value", "1");
         add_evaluator_options_to_feature(*this, "const");
     }
 

@@ -21,6 +21,9 @@ PatternGeneratorGreedy::PatternGeneratorGreedy(
     : PatternGenerator(verbosity)
     , max_states(max_states)
 {
+    if (max_states < 1) {
+        throw std::domain_error("max_states must be >= 1.");
+    }
 }
 
 string PatternGeneratorGreedy::name() const
