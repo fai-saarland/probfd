@@ -176,10 +176,10 @@ public:
 };
 
 class BoolLiteralNode : public DecoratedASTNode {
-    std::string value;
+    bool value;
 
 public:
-    explicit BoolLiteralNode(const std::string& value);
+    explicit BoolLiteralNode(bool value);
 
     std::any construct(ConstructContext& context) const override;
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
@@ -198,10 +198,10 @@ public:
 };
 
 class IntLiteralNode : public DecoratedASTNode {
-    std::string value;
+    int value;
 
 public:
-    explicit IntLiteralNode(const std::string& value);
+    explicit IntLiteralNode(int value);
 
     std::any construct(ConstructContext& context) const override;
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
@@ -209,21 +209,22 @@ public:
 };
 
 class FloatLiteralNode : public DecoratedASTNode {
-    std::string value;
+    double value;
 
 public:
-    explicit FloatLiteralNode(const std::string& value);
+    explicit FloatLiteralNode(double value);
 
     std::any construct(ConstructContext& context) const override;
+
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
 };
 
 class DurationLiteralNode : public DecoratedASTNode {
-    std::string value;
+    utils::DynamicDuration value;
 
 public:
-    explicit DurationLiteralNode(std::string value);
+    explicit DurationLiteralNode(utils::DynamicDuration value);
 
     std::any construct(ConstructContext& context) const override;
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
