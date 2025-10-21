@@ -23,6 +23,8 @@ struct DynamicDuration {
     std::intmax_t denom;
     long double value;
 
+    DynamicDuration() = default;
+
     DynamicDuration(std::intmax_t num, std::intmax_t denom, long double value)
         : num(num)
         , denom(denom)

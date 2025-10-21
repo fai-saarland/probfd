@@ -5,7 +5,6 @@
 
 #include "downward/utils/logging.h"
 #include "downward/utils/math.h"
-#include "downward/utils/memory.h"
 
 #include <any>
 #include <functional>
@@ -161,27 +160,30 @@ void DecoratedLetNode::prune_unused_definitions(
 
 void DecoratedLetNode::remove_variable_usages()
 {
-    for (auto& def : decorated_variable_definitions) {
+    for (const auto& def : decorated_variable_definitions) {
         def.variable_expression->remove_variable_usages();
     }
 }
 
 std::any DecoratedLetNode::construct(ConstructContext& context) const
 {
-    utils::TraceBlock block(context, "Constructing let-expression");
+    utils::TraceBlock lblock(context, "Constructing let-expression");
+
     for (const auto& def : decorated_variable_definitions) {
         utils::TraceBlock block(
             context,
-            "Constructing variable '" + def.variable_name + "'");
-        std::any variable_value = def.variable_expression->construct(context);
-        context.set_variable(def.variable_name, variable_value);
+            "Constructing variable '{}'",
+            def.variable_name);
+
+        context.set_variable(
+            def.variable_name,
+            def.variable_expression->construct(context));
     }
 
-    std::any result;
-    {
+    std::any result = [&] {
         utils::TraceBlock block(context, "Constructing nested value");
-        result = nested_value->construct(context);
-    }
+        return nested_value->construct(context);
+    }();
 
     for (const auto& def : decorated_variable_definitions) {
         context.remove_variable(def.variable_name);
@@ -263,10 +265,7 @@ void DecoratedLambdaNode::print(
     bool print_default_args) const
 {
     std::print(out, "{}", std::string(indent, ' '));
-    std::print(
-        out,
-        "fun({:n:t}): ",
-        type.get_argument_infos());
+    std::print(out, "fun({:n:t}): ", type.get_argument_infos());
     nested_value->print(out, 0, print_default_args);
 }
 
@@ -292,13 +291,13 @@ using FType =
 
 std::any DecoratedFunctionCallNode::construct(ConstructContext& context) const
 {
-    utils::TraceBlock block(context, "Constructing callee");
-    auto calleef = std::any_cast<FType>(callee->construct(context));
+    utils::TraceBlock cblock(context, "Constructing callee");
+    const auto calleef = std::any_cast<FType>(callee->construct(context));
 
     plugins::Options opts;
     opts.set_unparsed_config(unparsed_config);
     for (const auto& [key, arg] : arguments) {
-        utils::TraceBlock block(context, "Constructing argument '" + key + "'");
+        utils::TraceBlock block(context, "Constructing argument '{}'", key);
         opts.set(key, arg.get_value().construct(context));
     }
     return calleef(opts, context);
@@ -348,15 +347,12 @@ void DecoratedListNode::remove_variable_usages()
 
 std::any DecoratedListNode::construct(ConstructContext& context) const
 {
-    utils::TraceBlock block(context, "Constructing list");
+    utils::TraceBlock lblock(context, "Constructing list");
     vector<std::any> result;
     int i = 0;
     for (const DecoratedASTNodePtr& element : elements) {
-        utils::TraceBlock block(
-            context,
-            "Constructing element " + to_string(i));
+        utils::TraceBlock block(context, "Constructing element {}", i++);
         result.push_back(element->construct(context));
-        ++i;
     }
     return result;
 }
@@ -399,11 +395,15 @@ std::any VariableNode::construct(ConstructContext& context) const
 {
     utils::TraceBlock block(
         context,
-        "Looking up variable '" + declaration->variable_name + "'");
+        "Looking up variable '{}'",
+        declaration->variable_name);
+
     if (!context.has_variable(declaration->variable_name)) {
         context.error(
-            "Variable '" + declaration->variable_name + "' is not defined.");
+            "Variable '{}' is not defined.",
+            declaration->variable_name);
     }
+
     return context.get_variable(declaration->variable_name);
 }
 
@@ -426,12 +426,15 @@ std::any FeatureLiteralNode::construct(ConstructContext& context) const
 {
     utils::TraceBlock block(
         context,
-        "Constructing feature '" + feature->get_key() + "'");
+        "Constructing feature '{}'",
+        feature->get_key());
+
     std::function f = [f = this->feature](
                           const plugins::Options& opts,
                           const utils::Context& ncontext) {
         return f->construct(opts, ncontext);
     };
+
     return f;
 }
 
@@ -441,7 +444,7 @@ void FeatureLiteralNode::print(std::ostream& out, std::size_t indent, bool)
     std::print(out, "{}{}", std::string(indent, ' '), feature->get_key());
 }
 
-BoolLiteralNode::BoolLiteralNode(const string& value)
+BoolLiteralNode::BoolLiteralNode(bool value)
     : value(value)
 {
 }
@@ -450,16 +453,10 @@ std::any BoolLiteralNode::construct(ConstructContext& context) const
 {
     utils::TraceBlock block(
         context,
-        "Constructing bool value from '" + value + "'");
-    istringstream stream(value);
-    bool x;
-    if ((stream >> boolalpha >> x).fail()) {
-        throw utils::CriticalError(
-            "Could not parse bool constant '{}'"
-            " (this should have been caught before constructing this node).",
-            value);
-    }
-    return x;
+        "Constructing bool value from '{}'",
+        value);
+
+    return value;
 }
 
 void BoolLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
@@ -477,101 +474,26 @@ std::any StringLiteralNode::construct(ConstructContext& context) const
 {
     utils::TraceBlock block(
         context,
-        "Constructing string value from '" + value + "'");
-    if (!(value.starts_with('"') && value.ends_with('"'))) {
-        throw utils::CriticalError(
-            "String literal value is not enclosed in quotation marks"
-            " (this should have been caught before constructing this node).");
-    }
-    /*
-      We are not doing any further syntax checking. Escaped symbols other than
-      \n will just ignore the escaping \ (e.g., \t is treated as t, not as a
-      tab). Strings ending in \ will not produce an error but should be excluded
-      by the previous steps.
-    */
-    string result;
-    result.reserve(value.length() - 2);
-    bool escaped = false;
-    for (char c : value.substr(1, value.size() - 2)) {
-        if (escaped) {
-            escaped = false;
-            if (c == 'n') {
-                result += '\n';
-            } else {
-                result += c;
-            }
-        } else if (c == '\\') {
-            escaped = true;
-        } else {
-            result += c;
-        }
-    }
-    return result;
+        "Constructing string value from '{}'",
+        value);
+
+    return value;
 }
 
 void StringLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
 {
-    std::print(out, "{:>{}}", value, indent + value.size());
+    std::print(out, "{:>{}?}", value, indent + value.size());
 }
 
-IntLiteralNode::IntLiteralNode(const string& value)
+IntLiteralNode::IntLiteralNode(int value)
     : value(value)
 {
 }
 
 std::any IntLiteralNode::construct(ConstructContext& context) const
 {
-    utils::TraceBlock block(
-        context,
-        "Constructing int value from '" + value + "'");
-    if (value.empty()) {
-        throw utils::CriticalError(
-            "Empty value in int constant '{}'"
-            " (this should have been caught before constructing this node).",
-            value);
-    } else if (value == "infinity") {
-        return numeric_limits<int>::max();
-    }
-
-    char suffix = value.back();
-    string prefix = value;
-    int factor = 1;
-    if (isalpha(suffix)) {
-        suffix = static_cast<char>(tolower(suffix));
-        if (suffix == 'k') {
-            factor = 1000;
-        } else if (suffix == 'm') {
-            factor = 1000000;
-        } else if (suffix == 'g') {
-            factor = 1000000000;
-        } else {
-            throw utils::CriticalError(
-                "Invalid suffix in int constant '{}'"
-                " (this should have been caught before constructing this "
-                "node).",
-                value);
-        }
-        prefix.pop_back();
-    }
-
-    istringstream stream(prefix);
-    int x;
-    stream >> noskipws >> x;
-    if (stream.fail() || !stream.eof()) {
-        throw utils::CriticalError(
-            "Could not parse int constant '{}'"
-            " (this should have been caught before constructing this node).",
-            value);
-    }
-
-    int min_int = numeric_limits<int>::min();
-    // Reserve highest value for "infinity".
-    int max_int = numeric_limits<int>::max() - 1;
-    if (!utils::is_product_within_limits(x, factor, min_int, max_int)) {
-        context.error(
-            "Absolute value of integer constant too large: '" + value + "'");
-    }
-    return x * factor;
+    utils::TraceBlock block(context, "Constructing int value from '{}'", value);
+    return value;
 }
 
 void IntLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
@@ -580,7 +502,7 @@ void IntLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
     std::print(out, "{}", value);
 }
 
-FloatLiteralNode::FloatLiteralNode(const string& value)
+FloatLiteralNode::FloatLiteralNode(double value)
     : value(value)
 {
 }
@@ -589,22 +511,10 @@ std::any FloatLiteralNode::construct(ConstructContext& context) const
 {
     utils::TraceBlock block(
         context,
-        "Constructing float value from '" + value + "'");
-    if (value == "infinity") {
-        return numeric_limits<double>::infinity();
-    } else {
-        istringstream stream(value);
-        double x;
-        stream >> noskipws >> x;
-        if (stream.fail() || !stream.eof()) {
-            throw utils::CriticalError(
-                "Could not parse double constant '{}"
-                " (this should have been caught before constructing this "
-                "node).",
-                value);
-        }
-        return x;
-    }
+        "Constructing float value from '{}'",
+        value);
+
+    return value;
 }
 
 void FloatLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
@@ -613,73 +523,28 @@ void FloatLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
     std::print(out, "{}", value);
 }
 
-DurationLiteralNode::DurationLiteralNode(string value)
+DurationLiteralNode::DurationLiteralNode(utils::DynamicDuration value)
     : value(std::move(value))
 {
 }
-
-static const std::unordered_map<std::string, std::pair<int, int>> ratios = {
-    {"ns", {1, 1000000000}},
-    {"us", {1, 1000000}},
-    {"ms", {1, 1000}},
-    {"s", {1, 1}},
-    {"min", {60, 1}},
-    {"h", {3600, 1}}};
 
 std::any DurationLiteralNode::construct(ConstructContext& context) const
 {
     utils::TraceBlock block(
         context,
-        "Constructing duration value from '{}'",
-        value);
+        "Constructing duration value from '{{{}, {}, {}}}'",
+        value.num,
+        value.denom,
+        value.value);
 
-    if (value == "infinite") {
-        return utils::DynamicDuration(std::chrono::seconds::max());
-    }
-
-    istringstream stream(value);
-    long double x;
-    stream >> noskipws >> x;
-    if (stream.fail()) {
-        throw utils::CriticalError(
-            "Could not parse double constant '{}'"
-            " (this should have been caught before constructing this node).",
-            value);
-    }
-
-    if (stream.eof()) {
-        throw utils::CriticalError(
-            "Missing duration suffix"
-            " (this should have been caught before constructing this node).");
-    }
-
-    std::string suffix;
-    stream >> noskipws >> suffix;
-    if (stream.fail() || !stream.eof()) {
-        throw utils::CriticalError(
-            "Could not parse duration suffix for '{}'"
-            " (this should have been caught before constructing this node).",
-            value);
-    }
-
-    auto it = ratios.find(suffix);
-    if (it == ratios.end()) {
-        throw utils::CriticalError(
-            "Unknown duration suffix '{}'"
-            " (this should have been caught before constructing this node).",
-            suffix);
-    }
-
-    const auto [num, denom] = it->second;
-
-    return utils::DynamicDuration{num, denom, x};
+    return value;
 }
 
 void DurationLiteralNode::print(std::ostream& out, std::size_t indent, bool)
     const
 {
     std::print(out, "{}", std::string(indent, ' '));
-    std::print(out, "{}", value);
+    std::print(out, "{{{}, {}, {}}}", value.num, value.denom, value.value);
 }
 
 SymbolNode::SymbolNode(const string& value)
@@ -715,25 +580,27 @@ void ConvertNode::remove_variable_usages()
 
 std::any ConvertNode::construct(ConstructContext& context) const
 {
-    utils::TraceBlock block(
+    utils::TraceBlock cblock(
         context,
         "Constructing value that requires conversion");
-    std::any constructed_value;
-    {
+
+    const std::any constructed_value = [&] {
         utils::TraceBlock block(
             context,
-            "Constructing value of type '" + from_type.name() + "'");
-        constructed_value = value->construct(context);
-    }
-    std::any converted_value;
-    {
+            "Constructing value of type '{}'",
+            from_type.name());
+        return value->construct(context);
+    }();
+
+    std::any converted_value = [&] {
         utils::TraceBlock block(
             context,
-            "Converting constructed value from '" + from_type.name() +
-                "' to '" + to_type.name() + "'");
-        converted_value =
-            plugins::convert(constructed_value, from_type, to_type, context);
-    }
+            "Converting constructed value from '{}' to '{}'",
+            from_type.name(),
+            to_type.name());
+        return plugins::convert(constructed_value, from_type, to_type, context);
+    }();
+
     return converted_value;
 }
 
@@ -767,22 +634,23 @@ satisfies_bounds(const std::any& v_, const std::any& min_, const std::any& max_)
 
 std::any CheckBoundsNode::construct(ConstructContext& context) const
 {
-    utils::TraceBlock block(context, "Constructing value with bounds");
-    std::any v;
-    {
+    utils::TraceBlock bblock(context, "Constructing value with bounds");
+
+    std::any v = [&] {
         utils::TraceBlock block(context, "Constructing value");
-        v = value->construct(context);
-    }
-    std::any min;
-    {
+        return value->construct(context);
+    }();
+
+    const std::any min = [&] {
         utils::TraceBlock block(context, "Constructing lower bound");
-        min = min_value->construct(context);
-    }
-    std::any max;
-    {
+        return min_value->construct(context);
+    }();
+
+    const std::any max = [&] {
         utils::TraceBlock block(context, "Constructing upper bound");
-        max = max_value->construct(context);
-    }
+        return max_value->construct(context);
+    }();
+
     {
         utils::TraceBlock block(context, "Checking bounds");
         const type_info& type = v.type();
@@ -796,7 +664,7 @@ std::any CheckBoundsNode::construct(ConstructContext& context) const
                 type.name());
         }
 
-        bool bounds_satisfied = true;
+        bool bounds_satisfied;
         if (type == typeid(int)) {
             bounds_satisfied = satisfies_bounds<int>(v, min, max);
         } else if (type == typeid(double)) {
@@ -808,6 +676,7 @@ std::any CheckBoundsNode::construct(ConstructContext& context) const
         }
         if (!bounds_satisfied) { context.error("Value is not in bounds."); }
     }
+
     return v;
 }
 

@@ -9,6 +9,7 @@
 #include "downward/cli/plugins/types.h"
 
 #include "downward/utils/logging.h"
+#include "downward/utils/math.h"
 
 #include <cassert>
 #include <set>
@@ -33,7 +34,7 @@ class Scope {
 public:
     Scope() = default;
 
-    Scope(std::unique_ptr<Scope> parent)
+    explicit Scope(std::unique_ptr<Scope> parent)
         : parent(std::move(parent))
     {
     }
@@ -62,22 +63,21 @@ public:
 
     TypedDeclaration* get_typed_declaration(const string& name)
     {
-        auto it = variables.find(name);
-        if (it == variables.end()) {
-            return parent ? parent->get_typed_declaration(name) : nullptr;
+        if (const auto it = variables.find(name); it != variables.end()) {
+            return &it->second;
         }
 
-        return &it->second;
+        return parent ? parent->get_typed_declaration(name) : nullptr;
+
     }
 
     const TypedDeclaration* get_typed_declaration(const string& name) const
     {
-        auto it = variables.find(name);
-        if (it == variables.end()) {
-            return parent ? parent->get_typed_declaration(name) : nullptr;
+        if (const auto it = variables.find(name); it != variables.end()) {
+            return &it->second;
         }
 
-        return &it->second;
+        return parent ? parent->get_typed_declaration(name) : nullptr;
     }
 
     const plugins::Type& get_variable_type(const string& name)
@@ -203,7 +203,7 @@ LetNode::LetNode(
 TypedDecoratedAstNodePtr
 LetNode::decorate(utils::Context& context, VariableEnvironment& env) const
 {
-    utils::TraceBlock block(
+    utils::TraceBlock lblock(
         context,
         "Checking Let: {:n:s}",
         variable_definitions | views::keys);
@@ -275,7 +275,7 @@ LambdaNode::LambdaNode(
 TypedDecoratedAstNodePtr
 LambdaNode::decorate(utils::Context& context, VariableEnvironment& env) const
 {
-    utils::TraceBlock block(context, "Checking Lambda");
+    utils::TraceBlock lblock(context, "Checking Lambda");
 
     std::vector<plugins::ArgumentInfo> arg_infos;
     VariableEnvironment nested_env(env.get_registry());
@@ -370,7 +370,7 @@ static DecoratedASTNodePtr decorate_and_convert(
 }
 
 bool FunctionCallNode::collect_argument(
-    ASTNode& arg,
+    const ASTNode& arg,
     const plugins::ArgumentInfo& arg_info,
     utils::Context& context,
     VariableEnvironment& env,
@@ -387,14 +387,14 @@ bool FunctionCallNode::collect_argument(
         DecoratedASTNodePtr decorated_min_node;
         {
             utils::TraceBlock block(context, "Handling lower bound");
-            ASTNodePtr min_node = parse_ast_node(arg_info.bounds.min);
+            const ASTNodePtr min_node = parse_ast_node(arg_info.bounds.min);
             decorated_min_node =
                 decorate_and_convert(*min_node, arg_info.type, context, env);
         }
         DecoratedASTNodePtr decorated_max_node;
         {
             utils::TraceBlock block(context, "Handling upper bound");
-            ASTNodePtr max_node = parse_ast_node(arg_info.bounds.max);
+            const ASTNodePtr max_node = parse_ast_node(arg_info.bounds.max);
             decorated_max_node =
                 decorate_and_convert(*max_node, arg_info.type, context, env);
         }
@@ -463,8 +463,9 @@ void FunctionCallNode::collect_positional_arguments(
     CollectedArguments& arguments) const
 {
     // Check if too many arguments are specified for the plugin
-    int num_pos_args = positional_arguments.size();
-    int num_kwargs = keyword_arguments.size();
+    const int num_pos_args = positional_arguments.size();
+    const int num_kwargs = keyword_arguments.size();
+
     if (num_pos_args + num_kwargs > static_cast<int>(argument_infos.size())) {
         vector<string> allowed_keys;
         allowed_keys.reserve(argument_infos.size());
@@ -519,18 +520,18 @@ void FunctionCallNode::collect_default_values(
     CollectedArguments& arguments)
 {
     for (const plugins::ArgumentInfo& arg_info : argument_infos) {
-        const string& key = arg_info.key;
-        if (!arguments.contains(key)) {
-            utils::TraceBlock block(
+        if (const string& key = arg_info.key; !arguments.contains(key)) {
+            utils::TraceBlock dblock(
                 context,
                 "Checking the default for argument '{}'.",
                 key);
+
             if (arg_info.has_default()) {
-                ASTNodePtr arg;
-                {
+                ASTNodePtr arg = [&] {
                     utils::TraceBlock block(context, "Parsing default value");
-                    arg = parse_ast_node(arg_info.default_value);
-                }
+                    return parse_ast_node(arg_info.default_value);
+                }();
+
                 const bool success = collect_argument(
                     *arg,
                     arg_info,
@@ -538,6 +539,7 @@ void FunctionCallNode::collect_default_values(
                     env,
                     arguments,
                     true);
+
                 if (!success) {
                     throw utils::CriticalError(
                         "Default argument for '{}' set although "
@@ -598,9 +600,9 @@ void FunctionCallNode::dump(string indent) const
         node->dump("| " + indent);
     }
     cout << indent << "KEYWORD ARGS:" << endl;
-    for (const auto& pair : keyword_arguments) {
-        cout << indent << pair.first << " = " << endl;
-        pair.second->dump("| " + indent);
+    for (const auto& [key, default_arg] : keyword_arguments) {
+        cout << indent << key << " = " << endl;
+        default_arg->dump("| " + indent);
     }
 }
 
@@ -628,7 +630,7 @@ get_common_element_type(const std::vector<const plugins::Type*>& types)
 TypedDecoratedAstNodePtr
 ListNode::decorate(utils::Context& context, VariableEnvironment& env) const
 {
-    utils::TraceBlock block(context, "Checking list");
+    utils::TraceBlock lblock(context, "Checking list");
     vector<DecoratedASTNodePtr> decorated_elements;
     vector<const plugins::Type*> types;
 
@@ -637,14 +639,13 @@ ListNode::decorate(utils::Context& context, VariableEnvironment& env) const
             std::make_unique<DecoratedListNode>(move(decorated_elements)),
             &plugins::TypeRegistry::EMPTY_LIST_TYPE};
     }
+
     for (size_t i = 0; i < elements.size(); i++) {
-        utils::TraceBlock block(
-            context,
-            "Checking " + to_string(i) + ". element");
-        TypedDecoratedAstNodePtr decorated_element_node =
-            elements[i]->decorate(context, env);
-        decorated_elements.push_back(move(decorated_element_node.ast_node));
-        types.push_back(decorated_element_node.type);
+        utils::TraceBlock block(context, "Checking element {}", i);
+
+        auto [ast_node, type] = elements[i]->decorate(context, env);
+        decorated_elements.push_back(move(ast_node));
+        types.push_back(type);
     }
 
     const plugins::Type* common_element_type = get_common_element_type(types);
@@ -690,6 +691,14 @@ LiteralNode::LiteralNode(const Token& value)
 {
 }
 
+static const std::unordered_map<std::string, std::pair<int, int>> ratios = {
+    {"ns", {1, 1000000000}},
+    {"us", {1, 1000000}},
+    {"ms", {1, 1000}},
+    {"s", {1, 1}},
+    {"min", {60, 1}},
+    {"h", {3600, 1}}};
+
 TypedDecoratedAstNodePtr
 LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
 {
@@ -716,27 +725,180 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
     }
 
     switch (value.type) {
-    case TokenType::BOOLEAN:
+    case TokenType::BOOLEAN: {
+        bool b;
+
+        if (value.content == "true") {
+            b = true;
+        } else if (value.content == "false") {
+            b = false;
+        } else {
+            throw utils::CriticalError(
+                "Could not parse bool constant '{}'.",
+                value.content);
+        }
+
         return {
-            std::make_unique<BoolLiteralNode>(value.content),
+            std::make_unique<BoolLiteralNode>(b),
             &plugins::TypeRegistry::instance()->get_type<bool>()};
-    case TokenType::STRING:
+    }
+    case TokenType::STRING: {
+        if (value.content.front() != '"' || value.content.back() != '"') {
+            throw utils::CriticalError(
+                "String literal value is not enclosed in quotation marks.");
+        }
+
+        /*
+          We are not doing any further syntax checking. Escaped symbols other
+          than
+          \n will just ignore the escaping \ (e.g., \t is treated as t, not as a
+          tab). Strings ending in \ will not produce an error but should be
+          excluded by the previous steps.
+        */
+        string result;
+        result.reserve(value.content.length() - 2);
+        bool escaped = false;
+        for (const char c : value.content.substr(1, value.content.size() - 2)) {
+            if (escaped) {
+                escaped = false;
+                if (c == 'n') {
+                    result += '\n';
+                } else {
+                    result += c;
+                }
+            } else if (c == '\\') {
+                escaped = true;
+            } else {
+                result += c;
+            }
+        }
+
         return {
-            std::make_unique<StringLiteralNode>(value.content),
+            std::make_unique<StringLiteralNode>(std::move(result)),
             &plugins::TypeRegistry::instance()->get_type<string>()};
-    case TokenType::INTEGER:
+    }
+    case TokenType::INTEGER: {
+        int v;
+
+        if (value.content == "infinity") {
+            v = numeric_limits<int>::max();
+        } else {
+            char suffix = value.content.back();
+            string prefix = value.content;
+            int factor = 1;
+            if (isalpha(suffix)) {
+                suffix = static_cast<char>(tolower(suffix));
+                if (suffix == 'k') {
+                    factor = 1000;
+                } else if (suffix == 'm') {
+                    factor = 1000000;
+                } else if (suffix == 'g') {
+                    factor = 1000000000;
+                } else {
+                    throw utils::CriticalError(
+                        "Invalid suffix in int constant '{}'.",
+                        value.content);
+                }
+                prefix.pop_back();
+            }
+
+            const int x = [&] {
+                try {
+                    return std::stoi(prefix);
+                } catch (const std::invalid_argument&) {
+                    throw utils::CriticalError(
+                        "Could not parse int constant '{}.",
+                        value.content);
+                } catch (const std::out_of_range&) {
+                    throw utils::CriticalError(
+                        "Integer value is out of range: '{}.",
+                        value.content);
+                }
+            }();
+
+            // Reserve highest value for "infinity".
+            if (!utils::is_product_within_limits(
+                    x,
+                    factor,
+                    numeric_limits<int>::min(),
+                    numeric_limits<int>::max() - 1)) {
+                context.error(
+                    "Absolute value of integer constant too large: '{}'",
+                    value.content);
+            }
+
+            v = factor * x;
+        }
+
         return {
-            std::make_unique<IntLiteralNode>(value.content),
+            std::make_unique<IntLiteralNode>(v),
             &plugins::TypeRegistry::instance()->get_type<int>()};
-    case TokenType::FLOAT:
+    }
+    case TokenType::FLOAT: {
+        double d;
+
+        if (value.content == "infinity") {
+            d = numeric_limits<double>::infinity();
+        } else {
+            try {
+                d = std::stod(value.content);
+            } catch (const std::invalid_argument&) {
+                throw utils::CriticalError(
+                    "Could not parse double constant '{}.",
+                    value.content);
+            } catch (const std::out_of_range&) {
+                throw utils::CriticalError(
+                    "Float value is out of range: '{}.",
+                    value.content);
+            }
+        }
+
         return {
-            std::make_unique<FloatLiteralNode>(value.content),
+            std::make_unique<FloatLiteralNode>(d),
             &plugins::TypeRegistry::instance()->get_type<double>()};
-    case TokenType::DURATION:
+    }
+    case TokenType::DURATION: {
+        utils::DynamicDuration dur;
+
+        if (value.content == "infinite") {
+            dur = utils::DynamicDuration(std::chrono::seconds::max());
+        } else {
+            istringstream stream(value.content);
+            long double x;
+            stream >> noskipws >> x;
+            if (stream.fail()) {
+                throw utils::CriticalError(
+                    "Could not parse double constant '{}'.",
+                    value.content);
+            }
+
+            if (stream.eof()) {
+                throw utils::CriticalError("Missing duration suffix.");
+            }
+
+            std::string suffix;
+            stream >> noskipws >> suffix;
+            if (stream.fail() || !stream.eof()) {
+                throw utils::CriticalError(
+                    "Could not parse duration suffix for '{}'.",
+                    value.content);
+            }
+
+            if (const auto it = ratios.find(suffix); it != ratios.end()) {
+                const auto [num, denom] = it->second;
+                dur = utils::DynamicDuration{num, denom, x};
+            } else {
+                throw utils::CriticalError(
+                    "Unknown duration suffix '{}'.",
+                    suffix);
+            }
+        }
+
         return {
-            std::make_unique<DurationLiteralNode>(value.content),
+            std::make_unique<DurationLiteralNode>(dur),
             &plugins::TypeRegistry::instance()
                  ->get_type<utils::DynamicDuration>()};
+    }
     case TokenType::IDENTIFIER:
         return {
             std::make_unique<SymbolNode>(value.content),

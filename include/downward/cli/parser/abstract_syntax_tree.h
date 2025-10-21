@@ -105,7 +105,7 @@ class FunctionCallNode : public ASTNode {
         std::unordered_map<std::string, FunctionArgument>;
 
     static bool collect_argument(
-        ASTNode& arg,
+        const ASTNode& arg,
         const plugins::ArgumentInfo& arg_info,
         utils::Context& context,
         VariableEnvironment& env,
