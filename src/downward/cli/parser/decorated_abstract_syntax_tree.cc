@@ -128,11 +128,6 @@ bool FunctionArgument::is_default_argument() const
     return is_default;
 }
 
-void FunctionArgument::dump(std::ostream& out, const string& indent) const
-{
-    value->dump(out, "| " + indent);
-}
-
 DecoratedLetNode::DecoratedLetNode(
     std::vector<VariableDefinition> decorated_variable_definitions,
     DecoratedASTNodePtr nested_value)
@@ -224,18 +219,6 @@ void DecoratedLetNode::print(
     nested_value->print(out, indent + 4, print_default_args);
 }
 
-void DecoratedLetNode::dump(std::ostream& out, string indent) const
-{
-    out << indent << "LET:";
-    indent = "| " + indent;
-    for (const auto& def : decorated_variable_definitions) {
-        out << def.variable_name << " = " << endl;
-        def.variable_expression->dump(out, indent);
-    }
-    out << indent << "IN:" << endl;
-    nested_value->dump(out, "| " + indent);
-}
-
 DecoratedLambdaNode::DecoratedLambdaNode(
     const plugins::FunctionType& type,
     std::vector<VariableDeclaration> decorated_variable_declarations,
@@ -285,10 +268,6 @@ void DecoratedLambdaNode::print(
         "fun({:n:t}): ",
         type.get_argument_infos());
     nested_value->print(out, 0, print_default_args);
-}
-
-void DecoratedLambdaNode::dump(std::ostream&, std::string) const
-{
 }
 
 DecoratedFunctionCallNode::DecoratedFunctionCallNode(
@@ -357,19 +336,6 @@ void DecoratedFunctionCallNode::print(
     std::print(out, ")");
 }
 
-void DecoratedFunctionCallNode::dump(std::ostream& out, string indent) const
-{
-    out << indent << "FUNC:";
-    callee->dump(out);
-    out << endl;
-    indent = "| " + indent;
-    out << indent << "ARGUMENTS:" << endl;
-    for (const auto& [key, arg] : arguments) {
-        out << "| " << indent << key << " = " << endl;
-        arg.dump(out, "| " + indent);
-    }
-}
-
 DecoratedListNode::DecoratedListNode(vector<DecoratedASTNodePtr>&& elements)
     : elements(move(elements))
 {
@@ -417,15 +383,6 @@ void DecoratedListNode::print(
     std::print(out, "]");
 }
 
-void DecoratedListNode::dump(std::ostream& out, string indent) const
-{
-    out << indent << "LIST:" << endl;
-    indent = "| " + indent;
-    for (const DecoratedASTNodePtr& element : elements) {
-        element->dump(out, indent);
-    }
-}
-
 VariableNode::VariableNode(VariableDeclaration& declaration)
     : declaration(&declaration)
 {
@@ -459,11 +416,6 @@ void VariableNode::print(std::ostream& out, std::size_t indent, bool) const
         indent + declaration->variable_name.size());
 }
 
-void VariableNode::dump(std::ostream& out, string indent) const
-{
-    out << indent << "VAR: " << declaration->variable_name << endl;
-}
-
 FeatureLiteralNode::FeatureLiteralNode(
     std::shared_ptr<const plugins::Feature> feature)
     : feature(std::move(feature))
@@ -487,11 +439,6 @@ void FeatureLiteralNode::print(std::ostream& out, std::size_t indent, bool)
     const
 {
     std::print(out, "{}{}", std::string(indent, ' '), feature->get_key());
-}
-
-void FeatureLiteralNode::dump(std::ostream& out, string indent) const
-{
-    out << indent << "FEATURE: " << feature->get_key() << endl;
 }
 
 BoolLiteralNode::BoolLiteralNode(const string& value)
@@ -519,11 +466,6 @@ void BoolLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
 {
     std::print(out, "{}", std::string(indent, ' '));
     std::print(out, "{}", value);
-}
-
-void BoolLiteralNode::dump(std::ostream& out, string indent) const
-{
-    out << indent << "BOOL: " << value << endl;
 }
 
 StringLiteralNode::StringLiteralNode(const string& value)
@@ -570,11 +512,6 @@ std::any StringLiteralNode::construct(ConstructContext& context) const
 void StringLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
 {
     std::print(out, "{:>{}}", value, indent + value.size());
-}
-
-void StringLiteralNode::dump(std::ostream& out, string indent) const
-{
-    out << indent << "STRING: " << value << endl;
 }
 
 IntLiteralNode::IntLiteralNode(const string& value)
@@ -643,11 +580,6 @@ void IntLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
     std::print(out, "{}", value);
 }
 
-void IntLiteralNode::dump(std::ostream& out, string indent) const
-{
-    out << indent << "INT: " << value << endl;
-}
-
 FloatLiteralNode::FloatLiteralNode(const string& value)
     : value(value)
 {
@@ -679,11 +611,6 @@ void FloatLiteralNode::print(std::ostream& out, std::size_t indent, bool) const
 {
     std::print(out, "{}", std::string(indent, ' '));
     std::print(out, "{}", value);
-}
-
-void FloatLiteralNode::dump(std::ostream& out, string indent) const
-{
-    out << indent << "FLOAT: " << value << endl;
 }
 
 DurationLiteralNode::DurationLiteralNode(string value)
@@ -755,11 +682,6 @@ void DurationLiteralNode::print(std::ostream& out, std::size_t indent, bool)
     std::print(out, "{}", value);
 }
 
-void DurationLiteralNode::dump(std::ostream& out, string indent) const
-{
-    out << indent << "DURATION: " << value << endl;
-}
-
 SymbolNode::SymbolNode(const string& value)
     : value(value)
 {
@@ -774,11 +696,6 @@ void SymbolNode::print(std::ostream& out, std::size_t indent, bool) const
 {
     std::print(out, "{}", std::string(indent, ' '));
     std::print(out, "{}", value);
-}
-
-void SymbolNode::dump(std::ostream& out, string indent) const
-{
-    out << indent << "SYMBOL: " << value << endl;
 }
 
 ConvertNode::ConvertNode(
@@ -826,13 +743,6 @@ void ConvertNode::print(
     bool print_default_args) const
 {
     value->print(out, indent, print_default_args);
-}
-
-void ConvertNode::dump(std::ostream& out, string indent) const
-{
-    out << indent << "CONVERT: " << from_type.name() << " to " << to_type.name()
-        << endl;
-    value->dump(out, "| " + indent);
 }
 
 CheckBoundsNode::CheckBoundsNode(
@@ -907,14 +817,6 @@ void CheckBoundsNode::print(
     bool print_default_args) const
 {
     value->print(out, indent, print_default_args);
-}
-
-void CheckBoundsNode::dump(std::ostream& out, string indent) const
-{
-    out << indent << "CHECK-BOUNDS: " << endl;
-    value->dump(out, "| " + indent);
-    min_value->dump(out, "| " + indent);
-    max_value->dump(out, "| " + indent);
 }
 
 } // namespace downward::cli::parser
