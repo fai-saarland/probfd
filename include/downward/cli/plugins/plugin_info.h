@@ -9,24 +9,6 @@
 #include <vector>
 
 namespace downward::cli::plugins {
-struct ArgumentInfo {
-    std::string key;
-    std::string help;
-    const Type& type;
-    std::string default_value;
-    Bounds bounds;
-    static const std::string NO_DEFAULT;
-
-    ArgumentInfo(
-        const std::string& key,
-        const std::string& help,
-        const Type& type,
-        const std::string& default_value,
-        const Bounds& bounds);
-
-    bool is_optional() const;
-    bool has_default() const;
-};
 
 struct PropertyInfo {
     std::string property;

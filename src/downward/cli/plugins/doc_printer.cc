@@ -156,12 +156,14 @@ void Txt2TagsPrinter::print_usage(const Feature& feature) const
 
 void Txt2TagsPrinter::print_arguments(const Feature& feature) const
 {
-    for (const ArgumentInfo& arg_info : feature.get_arguments()) {
+    for (const auto& [arg_info, arg_help] : std::views::zip(
+             feature.get_arguments(),
+             feature.get_argument_docs())) {
         const Type& arg_type = arg_info.type;
         os << "- //" << arg_info.key << "// (" << arg_type.name();
         if (arg_info.bounds.has_bound())
             os << " \"\"" << arg_info.bounds << "\"\"";
-        os << "): " << arg_info.help << endl;
+        os << "): " << arg_help << endl;
         if (arg_type.is_enum_type()) {
             for (const pair<string, string>& explanation :
                  static_cast<const EnumType&>(arg_type)
@@ -207,8 +209,7 @@ void Txt2TagsPrinter::print_properties(const Feature& feature) const
     }
 }
 
-void Txt2TagsPrinter::print_category_header(
-    const FeatureType& type) const
+void Txt2TagsPrinter::print_category_header(const FeatureType& type) const
 {
     os << ">>>>CATEGORY: " << type.name() << "<<<<" << endl;
 }
@@ -261,10 +262,12 @@ void PlainPrinter::print_usage(const Feature& feature) const
 
 void PlainPrinter::print_arguments(const Feature& feature) const
 {
-    for (const ArgumentInfo& arg_info : feature.get_arguments()) {
+    for (const auto& [arg_info, arg_help] : std::views::zip(
+             feature.get_arguments(),
+             feature.get_argument_docs())) {
         os << " " << arg_info.key << " (" << arg_info.type.name();
         if (arg_info.bounds.has_bound()) os << " " << arg_info.bounds;
-        os << "): " << arg_info.help << endl;
+        os << "): " << arg_help << endl;
         const Type& arg_type = arg_info.type;
         if (arg_type.is_enum_type()) {
             for (const pair<string, string>& explanation :
@@ -313,8 +316,7 @@ void PlainPrinter::print_properties(const Feature& feature) const
     }
 }
 
-void PlainPrinter::print_category_header(
-    const FeatureType& type) const
+void PlainPrinter::print_category_header(const FeatureType& type) const
 {
     os << "Help for " << type.name() << endl << endl;
 }

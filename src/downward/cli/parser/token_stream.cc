@@ -107,6 +107,7 @@ string token_type_name(TokenType token_type)
     case TokenType::OPENING_BRACKET: return "[";
     case TokenType::CLOSING_BRACKET: return "]";
     case TokenType::COMMA: return ",";
+    case TokenType::COLON: return ":";
     case TokenType::EQUALS: return "=";
     case TokenType::LET: return "Let";
     case TokenType::AS: return "As";
@@ -117,6 +118,10 @@ string token_type_name(TokenType token_type)
     case TokenType::FLOAT: return "Float";
     case TokenType::DURATION: return "Duration";
     case TokenType::IDENTIFIER: return "Identifier";
+    case TokenType::TYPE_BOOL: return "bool";
+    case TokenType::TYPE_STRING: return "string";
+    case TokenType::TYPE_INTEGER: return "int";
+    case TokenType::TYPE_FLOAT: return "float";
     default: throw utils::CriticalError("Unknown token type.");
     }
 }

@@ -48,9 +48,7 @@ shared_ptr<SearchAlgorithm>
 IteratedSearch::get_search_algorithm(int algorithm_configs_index)
 {
     auto& algorithm_factory = algorithm_configs[algorithm_configs_index];
-    shared_ptr algorithm = algorithm_factory->create_object(task);
-    log << "Starting search: " << algorithm->get_description() << endl;
-    return algorithm;
+    return algorithm_factory->create_object(task);
 }
 
 shared_ptr<SearchAlgorithm> IteratedSearch::create_current_phase()
@@ -83,6 +81,7 @@ SearchStatus IteratedSearch::step()
     }
     ++phase;
 
+    log << "Starting search: " << current_search->get_description() << endl;
     current_search->search();
 
     last_phase_found_solution = current_search->found_solution();

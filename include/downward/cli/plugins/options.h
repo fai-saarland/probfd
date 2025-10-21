@@ -151,6 +151,8 @@ public:
         return get<std::vector<T>>(key);
     }
 
+    std::any get_raw(const std::string& key) const;
+
     bool contains(const std::string& key) const;
     const std::string& get_unparsed_config() const;
     void set_unparsed_config(const std::string& config);

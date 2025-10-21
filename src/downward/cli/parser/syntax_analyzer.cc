@@ -134,6 +134,86 @@ static ASTNodePtr parse_let(TokenStream& tokens, SyntaxAnalyzerContext& context)
         move(nested_value));
 }
 
+static std::unique_ptr<TypeNode>
+parse_type(TokenStream& tokens, SyntaxAnalyzerContext& context)
+{
+    switch (auto t = tokens.pop(context); t.type) {
+    case TokenType::TYPE_BOOL:
+    case TokenType::TYPE_INTEGER:
+    case TokenType::TYPE_STRING:
+    case TokenType::TYPE_FLOAT: return std::make_unique<TypeLiteralNode>(t);
+    case TokenType::IDENTIFIER: return std::make_unique<TypeLiteralNode>(t);
+    default:
+        throw utils::CriticalError(
+            "Expected type, but got hot token of type '{}'.",
+            token_type_name(t.type));
+    }
+}
+
+static ASTNodePtr
+parse_lambda(TokenStream& tokens, SyntaxAnalyzerContext& context)
+{
+    utils::TraceBlock block(context, "Parsing Lambda");
+    tokens.pop(context, TokenType::LAMBDA);
+    tokens.pop(context, TokenType::OPENING_PARENTHESIS);
+
+    std::vector<TypedParameter> params;
+
+    if (auto next = tokens.peek(context);
+        next.type != TokenType::CLOSING_PARENTHESIS) {
+        {
+            auto var_name = [&] {
+                utils::TraceBlock block(context, "Parsing argument name");
+                return tokens.pop(context, TokenType::IDENTIFIER).content;
+            }();
+
+            tokens.pop(context, TokenType::COLON);
+
+            auto type_node = [&] {
+                utils::TraceBlock block(context, "Parsing type");
+                return parse_type(tokens, context);
+            }();
+
+            params.emplace_back(std::move(var_name), std::move(type_node));
+        }
+
+        for (auto next = tokens.pop(context);
+             next.type != TokenType::CLOSING_PARENTHESIS;
+             next = tokens.pop(context)) {
+            if (next.type != TokenType::COMMA) {
+                context.error(
+                    std::format("Expected ')' or ','! Got: {}", next.content));
+            }
+
+            auto var_name = [&] {
+                utils::TraceBlock block(context, "Parsing argument name");
+                return tokens.pop(context, TokenType::IDENTIFIER).content;
+            }();
+
+            tokens.pop(context, TokenType::COLON);
+
+            auto type_node = [&] {
+                utils::TraceBlock block(context, "Parsing type");
+                return parse_type(tokens, context);
+            }();
+
+            params.emplace_back(std::move(var_name), std::move(type_node));
+        }
+    } else {
+        tokens.pop(context);
+    }
+
+    tokens.pop(context, TokenType::COLON);
+
+    ASTNodePtr nested_value;
+    {
+        utils::TraceBlock block(context, "Parsing nested expression of lambda");
+        nested_value = parse_node(tokens, context);
+    }
+
+    return std::make_unique<LambdaNode>(move(params), move(nested_value));
+}
+
 static void parse_sequence(
     TokenStream& tokens,
     SyntaxAnalyzerContext& context,
@@ -178,13 +258,11 @@ static ASTNodePtr
 parse_function(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
     int initial_token_stream_index = tokens.get_position();
-    utils::TraceBlock block(context, "Parsing plugin");
-    string plugin_name;
-    {
-        utils::TraceBlock block(context, "Parsing plugin name");
-        Token name_token = tokens.pop(context, TokenType::IDENTIFIER);
-        plugin_name = name_token.content;
-    }
+    utils::TraceBlock block(context, "Parsing function call");
+    Token callee_token = [&] {
+        utils::TraceBlock block(context, "Parsing callee literal");
+        return tokens.pop(context, TokenType::IDENTIFIER);
+    }();
     tokens.pop(context, TokenType::OPENING_PARENTHESIS);
     vector<ASTNodePtr> positional_arguments;
     unordered_map<string, ASTNodePtr> keyword_arguments;
@@ -207,7 +285,7 @@ parse_function(TokenStream& tokens, SyntaxAnalyzerContext& context)
     string unparsed_config =
         tokens.str(initial_token_stream_index, tokens.get_position());
     return std::make_unique<FunctionCallNode>(
-        plugin_name,
+        std::make_unique<LiteralNode>(callee_token),
         move(positional_arguments),
         move(keyword_arguments),
         unparsed_config);
@@ -254,6 +332,7 @@ parse_list(TokenStream& tokens, SyntaxAnalyzerContext& context)
 static const vector<TokenType> parse_node_token_types = {
     TokenType::OPENING_BRACKET,
     TokenType::LET,
+    TokenType::LAMBDA,
     TokenType::BOOLEAN,
     TokenType::STRING,
     TokenType::INTEGER,
@@ -277,6 +356,7 @@ parse_node(TokenStream& tokens, SyntaxAnalyzerContext& context)
     switch (token.type) {
     case TokenType::OPENING_BRACKET: return parse_list(tokens, context);
     case TokenType::LET: return parse_let(tokens, context);
+    case TokenType::LAMBDA: return parse_lambda(tokens, context);
     case TokenType::BOOLEAN:
     case TokenType::STRING:
     case TokenType::INTEGER:

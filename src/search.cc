@@ -17,6 +17,7 @@
 #include "probfd/termination_costs.h"
 
 #include "downward/axiom_space.h"
+#include "downward/cli/plugins/registry.h"
 #include "downward/goal_fact_list.h"
 #include "downward/initial_state_values.h"
 #include "downward/operator_cost_function.h"
@@ -120,7 +121,8 @@ static auto construct_solver(argparse::ArgumentParser& parser)
     register_definitions(raw_registry);
 
     // Type check
-    const DecoratedASTNodePtr decorated = parsed->decorate(raw_registry);
+    Registry registry = raw_registry.construct_registry();
+    const DecoratedASTNodePtr decorated = parsed->decorate(registry);
 
     // Remove unused definitions if enabled
     if (parser.get<bool>("--ignore-unused-definitions")) {
@@ -166,7 +168,7 @@ static int search(argparse::ArgumentParser& parser)
             exitcode = found_solution ? ExitCode::SUCCESS
                                       : ExitCode::SEARCH_UNSOLVED_INCOMPLETE;
         } catch (const std::exception& e) {
-            std::print(std::cerr, "{}", e.what());
+            std::println(std::cerr, "{}", e.what());
             throw;
         }
     } catch (const downward::utils::ContextError&) {

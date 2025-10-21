@@ -1,6 +1,7 @@
 #ifndef PLUGINS_TYPES_H
 #define PLUGINS_TYPES_H
 
+#include "downward/cli/plugins/bounds.h"
 #include "downward/cli/plugins/registry_types.h"
 
 #include "downward/utils/strings.h"
@@ -13,6 +14,7 @@
 #include <string>
 #include <typeindex>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace downward::utils {
@@ -34,11 +36,48 @@ public:
     virtual bool is_empty_list_type() const;
     virtual bool is_enum_type() const;
     virtual bool is_symbol_type() const;
+    virtual bool is_function_type() const;
 
     virtual bool can_convert_into(const Type& other) const;
 
     virtual std::string name() const = 0;
     virtual size_t get_hash() const = 0;
+};
+
+struct ArgumentInfo {
+    std::string key;
+    const Type& type;
+    std::string default_value;
+    Bounds bounds;
+    static const std::string NO_DEFAULT;
+
+    ArgumentInfo(
+        const std::string& key,
+        const Type& type,
+        const std::string& default_value,
+        const Bounds& bounds = Bounds::unlimited());
+
+    bool is_optional() const;
+    bool has_default() const;
+};
+
+class FunctionType : public Type {
+    const Type& return_type;
+    std::vector<ArgumentInfo> arguments;
+
+public:
+    FunctionType(const Type& return_type, std::vector<ArgumentInfo> arguments);
+
+    bool is_function_type() const override { return true; }
+
+    const Type& get_return_type() const { return return_type; }
+
+    const auto& get_argument_infos() const { return arguments; }
+
+    bool operator==(const Type& other) const override;
+
+    std::string name() const override;
+    size_t get_hash() const override;
 };
 
 class BasicType : public Type {
@@ -152,7 +191,7 @@ class TypeRegistry {
     };
 
     struct SemanticHash {
-        size_t operator()(const Type* t) const
+        size_t operator()(const auto& t) const
         {
             if (!t) { return 0; }
             return t->get_hash();
@@ -160,10 +199,10 @@ class TypeRegistry {
     };
 
     struct SemanticEqual {
-        size_t operator()(const Type* t1, const Type* t2) const
+        size_t operator()(const auto& t1, const auto& t2) const
         {
             if (!t1 || !t2) { return t1 == t2; }
-            return *t1 == *t2;
+            return t1->operator==(*t2);
         }
     };
 
@@ -174,6 +213,11 @@ class TypeRegistry {
         SemanticHash,
         SemanticEqual>
         registered_list_types;
+    std::unordered_set<
+        std::unique_ptr<FunctionType>,
+        SemanticHash,
+        SemanticEqual>
+        registered_function_types;
     template <typename T>
     void insert_basic_type();
     const Type& get_nonlist_type(std::type_index type) const;
@@ -188,9 +232,15 @@ public:
     const FeatureType& create_feature_type(const CategoryPlugin& plugin);
     const EnumType& create_enum_type(const EnumPlugin& plugin);
     const ListType& create_list_type(const Type& element_type);
+    const FunctionType& create_function_type(
+        const Type& return_type,
+        std::vector<ArgumentInfo> arg_types);
 
     template <typename T>
     const Type& get_type();
+
+    template <typename T, typename... ArgTypes>
+    const Type& get_function_type();
 
     static TypeRegistry* instance()
     {
@@ -217,11 +267,74 @@ const Type& TypeRegistry::get_type()
     return TypeOf<T>::value(*this);
 }
 
+template <typename T, typename... ArgTypes>
+const Type& TypeRegistry::get_function_type()
+{
+    return create_function_type(
+        TypeOf<T>::value(*this),
+        std::vector<const Type*>{&TypeOf<ArgTypes>::value(*this)...});
+}
+
 extern std::any convert(
     const std::any& value,
     const Type& from_type,
     const Type& to_type,
     downward::utils::Context& context);
 } // namespace downward::cli::plugins
+
+template <>
+struct std::formatter<downward::cli::plugins::ArgumentInfo> {
+    bool with_default = false;
+    bool with_type = false;
+
+    template <typename ParseContext>
+    constexpr auto parse(ParseContext& ctx)
+    {
+        auto pos = ctx.begin();
+
+        for (; pos != ctx.end() && *pos != '}'; ++pos) {
+            switch (*pos) {
+            case '}': return pos;
+            case 'd': {
+                if (with_default) {
+                    throw std::format_error(
+                        std::format("Repeated format specifier: '{}'", *pos));
+                }
+                with_default = true;
+            } break;
+            case 't': {
+                if (with_type) {
+                    throw std::format_error(
+                        std::format("Repeated format specifier: '{}'", *pos));
+                }
+                with_type = true;
+            } break;
+            default:
+                throw std::format_error(
+                    std::format("Illegal format specifier: '{}'", *pos));
+            }
+        }
+
+        return pos;
+    }
+
+    template <typename FormatContext>
+    auto
+    format(const downward::cli::plugins::ArgumentInfo& info, FormatContext& ctx)
+        const
+    {
+        auto it = std::format_to(ctx.out(), "{}", info.key);
+
+        if (with_type) {
+            it = std::format_to(it, " : {}", info.type.name());
+        }
+
+        if (with_default) {
+            it = std::format_to(it, " = {}", info.default_value);
+        }
+
+        return it;
+    }
+};
 
 #endif
