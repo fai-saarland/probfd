@@ -167,23 +167,21 @@ parse_lambda(TokenStream& tokens, SyntaxAnalyzerContext& context)
 
     if (auto next = tokens.peek(context);
         next.type != TokenType::CLOSING_PARENTHESIS) {
-        {
-            auto var_name = [&] {
-                utils::TraceBlock block(context, "Parsing argument name");
-                return tokens.pop(context, TokenType::IDENTIFIER).content;
-            }();
+        auto var_name = [&] {
+            utils::TraceBlock block(context, "Parsing argument name");
+            return tokens.pop(context, TokenType::IDENTIFIER).content;
+        }();
 
-            tokens.pop(context, TokenType::COLON);
+        tokens.pop(context, TokenType::COLON);
 
-            auto type_node = [&] {
-                utils::TraceBlock block(context, "Parsing type");
-                return parse_type(tokens, context);
-            }();
+        auto type_node = [&] {
+            utils::TraceBlock block(context, "Parsing type");
+            return parse_type(tokens, context);
+        }();
 
-            params.emplace_back(std::move(var_name), std::move(type_node));
-        }
+        params.emplace_back(std::move(var_name), std::move(type_node));
 
-        for (auto next = tokens.pop(context);
+        for (next = tokens.pop(context);
              next.type != TokenType::CLOSING_PARENTHESIS;
              next = tokens.pop(context)) {
             if (next.type != TokenType::COMMA) {
@@ -260,15 +258,13 @@ static void parse_sequence(
     }
 }
 
-static ASTNodePtr
-parse_function(TokenStream& tokens, SyntaxAnalyzerContext& context)
+static ASTNodePtr parse_function(
+    TokenStream& tokens,
+    SyntaxAnalyzerContext& context,
+    ASTNodePtr callee)
 {
     int initial_token_stream_index = tokens.get_position();
     utils::TraceBlock block(context, "Parsing function call");
-    Token callee_token = [&] {
-        utils::TraceBlock block(context, "Parsing callee literal");
-        return tokens.pop(context, TokenType::IDENTIFIER);
-    }();
     tokens.pop(context, TokenType::OPENING_PARENTHESIS);
     vector<ASTNodePtr> positional_arguments;
     unordered_map<string, ASTNodePtr> keyword_arguments;
@@ -291,7 +287,7 @@ parse_function(TokenStream& tokens, SyntaxAnalyzerContext& context)
     string unparsed_config =
         tokens.str(initial_token_stream_index, tokens.get_position());
     return std::make_unique<FunctionCallNode>(
-        std::make_unique<LiteralNode>(callee_token),
+        std::move(callee),
         move(positional_arguments),
         move(keyword_arguments),
         unparsed_config);
@@ -316,6 +312,31 @@ parse_literal(TokenStream& tokens, SyntaxAnalyzerContext& context)
         context.error(message.str());
     }
     return std::make_unique<LiteralNode>(token);
+}
+
+static ASTNodePtr parse_non_prefix_op_expression(
+    TokenStream& tokens,
+    SyntaxAnalyzerContext& context,
+    ASTNodePtr lhs)
+{
+    utils::TraceBlock block(context, "Parsing Infix or Postfix Expression");
+
+    while (tokens.has_tokens(1) &&
+           tokens.peek(context).type == TokenType::OPENING_PARENTHESIS) {
+        lhs = parse_function(tokens, context, std::move(lhs));
+    }
+
+    return lhs;
+}
+
+static ASTNodePtr parse_non_prefix_op_expression(
+    TokenStream& tokens,
+    SyntaxAnalyzerContext& context)
+{
+    return parse_non_prefix_op_expression(
+        tokens,
+        context,
+        parse_literal(tokens, context));
 }
 
 static ASTNodePtr
@@ -369,12 +390,7 @@ parse_node(TokenStream& tokens, SyntaxAnalyzerContext& context)
     case TokenType::FLOAT:
     case TokenType::DURATION: return parse_literal(tokens, context);
     case TokenType::IDENTIFIER:
-        if (tokens.has_tokens(2) &&
-            tokens.peek(context, 1).type == TokenType::OPENING_PARENTHESIS) {
-            return parse_function(tokens, context);
-        } else {
-            return parse_literal(tokens, context);
-        }
+        return parse_non_prefix_op_expression(tokens, context);
     default:
         throw utils::CriticalError(
             "Unknown token type '{}'.",
