@@ -48,9 +48,9 @@ void print_bisimulation_stats(
     unsigned states,
     unsigned transitions)
 {
-    out << "  Bisimulation time: " << time << std::endl;
-    out << "  Bisimilar states: " << states << std::endl;
-    out << "  Transitions in bisimulation: " << transitions << std::endl;
+    std::println(out, "  Bisimulation time: {}", time);
+    std::println(out, "  Bisimilar states: {}", states);
+    std::println(out, "  Transitions in bisimulation: {}", transitions);
 }
 
 class BisimulationSolver : public SolverInterface {

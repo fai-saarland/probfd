@@ -87,12 +87,13 @@ static bool shrink_factor(
     if (const int num_states = ts.get_size();
         num_states > min(new_size, shrink_threshold_before_merge)) {
         if (log.is_at_least_verbose()) {
-            log << ts.tag() << "current size: " << num_states;
+            log.print("{} current size: {}", ts.tag(), num_states);
             if (new_size < num_states)
-                log << " (new size limit: " << new_size;
+                log.println(" (new size limit: {})", new_size);
             else
-                log << " (shrink threshold: " << shrink_threshold_before_merge;
-            log << ")" << endl;
+                log.println(
+                    " (shrink threshold: {})",
+                    shrink_threshold_before_merge);
         }
 
         Distances& distances = fts.get_distances(index);

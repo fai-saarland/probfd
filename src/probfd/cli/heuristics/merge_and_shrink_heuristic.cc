@@ -120,7 +120,7 @@ std::unique_ptr<FDRHeuristic> MergeAndShrinkHeuristicFactory::create_object(
     FactoredTransitionSystem fts =
         algorithm.build_factored_transition_system(task, log_);
 
-    log_ << "Initializing merge-and-shrink heuristic..." << endl;
+    log_.println("Initializing merge-and-shrink heuristic...");
 
     /*
       TODO: This method has quite a bit of fiddling with aspects of
@@ -135,7 +135,7 @@ std::unique_ptr<FDRHeuristic> MergeAndShrinkHeuristicFactory::create_object(
 
     const int num_active_factors = fts.get_num_active_entries();
     if (log_.is_at_least_normal()) {
-        log_ << "Number of remaining factors: " << num_active_factors << endl;
+        log_.println("Number of remaining factors: {}", num_active_factors);
     }
 
     if (const bool unsolvable =
@@ -158,10 +158,10 @@ std::unique_ptr<FDRHeuristic> MergeAndShrinkHeuristicFactory::create_object(
 
     const int num_factors_kept = factor_distances.size();
     if (log_.is_at_least_normal()) {
-        log_ << "Number of factors kept: " << num_factors_kept << endl;
+        log_.println("Number of factors kept: {}", num_factors_kept);
     }
 
-    log_ << "Done initializing merge-and-shrink heuristic." << endl << endl;
+    log_.println("Done initializing merge-and-shrink heuristic.\n");
 
     return std::make_unique<MergeAndShrinkHeuristic>(
         std::move(factor_distances));
