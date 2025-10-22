@@ -45,7 +45,7 @@ public:
         HeuristicType& heuristic,
         ParamType<State> state,
         ProgressReport progress,
-        Duration max_time)
+        Duration max_time) override
     {
         return algorithm
             .compute_policy(mdp, heuristic, state, progress, max_time);
@@ -59,12 +59,12 @@ public:
 
     void handleEvent(const PruneStateExpansion&) { ++pruned_states; }
 
-    void print_statistics(std::ostream& out) const
+    void print_statistics(std::ostream& out) const override
     {
-        out << "  Expanded state(s): " << state_expansions << std::endl;
-        out << "  Pruned state(s): " << pruned_states << std::endl;
-        out << "  Terminal state(s): " << terminal_states << std::endl;
-        out << "  Goal state(s): " << goal_states << std::endl;
+        std::println(out, "  Expanded state(s): {}", state_expansions);
+        std::println(out, "  Pruned state(s): {}", pruned_states);
+        std::println(out, "  Terminal state(s): {}", terminal_states);
+        std::println(out, "  Goal state(s): {}", goal_states);
     }
 };
 

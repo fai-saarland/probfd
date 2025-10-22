@@ -30,17 +30,17 @@ namespace probfd::algorithms::i2dual {
 
 void I2Dual::Statistics::print(std::ostream& out) const
 {
-    out << "Algorithm I2-Dual statistics:" << std::endl;
-    out << "  Actual solver time: " << idual_timer() << std::endl;
-    out << "  Iterations: " << iterations << std::endl;
-    out << "  Expansions: " << expansions << std::endl;
-    out << "  Open states: " << open_states << std::endl;
-    out << "  LP Variables: " << num_lp_vars << std::endl;
-    out << "  LP Constraints: " << num_lp_constraints << std::endl;
-    out << "  LP Timer: " << lp_solver_timer() << std::endl;
-    out << "  hPom LP Variables: " << hpom_num_vars << std::endl;
-    out << "  hPom LP Constraints: " << hpom_num_constraints << std::endl;
-    out << "  hPom Overhead: " << hpom_timer() << std::endl;
+    std::println(out, "Algorithm I2-Dual statistics:");
+    std::println(out, "  Actual solver time: {}", idual_timer());
+    std::println(out, "  Iterations: {}", iterations);
+    std::println(out, "  Expansions: {}", expansions);
+    std::println(out, "  Open states: {}", open_states);
+    std::println(out, "  LP Variables: {}", num_lp_vars);
+    std::println(out, "  LP Constraints: {}", num_lp_constraints);
+    std::println(out, "  LP Timer: {}", lp_solver_timer());
+    std::println(out, "  hPom LP Variables: {}", hpom_num_vars);
+    std::println(out, "  hPom LP Constraints: {}", hpom_num_constraints);
+    std::println(out, "  hPom Overhead: {}", hpom_timer());
 }
 
 struct I2Dual::IDualData {
@@ -121,7 +121,7 @@ Interval I2Dual::solve(
 
     statistics_ = Statistics();
 
-    std::cout << "Initializing I2-Dual..." << std::endl;
+    std::println(std::cout, "Initializing I2-Dual...");
 
     const auto& axioms = get_axioms(task_);
     const auto& operators = get_operators(task_);
@@ -365,10 +365,7 @@ void I2Dual::prepare_hpom(LinearProgram& lp)
     if (!hpom_enabled_) { return; }
 
     TimerScope scope(statistics_.hpom_timer);
-    occupation_measures::HPOMGenerator::generate_hpom_lp(
-        task_,
-        lp,
-        offset_);
+    occupation_measures::HPOMGenerator::generate_hpom_lp(task_, lp, offset_);
 
     hpom_constraints_ = std::move(lp.get_constraints());
 
