@@ -198,7 +198,7 @@ void DecoratedLetNode::print(
     std::size_t indent,
     bool print_default_args) const
 {
-    std::print("{:{}}", "", indent);
+    std::print(out, "{:{}}", "", indent);
     std::println(out, "let");
 
     if (!decorated_variable_definitions.empty()) {
