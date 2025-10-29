@@ -44,19 +44,17 @@ bool TokenStream::has_tokens(int n) const
 Token TokenStream::peek(const utils::Context& context, int n) const
 {
     if (!has_tokens(n + 1)) {
-        ostringstream message;
-        message << (n + 1) << " token(s) required, but "
-                << (tokens.size() - pos) << " remain.";
-        context.error(message.str());
+        context.error(
+            "{} token(s) required, but {} remain.",
+            n + 1,
+            tokens.size() - pos);
     }
     return tokens[pos + n];
 }
 
 Token TokenStream::pop(const utils::Context& context)
 {
-    if (!has_tokens(1)) {
-        context.error("Input stream exhausted.");
-    }
+    if (!has_tokens(1)) { context.error("Input stream exhausted."); }
     return tokens[pos++];
 }
 
@@ -64,15 +62,16 @@ Token TokenStream::pop(const utils::Context& context, TokenType expected_type)
 {
     if (!has_tokens(1)) {
         context.error(
-            "Input stream exhausted while expecting token of type '" +
-            token_type_name(expected_type) + "'.");
+            "Input stream exhausted while expecting token of type '{}'.",
+            expected_type);
     }
+
     Token token = pop(context);
     if (token.type != expected_type) {
-        ostringstream message;
-        message << "Got token " << token << ". Expected token of type '"
-                << expected_type << "'.";
-        context.error(message.str());
+        context.error(
+            "Got token {}. Expected token of type '{}'.",
+            token,
+            expected_type);
     }
     return token;
 }
@@ -89,14 +88,9 @@ int TokenStream::size() const
 
 string TokenStream::str(int from, int to) const
 {
-    int curr_position = max(0, from);
-    int max_position = min(static_cast<int>(tokens.size()), to);
-    ostringstream message;
-    while (curr_position < max_position) {
-        message << tokens[curr_position].content;
-        curr_position++;
-    }
-    return message.str();
+    const auto b = std::ranges::begin(tokens);
+    std::ranges::subrange subrange{std::next(b, from), std::next(b, to)};
+    return std::format("{:n:t}", subrange);
 }
 
 string token_type_name(TokenType token_type)

@@ -94,10 +94,25 @@ struct formatter<downward::cli::parser::TokenType> {
 
 template <>
 struct formatter<downward::cli::parser::Token> {
+    bool text = false;
+
     template <typename ParseContext>
     constexpr auto parse(ParseContext& ctx)
     {
-        return ctx.begin();
+        auto it = std::ranges::begin(ctx);
+        const auto end = std::ranges::end(ctx);
+
+        for (; it != end && *it != '}'; ++it) {
+            switch (*it) {
+            case 't':
+                text = true;
+                break;
+            default:
+                throw std::format_error("Could not parse specifier!");
+            }
+        }
+
+        return it;
     }
 
     template <typename FormatContext>
