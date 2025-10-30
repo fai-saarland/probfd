@@ -89,7 +89,9 @@ int TokenStream::size() const
 string TokenStream::str(int from, int to) const
 {
     const auto b = std::ranges::begin(tokens);
-    std::ranges::subrange subrange{std::next(b, from), std::next(b, to)};
+    std::ranges::subrange subrange{
+        std::next(b, from),
+        std::next(b, std::min<int>(to, tokens.size()))};
     return std::format("{:n:t}", subrange);
 }
 
@@ -106,6 +108,7 @@ string token_type_name(TokenType token_type)
     case TokenType::LET: return "Let";
     case TokenType::AS: return "As";
     case TokenType::IN: return "In";
+    case TokenType::LAMBDA: return "Lambda";
     case TokenType::BOOLEAN: return "Boolean";
     case TokenType::STRING: return "String";
     case TokenType::INTEGER: return "Integer";
