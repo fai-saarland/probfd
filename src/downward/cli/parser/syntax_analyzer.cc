@@ -55,7 +55,129 @@ public:
     }
 };
 
+template <typename F, typename... Args>
+static auto parse_block(
+    std::string_view block_name,
+    const F& parsing_function,
+    TokenStream& tokens,
+    SyntaxAnalyzerContext& context,
+    Args&&... args)
+    requires std::invocable<F, TokenStream&, SyntaxAnalyzerContext&, Args&&...>
+{
+    utils::TraceBlock block(context, block_name);
+    return parsing_function(tokens, context, std::forward<Args>(args)...);
+}
+
 static ASTNodePtr parse_node(TokenStream& tokens, SyntaxAnalyzerContext&);
+static ASTNodePtr parse_node_in_block(
+    std::string_view block_name,
+    TokenStream& tokens,
+    SyntaxAnalyzerContext&);
+
+template <std::invocable<TokenStream&, SyntaxAnalyzerContext&> F>
+static void parse_sequence(
+    TokenStream& tokens,
+    SyntaxAnalyzerContext& context,
+    TokenType separator_token,
+    TokenType terminal_token,
+    const F& func)
+{
+    utils::TraceBlock block(context, "Parsing sequence");
+
+    for (int i = 1; tokens.peek(context).type != terminal_token; ++i) {
+        {
+            utils::TraceBlock nblock(context, "Parsing {}. argument", i);
+            func(tokens, context);
+        }
+        {
+            utils::TraceBlock nblock(
+                context,
+                "Parsing token after {}. argument",
+                i);
+
+            if (const TokenType next_type = tokens.peek(context).type;
+                next_type == terminal_token) {
+                return;
+            } else if (next_type == separator_token) {
+                tokens.pop(context);
+                if (tokens.peek(context).type == terminal_token) {
+                    context.error("Trailing commas are forbidden.");
+                }
+            } else {
+                context.error(
+                    "Read unexpected token type '{}'. "
+                    "Expected token types '{}' or '{}'",
+                    next_type,
+                    terminal_token,
+                    separator_token);
+            }
+        }
+    }
+}
+
+template <std::invocable<TokenStream&, SyntaxAnalyzerContext&> F>
+static void parse_sequence_in_block(
+    std::string_view block_name,
+    TokenStream& tokens,
+    SyntaxAnalyzerContext& context,
+    TokenType separator_token,
+    TokenType terminal_token,
+    const F& func)
+{
+    utils::TraceBlock block(context, block_name);
+    parse_sequence(tokens, context, separator_token, terminal_token, func);
+}
+
+template <std::invocable<TokenStream&, SyntaxAnalyzerContext&> F>
+    requires(!std::same_as<
+             std::invoke_result_t<F, TokenStream&, SyntaxAnalyzerContext&>,
+             void>)
+static std::vector<
+    std::invoke_result_t<F, TokenStream&, SyntaxAnalyzerContext&>>
+parse_sequence(
+    TokenStream& tokens,
+    SyntaxAnalyzerContext& context,
+    TokenType separator_token,
+    TokenType terminal_token,
+    const F& func)
+{
+    std::vector<std::invoke_result_t<F, TokenStream&, SyntaxAnalyzerContext&>>
+        v;
+
+    parse_sequence(
+        tokens,
+        context,
+        separator_token,
+        terminal_token,
+        [&](TokenStream& t, SyntaxAnalyzerContext& c) {
+            v.emplace_back(func(t, c));
+        });
+
+    return v;
+}
+
+template <std::invocable<TokenStream&, SyntaxAnalyzerContext&> F>
+    requires(!std::same_as<
+             std::invoke_result_t<F, TokenStream&, SyntaxAnalyzerContext&>,
+             void>)
+static std::vector<
+    std::invoke_result_t<F, TokenStream&, SyntaxAnalyzerContext&>>
+parse_sequence_in_block(
+    std::string_view block_name,
+    TokenStream& tokens,
+    SyntaxAnalyzerContext& context,
+    TokenType separator_token,
+    TokenType terminal_token,
+    const F& func)
+{
+    utils::TraceBlock block(context, block_name);
+    return parse_sequence(
+        tokens,
+        context,
+        separator_token,
+        terminal_token,
+        func);
+}
 
 static void parse_argument(
     TokenStream& tokens,
@@ -84,55 +206,39 @@ static void parse_argument(
     }
 }
 
+static std::pair<std::string, ASTNodePtr>
+parse_let_definition(TokenStream& tokens, SyntaxAnalyzerContext& context)
+{
+    std::pair<std::string, ASTNodePtr> p;
+
+    p.second =
+        parse_node_in_block("Parsing variable definition", tokens, context);
+
+    tokens.pop(context, TokenType::AS);
+
+    p.first = tokens.pop(context, TokenType::IDENTIFIER).content;
+
+    return p;
+}
+
 static ASTNodePtr parse_let(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
     utils::TraceBlock block(context, "Parsing Let");
     tokens.pop(context, TokenType::LET);
+    std::vector<std::pair<std::string, ASTNodePtr>> variable_definitions =
+        parse_sequence_in_block(
+            "Parsing let definitions",
+            tokens,
+            context,
+            TokenType::COMMA,
+            TokenType::IN,
+            parse_let_definition);
+    tokens.pop(context, TokenType::IN);
 
-    std::vector<std::pair<std::string, ASTNodePtr>> variable_definitions;
-
-    for (;;) {
-        auto& [variable_name, variable_definition] =
-            variable_definitions.emplace_back();
-
-        {
-            utils::TraceBlock nblock(context, "Parsing variable definition");
-            variable_definition = parse_node(tokens, context);
-        }
-        {
-            utils::TraceBlock nblock(
-                context,
-                "Parsing 'as' after variable definition.");
-            tokens.pop(context, TokenType::AS);
-        }
-        {
-            utils::TraceBlock nblock(context, "Parsing variable name");
-            variable_name = tokens.pop(context, TokenType::IDENTIFIER).content;
-        }
-
-        {
-            utils::TraceBlock nblock(
-                context,
-                "Parsing comma or 'in' after variable definition.");
-
-            if (const auto next = tokens.pop(context);
-                next.type == TokenType::COMMA) {
-                continue;
-            } else if (next.type == TokenType::IN) {
-                break;
-            } else {
-                context.error(
-                    "Got token {}. Expected either ',' or 'in'.",
-                    next);
-            }
-        }
-    }
-
-    ASTNodePtr nested_value;
-    {
-        utils::TraceBlock nblock(context, "Parsing nested expression of let");
-        nested_value = parse_node(tokens, context);
-    }
+    ASTNodePtr nested_value = parse_node_in_block(
+        "Parsing nested expression of let",
+        tokens,
+        context);
 
     return std::make_unique<LetNode>(
         move(variable_definitions),
@@ -142,6 +248,8 @@ static ASTNodePtr parse_let(TokenStream& tokens, SyntaxAnalyzerContext& context)
 static std::unique_ptr<TypeNode>
 parse_type(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
+    utils::TraceBlock nblock(context, "Parsing type");
+
     switch (Token t = tokens.pop(context); t.type) {
     case TokenType::TYPE_BOOL:
     case TokenType::TYPE_INTEGER:
@@ -150,9 +258,21 @@ parse_type(TokenStream& tokens, SyntaxAnalyzerContext& context)
     case TokenType::IDENTIFIER: return std::make_unique<TypeLiteralNode>(t);
     default:
         throw utils::CriticalError(
-            "Expected type, but got hot token of type '{}'.",
+            "Expected type, but got token of type '{}'.",
             token_type_name(t.type));
     }
+}
+
+static TypedParameter
+parse_typed_parameter(TokenStream& tokens, SyntaxAnalyzerContext& context)
+{
+    auto var_name = tokens.pop(context, TokenType::IDENTIFIER).content;
+
+    tokens.pop(context, TokenType::COLON);
+
+    auto type_node = parse_type(tokens, context);
+
+    return {std::move(var_name), std::move(type_node)};
 }
 
 static ASTNodePtr
@@ -161,103 +281,20 @@ parse_lambda(TokenStream& tokens, SyntaxAnalyzerContext& context)
     utils::TraceBlock block(context, "Parsing Lambda");
     tokens.pop(context, TokenType::LAMBDA);
     tokens.pop(context, TokenType::OPENING_PARENTHESIS);
-
-    std::vector<TypedParameter> params;
-
-    if (auto next = tokens.peek(context);
-        next.type != TokenType::CLOSING_PARENTHESIS) {
-        {
-            auto var_name = [&] {
-                utils::TraceBlock nblock(context, "Parsing argument name");
-                return tokens.pop(context, TokenType::IDENTIFIER).content;
-            }();
-
-            tokens.pop(context, TokenType::COLON);
-
-            auto type_node = [&] {
-                utils::TraceBlock nblock(context, "Parsing type");
-                return parse_type(tokens, context);
-            }();
-
-            params.emplace_back(std::move(var_name), std::move(type_node));
-        }
-
-        for (next = tokens.pop(context);
-             next.type != TokenType::CLOSING_PARENTHESIS;
-             next = tokens.pop(context)) {
-            if (next.type != TokenType::COMMA) {
-                context.error(
-                    std::format("Expected ')' or ','! Got: {}", next.content));
-            }
-
-            auto var_name = [&] {
-                utils::TraceBlock nblock(context, "Parsing argument name");
-                return tokens.pop(context, TokenType::IDENTIFIER).content;
-            }();
-
-            tokens.pop(context, TokenType::COLON);
-
-            auto type_node = [&] {
-                utils::TraceBlock nblock(context, "Parsing type");
-                return parse_type(tokens, context);
-            }();
-
-            params.emplace_back(std::move(var_name), std::move(type_node));
-        }
-    } else {
-        tokens.pop(context);
-    }
-
+    std::vector<TypedParameter> params = parse_sequence_in_block(
+        "Parsing lambda parameter list",
+        tokens,
+        context,
+        TokenType::COMMA,
+        TokenType::CLOSING_PARENTHESIS,
+        parse_typed_parameter);
+    tokens.pop(context, TokenType::CLOSING_PARENTHESIS);
     tokens.pop(context, TokenType::COLON);
 
-    ASTNodePtr nested_value = [&] {
-        utils::TraceBlock nblock(
-            context,
-            "Parsing nested expression of lambda");
-        return parse_node(tokens, context);
-    }();
+    ASTNodePtr nested_value =
+        parse_node_in_block("Parsing lambda body", tokens, context);
 
     return std::make_unique<LambdaNode>(move(params), move(nested_value));
-}
-
-template <std::invocable<TokenStream&, SyntaxAnalyzerContext&> F>
-static void parse_sequence(
-    TokenStream& tokens,
-    SyntaxAnalyzerContext& context,
-    TokenType terminal_token,
-    const F& func)
-{
-    utils::TraceBlock block(context, "Parsing sequence");
-
-    for (int i = 1; tokens.peek(context).type != terminal_token; ++i) {
-        {
-            utils::TraceBlock nblock(context, "Parsing {}. argument", i);
-            func(tokens, context);
-        }
-        {
-            utils::TraceBlock nblock(
-                context,
-                "Parsing token after {}. argument",
-                i);
-
-            if (const TokenType next_type = tokens.peek(context).type;
-                next_type == terminal_token) {
-                return;
-            } else if (next_type == TokenType::COMMA) {
-                tokens.pop(context);
-                if (tokens.peek(context).type == terminal_token) {
-                    context.error("Trailing commas are forbidden.");
-                }
-            } else {
-                context.error(
-                    "Read unexpected token type '{}'. "
-                    "Expected token types '{}' or '{}'",
-                    next_type,
-                    terminal_token,
-                    TokenType::COMMA);
-            }
-        }
-    }
 }
 
 static ASTNodePtr parse_function(
@@ -280,6 +317,7 @@ static ASTNodePtr parse_function(
         parse_sequence(
             tokens,
             context,
+            TokenType::COMMA,
             TokenType::CLOSING_PARENTHESIS,
             callback);
     }
@@ -344,14 +382,15 @@ parse_list(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
     utils::TraceBlock block(context, "Parsing List");
     tokens.pop(context, TokenType::OPENING_BRACKET);
-    vector<ASTNodePtr> elements;
-    {
+    vector<ASTNodePtr> elements = [&] {
         utils::TraceBlock nblock(context, "Parsing list arguments");
-        auto callback = [&](TokenStream& t, SyntaxAnalyzerContext& c) {
-            elements.push_back(parse_node(t, c));
-        };
-        parse_sequence(tokens, context, TokenType::CLOSING_BRACKET, callback);
-    }
+        return parse_sequence(
+            tokens,
+            context,
+            TokenType::COMMA,
+            TokenType::CLOSING_BRACKET,
+            parse_node);
+    }();
     tokens.pop(context, TokenType::CLOSING_BRACKET);
     return std::make_unique<ListNode>(move(elements));
 }
@@ -388,6 +427,15 @@ parse_node(TokenStream& tokens, SyntaxAnalyzerContext& context)
                 TokenType::DURATION,
                 TokenType::IDENTIFIER});
     }
+}
+
+static ASTNodePtr parse_node_in_block(
+    std::string_view block_name,
+    TokenStream& tokens,
+    SyntaxAnalyzerContext& context)
+{
+    utils::TraceBlock block(context, block_name);
+    return parse_node(tokens, context);
 }
 
 ASTNodePtr parse(TokenStream& tokens)
