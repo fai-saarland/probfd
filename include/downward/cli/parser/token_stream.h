@@ -70,7 +70,7 @@ extern std::ostream& operator<<(std::ostream& out, const Token& token);
 namespace std {
 template <>
 struct hash<downward::cli::parser::TokenType> {
-    size_t operator()(const downward::cli::parser::TokenType& t) const
+    size_t operator()(const downward::cli::parser::TokenType& t) const noexcept
     {
         return size_t(t);
     }
