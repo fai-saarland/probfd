@@ -57,7 +57,7 @@ public:
 
 template <typename F, typename... Args>
 static auto parse_block(
-    std::string_view block_name,
+    const std::string& block_name,
     const F& parsing_function,
     TokenStream& tokens,
     SyntaxAnalyzerContext& context,
@@ -70,7 +70,7 @@ static auto parse_block(
 
 static ASTNodePtr parse_node(TokenStream& tokens, SyntaxAnalyzerContext&);
 static ASTNodePtr parse_node_in_block(
-    std::string_view block_name,
+    const std::string& block_name,
     TokenStream& tokens,
     SyntaxAnalyzerContext&);
 
@@ -117,7 +117,7 @@ static void parse_sequence(
 
 template <std::invocable<TokenStream&, SyntaxAnalyzerContext&> F>
 static void parse_sequence_in_block(
-    std::string_view block_name,
+    const std::string& block_name,
     TokenStream& tokens,
     SyntaxAnalyzerContext& context,
     TokenType separator_token,
@@ -163,7 +163,7 @@ template <std::invocable<TokenStream&, SyntaxAnalyzerContext&> F>
 static std::vector<
     std::invoke_result_t<F, TokenStream&, SyntaxAnalyzerContext&>>
 parse_sequence_in_block(
-    std::string_view block_name,
+    const std::string& block_name,
     TokenStream& tokens,
     SyntaxAnalyzerContext& context,
     TokenType separator_token,
@@ -272,7 +272,7 @@ parse_typed_parameter(TokenStream& tokens, SyntaxAnalyzerContext& context)
 
     auto type_node = parse_type(tokens, context);
 
-    return {std::move(var_name), std::move(type_node)};
+    return TypedParameter(std::move(var_name), std::move(type_node));
 }
 
 static ASTNodePtr
@@ -310,11 +310,11 @@ static ASTNodePtr parse_function(
     vector<ASTNodePtr> positional_arguments;
     unordered_map<string, ASTNodePtr> keyword_arguments;
     {
-        utils::TraceBlock nblock(context, "Parsing function arguments");
         auto callback = [&](TokenStream& t, SyntaxAnalyzerContext& c) {
             parse_argument(t, positional_arguments, keyword_arguments, c);
         };
-        parse_sequence(
+        parse_sequence_in_block(
+            "Parsing function arguments",
             tokens,
             context,
             TokenType::COMMA,
@@ -382,17 +382,26 @@ parse_list(TokenStream& tokens, SyntaxAnalyzerContext& context)
 {
     utils::TraceBlock block(context, "Parsing List");
     tokens.pop(context, TokenType::OPENING_BRACKET);
-    vector<ASTNodePtr> elements = [&] {
-        utils::TraceBlock nblock(context, "Parsing list arguments");
-        return parse_sequence(
-            tokens,
-            context,
-            TokenType::COMMA,
-            TokenType::CLOSING_BRACKET,
-            parse_node);
-    }();
+    vector<ASTNodePtr> elements = parse_sequence_in_block(
+        "Parsing list arguments",
+        tokens,
+        context,
+        TokenType::COMMA,
+        TokenType::CLOSING_BRACKET,
+        parse_node);
     tokens.pop(context, TokenType::CLOSING_BRACKET);
     return std::make_unique<ListNode>(move(elements));
+}
+
+static ASTNodePtr parse_parenthesized_expression(
+    TokenStream& tokens,
+    SyntaxAnalyzerContext& context)
+{
+    utils::TraceBlock block(context, "Parsing parenthesized expression");
+    tokens.pop(context, TokenType::OPENING_PARENTHESIS);
+    auto exp = parse_node(tokens, context);
+    tokens.pop(context, TokenType::CLOSING_PARENTHESIS);
+    return exp;
 }
 
 static ASTNodePtr
@@ -401,6 +410,8 @@ parse_node(TokenStream& tokens, SyntaxAnalyzerContext& context)
     utils::TraceBlock block(context, "Identify node type");
 
     switch (const Token token = tokens.peek(context); token.type) {
+    case TokenType::OPENING_PARENTHESIS:
+        return parse_parenthesized_expression(tokens, context);
     case TokenType::OPENING_BRACKET: return parse_list(tokens, context);
     case TokenType::LET: return parse_let(tokens, context);
     case TokenType::LAMBDA: return parse_lambda(tokens, context);
@@ -417,6 +428,7 @@ parse_node(TokenStream& tokens, SyntaxAnalyzerContext& context)
             "Expected any of the following token types: {}",
             token,
             std::array{
+                TokenType::OPENING_PARENTHESIS,
                 TokenType::OPENING_BRACKET,
                 TokenType::LET,
                 TokenType::LAMBDA,
@@ -430,7 +442,7 @@ parse_node(TokenStream& tokens, SyntaxAnalyzerContext& context)
 }
 
 static ASTNodePtr parse_node_in_block(
-    std::string_view block_name,
+    const std::string& block_name,
     TokenStream& tokens,
     SyntaxAnalyzerContext& context)
 {
