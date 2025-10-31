@@ -44,24 +44,24 @@ public:
                 "71-79",
                 "2022"));
 
-        add_option<AcyclicityType>(
+        add_optional_argument_with_default<AcyclicityType>(
             "acyclicity_type",
+            "vertex_elimination",
             "The most relaxed version of this constraint only enforces that "
             "achievers of facts are picked in such a way that all goal facts "
             "have an achiever, and the preconditions all achievers are either "
             "true in the current state or have achievers themselves. In this "
             "version, cycles in the achiever relation can occur. Such cycles "
             "can be excluded with additional auxilliary varibles and "
-            "constraints.",
-            "vertex_elimination");
-        add_option<bool>(
+            "constraints.");
+        add_optional_argument_with_default<bool>(
             "use_integer_vars",
+            "false",
             "restrict auxiliary variables to integer values. These variables "
             "encode whether facts are reached, which operator first achieves "
             "which fact, and (depending on the acyclicity_type) in which order "
             "the operators are used. Restricting them to integers generally "
-            "improves the heuristic value at the cost of increased runtime.",
-            "false");
+            "improves the heuristic value at the cost of increased runtime.");
 
         document_note(
             "Example",

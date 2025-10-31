@@ -30,10 +30,10 @@ get_landmark_factory_arguments_from_options(const Options& opts)
 
 void add_use_orders_option_to_feature(Feature& feature)
 {
-    feature.add_option<bool>(
+    feature.add_optional_argument_with_default<bool>(
         "use_orders",
-        "use orders between landmarks",
-        "true");
+        "true",
+        "use orders between landmarks");
 }
 
 bool get_use_orders_arguments_from_options(const Options& opts)

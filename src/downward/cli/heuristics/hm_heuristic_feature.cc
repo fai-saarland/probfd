@@ -69,7 +69,7 @@ public:
     {
         document_title("h^m heuristic");
 
-        add_option<int>("m", "subset size", "2");
+        add_optional_argument_with_default<int>("m", "2", "subset size");
         add_heuristic_options_to_feature(*this, "hm");
 
         document_language_support("action costs", "supported");

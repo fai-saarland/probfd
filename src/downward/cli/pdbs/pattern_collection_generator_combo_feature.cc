@@ -23,10 +23,10 @@ public:
     PatternCollectionGeneratorComboFeature()
         : SharedTypedFeature("combo")
     {
-        add_option<int>(
+        add_optional_argument_with_default<int>(
             "max_states",
-            "maximum abstraction size for combo strategy",
-            "1000000");
+            "1000000",
+            "maximum abstraction size for combo strategy");
         add_generator_options_to_feature(*this);
     }
 

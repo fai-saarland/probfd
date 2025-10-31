@@ -20,11 +20,10 @@ public:
     PatternGeneratorManualFeature()
         : SharedTypedFeature("manual_pattern")
     {
-        add_list_option<int>(
+        add_required_list_argument<int>(
             "pattern",
             "list of variable numbers of the planning task that should be used "
-            "as "
-            "pattern.");
+            "as the pattern.");
         add_generator_options_to_feature(*this);
     }
 

@@ -40,24 +40,48 @@ public:
     construct(const Options& opts, const downward::utils::Context& context)
         const = 0;
 
-    /* Add option with default value. Use def_val=ArgumentInfo::NO_DEFAULT for
-       optional parameters without default values. */
     template <typename T>
-    void add_option(
-        const std::string& key,
-        const std::string& help = "",
-        const std::string& default_value = "");
+    void
+    add_optional_argument(const std::string& key, const std::string& help = "");
 
     template <typename T>
-    void add_list_option(
+    void add_optional_argument_with_default(
         const std::string& key,
-        const std::string& help = "",
-        const std::string& default_value = "");
+        const std::string& default_value,
+        const std::string& help = "");
 
-    void add_duration(
+    template <typename T>
+    void
+    add_required_argument(const std::string& key, const std::string& help = "");
+
+    template <typename T>
+    void add_optional_list_argument(
         const std::string& key,
-        const std::string& help = "",
-        const std::string& default_value = "");
+        const std::string& help = "");
+
+    template <typename T>
+    void add_optional_list_argument_with_default(
+        const std::string& key,
+        const std::string& default_value,
+        const std::string& help = "");
+
+    template <typename T>
+    void add_required_list_argument(
+        const std::string& key,
+        const std::string& help = "");
+
+    void add_optional_duration_argument(
+        const std::string& key,
+        const std::string& help = "");
+
+    void add_optional_duration_argument_with_default(
+        const std::string& key,
+        const std::string& default_value,
+        const std::string& help = "");
+
+    void add_required_duration_argument(
+        const std::string& key,
+        const std::string& help = "");
 
     void document_subcategory(const std::string& subcategory);
     void document_title(const std::string& title);
@@ -244,26 +268,71 @@ public:
 };
 
 template <typename T>
-void Feature::add_option(
+void Feature::add_optional_argument(
     const std::string& key,
-    const std::string& help,
-    const std::string& default_value)
+    const std::string& help)
 {
     arguments.emplace_back(
-        key,
-        TypeRegistry::instance()->get_type<T>(),
-        default_value);
+        ArgumentInfo::make_optional(
+            key,
+            TypeRegistry::instance()->get_type<T>()));
     argument_docs.emplace_back(help);
 }
 
 template <typename T>
-void Feature::add_list_option(
+void Feature::add_optional_argument_with_default(
     const std::string& key,
-    const std::string& help,
-    const std::string& default_value)
+    const std::string& default_value,
+    const std::string& help)
 {
-    add_option<std::vector<T>>(key, help, default_value);
+    arguments.emplace_back(
+        ArgumentInfo::make_optional(
+            key,
+            TypeRegistry::instance()->get_type<T>(),
+            default_value));
+    argument_docs.emplace_back(help);
 }
+
+template <typename T>
+void Feature::add_required_argument(
+    const std::string& key,
+    const std::string& help)
+{
+    arguments.emplace_back(
+        ArgumentInfo::make_required(
+            key,
+            TypeRegistry::instance()->get_type<T>()));
+    argument_docs.emplace_back(help);
+}
+
+template <typename T>
+void Feature::add_optional_list_argument(
+    const std::string& key,
+    const std::string& help)
+{
+    add_optional_argument<std::vector<T>>(key, help);
+}
+
+template <typename T>
+void Feature::add_optional_list_argument_with_default(
+    const std::string& key,
+    const std::string& default_value,
+    const std::string& help)
+{
+    add_optional_argument_with_default<std::vector<T>>(
+        key,
+        default_value,
+        help);
+}
+
+template <typename T>
+void Feature::add_required_list_argument(
+    const std::string& key,
+    const std::string& help)
+{
+    add_required_argument<std::vector<T>>(key, help);
+}
+
 } // namespace downward::cli::plugins
 
 #endif

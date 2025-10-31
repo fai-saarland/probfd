@@ -27,7 +27,7 @@ public:
             "keeping the best "
             "ones (with minimal scores) until only one is left.");
 
-        add_list_option<shared_ptr<MergeScoringFunction>>(
+        add_required_list_argument<shared_ptr<MergeScoringFunction>>(
             "scoring_functions",
             "The list of scoring functions used to compute scores for "
             "candidates.");

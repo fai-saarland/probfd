@@ -14,10 +14,10 @@ void add_evaluator_options_to_feature(
     plugins::Feature& feature,
     const string& description)
 {
-    feature.add_option<string>(
+    feature.add_optional_argument_with_default<string>(
         "description",
-        "description used to identify evaluator in logs",
-        "\"" + description + "\"");
+        "\"" + description + "\"",
+        "description used to identify evaluator in logs");
     utils::add_log_options_to_feature(feature);
 }
 

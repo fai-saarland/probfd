@@ -8,12 +8,12 @@ namespace probfd::cli::pdbs {
 
 void add_cegar_wildcard_option_to_feature(Feature& feature)
 {
-    feature.add_option<bool>(
+    feature.add_optional_argument_with_default<bool>(
         "use_wildcard_policies",
+        "false",
         "if true, compute wildcard plans which are sequences of sets of "
         "operators that induce the same transition; otherwise compute regular "
-        "plans which are sequences of single operators",
-        "false");
+        "plans which are sequences of single operators");
 }
 
 CEGARArgs get_cegar_wildcard_arguments_from_options(const Options& opts)

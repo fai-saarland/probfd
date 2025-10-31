@@ -25,15 +25,16 @@ public:
     PatternCollectionGeneratorMultipleCegarFeature()
         : SharedTypedFeature("ppdbs_multiple_cegar")
     {
-        add_option<probfd::value_t>(
+        add_optional_argument_with_default<probfd::value_t>(
             "convergence_epsilon",
-            "The tolerance for convergence checks.",
-            "10e-8");
+            "10e-8",
+            "The tolerance for convergence checks.");
 
-        add_option<std::shared_ptr<cegar::FlawFindingStrategy>>(
+        add_optional_argument_with_default<
+            std::shared_ptr<cegar::FlawFindingStrategy>>(
             "flaw_strategy",
-            "strategy used to find flaws in a policy",
-            "pucs_flaw_finder()");
+            "pucs_flaw_finder()",
+            "strategy used to find flaws in a policy");
         add_cegar_wildcard_option_to_feature(*this);
         add_multiple_options_to_feature(*this);
     }
@@ -44,8 +45,7 @@ public:
         return make_shared_from_arg_tuples<
             PatternCollectionGeneratorMultipleCegar>(
             opts.get<probfd::value_t>("convergence_epsilon"),
-            opts.get_shared<cegar::FlawFindingStrategy>(
-                "flaw_strategy"),
+            opts.get_shared<cegar::FlawFindingStrategy>("flaw_strategy"),
             get_cegar_wildcard_arguments_from_options(opts),
             get_multiple_arguments_from_options(opts));
     }

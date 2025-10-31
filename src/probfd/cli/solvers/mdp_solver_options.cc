@@ -18,49 +18,48 @@ namespace probfd::cli::solvers {
 
 void add_base_solver_options_to_feature(Feature& feature)
 {
-    feature.add_option<std::shared_ptr<StatisticalMDPAlgorithmFactory>>(
+    feature.add_required_argument<std::shared_ptr<StatisticalMDPAlgorithmFactory>>(
         "algorithm",
-        "The algorithm to be used by the search.",
-        ArgumentInfo::NO_DEFAULT);
+        "The algorithm to be used by the search.");
     add_base_solver_options_except_algorithm_to_feature(feature);
 }
 
 void add_base_solver_options_except_algorithm_to_feature(Feature& feature)
 {
-    feature.add_option<std::shared_ptr<TaskStateSpaceFactory>>(
+    feature.add_optional_argument_with_default<std::shared_ptr<TaskStateSpaceFactory>>(
         "state_space",
-        "The factory implementation for the task state space.",
-        "default_state_space()");
-    feature.add_option<std::shared_ptr<TaskHeuristicFactory>>(
+        "default_state_space()",
+        "The factory implementation for the task state space.");
+    feature.add_optional_argument_with_default<std::shared_ptr<TaskHeuristicFactory>>(
         "heuristic",
-        "The heuristic to be used by the search.",
-        "blind_heuristic()");
-    feature.add_option<value_t>(
+        "blind_heuristic()",
+        "The heuristic to be used by the search.");
+    feature.add_optional_argument_with_default<value_t>(
         "report_epsilon",
+        "1e-4",
         "Algorithms will report the current initial state objective value to "
-        "stdout if it changed by more than this threshold.",
-        "1e-4");
-    feature.add_option<bool>(
+        "stdout if it changed by more than this threshold.");
+    feature.add_optional_argument_with_default<bool>(
         "report_enabled",
-        "Whether the algorithm should report its progress.",
-        "true");
-    feature.add_option<std::string>(
+        "true",
+        "Whether the algorithm should report its progress.");
+    feature.add_optional_argument_with_default<std::string>(
         "policy_file",
+        "\"sas_policy\"",
         "Name of the file in which the policy returned by the algorithm is "
-        "written.",
-        "\"sas_policy\"");
-    feature.add_option<bool>(
+        "written.");
+    feature.add_optional_argument_with_default<bool>(
         "discard_policy",
-        "Whether to skip writing the policy to disk.",
-        "false");
-    feature.add_option<bool>(
+        "false",
+        "Whether to skip writing the policy to disk.");
+    feature.add_optional_argument_with_default<bool>(
         "print_fact_names",
+        "true",
         "Determines the way in which state facts are written to the policy "
         "output file. If true, they are printed using the fact names of the "
         "probabilistic SAS input file. Otherwise, each fact is printed as v -> "
         "d, where v is the index of the variable of the fact and d is the "
-        "index of the value of the fact.",
-        "true");
+        "index of the value of the fact.");
     add_log_options_to_feature(feature);
 }
 

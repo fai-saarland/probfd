@@ -6,7 +6,8 @@
 using namespace std;
 
 namespace downward::cli::plugins {
-const string ArgumentInfo::NO_DEFAULT = "<none>";
+
+static constexpr auto NO_DEFAULT = "<none>";
 
 ArgumentInfo::ArgumentInfo(
     const string& key,
@@ -16,6 +17,26 @@ ArgumentInfo::ArgumentInfo(
     , type(type)
     , default_value(default_value)
 {
+}
+
+ArgumentInfo ArgumentInfo::make_optional(const std::string& key, const Type& type)
+{
+    return ArgumentInfo(key, type, NO_DEFAULT);
+}
+
+ArgumentInfo ArgumentInfo::make_optional(
+    const std::string& key,
+    const Type& type,
+    const std::string& default_value)
+{
+    return ArgumentInfo(key, type, default_value);
+}
+
+ArgumentInfo ArgumentInfo::make_required(
+    const std::string& key,
+    const Type& type)
+{
+    return ArgumentInfo(key, type, "");
 }
 
 bool ArgumentInfo::is_optional() const

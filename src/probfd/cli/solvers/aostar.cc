@@ -66,9 +66,8 @@ public:
         add_base_solver_options_except_algorithm_to_feature(*this);
         add_mdp_hs_options_to_feature<Bisimulation, false>(*this);
 
-        this->template add_option<std::shared_ptr<Sampler>>(
+        this->template add_required_argument<std::shared_ptr<Sampler>>(
             "successor_sampler",
-            "",
             add_mdp_type_to_option<Bisimulation, false>(
                 "arbitrary_successor_sampler()"));
     }

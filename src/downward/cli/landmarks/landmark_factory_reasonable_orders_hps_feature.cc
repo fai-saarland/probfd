@@ -53,8 +53,9 @@ public:
             "effect on the performance of LAMA (Büchner et al., 2023) and "
             "decided to remove them in issue1089.");
 
-        add_option<shared_ptr<LandmarkFactory>>("lm_factory");
-        add_option<std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
+        add_required_argument<shared_ptr<LandmarkFactory>>("lm_factory");
+        add_required_argument<
+            std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
             "mutexes",
             "factory for mutexes");
         add_landmark_factory_options_to_feature(*this);
@@ -70,8 +71,7 @@ public:
     {
         return make_shared_from_arg_tuples<LandmarkFactoryReasonableOrdersHPS>(
             opts.get<shared_ptr<LandmarkFactory>>("lm_factory"),
-            opts.get_shared<TaskDependentFactory<MutexInformation>>(
-                "mutexes"),
+            opts.get_shared<TaskDependentFactory<MutexInformation>>("mutexes"),
             get_landmark_factory_arguments_from_options(opts));
     }
 };

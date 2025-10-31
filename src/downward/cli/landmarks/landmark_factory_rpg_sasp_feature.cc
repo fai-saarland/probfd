@@ -20,7 +20,8 @@ using downward::cli::landmarks::add_use_orders_option_to_feature;
 using downward::cli::landmarks::get_use_orders_arguments_from_options;
 
 namespace {
-class LandmarkFactoryRpgSaspFeature : public SharedTypedFeature<LandmarkFactory> {
+class LandmarkFactoryRpgSaspFeature
+    : public SharedTypedFeature<LandmarkFactory> {
 public:
     LandmarkFactoryRpgSaspFeature()
         : SharedTypedFeature("lm_rhw")
@@ -30,10 +31,10 @@ public:
             "The landmark generation method introduced by "
             "Richter, Helmert and Westphal (AAAI 2008).");
 
-        add_option<bool>(
+        add_optional_argument_with_default<bool>(
             "disjunctive_landmarks",
-            "keep disjunctive landmarks",
-            "true");
+            "true",
+            "keep disjunctive landmarks");
         add_use_orders_option_to_feature(*this);
         add_landmark_factory_options_to_feature(*this);
 

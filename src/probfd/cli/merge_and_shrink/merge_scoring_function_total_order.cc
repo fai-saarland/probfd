@@ -53,23 +53,23 @@ public:
             "strategies "
             "reverse level/level (independently of the other options).");
 
-        add_option<AtomicTSOrder>(
+        add_optional_argument_with_default<AtomicTSOrder>(
             "atomic_ts_order",
+            "reverse_level",
             "The order in which atomic transition systems are considered when "
-            "considering pairs of potential merges.",
-            "reverse_level");
+            "considering pairs of potential merges.");
 
-        add_option<ProductTSOrder>(
+        add_optional_argument_with_default<ProductTSOrder>(
             "product_ts_order",
+            "new_to_old",
             "The order in which product transition systems are considered when "
-            "considering pairs of potential merges.",
-            "new_to_old");
+            "considering pairs of potential merges.");
 
-        add_option<bool>(
+        add_optional_argument_with_default<bool>(
             "atomic_before_product",
+            "false",
             "Consider atomic transition systems before composite ones iff "
-            "true.",
-            "false");
+            "true.");
 
         downward::cli::utils::add_rng_options_to_feature(*this);
     }

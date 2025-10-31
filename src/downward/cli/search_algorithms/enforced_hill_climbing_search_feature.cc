@@ -85,17 +85,18 @@ public:
         document_title("Lazy enforced hill-climbing");
         document_synopsis("");
 
-        add_option<shared_ptr<TaskDependentFactory<Evaluator>>>(
+        add_optional_argument<shared_ptr<TaskDependentFactory<Evaluator>>>(
             "h",
             "heuristic");
-        add_option<PreferredUsage>(
+        add_optional_argument_with_default<PreferredUsage>(
             "preferred_usage",
-            "preferred operator usage",
-            "prune_by_preferred");
-        add_list_option<shared_ptr<TaskDependentFactory<Evaluator>>>(
+            "prune_by_preferred",
+            "preferred operator usage");
+        add_optional_list_argument_with_default<
+            shared_ptr<TaskDependentFactory<Evaluator>>>(
             "preferred",
-            "use preferred operators of these evaluators",
-            "[]");
+            "[]",
+            "use preferred operators of these evaluators");
         add_search_algorithm_options_to_feature(*this, "ehc");
     }
 

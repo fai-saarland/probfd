@@ -31,14 +31,13 @@ public:
         this->document_title("Tie-breaking state open list");
         this->document_synopsis("");
 
-        this->template add_list_option<shared_ptr<downward::Evaluator>>(
-            "evals",
-            "evaluators");
-        this->template add_option<bool>(
+        this->template add_required_list_argument<
+            shared_ptr<downward::Evaluator>>("evals", "evaluators");
+        this->template add_optional_argument_with_default<bool>(
             "unsafe_pruning",
+            "true",
             "allow unsafe pruning when the main evaluator regards a state a "
-            "dead end",
-            "true");
+            "dead end");
         add_open_list_options_to_feature(*this);
     }
 
@@ -49,14 +48,13 @@ public:
         this->document_title("Tie-breaking edge open list");
         this->document_synopsis("");
 
-        this->template add_list_option<shared_ptr<downward::Evaluator>>(
-            "evals",
-            "evaluators");
-        this->template add_option<bool>(
+        this->template add_required_list_argument<
+            shared_ptr<downward::Evaluator>>("evals", "evaluators");
+        this->template add_optional_argument_with_default<bool>(
             "unsafe_pruning",
+            "true",
             "allow unsafe pruning when the main evaluator regards a state a "
-            "dead end",
-            "true");
+            "dead end");
         add_open_list_options_to_feature(*this);
     }
 

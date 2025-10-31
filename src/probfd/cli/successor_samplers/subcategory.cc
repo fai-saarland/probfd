@@ -165,7 +165,9 @@ public:
                   "value_gap_successor_sampler"))
     {
         add_rng_options_to_feature(*this);
-        this->template add_option<bool>("prefer_large_gaps", "", "true");
+        this->template add_optional_argument_with_default<bool>(
+            "prefer_large_gaps",
+            "true");
     }
 
     std::shared_ptr<SuccessorSampler<Fret>>

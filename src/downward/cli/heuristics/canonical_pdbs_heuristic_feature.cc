@@ -83,10 +83,10 @@ public:
             "S in A is the sum of the heuristic values for all patterns in S "
             "for a given state.");
 
-        add_option<shared_ptr<PatternCollectionGenerator>>(
+        add_optional_argument_with_default<shared_ptr<PatternCollectionGenerator>>(
             "patterns",
-            "pattern generation method",
-            "systematic(1)");
+            "systematic(1)",
+            "pattern generation method");
         add_canonical_pdbs_options_to_feature(*this);
         add_heuristic_options_to_feature(*this, "cpdbs");
 

@@ -139,31 +139,31 @@ public:
                 "535-577",
                 "2018"));
 
-        add_list_option<shared_ptr<SubtaskGenerator>>(
+        add_optional_list_argument_with_default<shared_ptr<SubtaskGenerator>>(
             "subtasks",
-            "subtask generators",
-            "[landmarks(),goals()]");
-        add_option<int>(
+            "[landmarks(),goals()]",
+            "subtask generators");
+        add_optional_argument_with_default<int>(
             "max_states",
-            "maximum sum of abstract states over all abstractions",
-            "infinity");
-        add_option<int>(
+            "infinity",
+            "maximum sum of abstract states over all abstractions");
+        add_optional_argument_with_default<int>(
             "max_transitions",
+            "1M",
             "maximum sum of real transitions (excluding self-loops) over "
-            " all abstractions",
-            "1M");
-        add_duration(
+            " all abstractions");
+        add_optional_duration_argument_with_default(
             "max_time",
-            "maximum time in seconds for building abstractions",
-            "infinite");
-        add_option<PickSplit>(
+            "infinite",
+            "maximum time in seconds for building abstractions");
+        add_optional_argument_with_default<PickSplit>(
             "pick",
-            "how to choose on which variable to split the flaw state",
-            "max_refined");
-        add_option<bool>(
+            "max_refined",
+            "how to choose on which variable to split the flaw state");
+        add_optional_argument_with_default<bool>(
             "use_general_costs",
-            "allow negative costs in cost partitioning",
-            "true");
+            "true",
+            "allow negative costs in cost partitioning");
         add_rng_options_to_feature(*this);
         add_heuristic_options_to_feature(*this, "cegar");
 

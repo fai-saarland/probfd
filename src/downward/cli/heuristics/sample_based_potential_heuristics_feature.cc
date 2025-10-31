@@ -128,14 +128,14 @@ public:
             "Maximum over multiple potential heuristics optimized for "
             "samples. " +
             get_admissible_potentials_reference());
-        add_option<int>(
+        add_optional_argument_with_default<int>(
             "num_heuristics",
-            "number of potential heuristics",
-            "1");
-        add_option<int>(
+            "1",
+            "number of potential heuristics");
+        add_optional_argument_with_default<int>(
             "num_samples",
-            "Number of states to sample",
-            "1000");
+            "1000",
+            "Number of states to sample");
         add_admissible_potentials_options_to_feature(
             *this,
             "sample_based_potentials");

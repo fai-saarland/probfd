@@ -42,27 +42,27 @@ public:
             get_rovner_et_al_reference());
 
         // TODO: these options could be move to the base class; see issue1022.
-        add_option<int>(
+        add_optional_argument_with_default<int>(
             "max_pdb_size",
+            "1000000",
             "maximum number of states per pattern database (ignored for the "
             "initial collection consisting of a singleton pattern for each "
             "goal "
-            "variable)",
-            "1000000");
-        add_option<int>(
+            "variable)");
+        add_optional_argument_with_default<int>(
             "max_collection_size",
+            "10000000",
             "maximum number of states in the pattern collection (ignored for "
             "the "
             "initial collection consisting of a singleton pattern for each "
             "goal "
-            "variable)",
-            "10000000");
-        add_option<double>(
+            "variable)");
+        add_optional_argument_with_default<double>(
             "max_time",
+            "infinity",
             "maximum time in seconds for this pattern collection generator "
             "(ignored for computing the initial collection consisting of a "
-            "singleton pattern for each goal variable)",
-            "infinity");
+            "singleton pattern for each goal variable)");
         add_cegar_wildcard_option_to_feature(*this);
         add_rng_options_to_feature(*this);
         add_generator_options_to_feature(*this);

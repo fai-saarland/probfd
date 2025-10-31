@@ -44,12 +44,20 @@ struct ArgumentInfo {
     std::string key;
     const Type& type;
     std::string default_value;
-    static const std::string NO_DEFAULT;
 
+private:
     ArgumentInfo(
         const std::string& key,
         const Type& type,
         const std::string& default_value);
+
+public:
+    static ArgumentInfo make_optional(const std::string& key, const Type& type);
+    static ArgumentInfo make_optional(
+        const std::string& key,
+        const Type& type,
+        const std::string& default_value);
+    static ArgumentInfo make_required(const std::string& key, const Type& type);
 
     bool is_optional() const;
     bool has_default() const;
@@ -319,9 +327,7 @@ struct std::formatter<downward::cli::plugins::ArgumentInfo> {
     {
         auto it = std::format_to(ctx.out(), "{}", info.key);
 
-        if (with_type) {
-            it = std::format_to(it, " : {}", info.type.name());
-        }
+        if (with_type) { it = std::format_to(it, " : {}", info.type.name()); }
 
         if (with_default) {
             it = std::format_to(it, " = {}", info.default_value);

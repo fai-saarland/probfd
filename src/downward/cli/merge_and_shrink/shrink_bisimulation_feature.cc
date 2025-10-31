@@ -38,11 +38,14 @@ public:
                 "AAAI Press",
                 "2011"));
 
-        add_option<bool>("greedy", "use greedy bisimulation", "false");
-        add_option<AtLimit>(
+        add_optional_argument_with_default<bool>(
+            "greedy",
+            "false",
+            "use greedy bisimulation");
+        add_optional_argument_with_default<AtLimit>(
             "at_limit",
-            "what to do when the size limit is hit",
-            "return");
+            "return",
+            "what to do when the size limit is hit");
 
         document_note(
             "shrink_bisimulation(greedy=true)",

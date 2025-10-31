@@ -36,10 +36,10 @@ public:
                 "AAAI Press",
                 "2013"));
 
-        add_option<shared_ptr<PatternCollectionGenerator>>(
+        add_optional_argument_with_default<shared_ptr<PatternCollectionGenerator>>(
             "patterns",
-            "pattern generation method",
-            "systematic(2)");
+            "systematic(2)",
+            "pattern generation method");
     }
 
     virtual shared_ptr<ConstraintGenerator>

@@ -43,8 +43,9 @@ public:
                 "631-677",
                 "2015"));
 
-        add_option<bool>(
+        add_optional_argument_with_default<bool>(
             "use_time_vars",
+            "false",
             "use variables for time steps. With these additional variables the "
             "constraints enforce an order between the selected operators. "
             "Leaving "
@@ -54,10 +55,10 @@ public:
             "increase the size of the constraints which has a strong impact on "
             "runtime. Constraints involving time variables use a big-M "
             "encoding, "
-            "so they are more useful if used with integer variables.",
-            "false");
-        add_option<bool>(
+            "so they are more useful if used with integer variables.");
+        add_optional_argument_with_default<bool>(
             "use_integer_vars",
+            "false",
             "restrict auxiliary variables to integer values. These variables "
             "encode whether operators are used, facts are reached, which "
             "operator "
@@ -65,8 +66,7 @@ public:
             "used. "
             "Restricting them to integers generally improves the heuristic "
             "value "
-            "at the cost of increased runtime.",
-            "false");
+            "at the cost of increased runtime.");
 
         document_note(
             "Example",

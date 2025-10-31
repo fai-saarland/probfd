@@ -85,7 +85,8 @@ public:
     }
 };
 
-class TrapAwareDFHSSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
+class TrapAwareDFHSSolverFeature
+    : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TrapAwareDFHSSolverFeature()
         : SharedTypedFeature("tadfhs")
@@ -94,34 +95,37 @@ public:
         document_synopsis(
             "Supports all MDPs (even non-SSPs) without FRET loop.");
 
-        add_option<std::shared_ptr<QOpenList>>(
+        add_optional_argument_with_default<std::shared_ptr<QOpenList>>(
             "open_list",
+            add_mdp_type_to_option<false, true>("lifo_open_list()"),
             "Ordering in which successors are considered during policy "
-            "exploration.",
-            add_mdp_type_to_option<false, true>("lifo_open_list()"));
+            "exploration.");
 
-        add_option<bool>(
+        add_optional_argument_with_default<bool>(
             "fwup",
-            "Value updates on the way down of exploration.",
-            "true");
-        add_option<BacktrackingUpdateType>(
+            "true",
+            "Value updates on the way down of exploration.");
+        add_optional_argument_with_default<BacktrackingUpdateType>(
             "bwup",
-            "Value updates on the way back of exploration",
-            "ondemand");
-        add_option<bool>(
+            "ondemand",
+            "Value updates on the way back of exploration");
+        add_optional_argument_with_default<bool>(
             "cutoff_tip",
-            "Do not follow tip states during policy exploration.",
-            "true");
-        add_option<bool>(
+            "true",
+            "Do not follow tip states during policy exploration.");
+        add_optional_argument_with_default<bool>(
             "cutoff_inconsistent",
+            "true",
             "Do not expand states whose values have changed during the forward "
-            "updates.",
-            "true");
-        add_option<bool>("labeling", "Label states as solved.", "true");
-        add_option<bool>(
+            "updates.");
+        add_optional_argument_with_default<bool>(
+            "labeling",
+            "true",
+            "Label states as solved.");
+        add_optional_argument_with_default<bool>(
             "reexpand_traps",
-            "Immediately re-expand the collapsed trap state.",
-            "true");
+            "true",
+            "Immediately re-expand the collapsed trap state.");
 
         add_base_solver_options_except_algorithm_to_feature(*this);
         add_mdp_hs_base_options_to_feature<false, true>(*this);
@@ -145,7 +149,8 @@ protected:
     }
 };
 
-class TrapAwareILAOSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
+class TrapAwareILAOSolverFeature
+    : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TrapAwareILAOSolverFeature()
         : SharedTypedFeature("tailao")
@@ -153,15 +158,15 @@ public:
         document_title(
             "iLAO* variant of trap-aware depth-first heuristic search");
 
-        add_option<std::shared_ptr<QOpenList>>(
+        add_optional_argument_with_default<std::shared_ptr<QOpenList>>(
             "open_list",
+            add_mdp_type_to_option<false, true>("lifo_open_list()"),
             "Ordering in which successors are considered during policy "
-            "exploration.",
-            add_mdp_type_to_option<false, true>("lifo_open_list()"));
-        add_option<bool>(
+            "exploration.");
+        add_optional_argument_with_default<bool>(
             "reexpand_traps",
-            "Immediately re-expand the collapsed trap state.",
-            "true");
+            "true",
+            "Immediately re-expand the collapsed trap state.");
 
         add_base_solver_options_except_algorithm_to_feature(*this);
         add_mdp_hs_base_options_to_feature<false, true>(*this);
@@ -185,7 +190,8 @@ public:
     }
 };
 
-class TrapAwareLILAOSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
+class TrapAwareLILAOSolverFeature
+    : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TrapAwareLILAOSolverFeature()
         : SharedTypedFeature("talilao")
@@ -194,15 +200,15 @@ public:
             "Labelled iLAO* variant of trap-aware depth-first "
             "heuristic search");
 
-        add_option<std::shared_ptr<QOpenList>>(
+        add_optional_argument_with_default<std::shared_ptr<QOpenList>>(
             "open_list",
+            add_mdp_type_to_option<false, true>("lifo_open_list()"),
             "Ordering in which successors are considered during policy "
-            "exploration.",
-            add_mdp_type_to_option<false, true>("lifo_open_list()"));
-        add_option<bool>(
+            "exploration.");
+        add_optional_argument_with_default<bool>(
             "reexpand_traps",
-            "Immediately re-expand the collapsed trap state.",
-            "true");
+            "true",
+            "Immediately re-expand the collapsed trap state.");
 
         add_base_solver_options_except_algorithm_to_feature(*this);
         add_mdp_hs_base_options_to_feature<false, true>(*this);
@@ -236,15 +242,15 @@ public:
         document_title(
             "HDP variant of trap-aware depth-first heuristic search");
 
-        add_option<std::shared_ptr<QOpenList>>(
+        add_optional_argument_with_default<std::shared_ptr<QOpenList>>(
             "open_list",
+            add_mdp_type_to_option<false, true>("lifo_open_list()"),
             "Ordering in which successors are considered during policy "
-            "exploration.",
-            add_mdp_type_to_option<false, true>("lifo_open_list()"));
-        add_option<bool>(
+            "exploration.");
+        add_optional_argument_with_default<bool>(
             "reexpand_traps",
-            "Immediately re-expand the collapsed trap state.",
-            "true");
+            "true",
+            "Immediately re-expand the collapsed trap state.");
 
         add_base_solver_options_except_algorithm_to_feature(*this);
         add_mdp_hs_base_options_to_feature<false, true>(*this);

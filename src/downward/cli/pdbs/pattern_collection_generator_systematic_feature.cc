@@ -40,15 +40,15 @@ public:
                 "AAAI Press",
                 "2013"));
 
-        add_option<int>(
+        add_optional_argument_with_default<int>(
             "pattern_max_size",
-            "max number of variables per pattern",
-            "1");
-        add_option<bool>(
+            "1",
+            "max number of variables per pattern");
+        add_optional_argument_with_default<bool>(
             "only_interesting_patterns",
+            "true",
             "Only consider the union of two disjoint patterns if the union has "
-            "more information than the individual patterns.",
-            "true");
+            "more information than the individual patterns.");
         add_generator_options_to_feature(*this);
     }
 

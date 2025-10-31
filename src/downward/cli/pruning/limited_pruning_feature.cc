@@ -34,19 +34,18 @@ public:
             "all "
             "previous expansions.");
 
-        add_option<shared_ptr<downward::PruningMethod>>(
+        add_required_argument<shared_ptr<downward::PruningMethod>>(
             "pruning",
             "the underlying pruning method to be applied");
-        add_option<double>(
+        add_optional_argument_with_default<double>(
             "min_required_pruning_ratio",
+            "0.2",
             "disable pruning if the pruning ratio is lower than this value "
-            "after"
-            " 'expansions_before_checking_pruning_ratio' expansions",
-            "0.2");
-        add_option<int>(
+            "after 'expansions_before_checking_pruning_ratio' expansions");
+        add_optional_argument_with_default<int>(
             "expansions_before_checking_pruning_ratio",
-            "number of expansions before deciding whether to disable pruning",
-            "1000");
+            "1000",
+            "number of expansions before deciding whether to disable pruning");
         add_pruning_options_to_feature(*this);
 
         document_note(
@@ -68,7 +67,7 @@ public:
             get_pruning_arguments_from_options(opts));
     }
 };
-}
+} // namespace
 
 namespace downward::cli::pruning {
 
@@ -77,4 +76,4 @@ void add_limited_pruning_feature(RawRegistry& raw_registry)
     raw_registry.insert_feature_plugin<LimitedPruningFeature>();
 }
 
-} // namespace
+} // namespace downward::cli::pruning

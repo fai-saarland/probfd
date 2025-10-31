@@ -14,12 +14,12 @@ namespace downward::cli::merge_and_shrink {
 void add_merge_tree_options_to_feature(plugins::Feature& feature)
 {
     add_rng_options_to_feature(feature);
-    feature.add_option<UpdateOption>(
+    feature.add_optional_argument_with_default<UpdateOption>(
         "update_option",
+        "use_random",
         "When the merge tree is used within another merge strategy, how "
         "should it be updated when a merge different to a merge from the "
-        "tree is performed.",
-        "use_random");
+        "tree is performed.");
 }
 
 tuple<int, UpdateOption>

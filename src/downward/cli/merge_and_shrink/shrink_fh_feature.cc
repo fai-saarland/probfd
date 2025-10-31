@@ -40,14 +40,14 @@ public:
                 "AAAI Press",
                 "2007"));
 
-        add_option<ShrinkFH::HighLow>(
+        add_optional_argument_with_default<ShrinkFH::HighLow>(
             "shrink_f",
-            "in which direction the f based shrink priority is ordered",
-            "high");
-        add_option<ShrinkFH::HighLow>(
+            "high",
+            "in which direction the f based shrink priority is ordered");
+        add_optional_argument_with_default<ShrinkFH::HighLow>(
             "shrink_h",
-            "in which direction the h based shrink priority is ordered",
-            "low");
+            "low",
+            "in which direction the h based shrink priority is ordered");
         add_shrink_bucket_options_to_feature(*this);
 
         document_note(

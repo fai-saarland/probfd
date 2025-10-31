@@ -36,34 +36,36 @@ namespace {
 
 void add_pattern_collection_generator_cegar_options_to_feature(Feature& feature)
 {
-    feature.add_option<bool>(
+    feature.add_optional_argument_with_default<bool>(
         "single_goal",
-        "whether to compute only a single abstraction from a random goal",
-        "false");
-    feature.add_option<int>(
+        "false",
+        "whether to compute only a single abstraction from a random goal");
+    feature.add_optional_argument_with_default<int>(
         "max_pdb_size",
+        "1000000",
         "maximum allowed number of states in a pdb (not applied to initial "
-        "goal variable pattern(s))",
-        "1000000");
-    feature.add_option<int>(
+        "goal variable pattern(s))");
+    feature.add_optional_argument_with_default<int>(
         "max_collection_size",
+        "infinity",
         "limit for the total number of PDB entries across all PDBs (not "
-        "applied to initial goal variable pattern(s))",
-        "infinity");
-    feature.add_duration(
+        "applied to initial goal variable pattern(s))");
+    feature.add_optional_duration_argument_with_default(
         "max_time",
+        "infinite",
         "maximum time in seconds for CEGAR pattern generation. "
         "This includes the creation of the initial PDB collection"
-        " as well as the creation of the correlation matrix.",
-        "infinite");
-    feature.add_option<std::shared_ptr<SubCollectionFinderFactory>>(
+        " as well as the creation of the correlation matrix.");
+    feature.add_optional_argument_with_default<
+        std::shared_ptr<SubCollectionFinderFactory>>(
         "subcollection_finder_factory",
-        "The subcollection finder factory.",
-        "finder_trivial_factory()");
-    feature.add_option<std::shared_ptr<FlawFindingStrategy>>(
+        "finder_trivial_factory()",
+        "The subcollection finder factory.");
+    feature.add_optional_argument_with_default<
+        std::shared_ptr<FlawFindingStrategy>>(
         "flaw_strategy",
-        "strategy used to find flaws in a policy",
-        "pucs_flaw_finder()");
+        "pucs_flaw_finder()",
+        "strategy used to find flaws in a policy");
 
     add_pattern_collection_generator_options_to_feature(feature);
     add_cegar_wildcard_option_to_feature(feature);
@@ -75,10 +77,10 @@ public:
     PatternCollectionGeneratorDisjointCEGARFeature()
         : SharedTypedFeature("ppdbs_disjoint_cegar")
     {
-        add_option<value_t>(
+        add_optional_argument_with_default<value_t>(
             "convergence_epsilon",
-            "The tolerance for convergence checks.",
-            "10e-4");
+            "10e-4",
+            "The tolerance for convergence checks.");
 
         add_pattern_collection_generator_cegar_options_to_feature(*this);
         add_rng_options_to_feature(*this);

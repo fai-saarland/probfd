@@ -20,10 +20,10 @@ public:
     PatternGeneratorGreedyFeature()
         : SharedTypedFeature("greedy")
     {
-        add_option<int>(
+        add_optional_argument_with_default<int>(
             "max_states",
-            "maximal number of abstract states in the pattern database.",
-            "1000000");
+            "1000000",
+            "maximal number of abstract states in the pattern database.");
         add_generator_options_to_feature(*this);
     }
 

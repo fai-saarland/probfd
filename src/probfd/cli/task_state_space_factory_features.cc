@@ -65,12 +65,12 @@ public:
         : SharedTypedFeature("default_state_space")
     {
         document_synopsis("Default task state space implementation.");
-        add_list_option<std::shared_ptr<Evaluator>>(
+        add_optional_list_argument_with_default<std::shared_ptr<Evaluator>>(
             "path_dependent_evaluators",
+            "[]",
             "A list of path-dependent classical planning evaluators to inform "
             "of "
-            "new transitions during the search.",
-            "[]");
+            "new transitions during the search.");
     }
 
     std::shared_ptr<TaskStateSpaceFactory>
@@ -90,12 +90,12 @@ public:
     {
         document_synopsis(
             "Task state space implementation with transition cache.");
-        add_list_option<std::shared_ptr<Evaluator>>(
+        add_optional_list_argument_with_default<std::shared_ptr<Evaluator>>(
             "path_dependent_evaluators",
+            "[]",
             "A list of path-dependent classical planning evaluators to inform "
             "of "
-            "new transitions during the search.",
-            "[]");
+            "new transitions during the search.");
     }
 
     std::shared_ptr<TaskStateSpaceFactory>

@@ -86,26 +86,25 @@ public:
         document_title("Iterated search");
         document_synopsis("");
 
-        add_list_option<shared_ptr<SearchAlgorithm>>(
+        add_required_list_argument<shared_ptr<SearchAlgorithm>>(
             "algorithm_configs",
-            "list of search algorithms for each phase",
-            "");
-        add_option<bool>(
+            "list of search algorithms for each phase");
+        add_optional_argument_with_default<bool>(
             "pass_bound",
+            "true",
             "use the bound of iterated search as a bound for its component "
             "search algorithms, unless these already have a lower bound set. "
             "The iterated search bound is tightened whenever a component finds "
-            "a cheaper plan.",
-            "true");
-        add_option<bool>("repeat_last", "repeat last phase of search", "false");
-        add_option<bool>(
+            "a cheaper plan.");
+        add_optional_argument_with_default<bool>("repeat_last", "false", "repeat last phase of search");
+        add_optional_argument_with_default<bool>(
             "continue_on_fail",
-            "continue search after no solution found",
-            "false");
-        add_option<bool>(
+            "false",
+            "continue search after no solution found");
+        add_optional_argument_with_default<bool>(
             "continue_on_solve",
-            "continue search after solution found",
-            "true");
+            "true",
+            "continue search after solution found");
         add_search_algorithm_options_to_feature(*this, "iterated");
 
         document_note(

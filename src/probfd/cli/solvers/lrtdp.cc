@@ -74,16 +74,14 @@ public:
         add_base_solver_options_except_algorithm_to_feature(*this);
         add_mdp_hs_options_to_feature<Bisimulation, Fret>(*this);
 
-        this->template add_option<std::shared_ptr<Sampler>>(
+        this->template add_optional_argument_with_default<
+            std::shared_ptr<Sampler>>(
             "successor_sampler",
-            "",
             add_mdp_type_to_option<Bisimulation, Fret>(
                 "random_successor_sampler()"));
 
-        this->template add_option<TrialTerminationCondition>(
-            "trial_termination",
-            "",
-            "terminal");
+        this->template add_optional_argument_with_default<
+            TrialTerminationCondition>("trial_termination", "terminal");
     }
 
 protected:
@@ -103,7 +101,7 @@ protected:
                     "Warning: LRTDP is run within FRET with an unsafe "
                     "trial termination condition! LRTDP's trials may "
                     "get stuck in cycles.");
-                }
+            }
         }
 
         return make_shared_from_arg_tuples<MDPSolver>(
@@ -114,7 +112,7 @@ protected:
             get_base_solver_args_no_algorithm_from_options(options));
     }
 };
-}
+} // namespace
 
 namespace probfd::cli::solvers {
 
@@ -129,4 +127,4 @@ void add_lrtdp_features(RawRegistry& raw_registry)
          {"revisited", "Stop trials upon revisiting a state"}});
 }
 
-} // namespace
+} // namespace probfd::cli::solvers

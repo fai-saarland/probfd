@@ -19,17 +19,17 @@ public:
     ILAOFlawGeneratorFactoryFeature()
         : SharedTypedFeature("flaws_ilao")
     {
-        add_option<probfd::value_t>(
+        add_optional_argument_with_default<probfd::value_t>(
             "convergence_epsilon",
-            "The tolerance for convergence checks.",
-            "10e-4");
+            "10e-4",
+            "The tolerance for convergence checks.");
 
-        add_option<int>(
+        add_optional_argument_with_default<int>(
             "max_search_states",
+            "infinity",
             "maximum number of concrete states allowed to be generated during "
             "flaw "
-            "search before giving up",
-            "infinity");
+            "search before giving up");
     }
 
     std::shared_ptr<FlawGeneratorFactory>

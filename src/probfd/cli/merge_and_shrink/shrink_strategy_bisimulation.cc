@@ -42,15 +42,15 @@ public:
                 "AAAI Press",
                 "2011"));
 
-        add_option<ShrinkStrategyBisimulation::AtLimit>(
+        add_optional_argument_with_default<ShrinkStrategyBisimulation::AtLimit>(
             "at_limit",
-            "what to do when the size limit is hit",
-            "return");
+            "return",
+            "what to do when the size limit is hit");
 
-        add_option<bool>(
+        add_optional_argument_with_default<bool>(
             "require_goal_distances",
-            "whether goal distances are required",
-            "true");
+            "true",
+            "whether goal distances are required");
     }
 
 protected:

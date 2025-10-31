@@ -22,7 +22,8 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-class GZOCPHeuristicFactoryFeature : public SharedTypedFeature<TaskHeuristicFactory> {
+class GZOCPHeuristicFactoryFeature
+    : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     GZOCPHeuristicFactoryFeature()
         : SharedTypedFeature("gzocp_heuristic")
@@ -35,14 +36,16 @@ public:
             "affected by it (induces a non-self-loop) and assigns a cost of "
             "zero for this operator for all subsequent projections.");
 
-        add_option<std::shared_ptr<PatternCollectionGenerator>>(
+        add_optional_argument_with_default<
+            std::shared_ptr<PatternCollectionGenerator>>(
             "patterns",
-            "The pattern generation algorithm to construct the projections.",
-            "classical_generator(generator=systematic(pattern_max_size=2))");
-        add_option<GZOCPHeuristicFactory::OrderingStrategy>(
+            "classical_generator(generator=systematic(pattern_max_size=2))",
+            "The pattern generation algorithm to construct the projections.");
+        add_optional_argument_with_default<
+            GZOCPHeuristicFactory::OrderingStrategy>(
             "order",
-            "The order in which the projections are considered.",
-            "random");
+            "random",
+            "The order in which the projections are considered.");
 
         add_rng_options_to_feature(*this);
         add_task_dependent_heuristic_options_to_feature(*this);

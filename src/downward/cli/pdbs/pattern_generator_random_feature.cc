@@ -37,16 +37,16 @@ public:
             "implementation "
             "notes.");
 
-        add_option<int>(
+        add_optional_argument_with_default<int>(
             "max_pdb_size",
+            "1000000",
             "maximum number of states in the final pattern database (possibly "
             "ignored by a singleton pattern consisting of a single goal "
-            "variable)",
-            "1000000");
-        add_duration(
+            "variable)");
+        add_optional_duration_argument_with_default(
             "max_time",
-            "maximum time in seconds for the pattern generation",
-            "infinite");
+            "infinite",
+            "maximum time in seconds for the pattern generation");
         add_random_pattern_bidirectional_option_to_feature(*this);
         add_rng_options_to_feature(*this);
         add_generator_options_to_feature(*this);

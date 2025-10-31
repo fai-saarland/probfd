@@ -16,23 +16,18 @@ void add_heuristic_options_to_feature(
     plugins::Feature& feature,
     const string& description)
 {
-    feature.add_option<shared_ptr<TaskTransformation>>(
+    feature.add_optional_argument_with_default<shared_ptr<TaskTransformation>>(
         "transform",
-        "Optional task transformation for the heuristic."
-        " Currently, adapt_costs() and no_transform() are available.",
-        "no_transform()");
-    feature.add_option<bool>(
+        "no_transform()",
+        "Optional task transformation for the heuristic.");
+    feature.add_optional_argument_with_default<bool>(
         "cache_estimates",
-        "cache heuristic estimates",
-        "true");
+        "true",
+        "cache heuristic estimates");
     add_evaluator_options_to_feature(feature, description);
 }
 
-tuple<
-    shared_ptr<TaskTransformation>,
-    bool,
-    string,
-    utils::Verbosity>
+tuple<shared_ptr<TaskTransformation>, bool, string, utils::Verbosity>
 get_heuristic_arguments_from_options(const plugins::Options& opts)
 {
     return tuple_cat(

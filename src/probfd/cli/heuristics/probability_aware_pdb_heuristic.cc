@@ -36,11 +36,10 @@ public:
         document_property("consistent", "yes");
         document_property("safe", "yes");
 
-        add_option<std::shared_ptr<PatternCollectionGenerator>>(
+        add_required_argument<std::shared_ptr<PatternCollectionGenerator>>(
             "patterns",
-            "",
             "classical_generator(generator=systematic(pattern_max_size=2))");
-        add_option<double>("max_time_dominance_pruning", "", "0.0");
+        add_required_argument<double>("max_time_dominance_pruning", "0.0");
         add_task_dependent_heuristic_options_to_feature(*this);
     }
 

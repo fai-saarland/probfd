@@ -20,7 +20,8 @@ using namespace probfd::merge_and_shrink;
 using namespace probfd::cli::merge_and_shrink;
 
 namespace {
-class MergeTreeFactoryLinearFeature : public SharedTypedFeature<MergeTreeFactory> {
+class MergeTreeFactoryLinearFeature
+    : public SharedTypedFeature<MergeTreeFactory> {
 public:
     MergeTreeFactoryLinearFeature()
         : SharedTypedFeature("plinear")
@@ -42,10 +43,11 @@ public:
 
         add_merge_tree_factory_options_to_feature(*this);
 
-        add_option<variable_order_finder::VariableOrderType>(
+        add_optional_argument_with_default<
+            variable_order_finder::VariableOrderType>(
             "variable_order",
-            "the order in which atomic transition systems are merged",
-            "cg_goal_level");
+            "cg_goal_level",
+            "the order in which atomic transition systems are merged");
     }
 
 protected:

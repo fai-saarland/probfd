@@ -82,10 +82,11 @@ public:
             "set "
             "to zero for all other affected patterns.");
 
-        add_option<shared_ptr<PatternCollectionGenerator>>(
+        add_optional_argument_with_default<
+            shared_ptr<PatternCollectionGenerator>>(
             "patterns",
-            "pattern generation method",
-            "systematic(1)");
+            "systematic(1)",
+            "pattern generation method");
         add_heuristic_options_to_feature(*this, "zopdbs");
 
         document_language_support("action costs", "supported");

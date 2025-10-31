@@ -95,14 +95,18 @@ public:
         document_title("Lazy best-first search");
         document_synopsis("");
 
-        add_option<shared_ptr<TaskDependentFactory<EdgeOpenList>>>(
+        add_required_argument<shared_ptr<TaskDependentFactory<EdgeOpenList>>>(
             "open",
             "open list");
-        add_option<bool>("reopen_closed", "reopen closed nodes", "false");
-        add_list_option<shared_ptr<TaskDependentFactory<Evaluator>>>(
+        add_optional_argument_with_default<bool>(
+            "reopen_closed",
+            "false",
+            "reopen closed nodes");
+        add_optional_list_argument_with_default<
+            shared_ptr<TaskDependentFactory<Evaluator>>>(
             "preferred",
-            "use preferred operators of these evaluators",
-            "[]");
+            "[]",
+            "use preferred operators of these evaluators");
         add_successors_order_options_to_feature(*this);
         add_search_algorithm_options_to_feature(*this, "lazy");
     }

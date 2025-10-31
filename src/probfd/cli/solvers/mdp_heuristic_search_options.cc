@@ -22,22 +22,23 @@ namespace probfd::cli::solvers {
 template <bool Bisimulation, bool Fret>
 void add_mdp_hs_base_options_to_feature(Feature& feature)
 {
-    feature.add_option<value_t>(
+    feature.add_optional_argument_with_default<value_t>(
         "convergence_epsilon",
-        "The tolerance for convergence checks.",
-        "10e-4");
-    feature.add_option<bool>(
+        "10e-4",
+        "The tolerance for convergence checks.");
+    feature.add_optional_argument_with_default<bool>(
         "dual_bounds",
+        "false",
         "Specifies whether the algorithm should use an upper-bounding value "
         "function as well. In this case, convergence checks are made by "
         "comparing whether the lower and upper bounding value functions are "
-        "epsilon-close to each other.",
-        "false");
-    feature.add_option<std::shared_ptr<PolicyPickerType<Bisimulation, Fret>>>(
+        "epsilon-close to each other.");
+    feature.add_optional_argument_with_default<
+        std::shared_ptr<PolicyPickerType<Bisimulation, Fret>>>(
         "policy",
-        "The tie-breaking strategy to use when selecting a greedy policy.",
         add_mdp_type_to_option<Bisimulation, Fret>(
-            "arbitrary_policy_tiebreaker()"));
+            "arbitrary_policy_tiebreaker()"),
+        "The tie-breaking strategy to use when selecting a greedy policy.");
 }
 
 template <bool Bisimulation, bool Fret>
@@ -56,11 +57,11 @@ template <bool Bisimulation, bool Fret>
 void add_mdp_hs_options_to_feature(Feature& feature)
 {
     if constexpr (Fret) {
-        feature.add_option<bool>(
+        feature.add_optional_argument_with_default<bool>(
             "fret_on_policy",
+            "true",
             "Whether FRET should be used on the greedy policy graph or on the "
-            "whole value graph.",
-            "true");
+            "whole value graph.");
     }
 
     add_mdp_hs_base_options_to_feature<Bisimulation, Fret>(feature);
