@@ -57,7 +57,10 @@ public:
         document_title("Constant evaluator");
         document_synopsis("Returns a constant value.");
 
-        add_option<int>("value", "the constant value", "1");
+        add_optional_argument_with_default<int>(
+            "value",
+            "1",
+            "the constant value");
         add_evaluator_options_to_feature(*this, "const");
     }
 

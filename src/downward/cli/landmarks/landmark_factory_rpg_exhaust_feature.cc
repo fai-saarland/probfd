@@ -28,16 +28,16 @@ public:
             "Exhaustively checks for each fact if it is a landmark."
             "This check is done using relaxed planning.");
 
-        add_option<bool>(
+        add_optional_argument_with_default<bool>(
             "use_unary_relaxation",
+            "false",
             "compute landmarks of the unary relaxation, i.e., landmarks "
             "for the delete relaxation of a task transformation such that each "
             "operator is split into one operator for each of its effects. This "
             "kind of landmark was previously known as \"causal landmarks\". "
             "Setting the option to true can reduce the overall number of "
             "landmarks, which can make the search more memory-efficient but "
-            "potentially less informative.",
-            "false");
+            "potentially less informative.");
         add_landmark_factory_options_to_feature(*this);
 
         document_language_support(

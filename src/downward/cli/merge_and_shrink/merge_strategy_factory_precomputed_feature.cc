@@ -35,7 +35,7 @@ public:
             "given "
             "by the merge tree.");
 
-        add_option<shared_ptr<MergeTreeFactory>>(
+        add_required_argument<shared_ptr<MergeTreeFactory>>(
             "merge_tree",
             "The precomputed merge tree.");
         add_merge_strategy_options_to_feature(*this);

@@ -23,7 +23,7 @@ public:
         document_title("Mutexes from a mutex file");
         document_synopsis("Produces pre-computed mutexes as read from a file.");
 
-        add_option<std::string>("file", "The mutex file");
+        add_required_argument<std::string>("file", "The mutex file");
     }
 
     virtual shared_ptr<TaskDependentFactory<MutexInformation>>

@@ -67,10 +67,10 @@ public:
         document_title("Pattern database heuristic");
         document_synopsis("TODO");
 
-        add_option<shared_ptr<PatternGenerator>>(
+        add_optional_argument_with_default<shared_ptr<PatternGenerator>>(
             "pattern",
-            "pattern generation method",
-            "greedy()");
+            "greedy()",
+            "pattern generation method");
         add_heuristic_options_to_feature(*this, "pdb");
 
         document_language_support("action costs", "supported");

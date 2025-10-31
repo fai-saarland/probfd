@@ -108,11 +108,14 @@ public:
         document_title("Diverse potential heuristics");
         document_synopsis(get_admissible_potentials_reference());
 
-        add_option<int>("num_samples", "Number of states to sample", "1000");
-        add_option<int>(
+        add_optional_argument_with_default<int>(
+            "num_samples",
+            "1000",
+            "Number of states to sample");
+        add_optional_argument_with_default<int>(
             "max_num_heuristics",
-            "maximum number of potential heuristics",
-            "infinity");
+            "infinity",
+            "maximum number of potential heuristics");
         add_admissible_potentials_options_to_feature(
             *this,
             "diverse_potentials");

@@ -36,15 +36,15 @@ void add_admissible_potentials_options_to_feature(
     feature.document_property("consistent", "yes");
     feature.document_property("safe", "yes");
     feature.document_property("preferred operators", "no");
-    feature.add_option<double>(
+    feature.add_optional_argument_with_default<double>(
         "max_potential",
+        "1e8",
         "Bound potentials by this number. Using the bound {{{infinity}}} "
         "disables the bounds. In some domains this makes the computation of "
         "weights unbounded in which case no weights can be extracted. Using "
         "very high weights can cause numerical instability in the LP solver, "
         "while using very low weights limits the choice of potential "
-        "heuristics. For details, see the ICAPS paper cited above.",
-        "1e8");
+        "heuristics. For details, see the ICAPS paper cited above.");
     downward::cli::lp::add_lp_solver_option_to_feature(feature);
     add_heuristic_options_to_feature(feature, description);
 }

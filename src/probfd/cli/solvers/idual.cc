@@ -65,11 +65,11 @@ public:
 
         add_lp_solver_option_to_feature(*this);
 
-        add_option<double>(
+        add_optional_argument_with_default<double>(
             "fp_epsilon",
+            "0.0001",
             "The tolerance to use when checking for non-zero values in an LP "
-            "solution.",
-            "0.0001");
+            "solution.");
 
         add_base_solver_options_except_algorithm_to_feature(*this);
     }

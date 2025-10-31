@@ -26,11 +26,11 @@ public:
         : SharedTypedFeature("sampling_flaw_finder")
     {
         add_rng_options_to_feature(*this);
-        add_option<int>(
+        add_optional_argument_with_default<int>(
             "max_search_states",
+            "20M",
             "Maximal number of generated states after which the flaw search is "
-            "aborted.",
-            "20M");
+            "aborted.");
     }
 
     std::shared_ptr<FlawFindingStrategy>

@@ -34,37 +34,37 @@ public:
         document_property("safe", "yes");
         document_property("preferred operators", "no");
 
-        add_list_option<std::shared_ptr<SubtaskGenerator>>(
+        add_optional_list_argument_with_default<std::shared_ptr<SubtaskGenerator>>(
             "subtasks",
-            "subtask generators",
-            "[pcegar_landmarks(), pcegar_goals()]");
-        add_option<std::shared_ptr<FlawGeneratorFactory>>(
+            "[pcegar_landmarks(), pcegar_goals()]",
+            "subtask generators");
+        add_optional_argument_with_default<std::shared_ptr<FlawGeneratorFactory>>(
             "flaw_generator_factory",
+            "flaws_ilao()",
             "factory for the flaw generation algorithm used in the refinement "
-            "loop",
-            "flaws_ilao()");
-        add_option<std::shared_ptr<SplitSelectorFactory>>(
+            "loop");
+        add_optional_argument_with_default<std::shared_ptr<SplitSelectorFactory>>(
             "split_selector_factory",
+            "max_refined()",
             "factory for the split selection algorithm used in the refinement "
-            "loop",
-            "max_refined()");
-        add_option<int>(
+            "loop");
+        add_optional_argument_with_default<int>(
             "max_states",
-            "maximum sum of abstract states over all abstractions",
-            "infinity");
-        add_option<int>(
+            "infinity",
+            "maximum sum of abstract states over all abstractions");
+        add_optional_argument_with_default<int>(
             "max_transitions",
+            "1M",
             "maximum sum of real transitions (excluding self-loops) over "
-            " all abstractions",
-            "1M");
-        add_duration(
+            " all abstractions");
+        add_optional_duration_argument_with_default(
             "max_time",
-            "maximum time in seconds for building abstractions",
-            "infinite");
-        add_option<bool>(
+            "infinite",
+            "maximum time in seconds for building abstractions");
+        add_optional_argument_with_default<bool>(
             "use_general_costs",
-            "allow negative costs in cost partitioning",
-            "true");
+            "true",
+            "allow negative costs in cost partitioning");
         add_task_dependent_heuristic_options_to_feature(*this);
     }
 

@@ -91,20 +91,23 @@ public:
         document_title("Eager best-first search");
         document_synopsis("");
 
-        add_option<shared_ptr<TaskDependentFactory<StateOpenList>>>(
+        add_optional_argument<shared_ptr<TaskDependentFactory<StateOpenList>>>(
             "open",
             "open list");
-        add_option<bool>("reopen_closed", "reopen closed nodes", "false");
-        add_option<shared_ptr<TaskDependentFactory<Evaluator>>>(
+        add_optional_argument_with_default<bool>(
+            "reopen_closed",
+            "false",
+            "reopen closed nodes");
+        add_required_argument<shared_ptr<TaskDependentFactory<Evaluator>>>(
             "f_eval",
             "set evaluator for jump statistics. "
             "(Optional; if no evaluator is used, jump statistics will not be "
-            "displayed.)",
-            ArgumentInfo::NO_DEFAULT);
-        add_list_option<shared_ptr<TaskDependentFactory<Evaluator>>>(
+            "displayed.)");
+        add_optional_list_argument_with_default<
+            shared_ptr<TaskDependentFactory<Evaluator>>>(
             "preferred",
-            "use preferred operators of these evaluators",
-            "[]");
+            "[]",
+            "use preferred operators of these evaluators");
         add_eager_search_options_to_feature(*this, "eager");
     }
 

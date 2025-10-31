@@ -28,7 +28,8 @@ public:
             "planning heuristic evaluated on the all-outcomes "
             "determinization of the planning task.");
 
-        add_option<std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>(
+        add_required_argument<
+            std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>(
             "heuristic",
             "The classical planning heuristic.");
     }

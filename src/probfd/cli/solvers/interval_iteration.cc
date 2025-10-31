@@ -62,10 +62,10 @@ public:
 
         add_base_solver_options_except_algorithm_to_feature(*this);
 
-        add_option<value_t>(
+        add_optional_argument_with_default<value_t>(
             "convergence_epsilon",
-            "The tolerance for convergence checks.",
-            "10e-4");
+            "10e-4",
+            "The tolerance for convergence checks.");
     }
 
 protected:

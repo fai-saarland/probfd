@@ -12,12 +12,13 @@ using namespace plugins;
 
 void add_cost_type_options_to_feature(Feature& feature)
 {
-    feature.add_option<OperatorCost>(
+    feature.add_optional_argument_with_default<OperatorCost>(
         "cost_type",
+        "normal",
         "Operator cost adjustment type. "
         "No matter what this setting is, axioms will always be considered "
-        "as actions of cost 0 by the heuristics that treat axioms as actions.",
-        "normal");
+        "as actions of cost 0 by the heuristics that treat axioms as "
+        "actions.");
 }
 
 tuple<OperatorCost> get_cost_type_arguments_from_options(const Options& opts)

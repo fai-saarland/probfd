@@ -106,20 +106,20 @@ public:
                 "AAAI Press",
                 "2014"));
 
-        add_list_option<shared_ptr<ConstraintGenerator>>(
+        add_required_list_argument<shared_ptr<ConstraintGenerator>>(
             "constraint_generators",
             "methods that generate constraints over operator-counting "
             "variables");
-        add_option<bool>(
+        add_optional_argument_with_default<bool>(
             "use_integer_operator_counts",
+            "false",
             "restrict operator-counting variables to integer values. Computing "
             "the "
             "heuristic with integer variables can produce higher values but "
             "requires solving a MIP instead of an LP which is generally more "
             "computationally expensive. Turning this option on can thus "
             "drastically "
-            "increase the runtime.",
-            "false");
+            "increase the runtime.");
         add_lp_solver_option_to_feature(*this);
         add_heuristic_options_to_feature(*this, "operatorcounting");
 

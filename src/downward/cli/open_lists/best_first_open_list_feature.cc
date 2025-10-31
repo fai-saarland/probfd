@@ -32,7 +32,7 @@ public:
         this->document_synopsis(
             "Open list that uses a single evaluator and FIFO tiebreaking.");
 
-        this->template add_option<
+        this->template add_optional_argument<
             shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
             "eval",
             "evaluator");
@@ -58,7 +58,7 @@ public:
         this->document_synopsis(
             "Open list that uses a single evaluator and FIFO tiebreaking.");
 
-        this->template add_option<
+        this->template add_optional_argument<
             shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
             "eval",
             "evaluator");

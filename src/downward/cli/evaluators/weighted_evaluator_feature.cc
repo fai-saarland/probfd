@@ -64,10 +64,10 @@ public:
         document_synopsis(
             "Multiplies the value of the evaluator with the given weight.");
 
-        add_option<shared_ptr<TaskDependentFactory<Evaluator>>>(
+        add_required_argument<shared_ptr<TaskDependentFactory<Evaluator>>>(
             "eval",
             "evaluator");
-        add_option<int>("weight", "weight");
+        add_required_argument<int>("weight", "weight");
         add_evaluator_options_to_feature(*this, "weight");
     }
 

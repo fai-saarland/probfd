@@ -28,7 +28,7 @@ public:
         document_synopsis(
             "Merges the landmarks and orderings from the parameter landmarks");
 
-        add_list_option<shared_ptr<LandmarkFactory>>("lm_factories");
+        add_required_list_argument<shared_ptr<LandmarkFactory>>("lm_factories");
         add_landmark_factory_options_to_feature(*this);
 
         document_note(

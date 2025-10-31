@@ -19,10 +19,11 @@ public:
     AdaptiveFlawGeneratorFactoryFeature()
         : SharedTypedFeature("flaws_adaptive")
     {
-        add_list_option<std::shared_ptr<FlawGeneratorFactory>>(
+        add_optional_list_argument_with_default<
+            std::shared_ptr<FlawGeneratorFactory>>(
             "generators",
-            "The linear hierarchy of flaw generators.",
-            "[flaws_astar(), flaws_ilao()]");
+            "[flaws_astar(), flaws_ilao()]",
+            "The linear hierarchy of flaw generators.");
     }
 
 protected:

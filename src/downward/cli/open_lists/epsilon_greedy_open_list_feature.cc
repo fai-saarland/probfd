@@ -33,7 +33,8 @@ class EpsilonGreedyOpenListFeature
 public:
     EpsilonGreedyOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
-        : EpsilonGreedyOpenListFeature::SharedTypedFeature("state_epsilon_greedy")
+        : EpsilonGreedyOpenListFeature::SharedTypedFeature(
+              "state_epsilon_greedy")
     {
         this->document_title("Epsilon-greedy state open list");
         this->document_synopsis(
@@ -55,21 +56,22 @@ public:
                 "AAAI Press",
                 "2014"));
 
-        this->template add_option<
+        this->template add_required_argument<
             shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
             "eval",
             "evaluator");
-        this->template add_option<double>(
+        this->template add_optional_argument_with_default<double>(
             "epsilon",
-            "probability for choosing the next entry randomly",
-            "0.2");
+            "0.2",
+            "probability for choosing the next entry randomly");
         add_rng_options_to_feature(*this);
         add_open_list_options_to_feature(*this);
     }
 
     EpsilonGreedyOpenListFeature()
         requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : EpsilonGreedyOpenListFeature::SharedTypedFeature("edge_epsilon_greedy")
+        : EpsilonGreedyOpenListFeature::SharedTypedFeature(
+              "edge_epsilon_greedy")
     {
         this->document_title("Epsilon-greedy edge open list");
         this->document_synopsis(
@@ -91,14 +93,14 @@ public:
                 "AAAI Press",
                 "2014"));
 
-        this->template add_option<
+        this->template add_required_argument<
             shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
             "eval",
             "evaluator");
-        this->template add_option<double>(
+        this->template add_optional_argument_with_default<double>(
             "epsilon",
-            "probability for choosing the next entry randomly",
-            "0.2");
+            "0.2",
+            "probability for choosing the next entry randomly");
         add_rng_options_to_feature(*this);
         add_open_list_options_to_feature(*this);
     }

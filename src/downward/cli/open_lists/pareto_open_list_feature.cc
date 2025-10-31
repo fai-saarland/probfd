@@ -40,17 +40,17 @@ public:
             "Selects one of the Pareto-optimal (regarding the sub-evaluators) "
             "entries for removal.");
 
-        this->template add_list_option<
+        this->template add_optional_list_argument<
             shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
             "evals",
             "evaluators");
-        this->template add_option<bool>(
+        this->template add_optional_argument_with_default<bool>(
             "state_uniform_selection",
+            "false",
             "When removing an entry, we select a non-dominated bucket "
             "and return its oldest entry. If this option is false, we select "
             "uniformly from the non-dominated buckets; if the option is true, "
-            "we weight the buckets with the number of entries.",
-            "false");
+            "we weight the buckets with the number of entries.");
         add_rng_options_to_feature(*this);
         add_open_list_options_to_feature(*this);
     }
@@ -64,17 +64,17 @@ public:
             "Selects one of the Pareto-optimal (regarding the sub-evaluators) "
             "entries for removal.");
 
-        this->template add_list_option<
+        this->template add_optional_list_argument<
             shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
             "evals",
             "evaluators");
-        this->template add_option<bool>(
+        this->template add_optional_argument_with_default<bool>(
             "state_uniform_selection",
+            "false",
             "When removing an entry, we select a non-dominated bucket "
             "and return its oldest entry. If this option is false, we select "
             "uniformly from the non-dominated buckets; if the option is true, "
-            "we weight the buckets with the number of entries.",
-            "false");
+            "we weight the buckets with the number of entries.");
         add_rng_options_to_feature(*this);
         add_open_list_options_to_feature(*this);
     }

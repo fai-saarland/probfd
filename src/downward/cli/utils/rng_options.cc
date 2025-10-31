@@ -8,12 +8,12 @@ namespace downward::cli::utils {
 
 void add_rng_options_to_feature(plugins::Feature& feature)
 {
-    feature.add_option<int>(
+    feature.add_optional_argument_with_default<int>(
         "random_seed",
+        "-1",
         "Set to -1 (default) to use the global random number generator. "
         "Set to any other value to use a local random number generator with "
-        "the given seed.",
-        "-1");
+        "the given seed.");
 }
 
 tuple<int> get_rng_arguments_from_options(const plugins::Options& opts)

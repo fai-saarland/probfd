@@ -81,7 +81,9 @@ public:
               add_mdp_type_to_option<Bisimulation, Fret>(
                   "arbitrary_policy_tiebreaker"))
     {
-        this->template add_option<bool>("stable_policy", "", "true");
+        this->template add_optional_argument_with_default<bool>(
+            "stable_policy",
+            "true");
     }
 
     std::shared_ptr<PolicyPicker<Bisimulation, Fret>>
@@ -96,8 +98,8 @@ public:
     OperatorIDTieBreakerFeature()
         : SharedTypedFeature("operator_id_policy_tiebreaker")
     {
-        add_option<bool>("stable_policy", "", "true");
-        add_option<bool>("prefer_smaller", "", "true");
+        add_optional_argument_with_default<bool>("stable_policy", "true");
+        add_optional_argument_with_default<bool>("prefer_smaller", "true");
     }
 
     std::shared_ptr<FDRPolicyPicker>
@@ -121,7 +123,9 @@ public:
               add_mdp_type_to_option<Bisimulation, Fret>(
                   "random_policy_tiebreaker"))
     {
-        this->template add_option<bool>("stable_policy", "", "true");
+        this->template add_optional_list_argument_with_default<bool>(
+            "stable_policy",
+            "true");
         add_rng_options_to_feature(*this);
     }
 
@@ -145,8 +149,12 @@ public:
               add_mdp_type_to_option<Bisimulation, Fret>(
                   "value_gap_policy_tiebreaker"))
     {
-        this->template add_option<bool>("stable_policy", "", "true");
-        this->template add_option<bool>("prefer_large_gaps", "", "true");
+        this->template add_optional_list_argument_with_default<bool>(
+            "stable_policy",
+            "true");
+        this->template add_optional_list_argument_with_default<bool>(
+            "prefer_large_gaps",
+            "true");
     }
 
     std::shared_ptr<PolicyPicker<Bisimulation, Fret>>

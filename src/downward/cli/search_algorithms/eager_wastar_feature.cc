@@ -107,19 +107,23 @@ public:
         document_title("Eager weighted A* search");
         document_synopsis("");
 
-        add_list_option<shared_ptr<TaskDependentFactory<Evaluator>>>(
+        add_optional_list_argument<shared_ptr<TaskDependentFactory<Evaluator>>>(
             "evals",
             "evaluators");
-        add_list_option<shared_ptr<TaskDependentFactory<Evaluator>>>(
+        add_optional_list_argument_with_default<
+            shared_ptr<TaskDependentFactory<Evaluator>>>(
             "preferred",
-            "use preferred operators of these evaluators",
-            "[]");
-        add_option<bool>("reopen_closed", "reopen closed nodes", "true");
-        add_option<int>(
+            "[]",
+            "use preferred operators of these evaluators");
+        add_optional_argument_with_default<bool>(
+            "reopen_closed",
+            "true",
+            "reopen closed nodes");
+        add_optional_argument_with_default<int>(
             "boost",
-            "boost value for preferred operator open lists",
-            "0");
-        add_option<int>("w", "evaluator weight", "1");
+            "0",
+            "boost value for preferred operator open lists");
+        add_optional_argument_with_default<int>("w", "1", "evaluator weight");
         add_eager_search_options_to_feature(*this, "eager_wastar");
 
         document_note(

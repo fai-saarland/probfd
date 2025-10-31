@@ -41,33 +41,33 @@ public:
                 "AAAI Press",
                 "2014"));
 
-        add_option<bool>(
+        add_required_argument<bool>(
             "before_shrinking",
             "apply label reduction before shrinking");
-        add_option<bool>(
+        add_required_argument<bool>(
             "before_merging",
             "apply label reduction before merging");
 
-        add_option<LabelReductionMethod>(
+        add_optional_argument_with_default<LabelReductionMethod>(
             "method",
+            "all_transition_systems_with_fixpoint",
             "Label reduction method. See the AAAI14 paper by "
             "Sievers et al. for explanation of the default label "
             "reduction method and the 'combinable relation' ."
             "Also note that you must set at least one of the "
             "options reduce_labels_before_shrinking or "
             "reduce_labels_before_merging in order to use "
-            "the chosen label reduction configuration.",
-            "all_transition_systems_with_fixpoint");
+            "the chosen label reduction configuration.");
 
-        add_option<LabelReductionSystemOrder>(
+        add_optional_argument_with_default<LabelReductionSystemOrder>(
             "system_order",
+            "random",
             "Order of transition systems for the label reduction "
             "methods that iterate over the set of all transition "
             "systems. Only useful for the choices "
             "all_transition_systems and "
             "all_transition_systems_with_fixpoint for the option "
-            "label_reduction_method.",
-            "random");
+            "label_reduction_method.");
         // Add random_seed option.
         add_rng_options_to_feature(*this);
     }

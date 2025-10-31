@@ -148,7 +148,10 @@ public:
         add_log_options_to_feature(*this);
         add_lp_solver_option_to_feature(*this);
 
-        add_option<int>("projection_size", "The size of the projections", "1");
+        add_optional_argument_with_default<int>(
+            "projection_size",
+            "1",
+            "The size of the projections");
     }
 
     std::shared_ptr<TaskHeuristicFactory>
@@ -178,11 +181,12 @@ public:
         add_log_options_to_feature(*this);
         add_lp_solver_option_to_feature(*this);
 
-        add_option<std::shared_ptr<probfd::pdbs::PatternCollectionGenerator>>(
+        add_optional_argument_with_default<
+            std::shared_ptr<probfd::pdbs::PatternCollectionGenerator>>(
             "patterns",
+            "det_adapter(generator=systematic(pattern_max_size=2))",
             "The pattern generator used to construct the PDB collection which "
-            "is subject to post-hoc optimization.",
-            "det_adapter(generator=systematic(pattern_max_size=2))");
+            "is subject to post-hoc optimization.");
     }
 
     std::shared_ptr<TaskHeuristicFactory>
@@ -192,8 +196,7 @@ public:
             get_log_arguments_from_options(options),
             get_lp_solver_arguments_from_options(options),
             std::make_shared<PHOGeneratorFactory>(
-                options.get_shared<PatternCollectionGenerator>(
-                    "patterns")));
+                options.get_shared<PatternCollectionGenerator>("patterns")));
     }
 };
 } // namespace

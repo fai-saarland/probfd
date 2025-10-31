@@ -19,7 +19,8 @@ using downward::cli::merge_and_shrink::add_merge_tree_options_to_feature;
 using downward::cli::merge_and_shrink::get_merge_tree_arguments_from_options;
 
 namespace {
-class MergeTreeFactoryLinearFeature : public SharedTypedFeature<MergeTreeFactory> {
+class MergeTreeFactoryLinearFeature
+    : public SharedTypedFeature<MergeTreeFactory> {
 public:
     MergeTreeFactoryLinearFeature()
         : SharedTypedFeature("linear")
@@ -39,10 +40,11 @@ public:
                 "AAAI Press",
                 "2007"));
 
-        add_option<downward::variable_order_finder::VariableOrderType>(
+        add_optional_argument_with_default<
+            downward::variable_order_finder::VariableOrderType>(
             "variable_order",
-            "the order in which atomic transition systems are merged",
-            "cg_goal_level");
+            "cg_goal_level",
+            "the order in which atomic transition systems are merged");
 
         add_merge_tree_options_to_feature(*this);
     }

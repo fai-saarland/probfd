@@ -27,10 +27,10 @@ using downward::cli::utils::get_rng_arguments_from_options;
 namespace {
 void add_fact_order_option(Feature& feature)
 {
-    feature.add_option<FactOrder>(
+    feature.add_optional_argument_with_default<FactOrder>(
         "order",
-        "ordering of goal or landmark facts",
-        "hadd_down");
+        "hadd_down",
+        "ordering of goal or landmark facts");
     add_rng_options_to_feature(feature);
 }
 
@@ -46,7 +46,10 @@ public:
     TaskDuplicatorFeature()
         : SharedTypedFeature("original")
     {
-        add_option<int>("copies", "number of task copies", "1");
+        add_optional_argument_with_default<int>(
+            "copies",
+            "1",
+            "number of task copies");
     }
 
     virtual shared_ptr<SubtaskGenerator>
@@ -79,15 +82,16 @@ public:
     LandmarkDecompositionFeature()
         : SharedTypedFeature("landmarks")
     {
-        add_option<std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
+        add_optional_argument_with_default<
+            std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
             "mutexes",
-            "factory for mutexes",
-            "mutexes_from_file(\"output.mutexes\")");
+            "mutexes_from_file(\"output.mutexes\")",
+            "factory for mutexes");
         add_fact_order_option(*this);
-        add_option<bool>(
+        add_optional_argument_with_default<bool>(
             "combine_facts",
-            "combine landmark facts with domain abstraction",
-            "true");
+            "true",
+            "combine landmark facts with domain abstraction");
     }
 
     virtual shared_ptr<SubtaskGenerator>

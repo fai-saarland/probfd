@@ -76,18 +76,18 @@ public:
         document_synopsis(
             "Supports all MDP types (even non-SSPs) without FRET loop.");
 
-        add_option<std::shared_ptr<QSuccessorSampler>>(
+        add_optional_argument_with_default<std::shared_ptr<QSuccessorSampler>>(
             "successor_sampler",
-            "Successor bias for the trials.",
-            add_mdp_type_to_option<false, true>("random_successor_sampler()"));
-        add_option<TrialTerminationCondition>(
+            add_mdp_type_to_option<false, true>("random_successor_sampler()"),
+            "Successor bias for the trials.");
+        add_optional_argument_with_default<TrialTerminationCondition>(
             "terminate_trial",
-            "The trial termination condition.",
-            "consistent");
-        add_option<bool>(
+            "consistent",
+            "The trial termination condition.");
+        add_optional_argument_with_default<bool>(
             "reexpand_traps",
-            "Immediately re-expand the collapsed trap state.",
-            "true");
+            "true",
+            "Immediately re-expand the collapsed trap state.");
 
         add_base_solver_options_except_algorithm_to_feature(*this);
         add_mdp_hs_base_options_to_feature<false, true>(*this);

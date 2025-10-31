@@ -69,11 +69,11 @@ public:
     {
         document_title("Causal graph heuristic");
 
-        add_option<int>(
+        add_optional_argument_with_default<int>(
             "max_cache_size",
+            "1000000",
             "maximum number of cached entries per variable (set to 0 to "
-            "disable cache)",
-            "1000000");
+            "disable cache)");
         add_heuristic_options_to_feature(*this, "cg");
 
         document_language_support("action costs", "supported");

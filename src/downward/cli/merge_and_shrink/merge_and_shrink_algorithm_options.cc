@@ -19,7 +19,7 @@ namespace downward::cli::merge_and_shrink {
 void add_merge_and_shrink_algorithm_options_to_feature(Feature& feature)
 {
     // Merge strategy option.
-    feature.add_option<shared_ptr<MergeStrategyFactory>>(
+    feature.add_required_argument<shared_ptr<MergeStrategyFactory>>(
         "merge_strategy",
         "See detailed documentation for merge strategies. "
         "We currently recommend SCC-DFP, which can be achieved using "
@@ -29,7 +29,7 @@ void add_merge_and_shrink_algorithm_options_to_feature(Feature& feature)
         "]))}}}");
 
     // Shrink strategy option.
-    feature.add_option<shared_ptr<ShrinkStrategy>>(
+    feature.add_required_argument<shared_ptr<ShrinkStrategy>>(
         "shrink_strategy",
         "See detailed documentation for shrink strategies. "
         "We currently recommend non-greedy shrink_bisimulation, which can be "
@@ -37,36 +37,35 @@ void add_merge_and_shrink_algorithm_options_to_feature(Feature& feature)
         "{{{shrink_strategy=shrink_bisimulation(greedy=false)}}}");
 
     // Label reduction option.
-    feature.add_option<shared_ptr<LabelReduction>>(
+    feature.add_optional_argument<shared_ptr<LabelReduction>>(
         "label_reduction",
         "See detailed documentation for labels. There is currently only "
         "one 'option' to use label_reduction, which is "
         "{{{label_reduction=exact}}} "
-        "Also note the interaction with shrink strategies.",
-        ArgumentInfo::NO_DEFAULT);
+        "Also note the interaction with shrink strategies.");
 
     // Pruning options.
-    feature.add_option<bool>(
+    feature.add_optional_argument_with_default<bool>(
         "prune_unreachable_states",
-        "If true, prune abstract states unreachable from the initial state.",
-        "true");
-    feature.add_option<bool>(
+        "true",
+        "If true, prune abstract states unreachable from the initial state.");
+    feature.add_optional_argument_with_default<bool>(
         "prune_irrelevant_states",
+        "true",
         "If true, prune abstract states from which no goal state can be "
-        "reached.",
-        "true");
+        "reached.");
 
     add_transition_system_size_limit_options_to_feature(feature);
 
-    feature.add_duration(
+    feature.add_optional_duration_argument_with_default(
         "main_loop_max_time",
+        "infinite",
         "A limit in seconds on the runtime of the main loop of the algorithm. "
         "If the limit is exceeded, the algorithm terminates, potentially "
         "returning a factored transition system with several factors. Also "
         "note that the time limit is only checked between transformations "
         "of the main loop, but not during, so it can be exceeded if a "
-        "transformation is runtime-intense.",
-        "infinite");
+        "transformation is runtime-intense.");
 }
 
 tuple<
@@ -94,21 +93,21 @@ get_merge_and_shrink_algorithm_arguments_from_options(const Options& opts)
 
 void add_transition_system_size_limit_options_to_feature(Feature& feature)
 {
-    feature.add_option<int>(
+    feature.add_optional_argument_with_default<int>(
         "max_states",
-        "maximum transition system size allowed at any time point.",
-        "-1");
-    feature.add_option<int>(
+        "-1",
+        "maximum transition system size allowed at any time point.");
+    feature.add_optional_argument_with_default<int>(
         "max_states_before_merge",
+        "-1",
         "maximum transition system size allowed for two transition systems "
-        "before being merged to form the synchronized product.",
-        "-1");
-    feature.add_option<int>(
+        "before being merged to form the synchronized product.");
+    feature.add_optional_argument_with_default<int>(
         "threshold_before_merge",
+        "-1",
         "If a transition system, before being merged, surpasses this soft "
         "transition system size limit, the shrink strategy is called to "
-        "possibly shrink the transition system.",
-        "-1");
+        "possibly shrink the transition system.");
 }
 
 tuple<int, int, int>

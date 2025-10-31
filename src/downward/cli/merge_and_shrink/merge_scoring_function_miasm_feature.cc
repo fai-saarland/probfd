@@ -65,7 +65,7 @@ public:
         // TODO: use shrink strategy and limit options from
         // MergeAndShrinkHeuristic instead of having the identical options here
         // again.
-        add_option<shared_ptr<ShrinkStrategy>>(
+        add_required_argument<shared_ptr<ShrinkStrategy>>(
             "shrink_strategy",
             "We recommend setting this to match the shrink strategy "
             "configuration "
@@ -102,16 +102,16 @@ public:
             "use full pruning, i.e. {{{prune_unreachable_states=true}}} and {{{"
             "prune_irrelevant_states=true}}} (the default).");
 
-        add_option<bool>(
+        add_optional_argument_with_default<bool>(
             "use_caching",
+            "true",
             "Cache scores for merge candidates. IMPORTANT! This only works "
             "under the assumption that the merge-and-shrink algorithm only "
             "uses exact label reduction and does not (non-exactly) shrink "
             "factors other than those being merged in the current iteration. "
             "In this setting, the MIASM score of a merge candidate is constant "
             "over merge-and-shrink iterations. If caching is enabled, only the "
-            "scores for the new merge candidates need to be computed.",
-            "true");
+            "scores for the new merge candidates need to be computed.");
     }
 
     virtual shared_ptr<MergeScoringFunction>

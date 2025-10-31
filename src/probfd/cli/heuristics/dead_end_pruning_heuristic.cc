@@ -28,7 +28,8 @@ public:
             "if h(s) is infinity in the all-outcomes determinization. "
             "Otherwise, the heuristic value is 0.");
 
-        add_option<std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>(
+        add_required_argument<
+            std::shared_ptr<downward::TaskDependentFactory<Evaluator>>>(
             "evaluator");
     }
 

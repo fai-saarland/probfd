@@ -18,11 +18,11 @@ public:
     PUCSFlawFinderFeature()
         : SharedTypedFeature("pucs_flaw_finder")
     {
-        add_option<int>(
+        add_optional_argument_with_default<int>(
             "max_search_states",
+            "20M",
             "Maximal number of generated states after which the flaw search is "
-            "aborted.",
-            "20M");
+            "aborted.");
     }
 
 protected:

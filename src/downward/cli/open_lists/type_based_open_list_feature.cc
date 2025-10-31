@@ -53,7 +53,8 @@ public:
                 "AAAI Press",
                 "2014"));
 
-        this->template add_list_option<shared_ptr<downward::Evaluator>>(
+        this->template add_optional_list_argument<
+            shared_ptr<downward::Evaluator>>(
             "evaluators",
             "Evaluators used to determine the bucket for each entry.");
         add_rng_options_to_feature(*this);
@@ -83,7 +84,8 @@ public:
                 "AAAI Press",
                 "2014"));
 
-        this->template add_list_option<shared_ptr<downward::Evaluator>>(
+        this->template add_optional_list_argument<
+            shared_ptr<downward::Evaluator>>(
             "evaluators",
             "Evaluators used to determine the bucket for each entry.");
         add_rng_options_to_feature(*this);

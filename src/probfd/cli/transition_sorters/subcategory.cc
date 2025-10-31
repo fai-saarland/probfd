@@ -21,7 +21,7 @@ public:
     VDiffSorterFeature()
         : SharedTypedFeature("value_gap_sort")
     {
-        add_option<bool>("prefer_large_gaps", "", "false");
+        add_optional_argument_with_default<bool>("prefer_large_gaps", "false");
     }
 
     std::shared_ptr<FDRTransitionSorter>

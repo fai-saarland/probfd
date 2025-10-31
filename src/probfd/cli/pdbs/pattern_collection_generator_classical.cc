@@ -35,23 +35,24 @@ public:
 
         add_pattern_collection_generator_options_to_feature(*this);
 
-        add_option<std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
+        add_optional_argument_with_default<
+            std::shared_ptr<::pdbs::PatternCollectionGenerator>>(
             "generator",
-            "The classical pattern collection generator.",
-            "systematic()");
+            "systematic()",
+            "The classical pattern collection generator.");
 
-        add_option<std::shared_ptr<SubCollectionFinderFactory>>(
+        add_optional_argument_with_default<
+            std::shared_ptr<SubCollectionFinderFactory>>(
             "subcollection_finder_factory",
-            "The subcollection finder factory.",
-            "finder_trivial_factory()");
+            "finder_trivial_factory()",
+            "The subcollection finder factory.");
     }
 
     std::shared_ptr<PatternCollectionGenerator>
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<PatternCollectionGeneratorClassical>(
-            opts.get_shared<::pdbs::PatternCollectionGenerator>(
-                "generator"),
+            opts.get_shared<::pdbs::PatternCollectionGenerator>("generator"),
             opts.get_shared<SubCollectionFinderFactory>(
                 "subcollection_finder_factory"),
             get_log_arguments_from_options(opts));

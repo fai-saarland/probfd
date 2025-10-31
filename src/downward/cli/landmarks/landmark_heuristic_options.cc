@@ -33,26 +33,29 @@ void add_landmark_heuristic_options_to_feature(
             "AAAI Press",
             "2023"));
 
-    feature.add_option<shared_ptr<LandmarkFactory>>(
+    feature.add_required_argument<shared_ptr<LandmarkFactory>>(
         "lm_factory",
         "the set of landmarks to use for this heuristic. "
         "The set of landmarks can be specified here, "
         "or predefined (see LandmarkFactory).");
-    feature.add_option<bool>(
+    feature.add_optional_argument_with_default<bool>(
         "pref",
-        "enable preferred operators (see note below)",
-        "false");
+        "false",
+        "enable preferred operators (see note below)");
     /* TODO: Do we really want these options or should we just always progress
         everything we can? */
-    feature.add_option<bool>("prog_goal", "Use goal progression.", "true");
-    feature.add_option<bool>(
+    feature.add_optional_argument_with_default<bool>(
+        "prog_goal",
+        "true",
+        "Use goal progression.");
+    feature.add_optional_argument_with_default<bool>(
         "prog_gn",
-        "Use greedy-necessary ordering progression.",
-        "true");
-    feature.add_option<bool>(
+        "true",
+        "Use greedy-necessary ordering progression.");
+    feature.add_optional_argument_with_default<bool>(
         "prog_r",
-        "Use reasonable ordering progression.",
-        "true");
+        "true",
+        "Use reasonable ordering progression.");
     add_heuristic_options_to_feature(feature, description);
 
     feature.document_property(

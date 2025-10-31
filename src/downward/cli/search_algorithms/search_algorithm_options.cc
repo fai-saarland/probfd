@@ -23,14 +23,14 @@ namespace downward::cli {
    TODO: Figure out where it belongs and move it there. */
 void add_search_pruning_options_to_feature(plugins::Feature& feature)
 {
-    feature.add_option<shared_ptr<PruningMethod>>(
+    feature.add_optional_argument_with_default<shared_ptr<PruningMethod>>(
         "pruning",
+        "null()",
         "Pruning methods can prune or reorder the set of applicable operators "
         "in "
         "each state and thereby influence the number and order of successor "
         "states "
-        "that are considered.",
-        "null()");
+        "that are considered.");
 }
 
 tuple<shared_ptr<PruningMethod>>
@@ -44,14 +44,15 @@ void add_search_algorithm_options_to_feature(
     const string& description)
 {
     add_cost_type_options_to_feature(feature);
-    feature.add_option<int>(
+    feature.add_optional_argument_with_default<int>(
         "bound",
+        "infinity",
         "exclusive depth bound on g-values. Cutoffs are always performed "
         "according to "
-        "the real cost, regardless of the cost_type parameter",
-        "infinity");
-    feature.add_duration(
+        "the real cost, regardless of the cost_type parameter");
+    feature.add_optional_duration_argument_with_default(
         "max_time",
+        "infinite",
         "maximum time in seconds the search is allowed to run for. The "
         "timeout is only checked after each complete search step "
         "(usually a node expansion), so the actual runtime can be arbitrarily "
@@ -59,16 +60,20 @@ void add_search_algorithm_options_to_feature(
         "time-limiting "
         "experiments. Timed-out searches are treated as failed searches, "
         "just like incomplete search algorithms that exhaust their search "
-        "space.",
-        "infinite");
-    feature.add_option<string>(
+        "space.");
+    feature.add_optional_argument_with_default<string>(
         "description",
-        "description used to identify search algorithm in logs",
-        "\"" + description + "\"");
+        "\"" + description + "\"",
+        "description used to identify search algorithm in logs");
     utils::add_log_options_to_feature(feature);
 }
 
-tuple<OperatorCost, int, downward::utils::FSeconds, string, downward::utils::Verbosity>
+tuple<
+    OperatorCost,
+    int,
+    downward::utils::FSeconds,
+    string,
+    downward::utils::Verbosity>
 get_search_algorithm_arguments_from_options(const plugins::Options& opts)
 {
     return tuple_cat(
@@ -86,14 +91,14 @@ get_search_algorithm_arguments_from_options(const plugins::Options& opts)
 void add_successors_order_options_to_feature(plugins::Feature& feature)
 {
     vector<string> options;
-    feature.add_option<bool>(
+    feature.add_optional_argument_with_default<bool>(
         "randomize_successors",
-        "randomize the order in which successors are generated",
-        "false");
-    feature.add_option<bool>(
+        "false",
+        "randomize the order in which successors are generated");
+    feature.add_optional_argument_with_default<bool>(
         "preferred_successors_first",
-        "consider preferred operators first",
-        "false");
+        "false",
+        "consider preferred operators first");
     feature.document_note(
         "Successor ordering",
         "When using randomize_successors=true and "

@@ -57,28 +57,28 @@ public:
                 "AAAI Press",
                 "2007"));
 
-        add_option<int>(
+        add_optional_argument_with_default<int>(
             "pdb_max_size",
-            "maximal number of states per pattern database ",
-            "50000");
-        add_option<int>(
+            "50000",
+            "maximal number of states per pattern database");
+        add_optional_argument_with_default<int>(
             "num_collections",
+            "5",
             "number of pattern collections to maintain in the genetic "
-            "algorithm (population size)",
-            "5");
-        add_option<int>(
+            "algorithm (population size)");
+        add_optional_argument_with_default<int>(
             "num_episodes",
-            "number of episodes for the genetic algorithm",
-            "30");
-        add_option<double>(
+            "30",
+            "number of episodes for the genetic algorithm");
+        add_optional_argument_with_default<double>(
             "mutation_probability",
-            "probability for flipping a bit in the genetic algorithm",
-            "0.01");
-        add_option<bool>(
+            "0.01",
+            "probability for flipping a bit in the genetic algorithm");
+        add_optional_argument_with_default<bool>(
             "disjoint",
+            "false",
             "consider a pattern collection invalid (giving it very low "
-            "fitness) if its patterns are not disjoint",
-            "false");
+            "fitness) if its patterns are not disjoint");
         add_rng_options_to_feature(*this);
         add_generator_options_to_feature(*this);
 

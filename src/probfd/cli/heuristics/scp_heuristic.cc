@@ -24,7 +24,8 @@ using downward::cli::utils::add_rng_options_to_feature;
 using downward::cli::utils::get_rng_arguments_from_options;
 
 namespace {
-class SCPHeuristicFactoryFeature : public SharedTypedFeature<TaskHeuristicFactory> {
+class SCPHeuristicFactoryFeature
+    : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     SCPHeuristicFactoryFeature()
         : SharedTypedFeature("scp_heuristic")
@@ -47,14 +48,16 @@ public:
             "The estimate of a state is the sum over all projection heuristic "
             "estimates for this state.");
 
-        add_option<std::shared_ptr<PatternCollectionGenerator>>(
+        add_optional_argument_with_default<
+            std::shared_ptr<PatternCollectionGenerator>>(
             "patterns",
-            "The pattern generation algorithm to construct the projections.",
-            "classical_generator(generator=systematic(pattern_max_size=2))");
-        add_option<SCPHeuristicFactory::OrderingStrategy>(
+            "classical_generator(generator=systematic(pattern_max_size=2))",
+            "The pattern generation algorithm to construct the projections.");
+        add_optional_argument_with_default<
+            SCPHeuristicFactory::OrderingStrategy>(
             "order",
-            "The order in which the projections are considered.",
-            "random");
+            "random",
+            "The order in which the projections are considered.");
 
         add_rng_options_to_feature(*this);
         add_task_dependent_heuristic_options_to_feature(*this);

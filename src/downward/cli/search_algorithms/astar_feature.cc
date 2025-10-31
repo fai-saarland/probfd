@@ -91,13 +91,12 @@ public:
             "as f-function. "
             "We break ties using the evaluator. Closed nodes are re-opened.");
 
-        add_option<shared_ptr<TaskDependentFactory<Evaluator>>>(
+        add_required_argument<shared_ptr<TaskDependentFactory<Evaluator>>>(
             "eval",
             "evaluator for h-value");
-        add_option<shared_ptr<TaskDependentFactory<Evaluator>>>(
+        add_optional_argument<shared_ptr<TaskDependentFactory<Evaluator>>>(
             "lazy_evaluator",
-            "An evaluator that re-evaluates a state before it is expanded.",
-            ArgumentInfo::NO_DEFAULT);
+            "An evaluator that re-evaluates a state before it is expanded.");
         add_eager_search_options_to_feature(*this, "astar");
 
         document_note(

@@ -49,17 +49,17 @@ public:
                 "AAAI Press",
                 "2020"));
 
-        add_option<bool>(
+        add_optional_argument_with_default<bool>(
             "use_sibling_shortcut",
-            "use variable-based marking in addition to atom-based marking",
-            "true");
-        add_option<AtomSelectionStrategy>(
+            "true",
+            "use variable-based marking in addition to atom-based marking");
+        add_optional_argument_with_default<AtomSelectionStrategy>(
             "atom_selection_strategy",
+            "quick_skip",
             "Strategy for selecting unsatisfied atoms from action "
             "preconditions or "
             "the goal atoms. All strategies use the fast_downward strategy for "
-            "breaking ties.",
-            "quick_skip");
+            "breaking ties.");
         add_pruning_options_to_feature(*this);
     }
 

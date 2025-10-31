@@ -68,9 +68,9 @@ public:
     {
         this->document_title("Exhaustive AO* algorithm");
 
-        this->template add_option<std::shared_ptr<OpenListType>>(
+        this->template add_optional_argument_with_default<
+            std::shared_ptr<OpenListType>>(
             "open_list",
-            "",
             add_mdp_type_to_option<Bisimulation, false>("lifo_open_list()"));
 
         add_base_solver_options_except_algorithm_to_feature(*this);

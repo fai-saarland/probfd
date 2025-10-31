@@ -30,7 +30,7 @@ public:
             "transition "
             "system, not requiring any additional information.");
 
-        add_option<shared_ptr<MergeSelector>>(
+        add_required_argument<shared_ptr<MergeSelector>>(
             "merge_selector",
             "The merge selector to be used.");
 

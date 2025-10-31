@@ -12,10 +12,10 @@ namespace downward::cli::utils {
 
 void add_log_options_to_feature(plugins::Feature& feature)
 {
-    feature.add_option<Verbosity>(
+    feature.add_optional_argument_with_default<Verbosity>(
         "verbosity",
-        "Option to specify the verbosity level.",
-        "normal");
+        "normal",
+        "Option to specify the verbosity level.");
 }
 
 tuple<Verbosity> get_log_arguments_from_options(const plugins::Options& opts)

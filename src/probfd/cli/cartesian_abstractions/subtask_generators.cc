@@ -24,7 +24,10 @@ public:
     TaskDuplicatorFeature()
         : SharedTypedFeature("pcegar_original")
     {
-        add_option<int>("copies", "number of task copies", "1");
+        add_optional_argument_with_default<int>(
+            "copies",
+            "1",
+            "number of task copies");
     }
 
     std::shared_ptr<SubtaskGenerator>
@@ -40,10 +43,10 @@ public:
     GoalDecompositionFeature()
         : SharedTypedFeature("pcegar_goals")
     {
-        add_option<FactOrder>(
+        add_optional_argument_with_default<FactOrder>(
             "order",
-            "ordering of goal or landmark facts",
-            "hadd_down");
+            "hadd_down",
+            "ordering of goal or landmark facts");
         add_rng_options_to_feature(*this);
     }
 
@@ -62,19 +65,20 @@ public:
     LandmarkDecompositionFeature()
         : SharedTypedFeature("pcegar_landmarks")
     {
-        add_option<std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
+        add_optional_argument_with_default<
+            std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
             "mutexes",
-            "factory for mutexes",
-            "mutexes_from_file(\"output.mutexes\")");
-        add_option<FactOrder>(
+            "mutexes_from_file(\"output.mutexes\")",
+            "factory for mutexes");
+        add_optional_argument_with_default<FactOrder>(
             "order",
-            "ordering of goal or landmark facts",
-            "hadd_down");
+            "hadd_down",
+            "ordering of goal or landmark facts");
         add_rng_options_to_feature(*this);
-        add_option<bool>(
+        add_optional_argument_with_default<bool>(
             "combine_facts",
-            "combine landmark facts with domain abstraction",
-            "true");
+            "true",
+            "combine landmark facts with domain abstraction");
     }
 
     std::shared_ptr<SubtaskGenerator>

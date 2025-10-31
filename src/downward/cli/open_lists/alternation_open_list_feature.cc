@@ -24,15 +24,15 @@ public:
         this->document_title("Alternation state open list");
         this->document_synopsis("alternates between several open lists.");
 
-        this->template add_list_option<
+        this->template add_required_list_argument<
             shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>>(
             "sublists",
             "open lists between which this one alternates");
-        this->template add_option<int>(
+        this->template add_optional_argument_with_default<int>(
             "boost",
+            "0",
             "boost value for contained open lists that are restricted "
-            "to preferred successors",
-            "0");
+            "to preferred successors");
     }
 
     AlternationOpenListFeature()
@@ -42,15 +42,15 @@ public:
         this->document_title("Alternation edge open list");
         this->document_synopsis("alternates between several open lists.");
 
-        this->template add_list_option<
+        this->template add_required_list_argument<
             shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>>(
             "sublists",
             "open lists between which this one alternates");
-        this->template add_option<int>(
+        this->template add_optional_argument_with_default<int>(
             "boost",
+            "0",
             "boost value for contained open lists that are restricted "
-            "to preferred successors",
-            "0");
+            "to preferred successors");
     }
 
     virtual shared_ptr<downward::TaskDependentFactory<downward::OpenList<T>>>

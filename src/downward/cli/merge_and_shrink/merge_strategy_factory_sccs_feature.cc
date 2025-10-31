@@ -52,11 +52,11 @@ public:
             "the final abstraction, again using the specified fallback merge "
             "strategy and the configurable order of the SCCs.");
 
-        add_option<OrderOfSCCs>(
+        add_optional_argument_with_default<OrderOfSCCs>(
             "order_of_sccs",
-            "how the SCCs should be ordered",
-            "topological");
-        add_option<shared_ptr<MergeSelector>>(
+            "topological",
+            "how the SCCs should be ordered");
+        add_required_argument<shared_ptr<MergeSelector>>(
             "merge_selector",
             "the fallback merge strategy to use.");
         add_merge_strategy_options_to_feature(*this);

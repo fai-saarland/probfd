@@ -84,12 +84,12 @@ void add_cegar_implementation_notes_to_feature(plugins::Feature& feature)
 
 void add_cegar_wildcard_option_to_feature(plugins::Feature& feature)
 {
-    feature.add_option<bool>(
+    feature.add_optional_argument_with_default<bool>(
         "use_wildcard_plans",
+        "true",
         "if true, compute wildcard plans which are sequences of sets of "
         "operators that induce the same transition; otherwise compute regular "
-        "plans which are sequences of single operators",
-        "true");
+        "plans which are sequences of single operators");
 }
 
 tuple<bool>

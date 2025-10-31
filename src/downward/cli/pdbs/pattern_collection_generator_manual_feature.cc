@@ -21,7 +21,7 @@ public:
     PatternCollectionGeneratorManualFeature()
         : SharedTypedFeature("manual_patterns")
     {
-        add_list_option<Pattern>(
+        add_required_list_argument<Pattern>(
             "patterns",
             "list of patterns (which are lists of variable numbers of the "
             "planning "

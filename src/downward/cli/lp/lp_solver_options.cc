@@ -11,10 +11,10 @@ namespace downward::cli::lp {
 
 void add_lp_solver_option_to_feature(plugins::Feature& feature)
 {
-    feature.add_option<LPSolverType>(
+    feature.add_optional_argument_with_default<LPSolverType>(
         "lpsolver",
-        "external solver that should be used to solve linear programs",
-        "cplex");
+        "cplex",
+        "external solver that should be used to solve linear programs");
 
     feature.document_note(
         "Note",

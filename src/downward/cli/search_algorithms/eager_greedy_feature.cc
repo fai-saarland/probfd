@@ -98,17 +98,18 @@ public:
         document_title("Greedy search (eager)");
         document_synopsis("");
 
-        add_list_option<shared_ptr<TaskDependentFactory<Evaluator>>>(
+        add_optional_argument<shared_ptr<TaskDependentFactory<Evaluator>>>(
             "evals",
             "evaluators");
-        add_list_option<shared_ptr<TaskDependentFactory<Evaluator>>>(
+        add_optional_list_argument_with_default<
+            shared_ptr<TaskDependentFactory<Evaluator>>>(
             "preferred",
-            "use preferred operators of these evaluators",
-            "[]");
-        add_option<int>(
+            "[]",
+            "use preferred operators of these evaluators");
+        add_optional_argument_with_default<int>(
             "boost",
-            "boost value for preferred operator open lists",
-            "0");
+            "0",
+            "boost value for preferred operator open lists");
         add_eager_search_options_to_feature(*this, "eager_greedy");
 
         document_note(

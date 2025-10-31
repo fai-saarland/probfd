@@ -36,17 +36,18 @@ public:
             "The landmark generation method introduced by "
             "Keyder, Richter & Helmert (ECAI 2010).");
 
-        add_option<int>(
+        add_optional_argument_with_default<int>(
             "m",
-            "subset size (if unsure, use the default of 2)",
-            "2");
-        add_option<std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
+            "2",
+            "subset size (if unsure, use the default of 2)");
+        add_required_argument<
+            std::shared_ptr<TaskDependentFactory<MutexInformation>>>(
             "mutexes",
             "factory for mutexes");
-        add_option<bool>(
+        add_optional_argument_with_default<bool>(
             "conjunctive_landmarks",
-            "keep conjunctive landmarks",
-            "true");
+            "true",
+            "keep conjunctive landmarks");
         add_use_orders_option_to_feature(*this);
         add_landmark_factory_options_to_feature(*this);
 
@@ -59,8 +60,7 @@ public:
     create_component(const Options& opts, const Context&) const override
     {
         return make_shared_from_arg_tuples<LandmarkFactoryHM>(
-            opts.get_shared<TaskDependentFactory<MutexInformation>>(
-                "mutexes"),
+            opts.get_shared<TaskDependentFactory<MutexInformation>>("mutexes"),
             opts.get<int>("m"),
             opts.get<bool>("conjunctive_landmarks"),
             get_use_orders_arguments_from_options(opts),

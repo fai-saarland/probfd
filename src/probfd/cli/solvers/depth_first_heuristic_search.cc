@@ -84,24 +84,12 @@ public:
     {
         this->document_title("Depth-first heuristic search family");
 
-        this->template add_option<bool>(
-            "labeling",
-            "",
-            ArgumentInfo::NO_DEFAULT);
-        this->template add_option<bool>("fwup", "", ArgumentInfo::NO_DEFAULT);
-        this->template add_option<BacktrackingUpdateType>(
-            "bwup",
-            "",
-            ArgumentInfo::NO_DEFAULT);
-        this->template add_option<bool>(
-            "cutoff_inconsistent",
-            "",
-            ArgumentInfo::NO_DEFAULT);
-        this->template add_option<bool>("vi", "", ArgumentInfo::NO_DEFAULT);
-        this->template add_option<bool>(
-            "cutoff_tip",
-            "",
-            ArgumentInfo::NO_DEFAULT);
+        this->template add_required_argument<bool>("labeling");
+        this->template add_required_argument<bool>("fwup");
+        this->template add_required_argument<BacktrackingUpdateType>("bwup");
+        this->template add_required_argument<bool>("cutoff_inconsistent");
+        this->template add_required_argument<bool>("vi");
+        this->template add_required_argument<bool>("cutoff_tip");
 
         add_base_solver_options_except_algorithm_to_feature(*this);
         add_mdp_hs_options_to_feature<Bisimulation, Fret>(*this);

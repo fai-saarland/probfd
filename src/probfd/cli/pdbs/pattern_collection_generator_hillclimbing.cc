@@ -29,47 +29,47 @@ public:
     PatternCollectionGeneratorHillclimbingFeature()
         : SharedTypedFeature("hillclimbing_probabilistic")
     {
-        add_option<std::shared_ptr<PatternCollectionGenerator>>(
+        add_optional_argument_with_default<std::shared_ptr<PatternCollectionGenerator>>(
             "initial_generator",
-            "generator for the initial pattern database ",
-            "psystematic(pattern_max_size=1)");
+            "psystematic(pattern_max_size=1)",
+            "generator for the initial pattern database");
 
-        add_option<std::shared_ptr<SubCollectionFinderFactory>>(
+        add_optional_argument_with_default<std::shared_ptr<SubCollectionFinderFactory>>(
             "subcollection_finder_factory",
-            "The subcollection finder factory.",
-            "finder_trivial_factory()");
+            "finder_trivial_factory()",
+            "The subcollection finder factory.");
 
-        add_option<int>(
+        add_optional_argument_with_default<int>(
             "pdb_max_size",
-            "maximal number of states per pattern database ",
-            "2M");
-        add_option<int>(
+            "2M",
+            "maximal number of states per pattern database");
+        add_optional_argument_with_default<int>(
             "collection_max_size",
-            "maximal number of states in the pattern collection",
-            "10M");
-        add_option<int>(
+            "10M",
+            "maximal number of states in the pattern collection");
+        add_optional_argument_with_default<int>(
             "search_space_max_size",
-            "maximal number of states in the pattern search space",
-            "30M");
-        add_option<int>(
+            "30M",
+            "maximal number of states in the pattern search space");
+        add_optional_argument_with_default<int>(
             "num_samples",
+            "1000",
             "number of samples (random states) on which to evaluate each "
-            "candidate pattern collection",
-            "1000");
-        add_option<int>(
+            "candidate pattern collection");
+        add_optional_argument_with_default<int>(
             "min_improvement",
+            "10",
             "minimum number of samples on which a candidate pattern "
             "collection must improve on the current one to be considered "
-            "as the next pattern collection ",
-            "10");
-        add_duration(
+            "as the next pattern collection");
+        add_optional_duration_argument_with_default(
             "max_time",
+            "infinite",
             "maximum time in seconds for improving the initial pattern "
             "collection via hill climbing. If set to 0, no hill climbing "
             "is performed at all. Note that this limit only affects hill "
             "climbing. Use max_time_dominance_pruning to limit the time "
-            "spent for pruning dominated patterns.",
-            "infinite");
+            "spent for pruning dominated patterns.");
 
         add_rng_options_to_feature(*this);
         add_pattern_collection_generator_options_to_feature(*this);

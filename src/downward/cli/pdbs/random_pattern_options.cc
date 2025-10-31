@@ -37,15 +37,15 @@ void add_random_pattern_implementation_notes_to_feature(
 void add_random_pattern_bidirectional_option_to_feature(
     plugins::Feature& feature)
 {
-    feature.add_option<bool>(
+    feature.add_optional_argument_with_default<bool>(
         "bidirectional",
+        "true",
         "this option decides if the causal graph is considered to be "
         "directed or undirected selecting predecessors of already selected "
         "variables. If true (default), it is considered to be undirected "
         "(precondition-effect edges are bidirectional). If false, it is "
         "considered to be directed (a variable is a neighbor only if it is a "
-        "predecessor.",
-        "true");
+        "predecessor.");
 }
 
 tuple<bool> get_random_pattern_bidirectional_arguments_from_options(

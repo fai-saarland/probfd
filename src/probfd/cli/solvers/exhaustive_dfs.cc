@@ -88,26 +88,28 @@ public:
     }
 };
 
-class ExhaustiveDFSSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
+class ExhaustiveDFSSolverFeature
+    : public SharedTypedFeature<TaskSolverFactory> {
 public:
     ExhaustiveDFSSolverFeature()
         : SharedTypedFeature("exhaustive_dfs")
     {
         document_title("Exhaustive Depth-First Search");
 
-        add_option<value_t>(
+        add_optional_argument_with_default<value_t>(
             "convergence_epsilon",
-            "The tolerance for convergence checks.",
-            "10e-4");
+            "10e-4",
+            "The tolerance for convergence checks.");
 
-        add_option<std::shared_ptr<FDRTransitionSorter>>(
-            "order",
-            "",
-            ArgumentInfo::NO_DEFAULT);
+        add_required_argument<std::shared_ptr<FDRTransitionSorter>>("order");
 
-        add_option<bool>("dual_bounds", "", "false");
-        add_option<bool>("reverse_path_updates", "", "true");
-        add_option<bool>("only_propagate_when_changed", "", "true");
+        add_optional_argument_with_default<bool>("dual_bounds", "false");
+        add_optional_argument_with_default<bool>(
+            "reverse_path_updates",
+            "true");
+        add_optional_argument_with_default<bool>(
+            "only_propagate_when_changed",
+            "true");
 
         add_base_solver_options_except_algorithm_to_feature(*this);
     }
@@ -120,9 +122,7 @@ protected:
         return make_shared_from_arg_tuples<MDPSolver>(
             make_shared_from_arg_tuples<ExhaustiveDFSSolver>(
                 options.get<value_t>("convergence_epsilon"),
-                options.get_shared<FDRTransitionSorter>(
-                    "order",
-                    nullptr),
+                options.get_shared<FDRTransitionSorter>("order", nullptr),
                 options.get<bool>("dual_bounds"),
                 options.get<bool>("reverse_path_updates"),
                 options.get<bool>("only_propagate_when_changed")),

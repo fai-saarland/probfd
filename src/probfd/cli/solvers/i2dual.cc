@@ -69,16 +69,16 @@ public:
     {
         document_title("i^2-dual");
 
-        add_option<bool>("disable_hpom", "", "false");
-        add_option<bool>("incremental_updates", "", "true");
+        add_optional_argument_with_default<bool>("disable_hpom", "false");
+        add_optional_argument_with_default<bool>("incremental_updates", "true");
 
         add_lp_solver_option_to_feature(*this);
 
-        add_option<double>(
+        add_optional_argument_with_default<double>(
             "fp_epsilon",
+            "0.0001",
             "The tolerance to use when checking for non-zero values in an LP "
-            "solution.",
-            "0.0001");
+            "solution.");
 
         add_base_solver_options_except_algorithm_to_feature(*this);
     }

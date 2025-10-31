@@ -132,11 +132,14 @@ public:
         add_landmark_heuristic_options_to_feature(
             *this,
             "landmark_cost_partitioning");
-        add_option<CostPartitioningMethod>(
+        add_optional_argument_with_default<CostPartitioningMethod>(
             "cost_partitioning",
-            "strategy for partitioning operator costs among landmarks",
-            "uniform");
-        add_option<bool>("alm", "use action landmarks", "true");
+            "uniform",
+            "strategy for partitioning operator costs among landmarks");
+        add_optional_argument_with_default<bool>(
+            "alm",
+            "true",
+            "use action landmarks");
         add_lp_solver_option_to_feature(*this);
 
         document_note(
