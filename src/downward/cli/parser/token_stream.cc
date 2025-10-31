@@ -89,9 +89,9 @@ int TokenStream::size() const
 string TokenStream::str(int from, int to) const
 {
     const auto b = std::ranges::begin(tokens);
-    std::ranges::subrange subrange{
+    std::ranges::subrange subrange(
         std::next(b, from),
-        std::next(b, std::min<int>(to, tokens.size()))};
+        std::next(b, std::min<int>(to, tokens.size())));
     return std::format("{:n:t}", subrange);
 }
 
