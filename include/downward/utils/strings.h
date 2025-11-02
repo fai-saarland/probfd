@@ -33,7 +33,6 @@ template <typename R, typename Char>
 struct formatter<downward::utils::join_view<R, Char>, Char> {
 private:
     using value_type = std::ranges::range_value_t<const R>;
-    using It = std::ranges::iterator_t<const R>;
 
     std::formatter<std::remove_cvref_t<value_type>, Char> value_formatter_;
 
@@ -48,14 +47,16 @@ public:
     format(const downward::utils::join_view<R, Char>& value, FormatContext& ctx)
         const -> decltype(ctx.out())
     {
-        It it = std::ranges::begin(value.range);
+        auto it = std::ranges::begin(value.range);
+        const auto end = std::ranges::end(value.range);
         auto out = ctx.out();
-        if (it == std::ranges::end(value.range)) return out;
-        out = value_formatter_.format(*it, ctx);
-        for (++it; it != std::ranges::end(value.range); ++it) {
-            out = std::copy(value.sep.begin(), value.sep.end(), out);
-            ctx.advance_to(out);
+        if (it != end) {
             out = value_formatter_.format(*it, ctx);
+            for (++it; it != end; ++it) {
+                out = std::copy(value.sep.begin(), value.sep.end(), out);
+                ctx.advance_to(out);
+                out = value_formatter_.format(*it, ctx);
+            }
         }
         return out;
     }
