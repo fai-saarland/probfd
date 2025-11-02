@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <map>
+#include <print>
 
 using namespace std;
 
@@ -148,9 +149,8 @@ void Txt2TagsPrinter::print_usage(const Feature& feature) const
             }
             argument_help_strings.push_back(arg_help);
         }
-        os << utils::join(argument_help_strings, ", ") << ")" << endl
-           << endl
-           << endl;
+        std::print(os, "{}", argument_help_strings);
+        os << ")" << endl << endl << endl;
     }
 }
 
@@ -245,16 +245,11 @@ void PlainPrinter::print_synopsis(const Feature& feature) const
 void PlainPrinter::print_usage(const Feature& feature) const
 {
     if (!feature.get_key().empty()) {
-        os << feature.get_key() << "(";
-        vector<string> argument_help_strings;
-        for (const ArgumentInfo& arg_info : feature.get_arguments()) {
-            string arg_help = arg_info.key;
-            if (!arg_info.default_value.empty()) {
-                arg_help += "=" + arg_info.default_value;
-            }
-            argument_help_strings.push_back(arg_help);
-        }
-        os << utils::join(argument_help_strings, ", ") << ")" << endl;
+        std::println(
+            os,
+            "{}({:n:td})",
+            feature.get_key(),
+            feature.get_arguments());
     }
 }
 

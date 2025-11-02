@@ -283,13 +283,10 @@ bool EnumType::is_enum_type() const
 
 int EnumType::get_enum_index(const string& value, utils::Context& context) const
 {
-    auto it = find(values.begin(), values.end(), value);
-    int enum_index = static_cast<int>(it - values.begin());
+    const auto it = ranges::find(values, value);
+    const int enum_index = static_cast<int>(it - values.begin());
     if (enum_index >= static_cast<int>(values.size())) {
-        ostringstream message;
-        message << "Invalid enum value: " << value << endl
-                << "Options: " << utils::join(values, ", ");
-        context.error(message.str());
+        context.error("Invalid enum value: {}\nOptions: {:n}", value, values);
     }
     return enum_index;
 }
@@ -301,7 +298,7 @@ const EnumInfo& EnumType::get_documented_enum_values() const
 
 string EnumType::name() const
 {
-    return "{" + utils::join(values, ", ") + "}";
+    return std::format("{{{:n}}}", values);
 }
 
 size_t EnumType::get_hash() const

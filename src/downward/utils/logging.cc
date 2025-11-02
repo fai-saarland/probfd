@@ -75,8 +75,11 @@ string Context::str() const
     if (block_stack.empty()) {
         message << INDENT << "Empty";
     } else {
-        message << INDENT
-                << utils::join(block_stack, "\n" + std::string(INDENT) + "-> ");
+        message << INDENT;
+        std::print(
+            message,
+            "{}",
+            utils::join_view(block_stack, "\n" + std::string(INDENT) + "-> "));
     }
     return message.str();
 }
