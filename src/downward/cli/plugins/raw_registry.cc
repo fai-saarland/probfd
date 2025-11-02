@@ -10,65 +10,6 @@
 
 using namespace std;
 
-namespace {
-template <typename R, typename Char = char>
-struct join_view {
-    R range;
-    basic_string_view<Char> sep;
-
-    join_view(R range, basic_string_view<Char> s)
-        : range(std::move(range))
-        , sep(std::move(s))
-    {
-    }
-};
-
-template <typename R>
-join_view(R r, std::string c) -> join_view<std::views::all_t<R>>;
-
-} // namespace
-
-namespace std {
-template <typename R, typename Char>
-struct formatter<join_view<R, Char>, Char> {
-private:
-    using value_type = std::ranges::range_value_t<const R>;
-    using It = std::ranges::iterator_t<const R>;
-
-    std::formatter<std::remove_cvref_t<value_type>, Char> value_formatter_;
-
-public:
-    constexpr auto parse(std::basic_format_parse_context<Char>& ctx)
-    {
-        return value_formatter_.parse(ctx);
-    }
-
-    template <typename FormatContext>
-    auto format(const join_view<R, Char>& value, FormatContext& ctx) const
-        -> decltype(ctx.out())
-    {
-        It it = std::ranges::begin(value.range);
-        auto out = ctx.out();
-        if (it == std::ranges::end(value.range)) return out;
-        out = value_formatter_.format(*it, ctx);
-        for (++it; it != std::ranges::end(value.range); ++it) {
-            out = std::copy(value.sep.begin(), value.sep.end(), out);
-            ctx.advance_to(out);
-            out = value_formatter_.format(*it, ctx);
-        }
-        return out;
-    }
-};
-
-/*
-template <typename It, typename Sentinel, typename Char>
-constexpr bool
-    enable_nonlocking_formatter_optimization<join_view<It, Sentinel, Char>>
-= true;
-*/
-
-} // namespace std
-
 namespace downward::cli::plugins {
 
 FeatureTypes RawRegistry::collect_types(vector<string>& errors) const
@@ -81,7 +22,8 @@ FeatureTypes RawRegistry::collect_types(vector<string>& errors) const
         if (names.empty()) {
             TypeRegistry::instance()->create_enum_type(*enum_plugin);
         }
-        names.push_back("EnumPlugin(" + enum_plugin->get_class_name() + ")");
+        names.push_back(
+            std::format("EnumPlugin({})", enum_plugin->get_class_name()));
     }
 
     for (const auto& category_plugin : category_plugins) {
@@ -93,8 +35,10 @@ FeatureTypes RawRegistry::collect_types(vector<string>& errors) const
             feature_types.push_back(&type);
         }
         names.push_back(
-            "CategoryPlugin(" + category_plugin->get_class_name() + ", " +
-            category_plugin->get_category_name() + ")");
+            std::format(
+                "CategoryPlugin({}, {})",
+                category_plugin->get_class_name(),
+                category_plugin->get_category_name()));
     }
 
     // Check that each type index is only used once for either an enum or a
@@ -102,8 +46,9 @@ FeatureTypes RawRegistry::collect_types(vector<string>& errors) const
     for (const auto& names : type_to_names | views::values) {
         if (names.size() > 1) {
             errors.push_back(
-                "Multiple plugins are defined for the same type: " +
-                utils::join(names, ", ") + "'.");
+                std::format(
+                    "Multiple plugins are defined for the same type: {:n}.",
+                    names));
         }
     }
     return feature_types;
@@ -124,16 +69,21 @@ void RawRegistry::validate_category_names(vector<string>& errors) const
          category_name_to_class_names) {
         if (class_names.size() > 1) {
             errors.push_back(
-                "Multiple CategoryPlugins have the name '" + category_name +
-                "': " + utils::join(class_names, ", ") + ".");
+                std::format(
+                    "Multiple CategoryPlugins have the name '{}': {:n}.",
+                    category_name,
+                    class_names));
         }
     }
     for (const auto& [class_name, category_names] :
          class_name_to_category_names) {
         if (category_names.size() > 1) {
             errors.push_back(
-                "Multiple CategoryPlugins are defined for the class '" +
-                class_name + "': " + utils::join(category_names, ", ") + ".");
+                std::format(
+                    "Multiple CategoryPlugins are defined for the class '{}': "
+                    "{:n}.",
+                    class_name,
+                    category_names));
         }
     }
 }
@@ -154,8 +104,10 @@ RawRegistry::collect_subcategory_plugins(vector<string>& errors) const
     for (const auto& [subcategory, occurrence] : occurrences) {
         if (occurrence > 1) {
             errors.push_back(
-                "The SubcategoryPlugin '" + subcategory + "' is defined " +
-                to_string(occurrence) + " times.");
+                std::format(
+                    "The SubcategoryPlugin '{}' is defined {} times.",
+                    subcategory,
+                    occurrence));
         }
     }
     return subcategory_plugin_map;
@@ -178,8 +130,10 @@ Features RawRegistry::collect_features(
     for (const auto& [feature_key, occurrences] : feature_key_occurrences) {
         if (occurrences > 1) {
             errors.push_back(
-                to_string(occurrences) + " Features are defined for the key '" +
-                feature_key + "'.");
+                std::format(
+                    "{} features are defined for the key '{}'.",
+                    occurrences,
+                    feature_key));
         }
     }
 
@@ -191,8 +145,11 @@ Features RawRegistry::collect_features(
             !subcategory_plugins.contains(subcategory)) {
             const Type& type = feature->get_type();
             errors.push_back(
-                "Missing SubcategoryPlugin '" + subcategory + "' for Plugin '" +
-                feature_key + "' of type " + type.name());
+                std::format(
+                    "Missing SubcategoryPlugin '{}' for Plugin '{}' of type {}",
+                    subcategory,
+                    feature_key,
+                    type.name()));
         }
     }
 
@@ -202,15 +159,20 @@ Features RawRegistry::collect_features(
         const Type& type = feature->get_type();
         if (type == TypeRegistry::NO_TYPE) {
             errors.push_back(
-                "Missing Plugin for type of feature '" + feature_key + "'.");
+                std::format(
+                    "Missing Plugin for type of feature '{}'.",
+                    feature_key));
         }
 
         unordered_map<string, int> parameter_occurrences;
         for (const ArgumentInfo& arg_info : feature->get_arguments()) {
             if (arg_info.type == TypeRegistry::NO_TYPE) {
                 errors.push_back(
-                    "Missing Plugin for type of parameter '" + arg_info.key +
-                    "' of feature '" + feature_key + "'.");
+                    std::format(
+                        "Missing Plugin for type of parameter '{}' of feature "
+                        "'{}'.",
+                        arg_info.key,
+                        feature_key));
             }
             ++parameter_occurrences[arg_info.key];
         }
@@ -219,9 +181,11 @@ Features RawRegistry::collect_features(
              parameter_occurrences) {
             if (parameter_occurrence > 1) {
                 errors.push_back(
-                    "The parameter '" + parameter + "' in '" + feature_key +
-                    "' is defined " + to_string(parameter_occurrence) +
-                    " times.");
+                    std::format(
+                        "The parameter '{}' in '{}' is defined {} times.",
+                        parameter,
+                        feature_key,
+                        parameter_occurrence));
             }
         }
     }
@@ -243,7 +207,7 @@ Registry RawRegistry::construct_registry() const
         throw utils::CriticalError(
             std::format(
                 "Internal registry error(s):\n{}",
-                join_view(std::move(errors), "\n")));
+                utils::join_view(std::move(errors), "\n")));
     }
 
     return Registry(
