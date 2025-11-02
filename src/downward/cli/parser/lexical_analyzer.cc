@@ -59,10 +59,8 @@ static vector<pair<TokenType, regex>> construct_token_type_expressions()
         {TokenType::IDENTIFIER, R"([a-zA-Z_]\w*)"}};
     vector<pair<TokenType, regex>> token_type_expression;
     token_type_expression.reserve(token_type_str_expression.size());
-    for (const auto& pair : token_type_str_expression) {
-        token_type_expression.emplace_back(
-            pair.first,
-            build_regex(pair.second));
+    for (const auto& [token_type, regex_str] : token_type_str_expression) {
+        token_type_expression.emplace_back(token_type, build_regex(regex_str));
     }
     return token_type_expression;
 }
@@ -74,11 +72,12 @@ static string highlight_position(const string& text, string::const_iterator pos)
 {
     ostringstream message_stream;
     int distance_to_highlight = pos - text.begin();
-    for (const string& line : utils::split(text, "\n")) {
+    for (const auto& line : views::split(text, "\n")) {
         int line_length = line.size();
         bool highlight_in_line =
             distance_to_highlight < line_length && distance_to_highlight >= 0;
-        message_stream << (highlight_in_line ? "> " : "  ") << line << endl;
+        message_stream << (highlight_in_line ? "> " : "  ")
+                       << std::string_view(line) << endl;
         if (highlight_in_line) {
             message_stream << string(distance_to_highlight + 2, ' ') << "^"
                            << endl;
@@ -86,7 +85,12 @@ static string highlight_position(const string& text, string::const_iterator pos)
         distance_to_highlight -= line.size() + 1;
     }
     string message = message_stream.str();
-    utils::rstrip(message);
+    message.erase(
+        std::ranges::find_if(
+            message | std::views::reverse,
+            [](int ch) { return !isspace(ch); })
+            .base(),
+        message.end());
     return message;
 }
 

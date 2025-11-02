@@ -265,8 +265,8 @@ EnumType::EnumType(type_index type, const EnumInfo& documented_values)
     , documented_values(documented_values)
 {
     values.reserve(documented_values.size());
-    for (const auto& value_and_doc : documented_values) {
-        values.push_back(utils::tolower(value_and_doc.first));
+    for (const auto& value : documented_values | views::keys) {
+        values.push_back(utils::tolower(value));
     }
 }
 
