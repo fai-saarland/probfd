@@ -32,7 +32,7 @@ class Feature {
     std::vector<NoteInfo> notes;
 
 public:
-    Feature(const Type& type, const std::string& key);
+    Feature(const Type& type, std::string key);
     virtual ~Feature() = default;
     Feature(const Feature&) = delete;
 
@@ -111,8 +111,8 @@ public:
 template <typename ReturnType>
 class TypedFeature : public Feature {
 public:
-    explicit TypedFeature(const std::string& key)
-        : Feature(TypeRegistry::instance()->get_type<ReturnType>(), key)
+    explicit TypedFeature(std::string key)
+        : Feature(TypeRegistry::instance()->get_type<ReturnType>(), std::move(key))
     {
     }
 

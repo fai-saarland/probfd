@@ -5,9 +5,9 @@
 using namespace std;
 
 namespace downward::cli::plugins {
-Feature::Feature(const Type& type, const string& key)
+Feature::Feature(const Type& type, string key)
     : type(type)
-    , key(utils::tolower(key))
+    , key(std::move(key))
 {
 }
 

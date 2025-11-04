@@ -13,6 +13,7 @@
 #include "downward/utils/strings.h"
 
 #include <cassert>
+#include <charconv>
 #include <set>
 #include <unordered_map>
 #include <vector>
@@ -796,61 +797,60 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
             &plugins::TypeRegistry::instance()->get_type<string>()};
     }
     case TokenType::INTEGER: {
-        int v;
-
         if (value.content == "infinity") {
-            v = numeric_limits<int>::max();
-        } else {
-            char suffix = value.content.back();
-            string prefix = value.content;
-            int factor = 1;
-            if (isalpha(suffix)) {
-                suffix = static_cast<char>(tolower(suffix));
-                if (suffix == 'k') {
-                    factor = 1000;
-                } else if (suffix == 'm') {
-                    factor = 1000000;
-                } else if (suffix == 'g') {
-                    factor = 1000000000;
-                } else {
-                    throw utils::CriticalError(
-                        "Invalid suffix in int constant '{}'.",
-                        value.content);
-                }
-                prefix.pop_back();
-            }
-
-            const int x = [&] {
-                try {
-                    return std::stoi(prefix);
-                } catch (const std::invalid_argument&) {
-                    throw utils::CriticalError(
-                        "Could not parse int constant '{}.",
-                        value.content);
-                } catch (const std::out_of_range&) {
-                    throw utils::CriticalError(
-                        "Integer value is out of range: '{}.",
-                        value.content);
-                }
-            }();
-
-            // Reserve highest value for "infinity".
-            if (!utils::is_product_within_limits(
-                    x,
-                    factor,
-                    numeric_limits<int>::min(),
-                    numeric_limits<int>::max() - 1)) {
-                context.error(
-                    "Absolute value of integer constant too large: '{}'",
-                    value.content);
-            }
-
-            v = factor * x;
+            return {
+                std::make_unique<IntLiteralNode>(numeric_limits<int>::max()),
+                &plugins::TypeRegistry::instance()->get_type<int>()};
         }
 
-        return {
-            std::make_unique<IntLiteralNode>(v),
-            &plugins::TypeRegistry::instance()->get_type<int>()};
+        auto it = std::ranges::find_if(value.content, [](char c) {
+            return !std::isdigit(c);
+        });
+
+        std::string_view prefix{value.content.begin(), it};
+        std::string_view suffix{it, value.content.end()};
+
+        switch (int x;
+                std::from_chars(prefix.data(), prefix.data() + prefix.size(), x)
+                    .ec) {
+        case std::errc::invalid_argument:
+            throw utils::CriticalError(
+                "Could not parse int constant '{}'.",
+                value.content);
+        case std::errc::result_out_of_range:
+            context.error(
+                "Integer value is out of range: '{}'.",
+                value.content);
+        default:
+            if (suffix.empty()) {
+                return {
+                    std::make_unique<IntLiteralNode>(x),
+                    &plugins::TypeRegistry::instance()->get_type<int>()};
+            }
+
+            const auto& registry = env.get_registry();
+            const auto operator_fname = std::format("__operator_{}__", suffix);
+
+            if (!registry.has_feature(operator_fname)) {
+                context.error(
+                    "User-defined literal function '{}' not found.",
+                    operator_fname);
+            }
+
+            const auto& feature = registry.get_feature(operator_fname);
+
+            std::vector<std::pair<std::string, FunctionArgument>> arguments;
+            arguments.emplace_back(
+                "value",
+                FunctionArgument(std::make_unique<IntLiteralNode>(x), false));
+
+            return {
+                std::make_unique<DecoratedFunctionCallNode>(
+                    std::make_unique<FeatureLiteralNode>(feature),
+                    std::move(arguments),
+                    ""),
+                &feature->get_type()};
+        }
     }
     case TokenType::FLOAT: {
         double d;
@@ -865,7 +865,7 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
                     "Could not parse double constant '{}.",
                     value.content);
             } catch (const std::out_of_range&) {
-                throw utils::CriticalError(
+                context.error(
                     "Float value is out of range: '{}.",
                     value.content);
             }
