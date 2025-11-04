@@ -49,10 +49,14 @@ static vector<pair<TokenType, regex>> construct_token_type_expressions()
         {TokenType::DURATION,
          R"((\d+([.]\d*)?(e[+-]?\d+)?|[.]\d+(e[+-]?\d+)?)(ns|us|ms|s|min|h)|infinite)"},
         {TokenType::FLOAT,
-         R"((((\d*\.\d+|\d+\.)(e[+-]?\d+|[kmg]\b)?)|\d+e[+-]?\d+))"},
-        {TokenType::INTEGER, R"((infinity|\d+([kmg]\b)?))"},
-        {TokenType::IN, R"(in(?![a-z0-9]))"},
-        {TokenType::AS, R"(as(?![a-z0-9]))"},
+         R"((((\d*[.]\d+|\d+[.])(e[+-]?\d+)?)|\d+e[+-]?\d+)([kmg]\b)?)"},
+        /*
+         * Integers may have a user-defined literal suffix, e.g. '4k'.
+         * this will be translated to a call to __literal_k__(4)
+         */
+        {TokenType::INTEGER, R"((infinity|\d+([A-Za-z_][A-Za-z_0-9]*)?))"},
+        {TokenType::IN, R"(in\b)"},
+        {TokenType::AS, R"(as\b)"},
         /*
           Identifiers have to be parsed last to prevent reserved words (
           'infinity', 'true', 'false', and 'let') from being recognized as

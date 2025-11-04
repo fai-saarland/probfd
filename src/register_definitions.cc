@@ -1,5 +1,7 @@
 #include "register_definitions.h"
 
+#include "downward/cli/plugins/plugin.h"
+
 #include "downward/cli/cartesian_abstractions/subtask_generators_category.h"
 #include "downward/cli/cartesian_abstractions/subtask_generators_features.h"
 
@@ -125,6 +127,8 @@
 #include "downward/cli/utils/verbosity_enum.h"
 
 #include "downward/cli/operator_cost_category.h"
+#include "downward/cli/plugins/raw_registry.h"
+#include "downward/utils/math.h"
 
 #include "probfd/cli/cartesian_abstractions/adaptive_flaw_generator.h"
 #include "probfd/cli/cartesian_abstractions/flaw_generator_category.h"
@@ -218,11 +222,53 @@
 
 using namespace downward::cli;
 
-namespace probfd {
+namespace {
+
+template <std::size_t F, auto S>
+class LiteralFeature : public plugins::TypedFeature<int> {
+public:
+    LiteralFeature()
+        : TypedFeature(
+              static_cast<std::string>(static_cast<std::string_view>(S)))
+    {
+        add_required_argument<int>("value");
+    }
+
+    int create_component(
+        const plugins::Options& opts,
+        const downward::utils::Context& context) const override
+    {
+        const int v = opts.get<int>("value");
+        if (!downward::utils::is_product_within_limits(
+                v,
+                F,
+                std::numeric_limits<int>::min(),
+                std::numeric_limits<int>::max() - 1)) {
+            context.error("Integer would be out of range!");
+        }
+        return F * v;
+    }
+};
+
+} // namespace
+
+namespace probfd
+
+{
 
 static void
 register_fast_downward_definitions(plugins::RawRegistry& raw_registry)
 {
+    using namespace downward::utils::string_literals;
+
+    // Literal suffixes
+    raw_registry
+        .insert_feature_plugin<LiteralFeature<1'000, "__operator_k__"_sl>>();
+    raw_registry.insert_feature_plugin<
+        LiteralFeature<1'000'000, "__operator_m__"_sl>>();
+    raw_registry.insert_feature_plugin<
+        LiteralFeature<1'000'000'000, "__operator_g__"_sl>>();
+
     // Cartesian abstractions
     cartesian_abstractions::add_subtask_generator_category(raw_registry);
     cartesian_abstractions::add_subtask_generators_features(raw_registry);
@@ -510,10 +556,12 @@ static void register_probfd_definitions(plugins::RawRegistry& raw_registry)
     probfd::cli::solvers::add_topological_value_iteration_feature(raw_registry);
 
     // Successor Samplers
-    probfd::cli::successor_samplers::add_successor_sampler_features(raw_registry);
+    probfd::cli::successor_samplers::add_successor_sampler_features(
+        raw_registry);
 
     // Transition Sorters
-    probfd::cli::transiton_sorters::add_transition_sorter_features(raw_registry);
+    probfd::cli::transiton_sorters::add_transition_sorter_features(
+        raw_registry);
 
     // Task State Spaces
     probfd::cli::add_task_state_space_factory_category(raw_registry);
