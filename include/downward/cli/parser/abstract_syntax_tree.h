@@ -148,6 +148,18 @@ public:
     void dump(std::string indent) const override;
 };
 
+class UnaryNode : public ASTNode {
+    ASTNodePtr nested_expr;
+    TokenType token_type;
+
+public:
+    UnaryNode(ASTNodePtr nested_expr, const TokenType& token_type);
+
+    TypedDecoratedAstNodePtr
+    decorate(utils::Context& context, VariableEnvironment& env) const override;
+    void dump(std::string indent) const override;
+};
+
 class LiteralNode : public ASTNode {
     Token value;
 

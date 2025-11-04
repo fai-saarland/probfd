@@ -666,6 +666,44 @@ void ListNode::dump(string indent) const
     for (const ASTNodePtr& node : elements) { node->dump(indent); }
 }
 
+UnaryNode::UnaryNode(ASTNodePtr nested_expr, const TokenType& token_type)
+    : nested_expr(std::move(nested_expr))
+    , token_type(token_type)
+{
+}
+
+TypedDecoratedAstNodePtr
+UnaryNode::decorate(utils::Context& context, VariableEnvironment& env) const
+{
+    auto [ast_node, type] = nested_expr->decorate(context, env);
+
+    if (type == &plugins::TypeRegistry::instance()->get_type<int>()) {
+        return {
+            std::make_unique<DecoratedUnaryExpressionNode<int>>(
+                std::move(ast_node),
+                token_type),
+            type};
+    }
+
+    if (type == &plugins::TypeRegistry::instance()->get_type<double>()) {
+        return {
+            std::make_unique<DecoratedUnaryExpressionNode<double>>(
+                std::move(ast_node),
+                token_type),
+            type};
+    }
+
+    context.error(
+        "Operator of unary arithmetic expression is not of numeric type.");
+}
+
+void UnaryNode::dump(std::string indent) const
+{
+    cout << indent << token_type_name(token_type);
+    nested_expr->dump("");
+    cout << endl;
+}
+
 LiteralNode::LiteralNode(const Token& value)
     : value(value)
 {
