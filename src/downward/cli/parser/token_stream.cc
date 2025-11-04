@@ -105,6 +105,8 @@ string token_type_name(TokenType token_type)
     case TokenType::COMMA: return ",";
     case TokenType::COLON: return ":";
     case TokenType::EQUALS: return "=";
+    case TokenType::PLUS: return "+";
+    case TokenType::MINUS: return "-";
     case TokenType::LET: return "Let";
     case TokenType::AS: return "As";
     case TokenType::IN: return "In";

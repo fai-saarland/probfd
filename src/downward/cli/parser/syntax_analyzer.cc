@@ -415,6 +415,13 @@ parse_node(TokenStream& tokens, SyntaxAnalyzerContext& context)
     case TokenType::OPENING_BRACKET: return parse_list(tokens, context);
     case TokenType::LET: return parse_let(tokens, context);
     case TokenType::LAMBDA: return parse_lambda(tokens, context);
+    case TokenType::PLUS:
+    case TokenType::MINUS: {
+        tokens.pop(context);
+        return std::make_unique<UnaryNode>(
+            parse_node(tokens, context),
+            token.type);
+    }
     case TokenType::BOOLEAN:
     case TokenType::STRING:
     case TokenType::INTEGER:

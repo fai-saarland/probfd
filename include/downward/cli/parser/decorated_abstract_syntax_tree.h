@@ -2,6 +2,7 @@
 #define PARSER_DECORATED_ABSTRACT_SYNTAX_TREE_H
 
 #include "downward/cli/plugins/plugin.h"
+#include "token_stream.h"
 
 #include "downward/utils/logging.h"
 
@@ -166,7 +167,8 @@ class FeatureLiteralNode : public DecoratedASTNode {
     std::shared_ptr<const plugins::Feature> feature;
 
 public:
-    explicit FeatureLiteralNode(std::shared_ptr<const plugins::Feature> feature);
+    explicit FeatureLiteralNode(
+        std::shared_ptr<const plugins::Feature> feature);
 
     void remove_variable_usages() override {}
 
@@ -174,6 +176,26 @@ public:
     void print(std::ostream& out, std::size_t indent, bool print_default_args)
         const override;
 };
+
+template <typename T>
+    requires std::same_as<T, int> || std::same_as<T, double>
+class DecoratedUnaryExpressionNode : public DecoratedASTNode {
+    DecoratedASTNodePtr nested_expr;
+    TokenType token_type;
+
+public:
+    DecoratedUnaryExpressionNode(
+        DecoratedASTNodePtr nested_expr,
+        TokenType token_type);
+
+    std::any construct(ConstructContext& context) const override;
+
+    void print(std::ostream& out, std::size_t indent, bool print_default_args)
+        const override;
+};
+
+extern template class DecoratedUnaryExpressionNode<int>;
+extern template class DecoratedUnaryExpressionNode<double>;
 
 class BoolLiteralNode : public DecoratedASTNode {
     bool value;

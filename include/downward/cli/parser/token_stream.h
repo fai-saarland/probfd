@@ -22,6 +22,8 @@ enum class TokenType {
     COMMA,
     COLON,
     EQUALS,
+    PLUS,
+    MINUS,
     LET,
     LAMBDA,
     AS,
