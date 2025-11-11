@@ -7,9 +7,12 @@ class RawRegistry;
 
 namespace probfd::cli::transiton_sorters {
 
+void add_transition_sorter_category(
+    downward::cli::plugins::RawRegistry& raw_registry);
+
 void add_transition_sorter_features(
     downward::cli::plugins::RawRegistry& raw_registry);
 
-}
+} // namespace probfd::cli::transiton_sorters
 
 #endif

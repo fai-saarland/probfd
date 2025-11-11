@@ -7,6 +7,9 @@ class RawRegistry;
 
 namespace probfd::cli::successor_samplers {
 
+void add_successor_sampler_category(
+    downward::cli::plugins::RawRegistry& raw_registry);
+
 void add_successor_sampler_features(
     downward::cli::plugins::RawRegistry& raw_registry);
 

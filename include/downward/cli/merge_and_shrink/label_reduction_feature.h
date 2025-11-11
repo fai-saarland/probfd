@@ -7,6 +7,9 @@ class RawRegistry;
 
 namespace downward::cli::merge_and_shrink {
 
+void add_label_reduction_category(
+    downward::cli::plugins::RawRegistry& raw_registry);
+
 void add_label_reduction_features(
     downward::cli::plugins::RawRegistry& raw_registry);
 
