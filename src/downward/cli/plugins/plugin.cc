@@ -11,44 +11,6 @@ Feature::Feature(const Type& type, string key)
 {
 }
 
-void Feature::add_optional_duration_argument(
-    const std::string& key,
-    const std::string& help)
-{
-    add_optional_argument<downward::utils::DynamicDuration>(key, help);
-}
-
-void Feature::add_optional_duration_argument_with_default(
-    const std::string& key,
-    const std::string& default_value,
-    const std::string& help)
-{
-    add_optional_argument_with_default<downward::utils::DynamicDuration>(
-        key,
-        default_value,
-        help);
-}
-
-void Feature::add_required_duration_argument(
-    const std::string& key,
-    const std::string& help)
-{
-    add_required_argument<downward::utils::DynamicDuration>(key, help);
-}
-
-void add_optional_duration_argument(
-    const std::string& key,
-    const std::string& help = "");
-
-void add_optional_duration_argument(
-    const std::string& key,
-    const std::string& default_value,
-    const std::string& help = "");
-
-void add_required_duration_argument(
-    const std::string& key,
-    const std::string& help = "");
-
 void Feature::document_subcategory(const string& subcategory)
 {
     this->subcategory = subcategory;

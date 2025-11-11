@@ -46,13 +46,13 @@ void add_search_algorithm_options_to_feature(
     add_cost_type_options_to_feature(feature);
     feature.add_optional_argument_with_default<int>(
         "bound",
-        "infinity",
+        "infinity()",
         "exclusive depth bound on g-values. Cutoffs are always performed "
         "according to "
         "the real cost, regardless of the cost_type parameter");
-    feature.add_optional_duration_argument_with_default(
+    feature.add_optional_argument_with_default<downward::utils::FSeconds>(
         "max_time",
-        "infinite",
+        "seconds_max()",
         "maximum time in seconds the search is allowed to run for. The "
         "timeout is only checked after each complete search step "
         "(usually a node expansion), so the actual runtime can be arbitrarily "

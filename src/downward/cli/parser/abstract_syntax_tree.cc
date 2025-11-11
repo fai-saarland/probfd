@@ -710,14 +710,6 @@ LiteralNode::LiteralNode(const Token& value)
 {
 }
 
-static const std::unordered_map<std::string, std::pair<int, int>> ratios = {
-    {"ns", {1, 1000000000}},
-    {"us", {1, 1000000}},
-    {"ms", {1, 1000}},
-    {"s", {1, 1}},
-    {"min", {60, 1}},
-    {"h", {3600, 1}}};
-
 TypedDecoratedAstNodePtr
 LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
 {
@@ -744,21 +736,14 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
     }
 
     switch (value.type) {
-    case TokenType::BOOLEAN: {
-        bool b;
-
-        if (value.content == "true") {
-            b = true;
-        } else if (value.content == "false") {
-            b = false;
-        } else {
-            throw utils::CriticalError(
-                "Could not parse bool constant '{}'.",
-                value.content);
-        }
-
+    case TokenType::TRUE: {
         return {
-            std::make_unique<BoolLiteralNode>(b),
+            std::make_unique<BoolLiteralNode>(true),
+            &plugins::TypeRegistry::instance()->get_type<bool>()};
+    }
+    case TokenType::FALSE: {
+        return {
+            std::make_unique<BoolLiteralNode>(false),
             &plugins::TypeRegistry::instance()->get_type<bool>()};
     }
     case TokenType::STRING: {
@@ -797,43 +782,35 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
             &plugins::TypeRegistry::instance()->get_type<string>()};
     }
     case TokenType::INTEGER: {
-        if (value.content == "infinity") {
-            return {
-                std::make_unique<IntLiteralNode>(numeric_limits<int>::max()),
-                &plugins::TypeRegistry::instance()->get_type<int>()};
-        }
+        std::string_view sv{value.content.begin(), value.content.end()};
 
-        auto it = std::ranges::find_if(value.content, [](char c) {
-            return !std::isdigit(c);
-        });
+        int x;
+        const auto [data, ec] = std::from_chars(sv.begin(), sv.end(), x);
 
-        std::string_view prefix{value.content.begin(), it};
-        std::string_view suffix{it, value.content.end()};
-
-        switch (int x;
-                std::from_chars(prefix.data(), prefix.data() + prefix.size(), x)
-                    .ec) {
+        switch (ec) {
         case std::errc::invalid_argument:
             throw utils::CriticalError(
-                "Could not parse int constant '{}'.",
+                "Could not parse integer literal '{}'.",
                 value.content);
         case std::errc::result_out_of_range:
             context.error(
                 "Integer value is out of range: '{}'.",
                 value.content);
         default:
-            if (suffix.empty()) {
+            if (data == sv.end()) {
                 return {
                     std::make_unique<IntLiteralNode>(x),
                     &plugins::TypeRegistry::instance()->get_type<int>()};
             }
 
             const auto& registry = env.get_registry();
-            const auto operator_fname = std::format("__operator_{}__", suffix);
+            const auto operator_fname = std::format(
+                "__operator_int_{}__",
+                std::string_view{data, sv.end()});
 
             if (!registry.has_feature(operator_fname)) {
                 context.error(
-                    "User-defined literal function '{}' not found.",
+                    "User-defined int literal function '{}' not found.",
                     operator_fname);
             }
 
@@ -853,69 +830,50 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
         }
     }
     case TokenType::FLOAT: {
-        double d;
+        std::string_view sv{value.content.begin(), value.content.end()};
 
-        if (value.content == "infinity") {
-            d = numeric_limits<double>::infinity();
-        } else {
-            try {
-                d = std::stod(value.content);
-            } catch (const std::invalid_argument&) {
-                throw utils::CriticalError(
-                    "Could not parse double constant '{}.",
-                    value.content);
-            } catch (const std::out_of_range&) {
+        double x;
+        const auto [data, ec] = std::from_chars(sv.begin(), sv.end(), x);
+
+        switch (ec) {
+        case std::errc::invalid_argument:
+            throw utils::CriticalError(
+                "Could not parse float literal '{}'.",
+                value.content);
+        case std::errc::result_out_of_range:
+            context.error("Float value is out of range: '{}'.", value.content);
+        default:
+            if (data == sv.end()) {
+                return {
+                    std::make_unique<IntLiteralNode>(x),
+                    &plugins::TypeRegistry::instance()->get_type<int>()};
+            }
+
+            const auto& registry = env.get_registry();
+            const auto operator_fname = std::format(
+                "__operator_float_{}__",
+                string_view{data, sv.end()});
+
+            if (!registry.has_feature(operator_fname)) {
                 context.error(
-                    "Float value is out of range: '{}.",
-                    value.content);
+                    "User-defined float literal function '{}' not found.",
+                    operator_fname);
             }
+
+            const auto& feature = registry.get_feature(operator_fname);
+
+            std::vector<std::pair<std::string, FunctionArgument>> arguments;
+            arguments.emplace_back(
+                "value",
+                FunctionArgument(std::make_unique<FloatLiteralNode>(x), false));
+
+            return {
+                std::make_unique<DecoratedFunctionCallNode>(
+                    std::make_unique<FeatureLiteralNode>(feature),
+                    std::move(arguments),
+                    ""),
+                &feature->get_type()};
         }
-
-        return {
-            std::make_unique<FloatLiteralNode>(d),
-            &plugins::TypeRegistry::instance()->get_type<double>()};
-    }
-    case TokenType::DURATION: {
-        utils::DynamicDuration dur;
-
-        if (value.content == "infinite") {
-            dur = utils::DynamicDuration(std::chrono::seconds::max());
-        } else {
-            istringstream stream(value.content);
-            long double x;
-            stream >> noskipws >> x;
-            if (stream.fail()) {
-                throw utils::CriticalError(
-                    "Could not parse double constant '{}'.",
-                    value.content);
-            }
-
-            if (stream.eof()) {
-                throw utils::CriticalError("Missing duration suffix.");
-            }
-
-            std::string suffix;
-            stream >> noskipws >> suffix;
-            if (stream.fail() || !stream.eof()) {
-                throw utils::CriticalError(
-                    "Could not parse duration suffix for '{}'.",
-                    value.content);
-            }
-
-            if (const auto it = ratios.find(suffix); it != ratios.end()) {
-                const auto [num, denom] = it->second;
-                dur = utils::DynamicDuration{num, denom, x};
-            } else {
-                throw utils::CriticalError(
-                    "Unknown duration suffix '{}'.",
-                    suffix);
-            }
-        }
-
-        return {
-            std::make_unique<DurationLiteralNode>(dur),
-            &plugins::TypeRegistry::instance()
-                 ->get_type<utils::DynamicDuration>()};
     }
     case TokenType::IDENTIFIER:
         return {

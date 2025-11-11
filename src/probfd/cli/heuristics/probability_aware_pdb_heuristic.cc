@@ -41,9 +41,9 @@ public:
             "patterns",
             "classical_generator(generator=systematic(pattern_max_size=2))",
             "The pattern generation method");
-        add_optional_argument_with_default<double>(
+        add_optional_argument_with_default<utils::FSeconds>(
             "max_time_dominance_pruning",
-            "0.0",
+            "0.0s",
             "The maximum time spent pruning dominated patterns");
         add_task_dependent_heuristic_options_to_feature(*this);
     }

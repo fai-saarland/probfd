@@ -70,19 +70,6 @@ public:
         const std::string& key,
         const std::string& help = "");
 
-    void add_optional_duration_argument(
-        const std::string& key,
-        const std::string& help = "");
-
-    void add_optional_duration_argument_with_default(
-        const std::string& key,
-        const std::string& default_value,
-        const std::string& help = "");
-
-    void add_required_duration_argument(
-        const std::string& key,
-        const std::string& help = "");
-
     void document_subcategory(const std::string& subcategory);
     void document_title(const std::string& title);
     void document_synopsis(const std::string& note);

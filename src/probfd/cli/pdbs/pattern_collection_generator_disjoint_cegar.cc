@@ -47,12 +47,12 @@ void add_pattern_collection_generator_cegar_options_to_feature(Feature& feature)
         "goal variable pattern(s))");
     feature.add_optional_argument_with_default<int>(
         "max_collection_size",
-        "infinity",
+        "infinity()",
         "limit for the total number of PDB entries across all PDBs (not "
         "applied to initial goal variable pattern(s))");
-    feature.add_optional_duration_argument_with_default(
+    feature.add_optional_argument_with_default<downward::utils::FSeconds>(
         "max_time",
-        "infinite",
+        "seconds_max()",
         "maximum time in seconds for CEGAR pattern generation. "
         "This includes the creation of the initial PDB collection"
         " as well as the creation of the correlation matrix.");

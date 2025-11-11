@@ -145,16 +145,16 @@ public:
             "subtask generators");
         add_optional_argument_with_default<int>(
             "max_states",
-            "infinity",
+            "infinity()",
             "maximum sum of abstract states over all abstractions");
         add_optional_argument_with_default<int>(
             "max_transitions",
             "1M",
             "maximum sum of real transitions (excluding self-loops) over "
             " all abstractions");
-        add_optional_duration_argument_with_default(
+        add_optional_argument_with_default<downward::utils::FSeconds>(
             "max_time",
-            "infinite",
+            "seconds_max()",
             "maximum time in seconds for building abstractions");
         add_optional_argument_with_default<PickSplit>(
             "pick",

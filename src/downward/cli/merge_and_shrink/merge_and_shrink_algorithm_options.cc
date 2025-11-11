@@ -57,9 +57,9 @@ void add_merge_and_shrink_algorithm_options_to_feature(Feature& feature)
 
     add_transition_system_size_limit_options_to_feature(feature);
 
-    feature.add_optional_duration_argument_with_default(
+    feature.add_optional_argument_with_default<downward::utils::FSeconds>(
         "main_loop_max_time",
-        "infinite",
+        "seconds_max()",
         "A limit in seconds on the runtime of the main loop of the algorithm. "
         "If the limit is exceeded, the algorithm terminates, potentially "
         "returning a factored transition system with several factors. Also "

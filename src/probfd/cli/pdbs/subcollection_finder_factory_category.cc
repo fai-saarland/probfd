@@ -13,7 +13,7 @@ namespace probfd::cli::pdbs {
 
 void add_subcollection_finder_factory_category(RawRegistry& raw_registry)
 {
-    raw_registry.insert_category_plugin<SubCollectionFinderFactory>(
+    raw_registry.insert_shared_category_plugin<SubCollectionFinderFactory>(
         "SubCollectionFinderFactory");
 }
 

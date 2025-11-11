@@ -12,7 +12,7 @@ namespace probfd::cli::merge_and_shrink {
 
 void add_merge_strategy_factory_category(RawRegistry& raw_registry)
 {
-    auto& category = raw_registry.insert_category_plugin<MergeStrategyFactory>(
+    auto& category = raw_registry.insert_shared_category_plugin<MergeStrategyFactory>(
         "PMergeStrategy");
     category.document_synopsis(
         "This page describes the various merge strategies supported "

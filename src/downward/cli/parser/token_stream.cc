@@ -15,8 +15,9 @@ using namespace std;
 namespace downward::cli::parser {
 static string case_insensitive_to_lower(const string& content, TokenType type)
 {
-    if (type == TokenType::BOOLEAN || type == TokenType::INTEGER ||
-        type == TokenType::FLOAT || type == TokenType::IDENTIFIER) {
+    if (type == TokenType::TRUE || type == TokenType::FALSE ||
+        type == TokenType::INTEGER || type == TokenType::FLOAT ||
+        type == TokenType::IDENTIFIER) {
         return utils::tolower(content);
     } else {
         return content;
@@ -111,11 +112,11 @@ string token_type_name(TokenType token_type)
     case TokenType::AS: return "As";
     case TokenType::IN: return "In";
     case TokenType::LAMBDA: return "Lambda";
-    case TokenType::BOOLEAN: return "Boolean";
+    case TokenType::TRUE: return "true";
+    case TokenType::FALSE: return "false";
     case TokenType::STRING: return "String";
     case TokenType::INTEGER: return "Integer";
     case TokenType::FLOAT: return "Float";
-    case TokenType::DURATION: return "Duration";
     case TokenType::IDENTIFIER: return "Identifier";
     case TokenType::TYPE_BOOL: return "bool";
     case TokenType::TYPE_STRING: return "string";

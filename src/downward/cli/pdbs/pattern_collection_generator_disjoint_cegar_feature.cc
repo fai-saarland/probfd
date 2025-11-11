@@ -57,9 +57,9 @@ public:
             "initial collection consisting of a singleton pattern for each "
             "goal "
             "variable)");
-        add_optional_argument_with_default<double>(
+        add_optional_argument_with_default<FSeconds>(
             "max_time",
-            "infinity",
+            "seconds_max()",
             "maximum time in seconds for this pattern collection generator "
             "(ignored for computing the initial collection consisting of a "
             "singleton pattern for each goal variable)");

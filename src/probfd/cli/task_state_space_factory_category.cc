@@ -11,7 +11,7 @@ namespace probfd::cli {
 
 void add_task_state_space_factory_category(RawRegistry& raw_registry)
 {
-    raw_registry.insert_category_plugin<TaskStateSpaceFactory>(
+    raw_registry.insert_shared_category_plugin<TaskStateSpaceFactory>(
         "TaskStateSpaceFactory");
 }
 

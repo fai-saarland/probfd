@@ -26,7 +26,7 @@ public:
 
         add_optional_argument_with_default<int>(
             "max_search_states",
-            "infinity",
+            "infinity()",
             "maximum number of concrete states allowed to be generated during "
             "flaw "
             "search before giving up");
