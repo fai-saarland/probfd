@@ -31,9 +31,7 @@ Exploration::Exploration(
     const AxiomSpace& axioms,
     const ClassicalOperatorSpace& operators,
     utils::LogProxy& log)
-    : variables(variables)
-    , axioms(axioms)
-    , operators(operators)
+    : operators(operators)
 {
     if (log.is_at_least_normal()) {
         log << "Initializing Exploration..." << endl;

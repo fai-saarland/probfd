@@ -58,8 +58,6 @@ struct UnaryOperator {
 };
 
 class Exploration {
-    const VariableSpace& variables;
-    const AxiomSpace& axioms;
     const ClassicalOperatorSpace& operators;
 
     std::vector<UnaryOperator> unary_operators;
