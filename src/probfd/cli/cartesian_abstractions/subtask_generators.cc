@@ -96,13 +96,16 @@ public:
 
 namespace probfd::cli::cartesian_abstractions {
 
-void add_subtask_generator_features(RawRegistry& raw_registry)
+void add_subtask_generator_category(RawRegistry& raw_registry)
 {
     auto& category = raw_registry.insert_shared_category_plugin<SubtaskGenerator>(
         "PSubtaskGenerator");
     category.document_synopsis(
         "Subtask generator (used by the CEGAR heuristic).");
+}
 
+void add_subtask_generator_features(RawRegistry& raw_registry)
+{
     raw_registry.insert_feature_plugin<TaskDuplicatorFeature>();
     raw_registry.insert_feature_plugin<GoalDecompositionFeature>();
     raw_registry.insert_feature_plugin<LandmarkDecompositionFeature>();

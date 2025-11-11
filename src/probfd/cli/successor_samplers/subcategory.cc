@@ -183,9 +183,13 @@ public:
 
 namespace probfd::cli::successor_samplers {
 
-void add_successor_sampler_features(RawRegistry& raw_registry)
+void add_successor_sampler_category(RawRegistry& raw_registry)
 {
     raw_registry.insert_category_plugins<SuccessorSamplerCategoryPlugin>();
+}
+
+void add_successor_sampler_features(RawRegistry& raw_registry)
+{
     raw_registry.insert_feature_plugins<ArbitrarySuccessorSamplerFeature>();
     raw_registry.insert_feature_plugins<MostLikelySuccessorSamplerFeature>();
     raw_registry.insert_feature_plugins<RandomSuccessorSamplerFeature>();

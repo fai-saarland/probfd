@@ -7,6 +7,9 @@ class RawRegistry;
 
 namespace probfd::cli::open_lists {
 
+void add_open_list_categories(
+    downward::cli::plugins::RawRegistry& raw_registry);
+
 void add_open_list_features(
     downward::cli::plugins::RawRegistry& raw_registry);
 

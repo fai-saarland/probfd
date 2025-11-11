@@ -7,9 +7,12 @@ class RawRegistry;
 
 namespace probfd::cli::cartesian_abstractions {
 
+void add_split_selector_category(
+    downward::cli::plugins::RawRegistry& raw_registry);
+
 void add_split_selector_features(
     downward::cli::plugins::RawRegistry& raw_registry);
 
-}
+} // namespace probfd::cli::cartesian_abstractions
 
 #endif

@@ -169,10 +169,13 @@ public:
 
 namespace probfd::cli::policy_pickers {
 
-void add_policy_picker_features(RawRegistry& raw_registry)
+void add_policy_picker_category(RawRegistry& raw_registry)
 {
     raw_registry.insert_category_plugins<PolicyPickerCategoryPlugin>();
+}
 
+void add_policy_picker_features(RawRegistry& raw_registry)
+{
     raw_registry.insert_feature_plugin<OperatorIDTieBreakerFeature>();
     raw_registry.insert_feature_plugins<ArbitraryTieBreakerFeature>();
     raw_registry.insert_feature_plugins<RandomTieBreakerFeature>();

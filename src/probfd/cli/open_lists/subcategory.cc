@@ -85,9 +85,13 @@ public:
 
 namespace probfd::cli::open_lists {
 
-void add_open_list_features(RawRegistry& raw_registry)
+void add_open_list_categories(RawRegistry& raw_registry)
 {
     raw_registry.insert_category_plugins<ProbfdOpenListCategoryPlugin>();
+}
+
+void add_open_list_features(RawRegistry& raw_registry)
+{
     raw_registry.insert_feature_plugins<FifoOpenListFeature>();
     raw_registry.insert_feature_plugins<LifoOpenListFeature>();
 }

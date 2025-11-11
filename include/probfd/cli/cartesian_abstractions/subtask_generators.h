@@ -7,6 +7,9 @@ class RawRegistry;
 
 namespace probfd::cli::cartesian_abstractions {
 
+void add_subtask_generator_category(
+    downward::cli::plugins::RawRegistry& raw_registry);
+
 void add_subtask_generator_features(
     downward::cli::plugins::RawRegistry& raw_registry);
 

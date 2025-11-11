@@ -98,14 +98,17 @@ public:
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_label_reduction_features(RawRegistry& raw_registry)
+void add_label_reduction_category(RawRegistry& raw_registry)
 {
     auto& category =
         raw_registry.insert_shared_category_plugin<LabelReduction>("PLabelReduction");
     category.document_synopsis(
         "This page describes the current single 'option' for "
         "label reduction.");
+}
 
+void add_label_reduction_features(RawRegistry& raw_registry)
+{
     raw_registry.insert_feature_plugin<LabelReductionFeature>();
 
     raw_registry.insert_enum_plugin<LabelReductionMethod>(

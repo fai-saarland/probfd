@@ -293,6 +293,8 @@ public:
         : ConstructInfiniteFeature::TypedFeature(
               static_cast<std::string>(static_cast<std::string_view>(S)))
     {
+        this->document_synopsis(
+            "Returns a maximum / infinite duration.");
     }
 
     R create_component(const plugins::Options&, const downward::utils::Context&)
@@ -305,6 +307,79 @@ public:
 } // namespace
 
 namespace probfd {
+
+static void register_fast_downward_types(plugins::RawRegistry& raw_registry)
+{
+    // Duration types
+    raw_registry
+        .insert_category_plugin<downward::utils::FNanoSeconds>("nanoseconds")
+        .document_synopsis("Type representing a nanosecond.");
+    raw_registry
+        .insert_category_plugin<downward::utils::FMicroSeconds>("microseconds")
+        .document_synopsis("Type representing a microsecond.");
+    raw_registry
+        .insert_category_plugin<downward::utils::FMilliSeconds>("milliseconds")
+        .document_synopsis("Type representing a millisecond.");
+    raw_registry.insert_category_plugin<downward::utils::FSeconds>("seconds")
+        .document_synopsis("Type representing a second.");
+    raw_registry.insert_category_plugin<downward::utils::FMinutes>("minutes")
+        .document_synopsis("Type representing a minute.");
+    raw_registry.insert_category_plugin<downward::utils::FHours>("hours")
+        .document_synopsis("Type representing an hour.");
+
+    // Cartesian abstractions
+    cartesian_abstractions::add_subtask_generator_category(raw_registry);
+
+    // Evaluators
+    evaluators::add_evaluator_category(raw_registry);
+    evaluators::add_evaluator_subcategory(raw_registry);
+
+    // Landmarks
+    landmarks::add_landmark_factory_category(raw_registry);
+
+    // LP
+    lp::add_lp_solver_enum(raw_registry);
+
+    // Merge-and-shrink
+    merge_and_shrink::add_label_reduction_category(raw_registry);
+    merge_and_shrink::add_merge_scoring_function_category(raw_registry);
+    merge_and_shrink::add_merge_strategy_factory_category(raw_registry);
+    merge_and_shrink::add_merge_selector_category(raw_registry);
+    merge_and_shrink::add_merge_tree_factory_category(raw_registry);
+    merge_and_shrink::add_shrink_strategy_category(raw_registry);
+
+    // Mutexes
+    mutexes::add_mutex_factory_category(raw_registry);
+
+    // Open Lists
+    open_lists::add_open_list_factory_category(raw_registry);
+
+    // Operator Counting
+    operator_counting::add_constraint_generator_category(raw_registry);
+
+    // PDBs
+    pdbs::add_pattern_collection_generator_category(raw_registry);
+    pdbs::add_pdb_heuristic_subcategory(raw_registry);
+    pdbs::add_pattern_generator_category(raw_registry);
+
+    // Potentials
+    potentials::add_potential_heuristics_subcategory(raw_registry);
+
+    // Pruning
+    pruning::add_pruning_method_category(raw_registry);
+
+    // Search Algorithms
+    search_algorithms::add_search_algorithm_factory_category(raw_registry);
+
+    // Task Transformations
+    tasks::add_task_transformation_category(raw_registry);
+
+    // Utils
+    utils::add_verbosity_enum(raw_registry);
+
+    // Operator Cost Enum
+    add_operator_cost_category(raw_registry);
+}
 
 static void
 register_fast_downward_definitions(plugins::RawRegistry& raw_registry)
@@ -328,17 +403,6 @@ register_fast_downward_definitions(plugins::RawRegistry& raw_registry)
         LiteralFeature<double, 1'000'000., "__operator_float_m__"_sl>>();
     raw_registry.insert_feature_plugin<
         LiteralFeature<double, 1'000'000'000., "__operator_float_g__"_sl>>();
-
-    // Duration types
-    raw_registry.insert_category_plugin<downward::utils::FNanoSeconds>(
-        "nanoseconds");
-    raw_registry.insert_category_plugin<downward::utils::FMicroSeconds>(
-        "microseconds");
-    raw_registry.insert_category_plugin<downward::utils::FMilliSeconds>(
-        "milliseconds");
-    raw_registry.insert_category_plugin<downward::utils::FSeconds>("seconds");
-    raw_registry.insert_category_plugin<downward::utils::FMinutes>("minutes");
-    raw_registry.insert_category_plugin<downward::utils::FHours>("hours");
 
     // Duration literals
     raw_registry.insert_feature_plugin<CastFromLiteralFeature<
@@ -411,12 +475,9 @@ register_fast_downward_definitions(plugins::RawRegistry& raw_registry)
         ConstructInfiniteFeature<downward::utils::FHours, "hours_max"_sl>>();
 
     // Cartesian abstractions
-    cartesian_abstractions::add_subtask_generator_category(raw_registry);
     cartesian_abstractions::add_subtask_generators_features(raw_registry);
 
     // Evaluators
-    evaluators::add_evaluator_category(raw_registry);
-    evaluators::add_evaluator_subcategory(raw_registry);
     evaluators::add_const_evaluator_feature(raw_registry);
     evaluators::add_g_evaluator_feature(raw_registry);
     evaluators::add_max_evaluator_feature(raw_registry);
@@ -448,7 +509,6 @@ register_fast_downward_definitions(plugins::RawRegistry& raw_registry)
     heuristics::add_zero_one_pdbs_heuristic_features(raw_registry);
 
     // Landmarks
-    landmarks::add_landmark_factory_category(raw_registry);
     landmarks::add_landmark_factory_hm_feature(raw_registry);
     landmarks::add_landmark_factory_merged_feature(raw_registry);
     landmarks::add_landmark_factory_reasonable_orders_hps_feature(raw_registry);
@@ -456,12 +516,8 @@ register_fast_downward_definitions(plugins::RawRegistry& raw_registry)
     landmarks::add_landmark_factory_rpg_sasp_feature(raw_registry);
     landmarks::add_landmark_factory_zhu_givan_feature(raw_registry);
 
-    // LP
-    lp::add_lp_solver_enum(raw_registry);
-
     // Merge-and-shrink
     merge_and_shrink::add_label_reduction_features(raw_registry);
-    merge_and_shrink::add_merge_scoring_function_category(raw_registry);
     merge_and_shrink::add_merge_scoring_function_dfp_feature(raw_registry);
     merge_and_shrink::add_merge_scoring_function_goal_relevance_feature(
         raw_registry);
@@ -470,28 +526,22 @@ register_fast_downward_definitions(plugins::RawRegistry& raw_registry)
         raw_registry);
     merge_and_shrink::add_merge_scoring_function_single_random_feature(
         raw_registry);
-    merge_and_shrink::add_merge_selector_category(raw_registry);
     merge_and_shrink::add_merge_selector_score_based_filtering_feature(
         raw_registry);
-    merge_and_shrink::add_merge_strategy_factory_category(raw_registry);
     merge_and_shrink::add_merge_strategy_factory_precomputed_feature(
         raw_registry);
     merge_and_shrink::add_merge_strategy_factory_sccs_feature(raw_registry);
     merge_and_shrink::add_merge_strategy_factory_stateless_feature(
         raw_registry);
-    merge_and_shrink::add_merge_tree_factory_category(raw_registry);
     merge_and_shrink::add_merge_tree_factory_linear_feature(raw_registry);
-    merge_and_shrink::add_shrink_strategy_category(raw_registry);
     merge_and_shrink::add_shrink_bisimulation_feature(raw_registry);
     merge_and_shrink::add_shrink_fh_feature(raw_registry);
     merge_and_shrink::add_shrink_random_feature(raw_registry);
 
     // Mutexes
-    mutexes::add_mutex_factory_category(raw_registry);
     mutexes::add_from_file_mutex_factory_feature(raw_registry);
 
     // Open Lists
-    open_lists::add_open_list_factory_category(raw_registry);
     open_lists::add_alternation_open_list_features(raw_registry);
     open_lists::add_best_first_open_list_features(raw_registry);
     open_lists::add_epsilon_greedy_open_list_features(raw_registry);
@@ -500,7 +550,6 @@ register_fast_downward_definitions(plugins::RawRegistry& raw_registry)
     open_lists::add_type_based_open_list_features(raw_registry);
 
     // Operator Counting
-    operator_counting::add_constraint_generator_category(raw_registry);
     operator_counting::add_delete_relaxation_if_constraints_feature(
         raw_registry);
     operator_counting::add_delete_relaxation_rr_constraints_feature(
@@ -510,8 +559,6 @@ register_fast_downward_definitions(plugins::RawRegistry& raw_registry)
     operator_counting::add_state_equation_constraints_feature(raw_registry);
 
     // PDBs
-    pdbs::add_pattern_collection_generator_category(raw_registry);
-    pdbs::add_pdb_heuristic_subcategory(raw_registry);
     pdbs::add_pattern_collection_generator_combo_feature(raw_registry);
     pdbs::add_pattern_collection_generator_disjoint_cegar_feature(raw_registry);
     pdbs::add_pattern_collection_generator_genetic_feature(raw_registry);
@@ -521,17 +568,12 @@ register_fast_downward_definitions(plugins::RawRegistry& raw_registry)
     pdbs::add_pattern_collection_generator_multiple_random_feature(
         raw_registry);
     pdbs::add_pattern_collection_generator_systematic_feature(raw_registry);
-    pdbs::add_pattern_generator_category(raw_registry);
     pdbs::add_pattern_generator_cegar_feature(raw_registry);
     pdbs::add_pattern_generator_greedy_feature(raw_registry);
     pdbs::add_pattern_generator_manual_feature(raw_registry);
     pdbs::add_pattern_generator_random_feature(raw_registry);
 
-    // Potentials
-    potentials::add_potential_heuristics_subcategory(raw_registry);
-
     // Pruning
-    pruning::add_pruning_method_category(raw_registry);
     pruning::add_limited_pruning_feature(raw_registry);
     pruning::add_null_pruning_method_feature(raw_registry);
     pruning::add_stubborn_sets_atom_centric_feature(raw_registry);
@@ -539,7 +581,6 @@ register_fast_downward_definitions(plugins::RawRegistry& raw_registry)
     pruning::add_stubborn_sets_simple_feature(raw_registry);
 
     // Search Algorithms
-    search_algorithms::add_search_algorithm_factory_category(raw_registry);
     search_algorithms::add_astar_feature(raw_registry);
     search_algorithms::add_eager_feature(raw_registry);
     search_algorithms::add_eager_greedy_feature(raw_registry);
@@ -551,22 +592,71 @@ register_fast_downward_definitions(plugins::RawRegistry& raw_registry)
     search_algorithms::add_lazy_wastar_feature(raw_registry);
 
     // Task Transformations
-    tasks::add_task_transformation_category(raw_registry);
     tasks::add_cost_task_transformation_features(raw_registry);
     tasks::add_identity_task_transformation_features(raw_registry);
+}
 
-    // Utils
-    utils::add_verbosity_enum(raw_registry);
+static void register_probfd_types(plugins::RawRegistry& raw_registry)
+{
+    // Cartesian Abstractions
+    probfd::cli::cartesian_abstractions::add_flaw_generator_category(
+        raw_registry);
+    probfd::cli::cartesian_abstractions::add_subtask_generator_category(
+        raw_registry);
+    probfd::cli::cartesian_abstractions::add_split_selector_category(
+        raw_registry);
 
-    // Operator Cost Enum
-    add_operator_cost_category(raw_registry);
+    // Heuristics
+    probfd::cli::heuristics::add_task_heuristic_factory_category(raw_registry);
+
+    // Merge-and-shrink
+    probfd::cli::merge_and_shrink::add_label_reduction_category(raw_registry);
+    probfd::cli::merge_and_shrink::add_merge_scoring_function_category(
+        raw_registry);
+    probfd::cli::merge_and_shrink::add_merge_selector_category(raw_registry);
+    probfd::cli::merge_and_shrink::add_merge_strategy_factory_category(
+        raw_registry);
+    probfd::cli::merge_and_shrink::add_merge_tree_factory_category(
+        raw_registry);
+    probfd::cli::merge_and_shrink::add_prune_strategy_category(raw_registry);
+    probfd::cli::merge_and_shrink::add_shrink_strategy_category(raw_registry);
+
+    // Occupation Measures
+    probfd::cli::occupation_measures::add_constraint_generator_factory_category(
+        raw_registry);
+
+    // Open Lists
+    probfd::cli::open_lists::add_open_list_categories(raw_registry);
+
+    // PDBs
+    probfd::cli::pdbs::add_pattern_collection_generator_category(raw_registry);
+    probfd::cli::pdbs::add_pattern_generator_category(raw_registry);
+    probfd::cli::pdbs::add_subcollection_finder_factory_category(raw_registry);
+    probfd::cli::pdbs::cegar::add_flaw_finding_strategy_category(raw_registry);
+
+    // Policy Pickers
+    probfd::cli::policy_pickers::add_policy_picker_category(raw_registry);
+
+    // Solvers
+    probfd::cli::solvers::add_task_solver_factory_category(raw_registry);
+    probfd::cli::solvers::add_statistical_mdp_algorithm_factory_category(
+        raw_registry);
+
+    // Successor Samplers
+    probfd::cli::successor_samplers::add_successor_sampler_category(
+        raw_registry);
+
+    // Transition Sorters
+    probfd::cli::transiton_sorters::add_transition_sorter_category(
+        raw_registry);
+
+    // Task State Spaces
+    probfd::cli::add_task_state_space_factory_category(raw_registry);
 }
 
 static void register_probfd_definitions(plugins::RawRegistry& raw_registry)
 {
     // Cartesian Abstractions
-    probfd::cli::cartesian_abstractions::add_flaw_generator_category(
-        raw_registry);
     probfd::cli::cartesian_abstractions::add_adaptive_flaw_generator_feature(
         raw_registry);
     probfd::cli::cartesian_abstractions::add_astar_flaw_generator_feature(
@@ -579,7 +669,6 @@ static void register_probfd_definitions(plugins::RawRegistry& raw_registry)
         raw_registry);
 
     // Heuristics
-    probfd::cli::heuristics::add_task_heuristic_factory_category(raw_registry);
     probfd::cli::heuristics::add_additive_cartesian_heuristic_feature(
         raw_registry);
     probfd::cli::heuristics::add_dead_end_pruning_heuristic_feature(
@@ -596,8 +685,6 @@ static void register_probfd_definitions(plugins::RawRegistry& raw_registry)
 
     // Merge-and-shrink
     probfd::cli::merge_and_shrink::add_label_reduction_features(raw_registry);
-    probfd::cli::merge_and_shrink::add_merge_scoring_function_category(
-        raw_registry);
     probfd::cli::merge_and_shrink::add_merge_scoring_function_dfp_feature(
         raw_registry);
     probfd::cli::merge_and_shrink::
@@ -608,22 +695,16 @@ static void register_probfd_definitions(plugins::RawRegistry& raw_registry)
         add_merge_scoring_function_single_random_feature(raw_registry);
     probfd::cli::merge_and_shrink::
         add_merge_scoring_function_total_order_feature(raw_registry);
-    probfd::cli::merge_and_shrink::add_merge_selector_category(raw_registry);
     probfd::cli::merge_and_shrink::
         add_merge_selector_score_based_filtering_feature(raw_registry);
-    probfd::cli::merge_and_shrink::add_merge_strategy_factory_category(
-        raw_registry);
     probfd::cli::merge_and_shrink::
         add_merge_strategy_factory_precomputed_feature(raw_registry);
     probfd::cli::merge_and_shrink::add_merge_strategy_factory_sccs_feature(
         raw_registry);
     probfd::cli::merge_and_shrink::add_merge_strategy_factory_stateless_feature(
         raw_registry);
-    probfd::cli::merge_and_shrink::add_merge_tree_factory_category(
-        raw_registry);
     probfd::cli::merge_and_shrink::add_merge_tree_factory_linear_feature(
         raw_registry);
-    probfd::cli::merge_and_shrink::add_prune_strategy_category(raw_registry);
     probfd::cli::merge_and_shrink::add_prune_strategy_alive_feature(
         raw_registry);
     probfd::cli::merge_and_shrink::add_prune_strategy_identity_feature(
@@ -632,7 +713,6 @@ static void register_probfd_definitions(plugins::RawRegistry& raw_registry)
         raw_registry);
     probfd::cli::merge_and_shrink::add_shrink_strategy_bisimulation_feature(
         raw_registry);
-    probfd::cli::merge_and_shrink::add_shrink_strategy_category(raw_registry);
     probfd::cli::merge_and_shrink::add_shrink_strategy_equal_distance_feature(
         raw_registry);
     probfd::cli::merge_and_shrink::add_shrink_strategy_random_feature(
@@ -641,17 +721,15 @@ static void register_probfd_definitions(plugins::RawRegistry& raw_registry)
         add_shrink_strategy_probabilistic_bisimulation_feature(raw_registry);
 
     // Occupation Measures
-    probfd::cli::occupation_measures::add_constraint_generator_factory_category(
-        raw_registry);
     probfd::cli::occupation_measures::
         add_occupation_measure_heuristics_features(raw_registry);
 
+    // Open Lists
     probfd::cli::open_lists::add_open_list_features(raw_registry);
 
     // PDBs
     probfd::cli::pdbs::add_fully_additive_finder_factory_feature(raw_registry);
     probfd::cli::pdbs::add_max_orthogonal_finder_factory_feature(raw_registry);
-    probfd::cli::pdbs::add_pattern_collection_generator_category(raw_registry);
     probfd::cli::pdbs::add_pattern_collection_generator_classical_feature(
         raw_registry);
     probfd::cli::pdbs::add_pattern_collection_generator_disjoint_cegar_feature(
@@ -662,10 +740,7 @@ static void register_probfd_definitions(plugins::RawRegistry& raw_registry)
         raw_registry);
     probfd::cli::pdbs::add_pattern_collection_generator_systematic_feature(
         raw_registry);
-    probfd::cli::pdbs::add_pattern_generator_category(raw_registry);
-    probfd::cli::pdbs::add_subcollection_finder_factory_category(raw_registry);
     probfd::cli::pdbs::add_trivial_finder_factory_feature(raw_registry);
-    probfd::cli::pdbs::cegar::add_flaw_finding_strategy_category(raw_registry);
     probfd::cli::pdbs::cegar::add_bfs_flaw_finder_feature(raw_registry);
     probfd::cli::pdbs::cegar::add_pucs_flaw_finder_feature(raw_registry);
     probfd::cli::pdbs::cegar::add_sampling_flaw_finder_feature(raw_registry);
@@ -674,7 +749,6 @@ static void register_probfd_definitions(plugins::RawRegistry& raw_registry)
     probfd::cli::policy_pickers::add_policy_picker_features(raw_registry);
 
     // Solvers
-    probfd::cli::solvers::add_task_solver_factory_category(raw_registry);
     probfd::cli::solvers::add_acyclic_value_iteration_feature(raw_registry);
     probfd::cli::solvers::add_aostar_solver_features(raw_registry);
     probfd::cli::solvers::add_bisimulation_value_iteration_features(
@@ -687,8 +761,6 @@ static void register_probfd_definitions(plugins::RawRegistry& raw_registry)
     probfd::cli::solvers::add_idual_feature(raw_registry);
     probfd::cli::solvers::add_interval_iteration_solver_feature(raw_registry);
     probfd::cli::solvers::add_lrtdp_features(raw_registry);
-    probfd::cli::solvers::add_statistical_mdp_algorithm_factory_category(
-        raw_registry);
     probfd::cli::solvers::add_ta_depth_first_heuristic_search_feature(
         raw_registry);
     probfd::cli::solvers::add_ta_topological_value_iteration_feature(
@@ -705,12 +777,14 @@ static void register_probfd_definitions(plugins::RawRegistry& raw_registry)
         raw_registry);
 
     // Task State Spaces
-    probfd::cli::add_task_state_space_factory_category(raw_registry);
     probfd::cli::add_task_state_space_factory_features(raw_registry);
 }
 
 void register_definitions(plugins::RawRegistry& raw_registry)
 {
+    register_fast_downward_types(raw_registry);
+    register_probfd_types(raw_registry);
+
     register_fast_downward_definitions(raw_registry);
     register_probfd_definitions(raw_registry);
 }
