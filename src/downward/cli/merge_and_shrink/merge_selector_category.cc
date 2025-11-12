@@ -13,9 +13,8 @@ namespace downward::cli::merge_and_shrink {
 
 void add_merge_selector_category(Registry& raw_registry)
 {
-    auto& category =
-        raw_registry.insert_shared_category_plugin<MergeSelector>("MergeSelector");
-    category.document_synopsis(
+    raw_registry.insert_shared_category_plugin<MergeSelector>(
+        "MergeSelector",
         "This page describes the available merge selectors. They are used "
         "to "
         "compute the next merge purely based on the state of the given "

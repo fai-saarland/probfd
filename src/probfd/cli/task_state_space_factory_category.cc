@@ -12,7 +12,7 @@ namespace probfd::cli {
 void add_task_state_space_factory_category(Registry& raw_registry)
 {
     raw_registry.insert_shared_category_plugin<TaskStateSpaceFactory>(
-        "TaskStateSpaceFactory");
+        "TaskStateSpaceFactory", "");
 }
 
 } // namespace probfd::cli

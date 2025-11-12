@@ -140,14 +140,17 @@ public:
     }
 
     template <typename T>
-    SharedTypedCategoryPlugin<T>&
-    insert_shared_category_plugin(std::string name)
+    const CategoryPlugin&
+    insert_shared_category_plugin(std::string name, std::string synopsis)
     {
-        return insert_category_plugin<std::shared_ptr<T>>(std::move(name));
+        return insert_category_plugin<std::shared_ptr<T>>(
+            std::move(name),
+            std::move(synopsis));
     }
 
     template <typename T>
-    TypedCategoryPlugin<T>& insert_category_plugin(std::string name)
+    const CategoryPlugin&
+    insert_category_plugin(std::string name, std::string synopsis)
     {
         for (const auto& c : category_plugins) {
             if (const std::type_index t = typeid(T);
@@ -159,7 +162,9 @@ public:
         }
 
         auto [it, inserted] = category_plugins.emplace(
-            std::make_unique<TypedCategoryPlugin<T>>(std::move(name)));
+            std::make_unique<TypedCategoryPlugin<T>>(
+                std::move(name),
+                std::move(synopsis)));
 
         if (!inserted) {
             throw downward::utils::CriticalError(
@@ -169,33 +174,44 @@ public:
 
         TypeRegistry::instance()->create_feature_type(**it);
 
-        return static_cast<TypedCategoryPlugin<T>&>(**it);
+        return **it;
     }
 
-    template <template <bool...> typename T, bool... b, typename F>
-    auto insert_category_plugins(const F& f)
+    template <
+        template <bool...> typename T,
+        bool... b,
+        typename F1,
+        typename F2>
+    auto insert_category_plugins(const F1& name, const F2& synopsis)
     {
         if constexpr (instantiable<T, b...>) {
             return std::tie(
-                insert_category_plugin<T<b...>>(f.template operator()<b...>()));
+                insert_category_plugin<T<b...>>(
+                    name.template operator()<b...>(),
+                    synopsis.template operator()<b...>()));
         } else {
             return std::tuple_cat(
-                insert_category_plugins<T, b..., true>(f),
-                insert_category_plugins<T, b..., false>(f));
+                insert_category_plugins<T, b..., true>(name, synopsis),
+                insert_category_plugins<T, b..., false>(name, synopsis));
         }
     }
 
-    template <template <bool...> typename T, bool... b, typename F>
-    auto insert_shared_category_plugins(const F& f)
+    template <
+        template <bool...> typename T,
+        bool... b,
+        typename F1,
+        typename F2>
+    auto insert_shared_category_plugins(const F1& name, const F2& synopsis)
     {
         if constexpr (instantiable<T, b...>) {
             return std::tie(
                 insert_shared_category_plugin<T<b...>>(
-                    f.template operator()<b...>()));
+                    name.template operator()<b...>(),
+                    synopsis.template operator()<b...>()));
         } else {
             return std::tuple_cat(
-                insert_shared_category_plugins<T, b..., true>(f),
-                insert_shared_category_plugins<T, b..., false>(f));
+                insert_shared_category_plugins<T, b..., true>(name, synopsis),
+                insert_shared_category_plugins<T, b..., false>(name, synopsis));
         }
     }
 

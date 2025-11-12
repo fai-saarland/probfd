@@ -12,11 +12,8 @@ namespace downward::cli::evaluators {
 
 void add_evaluator_category(plugins::Registry& raw_registry)
 {
-    auto& category =
-        raw_registry.insert_shared_category_plugin<TaskDependentFactory<Evaluator>>(
-            "Heuristic");
-
-    category.document_synopsis(
+    raw_registry.insert_shared_category_plugin<TaskDependentFactory<Evaluator>>(
+        "Heuristic",
         "An evaluator specification is either a newly created evaluator "
         "instance or an evaluator that has been defined previously. "
         "This page describes how one can specify a new evaluator instance. "

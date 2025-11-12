@@ -160,14 +160,11 @@ namespace probfd::cli::policy_pickers {
 
 void add_policy_picker_category(Registry& raw_registry)
 {
-    auto t = raw_registry.insert_shared_category_plugins<PolicyPicker>(
+    raw_registry.insert_shared_category_plugins<PolicyPicker>(
         []<bool Bisimulation, bool Fret> {
             return add_mdp_type_to_category<Bisimulation, Fret>("PolicyPicker");
-        });
-
-    tuple_transform(t, [](auto& c) {
-        c.document_synopsis("Tiebreaker for greedy actions.");
-    });
+        },
+        []<bool, bool>{ return "Tiebreaker for greedy actions."; });
 }
 
 void add_policy_picker_features(Registry& raw_registry)

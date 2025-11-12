@@ -13,9 +13,8 @@ namespace downward::cli::merge_and_shrink {
 
 void add_merge_tree_factory_category(Registry& raw_registry)
 {
-    auto& category =
-        raw_registry.insert_shared_category_plugin<MergeTreeFactory>("MergeTree");
-    category.document_synopsis(
+    raw_registry.insert_shared_category_plugin<MergeTreeFactory>(
+        "MergeTree",
         "This page describes the available merge trees that can be used to "
         "precompute a merge strategy, either for the entire task or a "
         "given "

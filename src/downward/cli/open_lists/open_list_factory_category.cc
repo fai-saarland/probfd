@@ -14,11 +14,11 @@ namespace downward::cli::open_lists {
 void add_open_list_factory_category(plugins::Registry& raw_registry)
 {
     raw_registry.insert_shared_category_plugin<
-        TaskDependentFactory<OpenList<StateOpenListEntry>>>("StateOpenList");
+        TaskDependentFactory<OpenList<StateOpenListEntry>>>(
+        "StateOpenList",
+        "");
     raw_registry.insert_shared_category_plugin<
-        TaskDependentFactory<OpenList<EdgeOpenListEntry>>>("EdgeOpenList");
-
-    // TODO: use document_synopsis() for the wiki page.
+        TaskDependentFactory<OpenList<EdgeOpenListEntry>>>("EdgeOpenList", "");
 }
 
-} // namespace
+} // namespace downward::cli::open_lists

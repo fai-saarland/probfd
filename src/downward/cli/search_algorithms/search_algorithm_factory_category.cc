@@ -12,9 +12,10 @@ namespace downward::cli::search_algorithms {
 
 void add_search_algorithm_factory_category(Registry& raw_registry)
 {
-    raw_registry.insert_shared_category_plugin<TaskDependentFactory<SearchAlgorithm>>(
-        "SearchAlgorithmFactory");
-    // TODO: add synopsis for the wiki page.
+    raw_registry
+        .insert_shared_category_plugin<TaskDependentFactory<SearchAlgorithm>>(
+            "SearchAlgorithmFactory",
+            "");
 }
 
 } // namespace downward::cli::search_algorithms

@@ -12,9 +12,8 @@ namespace probfd::cli::merge_and_shrink {
 
 void add_prune_strategy_category(Registry& raw_registry)
 {
-    auto& category =
-        raw_registry.insert_shared_category_plugin<PruneStrategy>("PruneStrategy");
-    category.document_synopsis(
+    raw_registry.insert_shared_category_plugin<PruneStrategy>(
+        "PruneStrategy",
         "This page describes the various pruning strategies "
         "supported by the planner.");
 }

@@ -10,9 +10,8 @@ namespace probfd::cli::merge_and_shrink {
 
 void add_merge_scoring_function_category(Registry& raw_registry)
 {
-    auto& category = raw_registry.insert_shared_category_plugin<MergeScoringFunction>(
-        "PMergeScoringFunction");
-    category.document_synopsis(
+    raw_registry.insert_shared_category_plugin<MergeScoringFunction>(
+        "PMergeScoringFunction",
         "This page describes various merge scoring functions. A scoring "
         "function, "
         "given a list of merge candidates and a factored transition "

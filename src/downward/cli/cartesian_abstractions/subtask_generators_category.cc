@@ -13,9 +13,8 @@ namespace downward::cli::cartesian_abstractions {
 
 void add_subtask_generator_category(Registry& raw_registry)
 {
-    auto& category = raw_registry.insert_shared_category_plugin<SubtaskGenerator>(
-        "SubtaskGenerator");
-    category.document_synopsis(
+    raw_registry.insert_shared_category_plugin<SubtaskGenerator>(
+        "SubtaskGenerator",
         "Subtask generator (used by the CEGAR heuristic).");
 
     raw_registry.insert_enum_plugin<FactOrder>(

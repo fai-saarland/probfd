@@ -13,9 +13,8 @@ namespace downward::cli::merge_and_shrink {
 
 void add_shrink_strategy_category(Registry& raw_registry)
 {
-    auto& category =
-        raw_registry.insert_shared_category_plugin<ShrinkStrategy>("ShrinkStrategy");
-    category.document_synopsis(
+    raw_registry.insert_shared_category_plugin<ShrinkStrategy>(
+        "ShrinkStrategy",
         "This page describes the various shrink strategies supported "
         "by the planner.");
 }

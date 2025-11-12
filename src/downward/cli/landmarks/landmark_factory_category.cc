@@ -13,9 +13,8 @@ namespace downward::cli::landmarks {
 
 void add_landmark_factory_category(Registry& raw_registry)
 {
-    auto& category =
-        raw_registry.insert_shared_category_plugin<LandmarkFactory>("LandmarkFactory");
-    category.document_synopsis(
+    raw_registry.insert_shared_category_plugin<LandmarkFactory>(
+        "LandmarkFactory",
         "A landmark factory specification is either a newly created "
         "instance or a landmark factory that has been defined previously. "
         "This page describes how one can specify a new landmark factory "
