@@ -158,10 +158,8 @@ string SubcategoryPlugin::get_synopsis() const
 
 EnumPlugin::EnumPlugin(
     type_index type,
-    const string& class_name,
     initializer_list<pair<string, string>> enum_values)
     : type(type)
-    , class_name(class_name)
     , enum_info(enum_values)
 {
 }
@@ -173,7 +171,7 @@ type_index EnumPlugin::get_type() const
 
 string EnumPlugin::get_class_name() const
 {
-    return class_name;
+    return type.name();
 }
 
 const EnumInfo& EnumPlugin::get_enum_info() const

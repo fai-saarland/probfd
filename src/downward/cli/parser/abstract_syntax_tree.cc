@@ -729,8 +729,8 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
         const auto& f = reg.get_feature(value.content);
         auto n = std::make_unique<FeatureLiteralNode>(f);
         const auto& t = plugins::TypeRegistry::instance()->create_function_type(
-            f->get_type(),
-            f->get_arguments());
+            f.get_type(),
+            f.get_arguments());
         return {std::move(n), &t};
     }
 
@@ -825,7 +825,7 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
                     std::make_unique<FeatureLiteralNode>(feature),
                     std::move(arguments),
                     ""),
-                &feature->get_type()};
+                &feature.get_type()};
         }
     }
     case TokenType::FLOAT: {
@@ -871,7 +871,7 @@ LiteralNode::decorate(utils::Context& context, VariableEnvironment& env) const
                     std::make_unique<FeatureLiteralNode>(feature),
                     std::move(arguments),
                     ""),
-                &feature->get_type()};
+                &feature.get_type()};
         }
     }
     case TokenType::IDENTIFIER:
