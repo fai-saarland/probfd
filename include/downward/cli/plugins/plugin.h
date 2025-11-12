@@ -139,25 +139,6 @@ std::shared_ptr<T> make_shared_from_arg_tuples(Arguments... arguments)
             std::tuple<Arguments...>(std::forward<Arguments>(arguments)...)));
 }
 
-class Plugin {
-protected:
-    Plugin() = default;
-
-public:
-    virtual ~Plugin() = default;
-
-    virtual std::shared_ptr<Feature> create_feature() const = 0;
-};
-
-template <typename T>
-class FeaturePlugin : public Plugin {
-public:
-    std::shared_ptr<Feature> create_feature() const override
-    {
-        return std::make_shared<T>();
-    }
-};
-
 /*
   The CategoryPlugin class contains meta-information for a given
   category of feature (e.g. "SearchAlgorithm" or "MergeStrategyFactory").
@@ -212,31 +193,13 @@ public:
 template <typename T>
 using SharedTypedCategoryPlugin = TypedCategoryPlugin<std::shared_ptr<T>>;
 
-class SubcategoryPlugin {
-    std::string subcategory_name;
-    std::string title;
-    std::string synopsis;
-
-public:
-    explicit SubcategoryPlugin(const std::string& subcategory);
-
-    void document_title(const std::string& title);
-    void document_synopsis(const std::string& synopsis);
-
-    std::string get_subcategory_name() const;
-    std::string get_title() const;
-    std::string get_synopsis() const;
-};
-
 class EnumPlugin {
     std::type_index type;
-    std::string class_name;
     EnumInfo enum_info;
 
 protected:
     EnumPlugin(
         std::type_index type,
-        const std::string& class_name,
         std::initializer_list<std::pair<std::string, std::string>> enum_values);
 
 public:
@@ -251,9 +214,25 @@ class TypedEnumPlugin : public EnumPlugin {
 public:
     TypedEnumPlugin(
         std::initializer_list<std::pair<std::string, std::string>> enum_values)
-        : EnumPlugin(typeid(T), typeid(std::shared_ptr<T>).name(), enum_values)
+        : EnumPlugin(typeid(T), enum_values)
     {
     }
+};
+
+class SubcategoryPlugin {
+    std::string subcategory_name;
+    std::string title;
+    std::string synopsis;
+
+public:
+    explicit SubcategoryPlugin(const std::string& subcategory);
+
+    void document_title(const std::string& title);
+    void document_synopsis(const std::string& synopsis);
+
+    std::string get_subcategory_name() const;
+    std::string get_title() const;
+    std::string get_synopsis() const;
 };
 
 inline void Feature::add_argument(ArgumentInfo info, const std::string& help)

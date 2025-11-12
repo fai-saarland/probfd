@@ -164,11 +164,10 @@ public:
 };
 
 class FeatureLiteralNode : public DecoratedASTNode {
-    std::shared_ptr<const plugins::Feature> feature;
+    const plugins::Feature& feature;
 
 public:
-    explicit FeatureLiteralNode(
-        std::shared_ptr<const plugins::Feature> feature);
+    explicit FeatureLiteralNode(const plugins::Feature& feature);
 
     void remove_variable_usages() override {}
 

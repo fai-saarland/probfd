@@ -417,9 +417,8 @@ void VariableNode::print(std::ostream& out, std::size_t indent, bool) const
         indent + declaration->variable_name.size());
 }
 
-FeatureLiteralNode::FeatureLiteralNode(
-    std::shared_ptr<const plugins::Feature> feature)
-    : feature(std::move(feature))
+FeatureLiteralNode::FeatureLiteralNode(const plugins::Feature& feature)
+    : feature(feature)
 {
 }
 
@@ -428,12 +427,12 @@ std::any FeatureLiteralNode::construct(ConstructContext& context) const
     utils::TraceBlock block(
         context,
         "Constructing feature '{}'",
-        feature->get_key());
+        feature.get_key());
 
-    std::function f = [f = this->feature](
+    std::function f = [&f = this->feature](
                           const plugins::Options& opts,
                           const utils::Context& ncontext) {
-        return f->construct(opts, ncontext);
+        return f.construct(opts, ncontext);
     };
 
     return f;
@@ -442,7 +441,7 @@ std::any FeatureLiteralNode::construct(ConstructContext& context) const
 void FeatureLiteralNode::print(std::ostream& out, std::size_t indent, bool)
     const
 {
-    std::print(out, "{}{}", std::string(indent, ' '), feature->get_key());
+    std::print(out, "{}{}", std::string(indent, ' '), feature.get_key());
 }
 
 template <typename T>

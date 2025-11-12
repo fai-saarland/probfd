@@ -22,7 +22,7 @@ void DocPrinter::print_all() const
 {
     for (const auto categories = registry.get_categories();
          const auto& category : categories) {
-        print_category(*category, true);
+        print_category(category, true);
     }
 }
 
@@ -34,20 +34,20 @@ void DocPrinter::print_category(const string& name, bool recursive) const
         name,
         {},
         [](const auto& category_plugin) {
-            return category_plugin->get_category_name();
+            return category_plugin.get_category_name();
         });
 
-    if (it == categories.end() || (*it)->get_category_name() != name) {
+    if (it == categories.end() || it->get_category_name() != name) {
         throw MissingCategoryError(
             "could not find a category named '" + name + "' in the registry");
     }
 
-    print_category(**it, recursive);
+    print_category(*it, recursive);
 }
 
 void DocPrinter::print_feature(const string& name) const
 {
-    print_feature(*registry.get_feature(name));
+    print_feature(registry.get_feature(name));
 }
 
 void DocPrinter::print_category(const CategoryPlugin& category, bool recursive)

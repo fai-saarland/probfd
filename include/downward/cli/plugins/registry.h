@@ -73,69 +73,51 @@ public:
 struct CategoryComparator {
     using is_transparent = void;
 
-    bool operator()(
-        const std::unique_ptr<CategoryPlugin>& lhs,
-        const std::unique_ptr<CategoryPlugin>& rhs) const;
-
-    bool operator()(
-        const std::string& lhs,
-        const std::unique_ptr<CategoryPlugin>& rhs) const;
-
-    bool operator()(
-        const std::unique_ptr<CategoryPlugin>& lhs,
-        const std::string& rhs) const;
+    bool operator()(const CategoryPlugin& lhs, const CategoryPlugin& rhs) const;
+    bool operator()(const std::string& lhs, const CategoryPlugin& rhs) const;
+    bool operator()(const CategoryPlugin& lhs, const std::string& rhs) const;
 };
 
 struct SubCategoryComparator {
     using is_transparent = void;
 
-    bool operator()(
-        const std::unique_ptr<SubcategoryPlugin>& lhs,
-        const std::unique_ptr<SubcategoryPlugin>& rhs) const;
+    bool operator()(const SubcategoryPlugin& lhs, const SubcategoryPlugin& rhs)
+        const;
 
-    bool operator()(
-        const std::string& lhs,
-        const std::unique_ptr<SubcategoryPlugin>& rhs) const;
-
-    bool operator()(
-        const std::unique_ptr<SubcategoryPlugin>& lhs,
-        const std::string& rhs) const;
+    bool operator()(const std::string& lhs, const SubcategoryPlugin& rhs) const;
+    bool operator()(const SubcategoryPlugin& lhs, const std::string& rhs) const;
 };
 
 struct FeatureComparator {
     using is_transparent = void;
 
     bool operator()(
-        const std::shared_ptr<Feature>& lhs,
-        const std::shared_ptr<Feature>& rhs) const;
+        const std::unique_ptr<Feature>& lhs,
+        const std::unique_ptr<Feature>& rhs) const;
 
-    bool operator()(const std::string& lhs, const std::shared_ptr<Feature>& rhs)
+    bool operator()(const std::string& lhs, const std::unique_ptr<Feature>& rhs)
         const;
 
-    bool operator()(const std::shared_ptr<Feature>& lhs, const std::string& rhs)
+    bool operator()(const std::unique_ptr<Feature>& lhs, const std::string& rhs)
         const;
 };
 
 class Registry {
-    std::set<std::unique_ptr<CategoryPlugin>, CategoryComparator>
-        category_plugins;
-    std::vector<std::unique_ptr<EnumPlugin>> enum_plugins;
-    std::set<std::unique_ptr<SubcategoryPlugin>, SubCategoryComparator>
-        subcategory_plugins;
-    std::set<std::shared_ptr<Feature>, FeatureComparator> features;
-
-    void add_feature_plugin(const Plugin& plugin);
+    std::set<CategoryPlugin, CategoryComparator> category_plugins;
+    std::vector<EnumPlugin> enum_plugins;
+    std::set<SubcategoryPlugin, SubCategoryComparator> subcategory_plugins;
+    std::set<std::unique_ptr<Feature>, FeatureComparator> features;
 
 public:
     template <std::derived_from<SubcategoryPlugin> T>
     void insert_subcategory_plugin()
     {
-        auto [it, inserted] = subcategory_plugins.insert(std::make_unique<T>());
+        auto [it, inserted] = subcategory_plugins.insert(T());
 
         if (!inserted) {
             throw downward::utils::CriticalError(
                 "Sub-category with name {} already exists.",
-                (*it)->get_subcategory_name());
+                it->get_subcategory_name());
         }
     }
 
@@ -154,7 +136,7 @@ public:
     {
         for (const auto& c : category_plugins) {
             if (const std::type_index t = typeid(T);
-                c->get_pointer_type() == t) {
+                c.get_pointer_type() == t) {
                 throw downward::utils::CriticalError(
                     "CategoryPlugin for class '{}' already defined.",
                     t.name());
@@ -162,19 +144,17 @@ public:
         }
 
         auto [it, inserted] = category_plugins.emplace(
-            std::make_unique<TypedCategoryPlugin<T>>(
-                std::move(name),
-                std::move(synopsis)));
+            TypedCategoryPlugin<T>(std::move(name), std::move(synopsis)));
 
         if (!inserted) {
             throw downward::utils::CriticalError(
                 "Category with name {} already exists.",
-                (*it)->get_category_name());
+                it->get_category_name());
         }
 
-        TypeRegistry::instance()->create_feature_type(**it);
+        TypeRegistry::instance()->create_feature_type(*it);
 
-        return **it;
+        return *it;
     }
 
     template <
@@ -219,16 +199,31 @@ public:
     void insert_enum_plugin(
         std::initializer_list<std::pair<std::string, std::string>> enum_values)
     {
-        auto& enum_plugin = enum_plugins.emplace_back(
-            std::make_unique<TypedEnumPlugin<T>>(enum_values));
-        TypeRegistry::instance()->create_enum_type(*enum_plugin);
+        auto& enum_plugin =
+            enum_plugins.emplace_back(TypedEnumPlugin<T>(enum_values));
+        TypeRegistry::instance()->create_enum_type(enum_plugin);
     }
 
-    template <typename T>
+    template <std::derived_from<Feature> T>
     void insert_feature_plugin()
     {
-        auto p = std::make_unique<FeaturePlugin<T>>();
-        add_feature_plugin(*p);
+        const auto [it, inserted] = features.insert(std::make_unique<T>());
+
+        if (!inserted) {
+            throw downward::utils::CriticalError(
+                "Feature with name {} already defined.",
+                (*it)->get_key());
+        }
+
+        if (const auto subcategory = (*it)->get_subcategory();
+            !subcategory.empty() &&
+            !subcategory_plugins.contains(subcategory)) {
+            throw downward::utils::CriticalError(
+                "Missing SubcategoryPlugin '{}' for Plugin '{}' of type {}",
+                subcategory,
+                (*it)->get_key(),
+                (*it)->get_type().name());
+        }
     }
 
     template <template <bool...> typename T, bool... b>
@@ -244,7 +239,7 @@ public:
     }
 
     bool has_feature(const std::string& name) const;
-    std::shared_ptr<const Feature> get_feature(const std::string& name) const;
+    const Feature& get_feature(const std::string& name) const;
     const SubcategoryPlugin&
     get_subcategory_plugin(const std::string& subcategory) const;
 
