@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/diverse_potential_heuristics_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/potentials/potential_options.h"
 
@@ -102,7 +102,7 @@ class DiversePotentialMaxHeuristicFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     DiversePotentialMaxHeuristicFeature()
-        : SharedTypedFeature("diverse_potentials")
+        : TypedFeature("diverse_potentials")
     {
         document_subcategory("heuristics_potentials");
         document_title("Diverse potential heuristics");
@@ -141,7 +141,7 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_diverse_potential_heuristics_feature(RawRegistry& raw_registry)
+void add_diverse_potential_heuristics_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<DiversePotentialMaxHeuristicFeature>();
 }

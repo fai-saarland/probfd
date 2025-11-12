@@ -10,6 +10,39 @@
 
 namespace downward {
 
+template <typename Tuple, typename F, std::size_t... I>
+auto tuple_transform(const Tuple& tuple, const F& f, std::index_sequence<I...>)
+    requires TupleLike<Tuple> &&
+             (std::invocable<F, std::tuple_element_t<I, Tuple>> && ...) &&
+             ((std::same_as<
+                   std::invoke_result_t<F, std::tuple_element_t<I, Tuple>>,
+                   void> &&
+               ...) ||
+              (!std::same_as<
+                   std::invoke_result_t<F, std::tuple_element_t<I, Tuple>>,
+                   void> &&
+               ...))
+{
+    if constexpr ((std::same_as<
+                       std::invoke_result_t<F, std::tuple_element_t<I, Tuple>>,
+                       void> &&
+                   ...)) {
+        (std::invoke(f, std::get<I>(tuple)), ...);
+                   } else {
+                       return std::make_tuple(std::invoke(f, std::get<I>(tuple))...);
+                   }
+}
+
+template <typename Tuple, typename F>
+auto tuple_transform(const Tuple& tuple, F&& f)
+    requires TupleLike<Tuple>
+{
+    return tuple_transform(
+        tuple,
+        f,
+        std::make_index_sequence<std::tuple_size_v<Tuple>>{});
+}
+
 template <typename T, typename TupleLike>
 constexpr auto&& get_shared(TupleLike&& t)
 {

@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/landmark_cost_partitioning_heuristic_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/landmarks/landmark_heuristic_options.h"
 
@@ -95,7 +95,7 @@ class LandmarkCostPartitioningHeuristicFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     LandmarkCostPartitioningHeuristicFeature()
-        : SharedTypedFeature("landmark_cost_partitioning")
+        : TypedFeature("landmark_cost_partitioning")
     {
         document_title("Landmark cost partitioning heuristic");
         document_synopsis(
@@ -197,17 +197,21 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_landmark_cost_partitioning_heuristic_feature(RawRegistry& raw_registry)
+void add_landmark_cost_partitioning_heuristic_categories(
+    Registry& raw_registry)
 {
-    raw_registry
-        .insert_feature_plugin<LandmarkCostPartitioningHeuristicFeature>();
-
     raw_registry.insert_enum_plugin<CostPartitioningMethod>({
         {"optimal", "use optimal (LP-based) cost partitioning"},
         {"uniform",
          "partition operator costs uniformly among all landmarks "
          "achieved by that operator"},
     });
+}
+
+void add_landmark_cost_partitioning_heuristic_feature(Registry& raw_registry)
+{
+    raw_registry
+        .insert_feature_plugin<LandmarkCostPartitioningHeuristicFeature>();
 }
 
 } // namespace downward::cli::heuristics

@@ -9,7 +9,7 @@
 
 #include "probfd/algorithms/lrtdp.h"
 
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include <memory>
 #include <string>
@@ -66,7 +66,7 @@ class LRTDPSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 
 public:
     LRTDPSolverFeature()
-        : SharedTypedFeature(
+        : TypedFeature(
               add_wrapper_algo_suffix<Bisimulation, Fret>("lrtdp"))
     {
         this->document_title("Labelled Real-Time Dynamic Programming");
@@ -116,15 +116,15 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_lrtdp_features(RawRegistry& raw_registry)
+void add_lrtdp_features(Registry& raw_registry)
 {
-    raw_registry.insert_feature_plugins<LRTDPSolverFeature>();
-
     raw_registry.insert_enum_plugin<TrialTerminationCondition>(
         {{"terminal", "Stop trials at terminal states"},
          {"consistent", "Stop trials at epsilon consistent states"},
          {"inconsistent", "Stop trials at epsilon inconsistent states"},
          {"revisited", "Stop trials upon revisiting a state"}});
+
+    raw_registry.insert_feature_plugins<LRTDPSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

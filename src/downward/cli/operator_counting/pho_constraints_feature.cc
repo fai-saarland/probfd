@@ -1,7 +1,7 @@
 #include "downward/cli/operator_counting/pho_constraints_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/operator_counting/pho_constraints.h"
 
@@ -18,7 +18,7 @@ namespace {
 class PhOConstraintsFeature : public SharedTypedFeature<ConstraintGenerator> {
 public:
     PhOConstraintsFeature()
-        : SharedTypedFeature("pho_constraints")
+        : TypedFeature("pho_constraints")
     {
         document_title("Posthoc optimization constraints");
         document_synopsis(
@@ -53,7 +53,7 @@ public:
 
 namespace downward::cli::operator_counting {
 
-void add_pho_constraints_feature(RawRegistry& raw_registry)
+void add_pho_constraints_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<PhOConstraintsFeature>();
 }

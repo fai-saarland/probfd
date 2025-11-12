@@ -1,7 +1,7 @@
 #include "downward/cli/landmarks/landmark_factory_merged_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/landmarks/landmark_factory_options.h"
 
@@ -22,7 +22,7 @@ namespace {
 class LandmarkFactoryMergedFeature : public SharedTypedFeature<LandmarkFactory> {
 public:
     LandmarkFactoryMergedFeature()
-        : SharedTypedFeature("lm_merged")
+        : TypedFeature("lm_merged")
     {
         document_title("Merged Landmarks");
         document_synopsis(
@@ -61,7 +61,7 @@ public:
 
 namespace downward::cli::landmarks {
 
-void add_landmark_factory_merged_feature(RawRegistry& raw_registry)
+void add_landmark_factory_merged_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<LandmarkFactoryMergedFeature>();
 }

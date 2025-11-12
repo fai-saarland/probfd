@@ -1,14 +1,14 @@
-#ifndef PROBFD_SUBTASK_GENERATORS_FEATURES_H
-#define PROBFD_SUBTASK_GENERATORS_FEATURES_H
+#ifndef DOWNWARD_SUBTASK_GENERATORS_FEATURES_H
+#define DOWNWARD_SUBTASK_GENERATORS_FEATURES_H
 
 namespace downward::cli::plugins {
-class RawRegistry;
+class Registry;
 }
 
 namespace downward::cli::cartesian_abstractions {
 
 void add_subtask_generators_features(
-    downward::cli::plugins::RawRegistry& raw_registry);
+    downward::cli::plugins::Registry& raw_registry);
 
 } // namespace downward::cli::cartesian_abstractions
 

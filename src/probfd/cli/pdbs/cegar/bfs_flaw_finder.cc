@@ -1,6 +1,6 @@
 #include "probfd/cli/pdbs/cegar/bfs_flaw_finder.h"
 
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/plugins/plugin.h"
 
@@ -15,7 +15,7 @@ namespace {
 class BFSFlawFinderFeature : public SharedTypedFeature<FlawFindingStrategy> {
 public:
     BFSFlawFinderFeature()
-        : SharedTypedFeature("bfs_flaw_finder")
+        : TypedFeature("bfs_flaw_finder")
     {
         add_optional_argument_with_default<int>(
             "max_search_states",
@@ -37,7 +37,7 @@ protected:
 
 namespace probfd::cli::pdbs::cegar {
 
-void add_bfs_flaw_finder_feature(RawRegistry& raw_registry)
+void add_bfs_flaw_finder_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<BFSFlawFinderFeature>();
 }

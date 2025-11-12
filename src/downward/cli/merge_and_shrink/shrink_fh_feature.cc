@@ -1,7 +1,7 @@
 #include "downward/cli/merge_and_shrink/shrink_fh_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/merge_and_shrink/shrink_bucket_based_options.h"
 
@@ -23,7 +23,7 @@ namespace {
 class ShrinkFHFeature : public SharedTypedFeature<ShrinkStrategy> {
 public:
     ShrinkFHFeature()
-        : SharedTypedFeature("shrink_fh")
+        : TypedFeature("shrink_fh")
     {
         document_title("f-preserving shrink strategy");
         document_synopsis(
@@ -96,13 +96,13 @@ public:
 
 namespace downward::cli::merge_and_shrink {
 
-void add_shrink_fh_feature(RawRegistry& raw_registry)
+void add_shrink_fh_feature(Registry& raw_registry)
 {
-    raw_registry.insert_feature_plugin<ShrinkFHFeature>();
-
     raw_registry.insert_enum_plugin<ShrinkFH::HighLow>(
         {{"high", "prefer shrinking states with high value"},
          {"low", "prefer shrinking states with low value"}});
+
+    raw_registry.insert_feature_plugin<ShrinkFHFeature>();
 }
 
 } // namespace downward::cli::merge_and_shrink

@@ -1,7 +1,7 @@
 #include "probfd/cli/solvers/idual.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/lp/lp_solver_options.h"
 
@@ -59,7 +59,7 @@ public:
 class IDualSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     IDualSolverFeature()
-        : SharedTypedFeature("idual")
+        : TypedFeature("idual")
     {
         document_title("i-dual");
 
@@ -90,7 +90,7 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_idual_feature(RawRegistry& raw_registry)
+void add_idual_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<IDualSolverFeature>();
 }

@@ -1,7 +1,7 @@
 #include "probfd/cli/merge_and_shrink/merge_strategy_factory_precomputed.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/merge_and_shrink/merge_strategy_factory_precomputed.h"
 
@@ -21,7 +21,7 @@ class MergeStrategyFactoryPrecomputedFeature
     : public SharedTypedFeature<MergeStrategyFactory> {
 public:
     MergeStrategyFactoryPrecomputedFeature()
-        : SharedTypedFeature("pmerge_precomputed")
+        : TypedFeature("pmerge_precomputed")
     {
         document_title("Precomputed merge strategy");
         document_synopsis(
@@ -65,7 +65,7 @@ protected:
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_strategy_factory_precomputed_feature(RawRegistry& raw_registry)
+void add_merge_strategy_factory_precomputed_feature(Registry& raw_registry)
 {
     raw_registry
         .insert_feature_plugin<MergeStrategyFactoryPrecomputedFeature>();

@@ -1,7 +1,7 @@
 #include "probfd/cli/solvers/ta_lrtdp.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/cli/naming_conventions.h"
 
@@ -70,7 +70,7 @@ public:
 class TrapAwareLRTDPSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     TrapAwareLRTDPSolverFeature()
-        : SharedTypedFeature("talrtdp")
+        : TypedFeature("talrtdp")
     {
         document_title("Trap-aware LRTDP");
         document_synopsis(
@@ -111,15 +111,15 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_ta_lrtdp_feature(RawRegistry& raw_registry)
+void add_ta_lrtdp_feature(Registry& raw_registry)
 {
-    raw_registry.insert_feature_plugin<TrapAwareLRTDPSolverFeature>();
-
     raw_registry.insert_enum_plugin<TrialTerminationCondition>(
         {{"terminal", "Stop trials at terminal states"},
          {"consistent", "Stop trials at epsilon consistent states"},
          {"inconsistent", "Stop trials at epsilon inconsistent states"},
          {"revisited", "Stop trials upon revisiting a state"}});
+
+    raw_registry.insert_feature_plugin<TrapAwareLRTDPSolverFeature>();
 }
 
 } // namespace

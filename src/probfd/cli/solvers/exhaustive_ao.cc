@@ -11,7 +11,7 @@
 
 #include "probfd/algorithms/exhaustive_ao.h"
 
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include <memory>
 #include <string>
@@ -63,7 +63,7 @@ class ExhaustiveAOSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 
 public:
     ExhaustiveAOSolverFeature()
-        : SharedTypedFeature(
+        : TypedFeature(
               add_wrapper_algo_suffix<Bisimulation, false>("exhaustive_ao"))
     {
         this->document_title("Exhaustive AO* algorithm");
@@ -93,7 +93,7 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_exhaustive_ao_solver_features(RawRegistry& raw_registry)
+void add_exhaustive_ao_solver_features(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugins<ExhaustiveAOSolverFeature>();
 }

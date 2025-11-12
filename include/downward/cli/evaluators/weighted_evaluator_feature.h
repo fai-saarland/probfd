@@ -2,13 +2,13 @@
 #define DOWNWARD_EVALUATORS_WEIGHTED_EVALUATOR_FEATURE_H
 
 namespace downward::cli::plugins {
-class RawRegistry;
+class Registry;
 }
 
 namespace downward::cli::evaluators {
 
 void add_weighted_evaluator_feature(
-    downward::cli::plugins::RawRegistry& raw_registry);
+    downward::cli::plugins::Registry& raw_registry);
 
 }
 

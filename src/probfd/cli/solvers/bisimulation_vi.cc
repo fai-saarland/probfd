@@ -1,7 +1,7 @@
 #include "probfd/cli/solvers/bisimulation_vi.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/solver_interface.h"
 
@@ -236,7 +236,7 @@ class BisimulationVISolverFeature
     : public SharedTypedFeature<TaskSolverFactory> {
 public:
     BisimulationVISolverFeature()
-        : SharedTypedFeature("bisimulation_vi")
+        : TypedFeature("bisimulation_vi")
     {
         document_title("Bisimulation Value Iteration");
 
@@ -260,7 +260,7 @@ class BisimulationIISolverFeature
     : public SharedTypedFeature<TaskSolverFactory> {
 public:
     BisimulationIISolverFeature()
-        : SharedTypedFeature("bisimulation_ii")
+        : TypedFeature("bisimulation_ii")
     {
         document_title("Bisimulation Interval Iteration");
 
@@ -283,7 +283,7 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_bisimulation_value_iteration_features(RawRegistry& raw_registry)
+void add_bisimulation_value_iteration_features(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<BisimulationVISolverFeature>();
     raw_registry.insert_feature_plugin<BisimulationIISolverFeature>();

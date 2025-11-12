@@ -3,7 +3,7 @@
 #include "downward/cli/pruning/pruning_method_options.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/pruning/stubborn_sets_atom_centric.h"
 
@@ -22,7 +22,7 @@ class StubbornSetsAtomCentricFeature
     : public SharedTypedFeature<downward::PruningMethod> {
 public:
     StubbornSetsAtomCentricFeature()
-        : SharedTypedFeature("atom_centric_stubborn_sets")
+        : TypedFeature("atom_centric_stubborn_sets")
     {
         document_title("Atom-centric stubborn sets");
         document_synopsis(
@@ -76,9 +76,8 @@ public:
 
 namespace downward::cli::pruning {
 
-void add_stubborn_sets_atom_centric_feature(RawRegistry& raw_registry)
+void add_stubborn_sets_atom_centric_feature(Registry& raw_registry)
 {
-    raw_registry.insert_feature_plugin<StubbornSetsAtomCentricFeature>();
     raw_registry.insert_enum_plugin<AtomSelectionStrategy>(
         {{"fast_downward",
           "select the atom (v, d) with the variable v that comes first in the "
@@ -93,6 +92,8 @@ void add_stubborn_sets_atom_centric_feature(RawRegistry& raw_registry)
           "select the atom achieved by the fewest number of actions that are "
           "not "
           "yet part of the stubborn set"}});
+
+    raw_registry.insert_feature_plugin<StubbornSetsAtomCentricFeature>();
 }
 
 } // namespace downward::cli::pruning

@@ -1,7 +1,7 @@
 #include "downward/cli/landmarks/landmark_factory_rpg_exhaust_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/landmarks/landmark_factory_options.h"
 
@@ -21,7 +21,7 @@ namespace {
 class LandmarkFactoryRpgExhaustFeature : public SharedTypedFeature<LandmarkFactory> {
 public:
     LandmarkFactoryRpgExhaustFeature()
-        : SharedTypedFeature("lm_exhaust")
+        : TypedFeature("lm_exhaust")
     {
         document_title("Exhaustive Landmarks");
         document_synopsis(
@@ -57,7 +57,7 @@ public:
 
 namespace downward::cli::landmarks {
 
-void add_landmark_factory_rpg_exhaust_feature(RawRegistry& raw_registry)
+void add_landmark_factory_rpg_exhaust_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<LandmarkFactoryRpgExhaustFeature>();
 }

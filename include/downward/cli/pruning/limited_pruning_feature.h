@@ -2,13 +2,13 @@
 #define DOWNWARD_CLI_PRUNING_LIMITED_PRUNING_FEATURE_H
 
 namespace downward::cli::plugins {
-class RawRegistry;
+class Registry;
 }
 
 namespace downward::cli::pruning {
 
 void add_limited_pruning_feature(
-    downward::cli::plugins::RawRegistry& raw_registry);
+    downward::cli::plugins::Registry& raw_registry);
 
 }
 

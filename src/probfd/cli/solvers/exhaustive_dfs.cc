@@ -1,7 +1,7 @@
 #include "probfd/cli/solvers/exhaustive_dfs.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/cli/solvers/mdp_solver_options.h"
 
@@ -92,7 +92,7 @@ class ExhaustiveDFSSolverFeature
     : public SharedTypedFeature<TaskSolverFactory> {
 public:
     ExhaustiveDFSSolverFeature()
-        : SharedTypedFeature("exhaustive_dfs")
+        : TypedFeature("exhaustive_dfs")
     {
         document_title("Exhaustive Depth-First Search");
 
@@ -133,7 +133,7 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_exhaustive_dfs_feature(RawRegistry& raw_registry)
+void add_exhaustive_dfs_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<ExhaustiveDFSSolverFeature>();
 }

@@ -1,7 +1,7 @@
 #include "probfd/cli/cartesian_abstractions/trace_based_flaw_generator.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/cartesian_abstractions/trace_based_flaw_generator.h"
 
@@ -17,7 +17,7 @@ class AStarFlawGeneratorFactoryFeature
     : public SharedTypedFeature<FlawGeneratorFactory> {
 public:
     AStarFlawGeneratorFactoryFeature()
-        : SharedTypedFeature("flaws_astar")
+        : TypedFeature("flaws_astar")
     {
     }
 
@@ -31,7 +31,7 @@ public:
 
 namespace probfd::cli::cartesian_abstractions {
 
-void add_astar_flaw_generator_feature(RawRegistry& raw_registry)
+void add_astar_flaw_generator_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<AStarFlawGeneratorFactoryFeature>();
 }

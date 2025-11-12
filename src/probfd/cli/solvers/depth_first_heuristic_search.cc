@@ -9,7 +9,7 @@
 
 #include "probfd/algorithms/depth_first_heuristic_search.h"
 
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include <memory>
 #include <string>
@@ -79,7 +79,7 @@ template <bool Bisimulation, bool Fret>
 class DFHSSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     DFHSSolverFeature()
-        : DFHSSolverFeature::SharedTypedFeature(
+        : DFHSSolverFeature::TypedFeature(
               add_wrapper_algo_suffix<Bisimulation, Fret>("dfhs"))
     {
         this->document_title("Depth-first heuristic search family");
@@ -142,7 +142,7 @@ template <bool Bisimulation, bool Fret>
 class ILAOSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     ILAOSolverFeature()
-        : ILAOSolverFeature::SharedTypedFeature(
+        : ILAOSolverFeature::TypedFeature(
               add_wrapper_algo_suffix<Bisimulation, Fret>("ilao"))
     {
         this->document_title("iLAO* variant of depth-first heuristic search");
@@ -172,7 +172,7 @@ template <bool Bisimulation, bool Fret>
 class LILAOSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     LILAOSolverFeature()
-        : LILAOSolverFeature::SharedTypedFeature(
+        : LILAOSolverFeature::TypedFeature(
               add_wrapper_algo_suffix<Bisimulation, Fret>("lilao"))
     {
         this->document_title("Labelled variant of iLAO*");
@@ -202,7 +202,7 @@ template <bool Bisimulation, bool Fret>
 class HDPSolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     HDPSolverFeature()
-        : HDPSolverFeature::SharedTypedFeature(
+        : HDPSolverFeature::TypedFeature(
               add_wrapper_algo_suffix<Bisimulation, Fret>("hdp"))
     {
         this->document_title("HDP variant of depth-first heuristic search");
@@ -231,13 +231,8 @@ public:
 
 namespace probfd::cli::solvers {
 
-void add_depth_first_heuristic_search_features(RawRegistry& raw_registry)
+void add_depth_first_heuristic_search_features(Registry& raw_registry)
 {
-    raw_registry.insert_feature_plugins<DFHSSolverFeature>();
-    raw_registry.insert_feature_plugins<ILAOSolverFeature>();
-    raw_registry.insert_feature_plugins<LILAOSolverFeature>();
-    raw_registry.insert_feature_plugins<HDPSolverFeature>();
-
     raw_registry.insert_enum_plugin<BacktrackingUpdateType>(
         {{"disabled",
           "No update is performed when backtracking from a state during the "
@@ -255,6 +250,11 @@ void add_depth_first_heuristic_search_features(RawRegistry& raw_registry)
           "An update is always performed when backtracking from a state during "
           "the "
           "dfs exploration."}});
+
+    raw_registry.insert_feature_plugins<DFHSSolverFeature>();
+    raw_registry.insert_feature_plugins<ILAOSolverFeature>();
+    raw_registry.insert_feature_plugins<LILAOSolverFeature>();
+    raw_registry.insert_feature_plugins<HDPSolverFeature>();
 }
 
 } // namespace probfd::cli::solvers

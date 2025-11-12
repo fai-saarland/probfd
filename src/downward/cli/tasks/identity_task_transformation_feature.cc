@@ -1,7 +1,7 @@
 #include "downward/cli/tasks/identity_task_transformation_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/transformations/identity_transformation.h"
 
@@ -14,7 +14,7 @@ class IdentityTaskTransformationFeature
     : public SharedTypedFeature<TaskTransformation> {
 public:
     IdentityTaskTransformationFeature()
-        : SharedTypedFeature("no_transform")
+        : TypedFeature("no_transform")
     {
     }
 
@@ -29,7 +29,7 @@ public:
 
 namespace downward::cli::tasks {
 
-void add_identity_task_transformation_features(RawRegistry& raw_registry)
+void add_identity_task_transformation_features(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<IdentityTaskTransformationFeature>();
 }

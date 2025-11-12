@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/operator_counting_heuristic_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -76,7 +76,7 @@ class OperatorCountingHeuristicFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     OperatorCountingHeuristicFeature()
-        : SharedTypedFeature("operatorcounting")
+        : TypedFeature("operatorcounting")
     {
         document_title("Operator-counting heuristic");
         document_synopsis(
@@ -162,7 +162,7 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_operator_counting_heuristic_feature(RawRegistry& raw_registry)
+void add_operator_counting_heuristic_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<OperatorCountingHeuristicFeature>();
 }

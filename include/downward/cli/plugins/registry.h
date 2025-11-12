@@ -1,14 +1,35 @@
-#ifndef PLUGINS_REGISTRY_H
-#define PLUGINS_REGISTRY_H
+#ifndef PLUGINS_RAW_REGISTRY_H
+#define PLUGINS_RAW_REGISTRY_H
 
+#include "downward/cli/plugins/plugin.h"
 #include "downward/cli/plugins/registry_types.h"
 
-#include <stdexcept>
-#include <string>
-#include <typeindex>
-#include <unordered_set>
+#include <set>
+#include <vector>
 
 namespace downward::cli::plugins {
+
+template <template <bool...> typename T, bool... b>
+concept instantiable = requires { typename T<b...>; };
+
+template <template <bool...> typename T, bool... b>
+struct suffix_instantiable_h : std::false_type {};
+
+template <template <bool...> typename T, bool b, bool... tail>
+struct suffix_instantiable_h<T, b, tail...>
+    : std::bool_constant<
+          instantiable<T, b, tail...> ||
+          suffix_instantiable_h<T, tail...>::value> {};
+
+template <template <bool...> typename T, bool... b>
+concept suffix_instantiable = suffix_instantiable_h<T, b...>::value;
+
+template <template <bool...> typename T, bool... b>
+concept strict_suffix_instantiable =
+    suffix_instantiable<T, b...> && !instantiable<T, b...>;
+
+template <template <bool...> typename T, bool... b>
+concept partial_specialization = !strict_suffix_instantiable<T, b...>;
 
 class MissingFeatureError : public std::runtime_error {
 public:
@@ -49,47 +70,176 @@ public:
     }
 };
 
-class Feature;
+struct CategoryComparator {
+    using is_transparent = void;
+
+    bool operator()(
+        const std::unique_ptr<CategoryPlugin>& lhs,
+        const std::unique_ptr<CategoryPlugin>& rhs) const;
+
+    bool operator()(
+        const std::string& lhs,
+        const std::unique_ptr<CategoryPlugin>& rhs) const;
+
+    bool operator()(
+        const std::unique_ptr<CategoryPlugin>& lhs,
+        const std::string& rhs) const;
+};
+
+struct SubCategoryComparator {
+    using is_transparent = void;
+
+    bool operator()(
+        const std::unique_ptr<SubcategoryPlugin>& lhs,
+        const std::unique_ptr<SubcategoryPlugin>& rhs) const;
+
+    bool operator()(
+        const std::string& lhs,
+        const std::unique_ptr<SubcategoryPlugin>& rhs) const;
+
+    bool operator()(
+        const std::unique_ptr<SubcategoryPlugin>& lhs,
+        const std::string& rhs) const;
+};
+
+struct FeatureComparator {
+    using is_transparent = void;
+
+    bool operator()(
+        const std::shared_ptr<Feature>& lhs,
+        const std::shared_ptr<Feature>& rhs) const;
+
+    bool operator()(const std::string& lhs, const std::shared_ptr<Feature>& rhs)
+        const;
+
+    bool operator()(const std::shared_ptr<Feature>& lhs, const std::string& rhs)
+        const;
+};
+
 class Registry {
-    /*
-      List of FeatureType* for types of all features in use.
+    std::set<std::unique_ptr<CategoryPlugin>, CategoryComparator>
+        category_plugins;
+    std::vector<std::unique_ptr<EnumPlugin>> enum_plugins;
+    std::set<std::unique_ptr<SubcategoryPlugin>, SubCategoryComparator>
+        subcategory_plugins;
+    std::set<std::shared_ptr<Feature>, FeatureComparator> features;
 
-      The FeatureType objects contains the documentation of those types and is
-      used to generate the complete help output.
-    */
-    FeatureTypes feature_types;
-
-    /*
-      Maps subcategory keys to the SubcategoryPlugin with that key.
-
-      A subcategory is a set of plugins of the same type that are grouped
-      together in the user documentation. For example, all PDB heuristics
-      are grouped together on the page documenting heuristics.
-    */
-    SubcategoryPlugins subcategory_plugins;
-
-    /*
-      Maps keys (e.g. 'astar') to features with that key.
-
-      A Feature objects contains its documentation, arguments, and
-      has the ability to construct the objects of that type.
-    */
-    Features features;
+    void add_feature_plugin(const Plugin& plugin);
 
 public:
-    Registry(
-        FeatureTypes&& feature_types,
-        SubcategoryPlugins&& subcategory_plugins,
-        Features&& features);
+    template <std::derived_from<SubcategoryPlugin> T>
+    void insert_subcategory_plugin()
+    {
+        auto [it, inserted] = subcategory_plugins.insert(std::make_unique<T>());
+
+        if (!inserted) {
+            throw downward::utils::CriticalError(
+                "Sub-category with name {} already exists.",
+                (*it)->get_subcategory_name());
+        }
+    }
+
+    template <typename T>
+    SharedTypedCategoryPlugin<T>&
+    insert_shared_category_plugin(std::string name)
+    {
+        return insert_category_plugin<std::shared_ptr<T>>(std::move(name));
+    }
+
+    template <typename T>
+    TypedCategoryPlugin<T>& insert_category_plugin(std::string name)
+    {
+        for (const auto& c : category_plugins) {
+            if (const std::type_index t = typeid(T);
+                c->get_pointer_type() == t) {
+                throw downward::utils::CriticalError(
+                    "CategoryPlugin for class '{}' already defined.",
+                    t.name());
+            }
+        }
+
+        auto [it, inserted] = category_plugins.emplace(
+            std::make_unique<TypedCategoryPlugin<T>>(std::move(name)));
+
+        if (!inserted) {
+            throw downward::utils::CriticalError(
+                "Category with name {} already exists.",
+                (*it)->get_category_name());
+        }
+
+        TypeRegistry::instance()->create_feature_type(**it);
+
+        return static_cast<TypedCategoryPlugin<T>&>(**it);
+    }
+
+    template <template <bool...> typename T, bool... b, typename F>
+    auto insert_category_plugins(const F& f)
+    {
+        if constexpr (instantiable<T, b...>) {
+            return std::tie(
+                insert_category_plugin<T<b...>>(f.template operator()<b...>()));
+        } else {
+            return std::tuple_cat(
+                insert_category_plugins<T, b..., true>(f),
+                insert_category_plugins<T, b..., false>(f));
+        }
+    }
+
+    template <template <bool...> typename T, bool... b, typename F>
+    auto insert_shared_category_plugins(const F& f)
+    {
+        if constexpr (instantiable<T, b...>) {
+            return std::tie(
+                insert_shared_category_plugin<T<b...>>(
+                    f.template operator()<b...>()));
+        } else {
+            return std::tuple_cat(
+                insert_shared_category_plugins<T, b..., true>(f),
+                insert_shared_category_plugins<T, b..., false>(f));
+        }
+    }
+
+    template <typename T>
+    void insert_enum_plugin(
+        std::initializer_list<std::pair<std::string, std::string>> enum_values)
+    {
+        auto& enum_plugin = enum_plugins.emplace_back(
+            std::make_unique<TypedEnumPlugin<T>>(enum_values));
+        TypeRegistry::instance()->create_enum_type(*enum_plugin);
+    }
+
+    template <typename T>
+    void insert_feature_plugin()
+    {
+        auto p = std::make_unique<FeaturePlugin<T>>();
+        add_feature_plugin(*p);
+    }
+
+    template <template <bool...> typename T, bool... b>
+        requires partial_specialization<T, b...>
+    void insert_feature_plugins()
+    {
+        if constexpr (instantiable<T, b...>) {
+            insert_feature_plugin<T<b...>>();
+        } else {
+            insert_feature_plugins<T, b..., true>();
+            insert_feature_plugins<T, b..., false>();
+        }
+    }
 
     bool has_feature(const std::string& name) const;
     std::shared_ptr<const Feature> get_feature(const std::string& name) const;
     const SubcategoryPlugin&
     get_subcategory_plugin(const std::string& subcategory) const;
 
-    const FeatureTypes& get_feature_types() const;
-    std::vector<const SubcategoryPlugin*> get_subcategory_plugins() const;
-    std::vector<std::shared_ptr<const Feature>> get_features() const;
+    auto get_subcategory_plugins() const
+    {
+        return std::views::all(subcategory_plugins);
+    }
+
+    auto get_features() const { return std::views::all(features); }
+
+    auto get_categories() const { return std::views::all(category_plugins); }
 };
 } // namespace downward::cli::plugins
 

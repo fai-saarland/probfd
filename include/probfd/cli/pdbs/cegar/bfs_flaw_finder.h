@@ -2,13 +2,13 @@
 #define PROBFD_CLI_PDBS_CEGAR_BFS_FLAW_FINDER_H
 
 namespace downward::cli::plugins {
-class RawRegistry;
+class Registry;
 }
 
 namespace probfd::cli::pdbs::cegar {
 
 void add_bfs_flaw_finder_feature(
-    downward::cli::plugins::RawRegistry& raw_registry);
+    downward::cli::plugins::Registry& raw_registry);
 
 }
 

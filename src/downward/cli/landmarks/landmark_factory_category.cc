@@ -1,7 +1,7 @@
 #include "downward/cli/landmarks/landmark_factory_category.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/landmarks/landmark_factory.h"
 
@@ -11,7 +11,7 @@ using namespace downward::cli::plugins;
 
 namespace downward::cli::landmarks {
 
-void add_landmark_factory_category(RawRegistry& raw_registry)
+void add_landmark_factory_category(Registry& raw_registry)
 {
     auto& category =
         raw_registry.insert_shared_category_plugin<LandmarkFactory>("LandmarkFactory");

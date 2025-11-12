@@ -1,7 +1,7 @@
 #include "downward/cli/landmarks/landmark_factory_zhu_givan_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/landmarks/landmark_factory_options.h"
 
@@ -23,7 +23,7 @@ namespace {
 class LandmarkFactoryZhuGivanFeature : public SharedTypedFeature<LandmarkFactory> {
 public:
     LandmarkFactoryZhuGivanFeature()
-        : SharedTypedFeature("lm_zg")
+        : TypedFeature("lm_zg")
     {
         document_title("Zhu/Givan Landmarks");
         document_synopsis(
@@ -51,7 +51,7 @@ public:
 
 namespace downward::cli::landmarks {
 
-void add_landmark_factory_zhu_givan_feature(RawRegistry& raw_registry)
+void add_landmark_factory_zhu_givan_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<LandmarkFactoryZhuGivanFeature>();
 }

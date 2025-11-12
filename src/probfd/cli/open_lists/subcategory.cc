@@ -1,7 +1,7 @@
 #include "probfd/cli/open_lists/subcategory.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/cli/naming_conventions.h"
 
@@ -13,6 +13,7 @@
 #include "probfd/quotients/quotient_system.h"
 
 #include "downward/operator_id.h"
+#include "downward/tuple_utils.h"
 
 #include <memory>
 
@@ -37,22 +38,10 @@ template <bool Fret>
 using OpenList = Wrapped<OpenList, Fret>;
 
 template <bool Fret>
-class ProbfdOpenListCategoryPlugin
-    : public SharedTypedCategoryPlugin<OpenList<Fret>> {
-public:
-    ProbfdOpenListCategoryPlugin()
-        : ProbfdOpenListCategoryPlugin::SharedTypedCategoryPlugin(
-              add_mdp_type_to_category<false, Fret>("ProbFDOpenList"))
-    {
-        this->document_synopsis("Open list.");
-    }
-};
-
-template <bool Fret>
 class FifoOpenListFeature : public SharedTypedFeature<OpenList<Fret>> {
 public:
     FifoOpenListFeature()
-        : FifoOpenListFeature::SharedTypedFeature(
+        : FifoOpenListFeature::TypedFeature(
               add_mdp_type_to_option<false, Fret>("fifo_open_list"))
     {
     }
@@ -69,7 +58,7 @@ template <bool Fret>
 class LifoOpenListFeature : public SharedTypedFeature<OpenList<Fret>> {
 public:
     LifoOpenListFeature()
-        : LifoOpenListFeature::SharedTypedFeature(
+        : LifoOpenListFeature::TypedFeature(
               add_mdp_type_to_option<false, Fret>("lifo_open_list"))
     {
     }
@@ -85,12 +74,20 @@ public:
 
 namespace probfd::cli::open_lists {
 
-void add_open_list_categories(RawRegistry& raw_registry)
+template <bool Fret>
+using OpenList = Wrapped<probfd::algorithms::OpenList, Fret>;
+
+void add_open_list_categories(Registry& raw_registry)
 {
-    raw_registry.insert_category_plugins<ProbfdOpenListCategoryPlugin>();
+    std::tuple t = raw_registry.insert_shared_category_plugins<open_lists::OpenList>(
+        []<bool Fret>() {
+            return add_mdp_type_to_category<false, Fret>("ProbFDOpenList");
+        });
+
+    tuple_transform(t, [](auto& c) { c.document_synopsis("Open list."); });
 }
 
-void add_open_list_features(RawRegistry& raw_registry)
+void add_open_list_features(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugins<FifoOpenListFeature>();
     raw_registry.insert_feature_plugins<LifoOpenListFeature>();

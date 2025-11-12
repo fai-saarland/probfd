@@ -3,7 +3,7 @@
 #include "downward/cli/pruning/pruning_method_options.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/pruning/stubborn_sets_simple.h"
 
@@ -21,7 +21,7 @@ namespace {
 class StubbornSetsSimpleFeature : public SharedTypedFeature<downward::PruningMethod> {
 public:
     StubbornSetsSimpleFeature()
-        : SharedTypedFeature("stubborn_sets_simple")
+        : TypedFeature("stubborn_sets_simple")
     {
         document_title("Stubborn sets simple");
         document_synopsis(
@@ -72,7 +72,7 @@ public:
 
 namespace downward::cli::pruning {
 
-void add_stubborn_sets_simple_feature(RawRegistry& raw_registry)
+void add_stubborn_sets_simple_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<StubbornSetsSimpleFeature>();
 }

@@ -5,7 +5,7 @@
 #include "downward/cli/parser/token_stream.h"
 #include "register_definitions.h"
 
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/tasks/root_task.h"
 
@@ -17,7 +17,6 @@
 #include "probfd/termination_costs.h"
 
 #include "downward/axiom_space.h"
-#include "downward/cli/plugins/registry.h"
 #include "downward/goal_fact_list.h"
 #include "downward/initial_state_values.h"
 #include "downward/operator_cost_function.h"
@@ -117,12 +116,11 @@ static auto construct_solver(argparse::ArgumentParser& parser)
     }
 
     // Register internal pre-definitions
-    RawRegistry raw_registry;
+    Registry raw_registry;
     register_definitions(raw_registry);
 
     // Type check
-    Registry registry = raw_registry.construct_registry();
-    const DecoratedASTNodePtr decorated = parsed->decorate(registry);
+    const DecoratedASTNodePtr decorated = parsed->decorate(raw_registry);
 
     // Remove unused definitions if enabled
     if (parser.get<bool>("--ignore-unused-definitions")) {

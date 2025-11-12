@@ -2,13 +2,13 @@
 #define PROBFD_CLI_SOLVERS_DEPTH_FIRST_HEURISTIC_SEARCH_H
 
 namespace downward::cli::plugins {
-class RawRegistry;
+class Registry;
 }
 
 namespace probfd::cli::solvers {
 
 void add_depth_first_heuristic_search_features(
-    downward::cli::plugins::RawRegistry& raw_registry);
+    downward::cli::plugins::Registry& raw_registry);
 
 }
 

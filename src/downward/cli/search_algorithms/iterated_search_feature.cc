@@ -2,7 +2,7 @@
 #include "downward/cli/search_algorithms/search_algorithm_options.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/search_algorithms/iterated_search.h"
 
@@ -81,12 +81,13 @@ class IteratedSearchFeature
     : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     IteratedSearchFeature()
-        : SharedTypedFeature("iterated")
+        : TypedFeature("iterated")
     {
         document_title("Iterated search");
         document_synopsis("");
 
-        add_required_list_argument<shared_ptr<SearchAlgorithm>>(
+        add_required_list_argument<
+            shared_ptr<TaskDependentFactory<SearchAlgorithm>>>(
             "algorithm_configs",
             "list of search algorithms for each phase");
         add_optional_argument_with_default<bool>(
@@ -96,7 +97,10 @@ public:
             "search algorithms, unless these already have a lower bound set. "
             "The iterated search bound is tightened whenever a component finds "
             "a cheaper plan.");
-        add_optional_argument_with_default<bool>("repeat_last", "false", "repeat last phase of search");
+        add_optional_argument_with_default<bool>(
+            "repeat_last",
+            "false",
+            "repeat last phase of search");
         add_optional_argument_with_default<bool>(
             "continue_on_fail",
             "false",
@@ -158,7 +162,7 @@ public:
 
 namespace downward::cli::search_algorithms {
 
-void add_iterated_search_feature(RawRegistry& raw_registry)
+void add_iterated_search_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<IteratedSearchFeature>();
 }

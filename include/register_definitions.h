@@ -7,11 +7,11 @@
 #define PROBFD_REGISTER_DEFINITIONS_H
 
 namespace downward::cli::plugins {
-class RawRegistry;
+class Registry;
 }
 
 namespace probfd {
-void register_definitions(downward::cli::plugins::RawRegistry& raw_registry);
+void register_definitions(downward::cli::plugins::Registry& raw_registry);
 }
 
 #endif

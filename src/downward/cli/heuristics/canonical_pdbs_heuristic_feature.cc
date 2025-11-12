@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/canonical_pdbs_heuristic_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -70,7 +70,7 @@ class CanonicalPDBsHeuristicFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     CanonicalPDBsHeuristicFeature()
-        : SharedTypedFeature("cpdbs")
+        : TypedFeature("cpdbs")
     {
         document_subcategory("heuristics_pdb");
         document_title("Canonical PDB");
@@ -113,7 +113,7 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_canonical_pdbs_heuristic_feature(RawRegistry& raw_registry)
+void add_canonical_pdbs_heuristic_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<CanonicalPDBsHeuristicFeature>();
 }

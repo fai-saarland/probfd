@@ -1,7 +1,7 @@
 #include "probfd/cli/solvers/acyclic_vi.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/cli/solvers/mdp_solver_options.h"
 
@@ -85,7 +85,7 @@ public:
 class AcyclicVISolverFeature : public SharedTypedFeature<TaskSolverFactory> {
 public:
     AcyclicVISolverFeature()
-        : SharedTypedFeature("acyclic_value_iteration")
+        : TypedFeature("acyclic_value_iteration")
     {
         document_title("Acyclic Value Iteration");
         add_base_solver_options_except_algorithm_to_feature(*this);
@@ -104,7 +104,7 @@ protected:
 
 namespace probfd::cli::solvers {
 
-void add_acyclic_value_iteration_feature(RawRegistry& raw_registry)
+void add_acyclic_value_iteration_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<AcyclicVISolverFeature>();
 }

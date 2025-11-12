@@ -1,7 +1,7 @@
 #include "downward/cli/evaluators/weighted_evaluator_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/evaluators/evaluator_options.h"
 
@@ -57,7 +57,7 @@ class WeightedEvaluatorFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     WeightedEvaluatorFeature()
-        : SharedTypedFeature("weight")
+        : TypedFeature("weight")
     {
         document_subcategory("evaluators_basic");
         document_title("Weighted evaluator");
@@ -85,7 +85,7 @@ public:
 
 namespace downward::cli::evaluators {
 
-void add_weighted_evaluator_feature(RawRegistry& raw_registry)
+void add_weighted_evaluator_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<WeightedEvaluatorFeature>();
 }

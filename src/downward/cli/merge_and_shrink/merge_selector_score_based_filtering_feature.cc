@@ -1,7 +1,7 @@
 #include "downward/cli/merge_and_shrink/merge_selector_score_based_filtering_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/merge_and_shrink/merge_selector_score_based_filtering.h"
 
@@ -16,7 +16,7 @@ class MergeSelectorScoreBasedFilteringFeature
     : public SharedTypedFeature<MergeSelector> {
 public:
     MergeSelectorScoreBasedFilteringFeature()
-        : SharedTypedFeature("score_based_filtering")
+        : TypedFeature("score_based_filtering")
     {
         document_title("Score based filtering merge selector");
         document_synopsis(
@@ -44,7 +44,7 @@ public:
 
 namespace downward::cli::merge_and_shrink {
 
-void add_merge_selector_score_based_filtering_feature(RawRegistry& raw_registry)
+void add_merge_selector_score_based_filtering_feature(Registry& raw_registry)
 {
     raw_registry
         .insert_feature_plugin<MergeSelectorScoreBasedFilteringFeature>();

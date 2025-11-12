@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/goal_count_heuristic_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -58,7 +58,7 @@ class GoalCountHeuristicFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     GoalCountHeuristicFeature()
-        : SharedTypedFeature("goalcount")
+        : TypedFeature("goalcount")
     {
         document_title("Goal count heuristic");
 
@@ -85,7 +85,7 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_goal_count_heuristic_features(RawRegistry& raw_registry)
+void add_goal_count_heuristic_features(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<GoalCountHeuristicFeature>();
 }

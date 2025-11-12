@@ -2,13 +2,13 @@
 #define DOWNWARD_CLI_SEARCH_ALGORITHMS_EAGER_FEATURE_H
 
 namespace downward::cli::plugins {
-class RawRegistry;
+class Registry;
 }
 
 namespace downward::cli::search_algorithms {
 
 void add_eager_feature(
-    downward::cli::plugins::RawRegistry& raw_registry);
+    downward::cli::plugins::Registry& raw_registry);
 
 }
 

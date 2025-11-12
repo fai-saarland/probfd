@@ -1,7 +1,7 @@
 #include "downward/cli/open_lists/type_based_open_list_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/open_lists/open_list_options.h"
 
@@ -31,7 +31,7 @@ class TypeBasedOpenListFeature
 public:
     TypeBasedOpenListFeature()
         requires(std::same_as<T, downward::StateOpenListEntry>)
-        : TypeBasedOpenListFeature::SharedTypedFeature("state_type_based")
+        : TypeBasedOpenListFeature::TypedFeature("state_type_based")
     {
         this->document_title("Type-based state open list");
         this->document_synopsis(
@@ -54,7 +54,7 @@ public:
                 "2014"));
 
         this->template add_optional_list_argument<
-            shared_ptr<downward::Evaluator>>(
+            shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
             "evaluators",
             "Evaluators used to determine the bucket for each entry.");
         add_rng_options_to_feature(*this);
@@ -62,7 +62,7 @@ public:
 
     TypeBasedOpenListFeature()
         requires(std::same_as<T, downward::EdgeOpenListEntry>)
-        : TypeBasedOpenListFeature::SharedTypedFeature("edge_type_based")
+        : TypeBasedOpenListFeature::TypedFeature("edge_type_based")
     {
         this->document_title("Type-based edge open list");
         this->document_synopsis(
@@ -85,7 +85,7 @@ public:
                 "2014"));
 
         this->template add_optional_list_argument<
-            shared_ptr<downward::Evaluator>>(
+            shared_ptr<downward::TaskDependentFactory<downward::Evaluator>>>(
             "evaluators",
             "Evaluators used to determine the bucket for each entry.");
         add_rng_options_to_feature(*this);
@@ -99,7 +99,9 @@ public:
             opts,
             "evaluators");
         return make_shared_from_arg_tuples<TypeBasedOpenListFactory<T>>(
-            opts.get_list<shared_ptr<downward::Evaluator>>("evaluators"),
+            opts.get_list<shared_ptr<
+                downward::TaskDependentFactory<downward::Evaluator>>>(
+                "evaluators"),
             get_rng_arguments_from_options(opts));
     }
 };
@@ -107,7 +109,7 @@ public:
 
 namespace downward::cli::open_lists {
 
-void add_type_based_open_list_features(RawRegistry& raw_registry)
+void add_type_based_open_list_features(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<
         TypeBasedOpenListFeature<downward::StateOpenListEntry>>();

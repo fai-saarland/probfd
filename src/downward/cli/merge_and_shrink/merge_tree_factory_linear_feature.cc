@@ -1,7 +1,7 @@
 #include "downward/cli/merge_and_shrink/merge_tree_factory_linear_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/merge_and_shrink/merge_tree_options.h"
 
@@ -23,7 +23,7 @@ class MergeTreeFactoryLinearFeature
     : public SharedTypedFeature<MergeTreeFactory> {
 public:
     MergeTreeFactoryLinearFeature()
-        : SharedTypedFeature("linear")
+        : TypedFeature("linear")
     {
         document_title("Linear merge trees");
         document_synopsis(
@@ -62,10 +62,8 @@ public:
 
 namespace downward::cli::merge_and_shrink {
 
-void add_merge_tree_factory_linear_feature(RawRegistry& raw_registry)
+void add_merge_tree_factory_linear_feature(Registry& raw_registry)
 {
-    raw_registry.insert_feature_plugin<MergeTreeFactoryLinearFeature>();
-
     raw_registry.insert_enum_plugin<
         downward::variable_order_finder::VariableOrderType>(
         {{"cg_goal_level",
@@ -85,6 +83,8 @@ void add_merge_tree_factory_linear_feature(RawRegistry& raw_registry)
           "variables are ordered according to their level in the causal graph"},
          {"reverse_level",
           "variables are ordered reverse to their level in the causal graph"}});
+
+    raw_registry.insert_feature_plugin<MergeTreeFactoryLinearFeature>();
 }
 
 } // namespace downward::cli::merge_and_shrink

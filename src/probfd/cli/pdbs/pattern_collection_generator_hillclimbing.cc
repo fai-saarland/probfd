@@ -1,7 +1,7 @@
 #include "probfd/cli/pdbs/pattern_collection_generator_hillclimbing.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -27,7 +27,7 @@ class PatternCollectionGeneratorHillclimbingFeature
     : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorHillclimbingFeature()
-        : SharedTypedFeature("hillclimbing_probabilistic")
+        : TypedFeature("hillclimbing_probabilistic")
     {
         add_optional_argument_with_default<std::shared_ptr<PatternCollectionGenerator>>(
             "initial_generator",
@@ -105,7 +105,7 @@ public:
 namespace probfd::cli::pdbs {
 
 void add_pattern_collection_generator_hillclimbing_feature(
-    RawRegistry& raw_registry)
+    Registry& raw_registry)
 {
     raw_registry
         .insert_feature_plugin<PatternCollectionGeneratorHillclimbingFeature>();

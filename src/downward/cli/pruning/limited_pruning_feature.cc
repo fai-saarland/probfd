@@ -3,7 +3,7 @@
 #include "downward/cli/pruning/pruning_method_options.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/pruning/limited_pruning.h"
 
@@ -21,7 +21,7 @@ class LimitedPruningFeature
     : public SharedTypedFeature<downward::PruningMethod> {
 public:
     LimitedPruningFeature()
-        : SharedTypedFeature("limited_pruning")
+        : TypedFeature("limited_pruning")
     {
         document_title("Limited pruning");
         document_synopsis(
@@ -71,7 +71,7 @@ public:
 
 namespace downward::cli::pruning {
 
-void add_limited_pruning_feature(RawRegistry& raw_registry)
+void add_limited_pruning_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<LimitedPruningFeature>();
 }

@@ -1,7 +1,7 @@
 #include "probfd/cli/pdbs/pattern_collection_generator_disjoint_cegar.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/utils/logging_options.h"
 #include "downward/cli/utils/rng_options.h"
@@ -75,7 +75,7 @@ class PatternCollectionGeneratorDisjointCEGARFeature
     : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorDisjointCEGARFeature()
-        : SharedTypedFeature("ppdbs_disjoint_cegar")
+        : TypedFeature("ppdbs_disjoint_cegar")
     {
         add_optional_argument_with_default<value_t>(
             "convergence_epsilon",
@@ -109,7 +109,7 @@ public:
 namespace probfd::cli::pdbs {
 
 void add_pattern_collection_generator_disjoint_cegar_feature(
-    RawRegistry& raw_registry)
+    Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<
         PatternCollectionGeneratorDisjointCEGARFeature>();

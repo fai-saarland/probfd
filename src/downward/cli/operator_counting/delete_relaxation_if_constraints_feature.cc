@@ -1,7 +1,7 @@
 #include "downward/cli/operator_counting/delete_relaxation_if_constraints_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/operator_counting/delete_relaxation_if_constraints.h"
 
@@ -20,7 +20,7 @@ class DeleteRelaxationIFConstraintsFeature
     : public SharedTypedFeature<ConstraintGenerator> {
 public:
     DeleteRelaxationIFConstraintsFeature()
-        : SharedTypedFeature("delete_relaxation_if_constraints")
+        : TypedFeature("delete_relaxation_if_constraints")
     {
         document_title("Delete relaxation constraints");
         document_synopsis(
@@ -94,7 +94,7 @@ public:
 
 namespace downward::cli::operator_counting {
 
-void add_delete_relaxation_if_constraints_feature(RawRegistry& raw_registry)
+void add_delete_relaxation_if_constraints_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<DeleteRelaxationIFConstraintsFeature>();
 }

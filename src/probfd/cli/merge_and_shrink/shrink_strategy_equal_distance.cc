@@ -1,7 +1,7 @@
 #include "probfd/cli/merge_and_shrink/shrink_strategy_equal_distance.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/cli/merge_and_shrink/shrink_strategy_bucket_based_options.h"
 
@@ -22,7 +22,7 @@ class ShrinkStrategyEqualDistanceFeature
     : public SharedTypedFeature<ShrinkStrategy> {
 public:
     ShrinkStrategyEqualDistanceFeature()
-        : SharedTypedFeature("shrink_equal_distance")
+        : TypedFeature("shrink_equal_distance")
     {
         document_title("distance-preserving shrink strategy");
 
@@ -55,13 +55,13 @@ protected:
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_shrink_strategy_equal_distance_feature(RawRegistry& raw_registry)
+void add_shrink_strategy_equal_distance_feature(Registry& raw_registry)
 {
-    raw_registry.insert_feature_plugin<ShrinkStrategyEqualDistanceFeature>();
-
     raw_registry.insert_enum_plugin<ShrinkStrategyEqualDistance::Priority>(
         {{"high", "prefer shrinking states with high value"},
          {"low", "prefer shrinking states with low value"}});
+
+    raw_registry.insert_feature_plugin<ShrinkStrategyEqualDistanceFeature>();
 }
 
 } // namespace probfd::cli::merge_and_shrink

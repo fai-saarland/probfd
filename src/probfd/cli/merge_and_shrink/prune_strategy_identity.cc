@@ -1,7 +1,7 @@
 #include "probfd/cli/merge_and_shrink/prune_strategy_identity.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/merge_and_shrink/prune_strategy_identity.h"
 
@@ -13,7 +13,7 @@ namespace {
 class PruneStrategyIdentityFeature : public SharedTypedFeature<PruneStrategy> {
 public:
     PruneStrategyIdentityFeature()
-        : SharedTypedFeature("prune_identity")
+        : TypedFeature("prune_identity")
     {
         document_title("Identity prune strategy");
         document_synopsis("This prune strategy leaves the TS unchanged.");
@@ -29,7 +29,7 @@ public:
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_prune_strategy_identity_feature(RawRegistry& raw_registry)
+void add_prune_strategy_identity_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<PruneStrategyIdentityFeature>();
 }

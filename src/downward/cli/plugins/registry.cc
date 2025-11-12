@@ -2,68 +2,123 @@
 
 #include "downward/cli/plugins/plugin.h"
 
-#include "downward/utils/system.h"
+#include "downward/utils/collections.h"
 
-#include <algorithm>
+#include <string>
 
 using namespace std;
 
 namespace downward::cli::plugins {
-Registry::Registry(
-    FeatureTypes&& feature_types,
-    SubcategoryPlugins&& subcategory_plugins,
-    Features&& features)
-    : feature_types(move(feature_types))
-    , subcategory_plugins(move(subcategory_plugins))
-    , features(move(features))
+
+bool CategoryComparator::operator()(
+    const std::unique_ptr<CategoryPlugin>& lhs,
+    const std::unique_ptr<CategoryPlugin>& rhs) const
 {
+    return lhs->get_category_name() < rhs->get_category_name();
+}
+
+bool CategoryComparator::operator()(
+    const std::string& lhs,
+    const std::unique_ptr<CategoryPlugin>& rhs) const
+{
+    return lhs < rhs->get_category_name();
+}
+
+bool CategoryComparator::operator()(
+    const std::unique_ptr<CategoryPlugin>& lhs,
+    const std::string& rhs) const
+{
+    return lhs->get_category_name() < rhs;
+}
+
+bool SubCategoryComparator::operator()(
+    const std::unique_ptr<SubcategoryPlugin>& lhs,
+    const std::unique_ptr<SubcategoryPlugin>& rhs) const
+{
+    return lhs->get_subcategory_name() < rhs->get_subcategory_name();
+}
+
+bool SubCategoryComparator::operator()(
+    const std::string& lhs,
+    const std::unique_ptr<SubcategoryPlugin>& rhs) const
+{
+    return lhs < rhs->get_subcategory_name();
+}
+
+bool SubCategoryComparator::operator()(
+    const std::unique_ptr<SubcategoryPlugin>& lhs,
+    const std::string& rhs) const
+{
+    return lhs->get_subcategory_name() < rhs;
+}
+
+bool FeatureComparator::operator()(
+    const std::shared_ptr<Feature>& lhs,
+    const std::shared_ptr<Feature>& rhs) const
+{
+    return lhs->get_key() < rhs->get_key();
+}
+
+bool FeatureComparator::operator()(
+    const std::string& lhs,
+    const std::shared_ptr<Feature>& rhs) const
+{
+    return lhs < rhs->get_key();
+}
+
+bool FeatureComparator::operator()(
+    const std::shared_ptr<Feature>& lhs,
+    const std::string& rhs) const
+{
+    return lhs->get_key() < rhs;
+}
+
+void Registry::add_feature_plugin(const Plugin& plugin)
+{
+    const auto [it, inserted] = features.insert(plugin.create_feature());
+
+    if (!inserted) {
+        throw utils::CriticalError(
+            "Feature with name {} already defined.",
+            (*it)->get_key());
+    }
+
+    if (const string subcategory = (*it)->get_subcategory();
+        !subcategory.empty() && !subcategory_plugins.contains(subcategory)) {
+        throw downward::utils::CriticalError(
+            "Missing SubcategoryPlugin '{}' for Plugin '{}' of type {}",
+            subcategory,
+            (*it)->get_key(),
+            (*it)->get_type().name());
+    }
 }
 
 shared_ptr<const Feature> Registry::get_feature(const string& name) const
 {
-    if (!has_feature(name)) {
-        throw MissingFeatureError(
-            "could not find a feature named '" + name + "' in the registry");
+    if (const auto it = features.find(name); it != features.end()) {
+        return *it;
     }
-    return features.at(name);
+
+    throw MissingFeatureError(
+        "could not find a feature named '" + name + "' in the registry");
 }
 
 const SubcategoryPlugin&
 Registry::get_subcategory_plugin(const string& subcategory) const
 {
-    if (!subcategory_plugins.count(subcategory)) {
-        throw MissingSubCategoryError(
-            "attempt to retrieve non-existing group info from registry: " +
-            string(subcategory));
+    if (const auto it = subcategory_plugins.find(subcategory);
+        it != subcategory_plugins.end()) {
+        return **it;
     }
-    return *subcategory_plugins.at(subcategory);
+
+    throw MissingSubCategoryError(
+        "attempt to retrieve non-existing group info from registry: " +
+        string(subcategory));
 }
 
 bool Registry::has_feature(const string& name) const
 {
-    return features.count(name);
+    return features.contains(name);
 }
 
-const FeatureTypes& Registry::get_feature_types() const
-{
-    return feature_types;
-}
-
-vector<const SubcategoryPlugin*> Registry::get_subcategory_plugins() const
-{
-    vector<const SubcategoryPlugin*> result;
-    for (const auto& pair : subcategory_plugins) {
-        result.push_back(pair.second);
-    }
-    return result;
-}
-
-vector<shared_ptr<const Feature>> Registry::get_features() const
-{
-    vector<shared_ptr<const Feature>> result;
-    for (const auto& pair : features) {
-        result.push_back(pair.second);
-    }
-    return result;
-}
 } // namespace downward::cli::plugins

@@ -1,7 +1,7 @@
 #include "downward/cli/pdbs/pattern_collection_generator_manual_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/pdbs/pattern_generator_options.h"
 
@@ -19,7 +19,7 @@ class PatternCollectionGeneratorManualFeature
     : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorManualFeature()
-        : SharedTypedFeature("manual_patterns")
+        : TypedFeature("manual_patterns")
     {
         add_required_list_argument<Pattern>(
             "patterns",
@@ -41,7 +41,7 @@ public:
 
 namespace downward::cli::pdbs {
 
-void add_pattern_collection_generator_manual_feature(RawRegistry& raw_registry)
+void add_pattern_collection_generator_manual_feature(Registry& raw_registry)
 {
     raw_registry
         .insert_feature_plugin<PatternCollectionGeneratorManualFeature>();

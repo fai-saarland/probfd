@@ -3,7 +3,7 @@
 #include "downward/cli/pruning/pruning_method_options.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/pruning/null_pruning_method.h"
 
@@ -19,7 +19,7 @@ namespace {
 class NullPruningMethodFeature : public SharedTypedFeature<downward::PruningMethod> {
 public:
     NullPruningMethodFeature()
-        : SharedTypedFeature("null")
+        : TypedFeature("null")
     {
         // document_group("");
         document_title("No pruning");
@@ -43,7 +43,7 @@ public:
 
 namespace downward::cli::pruning {
 
-void add_null_pruning_method_feature(RawRegistry& raw_registry)
+void add_null_pruning_method_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<NullPruningMethodFeature>();
 }

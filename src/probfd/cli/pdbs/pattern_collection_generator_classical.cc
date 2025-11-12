@@ -1,7 +1,7 @@
 #include "probfd/cli/pdbs/pattern_collection_generator_classical.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/utils/logging_options.h"
 
@@ -24,7 +24,7 @@ class PatternCollectionGeneratorClassicalFeature
     : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorClassicalFeature()
-        : SharedTypedFeature("classical_generator")
+        : TypedFeature("classical_generator")
     {
         document_title("Classical Pattern Generation Adapter");
         document_synopsis(
@@ -63,7 +63,7 @@ public:
 namespace probfd::cli::pdbs {
 
 void add_pattern_collection_generator_classical_feature(
-    RawRegistry& raw_registry)
+    Registry& raw_registry)
 {
     raw_registry
         .insert_feature_plugin<PatternCollectionGeneratorClassicalFeature>();

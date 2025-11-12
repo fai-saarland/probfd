@@ -3,7 +3,7 @@
 #include "downward/cli/pdbs/pattern_generator_options.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/pdbs/pattern_generator_greedy.h"
 
@@ -18,7 +18,7 @@ namespace {
 class PatternGeneratorGreedyFeature : public SharedTypedFeature<PatternGenerator> {
 public:
     PatternGeneratorGreedyFeature()
-        : SharedTypedFeature("greedy")
+        : TypedFeature("greedy")
     {
         add_optional_argument_with_default<int>(
             "max_states",
@@ -39,7 +39,7 @@ public:
 
 namespace downward::cli::pdbs {
 
-void add_pattern_generator_greedy_feature(RawRegistry& raw_registry)
+void add_pattern_generator_greedy_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<PatternGeneratorGreedyFeature>();
 }

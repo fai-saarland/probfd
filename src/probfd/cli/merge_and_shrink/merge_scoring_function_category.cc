@@ -1,5 +1,5 @@
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/merge_and_shrink/merge_scoring_function.h"
 
@@ -8,7 +8,7 @@ using namespace probfd::merge_and_shrink;
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_scoring_function_category(RawRegistry& raw_registry)
+void add_merge_scoring_function_category(Registry& raw_registry)
 {
     auto& category = raw_registry.insert_shared_category_plugin<MergeScoringFunction>(
         "PMergeScoringFunction");

@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/cea_heuristic_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -59,7 +59,7 @@ class ContextEnhancedAdditiveHeuristicFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     ContextEnhancedAdditiveHeuristicFeature()
-        : SharedTypedFeature("cea")
+        : TypedFeature("cea")
     {
         document_title("Context-enhanced additive heuristic");
 
@@ -91,7 +91,7 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_cea_heuristic_feature(RawRegistry& raw_registry)
+void add_cea_heuristic_feature(Registry& raw_registry)
 {
     raw_registry
         .insert_feature_plugin<ContextEnhancedAdditiveHeuristicFeature>();

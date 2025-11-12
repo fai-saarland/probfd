@@ -1,7 +1,7 @@
 #include "probfd/cli/merge_and_shrink/shrink_strategy_probabilistic_bisimulation.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/merge_and_shrink/shrink_strategy_probabilistic_bisimulation.h"
 
@@ -19,7 +19,7 @@ class ShrinkProbabilisticBisimulationFeature
     : public SharedTypedFeature<ShrinkStrategy> {
 public:
     ShrinkProbabilisticBisimulationFeature()
-        : SharedTypedFeature("pshrink_probabilistic_bisimulation")
+        : TypedFeature("pshrink_probabilistic_bisimulation")
     {
         document_title("Probabilistic Bisimulation-based shrink strategy");
         document_synopsis(
@@ -56,17 +56,17 @@ protected:
 namespace probfd::cli::merge_and_shrink {
 
 void add_shrink_strategy_probabilistic_bisimulation_feature(
-    RawRegistry& raw_registry)
+    Registry& raw_registry)
 {
-    raw_registry
-        .insert_feature_plugin<ShrinkProbabilisticBisimulationFeature>();
-
     raw_registry
         .insert_enum_plugin<ShrinkStrategyProbabilisticBisimulation::AtLimit>(
             {{"return", "stop without refining the equivalence class further"},
              {"use_up",
               "continue refining the equivalence class until "
               "the size limit is hit"}});
+
+    raw_registry
+        .insert_feature_plugin<ShrinkProbabilisticBisimulationFeature>();
 }
 
 } // namespace probfd::cli::merge_and_shrink

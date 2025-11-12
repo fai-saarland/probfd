@@ -1,7 +1,7 @@
 #include "downward/cli/pdbs/pattern_collection_generator_genetic_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/pdbs/pattern_generator_options.h"
 
@@ -31,7 +31,7 @@ class PatternCollectionGeneratorGeneticFeature
     : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorGeneticFeature()
-        : SharedTypedFeature("genetic")
+        : TypedFeature("genetic")
     {
         document_title("Genetic Algorithm Patterns");
         document_synopsis(
@@ -151,7 +151,7 @@ public:
 
 namespace downward::cli::pdbs {
 
-void add_pattern_collection_generator_genetic_feature(RawRegistry& raw_registry)
+void add_pattern_collection_generator_genetic_feature(Registry& raw_registry)
 {
     raw_registry
         .insert_feature_plugin<PatternCollectionGeneratorGeneticFeature>();

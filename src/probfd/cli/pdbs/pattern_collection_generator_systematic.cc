@@ -1,7 +1,7 @@
 #include "probfd/cli/pdbs/pattern_collection_generator_systematic.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/utils/logging_options.h"
 
@@ -22,7 +22,7 @@ class PatternCollectionGeneratorSystematicFeature
     : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorSystematicFeature()
-        : SharedTypedFeature("psystematic")
+        : TypedFeature("psystematic")
     {
         document_title("Systematically generated patterns");
         document_synopsis(
@@ -67,7 +67,7 @@ public:
 namespace probfd::cli::pdbs {
 
 void add_pattern_collection_generator_systematic_feature(
-    RawRegistry& raw_registry)
+    Registry& raw_registry)
 {
     raw_registry
         .insert_feature_plugin<PatternCollectionGeneratorSystematicFeature>();

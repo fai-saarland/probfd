@@ -1,7 +1,7 @@
 #include "probfd/cli/merge_and_shrink/merge_scoring_function_goal_relevance.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/merge_and_shrink/merge_scoring_function_goal_relevance.h"
 
@@ -17,7 +17,7 @@ class MergeScoringFunctionGoalRelevanceFeature
     : public SharedTypedFeature<MergeScoringFunction> {
 public:
     MergeScoringFunctionGoalRelevanceFeature()
-        : SharedTypedFeature("pgoal_relevance")
+        : TypedFeature("pgoal_relevance")
     {
         document_title("Goal relevance scoring");
         document_synopsis(
@@ -40,7 +40,7 @@ public:
 namespace probfd::cli::merge_and_shrink {
 
 void add_merge_scoring_function_goal_relevance_feature(
-    RawRegistry& raw_registry)
+    Registry& raw_registry)
 {
     raw_registry
         .insert_feature_plugin<MergeScoringFunctionGoalRelevanceFeature>();

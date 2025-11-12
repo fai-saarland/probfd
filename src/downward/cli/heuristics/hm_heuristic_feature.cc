@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/hm_heuristic_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -65,7 +65,7 @@ class HMHeuristicFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     HMHeuristicFeature()
-        : SharedTypedFeature("hm")
+        : TypedFeature("hm")
     {
         document_title("h^m heuristic");
 
@@ -100,7 +100,7 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_hm_heuristic_features(RawRegistry& raw_registry)
+void add_hm_heuristic_features(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<HMHeuristicFeature>();
 }

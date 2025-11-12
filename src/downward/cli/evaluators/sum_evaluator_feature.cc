@@ -1,7 +1,7 @@
 #include "downward/cli/evaluators/sum_evaluator_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/evaluators/combining_evaluator_options.h"
 
@@ -61,7 +61,7 @@ class SumEvaluatorFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     SumEvaluatorFeature()
-        : SharedTypedFeature("sum")
+        : TypedFeature("sum")
     {
         document_subcategory("evaluators_basic");
         document_title("Sum evaluator");
@@ -86,7 +86,7 @@ public:
 
 namespace downward::cli::evaluators {
 
-void add_sum_evaluator_feature(RawRegistry& raw_registry)
+void add_sum_evaluator_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<SumEvaluatorFeature>();
 }

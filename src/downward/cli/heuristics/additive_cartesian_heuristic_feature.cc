@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/additive_cartesian_heuristic_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/heuristics/heuristic_options.h"
 
@@ -101,7 +101,7 @@ class AdditiveCartesianHeuristicFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     AdditiveCartesianHeuristicFeature()
-        : SharedTypedFeature("cegar")
+        : TypedFeature("cegar")
     {
         document_title("Additive CEGAR heuristic");
         document_synopsis(
@@ -195,10 +195,8 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_additive_cartesian_heuristic_feature(RawRegistry& raw_registry)
+void add_additive_cartesian_heuristic_categories(Registry& raw_registry)
 {
-    raw_registry.insert_feature_plugin<AdditiveCartesianHeuristicFeature>();
-
     raw_registry.insert_enum_plugin<PickSplit>(
         {{"random", "select a random variable (among all eligible variables)"},
          {"min_unwanted",
@@ -223,6 +221,11 @@ void add_additive_cartesian_heuristic_feature(RawRegistry& raw_registry)
          {"max_hadd",
           "select an eligible variable with maximal h^add(s_0) value "
           "over all facts that need to be removed from the flaw state"}});
+}
+
+void add_additive_cartesian_heuristic_feature(Registry& raw_registry)
+{
+    raw_registry.insert_feature_plugin<AdditiveCartesianHeuristicFeature>();
 }
 
 } // namespace downward::cli::heuristics

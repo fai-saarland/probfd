@@ -1,7 +1,7 @@
 #include "downward/cli/operator_counting/delete_relaxation_rr_constraints_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/operator_counting/delete_relaxation_rr_constraints.h"
 
@@ -20,7 +20,7 @@ class DeleteRelaxationRRConstraintsFeature
     : public SharedTypedFeature<ConstraintGenerator> {
 public:
     DeleteRelaxationRRConstraintsFeature()
-        : SharedTypedFeature("delete_relaxation_rr_constraints")
+        : TypedFeature("delete_relaxation_rr_constraints")
     {
         document_title(
             "Delete relaxation constraints from Rankooh and Rintanen");
@@ -93,10 +93,8 @@ public:
 
 namespace downward::cli::operator_counting {
 
-void add_delete_relaxation_rr_constraints_feature(RawRegistry& raw_registry)
+void add_delete_relaxation_rr_constraints_feature(Registry& raw_registry)
 {
-    raw_registry.insert_feature_plugin<DeleteRelaxationRRConstraintsFeature>();
-
     raw_registry.insert_enum_plugin<AcyclicityType>(
         {{"time_labels",
           "introduces MIP variables that encode the time at which each fact is "
@@ -113,6 +111,8 @@ void add_delete_relaxation_rr_constraints_feature(RawRegistry& raw_registry)
          {"none",
           "No acyclicity is enforced. The resulting heuristic is a relaxation "
           "of the delete-relaxation heuristic."}});
+
+    raw_registry.insert_feature_plugin<DeleteRelaxationRRConstraintsFeature>();
 }
 
 } // namespace downward::cli::operator_counting

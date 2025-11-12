@@ -1,7 +1,7 @@
 #include "downward/cli/landmarks/landmark_factory_reasonable_orders_hps_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/landmarks/landmark_factory_options.h"
 
@@ -27,7 +27,7 @@ class LandmarkFactoryReasonableOrdersHPSFeature
     : public SharedTypedFeature<LandmarkFactory> {
 public:
     LandmarkFactoryReasonableOrdersHPSFeature()
-        : SharedTypedFeature("lm_reasonable_orders_hps")
+        : TypedFeature("lm_reasonable_orders_hps")
     {
         document_title("HPS Orders");
         document_synopsis(
@@ -80,7 +80,7 @@ public:
 namespace downward::cli::landmarks {
 
 void add_landmark_factory_reasonable_orders_hps_feature(
-    RawRegistry& raw_registry)
+    Registry& raw_registry)
 {
     raw_registry
         .insert_feature_plugin<LandmarkFactoryReasonableOrdersHPSFeature>();

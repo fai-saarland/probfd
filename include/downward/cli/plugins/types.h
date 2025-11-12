@@ -101,20 +101,18 @@ public:
 class FeatureType : public Type {
     std::type_index pointer_type;
     std::string type_name;
-    std::string synopsis;
 
 public:
     FeatureType(
         std::type_index pointer_type,
-        const std::string& type_name,
-        const std::string& synopsis);
+        const std::string& type_name);
 
     bool operator==(const Type& other) const override;
     bool is_feature_type() const override;
     std::string name() const override;
     size_t get_hash() const override;
 
-    std::string get_synopsis() const;
+    std::type_index get_type_index() const;
 };
 
 class ListType : public Type {
@@ -216,7 +214,6 @@ class TypeRegistry {
     const Type& get_nonlist_type(std::type_index type) const;
 
 public:
-    static BasicType NO_TYPE;
     static SymbolType SYMBOL_TYPE;
     static EmptyListType EMPTY_LIST_TYPE;
 

@@ -1,7 +1,7 @@
 #include "probfd/cli/heuristics/merge_and_shrink_heuristic.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/cli/heuristics/task_dependent_heuristic_options.h"
 
@@ -171,7 +171,7 @@ class MergeAndShrinkHeuristicFactoryFeature final
     : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     MergeAndShrinkHeuristicFactoryFeature()
-        : SharedTypedFeature("pa_merge_and_shrink")
+        : TypedFeature("pa_merge_and_shrink")
     {
         document_title("Merge-and-shrink heuristic");
         document_synopsis("TODO add a description");
@@ -206,7 +206,7 @@ public:
 
 namespace probfd::cli::heuristics {
 
-void add_merge_and_shrink_heuristic_feature(RawRegistry& raw_registry)
+void add_merge_and_shrink_heuristic_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<MergeAndShrinkHeuristicFactoryFeature>();
 }

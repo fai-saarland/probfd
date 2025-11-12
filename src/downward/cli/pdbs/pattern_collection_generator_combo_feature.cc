@@ -1,7 +1,7 @@
 #include "downward/cli/pdbs/pattern_collection_generator_combo_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/pdbs/pattern_generator_options.h"
 
@@ -21,7 +21,7 @@ class PatternCollectionGeneratorComboFeature
     : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorComboFeature()
-        : SharedTypedFeature("combo")
+        : TypedFeature("combo")
     {
         add_optional_argument_with_default<int>(
             "max_states",
@@ -42,7 +42,7 @@ public:
 
 namespace downward::cli::pdbs {
 
-void add_pattern_collection_generator_combo_feature(RawRegistry& raw_registry)
+void add_pattern_collection_generator_combo_feature(Registry& raw_registry)
 {
     raw_registry
         .insert_feature_plugin<PatternCollectionGeneratorComboFeature>();

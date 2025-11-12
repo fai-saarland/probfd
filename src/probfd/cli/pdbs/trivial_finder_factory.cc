@@ -1,7 +1,7 @@
 #include "probfd/cli/pdbs/trivial_finder_factory.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/pdbs/trivial_finder_factory.h"
 
@@ -17,7 +17,7 @@ class TrivialFinderFactoryFeature
     : public SharedTypedFeature<SubCollectionFinderFactory> {
 public:
     TrivialFinderFactoryFeature()
-        : SharedTypedFeature("finder_trivial_factory")
+        : TypedFeature("finder_trivial_factory")
     {
     }
 
@@ -31,7 +31,7 @@ public:
 
 namespace probfd::cli::pdbs {
 
-void add_trivial_finder_factory_feature(RawRegistry& raw_registry)
+void add_trivial_finder_factory_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<TrivialFinderFactoryFeature>();
 }

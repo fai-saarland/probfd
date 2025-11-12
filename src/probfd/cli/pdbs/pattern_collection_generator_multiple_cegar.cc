@@ -1,7 +1,7 @@
 #include "probfd/cli/pdbs/pattern_collection_generator_multiple_cegar.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/cli/pdbs/cegar/cegar_options.h"
 #include "probfd/cli/pdbs/pattern_collection_generator_multiple_options.h"
@@ -23,7 +23,7 @@ class PatternCollectionGeneratorMultipleCegarFeature
     : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorMultipleCegarFeature()
-        : SharedTypedFeature("ppdbs_multiple_cegar")
+        : TypedFeature("ppdbs_multiple_cegar")
     {
         add_optional_argument_with_default<probfd::value_t>(
             "convergence_epsilon",
@@ -55,7 +55,7 @@ public:
 namespace probfd::cli::pdbs {
 
 void add_pattern_collection_generator_multiple_cegar_feature(
-    RawRegistry& raw_registry)
+    Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<
         PatternCollectionGeneratorMultipleCegarFeature>();

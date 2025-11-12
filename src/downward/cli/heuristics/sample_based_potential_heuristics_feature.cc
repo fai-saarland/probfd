@@ -1,7 +1,7 @@
 #include "downward/cli/heuristics/sample_based_potential_heuristics_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/potentials/potential_options.h"
 #include "downward/cli/utils/rng_options.h"
@@ -120,7 +120,7 @@ class SampleBasedPotentialMaxHeuristicFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     SampleBasedPotentialMaxHeuristicFeature()
-        : SharedTypedFeature("sample_based_potentials")
+        : TypedFeature("sample_based_potentials")
     {
         document_subcategory("heuristics_potentials");
         document_title("Sample-based potential heuristics");
@@ -161,7 +161,7 @@ public:
 
 namespace downward::cli::heuristics {
 
-void add_sample_based_potential_heuristics_feature(RawRegistry& raw_registry)
+void add_sample_based_potential_heuristics_feature(Registry& raw_registry)
 {
     raw_registry
         .insert_feature_plugin<SampleBasedPotentialMaxHeuristicFeature>();

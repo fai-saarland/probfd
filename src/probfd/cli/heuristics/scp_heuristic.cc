@@ -1,7 +1,7 @@
 #include "probfd/cli/heuristics/scp_heuristic.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -28,7 +28,7 @@ class SCPHeuristicFactoryFeature
     : public SharedTypedFeature<TaskHeuristicFactory> {
 public:
     SCPHeuristicFactoryFeature()
-        : SharedTypedFeature("scp_heuristic")
+        : TypedFeature("scp_heuristic")
     {
         document_title("Saturated Cost Partitioning Heuristic");
         document_synopsis(
@@ -77,10 +77,8 @@ public:
 
 namespace probfd::cli::heuristics {
 
-void add_scp_heuristic_feature(RawRegistry& raw_registry)
+void add_scp_heuristic_feature(Registry& raw_registry)
 {
-    raw_registry.insert_feature_plugin<SCPHeuristicFactoryFeature>();
-
     raw_registry.insert_enum_plugin<SCPHeuristicFactory::OrderingStrategy>(
         {{"random", "the order is random"},
          {"size_asc", "orders the PDBs by increasing size"},
@@ -88,6 +86,8 @@ void add_scp_heuristic_feature(RawRegistry& raw_registry)
          {"inherit",
           "inherits the order from the underlying pattern generation "
           "algorithm"}});
+
+    raw_registry.insert_feature_plugin<SCPHeuristicFactoryFeature>();
 }
 
 } // namespace probfd::cli::heuristics

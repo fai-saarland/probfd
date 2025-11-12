@@ -4,7 +4,7 @@
 #include "downward/cli/pdbs/utils.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/pdbs/pattern_collection_generator_multiple_cegar.h"
 
@@ -22,7 +22,7 @@ class PatternCollectionGeneratorMultipleCegarFeature
     : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorMultipleCegarFeature()
-        : SharedTypedFeature("multiple_cegar")
+        : TypedFeature("multiple_cegar")
     {
         document_title("Multiple CEGAR");
         document_synopsis(
@@ -57,7 +57,7 @@ public:
 namespace downward::cli::pdbs {
 
 void add_pattern_collection_generator_multiple_cegar_feature(
-    RawRegistry& raw_registry)
+    Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<
         PatternCollectionGeneratorMultipleCegarFeature>();

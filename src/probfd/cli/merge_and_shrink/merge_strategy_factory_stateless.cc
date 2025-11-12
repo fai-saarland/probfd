@@ -1,7 +1,7 @@
 #include "probfd/cli/merge_and_shrink/merge_strategy_factory_stateless.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/merge_and_shrink/merge_strategy_factory_stateless.h"
 
@@ -21,7 +21,7 @@ class MergeStrategyFactoryStatelessFeature
     : public SharedTypedFeature<MergeStrategyFactory> {
 public:
     MergeStrategyFactoryStatelessFeature()
-        : SharedTypedFeature("pmerge_stateless")
+        : TypedFeature("pmerge_stateless")
     {
         document_title("Stateless merge strategy");
         document_synopsis(
@@ -71,7 +71,7 @@ protected:
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_merge_strategy_factory_stateless_feature(RawRegistry& raw_registry)
+void add_merge_strategy_factory_stateless_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<MergeStrategyFactoryStatelessFeature>();
 }

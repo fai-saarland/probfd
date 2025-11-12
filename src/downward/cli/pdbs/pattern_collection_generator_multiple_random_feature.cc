@@ -4,7 +4,7 @@
 #include "downward/cli/pdbs/utils.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/pdbs/pattern_collection_generator_multiple_random.h"
 
@@ -20,7 +20,7 @@ class PatternCollectionGeneratorMultipleRandomFeature
     : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorMultipleRandomFeature()
-        : SharedTypedFeature("random_patterns")
+        : TypedFeature("random_patterns")
     {
         document_title("Multiple Random Patterns");
         document_synopsis(
@@ -54,7 +54,7 @@ public:
 namespace downward::cli::pdbs {
 
 void add_pattern_collection_generator_multiple_random_feature(
-    RawRegistry& raw_registry)
+    Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<
         PatternCollectionGeneratorMultipleRandomFeature>();

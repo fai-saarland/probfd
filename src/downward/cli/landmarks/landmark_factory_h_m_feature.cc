@@ -1,7 +1,7 @@
 #include "downward/cli/landmarks/landmark_factory_h_m_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/landmarks/landmark_factory_options.h"
 
@@ -28,7 +28,7 @@ namespace {
 class LandmarkFactoryHMFeature : public SharedTypedFeature<LandmarkFactory> {
 public:
     LandmarkFactoryHMFeature()
-        : SharedTypedFeature("lm_hm")
+        : TypedFeature("lm_hm")
     {
         // document_group("");
         document_title("h^m Landmarks");
@@ -71,7 +71,7 @@ public:
 
 namespace downward::cli::landmarks {
 
-void add_landmark_factory_hm_feature(RawRegistry& raw_registry)
+void add_landmark_factory_hm_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<LandmarkFactoryHMFeature>();
 }

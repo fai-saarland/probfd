@@ -1,7 +1,7 @@
 #include "probfd/cli/merge_and_shrink/shrink_strategy_category.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/merge_and_shrink/shrink_strategy.h"
 
@@ -10,7 +10,7 @@ using namespace probfd::merge_and_shrink;
 
 namespace probfd::cli::merge_and_shrink {
 
-void add_shrink_strategy_category(RawRegistry& raw_registry)
+void add_shrink_strategy_category(Registry& raw_registry)
 {
     auto& category =
         raw_registry.insert_shared_category_plugin<ShrinkStrategy>("PShrinkStrategy");

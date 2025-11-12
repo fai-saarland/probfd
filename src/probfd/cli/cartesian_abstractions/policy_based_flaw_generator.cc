@@ -1,7 +1,7 @@
 #include "probfd/cli/cartesian_abstractions/policy_based_flaw_generator.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "probfd/cartesian_abstractions/policy_based_flaw_generator.h"
 
@@ -17,7 +17,7 @@ class ILAOFlawGeneratorFactoryFeature
     : public SharedTypedFeature<FlawGeneratorFactory> {
 public:
     ILAOFlawGeneratorFactoryFeature()
-        : SharedTypedFeature("flaws_ilao")
+        : TypedFeature("flaws_ilao")
     {
         add_optional_argument_with_default<probfd::value_t>(
             "convergence_epsilon",
@@ -44,7 +44,7 @@ public:
 
 namespace probfd::cli::cartesian_abstractions {
 
-void add_policy_based_flaw_generator_feature(RawRegistry& raw_registry)
+void add_policy_based_flaw_generator_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<ILAOFlawGeneratorFactoryFeature>();
 }

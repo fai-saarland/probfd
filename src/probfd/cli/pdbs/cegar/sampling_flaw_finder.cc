@@ -1,7 +1,7 @@
 #include "probfd/cli/pdbs/cegar/sampling_flaw_finder.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -23,7 +23,7 @@ namespace {
 class SamplingFlawFinderFeature : public SharedTypedFeature<FlawFindingStrategy> {
 public:
     SamplingFlawFinderFeature()
-        : SharedTypedFeature("sampling_flaw_finder")
+        : TypedFeature("sampling_flaw_finder")
     {
         add_rng_options_to_feature(*this);
         add_optional_argument_with_default<int>(
@@ -45,7 +45,7 @@ public:
 
 namespace probfd::cli::pdbs::cegar {
 
-void add_sampling_flaw_finder_feature(RawRegistry& raw_registry)
+void add_sampling_flaw_finder_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<SamplingFlawFinderFeature>();
 }

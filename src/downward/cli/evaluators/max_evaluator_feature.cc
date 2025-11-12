@@ -1,7 +1,7 @@
 #include "downward/cli/evaluators/max_evaluator_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/evaluators/combining_evaluator_options.h"
 
@@ -63,7 +63,7 @@ class MaxEvaluatorFeature
     : public SharedTypedFeature<TaskDependentFactory<Evaluator>> {
 public:
     MaxEvaluatorFeature()
-        : SharedTypedFeature("max")
+        : TypedFeature("max")
     {
         document_subcategory("evaluators_basic");
         document_title("Max evaluator");
@@ -84,7 +84,7 @@ public:
 
 namespace downward::cli::evaluators {
 
-void add_max_evaluator_feature(RawRegistry& raw_registry)
+void add_max_evaluator_feature(Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<MaxEvaluatorFeature>();
 }

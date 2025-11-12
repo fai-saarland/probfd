@@ -1,7 +1,7 @@
 #include "downward/cli/operator_cost_category.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/operator_cost.h"
 
@@ -11,7 +11,7 @@ namespace downward::cli {
 
 using namespace plugins;
 
-void add_operator_cost_category(RawRegistry& raw_registry)
+void add_operator_cost_category(Registry& raw_registry)
 {
     raw_registry.insert_enum_plugin<OperatorCost>(
         {{"normal", "all actions are accounted for with their real cost"},

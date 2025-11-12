@@ -1,8 +1,6 @@
 #ifndef PLUGINS_DOC_PRINTER_H
 #define PLUGINS_DOC_PRINTER_H
 
-#include "downward/cli/plugins/registry.h"
-
 #include <iostream>
 #include <map>
 #include <regex>
@@ -10,11 +8,16 @@
 #include <vector>
 
 namespace downward::cli::plugins {
+class CategoryPlugin;
+}
+
+namespace downward::cli::plugins {
 class Feature;
 class Registry;
 
 class DocPrinter {
-    virtual void print_category(const FeatureType& type, bool recursive) const;
+    virtual void
+    print_category(const CategoryPlugin& category, bool recursive) const;
     virtual void print_subcategory(
         const std::string& subcategory_name,
         const std::vector<const Feature*>& plugins) const;
@@ -32,11 +35,12 @@ protected:
     virtual void print_language_features(const Feature& plugin) const = 0;
     virtual void print_properties(const Feature& plugin) const = 0;
 
-    virtual void print_category_header(const FeatureType& type) const = 0;
+    virtual void
+    print_category_header(const CategoryPlugin& category) const = 0;
     virtual void print_category_synopsis(const std::string& synopsis) const = 0;
 
     virtual void print_category_members(
-        const FeatureType&,
+        const CategoryPlugin&,
         const std::map<std::string, std::vector<const Feature*>>&) const
     {
     }
@@ -61,7 +65,8 @@ protected:
     virtual void print_notes(const Feature& plugin) const override;
     virtual void print_language_features(const Feature& plugin) const override;
     virtual void print_properties(const Feature& plugin) const override;
-    virtual void print_category_header(const FeatureType& type) const override;
+    virtual void
+    print_category_header(const CategoryPlugin& category) const override;
     virtual void
     print_category_synopsis(const std::string& synopsis) const override;
     virtual void print_category_footer() const override;
@@ -82,13 +87,17 @@ protected:
     virtual void print_notes(const Feature& plugin) const override;
     virtual void print_language_features(const Feature& plugin) const override;
     virtual void print_properties(const Feature& plugin) const override;
-    virtual void print_category_header(const FeatureType& type) const override;
+    virtual void
+    print_category_header(const CategoryPlugin& category) const override;
     virtual void
     print_category_synopsis(const std::string& synopsis) const override;
     virtual void print_category_footer() const override;
 
 public:
-    PlainPrinter(std::ostream& out, Registry& registry, bool print_all = false);
+    PlainPrinter(
+        std::ostream& out,
+        Registry& registry,
+        bool print_all = false);
 };
 } // namespace downward::cli::plugins
 

@@ -1,7 +1,7 @@
 #include "downward/cli/pdbs/pattern_collection_generator_disjoint_cegar_feature.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/cli/utils/rng_options.h"
 
@@ -30,7 +30,7 @@ class PatternCollectionGeneratorDisjointCegarFeature
     : public SharedTypedFeature<PatternCollectionGenerator> {
 public:
     PatternCollectionGeneratorDisjointCegarFeature()
-        : SharedTypedFeature("disjoint_cegar")
+        : TypedFeature("disjoint_cegar")
     {
         document_title("Disjoint CEGAR");
         document_synopsis(
@@ -88,7 +88,7 @@ public:
 namespace downward::cli::pdbs {
 
 void add_pattern_collection_generator_disjoint_cegar_feature(
-    RawRegistry& raw_registry)
+    Registry& raw_registry)
 {
     raw_registry.insert_feature_plugin<
         PatternCollectionGeneratorDisjointCegarFeature>();

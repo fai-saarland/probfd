@@ -165,22 +165,30 @@ void TypeBasedOpenList<Entry>::get_path_dependent_evaluators(
 
 template <typename T>
 class TypeBasedOpenListFactory : public TaskDependentFactory<OpenList<T>> {
-    std::vector<std::shared_ptr<Evaluator>> evaluators;
+    std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>> factories;
     int random_seed;
 
 public:
     TypeBasedOpenListFactory(
-        const std::vector<std::shared_ptr<Evaluator>>& evaluators,
+        const std::vector<std::shared_ptr<TaskDependentFactory<Evaluator>>>&
+            factories,
         int random_seed)
-        : evaluators(evaluators)
+        : factories(std::move(factories))
         , random_seed(random_seed)
     {
     }
 
     std::unique_ptr<OpenList<T>>
-    create_object(const SharedAbstractTask&) override
+    create_object(const SharedAbstractTask& task) override
     {
-        return std::make_unique<TypeBasedOpenList<T>>(evaluators, random_seed);
+        auto f = [&task](const auto& f_ptr) -> std::shared_ptr<Evaluator> {
+            return f_ptr->create_object(task);
+        };
+
+        return std::make_unique<TypeBasedOpenList<T>>(
+            factories | std::views::transform(f) |
+                std::ranges::to<std::vector>(),
+            random_seed);
     }
 };
 } // namespace downward::type_based_open_list

@@ -2,7 +2,7 @@
 #include "downward/cli/search_algorithms/search_algorithm_options.h"
 
 #include "downward/cli/plugins/plugin.h"
-#include "downward/cli/plugins/raw_registry.h"
+#include "downward/cli/plugins/registry.h"
 
 #include "downward/search_algorithms/enforced_hill_climbing_search.h"
 
@@ -80,7 +80,7 @@ class EnforcedHillClimbingSearchFeature
     : public SharedTypedFeature<TaskDependentFactory<SearchAlgorithm>> {
 public:
     EnforcedHillClimbingSearchFeature()
-        : SharedTypedFeature("ehc")
+        : TypedFeature("ehc")
     {
         document_title("Lazy enforced hill-climbing");
         document_synopsis("");
@@ -115,15 +115,16 @@ public:
 
 namespace downward::cli::search_algorithms {
 
-void add_enforce_hill_climbing_search_feature(RawRegistry& raw_registry)
+void add_enforce_hill_climbing_search_feature(Registry& raw_registry)
 {
-    raw_registry.insert_feature_plugin<EnforcedHillClimbingSearchFeature>();
     raw_registry.insert_enum_plugin<PreferredUsage>(
         {{"prune_by_preferred",
           "prune successors achieved by non-preferred operators"},
          {"rank_preferred_first",
           "first insert successors achieved by preferred operators, "
           "then those by non-preferred operators"}});
+
+    raw_registry.insert_feature_plugin<EnforcedHillClimbingSearchFeature>();
 }
 
 } // namespace downward::cli::search_algorithms
