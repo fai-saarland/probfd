@@ -12,7 +12,7 @@ namespace probfd::cli::heuristics {
 void add_task_heuristic_factory_category(Registry& raw_registry)
 {
     raw_registry.insert_shared_category_plugin<TaskHeuristicFactory>(
-        "TaskHeuristicFactory");
+        "TaskHeuristicFactory", "");
 }
 
 } // namespace probfd::cli::heuristics

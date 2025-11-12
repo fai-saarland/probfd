@@ -21,8 +21,7 @@ using utils::ExitCode;
 using namespace probfd::merge_and_shrink;
 
 namespace {
-class LabelReductionFeature
-    : public SharedTypedFeature<LabelReduction> {
+class LabelReductionFeature : public SharedTypedFeature<LabelReduction> {
 public:
     LabelReductionFeature()
         : TypedFeature("pexact")
@@ -100,9 +99,8 @@ namespace probfd::cli::merge_and_shrink {
 
 void add_label_reduction_category(Registry& raw_registry)
 {
-    auto& category =
-        raw_registry.insert_shared_category_plugin<LabelReduction>("PLabelReduction");
-    category.document_synopsis(
+    raw_registry.insert_shared_category_plugin<LabelReduction>(
+        "PLabelReduction",
         "This page describes the current single 'option' for "
         "label reduction.");
 }

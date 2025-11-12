@@ -177,7 +177,8 @@ void add_successor_sampler_category(Registry& raw_registry)
     raw_registry.insert_shared_category_plugins<SuccessorSampler>(
         []<bool Fret> {
             return add_mdp_type_to_category<false, Fret>("SuccessorSampler");
-        });
+        },
+        []<bool> { return ""; });
 }
 
 void add_successor_sampler_features(Registry& raw_registry)

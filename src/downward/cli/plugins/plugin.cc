@@ -98,9 +98,11 @@ const vector<NoteInfo>& Feature::get_notes() const
 
 CategoryPlugin::CategoryPlugin(
     type_index pointer_type,
-    const string& category_name)
+    std::string category_name,
+    std::string synopsis)
     : pointer_type(pointer_type)
-    , category_name(category_name)
+    , category_name(std::move(category_name))
+    , synopsis(std::move(synopsis))
 {
 }
 
@@ -122,11 +124,6 @@ string CategoryPlugin::get_class_name() const
 string CategoryPlugin::get_synopsis() const
 {
     return synopsis;
-}
-
-void CategoryPlugin::document_synopsis(const string& synopsis)
-{
-    this->synopsis = synopsis;
 }
 
 SubcategoryPlugin::SubcategoryPlugin(const string& subcategory)

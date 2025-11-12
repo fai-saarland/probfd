@@ -13,9 +13,8 @@ namespace probfd::cli::pdbs {
 
 void add_pattern_generator_category(Registry& raw_registry)
 {
-    auto& category = raw_registry.insert_shared_category_plugin<PatternGenerator>(
-        "PPDBPatternGenerator");
-    category.document_synopsis(
+    raw_registry.insert_shared_category_plugin<PatternGenerator>(
+        "PPDBPatternGenerator",
         "Factory for a pattern and/or the corresponding "
         "probability-aware PDB");
 }

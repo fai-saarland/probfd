@@ -13,9 +13,9 @@ namespace downward::cli::pdbs {
 
 void add_pattern_generator_category(Registry& raw_registry)
 {
-    auto& category = raw_registry.insert_shared_category_plugin<PatternGenerator>(
-        "PatternGenerator");
-    category.document_synopsis("Factory for single patterns");
+    raw_registry.insert_shared_category_plugin<PatternGenerator>(
+        "PatternGenerator",
+        "Factory for single patterns");
 }
 
 } // namespace downward::cli::pdbs

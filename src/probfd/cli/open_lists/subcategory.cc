@@ -79,12 +79,12 @@ using OpenList = Wrapped<probfd::algorithms::OpenList, Fret>;
 
 void add_open_list_categories(Registry& raw_registry)
 {
-    std::tuple t = raw_registry.insert_shared_category_plugins<open_lists::OpenList>(
-        []<bool Fret>() {
-            return add_mdp_type_to_category<false, Fret>("ProbFDOpenList");
-        });
-
-    tuple_transform(t, [](auto& c) { c.document_synopsis("Open list."); });
+    std::tuple t =
+        raw_registry.insert_shared_category_plugins<open_lists::OpenList>(
+            []<bool Fret>() {
+                return add_mdp_type_to_category<false, Fret>("ProbFDOpenList");
+            },
+            []<bool>() { return "Open list."; });
 }
 
 void add_open_list_features(Registry& raw_registry)

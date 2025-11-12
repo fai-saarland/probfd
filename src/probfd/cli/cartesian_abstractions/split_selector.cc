@@ -159,9 +159,8 @@ namespace probfd::cli::cartesian_abstractions {
 
 void add_split_selector_category(Registry& raw_registry)
 {
-    auto& category = raw_registry.insert_shared_category_plugin<SplitSelectorFactory>(
-        "SplitSelectorFactory");
-    category.document_synopsis(
+    raw_registry.insert_shared_category_plugin<SplitSelectorFactory>(
+        "SplitSelectorFactory",
         "Factory for split selection algorithms used in the "
         "cartesian abstraction refinement loop");
 }

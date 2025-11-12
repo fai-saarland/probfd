@@ -182,12 +182,11 @@ class CategoryPlugin {
 protected:
     CategoryPlugin(
         std::type_index pointer_type,
-        const std::string& category_name);
+        std::string category_name,
+        std::string synopsis);
 
 public:
     virtual ~CategoryPlugin() = default;
-
-    void document_synopsis(const std::string& synopsis);
 
     std::type_index get_pointer_type() const;
     std::string get_category_name() const;
@@ -199,8 +198,13 @@ template <typename T>
     requires std::is_class_v<T>
 class TypedCategoryPlugin : public CategoryPlugin {
 public:
-    explicit TypedCategoryPlugin(const std::string& category_name)
-        : CategoryPlugin(typeid(T), category_name)
+    explicit TypedCategoryPlugin(
+        std::string category_name,
+        std::string synopsis)
+        : CategoryPlugin(
+              typeid(T),
+              std::move(category_name),
+              std::move(synopsis))
     {
     }
 };

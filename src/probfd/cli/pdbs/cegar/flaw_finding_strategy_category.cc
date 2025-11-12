@@ -13,9 +13,9 @@ namespace probfd::cli::pdbs::cegar {
 
 void add_flaw_finding_strategy_category(Registry& raw_registry)
 {
-    auto& category = raw_registry.insert_shared_category_plugin<FlawFindingStrategy>(
-        "FlawFindingStrategy");
-    category.document_synopsis("Policy CEGAR flaw finding strategy.");
+    raw_registry.insert_shared_category_plugin<FlawFindingStrategy>(
+        "FlawFindingStrategy",
+        "Policy CEGAR flaw finding strategy.");
 }
 
 } // namespace probfd::cli::pdbs::cegar

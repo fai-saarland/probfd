@@ -11,9 +11,8 @@ namespace probfd::cli::solvers {
 
 void add_task_solver_factory_category(Registry& raw_registry)
 {
-    auto& category = raw_registry.insert_shared_category_plugin<TaskSolverFactory>(
-        "TaskSolverFactory");
-    category.document_synopsis(
+    raw_registry.insert_shared_category_plugin<TaskSolverFactory>(
+        "TaskSolverFactory",
         "Represents a factory that produces a generic planning problem "
         "solver for a given probabilistic planning task. Expressions passed "
         "to the search command must produce values of this type.");

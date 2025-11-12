@@ -96,9 +96,8 @@ namespace downward::cli::merge_and_shrink {
 
 void add_label_reduction_category(Registry& raw_registry)
 {
-    auto& category = raw_registry.insert_shared_category_plugin<LabelReduction>(
-        "LabelReduction");
-    category.document_synopsis(
+    raw_registry.insert_shared_category_plugin<LabelReduction>(
+        "LabelReduction",
         "This page describes the current single 'option' for "
         "label reduction.");
 

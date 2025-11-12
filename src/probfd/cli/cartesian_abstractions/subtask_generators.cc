@@ -98,9 +98,8 @@ namespace probfd::cli::cartesian_abstractions {
 
 void add_subtask_generator_category(Registry& raw_registry)
 {
-    auto& category = raw_registry.insert_shared_category_plugin<SubtaskGenerator>(
-        "PSubtaskGenerator");
-    category.document_synopsis(
+    raw_registry.insert_shared_category_plugin<SubtaskGenerator>(
+        "PSubtaskGenerator",
         "Subtask generator (used by the CEGAR heuristic).");
 }
 

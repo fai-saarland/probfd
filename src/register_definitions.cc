@@ -310,21 +310,24 @@ namespace probfd {
 static void register_fast_downward_types(plugins::Registry& raw_registry)
 {
     // Duration types
-    raw_registry
-        .insert_category_plugin<downward::utils::FNanoSeconds>("nanoseconds")
-        .document_synopsis("Type representing a nanosecond.");
-    raw_registry
-        .insert_category_plugin<downward::utils::FMicroSeconds>("microseconds")
-        .document_synopsis("Type representing a microsecond.");
-    raw_registry
-        .insert_category_plugin<downward::utils::FMilliSeconds>("milliseconds")
-        .document_synopsis("Type representing a millisecond.");
-    raw_registry.insert_category_plugin<downward::utils::FSeconds>("seconds")
-        .document_synopsis("Type representing a second.");
-    raw_registry.insert_category_plugin<downward::utils::FMinutes>("minutes")
-        .document_synopsis("Type representing a minute.");
-    raw_registry.insert_category_plugin<downward::utils::FHours>("hours")
-        .document_synopsis("Type representing an hour.");
+    raw_registry.insert_category_plugin<downward::utils::FNanoSeconds>(
+        "nanoseconds",
+        "Type representing a nanosecond.");
+    raw_registry.insert_category_plugin<downward::utils::FMicroSeconds>(
+        "microseconds",
+        "Type representing a microsecond.");
+    raw_registry.insert_category_plugin<downward::utils::FMilliSeconds>(
+        "milliseconds",
+        "Type representing a millisecond.");
+    raw_registry.insert_category_plugin<downward::utils::FSeconds>(
+        "seconds",
+        "Type representing a second.");
+    raw_registry.insert_category_plugin<downward::utils::FMinutes>(
+        "minutes",
+        "Type representing a minute.");
+    raw_registry.insert_category_plugin<downward::utils::FHours>(
+        "hours",
+        "Type representing an hour.");
 
     // Cartesian abstractions
     cartesian_abstractions::add_subtask_generator_category(raw_registry);
@@ -385,8 +388,7 @@ static void register_fast_downward_types(plugins::Registry& raw_registry)
     add_operator_cost_category(raw_registry);
 }
 
-static void
-register_fast_downward_definitions(plugins::Registry& raw_registry)
+static void register_fast_downward_definitions(plugins::Registry& raw_registry)
 {
     using namespace downward::utils::string_literals;
 
